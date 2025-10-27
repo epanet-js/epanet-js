@@ -4,11 +4,11 @@ import { HydraulicModel } from "src/hydraulic-model";
 import { ArrayBufferType, canUseWorker } from "src/infra/worker";
 import {
   EncodedOrphanAssets,
-  encodeHydraulicModel,
   decodeOrphanAssets,
   OrphanAsset,
   RunData,
 } from "./data";
+import { HydraulicModelEncoder } from "../shared";
 import { findOrphanAssets } from "./find-orphan-assets";
 import type { OrphanAssetsWorkerAPI } from "./worker";
 
@@ -21,10 +21,17 @@ export const runCheck = async (
     throw new DOMException("Operation cancelled", "AbortError");
   }
 
-  const { idsLookup, ...inputData } = encodeHydraulicModel(
-    hydraulicModel,
+  const encoder = new HydraulicModelEncoder(hydraulicModel, {
+    links: new Set(["connections", "types"]),
+    nodes: new Set(["connections"]),
     bufferType,
-  );
+  });
+  const { links, nodes, linkIdsLookup, nodeIdsLookup } = encoder.buildBuffers();
+  const inputData: RunData = {
+    linksConnections: links.connections,
+    linkTypes: links.types,
+    nodeConnections: nodes.connections,
+  };
 
   const useWorker = canUseWorker();
 
@@ -32,7 +39,12 @@ export const runCheck = async (
     ? await runWithWorker(inputData, signal)
     : findOrphanAssets(inputData);
 
-  return decodeOrphanAssets(hydraulicModel, idsLookup, encodedOrphanAssets);
+  return decodeOrphanAssets(
+    hydraulicModel,
+    nodeIdsLookup,
+    linkIdsLookup,
+    encodedOrphanAssets,
+  );
 };
 
 const runWithWorker = async (

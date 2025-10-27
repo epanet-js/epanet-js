@@ -9,7 +9,7 @@ import {
   BinaryData,
   BufferType,
   IdMapper,
-  DataSize,
+  EncodedSize,
   createBuffer,
   encodeCount,
   decodeCount,
@@ -47,9 +47,9 @@ export interface CrossingPipe {
   intersectionPoint: Position;
 }
 
-const NODE_BINARY_SIZE = DataSize.id + DataSize.position;
-const PIPE_BINARY_SIZE = DataSize.id * 3 + DataSize.position * 2;
-const SEGMENT_BINARY_SIZE = DataSize.id + DataSize.position * 2;
+const NODE_BINARY_SIZE = EncodedSize.id + EncodedSize.position;
+const PIPE_BINARY_SIZE = EncodedSize.id * 3 + EncodedSize.position * 2;
+const SEGMENT_BINARY_SIZE = EncodedSize.id + EncodedSize.position * 2;
 
 export function encodeHydraulicModel(
   model: HydraulicModel,
@@ -147,16 +147,16 @@ function encodeNodesBuffer(
   geoIndex: BinaryData;
 } {
   const recordSize = NODE_BINARY_SIZE;
-  const totalSize = DataSize.count + nodes.length * recordSize;
+  const totalSize = EncodedSize.count + nodes.length * recordSize;
   const buffer = createBuffer(totalSize, bufferType);
   const geoIndex = new Flatbush(Math.max(nodes.length, 1));
 
   const view = new DataView(buffer);
   encodeCount(view, nodes.length);
   nodes.forEach((n, i) => {
-    let offset = DataSize.count + i * recordSize;
+    let offset = EncodedSize.count + i * recordSize;
     encodeId(n.id, offset, view);
-    offset += DataSize.id;
+    offset += EncodedSize.id;
     encodePosition(n.position, offset, view);
 
     const [lon, lat] = n.position;
@@ -182,19 +182,19 @@ function encodePipesBuffer(
   bufferType: BufferType,
 ): BinaryData {
   const recordSize = PIPE_BINARY_SIZE;
-  const totalSize = DataSize.count + pipes.length * recordSize;
+  const totalSize = EncodedSize.count + pipes.length * recordSize;
   const buffer = createBuffer(totalSize, bufferType);
 
   const view = new DataView(buffer);
   encodeCount(view, pipes.length);
   pipes.forEach((p, i) => {
-    let offset = DataSize.count + i * recordSize;
+    let offset = EncodedSize.count + i * recordSize;
     encodeId(p.id, offset, view);
-    offset += DataSize.id;
+    offset += EncodedSize.id;
     encodeId(p.start, offset, view);
-    offset += DataSize.id;
+    offset += EncodedSize.id;
     encodeId(p.end, offset, view);
-    offset += DataSize.id;
+    offset += EncodedSize.id;
     encodeBounds(
       [p.bbox[0][0], p.bbox[0][1], p.bbox[1][0], p.bbox[1][1]],
       offset,
@@ -217,7 +217,7 @@ function encodePipeSegmentsBuffer(
 } {
   const count = segments.length;
   const recordSize = SEGMENT_BINARY_SIZE;
-  const totalSize = DataSize.count + count * recordSize;
+  const totalSize = EncodedSize.count + count * recordSize;
   const buffer = createBuffer(totalSize, bufferType);
   const geoIndex = new Flatbush(Math.max(count, 1));
 
@@ -225,9 +225,9 @@ function encodePipeSegmentsBuffer(
   encodeCount(view, segments.length);
 
   segments.forEach((segment, i) => {
-    let offset = DataSize.count + i * recordSize;
+    let offset = EncodedSize.count + i * recordSize;
     encodeId(segment.pipeId, offset, view);
-    offset += DataSize.id;
+    offset += EncodedSize.id;
     encodeLineCoordinates(
       [segment.startPosition, segment.endPosition],
       offset,
@@ -334,13 +334,13 @@ export class PipeBufferView {
 
   *iter(): Generator<EncodedPipe> {
     for (let i = 0; i < this.count; i++) {
-      let offset = DataSize.count + i * PIPE_BINARY_SIZE;
+      let offset = EncodedSize.count + i * PIPE_BINARY_SIZE;
       const id = decodeId(offset, this.view);
-      offset += DataSize.id;
+      offset += EncodedSize.id;
       const startNode = decodeId(offset, this.view);
-      offset += DataSize.id;
+      offset += EncodedSize.id;
       const endNode = decodeId(offset, this.view);
-      offset += DataSize.id;
+      offset += EncodedSize.id;
       const bounds = decodeBounds(offset, this.view);
       const bboxMin: Position = [bounds[0], bounds[1]];
       const bboxMax: Position = [bounds[2], bounds[3]];
@@ -356,13 +356,13 @@ export class PipeBufferView {
   getByIndex(pipeId: number): EncodedPipe | null {
     const pipeIndex = this.indexesLookup.get(pipeId);
     if (pipeIndex === undefined) return null;
-    let offset = DataSize.count + pipeIndex * PIPE_BINARY_SIZE;
+    let offset = EncodedSize.count + pipeIndex * PIPE_BINARY_SIZE;
     const id = decodeId(offset, this.view);
-    offset += DataSize.id;
+    offset += EncodedSize.id;
     const startNode = decodeId(offset, this.view);
-    offset += DataSize.id;
+    offset += EncodedSize.id;
     const endNode = decodeId(offset, this.view);
-    offset += DataSize.id;
+    offset += EncodedSize.id;
     const bounds = decodeBounds(offset, this.view);
     const bboxMin: Position = [bounds[0], bounds[1]];
     const bboxMax: Position = [bounds[2], bounds[3]];
@@ -398,9 +398,9 @@ export class NodeBufferView {
 
   *iter(): Generator<EncodedNode> {
     for (let i = 0; i < this.count; i++) {
-      let offset = DataSize.count + i * NODE_BINARY_SIZE;
+      let offset = EncodedSize.count + i * NODE_BINARY_SIZE;
       const id = decodeId(offset, this.view);
-      offset += DataSize.id;
+      offset += EncodedSize.id;
       const position = decodePosition(offset, this.view);
       yield { id, position };
     }
@@ -416,9 +416,9 @@ export class NodeBufferView {
   getByIndex(id: number): EncodedNode | null {
     const nodeIndex = this.indexesLookup.get(id);
     if (nodeIndex === undefined) return null;
-    let offset = DataSize.count + nodeIndex * NODE_BINARY_SIZE;
+    let offset = EncodedSize.count + nodeIndex * NODE_BINARY_SIZE;
     const nodeId = decodeId(offset, this.view);
-    offset += DataSize.id;
+    offset += EncodedSize.id;
     const position = decodePosition(offset, this.view);
     return { id: nodeId, position };
   }
@@ -434,13 +434,14 @@ export class SegmentsGeometriesBufferView {
   }
 
   getId(index: number): number {
-    return decodeId(DataSize.count + index * SEGMENT_BINARY_SIZE, this.view);
+    return decodeId(EncodedSize.count + index * SEGMENT_BINARY_SIZE, this.view);
   }
 
   getCoordinates(index: number): [Position, Position] {
-    let offset = DataSize.count + index * SEGMENT_BINARY_SIZE + DataSize.id;
+    let offset =
+      EncodedSize.count + index * SEGMENT_BINARY_SIZE + EncodedSize.id;
     const startPosition = decodePosition(offset, this.view);
-    offset += DataSize.position;
+    offset += EncodedSize.position;
     const endPosition = decodePosition(offset, this.view);
     return [startPosition, endPosition];
   }

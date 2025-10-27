@@ -1,34 +1,51 @@
-import { HydraulicModelBufferView, EncodedOrphanAssets, RunData } from "./data";
+import { EncodedOrphanAssets, RunData } from "./data";
+import {
+  FixedSizeBufferView,
+  EncodedSize,
+  decodeType,
+  VariableSizeBufferView,
+  decodeIdsList,
+  toLinkType,
+  decodeLinkConnections,
+} from "../shared";
 
 export function findOrphanAssets(input: RunData): EncodedOrphanAssets {
-  const data = new HydraulicModelBufferView(
-    input.nodeBuffer,
-    input.pipeBuffer,
-    input.otherLinkBuffer,
+  const linksView = new FixedSizeBufferView<[number, number]>(
+    input.linksConnections,
+    EncodedSize.id * 2,
+    decodeLinkConnections,
+  );
+  const linkTypesView = new FixedSizeBufferView<number>(
+    input.linkTypes,
+    EncodedSize.type,
+    decodeType,
+  );
+  const nodeConnectionsView = new VariableSizeBufferView(
+    input.nodeConnections,
+    decodeIdsList,
   );
 
-  const connected = new Set<number>();
-
-  for (const pipe of data.pipes()) {
-    connected.add(pipe.startNode);
-    connected.add(pipe.endNode);
-  }
-
   const orphanLinks: number[] = [];
-  for (const link of data.otherLinks()) {
-    if (!connected.has(link.startNode) && !connected.has(link.endNode)) {
-      orphanLinks.push(link.id);
+  for (const [id, linkType] of linkTypesView.enumerate()) {
+    if (toLinkType(linkType) === "pipe") continue;
+
+    const linkConnections = linksView.getById(id);
+    if (!linkConnections) continue;
+
+    const [startNode, endNode] = linkConnections;
+    const startNodeConnections = (nodeConnectionsView.getById(startNode) ?? [])
+      .length;
+    const endNodeConnections = (nodeConnectionsView.getById(endNode) ?? [])
+      .length;
+
+    if (startNodeConnections <= 1 && endNodeConnections <= 1) {
+      orphanLinks.push(id);
     }
-    // Mark nodes as connected to avoid duplicate reporting
-    connected.add(link.startNode);
-    connected.add(link.endNode);
   }
 
   const orphanNodes: number[] = [];
-  for (const node of data.nodes()) {
-    if (!connected.has(node.id)) {
-      orphanNodes.push(node.id);
-    }
+  for (const [id, connections] of nodeConnectionsView.enumerate()) {
+    if (connections.length === 0) orphanNodes.push(id);
   }
 
   return { orphanNodes, orphanLinks };

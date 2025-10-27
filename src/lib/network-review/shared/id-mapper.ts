@@ -23,4 +23,8 @@ export class IdMapper {
   getIdsLookup(): string[] {
     return this.idsLookup;
   }
+
+  get count(): number {
+    return this.idsLookup.length;
+  }
 }

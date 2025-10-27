@@ -5,7 +5,7 @@ import {
   BinaryData,
   BufferType,
   IdMapper,
-  DataSize,
+  EncodedSize,
   createBuffer,
   encodeCount,
   decodeCount,
@@ -45,8 +45,9 @@ export type EncodedSubNetworks = {
   }[];
 };
 
-const NODE_BINARY_SIZE = DataSize.id + DataSize.type;
-const LINK_BINARY_SIZE = DataSize.id * 3 + DataSize.type + DataSize.bounds;
+const NODE_BINARY_SIZE = EncodedSize.id + EncodedSize.type;
+const LINK_BINARY_SIZE =
+  EncodedSize.id * 3 + EncodedSize.type + EncodedSize.bounds;
 
 const NODE_TYPE_MAP = { junction: 0, tank: 1, reservoir: 2 } as const;
 const LINK_TYPE_MAP = { pipe: 0, valve: 1, pump: 2 } as const;
@@ -105,15 +106,15 @@ function encodeNodesBuffer(
   bufferType: BufferType,
 ): BinaryData {
   const recordSize = NODE_BINARY_SIZE;
-  const totalSize = DataSize.count + nodes.length * recordSize;
+  const totalSize = EncodedSize.count + nodes.length * recordSize;
   const buffer = createBuffer(totalSize, bufferType);
 
   const view = new DataView(buffer);
   encodeCount(view, nodes.length);
   nodes.forEach((n, i) => {
-    let offset = DataSize.count + i * recordSize;
+    let offset = EncodedSize.count + i * recordSize;
     encodeId(n.id, offset, view);
-    offset += DataSize.id;
+    offset += EncodedSize.id;
     encodeType(n.type, offset, view);
   });
   return buffer;
@@ -130,21 +131,21 @@ function encodeLinksBuffer(
   bufferType: BufferType,
 ): BinaryData {
   const recordSize = LINK_BINARY_SIZE;
-  const totalSize = DataSize.count + links.length * recordSize;
+  const totalSize = EncodedSize.count + links.length * recordSize;
   const buffer = createBuffer(totalSize, bufferType);
 
   const view = new DataView(buffer);
   encodeCount(view, links.length);
   links.forEach((l, i) => {
-    let offset = DataSize.count + i * recordSize;
+    let offset = EncodedSize.count + i * recordSize;
     encodeId(l.id, offset, view);
-    offset += DataSize.id;
+    offset += EncodedSize.id;
     encodeId(l.start, offset, view);
-    offset += DataSize.id;
+    offset += EncodedSize.id;
     encodeId(l.end, offset, view);
-    offset += DataSize.id;
+    offset += EncodedSize.id;
     encodeType(l.type, offset, view);
-    offset += DataSize.type;
+    offset += EncodedSize.type;
     encodeBounds(l.bounds, offset, view);
   });
   return buffer;
@@ -197,9 +198,9 @@ export class HydraulicModelBufferViewForSubnetworks {
 
   *nodes(): Generator<Node> {
     for (let i = 0; i < this.nodeCount; i++) {
-      let offset = DataSize.count + i * NODE_BINARY_SIZE;
+      let offset = EncodedSize.count + i * NODE_BINARY_SIZE;
       const id = decodeId(offset, this.nodeView);
-      offset += DataSize.id;
+      offset += EncodedSize.id;
       const nodeType = decodeType(offset, this.nodeView);
       yield { id, nodeType };
     }
@@ -207,15 +208,15 @@ export class HydraulicModelBufferViewForSubnetworks {
 
   *links(): Generator<Link> {
     for (let i = 0; i < this.linkCount; i++) {
-      let offset = DataSize.count + i * LINK_BINARY_SIZE;
+      let offset = EncodedSize.count + i * LINK_BINARY_SIZE;
       const id = decodeId(offset, this.linkView);
-      offset += DataSize.id;
+      offset += EncodedSize.id;
       const startNode = decodeId(offset, this.linkView);
-      offset += DataSize.id;
+      offset += EncodedSize.id;
       const endNode = decodeId(offset, this.linkView);
-      offset += DataSize.id;
+      offset += EncodedSize.id;
       const linkType = decodeType(offset, this.linkView);
-      offset += DataSize.type;
+      offset += EncodedSize.type;
       const bounds = decodeBounds(offset, this.linkView);
       yield {
         id,

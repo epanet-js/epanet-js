@@ -1,27 +1,17 @@
-import { Pipe, AssetType, AssetId } from "src/hydraulic-model/asset-types";
+import { AssetType, AssetId } from "src/hydraulic-model/asset-types";
 import { HydraulicModel } from "src/hydraulic-model";
 import {
   BinaryData,
-  BufferType,
-  IdMapper,
-  DataSize,
-  createBuffer,
-  encodeCount,
-  decodeCount,
-  encodeNodeId,
-  decodeNodeId,
-  encodeLink,
-  decodeLink,
+  BufferWithIndex,
+  HydraulicModelEncoder,
+  NetworkReviewBuffers,
 } from "../shared";
 
-export type EncodedHydraulicModel = {
-  nodeBuffer: BinaryData;
-  pipeBuffer: BinaryData;
-  otherLinkBuffer: BinaryData;
-  idsLookup: string[];
+export type RunData = {
+  linksConnections: BinaryData;
+  linkTypes: BinaryData;
+  nodeConnections: BufferWithIndex;
 };
-
-export type RunData = Omit<EncodedHydraulicModel, "idsLookup">;
 
 export type EncodedOrphanAssets = {
   orphanNodes: number[];
@@ -34,79 +24,6 @@ export interface OrphanAsset {
   label: string;
 }
 
-const NODE_BINARY_SIZE = DataSize.id;
-const LINK_BINARY_SIZE = DataSize.id * 3;
-
-export function encodeHydraulicModel(
-  model: HydraulicModel,
-  bufferType: BufferType = "array",
-): EncodedHydraulicModel {
-  const idMapper = new IdMapper();
-
-  const nodes: { id: number }[] = [];
-  const pipes: { id: number; start: number; end: number }[] = [];
-  const otherLinks: { id: number; start: number; end: number }[] = [];
-
-  for (const [id, asset] of model.assets) {
-    const idx = idMapper.getOrAssignIdx(id);
-
-    if (asset.isLink) {
-      const [startId, endId] = (asset as Pipe).connections;
-      const start = idMapper.getOrAssignIdx(startId);
-      const end = idMapper.getOrAssignIdx(endId);
-
-      if (asset.type === "pipe") {
-        pipes.push({ id: idx, start, end });
-      } else {
-        otherLinks.push({ id: idx, start, end });
-      }
-    } else {
-      nodes.push({ id: idx });
-    }
-  }
-
-  return {
-    nodeBuffer: encodeNodesBuffer(nodes, bufferType),
-    pipeBuffer: encodeLinksBuffer(pipes, bufferType),
-    otherLinkBuffer: encodeLinksBuffer(otherLinks, bufferType),
-    idsLookup: idMapper.getIdsLookup(),
-  };
-}
-
-function encodeNodesBuffer(
-  nodes: { id: number }[],
-  bufferType: BufferType,
-): BinaryData {
-  const recordSize = NODE_BINARY_SIZE;
-  const totalSize = DataSize.count + nodes.length * recordSize;
-  const buffer = createBuffer(totalSize, bufferType);
-
-  const view = new DataView(buffer);
-  encodeCount(view, nodes.length);
-  nodes.forEach((n, i) => {
-    const offset = DataSize.count + i * recordSize;
-    encodeNodeId(offset, view, n.id);
-  });
-  return buffer;
-}
-
-function encodeLinksBuffer(
-  links: { id: number; start: number; end: number }[],
-  bufferType: BufferType,
-): BinaryData {
-  const recordSize = LINK_BINARY_SIZE;
-  const totalSize = DataSize.count + links.length * recordSize;
-  const buffer = createBuffer(totalSize, bufferType);
-
-  const view = new DataView(buffer);
-  encodeCount(view, links.length);
-  links.forEach((l, i) => {
-    const offset = DataSize.count + i * recordSize;
-    encodeLink(offset, view, l.id, l.start, l.end);
-  });
-  return buffer;
-}
-
 enum typeOrder {
   "reservoir" = 5,
   "tank" = 4,
@@ -116,9 +33,21 @@ enum typeOrder {
   "pipe" = 0,
 }
 
+export function encodeNetworkReviewBuffers(
+  model: HydraulicModel,
+): NetworkReviewBuffers {
+  const encoder = new HydraulicModelEncoder(model, {
+    links: new Set(["connections", "types"]),
+    nodes: new Set(["connections"]),
+    bufferType: "array",
+  });
+  return encoder.buildBuffers();
+}
+
 export function decodeOrphanAssets(
   model: HydraulicModel,
-  idsLookup: string[],
+  nodeIdsLookup: string[],
+  linkIdsLookup: string[],
   encodedOrphanAssets: EncodedOrphanAssets,
 ): OrphanAsset[] {
   const orphanAssets: OrphanAsset[] = [];
@@ -126,7 +55,7 @@ export function decodeOrphanAssets(
   const { orphanNodes, orphanLinks } = encodedOrphanAssets;
 
   orphanLinks.forEach((linkIdx) => {
-    const linkId = idsLookup[linkIdx];
+    const linkId = linkIdsLookup[linkIdx];
     const linkAsset = model.assets.get(linkId);
     if (linkAsset) {
       orphanAssets.push({
@@ -138,7 +67,7 @@ export function decodeOrphanAssets(
   });
 
   orphanNodes.forEach((nodeIdx) => {
-    const nodeId = idsLookup[nodeIdx];
+    const nodeId = nodeIdsLookup[nodeIdx];
     const nodeAsset = model.assets.get(nodeId);
     if (nodeAsset) {
       orphanAssets.push({
@@ -158,61 +87,4 @@ export function decodeOrphanAssets(
     }
     return labelA < labelB ? -1 : labelA > labelB ? 1 : 0;
   });
-}
-
-export interface Node {
-  id: number;
-}
-
-export interface Link {
-  id: number;
-  startNode: number;
-  endNode: number;
-}
-
-export class HydraulicModelBufferView {
-  private nodeView: DataView;
-  private pipeView: DataView;
-  private otherLinkView: DataView;
-
-  readonly nodeCount: number;
-  readonly pipeCount: number;
-  readonly otherLinkCount: number;
-
-  constructor(
-    public readonly nodeBuffer: BinaryData,
-    public readonly pipeBuffer: BinaryData,
-    public readonly otherLinkBuffer: BinaryData,
-  ) {
-    this.nodeView = new DataView(nodeBuffer);
-    this.pipeView = new DataView(pipeBuffer);
-    this.otherLinkView = new DataView(otherLinkBuffer);
-
-    this.nodeCount = decodeCount(this.nodeView);
-    this.pipeCount = decodeCount(this.pipeView);
-    this.otherLinkCount = decodeCount(this.otherLinkView);
-  }
-
-  *nodes(): Generator<Node> {
-    for (let i = 0; i < this.nodeCount; i++) {
-      yield {
-        id: decodeNodeId(DataSize.count + i * NODE_BINARY_SIZE, this.nodeView),
-      };
-    }
-  }
-
-  *pipes(): Generator<Link> {
-    for (let i = 0; i < this.pipeCount; i++) {
-      yield decodeLink(DataSize.count + i * LINK_BINARY_SIZE, this.pipeView);
-    }
-  }
-
-  *otherLinks(): Generator<Link> {
-    for (let i = 0; i < this.otherLinkCount; i++) {
-      yield decodeLink(
-        DataSize.count + i * LINK_BINARY_SIZE,
-        this.otherLinkView,
-      );
-    }
-  }
 }

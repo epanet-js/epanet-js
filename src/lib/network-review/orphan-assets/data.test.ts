@@ -1,87 +1,63 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { decodeOrphanAssets, encodeNetworkReviewBuffers } from "./data";
 import {
-  HydraulicModelBufferView,
-  decodeOrphanAssets,
-  encodeHydraulicModel,
-} from "./data";
+  FixedSizeBufferView,
+  EncodedSize,
+  decodeId,
+  decodeType,
+} from "../shared";
 
 describe("HydraulicModel encoding/decoding", () => {
-  it("encodes/decodes nodes correctly", () => {
+  it("encodes/decodes links correctly", () => {
     const model = HydraulicModelBuilder.with()
       .aTank("T1")
       .aJunction("J1")
+      .aJunction("J2")
       .aPipe("P1", { startNodeId: "T1", endNodeId: "J1" })
-      .build();
-
-    const { nodeBuffer, pipeBuffer, otherLinkBuffer, idsLookup } =
-      encodeHydraulicModel(model);
-
-    const view = new HydraulicModelBufferView(
-      nodeBuffer,
-      pipeBuffer,
-      otherLinkBuffer,
-    );
-
-    const nodeIds = Array.from(view.nodes()).map((n) => idsLookup[n.id]);
-    expect(nodeIds.length).toBe(2);
-    expect(nodeIds).toEqual(["T1", "J1"]);
-  });
-
-  it("encodes/decodes pipes correctly", () => {
-    const model = HydraulicModelBuilder.with()
-      .aNode("J1")
-      .aNode("J2")
-      .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
-      .build();
-
-    const { nodeBuffer, pipeBuffer, otherLinkBuffer, idsLookup } =
-      encodeHydraulicModel(model);
-
-    const view = new HydraulicModelBufferView(
-      nodeBuffer,
-      pipeBuffer,
-      otherLinkBuffer,
-    );
-
-    const pipes = Array.from(view.pipes()).map((n) => ({
-      id: idsLookup[n.id],
-      startNode: idsLookup[n.startNode],
-      endNode: idsLookup[n.endNode],
-    }));
-
-    expect(pipes.length).toBe(1);
-    expect(pipes[0]).toEqual({ id: "P1", startNode: "J1", endNode: "J2" });
-  });
-
-  it("encodes/decodes other links correctly", () => {
-    const model = HydraulicModelBuilder.with()
-      .aNode("J1")
-      .aNode("J2")
       .aValve("V1", { startNodeId: "J1", endNodeId: "J2" })
       .aPump("PM1", { startNodeId: "J1", endNodeId: "J2" })
       .build();
 
-    const { nodeBuffer, pipeBuffer, otherLinkBuffer, idsLookup } =
-      encodeHydraulicModel(model);
-
-    const view = new HydraulicModelBufferView(
-      nodeBuffer,
-      pipeBuffer,
-      otherLinkBuffer,
+    const encoded = encodeNetworkReviewBuffers(model);
+    const linksView = new FixedSizeBufferView<[number, number]>(
+      encoded.links.connections,
+      EncodedSize.id * 2,
+      (offset, view) => [
+        decodeId(offset, view),
+        decodeId(offset + EncodedSize.id, view),
+      ],
+    );
+    const linkTypesView = new FixedSizeBufferView<number>(
+      encoded.links.types,
+      EncodedSize.type,
+      decodeType,
     );
 
-    const otherLinks = Array.from(view.otherLinks()).map((n) => ({
-      id: idsLookup[n.id],
-      startNode: idsLookup[n.startNode],
-      endNode: idsLookup[n.endNode],
+    const links = Array.from(linksView.iter()).map((link, idx) => ({
+      id: encoded.linkIdsLookup[idx],
+      startNode: encoded.nodeIdsLookup[link[0]],
+      endNode: encoded.nodeIdsLookup[link[1]],
+      isPipe: linkTypesView.getById(idx) === 0,
     }));
 
-    expect(otherLinks.length).toBe(2);
-    expect(otherLinks[0]).toEqual({ id: "V1", startNode: "J1", endNode: "J2" });
-    expect(otherLinks[1]).toEqual({
+    expect(links.length).toBe(3);
+    expect(links[0]).toEqual({
+      id: "P1",
+      startNode: "T1",
+      endNode: "J1",
+      isPipe: true,
+    });
+    expect(links[1]).toEqual({
+      id: "V1",
+      startNode: "J1",
+      endNode: "J2",
+      isPipe: false,
+    });
+    expect(links[2]).toEqual({
       id: "PM1",
       startNode: "J1",
       endNode: "J2",
+      isPipe: false,
     });
   });
 
@@ -98,13 +74,19 @@ describe("HydraulicModel encoding/decoding", () => {
       .aReservoir("2", { label: "R2" })
       .aReservoir("1", { label: "R1" })
       .build();
-    const idsLookup = ["0", "9", "8", "7", "6", "5", "4", "3", "2", "1"];
+    const nodeIdsLookup = ["0", "9", "4", "3", "2", "1"];
+    const linkIdsLookup = ["8", "7", "6", "5"];
     const rawOrphanAssets = {
-      orphanNodes: [0, 1, 6, 7, 8, 9],
-      orphanLinks: [2, 3, 4, 5],
+      orphanNodes: [0, 1, 2, 3, 4, 5],
+      orphanLinks: [0, 1, 2, 3],
     };
 
-    const orphanAssets = decodeOrphanAssets(model, idsLookup, rawOrphanAssets);
+    const orphanAssets = decodeOrphanAssets(
+      model,
+      nodeIdsLookup,
+      linkIdsLookup,
+      rawOrphanAssets,
+    );
 
     expect(orphanAssets.map((asset) => asset.label)).toEqual([
       "R1",
