@@ -369,22 +369,26 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           );
         }
 
-        if (hasNewSelection || hasNewStyles) {
-          if (isSelectionLayersEnabled) {
-            void updateSelectionWithSource(
-              map,
-              mapState.selection,
-              assets,
-              idMap,
-            );
-          } else {
-            updateSelection(
-              map,
-              mapState.selection,
-              previousMapState.selection,
-              idMap,
-            );
-          }
+        if (!isSelectionLayersEnabled && (hasNewSelection || hasNewStyles)) {
+          updateSelection(
+            map,
+            mapState.selection,
+            previousMapState.selection,
+            idMap,
+          );
+        }
+
+        if (
+          isSelectionLayersEnabled &&
+          (hasNewSelection || hasNewStyles || hasNewEphemeralState)
+        ) {
+          void updateSelectionWithSource(
+            map,
+            mapState.selection,
+            assets,
+            idMap,
+            mapState.movedAssetIds,
+          );
         }
 
         if (hasNewStyles) {
@@ -630,8 +634,14 @@ const updateSelectionWithSource = withDebugInstrumentation(
     selection: Sel,
     assets: AssetsMap,
     idMap: IDMap,
+    movedAssetIds: Set<AssetId>,
   ): Promise<void> => {
-    const features = buildSelectionSource(assets, idMap, selection);
+    const features = buildSelectionSource(
+      assets,
+      idMap,
+      selection,
+      movedAssetIds,
+    );
     await map.setSource("selected-features", features);
   },
   { name: "MAP_STATE:UPDATE_SELECTION_SOURCE", maxDurationMs: 100 },

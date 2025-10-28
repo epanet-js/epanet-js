@@ -1,4 +1,4 @@
-import { AssetsMap, Asset, Pipe, Pump } from "src/hydraulic-model";
+import { AssetsMap, Asset, AssetId, Pipe, Pump } from "src/hydraulic-model";
 import { IDMap, UIDMap } from "src/lib/id-mapper";
 import { Feature } from "src/types";
 import { Sel, USelection } from "src/selection";
@@ -9,6 +9,7 @@ export const buildSelectionSource = (
   assets: AssetsMap,
   idMap: IDMap,
   selection: Sel,
+  movedAssetIds: Set<AssetId> = new Set(),
 ): Feature[] => {
   const selectedIds = USelection.toIds(selection);
   if (selectedIds.length === 0) {
@@ -22,6 +23,10 @@ export const buildSelectionSource = (
     const asset = assets.get(assetId);
 
     if (!asset || asset.feature.properties?.visibility === false) {
+      continue;
+    }
+
+    if (movedAssetIds.has(assetId)) {
       continue;
     }
 
