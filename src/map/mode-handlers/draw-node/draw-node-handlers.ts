@@ -42,6 +42,7 @@ export function useDrawNodeHandlers({
   );
   const { selectAsset } = useSelection(selection);
   const isReplaceNodeOn = useFeatureFlag("FLAG_REPLACE_NODE");
+  const isVertexSnapOn = useFeatureFlag("FLAG_VERTEX_SNAP");
 
   const submitNode = (
     nodeType: NodeType,
@@ -54,6 +55,7 @@ export function useDrawNodeHandlers({
       coordinates,
       elevation,
       pipeIdToSplit,
+      enableVertexSnap: isVertexSnapOn,
     });
     transact(moment);
     userTracking.capture({ name: "asset.created", type: nodeType });
