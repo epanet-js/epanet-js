@@ -198,7 +198,7 @@ const FreePlan = ({ paymentType }: { paymentType: PaymentType }) => {
   const translate = useTranslate();
   return (
     <div className="bg-white border border-gray-100 rounded-md shadow-md overflow-hidden flex flex-col justify-between">
-      <div className="p-6">
+      <div className="p-6 grid max-xs:block md:block grid-cols-2 gap-4">
         <PlanHeader
           name="Free"
           price="$0"
@@ -255,7 +255,7 @@ const PersonalPlan = ({ paymentType }: { paymentType: PaymentType }) => {
 
   return (
     <div className="relative bg-white border border-purple-100 rounded-lg shadow-md shadow-purple-300 overflow-hidden flex flex-col justify-between">
-      <div className="p-6">
+      <div className="p-6 grid max-xs:block md:block grid-cols-2 gap-4">
         <div className="absolute top-0 right-0 bg-gradient-to-br from-purple-300 via-purple-400 to-purple-500 text-white text-xs font-semibold py-1 px-2 rounded-bl-lg">
           {translate("mostPopular")}
         </div>
@@ -265,48 +265,50 @@ const PersonalPlan = ({ paymentType }: { paymentType: PaymentType }) => {
           claim={translate("tryItYourself")}
           payment={paymentType}
         />
-        <FeaturesList
-          title={translate("everythingAnd", "Free")}
-          items={[
-            {
-              feature: translate("professionalSupport"),
-              Icon: CloseIcon,
-              iconColor: "text-red-500",
-            },
-            {
-              feature: translate("customMapLayers"),
-              Icon: CheckIcon,
-              iconColor: "text-green-500",
-            },
-          ]}
-        />
-        <div className="h-4"></div>
-        <FeaturesList
-          title={`${translate("comingSoon")}:`}
-          textColor="text-gray-500"
-          items={[
-            {
-              feature: translate("scenarios"),
-              Icon: CheckIcon,
-              iconColor: "text-gray-400",
-            },
-            {
-              feature: translate("cloudStorage"),
-              Icon: CheckIcon,
-              iconColor: "text-gray-400",
-            },
-            {
-              feature: translate("pointInTimeRestore", "30"),
-              Icon: CheckIcon,
-              iconColor: "text-gray-400",
-            },
-            {
-              feature: translate("demandsAnalysis"),
-              Icon: CheckIcon,
-              iconColor: "text-gray-400",
-            },
-          ]}
-        />
+        <div>
+          <FeaturesList
+            title={translate("everythingAnd", "Free")}
+            items={[
+              {
+                feature: translate("professionalSupport"),
+                Icon: CloseIcon,
+                iconColor: "text-red-500",
+              },
+              {
+                feature: translate("customMapLayers"),
+                Icon: CheckIcon,
+                iconColor: "text-green-500",
+              },
+            ]}
+          />
+          <div className="h-4"></div>
+          <FeaturesList
+            title={`${translate("comingSoon")}:`}
+            textColor="text-gray-500"
+            items={[
+              {
+                feature: translate("scenarios"),
+                Icon: CheckIcon,
+                iconColor: "text-gray-400",
+              },
+              {
+                feature: translate("cloudStorage"),
+                Icon: CheckIcon,
+                iconColor: "text-gray-400",
+              },
+              {
+                feature: translate("pointInTimeRestore", "30"),
+                Icon: CheckIcon,
+                iconColor: "text-gray-400",
+              },
+              {
+                feature: translate("demandsAnalysis"),
+                Icon: CheckIcon,
+                iconColor: "text-gray-400",
+              },
+            ]}
+          />
+        </div>
       </div>
       <div className="p-4 w-full">
         <CheckoutButton plan="personal" paymentType={paymentType}>
@@ -325,7 +327,7 @@ const EducationPlan = ({ paymentType }: { paymentType: PaymentType }) => {
 
   return (
     <div className="relative bg-white border border-gray-100 rounded-lg shadow-md shadow-gray-300 overflow-hidden flex flex-col h-fit">
-      <div className="p-6 pb-0">
+      <div className="p-6 grid max-xs:block md:block grid-cols-2 gap-4">
         <PlanHeader
           name="Education"
           price="$0"
@@ -383,7 +385,7 @@ const ProPlan = ({ paymentType }: { paymentType: PaymentType }) => {
 
   return (
     <div className="relative bg-white border border-purple-100 rounded-lg shadow-md shadow-purple-300 overflow-hidden flex flex-col justify-between">
-      <div className="p-6">
+      <div className="p-6 grid max-xs:block md:block grid-cols-2 gap-4">
         <div className="absolute top-0 right-0 bg-gradient-to-br from-purple-300 via-purple-400 to-purple-500 text-white text-xs font-semibold py-1 px-2 rounded-bl-lg">
           {translate("mostPopular")}
         </div>
@@ -393,48 +395,50 @@ const ProPlan = ({ paymentType }: { paymentType: PaymentType }) => {
           payment={paymentType}
           claim={translate("individualNamedLicense")}
         />
-        <FeaturesList
-          title={translate("everythingAnd", "Free")}
-          items={[
-            {
-              feature: translate("professionalSupport"),
-              Icon: CheckIcon,
-              iconColor: "text-green-500",
-            },
-            {
-              feature: translate("customMapLayers"),
-              Icon: CheckIcon,
-              iconColor: "text-green-500",
-            },
-          ]}
-        />
-        <div className="h-4"></div>
-        <FeaturesList
-          title={`${translate("comingSoon")}:`}
-          textColor="text-gray-500"
-          items={[
-            {
-              feature: translate("scenarios"),
-              Icon: CheckIcon,
-              iconColor: "text-gray-400",
-            },
-            {
-              feature: translate("cloudStorage"),
-              Icon: CheckIcon,
-              iconColor: "text-gray-400",
-            },
-            {
-              feature: translate("pointInTimeRestore", "30"),
-              Icon: CheckIcon,
-              iconColor: "text-gray-400",
-            },
-            {
-              feature: translate("demandsAnalysis"),
-              Icon: CheckIcon,
-              iconColor: "text-gray-400",
-            },
-          ]}
-        />
+        <div>
+          <FeaturesList
+            title={translate("everythingAnd", "Free")}
+            items={[
+              {
+                feature: translate("professionalSupport"),
+                Icon: CheckIcon,
+                iconColor: "text-green-500",
+              },
+              {
+                feature: translate("customMapLayers"),
+                Icon: CheckIcon,
+                iconColor: "text-green-500",
+              },
+            ]}
+          />
+          <div className="h-4"></div>
+          <FeaturesList
+            title={`${translate("comingSoon")}:`}
+            textColor="text-gray-500"
+            items={[
+              {
+                feature: translate("scenarios"),
+                Icon: CheckIcon,
+                iconColor: "text-gray-400",
+              },
+              {
+                feature: translate("cloudStorage"),
+                Icon: CheckIcon,
+                iconColor: "text-gray-400",
+              },
+              {
+                feature: translate("pointInTimeRestore", "30"),
+                Icon: CheckIcon,
+                iconColor: "text-gray-400",
+              },
+              {
+                feature: translate("demandsAnalysis"),
+                Icon: CheckIcon,
+                iconColor: "text-gray-400",
+              },
+            ]}
+          />
+        </div>
       </div>
       <div className="p-4 w-full">
         <CheckoutButton plan="pro" paymentType={paymentType}>
@@ -457,7 +461,7 @@ const TeamsPlan = ({ paymentType }: { paymentType: PaymentType }) => {
 
   return (
     <div className="relative bg-white border border-gray-200 rounded-md shadow-md shadow-gray-300 overflow-hidden flex flex-col justify-between">
-      <div className="p-6">
+      <div className="p-6 grid max-xs:block md:block grid-cols-2 gap-4">
         <PlanHeader
           name="Teams"
           price={price}
@@ -465,47 +469,49 @@ const TeamsPlan = ({ paymentType }: { paymentType: PaymentType }) => {
           claim={translate("floatingSharedLicenses")}
           tooltip={translate("minimumTwoLicenses")}
         />
-        <FeaturesList
-          title={translate("everythingAnd", "Pro")}
-          items={[
-            {
-              feature: translate("prioritySupport"),
-              Icon: CheckIcon,
-              iconColor: "text-green-500",
-            },
-            {
-              feature: translate("volumeDiscounts"),
-              Icon: CheckIcon,
-              iconColor: "text-green-500",
-            },
-            {
-              feature: translate("payByInvoice"),
-              Icon: CheckIcon,
-              iconColor: "text-green-500",
-            },
-          ]}
-        />
-        <FeaturesList
-          title={`${translate("comingSoon")}:`}
-          textColor="text-gray-500"
-          items={[
-            {
-              feature: translate("teamStorage"),
-              Icon: CheckIcon,
-              iconColor: "text-gray-400",
-            },
-            {
-              feature: translate("pointInTimeRestore", "90"),
-              Icon: CheckIcon,
-              iconColor: "text-gray-400",
-            },
-            {
-              feature: translate("sharingModels"),
-              Icon: CheckIcon,
-              iconColor: "text-gray-400",
-            },
-          ]}
-        />
+        <div>
+          <FeaturesList
+            title={translate("everythingAnd", "Pro")}
+            items={[
+              {
+                feature: translate("prioritySupport"),
+                Icon: CheckIcon,
+                iconColor: "text-green-500",
+              },
+              {
+                feature: translate("volumeDiscounts"),
+                Icon: CheckIcon,
+                iconColor: "text-green-500",
+              },
+              {
+                feature: translate("payByInvoice"),
+                Icon: CheckIcon,
+                iconColor: "text-green-500",
+              },
+            ]}
+          />
+          <FeaturesList
+            title={`${translate("comingSoon")}:`}
+            textColor="text-gray-500"
+            items={[
+              {
+                feature: translate("teamStorage"),
+                Icon: CheckIcon,
+                iconColor: "text-gray-400",
+              },
+              {
+                feature: translate("pointInTimeRestore", "90"),
+                Icon: CheckIcon,
+                iconColor: "text-gray-400",
+              },
+              {
+                feature: translate("sharingModels"),
+                Icon: CheckIcon,
+                iconColor: "text-gray-400",
+              },
+            ]}
+          />
+        </div>
       </div>
       <div className="p-4 w-full">
         <Button

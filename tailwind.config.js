@@ -58,6 +58,9 @@ module.exports = {
         hxl: { raw: "(height > 1080px) and (orientation: landscape)" },
 
         // Manually generate max-<size> classes due to this bug https://github.com/tailwindlabs/tailwindcss/issues/13022
+        "max-xs": {
+          raw: `not all and (min-width: 480px)`,
+        },
         "max-sm": {
           raw: `not all and (min-width: ${defaultTheme.screens.sm})`,
         },
