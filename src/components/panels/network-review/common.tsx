@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Button, Loading } from "src/components/elements";
 import { useTranslate } from "src/hooks/use-translate";
+import { useZoom } from "src/hooks/use-zoom";
 import { useUserTracking } from "src/infra/user-tracking";
 import { NoIssuesIcon } from "src/icons";
 
@@ -240,6 +241,8 @@ export const VirtualizedIssuesList = <T,>({
   const lastKeyboardNavigatedIndexRef = useRef<number | null>(null);
   const lastProcessedSelectedIdRef = useRef<string | null>(null);
 
+  const { zoomIn, zoomOut } = useZoom();
+
   const { listRef, focusList } = useListAutoFocus({
     autoFocus,
     itemsCount: items.length,
@@ -352,6 +355,16 @@ export const VirtualizedIssuesList = <T,>({
             onGoBack();
           }
           break;
+        case "+":
+        case "=":
+          e.preventDefault();
+          zoomIn();
+          break;
+        case "-":
+        case "_":
+          e.preventDefault();
+          zoomOut();
+          break;
       }
 
       ensureItemIsVisible();
@@ -363,6 +376,8 @@ export const VirtualizedIssuesList = <T,>({
       onSelect,
       getIdFromIssue,
       onGoBack,
+      zoomIn,
+      zoomOut,
     ],
   );
 
