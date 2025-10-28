@@ -221,12 +221,16 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       hasNewZoom,
     } = changes;
 
+    const selectionSize = USelection.toIds(mapState.selection).length;
+    const hasLargeSelection = selectionSize > 50;
+
     const shouldShowLoader =
       hasNewImport ||
       hasNewEditions ||
       hasNewStyles ||
       hasNewSymbology ||
-      (hasNewSimulation && mapState.simulation.status !== "running");
+      (hasNewSimulation && mapState.simulation.status !== "running") ||
+      (hasNewSelection && hasLargeSelection);
 
     if (shouldShowLoader) {
       setMapLoading(true);
@@ -382,7 +386,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           isSelectionLayersEnabled &&
           (hasNewSelection || hasNewStyles || hasNewEphemeralState)
         ) {
-          void updateSelectionWithSource(
+          await updateSelectionWithSource(
             map,
             mapState.selection,
             assets,
