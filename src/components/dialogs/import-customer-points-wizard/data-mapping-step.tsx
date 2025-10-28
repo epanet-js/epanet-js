@@ -209,7 +209,7 @@ export const DataMappingStep: React.FC<{
     <div
       className={
         isModalLayoutEnabled
-          ? "overflow-y-auto flex flex-col gap-4 h-full"
+          ? "overflow-y-auto flex flex-col gap-2 h-full"
           : "space-y-4"
       }
     >
@@ -218,7 +218,7 @@ export const DataMappingStep: React.FC<{
       </h2>
 
       {showAttributesMapping && (
-        <div className={isModalLayoutEnabled ? "space-y-4" : "space-y-8"}>
+        <div className={isModalLayoutEnabled ? "space-y-2" : "space-y-8"}>
           <div>
             {isModalLayoutEnabled ? (
               ""
@@ -313,7 +313,13 @@ export const DataMappingStep: React.FC<{
 
           {showDataPreview && (
             <div>
-              <h4 className="text-md font-medium text-gray-900 mb-2">
+              <h4
+                className={
+                  isModalLayoutEnabled
+                    ? "text-md font-medium text-gray-900"
+                    : "text-md font-medium text-gray-900 mb-2"
+                }
+              >
                 {translate(
                   "importCustomerPoints.wizard.dataMapping.dataPreview.title",
                 )}
@@ -323,7 +329,13 @@ export const DataMappingStep: React.FC<{
 
           {selectedDemandProperty && !parsedDataSummary && !showLoading && (
             <div>
-              <h4 className="text-md font-medium text-gray-900 mb-2">
+              <h4
+                className={
+                  isModalLayoutEnabled
+                    ? "text-md font-medium text-gray-900"
+                    : "text-md font-medium text-gray-900 mb-2"
+                }
+              >
                 {translate(
                   "importCustomerPoints.wizard.dataMapping.dataPreview.title",
                 )}
