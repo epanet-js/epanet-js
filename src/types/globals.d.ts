@@ -42,6 +42,8 @@ type BothHandler = (
 
 type TouchHandler = (arg0: mapboxgl.MapTouchEvent) => Promisable<void>;
 
+type KeyboardHandler = (arg0: KeyboardEvent) => Promisable<void>;
+
 type Handlers = {
   click: BothHandler;
   move: BothHandler;
@@ -51,5 +53,7 @@ type Handlers = {
   touchend?: TouchHandler;
   up: BothHandler;
   double: BothHandler;
+  keydown?: KeyboardHandler;
+  keyup?: KeyboardHandler;
   exit: () => Promisable<void>;
 };
