@@ -126,11 +126,13 @@ export function useDrawLinkHandlers({
     link,
     snappingCandidate,
     startPipeId,
+    draftJunction,
   }: {
     startNode: NodeAsset;
     link: LinkAsset;
     snappingCandidate: SnappingCandidate | null;
     startPipeId?: AssetId;
+    draftJunction?: NodeAsset;
   }) => {
     setEphemeralState({
       type: "drawLink",
@@ -140,6 +142,7 @@ export function useDrawLinkHandlers({
       startPipeId,
       snappingCandidate,
       ...(sourceLink && { sourceLink }),
+      ...(draftJunction && { draftJunction }),
     });
   };
 
@@ -399,12 +402,23 @@ export function useDrawLinkHandlers({
         const linkCopy = drawing.link.copy();
         linkCopy.extendTo(nextCoordinates);
 
+        const shouldShowDraftJunction =
+          isEndAndContinueOn() && !snappingCandidate;
+
+        const draftJunction = shouldShowDraftJunction
+          ? assetBuilder.buildJunction({
+              label: "",
+              coordinates: nextCoordinates,
+            })
+          : undefined;
+
         setDrawing({
           ...drawing,
           link: linkCopy,
           snappingCandidate: !linkCopy.isStart(nextCoordinates)
             ? snappingCandidate
             : null,
+          draftJunction,
         });
       }
     },

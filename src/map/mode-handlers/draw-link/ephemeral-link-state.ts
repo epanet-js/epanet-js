@@ -9,4 +9,5 @@ export interface EphemeralDrawLink {
   startPipeId?: AssetId;
   snappingCandidate: SnappingCandidate | null;
   sourceLink?: LinkAsset;
+  draftJunction?: NodeAsset;
 }

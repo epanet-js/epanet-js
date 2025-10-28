@@ -169,6 +169,18 @@ const buildDrawLinkSourceData = (
     });
   }
 
+  if (ephemeralState.draftJunction) {
+    features.push({
+      type: "Feature",
+      id: "draft-junction-hint",
+      properties: {} as any,
+      geometry: {
+        type: "Point",
+        coordinates: ephemeralState.draftJunction.coordinates,
+      },
+    });
+  }
+
   if (ephemeralState.sourceLink) {
     features.push({
       type: "Feature",
