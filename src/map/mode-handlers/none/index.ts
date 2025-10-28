@@ -9,7 +9,7 @@ import { searchNearbyRenderedFeatures } from "src/map/search";
 import { clickableLayers } from "src/map/layers/layer";
 
 import { getNode } from "src/hydraulic-model";
-import { moveNode } from "src/hydraulic-model/model-operations";
+import { moveNode, mergeNodes } from "src/hydraulic-model/model-operations";
 import { useMoveState } from "./move-state";
 import noop from "lodash/noop";
 import { useElevations } from "src/map/elevations/use-elevations";
@@ -57,6 +57,7 @@ export function useNoneHandlers({
     removeFromSelection,
     getSelectionIds,
     selectCustomerPoint,
+    selectAsset,
   } = useSelection(selection);
   const { isShiftHeld } = useKeyboardState();
   const {
@@ -81,6 +82,7 @@ export function useNoneHandlers({
     hydraulicModel.assets,
   );
   const isVertexSnapOn = useFeatureFlag("FLAG_VERTEX_SNAP");
+  const isReplaceNodeOn = useFeatureFlag("FLAG_REPLACE_NODE");
 
   const fastMovePointer = (point: mapboxgl.Point) => {
     if (!map) return;
@@ -188,7 +190,13 @@ export function useNoneHandlers({
         const isPipeSnapping =
           snappingCandidate && snappingCandidate.type === "pipe";
 
-        setCursor(isNodeSnapping ? "not-allowed" : "move");
+        setCursor(
+          isNodeSnapping
+            ? isReplaceNodeOn
+              ? "replace"
+              : "not-allowed"
+            : "move",
+        );
 
         if (isPipeSnapping) {
           newCoordinates = snappingCandidate.coordinates as [number, number];
@@ -249,6 +257,14 @@ export function useNoneHandlers({
       );
 
       if (snappingCandidate && snappingCandidate.type !== "pipe") {
+        if (isReplaceNodeOn) {
+          const moment = mergeNodes(hydraulicModel, {
+            sourceNodeId: assetId,
+            targetNodeId: snappingCandidate.id,
+          });
+          transact(moment);
+          selectAsset(assetId);
+        }
         clearSelection();
         resetMove();
         return;

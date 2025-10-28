@@ -10,6 +10,71 @@ import { Position } from "src/types";
 
 type NodeType = "junction" | "reservoir" | "tank";
 
+export const findNearestSnappingPoint = (
+  pipe: Pipe,
+  customerPoint: CustomerPoint,
+): Position => {
+  const pipeLineString = lineString(pipe.coordinates);
+  const customerPointGeometry = point(customerPoint.coordinates);
+
+  const result = findNearestPointOnLine(pipeLineString, customerPointGeometry);
+  return result.coordinates;
+};
+
+export const updateLinkConnection = (
+  linkCopy: LinkAsset,
+  oldNodeId: AssetId,
+  newNodeId: AssetId,
+): void => {
+  const [startNodeId, endNodeId] = linkCopy.connections;
+  if (startNodeId === oldNodeId) {
+    linkCopy.setConnections(newNodeId, endNodeId);
+  } else if (endNodeId === oldNodeId) {
+    linkCopy.setConnections(startNodeId, newNodeId);
+  }
+};
+
+export const reassignCustomerPointsForPipe = (
+  pipeCopy: Pipe,
+  newNode: NodeAsset,
+  assets: HydraulicModel["assets"],
+  customerPointsLookup: HydraulicModel["customerPointsLookup"],
+  updatedCustomerPoints: CustomerPoints,
+): void => {
+  const connectedCustomerPoints = customerPointsLookup.getCustomerPoints(
+    pipeCopy.id,
+  );
+
+  for (const customerPoint of connectedCustomerPoints) {
+    if (!updatedCustomerPoints.has(customerPoint.id)) {
+      const [startNode, endNode] = pipeCopy.connections.map(
+        (connectedNodeId) =>
+          connectedNodeId === newNode.id
+            ? newNode
+            : (assets.get(connectedNodeId) as NodeAsset),
+      );
+
+      const customerPointCopy = customerPoint.copyDisconnected();
+      const snapPoint = findNearestSnappingPoint(pipeCopy, customerPointCopy);
+      const junctionId = findJunctionForCustomerPoint(
+        startNode,
+        endNode,
+        snapPoint,
+      );
+
+      if (junctionId) {
+        customerPointCopy.connect({
+          pipeId: pipeCopy.id,
+          snapPoint,
+          junctionId,
+        });
+      }
+
+      updatedCustomerPoints.set(customerPointCopy.id, customerPointCopy);
+    }
+  }
+};
+
 type InputData = {
   oldNodeId: AssetId;
   newNodeType: NodeType;
@@ -48,52 +113,19 @@ export const replaceNode: ModelOperation<InputData> = (
     const link = assets.get(linkId) as LinkAsset;
     const linkCopy = link.copy();
 
-    const [startNodeId, endNodeId] = linkCopy.connections;
-    if (startNodeId === oldNodeId) {
-      linkCopy.setConnections(newNode.id, endNodeId);
-    } else if (endNodeId === oldNodeId) {
-      linkCopy.setConnections(startNodeId, newNode.id);
-    }
+    updateLinkConnection(linkCopy, oldNodeId, newNode.id);
 
     updatedLinks.push(linkCopy);
 
     if (linkCopy.type === "pipe") {
       const pipeCopy = linkCopy as Pipe;
-      const connectedCustomerPoints = customerPointsLookup.getCustomerPoints(
-        pipeCopy.id,
+      reassignCustomerPointsForPipe(
+        pipeCopy,
+        newNode,
+        assets,
+        customerPointsLookup,
+        updatedCustomerPoints,
       );
-
-      for (const customerPoint of connectedCustomerPoints) {
-        if (!updatedCustomerPoints.has(customerPoint.id)) {
-          const [startNode, endNode] = pipeCopy.connections.map(
-            (connectedNodeId) =>
-              connectedNodeId === newNode.id
-                ? newNode
-                : (assets.get(connectedNodeId) as NodeAsset),
-          );
-
-          const customerPointCopy = customerPoint.copyDisconnected();
-          const snapPoint = findNearestSnappingPoint(
-            pipeCopy,
-            customerPointCopy,
-          );
-          const junctionId = findJunctionForCustomerPoint(
-            startNode,
-            endNode,
-            snapPoint,
-          );
-
-          if (junctionId) {
-            customerPointCopy.connect({
-              pipeId: pipeCopy.id,
-              snapPoint,
-              junctionId,
-            });
-          }
-
-          updatedCustomerPoints.set(customerPointCopy.id, customerPointCopy);
-        }
-      }
     }
   }
 
@@ -139,15 +171,4 @@ const createNode = (
     default:
       throw new Error(`Unsupported node type: ${nodeType as string}`);
   }
-};
-
-const findNearestSnappingPoint = (
-  pipe: Pipe,
-  customerPoint: CustomerPoint,
-): Position => {
-  const pipeLineString = lineString(pipe.coordinates);
-  const customerPointGeometry = point(customerPoint.coordinates);
-
-  const result = findNearestPointOnLine(pipeLineString, customerPointGeometry);
-  return result.coordinates;
 };
