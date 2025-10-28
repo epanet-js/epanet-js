@@ -477,9 +477,17 @@ const buildBaseStyleAndSetOnMap = withDebugInstrumentation(
 const toggleAnalysisLayers = withDebugInstrumentation(
   (map: MapEngine, symbology: SymbologySpec) => {
     if (!symbology.link.colorRule) {
-      map.hideLayers(["imported-pipe-arrows", "pipe-arrows"]);
+      map.hideLayers([
+        "imported-pipe-arrows",
+        "pipe-arrows",
+        "selected-pipe-arrows",
+      ]);
     } else {
-      map.showLayers(["imported-pipe-arrows", "pipe-arrows"]);
+      map.showLayers([
+        "imported-pipe-arrows",
+        "pipe-arrows",
+        "selected-pipe-arrows",
+      ]);
     }
     if (!symbology.node.colorRule) {
       map.hideLayers(["imported-junction-results", "junction-results"]);

@@ -9,6 +9,7 @@ export type LayerId =
   | "imported-junction-results"
   | "imported-pipe-arrows"
   | "pipe-arrows"
+  | "selected-pipe-arrows"
   | "imported-pump-lines"
   | "pump-lines"
   | "selected-pump-lines"

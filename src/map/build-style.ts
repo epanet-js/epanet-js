@@ -92,6 +92,7 @@ import {
   selectedJunctionsLayer,
   selectedIconsLayer,
   selectedIconsHaloLayer,
+  selectedPipeArrowsLayer,
 } from "src/map/layers/selection";
 import type * as mapboxgl from "mapbox-gl";
 
@@ -210,6 +211,10 @@ export function makeLayers({
       source: "features",
       layerId: "pipe-arrows",
       symbology,
+    }),
+    selectedPipeArrowsLayer({
+      source: "selected-features",
+      layerId: "selected-pipe-arrows",
     }),
     junctionsLayer({
       source: "imported-features",

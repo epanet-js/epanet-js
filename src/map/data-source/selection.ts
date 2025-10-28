@@ -9,6 +9,7 @@ import {
   appendPipeStatus,
   appendPumpStatus,
   appendValveStatus,
+  appendPipeArrowProps,
 } from "./features";
 
 export const buildSelectionSource = (
@@ -74,6 +75,7 @@ const buildLinkSelectionFeature = (asset: Asset, featureId: RawId): Feature => {
   switch (asset.type) {
     case "pipe":
       appendPipeStatus(asset as Pipe, feature);
+      appendPipeArrowProps(asset as Pipe, feature);
       break;
     case "pump":
       appendPumpStatus(asset as Pump, feature);

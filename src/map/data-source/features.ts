@@ -128,6 +128,17 @@ export const appendValveStatus = (valve: Valve, feature: Feature) => {
     : valve.initialStatus;
 };
 
+export const appendPipeArrowProps = (pipe: Pipe, feature: Feature) => {
+  const status = pipe.status ? pipe.status : pipe.initialStatus;
+  const isReverse = pipe.flow && pipe.flow < 0;
+  feature.properties!.length = convertTo(
+    { value: pipe.length, unit: pipe.getUnit("length") },
+    "m",
+  );
+  feature.properties!.hasArrow = status === "open" && pipe.flow !== null;
+  feature.properties!.rotation = isReverse ? -180 : 0;
+};
+
 const appendPipeSymbologyProps = (
   pipe: Pipe,
   feature: Feature,
@@ -140,7 +151,6 @@ const appendPipeSymbologyProps = (
   const property = linkSymbology.colorRule.property;
 
   const value = pipe[property as keyof Pipe] as number | null;
-  const isReverse = pipe.flow && pipe.flow < 0;
   const numericValue = value !== null ? value : 0;
 
   if (!!linkSymbology.labelRule) {
@@ -153,12 +163,7 @@ const appendPipeSymbologyProps = (
     feature.properties!.label = `${localizedNumber} ${unitText}`;
   }
   feature.properties!.color = colorFor(linkSymbology.colorRule, numericValue);
-  feature.properties!.length = convertTo(
-    { value: pipe.length, unit: pipe.getUnit("length") },
-    "m",
-  );
-  feature.properties!.hasArrow = pipe.status === "open" && value !== null;
-  feature.properties!.rotation = isReverse ? -180 : 0;
+  appendPipeArrowProps(pipe, feature);
 };
 
 const appendJunctionSymbologyProps = (

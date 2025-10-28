@@ -176,3 +176,56 @@ export const selectedIconsHaloLayer = ({
     minzoom: 10,
   };
 };
+
+export const selectedPipeArrowsLayer = ({
+  source,
+  layerId,
+}: {
+  source: DataSource;
+  layerId: LayerId;
+}): SymbolLayer => {
+  return {
+    id: layerId,
+    type: "symbol",
+    source,
+    layout: {
+      "symbol-placement": "line-center",
+      "icon-image": "triangle",
+      "icon-size": ["interpolate", ["linear"], ["zoom"], 14, 0.2, 26, 0.5],
+      "icon-rotate": ["get", "rotation"],
+      "icon-ignore-placement": true,
+      "icon-allow-overlap": true,
+      visibility: "none",
+    },
+    filter: [
+      "all",
+      ["==", "$type", "LineString"],
+      ["==", "type", "pipe"],
+      ["==", "hasArrow", true],
+    ],
+    paint: {
+      "icon-color": LINE_COLORS_SELECTED,
+      "icon-opacity": zoomOpacityExpression(
+        [14, 15, 16, 17, 18, 19, 20],
+        [200, 100, 50, 20, 10, 5, 0],
+      ),
+    },
+    minzoom: 14,
+  };
+};
+
+const zoomOpacityExpression = (steps: number[], lengths: number[]): any => {
+  const result: any = ["interpolate", ["linear"], ["zoom"]];
+
+  for (const step of steps) {
+    const index = steps.indexOf(step);
+    const length = lengths[index];
+    (result as any[]).push(step, [
+      "case",
+      [">", ["get", "length"], length],
+      1,
+      0,
+    ]);
+  }
+  return result;
+};
