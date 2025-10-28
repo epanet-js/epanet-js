@@ -19,7 +19,7 @@ export const selectedPipesLayer = ({
     filter: ["==", "type", "pipe"],
     paint: {
       "line-opacity": 1,
-      "line-width": ["interpolate", ["linear"], ["zoom"], 12, 1, 16, 5],
+      "line-width": ["interpolate", ["linear"], ["zoom"], 12, 0.5, 16, 4],
       "line-color": LINE_COLORS_SELECTED,
       "line-dasharray": [
         "case",
@@ -45,7 +45,7 @@ export const selectedPumpLinesLayer = ({
     filter: ["==", "type", "pump"],
     paint: {
       "line-opacity": 1,
-      "line-width": ["interpolate", ["linear"], ["zoom"], 12, 1, 16, 3],
+      "line-width": ["interpolate", ["linear"], ["zoom"], 12, 0.5, 16, 2],
       "line-color": LINE_COLORS_SELECTED,
       "line-dasharray": [
         "case",
@@ -71,7 +71,7 @@ export const selectedValveLinesLayer = ({
     filter: ["==", "type", "valve"],
     paint: {
       "line-opacity": 1,
-      "line-width": ["interpolate", ["linear"], ["zoom"], 12, 1, 16, 3],
+      "line-width": ["interpolate", ["linear"], ["zoom"], 12, 0.5, 16, 2],
       "line-color": LINE_COLORS_SELECTED,
       "line-dasharray": [
         "case",
