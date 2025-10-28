@@ -165,13 +165,7 @@ export const selectedIconsHaloLayer = ({
     filter: [
       "all",
       ["==", "$type", "Point"],
-      [
-        "any",
-        ["==", "type", "pump"],
-        ["==", "type", "valve"],
-        ["==", "type", "tank"],
-        ["==", "type", "reservoir"],
-      ],
+      ["any", ["==", "type", "pump"], ["==", "type", "valve"]],
     ],
     paint: {
       "circle-radius": ["interpolate", ["linear"], ["zoom"], 12, 8, 20, 22],
