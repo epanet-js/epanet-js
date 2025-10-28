@@ -50,7 +50,6 @@ function NetworkReviewSummary({
 }) {
   const translate = useTranslate();
   const isConnectivityTraceEnabled = useFeatureFlag("FLAG_CONNECTIVITY_TRACE");
-  const isCrossingPipesEnabled = useFeatureFlag("FLAG_CROSSING_PIPES");
 
   const allChecks = [
     { checkType: CheckType.orphanAssets, isEnabled: true },
@@ -60,7 +59,7 @@ function NetworkReviewSummary({
     },
     {
       checkType: CheckType.crossingPipes,
-      isEnabled: isCrossingPipesEnabled,
+      isEnabled: true,
     },
     {
       checkType: CheckType.connectivityTrace,
