@@ -316,11 +316,12 @@ export const oldStyledDialogContent = ({
 
 export const styledDialogContent = ({
   size,
+  height,
   widthClasses,
   fillMode = "auto",
-  isModalLayoutEnabled,
 }: {
-  size?: "sm" | "xs" | "md" | "lg" | "xl" | "fullscreen" | "customerpoints";
+  size?: "sm" | "xs" | "md" | "lg" | "xl" | "fullscreen";
+  height?: "sm" | "xs" | "md" | "lg" | "xl" | "fullscreen";
   fillMode?: "full" | "auto";
   widthClasses?: string;
   isModalLayoutEnabled: boolean;
@@ -343,15 +344,7 @@ export const styledDialogContent = ({
       "sm:max-w-[360px]": size === "xs",
       "sm:max-w-screen-sm": size === "sm" && !widthClasses,
       "max-w-full md:max-w-screen-md lg:max-w-screen-md": size === "md",
-      ...(isModalLayoutEnabled
-        ? {
-            "vsm:h-dvh vsm:w-dvw vmd:h-[848px] max-w-full lg:max-w-screen-lg xl:max-w-screen-lg hsm:h-full hmd:h-[calc(100dvh_-_1rem)] hlg:h-[848px] hxl:h-[848px]":
-              size === "customerpoints",
-            "max-w-full lg:max-w-screen-lg xl:max-w-screen-lg": size === "lg",
-          }
-        : {
-            "max-w-full lg:max-w-screen-lg xl:max-w-screen-lg": size === "lg",
-          }),
+      "max-w-full lg:max-w-screen-lg xl:max-w-screen-lg": size === "lg",
       "max-w-full xl:max-w-screen-xl 2xl:max-w-screen-xl": size === "xl",
       "inset-0 h-100dvh w-screen": size === "fullscreen",
     },
@@ -361,6 +354,9 @@ export const styledDialogContent = ({
         ? "sm:h-[90vh] sm:left-2/4 sm:top-2/4 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded sm:align-middle"
         : "max-h-[100vh] inset-0 sm:inset-auto sm:left-2/4 sm:top-2/4 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded sm:align-middle",
     size !== "fullscreen" && widthClasses ? widthClasses : "",
+    height === "lg"
+      ? "vsm:w-dvw vsm:h-dvh vmd:h-[848px] hsm:h-full hmd:h-[calc(100dvh_-_1rem)] hlg:h-[848px] hxl:h-[848px]"
+      : "",
   );
 };
 

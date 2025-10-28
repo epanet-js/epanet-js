@@ -15,7 +15,7 @@ export const WizardContainer: React.FC<WizardContainerProps> = ({
 }) => {
   const isModalLayoutEnabled = useFeatureFlag("FLAG_MODAL_LAYOUT");
   return isModalLayoutEnabled ? (
-    <DialogContainer size="customerpoints" disableOutsideClick={true}>
+    <DialogContainer size="lg" height="lg" disableOutsideClick={true}>
       <div
         onDragOver={onDragOver}
         onDrop={onDrop}

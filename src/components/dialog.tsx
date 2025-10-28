@@ -115,11 +115,13 @@ export const OldDialogContainer = ({
 
 export const DialogContainer = ({
   size = "sm",
+  height,
   fillMode = "full",
   children,
   disableOutsideClick = false,
 }: {
-  size?: "sm" | "xs" | "md" | "lg" | "xl" | "fullscreen" | "customerpoints";
+  size?: "sm" | "xs" | "md" | "lg" | "xl" | "fullscreen";
+  height?: "sm" | "md" | "lg" | "xl" | "fullscreen";
   fillMode?: "full" | "auto";
   children: React.ReactNode;
   disableOutsideClick?: boolean;
@@ -167,6 +169,7 @@ export const DialogContainer = ({
             }}
             onOpenAutoFocus={(e) => e.preventDefault()}
             size={size}
+            height={height}
             fillMode={fillMode}
             isModalLayoutEnabled={isModalLayoutEnabled}
           >
