@@ -1,9 +1,15 @@
 import { AssetsMap, Asset, AssetId, Pipe, Pump } from "src/hydraulic-model";
-import { IDMap, UIDMap } from "src/lib/id-mapper";
+import { IDMap } from "src/lib/id-mapper";
 import { Feature } from "src/types";
 import { Sel, USelection } from "src/selection";
 import { findLargestSegment, Link } from "src/hydraulic-model/asset-types/link";
 import { Valve } from "src/hydraulic-model/asset-types";
+import {
+  buildFeatureId,
+  appendPipeStatus,
+  appendPumpStatus,
+  appendValveStatus,
+} from "./features";
 
 export const buildSelectionSource = (
   assets: AssetsMap,
@@ -30,7 +36,7 @@ export const buildSelectionSource = (
       continue;
     }
 
-    const featureId = UIDMap.getIntID(idMap, assetId);
+    const featureId = buildFeatureId(idMap, assetId);
 
     if (asset.isLink) {
       features.push(buildLinkSelectionFeature(asset, featureId));
@@ -56,16 +62,30 @@ export const buildSelectionSource = (
 };
 
 const buildLinkSelectionFeature = (asset: Asset, featureId: RawId): Feature => {
-  const status = getAssetStatus(asset);
-  return {
+  const feature: Feature = {
     type: "Feature",
     id: featureId,
     properties: {
       type: asset.type,
-      ...(status ? { status } : {}),
     },
     geometry: asset.feature.geometry,
   };
+
+  switch (asset.type) {
+    case "pipe":
+      appendPipeStatus(asset as Pipe, feature);
+      break;
+    case "pump":
+      appendPumpStatus(asset as Pump, feature);
+      break;
+    case "valve":
+      appendValveStatus(asset as Valve, feature);
+      break;
+    default:
+      break;
+  }
+
+  return feature;
 };
 
 const buildPointSelectionFeature = (
@@ -131,22 +151,6 @@ const buildLinkIconSelectionFeature = (
       coordinates: [centerLon, centerLat],
     },
   };
-};
-
-const getAssetStatus = (asset: Asset): string | undefined => {
-  if (asset.type === "pipe") {
-    return (asset as Pipe).status || (asset as Pipe).initialStatus;
-  }
-
-  if (asset.type === "pump") {
-    return (asset as Pump).status || (asset as Pump).initialStatus;
-  }
-
-  if (asset.type === "valve") {
-    return (asset as Valve).status || (asset as Valve).initialStatus;
-  }
-
-  return undefined;
 };
 
 const getAssetIconName = (asset: Asset): string => {

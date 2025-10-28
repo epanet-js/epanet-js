@@ -80,7 +80,7 @@ const appendPipeProps = (
   quantities: Quantities,
   translateUnit: (unit: Unit) => string,
 ) => {
-  feature.properties!.status = pipe.status ? pipe.status : pipe.initialStatus;
+  appendPipeStatus(pipe, feature);
   appendPipeSymbologyProps(
     pipe,
     feature,
@@ -107,10 +107,22 @@ const appendJunctionProps = (
 };
 
 const appendPumpProps = (pump: Pump, feature: Feature) => {
-  feature.properties!.status = pump.status ? pump.status : pump.initialStatus;
+  appendPumpStatus(pump, feature);
 };
 
 const appendValveProps = (valve: Valve, feature: Feature) => {
+  appendValveStatus(valve, feature);
+};
+
+export const appendPipeStatus = (pipe: Pipe, feature: Feature) => {
+  feature.properties!.status = pipe.status ? pipe.status : pipe.initialStatus;
+};
+
+export const appendPumpStatus = (pump: Pump, feature: Feature) => {
+  feature.properties!.status = pump.status ? pump.status : pump.initialStatus;
+};
+
+export const appendValveStatus = (valve: Valve, feature: Feature) => {
   feature.properties!.status = valve.status
     ? valve.status
     : valve.initialStatus;
