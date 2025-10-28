@@ -488,7 +488,11 @@ export function useDrawLinkHandlers({
     },
     up: noop,
     keydown: () => {
-      if (isControlHeld() && !drawing.isNull && !drawing.snappingCandidate) {
+      if (
+        isEndAndContinueOn() &&
+        !drawing.isNull &&
+        !drawing.snappingCandidate
+      ) {
         const draftJunction = assetBuilder.buildJunction({
           label: "",
           coordinates: drawing.link.lastVertex,
