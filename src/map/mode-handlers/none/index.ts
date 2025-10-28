@@ -17,6 +17,7 @@ import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import { useSnapping } from "../hooks/use-snapping";
 import throttle from "lodash/throttle";
 import { useClickedAsset } from "../utils";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 const stateUpdateTime = 16;
 
@@ -79,6 +80,7 @@ export function useNoneHandlers({
     idMap,
     hydraulicModel.assets,
   );
+  const isVertexSnapOn = useFeatureFlag("FLAG_VERTEX_SNAP");
 
   const fastMovePointer = (point: mapboxgl.Point) => {
     if (!map) return;
@@ -277,6 +279,7 @@ export function useNoneHandlers({
               newElevation: newElevationOrFallback,
               shouldUpdateCustomerPoints: true,
               pipeIdToSplit,
+              enableVertexSnap: isVertexSnapOn,
             });
             transact(moment);
             resetMove();

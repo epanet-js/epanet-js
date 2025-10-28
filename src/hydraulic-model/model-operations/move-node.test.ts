@@ -347,4 +347,172 @@ describe("moveNode", () => {
       }),
     ).toThrow("Invalid pipe ID: J1");
   });
+
+  describe("with FLAG_VERTEX_SNAP enabled", () => {
+    it("removes matching vertex when moving node to vertex location", () => {
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aNode("J1", [0, 0])
+        .aNode("J2", [10, 0])
+        .aNode("J3", [0, 10])
+        .aPipe("P1", {
+          startNodeId: "J1",
+          endNodeId: "J2",
+          coordinates: [
+            [0, 0],
+            [5, 0],
+            [10, 0],
+          ],
+        })
+        .build();
+
+      const { putAssets } = moveNode(hydraulicModel, {
+        nodeId: "J3",
+        newCoordinates: [5, 0],
+        newElevation: 10,
+        pipeIdToSplit: "P1",
+        enableVertexSnap: true,
+      });
+
+      const [, pipe1, pipe2] = putAssets!;
+
+      expect(pipe1.coordinates).toEqual([
+        [0, 0],
+        [5, 0],
+      ]);
+      expect(pipe2.coordinates).toEqual([
+        [5, 0],
+        [10, 0],
+      ]);
+    });
+
+    it("does not remove vertex when flag is disabled", () => {
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aNode("J1", [0, 0])
+        .aNode("J2", [10, 0])
+        .aNode("J3", [0, 10])
+        .aPipe("P1", {
+          startNodeId: "J1",
+          endNodeId: "J2",
+          coordinates: [
+            [0, 0],
+            [5, 0],
+            [10, 0],
+          ],
+        })
+        .build();
+
+      const { putAssets } = moveNode(hydraulicModel, {
+        nodeId: "J3",
+        newCoordinates: [5, 0],
+        newElevation: 10,
+        pipeIdToSplit: "P1",
+        enableVertexSnap: false,
+      });
+
+      const [, pipe1, pipe2] = putAssets!;
+
+      expect(pipe1.coordinates).toEqual([
+        [0, 0],
+        [5, 0],
+      ]);
+      expect(pipe2.coordinates).toEqual([
+        [5, 0],
+        [5, 0],
+        [10, 0],
+      ]);
+    });
+
+    it("handles multiple vertices correctly when moving node", () => {
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aNode("J1", [0, 0])
+        .aNode("J2", [20, 0])
+        .aNode("J3", [0, 10])
+        .aPipe("P1", {
+          startNodeId: "J1",
+          endNodeId: "J2",
+          coordinates: [
+            [0, 0],
+            [5, 0],
+            [10, 0],
+            [15, 0],
+            [20, 0],
+          ],
+        })
+        .build();
+
+      const { putAssets } = moveNode(hydraulicModel, {
+        nodeId: "J3",
+        newCoordinates: [10, 0],
+        newElevation: 10,
+        pipeIdToSplit: "P1",
+        enableVertexSnap: true,
+      });
+
+      const [movedNode, pipe1, pipe2] = putAssets!;
+
+      expect(movedNode.id).toBe("J3");
+      expect(movedNode.coordinates).toEqual([10, 0]);
+      expect(pipe1.coordinates).toEqual([
+        [0, 0],
+        [5, 0],
+        [10, 0],
+      ]);
+      expect(pipe2.coordinates).toEqual([
+        [10, 0],
+        [15, 0],
+        [20, 0],
+      ]);
+    });
+
+    it("preserves customer point connections when moving with vertex snap", () => {
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aNode("J1", [0, 0])
+        .aNode("J2", [10, 0])
+        .aNode("J3", [0, 10])
+        .aPipe("P1", {
+          startNodeId: "J1",
+          endNodeId: "J2",
+          coordinates: [
+            [0, 0],
+            [5, 0],
+            [10, 0],
+          ],
+        })
+        .aCustomerPoint("CP1", {
+          coordinates: [3, 1],
+          demand: 50,
+          connection: {
+            pipeId: "P1",
+            snapPoint: [3, 0],
+            junctionId: "J1",
+          },
+        })
+        .build();
+
+      const { putAssets, putCustomerPoints } = moveNode(hydraulicModel, {
+        nodeId: "J3",
+        newCoordinates: [5, 0],
+        newElevation: 10,
+        pipeIdToSplit: "P1",
+        shouldUpdateCustomerPoints: true,
+        enableVertexSnap: true,
+      });
+
+      const [, pipe1, pipe2] = putAssets!;
+
+      expect(pipe1.coordinates).toEqual([
+        [0, 0],
+        [5, 0],
+      ]);
+      expect(pipe2.coordinates).toEqual([
+        [5, 0],
+        [10, 0],
+      ]);
+
+      expect(putCustomerPoints).toBeDefined();
+      const updatedCP = putCustomerPoints!.find((cp) => cp.id === "CP1");
+      expect(updatedCP).toBeDefined();
+      expect(updatedCP!.connection?.pipeId).toBe(pipe1.id);
+    });
+  });
 });

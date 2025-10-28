@@ -9,6 +9,7 @@ type InputData = {
   newElevation: number;
   shouldUpdateCustomerPoints?: boolean;
   pipeIdToSplit?: AssetId;
+  enableVertexSnap?: boolean;
 };
 
 export const moveNode: ModelOperation<InputData> = (

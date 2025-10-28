@@ -16,6 +16,7 @@ type InputData = {
   newElevation: number;
   shouldUpdateCustomerPoints?: boolean;
   pipeIdToSplit?: AssetId;
+  enableVertexSnap?: boolean;
 };
 
 export const moveNode: ModelOperation<InputData> = (
@@ -26,6 +27,7 @@ export const moveNode: ModelOperation<InputData> = (
     newElevation,
     shouldUpdateCustomerPoints = false,
     pipeIdToSplit,
+    enableVertexSnap = false,
   },
 ) => {
   if (pipeIdToSplit) {
@@ -36,6 +38,7 @@ export const moveNode: ModelOperation<InputData> = (
       newElevation,
       shouldUpdateCustomerPoints,
       pipeIdToSplit,
+      enableVertexSnap,
     );
   }
 
@@ -122,6 +125,7 @@ const moveNodeWithPipeSplitting = (
   newElevation: number,
   shouldUpdateCustomerPoints: boolean,
   pipeIdToSplit: AssetId,
+  enableVertexSnap: boolean,
 ) => {
   const { assets } = hydraulicModel;
 
@@ -146,6 +150,7 @@ const moveNodeWithPipeSplitting = (
   const splitResult = splitPipe(hydraulicModel, {
     pipe,
     splits: [updatedNode],
+    enableVertexSnap,
   });
 
   const allPutAssets = [
