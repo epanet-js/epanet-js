@@ -139,11 +139,11 @@ const getAssetStatus = (asset: Asset): string | undefined => {
   }
 
   if (asset.type === "pump") {
-    return (asset as Pump).status || "on";
+    return (asset as Pump).status || (asset as Pump).initialStatus;
   }
 
   if (asset.type === "valve") {
-    return (asset as Valve).status || "open";
+    return (asset as Valve).status || (asset as Valve).initialStatus;
   }
 
   return undefined;

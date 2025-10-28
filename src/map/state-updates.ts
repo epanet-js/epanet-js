@@ -384,7 +384,10 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
 
         if (
           isSelectionLayersEnabled &&
-          (hasNewSelection || hasNewStyles || hasNewEphemeralState)
+          (hasNewSelection ||
+            hasNewStyles ||
+            hasNewEphemeralState ||
+            hasNewEditions)
         ) {
           await updateSelectionWithSource(
             map,
