@@ -5,7 +5,7 @@ import { ArrayBufferType, canUseWorker } from "src/infra/worker";
 import { EncodedSubNetwork, SubNetwork, decodeSubNetworks } from "./data";
 import { findSubNetworks } from "./find-subnetworks";
 import type { ConnectivityTraceWorkerAPI } from "./worker";
-import { HydraulicModelBuffers, HydraulicModelEncoder } from "../shared";
+import { HydraulicModelBuffers, HydraulicModelEncoder } from "../hydraulic-model-buffers";
 
 export const runCheck = async (
   hydraulicModel: HydraulicModel,

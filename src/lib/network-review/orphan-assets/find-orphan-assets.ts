@@ -3,7 +3,7 @@ import {
   HydraulicModelBuffers,
   HydraulicModelBuffersView,
   toLinkType,
-} from "../shared";
+} from "../hydraulic-model-buffers";
 
 export function findOrphanAssets(
   buffers: HydraulicModelBuffers,

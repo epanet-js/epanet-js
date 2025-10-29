@@ -3,7 +3,7 @@ import {
   HydraulicModelBuffers,
   HydraulicModelBuffersView,
   toNodeType,
-} from "../shared";
+} from "../hydraulic-model-buffers";
 import { NodeType } from "src/hydraulic-model";
 
 export function findSubNetworks(

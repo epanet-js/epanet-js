@@ -3,7 +3,7 @@ import * as Comlink from "comlink";
 import { HydraulicModel } from "src/hydraulic-model";
 import { ArrayBufferType, canUseWorker } from "src/infra/worker";
 import { EncodedOrphanAssets, decodeOrphanAssets, OrphanAsset } from "./data";
-import { HydraulicModelBuffers, HydraulicModelEncoder } from "../shared";
+import { HydraulicModelBuffers, HydraulicModelEncoder } from "../hydraulic-model-buffers";
 import { findOrphanAssets } from "./find-orphan-assets";
 import type { OrphanAssetsWorkerAPI } from "./worker";
 

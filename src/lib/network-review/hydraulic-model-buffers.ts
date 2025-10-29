@@ -11,8 +11,6 @@ import bbox from "@turf/bbox";
 import lineSegment from "@turf/line-segment";
 import Flatbush from "flatbush";
 
-import { GeoIndexBuilder } from "./geo-buffer";
-import { IdMapper } from "./id-mapper";
 import {
   BinaryData,
   BufferType,
@@ -24,11 +22,13 @@ import {
   encodeDecimal,
   encodeNumber,
   encodeType,
+  GeoIndexBuilder,
   FixedSizeBufferBuilder,
   FixedSizeBufferView,
+  IdMapper,
   VariableSizeBufferBuilder,
   VariableSizeBufferView,
-} from "./buffers";
+} from "src/lib/buffers";
 
 export interface EncodedHydraulicModel {
   links: {

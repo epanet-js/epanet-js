@@ -13,7 +13,7 @@ import {
   decodeType,
   FixedSizeBufferView,
   VariableSizeBufferView,
-} from "./buffers";
+} from "src/lib/buffers";
 
 const createTestModel = () => {
   return HydraulicModelBuilder.with()

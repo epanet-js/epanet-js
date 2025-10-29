@@ -1,6 +1,6 @@
 import type { EncodedCrossingPipes } from "./data";
 import type { Position } from "geojson";
-import { HydraulicModelBuffers, HydraulicModelBuffersView } from "../shared";
+import { HydraulicModelBuffers, HydraulicModelBuffersView } from "../hydraulic-model-buffers";
 import bbox from "@turf/bbox";
 import lineIntersect from "@turf/line-intersect";
 import { lineString } from "@turf/helpers";

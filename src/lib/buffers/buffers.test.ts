@@ -4,15 +4,46 @@ import {
   FixedSizeBufferView,
   VariableSizeBufferBuilder,
   VariableSizeBufferView,
-} from "./buffers";
-import {
   DataSize,
-  encodeId,
-  decodeId,
-  encodeIdsList,
-  getIdsListSize,
-  decodeIdsList,
-} from ".";
+  encodeNumber,
+  decodeNumber,
+} from "./buffers";
+
+function encodeNumbersList(
+  connectedLinkIds: number[],
+  offset: number,
+  view: DataView,
+): number {
+  encodeNumber(connectedLinkIds.length, offset, view);
+  connectedLinkIds.forEach((linkId, idx) => {
+    encodeNumber(
+      linkId,
+      offset + DataSize.number + idx * DataSize.number,
+      view,
+    );
+  });
+
+  return offset;
+}
+
+function getIdsListSize(data: number[] | string[]) {
+  return DataSize.number + data.length * DataSize.number;
+}
+
+function decodeNumbersList(offset: number, view: DataView): number[] {
+  const ids: number[] = [];
+  const count = decodeNumber(offset, view);
+
+  for (let i = 0; i < count; i++) {
+    const id = decodeNumber(
+      offset + DataSize.number + i * DataSize.number,
+      view,
+    );
+    ids.push(id);
+  }
+
+  return ids;
+}
 
 describe("FixedSizeBufferView", () => {
   it("reads count from buffer header", () => {
@@ -20,7 +51,7 @@ describe("FixedSizeBufferView", () => {
       DataSize.number,
       3,
       "array",
-      encodeId,
+      encodeNumber,
     );
     builder.add(100);
     builder.add(200);
@@ -30,7 +61,7 @@ describe("FixedSizeBufferView", () => {
     const view = new FixedSizeBufferView<number>(
       buffer,
       DataSize.number,
-      decodeId,
+      decodeNumber,
     );
 
     expect(view.count).toBe(3);
@@ -41,7 +72,7 @@ describe("FixedSizeBufferView", () => {
       DataSize.number,
       3,
       "array",
-      encodeId,
+      encodeNumber,
     );
     builder.add(100);
     builder.add(200);
@@ -51,7 +82,7 @@ describe("FixedSizeBufferView", () => {
     const view = new FixedSizeBufferView<number>(
       buffer,
       DataSize.number,
-      decodeId,
+      decodeNumber,
     );
 
     expect(view.getById(0)).toBe(100);
@@ -64,7 +95,7 @@ describe("FixedSizeBufferView", () => {
       DataSize.number,
       4,
       "array",
-      encodeId,
+      encodeNumber,
     );
     builder.add(10);
     builder.add(20);
@@ -75,7 +106,7 @@ describe("FixedSizeBufferView", () => {
     const view = new FixedSizeBufferView<number>(
       buffer,
       DataSize.number,
-      decodeId,
+      decodeNumber,
     );
 
     const items = Array.from(view.iter());
@@ -87,7 +118,7 @@ describe("FixedSizeBufferView", () => {
       DataSize.number,
       3,
       "array",
-      encodeId,
+      encodeNumber,
     );
     builder.add(100);
     builder.add(200);
@@ -97,7 +128,7 @@ describe("FixedSizeBufferView", () => {
     const view = new FixedSizeBufferView<number>(
       buffer,
       DataSize.number,
-      decodeId,
+      decodeNumber,
     );
 
     const pairs = Array.from(view.enumerate());
@@ -113,7 +144,7 @@ describe("FixedSizeBufferView", () => {
       DataSize.number,
       2,
       "array",
-      encodeId,
+      encodeNumber,
     );
     builder.add(100);
     builder.add(200);
@@ -122,7 +153,7 @@ describe("FixedSizeBufferView", () => {
     const view = new FixedSizeBufferView<number>(
       buffer,
       DataSize.number,
-      decodeId,
+      decodeNumber,
     );
 
     expect(() => view.getById(-1)).toThrow(RangeError);
@@ -138,14 +169,14 @@ describe("FixedSizeBufferView", () => {
       DataSize.number,
       0,
       "array",
-      encodeId,
+      encodeNumber,
     );
 
     const buffer = builder.finalize();
     const view = new FixedSizeBufferView<number>(
       buffer,
       DataSize.number,
-      decodeId,
+      decodeNumber,
     );
 
     expect(view.count).toBe(0);
@@ -169,13 +200,13 @@ describe("VariableSizeBufferView", () => {
       lists.length,
       totalSize,
       "array",
-      encodeIdsList,
+      encodeNumbersList,
       getIdsListSize,
     );
     lists.forEach((list) => builder.add(list));
 
     const bufferWithIndex = builder.finalize();
-    const view = new VariableSizeBufferView(bufferWithIndex, decodeIdsList);
+    const view = new VariableSizeBufferView(bufferWithIndex, decodeNumbersList);
 
     expect(view.count).toBe(2);
   });
@@ -194,13 +225,13 @@ describe("VariableSizeBufferView", () => {
       lists.length,
       totalSize,
       "array",
-      encodeIdsList,
+      encodeNumbersList,
       getIdsListSize,
     );
     lists.forEach((list) => builder.add(list));
 
     const bufferWithIndex = builder.finalize();
-    const view = new VariableSizeBufferView(bufferWithIndex, decodeIdsList);
+    const view = new VariableSizeBufferView(bufferWithIndex, decodeNumbersList);
 
     expect(view.getById(0)).toEqual([0, 1, 2]);
     expect(view.getById(1)).toEqual([3, 4]);
@@ -217,13 +248,13 @@ describe("VariableSizeBufferView", () => {
       lists.length,
       totalSize,
       "array",
-      encodeIdsList,
+      encodeNumbersList,
       getIdsListSize,
     );
     lists.forEach((list) => builder.add(list));
 
     const bufferWithIndex = builder.finalize();
-    const view = new VariableSizeBufferView(bufferWithIndex, decodeIdsList);
+    const view = new VariableSizeBufferView(bufferWithIndex, decodeNumbersList);
 
     const items = Array.from(view.iter());
     expect(items).toEqual([[0, 1, 2], [3, 4], [], [5]]);
@@ -243,13 +274,13 @@ describe("VariableSizeBufferView", () => {
       lists.length,
       totalSize,
       "array",
-      encodeIdsList,
+      encodeNumbersList,
       getIdsListSize,
     );
     lists.forEach((list) => builder.add(list));
 
     const bufferWithIndex = builder.finalize();
-    const view = new VariableSizeBufferView(bufferWithIndex, decodeIdsList);
+    const view = new VariableSizeBufferView(bufferWithIndex, decodeNumbersList);
 
     const pairs = Array.from(view.enumerate());
     expect(pairs).toEqual([
@@ -272,13 +303,13 @@ describe("VariableSizeBufferView", () => {
       lists.length,
       totalSize,
       "array",
-      encodeIdsList,
+      encodeNumbersList,
       getIdsListSize,
     );
     lists.forEach((list) => builder.add(list));
 
     const bufferWithIndex = builder.finalize();
-    const view = new VariableSizeBufferView(bufferWithIndex, decodeIdsList);
+    const view = new VariableSizeBufferView(bufferWithIndex, decodeNumbersList);
 
     expect(() => view.getById(-1)).toThrow(RangeError);
     expect(() => view.getById(-1)).toThrow(/out of bounds/);
@@ -293,12 +324,12 @@ describe("VariableSizeBufferView", () => {
       0,
       0,
       "array",
-      encodeIdsList,
+      encodeNumbersList,
       getIdsListSize,
     );
 
     const bufferWithIndex = builder.finalize();
-    const view = new VariableSizeBufferView(bufferWithIndex, decodeIdsList);
+    const view = new VariableSizeBufferView(bufferWithIndex, decodeNumbersList);
 
     expect(view.count).toBe(0);
     expect(Array.from(view.iter())).toEqual([]);
@@ -316,13 +347,13 @@ describe("VariableSizeBufferView", () => {
       lists.length,
       totalSize,
       "array",
-      encodeIdsList,
+      encodeNumbersList,
       getIdsListSize,
     );
     lists.forEach((list) => builder.add(list));
 
     const bufferWithIndex = builder.finalize();
-    const view = new VariableSizeBufferView(bufferWithIndex, decodeIdsList);
+    const view = new VariableSizeBufferView(bufferWithIndex, decodeNumbersList);
 
     const items = Array.from(view.iter());
     expect(items).toEqual([[], [1, 2], [], []]);
@@ -341,13 +372,13 @@ describe("Integration: Round-trip encoding/decoding", () => {
       lists.length,
       totalSize,
       "array",
-      encodeIdsList,
+      encodeNumbersList,
       getIdsListSize,
     );
     lists.forEach((list) => builder.add(list));
 
     const bufferWithIndex = builder.finalize();
-    const view = new VariableSizeBufferView(bufferWithIndex, decodeIdsList);
+    const view = new VariableSizeBufferView(bufferWithIndex, decodeNumbersList);
 
     for (let i = 0; i < lists.length; i++) {
       expect(view.getById(i)).toEqual(lists[i]);
@@ -364,7 +395,7 @@ describe("Integration: Round-trip encoding/decoding", () => {
       DataSize.number,
       ids.length,
       "array",
-      encodeId,
+      encodeNumber,
     );
     ids.forEach((id) => builder.add(id));
 
@@ -372,7 +403,7 @@ describe("Integration: Round-trip encoding/decoding", () => {
     const view = new FixedSizeBufferView<number>(
       buffer,
       DataSize.number,
-      decodeId,
+      decodeNumber,
     );
 
     for (let i = 0; i < ids.length; i++) {
@@ -397,13 +428,13 @@ describe("Integration: Round-trip encoding/decoding", () => {
       lists.length,
       totalSize,
       "shared",
-      encodeIdsList,
+      encodeNumbersList,
       getIdsListSize,
     );
     lists.forEach((list) => builder.add(list));
 
     const bufferWithIndex = builder.finalize();
-    const view = new VariableSizeBufferView(bufferWithIndex, decodeIdsList);
+    const view = new VariableSizeBufferView(bufferWithIndex, decodeNumbersList);
 
     expect(Array.from(view.iter())).toEqual(lists);
     expect(bufferWithIndex.data instanceof SharedArrayBuffer).toBe(true);

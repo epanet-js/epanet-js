@@ -1,6 +1,6 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { findSubNetworks } from "./find-subnetworks";
-import { EncodedHydraulicModel, HydraulicModelEncoder } from "../shared";
+import { EncodedHydraulicModel, HydraulicModelEncoder } from "../hydraulic-model-buffers";
 import { decodeSubNetworks } from "./data";
 import { HydraulicModel } from "src/hydraulic-model";
 

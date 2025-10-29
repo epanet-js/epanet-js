@@ -1,6 +1,6 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { findCrossingPipes } from "./find-crossing-pipes";
-import { EncodedHydraulicModel, HydraulicModelEncoder } from "../shared";
+import { EncodedHydraulicModel, HydraulicModelEncoder } from "../hydraulic-model-buffers";
 import { HydraulicModel } from "src/hydraulic-model";
 
 describe("findCrossingPipes", () => {

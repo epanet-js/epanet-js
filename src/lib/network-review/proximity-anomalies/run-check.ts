@@ -7,7 +7,7 @@ import {
   EncodedProximityAnomalies,
   ProximityAnomaly,
 } from "./data";
-import { HydraulicModelBuffers, HydraulicModelEncoder } from "../shared";
+import { HydraulicModelBuffers, HydraulicModelEncoder } from "../hydraulic-model-buffers";
 import { findProximityAnomalies } from "./find-proximity-anomalies";
 import { ProximityCheckWorkerAPI } from "./worker";
 

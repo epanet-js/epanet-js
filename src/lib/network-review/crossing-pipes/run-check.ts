@@ -7,7 +7,7 @@ import {
   EncodedCrossingPipes,
   CrossingPipe,
 } from "./data";
-import { HydraulicModelBuffers, HydraulicModelEncoder } from "../shared";
+import { HydraulicModelBuffers, HydraulicModelEncoder } from "../hydraulic-model-buffers";
 import { findCrossingPipes } from "./find-crossing-pipes";
 import { CrossingPipesWorkerAPI } from "./worker";
 
