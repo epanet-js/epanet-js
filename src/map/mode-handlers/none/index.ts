@@ -10,7 +10,7 @@ import { clickableLayers } from "src/map/layers/layer";
 
 import { getNode } from "src/hydraulic-model";
 import { moveNode, mergeNodes } from "src/hydraulic-model/model-operations";
-import { nodesShareLink } from "src/hydraulic-model/topology-queries";
+import { nodesShareLink } from "src/hydraulic-model/topology";
 import { useMoveState } from "./move-state";
 import noop from "lodash/noop";
 import { useElevations } from "src/map/elevations/use-elevations";
