@@ -8,8 +8,4 @@ export class IdGenerator {
     this.last = this.last + 1;
     return this.last;
   }
-
-  newIdLegacy(): string {
-    return String(this.newId());
-  }
 }
