@@ -36,13 +36,37 @@ export const splitPipe: ModelOperation<SplitPipeInput> = (
     enableVertexSnap,
   );
 
+  const reconnectedCustomerPoints = updateCustomerPoints(
+    hydraulicModel,
+    pipe,
+    splits,
+    newPipes,
+  );
+
+  return {
+    note: `Split pipe`,
+    putAssets: newPipes,
+    deleteAssets: [pipe.id],
+    putCustomerPoints:
+      reconnectedCustomerPoints.length > 0
+        ? reconnectedCustomerPoints
+        : undefined,
+  };
+};
+
+const updateCustomerPoints = (
+  hydraulicModel: HydraulicModel,
+  originalPipe: Pipe,
+  splits: NodeAsset[],
+  newPipes: Pipe[],
+): CustomerPoint[] => {
   const tempAssets = new Map(hydraulicModel.assets);
   for (const splitNode of splits) {
     tempAssets.set(splitNode.id, splitNode);
   }
 
   const connectedCustomerPoints =
-    hydraulicModel.customerPointsLookup.getCustomerPoints(pipe.id);
+    hydraulicModel.customerPointsLookup.getCustomerPoints(originalPipe.id);
   const reconnectedCustomerPoints: CustomerPoint[] = [];
 
   if (connectedCustomerPoints.size > 0) {
@@ -66,15 +90,7 @@ export const splitPipe: ModelOperation<SplitPipeInput> = (
     }
   }
 
-  return {
-    note: `Split pipe`,
-    putAssets: newPipes,
-    deleteAssets: [pipe.id],
-    putCustomerPoints:
-      reconnectedCustomerPoints.length > 0
-        ? reconnectedCustomerPoints
-        : undefined,
-  };
+  return reconnectedCustomerPoints;
 };
 
 const findPipeContainingSplit = (pipes: Pipe[], split: NodeAsset): number => {
@@ -120,7 +136,7 @@ const splitPipeIteratively = (
     );
     const targetPipe = currentPipes[targetPipeIndex];
 
-    const [pipe1, pipe2] = splitPipeAtPointSimple(
+    const [pipe1, pipe2] = splitPipeAtPoint(
       hydraulicModel,
       targetPipe,
       splitToProcess,
@@ -154,29 +170,82 @@ const relabelPipes = (
   }
 };
 
-const splitPipeAtPointSimple = (
+const splitPipeAtPoint = (
   hydraulicModel: HydraulicModel,
   pipe: Pipe,
   split: NodeAsset,
   enableVertexSnap: boolean,
 ): [Pipe, Pipe] => {
-  const splitPoint = point(split.coordinates);
-  const originalCoords = pipe.coordinates;
-  const [originalStartNodeId, originalEndNodeId] = pipe.connections;
+  const matchingVertexIndex = enableVertexSnap
+    ? findMatchingVertexIndex(pipe.coordinates, split.coordinates)
+    : -1;
 
-  let matchingVertexIndex = -1;
-  if (enableVertexSnap) {
-    matchingVertexIndex = originalCoords.findIndex(
-      (coord) =>
-        coord[0] === split.coordinates[0] && coord[1] === split.coordinates[1],
-    );
+  if (isValidVertexSplit(matchingVertexIndex, pipe.coordinates.length)) {
+    return splitPipeAtVertex(hydraulicModel, pipe, split, matchingVertexIndex);
   }
 
+  const segmentIndex = findNearestSegment(pipe.coordinates, split.coordinates);
+  return splitPipeAtNewPoint(hydraulicModel, pipe, split, segmentIndex);
+};
+
+const splitPipeAtVertex = (
+  hydraulicModel: HydraulicModel,
+  pipe: Pipe,
+  split: NodeAsset,
+  vertexIndex: number,
+): [Pipe, Pipe] => {
+  const coords1 = pipe.coordinates.slice(0, vertexIndex + 1);
+  const coords2 = pipe.coordinates.slice(vertexIndex);
+
+  return buildPipePair(hydraulicModel, pipe, split, coords1, coords2);
+};
+
+const splitPipeAtNewPoint = (
+  hydraulicModel: HydraulicModel,
+  pipe: Pipe,
+  split: NodeAsset,
+  segmentIndex: number,
+): [Pipe, Pipe] => {
+  const coords1 = [
+    ...pipe.coordinates.slice(0, segmentIndex + 1),
+    split.coordinates,
+  ];
+  const coords2 = [
+    split.coordinates,
+    ...pipe.coordinates.slice(segmentIndex + 1),
+  ];
+
+  return buildPipePair(hydraulicModel, pipe, split, coords1, coords2);
+};
+
+const findMatchingVertexIndex = (
+  coordinates: Position[],
+  splitCoords: Position,
+): number => {
+  return coordinates.findIndex(
+    (coord) => coord[0] === splitCoords[0] && coord[1] === splitCoords[1],
+  );
+};
+
+const isValidVertexSplit = (
+  vertexIndex: number,
+  totalVertices: number,
+): boolean => {
+  return (
+    vertexIndex !== -1 && vertexIndex > 0 && vertexIndex < totalVertices - 1
+  );
+};
+
+const findNearestSegment = (
+  coordinates: Position[],
+  splitCoords: Position,
+): number => {
+  const splitPoint = point(splitCoords);
   let splitIndex = -1;
   let minDistance = Number.MAX_VALUE;
 
-  for (let i = 0; i < originalCoords.length - 1; i++) {
-    const segmentLine = lineString([originalCoords[i], originalCoords[i + 1]]);
+  for (let i = 0; i < coordinates.length - 1; i++) {
+    const segmentLine = lineString([coordinates[i], coordinates[i + 1]]);
     const segmentNearest = findNearestPointOnLine(segmentLine, splitPoint);
 
     if (
@@ -189,41 +258,35 @@ const splitPipeAtPointSimple = (
   }
 
   if (splitIndex === -1) {
-    splitIndex = Math.floor((originalCoords.length - 1) / 2);
+    splitIndex = Math.floor((coordinates.length - 1) / 2);
   }
 
-  let coords1: Position[];
-  let coords2: Position[];
+  return splitIndex;
+};
 
-  if (
-    matchingVertexIndex !== -1 &&
-    matchingVertexIndex > 0 &&
-    matchingVertexIndex < originalCoords.length - 1
-  ) {
-    coords1 = originalCoords.slice(0, matchingVertexIndex + 1);
-    coords2 = originalCoords.slice(matchingVertexIndex);
-  } else {
-    coords1 = originalCoords.slice(0, splitIndex + 1);
-    coords1.push(split.coordinates);
-
-    coords2 = [split.coordinates];
-    coords2.push(...originalCoords.slice(splitIndex + 1));
-  }
+const buildPipePair = (
+  hydraulicModel: HydraulicModel,
+  originalPipe: Pipe,
+  split: NodeAsset,
+  coords1: Position[],
+  coords2: Position[],
+): [Pipe, Pipe] => {
+  const [originalStartNodeId, originalEndNodeId] = originalPipe.connections;
 
   const pipe1 = hydraulicModel.assetBuilder.buildPipe({
-    label: pipe.label,
+    label: originalPipe.label,
     coordinates: coords1,
     connections: [originalStartNodeId, split.id],
   });
 
   const pipe2 = hydraulicModel.assetBuilder.buildPipe({
-    label: pipe.label,
+    label: originalPipe.label,
     coordinates: coords2,
     connections: [split.id, originalEndNodeId],
   });
 
-  copyPipeProperties(pipe, pipe1);
-  copyPipeProperties(pipe, pipe2);
+  copyPipeProperties(originalPipe, pipe1);
+  copyPipeProperties(originalPipe, pipe2);
   updatePipeLength(pipe1);
   updatePipeLength(pipe2);
 
