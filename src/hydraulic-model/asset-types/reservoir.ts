@@ -12,6 +12,7 @@ export class Reservoir extends Node<ReservoirProperties> {
   copy() {
     return new Reservoir(
       this.id,
+      this.internalId,
       [...this.coordinates],
       {
         ...this.properties,

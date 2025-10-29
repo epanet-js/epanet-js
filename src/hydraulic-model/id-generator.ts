@@ -1,12 +1,15 @@
 export class IdGenerator {
-  private last: string;
+  private last: number;
   constructor() {
-    this.last = "0";
+    this.last = 0;
   }
 
-  newId() {
-    const newId = String(parseInt(this.last) + 1);
-    this.last = newId;
-    return newId;
+  newId(): number {
+    this.last = this.last + 1;
+    return this.last;
+  }
+
+  newIdLegacy(): string {
+    return String(this.newId());
   }
 }

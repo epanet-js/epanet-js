@@ -37,6 +37,7 @@ export class Tank extends Node<TankProperties> {
   copy() {
     return new Tank(
       this.id,
+      this.internalId,
       [...this.coordinates],
       {
         ...this.properties,

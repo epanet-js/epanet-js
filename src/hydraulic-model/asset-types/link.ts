@@ -25,11 +25,18 @@ export type LinkProperties = {
 export class Link<T> extends BaseAsset<T & LinkProperties> {
   constructor(
     id: AssetId,
+    internalId: number,
     coordinates: Position[],
     properties: T & LinkProperties,
     units: AssetUnits,
   ) {
-    super(id, { type: "LineString", coordinates }, properties, units);
+    super(
+      id,
+      internalId,
+      { type: "LineString", coordinates },
+      properties,
+      units,
+    );
   }
 
   get isLink() {

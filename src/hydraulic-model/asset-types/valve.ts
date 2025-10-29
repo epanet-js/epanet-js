@@ -95,6 +95,7 @@ export class Valve extends Link<ValveProperties> {
   copy() {
     return new Valve(
       this.id,
+      this.internalId,
       [...this.coordinates],
       {
         ...this.properties,
