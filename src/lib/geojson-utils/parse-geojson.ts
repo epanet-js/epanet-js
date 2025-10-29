@@ -35,6 +35,7 @@ export function parseGeoJson(
   properties: Set<string>;
   error?: GeoJsonValidationError;
   coordinateConversion?: CoordinateConversion;
+  hasValidGeometry?: boolean;
 } {
   const trimmedContent = content.trim();
 
@@ -68,6 +69,7 @@ const parseGeoJsonFeatureCollection = (
   properties: Set<string>;
   error?: GeoJsonValidationError;
   coordinateConversion?: CoordinateConversion;
+  hasValidGeometry?: boolean;
 } | null => {
   let geoJson;
   try {
@@ -130,6 +132,7 @@ const parseGeoJsonFeatureCollection = (
 
     const features: Feature[] = [];
     const properties = new Set<string>();
+    let hasValidGeometry = false;
 
     for (const feature of processedGeoJson.features) {
       const validationError = validateFeatureCoordinates(feature);
@@ -141,12 +144,15 @@ const parseGeoJsonFeatureCollection = (
           coordinateConversion,
         };
       }
+      if (feature.geometry) {
+        hasValidGeometry = true;
+      }
       features.push(feature);
       if (feature.properties) {
         Object.keys(feature.properties).forEach((key) => properties.add(key));
       }
     }
-    return { features, properties, coordinateConversion };
+    return { features, properties, coordinateConversion, hasValidGeometry };
   }
 
   return null;
@@ -160,9 +166,11 @@ const parseGeoJsonL = (
   properties: Set<string>;
   error?: GeoJsonValidationError;
   coordinateConversion?: CoordinateConversion;
+  hasValidGeometry?: boolean;
 } => {
   const features: Feature[] = [];
   const properties = new Set<string>();
+  let hasValidGeometry = false;
 
   const lines = content.split("\n").filter((line) => line.trim());
   for (const line of lines) {
@@ -185,6 +193,9 @@ const parseGeoJsonL = (
           error: { code: validationError, feature: json },
         };
       }
+      if (json.geometry) {
+        hasValidGeometry = true;
+      }
       features.push(json);
       if (json.properties) {
         Object.keys(json.properties).forEach((key) => properties.add(key));
@@ -192,7 +203,7 @@ const parseGeoJsonL = (
     }
   }
 
-  return { features, properties };
+  return { features, properties, hasValidGeometry };
 };
 
 const isWgs84 = (longitude: number, latitude: number): boolean => {
@@ -221,7 +232,7 @@ const validateFeatureCoordinates = (
   feature: Feature,
 ): GeoJsonValidationErrorCode | null => {
   if (!feature.geometry) {
-    return "coordinates-missing";
+    return null;
   }
 
   if (feature.geometry.type === "GeometryCollection") {

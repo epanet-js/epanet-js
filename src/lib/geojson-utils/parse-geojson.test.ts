@@ -125,7 +125,7 @@ invalid json line
     expect(result.error?.code).toBe("invalid-projection");
   });
 
-  it("validates coordinates and aborts with error for missing geometry", () => {
+  it("allows features with null geometry through", () => {
     const geojson = {
       type: "FeatureCollection",
       features: [
@@ -139,9 +139,62 @@ invalid json line
 
     const result = parseGeoJson(JSON.stringify(geojson));
 
+    expect(result.features).toHaveLength(1);
+    expect(result.error).toBeUndefined();
+    expect(result.hasValidGeometry).toBe(false);
+  });
+
+  it("allows mixed null and valid geometries", () => {
+    const geojson = {
+      type: "FeatureCollection",
+      features: [
+        {
+          type: "Feature",
+          geometry: { type: "Point", coordinates: [0, 0] },
+          properties: { name: "Valid" },
+        },
+        {
+          type: "Feature",
+          geometry: null,
+          properties: { name: "Null" },
+        },
+        {
+          type: "Feature",
+          geometry: { type: "Point", coordinates: [1, 1] },
+          properties: { name: "Another Valid" },
+        },
+      ],
+    };
+
+    const result = parseGeoJson(JSON.stringify(geojson));
+
+    expect(result.features).toHaveLength(3);
+    expect(result.error).toBeUndefined();
+    expect(result.hasValidGeometry).toBe(true);
+  });
+
+  it("aborts on invalid WGS84 even with valid geometries present", () => {
+    const geojson = {
+      type: "FeatureCollection",
+      features: [
+        {
+          type: "Feature",
+          geometry: { type: "Point", coordinates: [0, 0] },
+          properties: { name: "Valid" },
+        },
+        {
+          type: "Feature",
+          geometry: { type: "Point", coordinates: [200, 0] },
+          properties: { name: "Invalid" },
+        },
+      ],
+    };
+
+    const result = parseGeoJson(JSON.stringify(geojson));
+
     expect(result.features).toHaveLength(0);
     expect(result.error).toBeDefined();
-    expect(result.error?.code).toBe("coordinates-missing");
+    expect(result.error?.code).toBe("invalid-projection");
   });
 
   it("validates GeoJSONL coordinates and aborts on error", () => {

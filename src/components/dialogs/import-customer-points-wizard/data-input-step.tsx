@@ -63,6 +63,7 @@ export const DataInputStep: React.FC<{
             properties,
             error: validationError,
             coordinateConversion,
+            hasValidGeometry,
           } = parseGeoJson(text, projections || undefined);
 
           if (validationError) {
@@ -90,6 +91,18 @@ export const DataInputStep: React.FC<{
               errorCode: validationError.code,
             });
             setError(errorMessage);
+            setLoading(false);
+            return;
+          }
+
+          if (hasValidGeometry === false) {
+            userTracking.capture({
+              name: "importCustomerPoints.dataInput.noValidPoints",
+              fileName: file.name,
+            });
+            setError(
+              translate("importCustomerPoints.dataSource.noValidPointsError"),
+            );
             setLoading(false);
             return;
           }
