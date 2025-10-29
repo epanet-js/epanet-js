@@ -48,7 +48,6 @@ import { useTranslate } from "src/hooks/use-translate";
 import { MapLoading } from "./map-loader";
 import { supportEmail } from "src/global-config";
 import { MapHandlers } from "./types";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 mapboxgl.accessToken = env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
 mapboxgl.setRTLTextPlugin(
@@ -267,42 +266,34 @@ export const MapCanvas = memo(function MapCanvas({
     "EXIT MODE",
   );
 
-  const isRedrawNoCtrlOn = useFeatureFlag("FLAG_REDRAW_NO_CTRL");
-
   const onKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      if (!isRedrawNoCtrlOn) return;
-
       const handler = HANDLERS[mode.mode];
       if (handler.keydown) {
         handler.keydown(e);
       }
     },
-    [HANDLERS, mode, isRedrawNoCtrlOn],
+    [HANDLERS, mode],
   );
 
   const onKeyUp = useCallback(
     (e: KeyboardEvent) => {
-      if (!isRedrawNoCtrlOn) return;
-
       const handler = HANDLERS[mode.mode];
       if (handler.keyup) {
         handler.keyup(e);
       }
     },
-    [HANDLERS, mode, isRedrawNoCtrlOn],
+    [HANDLERS, mode],
   );
 
   useEffect(() => {
-    if (!isRedrawNoCtrlOn) return;
-
     window.addEventListener("keydown", onKeyDown);
     window.addEventListener("keyup", onKeyUp);
     return () => {
       window.removeEventListener("keydown", onKeyDown);
       window.removeEventListener("keyup", onKeyUp);
     };
-  }, [onKeyDown, onKeyUp, isRedrawNoCtrlOn]);
+  }, [onKeyDown, onKeyUp]);
 
   mapHandlers.current = newHandlers;
 
