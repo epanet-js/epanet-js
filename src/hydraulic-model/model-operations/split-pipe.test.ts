@@ -986,9 +986,10 @@ describe("splitPipe", () => {
       expect(pipe1.coordinates).toEqual([
         [0, 0],
         [0.000025, 0],
-        [0.00005, 0],
+        [0.000049, 0],
       ]);
       expect(pipe2.coordinates).toEqual([
+        [0.000049, 0],
         [0.00005, 0],
         [0.000075, 0],
         [0.0001, 0],

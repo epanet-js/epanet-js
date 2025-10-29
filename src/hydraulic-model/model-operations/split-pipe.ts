@@ -7,7 +7,6 @@ import { findJunctionForCustomerPoint } from "../utilities/junction-assignment";
 import { lineString, point } from "@turf/helpers";
 import { findNearestPointOnLine } from "src/lib/geometry";
 import measureLength from "@turf/length";
-import distance from "@turf/distance";
 import { Position } from "src/types";
 
 type CopyablePipeProperties = Pick<
@@ -167,8 +166,9 @@ const splitPipeAtPointSimple = (
 
   let matchingVertexIndex = -1;
   if (enableVertexSnap) {
-    matchingVertexIndex = originalCoords.findIndex((coord) =>
-      isAlmostTheSamePoint(coord, split.coordinates),
+    matchingVertexIndex = originalCoords.findIndex(
+      (coord) =>
+        coord[0] === split.coordinates[0] && coord[1] === split.coordinates[1],
     );
   }
 
@@ -320,10 +320,4 @@ const reconnectCustomerPointToPipe = (
   });
 
   return reconnectedPoint;
-};
-
-const isAlmostTheSamePoint = (a: Position, b: Position): boolean => {
-  const minResolutionInMeters = 1;
-  const distanceInMeters = distance(a, b) * 1000;
-  return distanceInMeters <= minResolutionInMeters;
 };
