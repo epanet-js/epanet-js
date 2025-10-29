@@ -26,7 +26,12 @@ import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export type SnappingCandidate =
   | NodeAsset
-  | { type: "pipe"; id: AssetId; coordinates: Position };
+  | {
+      type: "pipe";
+      id: AssetId;
+      coordinates: Position;
+      vertexIndex: number | null;
+    };
 
 export type SubmitLinkParams = {
   startNode: NodeAsset;

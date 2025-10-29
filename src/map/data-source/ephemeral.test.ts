@@ -154,6 +154,7 @@ describe("build ephemeral state source", () => {
           type: "pipe",
           coordinates: [45, 55],
           id: "P1",
+          vertexIndex: null,
         },
       };
 
@@ -237,6 +238,7 @@ describe("build ephemeral state source", () => {
           type: "pipe",
           coordinates: [45, 55],
           id: "NONEXISTENT",
+          vertexIndex: null,
         },
       };
 

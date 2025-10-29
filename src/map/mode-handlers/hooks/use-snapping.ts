@@ -23,6 +23,7 @@ type PipeSnapResult = {
   pipeId: string;
   snapPosition: Position;
   distance: number;
+  vertexIndex: number | null;
 };
 
 export const useSnapping = (
@@ -111,11 +112,13 @@ export const useSnapping = (
       const result = findNearestPointOnLine(pipeLineString, mousePoint);
 
       let snapPosition = result.coordinates;
+      let snappedVertexIndex: number | null = null;
 
       if (isVertexSnapOn) {
         const mouseScreen = screenPoint;
 
-        for (const vertex of pipeGeometry.coordinates) {
+        for (let i = 0; i < pipeGeometry.coordinates.length; i++) {
+          const vertex = pipeGeometry.coordinates[i];
           const vertexScreen = map.map.project([vertex[0], vertex[1]]);
           const pixelDistance = Math.sqrt(
             Math.pow(vertexScreen.x - mouseScreen.x, 2) +
@@ -124,6 +127,7 @@ export const useSnapping = (
 
           if (pixelDistance < DEFAULT_SNAP_DISTANCE_PIXELS) {
             snapPosition = vertex;
+            snappedVertexIndex = i;
             break;
           }
         }
@@ -135,6 +139,7 @@ export const useSnapping = (
           pipeId: uuid,
           snapPosition: snapPosition,
           distance: distance,
+          vertexIndex: snappedVertexIndex,
         };
       }
     }
@@ -163,6 +168,7 @@ export const useSnapping = (
         type: "pipe",
         id: pipeSnapResult.pipeId,
         coordinates: pipeSnapResult.snapPosition,
+        vertexIndex: pipeSnapResult.vertexIndex,
       };
     }
 
