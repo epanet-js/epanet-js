@@ -10,6 +10,7 @@ import { clickableLayers } from "src/map/layers/layer";
 
 import { getNode } from "src/hydraulic-model";
 import { moveNode, mergeNodes } from "src/hydraulic-model/model-operations";
+import { nodesShareLink } from "src/hydraulic-model/topology-queries";
 import { useMoveState } from "./move-state";
 import noop from "lodash/noop";
 import { useElevations } from "src/map/elevations/use-elevations";
@@ -190,9 +191,17 @@ export function useNoneHandlers({
         const isPipeSnapping =
           snappingCandidate && snappingCandidate.type === "pipe";
 
+        const shareLink =
+          isNodeSnapping &&
+          nodesShareLink(
+            hydraulicModel.topology,
+            asset.id,
+            snappingCandidate.id,
+          );
+
         setCursor(
           isNodeSnapping
-            ? isReplaceNodeOn
+            ? isReplaceNodeOn && !shareLink
               ? "replace"
               : "not-allowed"
             : "move",
@@ -257,7 +266,13 @@ export function useNoneHandlers({
       );
 
       if (snappingCandidate && snappingCandidate.type !== "pipe") {
-        if (isReplaceNodeOn) {
+        const shareLink = nodesShareLink(
+          hydraulicModel.topology,
+          assetId,
+          snappingCandidate.id,
+        );
+
+        if (isReplaceNodeOn && !shareLink) {
           const moment = mergeNodes(hydraulicModel, {
             sourceNodeId: assetId,
             targetNodeId: snappingCandidate.id,
