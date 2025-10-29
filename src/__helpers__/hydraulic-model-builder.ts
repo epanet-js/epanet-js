@@ -142,23 +142,30 @@ export class HydraulicModelBuilder {
     this.headlossFormulaValue = "H-W";
   }
 
-  aNode(id: string, coordinates: Position = [0, 0]) {
-    const node = this.assetBuilder.buildJunction({ coordinates, id });
-    this.assets.set(id, node);
+  aNode(id: string | number, coordinates: Position = [0, 0]) {
+    const numericId = typeof id === "number" ? id : undefined;
+    const stringId = typeof id === "string" ? id : String(id);
+    const node = this.assetBuilder.buildJunction({
+      coordinates,
+      id: numericId ?? stringId,
+    });
+    this.assets.set(stringId, node);
     return this;
   }
 
   aJunction(
-    id: string,
+    id: string | number,
     data: Partial<
       JunctionBuildData & {
         simulation: Partial<{ pressure: number; head: number; demand: number }>;
       }
     > = {},
   ) {
+    const numericId = typeof id === "number" ? id : undefined;
+    const stringId = typeof id === "string" ? id : String(id);
     const { simulation, ...properties } = data;
     const junction = this.assetBuilder.buildJunction({
-      id,
+      id: numericId ?? stringId,
       ...properties,
     });
     if (simulation) {
@@ -169,21 +176,26 @@ export class HydraulicModelBuilder {
         ...simulation,
       });
     }
-    this.assets.set(id, junction);
+    this.assets.set(stringId, junction);
     return this;
   }
 
-  aReservoir(id: string, properties: Partial<ReservoirBuildData> = {}) {
+  aReservoir(
+    id: string | number,
+    properties: Partial<ReservoirBuildData> = {},
+  ) {
+    const numericId = typeof id === "number" ? id : undefined;
+    const stringId = typeof id === "string" ? id : String(id);
     const reservoir = this.assetBuilder.buildReservoir({
-      id,
+      id: numericId ?? stringId,
       ...properties,
     });
-    this.assets.set(id, reservoir);
+    this.assets.set(stringId, reservoir);
     return this;
   }
 
   aTank(
-    id: string,
+    id: string | number,
     data: Partial<
       TankBuildData & {
         simulation: Partial<{
@@ -195,9 +207,11 @@ export class HydraulicModelBuilder {
       }
     > = {},
   ) {
+    const numericId = typeof id === "number" ? id : undefined;
+    const stringId = typeof id === "string" ? id : String(id);
     const { simulation, ...properties } = data;
     const tank = this.assetBuilder.buildTank({
-      id,
+      id: numericId ?? stringId,
       ...properties,
     });
     if (simulation) {
@@ -209,18 +223,23 @@ export class HydraulicModelBuilder {
         ...simulation,
       });
     }
-    this.assets.set(id, tank);
+    this.assets.set(stringId, tank);
     return this;
   }
 
   aPipe(
-    id: string,
+    id: string | number,
     data: Partial<
-      PipeBuildData & { startNodeId: string; endNodeId: string } & {
+      PipeBuildData & {
+        startNodeId: string | number;
+        endNodeId: string | number;
+      } & {
         simulation: Partial<PipeSimulation>;
       }
     > = {},
   ) {
+    const numericId = typeof id === "number" ? id : undefined;
+    const stringId = typeof id === "string" ? id : String(id);
     const { startNodeId, endNodeId, simulation, ...properties } = data;
     const startNode = this.getNodeOrCreate(startNodeId);
     const endNode = this.getNodeOrCreate(endNodeId);
@@ -228,10 +247,10 @@ export class HydraulicModelBuilder {
     const pipe = this.assetBuilder.buildPipe({
       coordinates: [startNode.coordinates, endNode.coordinates],
       connections: [startNode.id, endNode.id],
-      id,
+      id: numericId ?? stringId,
       ...properties,
     });
-    this.assets.set(pipe.id, pipe);
+    this.assets.set(stringId, pipe);
     if (simulation) {
       pipe.setSimulation({
         flow: 10,
@@ -242,15 +261,18 @@ export class HydraulicModelBuilder {
         ...simulation,
       });
     }
-    this.topology.addLink(id, startNode.id, endNode.id);
+    this.topology.addLink(stringId, startNode.id, endNode.id);
 
     return this;
   }
 
   aPump(
-    id: string,
+    id: string | number,
     data: Partial<
-      PumpBuildData & { startNodeId: string; endNodeId: string } & {
+      PumpBuildData & {
+        startNodeId: string | number;
+        endNodeId: string | number;
+      } & {
         simulation: Partial<{
           flow: number;
           headloss: number;
@@ -260,6 +282,8 @@ export class HydraulicModelBuilder {
       }
     > = {},
   ) {
+    const numericId = typeof id === "number" ? id : undefined;
+    const stringId = typeof id === "string" ? id : String(id);
     const { startNodeId, endNodeId, simulation, ...properties } = data;
     const startNode = this.getNodeOrCreate(startNodeId);
     const endNode = this.getNodeOrCreate(endNodeId);
@@ -267,7 +291,7 @@ export class HydraulicModelBuilder {
     const pump = this.assetBuilder.buildPump({
       coordinates: [startNode.coordinates, endNode.coordinates],
       connections: [startNode.id, endNode.id],
-      id,
+      id: numericId ?? stringId,
       ...properties,
     });
     if (simulation) {
@@ -279,20 +303,25 @@ export class HydraulicModelBuilder {
         ...simulation,
       });
     }
-    this.assets.set(pump.id, pump);
-    this.topology.addLink(id, startNode.id, endNode.id);
+    this.assets.set(stringId, pump);
+    this.topology.addLink(stringId, startNode.id, endNode.id);
 
     return this;
   }
 
   aValve(
-    id: string,
+    id: string | number,
     data: Partial<
-      ValveBuildData & { startNodeId: string; endNodeId: string } & {
+      ValveBuildData & {
+        startNodeId: string | number;
+        endNodeId: string | number;
+      } & {
         simulation: Partial<ValveSimulation>;
       }
     > = {},
   ) {
+    const numericId = typeof id === "number" ? id : undefined;
+    const stringId = typeof id === "string" ? id : String(id);
     const { startNodeId, endNodeId, simulation, ...properties } = data;
     const startNode = this.getNodeOrCreate(startNodeId);
     const endNode = this.getNodeOrCreate(endNodeId);
@@ -300,7 +329,7 @@ export class HydraulicModelBuilder {
     const valve = this.assetBuilder.buildValve({
       coordinates: [startNode.coordinates, endNode.coordinates],
       connections: [startNode.id, endNode.id],
-      id,
+      id: numericId ?? stringId,
       ...properties,
     });
     if (simulation) {
@@ -313,16 +342,16 @@ export class HydraulicModelBuilder {
         ...simulation,
       });
     }
-    this.assets.set(valve.id, valve);
-    this.topology.addLink(id, startNode.id, endNode.id);
+    this.assets.set(stringId, valve);
+    this.topology.addLink(stringId, startNode.id, endNode.id);
 
     return this;
   }
 
   aLink(
-    id: string,
-    startNodeId: string,
-    endNodeId: string,
+    id: string | number,
+    startNodeId: string | number,
+    endNodeId: string | number,
     properties: Partial<PipeProperties> = {},
   ) {
     return this.aPipe(id, { startNodeId, endNodeId, ...properties });
@@ -406,13 +435,15 @@ export class HydraulicModelBuilder {
     };
   }
 
-  private getNodeOrCreate(nodeId: AssetId | undefined): NodeAsset {
+  private getNodeOrCreate(nodeId: AssetId | number | undefined): NodeAsset {
     let node: NodeAsset | null;
     if (!nodeId) {
       node = this.assetBuilder.buildJunction();
     } else {
-      node = getNode(this.assets, nodeId);
-      if (!node) throw new Error(`Node provided missing in assets (${nodeId})`);
+      const stringId = typeof nodeId === "string" ? nodeId : String(nodeId);
+      node = getNode(this.assets, stringId);
+      if (!node)
+        throw new Error(`Node provided missing in assets (${stringId})`);
     }
     return node;
   }
