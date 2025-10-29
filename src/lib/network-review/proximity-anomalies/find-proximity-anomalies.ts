@@ -3,7 +3,10 @@ import {
   Node,
   EncodedAlternativeConnection,
 } from "./data";
-import { HydraulicModelBuffers, HydraulicModelBuffersView } from "../hydraulic-model-buffers";
+import {
+  HydraulicModelBuffers,
+  HydraulicModelBuffersView,
+} from "../hydraulic-model-buffers";
 import { lineString, point } from "@turf/helpers";
 import nearestPointOnLine from "@turf/nearest-point-on-line";
 import distance from "@turf/distance";

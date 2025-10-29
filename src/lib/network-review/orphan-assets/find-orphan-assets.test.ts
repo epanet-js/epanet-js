@@ -1,6 +1,9 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { findOrphanAssets } from "./find-orphan-assets";
-import { EncodedHydraulicModel, HydraulicModelEncoder } from "../hydraulic-model-buffers";
+import {
+  EncodedHydraulicModel,
+  HydraulicModelEncoder,
+} from "../hydraulic-model-buffers";
 import { HydraulicModel } from "src/hydraulic-model";
 
 describe("findOrphanAssets", () => {

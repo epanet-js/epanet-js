@@ -1,6 +1,9 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { findProximityAnomalies } from "./find-proximity-anomalies";
-import { EncodedHydraulicModel, HydraulicModelEncoder } from "../hydraulic-model-buffers";
+import {
+  EncodedHydraulicModel,
+  HydraulicModelEncoder,
+} from "../hydraulic-model-buffers";
 import { HydraulicModel } from "src/hydraulic-model";
 
 describe("findProximityAnomalies", () => {
