@@ -12,6 +12,24 @@ type InputData = {
   targetNodeId: AssetId;
 };
 
+const determineWinner = (
+  sourceNode: NodeAsset,
+  targetNode: NodeAsset,
+): { winnerNode: NodeAsset; loserNode: NodeAsset } => {
+  const sourceType = sourceNode.type;
+  const targetType = targetNode.type;
+
+  const targetHasPriority =
+    (targetType === "reservoir" || targetType === "tank") &&
+    sourceType === "junction";
+
+  if (targetHasPriority) {
+    return { winnerNode: targetNode, loserNode: sourceNode };
+  }
+
+  return { winnerNode: sourceNode, loserNode: targetNode };
+};
+
 export const mergeNodes: ModelOperation<InputData> = (
   hydraulicModel,
   { sourceNodeId, targetNodeId },
@@ -29,27 +47,31 @@ export const mergeNodes: ModelOperation<InputData> = (
     throw new Error(`Invalid target node ID: ${targetNodeId}`);
   }
 
-  const sourceNodeCopy = sourceNode.copy();
-  sourceNodeCopy.setCoordinates(targetNode.coordinates);
+  const { winnerNode, loserNode } = determineWinner(sourceNode, targetNode);
+  const winnerNodeId = winnerNode.id;
+  const loserNodeId = loserNode.id;
 
-  const sourceConnectedLinkIds = topology.getLinks(sourceNodeId);
-  const targetConnectedLinkIds = topology.getLinks(targetNodeId);
+  const winnerNodeCopy = winnerNode.copy();
+  winnerNodeCopy.setCoordinates(targetNode.coordinates);
+
+  const winnerConnectedLinkIds = topology.getLinks(winnerNodeId);
+  const loserConnectedLinkIds = topology.getLinks(loserNodeId);
 
   const updatedLinks: LinkAsset[] = [];
   const updatedCustomerPoints = new CustomerPoints();
 
-  for (const linkId of sourceConnectedLinkIds) {
+  for (const linkId of winnerConnectedLinkIds) {
     const link = assets.get(linkId) as LinkAsset;
     const linkCopy = link.copy();
 
     const coordinates = linkCopy.coordinates;
     const newCoordinates = [...coordinates];
 
-    if (linkCopy.connections[0] === sourceNodeId) {
+    if (linkCopy.connections[0] === winnerNodeId) {
       newCoordinates[0] = targetNode.coordinates;
     }
     if (
-      linkCopy.connections[linkCopy.connections.length - 1] === sourceNodeId
+      linkCopy.connections[linkCopy.connections.length - 1] === winnerNodeId
     ) {
       newCoordinates[newCoordinates.length - 1] = targetNode.coordinates;
     }
@@ -62,7 +84,7 @@ export const mergeNodes: ModelOperation<InputData> = (
       const pipeCopy = linkCopy as Pipe;
       reassignCustomerPointsForPipe(
         pipeCopy,
-        sourceNodeCopy,
+        winnerNodeCopy,
         assets,
         customerPointsLookup,
         updatedCustomerPoints,
@@ -70,11 +92,25 @@ export const mergeNodes: ModelOperation<InputData> = (
     }
   }
 
-  for (const linkId of targetConnectedLinkIds) {
+  for (const linkId of loserConnectedLinkIds) {
     const link = assets.get(linkId) as LinkAsset;
     const linkCopy = link.copy();
 
-    updateLinkConnection(linkCopy, targetNodeId, sourceNodeCopy.id);
+    updateLinkConnection(linkCopy, loserNodeId, winnerNodeCopy.id);
+
+    const coordinates = linkCopy.coordinates;
+    const newCoordinates = [...coordinates];
+
+    if (linkCopy.connections[0] === winnerNodeId) {
+      newCoordinates[0] = targetNode.coordinates;
+    }
+    if (
+      linkCopy.connections[linkCopy.connections.length - 1] === winnerNodeId
+    ) {
+      newCoordinates[newCoordinates.length - 1] = targetNode.coordinates;
+    }
+
+    linkCopy.setCoordinates(newCoordinates);
 
     updatedLinks.push(linkCopy);
 
@@ -82,7 +118,7 @@ export const mergeNodes: ModelOperation<InputData> = (
       const pipeCopy = linkCopy as Pipe;
       reassignCustomerPointsForPipe(
         pipeCopy,
-        sourceNodeCopy,
+        winnerNodeCopy,
         assets,
         customerPointsLookup,
         updatedCustomerPoints,
@@ -91,9 +127,9 @@ export const mergeNodes: ModelOperation<InputData> = (
   }
 
   return {
-    note: `Merge ${sourceNode.type} into ${targetNode.type}`,
-    putAssets: [sourceNodeCopy, ...updatedLinks],
-    deleteAssets: [targetNodeId],
+    note: `Merge ${loserNode.type} into ${winnerNode.type}`,
+    putAssets: [winnerNodeCopy, ...updatedLinks],
+    deleteAssets: [loserNodeId],
     putCustomerPoints:
       updatedCustomerPoints.size > 0
         ? [...updatedCustomerPoints.values()]

@@ -34,7 +34,7 @@ describe("mergeNodes", () => {
     expect(updatedPipe.coordinates[0]).toEqual([30, 40]);
   });
 
-  it("merges junction into tank with junction surviving", () => {
+  it("merges junction into tank with tank surviving due to priority", () => {
     const model = HydraulicModelBuilder.with()
       .aJunction("J1", { coordinates: [10, 20], elevation: 100 })
       .aTank("T1", { coordinates: [30, 40], elevation: 150 })
@@ -48,15 +48,16 @@ describe("mergeNodes", () => {
     });
 
     expect(moment.note).toBe("Merge junction into tank");
-    expect(moment.deleteAssets).toEqual(["T1"]);
+    expect(moment.deleteAssets).toEqual(["J1"]);
 
     const survivingNode = moment.putAssets![0] as NodeAsset;
-    expect(survivingNode.id).toBe("J1");
-    expect(survivingNode.type).toBe("junction");
+    expect(survivingNode.id).toBe("T1");
+    expect(survivingNode.type).toBe("tank");
     expect(survivingNode.coordinates).toEqual([30, 40]);
+    expect(survivingNode.elevation).toBe(150);
   });
 
-  it("merges tank into junction with tank surviving", () => {
+  it("merges tank into junction with tank surviving due to priority", () => {
     const model = HydraulicModelBuilder.with()
       .aTank("T1", { coordinates: [10, 20], elevation: 100 })
       .aJunction("J1", { coordinates: [30, 40], elevation: 150 })
@@ -69,13 +70,14 @@ describe("mergeNodes", () => {
       targetNodeId: "J1",
     });
 
-    expect(moment.note).toBe("Merge tank into junction");
+    expect(moment.note).toBe("Merge junction into tank");
     expect(moment.deleteAssets).toEqual(["J1"]);
 
     const survivingNode = moment.putAssets![0] as NodeAsset;
     expect(survivingNode.id).toBe("T1");
     expect(survivingNode.type).toBe("tank");
     expect(survivingNode.coordinates).toEqual([30, 40]);
+    expect(survivingNode.elevation).toBe(100);
   });
 
   it("merges nodes with multiple connections from both nodes", () => {
@@ -159,7 +161,7 @@ describe("mergeNodes", () => {
     expect(survivingNode.coordinates).toEqual([30, 40]);
   });
 
-  it("merges reservoir into tank", () => {
+  it("merges reservoir into tank with source winning (same priority, default rule)", () => {
     const model = HydraulicModelBuilder.with()
       .aReservoir("R1", { coordinates: [10, 20], elevation: 100 })
       .aTank("T1", { coordinates: [30, 40], elevation: 150 })
@@ -172,13 +174,172 @@ describe("mergeNodes", () => {
       targetNodeId: "T1",
     });
 
-    expect(moment.note).toBe("Merge reservoir into tank");
+    expect(moment.note).toBe("Merge tank into reservoir");
     expect(moment.deleteAssets).toEqual(["T1"]);
 
     const survivingNode = moment.putAssets![0] as NodeAsset;
     expect(survivingNode.id).toBe("R1");
     expect(survivingNode.type).toBe("reservoir");
     expect(survivingNode.coordinates).toEqual([30, 40]);
+  });
+
+  it("merges reservoir into junction with reservoir surviving due to priority", () => {
+    const model = HydraulicModelBuilder.with()
+      .aReservoir("R1", { coordinates: [10, 20], elevation: 100 })
+      .aJunction("J1", { coordinates: [30, 40], elevation: 150 })
+      .aJunction("J2", { coordinates: [50, 60] })
+      .aPipe("P1", { startNodeId: "R1", endNodeId: "J2" })
+      .build();
+
+    const moment = mergeNodes(model, {
+      sourceNodeId: "R1",
+      targetNodeId: "J1",
+    });
+
+    expect(moment.note).toBe("Merge junction into reservoir");
+    expect(moment.deleteAssets).toEqual(["J1"]);
+
+    const survivingNode = moment.putAssets![0] as NodeAsset;
+    expect(survivingNode.id).toBe("R1");
+    expect(survivingNode.type).toBe("reservoir");
+    expect(survivingNode.coordinates).toEqual([30, 40]);
+    expect(survivingNode.elevation).toBe(100);
+  });
+
+  it("merges junction into reservoir with reservoir surviving due to priority", () => {
+    const model = HydraulicModelBuilder.with()
+      .aJunction("J1", { coordinates: [10, 20], elevation: 100 })
+      .aReservoir("R1", { coordinates: [30, 40], elevation: 150 })
+      .aJunction("J2", { coordinates: [50, 60] })
+      .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
+      .build();
+
+    const moment = mergeNodes(model, {
+      sourceNodeId: "J1",
+      targetNodeId: "R1",
+    });
+
+    expect(moment.note).toBe("Merge junction into reservoir");
+    expect(moment.deleteAssets).toEqual(["J1"]);
+
+    const survivingNode = moment.putAssets![0] as NodeAsset;
+    expect(survivingNode.id).toBe("R1");
+    expect(survivingNode.type).toBe("reservoir");
+    expect(survivingNode.coordinates).toEqual([30, 40]);
+    expect(survivingNode.elevation).toBe(150);
+  });
+
+  it("merges tank into tank with source winning (same type, default rule)", () => {
+    const model = HydraulicModelBuilder.with()
+      .aTank("T1", { coordinates: [10, 20], elevation: 100 })
+      .aTank("T2", { coordinates: [30, 40], elevation: 150 })
+      .aJunction("J1", { coordinates: [50, 60] })
+      .aPipe("P1", { startNodeId: "T1", endNodeId: "J1" })
+      .build();
+
+    const moment = mergeNodes(model, {
+      sourceNodeId: "T1",
+      targetNodeId: "T2",
+    });
+
+    expect(moment.note).toBe("Merge tank into tank");
+    expect(moment.deleteAssets).toEqual(["T2"]);
+
+    const survivingNode = moment.putAssets![0] as NodeAsset;
+    expect(survivingNode.id).toBe("T1");
+    expect(survivingNode.type).toBe("tank");
+    expect(survivingNode.coordinates).toEqual([30, 40]);
+    expect(survivingNode.elevation).toBe(100);
+  });
+
+  it("merges reservoir into reservoir with source winning (same type, default rule)", () => {
+    const model = HydraulicModelBuilder.with()
+      .aReservoir("R1", { coordinates: [10, 20], elevation: 100 })
+      .aReservoir("R2", { coordinates: [30, 40], elevation: 150 })
+      .aJunction("J1", { coordinates: [50, 60] })
+      .aPipe("P1", { startNodeId: "R1", endNodeId: "J1" })
+      .build();
+
+    const moment = mergeNodes(model, {
+      sourceNodeId: "R1",
+      targetNodeId: "R2",
+    });
+
+    expect(moment.note).toBe("Merge reservoir into reservoir");
+    expect(moment.deleteAssets).toEqual(["R2"]);
+
+    const survivingNode = moment.putAssets![0] as NodeAsset;
+    expect(survivingNode.id).toBe("R1");
+    expect(survivingNode.type).toBe("reservoir");
+    expect(survivingNode.coordinates).toEqual([30, 40]);
+    expect(survivingNode.elevation).toBe(100);
+  });
+
+  it("updates loser link coordinates when junction merges into reservoir", () => {
+    const model = HydraulicModelBuilder.with()
+      .aJunction("J1", { coordinates: [10, 20], elevation: 100 })
+      .aReservoir("R1", { coordinates: [30, 40], elevation: 150 })
+      .aJunction("J2", { coordinates: [50, 60] })
+      .aJunction("J3", { coordinates: [70, 80] })
+      .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
+      .aPipe("P2", { startNodeId: "J3", endNodeId: "J1" })
+      .build();
+
+    const moment = mergeNodes(model, {
+      sourceNodeId: "J1",
+      targetNodeId: "R1",
+    });
+
+    expect(moment.deleteAssets).toEqual(["J1"]);
+
+    const survivingNode = moment.putAssets![0] as NodeAsset;
+    expect(survivingNode.id).toBe("R1");
+    expect(survivingNode.type).toBe("reservoir");
+    expect(survivingNode.coordinates).toEqual([30, 40]);
+
+    const updatedPipe1 = moment.putAssets!.find(
+      (asset) => asset.id === "P1",
+    ) as LinkAsset;
+    expect(updatedPipe1.connections[0]).toBe("R1");
+    expect(updatedPipe1.connections[1]).toBe("J2");
+    expect(updatedPipe1.coordinates[0]).toEqual([30, 40]);
+    expect(updatedPipe1.coordinates[1]).toEqual([50, 60]);
+
+    const updatedPipe2 = moment.putAssets!.find(
+      (asset) => asset.id === "P2",
+    ) as LinkAsset;
+    expect(updatedPipe2.connections[0]).toBe("J3");
+    expect(updatedPipe2.connections[1]).toBe("R1");
+    expect(updatedPipe2.coordinates[0]).toEqual([70, 80]);
+    expect(updatedPipe2.coordinates[1]).toEqual([30, 40]);
+  });
+
+  it("updates loser link coordinates when junction merges into tank", () => {
+    const model = HydraulicModelBuilder.with()
+      .aJunction("J1", { coordinates: [10, 20], elevation: 100 })
+      .aTank("T1", { coordinates: [30, 40], elevation: 150 })
+      .aJunction("J2", { coordinates: [50, 60] })
+      .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
+      .build();
+
+    const moment = mergeNodes(model, {
+      sourceNodeId: "J1",
+      targetNodeId: "T1",
+    });
+
+    expect(moment.deleteAssets).toEqual(["J1"]);
+
+    const survivingNode = moment.putAssets![0] as NodeAsset;
+    expect(survivingNode.id).toBe("T1");
+    expect(survivingNode.coordinates).toEqual([30, 40]);
+
+    const updatedPipe = moment.putAssets!.find(
+      (asset) => asset.id === "P1",
+    ) as LinkAsset;
+    expect(updatedPipe.connections[0]).toBe("T1");
+    expect(updatedPipe.connections[1]).toBe("J2");
+    expect(updatedPipe.coordinates[0]).toEqual([30, 40]);
+    expect(updatedPipe.coordinates[1]).toEqual([50, 60]);
   });
 
   it("throws error for invalid source node ID", () => {
