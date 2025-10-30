@@ -13,7 +13,7 @@ export const WizardContent: React.FC<WizardContentProps> = ({
   const isModalLayoutEnabled = useFeatureFlag("FLAG_MODAL_LAYOUT");
   return isModalLayoutEnabled ? (
     <div
-      className={`overflow-y-auto flex flex-col flex-grow min-h-[${minHeight}]`}
+      className={`flex flex-col flex-grow min-h-[${minHeight}] overflow-hidden`}
     >
       {children}
     </div>

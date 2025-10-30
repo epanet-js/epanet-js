@@ -171,10 +171,14 @@ export const DataInputStep: React.FC<{
   const isModalLayoutEnabled = useFeatureFlag("FLAG_MODAL_LAYOUT");
 
   return (
-    <div
-      className={isModalLayoutEnabled ? "flex flex-col flex-grow" : "space-y-6"}
-    >
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <>
+      <div
+        className={
+          isModalLayoutEnabled
+            ? "grid grid-cols-1 md:grid-cols-2 gap-6 overflow-y-auto flex-grow"
+            : "grid grid-cols-1 md:grid-cols-2 gap-6"
+        }
+      >
         {/* Left Column - File Input */}
         <div
           className={
@@ -300,6 +304,6 @@ export const DataInputStep: React.FC<{
           disabled: !inputData,
         }}
       />
-    </div>
+    </>
   );
 };

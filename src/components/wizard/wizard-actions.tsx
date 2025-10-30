@@ -36,7 +36,7 @@ export const WizardActions: React.FC<WizardActionsProps> = ({
       aria-label="wizard actions"
       className={
         isModalLayoutEnabled
-          ? "flex justify-between items-center mt-auto pt-4 border-t border-gray-200"
+          ? "flex justify-between items-center flex-shrink-0 pt-4 border-t border-gray-200"
           : "flex justify-between items-center mt-6 pt-4 border-t border-gray-200"
       }
     >

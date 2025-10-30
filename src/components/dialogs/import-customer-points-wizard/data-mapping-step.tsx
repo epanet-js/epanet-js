@@ -206,226 +206,234 @@ export const DataMappingStep: React.FC<{
   const isModalLayoutEnabled = useFeatureFlag("FLAG_MODAL_LAYOUT");
 
   return (
-    <div
-      className={
-        isModalLayoutEnabled
-          ? "overflow-y-auto flex flex-col gap-2 h-full"
-          : "space-y-4"
-      }
-    >
-      <h2 className="text-lg font-semibold">
-        {translate("importCustomerPoints.wizard.dataMapping.title")}
-      </h2>
+    <>
+      <div
+        className={
+          isModalLayoutEnabled
+            ? "overflow-y-auto flex-grow space-y-2"
+            : "space-y-4"
+        }
+      >
+        <h2 className="text-lg font-semibold">
+          {translate("importCustomerPoints.wizard.dataMapping.title")}
+        </h2>
 
-      {showAttributesMapping && (
-        <div className={isModalLayoutEnabled ? "space-y-2" : "space-y-8"}>
-          <div>
-            {isModalLayoutEnabled ? (
-              ""
-            ) : (
-              <h3 className="text-md font-medium text-gray-900 mb-3">
-                {translate(
-                  "importCustomerPoints.wizard.dataMapping.attributesMapping.title",
-                )}
-              </h3>
-            )}
-            <p className="text-sm text-gray-600 mb-4">
-              {translate(
-                "importCustomerPoints.wizard.dataMapping.attributesMapping.description",
-              )}
-            </p>
-            <div className="space-y-4 md:grid md:grid-cols-2 md:gap-4 md:space-y-0">
-              <div>
-                <label className="block text-sm text-gray-700 dark:text-gray-300 mb-2">
+        {showAttributesMapping && (
+          <div className={isModalLayoutEnabled ? "space-y-2" : "space-y-8"}>
+            <div>
+              {isModalLayoutEnabled ? (
+                ""
+              ) : (
+                <h3 className="text-md font-medium text-gray-900 mb-3">
                   {translate(
-                    "importCustomerPoints.wizard.dataMapping.demandSelector.label",
+                    "importCustomerPoints.wizard.dataMapping.attributesMapping.title",
                   )}
-                </label>
-                <Selector
-                  nullable={true}
-                  placeholder={translate(
-                    "importCustomerPoints.wizard.dataMapping.demandSelector.placeholder",
-                  )}
-                  options={Array.from(inputData.properties).map((prop) => ({
-                    label: prop,
-                    value: prop,
-                  }))}
-                  selected={selectedDemandProperty}
-                  onChange={(value) => handleDemandPropertyChange(value || "")}
-                  ariaLabel={translate(
-                    "importCustomerPoints.wizard.dataMapping.demandSelector.label",
-                  )}
-                />
-              </div>
-              <div>
-                <label className="block text-sm text-gray-700 dark:text-gray-300 mb-2">
-                  {`${translate(
-                    "importCustomerPoints.wizard.dataMapping.labelSelector.label",
-                  )} (${translate("optional")})`}
-                </label>
-                <Selector
-                  nullable={true}
-                  placeholder={translate(
-                    "importCustomerPoints.wizard.dataMapping.labelSelector.placeholder",
-                  )}
-                  options={[
-                    {
-                      label: translate(
-                        "importCustomerPoints.wizard.dataMapping.labelSelector.noneAutoGenerate",
-                      ),
-                      value: "__NONE__",
-                    },
-                    ...Array.from(inputData.properties).map((prop) => ({
+                </h3>
+              )}
+              <p className="text-sm text-gray-600 mb-4">
+                {translate(
+                  "importCustomerPoints.wizard.dataMapping.attributesMapping.description",
+                )}
+              </p>
+              <div className="space-y-4 md:grid md:grid-cols-2 md:gap-4 md:space-y-0">
+                <div>
+                  <label className="block text-sm text-gray-700 dark:text-gray-300 mb-2">
+                    {translate(
+                      "importCustomerPoints.wizard.dataMapping.demandSelector.label",
+                    )}
+                  </label>
+                  <Selector
+                    nullable={true}
+                    placeholder={translate(
+                      "importCustomerPoints.wizard.dataMapping.demandSelector.placeholder",
+                    )}
+                    options={Array.from(inputData.properties).map((prop) => ({
                       label: prop,
                       value: prop,
-                    })),
-                  ]}
-                  selected={selectedLabelProperty || "__NONE__"}
-                  onChange={(value) =>
-                    handleLabelPropertyChange(
-                      value === "__NONE__" ? "" : value || "",
-                    )
+                    }))}
+                    selected={selectedDemandProperty}
+                    onChange={(value) =>
+                      handleDemandPropertyChange(value || "")
+                    }
+                    ariaLabel={translate(
+                      "importCustomerPoints.wizard.dataMapping.demandSelector.label",
+                    )}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-700 dark:text-gray-300 mb-2">
+                    {`${translate(
+                      "importCustomerPoints.wizard.dataMapping.labelSelector.label",
+                    )} (${translate("optional")})`}
+                  </label>
+                  <Selector
+                    nullable={true}
+                    placeholder={translate(
+                      "importCustomerPoints.wizard.dataMapping.labelSelector.placeholder",
+                    )}
+                    options={[
+                      {
+                        label: translate(
+                          "importCustomerPoints.wizard.dataMapping.labelSelector.noneAutoGenerate",
+                        ),
+                        value: "__NONE__",
+                      },
+                      ...Array.from(inputData.properties).map((prop) => ({
+                        label: prop,
+                        value: prop,
+                      })),
+                    ]}
+                    selected={selectedLabelProperty || "__NONE__"}
+                    onChange={(value) =>
+                      handleLabelPropertyChange(
+                        value === "__NONE__" ? "" : value || "",
+                      )
+                    }
+                    ariaLabel={translate(
+                      "importCustomerPoints.wizard.dataMapping.labelSelector.label",
+                    )}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    {translate(
+                      "importCustomerPoints.wizard.dataMapping.labelSelector.description",
+                      String(MAX_CUSTOMER_POINT_LABEL_LENGTH),
+                    )}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {showLoading && (
+              <div>
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                  <span className="ml-3 text-gray-600">
+                    {translate(
+                      "importCustomerPoints.wizard.dataMapping.loading",
+                    )}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {showDataPreview && (
+              <div>
+                <h4
+                  className={
+                    isModalLayoutEnabled
+                      ? "text-md font-medium text-gray-900"
+                      : "text-md font-medium text-gray-900 mb-2"
                   }
-                  ariaLabel={translate(
-                    "importCustomerPoints.wizard.dataMapping.labelSelector.label",
-                  )}
-                />
-                <p className="text-xs text-gray-500 mt-1">
+                >
                   {translate(
-                    "importCustomerPoints.wizard.dataMapping.labelSelector.description",
-                    String(MAX_CUSTOMER_POINT_LABEL_LENGTH),
+                    "importCustomerPoints.wizard.dataMapping.dataPreview.title",
+                  )}
+                </h4>
+              </div>
+            )}
+
+            {selectedDemandProperty && !parsedDataSummary && !showLoading && (
+              <div>
+                <h4
+                  className={
+                    isModalLayoutEnabled
+                      ? "text-md font-medium text-gray-900"
+                      : "text-md font-medium text-gray-900 mb-2"
+                  }
+                >
+                  {translate(
+                    "importCustomerPoints.wizard.dataMapping.dataPreview.title",
+                  )}
+                </h4>
+                <p className="text-sm text-gray-600">
+                  {translate(
+                    "importCustomerPoints.wizard.dataMapping.dataPreview.selectPrompt",
                   )}
                 </p>
               </div>
-            </div>
+            )}
           </div>
+        )}
 
-          {showLoading && (
-            <div>
-              <div className="flex items-center justify-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-                <span className="ml-3 text-gray-600">
-                  {translate("importCustomerPoints.wizard.dataMapping.loading")}
-                </span>
-              </div>
-            </div>
-          )}
+        {showNoDataMessage && (
+          <p className="text-gray-600">
+            {translate(
+              "importCustomerPoints.wizard.dataMapping.messages.noValidCustomerPoints",
+            )}
+          </p>
+        )}
 
-          {showDataPreview && (
-            <div>
-              <h4
-                className={
-                  isModalLayoutEnabled
-                    ? "text-md font-medium text-gray-900"
-                    : "text-md font-medium text-gray-900 mb-2"
-                }
-              >
-                {translate(
-                  "importCustomerPoints.wizard.dataMapping.dataPreview.title",
-                )}
-              </h4>
-            </div>
-          )}
-
-          {selectedDemandProperty && !parsedDataSummary && !showLoading && (
-            <div>
-              <h4
-                className={
-                  isModalLayoutEnabled
-                    ? "text-md font-medium text-gray-900"
-                    : "text-md font-medium text-gray-900 mb-2"
-                }
-              >
-                {translate(
-                  "importCustomerPoints.wizard.dataMapping.dataPreview.title",
-                )}
-              </h4>
-              <p className="text-sm text-gray-600">
-                {translate(
-                  "importCustomerPoints.wizard.dataMapping.dataPreview.selectPrompt",
-                )}
-              </p>
-            </div>
-          )}
-        </div>
-      )}
-
-      {showNoDataMessage && (
-        <p className="text-gray-600">
-          {translate(
-            "importCustomerPoints.wizard.dataMapping.messages.noValidCustomerPoints",
-          )}
-        </p>
-      )}
-
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-md p-3">
-          <p className="text-red-700 text-sm">{error}</p>
-        </div>
-      )}
-
-      {showDataPreview && (
-        <div
-          className={
-            isModalLayoutEnabled
-              ? "border border-gray-200 rounded-lg"
-              : "border border-gray-200 rounded-lg overflow-hidden"
-          }
-        >
-          <div className="flex border-b border-gray-200">
-            <button
-              className={`px-4 py-2 text-sm font-medium transition-colors ${
-                activeTab === "customerPoints"
-                  ? "bg-green-50 text-green-700 border-b-2 border-green-500"
-                  : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
-              }`}
-              onClick={() => setActiveTab("customerPoints")}
-            >
-              {translate(
-                "importCustomerPoints.wizard.dataMapping.customerPoints",
-              )}{" "}
-              ({localizeDecimal(validCount, { decimals: 0 })})
-            </button>
-            <button
-              className={`px-4 py-2 text-sm font-medium transition-colors ${
-                errorCount === 0
-                  ? "text-gray-300 cursor-not-allowed"
-                  : activeTab === "issues"
-                    ? "bg-red-50 text-red-700 border-b-2 border-red-500"
-                    : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
-              }`}
-              onClick={() => errorCount > 0 && setActiveTab("issues")}
-              disabled={errorCount === 0}
-            >
-              {translate("importCustomerPoints.wizard.dataMapping.issuesTab")} (
-              {localizeDecimal(errorCount, { decimals: 0 })})
-            </button>
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-md p-3">
+            <p className="text-red-700 text-sm">{error}</p>
           </div>
+        )}
 
+        {showDataPreview && (
           <div
             className={
-              isModalLayoutEnabled ? "overflow-y-auto" : "h-80 overflow-y-auto"
+              isModalLayoutEnabled
+                ? "border border-gray-200 rounded-lg"
+                : "border border-gray-200 rounded-lg overflow-hidden"
             }
           >
-            {activeTab === "customerPoints" && (
-              <div className="p-4">
-                <CustomerPointsTable
-                  customerPoints={parsedDataSummary.validCustomerPoints}
-                  maxPreviewRows={MAX_PREVIEW_ROWS}
-                  parsedDataSummary={parsedDataSummary}
-                  wizardState={wizardState}
-                />
-              </div>
-            )}
+            <div className="flex border-b border-gray-200">
+              <button
+                className={`px-4 py-2 text-sm font-medium transition-colors ${
+                  activeTab === "customerPoints"
+                    ? "bg-green-50 text-green-700 border-b-2 border-green-500"
+                    : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                }`}
+                onClick={() => setActiveTab("customerPoints")}
+              >
+                {translate(
+                  "importCustomerPoints.wizard.dataMapping.customerPoints",
+                )}{" "}
+                ({localizeDecimal(validCount, { decimals: 0 })})
+              </button>
+              <button
+                className={`px-4 py-2 text-sm font-medium transition-colors ${
+                  errorCount === 0
+                    ? "text-gray-300 cursor-not-allowed"
+                    : activeTab === "issues"
+                      ? "bg-red-50 text-red-700 border-b-2 border-red-500"
+                      : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                }`}
+                onClick={() => errorCount > 0 && setActiveTab("issues")}
+                disabled={errorCount === 0}
+              >
+                {translate("importCustomerPoints.wizard.dataMapping.issuesTab")}{" "}
+                ({localizeDecimal(errorCount, { decimals: 0 })})
+              </button>
+            </div>
 
-            {activeTab === "issues" && (
-              <div className="p-4">
-                <IssuesSummary issues={parsedDataSummary.issues} />
-              </div>
-            )}
+            <div
+              className={
+                isModalLayoutEnabled
+                  ? "overflow-y-auto"
+                  : "h-80 overflow-y-auto"
+              }
+            >
+              {activeTab === "customerPoints" && (
+                <div className="p-4">
+                  <CustomerPointsTable
+                    customerPoints={parsedDataSummary.validCustomerPoints}
+                    maxPreviewRows={MAX_PREVIEW_ROWS}
+                    parsedDataSummary={parsedDataSummary}
+                    wizardState={wizardState}
+                  />
+                </div>
+              )}
+
+              {activeTab === "issues" && (
+                <div className="p-4">
+                  <IssuesSummary issues={parsedDataSummary.issues} />
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       <WizardActionsComponent
         backAction={{
@@ -437,7 +445,7 @@ export const DataMappingStep: React.FC<{
           disabled: isNextDisabled,
         }}
       />
-    </div>
+    </>
   );
 };
 

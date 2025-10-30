@@ -292,102 +292,108 @@ export const AllocationStep: React.FC<{
   const isModalLayoutEnabled = useFeatureFlag("FLAG_MODAL_LAYOUT");
 
   return (
-    <div
-      className={
-        isModalLayoutEnabled
-          ? "overflow-y-auto flex flex-col gap-4 h-full"
-          : "space-y-6"
-      }
-    >
-      <div>
-        <h2 className="text-lg font-semibold mb-2">
-          {translate("importCustomerPoints.wizard.allocationStep.title")}
-        </h2>
-        <p className="text-sm text-gray-600">
-          {translate("importCustomerPoints.wizard.allocationStep.description")}
-        </p>
-      </div>
-
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-md p-3">
-          <p className="text-red-700 text-sm">{error}</p>
+    <>
+      <div
+        className={
+          isModalLayoutEnabled
+            ? "overflow-y-auto flex-grow space-y-4"
+            : "space-y-6"
+        }
+      >
+        <div>
+          <h2 className="text-lg font-semibold mb-2">
+            {translate("importCustomerPoints.wizard.allocationStep.title")}
+          </h2>
+          <p className="text-sm text-gray-600">
+            {translate(
+              "importCustomerPoints.wizard.allocationStep.description",
+            )}
+          </p>
         </div>
-      )}
 
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-md font-medium">
-            {translate("importCustomerPoints.wizard.allocationStep.rulesTitle")}
-          </h3>
-          {!isEditingRules ? (
-            <Button
-              type="button"
-              onClick={handleEdit}
-              disabled={isAllocating}
-              variant="primary"
-              size="sm"
-            >
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-md p-3">
+            <p className="text-red-700 text-sm">{error}</p>
+          </div>
+        )}
+
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-md font-medium">
               {translate(
-                "importCustomerPoints.wizard.allocationStep.editButton",
+                "importCustomerPoints.wizard.allocationStep.rulesTitle",
               )}
-            </Button>
-          ) : (
-            <div className="flex items-center space-x-2">
+            </h3>
+            {!isEditingRules ? (
               <Button
                 type="button"
-                onClick={handleSave}
+                onClick={handleEdit}
+                disabled={isAllocating}
                 variant="primary"
                 size="sm"
               >
                 {translate(
-                  "importCustomerPoints.wizard.allocationStep.saveButton",
+                  "importCustomerPoints.wizard.allocationStep.editButton",
                 )}
               </Button>
-              <Button
-                type="button"
-                onClick={handleCancel}
-                variant="default"
-                size="sm"
-              >
-                {translate(
-                  "importCustomerPoints.wizard.allocationStep.cancelButton",
-                )}
-              </Button>
-            </div>
-          )}
+            ) : (
+              <div className="flex items-center space-x-2">
+                <Button
+                  type="button"
+                  onClick={handleSave}
+                  variant="primary"
+                  size="sm"
+                >
+                  {translate(
+                    "importCustomerPoints.wizard.allocationStep.saveButton",
+                  )}
+                </Button>
+                <Button
+                  type="button"
+                  onClick={handleCancel}
+                  variant="default"
+                  size="sm"
+                >
+                  {translate(
+                    "importCustomerPoints.wizard.allocationStep.cancelButton",
+                  )}
+                </Button>
+              </div>
+            )}
+          </div>
+
+          <AllocationRulesTable
+            rules={displayRules}
+            allocationCounts={allocationCounts}
+            isEditing={isEditingRules}
+            isAllocating={isAllocating}
+            onChange={handleRulesChange}
+          />
+
+          <AllocationSummary
+            totalAllocated={totalAllocated}
+            unallocatedCount={unallocatedCount}
+            isVisible={
+              !isEditingRules && allocationRules.length > 0 && !isAllocating
+            }
+            totalCustomerPoints={totalCustomerPoints}
+          />
         </div>
 
-        <AllocationRulesTable
-          rules={displayRules}
-          allocationCounts={allocationCounts}
-          isEditing={isEditingRules}
-          isAllocating={isAllocating}
-          onChange={handleRulesChange}
-        />
-
-        <AllocationSummary
-          totalAllocated={totalAllocated}
-          unallocatedCount={unallocatedCount}
-          isVisible={
-            !isEditingRules && allocationRules.length > 0 && !isAllocating
-          }
-          totalCustomerPoints={totalCustomerPoints}
-        />
+        {isAllocating && (
+          <div className="flex items-center justify-center py-4">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-500"></div>
+            <span className="ml-2 text-sm text-gray-600">
+              {translate(
+                "importCustomerPoints.wizard.allocationStep.computingMessage",
+              )}
+            </span>
+          </div>
+        )}
       </div>
 
-      {isAllocating && (
-        <div className="flex items-center justify-center py-4">
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-500"></div>
-          <span className="ml-2 text-sm text-gray-600">
-            {translate(
-              "importCustomerPoints.wizard.allocationStep.computingMessage",
-            )}
-          </span>
-        </div>
-      )}
-
       <WizardActionsComponent {...actionProps} />
-    </div>
+    </>
   );
 };
 
