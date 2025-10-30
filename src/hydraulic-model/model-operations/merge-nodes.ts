@@ -2,6 +2,7 @@ import { AssetId, LinkAsset, NodeAsset } from "../asset-types";
 import { ModelOperation } from "../model-operation";
 import { CustomerPoints } from "../customer-points";
 import { Pipe } from "../asset-types/pipe";
+import { Junction } from "../asset-types/junction";
 import {
   updateLinkConnection,
   reassignCustomerPointsForPipe,
@@ -54,6 +55,14 @@ export const mergeNodes: ModelOperation<InputData> = (
   const winnerNodeCopy = winnerNode.copy();
   winnerNodeCopy.setCoordinates(targetNode.coordinates);
   winnerNodeCopy.setElevation(targetNode.elevation);
+
+  if (winnerNode.type === "junction" && loserNode.type === "junction") {
+    const winnerJunction = winnerNodeCopy as Junction;
+    const loserJunction = loserNode as Junction;
+    const aggregatedDemand =
+      winnerJunction.baseDemand + loserJunction.baseDemand;
+    winnerJunction.setBaseDemand(aggregatedDemand);
+  }
 
   const winnerConnectedLinkIds = topology.getLinks(winnerNodeId);
   const loserConnectedLinkIds = topology.getLinks(loserNodeId);

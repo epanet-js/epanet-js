@@ -2,12 +2,21 @@ import { describe, it, expect } from "vitest";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { mergeNodes } from "./merge-nodes";
 import { NodeAsset, LinkAsset } from "src/hydraulic-model/asset-types";
+import { Junction } from "src/hydraulic-model/asset-types/junction";
 
 describe("mergeNodes", () => {
   it("merges J1 into J2 position with J1 surviving", () => {
     const model = HydraulicModelBuilder.with()
-      .aJunction("J1", { coordinates: [10, 20], elevation: 100 })
-      .aJunction("J2", { coordinates: [30, 40], elevation: 150 })
+      .aJunction("J1", {
+        coordinates: [10, 20],
+        elevation: 100,
+        baseDemand: 50,
+      })
+      .aJunction("J2", {
+        coordinates: [30, 40],
+        elevation: 150,
+        baseDemand: 30,
+      })
       .aJunction("J3", { coordinates: [50, 60] })
       .aPipe("P1", { startNodeId: "J1", endNodeId: "J3" })
       .build();
@@ -26,6 +35,7 @@ describe("mergeNodes", () => {
     expect(survivingNode.type).toBe("junction");
     expect(survivingNode.coordinates).toEqual([30, 40]);
     expect(survivingNode.elevation).toBe(150);
+    expect((survivingNode as Junction).baseDemand).toBe(80);
 
     const updatedPipe = moment.putAssets![1] as LinkAsset;
     expect(updatedPipe.id).toBe("P1");
@@ -412,5 +422,72 @@ describe("mergeNodes", () => {
     expect(pipe1.coordinates[0]).toEqual([30, 40]);
 
     expect(pipe2.connections[1]).toBe("J1");
+  });
+
+  it("aggregates baseDemand when merging two junctions with demands", () => {
+    const model = HydraulicModelBuilder.with()
+      .aJunction("J1", {
+        coordinates: [10, 20],
+        elevation: 100,
+        baseDemand: 75,
+      })
+      .aJunction("J2", {
+        coordinates: [30, 40],
+        elevation: 150,
+        baseDemand: 25,
+      })
+      .build();
+
+    const moment = mergeNodes(model, {
+      sourceNodeId: "J1",
+      targetNodeId: "J2",
+    });
+
+    const survivingJunction = moment.putAssets![0] as Junction;
+    expect(survivingJunction.id).toBe("J1");
+    expect(survivingJunction.type).toBe("junction");
+    expect(survivingJunction.baseDemand).toBe(100);
+  });
+
+  it("does not aggregate demand when merging junction into tank", () => {
+    const model = HydraulicModelBuilder.with()
+      .aJunction("J1", {
+        coordinates: [10, 20],
+        elevation: 100,
+        baseDemand: 50,
+      })
+      .aTank("T1", { coordinates: [30, 40], elevation: 150 })
+      .build();
+
+    const moment = mergeNodes(model, {
+      sourceNodeId: "J1",
+      targetNodeId: "T1",
+    });
+
+    const survivingNode = moment.putAssets![0] as NodeAsset;
+    expect(survivingNode.id).toBe("T1");
+    expect(survivingNode.type).toBe("tank");
+    expect((survivingNode as any).baseDemand).toBeUndefined();
+  });
+
+  it("does not aggregate demand when merging tank into junction", () => {
+    const model = HydraulicModelBuilder.with()
+      .aTank("T1", { coordinates: [10, 20], elevation: 100 })
+      .aJunction("J1", {
+        coordinates: [30, 40],
+        elevation: 150,
+        baseDemand: 60,
+      })
+      .build();
+
+    const moment = mergeNodes(model, {
+      sourceNodeId: "T1",
+      targetNodeId: "J1",
+    });
+
+    const survivingNode = moment.putAssets![0] as NodeAsset;
+    expect(survivingNode.id).toBe("T1");
+    expect(survivingNode.type).toBe("tank");
+    expect((survivingNode as any).baseDemand).toBeUndefined();
   });
 });
