@@ -82,7 +82,6 @@ export function useNoneHandlers({
     idMap,
     hydraulicModel.assets,
   );
-  const isVertexSnapOn = useFeatureFlag("FLAG_VERTEX_SNAP");
   const isReplaceNodeOn = useFeatureFlag("FLAG_REPLACE_NODE");
 
   const fastMovePointer = (point: mapboxgl.Point) => {
@@ -310,7 +309,6 @@ export function useNoneHandlers({
               newElevation: newElevationOrFallback,
               shouldUpdateCustomerPoints: true,
               pipeIdToSplit,
-              enableVertexSnap: isVertexSnapOn,
             });
             transact(moment);
             resetMove();

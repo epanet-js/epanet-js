@@ -12,7 +12,6 @@ import { lineString, point } from "@turf/helpers";
 import { findNearestPointOnLine } from "src/lib/geometry";
 import { SnappingCandidate } from "../draw-link/draw-link-handlers";
 import { DataSource } from "../../data-source";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 type SnappingOptions = {
   enableNodeSnapping?: boolean;
@@ -35,7 +34,6 @@ export const useSnapping = (
     enablePipeSnapping: true,
   },
 ) => {
-  const isVertexSnapOn = useFeatureFlag("FLAG_VERTEX_SNAP");
   const getNeighborPoint = (
     point: mapboxgl.Point,
     excludeIds?: string[],
@@ -114,22 +112,20 @@ export const useSnapping = (
       let snapPosition = result.coordinates;
       let snappedVertexIndex: number | null = null;
 
-      if (isVertexSnapOn) {
-        const mouseScreen = screenPoint;
+      const mouseScreen = screenPoint;
 
-        for (let i = 0; i < pipeGeometry.coordinates.length; i++) {
-          const vertex = pipeGeometry.coordinates[i];
-          const vertexScreen = map.map.project([vertex[0], vertex[1]]);
-          const pixelDistance = Math.sqrt(
-            Math.pow(vertexScreen.x - mouseScreen.x, 2) +
-              Math.pow(vertexScreen.y - mouseScreen.y, 2),
-          );
+      for (let i = 0; i < pipeGeometry.coordinates.length; i++) {
+        const vertex = pipeGeometry.coordinates[i];
+        const vertexScreen = map.map.project([vertex[0], vertex[1]]);
+        const pixelDistance = Math.sqrt(
+          Math.pow(vertexScreen.x - mouseScreen.x, 2) +
+            Math.pow(vertexScreen.y - mouseScreen.y, 2),
+        );
 
-          if (pixelDistance < DEFAULT_SNAP_DISTANCE_PIXELS) {
-            snapPosition = vertex;
-            snappedVertexIndex = i;
-            break;
-          }
+        if (pixelDistance < DEFAULT_SNAP_DISTANCE_PIXELS) {
+          snapPosition = vertex;
+          snappedVertexIndex = i;
+          break;
         }
       }
 

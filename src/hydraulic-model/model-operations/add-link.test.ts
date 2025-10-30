@@ -643,88 +643,83 @@ describe("addLink", () => {
     });
   });
 
-  describe("with FLAG_VERTEX_SNAP enabled", () => {
-    it("splits both pipes when connecting vertices on different pipes", () => {
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aNode("J1", [0, 0])
-        .aNode("J2", [20, 0])
-        .aPipe("P1", {
-          startNodeId: "J1",
-          endNodeId: "J2",
-          coordinates: [
-            [0, 0],
-            [10, 0],
-            [20, 0],
-          ],
-        })
-        .aNode("J3", [10, 10])
-        .aNode("J4", [10, 30])
-        .aPipe("P2", {
-          startNodeId: "J3",
-          endNodeId: "J4",
-          coordinates: [
-            [10, 10],
-            [10, 20],
-            [10, 30],
-          ],
-        })
-        .build();
-
-      const startNode = buildJunction({ coordinates: [10, 0], id: "J_START" });
-      const endNode = buildJunction({ coordinates: [10, 20], id: "J_END" });
-      const link = buildPump({
+  it("splits both pipes when connecting vertices on different pipes", () => {
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aNode("J1", [0, 0])
+      .aNode("J2", [20, 0])
+      .aPipe("P1", {
+        startNodeId: "J1",
+        endNodeId: "J2",
         coordinates: [
+          [0, 0],
           [10, 0],
-          [10, 20],
+          [20, 0],
         ],
-        id: "PUMP1",
-      });
+      })
+      .aNode("J3", [10, 10])
+      .aNode("J4", [10, 30])
+      .aPipe("P2", {
+        startNodeId: "J3",
+        endNodeId: "J4",
+        coordinates: [
+          [10, 10],
+          [10, 20],
+          [10, 30],
+        ],
+      })
+      .build();
 
-      const { putAssets, deleteAssets } = addLink(hydraulicModel, {
-        startNode,
-        endNode,
-        link,
-        startPipeId: "P1",
-        endPipeId: "P2",
-        enableVertexSnap: true,
-      });
-
-      expect(deleteAssets).toEqual(["P1", "P2"]);
-
-      const pipes = putAssets!.filter(
-        (asset) => asset.type === "pipe",
-      ) as Pipe[];
-      expect(pipes).toHaveLength(4);
-
-      const p1Segments = pipes.filter((p) => p.label.startsWith("P1"));
-      const p2Segments = pipes.filter((p) => p.label.startsWith("P2"));
-
-      expect(p1Segments).toHaveLength(2);
-      expect(p2Segments).toHaveLength(2);
-
-      const p1Seg1 = p1Segments.find((p) => p.connections[0] === "J1");
-      const p1Seg2 = p1Segments.find((p) => p.connections[1] === "J2");
-
-      expect(p1Seg1?.coordinates).toEqual([
-        [0, 0],
+    const startNode = buildJunction({ coordinates: [10, 0], id: "J_START" });
+    const endNode = buildJunction({ coordinates: [10, 20], id: "J_END" });
+    const link = buildPump({
+      coordinates: [
         [10, 0],
-      ]);
-      expect(p1Seg2?.coordinates).toEqual([
-        [10, 0],
-        [20, 0],
-      ]);
-
-      const p2Seg1 = p2Segments.find((p) => p.connections[0] === "J3");
-      const p2Seg2 = p2Segments.find((p) => p.connections[1] === "J4");
-
-      expect(p2Seg1?.coordinates).toEqual([
-        [10, 10],
         [10, 20],
-      ]);
-      expect(p2Seg2?.coordinates).toEqual([
-        [10, 20],
-        [10, 30],
-      ]);
+      ],
+      id: "PUMP1",
     });
+
+    const { putAssets, deleteAssets } = addLink(hydraulicModel, {
+      startNode,
+      endNode,
+      link,
+      startPipeId: "P1",
+      endPipeId: "P2",
+    });
+
+    expect(deleteAssets).toEqual(["P1", "P2"]);
+
+    const pipes = putAssets!.filter((asset) => asset.type === "pipe") as Pipe[];
+    expect(pipes).toHaveLength(4);
+
+    const p1Segments = pipes.filter((p) => p.label.startsWith("P1"));
+    const p2Segments = pipes.filter((p) => p.label.startsWith("P2"));
+
+    expect(p1Segments).toHaveLength(2);
+    expect(p2Segments).toHaveLength(2);
+
+    const p1Seg1 = p1Segments.find((p) => p.connections[0] === "J1");
+    const p1Seg2 = p1Segments.find((p) => p.connections[1] === "J2");
+
+    expect(p1Seg1?.coordinates).toEqual([
+      [0, 0],
+      [10, 0],
+    ]);
+    expect(p1Seg2?.coordinates).toEqual([
+      [10, 0],
+      [20, 0],
+    ]);
+
+    const p2Seg1 = p2Segments.find((p) => p.connections[0] === "J3");
+    const p2Seg2 = p2Segments.find((p) => p.connections[1] === "J4");
+
+    expect(p2Seg1?.coordinates).toEqual([
+      [10, 10],
+      [10, 20],
+    ]);
+    expect(p2Seg2?.coordinates).toEqual([
+      [10, 20],
+      [10, 30],
+    ]);
   });
 });

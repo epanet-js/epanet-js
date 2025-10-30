@@ -757,287 +757,240 @@ describe("splitPipe", () => {
     expect(cp2.connection?.junctionId).toBe("J1");
   });
 
-  describe("with FLAG_VERTEX_SNAP enabled", () => {
-    it("removes matching vertex when splitting at vertex location", () => {
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aNode("J1", [0, 0])
-        .aNode("J2", [10, 0])
-        .aPipe("P1", {
-          startNodeId: "J1",
-          endNodeId: "J2",
-          coordinates: [
-            [0, 0],
-            [5, 0],
-            [10, 0],
-          ],
-        })
-        .build();
+  it("removes matching vertex when splitting at vertex location", () => {
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aNode("J1", [0, 0])
+      .aNode("J2", [10, 0])
+      .aPipe("P1", {
+        startNodeId: "J1",
+        endNodeId: "J2",
+        coordinates: [
+          [0, 0],
+          [5, 0],
+          [10, 0],
+        ],
+      })
+      .build();
 
-      const pipe = hydraulicModel.assets.get("P1") as Pipe;
-      const splitNode = hydraulicModel.assetBuilder.buildJunction({
-        label: "J3",
-        coordinates: [5, 0],
-      });
-
-      const { putAssets } = splitPipe(hydraulicModel, {
-        pipe,
-        splits: [splitNode],
-        enableVertexSnap: true,
-      });
-
-      const [pipe1, pipe2] = putAssets as Pipe[];
-      expect(pipe1.coordinates).toEqual([
-        [0, 0],
-        [5, 0],
-      ]);
-      expect(pipe2.coordinates).toEqual([
-        [5, 0],
-        [10, 0],
-      ]);
+    const pipe = hydraulicModel.assets.get("P1") as Pipe;
+    const splitNode = hydraulicModel.assetBuilder.buildJunction({
+      label: "J3",
+      coordinates: [5, 0],
     });
 
-    it("does not remove vertex when flag is disabled", () => {
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aNode("J1", [0, 0])
-        .aNode("J2", [10, 0])
-        .aPipe("P1", {
-          startNodeId: "J1",
-          endNodeId: "J2",
-          coordinates: [
-            [0, 0],
-            [5, 0],
-            [10, 0],
-          ],
-        })
-        .build();
-
-      const pipe = hydraulicModel.assets.get("P1") as Pipe;
-      const splitNode = hydraulicModel.assetBuilder.buildJunction({
-        label: "J3",
-        coordinates: [5, 0],
-      });
-
-      const { putAssets } = splitPipe(hydraulicModel, {
-        pipe,
-        splits: [splitNode],
-        enableVertexSnap: false,
-      });
-
-      const [pipe1, pipe2] = putAssets as Pipe[];
-      expect(pipe1.coordinates).toEqual([
-        [0, 0],
-        [5, 0],
-      ]);
-      expect(pipe2.coordinates).toEqual([
-        [5, 0],
-        [5, 0],
-        [10, 0],
-      ]);
+    const { putAssets } = splitPipe(hydraulicModel, {
+      pipe,
+      splits: [splitNode],
     });
 
-    it("handles multiple vertices correctly", () => {
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aNode("J1", [0, 0])
-        .aNode("J2", [20, 0])
-        .aPipe("P1", {
-          startNodeId: "J1",
-          endNodeId: "J2",
-          coordinates: [
-            [0, 0],
-            [5, 0],
-            [10, 0],
-            [15, 0],
-            [20, 0],
-          ],
-        })
-        .build();
+    const [pipe1, pipe2] = putAssets as Pipe[];
+    expect(pipe1.coordinates).toEqual([
+      [0, 0],
+      [5, 0],
+    ]);
+    expect(pipe2.coordinates).toEqual([
+      [5, 0],
+      [10, 0],
+    ]);
+  });
 
-      const pipe = hydraulicModel.assets.get("P1") as Pipe;
-      const splitNode = hydraulicModel.assetBuilder.buildJunction({
-        label: "J3",
-        coordinates: [10, 0],
-      });
+  it("handles multiple vertices correctly", () => {
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aNode("J1", [0, 0])
+      .aNode("J2", [20, 0])
+      .aPipe("P1", {
+        startNodeId: "J1",
+        endNodeId: "J2",
+        coordinates: [
+          [0, 0],
+          [5, 0],
+          [10, 0],
+          [15, 0],
+          [20, 0],
+        ],
+      })
+      .build();
 
-      const { putAssets } = splitPipe(hydraulicModel, {
-        pipe,
-        splits: [splitNode],
-        enableVertexSnap: true,
-      });
-
-      const [pipe1, pipe2] = putAssets as Pipe[];
-      expect(pipe1.coordinates).toEqual([
-        [0, 0],
-        [5, 0],
-        [10, 0],
-      ]);
-      expect(pipe2.coordinates).toEqual([
-        [10, 0],
-        [15, 0],
-        [20, 0],
-      ]);
+    const pipe = hydraulicModel.assets.get("P1") as Pipe;
+    const splitNode = hydraulicModel.assetBuilder.buildJunction({
+      label: "J3",
+      coordinates: [10, 0],
     });
 
-    it("does not remove first or last vertex", () => {
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aNode("J1", [0, 0])
-        .aNode("J2", [10, 0])
-        .aPipe("P1", {
-          startNodeId: "J1",
-          endNodeId: "J2",
-          coordinates: [
-            [0, 0],
-            [5, 0],
-            [10, 0],
-          ],
-        })
-        .build();
-
-      const pipe = hydraulicModel.assets.get("P1") as Pipe;
-      const splitNodeAtStart = hydraulicModel.assetBuilder.buildJunction({
-        label: "J3",
-        coordinates: [0, 0],
-      });
-
-      const { putAssets } = splitPipe(hydraulicModel, {
-        pipe,
-        splits: [splitNodeAtStart],
-        enableVertexSnap: true,
-      });
-
-      const [pipe1, pipe2] = putAssets as Pipe[];
-      expect(pipe1.coordinates.length).toBeGreaterThan(1);
-      expect(pipe2.coordinates.length).toBeGreaterThan(1);
+    const { putAssets } = splitPipe(hydraulicModel, {
+      pipe,
+      splits: [splitNode],
     });
 
-    it("preserves all intermediate vertices when splitting at middle vertex", () => {
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aNode("J1", [0, 0])
-        .aNode("J2", [100, 0])
-        .aPipe("P1", {
-          startNodeId: "J1",
-          endNodeId: "J2",
-          coordinates: [
-            [0, 0],
-            [25, 0],
-            [50, 0],
-            [75, 0],
-            [100, 0],
-          ],
-        })
-        .build();
+    const [pipe1, pipe2] = putAssets as Pipe[];
+    expect(pipe1.coordinates).toEqual([
+      [0, 0],
+      [5, 0],
+      [10, 0],
+    ]);
+    expect(pipe2.coordinates).toEqual([
+      [10, 0],
+      [15, 0],
+      [20, 0],
+    ]);
+  });
 
-      const pipe = hydraulicModel.assets.get("P1") as Pipe;
-      const splitNode = hydraulicModel.assetBuilder.buildJunction({
-        label: "J3",
-        coordinates: [50, 0],
-      });
+  it("does not remove first or last vertex", () => {
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aNode("J1", [0, 0])
+      .aNode("J2", [10, 0])
+      .aPipe("P1", {
+        startNodeId: "J1",
+        endNodeId: "J2",
+        coordinates: [
+          [0, 0],
+          [5, 0],
+          [10, 0],
+        ],
+      })
+      .build();
 
-      const { putAssets } = splitPipe(hydraulicModel, {
-        pipe,
-        splits: [splitNode],
-        enableVertexSnap: true,
-      });
-
-      const [pipe1, pipe2] = putAssets as Pipe[];
-
-      expect(pipe1.coordinates).toEqual([
-        [0, 0],
-        [25, 0],
-        [50, 0],
-      ]);
-      expect(pipe2.coordinates).toEqual([
-        [50, 0],
-        [75, 0],
-        [100, 0],
-      ]);
+    const pipe = hydraulicModel.assets.get("P1") as Pipe;
+    const splitNodeAtStart = hydraulicModel.assetBuilder.buildJunction({
+      label: "J3",
+      coordinates: [0, 0],
     });
 
-    it("splits correctly when split point is very close to a vertex", () => {
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aNode("J1", [0, 0])
-        .aNode("J2", [0.0001, 0])
-        .aPipe("P1", {
-          startNodeId: "J1",
-          endNodeId: "J2",
-          coordinates: [
-            [0, 0],
-            [0.000025, 0],
-            [0.00005, 0],
-            [0.000075, 0],
-            [0.0001, 0],
-          ],
-        })
-        .build();
-
-      const pipe = hydraulicModel.assets.get("P1") as Pipe;
-      const splitNode = hydraulicModel.assetBuilder.buildJunction({
-        label: "J3",
-        coordinates: [0.000049, 0],
-      });
-
-      const { putAssets } = splitPipe(hydraulicModel, {
-        pipe,
-        splits: [splitNode],
-        enableVertexSnap: true,
-      });
-
-      const [pipe1, pipe2] = putAssets as Pipe[];
-
-      expect(pipe1.coordinates).toEqual([
-        [0, 0],
-        [0.000025, 0],
-        [0.000049, 0],
-      ]);
-      expect(pipe2.coordinates).toEqual([
-        [0.000049, 0],
-        [0.00005, 0],
-        [0.000075, 0],
-        [0.0001, 0],
-      ]);
+    const { putAssets } = splitPipe(hydraulicModel, {
+      pipe,
+      splits: [splitNodeAtStart],
     });
 
-    it("splits 3-vertex pipe when snapping exactly to middle vertex", () => {
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aNode("J1", [0, 0])
-        .aNode("J2", [20, 0])
-        .aPipe("P1", {
-          startNodeId: "J1",
-          endNodeId: "J2",
-          coordinates: [
-            [0, 0],
-            [10, 0],
-            [20, 0],
-          ],
-        })
-        .build();
+    const [pipe1, pipe2] = putAssets as Pipe[];
+    expect(pipe1.coordinates.length).toBeGreaterThan(1);
+    expect(pipe2.coordinates.length).toBeGreaterThan(1);
+  });
 
-      const pipe = hydraulicModel.assets.get("P1") as Pipe;
-      const splitNode = hydraulicModel.assetBuilder.buildJunction({
-        label: "J3",
-        coordinates: [10, 0],
-      });
+  it("preserves all intermediate vertices when splitting at middle vertex", () => {
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aNode("J1", [0, 0])
+      .aNode("J2", [100, 0])
+      .aPipe("P1", {
+        startNodeId: "J1",
+        endNodeId: "J2",
+        coordinates: [
+          [0, 0],
+          [25, 0],
+          [50, 0],
+          [75, 0],
+          [100, 0],
+        ],
+      })
+      .build();
 
-      const { putAssets, deleteAssets } = splitPipe(hydraulicModel, {
-        pipe,
-        splits: [splitNode],
-        enableVertexSnap: true,
-      });
-
-      expect(deleteAssets).toEqual(["P1"]);
-      expect(putAssets).toHaveLength(2);
-
-      const [pipe1, pipe2] = putAssets as Pipe[];
-
-      expect(pipe1.coordinates).toEqual([
-        [0, 0],
-        [10, 0],
-      ]);
-      expect(pipe2.coordinates).toEqual([
-        [10, 0],
-        [20, 0],
-      ]);
-      expect(pipe1.connections).toEqual(["J1", splitNode.id]);
-      expect(pipe2.connections).toEqual([splitNode.id, "J2"]);
+    const pipe = hydraulicModel.assets.get("P1") as Pipe;
+    const splitNode = hydraulicModel.assetBuilder.buildJunction({
+      label: "J3",
+      coordinates: [50, 0],
     });
+
+    const { putAssets } = splitPipe(hydraulicModel, {
+      pipe,
+      splits: [splitNode],
+    });
+
+    const [pipe1, pipe2] = putAssets as Pipe[];
+
+    expect(pipe1.coordinates).toEqual([
+      [0, 0],
+      [25, 0],
+      [50, 0],
+    ]);
+    expect(pipe2.coordinates).toEqual([
+      [50, 0],
+      [75, 0],
+      [100, 0],
+    ]);
+  });
+
+  it("splits correctly when split point is very close to a vertex", () => {
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aNode("J1", [0, 0])
+      .aNode("J2", [0.0001, 0])
+      .aPipe("P1", {
+        startNodeId: "J1",
+        endNodeId: "J2",
+        coordinates: [
+          [0, 0],
+          [0.000025, 0],
+          [0.00005, 0],
+          [0.000075, 0],
+          [0.0001, 0],
+        ],
+      })
+      .build();
+
+    const pipe = hydraulicModel.assets.get("P1") as Pipe;
+    const splitNode = hydraulicModel.assetBuilder.buildJunction({
+      label: "J3",
+      coordinates: [0.000049, 0],
+    });
+
+    const { putAssets } = splitPipe(hydraulicModel, {
+      pipe,
+      splits: [splitNode],
+    });
+
+    const [pipe1, pipe2] = putAssets as Pipe[];
+
+    expect(pipe1.coordinates).toEqual([
+      [0, 0],
+      [0.000025, 0],
+      [0.000049, 0],
+    ]);
+    expect(pipe2.coordinates).toEqual([
+      [0.000049, 0],
+      [0.00005, 0],
+      [0.000075, 0],
+      [0.0001, 0],
+    ]);
+  });
+
+  it("splits 3-vertex pipe when snapping exactly to middle vertex", () => {
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aNode("J1", [0, 0])
+      .aNode("J2", [20, 0])
+      .aPipe("P1", {
+        startNodeId: "J1",
+        endNodeId: "J2",
+        coordinates: [
+          [0, 0],
+          [10, 0],
+          [20, 0],
+        ],
+      })
+      .build();
+
+    const pipe = hydraulicModel.assets.get("P1") as Pipe;
+    const splitNode = hydraulicModel.assetBuilder.buildJunction({
+      label: "J3",
+      coordinates: [10, 0],
+    });
+
+    const { putAssets, deleteAssets } = splitPipe(hydraulicModel, {
+      pipe,
+      splits: [splitNode],
+    });
+
+    expect(deleteAssets).toEqual(["P1"]);
+    expect(putAssets).toHaveLength(2);
+
+    const [pipe1, pipe2] = putAssets as Pipe[];
+
+    expect(pipe1.coordinates).toEqual([
+      [0, 0],
+      [10, 0],
+    ]);
+    expect(pipe2.coordinates).toEqual([
+      [10, 0],
+      [20, 0],
+    ]);
+    expect(pipe1.connections).toEqual(["J1", splitNode.id]);
+    expect(pipe2.connections).toEqual([splitNode.id, "J2"]);
   });
 });

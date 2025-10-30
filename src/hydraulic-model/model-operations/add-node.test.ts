@@ -291,149 +291,109 @@ describe("addNode", () => {
     });
   });
 
-  describe("with FLAG_VERTEX_SNAP enabled", () => {
-    it("removes matching vertex when adding node at vertex location", () => {
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aNode("J1", [0, 0])
-        .aNode("J2", [10, 0])
-        .aPipe("P1", {
-          startNodeId: "J1",
-          endNodeId: "J2",
-          coordinates: [
-            [0, 0],
-            [5, 0],
-            [10, 0],
-          ],
-        })
-        .build();
+  it("removes matching vertex when adding node at vertex location", () => {
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aNode("J1", [0, 0])
+      .aNode("J2", [10, 0])
+      .aPipe("P1", {
+        startNodeId: "J1",
+        endNodeId: "J2",
+        coordinates: [
+          [0, 0],
+          [5, 0],
+          [10, 0],
+        ],
+      })
+      .build();
 
-      const { putAssets } = addNode(hydraulicModel, {
-        nodeType: "junction",
-        coordinates: [5, 0],
-        pipeIdToSplit: "P1",
-        enableVertexSnap: true,
-      });
-
-      const [, pipe1, pipe2] = putAssets!;
-
-      expect(pipe1.coordinates).toEqual([
-        [0, 0],
-        [5, 0],
-      ]);
-      expect(pipe2.coordinates).toEqual([
-        [5, 0],
-        [10, 0],
-      ]);
+    const { putAssets } = addNode(hydraulicModel, {
+      nodeType: "junction",
+      coordinates: [5, 0],
+      pipeIdToSplit: "P1",
     });
 
-    it("does not remove vertex when flag is disabled", () => {
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aNode("J1", [0, 0])
-        .aNode("J2", [10, 0])
-        .aPipe("P1", {
-          startNodeId: "J1",
-          endNodeId: "J2",
-          coordinates: [
-            [0, 0],
-            [5, 0],
-            [10, 0],
-          ],
-        })
-        .build();
+    const [, pipe1, pipe2] = putAssets!;
 
-      const { putAssets } = addNode(hydraulicModel, {
-        nodeType: "junction",
-        coordinates: [5, 0],
-        pipeIdToSplit: "P1",
-        enableVertexSnap: false,
-      });
+    expect(pipe1.coordinates).toEqual([
+      [0, 0],
+      [5, 0],
+    ]);
+    expect(pipe2.coordinates).toEqual([
+      [5, 0],
+      [10, 0],
+    ]);
+  });
 
-      const [, pipe1, pipe2] = putAssets!;
+  it("handles multiple vertices correctly when adding node", () => {
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aNode("J1", [0, 0])
+      .aNode("J2", [20, 0])
+      .aPipe("P1", {
+        startNodeId: "J1",
+        endNodeId: "J2",
+        coordinates: [
+          [0, 0],
+          [5, 0],
+          [10, 0],
+          [15, 0],
+          [20, 0],
+        ],
+      })
+      .build();
 
-      expect(pipe1.coordinates).toEqual([
-        [0, 0],
-        [5, 0],
-      ]);
-      expect(pipe2.coordinates).toEqual([
-        [5, 0],
-        [5, 0],
-        [10, 0],
-      ]);
+    const { putAssets } = addNode(hydraulicModel, {
+      nodeType: "reservoir",
+      coordinates: [10, 0],
+      pipeIdToSplit: "P1",
     });
 
-    it("handles multiple vertices correctly when adding node", () => {
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aNode("J1", [0, 0])
-        .aNode("J2", [20, 0])
-        .aPipe("P1", {
-          startNodeId: "J1",
-          endNodeId: "J2",
-          coordinates: [
-            [0, 0],
-            [5, 0],
-            [10, 0],
-            [15, 0],
-            [20, 0],
-          ],
-        })
-        .build();
+    const [reservoir, pipe1, pipe2] = putAssets!;
 
-      const { putAssets } = addNode(hydraulicModel, {
-        nodeType: "reservoir",
-        coordinates: [10, 0],
-        pipeIdToSplit: "P1",
-        enableVertexSnap: true,
-      });
+    expect(reservoir.type).toBe("reservoir");
+    expect(pipe1.coordinates).toEqual([
+      [0, 0],
+      [5, 0],
+      [10, 0],
+    ]);
+    expect(pipe2.coordinates).toEqual([
+      [10, 0],
+      [15, 0],
+      [20, 0],
+    ]);
+  });
 
-      const [reservoir, pipe1, pipe2] = putAssets!;
+  it("works with tank node type at vertex location", () => {
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aNode("J1", [0, 0])
+      .aNode("J2", [10, 0])
+      .aPipe("P1", {
+        startNodeId: "J1",
+        endNodeId: "J2",
+        coordinates: [
+          [0, 0],
+          [5, 0],
+          [10, 0],
+        ],
+      })
+      .build();
 
-      expect(reservoir.type).toBe("reservoir");
-      expect(pipe1.coordinates).toEqual([
-        [0, 0],
-        [5, 0],
-        [10, 0],
-      ]);
-      expect(pipe2.coordinates).toEqual([
-        [10, 0],
-        [15, 0],
-        [20, 0],
-      ]);
+    const { putAssets } = addNode(hydraulicModel, {
+      nodeType: "tank",
+      coordinates: [5, 0],
+      elevation: 100,
+      pipeIdToSplit: "P1",
     });
 
-    it("works with tank node type at vertex location", () => {
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aNode("J1", [0, 0])
-        .aNode("J2", [10, 0])
-        .aPipe("P1", {
-          startNodeId: "J1",
-          endNodeId: "J2",
-          coordinates: [
-            [0, 0],
-            [5, 0],
-            [10, 0],
-          ],
-        })
-        .build();
+    const [tank, pipe1, pipe2] = putAssets!;
 
-      const { putAssets } = addNode(hydraulicModel, {
-        nodeType: "tank",
-        coordinates: [5, 0],
-        elevation: 100,
-        pipeIdToSplit: "P1",
-        enableVertexSnap: true,
-      });
-
-      const [tank, pipe1, pipe2] = putAssets!;
-
-      expect(tank.type).toBe("tank");
-      expect(pipe1.coordinates).toEqual([
-        [0, 0],
-        [5, 0],
-      ]);
-      expect(pipe2.coordinates).toEqual([
-        [5, 0],
-        [10, 0],
-      ]);
-    });
+    expect(tank.type).toBe("tank");
+    expect(pipe1.coordinates).toEqual([
+      [0, 0],
+      [5, 0],
+    ]);
+    expect(pipe2.coordinates).toEqual([
+      [5, 0],
+      [10, 0],
+    ]);
   });
 });

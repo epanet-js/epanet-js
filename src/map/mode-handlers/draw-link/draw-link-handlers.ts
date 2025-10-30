@@ -22,7 +22,6 @@ import { addLink } from "src/hydraulic-model/model-operations";
 import { useElevations } from "src/map/elevations/use-elevations";
 import { LngLat } from "mapbox-gl";
 import { useSelection } from "src/selection";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export type SnappingCandidate =
   | NodeAsset
@@ -84,7 +83,6 @@ export function useDrawLinkHandlers({
     idMap,
     hydraulicModel.assets,
   );
-  const isVertexSnapOn = useFeatureFlag("FLAG_VERTEX_SNAP");
 
   const { isShiftHeld, isControlHeld } = useKeyboardState();
 
@@ -237,7 +235,6 @@ export function useDrawLinkHandlers({
       endNode,
       startPipeId,
       endPipeId,
-      enableVertexSnap: isVertexSnapOn,
     });
 
     userTracking.capture({ name: "asset.created", type: link.type });

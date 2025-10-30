@@ -13,29 +13,17 @@ type InputData = {
   coordinates: Position;
   elevation?: number;
   pipeIdToSplit?: AssetId;
-  enableVertexSnap?: boolean;
 };
 
 export const addNode: ModelOperation<InputData> = (
   hydraulicModel,
-  {
-    nodeType,
-    coordinates,
-    elevation = 0,
-    pipeIdToSplit,
-    enableVertexSnap = false,
-  },
+  { nodeType, coordinates, elevation = 0, pipeIdToSplit },
 ) => {
   const node = createNode(hydraulicModel, nodeType, coordinates, elevation);
   addMissingLabel(hydraulicModel.labelManager, node);
 
   if (pipeIdToSplit) {
-    return addNodeWithPipeSplitting(
-      hydraulicModel,
-      node,
-      pipeIdToSplit,
-      enableVertexSnap,
-    );
+    return addNodeWithPipeSplitting(hydraulicModel, node, pipeIdToSplit);
   }
 
   return {
@@ -77,7 +65,6 @@ const addNodeWithPipeSplitting = (
   hydraulicModel: HydraulicModel,
   node: NodeAsset,
   pipeIdToSplit: AssetId,
-  enableVertexSnap: boolean,
 ) => {
   const pipe = hydraulicModel.assets.get(pipeIdToSplit) as Pipe;
   if (!pipe || pipe.type !== "pipe") {
@@ -87,7 +74,6 @@ const addNodeWithPipeSplitting = (
   const splitResult = splitPipe(hydraulicModel, {
     pipe,
     splits: [node],
-    enableVertexSnap,
   });
 
   return {

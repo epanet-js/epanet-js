@@ -18,23 +18,17 @@ type CopyablePipePropertyKeys = keyof CopyablePipeProperties;
 type SplitPipeInput = {
   pipe: Pipe;
   splits: NodeAsset[];
-  enableVertexSnap?: boolean;
 };
 
 export const splitPipe: ModelOperation<SplitPipeInput> = (
   hydraulicModel,
-  { pipe, splits, enableVertexSnap = false },
+  { pipe, splits },
 ) => {
   if (splits.length === 0) {
     throw new Error("At least one split is required");
   }
 
-  const newPipes = splitPipeIteratively(
-    hydraulicModel,
-    pipe,
-    splits,
-    enableVertexSnap,
-  );
+  const newPipes = splitPipeIteratively(hydraulicModel, pipe, splits);
 
   const reconnectedCustomerPoints = updateCustomerPoints(
     hydraulicModel,
@@ -117,7 +111,6 @@ const splitPipeIteratively = (
   hydraulicModel: HydraulicModel,
   originalPipe: Pipe,
   splits: NodeAsset[],
-  enableVertexSnap: boolean,
 ): Pipe[] => {
   if (splits.length === 0) {
     return [originalPipe];
@@ -140,7 +133,6 @@ const splitPipeIteratively = (
       hydraulicModel,
       targetPipe,
       splitToProcess,
-      enableVertexSnap,
     );
 
     currentPipes.splice(targetPipeIndex, 1, pipe1, pipe2);
@@ -174,11 +166,11 @@ const splitPipeAtPoint = (
   hydraulicModel: HydraulicModel,
   pipe: Pipe,
   split: NodeAsset,
-  enableVertexSnap: boolean,
 ): [Pipe, Pipe] => {
-  const matchingVertexIndex = enableVertexSnap
-    ? findMatchingVertexIndex(pipe.coordinates, split.coordinates)
-    : -1;
+  const matchingVertexIndex = findMatchingVertexIndex(
+    pipe.coordinates,
+    split.coordinates,
+  );
 
   if (isValidVertexSplit(matchingVertexIndex, pipe.coordinates.length)) {
     return splitPipeAtVertex(hydraulicModel, pipe, split, matchingVertexIndex);
