@@ -29,6 +29,7 @@ import {
 import { usePersistence } from "src/lib/persistence/context";
 import { ISymbology, LayerConfigMap, SYMBOLIZATION_NONE } from "src/types";
 import { buildBaseStyle, makeLayers } from "./build-style";
+import { LayerId } from "./layers";
 import { Asset, AssetId, AssetsMap, filterAssets } from "src/hydraulic-model";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { IDMap, UIDMap } from "src/lib/id-mapper";
@@ -53,6 +54,16 @@ import {
 } from "./overlays/customer-points";
 import { CustomerPoints } from "src/hydraulic-model/customer-points";
 import { DEFAULT_ZOOM } from "./map-engine";
+
+const SELECTION_LAYERS: LayerId[] = [
+  "selected-pipes",
+  "selected-pump-lines",
+  "selected-valve-lines",
+  "selected-pipe-arrows",
+  "selected-junctions",
+  "selected-icons-halo",
+  "selected-icons",
+];
 
 const getAssetIdsInMoments = (moments: Moment[]): Set<AssetId> => {
   const assetIds = new Set<AssetId>();
@@ -619,7 +630,6 @@ const updateEditionsVisibility = withDebugInstrumentation(
       const featureId = UIDMap.getIntID(idMap, assetId);
       map.showFeature("features", featureId);
       map.showFeature("icons", featureId);
-      map.showFeature("selected-features", featureId);
 
       if (featuresHiddenFromImport.has(featureId)) continue;
 
@@ -630,11 +640,16 @@ const updateEditionsVisibility = withDebugInstrumentation(
       const featureId = UIDMap.getIntID(idMap, assetId);
       map.hideFeature("features", featureId);
       map.hideFeature("icons", featureId);
-      map.hideFeature("selected-features", featureId);
 
       if (featuresHiddenFromImport.has(featureId)) continue;
 
       map.hideFeature("imported-features", featureId);
+    }
+
+    if (movedAssetIds.size > 0) {
+      map.hideLayers(SELECTION_LAYERS);
+    } else if (previousMovedAssetIds.size > 0) {
+      map.showLayers(SELECTION_LAYERS);
     }
   },
   {
