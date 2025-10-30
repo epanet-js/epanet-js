@@ -3,6 +3,10 @@ import { ModelOperation } from "../model-operation";
 import { CustomerPoints } from "../customer-points";
 import { Pipe } from "../asset-types/pipe";
 import { Junction } from "../asset-types/junction";
+import { HydraulicModel } from "../hydraulic-model";
+import { AssetsMap } from "../assets-map";
+import { Topology } from "../topology";
+import { CustomerPointsLookup } from "../customer-points-lookup";
 import {
   updateLinkConnection,
   reassignCustomerPointsForPipe,
@@ -35,8 +39,42 @@ export const mergeNodes: ModelOperation<InputData> = (
   hydraulicModel,
   { sourceNodeId, targetNodeId },
 ) => {
-  const { assets, topology, customerPointsLookup } = hydraulicModel;
+  const { sourceNode, targetNode } = validateAndGetNodes(
+    hydraulicModel.assets,
+    sourceNodeId,
+    targetNodeId,
+  );
 
+  const { winnerNode, loserNode } = determineWinner(sourceNode, targetNode);
+
+  const mergedNode = createMergedNode(winnerNode, loserNode, targetNode);
+
+  const { updatedLinks, updatedCustomerPoints } = processConnectedLinks(
+    winnerNode,
+    loserNode,
+    targetNode,
+    hydraulicModel,
+  );
+
+  return buildMergeResult(
+    mergedNode,
+    loserNode,
+    updatedLinks,
+    updatedCustomerPoints,
+  );
+};
+
+const isNodeAsset = (asset: unknown): asset is NodeAsset => {
+  if (!asset || typeof asset !== "object") return false;
+  const type = (asset as { type?: string }).type;
+  return type === "junction" || type === "reservoir" || type === "tank";
+};
+
+const validateAndGetNodes = (
+  assets: AssetsMap,
+  sourceNodeId: AssetId,
+  targetNodeId: AssetId,
+): { sourceNode: NodeAsset; targetNode: NodeAsset } => {
   const sourceNode = assets.get(sourceNodeId) as NodeAsset;
   const targetNode = assets.get(targetNodeId) as NodeAsset;
 
@@ -48,10 +86,14 @@ export const mergeNodes: ModelOperation<InputData> = (
     throw new Error(`Invalid target node ID: ${targetNodeId}`);
   }
 
-  const { winnerNode, loserNode } = determineWinner(sourceNode, targetNode);
-  const winnerNodeId = winnerNode.id;
-  const loserNodeId = loserNode.id;
+  return { sourceNode, targetNode };
+};
 
+const createMergedNode = (
+  winnerNode: NodeAsset,
+  loserNode: NodeAsset,
+  targetNode: NodeAsset,
+): NodeAsset => {
   const winnerNodeCopy = winnerNode.copy();
   winnerNodeCopy.setCoordinates(targetNode.coordinates);
   winnerNodeCopy.setElevation(targetNode.elevation);
@@ -64,91 +106,163 @@ export const mergeNodes: ModelOperation<InputData> = (
     winnerJunction.setBaseDemand(aggregatedDemand);
   }
 
-  const winnerConnectedLinkIds = topology.getLinks(winnerNodeId);
-  const loserConnectedLinkIds = topology.getLinks(loserNodeId);
+  return winnerNodeCopy;
+};
 
+const updateLinkCoordinates = (
+  link: LinkAsset,
+  nodeId: AssetId,
+  newCoordinates: [number, number],
+): void => {
+  const coordinates = link.coordinates;
+  const updatedCoordinates = [...coordinates];
+
+  if (link.connections[0] === nodeId) {
+    updatedCoordinates[0] = newCoordinates;
+  }
+  if (link.connections[link.connections.length - 1] === nodeId) {
+    updatedCoordinates[updatedCoordinates.length - 1] = newCoordinates;
+  }
+
+  link.setCoordinates(updatedCoordinates);
+};
+
+const processLinkCustomerPoints = (
+  link: LinkAsset,
+  winnerNode: NodeAsset,
+  assets: AssetsMap,
+  customerPointsLookup: CustomerPointsLookup,
+  updatedCustomerPoints: CustomerPoints,
+): void => {
+  if (link.type === "pipe") {
+    const pipe = link as Pipe;
+    reassignCustomerPointsForPipe(
+      pipe,
+      winnerNode,
+      assets,
+      customerPointsLookup,
+      updatedCustomerPoints,
+    );
+  }
+};
+
+const processConnectedLinks = (
+  winnerNode: NodeAsset,
+  loserNode: NodeAsset,
+  targetNode: NodeAsset,
+  hydraulicModel: HydraulicModel,
+): { updatedLinks: LinkAsset[]; updatedCustomerPoints: CustomerPoints } => {
+  const { topology, assets, customerPointsLookup } = hydraulicModel;
   const updatedLinks: LinkAsset[] = [];
   const updatedCustomerPoints = new CustomerPoints();
+
+  updateWinnerLinks(
+    winnerNode.id,
+    targetNode,
+    topology,
+    assets,
+    winnerNode,
+    customerPointsLookup,
+    updatedLinks,
+    updatedCustomerPoints,
+  );
+
+  updateLoserLinks(
+    loserNode.id,
+    winnerNode.id,
+    targetNode,
+    topology,
+    assets,
+    winnerNode,
+    customerPointsLookup,
+    updatedLinks,
+    updatedCustomerPoints,
+  );
+
+  return { updatedLinks, updatedCustomerPoints };
+};
+
+const updateWinnerLinks = (
+  winnerNodeId: AssetId,
+  targetNode: NodeAsset,
+  topology: Topology,
+  assets: AssetsMap,
+  winnerNode: NodeAsset,
+  customerPointsLookup: CustomerPointsLookup,
+  updatedLinks: LinkAsset[],
+  updatedCustomerPoints: CustomerPoints,
+): void => {
+  const winnerConnectedLinkIds = topology.getLinks(winnerNodeId);
 
   for (const linkId of winnerConnectedLinkIds) {
     const link = assets.get(linkId) as LinkAsset;
     const linkCopy = link.copy();
 
-    const coordinates = linkCopy.coordinates;
-    const newCoordinates = [...coordinates];
-
-    if (linkCopy.connections[0] === winnerNodeId) {
-      newCoordinates[0] = targetNode.coordinates;
-    }
-    if (
-      linkCopy.connections[linkCopy.connections.length - 1] === winnerNodeId
-    ) {
-      newCoordinates[newCoordinates.length - 1] = targetNode.coordinates;
-    }
-
-    linkCopy.setCoordinates(newCoordinates);
-
+    updateLinkCoordinates(
+      linkCopy,
+      winnerNodeId,
+      targetNode.coordinates as [number, number],
+    );
     updatedLinks.push(linkCopy);
 
-    if (linkCopy.type === "pipe") {
-      const pipeCopy = linkCopy as Pipe;
-      reassignCustomerPointsForPipe(
-        pipeCopy,
-        winnerNodeCopy,
-        assets,
-        customerPointsLookup,
-        updatedCustomerPoints,
-      );
-    }
+    processLinkCustomerPoints(
+      linkCopy,
+      winnerNode,
+      assets,
+      customerPointsLookup,
+      updatedCustomerPoints,
+    );
   }
+};
+
+const updateLoserLinks = (
+  loserNodeId: AssetId,
+  winnerNodeId: AssetId,
+  targetNode: NodeAsset,
+  topology: Topology,
+  assets: AssetsMap,
+  winnerNode: NodeAsset,
+  customerPointsLookup: CustomerPointsLookup,
+  updatedLinks: LinkAsset[],
+  updatedCustomerPoints: CustomerPoints,
+): void => {
+  const loserConnectedLinkIds = topology.getLinks(loserNodeId);
 
   for (const linkId of loserConnectedLinkIds) {
     const link = assets.get(linkId) as LinkAsset;
     const linkCopy = link.copy();
 
-    updateLinkConnection(linkCopy, loserNodeId, winnerNodeCopy.id);
-
-    const coordinates = linkCopy.coordinates;
-    const newCoordinates = [...coordinates];
-
-    if (linkCopy.connections[0] === winnerNodeId) {
-      newCoordinates[0] = targetNode.coordinates;
-    }
-    if (
-      linkCopy.connections[linkCopy.connections.length - 1] === winnerNodeId
-    ) {
-      newCoordinates[newCoordinates.length - 1] = targetNode.coordinates;
-    }
-
-    linkCopy.setCoordinates(newCoordinates);
-
+    updateLinkConnection(linkCopy, loserNodeId, winnerNodeId);
+    updateLinkCoordinates(
+      linkCopy,
+      winnerNodeId,
+      targetNode.coordinates as [number, number],
+    );
     updatedLinks.push(linkCopy);
 
-    if (linkCopy.type === "pipe") {
-      const pipeCopy = linkCopy as Pipe;
-      reassignCustomerPointsForPipe(
-        pipeCopy,
-        winnerNodeCopy,
-        assets,
-        customerPointsLookup,
-        updatedCustomerPoints,
-      );
-    }
+    processLinkCustomerPoints(
+      linkCopy,
+      winnerNode,
+      assets,
+      customerPointsLookup,
+      updatedCustomerPoints,
+    );
   }
+};
 
+const buildMergeResult = (
+  winnerNode: NodeAsset,
+  loserNode: NodeAsset,
+  updatedLinks: LinkAsset[],
+  updatedCustomerPoints: CustomerPoints,
+) => {
   return {
     note: `Merge ${loserNode.type} into ${winnerNode.type}`,
-    putAssets: [winnerNodeCopy, ...updatedLinks],
-    deleteAssets: [loserNodeId],
+    putAssets: [winnerNode, ...updatedLinks],
+    deleteAssets: [loserNode.id],
     putCustomerPoints:
       updatedCustomerPoints.size > 0
         ? [...updatedCustomerPoints.values()]
         : undefined,
   };
-};
-
-const isNodeAsset = (asset: unknown): asset is NodeAsset => {
-  if (!asset || typeof asset !== "object") return false;
-  const type = (asset as { type?: string }).type;
-  return type === "junction" || type === "reservoir" || type === "tank";
 };
