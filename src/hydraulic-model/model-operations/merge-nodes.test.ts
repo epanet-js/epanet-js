@@ -25,7 +25,7 @@ describe("mergeNodes", () => {
     expect(survivingNode.id).toBe("J1");
     expect(survivingNode.type).toBe("junction");
     expect(survivingNode.coordinates).toEqual([30, 40]);
-    expect(survivingNode.elevation).toBe(100);
+    expect(survivingNode.elevation).toBe(150);
 
     const updatedPipe = moment.putAssets![1] as LinkAsset;
     expect(updatedPipe.id).toBe("P1");
@@ -77,7 +77,7 @@ describe("mergeNodes", () => {
     expect(survivingNode.id).toBe("T1");
     expect(survivingNode.type).toBe("tank");
     expect(survivingNode.coordinates).toEqual([30, 40]);
-    expect(survivingNode.elevation).toBe(100);
+    expect(survivingNode.elevation).toBe(150);
   });
 
   it("merges nodes with multiple connections from both nodes", () => {
@@ -203,7 +203,7 @@ describe("mergeNodes", () => {
     expect(survivingNode.id).toBe("R1");
     expect(survivingNode.type).toBe("reservoir");
     expect(survivingNode.coordinates).toEqual([30, 40]);
-    expect(survivingNode.elevation).toBe(100);
+    expect(survivingNode.elevation).toBe(150);
   });
 
   it("merges junction into reservoir with reservoir surviving due to priority", () => {
@@ -249,7 +249,7 @@ describe("mergeNodes", () => {
     expect(survivingNode.id).toBe("T1");
     expect(survivingNode.type).toBe("tank");
     expect(survivingNode.coordinates).toEqual([30, 40]);
-    expect(survivingNode.elevation).toBe(100);
+    expect(survivingNode.elevation).toBe(150);
   });
 
   it("merges reservoir into reservoir with source winning (same type, default rule)", () => {
@@ -272,7 +272,7 @@ describe("mergeNodes", () => {
     expect(survivingNode.id).toBe("R1");
     expect(survivingNode.type).toBe("reservoir");
     expect(survivingNode.coordinates).toEqual([30, 40]);
-    expect(survivingNode.elevation).toBe(100);
+    expect(survivingNode.elevation).toBe(150);
   });
 
   it("updates loser link coordinates when junction merges into reservoir", () => {

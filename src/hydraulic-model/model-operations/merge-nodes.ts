@@ -53,6 +53,7 @@ export const mergeNodes: ModelOperation<InputData> = (
 
   const winnerNodeCopy = winnerNode.copy();
   winnerNodeCopy.setCoordinates(targetNode.coordinates);
+  winnerNodeCopy.setElevation(targetNode.elevation);
 
   const winnerConnectedLinkIds = topology.getLinks(winnerNodeId);
   const loserConnectedLinkIds = topology.getLinks(loserNodeId);
