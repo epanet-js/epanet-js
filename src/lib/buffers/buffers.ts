@@ -38,6 +38,11 @@ export class FixedSizeBufferBuilder<T> {
     this.currentIndex++;
   }
 
+  addAtIndex(index: number, data: T): void {
+    const offset = DataSize.number + index * this.recordSize;
+    this.encoder(data, offset, this.view);
+  }
+
   finalize(): BinaryData {
     return this.view.buffer;
   }

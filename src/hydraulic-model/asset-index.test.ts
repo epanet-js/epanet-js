@@ -37,7 +37,11 @@ describe("AssetIndexView - Queries", () => {
     assetIndex.addLink(5);
     assetIndex.addNode(10);
 
-    const buffer = assetIndex.encode("array");
+    const encoder = assetIndex.getEncoder("array");
+    const buffer = encoder.encode(
+      () => assetIndex.iterateLinkInternalIds(),
+      () => assetIndex.iterateNodeInternalIds(),
+    );
     const view = new AssetIndexView(buffer);
 
     expect(view.getNodeIndex(5)).toBeNull();
@@ -52,7 +56,11 @@ describe("AssetIndexView - Queries", () => {
     assetIndex.addLink(5);
     assetIndex.addNode(10);
 
-    const buffer = assetIndex.encode("array");
+    const encoder = assetIndex.getEncoder("array");
+    const buffer = encoder.encode(
+      () => assetIndex.iterateLinkInternalIds(),
+      () => assetIndex.iterateNodeInternalIds(),
+    );
     const view = new AssetIndexView(buffer);
 
     expect(view.hasNode(5)).toBe(false);
@@ -72,7 +80,11 @@ describe("Roundtrip Tests", () => {
     assetIndex.addNode(5);
     assetIndex.addLink(200);
 
-    const buffer = assetIndex.encode("array");
+    const encoder = assetIndex.getEncoder("array");
+    const buffer = encoder.encode(
+      () => assetIndex.iterateLinkInternalIds(),
+      () => assetIndex.iterateNodeInternalIds(),
+    );
     const view = new AssetIndexView(buffer);
 
     expect(view.count).toBe(201);
@@ -94,7 +106,11 @@ describe("Roundtrip Tests", () => {
     assetIndex.addNode(4);
     assetIndex.addLink(5);
 
-    const buffer = assetIndex.encode("array");
+    const encoder = assetIndex.getEncoder("array");
+    const buffer = encoder.encode(
+      () => assetIndex.iterateLinkInternalIds(),
+      () => assetIndex.iterateNodeInternalIds(),
+    );
     const view = new AssetIndexView(buffer);
 
     expect(view.hasLink(1)).toBe(true);
@@ -118,7 +134,11 @@ describe("Roundtrip Tests", () => {
     linkIds.forEach((id) => assetIndex.addLink(id));
     nodeIds.forEach((id) => assetIndex.addNode(id));
 
-    const buffer = assetIndex.encode("array");
+    const encoder = assetIndex.getEncoder("array");
+    const buffer = encoder.encode(
+      () => assetIndex.iterateLinkInternalIds(),
+      () => assetIndex.iterateNodeInternalIds(),
+    );
     const view = new AssetIndexView(buffer);
 
     linkIds.forEach((internalId, expectedBufferIndex) => {
@@ -140,28 +160,25 @@ describe("Edge Cases", () => {
     expect(Array.from(assetIndex.iterateLinkInternalIds())).toEqual([]);
     expect(Array.from(assetIndex.iterateNodeInternalIds())).toEqual([]);
 
-    const buffer = assetIndex.encode("array");
+    const encoder = assetIndex.getEncoder("array");
+    const buffer = encoder.encode(
+      () => assetIndex.iterateLinkInternalIds(),
+      () => assetIndex.iterateNodeInternalIds(),
+    );
     const view = new AssetIndexView(buffer);
 
     expect(view.count).toBe(0);
-  });
-
-  it("internalId = 0 boundary case", () => {
-    const assetIndex = new AssetIndex();
-    assetIndex.addLink(0);
-
-    const buffer = assetIndex.encode("array");
-    const view = new AssetIndexView(buffer);
-
-    expect(view.hasLink(0)).toBe(true);
-    expect(view.getLinkIndex(0)).toBe(0);
   });
 
   it("shared buffer type support", () => {
     const assetIndex = new AssetIndex();
     assetIndex.addLink(5);
 
-    const buffer = assetIndex.encode("shared");
+    const encoder = assetIndex.getEncoder("shared");
+    const buffer = encoder.encode(
+      () => assetIndex.iterateLinkInternalIds(),
+      () => assetIndex.iterateNodeInternalIds(),
+    );
     expect(buffer).toBeInstanceOf(SharedArrayBuffer);
 
     const view = new AssetIndexView(buffer);

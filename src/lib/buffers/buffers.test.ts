@@ -183,6 +183,32 @@ describe("FixedSizeBufferView", () => {
     expect(Array.from(view.iter())).toEqual([]);
     expect(Array.from(view.enumerate())).toEqual([]);
   });
+
+  it("writes to specific non-sequential positions leaving gaps as zero", () => {
+    const builder = new FixedSizeBufferBuilder<number>(
+      DataSize.number,
+      5,
+      "array",
+      encodeNumber,
+    );
+
+    builder.addAtIndex(0, 100);
+    builder.addAtIndex(2, 300);
+    builder.addAtIndex(4, 500);
+
+    const buffer = builder.finalize();
+    const view = new FixedSizeBufferView<number>(
+      buffer,
+      DataSize.number,
+      decodeNumber,
+    );
+
+    expect(view.getById(0)).toBe(100);
+    expect(view.getById(1)).toBe(0); // Unwritten position
+    expect(view.getById(2)).toBe(300);
+    expect(view.getById(3)).toBe(0); // Unwritten position
+    expect(view.getById(4)).toBe(500);
+  });
 });
 
 describe("VariableSizeBufferView", () => {
