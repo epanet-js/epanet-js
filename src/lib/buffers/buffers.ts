@@ -17,6 +17,9 @@ export const DataSize = {
   decimal: FLOAT64_SIZE,
 } as const;
 
+type HeaderWriter = (offset: number, view: DataView) => void;
+type HeaderReader = (offset: number, view: DataView) => void;
+
 export class FixedSizeBufferBuilder<T> {
   private view: DataView;
   private currentIndex: number = 0;
@@ -26,20 +29,40 @@ export class FixedSizeBufferBuilder<T> {
     count: number,
     bufferType: BufferType,
     private readonly encoder: (data: T, offset: number, view: DataView) => void,
+    private readonly customHeaderSize: number = 0,
+    private readonly headerWriter?: HeaderWriter,
   ) {
-    const totalSize = DataSize.number + count * recordSize;
+    if (
+      (customHeaderSize !== 0 && !headerWriter) ||
+      (customHeaderSize === 0 && !!headerWriter)
+    ) {
+      throw Error(
+        "Custom header not properly configured. Define customHeaderSize and headerWriter",
+      );
+    }
+    const headerSize = DataSize.number + this.customHeaderSize;
+    const totalSize = headerSize + count * recordSize;
     this.view = new DataView(createBuffer(totalSize, bufferType));
+
     encodeCount(this.view, count);
+
+    if (this.headerWriter) {
+      this.headerWriter(DataSize.number, this.view);
+    }
   }
 
   add(data: T): void {
-    const offset = DataSize.number + this.currentIndex * this.recordSize;
+    const offset =
+      DataSize.number +
+      this.customHeaderSize +
+      this.currentIndex * this.recordSize;
     this.encoder(data, offset, this.view);
     this.currentIndex++;
   }
 
   addAtIndex(index: number, data: T): void {
-    const offset = DataSize.number + index * this.recordSize;
+    const offset =
+      DataSize.number + this.customHeaderSize + index * this.recordSize;
     this.encoder(data, offset, this.view);
   }
 
@@ -56,9 +79,12 @@ export class FixedSizeBufferView<T> {
     buffer: BinaryData,
     private readonly recordSize: number,
     private readonly decoder: (offset: number, view: DataView) => T,
+    private readonly customHeaderSize: number = 0,
+    headerReader?: HeaderReader,
   ) {
     this.view = new DataView(buffer);
     this.count = decodeCount(this.view);
+    headerReader?.(DataSize.number, this.view);
   }
 
   getById(id: number): T {
@@ -67,7 +93,8 @@ export class FixedSizeBufferView<T> {
         `Index ${id} is out of bounds (valid range: 0-${this.count - 1})`,
       );
     }
-    const offset = DataSize.number + id * this.recordSize;
+    const offset =
+      DataSize.number + this.customHeaderSize + id * this.recordSize;
     return this.decoder(offset, this.view);
   }
 

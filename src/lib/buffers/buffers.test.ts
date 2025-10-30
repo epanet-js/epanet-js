@@ -164,6 +164,78 @@ describe("FixedSizeBufferView", () => {
     expect(() => view.getById(100)).toThrow(/out of bounds/);
   });
 
+  it("supports custom headers", () => {
+    const customValue1 = 999;
+    const customValue2 = 888;
+
+    const writeHeader = (offset: number, view: DataView) => {
+      encodeNumber(customValue1, offset, view);
+      encodeNumber(customValue2, offset + DataSize.number, view);
+    };
+
+    const builder = new FixedSizeBufferBuilder<number>(
+      DataSize.number,
+      3,
+      "array",
+      encodeNumber,
+      DataSize.number * 2, // 2 custom fields
+      writeHeader,
+    );
+
+    builder.add(100);
+    builder.add(200);
+    builder.add(300);
+
+    const buffer = builder.finalize();
+
+    let readValue1 = 0;
+    let readValue2 = 0;
+    const readHeader = (offset: number, view: DataView) => {
+      readValue1 = decodeNumber(offset, view);
+      readValue2 = decodeNumber(offset + DataSize.number, view);
+    };
+
+    const bufferView = new FixedSizeBufferView<number>(
+      buffer,
+      DataSize.number,
+      decodeNumber,
+      DataSize.number * 2,
+      readHeader,
+    );
+
+    expect(bufferView.count).toBe(3);
+    expect(readValue1).toBe(customValue1);
+    expect(readValue2).toBe(customValue2);
+    expect(bufferView.getById(0)).toBe(100);
+    expect(bufferView.getById(1)).toBe(200);
+    expect(bufferView.getById(2)).toBe(300);
+  });
+
+  it("works without custom header (backward compatibility)", () => {
+    const builder = new FixedSizeBufferBuilder<number>(
+      DataSize.number,
+      2,
+      "array",
+      encodeNumber,
+      // No customHeaderSize or headerWriter
+    );
+
+    builder.add(100);
+    builder.add(200);
+
+    const buffer = builder.finalize();
+    const view = new FixedSizeBufferView<number>(
+      buffer,
+      DataSize.number,
+      decodeNumber,
+      // No customHeaderSize or headerReader
+    );
+
+    expect(view.count).toBe(2);
+    expect(view.getById(0)).toBe(100);
+    expect(view.getById(1)).toBe(200);
+  });
+
   it("handles empty buffer", () => {
     const builder = new FixedSizeBufferBuilder<number>(
       DataSize.number,

@@ -68,6 +68,8 @@ export class AssetIndex {
     return new AssetIndexEncoder(
       this.linkBufferIndexMap,
       this.nodeBufferIndexMap,
+      this.linkCount,
+      this.nodeCount,
       this.maxInternalId,
       bufferType,
     );
@@ -79,8 +81,11 @@ const ASSET_TYPE_NODE = 1;
 const EMPTY_ASSET_INDEX = 0;
 const ASSET_INDEX_SIZE = DataSize.number;
 const ASSET_INDEX_BIT_ENCODING_MASK = 0x7fffffff;
+const ASSET_INDEX_CUSTOM_HEADER_SIZE = DataSize.number * 2; // linkCount + nodeCount
 
 type BufferIndex = number;
+type LinkIndex = number;
+type NodeIndex = number;
 
 type AssetIndexEntry = [
   typeof ASSET_TYPE_LINK | typeof ASSET_TYPE_NODE,
@@ -109,12 +114,31 @@ function decodeAssetIndex(
   return [type, index];
 }
 
+function decodeHeader(offset: number, view: DataView) {
+  const linkCount = decodeNumber(offset, view);
+  const nodeCount = decodeNumber(offset + DataSize.number, view);
+
+  return { linkCount, nodeCount };
+}
+
+function encodeHeader(
+  linkCount: number,
+  nodeCount: number,
+  offset: number,
+  view: DataView,
+) {
+  encodeNumber(linkCount, offset, view);
+  encodeNumber(nodeCount, offset + DataSize.number, view);
+}
+
 export class AssetIndexEncoder {
   private bufferBuilder: FixedSizeBufferBuilder<AssetIndexEntry>;
 
   constructor(
     private linkBufferIndexMap: Map<InternalId, number>,
     private nodeBufferIndexMap: Map<InternalId, number>,
+    private linkCount: number,
+    private nodeCount: number,
     maxInternalId: number,
     bufferType: BufferType = "array",
   ) {
@@ -123,6 +147,8 @@ export class AssetIndexEncoder {
       maxInternalId + 1,
       bufferType,
       encodeAssetIndex,
+      ASSET_INDEX_CUSTOM_HEADER_SIZE,
+      (offset, view) => encodeHeader(linkCount, nodeCount, offset, view),
     );
   }
 
@@ -178,16 +204,24 @@ export class AssetIndexEncoder {
 
 export class AssetIndexView {
   private view: FixedSizeBufferView<AssetIndexEntry | null>;
+  private linkCountValue: number = 0;
+  private nodeCountValue: number = 0;
 
   constructor(buffer: BinaryData) {
     this.view = new FixedSizeBufferView(
       buffer,
       ASSET_INDEX_SIZE,
       decodeAssetIndex,
+      ASSET_INDEX_CUSTOM_HEADER_SIZE,
+      (offset: number, view: DataView) => {
+        const { linkCount, nodeCount } = decodeHeader(offset, view);
+        this.linkCountValue = linkCount;
+        this.nodeCountValue = nodeCount;
+      },
     );
   }
 
-  getLinkIndex(internalId: InternalId): number | null {
+  getLinkIndex(internalId: InternalId): LinkIndex | null {
     if (internalId < 0 || internalId >= this.view.count) {
       return null;
     }
@@ -201,7 +235,7 @@ export class AssetIndexView {
     return index - 1;
   }
 
-  getNodeIndex(internalId: InternalId): number | null {
+  getNodeIndex(internalId: InternalId): NodeIndex | null {
     if (internalId < 0 || internalId >= this.view.count) {
       return null;
     }
@@ -221,6 +255,34 @@ export class AssetIndexView {
 
   hasNode(internalId: InternalId): boolean {
     return this.getNodeIndex(internalId) !== null;
+  }
+
+  *iterateLinks(): Generator<[InternalId, LinkIndex], void, unknown> {
+    for (const [internalId, assetIndexEntry] of this.view.enumerate()) {
+      if (assetIndexEntry === null) continue;
+      const [type, encodedIndex] = assetIndexEntry;
+      if (type === ASSET_TYPE_LINK) {
+        yield [internalId, encodedIndex - 1];
+      }
+    }
+  }
+
+  *iterateNodes(): Generator<[InternalId, NodeIndex], void, unknown> {
+    for (const [internalId, assetIndexEntry] of this.view.enumerate()) {
+      if (assetIndexEntry === null) continue;
+      const [type, encodedIndex] = assetIndexEntry;
+      if (type === ASSET_TYPE_NODE) {
+        yield [internalId, encodedIndex - 1];
+      }
+    }
+  }
+
+  get linkCount(): number {
+    return this.linkCountValue;
+  }
+
+  get nodeCount(): number {
+    return this.nodeCountValue;
   }
 
   get count(): number {

@@ -31,6 +31,136 @@ describe("AssetIndex - Basics", () => {
   });
 });
 
+describe("AssetIndexView - Iterators", () => {
+  it("iterates link and node internal IDs separately", () => {
+    const IDS = {
+      P1: 1,
+      P2: 3,
+      P3: 5,
+      J1: 2,
+      J2: 4,
+      J3: 10,
+    } as const;
+
+    const assetIndex = new AssetIndex();
+    assetIndex.addLink(IDS.P1);
+    assetIndex.addNode(IDS.J1);
+    assetIndex.addLink(IDS.P2);
+    assetIndex.addNode(IDS.J2);
+    assetIndex.addLink(IDS.P3);
+    assetIndex.addNode(IDS.J3);
+
+    const encoder = assetIndex.getEncoder("array");
+    const buffer = encoder.encode(
+      () => assetIndex.iterateLinkInternalIds(),
+      () => assetIndex.iterateNodeInternalIds(),
+    );
+    const view = new AssetIndexView(buffer);
+
+    expect(Array.from(view.iterateLinks())).toEqual([
+      [IDS.P1, 0],
+      [IDS.P2, 1],
+      [IDS.P3, 2],
+    ]);
+    expect(Array.from(view.iterateNodes())).toEqual([
+      [IDS.J1, 0],
+      [IDS.J2, 1],
+      [IDS.J3, 2],
+    ]);
+  });
+
+  it("iterates empty AssetIndex", () => {
+    const assetIndex = new AssetIndex();
+
+    const encoder = assetIndex.getEncoder("array");
+    const buffer = encoder.encode(
+      () => assetIndex.iterateLinkInternalIds(),
+      () => assetIndex.iterateNodeInternalIds(),
+    );
+    const view = new AssetIndexView(buffer);
+
+    expect(Array.from(view.iterateLinks())).toEqual([]);
+    expect(Array.from(view.iterateNodes())).toEqual([]);
+  });
+
+  it("iterates only actual assets with sparse IDs", () => {
+    const IDS = {
+      P1: 100,
+      P2: 200,
+      J1: 5,
+      J2: 150,
+    } as const;
+
+    const assetIndex = new AssetIndex();
+    assetIndex.addLink(IDS.P1);
+    assetIndex.addNode(IDS.J1);
+    assetIndex.addLink(IDS.P2);
+    assetIndex.addNode(IDS.J2);
+
+    const encoder = assetIndex.getEncoder("array");
+    const buffer = encoder.encode(
+      () => assetIndex.iterateLinkInternalIds(),
+      () => assetIndex.iterateNodeInternalIds(),
+    );
+    const view = new AssetIndexView(buffer);
+
+    const links = Array.from(view.iterateLinks());
+    const nodes = Array.from(view.iterateNodes());
+
+    expect(links).toEqual([
+      [IDS.P1, 0],
+      [IDS.P2, 1],
+    ]);
+    expect(nodes).toEqual([
+      [IDS.J1, 0],
+      [IDS.J2, 1],
+    ]);
+    expect(links.length).toBe(2);
+    expect(nodes.length).toBe(2);
+  });
+
+  it("provides link and node counts from encoded buffer", () => {
+    const IDS = {
+      P1: 1,
+      P2: 3,
+      P3: 5,
+      J1: 2,
+      J2: 4,
+    } as const;
+
+    const assetIndex = new AssetIndex();
+    assetIndex.addLink(IDS.P1);
+    assetIndex.addLink(IDS.P2);
+    assetIndex.addLink(IDS.P3);
+    assetIndex.addNode(IDS.J1);
+    assetIndex.addNode(IDS.J2);
+
+    const encoder = assetIndex.getEncoder("array");
+    const buffer = encoder.encode(
+      () => assetIndex.iterateLinkInternalIds(),
+      () => assetIndex.iterateNodeInternalIds(),
+    );
+    const view = new AssetIndexView(buffer);
+
+    expect(view.linkCount).toBe(3);
+    expect(view.nodeCount).toBe(2);
+  });
+
+  it("provides zero counts for empty AssetIndex", () => {
+    const assetIndex = new AssetIndex();
+
+    const encoder = assetIndex.getEncoder("array");
+    const buffer = encoder.encode(
+      () => assetIndex.iterateLinkInternalIds(),
+      () => assetIndex.iterateNodeInternalIds(),
+    );
+    const view = new AssetIndexView(buffer);
+
+    expect(view.linkCount).toBe(0);
+    expect(view.nodeCount).toBe(0);
+  });
+});
+
 describe("AssetIndexView - Queries", () => {
   it("returns null when querying wrong type or out of bounds", () => {
     const assetIndex = new AssetIndex();
