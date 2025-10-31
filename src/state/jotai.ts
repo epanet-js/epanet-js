@@ -496,6 +496,10 @@ export const multiAssetPanelCollapseAtom =
     tank: true,
   });
 
+export const initialRememberedDefaults = {
+  pipe: {},
+} as const;
+
 export const rememberedDefaultsAtom = atom<{
   pipe: {
     diameter?: number;
@@ -503,6 +507,4 @@ export const rememberedDefaultsAtom = atom<{
     minorLoss?: number;
     initialStatus?: PipeStatus;
   };
-}>({
-  pipe: {},
-});
+}>(initialRememberedDefaults);

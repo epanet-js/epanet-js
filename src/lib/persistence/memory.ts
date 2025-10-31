@@ -21,6 +21,8 @@ import {
   selectionAtom,
   splitsAtom,
   defaultSplits,
+  rememberedDefaultsAtom,
+  initialRememberedDefaults,
 } from "src/state/jotai";
 import { getFreshAt, momentForDeleteFeatures, trackMoment } from "./shared";
 import { IDMap, UIDMap } from "src/lib/id-mapper";
@@ -88,6 +90,7 @@ export class MemPersistence implements IPersistence {
       this.store.set(modeAtom, { mode: Mode.NONE });
       this.store.set(ephemeralStateAtom, { type: "none" });
       this.store.set(selectionAtom, { type: "none" });
+      this.store.set(rememberedDefaultsAtom, initialRememberedDefaults);
     };
   }
 
