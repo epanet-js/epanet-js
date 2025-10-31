@@ -33,13 +33,14 @@ describe("build ephemeral state source", () => {
 
   describe("drawLink state", () => {
     it("builds features for new drawLink with node snapping", () => {
+      const IDS = { J1: 1, T1: 2 } as const;
       const { assets } = HydraulicModelBuilder.with()
-        .aJunction("J1", { coordinates: [10, 20] })
-        .aTank("T1", { coordinates: [30, 40] })
+        .aJunction(IDS.J1, { coordinates: [10, 20] })
+        .aTank(IDS.T1, { coordinates: [30, 40] })
         .build();
 
-      const startNode = assets.get("J1")! as NodeAsset;
-      const snappingTank = assets.get("T1")! as NodeAsset;
+      const startNode = assets.get(String(IDS.J1))! as NodeAsset;
+      const snappingTank = assets.get(String(IDS.T1))! as NodeAsset;
 
       const ephemeralState: EphemeralDrawLink = {
         type: "drawLink",
@@ -109,10 +110,11 @@ describe("build ephemeral state source", () => {
     });
 
     it("builds features for new drawLink with pipe snapping", () => {
+      const IDS = { J1: 1, J2: 2, P1: 3 } as const;
       const { assets } = HydraulicModelBuilder.with()
-        .aJunction("J1", { coordinates: [10, 20] })
-        .aJunction("J2", { coordinates: [50, 60] })
-        .aPipe("P1", {
+        .aJunction(IDS.J1, { coordinates: [10, 20] })
+        .aJunction(IDS.J2, { coordinates: [50, 60] })
+        .aPipe(IDS.P1, {
           coordinates: [
             [30, 40],
             [70, 80],
@@ -120,7 +122,7 @@ describe("build ephemeral state source", () => {
         })
         .build();
 
-      const startNode = assets.get("J1")! as NodeAsset;
+      const startNode = assets.get(String(IDS.J1))! as NodeAsset;
 
       const ephemeralState: EphemeralDrawLink = {
         type: "drawLink",
@@ -153,7 +155,7 @@ describe("build ephemeral state source", () => {
         snappingCandidate: {
           type: "pipe",
           coordinates: [45, 55],
-          id: "P1",
+          id: String(IDS.P1),
           vertexIndex: null,
         },
       };
@@ -183,7 +185,7 @@ describe("build ephemeral state source", () => {
         coordinates: [45, 55],
       });
 
-      expect(pipeHighlightFeature.id).toBe("pipe-highlight-P1");
+      expect(pipeHighlightFeature.id).toBe(`pipe-highlight-${IDS.P1}`);
       expect(pipeHighlightFeature.properties).toMatchObject({
         pipeHighlight: true,
       });
@@ -200,11 +202,12 @@ describe("build ephemeral state source", () => {
     });
 
     it("handles pipe snapping when pipe asset not found", () => {
+      const IDS = { J1: 1 } as const;
       const { assets } = HydraulicModelBuilder.with()
-        .aJunction("J1", { coordinates: [10, 20] })
+        .aJunction(IDS.J1, { coordinates: [10, 20] })
         .build();
 
-      const startNode = assets.get("J1")! as NodeAsset;
+      const startNode = assets.get(String(IDS.J1))! as NodeAsset;
 
       const ephemeralState: EphemeralDrawLink = {
         type: "drawLink",
@@ -260,17 +263,18 @@ describe("build ephemeral state source", () => {
 
   describe("moveAssets", () => {
     it("builds features for move assets state", () => {
+      const IDS = { T1_OLD: 1, J1_OLD: 2, T1_NEW: 3, J1_NEW: 4 } as const;
       const { assets } = HydraulicModelBuilder.with()
-        .aTank("T1_OLD", { coordinates: [10, 20] })
-        .aJunction("J1_OLD", { coordinates: [30, 40] })
-        .aTank("T1_NEW", { coordinates: [50, 60] })
-        .aJunction("J1_NEW", { coordinates: [70, 80] })
+        .aTank(IDS.T1_OLD, { coordinates: [10, 20] })
+        .aJunction(IDS.J1_OLD, { coordinates: [30, 40] })
+        .aTank(IDS.T1_NEW, { coordinates: [50, 60] })
+        .aJunction(IDS.J1_NEW, { coordinates: [70, 80] })
         .build();
 
-      const tankOld = assets.get("T1_OLD")!;
-      const junctionOld = assets.get("J1_OLD")!;
-      const tankNew = assets.get("T1_NEW")!;
-      const junctionNew = assets.get("J1_NEW")!;
+      const tankOld = assets.get(String(IDS.T1_OLD))!;
+      const junctionOld = assets.get(String(IDS.J1_OLD))!;
+      const tankNew = assets.get(String(IDS.T1_NEW))!;
+      const junctionNew = assets.get(String(IDS.J1_NEW))!;
 
       const ephemeralState: EphemeralMoveAssets = {
         type: "moveAssets",
@@ -298,17 +302,21 @@ describe("build ephemeral state source", () => {
 
   describe("drawNode state", () => {
     it("builds features for junction node snapping", () => {
+      const IDS = { J1: 1, J2: 2, P1: 3 } as const;
       const { assets } = HydraulicModelBuilder.with()
-        .aJunction("J1", { coordinates: [0, 0] })
-        .aJunction("J2", { coordinates: [10, 0] })
-        .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
+        .aJunction(IDS.J1, { coordinates: [0, 0] })
+        .aJunction(IDS.J2, { coordinates: [10, 0] })
+        .aPipe(IDS.P1, {
+          startNodeId: String(IDS.J1),
+          endNodeId: String(IDS.J2),
+        })
         .build();
 
       const ephemeralState: EphemeralDrawNode = {
         type: "drawNode",
         nodeType: "junction",
         pipeSnappingPosition: [5, 0],
-        pipeId: "P1",
+        pipeId: String(IDS.P1),
         nodeSnappingId: null,
         nodeReplacementId: null,
       };
@@ -329,17 +337,21 @@ describe("build ephemeral state source", () => {
     });
 
     it("builds features for reservoir node snapping with icon", () => {
+      const IDS = { J1: 1, J2: 2, P1: 3 } as const;
       const { assets } = HydraulicModelBuilder.with()
-        .aJunction("J1", { coordinates: [0, 0] })
-        .aJunction("J2", { coordinates: [10, 0] })
-        .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
+        .aJunction(IDS.J1, { coordinates: [0, 0] })
+        .aJunction(IDS.J2, { coordinates: [10, 0] })
+        .aPipe(IDS.P1, {
+          startNodeId: String(IDS.J1),
+          endNodeId: String(IDS.J2),
+        })
         .build();
 
       const ephemeralState: EphemeralDrawNode = {
         type: "drawNode",
         nodeType: "reservoir",
         pipeSnappingPosition: [5, 0],
-        pipeId: "P1",
+        pipeId: String(IDS.P1),
         nodeSnappingId: null,
         nodeReplacementId: null,
       };
@@ -360,17 +372,21 @@ describe("build ephemeral state source", () => {
     });
 
     it("builds features for tank node snapping with icon", () => {
+      const IDS = { J1: 1, J2: 2, P1: 3 } as const;
       const { assets } = HydraulicModelBuilder.with()
-        .aJunction("J1", { coordinates: [0, 0] })
-        .aJunction("J2", { coordinates: [10, 0] })
-        .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
+        .aJunction(IDS.J1, { coordinates: [0, 0] })
+        .aJunction(IDS.J2, { coordinates: [10, 0] })
+        .aPipe(IDS.P1, {
+          startNodeId: String(IDS.J1),
+          endNodeId: String(IDS.J2),
+        })
         .build();
 
       const ephemeralState: EphemeralDrawNode = {
         type: "drawNode",
         nodeType: "tank",
         pipeSnappingPosition: [5, 0],
-        pipeId: "P1",
+        pipeId: String(IDS.P1),
         nodeSnappingId: null,
         nodeReplacementId: null,
       };

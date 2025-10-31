@@ -4,11 +4,12 @@ import { presets } from "src/model-metadata/quantities-spec";
 
 describe("build inp", () => {
   it("adds reservoirs", () => {
+    const IDS = { R1: 1, R2: 2 };
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aReservoir("r1", {
+      .aReservoir(IDS.R1, {
         head: 10,
       })
-      .aReservoir("r2", {
+      .aReservoir(IDS.R2, {
         head: 20,
       })
       .build();
@@ -16,17 +17,18 @@ describe("build inp", () => {
     const inp = buildInp(hydraulicModel);
 
     expect(inp).toContain("[RESERVOIRS]");
-    expect(inp).toContain("r1\t10");
-    expect(inp).toContain("r2\t20");
+    expect(inp).toContain("1\t10");
+    expect(inp).toContain("2\t20");
   });
 
   it("adds junctions", () => {
+    const IDS = { J1: 1, J2: 2 };
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aJunction("j1", {
+      .aJunction(IDS.J1, {
         elevation: 10,
         baseDemand: 1,
       })
-      .aJunction("j2", {
+      .aJunction(IDS.J2, {
         elevation: 20,
         baseDemand: 2,
       })
@@ -35,29 +37,30 @@ describe("build inp", () => {
     const inp = buildInp(hydraulicModel);
 
     expect(inp).toContain("[JUNCTIONS]");
-    expect(inp).toContain("j1\t10");
-    expect(inp).toContain("j2\t20");
+    expect(inp).toContain("1\t10");
+    expect(inp).toContain("2\t20");
     expect(inp).toContain("[DEMANDS]");
-    expect(inp).toContain("j1\t1");
-    expect(inp).toContain("j2\t2");
+    expect(inp).toContain("1\t1");
+    expect(inp).toContain("2\t2");
   });
 
   it("adds pipes", () => {
+    const IDS = { NODE1: 1, NODE2: 2, NODE3: 3, PIPE1: 4, PIPE2: 5 };
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aNode("node1")
-      .aNode("node2")
-      .aNode("node3")
-      .aPipe("pipe1", {
-        startNodeId: "node1",
-        endNodeId: "node2",
+      .aNode(IDS.NODE1)
+      .aNode(IDS.NODE2)
+      .aNode(IDS.NODE3)
+      .aPipe(IDS.PIPE1, {
+        startNodeId: String(IDS.NODE1),
+        endNodeId: String(IDS.NODE2),
         length: 10,
         diameter: 100,
         roughness: 1,
         initialStatus: "open",
       })
-      .aPipe("pipe2", {
-        startNodeId: "node2",
-        endNodeId: "node3",
+      .aPipe(IDS.PIPE2, {
+        startNodeId: String(IDS.NODE2),
+        endNodeId: String(IDS.NODE3),
         length: 20,
         diameter: 200,
         roughness: 2,
@@ -68,17 +71,18 @@ describe("build inp", () => {
     const inp = buildInp(hydraulicModel);
 
     expect(inp).toContain("[PIPES]");
-    expect(inp).toContain("pipe1\tnode1\tnode2\t10\t100\t1\t0\tOpen");
-    expect(inp).toContain("pipe2\tnode2\tnode3\t20\t200\t2\t0\tClosed");
+    expect(inp).toContain("4\t1\t2\t10\t100\t1\t0\tOpen");
+    expect(inp).toContain("5\t2\t3\t20\t200\t2\t0\tClosed");
   });
 
   it("adds pipes with check valve status", () => {
+    const IDS = { NODE1: 1, NODE2: 2, CVPIPE: 3 };
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aNode("node1")
-      .aNode("node2")
-      .aPipe("cvPipe", {
-        startNodeId: "node1",
-        endNodeId: "node2",
+      .aNode(IDS.NODE1)
+      .aNode(IDS.NODE2)
+      .aPipe(IDS.CVPIPE, {
+        startNodeId: String(IDS.NODE1),
+        endNodeId: String(IDS.NODE2),
         length: 15,
         diameter: 150,
         roughness: 1.5,
@@ -89,26 +93,27 @@ describe("build inp", () => {
     const inp = buildInp(hydraulicModel);
 
     expect(inp).toContain("[PIPES]");
-    expect(inp).toContain("cvPipe\tnode1\tnode2\t15\t150\t1.5\t0\tCV");
+    expect(inp).toContain("3\t1\t2\t15\t150\t1.5\t0\tCV");
   });
 
   it("adds valves", () => {
+    const IDS = { NODE1: 1, NODE2: 2, NODE3: 3, VALVE1: 4, VALVE2: 5 };
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aNode("node1")
-      .aNode("node2")
-      .aNode("node3")
-      .aValve("valve1", {
-        startNodeId: "node1",
-        endNodeId: "node2",
+      .aNode(IDS.NODE1)
+      .aNode(IDS.NODE2)
+      .aNode(IDS.NODE3)
+      .aValve(IDS.VALVE1, {
+        startNodeId: String(IDS.NODE1),
+        endNodeId: String(IDS.NODE2),
         initialStatus: "active",
         setting: 10,
         diameter: 20,
         kind: "tcv",
         minorLoss: 0.1,
       })
-      .aValve("valve2", {
-        startNodeId: "node2",
-        endNodeId: "node3",
+      .aValve(IDS.VALVE2, {
+        startNodeId: String(IDS.NODE2),
+        endNodeId: String(IDS.NODE3),
         initialStatus: "closed",
         setting: 12,
         diameter: 22,
@@ -120,20 +125,21 @@ describe("build inp", () => {
     const inp = buildInp(hydraulicModel);
 
     expect(inp).toContain("[VALVES]");
-    expect(inp).toContain("valve1\tnode1\tnode2\t20\tTCV\t10\t0.1");
-    expect(inp).toContain("valve2\tnode2\tnode3\t22\tTCV\t12\t0.2");
+    expect(inp).toContain("4\t1\t2\t20\tTCV\t10\t0.1");
+    expect(inp).toContain("5\t2\t3\t22\tTCV\t12\t0.2");
     expect(inp).toContain("[STATUS]");
-    expect(inp).toContain("valve2\tClosed");
+    expect(inp).toContain("5\tClosed");
   });
 
   it("adds pumps with a curve", () => {
+    const IDS = { NODE1: 1, NODE2: 2, NODE3: 3, PUMP1: 4 };
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aNode("node1")
-      .aNode("node2")
-      .aNode("node3")
-      .aPump("pump1", {
-        startNodeId: "node1",
-        endNodeId: "node2",
+      .aNode(IDS.NODE1)
+      .aNode(IDS.NODE2)
+      .aNode(IDS.NODE3)
+      .aPump(IDS.PUMP1, {
+        startNodeId: String(IDS.NODE1),
+        endNodeId: String(IDS.NODE2),
         initialStatus: "on",
         definitionType: "flow-vs-head",
         designFlow: 20,
@@ -145,19 +151,20 @@ describe("build inp", () => {
     const inp = buildInp(hydraulicModel);
 
     expect(inp).toContain("[PUMPS]");
-    expect(inp).toContain("pump1\tnode1\tnode2\tHEAD pump1\tSPEED 0.8");
+    expect(inp).toContain("4\t1\t2\tHEAD 4\tSPEED 0.8");
     expect(inp).toContain("[CURVES]");
-    expect(inp).toContain("pump1\t20\t40");
+    expect(inp).toContain("4\t20\t40");
   });
 
   it("adds pumps with power definition", () => {
+    const IDS = { NODE1: 1, NODE2: 2, NODE3: 3, PUMP1: 4 };
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aNode("node1")
-      .aNode("node2")
-      .aNode("node3")
-      .aPump("pump1", {
-        startNodeId: "node1",
-        endNodeId: "node2",
+      .aNode(IDS.NODE1)
+      .aNode(IDS.NODE2)
+      .aNode(IDS.NODE3)
+      .aPump(IDS.PUMP1, {
+        startNodeId: String(IDS.NODE1),
+        endNodeId: String(IDS.NODE2),
         initialStatus: "on",
         definitionType: "power",
         designFlow: 20,
@@ -170,36 +177,45 @@ describe("build inp", () => {
     const inp = buildInp(hydraulicModel);
 
     expect(inp).toContain("[PUMPS]");
-    expect(inp).toContain("pump1\tnode1\tnode2\tPOWER 100\tSPEED 0.7");
+    expect(inp).toContain("4\t1\t2\tPOWER 100\tSPEED 0.7");
     expect(inp).toContain("[CURVES]");
-    expect(inp).not.toContain("pump1\t20\t40");
+    expect(inp).not.toContain("4\t20\t40");
   });
 
   it("does not include status for pumps when speed not 1", () => {
+    const IDS = {
+      NODE1: 1,
+      NODE2: 2,
+      NODE3: 3,
+      NODE4: 4,
+      PUMP1: 5,
+      PUMP2: 6,
+      PUMP3: 7,
+    };
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aNode("node1")
-      .aNode("node2")
-      .aNode("node3")
-      .aNode("node4")
-      .aPump("pump1", {
-        startNodeId: "node1",
-        endNodeId: "node2",
+      .aNode(IDS.NODE1)
+      .aNode(IDS.NODE2)
+      .aNode(IDS.NODE3)
+      .aNode(IDS.NODE4)
+      .aPump(IDS.PUMP1, {
+        startNodeId: String(IDS.NODE1),
+        endNodeId: String(IDS.NODE2),
         initialStatus: "on",
         definitionType: "power",
         speed: 0.7,
         power: 10,
       })
-      .aPump("pump2", {
-        startNodeId: "node2",
-        endNodeId: "node3",
+      .aPump(IDS.PUMP2, {
+        startNodeId: String(IDS.NODE2),
+        endNodeId: String(IDS.NODE3),
         initialStatus: "off",
         definitionType: "power",
         speed: 0.8,
         power: 20,
       })
-      .aPump("pump3", {
-        startNodeId: "node3",
-        endNodeId: "node4",
+      .aPump(IDS.PUMP3, {
+        startNodeId: String(IDS.NODE3),
+        endNodeId: String(IDS.NODE4),
         initialStatus: "on",
         definitionType: "power",
         speed: 1,
@@ -210,13 +226,13 @@ describe("build inp", () => {
     const inp = buildInp(hydraulicModel);
 
     expect(inp).toContain("[PUMPS]");
-    expect(inp).toContain("pump1\tnode1\tnode2\tPOWER 10\tSPEED 0.7");
-    expect(inp).toContain("pump2\tnode2\tnode3\tPOWER 20\tSPEED 0.8");
-    expect(inp).toContain("pump3\tnode3\tnode4\tPOWER 30\tSPEED 1");
+    expect(inp).toContain("5\t1\t2\tPOWER 10\tSPEED 0.7");
+    expect(inp).toContain("6\t2\t3\tPOWER 20\tSPEED 0.8");
+    expect(inp).toContain("7\t3\t4\tPOWER 30\tSPEED 1");
     expect(inp).toContain("[STATUS]");
-    expect(inp).toContain("pump1\t0.7");
-    expect(inp).toContain("pump2\tClosed");
-    expect(inp).toContain("pump3\tOpen");
+    expect(inp).toContain("5\t0.7");
+    expect(inp).toContain("6\tClosed");
+    expect(inp).toContain("7\tOpen");
   });
 
   it("includes simulation settings", () => {
@@ -274,13 +290,14 @@ describe("build inp", () => {
   });
 
   it("includes geographical info when requested", () => {
+    const IDS = { J1: 1, J2: 2, J3: 3, P1: 4, V1: 5 };
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aJunction("j1", { coordinates: [10, 1] })
-      .aJunction("j2", { coordinates: [20, 2] })
-      .aJunction("j3", { coordinates: [30, 3] })
-      .aPipe("p1", {
-        startNodeId: "j1",
-        endNodeId: "j2",
+      .aJunction(IDS.J1, { coordinates: [10, 1] })
+      .aJunction(IDS.J2, { coordinates: [20, 2] })
+      .aJunction(IDS.J3, { coordinates: [30, 3] })
+      .aPipe(IDS.P1, {
+        startNodeId: String(IDS.J1),
+        endNodeId: String(IDS.J2),
         coordinates: [
           [10, 1],
           [14, 1],
@@ -288,9 +305,9 @@ describe("build inp", () => {
           [20, 2],
         ],
       })
-      .aValve("v1", {
-        startNodeId: "j2",
-        endNodeId: "j3",
+      .aValve(IDS.V1, {
+        startNodeId: String(IDS.J2),
+        endNodeId: String(IDS.J3),
         coordinates: [
           [20, 2],
           [20, 2.1],
@@ -309,20 +326,21 @@ describe("build inp", () => {
     });
 
     expect(inp).toContain("[COORDINATES]");
-    expect(inp).toContain("j1\t10\t1");
-    expect(inp).toContain("j2\t20\t2");
-    expect(inp).toContain("j3\t30\t3");
+    expect(inp).toContain("1\t10\t1");
+    expect(inp).toContain("2\t20\t2");
+    expect(inp).toContain("3\t30\t3");
 
     expect(inp).toContain("[VERTICES]");
-    expect(inp).toContain("p1\t14\t1");
-    expect(inp).toContain("p1\t15\t1");
-    expect(inp).toContain("v1\t20\t2.1");
-    expect(inp).toContain("v1\t20\t2.4");
+    expect(inp).toContain("4\t14\t1");
+    expect(inp).toContain("4\t15\t1");
+    expect(inp).toContain("5\t20\t2.1");
+    expect(inp).toContain("5\t20\t2.4");
   });
 
   it("signals that inp has been built by this app", () => {
+    const IDS = { JUNCTION1: 1 };
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aJunction("junction1", { coordinates: [10, 1] })
+      .aJunction(IDS.JUNCTION1, { coordinates: [10, 1] })
       .build();
 
     const inp = buildInp(hydraulicModel, {
@@ -330,12 +348,13 @@ describe("build inp", () => {
     });
 
     expect(inp).toContain(";MADE BY EPANET-JS");
-    expect(inp).toContain("junction1");
+    expect(inp).toContain("1");
   });
 
   it("adds tanks", () => {
+    const IDS = { T1: 1, T2: 2 };
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aTank("t1", {
+      .aTank(IDS.T1, {
         elevation: 100,
         initialLevel: 15,
         minLevel: 5,
@@ -344,7 +363,7 @@ describe("build inp", () => {
         minVolume: 14,
         coordinates: [10, 20],
       })
-      .aTank("t2", {
+      .aTank(IDS.T2, {
         elevation: 200,
         initialLevel: 10,
         minLevel: 0,
@@ -361,120 +380,124 @@ describe("build inp", () => {
     });
 
     expect(inp).toContain("[TANKS]");
-    expect(inp).toContain("t1\t100\t15\t5\t25\t120\t14");
-    expect(inp).toContain("t2\t200\t10\t0\t30\t50\t10\t*\tYES");
+    expect(inp).toContain("1\t100\t15\t5\t25\t120\t14");
+    expect(inp).toContain("2\t200\t10\t0\t30\t50\t10\t*\tYES");
     expect(inp).toContain("[COORDINATES]");
-    expect(inp).toContain("t1\t10\t20");
-    expect(inp).toContain("t2\t30\t40");
+    expect(inp).toContain("1\t10\t20");
+    expect(inp).toContain("2\t30\t40");
   });
 
   describe("customer demands", () => {
     it("includes customer demands when enabled", () => {
+      const IDS = { J1: 1, P1: 2, CP1: 3 };
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction("j1", { elevation: 10, baseDemand: 50 })
-        .aPipe("p1", {
-          startNodeId: "j1",
-          endNodeId: "j1",
+        .aJunction(IDS.J1, { elevation: 10, baseDemand: 50 })
+        .aPipe(IDS.P1, {
+          startNodeId: String(IDS.J1),
+          endNodeId: String(IDS.J1),
           coordinates: [
             [0, 0],
             [10, 0],
           ],
         })
-        .aCustomerPoint("cp1", {
+        .aCustomerPoint(IDS.CP1, {
           demand: 25,
-          connection: { pipeId: "p1", junctionId: "j1" },
+          connection: { pipeId: String(IDS.P1), junctionId: String(IDS.J1) },
         })
         .build();
 
       const inp = buildInp(hydraulicModel, { customerDemands: true });
 
       expect(inp).toContain("[DEMANDS]");
-      expect(inp).toContain("j1\t50");
-      expect(inp).toContain("j1\t25\tepanetjs_customers");
+      expect(inp).toContain("1\t50");
+      expect(inp).toContain("1\t25\tepanetjs_customers");
       expect(inp).toContain("[PATTERNS]");
       expect(inp).toContain("epanetjs_customers\t1");
     });
 
     it("does not include customer demands when disabled", () => {
+      const IDS = { J1: 1, P1: 2, CP1: 3 };
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction("j1", { elevation: 10, baseDemand: 50 })
-        .aPipe("p1", {
-          startNodeId: "j1",
-          endNodeId: "j1",
+        .aJunction(IDS.J1, { elevation: 10, baseDemand: 50 })
+        .aPipe(IDS.P1, {
+          startNodeId: String(IDS.J1),
+          endNodeId: String(IDS.J1),
           coordinates: [
             [0, 0],
             [10, 0],
           ],
         })
-        .aCustomerPoint("cp1", {
+        .aCustomerPoint(IDS.CP1, {
           demand: 25,
-          connection: { pipeId: "p1", junctionId: "j1" },
+          connection: { pipeId: String(IDS.P1), junctionId: String(IDS.J1) },
         })
         .build();
 
       const inp = buildInp(hydraulicModel, { customerDemands: false });
 
       expect(inp).toContain("[DEMANDS]");
-      expect(inp).toContain("j1\t50");
-      expect(inp).not.toContain("j1\t25");
+      expect(inp).toContain("1\t50");
+      expect(inp).not.toContain("1\t25");
       expect(inp).not.toContain("[PATTERNS]");
       expect(inp).not.toContain("epanetjs_customers");
     });
 
     it("skips customer demands when they are zero", () => {
+      const IDS = { J1: 1, P1: 2, CP1: 3 };
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction("j1", { elevation: 10, baseDemand: 50 })
-        .aPipe("p1", {
-          startNodeId: "j1",
-          endNodeId: "j1",
+        .aJunction(IDS.J1, { elevation: 10, baseDemand: 50 })
+        .aPipe(IDS.P1, {
+          startNodeId: String(IDS.J1),
+          endNodeId: String(IDS.J1),
           coordinates: [
             [0, 0],
             [10, 0],
           ],
         })
-        .aCustomerPoint("cp1", {
+        .aCustomerPoint(IDS.CP1, {
           demand: 0,
-          connection: { pipeId: "p1", junctionId: "j1" },
+          connection: { pipeId: String(IDS.P1), junctionId: String(IDS.J1) },
         })
         .build();
 
       const inp = buildInp(hydraulicModel, { customerDemands: true });
 
       expect(inp).toContain("[DEMANDS]");
-      expect(inp).toContain("j1\t50");
+      expect(inp).toContain("1\t50");
 
       const demandsSection = inp.match(/\[DEMANDS\]([\s\S]*?)\n\n/)?.[1] || "";
-      expect(demandsSection).not.toContain("j1\t0");
+      expect(demandsSection).not.toContain("1\t0");
       expect(inp).not.toContain("[PATTERNS]");
       expect(inp).not.toContain("epanetjs_customers");
     });
 
     it("handles multiple customer points on same junction", () => {
+      const IDS = { J1: 1, P1: 2, CP1: 3, CP2: 4 };
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction("j1", { elevation: 10, baseDemand: 50 })
-        .aPipe("p1", {
-          startNodeId: "j1",
-          endNodeId: "j1",
+        .aJunction(IDS.J1, { elevation: 10, baseDemand: 50 })
+        .aPipe(IDS.P1, {
+          startNodeId: String(IDS.J1),
+          endNodeId: String(IDS.J1),
           coordinates: [
             [0, 0],
             [10, 0],
           ],
         })
-        .aCustomerPoint("cp1", {
+        .aCustomerPoint(IDS.CP1, {
           demand: 25,
-          connection: { pipeId: "p1", junctionId: "j1" },
+          connection: { pipeId: String(IDS.P1), junctionId: String(IDS.J1) },
         })
-        .aCustomerPoint("cp2", {
+        .aCustomerPoint(IDS.CP2, {
           demand: 30,
-          connection: { pipeId: "p1", junctionId: "j1" },
+          connection: { pipeId: String(IDS.P1), junctionId: String(IDS.J1) },
         })
         .build();
 
       const inp = buildInp(hydraulicModel, { customerDemands: true });
 
       expect(inp).toContain("[DEMANDS]");
-      expect(inp).toContain("j1\t50");
-      expect(inp).toContain("j1\t55\tepanetjs_customers");
+      expect(inp).toContain("1\t50");
+      expect(inp).toContain("1\t55\tepanetjs_customers");
       expect(inp).toContain("[PATTERNS]");
       expect(inp).toContain("epanetjs_customers\t1");
     });
@@ -482,23 +505,24 @@ describe("build inp", () => {
 
   describe("customer points", () => {
     it("includes customer points section when customer points exist", () => {
+      const IDS = { J1: 1, J2: 2, P1: 3, CP1: 4, CP2: 5 };
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction("j1", { elevation: 10, coordinates: [1, 2] })
-        .aJunction("j2", { elevation: 20, coordinates: [3, 4] })
-        .aPipe("p1", {
-          startNodeId: "j1",
-          endNodeId: "j2",
+        .aJunction(IDS.J1, { elevation: 10, coordinates: [1, 2] })
+        .aJunction(IDS.J2, { elevation: 20, coordinates: [3, 4] })
+        .aPipe(IDS.P1, {
+          startNodeId: String(IDS.J1),
+          endNodeId: String(IDS.J2),
         })
-        .aCustomerPoint("cp1", {
+        .aCustomerPoint(IDS.CP1, {
           demand: 2.5,
           coordinates: [1.5, 2.5],
           connection: {
-            pipeId: "p1",
-            junctionId: "j1",
+            pipeId: String(IDS.P1),
+            junctionId: String(IDS.J1),
             snapPoint: [1.2, 2.2],
           },
         })
-        .aCustomerPoint("cp2", {
+        .aCustomerPoint(IDS.CP2, {
           demand: 1.8,
           coordinates: [5, 6],
         })
@@ -510,33 +534,39 @@ describe("build inp", () => {
       expect(inp).toContain(
         ";Id\tX-coord\tY-coord\tBaseDemand\tPipeId\tJunctionId\tSnapX\tSnapY",
       );
-      expect(inp).toContain(";cp1\t1.5\t2.5\t2.5\tp1\tj1\t1.2\t2.2");
-      expect(inp).toContain(";cp2\t5\t6\t1.8\t\t\t\t");
+      expect(inp).toContain(";4\t1.5\t2.5\t2.5\t3\t1\t1.2\t2.2");
+      expect(inp).toContain(";5\t5\t6\t1.8\t\t\t\t");
     });
 
     it("uses junction labels instead of IDs when labelIds is true", () => {
+      const IDS = {
+        JUNCTION_UUID_123: 1,
+        JUNCTION_UUID_456: 2,
+        PIPE_UUID_789: 3,
+        CP1: 4,
+      };
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction("junction-uuid-123", {
+        .aJunction(IDS.JUNCTION_UUID_123, {
           elevation: 10,
           coordinates: [1, 2],
           label: "Junction-A",
         })
-        .aJunction("junction-uuid-456", {
+        .aJunction(IDS.JUNCTION_UUID_456, {
           elevation: 20,
           coordinates: [3, 4],
           label: "Junction-B",
         })
-        .aPipe("pipe-uuid-789", {
-          startNodeId: "junction-uuid-123",
-          endNodeId: "junction-uuid-456",
+        .aPipe(IDS.PIPE_UUID_789, {
+          startNodeId: String(IDS.JUNCTION_UUID_123),
+          endNodeId: String(IDS.JUNCTION_UUID_456),
           label: "Pipe-1",
         })
-        .aCustomerPoint("cp1", {
+        .aCustomerPoint(IDS.CP1, {
           demand: 2.5,
           coordinates: [1.5, 2.5],
           connection: {
-            pipeId: "pipe-uuid-789",
-            junctionId: "junction-uuid-123",
+            pipeId: String(IDS.PIPE_UUID_789),
+            junctionId: String(IDS.JUNCTION_UUID_123),
             snapPoint: [1.2, 2.2],
           },
         })
@@ -547,16 +577,13 @@ describe("build inp", () => {
         labelIds: true,
       });
 
-      expect(inp).toContain(
-        ";cp1\t1.5\t2.5\t2.5\tPipe-1\tJunction-A\t1.2\t2.2",
-      );
-      expect(inp).not.toContain("junction-uuid-123");
-      expect(inp).not.toContain("pipe-uuid-789");
+      expect(inp).toContain(";4\t1.5\t2.5\t2.5\tPipe-1\tJunction-A\t1.2\t2.2");
     });
 
     it("does not include customer points section when no customer points exist", () => {
+      const IDS = { J1: 1 };
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction("j1", { elevation: 10 })
+        .aJunction(IDS.J1, { elevation: 10 })
         .build();
 
       const inp = buildInp(hydraulicModel, { customerPoints: true });
@@ -565,9 +592,10 @@ describe("build inp", () => {
     });
 
     it("does not include customer points section when customerPoints option is disabled", () => {
+      const IDS = { J1: 1, CP1: 2 };
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction("j1", { elevation: 10 })
-        .aCustomerPoint("cp1", {
+        .aJunction(IDS.J1, { elevation: 10 })
+        .aCustomerPoint(IDS.CP1, {
           demand: 2.5,
           coordinates: [1.5, 2.5],
         })
@@ -579,9 +607,10 @@ describe("build inp", () => {
     });
 
     it("does not include customer points section by default", () => {
+      const IDS = { J1: 1, CP1: 2 };
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction("j1", { elevation: 10 })
-        .aCustomerPoint("cp1", {
+        .aJunction(IDS.J1, { elevation: 10 })
+        .aCustomerPoint(IDS.CP1, {
           demand: 2.5,
           coordinates: [1.5, 2.5],
         })

@@ -1,4 +1,4 @@
-import { AssetId, Junction, Pump } from "./asset-types";
+import { Junction, Pump } from "./asset-types";
 import { JunctionQuantity } from "./asset-types/junction";
 import { Pipe, PipeQuantity, PipeStatus } from "./asset-types/pipe";
 import { LinkConnections, nullConnections } from "./asset-types/link";
@@ -7,8 +7,7 @@ import { Reservoir, ReservoirQuantity } from "./asset-types/reservoir";
 import { Tank, TankQuantity } from "./asset-types/tank";
 
 export type JunctionBuildData = {
-  id?: AssetId;
-  internalId?: number;
+  id?: number;
   label?: string;
   coordinates?: Position;
   elevation?: number;
@@ -16,8 +15,7 @@ export type JunctionBuildData = {
 };
 
 export type PipeBuildData = {
-  id?: AssetId;
-  internalId?: number;
+  id?: number;
   label?: string;
   coordinates?: Position[];
   connections?: LinkConnections;
@@ -29,8 +27,7 @@ export type PipeBuildData = {
 };
 
 export type PumpBuildData = {
-  id?: AssetId;
-  internalId?: number;
+  id?: number;
   label?: string;
   initialStatus?: PumpStatus;
   coordinates?: Position[];
@@ -43,8 +40,7 @@ export type PumpBuildData = {
 };
 
 export type ValveBuildData = {
-  id?: AssetId;
-  internalId?: number;
+  id?: number;
   label?: string;
   diameter?: number;
   minorLoss?: number;
@@ -56,8 +52,7 @@ export type ValveBuildData = {
 };
 
 export type ReservoirBuildData = {
-  id?: AssetId;
-  internalId?: number;
+  id?: number;
   label?: string;
   coordinates?: Position;
   head?: number;
@@ -66,8 +61,7 @@ export type ReservoirBuildData = {
 };
 
 export type TankBuildData = {
-  id?: AssetId;
-  internalId?: number;
+  id?: number;
   label?: string;
   coordinates?: Position;
   elevation?: number;
@@ -123,7 +117,6 @@ export class AssetBuilder {
 
   buildPipe({
     id,
-    internalId,
     label,
     coordinates = [
       [0, 0],
@@ -136,18 +129,18 @@ export class AssetBuilder {
     minorLoss,
     roughness,
   }: PipeBuildData = {}) {
-    const finalInternalId = internalId ?? this.idGenerator.newId();
-    const finalStringId = id ?? String(finalInternalId);
+    const internalId = id ?? this.idGenerator.newId();
+    const stringId = String(internalId);
     return new Pipe(
-      finalStringId,
-      finalInternalId,
+      stringId,
+      internalId,
       coordinates,
       {
         type: "pipe",
         label:
           label !== undefined
             ? label
-            : this.labelGenerator.generateFor("pipe", finalStringId),
+            : this.labelGenerator.generateFor("pipe", stringId),
         connections,
         initialStatus,
         length: this.getPipeValue("length", length),
@@ -161,7 +154,6 @@ export class AssetBuilder {
 
   buildValve({
     id,
-    internalId,
     label,
     coordinates = [
       [0, 0],
@@ -174,18 +166,18 @@ export class AssetBuilder {
     setting,
     initialStatus = "active",
   }: ValveBuildData = {}) {
-    const finalInternalId = internalId ?? this.idGenerator.newId();
-    const finalStringId = id ?? String(finalInternalId);
+    const internalId = id ?? this.idGenerator.newId();
+    const stringId = String(internalId);
     return new Valve(
-      finalStringId,
-      finalInternalId,
+      stringId,
+      internalId,
       coordinates,
       {
         type: "valve",
         label:
           label !== undefined
             ? label
-            : this.labelGenerator.generateFor("valve", finalStringId),
+            : this.labelGenerator.generateFor("valve", stringId),
         connections,
         length: 10,
         diameter: this.getValveValue("diameter", diameter),
@@ -200,7 +192,6 @@ export class AssetBuilder {
 
   buildPump({
     id,
-    internalId,
     label,
     coordinates = [
       [0, 0],
@@ -214,18 +205,18 @@ export class AssetBuilder {
     power,
     speed = 1,
   }: PumpBuildData = {}) {
-    const finalInternalId = internalId ?? this.idGenerator.newId();
-    const finalStringId = id ?? String(finalInternalId);
+    const internalId = id ?? this.idGenerator.newId();
+    const stringId = String(internalId);
     return new Pump(
-      finalStringId,
-      finalInternalId,
+      stringId,
+      internalId,
       coordinates,
       {
         type: "pump",
         label:
           label !== undefined
             ? label
-            : this.labelGenerator.generateFor("pump", finalStringId),
+            : this.labelGenerator.generateFor("pump", stringId),
         connections,
         length: 10,
         initialStatus,
@@ -241,24 +232,23 @@ export class AssetBuilder {
 
   buildJunction({
     id,
-    internalId,
     label,
     coordinates = [0, 0],
     elevation,
     baseDemand,
   }: JunctionBuildData = {}) {
-    const finalInternalId = internalId ?? this.idGenerator.newId();
-    const finalStringId = id ?? String(finalInternalId);
+    const internalId = id ?? this.idGenerator.newId();
+    const stringId = String(internalId);
     return new Junction(
-      finalStringId,
-      finalInternalId,
+      stringId,
+      internalId,
       coordinates,
       {
         type: "junction",
         label:
           label !== undefined
             ? label
-            : this.labelGenerator.generateFor("junction", finalStringId),
+            : this.labelGenerator.generateFor("junction", stringId),
         elevation: this.getJunctionValue("elevation", elevation),
         baseDemand: this.getJunctionValue("baseDemand", baseDemand),
       },
@@ -268,15 +258,14 @@ export class AssetBuilder {
 
   buildReservoir({
     id,
-    internalId,
     label,
     coordinates = [0, 0],
     elevation,
     head,
     relativeHead,
   }: ReservoirBuildData = {}) {
-    const finalInternalId = internalId ?? this.idGenerator.newId();
-    const finalStringId = id ?? String(finalInternalId);
+    const internalId = id ?? this.idGenerator.newId();
+    const stringId = String(internalId);
     const elevationValue = this.getReservoirValue("elevation", elevation);
     let headValue: number;
     if (head !== undefined) {
@@ -290,15 +279,15 @@ export class AssetBuilder {
     }
 
     return new Reservoir(
-      finalStringId,
-      finalInternalId,
+      stringId,
+      internalId,
       coordinates,
       {
         type: "reservoir",
         label:
           label !== undefined
             ? label
-            : this.labelGenerator.generateFor("reservoir", finalStringId),
+            : this.labelGenerator.generateFor("reservoir", stringId),
         head: headValue,
         elevation: elevationValue,
       },
@@ -308,7 +297,6 @@ export class AssetBuilder {
 
   buildTank({
     id,
-    internalId,
     label,
     coordinates = [0, 0],
     elevation,
@@ -319,18 +307,18 @@ export class AssetBuilder {
     diameter,
     overflow,
   }: TankBuildData = {}) {
-    const finalInternalId = internalId ?? this.idGenerator.newId();
-    const finalStringId = id ?? String(finalInternalId);
+    const internalId = id ?? this.idGenerator.newId();
+    const stringId = String(internalId);
     return new Tank(
-      finalStringId,
-      finalInternalId,
+      stringId,
+      internalId,
       coordinates,
       {
         type: "tank",
         label:
           label !== undefined
             ? label
-            : this.labelGenerator.generateFor("tank", finalStringId),
+            : this.labelGenerator.generateFor("tank", stringId),
         elevation: this.getTankValue("elevation", elevation),
         initialLevel: this.getTankValue("initialLevel", initialLevel),
         minLevel: this.getTankValue("minLevel", minLevel),

@@ -20,10 +20,11 @@ describe("Map Styling Editor", () => {
   });
 
   it("can change the styles for nodes", async () => {
+    const IDS = { J1: 1, J2: 2 } as const;
     const user = userEvent.setup();
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aJunction("J1", { elevation: 10 })
-      .aJunction("J2", { elevation: 15 })
+      .aJunction(IDS.J1, { elevation: 10 })
+      .aJunction(IDS.J2, { elevation: 15 })
       .build();
     const store = setInitialState({
       hydraulicModel,
@@ -67,10 +68,11 @@ describe("Map Styling Editor", () => {
   });
 
   it("can change the styles for links", async () => {
+    const IDS = { P1: 1, P2: 2 } as const;
     const user = userEvent.setup();
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aPipe("P1", { diameter: 10 })
-      .aPipe("P2", { diameter: 15 })
+      .aPipe(IDS.P1, { diameter: 10 })
+      .aPipe(IDS.P2, { diameter: 15 })
       .build();
     const store = setInitialState({
       hydraulicModel,
@@ -114,10 +116,11 @@ describe("Map Styling Editor", () => {
   });
 
   it("can reverse ramp colors", async () => {
+    const IDS = { P1: 1, P2: 2 } as const;
     const user = userEvent.setup();
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aPipe("P1", { diameter: 10 })
-      .aPipe("P2", { diameter: 15 })
+      .aPipe(IDS.P1, { diameter: 10 })
+      .aPipe(IDS.P2, { diameter: 15 })
       .build();
     const store = setInitialState({
       hydraulicModel,
@@ -135,12 +138,13 @@ describe("Map Styling Editor", () => {
   });
 
   it("disables options that need a simulation", async () => {
+    const IDS = { P1: 1, P2: 2, J1: 3, J2: 4 } as const;
     const user = userEvent.setup();
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aPipe("P1")
-      .aPipe("P2")
-      .aJunction("J1")
-      .aJunction("J2")
+      .aPipe(IDS.P1)
+      .aPipe(IDS.P2)
+      .aJunction(IDS.J1)
+      .aJunction(IDS.J2)
       .build();
     const store = setInitialState({
       hydraulicModel,
@@ -395,10 +399,11 @@ describe("Map Styling Editor", () => {
         stubWindowSize("xs");
       });
       it("displays a legend", async () => {
+        const IDS = { P1: 1, P2: 2 } as const;
         const user = userEvent.setup();
         const hydraulicModel = HydraulicModelBuilder.with()
-          .aPipe("P1", { diameter: 10 })
-          .aPipe("P2", { diameter: 15 })
+          .aPipe(IDS.P1, { diameter: 10 })
+          .aPipe(IDS.P2, { diameter: 15 })
           .build();
         const store = setInitialState({
           hydraulicModel,

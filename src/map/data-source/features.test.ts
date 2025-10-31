@@ -15,13 +15,14 @@ describe("build optimized source", () => {
   const defaultQuantities = new Quantities(presets.LPS);
   const fakeTranslateUnit = vi.fn();
   it("preserves core properties", () => {
+    const IDS = { ID: 1, J1: 2 } as const;
     const symbology = nullSymbologySpec;
     const { assets } = HydraulicModelBuilder.with()
-      .aPipe("ID", {
+      .aPipe(IDS.ID, {
         diameter: 300,
         initialStatus: "open",
       })
-      .aJunction("J1", { elevation: 15 })
+      .aJunction(IDS.J1, { elevation: 15 })
       .build();
 
     const features = buildOptimizedAssetsSource(
@@ -45,10 +46,11 @@ describe("build optimized source", () => {
   });
 
   it("uses pump status when available", () => {
+    const IDS = { pu1: 1, pu2: 2 } as const;
     const symbology = nullSymbologySpec;
     const { assets } = HydraulicModelBuilder.with()
-      .aPump("pu1", { initialStatus: "off", simulation: { status: "on" } })
-      .aPump("pu2", { initialStatus: "off" })
+      .aPump(IDS.pu1, { initialStatus: "off", simulation: { status: "on" } })
+      .aPump(IDS.pu2, { initialStatus: "off" })
       .build();
 
     const features = buildOptimizedAssetsSource(
@@ -67,6 +69,7 @@ describe("build optimized source", () => {
 
   describe("node symbology", () => {
     it("includes props for styling to junctions", () => {
+      const IDS = { J1: 1 } as const;
       const symbology: SymbologySpec = {
         ...nullSymbologySpec,
         node: aNodeSymbology({
@@ -79,7 +82,7 @@ describe("build optimized source", () => {
         }),
       };
       const { assets } = HydraulicModelBuilder.with()
-        .aJunction("J1", { elevation: 15, simulation: { pressure: 10 } })
+        .aJunction(IDS.J1, { elevation: 15, simulation: { pressure: 10 } })
         .build();
 
       const features = buildOptimizedAssetsSource(
@@ -97,6 +100,7 @@ describe("build optimized source", () => {
     });
 
     it("includes labels when specified", () => {
+      const IDS = { J1: 1 } as const;
       const symbology: SymbologySpec = {
         ...nullSymbologySpec,
         node: aNodeSymbology({
@@ -104,7 +108,7 @@ describe("build optimized source", () => {
         }),
       };
       const { assets } = HydraulicModelBuilder.with()
-        .aJunction("J1", { elevation: 15, simulation: { pressure: 10 } })
+        .aJunction(IDS.J1, { elevation: 15, simulation: { pressure: 10 } })
         .build();
 
       const features = buildOptimizedAssetsSource(
@@ -134,14 +138,15 @@ describe("build optimized source", () => {
     };
 
     it("includes props for styling to pipes", () => {
+      const IDS = { ID: 1, J1: 2 } as const;
       const { assets } = HydraulicModelBuilder.with()
-        .aPipe("ID", {
+        .aPipe(IDS.ID, {
           diameter: 300,
           initialStatus: "open",
           length: 14,
           simulation: { flow: 10 },
         })
-        .aJunction("J1", { elevation: 15 })
+        .aJunction(IDS.J1, { elevation: 15 })
         .build();
 
       const features = buildOptimizedAssetsSource(
@@ -165,6 +170,7 @@ describe("build optimized source", () => {
     });
 
     it("includes labels to pipes", () => {
+      const IDS = { ID: 1 } as const;
       const symbology: SymbologySpec = {
         ...nullSymbologySpec,
         link: aLinkSymbology({
@@ -173,7 +179,7 @@ describe("build optimized source", () => {
       };
 
       const { assets } = HydraulicModelBuilder.with()
-        .aPipe("ID", {
+        .aPipe(IDS.ID, {
           diameter: 300,
           initialStatus: "open",
           length: 14,
@@ -196,11 +202,12 @@ describe("build optimized source", () => {
     });
 
     it("reverses arrow when value is negative", () => {
+      const IDS = { ID: 1, ID_REVERSE: 2 } as const;
       const { assets } = HydraulicModelBuilder.with()
-        .aPipe("ID", {
+        .aPipe(IDS.ID, {
           simulation: { flow: 10 },
         })
-        .aPipe("ID-REVERSE", {
+        .aPipe(IDS.ID_REVERSE, {
           simulation: { flow: -10 },
         })
         .build();
@@ -224,6 +231,7 @@ describe("build optimized source", () => {
     });
 
     it("applies the direction based on the flow", () => {
+      const IDS = { ID: 1 } as const;
       const symbology: SymbologySpec = {
         ...nullSymbologySpec,
         link: aLinkSymbology({
@@ -236,7 +244,7 @@ describe("build optimized source", () => {
         }),
       };
       const { assets } = HydraulicModelBuilder.with()
-        .aPipe("ID", {
+        .aPipe(IDS.ID, {
           simulation: { flow: -10, velocity: 20 },
         })
         .build();
@@ -256,11 +264,12 @@ describe("build optimized source", () => {
     });
 
     it("assigns same value to 0 and missing results", () => {
+      const IDS = { p1: 1, p2: 2 } as const;
       const { assets } = HydraulicModelBuilder.with()
-        .aPipe("p1", {
+        .aPipe(IDS.p1, {
           simulation: { flow: 0 },
         })
-        .aPipe("p2", {})
+        .aPipe(IDS.p2, {})
         .build();
 
       const features = buildOptimizedAssetsSource(
@@ -284,8 +293,9 @@ describe("build optimized source", () => {
     });
 
     it("assigns lengths in meters", () => {
+      const IDS = { p1: 1 } as const;
       const { assets } = HydraulicModelBuilder.with(presets.GPM)
-        .aPipe("p1", { length: 10 })
+        .aPipe(IDS.p1, { length: 10 })
         .build();
 
       const features = buildOptimizedAssetsSource(

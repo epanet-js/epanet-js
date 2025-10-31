@@ -18,43 +18,76 @@ describe("findCrossingPipes", () => {
 
   describe("Basic crossing detection", () => {
     it("finds pipes that cross each other", () => {
+      const IDS = { J1: 1, J2: 2, P1: 3, J3: 4, J4: 5, P2: 6 } as const;
       const model = HydraulicModelBuilder.with()
         // Vertical pipe
-        .aJunction("J1", { coordinates: [0, 0] })
-        .aJunction("J2", { coordinates: [0, 10] })
-        .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
+        .aJunction(IDS.J1, { coordinates: [0, 0] })
+        .aJunction(IDS.J2, { coordinates: [0, 10] })
+        .aPipe(IDS.P1, {
+          startNodeId: String(IDS.J1),
+          endNodeId: String(IDS.J2),
+        })
         // Horizontal pipe crossing at (0, 5)
-        .aJunction("J3", { coordinates: [-5, 5] })
-        .aJunction("J4", { coordinates: [5, 5] })
-        .aPipe("P2", { startNodeId: "J3", endNodeId: "J4" })
+        .aJunction(IDS.J3, { coordinates: [-5, 5] })
+        .aJunction(IDS.J4, { coordinates: [5, 5] })
+        .aPipe(IDS.P2, {
+          startNodeId: String(IDS.J3),
+          endNodeId: String(IDS.J4),
+        })
         .build();
       const { nodeIdsLookup, linkIdsLookup, ...data } = encodeData(model);
 
       const crossings = findCrossingPipes(data, 0.5);
 
       expect(crossings).toHaveLength(1);
-      expect(linkIdsLookup[crossings[0].pipe1Id]).toEqual("P1");
-      expect(linkIdsLookup[crossings[0].pipe2Id]).toEqual("P2");
+      expect(linkIdsLookup[crossings[0].pipe1Id]).toEqual(String(IDS.P1));
+      expect(linkIdsLookup[crossings[0].pipe2Id]).toEqual(String(IDS.P2));
       expect(crossings[0].intersectionPoint[0]).toBeCloseTo(0, 5);
       expect(crossings[0].intersectionPoint[1]).toBeCloseTo(5, 5);
     });
 
     it("finds multiple crossings in network", () => {
+      const IDS = {
+        J1: 1,
+        J2: 2,
+        P1: 3,
+        J3: 4,
+        J4: 5,
+        P2: 6,
+        J5: 7,
+        J6: 8,
+        P3: 9,
+        J7: 10,
+        J8: 11,
+        P4: 12,
+      } as const;
       const model = HydraulicModelBuilder.with()
         // First crossing: P1 x P2
-        .aJunction("J1", { coordinates: [0, 0] })
-        .aJunction("J2", { coordinates: [0, 10] })
-        .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
-        .aJunction("J3", { coordinates: [-5, 5] })
-        .aJunction("J4", { coordinates: [5, 5] })
-        .aPipe("P2", { startNodeId: "J3", endNodeId: "J4" })
+        .aJunction(IDS.J1, { coordinates: [0, 0] })
+        .aJunction(IDS.J2, { coordinates: [0, 10] })
+        .aPipe(IDS.P1, {
+          startNodeId: String(IDS.J1),
+          endNodeId: String(IDS.J2),
+        })
+        .aJunction(IDS.J3, { coordinates: [-5, 5] })
+        .aJunction(IDS.J4, { coordinates: [5, 5] })
+        .aPipe(IDS.P2, {
+          startNodeId: String(IDS.J3),
+          endNodeId: String(IDS.J4),
+        })
         // Second crossing: P3 x P4
-        .aJunction("J5", { coordinates: [20, 0] })
-        .aJunction("J6", { coordinates: [20, 10] })
-        .aPipe("P3", { startNodeId: "J5", endNodeId: "J6" })
-        .aJunction("J7", { coordinates: [15, 5] })
-        .aJunction("J8", { coordinates: [25, 5] })
-        .aPipe("P4", { startNodeId: "J7", endNodeId: "J8" })
+        .aJunction(IDS.J5, { coordinates: [20, 0] })
+        .aJunction(IDS.J6, { coordinates: [20, 10] })
+        .aPipe(IDS.P3, {
+          startNodeId: String(IDS.J5),
+          endNodeId: String(IDS.J6),
+        })
+        .aJunction(IDS.J7, { coordinates: [15, 5] })
+        .aJunction(IDS.J8, { coordinates: [25, 5] })
+        .aPipe(IDS.P4, {
+          startNodeId: String(IDS.J7),
+          endNodeId: String(IDS.J8),
+        })
         .build();
       const { nodeIdsLookup, linkIdsLookup, ...data } = encodeData(model);
 
@@ -66,22 +99,37 @@ describe("findCrossingPipes", () => {
         linkIdsLookup[c.pipe1Id],
         linkIdsLookup[c.pipe2Id],
       ]);
-      expect(pairIds).toContainEqual(["P1", "P2"]);
-      expect(pairIds).toContainEqual(["P3", "P4"]);
+      expect(pairIds).toContainEqual([String(IDS.P1), String(IDS.P2)]);
+      expect(pairIds).toContainEqual([String(IDS.P3), String(IDS.P4)]);
     });
   });
 
   describe("Junction tolerance filtering", () => {
     it("does not report intersections near junctions", () => {
+      const IDS = {
+        J1: 1,
+        J2: 2,
+        P1: 3,
+        JNearby: 4,
+        J3: 5,
+        J4: 6,
+        P2: 7,
+      } as const;
       const model = HydraulicModelBuilder.with()
-        .aJunction("J1", { coordinates: [0, 0] })
-        .aJunction("J2", { coordinates: [0, 10] })
-        .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
+        .aJunction(IDS.J1, { coordinates: [0, 0] })
+        .aJunction(IDS.J2, { coordinates: [0, 10] })
+        .aPipe(IDS.P1, {
+          startNodeId: String(IDS.J1),
+          endNodeId: String(IDS.J2),
+        })
         // Junction very close to where P2 crosses P1
-        .aJunction("JNearby", { coordinates: [0.0003, 5] }) // ~33m away
-        .aJunction("J3", { coordinates: [-5, 5] })
-        .aJunction("J4", { coordinates: [5, 5] })
-        .aPipe("P2", { startNodeId: "J3", endNodeId: "J4" })
+        .aJunction(IDS.JNearby, { coordinates: [0.0003, 5] }) // ~33m away
+        .aJunction(IDS.J3, { coordinates: [-5, 5] })
+        .aJunction(IDS.J4, { coordinates: [5, 5] })
+        .aPipe(IDS.P2, {
+          startNodeId: String(IDS.J3),
+          endNodeId: String(IDS.J4),
+        })
         .build();
       const { nodeIdsLookup, linkIdsLookup, ...data } = encodeData(model);
 
@@ -92,13 +140,20 @@ describe("findCrossingPipes", () => {
     });
 
     it("reports crossings far from junctions", () => {
+      const IDS = { J1: 1, J2: 2, P1: 3, J3: 4, J4: 5, P2: 6 } as const;
       const model = HydraulicModelBuilder.with()
-        .aJunction("J1", { coordinates: [0, 0] })
-        .aJunction("J2", { coordinates: [0, 10] })
-        .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
-        .aJunction("J3", { coordinates: [-5, 5] })
-        .aJunction("J4", { coordinates: [5, 5] })
-        .aPipe("P2", { startNodeId: "J3", endNodeId: "J4" })
+        .aJunction(IDS.J1, { coordinates: [0, 0] })
+        .aJunction(IDS.J2, { coordinates: [0, 10] })
+        .aPipe(IDS.P1, {
+          startNodeId: String(IDS.J1),
+          endNodeId: String(IDS.J2),
+        })
+        .aJunction(IDS.J3, { coordinates: [-5, 5] })
+        .aJunction(IDS.J4, { coordinates: [5, 5] })
+        .aPipe(IDS.P2, {
+          startNodeId: String(IDS.J3),
+          endNodeId: String(IDS.J4),
+        })
         .build();
       const { nodeIdsLookup, linkIdsLookup, ...data } = encodeData(model);
 
@@ -108,15 +163,30 @@ describe("findCrossingPipes", () => {
     });
 
     it("respects custom junction tolerance parameter", () => {
+      const IDS = {
+        J1: 1,
+        J2: 2,
+        P1: 3,
+        J3: 4,
+        J4: 5,
+        P2: 6,
+        JNearby: 7,
+      } as const;
       const model = HydraulicModelBuilder.with()
-        .aJunction("J1", { coordinates: [0, 0] })
-        .aJunction("J2", { coordinates: [0, 10] })
-        .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
-        .aJunction("J3", { coordinates: [-5, 5] })
-        .aJunction("J4", { coordinates: [5, 5] })
-        .aPipe("P2", { startNodeId: "J3", endNodeId: "J4" })
+        .aJunction(IDS.J1, { coordinates: [0, 0] })
+        .aJunction(IDS.J2, { coordinates: [0, 10] })
+        .aPipe(IDS.P1, {
+          startNodeId: String(IDS.J1),
+          endNodeId: String(IDS.J2),
+        })
+        .aJunction(IDS.J3, { coordinates: [-5, 5] })
+        .aJunction(IDS.J4, { coordinates: [5, 5] })
+        .aPipe(IDS.P2, {
+          startNodeId: String(IDS.J3),
+          endNodeId: String(IDS.J4),
+        })
         // Add a junction near the crossing
-        .aJunction("JNearby", { coordinates: [0.0008, 5] }) // ~89m from intersection at (0, 5)
+        .aJunction(IDS.JNearby, { coordinates: [0.0008, 5] }) // ~89m from intersection at (0, 5)
         .build();
       const { nodeIdsLookup, linkIdsLookup, ...data } = encodeData(model);
 
@@ -132,13 +202,14 @@ describe("findCrossingPipes", () => {
 
   describe("Geometric accuracy with pipe segments", () => {
     it("detects crossings in curved pipes", () => {
+      const IDS = { J1: 1, J2: 2, P1: 3, J3: 4, J4: 5, P2: 6 } as const;
       const model = HydraulicModelBuilder.with()
         // Curved pipe with 3 segments
-        .aJunction("J1", { coordinates: [0, 0] })
-        .aJunction("J2", { coordinates: [0, 10] })
-        .aPipe("P1", {
-          startNodeId: "J1",
-          endNodeId: "J2",
+        .aJunction(IDS.J1, { coordinates: [0, 0] })
+        .aJunction(IDS.J2, { coordinates: [0, 10] })
+        .aPipe(IDS.P1, {
+          startNodeId: String(IDS.J1),
+          endNodeId: String(IDS.J2),
           coordinates: [
             [0, 0],
             [2, 3],
@@ -147,27 +218,31 @@ describe("findCrossingPipes", () => {
           ],
         })
         // Straight pipe crossing one of P1's segments
-        .aJunction("J3", { coordinates: [0, 5] })
-        .aJunction("J4", { coordinates: [5, 5] })
-        .aPipe("P2", { startNodeId: "J3", endNodeId: "J4" })
+        .aJunction(IDS.J3, { coordinates: [0, 5] })
+        .aJunction(IDS.J4, { coordinates: [5, 5] })
+        .aPipe(IDS.P2, {
+          startNodeId: String(IDS.J3),
+          endNodeId: String(IDS.J4),
+        })
         .build();
       const { nodeIdsLookup, linkIdsLookup, ...data } = encodeData(model);
 
       const crossings = findCrossingPipes(data, 0.5);
 
       expect(crossings).toHaveLength(1);
-      expect(linkIdsLookup[crossings[0].pipe1Id]).toEqual("P1");
-      expect(linkIdsLookup[crossings[0].pipe2Id]).toEqual("P2");
+      expect(linkIdsLookup[crossings[0].pipe1Id]).toEqual(String(IDS.P1));
+      expect(linkIdsLookup[crossings[0].pipe2Id]).toEqual(String(IDS.P2));
     });
 
     it("handles pipes with complex S-curve geometries", () => {
+      const IDS = { J1: 1, J2: 2, P1: 3, J3: 4, J4: 5, P2: 6 } as const;
       const model = HydraulicModelBuilder.with()
         // S-curve pipe
-        .aJunction("J1", { coordinates: [0, 0] })
-        .aJunction("J2", { coordinates: [0, 20] })
-        .aPipe("P1", {
-          startNodeId: "J1",
-          endNodeId: "J2",
+        .aJunction(IDS.J1, { coordinates: [0, 0] })
+        .aJunction(IDS.J2, { coordinates: [0, 20] })
+        .aPipe(IDS.P1, {
+          startNodeId: String(IDS.J1),
+          endNodeId: String(IDS.J2),
           coordinates: [
             [0, 0],
             [5, 5],
@@ -177,9 +252,12 @@ describe("findCrossingPipes", () => {
           ],
         })
         // Pipe crossing the S-curve
-        .aJunction("J3", { coordinates: [-10, 12] })
-        .aJunction("J4", { coordinates: [10, 12] })
-        .aPipe("P2", { startNodeId: "J3", endNodeId: "J4" })
+        .aJunction(IDS.J3, { coordinates: [-10, 12] })
+        .aJunction(IDS.J4, { coordinates: [10, 12] })
+        .aPipe(IDS.P2, {
+          startNodeId: String(IDS.J3),
+          endNodeId: String(IDS.J4),
+        })
         .build();
       const { nodeIdsLookup, linkIdsLookup, ...data } = encodeData(model);
 
@@ -191,14 +269,21 @@ describe("findCrossingPipes", () => {
 
   describe("Edge cases", () => {
     it("handles networks with no crossings", () => {
+      const IDS = { J1: 1, J2: 2, P1: 3, J3: 4, J4: 5, P2: 6 } as const;
       const model = HydraulicModelBuilder.with()
         // Parallel pipes
-        .aJunction("J1", { coordinates: [0, 0] })
-        .aJunction("J2", { coordinates: [0, 10] })
-        .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
-        .aJunction("J3", { coordinates: [5, 0] })
-        .aJunction("J4", { coordinates: [5, 10] })
-        .aPipe("P2", { startNodeId: "J3", endNodeId: "J4" })
+        .aJunction(IDS.J1, { coordinates: [0, 0] })
+        .aJunction(IDS.J2, { coordinates: [0, 10] })
+        .aPipe(IDS.P1, {
+          startNodeId: String(IDS.J1),
+          endNodeId: String(IDS.J2),
+        })
+        .aJunction(IDS.J3, { coordinates: [5, 0] })
+        .aJunction(IDS.J4, { coordinates: [5, 10] })
+        .aPipe(IDS.P2, {
+          startNodeId: String(IDS.J3),
+          endNodeId: String(IDS.J4),
+        })
         .build();
       const { nodeIdsLookup, linkIdsLookup, ...data } = encodeData(model);
 
@@ -208,12 +293,13 @@ describe("findCrossingPipes", () => {
     });
 
     it("reports same pipe pair only once even with multiple intersection points", () => {
+      const IDS = { J1: 1, J2: 2, P1: 3, J3: 4, J4: 5, P2: 6 } as const;
       const model = HydraulicModelBuilder.with()
-        .aJunction("J1", { coordinates: [0, 0] })
-        .aJunction("J2", { coordinates: [10, 0] })
-        .aPipe("P1", {
-          startNodeId: "J1",
-          endNodeId: "J2",
+        .aJunction(IDS.J1, { coordinates: [0, 0] })
+        .aJunction(IDS.J2, { coordinates: [10, 0] })
+        .aPipe(IDS.P1, {
+          startNodeId: String(IDS.J1),
+          endNodeId: String(IDS.J2),
           coordinates: [
             [0, 0],
             [3, 3],
@@ -221,9 +307,12 @@ describe("findCrossingPipes", () => {
             [10, 0],
           ],
         })
-        .aJunction("J3", { coordinates: [0, 0] })
-        .aJunction("J4", { coordinates: [10, 0] })
-        .aPipe("P2", { startNodeId: "J3", endNodeId: "J4" })
+        .aJunction(IDS.J3, { coordinates: [0, 0] })
+        .aJunction(IDS.J4, { coordinates: [10, 0] })
+        .aPipe(IDS.P2, {
+          startNodeId: String(IDS.J3),
+          endNodeId: String(IDS.J4),
+        })
         .build();
       const { nodeIdsLookup, linkIdsLookup, ...data } = encodeData(model);
 
@@ -233,17 +322,24 @@ describe("findCrossingPipes", () => {
 
       const pipe1 = linkIdsLookup[crossings[0].pipe1Id];
       const pipe2 = linkIdsLookup[crossings[0].pipe2Id];
-      expect(pipe1).toEqual("P1");
-      expect(pipe2).toEqual("P2");
+      expect(pipe1).toEqual(String(IDS.P1));
+      expect(pipe2).toEqual(String(IDS.P2));
     });
 
     it("handles pipes that touch at endpoints (T-junction)", () => {
+      const IDS = { J1: 1, J2: 2, P1: 3, J3: 4, P2: 5 } as const;
       const model = HydraulicModelBuilder.with()
-        .aJunction("J1", { coordinates: [0, 0] })
-        .aJunction("J2", { coordinates: [0, 10] })
-        .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
-        .aJunction("J3", { coordinates: [10, 10] })
-        .aPipe("P2", { startNodeId: "J2", endNodeId: "J3" })
+        .aJunction(IDS.J1, { coordinates: [0, 0] })
+        .aJunction(IDS.J2, { coordinates: [0, 10] })
+        .aPipe(IDS.P1, {
+          startNodeId: String(IDS.J1),
+          endNodeId: String(IDS.J2),
+        })
+        .aJunction(IDS.J3, { coordinates: [10, 10] })
+        .aPipe(IDS.P2, {
+          startNodeId: String(IDS.J2),
+          endNodeId: String(IDS.J3),
+        })
         .build();
       const { nodeIdsLookup, linkIdsLookup, ...data } = encodeData(model);
 

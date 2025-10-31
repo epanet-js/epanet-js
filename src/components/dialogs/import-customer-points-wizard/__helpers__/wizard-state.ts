@@ -35,13 +35,14 @@ export const setWizardState = (
 };
 
 export const createValidParsedDataSummary = (): ParsedDataSummary => {
+  const IDS = { CP1: 1, CP2: 2 };
   return {
     validCustomerPoints: [
-      buildCustomerPoint("1", {
+      buildCustomerPoint(IDS.CP1, {
         coordinates: [0.001, 0.001],
         demand: 25.5,
       }),
-      buildCustomerPoint("2", {
+      buildCustomerPoint(IDS.CP2, {
         coordinates: [0.002, 0.002],
         demand: 50.0,
       }),
@@ -53,13 +54,14 @@ export const createValidParsedDataSummary = (): ParsedDataSummary => {
 };
 
 export const createParsedDataSummaryWithIssues = (): ParsedDataSummary => {
+  const IDS = { CP1: 1, CP2: 2 };
   return {
     validCustomerPoints: [
-      buildCustomerPoint("1", {
+      buildCustomerPoint(IDS.CP1, {
         coordinates: [0.001, 0.001],
         demand: 25.5,
       }),
-      buildCustomerPoint("2", {
+      buildCustomerPoint(IDS.CP2, {
         coordinates: [0.002, 0.002],
         demand: 50.0,
       }),
@@ -102,9 +104,10 @@ export const createParsedDataSummaryWithIssues = (): ParsedDataSummary => {
 
 export const createParsedDataSummaryWithInvalidDemands =
   (): ParsedDataSummary => {
+    const IDS = { CP1: 1 };
     return {
       validCustomerPoints: [
-        buildCustomerPoint("1", {
+        buildCustomerPoint(IDS.CP1, {
           coordinates: [0.001, 0.001],
           demand: 25.5,
         }),

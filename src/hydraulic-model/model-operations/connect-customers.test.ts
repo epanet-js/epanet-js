@@ -4,25 +4,26 @@ import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 
 describe("connectCustomers", () => {
   it("connects a single customer point to closest junction", () => {
+    const IDS = { J1: 1, J2: 2, P1: 3, CP1: 4 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aJunction("J1", { coordinates: [0, 0] })
-      .aJunction("J2", { coordinates: [10, 0] })
-      .aPipe("P1", {
-        startNodeId: "J1",
-        endNodeId: "J2",
+      .aJunction(IDS.J1, { coordinates: [0, 0] })
+      .aJunction(IDS.J2, { coordinates: [10, 0] })
+      .aPipe(IDS.P1, {
+        startNodeId: String(IDS.J1),
+        endNodeId: String(IDS.J2),
         coordinates: [
           [0, 0],
           [10, 0],
         ],
       })
-      .aCustomerPoint("CP1", {
+      .aCustomerPoint(IDS.CP1, {
         coordinates: [2, 1],
       })
       .build();
 
     const { putCustomerPoints } = connectCustomers(hydraulicModel, {
-      customerPointIds: ["CP1"],
-      pipeId: "P1",
+      customerPointIds: [String(IDS.CP1)],
+      pipeId: String(IDS.P1),
       snapPoints: [[2, 0]], // closer to J1
     });
 
@@ -30,37 +31,38 @@ describe("connectCustomers", () => {
     expect(putCustomerPoints!.length).toBe(1);
 
     const connectedCP = putCustomerPoints![0];
-    expect(connectedCP.id).toBe("CP1");
+    expect(connectedCP.id).toBe(String(IDS.CP1));
     expect(connectedCP.coordinates).toEqual([2, 1]);
     expect(connectedCP.connection).not.toBeNull();
-    expect(connectedCP.connection!.pipeId).toBe("P1");
-    expect(connectedCP.connection!.junctionId).toBe("J1");
+    expect(connectedCP.connection!.pipeId).toBe(String(IDS.P1));
+    expect(connectedCP.connection!.junctionId).toBe(String(IDS.J1));
     expect(connectedCP.connection!.snapPoint).toEqual([2, 0]);
   });
 
   it("connects multiple customer points to same pipe", () => {
+    const IDS = { J1: 1, J2: 2, P1: 3, CP1: 4, CP2: 5 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aJunction("J1", { coordinates: [0, 0] })
-      .aJunction("J2", { coordinates: [10, 0] })
-      .aPipe("P1", {
-        startNodeId: "J1",
-        endNodeId: "J2",
+      .aJunction(IDS.J1, { coordinates: [0, 0] })
+      .aJunction(IDS.J2, { coordinates: [10, 0] })
+      .aPipe(IDS.P1, {
+        startNodeId: String(IDS.J1),
+        endNodeId: String(IDS.J2),
         coordinates: [
           [0, 0],
           [10, 0],
         ],
       })
-      .aCustomerPoint("CP1", {
+      .aCustomerPoint(IDS.CP1, {
         coordinates: [2, 1],
       })
-      .aCustomerPoint("CP2", {
+      .aCustomerPoint(IDS.CP2, {
         coordinates: [8, 1],
       })
       .build();
 
     const result = connectCustomers(hydraulicModel, {
-      customerPointIds: ["CP1", "CP2"],
-      pipeId: "P1",
+      customerPointIds: [String(IDS.CP1), String(IDS.CP2)],
+      pipeId: String(IDS.P1),
       snapPoints: [
         [2, 0],
         [8, 0],
@@ -72,46 +74,51 @@ describe("connectCustomers", () => {
     expect(putCustomerPoints).toBeDefined();
     expect(putCustomerPoints!.length).toBe(2);
 
-    const connectedCP1 = putCustomerPoints!.find((cp) => cp.id === "CP1")!;
-    const connectedCP2 = putCustomerPoints!.find((cp) => cp.id === "CP2")!;
+    const connectedCP1 = putCustomerPoints!.find(
+      (cp) => cp.id === String(IDS.CP1),
+    )!;
+    const connectedCP2 = putCustomerPoints!.find(
+      (cp) => cp.id === String(IDS.CP2),
+    )!;
 
-    expect(connectedCP1.connection!.junctionId).toBe("J1");
-    expect(connectedCP2.connection!.junctionId).toBe("J2");
+    expect(connectedCP1.connection!.junctionId).toBe(String(IDS.J1));
+    expect(connectedCP2.connection!.junctionId).toBe(String(IDS.J2));
 
     expect(result.note).toBe("Connect customers");
   });
 
   it("moves customer point from existing connection", () => {
+    const IDS = { J1: 1, J2: 2, J3: 3, P1: 4, P2: 5, CP1: 6 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aJunction("J1", { coordinates: [0, 0] })
-      .aJunction("J2", { coordinates: [10, 0] })
-      .aJunction("J3", { coordinates: [5, 10] })
-      .aPipe("P1", {
-        startNodeId: "J1",
-        endNodeId: "J2",
+      .aJunction(IDS.J1, { coordinates: [0, 0] })
+      .aJunction(IDS.J2, { coordinates: [10, 0] })
+      .aJunction(IDS.J3, { coordinates: [5, 10] })
+      .aPipe(IDS.P1, {
+        startNodeId: String(IDS.J1),
+        endNodeId: String(IDS.J2),
         coordinates: [
           [0, 0],
           [10, 0],
         ],
       })
-      .aPipe("P2", {
-        startNodeId: "J1",
-        endNodeId: "J3",
+      .aPipe(IDS.P2, {
+        startNodeId: String(IDS.J1),
+        endNodeId: String(IDS.J3),
         coordinates: [
           [0, 0],
           [5, 10],
         ],
       })
-      .aCustomerPoint("CP1", {
+      .aCustomerPoint(IDS.CP1, {
         demand: 25,
         coordinates: [2, 5],
-        connection: { pipeId: "P2", junctionId: "J1" },
+        connection: { pipeId: String(IDS.P2), junctionId: String(IDS.J1) },
       })
       .build();
 
     const { putCustomerPoints } = connectCustomers(hydraulicModel, {
-      customerPointIds: ["CP1"],
-      pipeId: "P1",
+      customerPointIds: [String(IDS.CP1)],
+      pipeId: String(IDS.P1),
       snapPoints: [[8, 0]], // closer to J2 on P1
     });
 
@@ -119,17 +126,18 @@ describe("connectCustomers", () => {
     expect(putCustomerPoints!.length).toBe(1);
 
     const connectedCP = putCustomerPoints![0];
-    expect(connectedCP.connection!.pipeId).toBe("P1");
-    expect(connectedCP.connection!.junctionId).toBe("J2");
+    expect(connectedCP.connection!.pipeId).toBe(String(IDS.P1));
+    expect(connectedCP.connection!.junctionId).toBe(String(IDS.J2));
   });
 
   it("throws error for non-existent customer point", () => {
+    const IDS = { J1: 1, J2: 2, P1: 3 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aJunction("J1", { coordinates: [0, 0] })
-      .aJunction("J2", { coordinates: [10, 0] })
-      .aPipe("P1", {
-        startNodeId: "J1",
-        endNodeId: "J2",
+      .aJunction(IDS.J1, { coordinates: [0, 0] })
+      .aJunction(IDS.J2, { coordinates: [10, 0] })
+      .aPipe(IDS.P1, {
+        startNodeId: String(IDS.J1),
+        endNodeId: String(IDS.J2),
         coordinates: [
           [0, 0],
           [10, 0],
@@ -140,23 +148,24 @@ describe("connectCustomers", () => {
     expect(() => {
       connectCustomers(hydraulicModel, {
         customerPointIds: ["NON_EXISTENT"],
-        pipeId: "P1",
+        pipeId: String(IDS.P1),
         snapPoints: [[5, 0]],
       });
     }).toThrow("Customer point with id NON_EXISTENT not found");
   });
 
   it("throws error for non-existent pipe", () => {
+    const IDS = { J1: 1, CP1: 2 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aJunction("J1", { coordinates: [0, 0] })
-      .aCustomerPoint("CP1", {
+      .aJunction(IDS.J1, { coordinates: [0, 0] })
+      .aCustomerPoint(IDS.CP1, {
         coordinates: [2, 1],
       })
       .build();
 
     expect(() => {
       connectCustomers(hydraulicModel, {
-        customerPointIds: ["CP1"],
+        customerPointIds: [String(IDS.CP1)],
         pipeId: "NON_EXISTENT",
         snapPoints: [[5, 0]],
       });
@@ -164,12 +173,13 @@ describe("connectCustomers", () => {
   });
 
   it("throws error when customer point IDs and snap points length mismatch", () => {
+    const IDS = { J1: 1, J2: 2, P1: 3 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aJunction("J1", { coordinates: [0, 0] })
-      .aJunction("J2", { coordinates: [10, 0] })
-      .aPipe("P1", {
-        startNodeId: "J1",
-        endNodeId: "J2",
+      .aJunction(IDS.J1, { coordinates: [0, 0] })
+      .aJunction(IDS.J2, { coordinates: [10, 0] })
+      .aPipe(IDS.P1, {
+        startNodeId: String(IDS.J1),
+        endNodeId: String(IDS.J2),
         coordinates: [
           [0, 0],
           [10, 0],
@@ -180,7 +190,7 @@ describe("connectCustomers", () => {
     expect(() => {
       connectCustomers(hydraulicModel, {
         customerPointIds: ["CP1", "CP2"],
-        pipeId: "P1",
+        pipeId: String(IDS.P1),
         snapPoints: [[5, 0]], // Only one snap point for two customer points
       });
     }).toThrow(
@@ -189,53 +199,57 @@ describe("connectCustomers", () => {
   });
 
   it("throws error when pipe has no junction endpoints", () => {
+    const IDS = { R1: 1, T1: 2, P1: 3, CP1: 4 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aReservoir("R1", { coordinates: [0, 0] })
-      .aTank("T1", { coordinates: [10, 0] })
-      .aPipe("P1", {
-        startNodeId: "R1",
-        endNodeId: "T1",
+      .aReservoir(IDS.R1, { coordinates: [0, 0] })
+      .aTank(IDS.T1, { coordinates: [10, 0] })
+      .aPipe(IDS.P1, {
+        startNodeId: String(IDS.R1),
+        endNodeId: String(IDS.T1),
         coordinates: [
           [0, 0],
           [10, 0],
         ],
       })
-      .aCustomerPoint("CP1", {
+      .aCustomerPoint(IDS.CP1, {
         coordinates: [5, 1],
       })
       .build();
 
     expect(() => {
       connectCustomers(hydraulicModel, {
-        customerPointIds: ["CP1"],
-        pipeId: "P1",
+        customerPointIds: [String(IDS.CP1)],
+        pipeId: String(IDS.P1),
         snapPoints: [[5, 0]],
       });
-    }).toThrow("No junction found to connect customer point CP1 to pipe P1");
+    }).toThrow(
+      `No junction found to connect customer point ${IDS.CP1} to pipe ${IDS.P1}`,
+    );
   });
 
   it("ensures immutability by creating new instances", () => {
+    const IDS = { J1: 1, J2: 2, P1: 3, CP1: 4 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aJunction("J1", { coordinates: [0, 0] })
-      .aJunction("J2", { coordinates: [10, 0] })
-      .aPipe("P1", {
-        startNodeId: "J1",
-        endNodeId: "J2",
+      .aJunction(IDS.J1, { coordinates: [0, 0] })
+      .aJunction(IDS.J2, { coordinates: [10, 0] })
+      .aPipe(IDS.P1, {
+        startNodeId: String(IDS.J1),
+        endNodeId: String(IDS.J2),
         coordinates: [
           [0, 0],
           [10, 0],
         ],
       })
-      .aCustomerPoint("CP1", {
+      .aCustomerPoint(IDS.CP1, {
         coordinates: [2, 1],
       })
       .build();
 
-    const originalCP = hydraulicModel.customerPoints.get("CP1")!;
+    const originalCP = hydraulicModel.customerPoints.get(String(IDS.CP1))!;
 
     const { putCustomerPoints } = connectCustomers(hydraulicModel, {
-      customerPointIds: ["CP1"],
-      pipeId: "P1",
+      customerPointIds: [String(IDS.CP1)],
+      pipeId: String(IDS.P1),
       snapPoints: [[2, 0]],
     });
 
@@ -249,28 +263,29 @@ describe("connectCustomers", () => {
   });
 
   it("handles connecting multiple customer points to same junction", () => {
+    const IDS = { J1: 1, J2: 2, P1: 3, CP1: 4, CP2: 5 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aJunction("J1", { coordinates: [0, 0] })
-      .aJunction("J2", { coordinates: [10, 0] })
-      .aPipe("P1", {
-        startNodeId: "J1",
-        endNodeId: "J2",
+      .aJunction(IDS.J1, { coordinates: [0, 0] })
+      .aJunction(IDS.J2, { coordinates: [10, 0] })
+      .aPipe(IDS.P1, {
+        startNodeId: String(IDS.J1),
+        endNodeId: String(IDS.J2),
         coordinates: [
           [0, 0],
           [10, 0],
         ],
       })
-      .aCustomerPoint("CP1", {
+      .aCustomerPoint(IDS.CP1, {
         coordinates: [1, 1],
       })
-      .aCustomerPoint("CP2", {
+      .aCustomerPoint(IDS.CP2, {
         coordinates: [2, 1],
       })
       .build();
 
     const { putCustomerPoints } = connectCustomers(hydraulicModel, {
-      customerPointIds: ["CP1", "CP2"],
-      pipeId: "P1",
+      customerPointIds: [String(IDS.CP1), String(IDS.CP2)],
+      pipeId: String(IDS.P1),
       snapPoints: [
         [1, 0],
         [2, 0],
@@ -279,10 +294,14 @@ describe("connectCustomers", () => {
 
     expect(putCustomerPoints!.length).toBe(2);
 
-    const connectedCP1 = putCustomerPoints!.find((cp) => cp.id === "CP1")!;
-    const connectedCP2 = putCustomerPoints!.find((cp) => cp.id === "CP2")!;
+    const connectedCP1 = putCustomerPoints!.find(
+      (cp) => cp.id === String(IDS.CP1),
+    )!;
+    const connectedCP2 = putCustomerPoints!.find(
+      (cp) => cp.id === String(IDS.CP2),
+    )!;
 
-    expect(connectedCP1.connection!.junctionId).toBe("J1");
-    expect(connectedCP2.connection!.junctionId).toBe("J1");
+    expect(connectedCP1.connection!.junctionId).toBe(String(IDS.J1));
+    expect(connectedCP2.connection!.junctionId).toBe(String(IDS.J1));
   });
 });

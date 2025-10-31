@@ -16,25 +16,25 @@ import { TooltipProvider } from "@radix-ui/react-tooltip";
 describe("AssetPanel", () => {
   describe("with a pipe", () => {
     it("can show its properties", () => {
-      const pipeId = "P1";
+      const IDS = { P1: 1, j1: 2, j2: 3 };
       const hydraulicModel = HydraulicModelBuilder.with()
         .headlossFormula("D-W")
-        .aJunction("j1", { label: "J1" })
-        .aJunction("j2", { label: "J2" })
-        .aPipe(pipeId, {
+        .aJunction(IDS.j1, { label: "J1" })
+        .aJunction(IDS.j2, { label: "J2" })
+        .aPipe(IDS.P1, {
           label: "MY_PIPE",
           initialStatus: "open",
           length: 10,
           diameter: 100.1,
           roughness: 1,
           minorLoss: 0.1,
-          startNodeId: "j1",
-          endNodeId: "j2",
+          startNodeId: String(IDS.j1),
+          endNodeId: String(IDS.j2),
         })
         .build();
       const store = setInitialState({
         hydraulicModel,
-        selectedAssetId: pipeId,
+        selectedAssetId: String(IDS.P1),
       });
 
       renderComponent(store);
@@ -56,9 +56,9 @@ describe("AssetPanel", () => {
     });
 
     it("can show simulation results", () => {
-      const pipeId = "P1";
+      const IDS = { P1: 1 };
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aPipe(pipeId, {
+        .aPipe(IDS.P1, {
           simulation: {
             flow: 20.1234,
             velocity: 10.1234,
@@ -70,7 +70,7 @@ describe("AssetPanel", () => {
         .build();
       const store = setInitialState({
         hydraulicModel,
-        selectedAssetId: pipeId,
+        selectedAssetId: String(IDS.P1),
       });
 
       renderComponent(store);
@@ -84,20 +84,20 @@ describe("AssetPanel", () => {
 
   describe("with a valve", () => {
     it("can show its properties", () => {
-      const valveId = "V1";
+      const IDS = { V1: 1, j1: 2, j2: 3 };
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction("j1", { label: "J1" })
-        .aJunction("j2", { label: "J2" })
-        .aValve(valveId, {
+        .aJunction(IDS.j1, { label: "J1" })
+        .aJunction(IDS.j2, { label: "J2" })
+        .aValve(IDS.V1, {
           label: "MY_VALVE",
-          connections: ["j1", "j2"],
+          connections: [String(IDS.j1), String(IDS.j2)],
           minorLoss: 14,
           diameter: 22,
         })
         .build();
       const store = setInitialState({
         hydraulicModel,
-        selectedAssetId: valveId,
+        selectedAssetId: String(IDS.V1),
       });
 
       renderComponent(store);
@@ -111,13 +111,13 @@ describe("AssetPanel", () => {
     });
 
     it("can change its initial status", async () => {
-      const valveId = "V1";
+      const IDS = { V1: 1 };
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aValve(valveId, { initialStatus: "active" })
+        .aValve(IDS.V1, { initialStatus: "active" })
         .build();
       const store = setInitialState({
         hydraulicModel,
-        selectedAssetId: valveId,
+        selectedAssetId: String(IDS.V1),
       });
       const user = userEvent.setup();
 
@@ -133,7 +133,8 @@ describe("AssetPanel", () => {
 
       const { hydraulicModel: updatedHydraulicModel } = store.get(dataAtom);
       expect(
-        (getLink(updatedHydraulicModel.assets, valveId) as Valve).initialStatus,
+        (getLink(updatedHydraulicModel.assets, String(IDS.V1)) as Valve)
+          .initialStatus,
       ).toEqual("closed");
 
       expect(selector).not.toHaveFocus();
@@ -149,9 +150,9 @@ describe("AssetPanel", () => {
     });
 
     it("can change valve kind", async () => {
-      const valveId = "V1";
+      const IDS = { V1: 1 };
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aValve(valveId, {
+        .aValve(IDS.V1, {
           initialStatus: "active",
           kind: "fcv",
           setting: 10,
@@ -159,7 +160,7 @@ describe("AssetPanel", () => {
         .build();
       const store = setInitialState({
         hydraulicModel,
-        selectedAssetId: valveId,
+        selectedAssetId: String(IDS.V1),
       });
       const user = userEvent.setup();
 
@@ -176,7 +177,7 @@ describe("AssetPanel", () => {
 
       const { hydraulicModel: updatedHydraulicModel } = store.get(dataAtom);
       expect(
-        (getLink(updatedHydraulicModel.assets, valveId) as Valve).kind,
+        (getLink(updatedHydraulicModel.assets, String(IDS.V1)) as Valve).kind,
       ).toEqual("psv");
 
       expect(selector).not.toHaveFocus();
@@ -194,9 +195,9 @@ describe("AssetPanel", () => {
     });
 
     it("can show simulation results", () => {
-      const valve1 = "v1";
+      const IDS = { v1: 1 };
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aValve(valve1, {
+        .aValve(IDS.v1, {
           simulation: {
             flow: 20.1234,
             velocity: 10.1234,
@@ -208,7 +209,7 @@ describe("AssetPanel", () => {
         .build();
       const store = setInitialState({
         hydraulicModel,
-        selectedAssetId: valve1,
+        selectedAssetId: String(IDS.v1),
       });
 
       renderComponent(store);
@@ -222,20 +223,20 @@ describe("AssetPanel", () => {
 
   describe("with a pump", () => {
     it("can show its properties", () => {
-      const pumpId = "PU1";
+      const IDS = { PU1: 1, j1: 2, j2: 3 };
       const hydraulicModel = HydraulicModelBuilder.with()
         .headlossFormula("D-W")
-        .aJunction("j1", { label: "J1" })
-        .aJunction("j2", { label: "J2" })
-        .aPump(pumpId, {
+        .aJunction(IDS.j1, { label: "J1" })
+        .aJunction(IDS.j2, { label: "J2" })
+        .aPump(IDS.PU1, {
           label: "MY_PUMP",
-          connections: ["j1", "j2"],
+          connections: [String(IDS.j1), String(IDS.j2)],
           initialStatus: "on",
         })
         .build();
       const store = setInitialState({
         hydraulicModel,
-        selectedAssetId: pumpId,
+        selectedAssetId: String(IDS.PU1),
       });
 
       renderComponent(store);
@@ -252,14 +253,14 @@ describe("AssetPanel", () => {
     });
 
     it("shows properties for flow-vs-head definition", () => {
-      const pumpId = "PU1";
+      const IDS = { PU1: 1, j1: 2, j2: 3 };
       const hydraulicModel = HydraulicModelBuilder.with()
         .headlossFormula("D-W")
-        .aJunction("j1", { label: "J1" })
-        .aJunction("j2", { label: "J2" })
-        .aPump(pumpId, {
+        .aJunction(IDS.j1, { label: "J1" })
+        .aJunction(IDS.j2, { label: "J2" })
+        .aPump(IDS.PU1, {
           label: "MY_PUMP",
-          connections: ["j1", "j2"],
+          connections: [String(IDS.j1), String(IDS.j2)],
           initialStatus: "on",
           definitionType: "flow-vs-head",
           designFlow: 20,
@@ -269,7 +270,7 @@ describe("AssetPanel", () => {
         .build();
       const store = setInitialState({
         hydraulicModel,
-        selectedAssetId: pumpId,
+        selectedAssetId: String(IDS.PU1),
       });
 
       renderComponent(store);
@@ -282,14 +283,14 @@ describe("AssetPanel", () => {
     });
 
     it("shows properties for power defintion", () => {
-      const pumpId = "PU1";
+      const IDS = { PU1: 1, j1: 2, j2: 3 };
       const hydraulicModel = HydraulicModelBuilder.with()
         .headlossFormula("D-W")
-        .aJunction("j1", { label: "J1" })
-        .aJunction("j2", { label: "J2" })
-        .aPump(pumpId, {
+        .aJunction(IDS.j1, { label: "J1" })
+        .aJunction(IDS.j2, { label: "J2" })
+        .aPump(IDS.PU1, {
           label: "MY_PUMP",
-          connections: ["j1", "j2"],
+          connections: [String(IDS.j1), String(IDS.j2)],
           initialStatus: "on",
           definitionType: "power",
           power: 100,
@@ -297,7 +298,7 @@ describe("AssetPanel", () => {
         .build();
       const store = setInitialState({
         hydraulicModel,
-        selectedAssetId: pumpId,
+        selectedAssetId: String(IDS.PU1),
       });
 
       renderComponent(store);
@@ -308,14 +309,14 @@ describe("AssetPanel", () => {
     });
 
     it("can change pump definition", async () => {
-      const pumpId = "PU1";
+      const IDS = { PU1: 1, j1: 2, j2: 3 };
       const hydraulicModel = HydraulicModelBuilder.with()
         .headlossFormula("D-W")
-        .aJunction("j1", { label: "J1" })
-        .aJunction("j2", { label: "J2" })
-        .aPump(pumpId, {
+        .aJunction(IDS.j1, { label: "J1" })
+        .aJunction(IDS.j2, { label: "J2" })
+        .aPump(IDS.PU1, {
           label: "MY_PUMP",
-          connections: ["j1", "j2"],
+          connections: [String(IDS.j1), String(IDS.j2)],
           initialStatus: "on",
           definitionType: "flow-vs-head",
           designFlow: 20,
@@ -325,7 +326,7 @@ describe("AssetPanel", () => {
         .build();
       const store = setInitialState({
         hydraulicModel,
-        selectedAssetId: pumpId,
+        selectedAssetId: String(IDS.PU1),
       });
       const user = userEvent.setup();
 
@@ -345,13 +346,13 @@ describe("AssetPanel", () => {
     });
 
     it("can show simulation results", () => {
-      const pumpId = "PU1";
+      const IDS = { PU1: 1 };
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aPump(pumpId, { simulation: { flow: 20.1234, headloss: -10.1234 } })
+        .aPump(IDS.PU1, { simulation: { flow: 20.1234, headloss: -10.1234 } })
         .build();
       const store = setInitialState({
         hydraulicModel,
-        selectedAssetId: pumpId,
+        selectedAssetId: String(IDS.PU1),
       });
 
       renderComponent(store);
@@ -362,13 +363,13 @@ describe("AssetPanel", () => {
     });
 
     it("can change its status", async () => {
-      const pumpId = "PU1";
+      const IDS = { PU1: 1 };
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aPump(pumpId, { initialStatus: "on" })
+        .aPump(IDS.PU1, { initialStatus: "on" })
         .build();
       const store = setInitialState({
         hydraulicModel,
-        selectedAssetId: pumpId,
+        selectedAssetId: String(IDS.PU1),
       });
       const user = userEvent.setup();
 
@@ -384,7 +385,8 @@ describe("AssetPanel", () => {
 
       const { hydraulicModel: updatedHydraulicModel } = store.get(dataAtom);
       expect(
-        (getLink(updatedHydraulicModel.assets, pumpId) as Pump).initialStatus,
+        (getLink(updatedHydraulicModel.assets, String(IDS.PU1)) as Pump)
+          .initialStatus,
       ).toEqual("off");
 
       expect(selector).not.toHaveFocus();
@@ -402,9 +404,9 @@ describe("AssetPanel", () => {
 
   describe("with a junction", () => {
     it("shows its properties", () => {
-      const junctionId = "J1";
+      const IDS = { J1: 1 };
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction(junctionId, {
+        .aJunction(IDS.J1, {
           label: "MY_JUNCTION",
           elevation: 10,
           baseDemand: 100,
@@ -412,7 +414,7 @@ describe("AssetPanel", () => {
         .build();
       const store = setInitialState({
         hydraulicModel,
-        selectedAssetId: junctionId,
+        selectedAssetId: String(IDS.J1),
       });
 
       renderComponent(store);
@@ -425,9 +427,9 @@ describe("AssetPanel", () => {
     });
 
     it("can show simulation results", () => {
-      const junctionId = "J1";
+      const IDS = { J1: 1 };
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction(junctionId, {
+        .aJunction(IDS.J1, {
           elevation: 10,
           baseDemand: 100,
           simulation: { pressure: 20, head: 10, demand: 20 },
@@ -435,7 +437,7 @@ describe("AssetPanel", () => {
         .build();
       const store = setInitialState({
         hydraulicModel,
-        selectedAssetId: junctionId,
+        selectedAssetId: String(IDS.J1),
       });
 
       renderComponent(store);
@@ -446,29 +448,34 @@ describe("AssetPanel", () => {
     });
 
     it("shows Customer Demand field when junction has customer points", () => {
-      const junctionId = "J1";
+      const IDS = { J1: 1, J2: 2, P1: 3, CP1: 4, CP2: 5 };
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction(junctionId, {
+        .aJunction(IDS.J1, {
           label: "MY_JUNCTION",
           baseDemand: 50,
         })
-        .aJunction("J2", { coordinates: [10, 0] })
-        .aPipe("P1", { startNodeId: junctionId, endNodeId: "J2" })
-        .aCustomerPoint("CP1", {
+        .aJunction(IDS.J2, { coordinates: [10, 0] })
+        .aPipe(IDS.P1, {
+          startNodeId: String(IDS.J1),
+          endNodeId: String(IDS.J2),
+        })
+        .aCustomerPoint(IDS.CP1, {
+          label: "CP1",
           coordinates: [1, 2],
           demand: 25,
           connection: {
-            pipeId: "P1",
-            junctionId: junctionId,
+            pipeId: String(IDS.P1),
+            junctionId: String(IDS.J1),
             snapPoint: [1, 2],
           },
         })
-        .aCustomerPoint("CP2", {
+        .aCustomerPoint(IDS.CP2, {
+          label: "CP2",
           coordinates: [3, 4],
           demand: 30,
           connection: {
-            pipeId: "P1",
-            junctionId: junctionId,
+            pipeId: String(IDS.P1),
+            junctionId: String(IDS.J1),
             snapPoint: [3, 4],
           },
         })
@@ -476,7 +483,7 @@ describe("AssetPanel", () => {
 
       const store = setInitialState({
         hydraulicModel,
-        selectedAssetId: junctionId,
+        selectedAssetId: String(IDS.J1),
       });
 
       renderComponent(store);
@@ -495,29 +502,34 @@ describe("AssetPanel", () => {
     });
 
     it("opens popover when Customer Demand field is clicked", async () => {
-      const junctionId = "J1";
+      const IDS = { J1: 1, J2: 2, P1: 3, CP1: 4, CP2: 5 };
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction(junctionId, {
+        .aJunction(IDS.J1, {
           label: "MY_JUNCTION",
           baseDemand: 50,
         })
-        .aJunction("J2", { coordinates: [10, 0] })
-        .aPipe("P1", { startNodeId: junctionId, endNodeId: "J2" })
-        .aCustomerPoint("CP1", {
+        .aJunction(IDS.J2, { coordinates: [10, 0] })
+        .aPipe(IDS.P1, {
+          startNodeId: String(IDS.J1),
+          endNodeId: String(IDS.J2),
+        })
+        .aCustomerPoint(IDS.CP1, {
+          label: "CP1",
           coordinates: [1, 2],
           demand: 25,
           connection: {
-            pipeId: "P1",
-            junctionId: junctionId,
+            pipeId: String(IDS.P1),
+            junctionId: String(IDS.J1),
             snapPoint: [1, 2],
           },
         })
-        .aCustomerPoint("CP2", {
+        .aCustomerPoint(IDS.CP2, {
+          label: "CP2",
           coordinates: [3, 4],
           demand: 30,
           connection: {
-            pipeId: "P1",
-            junctionId: junctionId,
+            pipeId: String(IDS.P1),
+            junctionId: String(IDS.J1),
             snapPoint: [3, 4],
           },
         })
@@ -525,7 +537,7 @@ describe("AssetPanel", () => {
 
       const store = setInitialState({
         hydraulicModel,
-        selectedAssetId: junctionId,
+        selectedAssetId: String(IDS.J1),
       });
       const user = userEvent.setup();
 
@@ -546,16 +558,16 @@ describe("AssetPanel", () => {
     });
 
     it("does not show Customer Demand field when junction has no customer points", () => {
-      const junctionId = "J1";
+      const IDS = { J1: 1 };
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction(junctionId, {
+        .aJunction(IDS.J1, {
           label: "MY_JUNCTION",
           baseDemand: 100,
         })
         .build();
       const store = setInitialState({
         hydraulicModel,
-        selectedAssetId: junctionId,
+        selectedAssetId: String(IDS.J1),
       });
 
       renderComponent(store);
@@ -572,9 +584,9 @@ describe("AssetPanel", () => {
 
   describe("with a reservoir", () => {
     it("shows its properties", () => {
-      const reservoirId = "R1";
+      const IDS = { R1: 1 };
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aReservoir(reservoirId, {
+        .aReservoir(IDS.R1, {
           label: "MY_RESERVOIR",
           elevation: 10,
           head: 100,
@@ -582,7 +594,7 @@ describe("AssetPanel", () => {
         .build();
       const store = setInitialState({
         hydraulicModel,
-        selectedAssetId: reservoirId,
+        selectedAssetId: String(IDS.R1),
       });
 
       renderComponent(store);
@@ -596,9 +608,9 @@ describe("AssetPanel", () => {
 
   describe("with a tank", () => {
     it("shows its properties", () => {
-      const tankId = "T1";
+      const IDS = { T1: 1 };
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aTank(tankId, {
+        .aTank(IDS.T1, {
           label: "MY_TANK",
           elevation: 10,
           diameter: 300,
@@ -611,7 +623,7 @@ describe("AssetPanel", () => {
         .build();
       const store = setInitialState({
         hydraulicModel,
-        selectedAssetId: tankId,
+        selectedAssetId: String(IDS.T1),
       });
 
       renderComponent(store);
@@ -630,16 +642,16 @@ describe("AssetPanel", () => {
     });
 
     it("can change the overflow setting", async () => {
-      const tankId = "T1";
+      const IDS = { T1: 1 };
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aTank(tankId, {
+        .aTank(IDS.T1, {
           label: "MY_TANK",
           overflow: false,
         })
         .build();
       const store = setInitialState({
         hydraulicModel,
-        selectedAssetId: tankId,
+        selectedAssetId: String(IDS.T1),
       });
 
       renderComponent(store);
@@ -662,9 +674,9 @@ describe("AssetPanel", () => {
     });
 
     it("can show simulation results", () => {
-      const tankId = "T1";
+      const IDS = { T1: 1 };
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aTank(tankId, {
+        .aTank(IDS.T1, {
           simulation: {
             pressure: 15.1234,
             head: 125.5678,
@@ -675,7 +687,7 @@ describe("AssetPanel", () => {
         .build();
       const store = setInitialState({
         hydraulicModel,
-        selectedAssetId: tankId,
+        selectedAssetId: String(IDS.T1),
       });
 
       renderComponent(store);
@@ -688,11 +700,14 @@ describe("AssetPanel", () => {
   });
 
   it("can change its status", async () => {
-    const pipeId = "PIPE1";
+    const IDS = { PIPE1: 1 };
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aPipe(pipeId, { initialStatus: "open" })
+      .aPipe(IDS.PIPE1, { initialStatus: "open" })
       .build();
-    const store = setInitialState({ hydraulicModel, selectedAssetId: pipeId });
+    const store = setInitialState({
+      hydraulicModel,
+      selectedAssetId: String(IDS.PIPE1),
+    });
     const user = userEvent.setup();
 
     const historyControl = renderComponent(store);
@@ -707,7 +722,8 @@ describe("AssetPanel", () => {
 
     const { hydraulicModel: updatedHydraulicModel } = store.get(dataAtom);
     expect(
-      (getPipe(updatedHydraulicModel.assets, pipeId) as Pipe).initialStatus,
+      (getPipe(updatedHydraulicModel.assets, String(IDS.PIPE1)) as Pipe)
+        .initialStatus,
     ).toEqual("closed");
 
     expect(selector).not.toHaveFocus();
@@ -723,11 +739,14 @@ describe("AssetPanel", () => {
   });
 
   it("can change a property", async () => {
-    const pipeId = "PIPE1";
+    const IDS = { PIPE1: 1 };
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aPipe(pipeId, { diameter: 10.4 })
+      .aPipe(IDS.PIPE1, { diameter: 10.4 })
       .build();
-    const store = setInitialState({ hydraulicModel, selectedAssetId: pipeId });
+    const store = setInitialState({
+      hydraulicModel,
+      selectedAssetId: String(IDS.PIPE1),
+    });
     const user = userEvent.setup();
 
     const historyControl = renderComponent(store);
@@ -743,7 +762,8 @@ describe("AssetPanel", () => {
 
     const { hydraulicModel: updatedHydraulicModel } = store.get(dataAtom);
     expect(
-      (getPipe(updatedHydraulicModel.assets, pipeId) as Pipe).diameter,
+      (getPipe(updatedHydraulicModel.assets, String(IDS.PIPE1)) as Pipe)
+        .diameter,
     ).toEqual(20.5);
 
     let updatedField = screen.getByRole("textbox", {
@@ -763,11 +783,14 @@ describe("AssetPanel", () => {
   });
 
   it("cannot change simulation results", () => {
-    const pipeId = "PIPE1";
+    const IDS = { PIPE1: 1 };
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aPipe(pipeId, { simulation: { flow: 10, status: "open" } })
+      .aPipe(IDS.PIPE1, { simulation: { flow: 10, status: "open" } })
       .build();
-    const store = setInitialState({ hydraulicModel, selectedAssetId: pipeId });
+    const store = setInitialState({
+      hydraulicModel,
+      selectedAssetId: String(IDS.PIPE1),
+    });
 
     renderComponent(store);
 
@@ -780,11 +803,14 @@ describe("AssetPanel", () => {
   });
 
   it("clears group formatting when focusing input", async () => {
-    const pipeId = "PIPE1";
+    const IDS = { PIPE1: 1 };
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aPipe(pipeId, { length: 10000.2 })
+      .aPipe(IDS.PIPE1, { length: 10000.2 })
       .build();
-    const store = setInitialState({ hydraulicModel, selectedAssetId: pipeId });
+    const store = setInitialState({
+      hydraulicModel,
+      selectedAssetId: String(IDS.PIPE1),
+    });
     const user = userEvent.setup();
 
     renderComponent(store);
@@ -801,7 +827,7 @@ describe("AssetPanel", () => {
 
     const { hydraulicModel: updatedHydraulicModel } = store.get(dataAtom);
     expect(
-      (getPipe(updatedHydraulicModel.assets, pipeId) as Pipe).length,
+      (getPipe(updatedHydraulicModel.assets, String(IDS.PIPE1)) as Pipe).length,
     ).toEqual(1000.4);
 
     const updatedField = screen.getByRole("textbox", {
@@ -812,11 +838,14 @@ describe("AssetPanel", () => {
   });
 
   it("can edit from the keyboard", async () => {
-    const pipeId = "PIPE1";
+    const IDS = { PIPE1: 1 };
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aPipe(pipeId, { initialStatus: "closed" })
+      .aPipe(IDS.PIPE1, { initialStatus: "closed" })
       .build();
-    const store = setInitialState({ hydraulicModel, selectedAssetId: pipeId });
+    const store = setInitialState({
+      hydraulicModel,
+      selectedAssetId: String(IDS.PIPE1),
+    });
     const user = userEvent.setup();
 
     renderComponent(store);
@@ -837,13 +866,13 @@ describe("AssetPanel", () => {
 
   describe("validations", () => {
     it("ignores sign in positive only numeric fields", async () => {
-      const pipeId = "PIPE1";
+      const IDS = { PIPE1: 1 };
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aPipe(pipeId, { diameter: 20 })
+        .aPipe(IDS.PIPE1, { diameter: 20 })
         .build();
       const store = setInitialState({
         hydraulicModel,
-        selectedAssetId: pipeId,
+        selectedAssetId: String(IDS.PIPE1),
       });
       const user = userEvent.setup();
 
@@ -864,13 +893,13 @@ describe("AssetPanel", () => {
     });
 
     it("allows cientific notation in positive fields", async () => {
-      const pipeId = "PIPE1";
+      const IDS = { PIPE1: 1 };
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aPipe(pipeId, { diameter: 20 })
+        .aPipe(IDS.PIPE1, { diameter: 20 })
         .build();
       const store = setInitialState({
         hydraulicModel,
-        selectedAssetId: pipeId,
+        selectedAssetId: String(IDS.PIPE1),
       });
       const user = userEvent.setup();
 
@@ -891,13 +920,13 @@ describe("AssetPanel", () => {
     });
 
     it("ignores text from numeric fields", async () => {
-      const pipeId = "PIPE1";
+      const IDS = { PIPE1: 1 };
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aPipe(pipeId, { diameter: 20 })
+        .aPipe(IDS.PIPE1, { diameter: 20 })
         .build();
       const store = setInitialState({
         hydraulicModel,
-        selectedAssetId: pipeId,
+        selectedAssetId: String(IDS.PIPE1),
       });
       const user = userEvent.setup();
 
@@ -918,13 +947,13 @@ describe("AssetPanel", () => {
     });
 
     it("doesn't accept 0 in non nullable properties", async () => {
-      const pipeId = "PIPE1";
+      const IDS = { PIPE1: 1 };
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aPipe(pipeId, { length: 20 })
+        .aPipe(IDS.PIPE1, { length: 20 })
         .build();
       const store = setInitialState({
         hydraulicModel,
-        selectedAssetId: pipeId,
+        selectedAssetId: String(IDS.PIPE1),
       });
       const user = userEvent.setup();
 
@@ -952,13 +981,13 @@ describe("AssetPanel", () => {
     });
 
     it("ignores changes when not a valid number", async () => {
-      const pipeId = "PIPE1";
+      const IDS = { PIPE1: 1 };
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aPipe(pipeId, { diameter: 10 })
+        .aPipe(IDS.PIPE1, { diameter: 10 })
         .build();
       const store = setInitialState({
         hydraulicModel,
-        selectedAssetId: pipeId,
+        selectedAssetId: String(IDS.PIPE1),
       });
       const user = userEvent.setup();
 
@@ -976,7 +1005,8 @@ describe("AssetPanel", () => {
 
       const { hydraulicModel: updatedHydraulicModel } = store.get(dataAtom);
       expect(
-        (getPipe(updatedHydraulicModel.assets, pipeId) as Pipe).diameter,
+        (getPipe(updatedHydraulicModel.assets, String(IDS.PIPE1)) as Pipe)
+          .diameter,
       ).toEqual(10);
 
       expect(field).toHaveValue("10");
@@ -999,38 +1029,35 @@ describe("AssetPanel", () => {
   });
 
   it("updates numeric fields when switching between assets", () => {
-    const j1Id = "J1";
-    const j2Id = "J2";
-    const p1Id = "P1";
-    const p2Id = "P2";
+    const IDS = { J1: 1, J2: 2, P1: 3, P2: 4 };
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aJunction(j1Id, {
+      .aJunction(IDS.J1, {
         label: "Junction_1",
         baseDemand: 100,
       })
-      .aJunction(j2Id, {
+      .aJunction(IDS.J2, {
         label: "Junction_2",
         baseDemand: 200,
       })
-      .aPipe(p1Id, {
+      .aPipe(IDS.P1, {
         label: "Pipe_1",
         diameter: 150,
         length: 500,
-        startNodeId: j1Id,
-        endNodeId: j2Id,
+        startNodeId: String(IDS.J1),
+        endNodeId: String(IDS.J2),
       })
-      .aPipe(p2Id, {
+      .aPipe(IDS.P2, {
         label: "Pipe_2",
         diameter: 300,
         length: 1000,
-        startNodeId: j1Id,
-        endNodeId: j2Id,
+        startNodeId: String(IDS.J1),
+        endNodeId: String(IDS.J2),
       })
       .build();
 
     const store = setInitialState({
       hydraulicModel,
-      selectedAssetId: j1Id,
+      selectedAssetId: String(IDS.J1),
     });
 
     renderComponent(store);
@@ -1040,7 +1067,7 @@ describe("AssetPanel", () => {
     act(() => {
       store.set(dataAtom, {
         ...store.get(dataAtom),
-        selection: { type: "single", id: j2Id, parts: [] },
+        selection: { type: "single", id: String(IDS.J2), parts: [] },
       });
     });
 
@@ -1049,7 +1076,7 @@ describe("AssetPanel", () => {
     act(() => {
       store.set(dataAtom, {
         ...store.get(dataAtom),
-        selection: { type: "single", id: p1Id, parts: [] },
+        selection: { type: "single", id: String(IDS.P1), parts: [] },
       });
     });
 
@@ -1059,7 +1086,7 @@ describe("AssetPanel", () => {
     act(() => {
       store.set(dataAtom, {
         ...store.get(dataAtom),
-        selection: { type: "single", id: p2Id, parts: [] },
+        selection: { type: "single", id: String(IDS.P2), parts: [] },
       });
     });
 

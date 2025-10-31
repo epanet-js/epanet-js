@@ -94,11 +94,12 @@ describe("color range editor", () => {
   });
 
   it("can apply equal intervals based on data", async () => {
+    const IDS = { j1: 1, j2: 2, j3: 3 } as const;
     const user = userEvent.setup();
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aJunction("j1", { simulation: { pressure: 10 } })
-      .aJunction("j2", { simulation: { pressure: 15 } })
-      .aJunction("j3", { simulation: { pressure: 100 } })
+      .aJunction(IDS.j1, { simulation: { pressure: 10 } })
+      .aJunction(IDS.j2, { simulation: { pressure: 15 } })
+      .aJunction(IDS.j3, { simulation: { pressure: 100 } })
       .build();
     const nodeSymbology = aNodeSymbology({
       colorRule: {
@@ -121,12 +122,13 @@ describe("color range editor", () => {
   });
 
   it("can apply equal quantiles based on data", async () => {
+    const IDS = { j1: 1, j2: 2, j3: 3, j4: 4 } as const;
     const user = userEvent.setup();
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aJunction("j1", { simulation: { pressure: 10 } })
-      .aJunction("j2", { simulation: { pressure: 15 } })
-      .aJunction("j3", { simulation: { pressure: 20 } })
-      .aJunction("j4", { simulation: { pressure: 100 } })
+      .aJunction(IDS.j1, { simulation: { pressure: 10 } })
+      .aJunction(IDS.j2, { simulation: { pressure: 15 } })
+      .aJunction(IDS.j3, { simulation: { pressure: 20 } })
+      .aJunction(IDS.j4, { simulation: { pressure: 100 } })
       .build();
     const nodeSymbology = aNodeSymbology({
       colorRule: {
@@ -149,12 +151,13 @@ describe("color range editor", () => {
   });
 
   it("can switch to manual mode", async () => {
+    const IDS = { j1: 1, j2: 2, j3: 3, j4: 4 } as const;
     const user = userEvent.setup();
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aJunction("j1", { simulation: { pressure: 10 } })
-      .aJunction("j2", { simulation: { pressure: 15 } })
-      .aJunction("j3", { simulation: { pressure: 20 } })
-      .aJunction("j4", { simulation: { pressure: 100 } })
+      .aJunction(IDS.j1, { simulation: { pressure: 10 } })
+      .aJunction(IDS.j2, { simulation: { pressure: 15 } })
+      .aJunction(IDS.j3, { simulation: { pressure: 20 } })
+      .aJunction(IDS.j4, { simulation: { pressure: 100 } })
       .build();
     const nodeSymbology = aNodeSymbology({
       colorRule: {
@@ -276,11 +279,12 @@ describe("color range editor", () => {
   });
 
   it("can choose a ramp with more values", async () => {
+    const IDS = { j1: 1, j2: 2, j3: 3 } as const;
     const user = userEvent.setup();
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aJunction("j1", { simulation: { pressure: 10 } })
-      .aJunction("j2", { simulation: { pressure: 15 } })
-      .aJunction("j3", { simulation: { pressure: 100 } })
+      .aJunction(IDS.j1, { simulation: { pressure: 10 } })
+      .aJunction(IDS.j2, { simulation: { pressure: 15 } })
+      .aJunction(IDS.j3, { simulation: { pressure: 100 } })
       .build();
     const nodeSymbology = aNodeSymbology({
       colorRule: {
@@ -402,11 +406,12 @@ describe("color range editor", () => {
   });
 
   it("shows error when changing to number of classes without data ", async () => {
+    const IDS = { p1: 1, p2: 2, p3: 3, p4: 4 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aPipe("p1", { simulation: { flow: 10 } })
-      .aPipe("p2", { simulation: { flow: 15 } })
-      .aPipe("p3", { simulation: { flow: 20 } })
-      .aPipe("p4", { simulation: { flow: 30 } })
+      .aPipe(IDS.p1, { simulation: { flow: 10 } })
+      .aPipe(IDS.p2, { simulation: { flow: 15 } })
+      .aPipe(IDS.p3, { simulation: { flow: 20 } })
+      .aPipe(IDS.p4, { simulation: { flow: 30 } })
       .build();
     const user = userEvent.setup();
     const linkSymbology = aLinkSymbology({
@@ -434,13 +439,14 @@ describe("color range editor", () => {
   });
 
   it("can also handle links with absolute values", async () => {
+    const IDS = { p1: 1, p2: 2, p3: 3, p4: 4, p5: 5, p6: 6 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aPipe("p1", { simulation: { flow: 10 } })
-      .aPipe("p2", { simulation: { flow: 15 } })
-      .aPipe("p3", { simulation: { flow: -15 } })
-      .aPipe("p4", { simulation: { flow: 20 } })
-      .aPipe("p5", { simulation: { flow: 20 } })
-      .aPipe("p6", { simulation: { flow: 20 } })
+      .aPipe(IDS.p1, { simulation: { flow: 10 } })
+      .aPipe(IDS.p2, { simulation: { flow: 15 } })
+      .aPipe(IDS.p3, { simulation: { flow: -15 } })
+      .aPipe(IDS.p4, { simulation: { flow: 20 } })
+      .aPipe(IDS.p5, { simulation: { flow: 20 } })
+      .aPipe(IDS.p6, { simulation: { flow: 20 } })
       .build();
     const user = userEvent.setup();
     const linkSymbology = aLinkSymbology({
@@ -477,10 +483,11 @@ describe("color range editor", () => {
   });
 
   it("preserves nodes settings for later", async () => {
+    const IDS = { j1: 1, j2: 2 } as const;
     const user = userEvent.setup();
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aJunction("j1", { elevation: 10 })
-      .aJunction("j2", { elevation: 15 })
+      .aJunction(IDS.j1, { elevation: 10 })
+      .aJunction(IDS.j2, { elevation: 15 })
       .build();
     const nodeSymbology = aNodeSymbology({
       colorRule: {
@@ -504,9 +511,10 @@ describe("color range editor", () => {
   });
 
   it("preserves links settings for later", async () => {
+    const IDS = { p1: 1, p2: 2 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aPipe("p1", { simulation: { flow: 10 } })
-      .aPipe("p2", { simulation: { flow: 15 } })
+      .aPipe(IDS.p1, { simulation: { flow: 10 } })
+      .aPipe(IDS.p2, { simulation: { flow: 15 } })
       .build();
     const user = userEvent.setup();
     const linkSymbology = aLinkSymbology({

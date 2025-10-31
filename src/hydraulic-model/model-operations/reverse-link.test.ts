@@ -3,12 +3,13 @@ import { reverseLink } from "./reverse-link";
 
 describe("reverse-link", () => {
   it("reverses pipe connections and coordinates", () => {
+    const IDS = { J1: 1, J2: 2, P1: 3 } as const;
     const model = HydraulicModelBuilder.with()
-      .aJunction("J1", { coordinates: [0, 0] })
-      .aJunction("J2", { coordinates: [10, 0] })
-      .aPipe("P1", {
-        startNodeId: "J1",
-        endNodeId: "J2",
+      .aJunction(IDS.J1, { coordinates: [0, 0] })
+      .aJunction(IDS.J2, { coordinates: [10, 0] })
+      .aPipe(IDS.P1, {
+        startNodeId: String(IDS.J1),
+        endNodeId: String(IDS.J2),
         coordinates: [
           [0, 0],
           [5, 0],
@@ -17,17 +18,17 @@ describe("reverse-link", () => {
       })
       .build();
 
-    const moment = reverseLink(model, { linkId: "P1" });
+    const moment = reverseLink(model, { linkId: String(IDS.P1) });
 
     expect(moment.note).toBe("Reverse pipe");
     expect(moment.putAssets).toHaveLength(1);
 
     const reversedPipe = moment.putAssets![0];
-    expect(reversedPipe.id).toBe("P1");
+    expect(reversedPipe.id).toBe(String(IDS.P1));
 
     const connections = (reversedPipe as any).connections;
-    expect(connections[0]).toBe("J2");
-    expect(connections[1]).toBe("J1");
+    expect(connections[0]).toBe(String(IDS.J2));
+    expect(connections[1]).toBe(String(IDS.J1));
 
     expect(reversedPipe.coordinates).toEqual([
       [10, 0],
@@ -37,12 +38,13 @@ describe("reverse-link", () => {
   });
 
   it("reverses pump connections and coordinates", () => {
+    const IDS = { J1: 1, J2: 2, PU1: 3 } as const;
     const model = HydraulicModelBuilder.with()
-      .aJunction("J1", { coordinates: [0, 0] })
-      .aJunction("J2", { coordinates: [20, 0] })
-      .aPump("PU1", {
-        startNodeId: "J1",
-        endNodeId: "J2",
+      .aJunction(IDS.J1, { coordinates: [0, 0] })
+      .aJunction(IDS.J2, { coordinates: [20, 0] })
+      .aPump(IDS.PU1, {
+        startNodeId: String(IDS.J1),
+        endNodeId: String(IDS.J2),
         coordinates: [
           [0, 0],
           [10, 0],
@@ -51,17 +53,17 @@ describe("reverse-link", () => {
       })
       .build();
 
-    const moment = reverseLink(model, { linkId: "PU1" });
+    const moment = reverseLink(model, { linkId: String(IDS.PU1) });
 
     expect(moment.note).toBe("Reverse pump");
     expect(moment.putAssets).toHaveLength(1);
 
     const reversedPump = moment.putAssets![0];
-    expect(reversedPump.id).toBe("PU1");
+    expect(reversedPump.id).toBe(String(IDS.PU1));
 
     const connections = (reversedPump as any).connections;
-    expect(connections[0]).toBe("J2");
-    expect(connections[1]).toBe("J1");
+    expect(connections[0]).toBe(String(IDS.J2));
+    expect(connections[1]).toBe(String(IDS.J1));
     expect(reversedPump.coordinates).toEqual([
       [20, 0],
       [10, 0],
@@ -70,12 +72,13 @@ describe("reverse-link", () => {
   });
 
   it("reverses valve connections and coordinates", () => {
+    const IDS = { J1: 1, J2: 2, V1: 3 } as const;
     const model = HydraulicModelBuilder.with()
-      .aJunction("J1", { coordinates: [0, 0] })
-      .aJunction("J2", { coordinates: [15, 0] })
-      .aValve("V1", {
-        startNodeId: "J1",
-        endNodeId: "J2",
+      .aJunction(IDS.J1, { coordinates: [0, 0] })
+      .aJunction(IDS.J2, { coordinates: [15, 0] })
+      .aValve(IDS.V1, {
+        startNodeId: String(IDS.J1),
+        endNodeId: String(IDS.J2),
         coordinates: [
           [0, 0],
           [7.5, 0],
@@ -84,17 +87,17 @@ describe("reverse-link", () => {
       })
       .build();
 
-    const moment = reverseLink(model, { linkId: "V1" });
+    const moment = reverseLink(model, { linkId: String(IDS.V1) });
 
     expect(moment.note).toBe("Reverse valve");
     expect(moment.putAssets).toHaveLength(1);
 
     const reversedValve = moment.putAssets![0];
-    expect(reversedValve.id).toBe("V1");
+    expect(reversedValve.id).toBe(String(IDS.V1));
 
     const connections = (reversedValve as any).connections;
-    expect(connections[0]).toBe("J2");
-    expect(connections[1]).toBe("J1");
+    expect(connections[0]).toBe(String(IDS.J2));
+    expect(connections[1]).toBe(String(IDS.J1));
     expect(reversedValve.coordinates).toEqual([
       [15, 0],
       [7.5, 0],
@@ -103,12 +106,13 @@ describe("reverse-link", () => {
   });
 
   it("handles links with minimal coordinates (2 points)", () => {
+    const IDS = { J1: 1, J2: 2, P1: 3 } as const;
     const model = HydraulicModelBuilder.with()
-      .aJunction("J1", { coordinates: [0, 0] })
-      .aJunction("J2", { coordinates: [10, 0] })
-      .aPipe("P1", {
-        startNodeId: "J1",
-        endNodeId: "J2",
+      .aJunction(IDS.J1, { coordinates: [0, 0] })
+      .aJunction(IDS.J2, { coordinates: [10, 0] })
+      .aPipe(IDS.P1, {
+        startNodeId: String(IDS.J1),
+        endNodeId: String(IDS.J2),
         coordinates: [
           [0, 0],
           [10, 0],
@@ -116,14 +120,14 @@ describe("reverse-link", () => {
       })
       .build();
 
-    const moment = reverseLink(model, { linkId: "P1" });
+    const moment = reverseLink(model, { linkId: String(IDS.P1) });
 
     expect(moment.putAssets).toHaveLength(1);
     const reversedPipe = moment.putAssets![0];
 
     const connections = (reversedPipe as any).connections;
-    expect(connections[0]).toBe("J2");
-    expect(connections[1]).toBe("J1");
+    expect(connections[0]).toBe(String(IDS.J2));
+    expect(connections[1]).toBe(String(IDS.J1));
     expect(reversedPipe.coordinates).toEqual([
       [10, 0],
       [0, 0],
@@ -131,12 +135,13 @@ describe("reverse-link", () => {
   });
 
   it("handles complex pipe geometry with many vertices", () => {
+    const IDS = { J1: 1, J2: 2, P1: 3 } as const;
     const model = HydraulicModelBuilder.with()
-      .aJunction("J1", { coordinates: [0, 0] })
-      .aJunction("J2", { coordinates: [10, 10] })
-      .aPipe("P1", {
-        startNodeId: "J1",
-        endNodeId: "J2",
+      .aJunction(IDS.J1, { coordinates: [0, 0] })
+      .aJunction(IDS.J2, { coordinates: [10, 10] })
+      .aPipe(IDS.P1, {
+        startNodeId: String(IDS.J1),
+        endNodeId: String(IDS.J2),
         coordinates: [
           [0, 0],
           [2, 1],
@@ -148,14 +153,14 @@ describe("reverse-link", () => {
       })
       .build();
 
-    const moment = reverseLink(model, { linkId: "P1" });
+    const moment = reverseLink(model, { linkId: String(IDS.P1) });
 
     expect(moment.putAssets).toHaveLength(1);
     const reversedPipe = moment.putAssets![0];
 
     const connections = (reversedPipe as any).connections;
-    expect(connections[0]).toBe("J2");
-    expect(connections[1]).toBe("J1");
+    expect(connections[0]).toBe(String(IDS.J2));
+    expect(connections[1]).toBe(String(IDS.J1));
     expect(reversedPipe.coordinates).toEqual([
       [10, 10],
       [8, 8],
@@ -175,22 +180,24 @@ describe("reverse-link", () => {
   });
 
   it("throws error for node asset instead of link", () => {
+    const IDS = { J1: 1 } as const;
     const model = HydraulicModelBuilder.with()
-      .aJunction("J1", { coordinates: [0, 0] })
+      .aJunction(IDS.J1, { coordinates: [0, 0] })
       .build();
 
     expect(() => {
-      reverseLink(model, { linkId: "J1" });
-    }).toThrow("Link with id J1 not found");
+      reverseLink(model, { linkId: String(IDS.J1) });
+    }).toThrow(`Link with id ${String(IDS.J1)} not found`);
   });
 
   it("preserves asset immutability", () => {
+    const IDS = { J1: 1, J2: 2, P1: 3 } as const;
     const model = HydraulicModelBuilder.with()
-      .aJunction("J1", { coordinates: [0, 0] })
-      .aJunction("J2", { coordinates: [10, 0] })
-      .aPipe("P1", {
-        startNodeId: "J1",
-        endNodeId: "J2",
+      .aJunction(IDS.J1, { coordinates: [0, 0] })
+      .aJunction(IDS.J2, { coordinates: [10, 0] })
+      .aPipe(IDS.P1, {
+        startNodeId: String(IDS.J1),
+        endNodeId: String(IDS.J2),
         coordinates: [
           [0, 0],
           [5, 0],
@@ -199,13 +206,13 @@ describe("reverse-link", () => {
       })
       .build();
 
-    const originalPipe = model.assets.get("P1")!;
+    const originalPipe = model.assets.get(String(IDS.P1))!;
     const originalCoordinates = [...originalPipe.coordinates];
 
-    reverseLink(model, { linkId: "P1" });
+    reverseLink(model, { linkId: String(IDS.P1) });
 
-    expect((originalPipe as any).connections[0]).toBe("J1");
-    expect((originalPipe as any).connections[1]).toBe("J2");
+    expect((originalPipe as any).connections[0]).toBe(String(IDS.J1));
+    expect((originalPipe as any).connections[1]).toBe(String(IDS.J2));
     expect(originalPipe.coordinates).toEqual(originalCoordinates);
   });
 });

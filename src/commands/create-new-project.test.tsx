@@ -48,6 +48,7 @@ describe("create new project", () => {
   });
 
   it("erases the previous state", async () => {
+    const IDS = { J1: 1 } as const;
     const momentLogWithChanges = new MomentLog();
     momentLogWithChanges.append(aMoment("A"), aMoment("B"));
 
@@ -58,7 +59,7 @@ describe("create new project", () => {
     });
 
     const store = setInitialState({
-      hydraulicModel: HydraulicModelBuilder.with().aJunction("J1").build(),
+      hydraulicModel: HydraulicModelBuilder.with().aJunction(IDS.J1).build(),
       momentLog: momentLogWithChanges,
       fileInfo: previousFileInfo,
     });
@@ -86,11 +87,12 @@ describe("create new project", () => {
   });
 
   it("preseves state when canceled", async () => {
+    const IDS = { J1: 1 } as const;
     const momentLogWithChanges = new MomentLog();
     momentLogWithChanges.append(aMoment("A"), aMoment("B"));
 
     const store = setInitialState({
-      hydraulicModel: HydraulicModelBuilder.with().aJunction("J1").build(),
+      hydraulicModel: HydraulicModelBuilder.with().aJunction(IDS.J1).build(),
       momentLog: momentLogWithChanges,
     });
     renderComponent({ store });
@@ -104,7 +106,7 @@ describe("create new project", () => {
     });
     await userEvent.click(screen.getByRole("button", { name: /cancel/i }));
     const { hydraulicModel } = store.get(dataAtom);
-    expect(hydraulicModel.assets.get("J1")).not.toBeUndefined();
+    expect(hydraulicModel.assets.get(String(IDS.J1))).not.toBeUndefined();
   });
 
   const triggerNew = async () => {

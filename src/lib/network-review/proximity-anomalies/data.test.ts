@@ -3,19 +3,29 @@ import { decodeProximityAnomalies } from "./data";
 
 describe("decodeProximityAnomalies", () => {
   it("sorts proximity anomalies by distance (ascending)", () => {
+    const IDS = {
+      J1: 1,
+      J2: 2,
+      J3: 3,
+      J4: 4,
+      J5: 5,
+      J6: 6,
+      P1: 7,
+      P2: 8,
+    } as const;
     const model = HydraulicModelBuilder.with()
-      .aJunction("J1", { label: "Junction1" })
-      .aJunction("J2", { label: "Junction2" })
-      .aJunction("J3", { label: "Junction3" })
-      .aJunction("J4")
-      .aJunction("J5")
-      .aJunction("J6")
-      .aPipe("P1", { startNodeId: "J4", endNodeId: "J5" })
-      .aPipe("P2", { startNodeId: "J5", endNodeId: "J6" })
+      .aJunction(IDS.J1, { label: "Junction1" })
+      .aJunction(IDS.J2, { label: "Junction2" })
+      .aJunction(IDS.J3, { label: "Junction3" })
+      .aJunction(IDS.J4)
+      .aJunction(IDS.J5)
+      .aJunction(IDS.J6)
+      .aPipe(IDS.P1, { startNodeId: String(IDS.J4), endNodeId: String(IDS.J5) })
+      .aPipe(IDS.P2, { startNodeId: String(IDS.J5), endNodeId: String(IDS.J6) })
       .build();
 
-    const nodeIdsLookup = ["J1", "J2", "J3"];
-    const linkIdsLookup = ["P1", "P2"];
+    const nodeIdsLookup = [String(IDS.J1), String(IDS.J2), String(IDS.J3)];
+    const linkIdsLookup = [String(IDS.P1), String(IDS.P2)];
     const encodedProximityAnomalies = [
       {
         nodeId: 0,
@@ -45,17 +55,18 @@ describe("decodeProximityAnomalies", () => {
   });
 
   it("sorts anomalies with same distance by node label (alphabetical)", () => {
+    const IDS = { J1: 1, J2: 2, J3: 3, J4: 4, J5: 5, P1: 6 } as const;
     const model = HydraulicModelBuilder.with()
-      .aJunction("J1", { label: "Charlie" })
-      .aJunction("J2", { label: "Alice" })
-      .aJunction("J3", { label: "Bob" })
-      .aJunction("J4")
-      .aJunction("J5")
-      .aPipe("P1", { startNodeId: "J4", endNodeId: "J5" })
+      .aJunction(IDS.J1, { label: "Charlie" })
+      .aJunction(IDS.J2, { label: "Alice" })
+      .aJunction(IDS.J3, { label: "Bob" })
+      .aJunction(IDS.J4)
+      .aJunction(IDS.J5)
+      .aPipe(IDS.P1, { startNodeId: String(IDS.J4), endNodeId: String(IDS.J5) })
       .build();
 
-    const nodeIdsLookup = ["J1", "J2", "J3"];
-    const linkIdsLookup = ["P1"];
+    const nodeIdsLookup = [String(IDS.J1), String(IDS.J2), String(IDS.J3)];
+    const linkIdsLookup = [String(IDS.P1)];
     const encodedProximityAnomalies = [
       {
         nodeId: 0,
@@ -79,21 +90,22 @@ describe("decodeProximityAnomalies", () => {
     );
 
     expect(anomalies).toHaveLength(3);
-    expect(anomalies[0].nodeId).toBe("J2"); // Alice
-    expect(anomalies[1].nodeId).toBe("J3"); // Bob
-    expect(anomalies[2].nodeId).toBe("J1"); // Charlie
+    expect(anomalies[0].nodeId).toBe(String(IDS.J2)); // Alice
+    expect(anomalies[1].nodeId).toBe(String(IDS.J3)); // Bob
+    expect(anomalies[2].nodeId).toBe(String(IDS.J1)); // Charlie
   });
 
   it("filters out anomalies where pipe asset doesn't exist", () => {
+    const IDS = { J1: 1, J2: 2, J3: 3, P1: 4 } as const;
     const model = HydraulicModelBuilder.with()
-      .aJunction("J1", { label: "Junction1" })
-      .aJunction("J2")
-      .aJunction("J3")
-      .aPipe("P1", { startNodeId: "J2", endNodeId: "J3" })
+      .aJunction(IDS.J1, { label: "Junction1" })
+      .aJunction(IDS.J2)
+      .aJunction(IDS.J3)
+      .aPipe(IDS.P1, { startNodeId: String(IDS.J2), endNodeId: String(IDS.J3) })
       .build();
 
-    const nodeIdsLookup = ["J1"];
-    const linkIdsLookup = ["P1", "P2NonExistent"];
+    const nodeIdsLookup = [String(IDS.J1)];
+    const linkIdsLookup = [String(IDS.P1), "P2NonExistent"];
     const encodedProximityAnomalies = [
       {
         nodeId: 0,
@@ -114,22 +126,26 @@ describe("decodeProximityAnomalies", () => {
 
     // Should only include the one with valid pipe
     expect(anomalies).toHaveLength(1);
-    expect(anomalies[0].pipeId).toBe("P1");
+    expect(anomalies[0].pipeId).toBe(String(IDS.P1));
   });
 
   it("filters out anomalies where link is not a pipe", () => {
+    const IDS = { J1: 1, J2: 2, J3: 3, J4: 4, J5: 5, P1: 6, V1: 7 } as const;
     const model = HydraulicModelBuilder.with()
-      .aJunction("J1", { label: "Junction1" })
-      .aJunction("J2")
-      .aJunction("J3")
-      .aJunction("J4")
-      .aJunction("J5")
-      .aPipe("P1", { startNodeId: "J2", endNodeId: "J3" })
-      .aValve("V1", { startNodeId: "J4", endNodeId: "J5" })
+      .aJunction(IDS.J1, { label: "Junction1" })
+      .aJunction(IDS.J2)
+      .aJunction(IDS.J3)
+      .aJunction(IDS.J4)
+      .aJunction(IDS.J5)
+      .aPipe(IDS.P1, { startNodeId: String(IDS.J2), endNodeId: String(IDS.J3) })
+      .aValve(IDS.V1, {
+        startNodeId: String(IDS.J4),
+        endNodeId: String(IDS.J5),
+      })
       .build();
 
-    const nodeIdsLookup = ["J1"];
-    const linkIdsLookup = ["P1", "V1"];
+    const nodeIdsLookup = [String(IDS.J1)];
+    const linkIdsLookup = [String(IDS.P1), String(IDS.V1)];
     const encodedProximityAnomalies = [
       {
         nodeId: 0,
@@ -150,20 +166,21 @@ describe("decodeProximityAnomalies", () => {
 
     // Should only include the pipe, not the valve
     expect(anomalies).toHaveLength(1);
-    expect(anomalies[0].pipeId).toBe("P1");
+    expect(anomalies[0].pipeId).toBe(String(IDS.P1));
     expect(anomalies[0].distance).toBe(5.0);
   });
 
   it("preserves distance and nearestPointOnPipe coordinates", () => {
+    const IDS = { J1: 1, J2: 2, J3: 3, P1: 4 } as const;
     const model = HydraulicModelBuilder.with()
-      .aJunction("J1", { label: "Junction1" })
-      .aJunction("J2")
-      .aJunction("J3")
-      .aPipe("P1", { startNodeId: "J2", endNodeId: "J3" })
+      .aJunction(IDS.J1, { label: "Junction1" })
+      .aJunction(IDS.J2)
+      .aJunction(IDS.J3)
+      .aPipe(IDS.P1, { startNodeId: String(IDS.J2), endNodeId: String(IDS.J3) })
       .build();
 
-    const nodeIdsLookup = ["J1"];
-    const linkIdsLookup = ["P1"];
+    const nodeIdsLookup = [String(IDS.J1)];
+    const linkIdsLookup = [String(IDS.P1)];
     const encodedProximityAnomalies = [
       {
         nodeId: 0,
@@ -188,16 +205,17 @@ describe("decodeProximityAnomalies", () => {
   });
 
   it("handles edge case with missing node asset (uses nodeId as fallback label)", () => {
+    const IDS = { J1: 1, J2: 2, J3: 3, P1: 4 } as const;
     const model = HydraulicModelBuilder.with()
-      .aJunction("J1", { label: "ExistingNode" })
-      .aJunction("J2")
-      .aJunction("J3")
-      .aPipe("P1", { startNodeId: "J2", endNodeId: "J3" })
+      .aJunction(IDS.J1, { label: "ExistingNode" })
+      .aJunction(IDS.J2)
+      .aJunction(IDS.J3)
+      .aPipe(IDS.P1, { startNodeId: String(IDS.J2), endNodeId: String(IDS.J3) })
       .build();
 
     // Provide a nodeId that doesn't exist in the model
-    const nodeIdsLookup = ["J1", "NonExistentNode"];
-    const linkIdsLookup = ["P1"];
+    const nodeIdsLookup = [String(IDS.J1), "NonExistentNode"];
+    const linkIdsLookup = [String(IDS.P1)];
     const encodedProximityAnomalies = [
       {
         nodeId: 0,
@@ -221,6 +239,6 @@ describe("decodeProximityAnomalies", () => {
     expect(anomalies[0].distance).toBe(3.0);
     expect(anomalies[0].nodeId).toBe("NonExistentNode");
     expect(anomalies[1].distance).toBe(5.0);
-    expect(anomalies[1].nodeId).toBe("J1");
+    expect(anomalies[1].nodeId).toBe(String(IDS.J1));
   });
 });

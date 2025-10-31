@@ -6,12 +6,13 @@ import { Pipe } from "./asset-types/pipe";
 
 describe("createSpatialIndex", () => {
   it("creates spatial index from pipes", () => {
+    const IDS = { J1: 1, J2: 2, P1: 3 };
     const { assets } = HydraulicModelBuilder.with()
-      .aJunction("J1", { coordinates: [0, 0] })
-      .aJunction("J2", { coordinates: [10, 0] })
-      .aPipe("P1", {
-        startNodeId: "J1",
-        endNodeId: "J2",
+      .aJunction(IDS.J1, { coordinates: [0, 0] })
+      .aJunction(IDS.J2, { coordinates: [10, 0] })
+      .aPipe(IDS.P1, {
+        startNodeId: String(IDS.J1),
+        endNodeId: String(IDS.J2),
         coordinates: [
           [0, 0],
           [10, 0],
@@ -24,7 +25,7 @@ describe("createSpatialIndex", () => {
 
     expect(spatialIndexData.spatialIndex).toBeDefined();
     expect(spatialIndexData.segments).toHaveLength(1);
-    expect(spatialIndexData.segments[0].properties.linkId).toBe("P1");
+    expect(spatialIndexData.segments[0].properties.linkId).toBe(String(IDS.P1));
   });
 
   it("returns null spatial index when no pipes", () => {
@@ -35,21 +36,22 @@ describe("createSpatialIndex", () => {
   });
 
   it("handles multiple pipes with segments", () => {
+    const IDS = { J1: 1, J2: 2, J3: 3, P1: 4, P2: 5 };
     const { assets } = HydraulicModelBuilder.with()
-      .aJunction("J1", { coordinates: [0, 0] })
-      .aJunction("J2", { coordinates: [10, 0] })
-      .aJunction("J3", { coordinates: [0, 10] })
-      .aPipe("P1", {
-        startNodeId: "J1",
-        endNodeId: "J2",
+      .aJunction(IDS.J1, { coordinates: [0, 0] })
+      .aJunction(IDS.J2, { coordinates: [10, 0] })
+      .aJunction(IDS.J3, { coordinates: [0, 10] })
+      .aPipe(IDS.P1, {
+        startNodeId: String(IDS.J1),
+        endNodeId: String(IDS.J2),
         coordinates: [
           [0, 0],
           [10, 0],
         ],
       })
-      .aPipe("P2", {
-        startNodeId: "J1",
-        endNodeId: "J3",
+      .aPipe(IDS.P2, {
+        startNodeId: String(IDS.J1),
+        endNodeId: String(IDS.J3),
         coordinates: [
           [0, 0],
           [0, 10],
@@ -64,7 +66,7 @@ describe("createSpatialIndex", () => {
     expect(spatialIndexData.segments).toHaveLength(2);
 
     const pipeIds = spatialIndexData.segments.map((s) => s.properties.linkId);
-    expect(pipeIds).toContain("P1");
-    expect(pipeIds).toContain("P2");
+    expect(pipeIds).toContain(String(IDS.P1));
+    expect(pipeIds).toContain(String(IDS.P2));
   });
 });

@@ -7,10 +7,11 @@ import { Point } from "geojson";
 describe("build icons source", () => {
   describe("for pumps", () => {
     it("computes the feature of the pump icon", () => {
+      const IDS = { p1: 1, pu2: 2 } as const;
       const selectedAssets: Set<AssetId> = new Set();
       const { assets } = HydraulicModelBuilder.with()
-        .aPipe("p1")
-        .aPump("pu2", {
+        .aPipe(IDS.p1)
+        .aPump(IDS.pu2, {
           coordinates: [
             [10, 1],
             [20, 2],
@@ -40,9 +41,10 @@ describe("build icons source", () => {
     });
 
     it("can handle pumps with 0 length", () => {
+      const IDS = { pu2: 1 } as const;
       const selectedAssets: Set<AssetId> = new Set();
       const { assets } = HydraulicModelBuilder.with()
-        .aPump("pu2", {
+        .aPump(IDS.pu2, {
           coordinates: [
             [10, 1],
             [10, 1],
@@ -72,10 +74,11 @@ describe("build icons source", () => {
 
   describe("for valves", () => {
     it("computes the feature of the valve icon", () => {
+      const IDS = { p1: 1, v1: 2 } as const;
       const selectedAssets: Set<AssetId> = new Set();
       const { assets } = HydraulicModelBuilder.with()
-        .aPipe("p1")
-        .aValve("v1", {
+        .aPipe(IDS.p1)
+        .aValve(IDS.v1, {
           kind: "prv",
           coordinates: [
             [10, 1],
@@ -108,10 +111,11 @@ describe("build icons source", () => {
     });
 
     it("uses simulation status when available", () => {
+      const IDS = { p1: 1, v1: 2 } as const;
       const selectedAssets: Set<AssetId> = new Set();
       const { assets } = HydraulicModelBuilder.with()
-        .aPipe("p1")
-        .aValve("v1", {
+        .aPipe(IDS.p1)
+        .aValve(IDS.v1, {
           kind: "prv",
           coordinates: [
             [10, 1],
@@ -137,9 +141,10 @@ describe("build icons source", () => {
 
   describe("for CV pipes", () => {
     it("computes the feature of the CV pipe icon", () => {
+      const IDS = { p1: 1 } as const;
       const selectedAssets: Set<AssetId> = new Set();
       const { assets } = HydraulicModelBuilder.with()
-        .aPipe("p1", {
+        .aPipe(IDS.p1, {
           initialStatus: "cv",
           coordinates: [
             [10, 1],
@@ -169,9 +174,10 @@ describe("build icons source", () => {
     });
 
     it("uses simulation status for CV pipe icon selection", () => {
+      const IDS = { p1: 1 } as const;
       const selectedAssets: Set<AssetId> = new Set();
       const { assets } = HydraulicModelBuilder.with()
-        .aPipe("p1", {
+        .aPipe(IDS.p1, {
           initialStatus: "cv",
           coordinates: [
             [10, 1],
@@ -193,9 +199,10 @@ describe("build icons source", () => {
     });
 
     it("handles CV pipe with null simulation status", () => {
+      const IDS = { p1: 1 } as const;
       const selectedAssets: Set<AssetId> = new Set();
       const { assets } = HydraulicModelBuilder.with()
-        .aPipe("p1", {
+        .aPipe(IDS.p1, {
           initialStatus: "cv",
           coordinates: [
             [10, 1],
@@ -216,9 +223,10 @@ describe("build icons source", () => {
     });
 
     it("excludes non-CV pipes from icon generation", () => {
+      const IDS = { p1: 1 } as const;
       const selectedAssets: Set<AssetId> = new Set();
       const { assets } = HydraulicModelBuilder.with()
-        .aPipe("p1", {
+        .aPipe(IDS.p1, {
           initialStatus: "open",
           coordinates: [
             [10, 1],
@@ -237,9 +245,10 @@ describe("build icons source", () => {
     });
 
     it("uses open icon for CV pipe with open simulation status", () => {
+      const IDS = { p1: 1 } as const;
       const selectedAssets: Set<AssetId> = new Set();
       const { assets } = HydraulicModelBuilder.with()
-        .aPipe("p1", {
+        .aPipe(IDS.p1, {
           initialStatus: "cv",
           coordinates: [
             [10, 1],

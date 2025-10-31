@@ -2,7 +2,7 @@ import { buildJunction } from "../../__helpers__/hydraulic-model-builder";
 
 describe("Junction", () => {
   it("some basic operations with junction", () => {
-    const junction = buildJunction({ id: "ID", coordinates: [1, 2] });
+    const junction = buildJunction({ id: 1, coordinates: [1, 2] });
 
     expect(junction.elevation).toEqual(0);
 

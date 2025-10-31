@@ -199,12 +199,16 @@ describe("AllocationStep", () => {
 });
 
 const setWizardState = (store: Store, overrides: Partial<WizardState> = {}) => {
+  const IDS = { CP1: 1, CP2: 2 };
   const defaultWizardState: WizardState = {
     currentStep: 4,
     selectedFile: null,
     parsedCustomerPoints: null,
     parsedDataSummary: {
-      validCustomerPoints: [buildCustomerPoint("1"), buildCustomerPoint("2")],
+      validCustomerPoints: [
+        buildCustomerPoint(IDS.CP1),
+        buildCustomerPoint(IDS.CP2),
+      ],
       issues: null,
       totalCount: 2,
       demandImportUnit: "l/d",

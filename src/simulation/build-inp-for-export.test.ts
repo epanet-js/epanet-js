@@ -6,12 +6,13 @@ describe("build inp export ", () => {
   const exportOptions = { labelIds: true, geolocation: true };
 
   it("adds reservoirs", () => {
+    const IDS = { R1: 1, R2: 2 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aReservoir("r1", {
+      .aReservoir(IDS.R1, {
         label: "RES_1",
         head: 10,
       })
-      .aReservoir("r2", {
+      .aReservoir(IDS.R2, {
         label: "RES_2",
         head: 20,
       })
@@ -29,13 +30,14 @@ describe("build inp export ", () => {
   });
 
   it("adds junctions", () => {
+    const IDS = { J1: 1, J2: 2 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aJunction("j1", {
+      .aJunction(IDS.J1, {
         label: "J_1",
         elevation: 10,
         baseDemand: 1,
       })
-      .aJunction("j2", {
+      .aJunction(IDS.J2, {
         label: "J_2",
         elevation: 20,
         baseDemand: 2,
@@ -57,23 +59,24 @@ describe("build inp export ", () => {
   });
 
   it("adds pipes", () => {
+    const IDS = { J1: 1, J2: 2, R1: 3, P1: 4, P2: 5 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aJunction("j1", { label: "J_1" })
-      .aJunction("j2", { label: "J_2" })
-      .aReservoir("r1", { label: "RES_1" })
-      .aPipe("pipe1", {
+      .aJunction(IDS.J1, { label: "J_1" })
+      .aJunction(IDS.J2, { label: "J_2" })
+      .aReservoir(IDS.R1, { label: "RES_1" })
+      .aPipe(IDS.P1, {
         label: "P_1",
-        startNodeId: "j1",
-        endNodeId: "j2",
+        startNodeId: String(IDS.J1),
+        endNodeId: String(IDS.J2),
         length: 10,
         diameter: 100,
         roughness: 1,
         initialStatus: "open",
       })
-      .aPipe("pipe2", {
+      .aPipe(IDS.P2, {
         label: "P_2",
-        startNodeId: "j2",
-        endNodeId: "r1",
+        startNodeId: String(IDS.J2),
+        endNodeId: String(IDS.R1),
         length: 20,
         diameter: 200,
         roughness: 2,
@@ -158,13 +161,14 @@ describe("build inp export ", () => {
   });
 
   it("includes geographical info when requested", () => {
+    const IDS = { J1: 1, R1: 2, P1: 3 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aJunction("junction1", { label: "J_1", coordinates: [10, 1] })
-      .aReservoir("reservoir1", { label: "RES_1", coordinates: [20, 2] })
-      .aPipe("pipe1", {
+      .aJunction(IDS.J1, { label: "J_1", coordinates: [10, 1] })
+      .aReservoir(IDS.R1, { label: "RES_1", coordinates: [20, 2] })
+      .aPipe(IDS.P1, {
         label: "P_1",
-        startNodeId: "junction1",
-        endNodeId: "reservoir1",
+        startNodeId: String(IDS.J1),
+        endNodeId: String(IDS.R1),
         coordinates: [
           [10, 1],
           [30, 3],
@@ -194,21 +198,22 @@ describe("build inp export ", () => {
   });
 
   it("avoids collision of same labels between nodes", () => {
+    const IDS = { J1: 1, J2: 2, P1: 3 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aJunction("j1", {
+      .aJunction(IDS.J1, {
         label: "SAME_LABEL",
         elevation: 10,
         coordinates: [10, 10],
       })
-      .aJunction("j2", {
+      .aJunction(IDS.J2, {
         label: "SAME_LABEL",
         elevation: 20,
         coordinates: [20, 20],
       })
-      .aPipe("pipe1", {
+      .aPipe(IDS.P1, {
         label: "SAME_LABEL",
-        startNodeId: "j1",
-        endNodeId: "j2",
+        startNodeId: String(IDS.J1),
+        endNodeId: String(IDS.J2),
         length: 10,
         diameter: 100,
         roughness: 1,
@@ -235,25 +240,26 @@ describe("build inp export ", () => {
   });
 
   it("avoid collision of same labels between links", () => {
+    const IDS = { J1: 1, J2: 2, J3: 3, P1: 4, P2: 5 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aJunction("j1", {
+      .aJunction(IDS.J1, {
         label: "J_1",
       })
-      .aJunction("j2", {
+      .aJunction(IDS.J2, {
         label: "J_2",
       })
-      .aJunction("j3", {
+      .aJunction(IDS.J3, {
         label: "J_3",
       })
-      .aPipe("pipe1", {
+      .aPipe(IDS.P1, {
         label: "SAME_LABEL",
-        startNodeId: "j1",
-        endNodeId: "j2",
+        startNodeId: String(IDS.J1),
+        endNodeId: String(IDS.J2),
       })
-      .aPipe("pipe2", {
+      .aPipe(IDS.P2, {
         label: "SAME_LABEL",
-        startNodeId: "j2",
-        endNodeId: "j3",
+        startNodeId: String(IDS.J2),
+        endNodeId: String(IDS.J3),
       })
       .build();
 

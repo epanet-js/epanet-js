@@ -16,12 +16,13 @@ import {
 } from "src/lib/buffers";
 
 const createTestModel = () => {
+  const IDS = { J1: 1, J2: 2, T1: 3, P1: 4, P2: 5 } as const;
   return HydraulicModelBuilder.with()
-    .aJunction("J1")
-    .aJunction("J2")
-    .aTank("T1")
-    .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
-    .aPipe("P2", { startNodeId: "J2", endNodeId: "T1" })
+    .aJunction(IDS.J1)
+    .aJunction(IDS.J2)
+    .aTank(IDS.T1)
+    .aPipe(IDS.P1, { startNodeId: String(IDS.J1), endNodeId: String(IDS.J2) })
+    .aPipe(IDS.P2, { startNodeId: String(IDS.J2), endNodeId: String(IDS.T1) })
     .build();
 };
 
@@ -256,12 +257,13 @@ describe("HydraulicModelEncoder - links encoding options", () => {
   });
 
   it("encodes pipe segments when geoIndex enabled", () => {
+    const IDS = { J1: 1, J2: 2, P1: 3 } as const;
     const model = HydraulicModelBuilder.with()
-      .aJunction("J1", { coordinates: [0, 0] })
-      .aJunction("J2", { coordinates: [10, 10] })
-      .aPipe("P1", {
-        startNodeId: "J1",
-        endNodeId: "J2",
+      .aJunction(IDS.J1, { coordinates: [0, 0] })
+      .aJunction(IDS.J2, { coordinates: [10, 10] })
+      .aPipe(IDS.P1, {
+        startNodeId: String(IDS.J1),
+        endNodeId: String(IDS.J2),
         coordinates: [
           [0, 0],
           [5, 5],
@@ -286,12 +288,13 @@ describe("HydraulicModelEncoder - links encoding options", () => {
   });
 
   it("skips pipe segments when geoIndex disabled", () => {
+    const IDS = { J1: 1, J2: 2, P1: 3 } as const;
     const model = HydraulicModelBuilder.with()
-      .aJunction("J1", { coordinates: [0, 0] })
-      .aJunction("J2", { coordinates: [10, 10] })
-      .aPipe("P1", {
-        startNodeId: "J1",
-        endNodeId: "J2",
+      .aJunction(IDS.J1, { coordinates: [0, 0] })
+      .aJunction(IDS.J2, { coordinates: [10, 10] })
+      .aPipe(IDS.P1, {
+        startNodeId: String(IDS.J1),
+        endNodeId: String(IDS.J2),
         coordinates: [
           [0, 0],
           [5, 5],

@@ -3,9 +3,10 @@ import { processReportWithSlots } from "./report";
 
 describe("processReportWithSlots", () => {
   it("processes simple error messages into slots", () => {
+    const IDS = { P1: 1, P1234: 1234 };
     const assets = HydraulicModelBuilder.with()
-      .aPipe("1", { label: "P1_LABEL" })
-      .aPipe("1234", { label: "P1234_LABEL" })
+      .aPipe(IDS.P1, { label: "P1_LABEL" })
+      .aPipe(IDS.P1234, { label: "P1234_LABEL" })
       .build().assets;
 
     const report = `Error 233: Error 1
@@ -25,9 +26,10 @@ Error 215: Pipe 1234 is a duplicate ID.`;
   });
 
   it("handles multiple asset references in single row", () => {
+    const IDS = { J19: 19, P56: 56 };
     const assets = HydraulicModelBuilder.with()
-      .aJunction("19", { label: "J_19" })
-      .aPipe("56", { label: "P56_LABEL" })
+      .aJunction(IDS.J19, { label: "J_19" })
+      .aPipe(IDS.P56, { label: "P56_LABEL" })
       .build().assets;
 
     const report = `Node 19 and Pipe 56 are connected`;
@@ -61,9 +63,10 @@ Another normal line`;
   });
 
   it("handles valve type references", () => {
+    const IDS = { V1: 1, V20: 20 };
     const assets = HydraulicModelBuilder.with()
-      .aValve("1", { label: "MY_VALVE" })
-      .aValve("20", { label: "OTHER" })
+      .aValve(IDS.V1, { label: "MY_VALVE" })
+      .aValve(IDS.V20, { label: "OTHER" })
       .build().assets;
 
     const report = `PRV 1 open but cannot deliver pressure
@@ -83,8 +86,9 @@ FCV 20 open but cannot deliver pressure`;
   });
 
   it("skips Error 213 and Error 211 as expected", () => {
+    const IDS = { P0: 1 };
     const assets = HydraulicModelBuilder.with()
-      .aPipe("P0", { label: "P_ZERO" })
+      .aPipe(IDS.P0, { label: "P_ZERO" })
       .build().assets;
 
     const report = `Error 213: invalid option value 0 in [VALVES] section
@@ -104,10 +108,11 @@ Error 211: illegal link property value 0 0`;
   });
 
   it("handles complex multi-asset scenarios", () => {
+    const IDS = { R14: 14, J19: 19, P56: 56 };
     const assets = HydraulicModelBuilder.with()
-      .aReservoir("14", { label: "R_14" })
-      .aJunction("19", { label: "J_19" })
-      .aPipe("56", { label: "P56_LABEL" })
+      .aReservoir(IDS.R14, { label: "R_14" })
+      .aJunction(IDS.J19, { label: "J_19" })
+      .aPipe(IDS.P56, { label: "P56_LABEL" })
       .build().assets;
 
     const report = `0:00:00: Reservoir 14 is closed
@@ -137,8 +142,9 @@ Node 19 and Pipe 56`;
   });
 
   it("does not match valve type when no word follows", () => {
+    const IDS = { J0: 1 };
     const assets = HydraulicModelBuilder.with()
-      .aJunction("J0", { label: "J0" })
+      .aJunction(IDS.J0, { label: "J0" })
       .build().assets;
 
     const report = `Configuration: TCV 0`;
@@ -153,10 +159,11 @@ Node 19 and Pipe 56`;
   });
 
   it("replaces IDs with labels in VALVES section rows", () => {
+    const IDS = { V7: 7, J2: 2, J3: 3 };
     const assets = HydraulicModelBuilder.with()
-      .aValve("7", { label: "V7" })
-      .aJunction("2", { label: "J2" })
-      .aJunction("3", { label: "J3" })
+      .aValve(IDS.V7, { label: "V7" })
+      .aJunction(IDS.J2, { label: "J2" })
+      .aJunction(IDS.J3, { label: "J3" })
       .build().assets;
 
     const report = ` 7\t2\t3\t300\tTCV\t0\t0`;
@@ -171,38 +178,40 @@ Node 19 and Pipe 56`;
   });
 
   it("replaces IDs with labels in PIPES section rows", () => {
+    const IDS = { P1: 1, J1: 2, J2: 3 };
     const assets = HydraulicModelBuilder.with()
-      .aPipe("P1", { label: "Pipe1" })
-      .aJunction("J1", { label: "Junction1" })
-      .aJunction("J2", { label: "Junction2" })
+      .aPipe(IDS.P1, { label: "Pipe1" })
+      .aJunction(IDS.J1, { label: "Junction1" })
+      .aJunction(IDS.J2, { label: "Junction2" })
       .build().assets;
 
-    const report = `P1    J1     J2     1200      12      120       0.2     OPEN`;
+    const report = `1    2     3     1200      12      120       0.2     OPEN`;
 
     const { processedReport } = processReportWithSlots(report, assets);
 
     expect(processedReport).toHaveLength(1);
     expect(processedReport[0]).toEqual({
       text: "{{0}}    {{1}}     {{2}}     1200      12      120       0.2     OPEN",
-      assetSlots: ["P1", "J1", "J2"],
+      assetSlots: ["1", "2", "3"],
     });
   });
 
   it("replaces IDs with labels in PUMPS section rows", () => {
+    const IDS = { PUMP1: 1, N12: 12, N32: 32 };
     const assets = HydraulicModelBuilder.with()
-      .aPump("Pump1", { label: "MainPump" })
-      .aJunction("N12", { label: "Node12" })
-      .aJunction("N32", { label: "Node32" })
+      .aPump(IDS.PUMP1, { label: "MainPump" })
+      .aJunction(IDS.N12, { label: "Node12" })
+      .aJunction(IDS.N32, { label: "Node32" })
       .build().assets;
 
-    const report = `Pump1   N12     N32     HEAD Curve1  SPEED 1.2`;
+    const report = `1   12     32     HEAD Curve1  SPEED 1.2`;
 
     const { processedReport } = processReportWithSlots(report, assets);
 
     expect(processedReport).toHaveLength(1);
     expect(processedReport[0]).toEqual({
       text: "{{0}}   {{1}}     {{2}}     HEAD Curve1  SPEED 1.2",
-      assetSlots: ["Pump1", "N12", "N32"],
+      assetSlots: ["1", "12", "32"],
     });
   });
 

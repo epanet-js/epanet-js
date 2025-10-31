@@ -38,8 +38,11 @@ const renderComponent = ({ store }: { store: Store }) => {
 
 describe("useDrawingMode", () => {
   it("clears selection when changing to none mode", async () => {
-    const hydraulicModel = HydraulicModelBuilder.with().aJunction("J1").build();
-    const selection = aSingleSelection({ id: "J1" });
+    const IDS = { J1: 1 } as const;
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1)
+      .build();
+    const selection = aSingleSelection({ id: String(IDS.J1) });
     const store = setInitialState({
       hydraulicModel,
       selection,
@@ -59,8 +62,11 @@ describe("useDrawingMode", () => {
   });
 
   it("clears selection when changing to another drawing mode", async () => {
-    const hydraulicModel = HydraulicModelBuilder.with().aJunction("J1").build();
-    const selection = aSingleSelection({ id: "J1" });
+    const IDS = { J1: 1 } as const;
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1)
+      .build();
+    const selection = aSingleSelection({ id: String(IDS.J1) });
     const store = setInitialState({
       hydraulicModel,
       selection,

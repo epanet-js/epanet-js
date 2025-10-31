@@ -2,26 +2,31 @@ import { buildCustomerPoint } from "src/__helpers__/hydraulic-model-builder";
 
 describe("CustomerPoint", () => {
   it("creates customer point with provided ID", () => {
-    const customerPoint = buildCustomerPoint("5", {
+    const IDS = { CP5: 5 };
+    const customerPoint = buildCustomerPoint(IDS.CP5, {
       coordinates: [10, 20],
       demand: 100,
     });
 
-    expect(customerPoint.id).toBe("5");
+    expect(customerPoint.id).toBe(String(IDS.CP5));
     expect(customerPoint.coordinates).toEqual([10, 20]);
     expect(customerPoint.baseDemand).toBe(100);
   });
 
   it("creates customer point with zero demand", () => {
-    const customerPoint = buildCustomerPoint("1", { coordinates: [10, 20] });
+    const IDS = { CP1: 1 };
+    const customerPoint = buildCustomerPoint(IDS.CP1, {
+      coordinates: [10, 20],
+    });
 
-    expect(customerPoint.id).toBe("1");
+    expect(customerPoint.id).toBe(String(IDS.CP1));
     expect(customerPoint.coordinates).toEqual([10, 20]);
     expect(customerPoint.baseDemand).toBe(0);
   });
 
   it("copies customer point without connection", () => {
-    const originalPoint = buildCustomerPoint("CP1", {
+    const IDS = { CP1: 1 };
+    const originalPoint = buildCustomerPoint(IDS.CP1, {
       coordinates: [10, 20],
       demand: 50,
     });
@@ -40,16 +45,17 @@ describe("CustomerPoint", () => {
   });
 
   it("does not preserve connection data when copying", () => {
-    const originalPoint = buildCustomerPoint("CP1", {
+    const IDS = { CP1: 1, P1: 2, J1: 3 };
+    const originalPoint = buildCustomerPoint(IDS.CP1, {
       coordinates: [10, 20],
       demand: 50,
     });
 
     const connection = {
-      pipeId: "P1",
+      pipeId: String(IDS.P1),
       snapPoint: [15, 25] as [number, number],
       distance: 7.5,
-      junctionId: "J1",
+      junctionId: String(IDS.J1),
     };
 
     originalPoint.connect(connection);

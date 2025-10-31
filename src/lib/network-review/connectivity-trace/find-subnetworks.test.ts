@@ -18,12 +18,13 @@ describe("findSubNetworks", () => {
   }
 
   it("should identify a single connected network", () => {
+    const IDS = { R1: 1, J1: 2, J2: 3, P1: 4, P2: 5 } as const;
     const model = HydraulicModelBuilder.with()
-      .aReservoir("R1")
-      .aNode("J1")
-      .aNode("J2")
-      .aPipe("P1", { startNodeId: "R1", endNodeId: "J1" })
-      .aPipe("P2", { startNodeId: "J1", endNodeId: "J2" })
+      .aReservoir(IDS.R1)
+      .aNode(IDS.J1)
+      .aNode(IDS.J2)
+      .aPipe(IDS.P1, { startNodeId: String(IDS.R1), endNodeId: String(IDS.J1) })
+      .aPipe(IDS.P2, { startNodeId: String(IDS.J1), endNodeId: String(IDS.J2) })
       .build();
     const { linkIdsLookup, nodeIdsLookup, ...data } = encodeData(model);
 
@@ -41,16 +42,27 @@ describe("findSubNetworks", () => {
   });
 
   it("should identify multiple disconnected sub-networks", () => {
+    const IDS = {
+      R1: 1,
+      J1: 2,
+      P1: 3,
+      T1: 4,
+      J2: 5,
+      P2: 6,
+      J3: 7,
+      J4: 8,
+      P3: 9,
+    } as const;
     const model = HydraulicModelBuilder.with()
-      .aReservoir("R1")
-      .aNode("J1")
-      .aPipe("P1", { startNodeId: "R1", endNodeId: "J1" })
-      .aTank("T1")
-      .aNode("J2")
-      .aPipe("P2", { startNodeId: "T1", endNodeId: "J2" })
-      .aNode("J3")
-      .aNode("J4")
-      .aPipe("P3", { startNodeId: "J3", endNodeId: "J4" })
+      .aReservoir(IDS.R1)
+      .aNode(IDS.J1)
+      .aPipe(IDS.P1, { startNodeId: String(IDS.R1), endNodeId: String(IDS.J1) })
+      .aTank(IDS.T1)
+      .aNode(IDS.J2)
+      .aPipe(IDS.P2, { startNodeId: String(IDS.T1), endNodeId: String(IDS.J2) })
+      .aNode(IDS.J3)
+      .aNode(IDS.J4)
+      .aPipe(IDS.P3, { startNodeId: String(IDS.J3), endNodeId: String(IDS.J4) })
       .build();
     const { nodeIdsLookup, linkIdsLookup, ...data } = encodeData(model);
 
@@ -75,10 +87,11 @@ describe("findSubNetworks", () => {
   });
 
   it("should detect sub-networks without supply sources", () => {
+    const IDS = { J1: 1, J2: 2, P1: 3 } as const;
     const model = HydraulicModelBuilder.with()
-      .aNode("J1")
-      .aNode("J2")
-      .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
+      .aNode(IDS.J1)
+      .aNode(IDS.J2)
+      .aPipe(IDS.P1, { startNodeId: String(IDS.J1), endNodeId: String(IDS.J2) })
       .build();
     const { nodeIdsLookup, linkIdsLookup, ...data } = encodeData(model);
 
@@ -94,17 +107,29 @@ describe("findSubNetworks", () => {
   });
 
   it("should sort sub-networks by size (largest first)", () => {
+    const IDS = {
+      J1: 1,
+      J2: 2,
+      P1: 3,
+      R1: 4,
+      J3: 5,
+      J4: 6,
+      J5: 7,
+      P2: 8,
+      P3: 9,
+      P4: 10,
+    } as const;
     const model = HydraulicModelBuilder.with()
-      .aNode("J1")
-      .aNode("J2")
-      .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
-      .aReservoir("R1")
-      .aNode("J3")
-      .aNode("J4")
-      .aNode("J5")
-      .aPipe("P2", { startNodeId: "R1", endNodeId: "J3" })
-      .aPipe("P3", { startNodeId: "J3", endNodeId: "J4" })
-      .aPipe("P4", { startNodeId: "J4", endNodeId: "J5" })
+      .aNode(IDS.J1)
+      .aNode(IDS.J2)
+      .aPipe(IDS.P1, { startNodeId: String(IDS.J1), endNodeId: String(IDS.J2) })
+      .aReservoir(IDS.R1)
+      .aNode(IDS.J3)
+      .aNode(IDS.J4)
+      .aNode(IDS.J5)
+      .aPipe(IDS.P2, { startNodeId: String(IDS.R1), endNodeId: String(IDS.J3) })
+      .aPipe(IDS.P3, { startNodeId: String(IDS.J3), endNodeId: String(IDS.J4) })
+      .aPipe(IDS.P4, { startNodeId: String(IDS.J4), endNodeId: String(IDS.J5) })
       .build();
     const { nodeIdsLookup, linkIdsLookup, ...data } = encodeData(model);
 
@@ -122,10 +147,11 @@ describe("findSubNetworks", () => {
   });
 
   it("should calculate bounds for each sub-network", () => {
+    const IDS = { J1: 1, J2: 2, P1: 3 } as const;
     const model = HydraulicModelBuilder.with()
-      .aNode("J1", [1, 2])
-      .aNode("J2", [0, 3])
-      .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
+      .aNode(IDS.J1, [1, 2])
+      .aNode(IDS.J2, [0, 3])
+      .aPipe(IDS.P1, { startNodeId: String(IDS.J1), endNodeId: String(IDS.J2) })
       .build();
     const { nodeIdsLookup, linkIdsLookup, ...data } = encodeData(model);
 
@@ -141,14 +167,21 @@ describe("findSubNetworks", () => {
   });
 
   it("should handle networks with pumps and valves", () => {
+    const IDS = { T1: 1, J1: 2, PU1: 3, J2: 4, V1: 5, J3: 6, P1: 7 } as const;
     const model = HydraulicModelBuilder.with()
-      .aTank("T1")
-      .aNode("J1")
-      .aPump("PU1", { startNodeId: "T1", endNodeId: "J1" })
-      .aNode("J2")
-      .aValve("V1", { startNodeId: "J1", endNodeId: "J2" })
-      .aNode("J3")
-      .aPipe("P1", { startNodeId: "J2", endNodeId: "J3" })
+      .aTank(IDS.T1)
+      .aNode(IDS.J1)
+      .aPump(IDS.PU1, {
+        startNodeId: String(IDS.T1),
+        endNodeId: String(IDS.J1),
+      })
+      .aNode(IDS.J2)
+      .aValve(IDS.V1, {
+        startNodeId: String(IDS.J1),
+        endNodeId: String(IDS.J2),
+      })
+      .aNode(IDS.J3)
+      .aPipe(IDS.P1, { startNodeId: String(IDS.J2), endNodeId: String(IDS.J3) })
       .build();
     const { nodeIdsLookup, linkIdsLookup, ...data } = encodeData(model);
 
@@ -166,11 +199,12 @@ describe("findSubNetworks", () => {
   });
 
   it("does not report isolated single nodes", () => {
+    const IDS = { J1: 1, J2: 2, P1: 3, IsolatedNode: 4 } as const;
     const model = HydraulicModelBuilder.with()
-      .aNode("J1", [0, 0])
-      .aNode("J2", [1, 1])
-      .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
-      .aNode("IsolatedNode")
+      .aNode(IDS.J1, [0, 0])
+      .aNode(IDS.J2, [1, 1])
+      .aPipe(IDS.P1, { startNodeId: String(IDS.J1), endNodeId: String(IDS.J2) })
+      .aNode(IDS.IsolatedNode)
       .build();
     const { nodeIdsLookup, linkIdsLookup, ...data } = encodeData(model);
 
@@ -185,12 +219,13 @@ describe("findSubNetworks", () => {
   });
 
   it("should detect both tank and reservoir as supply sources", () => {
+    const IDS = { T1: 1, R1: 2, J1: 3, P1: 4, P2: 5 } as const;
     const model = HydraulicModelBuilder.with()
-      .aTank("T1")
-      .aReservoir("R1")
-      .aNode("J1")
-      .aPipe("P1", { startNodeId: "T1", endNodeId: "J1" })
-      .aPipe("P2", { startNodeId: "R1", endNodeId: "J1" })
+      .aTank(IDS.T1)
+      .aReservoir(IDS.R1)
+      .aNode(IDS.J1)
+      .aPipe(IDS.P1, { startNodeId: String(IDS.T1), endNodeId: String(IDS.J1) })
+      .aPipe(IDS.P2, { startNodeId: String(IDS.R1), endNodeId: String(IDS.J1) })
       .build();
     const { nodeIdsLookup, linkIdsLookup, ...data } = encodeData(model);
 

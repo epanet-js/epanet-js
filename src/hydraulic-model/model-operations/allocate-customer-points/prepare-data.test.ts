@@ -41,12 +41,13 @@ describe("prepareWorkerData", () => {
       });
 
       it("creates binary data Flatbush that returns search results", () => {
+        const IDS = { J1: 1, J2: 2, P1: 3 };
         const hydraulicModel = HydraulicModelBuilder.with()
-          .aJunction("J1", { coordinates: [0, 0] })
-          .aJunction("J2", { coordinates: [10, 0] })
-          .aPipe("P1", {
-            startNodeId: "J1",
-            endNodeId: "J2",
+          .aJunction(IDS.J1, { coordinates: [0, 0] })
+          .aJunction(IDS.J2, { coordinates: [10, 0] })
+          .aPipe(IDS.P1, {
+            startNodeId: String(IDS.J1),
+            endNodeId: String(IDS.J2),
             diameter: 12,
             coordinates: [
               [0, 0],
@@ -78,12 +79,13 @@ describe("prepareWorkerData", () => {
       });
 
       it("can read segment coordinates and pipe index from binary", () => {
+        const IDS = { J1: 1, J2: 2, P1: 3 };
         const hydraulicModel = HydraulicModelBuilder.with()
-          .aJunction("J1", { coordinates: [0, 0] })
-          .aJunction("J2", { coordinates: [10, 0] })
-          .aPipe("P1", {
-            startNodeId: "J1",
-            endNodeId: "J2",
+          .aJunction(IDS.J1, { coordinates: [0, 0] })
+          .aJunction(IDS.J2, { coordinates: [10, 0] })
+          .aPipe(IDS.P1, {
+            startNodeId: String(IDS.J1),
+            endNodeId: String(IDS.J2),
             diameter: 12,
             coordinates: [
               [0, 0],
@@ -126,12 +128,13 @@ describe("prepareWorkerData", () => {
       });
 
       it("can get pipe diameter from binary data using pipe index", () => {
+        const IDS = { J1: 1, J2: 2, P1: 3 };
         const hydraulicModel = HydraulicModelBuilder.with()
-          .aJunction("J1", { coordinates: [0, 0] })
-          .aJunction("J2", { coordinates: [10, 0] })
-          .aPipe("P1", {
-            startNodeId: "J1",
-            endNodeId: "J2",
+          .aJunction(IDS.J1, { coordinates: [0, 0] })
+          .aJunction(IDS.J2, { coordinates: [10, 0] })
+          .aPipe(IDS.P1, {
+            startNodeId: String(IDS.J1),
+            endNodeId: String(IDS.J2),
             diameter: 12,
             coordinates: [
               [0, 0],
@@ -167,12 +170,13 @@ describe("prepareWorkerData", () => {
       });
 
       it("can get pipe start and end node indexes from binary data", () => {
+        const IDS = { J1: 1, J2: 2, P1: 3 };
         const hydraulicModel = HydraulicModelBuilder.with()
-          .aJunction("J1", { coordinates: [0, 0] })
-          .aJunction("J2", { coordinates: [10, 0] })
-          .aPipe("P1", {
-            startNodeId: "J1",
-            endNodeId: "J2",
+          .aJunction(IDS.J1, { coordinates: [0, 0] })
+          .aJunction(IDS.J2, { coordinates: [10, 0] })
+          .aPipe(IDS.P1, {
+            startNodeId: String(IDS.J1),
+            endNodeId: String(IDS.J2),
             diameter: 12,
             coordinates: [
               [0, 0],
@@ -213,12 +217,13 @@ describe("prepareWorkerData", () => {
       });
 
       it("can get node coordinates from binary data", () => {
+        const IDS = { J1: 1, J2: 2, P1: 3 };
         const hydraulicModel = HydraulicModelBuilder.with()
-          .aJunction("J1", { coordinates: [5, 10] })
-          .aJunction("J2", { coordinates: [15, 20] })
-          .aPipe("P1", {
-            startNodeId: "J1",
-            endNodeId: "J2",
+          .aJunction(IDS.J1, { coordinates: [5, 10] })
+          .aJunction(IDS.J2, { coordinates: [15, 20] })
+          .aPipe(IDS.P1, {
+            startNodeId: String(IDS.J1),
+            endNodeId: String(IDS.J2),
             diameter: 12,
             coordinates: [
               [5, 10],
@@ -248,13 +253,14 @@ describe("prepareWorkerData", () => {
       });
 
       it("can get node types from binary data", () => {
+        const IDS = { J1: 1, R1: 2, T1: 3, P1: 4 };
         const hydraulicModel = HydraulicModelBuilder.with()
-          .aJunction("J1", { coordinates: [0, 0] })
-          .aReservoir("R1", { coordinates: [10, 0] })
-          .aTank("T1", { coordinates: [20, 0] })
-          .aPipe("P1", {
-            startNodeId: "J1",
-            endNodeId: "R1",
+          .aJunction(IDS.J1, { coordinates: [0, 0] })
+          .aReservoir(IDS.R1, { coordinates: [10, 0] })
+          .aTank(IDS.T1, { coordinates: [20, 0] })
+          .aPipe(IDS.P1, {
+            startNodeId: String(IDS.J1),
+            endNodeId: String(IDS.R1),
             diameter: 12,
             coordinates: [
               [0, 0],
@@ -286,16 +292,23 @@ describe("prepareWorkerData", () => {
       });
 
       it("can get node IDs from binary data", () => {
+        const IDS = {
+          J1: 1,
+          RESERVOIR_WITH_LONG_NAME: 2,
+          T0: 3,
+          EXACTLY_32_CHARACTER_NODE_ID_OK: 4,
+          P1: 5,
+        };
         const hydraulicModel = HydraulicModelBuilder.with()
-          .aJunction("J1", { coordinates: [0, 0] })
-          .aReservoir("reservoir-with-long-name", { coordinates: [10, 0] })
-          .aTank("T0", { coordinates: [20, 0] })
-          .aJunction("exactly-32-character-node-id-ok", {
+          .aJunction(IDS.J1, { coordinates: [0, 0] })
+          .aReservoir(IDS.RESERVOIR_WITH_LONG_NAME, { coordinates: [10, 0] })
+          .aTank(IDS.T0, { coordinates: [20, 0] })
+          .aJunction(IDS.EXACTLY_32_CHARACTER_NODE_ID_OK, {
             coordinates: [30, 0],
           })
-          .aPipe("P1", {
-            startNodeId: "J1",
-            endNodeId: "reservoir-with-long-name",
+          .aPipe(IDS.P1, {
+            startNodeId: String(IDS.J1),
+            endNodeId: String(IDS.RESERVOIR_WITH_LONG_NAME),
             diameter: 12,
             coordinates: [
               [0, 0],
@@ -322,20 +335,21 @@ describe("prepareWorkerData", () => {
         const zeroId = getNodeId(workerData.nodes, 2);
         const exactly32Id = getNodeId(workerData.nodes, 3);
 
-        expect(shortId).toBe("J1");
-        expect(longId).toBe("reservoir-with-long-name");
-        expect(zeroId).toBe("T0");
-        expect(exactly32Id).toBe("exactly-32-character-node-id-ok");
+        expect(shortId).toBe("1");
+        expect(longId).toBe("2");
+        expect(zeroId).toBe("3");
+        expect(exactly32Id).toBe("4");
       });
 
       it("handles edge cases for node ID encoding", () => {
+        const IDS = { J_EMPTY: 1, R00: 2, SPECIAL_CHARS: 3, P1: 4 };
         const hydraulicModel = HydraulicModelBuilder.with()
-          .aJunction("J_EMPTY", { coordinates: [0, 0] })
-          .aReservoir("R00", { coordinates: [10, 0] })
-          .aTank("special-chars-123!@#", { coordinates: [20, 0] })
-          .aPipe("P1", {
-            startNodeId: "J_EMPTY",
-            endNodeId: "R00",
+          .aJunction(IDS.J_EMPTY, { coordinates: [0, 0] })
+          .aReservoir(IDS.R00, { coordinates: [10, 0] })
+          .aTank(IDS.SPECIAL_CHARS, { coordinates: [20, 0] })
+          .aPipe(IDS.P1, {
+            startNodeId: String(IDS.J_EMPTY),
+            endNodeId: String(IDS.R00),
             diameter: 12,
             coordinates: [
               [0, 0],
@@ -359,20 +373,21 @@ describe("prepareWorkerData", () => {
         const doubleZeroId = getNodeId(workerData.nodes, 1);
         const specialCharsId = getNodeId(workerData.nodes, 2);
 
-        expect(emptyId).toBe("J_EMPTY");
-        expect(doubleZeroId).toBe("R00");
-        expect(specialCharsId).toBe("special-chars-123!@#");
+        expect(emptyId).toBe("1");
+        expect(doubleZeroId).toBe("2");
+        expect(specialCharsId).toBe("3");
       });
 
       it("can get customer point coordinates from binary data", () => {
+        const IDS = { J1: 1, CP1: 2, J2: 3, CP2: 4, P1: 5 };
         const hydraulicModel = HydraulicModelBuilder.with()
-          .aJunction("J1", { coordinates: [0, 0] })
-          .aCustomerPoint("CP1", { coordinates: [5, 10], demand: 1.5 })
-          .aJunction("J2", { coordinates: [10, 0] })
-          .aCustomerPoint("CP2", { coordinates: [15, 20], demand: 2.0 })
-          .aPipe("P1", {
-            startNodeId: "J1",
-            endNodeId: "J2",
+          .aJunction(IDS.J1, { coordinates: [0, 0] })
+          .aCustomerPoint(IDS.CP1, { coordinates: [5, 10], demand: 1.5 })
+          .aJunction(IDS.J2, { coordinates: [10, 0] })
+          .aCustomerPoint(IDS.CP2, { coordinates: [15, 20], demand: 2.0 })
+          .aPipe(IDS.P1, {
+            startNodeId: String(IDS.J1),
+            endNodeId: String(IDS.J2),
             diameter: 12,
             coordinates: [
               [0, 0],
@@ -411,24 +426,35 @@ describe("prepareWorkerData", () => {
       });
 
       it("can get customer point IDs from binary data", () => {
+        const IDS = {
+          J1: 1,
+          CP1: 2,
+          J2: 3,
+          CUSTOMER_WITH_LONG_NAME: 4,
+          J3: 5,
+          CP0: 6,
+          J4: 7,
+          EXACTLY_32_CHAR: 8,
+          P1: 9,
+        };
         const hydraulicModel = HydraulicModelBuilder.with()
-          .aJunction("J1", { coordinates: [0, 0] })
-          .aCustomerPoint("CP1", { coordinates: [5, 10], demand: 1.5 })
-          .aJunction("J2", { coordinates: [10, 0] })
-          .aCustomerPoint("customer-with-long-name", {
+          .aJunction(IDS.J1, { coordinates: [0, 0] })
+          .aCustomerPoint(IDS.CP1, { coordinates: [5, 10], demand: 1.5 })
+          .aJunction(IDS.J2, { coordinates: [10, 0] })
+          .aCustomerPoint(IDS.CUSTOMER_WITH_LONG_NAME, {
             coordinates: [15, 20],
             demand: 2.0,
           })
-          .aJunction("J3", { coordinates: [20, 0] })
-          .aCustomerPoint("0", { coordinates: [25, 30], demand: 3.0 })
-          .aJunction("J4", { coordinates: [30, 0] })
-          .aCustomerPoint("exactly-32-character-customer-i", {
+          .aJunction(IDS.J3, { coordinates: [20, 0] })
+          .aCustomerPoint(IDS.CP0, { coordinates: [25, 30], demand: 3.0 })
+          .aJunction(IDS.J4, { coordinates: [30, 0] })
+          .aCustomerPoint(IDS.EXACTLY_32_CHAR, {
             coordinates: [35, 40],
             demand: 4.0,
           })
-          .aPipe("P1", {
-            startNodeId: "J1",
-            endNodeId: "J2",
+          .aPipe(IDS.P1, {
+            startNodeId: String(IDS.J1),
+            endNodeId: String(IDS.J2),
             diameter: 12,
             coordinates: [
               [0, 0],
@@ -458,26 +484,35 @@ describe("prepareWorkerData", () => {
         const zeroId = getCustomerPointId(workerData.customerPoints, 2);
         const exactly32Id = getCustomerPointId(workerData.customerPoints, 3);
 
-        expect(shortId).toBe("CP1");
-        expect(longId).toBe("customer-with-long-name");
-        expect(zeroId).toBe("0");
-        expect(exactly32Id).toBe("exactly-32-character-customer-i");
+        expect(shortId).toBe("2");
+        expect(longId).toBe("4");
+        expect(zeroId).toBe("6");
+        expect(exactly32Id).toBe("8");
       });
 
       it("handles edge cases for customer point ID encoding", () => {
+        const IDS = {
+          J1: 1,
+          CP_EMPTY: 2,
+          J2: 3,
+          CP00: 4,
+          J3: 5,
+          SPECIAL_CHARS: 6,
+          P1: 7,
+        };
         const hydraulicModel = HydraulicModelBuilder.with()
-          .aJunction("J1", { coordinates: [0, 0] })
-          .aCustomerPoint("", { coordinates: [5, 10], demand: 1.5 })
-          .aJunction("J2", { coordinates: [10, 0] })
-          .aCustomerPoint("00", { coordinates: [15, 20], demand: 2.0 })
-          .aJunction("J3", { coordinates: [20, 0] })
-          .aCustomerPoint("special-chars-123!@#", {
+          .aJunction(IDS.J1, { coordinates: [0, 0] })
+          .aCustomerPoint(IDS.CP_EMPTY, { coordinates: [5, 10], demand: 1.5 })
+          .aJunction(IDS.J2, { coordinates: [10, 0] })
+          .aCustomerPoint(IDS.CP00, { coordinates: [15, 20], demand: 2.0 })
+          .aJunction(IDS.J3, { coordinates: [20, 0] })
+          .aCustomerPoint(IDS.SPECIAL_CHARS, {
             coordinates: [25, 30],
             demand: 3.0,
           })
-          .aPipe("P1", {
-            startNodeId: "J1",
-            endNodeId: "J2",
+          .aPipe(IDS.P1, {
+            startNodeId: String(IDS.J1),
+            endNodeId: String(IDS.J2),
             diameter: 12,
             coordinates: [
               [0, 0],
@@ -504,18 +539,19 @@ describe("prepareWorkerData", () => {
         const doubleZeroId = getCustomerPointId(workerData.customerPoints, 1);
         const specialCharsId = getCustomerPointId(workerData.customerPoints, 2);
 
-        expect(emptyId).toBe("");
-        expect(doubleZeroId).toBe("00");
-        expect(specialCharsId).toBe("special-chars-123!@#");
+        expect(emptyId).toBe("2");
+        expect(doubleZeroId).toBe("4");
+        expect(specialCharsId).toBe("6");
       });
 
       it("handles hydraulic model with no customer points", () => {
+        const IDS = { J1: 1, J2: 2, P1: 3 };
         const hydraulicModel = HydraulicModelBuilder.with()
-          .aJunction("J1", { coordinates: [0, 0] })
-          .aJunction("J2", { coordinates: [10, 0] })
-          .aPipe("P1", {
-            startNodeId: "J1",
-            endNodeId: "J2",
+          .aJunction(IDS.J1, { coordinates: [0, 0] })
+          .aJunction(IDS.J2, { coordinates: [10, 0] })
+          .aPipe(IDS.P1, {
+            startNodeId: String(IDS.J1),
+            endNodeId: String(IDS.J2),
             diameter: 12,
             coordinates: [
               [0, 0],

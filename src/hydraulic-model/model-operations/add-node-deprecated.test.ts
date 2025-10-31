@@ -10,13 +10,13 @@ import { Junction, Reservoir } from "../asset-types";
 describe("addNode", () => {
   it("creates a copy of the node", () => {
     const hydraulicModel = HydraulicModelBuilder.with().build();
-    const node = buildJunction({ coordinates: [10, 10], id: "A" });
+    const node = buildJunction({ coordinates: [10, 10], id: 1 });
 
     const { putAssets } = addNodeDeprecated(hydraulicModel, {
       node,
     });
 
-    expect(putAssets![0].id).toEqual("A");
+    expect(putAssets![0].id).toEqual("1");
     const junctionToCreate = putAssets![0] as Junction;
     expect(junctionToCreate.coordinates).toEqual([10, 10]);
   });
@@ -24,7 +24,7 @@ describe("addNode", () => {
   it("adds a label to the junction when missing", () => {
     const hydraulicModel = HydraulicModelBuilder.with().build();
     const node = buildJunction({
-      id: "junction",
+      id: 1,
       label: "",
     });
 
@@ -33,14 +33,14 @@ describe("addNode", () => {
     });
 
     const junctionToCreate = putAssets![0] as Junction;
-    expect(junctionToCreate.id).toEqual("junction");
+    expect(junctionToCreate.id).toEqual("1");
     expect(junctionToCreate.label).toEqual("J1");
   });
 
   it("preserves existing label when present", () => {
     const hydraulicModel = HydraulicModelBuilder.with().build();
     const node = buildJunction({
-      id: "junction",
+      id: 1,
       label: "CUSTOM",
     });
 
@@ -49,14 +49,14 @@ describe("addNode", () => {
     });
 
     const junctionToCreate = putAssets![0] as Junction;
-    expect(junctionToCreate.id).toEqual("junction");
+    expect(junctionToCreate.id).toEqual("1");
     expect(junctionToCreate.label).toEqual("CUSTOM");
   });
 
   it("adds a label to the reservoir when missing", () => {
     const hydraulicModel = HydraulicModelBuilder.with().build();
     const node = buildReservoir({
-      id: "reservoir",
+      id: 1,
       label: "",
     });
 
@@ -65,13 +65,13 @@ describe("addNode", () => {
     });
 
     const reservoirToCreate = putAssets![0] as Reservoir;
-    expect(reservoirToCreate.id).toEqual("reservoir");
+    expect(reservoirToCreate.id).toEqual("1");
     expect(reservoirToCreate.label).toEqual("R1");
   });
 
   it("returns proper note for junction", () => {
     const hydraulicModel = HydraulicModelBuilder.with().build();
-    const node = buildJunction({ id: "junction" });
+    const node = buildJunction({ id: 1 });
 
     const { note } = addNodeDeprecated(hydraulicModel, {
       node,
@@ -82,7 +82,7 @@ describe("addNode", () => {
 
   it("returns proper note for reservoir", () => {
     const hydraulicModel = HydraulicModelBuilder.with().build();
-    const node = buildReservoir({ id: "reservoir" });
+    const node = buildReservoir({ id: 1 });
 
     const { note } = addNodeDeprecated(hydraulicModel, {
       node,

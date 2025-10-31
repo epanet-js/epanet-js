@@ -16,6 +16,7 @@ describe.skip("importCustomerPoints", () => {
   });
 
   it("imports GeoJSON customer points correctly", async () => {
+    const IDS = { CP1: 1, CP2: 2 } as const;
     const store = createStoreWithPipes();
 
     renderComponent({ store });
@@ -87,8 +88,8 @@ describe.skip("importCustomerPoints", () => {
     const { hydraulicModel } = store.get(dataAtom);
     expect(hydraulicModel.customerPoints.size).toBe(2);
 
-    const customerPoint1 = hydraulicModel.customerPoints.get("1");
-    const customerPoint2 = hydraulicModel.customerPoints.get("2");
+    const customerPoint1 = hydraulicModel.customerPoints.get(String(IDS.CP1));
+    const customerPoint2 = hydraulicModel.customerPoints.get(String(IDS.CP2));
 
     expect(customerPoint1).toBeDefined();
     expect(customerPoint1?.coordinates).toEqual([0.0003, 0.0003]);
@@ -100,6 +101,7 @@ describe.skip("importCustomerPoints", () => {
   });
 
   it("assigns IDs starting from 1 for empty model", async () => {
+    const IDS = { CP1: 1, CP2: 2 } as const;
     const store = createStoreWithPipes();
 
     renderComponent({ store });
@@ -135,11 +137,12 @@ describe.skip("importCustomerPoints", () => {
     await expectSuccessNotification();
 
     const { hydraulicModel } = store.get(dataAtom);
-    expect(hydraulicModel.customerPoints.has("1")).toBe(true);
-    expect(hydraulicModel.customerPoints.has("2")).toBe(true);
+    expect(hydraulicModel.customerPoints.has(String(IDS.CP1))).toBe(true);
+    expect(hydraulicModel.customerPoints.has(String(IDS.CP2))).toBe(true);
   });
 
   it("skips non-Point geometries", async () => {
+    const IDS = { CP1: 1 } as const;
     const store = createStoreWithPipes();
 
     renderComponent({ store });
@@ -171,19 +174,20 @@ describe.skip("importCustomerPoints", () => {
 
     const { hydraulicModel } = store.get(dataAtom);
     expect(hydraulicModel.customerPoints.size).toBe(1);
-    expect(hydraulicModel.customerPoints.get("1")?.coordinates).toEqual([
-      0.0004, 0.0004,
-    ]);
+    expect(
+      hydraulicModel.customerPoints.get(String(IDS.CP1))?.coordinates,
+    ).toEqual([0.0004, 0.0004]);
   });
 
   it("keeps existing demands when add on top option is selected", async () => {
+    const IDS = { J1: 1, J2: 2, P1: 3 } as const;
     const store = setInitialState({
       hydraulicModel: HydraulicModelBuilder.with()
-        .aJunction("J1", { coordinates: [0, 0], baseDemand: 30 })
-        .aJunction("J2", { coordinates: [0.001, 0.001], baseDemand: 45 })
-        .aPipe("P1", {
-          startNodeId: "J1",
-          endNodeId: "J2",
+        .aJunction(IDS.J1, { coordinates: [0, 0], baseDemand: 30 })
+        .aJunction(IDS.J2, { coordinates: [0.001, 0.001], baseDemand: 45 })
+        .aPipe(IDS.P1, {
+          startNodeId: String(IDS.J1),
+          endNodeId: String(IDS.J2),
           diameter: 150,
           coordinates: [
             [0, 0],
@@ -236,12 +240,12 @@ describe.skip("importCustomerPoints", () => {
     await expectSuccessNotification();
 
     const { hydraulicModel } = store.get(dataAtom);
-    const junction = hydraulicModel.assets.get("J1") as Junction;
+    const junction = hydraulicModel.assets.get(String(IDS.J1)) as Junction;
 
     expect(junction.baseDemand).toBe(30);
 
     const junctionCustomerPoints =
-      hydraulicModel.customerPointsLookup.getCustomerPoints("J1");
+      hydraulicModel.customerPointsLookup.getCustomerPoints(String(IDS.J1));
     expect(junctionCustomerPoints?.size).toBe(1);
     expect(
       junction.getTotalCustomerDemand(hydraulicModel.customerPointsLookup),
@@ -249,13 +253,14 @@ describe.skip("importCustomerPoints", () => {
   });
 
   it("replaces existing demands when replace option is selected", async () => {
+    const IDS = { J1: 1, J2: 2, P1: 3 } as const;
     const store = setInitialState({
       hydraulicModel: HydraulicModelBuilder.with()
-        .aJunction("J1", { coordinates: [0, 0], baseDemand: 40 })
-        .aJunction("J2", { coordinates: [0.001, 0.001], baseDemand: 60 })
-        .aPipe("P1", {
-          startNodeId: "J1",
-          endNodeId: "J2",
+        .aJunction(IDS.J1, { coordinates: [0, 0], baseDemand: 40 })
+        .aJunction(IDS.J2, { coordinates: [0.001, 0.001], baseDemand: 60 })
+        .aPipe(IDS.P1, {
+          startNodeId: String(IDS.J1),
+          endNodeId: String(IDS.J2),
           diameter: 150,
           coordinates: [
             [0, 0],
@@ -304,12 +309,12 @@ describe.skip("importCustomerPoints", () => {
     await expectSuccessNotification();
 
     const { hydraulicModel } = store.get(dataAtom);
-    const junction = hydraulicModel.assets.get("J1") as Junction;
+    const junction = hydraulicModel.assets.get(String(IDS.J1)) as Junction;
 
     expect(junction.baseDemand).toBe(0);
 
     const junctionCustomerPoints =
-      hydraulicModel.customerPointsLookup.getCustomerPoints("J1");
+      hydraulicModel.customerPointsLookup.getCustomerPoints(String(IDS.J1));
     expect(junctionCustomerPoints?.size).toBe(1);
     expect(
       junction.getTotalCustomerDemand(hydraulicModel.customerPointsLookup),
@@ -377,10 +382,11 @@ describe.skip("importCustomerPoints", () => {
 
   describe("warning dialog behavior", () => {
     it("shows warning when existing customer points exist", async () => {
+      const IDS = { J1: 1, EXISTING: 2 } as const;
       const store = setInitialState({
         hydraulicModel: HydraulicModelBuilder.with()
-          .aJunction("J1", { coordinates: [0, 0] })
-          .aCustomerPoint("EXISTING", {
+          .aJunction(IDS.J1, { coordinates: [0, 0] })
+          .aCustomerPoint(IDS.EXISTING, {
             coordinates: [5, 5],
             demand: 100,
           })
@@ -596,12 +602,13 @@ const createMixedValidInvalidGeoJSON = (): string => {
 const createStoreWithPipes = (
   additionalSetup?: (builder: HydraulicModelBuilder) => HydraulicModelBuilder,
 ) => {
+  const IDS = { J1: 1, J2: 2, P1: 3 } as const;
   const baseModel = HydraulicModelBuilder.with()
-    .aJunction("J1", { coordinates: [0, 0] })
-    .aJunction("J2", { coordinates: [0.001, 0.001] })
-    .aPipe("P1", {
-      startNodeId: "J1",
-      endNodeId: "J2",
+    .aJunction(IDS.J1, { coordinates: [0, 0] })
+    .aJunction(IDS.J2, { coordinates: [0.001, 0.001] })
+    .aPipe(IDS.P1, {
+      startNodeId: String(IDS.J1),
+      endNodeId: String(IDS.J2),
       diameter: 150, // Within maxDiameter: 200 limit
       coordinates: [
         [0, 0],

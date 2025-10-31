@@ -95,7 +95,7 @@ export const buildReservoir = (data: ReservoirBuildData = {}) => {
 };
 
 export const buildCustomerPoint = (
-  id: string,
+  id: number,
   options: {
     demand?: number;
     coordinates?: Position;
@@ -103,8 +103,12 @@ export const buildCustomerPoint = (
     label?: string;
   } = {},
 ) => {
-  const { demand = 0, coordinates = [0, 0], label = id } = options;
-  return CustomerPoint.build(id, coordinates, { baseDemand: demand, label });
+  const stringId = String(id);
+  const { demand = 0, coordinates = [0, 0], label = stringId } = options;
+  return CustomerPoint.build(stringId, coordinates, {
+    baseDemand: demand,
+    label,
+  });
 };
 
 export class HydraulicModelBuilder {
@@ -144,42 +148,28 @@ export class HydraulicModelBuilder {
     this.headlossFormulaValue = "H-W";
   }
 
-  aNode(id: string, coordinates: Position = [0, 0]) {
-    const parsedId = Number(id);
-    if (parsedId === 0) {
-      throw new Error(
-        `Invalid ID "${id}": ID cannot be "0" as it would result in an invalid internal ID`,
-      );
-    }
-    const internalId = isNaN(parsedId) ? this.idGenerator.newId() : parsedId;
+  aNode(id: number, coordinates: Position = [0, 0]) {
+    const stringId = String(id);
     const node = this.assetBuilder.buildJunction({
       coordinates,
       id,
-      internalId,
     });
-    this.assets.set(id, node);
+    this.assets.set(stringId, node);
     return this;
   }
 
   aJunction(
-    id: string,
+    id: number,
     data: Partial<
       JunctionBuildData & {
         simulation: Partial<{ pressure: number; head: number; demand: number }>;
       }
     > = {},
   ) {
-    const parsedId = Number(id);
-    if (parsedId === 0) {
-      throw new Error(
-        `Invalid ID "${id}": ID cannot be "0" as it would result in an invalid internal ID`,
-      );
-    }
-    const internalId = isNaN(parsedId) ? this.idGenerator.newId() : parsedId;
+    const stringId = String(id);
     const { simulation, ...properties } = data;
     const junction = this.assetBuilder.buildJunction({
       id,
-      internalId,
       ...properties,
     });
     if (simulation) {
@@ -190,29 +180,22 @@ export class HydraulicModelBuilder {
         ...simulation,
       });
     }
-    this.assets.set(id, junction);
+    this.assets.set(stringId, junction);
     return this;
   }
 
-  aReservoir(id: string, properties: Partial<ReservoirBuildData> = {}) {
-    const parsedId = Number(id);
-    if (parsedId === 0) {
-      throw new Error(
-        `Invalid ID "${id}": ID cannot be "0" as it would result in an invalid internal ID`,
-      );
-    }
-    const internalId = isNaN(parsedId) ? this.idGenerator.newId() : parsedId;
+  aReservoir(id: number, properties: Partial<ReservoirBuildData> = {}) {
+    const stringId = String(id);
     const reservoir = this.assetBuilder.buildReservoir({
       id,
-      internalId,
       ...properties,
     });
-    this.assets.set(id, reservoir);
+    this.assets.set(stringId, reservoir);
     return this;
   }
 
   aTank(
-    id: string,
+    id: number,
     data: Partial<
       TankBuildData & {
         simulation: Partial<{
@@ -224,17 +207,10 @@ export class HydraulicModelBuilder {
       }
     > = {},
   ) {
-    const parsedId = Number(id);
-    if (parsedId === 0) {
-      throw new Error(
-        `Invalid ID "${id}": ID cannot be "0" as it would result in an invalid internal ID`,
-      );
-    }
-    const internalId = isNaN(parsedId) ? this.idGenerator.newId() : parsedId;
+    const stringId = String(id);
     const { simulation, ...properties } = data;
     const tank = this.assetBuilder.buildTank({
       id,
-      internalId,
       ...properties,
     });
     if (simulation) {
@@ -246,12 +222,12 @@ export class HydraulicModelBuilder {
         ...simulation,
       });
     }
-    this.assets.set(id, tank);
+    this.assets.set(stringId, tank);
     return this;
   }
 
   aPipe(
-    id: string,
+    id: number,
     data: Partial<
       PipeBuildData & {
         startNodeId: string;
@@ -261,13 +237,7 @@ export class HydraulicModelBuilder {
       }
     > = {},
   ) {
-    const parsedId = Number(id);
-    if (parsedId === 0) {
-      throw new Error(
-        `Invalid ID "${id}": ID cannot be "0" as it would result in an invalid internal ID`,
-      );
-    }
-    const internalId = isNaN(parsedId) ? this.idGenerator.newId() : parsedId;
+    const stringId = String(id);
     const { startNodeId, endNodeId, simulation, ...properties } = data;
     const startNode = this.getNodeOrCreate(startNodeId);
     const endNode = this.getNodeOrCreate(endNodeId);
@@ -276,10 +246,9 @@ export class HydraulicModelBuilder {
       coordinates: [startNode.coordinates, endNode.coordinates],
       connections: [startNode.id, endNode.id],
       id,
-      internalId,
       ...properties,
     });
-    this.assets.set(id, pipe);
+    this.assets.set(stringId, pipe);
     if (simulation) {
       pipe.setSimulation({
         flow: 10,
@@ -290,13 +259,13 @@ export class HydraulicModelBuilder {
         ...simulation,
       });
     }
-    this.topology.addLink(id, startNode.id, endNode.id);
+    this.topology.addLink(stringId, startNode.id, endNode.id);
 
     return this;
   }
 
   aPump(
-    id: string,
+    id: number,
     data: Partial<
       PumpBuildData & {
         startNodeId: string;
@@ -311,13 +280,7 @@ export class HydraulicModelBuilder {
       }
     > = {},
   ) {
-    const parsedId = Number(id);
-    if (parsedId === 0) {
-      throw new Error(
-        `Invalid ID "${id}": ID cannot be "0" as it would result in an invalid internal ID`,
-      );
-    }
-    const internalId = isNaN(parsedId) ? this.idGenerator.newId() : parsedId;
+    const stringId = String(id);
     const { startNodeId, endNodeId, simulation, ...properties } = data;
     const startNode = this.getNodeOrCreate(startNodeId);
     const endNode = this.getNodeOrCreate(endNodeId);
@@ -326,7 +289,6 @@ export class HydraulicModelBuilder {
       coordinates: [startNode.coordinates, endNode.coordinates],
       connections: [startNode.id, endNode.id],
       id,
-      internalId,
       ...properties,
     });
     if (simulation) {
@@ -338,14 +300,14 @@ export class HydraulicModelBuilder {
         ...simulation,
       });
     }
-    this.assets.set(id, pump);
-    this.topology.addLink(id, startNode.id, endNode.id);
+    this.assets.set(stringId, pump);
+    this.topology.addLink(stringId, startNode.id, endNode.id);
 
     return this;
   }
 
   aValve(
-    id: string,
+    id: number,
     data: Partial<
       ValveBuildData & {
         startNodeId: string;
@@ -355,13 +317,7 @@ export class HydraulicModelBuilder {
       }
     > = {},
   ) {
-    const parsedId = Number(id);
-    if (parsedId === 0) {
-      throw new Error(
-        `Invalid ID "${id}": ID cannot be "0" as it would result in an invalid internal ID`,
-      );
-    }
-    const internalId = isNaN(parsedId) ? this.idGenerator.newId() : parsedId;
+    const stringId = String(id);
     const { startNodeId, endNodeId, simulation, ...properties } = data;
     const startNode = this.getNodeOrCreate(startNodeId);
     const endNode = this.getNodeOrCreate(endNodeId);
@@ -370,7 +326,6 @@ export class HydraulicModelBuilder {
       coordinates: [startNode.coordinates, endNode.coordinates],
       connections: [startNode.id, endNode.id],
       id,
-      internalId,
       ...properties,
     });
     if (simulation) {
@@ -383,14 +338,14 @@ export class HydraulicModelBuilder {
         ...simulation,
       });
     }
-    this.assets.set(id, valve);
-    this.topology.addLink(id, startNode.id, endNode.id);
+    this.assets.set(stringId, valve);
+    this.topology.addLink(stringId, startNode.id, endNode.id);
 
     return this;
   }
 
   aLink(
-    id: string,
+    id: number,
     startNodeId: string,
     endNodeId: string,
     properties: Partial<PipeProperties> = {},
@@ -409,10 +364,11 @@ export class HydraulicModelBuilder {
   }
 
   aCustomerPoint(
-    id: string,
+    id: number,
     options: {
       demand?: number;
       coordinates?: Position;
+      label?: string;
       connection?: {
         pipeId: string;
         junctionId: string;
@@ -420,6 +376,7 @@ export class HydraulicModelBuilder {
       };
     } = {},
   ) {
+    const stringId = String(id);
     const { connection, ...customerPointOptions } = options;
     const customerPoint = buildCustomerPoint(id, customerPointOptions);
 
@@ -449,7 +406,7 @@ export class HydraulicModelBuilder {
       });
     }
 
-    this.customerPointsMap.set(id, customerPoint);
+    this.customerPointsMap.set(stringId, customerPoint);
     return this;
   }
 

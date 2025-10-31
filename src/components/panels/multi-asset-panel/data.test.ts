@@ -32,10 +32,11 @@ describe("computeMultiAssetData", () => {
   };
 
   it("groups assets by type", () => {
+    const IDS = { J1: 1, J2: 2, P1: 3 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aJunction("J1")
-      .aJunction("J2")
-      .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
+      .aJunction(IDS.J1)
+      .aJunction(IDS.J2)
+      .aPipe(IDS.P1, { startNodeId: String(IDS.J1), endNodeId: String(IDS.J2) })
       .build();
 
     const assets = Array.from(hydraulicModel.assets.values());
@@ -48,9 +49,10 @@ describe("computeMultiAssetData", () => {
   });
 
   it("computes junction stats with sections", () => {
+    const IDS = { J1: 1, J2: 2 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aJunction("J1", { elevation: 100, baseDemand: 10 })
-      .aJunction("J2", { elevation: 150, baseDemand: 20 })
+      .aJunction(IDS.J1, { elevation: 100, baseDemand: 10 })
+      .aJunction(IDS.J2, { elevation: 150, baseDemand: 20 })
       .build();
 
     const assets = Array.from(hydraulicModel.assets.values());
@@ -78,9 +80,10 @@ describe("computeMultiAssetData", () => {
   });
 
   it("excludes null simulation results from stats", () => {
+    const IDS = { J1: 1, J2: 2 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aJunction("J1", { elevation: 100 })
-      .aJunction("J2", { elevation: 150 })
+      .aJunction(IDS.J1, { elevation: 100 })
+      .aJunction(IDS.J2, { elevation: 150 })
       .build();
 
     const assets = Array.from(hydraulicModel.assets.values());
@@ -91,12 +94,13 @@ describe("computeMultiAssetData", () => {
   });
 
   it("includes simulation results when available", () => {
+    const IDS = { J1: 1, J2: 2 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aJunction("J1", {
+      .aJunction(IDS.J1, {
         elevation: 100,
         simulation: { pressure: 50, head: 150, demand: 10 },
       })
-      .aJunction("J2", {
+      .aJunction(IDS.J2, {
         elevation: 150,
         simulation: { pressure: 60, head: 210, demand: 15 },
       })
@@ -115,19 +119,20 @@ describe("computeMultiAssetData", () => {
   });
 
   it("computes pipe stats with sections", () => {
+    const IDS = { J1: 1, J2: 2, P1: 3, P2: 4 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aJunction("J1")
-      .aJunction("J2")
-      .aPipe("P1", {
-        startNodeId: "J1",
-        endNodeId: "J2",
+      .aJunction(IDS.J1)
+      .aJunction(IDS.J2)
+      .aPipe(IDS.P1, {
+        startNodeId: String(IDS.J1),
+        endNodeId: String(IDS.J2),
         diameter: 300,
         length: 1000,
         roughness: 130,
       })
-      .aPipe("P2", {
-        startNodeId: "J1",
-        endNodeId: "J2",
+      .aPipe(IDS.P2, {
+        startNodeId: String(IDS.J1),
+        endNodeId: String(IDS.J2),
         diameter: 200,
         length: 500,
         roughness: 100,
@@ -148,23 +153,24 @@ describe("computeMultiAssetData", () => {
   });
 
   it("computes category stats for status properties", () => {
+    const IDS = { J1: 1, J2: 2, J3: 3, P1: 4, P2: 5, P3: 6 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aJunction("J1")
-      .aJunction("J2")
-      .aJunction("J3")
-      .aPipe("P1", {
-        startNodeId: "J1",
-        endNodeId: "J2",
+      .aJunction(IDS.J1)
+      .aJunction(IDS.J2)
+      .aJunction(IDS.J3)
+      .aPipe(IDS.P1, {
+        startNodeId: String(IDS.J1),
+        endNodeId: String(IDS.J2),
         initialStatus: "open",
       })
-      .aPipe("P2", {
-        startNodeId: "J2",
-        endNodeId: "J3",
+      .aPipe(IDS.P2, {
+        startNodeId: String(IDS.J2),
+        endNodeId: String(IDS.J3),
         initialStatus: "closed",
       })
-      .aPipe("P3", {
-        startNodeId: "J1",
-        endNodeId: "J3",
+      .aPipe(IDS.P3, {
+        startNodeId: String(IDS.J1),
+        endNodeId: String(IDS.J3),
         initialStatus: "open",
       })
       .build();
@@ -190,10 +196,11 @@ describe("computeMultiAssetData", () => {
   });
 
   it("handles mixed asset types", () => {
+    const IDS = { J1: 1, R1: 2, P1: 3 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aJunction("J1", { elevation: 100 })
-      .aReservoir("R1", { elevation: 200 })
-      .aPipe("P1", { startNodeId: "R1", endNodeId: "J1" })
+      .aJunction(IDS.J1, { elevation: 100 })
+      .aReservoir(IDS.R1, { elevation: 200 })
+      .aPipe(IDS.P1, { startNodeId: String(IDS.R1), endNodeId: String(IDS.J1) })
       .build();
 
     const assets = Array.from(hydraulicModel.assets.values());
@@ -205,12 +212,13 @@ describe("computeMultiAssetData", () => {
   });
 
   it("computes pump stats with type categories", () => {
+    const IDS = { J1: 1, J2: 2, PU1: 3 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aJunction("J1")
-      .aJunction("J2")
-      .aPump("PU1", {
-        startNodeId: "J1",
-        endNodeId: "J2",
+      .aJunction(IDS.J1)
+      .aJunction(IDS.J2)
+      .aPump(IDS.PU1, {
+        startNodeId: String(IDS.J1),
+        endNodeId: String(IDS.J2),
         definitionType: "power",
         power: 20,
       })
@@ -227,13 +235,14 @@ describe("computeMultiAssetData", () => {
   });
 
   it("handles partial simulation results", () => {
+    const IDS = { J1: 1, J2: 2, J3: 3 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aJunction("J1", {
+      .aJunction(IDS.J1, {
         elevation: 100,
         simulation: { pressure: 50, head: 150, demand: 10 },
       })
-      .aJunction("J2", { elevation: 150 })
-      .aJunction("J3", { elevation: 200 })
+      .aJunction(IDS.J2, { elevation: 150 })
+      .aJunction(IDS.J3, { elevation: 200 })
       .build();
 
     const assets = Array.from(hydraulicModel.assets.values());
@@ -248,12 +257,13 @@ describe("computeMultiAssetData", () => {
   });
 
   it("computes valve stats with valve type categories", () => {
+    const IDS = { J1: 1, J2: 2, V1: 3 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aJunction("J1")
-      .aJunction("J2")
-      .aValve("V1", {
-        startNodeId: "J1",
-        endNodeId: "J2",
+      .aJunction(IDS.J1)
+      .aJunction(IDS.J2)
+      .aValve(IDS.V1, {
+        startNodeId: String(IDS.J1),
+        endNodeId: String(IDS.J2),
         kind: "prv",
         setting: 50,
       })
@@ -268,8 +278,9 @@ describe("computeMultiAssetData", () => {
   });
 
   it("computes tank stats with sections", () => {
+    const IDS = { T1: 1 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aTank("T1", {
+      .aTank(IDS.T1, {
         elevation: 100,
         initialLevel: 10,
         minLevel: 0,
@@ -293,9 +304,10 @@ describe("computeMultiAssetData", () => {
   });
 
   it("computes reservoir stats", () => {
+    const IDS = { R1: 1, R2: 2 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aReservoir("R1", { elevation: 200 })
-      .aReservoir("R2", { elevation: 250 })
+      .aReservoir(IDS.R1, { elevation: 200 })
+      .aReservoir(IDS.R2, { elevation: 250 })
       .build();
 
     const assets = Array.from(hydraulicModel.assets.values());

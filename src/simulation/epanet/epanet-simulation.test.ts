@@ -23,10 +23,11 @@ describe("epanet simulation", () => {
   });
 
   it("includes a report", async () => {
+    const IDS = { R1: 1, J1: 2, P1: 3 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aReservoir("r1")
-      .aJunction("j1")
-      .aPipe("p1", { startNodeId: "r1", endNodeId: "j1" })
+      .aReservoir(IDS.R1)
+      .aJunction(IDS.J1)
+      .aPipe(IDS.P1, { startNodeId: String(IDS.R1), endNodeId: String(IDS.J1) })
       .build();
     const inp = buildInp(hydraulicModel);
 
@@ -37,10 +38,11 @@ describe("epanet simulation", () => {
   });
 
   it("reports says when simulation fails", async () => {
+    const IDS = { R1: 1, R2: 2, P1: 3 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aReservoir("r1")
-      .aReservoir("r2")
-      .aPipe("p1", { startNodeId: "r1", endNodeId: "r2" })
+      .aReservoir(IDS.R1)
+      .aReservoir(IDS.R2)
+      .aPipe(IDS.P1, { startNodeId: String(IDS.R1), endNodeId: String(IDS.R2) })
       .build();
     const inp = buildInp(hydraulicModel);
     const { status, report } = await runSimulation(inp);
@@ -50,10 +52,11 @@ describe("epanet simulation", () => {
   });
 
   it("report says when simulation has warnings", async () => {
+    const IDS = { R1: 1, J1: 2, P1: 3 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aReservoir("r1", { head: 0 })
-      .aJunction("j1", { baseDemand: 10 })
-      .aPipe("p1", { startNodeId: "r1", endNodeId: "j1" })
+      .aReservoir(IDS.R1, { head: 0 })
+      .aJunction(IDS.J1, { baseDemand: 10 })
+      .aPipe(IDS.P1, { startNodeId: String(IDS.R1), endNodeId: String(IDS.J1) })
       .build();
     const inp = buildInp(hydraulicModel);
 
@@ -64,66 +67,81 @@ describe("epanet simulation", () => {
   });
 
   it("can include multiple errors in the report", async () => {
+    const IDS = { R1: 1, J1: 2, P1: 3, J2: 4 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aReservoir("r1")
-      .aJunction("j1")
-      .aPipe("p1", { startNodeId: "r1", endNodeId: "j1" })
-      .aJunction("j2")
+      .aReservoir(IDS.R1)
+      .aJunction(IDS.J1)
+      .aPipe(IDS.P1, { startNodeId: String(IDS.R1), endNodeId: String(IDS.J1) })
+      .aJunction(IDS.J2)
       .build();
     const inp = buildInp(hydraulicModel);
     const { status, report } = await runSimulation(inp);
 
     expect(status).toEqual("failure");
     expect(report.match(/Error 234/gi)!.length).toEqual(1);
-    expect(report).toContain("j2");
+    expect(report).toContain("4");
     expect(report).toContain("Error 200");
   });
 
   describe("results reader", () => {
     it("can read simulation values", async () => {
+      const IDS = { R1: 1, J1: 2, P1: 3 } as const;
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aReservoir("r1")
-        .aJunction("j1", { baseDemand: 1 })
-        .aPipe("p1", { startNodeId: "r1", endNodeId: "j1" })
+        .aReservoir(IDS.R1)
+        .aJunction(IDS.J1, { baseDemand: 1 })
+        .aPipe(IDS.P1, {
+          startNodeId: String(IDS.R1),
+          endNodeId: String(IDS.J1),
+        })
         .build();
       const inp = buildInp(hydraulicModel);
 
       const { status, results } = await runSimulation(inp);
 
       expect(status).toEqual("success");
-      expect(results.getJunction("j1")!.pressure).toBeCloseTo(10);
-      expect(results.getPipe("p1")!.flow).toBeCloseTo(1);
-      expect(results.getPipe("p1")!.velocity).toBeCloseTo(0.014);
+      expect(results.getJunction(String(IDS.J1))!.pressure).toBeCloseTo(10);
+      expect(results.getPipe(String(IDS.P1))!.flow).toBeCloseTo(1);
+      expect(results.getPipe(String(IDS.P1))!.velocity).toBeCloseTo(0.014);
     });
 
     it("can read junction values", async () => {
+      const IDS = { R1: 1, J1: 2, V1: 3 } as const;
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aReservoir("r1", { head: 10 })
-        .aJunction("j1", { baseDemand: 1, elevation: 2 })
-        .aValve("v1", { startNodeId: "r1", endNodeId: "j1" })
+        .aReservoir(IDS.R1, { head: 10 })
+        .aJunction(IDS.J1, { baseDemand: 1, elevation: 2 })
+        .aValve(IDS.V1, {
+          startNodeId: String(IDS.R1),
+          endNodeId: String(IDS.J1),
+        })
         .build();
       const inp = buildInp(hydraulicModel);
 
       const { status, results } = await runSimulation(inp);
 
       expect(status).toEqual("success");
-      const junction = results.getJunction("j1") as JunctionSimulation;
+      const junction = results.getJunction(
+        String(IDS.J1),
+      ) as JunctionSimulation;
       expect(junction.pressure).toBeCloseTo(8);
       expect(junction.head).toBeCloseTo(10);
     });
 
     it("can read valve values", async () => {
+      const IDS = { R1: 1, J1: 2, V1: 3 } as const;
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aReservoir("r1")
-        .aJunction("j1", { baseDemand: 1 })
-        .aValve("v1", { startNodeId: "r1", endNodeId: "j1" })
+        .aReservoir(IDS.R1)
+        .aJunction(IDS.J1, { baseDemand: 1 })
+        .aValve(IDS.V1, {
+          startNodeId: String(IDS.R1),
+          endNodeId: String(IDS.J1),
+        })
         .build();
       const inp = buildInp(hydraulicModel);
 
       const { status, results } = await runSimulation(inp);
 
       expect(status).toEqual("success");
-      const valve = results.getValve("v1") as ValveSimulation;
+      const valve = results.getValve(String(IDS.V1)) as ValveSimulation;
       expect(valve.flow).toBeCloseTo(0.999);
       expect(valve.velocity).toBeCloseTo(0.014);
       expect(valve.headloss).toBeCloseTo(0);
@@ -131,9 +149,10 @@ describe("epanet simulation", () => {
     });
 
     it("can read tank values", async () => {
+      const IDS = { R1: 1, T1: 2, J1: 3, P1: 4, P2: 5 } as const;
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aReservoir("r1", { head: 120 })
-        .aTank("t1", {
+        .aReservoir(IDS.R1, { head: 120 })
+        .aTank(IDS.T1, {
           elevation: 100,
           initialLevel: 15,
           minLevel: 5,
@@ -141,16 +160,22 @@ describe("epanet simulation", () => {
           diameter: 120,
           minVolume: 14,
         })
-        .aJunction("j1", { baseDemand: 1 })
-        .aPipe("p1", { startNodeId: "r1", endNodeId: "t1" })
-        .aPipe("p2", { startNodeId: "t1", endNodeId: "j1" })
+        .aJunction(IDS.J1, { baseDemand: 1 })
+        .aPipe(IDS.P1, {
+          startNodeId: String(IDS.R1),
+          endNodeId: String(IDS.T1),
+        })
+        .aPipe(IDS.P2, {
+          startNodeId: String(IDS.T1),
+          endNodeId: String(IDS.J1),
+        })
         .build();
       const inp = buildInp(hydraulicModel);
 
       const { status, results } = await runSimulation(inp);
 
       expect(status).toEqual("success");
-      const tank = results.getTank("t1") as TankSimulation;
+      const tank = results.getTank(String(IDS.T1)) as TankSimulation;
       expect(tank.pressure).toBeGreaterThan(0);
       expect(tank.head).toBeGreaterThan(100);
       expect(tank.level).toBeGreaterThan(0);
@@ -158,12 +183,13 @@ describe("epanet simulation", () => {
     });
 
     it("can read closed status", async () => {
+      const IDS = { R1: 1, J1: 2, V1: 3 } as const;
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aReservoir("r1")
-        .aJunction("j1", { baseDemand: 1 })
-        .aValve("v1", {
-          startNodeId: "r1",
-          endNodeId: "j1",
+        .aReservoir(IDS.R1)
+        .aJunction(IDS.J1, { baseDemand: 1 })
+        .aValve(IDS.V1, {
+          startNodeId: String(IDS.R1),
+          endNodeId: String(IDS.J1),
           initialStatus: "closed",
         })
         .build();
@@ -172,24 +198,28 @@ describe("epanet simulation", () => {
       const { status, results } = await runSimulation(inp);
 
       expect(status).toEqual("warning");
-      const valve = results.getValve("v1") as ValveSimulation;
+      const valve = results.getValve(String(IDS.V1)) as ValveSimulation;
       expect(valve.status).toEqual("closed");
     });
 
     it("provides null values when failed", async () => {
+      const IDS = { R1: 1, J1: 2, J2: 3, P1: 4 } as const;
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aReservoir("r1")
-        .aJunction("j1", { baseDemand: 1 })
-        .aJunction("j2")
-        .aPipe("p1", { startNodeId: "r1", endNodeId: "j1" })
+        .aReservoir(IDS.R1)
+        .aJunction(IDS.J1, { baseDemand: 1 })
+        .aJunction(IDS.J2)
+        .aPipe(IDS.P1, {
+          startNodeId: String(IDS.R1),
+          endNodeId: String(IDS.J1),
+        })
         .build();
       const inp = buildInp(hydraulicModel);
 
       const { status, results } = await runSimulation(inp);
 
       expect(status).toEqual("failure");
-      expect(results.getJunction("j1")).toBeNull();
-      expect(results.getPipe("p1")).toBeNull();
+      expect(results.getJunction(String(IDS.J1))).toBeNull();
+      expect(results.getPipe(String(IDS.P1))).toBeNull();
     });
   });
 

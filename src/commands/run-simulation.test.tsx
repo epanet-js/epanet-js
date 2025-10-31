@@ -29,10 +29,11 @@ describe("Run simulation", () => {
   });
 
   it("persists state the simulation when passes", async () => {
+    const IDS = { r1: 1, j1: 2, p1: 3 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aReservoir("r1")
-      .aJunction("j1", { baseDemand: 1 })
-      .aPipe("p1", { startNodeId: "r1", endNodeId: "j1" })
+      .aReservoir(IDS.r1)
+      .aJunction(IDS.j1, { baseDemand: 1 })
+      .aPipe(IDS.p1, { startNodeId: String(IDS.r1), endNodeId: String(IDS.j1) })
       .build();
     const store = setInitialState({ hydraulicModel });
     renderComponent({ store });
@@ -49,7 +50,7 @@ describe("Run simulation", () => {
     const {
       hydraulicModel: { assets: updatedAssets },
     } = store.get(dataAtom);
-    const pipe = getPipe(updatedAssets, "p1");
+    const pipe = getPipe(updatedAssets, String(IDS.p1));
     expect(pipe!.flow).toBeCloseTo(1);
   });
 
@@ -189,22 +190,25 @@ describe("Run simulation", () => {
   };
 
   const aNonSimulableModel = () => {
-    return HydraulicModelBuilder.with().aReservoir("r1").build();
+    const IDS = { r1: 1 } as const;
+    return HydraulicModelBuilder.with().aReservoir(IDS.r1).build();
   };
 
   const aSimulableModel = () => {
+    const IDS = { r1: 1, j1: 2, p1: 3 } as const;
     return HydraulicModelBuilder.with()
-      .aReservoir("r1")
-      .aJunction("j1", { baseDemand: 1 })
-      .aPipe("p1", { startNodeId: "r1", endNodeId: "j1" })
+      .aReservoir(IDS.r1)
+      .aJunction(IDS.j1, { baseDemand: 1 })
+      .aPipe(IDS.p1, { startNodeId: String(IDS.r1), endNodeId: String(IDS.j1) })
       .build();
   };
 
   const aSimulableModelWithWarnings = () => {
+    const IDS = { r1: 1, j1: 2, p1: 3 } as const;
     return HydraulicModelBuilder.with()
-      .aReservoir("r1", { head: 0 })
-      .aJunction("j1", { baseDemand: 10 })
-      .aPipe("p1", { startNodeId: "r1", endNodeId: "j1" })
+      .aReservoir(IDS.r1, { head: 0 })
+      .aJunction(IDS.j1, { baseDemand: 10 })
+      .aPipe(IDS.p1, { startNodeId: String(IDS.r1), endNodeId: String(IDS.j1) })
       .build();
   };
 });

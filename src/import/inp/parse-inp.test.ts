@@ -7,33 +7,35 @@ import { Valve } from "src/hydraulic-model/asset-types";
 
 describe("Parse inp", () => {
   it("can read values separated by spaces", () => {
-    const junctionId = "j1";
+    const IDS = { J1: 1 } as const;
     const elevation = 100;
     const lat = 10;
     const lng = 20;
     const demand = 0.1;
     const inp = `
     [JUNCTIONS]
-    ${junctionId} ${elevation}
+    ${IDS.J1} ${elevation}
 
     [COORDINATES]
-    ${junctionId} ${lng}        ${lat}
+    ${IDS.J1} ${lng}        ${lat}
 
     [DEMANDS]
-    ${junctionId} ${demand}
+    ${IDS.J1} ${demand}
     `;
 
     const { hydraulicModel } = parseInp(inp);
 
-    const junction = getByLabel(hydraulicModel.assets, junctionId) as Junction;
+    const junction = getByLabel(
+      hydraulicModel.assets,
+      String(IDS.J1),
+    ) as Junction;
     expect(junction.elevation).toEqual(elevation);
     expect(junction.baseDemand).toEqual(demand);
     expect(junction.coordinates).toEqual([20, 10]);
   });
 
   it("ignores white lines when reading a section", () => {
-    const junctionId = "j1";
-    const otherJunctionId = "j2";
+    const IDS = { J1: 1, J2: 2 } as const;
     const elevation = 100;
     const otherElevation = 200;
     const coordintes = { lat: 10, lng: 20 };
@@ -43,32 +45,35 @@ describe("Parse inp", () => {
 
     const inp = `
     [JUNCTIONS]
-    ${junctionId} ${elevation}
+    ${IDS.J1} ${elevation}
 
-    ${otherJunctionId} ${otherElevation}
+    ${IDS.J2} ${otherElevation}
 
     [COORDINATES]
-    ${junctionId} ${coordintes.lng}        ${coordintes.lat}
+    ${IDS.J1} ${coordintes.lng}        ${coordintes.lat}
 
 
 
-    ${otherJunctionId} ${otherCoordinates.lng}        ${otherCoordinates.lat}
+    ${IDS.J2} ${otherCoordinates.lng}        ${otherCoordinates.lat}
     [DEMANDS]
-    ${junctionId} ${demand}
+    ${IDS.J1} ${demand}
 
-    ${otherJunctionId} ${otherDemand}
+    ${IDS.J2} ${otherDemand}
     `;
 
     const { hydraulicModel } = parseInp(inp);
 
-    const junction = getByLabel(hydraulicModel.assets, junctionId) as Junction;
+    const junction = getByLabel(
+      hydraulicModel.assets,
+      String(IDS.J1),
+    ) as Junction;
     expect(junction.elevation).toEqual(elevation);
     expect(junction.baseDemand).toEqual(demand);
     expect(junction.coordinates).toEqual([20, 10]);
 
     const otherJunction = getByLabel(
       hydraulicModel.assets,
-      otherJunctionId,
+      String(IDS.J2),
     ) as Junction;
     expect(otherJunction.elevation).toEqual(otherElevation);
     expect(otherJunction.baseDemand).toEqual(otherDemand);
@@ -76,52 +81,50 @@ describe("Parse inp", () => {
   });
 
   it("ignores comments", () => {
-    const reservoirId = "r1";
-    const junctionId = "j1";
-    const pipeId = "p1";
+    const IDS = { R1: 1, J1: 2, P1: 3 } as const;
     const head = 100;
     const lat = 10;
     const lng = 20;
     const inp = `
     [RESERVOIRS]
     ;ID\tHEAD
-    ${reservoirId}\t${head};__valuecomment
+    ${IDS.R1}\t${head};__valuecomment
 
     [COORDINATES]
-    ${reservoirId}\t${lng}\t${lat};__anothercomment
-    ${junctionId}\t1\t1
+    ${IDS.R1}\t${lng}\t${lat};__anothercomment
+    ${IDS.J1}\t1\t1
 
     [JUNCTIONS]
-    ${junctionId}\t10
+    ${IDS.J1}\t10
     [PIPES]
-    ${pipeId}\t${reservoirId}\t${junctionId}\t10\t10\t10\t10\tOpen;__anothercommnet
+    ${IDS.P1}\t${IDS.R1}\t${IDS.J1}\t10\t10\t10\t10\tOpen;__anothercommnet
     `;
 
     const { hydraulicModel } = parseInp(inp);
 
     const reservoir = getByLabel(
       hydraulicModel.assets,
-      reservoirId,
+      String(IDS.R1),
     ) as Reservoir;
     expect(reservoir.id).not.toBeUndefined();
     expect(reservoir.head).toEqual(100);
     expect(reservoir.coordinates).toEqual([lng, lat]);
-    const pipe = getByLabel(hydraulicModel.assets, pipeId) as Pipe;
+    const pipe = getByLabel(hydraulicModel.assets, String(IDS.P1)) as Pipe;
     expect(pipe.initialStatus).toEqual("open");
     expect(hydraulicModel.assets.size).toEqual(3);
   });
 
   it("ignores unsupported sections", () => {
-    const reservoirId = "r1";
+    const IDS = { R1: 1 } as const;
     const head = 100;
     const lat = 10;
     const lng = 20;
     const inp = `
     [RESERVOIRS]
-    ${reservoirId}\t${head}
+    ${IDS.R1}\t${head}
 
     [COORDINATES]
-    ${reservoirId}\t${lng}\t${lat}
+    ${IDS.R1}\t${lng}\t${lat}
 
     [EMITTERS]
     ANYTHING
@@ -131,53 +134,59 @@ describe("Parse inp", () => {
 
     const reservoir = getByLabel(
       hydraulicModel.assets,
-      reservoirId,
+      String(IDS.R1),
     ) as Reservoir;
     expect(reservoir.id).not.toBeUndefined();
     expect(hydraulicModel.assets.size).toEqual(1);
   });
 
   it("detects the us customary unit system", () => {
-    const anyId = "R1";
+    const IDS = { R1: 1 } as const;
     const head = 100;
     const inp = `
     [RESERVOIRS]
-    ${anyId}\t${head}
+    ${IDS.R1}\t${head}
     [OPTIONS]
     ANY
     Units\tGPM
     ANY
     [COORDINATES]
-    ${anyId}\t1\t1
+    ${IDS.R1}\t1\t1
     `;
     const { hydraulicModel, modelMetadata } = parseInp(inp);
     expect(hydraulicModel.units).toMatchObject({
       flow: "gal/min",
     });
-    const reservoir = getByLabel(hydraulicModel.assets, anyId) as Reservoir;
+    const reservoir = getByLabel(
+      hydraulicModel.assets,
+      String(IDS.R1),
+    ) as Reservoir;
     expect(reservoir.getUnit("head")).toEqual("ft");
 
     expect(modelMetadata.quantities.getUnit("head")).toEqual("ft");
   });
 
   it("detects other systems", () => {
-    const anyId = "R1";
+    const IDS = { R1: 1 } as const;
     const head = 100;
     const inp = `
     [RESERVOIRS]
-    ${anyId}\t${head}
+    ${IDS.R1}\t${head}
     [OPTIONS]
     ANY
     Units\tLPS
     ANY
     [COORDINATES]
-    ${anyId}\t1\t1
+    ${IDS.R1}\t1\t1
     `;
     const { hydraulicModel } = parseInp(inp);
     expect(hydraulicModel.units).toMatchObject({
       flow: "l/s",
     });
-    const reservoir = getByLabel(hydraulicModel.assets, anyId) as Reservoir;
+    const reservoir = getByLabel(
+      hydraulicModel.assets,
+      String(IDS.R1),
+    ) as Reservoir;
     expect(reservoir.getUnit("head")).toEqual("m");
   });
 
@@ -238,21 +247,20 @@ describe("Parse inp", () => {
   });
 
   it("says when coordinates are missing", () => {
-    const junctionId = "j1";
-    const otherJunctionId = "j2";
+    const IDS = { J1: 1, J2: 2 } as const;
     const elevation = 100;
     const demand = 0.1;
     const inp = `
     [JUNCTIONS]
-    ${junctionId}\t${elevation}
-    ${otherJunctionId}\t${elevation}
+    ${IDS.J1}\t${elevation}
+    ${IDS.J2}\t${elevation}
 
     [DEMANDS]
-    ${junctionId}\t${demand}
-    ${otherJunctionId}\t${demand}
+    ${IDS.J1}\t${demand}
+    ${IDS.J2}\t${demand}
 
     [COORDINATES]
-    ${otherJunctionId}\t10\t10
+    ${IDS.J2}\t10\t10
     `;
 
     const {
@@ -260,24 +268,24 @@ describe("Parse inp", () => {
       issues,
     } = parseInp(inp);
 
-    expect(issues!.nodesMissingCoordinates!.values()).toContain(junctionId);
-    expect(getByLabel(assets, junctionId)).toBeUndefined();
-    expect(getByLabel(assets, otherJunctionId)).not.toBeUndefined();
+    expect(issues!.nodesMissingCoordinates!.values()).toContain(String(IDS.J1));
+    expect(getByLabel(assets, String(IDS.J1))).toBeUndefined();
+    expect(getByLabel(assets, String(IDS.J2))).not.toBeUndefined();
   });
 
   it("says when coordinates are invalid", () => {
-    const junctionId = "j1";
+    const IDS = { J1: 1 } as const;
     const elevation = 100;
     const demand = 0.1;
     const inp = `
     [JUNCTIONS]
-    ${junctionId}\t${elevation}
+    ${IDS.J1}\t${elevation}
 
     [DEMANDS]
-    ${junctionId}\t${demand}
+    ${IDS.J1}\t${demand}
 
     [COORDINATES]
-    ${junctionId}\t1000\t2000
+    ${IDS.J1}\t1000\t2000
     `;
 
     const {
@@ -285,14 +293,12 @@ describe("Parse inp", () => {
       issues,
     } = parseInp(inp);
 
-    expect(issues!.invalidCoordinates!.values()).toContain(junctionId);
-    expect(assets.get(junctionId)).toBeUndefined();
+    expect(issues!.invalidCoordinates!.values()).toContain(String(IDS.J1));
+    expect(assets.get(String(IDS.J1))).toBeUndefined();
   });
 
   it("says when vertices  are invalid", () => {
-    const reservoirId = "r1";
-    const junctionId = "j1";
-    const pipeId = "p1";
+    const IDS = { R1: 1, J1: 2, P1: 3 } as const;
     const length = 10;
     const diameter = 100;
     const roughness = 0.1;
@@ -301,20 +307,20 @@ describe("Parse inp", () => {
     const anyNumber = 10;
     const inp = `
     [RESERVOIRS]
-    ${reservoirId}\t${anyNumber}
+    ${IDS.R1}\t${anyNumber}
     [JUNCTIONS]
-    ${junctionId}\t${anyNumber}
+    ${IDS.J1}\t${anyNumber}
     [PIPES]
-    ${pipeId}\t${reservoirId}\t${junctionId}\t${length}\t${diameter}\t${roughness}\t${minorLoss}\t${status}
+    ${IDS.P1}\t${IDS.R1}\t${IDS.J1}\t${length}\t${diameter}\t${roughness}\t${minorLoss}\t${status}
 
     [COORDINATES]
-    ${reservoirId}\t${10}\t${20}
-    ${junctionId}\t${30}\t${40}
+    ${IDS.R1}\t${10}\t${20}
+    ${IDS.J1}\t${30}\t${40}
 
 
     [VERTICES]
-    ${pipeId}\t${1000}\t${60}
-    ${pipeId}\t${60}\t${700}
+    ${IDS.P1}\t${1000}\t${60}
+    ${IDS.P1}\t${60}\t${700}
     `;
 
     const {
@@ -322,8 +328,8 @@ describe("Parse inp", () => {
       issues,
     } = parseInp(inp);
 
-    expect(issues!.invalidVertices!.values()).toContain(pipeId);
-    expect(getByLabel(assets, pipeId)).not.toBeUndefined();
+    expect(issues!.invalidVertices!.values()).toContain(String(IDS.P1));
+    expect(getByLabel(assets, String(IDS.P1))).not.toBeUndefined();
   });
 
   it("says when using non default options", () => {
@@ -406,8 +412,9 @@ describe("Parse inp", () => {
   });
 
   it("detects when the inp has been made by the app", () => {
+    const IDS = { J1: 1 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aJunction("junction1", { coordinates: [10, 1] })
+      .aJunction(IDS.J1, { coordinates: [10, 1] })
       .build();
     let inp = buildInp(hydraulicModel, {
       madeBy: true,
@@ -421,25 +428,23 @@ describe("Parse inp", () => {
   });
 
   it("provides the count of items in each section", () => {
-    const reservoirId = "r1";
-    const junctionId = "j1";
-    const pipeId = "p1";
+    const IDS = { R1: 1, J1: 2, P1: 3 } as const;
     const head = 100;
     const lat = 10;
     const lng = 20;
     const inp = `
     [RESERVOIRS]
     ;ID\tHEAD
-    ${reservoirId}\t${head};__valuecomment
+    ${IDS.R1}\t${head};__valuecomment
 
     [COORDINATES]
-    ${reservoirId}\t${lng}\t${lat};__anothercomment
-    ${junctionId}\t1\t1
+    ${IDS.R1}\t${lng}\t${lat};__anothercomment
+    ${IDS.J1}\t1\t1
 
     [JUNCTIONS]
-    ${junctionId}\t10
+    ${IDS.J1}\t10
     [PIPES]
-    ${pipeId}\t${reservoirId}\t${junctionId}\t10\t10\t10\t10\tOpen;__anothercommnet
+    ${IDS.P1}\t${IDS.R1}\t${IDS.J1}\t10\t10\t10\t10\tOpen;__anothercommnet
     `;
 
     const { stats } = parseInp(inp);
@@ -451,7 +456,7 @@ describe("Parse inp", () => {
   });
 
   it("skips links without coordinates", () => {
-    const valveId = "v1";
+    const IDS = { J1: 1, J2: 2, V1: 3 } as const;
     const diameter = 10;
     const setting = 0.2;
     const type = "FCV";
@@ -459,58 +464,59 @@ describe("Parse inp", () => {
     const anyNumber = 10;
     const inp = `
     [JUNCTIONS]
-    j1\t${anyNumber}
-    j2\t${anyNumber}
+    ${IDS.J1}\t${anyNumber}
+    ${IDS.J2}\t${anyNumber}
     [VALVES]
-    ${valveId}\tj1\tj2\t${diameter}\t${type}\t${setting}\t${minorLoss}
+    ${IDS.V1}\t${IDS.J1}\t${IDS.J2}\t${diameter}\t${type}\t${setting}\t${minorLoss}
 
     `;
 
     const { hydraulicModel } = parseInp(inp);
 
-    const valve = getByLabel(hydraulicModel.assets, valveId) as Valve;
+    const valve = getByLabel(hydraulicModel.assets, String(IDS.V1)) as Valve;
     expect(valve).toBeUndefined();
   });
 
   it("supports singular section names", () => {
-    const junctionId = "J1";
-    const pipeId = "P1";
-    const reservoirId = "R1";
+    const IDS = { J1: 1, P1: 2, R1: 3 } as const;
 
     const inp = `
     [JUNCTION]
-    ${junctionId} 100
+    ${IDS.J1} 100
 
     [PIPE]
-    ${pipeId} ${reservoirId} ${junctionId} 10 10 10 10 Open
+    ${IDS.P1} ${IDS.R1} ${IDS.J1} 10 10 10 10 Open
 
     [RESERVOIR]
-    ${reservoirId} 200
+    ${IDS.R1} 200
 
     [COORDINATE]
-    ${junctionId} 1 1
-    ${reservoirId} 2 2
+    ${IDS.J1} 1 1
+    ${IDS.R1} 2 2
 
     [DEMAND]
-    ${junctionId} 0.5
+    ${IDS.J1} 0.5
     `;
 
     const { hydraulicModel } = parseInp(inp);
 
     expect(hydraulicModel.assets.size).toEqual(3);
 
-    const junction = getByLabel(hydraulicModel.assets, junctionId) as Junction;
+    const junction = getByLabel(
+      hydraulicModel.assets,
+      String(IDS.J1),
+    ) as Junction;
     expect(junction).toBeDefined();
     expect(junction.elevation).toEqual(100);
     expect(junction.baseDemand).toEqual(0.5);
 
-    const pipe = getByLabel(hydraulicModel.assets, pipeId) as Pipe;
+    const pipe = getByLabel(hydraulicModel.assets, String(IDS.P1)) as Pipe;
     expect(pipe).toBeDefined();
     expect(pipe.length).toEqual(10);
 
     const reservoir = getByLabel(
       hydraulicModel.assets,
-      reservoirId,
+      String(IDS.R1),
     ) as Reservoir;
     expect(reservoir).toBeDefined();
     expect(reservoir.head).toEqual(200);

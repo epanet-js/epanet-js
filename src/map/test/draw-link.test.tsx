@@ -101,15 +101,16 @@ describe("Drawing a pipe", () => {
   });
 
   it("snaps to existing starting node", async () => {
+    const IDS = { J1: 10 } as const;
     const existingNodeCoords = [15, 25];
     const nearbyClick = { lng: 15.001, lat: 25.001 };
     const movePoint = { lng: 35, lat: 45 };
     const endClick = { lng: 50, lat: 60 };
 
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aJunction("J1", { coordinates: existingNodeCoords })
+      .aJunction(IDS.J1, { coordinates: existingNodeCoords })
       .build();
-    const junction = hydraulicModel.assets.get("J1") as Asset;
+    const junction = hydraulicModel.assets.get(String(IDS.J1)) as Asset;
     const idMap = UIDMap.empty();
     UIDMap.pushUUID(idMap, junction.id);
 
@@ -162,15 +163,16 @@ describe("Drawing a pipe", () => {
   });
 
   it("snaps to existing end node", async () => {
+    const IDS = { J1: 10 } as const;
     const firstClick = { lng: 10, lat: 20 };
     const movePoint = { lng: 35, lat: 45 };
     const existingNodeCoords = [50, 60];
     const nearbyEndClick = { lng: 50.001, lat: 60.001 };
 
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aJunction("J1", { coordinates: existingNodeCoords })
+      .aJunction(IDS.J1, { coordinates: existingNodeCoords })
       .build();
-    const junction = hydraulicModel.assets.get("J1") as Asset;
+    const junction = hydraulicModel.assets.get(String(IDS.J1)) as Asset;
     const idMap = UIDMap.empty();
     UIDMap.pushUUID(idMap, junction.id);
 

@@ -7,70 +7,76 @@ import {
 
 describe("disconnectCustomers", () => {
   it("disconnects a single connected customer point", () => {
+    const IDS = { J1: 1, P1: 2, CP1: 3 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aJunction("J1", { coordinates: [0, 0] })
-      .aPipe("P1", {
-        startNodeId: "J1",
-        endNodeId: "J1",
+      .aJunction(IDS.J1, { coordinates: [0, 0] })
+      .aPipe(IDS.P1, {
+        startNodeId: String(IDS.J1),
+        endNodeId: String(IDS.J1),
         coordinates: [
           [0, 0],
           [10, 0],
         ],
       })
-      .aCustomerPoint("CP1", {
+      .aCustomerPoint(IDS.CP1, {
         demand: 25,
         coordinates: [2, 1],
-        connection: { pipeId: "P1", junctionId: "J1" },
+        connection: { pipeId: String(IDS.P1), junctionId: String(IDS.J1) },
       })
       .build();
 
     const { putCustomerPoints } = disconnectCustomers(hydraulicModel, {
-      customerPointIds: ["CP1"],
+      customerPointIds: [String(IDS.CP1)],
     });
 
     expect(putCustomerPoints).toBeDefined();
     expect(putCustomerPoints!.length).toBe(1);
 
     const disconnectedCP = putCustomerPoints![0];
-    expect(disconnectedCP.id).toBe("CP1");
+    expect(disconnectedCP.id).toBe(String(IDS.CP1));
     expect(disconnectedCP.baseDemand).toBe(25);
     expect(disconnectedCP.coordinates).toEqual([2, 1]);
     expect(disconnectedCP.connection).toBeNull();
   });
 
   it("disconnects multiple connected customer points", () => {
+    const IDS = { J1: 1, J2: 2, P1: 3, CP1: 4, CP2: 5 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aJunction("J1", { coordinates: [0, 0] })
-      .aJunction("J2", { coordinates: [10, 0] })
-      .aPipe("P1", {
-        startNodeId: "J1",
-        endNodeId: "J2",
+      .aJunction(IDS.J1, { coordinates: [0, 0] })
+      .aJunction(IDS.J2, { coordinates: [10, 0] })
+      .aPipe(IDS.P1, {
+        startNodeId: String(IDS.J1),
+        endNodeId: String(IDS.J2),
         coordinates: [
           [0, 0],
           [10, 0],
         ],
       })
-      .aCustomerPoint("CP1", {
+      .aCustomerPoint(IDS.CP1, {
         demand: 25,
         coordinates: [2, 1],
-        connection: { pipeId: "P1", junctionId: "J1" },
+        connection: { pipeId: String(IDS.P1), junctionId: String(IDS.J1) },
       })
-      .aCustomerPoint("CP2", {
+      .aCustomerPoint(IDS.CP2, {
         demand: 50,
         coordinates: [8, 1],
-        connection: { pipeId: "P1", junctionId: "J2" },
+        connection: { pipeId: String(IDS.P1), junctionId: String(IDS.J2) },
       })
       .build();
 
     const { putCustomerPoints } = disconnectCustomers(hydraulicModel, {
-      customerPointIds: ["CP1", "CP2"],
+      customerPointIds: [String(IDS.CP1), String(IDS.CP2)],
     });
 
     expect(putCustomerPoints).toBeDefined();
     expect(putCustomerPoints!.length).toBe(2);
 
-    const disconnectedCP1 = putCustomerPoints!.find((cp) => cp.id === "CP1")!;
-    const disconnectedCP2 = putCustomerPoints!.find((cp) => cp.id === "CP2")!;
+    const disconnectedCP1 = putCustomerPoints!.find(
+      (cp) => cp.id === String(IDS.CP1),
+    )!;
+    const disconnectedCP2 = putCustomerPoints!.find(
+      (cp) => cp.id === String(IDS.CP2),
+    )!;
 
     expect(disconnectedCP1.connection).toBeNull();
     expect(disconnectedCP2.connection).toBeNull();
@@ -79,32 +85,34 @@ describe("disconnectCustomers", () => {
   });
 
   it("handles already disconnected customer points", () => {
-    const disconnectedCP = buildCustomerPoint("CP1", {
+    const IDS = { J1: 1, CP1: 2 } as const;
+    const disconnectedCP = buildCustomerPoint(IDS.CP1, {
       coordinates: [2, 1],
       demand: 25,
     });
 
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aJunction("J1", { coordinates: [0, 0] })
+      .aJunction(IDS.J1, { coordinates: [0, 0] })
       .build();
 
-    hydraulicModel.customerPoints.set("CP1", disconnectedCP);
+    hydraulicModel.customerPoints.set(String(IDS.CP1), disconnectedCP);
 
     const { putCustomerPoints } = disconnectCustomers(hydraulicModel, {
-      customerPointIds: ["CP1"],
+      customerPointIds: [String(IDS.CP1)],
     });
 
     expect(putCustomerPoints).toBeDefined();
     expect(putCustomerPoints!.length).toBe(1);
 
     const resultCP = putCustomerPoints![0];
-    expect(resultCP.id).toBe("CP1");
+    expect(resultCP.id).toBe(String(IDS.CP1));
     expect(resultCP.connection).toBeNull();
   });
 
   it("throws error for non-existent customer point", () => {
+    const IDS = { J1: 1 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aJunction("J1", { coordinates: [0, 0] })
+      .aJunction(IDS.J1, { coordinates: [0, 0] })
       .build();
 
     expect(() => {
@@ -115,24 +123,25 @@ describe("disconnectCustomers", () => {
   });
 
   it("ensures immutability by creating new instances", () => {
-    const originalCP = buildCustomerPoint("CP1", {
+    const IDS = { J1: 1, CP1: 2 } as const;
+    const originalCP = buildCustomerPoint(IDS.CP1, {
       coordinates: [2, 1],
       demand: 25,
     });
     originalCP.connect({
-      pipeId: "P1",
+      pipeId: String(IDS.J1),
       snapPoint: [2, 0],
-      junctionId: "J1",
+      junctionId: String(IDS.J1),
     });
 
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aJunction("J1", { coordinates: [0, 0] })
+      .aJunction(IDS.J1, { coordinates: [0, 0] })
       .build();
 
-    hydraulicModel.customerPoints.set("CP1", originalCP);
+    hydraulicModel.customerPoints.set(String(IDS.CP1), originalCP);
 
     const { putCustomerPoints } = disconnectCustomers(hydraulicModel, {
-      customerPointIds: ["CP1"],
+      customerPointIds: [String(IDS.CP1)],
     });
 
     const disconnectedCP = putCustomerPoints![0];
@@ -146,30 +155,31 @@ describe("disconnectCustomers", () => {
   });
 
   it("handles mixed connected and disconnected customer points", () => {
-    const connectedCP = buildCustomerPoint("CP1", {
+    const IDS = { J1: 1, CP1: 2, CP2: 3 } as const;
+    const connectedCP = buildCustomerPoint(IDS.CP1, {
       coordinates: [2, 1],
       demand: 25,
     });
     connectedCP.connect({
-      pipeId: "P1",
+      pipeId: String(IDS.J1),
       snapPoint: [2, 0],
-      junctionId: "J1",
+      junctionId: String(IDS.J1),
     });
 
-    const disconnectedCP = buildCustomerPoint("CP2", {
+    const disconnectedCP = buildCustomerPoint(IDS.CP2, {
       coordinates: [8, 1],
       demand: 50,
     });
 
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aJunction("J1", { coordinates: [0, 0] })
+      .aJunction(IDS.J1, { coordinates: [0, 0] })
       .build();
 
-    hydraulicModel.customerPoints.set("CP1", connectedCP);
-    hydraulicModel.customerPoints.set("CP2", disconnectedCP);
+    hydraulicModel.customerPoints.set(String(IDS.CP1), connectedCP);
+    hydraulicModel.customerPoints.set(String(IDS.CP2), disconnectedCP);
 
     const { putCustomerPoints } = disconnectCustomers(hydraulicModel, {
-      customerPointIds: ["CP1", "CP2"],
+      customerPointIds: [String(IDS.CP1), String(IDS.CP2)],
     });
 
     expect(putCustomerPoints!.length).toBe(2);
@@ -180,42 +190,44 @@ describe("disconnectCustomers", () => {
   });
 
   it("returns correct note", () => {
-    const cp = buildCustomerPoint("CP1", { coordinates: [0, 0], demand: 10 });
+    const IDS = { J1: 1, CP1: 2 } as const;
+    const cp = buildCustomerPoint(IDS.CP1, { coordinates: [0, 0], demand: 10 });
 
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aJunction("J1", { coordinates: [0, 0] })
+      .aJunction(IDS.J1, { coordinates: [0, 0] })
       .build();
 
-    hydraulicModel.customerPoints.set("CP1", cp);
+    hydraulicModel.customerPoints.set(String(IDS.CP1), cp);
 
     const result = disconnectCustomers(hydraulicModel, {
-      customerPointIds: ["CP1"],
+      customerPointIds: [String(IDS.CP1)],
     });
 
     expect(result.note).toBe("Disconnect customers");
   });
 
   it("handles customer points with no junction connection", () => {
-    const cp = buildCustomerPoint("CP1", {
+    const IDS = { J1: 1, CP1: 2 } as const;
+    const cp = buildCustomerPoint(IDS.CP1, {
       coordinates: [2, 1],
       demand: 25,
     });
     cp.connect({
-      pipeId: "P1",
+      pipeId: String(IDS.J1),
       snapPoint: [2, 0],
-      junctionId: "J1",
+      junctionId: String(IDS.J1),
     });
 
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aJunction("J1", { coordinates: [0, 0] })
+      .aJunction(IDS.J1, { coordinates: [0, 0] })
       .build();
 
-    hydraulicModel.customerPoints.set("CP1", cp);
+    hydraulicModel.customerPoints.set(String(IDS.CP1), cp);
 
     const { putAssets, putCustomerPoints } = disconnectCustomers(
       hydraulicModel,
       {
-        customerPointIds: ["CP1"],
+        customerPointIds: [String(IDS.CP1)],
       },
     );
 

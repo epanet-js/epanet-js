@@ -14,9 +14,12 @@ import { stubUserTracking } from "src/__helpers__/user-tracking";
 
 describe("delete selected", () => {
   it("deletes a single selection", async () => {
+    const IDS = { J1: 1 } as const;
     const userTracking = stubUserTracking();
-    const hydraulicModel = HydraulicModelBuilder.with().aJunction("J1").build();
-    const selection = aSingleSelection({ id: "J1" });
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1)
+      .build();
+    const selection = aSingleSelection({ id: String(IDS.J1) });
     const store = setInitialState({ hydraulicModel, selection });
     renderComponent({ store });
 
@@ -25,7 +28,7 @@ describe("delete selected", () => {
     const updatedSelection = store.get(selectionAtom);
     expect(updatedSelection.type).toEqual("none");
     const { hydraulicModel: updatedHydraulicModel } = store.get(dataAtom);
-    expect(updatedHydraulicModel.assets.has("J1")).toBeFalsy();
+    expect(updatedHydraulicModel.assets.has(String(IDS.J1))).toBeFalsy();
     expect(userTracking.capture).toHaveBeenCalledWith({
       name: "asset.deleted",
       source: "shortcut",
@@ -34,12 +37,15 @@ describe("delete selected", () => {
   });
 
   it("deletes multi selection", async () => {
+    const IDS = { J1: 1, J2: 2 } as const;
     const userTracking = stubUserTracking();
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aJunction("J1")
-      .aJunction("J2")
+      .aJunction(IDS.J1)
+      .aJunction(IDS.J2)
       .build();
-    const selection = aMultiSelection({ ids: ["J1", "J2"] });
+    const selection = aMultiSelection({
+      ids: [String(IDS.J1), String(IDS.J2)],
+    });
     const store = setInitialState({ hydraulicModel, selection });
     renderComponent({ store });
 
@@ -48,8 +54,8 @@ describe("delete selected", () => {
     const updatedSelection = store.get(selectionAtom);
     expect(updatedSelection.type).toEqual("none");
     const { hydraulicModel: updatedHydraulicModel } = store.get(dataAtom);
-    expect(updatedHydraulicModel.assets.has("J1")).toBeFalsy();
-    expect(updatedHydraulicModel.assets.has("J2")).toBeFalsy();
+    expect(updatedHydraulicModel.assets.has(String(IDS.J1))).toBeFalsy();
+    expect(updatedHydraulicModel.assets.has(String(IDS.J2))).toBeFalsy();
     expect(userTracking.capture).toHaveBeenCalledWith({
       name: "assets.deleted",
       source: "shortcut",

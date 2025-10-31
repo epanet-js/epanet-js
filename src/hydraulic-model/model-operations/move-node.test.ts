@@ -6,46 +6,46 @@ import { HydraulicModelBuilder } from "../../__helpers__/hydraulic-model-builder
 
 describe("moveNode", () => {
   it("updates the coordinates of a node", () => {
-    const nodeId = "A";
+    const IDS = { A: 1 };
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aNode(nodeId, [10, 10])
+      .aNode(IDS.A, [10, 10])
       .build();
     const newCoordinates = [20, 20];
     const newElevation = 10;
 
     const { putAssets } = moveNode(hydraulicModel, {
-      nodeId: "A",
+      nodeId: String(IDS.A),
       newCoordinates,
       newElevation,
     });
 
     const updatedNode = putAssets![0] as NodeAsset;
-    expect(updatedNode.id).toEqual(nodeId);
+    expect(updatedNode.id).toEqual(String(IDS.A));
     expect(updatedNode.coordinates).toEqual(newCoordinates);
     expect(updatedNode.elevation).toEqual(10);
   });
 
   it("updates the connected links", () => {
+    const IDS = { A: 1, B: 2, C: 3, AB: 4, BC: 5 };
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aNode("A", [10, 10])
-      .aNode("B", [20, 20])
-      .aNode("C", [30, 30])
-      .aLink("AB", "A", "B", { length: 1 })
-      .aLink("BC", "B", "C", { length: 2 })
+      .aNode(IDS.A, [10, 10])
+      .aNode(IDS.B, [20, 20])
+      .aNode(IDS.C, [30, 30])
+      .aLink(IDS.AB, String(IDS.A), String(IDS.B), { length: 1 })
+      .aLink(IDS.BC, String(IDS.B), String(IDS.C), { length: 2 })
       .build();
-    const nodeId = "B";
     const newCoordinates = [25, 25];
     const anyElevation = 10;
 
     const { putAssets } = moveNode(hydraulicModel, {
-      nodeId,
+      nodeId: String(IDS.B),
       newCoordinates,
       newElevation: anyElevation,
     });
 
     expect(putAssets!.length).toEqual(3);
     const updatedNode = putAssets![0] as NodeAsset;
-    expect(updatedNode.id).toEqual(nodeId);
+    expect(updatedNode.id).toEqual(String(IDS.B));
     expect(updatedNode.coordinates).toEqual(newCoordinates);
 
     const updatedAB = putAssets![1] as LinkAsset;
@@ -57,24 +57,28 @@ describe("moveNode", () => {
 
   describe("customer points", () => {
     it("updates customer point snap points when updateCustomerPoints is true", () => {
+      const IDS = { J1: 1, J2: 2, P1: 3, CP1: 4 };
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aNode("J1", [10, 10])
-        .aNode("J2", [30, 10])
-        .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
-        .aCustomerPoint("CP1", {
+        .aNode(IDS.J1, [10, 10])
+        .aNode(IDS.J2, [30, 10])
+        .aPipe(IDS.P1, {
+          startNodeId: String(IDS.J1),
+          endNodeId: String(IDS.J2),
+        })
+        .aCustomerPoint(IDS.CP1, {
           coordinates: [20, 15],
           demand: 1,
           connection: {
-            pipeId: "P1",
+            pipeId: String(IDS.P1),
             snapPoint: [20, 10],
-            junctionId: "J1",
+            junctionId: String(IDS.J1),
           },
         })
         .build();
 
       const newCoordinates = [10, 20];
       const { putAssets, putCustomerPoints } = moveNode(hydraulicModel, {
-        nodeId: "J1",
+        nodeId: String(IDS.J1),
         newCoordinates,
         newElevation: 10,
         shouldUpdateCustomerPoints: true,
@@ -85,28 +89,32 @@ describe("moveNode", () => {
       expect(putCustomerPoints!.length).toEqual(1);
 
       const updatedCustomerPoint = putCustomerPoints![0];
-      expect(updatedCustomerPoint.id).toEqual("CP1");
+      expect(updatedCustomerPoint.id).toEqual(String(IDS.CP1));
       expect(updatedCustomerPoint.connection!.snapPoint).not.toEqual([20, 10]);
     });
 
     it("does not update customer points when updateCustomerPoints is false", () => {
+      const IDS = { J1: 1, J2: 2, P1: 3, CP1: 4 };
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aNode("J1", [10, 10])
-        .aNode("J2", [30, 10])
-        .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
-        .aCustomerPoint("CP1", {
+        .aNode(IDS.J1, [10, 10])
+        .aNode(IDS.J2, [30, 10])
+        .aPipe(IDS.P1, {
+          startNodeId: String(IDS.J1),
+          endNodeId: String(IDS.J2),
+        })
+        .aCustomerPoint(IDS.CP1, {
           coordinates: [20, 15],
           demand: 1,
           connection: {
-            pipeId: "P1",
+            pipeId: String(IDS.P1),
             snapPoint: [20, 10],
-            junctionId: "J1",
+            junctionId: String(IDS.J1),
           },
         })
         .build();
 
       const { putCustomerPoints } = moveNode(hydraulicModel, {
-        nodeId: "J1",
+        nodeId: String(IDS.J1),
         newCoordinates: [10, 20],
         newElevation: 10,
         shouldUpdateCustomerPoints: false,
@@ -116,14 +124,18 @@ describe("moveNode", () => {
     });
 
     it("skips customer points when none are connected to affected pipes", () => {
+      const IDS = { J1: 1, J2: 2, P1: 3 };
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aNode("J1", [10, 10])
-        .aNode("J2", [30, 10])
-        .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
+        .aNode(IDS.J1, [10, 10])
+        .aNode(IDS.J2, [30, 10])
+        .aPipe(IDS.P1, {
+          startNodeId: String(IDS.J1),
+          endNodeId: String(IDS.J2),
+        })
         .build();
 
       const { putCustomerPoints } = moveNode(hydraulicModel, {
-        nodeId: "J1",
+        nodeId: String(IDS.J1),
         newCoordinates: [15, 20],
         newElevation: 10,
         shouldUpdateCustomerPoints: true,
@@ -133,19 +145,27 @@ describe("moveNode", () => {
     });
 
     it("reallocates customer point to new junction when node move changes closest endpoint", () => {
+      const IDS = { J1: 1, J2: 2, P1: 3, CP1: 4 };
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction("J1", { coordinates: [0, 0] })
-        .aJunction("J2", { coordinates: [20, 0] })
-        .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
-        .aCustomerPoint("CP1", {
+        .aJunction(IDS.J1, { coordinates: [0, 0] })
+        .aJunction(IDS.J2, { coordinates: [20, 0] })
+        .aPipe(IDS.P1, {
+          startNodeId: String(IDS.J1),
+          endNodeId: String(IDS.J2),
+        })
+        .aCustomerPoint(IDS.CP1, {
           coordinates: [5, 0],
           demand: 10,
-          connection: { pipeId: "P1", junctionId: "J1", snapPoint: [5, 0] },
+          connection: {
+            pipeId: String(IDS.P1),
+            junctionId: String(IDS.J1),
+            snapPoint: [5, 0],
+          },
         })
         .build();
 
       const { putCustomerPoints } = moveNode(hydraulicModel, {
-        nodeId: "J1",
+        nodeId: String(IDS.J1),
         newCoordinates: [25, 0],
         newElevation: 10,
         shouldUpdateCustomerPoints: true,
@@ -155,23 +175,33 @@ describe("moveNode", () => {
       expect(putCustomerPoints!.length).toEqual(1);
 
       const updatedCustomerPoint = putCustomerPoints![0];
-      expect(updatedCustomerPoint.connection!.junctionId).toEqual("J2");
+      expect(updatedCustomerPoint.connection!.junctionId).toEqual(
+        String(IDS.J2),
+      );
     });
 
     it("updates junction assignments when customer point stays with same junction", () => {
+      const IDS = { J1: 1, J2: 2, P1: 3, CP1: 4 };
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction("J1", { coordinates: [0, 0] })
-        .aJunction("J2", { coordinates: [20, 0] })
-        .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
-        .aCustomerPoint("CP1", {
+        .aJunction(IDS.J1, { coordinates: [0, 0] })
+        .aJunction(IDS.J2, { coordinates: [20, 0] })
+        .aPipe(IDS.P1, {
+          startNodeId: String(IDS.J1),
+          endNodeId: String(IDS.J2),
+        })
+        .aCustomerPoint(IDS.CP1, {
           coordinates: [2, 0],
           demand: 10,
-          connection: { pipeId: "P1", junctionId: "J1", snapPoint: [2, 0] },
+          connection: {
+            pipeId: String(IDS.P1),
+            junctionId: String(IDS.J1),
+            snapPoint: [2, 0],
+          },
         })
         .build();
 
       const { putCustomerPoints } = moveNode(hydraulicModel, {
-        nodeId: "J1",
+        nodeId: String(IDS.J1),
         newCoordinates: [0, 5],
         newElevation: 10,
         shouldUpdateCustomerPoints: true,
@@ -181,29 +211,43 @@ describe("moveNode", () => {
       expect(putCustomerPoints!.length).toEqual(1);
 
       const updatedCustomerPoint = putCustomerPoints![0];
-      expect(updatedCustomerPoint.connection!.junctionId).toEqual("J1");
+      expect(updatedCustomerPoint.connection!.junctionId).toEqual(
+        String(IDS.J1),
+      );
       expect(updatedCustomerPoint.connection!.snapPoint).not.toEqual([2, 0]);
     });
 
     it("handles multiple customer points on same pipe with different junction assignments", () => {
+      const IDS = { J1: 1, J2: 2, P1: 3, CP1: 4, CP2: 5 };
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction("J1", { coordinates: [0, 0] })
-        .aJunction("J2", { coordinates: [30, 0] })
-        .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
-        .aCustomerPoint("CP1", {
+        .aJunction(IDS.J1, { coordinates: [0, 0] })
+        .aJunction(IDS.J2, { coordinates: [30, 0] })
+        .aPipe(IDS.P1, {
+          startNodeId: String(IDS.J1),
+          endNodeId: String(IDS.J2),
+        })
+        .aCustomerPoint(IDS.CP1, {
           coordinates: [5, 0],
           demand: 5,
-          connection: { pipeId: "P1", junctionId: "J1", snapPoint: [5, 0] },
+          connection: {
+            pipeId: String(IDS.P1),
+            junctionId: String(IDS.J1),
+            snapPoint: [5, 0],
+          },
         })
-        .aCustomerPoint("CP2", {
+        .aCustomerPoint(IDS.CP2, {
           coordinates: [25, 0],
           demand: 8,
-          connection: { pipeId: "P1", junctionId: "J2", snapPoint: [25, 0] },
+          connection: {
+            pipeId: String(IDS.P1),
+            junctionId: String(IDS.J2),
+            snapPoint: [25, 0],
+          },
         })
         .build();
 
       const { putCustomerPoints } = moveNode(hydraulicModel, {
-        nodeId: "J1",
+        nodeId: String(IDS.J1),
         newCoordinates: [35, 0],
         newElevation: 10,
         shouldUpdateCustomerPoints: true,
@@ -212,31 +256,39 @@ describe("moveNode", () => {
       expect(putCustomerPoints).toBeDefined();
       expect(putCustomerPoints!.length).toEqual(2);
 
-      const updatedCP1 = putCustomerPoints!.find((cp) => cp.id === "CP1")!;
-      const updatedCP2 = putCustomerPoints!.find((cp) => cp.id === "CP2")!;
+      const updatedCP1 = putCustomerPoints!.find(
+        (cp) => cp.id === String(IDS.CP1),
+      )!;
+      const updatedCP2 = putCustomerPoints!.find(
+        (cp) => cp.id === String(IDS.CP2),
+      )!;
 
-      expect(updatedCP1.connection!.junctionId).toEqual("J2");
-      expect(updatedCP2.connection!.junctionId).toEqual("J2");
+      expect(updatedCP1.connection!.junctionId).toEqual(String(IDS.J2));
+      expect(updatedCP2.connection!.junctionId).toEqual(String(IDS.J2));
     });
 
     it("assigns customer to correct junction after moving node with updated coordinates", () => {
+      const IDS = { J1: 1, J2: 2, P1: 3, CP1: 4 };
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction("J1", { coordinates: [-122.415, 37.7749] })
-        .aJunction("J2", { coordinates: [-122.41, 37.7749] })
-        .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
-        .aCustomerPoint("CP1", {
+        .aJunction(IDS.J1, { coordinates: [-122.415, 37.7749] })
+        .aJunction(IDS.J2, { coordinates: [-122.41, 37.7749] })
+        .aPipe(IDS.P1, {
+          startNodeId: String(IDS.J1),
+          endNodeId: String(IDS.J2),
+        })
+        .aCustomerPoint(IDS.CP1, {
           coordinates: [-122.414, 37.775],
           demand: 10,
           connection: {
-            pipeId: "P1",
-            junctionId: "J1",
+            pipeId: String(IDS.P1),
+            junctionId: String(IDS.J1),
             snapPoint: [-122.414, 37.7749],
           },
         })
         .build();
 
       const { putCustomerPoints } = moveNode(hydraulicModel, {
-        nodeId: "J1",
+        nodeId: String(IDS.J1),
         newCoordinates: [-122.405, 37.7749],
         newElevation: 10,
         shouldUpdateCustomerPoints: true,
@@ -246,92 +298,107 @@ describe("moveNode", () => {
       expect(putCustomerPoints!.length).toEqual(1);
 
       const updatedCustomerPoint = putCustomerPoints![0];
-      expect(updatedCustomerPoint.connection!.junctionId).toEqual("J2");
+      expect(updatedCustomerPoint.connection!.junctionId).toEqual(
+        String(IDS.J2),
+      );
     });
   });
 
   it("splits pipe and connects moved node when pipeIdToSplit provided", () => {
+    const IDS = { J1: 1, J2: 2, J3: 3, P1: 4 };
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aNode("J1", [0, 0])
-      .aNode("J2", [10, 0])
-      .aNode("J3", [0, 10])
-      .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
+      .aNode(IDS.J1, [0, 0])
+      .aNode(IDS.J2, [10, 0])
+      .aNode(IDS.J3, [0, 10])
+      .aPipe(IDS.P1, { startNodeId: String(IDS.J1), endNodeId: String(IDS.J2) })
       .build();
 
     const { putAssets, deleteAssets } = moveNode(hydraulicModel, {
-      nodeId: "J3",
+      nodeId: String(IDS.J3),
       newCoordinates: [5, 0],
       newElevation: 10,
-      pipeIdToSplit: "P1",
+      pipeIdToSplit: String(IDS.P1),
     });
 
-    expect(deleteAssets).toEqual(["P1"]);
+    expect(deleteAssets).toEqual([String(IDS.P1)]);
     expect(putAssets).toHaveLength(3);
 
     const [movedNode, pipe1, pipe2] = putAssets!;
-    expect(movedNode.id).toBe("J3");
+    expect(movedNode.id).toBe(String(IDS.J3));
     expect(movedNode.coordinates).toEqual([5, 0]);
 
     expect(pipe1.type).toBe("pipe");
     expect(pipe2.type).toBe("pipe");
-    expect((pipe1 as any).connections).toEqual(["J1", "J3"]);
-    expect((pipe2 as any).connections).toEqual(["J3", "J2"]);
+    expect((pipe1 as any).connections).toEqual([
+      String(IDS.J1),
+      String(IDS.J3),
+    ]);
+    expect((pipe2 as any).connections).toEqual([
+      String(IDS.J3),
+      String(IDS.J2),
+    ]);
   });
 
   it("combines move and split operations for customer points", () => {
+    const IDS = { J1: 1, J2: 2, J3: 3, J4: 4, P1: 5, P2: 6, CP1: 7, CP2: 8 };
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aNode("J1", [0, 0])
-      .aNode("J2", [10, 0])
-      .aNode("J3", [0, 10])
-      .aNode("J4", [10, 10])
-      .aPipe("P1", { startNodeId: "J1", endNodeId: "J2" })
-      .aPipe("P2", { startNodeId: "J3", endNodeId: "J4" })
-      .aCustomerPoint("CP1", {
+      .aNode(IDS.J1, [0, 0])
+      .aNode(IDS.J2, [10, 0])
+      .aNode(IDS.J3, [0, 10])
+      .aNode(IDS.J4, [10, 10])
+      .aPipe(IDS.P1, { startNodeId: String(IDS.J1), endNodeId: String(IDS.J2) })
+      .aPipe(IDS.P2, { startNodeId: String(IDS.J3), endNodeId: String(IDS.J4) })
+      .aCustomerPoint(IDS.CP1, {
         coordinates: [3, 1],
         demand: 50,
         connection: {
-          pipeId: "P1",
+          pipeId: String(IDS.P1),
           snapPoint: [3, 0],
-          junctionId: "J1",
+          junctionId: String(IDS.J1),
         },
       })
-      .aCustomerPoint("CP2", {
+      .aCustomerPoint(IDS.CP2, {
         coordinates: [0, 12],
         demand: 75,
         connection: {
-          pipeId: "P2",
+          pipeId: String(IDS.P2),
           snapPoint: [0, 10],
-          junctionId: "J3",
+          junctionId: String(IDS.J3),
         },
       })
       .build();
 
     const { putCustomerPoints } = moveNode(hydraulicModel, {
-      nodeId: "J3",
+      nodeId: String(IDS.J3),
       newCoordinates: [5, 0],
       newElevation: 10,
       shouldUpdateCustomerPoints: true,
-      pipeIdToSplit: "P1",
+      pipeIdToSplit: String(IDS.P1),
     });
 
     expect(putCustomerPoints).toBeDefined();
     expect(putCustomerPoints!.length).toBeGreaterThan(0);
 
-    const updatedCP1 = putCustomerPoints!.find((cp) => cp.id === "CP1");
-    const updatedCP2 = putCustomerPoints!.find((cp) => cp.id === "CP2");
+    const updatedCP1 = putCustomerPoints!.find(
+      (cp) => cp.id === String(IDS.CP1),
+    );
+    const updatedCP2 = putCustomerPoints!.find(
+      (cp) => cp.id === String(IDS.CP2),
+    );
 
     expect(updatedCP1).toBeDefined();
     expect(updatedCP2).toBeDefined();
   });
 
   it("throws error for invalid pipeIdToSplit", () => {
+    const IDS = { J1: 1 };
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aNode("J1", [0, 0])
+      .aNode(IDS.J1, [0, 0])
       .build();
 
     expect(() =>
       moveNode(hydraulicModel, {
-        nodeId: "J1",
+        nodeId: String(IDS.J1),
         newCoordinates: [5, 0],
         newElevation: 10,
         pipeIdToSplit: "NonExistentPipe",
@@ -340,22 +407,23 @@ describe("moveNode", () => {
 
     expect(() =>
       moveNode(hydraulicModel, {
-        nodeId: "J1",
+        nodeId: String(IDS.J1),
         newCoordinates: [5, 0],
         newElevation: 10,
-        pipeIdToSplit: "J1",
+        pipeIdToSplit: String(IDS.J1),
       }),
-    ).toThrow("Invalid pipe ID: J1");
+    ).toThrow(`Invalid pipe ID: ${String(IDS.J1)}`);
   });
 
   it("removes matching vertex when moving node to vertex location", () => {
+    const IDS = { J1: 1, J2: 2, J3: 3, P1: 4 };
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aNode("J1", [0, 0])
-      .aNode("J2", [10, 0])
-      .aNode("J3", [0, 10])
-      .aPipe("P1", {
-        startNodeId: "J1",
-        endNodeId: "J2",
+      .aNode(IDS.J1, [0, 0])
+      .aNode(IDS.J2, [10, 0])
+      .aNode(IDS.J3, [0, 10])
+      .aPipe(IDS.P1, {
+        startNodeId: String(IDS.J1),
+        endNodeId: String(IDS.J2),
         coordinates: [
           [0, 0],
           [5, 0],
@@ -365,10 +433,10 @@ describe("moveNode", () => {
       .build();
 
     const { putAssets } = moveNode(hydraulicModel, {
-      nodeId: "J3",
+      nodeId: String(IDS.J3),
       newCoordinates: [5, 0],
       newElevation: 10,
-      pipeIdToSplit: "P1",
+      pipeIdToSplit: String(IDS.P1),
     });
 
     const [, pipe1, pipe2] = putAssets!;
@@ -384,13 +452,14 @@ describe("moveNode", () => {
   });
 
   it("handles multiple vertices correctly when moving node", () => {
+    const IDS = { J1: 1, J2: 2, J3: 3, P1: 4 };
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aNode("J1", [0, 0])
-      .aNode("J2", [20, 0])
-      .aNode("J3", [0, 10])
-      .aPipe("P1", {
-        startNodeId: "J1",
-        endNodeId: "J2",
+      .aNode(IDS.J1, [0, 0])
+      .aNode(IDS.J2, [20, 0])
+      .aNode(IDS.J3, [0, 10])
+      .aPipe(IDS.P1, {
+        startNodeId: String(IDS.J1),
+        endNodeId: String(IDS.J2),
         coordinates: [
           [0, 0],
           [5, 0],
@@ -402,15 +471,15 @@ describe("moveNode", () => {
       .build();
 
     const { putAssets } = moveNode(hydraulicModel, {
-      nodeId: "J3",
+      nodeId: String(IDS.J3),
       newCoordinates: [10, 0],
       newElevation: 10,
-      pipeIdToSplit: "P1",
+      pipeIdToSplit: String(IDS.P1),
     });
 
     const [movedNode, pipe1, pipe2] = putAssets!;
 
-    expect(movedNode.id).toBe("J3");
+    expect(movedNode.id).toBe(String(IDS.J3));
     expect(movedNode.coordinates).toEqual([10, 0]);
     expect(pipe1.coordinates).toEqual([
       [0, 0],
@@ -425,35 +494,36 @@ describe("moveNode", () => {
   });
 
   it("preserves customer point connections when moving with vertex snap", () => {
+    const IDS = { J1: 1, J2: 2, J3: 3, P1: 4, CP1: 5 };
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aNode("J1", [0, 0])
-      .aNode("J2", [10, 0])
-      .aNode("J3", [0, 10])
-      .aPipe("P1", {
-        startNodeId: "J1",
-        endNodeId: "J2",
+      .aNode(IDS.J1, [0, 0])
+      .aNode(IDS.J2, [10, 0])
+      .aNode(IDS.J3, [0, 10])
+      .aPipe(IDS.P1, {
+        startNodeId: String(IDS.J1),
+        endNodeId: String(IDS.J2),
         coordinates: [
           [0, 0],
           [5, 0],
           [10, 0],
         ],
       })
-      .aCustomerPoint("CP1", {
+      .aCustomerPoint(IDS.CP1, {
         coordinates: [3, 1],
         demand: 50,
         connection: {
-          pipeId: "P1",
+          pipeId: String(IDS.P1),
           snapPoint: [3, 0],
-          junctionId: "J1",
+          junctionId: String(IDS.J1),
         },
       })
       .build();
 
     const { putAssets, putCustomerPoints } = moveNode(hydraulicModel, {
-      nodeId: "J3",
+      nodeId: String(IDS.J3),
       newCoordinates: [5, 0],
       newElevation: 10,
-      pipeIdToSplit: "P1",
+      pipeIdToSplit: String(IDS.P1),
       shouldUpdateCustomerPoints: true,
     });
 
@@ -469,7 +539,9 @@ describe("moveNode", () => {
     ]);
 
     expect(putCustomerPoints).toBeDefined();
-    const updatedCP = putCustomerPoints!.find((cp) => cp.id === "CP1");
+    const updatedCP = putCustomerPoints!.find(
+      (cp) => cp.id === String(IDS.CP1),
+    );
     expect(updatedCP).toBeDefined();
     expect(updatedCP!.connection?.pipeId).toBe(pipe1.id);
   });

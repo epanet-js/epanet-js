@@ -15,8 +15,11 @@ import { waitForNotLoading } from "src/__helpers__/ui-expects";
 
 describe("save inp", () => {
   it("serializes the model into an inp representation", async () => {
+    const IDS = { J1: 1 } as const;
     const newHandle = stubFileSave({ fileName: "my-network.inp" });
-    const hydraulicModel = HydraulicModelBuilder.with().aJunction("J1").build();
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1)
+      .build();
     const store = setInitialState({
       hydraulicModel,
     });
@@ -105,8 +108,11 @@ describe("save inp", () => {
   });
 
   it("displays an error when not saved", async () => {
+    const IDS = { J1: 1 } as const;
     stubFileSaveError();
-    const hydraulicModel = HydraulicModelBuilder.with().aJunction("J1").build();
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1)
+      .build();
     const store = setInitialState({
       hydraulicModel,
     });

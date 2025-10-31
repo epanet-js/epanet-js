@@ -38,38 +38,40 @@ describe("attach simulation", () => {
     }),
   };
   it("sets the simulation for the assets", () => {
+    const IDS = { J1: 1, P1: 2, PU1: 3, VALVE1: 4 };
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aJunction("j1")
-      .aPipe("p1")
-      .aPump("pu1", { initialStatus: "on" })
-      .aValve("valve1", { initialStatus: "active" })
+      .aJunction(IDS.J1)
+      .aPipe(IDS.P1)
+      .aPump(IDS.PU1, { initialStatus: "on" })
+      .aValve(IDS.VALVE1, { initialStatus: "active" })
       .build();
 
     attachSimulation(hydraulicModel, resultsReader);
 
-    const pipe = hydraulicModel.assets.get("p1") as Pipe;
+    const pipe = hydraulicModel.assets.get(String(IDS.P1)) as Pipe;
     expect(pipe.flow).toEqual(20);
     expect(pipe.unitHeadloss).toEqual(20);
 
-    const junction = hydraulicModel.assets.get("j1") as Junction;
+    const junction = hydraulicModel.assets.get(String(IDS.J1)) as Junction;
     expect(junction.pressure).toEqual(10);
     expect(junction.head).toEqual(8);
     expect(junction.actualDemand).toEqual(15);
 
-    const pump = hydraulicModel.assets.get("pu1") as Pump;
+    const pump = hydraulicModel.assets.get(String(IDS.PU1)) as Pump;
     expect(pump.head).toEqual(50);
     expect(pump.status).toEqual("off");
     expect(pump.statusWarning).toEqual("cannot-deliver-flow");
 
-    const valve = hydraulicModel.assets.get("valve1") as Valve;
+    const valve = hydraulicModel.assets.get(String(IDS.VALVE1)) as Valve;
     expect(valve.status).toEqual("closed");
   });
 
   it("forces a reference change in the assets collection", () => {
+    const IDS = { J1: 1, P1: 2, PU1: 3 };
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aJunction("j1")
-      .aPipe("p1")
-      .aPump("pu1")
+      .aJunction(IDS.J1)
+      .aPipe(IDS.P1)
+      .aPump(IDS.PU1)
       .build();
 
     const previousAssets = hydraulicModel.assets;
@@ -83,7 +85,7 @@ describe("attach simulation", () => {
     const total = 1e5;
     const builder = HydraulicModelBuilder.with();
     for (let i = 0; i < total; i++) {
-      builder.aJunction(String(i));
+      builder.aJunction(i);
     }
     const hydraulicModel = builder.build();
 
