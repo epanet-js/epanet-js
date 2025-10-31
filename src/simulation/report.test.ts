@@ -84,7 +84,7 @@ FCV 20 open but cannot deliver pressure`;
 
   it("skips Error 213 and Error 211 as expected", () => {
     const assets = HydraulicModelBuilder.with()
-      .aPipe("0", { label: "P_ZERO" })
+      .aPipe("P0", { label: "P_ZERO" })
       .build().assets;
 
     const report = `Error 213: invalid option value 0 in [VALVES] section
@@ -138,7 +138,7 @@ Node 19 and Pipe 56`;
 
   it("does not match valve type when no word follows", () => {
     const assets = HydraulicModelBuilder.with()
-      .aJunction("0", { label: "J0" })
+      .aJunction("J0", { label: "J0" })
       .build().assets;
 
     const report = `Configuration: TCV 0`;

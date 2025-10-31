@@ -289,7 +289,7 @@ describe("prepareWorkerData", () => {
         const hydraulicModel = HydraulicModelBuilder.with()
           .aJunction("J1", { coordinates: [0, 0] })
           .aReservoir("reservoir-with-long-name", { coordinates: [10, 0] })
-          .aTank("0", { coordinates: [20, 0] })
+          .aTank("T0", { coordinates: [20, 0] })
           .aJunction("exactly-32-character-node-id-ok", {
             coordinates: [30, 0],
           })
@@ -324,18 +324,18 @@ describe("prepareWorkerData", () => {
 
         expect(shortId).toBe("J1");
         expect(longId).toBe("reservoir-with-long-name");
-        expect(zeroId).toBe("0");
+        expect(zeroId).toBe("T0");
         expect(exactly32Id).toBe("exactly-32-character-node-id-ok");
       });
 
       it("handles edge cases for node ID encoding", () => {
         const hydraulicModel = HydraulicModelBuilder.with()
-          .aJunction("", { coordinates: [0, 0] })
-          .aReservoir("00", { coordinates: [10, 0] })
+          .aJunction("J_EMPTY", { coordinates: [0, 0] })
+          .aReservoir("R00", { coordinates: [10, 0] })
           .aTank("special-chars-123!@#", { coordinates: [20, 0] })
           .aPipe("P1", {
-            startNodeId: "",
-            endNodeId: "00",
+            startNodeId: "J_EMPTY",
+            endNodeId: "R00",
             diameter: 12,
             coordinates: [
               [0, 0],
@@ -359,8 +359,8 @@ describe("prepareWorkerData", () => {
         const doubleZeroId = getNodeId(workerData.nodes, 1);
         const specialCharsId = getNodeId(workerData.nodes, 2);
 
-        expect(emptyId).toBe("");
-        expect(doubleZeroId).toBe("00");
+        expect(emptyId).toBe("J_EMPTY");
+        expect(doubleZeroId).toBe("R00");
         expect(specialCharsId).toBe("special-chars-123!@#");
       });
 

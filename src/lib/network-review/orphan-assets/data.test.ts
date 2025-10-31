@@ -4,19 +4,19 @@ import { decodeOrphanAssets } from "./data";
 describe("decodeOrphanAssets", () => {
   it("returns results sorted by type and assetId", () => {
     const model = HydraulicModelBuilder.with()
-      .aJunction("0", { label: "J2" })
-      .aJunction("9", { label: "J1" })
-      .aPump("8", { label: "PM2" })
-      .aPump("7", { label: "PM1" })
-      .aValve("6", { label: "V2" })
-      .aValve("5", { label: "V1" })
-      .aTank("4", { label: "T2" })
-      .aTank("3", { label: "T1" })
-      .aReservoir("2", { label: "R2" })
-      .aReservoir("1", { label: "R1" })
+      .aJunction("1", { label: "J2" })
+      .aJunction("10", { label: "J1" })
+      .aPump("9", { label: "PM2" })
+      .aPump("8", { label: "PM1" })
+      .aValve("7", { label: "V2" })
+      .aValve("6", { label: "V1" })
+      .aTank("5", { label: "T2" })
+      .aTank("4", { label: "T1" })
+      .aReservoir("3", { label: "R2" })
+      .aReservoir("2", { label: "R1" })
       .build();
-    const nodeIdsLookup = ["0", "9", "4", "3", "2", "1"];
-    const linkIdsLookup = ["8", "7", "6", "5"];
+    const nodeIdsLookup = ["1", "10", "5", "4", "3", "2"];
+    const linkIdsLookup = ["9", "8", "7", "6"];
     const rawOrphanAssets = {
       orphanNodes: [0, 1, 2, 3, 4, 5],
       orphanLinks: [0, 1, 2, 3],
