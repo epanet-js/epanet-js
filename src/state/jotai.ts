@@ -30,6 +30,7 @@ import { ModelMetadata } from "src/model-metadata";
 import { EphemeralDrawNode } from "src/map/mode-handlers/draw-node/ephemeral-draw-node-state";
 import { DEFAULT_ZOOM } from "src/map/map-engine";
 import { EphemeralDrawLink } from "src/map/mode-handlers/draw-link/ephemeral-link-state";
+import { PipeStatus } from "src/hydraulic-model/asset-types/pipe";
 
 export type Store = ReturnType<typeof createStore>;
 
@@ -494,3 +495,14 @@ export const multiAssetPanelCollapseAtom =
     reservoir: true,
     tank: true,
   });
+
+export const rememberedDefaultsAtom = atom<{
+  pipe: {
+    diameter?: number;
+    roughness?: number;
+    minorLoss?: number;
+    initialStatus?: PipeStatus;
+  };
+}>({
+  pipe: {},
+});

@@ -6,6 +6,7 @@ import {
   ephemeralStateAtom,
   EphemeralEditingState,
   selectionAtom,
+  rememberedDefaultsAtom,
 } from "src/state/jotai";
 import { useSetAtom, useAtom, useAtomValue } from "jotai";
 import { getMapCoord } from "../utils";
@@ -22,6 +23,7 @@ import { addLink } from "src/hydraulic-model/model-operations";
 import { useElevations } from "src/map/elevations/use-elevations";
 import { LngLat } from "mapbox-gl";
 import { useSelection } from "src/selection";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export type SnappingCandidate =
   | NodeAsset
@@ -85,6 +87,8 @@ export function useDrawLinkHandlers({
   );
 
   const { isShiftHeld, isControlHeld } = useKeyboardState();
+  const isRememberPropsOn = useFeatureFlag("FLAG_REMEMBER_PROPS");
+  const rememberedDefaults = useAtomValue(rememberedDefaultsAtom);
 
   const createLinkForType = (coordinates: Position[] = []) => {
     const startProperties = {
@@ -93,7 +97,10 @@ export function useDrawLinkHandlers({
     };
     switch (linkType) {
       case "pipe":
-        return assetBuilder.buildPipe(startProperties);
+        return assetBuilder.buildPipe({
+          ...(isRememberPropsOn ? rememberedDefaults.pipe : {}),
+          ...startProperties,
+        });
       case "pump":
         return assetBuilder.buildPump(startProperties);
       case "valve":
