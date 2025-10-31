@@ -16,7 +16,6 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { useElevations } from "../../elevations/use-elevations";
 import { useSnapping } from "../hooks/use-snapping";
 import { useSelection } from "src/selection";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 type NodeType = "junction" | "reservoir" | "tank";
 
@@ -41,7 +40,6 @@ export function useDrawNodeHandlers({
     hydraulicModel.assets,
   );
   const { selectAsset } = useSelection(selection);
-  const isReplaceNodeOn = useFeatureFlag("FLAG_REPLACE_NODE");
 
   const submitNode = (
     nodeType: NodeType,
@@ -70,27 +68,23 @@ export function useDrawNodeHandlers({
       const snappingCandidate = findSnappingCandidate(e, mouseCoord);
 
       if (snappingCandidate && snappingCandidate.type !== "pipe") {
-        if (isReplaceNodeOn) {
-          const moment = replaceNode(hydraulicModel, {
-            oldNodeId: snappingCandidate.id,
-            newNodeType: nodeType,
-          });
-          transact(moment);
-          userTracking.capture({
-            name: "asset.created",
-            type: nodeType,
-          });
+        const moment = replaceNode(hydraulicModel, {
+          oldNodeId: snappingCandidate.id,
+          newNodeType: nodeType,
+        });
+        transact(moment);
+        userTracking.capture({
+          name: "asset.created",
+          type: nodeType,
+        });
 
-          if (moment.putAssets && moment.putAssets.length > 0) {
-            const newNodeId = moment.putAssets[0].id;
-            selectAsset(newNodeId);
-          }
-
-          setEphemeralState({ type: "none" });
-          return;
-        } else {
-          return;
+        if (moment.putAssets && moment.putAssets.length > 0) {
+          const newNodeId = moment.putAssets[0].id;
+          selectAsset(newNodeId);
         }
+
+        setEphemeralState({ type: "none" });
+        return;
       }
 
       let clickPosition = getMapCoord(e);
@@ -123,7 +117,7 @@ export function useDrawNodeHandlers({
           snappingCandidate && snappingCandidate.type === "pipe";
 
         if (isNodeSnapping) {
-          setCursor(isReplaceNodeOn ? "replace" : "not-allowed");
+          setCursor("replace");
         } else {
           setCursor("default");
         }
@@ -136,8 +130,7 @@ export function useDrawNodeHandlers({
             : null,
           pipeId: isPipeSnapping ? snappingCandidate.id : null,
           nodeSnappingId: isNodeSnapping ? snappingCandidate.id : null,
-          nodeReplacementId:
-            isNodeSnapping && isReplaceNodeOn ? snappingCandidate.id : null,
+          nodeReplacementId: isNodeSnapping ? snappingCandidate.id : null,
         });
       },
       200,

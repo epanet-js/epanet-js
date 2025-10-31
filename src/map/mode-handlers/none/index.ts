@@ -18,7 +18,6 @@ import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import { useSnapping } from "../hooks/use-snapping";
 import throttle from "lodash/throttle";
 import { useClickedAsset } from "../utils";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 const stateUpdateTime = 16;
 
@@ -82,7 +81,6 @@ export function useNoneHandlers({
     idMap,
     hydraulicModel.assets,
   );
-  const isReplaceNodeOn = useFeatureFlag("FLAG_REPLACE_NODE");
 
   const fastMovePointer = (point: mapboxgl.Point) => {
     if (!map) return;
@@ -199,11 +197,7 @@ export function useNoneHandlers({
           );
 
         setCursor(
-          isNodeSnapping
-            ? isReplaceNodeOn && !shareLink
-              ? "replace"
-              : "not-allowed"
-            : "move",
+          isNodeSnapping ? (!shareLink ? "replace" : "not-allowed") : "move",
         );
 
         if (isPipeSnapping) {
@@ -271,7 +265,7 @@ export function useNoneHandlers({
           snappingCandidate.id,
         );
 
-        if (isReplaceNodeOn && !shareLink) {
+        if (!shareLink) {
           const moment = mergeNodes(hydraulicModel, {
             sourceNodeId: assetId,
             targetNodeId: snappingCandidate.id,
