@@ -9,7 +9,6 @@ import {
   ProximityCheckIcon,
 } from "src/icons";
 import { OrphanAssets } from "./orphan-assets";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useUserTracking } from "src/infra/user-tracking";
 import { CheckType } from "./common";
 import { ProximityAnomalies } from "./proximity-anomalies";
@@ -43,32 +42,19 @@ export function NetworkReview() {
   }
 }
 
+const allChecks = [
+  CheckType.orphanAssets,
+  CheckType.proximityAnomalies,
+  CheckType.crossingPipes,
+  CheckType.connectivityTrace,
+];
+
 function NetworkReviewSummary({
   onClick,
 }: {
   onClick: (check: CheckType) => void;
 }) {
   const translate = useTranslate();
-  const isConnectivityTraceEnabled = useFeatureFlag("FLAG_CONNECTIVITY_TRACE");
-
-  const allChecks = [
-    { checkType: CheckType.orphanAssets, isEnabled: true },
-    {
-      checkType: CheckType.proximityAnomalies,
-      isEnabled: true,
-    },
-    {
-      checkType: CheckType.crossingPipes,
-      isEnabled: true,
-    },
-    {
-      checkType: CheckType.connectivityTrace,
-      isEnabled: isConnectivityTraceEnabled,
-    },
-  ];
-
-  const enabledChecks = allChecks.filter((check) => check.isEnabled);
-  const disabledChecks = allChecks.filter((check) => !check.isEnabled);
 
   const [selectedCheckType, setSelectedCheckType] = useState<CheckType | null>(
     null,
@@ -84,41 +70,35 @@ function NetworkReviewSummary({
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
-      if (enabledChecks.length === 0) return;
-
-      const currentIndex = enabledChecks.findIndex(
-        (check) => check.checkType === selectedCheckType,
+      const currentIndex = allChecks.findIndex(
+        (check) => check === selectedCheckType,
       );
 
       switch (e.key) {
         case "ArrowDown":
           e.preventDefault();
-          const nextIndex = Math.min(
-            currentIndex + 1,
-            enabledChecks.length - 1,
-          );
-          setSelectedCheckType(enabledChecks[nextIndex].checkType);
+          const nextIndex = Math.min(currentIndex + 1, allChecks.length - 1);
+          setSelectedCheckType(allChecks[nextIndex]);
           break;
         case "ArrowUp":
           e.preventDefault();
           const prevIndex = Math.max(currentIndex - 1, 0);
-          setSelectedCheckType(enabledChecks[prevIndex].checkType);
+          setSelectedCheckType(allChecks[prevIndex]);
           break;
         case "Enter":
           e.preventDefault();
           if (currentIndex === -1) break;
-          const selectedCheck = enabledChecks[currentIndex];
-          if (selectedCheck?.isEnabled) {
-            onClick(selectedCheck.checkType);
-            break;
-          }
+          const selectedCheck = allChecks[currentIndex];
+          onClick(selectedCheck);
+          break;
+
         case "Escape":
           e.preventDefault();
           setSelectedCheckType(null);
           break;
       }
     },
-    [enabledChecks, selectedCheckType, onClick],
+    [selectedCheckType, onClick],
   );
 
   return (
@@ -138,26 +118,11 @@ function NetworkReviewSummary({
         {translate("networkReview.description")}
       </div>
       <div className="flex-auto px-1">
-        {enabledChecks.map(({ checkType }) => (
+        {allChecks.map((checkType) => (
           <ReviewCheck
             key={checkType}
             checkType={checkType}
             onClick={onClick}
-            isEnabled={true}
-            isSelected={selectedCheckType === checkType}
-          />
-        ))}
-        {disabledChecks.length > 0 && (
-          <div className="uppercase text-gray-700 dark:text-gray-200 px-4 py-2 text-sm">
-            {translate("comingSoon")}
-          </div>
-        )}
-        {disabledChecks.map(({ checkType }) => (
-          <ReviewCheck
-            key={checkType}
-            checkType={checkType}
-            onClick={onClick}
-            isEnabled={false}
             isSelected={selectedCheckType === checkType}
           />
         ))}
@@ -183,12 +148,12 @@ const labelKeyByCheckType = {
 const ReviewCheck = ({
   onClick,
   checkType,
-  isEnabled,
+  isEnabled = true,
   isSelected,
 }: {
   checkType: CheckType;
   onClick: (checkType: CheckType) => void;
-  isEnabled: boolean;
+  isEnabled?: boolean;
   isSelected: boolean;
 }) => {
   const translate = useTranslate();
