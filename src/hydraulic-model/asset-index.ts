@@ -7,61 +7,53 @@ import {
   FixedSizeBufferView,
   FixedSizeBufferBuilder,
 } from "src/lib/buffers";
-import { AssetId, InternalId } from "./asset-types/base-asset";
+import { AssetId } from "./asset-types/base-asset";
 
 export class AssetIndex {
-  private linkInternalIds: InternalId[] = [];
-  private nodeInternalIds: InternalId[] = [];
-  private linkBufferIndexMap: Map<InternalId, number> = new Map();
-  private nodeBufferIndexMap: Map<InternalId, number> = new Map();
-  private maxInternalId: number = -1;
+  private linkAssetIds: AssetId[] = [];
+  private nodeAssetIds: AssetId[] = [];
+  private linkBufferIndexMap: Map<AssetId, number> = new Map();
+  private nodeBufferIndexMap: Map<AssetId, number> = new Map();
+  private maxAssetId: number = -1;
 
-  addLink(internalId: InternalId): void {
+  addLink(internalId: AssetId): void {
     if (internalId === 0) {
-      throw new Error("InternalId cannot be 0");
+      throw new Error("AssetId cannot be 0");
     }
-    const bufferIndex = this.linkInternalIds.length;
-    this.linkInternalIds.push(internalId);
+    const bufferIndex = this.linkAssetIds.length;
+    this.linkAssetIds.push(internalId);
     this.linkBufferIndexMap.set(internalId, bufferIndex);
-    this.maxInternalId = Math.max(this.maxInternalId, internalId);
+    this.maxAssetId = Math.max(this.maxAssetId, internalId);
   }
 
-  addNode(internalId: InternalId): void {
+  addNode(internalId: AssetId): void {
     if (internalId === 0) {
-      throw new Error("InternalId cannot be 0");
+      throw new Error("AssetId cannot be 0");
     }
-    const bufferIndex = this.nodeInternalIds.length;
-    this.nodeInternalIds.push(internalId);
+    const bufferIndex = this.nodeAssetIds.length;
+    this.nodeAssetIds.push(internalId);
     this.nodeBufferIndexMap.set(internalId, bufferIndex);
-    this.maxInternalId = Math.max(this.maxInternalId, internalId);
+    this.maxAssetId = Math.max(this.maxAssetId, internalId);
   }
 
-  static toAssetId(internalId: InternalId): AssetId {
-    return String(internalId);
-  }
-
-  static toInternalId(assetId: AssetId): InternalId {
-    return Number(assetId);
-  }
-
-  *iterateLinkInternalIds(): Generator<InternalId, void, unknown> {
-    for (const internalId of this.linkInternalIds) {
+  *iterateLinkAssetIds(): Generator<AssetId, void, unknown> {
+    for (const internalId of this.linkAssetIds) {
       yield internalId;
     }
   }
 
-  *iterateNodeInternalIds(): Generator<InternalId, void, unknown> {
-    for (const internalId of this.nodeInternalIds) {
+  *iterateNodeAssetIds(): Generator<AssetId, void, unknown> {
+    for (const internalId of this.nodeAssetIds) {
       yield internalId;
     }
   }
 
   get linkCount(): number {
-    return this.linkInternalIds.length;
+    return this.linkAssetIds.length;
   }
 
   get nodeCount(): number {
-    return this.nodeInternalIds.length;
+    return this.nodeAssetIds.length;
   }
 
   getEncoder(bufferType: BufferType = "array"): AssetIndexEncoder {
@@ -70,7 +62,7 @@ export class AssetIndex {
       this.nodeBufferIndexMap,
       this.linkCount,
       this.nodeCount,
-      this.maxInternalId,
+      this.maxAssetId,
       bufferType,
     );
   }
@@ -135,16 +127,16 @@ export class AssetIndexEncoder {
   private bufferBuilder: FixedSizeBufferBuilder<AssetIndexEntry>;
 
   constructor(
-    private linkBufferIndexMap: Map<InternalId, number>,
-    private nodeBufferIndexMap: Map<InternalId, number>,
+    private linkBufferIndexMap: Map<AssetId, number>,
+    private nodeBufferIndexMap: Map<AssetId, number>,
     private linkCount: number,
     private nodeCount: number,
-    maxInternalId: number,
+    maxAssetId: number,
     bufferType: BufferType = "array",
   ) {
     this.bufferBuilder = new FixedSizeBufferBuilder<AssetIndexEntry>(
       ASSET_INDEX_SIZE,
-      maxInternalId + 1,
+      maxAssetId + 1,
       bufferType,
       encodeAssetIndex,
       ASSET_INDEX_CUSTOM_HEADER_SIZE,
@@ -153,8 +145,8 @@ export class AssetIndexEncoder {
   }
 
   encode(
-    linkIds: () => Generator<InternalId, void, unknown>,
-    nodeIds: () => Generator<InternalId, void, unknown>,
+    linkIds: () => Generator<AssetId, void, unknown>,
+    nodeIds: () => Generator<AssetId, void, unknown>,
   ): BinaryData {
     for (const internalId of nodeIds()) {
       this.encodeNode(internalId);
@@ -166,7 +158,7 @@ export class AssetIndexEncoder {
     return this.finalize();
   }
 
-  encodeLink(internalId: InternalId): void {
+  encodeLink(internalId: AssetId): void {
     const bufferIndex = this.linkBufferIndexMap.get(internalId);
     if (bufferIndex === undefined) {
       throw new Error(`Link with internalId ${internalId} not found`);
@@ -181,7 +173,7 @@ export class AssetIndexEncoder {
     ]);
   }
 
-  encodeNode(internalId: InternalId): void {
+  encodeNode(internalId: AssetId): void {
     const bufferIndex = this.nodeBufferIndexMap.get(internalId);
     if (bufferIndex === undefined) {
       throw new Error(`Node with internalId ${internalId} not found`);
@@ -221,7 +213,7 @@ export class AssetIndexView {
     );
   }
 
-  getLinkIndex(internalId: InternalId): LinkIndex | null {
+  getLinkIndex(internalId: AssetId): LinkIndex | null {
     if (internalId < 0 || internalId >= this.view.count) {
       return null;
     }
@@ -235,7 +227,7 @@ export class AssetIndexView {
     return index - 1;
   }
 
-  getNodeIndex(internalId: InternalId): NodeIndex | null {
+  getNodeIndex(internalId: AssetId): NodeIndex | null {
     if (internalId < 0 || internalId >= this.view.count) {
       return null;
     }
@@ -249,15 +241,15 @@ export class AssetIndexView {
     return index - 1;
   }
 
-  hasLink(internalId: InternalId): boolean {
+  hasLink(internalId: AssetId): boolean {
     return this.getLinkIndex(internalId) !== null;
   }
 
-  hasNode(internalId: InternalId): boolean {
+  hasNode(internalId: AssetId): boolean {
     return this.getNodeIndex(internalId) !== null;
   }
 
-  *iterateLinks(): Generator<[InternalId, LinkIndex], void, unknown> {
+  *iterateLinks(): Generator<[AssetId, LinkIndex], void, unknown> {
     for (const [internalId, assetIndexEntry] of this.view.enumerate()) {
       if (assetIndexEntry === null) continue;
       const [type, encodedIndex] = assetIndexEntry;
@@ -267,7 +259,7 @@ export class AssetIndexView {
     }
   }
 
-  *iterateNodes(): Generator<[InternalId, NodeIndex], void, unknown> {
+  *iterateNodes(): Generator<[AssetId, NodeIndex], void, unknown> {
     for (const [internalId, assetIndexEntry] of this.view.enumerate()) {
       if (assetIndexEntry === null) continue;
       const [type, encodedIndex] = assetIndexEntry;

@@ -10,7 +10,7 @@ import {
 } from "src/hydraulic-model";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import { CustomerPointsLookup } from "src/hydraulic-model/customer-points-lookup";
-import { Valve } from "src/hydraulic-model/asset-types";
+import { Valve, AssetId } from "src/hydraulic-model/asset-types";
 import { checksum } from "src/infra/checksum";
 import { withDebugInstrumentation } from "src/infra/with-instrumentation";
 
@@ -53,7 +53,7 @@ const chooseUnitSystem = (units: HydraulicModel["units"]): EpanetUnitSystem => {
 
 class EpanetIds {
   private strategy: "id" | "label";
-  private assetIds: Map<string, string>;
+  private assetIds: Map<AssetId, string>;
   private linkIds: Set<string>;
   private nodeIds: Set<string>;
 
@@ -67,9 +67,9 @@ class EpanetIds {
   linkId(link: LinkAsset) {
     switch (this.strategy) {
       case "id":
-        return link.id;
+        return String(link.id);
       case "label":
-        if (this.assetIds.has(link.id)) return this.assetIds.get(link.id);
+        if (this.assetIds.has(link.id)) return this.assetIds.get(link.id)!;
         const id = this.ensureUnique(this.linkIds, link.label);
         this.linkIds.add(id);
         this.assetIds.set(link.id, id);
@@ -80,9 +80,9 @@ class EpanetIds {
   nodeId(node: NodeAsset) {
     switch (this.strategy) {
       case "id":
-        return node.id;
+        return String(node.id);
       case "label":
-        if (this.assetIds.has(node.id)) return this.assetIds.get(node.id);
+        if (this.assetIds.has(node.id)) return this.assetIds.get(node.id)!;
         const id = this.ensureUnique(this.nodeIds, node.label);
         this.nodeIds.add(id);
         this.assetIds.set(node.id, id);

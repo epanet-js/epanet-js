@@ -38,7 +38,7 @@ export const UIDMap = {
   loadIdsFromPersistence(wrappedFeatures: IWrappedFeature[]): IDMap {
     const map = UIDMap.empty();
     for (const { id } of wrappedFeatures) {
-      UIDMap.pushUUID(map, id);
+      UIDMap.pushUUID(map, String(id));
     }
     return map;
   },
@@ -51,7 +51,7 @@ export const UIDMap = {
     // Do not push duplicates.
     if (map.intids.has(uuid)) return;
     const index = map.uuids.push(uuid) - 1;
-    map.intids.set(uuid, index as RawId);
+    map.intids.set(uuid, index);
   },
   deleteUUID(map: IDMap, uuid: string): void {
     const index = map.intids.get(uuid);

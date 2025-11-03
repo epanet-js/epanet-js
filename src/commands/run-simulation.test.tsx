@@ -33,7 +33,7 @@ describe("Run simulation", () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .aReservoir(IDS.r1)
       .aJunction(IDS.j1, { baseDemand: 1 })
-      .aPipe(IDS.p1, { startNodeId: String(IDS.r1), endNodeId: String(IDS.j1) })
+      .aPipe(IDS.p1, { startNodeId: IDS.r1, endNodeId: IDS.j1 })
       .build();
     const store = setInitialState({ hydraulicModel });
     renderComponent({ store });
@@ -50,7 +50,7 @@ describe("Run simulation", () => {
     const {
       hydraulicModel: { assets: updatedAssets },
     } = store.get(dataAtom);
-    const pipe = getPipe(updatedAssets, String(IDS.p1));
+    const pipe = getPipe(updatedAssets, IDS.p1);
     expect(pipe!.flow).toBeCloseTo(1);
   });
 
@@ -199,7 +199,7 @@ describe("Run simulation", () => {
     return HydraulicModelBuilder.with()
       .aReservoir(IDS.r1)
       .aJunction(IDS.j1, { baseDemand: 1 })
-      .aPipe(IDS.p1, { startNodeId: String(IDS.r1), endNodeId: String(IDS.j1) })
+      .aPipe(IDS.p1, { startNodeId: IDS.r1, endNodeId: IDS.j1 })
       .build();
   };
 
@@ -208,7 +208,7 @@ describe("Run simulation", () => {
     return HydraulicModelBuilder.with()
       .aReservoir(IDS.r1, { head: 0 })
       .aJunction(IDS.j1, { baseDemand: 10 })
-      .aPipe(IDS.p1, { startNodeId: String(IDS.r1), endNodeId: String(IDS.j1) })
+      .aPipe(IDS.p1, { startNodeId: IDS.r1, endNodeId: IDS.j1 })
       .build();
   };
 });

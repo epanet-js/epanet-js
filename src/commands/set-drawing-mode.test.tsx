@@ -42,7 +42,7 @@ describe("useDrawingMode", () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction(IDS.J1)
       .build();
-    const selection = aSingleSelection({ id: String(IDS.J1) });
+    const selection = aSingleSelection({ id: IDS.J1 });
     const store = setInitialState({
       hydraulicModel,
       selection,
@@ -66,7 +66,7 @@ describe("useDrawingMode", () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction(IDS.J1)
       .build();
-    const selection = aSingleSelection({ id: String(IDS.J1) });
+    const selection = aSingleSelection({ id: IDS.J1 });
     const store = setInitialState({
       hydraulicModel,
       selection,

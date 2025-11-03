@@ -27,7 +27,7 @@ describe("epanet simulation", () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .aReservoir(IDS.R1)
       .aJunction(IDS.J1)
-      .aPipe(IDS.P1, { startNodeId: String(IDS.R1), endNodeId: String(IDS.J1) })
+      .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
       .build();
     const inp = buildInp(hydraulicModel);
 
@@ -42,7 +42,7 @@ describe("epanet simulation", () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .aReservoir(IDS.R1)
       .aReservoir(IDS.R2)
-      .aPipe(IDS.P1, { startNodeId: String(IDS.R1), endNodeId: String(IDS.R2) })
+      .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.R2 })
       .build();
     const inp = buildInp(hydraulicModel);
     const { status, report } = await runSimulation(inp);
@@ -56,7 +56,7 @@ describe("epanet simulation", () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .aReservoir(IDS.R1, { head: 0 })
       .aJunction(IDS.J1, { baseDemand: 10 })
-      .aPipe(IDS.P1, { startNodeId: String(IDS.R1), endNodeId: String(IDS.J1) })
+      .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
       .build();
     const inp = buildInp(hydraulicModel);
 
@@ -71,7 +71,7 @@ describe("epanet simulation", () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .aReservoir(IDS.R1)
       .aJunction(IDS.J1)
-      .aPipe(IDS.P1, { startNodeId: String(IDS.R1), endNodeId: String(IDS.J1) })
+      .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
       .aJunction(IDS.J2)
       .build();
     const inp = buildInp(hydraulicModel);
@@ -90,8 +90,8 @@ describe("epanet simulation", () => {
         .aReservoir(IDS.R1)
         .aJunction(IDS.J1, { baseDemand: 1 })
         .aPipe(IDS.P1, {
-          startNodeId: String(IDS.R1),
-          endNodeId: String(IDS.J1),
+          startNodeId: IDS.R1,
+          endNodeId: IDS.J1,
         })
         .build();
       const inp = buildInp(hydraulicModel);
@@ -110,8 +110,8 @@ describe("epanet simulation", () => {
         .aReservoir(IDS.R1, { head: 10 })
         .aJunction(IDS.J1, { baseDemand: 1, elevation: 2 })
         .aValve(IDS.V1, {
-          startNodeId: String(IDS.R1),
-          endNodeId: String(IDS.J1),
+          startNodeId: IDS.R1,
+          endNodeId: IDS.J1,
         })
         .build();
       const inp = buildInp(hydraulicModel);
@@ -132,8 +132,8 @@ describe("epanet simulation", () => {
         .aReservoir(IDS.R1)
         .aJunction(IDS.J1, { baseDemand: 1 })
         .aValve(IDS.V1, {
-          startNodeId: String(IDS.R1),
-          endNodeId: String(IDS.J1),
+          startNodeId: IDS.R1,
+          endNodeId: IDS.J1,
         })
         .build();
       const inp = buildInp(hydraulicModel);
@@ -162,12 +162,12 @@ describe("epanet simulation", () => {
         })
         .aJunction(IDS.J1, { baseDemand: 1 })
         .aPipe(IDS.P1, {
-          startNodeId: String(IDS.R1),
-          endNodeId: String(IDS.T1),
+          startNodeId: IDS.R1,
+          endNodeId: IDS.T1,
         })
         .aPipe(IDS.P2, {
-          startNodeId: String(IDS.T1),
-          endNodeId: String(IDS.J1),
+          startNodeId: IDS.T1,
+          endNodeId: IDS.J1,
         })
         .build();
       const inp = buildInp(hydraulicModel);
@@ -188,8 +188,8 @@ describe("epanet simulation", () => {
         .aReservoir(IDS.R1)
         .aJunction(IDS.J1, { baseDemand: 1 })
         .aValve(IDS.V1, {
-          startNodeId: String(IDS.R1),
-          endNodeId: String(IDS.J1),
+          startNodeId: IDS.R1,
+          endNodeId: IDS.J1,
           initialStatus: "closed",
         })
         .build();
@@ -209,8 +209,8 @@ describe("epanet simulation", () => {
         .aJunction(IDS.J1, { baseDemand: 1 })
         .aJunction(IDS.J2)
         .aPipe(IDS.P1, {
-          startNodeId: String(IDS.R1),
-          endNodeId: String(IDS.J1),
+          startNodeId: IDS.R1,
+          endNodeId: IDS.J1,
         })
         .build();
       const inp = buildInp(hydraulicModel);

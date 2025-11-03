@@ -70,7 +70,6 @@ export class Junction extends Node<JunctionProperties> {
   copy() {
     const newJunction = new Junction(
       this.id,
-      this.internalId,
       [...this.coordinates],
       { ...this.properties },
       this.units,

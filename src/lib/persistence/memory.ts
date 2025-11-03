@@ -25,7 +25,6 @@ import {
   initialRememberedDefaults,
 } from "src/state/jotai";
 import { getFreshAt, momentForDeleteFeatures, trackMoment } from "./shared";
-import { IDMap, UIDMap } from "src/lib/id-mapper";
 import { sortAts } from "src/lib/parse-stored";
 import { AssetsMap, HydraulicModel } from "src/hydraulic-model";
 import { ModelMoment } from "src/hydraulic-model";
@@ -44,10 +43,8 @@ import {
 import { nullSymbologySpec } from "src/map/symbology";
 
 export class MemPersistence implements IPersistence {
-  idMap: IDMap;
   private store: Store;
-  constructor(idMap: IDMap, store: Store) {
-    this.idMap = idMap;
+  constructor(store: Store) {
     this.store = store;
   }
   useTransactImport() {
@@ -56,8 +53,6 @@ export class MemPersistence implements IPersistence {
       modelMetadata: ModelMetadata,
       name: string,
     ) => {
-      this.idMap = UIDMap.empty();
-
       const momentLog = new MomentLog();
       const moment = {
         note: `Import ${name}`,
@@ -71,7 +66,6 @@ export class MemPersistence implements IPersistence {
         putAssets: moment.putAssets,
       };
       moment.putAssets.forEach((asset) => {
-        UIDMap.pushUUID(this.idMap, asset.id);
         hydraulicModel.labelManager.register(asset.label, asset.type, asset.id);
       });
       momentLog.setSnapshot(forwardMoment, hydraulicModel.version);
@@ -273,7 +267,6 @@ export class MemPersistence implements IPersistence {
         (inputFeature as Asset).type,
         (inputFeature as Asset).id,
       );
-      UIDMap.pushUUID(this.idMap, inputFeature.id);
     }
 
     return reverseMoment;

@@ -1,8 +1,6 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { SymbologySpec, nullSymbologySpec } from "src/map/symbology";
-import { IDMap, UIDMap } from "src/lib/id-mapper";
 import { buildOptimizedAssetsSource } from "./features";
-import { AssetsMap } from "src/hydraulic-model";
 import { Quantities, presets } from "src/model-metadata/quantities-spec";
 import {
   aLinkSymbology,
@@ -27,7 +25,6 @@ describe("build optimized source", () => {
 
     const features = buildOptimizedAssetsSource(
       assets,
-      initIDMap(assets),
       symbology,
       defaultQuantities,
       fakeTranslateUnit,
@@ -55,7 +52,6 @@ describe("build optimized source", () => {
 
     const features = buildOptimizedAssetsSource(
       assets,
-      initIDMap(assets),
       symbology,
       defaultQuantities,
       fakeTranslateUnit,
@@ -87,7 +83,6 @@ describe("build optimized source", () => {
 
       const features = buildOptimizedAssetsSource(
         assets,
-        initIDMap(assets),
         symbology,
         defaultQuantities,
         fakeTranslateUnit,
@@ -113,7 +108,6 @@ describe("build optimized source", () => {
 
       const features = buildOptimizedAssetsSource(
         assets,
-        initIDMap(assets),
         symbology,
         defaultQuantities,
         () => "m",
@@ -151,7 +145,6 @@ describe("build optimized source", () => {
 
       const features = buildOptimizedAssetsSource(
         assets,
-        initIDMap(assets),
         symbology,
         defaultQuantities,
         fakeTranslateUnit,
@@ -189,7 +182,6 @@ describe("build optimized source", () => {
 
       const features = buildOptimizedAssetsSource(
         assets,
-        initIDMap(assets),
         symbology,
         defaultQuantities,
         () => "l/s",
@@ -214,7 +206,6 @@ describe("build optimized source", () => {
 
       const features = buildOptimizedAssetsSource(
         assets,
-        initIDMap(assets),
         symbology,
         defaultQuantities,
         fakeTranslateUnit,
@@ -251,7 +242,6 @@ describe("build optimized source", () => {
 
       const features = buildOptimizedAssetsSource(
         assets,
-        initIDMap(assets),
         symbology,
         defaultQuantities,
         fakeTranslateUnit,
@@ -274,7 +264,6 @@ describe("build optimized source", () => {
 
       const features = buildOptimizedAssetsSource(
         assets,
-        initIDMap(assets),
         symbology,
         defaultQuantities,
         fakeTranslateUnit,
@@ -300,7 +289,6 @@ describe("build optimized source", () => {
 
       const features = buildOptimizedAssetsSource(
         assets,
-        initIDMap(assets),
         symbology,
         defaultQuantities,
         fakeTranslateUnit,
@@ -311,7 +299,3 @@ describe("build optimized source", () => {
     });
   });
 });
-
-const initIDMap = (assets: AssetsMap): IDMap => {
-  return UIDMap.loadIdsFromPersistence([...assets.values()]);
-};

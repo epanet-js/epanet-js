@@ -12,8 +12,8 @@ describe("replaceLink", () => {
         .aJunction(IDS.J1, { coordinates: [0, 0] })
         .aJunction(IDS.J2, { coordinates: [10, 0] })
         .aPipe(IDS.P1, {
-          startNodeId: String(IDS.J1),
-          endNodeId: String(IDS.J2),
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
           coordinates: [
             [0, 0],
             [10, 0],
@@ -30,19 +30,19 @@ describe("replaceLink", () => {
           [10, 0],
         ],
       });
-      newPipe.setProperty("id", String(IDS.P2));
+      newPipe.setProperty("id", IDS.P2);
 
-      const startNode = hydraulicModel.assets.get(String(IDS.J1)) as NodeAsset;
-      const endNode = hydraulicModel.assets.get(String(IDS.J2)) as NodeAsset;
+      const startNode = hydraulicModel.assets.get(IDS.J1) as NodeAsset;
+      const endNode = hydraulicModel.assets.get(IDS.J2) as NodeAsset;
 
       const { putAssets, deleteAssets } = replaceLink(hydraulicModel, {
-        sourceLinkId: String(IDS.P1),
+        sourceLinkId: IDS.P1,
         newLink: newPipe,
         startNode,
         endNode,
       });
 
-      expect(deleteAssets).toContain(String(IDS.P1));
+      expect(deleteAssets).toContain(IDS.P1);
       expect(putAssets).toBeDefined();
       expect(putAssets!.length).toBeGreaterThan(0);
 
@@ -50,7 +50,7 @@ describe("replaceLink", () => {
         (asset) => asset.type === "pipe",
       ) as Pipe;
       expect(addedPipe).toBeDefined();
-      expect(addedPipe.connections).toEqual([String(IDS.J1), String(IDS.J2)]);
+      expect(addedPipe.connections).toEqual([IDS.J1, IDS.J2]);
     });
 
     it("throws error for mismatched link types", () => {
@@ -59,8 +59,8 @@ describe("replaceLink", () => {
         .aJunction(IDS.J1, { coordinates: [0, 0] })
         .aJunction(IDS.J2, { coordinates: [10, 0] })
         .aPipe(IDS.P1, {
-          startNodeId: String(IDS.J1),
-          endNodeId: String(IDS.J2),
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
           coordinates: [
             [0, 0],
             [10, 0],
@@ -76,12 +76,12 @@ describe("replaceLink", () => {
         ],
       });
 
-      const startNode = hydraulicModel.assets.get(String(IDS.J1)) as NodeAsset;
-      const endNode = hydraulicModel.assets.get(String(IDS.J2)) as NodeAsset;
+      const startNode = hydraulicModel.assets.get(IDS.J1) as NodeAsset;
+      const endNode = hydraulicModel.assets.get(IDS.J2) as NodeAsset;
 
       expect(() =>
         replaceLink(hydraulicModel, {
-          sourceLinkId: String(IDS.P1),
+          sourceLinkId: IDS.P1,
           newLink: newPump,
           startNode,
           endNode,
@@ -95,8 +95,8 @@ describe("replaceLink", () => {
         .aJunction(IDS.J1, { coordinates: [0, 0] })
         .aJunction(IDS.J2, { coordinates: [10, 0] })
         .aPipe(IDS.P1, {
-          startNodeId: String(IDS.J1),
-          endNodeId: String(IDS.J2),
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
           coordinates: [
             [0, 0],
             [5, 0],
@@ -121,15 +121,15 @@ describe("replaceLink", () => {
       });
 
       const { putAssets, deleteAssets } = replaceLink(hydraulicModel, {
-        sourceLinkId: String(IDS.P1),
+        sourceLinkId: IDS.P1,
         newLink: newPipe,
         startNode,
         endNode,
-        startPipeId: String(IDS.P1),
-        endPipeId: String(IDS.P1),
+        startPipeId: IDS.P1,
+        endPipeId: IDS.P1,
       });
 
-      expect(deleteAssets).toContain(String(IDS.P1));
+      expect(deleteAssets).toContain(IDS.P1);
       expect(putAssets).toBeDefined();
       expect(putAssets!.length).toBeGreaterThan(1); // Should include split pipes + new pipe + nodes
     });
@@ -142,8 +142,8 @@ describe("replaceLink", () => {
         .aJunction(IDS.J1, { coordinates: [0, 0] })
         .aJunction(IDS.J2, { coordinates: [10, 0] })
         .aPipe(IDS.P1, {
-          startNodeId: String(IDS.J1),
-          endNodeId: String(IDS.J2),
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
           coordinates: [
             [0, 0],
             [10, 0],
@@ -152,9 +152,9 @@ describe("replaceLink", () => {
         .aCustomerPoint(IDS.CP1, {
           coordinates: [2, 1],
           connection: {
-            pipeId: String(IDS.P1),
+            pipeId: IDS.P1,
             snapPoint: [2, 0],
-            junctionId: String(IDS.J1),
+            junctionId: IDS.J1,
           },
         })
         .build();
@@ -166,13 +166,13 @@ describe("replaceLink", () => {
           [10, 0],
         ],
       });
-      newPipe.setProperty("id", String(IDS.P2));
+      newPipe.setProperty("id", IDS.P2);
 
-      const startNode = hydraulicModel.assets.get(String(IDS.J1)) as NodeAsset;
-      const endNode = hydraulicModel.assets.get(String(IDS.J2)) as NodeAsset;
+      const startNode = hydraulicModel.assets.get(IDS.J1) as NodeAsset;
+      const endNode = hydraulicModel.assets.get(IDS.J2) as NodeAsset;
 
       const { putCustomerPoints, putAssets } = replaceLink(hydraulicModel, {
-        sourceLinkId: String(IDS.P1),
+        sourceLinkId: IDS.P1,
         newLink: newPipe,
         startNode,
         endNode,
@@ -184,7 +184,7 @@ describe("replaceLink", () => {
       const reconnectedCP = putCustomerPoints![0];
       expect(reconnectedCP.id).toBe(String(IDS.CP1));
       expect(reconnectedCP.connection).not.toBeNull();
-      expect(reconnectedCP.connection!.junctionId).toBe(String(IDS.J1));
+      expect(reconnectedCP.connection!.junctionId).toBe(IDS.J1);
 
       const newPipeId = putAssets!.find((asset) => asset.type === "pipe")!.id;
       expect(reconnectedCP.connection!.pipeId).toBe(newPipeId);
@@ -198,8 +198,8 @@ describe("replaceLink", () => {
         .aJunction(IDS.J1, { coordinates: [0, 0] })
         .aJunction(IDS.J2, { coordinates: [10, 0] })
         .aPipe(IDS.P1, {
-          startNodeId: String(IDS.J1),
-          endNodeId: String(IDS.J2),
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
           coordinates: [
             [0, 0],
             [10, 0],
@@ -208,9 +208,9 @@ describe("replaceLink", () => {
         .aCustomerPoint(IDS.CP1, {
           coordinates: [3, 2],
           connection: {
-            pipeId: String(IDS.P1),
+            pipeId: IDS.P1,
             snapPoint: [3, 0],
-            junctionId: String(IDS.J1),
+            junctionId: IDS.J1,
           },
         })
         .build();
@@ -223,13 +223,13 @@ describe("replaceLink", () => {
           [10, 0],
         ],
       });
-      newPipe.setProperty("id", String(IDS.P2));
+      newPipe.setProperty("id", IDS.P2);
 
-      const startNode = hydraulicModel.assets.get(String(IDS.J1)) as NodeAsset;
-      const endNode = hydraulicModel.assets.get(String(IDS.J2)) as NodeAsset;
+      const startNode = hydraulicModel.assets.get(IDS.J1) as NodeAsset;
+      const endNode = hydraulicModel.assets.get(IDS.J2) as NodeAsset;
 
       const { putCustomerPoints } = replaceLink(hydraulicModel, {
-        sourceLinkId: String(IDS.P1),
+        sourceLinkId: IDS.P1,
         newLink: newPipe,
         startNode,
         endNode,
@@ -251,8 +251,8 @@ describe("replaceLink", () => {
         .aTank(IDS.T1, { coordinates: [0, 0] })
         .aJunction(IDS.J2, { coordinates: [10, 0] })
         .aPipe(IDS.P1, {
-          startNodeId: String(IDS.T1),
-          endNodeId: String(IDS.J2),
+          startNodeId: IDS.T1,
+          endNodeId: IDS.J2,
           coordinates: [
             [0, 0],
             [10, 0],
@@ -261,9 +261,9 @@ describe("replaceLink", () => {
         .aCustomerPoint(IDS.CP1, {
           coordinates: [2, 1],
           connection: {
-            pipeId: String(IDS.P1),
+            pipeId: IDS.P1,
             snapPoint: [2, 0],
-            junctionId: String(IDS.J2),
+            junctionId: IDS.J2,
           },
         })
         .build();
@@ -275,13 +275,13 @@ describe("replaceLink", () => {
           [10, 0],
         ],
       });
-      newPipe.setProperty("id", String(IDS.P2));
+      newPipe.setProperty("id", IDS.P2);
 
-      const startNode = hydraulicModel.assets.get(String(IDS.T1)) as NodeAsset;
-      const endNode = hydraulicModel.assets.get(String(IDS.J2)) as NodeAsset;
+      const startNode = hydraulicModel.assets.get(IDS.T1) as NodeAsset;
+      const endNode = hydraulicModel.assets.get(IDS.J2) as NodeAsset;
 
       const { putCustomerPoints } = replaceLink(hydraulicModel, {
-        sourceLinkId: String(IDS.P1),
+        sourceLinkId: IDS.P1,
         newLink: newPipe,
         startNode,
         endNode,
@@ -289,7 +289,7 @@ describe("replaceLink", () => {
 
       expect(putCustomerPoints).toBeDefined();
       const reconnectedCP = putCustomerPoints![0];
-      expect(reconnectedCP.connection!.junctionId).toBe(String(IDS.J2));
+      expect(reconnectedCP.connection!.junctionId).toBe(IDS.J2);
     });
 
     it("disconnects customer points when no junctions available", () => {
@@ -298,8 +298,8 @@ describe("replaceLink", () => {
         .aTank(IDS.T1, { coordinates: [0, 0] })
         .aReservoir(IDS.R1, { coordinates: [10, 0] })
         .aPipe(IDS.P1, {
-          startNodeId: String(IDS.T1),
-          endNodeId: String(IDS.R1),
+          startNodeId: IDS.T1,
+          endNodeId: IDS.R1,
           coordinates: [
             [0, 0],
             [10, 0],
@@ -312,9 +312,9 @@ describe("replaceLink", () => {
         label: "CP1",
       });
       customerPoint.connect({
-        pipeId: String(IDS.P1),
+        pipeId: IDS.P1,
         snapPoint: [5, 0],
-        junctionId: String(IDS.T1),
+        junctionId: IDS.T1,
       });
       hydraulicModel.customerPoints.set(String(IDS.CP1), customerPoint);
       hydraulicModel.customerPointsLookup.addConnection(customerPoint);
@@ -326,13 +326,13 @@ describe("replaceLink", () => {
           [10, 0],
         ],
       });
-      newPipe.setProperty("id", String(IDS.P2));
+      newPipe.setProperty("id", IDS.P2);
 
-      const startNode = hydraulicModel.assets.get(String(IDS.T1)) as NodeAsset;
-      const endNode = hydraulicModel.assets.get(String(IDS.R1)) as NodeAsset;
+      const startNode = hydraulicModel.assets.get(IDS.T1) as NodeAsset;
+      const endNode = hydraulicModel.assets.get(IDS.R1) as NodeAsset;
 
       const { putCustomerPoints } = replaceLink(hydraulicModel, {
-        sourceLinkId: String(IDS.P1),
+        sourceLinkId: IDS.P1,
         newLink: newPipe,
         startNode,
         endNode,
@@ -349,8 +349,8 @@ describe("replaceLink", () => {
         .aJunction(IDS.J1, { coordinates: [0, 0] })
         .aJunction(IDS.J2, { coordinates: [10, 0] })
         .aPump(IDS.PU1, {
-          startNodeId: String(IDS.J1),
-          endNodeId: String(IDS.J2),
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
           coordinates: [
             [0, 0],
             [10, 0],
@@ -366,22 +366,22 @@ describe("replaceLink", () => {
           [10, 0],
         ],
       });
-      newPump.setProperty("id", String(IDS.PU2));
+      newPump.setProperty("id", IDS.PU2);
 
-      const startNode = hydraulicModel.assets.get(String(IDS.J1)) as NodeAsset;
-      const endNode = hydraulicModel.assets.get(String(IDS.J2)) as NodeAsset;
+      const startNode = hydraulicModel.assets.get(IDS.J1) as NodeAsset;
+      const endNode = hydraulicModel.assets.get(IDS.J2) as NodeAsset;
 
       const { putAssets, deleteAssets, putCustomerPoints } = replaceLink(
         hydraulicModel,
         {
-          sourceLinkId: String(IDS.PU1),
+          sourceLinkId: IDS.PU1,
           newLink: newPump,
           startNode,
           endNode,
         },
       );
 
-      expect(deleteAssets).toContain(String(IDS.PU1));
+      expect(deleteAssets).toContain(IDS.PU1);
       expect(putAssets).toBeDefined();
       expect(putCustomerPoints).toBeUndefined();
     });
@@ -408,7 +408,7 @@ describe("replaceLink", () => {
 
       expect(() =>
         replaceLink(hydraulicModel, {
-          sourceLinkId: String(IDS.NONEXISTENT),
+          sourceLinkId: IDS.NONEXISTENT,
           newLink: newPipe,
           startNode,
           endNode,

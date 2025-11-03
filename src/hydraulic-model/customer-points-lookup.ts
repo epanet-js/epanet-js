@@ -1,7 +1,8 @@
 import { CustomerPoint } from "./customer-points";
+import { AssetId } from "./asset-types/base-asset";
 
 export class CustomerPointsLookup {
-  private lookup: Map<string, Set<CustomerPoint>> = new Map();
+  private lookup: Map<AssetId, Set<CustomerPoint>> = new Map();
 
   addConnection(customerPoint: CustomerPoint): void {
     const connection = customerPoint.connection;
@@ -47,11 +48,11 @@ export class CustomerPointsLookup {
     }
   }
 
-  getCustomerPoints(assetId: string): Set<CustomerPoint> {
+  getCustomerPoints(assetId: AssetId): Set<CustomerPoint> {
     return this.lookup.get(assetId) || new Set();
   }
 
-  hasConnections(assetId: string): boolean {
+  hasConnections(assetId: AssetId): boolean {
     return this.lookup.has(assetId);
   }
 
@@ -69,7 +70,7 @@ export class CustomerPointsLookup {
     return newLookup;
   }
 
-  entries(): IterableIterator<[string, Set<CustomerPoint>]> {
+  entries(): IterableIterator<[AssetId, Set<CustomerPoint>]> {
     return this.lookup.entries();
   }
 }

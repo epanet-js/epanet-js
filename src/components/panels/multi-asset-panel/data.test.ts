@@ -36,7 +36,7 @@ describe("computeMultiAssetData", () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction(IDS.J1)
       .aJunction(IDS.J2)
-      .aPipe(IDS.P1, { startNodeId: String(IDS.J1), endNodeId: String(IDS.J2) })
+      .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
       .build();
 
     const assets = Array.from(hydraulicModel.assets.values());
@@ -124,15 +124,15 @@ describe("computeMultiAssetData", () => {
       .aJunction(IDS.J1)
       .aJunction(IDS.J2)
       .aPipe(IDS.P1, {
-        startNodeId: String(IDS.J1),
-        endNodeId: String(IDS.J2),
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
         diameter: 300,
         length: 1000,
         roughness: 130,
       })
       .aPipe(IDS.P2, {
-        startNodeId: String(IDS.J1),
-        endNodeId: String(IDS.J2),
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
         diameter: 200,
         length: 500,
         roughness: 100,
@@ -159,18 +159,18 @@ describe("computeMultiAssetData", () => {
       .aJunction(IDS.J2)
       .aJunction(IDS.J3)
       .aPipe(IDS.P1, {
-        startNodeId: String(IDS.J1),
-        endNodeId: String(IDS.J2),
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
         initialStatus: "open",
       })
       .aPipe(IDS.P2, {
-        startNodeId: String(IDS.J2),
-        endNodeId: String(IDS.J3),
+        startNodeId: IDS.J2,
+        endNodeId: IDS.J3,
         initialStatus: "closed",
       })
       .aPipe(IDS.P3, {
-        startNodeId: String(IDS.J1),
-        endNodeId: String(IDS.J3),
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J3,
         initialStatus: "open",
       })
       .build();
@@ -200,7 +200,7 @@ describe("computeMultiAssetData", () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction(IDS.J1, { elevation: 100 })
       .aReservoir(IDS.R1, { elevation: 200 })
-      .aPipe(IDS.P1, { startNodeId: String(IDS.R1), endNodeId: String(IDS.J1) })
+      .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
       .build();
 
     const assets = Array.from(hydraulicModel.assets.values());
@@ -217,8 +217,8 @@ describe("computeMultiAssetData", () => {
       .aJunction(IDS.J1)
       .aJunction(IDS.J2)
       .aPump(IDS.PU1, {
-        startNodeId: String(IDS.J1),
-        endNodeId: String(IDS.J2),
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
         definitionType: "power",
         power: 20,
       })
@@ -262,8 +262,8 @@ describe("computeMultiAssetData", () => {
       .aJunction(IDS.J1)
       .aJunction(IDS.J2)
       .aValve(IDS.V1, {
-        startNodeId: String(IDS.J1),
-        endNodeId: String(IDS.J2),
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
         kind: "prv",
         setting: 50,
       })

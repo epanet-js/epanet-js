@@ -24,15 +24,15 @@ describe("findCrossingPipes", () => {
         .aJunction(IDS.J1, { coordinates: [0, 0] })
         .aJunction(IDS.J2, { coordinates: [0, 10] })
         .aPipe(IDS.P1, {
-          startNodeId: String(IDS.J1),
-          endNodeId: String(IDS.J2),
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
         })
         // Horizontal pipe crossing at (0, 5)
         .aJunction(IDS.J3, { coordinates: [-5, 5] })
         .aJunction(IDS.J4, { coordinates: [5, 5] })
         .aPipe(IDS.P2, {
-          startNodeId: String(IDS.J3),
-          endNodeId: String(IDS.J4),
+          startNodeId: IDS.J3,
+          endNodeId: IDS.J4,
         })
         .build();
       const { nodeIdsLookup, linkIdsLookup, ...data } = encodeData(model);
@@ -40,8 +40,8 @@ describe("findCrossingPipes", () => {
       const crossings = findCrossingPipes(data, 0.5);
 
       expect(crossings).toHaveLength(1);
-      expect(linkIdsLookup[crossings[0].pipe1Id]).toEqual(String(IDS.P1));
-      expect(linkIdsLookup[crossings[0].pipe2Id]).toEqual(String(IDS.P2));
+      expect(linkIdsLookup[crossings[0].pipe1Id]).toEqual(IDS.P1);
+      expect(linkIdsLookup[crossings[0].pipe2Id]).toEqual(IDS.P2);
       expect(crossings[0].intersectionPoint[0]).toBeCloseTo(0, 5);
       expect(crossings[0].intersectionPoint[1]).toBeCloseTo(5, 5);
     });
@@ -66,27 +66,27 @@ describe("findCrossingPipes", () => {
         .aJunction(IDS.J1, { coordinates: [0, 0] })
         .aJunction(IDS.J2, { coordinates: [0, 10] })
         .aPipe(IDS.P1, {
-          startNodeId: String(IDS.J1),
-          endNodeId: String(IDS.J2),
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
         })
         .aJunction(IDS.J3, { coordinates: [-5, 5] })
         .aJunction(IDS.J4, { coordinates: [5, 5] })
         .aPipe(IDS.P2, {
-          startNodeId: String(IDS.J3),
-          endNodeId: String(IDS.J4),
+          startNodeId: IDS.J3,
+          endNodeId: IDS.J4,
         })
         // Second crossing: P3 x P4
         .aJunction(IDS.J5, { coordinates: [20, 0] })
         .aJunction(IDS.J6, { coordinates: [20, 10] })
         .aPipe(IDS.P3, {
-          startNodeId: String(IDS.J5),
-          endNodeId: String(IDS.J6),
+          startNodeId: IDS.J5,
+          endNodeId: IDS.J6,
         })
         .aJunction(IDS.J7, { coordinates: [15, 5] })
         .aJunction(IDS.J8, { coordinates: [25, 5] })
         .aPipe(IDS.P4, {
-          startNodeId: String(IDS.J7),
-          endNodeId: String(IDS.J8),
+          startNodeId: IDS.J7,
+          endNodeId: IDS.J8,
         })
         .build();
       const { nodeIdsLookup, linkIdsLookup, ...data } = encodeData(model);
@@ -99,8 +99,8 @@ describe("findCrossingPipes", () => {
         linkIdsLookup[c.pipe1Id],
         linkIdsLookup[c.pipe2Id],
       ]);
-      expect(pairIds).toContainEqual([String(IDS.P1), String(IDS.P2)]);
-      expect(pairIds).toContainEqual([String(IDS.P3), String(IDS.P4)]);
+      expect(pairIds).toContainEqual([IDS.P1, IDS.P2]);
+      expect(pairIds).toContainEqual([IDS.P3, IDS.P4]);
     });
   });
 
@@ -119,16 +119,16 @@ describe("findCrossingPipes", () => {
         .aJunction(IDS.J1, { coordinates: [0, 0] })
         .aJunction(IDS.J2, { coordinates: [0, 10] })
         .aPipe(IDS.P1, {
-          startNodeId: String(IDS.J1),
-          endNodeId: String(IDS.J2),
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
         })
         // Junction very close to where P2 crosses P1
         .aJunction(IDS.JNearby, { coordinates: [0.0003, 5] }) // ~33m away
         .aJunction(IDS.J3, { coordinates: [-5, 5] })
         .aJunction(IDS.J4, { coordinates: [5, 5] })
         .aPipe(IDS.P2, {
-          startNodeId: String(IDS.J3),
-          endNodeId: String(IDS.J4),
+          startNodeId: IDS.J3,
+          endNodeId: IDS.J4,
         })
         .build();
       const { nodeIdsLookup, linkIdsLookup, ...data } = encodeData(model);
@@ -145,14 +145,14 @@ describe("findCrossingPipes", () => {
         .aJunction(IDS.J1, { coordinates: [0, 0] })
         .aJunction(IDS.J2, { coordinates: [0, 10] })
         .aPipe(IDS.P1, {
-          startNodeId: String(IDS.J1),
-          endNodeId: String(IDS.J2),
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
         })
         .aJunction(IDS.J3, { coordinates: [-5, 5] })
         .aJunction(IDS.J4, { coordinates: [5, 5] })
         .aPipe(IDS.P2, {
-          startNodeId: String(IDS.J3),
-          endNodeId: String(IDS.J4),
+          startNodeId: IDS.J3,
+          endNodeId: IDS.J4,
         })
         .build();
       const { nodeIdsLookup, linkIdsLookup, ...data } = encodeData(model);
@@ -176,14 +176,14 @@ describe("findCrossingPipes", () => {
         .aJunction(IDS.J1, { coordinates: [0, 0] })
         .aJunction(IDS.J2, { coordinates: [0, 10] })
         .aPipe(IDS.P1, {
-          startNodeId: String(IDS.J1),
-          endNodeId: String(IDS.J2),
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
         })
         .aJunction(IDS.J3, { coordinates: [-5, 5] })
         .aJunction(IDS.J4, { coordinates: [5, 5] })
         .aPipe(IDS.P2, {
-          startNodeId: String(IDS.J3),
-          endNodeId: String(IDS.J4),
+          startNodeId: IDS.J3,
+          endNodeId: IDS.J4,
         })
         // Add a junction near the crossing
         .aJunction(IDS.JNearby, { coordinates: [0.0008, 5] }) // ~89m from intersection at (0, 5)
@@ -208,8 +208,8 @@ describe("findCrossingPipes", () => {
         .aJunction(IDS.J1, { coordinates: [0, 0] })
         .aJunction(IDS.J2, { coordinates: [0, 10] })
         .aPipe(IDS.P1, {
-          startNodeId: String(IDS.J1),
-          endNodeId: String(IDS.J2),
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
           coordinates: [
             [0, 0],
             [2, 3],
@@ -221,8 +221,8 @@ describe("findCrossingPipes", () => {
         .aJunction(IDS.J3, { coordinates: [0, 5] })
         .aJunction(IDS.J4, { coordinates: [5, 5] })
         .aPipe(IDS.P2, {
-          startNodeId: String(IDS.J3),
-          endNodeId: String(IDS.J4),
+          startNodeId: IDS.J3,
+          endNodeId: IDS.J4,
         })
         .build();
       const { nodeIdsLookup, linkIdsLookup, ...data } = encodeData(model);
@@ -230,8 +230,8 @@ describe("findCrossingPipes", () => {
       const crossings = findCrossingPipes(data, 0.5);
 
       expect(crossings).toHaveLength(1);
-      expect(linkIdsLookup[crossings[0].pipe1Id]).toEqual(String(IDS.P1));
-      expect(linkIdsLookup[crossings[0].pipe2Id]).toEqual(String(IDS.P2));
+      expect(linkIdsLookup[crossings[0].pipe1Id]).toEqual(IDS.P1);
+      expect(linkIdsLookup[crossings[0].pipe2Id]).toEqual(IDS.P2);
     });
 
     it("handles pipes with complex S-curve geometries", () => {
@@ -241,8 +241,8 @@ describe("findCrossingPipes", () => {
         .aJunction(IDS.J1, { coordinates: [0, 0] })
         .aJunction(IDS.J2, { coordinates: [0, 20] })
         .aPipe(IDS.P1, {
-          startNodeId: String(IDS.J1),
-          endNodeId: String(IDS.J2),
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
           coordinates: [
             [0, 0],
             [5, 5],
@@ -255,8 +255,8 @@ describe("findCrossingPipes", () => {
         .aJunction(IDS.J3, { coordinates: [-10, 12] })
         .aJunction(IDS.J4, { coordinates: [10, 12] })
         .aPipe(IDS.P2, {
-          startNodeId: String(IDS.J3),
-          endNodeId: String(IDS.J4),
+          startNodeId: IDS.J3,
+          endNodeId: IDS.J4,
         })
         .build();
       const { nodeIdsLookup, linkIdsLookup, ...data } = encodeData(model);
@@ -275,14 +275,14 @@ describe("findCrossingPipes", () => {
         .aJunction(IDS.J1, { coordinates: [0, 0] })
         .aJunction(IDS.J2, { coordinates: [0, 10] })
         .aPipe(IDS.P1, {
-          startNodeId: String(IDS.J1),
-          endNodeId: String(IDS.J2),
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
         })
         .aJunction(IDS.J3, { coordinates: [5, 0] })
         .aJunction(IDS.J4, { coordinates: [5, 10] })
         .aPipe(IDS.P2, {
-          startNodeId: String(IDS.J3),
-          endNodeId: String(IDS.J4),
+          startNodeId: IDS.J3,
+          endNodeId: IDS.J4,
         })
         .build();
       const { nodeIdsLookup, linkIdsLookup, ...data } = encodeData(model);
@@ -298,8 +298,8 @@ describe("findCrossingPipes", () => {
         .aJunction(IDS.J1, { coordinates: [0, 0] })
         .aJunction(IDS.J2, { coordinates: [10, 0] })
         .aPipe(IDS.P1, {
-          startNodeId: String(IDS.J1),
-          endNodeId: String(IDS.J2),
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
           coordinates: [
             [0, 0],
             [3, 3],
@@ -310,8 +310,8 @@ describe("findCrossingPipes", () => {
         .aJunction(IDS.J3, { coordinates: [0, 0] })
         .aJunction(IDS.J4, { coordinates: [10, 0] })
         .aPipe(IDS.P2, {
-          startNodeId: String(IDS.J3),
-          endNodeId: String(IDS.J4),
+          startNodeId: IDS.J3,
+          endNodeId: IDS.J4,
         })
         .build();
       const { nodeIdsLookup, linkIdsLookup, ...data } = encodeData(model);
@@ -322,8 +322,8 @@ describe("findCrossingPipes", () => {
 
       const pipe1 = linkIdsLookup[crossings[0].pipe1Id];
       const pipe2 = linkIdsLookup[crossings[0].pipe2Id];
-      expect(pipe1).toEqual(String(IDS.P1));
-      expect(pipe2).toEqual(String(IDS.P2));
+      expect(pipe1).toEqual(IDS.P1);
+      expect(pipe2).toEqual(IDS.P2);
     });
 
     it("handles pipes that touch at endpoints (T-junction)", () => {
@@ -332,13 +332,13 @@ describe("findCrossingPipes", () => {
         .aJunction(IDS.J1, { coordinates: [0, 0] })
         .aJunction(IDS.J2, { coordinates: [0, 10] })
         .aPipe(IDS.P1, {
-          startNodeId: String(IDS.J1),
-          endNodeId: String(IDS.J2),
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
         })
         .aJunction(IDS.J3, { coordinates: [10, 10] })
         .aPipe(IDS.P2, {
-          startNodeId: String(IDS.J2),
-          endNodeId: String(IDS.J3),
+          startNodeId: IDS.J2,
+          endNodeId: IDS.J3,
         })
         .build();
       const { nodeIdsLookup, linkIdsLookup, ...data } = encodeData(model);

@@ -24,8 +24,8 @@ export interface ProximityAnomaly {
 
 export function decodeProximityAnomalies(
   model: HydraulicModel,
-  nodeIdsLookup: string[],
-  linkIdsLookup: string[],
+  nodeIdsLookup: number[],
+  linkIdsLookup: number[],
   encodedProximityAnomalies: EncodedProximityAnomaly[],
 ): ProximityAnomaly[] {
   const proximityAnomalies: ProximityAnomaly[] = [];
@@ -48,8 +48,8 @@ export function decodeProximityAnomalies(
   return proximityAnomalies.sort((a: ProximityAnomaly, b: ProximityAnomaly) => {
     const nodeA = model.assets.get(a.nodeId);
     const nodeB = model.assets.get(b.nodeId);
-    const labelA = nodeA ? nodeA.label.toUpperCase() : a.nodeId.toUpperCase();
-    const labelB = nodeB ? nodeB.label.toUpperCase() : b.nodeId.toUpperCase();
+    const labelA = nodeA ? nodeA.label.toUpperCase() : String(a.nodeId);
+    const labelB = nodeB ? nodeB.label.toUpperCase() : String(b.nodeId);
 
     if (a.distance < b.distance) return -1;
     if (a.distance > b.distance) return 1;

@@ -26,13 +26,11 @@ import {
   buildEphemeralStateSource,
   buildSelectionSource,
 } from "./data-source";
-import { usePersistence } from "src/lib/persistence/context";
 import { ISymbology, LayerConfigMap, SYMBOLIZATION_NONE } from "src/types";
 import { buildBaseStyle, makeLayers } from "./build-style";
 import { LayerId } from "./layers";
 import { Asset, AssetId, AssetsMap, filterAssets } from "src/hydraulic-model";
 import { MomentLog } from "src/lib/persistence/moment-log";
-import { IDMap, UIDMap } from "src/lib/id-mapper";
 import { captureError } from "src/infra/error-tracking";
 import { withDebugInstrumentation } from "src/infra/with-instrumentation";
 import { USelection } from "src/selection";
@@ -199,8 +197,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     hydraulicModel,
     modelMetadata: { quantities },
   } = useAtomValue(dataAtom);
-  const { idMap } = usePersistence();
-  const lastHiddenFeatures = useRef<Set<RawId>>(new Set([]));
+  const lastHiddenFeatures = useRef<Set<AssetId>>(new Set([]));
   const previousMapStateRef = useRef<MapState>(nullMapState);
   const customerPointsOverlayRef = useRef<CustomerPointsOverlay>([]);
   const selectionDeckLayersRef = useRef<CustomerPointsOverlay>([]);
@@ -266,7 +263,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
             map,
             momentLog,
             assets,
-            idMap,
             mapState.symbology,
             quantities,
             translateUnit,
@@ -283,7 +279,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
             map,
             momentLog,
             assets,
-            idMap,
             mapState.symbology,
             quantities,
             translateUnit,
@@ -292,7 +287,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
             map,
             lastHiddenFeatures.current,
             editedAssetIds,
-            idMap,
           );
 
           lastHiddenFeatures.current = newHiddenFeatures;
@@ -306,7 +300,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           hasNewSelection ||
           (hasNewSimulation && mapState.simulation.status !== "running")
         ) {
-          await updateIconsSource(map, assets, idMap, mapState.selection);
+          await updateIconsSource(map, assets, mapState.selection);
         }
 
         if (
@@ -368,12 +362,10 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
             previousMapState.movedAssetIds,
             mapState.movedAssetIds,
             lastHiddenFeatures.current,
-            idMap,
           );
           await updateEphemeralStateSource(
             map,
             mapState.ephemeralState,
-            idMap,
             assets,
           );
         }
@@ -388,7 +380,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
             map,
             mapState.selection,
             assets,
-            idMap,
             mapState.movedAssetIds,
           );
         }
@@ -437,7 +428,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   }, [
     mapState,
     assets,
-    idMap,
     map,
     momentLog,
     quantities,
@@ -502,7 +492,6 @@ const updateImportSource = withDebugInstrumentation(
     map: MapEngine,
     momentLog: MomentLog,
     assets: AssetsMap,
-    idMap: IDMap,
     symbology: SymbologySpec,
     quantities: Quantities,
     translateUnit: (unit: Unit) => string,
@@ -521,7 +510,6 @@ const updateImportSource = withDebugInstrumentation(
 
     const features = buildOptimizedAssetsSource(
       importedAssets,
-      idMap,
       symbology,
       quantities,
       translateUnit,
@@ -541,7 +529,6 @@ const updateEditionsSource = withDebugInstrumentation(
     map: MapEngine,
     momentLog: MomentLog,
     assets: AssetsMap,
-    idMap: IDMap,
     symbology: SymbologySpec,
     quantities: Quantities,
     translateUnit: (unit: Unit) => string,
@@ -553,7 +540,6 @@ const updateEditionsSource = withDebugInstrumentation(
 
     const features = buildOptimizedAssetsSource(
       editedAssets,
-      idMap,
       symbology,
       quantities,
       translateUnit,
@@ -569,14 +555,9 @@ const updateEditionsSource = withDebugInstrumentation(
 );
 
 const updateIconsSource = withDebugInstrumentation(
-  async (
-    map: MapEngine,
-    assets: AssetsMap,
-    idMap: IDMap,
-    selection: Sel,
-  ): Promise<void> => {
+  async (map: MapEngine, assets: AssetsMap, selection: Sel): Promise<void> => {
     const selectionSet = new Set(USelection.toIds(selection));
-    const features = buildIconPointsSource(assets, idMap, selectionSet);
+    const features = buildIconPointsSource(assets, selectionSet);
     await map.setSource("icons", features);
   },
   {
@@ -588,15 +569,12 @@ const updateIconsSource = withDebugInstrumentation(
 const updateImportedSourceVisibility = withDebugInstrumentation(
   (
     map: MapEngine,
-    lastHiddenFeatures: Set<RawId>,
+    lastHiddenFeatures: Set<AssetId>,
     editedAssetIds: Set<AssetId>,
-    idMap: IDMap,
-  ): Set<RawId> => {
-    const newHiddenFeatures = Array.from(editedAssetIds).map((uuid) =>
-      UIDMap.getIntID(idMap, uuid),
-    );
+  ): Set<AssetId> => {
+    const newHiddenFeatures = Array.from(editedAssetIds);
     const newShownFeatures = Array.from(lastHiddenFeatures).filter(
-      (intId) => !editedAssetIds.has(UIDMap.getUUID(idMap, intId)),
+      (assetId) => !editedAssetIds.has(assetId),
     );
     map.showFeatures("imported-features", newShownFeatures);
     map.hideFeatures("imported-features", newHiddenFeatures);
@@ -611,27 +589,24 @@ const updateEditionsVisibility = withDebugInstrumentation(
     map: MapEngine,
     previousMovedAssetIds: Set<AssetId>,
     movedAssetIds: Set<AssetId>,
-    featuresHiddenFromImport: Set<RawId>,
-    idMap: IDMap,
+    featuresHiddenFromImport: Set<AssetId>,
   ) => {
     for (const assetId of previousMovedAssetIds.values()) {
-      const featureId = UIDMap.getIntID(idMap, assetId);
-      map.showFeature("features", featureId);
-      map.showFeature("icons", featureId);
+      map.showFeature("features", assetId);
+      map.showFeature("icons", assetId);
 
-      if (featuresHiddenFromImport.has(featureId)) continue;
+      if (featuresHiddenFromImport.has(assetId)) continue;
 
-      map.showFeature("imported-features", featureId);
+      map.showFeature("imported-features", assetId);
     }
 
     for (const assetId of movedAssetIds.values()) {
-      const featureId = UIDMap.getIntID(idMap, assetId);
-      map.hideFeature("features", featureId);
-      map.hideFeature("icons", featureId);
+      map.hideFeature("features", assetId);
+      map.hideFeature("icons", assetId);
 
-      if (featuresHiddenFromImport.has(featureId)) continue;
+      if (featuresHiddenFromImport.has(assetId)) continue;
 
-      map.hideFeature("imported-features", featureId);
+      map.hideFeature("imported-features", assetId);
     }
 
     if (movedAssetIds.size > 0) {
@@ -651,15 +626,9 @@ const updateSelection = withDebugInstrumentation(
     map: MapEngine,
     selection: Sel,
     assets: AssetsMap,
-    idMap: IDMap,
     movedAssetIds: Set<AssetId>,
   ): Promise<void> => {
-    const features = buildSelectionSource(
-      assets,
-      idMap,
-      selection,
-      movedAssetIds,
-    );
+    const features = buildSelectionSource(assets, selection, movedAssetIds);
     await map.setSource("selected-features", features);
   },
   { name: "MAP_STATE:UPDATE_SELECTION", maxDurationMs: 100 },
@@ -683,10 +652,9 @@ const updateEphemeralStateSource = withDebugInstrumentation(
   async (
     map: MapEngine,
     ephemeralState: EphemeralEditingState,
-    idMap: IDMap,
     assets: AssetsMap,
   ): Promise<void> => {
-    const features = buildEphemeralStateSource(ephemeralState, idMap, assets);
+    const features = buildEphemeralStateSource(ephemeralState, assets);
     await map.setSource("ephemeral", features);
   },
   {

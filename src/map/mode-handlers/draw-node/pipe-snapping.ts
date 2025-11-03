@@ -1,4 +1,3 @@
-import { IDMap, UIDMap } from "src/lib/id-mapper";
 import type { MapEngine } from "../../map-engine";
 import { Position } from "src/types";
 import { decodeId } from "src/lib/id";
@@ -8,15 +7,11 @@ import { lineString, point } from "@turf/helpers";
 import { findNearestPointOnLine } from "src/lib/geometry";
 
 type PipeSnapResult = {
-  pipeId: string;
+  pipeId: number;
   snapPosition: Position;
 };
 
-export const usePipeSnapping = (
-  map: MapEngine,
-  idMap: IDMap,
-  assetsMap: AssetsMap,
-) => {
+export const usePipeSnapping = (map: MapEngine, assetsMap: AssetsMap) => {
   const findNearestPipeToSnap = (
     screenPoint: mapboxgl.Point,
     mouseCoord: Position,
@@ -29,7 +24,7 @@ export const usePipeSnapping = (
     if (!pipeFeatures.length) return null;
 
     let closestPipe: {
-      pipeId: string;
+      pipeId: number;
       snapPosition: Position;
       distance: number;
     } | null = null;
@@ -37,10 +32,10 @@ export const usePipeSnapping = (
     for (const feature of pipeFeatures) {
       const id = feature.id;
       const decodedId = decodeId(id as RawId);
-      const uuid = UIDMap.getUUID(idMap, decodedId.featureId);
-      if (!uuid) continue;
+      const assetId = decodedId.featureId;
+      if (!assetId) continue;
 
-      const asset = assetsMap.get(uuid) as LinkAsset;
+      const asset = assetsMap.get(assetId) as LinkAsset;
       if (!asset || !asset.isLink || asset.type !== "pipe") continue;
 
       const pipeGeometry = asset.feature.geometry;
@@ -53,7 +48,7 @@ export const usePipeSnapping = (
       const distance = result.distance ?? Number.MAX_VALUE;
       if (!closestPipe || distance < closestPipe.distance) {
         closestPipe = {
-          pipeId: uuid,
+          pipeId: assetId,
           snapPosition: result.coordinates,
           distance: distance,
         };

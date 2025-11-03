@@ -17,6 +17,7 @@ import { Position } from "geojson";
 import { PumpStatus } from "src/hydraulic-model/asset-types/pump";
 import { ValveStatus } from "src/hydraulic-model/asset-types/valve";
 import { ParseInpOptions } from "./parse-inp";
+import { AssetId } from "src/hydraulic-model/asset-types/base-asset";
 
 export const buildModel = (
   inpData: InpData,
@@ -25,8 +26,8 @@ export const buildModel = (
 ): { hydraulicModel: HydraulicModel; modelMetadata: ModelMetadata } => {
   const spec = presets[inpData.options.units];
   const quantities = new Quantities(spec);
-  const nodeIds = new ItemData<string>();
-  const linkIds = new ItemData<string>();
+  const nodeIds = new ItemData<AssetId>();
+  const linkIds = new ItemData<AssetId>();
   const hydraulicModel = initializeHydraulicModel({
     units: quantities.units,
     defaults: quantities.defaults,
@@ -128,7 +129,7 @@ const addJunction = (
   }: {
     inpData: InpData;
     issues: IssuesAccumulator;
-    nodeIds: ItemData<string>;
+    nodeIds: ItemData<AssetId>;
   },
 ) => {
   const coordinates = getNodeCoordinates(inpData, junctionData.id, issues);
@@ -160,7 +161,7 @@ const addReservoir = (
   }: {
     inpData: InpData;
     issues: IssuesAccumulator;
-    nodeIds: ItemData<string>;
+    nodeIds: ItemData<AssetId>;
   },
 ) => {
   const coordinates = getNodeCoordinates(inpData, reservoirData.id, issues);
@@ -185,7 +186,7 @@ const addTank = (
   }: {
     inpData: InpData;
     issues: IssuesAccumulator;
-    nodeIds: ItemData<string>;
+    nodeIds: ItemData<AssetId>;
   },
 ) => {
   const coordinates = getNodeCoordinates(inpData, tankData.id, issues);
@@ -217,8 +218,8 @@ const addPump = (
   }: {
     inpData: InpData;
     issues: IssuesAccumulator;
-    nodeIds: ItemData<string>;
-    linkIds: ItemData<string>;
+    nodeIds: ItemData<AssetId>;
+    linkIds: ItemData<AssetId>;
   },
 ) => {
   const linkProperties = getLinkProperties(inpData, issues, nodeIds, pumpData);
@@ -298,8 +299,8 @@ const addValve = (
   }: {
     inpData: InpData;
     issues: IssuesAccumulator;
-    nodeIds: ItemData<string>;
-    linkIds: ItemData<string>;
+    nodeIds: ItemData<AssetId>;
+    linkIds: ItemData<AssetId>;
   },
 ) => {
   const linkProperties = getLinkProperties(inpData, issues, nodeIds, valveData);
@@ -339,8 +340,8 @@ const addPipe = (
   }: {
     inpData: InpData;
     issues: IssuesAccumulator;
-    nodeIds: ItemData<string>;
-    linkIds: ItemData<string>;
+    nodeIds: ItemData<AssetId>;
+    linkIds: ItemData<AssetId>;
     options?: ParseInpOptions;
   },
 ) => {
@@ -377,7 +378,7 @@ const addPipe = (
 const getLinkProperties = (
   inpData: InpData,
   issues: IssuesAccumulator,
-  nodeIds: ItemData<string>,
+  nodeIds: ItemData<AssetId>,
   linkData: { id: string; startNodeDirtyId: string; endNodeDirtyId: string },
 ) => {
   const startCoordinates = getNodeCoordinates(
@@ -401,7 +402,7 @@ const getLinkProperties = (
 
   return {
     coordinates: [startCoordinates, ...vertices, endCoordinates],
-    connections: [startNodeId, endNodeId] as [string, string],
+    connections: [startNodeId, endNodeId] as [AssetId, AssetId],
   };
 };
 

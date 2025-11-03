@@ -21,8 +21,8 @@ const createTestModel = () => {
     .aJunction(IDS.J1)
     .aJunction(IDS.J2)
     .aTank(IDS.T1)
-    .aPipe(IDS.P1, { startNodeId: String(IDS.J1), endNodeId: String(IDS.J2) })
-    .aPipe(IDS.P2, { startNodeId: String(IDS.J2), endNodeId: String(IDS.T1) })
+    .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
+    .aPipe(IDS.P2, { startNodeId: IDS.J2, endNodeId: IDS.T1 })
     .build();
 };
 
@@ -262,8 +262,8 @@ describe("HydraulicModelEncoder - links encoding options", () => {
       .aJunction(IDS.J1, { coordinates: [0, 0] })
       .aJunction(IDS.J2, { coordinates: [10, 10] })
       .aPipe(IDS.P1, {
-        startNodeId: String(IDS.J1),
-        endNodeId: String(IDS.J2),
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
         coordinates: [
           [0, 0],
           [5, 5],
@@ -293,8 +293,8 @@ describe("HydraulicModelEncoder - links encoding options", () => {
       .aJunction(IDS.J1, { coordinates: [0, 0] })
       .aJunction(IDS.J2, { coordinates: [10, 10] })
       .aPipe(IDS.P1, {
-        startNodeId: String(IDS.J1),
-        endNodeId: String(IDS.J2),
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
         coordinates: [
           [0, 0],
           [5, 5],

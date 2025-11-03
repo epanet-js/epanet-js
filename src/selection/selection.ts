@@ -156,7 +156,7 @@ export const USelection = {
   isCustomerPointSelected(selection: Sel, id: string): boolean {
     return selection.type === "singleCustomerPoint" && selection.id === id;
   },
-  isVertexSelected(selection: Sel, id: string, vertexId: VertexId): boolean {
+  isVertexSelected(selection: Sel, id: number, vertexId: VertexId): boolean {
     return (
       selection.type === "single" &&
       selection.id === id &&

@@ -1,9 +1,10 @@
 import { Topology } from "./topology";
+import { AssetId } from "../asset-types/base-asset";
 
 export const nodesShareLink = (
   topology: Topology,
-  nodeId1: string,
-  nodeId2: string,
+  nodeId1: AssetId,
+  nodeId2: AssetId,
 ): boolean => {
   const links1 = topology.getLinks(nodeId1);
   const links2 = topology.getLinks(nodeId2);

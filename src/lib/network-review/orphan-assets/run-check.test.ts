@@ -13,7 +13,7 @@ describe("runCheck", () => {
     const model = HydraulicModelBuilder.with()
       .aJunction(IDS.J1)
       .aJunction(IDS.J2)
-      .aPipe(IDS.P1, { startNodeId: String(IDS.J1), endNodeId: String(IDS.J2) })
+      .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
       .aJunction(IDS.Orphan)
       .build();
 
@@ -21,7 +21,7 @@ describe("runCheck", () => {
 
     expect(orphanAssets).toEqual([
       expect.objectContaining({
-        assetId: String(IDS.Orphan),
+        assetId: IDS.Orphan,
         type: "junction",
       }),
     ]);

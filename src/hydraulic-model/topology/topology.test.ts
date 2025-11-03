@@ -1,75 +1,83 @@
 import { expect, describe, it } from "vitest";
 import { Topology } from "./topology";
 
+const IDS = {
+  link1: 1,
+  link2: 2,
+  A: 3,
+  B: 4,
+  C: 5,
+} as const;
+
 describe("Topology", () => {
   it("provides links connected to a node", () => {
     const topology = new Topology();
 
-    topology.addLink("link1", "A", "B");
-    topology.addLink("link2", "B", "C");
+    topology.addLink(IDS.link1, IDS.A, IDS.B);
+    topology.addLink(IDS.link2, IDS.B, IDS.C);
 
-    expect(topology.getLinks("A")).toEqual(["link1"]);
-    expect(topology.getLinks("B")).toEqual(["link1", "link2"]);
-    expect(topology.getLinks("C")).toEqual(["link2"]);
+    expect(topology.getLinks(IDS.A)).toEqual([IDS.link1]);
+    expect(topology.getLinks(IDS.B)).toEqual([IDS.link1, IDS.link2]);
+    expect(topology.getLinks(IDS.C)).toEqual([IDS.link2]);
   });
 
   it("removes links when removing nodes", () => {
     const topology = new Topology();
 
-    topology.addLink("link1", "A", "B");
-    topology.addLink("link2", "B", "C");
+    topology.addLink(IDS.link1, IDS.A, IDS.B);
+    topology.addLink(IDS.link2, IDS.B, IDS.C);
 
-    topology.removeNode("B");
+    topology.removeNode(IDS.B);
 
-    expect(topology.getLinks("B")).toEqual([]);
-    expect(topology.getLinks("A")).toEqual([]);
-    expect(topology.getLinks("C")).toEqual([]);
+    expect(topology.getLinks(IDS.B)).toEqual([]);
+    expect(topology.getLinks(IDS.A)).toEqual([]);
+    expect(topology.getLinks(IDS.C)).toEqual([]);
   });
 
   it("does not crash when removing missing node", () => {
     const topology = new Topology();
 
-    topology.addLink("link1", "A", "B");
+    topology.addLink(IDS.link1, IDS.A, IDS.B);
 
-    topology.removeNode("C");
+    topology.removeNode(IDS.C);
 
-    expect(topology.getLinks("A")).toEqual(["link1"]);
+    expect(topology.getLinks(IDS.A)).toEqual([IDS.link1]);
   });
 
   it("allows two links with same start and end", () => {
     const topology = new Topology();
 
-    topology.addLink("link1", "A", "B");
-    topology.addLink("link2", "A", "B");
+    topology.addLink(IDS.link1, IDS.A, IDS.B);
+    topology.addLink(IDS.link2, IDS.A, IDS.B);
 
-    expect(topology.getLinks("A")).toEqual(["link1", "link2"]);
+    expect(topology.getLinks(IDS.A)).toEqual([IDS.link1, IDS.link2]);
   });
 
   it("skipswhen trying to add two links with same id", () => {
     const topology = new Topology();
 
-    topology.addLink("link1", "A", "B");
+    topology.addLink(IDS.link1, IDS.A, IDS.B);
 
-    topology.removeNode("A");
+    topology.removeNode(IDS.A);
 
-    topology.addLink("link1", "A", "B");
+    topology.addLink(IDS.link1, IDS.A, IDS.B);
 
-    expect(topology.getLinks("A")).toEqual(["link1"]);
+    expect(topology.getLinks(IDS.A)).toEqual([IDS.link1]);
   });
 
   it("can remove a link by link id", () => {
     const topology = new Topology();
 
-    topology.addLink("link1", "A", "B");
-    topology.addLink("link2", "A", "B");
+    topology.addLink(IDS.link1, IDS.A, IDS.B);
+    topology.addLink(IDS.link2, IDS.A, IDS.B);
 
-    topology.removeLink("link1");
-    expect(topology.getLinks("A")).toEqual(["link2"]);
+    topology.removeLink(IDS.link1);
+    expect(topology.getLinks(IDS.A)).toEqual([IDS.link2]);
 
-    topology.removeLink("link2");
-    expect(topology.getLinks("A")).toEqual([]);
+    topology.removeLink(IDS.link2);
+    expect(topology.getLinks(IDS.A)).toEqual([]);
 
-    topology.removeLink("link2");
-    expect(topology.getLinks("A")).toEqual([]);
+    topology.removeLink(IDS.link2);
+    expect(topology.getLinks(IDS.A)).toEqual([]);
   });
 });

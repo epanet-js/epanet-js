@@ -31,9 +31,9 @@ describe("addLink", () => {
         link,
       });
 
-      expect(putAssets![0].id).toEqual(String(IDS.pump));
+      expect(putAssets![0].id).toEqual(IDS.pump);
       const pumpToCreate = putAssets![0] as Pump;
-      expect(pumpToCreate.connections).toEqual([String(IDS.A), String(IDS.B)]);
+      expect(pumpToCreate.connections).toEqual([IDS.A, IDS.B]);
       expect(pumpToCreate.coordinates).toEqual([
         [10, 10],
         [20, 20],
@@ -68,7 +68,7 @@ describe("addLink", () => {
       });
 
       const pumpToCreate = putAssets![0] as Pump;
-      expect(pumpToCreate.id).toEqual(String(IDS.pump));
+      expect(pumpToCreate.id).toEqual(IDS.pump);
       expect(pumpToCreate.coordinates).toEqual([
         [10, 10],
         [20, 20],
@@ -103,7 +103,7 @@ describe("addLink", () => {
       });
 
       const pumpToCreate = putAssets![0] as Pump;
-      expect(pumpToCreate.id).toEqual(String(IDS.pump));
+      expect(pumpToCreate.id).toEqual(IDS.pump);
       expect(pumpToCreate.coordinates).toEqual([
         [0, 1],
         [0, 1 + epsilon],
@@ -132,7 +132,7 @@ describe("addLink", () => {
       });
 
       const pumpToCreate = putAssets![0] as Pump;
-      expect(pumpToCreate.id).toEqual(String(IDS.pump));
+      expect(pumpToCreate.id).toEqual(IDS.pump);
       expect(pumpToCreate.coordinates).toEqual([
         [10, 10],
         [15, 15],
@@ -160,7 +160,7 @@ describe("addLink", () => {
       });
 
       const pumpToCreate = putAssets![0] as Pump;
-      expect(pumpToCreate.id).toEqual(String(IDS.pump));
+      expect(pumpToCreate.id).toEqual(IDS.pump);
       expect(pumpToCreate.length).toBeCloseTo(195.04);
     });
 
@@ -181,7 +181,7 @@ describe("addLink", () => {
       });
 
       const pumpToCreate = putAssets![0] as Pump;
-      expect(pumpToCreate.id).toEqual(String(IDS.pump));
+      expect(pumpToCreate.id).toEqual(IDS.pump);
       expect(pumpToCreate.label).toEqual("PU1");
     });
 
@@ -214,8 +214,8 @@ describe("addLink", () => {
         .aJunction(IDS.J1, { coordinates: [0, 0] })
         .aJunction(IDS.J2, { coordinates: [10, 0] })
         .aPipe(IDS.P1, {
-          startNodeId: String(IDS.J1),
-          endNodeId: String(IDS.J2),
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
           coordinates: [
             [0, 0],
             [10, 0],
@@ -243,31 +243,22 @@ describe("addLink", () => {
         startNode,
         endNode,
         link,
-        startPipeId: String(IDS.P1),
+        startPipeId: IDS.P1,
       });
 
       expect(putAssets).toHaveLength(5);
-      expect(deleteAssets).toEqual([String(IDS.P1)]);
+      expect(deleteAssets).toEqual([IDS.P1]);
 
       const [newPump, , , splitPipe1, splitPipe2] = putAssets!;
 
       expect(newPump.type).toBe("pump");
-      expect(newPump.id).toBe(String(IDS.pump1));
-      expect((newPump as Pump).connections).toEqual([
-        String(IDS.J3),
-        String(IDS.J4),
-      ]);
+      expect(newPump.id).toBe(IDS.pump1);
+      expect((newPump as Pump).connections).toEqual([IDS.J3, IDS.J4]);
 
       expect(splitPipe1.type).toBe("pipe");
       expect(splitPipe2.type).toBe("pipe");
-      expect((splitPipe1 as Pipe).connections).toEqual([
-        String(IDS.J1),
-        String(IDS.J3),
-      ]);
-      expect((splitPipe2 as Pipe).connections).toEqual([
-        String(IDS.J3),
-        String(IDS.J2),
-      ]);
+      expect((splitPipe1 as Pipe).connections).toEqual([IDS.J1, IDS.J3]);
+      expect((splitPipe2 as Pipe).connections).toEqual([IDS.J3, IDS.J2]);
     });
 
     it("splits end pipe when endPipeId provided", () => {
@@ -276,8 +267,8 @@ describe("addLink", () => {
         .aJunction(IDS.J1, { coordinates: [0, 0] })
         .aJunction(IDS.J2, { coordinates: [10, 0] })
         .aPipe(IDS.P1, {
-          startNodeId: String(IDS.J1),
-          endNodeId: String(IDS.J2),
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
           coordinates: [
             [0, 0],
             [10, 0],
@@ -305,28 +296,19 @@ describe("addLink", () => {
         startNode,
         endNode,
         link,
-        endPipeId: String(IDS.P1),
+        endPipeId: IDS.P1,
       });
 
       expect(putAssets).toHaveLength(5);
-      expect(deleteAssets).toEqual([String(IDS.P1)]);
+      expect(deleteAssets).toEqual([IDS.P1]);
 
       const [newPump, , , splitPipe1, splitPipe2] = putAssets!;
 
       expect(newPump.type).toBe("pump");
-      expect((newPump as Pump).connections).toEqual([
-        String(IDS.J3),
-        String(IDS.J4),
-      ]);
+      expect((newPump as Pump).connections).toEqual([IDS.J3, IDS.J4]);
 
-      expect((splitPipe1 as Pipe).connections).toEqual([
-        String(IDS.J1),
-        String(IDS.J4),
-      ]);
-      expect((splitPipe2 as Pipe).connections).toEqual([
-        String(IDS.J4),
-        String(IDS.J2),
-      ]);
+      expect((splitPipe1 as Pipe).connections).toEqual([IDS.J1, IDS.J4]);
+      expect((splitPipe2 as Pipe).connections).toEqual([IDS.J4, IDS.J2]);
     });
 
     it("splits both start and end pipes", () => {
@@ -347,16 +329,16 @@ describe("addLink", () => {
         .aJunction(IDS.J3, { coordinates: [0, 10] })
         .aJunction(IDS.J4, { coordinates: [10, 10] })
         .aPipe(IDS.P1, {
-          startNodeId: String(IDS.J1),
-          endNodeId: String(IDS.J2),
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
           coordinates: [
             [0, 0],
             [10, 0],
           ],
         })
         .aPipe(IDS.P2, {
-          startNodeId: String(IDS.J3),
-          endNodeId: String(IDS.J4),
+          startNodeId: IDS.J3,
+          endNodeId: IDS.J4,
           coordinates: [
             [0, 10],
             [10, 10],
@@ -384,20 +366,17 @@ describe("addLink", () => {
         startNode,
         endNode,
         link,
-        startPipeId: String(IDS.P1),
-        endPipeId: String(IDS.P2),
+        startPipeId: IDS.P1,
+        endPipeId: IDS.P2,
       });
 
       expect(putAssets).toHaveLength(7);
-      expect(deleteAssets).toEqual([String(IDS.P1), String(IDS.P2)]);
+      expect(deleteAssets).toEqual([IDS.P1, IDS.P2]);
 
       const [newPump, , , ...splitPipes] = putAssets!;
 
       expect(newPump.type).toBe("pump");
-      expect((newPump as Pump).connections).toEqual([
-        String(IDS.J5),
-        String(IDS.J6),
-      ]);
+      expect((newPump as Pump).connections).toEqual([IDS.J5, IDS.J6]);
       expect(splitPipes).toHaveLength(4);
       expect(splitPipes.every((pipe) => pipe.type === "pipe")).toBe(true);
     });
@@ -427,10 +406,7 @@ describe("addLink", () => {
 
       const [newPump] = putAssets!;
       expect(newPump.type).toBe("pump");
-      expect((newPump as Pump).connections).toEqual([
-        String(IDS.A),
-        String(IDS.B),
-      ]);
+      expect((newPump as Pump).connections).toEqual([IDS.A, IDS.B]);
     });
 
     it("reconnects customer points when splitting start pipe", () => {
@@ -447,8 +423,8 @@ describe("addLink", () => {
         .aJunction(IDS.J1, { coordinates: [0, 0] })
         .aJunction(IDS.J2, { coordinates: [10, 0] })
         .aPipe(IDS.P1, {
-          startNodeId: String(IDS.J1),
-          endNodeId: String(IDS.J2),
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
           coordinates: [
             [0, 0],
             [10, 0],
@@ -462,9 +438,9 @@ describe("addLink", () => {
       });
 
       customerPoint.connect({
-        pipeId: String(IDS.P1),
+        pipeId: IDS.P1,
         snapPoint: [3, 0],
-        junctionId: String(IDS.J1),
+        junctionId: IDS.J1,
       });
 
       hydraulicModel.customerPoints.set(customerPoint.id, customerPoint);
@@ -490,7 +466,7 @@ describe("addLink", () => {
         startNode,
         endNode,
         link,
-        startPipeId: String(IDS.P1),
+        startPipeId: IDS.P1,
       });
 
       expect(putAssets).toHaveLength(5);
@@ -521,8 +497,8 @@ describe("addLink", () => {
         .aJunction(IDS.J1, { coordinates: [0, 0] })
         .aJunction(IDS.J2, { coordinates: [10, 0] })
         .aPipe(IDS.P1, {
-          startNodeId: String(IDS.J1),
-          endNodeId: String(IDS.J2),
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
           coordinates: [
             [0, 0],
             [10, 0],
@@ -536,9 +512,9 @@ describe("addLink", () => {
       });
 
       customerPoint.connect({
-        pipeId: String(IDS.P1),
+        pipeId: IDS.P1,
         snapPoint: [7, 0],
-        junctionId: String(IDS.J2),
+        junctionId: IDS.J2,
       });
 
       hydraulicModel.customerPoints.set(customerPoint.id, customerPoint);
@@ -564,7 +540,7 @@ describe("addLink", () => {
         startNode,
         endNode,
         link,
-        endPipeId: String(IDS.P1),
+        endPipeId: IDS.P1,
       });
 
       expect(putAssets).toHaveLength(5);
@@ -598,16 +574,16 @@ describe("addLink", () => {
         .aJunction(IDS.J3, { coordinates: [0, 10] })
         .aJunction(IDS.J4, { coordinates: [10, 10] })
         .aPipe(IDS.P1, {
-          startNodeId: String(IDS.J1),
-          endNodeId: String(IDS.J2),
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
           coordinates: [
             [0, 0],
             [10, 0],
           ],
         })
         .aPipe(IDS.P2, {
-          startNodeId: String(IDS.J3),
-          endNodeId: String(IDS.J4),
+          startNodeId: IDS.J3,
+          endNodeId: IDS.J4,
           coordinates: [
             [0, 10],
             [10, 10],
@@ -625,14 +601,14 @@ describe("addLink", () => {
       });
 
       customerPoint1.connect({
-        pipeId: String(IDS.P1),
+        pipeId: IDS.P1,
         snapPoint: [3, 0],
-        junctionId: String(IDS.J1),
+        junctionId: IDS.J1,
       });
       customerPoint2.connect({
-        pipeId: String(IDS.P2),
+        pipeId: IDS.P2,
         snapPoint: [7, 10],
-        junctionId: String(IDS.J4),
+        junctionId: IDS.J4,
       });
 
       hydraulicModel.customerPoints.set(customerPoint1.id, customerPoint1);
@@ -660,8 +636,8 @@ describe("addLink", () => {
         startNode,
         endNode,
         link,
-        startPipeId: String(IDS.P1),
-        endPipeId: String(IDS.P2),
+        startPipeId: IDS.P1,
+        endPipeId: IDS.P2,
       });
 
       expect(putAssets).toHaveLength(7);
@@ -682,7 +658,7 @@ describe("addLink", () => {
     });
 
     it("throws error for invalid startPipeId", () => {
-      const IDS = { J3: 1, J4: 2, pump1: 3 } as const;
+      const IDS = { J3: 1, J4: 2, pump1: 3, NONEXISTENT: 999 } as const;
       const hydraulicModel = HydraulicModelBuilder.with().build();
       const startNode = buildJunction({ coordinates: [5, 0], id: IDS.J3 });
       const endNode = buildJunction({ coordinates: [5, 5], id: IDS.J4 });
@@ -699,13 +675,13 @@ describe("addLink", () => {
           startNode,
           endNode,
           link,
-          startPipeId: "NONEXISTENT",
+          startPipeId: IDS.NONEXISTENT,
         });
-      }).toThrow("Start pipe not found: NONEXISTENT (asset does not exist)");
+      }).toThrow("Start pipe not found: 999 (asset does not exist)");
     });
 
     it("throws error for invalid endPipeId", () => {
-      const IDS = { J3: 1, J4: 2, pump1: 3 } as const;
+      const IDS = { J3: 1, J4: 2, pump1: 3, NONEXISTENT: 999 } as const;
       const hydraulicModel = HydraulicModelBuilder.with().build();
       const startNode = buildJunction({ coordinates: [5, 5], id: IDS.J3 });
       const endNode = buildJunction({ coordinates: [5, 0], id: IDS.J4 });
@@ -722,9 +698,9 @@ describe("addLink", () => {
           startNode,
           endNode,
           link,
-          endPipeId: "NONEXISTENT",
+          endPipeId: IDS.NONEXISTENT,
         });
-      }).toThrow("End pipe not found: NONEXISTENT (asset does not exist)");
+      }).toThrow("End pipe not found: 999 (asset does not exist)");
     });
   });
 
@@ -744,8 +720,8 @@ describe("addLink", () => {
       .aNode(IDS.J1, [0, 0])
       .aNode(IDS.J2, [20, 0])
       .aPipe(IDS.P1, {
-        startNodeId: String(IDS.J1),
-        endNodeId: String(IDS.J2),
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
         coordinates: [
           [0, 0],
           [10, 0],
@@ -755,8 +731,8 @@ describe("addLink", () => {
       .aNode(IDS.J3, [10, 10])
       .aNode(IDS.J4, [10, 30])
       .aPipe(IDS.P2, {
-        startNodeId: String(IDS.J3),
-        endNodeId: String(IDS.J4),
+        startNodeId: IDS.J3,
+        endNodeId: IDS.J4,
         coordinates: [
           [10, 10],
           [10, 20],
@@ -779,11 +755,11 @@ describe("addLink", () => {
       startNode,
       endNode,
       link,
-      startPipeId: String(IDS.P1),
-      endPipeId: String(IDS.P2),
+      startPipeId: IDS.P1,
+      endPipeId: IDS.P2,
     });
 
-    expect(deleteAssets).toEqual([String(IDS.P1), String(IDS.P2)]);
+    expect(deleteAssets).toEqual([IDS.P1, IDS.P2]);
 
     const pipes = putAssets!.filter((asset) => asset.type === "pipe") as Pipe[];
     expect(pipes).toHaveLength(4);
@@ -794,8 +770,8 @@ describe("addLink", () => {
     expect(p1Segments).toHaveLength(2);
     expect(p2Segments).toHaveLength(2);
 
-    const p1Seg1 = p1Segments.find((p) => p.connections[0] === String(IDS.J1));
-    const p1Seg2 = p1Segments.find((p) => p.connections[1] === String(IDS.J2));
+    const p1Seg1 = p1Segments.find((p) => p.connections[0] === IDS.J1);
+    const p1Seg2 = p1Segments.find((p) => p.connections[1] === IDS.J2);
 
     expect(p1Seg1?.coordinates).toEqual([
       [0, 0],
@@ -806,8 +782,8 @@ describe("addLink", () => {
       [20, 0],
     ]);
 
-    const p2Seg1 = p2Segments.find((p) => p.connections[0] === String(IDS.J3));
-    const p2Seg2 = p2Segments.find((p) => p.connections[1] === String(IDS.J4));
+    const p2Seg1 = p2Segments.find((p) => p.connections[0] === IDS.J3);
+    const p2Seg2 = p2Segments.find((p) => p.connections[1] === IDS.J4);
 
     expect(p2Seg1?.coordinates).toEqual([
       [10, 10],

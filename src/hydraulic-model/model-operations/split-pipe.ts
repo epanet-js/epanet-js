@@ -336,7 +336,7 @@ const findTargetPipeForCustomerPoint = (
 const reconnectCustomerPointToPipe = (
   customerPoint: CustomerPoint,
   targetPipe: Pipe,
-  assets: Map<string, any>,
+  assets: Map<number, any>,
 ): CustomerPoint | null => {
   const [startNodeId, endNodeId] = targetPipe.connections;
   const startNode = assets.get(startNodeId);

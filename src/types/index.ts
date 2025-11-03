@@ -15,7 +15,6 @@ import type { Dispatch, SetStateAction } from "react";
 import type { IPersistence } from "src/lib/persistence/ipersistence";
 import type { Sel } from "src/state/jotai";
 import { JsonValue, SetOptional } from "type-fest";
-import { IDMap } from "src/lib/id-mapper";
 import { getFoldersInTree } from "src/lib/folder";
 import { colors } from "src/lib/constants";
 import clamp from "lodash/clamp";
@@ -83,14 +82,14 @@ export const zLayerConfig = z.discriminatedUnion("type", [
 export type ILayerConfig = z.infer<typeof zLayerConfig>;
 
 export interface IWrappedFeature<T = Feature> {
-  id: string;
+  id: number;
   at: string;
   ephemeral?: boolean;
   folderId: string | null;
   feature: T;
 }
 
-export type FeatureMap = Map<string, IWrappedFeature> & { version?: number };
+export type FeatureMap = Map<number, IWrappedFeature> & { version?: number };
 export type FolderMap = Map<string, IFolder> & { version?: number };
 export type LayerConfigMap = Map<string, ILayerConfig> & { version?: number };
 
@@ -318,7 +317,6 @@ export interface HandlerContext {
   mode: ModeWithOptions;
   hydraulicModel: HydraulicModel;
   folderMap: FolderMap;
-  idMap: IDMap;
   rep: IPersistence;
   map: MapEngine;
 }

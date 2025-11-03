@@ -99,7 +99,6 @@ export class Pump extends Link<PumpProperties> {
   copy() {
     return new Pump(
       this.id,
-      this.internalId,
       [...this.coordinates],
       {
         ...this.properties,

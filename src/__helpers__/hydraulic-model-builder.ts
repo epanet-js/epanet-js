@@ -99,7 +99,7 @@ export const buildCustomerPoint = (
   options: {
     demand?: number;
     coordinates?: Position;
-    junctionId?: string;
+    junctionId?: number;
     label?: string;
   } = {},
 ) => {
@@ -149,12 +149,11 @@ export class HydraulicModelBuilder {
   }
 
   aNode(id: number, coordinates: Position = [0, 0]) {
-    const stringId = String(id);
     const node = this.assetBuilder.buildJunction({
       coordinates,
       id,
     });
-    this.assets.set(stringId, node);
+    this.assets.set(id, node);
     return this;
   }
 
@@ -166,7 +165,6 @@ export class HydraulicModelBuilder {
       }
     > = {},
   ) {
-    const stringId = String(id);
     const { simulation, ...properties } = data;
     const junction = this.assetBuilder.buildJunction({
       id,
@@ -180,17 +178,16 @@ export class HydraulicModelBuilder {
         ...simulation,
       });
     }
-    this.assets.set(stringId, junction);
+    this.assets.set(id, junction);
     return this;
   }
 
   aReservoir(id: number, properties: Partial<ReservoirBuildData> = {}) {
-    const stringId = String(id);
     const reservoir = this.assetBuilder.buildReservoir({
       id,
       ...properties,
     });
-    this.assets.set(stringId, reservoir);
+    this.assets.set(id, reservoir);
     return this;
   }
 
@@ -207,7 +204,6 @@ export class HydraulicModelBuilder {
       }
     > = {},
   ) {
-    const stringId = String(id);
     const { simulation, ...properties } = data;
     const tank = this.assetBuilder.buildTank({
       id,
@@ -222,7 +218,7 @@ export class HydraulicModelBuilder {
         ...simulation,
       });
     }
-    this.assets.set(stringId, tank);
+    this.assets.set(id, tank);
     return this;
   }
 
@@ -230,14 +226,13 @@ export class HydraulicModelBuilder {
     id: number,
     data: Partial<
       PipeBuildData & {
-        startNodeId: string;
-        endNodeId: string;
+        startNodeId: number;
+        endNodeId: number;
       } & {
         simulation: Partial<PipeSimulation>;
       }
     > = {},
   ) {
-    const stringId = String(id);
     const { startNodeId, endNodeId, simulation, ...properties } = data;
     const startNode = this.getNodeOrCreate(startNodeId);
     const endNode = this.getNodeOrCreate(endNodeId);
@@ -248,7 +243,7 @@ export class HydraulicModelBuilder {
       id,
       ...properties,
     });
-    this.assets.set(stringId, pipe);
+    this.assets.set(id, pipe);
     if (simulation) {
       pipe.setSimulation({
         flow: 10,
@@ -259,7 +254,7 @@ export class HydraulicModelBuilder {
         ...simulation,
       });
     }
-    this.topology.addLink(stringId, startNode.id, endNode.id);
+    this.topology.addLink(id, startNode.id, endNode.id);
 
     return this;
   }
@@ -268,8 +263,8 @@ export class HydraulicModelBuilder {
     id: number,
     data: Partial<
       PumpBuildData & {
-        startNodeId: string;
-        endNodeId: string;
+        startNodeId: number;
+        endNodeId: number;
       } & {
         simulation: Partial<{
           flow: number;
@@ -280,7 +275,6 @@ export class HydraulicModelBuilder {
       }
     > = {},
   ) {
-    const stringId = String(id);
     const { startNodeId, endNodeId, simulation, ...properties } = data;
     const startNode = this.getNodeOrCreate(startNodeId);
     const endNode = this.getNodeOrCreate(endNodeId);
@@ -300,8 +294,8 @@ export class HydraulicModelBuilder {
         ...simulation,
       });
     }
-    this.assets.set(stringId, pump);
-    this.topology.addLink(stringId, startNode.id, endNode.id);
+    this.assets.set(id, pump);
+    this.topology.addLink(id, startNode.id, endNode.id);
 
     return this;
   }
@@ -310,14 +304,13 @@ export class HydraulicModelBuilder {
     id: number,
     data: Partial<
       ValveBuildData & {
-        startNodeId: string;
-        endNodeId: string;
+        startNodeId: number;
+        endNodeId: number;
       } & {
         simulation: Partial<ValveSimulation>;
       }
     > = {},
   ) {
-    const stringId = String(id);
     const { startNodeId, endNodeId, simulation, ...properties } = data;
     const startNode = this.getNodeOrCreate(startNodeId);
     const endNode = this.getNodeOrCreate(endNodeId);
@@ -338,16 +331,16 @@ export class HydraulicModelBuilder {
         ...simulation,
       });
     }
-    this.assets.set(stringId, valve);
-    this.topology.addLink(stringId, startNode.id, endNode.id);
+    this.assets.set(id, valve);
+    this.topology.addLink(id, startNode.id, endNode.id);
 
     return this;
   }
 
   aLink(
     id: number,
-    startNodeId: string,
-    endNodeId: string,
+    startNodeId: number,
+    endNodeId: number,
     properties: Partial<PipeProperties> = {},
   ) {
     return this.aPipe(id, { startNodeId, endNodeId, ...properties });
@@ -370,8 +363,8 @@ export class HydraulicModelBuilder {
       coordinates?: Position;
       label?: string;
       connection?: {
-        pipeId: string;
-        junctionId: string;
+        pipeId: number;
+        junctionId: number;
         snapPoint?: Position;
       };
     } = {},

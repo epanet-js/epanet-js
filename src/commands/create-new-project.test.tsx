@@ -106,7 +106,7 @@ describe("create new project", () => {
     });
     await userEvent.click(screen.getByRole("button", { name: /cancel/i }));
     const { hydraulicModel } = store.get(dataAtom);
-    expect(hydraulicModel.assets.get(String(IDS.J1))).not.toBeUndefined();
+    expect(hydraulicModel.assets.get(IDS.J1)).not.toBeUndefined();
   });
 
   const triggerNew = async () => {

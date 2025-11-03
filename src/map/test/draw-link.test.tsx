@@ -15,7 +15,6 @@ import { vi } from "vitest";
 import { waitFor } from "@testing-library/react";
 import { Asset } from "src/hydraulic-model";
 import { buildFeatureId } from "../data-source/features";
-import { UIDMap } from "src/lib/id-mapper";
 
 describe("Drawing a pipe", () => {
   beforeEach(() => {
@@ -110,17 +109,15 @@ describe("Drawing a pipe", () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction(IDS.J1, { coordinates: existingNodeCoords })
       .build();
-    const junction = hydraulicModel.assets.get(String(IDS.J1)) as Asset;
-    const idMap = UIDMap.empty();
-    UIDMap.pushUUID(idMap, junction.id);
+    const junction = hydraulicModel.assets.get(IDS.J1) as Asset;
 
     const store = setInitialState({
       mode: Mode.DRAW_PIPE,
       hydraulicModel,
     });
-    const map = await renderMap(store, idMap);
+    const map = await renderMap(store);
 
-    stubSnappingOnce(map, [buildFeatureId(idMap, junction.id)]);
+    stubSnappingOnce(map, [buildFeatureId(junction.id)]);
 
     await fireMapClick(map, nearbyClick);
 
@@ -172,15 +169,13 @@ describe("Drawing a pipe", () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction(IDS.J1, { coordinates: existingNodeCoords })
       .build();
-    const junction = hydraulicModel.assets.get(String(IDS.J1)) as Asset;
-    const idMap = UIDMap.empty();
-    UIDMap.pushUUID(idMap, junction.id);
+    const junction = hydraulicModel.assets.get(IDS.J1) as Asset;
 
     const store = setInitialState({
       mode: Mode.DRAW_PIPE,
       hydraulicModel,
     });
-    const map = await renderMap(store, idMap);
+    const map = await renderMap(store);
 
     await fireMapClick(map, firstClick);
 
@@ -210,7 +205,7 @@ describe("Drawing a pipe", () => {
       ]);
     });
 
-    stubSnappingOnce(map, [buildFeatureId(idMap, junction.id)]);
+    stubSnappingOnce(map, [buildFeatureId(junction.id)]);
     await fireMapMove(map, nearbyEndClick);
 
     await waitFor(() => {

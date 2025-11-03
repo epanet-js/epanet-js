@@ -62,7 +62,8 @@ export const processReportWithSlots = (
         );
 
         for (const id of actualCapturedIds) {
-          const asset = assets.get(id) as Asset;
+          const numericId = parseInt(id, 10);
+          const asset = assets.get(numericId) as Asset;
           if (!asset) {
             errorCollector.collectMissingAssetId(
               row,

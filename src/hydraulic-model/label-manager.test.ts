@@ -1,7 +1,7 @@
 import { LabelManager } from "./label-manager";
-import { nanoid } from "nanoid";
 
-const anId = () => nanoid();
+let idCounter = 0;
+const anId = () => ++idCounter;
 
 describe("label manager", () => {
   it("defaults to the type count and prefixes", () => {

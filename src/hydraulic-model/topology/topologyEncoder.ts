@@ -6,7 +6,7 @@ import {
   FixedSizeBufferBuilder,
   VariableSizeBufferBuilder,
 } from "src/lib/buffers";
-import { InternalId } from "../asset-types/base-asset";
+import { AssetId } from "../asset-types/base-asset";
 import { AssetIndex } from "../asset-index";
 import { Topology } from "./topology";
 import { TopologyBuffers } from "./types";
@@ -97,11 +97,11 @@ export class TopologyEncoder {
   }
 
   encode(): TopologyBuffers {
-    for (const linkId of this.assetIndex.iterateLinkInternalIds()) {
+    for (const linkId of this.assetIndex.iterateLinkAssetIds()) {
       this.encodeLink(linkId);
     }
 
-    for (const nodeId of this.assetIndex.iterateNodeInternalIds()) {
+    for (const nodeId of this.assetIndex.iterateNodeAssetIds()) {
       this.encodeNode(nodeId);
     }
 
@@ -111,39 +111,30 @@ export class TopologyEncoder {
   private calculateTotalNodeConnectionsSize(): number {
     let totalSize = 0;
 
-    for (const nodeId of this.assetIndex.iterateNodeInternalIds()) {
-      const assetId = AssetIndex.toAssetId(nodeId);
-      const connectedLinkIds = this.topology.getLinks(assetId);
-      const connectedLinkInternalIds = connectedLinkIds.map((linkId) =>
-        AssetIndex.toInternalId(linkId),
-      );
-      totalSize += getNodeConnectionsSize(connectedLinkInternalIds);
+    for (const nodeId of this.assetIndex.iterateNodeAssetIds()) {
+      const connectedLinkIds = this.topology.getLinks(nodeId);
+      totalSize += getNodeConnectionsSize(connectedLinkIds);
     }
 
     return totalSize;
   }
 
-  encodeLink(linkId: InternalId): void {
-    const assetId = AssetIndex.toAssetId(linkId);
-    const link = this.topology["linksMap"].get(assetId);
+  encodeLink(linkId: AssetId): void {
+    const link = this.topology["linksMap"].get(linkId);
     if (!link) {
-      throw new Error(`Link ${assetId} not found in topology`);
+      throw new Error(`Link ${linkId} not found in topology`);
     }
 
-    const startNodeInternalId = AssetIndex.toInternalId(link.fromId as string);
-    const endNodeInternalId = AssetIndex.toInternalId(link.toId as string);
+    const startNodeAssetId = Number(link.fromId);
+    const endNodeAssetId = Number(link.toId);
 
-    this.linkConnectionsBuilder.add([startNodeInternalId, endNodeInternalId]);
+    this.linkConnectionsBuilder.add([startNodeAssetId, endNodeAssetId]);
   }
 
-  encodeNode(nodeId: InternalId): void {
-    const assetId = AssetIndex.toAssetId(nodeId);
-    const connectedLinkIds = this.topology.getLinks(assetId);
-    const connectedLinkInternalIds = connectedLinkIds.map((linkId) =>
-      AssetIndex.toInternalId(linkId),
-    );
+  encodeNode(nodeId: AssetId): void {
+    const connectedLinkIds = this.topology.getLinks(nodeId);
 
-    this.nodeConnectionsBuilder.add(connectedLinkInternalIds);
+    this.nodeConnectionsBuilder.add(connectedLinkIds);
   }
 
   finalize(): TopologyBuffers {

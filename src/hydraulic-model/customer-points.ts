@@ -1,6 +1,7 @@
 import { Unit } from "src/quantity";
 import { Position } from "geojson";
 import { roundCoordinates } from "src/lib/geometry";
+import { AssetId } from "./asset-types/base-asset";
 
 export const MAX_CUSTOMER_POINT_LABEL_LENGTH = 50;
 
@@ -24,9 +25,9 @@ export const getDefaultAllocationRules = (units: {
 };
 
 export interface CustomerPointConnection {
-  pipeId: string;
+  pipeId: AssetId;
   snapPoint: Position;
-  junctionId: string;
+  junctionId: AssetId;
 }
 
 export class CustomerPoint {

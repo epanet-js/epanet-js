@@ -14,14 +14,14 @@ export interface SelSingle {
   /**
    * The feature's id
    */
-  id: StringId;
+  id: number;
   parts: readonly VertexId[];
 }
 
 export interface SelMulti {
   type: "multi";
-  ids: readonly StringId[];
-  previousIds?: readonly StringId[];
+  ids: readonly number[];
+  previousIds?: readonly number[];
 }
 
 export interface SelSingleCustomerPoint {

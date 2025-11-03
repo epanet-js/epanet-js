@@ -1,8 +1,8 @@
 export class IdMapper {
-  private idsLookup: string[] = [];
-  private idxLookup = new Map<string, number>();
+  private idsLookup: number[] = [];
+  private idxLookup = new Map<number, number>();
 
-  getOrAssignIdx(id: string): number {
+  getOrAssignIdx(id: number): number {
     let idx = this.idxLookup.get(id);
     if (idx === undefined) {
       idx = this.idsLookup.length;
@@ -12,17 +12,17 @@ export class IdMapper {
     return idx;
   }
 
-  getIdx(id: string): number {
+  getIdx(id: number): number {
     const idx = this.idxLookup.get(id);
     if (idx === undefined) throw new RangeError("Index out of range");
     return idx;
   }
 
-  getId(idx: number): string {
+  getId(idx: number): number {
     return this.idsLookup[idx];
   }
 
-  getIdsLookup(): string[] {
+  getIdsLookup(): number[] {
     return this.idsLookup;
   }
 

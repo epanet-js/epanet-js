@@ -20,23 +20,24 @@ export const attachSimulation = (
 ) => {
   const newAssets = new Map();
   hydraulicModel.assets.forEach((asset) => {
+    const stringId = String(asset.id);
     switch (asset.type) {
       case "valve":
-        (asset as Valve).setSimulation(simulation.getValve(asset.id));
+        (asset as Valve).setSimulation(simulation.getValve(stringId));
         break;
       case "pipe":
-        (asset as Pipe).setSimulation(simulation.getPipe(asset.id));
+        (asset as Pipe).setSimulation(simulation.getPipe(stringId));
         break;
       case "junction":
-        (asset as Junction).setSimulation(simulation.getJunction(asset.id));
+        (asset as Junction).setSimulation(simulation.getJunction(stringId));
         break;
       case "pump":
-        (asset as Pump).setSimulation(simulation.getPump(asset.id));
+        (asset as Pump).setSimulation(simulation.getPump(stringId));
         break;
       case "reservoir":
         break;
       case "tank":
-        (asset as Tank).setSimulation(simulation.getTank(asset.id));
+        (asset as Tank).setSimulation(simulation.getTank(stringId));
         break;
     }
     newAssets.set(asset.id, asset);

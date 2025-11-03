@@ -3,10 +3,11 @@ import { ModelOperation } from "../model-operation";
 import { LinkAsset, NodeAsset } from "../asset-types";
 import { Position } from "src/types";
 import { findJunctionForCustomerPoint } from "../utilities/junction-assignment";
+import { AssetId } from "../asset-types/base-asset";
 
 type InputData = {
   customerPointIds: readonly string[];
-  pipeId: string;
+  pipeId: AssetId;
   snapPoints: readonly Position[];
 };
 

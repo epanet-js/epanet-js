@@ -9,8 +9,8 @@ describe("deleteAssets", () => {
       .aJunction(IDS.J1, { coordinates: [0, 0] })
       .aJunction(IDS.J2, { coordinates: [10, 0] })
       .aPipe(IDS.P1, {
-        startNodeId: String(IDS.J1),
-        endNodeId: String(IDS.J2),
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
         coordinates: [
           [0, 0],
           [10, 0],
@@ -19,19 +19,19 @@ describe("deleteAssets", () => {
       .aCustomerPoint(IDS.CP1, {
         demand: 25,
         coordinates: [2, 1],
-        connection: { pipeId: String(IDS.P1), junctionId: String(IDS.J1) },
+        connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
       })
       .build();
 
     const { deleteAssets: deletedAssetIds, putCustomerPoints } = deleteAssets(
       hydraulicModel,
       {
-        assetIds: [String(IDS.P1)],
+        assetIds: [IDS.P1],
         shouldUpdateCustomerPoints: true,
       },
     );
 
-    expect(deletedAssetIds).toEqual([String(IDS.P1)]);
+    expect(deletedAssetIds).toEqual([IDS.P1]);
     expect(putCustomerPoints).toBeDefined();
     expect(putCustomerPoints!.length).toBe(1);
 
@@ -48,8 +48,8 @@ describe("deleteAssets", () => {
       .aJunction(IDS.J1, { coordinates: [0, 0] })
       .aJunction(IDS.J2, { coordinates: [10, 0] })
       .aPipe(IDS.P1, {
-        startNodeId: String(IDS.J1),
-        endNodeId: String(IDS.J2),
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
         coordinates: [
           [0, 0],
           [10, 0],
@@ -58,20 +58,20 @@ describe("deleteAssets", () => {
       .aCustomerPoint(IDS.CP1, {
         demand: 25,
         coordinates: [2, 1],
-        connection: { pipeId: String(IDS.P1), junctionId: String(IDS.J1) },
+        connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
       })
       .build();
 
     const { deleteAssets: deletedAssetIds, putCustomerPoints } = deleteAssets(
       hydraulicModel,
       {
-        assetIds: [String(IDS.J1)],
+        assetIds: [IDS.J1],
         shouldUpdateCustomerPoints: true,
       },
     );
 
-    expect(deletedAssetIds).toContain(String(IDS.J1));
-    expect(deletedAssetIds).toContain(String(IDS.P1));
+    expect(deletedAssetIds).toContain(IDS.J1);
+    expect(deletedAssetIds).toContain(IDS.P1);
     expect(putCustomerPoints).toBeDefined();
     expect(putCustomerPoints!.length).toBe(1);
 
@@ -86,8 +86,8 @@ describe("deleteAssets", () => {
       .aJunction(IDS.J1, { coordinates: [0, 0] })
       .aJunction(IDS.J2, { coordinates: [10, 0] })
       .aPipe(IDS.P1, {
-        startNodeId: String(IDS.J1),
-        endNodeId: String(IDS.J2),
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
         coordinates: [
           [0, 0],
           [10, 0],
@@ -96,18 +96,18 @@ describe("deleteAssets", () => {
       .aCustomerPoint(IDS.CP1, {
         demand: 25,
         coordinates: [2, 1],
-        connection: { pipeId: String(IDS.P1), junctionId: String(IDS.J1) },
+        connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
       })
       .build();
 
     const { deleteAssets: deletedAssetIds, putCustomerPoints } = deleteAssets(
       hydraulicModel,
       {
-        assetIds: [String(IDS.P1)],
+        assetIds: [IDS.P1],
       },
     );
 
-    expect(deletedAssetIds).toEqual([String(IDS.P1)]);
+    expect(deletedAssetIds).toEqual([IDS.P1]);
     expect(putCustomerPoints).toBeUndefined();
   });
 });

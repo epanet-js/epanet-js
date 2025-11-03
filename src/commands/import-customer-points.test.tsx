@@ -186,8 +186,8 @@ describe.skip("importCustomerPoints", () => {
         .aJunction(IDS.J1, { coordinates: [0, 0], baseDemand: 30 })
         .aJunction(IDS.J2, { coordinates: [0.001, 0.001], baseDemand: 45 })
         .aPipe(IDS.P1, {
-          startNodeId: String(IDS.J1),
-          endNodeId: String(IDS.J2),
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
           diameter: 150,
           coordinates: [
             [0, 0],
@@ -240,12 +240,12 @@ describe.skip("importCustomerPoints", () => {
     await expectSuccessNotification();
 
     const { hydraulicModel } = store.get(dataAtom);
-    const junction = hydraulicModel.assets.get(String(IDS.J1)) as Junction;
+    const junction = hydraulicModel.assets.get(IDS.J1) as Junction;
 
     expect(junction.baseDemand).toBe(30);
 
     const junctionCustomerPoints =
-      hydraulicModel.customerPointsLookup.getCustomerPoints(String(IDS.J1));
+      hydraulicModel.customerPointsLookup.getCustomerPoints(IDS.J1);
     expect(junctionCustomerPoints?.size).toBe(1);
     expect(
       junction.getTotalCustomerDemand(hydraulicModel.customerPointsLookup),
@@ -259,8 +259,8 @@ describe.skip("importCustomerPoints", () => {
         .aJunction(IDS.J1, { coordinates: [0, 0], baseDemand: 40 })
         .aJunction(IDS.J2, { coordinates: [0.001, 0.001], baseDemand: 60 })
         .aPipe(IDS.P1, {
-          startNodeId: String(IDS.J1),
-          endNodeId: String(IDS.J2),
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
           diameter: 150,
           coordinates: [
             [0, 0],
@@ -309,12 +309,12 @@ describe.skip("importCustomerPoints", () => {
     await expectSuccessNotification();
 
     const { hydraulicModel } = store.get(dataAtom);
-    const junction = hydraulicModel.assets.get(String(IDS.J1)) as Junction;
+    const junction = hydraulicModel.assets.get(IDS.J1) as Junction;
 
     expect(junction.baseDemand).toBe(0);
 
     const junctionCustomerPoints =
-      hydraulicModel.customerPointsLookup.getCustomerPoints(String(IDS.J1));
+      hydraulicModel.customerPointsLookup.getCustomerPoints(IDS.J1);
     expect(junctionCustomerPoints?.size).toBe(1);
     expect(
       junction.getTotalCustomerDemand(hydraulicModel.customerPointsLookup),
@@ -607,8 +607,8 @@ const createStoreWithPipes = (
     .aJunction(IDS.J1, { coordinates: [0, 0] })
     .aJunction(IDS.J2, { coordinates: [0.001, 0.001] })
     .aPipe(IDS.P1, {
-      startNodeId: String(IDS.J1),
-      endNodeId: String(IDS.J2),
+      startNodeId: IDS.J1,
+      endNodeId: IDS.J2,
       diameter: 150, // Within maxDiameter: 200 limit
       coordinates: [
         [0, 0],

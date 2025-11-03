@@ -9,14 +9,14 @@ describe("runCheck", () => {
         .aJunction(IDS.J1, { coordinates: [0, 0] })
         .aJunction(IDS.J2, { coordinates: [0, 10] })
         .aPipe(IDS.P1, {
-          startNodeId: String(IDS.J1),
-          endNodeId: String(IDS.J2),
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
         })
         .aJunction(IDS.J3, { coordinates: [-5, 5] })
         .aJunction(IDS.J4, { coordinates: [5, 5] })
         .aPipe(IDS.P2, {
-          startNodeId: String(IDS.J3),
-          endNodeId: String(IDS.J4),
+          startNodeId: IDS.J3,
+          endNodeId: IDS.J4,
         })
         .build();
 
@@ -24,8 +24,8 @@ describe("runCheck", () => {
 
       expect(crossings).toEqual([
         expect.objectContaining({
-          pipe1Id: String(IDS.P1),
-          pipe2Id: String(IDS.P2),
+          pipe1Id: IDS.P1,
+          pipe2Id: IDS.P2,
           intersectionPoint: expect.any(Array),
         }),
       ]);
@@ -41,14 +41,14 @@ describe("runCheck", () => {
         .aJunction(IDS.J1, { coordinates: [0, 0] })
         .aJunction(IDS.J2, { coordinates: [0, 10] })
         .aPipe(IDS.PipeA, {
-          startNodeId: String(IDS.J1),
-          endNodeId: String(IDS.J2),
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
         })
         .aJunction(IDS.J3, { coordinates: [-5, 5] })
         .aJunction(IDS.J4, { coordinates: [5, 5] })
         .aPipe(IDS.PipeB, {
-          startNodeId: String(IDS.J3),
-          endNodeId: String(IDS.J4),
+          startNodeId: IDS.J3,
+          endNodeId: IDS.J4,
         })
         .build();
 
@@ -62,8 +62,8 @@ describe("runCheck", () => {
       expect(crossing).toHaveProperty("intersectionPoint");
 
       // Verify types
-      expect(typeof crossing.pipe1Id).toBe("string");
-      expect(typeof crossing.pipe2Id).toBe("string");
+      expect(typeof crossing.pipe1Id).toBe("number");
+      expect(typeof crossing.pipe2Id).toBe("number");
       expect(Array.isArray(crossing.intersectionPoint)).toBe(true);
       expect(crossing.intersectionPoint).toHaveLength(2);
     });
@@ -74,15 +74,15 @@ describe("runCheck", () => {
         .aJunction(IDS.J1, { coordinates: [0, 0] })
         .aJunction(IDS.J2, { coordinates: [0, 10] })
         .aPipe(IDS.P1, {
-          startNodeId: String(IDS.J1),
-          endNodeId: String(IDS.J2),
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
         })
         // Parallel pipe - no crossing
         .aJunction(IDS.J3, { coordinates: [5, 0] })
         .aJunction(IDS.J4, { coordinates: [5, 10] })
         .aPipe(IDS.P2, {
-          startNodeId: String(IDS.J3),
-          endNodeId: String(IDS.J4),
+          startNodeId: IDS.J3,
+          endNodeId: IDS.J4,
         })
         .build();
 
@@ -107,14 +107,14 @@ describe("runCheck", () => {
         .aJunction(IDS.J1, { coordinates: [0, 0] })
         .aJunction(IDS.J2, { coordinates: [0, 10] })
         .aPipe(IDS.P1, {
-          startNodeId: String(IDS.J1),
-          endNodeId: String(IDS.J2),
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
         })
         .aJunction(IDS.J3, { coordinates: [-5, 5] })
         .aJunction(IDS.J4, { coordinates: [5, 5] })
         .aPipe(IDS.P2, {
-          startNodeId: String(IDS.J3),
-          endNodeId: String(IDS.J4),
+          startNodeId: IDS.J3,
+          endNodeId: IDS.J4,
         })
         // Add a junction near the crossing point
         .aJunction(IDS.JNearby, { coordinates: [0.0008, 5] }) // ~89m from intersection at (0,5)
@@ -135,14 +135,14 @@ describe("runCheck", () => {
         .aJunction(IDS.J1, { coordinates: [0, 0] })
         .aJunction(IDS.J2, { coordinates: [0, 10] })
         .aPipe(IDS.P1, {
-          startNodeId: String(IDS.J1),
-          endNodeId: String(IDS.J2),
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
         })
         .aJunction(IDS.J3, { coordinates: [-5, 5] })
         .aJunction(IDS.J4, { coordinates: [5, 5] })
         .aPipe(IDS.P2, {
-          startNodeId: String(IDS.J3),
-          endNodeId: String(IDS.J4),
+          startNodeId: IDS.J3,
+          endNodeId: IDS.J4,
         })
         .build();
 
@@ -167,22 +167,22 @@ describe("runCheck", () => {
         .aJunction(IDS.Junction_1, { coordinates: [0, 0] })
         .aJunction(IDS.Junction_2, { coordinates: [0, 10] })
         .aPipe(IDS.MainPipe_A, {
-          startNodeId: String(IDS.Junction_1),
-          endNodeId: String(IDS.Junction_2),
+          startNodeId: IDS.Junction_1,
+          endNodeId: IDS.Junction_2,
         })
         .aJunction(IDS.Junction_3, { coordinates: [-5, 5] })
         .aJunction(IDS.Junction_4, { coordinates: [5, 5] })
         .aPipe(IDS.MainPipe_B, {
-          startNodeId: String(IDS.Junction_3),
-          endNodeId: String(IDS.Junction_4),
+          startNodeId: IDS.Junction_3,
+          endNodeId: IDS.Junction_4,
         })
         .build();
 
       const crossings = await runCheck(model, 0.5);
 
       expect(crossings).toHaveLength(1);
-      expect(crossings[0].pipe1Id).toBe(String(IDS.MainPipe_A));
-      expect(crossings[0].pipe2Id).toBe(String(IDS.MainPipe_B));
+      expect(crossings[0].pipe1Id).toBe(IDS.MainPipe_A);
+      expect(crossings[0].pipe2Id).toBe(IDS.MainPipe_B);
     });
 
     it("includes intersection coordinates", async () => {
@@ -191,14 +191,14 @@ describe("runCheck", () => {
         .aJunction(IDS.J1, { coordinates: [10, 20] })
         .aJunction(IDS.J2, { coordinates: [10, 30] })
         .aPipe(IDS.P1, {
-          startNodeId: String(IDS.J1),
-          endNodeId: String(IDS.J2),
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
         })
         .aJunction(IDS.J3, { coordinates: [5, 25] })
         .aJunction(IDS.J4, { coordinates: [15, 25] })
         .aPipe(IDS.P2, {
-          startNodeId: String(IDS.J3),
-          endNodeId: String(IDS.J4),
+          startNodeId: IDS.J3,
+          endNodeId: IDS.J4,
         })
         .build();
 
@@ -215,14 +215,14 @@ describe("runCheck", () => {
         .aJunction(IDS.J1, { coordinates: [0, 0] })
         .aJunction(IDS.J2, { coordinates: [0, 10] })
         .aPipe(IDS.P1, {
-          startNodeId: String(IDS.J1),
-          endNodeId: String(IDS.J2),
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
         })
         .aJunction(IDS.J3, { coordinates: [-5, 5] })
         .aJunction(IDS.J4, { coordinates: [5, 5] })
         .aPipe(IDS.P2, {
-          startNodeId: String(IDS.J3),
-          endNodeId: String(IDS.J4),
+          startNodeId: IDS.J3,
+          endNodeId: IDS.J4,
         })
         .build();
 
@@ -256,27 +256,27 @@ describe("runCheck", () => {
         .aReservoir(IDS.R1, { coordinates: [0, 0] })
         .aJunction(IDS.J1, { coordinates: [100, 0] })
         .aPipe(IDS.Main1, {
-          startNodeId: String(IDS.R1),
-          endNodeId: String(IDS.J1),
+          startNodeId: IDS.R1,
+          endNodeId: IDS.J1,
         })
         .aJunction(IDS.J2, { coordinates: [0, 100] })
         .aJunction(IDS.J3, { coordinates: [100, 100] })
         .aPipe(IDS.Main2, {
-          startNodeId: String(IDS.J2),
-          endNodeId: String(IDS.J3),
+          startNodeId: IDS.J2,
+          endNodeId: IDS.J3,
         })
         // Service lines that incorrectly cross mains
         .aJunction(IDS.S1, { coordinates: [50, -20] })
         .aJunction(IDS.S2, { coordinates: [50, 120] })
         .aPipe(IDS.Service1, {
-          startNodeId: String(IDS.S1),
-          endNodeId: String(IDS.S2),
+          startNodeId: IDS.S1,
+          endNodeId: IDS.S2,
         })
         .aJunction(IDS.S3, { coordinates: [-20, 50] })
         .aJunction(IDS.S4, { coordinates: [120, 50] })
         .aPipe(IDS.Service2, {
-          startNodeId: String(IDS.S3),
-          endNodeId: String(IDS.S4),
+          startNodeId: IDS.S3,
+          endNodeId: IDS.S4,
         })
         .build();
 
@@ -309,20 +309,20 @@ describe("runCheck", () => {
         .aReservoir(IDS.R1, { coordinates: [0, 0] })
         .aJunction(IDS.J1, { coordinates: [50, 0] })
         .aPipe(IDS.P1, {
-          startNodeId: String(IDS.R1),
-          endNodeId: String(IDS.J1),
+          startNodeId: IDS.R1,
+          endNodeId: IDS.J1,
         })
         .aJunction(IDS.J2, { coordinates: [100, 0] })
         .aPipe(IDS.P2, {
-          startNodeId: String(IDS.J1),
-          endNodeId: String(IDS.J2),
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
         }) // Legitimate T-junction at J1
         // Actual crossing (modeling error)
         .aJunction(IDS.J3, { coordinates: [25, -25] })
         .aJunction(IDS.J4, { coordinates: [25, 25] })
         .aPipe(IDS.P3, {
-          startNodeId: String(IDS.J3),
-          endNodeId: String(IDS.J4),
+          startNodeId: IDS.J3,
+          endNodeId: IDS.J4,
         }) // Crosses P1
         .build();
 
@@ -330,8 +330,8 @@ describe("runCheck", () => {
 
       // Should only find P1 x P3 crossing, not P1-P2 legitimate connection
       expect(crossings).toHaveLength(1);
-      expect(crossings[0].pipe1Id).toBe(String(IDS.P1));
-      expect(crossings[0].pipe2Id).toBe(String(IDS.P3));
+      expect(crossings[0].pipe1Id).toBe(IDS.P1);
+      expect(crossings[0].pipe2Id).toBe(IDS.P3);
     });
 
     it("handles network with curved pipes", async () => {
@@ -348,8 +348,8 @@ describe("runCheck", () => {
         .aReservoir(IDS.R1, { coordinates: [0, 0] })
         .aJunction(IDS.J1, { coordinates: [100, 0] })
         .aPipe(IDS.CurvedMain, {
-          startNodeId: String(IDS.R1),
-          endNodeId: String(IDS.J1),
+          startNodeId: IDS.R1,
+          endNodeId: IDS.J1,
           coordinates: [
             [0, 0],
             [25, 10],
@@ -362,16 +362,16 @@ describe("runCheck", () => {
         .aJunction(IDS.S1, { coordinates: [50, -20] })
         .aJunction(IDS.S2, { coordinates: [50, 30] })
         .aPipe(IDS.ServiceLine, {
-          startNodeId: String(IDS.S1),
-          endNodeId: String(IDS.S2),
+          startNodeId: IDS.S1,
+          endNodeId: IDS.S2,
         })
         .build();
 
       const crossings = await runCheck(model, 0.5);
 
       expect(crossings).toHaveLength(1);
-      expect(crossings[0].pipe1Id).toBe(String(IDS.CurvedMain));
-      expect(crossings[0].pipe2Id).toBe(String(IDS.ServiceLine));
+      expect(crossings[0].pipe1Id).toBe(IDS.CurvedMain);
+      expect(crossings[0].pipe2Id).toBe(IDS.ServiceLine);
       // Intersection should be somewhere along the curve
       expect(crossings[0].intersectionPoint[0]).toBeCloseTo(50, 1);
     });
@@ -392,8 +392,8 @@ describe("runCheck", () => {
         .aJunction(IDS.J1, { coordinates: [0, 0] })
         .aJunction(IDS.J2, { coordinates: [10, 10] })
         .aPipe(IDS.P1, {
-          startNodeId: String(IDS.J1),
-          endNodeId: String(IDS.J2),
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
         })
         .build();
 

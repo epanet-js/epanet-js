@@ -3,13 +3,22 @@ import { Topology } from "./topology";
 import { AssetIndex } from "../asset-index";
 import { TopologyEncoder } from "./topologyEncoder";
 
+const IDS = {
+  Link1: 1,
+  Link2: 2,
+  Link3: 3,
+  Node10: 10,
+  Node20: 20,
+  Node30: 30,
+} as const;
+
 describe("TopologyEncoder", () => {
   describe("Encoding correctness", () => {
     it("incremental encoding produces same result as full encoding", () => {
       const topology = new Topology();
-      topology.addLink("1", "10", "20");
-      topology.addLink("2", "20", "30");
-      topology.addLink("3", "10", "30");
+      topology.addLink(IDS.Link1, IDS.Node10, IDS.Node20);
+      topology.addLink(IDS.Link2, IDS.Node20, IDS.Node30);
+      topology.addLink(IDS.Link3, IDS.Node10, IDS.Node30);
 
       const assetIndex = new AssetIndex();
       assetIndex.addLink(1);
@@ -28,11 +37,11 @@ describe("TopologyEncoder", () => {
         "array",
       );
 
-      for (const linkId of assetIndex.iterateLinkInternalIds()) {
+      for (const linkId of assetIndex.iterateLinkAssetIds()) {
         incrementalEncoder.encodeLink(linkId);
       }
 
-      for (const nodeId of assetIndex.iterateNodeInternalIds()) {
+      for (const nodeId of assetIndex.iterateNodeAssetIds()) {
         incrementalEncoder.encodeNode(nodeId);
       }
 

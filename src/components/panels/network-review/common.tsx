@@ -223,13 +223,13 @@ export const VirtualizedIssuesList = <T,>({
   onGoBack,
 }: {
   items: T[];
-  selectedId: string | null;
+  selectedId: string | number | null;
   onSelect: (item: T | null) => void;
-  getItemId: (item: T) => string;
+  getItemId: (item: T) => string | number;
   renderItem: (
     index: number,
     item: T,
-    selectedId: string | null,
+    selectedId: string | number | null,
     onClick: (item: T) => void,
   ) => React.ReactNode;
   checkType: CheckType;
@@ -239,7 +239,7 @@ export const VirtualizedIssuesList = <T,>({
 }) => {
   const headerRows = 1;
   const lastKeyboardNavigatedIndexRef = useRef<number | null>(null);
-  const lastProcessedSelectedIdRef = useRef<string | null>(null);
+  const lastProcessedSelectedIdRef = useRef<string | number | null>(null);
 
   const { zoomIn, zoomOut } = useZoom();
 

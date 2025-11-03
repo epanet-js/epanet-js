@@ -205,14 +205,14 @@ const findNearestPipeConnection = (
         workerData,
       );
 
-      if (junctionId) {
+      if (junctionId !== null) {
         const pipeIndex = getSegmentPipeIndex(
           workerData.segments,
           closestSegmentIndex,
         );
         const pipeId = getPipeId(workerData.pipes, pipeIndex);
         return {
-          pipeId,
+          pipeId: Number(pipeId),
           snapPoint,
           junctionId,
         };
@@ -227,19 +227,19 @@ const findAssignedJunctionId = (
   segmentIndex: number,
   snapPoint: Position,
   workerData: RunData,
-): string | null => {
+): number | null => {
   const pipeIndex = getSegmentPipeIndex(workerData.segments, segmentIndex);
   const startNodeIndex = getPipeStartNodeIndex(workerData.pipes, pipeIndex);
   const endNodeIndex = getPipeEndNodeIndex(workerData.pipes, pipeIndex);
 
   const startNode = {
-    id: getNodeId(workerData.nodes, startNodeIndex),
+    id: Number(getNodeId(workerData.nodes, startNodeIndex)),
     type: getNodeType(workerData.nodes, startNodeIndex),
     coordinates: getNodeCoordinates(workerData.nodes, startNodeIndex),
   };
 
   const endNode = {
-    id: getNodeId(workerData.nodes, endNodeIndex),
+    id: Number(getNodeId(workerData.nodes, endNodeIndex)),
     type: getNodeType(workerData.nodes, endNodeIndex),
     coordinates: getNodeCoordinates(workerData.nodes, endNodeIndex),
   };

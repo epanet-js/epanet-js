@@ -1,15 +1,17 @@
 import { EventedType } from "ngraph.events";
 import createGraph, { Graph, Link, Node } from "ngraph.graph";
+import { AssetId } from "../asset-types/base-asset";
 
 type GraphChange = {
   changeType: "add" | "remove";
-  link?: Link;
+  link?: Link<LinkData>;
   node?: Node;
 };
+type LinkData = { id: AssetId };
 
 export class Topology {
-  private graph: Graph<string> & EventedType;
-  private linksMap: Map<string, Link>;
+  private graph: Graph<null, LinkData> & EventedType;
+  private linksMap: Map<AssetId, Link>;
 
   constructor() {
     this.graph = createGraph({ multigraph: true });
@@ -24,17 +26,19 @@ export class Topology {
     });
   }
 
-  hasLink(linkId: string) {
+  hasLink(linkId: AssetId) {
     return this.linksMap.has(linkId);
   }
 
-  addLink(linkId: string, startNodeId: string, endNodeId: string) {
+  addLink(linkId: AssetId, startNodeId: AssetId, endNodeId: AssetId) {
     if (this.linksMap.has(linkId)) {
       return;
     }
 
     try {
-      const link = this.graph.addLink(startNodeId, endNodeId, { id: linkId });
+      const link = this.graph.addLink(String(startNodeId), String(endNodeId), {
+        id: linkId,
+      });
       this.linksMap.set(linkId, link);
     } catch (error) {
       throw new Error(
@@ -43,16 +47,16 @@ export class Topology {
     }
   }
 
-  getLinks(nodeId: string): string[] {
-    const links = this.graph.getLinks(nodeId);
-    return Array.from(links || []).map((link: Link) => link.data.id as string);
+  getLinks(nodeId: AssetId): AssetId[] {
+    const links = this.graph.getLinks(String(nodeId));
+    return Array.from(links || []).map((link: Link<LinkData>) => link.data.id);
   }
 
-  removeNode(nodeId: string) {
-    this.graph.removeNode(nodeId);
+  removeNode(nodeId: AssetId) {
+    this.graph.removeNode(String(nodeId));
   }
 
-  removeLink(linkId: string) {
+  removeLink(linkId: AssetId) {
     const link = this.linksMap.get(linkId);
 
     if (!link) return;

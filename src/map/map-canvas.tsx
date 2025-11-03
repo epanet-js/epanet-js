@@ -134,8 +134,6 @@ export const MapCanvas = memo(function MapCanvas({
 
   useMapStateUpdates(mapRef.current);
 
-  const idMap = rep.idMap;
-
   useEffect(() => {
     if (mapRef.current) return;
     if (!mapDivRef.current || !mapHandlers) return;
@@ -172,7 +170,6 @@ export const MapCanvas = memo(function MapCanvas({
     dragTargetRef,
     hydraulicModel,
     folderMap,
-    idMap,
     selection,
     map: mapRef.current!,
     rep,
@@ -323,17 +320,13 @@ export const MapCanvas = memo(function MapCanvas({
           const selectedFeatures = get(selectedFeaturesAtom);
 
           setContextInfo({
-            features: wrappedFeaturesFromMapFeatures(
-              featureUnderMouse,
-              assets,
-              rep.idMap,
-            ),
+            features: wrappedFeaturesFromMapFeatures(featureUnderMouse, assets),
             position,
             selectedFeatures,
           });
         }
       },
-      [mapDivRef, rep],
+      [mapDivRef],
     ),
   );
 

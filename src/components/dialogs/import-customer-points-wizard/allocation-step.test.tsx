@@ -13,7 +13,6 @@ import { wizardStateAtom } from "./use-wizard-state";
 import { WizardState } from "./types";
 import { MemPersistence } from "src/lib/persistence/memory";
 import { PersistenceContext } from "src/lib/persistence/context";
-import { UIDMap } from "src/lib/id-mapper";
 import { vi } from "vitest";
 import { allocateCustomerPoints } from "src/hydraulic-model/model-operations/allocate-customer-points";
 
@@ -392,7 +391,7 @@ const waitForAllocations = () => {
 };
 
 const renderWizard = (store: Store) => {
-  const persistence = new MemPersistence(UIDMap.empty(), store);
+  const persistence = new MemPersistence(store);
   return render(
     <PersistenceContext.Provider value={persistence}>
       <JotaiProvider store={store}>

@@ -52,10 +52,10 @@ describe("CustomerPoint", () => {
     });
 
     const connection = {
-      pipeId: String(IDS.P1),
+      pipeId: IDS.P1,
       snapPoint: [15, 25] as [number, number],
       distance: 7.5,
-      junctionId: String(IDS.J1),
+      junctionId: IDS.J1,
     };
 
     originalPoint.connect(connection);

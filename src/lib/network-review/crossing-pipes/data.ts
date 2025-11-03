@@ -18,7 +18,7 @@ export interface CrossingPipe {
 
 export function decodeCrossingPipes(
   model: HydraulicModel,
-  linkIdsLookup: string[],
+  linkIdsLookup: number[],
   encodedCrossingPipes: EncodedCrossingPipes,
 ): CrossingPipe[] {
   const crossingPipes: CrossingPipe[] = encodedCrossingPipes.map((encoded) => {

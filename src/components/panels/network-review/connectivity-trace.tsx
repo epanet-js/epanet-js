@@ -149,7 +149,7 @@ const SubnetworkItem = ({
   index: number;
   subnetwork: SubNetwork;
   onClick: (subnetwork: SubNetwork) => void;
-  selectedId: string | null;
+  selectedId: string | number | null;
 }) => {
   const translate = useTranslate();
   const isSelected = selectedId === String(subnetwork.subnetworkId);

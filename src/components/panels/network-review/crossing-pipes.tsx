@@ -180,7 +180,7 @@ const CrossingPipeItem = ({
 }: {
   crossing: CrossingPipe;
   onClick: (crossing: CrossingPipe) => void;
-  selectedId: string | null;
+  selectedId: string | number | null;
 }) => {
   const translate = useTranslate();
   const { hydraulicModel } = useAtomValue(dataAtom);

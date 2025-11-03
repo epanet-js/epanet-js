@@ -24,7 +24,6 @@ export function useDrawNodeHandlers({
   rep,
   nodeType,
   map,
-  idMap,
 }: HandlerContext & { nodeType: NodeType }): Handlers {
   const setMode = useSetAtom(modeAtom);
   const [ephemeralState, setEphemeralState] = useAtom(ephemeralStateAtom);
@@ -34,18 +33,14 @@ export function useDrawNodeHandlers({
   const userTracking = useUserTracking();
   const { units } = hydraulicModel;
   const { fetchElevation, prefetchTile } = useElevations(units.elevation);
-  const { findSnappingCandidate } = useSnapping(
-    map,
-    idMap,
-    hydraulicModel.assets,
-  );
+  const { findSnappingCandidate } = useSnapping(map, hydraulicModel.assets);
   const { selectAsset } = useSelection(selection);
 
   const submitNode = (
     nodeType: NodeType,
     coordinates: [number, number],
     elevation: number,
-    pipeIdToSplit?: string,
+    pipeIdToSplit?: number,
   ) => {
     const moment = addNode(hydraulicModel, {
       nodeType,
@@ -89,14 +84,14 @@ export function useDrawNodeHandlers({
 
       let clickPosition = getMapCoord(e);
       let elevation = await fetchElevation(e.lngLat);
-      let pipeIdToSplit: string | undefined;
+      let pipeIdToSplit: number | undefined;
 
       if (
         ephemeralState.type === "drawNode" &&
         ephemeralState.pipeSnappingPosition
       ) {
         clickPosition = ephemeralState.pipeSnappingPosition as [number, number];
-        pipeIdToSplit = ephemeralState.pipeId || undefined;
+        pipeIdToSplit = ephemeralState.pipeId ?? undefined;
         const [lng, lat] = clickPosition;
         elevation = await fetchElevation({ lng, lat } as mapboxgl.LngLat);
       }

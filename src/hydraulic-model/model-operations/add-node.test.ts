@@ -65,23 +65,23 @@ describe("addNode", () => {
         .aNode(IDS.J1, [0, 0])
         .aNode(IDS.J2, [10, 0])
         .aPipe(IDS.P1, {
-          startNodeId: String(IDS.J1),
-          endNodeId: String(IDS.J2),
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
         })
         .build();
 
-      const originalPipe = hydraulicModel.assets.get(String(IDS.P1));
+      const originalPipe = hydraulicModel.assets.get(IDS.P1);
       expect(originalPipe).toBeDefined();
 
       const { putAssets, deleteAssets } = addNode(hydraulicModel, {
         nodeType: "junction",
         coordinates: [5, 0],
         elevation: 50,
-        pipeIdToSplit: String(IDS.P1),
+        pipeIdToSplit: IDS.P1,
       });
 
       expect(putAssets).toHaveLength(3);
-      expect(deleteAssets).toEqual([String(IDS.P1)]);
+      expect(deleteAssets).toEqual([IDS.P1]);
 
       const [junction, pipe1, pipe2] = putAssets!;
 
@@ -100,8 +100,8 @@ describe("addNode", () => {
         [10, 0],
       ]);
 
-      expect((pipe1 as any).connections).toEqual([String(IDS.J1), junction.id]);
-      expect((pipe2 as any).connections).toEqual([junction.id, String(IDS.J2)]);
+      expect((pipe1 as any).connections).toEqual([IDS.J1, junction.id]);
+      expect((pipe2 as any).connections).toEqual([junction.id, IDS.J2]);
     });
 
     it("uses node coordinates exactly as split point", () => {
@@ -110,8 +110,8 @@ describe("addNode", () => {
         .aNode(IDS.J1, [0, 0])
         .aNode(IDS.J2, [10, 0])
         .aPipe(IDS.P1, {
-          startNodeId: String(IDS.J1),
-          endNodeId: String(IDS.J2),
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
         })
         .build();
 
@@ -121,7 +121,7 @@ describe("addNode", () => {
         nodeType: "junction",
         coordinates: nodeCoordinates,
         elevation: 50,
-        pipeIdToSplit: String(IDS.P1),
+        pipeIdToSplit: IDS.P1,
       });
 
       const [junction, pipe1, pipe2] = putAssets!;
@@ -139,8 +139,8 @@ describe("addNode", () => {
         .aNode(IDS.J1, [0, 0])
         .aNode(IDS.J2, [10, 0])
         .aPipe(IDS.MainPipe, {
-          startNodeId: String(IDS.J1),
-          endNodeId: String(IDS.J2),
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
           label: "MainPipe",
         })
         .build();
@@ -148,11 +148,11 @@ describe("addNode", () => {
       const { putAssets, deleteAssets } = addNode(hydraulicModel, {
         nodeType: "junction",
         coordinates: [5, 0],
-        pipeIdToSplit: String(IDS.MainPipe),
+        pipeIdToSplit: IDS.MainPipe,
       });
 
       expect(putAssets).toHaveLength(3);
-      expect(deleteAssets).toEqual([String(IDS.MainPipe)]);
+      expect(deleteAssets).toEqual([IDS.MainPipe]);
 
       const [junction, pipe1, pipe2] = putAssets!;
       expect(junction.type).toBe("junction");
@@ -164,14 +164,15 @@ describe("addNode", () => {
 
     it("throws error for invalid pipe ID", () => {
       const hydraulicModel = HydraulicModelBuilder.with().build();
+      const NonExistentPipeId = 1;
 
       expect(() =>
         addNode(hydraulicModel, {
           nodeType: "junction",
           coordinates: [5, 0],
-          pipeIdToSplit: "NonExistentPipe",
+          pipeIdToSplit: NonExistentPipeId,
         }),
-      ).toThrow("Invalid pipe ID: NonExistentPipe");
+      ).toThrow("Invalid pipe ID: 1");
     });
 
     it("throws error when trying to split non-pipe asset", () => {
@@ -184,9 +185,9 @@ describe("addNode", () => {
         addNode(hydraulicModel, {
           nodeType: "junction",
           coordinates: [5, 0],
-          pipeIdToSplit: String(IDS.J1),
+          pipeIdToSplit: IDS.J1,
         }),
-      ).toThrow(`Invalid pipe ID: ${String(IDS.J1)}`);
+      ).toThrow(`Invalid pipe ID: ${IDS.J1}`);
     });
 
     it("maintains network connectivity with proper connections", () => {
@@ -195,8 +196,8 @@ describe("addNode", () => {
         .aNode(IDS.StartNode, [0, 0])
         .aNode(IDS.EndNode, [20, 0])
         .aPipe(IDS.MainPipe, {
-          startNodeId: String(IDS.StartNode),
-          endNodeId: String(IDS.EndNode),
+          startNodeId: IDS.StartNode,
+          endNodeId: IDS.EndNode,
           label: "MainPipe",
         })
         .build();
@@ -204,15 +205,15 @@ describe("addNode", () => {
       const { putAssets } = addNode(hydraulicModel, {
         nodeType: "junction",
         coordinates: [10, 0],
-        pipeIdToSplit: String(IDS.MainPipe),
+        pipeIdToSplit: IDS.MainPipe,
       });
 
       const [newJunction, firstSegment, secondSegment] = putAssets!;
 
-      expect((firstSegment as any).connections[0]).toBe(String(IDS.StartNode));
+      expect((firstSegment as any).connections[0]).toBe(IDS.StartNode);
       expect((firstSegment as any).connections[1]).toBe(newJunction.id);
       expect((secondSegment as any).connections[0]).toBe(newJunction.id);
-      expect((secondSegment as any).connections[1]).toBe(String(IDS.EndNode));
+      expect((secondSegment as any).connections[1]).toBe(IDS.EndNode);
     });
 
     it("reconnects customer points when splitting pipe", () => {
@@ -221,8 +222,8 @@ describe("addNode", () => {
         .aNode(IDS.J1, [0, 0])
         .aNode(IDS.J2, [10, 0])
         .aPipe(IDS.P1, {
-          startNodeId: String(IDS.J1),
-          endNodeId: String(IDS.J2),
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
         })
         .build();
 
@@ -232,9 +233,9 @@ describe("addNode", () => {
       });
 
       customerPoint.connect({
-        pipeId: String(IDS.P1),
+        pipeId: IDS.P1,
         snapPoint: [3, 0],
-        junctionId: String(IDS.J1),
+        junctionId: IDS.J1,
       });
 
       hydraulicModel.customerPoints.set(customerPoint.id, customerPoint);
@@ -243,7 +244,7 @@ describe("addNode", () => {
       const { putAssets, putCustomerPoints } = addNode(hydraulicModel, {
         nodeType: "junction",
         coordinates: [5, 0],
-        pipeIdToSplit: String(IDS.P1),
+        pipeIdToSplit: IDS.P1,
       });
 
       expect(putAssets).toHaveLength(3);
@@ -278,8 +279,8 @@ describe("addNode", () => {
       .aNode(IDS.J1, [0, 0])
       .aNode(IDS.J2, [10, 0])
       .aPipe(IDS.P1, {
-        startNodeId: String(IDS.J1),
-        endNodeId: String(IDS.J2),
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
         coordinates: [
           [0, 0],
           [5, 0],
@@ -291,7 +292,7 @@ describe("addNode", () => {
     const { putAssets } = addNode(hydraulicModel, {
       nodeType: "junction",
       coordinates: [5, 0],
-      pipeIdToSplit: String(IDS.P1),
+      pipeIdToSplit: IDS.P1,
     });
 
     const [, pipe1, pipe2] = putAssets!;
@@ -312,8 +313,8 @@ describe("addNode", () => {
       .aNode(IDS.J1, [0, 0])
       .aNode(IDS.J2, [20, 0])
       .aPipe(IDS.P1, {
-        startNodeId: String(IDS.J1),
-        endNodeId: String(IDS.J2),
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
         coordinates: [
           [0, 0],
           [5, 0],
@@ -327,7 +328,7 @@ describe("addNode", () => {
     const { putAssets } = addNode(hydraulicModel, {
       nodeType: "reservoir",
       coordinates: [10, 0],
-      pipeIdToSplit: String(IDS.P1),
+      pipeIdToSplit: IDS.P1,
     });
 
     const [reservoir, pipe1, pipe2] = putAssets!;
@@ -351,8 +352,8 @@ describe("addNode", () => {
       .aNode(IDS.J1, [0, 0])
       .aNode(IDS.J2, [10, 0])
       .aPipe(IDS.P1, {
-        startNodeId: String(IDS.J1),
-        endNodeId: String(IDS.J2),
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
         coordinates: [
           [0, 0],
           [5, 0],
@@ -365,7 +366,7 @@ describe("addNode", () => {
       nodeType: "tank",
       coordinates: [5, 0],
       elevation: 100,
-      pipeIdToSplit: String(IDS.P1),
+      pipeIdToSplit: IDS.P1,
     });
 
     const [tank, pipe1, pipe2] = putAssets!;

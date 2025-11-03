@@ -9,16 +9,16 @@ describe("replaceNode", () => {
     const model = HydraulicModelBuilder.with()
       .aJunction(IDS.J1, { coordinates: [10, 20], elevation: 100 })
       .aJunction(IDS.J2, { coordinates: [30, 40] })
-      .aPipe(IDS.P1, { startNodeId: String(IDS.J1), endNodeId: String(IDS.J2) })
+      .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
       .build();
 
     const moment = replaceNode(model, {
-      oldNodeId: String(IDS.J1),
+      oldNodeId: IDS.J1,
       newNodeType: "tank",
     });
 
     expect(moment.note).toBe("Replace junction with tank");
-    expect(moment.deleteAssets).toEqual([String(IDS.J1)]);
+    expect(moment.deleteAssets).toEqual([IDS.J1]);
     expect(moment.putAssets).toHaveLength(2);
 
     const newNode = moment.putAssets![0] as NodeAsset;
@@ -30,7 +30,7 @@ describe("replaceNode", () => {
     const updatedPipe = moment.putAssets![1] as LinkAsset;
     expect(updatedPipe.type).toBe("pipe");
     expect(updatedPipe.connections[0]).toBe(newNode.id);
-    expect(updatedPipe.connections[1]).toBe(String(IDS.J2));
+    expect(updatedPipe.connections[1]).toBe(IDS.J2);
   });
 
   it("replaces reservoir with junction and preserves connections", () => {
@@ -38,16 +38,16 @@ describe("replaceNode", () => {
     const model = HydraulicModelBuilder.with()
       .aReservoir(IDS.R1, { coordinates: [5, 5], elevation: 50 })
       .aJunction(IDS.J1, { coordinates: [15, 15] })
-      .aPipe(IDS.P1, { startNodeId: String(IDS.R1), endNodeId: String(IDS.J1) })
+      .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
       .build();
 
     const moment = replaceNode(model, {
-      oldNodeId: String(IDS.R1),
+      oldNodeId: IDS.R1,
       newNodeType: "junction",
     });
 
     expect(moment.note).toBe("Replace reservoir with junction");
-    expect(moment.deleteAssets).toEqual([String(IDS.R1)]);
+    expect(moment.deleteAssets).toEqual([IDS.R1]);
 
     const newNode = moment.putAssets![0] as NodeAsset;
     expect(newNode.type).toBe("junction");
@@ -56,7 +56,7 @@ describe("replaceNode", () => {
 
     const updatedPipe = moment.putAssets![1] as LinkAsset;
     expect(updatedPipe.connections[0]).toBe(newNode.id);
-    expect(updatedPipe.connections[1]).toBe(String(IDS.J1));
+    expect(updatedPipe.connections[1]).toBe(IDS.J1);
   });
 
   it("replaces tank with reservoir and preserves multiple connections", () => {
@@ -66,18 +66,18 @@ describe("replaceNode", () => {
       .aJunction(IDS.J1, { coordinates: [10, 0] })
       .aJunction(IDS.J2, { coordinates: [0, 10] })
       .aJunction(IDS.J3, { coordinates: [-10, 0] })
-      .aPipe(IDS.P1, { startNodeId: String(IDS.T1), endNodeId: String(IDS.J1) })
-      .aPipe(IDS.P2, { startNodeId: String(IDS.T1), endNodeId: String(IDS.J2) })
-      .aPipe(IDS.P3, { startNodeId: String(IDS.J3), endNodeId: String(IDS.T1) })
+      .aPipe(IDS.P1, { startNodeId: IDS.T1, endNodeId: IDS.J1 })
+      .aPipe(IDS.P2, { startNodeId: IDS.T1, endNodeId: IDS.J2 })
+      .aPipe(IDS.P3, { startNodeId: IDS.J3, endNodeId: IDS.T1 })
       .build();
 
     const moment = replaceNode(model, {
-      oldNodeId: String(IDS.T1),
+      oldNodeId: IDS.T1,
       newNodeType: "reservoir",
     });
 
     expect(moment.note).toBe("Replace tank with reservoir");
-    expect(moment.deleteAssets).toEqual([String(IDS.T1)]);
+    expect(moment.deleteAssets).toEqual([IDS.T1]);
     expect(moment.putAssets).toHaveLength(4);
 
     const newNode = moment.putAssets![0] as NodeAsset;
@@ -87,13 +87,13 @@ describe("replaceNode", () => {
     const updatedPipes = moment.putAssets!.slice(1) as LinkAsset[];
     expect(updatedPipes).toHaveLength(3);
 
-    const p1 = updatedPipes.find((p) => p.connections[1] === String(IDS.J1));
+    const p1 = updatedPipes.find((p) => p.connections[1] === IDS.J1);
     expect(p1?.connections[0]).toBe(newNode.id);
 
-    const p2 = updatedPipes.find((p) => p.connections[1] === String(IDS.J2));
+    const p2 = updatedPipes.find((p) => p.connections[1] === IDS.J2);
     expect(p2?.connections[0]).toBe(newNode.id);
 
-    const p3 = updatedPipes.find((p) => p.connections[0] === String(IDS.J3));
+    const p3 = updatedPipes.find((p) => p.connections[0] === IDS.J3);
     expect(p3?.connections[1]).toBe(newNode.id);
   });
 
@@ -104,7 +104,7 @@ describe("replaceNode", () => {
       .build();
 
     const moment = replaceNode(model, {
-      oldNodeId: String(IDS.J1),
+      oldNodeId: IDS.J1,
       newNodeType: "tank",
     });
 
@@ -120,7 +120,7 @@ describe("replaceNode", () => {
       .build();
 
     const moment = replaceNode(model, {
-      oldNodeId: String(IDS.J1),
+      oldNodeId: IDS.J1,
       newNodeType: "tank",
     });
 
@@ -137,12 +137,12 @@ describe("replaceNode", () => {
       .build();
 
     const moment = replaceNode(model, {
-      oldNodeId: String(IDS.J1),
+      oldNodeId: IDS.J1,
       newNodeType: "reservoir",
     });
 
     expect(moment.note).toBe("Replace junction with reservoir");
-    expect(moment.deleteAssets).toEqual([String(IDS.J1)]);
+    expect(moment.deleteAssets).toEqual([IDS.J1]);
     expect(moment.putAssets).toHaveLength(1);
 
     const newNode = moment.putAssets![0];
@@ -151,13 +151,14 @@ describe("replaceNode", () => {
 
   it("throws error for invalid node ID", () => {
     const model = HydraulicModelBuilder.empty();
+    const invalidNodeId = 1;
 
     expect(() =>
       replaceNode(model, {
-        oldNodeId: "INVALID",
+        oldNodeId: invalidNodeId,
         newNodeType: "junction",
       }),
-    ).toThrow("Invalid node ID: INVALID");
+    ).toThrow("Invalid node ID: 1");
   });
 
   it("throws error when trying to replace a link", () => {
@@ -165,12 +166,12 @@ describe("replaceNode", () => {
     const model = HydraulicModelBuilder.with()
       .aJunction(IDS.J1, { coordinates: [0, 0] })
       .aJunction(IDS.J2, { coordinates: [10, 10] })
-      .aPipe(IDS.P1, { startNodeId: String(IDS.J1), endNodeId: String(IDS.J2) })
+      .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
       .build();
 
     expect(() =>
       replaceNode(model, {
-        oldNodeId: String(IDS.P1),
+        oldNodeId: IDS.P1,
         newNodeType: "junction",
       }),
     ).toThrow(`Invalid node ID: ${IDS.P1}`);
@@ -181,20 +182,20 @@ describe("replaceNode", () => {
     const model = HydraulicModelBuilder.with()
       .aJunction(IDS.J1, { coordinates: [0, 0] })
       .aJunction(IDS.J2, { coordinates: [10, 0] })
-      .aPipe(IDS.P1, { startNodeId: String(IDS.J1), endNodeId: String(IDS.J2) })
+      .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
       .aCustomerPoint(IDS.CP1, {
         demand: 25,
         coordinates: [2, 0],
         connection: {
-          pipeId: String(IDS.P1),
+          pipeId: IDS.P1,
           snapPoint: [2, 0],
-          junctionId: String(IDS.J1),
+          junctionId: IDS.J1,
         },
       })
       .build();
 
     const moment = replaceNode(model, {
-      oldNodeId: String(IDS.J1),
+      oldNodeId: IDS.J1,
       newNodeType: "tank",
     });
 
@@ -203,6 +204,6 @@ describe("replaceNode", () => {
 
     const reconnectedCP = moment.putCustomerPoints![0];
     expect(reconnectedCP.connection).not.toBeNull();
-    expect(reconnectedCP.connection?.pipeId).toBe(String(IDS.P1));
+    expect(reconnectedCP.connection?.pipeId).toBe(IDS.P1);
   });
 });
