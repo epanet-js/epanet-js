@@ -15,6 +15,7 @@ import { MemPersistence } from "src/lib/persistence/memory";
 import { PersistenceContext } from "src/lib/persistence/context";
 import { UIDMap } from "src/lib/id-mapper";
 import { vi } from "vitest";
+import { allocateCustomerPoints } from "src/hydraulic-model/model-operations/allocate-customer-points";
 
 // Mock projections hook directly
 vi.mock("src/hooks/use-projections", () => ({
@@ -33,6 +34,14 @@ vi.mock("src/hooks/use-projections", () => ({
     error: null,
   })),
 }));
+
+// Mock allocation function to control results in tests
+vi.mock(
+  "src/hydraulic-model/model-operations/allocate-customer-points",
+  () => ({
+    allocateCustomerPoints: vi.fn(),
+  }),
+);
 
 describe("AllocationStep", () => {
   it("renders allocation step with default wizard state", async () => {
@@ -195,6 +204,147 @@ describe("AllocationStep", () => {
     loadingSpinners.forEach((spinner) => {
       expect(spinner).toHaveClass("animate-spin");
     });
+  });
+
+  it("summary displays two significant decimal places", async () => {
+    const totalCount = 10000;
+    const allocatedCount = 1234; // 1234/10000 = 12.34% → should display as "12.34%"
+
+    const store = setInitialState({
+      hydraulicModel: HydraulicModelBuilder.with().build(),
+    });
+
+    // Create customer points using a loop
+    const customerPoints = Array.from({ length: totalCount }, (_, i) =>
+      buildCustomerPoint(i + 1),
+    );
+
+    // Mock allocation to return 1234 out of 10000 allocated (12.34%)
+    vi.mocked(allocateCustomerPoints).mockResolvedValue({
+      ruleMatches: [allocatedCount],
+      allocatedCustomerPoints: new Map(
+        customerPoints
+          .slice(0, allocatedCount)
+          .map((cp) => [String(cp.id), cp]),
+      ),
+      disconnectedCustomerPoints: new Map(
+        customerPoints.slice(allocatedCount).map((cp) => [String(cp.id), cp]),
+      ),
+    });
+
+    setWizardState(store, {
+      parsedDataSummary: {
+        validCustomerPoints: customerPoints,
+        issues: null,
+        totalCount,
+        demandImportUnit: "l/d",
+      },
+    });
+    renderWizard(store);
+
+    await waitForAllocations();
+
+    // Check that 12.34% displays with both decimals
+    expect(
+      screen.getByText(/1,234 customer points will be allocated \(12\.34%\)/),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/8,766 customer points remain unallocated \(87\.66%\)/),
+    ).toBeInTheDocument();
+  });
+
+  it("summary does not display decimal if not needed", async () => {
+    const totalCount = 20;
+    const allocatedCount = 19; // 19/20 = 95.00% → should display as "95%"
+
+    const store = setInitialState({
+      hydraulicModel: HydraulicModelBuilder.with().build(),
+    });
+
+    // Create customer points using a loop
+    const customerPoints = Array.from({ length: totalCount }, (_, i) =>
+      buildCustomerPoint(i + 1),
+    );
+
+    // Mock allocation to return 19 out of 20 allocated (95.00% → "95%")
+    vi.mocked(allocateCustomerPoints).mockResolvedValue({
+      ruleMatches: [allocatedCount],
+      allocatedCustomerPoints: new Map(
+        customerPoints
+          .slice(0, allocatedCount)
+          .map((cp) => [String(cp.id), cp]),
+      ),
+      disconnectedCustomerPoints: new Map(
+        customerPoints.slice(allocatedCount).map((cp) => [String(cp.id), cp]),
+      ),
+    });
+
+    setWizardState(store, {
+      parsedDataSummary: {
+        validCustomerPoints: customerPoints,
+        issues: null,
+        totalCount,
+        demandImportUnit: "l/d",
+      },
+    });
+    renderWizard(store);
+
+    await waitForAllocations();
+
+    // Check that 95.00% displays as "95%" (no trailing .0)
+    expect(
+      screen.getByText(/19 customer points will be allocated \(95%\)/),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/1 customer points remain unallocated \(5%\)/),
+    ).toBeInTheDocument();
+  });
+
+  it("summary displays only one decimal place when needed", async () => {
+    const totalCount = 1000;
+    const allocatedCount = 1234 - 1000; // 234/1000 = 23.40% → should display as "23.4%"
+
+    const store = setInitialState({
+      hydraulicModel: HydraulicModelBuilder.with().build(),
+    });
+
+    // Create customer points using a loop
+    const customerPoints = Array.from({ length: totalCount }, (_, i) =>
+      buildCustomerPoint(i + 1),
+    );
+
+    // Mock allocation to return 234 out of 1000 allocated (23.40% → "23.4%")
+    vi.mocked(allocateCustomerPoints).mockResolvedValue({
+      ruleMatches: [allocatedCount],
+      allocatedCustomerPoints: new Map(
+        customerPoints
+          .slice(0, allocatedCount)
+          .map((cp) => [String(cp.id), cp]),
+      ),
+      disconnectedCustomerPoints: new Map(
+        customerPoints.slice(allocatedCount).map((cp) => [String(cp.id), cp]),
+      ),
+    });
+
+    setWizardState(store, {
+      parsedDataSummary: {
+        validCustomerPoints: customerPoints,
+        issues: null,
+        totalCount,
+        demandImportUnit: "l/d",
+      },
+    });
+    renderWizard(store);
+
+    await waitForAllocations();
+
+    // Check that 23.40% displays as "23.4%" (one decimal, trailing zero removed)
+    expect(
+      screen.getByText(/234 customer points will be allocated \(23\.4%\)/),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/766 customer points remain unallocated \(76\.6%\)/),
+    ).toBeInTheDocument();
   });
 });
 

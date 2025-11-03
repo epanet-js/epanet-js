@@ -410,11 +410,11 @@ const AllocationSummary: React.FC<AllocationSummaryProps> = ({
 
   const allocatedPercentage =
     totalCustomerPoints > 0
-      ? Math.round((totalAllocated / totalCustomerPoints) * 100)
+      ? Math.round((totalAllocated / totalCustomerPoints) * 10000) / 100
       : 0;
   const unallocatedPercentage =
     totalCustomerPoints > 0
-      ? Math.round((unallocatedCount / totalCustomerPoints) * 100)
+      ? Math.round((unallocatedCount / totalCustomerPoints) * 10000) / 100
       : 0;
 
   return (
