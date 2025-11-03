@@ -112,10 +112,10 @@ export const OrphanAssets = ({ onGoBack }: { onGoBack: () => void }) => {
         {isReady ? (
           <>
             {orphanAssets.length > 0 ? (
-              <IssuesList
-                issues={orphanAssets}
+              <OrphanAssetsList
+                orphanAssets={orphanAssets}
                 onClick={selectOrphanAsset}
-                selectedId={selectedOrphanAssetId}
+                selectedOrphanAsset={selectedOrphanAssetId}
                 onGoBack={onGoBack}
               />
             ) : (
@@ -137,21 +137,21 @@ export const OrphanAssets = ({ onGoBack }: { onGoBack: () => void }) => {
   );
 };
 
-const IssuesList = ({
-  issues,
+const OrphanAssetsList = ({
+  orphanAssets,
   onClick,
-  selectedId,
+  selectedOrphanAsset,
   onGoBack,
 }: {
-  issues: OrphanAsset[];
+  orphanAssets: OrphanAsset[];
   onClick: (issue: OrphanAsset | null) => void;
-  selectedId: string | number | null;
+  selectedOrphanAsset: number | null;
   onGoBack: () => void;
 }) => {
   return (
     <VirtualizedIssuesList
-      items={issues}
-      selectedId={selectedId}
+      items={orphanAssets}
+      selectedItemId={selectedOrphanAsset}
       onSelect={onClick}
       getItemId={(issue) => issue.assetId}
       renderItem={(_index, orphanAsset, selectedId, onClick) => (

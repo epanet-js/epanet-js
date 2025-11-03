@@ -37,7 +37,7 @@ export const ProximityAnomalies = ({ onGoBack }: { onGoBack: () => void }) => {
   const { setSelection, isSelected, clearSelection } = useSelection(selection);
   const zoomTo = useZoomTo();
   const { hydraulicModel } = useAtomValue(dataAtom);
-  const [selectedConnectionId, setSelectedConnectionId] = useState<
+  const [selectedProximityAnomalyId, setSelectedProximityAnomalyId] = useState<
     string | null
   >(null);
 
@@ -58,18 +58,18 @@ export const ProximityAnomalies = ({ onGoBack }: { onGoBack: () => void }) => {
   const selectProximityAnomaly = useCallback(
     (anomaly: ProximityAnomaly | null) => {
       if (!anomaly) {
-        setSelectedConnectionId(null);
+        setSelectedProximityAnomalyId(null);
         clearSelection();
         return;
       }
       const nodeAsset = hydraulicModel.assets.get(anomaly.nodeId);
       const pipeAsset = hydraulicModel.assets.get(anomaly.pipeId);
       if (!nodeAsset || !pipeAsset) {
-        setSelectedConnectionId(null);
+        setSelectedProximityAnomalyId(null);
         return;
       }
       const connectionId = `${anomaly.nodeId}-${anomaly.pipeId}`;
-      setSelectedConnectionId(connectionId);
+      setSelectedProximityAnomalyId(connectionId);
       setSelection(USelection.fromIds([anomaly.nodeId, anomaly.pipeId]));
 
       const nodeGeometry = nodeAsset.feature.geometry as GeoJSON.Point;
@@ -87,10 +87,10 @@ export const ProximityAnomalies = ({ onGoBack }: { onGoBack: () => void }) => {
     );
 
     if (!selectedAnomaly) {
-      setSelectedConnectionId(null);
+      setSelectedProximityAnomalyId(null);
     } else {
       const connectionId = `${selectedAnomaly.nodeId}-${selectedAnomaly.pipeId}`;
-      setSelectedConnectionId((prev) =>
+      setSelectedProximityAnomalyId((prev) =>
         prev === connectionId ? prev : connectionId,
       );
     }
@@ -141,10 +141,10 @@ export const ProximityAnomalies = ({ onGoBack }: { onGoBack: () => void }) => {
         {isReady ? (
           <>
             {proximityAnomalies.length > 0 ? (
-              <IssuesList
-                issues={proximityAnomalies}
+              <ProximityAnomaliesList
+                proximityAnomalies={proximityAnomalies}
                 onClick={selectProximityAnomaly}
-                selectedId={selectedConnectionId}
+                selectedAnomaly={selectedProximityAnomalyId}
                 onGoBack={onGoBack}
               />
             ) : (
@@ -277,21 +277,21 @@ const useCheckProximityAnomalies = () => {
   };
 };
 
-const IssuesList = ({
-  issues,
+const ProximityAnomaliesList = ({
+  proximityAnomalies,
   onClick,
-  selectedId,
+  selectedAnomaly,
   onGoBack,
 }: {
-  issues: ProximityAnomaly[];
+  proximityAnomalies: ProximityAnomaly[];
   onClick: (issue: ProximityAnomaly | null) => void;
-  selectedId: string | null;
+  selectedAnomaly: string | null;
   onGoBack: () => void;
 }) => {
   return (
     <VirtualizedIssuesList
-      items={issues}
-      selectedId={selectedId}
+      items={proximityAnomalies}
+      selectedItemId={selectedAnomaly}
       onSelect={onClick}
       getItemId={(issue) => `${issue.nodeId}-${issue.pipeId}`}
       renderItem={(_index, anomaly, selectedId, onClick) => (

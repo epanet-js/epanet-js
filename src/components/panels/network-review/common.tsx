@@ -213,7 +213,7 @@ const useListAutoFocus = (options: {
 
 export const VirtualizedIssuesList = <T,>({
   items,
-  selectedId,
+  selectedItemId,
   onSelect,
   getItemId: getIdFromIssue,
   renderItem,
@@ -223,7 +223,7 @@ export const VirtualizedIssuesList = <T,>({
   onGoBack,
 }: {
   items: T[];
-  selectedId: string | number | null;
+  selectedItemId: string | number | null;
   onSelect: (item: T | null) => void;
   getItemId: (item: T) => string | number;
   renderItem: (
@@ -384,20 +384,20 @@ export const VirtualizedIssuesList = <T,>({
   useEffect(
     function syncIndexWhenSelectedIdChangesExternally() {
       if (
-        selectedId !== lastProcessedSelectedIdRef.current &&
-        selectedId !== null
+        selectedItemId !== lastProcessedSelectedIdRef.current &&
+        selectedItemId !== null
       ) {
         const newIndex = items.findIndex(
-          (item) => getIdFromIssue(item) === selectedId,
+          (item) => getIdFromIssue(item) === selectedItemId,
         );
         if (newIndex !== -1) {
           lastKeyboardNavigatedIndexRef.current = newIndex;
-          lastProcessedSelectedIdRef.current = selectedId;
+          lastProcessedSelectedIdRef.current = selectedItemId;
         }
       }
       ensureItemIsVisible();
     },
-    [selectedId, items, getIdFromIssue, ensureItemIsVisible],
+    [selectedItemId, items, getIdFromIssue, ensureItemIsVisible],
   );
 
   const rows = rowVirtualizer.getVirtualItems();
@@ -451,7 +451,7 @@ export const VirtualizedIssuesList = <T,>({
                 {renderItem(
                   virtualRow.index,
                   item,
-                  selectedId,
+                  selectedItemId,
                   handleClickWithIndex,
                 )}
               </div>

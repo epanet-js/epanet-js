@@ -84,10 +84,10 @@ export const ConnectivityTrace = ({ onGoBack }: { onGoBack: () => void }) => {
         {isReady ? (
           <>
             {subnetworks.length > 0 ? (
-              <IssuesList
-                issues={subnetworks}
+              <SubNetworksList
+                subNetworks={subnetworks}
                 onClick={selectSubnetwork}
-                selectedId={selectedSubnetworkId}
+                selectedSubNetwork={selectedSubnetworkId}
                 onGoBack={onGoBack}
               />
             ) : (
@@ -109,21 +109,21 @@ export const ConnectivityTrace = ({ onGoBack }: { onGoBack: () => void }) => {
   );
 };
 
-const IssuesList = ({
-  issues,
+const SubNetworksList = ({
+  subNetworks,
   onClick,
-  selectedId,
+  selectedSubNetwork,
   onGoBack,
 }: {
-  issues: SubNetwork[];
+  subNetworks: SubNetwork[];
   onClick: (issue: SubNetwork | null) => void;
-  selectedId: number | null;
+  selectedSubNetwork: number | null;
   onGoBack: () => void;
 }) => {
   return (
     <VirtualizedIssuesList
-      items={issues}
-      selectedId={selectedId !== null ? String(selectedId) : null}
+      items={subNetworks}
+      selectedItemId={selectedSubNetwork}
       onSelect={onClick}
       getItemId={(issue) => String(issue.subnetworkId)}
       renderItem={(index, subnetwork, selectedId, onClick) => (
