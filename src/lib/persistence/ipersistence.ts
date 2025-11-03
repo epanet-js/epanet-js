@@ -1,5 +1,4 @@
 import type { ISymbology } from "src/types";
-import { IDMap } from "src/lib/id-mapper";
 import { Promisable } from "type-fest";
 import { z } from "zod";
 import { HydraulicModel, ModelMoment } from "src/hydraulic-model";
@@ -40,8 +39,6 @@ export type MetaPair = [
 ];
 
 export interface IPersistence {
-  idMap: IDMap;
-
   useHistoryControl(): (direction: "undo" | "redo") => void;
 
   useTransact(): (moment: ModelMoment) => void;

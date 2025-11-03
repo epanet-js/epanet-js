@@ -38,7 +38,7 @@ export const OrphanAssets = ({ onGoBack }: { onGoBack: () => void }) => {
   const zoomTo = useZoomTo();
   const { hydraulicModel } = useAtomValue(dataAtom);
   const [selectedOrphanAssetId, setSelectedOrphanAssetId] = useState<
-    string | null
+    number | null
   >(null);
 
   const lastIssuesCount = useRef(0);
@@ -145,7 +145,7 @@ const IssuesList = ({
 }: {
   issues: OrphanAsset[];
   onClick: (issue: OrphanAsset | null) => void;
-  selectedId: string | null;
+  selectedId: string | number | null;
   onGoBack: () => void;
 }) => {
   return (
@@ -183,7 +183,7 @@ const OrphanAssetItem = ({
 }: {
   orphanAsset: OrphanAsset;
   onClick: (orphanAsset: OrphanAsset) => void;
-  selectedId: string | null;
+  selectedId: string | number | null;
 }) => {
   const translate = useTranslate();
   const isSelected = selectedId === orphanAsset.assetId;

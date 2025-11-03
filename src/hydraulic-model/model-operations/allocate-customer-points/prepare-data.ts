@@ -247,7 +247,12 @@ export const prepareWorkerData = (
     if (asset.isLink && asset.type === "pipe") {
       const pipe = asset as Pipe;
       const [startNodeId, endNodeId] = pipe.connections;
-      pipesBuilder.addPipe(pipe.id, pipe.diameter, startNodeId, endNodeId);
+      pipesBuilder.addPipe(
+        String(pipe.id),
+        pipe.diameter,
+        String(startNodeId),
+        String(endNodeId),
+      );
 
       if (pipe.feature.geometry.type === "LineString") {
         const pipeFeature = {
@@ -258,7 +263,7 @@ export const prepareWorkerData = (
         const segments = lineSegment(pipeFeature);
         for (const segment of segments.features) {
           const coordinates = segment.geometry.coordinates;
-          segmentsBuilder.addSegment(coordinates, pipe.id);
+          segmentsBuilder.addSegment(coordinates, String(pipe.id));
 
           const [minX, minY, maxX, maxY] = bbox(segment);
           spatialIndex.add(minX, minY, maxX, maxY);
@@ -266,7 +271,11 @@ export const prepareWorkerData = (
       }
     } else if (asset.isNode) {
       const node = asset as NodeAsset;
-      nodesBuilder.addNode(node.id, node.coordinates, node.type as NodeType);
+      nodesBuilder.addNode(
+        String(node.id),
+        node.coordinates,
+        node.type as NodeType,
+      );
     }
   }
 
@@ -524,11 +533,11 @@ const generateAssetIndexes = (
   for (const asset of assets) {
     if (asset.isLink && asset.type === "pipe") {
       const pipe = asset as Pipe;
-      pipesIndex.set(pipe.id, pipeIndex);
+      pipesIndex.set(String(pipe.id), pipeIndex);
       pipeSegmentsCount += pipe.coordinates.length - 1;
       pipeIndex++;
     } else if (asset.isNode) {
-      nodesIndex.set(asset.id, nodeIndex);
+      nodesIndex.set(String(asset.id), nodeIndex);
       nodeIndex++;
     }
   }

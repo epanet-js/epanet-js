@@ -4,9 +4,10 @@ import bbox from "@turf/bbox";
 import Flatbush from "flatbush";
 import { Link } from "./asset-types/link";
 import { withDebugInstrumentation } from "src/infra/with-instrumentation";
+import { AssetId } from "./asset-types/base-asset";
 
 export interface LinkSegmentProperties {
-  linkId: string;
+  linkId: AssetId;
 }
 
 export type LinkSegment = Feature<LineString, LinkSegmentProperties>;

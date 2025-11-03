@@ -26,8 +26,8 @@ type MidpointId = {
 
 type Id = FeatureId | VertexId | MidpointId;
 
-// Mapbox-land ID system
-type RawId = Opaque<number, "RawId">;
+// Mapbox-land ID system (now same as AssetId)
+type RawId = number;
 
 // React-land ID system
 type StringId = string;

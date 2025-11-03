@@ -1,5 +1,4 @@
 import { MapMouseEvent, MapTouchEvent } from "mapbox-gl";
-import { IDMap, UIDMap } from "src/lib/id-mapper";
 import type { MapEngine } from "../../map-engine";
 import { Position } from "src/types";
 import { decodeId } from "src/lib/id";
@@ -7,12 +6,8 @@ import { AssetsMap, getNode } from "src/hydraulic-model";
 import { NodeAsset } from "src/hydraulic-model";
 import { searchNearbyRenderedFeatures } from "src/map/search";
 
-export const useSnapping = (
-  map: MapEngine,
-  idMap: IDMap,
-  assetsMap: AssetsMap,
-) => {
-  const getNeighborPoint = (point: mapboxgl.Point): string | null => {
+export const useSnapping = (map: MapEngine, assetsMap: AssetsMap) => {
+  const getNeighborPoint = (point: mapboxgl.Point): number | null => {
     const pointFeatures = searchNearbyRenderedFeatures(map, {
       point,
       layers: [
@@ -30,9 +25,8 @@ export const useSnapping = (
 
     const id = pointFeatures[0].id;
     const decodedId = decodeId(id as RawId);
-    const uuid = UIDMap.getUUID(idMap, decodedId.featureId);
 
-    return uuid;
+    return decodedId.featureId;
   };
 
   const getSnappingNode = (

@@ -20,12 +20,12 @@ describe("decodeProximityAnomalies", () => {
       .aJunction(IDS.J4)
       .aJunction(IDS.J5)
       .aJunction(IDS.J6)
-      .aPipe(IDS.P1, { startNodeId: String(IDS.J4), endNodeId: String(IDS.J5) })
-      .aPipe(IDS.P2, { startNodeId: String(IDS.J5), endNodeId: String(IDS.J6) })
+      .aPipe(IDS.P1, { startNodeId: IDS.J4, endNodeId: IDS.J5 })
+      .aPipe(IDS.P2, { startNodeId: IDS.J5, endNodeId: IDS.J6 })
       .build();
 
-    const nodeIdsLookup = [String(IDS.J1), String(IDS.J2), String(IDS.J3)];
-    const linkIdsLookup = [String(IDS.P1), String(IDS.P2)];
+    const nodeIdsLookup = [IDS.J1, IDS.J2, IDS.J3];
+    const linkIdsLookup = [IDS.P1, IDS.P2];
     const encodedProximityAnomalies = [
       {
         nodeId: 0,
@@ -62,11 +62,11 @@ describe("decodeProximityAnomalies", () => {
       .aJunction(IDS.J3, { label: "Bob" })
       .aJunction(IDS.J4)
       .aJunction(IDS.J5)
-      .aPipe(IDS.P1, { startNodeId: String(IDS.J4), endNodeId: String(IDS.J5) })
+      .aPipe(IDS.P1, { startNodeId: IDS.J4, endNodeId: IDS.J5 })
       .build();
 
-    const nodeIdsLookup = [String(IDS.J1), String(IDS.J2), String(IDS.J3)];
-    const linkIdsLookup = [String(IDS.P1)];
+    const nodeIdsLookup = [IDS.J1, IDS.J2, IDS.J3];
+    const linkIdsLookup = [IDS.P1];
     const encodedProximityAnomalies = [
       {
         nodeId: 0,
@@ -90,9 +90,9 @@ describe("decodeProximityAnomalies", () => {
     );
 
     expect(anomalies).toHaveLength(3);
-    expect(anomalies[0].nodeId).toBe(String(IDS.J2)); // Alice
-    expect(anomalies[1].nodeId).toBe(String(IDS.J3)); // Bob
-    expect(anomalies[2].nodeId).toBe(String(IDS.J1)); // Charlie
+    expect(anomalies[0].nodeId).toBe(IDS.J2); // Alice
+    expect(anomalies[1].nodeId).toBe(IDS.J3); // Bob
+    expect(anomalies[2].nodeId).toBe(IDS.J1); // Charlie
   });
 
   it("filters out anomalies where pipe asset doesn't exist", () => {
@@ -101,11 +101,11 @@ describe("decodeProximityAnomalies", () => {
       .aJunction(IDS.J1, { label: "Junction1" })
       .aJunction(IDS.J2)
       .aJunction(IDS.J3)
-      .aPipe(IDS.P1, { startNodeId: String(IDS.J2), endNodeId: String(IDS.J3) })
+      .aPipe(IDS.P1, { startNodeId: IDS.J2, endNodeId: IDS.J3 })
       .build();
 
-    const nodeIdsLookup = [String(IDS.J1)];
-    const linkIdsLookup = [String(IDS.P1), "P2NonExistent"];
+    const nodeIdsLookup = [IDS.J1];
+    const linkIdsLookup = [IDS.P1, 999];
     const encodedProximityAnomalies = [
       {
         nodeId: 0,
@@ -126,7 +126,7 @@ describe("decodeProximityAnomalies", () => {
 
     // Should only include the one with valid pipe
     expect(anomalies).toHaveLength(1);
-    expect(anomalies[0].pipeId).toBe(String(IDS.P1));
+    expect(anomalies[0].pipeId).toBe(IDS.P1);
   });
 
   it("filters out anomalies where link is not a pipe", () => {
@@ -137,15 +137,15 @@ describe("decodeProximityAnomalies", () => {
       .aJunction(IDS.J3)
       .aJunction(IDS.J4)
       .aJunction(IDS.J5)
-      .aPipe(IDS.P1, { startNodeId: String(IDS.J2), endNodeId: String(IDS.J3) })
+      .aPipe(IDS.P1, { startNodeId: IDS.J2, endNodeId: IDS.J3 })
       .aValve(IDS.V1, {
-        startNodeId: String(IDS.J4),
-        endNodeId: String(IDS.J5),
+        startNodeId: IDS.J4,
+        endNodeId: IDS.J5,
       })
       .build();
 
-    const nodeIdsLookup = [String(IDS.J1)];
-    const linkIdsLookup = [String(IDS.P1), String(IDS.V1)];
+    const nodeIdsLookup = [IDS.J1];
+    const linkIdsLookup = [IDS.P1, IDS.V1];
     const encodedProximityAnomalies = [
       {
         nodeId: 0,
@@ -166,7 +166,7 @@ describe("decodeProximityAnomalies", () => {
 
     // Should only include the pipe, not the valve
     expect(anomalies).toHaveLength(1);
-    expect(anomalies[0].pipeId).toBe(String(IDS.P1));
+    expect(anomalies[0].pipeId).toBe(IDS.P1);
     expect(anomalies[0].distance).toBe(5.0);
   });
 
@@ -176,11 +176,11 @@ describe("decodeProximityAnomalies", () => {
       .aJunction(IDS.J1, { label: "Junction1" })
       .aJunction(IDS.J2)
       .aJunction(IDS.J3)
-      .aPipe(IDS.P1, { startNodeId: String(IDS.J2), endNodeId: String(IDS.J3) })
+      .aPipe(IDS.P1, { startNodeId: IDS.J2, endNodeId: IDS.J3 })
       .build();
 
-    const nodeIdsLookup = [String(IDS.J1)];
-    const linkIdsLookup = [String(IDS.P1)];
+    const nodeIdsLookup = [IDS.J1];
+    const linkIdsLookup = [IDS.P1];
     const encodedProximityAnomalies = [
       {
         nodeId: 0,
@@ -210,12 +210,12 @@ describe("decodeProximityAnomalies", () => {
       .aJunction(IDS.J1, { label: "ExistingNode" })
       .aJunction(IDS.J2)
       .aJunction(IDS.J3)
-      .aPipe(IDS.P1, { startNodeId: String(IDS.J2), endNodeId: String(IDS.J3) })
+      .aPipe(IDS.P1, { startNodeId: IDS.J2, endNodeId: IDS.J3 })
       .build();
 
     // Provide a nodeId that doesn't exist in the model
-    const nodeIdsLookup = [String(IDS.J1), "NonExistentNode"];
-    const linkIdsLookup = [String(IDS.P1)];
+    const nodeIdsLookup = [IDS.J1, 999];
+    const linkIdsLookup = [IDS.P1];
     const encodedProximityAnomalies = [
       {
         nodeId: 0,
@@ -237,8 +237,8 @@ describe("decodeProximityAnomalies", () => {
     expect(anomalies).toHaveLength(2);
     // Should be sorted by distance first
     expect(anomalies[0].distance).toBe(3.0);
-    expect(anomalies[0].nodeId).toBe("NonExistentNode");
+    expect(anomalies[0].nodeId).toBe(999);
     expect(anomalies[1].distance).toBe(5.0);
-    expect(anomalies[1].nodeId).toBe(String(IDS.J1));
+    expect(anomalies[1].nodeId).toBe(IDS.J1);
   });
 });

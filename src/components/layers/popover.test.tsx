@@ -1,6 +1,5 @@
 import { render, screen } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { UIDMap } from "src/lib/id-mapper";
 import { Store, layerConfigAtom } from "src/state/jotai";
 import { Provider as JotaiProvider } from "jotai";
 import { PersistenceContext } from "src/lib/persistence/context";
@@ -281,15 +280,12 @@ describe.skip("layers popover", () => {
     user: User;
     children: React.ReactNode;
   }) => {
-    const idMap = UIDMap.empty();
     return (
       <AuthMockProvider user={user} isSignedIn={user.id !== null}>
         <QueryClientProvider client={new QueryClient()}>
           <JotaiProvider store={store}>
             <TooltipProvider>
-              <PersistenceContext.Provider
-                value={new MemPersistence(idMap, store)}
-              >
+              <PersistenceContext.Provider value={new MemPersistence(store)}>
                 <Dialogs></Dialogs>
                 <Notifications duration={1} successDuration={1} />
                 {children}

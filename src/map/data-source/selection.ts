@@ -1,5 +1,4 @@
 import { AssetsMap, Asset, AssetId, Pipe, Pump } from "src/hydraulic-model";
-import { IDMap } from "src/lib/id-mapper";
 import { Feature } from "src/types";
 import { Sel, USelection } from "src/selection";
 import { findLargestSegment, Link } from "src/hydraulic-model/asset-types/link";
@@ -14,7 +13,6 @@ import {
 
 export const buildSelectionSource = (
   assets: AssetsMap,
-  idMap: IDMap,
   selection: Sel,
   movedAssetIds: Set<AssetId> = new Set(),
 ): Feature[] => {
@@ -37,7 +35,7 @@ export const buildSelectionSource = (
       continue;
     }
 
-    const featureId = buildFeatureId(idMap, assetId);
+    const featureId = buildFeatureId(assetId);
 
     if (asset.isLink) {
       features.push(buildLinkSelectionFeature(asset, featureId));
@@ -62,7 +60,10 @@ export const buildSelectionSource = (
   return features;
 };
 
-const buildLinkSelectionFeature = (asset: Asset, featureId: RawId): Feature => {
+const buildLinkSelectionFeature = (
+  asset: Asset,
+  featureId: AssetId,
+): Feature => {
   const feature: Feature = {
     type: "Feature",
     id: featureId,
@@ -92,7 +93,7 @@ const buildLinkSelectionFeature = (asset: Asset, featureId: RawId): Feature => {
 
 const buildPointSelectionFeature = (
   asset: Asset,
-  featureId: RawId,
+  featureId: AssetId,
 ): Feature => {
   return {
     type: "Feature",
@@ -104,7 +105,10 @@ const buildPointSelectionFeature = (
   };
 };
 
-const buildIconSelectionFeature = (asset: Asset, featureId: RawId): Feature => {
+const buildIconSelectionFeature = (
+  asset: Asset,
+  featureId: AssetId,
+): Feature => {
   return {
     type: "Feature",
     id: featureId,
@@ -118,7 +122,7 @@ const buildIconSelectionFeature = (asset: Asset, featureId: RawId): Feature => {
 
 const buildLinkIconSelectionFeature = (
   asset: Asset,
-  featureId: RawId,
+  featureId: AssetId,
 ): Feature => {
   const linkAsset = asset as Link<any>;
   const largestSegment = findLargestSegment(linkAsset);

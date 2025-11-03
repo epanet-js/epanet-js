@@ -14,7 +14,6 @@ import { useKeyboardState } from "src/keyboard/use-keyboard-state";
 export function useConnectCustomerPointsHandlers({
   hydraulicModel,
   map,
-  idMap,
 }: HandlerContext): Handlers {
   const mode = useAtomValue(modeAtom);
   const setMode = useSetAtom(modeAtom);
@@ -31,7 +30,7 @@ export function useConnectCustomerPointsHandlers({
     clearConnectState,
   } = useConnectCustomerPointsState();
   const { findNearestPipe, calculateSnapPoints } =
-    usePipeSnappingForCustomerPoints(map, idMap, hydraulicModel.assets);
+    usePipeSnappingForCustomerPoints(map, hydraulicModel.assets);
 
   const hasInitializedRef = useRef(false);
 

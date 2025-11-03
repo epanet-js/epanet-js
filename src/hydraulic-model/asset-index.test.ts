@@ -12,13 +12,6 @@ describe("AssetIndex - Basics", () => {
     expect(assetIndex.nodeCount).toBe(2);
   });
 
-  it("converts between assetId and internalId", () => {
-    expect(AssetIndex.toAssetId(42)).toBe("42");
-    expect(AssetIndex.toAssetId(0)).toBe("0");
-    expect(AssetIndex.toInternalId("42")).toBe(42);
-    expect(AssetIndex.toInternalId("0")).toBe(0);
-  });
-
   it("iterates internalIds in buffer order", () => {
     const assetIndex = new AssetIndex();
     assetIndex.addLink(100);
@@ -26,8 +19,8 @@ describe("AssetIndex - Basics", () => {
     assetIndex.addNode(20);
     assetIndex.addNode(10);
 
-    expect(Array.from(assetIndex.iterateLinkInternalIds())).toEqual([100, 5]);
-    expect(Array.from(assetIndex.iterateNodeInternalIds())).toEqual([20, 10]);
+    expect(Array.from(assetIndex.iterateLinkAssetIds())).toEqual([100, 5]);
+    expect(Array.from(assetIndex.iterateNodeAssetIds())).toEqual([20, 10]);
   });
 });
 
@@ -52,8 +45,8 @@ describe("AssetIndexView - Iterators", () => {
 
     const encoder = assetIndex.getEncoder("array");
     const buffer = encoder.encode(
-      () => assetIndex.iterateLinkInternalIds(),
-      () => assetIndex.iterateNodeInternalIds(),
+      () => assetIndex.iterateLinkAssetIds(),
+      () => assetIndex.iterateNodeAssetIds(),
     );
     const view = new AssetIndexView(buffer);
 
@@ -74,8 +67,8 @@ describe("AssetIndexView - Iterators", () => {
 
     const encoder = assetIndex.getEncoder("array");
     const buffer = encoder.encode(
-      () => assetIndex.iterateLinkInternalIds(),
-      () => assetIndex.iterateNodeInternalIds(),
+      () => assetIndex.iterateLinkAssetIds(),
+      () => assetIndex.iterateNodeAssetIds(),
     );
     const view = new AssetIndexView(buffer);
 
@@ -99,8 +92,8 @@ describe("AssetIndexView - Iterators", () => {
 
     const encoder = assetIndex.getEncoder("array");
     const buffer = encoder.encode(
-      () => assetIndex.iterateLinkInternalIds(),
-      () => assetIndex.iterateNodeInternalIds(),
+      () => assetIndex.iterateLinkAssetIds(),
+      () => assetIndex.iterateNodeAssetIds(),
     );
     const view = new AssetIndexView(buffer);
 
@@ -137,8 +130,8 @@ describe("AssetIndexView - Iterators", () => {
 
     const encoder = assetIndex.getEncoder("array");
     const buffer = encoder.encode(
-      () => assetIndex.iterateLinkInternalIds(),
-      () => assetIndex.iterateNodeInternalIds(),
+      () => assetIndex.iterateLinkAssetIds(),
+      () => assetIndex.iterateNodeAssetIds(),
     );
     const view = new AssetIndexView(buffer);
 
@@ -151,8 +144,8 @@ describe("AssetIndexView - Iterators", () => {
 
     const encoder = assetIndex.getEncoder("array");
     const buffer = encoder.encode(
-      () => assetIndex.iterateLinkInternalIds(),
-      () => assetIndex.iterateNodeInternalIds(),
+      () => assetIndex.iterateLinkAssetIds(),
+      () => assetIndex.iterateNodeAssetIds(),
     );
     const view = new AssetIndexView(buffer);
 
@@ -169,8 +162,8 @@ describe("AssetIndexView - Queries", () => {
 
     const encoder = assetIndex.getEncoder("array");
     const buffer = encoder.encode(
-      () => assetIndex.iterateLinkInternalIds(),
-      () => assetIndex.iterateNodeInternalIds(),
+      () => assetIndex.iterateLinkAssetIds(),
+      () => assetIndex.iterateNodeAssetIds(),
     );
     const view = new AssetIndexView(buffer);
 
@@ -188,8 +181,8 @@ describe("AssetIndexView - Queries", () => {
 
     const encoder = assetIndex.getEncoder("array");
     const buffer = encoder.encode(
-      () => assetIndex.iterateLinkInternalIds(),
-      () => assetIndex.iterateNodeInternalIds(),
+      () => assetIndex.iterateLinkAssetIds(),
+      () => assetIndex.iterateNodeAssetIds(),
     );
     const view = new AssetIndexView(buffer);
 
@@ -212,8 +205,8 @@ describe("Roundtrip Tests", () => {
 
     const encoder = assetIndex.getEncoder("array");
     const buffer = encoder.encode(
-      () => assetIndex.iterateLinkInternalIds(),
-      () => assetIndex.iterateNodeInternalIds(),
+      () => assetIndex.iterateLinkAssetIds(),
+      () => assetIndex.iterateNodeAssetIds(),
     );
     const view = new AssetIndexView(buffer);
 
@@ -238,8 +231,8 @@ describe("Roundtrip Tests", () => {
 
     const encoder = assetIndex.getEncoder("array");
     const buffer = encoder.encode(
-      () => assetIndex.iterateLinkInternalIds(),
-      () => assetIndex.iterateNodeInternalIds(),
+      () => assetIndex.iterateLinkAssetIds(),
+      () => assetIndex.iterateNodeAssetIds(),
     );
     const view = new AssetIndexView(buffer);
 
@@ -266,8 +259,8 @@ describe("Roundtrip Tests", () => {
 
     const encoder = assetIndex.getEncoder("array");
     const buffer = encoder.encode(
-      () => assetIndex.iterateLinkInternalIds(),
-      () => assetIndex.iterateNodeInternalIds(),
+      () => assetIndex.iterateLinkAssetIds(),
+      () => assetIndex.iterateNodeAssetIds(),
     );
     const view = new AssetIndexView(buffer);
 
@@ -287,13 +280,13 @@ describe("Edge Cases", () => {
 
     expect(assetIndex.linkCount).toBe(0);
     expect(assetIndex.nodeCount).toBe(0);
-    expect(Array.from(assetIndex.iterateLinkInternalIds())).toEqual([]);
-    expect(Array.from(assetIndex.iterateNodeInternalIds())).toEqual([]);
+    expect(Array.from(assetIndex.iterateLinkAssetIds())).toEqual([]);
+    expect(Array.from(assetIndex.iterateNodeAssetIds())).toEqual([]);
 
     const encoder = assetIndex.getEncoder("array");
     const buffer = encoder.encode(
-      () => assetIndex.iterateLinkInternalIds(),
-      () => assetIndex.iterateNodeInternalIds(),
+      () => assetIndex.iterateLinkAssetIds(),
+      () => assetIndex.iterateNodeAssetIds(),
     );
     const view = new AssetIndexView(buffer);
 
@@ -306,8 +299,8 @@ describe("Edge Cases", () => {
 
     const encoder = assetIndex.getEncoder("shared");
     const buffer = encoder.encode(
-      () => assetIndex.iterateLinkInternalIds(),
-      () => assetIndex.iterateNodeInternalIds(),
+      () => assetIndex.iterateLinkAssetIds(),
+      () => assetIndex.iterateNodeAssetIds(),
     );
     expect(buffer).toBeInstanceOf(SharedArrayBuffer);
 

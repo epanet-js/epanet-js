@@ -1,5 +1,4 @@
 import { MapMouseEvent, MapTouchEvent } from "mapbox-gl";
-import { IDMap, UIDMap } from "src/lib/id-mapper";
 import type { MapEngine } from "../../map-engine";
 import { Position } from "src/types";
 import { decodeId } from "src/lib/id";
@@ -19,7 +18,7 @@ type SnappingOptions = {
 };
 
 type PipeSnapResult = {
-  pipeId: string;
+  pipeId: number;
   snapPosition: Position;
   distance: number;
   vertexIndex: number | null;
@@ -27,7 +26,6 @@ type PipeSnapResult = {
 
 export const useSnapping = (
   map: MapEngine,
-  idMap: IDMap,
   assetsMap: AssetsMap,
   options: SnappingOptions = {
     enableNodeSnapping: true,
@@ -36,8 +34,8 @@ export const useSnapping = (
 ) => {
   const getNeighborPoint = (
     point: mapboxgl.Point,
-    excludeIds?: string[],
-  ): string | null => {
+    excludeIds?: number[],
+  ): number | null => {
     if (!options.enableNodeSnapping) return null;
 
     const pointFeatures = searchNearbyRenderedFeatures(map, {
@@ -58,13 +56,13 @@ export const useSnapping = (
     for (const feature of pointFeatures) {
       const id = feature.id;
       const decodedId = decodeId(id as RawId);
-      const uuid = UIDMap.getUUID(idMap, decodedId.featureId);
+      const assetId = decodedId.featureId;
 
-      if (uuid && (!excludeIds || !excludeIds.includes(uuid))) {
+      if (assetId && (!excludeIds || !excludeIds.includes(assetId))) {
         if (map.isFeatureHidden(feature.source as DataSource, id as RawId)) {
           continue;
         }
-        return uuid;
+        return assetId;
       }
     }
 
@@ -74,7 +72,7 @@ export const useSnapping = (
   const findNearestPipeToSnap = (
     screenPoint: mapboxgl.Point,
     mouseCoord: Position,
-    excludeIds?: string[],
+    excludeIds?: number[],
   ): PipeSnapResult | null => {
     if (!options.enablePipeSnapping) return null;
 
@@ -90,16 +88,16 @@ export const useSnapping = (
     for (const feature of pipeFeatures) {
       const id = feature.id;
       const decodedId = decodeId(id as RawId);
-      const uuid = UIDMap.getUUID(idMap, decodedId.featureId);
-      if (!uuid) continue;
+      const assetId = decodedId.featureId;
+      if (!assetId) continue;
 
-      if (excludeIds && excludeIds.includes(uuid)) continue;
+      if (excludeIds && excludeIds.includes(assetId)) continue;
 
       if (map.isFeatureHidden(feature.source as DataSource, id as RawId)) {
         continue;
       }
 
-      const asset = assetsMap.get(uuid) as LinkAsset;
+      const asset = assetsMap.get(assetId) as LinkAsset;
       if (!asset || !asset.isLink || asset.type !== "pipe") continue;
 
       const pipeGeometry = asset.feature.geometry;
@@ -132,7 +130,7 @@ export const useSnapping = (
       const distance = result.distance ?? Number.MAX_VALUE;
       if (!closestPipe || distance < closestPipe.distance) {
         closestPipe = {
-          pipeId: uuid,
+          pipeId: assetId,
           snapPosition: snapPosition,
           distance: distance,
           vertexIndex: snappedVertexIndex,
@@ -146,7 +144,7 @@ export const useSnapping = (
   const findSnappingCandidate = (
     e: MapMouseEvent | MapTouchEvent,
     mouseCoord?: Position,
-    excludeIds?: string[],
+    excludeIds?: number[],
   ): SnappingCandidate | null => {
     const coord = mouseCoord || [e.lngLat.lng, e.lngLat.lat];
 

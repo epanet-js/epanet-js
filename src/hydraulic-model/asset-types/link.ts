@@ -1,17 +1,23 @@
 import { Feature, Position } from "geojson";
-import { BaseAsset, AssetId, AssetProperties, AssetUnits } from "./base-asset";
+import {
+  BaseAsset,
+  AssetId,
+  AssetProperties,
+  AssetUnits,
+  NO_ASSET_ID,
+} from "./base-asset";
 import measureLength from "@turf/length";
 import { isSamePosition } from "src/lib/geometry";
 import { convertTo } from "src/quantity";
 
-export type LinkConnections = [start: string, end: string];
+export type LinkConnections = [start: AssetId, end: AssetId];
 
 export const nullCoordinates = [
   [0, 0],
   [0, 0],
 ];
 
-export const nullConnections: LinkConnections = ["", ""];
+export const nullConnections: LinkConnections = [NO_ASSET_ID, NO_ASSET_ID];
 
 import { LinkType } from "./types";
 export type { LinkType };
@@ -25,18 +31,11 @@ export type LinkProperties = {
 export class Link<T> extends BaseAsset<T & LinkProperties> {
   constructor(
     id: AssetId,
-    internalId: number,
     coordinates: Position[],
     properties: T & LinkProperties,
     units: AssetUnits,
   ) {
-    super(
-      id,
-      internalId,
-      { type: "LineString", coordinates },
-      properties,
-      units,
-    );
+    super(id, { type: "LineString", coordinates }, properties, units);
   }
 
   get isLink() {

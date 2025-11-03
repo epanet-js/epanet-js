@@ -1,7 +1,6 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
-import { IDMap, UIDMap } from "src/lib/id-mapper";
 import { buildIconPointsSource } from "./icons";
-import { AssetId, AssetsMap } from "src/hydraulic-model";
+import { AssetId } from "src/hydraulic-model";
 import { Point } from "geojson";
 
 describe("build icons source", () => {
@@ -21,11 +20,7 @@ describe("build icons source", () => {
         })
         .build();
 
-      const features = buildIconPointsSource(
-        assets,
-        initIDMap(assets),
-        selectedAssets,
-      );
+      const features = buildIconPointsSource(assets, selectedAssets);
 
       expect(features.length).toEqual(1);
       const { properties } = features[0];
@@ -52,11 +47,7 @@ describe("build icons source", () => {
         })
         .build();
 
-      const features = buildIconPointsSource(
-        assets,
-        initIDMap(assets),
-        selectedAssets,
-      );
+      const features = buildIconPointsSource(assets, selectedAssets);
 
       expect(features.length).toEqual(1);
       const { properties } = features[0];
@@ -89,11 +80,7 @@ describe("build icons source", () => {
         })
         .build();
 
-      const features = buildIconPointsSource(
-        assets,
-        initIDMap(assets),
-        selectedAssets,
-      );
+      const features = buildIconPointsSource(assets, selectedAssets);
 
       expect(features.length).toEqual(1);
       const { properties } = features[0];
@@ -127,11 +114,7 @@ describe("build icons source", () => {
         })
         .build();
 
-      const features = buildIconPointsSource(
-        assets,
-        initIDMap(assets),
-        selectedAssets,
-      );
+      const features = buildIconPointsSource(assets, selectedAssets);
 
       expect(features.length).toEqual(1);
       const { properties } = features[0];
@@ -154,11 +137,7 @@ describe("build icons source", () => {
         })
         .build();
 
-      const features = buildIconPointsSource(
-        assets,
-        initIDMap(assets),
-        selectedAssets,
-      );
+      const features = buildIconPointsSource(assets, selectedAssets);
 
       expect(features.length).toEqual(1);
       const { properties } = features[0];
@@ -187,11 +166,7 @@ describe("build icons source", () => {
         })
         .build();
 
-      const features = buildIconPointsSource(
-        assets,
-        initIDMap(assets),
-        selectedAssets,
-      );
+      const features = buildIconPointsSource(assets, selectedAssets);
 
       expect(features.length).toEqual(1);
       const { properties } = features[0];
@@ -211,11 +186,7 @@ describe("build icons source", () => {
         })
         .build();
 
-      const features = buildIconPointsSource(
-        assets,
-        initIDMap(assets),
-        selectedAssets,
-      );
+      const features = buildIconPointsSource(assets, selectedAssets);
 
       expect(features.length).toEqual(1);
       const { properties } = features[0];
@@ -235,11 +206,7 @@ describe("build icons source", () => {
         })
         .build();
 
-      const features = buildIconPointsSource(
-        assets,
-        initIDMap(assets),
-        selectedAssets,
-      );
+      const features = buildIconPointsSource(assets, selectedAssets);
 
       expect(features.length).toEqual(0);
     });
@@ -258,11 +225,7 @@ describe("build icons source", () => {
         })
         .build();
 
-      const features = buildIconPointsSource(
-        assets,
-        initIDMap(assets),
-        selectedAssets,
-      );
+      const features = buildIconPointsSource(assets, selectedAssets);
 
       expect(features.length).toEqual(1);
       const { properties } = features[0];
@@ -270,7 +233,3 @@ describe("build icons source", () => {
     });
   });
 });
-
-const initIDMap = (assets: AssetsMap): IDMap => {
-  return UIDMap.loadIdsFromPersistence([...assets.values()]);
-};

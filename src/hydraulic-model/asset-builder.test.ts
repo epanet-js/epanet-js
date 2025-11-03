@@ -16,7 +16,7 @@ describe("asset builder", () => {
     const pipe = assetBuilder.buildPipe();
 
     expect(pipe.id).not.toBeUndefined();
-    expect(pipe.id.length).toBeLessThanOrEqual(31);
+    expect(typeof pipe.id).toBe("number");
     expect(pipe.label).toEqual("P1");
 
     const other = assetBuilder.buildPipe();

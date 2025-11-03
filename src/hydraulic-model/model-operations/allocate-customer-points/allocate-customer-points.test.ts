@@ -14,8 +14,8 @@ describe("allocateCustomerPoints", () => {
       .aJunction(IDS.J1, { coordinates: [-95.4089633, 29.701228] })
       .aJunction(IDS.J2, { coordinates: [-95.4077939, 29.702706] })
       .aPipe(IDS.P1, {
-        startNodeId: String(IDS.J1),
-        endNodeId: String(IDS.J2),
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
         diameter: 12,
         coordinates: [
           [-95.4089633, 29.701228],
@@ -55,8 +55,8 @@ describe("allocateCustomerPoints", () => {
     expect(result.ruleMatches).toEqual([2]);
 
     const allocatedCP1 = result.allocatedCustomerPoints.get(String(IDS.CP1));
-    expect(allocatedCP1?.connection?.pipeId).toBe(String(IDS.P1));
-    expect(allocatedCP1?.connection?.junctionId).toBe(String(IDS.J1));
+    expect(allocatedCP1?.connection?.pipeId).toBe(IDS.P1);
+    expect(allocatedCP1?.connection?.junctionId).toBe(IDS.J1);
   });
 
   it("applies rules in order with first match wins", async () => {
@@ -65,8 +65,8 @@ describe("allocateCustomerPoints", () => {
       .aJunction(IDS.J1, { coordinates: [-95.4089633, 29.701228] })
       .aJunction(IDS.J2, { coordinates: [-95.4077939, 29.702706] })
       .aPipe(IDS.P1, {
-        startNodeId: String(IDS.J1),
-        endNodeId: String(IDS.J2),
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
         diameter: 8,
         coordinates: [
           [-95.4089633, 29.701228],
@@ -103,8 +103,8 @@ describe("allocateCustomerPoints", () => {
       .aJunction(IDS.J1, { coordinates: [-95.4089633, 29.701228] })
       .aJunction(IDS.J2, { coordinates: [-95.4077939, 29.702706] })
       .aPipe(IDS.P1, {
-        startNodeId: String(IDS.J1),
-        endNodeId: String(IDS.J2),
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
         diameter: 12,
         coordinates: [
           [-95.4089633, 29.701228],
@@ -158,8 +158,8 @@ describe("allocateCustomerPoints", () => {
       .aJunction(IDS.J3, { coordinates: [-95.4089633, 29.710228] })
       .aJunction(IDS.J4, { coordinates: [-95.4077939, 29.711706] })
       .aPipe(IDS.P1, {
-        startNodeId: String(IDS.J1),
-        endNodeId: String(IDS.J2),
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
         diameter: 8,
         coordinates: [
           [-95.4089633, 29.701228],
@@ -167,8 +167,8 @@ describe("allocateCustomerPoints", () => {
         ],
       })
       .aPipe(IDS.P2, {
-        startNodeId: String(IDS.J3),
-        endNodeId: String(IDS.J4),
+        startNodeId: IDS.J3,
+        endNodeId: IDS.J4,
         diameter: 16,
         coordinates: [
           [-95.4089633, 29.710228],
@@ -199,7 +199,7 @@ describe("allocateCustomerPoints", () => {
 
     expect(result.allocatedCustomerPoints.size).toBe(1);
     const allocatedCP1 = result.allocatedCustomerPoints.get(String(IDS.CP1));
-    expect(allocatedCP1?.connection?.pipeId).toBe(String(IDS.P1));
+    expect(allocatedCP1?.connection?.pipeId).toBe(IDS.P1);
     expect(result.allocatedCustomerPoints.has(String(IDS.CP2))).toBe(false);
     expect(result.disconnectedCustomerPoints.size).toBe(1);
     expect(result.disconnectedCustomerPoints.has(String(IDS.CP2))).toBe(true);
@@ -223,8 +223,8 @@ describe("allocateCustomerPoints", () => {
       .aJunction(IDS.J3, { coordinates: [-95.4089633, 29.710228] })
       .aJunction(IDS.J4, { coordinates: [-95.4077939, 29.711706] })
       .aPipe(IDS.P1, {
-        startNodeId: String(IDS.J1),
-        endNodeId: String(IDS.J2),
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
         diameter: 8,
         coordinates: [
           [-95.4089633, 29.701228],
@@ -232,8 +232,8 @@ describe("allocateCustomerPoints", () => {
         ],
       })
       .aPipe(IDS.P2, {
-        startNodeId: String(IDS.J3),
-        endNodeId: String(IDS.J4),
+        startNodeId: IDS.J3,
+        endNodeId: IDS.J4,
         diameter: 16,
         coordinates: [
           [-95.4089633, 29.710228],
@@ -269,8 +269,8 @@ describe("allocateCustomerPoints", () => {
 
     const allocatedCP1 = result.allocatedCustomerPoints.get(String(IDS.CP1));
     const allocatedCP2 = result.allocatedCustomerPoints.get(String(IDS.CP2));
-    expect(allocatedCP1?.connection?.pipeId).toBe(String(IDS.P1));
-    expect(allocatedCP2?.connection?.pipeId).toBe(String(IDS.P2));
+    expect(allocatedCP1?.connection?.pipeId).toBe(IDS.P1);
+    expect(allocatedCP2?.connection?.pipeId).toBe(IDS.P2);
   });
 
   it("handles empty customer points", async () => {
@@ -279,8 +279,8 @@ describe("allocateCustomerPoints", () => {
       .aJunction(IDS.J1, { coordinates: [-95.4089633, 29.701228] })
       .aJunction(IDS.J2, { coordinates: [-95.4077939, 29.702706] })
       .aPipe(IDS.P1, {
-        startNodeId: String(IDS.J1),
-        endNodeId: String(IDS.J2),
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
         diameter: 12,
         coordinates: [
           [-95.4089633, 29.701228],
@@ -338,8 +338,8 @@ describe("allocateCustomerPoints", () => {
       .aJunction(IDS.J1, { coordinates: [-95.4089633, 29.701228] })
       .aJunction(IDS.J2, { coordinates: [-95.4077939, 29.702706] })
       .aPipe(IDS.P1, {
-        startNodeId: String(IDS.J1),
-        endNodeId: String(IDS.J2),
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
         diameter: 20,
         coordinates: [
           [-95.4089633, 29.701228],
@@ -376,8 +376,8 @@ describe("allocateCustomerPoints", () => {
       .aJunction(IDS.J1, { coordinates: [-95.4089633, 29.701228] })
       .aJunction(IDS.J2, { coordinates: [-95.4077939, 29.702706] })
       .aPipe(IDS.P1, {
-        startNodeId: String(IDS.J1),
-        endNodeId: String(IDS.J2),
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
         diameter: 12,
         coordinates: [
           [-95.4089633, 29.701228],
@@ -413,8 +413,8 @@ describe("allocateCustomerPoints", () => {
       .aTank(IDS.T1, { coordinates: [-95.4089633, 29.701228] })
       .aReservoir(IDS.R1, { coordinates: [-95.4077939, 29.702706] })
       .aPipe(IDS.P1, {
-        startNodeId: String(IDS.T1),
-        endNodeId: String(IDS.R1),
+        startNodeId: IDS.T1,
+        endNodeId: IDS.R1,
         diameter: 12,
         coordinates: [
           [-95.4089633, 29.701228],
@@ -451,8 +451,8 @@ describe("allocateCustomerPoints", () => {
       .aJunction(IDS.J1, { coordinates: [-95.4089633, 29.701228] })
       .aJunction(IDS.J2, { coordinates: [-95.4077939, 29.702706] })
       .aPipe(IDS.P1, {
-        startNodeId: String(IDS.J1),
-        endNodeId: String(IDS.J2),
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
         diameter: 12,
         coordinates: [
           [-95.4089633, 29.701228],
@@ -479,7 +479,7 @@ describe("allocateCustomerPoints", () => {
 
     expect(result.allocatedCustomerPoints.size).toBe(1);
     const allocatedCP1 = result.allocatedCustomerPoints.get(String(IDS.CP1));
-    expect(allocatedCP1?.connection?.junctionId).toBe(String(IDS.J2));
+    expect(allocatedCP1?.connection?.junctionId).toBe(IDS.J2);
   });
 
   it("creates independent customer point copies", async () => {
@@ -488,8 +488,8 @@ describe("allocateCustomerPoints", () => {
       .aJunction(IDS.J1, { coordinates: [-95.4089633, 29.701228] })
       .aJunction(IDS.J2, { coordinates: [-95.4077939, 29.702706] })
       .aPipe(IDS.P1, {
-        startNodeId: String(IDS.J1),
-        endNodeId: String(IDS.J2),
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
         diameter: 12,
         coordinates: [
           [-95.4089633, 29.701228],
@@ -527,8 +527,8 @@ describe("allocateCustomerPoints", () => {
       .aJunction(IDS.J1, { coordinates: [-95.4089633, 29.701228] })
       .aJunction(IDS.J2, { coordinates: [-95.4077939, 29.702706] })
       .aPipe(IDS.P1, {
-        startNodeId: String(IDS.J1),
-        endNodeId: String(IDS.J2),
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
         diameter: 8,
         coordinates: [
           [-95.4089633, 29.701228],
@@ -573,8 +573,8 @@ describe("allocateCustomerPoints", () => {
       .aJunction(IDS.J1, { coordinates: [-95.4089633, 29.701228] })
       .aJunction(IDS.J2, { coordinates: [-95.4077939, 29.702706] })
       .aPipe(IDS.P1, {
-        startNodeId: String(IDS.J1),
-        endNodeId: String(IDS.J2),
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
         diameter: 12,
         coordinates: [
           [-95.4089633, 29.701228],
@@ -636,8 +636,8 @@ describe("findNearestPipeConnectionWithWorkerData optimization", () => {
       .aJunction(IDS.J3, { coordinates: [-95.4089633, 29.710228] })
       .aJunction(IDS.J4, { coordinates: [-95.4077939, 29.711706] })
       .aPipe(IDS.P1, {
-        startNodeId: String(IDS.J1),
-        endNodeId: String(IDS.J2),
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
         diameter: 8,
         coordinates: [
           [-95.4089633, 29.701228],
@@ -645,8 +645,8 @@ describe("findNearestPipeConnectionWithWorkerData optimization", () => {
         ],
       })
       .aPipe(IDS.P2, {
-        startNodeId: String(IDS.J3),
-        endNodeId: String(IDS.J4),
+        startNodeId: IDS.J3,
+        endNodeId: IDS.J4,
         diameter: 12,
         coordinates: [
           [-95.4089633, 29.710228],
@@ -683,10 +683,10 @@ describe("findNearestPipeConnectionWithWorkerData optimization", () => {
     const allocatedCP1 = result.allocatedCustomerPoints.get(String(IDS.CP1));
     const allocatedCP2 = result.allocatedCustomerPoints.get(String(IDS.CP2));
 
-    expect(allocatedCP1?.connection?.pipeId).toBe(String(IDS.P1));
+    expect(allocatedCP1?.connection?.pipeId).toBe(IDS.P1);
     expect(allocatedCP1?.connection?.junctionId).toBeTruthy();
 
-    expect(allocatedCP2?.connection?.pipeId).toBe(String(IDS.P2));
+    expect(allocatedCP2?.connection?.pipeId).toBe(IDS.P2);
     expect(allocatedCP2?.connection?.junctionId).toBeTruthy();
   });
 
@@ -698,8 +698,8 @@ describe("findNearestPipeConnectionWithWorkerData optimization", () => {
       .aJunction(IDS.J3, { coordinates: [-95.4089633, 29.75] })
       .aJunction(IDS.J4, { coordinates: [-95.4077939, 29.75] })
       .aPipe(IDS.P1, {
-        startNodeId: String(IDS.J1),
-        endNodeId: String(IDS.J2),
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
         diameter: 12,
         coordinates: [
           [-95.4089633, 29.701228],
@@ -707,8 +707,8 @@ describe("findNearestPipeConnectionWithWorkerData optimization", () => {
         ],
       })
       .aPipe(IDS.P2, {
-        startNodeId: String(IDS.J3),
-        endNodeId: String(IDS.J4),
+        startNodeId: IDS.J3,
+        endNodeId: IDS.J4,
         diameter: 12,
         coordinates: [
           [-95.4089633, 29.75],
@@ -736,6 +736,6 @@ describe("findNearestPipeConnectionWithWorkerData optimization", () => {
     expect(result.allocatedCustomerPoints.size).toBe(1);
     expect(result.disconnectedCustomerPoints.size).toBe(0);
     const allocatedCP1 = result.allocatedCustomerPoints.get(String(IDS.CP1));
-    expect(allocatedCP1?.connection?.pipeId).toBe(String(IDS.P1));
+    expect(allocatedCP1?.connection?.pipeId).toBe(IDS.P1);
   });
 });

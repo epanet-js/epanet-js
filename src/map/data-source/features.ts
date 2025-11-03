@@ -1,6 +1,5 @@
 import { SymbologySpec, LinkSymbology, NodeSymbology } from "src/map/symbology";
 import { AssetsMap, Junction, Pipe, Pump } from "src/hydraulic-model";
-import { IDMap, UIDMap } from "src/lib/id-mapper";
 import { Unit, convertTo } from "src/quantity";
 import { Feature } from "src/types";
 import { AssetId, Valve } from "src/hydraulic-model/asset-types";
@@ -13,12 +12,10 @@ import {
 } from "src/model-metadata/quantities-spec";
 import { JunctionQuantity } from "src/hydraulic-model/asset-types/junction";
 
-export const buildFeatureId = (idMap: IDMap, assetId: AssetId) =>
-  UIDMap.getIntID(idMap, assetId);
+export const buildFeatureId = (assetId: AssetId) => assetId;
 
 export const buildOptimizedAssetsSource = (
   assets: AssetsMap,
-  idMap: IDMap,
   symbology: SymbologySpec,
   quantities: Quantities,
   translateUnit: (unit: Unit) => string,
@@ -30,7 +27,7 @@ export const buildOptimizedAssetsSource = (
     if (asset.feature.properties?.visibility === false) {
       continue;
     }
-    const featureId = buildFeatureId(idMap, asset.id);
+    const featureId = buildFeatureId(asset.id);
     const feature: Feature = {
       type: "Feature",
       id: featureId,

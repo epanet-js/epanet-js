@@ -51,16 +51,16 @@ describe("build inp", () => {
       .aNode(IDS.NODE2)
       .aNode(IDS.NODE3)
       .aPipe(IDS.PIPE1, {
-        startNodeId: String(IDS.NODE1),
-        endNodeId: String(IDS.NODE2),
+        startNodeId: IDS.NODE1,
+        endNodeId: IDS.NODE2,
         length: 10,
         diameter: 100,
         roughness: 1,
         initialStatus: "open",
       })
       .aPipe(IDS.PIPE2, {
-        startNodeId: String(IDS.NODE2),
-        endNodeId: String(IDS.NODE3),
+        startNodeId: IDS.NODE2,
+        endNodeId: IDS.NODE3,
         length: 20,
         diameter: 200,
         roughness: 2,
@@ -81,8 +81,8 @@ describe("build inp", () => {
       .aNode(IDS.NODE1)
       .aNode(IDS.NODE2)
       .aPipe(IDS.CVPIPE, {
-        startNodeId: String(IDS.NODE1),
-        endNodeId: String(IDS.NODE2),
+        startNodeId: IDS.NODE1,
+        endNodeId: IDS.NODE2,
         length: 15,
         diameter: 150,
         roughness: 1.5,
@@ -103,8 +103,8 @@ describe("build inp", () => {
       .aNode(IDS.NODE2)
       .aNode(IDS.NODE3)
       .aValve(IDS.VALVE1, {
-        startNodeId: String(IDS.NODE1),
-        endNodeId: String(IDS.NODE2),
+        startNodeId: IDS.NODE1,
+        endNodeId: IDS.NODE2,
         initialStatus: "active",
         setting: 10,
         diameter: 20,
@@ -112,8 +112,8 @@ describe("build inp", () => {
         minorLoss: 0.1,
       })
       .aValve(IDS.VALVE2, {
-        startNodeId: String(IDS.NODE2),
-        endNodeId: String(IDS.NODE3),
+        startNodeId: IDS.NODE2,
+        endNodeId: IDS.NODE3,
         initialStatus: "closed",
         setting: 12,
         diameter: 22,
@@ -138,8 +138,8 @@ describe("build inp", () => {
       .aNode(IDS.NODE2)
       .aNode(IDS.NODE3)
       .aPump(IDS.PUMP1, {
-        startNodeId: String(IDS.NODE1),
-        endNodeId: String(IDS.NODE2),
+        startNodeId: IDS.NODE1,
+        endNodeId: IDS.NODE2,
         initialStatus: "on",
         definitionType: "flow-vs-head",
         designFlow: 20,
@@ -163,8 +163,8 @@ describe("build inp", () => {
       .aNode(IDS.NODE2)
       .aNode(IDS.NODE3)
       .aPump(IDS.PUMP1, {
-        startNodeId: String(IDS.NODE1),
-        endNodeId: String(IDS.NODE2),
+        startNodeId: IDS.NODE1,
+        endNodeId: IDS.NODE2,
         initialStatus: "on",
         definitionType: "power",
         designFlow: 20,
@@ -198,24 +198,24 @@ describe("build inp", () => {
       .aNode(IDS.NODE3)
       .aNode(IDS.NODE4)
       .aPump(IDS.PUMP1, {
-        startNodeId: String(IDS.NODE1),
-        endNodeId: String(IDS.NODE2),
+        startNodeId: IDS.NODE1,
+        endNodeId: IDS.NODE2,
         initialStatus: "on",
         definitionType: "power",
         speed: 0.7,
         power: 10,
       })
       .aPump(IDS.PUMP2, {
-        startNodeId: String(IDS.NODE2),
-        endNodeId: String(IDS.NODE3),
+        startNodeId: IDS.NODE2,
+        endNodeId: IDS.NODE3,
         initialStatus: "off",
         definitionType: "power",
         speed: 0.8,
         power: 20,
       })
       .aPump(IDS.PUMP3, {
-        startNodeId: String(IDS.NODE3),
-        endNodeId: String(IDS.NODE4),
+        startNodeId: IDS.NODE3,
+        endNodeId: IDS.NODE4,
         initialStatus: "on",
         definitionType: "power",
         speed: 1,
@@ -296,8 +296,8 @@ describe("build inp", () => {
       .aJunction(IDS.J2, { coordinates: [20, 2] })
       .aJunction(IDS.J3, { coordinates: [30, 3] })
       .aPipe(IDS.P1, {
-        startNodeId: String(IDS.J1),
-        endNodeId: String(IDS.J2),
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
         coordinates: [
           [10, 1],
           [14, 1],
@@ -306,8 +306,8 @@ describe("build inp", () => {
         ],
       })
       .aValve(IDS.V1, {
-        startNodeId: String(IDS.J2),
-        endNodeId: String(IDS.J3),
+        startNodeId: IDS.J2,
+        endNodeId: IDS.J3,
         coordinates: [
           [20, 2],
           [20, 2.1],
@@ -393,8 +393,8 @@ describe("build inp", () => {
       const hydraulicModel = HydraulicModelBuilder.with()
         .aJunction(IDS.J1, { elevation: 10, baseDemand: 50 })
         .aPipe(IDS.P1, {
-          startNodeId: String(IDS.J1),
-          endNodeId: String(IDS.J1),
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J1,
           coordinates: [
             [0, 0],
             [10, 0],
@@ -402,7 +402,7 @@ describe("build inp", () => {
         })
         .aCustomerPoint(IDS.CP1, {
           demand: 25,
-          connection: { pipeId: String(IDS.P1), junctionId: String(IDS.J1) },
+          connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
         })
         .build();
 
@@ -420,8 +420,8 @@ describe("build inp", () => {
       const hydraulicModel = HydraulicModelBuilder.with()
         .aJunction(IDS.J1, { elevation: 10, baseDemand: 50 })
         .aPipe(IDS.P1, {
-          startNodeId: String(IDS.J1),
-          endNodeId: String(IDS.J1),
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J1,
           coordinates: [
             [0, 0],
             [10, 0],
@@ -429,7 +429,7 @@ describe("build inp", () => {
         })
         .aCustomerPoint(IDS.CP1, {
           demand: 25,
-          connection: { pipeId: String(IDS.P1), junctionId: String(IDS.J1) },
+          connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
         })
         .build();
 
@@ -447,8 +447,8 @@ describe("build inp", () => {
       const hydraulicModel = HydraulicModelBuilder.with()
         .aJunction(IDS.J1, { elevation: 10, baseDemand: 50 })
         .aPipe(IDS.P1, {
-          startNodeId: String(IDS.J1),
-          endNodeId: String(IDS.J1),
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J1,
           coordinates: [
             [0, 0],
             [10, 0],
@@ -456,7 +456,7 @@ describe("build inp", () => {
         })
         .aCustomerPoint(IDS.CP1, {
           demand: 0,
-          connection: { pipeId: String(IDS.P1), junctionId: String(IDS.J1) },
+          connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
         })
         .build();
 
@@ -476,8 +476,8 @@ describe("build inp", () => {
       const hydraulicModel = HydraulicModelBuilder.with()
         .aJunction(IDS.J1, { elevation: 10, baseDemand: 50 })
         .aPipe(IDS.P1, {
-          startNodeId: String(IDS.J1),
-          endNodeId: String(IDS.J1),
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J1,
           coordinates: [
             [0, 0],
             [10, 0],
@@ -485,11 +485,11 @@ describe("build inp", () => {
         })
         .aCustomerPoint(IDS.CP1, {
           demand: 25,
-          connection: { pipeId: String(IDS.P1), junctionId: String(IDS.J1) },
+          connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
         })
         .aCustomerPoint(IDS.CP2, {
           demand: 30,
-          connection: { pipeId: String(IDS.P1), junctionId: String(IDS.J1) },
+          connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
         })
         .build();
 
@@ -510,15 +510,15 @@ describe("build inp", () => {
         .aJunction(IDS.J1, { elevation: 10, coordinates: [1, 2] })
         .aJunction(IDS.J2, { elevation: 20, coordinates: [3, 4] })
         .aPipe(IDS.P1, {
-          startNodeId: String(IDS.J1),
-          endNodeId: String(IDS.J2),
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
         })
         .aCustomerPoint(IDS.CP1, {
           demand: 2.5,
           coordinates: [1.5, 2.5],
           connection: {
-            pipeId: String(IDS.P1),
-            junctionId: String(IDS.J1),
+            pipeId: IDS.P1,
+            junctionId: IDS.J1,
             snapPoint: [1.2, 2.2],
           },
         })
@@ -557,16 +557,16 @@ describe("build inp", () => {
           label: "Junction-B",
         })
         .aPipe(IDS.PIPE_UUID_789, {
-          startNodeId: String(IDS.JUNCTION_UUID_123),
-          endNodeId: String(IDS.JUNCTION_UUID_456),
+          startNodeId: IDS.JUNCTION_UUID_123,
+          endNodeId: IDS.JUNCTION_UUID_456,
           label: "Pipe-1",
         })
         .aCustomerPoint(IDS.CP1, {
           demand: 2.5,
           coordinates: [1.5, 2.5],
           connection: {
-            pipeId: String(IDS.PIPE_UUID_789),
-            junctionId: String(IDS.JUNCTION_UUID_123),
+            pipeId: IDS.PIPE_UUID_789,
+            junctionId: IDS.JUNCTION_UUID_123,
             snapPoint: [1.2, 2.2],
           },
         })

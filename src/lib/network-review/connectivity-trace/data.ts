@@ -19,8 +19,8 @@ export type EncodedSubNetwork = {
 };
 
 export function decodeSubNetworks(
-  nodeIdsLookup: string[],
-  linkIdsLookup: string[],
+  nodeIdsLookup: number[],
+  linkIdsLookup: number[],
   encodedSubNetworks: EncodedSubNetwork[],
 ): SubNetwork[] {
   return encodedSubNetworks.map((subNetwork) => ({

@@ -79,7 +79,7 @@ describe("get clicked feature", () => {
   };
 
   const aHiddenPoint = (id = 1) => {
-    return { ...aPoint(id as RawId), state: { hidden: true } };
+    return { ...aPoint(id), state: { hidden: true } };
   };
 
   const aPoint = (id: RawId): Feature<Point> => {

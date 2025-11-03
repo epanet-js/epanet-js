@@ -16,7 +16,7 @@ describe("addNode", () => {
       node,
     });
 
-    expect(putAssets![0].id).toEqual("1");
+    expect(putAssets![0].id).toEqual(1);
     const junctionToCreate = putAssets![0] as Junction;
     expect(junctionToCreate.coordinates).toEqual([10, 10]);
   });
@@ -33,7 +33,7 @@ describe("addNode", () => {
     });
 
     const junctionToCreate = putAssets![0] as Junction;
-    expect(junctionToCreate.id).toEqual("1");
+    expect(junctionToCreate.id).toEqual(1);
     expect(junctionToCreate.label).toEqual("J1");
   });
 
@@ -49,7 +49,7 @@ describe("addNode", () => {
     });
 
     const junctionToCreate = putAssets![0] as Junction;
-    expect(junctionToCreate.id).toEqual("1");
+    expect(junctionToCreate.id).toEqual(1);
     expect(junctionToCreate.label).toEqual("CUSTOM");
   });
 
@@ -65,7 +65,7 @@ describe("addNode", () => {
     });
 
     const reservoirToCreate = putAssets![0] as Reservoir;
-    expect(reservoirToCreate.id).toEqual("1");
+    expect(reservoirToCreate.id).toEqual(1);
     expect(reservoirToCreate.label).toEqual("R1");
   });
 

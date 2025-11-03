@@ -9,8 +9,8 @@ describe("connectCustomers", () => {
       .aJunction(IDS.J1, { coordinates: [0, 0] })
       .aJunction(IDS.J2, { coordinates: [10, 0] })
       .aPipe(IDS.P1, {
-        startNodeId: String(IDS.J1),
-        endNodeId: String(IDS.J2),
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
         coordinates: [
           [0, 0],
           [10, 0],
@@ -23,7 +23,7 @@ describe("connectCustomers", () => {
 
     const { putCustomerPoints } = connectCustomers(hydraulicModel, {
       customerPointIds: [String(IDS.CP1)],
-      pipeId: String(IDS.P1),
+      pipeId: IDS.P1,
       snapPoints: [[2, 0]], // closer to J1
     });
 
@@ -34,8 +34,8 @@ describe("connectCustomers", () => {
     expect(connectedCP.id).toBe(String(IDS.CP1));
     expect(connectedCP.coordinates).toEqual([2, 1]);
     expect(connectedCP.connection).not.toBeNull();
-    expect(connectedCP.connection!.pipeId).toBe(String(IDS.P1));
-    expect(connectedCP.connection!.junctionId).toBe(String(IDS.J1));
+    expect(connectedCP.connection!.pipeId).toBe(IDS.P1);
+    expect(connectedCP.connection!.junctionId).toBe(IDS.J1);
     expect(connectedCP.connection!.snapPoint).toEqual([2, 0]);
   });
 
@@ -45,8 +45,8 @@ describe("connectCustomers", () => {
       .aJunction(IDS.J1, { coordinates: [0, 0] })
       .aJunction(IDS.J2, { coordinates: [10, 0] })
       .aPipe(IDS.P1, {
-        startNodeId: String(IDS.J1),
-        endNodeId: String(IDS.J2),
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
         coordinates: [
           [0, 0],
           [10, 0],
@@ -62,7 +62,7 @@ describe("connectCustomers", () => {
 
     const result = connectCustomers(hydraulicModel, {
       customerPointIds: [String(IDS.CP1), String(IDS.CP2)],
-      pipeId: String(IDS.P1),
+      pipeId: IDS.P1,
       snapPoints: [
         [2, 0],
         [8, 0],
@@ -81,8 +81,8 @@ describe("connectCustomers", () => {
       (cp) => cp.id === String(IDS.CP2),
     )!;
 
-    expect(connectedCP1.connection!.junctionId).toBe(String(IDS.J1));
-    expect(connectedCP2.connection!.junctionId).toBe(String(IDS.J2));
+    expect(connectedCP1.connection!.junctionId).toBe(IDS.J1);
+    expect(connectedCP2.connection!.junctionId).toBe(IDS.J2);
 
     expect(result.note).toBe("Connect customers");
   });
@@ -94,16 +94,16 @@ describe("connectCustomers", () => {
       .aJunction(IDS.J2, { coordinates: [10, 0] })
       .aJunction(IDS.J3, { coordinates: [5, 10] })
       .aPipe(IDS.P1, {
-        startNodeId: String(IDS.J1),
-        endNodeId: String(IDS.J2),
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
         coordinates: [
           [0, 0],
           [10, 0],
         ],
       })
       .aPipe(IDS.P2, {
-        startNodeId: String(IDS.J1),
-        endNodeId: String(IDS.J3),
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J3,
         coordinates: [
           [0, 0],
           [5, 10],
@@ -112,13 +112,13 @@ describe("connectCustomers", () => {
       .aCustomerPoint(IDS.CP1, {
         demand: 25,
         coordinates: [2, 5],
-        connection: { pipeId: String(IDS.P2), junctionId: String(IDS.J1) },
+        connection: { pipeId: IDS.P2, junctionId: IDS.J1 },
       })
       .build();
 
     const { putCustomerPoints } = connectCustomers(hydraulicModel, {
       customerPointIds: [String(IDS.CP1)],
-      pipeId: String(IDS.P1),
+      pipeId: IDS.P1,
       snapPoints: [[8, 0]], // closer to J2 on P1
     });
 
@@ -126,8 +126,8 @@ describe("connectCustomers", () => {
     expect(putCustomerPoints!.length).toBe(1);
 
     const connectedCP = putCustomerPoints![0];
-    expect(connectedCP.connection!.pipeId).toBe(String(IDS.P1));
-    expect(connectedCP.connection!.junctionId).toBe(String(IDS.J2));
+    expect(connectedCP.connection!.pipeId).toBe(IDS.P1);
+    expect(connectedCP.connection!.junctionId).toBe(IDS.J2);
   });
 
   it("throws error for non-existent customer point", () => {
@@ -136,8 +136,8 @@ describe("connectCustomers", () => {
       .aJunction(IDS.J1, { coordinates: [0, 0] })
       .aJunction(IDS.J2, { coordinates: [10, 0] })
       .aPipe(IDS.P1, {
-        startNodeId: String(IDS.J1),
-        endNodeId: String(IDS.J2),
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
         coordinates: [
           [0, 0],
           [10, 0],
@@ -148,7 +148,7 @@ describe("connectCustomers", () => {
     expect(() => {
       connectCustomers(hydraulicModel, {
         customerPointIds: ["NON_EXISTENT"],
-        pipeId: String(IDS.P1),
+        pipeId: IDS.P1,
         snapPoints: [[5, 0]],
       });
     }).toThrow("Customer point with id NON_EXISTENT not found");
@@ -156,6 +156,7 @@ describe("connectCustomers", () => {
 
   it("throws error for non-existent pipe", () => {
     const IDS = { J1: 1, CP1: 2 } as const;
+    const NonExistentPipeId = 3;
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction(IDS.J1, { coordinates: [0, 0] })
       .aCustomerPoint(IDS.CP1, {
@@ -166,10 +167,10 @@ describe("connectCustomers", () => {
     expect(() => {
       connectCustomers(hydraulicModel, {
         customerPointIds: [String(IDS.CP1)],
-        pipeId: "NON_EXISTENT",
+        pipeId: NonExistentPipeId,
         snapPoints: [[5, 0]],
       });
-    }).toThrow("Pipe with id NON_EXISTENT not found");
+    }).toThrow("Pipe with id 3 not found");
   });
 
   it("throws error when customer point IDs and snap points length mismatch", () => {
@@ -178,8 +179,8 @@ describe("connectCustomers", () => {
       .aJunction(IDS.J1, { coordinates: [0, 0] })
       .aJunction(IDS.J2, { coordinates: [10, 0] })
       .aPipe(IDS.P1, {
-        startNodeId: String(IDS.J1),
-        endNodeId: String(IDS.J2),
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
         coordinates: [
           [0, 0],
           [10, 0],
@@ -190,7 +191,7 @@ describe("connectCustomers", () => {
     expect(() => {
       connectCustomers(hydraulicModel, {
         customerPointIds: ["CP1", "CP2"],
-        pipeId: String(IDS.P1),
+        pipeId: IDS.P1,
         snapPoints: [[5, 0]], // Only one snap point for two customer points
       });
     }).toThrow(
@@ -204,8 +205,8 @@ describe("connectCustomers", () => {
       .aReservoir(IDS.R1, { coordinates: [0, 0] })
       .aTank(IDS.T1, { coordinates: [10, 0] })
       .aPipe(IDS.P1, {
-        startNodeId: String(IDS.R1),
-        endNodeId: String(IDS.T1),
+        startNodeId: IDS.R1,
+        endNodeId: IDS.T1,
         coordinates: [
           [0, 0],
           [10, 0],
@@ -219,7 +220,7 @@ describe("connectCustomers", () => {
     expect(() => {
       connectCustomers(hydraulicModel, {
         customerPointIds: [String(IDS.CP1)],
-        pipeId: String(IDS.P1),
+        pipeId: IDS.P1,
         snapPoints: [[5, 0]],
       });
     }).toThrow(
@@ -233,8 +234,8 @@ describe("connectCustomers", () => {
       .aJunction(IDS.J1, { coordinates: [0, 0] })
       .aJunction(IDS.J2, { coordinates: [10, 0] })
       .aPipe(IDS.P1, {
-        startNodeId: String(IDS.J1),
-        endNodeId: String(IDS.J2),
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
         coordinates: [
           [0, 0],
           [10, 0],
@@ -249,7 +250,7 @@ describe("connectCustomers", () => {
 
     const { putCustomerPoints } = connectCustomers(hydraulicModel, {
       customerPointIds: [String(IDS.CP1)],
-      pipeId: String(IDS.P1),
+      pipeId: IDS.P1,
       snapPoints: [[2, 0]],
     });
 
@@ -268,8 +269,8 @@ describe("connectCustomers", () => {
       .aJunction(IDS.J1, { coordinates: [0, 0] })
       .aJunction(IDS.J2, { coordinates: [10, 0] })
       .aPipe(IDS.P1, {
-        startNodeId: String(IDS.J1),
-        endNodeId: String(IDS.J2),
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
         coordinates: [
           [0, 0],
           [10, 0],
@@ -285,7 +286,7 @@ describe("connectCustomers", () => {
 
     const { putCustomerPoints } = connectCustomers(hydraulicModel, {
       customerPointIds: [String(IDS.CP1), String(IDS.CP2)],
-      pipeId: String(IDS.P1),
+      pipeId: IDS.P1,
       snapPoints: [
         [1, 0],
         [2, 0],
@@ -301,7 +302,7 @@ describe("connectCustomers", () => {
       (cp) => cp.id === String(IDS.CP2),
     )!;
 
-    expect(connectedCP1.connection!.junctionId).toBe(String(IDS.J1));
-    expect(connectedCP2.connection!.junctionId).toBe(String(IDS.J1));
+    expect(connectedCP1.connection!.junctionId).toBe(IDS.J1);
+    expect(connectedCP2.connection!.junctionId).toBe(IDS.J1);
   });
 });

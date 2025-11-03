@@ -111,7 +111,6 @@ export class Pipe extends Link<PipeProperties> {
   copy() {
     const newPipe = new Pipe(
       this.id,
-      this.internalId,
       [...this.coordinates],
       {
         ...this.properties,

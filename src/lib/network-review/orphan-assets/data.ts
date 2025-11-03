@@ -23,8 +23,8 @@ enum typeOrder {
 
 export function decodeOrphanAssets(
   model: HydraulicModel,
-  nodeIdsLookup: string[],
-  linkIdsLookup: string[],
+  nodeIdsLookup: number[],
+  linkIdsLookup: number[],
   encodedOrphanAssets: EncodedOrphanAssets,
 ): OrphanAsset[] {
   const orphanAssets: OrphanAsset[] = [];

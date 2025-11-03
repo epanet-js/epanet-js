@@ -23,8 +23,8 @@ describe("findSubNetworks", () => {
       .aReservoir(IDS.R1)
       .aNode(IDS.J1)
       .aNode(IDS.J2)
-      .aPipe(IDS.P1, { startNodeId: String(IDS.R1), endNodeId: String(IDS.J1) })
-      .aPipe(IDS.P2, { startNodeId: String(IDS.J1), endNodeId: String(IDS.J2) })
+      .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
+      .aPipe(IDS.P2, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
       .build();
     const { linkIdsLookup, nodeIdsLookup, ...data } = encodeData(model);
 
@@ -56,13 +56,13 @@ describe("findSubNetworks", () => {
     const model = HydraulicModelBuilder.with()
       .aReservoir(IDS.R1)
       .aNode(IDS.J1)
-      .aPipe(IDS.P1, { startNodeId: String(IDS.R1), endNodeId: String(IDS.J1) })
+      .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
       .aTank(IDS.T1)
       .aNode(IDS.J2)
-      .aPipe(IDS.P2, { startNodeId: String(IDS.T1), endNodeId: String(IDS.J2) })
+      .aPipe(IDS.P2, { startNodeId: IDS.T1, endNodeId: IDS.J2 })
       .aNode(IDS.J3)
       .aNode(IDS.J4)
-      .aPipe(IDS.P3, { startNodeId: String(IDS.J3), endNodeId: String(IDS.J4) })
+      .aPipe(IDS.P3, { startNodeId: IDS.J3, endNodeId: IDS.J4 })
       .build();
     const { nodeIdsLookup, linkIdsLookup, ...data } = encodeData(model);
 
@@ -91,7 +91,7 @@ describe("findSubNetworks", () => {
     const model = HydraulicModelBuilder.with()
       .aNode(IDS.J1)
       .aNode(IDS.J2)
-      .aPipe(IDS.P1, { startNodeId: String(IDS.J1), endNodeId: String(IDS.J2) })
+      .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
       .build();
     const { nodeIdsLookup, linkIdsLookup, ...data } = encodeData(model);
 
@@ -122,14 +122,14 @@ describe("findSubNetworks", () => {
     const model = HydraulicModelBuilder.with()
       .aNode(IDS.J1)
       .aNode(IDS.J2)
-      .aPipe(IDS.P1, { startNodeId: String(IDS.J1), endNodeId: String(IDS.J2) })
+      .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
       .aReservoir(IDS.R1)
       .aNode(IDS.J3)
       .aNode(IDS.J4)
       .aNode(IDS.J5)
-      .aPipe(IDS.P2, { startNodeId: String(IDS.R1), endNodeId: String(IDS.J3) })
-      .aPipe(IDS.P3, { startNodeId: String(IDS.J3), endNodeId: String(IDS.J4) })
-      .aPipe(IDS.P4, { startNodeId: String(IDS.J4), endNodeId: String(IDS.J5) })
+      .aPipe(IDS.P2, { startNodeId: IDS.R1, endNodeId: IDS.J3 })
+      .aPipe(IDS.P3, { startNodeId: IDS.J3, endNodeId: IDS.J4 })
+      .aPipe(IDS.P4, { startNodeId: IDS.J4, endNodeId: IDS.J5 })
       .build();
     const { nodeIdsLookup, linkIdsLookup, ...data } = encodeData(model);
 
@@ -151,7 +151,7 @@ describe("findSubNetworks", () => {
     const model = HydraulicModelBuilder.with()
       .aNode(IDS.J1, [1, 2])
       .aNode(IDS.J2, [0, 3])
-      .aPipe(IDS.P1, { startNodeId: String(IDS.J1), endNodeId: String(IDS.J2) })
+      .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
       .build();
     const { nodeIdsLookup, linkIdsLookup, ...data } = encodeData(model);
 
@@ -172,16 +172,16 @@ describe("findSubNetworks", () => {
       .aTank(IDS.T1)
       .aNode(IDS.J1)
       .aPump(IDS.PU1, {
-        startNodeId: String(IDS.T1),
-        endNodeId: String(IDS.J1),
+        startNodeId: IDS.T1,
+        endNodeId: IDS.J1,
       })
       .aNode(IDS.J2)
       .aValve(IDS.V1, {
-        startNodeId: String(IDS.J1),
-        endNodeId: String(IDS.J2),
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
       })
       .aNode(IDS.J3)
-      .aPipe(IDS.P1, { startNodeId: String(IDS.J2), endNodeId: String(IDS.J3) })
+      .aPipe(IDS.P1, { startNodeId: IDS.J2, endNodeId: IDS.J3 })
       .build();
     const { nodeIdsLookup, linkIdsLookup, ...data } = encodeData(model);
 
@@ -203,7 +203,7 @@ describe("findSubNetworks", () => {
     const model = HydraulicModelBuilder.with()
       .aNode(IDS.J1, [0, 0])
       .aNode(IDS.J2, [1, 1])
-      .aPipe(IDS.P1, { startNodeId: String(IDS.J1), endNodeId: String(IDS.J2) })
+      .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
       .aNode(IDS.IsolatedNode)
       .build();
     const { nodeIdsLookup, linkIdsLookup, ...data } = encodeData(model);
@@ -224,8 +224,8 @@ describe("findSubNetworks", () => {
       .aTank(IDS.T1)
       .aReservoir(IDS.R1)
       .aNode(IDS.J1)
-      .aPipe(IDS.P1, { startNodeId: String(IDS.T1), endNodeId: String(IDS.J1) })
-      .aPipe(IDS.P2, { startNodeId: String(IDS.R1), endNodeId: String(IDS.J1) })
+      .aPipe(IDS.P1, { startNodeId: IDS.T1, endNodeId: IDS.J1 })
+      .aPipe(IDS.P2, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
       .build();
     const { nodeIdsLookup, linkIdsLookup, ...data } = encodeData(model);
 

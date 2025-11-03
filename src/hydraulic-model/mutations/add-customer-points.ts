@@ -22,7 +22,7 @@ export const addCustomerPoints = (
     ? new CustomerPointsLookup()
     : hydraulicModel.customerPointsLookup.copy();
 
-  const modifiedJunctions = new Set<string>();
+  const modifiedJunctions = new Set<number>();
 
   for (const customerPoint of customerPointsToAdd) {
     updatedCustomerPoints.set(customerPoint.id, customerPoint);
@@ -58,7 +58,7 @@ const removeJunctionDemands = (
   customerPoint: CustomerPoint,
   hydraulicModel: HydraulicModel,
   updatedAssets: AssetsMap,
-  modifiedJunctions: Set<string>,
+  modifiedJunctions: Set<number>,
 ): void => {
   const junctionId = customerPoint.connection!.junctionId;
   const originalJunction = hydraulicModel.assets.get(junctionId) as Junction;

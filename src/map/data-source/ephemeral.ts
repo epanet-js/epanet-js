@@ -1,4 +1,3 @@
-import { IDMap } from "src/lib/id-mapper";
 import { Feature } from "src/types";
 import { Asset, NodeAsset, LinkAsset } from "src/hydraulic-model/asset-types";
 import { AssetsMap } from "src/hydraulic-model";
@@ -12,7 +11,6 @@ import { EphemeralDrawLink } from "../mode-handlers/draw-link/ephemeral-link-sta
 
 export const buildEphemeralStateSource = (
   ephemeralState: EphemeralEditingState,
-  _idMap: IDMap,
   assets: AssetsMap,
 ): Feature[] => {
   if (ephemeralState.type == "drawLink") {
@@ -57,7 +55,7 @@ const buildMoveAssetsSourceData = (
   }
 
   if (ephemeralState.pipeSnappingPosition && ephemeralState.pipeId) {
-    const pipe = assets.get(ephemeralState.pipeId) as LinkAsset;
+    const pipe = assets.get(Number(ephemeralState.pipeId)) as LinkAsset;
     if (pipe && pipe.isLink) {
       features.push({
         type: "Feature",
@@ -86,7 +84,7 @@ const buildMoveAssetsSourceData = (
   }
 
   if (ephemeralState.nodeSnappingId) {
-    const node = assets.get(ephemeralState.nodeSnappingId) as NodeAsset;
+    const node = assets.get(Number(ephemeralState.nodeSnappingId)) as NodeAsset;
     if (node && !node.isLink) {
       const properties: any = { halo: true };
       if (node.type !== "junction") {
@@ -220,7 +218,7 @@ const buildConnectCustomerPointsSourceData = (
   const features: Feature[] = [];
 
   if (ephemeralState.targetPipeId) {
-    const pipe = assets.get(ephemeralState.targetPipeId) as LinkAsset;
+    const pipe = assets.get(Number(ephemeralState.targetPipeId)) as LinkAsset;
     if (pipe && pipe.isLink) {
       features.push({
         type: "Feature",
@@ -247,7 +245,7 @@ const buildDrawNodeSourceData = (
 
   if (ephemeralState.nodeReplacementId) {
     const nodeToReplace = assets.get(
-      ephemeralState.nodeReplacementId,
+      Number(ephemeralState.nodeReplacementId),
     ) as NodeAsset;
     if (nodeToReplace && !nodeToReplace.isLink) {
       const properties: any = { halo: true };
@@ -270,7 +268,7 @@ const buildDrawNodeSourceData = (
   if (!ephemeralState.pipeSnappingPosition) return features;
 
   if (ephemeralState.pipeSnappingPosition && ephemeralState.pipeId) {
-    const pipe = assets.get(ephemeralState.pipeId) as LinkAsset;
+    const pipe = assets.get(Number(ephemeralState.pipeId)) as LinkAsset;
     if (pipe && pipe.isLink) {
       features.push({
         type: "Feature",

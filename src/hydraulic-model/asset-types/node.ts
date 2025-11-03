@@ -10,12 +10,11 @@ export type NodeProperties = {
 export class Node<T> extends BaseAsset<T & NodeProperties> {
   constructor(
     id: AssetId,
-    internalId: number,
     coordinates: Position,
     attributes: T & NodeProperties,
     units: AssetUnits,
   ) {
-    super(id, internalId, { type: "Point", coordinates }, attributes, units);
+    super(id, { type: "Point", coordinates }, attributes, units);
   }
 
   get isLink() {

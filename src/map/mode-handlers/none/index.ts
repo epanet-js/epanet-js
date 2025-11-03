@@ -37,16 +37,11 @@ const isMovementSignificant = (
 
 export function useNoneHandlers({
   selection,
-  idMap,
   rep,
   map,
   hydraulicModel,
 }: HandlerContext): Handlers {
-  const { getClickedAsset } = useClickedAsset(
-    map,
-    idMap,
-    hydraulicModel.assets,
-  );
+  const { getClickedAsset } = useClickedAsset(map, hydraulicModel.assets);
 
   const setMode = useSetAtom(modeAtom);
   const {
@@ -76,11 +71,7 @@ export function useNoneHandlers({
     hydraulicModel.units.elevation,
   );
   const transact = rep.useTransact();
-  const { findSnappingCandidate } = useSnapping(
-    map,
-    idMap,
-    hydraulicModel.assets,
-  );
+  const { findSnappingCandidate } = useSnapping(map, hydraulicModel.assets);
 
   const fastMovePointer = (point: mapboxgl.Point) => {
     if (!map) return;
@@ -171,8 +162,8 @@ export function useNoneHandlers({
         const noElevation = 0;
         let snappingInfo: {
           pipeSnappingPosition?: [number, number];
-          pipeId?: string;
-          nodeSnappingId?: string;
+          pipeId?: number;
+          nodeSnappingId?: number;
         } = {};
 
         const connectedLinkIds = hydraulicModel.topology.getLinks(asset.id);
@@ -248,7 +239,7 @@ export function useNoneHandlers({
       }
 
       let newCoordinates = getMapCoord(e);
-      let pipeIdToSplit: string | undefined;
+      let pipeIdToSplit: number | undefined;
 
       const connectedLinkIds = hydraulicModel.topology.getLinks(assetId);
       const excludeIds = [assetId, ...connectedLinkIds];

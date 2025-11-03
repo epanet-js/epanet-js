@@ -9,14 +9,14 @@ describe("change property", () => {
       .aJunction(IDS.junctionID, { baseDemand: 15 })
       .build();
     const { putAssets } = changeProperty(hydraulicModel, {
-      assetIds: [String(IDS.junctionID)],
+      assetIds: [IDS.junctionID],
       property: "baseDemand",
       value: 20,
     });
 
     expect(putAssets!.length).toEqual(1);
     const updatedJunction = putAssets![0] as Junction;
-    expect(updatedJunction.id).toEqual(String(IDS.junctionID));
+    expect(updatedJunction.id).toEqual(IDS.junctionID);
     expect(updatedJunction.baseDemand).toEqual(20);
   });
 
@@ -27,18 +27,18 @@ describe("change property", () => {
       .aReservoir(IDS.B, { elevation: 35 })
       .build();
     const { putAssets } = changeProperty(hydraulicModel, {
-      assetIds: [String(IDS.A), String(IDS.B)],
+      assetIds: [IDS.A, IDS.B],
       property: "elevation",
       value: 20,
     });
 
     expect(putAssets!.length).toEqual(2);
     const updatedA = putAssets![0] as Junction;
-    expect(updatedA.id).toEqual(String(IDS.A));
+    expect(updatedA.id).toEqual(IDS.A);
     expect(updatedA.elevation).toEqual(20);
 
     const updatedB = putAssets![1] as Reservoir;
-    expect(updatedB.id).toEqual(String(IDS.B));
+    expect(updatedB.id).toEqual(IDS.B);
     expect(updatedB.elevation).toEqual(20);
   });
 
@@ -50,14 +50,14 @@ describe("change property", () => {
       .aPipe(IDS.PIPE, { diameter: 10 })
       .build();
     const { putAssets } = changeProperty(hydraulicModel, {
-      assetIds: [String(IDS.A), String(IDS.B), String(IDS.PIPE)],
+      assetIds: [IDS.A, IDS.B, IDS.PIPE],
       property: "diameter",
       value: 20,
     });
 
     expect(putAssets!.length).toEqual(1);
     const updatedPipe = putAssets![0] as Pipe;
-    expect(updatedPipe.id).toEqual(String(IDS.PIPE));
+    expect(updatedPipe.id).toEqual(IDS.PIPE);
     expect(updatedPipe.diameter).toEqual(20);
   });
 });

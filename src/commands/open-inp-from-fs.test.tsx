@@ -145,7 +145,7 @@ describe("openInpFromFs", () => {
     };
     const previousSelection: Sel = {
       type: "single",
-      id: String(IDS.ANY),
+      id: IDS.ANY,
       parts: [],
     };
     const previousMomentLog = new MomentLog();

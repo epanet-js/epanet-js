@@ -130,7 +130,7 @@ export const aSimulationFailure = ({
 };
 
 export const aSingleSelection = ({
-  id = "id",
+  id = 1,
 }: { id?: Asset["id"] } = {}): Sel => {
   return {
     type: "single",

@@ -4,12 +4,12 @@ import { findJunctionForCustomerPoint } from "./junction-assignment";
 describe("findJunctionForCustomerPoint", () => {
   it("returns null when no junctions are available", () => {
     const startNode = {
-      id: "R1",
+      id: 1,
       type: "reservoir",
       coordinates: [0, 0],
     };
     const endNode = {
-      id: "T1",
+      id: 2,
       type: "tank",
       coordinates: [10, 0],
     };
@@ -22,12 +22,12 @@ describe("findJunctionForCustomerPoint", () => {
 
   it("returns the single junction when only one is available", () => {
     const startNode = {
-      id: "J1",
+      id: 1,
       type: "junction",
       coordinates: [0, 0],
     };
     const endNode = {
-      id: "T1",
+      id: 2,
       type: "tank",
       coordinates: [10, 0],
     };
@@ -35,17 +35,17 @@ describe("findJunctionForCustomerPoint", () => {
 
     const result = findJunctionForCustomerPoint(startNode, endNode, snapPoint);
 
-    expect(result).toBe("J1");
+    expect(result).toBe(1);
   });
 
   it("returns the closest junction when both nodes are junctions", () => {
     const startNode = {
-      id: "J1",
+      id: 1,
       type: "junction",
       coordinates: [0, 0],
     };
     const endNode = {
-      id: "J2",
+      id: 2,
       type: "junction",
       coordinates: [100, 0],
     };
@@ -53,17 +53,17 @@ describe("findJunctionForCustomerPoint", () => {
 
     const result = findJunctionForCustomerPoint(startNode, endNode, snapPoint);
 
-    expect(result).toBe("J1");
+    expect(result).toBe(1);
   });
 
   it("returns the closest junction when snap point is closer to end node", () => {
     const startNode = {
-      id: "J1",
+      id: 1,
       type: "junction",
       coordinates: [0, 0],
     };
     const endNode = {
-      id: "J2",
+      id: 2,
       type: "junction",
       coordinates: [100, 0],
     };
@@ -71,17 +71,17 @@ describe("findJunctionForCustomerPoint", () => {
 
     const result = findJunctionForCustomerPoint(startNode, endNode, snapPoint);
 
-    expect(result).toBe("J2");
+    expect(result).toBe(2);
   });
 
   it("handles case where start node is junction and end is reservoir", () => {
     const startNode = {
-      id: "J1",
+      id: 1,
       type: "junction",
       coordinates: [0, 0],
     };
     const endNode = {
-      id: "R1",
+      id: 2,
       type: "reservoir",
       coordinates: [10, 0],
     };
@@ -89,17 +89,17 @@ describe("findJunctionForCustomerPoint", () => {
 
     const result = findJunctionForCustomerPoint(startNode, endNode, snapPoint);
 
-    expect(result).toBe("J1");
+    expect(result).toBe(1);
   });
 
   it("handles case where end node is junction and start is tank", () => {
     const startNode = {
-      id: "T1",
+      id: 1,
       type: "tank",
       coordinates: [0, 0],
     };
     const endNode = {
-      id: "J2",
+      id: 2,
       type: "junction",
       coordinates: [10, 0],
     };
@@ -107,17 +107,17 @@ describe("findJunctionForCustomerPoint", () => {
 
     const result = findJunctionForCustomerPoint(startNode, endNode, snapPoint);
 
-    expect(result).toBe("J2");
+    expect(result).toBe(2);
   });
 
   it("correctly calculates distance for tie-breaking", () => {
     const startNode = {
-      id: "J1",
+      id: 1,
       type: "junction",
       coordinates: [0, 0],
     };
     const endNode = {
-      id: "J2",
+      id: 2,
       type: "junction",
       coordinates: [10, 0],
     };
@@ -125,17 +125,17 @@ describe("findJunctionForCustomerPoint", () => {
 
     const result = findJunctionForCustomerPoint(startNode, endNode, snapPoint);
 
-    expect(result).toBe("J2");
+    expect(result).toBe(2);
   });
 
   it("handles exact midpoint by returning first junction due to stable sort", () => {
     const startNode = {
-      id: "J1",
+      id: 1,
       type: "junction",
       coordinates: [0, 0],
     };
     const endNode = {
-      id: "J2",
+      id: 2,
       type: "junction",
       coordinates: [10, 0],
     };
@@ -144,6 +144,6 @@ describe("findJunctionForCustomerPoint", () => {
     const result = findJunctionForCustomerPoint(startNode, endNode, snapPoint);
 
     // Either J1 or J2 is acceptable since they're equidistant
-    expect(["J1", "J2"]).toContain(result);
+    expect([1, 2]).toContain(result);
   });
 });

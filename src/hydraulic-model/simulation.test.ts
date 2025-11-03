@@ -48,21 +48,21 @@ describe("attach simulation", () => {
 
     attachSimulation(hydraulicModel, resultsReader);
 
-    const pipe = hydraulicModel.assets.get(String(IDS.P1)) as Pipe;
+    const pipe = hydraulicModel.assets.get(IDS.P1) as Pipe;
     expect(pipe.flow).toEqual(20);
     expect(pipe.unitHeadloss).toEqual(20);
 
-    const junction = hydraulicModel.assets.get(String(IDS.J1)) as Junction;
+    const junction = hydraulicModel.assets.get(IDS.J1) as Junction;
     expect(junction.pressure).toEqual(10);
     expect(junction.head).toEqual(8);
     expect(junction.actualDemand).toEqual(15);
 
-    const pump = hydraulicModel.assets.get(String(IDS.PU1)) as Pump;
+    const pump = hydraulicModel.assets.get(IDS.PU1) as Pump;
     expect(pump.head).toEqual(50);
     expect(pump.status).toEqual("off");
     expect(pump.statusWarning).toEqual("cannot-deliver-flow");
 
-    const valve = hydraulicModel.assets.get(String(IDS.VALVE1)) as Valve;
+    const valve = hydraulicModel.assets.get(IDS.VALVE1) as Valve;
     expect(valve.status).toEqual("closed");
   });
 

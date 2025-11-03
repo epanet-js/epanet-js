@@ -122,9 +122,9 @@ describe("Pipe", () => {
   it("can attach connections", () => {
     const pipe = buildPipe();
 
-    pipe.setConnections("START", "END");
+    pipe.setConnections(1, 2);
 
-    expect(pipe.connections).toEqual(["START", "END"]);
+    expect(pipe.connections).toEqual([1, 2]);
   });
 
   it("can assign defaults", () => {

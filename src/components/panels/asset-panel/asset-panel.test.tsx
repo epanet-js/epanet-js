@@ -5,7 +5,6 @@ import { HydraulicModel, Pipe, Pump } from "src/hydraulic-model";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { PersistenceContext } from "src/lib/persistence/context";
 import { MemPersistence } from "src/lib/persistence/memory";
-import { UIDMap } from "src/lib/id-mapper";
 import userEvent from "@testing-library/user-event";
 import { AssetId, getLink, getPipe } from "src/hydraulic-model/assets-map";
 import FeatureEditor from "../feature-editor";
@@ -28,13 +27,13 @@ describe("AssetPanel", () => {
           diameter: 100.1,
           roughness: 1,
           minorLoss: 0.1,
-          startNodeId: String(IDS.j1),
-          endNodeId: String(IDS.j2),
+          startNodeId: IDS.j1,
+          endNodeId: IDS.j2,
         })
         .build();
       const store = setInitialState({
         hydraulicModel,
-        selectedAssetId: String(IDS.P1),
+        selectedAssetId: IDS.P1,
       });
 
       renderComponent(store);
@@ -70,7 +69,7 @@ describe("AssetPanel", () => {
         .build();
       const store = setInitialState({
         hydraulicModel,
-        selectedAssetId: String(IDS.P1),
+        selectedAssetId: IDS.P1,
       });
 
       renderComponent(store);
@@ -90,14 +89,14 @@ describe("AssetPanel", () => {
         .aJunction(IDS.j2, { label: "J2" })
         .aValve(IDS.V1, {
           label: "MY_VALVE",
-          connections: [String(IDS.j1), String(IDS.j2)],
+          connections: [IDS.j1, IDS.j2],
           minorLoss: 14,
           diameter: 22,
         })
         .build();
       const store = setInitialState({
         hydraulicModel,
-        selectedAssetId: String(IDS.V1),
+        selectedAssetId: IDS.V1,
       });
 
       renderComponent(store);
@@ -117,7 +116,7 @@ describe("AssetPanel", () => {
         .build();
       const store = setInitialState({
         hydraulicModel,
-        selectedAssetId: String(IDS.V1),
+        selectedAssetId: IDS.V1,
       });
       const user = userEvent.setup();
 
@@ -133,8 +132,7 @@ describe("AssetPanel", () => {
 
       const { hydraulicModel: updatedHydraulicModel } = store.get(dataAtom);
       expect(
-        (getLink(updatedHydraulicModel.assets, String(IDS.V1)) as Valve)
-          .initialStatus,
+        (getLink(updatedHydraulicModel.assets, IDS.V1) as Valve).initialStatus,
       ).toEqual("closed");
 
       expect(selector).not.toHaveFocus();
@@ -160,7 +158,7 @@ describe("AssetPanel", () => {
         .build();
       const store = setInitialState({
         hydraulicModel,
-        selectedAssetId: String(IDS.V1),
+        selectedAssetId: IDS.V1,
       });
       const user = userEvent.setup();
 
@@ -177,7 +175,7 @@ describe("AssetPanel", () => {
 
       const { hydraulicModel: updatedHydraulicModel } = store.get(dataAtom);
       expect(
-        (getLink(updatedHydraulicModel.assets, String(IDS.V1)) as Valve).kind,
+        (getLink(updatedHydraulicModel.assets, IDS.V1) as Valve).kind,
       ).toEqual("psv");
 
       expect(selector).not.toHaveFocus();
@@ -209,7 +207,7 @@ describe("AssetPanel", () => {
         .build();
       const store = setInitialState({
         hydraulicModel,
-        selectedAssetId: String(IDS.v1),
+        selectedAssetId: IDS.v1,
       });
 
       renderComponent(store);
@@ -230,13 +228,13 @@ describe("AssetPanel", () => {
         .aJunction(IDS.j2, { label: "J2" })
         .aPump(IDS.PU1, {
           label: "MY_PUMP",
-          connections: [String(IDS.j1), String(IDS.j2)],
+          connections: [IDS.j1, IDS.j2],
           initialStatus: "on",
         })
         .build();
       const store = setInitialState({
         hydraulicModel,
-        selectedAssetId: String(IDS.PU1),
+        selectedAssetId: IDS.PU1,
       });
 
       renderComponent(store);
@@ -260,7 +258,7 @@ describe("AssetPanel", () => {
         .aJunction(IDS.j2, { label: "J2" })
         .aPump(IDS.PU1, {
           label: "MY_PUMP",
-          connections: [String(IDS.j1), String(IDS.j2)],
+          connections: [IDS.j1, IDS.j2],
           initialStatus: "on",
           definitionType: "flow-vs-head",
           designFlow: 20,
@@ -270,7 +268,7 @@ describe("AssetPanel", () => {
         .build();
       const store = setInitialState({
         hydraulicModel,
-        selectedAssetId: String(IDS.PU1),
+        selectedAssetId: IDS.PU1,
       });
 
       renderComponent(store);
@@ -290,7 +288,7 @@ describe("AssetPanel", () => {
         .aJunction(IDS.j2, { label: "J2" })
         .aPump(IDS.PU1, {
           label: "MY_PUMP",
-          connections: [String(IDS.j1), String(IDS.j2)],
+          connections: [IDS.j1, IDS.j2],
           initialStatus: "on",
           definitionType: "power",
           power: 100,
@@ -298,7 +296,7 @@ describe("AssetPanel", () => {
         .build();
       const store = setInitialState({
         hydraulicModel,
-        selectedAssetId: String(IDS.PU1),
+        selectedAssetId: IDS.PU1,
       });
 
       renderComponent(store);
@@ -316,7 +314,7 @@ describe("AssetPanel", () => {
         .aJunction(IDS.j2, { label: "J2" })
         .aPump(IDS.PU1, {
           label: "MY_PUMP",
-          connections: [String(IDS.j1), String(IDS.j2)],
+          connections: [IDS.j1, IDS.j2],
           initialStatus: "on",
           definitionType: "flow-vs-head",
           designFlow: 20,
@@ -326,7 +324,7 @@ describe("AssetPanel", () => {
         .build();
       const store = setInitialState({
         hydraulicModel,
-        selectedAssetId: String(IDS.PU1),
+        selectedAssetId: IDS.PU1,
       });
       const user = userEvent.setup();
 
@@ -352,7 +350,7 @@ describe("AssetPanel", () => {
         .build();
       const store = setInitialState({
         hydraulicModel,
-        selectedAssetId: String(IDS.PU1),
+        selectedAssetId: IDS.PU1,
       });
 
       renderComponent(store);
@@ -369,7 +367,7 @@ describe("AssetPanel", () => {
         .build();
       const store = setInitialState({
         hydraulicModel,
-        selectedAssetId: String(IDS.PU1),
+        selectedAssetId: IDS.PU1,
       });
       const user = userEvent.setup();
 
@@ -385,8 +383,7 @@ describe("AssetPanel", () => {
 
       const { hydraulicModel: updatedHydraulicModel } = store.get(dataAtom);
       expect(
-        (getLink(updatedHydraulicModel.assets, String(IDS.PU1)) as Pump)
-          .initialStatus,
+        (getLink(updatedHydraulicModel.assets, IDS.PU1) as Pump).initialStatus,
       ).toEqual("off");
 
       expect(selector).not.toHaveFocus();
@@ -414,7 +411,7 @@ describe("AssetPanel", () => {
         .build();
       const store = setInitialState({
         hydraulicModel,
-        selectedAssetId: String(IDS.J1),
+        selectedAssetId: IDS.J1,
       });
 
       renderComponent(store);
@@ -437,7 +434,7 @@ describe("AssetPanel", () => {
         .build();
       const store = setInitialState({
         hydraulicModel,
-        selectedAssetId: String(IDS.J1),
+        selectedAssetId: IDS.J1,
       });
 
       renderComponent(store);
@@ -456,16 +453,16 @@ describe("AssetPanel", () => {
         })
         .aJunction(IDS.J2, { coordinates: [10, 0] })
         .aPipe(IDS.P1, {
-          startNodeId: String(IDS.J1),
-          endNodeId: String(IDS.J2),
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
         })
         .aCustomerPoint(IDS.CP1, {
           label: "CP1",
           coordinates: [1, 2],
           demand: 25,
           connection: {
-            pipeId: String(IDS.P1),
-            junctionId: String(IDS.J1),
+            pipeId: IDS.P1,
+            junctionId: IDS.J1,
             snapPoint: [1, 2],
           },
         })
@@ -474,8 +471,8 @@ describe("AssetPanel", () => {
           coordinates: [3, 4],
           demand: 30,
           connection: {
-            pipeId: String(IDS.P1),
-            junctionId: String(IDS.J1),
+            pipeId: IDS.P1,
+            junctionId: IDS.J1,
             snapPoint: [3, 4],
           },
         })
@@ -483,7 +480,7 @@ describe("AssetPanel", () => {
 
       const store = setInitialState({
         hydraulicModel,
-        selectedAssetId: String(IDS.J1),
+        selectedAssetId: IDS.J1,
       });
 
       renderComponent(store);
@@ -510,16 +507,16 @@ describe("AssetPanel", () => {
         })
         .aJunction(IDS.J2, { coordinates: [10, 0] })
         .aPipe(IDS.P1, {
-          startNodeId: String(IDS.J1),
-          endNodeId: String(IDS.J2),
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
         })
         .aCustomerPoint(IDS.CP1, {
           label: "CP1",
           coordinates: [1, 2],
           demand: 25,
           connection: {
-            pipeId: String(IDS.P1),
-            junctionId: String(IDS.J1),
+            pipeId: IDS.P1,
+            junctionId: IDS.J1,
             snapPoint: [1, 2],
           },
         })
@@ -528,8 +525,8 @@ describe("AssetPanel", () => {
           coordinates: [3, 4],
           demand: 30,
           connection: {
-            pipeId: String(IDS.P1),
-            junctionId: String(IDS.J1),
+            pipeId: IDS.P1,
+            junctionId: IDS.J1,
             snapPoint: [3, 4],
           },
         })
@@ -537,7 +534,7 @@ describe("AssetPanel", () => {
 
       const store = setInitialState({
         hydraulicModel,
-        selectedAssetId: String(IDS.J1),
+        selectedAssetId: IDS.J1,
       });
       const user = userEvent.setup();
 
@@ -567,7 +564,7 @@ describe("AssetPanel", () => {
         .build();
       const store = setInitialState({
         hydraulicModel,
-        selectedAssetId: String(IDS.J1),
+        selectedAssetId: IDS.J1,
       });
 
       renderComponent(store);
@@ -594,7 +591,7 @@ describe("AssetPanel", () => {
         .build();
       const store = setInitialState({
         hydraulicModel,
-        selectedAssetId: String(IDS.R1),
+        selectedAssetId: IDS.R1,
       });
 
       renderComponent(store);
@@ -623,7 +620,7 @@ describe("AssetPanel", () => {
         .build();
       const store = setInitialState({
         hydraulicModel,
-        selectedAssetId: String(IDS.T1),
+        selectedAssetId: IDS.T1,
       });
 
       renderComponent(store);
@@ -651,7 +648,7 @@ describe("AssetPanel", () => {
         .build();
       const store = setInitialState({
         hydraulicModel,
-        selectedAssetId: String(IDS.T1),
+        selectedAssetId: IDS.T1,
       });
 
       renderComponent(store);
@@ -687,7 +684,7 @@ describe("AssetPanel", () => {
         .build();
       const store = setInitialState({
         hydraulicModel,
-        selectedAssetId: String(IDS.T1),
+        selectedAssetId: IDS.T1,
       });
 
       renderComponent(store);
@@ -706,7 +703,7 @@ describe("AssetPanel", () => {
       .build();
     const store = setInitialState({
       hydraulicModel,
-      selectedAssetId: String(IDS.PIPE1),
+      selectedAssetId: IDS.PIPE1,
     });
     const user = userEvent.setup();
 
@@ -722,8 +719,7 @@ describe("AssetPanel", () => {
 
     const { hydraulicModel: updatedHydraulicModel } = store.get(dataAtom);
     expect(
-      (getPipe(updatedHydraulicModel.assets, String(IDS.PIPE1)) as Pipe)
-        .initialStatus,
+      (getPipe(updatedHydraulicModel.assets, IDS.PIPE1) as Pipe).initialStatus,
     ).toEqual("closed");
 
     expect(selector).not.toHaveFocus();
@@ -745,7 +741,7 @@ describe("AssetPanel", () => {
       .build();
     const store = setInitialState({
       hydraulicModel,
-      selectedAssetId: String(IDS.PIPE1),
+      selectedAssetId: IDS.PIPE1,
     });
     const user = userEvent.setup();
 
@@ -762,8 +758,7 @@ describe("AssetPanel", () => {
 
     const { hydraulicModel: updatedHydraulicModel } = store.get(dataAtom);
     expect(
-      (getPipe(updatedHydraulicModel.assets, String(IDS.PIPE1)) as Pipe)
-        .diameter,
+      (getPipe(updatedHydraulicModel.assets, IDS.PIPE1) as Pipe).diameter,
     ).toEqual(20.5);
 
     let updatedField = screen.getByRole("textbox", {
@@ -789,7 +784,7 @@ describe("AssetPanel", () => {
       .build();
     const store = setInitialState({
       hydraulicModel,
-      selectedAssetId: String(IDS.PIPE1),
+      selectedAssetId: IDS.PIPE1,
     });
 
     renderComponent(store);
@@ -809,7 +804,7 @@ describe("AssetPanel", () => {
       .build();
     const store = setInitialState({
       hydraulicModel,
-      selectedAssetId: String(IDS.PIPE1),
+      selectedAssetId: IDS.PIPE1,
     });
     const user = userEvent.setup();
 
@@ -827,7 +822,7 @@ describe("AssetPanel", () => {
 
     const { hydraulicModel: updatedHydraulicModel } = store.get(dataAtom);
     expect(
-      (getPipe(updatedHydraulicModel.assets, String(IDS.PIPE1)) as Pipe).length,
+      (getPipe(updatedHydraulicModel.assets, IDS.PIPE1) as Pipe).length,
     ).toEqual(1000.4);
 
     const updatedField = screen.getByRole("textbox", {
@@ -844,7 +839,7 @@ describe("AssetPanel", () => {
       .build();
     const store = setInitialState({
       hydraulicModel,
-      selectedAssetId: String(IDS.PIPE1),
+      selectedAssetId: IDS.PIPE1,
     });
     const user = userEvent.setup();
 
@@ -872,7 +867,7 @@ describe("AssetPanel", () => {
         .build();
       const store = setInitialState({
         hydraulicModel,
-        selectedAssetId: String(IDS.PIPE1),
+        selectedAssetId: IDS.PIPE1,
       });
       const user = userEvent.setup();
 
@@ -899,7 +894,7 @@ describe("AssetPanel", () => {
         .build();
       const store = setInitialState({
         hydraulicModel,
-        selectedAssetId: String(IDS.PIPE1),
+        selectedAssetId: IDS.PIPE1,
       });
       const user = userEvent.setup();
 
@@ -926,7 +921,7 @@ describe("AssetPanel", () => {
         .build();
       const store = setInitialState({
         hydraulicModel,
-        selectedAssetId: String(IDS.PIPE1),
+        selectedAssetId: IDS.PIPE1,
       });
       const user = userEvent.setup();
 
@@ -953,7 +948,7 @@ describe("AssetPanel", () => {
         .build();
       const store = setInitialState({
         hydraulicModel,
-        selectedAssetId: String(IDS.PIPE1),
+        selectedAssetId: IDS.PIPE1,
       });
       const user = userEvent.setup();
 
@@ -987,7 +982,7 @@ describe("AssetPanel", () => {
         .build();
       const store = setInitialState({
         hydraulicModel,
-        selectedAssetId: String(IDS.PIPE1),
+        selectedAssetId: IDS.PIPE1,
       });
       const user = userEvent.setup();
 
@@ -1005,8 +1000,7 @@ describe("AssetPanel", () => {
 
       const { hydraulicModel: updatedHydraulicModel } = store.get(dataAtom);
       expect(
-        (getPipe(updatedHydraulicModel.assets, String(IDS.PIPE1)) as Pipe)
-          .diameter,
+        (getPipe(updatedHydraulicModel.assets, IDS.PIPE1) as Pipe).diameter,
       ).toEqual(10);
 
       expect(field).toHaveValue("10");
@@ -1043,21 +1037,21 @@ describe("AssetPanel", () => {
         label: "Pipe_1",
         diameter: 150,
         length: 500,
-        startNodeId: String(IDS.J1),
-        endNodeId: String(IDS.J2),
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
       })
       .aPipe(IDS.P2, {
         label: "Pipe_2",
         diameter: 300,
         length: 1000,
-        startNodeId: String(IDS.J1),
-        endNodeId: String(IDS.J2),
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
       })
       .build();
 
     const store = setInitialState({
       hydraulicModel,
-      selectedAssetId: String(IDS.J1),
+      selectedAssetId: IDS.J1,
     });
 
     renderComponent(store);
@@ -1067,7 +1061,7 @@ describe("AssetPanel", () => {
     act(() => {
       store.set(dataAtom, {
         ...store.get(dataAtom),
-        selection: { type: "single", id: String(IDS.J2), parts: [] },
+        selection: { type: "single", id: IDS.J2, parts: [] },
       });
     });
 
@@ -1076,7 +1070,7 @@ describe("AssetPanel", () => {
     act(() => {
       store.set(dataAtom, {
         ...store.get(dataAtom),
-        selection: { type: "single", id: String(IDS.P1), parts: [] },
+        selection: { type: "single", id: IDS.P1, parts: [] },
       });
     });
 
@@ -1086,7 +1080,7 @@ describe("AssetPanel", () => {
     act(() => {
       store.set(dataAtom, {
         ...store.get(dataAtom),
-        selection: { type: "single", id: String(IDS.P2), parts: [] },
+        selection: { type: "single", id: IDS.P2, parts: [] },
       });
     });
 
@@ -1112,8 +1106,7 @@ describe("AssetPanel", () => {
   };
 
   const renderComponent = (store: Store) => {
-    const idMap = UIDMap.empty();
-    const persistence = new MemPersistence(idMap, store);
+    const persistence = new MemPersistence(store);
     render(
       <QueryClientProvider client={new QueryClient()}>
         <JotaiProvider store={store}>

@@ -21,7 +21,7 @@ describe("findOrphanAssets", () => {
     const model = HydraulicModelBuilder.with()
       .aNode(IDS.J1)
       .aNode(IDS.J2)
-      .aPipe(IDS.P1, { startNodeId: String(IDS.J1), endNodeId: String(IDS.J2) })
+      .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
       .aNode(IDS.Orphan)
       .build();
     const { nodeIdsLookup, ...data } = encodeData(model);
@@ -30,7 +30,7 @@ describe("findOrphanAssets", () => {
 
     expect(orphanNodes).toHaveLength(1);
     expect(orphanLinks).toHaveLength(0);
-    expect(nodeIdsLookup[orphanNodes[0]]).toEqual(String(IDS.Orphan));
+    expect(nodeIdsLookup[orphanNodes[0]]).toEqual(IDS.Orphan);
   });
 
   it("should find valves not connected on both ends to other network pipes", () => {
@@ -45,12 +45,12 @@ describe("findOrphanAssets", () => {
     const model = HydraulicModelBuilder.with()
       .aNode(IDS.J1)
       .aNode(IDS.J2)
-      .aPipe(IDS.P1, { startNodeId: String(IDS.J1), endNodeId: String(IDS.J2) })
+      .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
       .aTank(IDS.T1)
       .aNode(IDS.NoPipeNode)
       .aValve(IDS.OrphanValve, {
-        startNodeId: String(IDS.T1),
-        endNodeId: String(IDS.NoPipeNode),
+        startNodeId: IDS.T1,
+        endNodeId: IDS.NoPipeNode,
       })
       .build();
     const { linkIdsLookup, ...data } = encodeData(model);
@@ -59,7 +59,7 @@ describe("findOrphanAssets", () => {
 
     expect(orphanLinks).toHaveLength(1);
     expect(orphanNodes).toHaveLength(0);
-    expect(linkIdsLookup[orphanLinks[0]]).toEqual(String(IDS.OrphanValve));
+    expect(linkIdsLookup[orphanLinks[0]]).toEqual(IDS.OrphanValve);
   });
 
   it("should find pumps not connected on both ends to other network pipes", () => {
@@ -74,12 +74,12 @@ describe("findOrphanAssets", () => {
     const model = HydraulicModelBuilder.with()
       .aNode(IDS.J1)
       .aNode(IDS.J2)
-      .aPipe(IDS.P1, { startNodeId: String(IDS.J1), endNodeId: String(IDS.J2) })
+      .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
       .aTank(IDS.T1)
       .aNode(IDS.NoPipeNode)
       .aPump(IDS.OrphanPump, {
-        startNodeId: String(IDS.T1),
-        endNodeId: String(IDS.NoPipeNode),
+        startNodeId: IDS.T1,
+        endNodeId: IDS.NoPipeNode,
       })
       .build();
     const { linkIdsLookup, ...data } = encodeData(model);
@@ -88,7 +88,7 @@ describe("findOrphanAssets", () => {
 
     expect(orphanLinks).toHaveLength(1);
     expect(orphanNodes).toHaveLength(0);
-    expect(linkIdsLookup[orphanLinks[0]]).toEqual(String(IDS.OrphanPump));
+    expect(linkIdsLookup[orphanLinks[0]]).toEqual(IDS.OrphanPump);
   });
 
   it("does not report orphan nodes for nodes connected to valves or pumps", () => {
@@ -97,15 +97,15 @@ describe("findOrphanAssets", () => {
       .aTank(IDS.T1)
       .aNode(IDS.J1)
       .aValve(IDS.V1, {
-        startNodeId: String(IDS.T1),
-        endNodeId: String(IDS.J1),
+        startNodeId: IDS.T1,
+        endNodeId: IDS.J1,
       })
       .aPump(IDS.PU1, {
-        startNodeId: String(IDS.T1),
-        endNodeId: String(IDS.J1),
+        startNodeId: IDS.T1,
+        endNodeId: IDS.J1,
       })
       .aNode(IDS.J2)
-      .aPipe(IDS.P1, { startNodeId: String(IDS.J1), endNodeId: String(IDS.J2) })
+      .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
       .build();
     const data = encodeData(model);
 

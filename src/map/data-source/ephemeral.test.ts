@@ -1,5 +1,4 @@
 import { buildEphemeralStateSource } from "./ephemeral";
-import { IDMap, UIDMap } from "src/lib/id-mapper";
 import { EphemeralEditingState } from "src/state/jotai";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { LinkAsset, NodeAsset, AssetsMap } from "src/hydraulic-model";
@@ -8,14 +7,13 @@ import { EphemeralDrawNode } from "../mode-handlers/draw-node/ephemeral-draw-nod
 import { EphemeralDrawLink } from "../mode-handlers/draw-link/ephemeral-link-state";
 
 describe("build ephemeral state source", () => {
-  const mockIDMap: IDMap = UIDMap.loadIdsFromPersistence([]);
   const emptyAssets = new AssetsMap();
 
   it("returns empty array for null state", () => {
     const ephemeralState: EphemeralEditingState = { type: "none" };
     const features = buildEphemeralStateSource(
       ephemeralState,
-      mockIDMap,
+
       emptyAssets,
     );
     expect(features).toEqual([]);
@@ -25,7 +23,7 @@ describe("build ephemeral state source", () => {
     const ephemeralState = { type: "unknown" } as any;
     const features = buildEphemeralStateSource(
       ephemeralState,
-      mockIDMap,
+
       emptyAssets,
     );
     expect(features).toEqual([]);
@@ -33,20 +31,20 @@ describe("build ephemeral state source", () => {
 
   describe("drawLink state", () => {
     it("builds features for new drawLink with node snapping", () => {
-      const IDS = { J1: 1, T1: 2 } as const;
+      const IDS = { J1: 1, T1: 2, P1: 3 } as const;
       const { assets } = HydraulicModelBuilder.with()
         .aJunction(IDS.J1, { coordinates: [10, 20] })
         .aTank(IDS.T1, { coordinates: [30, 40] })
         .build();
 
-      const startNode = assets.get(String(IDS.J1))! as NodeAsset;
-      const snappingTank = assets.get(String(IDS.T1))! as NodeAsset;
+      const startNode = assets.get(IDS.J1)! as NodeAsset;
+      const snappingTank = assets.get(IDS.T1)! as NodeAsset;
 
       const ephemeralState: EphemeralDrawLink = {
         type: "drawLink",
         linkType: "pipe",
         link: {
-          id: "P1",
+          id: IDS.P1,
           type: "pipe",
           coordinates: [
             [10, 20],
@@ -64,7 +62,7 @@ describe("build ephemeral state source", () => {
             properties: {
               type: "pipe",
               label: "P1",
-              connections: ["", ""],
+              connections: [0, 0],
               length: 0,
             },
           },
@@ -75,7 +73,7 @@ describe("build ephemeral state source", () => {
 
       const features = buildEphemeralStateSource(
         ephemeralState,
-        mockIDMap,
+
         assets,
       );
 
@@ -110,7 +108,7 @@ describe("build ephemeral state source", () => {
     });
 
     it("builds features for new drawLink with pipe snapping", () => {
-      const IDS = { J1: 1, J2: 2, P1: 3 } as const;
+      const IDS = { J1: 1, J2: 2, P1: 3, P2: 4 } as const;
       const { assets } = HydraulicModelBuilder.with()
         .aJunction(IDS.J1, { coordinates: [10, 20] })
         .aJunction(IDS.J2, { coordinates: [50, 60] })
@@ -122,13 +120,13 @@ describe("build ephemeral state source", () => {
         })
         .build();
 
-      const startNode = assets.get(String(IDS.J1))! as NodeAsset;
+      const startNode = assets.get(IDS.J1)! as NodeAsset;
 
       const ephemeralState: EphemeralDrawLink = {
         type: "drawLink",
         linkType: "pipe",
         link: {
-          id: "P2",
+          id: IDS.P2,
           type: "pipe",
           coordinates: [
             [10, 20],
@@ -146,7 +144,7 @@ describe("build ephemeral state source", () => {
             properties: {
               type: "pipe",
               label: "P2",
-              connections: ["", ""],
+              connections: [0, 0],
               length: 0,
             },
           },
@@ -155,14 +153,14 @@ describe("build ephemeral state source", () => {
         snappingCandidate: {
           type: "pipe",
           coordinates: [45, 55],
-          id: String(IDS.P1),
+          id: IDS.P1,
           vertexIndex: null,
         },
       };
 
       const features = buildEphemeralStateSource(
         ephemeralState,
-        mockIDMap,
+
         assets,
       );
 
@@ -202,18 +200,18 @@ describe("build ephemeral state source", () => {
     });
 
     it("handles pipe snapping when pipe asset not found", () => {
-      const IDS = { J1: 1 } as const;
+      const IDS = { J1: 1, P2: 2 } as const;
       const { assets } = HydraulicModelBuilder.with()
         .aJunction(IDS.J1, { coordinates: [10, 20] })
         .build();
 
-      const startNode = assets.get(String(IDS.J1))! as NodeAsset;
+      const startNode = assets.get(IDS.J1)! as NodeAsset;
 
       const ephemeralState: EphemeralDrawLink = {
         type: "drawLink",
         linkType: "pipe",
         link: {
-          id: "P2",
+          id: IDS.P2,
           type: "pipe",
           coordinates: [
             [10, 20],
@@ -231,7 +229,7 @@ describe("build ephemeral state source", () => {
             properties: {
               type: "pipe",
               label: "P2",
-              connections: ["", ""],
+              connections: [0, 0],
               length: 0,
             },
           },
@@ -240,14 +238,14 @@ describe("build ephemeral state source", () => {
         snappingCandidate: {
           type: "pipe",
           coordinates: [45, 55],
-          id: "NONEXISTENT",
+          id: 999,
           vertexIndex: null,
         },
       };
 
       const features = buildEphemeralStateSource(
         ephemeralState,
-        mockIDMap,
+
         assets,
       );
 
@@ -271,10 +269,10 @@ describe("build ephemeral state source", () => {
         .aJunction(IDS.J1_NEW, { coordinates: [70, 80] })
         .build();
 
-      const tankOld = assets.get(String(IDS.T1_OLD))!;
-      const junctionOld = assets.get(String(IDS.J1_OLD))!;
-      const tankNew = assets.get(String(IDS.T1_NEW))!;
-      const junctionNew = assets.get(String(IDS.J1_NEW))!;
+      const tankOld = assets.get(IDS.T1_OLD)!;
+      const junctionOld = assets.get(IDS.J1_OLD)!;
+      const tankNew = assets.get(IDS.T1_NEW)!;
+      const junctionNew = assets.get(IDS.J1_NEW)!;
 
       const ephemeralState: EphemeralMoveAssets = {
         type: "moveAssets",
@@ -284,7 +282,7 @@ describe("build ephemeral state source", () => {
 
       const features = buildEphemeralStateSource(
         ephemeralState,
-        mockIDMap,
+
         assets,
       );
 
@@ -307,8 +305,8 @@ describe("build ephemeral state source", () => {
         .aJunction(IDS.J1, { coordinates: [0, 0] })
         .aJunction(IDS.J2, { coordinates: [10, 0] })
         .aPipe(IDS.P1, {
-          startNodeId: String(IDS.J1),
-          endNodeId: String(IDS.J2),
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
         })
         .build();
 
@@ -316,14 +314,14 @@ describe("build ephemeral state source", () => {
         type: "drawNode",
         nodeType: "junction",
         pipeSnappingPosition: [5, 0],
-        pipeId: String(IDS.P1),
+        pipeId: IDS.P1,
         nodeSnappingId: null,
         nodeReplacementId: null,
       };
 
       const features = buildEphemeralStateSource(
         ephemeralState,
-        mockIDMap,
+
         assets,
       );
 
@@ -342,8 +340,8 @@ describe("build ephemeral state source", () => {
         .aJunction(IDS.J1, { coordinates: [0, 0] })
         .aJunction(IDS.J2, { coordinates: [10, 0] })
         .aPipe(IDS.P1, {
-          startNodeId: String(IDS.J1),
-          endNodeId: String(IDS.J2),
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
         })
         .build();
 
@@ -351,14 +349,14 @@ describe("build ephemeral state source", () => {
         type: "drawNode",
         nodeType: "reservoir",
         pipeSnappingPosition: [5, 0],
-        pipeId: String(IDS.P1),
+        pipeId: IDS.P1,
         nodeSnappingId: null,
         nodeReplacementId: null,
       };
 
       const features = buildEphemeralStateSource(
         ephemeralState,
-        mockIDMap,
+
         assets,
       );
 
@@ -377,8 +375,8 @@ describe("build ephemeral state source", () => {
         .aJunction(IDS.J1, { coordinates: [0, 0] })
         .aJunction(IDS.J2, { coordinates: [10, 0] })
         .aPipe(IDS.P1, {
-          startNodeId: String(IDS.J1),
-          endNodeId: String(IDS.J2),
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
         })
         .build();
 
@@ -386,14 +384,14 @@ describe("build ephemeral state source", () => {
         type: "drawNode",
         nodeType: "tank",
         pipeSnappingPosition: [5, 0],
-        pipeId: String(IDS.P1),
+        pipeId: IDS.P1,
         nodeSnappingId: null,
         nodeReplacementId: null,
       };
 
       const features = buildEphemeralStateSource(
         ephemeralState,
-        mockIDMap,
+
         assets,
       );
 

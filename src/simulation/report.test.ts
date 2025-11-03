@@ -17,11 +17,11 @@ Error 215: Pipe 1234 is a duplicate ID.`;
     expect(processedReport).toHaveLength(2);
     expect(processedReport[0]).toEqual({
       text: "Error 233: Error {{0}}",
-      assetSlots: ["1"],
+      assetSlots: [IDS.P1],
     });
     expect(processedReport[1]).toEqual({
       text: "Error 215: Pipe {{0}} is a duplicate ID.",
-      assetSlots: ["1234"],
+      assetSlots: [IDS.P1234],
     });
   });
 
@@ -39,7 +39,7 @@ Error 215: Pipe 1234 is a duplicate ID.`;
     expect(processedReport).toHaveLength(1);
     expect(processedReport[0]).toEqual({
       text: "Node {{0}} and Pipe {{1}} are connected",
-      assetSlots: ["19", "56"],
+      assetSlots: [IDS.J19, IDS.P56],
     });
   });
 
@@ -77,11 +77,11 @@ FCV 20 open but cannot deliver pressure`;
     expect(processedReport).toHaveLength(2);
     expect(processedReport[0]).toEqual({
       text: "PRV {{0}} open but cannot deliver pressure",
-      assetSlots: ["1"],
+      assetSlots: [IDS.V1],
     });
     expect(processedReport[1]).toEqual({
       text: "FCV {{0}} open but cannot deliver pressure",
-      assetSlots: ["20"],
+      assetSlots: [IDS.V20],
     });
   });
 
@@ -125,19 +125,19 @@ Node 19 and Pipe 56`;
     expect(processedReport).toHaveLength(4);
     expect(processedReport[0]).toEqual({
       text: "0:00:00: Reservoir {{0}} is closed",
-      assetSlots: ["14"],
+      assetSlots: [IDS.R14],
     });
     expect(processedReport[1]).toEqual({
       text: "WARNING: Node {{0}} disconnected at 0:00:00 hrs",
-      assetSlots: ["19"],
+      assetSlots: [IDS.J19],
     });
     expect(processedReport[2]).toEqual({
       text: "maximum flow change = 0.0001 for Link {{0}}",
-      assetSlots: ["56"],
+      assetSlots: [IDS.P56],
     });
     expect(processedReport[3]).toEqual({
       text: "Node {{0}} and Pipe {{1}}",
-      assetSlots: ["19", "56"],
+      assetSlots: [IDS.J19, IDS.P56],
     });
   });
 
@@ -173,7 +173,7 @@ Node 19 and Pipe 56`;
     expect(processedReport).toHaveLength(1);
     expect(processedReport[0]).toEqual({
       text: " {{0}}\t{{1}}\t{{2}}\t300\tTCV\t0\t0",
-      assetSlots: ["7", "2", "3"],
+      assetSlots: [IDS.V7, IDS.J2, IDS.J3],
     });
   });
 
@@ -192,7 +192,7 @@ Node 19 and Pipe 56`;
     expect(processedReport).toHaveLength(1);
     expect(processedReport[0]).toEqual({
       text: "{{0}}    {{1}}     {{2}}     1200      12      120       0.2     OPEN",
-      assetSlots: ["1", "2", "3"],
+      assetSlots: [IDS.P1, IDS.J1, IDS.J2],
     });
   });
 
@@ -211,7 +211,7 @@ Node 19 and Pipe 56`;
     expect(processedReport).toHaveLength(1);
     expect(processedReport[0]).toEqual({
       text: "{{0}}   {{1}}     {{2}}     HEAD Curve1  SPEED 1.2",
-      assetSlots: ["1", "12", "32"],
+      assetSlots: [IDS.PUMP1, IDS.N12, IDS.N32],
     });
   });
 

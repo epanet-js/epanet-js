@@ -11,8 +11,8 @@ describe("createSpatialIndex", () => {
       .aJunction(IDS.J1, { coordinates: [0, 0] })
       .aJunction(IDS.J2, { coordinates: [10, 0] })
       .aPipe(IDS.P1, {
-        startNodeId: String(IDS.J1),
-        endNodeId: String(IDS.J2),
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
         coordinates: [
           [0, 0],
           [10, 0],
@@ -25,7 +25,7 @@ describe("createSpatialIndex", () => {
 
     expect(spatialIndexData.spatialIndex).toBeDefined();
     expect(spatialIndexData.segments).toHaveLength(1);
-    expect(spatialIndexData.segments[0].properties.linkId).toBe(String(IDS.P1));
+    expect(spatialIndexData.segments[0].properties.linkId).toBe(IDS.P1);
   });
 
   it("returns null spatial index when no pipes", () => {
@@ -42,16 +42,16 @@ describe("createSpatialIndex", () => {
       .aJunction(IDS.J2, { coordinates: [10, 0] })
       .aJunction(IDS.J3, { coordinates: [0, 10] })
       .aPipe(IDS.P1, {
-        startNodeId: String(IDS.J1),
-        endNodeId: String(IDS.J2),
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
         coordinates: [
           [0, 0],
           [10, 0],
         ],
       })
       .aPipe(IDS.P2, {
-        startNodeId: String(IDS.J1),
-        endNodeId: String(IDS.J3),
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J3,
         coordinates: [
           [0, 0],
           [0, 10],
@@ -66,7 +66,7 @@ describe("createSpatialIndex", () => {
     expect(spatialIndexData.segments).toHaveLength(2);
 
     const pipeIds = spatialIndexData.segments.map((s) => s.properties.linkId);
-    expect(pipeIds).toContain(String(IDS.P1));
-    expect(pipeIds).toContain(String(IDS.P2));
+    expect(pipeIds).toContain(IDS.P1);
+    expect(pipeIds).toContain(IDS.P2);
   });
 });

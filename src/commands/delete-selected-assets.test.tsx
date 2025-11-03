@@ -19,7 +19,7 @@ describe("delete selected", () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction(IDS.J1)
       .build();
-    const selection = aSingleSelection({ id: String(IDS.J1) });
+    const selection = aSingleSelection({ id: IDS.J1 });
     const store = setInitialState({ hydraulicModel, selection });
     renderComponent({ store });
 
@@ -28,7 +28,7 @@ describe("delete selected", () => {
     const updatedSelection = store.get(selectionAtom);
     expect(updatedSelection.type).toEqual("none");
     const { hydraulicModel: updatedHydraulicModel } = store.get(dataAtom);
-    expect(updatedHydraulicModel.assets.has(String(IDS.J1))).toBeFalsy();
+    expect(updatedHydraulicModel.assets.has(IDS.J1)).toBeFalsy();
     expect(userTracking.capture).toHaveBeenCalledWith({
       name: "asset.deleted",
       source: "shortcut",
@@ -44,7 +44,7 @@ describe("delete selected", () => {
       .aJunction(IDS.J2)
       .build();
     const selection = aMultiSelection({
-      ids: [String(IDS.J1), String(IDS.J2)],
+      ids: [IDS.J1, IDS.J2],
     });
     const store = setInitialState({ hydraulicModel, selection });
     renderComponent({ store });
@@ -54,8 +54,8 @@ describe("delete selected", () => {
     const updatedSelection = store.get(selectionAtom);
     expect(updatedSelection.type).toEqual("none");
     const { hydraulicModel: updatedHydraulicModel } = store.get(dataAtom);
-    expect(updatedHydraulicModel.assets.has(String(IDS.J1))).toBeFalsy();
-    expect(updatedHydraulicModel.assets.has(String(IDS.J2))).toBeFalsy();
+    expect(updatedHydraulicModel.assets.has(IDS.J1)).toBeFalsy();
+    expect(updatedHydraulicModel.assets.has(IDS.J2)).toBeFalsy();
     expect(userTracking.capture).toHaveBeenCalledWith({
       name: "assets.deleted",
       source: "shortcut",

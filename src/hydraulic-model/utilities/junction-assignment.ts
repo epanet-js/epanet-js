@@ -1,8 +1,9 @@
 import { Position } from "geojson";
 import turfDistance from "@turf/distance";
+import { AssetId } from "../asset-types/base-asset";
 
 export type NodeForJunctionAssignment = {
-  id: string;
+  id: AssetId;
   type: string;
   coordinates: Position;
 };
@@ -11,7 +12,7 @@ export const findJunctionForCustomerPoint = (
   startNode: NodeForJunctionAssignment,
   endNode: NodeForJunctionAssignment,
   snapPoint: Position,
-): string | null => {
+): AssetId | null => {
   const junctionNodes = [];
 
   if (startNode.type === "junction") {

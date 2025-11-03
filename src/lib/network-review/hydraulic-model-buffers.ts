@@ -47,8 +47,8 @@ export interface EncodedHydraulicModel {
     coordinates: BinaryData;
     geoIndex: BinaryData;
   };
-  nodeIdsLookup: string[];
-  linkIdsLookup: string[];
+  nodeIdsLookup: number[];
+  linkIdsLookup: number[];
 }
 
 export type HydraulicModelBuffers = Omit<
@@ -80,7 +80,7 @@ export class HydraulicModelEncoder {
     startPosition: Position;
     endPosition: Position;
   }[][] = [];
-  private nodeConnectionsCache = new Map<string, string[]>();
+  private nodeConnectionsCache = new Map<number, number[]>();
 
   constructor(
     private model: HydraulicModel,
@@ -168,7 +168,7 @@ export class HydraulicModelEncoder {
     }
   }
 
-  private prepareNodeConnectionsEncoding(asset: Asset, id: string) {
+  private prepareNodeConnectionsEncoding(asset: Asset, id: number) {
     if (this.encodingOptions.nodes?.has("connections") !== true) {
       return;
     }
@@ -343,7 +343,7 @@ export class HydraulicModelEncoder {
     nodeGeoIndex: GeoIndexBuilder,
   ) {
     for (let nodeIdx = 0; nodeIdx < this.nodeIdMapper.count; nodeIdx++) {
-      const id = this.nodeIdMapper.getId(nodeIdx) ?? "";
+      const id = this.nodeIdMapper.getId(nodeIdx);
       const asset = this.model.assets.get(id)!;
 
       this.encodeNodeType(asset, nodeTypes);
@@ -366,7 +366,7 @@ export class HydraulicModelEncoder {
   }
 
   private encodeNodeConnections(
-    id: string,
+    id: number,
     nodeConnections: VariableSizeBufferBuilder<number[]>,
   ) {
     if (this.encodingOptions.nodes?.has("connections") !== true) {

@@ -46,8 +46,8 @@ describe("prepareWorkerData", () => {
           .aJunction(IDS.J1, { coordinates: [0, 0] })
           .aJunction(IDS.J2, { coordinates: [10, 0] })
           .aPipe(IDS.P1, {
-            startNodeId: String(IDS.J1),
-            endNodeId: String(IDS.J2),
+            startNodeId: IDS.J1,
+            endNodeId: IDS.J2,
             diameter: 12,
             coordinates: [
               [0, 0],
@@ -84,8 +84,8 @@ describe("prepareWorkerData", () => {
           .aJunction(IDS.J1, { coordinates: [0, 0] })
           .aJunction(IDS.J2, { coordinates: [10, 0] })
           .aPipe(IDS.P1, {
-            startNodeId: String(IDS.J1),
-            endNodeId: String(IDS.J2),
+            startNodeId: IDS.J1,
+            endNodeId: IDS.J2,
             diameter: 12,
             coordinates: [
               [0, 0],
@@ -133,8 +133,8 @@ describe("prepareWorkerData", () => {
           .aJunction(IDS.J1, { coordinates: [0, 0] })
           .aJunction(IDS.J2, { coordinates: [10, 0] })
           .aPipe(IDS.P1, {
-            startNodeId: String(IDS.J1),
-            endNodeId: String(IDS.J2),
+            startNodeId: IDS.J1,
+            endNodeId: IDS.J2,
             diameter: 12,
             coordinates: [
               [0, 0],
@@ -175,8 +175,8 @@ describe("prepareWorkerData", () => {
           .aJunction(IDS.J1, { coordinates: [0, 0] })
           .aJunction(IDS.J2, { coordinates: [10, 0] })
           .aPipe(IDS.P1, {
-            startNodeId: String(IDS.J1),
-            endNodeId: String(IDS.J2),
+            startNodeId: IDS.J1,
+            endNodeId: IDS.J2,
             diameter: 12,
             coordinates: [
               [0, 0],
@@ -222,8 +222,8 @@ describe("prepareWorkerData", () => {
           .aJunction(IDS.J1, { coordinates: [5, 10] })
           .aJunction(IDS.J2, { coordinates: [15, 20] })
           .aPipe(IDS.P1, {
-            startNodeId: String(IDS.J1),
-            endNodeId: String(IDS.J2),
+            startNodeId: IDS.J1,
+            endNodeId: IDS.J2,
             diameter: 12,
             coordinates: [
               [5, 10],
@@ -259,8 +259,8 @@ describe("prepareWorkerData", () => {
           .aReservoir(IDS.R1, { coordinates: [10, 0] })
           .aTank(IDS.T1, { coordinates: [20, 0] })
           .aPipe(IDS.P1, {
-            startNodeId: String(IDS.J1),
-            endNodeId: String(IDS.R1),
+            startNodeId: IDS.J1,
+            endNodeId: IDS.R1,
             diameter: 12,
             coordinates: [
               [0, 0],
@@ -307,8 +307,8 @@ describe("prepareWorkerData", () => {
             coordinates: [30, 0],
           })
           .aPipe(IDS.P1, {
-            startNodeId: String(IDS.J1),
-            endNodeId: String(IDS.RESERVOIR_WITH_LONG_NAME),
+            startNodeId: IDS.J1,
+            endNodeId: IDS.RESERVOIR_WITH_LONG_NAME,
             diameter: 12,
             coordinates: [
               [0, 0],
@@ -348,8 +348,8 @@ describe("prepareWorkerData", () => {
           .aReservoir(IDS.R00, { coordinates: [10, 0] })
           .aTank(IDS.SPECIAL_CHARS, { coordinates: [20, 0] })
           .aPipe(IDS.P1, {
-            startNodeId: String(IDS.J_EMPTY),
-            endNodeId: String(IDS.R00),
+            startNodeId: IDS.J_EMPTY,
+            endNodeId: IDS.R00,
             diameter: 12,
             coordinates: [
               [0, 0],
@@ -386,8 +386,8 @@ describe("prepareWorkerData", () => {
           .aJunction(IDS.J2, { coordinates: [10, 0] })
           .aCustomerPoint(IDS.CP2, { coordinates: [15, 20], demand: 2.0 })
           .aPipe(IDS.P1, {
-            startNodeId: String(IDS.J1),
-            endNodeId: String(IDS.J2),
+            startNodeId: IDS.J1,
+            endNodeId: IDS.J2,
             diameter: 12,
             coordinates: [
               [0, 0],
@@ -453,8 +453,8 @@ describe("prepareWorkerData", () => {
             demand: 4.0,
           })
           .aPipe(IDS.P1, {
-            startNodeId: String(IDS.J1),
-            endNodeId: String(IDS.J2),
+            startNodeId: IDS.J1,
+            endNodeId: IDS.J2,
             diameter: 12,
             coordinates: [
               [0, 0],
@@ -511,8 +511,8 @@ describe("prepareWorkerData", () => {
             demand: 3.0,
           })
           .aPipe(IDS.P1, {
-            startNodeId: String(IDS.J1),
-            endNodeId: String(IDS.J2),
+            startNodeId: IDS.J1,
+            endNodeId: IDS.J2,
             diameter: 12,
             coordinates: [
               [0, 0],
@@ -550,8 +550,8 @@ describe("prepareWorkerData", () => {
           .aJunction(IDS.J1, { coordinates: [0, 0] })
           .aJunction(IDS.J2, { coordinates: [10, 0] })
           .aPipe(IDS.P1, {
-            startNodeId: String(IDS.J1),
-            endNodeId: String(IDS.J2),
+            startNodeId: IDS.J1,
+            endNodeId: IDS.J2,
             diameter: 12,
             coordinates: [
               [0, 0],

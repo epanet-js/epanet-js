@@ -7,9 +7,9 @@ describe("runCheck", () => {
     const model = HydraulicModelBuilder.with()
       .aJunction(IDS.J1, { coordinates: [0, 0] })
       .aJunction(IDS.J2, { coordinates: [0, 0.001] })
-      .aPipe(IDS.P1, { startNodeId: String(IDS.J1), endNodeId: String(IDS.J2) })
+      .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
       .aJunction(IDS.J3, { coordinates: [0.0001, 0.0005] })
-      .aPipe(IDS.P2, { startNodeId: String(IDS.J2), endNodeId: String(IDS.J3) })
+      .aPipe(IDS.P2, { startNodeId: IDS.J2, endNodeId: IDS.J3 })
       .build();
 
     const proximityAnomalies = await runCheck(model, 50);
@@ -17,8 +17,8 @@ describe("runCheck", () => {
     expect(proximityAnomalies).toHaveLength(1);
     expect(proximityAnomalies[0]).toEqual(
       expect.objectContaining({
-        nodeId: String(IDS.J3),
-        pipeId: String(IDS.P1),
+        nodeId: IDS.J3,
+        pipeId: IDS.P1,
         distance: expect.any(Number),
         nearestPointOnPipe: expect.any(Array),
       }),
@@ -31,9 +31,9 @@ describe("runCheck", () => {
     const model = HydraulicModelBuilder.with()
       .aJunction(IDS.J1, { coordinates: [0, 0] })
       .aJunction(IDS.J2, { coordinates: [0, 0.001] })
-      .aPipe(IDS.P1, { startNodeId: String(IDS.J1), endNodeId: String(IDS.J2) })
+      .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
       .aJunction(IDS.J3, { coordinates: [1, 1] })
-      .aPipe(IDS.P2, { startNodeId: String(IDS.J2), endNodeId: String(IDS.J3) })
+      .aPipe(IDS.P2, { startNodeId: IDS.J2, endNodeId: IDS.J3 })
       .build();
 
     const proximityAnomalies = await runCheck(model, 0.5);
@@ -46,17 +46,17 @@ describe("runCheck", () => {
     const model = HydraulicModelBuilder.with()
       .aJunction(IDS.J1, { coordinates: [0, 0], label: "J1" })
       .aJunction(IDS.J2, { coordinates: [0, 0.002], label: "J2" })
-      .aPipe(IDS.P1, { startNodeId: String(IDS.J1), endNodeId: String(IDS.J2) })
+      .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
       .aJunction(IDS.J5, { coordinates: [0.0001, 0.0015], label: "J5" })
       .aJunction(IDS.J3, { coordinates: [0.0001, 0.0005], label: "J3" })
-      .aPipe(IDS.P2, { startNodeId: String(IDS.J3), endNodeId: String(IDS.J5) })
+      .aPipe(IDS.P2, { startNodeId: IDS.J3, endNodeId: IDS.J5 })
       .build();
 
     const proximityAnomalies = await runCheck(model, 50);
 
     expect(proximityAnomalies).toHaveLength(2);
-    expect(proximityAnomalies[0].nodeId).toEqual(String(IDS.J5));
-    expect(proximityAnomalies[1].nodeId).toEqual(String(IDS.J3));
+    expect(proximityAnomalies[0].nodeId).toEqual(IDS.J5);
+    expect(proximityAnomalies[1].nodeId).toEqual(IDS.J3);
     expect(proximityAnomalies[0].distance).toBeLessThan(
       proximityAnomalies[1].distance,
     );
@@ -67,14 +67,14 @@ describe("runCheck", () => {
     const model = HydraulicModelBuilder.with()
       .aJunction(IDS.J1, { coordinates: [0, 0] })
       .aJunction(IDS.J2, { coordinates: [0, 0.001] })
-      .aPipe(IDS.P1, { startNodeId: String(IDS.J1), endNodeId: String(IDS.J2) })
+      .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
       .aJunction(IDS.J3, { coordinates: [0.0001, 0.0005] })
-      .aPipe(IDS.P2, { startNodeId: String(IDS.J2), endNodeId: String(IDS.J3) })
+      .aPipe(IDS.P2, { startNodeId: IDS.J2, endNodeId: IDS.J3 })
       .build();
 
     const proximityAnomalies = await runCheck(model, 50, "array");
 
     expect(proximityAnomalies).toHaveLength(1);
-    expect(proximityAnomalies[0].nodeId).toEqual(String(IDS.J3));
+    expect(proximityAnomalies[0].nodeId).toEqual(IDS.J3);
   });
 });

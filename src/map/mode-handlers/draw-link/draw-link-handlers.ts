@@ -61,7 +61,6 @@ export function useDrawLinkHandlers({
   rep,
   hydraulicModel,
   map,
-  idMap,
   linkType,
   sourceLink,
   onSubmitLink,
@@ -80,11 +79,7 @@ export function useDrawLinkHandlers({
   const userTracking = useUserTracking();
   const usingTouchEvents = useRef<boolean>(false);
   const { assetBuilder, units } = hydraulicModel;
-  const { findSnappingCandidate } = useSnapping(
-    map,
-    idMap,
-    hydraulicModel.assets,
-  );
+  const { findSnappingCandidate } = useSnapping(map, hydraulicModel.assets);
 
   const { isShiftHeld, isControlHeld } = useKeyboardState();
   const isRememberPropsOn = useFeatureFlag("FLAG_REMEMBER_PROPS");

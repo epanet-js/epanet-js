@@ -11,8 +11,8 @@ export type EphemeralMoveAssets = {
   startPoint?: mapboxgl.Point;
   moveActivated?: boolean;
   pipeSnappingPosition?: [number, number];
-  pipeId?: string;
-  nodeSnappingId?: string;
+  pipeId?: number;
+  nodeSnappingId?: number;
 };
 
 const nullPoint = new mapboxgl.Point(0, 0);
@@ -56,8 +56,8 @@ export const useMoveState = () => {
     targetAssets: Asset[],
     snappingInfo?: {
       pipeSnappingPosition?: [number, number];
-      pipeId?: string;
-      nodeSnappingId?: string;
+      pipeId?: number;
+      nodeSnappingId?: number;
     },
   ) => {
     if (isCommittingRef.current) return;

@@ -314,7 +314,7 @@ const ProximityAnomalyItem = ({
 }: {
   anomaly: ProximityAnomaly;
   onClick: (anomaly: ProximityAnomaly) => void;
-  selectedId: string | null;
+  selectedId: string | number | null;
 }) => {
   const translate = useTranslate();
   const { hydraulicModel } = useAtomValue(dataAtom);

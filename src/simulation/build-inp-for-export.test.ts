@@ -66,8 +66,8 @@ describe("build inp export ", () => {
       .aReservoir(IDS.R1, { label: "RES_1" })
       .aPipe(IDS.P1, {
         label: "P_1",
-        startNodeId: String(IDS.J1),
-        endNodeId: String(IDS.J2),
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
         length: 10,
         diameter: 100,
         roughness: 1,
@@ -75,8 +75,8 @@ describe("build inp export ", () => {
       })
       .aPipe(IDS.P2, {
         label: "P_2",
-        startNodeId: String(IDS.J2),
-        endNodeId: String(IDS.R1),
+        startNodeId: IDS.J2,
+        endNodeId: IDS.R1,
         length: 20,
         diameter: 200,
         roughness: 2,
@@ -167,8 +167,8 @@ describe("build inp export ", () => {
       .aReservoir(IDS.R1, { label: "RES_1", coordinates: [20, 2] })
       .aPipe(IDS.P1, {
         label: "P_1",
-        startNodeId: String(IDS.J1),
-        endNodeId: String(IDS.R1),
+        startNodeId: IDS.J1,
+        endNodeId: IDS.R1,
         coordinates: [
           [10, 1],
           [30, 3],
@@ -212,8 +212,8 @@ describe("build inp export ", () => {
       })
       .aPipe(IDS.P1, {
         label: "SAME_LABEL",
-        startNodeId: String(IDS.J1),
-        endNodeId: String(IDS.J2),
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
         length: 10,
         diameter: 100,
         roughness: 1,
@@ -253,13 +253,13 @@ describe("build inp export ", () => {
       })
       .aPipe(IDS.P1, {
         label: "SAME_LABEL",
-        startNodeId: String(IDS.J1),
-        endNodeId: String(IDS.J2),
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
       })
       .aPipe(IDS.P2, {
         label: "SAME_LABEL",
-        startNodeId: String(IDS.J2),
-        endNodeId: String(IDS.J3),
+        startNodeId: IDS.J2,
+        endNodeId: IDS.J3,
       })
       .build();
 

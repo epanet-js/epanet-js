@@ -14,8 +14,8 @@ describe("addCustomerPoints", () => {
       .aJunction(IDS.J1, { coordinates: [0, 0] })
       .aJunction(IDS.J2, { coordinates: [10, 0] })
       .aPipe(IDS.P1, {
-        startNodeId: String(IDS.J1),
-        endNodeId: String(IDS.J2),
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
         coordinates: [
           [0, 0],
           [10, 0],
@@ -30,9 +30,9 @@ describe("addCustomerPoints", () => {
       demand: 25,
     });
     cp1.connect({
-      pipeId: String(IDS.P1),
+      pipeId: IDS.P1,
       snapPoint: [2, 0],
-      junctionId: String(IDS.J1),
+      junctionId: IDS.J1,
     });
 
     const cp2 = buildCustomerPoint(IDS.CP2, {
@@ -40,9 +40,9 @@ describe("addCustomerPoints", () => {
       demand: 50,
     });
     cp2.connect({
-      pipeId: String(IDS.P1),
+      pipeId: IDS.P1,
       snapPoint: [8, 0],
-      junctionId: String(IDS.J2),
+      junctionId: IDS.J2,
     });
 
     customerPointsToAdd.push(cp1);
@@ -55,9 +55,9 @@ describe("addCustomerPoints", () => {
     expect(updatedModel.customerPoints.has(String(IDS.CP2))).toBe(true);
 
     const j1CustomerPoints =
-      updatedModel.customerPointsLookup.getCustomerPoints(String(IDS.J1));
+      updatedModel.customerPointsLookup.getCustomerPoints(IDS.J1);
     const j2CustomerPoints =
-      updatedModel.customerPointsLookup.getCustomerPoints(String(IDS.J2));
+      updatedModel.customerPointsLookup.getCustomerPoints(IDS.J2);
 
     expect(Array.from(j1CustomerPoints)).toContain(cp1);
 
@@ -74,9 +74,9 @@ describe("addCustomerPoints", () => {
     const updatedModel = addCustomerPoints(hydraulicModel, customerPointsToAdd);
 
     expect(updatedModel.customerPoints.size).toBe(0);
-    expect(
-      updatedModel.customerPointsLookup.hasConnections(String(IDS.J1)),
-    ).toBe(false);
+    expect(updatedModel.customerPointsLookup.hasConnections(IDS.J1)).toBe(
+      false,
+    );
   });
 
   it("adds disconnected customer points to model but does not assign them to junctions", () => {
@@ -98,9 +98,9 @@ describe("addCustomerPoints", () => {
     expect(updatedModel.customerPoints.size).toBe(1);
     expect(updatedModel.customerPoints.has(String(IDS.CP1))).toBe(true);
 
-    expect(
-      updatedModel.customerPointsLookup.hasConnections(String(IDS.J1)),
-    ).toBe(false);
+    expect(updatedModel.customerPointsLookup.hasConnections(IDS.J1)).toBe(
+      false,
+    );
   });
 
   it("handles mixed connected and disconnected customer points", () => {
@@ -109,8 +109,8 @@ describe("addCustomerPoints", () => {
       .aJunction(IDS.J1, { coordinates: [0, 0] })
       .aJunction(IDS.J2, { coordinates: [10, 0] })
       .aPipe(IDS.P1, {
-        startNodeId: String(IDS.J1),
-        endNodeId: String(IDS.J2),
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
         coordinates: [
           [0, 0],
           [10, 0],
@@ -125,9 +125,9 @@ describe("addCustomerPoints", () => {
       demand: 25,
     });
     connectedCP.connect({
-      pipeId: String(IDS.P1),
+      pipeId: IDS.P1,
       snapPoint: [2, 0],
-      junctionId: String(IDS.J1),
+      junctionId: IDS.J1,
     });
 
     const disconnectedCP = buildCustomerPoint(IDS.CP2, {
@@ -145,7 +145,7 @@ describe("addCustomerPoints", () => {
     expect(updatedModel.customerPoints.has(String(IDS.CP2))).toBe(true);
 
     const j1CustomerPoints =
-      updatedModel.customerPointsLookup.getCustomerPoints(String(IDS.J1));
+      updatedModel.customerPointsLookup.getCustomerPoints(IDS.J1);
     expect(Array.from(j1CustomerPoints)).toContain(connectedCP);
     expect(Array.from(j1CustomerPoints)).not.toContain(disconnectedCP);
   });
@@ -164,9 +164,9 @@ describe("addCustomerPoints", () => {
     });
 
     cpWithInvalidJunction.connect({
-      pipeId: "P1",
+      pipeId: 999,
       snapPoint: [2, 0],
-      junctionId: "FAKE_J1",
+      junctionId: 998,
     });
 
     customerPointsToAdd.push(cpWithInvalidJunction);
@@ -176,9 +176,9 @@ describe("addCustomerPoints", () => {
     expect(updatedModel.customerPoints.size).toBe(1);
     expect(updatedModel.customerPoints.has(String(IDS.CP1))).toBe(true);
 
-    expect(
-      updatedModel.customerPointsLookup.hasConnections(String(IDS.J1)),
-    ).toBe(false);
+    expect(updatedModel.customerPointsLookup.hasConnections(IDS.J1)).toBe(
+      false,
+    );
   });
 
   it("handles multiple customer points assigned to the same junction", () => {
@@ -187,8 +187,8 @@ describe("addCustomerPoints", () => {
       .aJunction(IDS.J1, { coordinates: [0, 0] })
       .aJunction(IDS.J2, { coordinates: [10, 0] })
       .aPipe(IDS.P1, {
-        startNodeId: String(IDS.J1),
-        endNodeId: String(IDS.J2),
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
         coordinates: [
           [0, 0],
           [10, 0],
@@ -203,9 +203,9 @@ describe("addCustomerPoints", () => {
       demand: 25,
     });
     cp1.connect({
-      pipeId: String(IDS.P1),
+      pipeId: IDS.P1,
       snapPoint: [1, 0],
-      junctionId: String(IDS.J1),
+      junctionId: IDS.J1,
     });
 
     const cp2 = buildCustomerPoint(IDS.CP2, {
@@ -213,9 +213,9 @@ describe("addCustomerPoints", () => {
       demand: 30,
     });
     cp2.connect({
-      pipeId: String(IDS.P1),
+      pipeId: IDS.P1,
       snapPoint: [2, 0],
-      junctionId: String(IDS.J1),
+      junctionId: IDS.J1,
     });
 
     customerPointsToAdd.push(cp1);
@@ -226,7 +226,7 @@ describe("addCustomerPoints", () => {
     expect(updatedModel.customerPoints.size).toBe(2);
 
     const j1CustomerPoints =
-      updatedModel.customerPointsLookup.getCustomerPoints(String(IDS.J1));
+      updatedModel.customerPointsLookup.getCustomerPoints(IDS.J1);
     expect(Array.from(j1CustomerPoints)).toContain(cp1);
     expect(Array.from(j1CustomerPoints)).toContain(cp2);
 
@@ -251,23 +251,21 @@ describe("addCustomerPoints", () => {
       demand: 25,
     });
     cp1.connect({
-      pipeId: "P1",
+      pipeId: 999,
       snapPoint: [2, 0],
-      junctionId: String(IDS.J1),
+      junctionId: IDS.J1,
     });
     customerPointsToAdd.push(cp1);
 
     const updatedModel = addCustomerPoints(originalModel, customerPointsToAdd);
 
     expect(originalModel.customerPoints.size).toBe(0);
-    expect(
-      originalModel.customerPointsLookup.hasConnections(String(IDS.J1)),
-    ).toBe(false);
+    expect(originalModel.customerPointsLookup.hasConnections(IDS.J1)).toBe(
+      false,
+    );
 
     expect(updatedModel.customerPoints.size).toBe(1);
-    expect(
-      updatedModel.customerPointsLookup.hasConnections(String(IDS.J1)),
-    ).toBe(true);
+    expect(updatedModel.customerPointsLookup.hasConnections(IDS.J1)).toBe(true);
 
     expect(updatedModel).not.toBe(originalModel);
     expect(updatedModel.customerPoints).not.toBe(originalModel.customerPoints);
@@ -278,13 +276,13 @@ describe("addCustomerPoints", () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction(IDS.J1, { coordinates: [0, 0] })
       .aJunction(IDS.J2, { coordinates: [10, 0] })
-      .aPipe(IDS.P1, { startNodeId: String(IDS.J1), endNodeId: String(IDS.J2) })
+      .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
       .aCustomerPoint(IDS.EXISTING, {
         coordinates: [1, 1],
         demand: 10,
         connection: {
-          pipeId: String(IDS.P1),
-          junctionId: String(IDS.J1),
+          pipeId: IDS.P1,
+          junctionId: IDS.J1,
           snapPoint: [1, 0],
         },
       })
@@ -296,9 +294,9 @@ describe("addCustomerPoints", () => {
       demand: 25,
     });
     newCP.connect({
-      pipeId: String(IDS.P1),
+      pipeId: IDS.P1,
       snapPoint: [2, 0],
-      junctionId: String(IDS.J1),
+      junctionId: IDS.J1,
     });
     customerPointsToAdd.push(newCP);
 
@@ -306,7 +304,7 @@ describe("addCustomerPoints", () => {
     const updatedModel = addCustomerPoints(hydraulicModel, customerPointsToAdd);
 
     const j1CustomerPoints =
-      updatedModel.customerPointsLookup.getCustomerPoints(String(IDS.J1));
+      updatedModel.customerPointsLookup.getCustomerPoints(IDS.J1);
     expect(Array.from(j1CustomerPoints)).toContain(newCP);
     expect(Array.from(j1CustomerPoints)).toContain(existingCP);
   });
@@ -324,19 +322,19 @@ describe("addCustomerPoints", () => {
       demand: 25,
     });
     cp1.connect({
-      pipeId: "P1",
+      pipeId: 999,
       snapPoint: [2, 0],
-      junctionId: String(IDS.J1),
+      junctionId: IDS.J1,
     });
     customerPointsToAdd.push(cp1);
 
     const updatedModel = addCustomerPoints(hydraulicModel, customerPointsToAdd);
 
-    const updatedJ1 = updatedModel.assets.get(String(IDS.J1)) as Junction;
+    const updatedJ1 = updatedModel.assets.get(IDS.J1) as Junction;
     expect(updatedJ1.baseDemand).toBe(30);
 
     const j1CustomerPoints =
-      updatedModel.customerPointsLookup.getCustomerPoints(String(IDS.J1));
+      updatedModel.customerPointsLookup.getCustomerPoints(IDS.J1);
     const totalCustomerDemand = Array.from(j1CustomerPoints).reduce(
       (sum, cp) => sum + cp.baseDemand,
       0,
@@ -357,9 +355,9 @@ describe("addCustomerPoints", () => {
       demand: 35,
     });
     cp1.connect({
-      pipeId: "P1",
+      pipeId: 999,
       snapPoint: [2, 0],
-      junctionId: String(IDS.J1),
+      junctionId: IDS.J1,
     });
     customerPointsToAdd.push(cp1);
 
@@ -371,11 +369,11 @@ describe("addCustomerPoints", () => {
       },
     );
 
-    const updatedJ1 = updatedModel.assets.get(String(IDS.J1)) as Junction;
+    const updatedJ1 = updatedModel.assets.get(IDS.J1) as Junction;
     expect(updatedJ1.baseDemand).toBe(0);
 
     const j1CustomerPoints =
-      updatedModel.customerPointsLookup.getCustomerPoints(String(IDS.J1));
+      updatedModel.customerPointsLookup.getCustomerPoints(IDS.J1);
     const totalCustomerDemand = Array.from(j1CustomerPoints).reduce(
       (sum, cp) => sum + cp.baseDemand,
       0,
@@ -389,8 +387,8 @@ describe("addCustomerPoints", () => {
       .aJunction(IDS.J1, { coordinates: [0, 0] })
       .aJunction(IDS.J2, { coordinates: [10, 0] })
       .aPipe(IDS.P1, {
-        startNodeId: String(IDS.J1),
-        endNodeId: String(IDS.J2),
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
         coordinates: [
           [0, 0],
           [10, 0],
@@ -405,9 +403,9 @@ describe("addCustomerPoints", () => {
       demand: 25,
     });
     cp1.connect({
-      pipeId: String(IDS.P1),
+      pipeId: IDS.P1,
       snapPoint: [2, 0],
-      junctionId: String(IDS.J1),
+      junctionId: IDS.J1,
     });
 
     const cp2 = buildCustomerPoint(IDS.CP2, {
@@ -415,9 +413,9 @@ describe("addCustomerPoints", () => {
       demand: 50,
     });
     cp2.connect({
-      pipeId: String(IDS.P1),
+      pipeId: IDS.P1,
       snapPoint: [8, 0],
-      junctionId: String(IDS.J2),
+      junctionId: IDS.J2,
     });
 
     customerPointsToAdd.push(cp1);
@@ -428,7 +426,7 @@ describe("addCustomerPoints", () => {
     expect(updatedModel.customerPoints.size).toBe(2);
 
     const p1CustomerPoints =
-      updatedModel.customerPointsLookup.getCustomerPoints(String(IDS.P1));
+      updatedModel.customerPointsLookup.getCustomerPoints(IDS.P1);
     expect(Array.from(p1CustomerPoints)).toContain(cp1);
     expect(Array.from(p1CustomerPoints)).toContain(cp2);
   });
@@ -439,8 +437,8 @@ describe("addCustomerPoints", () => {
       .aJunction(IDS.J1, { coordinates: [0, 0] })
       .aJunction(IDS.J2, { coordinates: [10, 0] })
       .aPipe(IDS.P1, {
-        startNodeId: String(IDS.J1),
-        endNodeId: String(IDS.J2),
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
         coordinates: [
           [0, 0],
           [10, 0],
@@ -453,9 +451,9 @@ describe("addCustomerPoints", () => {
       demand: 100,
     });
     cp1.connect({
-      pipeId: String(IDS.P1),
+      pipeId: IDS.P1,
       snapPoint: [2, 0],
-      junctionId: String(IDS.J1),
+      junctionId: IDS.J1,
     });
 
     const cp2 = buildCustomerPoint(IDS.CP2, {
@@ -463,19 +461,19 @@ describe("addCustomerPoints", () => {
       demand: 150,
     });
     cp2.connect({
-      pipeId: String(IDS.P1),
+      pipeId: IDS.P1,
       snapPoint: [8, 0],
-      junctionId: String(IDS.J2),
+      junctionId: IDS.J2,
     });
 
     const updatedModel = addCustomerPoints(hydraulicModel, [cp1, cp2]);
 
     const j1CustomerPoints =
-      updatedModel.customerPointsLookup.getCustomerPoints(String(IDS.J1));
+      updatedModel.customerPointsLookup.getCustomerPoints(IDS.J1);
     const j2CustomerPoints =
-      updatedModel.customerPointsLookup.getCustomerPoints(String(IDS.J2));
+      updatedModel.customerPointsLookup.getCustomerPoints(IDS.J2);
     const p1CustomerPoints =
-      updatedModel.customerPointsLookup.getCustomerPoints(String(IDS.P1));
+      updatedModel.customerPointsLookup.getCustomerPoints(IDS.P1);
 
     expect(Array.from(j1CustomerPoints)).toHaveLength(1);
     expect(Array.from(j1CustomerPoints)[0]?.id).toBe(String(IDS.CP1));
@@ -502,13 +500,13 @@ describe("addCustomerPoints", () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction(IDS.J1, { coordinates: [0, 0] })
       .aJunction(IDS.J2, { coordinates: [10, 0] })
-      .aPipe(IDS.P1, { startNodeId: String(IDS.J1), endNodeId: String(IDS.J2) })
+      .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
       .aCustomerPoint(IDS.EXISTING1, {
         coordinates: [1, 1],
         demand: 10,
         connection: {
-          pipeId: String(IDS.P1),
-          junctionId: String(IDS.J1),
+          pipeId: IDS.P1,
+          junctionId: IDS.J1,
           snapPoint: [1, 0],
         },
       })
@@ -516,8 +514,8 @@ describe("addCustomerPoints", () => {
         coordinates: [9, 1],
         demand: 20,
         connection: {
-          pipeId: String(IDS.P1),
-          junctionId: String(IDS.J2),
+          pipeId: IDS.P1,
+          junctionId: IDS.J2,
           snapPoint: [9, 0],
         },
       })
@@ -530,9 +528,9 @@ describe("addCustomerPoints", () => {
       demand: 100,
     });
     newCP.connect({
-      pipeId: String(IDS.P1),
+      pipeId: IDS.P1,
       snapPoint: [5, 0],
-      junctionId: String(IDS.J1),
+      junctionId: IDS.J1,
     });
 
     const updatedModel = addCustomerPoints(hydraulicModel, [newCP], {
@@ -545,9 +543,9 @@ describe("addCustomerPoints", () => {
     expect(updatedModel.customerPoints.has(String(IDS.EXISTING2))).toBe(false);
 
     const j1CustomerPoints =
-      updatedModel.customerPointsLookup.getCustomerPoints(String(IDS.J1));
+      updatedModel.customerPointsLookup.getCustomerPoints(IDS.J1);
     const j2CustomerPoints =
-      updatedModel.customerPointsLookup.getCustomerPoints(String(IDS.J2));
+      updatedModel.customerPointsLookup.getCustomerPoints(IDS.J2);
 
     expect(Array.from(j1CustomerPoints)).toHaveLength(1);
     expect(Array.from(j1CustomerPoints)[0]?.id).toBe(String(IDS.NEW1));
@@ -559,13 +557,13 @@ describe("addCustomerPoints", () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction(IDS.J1, { coordinates: [0, 0] })
       .aJunction(IDS.J2, { coordinates: [10, 0] })
-      .aPipe(IDS.P1, { startNodeId: String(IDS.J1), endNodeId: String(IDS.J2) })
+      .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
       .aCustomerPoint(IDS.EXISTING, {
         coordinates: [1, 1],
         demand: 10,
         connection: {
-          pipeId: String(IDS.P1),
-          junctionId: String(IDS.J1),
+          pipeId: IDS.P1,
+          junctionId: IDS.J1,
           snapPoint: [1, 0],
         },
       })
@@ -576,9 +574,9 @@ describe("addCustomerPoints", () => {
       demand: 100,
     });
     newCP.connect({
-      pipeId: String(IDS.P1),
+      pipeId: IDS.P1,
       snapPoint: [5, 0],
-      junctionId: String(IDS.J2),
+      junctionId: IDS.J2,
     });
 
     const updatedModel = addCustomerPoints(hydraulicModel, [newCP], {
@@ -590,9 +588,9 @@ describe("addCustomerPoints", () => {
     expect(updatedModel.customerPoints.has(String(IDS.NEW1))).toBe(true);
 
     const j1CustomerPoints =
-      updatedModel.customerPointsLookup.getCustomerPoints(String(IDS.J1));
+      updatedModel.customerPointsLookup.getCustomerPoints(IDS.J1);
     const j2CustomerPoints =
-      updatedModel.customerPointsLookup.getCustomerPoints(String(IDS.J2));
+      updatedModel.customerPointsLookup.getCustomerPoints(IDS.J2);
 
     expect(Array.from(j1CustomerPoints)).toHaveLength(1);
     expect(Array.from(j2CustomerPoints)).toHaveLength(1);
@@ -603,29 +601,29 @@ describe("addCustomerPoints", () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction(IDS.J1, { coordinates: [0, 0] })
       .aJunction(IDS.J2, { coordinates: [10, 0] })
-      .aPipe(IDS.P1, { startNodeId: String(IDS.J1), endNodeId: String(IDS.J2) })
+      .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
       .aCustomerPoint(IDS.EXISTING, {
         coordinates: [1, 1],
         demand: 10,
         connection: {
-          pipeId: String(IDS.P1),
-          junctionId: String(IDS.J1),
+          pipeId: IDS.P1,
+          junctionId: IDS.J1,
           snapPoint: [1, 0],
         },
       })
       .build();
 
-    expect(
-      hydraulicModel.customerPointsLookup.hasConnections(String(IDS.J1)),
-    ).toBe(true);
+    expect(hydraulicModel.customerPointsLookup.hasConnections(IDS.J1)).toBe(
+      true,
+    );
 
     const updatedModel = addCustomerPoints(hydraulicModel, [], {
       overrideExisting: true,
     });
 
     expect(updatedModel.customerPoints.size).toBe(0);
-    expect(
-      updatedModel.customerPointsLookup.hasConnections(String(IDS.J1)),
-    ).toBe(false);
+    expect(updatedModel.customerPointsLookup.hasConnections(IDS.J1)).toBe(
+      false,
+    );
   });
 });

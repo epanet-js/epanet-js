@@ -14,7 +14,7 @@ describe("TopologyView", () => {
       } as const;
 
       const topology = new Topology();
-      topology.addLink(String(IDS.P1), String(IDS.J1), String(IDS.J2));
+      topology.addLink(IDS.P1, IDS.J1, IDS.J2);
 
       const assetIndex = new AssetIndex();
       assetIndex.addLink(IDS.P1);
@@ -26,8 +26,8 @@ describe("TopologyView", () => {
 
       const assetIndexEncoder = assetIndex.getEncoder("array");
       const assetIndexBuffer = assetIndexEncoder.encode(
-        () => assetIndex.iterateLinkInternalIds(),
-        () => assetIndex.iterateNodeInternalIds(),
+        () => assetIndex.iterateLinkAssetIds(),
+        () => assetIndex.iterateNodeAssetIds(),
       );
       const view = new TopologyView(
         topologyBuffers,
@@ -54,9 +54,9 @@ describe("TopologyView", () => {
       } as const;
 
       const topology = new Topology();
-      topology.addLink(String(IDS.P1), String(IDS.J1), String(IDS.J2));
-      topology.addLink(String(IDS.P2), String(IDS.J2), String(IDS.J3));
-      topology.addLink(String(IDS.P3), String(IDS.J1), String(IDS.J3));
+      topology.addLink(IDS.P1, IDS.J1, IDS.J2);
+      topology.addLink(IDS.P2, IDS.J2, IDS.J3);
+      topology.addLink(IDS.P3, IDS.J1, IDS.J3);
 
       const assetIndex = new AssetIndex();
       assetIndex.addLink(IDS.P1);
@@ -71,8 +71,8 @@ describe("TopologyView", () => {
 
       const assetIndexEncoder = assetIndex.getEncoder("array");
       const assetIndexBuffer = assetIndexEncoder.encode(
-        () => assetIndex.iterateLinkInternalIds(),
-        () => assetIndex.iterateNodeInternalIds(),
+        () => assetIndex.iterateLinkAssetIds(),
+        () => assetIndex.iterateNodeAssetIds(),
       );
       const view = new TopologyView(
         topologyBuffers,
@@ -105,8 +105,8 @@ describe("TopologyView", () => {
 
       const assetIndexEncoder = assetIndex.getEncoder("array");
       const assetIndexBuffer = assetIndexEncoder.encode(
-        () => assetIndex.iterateLinkInternalIds(),
-        () => assetIndex.iterateNodeInternalIds(),
+        () => assetIndex.iterateLinkAssetIds(),
+        () => assetIndex.iterateNodeAssetIds(),
       );
       const view = new TopologyView(
         topologyBuffers,
@@ -133,10 +133,10 @@ describe("TopologyView", () => {
       } as const;
 
       const topology = new Topology();
-      topology.addLink(String(IDS.P1), String(IDS.J1), String(IDS.CentralNode));
-      topology.addLink(String(IDS.P2), String(IDS.CentralNode), String(IDS.J2));
-      topology.addLink(String(IDS.P3), String(IDS.CentralNode), String(IDS.J3));
-      topology.addLink(String(IDS.P4), String(IDS.CentralNode), String(IDS.J4));
+      topology.addLink(IDS.P1, IDS.J1, IDS.CentralNode);
+      topology.addLink(IDS.P2, IDS.CentralNode, IDS.J2);
+      topology.addLink(IDS.P3, IDS.CentralNode, IDS.J3);
+      topology.addLink(IDS.P4, IDS.CentralNode, IDS.J4);
 
       const assetIndex = new AssetIndex();
       assetIndex.addLink(IDS.P1);
@@ -154,8 +154,8 @@ describe("TopologyView", () => {
 
       const assetIndexEncoder = assetIndex.getEncoder("array");
       const assetIndexBuffer = assetIndexEncoder.encode(
-        () => assetIndex.iterateLinkInternalIds(),
-        () => assetIndex.iterateNodeInternalIds(),
+        () => assetIndex.iterateLinkAssetIds(),
+        () => assetIndex.iterateNodeAssetIds(),
       );
       const view = new TopologyView(
         topologyBuffers,
@@ -181,7 +181,7 @@ describe("TopologyView", () => {
       } as const;
 
       const topology = new Topology();
-      topology.addLink(String(IDS.P1), String(IDS.J1), String(IDS.J2));
+      topology.addLink(IDS.P1, IDS.J1, IDS.J2);
 
       const assetIndex = new AssetIndex();
       assetIndex.addLink(IDS.P1);
@@ -201,8 +201,8 @@ describe("TopologyView", () => {
 
       const assetIndexEncoder = assetIndex.getEncoder("shared");
       const assetIndexBuffer = assetIndexEncoder.encode(
-        () => assetIndex.iterateLinkInternalIds(),
-        () => assetIndex.iterateNodeInternalIds(),
+        () => assetIndex.iterateLinkAssetIds(),
+        () => assetIndex.iterateNodeAssetIds(),
       );
       const view = new TopologyView(
         topologyBuffers,
@@ -224,8 +224,8 @@ describe("TopologyView", () => {
       } as const;
 
       const topology = new Topology();
-      topology.addLink(String(IDS.P1), String(IDS.J1), String(IDS.J2));
-      topology.addLink(String(IDS.P2), String(IDS.J2), String(IDS.J3));
+      topology.addLink(IDS.P1, IDS.J1, IDS.J2);
+      topology.addLink(IDS.P2, IDS.J2, IDS.J3);
 
       const assetIndex = new AssetIndex();
       assetIndex.addLink(IDS.P1);
@@ -236,11 +236,11 @@ describe("TopologyView", () => {
 
       const encoder = new TopologyEncoder(topology, assetIndex, "array");
 
-      for (const linkId of assetIndex.iterateLinkInternalIds()) {
+      for (const linkId of assetIndex.iterateLinkAssetIds()) {
         encoder.encodeLink(linkId);
       }
 
-      for (const nodeId of assetIndex.iterateNodeInternalIds()) {
+      for (const nodeId of assetIndex.iterateNodeAssetIds()) {
         encoder.encodeNode(nodeId);
       }
 
@@ -248,8 +248,8 @@ describe("TopologyView", () => {
 
       const assetIndexEncoder = assetIndex.getEncoder("array");
       const assetIndexBuffer = assetIndexEncoder.encode(
-        () => assetIndex.iterateLinkInternalIds(),
-        () => assetIndex.iterateNodeInternalIds(),
+        () => assetIndex.iterateLinkAssetIds(),
+        () => assetIndex.iterateNodeAssetIds(),
       );
       const view = new TopologyView(
         topologyBuffers,

@@ -15,15 +15,15 @@ describe("UMoment", () => {
   it("#merge", () => {
     const a = fMoment("This is the note");
     const b = fMoment("Second moment");
-    a.deleteAssets.push("yyyy");
-    b.deleteAssets.push("xxxx");
+    a.deleteAssets.push(1);
+    b.deleteAssets.push(2);
     const c = UMoment.merge(a, b);
-    expect(c).toHaveProperty("deleteAssets", ["yyyy", "xxxx"]);
+    expect(c).toHaveProperty("deleteAssets", [1, 2]);
   });
   it("#isEmpty", () => {
     expect(UMoment.isEmpty(fMoment("This is the note"))).toBeTruthy();
     const m = fMoment("This is the note");
-    m.deleteAssets.push("yyyy");
+    m.deleteAssets.push(1);
     expect(UMoment.isEmpty(m)).toBeFalsy();
   });
 });

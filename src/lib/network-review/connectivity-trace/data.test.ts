@@ -1,9 +1,22 @@
 import { decodeSubNetworks, EncodedSubNetwork } from "./data";
 
+const IDS = {
+  J1: 1,
+  J2: 2,
+  J3: 3,
+  J4: 4,
+  R1: 5,
+  T1: 6,
+  P1: 7,
+  P2: 8,
+  P3: 9,
+  P4: 10,
+} as const;
+
 describe("decodeSubNetworks", () => {
   it("correctly maps node indices to asset IDs", () => {
-    const nodeIdsLookup = ["J1", "J2", "J3", "R1"];
-    const linkIdsLookup = ["P1", "P2"];
+    const nodeIdsLookup = [IDS.J1, IDS.J2, IDS.J3, IDS.R1];
+    const linkIdsLookup = [IDS.P1, IDS.P2];
     const encodedSubNetworks: EncodedSubNetwork[] = [
       {
         subnetworkId: 0,
@@ -22,12 +35,12 @@ describe("decodeSubNetworks", () => {
     );
 
     expect(subnetworks).toHaveLength(1);
-    expect(subnetworks[0].nodeIds).toEqual(["J1", "J2", "J3"]);
+    expect(subnetworks[0].nodeIds).toEqual([IDS.J1, IDS.J2, IDS.J3]);
   });
 
   it("correctly maps link indices to asset IDs", () => {
-    const nodeIdsLookup = ["J1", "J2"];
-    const linkIdsLookup = ["P1", "P2", "P3"];
+    const nodeIdsLookup = [IDS.J1, IDS.J2];
+    const linkIdsLookup = [IDS.P1, IDS.P2, IDS.P3];
     const encodedSubNetworks: EncodedSubNetwork[] = [
       {
         subnetworkId: 0,
@@ -46,12 +59,12 @@ describe("decodeSubNetworks", () => {
     );
 
     expect(subnetworks).toHaveLength(1);
-    expect(subnetworks[0].linkIds).toEqual(["P1", "P3"]);
+    expect(subnetworks[0].linkIds).toEqual([IDS.P1, IDS.P3]);
   });
 
   it("preserves subnetworkId", () => {
-    const nodeIdsLookup = ["J1"];
-    const linkIdsLookup = ["P1"];
+    const nodeIdsLookup = [IDS.J1];
+    const linkIdsLookup = [IDS.P1];
     const encodedSubNetworks: EncodedSubNetwork[] = [
       {
         subnetworkId: 42,
@@ -74,8 +87,8 @@ describe("decodeSubNetworks", () => {
   });
 
   it("preserves supplySourceCount", () => {
-    const nodeIdsLookup = ["R1", "J1"];
-    const linkIdsLookup = ["P1"];
+    const nodeIdsLookup = [IDS.R1, IDS.J1];
+    const linkIdsLookup = [IDS.P1];
     const encodedSubNetworks: EncodedSubNetwork[] = [
       {
         subnetworkId: 0,
@@ -98,8 +111,8 @@ describe("decodeSubNetworks", () => {
   });
 
   it("preserves pipeCount", () => {
-    const nodeIdsLookup = ["J1"];
-    const linkIdsLookup = ["P1", "P2", "P3"];
+    const nodeIdsLookup = [IDS.J1];
+    const linkIdsLookup = [IDS.P1, IDS.P2, IDS.P3];
     const encodedSubNetworks: EncodedSubNetwork[] = [
       {
         subnetworkId: 0,
@@ -122,8 +135,8 @@ describe("decodeSubNetworks", () => {
   });
 
   it("preserves bounds array", () => {
-    const nodeIdsLookup = ["J1"];
-    const linkIdsLookup = ["P1"];
+    const nodeIdsLookup = [IDS.J1];
+    const linkIdsLookup = [IDS.P1];
     const encodedSubNetworks: EncodedSubNetwork[] = [
       {
         subnetworkId: 0,
@@ -151,8 +164,8 @@ describe("decodeSubNetworks", () => {
   });
 
   it("handles multiple subnetworks correctly", () => {
-    const nodeIdsLookup = ["J1", "J2", "J3", "J4", "R1", "T1"];
-    const linkIdsLookup = ["P1", "P2", "P3", "P4"];
+    const nodeIdsLookup = [IDS.J1, IDS.J2, IDS.J3, IDS.J4, IDS.R1, IDS.T1];
+    const linkIdsLookup = [IDS.P1, IDS.P2, IDS.P3, IDS.P4];
     const encodedSubNetworks: EncodedSubNetwork[] = [
       {
         subnetworkId: 0,
@@ -181,23 +194,23 @@ describe("decodeSubNetworks", () => {
     expect(subnetworks).toHaveLength(2);
 
     expect(subnetworks[0].subnetworkId).toBe(0);
-    expect(subnetworks[0].nodeIds).toEqual(["J1", "J2", "R1"]);
-    expect(subnetworks[0].linkIds).toEqual(["P1", "P2"]);
+    expect(subnetworks[0].nodeIds).toEqual([IDS.J1, IDS.J2, IDS.R1]);
+    expect(subnetworks[0].linkIds).toEqual([IDS.P1, IDS.P2]);
     expect(subnetworks[0].supplySourceCount).toBe(1);
     expect(subnetworks[0].pipeCount).toBe(2);
     expect(subnetworks[0].bounds).toEqual([0, 0, 10, 10]);
 
     expect(subnetworks[1].subnetworkId).toBe(1);
-    expect(subnetworks[1].nodeIds).toEqual(["J3", "J4", "T1"]);
-    expect(subnetworks[1].linkIds).toEqual(["P3", "P4"]);
+    expect(subnetworks[1].nodeIds).toEqual([IDS.J3, IDS.J4, IDS.T1]);
+    expect(subnetworks[1].linkIds).toEqual([IDS.P3, IDS.P4]);
     expect(subnetworks[1].supplySourceCount).toBe(1);
     expect(subnetworks[1].pipeCount).toBe(2);
     expect(subnetworks[1].bounds).toEqual([20, 20, 30, 30]);
   });
 
   it("handles empty subnetworks array", () => {
-    const nodeIdsLookup = ["J1"];
-    const linkIdsLookup = ["P1"];
+    const nodeIdsLookup = [IDS.J1];
+    const linkIdsLookup = [IDS.P1];
     const encodedSubNetworks: EncodedSubNetwork[] = [];
 
     const subnetworks = decodeSubNetworks(

@@ -294,7 +294,7 @@ describe("Parse inp", () => {
     } = parseInp(inp);
 
     expect(issues!.invalidCoordinates!.values()).toContain(String(IDS.J1));
-    expect(assets.get(String(IDS.J1))).toBeUndefined();
+    expect(assets.get(IDS.J1)).toBeUndefined();
   });
 
   it("says when vertices  are invalid", () => {

@@ -21,7 +21,7 @@ describe("findProximityAnomalies", () => {
     const model = HydraulicModelBuilder.with()
       .aJunction(IDS.J1, { coordinates: [0, 0] })
       .aJunction(IDS.J2, { coordinates: [0, 0.001] })
-      .aPipe(IDS.P1, { startNodeId: String(IDS.J1), endNodeId: String(IDS.J2) })
+      .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
       .aJunction(IDS.J3, { coordinates: [0.0001, 0.0005] })
       .build();
     const { nodeIdsLookup, linkIdsLookup, ...data } = encodeData(model);
@@ -36,18 +36,18 @@ describe("findProximityAnomalies", () => {
     const model = HydraulicModelBuilder.with()
       .aJunction(IDS.J1, { coordinates: [0, 0] })
       .aJunction(IDS.J2, { coordinates: [0, 0.001] })
-      .aPipe(IDS.P1, { startNodeId: String(IDS.J1), endNodeId: String(IDS.J2) })
+      .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
       .aJunction(IDS.J3, { coordinates: [0.0001, 0.0005] })
-      .aPipe(IDS.P2, { startNodeId: String(IDS.J2), endNodeId: String(IDS.J3) })
+      .aPipe(IDS.P2, { startNodeId: IDS.J2, endNodeId: IDS.J3 })
       .build();
     const { nodeIdsLookup, linkIdsLookup, ...data } = encodeData(model);
 
     const proximityAnomalies = findProximityAnomalies(data, 50);
 
     expect(proximityAnomalies).toHaveLength(1);
-    expect(nodeIdsLookup[proximityAnomalies[0].nodeId]).toEqual(String(IDS.J3));
+    expect(nodeIdsLookup[proximityAnomalies[0].nodeId]).toEqual(IDS.J3);
     expect(linkIdsLookup[proximityAnomalies[0].connection.pipeId]).toEqual(
-      String(IDS.P1),
+      IDS.P1,
     );
   });
 
@@ -56,7 +56,7 @@ describe("findProximityAnomalies", () => {
     const model = HydraulicModelBuilder.with()
       .aJunction(IDS.J1, { coordinates: [0, 0] })
       .aJunction(IDS.J2, { coordinates: [0, 0.001] })
-      .aPipe(IDS.P1, { startNodeId: String(IDS.J1), endNodeId: String(IDS.J2) })
+      .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
       .build();
     const { nodeIdsLookup, linkIdsLookup, ...data } = encodeData(model);
 
@@ -70,9 +70,9 @@ describe("findProximityAnomalies", () => {
     const model = HydraulicModelBuilder.with()
       .aJunction(IDS.J1, { coordinates: [0, 0] })
       .aJunction(IDS.J2, { coordinates: [0, 0.001] })
-      .aPipe(IDS.P1, { startNodeId: String(IDS.J1), endNodeId: String(IDS.J2) })
+      .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
       .aJunction(IDS.J3, { coordinates: [1, 1] })
-      .aPipe(IDS.P2, { startNodeId: String(IDS.J2), endNodeId: String(IDS.J3) })
+      .aPipe(IDS.P2, { startNodeId: IDS.J2, endNodeId: IDS.J3 })
       .build();
     const { nodeIdsLookup, linkIdsLookup, ...data } = encodeData(model);
 
@@ -86,10 +86,10 @@ describe("findProximityAnomalies", () => {
     const model = HydraulicModelBuilder.with()
       .aJunction(IDS.J1, { coordinates: [0, 0] })
       .aJunction(IDS.J2, { coordinates: [0, 0.002] })
-      .aPipe(IDS.P1, { startNodeId: String(IDS.J1), endNodeId: String(IDS.J2) })
+      .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
       .aJunction(IDS.J3, { coordinates: [0.0001, 0.0005] })
       .aJunction(IDS.J4, { coordinates: [0.0001, 0.0015] })
-      .aPipe(IDS.P2, { startNodeId: String(IDS.J3), endNodeId: String(IDS.J4) })
+      .aPipe(IDS.P2, { startNodeId: IDS.J3, endNodeId: IDS.J4 })
       .build();
     const { nodeIdsLookup, linkIdsLookup, ...data } = encodeData(model);
 
@@ -97,8 +97,8 @@ describe("findProximityAnomalies", () => {
 
     expect(proximityAnomalies).toHaveLength(2);
     const nodeIds = proximityAnomalies.map((pc) => nodeIdsLookup[pc.nodeId]);
-    expect(nodeIds).toContain(String(IDS.J3));
-    expect(nodeIds).toContain(String(IDS.J4));
+    expect(nodeIds).toContain(IDS.J3);
+    expect(nodeIds).toContain(IDS.J4);
   });
 
   it("chooses the nearest pipe when multiple pipes are candidates", () => {
@@ -115,21 +115,21 @@ describe("findProximityAnomalies", () => {
     const model = HydraulicModelBuilder.with()
       .aJunction(IDS.J1, { coordinates: [0, 0] })
       .aJunction(IDS.J2, { coordinates: [0, 0.001] })
-      .aPipe(IDS.P1, { startNodeId: String(IDS.J1), endNodeId: String(IDS.J2) })
+      .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
       .aJunction(IDS.J3, { coordinates: [0.001, 0] })
       .aJunction(IDS.J4, { coordinates: [0.001, 0.001] })
-      .aPipe(IDS.P2, { startNodeId: String(IDS.J3), endNodeId: String(IDS.J4) })
+      .aPipe(IDS.P2, { startNodeId: IDS.J3, endNodeId: IDS.J4 })
       .aJunction(IDS.J5, { coordinates: [0.0001, 0.0005] })
-      .aPipe(IDS.P3, { startNodeId: String(IDS.J2), endNodeId: String(IDS.J5) })
+      .aPipe(IDS.P3, { startNodeId: IDS.J2, endNodeId: IDS.J5 })
       .build();
     const { nodeIdsLookup, linkIdsLookup, ...data } = encodeData(model);
 
     const proximityAnomalies = findProximityAnomalies(data, 50);
 
     expect(proximityAnomalies).toHaveLength(1);
-    expect(nodeIdsLookup[proximityAnomalies[0].nodeId]).toEqual(String(IDS.J5));
+    expect(nodeIdsLookup[proximityAnomalies[0].nodeId]).toEqual(IDS.J5);
     expect(linkIdsLookup[proximityAnomalies[0].connection.pipeId]).toEqual(
-      String(IDS.P1),
+      IDS.P1,
     );
   });
 
@@ -138,9 +138,9 @@ describe("findProximityAnomalies", () => {
     const model = HydraulicModelBuilder.with()
       .aJunction(IDS.J1, { coordinates: [0, 0] })
       .aJunction(IDS.J2, { coordinates: [0, 0.001] })
-      .aPipe(IDS.P1, { startNodeId: String(IDS.J1), endNodeId: String(IDS.J2) })
+      .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
       .aJunction(IDS.J3, { coordinates: [0.00001, 0.00001] })
-      .aPipe(IDS.P2, { startNodeId: String(IDS.J1), endNodeId: String(IDS.J3) })
+      .aPipe(IDS.P2, { startNodeId: IDS.J1, endNodeId: IDS.J3 })
       .build();
     const { nodeIdsLookup, linkIdsLookup, ...data } = encodeData(model);
 
@@ -163,24 +163,24 @@ describe("findProximityAnomalies", () => {
     const model = HydraulicModelBuilder.with()
       .aJunction(IDS.J1, { coordinates: [0, 0] })
       .aJunction(IDS.J2, { coordinates: [0, 0.001] })
-      .aPipe(IDS.P1, { startNodeId: String(IDS.J1), endNodeId: String(IDS.J2) })
+      .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
       .aTank(IDS.T1, { coordinates: [0.005, 0.0005] })
       .aJunction(IDS.J3, { coordinates: [0.005, 0] })
       .aValve(IDS.V1, {
-        startNodeId: String(IDS.T1),
-        endNodeId: String(IDS.J3),
+        startNodeId: IDS.T1,
+        endNodeId: IDS.J3,
       })
       .aJunction(IDS.J4, { coordinates: [0.0001, 0.0005] })
-      .aPipe(IDS.P2, { startNodeId: String(IDS.J3), endNodeId: String(IDS.J4) })
+      .aPipe(IDS.P2, { startNodeId: IDS.J3, endNodeId: IDS.J4 })
       .build();
     const { nodeIdsLookup, linkIdsLookup, ...data } = encodeData(model);
 
     const proximityAnomalies = findProximityAnomalies(data, 50);
 
     expect(proximityAnomalies).toHaveLength(1);
-    expect(nodeIdsLookup[proximityAnomalies[0].nodeId]).toEqual(String(IDS.J4));
+    expect(nodeIdsLookup[proximityAnomalies[0].nodeId]).toEqual(IDS.J4);
     expect(linkIdsLookup[proximityAnomalies[0].connection.pipeId]).toEqual(
-      String(IDS.P1),
+      IDS.P1,
     );
   });
 });

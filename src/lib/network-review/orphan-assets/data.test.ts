@@ -28,20 +28,8 @@ describe("decodeOrphanAssets", () => {
       .aReservoir(IDS.R2, { label: "R2" })
       .aReservoir(IDS.R1, { label: "R1" })
       .build();
-    const nodeIdsLookup = [
-      String(IDS.J2),
-      String(IDS.J1),
-      String(IDS.T2),
-      String(IDS.T1),
-      String(IDS.R2),
-      String(IDS.R1),
-    ];
-    const linkIdsLookup = [
-      String(IDS.PM2),
-      String(IDS.PM1),
-      String(IDS.V2),
-      String(IDS.V1),
-    ];
+    const nodeIdsLookup = [IDS.J2, IDS.J1, IDS.T2, IDS.T1, IDS.R2, IDS.R1];
+    const linkIdsLookup = [IDS.PM2, IDS.PM1, IDS.V2, IDS.V1];
     const rawOrphanAssets = {
       orphanNodes: [0, 1, 2, 3, 4, 5],
       orphanLinks: [0, 1, 2, 3],

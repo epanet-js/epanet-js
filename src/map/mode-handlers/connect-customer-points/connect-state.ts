@@ -26,7 +26,7 @@ export const useConnectCustomerPointsState = () => {
 
   const setConnectState = (state: {
     customerPoints: CustomerPoint[];
-    targetPipeId?: string;
+    targetPipeId?: number;
     snapPoints: Position[];
     strategy: "nearest-to-point" | "cursor";
   }) => {

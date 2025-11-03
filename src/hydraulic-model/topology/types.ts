@@ -1,11 +1,11 @@
-import { InternalId } from "../asset-types/base-asset";
+import { AssetId } from "../asset-types/base-asset";
 import { BinaryData, BufferWithIndex } from "src/lib/buffers";
 
 export interface TopologyBaseQueries {
-  hasLink(linkId: InternalId): boolean;
-  hasNode(nodeId: InternalId): boolean;
-  getLinks(nodeId: InternalId): InternalId[];
-  getNodes(linkId: InternalId): [InternalId, InternalId];
+  hasLink(linkId: AssetId): boolean;
+  hasNode(nodeId: AssetId): boolean;
+  getLinks(nodeId: AssetId): AssetId[];
+  getNodes(linkId: AssetId): [AssetId, AssetId];
 }
 
 export interface TopologyBuffers {
