@@ -12,7 +12,6 @@ import {
   Button,
   DefaultErrorBoundary,
   Loading,
-  OldStyledDialogContent,
   StyledDialogContent,
   StyledDialogOverlay,
 } from "src/components/elements";
@@ -22,7 +21,6 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { useSetAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog";
 import { CloseIcon, RefreshIcon } from "src/icons";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 type SlottableIcon =
   | React.FC<React.ComponentProps<"svg">>
@@ -50,69 +48,6 @@ export const LoadingDialog = () => {
   );
 };
 
-export const OldDialogContainer = ({
-  size = "sm",
-  fillMode = "full",
-  children,
-  disableOutsideClick = false,
-}: {
-  size?: "sm" | "xs" | "md" | "lg" | "xl" | "fullscreen";
-  fillMode?: "full" | "auto";
-  children: React.ReactNode;
-  disableOutsideClick?: boolean;
-}) => {
-  const { closeDialog } = useDialogState();
-
-  return (
-    <Dialog.Root
-      open={!!children}
-      onOpenChange={(isOpen) => {
-        if (!isOpen) {
-          closeDialog();
-        }
-      }}
-    >
-      {/** Weird as hell shit here. Without this trigger, radix will
-      return focus to the body element, which will not receive events. */}
-      <Dialog.Trigger className="hidden">
-        <div className="hidden"></div>
-      </Dialog.Trigger>
-      <Dialog.Portal>
-        <StyledDialogOverlay />
-        <Suspense fallback={<Loading />}>
-          {/**radix complains if no title, so at least having an empty one helps**/}
-          <Dialog.Title></Dialog.Title>
-          {/**radix complains if no description, so at least having an empty one helps**/}
-          <Dialog.Description></Dialog.Description>
-          <OldStyledDialogContent
-            widthClasses=""
-            onEscapeKeyDown={(e) => {
-              closeDialog();
-              e.preventDefault();
-              e.stopPropagation();
-            }}
-            onInteractOutside={(e) => {
-              const target = e.target as HTMLElement;
-              if (target.closest("[data-privacy-banner]")) {
-                e.preventDefault();
-                return;
-              }
-              if (disableOutsideClick) {
-                e.preventDefault();
-              }
-            }}
-            onOpenAutoFocus={(e) => e.preventDefault()}
-            size={size}
-            fillMode={fillMode}
-          >
-            <DefaultErrorBoundary>{children}</DefaultErrorBoundary>
-          </OldStyledDialogContent>
-        </Suspense>
-      </Dialog.Portal>
-    </Dialog.Root>
-  );
-};
-
 export const DialogContainer = ({
   size = "sm",
   height,
@@ -127,7 +62,6 @@ export const DialogContainer = ({
   disableOutsideClick?: boolean;
 }) => {
   const { closeDialog } = useDialogState();
-  const isModalLayoutEnabled = useFeatureFlag("FLAG_MODAL_LAYOUT");
 
   return (
     <Dialog.Root
@@ -171,7 +105,6 @@ export const DialogContainer = ({
             size={size}
             height={height}
             fillMode={fillMode}
-            isModalLayoutEnabled={isModalLayoutEnabled}
           >
             <DefaultErrorBoundary>{children}</DefaultErrorBoundary>
           </StyledDialogContent>

@@ -275,45 +275,6 @@ export const StyledAlertDialogOverlay = classed(AlertDialog.Overlay)(
 );
 export const StyledDialogOverlay = classed(Dialog.Overlay)(overlayClasses);
 
-export const oldStyledDialogContent = ({
-  size,
-  widthClasses,
-  fillMode = "auto",
-}: {
-  size?: B3Size | "fullscreen";
-  fillMode?: "full" | "auto";
-  widthClasses?: string;
-}) =>
-  clsx(
-    `
-      fixed z-40
-      overflow-y-auto
-      p-6 sm:p-8
-      text-left
-      bg-white dark:bg-gray-900
-      dark:text-white
-      shadow-md dark:shadow-none dark:border dark:border-black
-    `,
-    fillMode === "full" || size === "xl" || size === "fullscreen"
-      ? "flex flex-col"
-      : "",
-    { "w-full": fillMode === "full", "w-full sm:w-auto": fillMode === "auto" },
-    {
-      "sm:max-w-[360px]": size === "xs",
-      "sm:max-w-screen-sm": size === "sm" && !widthClasses,
-      "max-w-full md:max-w-screen-md lg:max-w-screen-md": size === "md",
-      "max-w-full lg:max-w-screen-lg xl:max-w-screen-lg": size === "lg",
-      "max-w-full xl:max-w-screen-xl 2xl:max-w-screen-xl": size === "xl",
-      "inset-0 h-100dvh w-screen": size === "fullscreen",
-    },
-    size === "fullscreen"
-      ? ""
-      : size === "xl"
-        ? "sm:h-[90vh] sm:left-2/4 sm:top-2/4 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded sm:align-middle"
-        : "max-h-[100vh] inset-0 sm:inset-auto sm:left-2/4 sm:top-2/4 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded sm:align-middle",
-    size !== "fullscreen" && widthClasses ? widthClasses : "",
-  );
-
 export const styledDialogContent = ({
   size,
   height,
@@ -324,7 +285,6 @@ export const styledDialogContent = ({
   height?: "sm" | "xs" | "md" | "lg" | "xl" | "fullscreen";
   fillMode?: "full" | "auto";
   widthClasses?: string;
-  isModalLayoutEnabled: boolean;
 }) => {
   return clsx(
     `
@@ -381,9 +341,6 @@ const customWelcomeDialogContent = () => {
   );
 };
 
-export const OldStyledDialogContent = classed(Dialog.Content)(
-  oldStyledDialogContent,
-);
 export const StyledDialogContent = classed(Dialog.Content)(styledDialogContent);
 export const WelcomeDialogContent = classed(Dialog.Content)(
   customWelcomeDialogContent,

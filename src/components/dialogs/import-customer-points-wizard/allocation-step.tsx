@@ -17,7 +17,6 @@ import { notify } from "src/components/notifications";
 import { usePersistence } from "src/lib/persistence/context";
 import { Button } from "src/components/elements";
 import { SuccessIcon, WarningIcon } from "src/icons";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export const AllocationStep: React.FC<{
   onBack: () => void;
@@ -289,17 +288,10 @@ export const AllocationStep: React.FC<{
                 ),
           },
   };
-  const isModalLayoutEnabled = useFeatureFlag("FLAG_MODAL_LAYOUT");
 
   return (
     <>
-      <div
-        className={
-          isModalLayoutEnabled
-            ? "overflow-y-auto flex-grow space-y-4"
-            : "space-y-6"
-        }
-      >
+      <div className="overflow-y-auto flex-grow space-y-4">
         <div>
           <h2 className="text-lg font-semibold mb-2">
             {translate("importCustomerPoints.wizard.allocationStep.title")}

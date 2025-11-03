@@ -26,7 +26,6 @@ import { WizardActions as WizardActionsComponent } from "src/components/wizard";
 import { convertTo } from "src/quantity";
 import { ChevronDownIcon, ChevronRightIcon } from "src/icons";
 import { Selector } from "src/components/form/selector";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 type TabType = "customerPoints" | "issues";
 
@@ -203,33 +202,17 @@ export const DataMappingStep: React.FC<{
     isLoading ||
     !selectedDemandProperty ||
     (parsedDataSummary ? validCount === 0 : false);
-  const isModalLayoutEnabled = useFeatureFlag("FLAG_MODAL_LAYOUT");
 
   return (
     <>
-      <div
-        className={
-          isModalLayoutEnabled
-            ? "overflow-y-auto flex-grow space-y-2"
-            : "space-y-4"
-        }
-      >
+      <div className="overflow-y-auto flex-grow space-y-2">
         <h2 className="text-lg font-semibold">
           {translate("importCustomerPoints.wizard.dataMapping.title")}
         </h2>
 
         {showAttributesMapping && (
-          <div className={isModalLayoutEnabled ? "space-y-2" : "space-y-8"}>
+          <div className="space-y-2">
             <div>
-              {isModalLayoutEnabled ? (
-                ""
-              ) : (
-                <h3 className="text-md font-medium text-gray-900 mb-3">
-                  {translate(
-                    "importCustomerPoints.wizard.dataMapping.attributesMapping.title",
-                  )}
-                </h3>
-              )}
               <p className="text-sm text-gray-600 mb-4">
                 {translate(
                   "importCustomerPoints.wizard.dataMapping.attributesMapping.description",
@@ -318,13 +301,7 @@ export const DataMappingStep: React.FC<{
 
             {showDataPreview && (
               <div>
-                <h4
-                  className={
-                    isModalLayoutEnabled
-                      ? "text-md font-medium text-gray-900"
-                      : "text-md font-medium text-gray-900 mb-2"
-                  }
-                >
+                <h4 className="text-md font-medium text-gray-900">
                   {translate(
                     "importCustomerPoints.wizard.dataMapping.dataPreview.title",
                   )}
@@ -334,13 +311,7 @@ export const DataMappingStep: React.FC<{
 
             {selectedDemandProperty && !parsedDataSummary && !showLoading && (
               <div>
-                <h4
-                  className={
-                    isModalLayoutEnabled
-                      ? "text-md font-medium text-gray-900"
-                      : "text-md font-medium text-gray-900 mb-2"
-                  }
-                >
+                <h4 className="text-md font-medium text-gray-900">
                   {translate(
                     "importCustomerPoints.wizard.dataMapping.dataPreview.title",
                   )}
@@ -370,13 +341,7 @@ export const DataMappingStep: React.FC<{
         )}
 
         {showDataPreview && (
-          <div
-            className={
-              isModalLayoutEnabled
-                ? "border border-gray-200 rounded-lg"
-                : "border border-gray-200 rounded-lg overflow-hidden"
-            }
-          >
+          <div className="border border-gray-200 rounded-lg">
             <div className="flex border-b border-gray-200">
               <button
                 className={`px-4 py-2 text-sm font-medium transition-colors ${
@@ -407,13 +372,7 @@ export const DataMappingStep: React.FC<{
               </button>
             </div>
 
-            <div
-              className={
-                isModalLayoutEnabled
-                  ? "overflow-y-auto"
-                  : "h-80 overflow-y-auto"
-              }
-            >
+            <div className="overflow-y-auto">
               {activeTab === "customerPoints" && (
                 <div className="p-4">
                   <CustomerPointsTable

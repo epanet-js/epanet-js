@@ -1,5 +1,4 @@
 import React from "react";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 interface WizardContentProps {
   children: React.ReactNode;
@@ -10,14 +9,11 @@ export const WizardContent: React.FC<WizardContentProps> = ({
   children,
   minHeight = "300px",
 }) => {
-  const isModalLayoutEnabled = useFeatureFlag("FLAG_MODAL_LAYOUT");
-  return isModalLayoutEnabled ? (
+  return (
     <div
       className={`flex flex-col flex-grow min-h-[${minHeight}] overflow-hidden`}
     >
       {children}
     </div>
-  ) : (
-    <div className={`min-h-[${minHeight}]`}>{children}</div>
   );
 };

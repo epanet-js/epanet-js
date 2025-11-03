@@ -16,7 +16,6 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { SimulationSettingsDialog } from "./dialogs/simulation-settings";
 import { LoadingDialog } from "./dialog";
 import { WelcomeDialog } from "./dialogs/welcome";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 const OpenInpDialog = dynamic<{
   modal: dialogState.OpenInpDialogState;
@@ -222,7 +221,6 @@ export const Dialogs = memo(function Dialogs() {
   }, [setDialogState]);
 
   const previousDialog = useRef<dialogState.DialogState>(null);
-  const isModalLayoutEnabled = useFeatureFlag("FLAG_MODAL_LAYOUT");
 
   if (dialog === null) return null;
 
@@ -361,7 +359,6 @@ export const Dialogs = memo(function Dialogs() {
               }}
               onOpenAutoFocus={(e) => e.preventDefault()}
               size={"sm"}
-              isModalLayoutEnabled={isModalLayoutEnabled}
             >
               <DefaultErrorBoundary>{content}</DefaultErrorBoundary>
             </StyledDialogContent>

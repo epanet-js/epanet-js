@@ -1,6 +1,5 @@
 import React from "react";
 import { Button } from "src/components/elements";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useTranslate } from "src/hooks/use-translate";
 import {
   CheckIcon,
@@ -28,17 +27,12 @@ export const WizardActions: React.FC<WizardActionsProps> = ({
   finishAction,
 }) => {
   const translate = useTranslate();
-  const isModalLayoutEnabled = useFeatureFlag("FLAG_MODAL_LAYOUT");
 
   return (
     <div
       role="navigation"
       aria-label="wizard actions"
-      className={
-        isModalLayoutEnabled
-          ? "flex justify-between items-center flex-shrink-0 pt-4 border-t border-gray-200"
-          : "flex justify-between items-center mt-6 pt-4 border-t border-gray-200"
-      }
+      className="flex justify-between items-center flex-shrink-0 pt-4 mt-4 border-t border-gray-200"
     >
       <div className="flex space-x-3">
         {backAction && (

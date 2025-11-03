@@ -1,7 +1,6 @@
 import React from "react";
 import { WizardStepIndicator, type Step } from "./wizard-step-indicator";
 import { CloseIcon } from "src/icons";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 interface WizardHeaderProps {
   title: string;
@@ -18,10 +17,8 @@ export const WizardHeader: React.FC<WizardHeaderProps> = ({
   onClose,
   badge,
 }) => {
-  const isModalLayoutEnabled = useFeatureFlag("FLAG_MODAL_LAYOUT");
-
   return (
-    <div className={isModalLayoutEnabled ? "mb-2" : "mb-6"}>
+    <div className="mb-2">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <h1 className="text-xl font-semibold text-gray-900">{title}</h1>
