@@ -8,7 +8,7 @@ describe("CustomerPoint", () => {
       demand: 100,
     });
 
-    expect(customerPoint.id).toBe(String(IDS.CP5));
+    expect(customerPoint.id).toBe(IDS.CP5);
     expect(customerPoint.coordinates).toEqual([10, 20]);
     expect(customerPoint.baseDemand).toBe(100);
   });
@@ -19,7 +19,7 @@ describe("CustomerPoint", () => {
       coordinates: [10, 20],
     });
 
-    expect(customerPoint.id).toBe(String(IDS.CP1));
+    expect(customerPoint.id).toBe(IDS.CP1);
     expect(customerPoint.coordinates).toEqual([10, 20]);
     expect(customerPoint.baseDemand).toBe(0);
   });

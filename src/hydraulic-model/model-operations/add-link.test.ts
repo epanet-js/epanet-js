@@ -644,12 +644,8 @@ describe("addLink", () => {
       expect(putCustomerPoints).toBeDefined();
       expect(putCustomerPoints).toHaveLength(2);
 
-      const cp1Reconnected = putCustomerPoints!.find(
-        (cp) => cp.id === String(IDS.CP1),
-      );
-      const cp2Reconnected = putCustomerPoints!.find(
-        (cp) => cp.id === String(IDS.CP2),
-      );
+      const cp1Reconnected = putCustomerPoints!.find((cp) => cp.id === IDS.CP1);
+      const cp2Reconnected = putCustomerPoints!.find((cp) => cp.id === IDS.CP2);
 
       expect(cp1Reconnected?.baseDemand).toBe(60);
       expect(cp2Reconnected?.baseDemand).toBe(80);

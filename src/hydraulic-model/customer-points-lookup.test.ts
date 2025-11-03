@@ -4,16 +4,16 @@ import { CustomerPoint } from "./customer-points";
 
 describe("CustomerPointsLookup", () => {
   it("provides customer points connected to an asset", () => {
-    const IDS = { P1: 1, J1: 2, J2: 3 } as const;
+    const IDS = { P1: 1, J1: 2, J2: 3, CP1: 4, CP2: 5 } as const;
     const lookup = new CustomerPointsLookup();
 
-    const cp1 = new CustomerPoint("cp1", [0, 0], {
+    const cp1 = new CustomerPoint(IDS.CP1, [0, 0], {
       baseDemand: 10,
       label: "cp1",
     });
     cp1.connect({ pipeId: IDS.P1, snapPoint: [1, 1], junctionId: IDS.J1 });
 
-    const cp2 = new CustomerPoint("cp2", [0, 0], {
+    const cp2 = new CustomerPoint(IDS.CP2, [0, 0], {
       baseDemand: 20,
       label: "cp2",
     });
@@ -28,16 +28,16 @@ describe("CustomerPointsLookup", () => {
   });
 
   it("removes customer points when removing connections", () => {
-    const IDS = { P1: 1, J1: 2 } as const;
+    const IDS = { P1: 1, J1: 2, CP1: 3, CP2: 4 } as const;
     const lookup = new CustomerPointsLookup();
 
-    const cp1 = new CustomerPoint("cp1", [0, 0], {
+    const cp1 = new CustomerPoint(IDS.CP1, [0, 0], {
       baseDemand: 10,
       label: "cp1",
     });
     cp1.connect({ pipeId: IDS.P1, snapPoint: [1, 1], junctionId: IDS.J1 });
 
-    const cp2 = new CustomerPoint("cp2", [0, 0], {
+    const cp2 = new CustomerPoint(IDS.CP2, [0, 0], {
       baseDemand: 20,
       label: "cp2",
     });
@@ -53,16 +53,16 @@ describe("CustomerPointsLookup", () => {
   });
 
   it("does not crash when removing missing customer point", () => {
-    const IDS = { P1: 1, J1: 2, P2: 3, J2: 4 } as const;
+    const IDS = { P1: 1, J1: 2, P2: 3, J2: 4, CP1: 5, CP2: 6 } as const;
     const lookup = new CustomerPointsLookup();
 
-    const cp1 = new CustomerPoint("cp1", [0, 0], {
+    const cp1 = new CustomerPoint(IDS.CP1, [0, 0], {
       baseDemand: 10,
       label: "cp1",
     });
     cp1.connect({ pipeId: IDS.P1, snapPoint: [1, 1], junctionId: IDS.J1 });
 
-    const cp2 = new CustomerPoint("cp2", [0, 0], {
+    const cp2 = new CustomerPoint(IDS.CP2, [0, 0], {
       baseDemand: 20,
       label: "cp2",
     });
@@ -76,16 +76,16 @@ describe("CustomerPointsLookup", () => {
   });
 
   it("allows multiple customer points on same pipe and junction", () => {
-    const IDS = { P1: 1, J1: 2 } as const;
+    const IDS = { P1: 1, J1: 2, CP1: 3, CP2: 4 } as const;
     const lookup = new CustomerPointsLookup();
 
-    const cp1 = new CustomerPoint("cp1", [0, 0], {
+    const cp1 = new CustomerPoint(IDS.CP1, [0, 0], {
       baseDemand: 10,
       label: "cp1",
     });
     cp1.connect({ pipeId: IDS.P1, snapPoint: [1, 1], junctionId: IDS.J1 });
 
-    const cp2 = new CustomerPoint("cp2", [0, 0], {
+    const cp2 = new CustomerPoint(IDS.CP2, [0, 0], {
       baseDemand: 20,
       label: "cp2",
     });
@@ -99,10 +99,10 @@ describe("CustomerPointsLookup", () => {
   });
 
   it("handles customer points with no connections", () => {
-    const IDS = { P1: 1 } as const;
+    const IDS = { P1: 1, CP1: 2 } as const;
     const lookup = new CustomerPointsLookup();
 
-    const cp1 = new CustomerPoint("cp1", [0, 0], {
+    const cp1 = new CustomerPoint(IDS.CP1, [0, 0], {
       baseDemand: 10,
       label: "cp1",
     });
@@ -114,10 +114,10 @@ describe("CustomerPointsLookup", () => {
   });
 
   it("cleans up empty sets when removing last customer point", () => {
-    const IDS = { P1: 1, J1: 2 } as const;
+    const IDS = { P1: 1, J1: 2, CP1: 3 } as const;
     const lookup = new CustomerPointsLookup();
 
-    const cp1 = new CustomerPoint("cp1", [0, 0], {
+    const cp1 = new CustomerPoint(IDS.CP1, [0, 0], {
       baseDemand: 10,
       label: "cp1",
     });
@@ -133,10 +133,10 @@ describe("CustomerPointsLookup", () => {
   });
 
   it("can clear all connections", () => {
-    const IDS = { P1: 1, J1: 2 } as const;
+    const IDS = { P1: 1, J1: 2, CP1: 3 } as const;
     const lookup = new CustomerPointsLookup();
 
-    const cp1 = new CustomerPoint("cp1", [0, 0], {
+    const cp1 = new CustomerPoint(IDS.CP1, [0, 0], {
       baseDemand: 10,
       label: "cp1",
     });

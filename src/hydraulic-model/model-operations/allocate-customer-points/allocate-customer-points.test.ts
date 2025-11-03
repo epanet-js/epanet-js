@@ -26,14 +26,14 @@ describe("allocateCustomerPoints", () => {
 
     const customerPoints: CustomerPoints = new Map([
       [
-        String(IDS.CP1),
+        IDS.CP1,
         buildCustomerPoint(IDS.CP1, {
           coordinates: [-95.4084, 29.7019],
           demand: 50,
         }),
       ],
       [
-        String(IDS.CP2),
+        IDS.CP2,
         buildCustomerPoint(IDS.CP2, {
           coordinates: [-95.4082, 29.7018],
           demand: 30,
@@ -54,7 +54,7 @@ describe("allocateCustomerPoints", () => {
     expect(result.disconnectedCustomerPoints.size).toBe(0);
     expect(result.ruleMatches).toEqual([2]);
 
-    const allocatedCP1 = result.allocatedCustomerPoints.get(String(IDS.CP1));
+    const allocatedCP1 = result.allocatedCustomerPoints.get(IDS.CP1);
     expect(allocatedCP1?.connection?.pipeId).toBe(IDS.P1);
     expect(allocatedCP1?.connection?.junctionId).toBe(IDS.J1);
   });
@@ -77,7 +77,7 @@ describe("allocateCustomerPoints", () => {
 
     const customerPoints: CustomerPoints = new Map([
       [
-        String(IDS.CP1),
+        IDS.CP1,
         buildCustomerPoint(IDS.CP1, { coordinates: [-95.4084, 29.7019] }),
       ],
     ]);
@@ -115,13 +115,10 @@ describe("allocateCustomerPoints", () => {
 
     const customerPoints: CustomerPoints = new Map([
       [
-        String(IDS.CP1),
+        IDS.CP1,
         buildCustomerPoint(IDS.CP1, { coordinates: [-95.4084, 29.7019] }),
       ],
-      [
-        String(IDS.CP2),
-        buildCustomerPoint(IDS.CP2, { coordinates: [-95.4, 29.8] }),
-      ],
+      [IDS.CP2, buildCustomerPoint(IDS.CP2, { coordinates: [-95.4, 29.8] })],
     ]);
 
     const allocationRules: AllocationRule[] = [
@@ -134,10 +131,10 @@ describe("allocateCustomerPoints", () => {
     });
 
     expect(result.allocatedCustomerPoints.size).toBe(1);
-    expect(result.allocatedCustomerPoints.has(String(IDS.CP1))).toBe(true);
-    expect(result.allocatedCustomerPoints.has(String(IDS.CP2))).toBe(false);
+    expect(result.allocatedCustomerPoints.has(IDS.CP1)).toBe(true);
+    expect(result.allocatedCustomerPoints.has(IDS.CP2)).toBe(false);
     expect(result.disconnectedCustomerPoints.size).toBe(1);
-    expect(result.disconnectedCustomerPoints.has(String(IDS.CP2))).toBe(true);
+    expect(result.disconnectedCustomerPoints.has(IDS.CP2)).toBe(true);
     expect(result.ruleMatches).toEqual([1]);
   });
 
@@ -179,11 +176,11 @@ describe("allocateCustomerPoints", () => {
 
     const customerPoints: CustomerPoints = new Map([
       [
-        String(IDS.CP1),
+        IDS.CP1,
         buildCustomerPoint(IDS.CP1, { coordinates: [-95.4084, 29.7019] }),
       ],
       [
-        String(IDS.CP2),
+        IDS.CP2,
         buildCustomerPoint(IDS.CP2, { coordinates: [-95.4084, 29.7109] }),
       ],
     ]);
@@ -198,11 +195,11 @@ describe("allocateCustomerPoints", () => {
     });
 
     expect(result.allocatedCustomerPoints.size).toBe(1);
-    const allocatedCP1 = result.allocatedCustomerPoints.get(String(IDS.CP1));
+    const allocatedCP1 = result.allocatedCustomerPoints.get(IDS.CP1);
     expect(allocatedCP1?.connection?.pipeId).toBe(IDS.P1);
-    expect(result.allocatedCustomerPoints.has(String(IDS.CP2))).toBe(false);
+    expect(result.allocatedCustomerPoints.has(IDS.CP2)).toBe(false);
     expect(result.disconnectedCustomerPoints.size).toBe(1);
-    expect(result.disconnectedCustomerPoints.has(String(IDS.CP2))).toBe(true);
+    expect(result.disconnectedCustomerPoints.has(IDS.CP2)).toBe(true);
     expect(result.ruleMatches).toEqual([1]);
   });
 
@@ -244,11 +241,11 @@ describe("allocateCustomerPoints", () => {
 
     const customerPoints: CustomerPoints = new Map([
       [
-        String(IDS.CP1),
+        IDS.CP1,
         buildCustomerPoint(IDS.CP1, { coordinates: [-95.4084, 29.7019] }),
       ],
       [
-        String(IDS.CP2),
+        IDS.CP2,
         buildCustomerPoint(IDS.CP2, { coordinates: [-95.4084, 29.7109] }),
       ],
     ]);
@@ -267,8 +264,8 @@ describe("allocateCustomerPoints", () => {
     expect(result.disconnectedCustomerPoints.size).toBe(0);
     expect(result.ruleMatches).toEqual([1, 1]);
 
-    const allocatedCP1 = result.allocatedCustomerPoints.get(String(IDS.CP1));
-    const allocatedCP2 = result.allocatedCustomerPoints.get(String(IDS.CP2));
+    const allocatedCP1 = result.allocatedCustomerPoints.get(IDS.CP1);
+    const allocatedCP2 = result.allocatedCustomerPoints.get(IDS.CP2);
     expect(allocatedCP1?.connection?.pipeId).toBe(IDS.P1);
     expect(allocatedCP2?.connection?.pipeId).toBe(IDS.P2);
   });
@@ -312,7 +309,7 @@ describe("allocateCustomerPoints", () => {
 
     const customerPoints: CustomerPoints = new Map([
       [
-        String(IDS.CP1),
+        IDS.CP1,
         buildCustomerPoint(IDS.CP1, { coordinates: [-95.4084, 29.7019] }),
       ],
     ]);
@@ -328,7 +325,7 @@ describe("allocateCustomerPoints", () => {
 
     expect(result.allocatedCustomerPoints.size).toBe(0);
     expect(result.disconnectedCustomerPoints.size).toBe(1);
-    expect(result.disconnectedCustomerPoints.has(String(IDS.CP1))).toBe(true);
+    expect(result.disconnectedCustomerPoints.has(IDS.CP1)).toBe(true);
     expect(result.ruleMatches).toEqual([0]);
   });
 
@@ -350,7 +347,7 @@ describe("allocateCustomerPoints", () => {
 
     const customerPoints: CustomerPoints = new Map([
       [
-        String(IDS.CP1),
+        IDS.CP1,
         buildCustomerPoint(IDS.CP1, { coordinates: [-95.4084, 29.7019] }),
       ],
     ]);
@@ -366,7 +363,7 @@ describe("allocateCustomerPoints", () => {
 
     expect(result.allocatedCustomerPoints.size).toBe(0);
     expect(result.disconnectedCustomerPoints.size).toBe(1);
-    expect(result.disconnectedCustomerPoints.has(String(IDS.CP1))).toBe(true);
+    expect(result.disconnectedCustomerPoints.has(IDS.CP1)).toBe(true);
     expect(result.ruleMatches).toEqual([0]);
   });
 
@@ -391,7 +388,7 @@ describe("allocateCustomerPoints", () => {
       demand: 50,
     });
     const customerPoints: CustomerPoints = new Map([
-      [String(IDS.CP1), originalCustomerPoint],
+      [IDS.CP1, originalCustomerPoint],
     ]);
 
     const allocationRules: AllocationRule[] = [
@@ -425,7 +422,7 @@ describe("allocateCustomerPoints", () => {
 
     const customerPoints: CustomerPoints = new Map([
       [
-        String(IDS.CP1),
+        IDS.CP1,
         buildCustomerPoint(IDS.CP1, { coordinates: [-95.4084, 29.7019] }),
       ],
     ]);
@@ -441,7 +438,7 @@ describe("allocateCustomerPoints", () => {
 
     expect(result.allocatedCustomerPoints.size).toBe(0);
     expect(result.disconnectedCustomerPoints.size).toBe(1);
-    expect(result.disconnectedCustomerPoints.has(String(IDS.CP1))).toBe(true);
+    expect(result.disconnectedCustomerPoints.has(IDS.CP1)).toBe(true);
     expect(result.ruleMatches).toEqual([0]);
   });
 
@@ -463,7 +460,7 @@ describe("allocateCustomerPoints", () => {
 
     const customerPoints: CustomerPoints = new Map([
       [
-        String(IDS.CP1),
+        IDS.CP1,
         buildCustomerPoint(IDS.CP1, { coordinates: [-95.4078, 29.7026] }),
       ],
     ]);
@@ -478,7 +475,7 @@ describe("allocateCustomerPoints", () => {
     });
 
     expect(result.allocatedCustomerPoints.size).toBe(1);
-    const allocatedCP1 = result.allocatedCustomerPoints.get(String(IDS.CP1));
+    const allocatedCP1 = result.allocatedCustomerPoints.get(IDS.CP1);
     expect(allocatedCP1?.connection?.junctionId).toBe(IDS.J2);
   });
 
@@ -503,7 +500,7 @@ describe("allocateCustomerPoints", () => {
       demand: 50,
     });
     const customerPoints: CustomerPoints = new Map([
-      [String(IDS.CP1), originalCustomerPoint],
+      [IDS.CP1, originalCustomerPoint],
     ]);
 
     const allocationRules: AllocationRule[] = [
@@ -515,7 +512,7 @@ describe("allocateCustomerPoints", () => {
       customerPoints,
     });
 
-    const allocatedCP1 = result.allocatedCustomerPoints.get(String(IDS.CP1));
+    const allocatedCP1 = result.allocatedCustomerPoints.get(IDS.CP1);
     expect(allocatedCP1).not.toBe(originalCustomerPoint);
     expect(allocatedCP1?.id).toBe(originalCustomerPoint.id);
     expect(allocatedCP1?.baseDemand).toBe(originalCustomerPoint.baseDemand);
@@ -542,7 +539,7 @@ describe("allocateCustomerPoints", () => {
       demand: 50,
     });
     const customerPoints: CustomerPoints = new Map([
-      [String(IDS.CP1), originalCustomerPoint],
+      [IDS.CP1, originalCustomerPoint],
     ]);
 
     const allocationRules: AllocationRule[] = [
@@ -557,9 +554,7 @@ describe("allocateCustomerPoints", () => {
     expect(result.allocatedCustomerPoints.size).toBe(0);
     expect(result.disconnectedCustomerPoints.size).toBe(1);
 
-    const disconnectedCP1 = result.disconnectedCustomerPoints.get(
-      String(IDS.CP1),
-    );
+    const disconnectedCP1 = result.disconnectedCustomerPoints.get(IDS.CP1);
     expect(disconnectedCP1).not.toBe(originalCustomerPoint);
     expect(disconnectedCP1?.id).toBe(originalCustomerPoint.id);
     expect(disconnectedCP1?.baseDemand).toBe(originalCustomerPoint.baseDemand);
@@ -585,15 +580,12 @@ describe("allocateCustomerPoints", () => {
 
     const customerPoints: CustomerPoints = new Map([
       [
-        String(IDS.CP1),
+        IDS.CP1,
         buildCustomerPoint(IDS.CP1, { coordinates: [-95.4084, 29.7019] }),
       ],
+      [IDS.CP2, buildCustomerPoint(IDS.CP2, { coordinates: [-95.4, 29.8] })],
       [
-        String(IDS.CP2),
-        buildCustomerPoint(IDS.CP2, { coordinates: [-95.4, 29.8] }),
-      ],
-      [
-        String(IDS.CP3),
+        IDS.CP3,
         buildCustomerPoint(IDS.CP3, { coordinates: [-95.4082, 29.7018] }),
       ],
     ]);
@@ -614,7 +606,7 @@ describe("allocateCustomerPoints", () => {
     expect(totalProcessed).toBe(3);
     expect(result.allocatedCustomerPoints.size).toBe(2);
     expect(result.disconnectedCustomerPoints.size).toBe(1);
-    expect(result.disconnectedCustomerPoints.has(String(IDS.CP2))).toBe(true);
+    expect(result.disconnectedCustomerPoints.has(IDS.CP2)).toBe(true);
   });
 });
 
@@ -657,11 +649,11 @@ describe("findNearestPipeConnectionWithWorkerData optimization", () => {
 
     const customerPoints: CustomerPoints = new Map([
       [
-        String(IDS.CP1),
+        IDS.CP1,
         buildCustomerPoint(IDS.CP1, { coordinates: [-95.4084, 29.7019] }),
       ],
       [
-        String(IDS.CP2),
+        IDS.CP2,
         buildCustomerPoint(IDS.CP2, { coordinates: [-95.4084, 29.7109] }),
       ],
     ]);
@@ -680,8 +672,8 @@ describe("findNearestPipeConnectionWithWorkerData optimization", () => {
     expect(result.disconnectedCustomerPoints.size).toBe(0);
     expect(result.ruleMatches).toEqual([1, 1]);
 
-    const allocatedCP1 = result.allocatedCustomerPoints.get(String(IDS.CP1));
-    const allocatedCP2 = result.allocatedCustomerPoints.get(String(IDS.CP2));
+    const allocatedCP1 = result.allocatedCustomerPoints.get(IDS.CP1);
+    const allocatedCP2 = result.allocatedCustomerPoints.get(IDS.CP2);
 
     expect(allocatedCP1?.connection?.pipeId).toBe(IDS.P1);
     expect(allocatedCP1?.connection?.junctionId).toBeTruthy();
@@ -719,7 +711,7 @@ describe("findNearestPipeConnectionWithWorkerData optimization", () => {
 
     const customerPoints: CustomerPoints = new Map([
       [
-        String(IDS.CP1),
+        IDS.CP1,
         buildCustomerPoint(IDS.CP1, { coordinates: [-95.4084, 29.7019] }),
       ],
     ]);
@@ -735,7 +727,7 @@ describe("findNearestPipeConnectionWithWorkerData optimization", () => {
 
     expect(result.allocatedCustomerPoints.size).toBe(1);
     expect(result.disconnectedCustomerPoints.size).toBe(0);
-    const allocatedCP1 = result.allocatedCustomerPoints.get(String(IDS.CP1));
+    const allocatedCP1 = result.allocatedCustomerPoints.get(IDS.CP1);
     expect(allocatedCP1?.connection?.pipeId).toBe(IDS.P1);
   });
 });

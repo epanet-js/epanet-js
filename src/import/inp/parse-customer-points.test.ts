@@ -15,6 +15,8 @@ const createAppMadeInpWithCustomerPoints = (
 
 describe("Parse customer points", () => {
   it("parses customer points when option is enabled and INP made by app", () => {
+    const IDS = { CP1: 1, CP2: 2 } as const;
+
     const baseContent = `[JUNCTIONS]
 J1	10
 J2	20
@@ -45,7 +47,7 @@ J2	3	4
     expect(isMadeByApp).toBe(true);
     expect(hydraulicModel.customerPoints.size).toBe(2);
 
-    const cp1 = hydraulicModel.customerPoints.get("1");
+    const cp1 = hydraulicModel.customerPoints.get(IDS.CP1);
     expect(cp1).toBeDefined();
     expect(cp1?.label).toBe("CP1");
     expect(cp1?.coordinates).toEqual([1.5, 2.5]);
@@ -58,7 +60,7 @@ J2	3	4
     expect(cp1?.connection?.junctionId).toBe(junction.id);
     expect(cp1?.connection?.snapPoint).toEqual([1.2, 2.2]);
 
-    const cp2 = hydraulicModel.customerPoints.get("2");
+    const cp2 = hydraulicModel.customerPoints.get(IDS.CP2);
     expect(cp2).toBeDefined();
     expect(cp2?.label).toBe("CP2");
     expect(cp2?.coordinates).toEqual([5, 6]);
@@ -133,6 +135,8 @@ J1	1	2
   });
 
   it("skips malformed customer point lines", () => {
+    const IDS = { CP1: 1, CP2: 2 } as const;
+
     const baseContent = `[JUNCTIONS]
 J1	10
 
@@ -154,11 +158,13 @@ J1	1	2
     const { hydraulicModel } = parseInp(validAppInp, { customerPoints: true });
 
     expect(hydraulicModel.customerPoints.size).toBe(2);
-    expect(hydraulicModel.customerPoints.has("1")).toBe(true);
-    expect(hydraulicModel.customerPoints.has("2")).toBe(true);
+    expect(hydraulicModel.customerPoints.has(IDS.CP1)).toBe(true);
+    expect(hydraulicModel.customerPoints.has(IDS.CP2)).toBe(true);
   });
 
   it("integrates customer points with lookup system", () => {
+    const IDS = { CP1: 1 } as const;
+
     const baseContent = `[JUNCTIONS]
 J1	10
 
@@ -192,13 +198,15 @@ J1	1	2
 
     expect(connectedToP1.size).toBe(1);
     expect(connectedToJ1.size).toBe(1);
-    expect([...connectedToP1][0].id).toBe("1");
-    expect([...connectedToJ1][0].id).toBe("1");
+    expect([...connectedToP1][0].id).toBe(IDS.CP1);
+    expect([...connectedToJ1][0].id).toBe(IDS.CP1);
     expect([...connectedToP1][0].label).toBe("CP1");
     expect([...connectedToJ1][0].label).toBe("CP1");
   });
 
   it("resolves junction labels to actual junction IDs", () => {
+    const IDS = { CP1: 1 } as const;
+
     const baseContent = `[JUNCTIONS]
 Junction-A	10
 Junction-B	20
@@ -222,7 +230,7 @@ Junction-B	3	4
 
     const { hydraulicModel } = parseInp(validAppInp, { customerPoints: true });
 
-    const cp1 = hydraulicModel.customerPoints.get("1");
+    const cp1 = hydraulicModel.customerPoints.get(IDS.CP1);
     expect(cp1).toBeDefined();
     expect(cp1?.label).toBe("CP1");
     expect(cp1?.connection).toBeDefined();

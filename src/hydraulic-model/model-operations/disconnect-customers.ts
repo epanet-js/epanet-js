@@ -2,7 +2,7 @@ import { CustomerPoint } from "../customer-points";
 import { ModelOperation } from "../model-operation";
 
 type InputData = {
-  customerPointIds: readonly string[];
+  customerPointIds: readonly number[];
 };
 
 export const disconnectCustomers: ModelOperation<InputData> = (

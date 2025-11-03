@@ -9,7 +9,7 @@ import { Asset, NodeAsset, NodeType } from "src/hydraulic-model/asset-types";
 import { CustomerPoint } from "../../customer-points";
 
 export interface LinkSegmentProperties {
-  linkId: string;
+  linkId: number;
 }
 
 export type LinkSegment = Feature<LineString, LinkSegmentProperties>;
@@ -37,12 +37,9 @@ export interface RunData {
 
 const BUFFER_HEADER_SIZE = 8;
 const SEGMENT_BINARY_SIZE = 36;
-const PIPE_BINARY_SIZE = 48;
-const PIPE_ID_MAX_LENGTH = 32;
-const NODE_BINARY_SIZE = 52;
-const NODE_ID_MAX_LENGTH = 32;
-const CUSTOMER_POINT_BINARY_SIZE = 48;
-const CUSTOMER_POINT_ID_MAX_LENGTH = 32;
+const PIPE_BINARY_SIZE = 20; // Changed from 48: UINT32 (id) + FLOAT64 (diameter) + 2*UINT32 (node indices)
+const NODE_BINARY_SIZE = 24; // Changed from 52: 2*FLOAT64 (coordinates) + UINT32 (type) + UINT32 (id)
+const CUSTOMER_POINT_BINARY_SIZE = 20; // Changed from 48: UINT32 (id) + 2*FLOAT64 (coordinates)
 const UINT32_SIZE = 4;
 const FLOAT64_SIZE = 8;
 const FLATBUSH_NODE_SIZE = 16;
@@ -88,18 +85,15 @@ export const getSegmentPipeIndex = (
   return view.getUint32(offset, true);
 };
 
-export const getPipeId = (pipes: BinaryData, index: number): string => {
+export const getPipeId = (pipes: BinaryData, index: number): number => {
   const view = new DataView(pipes);
   const offset = BUFFER_HEADER_SIZE + index * PIPE_BINARY_SIZE;
-  const uint8View = new Uint8Array(view.buffer, offset, PIPE_ID_MAX_LENGTH);
-  const decoder = new TextDecoder();
-  return decoder.decode(uint8View).replace(/\0+$/, "");
+  return view.getUint32(offset, true);
 };
 
 export const getPipeDiameter = (pipes: BinaryData, index: number): number => {
   const view = new DataView(pipes);
-  const offset =
-    BUFFER_HEADER_SIZE + index * PIPE_BINARY_SIZE + PIPE_ID_MAX_LENGTH;
+  const offset = BUFFER_HEADER_SIZE + index * PIPE_BINARY_SIZE + UINT32_SIZE;
   return view.getFloat64(offset, true);
 };
 
@@ -109,10 +103,7 @@ export const getPipeStartNodeIndex = (
 ): number => {
   const view = new DataView(pipes);
   const offset =
-    BUFFER_HEADER_SIZE +
-    index * PIPE_BINARY_SIZE +
-    PIPE_ID_MAX_LENGTH +
-    FLOAT64_SIZE;
+    BUFFER_HEADER_SIZE + index * PIPE_BINARY_SIZE + UINT32_SIZE + FLOAT64_SIZE;
   return view.getUint32(offset, true);
 };
 
@@ -124,7 +115,7 @@ export const getPipeEndNodeIndex = (
   const offset =
     BUFFER_HEADER_SIZE +
     index * PIPE_BINARY_SIZE +
-    PIPE_ID_MAX_LENGTH +
+    UINT32_SIZE +
     FLOAT64_SIZE +
     UINT32_SIZE;
   return view.getUint32(offset, true);
@@ -151,18 +142,14 @@ export const getNodeType = (nodes: BinaryData, index: number): NodeType => {
   return ENUM_TO_NODE_TYPE[enumValue as keyof typeof ENUM_TO_NODE_TYPE];
 };
 
-export const getNodeId = (nodes: BinaryData, index: number): string => {
+export const getNodeId = (nodes: BinaryData, index: number): number => {
+  const view = new DataView(nodes);
   const offset =
     BUFFER_HEADER_SIZE +
     index * NODE_BINARY_SIZE +
     2 * FLOAT64_SIZE +
     UINT32_SIZE;
-  const idBytes = new Uint8Array(nodes, offset, NODE_ID_MAX_LENGTH);
-  const nullIndex = idBytes.indexOf(0);
-  const actualLength = nullIndex >= 0 ? nullIndex : NODE_ID_MAX_LENGTH;
-  const actualBytes = idBytes.slice(0, actualLength);
-  const decoder = new TextDecoder();
-  return decoder.decode(actualBytes);
+  return view.getUint32(offset, true);
 };
 
 export const getCustomerPointCoordinates = (
@@ -171,9 +158,7 @@ export const getCustomerPointCoordinates = (
 ): Position => {
   const view = new DataView(customerPoints);
   const offset =
-    BUFFER_HEADER_SIZE +
-    index * CUSTOMER_POINT_BINARY_SIZE +
-    CUSTOMER_POINT_ID_MAX_LENGTH;
+    BUFFER_HEADER_SIZE + index * CUSTOMER_POINT_BINARY_SIZE + UINT32_SIZE;
 
   const lng = view.getFloat64(offset, true);
   const lat = view.getFloat64(offset + FLOAT64_SIZE, true);
@@ -184,19 +169,10 @@ export const getCustomerPointCoordinates = (
 export const getCustomerPointId = (
   customerPoints: BinaryData,
   index: number,
-): string => {
+): number => {
+  const view = new DataView(customerPoints);
   const offset = BUFFER_HEADER_SIZE + index * CUSTOMER_POINT_BINARY_SIZE;
-  const idBytes = new Uint8Array(
-    customerPoints,
-    offset,
-    CUSTOMER_POINT_ID_MAX_LENGTH,
-  );
-  const nullIndex = idBytes.indexOf(0);
-  const actualLength =
-    nullIndex >= 0 ? nullIndex : CUSTOMER_POINT_ID_MAX_LENGTH;
-  const actualBytes = idBytes.slice(0, actualLength);
-  const decoder = new TextDecoder();
-  return decoder.decode(actualBytes);
+  return view.getUint32(offset, true);
 };
 
 export const prepareWorkerData = (
@@ -247,12 +223,7 @@ export const prepareWorkerData = (
     if (asset.isLink && asset.type === "pipe") {
       const pipe = asset as Pipe;
       const [startNodeId, endNodeId] = pipe.connections;
-      pipesBuilder.addPipe(
-        String(pipe.id),
-        pipe.diameter,
-        String(startNodeId),
-        String(endNodeId),
-      );
+      pipesBuilder.addPipe(pipe.id, pipe.diameter, startNodeId, endNodeId);
 
       if (pipe.feature.geometry.type === "LineString") {
         const pipeFeature = {
@@ -263,7 +234,7 @@ export const prepareWorkerData = (
         const segments = lineSegment(pipeFeature);
         for (const segment of segments.features) {
           const coordinates = segment.geometry.coordinates;
-          segmentsBuilder.addSegment(coordinates, String(pipe.id));
+          segmentsBuilder.addSegment(coordinates, pipe.id);
 
           const [minX, minY, maxX, maxY] = bbox(segment);
           spatialIndex.add(minX, minY, maxX, maxY);
@@ -271,11 +242,7 @@ export const prepareWorkerData = (
       }
     } else if (asset.isNode) {
       const node = asset as NodeAsset;
-      nodesBuilder.addNode(
-        String(node.id),
-        node.coordinates,
-        node.type as NodeType,
-      );
+      nodesBuilder.addNode(node.id, node.coordinates, node.type as NodeType);
     }
   }
 
@@ -311,7 +278,7 @@ class SegmentsBinaryBuilder {
 
   constructor(
     segmentCount: number,
-    private pipesIndex: Map<string, number>,
+    private pipesIndex: Map<number, number>,
     private bufferType: "shared" | "array" = "array",
   ) {
     const totalSize = BUFFER_HEADER_SIZE + segmentCount * SEGMENT_BINARY_SIZE;
@@ -327,7 +294,7 @@ class SegmentsBinaryBuilder {
     this.view.setUint32(offset, 0, true);
   }
 
-  addSegment(coordinates: Position[], pipeId: string): void {
+  addSegment(coordinates: Position[], pipeId: number): void {
     const pipeIndex = this.pipesIndex.get(pipeId)!;
     let offset = BUFFER_HEADER_SIZE + this.segmentIndex * SEGMENT_BINARY_SIZE;
 
@@ -355,8 +322,8 @@ class PipesBinaryBuilder {
 
   constructor(
     pipeCount: number,
-    private pipesIndex: Map<string, number>,
-    private nodesIndex: Map<string, number>,
+    private pipesIndex: Map<number, number>,
+    private nodesIndex: Map<number, number>,
     private bufferType: "shared" | "array" = "array",
   ) {
     const totalSize = BUFFER_HEADER_SIZE + pipeCount * PIPE_BINARY_SIZE;
@@ -373,10 +340,10 @@ class PipesBinaryBuilder {
   }
 
   addPipe(
-    pipeId: string,
+    pipeId: number,
     diameter: number,
-    startNodeId: string,
-    endNodeId: string,
+    startNodeId: number,
+    endNodeId: number,
   ): void {
     const index = this.pipesIndex.get(pipeId)!;
     const startNodeIndex = this.nodesIndex.get(startNodeId)!;
@@ -384,19 +351,9 @@ class PipesBinaryBuilder {
 
     let offset = BUFFER_HEADER_SIZE + index * PIPE_BINARY_SIZE;
 
-    // Store pipe ID
-    const encoder = new TextEncoder();
-    const idBytes = encoder.encode(pipeId.slice(0, PIPE_ID_MAX_LENGTH));
-    const paddedId = new Uint8Array(PIPE_ID_MAX_LENGTH);
-    paddedId.set(idBytes);
-
-    const uint8View = new Uint8Array(
-      this.view.buffer,
-      offset,
-      PIPE_ID_MAX_LENGTH,
-    );
-    uint8View.set(paddedId);
-    offset += PIPE_ID_MAX_LENGTH;
+    // Store pipe ID as UINT32
+    this.view.setUint32(offset, pipeId, true);
+    offset += UINT32_SIZE;
 
     this.view.setFloat64(offset, diameter, true);
     offset += FLOAT64_SIZE;
@@ -416,7 +373,7 @@ class NodesBinaryBuilder {
 
   constructor(
     nodeCount: number,
-    private nodesIndex: Map<string, number>,
+    private nodesIndex: Map<number, number>,
     private bufferType: "shared" | "array" = "array",
   ) {
     const totalSize = BUFFER_HEADER_SIZE + nodeCount * NODE_BINARY_SIZE;
@@ -432,7 +389,7 @@ class NodesBinaryBuilder {
     this.view.setUint32(offset, 0, true);
   }
 
-  addNode(nodeId: string, coordinates: Position, nodeType: NodeType): void {
+  addNode(nodeId: number, coordinates: Position, nodeType: NodeType): void {
     const index = this.nodesIndex.get(nodeId)!;
     let offset = BUFFER_HEADER_SIZE + index * NODE_BINARY_SIZE;
 
@@ -443,17 +400,8 @@ class NodesBinaryBuilder {
     this.view.setUint32(offset, NODE_TYPE_TO_ENUM[nodeType], true);
     offset += UINT32_SIZE;
 
-    const encoder = new TextEncoder();
-    const idBytes = encoder.encode(nodeId.slice(0, NODE_ID_MAX_LENGTH));
-    const paddedId = new Uint8Array(NODE_ID_MAX_LENGTH);
-    paddedId.set(idBytes);
-
-    const uint8View = new Uint8Array(
-      this.view.buffer,
-      offset,
-      NODE_ID_MAX_LENGTH,
-    );
-    uint8View.set(paddedId);
+    // Store node ID as UINT32
+    this.view.setUint32(offset, nodeId, true);
   }
 
   build(): BinaryData {
@@ -484,26 +432,15 @@ class CustomerPointsBinaryBuilder {
   }
 
   addCustomerPoint(
-    customerPointId: string,
+    customerPointId: number,
     coordinates: Position,
     index: number,
   ): void {
     let offset = BUFFER_HEADER_SIZE + index * CUSTOMER_POINT_BINARY_SIZE;
 
-    const encoder = new TextEncoder();
-    const idBytes = encoder.encode(
-      customerPointId.slice(0, CUSTOMER_POINT_ID_MAX_LENGTH),
-    );
-    const paddedId = new Uint8Array(CUSTOMER_POINT_ID_MAX_LENGTH);
-    paddedId.set(idBytes);
-
-    const uint8View = new Uint8Array(
-      this.view.buffer,
-      offset,
-      CUSTOMER_POINT_ID_MAX_LENGTH,
-    );
-    uint8View.set(paddedId);
-    offset += CUSTOMER_POINT_ID_MAX_LENGTH;
+    // Store customer point ID as UINT32
+    this.view.setUint32(offset, customerPointId, true);
+    offset += UINT32_SIZE;
 
     this.view.setFloat64(offset, coordinates[0], true);
     offset += FLOAT64_SIZE;
@@ -518,14 +455,14 @@ class CustomerPointsBinaryBuilder {
 const generateAssetIndexes = (
   assets: Asset[],
 ): {
-  pipesIndex: Map<string, number>;
+  pipesIndex: Map<number, number>;
   pipesCount: number;
   pipeSegmentsCount: number;
-  nodesIndex: Map<string, number>;
+  nodesIndex: Map<number, number>;
   nodesCount: number;
 } => {
-  const pipesIndex = new Map<string, number>();
-  const nodesIndex = new Map<string, number>();
+  const pipesIndex = new Map<number, number>();
+  const nodesIndex = new Map<number, number>();
   let pipeIndex = 0;
   let nodeIndex = 0;
   let pipeSegmentsCount = 0;
@@ -533,11 +470,11 @@ const generateAssetIndexes = (
   for (const asset of assets) {
     if (asset.isLink && asset.type === "pipe") {
       const pipe = asset as Pipe;
-      pipesIndex.set(String(pipe.id), pipeIndex);
+      pipesIndex.set(pipe.id, pipeIndex);
       pipeSegmentsCount += pipe.coordinates.length - 1;
       pipeIndex++;
     } else if (asset.isNode) {
-      nodesIndex.set(String(asset.id), nodeIndex);
+      nodesIndex.set(asset.id, nodeIndex);
       nodeIndex++;
     }
   }

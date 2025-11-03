@@ -182,7 +182,7 @@ describe("replaceLink", () => {
       expect(putCustomerPoints!.length).toBe(1);
 
       const reconnectedCP = putCustomerPoints![0];
-      expect(reconnectedCP.id).toBe(String(IDS.CP1));
+      expect(reconnectedCP.id).toBe(IDS.CP1);
       expect(reconnectedCP.connection).not.toBeNull();
       expect(reconnectedCP.connection!.junctionId).toBe(IDS.J1);
 
@@ -307,7 +307,7 @@ describe("replaceLink", () => {
         })
         .build();
 
-      const customerPoint = CustomerPoint.build(String(IDS.CP1), [5, 1], {
+      const customerPoint = CustomerPoint.build(IDS.CP1, [5, 1], {
         baseDemand: 10,
         label: "CP1",
       });
@@ -316,7 +316,7 @@ describe("replaceLink", () => {
         snapPoint: [5, 0],
         junctionId: IDS.T1,
       });
-      hydraulicModel.customerPoints.set(String(IDS.CP1), customerPoint);
+      hydraulicModel.customerPoints.set(IDS.CP1, customerPoint);
       hydraulicModel.customerPointsLookup.addConnection(customerPoint);
 
       const newPipe = hydraulicModel.assetBuilder.buildPipe({

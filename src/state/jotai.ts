@@ -311,7 +311,7 @@ export interface SelSingleCustomerPoint {
   /**
    * The customer point's id
    */
-  id: StringId;
+  id: number;
 }
 
 /**

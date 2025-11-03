@@ -24,7 +24,7 @@ import {
 } from "./prepare-data";
 
 export type AllocationResultItem = {
-  customerPointId: string;
+  customerPointId: number;
   connection: CustomerPointConnection | null;
   ruleIndex: number;
 };
@@ -212,7 +212,7 @@ const findNearestPipeConnection = (
         );
         const pipeId = getPipeId(workerData.pipes, pipeIndex);
         return {
-          pipeId: Number(pipeId),
+          pipeId,
           snapPoint,
           junctionId,
         };
@@ -233,13 +233,13 @@ const findAssignedJunctionId = (
   const endNodeIndex = getPipeEndNodeIndex(workerData.pipes, pipeIndex);
 
   const startNode = {
-    id: Number(getNodeId(workerData.nodes, startNodeIndex)),
+    id: getNodeId(workerData.nodes, startNodeIndex),
     type: getNodeType(workerData.nodes, startNodeIndex),
     coordinates: getNodeCoordinates(workerData.nodes, startNodeIndex),
   };
 
   const endNode = {
-    id: Number(getNodeId(workerData.nodes, endNodeIndex)),
+    id: getNodeId(workerData.nodes, endNodeIndex),
     type: getNodeType(workerData.nodes, endNodeIndex),
     coordinates: getNodeCoordinates(workerData.nodes, endNodeIndex),
   };

@@ -51,8 +51,8 @@ describe("addCustomerPoints", () => {
     const updatedModel = addCustomerPoints(hydraulicModel, customerPointsToAdd);
 
     expect(updatedModel.customerPoints.size).toBe(2);
-    expect(updatedModel.customerPoints.has(String(IDS.CP1))).toBe(true);
-    expect(updatedModel.customerPoints.has(String(IDS.CP2))).toBe(true);
+    expect(updatedModel.customerPoints.has(IDS.CP1)).toBe(true);
+    expect(updatedModel.customerPoints.has(IDS.CP2)).toBe(true);
 
     const j1CustomerPoints =
       updatedModel.customerPointsLookup.getCustomerPoints(IDS.J1);
@@ -96,7 +96,7 @@ describe("addCustomerPoints", () => {
     const updatedModel = addCustomerPoints(hydraulicModel, customerPointsToAdd);
 
     expect(updatedModel.customerPoints.size).toBe(1);
-    expect(updatedModel.customerPoints.has(String(IDS.CP1))).toBe(true);
+    expect(updatedModel.customerPoints.has(IDS.CP1)).toBe(true);
 
     expect(updatedModel.customerPointsLookup.hasConnections(IDS.J1)).toBe(
       false,
@@ -141,8 +141,8 @@ describe("addCustomerPoints", () => {
     const updatedModel = addCustomerPoints(hydraulicModel, customerPointsToAdd);
 
     expect(updatedModel.customerPoints.size).toBe(2);
-    expect(updatedModel.customerPoints.has(String(IDS.CP1))).toBe(true);
-    expect(updatedModel.customerPoints.has(String(IDS.CP2))).toBe(true);
+    expect(updatedModel.customerPoints.has(IDS.CP1)).toBe(true);
+    expect(updatedModel.customerPoints.has(IDS.CP2)).toBe(true);
 
     const j1CustomerPoints =
       updatedModel.customerPointsLookup.getCustomerPoints(IDS.J1);
@@ -174,7 +174,7 @@ describe("addCustomerPoints", () => {
     const updatedModel = addCustomerPoints(hydraulicModel, customerPointsToAdd);
 
     expect(updatedModel.customerPoints.size).toBe(1);
-    expect(updatedModel.customerPoints.has(String(IDS.CP1))).toBe(true);
+    expect(updatedModel.customerPoints.has(IDS.CP1)).toBe(true);
 
     expect(updatedModel.customerPointsLookup.hasConnections(IDS.J1)).toBe(
       false,
@@ -300,7 +300,7 @@ describe("addCustomerPoints", () => {
     });
     customerPointsToAdd.push(newCP);
 
-    const existingCP = hydraulicModel.customerPoints.get(String(IDS.EXISTING))!;
+    const existingCP = hydraulicModel.customerPoints.get(IDS.EXISTING)!;
     const updatedModel = addCustomerPoints(hydraulicModel, customerPointsToAdd);
 
     const j1CustomerPoints =
@@ -476,16 +476,16 @@ describe("addCustomerPoints", () => {
       updatedModel.customerPointsLookup.getCustomerPoints(IDS.P1);
 
     expect(Array.from(j1CustomerPoints)).toHaveLength(1);
-    expect(Array.from(j1CustomerPoints)[0]?.id).toBe(String(IDS.CP1));
+    expect(Array.from(j1CustomerPoints)[0]?.id).toBe(IDS.CP1);
 
     expect(Array.from(j2CustomerPoints)).toHaveLength(1);
-    expect(Array.from(j2CustomerPoints)[0]?.id).toBe(String(IDS.CP2));
+    expect(Array.from(j2CustomerPoints)[0]?.id).toBe(IDS.CP2);
 
     expect(Array.from(p1CustomerPoints)).toHaveLength(2);
 
     const p1CustomerPointIds = Array.from(p1CustomerPoints).map((cp) => cp.id);
-    expect(p1CustomerPointIds).toContain(String(IDS.CP1));
-    expect(p1CustomerPointIds).toContain(String(IDS.CP2));
+    expect(p1CustomerPointIds).toContain(IDS.CP1);
+    expect(p1CustomerPointIds).toContain(IDS.CP2);
   });
 
   it("overrides existing customer points when overrideExisting is true", () => {
@@ -538,9 +538,9 @@ describe("addCustomerPoints", () => {
     });
 
     expect(updatedModel.customerPoints.size).toBe(1);
-    expect(updatedModel.customerPoints.has(String(IDS.NEW1))).toBe(true);
-    expect(updatedModel.customerPoints.has(String(IDS.EXISTING1))).toBe(false);
-    expect(updatedModel.customerPoints.has(String(IDS.EXISTING2))).toBe(false);
+    expect(updatedModel.customerPoints.has(IDS.NEW1)).toBe(true);
+    expect(updatedModel.customerPoints.has(IDS.EXISTING1)).toBe(false);
+    expect(updatedModel.customerPoints.has(IDS.EXISTING2)).toBe(false);
 
     const j1CustomerPoints =
       updatedModel.customerPointsLookup.getCustomerPoints(IDS.J1);
@@ -548,7 +548,7 @@ describe("addCustomerPoints", () => {
       updatedModel.customerPointsLookup.getCustomerPoints(IDS.J2);
 
     expect(Array.from(j1CustomerPoints)).toHaveLength(1);
-    expect(Array.from(j1CustomerPoints)[0]?.id).toBe(String(IDS.NEW1));
+    expect(Array.from(j1CustomerPoints)[0]?.id).toBe(IDS.NEW1);
     expect(Array.from(j2CustomerPoints)).toHaveLength(0);
   });
 
@@ -584,8 +584,8 @@ describe("addCustomerPoints", () => {
     });
 
     expect(updatedModel.customerPoints.size).toBe(2);
-    expect(updatedModel.customerPoints.has(String(IDS.EXISTING))).toBe(true);
-    expect(updatedModel.customerPoints.has(String(IDS.NEW1))).toBe(true);
+    expect(updatedModel.customerPoints.has(IDS.EXISTING)).toBe(true);
+    expect(updatedModel.customerPoints.has(IDS.NEW1)).toBe(true);
 
     const j1CustomerPoints =
       updatedModel.customerPointsLookup.getCustomerPoints(IDS.J1);

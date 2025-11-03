@@ -191,8 +191,8 @@ const processGeoJSONFeature = (
       demandTargetUnit,
     );
 
-    const id = currentId.toString();
-    let label = id;
+    const id = currentId;
+    let label = String(id);
 
     if (labelPropertyName && feature.properties) {
       const labelValue = feature.properties[labelPropertyName];

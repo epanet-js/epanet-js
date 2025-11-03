@@ -661,15 +661,9 @@ describe("splitPipe", () => {
     const reconnectedPoints = putCustomerPoints!;
 
     // Verify each customer point is connected to the correct split segment
-    const cp1Reconnected = reconnectedPoints.find(
-      (cp) => cp.id === String(IDS.CP1),
-    );
-    const cp2Reconnected = reconnectedPoints.find(
-      (cp) => cp.id === String(IDS.CP2),
-    );
-    const cp3Reconnected = reconnectedPoints.find(
-      (cp) => cp.id === String(IDS.CP3),
-    );
+    const cp1Reconnected = reconnectedPoints.find((cp) => cp.id === IDS.CP1);
+    const cp2Reconnected = reconnectedPoints.find((cp) => cp.id === IDS.CP2);
+    const cp3Reconnected = reconnectedPoints.find((cp) => cp.id === IDS.CP3);
 
     expect(cp1Reconnected?.connection?.pipeId).toBe(pipe1.id); // [0,0] to [7,0]
     expect(cp2Reconnected?.connection?.pipeId).toBe(pipe2.id); // [7,0] to [14,0]
@@ -738,7 +732,7 @@ describe("splitPipe", () => {
     expect(putCustomerPoints).toHaveLength(1);
 
     const reconnectedPoint = putCustomerPoints![0];
-    expect(reconnectedPoint.id).toBe(String(IDS.CP1));
+    expect(reconnectedPoint.id).toBe(IDS.CP1);
     expect(reconnectedPoint.baseDemand).toBe(125);
     expect(reconnectedPoint.coordinates).toEqual([3, 1]);
     expect(reconnectedPoint.connection?.snapPoint).toEqual([3, 0]);
@@ -798,10 +792,8 @@ describe("splitPipe", () => {
     expect(splitPipe1.connections).toEqual([IDS.R1, splitReservoir.id]);
     expect(splitPipe2.connections).toEqual([splitReservoir.id, IDS.J1]);
 
-    const cp1 =
-      reconnectedCP1.id === String(IDS.CP1) ? reconnectedCP1 : reconnectedCP2;
-    const cp2 =
-      reconnectedCP1.id === String(IDS.CP2) ? reconnectedCP1 : reconnectedCP2;
+    const cp1 = reconnectedCP1.id === IDS.CP1 ? reconnectedCP1 : reconnectedCP2;
+    const cp2 = reconnectedCP1.id === IDS.CP2 ? reconnectedCP1 : reconnectedCP2;
 
     expect(cp1.connection).toBeNull();
     expect(cp2.connection?.pipeId).toBe(splitPipe2.id);

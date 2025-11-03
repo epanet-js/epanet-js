@@ -103,9 +103,8 @@ export const buildCustomerPoint = (
     label?: string;
   } = {},
 ) => {
-  const stringId = String(id);
-  const { demand = 0, coordinates = [0, 0], label = stringId } = options;
-  return CustomerPoint.build(stringId, coordinates, {
+  const { demand = 0, coordinates = [0, 0], label = String(id) } = options;
+  return CustomerPoint.build(id, coordinates, {
     baseDemand: demand,
     label,
   });
@@ -369,7 +368,6 @@ export class HydraulicModelBuilder {
       };
     } = {},
   ) {
-    const stringId = String(id);
     const { connection, ...customerPointOptions } = options;
     const customerPoint = buildCustomerPoint(id, customerPointOptions);
 
@@ -399,7 +397,7 @@ export class HydraulicModelBuilder {
       });
     }
 
-    this.customerPointsMap.set(stringId, customerPoint);
+    this.customerPointsMap.set(id, customerPoint);
     return this;
   }
 

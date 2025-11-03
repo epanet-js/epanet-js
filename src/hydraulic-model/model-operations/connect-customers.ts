@@ -6,7 +6,7 @@ import { findJunctionForCustomerPoint } from "../utilities/junction-assignment";
 import { AssetId } from "../asset-types/base-asset";
 
 type InputData = {
-  customerPointIds: readonly string[];
+  customerPointIds: readonly number[];
   pipeId: AssetId;
   snapPoints: readonly Position[];
 };

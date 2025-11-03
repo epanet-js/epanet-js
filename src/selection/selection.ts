@@ -153,7 +153,7 @@ export const USelection = {
   isFolderSelected(selection: Sel, id: IFolder["id"]): boolean {
     return selection.type === "folder" && selection.id === id;
   },
-  isCustomerPointSelected(selection: Sel, id: string): boolean {
+  isCustomerPointSelected(selection: Sel, id: number): boolean {
     return selection.type === "singleCustomerPoint" && selection.id === id;
   },
   isVertexSelected(selection: Sel, id: number, vertexId: VertexId): boolean {
@@ -234,7 +234,7 @@ export const USelection = {
       parts: [],
     };
   },
-  singleCustomerPoint(id: string): SelSingleCustomerPoint {
+  singleCustomerPoint(id: number): SelSingleCustomerPoint {
     return {
       type: "singleCustomerPoint",
       id,

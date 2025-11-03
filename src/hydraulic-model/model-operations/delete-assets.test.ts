@@ -36,7 +36,7 @@ describe("deleteAssets", () => {
     expect(putCustomerPoints!.length).toBe(1);
 
     const disconnectedCP = putCustomerPoints![0];
-    expect(disconnectedCP.id).toBe(String(IDS.CP1));
+    expect(disconnectedCP.id).toBe(IDS.CP1);
     expect(disconnectedCP.baseDemand).toBe(25);
     expect(disconnectedCP.coordinates).toEqual([2, 1]);
     expect(disconnectedCP.connection).toBeNull();
@@ -76,7 +76,7 @@ describe("deleteAssets", () => {
     expect(putCustomerPoints!.length).toBe(1);
 
     const disconnectedCP = putCustomerPoints![0];
-    expect(disconnectedCP.id).toBe(String(IDS.CP1));
+    expect(disconnectedCP.id).toBe(IDS.CP1);
     expect(disconnectedCP.connection).toBeNull();
   });
 

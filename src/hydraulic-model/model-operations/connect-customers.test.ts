@@ -22,7 +22,7 @@ describe("connectCustomers", () => {
       .build();
 
     const { putCustomerPoints } = connectCustomers(hydraulicModel, {
-      customerPointIds: [String(IDS.CP1)],
+      customerPointIds: [IDS.CP1],
       pipeId: IDS.P1,
       snapPoints: [[2, 0]], // closer to J1
     });
@@ -31,7 +31,7 @@ describe("connectCustomers", () => {
     expect(putCustomerPoints!.length).toBe(1);
 
     const connectedCP = putCustomerPoints![0];
-    expect(connectedCP.id).toBe(String(IDS.CP1));
+    expect(connectedCP.id).toBe(IDS.CP1);
     expect(connectedCP.coordinates).toEqual([2, 1]);
     expect(connectedCP.connection).not.toBeNull();
     expect(connectedCP.connection!.pipeId).toBe(IDS.P1);
@@ -61,7 +61,7 @@ describe("connectCustomers", () => {
       .build();
 
     const result = connectCustomers(hydraulicModel, {
-      customerPointIds: [String(IDS.CP1), String(IDS.CP2)],
+      customerPointIds: [IDS.CP1, IDS.CP2],
       pipeId: IDS.P1,
       snapPoints: [
         [2, 0],
@@ -74,12 +74,8 @@ describe("connectCustomers", () => {
     expect(putCustomerPoints).toBeDefined();
     expect(putCustomerPoints!.length).toBe(2);
 
-    const connectedCP1 = putCustomerPoints!.find(
-      (cp) => cp.id === String(IDS.CP1),
-    )!;
-    const connectedCP2 = putCustomerPoints!.find(
-      (cp) => cp.id === String(IDS.CP2),
-    )!;
+    const connectedCP1 = putCustomerPoints!.find((cp) => cp.id === IDS.CP1)!;
+    const connectedCP2 = putCustomerPoints!.find((cp) => cp.id === IDS.CP2)!;
 
     expect(connectedCP1.connection!.junctionId).toBe(IDS.J1);
     expect(connectedCP2.connection!.junctionId).toBe(IDS.J2);
@@ -117,7 +113,7 @@ describe("connectCustomers", () => {
       .build();
 
     const { putCustomerPoints } = connectCustomers(hydraulicModel, {
-      customerPointIds: [String(IDS.CP1)],
+      customerPointIds: [IDS.CP1],
       pipeId: IDS.P1,
       snapPoints: [[8, 0]], // closer to J2 on P1
     });
@@ -147,11 +143,11 @@ describe("connectCustomers", () => {
 
     expect(() => {
       connectCustomers(hydraulicModel, {
-        customerPointIds: ["NON_EXISTENT"],
+        customerPointIds: [999],
         pipeId: IDS.P1,
         snapPoints: [[5, 0]],
       });
-    }).toThrow("Customer point with id NON_EXISTENT not found");
+    }).toThrow("Customer point with id 999 not found");
   });
 
   it("throws error for non-existent pipe", () => {
@@ -166,7 +162,7 @@ describe("connectCustomers", () => {
 
     expect(() => {
       connectCustomers(hydraulicModel, {
-        customerPointIds: [String(IDS.CP1)],
+        customerPointIds: [IDS.CP1],
         pipeId: NonExistentPipeId,
         snapPoints: [[5, 0]],
       });
@@ -190,7 +186,7 @@ describe("connectCustomers", () => {
 
     expect(() => {
       connectCustomers(hydraulicModel, {
-        customerPointIds: ["CP1", "CP2"],
+        customerPointIds: [4, 5],
         pipeId: IDS.P1,
         snapPoints: [[5, 0]], // Only one snap point for two customer points
       });
@@ -219,7 +215,7 @@ describe("connectCustomers", () => {
 
     expect(() => {
       connectCustomers(hydraulicModel, {
-        customerPointIds: [String(IDS.CP1)],
+        customerPointIds: [IDS.CP1],
         pipeId: IDS.P1,
         snapPoints: [[5, 0]],
       });
@@ -246,10 +242,10 @@ describe("connectCustomers", () => {
       })
       .build();
 
-    const originalCP = hydraulicModel.customerPoints.get(String(IDS.CP1))!;
+    const originalCP = hydraulicModel.customerPoints.get(IDS.CP1)!;
 
     const { putCustomerPoints } = connectCustomers(hydraulicModel, {
-      customerPointIds: [String(IDS.CP1)],
+      customerPointIds: [IDS.CP1],
       pipeId: IDS.P1,
       snapPoints: [[2, 0]],
     });
@@ -285,7 +281,7 @@ describe("connectCustomers", () => {
       .build();
 
     const { putCustomerPoints } = connectCustomers(hydraulicModel, {
-      customerPointIds: [String(IDS.CP1), String(IDS.CP2)],
+      customerPointIds: [IDS.CP1, IDS.CP2],
       pipeId: IDS.P1,
       snapPoints: [
         [1, 0],
@@ -295,12 +291,8 @@ describe("connectCustomers", () => {
 
     expect(putCustomerPoints!.length).toBe(2);
 
-    const connectedCP1 = putCustomerPoints!.find(
-      (cp) => cp.id === String(IDS.CP1),
-    )!;
-    const connectedCP2 = putCustomerPoints!.find(
-      (cp) => cp.id === String(IDS.CP2),
-    )!;
+    const connectedCP1 = putCustomerPoints!.find((cp) => cp.id === IDS.CP1)!;
+    const connectedCP2 = putCustomerPoints!.find((cp) => cp.id === IDS.CP2)!;
 
     expect(connectedCP1.connection!.junctionId).toBe(IDS.J1);
     expect(connectedCP2.connection!.junctionId).toBe(IDS.J1);

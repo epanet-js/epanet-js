@@ -26,14 +26,14 @@ describe("disconnectCustomers", () => {
       .build();
 
     const { putCustomerPoints } = disconnectCustomers(hydraulicModel, {
-      customerPointIds: [String(IDS.CP1)],
+      customerPointIds: [IDS.CP1],
     });
 
     expect(putCustomerPoints).toBeDefined();
     expect(putCustomerPoints!.length).toBe(1);
 
     const disconnectedCP = putCustomerPoints![0];
-    expect(disconnectedCP.id).toBe(String(IDS.CP1));
+    expect(disconnectedCP.id).toBe(IDS.CP1);
     expect(disconnectedCP.baseDemand).toBe(25);
     expect(disconnectedCP.coordinates).toEqual([2, 1]);
     expect(disconnectedCP.connection).toBeNull();
@@ -65,18 +65,14 @@ describe("disconnectCustomers", () => {
       .build();
 
     const { putCustomerPoints } = disconnectCustomers(hydraulicModel, {
-      customerPointIds: [String(IDS.CP1), String(IDS.CP2)],
+      customerPointIds: [IDS.CP1, IDS.CP2],
     });
 
     expect(putCustomerPoints).toBeDefined();
     expect(putCustomerPoints!.length).toBe(2);
 
-    const disconnectedCP1 = putCustomerPoints!.find(
-      (cp) => cp.id === String(IDS.CP1),
-    )!;
-    const disconnectedCP2 = putCustomerPoints!.find(
-      (cp) => cp.id === String(IDS.CP2),
-    )!;
+    const disconnectedCP1 = putCustomerPoints!.find((cp) => cp.id === IDS.CP1)!;
+    const disconnectedCP2 = putCustomerPoints!.find((cp) => cp.id === IDS.CP2)!;
 
     expect(disconnectedCP1.connection).toBeNull();
     expect(disconnectedCP2.connection).toBeNull();
@@ -95,17 +91,17 @@ describe("disconnectCustomers", () => {
       .aJunction(IDS.J1, { coordinates: [0, 0] })
       .build();
 
-    hydraulicModel.customerPoints.set(String(IDS.CP1), disconnectedCP);
+    hydraulicModel.customerPoints.set(IDS.CP1, disconnectedCP);
 
     const { putCustomerPoints } = disconnectCustomers(hydraulicModel, {
-      customerPointIds: [String(IDS.CP1)],
+      customerPointIds: [IDS.CP1],
     });
 
     expect(putCustomerPoints).toBeDefined();
     expect(putCustomerPoints!.length).toBe(1);
 
     const resultCP = putCustomerPoints![0];
-    expect(resultCP.id).toBe(String(IDS.CP1));
+    expect(resultCP.id).toBe(IDS.CP1);
     expect(resultCP.connection).toBeNull();
   });
 
@@ -117,9 +113,9 @@ describe("disconnectCustomers", () => {
 
     expect(() => {
       disconnectCustomers(hydraulicModel, {
-        customerPointIds: ["NON_EXISTENT"],
+        customerPointIds: [999],
       });
-    }).toThrow("Customer point with id NON_EXISTENT not found");
+    }).toThrow("Customer point with id 999 not found");
   });
 
   it("ensures immutability by creating new instances", () => {
@@ -138,10 +134,10 @@ describe("disconnectCustomers", () => {
       .aJunction(IDS.J1, { coordinates: [0, 0] })
       .build();
 
-    hydraulicModel.customerPoints.set(String(IDS.CP1), originalCP);
+    hydraulicModel.customerPoints.set(IDS.CP1, originalCP);
 
     const { putCustomerPoints } = disconnectCustomers(hydraulicModel, {
-      customerPointIds: [String(IDS.CP1)],
+      customerPointIds: [IDS.CP1],
     });
 
     const disconnectedCP = putCustomerPoints![0];
@@ -175,11 +171,11 @@ describe("disconnectCustomers", () => {
       .aJunction(IDS.J1, { coordinates: [0, 0] })
       .build();
 
-    hydraulicModel.customerPoints.set(String(IDS.CP1), connectedCP);
-    hydraulicModel.customerPoints.set(String(IDS.CP2), disconnectedCP);
+    hydraulicModel.customerPoints.set(IDS.CP1, connectedCP);
+    hydraulicModel.customerPoints.set(IDS.CP2, disconnectedCP);
 
     const { putCustomerPoints } = disconnectCustomers(hydraulicModel, {
-      customerPointIds: [String(IDS.CP1), String(IDS.CP2)],
+      customerPointIds: [IDS.CP1, IDS.CP2],
     });
 
     expect(putCustomerPoints!.length).toBe(2);
@@ -197,10 +193,10 @@ describe("disconnectCustomers", () => {
       .aJunction(IDS.J1, { coordinates: [0, 0] })
       .build();
 
-    hydraulicModel.customerPoints.set(String(IDS.CP1), cp);
+    hydraulicModel.customerPoints.set(IDS.CP1, cp);
 
     const result = disconnectCustomers(hydraulicModel, {
-      customerPointIds: [String(IDS.CP1)],
+      customerPointIds: [IDS.CP1],
     });
 
     expect(result.note).toBe("Disconnect customers");
@@ -222,12 +218,12 @@ describe("disconnectCustomers", () => {
       .aJunction(IDS.J1, { coordinates: [0, 0] })
       .build();
 
-    hydraulicModel.customerPoints.set(String(IDS.CP1), cp);
+    hydraulicModel.customerPoints.set(IDS.CP1, cp);
 
     const { putAssets, putCustomerPoints } = disconnectCustomers(
       hydraulicModel,
       {
-        customerPointIds: [String(IDS.CP1)],
+        customerPointIds: [IDS.CP1],
       },
     );
 

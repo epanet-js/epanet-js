@@ -222,12 +222,10 @@ describe("AllocationStep", () => {
     vi.mocked(allocateCustomerPoints).mockResolvedValue({
       ruleMatches: [allocatedCount],
       allocatedCustomerPoints: new Map(
-        customerPoints
-          .slice(0, allocatedCount)
-          .map((cp) => [String(cp.id), cp]),
+        customerPoints.slice(0, allocatedCount).map((cp) => [cp.id, cp]),
       ),
       disconnectedCustomerPoints: new Map(
-        customerPoints.slice(allocatedCount).map((cp) => [String(cp.id), cp]),
+        customerPoints.slice(allocatedCount).map((cp) => [cp.id, cp]),
       ),
     });
 
@@ -269,12 +267,10 @@ describe("AllocationStep", () => {
     vi.mocked(allocateCustomerPoints).mockResolvedValue({
       ruleMatches: [allocatedCount],
       allocatedCustomerPoints: new Map(
-        customerPoints
-          .slice(0, allocatedCount)
-          .map((cp) => [String(cp.id), cp]),
+        customerPoints.slice(0, allocatedCount).map((cp) => [cp.id, cp]),
       ),
       disconnectedCustomerPoints: new Map(
-        customerPoints.slice(allocatedCount).map((cp) => [String(cp.id), cp]),
+        customerPoints.slice(allocatedCount).map((cp) => [cp.id, cp]),
       ),
     });
 
@@ -316,12 +312,10 @@ describe("AllocationStep", () => {
     vi.mocked(allocateCustomerPoints).mockResolvedValue({
       ruleMatches: [allocatedCount],
       allocatedCustomerPoints: new Map(
-        customerPoints
-          .slice(0, allocatedCount)
-          .map((cp) => [String(cp.id), cp]),
+        customerPoints.slice(0, allocatedCount).map((cp) => [cp.id, cp]),
       ),
       disconnectedCustomerPoints: new Map(
-        customerPoints.slice(allocatedCount).map((cp) => [String(cp.id), cp]),
+        customerPoints.slice(allocatedCount).map((cp) => [cp.id, cp]),
       ),
     });
 

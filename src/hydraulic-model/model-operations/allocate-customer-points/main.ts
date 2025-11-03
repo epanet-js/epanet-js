@@ -19,8 +19,8 @@ export const allocateCustomerPoints = async (
   { allocationRules, customerPoints, bufferType = "array" }: InputData,
 ): Promise<AllocationResult> => {
   const ruleMatches = allocationRules.map(() => 0);
-  const allocatedCustomerPoints = new Map<string, CustomerPoint>();
-  const disconnectedCustomerPoints = new Map<string, CustomerPoint>();
+  const allocatedCustomerPoints = new Map<number, CustomerPoint>();
+  const disconnectedCustomerPoints = new Map<number, CustomerPoint>();
 
   const workerData = prepareWorkerData(
     hydraulicModel,

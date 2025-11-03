@@ -13,7 +13,7 @@ export const deleteAssets: ModelOperation<InputData> = (
   { assetIds, shouldUpdateCustomerPoints = false },
 ) => {
   const affectedIds = new Set(assetIds);
-  const disconnectedCustomerPoints = new Map<string, CustomerPoint>();
+  const disconnectedCustomerPoints = new Map<number, CustomerPoint>();
 
   assetIds.forEach((id) => {
     if (shouldUpdateCustomerPoints) {
@@ -51,7 +51,7 @@ export const deleteAssets: ModelOperation<InputData> = (
 
 const addCustomerPointsToDisconnect = (
   asset: Asset | undefined,
-  disconnectedCustomerPoints: Map<string, CustomerPoint>,
+  disconnectedCustomerPoints: Map<number, CustomerPoint>,
   customerPointsLookup: CustomerPointsLookup,
 ) => {
   if (!asset || asset.type !== "pipe") return;

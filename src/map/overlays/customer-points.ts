@@ -15,7 +15,7 @@ import { Position } from "src/types";
 interface ConnectionLineData {
   sourcePosition: [number, number];
   targetPosition: [number, number];
-  customerPointId: string;
+  customerPointId: number;
 }
 
 const fillColor = hexToArray(colors.gray500);
@@ -54,7 +54,7 @@ export const updateCustomerPointsOverlayVisibility = (
 export const buildCustomerPointsOverlay = (
   customerPoints: CustomerPoints,
   zoom: number,
-  excludedCustomerPointIds?: Set<string>,
+  excludedCustomerPointIds?: Set<number>,
 ): CustomerPointsOverlay => {
   const connectionLines: ConnectionLineData[] = [];
   const visibleCustomerPoints: CustomerPoint[] = [];

@@ -32,7 +32,7 @@ export const useSelection = (selection: Sel) => {
     setTab(TabOption.Asset);
   };
 
-  const selectCustomerPoint = (customerPointId: string) => {
+  const selectCustomerPoint = (customerPointId: number) => {
     setSelection(USelection.singleCustomerPoint(customerPointId));
     setTab(TabOption.Asset);
   };

@@ -89,7 +89,7 @@ describe("moveNode", () => {
       expect(putCustomerPoints!.length).toEqual(1);
 
       const updatedCustomerPoint = putCustomerPoints![0];
-      expect(updatedCustomerPoint.id).toEqual(String(IDS.CP1));
+      expect(updatedCustomerPoint.id).toEqual(IDS.CP1);
       expect(updatedCustomerPoint.connection!.snapPoint).not.toEqual([20, 10]);
     });
 
@@ -252,12 +252,8 @@ describe("moveNode", () => {
       expect(putCustomerPoints).toBeDefined();
       expect(putCustomerPoints!.length).toEqual(2);
 
-      const updatedCP1 = putCustomerPoints!.find(
-        (cp) => cp.id === String(IDS.CP1),
-      )!;
-      const updatedCP2 = putCustomerPoints!.find(
-        (cp) => cp.id === String(IDS.CP2),
-      )!;
+      const updatedCP1 = putCustomerPoints!.find((cp) => cp.id === IDS.CP1)!;
+      const updatedCP2 = putCustomerPoints!.find((cp) => cp.id === IDS.CP2)!;
 
       expect(updatedCP1.connection!.junctionId).toEqual(IDS.J2);
       expect(updatedCP2.connection!.junctionId).toEqual(IDS.J2);
@@ -367,12 +363,8 @@ describe("moveNode", () => {
     expect(putCustomerPoints).toBeDefined();
     expect(putCustomerPoints!.length).toBeGreaterThan(0);
 
-    const updatedCP1 = putCustomerPoints!.find(
-      (cp) => cp.id === String(IDS.CP1),
-    );
-    const updatedCP2 = putCustomerPoints!.find(
-      (cp) => cp.id === String(IDS.CP2),
-    );
+    const updatedCP1 = putCustomerPoints!.find((cp) => cp.id === IDS.CP1);
+    const updatedCP2 = putCustomerPoints!.find((cp) => cp.id === IDS.CP2);
 
     expect(updatedCP1).toBeDefined();
     expect(updatedCP2).toBeDefined();
@@ -527,9 +519,7 @@ describe("moveNode", () => {
     ]);
 
     expect(putCustomerPoints).toBeDefined();
-    const updatedCP = putCustomerPoints!.find(
-      (cp) => cp.id === String(IDS.CP1),
-    );
+    const updatedCP = putCustomerPoints!.find((cp) => cp.id === IDS.CP1);
     expect(updatedCP).toBeDefined();
     expect(updatedCP!.connection?.pipeId).toBe(pipe1.id);
   });

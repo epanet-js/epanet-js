@@ -88,8 +88,8 @@ describe.skip("importCustomerPoints", () => {
     const { hydraulicModel } = store.get(dataAtom);
     expect(hydraulicModel.customerPoints.size).toBe(2);
 
-    const customerPoint1 = hydraulicModel.customerPoints.get(String(IDS.CP1));
-    const customerPoint2 = hydraulicModel.customerPoints.get(String(IDS.CP2));
+    const customerPoint1 = hydraulicModel.customerPoints.get(IDS.CP1);
+    const customerPoint2 = hydraulicModel.customerPoints.get(IDS.CP2);
 
     expect(customerPoint1).toBeDefined();
     expect(customerPoint1?.coordinates).toEqual([0.0003, 0.0003]);
@@ -137,8 +137,8 @@ describe.skip("importCustomerPoints", () => {
     await expectSuccessNotification();
 
     const { hydraulicModel } = store.get(dataAtom);
-    expect(hydraulicModel.customerPoints.has(String(IDS.CP1))).toBe(true);
-    expect(hydraulicModel.customerPoints.has(String(IDS.CP2))).toBe(true);
+    expect(hydraulicModel.customerPoints.has(IDS.CP1)).toBe(true);
+    expect(hydraulicModel.customerPoints.has(IDS.CP2)).toBe(true);
   });
 
   it("skips non-Point geometries", async () => {
@@ -174,9 +174,9 @@ describe.skip("importCustomerPoints", () => {
 
     const { hydraulicModel } = store.get(dataAtom);
     expect(hydraulicModel.customerPoints.size).toBe(1);
-    expect(
-      hydraulicModel.customerPoints.get(String(IDS.CP1))?.coordinates,
-    ).toEqual([0.0004, 0.0004]);
+    expect(hydraulicModel.customerPoints.get(IDS.CP1)?.coordinates).toEqual([
+      0.0004, 0.0004,
+    ]);
   });
 
   it("keeps existing demands when add on top option is selected", async () => {

@@ -31,14 +31,14 @@ export interface CustomerPointConnection {
 }
 
 export class CustomerPoint {
-  public readonly id: string;
+  public readonly id: number;
   public readonly label: string;
   public readonly coordinates: Position;
   private properties: { baseDemand: number };
   private connectionData: CustomerPointConnection | null = null;
 
   constructor(
-    id: string,
+    id: number,
     coordinates: Position,
     properties: { baseDemand: number; label: string },
   ) {
@@ -49,7 +49,7 @@ export class CustomerPoint {
   }
 
   static build(
-    id: string,
+    id: number,
     coordinates: Position,
     properties: { baseDemand: number; label: string },
   ): CustomerPoint {
@@ -80,15 +80,15 @@ export class CustomerPoint {
   }
 }
 
-export class CustomerPoints extends Map<string, CustomerPoint> {}
+export class CustomerPoints extends Map<number, CustomerPoint> {}
 
 export const initializeCustomerPoints = (): CustomerPoints => {
-  return new Map<string, CustomerPoint>();
+  return new Map<number, CustomerPoint>();
 };
 
 export const getCustomerPoints = (
   customerPoints: CustomerPoints,
-  ids: string[],
+  ids: number[],
 ): CustomerPoint[] => {
   return ids
     .map((id) => customerPoints.get(id))
