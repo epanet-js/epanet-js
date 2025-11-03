@@ -1,5 +1,6 @@
 import * as Tooltip from "@radix-ui/react-tooltip";
 import * as P from "@radix-ui/react-popover";
+import { useState } from "react";
 import {
   Button,
   TContent,
@@ -40,6 +41,9 @@ export const PipeDrawingButton = ({
     pipeDrawingDefaultsAtom,
   );
 
+  const [shouldShowPopover, setShouldShowPopover] = useState(false);
+  const isOpen = shouldShowPopover && currentMode === Mode.DRAW_PIPE;
+
   useHotkeys(
     hotkey || "noop",
     (e) => {
@@ -64,12 +68,35 @@ export const PipeDrawingButton = ({
     setPipeDrawingDefaults((prev) => ({ ...prev, roughness: newValue }));
   };
 
+  const handlePopoverMouseLeave = () => {
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+
+    setTimeout(() => {
+      setShouldShowPopover(false);
+    }, 0);
+  };
+
+  const handleOpenAutoFocus = (e: Event) => {
+    e.preventDefault();
+
+    const firstInput = (e.currentTarget as HTMLElement)?.querySelector("input");
+    if (firstInput instanceof HTMLInputElement) {
+      setTimeout(() => {
+        firstInput.focus();
+        firstInput.select();
+      }, 0);
+    }
+  };
+
   return (
     <Tooltip.Root delayDuration={200}>
       <div className="h-10 w-8 group bn flex items-stretch py-1 focus:outline-none">
         <P.Root
-          open={currentMode === Mode.DRAW_PIPE}
+          open={isOpen}
           onOpenChange={(open) => {
+            setShouldShowPopover(open);
             if (open) {
               userTracking.capture({
                 name: "drawingMode.enabled",
@@ -99,8 +126,9 @@ export const PipeDrawingButton = ({
               size="sm"
               side="bottom"
               align="start"
-              onOpenAutoFocus={(e) => e.preventDefault()}
+              onOpenAutoFocus={handleOpenAutoFocus}
               onCloseAutoFocus={(e) => e.preventDefault()}
+              onPointerLeave={handlePopoverMouseLeave}
             >
               <StyledPopoverArrow />
               <div className="flex flex-col gap-2">
