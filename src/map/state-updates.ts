@@ -256,10 +256,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           );
         }
 
-        if (hasNewSymbology || hasNewStyles) {
-          toggleAnalysisLayers(map, mapState.symbology);
-        }
-
         if (
           hasNewImport ||
           hasNewStyles ||
@@ -399,6 +395,11 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
 
         if (hasNewStyles) {
           addEditingLayersToMap(map, mapState.stylesConfig);
+          toggleAnalysisLayers(map, mapState.symbology);
+        }
+
+        if (hasNewSymbology && !hasNewStyles) {
+          toggleAnalysisLayers(map, mapState.symbology);
         }
 
         if (
