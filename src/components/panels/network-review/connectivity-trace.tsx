@@ -160,7 +160,7 @@ const SubnetworkItem = ({
   );
   const pipesText = translate(
     "networkReview.connectivityTrace.pipesCount",
-    subnetwork.linkIds.length,
+    subnetwork.pipeCount,
   );
 
   return (
