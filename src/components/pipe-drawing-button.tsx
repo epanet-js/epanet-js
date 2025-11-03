@@ -10,7 +10,12 @@ import {
 import { PipeIcon } from "src/icons";
 import { useTranslate } from "src/hooks/use-translate";
 import { useAtom, useAtomValue } from "jotai";
-import { dataAtom, pipeDrawingDefaultsAtom, Mode } from "src/state/jotai";
+import {
+  dataAtom,
+  pipeDrawingDefaultsAtom,
+  Mode,
+  modeAtom,
+} from "src/state/jotai";
 import { QuantityRow } from "./panels/asset-panel/ui-components";
 import { localizeKeybinding } from "src/infra/i18n";
 import { useHotkeys } from "src/keyboard/hotkeys";
@@ -27,6 +32,7 @@ export const PipeDrawingButton = ({
   const translate = useTranslate();
   const setDrawingMode = useDrawingMode();
   const userTracking = useUserTracking();
+  const { mode: currentMode } = useAtomValue(modeAtom);
   const {
     modelMetadata: { quantities },
   } = useAtomValue(dataAtom);
@@ -62,6 +68,7 @@ export const PipeDrawingButton = ({
     <Tooltip.Root delayDuration={200}>
       <div className="h-10 w-8 group bn flex items-stretch py-1 focus:outline-none">
         <P.Root
+          open={currentMode === Mode.DRAW_PIPE}
           onOpenChange={(open) => {
             if (open) {
               userTracking.capture({
@@ -72,6 +79,7 @@ export const PipeDrawingButton = ({
               void setDrawingMode(Mode.DRAW_PIPE);
             }
           }}
+          modal={false}
         >
           <Tooltip.Trigger asChild>
             <P.Trigger asChild>
@@ -87,7 +95,13 @@ export const PipeDrawingButton = ({
             </P.Trigger>
           </Tooltip.Trigger>
           <P.Portal>
-            <StyledPopoverContent size="sm" side="bottom" align="center">
+            <StyledPopoverContent
+              size="sm"
+              side="bottom"
+              align="start"
+              onOpenAutoFocus={(e) => e.preventDefault()}
+              onCloseAutoFocus={(e) => e.preventDefault()}
+            >
               <StyledPopoverArrow />
               <div className="flex flex-col gap-2">
                 <QuantityRow
