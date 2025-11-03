@@ -7,6 +7,7 @@ import {
   EphemeralEditingState,
   selectionAtom,
   rememberedDefaultsAtom,
+  pipeDrawingDefaultsAtom,
 } from "src/state/jotai";
 import { useSetAtom, useAtom, useAtomValue } from "jotai";
 import { getMapCoord } from "../utils";
@@ -83,7 +84,9 @@ export function useDrawLinkHandlers({
 
   const { isShiftHeld, isControlHeld } = useKeyboardState();
   const isRememberPropsOn = useFeatureFlag("FLAG_REMEMBER_PROPS");
+  const isPipePropsOn = useFeatureFlag("FLAG_PIPE_PROPS");
   const rememberedDefaults = useAtomValue(rememberedDefaultsAtom);
+  const pipeDrawingDefaults = useAtomValue(pipeDrawingDefaultsAtom);
 
   const createLinkForType = (coordinates: Position[] = []) => {
     const startProperties = {
@@ -92,6 +95,17 @@ export function useDrawLinkHandlers({
     };
     switch (linkType) {
       case "pipe":
+        if (isPipePropsOn) {
+          return assetBuilder.buildPipe({
+            ...startProperties,
+            ...(pipeDrawingDefaults.diameter && {
+              diameter: pipeDrawingDefaults.diameter,
+            }),
+            ...(pipeDrawingDefaults.roughness && {
+              roughness: pipeDrawingDefaults.roughness,
+            }),
+          });
+        }
         return assetBuilder.buildPipe({
           ...(isRememberPropsOn ? rememberedDefaults.pipe : {}),
           ...startProperties,

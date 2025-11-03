@@ -508,3 +508,8 @@ export const rememberedDefaultsAtom = atom<{
     initialStatus?: PipeStatus;
   };
 }>(initialRememberedDefaults);
+
+export const pipeDrawingDefaultsAtom = atom<{
+  diameter?: number;
+  roughness?: number;
+}>({});

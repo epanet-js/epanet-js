@@ -39,10 +39,10 @@ export default function MenuAction({
 
   const [open, setOpen] = useState(false);
 
-  const handleClick = () => {
+  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     setOpen(false);
     buttonRef.current && buttonRef.current.blur();
-    onClick();
+    onClick(e);
   };
 
   return (
