@@ -1,5 +1,4 @@
 import { LineLayer, LinePaint, SymbolLayer } from "mapbox-gl";
-import { LINE_COLORS_SELECTED } from "src/lib/constants";
 import { ISymbology } from "src/types";
 import { asNumberExpression } from "src/lib/symbolization-deprecated";
 import { DataSource } from "../data-source";
@@ -26,13 +25,7 @@ export const pipesLayer = ({
       }),
     ],
     "line-width": ["interpolate", ["linear"], ["zoom"], 12, 0.5, 16, 4],
-    "line-color": [
-      "match",
-      ["feature-state", "selected"],
-      "true",
-      LINE_COLORS_SELECTED,
-      ["coalesce", ["get", "color"], symbology.defaultColor],
-    ],
+    "line-color": ["coalesce", ["get", "color"], symbology.defaultColor],
     "line-dasharray": [
       "case",
       ["==", ["get", "status"], "closed"],
@@ -73,13 +66,7 @@ export const pipeArrows = ({
     },
     filter: ["all", ["==", "$type", "LineString"], ["==", "hasArrow", true]],
     paint: {
-      "icon-color": [
-        "match",
-        ["feature-state", "selected"],
-        "true",
-        LINE_COLORS_SELECTED,
-        ["coalesce", ["get", "color"], symbology.defaultColor],
-      ],
+      "icon-color": ["coalesce", ["get", "color"], symbology.defaultColor],
       "icon-opacity": [
         ...zoomExpression(
           [14, 15, 16, 17, 18, 19, 20],

@@ -1,5 +1,5 @@
 import { CircleLayer } from "mapbox-gl";
-import { POINT_COLORS_SELECTED, colors } from "src/lib/constants";
+import { colors } from "src/lib/constants";
 import { asNumberExpression } from "src/lib/symbolization-deprecated";
 import { ISymbology } from "src/types";
 import { DataSource } from "../data-source";
@@ -7,7 +7,6 @@ import { LayerId } from "./layer";
 import { strokeColorFor } from "src/lib/color";
 
 const defaultInnerColor = colors.indigo200;
-const selectedInnerColor = POINT_COLORS_SELECTED;
 
 export const junctionCircleSizes = (): Partial<CircleLayer["paint"]> => {
   return {
@@ -94,21 +93,13 @@ const opacityExpression = (symbology: ISymbology): mapboxgl.Expression => [
 ];
 
 const colorExpression = (): mapboxgl.Expression => {
-  return [
-    "match",
-    ["feature-state", "selected"],
-    "true",
-    selectedInnerColor,
-    ["coalesce", ["get", "color"], defaultInnerColor],
-  ];
+  return ["coalesce", ["get", "color"], defaultInnerColor];
 };
 
 const strokeColorExpression = (): mapboxgl.Expression => {
   return [
-    "match",
-    ["feature-state", "selected"],
-    "true",
-    strokeColorFor(selectedInnerColor),
-    ["coalesce", ["get", "strokeColor"], strokeColorFor(defaultInnerColor)],
+    "coalesce",
+    ["get", "strokeColor"],
+    strokeColorFor(defaultInnerColor),
   ];
 };

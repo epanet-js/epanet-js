@@ -43,7 +43,6 @@ import { mapLoadingAtom } from "./state";
 import { offlineAtom } from "src/state/offline";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   CustomerPointsOverlay,
   buildCustomerPointsOverlay,
@@ -194,7 +193,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const momentLog = useAtomValue(momentLogAtom);
   const mapState = useAtomValue(mapStateAtom);
   const setMapLoading = useSetAtom(mapLoadingAtom);
-  const isSelectionLayersEnabled = useFeatureFlag("FLAG_SELECTION_LAYERS");
 
   const assets = useAtomValue(assetsAtom);
   const {
@@ -384,23 +382,13 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           );
         }
 
-        if (!isSelectionLayersEnabled && (hasNewSelection || hasNewStyles)) {
-          updateSelection(
-            map,
-            mapState.selection,
-            previousMapState.selection,
-            idMap,
-          );
-        }
-
         if (
-          isSelectionLayersEnabled &&
-          (hasNewSelection ||
-            hasNewStyles ||
-            hasNewEphemeralState ||
-            hasNewEditions)
+          hasNewSelection ||
+          hasNewStyles ||
+          hasNewEphemeralState ||
+          hasNewEditions
         ) {
-          await updateSelectionWithSource(
+          await updateSelection(
             map,
             mapState.selection,
             assets,
@@ -456,7 +444,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     translate,
     translateUnit,
     hydraulicModel,
-    isSelectionLayersEnabled,
   ]);
 
   doUpdates();
@@ -658,7 +645,7 @@ const updateEditionsVisibility = withDebugInstrumentation(
   },
 );
 
-const updateSelectionWithSource = withDebugInstrumentation(
+const updateSelection = withDebugInstrumentation(
   async (
     map: MapEngine,
     selection: Sel,
@@ -673,28 +660,6 @@ const updateSelectionWithSource = withDebugInstrumentation(
       movedAssetIds,
     );
     await map.setSource("selected-features", features);
-  },
-  { name: "MAP_STATE:UPDATE_SELECTION_SOURCE", maxDurationMs: 100 },
-);
-
-const updateSelection = withDebugInstrumentation(
-  (map: MapEngine, selection: Sel, previousSelection: Sel, idMap: IDMap) => {
-    const prevSet = new Set(USelection.toIds(previousSelection));
-    const newSet = new Set(USelection.toIds(selection));
-
-    for (const assetId of newSet) {
-      const featureId = UIDMap.getIntID(idMap, assetId);
-      map.selectFeature("features", featureId);
-      map.selectFeature("imported-features", featureId);
-    }
-
-    for (const assetId of prevSet) {
-      if (newSet.has(assetId)) continue;
-      const featureId = UIDMap.getIntID(idMap, assetId);
-
-      map.unselectFeature("features", featureId);
-      map.unselectFeature("imported-features", featureId);
-    }
   },
   { name: "MAP_STATE:UPDATE_SELECTION", maxDurationMs: 100 },
 );

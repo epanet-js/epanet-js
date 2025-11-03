@@ -252,7 +252,7 @@ export function makeLayers({
       source: "icons",
       layerId: "check-valve-icons",
     }),
-    ...pumpIcons({
+    pumpIcons({
       source: "icons",
       layerId: "pump-icons",
       symbology,

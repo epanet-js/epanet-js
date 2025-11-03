@@ -300,42 +300,6 @@ export class MapEngine {
     this.map.remove();
   }
 
-  selectFeature(sourceName: DataSource, featureId: RawId): void {
-    this.setFeatureState(sourceName, featureId, { selected: "true" });
-  }
-
-  unselectFeature(sourceName: DataSource, featureId: RawId): void {
-    this.removeFeatureState(sourceName, featureId, "selected");
-  }
-
-  private setFeatureState(
-    source: DataSource,
-    featureId: RawId,
-    data: Record<string, string | boolean>,
-  ) {
-    this.map.setFeatureState(
-      {
-        source,
-        id: featureId,
-      },
-      data,
-    );
-  }
-
-  private removeFeatureState(
-    source: DataSource,
-    featureId: RawId,
-    key: string,
-  ) {
-    this.map.removeFeatureState(
-      {
-        source: source,
-        id: featureId,
-      },
-      key,
-    );
-  }
-
   getFeatureState(source: DataSource, featureId: RawId): Record<string, any> {
     if (!this.map || !(this.map as any).style) return {};
 
