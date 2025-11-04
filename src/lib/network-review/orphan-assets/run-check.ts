@@ -1,7 +1,6 @@
 import * as Comlink from "comlink";
 
 import { HydraulicModel } from "src/hydraulic-model";
-import { ArrayBufferType, canUseWorker } from "src/infra/worker";
 import {
   OrphanAsset,
   OrphanAssets,
@@ -9,22 +8,22 @@ import {
   encodeData,
 } from "./data";
 import { findOrphanAssets } from "./find-orphan-assets";
-import type { OrphanAssetsWorkerAPI } from "./worker";
+import type { OrphanAssetsWorkerAPI } from "./worker-api";
 import { AssetTypeQueries } from "src/hydraulic-model/asset-type-queries";
 import { BufferType } from "src/lib/buffers";
+import { canUseWorker } from "src/infra/worker";
 
 export const runCheck = async (
   hydraulicModel: HydraulicModel,
-  bufferType: ArrayBufferType = "array",
-  signal?: AbortSignal,
+  signal: AbortSignal | undefined = undefined,
+  bufferType: BufferType = "array",
+  runInWorker: boolean = true,
 ): Promise<OrphanAsset[]> => {
   if (signal?.aborted) {
     throw new DOMException("Operation cancelled", "AbortError");
   }
 
-  const useWorker = canUseWorker();
-
-  const encodedOrphanAssets = useWorker
+  const encodedOrphanAssets = runInWorker
     ? await runWithWorker(hydraulicModel, bufferType, signal)
     : findOrphanAssets(
         hydraulicModel.topology,
@@ -42,6 +41,13 @@ const runWithWorker = async (
 ): Promise<OrphanAssets> => {
   if (signal?.aborted) {
     throw new DOMException("Operation cancelled", "AbortError");
+  }
+
+  const data = encodeData(model, bufferType);
+
+  if (!canUseWorker()) {
+    const { workerAPI: fallbackWorkerAPI } = await import("./worker-api");
+    return fallbackWorkerAPI.findOrphanAssets(data);
   }
 
   const worker = new Worker(new URL("./worker.ts", import.meta.url), {
