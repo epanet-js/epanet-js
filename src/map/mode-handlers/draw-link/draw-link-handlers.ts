@@ -6,7 +6,6 @@ import {
   ephemeralStateAtom,
   EphemeralEditingState,
   selectionAtom,
-  rememberedDefaultsAtom,
   pipeDrawingDefaultsAtom,
 } from "src/state/jotai";
 import { useSetAtom, useAtom, useAtomValue } from "jotai";
@@ -83,9 +82,7 @@ export function useDrawLinkHandlers({
   const { findSnappingCandidate } = useSnapping(map, hydraulicModel.assets);
 
   const { isShiftHeld, isControlHeld } = useKeyboardState();
-  const isRememberPropsOn = useFeatureFlag("FLAG_REMEMBER_PROPS");
   const isPipePropsOn = useFeatureFlag("FLAG_PIPE_PROPS");
-  const rememberedDefaults = useAtomValue(rememberedDefaultsAtom);
   const pipeDrawingDefaults = useAtomValue(pipeDrawingDefaultsAtom);
 
   const createLinkForType = (coordinates: Position[] = []) => {
@@ -106,10 +103,7 @@ export function useDrawLinkHandlers({
             }),
           });
         }
-        return assetBuilder.buildPipe({
-          ...(isRememberPropsOn ? rememberedDefaults.pipe : {}),
-          ...startProperties,
-        });
+        return assetBuilder.buildPipe(startProperties);
       case "pump":
         return assetBuilder.buildPump(startProperties);
       case "valve":

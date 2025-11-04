@@ -1,5 +1,5 @@
 import { useMemo, useCallback } from "react";
-import { useAtomValue, useSetAtom } from "jotai";
+import { useAtomValue } from "jotai";
 import {
   Asset,
   Junction,
@@ -15,9 +15,8 @@ import { Quantities } from "src/model-metadata/quantities-spec";
 import { useTranslate } from "src/hooks/use-translate";
 import { usePersistence } from "src/lib/persistence/context";
 import { useUserTracking } from "src/infra/user-tracking";
-import { dataAtom, rememberedDefaultsAtom } from "src/state/jotai";
+import { dataAtom } from "src/state/jotai";
 import { changeProperty } from "src/hydraulic-model/model-operations";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { getLinkNodes } from "src/hydraulic-model/assets-map";
 import {
   HeadlossFormula,
@@ -73,13 +72,6 @@ export const valveStatusLabel = (valve: Valve) => {
   return "valve." + valve.status;
 };
 
-const PIPE_REMEMBERED_PROPERTIES = new Set([
-  "diameter",
-  "roughness",
-  "minorLoss",
-  "initialStatus",
-]);
-
 export function AssetPanel({
   asset,
   quantitiesMetadata,
@@ -91,8 +83,6 @@ export function AssetPanel({
   const rep = usePersistence();
   const transact = rep.useTransact();
   const userTracking = useUserTracking();
-  const isRememberPropsOn = useFeatureFlag("FLAG_REMEMBER_PROPS");
-  const setRememberedDefaults = useSetAtom(rememberedDefaultsAtom);
 
   const handlePropertyChange = useCallback(
     (
@@ -113,27 +103,8 @@ export function AssetPanel({
         newValue: typeof value === "boolean" ? Number(value) : value,
         oldValue: typeof oldValue === "boolean" ? Number(oldValue) : oldValue,
       });
-
-      if (
-        isRememberPropsOn &&
-        asset.type === "pipe" &&
-        PIPE_REMEMBERED_PROPERTIES.has(property)
-      ) {
-        setRememberedDefaults((prev) => ({
-          ...prev,
-          pipe: { ...prev.pipe, [property]: value },
-        }));
-      }
     },
-    [
-      hydraulicModel,
-      asset.id,
-      asset.type,
-      transact,
-      userTracking,
-      isRememberPropsOn,
-      setRememberedDefaults,
-    ],
+    [hydraulicModel, asset.id, asset.type, transact, userTracking],
   );
 
   const handleDefinitionTypeChange = useCallback(
@@ -192,23 +163,8 @@ export function AssetPanel({
         newStatus,
         oldStatus,
       });
-
-      if (isRememberPropsOn && asset.type === "pipe") {
-        setRememberedDefaults((prev) => ({
-          ...prev,
-          pipe: { ...prev.pipe, initialStatus: newStatus as PipeStatus },
-        }));
-      }
     },
-    [
-      hydraulicModel,
-      asset.id,
-      asset.type,
-      transact,
-      userTracking,
-      isRememberPropsOn,
-      setRememberedDefaults,
-    ],
+    [hydraulicModel, asset.id, asset.type, transact, userTracking],
   );
 
   switch (asset.type) {
