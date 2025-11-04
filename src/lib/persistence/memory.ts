@@ -65,6 +65,11 @@ export class MemPersistence implements IPersistence {
       };
       moment.putAssets.forEach((asset) => {
         hydraulicModel.labelManager.register(asset.label, asset.type, asset.id);
+        if (asset.isLink) {
+          hydraulicModel.assetIndex.addLink(asset.id);
+        } else if (asset.isNode) {
+          hydraulicModel.assetIndex.addNode(asset.id);
+        }
       });
       momentLog.setSnapshot(forwardMoment, hydraulicModel.version);
       this.store.set(splitsAtom, defaultSplits);
@@ -161,6 +166,7 @@ export class MemPersistence implements IPersistence {
           : ctx.hydraulicModel.demands,
         customerPoints: ctx.hydraulicModel.customerPoints,
         customerPointsLookup: ctx.hydraulicModel.customerPointsLookup,
+        assetIndex: ctx.hydraulicModel.assetIndex,
       },
       folderMap: new Map(
         Array.from(ctx.folderMap).sort((a, b) => {
@@ -191,6 +197,12 @@ export class MemPersistence implements IPersistence {
     for (const id of features) {
       const asset = hydraulicModel.assets.get(id);
       if (!asset) continue;
+
+      if (asset.isLink) {
+        hydraulicModel.assetIndex.removeLink(asset.id);
+      } else if (asset.isNode) {
+        hydraulicModel.assetIndex.removeNode(asset.id);
+      }
 
       hydraulicModel.assets.delete(id);
       hydraulicModel.topology.removeNode(id);
@@ -237,6 +249,13 @@ export class MemPersistence implements IPersistence {
         hydraulicModel: { assets, topology },
       } = ctx;
       assets.set(inputFeature.id, inputFeature as Asset);
+
+      const assetToIndex = inputFeature as Asset;
+      if (assetToIndex.isLink) {
+        ctx.hydraulicModel.assetIndex.addLink(assetToIndex.id);
+      } else if (assetToIndex.isNode) {
+        ctx.hydraulicModel.assetIndex.addNode(assetToIndex.id);
+      }
 
       if (oldVersion && topology.hasLink(oldVersion.id)) {
         const oldLink = oldVersion as LinkAsset;

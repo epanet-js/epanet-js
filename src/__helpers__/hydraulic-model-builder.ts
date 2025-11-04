@@ -14,6 +14,7 @@ import {
   AssetId,
   HeadlossFormula,
 } from "src/hydraulic-model";
+import { AssetIndex } from "src/hydraulic-model/asset-index";
 import { CustomerPointsLookup } from "src/hydraulic-model/customer-points-lookup";
 import {
   PumpBuildData,
@@ -410,6 +411,15 @@ export class HydraulicModelBuilder {
       }
     }
 
+    const assetIndex = new AssetIndex(this.idGenerator);
+    for (const asset of this.assets.values()) {
+      if (asset.isLink) {
+        assetIndex.addLink(asset.id);
+      } else if (asset.isNode) {
+        assetIndex.addNode(asset.id);
+      }
+    }
+
     return {
       version: nanoid(),
       assets: this.assets,
@@ -418,6 +428,7 @@ export class HydraulicModelBuilder {
       assetBuilder: this.assetBuilder,
       labelManager: this.labelManager,
       topology: this.topology,
+      assetIndex,
       units: this.units,
       demands: this.demands,
       headlossFormula: this.headlossFormulaValue,

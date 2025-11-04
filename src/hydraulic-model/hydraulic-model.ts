@@ -9,6 +9,7 @@ import { LabelManager } from "./label-manager";
 import { Demands, nullDemands } from "./demands";
 import { CustomerPoints, initializeCustomerPoints } from "./customer-points";
 import { CustomerPointsLookup } from "./customer-points-lookup";
+import { AssetIndex } from "./asset-index";
 
 export type HydraulicModel = {
   version: string;
@@ -17,6 +18,7 @@ export type HydraulicModel = {
   customerPointsLookup: CustomerPointsLookup;
   assetBuilder: AssetBuilder;
   topology: Topology;
+  assetIndex: AssetIndex;
   units: UnitsSpec;
   demands: Demands;
   headlossFormula: HeadlossFormula;
@@ -37,18 +39,15 @@ export const initializeHydraulicModel = ({
   demands?: Demands;
 }) => {
   const labelManager = new LabelManager();
+  const idGenerator = new IdGenerator();
   return {
     version: nanoid(),
     assets: new Map(),
     customerPoints: initializeCustomerPoints(),
     customerPointsLookup: new CustomerPointsLookup(),
-    assetBuilder: new AssetBuilder(
-      units,
-      defaults,
-      new IdGenerator(),
-      labelManager,
-    ),
+    assetBuilder: new AssetBuilder(units, defaults, idGenerator, labelManager),
     topology: new Topology(),
+    assetIndex: new AssetIndex(idGenerator),
     demands,
     units,
     labelManager,
