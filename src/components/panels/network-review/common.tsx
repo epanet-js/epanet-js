@@ -211,7 +211,7 @@ const useListAutoFocus = (options: {
   return { listRef, focusList };
 };
 
-export const VirtualizedIssuesList = <T,>({
+export const VirtualizedIssuesList = <T, I>({
   items,
   selectedItemId,
   onSelect,
@@ -223,13 +223,13 @@ export const VirtualizedIssuesList = <T,>({
   onGoBack,
 }: {
   items: T[];
-  selectedItemId: string | number | null;
+  selectedItemId: I | null;
   onSelect: (item: T | null) => void;
-  getItemId: (item: T) => string | number;
+  getItemId: (item: T) => I;
   renderItem: (
     index: number,
     item: T,
-    selectedId: string | number | null,
+    selectedId: I | null,
     onClick: (item: T) => void,
   ) => React.ReactNode;
   checkType: CheckType;
@@ -239,7 +239,7 @@ export const VirtualizedIssuesList = <T,>({
 }) => {
   const headerRows = 1;
   const lastKeyboardNavigatedIndexRef = useRef<number | null>(null);
-  const lastProcessedSelectedIdRef = useRef<string | number | null>(null);
+  const lastProcessedSelectedIdRef = useRef<I | null>(null);
 
   const { zoomIn, zoomOut } = useZoom();
 
@@ -442,7 +442,7 @@ export const VirtualizedIssuesList = <T,>({
 
             return (
               <div
-                key={getIdFromIssue(item)}
+                key={String(getIdFromIssue(item))}
                 data-index={virtualRow.index}
                 className="w-full px-1"
                 ref={rowVirtualizer.measureElement}

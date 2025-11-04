@@ -26,7 +26,8 @@ export const ConnectivityTrace = ({ onGoBack }: { onGoBack: () => void }) => {
   const { subnetworks, checkConnectivityTrace, isLoading, isReady } =
     useCheckConnectivityTrace();
   const selection = useAtomValue(selectionAtom);
-  const { clearSelection, setSelection } = useSelection(selection);
+  const { clearSelection, setSelection, getSelectionIds } =
+    useSelection(selection);
   const zoomTo = useZoomTo();
   const [selectedSubnetworkId, setSelectedSubnetworkId] = useState<
     number | null
@@ -71,6 +72,29 @@ export const ConnectivityTrace = ({ onGoBack }: { onGoBack: () => void }) => {
       });
     }
   }, [subnetworks, userTracking]);
+
+  useEffect(() => {
+    const selectedIds = getSelectionIds();
+    if (selectedIds.length === 0) setSelectedSubnetworkId(null);
+    const firstSelectedId = selectedIds[0];
+
+    const candidateSubNetwork = subnetworks.find(
+      (subNetwork) =>
+        subNetwork.linkIds.findIndex((linkId) => linkId === firstSelectedId) >=
+          0 ||
+        subNetwork.nodeIds.findIndex((nodeId) => nodeId === firstSelectedId) >=
+          0,
+    );
+
+    if (!candidateSubNetwork) {
+      setSelectedSubnetworkId(null);
+    } else {
+      const subNetworkId = candidateSubNetwork.subnetworkId;
+      setSelectedSubnetworkId((prev) =>
+        prev === subNetworkId ? prev : subNetworkId,
+      );
+    }
+  }, [subnetworks, getSelectionIds]);
 
   return (
     <div className="absolute inset-0 flex flex-col">
@@ -125,7 +149,7 @@ const SubNetworksList = ({
       items={subNetworks}
       selectedItemId={selectedSubNetwork}
       onSelect={onClick}
-      getItemId={(issue) => String(issue.subnetworkId)}
+      getItemId={(issue) => issue.subnetworkId}
       renderItem={(index, subnetwork, selectedId, onClick) => (
         <SubnetworkItem
           index={index}
@@ -149,10 +173,10 @@ const SubnetworkItem = ({
   index: number;
   subnetwork: SubNetwork;
   onClick: (subnetwork: SubNetwork) => void;
-  selectedId: string | number | null;
+  selectedId: number | null;
 }) => {
   const translate = useTranslate();
-  const isSelected = selectedId === String(subnetwork.subnetworkId);
+  const isSelected = selectedId === subnetwork.subnetworkId;
 
   const supplySourceText = translate(
     "networkReview.connectivityTrace.supplySourceCount",
