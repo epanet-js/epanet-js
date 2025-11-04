@@ -27,8 +27,6 @@ import { convertTo } from "src/quantity";
 import { ChevronDownIcon, ChevronRightIcon } from "src/icons";
 import { Selector } from "src/components/form/selector";
 
-type TabType = "customerPoints" | "issues";
-
 export const DataMappingStep: React.FC<{
   onNext: () => void;
   onBack: () => void;
@@ -188,14 +186,11 @@ export const DataMappingStep: React.FC<{
     ],
   );
 
-  const [activeTab, setActiveTab] = useState<TabType>("customerPoints");
-
   const showAttributesMapping = !!inputData;
   const showLoading = inputData && isLoading && !parsedDataSummary;
   const showDataPreview = parsedDataSummary;
   const showNoDataMessage = !inputData;
   const validCount = parsedDataSummary?.validCustomerPoints.length || 0;
-  const errorCount = getTotalErrorCount(parsedDataSummary?.issues || null);
   const MAX_PREVIEW_ROWS = 15;
 
   const isNextDisabled =
@@ -299,16 +294,6 @@ export const DataMappingStep: React.FC<{
               </div>
             )}
 
-            {showDataPreview && (
-              <div>
-                <h4 className="text-md font-medium text-gray-900">
-                  {translate(
-                    "importCustomerPoints.wizard.dataMapping.dataPreview.title",
-                  )}
-                </h4>
-              </div>
-            )}
-
             {selectedDemandProperty && !parsedDataSummary && !showLoading && (
               <div>
                 <h4 className="text-md font-medium text-gray-900">
@@ -341,56 +326,16 @@ export const DataMappingStep: React.FC<{
         )}
 
         {showDataPreview && (
-          <div className="border border-gray-200 rounded-lg">
-            <div className="flex border-b border-gray-200">
-              <button
-                className={`px-4 py-2 text-sm font-medium transition-colors ${
-                  activeTab === "customerPoints"
-                    ? "bg-green-50 text-green-700 border-b-2 border-green-500"
-                    : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
-                }`}
-                onClick={() => setActiveTab("customerPoints")}
-              >
-                {translate(
-                  "importCustomerPoints.wizard.dataMapping.customerPoints",
-                )}{" "}
-                ({localizeDecimal(validCount, { decimals: 0 })})
-              </button>
-              <button
-                className={`px-4 py-2 text-sm font-medium transition-colors ${
-                  errorCount === 0
-                    ? "text-gray-300 cursor-not-allowed"
-                    : activeTab === "issues"
-                      ? "bg-red-50 text-red-700 border-b-2 border-red-500"
-                      : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
-                }`}
-                onClick={() => errorCount > 0 && setActiveTab("issues")}
-                disabled={errorCount === 0}
-              >
-                {translate("importCustomerPoints.wizard.dataMapping.issuesTab")}{" "}
-                ({localizeDecimal(errorCount, { decimals: 0 })})
-              </button>
-            </div>
+          <>
+            <IssuesSummary issues={parsedDataSummary.issues} />
 
-            <div className="overflow-y-auto">
-              {activeTab === "customerPoints" && (
-                <div className="p-4">
-                  <CustomerPointsTable
-                    customerPoints={parsedDataSummary.validCustomerPoints}
-                    maxPreviewRows={MAX_PREVIEW_ROWS}
-                    parsedDataSummary={parsedDataSummary}
-                    wizardState={wizardState}
-                  />
-                </div>
-              )}
-
-              {activeTab === "issues" && (
-                <div className="p-4">
-                  <IssuesSummary issues={parsedDataSummary.issues} />
-                </div>
-              )}
-            </div>
-          </div>
+            <CustomerPointsTable
+              customerPoints={parsedDataSummary.validCustomerPoints}
+              maxPreviewRows={MAX_PREVIEW_ROWS}
+              parsedDataSummary={parsedDataSummary}
+              wizardState={wizardState}
+            />
+          </>
         )}
       </div>
 
@@ -455,67 +400,77 @@ const CustomerPointsTable: React.FC<CustomerPointsTableProps> = ({
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="min-w-full text-sm">
-        <thead className="bg-gray-50 sticky top-0">
-          <tr>
-            <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 tracking-wider border-b">
-              {translate("importCustomerPoints.wizard.dataMapping.table.label")}
-            </th>
-            <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 tracking-wider border-b">
-              {translate(
-                "importCustomerPoints.wizard.dataMapping.table.latitude",
-              )}
-            </th>
-            <th className="px-3 py-2 text-left text-xs font-medium text-gray-500  tracking-wider border-b">
-              {translate(
-                "importCustomerPoints.wizard.dataMapping.table.longitude",
-              )}
-            </th>
-            <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 tracking-wider border-b">
-              {`${translate(
-                "importCustomerPoints.wizard.dataMapping.table.demand",
-              )} (${translateUnit(customerDemandPerDayUnit)})`}
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {validPreview.map((point, index) => (
-            <tr
-              key={point.id}
-              className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
-            >
-              <td className="px-3 py-2 border-b">
-                <div className="truncate" title={point.label}>
-                  {point.label}
-                </div>
-              </td>
-              <td className="px-3 py-2 border-b">
-                {localizeDecimal(point.coordinates[1], { decimals: 6 })}
-              </td>
-              <td className="px-3 py-2 border-b">
-                {localizeDecimal(point.coordinates[0], { decimals: 6 })}
-              </td>
-              <td className="px-3 py-2 border-b">
-                {localizeDecimal(
-                  convertTo(
-                    { value: point.baseDemand, unit: customerDemandUnit },
-                    customerDemandPerDayUnit,
-                  ),
+    <div className="pt-4">
+      <h4 className="text-md font-medium text-gray-900">
+        {translate(
+          "importCustomerPoints.wizard.dataMapping.table.title",
+          localizeDecimal(validCount),
+        )}
+      </h4>
+      <div className="overflow-x-auto mt-4 border border-gray-200 rounded-lg">
+        <table className="min-w-full text-sm">
+          <thead className="bg-gray-50 sticky top-0">
+            <tr>
+              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 tracking-wider border-b">
+                {translate(
+                  "importCustomerPoints.wizard.dataMapping.table.label",
                 )}
-              </td>
+              </th>
+              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 tracking-wider border-b">
+                {translate(
+                  "importCustomerPoints.wizard.dataMapping.table.latitude",
+                )}
+              </th>
+              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500  tracking-wider border-b">
+                {translate(
+                  "importCustomerPoints.wizard.dataMapping.table.longitude",
+                )}
+              </th>
+              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 tracking-wider border-b">
+                {`${translate(
+                  "importCustomerPoints.wizard.dataMapping.table.demand",
+                )} (${translateUnit(customerDemandPerDayUnit)})`}
+              </th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-      {validHasMore && (
-        <p className="text-sm text-gray-500 text-center pt-2">
-          {translate(
-            "importCustomerPoints.wizard.dataMapping.messages.andXMore",
-            localizeDecimal(validCount - maxPreviewRows, { decimals: 0 }),
-          )}
-        </p>
-      )}
+          </thead>
+          <tbody>
+            {validPreview.map((point, index) => (
+              <tr
+                key={point.id}
+                className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
+              >
+                <td className="px-3 py-2 border-b">
+                  <div className="truncate" title={point.label}>
+                    {point.label}
+                  </div>
+                </td>
+                <td className="px-3 py-2 border-b">
+                  {localizeDecimal(point.coordinates[1], { decimals: 6 })}
+                </td>
+                <td className="px-3 py-2 border-b">
+                  {localizeDecimal(point.coordinates[0], { decimals: 6 })}
+                </td>
+                <td className="px-3 py-2 border-b">
+                  {localizeDecimal(
+                    convertTo(
+                      { value: point.baseDemand, unit: customerDemandUnit },
+                      customerDemandPerDayUnit,
+                    ),
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {validHasMore && (
+          <p className="text-sm text-gray-500 text-center py-2">
+            {translate(
+              "importCustomerPoints.wizard.dataMapping.messages.andXMore",
+              localizeDecimal(validCount - maxPreviewRows, { decimals: 0 }),
+            )}
+          </p>
+        )}
+      </div>
     </div>
   );
 };
@@ -530,14 +485,30 @@ const IssuesSummary: React.FC<IssuesSummaryProps> = ({ issues }) => {
 
   if (errorCount === 0) {
     return (
-      <p className="text-gray-500 text-sm">
-        {translate("importCustomerPoints.wizard.dataMapping.messages.noErrors")}
-      </p>
+      <>
+        <h2 className="text-md font-medium text-gray-900">
+          {translate(
+            "importCustomerPoints.wizard.dataMapping.issues.title",
+            errorCount.toString(),
+          )}
+        </h2>
+        <p className="text-gray-500 text-sm">
+          {translate(
+            "importCustomerPoints.wizard.dataMapping.messages.noErrors",
+          )}
+        </p>
+      </>
     );
   }
 
   return (
     <div className="space-y-4">
+      <h2 className="text-md font-medium text-gray-900">
+        {translate(
+          "importCustomerPoints.wizard.dataMapping.issues.title",
+          errorCount.toString(),
+        )}
+      </h2>
       <div className="space-y-4">
         <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md">
           <p className="text-sm text-yellow-800">

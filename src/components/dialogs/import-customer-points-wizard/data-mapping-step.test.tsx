@@ -65,15 +65,11 @@ describe("DataMappingStep", () => {
       await user.click(demandOption);
 
       await waitFor(() => {
-        expect(screen.getByText(/Customer points \(2\)/)).toBeInTheDocument();
+        expect(
+          screen.getByText(/Valid customer points \(2\)/),
+        ).toBeInTheDocument();
+        expect(screen.getByText(/Issues \(0\)/)).toBeInTheDocument();
       });
-
-      const customerPointsTab = screen.getByText(/Customer points \(2\)/);
-      expect(customerPointsTab).toHaveClass("bg-green-50", "text-green-700");
-
-      const issuesTab = screen.getByText(/Issues \(0\)/);
-      expect(issuesTab).toHaveClass("cursor-not-allowed");
-      expect(issuesTab).toHaveClass("text-gray-300");
 
       expect(screen.getByRole("button", { name: /next/i })).not.toBeDisabled();
       expect(screen.getByRole("button", { name: /back/i })).not.toBeDisabled();
@@ -129,24 +125,12 @@ describe("DataMappingStep", () => {
       await user.click(demandOption);
 
       await waitFor(() => {
-        expect(screen.getByText(/Customer points \(1\)/)).toBeInTheDocument();
+        expect(
+          screen.getByText(/Valid customer points \(1\)/),
+        ).toBeInTheDocument();
       });
 
       expect(screen.getByText(/Issues \(1\)/)).toBeInTheDocument();
-
-      const issuesTab = screen.getByText(/Issues \(1\)/);
-      expect(issuesTab).not.toHaveClass("cursor-not-allowed");
-
-      const customerPointsTab = screen.getByText(/Customer points \(1\)/);
-      expect(customerPointsTab).toHaveClass("bg-green-50", "text-green-700");
-
-      await user.click(issuesTab);
-
-      expect(issuesTab).toHaveClass("bg-red-50", "text-red-700");
-      expect(customerPointsTab).not.toHaveClass(
-        "bg-green-50",
-        "text-green-700",
-      );
 
       expect(screen.getByText(/Invalid demands \(1\)/)).toBeInTheDocument();
 

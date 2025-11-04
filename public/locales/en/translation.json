@@ -463,7 +463,6 @@
       "dataMapping": {
         "title": "Data mapping",
         "customerPoints": "Customer points",
-        "issuesTab": "Issues",
         "loading": "Reading customer points...",
         "attributesMapping": {
           "title": "Attributes mapping",
@@ -484,6 +483,7 @@
           "noneAutoGenerate": "None (Auto-generate labels)"
         },
         "table": {
+          "title": "Valid customer points ({{1}})",
           "id": "ID",
           "index": "Index",
           "label": "Label",
@@ -499,6 +499,7 @@
           "andXMoreIssues": "... and {{1}} more"
         },
         "issues": {
+          "title": "Issues ({{1}})",
           "nonPointGeometries": "Non-point geometries ({{1}})",
           "invalidCoordinates": "Invalid coordinates ({{1}})",
           "missingCoordinates": "Coordinates missing ({{1}})",
