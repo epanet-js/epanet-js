@@ -1,33 +1,32 @@
-import { EncodedOrphanAssets } from "./data";
-import {
-  HydraulicModelBuffers,
-  HydraulicModelBuffersView,
-  toLinkType,
-} from "../hydraulic-model-buffers";
+import { OrphanAssets } from "./data";
+import { AssetIndexBaseQueries } from "src/hydraulic-model/asset-index";
+import { AssetTypeBaseQueries } from "src/hydraulic-model/asset-type-queries";
+import { TopologyBaseQueries } from "src/hydraulic-model/topology/types";
 
 export function findOrphanAssets(
-  buffers: HydraulicModelBuffers,
-): EncodedOrphanAssets {
-  const views = new HydraulicModelBuffersView(buffers);
-
+  topology: TopologyBaseQueries,
+  assetIndex: AssetIndexBaseQueries,
+  assetTypes: AssetTypeBaseQueries,
+): OrphanAssets {
   const orphanLinks: number[] = [];
-  for (const [id, linkType] of views.linkTypes.enumerate()) {
-    if (toLinkType(linkType) === "pipe") continue;
+  for (const [linkId] of assetIndex.iterateLinks()) {
+    const linkType = assetTypes.getLinkType(linkId);
+    if (linkType === "pipe") continue;
 
-    const [startNode, endNode] = views.linksConnections.getById(id);
+    const [startNode, endNode] = topology.getNodes(linkId);
 
-    const startNodeConnections =
-      views.nodeConnections.getById(startNode).length;
-    const endNodeConnections = views.nodeConnections.getById(endNode).length;
+    const startNodeConnections = topology.getLinks(startNode).length;
+    const endNodeConnections = topology.getLinks(endNode).length;
 
     if (startNodeConnections <= 1 && endNodeConnections <= 1) {
-      orphanLinks.push(id);
+      orphanLinks.push(linkId);
     }
   }
 
   const orphanNodes: number[] = [];
-  for (const [id, connections] of views.nodeConnections.enumerate()) {
-    if (connections.length === 0) orphanNodes.push(id);
+  for (const [nodeId] of assetIndex.iterateNodes()) {
+    const connections = topology.getLinks(nodeId);
+    if (connections.length === 0) orphanNodes.push(nodeId);
   }
 
   return { orphanNodes, orphanLinks };

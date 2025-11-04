@@ -28,7 +28,7 @@ describe("AssetTypeQueries - Basic Functionality", () => {
       .aPump(IDS.Pump1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
       .build();
 
-    const queries = new AssetTypeQueries(model.assets, model.assetIndex);
+    const queries = new AssetTypeQueries(model.assets);
 
     expect(queries.getAssetType(IDS.J1)).toBe("junction");
     expect(queries.getAssetType(IDS.T1)).toBe("tank");
@@ -53,7 +53,7 @@ describe("AssetTypeQueries - Basic Functionality", () => {
       .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.T1 })
       .build();
 
-    const queries = new AssetTypeQueries(model.assets, model.assetIndex);
+    const queries = new AssetTypeQueries(model.assets);
 
     expect(queries.getNodeType(IDS.J1)).toBe("junction");
     expect(queries.getNodeType(IDS.T1)).toBe("tank");
@@ -78,7 +78,7 @@ describe("AssetTypeQueries - Basic Functionality", () => {
       .aPump(IDS.Pump1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
       .build();
 
-    const queries = new AssetTypeQueries(model.assets, model.assetIndex);
+    const queries = new AssetTypeQueries(model.assets);
 
     expect(queries.getLinkType(IDS.P1)).toBe("pipe");
     expect(queries.getLinkType(IDS.V1)).toBe("valve");
@@ -89,7 +89,7 @@ describe("AssetTypeQueries - Basic Functionality", () => {
 
   it("handles invalid IDs gracefully", () => {
     const model = HydraulicModelBuilder.with().aJunction(1).build();
-    const queries = new AssetTypeQueries(model.assets, model.assetIndex);
+    const queries = new AssetTypeQueries(model.assets);
 
     expect(queries.getAssetType(0)).toBeUndefined();
     expect(queries.getAssetType(-1)).toBeUndefined();
@@ -126,7 +126,7 @@ describe("AssetTypesView - Behaves same as AssetTypeQueries", () => {
       .aPump(IDS.Pump1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
       .build();
 
-    const queries = new AssetTypeQueries(model.assets, model.assetIndex);
+    const queries = new AssetTypeQueries(model.assets);
     const view = getAssetTypesView(model);
 
     expect(view.getAssetType(IDS.P1)).toEqual(queries.getAssetType(IDS.P1));
@@ -165,7 +165,7 @@ describe("AssetTypesView - Behaves same as AssetTypeQueries", () => {
       .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.T1 })
       .build();
 
-    const queries = new AssetTypeQueries(model.assets, model.assetIndex);
+    const queries = new AssetTypeQueries(model.assets);
     const view = getAssetTypesView(model);
 
     expect(view.getNodeType(IDS.J1)).toEqual(queries.getNodeType(IDS.J1));
@@ -195,7 +195,7 @@ describe("AssetTypesView - Behaves same as AssetTypeQueries", () => {
       .aPump(IDS.Pump1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
       .build();
 
-    const queries = new AssetTypeQueries(model.assets, model.assetIndex);
+    const queries = new AssetTypeQueries(model.assets);
     const view = getAssetTypesView(model);
 
     expect(view.getLinkType(IDS.P1)).toEqual(queries.getLinkType(IDS.P1));
@@ -214,7 +214,7 @@ describe("AssetTypesView - Behaves same as AssetTypeQueries", () => {
 
     const model = HydraulicModelBuilder.empty();
 
-    const queries = new AssetTypeQueries(model.assets, model.assetIndex);
+    const queries = new AssetTypeQueries(model.assets);
     const view = getAssetTypesView(model);
 
     expect(view.getAssetType(IDS.notDefined)).toEqual(
@@ -243,7 +243,7 @@ describe("AssetTypesView - Behaves same as AssetTypeQueries", () => {
       .aPipe(IDS.P2, { startNodeId: IDS.J2, endNodeId: IDS.J1 })
       .build();
 
-    const queries = new AssetTypeQueries(model.assets, model.assetIndex);
+    const queries = new AssetTypeQueries(model.assets);
     const view = getAssetTypesView(model);
 
     expect(view.getAssetType(IDS.J1)).toEqual(queries.getAssetType(IDS.J1));

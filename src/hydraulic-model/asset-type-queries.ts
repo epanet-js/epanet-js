@@ -9,11 +9,7 @@ import {
 } from "src/lib/buffers";
 import { AssetId, AssetType, LinkType, NodeType } from "./asset-types";
 import { AssetsMap } from "./assets-map";
-import {
-  AssetIndex,
-  AssetIndexBaseQueries,
-  AssetIndexView,
-} from "./asset-index";
+import { AssetIndexBaseQueries, AssetIndexView } from "./asset-index";
 
 export interface AssetTypeBaseQueries {
   getAssetType(id: AssetId): AssetType | undefined;
@@ -22,10 +18,7 @@ export interface AssetTypeBaseQueries {
 }
 
 export class AssetTypeQueries implements AssetTypeBaseQueries {
-  constructor(
-    private assetsMap: AssetsMap,
-    private assetIndex: AssetIndex,
-  ) {
+  constructor(private assetsMap: AssetsMap) {
     return;
   }
 
@@ -48,10 +41,6 @@ export class AssetTypeQueries implements AssetTypeBaseQueries {
     if (!asset || !asset.isLink) return;
 
     return asset.type as LinkType;
-  }
-
-  getEncoder(bufferType: BufferType = "array"): AssetTypesEncoder {
-    return new AssetTypesEncoder(this.assetsMap, this.assetIndex, bufferType);
   }
 }
 

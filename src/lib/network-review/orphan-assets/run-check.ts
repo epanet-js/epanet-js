@@ -2,13 +2,16 @@ import * as Comlink from "comlink";
 
 import { HydraulicModel } from "src/hydraulic-model";
 import { ArrayBufferType, canUseWorker } from "src/infra/worker";
-import { EncodedOrphanAssets, decodeOrphanAssets, OrphanAsset } from "./data";
 import {
-  HydraulicModelBuffers,
-  HydraulicModelEncoder,
-} from "../hydraulic-model-buffers";
+  OrphanAsset,
+  OrphanAssets,
+  buildOrphanAssets,
+  encodeData,
+} from "./data";
 import { findOrphanAssets } from "./find-orphan-assets";
 import type { OrphanAssetsWorkerAPI } from "./worker";
+import { AssetTypeQueries } from "src/hydraulic-model/asset-type-queries";
+import { BufferType } from "src/lib/buffers";
 
 export const runCheck = async (
   hydraulicModel: HydraulicModel,
@@ -19,31 +22,24 @@ export const runCheck = async (
     throw new DOMException("Operation cancelled", "AbortError");
   }
 
-  const encoder = new HydraulicModelEncoder(hydraulicModel, {
-    links: new Set(["connections", "types"]),
-    nodes: new Set(["connections"]),
-    bufferType,
-  });
-  const { linkIdsLookup, nodeIdsLookup, ...data } = encoder.buildBuffers();
-
   const useWorker = canUseWorker();
 
   const encodedOrphanAssets = useWorker
-    ? await runWithWorker(data, signal)
-    : findOrphanAssets(data);
+    ? await runWithWorker(hydraulicModel, bufferType, signal)
+    : findOrphanAssets(
+        hydraulicModel.topology,
+        hydraulicModel.assetIndex,
+        new AssetTypeQueries(hydraulicModel.assets),
+      );
 
-  return decodeOrphanAssets(
-    hydraulicModel,
-    nodeIdsLookup,
-    linkIdsLookup,
-    encodedOrphanAssets,
-  );
+  return buildOrphanAssets(hydraulicModel, encodedOrphanAssets);
 };
 
 const runWithWorker = async (
-  data: HydraulicModelBuffers,
+  model: HydraulicModel,
+  bufferType: BufferType,
   signal?: AbortSignal,
-): Promise<EncodedOrphanAssets> => {
+): Promise<OrphanAssets> => {
   if (signal?.aborted) {
     throw new DOMException("Operation cancelled", "AbortError");
   }
@@ -58,6 +54,7 @@ const runWithWorker = async (
   signal?.addEventListener("abort", abortHandler);
 
   try {
+    const data = encodeData(model, bufferType);
     return await workerAPI.findOrphanAssets(data);
   } finally {
     signal?.removeEventListener("abort", abortHandler);

@@ -1,10 +1,65 @@
-import { AssetType, AssetId } from "src/hydraulic-model/asset-types";
+import {
+  AssetType,
+  AssetId,
+  LinkType,
+  NodeType,
+} from "src/hydraulic-model/asset-types";
 import { HydraulicModel } from "src/hydraulic-model";
+import {
+  AssetTypeBuffers,
+  AssetTypesEncoder,
+} from "src/hydraulic-model/asset-type-queries";
+import { TopologyBuffers } from "src/hydraulic-model/topology/types";
+import { BinaryData, BufferType } from "src/lib/buffers";
+import { TopologyEncoder } from "src/hydraulic-model/topology/topologyEncoder";
+import { AssetIndexEncoder } from "src/hydraulic-model/asset-index";
 
-export type EncodedOrphanAssets = {
+export type OrphanAssets = {
   orphanNodes: number[];
   orphanLinks: number[];
 };
+
+export type RunData = {
+  topologyBuffers: TopologyBuffers;
+  assetIndexBuffer: BinaryData;
+  assetTypeBuffers: AssetTypeBuffers;
+};
+
+export function encodeData(
+  model: HydraulicModel,
+  bufferType: BufferType = "array",
+): RunData {
+  const assetIndexEncoder = new AssetIndexEncoder(model.assetIndex, bufferType);
+  const assetTypesEncoder = new AssetTypesEncoder(
+    model.assets,
+    model.assetIndex,
+    bufferType,
+  );
+  const topologyEncoder = new TopologyEncoder(
+    model.topology,
+    model.assetIndex,
+    bufferType,
+  );
+  for (const [nodeId, nodeIndex] of model.assetIndex.iterateNodes()) {
+    const asset = model.assets.get(nodeId);
+    if (!asset) continue;
+    assetIndexEncoder.encodeNode(nodeId, nodeIndex);
+    assetTypesEncoder.encodeNode(asset.type as NodeType, nodeIndex);
+    topologyEncoder.encodeNode(nodeId);
+  }
+  for (const [linkId, linkIndex] of model.assetIndex.iterateLinks()) {
+    const asset = model.assets.get(linkId);
+    if (!asset) continue;
+    assetIndexEncoder.encodeLink(linkId, linkIndex);
+    assetTypesEncoder.encodeLink(asset.type as LinkType, linkIndex);
+    topologyEncoder.encodeLink(linkId);
+  }
+  return {
+    topologyBuffers: topologyEncoder.finalize(),
+    assetIndexBuffer: assetIndexEncoder.finalize(),
+    assetTypeBuffers: assetTypesEncoder.finalize(),
+  };
+}
 
 export interface OrphanAsset {
   assetId: AssetId;
@@ -21,18 +76,15 @@ enum typeOrder {
   "pipe" = 0,
 }
 
-export function decodeOrphanAssets(
+export function buildOrphanAssets(
   model: HydraulicModel,
-  nodeIdsLookup: number[],
-  linkIdsLookup: number[],
-  encodedOrphanAssets: EncodedOrphanAssets,
+  rawOrphanAssets: OrphanAssets,
 ): OrphanAsset[] {
   const orphanAssets: OrphanAsset[] = [];
 
-  const { orphanNodes, orphanLinks } = encodedOrphanAssets;
+  const { orphanNodes, orphanLinks } = rawOrphanAssets;
 
-  orphanLinks.forEach((linkIdx) => {
-    const linkId = linkIdsLookup[linkIdx];
+  orphanLinks.forEach((linkId) => {
     const linkAsset = model.assets.get(linkId);
     if (linkAsset) {
       orphanAssets.push({
@@ -43,8 +95,7 @@ export function decodeOrphanAssets(
     }
   });
 
-  orphanNodes.forEach((nodeIdx) => {
-    const nodeId = nodeIdsLookup[nodeIdx];
+  orphanNodes.forEach((nodeId) => {
     const nodeAsset = model.assets.get(nodeId);
     if (nodeAsset) {
       orphanAssets.push({
