@@ -37,9 +37,9 @@ export interface RunData {
 
 const BUFFER_HEADER_SIZE = 8;
 const SEGMENT_BINARY_SIZE = 36;
-const PIPE_BINARY_SIZE = 20; // Changed from 48: UINT32 (id) + FLOAT64 (diameter) + 2*UINT32 (node indices)
-const NODE_BINARY_SIZE = 24; // Changed from 52: 2*FLOAT64 (coordinates) + UINT32 (type) + UINT32 (id)
-const CUSTOMER_POINT_BINARY_SIZE = 20; // Changed from 48: UINT32 (id) + 2*FLOAT64 (coordinates)
+const PIPE_BINARY_SIZE = 20;
+const NODE_BINARY_SIZE = 24;
+const CUSTOMER_POINT_BINARY_SIZE = 20;
 const UINT32_SIZE = 4;
 const FLOAT64_SIZE = 8;
 const FLATBUSH_NODE_SIZE = 16;
@@ -351,7 +351,6 @@ class PipesBinaryBuilder {
 
     let offset = BUFFER_HEADER_SIZE + index * PIPE_BINARY_SIZE;
 
-    // Store pipe ID as UINT32
     this.view.setUint32(offset, pipeId, true);
     offset += UINT32_SIZE;
 
@@ -400,7 +399,6 @@ class NodesBinaryBuilder {
     this.view.setUint32(offset, NODE_TYPE_TO_ENUM[nodeType], true);
     offset += UINT32_SIZE;
 
-    // Store node ID as UINT32
     this.view.setUint32(offset, nodeId, true);
   }
 
@@ -438,7 +436,6 @@ class CustomerPointsBinaryBuilder {
   ): void {
     let offset = BUFFER_HEADER_SIZE + index * CUSTOMER_POINT_BINARY_SIZE;
 
-    // Store customer point ID as UINT32
     this.view.setUint32(offset, customerPointId, true);
     offset += UINT32_SIZE;
 
