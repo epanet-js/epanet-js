@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { AssetIndex, AssetIndexView } from "./asset-index";
+import { AssetIndex, AssetIndexEncoder, AssetIndexView } from "./asset-index";
 import { ConsecutiveIdsGenerator } from "./id-generator";
 
 describe("AssetIndex - Basics", () => {
@@ -140,7 +140,7 @@ describe("AssetIndexView - Iterators and count", () => {
     assetIndex.addLink(IDS.P2);
     assetIndex.addNode(IDS.J2);
 
-    const encodedBuffer = assetIndex.getEncoder("array").encode();
+    const encodedBuffer = new AssetIndexEncoder(assetIndex).encode();
     const view = new AssetIndexView(encodedBuffer);
 
     expect(Array.from(view.iterateLinks())).toEqual([
@@ -157,10 +157,7 @@ describe("AssetIndexView - Iterators and count", () => {
 
   it("with empty AssetIndex", () => {
     const assetIndex = new AssetIndex(new ConsecutiveIdsGenerator());
-
-    const encoder = assetIndex.getEncoder("array");
-    const buffer = encoder.encode();
-    const view = new AssetIndexView(buffer);
+    const view = new AssetIndexView(new AssetIndexEncoder(assetIndex).encode());
 
     expect(Array.from(view.iterateLinks())).toEqual([]);
     expect(Array.from(view.iterateNodes())).toEqual([]);
@@ -187,9 +184,7 @@ describe("AssetIndexView - Iterators and count", () => {
     assetIndex.addNode(IDS.J2);
     assetIndex.addLink(IDS.P3);
 
-    const encoder = assetIndex.getEncoder("array");
-    const buffer = encoder.encode();
-    const view = new AssetIndexView(buffer);
+    const view = new AssetIndexView(new AssetIndexEncoder(assetIndex).encode());
 
     const links = Array.from(view.iterateLinks());
     const nodes = Array.from(view.iterateNodes());
@@ -221,7 +216,7 @@ describe("AssetIndexView - Queries", () => {
     const links = Array.from(assetIndex.iterateLinks());
     const nodes = Array.from(assetIndex.iterateNodes());
 
-    const view = new AssetIndexView(assetIndex.getEncoder("array").encode());
+    const view = new AssetIndexView(new AssetIndexEncoder(assetIndex).encode());
 
     const viewLinks = Array.from(view.iterateLinks());
     const viewNodes = Array.from(view.iterateNodes());
@@ -237,9 +232,7 @@ describe("AssetIndexView - Queries", () => {
     assetIndex.addLink(5);
     assetIndex.addNode(10);
 
-    const encoder = assetIndex.getEncoder("array");
-    const buffer = encoder.encode();
-    const view = new AssetIndexView(buffer);
+    const view = new AssetIndexView(new AssetIndexEncoder(assetIndex).encode());
 
     expect(view.getNodeIndex(5)).toBeNull();
     expect(view.getLinkIndex(10)).toBeNull();
@@ -255,9 +248,7 @@ describe("AssetIndexView - Queries", () => {
     assetIndex.addLink(5);
     assetIndex.addNode(10);
 
-    const encoder = assetIndex.getEncoder("array");
-    const buffer = encoder.encode();
-    const view = new AssetIndexView(buffer);
+    const view = new AssetIndexView(new AssetIndexEncoder(assetIndex).encode());
 
     expect(view.hasNode(5)).toBe(false);
     expect(view.hasLink(10)).toBe(false);

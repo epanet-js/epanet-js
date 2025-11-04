@@ -13,6 +13,7 @@ import { IdGenerator } from "./id-generator";
 export interface AssetIndexBaseQueries {
   get linkCount(): number;
   get nodeCount(): number;
+  get maxAssetId(): number;
   hasLink(id: AssetId): boolean;
   hasNode(id: AssetId): boolean;
   iterateLinks(): Generator<[AssetId, LinkIndex], void, unknown>;
@@ -91,15 +92,8 @@ export class AssetIndex implements AssetIndexBaseQueries {
     return this.nodeIds.size;
   }
 
-  getEncoder(bufferType: BufferType = "array"): AssetIndexEncoder {
-    return new AssetIndexEncoder(
-      () => this.iterateLinks(),
-      () => this.iterateNodes(),
-      this.linkCount,
-      this.nodeCount,
-      this.idGenerator.totalGenerated,
-      bufferType,
-    );
+  get maxAssetId(): number {
+    return this.idGenerator.totalGenerated;
   }
 }
 
@@ -162,28 +156,30 @@ export class AssetIndexEncoder {
   private bufferBuilder: FixedSizeBufferBuilder<AssetIndexEntry>;
 
   constructor(
-    private linkIds: () => Generator<[AssetId, LinkIndex], void, unknown>,
-    private nodeIds: () => Generator<[AssetId, NodeIndex], void, unknown>,
-    linkCount: number,
-    nodeCount: number,
-    maxAssetId: number,
+    private assetIndex: AssetIndexBaseQueries,
     bufferType: BufferType = "array",
   ) {
     this.bufferBuilder = new FixedSizeBufferBuilder<AssetIndexEntry>(
       ASSET_INDEX_SIZE,
-      maxAssetId + 1,
+      this.assetIndex.maxAssetId + 1,
       bufferType,
       encodeAssetIndex,
       ASSET_INDEX_CUSTOM_HEADER_SIZE,
-      (offset, view) => encodeHeader(linkCount, nodeCount, offset, view),
+      (offset, view) =>
+        encodeHeader(
+          this.assetIndex.linkCount,
+          this.assetIndex.nodeCount,
+          offset,
+          view,
+        ),
     );
   }
 
   encode(): BinaryData {
-    for (const [id, nodeIndex] of this.nodeIds()) {
+    for (const [id, nodeIndex] of this.assetIndex.iterateNodes()) {
       this.encodeNode(id, nodeIndex);
     }
-    for (const [id, linkIndex] of this.linkIds()) {
+    for (const [id, linkIndex] of this.assetIndex.iterateLinks()) {
       this.encodeLink(id, linkIndex);
     }
 
@@ -290,7 +286,7 @@ export class AssetIndexView implements AssetIndexBaseQueries {
     return this.nodeCountValue;
   }
 
-  get count(): number {
+  get maxAssetId(): number {
     return this.view.count;
   }
 }

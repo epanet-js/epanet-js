@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { AssetIndexView } from "../asset-index";
+import { AssetIndexEncoder, AssetIndexView } from "../asset-index";
 import { TopologyEncoder } from "./topologyEncoder";
 import { TopologyView } from "./topologyView";
 import { HydraulicModel } from "../hydraulic-model";
@@ -117,7 +117,7 @@ describe("TopologyView", () => {
 function getTopologyView(model: HydraulicModel): TopologyView {
   const topologyEncoder = new TopologyEncoder(model.topology, model.assetIndex);
   const assetIndexView = new AssetIndexView(
-    model.assetIndex.getEncoder().encode(),
+    new AssetIndexEncoder(model.assetIndex).encode(),
   );
   return new TopologyView(topologyEncoder.encode(), assetIndexView);
 }
