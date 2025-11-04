@@ -1,5 +1,5 @@
 import { FixedSizeBufferView, VariableSizeBufferView } from "src/lib/buffers";
-import { AssetId } from "../asset-types/base-asset";
+import { AssetId, NO_ASSET_ID } from "../asset-types/base-asset";
 import { TopologyBaseQueries, TopologyBuffers } from "./types";
 import { AssetIndexView } from "../asset-index";
 import {
@@ -38,7 +38,7 @@ export class TopologyView implements TopologyBaseQueries {
   getLinks(nodeId: AssetId): AssetId[] {
     const nodeIndex = this.assetIndexView.getNodeIndex(nodeId);
     if (nodeIndex === null) {
-      throw new Error(`Node ID ${nodeId} does not exist in topology`);
+      return [];
     }
     return this.nodeConnectionsView.getById(nodeIndex);
   }
@@ -46,7 +46,7 @@ export class TopologyView implements TopologyBaseQueries {
   getNodes(linkId: AssetId): [AssetId, AssetId] {
     const linkIndex = this.assetIndexView.getLinkIndex(linkId);
     if (linkIndex === null) {
-      throw new Error(`Link ID ${linkId} does not exist in topology`);
+      return [NO_ASSET_ID, NO_ASSET_ID];
     }
     return this.linkConnectionsView.getById(linkIndex);
   }

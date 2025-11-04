@@ -4,7 +4,7 @@ import { AssetBuilder, DefaultQuantities } from "./asset-builder";
 import { UnitsSpec } from "src/model-metadata/quantities-spec";
 import { nanoid } from "nanoid";
 import { HeadlossFormula } from "./asset-types/pipe";
-import { IdGenerator } from "./id-generator";
+import { ConsecutiveIdsGenerator } from "./id-generator";
 import { LabelManager } from "./label-manager";
 import { Demands, nullDemands } from "./demands";
 import { CustomerPoints, initializeCustomerPoints } from "./customer-points";
@@ -39,7 +39,7 @@ export const initializeHydraulicModel = ({
   demands?: Demands;
 }) => {
   const labelManager = new LabelManager();
-  const idGenerator = new IdGenerator();
+  const idGenerator = new ConsecutiveIdsGenerator();
   return {
     version: nanoid(),
     assets: new Map(),

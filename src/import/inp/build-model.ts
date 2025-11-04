@@ -18,7 +18,7 @@ import { PumpStatus } from "src/hydraulic-model/asset-types/pump";
 import { ValveStatus } from "src/hydraulic-model/asset-types/valve";
 import { ParseInpOptions } from "./parse-inp";
 import { AssetId } from "src/hydraulic-model/asset-types/base-asset";
-import { IdGenerator } from "src/hydraulic-model/id-generator";
+import { ConsecutiveIdsGenerator } from "src/hydraulic-model/id-generator";
 
 export const buildModel = (
   inpData: InpData,
@@ -84,7 +84,7 @@ export const buildModel = (
     });
   }
 
-  const customerPointIdGenerator = new IdGenerator();
+  const customerPointIdGenerator = new ConsecutiveIdsGenerator();
 
   for (const customerPointData of inpData.customerPoints) {
     const id = customerPointIdGenerator.newId();

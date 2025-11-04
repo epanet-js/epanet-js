@@ -1,4 +1,9 @@
-export class IdGenerator {
+export interface IdGenerator {
+  get totalGenerated(): number;
+  newId(): number;
+}
+
+export class ConsecutiveIdsGenerator implements IdGenerator {
   private last: number;
   constructor() {
     this.last = 0;

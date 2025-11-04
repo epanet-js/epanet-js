@@ -1,10 +1,10 @@
 import { describe, it, expect } from "vitest";
 import { AssetIndex, AssetIndexView } from "./asset-index";
-import { IdGenerator } from "./id-generator";
+import { ConsecutiveIdsGenerator } from "./id-generator";
 
 describe("AssetIndex - Basics", () => {
   it("tracks separate counts for links and nodes", () => {
-    const assetIndex = new AssetIndex(new IdGenerator());
+    const assetIndex = new AssetIndex(new ConsecutiveIdsGenerator());
     assetIndex.addLink(1);
     assetIndex.addNode(2);
     assetIndex.addNode(4);
@@ -14,7 +14,7 @@ describe("AssetIndex - Basics", () => {
   });
 
   it("iterating returns internalIds and link/node indexes in insertion order", () => {
-    const assetIndex = new AssetIndex(new IdGenerator());
+    const assetIndex = new AssetIndex(new ConsecutiveIdsGenerator());
     assetIndex.addLink(100);
     assetIndex.addNode(20);
     assetIndex.addLink(5);
@@ -33,7 +33,7 @@ describe("AssetIndex - Basics", () => {
 
 describe("AssetIndex - Removal and Re-addition", () => {
   it("removing a link updates count and iterator", () => {
-    const assetIndex = new AssetIndex(new IdGenerator());
+    const assetIndex = new AssetIndex(new ConsecutiveIdsGenerator());
     assetIndex.addLink(1);
     assetIndex.addLink(2);
     expect(assetIndex.linkCount).toBe(2);
@@ -50,7 +50,7 @@ describe("AssetIndex - Removal and Re-addition", () => {
   });
 
   it("removing a link updates count and iterator", () => {
-    const assetIndex = new AssetIndex(new IdGenerator());
+    const assetIndex = new AssetIndex(new ConsecutiveIdsGenerator());
     assetIndex.addNode(1);
     assetIndex.addNode(2);
     expect(assetIndex.nodeCount).toBe(2);
@@ -67,7 +67,7 @@ describe("AssetIndex - Removal and Re-addition", () => {
   });
 
   it("re-adding a removed ID changes its position in the iteration", () => {
-    const assetIndex = new AssetIndex(new IdGenerator());
+    const assetIndex = new AssetIndex(new ConsecutiveIdsGenerator());
     assetIndex.addLink(5);
     assetIndex.addLink(10);
     const originalIteration = Array.from(assetIndex.iterateLinks());
@@ -83,14 +83,14 @@ describe("AssetIndex - Removal and Re-addition", () => {
   });
 
   it("handles removing non-existent ID gracefully", () => {
-    const assetIndex = new AssetIndex(new IdGenerator());
+    const assetIndex = new AssetIndex(new ConsecutiveIdsGenerator());
     assetIndex.removeLink(999);
     assetIndex.removeNode(888);
     expect(assetIndex.linkCount).toBe(0);
   });
 
   it("prevents duplicate additions", () => {
-    const assetIndex = new AssetIndex(new IdGenerator());
+    const assetIndex = new AssetIndex(new ConsecutiveIdsGenerator());
     assetIndex.addLink(5);
     assetIndex.addLink(5);
     expect(assetIndex.linkCount).toBe(1);
@@ -98,7 +98,7 @@ describe("AssetIndex - Removal and Re-addition", () => {
   });
 
   it("replaces link ID when adding same ID as node", () => {
-    const assetIndex = new AssetIndex(new IdGenerator());
+    const assetIndex = new AssetIndex(new ConsecutiveIdsGenerator());
     assetIndex.addLink(10);
     expect(assetIndex.linkCount).toBe(1);
     expect(assetIndex.nodeCount).toBe(0);
@@ -109,7 +109,7 @@ describe("AssetIndex - Removal and Re-addition", () => {
   });
 
   it("replaces node ID when adding same ID as link", () => {
-    const assetIndex = new AssetIndex(new IdGenerator());
+    const assetIndex = new AssetIndex(new ConsecutiveIdsGenerator());
     assetIndex.addNode(10);
     expect(assetIndex.linkCount).toBe(0);
     expect(assetIndex.nodeCount).toBe(1);
@@ -122,7 +122,7 @@ describe("AssetIndex - Removal and Re-addition", () => {
 
 describe("AssetIndexView - Iterators and count", () => {
   it("iterates link and node internal IDs separately", () => {
-    const idGenerator = new IdGenerator();
+    const idGenerator = new ConsecutiveIdsGenerator();
     const IDS = {
       P1: idGenerator.newId(),
       P2: idGenerator.newId(),
@@ -156,7 +156,7 @@ describe("AssetIndexView - Iterators and count", () => {
   });
 
   it("with empty AssetIndex", () => {
-    const assetIndex = new AssetIndex(new IdGenerator());
+    const assetIndex = new AssetIndex(new ConsecutiveIdsGenerator());
 
     const encoder = assetIndex.getEncoder("array");
     const buffer = encoder.encode();
@@ -170,7 +170,7 @@ describe("AssetIndexView - Iterators and count", () => {
   });
 
   it("with sparse IDs (with gaps)", () => {
-    const idGenerator = new IdGenerator();
+    const idGenerator = new ConsecutiveIdsGenerator();
     vi.spyOn(idGenerator, "totalGenerated", "get").mockReturnValue(200);
     const IDS = {
       P1: 100,
@@ -210,7 +210,7 @@ describe("AssetIndexView - Iterators and count", () => {
 
 describe("AssetIndexView - Queries", () => {
   it("index query methods return correct buffer position", () => {
-    const idGenerator = new IdGenerator();
+    const idGenerator = new ConsecutiveIdsGenerator();
     vi.spyOn(idGenerator, "totalGenerated", "get").mockReturnValue(10);
     const assetIndex = new AssetIndex(idGenerator);
     assetIndex.addLink(5);
@@ -231,7 +231,7 @@ describe("AssetIndexView - Queries", () => {
   });
 
   it("index query methods return null for wrong type or out of bounds", () => {
-    const idGenerator = new IdGenerator();
+    const idGenerator = new ConsecutiveIdsGenerator();
     vi.spyOn(idGenerator, "totalGenerated", "get").mockReturnValue(10);
     const assetIndex = new AssetIndex(idGenerator);
     assetIndex.addLink(5);
@@ -249,7 +249,7 @@ describe("AssetIndexView - Queries", () => {
   });
 
   it("has methods return false for wrong type or missing assets", () => {
-    const idGenerator = new IdGenerator();
+    const idGenerator = new ConsecutiveIdsGenerator();
     vi.spyOn(idGenerator, "totalGenerated", "get").mockReturnValue(10);
     const assetIndex = new AssetIndex(idGenerator);
     assetIndex.addLink(5);

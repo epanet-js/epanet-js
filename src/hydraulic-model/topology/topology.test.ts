@@ -7,6 +7,7 @@ const IDS = {
   A: 3,
   B: 4,
   C: 5,
+  NotDefined: 10,
 } as const;
 
 describe("Topology", () => {
@@ -19,6 +20,11 @@ describe("Topology", () => {
     expect(topology.getLinks(IDS.A)).toEqual([IDS.link1]);
     expect(topology.getLinks(IDS.B)).toEqual([IDS.link1, IDS.link2]);
     expect(topology.getLinks(IDS.C)).toEqual([IDS.link2]);
+    expect(topology.getNodes(IDS.link1)).toEqual([IDS.A, IDS.B]);
+    expect(topology.getNodes(IDS.link2)).toEqual([IDS.B, IDS.C]);
+
+    expect(topology.getLinks(IDS.NotDefined)).toEqual([]);
+    expect(topology.getNodes(IDS.NotDefined)).toEqual([0, 0]);
   });
 
   it("removes links when removing nodes", () => {

@@ -13,8 +13,8 @@ import { IdGenerator } from "./id-generator";
 export interface AssetIndexBaseQueries {
   get linkCount(): number;
   get nodeCount(): number;
-  hasLink(internalId: AssetId): boolean;
-  hasNode(internalId: AssetId): boolean;
+  hasLink(id: AssetId): boolean;
+  hasNode(id: AssetId): boolean;
   iterateLinks(): Generator<[AssetId, LinkIndex], void, unknown>;
   iterateNodes(): Generator<[AssetId, NodeIndex], void, unknown>;
 }
@@ -27,59 +27,59 @@ export class AssetIndex implements AssetIndexBaseQueries {
     return;
   }
 
-  addLink(internalId: AssetId): void {
-    if (internalId === 0) {
+  addLink(id: AssetId): void {
+    if (id === 0) {
       throw new Error("AssetId 0 is not allowed");
     }
 
-    if (this.hasNode(internalId)) {
-      this.removeNode(internalId);
+    if (this.hasNode(id)) {
+      this.removeNode(id);
     }
 
-    this.linkIds.add(internalId);
+    this.linkIds.add(id);
   }
 
-  addNode(internalId: AssetId): void {
-    if (internalId === 0) {
+  addNode(id: AssetId): void {
+    if (id === 0) {
       throw new Error("AssetId 0 is not allowed");
     }
 
-    if (this.hasLink(internalId)) {
-      this.removeLink(internalId);
+    if (this.hasLink(id)) {
+      this.removeLink(id);
     }
 
-    this.nodeIds.add(internalId);
+    this.nodeIds.add(id);
   }
 
-  hasLink(internalId: AssetId): boolean {
-    return this.linkIds.has(internalId);
+  hasLink(id: AssetId): boolean {
+    return this.linkIds.has(id);
   }
 
-  hasNode(internalId: AssetId): boolean {
-    return this.nodeIds.has(internalId);
+  hasNode(id: AssetId): boolean {
+    return this.nodeIds.has(id);
   }
 
-  removeLink(internalId: AssetId): void {
-    if (!this.hasLink(internalId)) return;
-    this.linkIds.delete(internalId);
+  removeLink(id: AssetId): void {
+    if (!this.hasLink(id)) return;
+    this.linkIds.delete(id);
   }
 
-  removeNode(internalId: AssetId): void {
-    if (!this.hasNode(internalId)) return;
-    this.nodeIds.delete(internalId);
+  removeNode(id: AssetId): void {
+    if (!this.hasNode(id)) return;
+    this.nodeIds.delete(id);
   }
 
   *iterateLinks(): Generator<[AssetId, LinkIndex], void, unknown> {
     let i = 0;
-    for (const internalId of this.linkIds) {
-      yield [internalId, i++];
+    for (const id of this.linkIds) {
+      yield [id, i++];
     }
   }
 
   *iterateNodes(): Generator<[AssetId, NodeIndex], void, unknown> {
     let i = 0;
-    for (const internalId of this.nodeIds) {
-      yield [internalId, i++];
+    for (const id of this.nodeIds) {
+      yield [id, i++];
     }
   }
 
@@ -180,26 +180,26 @@ export class AssetIndexEncoder {
   }
 
   encode(): BinaryData {
-    for (const [internalId, nodeIndex] of this.nodeIds()) {
-      this.encodeNode(internalId, nodeIndex);
+    for (const [id, nodeIndex] of this.nodeIds()) {
+      this.encodeNode(id, nodeIndex);
     }
-    for (const [internalId, linkIndex] of this.linkIds()) {
-      this.encodeLink(internalId, linkIndex);
+    for (const [id, linkIndex] of this.linkIds()) {
+      this.encodeLink(id, linkIndex);
     }
 
     return this.finalize();
   }
 
-  encodeLink(internalId: AssetId, index: LinkIndex): void {
+  encodeLink(id: AssetId, index: LinkIndex): void {
     // Add 1 to bufferIndex to ensure encoded value is never 0 (EMPTY_ASSET_INDEX)
     // This is necessary because the first asset gets bufferIndex=0, and
     // encodeAssetIndex(ASSET_TYPE_LINK=0, 0) = 0, which would be indistinguishable from empty
-    this.bufferBuilder.addAtIndex(internalId, [ASSET_TYPE_LINK, index + 1]);
+    this.bufferBuilder.addAtIndex(id, [ASSET_TYPE_LINK, index + 1]);
   }
 
-  encodeNode(internalId: AssetId, index: NodeIndex): void {
+  encodeNode(id: AssetId, index: NodeIndex): void {
     // Add 1 to bufferIndex to ensure consistency on link and node indexes
-    this.bufferBuilder.addAtIndex(internalId, [ASSET_TYPE_NODE, index + 1]);
+    this.bufferBuilder.addAtIndex(id, [ASSET_TYPE_NODE, index + 1]);
   }
 
   finalize(): BinaryData {
@@ -226,11 +226,11 @@ export class AssetIndexView implements AssetIndexBaseQueries {
     );
   }
 
-  getLinkIndex(internalId: AssetId): LinkIndex | null {
-    if (internalId <= 0 || internalId >= this.view.count) {
+  getLinkIndex(id: AssetId): LinkIndex | null {
+    if (id <= 0 || id >= this.view.count) {
       return null;
     }
-    const assetIndex = this.view.getById(internalId);
+    const assetIndex = this.view.getById(id);
     if (assetIndex === null) return null;
     const [type, index] = assetIndex;
     if (type !== ASSET_TYPE_LINK) {
@@ -240,11 +240,11 @@ export class AssetIndexView implements AssetIndexBaseQueries {
     return index - 1;
   }
 
-  getNodeIndex(internalId: AssetId): NodeIndex | null {
-    if (internalId <= 0 || internalId >= this.view.count) {
+  getNodeIndex(id: AssetId): NodeIndex | null {
+    if (id <= 0 || id >= this.view.count) {
       return null;
     }
-    const assetIndex = this.view.getById(internalId);
+    const assetIndex = this.view.getById(id);
     if (assetIndex === null) return null;
     const [type, index] = assetIndex;
     if (type !== ASSET_TYPE_NODE) {
@@ -254,30 +254,30 @@ export class AssetIndexView implements AssetIndexBaseQueries {
     return index - 1;
   }
 
-  hasLink(internalId: AssetId): boolean {
-    return this.getLinkIndex(internalId) !== null;
+  hasLink(id: AssetId): boolean {
+    return this.getLinkIndex(id) !== null;
   }
 
-  hasNode(internalId: AssetId): boolean {
-    return this.getNodeIndex(internalId) !== null;
+  hasNode(id: AssetId): boolean {
+    return this.getNodeIndex(id) !== null;
   }
 
   *iterateLinks(): Generator<[AssetId, LinkIndex], void, unknown> {
-    for (const [internalId, assetIndexEntry] of this.view.enumerate()) {
+    for (const [id, assetIndexEntry] of this.view.enumerate()) {
       if (assetIndexEntry === null) continue;
       const [type, encodedIndex] = assetIndexEntry;
       if (type === ASSET_TYPE_LINK) {
-        yield [internalId, encodedIndex - 1];
+        yield [id, encodedIndex - 1];
       }
     }
   }
 
   *iterateNodes(): Generator<[AssetId, NodeIndex], void, unknown> {
-    for (const [internalId, assetIndexEntry] of this.view.enumerate()) {
+    for (const [id, assetIndexEntry] of this.view.enumerate()) {
       if (assetIndexEntry === null) continue;
       const [type, encodedIndex] = assetIndexEntry;
       if (type === ASSET_TYPE_NODE) {
-        yield [internalId, encodedIndex - 1];
+        yield [id, encodedIndex - 1];
       }
     }
   }

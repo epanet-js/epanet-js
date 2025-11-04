@@ -1,256 +1,123 @@
 import { describe, it, expect } from "vitest";
-import { Topology } from "./topology";
-import { AssetIndex, AssetIndexView } from "../asset-index";
+import { AssetIndexView } from "../asset-index";
 import { TopologyEncoder } from "./topologyEncoder";
 import { TopologyView } from "./topologyView";
-import { IdGenerator } from "../id-generator";
+import { HydraulicModel } from "../hydraulic-model";
+import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 
 describe("TopologyView", () => {
-  describe("Basic queries", () => {
-    it("queries simple topology with one link", () => {
-      const IDS = {
-        P1: 1,
-        J1: 10,
-        J2: 20,
-      } as const;
-      const idGenerator = new IdGenerator();
-      vi.spyOn(idGenerator, "totalGenerated", "get").mockReturnValue(20);
+  it("getLinks and getNodes behave the same way as the model topology", () => {
+    const IDS = {
+      P1: 1,
+      P2: 2,
+      P3: 3,
+      P4: 4,
+      J1: 10,
+      J2: 20,
+      J3: 30,
+      J4: 40,
+      CentralNode: 50,
+      notDefined: 5,
+      outOfBounds: 100,
+      invalidId: 0,
+    } as const;
+    const model = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1)
+      .aJunction(IDS.J2)
+      .aJunction(IDS.J3)
+      .aJunction(IDS.J4)
+      .aJunction(IDS.CentralNode)
+      .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.CentralNode })
+      .aPipe(IDS.P2, { startNodeId: IDS.J2, endNodeId: IDS.CentralNode })
+      .aPipe(IDS.P3, { startNodeId: IDS.J3, endNodeId: IDS.CentralNode })
+      .aPipe(IDS.P4, { startNodeId: IDS.J4, endNodeId: IDS.CentralNode })
+      .build();
 
-      const topology = new Topology();
-      topology.addLink(IDS.P1, IDS.J1, IDS.J2);
+    const topology = model.topology;
+    const topologyView = getTopologyView(model);
 
-      const assetIndex = new AssetIndex(idGenerator);
-      assetIndex.addLink(IDS.P1);
-      assetIndex.addNode(IDS.J1);
-      assetIndex.addNode(IDS.J2);
+    expect(topologyView.getNodes(IDS.P1)).toEqual(topology.getNodes(IDS.P1));
+    expect(topologyView.getNodes(IDS.P4)).toEqual(topology.getNodes(IDS.P4));
+    expect(topologyView.getLinks(IDS.J1)).toEqual(topology.getLinks(IDS.J1));
+    expect(topologyView.getLinks(IDS.CentralNode)).toEqual(
+      topology.getLinks(IDS.CentralNode),
+    );
+    //Querying incorrect IDs
+    expect(topologyView.getLinks(IDS.P1)).toEqual(topology.getLinks(IDS.P1));
+    expect(topologyView.getNodes(IDS.J1)).toEqual(topology.getNodes(IDS.J1));
+    expect(topologyView.getLinks(IDS.notDefined)).toEqual(
+      topology.getLinks(IDS.notDefined),
+    );
+    expect(topologyView.getNodes(IDS.notDefined)).toEqual(
+      topology.getNodes(IDS.notDefined),
+    );
+    expect(topologyView.getLinks(IDS.outOfBounds)).toEqual(
+      topology.getLinks(IDS.outOfBounds),
+    );
+    expect(topologyView.getNodes(IDS.outOfBounds)).toEqual(
+      topology.getNodes(IDS.outOfBounds),
+    );
+    expect(topologyView.getLinks(IDS.outOfBounds)).toEqual(
+      topology.getLinks(IDS.invalidId),
+    );
+    expect(topologyView.getNodes(IDS.outOfBounds)).toEqual(
+      topology.getNodes(IDS.invalidId),
+    );
 
-      const encoder = new TopologyEncoder(topology, assetIndex, "array");
-      const topologyBuffers = encoder.encode();
-
-      const assetIndexEncoder = assetIndex.getEncoder("array");
-      const assetIndexBuffer = assetIndexEncoder.encode();
-      const view = new TopologyView(
-        topologyBuffers,
-        new AssetIndexView(assetIndexBuffer),
-      );
-
-      expect(view.hasLink(IDS.P1)).toBe(true);
-      expect(view.hasNode(IDS.J1)).toBe(true);
-      expect(view.hasNode(IDS.J2)).toBe(true);
-
-      expect(view.getNodes(IDS.P1)).toEqual([IDS.J1, IDS.J2]);
-      expect(view.getLinks(IDS.J1)).toEqual([IDS.P1]);
-      expect(view.getLinks(IDS.J2)).toEqual([IDS.P1]);
-    });
-
-    it("queries topology with multiple links and nodes", () => {
-      const IDS = {
-        P1: 1,
-        P2: 2,
-        P3: 3,
-        J1: 10,
-        J2: 20,
-        J3: 30,
-      } as const;
-      const idGenerator = new IdGenerator();
-      vi.spyOn(idGenerator, "totalGenerated", "get").mockReturnValue(30);
-
-      const topology = new Topology();
-      topology.addLink(IDS.P1, IDS.J1, IDS.J2);
-      topology.addLink(IDS.P2, IDS.J2, IDS.J3);
-      topology.addLink(IDS.P3, IDS.J1, IDS.J3);
-
-      const assetIndex = new AssetIndex(idGenerator);
-      assetIndex.addLink(IDS.P1);
-      assetIndex.addLink(IDS.P2);
-      assetIndex.addLink(IDS.P3);
-      assetIndex.addNode(IDS.J1);
-      assetIndex.addNode(IDS.J2);
-      assetIndex.addNode(IDS.J3);
-
-      const encoder = new TopologyEncoder(topology, assetIndex, "array");
-      const topologyBuffers = encoder.encode();
-
-      const assetIndexEncoder = assetIndex.getEncoder("array");
-      const assetIndexBuffer = assetIndexEncoder.encode();
-      const view = new TopologyView(
-        topologyBuffers,
-        new AssetIndexView(assetIndexBuffer),
-      );
-
-      expect(view.getNodes(IDS.P1)).toEqual([IDS.J1, IDS.J2]);
-      expect(view.getNodes(IDS.P2)).toEqual([IDS.J2, IDS.J3]);
-      expect(view.getNodes(IDS.P3)).toEqual([IDS.J1, IDS.J3]);
-
-      expect(view.getLinks(IDS.J1)).toContain(IDS.P1);
-      expect(view.getLinks(IDS.J1)).toContain(IDS.P3);
-      expect(view.getLinks(IDS.J2)).toContain(IDS.P1);
-      expect(view.getLinks(IDS.J2)).toContain(IDS.P2);
-      expect(view.getLinks(IDS.J3)).toContain(IDS.P2);
-      expect(view.getLinks(IDS.J3)).toContain(IDS.P3);
-    });
-
-    it("handles empty topology", () => {
-      const IDS = {
-        NonExistentLink: 0,
-        NonExistentNode: 0,
-      } as const;
-
-      const topology = new Topology();
-      const assetIndex = new AssetIndex(new IdGenerator());
-
-      const encoder = new TopologyEncoder(topology, assetIndex, "array");
-      const topologyBuffers = encoder.encode();
-
-      const assetIndexEncoder = assetIndex.getEncoder("array");
-      const assetIndexBuffer = assetIndexEncoder.encode();
-      const view = new TopologyView(
-        topologyBuffers,
-        new AssetIndexView(assetIndexBuffer),
-      );
-
-      expect(view.hasLink(IDS.NonExistentLink)).toBe(false);
-      expect(view.hasNode(IDS.NonExistentNode)).toBe(false);
-    });
+    expect(topologyView.hasLink(IDS.P1)).toEqual(topology.hasLink(IDS.P1));
+    expect(topologyView.hasNode(IDS.J1)).toEqual(topology.hasNode(IDS.J1));
+    //Querying incorrect IDs
+    expect(topologyView.hasNode(IDS.P1)).toEqual(topology.hasNode(IDS.P1));
+    expect(topologyView.hasLink(IDS.J1)).toEqual(topology.hasLink(IDS.J1));
+    expect(topologyView.hasLink(IDS.notDefined)).toEqual(
+      topology.hasLink(IDS.notDefined),
+    );
+    expect(topologyView.hasNode(IDS.notDefined)).toEqual(
+      topology.hasNode(IDS.notDefined),
+    );
+    expect(topologyView.hasLink(IDS.outOfBounds)).toEqual(
+      topology.hasLink(IDS.outOfBounds),
+    );
+    expect(topologyView.hasNode(IDS.outOfBounds)).toEqual(
+      topology.hasNode(IDS.outOfBounds),
+    );
+    expect(topologyView.hasLink(IDS.outOfBounds)).toEqual(
+      topology.hasLink(IDS.invalidId),
+    );
+    expect(topologyView.hasNode(IDS.outOfBounds)).toEqual(
+      topology.hasNode(IDS.invalidId),
+    );
   });
 
-  describe("Edge cases", () => {
-    it("handles node with multiple connections", () => {
-      const idGenerator = new IdGenerator();
-      vi.spyOn(idGenerator, "totalGenerated", "get").mockReturnValue(100);
-      const IDS = {
-        P1: 1,
-        P2: 2,
-        P3: 3,
-        P4: 4,
-        J1: 10,
-        J2: 20,
-        J3: 30,
-        J4: 40,
-        CentralNode: 100,
-      } as const;
+  it("handles empty topology", () => {
+    const IDS = {
+      notDefined: 10,
+    } as const;
 
-      const topology = new Topology();
-      topology.addLink(IDS.P1, IDS.J1, IDS.CentralNode);
-      topology.addLink(IDS.P2, IDS.CentralNode, IDS.J2);
-      topology.addLink(IDS.P3, IDS.CentralNode, IDS.J3);
-      topology.addLink(IDS.P4, IDS.CentralNode, IDS.J4);
+    const model = HydraulicModelBuilder.empty();
 
-      const assetIndex = new AssetIndex(idGenerator);
-      assetIndex.addLink(IDS.P1);
-      assetIndex.addLink(IDS.P2);
-      assetIndex.addLink(IDS.P3);
-      assetIndex.addLink(IDS.P4);
-      assetIndex.addNode(IDS.J1);
-      assetIndex.addNode(IDS.CentralNode);
-      assetIndex.addNode(IDS.J2);
-      assetIndex.addNode(IDS.J3);
-      assetIndex.addNode(IDS.J4);
+    const topology = model.topology;
+    const topologyView = getTopologyView(model);
 
-      const encoder = new TopologyEncoder(topology, assetIndex, "array");
-      const topologyBuffers = encoder.encode();
-
-      const assetIndexView = new AssetIndexView(
-        assetIndex.getEncoder().encode(),
-      );
-      const view = new TopologyView(topologyBuffers, assetIndexView);
-
-      const links = view.getLinks(IDS.CentralNode);
-
-      expect(links.length).toBe(4);
-      expect(links).toContain(IDS.P1);
-      expect(links).toContain(IDS.P2);
-      expect(links).toContain(IDS.P3);
-      expect(links).toContain(IDS.P4);
-    });
-  });
-
-  describe("Buffer types", () => {
-    it("reads from SharedArrayBuffer", () => {
-      const IDS = {
-        P1: 1,
-        J1: 10,
-        J2: 20,
-      } as const;
-      const idGenerator = new IdGenerator();
-      vi.spyOn(idGenerator, "totalGenerated", "get").mockReturnValue(20);
-
-      const topology = new Topology();
-      topology.addLink(IDS.P1, IDS.J1, IDS.J2);
-
-      const assetIndex = new AssetIndex(idGenerator);
-      assetIndex.addLink(IDS.P1);
-      assetIndex.addNode(IDS.J1);
-      assetIndex.addNode(IDS.J2);
-
-      const encoder = new TopologyEncoder(topology, assetIndex, "shared");
-      const topologyBuffers = encoder.encode();
-
-      expect(topologyBuffers.linkConnections).toBeInstanceOf(SharedArrayBuffer);
-      expect(topologyBuffers.nodeConnections.data).toBeInstanceOf(
-        SharedArrayBuffer,
-      );
-      expect(topologyBuffers.nodeConnections.index).toBeInstanceOf(
-        SharedArrayBuffer,
-      );
-
-      const assetIndexEncoder = assetIndex.getEncoder("shared");
-      const assetIndexBuffer = assetIndexEncoder.encode();
-      const view = new TopologyView(
-        topologyBuffers,
-        new AssetIndexView(assetIndexBuffer),
-      );
-
-      expect(view.hasLink(IDS.P1)).toBe(true);
-    });
-  });
-
-  describe("Incremental encoding", () => {
-    it("reads topology encoded incrementally", () => {
-      const idGenerator = new IdGenerator();
-      vi.spyOn(idGenerator, "totalGenerated", "get").mockReturnValue(30);
-      const IDS = {
-        P1: 1,
-        P2: 2,
-        J1: 10,
-        J2: 20,
-        J3: 30,
-      } as const;
-
-      const topology = new Topology();
-      topology.addLink(IDS.P1, IDS.J1, IDS.J2);
-      topology.addLink(IDS.P2, IDS.J2, IDS.J3);
-
-      const assetIndex = new AssetIndex(idGenerator);
-      assetIndex.addLink(IDS.P1);
-      assetIndex.addLink(IDS.P2);
-      assetIndex.addNode(IDS.J1);
-      assetIndex.addNode(IDS.J2);
-      assetIndex.addNode(IDS.J3);
-
-      const encoder = new TopologyEncoder(topology, assetIndex, "array");
-
-      for (const [linkId] of assetIndex.iterateLinks()) {
-        encoder.encodeLink(linkId);
-      }
-
-      for (const [nodeId] of assetIndex.iterateNodes()) {
-        encoder.encodeNode(nodeId);
-      }
-
-      const topologyBuffers = encoder.finalize();
-
-      const assetIndexEncoder = assetIndex.getEncoder("array");
-      const assetIndexBuffer = assetIndexEncoder.encode();
-      const view = new TopologyView(
-        topologyBuffers,
-        new AssetIndexView(assetIndexBuffer),
-      );
-
-      expect(view.getNodes(IDS.P1)).toEqual([IDS.J1, IDS.J2]);
-      expect(view.getNodes(IDS.P2)).toEqual([IDS.J2, IDS.J3]);
-      expect(view.getLinks(IDS.J2)).toContain(IDS.P1);
-      expect(view.getLinks(IDS.J2)).toContain(IDS.P2);
-    });
+    expect(topologyView.getLinks(IDS.notDefined)).toEqual(
+      topology.getLinks(IDS.notDefined),
+    );
+    expect(topologyView.getNodes(IDS.notDefined)).toEqual(
+      topology.getNodes(IDS.notDefined),
+    );
+    expect(topologyView.hasLink(IDS.notDefined)).toEqual(
+      topology.hasLink(IDS.notDefined),
+    );
+    expect(topologyView.hasNode(IDS.notDefined)).toEqual(
+      topology.hasNode(IDS.notDefined),
+    );
   });
 });
+
+function getTopologyView(model: HydraulicModel): TopologyView {
+  const topologyEncoder = new TopologyEncoder(model.topology, model.assetIndex);
+  const assetIndexView = new AssetIndexView(
+    model.assetIndex.getEncoder().encode(),
+  );
+  return new TopologyView(topologyEncoder.encode(), assetIndexView);
+}

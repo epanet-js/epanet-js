@@ -76,7 +76,7 @@ export class TopologyEncoder {
   constructor(
     private topology: Topology,
     private assetIndex: AssetIndex,
-    private bufferType: BufferType,
+    private bufferType: BufferType = "array",
   ) {
     this.linkConnectionsBuilder = new FixedSizeBufferBuilder<[number, number]>(
       DataSize.number * 2,

@@ -26,7 +26,10 @@ import {
   PumpStatusWarning,
 } from "src/hydraulic-model/asset-types/pump";
 import { PipeSimulation } from "src/hydraulic-model/asset-types/pipe";
-import { IdGenerator } from "src/hydraulic-model/id-generator";
+import {
+  ConsecutiveIdsGenerator,
+  IdGenerator,
+} from "src/hydraulic-model/id-generator";
 import { LabelManager } from "src/hydraulic-model/label-manager";
 import {
   AssetQuantitiesSpec,
@@ -55,7 +58,7 @@ export const buildPipe = (
   return new AssetBuilder(
     quantities.units,
     quantities.defaults,
-    new IdGenerator(),
+    new ConsecutiveIdsGenerator(),
     new LabelManager(),
   ).buildPipe(data);
 };
@@ -71,7 +74,7 @@ export const buildPump = (
   return new AssetBuilder(
     quantities.units,
     quantities.defaults,
-    new IdGenerator(),
+    new ConsecutiveIdsGenerator(),
     new LabelManager(),
   ).buildPump(data);
 };
@@ -81,7 +84,7 @@ export const buildJunction = (data: JunctionBuildData = {}) => {
   return new AssetBuilder(
     quantities.units,
     quantities.defaults,
-    new IdGenerator(),
+    new ConsecutiveIdsGenerator(),
     new LabelManager(),
   ).buildJunction(data);
 };
@@ -90,7 +93,7 @@ export const buildReservoir = (data: ReservoirBuildData = {}) => {
   return new AssetBuilder(
     quantities.units,
     quantities.defaults,
-    new IdGenerator(),
+    new ConsecutiveIdsGenerator(),
     new LabelManager(),
   ).buildReservoir(data);
 };
@@ -111,6 +114,26 @@ export const buildCustomerPoint = (
   });
 };
 
+class WritableIdGenerator implements IdGenerator {
+  private last: number;
+  constructor() {
+    this.last = 0;
+  }
+
+  newId(): number {
+    this.last = this.last + 1;
+    return this.last;
+  }
+
+  get totalGenerated(): number {
+    return this.last;
+  }
+
+  addId(id: number) {
+    if (id > this.last) this.last = id;
+  }
+}
+
 export class HydraulicModelBuilder {
   private topology: Topology;
   private assets: AssetsMap;
@@ -120,7 +143,7 @@ export class HydraulicModelBuilder {
   private labelManager: LabelManager;
   private demands: Demands;
   private customerPointsMap: CustomerPoints;
-  private idGenerator: IdGenerator;
+  private idGenerator: WritableIdGenerator;
 
   static with(quantitiesSpec: AssetQuantitiesSpec = presets.LPS) {
     return new HydraulicModelBuilder(quantitiesSpec);
@@ -134,7 +157,7 @@ export class HydraulicModelBuilder {
     this.assets = new Map();
     this.customerPointsMap = initializeCustomerPoints();
     this.labelManager = new LabelManager();
-    this.idGenerator = new IdGenerator();
+    this.idGenerator = new WritableIdGenerator();
     const quantities = new Quantities(quantitiesSpec);
     this.units = quantities.units;
     this.assetBuilder = new AssetBuilder(
@@ -154,6 +177,7 @@ export class HydraulicModelBuilder {
       id,
     });
     this.assets.set(id, node);
+    this.idGenerator.addId(id);
     return this;
   }
 
@@ -179,6 +203,7 @@ export class HydraulicModelBuilder {
       });
     }
     this.assets.set(id, junction);
+    this.idGenerator.addId(id);
     return this;
   }
 
@@ -188,6 +213,7 @@ export class HydraulicModelBuilder {
       ...properties,
     });
     this.assets.set(id, reservoir);
+    this.idGenerator.addId(id);
     return this;
   }
 
@@ -219,6 +245,7 @@ export class HydraulicModelBuilder {
       });
     }
     this.assets.set(id, tank);
+    this.idGenerator.addId(id);
     return this;
   }
 
@@ -254,8 +281,8 @@ export class HydraulicModelBuilder {
         ...simulation,
       });
     }
+    this.idGenerator.addId(id);
     this.topology.addLink(id, startNode.id, endNode.id);
-
     return this;
   }
 
@@ -295,8 +322,8 @@ export class HydraulicModelBuilder {
       });
     }
     this.assets.set(id, pump);
+    this.idGenerator.addId(id);
     this.topology.addLink(id, startNode.id, endNode.id);
-
     return this;
   }
 
@@ -332,8 +359,8 @@ export class HydraulicModelBuilder {
       });
     }
     this.assets.set(id, valve);
+    this.idGenerator.addId(id);
     this.topology.addLink(id, startNode.id, endNode.id);
-
     return this;
   }
 
