@@ -483,7 +483,7 @@
           "noneAutoGenerate": "None (Auto-generate labels)"
         },
         "table": {
-          "title": "Valid customer points ({{1}})",
+          "title": "Customer points ({{1}})",
           "id": "ID",
           "index": "Index",
           "label": "Label",

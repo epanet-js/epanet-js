@@ -200,7 +200,7 @@ export const DataMappingStep: React.FC<{
 
   return (
     <>
-      <div className="overflow-y-auto flex-grow space-y-2">
+      <div className="overflow-y-auto flex-grow">
         <h2 className="text-lg font-semibold">
           {translate("importCustomerPoints.wizard.dataMapping.title")}
         </h2>
@@ -208,7 +208,7 @@ export const DataMappingStep: React.FC<{
         {showAttributesMapping && (
           <div className="space-y-2">
             <div>
-              <p className="text-sm text-gray-600 mb-4">
+              <p className="text-sm text-gray-600 mt-2 mb-4">
                 {translate(
                   "importCustomerPoints.wizard.dataMapping.attributesMapping.description",
                 )}
@@ -400,14 +400,14 @@ const CustomerPointsTable: React.FC<CustomerPointsTableProps> = ({
   }
 
   return (
-    <div className="pt-4">
+    <div className="mt-6">
       <h4 className="text-md font-medium text-gray-900">
         {translate(
           "importCustomerPoints.wizard.dataMapping.table.title",
           localizeDecimal(validCount),
         )}
       </h4>
-      <div className="overflow-x-auto mt-4 border border-gray-200 rounded-lg">
+      <div className="overflow-x-auto mt-2 border border-gray-200 rounded-lg">
         <table className="min-w-full text-sm">
           <thead className="bg-gray-50 sticky top-0">
             <tr>
@@ -484,29 +484,15 @@ const IssuesSummary: React.FC<IssuesSummaryProps> = ({ issues }) => {
   const errorCount = getTotalErrorCount(issues);
 
   if (errorCount === 0) {
-    return (
-      <>
-        <h2 className="text-md font-medium text-gray-900">
-          {translate(
-            "importCustomerPoints.wizard.dataMapping.issues.title",
-            errorCount.toString(),
-          )}
-        </h2>
-        <p className="text-gray-500 text-sm">
-          {translate(
-            "importCustomerPoints.wizard.dataMapping.messages.noErrors",
-          )}
-        </p>
-      </>
-    );
+    return;
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-2 mt-6">
       <h2 className="text-md font-medium text-gray-900">
         {translate(
           "importCustomerPoints.wizard.dataMapping.issues.title",
-          errorCount.toString(),
+          localizeDecimal(errorCount),
         )}
       </h2>
       <div className="space-y-4">

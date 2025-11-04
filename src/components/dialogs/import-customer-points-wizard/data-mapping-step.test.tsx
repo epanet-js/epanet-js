@@ -65,10 +65,7 @@ describe("DataMappingStep", () => {
       await user.click(demandOption);
 
       await waitFor(() => {
-        expect(
-          screen.getByText(/Valid customer points \(2\)/),
-        ).toBeInTheDocument();
-        expect(screen.getByText(/Issues \(0\)/)).toBeInTheDocument();
+        expect(screen.getByText(/Customer points \(2\)/)).toBeInTheDocument();
       });
 
       expect(screen.getByRole("button", { name: /next/i })).not.toBeDisabled();
@@ -125,9 +122,7 @@ describe("DataMappingStep", () => {
       await user.click(demandOption);
 
       await waitFor(() => {
-        expect(
-          screen.getByText(/Valid customer points \(1\)/),
-        ).toBeInTheDocument();
+        expect(screen.getByText(/Customer points \(1\)/)).toBeInTheDocument();
       });
 
       expect(screen.getByText(/Issues \(1\)/)).toBeInTheDocument();
