@@ -6,7 +6,6 @@ import { IWrappedFeature } from "src/types";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useDrawingMode } from "src/commands/set-drawing-mode";
 import { useTranslate } from "src/hooks/use-translate";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { PipeDrawingButton } from "./pipe-drawing-button";
 
 import {
@@ -67,7 +66,6 @@ export default memo(function Modes({
   const userTracking = useUserTracking();
   const translate = useTranslate();
   const modeOptions = MODE_OPTIONS;
-  const isPipePropsOn = useFeatureFlag("FLAG_PIPE_PROPS");
 
   return (
     <div className="flex items-center justify-start" role="radiogroup">
@@ -79,7 +77,7 @@ export default memo(function Modes({
         .map(({ mode, hotkey, Icon }, i) => {
           const modeInfo = MODE_INFO[mode];
 
-          if (mode === Mode.DRAW_PIPE && isPipePropsOn) {
+          if (mode === Mode.DRAW_PIPE) {
             return (
               <PipeDrawingButton
                 key={i}

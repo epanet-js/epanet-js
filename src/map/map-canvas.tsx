@@ -48,6 +48,7 @@ import { useTranslate } from "src/hooks/use-translate";
 import { MapLoading } from "./map-loader";
 import { supportEmail } from "src/global-config";
 import { MapHandlers } from "./types";
+import { PipeDrawingFloatingPanel } from "src/components/pipe-drawing-floating-panel";
 mapboxgl.accessToken = env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
 mapboxgl.setRTLTextPlugin(
@@ -370,6 +371,7 @@ export const MapCanvas = memo(function MapCanvas({
       <MapLoading />
       <SatelliteToggle />
       <SatelliteResolutionMessage zoom={currentZoom} />
+      <PipeDrawingFloatingPanel />
     </CM.Root>
   );
 });
