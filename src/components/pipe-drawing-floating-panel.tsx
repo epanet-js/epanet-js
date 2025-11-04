@@ -11,12 +11,14 @@ import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { NumericField } from "./form/numeric-field";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { useRef } from "react";
+import { useUserTracking } from "src/infra/user-tracking";
 
 export const PipeDrawingFloatingPanel = () => {
   const { mode: currentMode } = useAtomValue(modeAtom);
   const isPipePropsOn = useFeatureFlag("FLAG_PIPE_PROPS");
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
+  const userTracking = useUserTracking();
   const {
     modelMetadata: { quantities },
   } = useAtomValue(dataAtom);
@@ -42,11 +44,21 @@ export const PipeDrawingFloatingPanel = () => {
   const handleDiameterChange = (newValue: number) => {
     lastDiameterChange.current = Date.now();
     setPipeDrawingDefaults((prev) => ({ ...prev, diameter: newValue }));
+    userTracking.capture({
+      name: "pipeDrawingDefaults.changed",
+      property: "diameter",
+      newValue,
+    });
   };
 
   const handleRoughnessChange = (newValue: number) => {
     lastRoughnessChange.current = Date.now();
     setPipeDrawingDefaults((prev) => ({ ...prev, roughness: newValue }));
+    userTracking.capture({
+      name: "pipeDrawingDefaults.changed",
+      property: "roughness",
+      newValue,
+    });
   };
 
   const diameterUnit = quantities.getUnit("diameter");

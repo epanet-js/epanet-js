@@ -744,6 +744,11 @@ export type UserEvent =
       newBasemap: string;
       source: "dropdown" | "popover";
     }
+  | {
+      name: "pipeDrawingDefaults.changed";
+      property: "diameter" | "roughness";
+      newValue: number;
+    }
   | { name: "unexpectedError.seen" };
 
 const debugPostHog = {
