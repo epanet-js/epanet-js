@@ -152,9 +152,9 @@ export class MemPersistence implements IPersistence {
     }
 
     const updatedAssets = new AssetsMap(
-      Array.from(ctx.hydraulicModel.assets).sort((a, b) => {
-        return sortAts(a[1], b[1]);
-      }),
+      Array.from(ctx.hydraulicModel.assets).sort(
+        ([a_id], [b_id]) => a_id - b_id,
+      ),
     );
 
     this.store.set(dataAtom, {

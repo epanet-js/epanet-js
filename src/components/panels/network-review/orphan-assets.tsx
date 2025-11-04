@@ -183,7 +183,7 @@ const OrphanAssetItem = ({
 }: {
   orphanAsset: OrphanAsset;
   onClick: (orphanAsset: OrphanAsset) => void;
-  selectedId: string | number | null;
+  selectedId: number | null;
 }) => {
   const translate = useTranslate();
   const isSelected = selectedId === orphanAsset.assetId;
