@@ -79,7 +79,7 @@ export const PipeDrawingFloatingPanel = () => {
         <label className="text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
           {diameterLabel}
         </label>
-        <div className="w-[120px]">
+        <div className="w-[4.5rem]">
           <NumericField
             key={lastDiameterChange.current + diameterDisplay}
             label={diameterLabel}
@@ -98,7 +98,7 @@ export const PipeDrawingFloatingPanel = () => {
         <label className="text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
           {roughnessLabel}
         </label>
-        <div className="w-[120px]">
+        <div className="w-[4.5rem]">
           <NumericField
             key={lastRoughnessChange.current + roughnessDisplay}
             label={roughnessLabel}
