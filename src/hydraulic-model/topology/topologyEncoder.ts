@@ -97,11 +97,11 @@ export class TopologyEncoder {
   }
 
   encode(): TopologyBuffers {
-    for (const linkId of this.assetIndex.iterateLinkAssetIds()) {
+    for (const [linkId] of this.assetIndex.iterateLinks()) {
       this.encodeLink(linkId);
     }
 
-    for (const nodeId of this.assetIndex.iterateNodeAssetIds()) {
+    for (const [nodeId] of this.assetIndex.iterateNodes()) {
       this.encodeNode(nodeId);
     }
 
@@ -111,7 +111,7 @@ export class TopologyEncoder {
   private calculateTotalNodeConnectionsSize(): number {
     let totalSize = 0;
 
-    for (const nodeId of this.assetIndex.iterateNodeAssetIds()) {
+    for (const [nodeId] of this.assetIndex.iterateNodes()) {
       const connectedLinkIds = this.topology.getLinks(nodeId);
       totalSize += getNodeConnectionsSize(connectedLinkIds);
     }
@@ -120,20 +120,12 @@ export class TopologyEncoder {
   }
 
   encodeLink(linkId: AssetId): void {
-    const link = this.topology["linksMap"].get(linkId);
-    if (!link) {
-      throw new Error(`Link ${linkId} not found in topology`);
-    }
-
-    const startNodeAssetId = Number(link.fromId);
-    const endNodeAssetId = Number(link.toId);
-
-    this.linkConnectionsBuilder.add([startNodeAssetId, endNodeAssetId]);
+    const [startNode, endNode] = this.topology.getNodes(linkId);
+    this.linkConnectionsBuilder.add([startNode, endNode]);
   }
 
   encodeNode(nodeId: AssetId): void {
     const connectedLinkIds = this.topology.getLinks(nodeId);
-
     this.nodeConnectionsBuilder.add(connectedLinkIds);
   }
 

@@ -8,4 +8,8 @@ export class IdGenerator {
     this.last = this.last + 1;
     return this.last;
   }
+
+  get totalGenerated(): number {
+    return this.last;
+  }
 }

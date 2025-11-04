@@ -3,6 +3,7 @@ import { Topology } from "./topology";
 import { AssetIndex, AssetIndexView } from "../asset-index";
 import { TopologyEncoder } from "./topologyEncoder";
 import { TopologyView } from "./topologyView";
+import { IdGenerator } from "../id-generator";
 
 describe("TopologyView", () => {
   describe("Basic queries", () => {
@@ -12,11 +13,13 @@ describe("TopologyView", () => {
         J1: 10,
         J2: 20,
       } as const;
+      const idGenerator = new IdGenerator();
+      vi.spyOn(idGenerator, "totalGenerated", "get").mockReturnValue(20);
 
       const topology = new Topology();
       topology.addLink(IDS.P1, IDS.J1, IDS.J2);
 
-      const assetIndex = new AssetIndex();
+      const assetIndex = new AssetIndex(idGenerator);
       assetIndex.addLink(IDS.P1);
       assetIndex.addNode(IDS.J1);
       assetIndex.addNode(IDS.J2);
@@ -25,10 +28,7 @@ describe("TopologyView", () => {
       const topologyBuffers = encoder.encode();
 
       const assetIndexEncoder = assetIndex.getEncoder("array");
-      const assetIndexBuffer = assetIndexEncoder.encode(
-        () => assetIndex.iterateLinkAssetIds(),
-        () => assetIndex.iterateNodeAssetIds(),
-      );
+      const assetIndexBuffer = assetIndexEncoder.encode();
       const view = new TopologyView(
         topologyBuffers,
         new AssetIndexView(assetIndexBuffer),
@@ -52,13 +52,15 @@ describe("TopologyView", () => {
         J2: 20,
         J3: 30,
       } as const;
+      const idGenerator = new IdGenerator();
+      vi.spyOn(idGenerator, "totalGenerated", "get").mockReturnValue(30);
 
       const topology = new Topology();
       topology.addLink(IDS.P1, IDS.J1, IDS.J2);
       topology.addLink(IDS.P2, IDS.J2, IDS.J3);
       topology.addLink(IDS.P3, IDS.J1, IDS.J3);
 
-      const assetIndex = new AssetIndex();
+      const assetIndex = new AssetIndex(idGenerator);
       assetIndex.addLink(IDS.P1);
       assetIndex.addLink(IDS.P2);
       assetIndex.addLink(IDS.P3);
@@ -70,10 +72,7 @@ describe("TopologyView", () => {
       const topologyBuffers = encoder.encode();
 
       const assetIndexEncoder = assetIndex.getEncoder("array");
-      const assetIndexBuffer = assetIndexEncoder.encode(
-        () => assetIndex.iterateLinkAssetIds(),
-        () => assetIndex.iterateNodeAssetIds(),
-      );
+      const assetIndexBuffer = assetIndexEncoder.encode();
       const view = new TopologyView(
         topologyBuffers,
         new AssetIndexView(assetIndexBuffer),
@@ -98,16 +97,13 @@ describe("TopologyView", () => {
       } as const;
 
       const topology = new Topology();
-      const assetIndex = new AssetIndex();
+      const assetIndex = new AssetIndex(new IdGenerator());
 
       const encoder = new TopologyEncoder(topology, assetIndex, "array");
       const topologyBuffers = encoder.encode();
 
       const assetIndexEncoder = assetIndex.getEncoder("array");
-      const assetIndexBuffer = assetIndexEncoder.encode(
-        () => assetIndex.iterateLinkAssetIds(),
-        () => assetIndex.iterateNodeAssetIds(),
-      );
+      const assetIndexBuffer = assetIndexEncoder.encode();
       const view = new TopologyView(
         topologyBuffers,
         new AssetIndexView(assetIndexBuffer),
@@ -120,6 +116,8 @@ describe("TopologyView", () => {
 
   describe("Edge cases", () => {
     it("handles node with multiple connections", () => {
+      const idGenerator = new IdGenerator();
+      vi.spyOn(idGenerator, "totalGenerated", "get").mockReturnValue(100);
       const IDS = {
         P1: 1,
         P2: 2,
@@ -138,7 +136,7 @@ describe("TopologyView", () => {
       topology.addLink(IDS.P3, IDS.CentralNode, IDS.J3);
       topology.addLink(IDS.P4, IDS.CentralNode, IDS.J4);
 
-      const assetIndex = new AssetIndex();
+      const assetIndex = new AssetIndex(idGenerator);
       assetIndex.addLink(IDS.P1);
       assetIndex.addLink(IDS.P2);
       assetIndex.addLink(IDS.P3);
@@ -152,15 +150,10 @@ describe("TopologyView", () => {
       const encoder = new TopologyEncoder(topology, assetIndex, "array");
       const topologyBuffers = encoder.encode();
 
-      const assetIndexEncoder = assetIndex.getEncoder("array");
-      const assetIndexBuffer = assetIndexEncoder.encode(
-        () => assetIndex.iterateLinkAssetIds(),
-        () => assetIndex.iterateNodeAssetIds(),
+      const assetIndexView = new AssetIndexView(
+        assetIndex.getEncoder().encode(),
       );
-      const view = new TopologyView(
-        topologyBuffers,
-        new AssetIndexView(assetIndexBuffer),
-      );
+      const view = new TopologyView(topologyBuffers, assetIndexView);
 
       const links = view.getLinks(IDS.CentralNode);
 
@@ -179,11 +172,13 @@ describe("TopologyView", () => {
         J1: 10,
         J2: 20,
       } as const;
+      const idGenerator = new IdGenerator();
+      vi.spyOn(idGenerator, "totalGenerated", "get").mockReturnValue(20);
 
       const topology = new Topology();
       topology.addLink(IDS.P1, IDS.J1, IDS.J2);
 
-      const assetIndex = new AssetIndex();
+      const assetIndex = new AssetIndex(idGenerator);
       assetIndex.addLink(IDS.P1);
       assetIndex.addNode(IDS.J1);
       assetIndex.addNode(IDS.J2);
@@ -200,10 +195,7 @@ describe("TopologyView", () => {
       );
 
       const assetIndexEncoder = assetIndex.getEncoder("shared");
-      const assetIndexBuffer = assetIndexEncoder.encode(
-        () => assetIndex.iterateLinkAssetIds(),
-        () => assetIndex.iterateNodeAssetIds(),
-      );
+      const assetIndexBuffer = assetIndexEncoder.encode();
       const view = new TopologyView(
         topologyBuffers,
         new AssetIndexView(assetIndexBuffer),
@@ -215,6 +207,8 @@ describe("TopologyView", () => {
 
   describe("Incremental encoding", () => {
     it("reads topology encoded incrementally", () => {
+      const idGenerator = new IdGenerator();
+      vi.spyOn(idGenerator, "totalGenerated", "get").mockReturnValue(30);
       const IDS = {
         P1: 1,
         P2: 2,
@@ -227,7 +221,7 @@ describe("TopologyView", () => {
       topology.addLink(IDS.P1, IDS.J1, IDS.J2);
       topology.addLink(IDS.P2, IDS.J2, IDS.J3);
 
-      const assetIndex = new AssetIndex();
+      const assetIndex = new AssetIndex(idGenerator);
       assetIndex.addLink(IDS.P1);
       assetIndex.addLink(IDS.P2);
       assetIndex.addNode(IDS.J1);
@@ -236,21 +230,18 @@ describe("TopologyView", () => {
 
       const encoder = new TopologyEncoder(topology, assetIndex, "array");
 
-      for (const linkId of assetIndex.iterateLinkAssetIds()) {
+      for (const [linkId] of assetIndex.iterateLinks()) {
         encoder.encodeLink(linkId);
       }
 
-      for (const nodeId of assetIndex.iterateNodeAssetIds()) {
+      for (const [nodeId] of assetIndex.iterateNodes()) {
         encoder.encodeNode(nodeId);
       }
 
       const topologyBuffers = encoder.finalize();
 
       const assetIndexEncoder = assetIndex.getEncoder("array");
-      const assetIndexBuffer = assetIndexEncoder.encode(
-        () => assetIndex.iterateLinkAssetIds(),
-        () => assetIndex.iterateNodeAssetIds(),
-      );
+      const assetIndexBuffer = assetIndexEncoder.encode();
       const view = new TopologyView(
         topologyBuffers,
         new AssetIndexView(assetIndexBuffer),
