@@ -14,6 +14,7 @@ export enum Mode {
   DRAW_TANK = "DRAW_TANK",
   CONNECT_CUSTOMER_POINTS = "CONNECT_CUSTOMER_POINTS",
   REDRAW_LINK = "REDRAW_LINK",
+  LASSO = "LASSO",
 }
 
 export enum CIRCLE_TYPE {
@@ -60,6 +61,7 @@ export const MODE_INFO: Record<
   [Mode.DRAW_TANK]: { name: "tank" },
   [Mode.CONNECT_CUSTOMER_POINTS]: { name: "connect customer points" },
   [Mode.REDRAW_LINK]: { name: "redraw link" },
+  [Mode.LASSO]: { name: "Lasso" },
 };
 
 export type ModeWithOptions = {

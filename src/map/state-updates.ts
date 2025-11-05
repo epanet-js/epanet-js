@@ -680,6 +680,8 @@ const getMovedAssets = (
       return noMoved;
     case "connectCustomerPoints":
       return noMoved;
+    case "lasso":
+      return noMoved;
     case "none":
       return noMoved;
   }

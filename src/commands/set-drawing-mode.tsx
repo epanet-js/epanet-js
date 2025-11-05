@@ -14,6 +14,7 @@ export const drawingModeShorcuts: { [key in Mode]: string } = {
   [Mode.DRAW_VALVE]: "7",
   [Mode.CONNECT_CUSTOMER_POINTS]: "",
   [Mode.REDRAW_LINK]: "",
+  [Mode.LASSO]: "",
 };
 
 export const useDrawingMode = () => {

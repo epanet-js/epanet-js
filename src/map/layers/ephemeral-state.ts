@@ -1,4 +1,4 @@
-import { CircleLayer, LineLayer, SymbolLayer } from "mapbox-gl";
+import { CircleLayer, FillLayer, LineLayer, SymbolLayer } from "mapbox-gl";
 import { DataSource } from "../data-source";
 import { colors } from "src/lib/constants";
 import { junctionCircleSizes } from "./junctions";
@@ -113,6 +113,42 @@ export const ephemeralShadowLineLayer = ({
       "line-opacity": 0.4,
       "line-width": ["interpolate", ["linear"], ["zoom"], 12, 0.5, 16, 3],
       "line-color": colors.indigo500,
+    },
+  };
+};
+
+export const ephemeralLassoFillLayer = ({
+  source,
+}: {
+  source: DataSource;
+}): FillLayer => {
+  return {
+    id: "ephemeral-lasso-fill",
+    type: "fill",
+    source,
+    filter: ["all", ["==", "$type", "Polygon"], ["has", "lassoPolygon"]],
+    paint: {
+      "fill-color": "#fde68a",
+      "fill-opacity": 0.33,
+    },
+  };
+};
+
+export const ephemeralLassoOutlineLayer = ({
+  source,
+}: {
+  source: DataSource;
+}): LineLayer => {
+  return {
+    id: "ephemeral-lasso-outline",
+    type: "line",
+    source,
+    filter: ["all", ["==", "$type", "Polygon"], ["has", "lassoPolygon"]],
+    paint: {
+      "line-color": "#f59e0b",
+      "line-width": 2,
+      "line-opacity": 1,
+      "line-dasharray": [2, 2],
     },
   };
 };

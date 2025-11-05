@@ -8,6 +8,7 @@ import {
 import { EphemeralMoveAssets } from "../mode-handlers/none/move-state";
 import { EphemeralDrawNode } from "../mode-handlers/draw-node/ephemeral-draw-node-state";
 import { EphemeralDrawLink } from "../mode-handlers/draw-link/ephemeral-link-state";
+import { EphemeralEditingStateLasso } from "../mode-handlers/lasso/ephemeral-lasso-state";
 
 export const buildEphemeralStateSource = (
   ephemeralState: EphemeralEditingState,
@@ -27,6 +28,10 @@ export const buildEphemeralStateSource = (
 
   if (ephemeralState.type === "connectCustomerPoints") {
     return buildConnectCustomerPointsSourceData(ephemeralState, assets);
+  }
+
+  if (ephemeralState.type === "lasso") {
+    return buildLassoSourceData(ephemeralState);
   }
 
   return [];
@@ -300,4 +305,33 @@ const buildDrawNodeSourceData = (
   }
 
   return features;
+};
+
+const buildLassoSourceData = (
+  ephemeralState: EphemeralEditingStateLasso,
+): Feature[] => {
+  if (ephemeralState.points.length < 2) return [];
+
+  // Create a polygon even with 2 points by duplicating the last point
+  // This allows Mapbox to render it as a thin line-like shape
+  const polygonPoints =
+    ephemeralState.points.length === 2
+      ? [...ephemeralState.points, ephemeralState.points[1]]
+      : ephemeralState.points;
+
+  const closedCoordinates = [...polygonPoints, polygonPoints[0]];
+
+  return [
+    {
+      type: "Feature",
+      id: "lasso-polygon",
+      properties: {
+        lassoPolygon: true,
+      },
+      geometry: {
+        type: "Polygon",
+        coordinates: [closedCoordinates],
+      },
+    },
+  ];
 };

@@ -84,6 +84,8 @@ import {
   ephemeralHaloLayer,
   ephemeralPipeHighlightLayer,
   ephemeralShadowLineLayer,
+  ephemeralLassoFillLayer,
+  ephemeralLassoOutlineLayer,
 } from "src/map/layers/ephemeral-state";
 import {
   selectedPipesLayer,
@@ -202,6 +204,8 @@ export function makeLayers({
     ephemeralShadowLineLayer({ source: "ephemeral" }),
     ephemeralDraftLineLayer({ source: "ephemeral" }),
     ephemeralPipeHighlightLayer({ source: "ephemeral" }),
+    ephemeralLassoFillLayer({ source: "ephemeral" }),
+    ephemeralLassoOutlineLayer({ source: "ephemeral" }),
     pipeArrows({
       source: "imported-features",
       layerId: "imported-pipe-arrows",

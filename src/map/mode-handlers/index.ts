@@ -5,6 +5,7 @@ import { useDrawNodeHandlers } from "./draw-node";
 import { useDrawLinkHandlers } from "./draw-link";
 import { useConnectCustomerPointsHandlers } from "./connect-customer-points";
 import { useRedrawLinkHandlers } from "./redraw-link";
+import { useLassoHandlers } from "./lasso";
 
 export function useModeHandlers(handlerContext: HandlerContext) {
   const HANDLERS: Record<Mode, Handlers> = {
@@ -36,6 +37,7 @@ export function useModeHandlers(handlerContext: HandlerContext) {
     [Mode.CONNECT_CUSTOMER_POINTS]:
       useConnectCustomerPointsHandlers(handlerContext),
     [Mode.REDRAW_LINK]: useRedrawLinkHandlers(handlerContext),
+    [Mode.LASSO]: useLassoHandlers(handlerContext),
   };
   return HANDLERS;
 }
