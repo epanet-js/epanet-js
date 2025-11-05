@@ -6,7 +6,6 @@ import { IWrappedFeature } from "src/types";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useDrawingMode } from "src/commands/set-drawing-mode";
 import { useTranslate } from "src/hooks/use-translate";
-import { PipeDrawingButton } from "./pipe-drawing-button";
 
 import {
   JunctionIcon,
@@ -76,16 +75,6 @@ export default memo(function Modes({
         })
         .map(({ mode, hotkey, Icon }, i) => {
           const modeInfo = MODE_INFO[mode];
-
-          if (mode === Mode.DRAW_PIPE) {
-            return (
-              <PipeDrawingButton
-                key={i}
-                hotkey={hotkey}
-                selected={currentMode === mode}
-              />
-            );
-          }
 
           return (
             <MenuAction
