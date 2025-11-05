@@ -40,14 +40,15 @@ export const initializeHydraulicModel = ({
 }) => {
   const labelManager = new LabelManager();
   const idGenerator = new ConsecutiveIdsGenerator();
+  const assets = new Map();
   return {
     version: nanoid(),
-    assets: new Map(),
+    assets,
     customerPoints: initializeCustomerPoints(),
     customerPointsLookup: new CustomerPointsLookup(),
     assetBuilder: new AssetBuilder(units, defaults, idGenerator, labelManager),
     topology: new Topology(),
-    assetIndex: new AssetIndex(idGenerator),
+    assetIndex: new AssetIndex(idGenerator, assets),
     demands,
     units,
     labelManager,

@@ -7,9 +7,8 @@ import {
   VariableSizeBufferBuilder,
 } from "src/lib/buffers";
 import { AssetId } from "../asset-types/base-asset";
-import { AssetIndex } from "../asset-index";
-import { Topology } from "./topology";
-import { TopologyBuffers } from "./types";
+import { AssetIndexQueries } from "../asset-index";
+import { TopologyQueries, TopologyBuffers } from "./types";
 
 function encodeLinkConnections(
   connections: [number, number],
@@ -74,8 +73,8 @@ export class TopologyEncoder {
   private nodeConnectionsBuilder: VariableSizeBufferBuilder<number[]>;
 
   constructor(
-    private topology: Topology,
-    private assetIndex: AssetIndex,
+    private topology: TopologyQueries,
+    private assetIndex: AssetIndexQueries,
     private bufferType: BufferType = "array",
   ) {
     this.linkConnectionsBuilder = new FixedSizeBufferBuilder<[number, number]>(

@@ -1,13 +1,13 @@
 import { FixedSizeBufferView, VariableSizeBufferView } from "src/lib/buffers";
 import { AssetId, NO_ASSET_ID } from "../asset-types/base-asset";
-import { TopologyBaseQueries, TopologyBuffers } from "./types";
+import { TopologyQueries, TopologyBuffers } from "./types";
 import { AssetIndexView } from "../asset-index";
 import {
   decodeLinkConnections,
   decodeNodeConnections,
 } from "./topologyEncoder";
 
-export class TopologyView implements TopologyBaseQueries {
+export class TopologyView implements TopologyQueries {
   private linkConnectionsView: FixedSizeBufferView<[number, number]>;
   private nodeConnectionsView: VariableSizeBufferView<number[]>;
   private assetIndexView: AssetIndexView;

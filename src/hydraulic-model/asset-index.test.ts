@@ -1,10 +1,23 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { AssetIndex, AssetIndexEncoder, AssetIndexView } from "./asset-index";
 import { ConsecutiveIdsGenerator } from "./id-generator";
+import { AssetsMap } from "./assets-map";
+import { AssetId } from "./asset-types";
+import {
+  buildJunction,
+  buildPipe,
+} from "src/__helpers__/hydraulic-model-builder";
+
+function createAssetsMap(linkIds: AssetId[], nodeIds: AssetId[]): AssetsMap {
+  const map: AssetsMap = new Map();
+  linkIds.forEach((id) => map.set(id, buildPipe()));
+  nodeIds.forEach((id) => map.set(id, buildJunction()));
+  return map;
+}
 
 describe("AssetIndex - Basics", () => {
   it("tracks separate counts for links and nodes", () => {
-    const assetIndex = new AssetIndex(new ConsecutiveIdsGenerator());
+    const assetIndex = new AssetIndex(new ConsecutiveIdsGenerator(), new Map());
     assetIndex.addLink(1);
     assetIndex.addNode(2);
     assetIndex.addNode(4);
@@ -14,7 +27,7 @@ describe("AssetIndex - Basics", () => {
   });
 
   it("iterating returns internalIds and link/node indexes in insertion order", () => {
-    const assetIndex = new AssetIndex(new ConsecutiveIdsGenerator());
+    const assetIndex = new AssetIndex(new ConsecutiveIdsGenerator(), new Map());
     assetIndex.addLink(100);
     assetIndex.addNode(20);
     assetIndex.addLink(5);
@@ -33,7 +46,7 @@ describe("AssetIndex - Basics", () => {
 
 describe("AssetIndex - Removal and Re-addition", () => {
   it("removing a link updates count and iterator", () => {
-    const assetIndex = new AssetIndex(new ConsecutiveIdsGenerator());
+    const assetIndex = new AssetIndex(new ConsecutiveIdsGenerator(), new Map());
     assetIndex.addLink(1);
     assetIndex.addLink(2);
     expect(assetIndex.linkCount).toBe(2);
@@ -50,7 +63,7 @@ describe("AssetIndex - Removal and Re-addition", () => {
   });
 
   it("removing a link updates count and iterator", () => {
-    const assetIndex = new AssetIndex(new ConsecutiveIdsGenerator());
+    const assetIndex = new AssetIndex(new ConsecutiveIdsGenerator(), new Map());
     assetIndex.addNode(1);
     assetIndex.addNode(2);
     expect(assetIndex.nodeCount).toBe(2);
@@ -67,7 +80,7 @@ describe("AssetIndex - Removal and Re-addition", () => {
   });
 
   it("re-adding a removed ID changes its position in the iteration", () => {
-    const assetIndex = new AssetIndex(new ConsecutiveIdsGenerator());
+    const assetIndex = new AssetIndex(new ConsecutiveIdsGenerator(), new Map());
     assetIndex.addLink(5);
     assetIndex.addLink(10);
     const originalIteration = Array.from(assetIndex.iterateLinks());
@@ -83,14 +96,14 @@ describe("AssetIndex - Removal and Re-addition", () => {
   });
 
   it("handles removing non-existent ID gracefully", () => {
-    const assetIndex = new AssetIndex(new ConsecutiveIdsGenerator());
+    const assetIndex = new AssetIndex(new ConsecutiveIdsGenerator(), new Map());
     assetIndex.removeLink(999);
     assetIndex.removeNode(888);
     expect(assetIndex.linkCount).toBe(0);
   });
 
   it("prevents duplicate additions", () => {
-    const assetIndex = new AssetIndex(new ConsecutiveIdsGenerator());
+    const assetIndex = new AssetIndex(new ConsecutiveIdsGenerator(), new Map());
     assetIndex.addLink(5);
     assetIndex.addLink(5);
     expect(assetIndex.linkCount).toBe(1);
@@ -98,7 +111,7 @@ describe("AssetIndex - Removal and Re-addition", () => {
   });
 
   it("replaces link ID when adding same ID as node", () => {
-    const assetIndex = new AssetIndex(new ConsecutiveIdsGenerator());
+    const assetIndex = new AssetIndex(new ConsecutiveIdsGenerator(), new Map());
     assetIndex.addLink(10);
     expect(assetIndex.linkCount).toBe(1);
     expect(assetIndex.nodeCount).toBe(0);
@@ -109,7 +122,7 @@ describe("AssetIndex - Removal and Re-addition", () => {
   });
 
   it("replaces node ID when adding same ID as link", () => {
-    const assetIndex = new AssetIndex(new ConsecutiveIdsGenerator());
+    const assetIndex = new AssetIndex(new ConsecutiveIdsGenerator(), new Map());
     assetIndex.addNode(10);
     expect(assetIndex.linkCount).toBe(0);
     expect(assetIndex.nodeCount).toBe(1);
@@ -132,7 +145,11 @@ describe("AssetIndexView - Iterators and count", () => {
       J3: idGenerator.newId(),
     } as const;
 
-    const assetIndex = new AssetIndex(idGenerator);
+    const assets = createAssetsMap(
+      [IDS.P1, IDS.P2, IDS.P3],
+      [IDS.J1, IDS.J2, IDS.J3],
+    );
+    const assetIndex = new AssetIndex(idGenerator, assets);
     assetIndex.addLink(IDS.P1);
     assetIndex.addNode(IDS.J1);
     assetIndex.addLink(IDS.P3);
@@ -156,7 +173,7 @@ describe("AssetIndexView - Iterators and count", () => {
   });
 
   it("with empty AssetIndex", () => {
-    const assetIndex = new AssetIndex(new ConsecutiveIdsGenerator());
+    const assetIndex = new AssetIndex(new ConsecutiveIdsGenerator(), new Map());
     const view = new AssetIndexView(new AssetIndexEncoder(assetIndex).encode());
 
     expect(Array.from(view.iterateLinks())).toEqual([]);
@@ -177,7 +194,8 @@ describe("AssetIndexView - Iterators and count", () => {
       J2: 150,
     } as const;
 
-    const assetIndex = new AssetIndex(idGenerator);
+    const assets = createAssetsMap([IDS.P1, IDS.P2, IDS.P3], [IDS.J1, IDS.J2]);
+    const assetIndex = new AssetIndex(idGenerator, assets);
     assetIndex.addLink(IDS.P1);
     assetIndex.addNode(IDS.J1);
     assetIndex.addLink(IDS.P2);
@@ -207,7 +225,8 @@ describe("AssetIndexView - Queries", () => {
   it("index query methods return correct buffer position", () => {
     const idGenerator = new ConsecutiveIdsGenerator();
     vi.spyOn(idGenerator, "totalGenerated", "get").mockReturnValue(10);
-    const assetIndex = new AssetIndex(idGenerator);
+    const assets = createAssetsMap([5, 6], [10, 8]);
+    const assetIndex = new AssetIndex(idGenerator, assets);
     assetIndex.addLink(5);
     assetIndex.addNode(10);
     assetIndex.addLink(6);
@@ -228,7 +247,8 @@ describe("AssetIndexView - Queries", () => {
   it("index query methods return null for wrong type or out of bounds", () => {
     const idGenerator = new ConsecutiveIdsGenerator();
     vi.spyOn(idGenerator, "totalGenerated", "get").mockReturnValue(10);
-    const assetIndex = new AssetIndex(idGenerator);
+    const assets = createAssetsMap([5], [10]);
+    const assetIndex = new AssetIndex(idGenerator, assets);
     assetIndex.addLink(5);
     assetIndex.addNode(10);
 
@@ -244,7 +264,8 @@ describe("AssetIndexView - Queries", () => {
   it("has methods return false for wrong type or missing assets", () => {
     const idGenerator = new ConsecutiveIdsGenerator();
     vi.spyOn(idGenerator, "totalGenerated", "get").mockReturnValue(10);
-    const assetIndex = new AssetIndex(idGenerator);
+    const assets = createAssetsMap([5], [10]);
+    const assetIndex = new AssetIndex(idGenerator, assets);
     assetIndex.addLink(5);
     assetIndex.addNode(10);
 

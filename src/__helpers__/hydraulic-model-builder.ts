@@ -438,7 +438,7 @@ export class HydraulicModelBuilder {
       }
     }
 
-    const assetIndex = new AssetIndex(this.idGenerator);
+    const assetIndex = new AssetIndex(this.idGenerator, this.assets);
     for (const asset of this.assets.values()) {
       if (asset.isLink) {
         assetIndex.addLink(asset.id);

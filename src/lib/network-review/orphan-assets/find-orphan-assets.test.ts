@@ -1,6 +1,5 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { findOrphanAssets } from "./find-orphan-assets";
-import { AssetTypeQueries } from "src/hydraulic-model/asset-type-queries";
 
 describe("findOrphanAssets", () => {
   it("should find nodes not connected to other assets in the network", () => {
@@ -15,7 +14,6 @@ describe("findOrphanAssets", () => {
     const { orphanLinks, orphanNodes } = findOrphanAssets(
       model.topology,
       model.assetIndex,
-      new AssetTypeQueries(model.assets),
     );
 
     expect(orphanNodes).toHaveLength(1);
@@ -47,7 +45,6 @@ describe("findOrphanAssets", () => {
     const { orphanLinks, orphanNodes } = findOrphanAssets(
       model.topology,
       model.assetIndex,
-      new AssetTypeQueries(model.assets),
     );
 
     expect(orphanLinks).toHaveLength(1);
@@ -79,7 +76,6 @@ describe("findOrphanAssets", () => {
     const { orphanLinks, orphanNodes } = findOrphanAssets(
       model.topology,
       model.assetIndex,
-      new AssetTypeQueries(model.assets),
     );
 
     expect(orphanLinks).toHaveLength(1);
@@ -107,7 +103,6 @@ describe("findOrphanAssets", () => {
     const { orphanLinks, orphanNodes } = findOrphanAssets(
       model.topology,
       model.assetIndex,
-      new AssetTypeQueries(model.assets),
     );
 
     expect(orphanLinks).toHaveLength(0);

@@ -1,16 +1,14 @@
 import { OrphanAssets } from "./data";
-import { AssetIndexBaseQueries } from "src/hydraulic-model/asset-index";
-import { AssetTypeBaseQueries } from "src/hydraulic-model/asset-type-queries";
-import { TopologyBaseQueries } from "src/hydraulic-model/topology/types";
+import { AssetIndexQueries } from "src/hydraulic-model/asset-index";
+import { TopologyQueries } from "src/hydraulic-model/topology/types";
 
 export function findOrphanAssets(
-  topology: TopologyBaseQueries,
-  assetIndex: AssetIndexBaseQueries,
-  assetTypes: AssetTypeBaseQueries,
+  topology: TopologyQueries,
+  assetIndex: AssetIndexQueries,
 ): OrphanAssets {
   const orphanLinks: number[] = [];
   for (const [linkId] of assetIndex.iterateLinks()) {
-    const linkType = assetTypes.getLinkType(linkId);
+    const linkType = assetIndex.getLinkType(linkId);
     if (linkType === "pipe") continue;
 
     const [startNode, endNode] = topology.getNodes(linkId);

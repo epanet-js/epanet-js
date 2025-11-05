@@ -1,7 +1,7 @@
 import { EventedType } from "ngraph.events";
 import createGraph, { Graph, Link, Node } from "ngraph.graph";
 import { AssetId, NO_ASSET_ID } from "../asset-types/base-asset";
-import { TopologyBaseQueries } from "./types";
+import { TopologyQueries } from "./types";
 
 type GraphChange = {
   changeType: "add" | "remove";
@@ -10,7 +10,7 @@ type GraphChange = {
 };
 type LinkData = { id: AssetId };
 
-export class Topology implements TopologyBaseQueries {
+export class Topology implements TopologyQueries {
   private graph: Graph<null, LinkData> & EventedType;
   private linksMap: Map<AssetId, Link<LinkData>>;
 

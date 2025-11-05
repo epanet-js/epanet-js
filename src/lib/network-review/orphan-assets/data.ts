@@ -1,18 +1,12 @@
-import {
-  AssetType,
-  AssetId,
-  LinkType,
-  NodeType,
-} from "src/hydraulic-model/asset-types";
+import { AssetType, AssetId } from "src/hydraulic-model/asset-types";
 import { HydraulicModel } from "src/hydraulic-model";
-import {
-  AssetTypeBuffers,
-  AssetTypesEncoder,
-} from "src/hydraulic-model/asset-type-queries";
 import { TopologyBuffers } from "src/hydraulic-model/topology/types";
-import { BinaryData, BufferType } from "src/lib/buffers";
+import { BufferType } from "src/lib/buffers";
 import { TopologyEncoder } from "src/hydraulic-model/topology/topologyEncoder";
-import { AssetIndexEncoder } from "src/hydraulic-model/asset-index";
+import {
+  AssetIndexEncoder,
+  AssetIndexBuffers,
+} from "src/hydraulic-model/asset-index";
 
 export type OrphanAssets = {
   orphanNodes: number[];
@@ -21,8 +15,7 @@ export type OrphanAssets = {
 
 export type RunData = {
   topologyBuffers: TopologyBuffers;
-  assetIndexBuffer: BinaryData;
-  assetTypeBuffers: AssetTypeBuffers;
+  assetIndexBuffers: AssetIndexBuffers;
 };
 
 export function encodeData(
@@ -30,34 +23,15 @@ export function encodeData(
   bufferType: BufferType = "array",
 ): RunData {
   const assetIndexEncoder = new AssetIndexEncoder(model.assetIndex, bufferType);
-  const assetTypesEncoder = new AssetTypesEncoder(
-    model.assets,
-    model.assetIndex,
-    bufferType,
-  );
   const topologyEncoder = new TopologyEncoder(
     model.topology,
     model.assetIndex,
     bufferType,
   );
-  for (const [nodeId, nodeIndex] of model.assetIndex.iterateNodes()) {
-    const asset = model.assets.get(nodeId);
-    if (!asset) continue;
-    assetIndexEncoder.encodeNode(nodeId, nodeIndex);
-    assetTypesEncoder.encodeNode(asset.type as NodeType, nodeIndex);
-    topologyEncoder.encodeNode(nodeId);
-  }
-  for (const [linkId, linkIndex] of model.assetIndex.iterateLinks()) {
-    const asset = model.assets.get(linkId);
-    if (!asset) continue;
-    assetIndexEncoder.encodeLink(linkId, linkIndex);
-    assetTypesEncoder.encodeLink(asset.type as LinkType, linkIndex);
-    topologyEncoder.encodeLink(linkId);
-  }
+
   return {
-    topologyBuffers: topologyEncoder.finalize(),
-    assetIndexBuffer: assetIndexEncoder.finalize(),
-    assetTypeBuffers: assetTypesEncoder.finalize(),
+    topologyBuffers: topologyEncoder.encode(),
+    assetIndexBuffers: assetIndexEncoder.encode(),
   };
 }
 

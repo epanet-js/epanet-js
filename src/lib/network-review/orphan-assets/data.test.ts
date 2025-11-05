@@ -1,10 +1,6 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { buildOrphanAssets, encodeData } from "./data";
 import { AssetIndexView } from "src/hydraulic-model/asset-index";
-import {
-  AssetTypeQueries,
-  AssetTypesView,
-} from "src/hydraulic-model/asset-type-queries";
 import { TopologyView } from "src/hydraulic-model/topology/topologyView";
 
 describe("buildOrphanAssets", () => {
@@ -66,7 +62,7 @@ describe("encodeData", () => {
       .build();
 
     const data = encodeData(model);
-    const assetIndexView = new AssetIndexView(data.assetIndexBuffer);
+    const assetIndexView = new AssetIndexView(data.assetIndexBuffers);
 
     expect(assetIndexView.nodeCount).toBe(model.assetIndex.nodeCount);
     expect(assetIndexView.linkCount).toBe(model.assetIndex.linkCount);
@@ -90,30 +86,26 @@ describe("encodeData", () => {
       .aPump(IDS.PM1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
       .build();
 
-    const assetTypes = new AssetTypeQueries(model.assets);
     const data = encodeData(model);
-    const assetTypesView = new AssetTypesView(
-      data.assetTypeBuffers,
-      new AssetIndexView(data.assetIndexBuffer),
-    );
+    const assetIndexView = new AssetIndexView(data.assetIndexBuffers);
 
-    expect(assetTypesView.getNodeType(IDS.J1)).toBe(
-      assetTypes.getNodeType(IDS.J1),
+    expect(assetIndexView.getNodeType(IDS.J1)).toBe(
+      model.assetIndex.getNodeType(IDS.J1),
     );
-    expect(assetTypesView.getNodeType(IDS.T1)).toBe(
-      assetTypes.getNodeType(IDS.T1),
+    expect(assetIndexView.getNodeType(IDS.T1)).toBe(
+      model.assetIndex.getNodeType(IDS.T1),
     );
-    expect(assetTypesView.getNodeType(IDS.R1)).toBe(
-      assetTypes.getNodeType(IDS.R1),
+    expect(assetIndexView.getNodeType(IDS.R1)).toBe(
+      model.assetIndex.getNodeType(IDS.R1),
     );
-    expect(assetTypesView.getLinkType(IDS.P1)).toBe(
-      assetTypes.getLinkType(IDS.P1),
+    expect(assetIndexView.getLinkType(IDS.P1)).toBe(
+      model.assetIndex.getLinkType(IDS.P1),
     );
-    expect(assetTypesView.getLinkType(IDS.V1)).toBe(
-      assetTypes.getLinkType(IDS.V1),
+    expect(assetIndexView.getLinkType(IDS.V1)).toBe(
+      model.assetIndex.getLinkType(IDS.V1),
     );
-    expect(assetTypesView.getLinkType(IDS.PM1)).toBe(
-      assetTypes.getLinkType(IDS.PM1),
+    expect(assetIndexView.getLinkType(IDS.PM1)).toBe(
+      model.assetIndex.getLinkType(IDS.PM1),
     );
   });
 
@@ -130,7 +122,7 @@ describe("encodeData", () => {
     const data = encodeData(model);
     const topologyView = new TopologyView(
       data.topologyBuffers,
-      new AssetIndexView(data.assetIndexBuffer),
+      new AssetIndexView(data.assetIndexBuffers),
     );
 
     expect(topologyView.getLinks(IDS.J1)).toEqual(

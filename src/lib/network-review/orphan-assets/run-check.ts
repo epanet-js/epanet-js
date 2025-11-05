@@ -9,7 +9,6 @@ import {
 } from "./data";
 import { findOrphanAssets } from "./find-orphan-assets";
 import type { OrphanAssetsWorkerAPI } from "./worker-api";
-import { AssetTypeQueries } from "src/hydraulic-model/asset-type-queries";
 import { BufferType } from "src/lib/buffers";
 import { canUseWorker } from "src/infra/worker";
 
@@ -25,11 +24,7 @@ export const runCheck = async (
 
   const encodedOrphanAssets = runInWorker
     ? await runWithWorker(hydraulicModel, bufferType, signal)
-    : findOrphanAssets(
-        hydraulicModel.topology,
-        hydraulicModel.assetIndex,
-        new AssetTypeQueries(hydraulicModel.assets),
-      );
+    : findOrphanAssets(hydraulicModel.topology, hydraulicModel.assetIndex);
 
   return buildOrphanAssets(hydraulicModel, encodedOrphanAssets);
 };
