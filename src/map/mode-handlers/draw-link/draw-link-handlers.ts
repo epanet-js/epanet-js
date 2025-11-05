@@ -511,6 +511,33 @@ export function useDrawLinkHandlers({
 
       if (drawing.isNull) return;
 
+      if (isLoopedLinksOn) {
+        const currentPosition = getMapCoord(e);
+        const isCurrentlySnapping = isSnapping();
+        const currentSnappingCandidate = isCurrentlySnapping
+          ? findSnappingCandidate(e, currentPosition)
+          : null;
+
+        const isLoopedLink =
+          currentSnappingCandidate &&
+          currentSnappingCandidate.type !== "pipe" &&
+          currentSnappingCandidate.id === drawing.startNode.id;
+
+        const linkCopy = drawing.link.copy();
+        const isHoveringEphemeralStart =
+          !currentSnappingCandidate &&
+          isWithinSnappingDistance(
+            map,
+            linkCopy.firstVertex,
+            currentPosition,
+          ) &&
+          !linkCopy.isStart(linkCopy.lastVertex);
+
+        if (isLoopedLink || isHoveringEphemeralStart) {
+          return;
+        }
+      }
+
       const { startNode, link } = drawing;
 
       const endJunction: NodeAsset | undefined = assetBuilder.buildJunction({
