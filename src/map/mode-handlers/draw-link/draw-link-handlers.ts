@@ -1,4 +1,5 @@
 import type { HandlerContext, Position } from "src/types";
+import type { MapEngine } from "src/map";
 import noop from "lodash/noop";
 import {
   modeAtom,
@@ -25,6 +26,7 @@ import { useElevations } from "src/map/elevations/use-elevations";
 import { LngLat } from "mapbox-gl";
 import { useSelection } from "src/selection";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { DEFAULT_SNAP_DISTANCE_PIXELS } from "../../search";
 
 export type SnappingCandidate =
   | NodeAsset
@@ -57,6 +59,21 @@ type DrawingState =
       snappingCandidate: SnappingCandidate | null;
     }
   | NullDrawing;
+
+function isWithinSnappingDistance(
+  map: MapEngine,
+  position1: Position,
+  position2: Position,
+): boolean {
+  const screen1 = map.map.project([position1[0], position1[1]]);
+  const screen2 = map.map.project([position2[0], position2[1]]);
+
+  const pixelDistance = Math.sqrt(
+    Math.pow(screen1.x - screen2.x, 2) + Math.pow(screen1.y - screen2.y, 2),
+  );
+
+  return pixelDistance < DEFAULT_SNAP_DISTANCE_PIXELS;
+}
 
 export function useDrawLinkHandlers({
   rep,
@@ -435,7 +452,17 @@ export function useDrawLinkHandlers({
           snappingCandidate.type !== "pipe" &&
           snappingCandidate.id === drawing.startNode.id;
 
-        if (isLoopedLink) {
+        const isHoveringEphemeralStart =
+          isLoopedLinksOn &&
+          !snappingCandidate &&
+          isWithinSnappingDistance(
+            map,
+            linkCopy.firstVertex,
+            nextCoordinates,
+          ) &&
+          !linkCopy.isStart(linkCopy.lastVertex);
+
+        if (isLoopedLink || isHoveringEphemeralStart) {
           setCursor("not-allowed");
         } else {
           setCursor("default");
