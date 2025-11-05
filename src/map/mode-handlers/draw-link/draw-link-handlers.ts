@@ -7,6 +7,7 @@ import {
   EphemeralEditingState,
   selectionAtom,
   pipeDrawingDefaultsAtom,
+  cursorStyleAtom,
 } from "src/state/jotai";
 import { useSetAtom, useAtom, useAtomValue } from "jotai";
 import { getMapCoord } from "../utils";
@@ -83,6 +84,8 @@ export function useDrawLinkHandlers({
 
   const { isShiftHeld, isControlHeld } = useKeyboardState();
   const isPipePropsOn = useFeatureFlag("FLAG_PIPE_PROPS");
+  const isLoopedLinksOn = useFeatureFlag("FLAG_LOOPED_LINKS");
+  const setCursor = useSetAtom(cursorStyleAtom);
   const pipeDrawingDefaults = useAtomValue(pipeDrawingDefaultsAtom);
 
   const createLinkForType = (coordinates: Position[] = []) => {
@@ -112,6 +115,7 @@ export function useDrawLinkHandlers({
   };
 
   const resetDrawing = () => {
+    setCursor("default");
     setEphemeralState({ type: "none" });
   };
 
@@ -205,6 +209,7 @@ export function useDrawLinkHandlers({
       snappingCandidate: null,
       startPipeId,
     });
+    setCursor("default");
     return link.id;
   };
 
@@ -424,12 +429,25 @@ export function useDrawLinkHandlers({
             })
           : undefined;
 
+        const isLoopedLink =
+          isLoopedLinksOn &&
+          snappingCandidate &&
+          snappingCandidate.type !== "pipe" &&
+          snappingCandidate.id === drawing.startNode.id;
+
+        if (isLoopedLink) {
+          setCursor("not-allowed");
+        } else {
+          setCursor("default");
+        }
+
         setDrawing({
           ...drawing,
           link: linkCopy,
-          snappingCandidate: !linkCopy.isStart(nextCoordinates)
-            ? snappingCandidate
-            : null,
+          snappingCandidate:
+            !isLoopedLinksOn || !linkCopy.isStart(nextCoordinates)
+              ? snappingCandidate
+              : null,
           draftJunction,
         });
       }
@@ -460,6 +478,8 @@ export function useDrawLinkHandlers({
     },
     exit() {
       const currentDrawing = getDrawingState();
+
+      setCursor("default");
 
       if (!currentDrawing.isNull) {
         if (sourceLink) {
