@@ -261,6 +261,8 @@ export function Hints() {
         />
       );
     }
+    default:
+      return null;
   }
 
   return null;
