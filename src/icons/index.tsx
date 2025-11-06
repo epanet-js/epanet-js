@@ -56,7 +56,6 @@ import {
   Trash,
   Triangle,
   TriangleAlert,
-  TriangleDashed,
   Type,
   Undo2,
   Upload,
@@ -160,7 +159,7 @@ export const ConnectivityTraceIcon = icon(Waypoints);
 export const OrphanNodeIcon = icon(CircleDotDashed);
 export const NoIssuesIcon = icon(Goal);
 export const RectangularSelectionIcon = icon(SquareDashed);
-// export const PolygonalSelectionIcon = icon(TriangleDashed);
+export const FreeHandSelectionIcon = icon(Lasso);
 
 export const ReverseIcon: React.FC<IconProps> = ({
   size: rawSize = "md",
