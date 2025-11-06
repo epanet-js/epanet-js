@@ -643,5 +643,11 @@
     "errorReportingTitle": "Error reporting",
     "errorReportingDescription": "We collect crash and error reports to fix bugs and prevent issues. This may include details about your device and what was happening in the app when the error occurred.",
     "savePreferences": "Save preferences"
+  },
+  "areaSelection": {
+    "tool": "Selection tool",
+    "rectangular": "Rectangular selection",
+    "polygonal": "Polygonal selection",
+    "freehand": "Freehand selection"
   }
 }

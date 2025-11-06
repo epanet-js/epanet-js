@@ -1,14 +1,16 @@
-import { Feature } from "src/types";
+import { Feature, Position } from "src/types";
 import { Asset, NodeAsset, LinkAsset } from "src/hydraulic-model/asset-types";
 import { AssetsMap } from "src/hydraulic-model";
 import {
   EphemeralEditingState,
   EphemeralConnectCustomerPoints,
+  Mode,
 } from "src/state/jotai";
 import { EphemeralMoveAssets } from "../mode-handlers/none/move-state";
 import { EphemeralDrawNode } from "../mode-handlers/draw-node/ephemeral-draw-node-state";
 import { EphemeralDrawLink } from "../mode-handlers/draw-link/ephemeral-link-state";
-import { EphemeralEditingStateLasso } from "../mode-handlers/lasso/ephemeral-lasso-state";
+import { EphemeralEditingStateAreaSelection } from "../mode-handlers/area-selection/ephemeral-area-selection-state";
+import { polygonCoordinatesFromPositions } from "src/lib/geometry";
 
 export const buildEphemeralStateSource = (
   ephemeralState: EphemeralEditingState,
@@ -30,8 +32,8 @@ export const buildEphemeralStateSource = (
     return buildConnectCustomerPointsSourceData(ephemeralState, assets);
   }
 
-  if (ephemeralState.type === "lasso") {
-    return buildLassoSourceData(ephemeralState);
+  if (ephemeralState.type === "areaSelect") {
+    return buildAreaSelectionSourceData(ephemeralState);
   }
 
   return [];
@@ -307,19 +309,33 @@ const buildDrawNodeSourceData = (
   return features;
 };
 
-const buildLassoSourceData = (
-  ephemeralState: EphemeralEditingStateLasso,
+const buildAreaSelectionSourceData = (
+  ephemeralState: EphemeralEditingStateAreaSelection,
 ): Feature[] => {
+  if (ephemeralState.type !== "areaSelect") return [];
   if (ephemeralState.points.length < 2) return [];
 
-  // Create a polygon even with 2 points by duplicating the last point
-  // This allows Mapbox to render it as a thin line-like shape
-  const polygonPoints =
-    ephemeralState.points.length === 2
-      ? [...ephemeralState.points, ephemeralState.points[1]]
-      : ephemeralState.points;
+  let closedCoordinates: Position[] = [];
 
-  const closedCoordinates = [...polygonPoints, polygonPoints[0]];
+  switch (ephemeralState.selectionMode) {
+    case Mode.SELECT_RECTANGULAR:
+      closedCoordinates = polygonCoordinatesFromPositions(
+        ephemeralState.points[0],
+        ephemeralState.points[1],
+      )[0];
+      break;
+    case Mode.SELECT_POLYGONAL:
+    case Mode.SELECT_FREEHAND:
+      // Create a polygon even with 2 points by duplicating the last point
+      // This allows Mapbox to render it as a thin line-like shape
+      const polygonPoints =
+        ephemeralState.points.length === 2
+          ? [...ephemeralState.points, ephemeralState.points[1]]
+          : ephemeralState.points;
+
+      closedCoordinates = [...polygonPoints, polygonPoints[0]];
+      break;
+  }
 
   return [
     {

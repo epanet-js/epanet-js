@@ -1,5 +1,5 @@
 import type { HandlerContext } from "src/types";
-import { Mode, cursorStyleAtom, ephemeralStateAtom } from "src/state/jotai";
+import { Mode, cursorStyleAtom } from "src/state/jotai";
 import { useSetAtom } from "jotai";
 import { modeAtom } from "src/state/mode";
 import { getMapCoord } from "src/map/map-event";
@@ -7,7 +7,6 @@ import { useSelection } from "src/selection";
 import { useKeyboardState } from "src/keyboard/use-keyboard-state";
 import { searchNearbyRenderedFeatures } from "src/map/search";
 import { clickableLayers } from "src/map/layers/layer";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 import { getNode } from "src/hydraulic-model";
 import { moveNode, mergeNodes } from "src/hydraulic-model/model-operations";
@@ -45,8 +44,6 @@ export function useNoneHandlers({
   const { getClickedAsset } = useClickedAsset(map, hydraulicModel.assets);
 
   const setMode = useSetAtom(modeAtom);
-  const setEphemeralState = useSetAtom(ephemeralStateAtom);
-  const isLassoSelectionEnabled = useFeatureFlag("FLAG_LASSO_SELECTION");
   const {
     clearSelection,
     isSelected,
@@ -132,17 +129,6 @@ export function useNoneHandlers({
   const handlers: Handlers = {
     double: noop,
     down: (e) => {
-      if (isLassoSelectionEnabled && isShiftHeld()) {
-        const startPos = getMapCoord(e);
-        setMode({ mode: Mode.LASSO });
-        setEphemeralState({
-          type: "lasso",
-          points: [startPos],
-        });
-        e.preventDefault();
-        return;
-      }
-
       if (selection.type !== "single") {
         return skipMove(e);
       }

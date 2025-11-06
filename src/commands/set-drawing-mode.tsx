@@ -6,6 +6,9 @@ import { USelection } from "src/selection/selection";
 
 export const drawingModeShorcuts: { [key in Mode]: string } = {
   [Mode.NONE]: "1",
+  [Mode.SELECT_RECTANGULAR]: "",
+  [Mode.SELECT_POLYGONAL]: "",
+  [Mode.SELECT_FREEHAND]: "",
   [Mode.DRAW_JUNCTION]: "2",
   [Mode.DRAW_RESERVOIR]: "3",
   [Mode.DRAW_TANK]: "4",
@@ -14,7 +17,6 @@ export const drawingModeShorcuts: { [key in Mode]: string } = {
   [Mode.DRAW_VALVE]: "7",
   [Mode.CONNECT_CUSTOMER_POINTS]: "",
   [Mode.REDRAW_LINK]: "",
-  [Mode.LASSO]: "",
 };
 
 export const useDrawingMode = () => {

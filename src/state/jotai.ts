@@ -30,7 +30,7 @@ import { ModelMetadata } from "src/model-metadata";
 import { EphemeralDrawNode } from "src/map/mode-handlers/draw-node/ephemeral-draw-node-state";
 import { DEFAULT_ZOOM } from "src/map/map-engine";
 import { EphemeralDrawLink } from "src/map/mode-handlers/draw-link/ephemeral-link-state";
-import { EphemeralEditingStateLasso } from "src/map/mode-handlers/lasso/ephemeral-lasso-state";
+import { EphemeralEditingStateAreaSelection } from "src/map/mode-handlers/area-selection/ephemeral-area-selection-state";
 
 export type Store = ReturnType<typeof createStore>;
 
@@ -362,7 +362,7 @@ export type EphemeralEditingState =
   | EphemeralMoveAssets
   | EphemeralCustomerPointsHighlight
   | EphemeralConnectCustomerPoints
-  | EphemeralEditingStateLasso
+  | EphemeralEditingStateAreaSelection
   | { type: "none" };
 
 export const ephemeralStateAtom = atom<EphemeralEditingState>({ type: "none" });

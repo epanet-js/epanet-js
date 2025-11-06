@@ -6,6 +6,9 @@ import { IWrappedFeature } from "src/types";
  */
 export enum Mode {
   NONE = "NONE",
+  SELECT_RECTANGULAR = "SELECT_RECTANGULAR",
+  SELECT_POLYGONAL = "SELECT_POLYGONAL",
+  SELECT_FREEHAND = "SELECT_FREEHAND",
   DRAW_JUNCTION = "DRAW_JUNCTION",
   DRAW_PIPE = "DRAW_PIPE",
   DRAW_RESERVOIR = "DRAW_RESERVOIR",
@@ -14,7 +17,6 @@ export enum Mode {
   DRAW_TANK = "DRAW_TANK",
   CONNECT_CUSTOMER_POINTS = "CONNECT_CUSTOMER_POINTS",
   REDRAW_LINK = "REDRAW_LINK",
-  LASSO = "LASSO",
 }
 
 export enum CIRCLE_TYPE {
@@ -53,6 +55,9 @@ export const MODE_INFO: Record<
   }
 > = {
   [Mode.NONE]: { name: "select" },
+  [Mode.SELECT_RECTANGULAR]: { name: "rectangular selection" },
+  [Mode.SELECT_POLYGONAL]: { name: "polygonal selection" },
+  [Mode.SELECT_FREEHAND]: { name: "freehand selection" },
   [Mode.DRAW_JUNCTION]: { name: "junction" },
   [Mode.DRAW_PIPE]: { name: "pipe" },
   [Mode.DRAW_RESERVOIR]: { name: "reservoir" },
@@ -61,7 +66,6 @@ export const MODE_INFO: Record<
   [Mode.DRAW_TANK]: { name: "tank" },
   [Mode.CONNECT_CUSTOMER_POINTS]: { name: "connect customer points" },
   [Mode.REDRAW_LINK]: { name: "redraw link" },
-  [Mode.LASSO]: { name: "Lasso" },
 };
 
 export type ModeWithOptions = {

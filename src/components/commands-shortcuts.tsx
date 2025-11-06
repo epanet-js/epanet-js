@@ -66,6 +66,11 @@ import {
   toggleSidePanelShortcut,
   useToggleSidePanel,
 } from "src/commands/toggle-side-panel";
+import {
+  useCycleSelectionMode,
+  selectionModeShortcut,
+} from "src/commands/set-area-selection-mode";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 const IGNORE_ROLES = new Set(["menuitem"]);
 
@@ -90,6 +95,9 @@ export const CommandShortcuts = () => {
   const simulation = useAtomValue(simulationAtom);
   const toggleNetworkReview = useToggleNetworkReview();
   const toggleSidePanel = useToggleSidePanel();
+  const cycleSelectionMode = useCycleSelectionMode();
+
+  const isAreaSelectionEnabled = useFeatureFlag("FLAG_LASSO_SELECTION");
 
   useHotkeys(
     showReportShorcut,
@@ -327,6 +335,22 @@ export const CommandShortcuts = () => {
     },
     [toggleSidePanel],
     "Toggle side panel",
+  );
+
+  useHotkeys(
+    selectionModeShortcut,
+    (e) => {
+      e.preventDefault();
+      const mode = cycleSelectionMode();
+      userTracking.capture({
+        name: "drawingMode.enabled",
+        source: "shortcut",
+        type: MODE_INFO[mode as Mode].name,
+      });
+    },
+    [cycleSelectionMode],
+    "Cycle selection mode",
+    !isAreaSelectionEnabled,
   );
 
   for (const [mode, shortcut] of Object.entries(drawingModeShorcuts)) {

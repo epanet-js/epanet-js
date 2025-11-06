@@ -41,6 +41,7 @@ import {
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { useImportCustomerPoints } from "src/commands/import-customer-points";
 import { CreateNewDropdown } from "./create-new-dropdown";
+import { SelectionToolDropdown } from "./selection-tool-dropdown";
 import {
   toggleNetworkReviewShortcut,
   useToggleNetworkReview,
@@ -50,6 +51,7 @@ import {
   toggleSidePanelShortcut,
   useToggleSidePanel,
 } from "src/commands/toggle-side-panel";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export const Toolbar = () => {
   const translate = useTranslate();
@@ -68,6 +70,8 @@ export const Toolbar = () => {
 
   const isMdOrLarger = useBreakpoint("md");
   const isSmOrLarger = useBreakpoint("sm");
+
+  const isSelectionModeEnabled = useFeatureFlag("FLAG_LASSO_SELECTION");
 
   const shouldHideContextActions =
     selectedWrappedFeatures.length === 1 &&
@@ -150,6 +154,7 @@ export const Toolbar = () => {
         )}
         {isMdOrLarger && (
           <>
+            {isSelectionModeEnabled && <SelectionToolDropdown />}
             <Modes replaceGeometryForId={null} />
             <Divider />
           </>

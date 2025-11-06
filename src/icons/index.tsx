@@ -32,6 +32,7 @@ import {
   HousePlus,
   Info,
   Keyboard,
+  Lasso,
   Link2,
   Link2Off,
   MapIcon,
@@ -48,12 +49,14 @@ import {
   Save,
   SaveAll,
   Settings,
+  SquareDashed,
   SquareStack,
   Star,
   Sun,
   Trash,
   Triangle,
   TriangleAlert,
+  TriangleDashed,
   Type,
   Undo2,
   Upload,
@@ -156,6 +159,9 @@ export const HouseIcon = icon(House);
 export const ConnectivityTraceIcon = icon(Waypoints);
 export const OrphanNodeIcon = icon(CircleDotDashed);
 export const NoIssuesIcon = icon(Goal);
+export const RectangularSelectionIcon = icon(SquareDashed);
+export const PolygonalSelectionIcon = icon(TriangleDashed);
+export const FreeHandSelecttionIcon = icon(Lasso);
 
 export const ReverseIcon: React.FC<IconProps> = ({
   size: rawSize = "md",

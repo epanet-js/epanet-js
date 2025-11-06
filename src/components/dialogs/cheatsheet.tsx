@@ -9,10 +9,14 @@ import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { KeyboardIcon } from "src/icons";
 import { toggleNetworkReviewShortcut } from "src/commands/toggle-network-review";
 import { toggleSidePanelShortcut } from "src/commands/toggle-side-panel";
+import { selectionModeShortcut } from "src/commands/set-area-selection-mode";
 
 export const SEARCH_KEYBINDING = "Command+k";
 
-const getBindings = (translate: ReturnType<typeof useTranslate>) => ({
+const getBindings = (
+  translate: ReturnType<typeof useTranslate>,
+  isAreaSelectionEnabled: boolean,
+) => ({
   B: translate("toggleSatellite"),
   "Shift+Enter": translate("simulate"),
   [showSimulationSettingsShortcut]: translate("simulationSettings"),
@@ -35,13 +39,17 @@ const getBindings = (translate: ReturnType<typeof useTranslate>) => ({
   "Command+y": translate("redo"),
   [toggleSidePanelShortcut]: translate("toggleSidePanel"),
   [toggleNetworkReviewShortcut]: translate("networkReview.toggle"),
+  ...(isAreaSelectionEnabled && {
+    [selectionModeShortcut]: translate("areaSelection.tool"),
+  }),
 });
 
 export function CheatsheetDialog() {
   const translate = useTranslate();
   const isMac = useFeatureFlag("FLAG_MAC");
+  const isAreaSelectionEnabled = useFeatureFlag("FLAG_LASSO_SELECTION");
 
-  const BINDINGS = getBindings(translate);
+  const BINDINGS = getBindings(translate, isAreaSelectionEnabled);
   return (
     <>
       <DialogHeader

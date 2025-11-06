@@ -5,11 +5,18 @@ import { useDrawNodeHandlers } from "./draw-node";
 import { useDrawLinkHandlers } from "./draw-link";
 import { useConnectCustomerPointsHandlers } from "./connect-customer-points";
 import { useRedrawLinkHandlers } from "./redraw-link";
-import { useLassoHandlers } from "./lasso";
+import {
+  useRectangularSelectionHandlers,
+  usePolygonalSelectionHandlers,
+  useFreehandSelectionHandlers,
+} from "./area-selection";
 
 export function useModeHandlers(handlerContext: HandlerContext) {
   const HANDLERS: Record<Mode, Handlers> = {
     [Mode.NONE]: useNoneHandlers(handlerContext),
+    [Mode.SELECT_RECTANGULAR]: useRectangularSelectionHandlers(handlerContext),
+    [Mode.SELECT_POLYGONAL]: usePolygonalSelectionHandlers(handlerContext),
+    [Mode.SELECT_FREEHAND]: useFreehandSelectionHandlers(handlerContext),
     [Mode.DRAW_JUNCTION]: useDrawNodeHandlers({
       ...handlerContext,
       nodeType: "junction",
@@ -37,7 +44,6 @@ export function useModeHandlers(handlerContext: HandlerContext) {
     [Mode.CONNECT_CUSTOMER_POINTS]:
       useConnectCustomerPointsHandlers(handlerContext),
     [Mode.REDRAW_LINK]: useRedrawLinkHandlers(handlerContext),
-    [Mode.LASSO]: useLassoHandlers(handlerContext),
   };
   return HANDLERS;
 }
