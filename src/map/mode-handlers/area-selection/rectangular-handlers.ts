@@ -21,6 +21,7 @@ export function useRectangularSelectionHandlers(
         type: "areaSelect",
         selectionMode: Mode.SELECT_RECTANGULAR,
         points: [ephemeralState.points[0], currentPos],
+        isValid: true,
       });
       e.preventDefault();
     },
@@ -34,6 +35,7 @@ export function useRectangularSelectionHandlers(
           type: "areaSelect",
           selectionMode: Mode.SELECT_RECTANGULAR,
           points: [currentPos, currentPos],
+          isValid: true,
         });
       }
     },

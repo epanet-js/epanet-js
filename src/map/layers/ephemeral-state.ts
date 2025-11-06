@@ -123,12 +123,13 @@ export const ephemeralLassoFillLayer = ({
   source: DataSource;
 }): FillLayer => {
   return {
-    id: "ephemeral-lasso-fill",
+    id: "ephemeral-selection-fill",
     type: "fill",
     source,
-    filter: ["all", ["==", "$type", "Polygon"], ["has", "lassoPolygon"]],
+    filter: ["==", "$type", "Polygon"],
+
     paint: {
-      "fill-color": "#fde68a",
+      "fill-color": ["case", ["get", "isValid"], "#fde68a", "#fca5a5"],
       "fill-opacity": 0.33,
     },
   };
@@ -140,12 +141,12 @@ export const ephemeralLassoOutlineLayer = ({
   source: DataSource;
 }): LineLayer => {
   return {
-    id: "ephemeral-lasso-outline",
+    id: "ephemeral-selection-outline",
     type: "line",
     source,
-    filter: ["all", ["==", "$type", "Polygon"], ["has", "lassoPolygon"]],
+    filter: ["==", "$type", "LineString"],
     paint: {
-      "line-color": "#f59e0b",
+      "line-color": ["case", ["get", "isValid"], "#f59e0b", "#dc2626"],
       "line-width": 2,
       "line-opacity": 1,
       "line-dasharray": [2, 2],
