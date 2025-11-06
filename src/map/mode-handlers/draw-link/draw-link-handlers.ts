@@ -23,7 +23,7 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { LinkType } from "src/hydraulic-model";
 import { addLink } from "src/hydraulic-model/model-operations";
 import { useElevations } from "src/map/elevations/use-elevations";
-import { LngLat } from "mapbox-gl";
+import { LngLat, MapMouseEvent, MapTouchEvent } from "mapbox-gl";
 import { useSelection } from "src/selection";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { DEFAULT_SNAP_DISTANCE_PIXELS } from "../../search";
@@ -73,6 +73,56 @@ function isWithinSnappingDistance(
   );
 
   return pixelDistance < DEFAULT_SNAP_DISTANCE_PIXELS;
+}
+
+function getSnappingCandidateIfEnabled(
+  event: MapMouseEvent | MapTouchEvent,
+  position: Position,
+  isSnapping: () => boolean,
+  findSnappingCandidate: (
+    e: MapMouseEvent | MapTouchEvent,
+    pos: Position,
+  ) => SnappingCandidate | null,
+): SnappingCandidate | null {
+  return isSnapping() ? findSnappingCandidate(event, position) : null;
+}
+
+type LoopedLinkCheck = {
+  isLoopedLink: boolean;
+  isHoveringEphemeralStart: boolean;
+  shouldPrevent: boolean;
+};
+
+function checkLoopedLinkConditions(
+  drawing: DrawingState,
+  snappingCandidate: SnappingCandidate | null,
+  currentPosition: Position,
+  map: MapEngine,
+): LoopedLinkCheck {
+  if (drawing.isNull) {
+    return {
+      isLoopedLink: false,
+      isHoveringEphemeralStart: false,
+      shouldPrevent: false,
+    };
+  }
+
+  const isLoopedLink =
+    snappingCandidate !== null &&
+    snappingCandidate.type !== "pipe" &&
+    snappingCandidate.id === drawing.startNode.id;
+
+  const linkCopy = drawing.link.copy();
+  const isHoveringEphemeralStart =
+    !snappingCandidate &&
+    isWithinSnappingDistance(map, linkCopy.firstVertex, currentPosition) &&
+    !linkCopy.isStart(linkCopy.lastVertex);
+
+  return {
+    isLoopedLink,
+    isHoveringEphemeralStart,
+    shouldPrevent: isLoopedLink || isHoveringEphemeralStart,
+  };
 }
 
 export function useDrawLinkHandlers({
@@ -360,35 +410,30 @@ export function useDrawLinkHandlers({
 
         if (!drawing.isNull && isLoopedLinksOn) {
           const currentPosition = getMapCoord(e);
-          const isCurrentlySnapping = isSnapping();
-          const currentSnappingCandidate = isCurrentlySnapping
-            ? findSnappingCandidate(e, currentPosition)
-            : null;
+          const snappingCandidate = getSnappingCandidateIfEnabled(
+            e,
+            currentPosition,
+            isSnapping,
+            findSnappingCandidate,
+          );
+          const check = checkLoopedLinkConditions(
+            drawing,
+            snappingCandidate,
+            currentPosition,
+            map,
+          );
 
-          const isLoopedLink =
-            currentSnappingCandidate &&
-            currentSnappingCandidate.type !== "pipe" &&
-            currentSnappingCandidate.id === drawing.startNode.id;
-
-          const linkCopy = drawing.link.copy();
-          const isHoveringEphemeralStart =
-            !currentSnappingCandidate &&
-            isWithinSnappingDistance(
-              map,
-              linkCopy.firstVertex,
-              currentPosition,
-            ) &&
-            !linkCopy.isStart(linkCopy.lastVertex);
-
-          if (isLoopedLink || isHoveringEphemeralStart) {
+          if (check.shouldPrevent) {
             return;
           }
         }
 
-        const isCurrentlySnapping = isSnapping();
-        const snappingCandidate = isCurrentlySnapping
-          ? findSnappingCandidate(e, getMapCoord(e))
-          : null;
+        const snappingCandidate = getSnappingCandidateIfEnabled(
+          e,
+          getMapCoord(e),
+          isSnapping,
+          findSnappingCandidate,
+        );
         const clickPosition = snappingCandidate
           ? snappingCandidate.coordinates
           : getMapCoord(e);
@@ -449,9 +494,12 @@ export function useDrawLinkHandlers({
 
       void prefetchTile(e.lngLat);
 
-      const snappingCandidate = isSnapping()
-        ? findSnappingCandidate(e, getMapCoord(e))
-        : null;
+      const snappingCandidate = getSnappingCandidateIfEnabled(
+        e,
+        getMapCoord(e),
+        isSnapping,
+        findSnappingCandidate,
+      );
 
       if (drawing.isNull) {
         setSnappingCandidate(snappingCandidate);
@@ -473,35 +521,34 @@ export function useDrawLinkHandlers({
             })
           : undefined;
 
-        const isLoopedLink =
-          isLoopedLinksOn &&
-          snappingCandidate &&
-          snappingCandidate.type !== "pipe" &&
-          snappingCandidate.id === drawing.startNode.id;
-
-        const isHoveringEphemeralStart =
-          isLoopedLinksOn &&
-          !snappingCandidate &&
-          isWithinSnappingDistance(
-            map,
-            linkCopy.firstVertex,
+        if (isLoopedLinksOn) {
+          const check = checkLoopedLinkConditions(
+            drawing,
+            snappingCandidate,
             nextCoordinates,
-          ) &&
-          !linkCopy.isStart(linkCopy.lastVertex);
+            map,
+          );
 
-        if (isLoopedLink || isHoveringEphemeralStart) {
-          setCursor("not-allowed");
-        } else {
-          setCursor("default");
+          if (check.shouldPrevent) {
+            setCursor("not-allowed");
+          } else {
+            setCursor("default");
+          }
         }
 
         setDrawing({
           ...drawing,
           link: linkCopy,
           snappingCandidate:
-            !isLoopedLinksOn || !linkCopy.isStart(nextCoordinates)
-              ? snappingCandidate
-              : null,
+            isLoopedLinksOn &&
+            checkLoopedLinkConditions(
+              drawing,
+              snappingCandidate,
+              nextCoordinates,
+              map,
+            ).shouldPrevent
+              ? null
+              : snappingCandidate,
           draftJunction,
         });
       }
@@ -513,27 +560,20 @@ export function useDrawLinkHandlers({
 
       if (isLoopedLinksOn) {
         const currentPosition = getMapCoord(e);
-        const isCurrentlySnapping = isSnapping();
-        const currentSnappingCandidate = isCurrentlySnapping
-          ? findSnappingCandidate(e, currentPosition)
-          : null;
+        const snappingCandidate = getSnappingCandidateIfEnabled(
+          e,
+          currentPosition,
+          isSnapping,
+          findSnappingCandidate,
+        );
+        const check = checkLoopedLinkConditions(
+          drawing,
+          snappingCandidate,
+          currentPosition,
+          map,
+        );
 
-        const isLoopedLink =
-          currentSnappingCandidate &&
-          currentSnappingCandidate.type !== "pipe" &&
-          currentSnappingCandidate.id === drawing.startNode.id;
-
-        const linkCopy = drawing.link.copy();
-        const isHoveringEphemeralStart =
-          !currentSnappingCandidate &&
-          isWithinSnappingDistance(
-            map,
-            linkCopy.firstVertex,
-            currentPosition,
-          ) &&
-          !linkCopy.isStart(linkCopy.lastVertex);
-
-        if (isLoopedLink || isHoveringEphemeralStart) {
+        if (check.shouldPrevent) {
           return;
         }
       }
