@@ -6,7 +6,7 @@ import {
   ChevronDownIcon,
   RectangularSelectionIcon,
   PolygonalSelectionIcon,
-  FreeHandSelecttionIcon,
+  FreeHandSelectionIcon,
 } from "src/icons";
 import { useDrawingMode } from "src/commands/set-drawing-mode";
 import { Mode } from "src/state/mode";
@@ -31,7 +31,7 @@ const SELECTION_MODES = [
   {
     mode: Mode.SELECT_FREEHAND,
     key: "areaSelection.freehand",
-    Icon: FreeHandSelecttionIcon,
+    Icon: FreeHandSelectionIcon,
   },
 ] as const;
 

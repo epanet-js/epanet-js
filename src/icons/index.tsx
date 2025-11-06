@@ -160,8 +160,7 @@ export const ConnectivityTraceIcon = icon(Waypoints);
 export const OrphanNodeIcon = icon(CircleDotDashed);
 export const NoIssuesIcon = icon(Goal);
 export const RectangularSelectionIcon = icon(SquareDashed);
-export const PolygonalSelectionIcon = icon(TriangleDashed);
-export const FreeHandSelecttionIcon = icon(Lasso);
+// export const PolygonalSelectionIcon = icon(TriangleDashed);
 
 export const ReverseIcon: React.FC<IconProps> = ({
   size: rawSize = "md",
@@ -188,3 +187,4 @@ export { CustomPipesCrossingIcon as PipesCrossinIcon } from "./custom-icons/pipe
 export { CustomProximityCheckIcon as ProximityCheckIcon } from "./custom-icons/proximity-check-icon";
 export { CustomPanelLeftActive as PanelLeftActiveIcon } from "./custom-icons/panel-left-active";
 export { CustomPanelRightActive as PanelRightActiveIcon } from "./custom-icons/panel-right-active";
+export { CustomPolygonalSelection as PolygonalSelectionIcon } from "./custom-icons/polygonal-selection";
