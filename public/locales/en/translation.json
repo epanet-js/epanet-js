@@ -645,7 +645,7 @@
     "savePreferences": "Save preferences"
   },
   "areaSelection": {
-    "tool": "Selection tool",
+    "tool": "Area selection",
     "rectangular": "Rectangular selection",
     "polygonal": "Polygonal selection",
     "freehand": "Freehand selection"
