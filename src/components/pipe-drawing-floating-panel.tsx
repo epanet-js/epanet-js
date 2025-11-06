@@ -85,10 +85,11 @@ export const PipeDrawingFloatingPanel = () => {
                  shadow-lg rounded-md
                  p-3
                  border border-gray-200 dark:border-gray-700
-                 flex gap-x-6 items-center"
+                 hidden md:flex flex-col lg:flex-row gap-x-6 gap-y-1
+                 "
     >
       <div className="flex gap-x-2 items-center">
-        <label className="text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
+        <label className="flex-grow text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
           {diameterLabel}
         </label>
         <div className="w-[4.5rem]">
@@ -107,7 +108,7 @@ export const PipeDrawingFloatingPanel = () => {
         </div>
       </div>
       <div className="flex gap-x-2 items-center">
-        <label className="text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
+        <label className="flex-grow text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
           {roughnessLabel}
         </label>
         <div className="w-[4.5rem]">
