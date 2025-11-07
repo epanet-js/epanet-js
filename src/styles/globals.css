@@ -57,7 +57,7 @@ details > summary {
 }
 
 .placemark-cursor-crosshair .mapboxgl-canvas-container {
-  cursor: url("/cursors/crosshair.svg") 10 10, auto !important;
+  cursor: crosshair !important;
 }
 
 .placemark-cursor-not-allowed .mapboxgl-canvas-container {
