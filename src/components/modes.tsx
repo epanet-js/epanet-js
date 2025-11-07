@@ -6,6 +6,8 @@ import { IWrappedFeature } from "src/types";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useDrawingMode } from "src/commands/set-drawing-mode";
 import { useTranslate } from "src/hooks/use-translate";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { SelectionToolDropdown } from "./toolbar/selection-tool-dropdown";
 
 import {
   JunctionIcon,
@@ -18,11 +20,6 @@ import {
 } from "src/icons";
 
 const MODE_OPTIONS = [
-  {
-    mode: Mode.NONE,
-    hotkey: "1",
-    Icon: () => <MouseCursorDefaultIcon />,
-  },
   {
     mode: Mode.DRAW_JUNCTION,
     hotkey: "2",
@@ -64,38 +61,54 @@ export default memo(function Modes({
   const setDrawingMode = useDrawingMode();
   const userTracking = useUserTracking();
   const translate = useTranslate();
-  const modeOptions = MODE_OPTIONS;
+  const isSelectionModeEnabled = useFeatureFlag("FLAG_LASSO_SELECTION");
+  const drawingModes = MODE_OPTIONS;
 
   return (
     <div className="flex items-center justify-start" role="radiogroup">
-      {modeOptions
-        .filter((mode) => {
-          if (!replaceGeometryForId) return true;
-          return mode.mode !== Mode.NONE;
-        })
-        .map(({ mode, hotkey, Icon }, i) => {
-          const modeInfo = MODE_INFO[mode];
+      {!replaceGeometryForId && (
+        <MenuAction
+          role="radio"
+          key={Mode.NONE}
+          selected={currentMode === Mode.NONE}
+          readOnlyHotkey={"1"}
+          label={translate(MODE_INFO[Mode.NONE].name)}
+          onClick={() => {
+            userTracking.capture({
+              name: "drawingMode.enabled",
+              source: "toolbar",
+              type: MODE_INFO[Mode.NONE].name,
+            });
+            void setDrawingMode(Mode.NONE);
+          }}
+        >
+          <MouseCursorDefaultIcon />
+        </MenuAction>
+      )}
+      {isSelectionModeEnabled && <SelectionToolDropdown />}
+      {drawingModes.map(({ mode, hotkey, Icon }) => {
+        const modeInfo = MODE_INFO[mode];
 
-          return (
-            <MenuAction
-              role="radio"
-              key={i}
-              selected={currentMode === mode}
-              readOnlyHotkey={hotkey}
-              label={translate(modeInfo.name)}
-              onClick={() => {
-                userTracking.capture({
-                  name: "drawingMode.enabled",
-                  source: "toolbar",
-                  type: modeInfo.name,
-                });
-                void setDrawingMode(mode);
-              }}
-            >
-              <Icon />
-            </MenuAction>
-          );
-        })}
+        return (
+          <MenuAction
+            role="radio"
+            key={mode}
+            selected={currentMode === mode}
+            readOnlyHotkey={hotkey}
+            label={translate(modeInfo.name)}
+            onClick={() => {
+              userTracking.capture({
+                name: "drawingMode.enabled",
+                source: "toolbar",
+                type: modeInfo.name,
+              });
+              void setDrawingMode(mode);
+            }}
+          >
+            <Icon />
+          </MenuAction>
+        );
+      })}
     </div>
   );
 });

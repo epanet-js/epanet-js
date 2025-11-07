@@ -75,7 +75,6 @@ export const SelectionToolDropdown = () => {
                 >
                   <Icon />
                   {translate(key)}
-                  {mode === currentMode && <span className="ml-auto">✓</span>}
                 </StyledItem>
               ))}
             </DDContent>
