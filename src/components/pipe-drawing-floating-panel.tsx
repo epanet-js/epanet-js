@@ -5,7 +5,6 @@ import {
   Mode,
   modeAtom,
 } from "src/state/jotai";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { NumericField } from "./form/numeric-field";
@@ -15,7 +14,6 @@ import { useUserTracking } from "src/infra/user-tracking";
 
 export const PipeDrawingFloatingPanel = () => {
   const { mode: currentMode } = useAtomValue(modeAtom);
-  const isPipePropsOn = useFeatureFlag("FLAG_PIPE_PROPS");
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
   const userTracking = useUserTracking();
@@ -29,9 +27,7 @@ export const PipeDrawingFloatingPanel = () => {
   const lastDiameterChange = useRef<number>(0);
   const lastRoughnessChange = useRef<number>(0);
 
-  const shouldShow = currentMode === Mode.DRAW_PIPE && isPipePropsOn;
-
-  if (!shouldShow) {
+  if (currentMode !== Mode.DRAW_PIPE) {
     return null;
   }
 

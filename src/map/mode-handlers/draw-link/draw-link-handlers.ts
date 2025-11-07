@@ -25,7 +25,6 @@ import { addLink } from "src/hydraulic-model/model-operations";
 import { useElevations } from "src/map/elevations/use-elevations";
 import { LngLat, MapMouseEvent, MapTouchEvent } from "mapbox-gl";
 import { useSelection } from "src/selection";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { DEFAULT_SNAP_DISTANCE_PIXELS } from "../../search";
 
 export type SnappingCandidate =
@@ -150,7 +149,6 @@ export function useDrawLinkHandlers({
   const { findSnappingCandidate } = useSnapping(map, hydraulicModel.assets);
 
   const { isShiftHeld, isControlHeld } = useKeyboardState();
-  const isPipePropsOn = useFeatureFlag("FLAG_PIPE_PROPS");
   const setCursor = useSetAtom(cursorStyleAtom);
   const pipeDrawingDefaults = useAtomValue(pipeDrawingDefaultsAtom);
 
@@ -161,18 +159,15 @@ export function useDrawLinkHandlers({
     };
     switch (linkType) {
       case "pipe":
-        if (isPipePropsOn) {
-          return assetBuilder.buildPipe({
-            ...startProperties,
-            ...(pipeDrawingDefaults.diameter && {
-              diameter: pipeDrawingDefaults.diameter,
-            }),
-            ...(pipeDrawingDefaults.roughness && {
-              roughness: pipeDrawingDefaults.roughness,
-            }),
-          });
-        }
-        return assetBuilder.buildPipe(startProperties);
+        return assetBuilder.buildPipe({
+          ...startProperties,
+          ...(pipeDrawingDefaults.diameter && {
+            diameter: pipeDrawingDefaults.diameter,
+          }),
+          ...(pipeDrawingDefaults.roughness && {
+            roughness: pipeDrawingDefaults.roughness,
+          }),
+        });
       case "pump":
         return assetBuilder.buildPump(startProperties);
       case "valve":
