@@ -540,3 +540,43 @@ export function removeDegenerates(geometry: Geometry): Geometry | null {
   }
   return geometry;
 }
+
+function segmentsIntersect(
+  a1: Position,
+  a2: Position,
+  b1: Position,
+  b2: Position,
+): boolean {
+  const cross = (p: Position, q: Position, r: Position) =>
+    (q[0] - p[0]) * (r[1] - p[1]) - (q[1] - p[1]) * (r[0] - p[0]);
+
+  const d1 = cross(a1, a2, b1);
+  const d2 = cross(a1, a2, b2);
+  const d3 = cross(b1, b2, a1);
+  const d4 = cross(b1, b2, a2);
+
+  if (
+    ((d1 > 0 && d2 < 0) || (d1 < 0 && d2 > 0)) &&
+    ((d3 > 0 && d4 < 0) || (d3 < 0 && d4 > 0))
+  )
+    return true;
+
+  return false;
+}
+
+export function isLastPolygonSegmentIntersecting(coords: Position[]): boolean {
+  const len = coords.length;
+  if (len < 4) return false;
+
+  const a1 = coords[len - 2];
+  const a2 = coords[len - 1];
+
+  for (let i = 0; i < len - 3; i++) {
+    const b1 = coords[i];
+    const b2 = coords[i + 1];
+
+    if (segmentsIntersect(a1, a2, b1, b2)) return true;
+  }
+
+  return false;
+}
