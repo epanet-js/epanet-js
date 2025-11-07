@@ -3,7 +3,6 @@ import { modeAtom, Mode, ephemeralStateAtom } from "src/state/jotai";
 import noop from "lodash/noop";
 import { useAtom, useSetAtom } from "jotai";
 import { getMapCoord } from "../utils";
-import { isLastPolygonSegmentIntersecting } from "src/lib/geometry";
 
 export function usePolygonalSelectionHandlers(
   _context: HandlerContext,
@@ -14,20 +13,6 @@ export function usePolygonalSelectionHandlers(
   return {
     down: noop,
     double: () => {
-      if (
-        ephemeralState.type !== "areaSelect" ||
-        !ephemeralState.isValid ||
-        ephemeralState.points.length <= 2
-      )
-        return;
-
-      if (
-        isLastPolygonSegmentIntersecting([
-          ...ephemeralState.points,
-          ephemeralState.points[0],
-        ])
-      )
-        return;
       setEphemeralState({ type: "none" });
     },
     move: (e) => {
@@ -36,12 +21,10 @@ export function usePolygonalSelectionHandlers(
         if (prev.type !== "areaSelect") return prev;
         const points = [...prev.points];
         points.pop();
-        points.push(currentPos);
         return {
           type: "areaSelect",
           selectionMode: Mode.SELECT_POLYGONAL,
-          points,
-          isValid: !isLastPolygonSegmentIntersecting(points),
+          points: [...points, currentPos],
         };
       });
       e.preventDefault();
@@ -50,19 +33,16 @@ export function usePolygonalSelectionHandlers(
     click: (e) => {
       const currentPos = getMapCoord(e);
       if (ephemeralState.type === "areaSelect") {
-        if (ephemeralState.isValid)
-          setEphemeralState({
-            type: "areaSelect",
-            selectionMode: Mode.SELECT_POLYGONAL,
-            points: [...ephemeralState.points, currentPos],
-            isValid: true,
-          });
+        setEphemeralState({
+          type: "areaSelect",
+          selectionMode: Mode.SELECT_POLYGONAL,
+          points: [...ephemeralState.points, currentPos],
+        });
       } else {
         setEphemeralState({
           type: "areaSelect",
           selectionMode: Mode.SELECT_POLYGONAL,
           points: [currentPos, currentPos],
-          isValid: true,
         });
       }
     },

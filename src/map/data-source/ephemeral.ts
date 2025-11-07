@@ -315,16 +315,14 @@ const buildAreaSelectionSourceData = (
   if (ephemeralState.type !== "areaSelect") return [];
   if (ephemeralState.points.length < 2) return [];
 
-  let polygonCoordinates: Position[] = [];
-  let lineCoordinates: Position[] = [];
+  let closedCoordinates: Position[] = [];
 
   switch (ephemeralState.selectionMode) {
     case Mode.SELECT_RECTANGULAR:
-      polygonCoordinates = polygonCoordinatesFromPositions(
+      closedCoordinates = polygonCoordinatesFromPositions(
         ephemeralState.points[0],
         ephemeralState.points[1],
       )[0];
-      lineCoordinates = polygonCoordinates;
       break;
     case Mode.SELECT_POLYGONAL:
     case Mode.SELECT_FREEHAND:
@@ -335,32 +333,20 @@ const buildAreaSelectionSourceData = (
           ? [...ephemeralState.points, ephemeralState.points[1]]
           : ephemeralState.points;
 
-      polygonCoordinates = [...polygonPoints, polygonPoints[0]];
-      lineCoordinates = polygonPoints;
+      closedCoordinates = [...polygonPoints, polygonPoints[0]];
       break;
   }
 
   return [
     {
       type: "Feature",
-      id: "selection-polygon",
+      id: "lasso-polygon",
       properties: {
-        isValid: ephemeralState.isValid,
+        lassoPolygon: true,
       },
       geometry: {
         type: "Polygon",
-        coordinates: [polygonCoordinates],
-      },
-    },
-    {
-      type: "Feature",
-      id: "selection-line",
-      properties: {
-        isValid: ephemeralState.isValid,
-      },
-      geometry: {
-        type: "LineString",
-        coordinates: lineCoordinates,
+        coordinates: [closedCoordinates],
       },
     },
   ];
