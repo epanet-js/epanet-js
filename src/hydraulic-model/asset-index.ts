@@ -61,6 +61,10 @@ export class AssetIndex implements AssetIndexQueries {
     this.nodeIds.add(id);
   }
 
+  updateAssetsMapReference(assets: AssetsMap) {
+    this.assets = assets;
+  }
+
   hasLink(id: AssetId): boolean {
     return this.linkIds.has(id);
   }
