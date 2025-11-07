@@ -345,6 +345,7 @@ const buildAreaSelectionSourceData = (
       type: "Feature",
       id: "selection-polygon",
       properties: {
+        isSelection: true,
         isValid: ephemeralState.isValid,
       },
       geometry: {
@@ -354,8 +355,9 @@ const buildAreaSelectionSourceData = (
     },
     {
       type: "Feature",
-      id: "selection-line",
+      id: "selection-outline",
       properties: {
+        isSelection: true,
         isValid: ephemeralState.isValid,
       },
       geometry: {

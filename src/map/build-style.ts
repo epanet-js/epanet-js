@@ -84,8 +84,8 @@ import {
   ephemeralHaloLayer,
   ephemeralPipeHighlightLayer,
   ephemeralShadowLineLayer,
-  ephemeralLassoFillLayer,
-  ephemeralLassoOutlineLayer,
+  ephemeralSelectionFillLayer,
+  ephemeralSelectionOutlineLayer,
 } from "src/map/layers/ephemeral-state";
 import {
   selectedPipesLayer,
@@ -204,8 +204,6 @@ export function makeLayers({
     ephemeralShadowLineLayer({ source: "ephemeral" }),
     ephemeralDraftLineLayer({ source: "ephemeral" }),
     ephemeralPipeHighlightLayer({ source: "ephemeral" }),
-    ephemeralLassoFillLayer({ source: "ephemeral" }),
-    ephemeralLassoOutlineLayer({ source: "ephemeral" }),
     pipeArrows({
       source: "imported-features",
       layerId: "imported-pipe-arrows",
@@ -297,5 +295,7 @@ export function makeLayers({
           } as mapboxgl.AnyLayer,
         ]
       : []),
+    ephemeralSelectionFillLayer({ source: "ephemeral" }),
+    ephemeralSelectionOutlineLayer({ source: "ephemeral" }),
   ].filter((l) => !!l);
 }
