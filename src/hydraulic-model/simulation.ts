@@ -4,7 +4,7 @@ import { Pipe, PipeSimulation } from "./asset-types/pipe";
 import { Tank, TankSimulation } from "./asset-types/tank";
 import { Pump, PumpSimulation } from "./asset-types/pump";
 import { Valve, ValveSimulation } from "./asset-types/valve";
-import { HydraulicModel } from "./hydraulic-model";
+import { HydraulicModel, updateHydraulicModelAssets } from "./hydraulic-model";
 
 export interface ResultsReader {
   getValve: (valveId: string) => ValveSimulation | null;
@@ -17,7 +17,7 @@ export interface ResultsReader {
 export const attachSimulation = (
   hydraulicModel: HydraulicModel,
   simulation: ResultsReader,
-) => {
+): HydraulicModel => {
   const newAssets = new Map();
   hydraulicModel.assets.forEach((asset) => {
     const stringId = String(asset.id);
@@ -43,5 +43,5 @@ export const attachSimulation = (
     newAssets.set(asset.id, asset);
   });
 
-  hydraulicModel.assets = newAssets;
+  return updateHydraulicModelAssets(hydraulicModel, newAssets);
 };

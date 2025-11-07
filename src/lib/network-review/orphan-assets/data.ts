@@ -22,7 +22,6 @@ export function encodeData(
   model: HydraulicModel,
   bufferType: BufferType = "array",
 ): RunData {
-  model.assetIndex.updateAssetsMapReference(model.assets);
   const assetIndexEncoder = new AssetIndexEncoder(model.assetIndex, bufferType);
   const topologyEncoder = new TopologyEncoder(
     model.topology,

@@ -61,10 +61,6 @@ export class AssetIndex implements AssetIndexQueries {
     this.nodeIds.add(id);
   }
 
-  updateAssetsMapReference(assets: AssetsMap) {
-    this.assets = assets;
-  }
-
   hasLink(id: AssetId): boolean {
     return this.linkIds.has(id);
   }
@@ -124,6 +120,13 @@ export class AssetIndex implements AssetIndexQueries {
     const asset = this.assets.get(id);
     if (!asset || !asset.isLink) return undefined;
     return asset.type as LinkType;
+  }
+
+  updateAssets(assets: AssetsMap) {
+    if (assets.size !== this.linkCount + this.nodeCount) {
+      throw new Error("AssetIndex could not be updated");
+    }
+    this.assets = assets;
   }
 }
 

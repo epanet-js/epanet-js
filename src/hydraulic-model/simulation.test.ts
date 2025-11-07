@@ -46,27 +46,27 @@ describe("attach simulation", () => {
       .aValve(IDS.VALVE1, { initialStatus: "active" })
       .build();
 
-    attachSimulation(hydraulicModel, resultsReader);
+    const updatedModel = attachSimulation(hydraulicModel, resultsReader);
 
-    const pipe = hydraulicModel.assets.get(IDS.P1) as Pipe;
+    const pipe = updatedModel.assets.get(IDS.P1) as Pipe;
     expect(pipe.flow).toEqual(20);
     expect(pipe.unitHeadloss).toEqual(20);
 
-    const junction = hydraulicModel.assets.get(IDS.J1) as Junction;
+    const junction = updatedModel.assets.get(IDS.J1) as Junction;
     expect(junction.pressure).toEqual(10);
     expect(junction.head).toEqual(8);
     expect(junction.actualDemand).toEqual(15);
 
-    const pump = hydraulicModel.assets.get(IDS.PU1) as Pump;
+    const pump = updatedModel.assets.get(IDS.PU1) as Pump;
     expect(pump.head).toEqual(50);
     expect(pump.status).toEqual("off");
     expect(pump.statusWarning).toEqual("cannot-deliver-flow");
 
-    const valve = hydraulicModel.assets.get(IDS.VALVE1) as Valve;
+    const valve = updatedModel.assets.get(IDS.VALVE1) as Valve;
     expect(valve.status).toEqual("closed");
   });
 
-  it("forces a reference change in the assets collection", () => {
+  it("returns a new model with a new assets collection reference", () => {
     const IDS = { J1: 1, P1: 2, PU1: 3 };
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction(IDS.J1)
@@ -76,9 +76,10 @@ describe("attach simulation", () => {
 
     const previousAssets = hydraulicModel.assets;
 
-    attachSimulation(hydraulicModel, resultsReader);
+    const updatedModel = attachSimulation(hydraulicModel, resultsReader);
 
-    expect(hydraulicModel.assets === previousAssets).toBeFalsy();
+    expect(updatedModel.assets === previousAssets).toBeFalsy();
+    expect(updatedModel === hydraulicModel).toBeFalsy();
   });
 
   it.skip("is performant", () => {

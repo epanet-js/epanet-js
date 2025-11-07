@@ -10,6 +10,7 @@ import { Demands, nullDemands } from "./demands";
 import { CustomerPoints, initializeCustomerPoints } from "./customer-points";
 import { CustomerPointsLookup } from "./customer-points-lookup";
 import { AssetIndex } from "./asset-index";
+import { Asset } from "./asset-types";
 
 export type HydraulicModel = {
   version: string;
@@ -55,3 +56,40 @@ export const initializeHydraulicModel = ({
     headlossFormula,
   };
 };
+
+export const updateHydraulicModelAssets = (
+  hydraulicModel: HydraulicModel,
+  newAssets?: AssetsMap,
+): HydraulicModel => {
+  if (newAssets) {
+    hydraulicModel.assetIndex.updateAssets(newAssets);
+    return {
+      ...hydraulicModel,
+      assets: newAssets,
+    };
+  }
+
+  const updatedAssets = new AssetsMap(
+    Array.from(hydraulicModel.assets).sort(([, a], [, b]) => sortAssets(a, b)),
+  );
+
+  hydraulicModel.assetIndex.updateAssets(updatedAssets);
+  return {
+    ...hydraulicModel,
+    assets: updatedAssets,
+  };
+};
+
+function sortAssets(a: Asset, b: Asset): number {
+  if (a.at > b.at) {
+    return 1;
+  } else if (a.at < b.at) {
+    return -1;
+  } else if (a.id > b.id) {
+    // This should never happen, but fall
+    // back to it to get stable sorting.
+    return 1;
+  } else {
+    return -1;
+  }
+}

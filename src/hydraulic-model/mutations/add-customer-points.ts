@@ -1,4 +1,8 @@
-import { HydraulicModel, AssetsMap } from "src/hydraulic-model/hydraulic-model";
+import {
+  HydraulicModel,
+  AssetsMap,
+  updateHydraulicModelAssets,
+} from "src/hydraulic-model/hydraulic-model";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import { Junction } from "src/hydraulic-model/asset-types/junction";
 import { CustomerPointsLookup } from "src/hydraulic-model/customer-points-lookup";
@@ -45,12 +49,16 @@ export const addCustomerPoints = (
     }
   }
 
+  const updatedHydraulicModel = updateHydraulicModelAssets(
+    hydraulicModel,
+    updatedAssets,
+  );
+
   return {
-    ...hydraulicModel,
+    ...updatedHydraulicModel,
     version: hydraulicModel.version,
     customerPoints: updatedCustomerPoints,
     customerPointsLookup: updatedLookup,
-    assets: updatedAssets,
   };
 };
 

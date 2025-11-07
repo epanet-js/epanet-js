@@ -26,16 +26,16 @@ export const useRunSimulation = () => {
     setDialogState({ type: "loading" });
     const { report, status, results } = await run(inp);
 
-    attachSimulation(hydraulicModel, results);
+    const updatedHydraulicModel = attachSimulation(hydraulicModel, results);
     setData((prev) => ({
       ...prev,
-      hydraulicModel,
+      hydraulicModel: updatedHydraulicModel,
     }));
 
     setSimulationState({
       status,
       report,
-      modelVersion: hydraulicModel.version,
+      modelVersion: updatedHydraulicModel.version,
     });
     const end = performance.now();
     const duration = end - start;

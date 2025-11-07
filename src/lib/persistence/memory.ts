@@ -25,7 +25,10 @@ import {
 } from "src/state/jotai";
 import { getFreshAt, momentForDeleteFeatures, trackMoment } from "./shared";
 import { sortAts } from "src/lib/parse-stored";
-import { AssetsMap, HydraulicModel } from "src/hydraulic-model";
+import {
+  HydraulicModel,
+  updateHydraulicModelAssets,
+} from "src/hydraulic-model";
 import { ModelMoment } from "src/hydraulic-model";
 import { Asset, LinkAsset } from "src/hydraulic-model";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
@@ -151,24 +154,20 @@ export class MemPersistence implements IPersistence {
       );
     }
 
-    const updatedAssets = new AssetsMap(
-      Array.from(ctx.hydraulicModel.assets).sort(
-        ([a_id], [b_id]) => a_id - b_id,
-      ),
+    const updatedHydraulicModel = updateHydraulicModelAssets(
+      ctx.hydraulicModel,
     );
 
     this.store.set(dataAtom, {
       selection: ctx.selection,
       hydraulicModel: {
-        ...ctx.hydraulicModel,
+        ...updatedHydraulicModel,
         version: stateId,
-        assets: updatedAssets,
         demands: forwardMoment.putDemands
           ? forwardMoment.putDemands
           : ctx.hydraulicModel.demands,
         customerPoints: ctx.hydraulicModel.customerPoints,
         customerPointsLookup: ctx.hydraulicModel.customerPointsLookup,
-        assetIndex: ctx.hydraulicModel.assetIndex,
       },
       folderMap: new Map(
         Array.from(ctx.folderMap).sort((a, b) => {
