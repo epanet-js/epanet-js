@@ -151,7 +151,6 @@ export function useDrawLinkHandlers({
 
   const { isShiftHeld, isControlHeld } = useKeyboardState();
   const isPipePropsOn = useFeatureFlag("FLAG_PIPE_PROPS");
-  const isLoopedLinksOn = useFeatureFlag("FLAG_LOOPED_LINKS");
   const setCursor = useSetAtom(cursorStyleAtom);
   const pipeDrawingDefaults = useAtomValue(pipeDrawingDefaultsAtom);
 
@@ -408,7 +407,7 @@ export function useDrawLinkHandlers({
           return;
         }
 
-        if (!drawing.isNull && isLoopedLinksOn) {
+        if (!drawing.isNull) {
           const currentPosition = getMapCoord(e);
           const snappingCandidate = getSnappingCandidateIfEnabled(
             e,
@@ -521,34 +520,23 @@ export function useDrawLinkHandlers({
             })
           : undefined;
 
-        if (isLoopedLinksOn) {
-          const check = checkLoopedLinkConditions(
-            drawing,
-            snappingCandidate,
-            nextCoordinates,
-            map,
-          );
+        const check = checkLoopedLinkConditions(
+          drawing,
+          snappingCandidate,
+          nextCoordinates,
+          map,
+        );
 
-          if (check.shouldPrevent) {
-            setCursor("not-allowed");
-          } else {
-            setCursor("default");
-          }
+        if (check.shouldPrevent) {
+          setCursor("not-allowed");
+        } else {
+          setCursor("default");
         }
 
         setDrawing({
           ...drawing,
           link: linkCopy,
-          snappingCandidate:
-            isLoopedLinksOn &&
-            checkLoopedLinkConditions(
-              drawing,
-              snappingCandidate,
-              nextCoordinates,
-              map,
-            ).shouldPrevent
-              ? null
-              : snappingCandidate,
+          snappingCandidate: check.shouldPrevent ? null : snappingCandidate,
           draftJunction,
         });
       }
@@ -558,24 +546,22 @@ export function useDrawLinkHandlers({
 
       if (drawing.isNull) return;
 
-      if (isLoopedLinksOn) {
-        const currentPosition = getMapCoord(e);
-        const snappingCandidate = getSnappingCandidateIfEnabled(
-          e,
-          currentPosition,
-          isSnapping,
-          findSnappingCandidate,
-        );
-        const check = checkLoopedLinkConditions(
-          drawing,
-          snappingCandidate,
-          currentPosition,
-          map,
-        );
+      const currentPosition = getMapCoord(e);
+      const snappingCandidate = getSnappingCandidateIfEnabled(
+        e,
+        currentPosition,
+        isSnapping,
+        findSnappingCandidate,
+      );
+      const check = checkLoopedLinkConditions(
+        drawing,
+        snappingCandidate,
+        currentPosition,
+        map,
+      );
 
-        if (check.shouldPrevent) {
-          return;
-        }
+      if (check.shouldPrevent) {
+        return;
       }
 
       const { startNode, link } = drawing;

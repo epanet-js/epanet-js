@@ -92,6 +92,10 @@ class MapTestEngine {
         [180, 90],
       ],
     }),
+    project: vi.fn().mockImplementation((lngLat: [number, number]) => ({
+      x: lngLat[0] * 100,
+      y: lngLat[1] * 100,
+    })),
   };
 
   getSource(name: string): GeoJSONSourceRaw | null {
