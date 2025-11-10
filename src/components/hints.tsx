@@ -41,11 +41,13 @@ function Hint({
     <div
       className={clsx(
         "absolute max-w-[600px] top-2 left-3 text-sm flex gap-x-2  dark:text-white rounded-md",
-        "p-2 items-center",
+        "p-2 items-start",
         tipLike,
       )}
     >
-      <InfoIcon />
+      <div className="my-0.5">
+        <InfoIcon />
+      </div>
       {!!secondaryText && (
         <div>
           <div>{text}</div>
@@ -60,7 +62,9 @@ function Hint({
           });
         }}
       >
-        <CloseIcon />
+        <div className="my-0.5">
+          <CloseIcon />
+        </div>
       </button>
     </div>
   );
