@@ -333,7 +333,7 @@ export const RangeColorRuleEditor = ({
           </div>
           <div className="flex flex-col items-center w-full gap-y-2">
             <Button
-              className="text-center"
+              className="text-center text-sm"
               size="full-width"
               onClick={handleRegenerate}
             >
