@@ -12,6 +12,7 @@ export type AssetProperties = {
   type: AssetType;
   visibility?: boolean;
   label: string;
+  isActive: boolean;
 };
 
 export type AssetUnits = Record<string, Unit>;

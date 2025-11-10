@@ -12,6 +12,7 @@ export type JunctionBuildData = {
   coordinates?: Position;
   elevation?: number;
   baseDemand?: number;
+  isActive?: boolean;
 };
 
 export type PipeBuildData = {
@@ -24,6 +25,7 @@ export type PipeBuildData = {
   roughness?: number;
   minorLoss?: number;
   length?: number;
+  isActive?: boolean;
 };
 
 export type PumpBuildData = {
@@ -37,6 +39,7 @@ export type PumpBuildData = {
   designFlow?: number;
   power?: number;
   speed?: number;
+  isActive?: boolean;
 };
 
 export type ValveBuildData = {
@@ -49,6 +52,7 @@ export type ValveBuildData = {
   kind?: ValveKind;
   setting?: number;
   initialStatus?: ValveStatus;
+  isActive?: boolean;
 };
 
 export type ReservoirBuildData = {
@@ -58,6 +62,7 @@ export type ReservoirBuildData = {
   head?: number;
   relativeHead?: number;
   elevation?: number;
+  isActive?: boolean;
 };
 
 export type TankBuildData = {
@@ -71,6 +76,7 @@ export type TankBuildData = {
   minVolume?: number;
   diameter?: number;
   overflow?: boolean;
+  isActive?: boolean;
 };
 
 import { UnitsSpec } from "src/model-metadata/quantities-spec";
@@ -128,6 +134,7 @@ export class AssetBuilder {
     diameter,
     minorLoss,
     roughness,
+    isActive = true,
   }: PipeBuildData = {}) {
     const internalId = id ?? this.idGenerator.newId();
     return new Pipe(
@@ -145,6 +152,7 @@ export class AssetBuilder {
         diameter: this.getPipeValue("diameter", diameter),
         minorLoss: this.getPipeValue("minorLoss", minorLoss),
         roughness: this.getPipeValue("roughness", roughness),
+        isActive,
       },
       this.units,
     );
@@ -163,6 +171,7 @@ export class AssetBuilder {
     kind = "tcv",
     setting,
     initialStatus = "active",
+    isActive = true,
   }: ValveBuildData = {}) {
     const internalId = id ?? this.idGenerator.newId();
     return new Valve(
@@ -181,6 +190,7 @@ export class AssetBuilder {
         kind,
         setting: this.getValveSetting(kind, setting),
         initialStatus,
+        isActive,
       },
       this.units,
     );
@@ -200,6 +210,7 @@ export class AssetBuilder {
     designFlow,
     power,
     speed = 1,
+    isActive = true,
   }: PumpBuildData = {}) {
     const internalId = id ?? this.idGenerator.newId();
     return new Pump(
@@ -219,6 +230,7 @@ export class AssetBuilder {
         designFlow: this.getPumpValue("designFlow", designFlow),
         power: this.getPumpValue("power", power),
         speed,
+        isActive,
       },
       this.units,
     );
@@ -230,6 +242,7 @@ export class AssetBuilder {
     coordinates = [0, 0],
     elevation,
     baseDemand,
+    isActive = true,
   }: JunctionBuildData = {}) {
     const internalId = id ?? this.idGenerator.newId();
     return new Junction(
@@ -243,6 +256,7 @@ export class AssetBuilder {
             : this.labelGenerator.generateFor("junction", internalId),
         elevation: this.getJunctionValue("elevation", elevation),
         baseDemand: this.getJunctionValue("baseDemand", baseDemand),
+        isActive,
       },
       this.units,
     );
@@ -255,6 +269,7 @@ export class AssetBuilder {
     elevation,
     head,
     relativeHead,
+    isActive = true,
   }: ReservoirBuildData = {}) {
     const internalId = id ?? this.idGenerator.newId();
     const elevationValue = this.getReservoirValue("elevation", elevation);
@@ -280,6 +295,7 @@ export class AssetBuilder {
             : this.labelGenerator.generateFor("reservoir", internalId),
         head: headValue,
         elevation: elevationValue,
+        isActive,
       },
       this.units,
     );
@@ -296,6 +312,7 @@ export class AssetBuilder {
     minVolume,
     diameter,
     overflow,
+    isActive = true,
   }: TankBuildData = {}) {
     const internalId = id ?? this.idGenerator.newId();
     return new Tank(
@@ -314,6 +331,7 @@ export class AssetBuilder {
         minVolume: this.getTankValue("minVolume", minVolume),
         diameter: this.getTankValue("diameter", diameter),
         overflow: overflow ?? false,
+        isActive,
       },
       this.units,
     );
