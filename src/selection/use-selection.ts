@@ -14,12 +14,17 @@ export const useSelection = (selection: Sel) => {
     setTab(TabOption.Asset);
   };
 
-  const extendSelection = (assetId: AssetId) => {
+  const extendSelection = (assetId: AssetId | AssetId[]) => {
+    const newSelection = Array.isArray(assetId)
+      ? USelection.addSelectionIds(selection, assetId)
+      : USelection.addSelectionId(selection, assetId);
+
+    const newCount = USelection.toIds(newSelection).length;
     userTracking.capture({
       name: "multiSelect.updated",
-      count: getSelectionIds().length + 1,
+      count: newCount,
     });
-    setSelection(USelection.addSelectionId(selection, assetId));
+    setSelection(newSelection);
     setTab(TabOption.Asset);
   };
 
@@ -32,17 +37,27 @@ export const useSelection = (selection: Sel) => {
     setTab(TabOption.Asset);
   };
 
+  const selectAssets = (assetIds: AssetId[]) => {
+    setSelection(USelection.fromIds(assetIds));
+    setTab(TabOption.Asset);
+  };
+
   const selectCustomerPoint = (customerPointId: number) => {
     setSelection(USelection.singleCustomerPoint(customerPointId));
     setTab(TabOption.Asset);
   };
 
-  const removeFromSelection = (assetId: AssetId) => {
+  const removeFromSelection = (assetId: AssetId | AssetId[]) => {
+    const newSelection = Array.isArray(assetId)
+      ? USelection.removeSelectionIds(selection, assetId)
+      : USelection.removeFeatureFromSelection(selection, assetId);
+
+    const newCount = USelection.toIds(newSelection).length;
     userTracking.capture({
       name: "multiSelect.updated",
-      count: getSelectionIds().length - 1,
+      count: newCount,
     });
-    setSelection(USelection.removeFeatureFromSelection(selection, assetId));
+    setSelection(newSelection);
   };
 
   const clearSelection = () => {
@@ -59,6 +74,7 @@ export const useSelection = (selection: Sel) => {
     isSelected,
     removeFromSelection,
     selectAsset,
+    selectAssets,
     selectCustomerPoint,
     getSelectionIds,
   };

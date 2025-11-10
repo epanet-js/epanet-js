@@ -184,6 +184,13 @@ export const USelection = {
     if (ids.includes(id)) return selection;
     return this.fromIds(ids.concat(id));
   },
+  addSelectionIds(selection: Sel, newIds: IWrappedFeature["id"][]): Sel {
+    const currentIds = this.toIds(selection);
+    const currentSet = new Set(currentIds);
+    const uniqueNewIds = newIds.filter((id) => !currentSet.has(id));
+    if (uniqueNewIds.length === 0) return selection;
+    return this.fromIds([...currentIds, ...uniqueNewIds]);
+  },
   removeFeatureFromSelection(selection: Sel, id: IWrappedFeature["id"]): Sel {
     switch (selection.type) {
       case "folder":
@@ -207,6 +214,15 @@ export const USelection = {
         }
       }
     }
+  },
+  removeSelectionIds(
+    selection: Sel,
+    idsToRemove: IWrappedFeature["id"][],
+  ): Sel {
+    const currentIds = this.toIds(selection);
+    const removeSet = new Set(idsToRemove);
+    const remainingIds = currentIds.filter((id) => !removeSet.has(id));
+    return this.fromIds(remainingIds);
   },
   none(): Sel {
     return SELECTION_NONE;
