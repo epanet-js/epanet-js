@@ -4,6 +4,16 @@ import { ephemeralStateAtom, selectionAtom } from "src/state/jotai";
 import { Mode, modeAtom } from "src/state/mode";
 import { USelection } from "src/selection/selection";
 
+const SELECTION_MODES = [
+  Mode.NONE,
+  Mode.SELECT_RECTANGULAR,
+  Mode.SELECT_POLYGONAL,
+  Mode.SELECT_FREEHAND,
+] as const;
+
+const isSelectionMode = (mode: Mode): boolean =>
+  SELECTION_MODES.includes(mode as (typeof SELECTION_MODES)[number]);
+
 export const drawingModeShorcuts: { [key in Mode]: string } = {
   [Mode.NONE]: "1",
   [Mode.SELECT_RECTANGULAR]: "",
@@ -30,7 +40,12 @@ export const useDrawingMode = () => {
       setEphemeralState({ type: "none" });
 
       if (currentMode.mode !== mode) {
-        setSelection(USelection.none());
+        const fromSelectionMode = isSelectionMode(currentMode.mode);
+        const toSelectionMode = isSelectionMode(mode);
+
+        if (!(fromSelectionMode && toSelectionMode)) {
+          setSelection(USelection.none());
+        }
       }
 
       setMode({

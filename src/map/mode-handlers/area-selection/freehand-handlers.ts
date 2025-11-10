@@ -5,15 +5,17 @@ import { useSetAtom, useAtom } from "jotai";
 import { useRef } from "react";
 import { getMapCoord } from "../utils";
 import { isLastPolygonSegmentIntersecting } from "src/lib/geometry";
+import { useAreaSelection } from "./use-area-selection";
 
 const MIN_POINTS_DISTANCE_PX = 10;
 
 export function useFreehandSelectionHandlers(
-  _context: HandlerContext,
+  context: HandlerContext,
 ): Handlers {
   const setMode = useSetAtom(modeAtom);
   const [ephemeralState, setEphemeralState] = useAtom(ephemeralStateAtom);
   const lastPixelPointRef = useRef<{ x: number; y: number } | null>(null);
+  const selectContainedAssets = useAreaSelection(context);
 
   return {
     down: noop,
@@ -72,6 +74,11 @@ export function useFreehandSelectionHandlers(
         )
           return;
 
+        const closedPolygon = [
+          ...ephemeralState.points,
+          ephemeralState.points[0],
+        ];
+        selectContainedAssets(closedPolygon);
         setEphemeralState({ type: "none" });
         lastPixelPointRef.current = null;
       } else {

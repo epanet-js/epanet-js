@@ -4,12 +4,14 @@ import noop from "lodash/noop";
 import { useAtom, useSetAtom } from "jotai";
 import { getMapCoord } from "../utils";
 import { isLastPolygonSegmentIntersecting } from "src/lib/geometry";
+import { useAreaSelection } from "./use-area-selection";
 
 export function usePolygonalSelectionHandlers(
-  _context: HandlerContext,
+  context: HandlerContext,
 ): Handlers {
   const setMode = useSetAtom(modeAtom);
   const [ephemeralState, setEphemeralState] = useAtom(ephemeralStateAtom);
+  const selectContainedAssets = useAreaSelection(context);
 
   return {
     down: noop,
@@ -28,6 +30,12 @@ export function usePolygonalSelectionHandlers(
         ])
       )
         return;
+
+      const closedPolygon = [
+        ...ephemeralState.points,
+        ephemeralState.points[0],
+      ];
+      selectContainedAssets(closedPolygon);
       setEphemeralState({ type: "none" });
     },
     move: (e) => {

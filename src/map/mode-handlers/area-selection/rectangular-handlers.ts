@@ -3,12 +3,15 @@ import { modeAtom, Mode, ephemeralStateAtom } from "src/state/jotai";
 import noop from "lodash/noop";
 import { useAtom, useSetAtom } from "jotai";
 import { getMapCoord } from "../utils";
+import { useAreaSelection } from "./use-area-selection";
+import { polygonCoordinatesFromPositions } from "src/lib/geometry";
 
 export function useRectangularSelectionHandlers(
-  _context: HandlerContext,
+  context: HandlerContext,
 ): Handlers {
   const setMode = useSetAtom(modeAtom);
   const [ephemeralState, setEphemeralState] = useAtom(ephemeralStateAtom);
+  const selectContainedAssets = useAreaSelection(context);
 
   return {
     down: noop,
@@ -29,6 +32,11 @@ export function useRectangularSelectionHandlers(
     click: (e) => {
       const currentPos = getMapCoord(e);
       if (ephemeralState.type === "areaSelect") {
+        const closedPolygon = polygonCoordinatesFromPositions(
+          ephemeralState.points[0],
+          ephemeralState.points[1],
+        )[0];
+        selectContainedAssets(closedPolygon);
         setEphemeralState({ type: "none" });
       } else {
         setEphemeralState({

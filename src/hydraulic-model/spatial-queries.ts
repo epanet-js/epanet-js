@@ -6,41 +6,45 @@ import { polygon } from "@turf/helpers";
 import booleanConcave from "@turf/boolean-concave";
 import booleanPointInPolygon from "@turf/boolean-point-in-polygon";
 import booleanContains from "@turf/boolean-contains";
+import { withDebugInstrumentation } from "src/infra/with-instrumentation";
 
-export function queryContainedAssets(
-  geoIndex: AssetsGeoQueries,
-  searchOptions: SearchOptions,
-): AssetId[] {
-  const search = toSearchPolygon(searchOptions);
-  const assetIds = geoIndex.searchNodes(search.bounds, (nodeId: AssetId) => {
-    const nodeCoord = geoIndex.getNodePosition(nodeId);
-    if (!nodeCoord) return false;
-    return containsNode(search, nodeCoord);
-  });
-  const segmentIds = new Set(
-    geoIndex.searchLinkSegments(search.bounds, (segmentId, segmentBounds) => {
-      const segmentCoords = geoIndex.getSegmentCoords(segmentId);
-      return containsSegment(search, segmentBounds, segmentCoords);
-    }),
-  );
-  const segmentIdsAlreadyChecked = new Set<number>();
+export const queryContainedAssets = withDebugInstrumentation(
+  function queryContainedAssets(
+    geoIndex: AssetsGeoQueries,
+    searchOptions: SearchOptions,
+  ): AssetId[] {
+    const search = toSearchPolygon(searchOptions);
+    const assetIds = geoIndex.searchNodes(search.bounds, (nodeId: AssetId) => {
+      const nodeCoord = geoIndex.getNodePosition(nodeId);
+      if (!nodeCoord) return false;
+      return containsNode(search, nodeCoord);
+    });
+    const segmentIds = new Set(
+      geoIndex.searchLinkSegments(search.bounds, (segmentId, segmentBounds) => {
+        const segmentCoords = geoIndex.getSegmentCoords(segmentId);
+        return containsSegment(search, segmentBounds, segmentCoords);
+      }),
+    );
+    const segmentIdsAlreadyChecked = new Set<number>();
 
-  for (const segmentId of segmentIds) {
-    if (segmentIdsAlreadyChecked.has(segmentId)) continue;
-    const linkId = geoIndex.getSegmentLinkId(segmentId);
-    const linkSegmentIds = geoIndex.getLinkSegments(linkId);
-    let areAllSegmentsContained = true;
-    for (const linkSegmentId of linkSegmentIds) {
-      segmentIdsAlreadyChecked.add(linkSegmentId);
-      if (!segmentIds.has(linkSegmentId)) areAllSegmentsContained = false;
+    for (const segmentId of segmentIds) {
+      if (segmentIdsAlreadyChecked.has(segmentId)) continue;
+      const linkId = geoIndex.getSegmentLinkId(segmentId);
+      const linkSegmentIds = geoIndex.getLinkSegments(linkId);
+      let areAllLinkSegmentsContained = true;
+      for (const linkSegmentId of linkSegmentIds) {
+        segmentIdsAlreadyChecked.add(linkSegmentId);
+        if (!segmentIds.has(linkSegmentId)) areAllLinkSegmentsContained = false;
+      }
+      if (areAllLinkSegmentsContained) {
+        assetIds.push(linkId);
+      }
     }
-    if (areAllSegmentsContained) {
-      assetIds.push(linkId);
-    }
-  }
 
-  return assetIds;
-}
+    return assetIds;
+  },
+  { name: "queryContainedAssets", maxDurationMs: 1000 },
+);
 
 type BoundingBox = [number, number, number, number];
 
@@ -107,7 +111,7 @@ function boundsFromPointAndRadius(search: RadiusSearch): BoundingBox {
   return [minLng, minLat, maxLng, maxLat];
 }
 
-function toSearchPolygon(searchOptions: SearchOptions): SearchPolygon {
+export function toSearchPolygon(searchOptions: SearchOptions): SearchPolygon {
   if (isBoundingBoxSearch(searchOptions))
     return {
       bounds: searchOptions as BoundingBox,
