@@ -21,6 +21,10 @@ export interface AssetIndexQueries {
   hasNode(id: AssetId): boolean;
   iterateLinks(): Generator<[AssetId, LinkIndex], void, unknown>;
   iterateNodes(): Generator<[AssetId, NodeIndex], void, unknown>;
+  getLinkIndex(id: AssetId): number | null;
+  getNodeIndex(id: AssetId): number | null;
+  getNodeId(index: NodeIndex): AssetId | null;
+  getLinkId(index: LinkIndex): AssetId | null;
   getAssetType(id: AssetId): AssetType | undefined;
   getNodeType(id: AssetId): NodeType | undefined;
   getLinkType(id: AssetId): LinkType | undefined;
@@ -91,6 +95,42 @@ export class AssetIndex implements AssetIndexQueries {
     for (const id of this.nodeIds) {
       yield [id, i++];
     }
+  }
+
+  getLinkIndex(id: AssetId): LinkIndex | null {
+    if (id <= 0 || id >= this.linkIds.size) {
+      return null;
+    }
+    for (const [linkId, linkIndex] of this.iterateLinks()) {
+      if (linkId === id) return linkIndex;
+    }
+    return null;
+  }
+
+  getNodeIndex(id: AssetId): NodeIndex | null {
+    if (id <= 0 || id >= this.nodeIds.size) {
+      return null;
+    }
+    for (const [nodeId, nodeIndex] of this.iterateNodes()) {
+      if (nodeId === id) return nodeIndex;
+    }
+    return null;
+  }
+
+  getNodeId(index: NodeIndex): AssetId | null {
+    if (index < 0 || index >= this.nodeIds.size) return null;
+    for (const [nodeId, nodeIndex] of this.iterateNodes()) {
+      if (nodeIndex === index) return nodeId;
+    }
+    return null;
+  }
+
+  getLinkId(index: NodeIndex): AssetId | null {
+    if (index < 0 || index >= this.linkIds.size) return null;
+    for (const [linkId, linkIndex] of this.iterateLinks()) {
+      if (linkIndex === index) return linkId;
+    }
+    return null;
   }
 
   get linkCount(): number {
@@ -240,12 +280,16 @@ function encodeHeader(
 
 export type AssetIndexBuffers = {
   index: BinaryData;
+  linkIds: BinaryData;
+  nodeIds: BinaryData;
   linkTypes: BinaryData;
   nodeTypes: BinaryData;
 };
 
 export class AssetIndexEncoder {
-  private bufferBuilder: FixedSizeBufferBuilder<AssetIndexEntry>;
+  private indexBuilder: FixedSizeBufferBuilder<AssetIndexEntry>;
+  private linkIdsBuilder: FixedSizeBufferBuilder<AssetId>;
+  private nodeIdsBuilder: FixedSizeBufferBuilder<AssetId>;
   private linkTypesBufferBuilder: FixedSizeBufferBuilder<LinkType>;
   private nodeTypesBufferBuilder: FixedSizeBufferBuilder<NodeType>;
 
@@ -253,7 +297,7 @@ export class AssetIndexEncoder {
     private assetIndex: AssetIndexQueries,
     bufferType: BufferType = "array",
   ) {
-    this.bufferBuilder = new FixedSizeBufferBuilder<AssetIndexEntry>(
+    this.indexBuilder = new FixedSizeBufferBuilder<AssetIndexEntry>(
       ASSET_INDEX_SIZE,
       this.assetIndex.maxAssetId + 1,
       bufferType,
@@ -266,6 +310,18 @@ export class AssetIndexEncoder {
           offset,
           view,
         ),
+    );
+    this.linkIdsBuilder = new FixedSizeBufferBuilder<AssetId>(
+      ASSET_INDEX_SIZE,
+      assetIndex.linkCount,
+      bufferType,
+      encodeNumber,
+    );
+    this.nodeIdsBuilder = new FixedSizeBufferBuilder<AssetId>(
+      ASSET_INDEX_SIZE,
+      assetIndex.nodeCount,
+      bufferType,
+      encodeNumber,
     );
     this.linkTypesBufferBuilder = new FixedSizeBufferBuilder<LinkType>(
       ASSET_TYPE_SIZE,
@@ -300,7 +356,8 @@ export class AssetIndexEncoder {
     // Add 1 to bufferIndex to ensure encoded value is never 0 (EMPTY_ASSET_INDEX)
     // This is necessary because the first asset gets bufferIndex=0, and
     // encodeAssetIndex(ASSET_TYPE_LINK=0, 0) = 0, which would be indistinguishable from empty
-    this.bufferBuilder.addAtIndex(id, [ASSET_TYPE_LINK, index + 1]);
+    this.indexBuilder.addAtIndex(id, [ASSET_TYPE_LINK, index + 1]);
+    this.linkIdsBuilder.addAtIndex(index, id);
     this.linkTypesBufferBuilder.addAtIndex(index, assetType);
   }
 
@@ -310,13 +367,16 @@ export class AssetIndexEncoder {
       throw new Error(`Node ${id} not found in assets`);
     }
     // Add 1 to bufferIndex to ensure consistency on link and node indexes
-    this.bufferBuilder.addAtIndex(id, [ASSET_TYPE_NODE, index + 1]);
+    this.indexBuilder.addAtIndex(id, [ASSET_TYPE_NODE, index + 1]);
+    this.nodeIdsBuilder.addAtIndex(index, id);
     this.nodeTypesBufferBuilder.addAtIndex(index, assetType);
   }
 
   finalize(): AssetIndexBuffers {
     return {
-      index: this.bufferBuilder.finalize(),
+      index: this.indexBuilder.finalize(),
+      linkIds: this.linkIdsBuilder.finalize(),
+      nodeIds: this.nodeIdsBuilder.finalize(),
       linkTypes: this.linkTypesBufferBuilder.finalize(),
       nodeTypes: this.nodeTypesBufferBuilder.finalize(),
     };
@@ -325,6 +385,8 @@ export class AssetIndexEncoder {
 
 export class AssetIndexView implements AssetIndexQueries {
   private indexView: FixedSizeBufferView<AssetIndexEntry | null>;
+  private linkIdsView: FixedSizeBufferView<AssetId>;
+  private nodeIdsView: FixedSizeBufferView<AssetId>;
   private nodeTypesView: FixedSizeBufferView<NodeType | undefined>;
   private linkTypesView: FixedSizeBufferView<LinkType | undefined>;
   private linkCountValue: number = 0;
@@ -341,6 +403,16 @@ export class AssetIndexView implements AssetIndexQueries {
         this.linkCountValue = linkCount;
         this.nodeCountValue = nodeCount;
       },
+    );
+    this.linkIdsView = new FixedSizeBufferView(
+      buffers.linkIds,
+      ASSET_INDEX_SIZE,
+      decodeNumber,
+    );
+    this.nodeIdsView = new FixedSizeBufferView(
+      buffers.nodeIds,
+      ASSET_INDEX_SIZE,
+      decodeNumber,
     );
     this.nodeTypesView = new FixedSizeBufferView(
       buffers.nodeTypes,
@@ -380,6 +452,16 @@ export class AssetIndexView implements AssetIndexQueries {
     }
     // Subtract 1 because we added 1 during encoding to avoid 0 collision
     return index - 1;
+  }
+
+  getNodeId(index: NodeIndex): AssetId | null {
+    if (index < 0 || index >= this.nodeCount) return null;
+    return this.nodeIdsView.getById(index);
+  }
+
+  getLinkId(index: NodeIndex): AssetId | null {
+    if (index < 0 || index >= this.linkCount) return null;
+    return this.linkIdsView.getById(index);
   }
 
   hasLink(id: AssetId): boolean {

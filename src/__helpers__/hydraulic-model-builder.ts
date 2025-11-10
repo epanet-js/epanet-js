@@ -260,12 +260,13 @@ export class HydraulicModelBuilder {
       }
     > = {},
   ) {
-    const { startNodeId, endNodeId, simulation, ...properties } = data;
+    const { startNodeId, endNodeId, simulation, coordinates, ...properties } =
+      data;
     const startNode = this.getNodeOrCreate(startNodeId);
     const endNode = this.getNodeOrCreate(endNodeId);
 
     const pipe = this.assetBuilder.buildPipe({
-      coordinates: [startNode.coordinates, endNode.coordinates],
+      coordinates: coordinates || [startNode.coordinates, endNode.coordinates],
       connections: [startNode.id, endNode.id],
       id,
       ...properties,

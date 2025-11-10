@@ -42,6 +42,27 @@ describe("AssetIndex - Basics", () => {
       [10, 1],
     ]);
   });
+
+  it("getNodeId and getLinkId return correct values", () => {
+    const idGenerator = new ConsecutiveIdsGenerator();
+    vi.spyOn(idGenerator, "totalGenerated", "get").mockReturnValue(200);
+    const assets = createAssetsMap([100, 200], [5, 150]);
+    const assetIndex = new AssetIndex(idGenerator, assets);
+    assetIndex.addLink(100);
+    assetIndex.addNode(5);
+    assetIndex.addLink(200);
+    assetIndex.addNode(150);
+
+    expect(assetIndex.getLinkId(0)).toBe(100);
+    expect(assetIndex.getLinkId(1)).toBe(200);
+    expect(assetIndex.getNodeId(0)).toBe(5);
+    expect(assetIndex.getNodeId(1)).toBe(150);
+    // Out of bounds
+    expect(assetIndex.getNodeId(-1)).toBeNull();
+    expect(assetIndex.getNodeId(10)).toBeNull();
+    expect(assetIndex.getLinkId(-1)).toBeNull();
+    expect(assetIndex.getLinkId(10)).toBeNull();
+  });
 });
 
 describe("AssetIndex - Removal and Re-addition", () => {
@@ -278,5 +299,28 @@ describe("AssetIndexView - Queries", () => {
     expect(view.hasLink(-1)).toBe(false);
     expect(view.hasLink(0)).toBe(false);
     expect(view.hasNode(0)).toBe(false);
+  });
+
+  it("IDs query methods return correct values", () => {
+    const idGenerator = new ConsecutiveIdsGenerator();
+    vi.spyOn(idGenerator, "totalGenerated", "get").mockReturnValue(200);
+    const assets = createAssetsMap([100, 200], [5, 150]);
+    const assetIndex = new AssetIndex(idGenerator, assets);
+    assetIndex.addLink(100);
+    assetIndex.addNode(5);
+    assetIndex.addLink(200);
+    assetIndex.addNode(150);
+
+    const view = new AssetIndexView(new AssetIndexEncoder(assetIndex).encode());
+
+    expect(view.getLinkId(0)).toBe(100);
+    expect(view.getLinkId(1)).toBe(200);
+    expect(view.getNodeId(0)).toBe(5);
+    expect(view.getNodeId(1)).toBe(150);
+    // out of bounds
+    expect(view.getNodeId(-1)).toBeNull();
+    expect(view.getNodeId(10)).toBeNull();
+    expect(view.getLinkId(-1)).toBeNull();
+    expect(view.getLinkId(10)).toBeNull();
   });
 });
