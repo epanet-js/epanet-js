@@ -28,7 +28,7 @@ export const InlineField = ({
     "flex-none": layout === "label-flex-none",
   });
   const inputWrapperClasses = clsx({
-    "flex-1": layout === "fixed-label",
+    "min-w-0 flex-1": layout === "fixed-label",
     "w-1/2": layout === "half-split",
     "w-3/4": layout === "label-flex-none",
   });

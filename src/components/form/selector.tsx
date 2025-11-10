@@ -56,7 +56,9 @@ export const SelectorLikeButton = React.forwardRef<
         className={triggerStyles}
         {...props} // Spread all other props received from Popover.Trigger
       >
-        {children}
+        <div className="text-nowrap overflow-hidden text-ellipsis">
+          {children}
+        </div>
         <div className="px-1">
           <ChevronDownIcon />
         </div>
@@ -169,7 +171,9 @@ export function Selector<T extends string>({
           tabIndex={tabIndex}
           className={triggerStyles}
         >
-          <Select.Value placeholder={nullable ? placeholder : undefined} />
+          <div className="text-nowrap overflow-hidden text-ellipsis">
+            <Select.Value placeholder={nullable ? placeholder : undefined} />
+          </div>
           <Select.Icon className="px-1">
             <ChevronDownIcon />
           </Select.Icon>
