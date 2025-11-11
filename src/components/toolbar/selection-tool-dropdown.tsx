@@ -9,13 +9,16 @@ import {
   FreeHandSelectionIcon,
 } from "src/icons";
 import { useDrawingMode } from "src/commands/set-drawing-mode";
-import { Mode } from "src/state/mode";
+import { Mode, MODE_INFO } from "src/state/mode";
 import { useAtomValue } from "jotai";
 import { modeAtom } from "src/state/jotai";
 import { Button, DDContent, Keycap, StyledItem, TContent } from "../elements";
 import { useTranslate } from "src/hooks/use-translate";
 import { localizeKeybinding } from "src/infra/i18n";
 import { selectionModeShortcut } from "src/commands/set-area-selection-mode";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import MenuAction from "../menu-action";
+import { useUserTracking } from "src/infra/user-tracking";
 
 const SELECTION_MODES = [
   {
@@ -35,10 +38,11 @@ const SELECTION_MODES = [
   },
 ] as const;
 
-export const SelectionToolDropdown = () => {
+const SelectionToolDropdown = () => {
   const translate = useTranslate();
   const setDrawingMode = useDrawingMode();
   const { mode: currentMode } = useAtomValue(modeAtom);
+  const userTracking = useUserTracking();
 
   const currentSelection =
     SELECTION_MODES.find((m) => m.mode === currentMode) || SELECTION_MODES[0];
@@ -70,6 +74,11 @@ export const SelectionToolDropdown = () => {
                 <StyledItem
                   key={mode}
                   onSelect={() => {
+                    userTracking.capture({
+                      name: "drawingMode.enabled",
+                      source: "toolbar",
+                      type: MODE_INFO[mode].name,
+                    });
                     setDrawingMode(mode);
                   }}
                 >
@@ -89,4 +98,42 @@ export const SelectionToolDropdown = () => {
       </TContent>
     </Tooltip.Root>
   );
+};
+
+const SelectionToolButton = () => {
+  const translate = useTranslate();
+  const setDrawingMode = useDrawingMode();
+  const { mode: currentMode } = useAtomValue(modeAtom);
+  const userTracking = useUserTracking();
+
+  return (
+    <MenuAction
+      role="radio"
+      selected={currentMode === Mode.SELECT_POLYGONAL}
+      readOnlyHotkey={selectionModeShortcut}
+      label={translate("areaSelection.tool")}
+      onClick={() => {
+        userTracking.capture({
+          name: "drawingMode.enabled",
+          source: "toolbar",
+          type: MODE_INFO[Mode.SELECT_POLYGONAL].name,
+        });
+        setDrawingMode(Mode.SELECT_POLYGONAL);
+      }}
+    >
+      <PolygonalSelectionIcon />
+    </MenuAction>
+  );
+};
+
+export const SelectionTool = () => {
+  const isSelectionModeChoiceEnabled = useFeatureFlag(
+    "FLAG_SELECTION_MODE_CHOICE",
+  );
+
+  if (isSelectionModeChoiceEnabled) {
+    return <SelectionToolDropdown />;
+  }
+
+  return <SelectionToolButton />;
 };

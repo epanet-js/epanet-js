@@ -7,7 +7,7 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { useDrawingMode } from "src/commands/set-drawing-mode";
 import { useTranslate } from "src/hooks/use-translate";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { SelectionToolDropdown } from "./toolbar/selection-tool-dropdown";
+import { SelectionTool } from "./toolbar/selection-tool-dropdown";
 
 import {
   JunctionIcon,
@@ -85,7 +85,7 @@ export default memo(function Modes({
           <MouseCursorDefaultIcon />
         </MenuAction>
       )}
-      {isSelectionModeEnabled && <SelectionToolDropdown />}
+      {isSelectionModeEnabled && <SelectionTool />}
       {drawingModes.map(({ mode, hotkey, Icon }) => {
         const modeInfo = MODE_INFO[mode];
 

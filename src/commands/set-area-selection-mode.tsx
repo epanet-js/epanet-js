@@ -2,6 +2,7 @@ import { useAtomValue } from "jotai";
 import { useCallback } from "react";
 import { Mode, modeAtom } from "src/state/mode";
 import { useDrawingMode } from "./set-drawing-mode";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export const selectionModeShortcut = "m";
 
@@ -14,8 +15,16 @@ const SELECTION_MODES = [
 export const useCycleSelectionMode = () => {
   const setDrawingMode = useDrawingMode();
   const currentMode = useAtomValue(modeAtom);
+  const isSelectionModeChoiceEnabled = useFeatureFlag(
+    "FLAG_SELECTION_MODE_CHOICE",
+  );
 
   const cycleSelectionMode = useCallback(() => {
+    if (!isSelectionModeChoiceEnabled) {
+      setDrawingMode(Mode.SELECT_POLYGONAL);
+      return Mode.SELECT_POLYGONAL;
+    }
+
     const currentIndex = SELECTION_MODES.indexOf(
       currentMode.mode as (typeof SELECTION_MODES)[number],
     );
@@ -26,7 +35,7 @@ export const useCycleSelectionMode = () => {
 
     setDrawingMode(nextMode);
     return nextMode;
-  }, [setDrawingMode, currentMode.mode]);
+  }, [setDrawingMode, currentMode.mode, isSelectionModeChoiceEnabled]);
 
   return cycleSelectionMode;
 };
