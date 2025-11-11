@@ -5,49 +5,44 @@ import { useAtom, useSetAtom } from "jotai";
 import { getMapCoord } from "../utils";
 import { useAreaSelection } from "./use-area-selection";
 import { polygonCoordinatesFromPositions } from "src/lib/geometry";
+import { EphemeralEditingStateAreaSelection } from "./ephemeral-area-selection-state";
 
 export function useRectangularSelectionHandlers(
   context: HandlerContext,
 ): Handlers {
   const setMode = useSetAtom(modeAtom);
   const [ephemeralState, setEphemeralState] = useAtom(ephemeralStateAtom);
-  const selectContainedAssets = useAreaSelection(context);
+  const { selectContainedAssets, abort: abortSelection } =
+    useAreaSelection(context);
 
   return {
     down: noop,
     double: noop,
     move: (e) => {
-      if (ephemeralState.type !== "areaSelect") return;
+      if (ephemeralState.type !== "areaSelect" || !ephemeralState.isDrawing)
+        return;
 
       const currentPos = getMapCoord(e);
-      setEphemeralState({
-        type: "areaSelect",
-        selectionMode: Mode.SELECT_RECTANGULAR,
-        points: [ephemeralState.points[0], currentPos],
-        isValid: true,
-      });
+      setEphemeralState(drawingState([ephemeralState.points[0], currentPos]));
       e.preventDefault();
     },
     up: noop,
-    click: (e) => {
+    click: async (e) => {
       const currentPos = getMapCoord(e);
-      if (ephemeralState.type === "areaSelect") {
+      if (ephemeralState.type === "areaSelect" && ephemeralState.isDrawing) {
         const closedPolygon = polygonCoordinatesFromPositions(
           ephemeralState.points[0],
           ephemeralState.points[1],
         )[0];
-        selectContainedAssets(closedPolygon);
+        setEphemeralState(finishedDrawingState(ephemeralState.points));
+        await selectContainedAssets(closedPolygon);
         setEphemeralState({ type: "none" });
       } else {
-        setEphemeralState({
-          type: "areaSelect",
-          selectionMode: Mode.SELECT_RECTANGULAR,
-          points: [currentPos, currentPos],
-          isValid: true,
-        });
+        setEphemeralState(drawingState([currentPos, currentPos]));
       }
     },
     exit: () => {
+      abortSelection();
       if (ephemeralState.type === "areaSelect") {
         setEphemeralState({ type: "none" });
       } else {
@@ -56,3 +51,23 @@ export function useRectangularSelectionHandlers(
     },
   };
 }
+
+const drawingState = (
+  points: EphemeralEditingStateAreaSelection["points"],
+): EphemeralEditingStateAreaSelection => ({
+  type: "areaSelect",
+  selectionMode: Mode.SELECT_RECTANGULAR,
+  points,
+  isValid: true,
+  isDrawing: true,
+});
+
+const finishedDrawingState = (
+  points: EphemeralEditingStateAreaSelection["points"],
+): EphemeralEditingStateAreaSelection => ({
+  type: "areaSelect",
+  selectionMode: Mode.SELECT_RECTANGULAR,
+  points,
+  isValid: true,
+  isDrawing: false,
+});

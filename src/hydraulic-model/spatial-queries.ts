@@ -6,45 +6,41 @@ import { polygon } from "@turf/helpers";
 import booleanConcave from "@turf/boolean-concave";
 import booleanPointInPolygon from "@turf/boolean-point-in-polygon";
 import booleanContains from "@turf/boolean-contains";
-import { withDebugInstrumentation } from "src/infra/with-instrumentation";
 
-export const queryContainedAssets = withDebugInstrumentation(
-  function queryContainedAssets(
-    geoIndex: AssetsGeoQueries,
-    searchOptions: SearchOptions,
-  ): AssetId[] {
-    const search = toSearchPolygon(searchOptions);
-    const assetIds = geoIndex.searchNodes(search.bounds, (nodeId: AssetId) => {
-      const nodeCoord = geoIndex.getNodePosition(nodeId);
-      if (!nodeCoord) return false;
-      return containsNode(search, nodeCoord);
-    });
-    const segmentIds = new Set(
-      geoIndex.searchLinkSegments(search.bounds, (segmentId, segmentBounds) => {
-        const segmentCoords = geoIndex.getSegmentCoords(segmentId);
-        return containsSegment(search, segmentBounds, segmentCoords);
-      }),
-    );
-    const segmentIdsAlreadyChecked = new Set<number>();
+export function queryContainedAssets(
+  geoIndex: AssetsGeoQueries,
+  searchOptions: SearchOptions,
+): AssetId[] {
+  const search = toSearchPolygon(searchOptions);
+  const assetIds = geoIndex.searchNodes(search.bounds, (nodeId: AssetId) => {
+    const nodeCoord = geoIndex.getNodePosition(nodeId);
+    if (!nodeCoord) return false;
+    return containsNode(search, nodeCoord);
+  });
+  const segmentIds = new Set(
+    geoIndex.searchLinkSegments(search.bounds, (segmentId, segmentBounds) => {
+      const segmentCoords = geoIndex.getSegmentCoords(segmentId);
+      return containsSegment(search, segmentBounds, segmentCoords);
+    }),
+  );
+  const segmentIdsAlreadyChecked = new Set<number>();
 
-    for (const segmentId of segmentIds) {
-      if (segmentIdsAlreadyChecked.has(segmentId)) continue;
-      const linkId = geoIndex.getSegmentLinkId(segmentId);
-      const linkSegmentIds = geoIndex.getLinkSegments(linkId);
-      let areAllLinkSegmentsContained = true;
-      for (const linkSegmentId of linkSegmentIds) {
-        segmentIdsAlreadyChecked.add(linkSegmentId);
-        if (!segmentIds.has(linkSegmentId)) areAllLinkSegmentsContained = false;
-      }
-      if (areAllLinkSegmentsContained) {
-        assetIds.push(linkId);
-      }
+  for (const segmentId of segmentIds) {
+    if (segmentIdsAlreadyChecked.has(segmentId)) continue;
+    const linkId = geoIndex.getSegmentLinkId(segmentId);
+    const linkSegmentIds = geoIndex.getLinkSegments(linkId);
+    let areAllLinkSegmentsContained = true;
+    for (const linkSegmentId of linkSegmentIds) {
+      segmentIdsAlreadyChecked.add(linkSegmentId);
+      if (!segmentIds.has(linkSegmentId)) areAllLinkSegmentsContained = false;
     }
+    if (areAllLinkSegmentsContained) {
+      assetIds.push(linkId);
+    }
+  }
 
-    return assetIds;
-  },
-  { name: "queryContainedAssets", maxDurationMs: 1000 },
-);
+  return assetIds;
+}
 
 type BoundingBox = [number, number, number, number];
 

@@ -1,22 +1,50 @@
+import { useRef } from "react";
 import { Position, HandlerContext } from "src/types";
-import { AssetsGeoIndex } from "src/hydraulic-model/assets-geo";
-import { queryContainedAssets } from "src/hydraulic-model/spatial-queries";
 import { useSelection } from "src/selection";
+import { runQuery } from "./run-query";
 
 export const useAreaSelection = (context: HandlerContext) => {
   const { selection, hydraulicModel } = context;
-  const { selectAssets } = useSelection(selection);
+  const { selectAssets, clearSelection } = useSelection(selection);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
-  const selectContainedAssets = (points: Position[]): void => {
-    const assetsGeo = new AssetsGeoIndex(
-      hydraulicModel.assets,
-      hydraulicModel.assetIndex,
-    );
-    const assetIds = queryContainedAssets(assetsGeo, points);
-    if (assetIds.length > 0) {
-      selectAssets(assetIds);
+  const selectContainedAssets = async (points: Position[]): Promise<void> => {
+    if (!!abortControllerRef.current) {
+      abortControllerRef.current?.abort();
+    }
+
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
+    try {
+      const assetIds = await runQuery(
+        hydraulicModel,
+        points,
+        controller.signal,
+      );
+
+      if (controller.signal.aborted) {
+        return;
+      }
+
+      if (assetIds.length > 0) {
+        selectAssets(assetIds);
+      } else {
+        clearSelection();
+      }
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") {
+        return;
+      }
+      throw error;
+    } finally {
+      abortControllerRef.current = null;
     }
   };
 
-  return selectContainedAssets;
+  const abort = () => {
+    if (!!abortControllerRef.current) abortControllerRef.current?.abort();
+  };
+
+  return { selectContainedAssets, abort };
 };

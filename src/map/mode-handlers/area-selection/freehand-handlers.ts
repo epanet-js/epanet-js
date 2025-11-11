@@ -1,11 +1,12 @@
+import { useRef } from "react";
 import type { HandlerContext } from "src/types";
 import { modeAtom, Mode, ephemeralStateAtom } from "src/state/jotai";
 import noop from "lodash/noop";
 import { useSetAtom, useAtom } from "jotai";
-import { useRef } from "react";
 import { getMapCoord } from "../utils";
 import { isLastPolygonSegmentIntersecting } from "src/lib/geometry";
 import { useAreaSelection } from "./use-area-selection";
+import { EphemeralEditingStateAreaSelection } from "./ephemeral-area-selection-state";
 
 const MIN_POINTS_DISTANCE_PX = 10;
 
@@ -15,7 +16,8 @@ export function useFreehandSelectionHandlers(
   const setMode = useSetAtom(modeAtom);
   const [ephemeralState, setEphemeralState] = useAtom(ephemeralStateAtom);
   const lastPixelPointRef = useRef<{ x: number; y: number } | null>(null);
-  const selectContainedAssets = useAreaSelection(context);
+  const { selectContainedAssets, abort: abortSelection } =
+    useAreaSelection(context);
 
   return {
     down: noop,
@@ -35,6 +37,7 @@ export function useFreehandSelectionHandlers(
       const currentPos = getMapCoord(e);
       setEphemeralState((prev) => {
         if (prev.type !== "areaSelect") return prev;
+        if (prev.isDrawing === false) return prev;
 
         const points = [...prev.points];
         if (!prev.isValid) {
@@ -43,28 +46,18 @@ export function useFreehandSelectionHandlers(
         points.push(currentPos);
         if (!isLastPolygonSegmentIntersecting(points)) {
           lastPixelPointRef.current = { x: e.point.x, y: e.point.y };
-          return {
-            type: "areaSelect",
-            selectionMode: Mode.SELECT_FREEHAND,
-            points,
-            isValid: true,
-          };
+          return validDrawingState(points);
         } else {
-          return {
-            type: "areaSelect",
-            selectionMode: Mode.SELECT_FREEHAND,
-            points,
-            isValid: false,
-          };
+          return invalidDrawingState(points);
         }
       });
 
       e.preventDefault();
     },
     up: noop,
-    click: (e) => {
+    click: async (e) => {
       const currentPos = getMapCoord(e);
-      if (ephemeralState.type === "areaSelect") {
+      if (ephemeralState.type === "areaSelect" && ephemeralState.isDrawing) {
         if (!ephemeralState.isValid) return;
         if (
           isLastPolygonSegmentIntersecting([
@@ -78,20 +71,17 @@ export function useFreehandSelectionHandlers(
           ...ephemeralState.points,
           ephemeralState.points[0],
         ];
-        selectContainedAssets(closedPolygon);
+        setEphemeralState(finishedDrawingState(closedPolygon));
+        await selectContainedAssets(closedPolygon);
         setEphemeralState({ type: "none" });
         lastPixelPointRef.current = null;
       } else {
         lastPixelPointRef.current = { x: e.point.x, y: e.point.y };
-        setEphemeralState({
-          type: "areaSelect",
-          selectionMode: Mode.SELECT_FREEHAND,
-          points: [currentPos, currentPos],
-          isValid: false,
-        });
+        setEphemeralState(invalidDrawingState([currentPos, currentPos]));
       }
     },
     exit: () => {
+      abortSelection();
       if (ephemeralState.type === "areaSelect") {
         setEphemeralState({ type: "none" });
         lastPixelPointRef.current = null;
@@ -101,3 +91,33 @@ export function useFreehandSelectionHandlers(
     },
   };
 }
+
+const validDrawingState = (
+  points: EphemeralEditingStateAreaSelection["points"],
+): EphemeralEditingStateAreaSelection => ({
+  type: "areaSelect",
+  selectionMode: Mode.SELECT_FREEHAND,
+  points,
+  isValid: true,
+  isDrawing: true,
+});
+
+const invalidDrawingState = (
+  points: EphemeralEditingStateAreaSelection["points"],
+): EphemeralEditingStateAreaSelection => ({
+  type: "areaSelect",
+  selectionMode: Mode.SELECT_FREEHAND,
+  points,
+  isValid: false,
+  isDrawing: true,
+});
+
+const finishedDrawingState = (
+  points: EphemeralEditingStateAreaSelection["points"],
+): EphemeralEditingStateAreaSelection => ({
+  type: "areaSelect",
+  selectionMode: Mode.SELECT_FREEHAND,
+  points,
+  isValid: true,
+  isDrawing: false,
+});

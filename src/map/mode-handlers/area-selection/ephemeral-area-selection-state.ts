@@ -8,4 +8,5 @@ export interface EphemeralEditingStateAreaSelection {
     | Mode.SELECT_FREEHAND;
   points: Pos2[];
   isValid: boolean;
+  isDrawing: boolean;
 }

@@ -5,19 +5,22 @@ import { useAtom, useSetAtom } from "jotai";
 import { getMapCoord } from "../utils";
 import { isLastPolygonSegmentIntersecting } from "src/lib/geometry";
 import { useAreaSelection } from "./use-area-selection";
+import { EphemeralEditingStateAreaSelection } from "./ephemeral-area-selection-state";
 
 export function usePolygonalSelectionHandlers(
   context: HandlerContext,
 ): Handlers {
   const setMode = useSetAtom(modeAtom);
   const [ephemeralState, setEphemeralState] = useAtom(ephemeralStateAtom);
-  const selectContainedAssets = useAreaSelection(context);
+  const { selectContainedAssets, abort: abortSelection } =
+    useAreaSelection(context);
 
   return {
     down: noop,
-    double: () => {
+    double: async () => {
       if (
         ephemeralState.type !== "areaSelect" ||
+        !ephemeralState.isDrawing ||
         !ephemeralState.isValid ||
         ephemeralState.points.length <= 2
       )
@@ -35,22 +38,20 @@ export function usePolygonalSelectionHandlers(
         ...ephemeralState.points,
         ephemeralState.points[0],
       ];
-      selectContainedAssets(closedPolygon);
+      setEphemeralState(finishedDrawingState(closedPolygon));
+      await selectContainedAssets(closedPolygon);
       setEphemeralState({ type: "none" });
     },
     move: (e) => {
       const currentPos = getMapCoord(e);
       setEphemeralState((prev) => {
-        if (prev.type !== "areaSelect") return prev;
+        if (prev.type !== "areaSelect" || !prev.isDrawing) return prev;
         const points = [...prev.points];
         points.pop();
         points.push(currentPos);
-        return {
-          type: "areaSelect",
-          selectionMode: Mode.SELECT_POLYGONAL,
-          points,
-          isValid: !isLastPolygonSegmentIntersecting(points),
-        };
+        return !isLastPolygonSegmentIntersecting(points)
+          ? validDrawingState(points)
+          : invalidDrawingState(points);
       });
       e.preventDefault();
     },
@@ -58,23 +59,17 @@ export function usePolygonalSelectionHandlers(
     click: (e) => {
       const currentPos = getMapCoord(e);
       if (ephemeralState.type === "areaSelect") {
-        if (ephemeralState.isValid)
-          setEphemeralState({
-            type: "areaSelect",
-            selectionMode: Mode.SELECT_POLYGONAL,
-            points: [...ephemeralState.points, currentPos],
-            isValid: true,
-          });
+        if (ephemeralState.isValid && ephemeralState.isDrawing) {
+          setEphemeralState(
+            validDrawingState([...ephemeralState.points, currentPos]),
+          );
+        }
       } else {
-        setEphemeralState({
-          type: "areaSelect",
-          selectionMode: Mode.SELECT_POLYGONAL,
-          points: [currentPos, currentPos],
-          isValid: true,
-        });
+        setEphemeralState(invalidDrawingState([currentPos, currentPos]));
       }
     },
     exit: () => {
+      abortSelection();
       if (ephemeralState.type === "areaSelect") {
         setEphemeralState({ type: "none" });
       } else {
@@ -83,3 +78,33 @@ export function usePolygonalSelectionHandlers(
     },
   };
 }
+
+const validDrawingState = (
+  points: EphemeralEditingStateAreaSelection["points"],
+): EphemeralEditingStateAreaSelection => ({
+  type: "areaSelect",
+  selectionMode: Mode.SELECT_POLYGONAL,
+  points,
+  isValid: true,
+  isDrawing: true,
+});
+
+const invalidDrawingState = (
+  points: EphemeralEditingStateAreaSelection["points"],
+): EphemeralEditingStateAreaSelection => ({
+  type: "areaSelect",
+  selectionMode: Mode.SELECT_POLYGONAL,
+  points,
+  isValid: false,
+  isDrawing: true,
+});
+
+const finishedDrawingState = (
+  points: EphemeralEditingStateAreaSelection["points"],
+): EphemeralEditingStateAreaSelection => ({
+  type: "areaSelect",
+  selectionMode: Mode.SELECT_POLYGONAL,
+  points,
+  isValid: true,
+  isDrawing: false,
+});
