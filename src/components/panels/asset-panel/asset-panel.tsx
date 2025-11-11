@@ -13,10 +13,13 @@ import {
 import { Valve } from "src/hydraulic-model/asset-types";
 import { Quantities } from "src/model-metadata/quantities-spec";
 import { useTranslate } from "src/hooks/use-translate";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { usePersistence } from "src/lib/persistence/context";
 import { useUserTracking } from "src/infra/user-tracking";
 import { dataAtom } from "src/state/jotai";
 import { changeProperty } from "src/hydraulic-model/model-operations";
+import { activateAssets } from "src/hydraulic-model/model-operations/activate-assets";
+import { deactivateAssets } from "src/hydraulic-model/model-operations/deactivate-assets";
 import { getLinkNodes } from "src/hydraulic-model/assets-map";
 import {
   HeadlossFormula,
@@ -107,6 +110,23 @@ export function AssetPanel({
     [hydraulicModel, asset.id, asset.type, transact, userTracking],
   );
 
+  const handleActiveTopologyStatusChange = useCallback(
+    (property: string, newValue: boolean, oldValue: boolean) => {
+      const moment = newValue
+        ? activateAssets(hydraulicModel, { assetIds: [asset.id] })
+        : deactivateAssets(hydraulicModel, { assetIds: [asset.id] });
+      transact(moment);
+      userTracking.capture({
+        name: "assetProperty.edited",
+        type: asset.type,
+        property: "isActive",
+        newValue: Number(newValue),
+        oldValue: Number(oldValue),
+      });
+    },
+    [hydraulicModel, asset.id, asset.type, transact, userTracking],
+  );
+
   const handleDefinitionTypeChange = useCallback(
     (newType: PumpDefintionType, oldType: PumpDefintionType) => {
       const moment = changeProperty(hydraulicModel, {
@@ -187,6 +207,7 @@ export function AssetPanel({
           quantitiesMetadata={quantitiesMetadata}
           onPropertyChange={handlePropertyChange}
           onStatusChange={handleStatusChange}
+          onActiveTopologyStatusChange={handleActiveTopologyStatusChange}
         />
       );
     }
@@ -198,6 +219,7 @@ export function AssetPanel({
           onPropertyChange={handlePropertyChange}
           onStatusChange={handleStatusChange}
           onDefinitionTypeChange={handleDefinitionTypeChange}
+          onActiveTopologyStatusChange={handleActiveTopologyStatusChange}
           quantitiesMetadata={quantitiesMetadata}
           {...getLinkNodes(hydraulicModel.assets, pump)}
         />
@@ -212,6 +234,7 @@ export function AssetPanel({
           quantitiesMetadata={quantitiesMetadata}
           onStatusChange={handleStatusChange}
           onTypeChange={handleValveKindChange}
+          onActiveTopologyStatusChange={handleActiveTopologyStatusChange}
           {...getLinkNodes(hydraulicModel.assets, valve)}
         />
       );
@@ -247,6 +270,7 @@ const JunctionEditor = ({
   hydraulicModel: HydraulicModel;
 }) => {
   const translate = useTranslate();
+  const isActiveTopologyOn = useFeatureFlag("FLAG_ACTIVE_TOPOLOGY");
   const customerPoints = useMemo(() => {
     const connectedCustomerPoints =
       hydraulicModel.customerPointsLookup.getCustomerPoints(junction.id);
@@ -261,6 +285,15 @@ const JunctionEditor = ({
 
   return (
     <AssetEditorContent label={junction.label} type={translate("junction")}>
+      {isActiveTopologyOn && (
+        <Section title={translate("activeTopology.title")}>
+          <SwitchRow
+            name="isActive"
+            label={translate("activeTopology.enabled")}
+            enabled={junction.isActive}
+          />
+        </Section>
+      )}
       <Section title={translate("modelAttributes")}>
         <QuantityRow
           name="elevation"
@@ -333,6 +366,7 @@ const PipeEditor = ({
   quantitiesMetadata,
   onPropertyChange,
   onStatusChange,
+  onActiveTopologyStatusChange,
 }: {
   pipe: Pipe;
   startNode: NodeAsset | null;
@@ -341,8 +375,14 @@ const PipeEditor = ({
   quantitiesMetadata: Quantities;
   onPropertyChange: OnPropertyChange;
   onStatusChange: OnStatusChange<PipeStatus>;
+  onActiveTopologyStatusChange: (
+    property: string,
+    newValue: boolean,
+    oldValue: boolean,
+  ) => void;
 }) => {
   const translate = useTranslate();
+  const isActiveTopologyOn = useFeatureFlag("FLAG_ACTIVE_TOPOLOGY");
   const simulationStatusText = translate(pipeStatusLabel(pipe));
 
   const pipeStatusOptions = useMemo(() => {
@@ -362,6 +402,16 @@ const PipeEditor = ({
 
   return (
     <AssetEditorContent label={pipe.label} type={translate("pipe")}>
+      {isActiveTopologyOn && (
+        <Section title={translate("activeTopology.title")}>
+          <SwitchRow
+            name="isActive"
+            label={translate("activeTopology.enabled")}
+            enabled={pipe.isActive}
+            onChange={onActiveTopologyStatusChange}
+          />
+        </Section>
+      )}
       <Section title={translate("connections")}>
         <TextRow name="startNode" value={startNode ? startNode.label : ""} />
         <TextRow name="endNode" value={endNode ? endNode.label : ""} />
@@ -453,8 +503,18 @@ const ReservoirEditor = ({
   onPropertyChange: OnPropertyChange;
 }) => {
   const translate = useTranslate();
+  const isActiveTopologyOn = useFeatureFlag("FLAG_ACTIVE_TOPOLOGY");
   return (
     <AssetEditorContent label={reservoir.label} type={translate("reservoir")}>
+      {isActiveTopologyOn && (
+        <Section title={translate("activeTopology.title")}>
+          <SwitchRow
+            name="isActive"
+            label={translate("activeTopology.enabled")}
+            enabled={reservoir.isActive}
+          />
+        </Section>
+      )}
       <Section title={translate("modelAttributes")}>
         <QuantityRow
           name="elevation"
@@ -485,8 +545,18 @@ const TankEditor = ({
   onPropertyChange: OnPropertyChange;
 }) => {
   const translate = useTranslate();
+  const isActiveTopologyOn = useFeatureFlag("FLAG_ACTIVE_TOPOLOGY");
   return (
     <AssetEditorContent label={tank.label} type={translate("tank")}>
+      {isActiveTopologyOn && (
+        <Section title={translate("activeTopology.title")}>
+          <SwitchRow
+            name="isActive"
+            label={translate("activeTopology.enabled")}
+            enabled={tank.isActive}
+          />
+        </Section>
+      )}
       <Section title={translate("modelAttributes")}>
         <QuantityRow
           name="elevation"
@@ -585,6 +655,7 @@ const ValveEditor = ({
   onPropertyChange,
   onStatusChange,
   onTypeChange,
+  onActiveTopologyStatusChange,
 }: {
   valve: Valve;
   startNode: NodeAsset | null;
@@ -593,8 +664,14 @@ const ValveEditor = ({
   onStatusChange: OnStatusChange<ValveStatus>;
   onPropertyChange: OnPropertyChange;
   onTypeChange: OnTypeChange<ValveKind>;
+  onActiveTopologyStatusChange: (
+    property: string,
+    newValue: boolean,
+    oldValue: boolean,
+  ) => void;
 }) => {
   const translate = useTranslate();
+  const isActiveTopologyOn = useFeatureFlag("FLAG_ACTIVE_TOPOLOGY");
   const statusText = translate(valveStatusLabel(valve));
 
   const statusOptions = useMemo(() => {
@@ -641,6 +718,16 @@ const ValveEditor = ({
 
   return (
     <AssetEditorContent label={valve.label} type={translate("valve")}>
+      {isActiveTopologyOn && (
+        <Section title={translate("activeTopology.title")}>
+          <SwitchRow
+            name="isActive"
+            label={translate("activeTopology.enabled")}
+            enabled={valve.isActive}
+            onChange={onActiveTopologyStatusChange}
+          />
+        </Section>
+      )}
       <Section title={translate("connections")}>
         <TextRow name="startNode" value={startNode ? startNode.label : ""} />
         <TextRow name="endNode" value={endNode ? endNode.label : ""} />
@@ -716,6 +803,7 @@ const PumpEditor = ({
   onStatusChange,
   onPropertyChange,
   onDefinitionTypeChange,
+  onActiveTopologyStatusChange,
   quantitiesMetadata,
 }: {
   pump: Pump;
@@ -727,9 +815,15 @@ const PumpEditor = ({
     newType: PumpDefintionType,
     oldType: PumpDefintionType,
   ) => void;
+  onActiveTopologyStatusChange: (
+    property: string,
+    newValue: boolean,
+    oldValue: boolean,
+  ) => void;
   quantitiesMetadata: Quantities;
 }) => {
   const translate = useTranslate();
+  const isActiveTopologyOn = useFeatureFlag("FLAG_ACTIVE_TOPOLOGY");
   const statusText = translate(pumpStatusLabel(pump));
 
   const definitionOptions = useMemo(() => {
@@ -764,6 +858,16 @@ const PumpEditor = ({
 
   return (
     <AssetEditorContent label={pump.label} type={translate("pump")}>
+      {isActiveTopologyOn && (
+        <Section title={translate("activeTopology.title")}>
+          <SwitchRow
+            name="isActive"
+            label={translate("activeTopology.enabled")}
+            enabled={pump.isActive}
+            onChange={onActiveTopologyStatusChange}
+          />
+        </Section>
+      )}
       <Section title={translate("connections")}>
         <TextRow name="startNode" value={startNode ? startNode.label : ""} />
         <TextRow name="endNode" value={endNode ? endNode.label : ""} />

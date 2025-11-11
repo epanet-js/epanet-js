@@ -11,8 +11,12 @@ import FeatureEditor from "../feature-editor";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Valve } from "src/hydraulic-model/asset-types";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
+import { stubFeatureOn } from "src/__helpers__/feature-flags";
 
 describe("AssetPanel", () => {
+  beforeEach(() => {
+    stubFeatureOn("FLAG_ACTIVE_TOPOLOGY");
+  });
   describe("with a pipe", () => {
     it("can show its properties", () => {
       const IDS = { P1: 1, j1: 2, j2: 3 };
@@ -774,6 +778,29 @@ describe("AssetPanel", () => {
         name: /value for: diameter/i,
       });
       expect(updatedField).toHaveValue("10.4");
+    });
+  });
+
+  it("can toggle active topology status", async () => {
+    const IDS = { PIPE1: 1 };
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aPipe(IDS.PIPE1, { isActive: true })
+      .build();
+    const store = setInitialState({
+      hydraulicModel,
+      selectedAssetId: IDS.PIPE1,
+    });
+
+    renderComponent(store);
+
+    expect(screen.getByRole("checkbox", { name: /enabled/i })).toBeChecked();
+
+    await userEvent.click(screen.getByRole("checkbox", { name: /enabled/i }));
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("checkbox", { name: /enabled/i }),
+      ).not.toBeChecked();
     });
   });
 

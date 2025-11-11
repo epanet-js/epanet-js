@@ -190,13 +190,13 @@ export const SwitchRow = ({
   name: string;
   label?: string;
   enabled: boolean;
-  onChange: (property: string, newValue: boolean, oldValue: boolean) => void;
+  onChange?: (property: string, newValue: boolean, oldValue: boolean) => void;
 }) => {
   const translate = useTranslate();
   const actualLabel = label || translate(name);
 
   const handleToggle = (checked: boolean) => {
-    onChange(name, checked, enabled);
+    onChange?.(name, checked, enabled);
   };
 
   return (
@@ -206,6 +206,7 @@ export const SwitchRow = ({
           checked={enabled}
           aria-label={actualLabel}
           onChange={(e) => handleToggle(e.target.checked)}
+          disabled={!onChange}
         />
       </div>
     </InlineField>

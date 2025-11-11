@@ -649,5 +649,9 @@
     "rectangular": "Rectangular selection",
     "polygonal": "Polygonal selection",
     "freehand": "Freehand selection"
+  },
+  "activeTopology": {
+    "title": "Active Topology",
+    "enabled": "Enabled"
   }
 }
