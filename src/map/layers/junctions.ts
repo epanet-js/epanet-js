@@ -103,3 +103,76 @@ const strokeColorExpression = (): mapboxgl.Expression => {
     strokeColorFor(defaultInnerColor),
   ];
 };
+
+const opacityExpressionWithActiveTopology = (
+  symbology: ISymbology,
+): mapboxgl.Expression => [
+  "case",
+  ["boolean", ["feature-state", "hidden"], false],
+  0,
+  ["==", ["get", "isActive"], false],
+  0.5,
+  asNumberExpression({
+    symbology,
+    part: "circle-opacity",
+    defaultValue: 1,
+  }),
+];
+
+export const junctionsLayerWithActiveTopology = ({
+  source,
+  layerId,
+  symbology,
+}: {
+  source: DataSource;
+  layerId: LayerId;
+  symbology: ISymbology;
+}): CircleLayer => {
+  return {
+    id: layerId,
+    type: "circle",
+    source,
+    filter: ["==", ["get", "type"], "junction"],
+    paint: {
+      "circle-opacity": opacityExpressionWithActiveTopology(symbology),
+      "circle-stroke-color": strokeColorExpression(),
+      ...junctionCircleSizes(),
+      "circle-stroke-opacity": opacityExpressionWithActiveTopology(symbology),
+      "circle-color": colorExpression(),
+    },
+    minzoom: 13,
+  };
+};
+
+export const junctionResultsLayerWithActiveTopology = ({
+  source,
+  layerId,
+  symbology,
+}: {
+  source: DataSource;
+  layerId: LayerId;
+  symbology: ISymbology;
+}): CircleLayer => ({
+  id: layerId,
+  type: "circle",
+  source,
+  filter: ["==", ["get", "type"], "junction"],
+  layout: { visibility: "none" },
+  paint: {
+    "circle-opacity": opacityExpressionWithActiveTopology(symbology),
+    "circle-stroke-color": strokeColorExpression(),
+    "circle-stroke-width": [
+      "interpolate",
+      ["linear"],
+      ["zoom"],
+      12,
+      0.1,
+      14,
+      1,
+    ],
+    "circle-stroke-opacity": opacityExpressionWithActiveTopology(symbology),
+    "circle-radius": ["interpolate", ["linear"], ["zoom"], 10, 1, 16, 6],
+    "circle-color": colorExpression(),
+  },
+  maxzoom: 13,
+});

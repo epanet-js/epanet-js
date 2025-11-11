@@ -21,7 +21,7 @@ export const buildOptimizedAssetsSource = (
   translateUnit: (unit: Unit) => string,
 ): Feature[] => {
   const strippedFeatures = [];
-  const keepProperties: string[] = ["type"];
+  const keepProperties: string[] = ["type", "isActive"];
 
   for (const asset of assets.values()) {
     if (asset.feature.properties?.visibility === false) {

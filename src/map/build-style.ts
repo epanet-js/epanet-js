@@ -69,14 +69,39 @@ export function defineEmptySources(style: Style) {
 
 import type { PreviewProperty } from "src/state/jotai";
 import type { ISymbology } from "src/types";
-import { reservoirLayers, pipesLayer, junctionsLayer } from "src/map/layers";
-import { pipeArrows, checkValveIcons } from "src/map/layers/pipes";
-import { junctionResultsLayer } from "src/map/layers/junctions";
-import { pumpIcons, pumpLines } from "src/map/layers/pumps";
-import { valveIcons, valveLines } from "src/map/layers/valves";
+import {
+  reservoirLayers,
+  pipesLayer,
+  junctionsLayer,
+  reservoirLayersWithActiveTopology,
+  pipesLayerWithActiveTopology,
+  junctionsLayerWithActiveTopology,
+} from "src/map/layers";
+import {
+  pipeArrows,
+  checkValveIcons,
+  pipeArrowsWithActiveTopology,
+  checkValveIconsWithActiveTopology,
+} from "src/map/layers/pipes";
+import {
+  junctionResultsLayer,
+  junctionResultsLayerWithActiveTopology,
+} from "src/map/layers/junctions";
+import {
+  pumpIcons,
+  pumpLines,
+  pumpIconsWithActiveTopology,
+  pumpLinesWithActiveTopology,
+} from "src/map/layers/pumps";
+import {
+  valveIcons,
+  valveLines,
+  valveIconsWithActiveTopology,
+  valveLinesWithActiveTopology,
+} from "src/map/layers/valves";
 import { linkLabelsLayer } from "src/map/layers/link-labels";
 import { nodeLabelsLayer } from "src/map/layers/node-labels";
-import { tankLayers } from "src/map/layers/tank";
+import { tankLayers, tankLayersWithActiveTopology } from "src/map/layers/tank";
 import {
   ephemeralDraftLineLayer,
   ephemeralIconHighlightLayers,
@@ -261,6 +286,156 @@ export function makeLayers({
     }),
     ...reservoirLayers({ sources: ["icons"] }),
     ...tankLayers({ sources: ["icons"] }),
+    selectedIconsLayer({
+      source: "selected-features",
+      layerId: "selected-icons",
+    }),
+    ephemeralJunctionHighlightLayers({ source: "ephemeral" }),
+    ephemeralIconHighlightLayers({ source: "ephemeral" }),
+    ...linkLabelsLayer({ sources: ["imported-features", "features"] }),
+    ...nodeLabelsLayer({ sources: ["imported-features", "features"] }),
+    ...(typeof previewProperty === "string"
+      ? [
+          {
+            id: FEATURES_POINT_LABEL_LAYER_NAME,
+            type: "symbol",
+            source: "features",
+            paint: LABEL_PAINT(symbology, previewProperty),
+            layout: LABEL_LAYOUT(previewProperty, "point"),
+            filter: addPreviewFilter(
+              CONTENT_LAYER_FILTERS[FEATURES_POINT_LAYER_NAME],
+              previewProperty,
+            ),
+          } as mapboxgl.AnyLayer,
+          {
+            id: FEATURES_LINE_LABEL_LAYER_NAME,
+            type: "symbol",
+            source: "features",
+            paint: LABEL_PAINT(symbology, previewProperty),
+            layout: LABEL_LAYOUT(previewProperty, "line"),
+            filter: addPreviewFilter(
+              CONTENT_LAYER_FILTERS[FEATURES_LINE_LAYER_NAME],
+              previewProperty,
+            ),
+          } as mapboxgl.AnyLayer,
+        ]
+      : []),
+    ephemeralSelectionFillLayer({ source: "ephemeral" }),
+    ephemeralSelectionOutlineLayer({ source: "ephemeral" }),
+  ].filter((l) => !!l);
+}
+
+export function makeLayersWithActiveTopology({
+  symbology,
+  previewProperty,
+}: {
+  symbology: ISymbology;
+  previewProperty: PreviewProperty;
+}): mapboxgl.AnyLayer[] {
+  return [
+    ephemeralHaloLayer({ source: "ephemeral" }),
+    pipesLayerWithActiveTopology({
+      source: "imported-features",
+      layerId: "imported-pipes",
+      symbology,
+    }),
+    pipesLayerWithActiveTopology({
+      source: "features",
+      layerId: "pipes",
+      symbology,
+    }),
+    selectedPipesLayer({
+      source: "selected-features",
+      layerId: "selected-pipes",
+    }),
+    pumpLinesWithActiveTopology({
+      source: "imported-features",
+      layerId: "imported-pump-lines",
+      symbology,
+    }),
+    pumpLinesWithActiveTopology({
+      source: "features",
+      layerId: "pump-lines",
+      symbology,
+    }),
+    selectedPumpLinesLayer({
+      source: "selected-features",
+      layerId: "selected-pump-lines",
+    }),
+    valveLinesWithActiveTopology({
+      source: "imported-features",
+      layerId: "imported-valve-lines",
+      symbology,
+    }),
+    valveLinesWithActiveTopology({
+      source: "features",
+      layerId: "valve-lines",
+      symbology,
+    }),
+    selectedValveLinesLayer({
+      source: "selected-features",
+      layerId: "selected-valve-lines",
+    }),
+    ephemeralShadowLineLayer({ source: "ephemeral" }),
+    ephemeralDraftLineLayer({ source: "ephemeral" }),
+    ephemeralPipeHighlightLayer({ source: "ephemeral" }),
+    pipeArrowsWithActiveTopology({
+      source: "imported-features",
+      layerId: "imported-pipe-arrows",
+      symbology,
+    }),
+    pipeArrowsWithActiveTopology({
+      source: "features",
+      layerId: "pipe-arrows",
+      symbology,
+    }),
+    selectedPipeArrowsLayer({
+      source: "selected-features",
+      layerId: "selected-pipe-arrows",
+    }),
+    junctionsLayerWithActiveTopology({
+      source: "imported-features",
+      layerId: "imported-junctions",
+      symbology,
+    }),
+    junctionsLayerWithActiveTopology({
+      source: "features",
+      layerId: "junctions",
+      symbology,
+    }),
+    selectedJunctionsLayer({
+      source: "selected-features",
+      layerId: "selected-junctions",
+    }),
+    junctionResultsLayerWithActiveTopology({
+      source: "imported-features",
+      layerId: "imported-junction-results",
+      symbology,
+    }),
+    junctionResultsLayerWithActiveTopology({
+      source: "features",
+      layerId: "junction-results",
+      symbology,
+    }),
+    selectedIconsHaloLayer({
+      source: "selected-features",
+      layerId: "selected-icons-halo",
+    }),
+    ...valveIconsWithActiveTopology({
+      source: "icons",
+      layerId: "valve-icons",
+    }),
+    checkValveIconsWithActiveTopology({
+      source: "icons",
+      layerId: "check-valve-icons",
+    }),
+    pumpIconsWithActiveTopology({
+      source: "icons",
+      layerId: "pump-icons",
+      symbology,
+    }),
+    ...reservoirLayersWithActiveTopology({ sources: ["icons"] }),
+    ...tankLayersWithActiveTopology({ sources: ["icons"] }),
     selectedIconsLayer({
       source: "selected-features",
       layerId: "selected-icons",

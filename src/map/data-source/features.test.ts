@@ -32,14 +32,48 @@ describe("build optimized source", () => {
 
     expect(features).toHaveLength(2);
     const [pipe, junction] = features;
-    expect(pipe.properties).toEqual({ type: "pipe", status: "open" });
-    expect(pipe.properties).toEqual({ type: "pipe", status: "open" });
+    expect(pipe.properties).toEqual({
+      type: "pipe",
+      status: "open",
+      isActive: true,
+    });
+    expect(pipe.properties).toEqual({
+      type: "pipe",
+      status: "open",
+      isActive: true,
+    });
     expect(pipe.geometry!.type).toEqual("LineString");
 
-    expect(junction.properties).toEqual({ type: "junction" });
+    expect(junction.properties).toEqual({ type: "junction", isActive: true });
     expect(junction.geometry!.type).toEqual("Point");
 
     expect(pipe.id).not.toEqual(junction.id);
+  });
+
+  it("includes isActive property from assets", () => {
+    const IDS = { ID: 1, ID2: 2, J1: 3, J2: 4 } as const;
+    const symbology = nullSymbologySpec;
+    const { assets } = HydraulicModelBuilder.with()
+      .aPipe(IDS.ID, { initialStatus: "open", isActive: true })
+      .aPipe(IDS.ID2, { initialStatus: "open", isActive: false })
+      .aJunction(IDS.J1, { elevation: 15, isActive: true })
+      .aJunction(IDS.J2, { elevation: 15, isActive: false })
+      .build();
+
+    const features = buildOptimizedAssetsSource(
+      assets,
+      symbology,
+      defaultQuantities,
+      fakeTranslateUnit,
+    );
+
+    expect(features).toHaveLength(4);
+    const [activePipe, inactivePipe, activeJunction, inactiveJunction] =
+      features;
+    expect(activePipe.properties!.isActive).toEqual(true);
+    expect(inactivePipe.properties!.isActive).toEqual(false);
+    expect(activeJunction.properties!.isActive).toEqual(true);
+    expect(inactiveJunction.properties!.isActive).toEqual(false);
   });
 
   it("uses pump status when available", () => {

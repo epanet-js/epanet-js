@@ -27,7 +27,11 @@ import {
   buildSelectionSource,
 } from "./data-source";
 import { ISymbology, LayerConfigMap, SYMBOLIZATION_NONE } from "src/types";
-import { buildBaseStyle, makeLayers } from "./build-style";
+import {
+  buildBaseStyle,
+  makeLayers,
+  makeLayersWithActiveTopology,
+} from "./build-style";
 import { LayerId } from "./layers";
 import { Asset, AssetId, AssetsMap, filterAssets } from "src/hydraulic-model";
 import { MomentLog } from "src/lib/persistence/moment-log";
@@ -41,6 +45,7 @@ import { mapLoadingAtom } from "./state";
 import { offlineAtom } from "src/state/offline";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   CustomerPointsOverlay,
   buildCustomerPointsOverlay,
@@ -204,6 +209,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const ephemeralDeckLayersRef = useRef<CustomerPointsOverlay>([]);
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
+  const isActiveTopologyEnabled = useFeatureFlag("FLAG_ACTIVE_TOPOLOGY");
 
   const doUpdates = useCallback(() => {
     if (!map) return;
@@ -380,7 +386,11 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         }
 
         if (hasNewStyles) {
-          addEditingLayersToMap(map, mapState.stylesConfig);
+          addEditingLayersToMap(
+            map,
+            mapState.stylesConfig,
+            isActiveTopologyEnabled,
+          );
           toggleAnalysisLayers(map, mapState.symbology);
         }
 
@@ -430,6 +440,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     translate,
     translateUnit,
     hydraulicModel,
+    isActiveTopologyEnabled,
   ]);
 
   doUpdates();
@@ -630,11 +641,20 @@ const updateSelection = withDebugInstrumentation(
 );
 
 const addEditingLayersToMap = withDebugInstrumentation(
-  (map: MapEngine, stylesConfig: StylesConfig) => {
-    const layers = makeLayers({
-      symbology: stylesConfig.symbology,
-      previewProperty: stylesConfig.previewProperty,
-    });
+  (
+    map: MapEngine,
+    stylesConfig: StylesConfig,
+    isActiveTopologyEnabled: boolean,
+  ) => {
+    const layers = isActiveTopologyEnabled
+      ? makeLayersWithActiveTopology({
+          symbology: stylesConfig.symbology,
+          previewProperty: stylesConfig.previewProperty,
+        })
+      : makeLayers({
+          symbology: stylesConfig.symbology,
+          previewProperty: stylesConfig.previewProperty,
+        });
 
     for (const layer of layers) {
       map.addLayer(layer);
