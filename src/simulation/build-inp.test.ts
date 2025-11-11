@@ -621,4 +621,165 @@ describe("build inp", () => {
       expect(inp).not.toContain(";[CUSTOMERS]");
     });
   });
+
+  describe("inactive assets", () => {
+    it("excludes inactive assets when inactiveAssets is 'exclude' (default)", () => {
+      const IDS = { J1: 1, J2: 2, J3: 3, P1: 4 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, { elevation: 10, isActive: true })
+        .aJunction(IDS.J2, { elevation: 20, isActive: false })
+        .aJunction(IDS.J3, { elevation: 30, isActive: true })
+        .aPipe(IDS.P1, {
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J3,
+          isActive: false,
+        })
+        .build();
+
+      const inp = buildInp(hydraulicModel);
+
+      expect(inp).toContain("[JUNCTIONS]");
+      expect(inp).toContain("1\t10");
+      expect(inp).not.toContain("2\t20");
+      expect(inp).toContain("3\t30");
+      expect(inp).toContain("[PIPES]");
+      expect(inp).not.toContain("4\t1\t3");
+    });
+
+    it("includes inactive assets as comments when inactiveAssets is 'comment'", () => {
+      const IDS = { J1: 1, J2: 2, J3: 3, P1: 4 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, { elevation: 10, isActive: true })
+        .aJunction(IDS.J2, { elevation: 20, isActive: false })
+        .aJunction(IDS.J3, { elevation: 30, isActive: true })
+        .aPipe(IDS.P1, {
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J3,
+          isActive: false,
+        })
+        .build();
+
+      const inp = buildInp(hydraulicModel, { inactiveAssets: true });
+
+      expect(inp).toContain("[JUNCTIONS]");
+      expect(inp).toContain("1\t10");
+      expect(inp).toContain(";2\t20");
+      expect(inp).toContain("3\t30");
+      expect(inp).toContain("[PIPES]");
+      expect(inp).toContain(";4\t1\t3");
+    });
+
+    it("comments out coordinates and vertices for inactive assets", () => {
+      const IDS = { J1: 1, J2: 2, P1: 3 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, {
+          elevation: 10,
+          coordinates: [10, 20],
+          isActive: false,
+        })
+        .aJunction(IDS.J2, {
+          elevation: 20,
+          coordinates: [30, 40],
+          isActive: true,
+        })
+        .aPipe(IDS.P1, {
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
+          coordinates: [
+            [10, 20],
+            [15, 25],
+            [20, 30],
+            [30, 40],
+          ],
+          isActive: false,
+        })
+        .build();
+
+      const inp = buildInp(hydraulicModel, {
+        geolocation: true,
+        inactiveAssets: true,
+      });
+
+      expect(inp).toContain("[COORDINATES]");
+      expect(inp).toContain(";1\t10\t20");
+      expect(inp).toContain("2\t30\t40");
+      expect(inp).toContain("[VERTICES]");
+      expect(inp).toContain(";3\t15\t25");
+      expect(inp).toContain(";3\t20\t30");
+    });
+
+    it("handles inactive reservoirs, tanks, pumps, and valves", () => {
+      const IDS = {
+        R1: 1,
+        T1: 2,
+        J1: 3,
+        J2: 4,
+        J3: 5,
+        J4: 6,
+        PUMP1: 7,
+        VALVE1: 8,
+      };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aReservoir(IDS.R1, { head: 100, isActive: false })
+        .aTank(IDS.T1, { elevation: 200, isActive: false })
+        .aJunction(IDS.J1, { elevation: 10, isActive: true })
+        .aJunction(IDS.J2, { elevation: 20, isActive: true })
+        .aJunction(IDS.J3, { elevation: 30, isActive: true })
+        .aJunction(IDS.J4, { elevation: 40, isActive: true })
+        .aPump(IDS.PUMP1, {
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
+          isActive: false,
+        })
+        .aValve(IDS.VALVE1, {
+          startNodeId: IDS.J3,
+          endNodeId: IDS.J4,
+          isActive: false,
+        })
+        .build();
+
+      const inp = buildInp(hydraulicModel, { inactiveAssets: true });
+
+      expect(inp).toContain(";1\t100");
+      expect(inp).toContain(";2\t200");
+      expect(inp).toContain(";7\t3\t4");
+      expect(inp).toContain(";8\t5\t6");
+    });
+
+    it("comments out demands for inactive junctions", () => {
+      const IDS = { J1: 1, J2: 2 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, { elevation: 10, baseDemand: 50, isActive: true })
+        .aJunction(IDS.J2, { elevation: 20, baseDemand: 75, isActive: false })
+        .build();
+
+      const inp = buildInp(hydraulicModel, { inactiveAssets: true });
+
+      expect(inp).toContain("[DEMANDS]");
+      expect(inp).toContain("1\t50");
+      expect(inp).toContain(";2\t75");
+    });
+
+    it("comments out pump status and curves for inactive pumps", () => {
+      const IDS = { J1: 1, J2: 2, PUMP1: 3 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, { elevation: 10 })
+        .aJunction(IDS.J2, { elevation: 20 })
+        .aPump(IDS.PUMP1, {
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
+          definitionType: "flow-vs-head",
+          designFlow: 100,
+          designHead: 50,
+          isActive: false,
+        })
+        .build();
+
+      const inp = buildInp(hydraulicModel, { inactiveAssets: true });
+
+      expect(inp).toContain(";3\t1\t2\tHEAD 3\tSPEED 1");
+      expect(inp).toContain(";3\t100\t50");
+      expect(inp).toContain(";3\tOpen");
+    });
+  });
 });

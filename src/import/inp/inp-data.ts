@@ -15,6 +15,7 @@ export type PipeData = {
   roughness: number;
   minorLoss: number;
   initialStatus: PipeStatus;
+  isActive: boolean;
 };
 
 export type PumpData = {
@@ -25,6 +26,7 @@ export type PumpData = {
   curveId?: string;
   speed?: number;
   patternId?: string;
+  isActive: boolean;
 };
 
 export type TankData = {
@@ -37,12 +39,14 @@ export type TankData = {
   minVolume: number;
   volumeCurveId?: string;
   overflow?: boolean;
+  isActive: boolean;
 };
 
 export type ReservoirData = {
   id: string;
   baseHead: number;
   patternId?: string;
+  isActive: boolean;
 };
 
 export type JunctionData = {
@@ -50,6 +54,7 @@ export type JunctionData = {
   elevation: number;
   baseDemand?: number | undefined;
   patternId?: string | undefined;
+  isActive: boolean;
 };
 
 export type ValveData = {
@@ -60,6 +65,7 @@ export type ValveData = {
   kind: ValveKind;
   setting: number;
   minorLoss: number;
+  isActive: boolean;
 };
 
 export type CustomerPointData =

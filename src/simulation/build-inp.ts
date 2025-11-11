@@ -130,6 +130,7 @@ type BuildOptions = {
   labelIds?: boolean;
   customerDemands?: boolean;
   customerPoints?: boolean;
+  inactiveAssets?: boolean;
 };
 
 export const buildInp = withDebugInstrumentation(
@@ -140,6 +141,7 @@ export const buildInp = withDebugInstrumentation(
       labelIds: false,
       customerDemands: false,
       customerPoints: false,
+      inactiveAssets: false,
     };
     const opts = { ...defaultOptions, ...options };
     const idMap = new EpanetIds({ strategy: opts.labelIds ? "label" : "id" });
@@ -186,11 +188,23 @@ export const buildInp = withDebugInstrumentation(
 
     for (const asset of hydraulicModel.assets.values()) {
       if (asset.type === "reservoir") {
-        appendReservoir(sections, idMap, opts.geolocation, asset as Reservoir);
+        appendReservoir(
+          sections,
+          idMap,
+          opts.geolocation,
+          opts.inactiveAssets,
+          asset as Reservoir,
+        );
       }
 
       if (asset.type === "tank") {
-        appendTank(sections, idMap, opts.geolocation, asset as Tank);
+        appendTank(
+          sections,
+          idMap,
+          opts.geolocation,
+          opts.inactiveAssets,
+          asset as Tank,
+        );
       }
 
       if (asset.type === "junction") {
@@ -199,6 +213,7 @@ export const buildInp = withDebugInstrumentation(
           idMap,
           opts.geolocation,
           opts.customerDemands,
+          opts.inactiveAssets,
           asset as Junction,
           hydraulicModel.customerPointsLookup,
         );
@@ -211,6 +226,7 @@ export const buildInp = withDebugInstrumentation(
           idMap,
           hydraulicModel,
           opts.geolocation,
+          opts.inactiveAssets,
           asset as Pipe,
         );
       }
@@ -221,6 +237,7 @@ export const buildInp = withDebugInstrumentation(
           idMap,
           hydraulicModel,
           opts.geolocation,
+          opts.inactiveAssets,
           asset as Pump,
         );
       }
@@ -231,6 +248,7 @@ export const buildInp = withDebugInstrumentation(
           idMap,
           hydraulicModel,
           opts.geolocation,
+          opts.inactiveAssets,
           asset as Valve,
         );
       }
@@ -284,13 +302,21 @@ const appendReservoir = (
   sections: InpSections,
   idMap: EpanetIds,
   geolocation: boolean,
+  inactiveAssets: boolean,
   reservoir: Reservoir,
 ) => {
-  const reservoirId = idMap.nodeId(reservoir);
+  if (!reservoir.feature.properties.isActive && !inactiveAssets) {
+    return;
+  }
 
-  sections.reservoirs.push([reservoirId, reservoir.head].join("\t"));
+  const reservoirId = idMap.nodeId(reservoir);
+  const commentPrefix = !reservoir.feature.properties.isActive ? ";" : "";
+
+  sections.reservoirs.push(
+    commentPrefix + [reservoirId, reservoir.head].join("\t"),
+  );
   if (geolocation) {
-    appendNodeCoordinates(sections, idMap, reservoir);
+    appendNodeCoordinates(sections, idMap, reservoir, commentPrefix);
   }
 };
 
@@ -298,26 +324,33 @@ const appendTank = (
   sections: InpSections,
   idMap: EpanetIds,
   geolocation: boolean,
+  inactiveAssets: boolean,
   tank: Tank,
 ) => {
+  if (!tank.feature.properties.isActive && !inactiveAssets) {
+    return;
+  }
+
   const tankId = idMap.nodeId(tank);
   const nullCurveId = "*";
+  const commentPrefix = !tank.feature.properties.isActive ? ";" : "";
 
   sections.tanks.push(
-    [
-      tankId,
-      tank.elevation,
-      tank.initialLevel,
-      tank.minLevel,
-      tank.maxLevel,
-      tank.diameter,
-      tank.minVolume,
-      nullCurveId,
-      tank.overflow ? "YES" : "NO",
-    ].join("\t"),
+    commentPrefix +
+      [
+        tankId,
+        tank.elevation,
+        tank.initialLevel,
+        tank.minLevel,
+        tank.maxLevel,
+        tank.diameter,
+        tank.minVolume,
+        nullCurveId,
+        tank.overflow ? "YES" : "NO",
+      ].join("\t"),
   );
   if (geolocation) {
-    appendNodeCoordinates(sections, idMap, tank);
+    appendNodeCoordinates(sections, idMap, tank, commentPrefix);
   }
 };
 
@@ -326,13 +359,23 @@ const appendJunction = (
   idMap: EpanetIds,
   geolocation: boolean,
   customerDemands: boolean,
+  inactiveAssets: boolean,
   junction: Junction,
   customerPointsLookup: CustomerPointsLookup,
 ): boolean => {
-  const junctionId = idMap.nodeId(junction);
+  if (!junction.feature.properties.isActive && !inactiveAssets) {
+    return false;
+  }
 
-  sections.junctions.push([junctionId, junction.elevation].join("\t"));
-  sections.demands.push([junctionId, junction.baseDemand].join("\t"));
+  const junctionId = idMap.nodeId(junction);
+  const commentPrefix = !junction.feature.properties.isActive ? ";" : "";
+
+  sections.junctions.push(
+    commentPrefix + [junctionId, junction.elevation].join("\t"),
+  );
+  sections.demands.push(
+    commentPrefix + [junctionId, junction.baseDemand].join("\t"),
+  );
 
   let patternUsed = false;
   if (customerDemands) {
@@ -340,14 +383,17 @@ const appendJunction = (
       junction.getTotalCustomerDemand(customerPointsLookup);
     if (totalCustomerDemand > 0) {
       sections.demands.push(
-        [junctionId, totalCustomerDemand, defaultCustomersPatternId].join("\t"),
+        commentPrefix +
+          [junctionId, totalCustomerDemand, defaultCustomersPatternId].join(
+            "\t",
+          ),
       );
       patternUsed = true;
     }
   }
 
   if (geolocation) {
-    appendNodeCoordinates(sections, idMap, junction);
+    appendNodeCoordinates(sections, idMap, junction, commentPrefix);
   }
 
   return patternUsed;
@@ -358,24 +404,32 @@ const appendPipe = (
   idMap: EpanetIds,
   hydraulicModel: HydraulicModel,
   geolocation: boolean,
+  inactiveAssets: boolean,
   pipe: Pipe,
 ) => {
+  if (!pipe.feature.properties.isActive && !inactiveAssets) {
+    return;
+  }
+
   const linkId = idMap.linkId(pipe);
   const [startId, endId] = getLinkConnectionIds(hydraulicModel, idMap, pipe);
+  const commentPrefix = !pipe.feature.properties.isActive ? ";" : "";
+
   sections.pipes.push(
-    [
-      linkId,
-      startId,
-      endId,
-      pipe.length,
-      pipe.diameter,
-      pipe.roughness,
-      pipe.minorLoss,
-      pipeStatusFor(pipe),
-    ].join("\t"),
+    commentPrefix +
+      [
+        linkId,
+        startId,
+        endId,
+        pipe.length,
+        pipe.diameter,
+        pipe.roughness,
+        pipe.minorLoss,
+        pipeStatusFor(pipe),
+      ].join("\t"),
   );
   if (geolocation) {
-    appendLinkVertices(sections, idMap, pipe);
+    appendLinkVertices(sections, idMap, pipe, commentPrefix);
   }
 };
 
@@ -384,34 +438,46 @@ const appendPump = (
   idMap: EpanetIds,
   hydraulicModel: HydraulicModel,
   geolocation: boolean,
+  inactiveAssets: boolean,
   pump: Pump,
 ) => {
+  if (!pump.feature.properties.isActive && !inactiveAssets) {
+    return; // Skip inactive assets when not including as comments
+  }
+
   const linkId = idMap.linkId(pump);
   const [startId, endId] = getLinkConnectionIds(hydraulicModel, idMap, pump);
+  const commentPrefix = !pump.feature.properties.isActive ? ";" : "";
+
   if (pump.definitionType === "flow-vs-head") {
     sections.pumps.push(
-      [linkId, startId, endId, `HEAD ${pump.id}`, `SPEED ${pump.speed}`].join(
-        "\t",
-      ),
+      commentPrefix +
+        [linkId, startId, endId, `HEAD ${pump.id}`, `SPEED ${pump.speed}`].join(
+          "\t",
+        ),
     );
     sections.curves.push(
-      [pump.id, String(pump.designFlow), String(pump.designHead)].join("\t"),
+      commentPrefix +
+        [pump.id, String(pump.designFlow), String(pump.designHead)].join("\t"),
     );
   } else {
     sections.pumps.push(
-      [
-        linkId,
-        startId,
-        endId,
-        `POWER ${pump.power}`,
-        `SPEED ${pump.speed}`,
-      ].join("\t"),
+      commentPrefix +
+        [
+          linkId,
+          startId,
+          endId,
+          `POWER ${pump.power}`,
+          `SPEED ${pump.speed}`,
+        ].join("\t"),
     );
   }
 
-  sections.status.push([linkId, pumpStatusFor(pump)].join("\t"));
+  sections.status.push(
+    commentPrefix + [linkId, pumpStatusFor(pump)].join("\t"),
+  );
   if (geolocation) {
-    appendLinkVertices(sections, idMap, pump);
+    appendLinkVertices(sections, idMap, pump, commentPrefix);
   }
 };
 
@@ -420,27 +486,35 @@ const appendValve = (
   idMap: EpanetIds,
   hydraulicModel: HydraulicModel,
   geolocation: boolean,
+  inactiveAssets: boolean,
   valve: Valve,
 ) => {
+  if (!valve.feature.properties.isActive && !inactiveAssets) {
+    return;
+  }
+
   const linkId = idMap.linkId(valve);
+  const commentPrefix = !valve.feature.properties.isActive ? ";" : "";
+
   sections.valves.push(
-    [
-      linkId,
-      ...getLinkConnectionIds(hydraulicModel, idMap, valve),
-      String(valve.diameter),
-      kindFor(valve),
-      String(valve.setting),
-      String(valve.minorLoss),
-    ].join("\t"),
+    commentPrefix +
+      [
+        linkId,
+        ...getLinkConnectionIds(hydraulicModel, idMap, valve),
+        String(valve.diameter),
+        kindFor(valve),
+        String(valve.setting),
+        String(valve.minorLoss),
+      ].join("\t"),
   );
 
   if (valve.initialStatus !== "active") {
     const fixedStatus = valveFixedStatusFor(valve);
-    sections.status.push([linkId, fixedStatus].join("\t"));
+    sections.status.push(commentPrefix + [linkId, fixedStatus].join("\t"));
   }
 
   if (geolocation) {
-    appendLinkVertices(sections, idMap, valve);
+    appendLinkVertices(sections, idMap, valve, commentPrefix);
   }
 };
 
@@ -464,9 +538,10 @@ const appendNodeCoordinates = (
   sections: InpSections,
   idMap: EpanetIds,
   node: NodeAsset,
+  commentPrefix = "",
 ) => {
   sections.coordinates.push(
-    [idMap.nodeId(node), ...node.coordinates].join("\t"),
+    commentPrefix + [idMap.nodeId(node), ...node.coordinates].join("\t"),
   );
 };
 
@@ -474,9 +549,12 @@ const appendLinkVertices = (
   sections: InpSections,
   idMap: EpanetIds,
   link: LinkAsset,
+  commentPrefix = "",
 ) => {
   for (const vertex of link.intermediateVertices) {
-    sections.vertices.push([idMap.linkId(link), ...vertex].join("\t"));
+    sections.vertices.push(
+      commentPrefix + [idMap.linkId(link), ...vertex].join("\t"),
+    );
   }
 };
 

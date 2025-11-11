@@ -79,10 +79,23 @@ export const readInpData = (
   options?: ParseInpOptions,
 ): { inpData: InpData; stats: InpStats } => {
   const rows = inp.split("\n");
-  let section = null;
+  let section: string | null = null;
   const inpData = nullInpData();
   const sectionParsers = buildSectionParsers();
   const counts = new Map<string, number>();
+
+  function parseRow(trimmedRow: string) {
+    if (!section) return;
+
+    const rowParserFn = sectionParsers[section];
+    if (!counts.has(section)) counts.set(section, 0);
+
+    counts.set(section, (counts.get(section) || 0) + 1);
+
+    if (!rowParserFn) return;
+
+    rowParserFn({ sectionName: section, trimmedRow, inpData, issues, options });
+  }
 
   for (const row of rows) {
     const trimmedRow = row.trim();
@@ -98,6 +111,12 @@ export const readInpData = (
         parseCommentedCustomerPoint(trimmedRow, inpData);
         continue;
       }
+
+      if (isLineHeader(trimmedRow)) {
+        continue;
+      }
+
+      if (options?.inactiveAssets === true) parseRow(trimmedRow);
       continue;
     }
 
@@ -115,16 +134,7 @@ export const readInpData = (
       section = newSectionName;
       continue;
     }
-    if (!section) continue;
-
-    const rowParserFn = sectionParsers[section];
-    if (!counts.has(section)) counts.set(section, 0);
-
-    counts.set(section, (counts.get(section) || 0) + 1);
-
-    if (!rowParserFn) continue;
-
-    rowParserFn({ sectionName: section, trimmedRow, inpData, issues, options });
+    parseRow(trimmedRow);
   }
 
   return { inpData, stats: { counts } };
@@ -136,6 +146,19 @@ const isEnd = (trimmedRow: string) => {
 
 const isLineComment = (trimmedRow: string) =>
   trimmedRow.startsWith(commentIdentifier);
+
+const isLineHeader = (trimmedRow: string): boolean => {
+  if (!isLineComment(trimmedRow)) return false;
+  const uncommentedRow = trimmedRow.substring(1).trim();
+  const uncommentedRowUpper = uncommentedRow.toUpperCase();
+
+  return (
+    uncommentedRowUpper.startsWith("ID") ||
+    uncommentedRowUpper.startsWith("NODE") ||
+    uncommentedRowUpper.startsWith("LINK") ||
+    uncommentedRow.startsWith("-")
+  );
+};
 
 const isEmpty = (trimmedRow: string) => trimmedRow === "";
 

@@ -53,6 +53,7 @@ export const useSaveInp = ({
             labelIds: true,
             customerDemands: true,
             customerPoints: true,
+            inactiveAssets: true,
           });
           const inpBlob = new Blob([inp], { type: "text/plain" });
 

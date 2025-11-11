@@ -8,6 +8,7 @@ import { InpStats } from "./inp-data";
 
 export type ParseInpOptions = {
   customerPoints?: boolean;
+  inactiveAssets?: boolean;
 };
 
 export const parseInp = (

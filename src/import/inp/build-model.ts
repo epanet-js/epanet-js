@@ -148,6 +148,7 @@ const addJunction = (
     coordinates,
     elevation: junctionData.elevation,
     baseDemand,
+    isActive: junctionData.isActive,
   });
   hydraulicModel.assets.set(junction.id, junction);
   nodeIds.set(junctionData.id, junction.id);
@@ -173,6 +174,7 @@ const addReservoir = (
     label: reservoirData.id,
     coordinates,
     head: calculateReservoirHead(reservoirData, inpData.patterns),
+    isActive: reservoirData.isActive,
   });
   hydraulicModel.assets.set(reservoir.id, reservoir);
   nodeIds.set(reservoirData.id, reservoir.id);
@@ -204,6 +206,7 @@ const addTank = (
     diameter: tankData.diameter,
     minVolume: tankData.minVolume,
     overflow: tankData.overflow ?? false,
+    isActive: tankData.isActive,
   });
   hydraulicModel.assets.set(tank.id, tank);
   nodeIds.set(tankData.id, tank.id);
@@ -284,6 +287,7 @@ const addPump = (
     initialStatus,
     speed,
     coordinates,
+    isActive: pumpData.isActive,
   });
   hydraulicModel.assets.set(pump.id, pump);
   hydraulicModel.topology.addLink(pump.id, connections[0], connections[1]);
@@ -324,6 +328,7 @@ const addValve = (
     initialStatus,
     connections,
     coordinates,
+    isActive: valveData.isActive,
   });
   hydraulicModel.assets.set(valve.id, valve);
   hydraulicModel.topology.addLink(valve.id, connections[0], connections[1]);
@@ -371,6 +376,7 @@ const addPipe = (
     initialStatus,
     connections,
     coordinates,
+    isActive: pipeData.isActive,
   });
   hydraulicModel.assets.set(pipe.id, pipe);
   hydraulicModel.topology.addLink(pipe.id, connections[0], connections[1]);
