@@ -2,16 +2,21 @@ import { useRef } from "react";
 import { Position, HandlerContext } from "src/types";
 import { useSelection } from "src/selection";
 import { runQuery } from "./run-query";
+import { captureError } from "src/infra/error-tracking";
 
 export const useAreaSelection = (context: HandlerContext) => {
   const { selection, hydraulicModel } = context;
   const { selectAssets, clearSelection } = useSelection(selection);
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  const selectContainedAssets = async (points: Position[]): Promise<void> => {
+  const abort = () => {
     if (!!abortControllerRef.current) {
       abortControllerRef.current?.abort();
     }
+  };
+
+  const selectContainedAssets = async (points: Position[]): Promise<void> => {
+    abort();
 
     const controller = new AbortController();
     abortControllerRef.current = controller;
@@ -36,14 +41,10 @@ export const useAreaSelection = (context: HandlerContext) => {
       if (error instanceof DOMException && error.name === "AbortError") {
         return;
       }
-      throw error;
+      captureError(error as Error);
     } finally {
       abortControllerRef.current = null;
     }
-  };
-
-  const abort = () => {
-    if (!!abortControllerRef.current) abortControllerRef.current?.abort();
   };
 
   return { selectContainedAssets, abort };

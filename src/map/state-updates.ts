@@ -370,12 +370,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           );
         }
 
-        if (
-          hasNewSelection ||
-          hasNewStyles ||
-          hasNewEphemeralState ||
-          hasNewEditions
-        ) {
+        if (hasNewSelection || hasNewStyles || hasNewEditions) {
           await updateSelection(
             map,
             mapState.selection,
