@@ -648,7 +648,10 @@
     "tool": "Area selection",
     "rectangular": "Rectangular selection",
     "polygonal": "Polygonal selection",
-    "freehand": "Freehand selection"
+    "freehand": "Freehand selection",
+    "drawingStartHint": "Click to start drawing the selection shape",
+    "drawingPolygonEndHint": "Double-click to close the polygon",
+    "drawingFreehandEndHint": "Click to complete"
   },
   "activeTopology": {
     "title": "Active Topology",

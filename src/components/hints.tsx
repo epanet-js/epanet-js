@@ -265,6 +265,49 @@ export function Hints() {
         />
       );
     }
+    case Mode.SELECT_RECTANGULAR: {
+      if (ephemeralState.type !== "areaSelect") {
+        return (
+          <Hint
+            hintId={"START_SELECTION"}
+            text={translate("areaSelection.drawingStartHint")}
+          />
+        );
+      }
+      break;
+    }
+    case Mode.SELECT_POLYGONAL: {
+      if (ephemeralState.type === "areaSelect" && ephemeralState.isDrawing) {
+        return (
+          <Hint
+            hintId={"END_SELECTION_POLYGONAL"}
+            text={translate("areaSelection.drawingPolygonEndHint")}
+          />
+        );
+      }
+      return (
+        <Hint
+          hintId={"START_SELECTION"}
+          text={translate("areaSelection.drawingStartHint")}
+        />
+      );
+    }
+    case Mode.SELECT_FREEHAND: {
+      if (ephemeralState.type === "areaSelect" && ephemeralState.isDrawing) {
+        return (
+          <Hint
+            hintId={"END_SELECTION_POLYGONAL"}
+            text={translate("areaSelection.drawingFreehandEndHint")}
+          />
+        );
+      }
+      return (
+        <Hint
+          hintId={"START_SELECTION"}
+          text={translate("areaSelection.drawingStartHint")}
+        />
+      );
+    }
     default:
       return null;
   }
