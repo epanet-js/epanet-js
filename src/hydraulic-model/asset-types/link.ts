@@ -49,6 +49,10 @@ export class Link<T> extends BaseAsset<T & LinkProperties> {
     return this.feature.properties.type;
   }
 
+  get isActive() {
+    return this.properties.isActive;
+  }
+
   get connections() {
     return this.properties.connections;
   }

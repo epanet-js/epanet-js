@@ -21,6 +21,10 @@ export const changeProperty: ModelOperation<InputData> = (
   { assets },
   { assetIds, property, value },
 ) => {
+  if (property === "isActive") {
+    return { note: "Change asset property", putAssets: [] };
+  }
+
   const updatedAssets: Asset[] = [];
   for (const assetId of assetIds) {
     const asset = assets.get(assetId);

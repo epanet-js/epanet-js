@@ -60,4 +60,19 @@ describe("change property", () => {
     expect(updatedPipe.id).toEqual(IDS.PIPE);
     expect(updatedPipe.diameter).toEqual(20);
   });
+
+  it("silently ignores isActive property changes", () => {
+    const IDS = { J1: 1 } as const;
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1)
+      .build();
+
+    const { putAssets } = changeProperty(hydraulicModel, {
+      assetIds: [IDS.J1],
+      property: "isActive",
+      value: false,
+    });
+
+    expect(putAssets).toHaveLength(0);
+  });
 });

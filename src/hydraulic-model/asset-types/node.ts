@@ -25,6 +25,10 @@ export class Node<T> extends BaseAsset<T & NodeProperties> {
     return true;
   }
 
+  get isActive() {
+    return this.properties.isActive;
+  }
+
   get coordinates() {
     return this.geometry.coordinates as Position;
   }
