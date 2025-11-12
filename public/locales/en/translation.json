@@ -655,6 +655,6 @@
   },
   "activeTopology": {
     "title": "Active Topology",
-    "enabled": "Enabled"
+    "isEnabled": "Is enabled"
   }
 }

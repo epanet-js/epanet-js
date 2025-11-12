@@ -289,7 +289,7 @@ const JunctionEditor = ({
         <Section title={translate("activeTopology.title")}>
           <SwitchRow
             name="isActive"
-            label={translate("activeTopology.enabled")}
+            label={translate("activeTopology.isEnabled")}
             enabled={junction.isActive}
           />
         </Section>
@@ -406,7 +406,7 @@ const PipeEditor = ({
         <Section title={translate("activeTopology.title")}>
           <SwitchRow
             name="isActive"
-            label={translate("activeTopology.enabled")}
+            label={translate("activeTopology.isEnabled")}
             enabled={pipe.isActive}
             onChange={onActiveTopologyStatusChange}
           />
@@ -510,7 +510,7 @@ const ReservoirEditor = ({
         <Section title={translate("activeTopology.title")}>
           <SwitchRow
             name="isActive"
-            label={translate("activeTopology.enabled")}
+            label={translate("activeTopology.isEnabled")}
             enabled={reservoir.isActive}
           />
         </Section>
@@ -552,7 +552,7 @@ const TankEditor = ({
         <Section title={translate("activeTopology.title")}>
           <SwitchRow
             name="isActive"
-            label={translate("activeTopology.enabled")}
+            label={translate("activeTopology.isEnabled")}
             enabled={tank.isActive}
           />
         </Section>
@@ -722,7 +722,7 @@ const ValveEditor = ({
         <Section title={translate("activeTopology.title")}>
           <SwitchRow
             name="isActive"
-            label={translate("activeTopology.enabled")}
+            label={translate("activeTopology.isEnabled")}
             enabled={valve.isActive}
             onChange={onActiveTopologyStatusChange}
           />
@@ -862,7 +862,7 @@ const PumpEditor = ({
         <Section title={translate("activeTopology.title")}>
           <SwitchRow
             name="isActive"
-            label={translate("activeTopology.enabled")}
+            label={translate("activeTopology.isEnabled")}
             enabled={pump.isActive}
             onChange={onActiveTopologyStatusChange}
           />
