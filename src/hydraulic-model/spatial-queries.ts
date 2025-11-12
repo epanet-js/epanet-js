@@ -2,10 +2,11 @@ import { Feature, Polygon, Position } from "geojson";
 import { AssetId } from "./asset-types";
 import { AssetsGeoQueries } from "./assets-geo";
 import bbox from "@turf/bbox";
-import { polygon } from "@turf/helpers";
+import { lineString, polygon } from "@turf/helpers";
 import booleanConcave from "@turf/boolean-concave";
 import booleanPointInPolygon from "@turf/boolean-point-in-polygon";
 import booleanContains from "@turf/boolean-contains";
+import booleanIntersects from "@turf/boolean-intersects";
 
 export function queryContainedAssets(
   geoIndex: AssetsGeoQueries,
@@ -40,6 +41,30 @@ export function queryContainedAssets(
   }
 
   return assetIds;
+}
+
+export function queryIntersectedAssets(
+  geoIndex: AssetsGeoQueries,
+  searchOptions: SearchOptions,
+): AssetId[] {
+  const search = toSearchPolygon(searchOptions);
+  const assetIds = new Set(
+    geoIndex.searchNodes(search.bounds, (nodeId: AssetId) => {
+      const nodeCoord = geoIndex.getNodePosition(nodeId);
+      if (!nodeCoord) return false;
+      return containsNode(search, nodeCoord);
+    }),
+  );
+  const segmentIds = geoIndex.searchLinkSegments(search.bounds, (segmentId) => {
+    const segmentCoords = geoIndex.getSegmentCoords(segmentId);
+    return intersectsSegment(search, segmentCoords);
+  });
+
+  segmentIds.forEach((segmentId) =>
+    assetIds.add(geoIndex.getSegmentLinkId(segmentId)),
+  );
+
+  return Array.from(assetIds);
 }
 
 type BoundingBox = [number, number, number, number];
@@ -166,13 +191,24 @@ function containsSegment(
   );
   if (isAnyPointOutside) return false;
 
-  const segmentLine = {
-    type: "LineString" as const,
-    coordinates: segmentCoords,
-  };
-  return booleanContains(searchPolygon.polygon, {
-    type: "Feature",
-    properties: {},
-    geometry: segmentLine,
-  });
+  return booleanContains(searchPolygon.polygon, lineString(segmentCoords));
+}
+
+function intersectsSegment(
+  searchPolygon: SearchPolygon,
+  segmentCoords: [Position, Position],
+): boolean {
+  if (searchPolygon.isBounds) return true;
+
+  if (searchPolygon.isConvex)
+    return segmentCoords.every((coord) =>
+      booleanPointInPolygon(coord, searchPolygon.polygon),
+    );
+
+  const isAnyPointInside = segmentCoords.some((coord) =>
+    booleanPointInPolygon(coord, searchPolygon.polygon),
+  );
+  if (isAnyPointInside) return true;
+
+  return booleanIntersects(searchPolygon.polygon, lineString(segmentCoords));
 }
