@@ -402,6 +402,10 @@ const PipeEditor = ({
 
   return (
     <AssetEditorContent label={pipe.label} type={translate("pipe")}>
+      <Section title={translate("connections")}>
+        <TextRow name="startNode" value={startNode ? startNode.label : ""} />
+        <TextRow name="endNode" value={endNode ? endNode.label : ""} />
+      </Section>
       {isActiveTopologyOn && (
         <Section title={translate("activeTopology.title")}>
           <SwitchRow
@@ -412,10 +416,6 @@ const PipeEditor = ({
           />
         </Section>
       )}
-      <Section title={translate("connections")}>
-        <TextRow name="startNode" value={startNode ? startNode.label : ""} />
-        <TextRow name="endNode" value={endNode ? endNode.label : ""} />
-      </Section>
       <Section title={translate("modelAttributes")}>
         <SelectRow
           name="initialStatus"
@@ -718,6 +718,10 @@ const ValveEditor = ({
 
   return (
     <AssetEditorContent label={valve.label} type={translate("valve")}>
+      <Section title={translate("connections")}>
+        <TextRow name="startNode" value={startNode ? startNode.label : ""} />
+        <TextRow name="endNode" value={endNode ? endNode.label : ""} />
+      </Section>
       {isActiveTopologyOn && (
         <Section title={translate("activeTopology.title")}>
           <SwitchRow
@@ -728,10 +732,6 @@ const ValveEditor = ({
           />
         </Section>
       )}
-      <Section title={translate("connections")}>
-        <TextRow name="startNode" value={startNode ? startNode.label : ""} />
-        <TextRow name="endNode" value={endNode ? endNode.label : ""} />
-      </Section>
       <Section title={translate("modelAttributes")}>
         <SelectRow
           name="valveType"
@@ -858,6 +858,10 @@ const PumpEditor = ({
 
   return (
     <AssetEditorContent label={pump.label} type={translate("pump")}>
+      <Section title={translate("connections")}>
+        <TextRow name="startNode" value={startNode ? startNode.label : ""} />
+        <TextRow name="endNode" value={endNode ? endNode.label : ""} />
+      </Section>
       {isActiveTopologyOn && (
         <Section title={translate("activeTopology.title")}>
           <SwitchRow
@@ -868,10 +872,6 @@ const PumpEditor = ({
           />
         </Section>
       )}
-      <Section title={translate("connections")}>
-        <TextRow name="startNode" value={startNode ? startNode.label : ""} />
-        <TextRow name="endNode" value={endNode ? endNode.label : ""} />
-      </Section>
       <Section title={translate("modelAttributes")}>
         <SelectRow
           name="pumpType"
