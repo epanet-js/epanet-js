@@ -351,6 +351,35 @@ export function findNearestPointOnLine(
   };
 }
 
+export function arePointsInLine(
+  lineCoordinates: Position[],
+  points: Position[],
+  tolerance: number = 1e-6,
+): boolean {
+  const pipeLineString: LineString = {
+    type: "LineString",
+    coordinates: lineCoordinates,
+  };
+
+  for (const vertex of points) {
+    const point: Point = {
+      type: "Point",
+      coordinates: vertex,
+    };
+
+    const nearest = turfNearestPointOnLine(pipeLineString, point, {
+      units: "degrees",
+    });
+    const distance = nearest.properties?.dist ?? Infinity;
+
+    if (distance > tolerance) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 function truncate3(geometry: MultiPolygon, e = 6): MultiPolygon {
   return {
     type: "MultiPolygon",
