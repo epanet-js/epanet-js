@@ -56,6 +56,7 @@ import {
 } from "./overlays/customer-points";
 import { CustomerPoints } from "src/hydraulic-model/customer-points";
 import { DEFAULT_ZOOM } from "./map-engine";
+import { buildIconPointsSourceWithActiveTopology } from "./data-source/icons";
 
 const SELECTION_LAYERS: LayerId[] = [
   "selected-pipes",
@@ -306,7 +307,15 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           hasNewSelection ||
           (hasNewSimulation && mapState.simulation.status !== "running")
         ) {
-          await updateIconsSource(map, assets, mapState.selection);
+          if (isActiveTopologyEnabled) {
+            await updateIconsSourceWithActiveTopology(
+              map,
+              assets,
+              mapState.selection,
+            );
+          } else {
+            await updateIconsSource(map, assets, mapState.selection);
+          }
         }
 
         if (
@@ -564,6 +573,21 @@ const updateIconsSource = withDebugInstrumentation(
   async (map: MapEngine, assets: AssetsMap, selection: Sel): Promise<void> => {
     const selectionSet = new Set(USelection.toIds(selection));
     const features = buildIconPointsSource(assets, selectionSet);
+    await map.setSource("icons", features);
+  },
+  {
+    name: "MAP_STATE:UPDATE_ICONS_SOURCE",
+    maxDurationMs: 250,
+  },
+);
+
+const updateIconsSourceWithActiveTopology = withDebugInstrumentation(
+  async (map: MapEngine, assets: AssetsMap, selection: Sel): Promise<void> => {
+    const selectionSet = new Set(USelection.toIds(selection));
+    const features = buildIconPointsSourceWithActiveTopology(
+      assets,
+      selectionSet,
+    );
     await map.setSource("icons", features);
   },
   {

@@ -64,6 +64,8 @@ export const tankLayersWithActiveTopology = ({
               "case",
               ["==", ["get", "selected"], true],
               "tank-selected",
+              ["==", ["get", "isActive"], false],
+              "tank-disabled",
               "tank",
             ],
             "icon-size": [
@@ -82,8 +84,6 @@ export const tankLayersWithActiveTopology = ({
             "icon-opacity": [
               "case",
               ["!=", ["feature-state", "hidden"], true],
-              ["==", ["get", "isActive"], false],
-              0.5,
               1,
               0,
             ],

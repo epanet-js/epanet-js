@@ -18,29 +18,38 @@ export type IconId =
   | "reservoir-outlined"
   | "reservoir-selected"
   | "reservoir-highlight"
+  | "reservoir-disabled"
   | "triangle"
   | "pump-on"
   | "pump-off"
+  | "pump-disabled"
   | "valve-prv-active"
   | "valve-prv-open"
   | "valve-prv-closed"
+  | "valve-prv-disabled"
   | "valve-psv-active"
   | "valve-psv-open"
   | "valve-psv-closed"
+  | "valve-psv-disabled"
   | "valve-tcv-active"
   | "valve-tcv-open"
   | "valve-tcv-closed"
+  | "valve-tcv-disabled"
   | "valve-fcv-active"
   | "valve-fcv-open"
   | "valve-fcv-closed"
+  | "valve-fcv-disabled"
   | "valve-pbv-active"
   | "valve-pbv-open"
   | "valve-pbv-closed"
+  | "valve-pbv-disabled"
   | "pipe-cv-open"
   | "pipe-cv-closed"
+  | "pipe-cv-disabled"
   | "tank"
   | "tank-selected"
-  | "tank-highlight";
+  | "tank-highlight"
+  | "tank-disabled";
 
 export type TextureProps = {
   width: number;
@@ -89,6 +98,16 @@ const buildIconUrls = (): IconUrl[] => {
       ),
     },
     {
+      id: "pump-disabled",
+      url: urlFor(
+        pumpSvgBuilder({
+          borderColor: "none",
+          fillColor: colors.gray300,
+          triangleColor: colors.gray500,
+        }),
+      ),
+    },
+    {
       id: "valve-prv-active",
       url: urlFor(
         buildPrvSvg({
@@ -112,6 +131,15 @@ const buildIconUrls = (): IconUrl[] => {
         buildPrvSvg({
           triangleColor: colors.red700,
           fillColor: colors.red300,
+        }),
+      ),
+    },
+    {
+      id: "valve-prv-disabled",
+      url: urlFor(
+        buildPrvSvg({
+          triangleColor: colors.gray500,
+          fillColor: colors.gray300,
         }),
       ),
     },
@@ -143,6 +171,15 @@ const buildIconUrls = (): IconUrl[] => {
       ),
     },
     {
+      id: "valve-psv-disabled",
+      url: urlFor(
+        buildPsvSvg({
+          triangleColor: colors.gray500,
+          fillColor: colors.gray300,
+        }),
+      ),
+    },
+    {
       id: "valve-tcv-active",
       url: urlFor(
         buildGpvSvg({
@@ -166,6 +203,15 @@ const buildIconUrls = (): IconUrl[] => {
         buildGpvSvg({
           triangleColor: colors.red700,
           fillColor: colors.red300,
+        }),
+      ),
+    },
+    {
+      id: "valve-tcv-disabled",
+      url: urlFor(
+        buildGpvSvg({
+          triangleColor: colors.gray500,
+          fillColor: colors.gray300,
         }),
       ),
     },
@@ -197,6 +243,15 @@ const buildIconUrls = (): IconUrl[] => {
       ),
     },
     {
+      id: "valve-fcv-disabled",
+      url: urlFor(
+        buildFcvSvg({
+          triangleColor: colors.gray500,
+          fillColor: colors.gray300,
+        }),
+      ),
+    },
+    {
       id: "valve-pbv-active",
       url: urlFor(
         buildPbvSvg({
@@ -224,6 +279,15 @@ const buildIconUrls = (): IconUrl[] => {
       ),
     },
     {
+      id: "valve-pbv-disabled",
+      url: urlFor(
+        buildPbvSvg({
+          triangleColor: colors.gray500,
+          fillColor: colors.gray300,
+        }),
+      ),
+    },
+    {
       id: "pipe-cv-open",
       url: urlFor(
         buildCheckValveSvg({
@@ -238,6 +302,15 @@ const buildIconUrls = (): IconUrl[] => {
         buildCheckValveSvg({
           triangleColor: colors.red700,
           fillColor: colors.red300,
+        }),
+      ),
+    },
+    {
+      id: "pipe-cv-disabled",
+      url: urlFor(
+        buildCheckValveSvg({
+          triangleColor: colors.gray500,
+          fillColor: colors.gray300,
         }),
       ),
     },
@@ -269,6 +342,15 @@ const buildIconUrls = (): IconUrl[] => {
       ),
     },
     {
+      id: "tank-disabled",
+      url: urlFor(
+        buildTankSvg({
+          borderColor: colors.gray500,
+          fillColor: colors.gray300,
+        }),
+      ),
+    },
+    {
       id: "reservoir",
       url: urlFor(
         buildReservoirSvg({
@@ -292,6 +374,15 @@ const buildIconUrls = (): IconUrl[] => {
         buildReservoirSvg({
           borderColor: colors.indigo300,
           fillColor: colors.indigo800,
+        }),
+      ),
+    },
+    {
+      id: "reservoir-disabled",
+      url: urlFor(
+        buildReservoirSvg({
+          borderColor: colors.gray500,
+          fillColor: colors.gray300,
         }),
       ),
     },

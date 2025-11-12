@@ -47,6 +47,61 @@ export const buildIconPointsSource = (
   return strippedFeatures;
 };
 
+export const buildIconPointsSourceWithActiveTopology = (
+  assets: AssetsMap,
+  selectedAssets: Set<AssetId>,
+): Feature[] => {
+  const strippedFeatures = [];
+
+  for (const asset of assets.values()) {
+    let feature: Feature | null = null;
+
+    switch (asset.type) {
+      case "pump":
+        feature = buildPumpIconWithActiveTopology(
+          asset as Pump,
+          selectedAssets,
+        );
+        break;
+      case "valve":
+        feature = buildValveIconWithActiveTopology(
+          asset as Valve,
+          selectedAssets,
+        );
+        break;
+      case "pipe":
+        const pipe = asset as Pipe;
+        if (pipe.initialStatus === "cv") {
+          feature = buildPipeCheckValveIconWithActiveTopology(
+            pipe,
+            selectedAssets,
+          );
+        }
+        break;
+      case "tank":
+        feature = buildNodeIconWithActiveTopology(
+          asset as Tank,
+          selectedAssets,
+        );
+        break;
+      case "reservoir":
+        feature = buildNodeIconWithActiveTopology(
+          asset as Reservoir,
+          selectedAssets,
+        );
+        break;
+      case "junction":
+        break;
+    }
+
+    if (feature) {
+      strippedFeatures.push(feature);
+    }
+  }
+
+  return strippedFeatures;
+};
+
 const buildDirectionalLinkIcon = <T extends Link<any>>(
   asset: T,
   selectedAssets: Set<AssetId>,
@@ -90,9 +145,37 @@ const buildNodeIcon = (
   };
 };
 
+const buildNodeIconWithActiveTopology = (
+  asset: Tank | Reservoir,
+  selectedAssets: Set<AssetId>,
+): Feature => {
+  const featureId = asset.id;
+
+  return {
+    type: "Feature",
+    id: featureId,
+    properties: {
+      type: asset.type,
+      isActive: asset.isActive,
+      selected: selectedAssets.has(asset.id),
+    },
+    geometry: asset.feature.geometry,
+  };
+};
+
 const buildPumpIcon = (pump: Pump, selectedAssets: Set<AssetId>): Feature => {
   return buildDirectionalLinkIcon(pump, selectedAssets, (asset) => ({
     status: asset.status ? asset.status : asset.initialStatus,
+  }));
+};
+
+const buildPumpIconWithActiveTopology = (
+  pump: Pump,
+  selectedAssets: Set<AssetId>,
+): Feature => {
+  return buildDirectionalLinkIcon(pump, selectedAssets, (asset) => ({
+    status: asset.status ? asset.status : asset.initialStatus,
+    isActive: asset.isActive,
   }));
 };
 
@@ -108,11 +191,41 @@ const buildValveIcon = (
   }));
 };
 
+const buildValveIconWithActiveTopology = (
+  valve: Valve,
+  selectedAssets: Set<AssetId>,
+): Feature => {
+  const status = valve.isActive
+    ? valve.status
+      ? valve.status
+      : valve.initialStatus
+    : "disabled";
+  return buildDirectionalLinkIcon(valve, selectedAssets, () => ({
+    kind: valve.kind,
+    icon: `valve-${valve.kind}-${status}`,
+    isControlValve: controlKinds.includes(valve.kind),
+  }));
+};
+
 const buildPipeCheckValveIcon = (
   pipe: Pipe,
   selectedAssets: Set<AssetId>,
 ): Feature => {
   const status = pipe.status === "closed" ? "closed" : "open";
+  return buildDirectionalLinkIcon(pipe, selectedAssets, () => ({
+    icon: `pipe-cv-${status}`,
+  }));
+};
+
+const buildPipeCheckValveIconWithActiveTopology = (
+  pipe: Pipe,
+  selectedAssets: Set<AssetId>,
+): Feature => {
+  const status = pipe.isActive
+    ? pipe.status === "closed"
+      ? "closed"
+      : "open"
+    : "disabled";
   return buildDirectionalLinkIcon(pipe, selectedAssets, () => ({
     icon: `pipe-cv-${status}`,
   }));

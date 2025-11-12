@@ -96,7 +96,6 @@ import {
 import {
   valveIcons,
   valveLines,
-  valveIconsWithActiveTopology,
   valveLinesWithActiveTopology,
 } from "src/map/layers/valves";
 import { linkLabelsLayer } from "src/map/layers/link-labels";
@@ -421,7 +420,7 @@ export function makeLayersWithActiveTopology({
       source: "selected-features",
       layerId: "selected-icons-halo",
     }),
-    ...valveIconsWithActiveTopology({
+    ...valveIcons({
       source: "icons",
       layerId: "valve-icons",
     }),

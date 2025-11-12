@@ -64,6 +64,8 @@ export const reservoirLayersWithActiveTopology = ({
               "case",
               ["==", ["get", "selected"], true],
               "reservoir-selected",
+              ["==", ["get", "isActive"], false],
+              "reservoir-disabled",
               "reservoir",
             ],
             "icon-size": [
@@ -82,8 +84,6 @@ export const reservoirLayersWithActiveTopology = ({
             "icon-opacity": [
               "case",
               ["!=", ["feature-state", "hidden"], true],
-              ["==", ["get", "isActive"], false],
-              0.5,
               1,
               0,
             ],
