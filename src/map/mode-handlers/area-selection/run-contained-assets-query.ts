@@ -17,7 +17,7 @@ import {
 } from "./data";
 import { BufferType } from "src/lib/buffers";
 
-export const runQuery = async (
+export const runContainedAssetsQuery = async (
   hydraulicModel: HydraulicModel,
   points: Position[],
   signal: AbortSignal | undefined = undefined,

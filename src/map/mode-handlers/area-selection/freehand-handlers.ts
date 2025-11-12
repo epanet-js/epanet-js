@@ -16,7 +16,7 @@ export function useFreehandSelectionHandlers(
   const setMode = useSetAtom(modeAtom);
   const [ephemeralState, setEphemeralState] = useAtom(ephemeralStateAtom);
   const lastPixelPointRef = useRef<{ x: number; y: number } | null>(null);
-  const { selectContainedAssets, abort: abortSelection } =
+  const { selectAssetsInArea: selectContainedAssets, abort: abortSelection } =
     useAreaSelection(context);
 
   return {

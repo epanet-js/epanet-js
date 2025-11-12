@@ -12,7 +12,7 @@ export function useRectangularSelectionHandlers(
 ): Handlers {
   const setMode = useSetAtom(modeAtom);
   const [ephemeralState, setEphemeralState] = useAtom(ephemeralStateAtom);
-  const { selectContainedAssets, abort: abortSelection } =
+  const { selectAssetsInArea: selectContainedAssets, abort: abortSelection } =
     useAreaSelection(context);
 
   return {
