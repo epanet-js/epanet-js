@@ -93,6 +93,7 @@
     "@turf/bearing": "^7.1.0",
     "@turf/boolean-concave": "^7.2.0",
     "@turf/boolean-contains": "^7.2.0",
+    "@turf/boolean-intersects": "^7.2.0",
     "@turf/boolean-point-in-polygon": "^7.2.0",
     "@turf/buffer": "^6.5.0",
     "@turf/center": "^6.5.0",
