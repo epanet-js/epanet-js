@@ -649,9 +649,9 @@
     "rectangular": "Rectangular selection",
     "polygonal": "Polygonal selection",
     "freehand": "Freehand selection",
-    "drawingStartHint": "Click to start drawing the selection shape",
-    "drawingPolygonEndHint": "Double-click to close the polygon",
-    "drawingFreehandEndHint": "Click to complete"
+    "drawingStartHint": "Click to start drawing the selection region",
+    "drawingPolygonEndHint": "Click to define vertices. Finish by double clicking",
+    "drawingFreehandEndHint": "Click to finish"
   },
   "activeTopology": {
     "title": "Active Topology",
