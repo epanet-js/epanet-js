@@ -108,7 +108,7 @@ const strokeColorExpressionWithActiveTopology = (): mapboxgl.Expression => {
   return [
     "case",
     ["==", ["get", "isActive"], false],
-    colors.gray300,
+    colors.gray500,
     ["coalesce", ["get", "strokeColor"], strokeColorFor(defaultInnerColor)],
   ];
 };
@@ -117,7 +117,7 @@ const colorExpressionWithActiveTopology = (): mapboxgl.Expression => {
   return [
     "case",
     ["==", ["get", "isActive"], false],
-    colors.gray100,
+    colors.gray300,
     ["coalesce", ["get", "color"], defaultInnerColor],
   ];
 };

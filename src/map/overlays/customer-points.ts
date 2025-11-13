@@ -31,9 +31,9 @@ const fillColor = hexToArray(colors.gray500);
 const strokeColor = hexToArray(strokeColorFor(colors.gray500));
 const connectionLineColor = hexToArray(colors.gray300);
 
-const disabledFillColor = hexToArray(colors.gray100);
-const disabledStrokeColor = hexToArray(colors.gray300);
-const disabledConnectionLineColor = hexToArray(colors.gray100, 0.78);
+const disabledFillColor = hexToArray(colors.gray300);
+const disabledStrokeColor = hexToArray(colors.gray400);
+const disabledConnectionLineColor = hexToArray(colors.gray300);
 
 const highlightFillColor = hexToArray(colors.cyan500);
 const haloFillColor = hexToArray(colors.cyan300, 0.8) as [
