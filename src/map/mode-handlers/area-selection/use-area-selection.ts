@@ -1,16 +1,13 @@
 import { useRef } from "react";
 import { Position, HandlerContext } from "src/types";
 import { useSelection } from "src/selection";
-import { runContainedAssetsQuery } from "./run-contained-assets-query";
+import { runQuery } from "./run-query";
 import { captureError } from "src/infra/error-tracking";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { runIntersectedAssetsQuery } from "./run-intersected-assets-query";
 
 export const useAreaSelection = (context: HandlerContext) => {
   const { selection, hydraulicModel } = context;
   const { selectAssets, clearSelection } = useSelection(selection);
   const abortControllerRef = useRef<AbortController | null>(null);
-  const isPrecisionSelection = useFeatureFlag("FLAG_PRECISION_SELECTION");
 
   const abort = () => {
     if (!!abortControllerRef.current) {
@@ -25,17 +22,11 @@ export const useAreaSelection = (context: HandlerContext) => {
     abortControllerRef.current = controller;
 
     try {
-      const assetIds = isPrecisionSelection
-        ? await runContainedAssetsQuery(
-            hydraulicModel,
-            points,
-            controller.signal,
-          )
-        : await runIntersectedAssetsQuery(
-            hydraulicModel,
-            points,
-            controller.signal,
-          );
+      const assetIds = await runQuery(
+        hydraulicModel,
+        points,
+        controller.signal,
+      );
 
       if (controller.signal.aborted) {
         return;

@@ -12,7 +12,7 @@ export function useRectangularSelectionHandlers(
 ): Handlers {
   const setMode = useSetAtom(modeAtom);
   const [ephemeralState, setEphemeralState] = useAtom(ephemeralStateAtom);
-  const { selectAssetsInArea: selectContainedAssets, abort: abortSelection } =
+  const { selectAssetsInArea, abort: abortSelection } =
     useAreaSelection(context);
 
   return {
@@ -35,7 +35,7 @@ export function useRectangularSelectionHandlers(
           ephemeralState.points[1],
         )[0];
         setEphemeralState(finishedDrawingState(ephemeralState.points));
-        await selectContainedAssets(closedPolygon);
+        await selectAssetsInArea(closedPolygon);
         setEphemeralState({ type: "none" });
       } else {
         setEphemeralState(drawingState([currentPos, currentPos]));

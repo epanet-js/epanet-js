@@ -12,7 +12,7 @@ export function usePolygonalSelectionHandlers(
 ): Handlers {
   const setMode = useSetAtom(modeAtom);
   const [ephemeralState, setEphemeralState] = useAtom(ephemeralStateAtom);
-  const { selectAssetsInArea: selectContainedAssets, abort: abortSelection } =
+  const { selectAssetsInArea, abort: abortSelection } =
     useAreaSelection(context);
 
   return {
@@ -39,7 +39,7 @@ export function usePolygonalSelectionHandlers(
         ephemeralState.points[0],
       ];
       setEphemeralState(finishedDrawingState(closedPolygon));
-      await selectContainedAssets(closedPolygon);
+      await selectAssetsInArea(closedPolygon);
       setEphemeralState({ type: "none" });
     },
     move: (e) => {

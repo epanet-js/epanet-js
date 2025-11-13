@@ -209,9 +209,6 @@ importers:
       '@turf/boolean-contains':
         specifier: ^7.2.0
         version: 7.2.0
-      '@turf/boolean-intersects':
-        specifier: ^7.2.0
-        version: 7.2.0
       '@turf/boolean-point-in-polygon':
         specifier: ^7.2.0
         version: 7.2.0
@@ -2985,12 +2982,6 @@ packages:
   '@turf/boolean-contains@7.2.0':
     resolution: {integrity: sha512-dgRQm4uVO5XuLee4PLVH7CFQZKdefUBMIXTPITm2oRIDmPLJKHDOFKQTNkGJ73mDKKBR2lmt6eVH3br6OYrEYg==}
 
-  '@turf/boolean-disjoint@7.2.0':
-    resolution: {integrity: sha512-xdz+pYKkLMuqkNeJ6EF/3OdAiJdiHhcHCV0ykX33NIuALKIEpKik0+NdxxNsZsivOW6keKwr61SI+gcVtHYcnQ==}
-
-  '@turf/boolean-intersects@7.2.0':
-    resolution: {integrity: sha512-GLRyLQgK3F14drkK5Qi9Mv7Z9VT1bgQUd9a3DB3DACTZWDSwfh8YZUFn/HBwRkK8dDdgNEXaavggQHcPi1k9ow==}
-
   '@turf/boolean-point-in-polygon@7.2.0':
     resolution: {integrity: sha512-lvEOjxeXIp+wPXgl9kJA97dqzMfNexjqHou+XHVcfxQgolctoJiRYmcVCWGpiZ9CBf/CJha1KmD1qQoRIsjLaA==}
 
@@ -3074,9 +3065,6 @@ packages:
 
   '@turf/nearest-point-on-line@7.2.0':
     resolution: {integrity: sha512-UOhAeoDPVewBQV+PWg1YTMQcYpJsIqfW5+EuZ5vJl60XwUa0+kqB/eVfSLNXmHENjKKIlEt9Oy9HIDF4VeWmXA==}
-
-  '@turf/polygon-to-line@7.2.0':
-    resolution: {integrity: sha512-9jeTN3LiJ933I5sd4K0kwkcivOYXXm1emk0dHorwXeSFSHF+nlYesEW3Hd889wb9lZd7/SVLMUeX/h39mX+vCA==}
 
   '@turf/projection@6.5.0':
     resolution: {integrity: sha512-/Pgh9mDvQWWu8HRxqpM+tKz8OzgauV+DiOcr3FCjD6ubDnrrmMJlsf6fFJmggw93mtVPrZRL6yyi9aYCQBOIvg==}
@@ -10097,24 +10085,6 @@ snapshots:
       '@types/geojson': 7946.0.14
       tslib: 2.8.1
 
-  '@turf/boolean-disjoint@7.2.0':
-    dependencies:
-      '@turf/boolean-point-in-polygon': 7.2.0
-      '@turf/helpers': 7.2.0
-      '@turf/line-intersect': 7.2.0
-      '@turf/meta': 7.2.0
-      '@turf/polygon-to-line': 7.2.0
-      '@types/geojson': 7946.0.14
-      tslib: 2.8.1
-
-  '@turf/boolean-intersects@7.2.0':
-    dependencies:
-      '@turf/boolean-disjoint': 7.2.0
-      '@turf/helpers': 7.2.0
-      '@turf/meta': 7.2.0
-      '@types/geojson': 7946.0.14
-      tslib: 2.8.1
-
   '@turf/boolean-point-in-polygon@7.2.0':
     dependencies:
       '@turf/helpers': 7.2.0
@@ -10299,13 +10269,6 @@ snapshots:
       '@turf/helpers': 7.2.0
       '@turf/invariant': 7.2.0
       '@turf/meta': 7.2.0
-      '@types/geojson': 7946.0.14
-      tslib: 2.8.1
-
-  '@turf/polygon-to-line@7.2.0':
-    dependencies:
-      '@turf/helpers': 7.2.0
-      '@turf/invariant': 7.2.0
       '@types/geojson': 7946.0.14
       tslib: 2.8.1
 

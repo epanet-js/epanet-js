@@ -16,7 +16,7 @@ export function useFreehandSelectionHandlers(
   const setMode = useSetAtom(modeAtom);
   const [ephemeralState, setEphemeralState] = useAtom(ephemeralStateAtom);
   const lastPixelPointRef = useRef<{ x: number; y: number } | null>(null);
-  const { selectAssetsInArea: selectContainedAssets, abort: abortSelection } =
+  const { selectAssetsInArea, abort: abortSelection } =
     useAreaSelection(context);
 
   return {
@@ -72,7 +72,7 @@ export function useFreehandSelectionHandlers(
           ephemeralState.points[0],
         ];
         setEphemeralState(finishedDrawingState(closedPolygon));
-        await selectContainedAssets(closedPolygon);
+        await selectAssetsInArea(closedPolygon);
         setEphemeralState({ type: "none" });
         lastPixelPointRef.current = null;
       } else {
