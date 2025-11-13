@@ -11,6 +11,8 @@ import {
   CUSTOMER_POINT_COLORS_SELECTED_HALO,
 } from "src/lib/constants";
 import { Position } from "src/types";
+import { AssetsMap } from "src/hydraulic-model";
+import { Pipe } from "src/hydraulic-model/asset-types/pipe";
 
 interface ConnectionLineData {
   sourcePosition: [number, number];
@@ -18,9 +20,20 @@ interface ConnectionLineData {
   customerPointId: number;
 }
 
+interface CustomerPointData {
+  id: number;
+  coordinates: Position;
+  snapPosition: Position | null;
+  isActive: boolean;
+}
+
 const fillColor = hexToArray(colors.gray500);
 const strokeColor = hexToArray(strokeColorFor(colors.gray500));
 const connectionLineColor = hexToArray(colors.gray300);
+
+const disabledFillColor = hexToArray(colors.gray100);
+const disabledStrokeColor = hexToArray(colors.gray300);
+const disabledConnectionLineColor = hexToArray(colors.gray100, 0.78);
 
 const highlightFillColor = hexToArray(colors.cyan500);
 const haloFillColor = hexToArray(colors.cyan300, 0.8) as [
@@ -109,6 +122,94 @@ export const buildCustomerPointsOverlay = (
     getFillColor: fillColor,
     stroked: true,
     getLineColor: strokeColor,
+    getLineWidth: 1,
+    lineWidthUnits: "pixels",
+    lineWidthMinPixels: 1,
+    lineWidthMaxPixels: 2,
+    antialiasing: true,
+    visible: isVisible,
+    pickable: true,
+  });
+
+  return [connectionLinesLayer, scatterLayer];
+};
+
+export const buildCustomerPointsOverlayWithActiveTopology = (
+  customerPoints: CustomerPoints,
+  assets: AssetsMap,
+  zoom: number,
+  excludedCustomerPointIds?: Set<number>,
+): CustomerPointsOverlay => {
+  const customerPointsData: CustomerPointData[] = [];
+  const connectionLinesData: Array<ConnectionLineData & { isActive: boolean }> =
+    [];
+
+  for (const customerPoint of customerPoints.values()) {
+    if (excludedCustomerPointIds?.has(customerPoint.id)) {
+      continue;
+    }
+
+    let isActive = false;
+
+    if (customerPoint.connection) {
+      const pipe = assets.get(customerPoint.connection.pipeId) as
+        | Pipe
+        | undefined;
+      isActive = pipe?.isActive ?? false;
+    }
+
+    customerPointsData.push({
+      id: customerPoint.id,
+      coordinates: customerPoint.coordinates,
+      snapPosition: customerPoint.snapPosition,
+      isActive,
+    });
+
+    const snapPosition = customerPoint.snapPosition;
+    if (snapPosition) {
+      connectionLinesData.push({
+        sourcePosition: customerPoint.coordinates as [number, number],
+        targetPosition: snapPosition as [number, number],
+        customerPointId: customerPoint.id,
+        isActive,
+      });
+    }
+  }
+
+  const isVisible = shouldShowOvelay(zoom);
+
+  const connectionLinesLayer = new LineLayer({
+    id: "customer-connection-lines-layer",
+    beforeId: "imported-pipes",
+    data: connectionLinesData,
+    getSourcePosition: (d: ConnectionLineData) => d.sourcePosition,
+    getTargetPosition: (d: ConnectionLineData) => d.targetPosition,
+
+    widthUnits: "meters",
+    getWidth: 0.8,
+    widthMinPixels: 0,
+    widthMaxPixels: 2,
+
+    getColor: (d) =>
+      d.isActive ? connectionLineColor : disabledConnectionLineColor,
+    antialiasing: true,
+    visible: isVisible,
+  });
+
+  const scatterLayer = new ScatterplotLayer({
+    id: "customer-points-layer",
+    beforeId: "ephemeral-junction-highlight",
+    data: customerPointsData,
+    getPosition: (d) => d.coordinates as [number, number],
+
+    radiusUnits: "meters",
+    getRadius: 1.5,
+    radiusMinPixels: 0,
+    radiusMaxPixels: 4,
+
+    getFillColor: (d) => (d.isActive ? fillColor : disabledFillColor),
+    stroked: true,
+    getLineColor: (d) => (d.isActive ? strokeColor : disabledStrokeColor),
     getLineWidth: 1,
     lineWidthUnits: "pixels",
     lineWidthMinPixels: 1,

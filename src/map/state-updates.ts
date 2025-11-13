@@ -49,6 +49,7 @@ import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   CustomerPointsOverlay,
   buildCustomerPointsOverlay,
+  buildCustomerPointsOverlayWithActiveTopology,
   buildCustomerPointsHighlightOverlay,
   buildCustomerPointsSelectionOverlay,
   buildConnectCustomerPointsPreviewOverlay,
@@ -324,10 +325,19 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           hasNewStyles ||
           hasNewCustomerPoints
         ) {
-          customerPointsOverlayRef.current = buildCustomerPointsOverlay(
-            hydraulicModel.customerPoints,
-            mapState.currentZoom,
-          );
+          if (isActiveTopologyEnabled) {
+            customerPointsOverlayRef.current =
+              buildCustomerPointsOverlayWithActiveTopology(
+                hydraulicModel.customerPoints,
+                assets,
+                mapState.currentZoom,
+              );
+          } else {
+            customerPointsOverlayRef.current = buildCustomerPointsOverlay(
+              hydraulicModel.customerPoints,
+              mapState.currentZoom,
+            );
+          }
         }
 
         if (
@@ -412,7 +422,8 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           hasNewZoom ||
           hasNewSelection ||
           hasNewEphemeralState ||
-          hasNewCustomerPoints
+          hasNewCustomerPoints ||
+          hasNewEditions
         ) {
           const shouldHideCustomerPointsOverlay =
             (mapState.ephemeralState.type === "moveAssets" &&
