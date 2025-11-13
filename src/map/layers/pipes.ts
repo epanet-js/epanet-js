@@ -3,6 +3,7 @@ import { ISymbology } from "src/types";
 import { asNumberExpression } from "src/lib/symbolization-deprecated";
 import { DataSource } from "../data-source";
 import { LayerId } from "./layer";
+import { colors } from "src/lib/constants";
 
 export const pipesLayer = ({
   source,
@@ -146,8 +147,6 @@ export const pipesLayerWithActiveTopology = ({
       "case",
       ["boolean", ["feature-state", "hidden"], false],
       0,
-      ["==", ["get", "isActive"], false],
-      0.33,
       asNumberExpression({
         symbology,
         part: "stroke-opacity",
@@ -155,7 +154,12 @@ export const pipesLayerWithActiveTopology = ({
       }),
     ],
     "line-width": ["interpolate", ["linear"], ["zoom"], 12, 0.5, 16, 4],
-    "line-color": ["coalesce", ["get", "color"], symbology.defaultColor],
+    "line-color": [
+      "case",
+      ["==", ["get", "isActive"], false],
+      colors.indigo300,
+      ["coalesce", ["get", "color"], symbology.defaultColor],
+    ],
     "line-dasharray": [
       "case",
       ["==", ["get", "status"], "closed"],

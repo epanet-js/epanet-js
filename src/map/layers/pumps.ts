@@ -99,8 +99,6 @@ export const pumpLinesWithActiveTopology = ({
       "case",
       ["boolean", ["feature-state", "hidden"], false],
       0,
-      ["==", ["get", "isActive"], false],
-      0.33,
       asNumberExpression({
         symbology,
         part: "stroke-opacity",
@@ -108,7 +106,12 @@ export const pumpLinesWithActiveTopology = ({
       }),
     ],
     "line-width": ["interpolate", ["linear"], ["zoom"], 12, 0.5, 16, 2],
-    "line-color": ["coalesce", ["get", "color"], colors.orange700],
+    "line-color": [
+      "case",
+      ["==", ["get", "isActive"], false],
+      colors.indigo300,
+      ["coalesce", ["get", "color"], colors.orange700],
+    ],
     "line-dasharray": [
       "case",
       ["==", ["get", "status"], "off"],
