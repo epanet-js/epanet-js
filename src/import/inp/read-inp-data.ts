@@ -94,7 +94,18 @@ export const readInpData = (
 
     if (!rowParserFn) return;
 
-    rowParserFn({ sectionName: section, trimmedRow, inpData, issues, options });
+    const startsWithComment = trimmedRow.startsWith(commentIdentifier);
+
+    rowParserFn({
+      sectionName: section,
+      trimmedRow: startsWithComment
+        ? trimmedRow.substring(1).trim()
+        : trimmedRow,
+      inpData,
+      issues,
+      options,
+      isCommented: startsWithComment,
+    });
   }
 
   for (const row of rows) {

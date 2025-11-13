@@ -14,27 +14,13 @@ import { ParseInpOptions } from "./parse-inp";
 export type RowParser = (params: {
   sectionName: string;
   trimmedRow: string;
+  isCommented: boolean;
   inpData: InpData;
   issues: IssuesAccumulator;
   options?: ParseInpOptions;
 }) => void;
 
 export const commentIdentifier = ";";
-
-const extractActiveStatus = (
-  trimmedRow: string,
-): { isActive: boolean; cleanRow: string } => {
-  if (trimmedRow.startsWith(commentIdentifier)) {
-    return {
-      isActive: false,
-      cleanRow: trimmedRow.substring(1).trim(),
-    };
-  }
-  return {
-    isActive: true,
-    cleanRow: trimmedRow,
-  };
-};
 
 const epanetDefaultOptions = {
   UNITS: "CFS",
@@ -67,37 +53,47 @@ export const ignore: RowParser = () => {};
 export const unsupported: RowParser = ({ sectionName, issues }) => {
   issues.addUsedSection(sectionName);
 };
-export const parseReservoir: RowParser = ({ trimmedRow, inpData }) => {
-  const { isActive, cleanRow } = extractActiveStatus(trimmedRow);
-  const [id, baseHead, patternId] = readValues(cleanRow);
+export const parseReservoir: RowParser = ({
+  trimmedRow,
+  inpData,
+  isCommented,
+}) => {
+  const [id, baseHead, patternId] = readValues(trimmedRow);
 
   inpData.reservoirs.push({
     id,
     baseHead: parseFloat(baseHead),
     patternId,
-    isActive,
+    isActive: !isCommented,
   });
   inpData.nodeIds.add(id);
 };
 
-export const parseJunction: RowParser = ({ trimmedRow, inpData }) => {
-  const { isActive, cleanRow } = extractActiveStatus(trimmedRow);
-  const [id, elevation, baseDemand, patternId] = readValues(cleanRow);
+export const parseJunction: RowParser = ({
+  trimmedRow,
+  inpData,
+  isCommented,
+}) => {
+  const [id, elevation, baseDemand, patternId] = readValues(trimmedRow);
 
   const junctionData = {
     id,
     elevation: parseFloat(elevation),
     baseDemand: baseDemand ? parseFloat(baseDemand) : undefined,
     patternId: patternId ? patternId : undefined,
-    isActive,
+    isActive: !isCommented,
   };
   inpData.junctions.push(junctionData);
 
   inpData.nodeIds.add(id);
 };
 
-export const parseValve: RowParser = ({ trimmedRow, inpData, issues }) => {
-  const { isActive, cleanRow } = extractActiveStatus(trimmedRow);
+export const parseValve: RowParser = ({
+  trimmedRow,
+  inpData,
+  issues,
+  isCommented,
+}) => {
   const [
     id,
     startNodeDirtyId,
@@ -106,7 +102,7 @@ export const parseValve: RowParser = ({ trimmedRow, inpData, issues }) => {
     type,
     setting,
     minorLoss,
-  ] = readValues(cleanRow);
+  ] = readValues(trimmedRow);
 
   let kind = type.toLowerCase();
   if (kind === "gpv") {
@@ -122,14 +118,13 @@ export const parseValve: RowParser = ({ trimmedRow, inpData, issues }) => {
     kind: kind as ValveKind,
     setting: parseFloat(setting),
     minorLoss: parseFloat(minorLoss),
-    isActive,
+    isActive: !isCommented,
   });
 };
 
-export const parsePump: RowParser = ({ trimmedRow, inpData }) => {
-  const { isActive, cleanRow } = extractActiveStatus(trimmedRow);
+export const parsePump: RowParser = ({ trimmedRow, inpData, isCommented }) => {
   const [id, startNodeDirtyId, endNodeDirtyId, ...settingFields] =
-    readValues(cleanRow);
+    readValues(trimmedRow);
 
   let power = undefined;
   let curveId = undefined;
@@ -164,7 +159,7 @@ export const parsePump: RowParser = ({ trimmedRow, inpData }) => {
     curveId,
     speed,
     patternId,
-    isActive,
+    isActive: !isCommented,
   });
 };
 
@@ -184,12 +179,12 @@ export const parseStatus: RowParser = ({ trimmedRow, inpData }) => {
 export const parseTankPartially: RowParser = ({
   sectionName,
   trimmedRow,
+  isCommented,
   inpData,
   issues,
 }) => {
   issues.addUsedSection(sectionName);
-  const { isActive, cleanRow } = extractActiveStatus(trimmedRow);
-  const [id, elevation, initialLevel] = readValues(cleanRow);
+  const [id, elevation, initialLevel] = readValues(trimmedRow);
   inpData.tanks.push({
     id,
     elevation: parseFloat(elevation),
@@ -198,14 +193,18 @@ export const parseTankPartially: RowParser = ({
     maxLevel: 100,
     diameter: 50,
     minVolume: 0,
-    isActive,
+    isActive: !isCommented,
   });
 
   inpData.nodeIds.add(id);
 };
 
-export const parseTank: RowParser = ({ trimmedRow, inpData, issues }) => {
-  const { isActive, cleanRow } = extractActiveStatus(trimmedRow);
+export const parseTank: RowParser = ({
+  trimmedRow,
+  inpData,
+  issues,
+  isCommented,
+}) => {
   const [
     id,
     elevation,
@@ -216,7 +215,7 @@ export const parseTank: RowParser = ({ trimmedRow, inpData, issues }) => {
     minVolume,
     volumeCurveId,
     overflow,
-  ] = readValues(cleanRow);
+  ] = readValues(trimmedRow);
 
   const tankData: TankData = {
     id,
@@ -226,7 +225,7 @@ export const parseTank: RowParser = ({ trimmedRow, inpData, issues }) => {
     maxLevel: parseFloat(maxLevel),
     diameter: parseFloat(diameter),
     minVolume: parseFloat(minVolume),
-    isActive,
+    isActive: !isCommented,
   };
 
   if (volumeCurveId && volumeCurveId !== "*") {
@@ -242,8 +241,7 @@ export const parseTank: RowParser = ({ trimmedRow, inpData, issues }) => {
   inpData.nodeIds.add(id);
 };
 
-export const parsePipe: RowParser = ({ trimmedRow, inpData }) => {
-  const { isActive, cleanRow } = extractActiveStatus(trimmedRow);
+export const parsePipe: RowParser = ({ trimmedRow, inpData, isCommented }) => {
   const [
     id,
     startNodeDirtyId,
@@ -253,7 +251,7 @@ export const parsePipe: RowParser = ({ trimmedRow, inpData }) => {
     roughness,
     minorLoss,
     status,
-  ] = readValues(cleanRow);
+  ] = readValues(trimmedRow);
 
   let initialStatus: PipeStatus = "open";
   if (status) {
@@ -274,13 +272,12 @@ export const parsePipe: RowParser = ({ trimmedRow, inpData }) => {
     roughness: parseFloat(roughness),
     minorLoss: minorLoss !== undefined ? parseFloat(minorLoss) : 0,
     initialStatus,
-    isActive,
+    isActive: !isCommented,
   });
 };
 
 export const parseDemand: RowParser = ({ trimmedRow, inpData }) => {
-  const { cleanRow } = extractActiveStatus(trimmedRow);
-  const [nodeId, baseDemand, patternId] = readValues(cleanRow);
+  const [nodeId, baseDemand, patternId] = readValues(trimmedRow);
 
   if (patternId === defaultCustomersPatternId) {
     return;
@@ -295,8 +292,7 @@ export const parseDemand: RowParser = ({ trimmedRow, inpData }) => {
 };
 
 export const parsePosition: RowParser = ({ trimmedRow, inpData }) => {
-  const { cleanRow } = extractActiveStatus(trimmedRow);
-  const [nodeId, lng, lat] = readValues(cleanRow);
+  const [nodeId, lng, lat] = readValues(trimmedRow);
   inpData.coordinates.set(nodeId, [parseFloat(lng), parseFloat(lat)]);
 };
 
@@ -308,8 +304,7 @@ export const parsePattern: RowParser = ({ trimmedRow, inpData }) => {
 };
 
 export const parseVertex: RowParser = ({ trimmedRow, inpData }) => {
-  const { cleanRow } = extractActiveStatus(trimmedRow);
-  const [linkId, lng, lat] = readValues(cleanRow);
+  const [linkId, lng, lat] = readValues(trimmedRow);
   const vertices = inpData.vertices.get(linkId) || [];
   vertices.push([parseFloat(lng), parseFloat(lat)]);
   inpData.vertices.set(linkId, vertices);
