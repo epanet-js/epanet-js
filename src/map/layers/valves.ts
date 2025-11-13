@@ -122,7 +122,7 @@ export const valveLinesWithActiveTopology = ({
     "line-color": [
       "case",
       ["==", ["get", "isActive"], false],
-      colors.indigo300,
+      colors.zinc400,
       ["coalesce", ["get", "color"], colors.orange700],
     ],
     "line-dasharray": [
