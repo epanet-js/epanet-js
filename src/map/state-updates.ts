@@ -16,8 +16,8 @@ import {
   momentLogAtom,
   selectionAtom,
   simulationAtom,
-  customerPointsMetaAtom,
   currentZoomAtom,
+  customerPointsAtom,
 } from "src/state/jotai";
 import { MapEngine } from "./map-engine";
 import {
@@ -96,7 +96,7 @@ type MapState = {
   selectedAssetIds: Set<AssetId>;
   movedAssetIds: Set<AssetId>;
   isOffline: boolean;
-  customerPointsMeta: { count: number; keysHash: string };
+  customerPoints: CustomerPoints;
   currentZoom: number;
 };
 
@@ -115,7 +115,7 @@ const nullMapState: MapState = {
   selectedAssetIds: new Set(),
   movedAssetIds: new Set(),
   isOffline: false,
-  customerPointsMeta: { count: 0, keysHash: "" },
+  customerPoints: new Map(),
   currentZoom: DEFAULT_ZOOM,
 } as const;
 
@@ -137,7 +137,7 @@ const mapStateAtom = atom<MapState>((get) => {
   const ephemeralState = get(ephemeralStateAtom);
   const symbology = get(symbologyAtom);
   const simulation = get(simulationAtom);
-  const customerPointsMeta = get(customerPointsMetaAtom);
+  const customerPoints = get(customerPointsAtom);
   const currentZoom = get(currentZoomAtom);
   const selectedAssetIds = new Set(USelection.toIds(selection));
 
@@ -155,7 +155,7 @@ const mapStateAtom = atom<MapState>((get) => {
     selectedAssetIds,
     movedAssetIds,
     isOffline,
-    customerPointsMeta,
+    customerPoints,
     currentZoom,
   };
 });
@@ -188,7 +188,7 @@ const detectChanges = (
       state.ephemeralState.type === "none",
     hasNewSimulation: state.simulation !== prev.simulation,
     hasNewSymbology: state.symbology !== prev.symbology,
-    hasNewCustomerPoints: state.customerPointsMeta !== prev.customerPointsMeta,
+    hasNewCustomerPoints: state.customerPoints !== prev.customerPoints,
     hasNewZoom: state.currentZoom !== prev.currentZoom,
   };
 };
