@@ -158,6 +158,11 @@ export class MemPersistence implements IPersistence {
       ctx.hydraulicModel,
     );
 
+    const updatedCustomerPoints =
+      (forwardMoment.putCustomerPoints || []).length > 0
+        ? new Map(ctx.hydraulicModel.customerPoints)
+        : ctx.hydraulicModel.customerPoints;
+
     this.store.set(dataAtom, {
       selection: ctx.selection,
       hydraulicModel: {
@@ -166,7 +171,7 @@ export class MemPersistence implements IPersistence {
         demands: forwardMoment.putDemands
           ? forwardMoment.putDemands
           : ctx.hydraulicModel.demands,
-        customerPoints: ctx.hydraulicModel.customerPoints,
+        customerPoints: updatedCustomerPoints,
         customerPointsLookup: ctx.hydraulicModel.customerPointsLookup,
       },
       folderMap: new Map(
