@@ -70,7 +70,6 @@ import {
   useCycleSelectionMode,
   selectionModeShortcut,
 } from "src/commands/set-area-selection-mode";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 const IGNORE_ROLES = new Set(["menuitem"]);
 
@@ -96,8 +95,6 @@ export const CommandShortcuts = () => {
   const toggleNetworkReview = useToggleNetworkReview();
   const toggleSidePanel = useToggleSidePanel();
   const cycleSelectionMode = useCycleSelectionMode();
-
-  const isAreaSelectionEnabled = useFeatureFlag("FLAG_LASSO_SELECTION");
 
   useHotkeys(
     showReportShorcut,
@@ -349,8 +346,7 @@ export const CommandShortcuts = () => {
       });
     },
     [cycleSelectionMode],
-    "Cycle selection mode",
-    !isAreaSelectionEnabled,
+    "Set selection mode",
   );
 
   for (const [mode, shortcut] of Object.entries(drawingModeShorcuts)) {

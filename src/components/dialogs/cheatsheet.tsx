@@ -13,10 +13,7 @@ import { selectionModeShortcut } from "src/commands/set-area-selection-mode";
 
 export const SEARCH_KEYBINDING = "Command+k";
 
-const getBindings = (
-  translate: ReturnType<typeof useTranslate>,
-  isAreaSelectionEnabled: boolean,
-) => ({
+const getBindings = (translate: ReturnType<typeof useTranslate>) => ({
   B: translate("toggleSatellite"),
   "Shift+Enter": translate("simulate"),
   [showSimulationSettingsShortcut]: translate("simulationSettings"),
@@ -34,22 +31,19 @@ const getBindings = (
   "6": translate("pump"),
   "7": translate("valve"),
   Esc: `${translate("exit")} / ${translate("clearSelection")}`,
+  [selectionModeShortcut]: translate("areaSelection.tool"),
   "Command+a": translate("selectAll"),
   "Command+z": translate("undo"),
   "Command+y": translate("redo"),
   [toggleSidePanelShortcut]: translate("toggleSidePanel"),
   [toggleNetworkReviewShortcut]: translate("networkReview.toggle"),
-  ...(isAreaSelectionEnabled && {
-    [selectionModeShortcut]: translate("areaSelection.tool"),
-  }),
 });
 
 export function CheatsheetDialog() {
   const translate = useTranslate();
   const isMac = useFeatureFlag("FLAG_MAC");
-  const isAreaSelectionEnabled = useFeatureFlag("FLAG_LASSO_SELECTION");
 
-  const BINDINGS = getBindings(translate, isAreaSelectionEnabled);
+  const BINDINGS = getBindings(translate);
   return (
     <>
       <DialogHeader

@@ -6,7 +6,6 @@ import { IWrappedFeature } from "src/types";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useDrawingMode } from "src/commands/set-drawing-mode";
 import { useTranslate } from "src/hooks/use-translate";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { SelectionTool } from "./toolbar/selection-tool-dropdown";
 
 import {
@@ -61,7 +60,6 @@ export default memo(function Modes({
   const setDrawingMode = useDrawingMode();
   const userTracking = useUserTracking();
   const translate = useTranslate();
-  const isSelectionModeEnabled = useFeatureFlag("FLAG_LASSO_SELECTION");
   const drawingModes = MODE_OPTIONS;
 
   return (
@@ -85,7 +83,7 @@ export default memo(function Modes({
           <MouseCursorDefaultIcon />
         </MenuAction>
       )}
-      {isSelectionModeEnabled && <SelectionTool />}
+      <SelectionTool />
       {drawingModes.map(({ mode, hotkey, Icon }) => {
         const modeInfo = MODE_INFO[mode];
 
