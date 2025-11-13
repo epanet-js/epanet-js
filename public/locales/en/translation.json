@@ -653,8 +653,6 @@
     "drawingPolygonEndHint": "Click to define vertices. Finish by double clicking",
     "drawingFreehandEndHint": "Click to finish"
   },
-  "activeTopology": {
-    "title": "Active Topology",
-    "isEnabled": "Is enabled"
-  }
+  "activeTopology": "Active Topology",
+  "isEnabled": "Is enabled"
 }

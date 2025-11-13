@@ -286,10 +286,10 @@ const JunctionEditor = ({
   return (
     <AssetEditorContent label={junction.label} type={translate("junction")}>
       {isActiveTopologyOn && (
-        <Section title={translate("activeTopology.title")}>
+        <Section title={translate("activeTopology")}>
           <SwitchRow
             name="isActive"
-            label={translate("activeTopology.isEnabled")}
+            label={translate("isEnabled")}
             enabled={junction.isActive}
           />
         </Section>
@@ -407,10 +407,10 @@ const PipeEditor = ({
         <TextRow name="endNode" value={endNode ? endNode.label : ""} />
       </Section>
       {isActiveTopologyOn && (
-        <Section title={translate("activeTopology.title")}>
+        <Section title={translate("activeTopology")}>
           <SwitchRow
             name="isActive"
-            label={translate("activeTopology.isEnabled")}
+            label={translate("isEnabled")}
             enabled={pipe.isActive}
             onChange={onActiveTopologyStatusChange}
           />
@@ -507,10 +507,10 @@ const ReservoirEditor = ({
   return (
     <AssetEditorContent label={reservoir.label} type={translate("reservoir")}>
       {isActiveTopologyOn && (
-        <Section title={translate("activeTopology.title")}>
+        <Section title={translate("activeTopology")}>
           <SwitchRow
             name="isActive"
-            label={translate("activeTopology.isEnabled")}
+            label={translate("isEnabled")}
             enabled={reservoir.isActive}
           />
         </Section>
@@ -549,10 +549,10 @@ const TankEditor = ({
   return (
     <AssetEditorContent label={tank.label} type={translate("tank")}>
       {isActiveTopologyOn && (
-        <Section title={translate("activeTopology.title")}>
+        <Section title={translate("activeTopology")}>
           <SwitchRow
             name="isActive"
-            label={translate("activeTopology.isEnabled")}
+            label={translate("isEnabled")}
             enabled={tank.isActive}
           />
         </Section>
@@ -723,10 +723,10 @@ const ValveEditor = ({
         <TextRow name="endNode" value={endNode ? endNode.label : ""} />
       </Section>
       {isActiveTopologyOn && (
-        <Section title={translate("activeTopology.title")}>
+        <Section title={translate("activeTopology")}>
           <SwitchRow
             name="isActive"
-            label={translate("activeTopology.isEnabled")}
+            label={translate("isEnabled")}
             enabled={valve.isActive}
             onChange={onActiveTopologyStatusChange}
           />
@@ -863,10 +863,10 @@ const PumpEditor = ({
         <TextRow name="endNode" value={endNode ? endNode.label : ""} />
       </Section>
       {isActiveTopologyOn && (
-        <Section title={translate("activeTopology.title")}>
+        <Section title={translate("activeTopology")}>
           <SwitchRow
             name="isActive"
-            label={translate("activeTopology.isEnabled")}
+            label={translate("isEnabled")}
             enabled={pump.isActive}
             onChange={onActiveTopologyStatusChange}
           />

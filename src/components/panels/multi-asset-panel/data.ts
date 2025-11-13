@@ -23,7 +23,11 @@ export type QuantityStats = QuantityStatsDeprecated & {
   unit: Unit;
 };
 
-type Section = "modelAttributes" | "simulationResults" | "demands";
+type Section =
+  | "activeTopology"
+  | "modelAttributes"
+  | "simulationResults"
+  | "demands";
 
 export type AssetPropertyStats = QuantityStats | CategoryStats;
 
@@ -124,6 +128,7 @@ const appendJunctionStats = (
   quantitiesMetadata: Quantities,
   customerPointsLookup: CustomerPointsLookup,
 ) => {
+  updateCategoryStats(statsMap, "isEnabled", junction.isActive ? "yes" : "no");
   updateQuantityStats(
     statsMap,
     "elevation",
@@ -183,6 +188,7 @@ const buildJunctionSections = (
   statsMap: Map<string, AssetPropertyStats>,
 ): AssetPropertySections => {
   return {
+    activeTopology: getStatsForProperties(statsMap, ["isEnabled"]),
     modelAttributes: getStatsForProperties(statsMap, ["elevation"]),
     demands: getStatsForProperties(statsMap, [
       "baseDemand",
@@ -202,6 +208,7 @@ const appendPipeStats = (
   pipe: Pipe,
   quantitiesMetadata: Quantities,
 ) => {
+  updateCategoryStats(statsMap, "isEnabled", pipe.isActive ? "yes" : "no");
   updateCategoryStats(statsMap, "initialStatus", "pipe." + pipe.initialStatus);
   updateQuantityStats(statsMap, "diameter", pipe.diameter, quantitiesMetadata);
   updateQuantityStats(statsMap, "length", pipe.length, quantitiesMetadata);
@@ -255,6 +262,7 @@ const buildPipeSections = (
   statsMap: Map<string, AssetPropertyStats>,
 ): AssetPropertySections => {
   return {
+    activeTopology: getStatsForProperties(statsMap, ["isEnabled"]),
     modelAttributes: getStatsForProperties(statsMap, [
       "initialStatus",
       "diameter",
@@ -278,6 +286,7 @@ const appendPumpStats = (
   pump: Pump,
   quantitiesMetadata: Quantities,
 ) => {
+  updateCategoryStats(statsMap, "isEnabled", pump.isActive ? "yes" : "no");
   const pumpType = pump.definitionType === "power" ? "power" : "flowVsHead";
   updateCategoryStats(statsMap, "pumpType", pumpType);
   updateCategoryStats(statsMap, "initialStatus", "pump." + pump.initialStatus);
@@ -323,6 +332,7 @@ const buildPumpSections = (
   statsMap: Map<string, AssetPropertyStats>,
 ): AssetPropertySections => {
   return {
+    activeTopology: getStatsForProperties(statsMap, ["isEnabled"]),
     modelAttributes: getStatsForProperties(statsMap, [
       "pumpType",
       "power",
@@ -345,6 +355,7 @@ const appendValveStats = (
   valve: Valve,
   quantitiesMetadata: Quantities,
 ) => {
+  updateCategoryStats(statsMap, "isEnabled", valve.isActive ? "yes" : "no");
   updateCategoryStats(statsMap, "valveType", `valve.${valve.kind}`);
   updateCategoryStats(
     statsMap,
@@ -389,6 +400,7 @@ const buildValveSections = (
   statsMap: Map<string, AssetPropertyStats>,
 ): AssetPropertySections => {
   return {
+    activeTopology: getStatsForProperties(statsMap, ["isEnabled"]),
     modelAttributes: getStatsForProperties(statsMap, [
       "valveType",
       "setting",
@@ -411,6 +423,7 @@ const appendReservoirStats = (
   reservoir: Reservoir,
   quantitiesMetadata: Quantities,
 ) => {
+  updateCategoryStats(statsMap, "isEnabled", reservoir.isActive ? "yes" : "no");
   updateQuantityStats(
     statsMap,
     "elevation",
@@ -424,6 +437,7 @@ const buildReservoirSections = (
   statsMap: Map<string, AssetPropertyStats>,
 ): AssetPropertySections => {
   return {
+    activeTopology: getStatsForProperties(statsMap, ["isEnabled"]),
     modelAttributes: getStatsForProperties(statsMap, ["elevation", "head"]),
     demands: [],
     simulationResults: [],
@@ -435,6 +449,7 @@ const appendTankStats = (
   tank: Tank,
   quantitiesMetadata: Quantities,
 ) => {
+  updateCategoryStats(statsMap, "isEnabled", tank.isActive ? "yes" : "no");
   updateQuantityStats(
     statsMap,
     "elevation",
@@ -484,6 +499,7 @@ const buildTankSections = (
   statsMap: Map<string, AssetPropertyStats>,
 ): AssetPropertySections => {
   return {
+    activeTopology: getStatsForProperties(statsMap, ["isEnabled"]),
     modelAttributes: getStatsForProperties(statsMap, [
       "elevation",
       "initialLevel",

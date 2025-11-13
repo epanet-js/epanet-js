@@ -2,6 +2,7 @@ import { useTranslate } from "src/hooks/use-translate";
 import { Section, SectionList } from "src/components/form/fields";
 import { MultiValueRow } from "./multi-value-row";
 import { AssetPropertySections } from "./data";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 type SectionProps = {
   sections: AssetPropertySections;
@@ -13,12 +14,12 @@ export function AssetTypeSections({
   hasSimulation = false,
 }: SectionProps) {
   const translate = useTranslate();
+  const isActiveTopologyEnabled = useFeatureFlag("FLAG_ACTIVE_TOPOLOGY");
 
-  const sectionKeys: Array<keyof AssetPropertySections> = [
-    "modelAttributes",
-    "demands",
-    "simulationResults",
-  ];
+  const sectionKeys: Array<keyof AssetPropertySections> =
+    isActiveTopologyEnabled
+      ? ["activeTopology", "modelAttributes", "demands", "simulationResults"]
+      : ["modelAttributes", "demands", "simulationResults"];
 
   return (
     <SectionList padding={0} gap={3} overflow={false}>

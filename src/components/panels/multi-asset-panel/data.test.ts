@@ -323,4 +323,29 @@ describe("computeMultiAssetData", () => {
     expect(elevationStat.min).toBe(200);
     expect(elevationStat.max).toBe(250);
   });
+
+  it("tracks isEnabled status with mixed active/inactive assets", () => {
+    const IDS = { P1: 1, P2: 2, P3: 3, J1: 4, J2: 5 } as const;
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1)
+      .aJunction(IDS.J2)
+      .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2, isActive: true })
+      .aPipe(IDS.P2, {
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
+        isActive: false,
+      })
+      .aPipe(IDS.P3, { startNodeId: IDS.J1, endNodeId: IDS.J2, isActive: true })
+      .build();
+
+    const assets = Array.from(hydraulicModel.assets.values());
+    const result = computeMultiAssetData(assets, quantities, hydraulicModel);
+
+    const isEnabledStat = findCategoryStat(
+      result.data.pipe.activeTopology,
+      "isEnabled",
+    );
+    expect(isEnabledStat.values.get("yes")).toBe(2);
+    expect(isEnabledStat.values.get("no")).toBe(1);
+  });
 });
