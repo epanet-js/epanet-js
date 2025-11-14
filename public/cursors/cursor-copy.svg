@@ -1,0 +1,14 @@
+<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-miterlimit:5;">
+  <defs>
+    <filter id="a" width="300%" height="300%" x="-150%" y="-150%"><feDropShadow dx="0" dy="2" flood-color="#000" flood-opacity=".25" stdDeviation="2"/></filter>
+    <linearGradient id="_Linear1" x1="0" y1="0" x2="1" y2="0" gradientUnits="userSpaceOnUse" gradientTransform="matrix(1.10218e-15,18,-18,1.10218e-15,16,16.9653)"><stop offset="0" style="stop-color:#08ca72;stop-opacity:1"/><stop offset="1" style="stop-color:#01aa51;stop-opacity:1"/></linearGradient>
+  </defs>
+  <g filter="url(#a)">
+    <path d="M7.316,3.316c-0.053,-0.053 -0.133,-0.069 -0.202,-0.041c-0.069,0.029 -0.114,0.097 -0.114,0.171c-0,1.845 -0,8.944 -0,12.486c0,0.377 0.216,0.721 0.555,0.885c0.34,0.164 0.743,0.119 1.038,-0.115c1.464,-1.161 3.407,-2.702 3.407,-2.702l3.519,-0c0.416,-0 0.791,-0.25 0.95,-0.634c0.159,-0.384 0.071,-0.826 -0.223,-1.12c-2.685,-2.685 -7.637,-7.637 -8.93,-8.93Z" style="stroke:#fff;stroke-width:1px;fill:#000"/>
+    <g>
+      <path d="M25,25.965c0,4.968 -4.033,9 -9,9c-4.967,0 -9,-4.032 -9,-9c0,-4.967 4.033,-9 9,-9c4.967,0 9,4.033 9,9Z" style="fill:url(#_Linear1);"/>
+      <path d="M17,22.01l0,8c0,0.552 -0.448,1 -1,1c-0.552,0 -1,-0.448 -1,-1l0,-8c0,-0.552 0.448,-1 1,-1c0.552,0 1,0.448 1,1Z" style="fill:#fff;"/>
+      <path d="M20,27.01l-8,0c-0.552,0 -1,-0.448 -1,-1c0,-0.552 0.448,-1 1,-1l8,0c0.552,0 1,0.448 1,1c0,0.552 -0.448,1 -1,1Z" style="fill:#fff;"/>
+    </g>
+  </g>
+</svg>
