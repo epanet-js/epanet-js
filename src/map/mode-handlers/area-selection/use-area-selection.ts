@@ -6,7 +6,8 @@ import { captureError } from "src/infra/error-tracking";
 
 export const useAreaSelection = (context: HandlerContext) => {
   const { selection, hydraulicModel } = context;
-  const { selectAssets, clearSelection } = useSelection(selection);
+  const { selectAssets, clearSelection, extendSelection, removeFromSelection } =
+    useSelection(selection);
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const abort = () => {
@@ -15,7 +16,10 @@ export const useAreaSelection = (context: HandlerContext) => {
     }
   };
 
-  const selectAssetsInArea = async (points: Position[]): Promise<void> => {
+  const selectAssetsInArea = async (
+    points: Position[],
+    operation?: "add" | "subtract",
+  ): Promise<void> => {
     abort();
 
     const controller = new AbortController();
@@ -32,10 +36,18 @@ export const useAreaSelection = (context: HandlerContext) => {
         return;
       }
 
-      if (assetIds.length > 0) {
-        selectAssets(assetIds);
+      if (assetIds.length === 0) {
+        if (!operation) {
+          clearSelection();
+        }
       } else {
-        clearSelection();
+        if (operation === "add") {
+          extendSelection(assetIds);
+        } else if (operation === "subtract") {
+          removeFromSelection(assetIds);
+        } else {
+          selectAssets(assetIds);
+        }
       }
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") {

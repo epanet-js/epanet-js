@@ -9,4 +9,5 @@ export interface EphemeralEditingStateAreaSelection {
   points: Pos2[];
   isValid: boolean;
   isDrawing: boolean;
+  operation?: "add" | "subtract";
 }

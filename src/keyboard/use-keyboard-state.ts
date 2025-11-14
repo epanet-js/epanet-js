@@ -5,10 +5,12 @@ export function useKeyboardState() {
     isHotkeyPressed("ctrl") || isHotkeyPressed("meta"); //command
   const isSpaceHeld = () => isHotkeyPressed("space");
   const isShiftHeld = () => isHotkeyPressed("shift");
+  const isAltHeld = () => isHotkeyPressed("alt");
 
   return {
     isShiftHeld,
     isSpaceHeld,
     isControlHeld,
+    isAltHeld,
   };
 }

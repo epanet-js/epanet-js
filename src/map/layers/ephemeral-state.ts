@@ -128,7 +128,14 @@ export const ephemeralSelectionFillLayer = ({
     source,
     filter: ["all", ["==", "$type", "Polygon"], ["has", "isSelection"]],
     paint: {
-      "fill-color": ["case", ["get", "isValid"], "#fde68a", "#fca5a5"],
+      "fill-color": [
+        "case",
+        ["==", ["get", "operation"], "subtract"],
+        colors.sky300,
+        ["get", "isValid"],
+        colors.amber300,
+        colors.red300,
+      ],
       "fill-opacity": 0.33,
     },
   };
@@ -145,7 +152,14 @@ export const ephemeralSelectionOutlineLayer = ({
     source,
     filter: ["all", ["==", "$type", "LineString"], ["has", "isSelection"]],
     paint: {
-      "line-color": ["case", ["get", "isValid"], "#f59e0b", "#dc2626"],
+      "line-color": [
+        "case",
+        ["==", ["get", "operation"], "subtract"],
+        colors.blue500,
+        ["get", "isValid"],
+        colors.amber500,
+        colors.red600,
+      ],
       "line-width": 2,
       "line-opacity": 1,
       "line-dasharray": [2, 2],

@@ -340,14 +340,17 @@ const buildAreaSelectionSourceData = (
       break;
   }
 
+  const properties = {
+    isSelection: true,
+    isValid: ephemeralState.isValid,
+    operation: ephemeralState.operation || "replace",
+  };
+
   return [
     {
       type: "Feature",
       id: "selection-polygon",
-      properties: {
-        isSelection: true,
-        isValid: ephemeralState.isValid,
-      },
+      properties,
       geometry: {
         type: "Polygon",
         coordinates: [polygonCoordinates],
@@ -356,10 +359,7 @@ const buildAreaSelectionSourceData = (
     {
       type: "Feature",
       id: "selection-outline",
-      properties: {
-        isSelection: true,
-        isValid: ephemeralState.isValid,
-      },
+      properties,
       geometry: {
         type: "LineString",
         coordinates: lineCoordinates,

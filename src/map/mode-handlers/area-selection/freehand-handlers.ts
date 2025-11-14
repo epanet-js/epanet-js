@@ -7,6 +7,8 @@ import { getMapCoord } from "../utils";
 import { isLastPolygonSegmentIntersecting } from "src/lib/geometry";
 import { useAreaSelection } from "./use-area-selection";
 import { EphemeralEditingStateAreaSelection } from "./ephemeral-area-selection-state";
+import { useKeyboardState } from "src/keyboard/use-keyboard-state";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 const MIN_POINTS_DISTANCE_PX = 10;
 
@@ -18,6 +20,21 @@ export function useFreehandSelectionHandlers(
   const lastPixelPointRef = useRef<{ x: number; y: number } | null>(null);
   const { selectAssetsInArea, abort: abortSelection } =
     useAreaSelection(context);
+  const { isShiftHeld, isAltHeld } = useKeyboardState();
+  const isSelectionModificatorsEnabled = useFeatureFlag(
+    "FLAG_SELECTION_MODIFICATORS",
+  );
+
+  const identifyOperation = (): "add" | "subtract" | undefined => {
+    if (isSelectionModificatorsEnabled) {
+      if (isAltHeld()) {
+        return "subtract";
+      } else if (isShiftHeld()) {
+        return "add";
+      }
+    }
+    return undefined;
+  };
 
   return {
     down: noop,
@@ -46,9 +63,9 @@ export function useFreehandSelectionHandlers(
         points.push(currentPos);
         if (!isLastPolygonSegmentIntersecting(points)) {
           lastPixelPointRef.current = { x: e.point.x, y: e.point.y };
-          return validDrawingState(points);
+          return validDrawingState(points, prev.operation);
         } else {
-          return invalidDrawingState(points);
+          return invalidDrawingState(points, prev.operation);
         }
       });
 
@@ -71,13 +88,17 @@ export function useFreehandSelectionHandlers(
           ...ephemeralState.points,
           ephemeralState.points[0],
         ];
-        setEphemeralState(finishedDrawingState(closedPolygon));
-        await selectAssetsInArea(closedPolygon);
+        setEphemeralState(
+          finishedDrawingState(closedPolygon, ephemeralState.operation),
+        );
+        await selectAssetsInArea(closedPolygon, ephemeralState.operation);
         setEphemeralState({ type: "none" });
         lastPixelPointRef.current = null;
       } else {
         lastPixelPointRef.current = { x: e.point.x, y: e.point.y };
-        setEphemeralState(invalidDrawingState([currentPos, currentPos]));
+        setEphemeralState(
+          invalidDrawingState([currentPos, currentPos], identifyOperation()),
+        );
       }
     },
     exit: () => {
@@ -94,30 +115,36 @@ export function useFreehandSelectionHandlers(
 
 const validDrawingState = (
   points: EphemeralEditingStateAreaSelection["points"],
+  operation?: "add" | "subtract",
 ): EphemeralEditingStateAreaSelection => ({
   type: "areaSelect",
   selectionMode: Mode.SELECT_FREEHAND,
   points,
   isValid: true,
   isDrawing: true,
+  operation,
 });
 
 const invalidDrawingState = (
   points: EphemeralEditingStateAreaSelection["points"],
+  operation?: "add" | "subtract",
 ): EphemeralEditingStateAreaSelection => ({
   type: "areaSelect",
   selectionMode: Mode.SELECT_FREEHAND,
   points,
   isValid: false,
   isDrawing: true,
+  operation,
 });
 
 const finishedDrawingState = (
   points: EphemeralEditingStateAreaSelection["points"],
+  operation?: "add" | "subtract",
 ): EphemeralEditingStateAreaSelection => ({
   type: "areaSelect",
   selectionMode: Mode.SELECT_FREEHAND,
   points,
   isValid: true,
   isDrawing: false,
+  operation,
 });

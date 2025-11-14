@@ -6,6 +6,8 @@ import { getMapCoord } from "../utils";
 import { useAreaSelection } from "./use-area-selection";
 import { polygonCoordinatesFromPositions } from "src/lib/geometry";
 import { EphemeralEditingStateAreaSelection } from "./ephemeral-area-selection-state";
+import { useKeyboardState } from "src/keyboard/use-keyboard-state";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export function useRectangularSelectionHandlers(
   context: HandlerContext,
@@ -14,6 +16,21 @@ export function useRectangularSelectionHandlers(
   const [ephemeralState, setEphemeralState] = useAtom(ephemeralStateAtom);
   const { selectAssetsInArea, abort: abortSelection } =
     useAreaSelection(context);
+  const { isShiftHeld, isAltHeld } = useKeyboardState();
+  const isSelectionModificatorsEnabled = useFeatureFlag(
+    "FLAG_SELECTION_MODIFICATORS",
+  );
+
+  const identifyOperation = (): "add" | "subtract" | undefined => {
+    if (isSelectionModificatorsEnabled) {
+      if (isAltHeld()) {
+        return "subtract";
+      } else if (isShiftHeld()) {
+        return "add";
+      }
+    }
+    return undefined;
+  };
 
   return {
     down: noop,
@@ -23,7 +40,12 @@ export function useRectangularSelectionHandlers(
         return;
 
       const currentPos = getMapCoord(e);
-      setEphemeralState(drawingState([ephemeralState.points[0], currentPos]));
+      setEphemeralState(
+        drawingState(
+          [ephemeralState.points[0], currentPos],
+          ephemeralState.operation,
+        ),
+      );
       e.preventDefault();
     },
     up: noop,
@@ -34,11 +56,16 @@ export function useRectangularSelectionHandlers(
           ephemeralState.points[0],
           ephemeralState.points[1],
         )[0];
-        setEphemeralState(finishedDrawingState(ephemeralState.points));
-        await selectAssetsInArea(closedPolygon);
+        setEphemeralState(
+          finishedDrawingState(ephemeralState.points, ephemeralState.operation),
+        );
+        await selectAssetsInArea(closedPolygon, ephemeralState.operation);
         setEphemeralState({ type: "none" });
       } else {
-        setEphemeralState(drawingState([currentPos, currentPos]));
+        identifyOperation;
+        setEphemeralState(
+          drawingState([currentPos, currentPos], identifyOperation()),
+        );
       }
     },
     exit: () => {
@@ -54,20 +81,24 @@ export function useRectangularSelectionHandlers(
 
 const drawingState = (
   points: EphemeralEditingStateAreaSelection["points"],
+  operation?: "add" | "subtract",
 ): EphemeralEditingStateAreaSelection => ({
   type: "areaSelect",
   selectionMode: Mode.SELECT_RECTANGULAR,
   points,
   isValid: true,
   isDrawing: true,
+  operation,
 });
 
 const finishedDrawingState = (
   points: EphemeralEditingStateAreaSelection["points"],
+  operation?: "add" | "subtract",
 ): EphemeralEditingStateAreaSelection => ({
   type: "areaSelect",
   selectionMode: Mode.SELECT_RECTANGULAR,
   points,
   isValid: true,
   isDrawing: false,
+  operation,
 });
