@@ -17,10 +17,54 @@ type InputData = {
   endPipeId?: AssetId;
 };
 
+const isSplittingInactivePipe = (
+  hydraulicModel: HydraulicModel,
+  pipeId?: AssetId,
+): boolean => {
+  if (pipeId === undefined) return false;
+
+  const pipe = hydraulicModel.assets.get(pipeId);
+  if (pipe && pipe.isActive === false) {
+    return true;
+  }
+  return false;
+};
+
+const shouldLinkBeInactive = (
+  hydraulicModel: HydraulicModel,
+  { startNode, endNode, startPipeId, endPipeId }: InputData,
+): boolean => {
+  const isStartNodeSplittingInactivePipe = isSplittingInactivePipe(
+    hydraulicModel,
+    startPipeId,
+  );
+  const isStartNodeInactive =
+    startNode.isActive === false || isStartNodeSplittingInactivePipe;
+  const isEndNodeSplittingInactivePipe = isSplittingInactivePipe(
+    hydraulicModel,
+    endPipeId,
+  );
+  const isEndNodeInactive =
+    endNode.isActive === false || isEndNodeSplittingInactivePipe;
+  const isStartNodeOrphan =
+    startPipeId === undefined && !hydraulicModel.topology.hasNode(startNode.id);
+  const isEndNodeOrphan =
+    endPipeId === undefined && !hydraulicModel.topology.hasNode(endNode.id);
+
+  if (
+    (isStartNodeInactive && (isEndNodeInactive || isEndNodeOrphan)) ||
+    (isEndNodeInactive && (isStartNodeInactive || isStartNodeOrphan))
+  )
+    return true;
+
+  return false;
+};
+
 export const addLinkWithActiveTopology: ModelOperation<InputData> = (
   hydraulicModel,
-  { link, startNode, endNode, startPipeId, endPipeId },
+  data,
 ) => {
+  const { link, startNode, endNode, startPipeId, endPipeId } = data;
   const linkCopy = link.copy();
   const startNodeCopy = startNode.copy();
   const endNodeCopy = endNode.copy();
@@ -34,6 +78,15 @@ export const addLinkWithActiveTopology: ModelOperation<InputData> = (
   linkCopy.setConnections(startNodeCopy.id, endNodeCopy.id);
   forceSpatialConnectivity(linkCopy, startNodeCopy, endNodeCopy);
   removeRedundantVertices(linkCopy);
+
+  if (shouldLinkBeInactive(hydraulicModel, data)) {
+    linkCopy.setProperty("isActive", false);
+    startNodeCopy.setProperty("isActive", false);
+    endNodeCopy.setProperty("isActive", false);
+  } else {
+    startNodeCopy.setProperty("isActive", true);
+    endNodeCopy.setProperty("isActive", true);
+  }
 
   const { putAssets, deleteAssets, putCustomerPoints } = handlePipeSplits({
     link: linkCopy,

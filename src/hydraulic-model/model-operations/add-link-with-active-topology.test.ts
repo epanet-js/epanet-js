@@ -206,11 +206,17 @@ describe("addLinkWithActiveTopology", () => {
       expect(nodeB.label).toEqual("CUSTOM");
     });
 
-    it("activates both connected nodes when adding active link", () => {
-      const IDS = { A: 1, B: 2, pump: 3 } as const;
+    it("activates connected nodes when adding active link", () => {
+      const IDS = { J1: 1, J2: 2, J3: 3, P1: 4, pump: 5 } as const;
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction(IDS.A, { coordinates: [10, 10], isActive: false })
-        .aJunction(IDS.B, { coordinates: [30, 30], isActive: false })
+        .aJunction(IDS.J1, { coordinates: [10, 10], isActive: true })
+        .aJunction(IDS.J2, { coordinates: [30, 30], isActive: false })
+        .aJunction(IDS.J3, { coordinates: [20, 20], isActive: false })
+        .aPipe(IDS.P1, {
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J3,
+          isActive: false,
+        })
         .build();
 
       const link = buildPump({
@@ -223,8 +229,8 @@ describe("addLinkWithActiveTopology", () => {
       });
 
       const { putAssets } = addLinkWithActiveTopology(hydraulicModel, {
-        startNode: hydraulicModel.assets.get(IDS.A)!.copy() as Junction,
-        endNode: hydraulicModel.assets.get(IDS.B)!.copy() as Junction,
+        startNode: hydraulicModel.assets.get(IDS.J1)!.copy() as Junction,
+        endNode: hydraulicModel.assets.get(IDS.J2)!.copy() as Junction,
         link,
       });
 
@@ -879,5 +885,336 @@ describe("addLinkWithActiveTopology", () => {
       [10, 20],
       [10, 30],
     ]);
+  });
+
+  describe("isActive inference logic", () => {
+    it("infers isActive: false when both endpoints are existing inactive nodes", () => {
+      const IDS = { J1: 1, J2: 2, pump: 3 } as const;
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, { coordinates: [0, 0], isActive: false })
+        .aJunction(IDS.J2, { coordinates: [10, 0], isActive: false })
+        .build();
+
+      const startNode = hydraulicModel.assets.get(IDS.J1)!.copy() as Junction;
+      const endNode = hydraulicModel.assets.get(IDS.J2)!.copy() as Junction;
+      const link = buildPump({
+        coordinates: [
+          [0, 0],
+          [10, 0],
+        ],
+        id: IDS.pump,
+        isActive: true,
+      });
+
+      const { putAssets } = addLinkWithActiveTopology(hydraulicModel, {
+        startNode,
+        endNode,
+        link,
+      });
+
+      const [newPump, nodeA, nodeB] = putAssets || [];
+      expect(newPump.isActive).toBe(false);
+      expect(nodeA.isActive).toBe(false);
+      expect(nodeB.isActive).toBe(false);
+    });
+
+    it("infers isActive: false when both endpoints split inactive pipes", () => {
+      const IDS = {
+        J1: 1,
+        J2: 2,
+        J3: 3,
+        J4: 4,
+        P1: 5,
+        P2: 6,
+        J5: 7,
+        J6: 8,
+        pump: 9,
+      } as const;
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, { coordinates: [0, 0] })
+        .aJunction(IDS.J2, { coordinates: [20, 0] })
+        .aPipe(IDS.P1, {
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
+          coordinates: [
+            [0, 0],
+            [20, 0],
+          ],
+          isActive: false,
+        })
+        .aJunction(IDS.J3, { coordinates: [0, 10], isActive: false })
+        .aJunction(IDS.J4, { coordinates: [20, 10], isActive: false })
+        .aPipe(IDS.P2, {
+          startNodeId: IDS.J3,
+          endNodeId: IDS.J4,
+          coordinates: [
+            [0, 10],
+            [20, 10],
+          ],
+          isActive: false,
+        })
+        .build();
+
+      const startNode = buildJunction({
+        coordinates: [10, 0],
+        id: IDS.J5,
+      });
+      const endNode = buildJunction({
+        coordinates: [10, 10],
+        id: IDS.J6,
+      });
+      const link = buildPump({
+        coordinates: [
+          [10, 0],
+          [10, 10],
+        ],
+        id: IDS.pump,
+        isActive: true,
+      });
+
+      const { putAssets } = addLinkWithActiveTopology(hydraulicModel, {
+        startNode,
+        endNode,
+        link,
+        startPipeId: IDS.P1,
+        endPipeId: IDS.P2,
+      });
+
+      const [newPump, nodeStart, nodeEnd] = putAssets || [];
+      expect(newPump.isActive).toBe(false);
+      expect(nodeStart.isActive).toBe(false);
+      expect(nodeEnd.isActive).toBe(false);
+    });
+
+    it("infers isActive: false when one endpoint is existing inactive and other is new isolated", () => {
+      const IDS = { J1: 1, J2: 2, pump: 3 } as const;
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, { coordinates: [0, 0], isActive: false })
+        .build();
+
+      const startNode = hydraulicModel.assets.get(IDS.J1)!.copy() as Junction;
+      const endNode = buildJunction({
+        coordinates: [10, 0],
+        id: IDS.J2,
+      });
+      const link = buildPump({
+        coordinates: [
+          [0, 0],
+          [10, 0],
+        ],
+        id: IDS.pump,
+        isActive: true,
+      });
+
+      const { putAssets } = addLinkWithActiveTopology(hydraulicModel, {
+        startNode,
+        endNode,
+        link,
+      });
+
+      const [newPump, nodeA, nodeB] = putAssets || [];
+      expect(newPump.isActive).toBe(false);
+      expect(nodeA.isActive).toBe(false);
+      expect(nodeB.isActive).toBe(false);
+    });
+
+    it("infers isActive: false when one endpoint is existing inactive and other splits inactive pipe", () => {
+      const IDS = { J1: 1, J2: 2, J3: 3, P1: 4, J4: 5, pump: 6 } as const;
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, { coordinates: [0, 0], isActive: false })
+        .aJunction(IDS.J2, { coordinates: [0, 10] })
+        .aJunction(IDS.J3, { coordinates: [0, 20] })
+        .aPipe(IDS.P1, {
+          startNodeId: IDS.J2,
+          endNodeId: IDS.J3,
+          coordinates: [
+            [0, 10],
+            [0, 20],
+          ],
+          isActive: false,
+        })
+        .build();
+
+      const startNode = hydraulicModel.assets.get(IDS.J1)!.copy() as Junction;
+      const endNode = buildJunction({
+        coordinates: [0, 15],
+        id: IDS.J4,
+      });
+      const link = buildPump({
+        coordinates: [
+          [0, 0],
+          [0, 15],
+        ],
+        id: IDS.pump,
+        isActive: true,
+      });
+
+      const { putAssets } = addLinkWithActiveTopology(hydraulicModel, {
+        startNode,
+        endNode,
+        link,
+        endPipeId: IDS.P1,
+      });
+
+      const [newPump, nodeStart, nodeEnd] = putAssets || [];
+      expect(newPump.isActive).toBe(false);
+      expect(nodeStart.isActive).toBe(false);
+      expect(nodeEnd.isActive).toBe(false);
+    });
+
+    it("infers isActive: false when one endpoint splits inactive pipe and other is new isolated", () => {
+      const IDS = { J1: 1, J2: 2, P1: 3, J3: 4, J4: 5, pump: 6 } as const;
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, { coordinates: [0, 0] })
+        .aJunction(IDS.J2, { coordinates: [20, 0] })
+        .aPipe(IDS.P1, {
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
+          coordinates: [
+            [0, 0],
+            [20, 0],
+          ],
+          isActive: false,
+        })
+        .build();
+
+      const startNode = buildJunction({
+        coordinates: [10, 0],
+        id: IDS.J3,
+      });
+      const endNode = buildJunction({
+        coordinates: [10, 10],
+        id: IDS.J4,
+      });
+      const link = buildPump({
+        coordinates: [
+          [10, 0],
+          [10, 10],
+        ],
+        id: IDS.pump,
+        isActive: true,
+      });
+
+      const { putAssets } = addLinkWithActiveTopology(hydraulicModel, {
+        startNode,
+        endNode,
+        link,
+        startPipeId: IDS.P1,
+      });
+
+      const [newPump, nodeStart, nodeEnd] = putAssets || [];
+      expect(newPump.isActive).toBe(false);
+      expect(nodeStart.isActive).toBe(false);
+      expect(nodeEnd.isActive).toBe(false);
+    });
+
+    it("keeps isActive: true when both endpoints are new isolated nodes (starting new network)", () => {
+      const IDS = { J1: 1, J2: 2, pump: 3 } as const;
+      const hydraulicModel = HydraulicModelBuilder.with().build();
+
+      const startNode = buildJunction({
+        coordinates: [0, 0],
+        id: IDS.J1,
+      });
+      const endNode = buildJunction({
+        coordinates: [10, 0],
+        id: IDS.J2,
+      });
+      const link = buildPump({
+        coordinates: [
+          [0, 0],
+          [10, 0],
+        ],
+        id: IDS.pump,
+        isActive: true,
+      });
+
+      const { putAssets } = addLinkWithActiveTopology(hydraulicModel, {
+        startNode,
+        endNode,
+        link,
+      });
+
+      const [newPump, nodeA, nodeB] = putAssets || [];
+      expect(newPump.isActive).toBe(true);
+      expect(nodeA.isActive).toBe(true);
+      expect(nodeB.isActive).toBe(true);
+    });
+
+    it("keeps isActive: true when one endpoint is active", () => {
+      const IDS = { J1: 1, J2: 2, J3: 3, P1: 4, pump: 5 } as const;
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, { coordinates: [0, 0], isActive: true })
+        .aJunction(IDS.J2, { coordinates: [10, 0], isActive: false })
+        .aJunction(IDS.J3, { coordinates: [20.0], isActive: true })
+        .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J3 })
+        .build();
+
+      const startNode = hydraulicModel.assets.get(IDS.J1)?.copy() as Junction;
+      const endNode = hydraulicModel.assets.get(IDS.J2)?.copy() as Junction;
+      const link = buildPump({
+        coordinates: [
+          [0, 0],
+          [10, 0],
+        ],
+        id: IDS.pump,
+        isActive: true,
+      });
+
+      const { putAssets } = addLinkWithActiveTopology(hydraulicModel, {
+        startNode,
+        endNode,
+        link,
+      });
+
+      const [newPump, nodeA, nodeB] = putAssets || [];
+      expect(newPump.isActive).toBe(true);
+      expect(nodeA.isActive).toBe(true);
+      expect(nodeB.isActive).toBe(true);
+    });
+
+    it("keeps isActive: true when splitting an active pipe", () => {
+      const IDS = { J1: 1, J2: 2, J3: 3, P1: 4, J4: 5, pump: 6 } as const;
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, { coordinates: [0, 0], isActive: false })
+        .aJunction(IDS.J2, { coordinates: [0, 10] })
+        .aJunction(IDS.J3, { coordinates: [0, 20] })
+        .aPipe(IDS.P1, {
+          startNodeId: IDS.J2,
+          endNodeId: IDS.J3,
+          coordinates: [
+            [0, 10],
+            [0, 20],
+          ],
+          isActive: true,
+        })
+        .build();
+
+      const startNode = hydraulicModel.assets.get(IDS.J1)!.copy() as Junction;
+      const endNode = buildJunction({
+        coordinates: [0, 15],
+        id: IDS.J4,
+      });
+      const link = buildPump({
+        coordinates: [
+          [0, 0],
+          [0, 15],
+        ],
+        id: IDS.pump,
+        isActive: true,
+      });
+
+      const { putAssets } = addLinkWithActiveTopology(hydraulicModel, {
+        startNode,
+        endNode,
+        link,
+        endPipeId: IDS.P1,
+      });
+
+      const [newPump, nodeStart, nodeEnd] = putAssets || [];
+      expect(newPump.isActive).toBe(true);
+      expect(nodeStart.isActive).toBe(true);
+      expect(nodeEnd.isActive).toBe(true);
+    });
   });
 });
