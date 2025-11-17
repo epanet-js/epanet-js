@@ -1,5 +1,10 @@
 import type { HandlerContext } from "src/types";
-import { modeAtom, Mode, ephemeralStateAtom } from "src/state/jotai";
+import {
+  modeAtom,
+  Mode,
+  ephemeralStateAtom,
+  cursorStyleAtom,
+} from "src/state/jotai";
 import noop from "lodash/noop";
 import { useAtom, useSetAtom } from "jotai";
 import { getMapCoord } from "../utils";
@@ -14,6 +19,7 @@ export function useRectangularSelectionHandlers(
 ): Handlers {
   const setMode = useSetAtom(modeAtom);
   const [ephemeralState, setEphemeralState] = useAtom(ephemeralStateAtom);
+  const setCursor = useSetAtom(cursorStyleAtom);
   const { selectAssetsInArea, abort: abortSelection } =
     useAreaSelection(context);
   const { isShiftHeld, isAltHeld } = useKeyboardState();
@@ -32,6 +38,20 @@ export function useRectangularSelectionHandlers(
     return undefined;
   };
 
+  const updateCursor = () => {
+    if (
+      ephemeralState.type === "areaSelect" &&
+      ephemeralState.isValid === false
+    ) {
+      setCursor("not-allowed");
+    } else {
+      const operation = identifyOperation();
+      if (operation === "add") setCursor("crosshair-add");
+      if (operation === "subtract") setCursor("crosshair-subtract");
+      if (!operation) setCursor("crosshair");
+    }
+  };
+
   return {
     down: noop,
     double: noop,
@@ -40,12 +60,11 @@ export function useRectangularSelectionHandlers(
         return;
 
       const currentPos = getMapCoord(e);
-      setEphemeralState(
-        drawingState(
-          [ephemeralState.points[0], currentPos],
-          ephemeralState.operation,
-        ),
-      );
+      setEphemeralState({
+        ...drawingState([ephemeralState.points[0], currentPos]),
+        operation: identifyOperation(),
+      });
+      updateCursor();
       e.preventDefault();
     },
     up: noop,
@@ -56,19 +75,42 @@ export function useRectangularSelectionHandlers(
           ephemeralState.points[0],
           ephemeralState.points[1],
         )[0];
-        setEphemeralState(
-          finishedDrawingState(ephemeralState.points, ephemeralState.operation),
-        );
+        setEphemeralState({
+          ...finishedDrawingState(ephemeralState.points),
+          operation: ephemeralState.operation,
+        });
         await selectAssetsInArea(closedPolygon, ephemeralState.operation);
         setEphemeralState({ type: "none" });
       } else {
         identifyOperation;
-        setEphemeralState(
-          drawingState([currentPos, currentPos], identifyOperation()),
-        );
+        setEphemeralState({
+          ...drawingState([currentPos, currentPos]),
+          operation: identifyOperation(),
+        });
       }
     },
+    keydown: () => {
+      updateCursor();
+      setEphemeralState((prev) => {
+        if (prev.type !== "areaSelect") return prev;
+        return {
+          ...prev,
+          operation: identifyOperation(),
+        };
+      });
+    },
+    keyup: () => {
+      updateCursor();
+      setEphemeralState((prev) => {
+        if (prev.type !== "areaSelect") return prev;
+        return {
+          ...prev,
+          operation: identifyOperation(),
+        };
+      });
+    },
     exit: () => {
+      setCursor("default");
       abortSelection();
       if (ephemeralState.type === "areaSelect") {
         setEphemeralState({ type: "none" });
@@ -81,24 +123,20 @@ export function useRectangularSelectionHandlers(
 
 const drawingState = (
   points: EphemeralEditingStateAreaSelection["points"],
-  operation?: "add" | "subtract",
 ): EphemeralEditingStateAreaSelection => ({
   type: "areaSelect",
   selectionMode: Mode.SELECT_RECTANGULAR,
   points,
   isValid: true,
   isDrawing: true,
-  operation,
 });
 
 const finishedDrawingState = (
   points: EphemeralEditingStateAreaSelection["points"],
-  operation?: "add" | "subtract",
 ): EphemeralEditingStateAreaSelection => ({
   type: "areaSelect",
   selectionMode: Mode.SELECT_RECTANGULAR,
   points,
   isValid: true,
   isDrawing: false,
-  operation,
 });

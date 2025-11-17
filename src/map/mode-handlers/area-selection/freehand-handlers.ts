@@ -1,6 +1,11 @@
 import { useRef } from "react";
 import type { HandlerContext } from "src/types";
-import { modeAtom, Mode, ephemeralStateAtom } from "src/state/jotai";
+import {
+  modeAtom,
+  Mode,
+  ephemeralStateAtom,
+  cursorStyleAtom,
+} from "src/state/jotai";
 import noop from "lodash/noop";
 import { useSetAtom, useAtom } from "jotai";
 import { getMapCoord } from "../utils";
@@ -17,6 +22,7 @@ export function useFreehandSelectionHandlers(
 ): Handlers {
   const setMode = useSetAtom(modeAtom);
   const [ephemeralState, setEphemeralState] = useAtom(ephemeralStateAtom);
+  const setCursor = useSetAtom(cursorStyleAtom);
   const lastPixelPointRef = useRef<{ x: number; y: number } | null>(null);
   const { selectAssetsInArea, abort: abortSelection } =
     useAreaSelection(context);
@@ -34,6 +40,20 @@ export function useFreehandSelectionHandlers(
       }
     }
     return undefined;
+  };
+
+  const updateCursor = () => {
+    if (
+      ephemeralState.type === "areaSelect" &&
+      ephemeralState.isValid === false
+    ) {
+      setCursor("not-allowed");
+    } else {
+      const operation = identifyOperation();
+      if (operation === "add") setCursor("crosshair-add");
+      if (operation === "subtract") setCursor("crosshair-subtract");
+      if (!operation) setCursor("crosshair");
+    }
   };
 
   return {
@@ -55,6 +75,7 @@ export function useFreehandSelectionHandlers(
       setEphemeralState((prev) => {
         if (prev.type !== "areaSelect") return prev;
         if (prev.isDrawing === false) return prev;
+        const operation = prev.operation;
 
         const points = [...prev.points];
         if (!prev.isValid) {
@@ -63,11 +84,12 @@ export function useFreehandSelectionHandlers(
         points.push(currentPos);
         if (!isLastPolygonSegmentIntersecting(points)) {
           lastPixelPointRef.current = { x: e.point.x, y: e.point.y };
-          return validDrawingState(points, prev.operation);
+          return { ...validDrawingState(points), operation };
         } else {
-          return invalidDrawingState(points, prev.operation);
+          return { ...invalidDrawingState(points), operation };
         }
       });
+      updateCursor();
 
       e.preventDefault();
     },
@@ -88,20 +110,43 @@ export function useFreehandSelectionHandlers(
           ...ephemeralState.points,
           ephemeralState.points[0],
         ];
-        setEphemeralState(
-          finishedDrawingState(closedPolygon, ephemeralState.operation),
-        );
+        setEphemeralState({
+          ...finishedDrawingState(closedPolygon),
+          operation: identifyOperation(),
+        });
         await selectAssetsInArea(closedPolygon, ephemeralState.operation);
         setEphemeralState({ type: "none" });
         lastPixelPointRef.current = null;
       } else {
         lastPixelPointRef.current = { x: e.point.x, y: e.point.y };
-        setEphemeralState(
-          invalidDrawingState([currentPos, currentPos], identifyOperation()),
-        );
+        setEphemeralState({
+          ...invalidDrawingState([currentPos, currentPos]),
+          operation: identifyOperation(),
+        });
       }
     },
+    keydown: () => {
+      updateCursor();
+      setEphemeralState((prev) => {
+        if (prev.type !== "areaSelect") return prev;
+        return {
+          ...prev,
+          operation: identifyOperation(),
+        };
+      });
+    },
+    keyup: () => {
+      updateCursor();
+      setEphemeralState((prev) => {
+        if (prev.type !== "areaSelect") return prev;
+        return {
+          ...prev,
+          operation: identifyOperation(),
+        };
+      });
+    },
     exit: () => {
+      setCursor("default");
       abortSelection();
       if (ephemeralState.type === "areaSelect") {
         setEphemeralState({ type: "none" });
@@ -115,36 +160,30 @@ export function useFreehandSelectionHandlers(
 
 const validDrawingState = (
   points: EphemeralEditingStateAreaSelection["points"],
-  operation?: "add" | "subtract",
 ): EphemeralEditingStateAreaSelection => ({
   type: "areaSelect",
   selectionMode: Mode.SELECT_FREEHAND,
   points,
   isValid: true,
   isDrawing: true,
-  operation,
 });
 
 const invalidDrawingState = (
   points: EphemeralEditingStateAreaSelection["points"],
-  operation?: "add" | "subtract",
 ): EphemeralEditingStateAreaSelection => ({
   type: "areaSelect",
   selectionMode: Mode.SELECT_FREEHAND,
   points,
   isValid: false,
   isDrawing: true,
-  operation,
 });
 
 const finishedDrawingState = (
   points: EphemeralEditingStateAreaSelection["points"],
-  operation?: "add" | "subtract",
 ): EphemeralEditingStateAreaSelection => ({
   type: "areaSelect",
   selectionMode: Mode.SELECT_FREEHAND,
   points,
   isValid: true,
   isDrawing: false,
-  operation,
 });
