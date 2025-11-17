@@ -4,9 +4,13 @@ import { useAtomValue, useSetAtom } from "jotai";
 import { selectionAtom, modeAtom, Mode } from "src/state/jotai";
 import { Asset, LinkAsset, NodeAsset } from "src/hydraulic-model";
 import { USelection, useSelection } from "src/selection";
-import { replaceLink } from "src/hydraulic-model/model-operations";
+import {
+  replaceLink,
+  replaceLinkWithActiveTopology,
+} from "src/hydraulic-model/model-operations";
 import measureLength from "@turf/length";
 import { useUserTracking } from "src/infra/user-tracking";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export function useRedrawLinkHandlers(
   handlerContext: HandlerContext,
@@ -18,6 +22,7 @@ export function useRedrawLinkHandlers(
   const { hydraulicModel } = handlerContext;
   const { assets } = hydraulicModel;
   const { selectAsset } = useSelection(selection);
+  const isActiveTopologyEnabled = useFeatureFlag("FLAG_ACTIVE_TOPOLOGY");
 
   const selectedIds = USelection.toIds(selection);
   const selectedAssets = selectedIds
@@ -39,14 +44,23 @@ export function useRedrawLinkHandlers(
       return;
     }
 
-    const moment = replaceLink(hydraulicModel, {
-      sourceLinkId: sourceLink.id,
-      startNode,
-      endNode,
-      startPipeId,
-      endPipeId,
-      newLink: link,
-    });
+    const moment = isActiveTopologyEnabled
+      ? replaceLinkWithActiveTopology(hydraulicModel, {
+          sourceLinkId: sourceLink.id,
+          startNode,
+          endNode,
+          startPipeId,
+          endPipeId,
+          newLink: link,
+        })
+      : replaceLink(hydraulicModel, {
+          sourceLinkId: sourceLink.id,
+          startNode,
+          endNode,
+          startPipeId,
+          endPipeId,
+          newLink: link,
+        });
 
     userTracking.capture({ name: "asset.redrawed", type: link.type });
     transact(moment);

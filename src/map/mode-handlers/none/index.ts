@@ -9,7 +9,11 @@ import { searchNearbyRenderedFeatures } from "src/map/search";
 import { clickableLayers } from "src/map/layers/layer";
 
 import { getNode } from "src/hydraulic-model";
-import { moveNode, mergeNodes } from "src/hydraulic-model/model-operations";
+import {
+  moveNode,
+  mergeNodes,
+  mergeNodesWithActiveTopology,
+} from "src/hydraulic-model/model-operations";
 import { nodesShareLink } from "src/hydraulic-model/topology";
 import { useMoveState } from "./move-state";
 import noop from "lodash/noop";
@@ -18,6 +22,7 @@ import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import { useSnapping } from "../hooks/use-snapping";
 import throttle from "lodash/throttle";
 import { useClickedAsset } from "../utils";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 const stateUpdateTime = 16;
 
@@ -44,6 +49,7 @@ export function useNoneHandlers({
   const { getClickedAsset } = useClickedAsset(map, hydraulicModel.assets);
 
   const setMode = useSetAtom(modeAtom);
+  const isActiveTopologyEnabled = useFeatureFlag("FLAG_ACTIVE_TOPOLOGY");
   const {
     clearSelection,
     isSelected,
@@ -257,10 +263,15 @@ export function useNoneHandlers({
         );
 
         if (!shareLink) {
-          const moment = mergeNodes(hydraulicModel, {
-            sourceNodeId: assetId,
-            targetNodeId: snappingCandidate.id,
-          });
+          const moment = isActiveTopologyEnabled
+            ? mergeNodesWithActiveTopology(hydraulicModel, {
+                sourceNodeId: assetId,
+                targetNodeId: snappingCandidate.id,
+              })
+            : mergeNodes(hydraulicModel, {
+                sourceNodeId: assetId,
+                targetNodeId: snappingCandidate.id,
+              });
           transact(moment);
           selectAsset(assetId);
         }

@@ -1,7 +1,10 @@
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useCallback } from "react";
 import { Asset } from "src/hydraulic-model";
-import { deleteAssets } from "src/hydraulic-model/model-operations";
+import {
+  deleteAssets,
+  deleteAssetsWithActiveTopology,
+} from "src/hydraulic-model/model-operations";
 import { AssetDeleted, useUserTracking } from "src/infra/user-tracking";
 import { usePersistence } from "src/lib/persistence/context";
 import { USelection } from "src/selection";
@@ -12,6 +15,7 @@ import {
   modeAtom,
   Mode,
 } from "src/state/jotai";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export const deleteSelectedShortcuts = ["backspace", "del"];
 
@@ -23,6 +27,7 @@ export const useDeleteSelectedAssets = () => {
   const rep = usePersistence();
   const transact = rep.useTransact();
   const userTracking = useUserTracking();
+  const isActiveTopologyEnabled = useFeatureFlag("FLAG_ACTIVE_TOPOLOGY");
 
   const deleteSelectedAssets = useCallback(
     ({ source }: { source: AssetDeleted["source"] }) => {
@@ -47,10 +52,15 @@ export const useDeleteSelectedAssets = () => {
         });
       }
 
-      const moment = deleteAssets(hydraulicModel, {
-        assetIds,
-        shouldUpdateCustomerPoints: true,
-      });
+      const moment = isActiveTopologyEnabled
+        ? deleteAssetsWithActiveTopology(hydraulicModel, {
+            assetIds,
+            shouldUpdateCustomerPoints: true,
+          })
+        : deleteAssets(hydraulicModel, {
+            assetIds,
+            shouldUpdateCustomerPoints: true,
+          });
 
       transact(moment);
     },
@@ -62,6 +72,7 @@ export const useDeleteSelectedAssets = () => {
       setMode,
       setEphemeralState,
       userTracking,
+      isActiveTopologyEnabled,
     ],
   );
 
