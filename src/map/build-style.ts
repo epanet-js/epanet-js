@@ -98,8 +98,14 @@ import {
   valveLines,
   valveLinesWithActiveTopology,
 } from "src/map/layers/valves";
-import { linkLabelsLayer } from "src/map/layers/link-labels";
-import { nodeLabelsLayer } from "src/map/layers/node-labels";
+import {
+  linkLabelsLayer,
+  linkLabelsLayerWithActiveTopology,
+} from "src/map/layers/link-labels";
+import {
+  nodeLabelsLayer,
+  nodeLabelsLayerWithActiveTopology,
+} from "src/map/layers/node-labels";
 import { tankLayers, tankLayersWithActiveTopology } from "src/map/layers/tank";
 import {
   ephemeralDraftLineLayer,
@@ -441,8 +447,12 @@ export function makeLayersWithActiveTopology({
     }),
     ephemeralJunctionHighlightLayers({ source: "ephemeral" }),
     ephemeralIconHighlightLayers({ source: "ephemeral" }),
-    ...linkLabelsLayer({ sources: ["imported-features", "features"] }),
-    ...nodeLabelsLayer({ sources: ["imported-features", "features"] }),
+    ...linkLabelsLayerWithActiveTopology({
+      sources: ["imported-features", "features"],
+    }),
+    ...nodeLabelsLayerWithActiveTopology({
+      sources: ["imported-features", "features"],
+    }),
     ...(typeof previewProperty === "string"
       ? [
           {
