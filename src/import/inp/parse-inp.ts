@@ -27,6 +27,7 @@ export const parseInp = (
   const safeOptions: ParseInpOptions = {
     ...options,
     customerPoints: isMadeByApp ? options?.customerPoints : false,
+    inactiveAssets: isMadeByApp ? options?.inactiveAssets : false,
   };
 
   const { inpData, stats } = readInpData(inp, issues, safeOptions);

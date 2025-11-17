@@ -2,8 +2,39 @@ import { parseInp } from "./parse-inp";
 import { buildInp } from "src/simulation/build-inp";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { Asset, AssetsMap } from "src/hydraulic-model";
+import { checksum } from "src/infra/checksum";
+
+// Helper to create valid app-made INP with customer points
+const createAppMadeInp = (content: string): string => {
+  const checksumValue = checksum(content);
+  return `;MADE BY EPANET-JS [${checksumValue}]\n${content}`;
+};
 
 describe("parse inactive assets", () => {
+  it("ignores comments if INP is not made by app", () => {
+    const inp = `
+    ; This is a comment line
+    [JUNCTIONS]
+    J1    100    0
+    ;J2   200    0
+
+    [COORDINATES]
+    J1    10    20
+    ;J2   30    40
+    `;
+
+    const { hydraulicModel } = parseInp(inp, {
+      inactiveAssets: true,
+    });
+
+    const j1 = getByLabel(hydraulicModel.assets, "J1");
+    const j2 = getByLabel(hydraulicModel.assets, "J2");
+
+    expect(j1).toBeDefined();
+    expect(j2).not.toBeDefined();
+    expect(j1?.feature.properties.isActive).toBe(true);
+  });
+
   it("parses commented junction as inactive", () => {
     const inp = `
     [JUNCTIONS]
@@ -15,7 +46,9 @@ describe("parse inactive assets", () => {
     ;J2   30    40
     `;
 
-    const { hydraulicModel } = parseInp(inp, { inactiveAssets: true });
+    const { hydraulicModel } = parseInp(createAppMadeInp(inp), {
+      inactiveAssets: true,
+    });
 
     const j1 = getByLabel(hydraulicModel.assets, "J1");
     const j2 = getByLabel(hydraulicModel.assets, "J2");
@@ -35,7 +68,9 @@ describe("parse inactive assets", () => {
     ;R2   30    40
     `;
 
-    const { hydraulicModel } = parseInp(inp, { inactiveAssets: true });
+    const { hydraulicModel } = parseInp(createAppMadeInp(inp), {
+      inactiveAssets: true,
+    });
 
     const r1 = getByLabel(hydraulicModel.assets, "R1");
     const r2 = getByLabel(hydraulicModel.assets, "R2");
@@ -55,7 +90,9 @@ describe("parse inactive assets", () => {
     ;T2   30    40
     `;
 
-    const { hydraulicModel } = parseInp(inp, { inactiveAssets: true });
+    const { hydraulicModel } = parseInp(createAppMadeInp(inp), {
+      inactiveAssets: true,
+    });
 
     const t1 = getByLabel(hydraulicModel.assets, "T1");
     const t2 = getByLabel(hydraulicModel.assets, "T2");
@@ -79,7 +116,9 @@ describe("parse inactive assets", () => {
     J2    30    40
     `;
 
-    const { hydraulicModel } = parseInp(inp, { inactiveAssets: true });
+    const { hydraulicModel } = parseInp(createAppMadeInp(inp), {
+      inactiveAssets: true,
+    });
 
     const p1 = getByLabel(hydraulicModel.assets, "P1");
     const p2 = getByLabel(hydraulicModel.assets, "P2");
@@ -103,7 +142,9 @@ describe("parse inactive assets", () => {
     J2    30    40
     `;
 
-    const { hydraulicModel } = parseInp(inp, { inactiveAssets: true });
+    const { hydraulicModel } = parseInp(createAppMadeInp(inp), {
+      inactiveAssets: true,
+    });
 
     const pu1 = getByLabel(hydraulicModel.assets, "PU1");
     const pu2 = getByLabel(hydraulicModel.assets, "PU2");
@@ -127,7 +168,9 @@ describe("parse inactive assets", () => {
     J2    30    40
     `;
 
-    const { hydraulicModel } = parseInp(inp, { inactiveAssets: true });
+    const { hydraulicModel } = parseInp(createAppMadeInp(inp), {
+      inactiveAssets: true,
+    });
 
     const v1 = getByLabel(hydraulicModel.assets, "V1");
     const v2 = getByLabel(hydraulicModel.assets, "V2");
@@ -183,7 +226,7 @@ describe("parse inactive assets", () => {
     expect(inp).toMatch(/^3\t/m); // P1 should appear as active (as "3")
 
     // Parse back and verify isActive property
-    const { hydraulicModel: parsedModel } = parseInp(inp, {
+    const { hydraulicModel: parsedModel } = parseInp(createAppMadeInp(inp), {
       inactiveAssets: true,
     });
 
@@ -254,7 +297,9 @@ J3    50    60
 J5    90    10
 `;
 
-    const { hydraulicModel } = parseInp(inp, { inactiveAssets: true });
+    const { hydraulicModel } = parseInp(createAppMadeInp(inp), {
+      inactiveAssets: true,
+    });
 
     const j1 = getByLabel(hydraulicModel.assets, "J1");
     const j2 = getByLabel(hydraulicModel.assets, "J2");
@@ -282,7 +327,9 @@ J5    90    10
     ;J2   30    40
     `;
 
-    const { hydraulicModel, issues } = parseInp(inp, { inactiveAssets: true });
+    const { hydraulicModel, issues } = parseInp(createAppMadeInp(inp), {
+      inactiveAssets: true,
+    });
 
     const assets = [...hydraulicModel.assets.values()];
     expect(assets).toHaveLength(2);
