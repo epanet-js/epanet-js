@@ -62,8 +62,6 @@ export const reservoirLayersWithActiveTopology = ({
             "symbol-placement": "point",
             "icon-image": [
               "case",
-              ["==", ["get", "selected"], true],
-              "reservoir-selected",
               ["==", ["get", "isActive"], false],
               "reservoir-disabled",
               "reservoir",

@@ -125,6 +125,13 @@ import {
   selectedIconsLayer,
   selectedIconsHaloLayer,
   selectedPipeArrowsLayer,
+  selectedPipesLayerWithActiveTopology,
+  selectedPumpLinesLayerWithActiveTopology,
+  selectedValveLinesLayerWithActiveTopology,
+  selectedPipeArrowsLayerWithActiveTopology,
+  selectedJunctionsLayerWithActiveTopology,
+  selectedIconsHaloLayerWithActiveTopology,
+  selectedIconsLayerWithActiveTopology,
 } from "src/map/layers/selection";
 import type * as mapboxgl from "mapbox-gl";
 
@@ -349,7 +356,7 @@ export function makeLayersWithActiveTopology({
       layerId: "pipes",
       symbology,
     }),
-    selectedPipesLayer({
+    selectedPipesLayerWithActiveTopology({
       source: "selected-features",
       layerId: "selected-pipes",
     }),
@@ -363,7 +370,7 @@ export function makeLayersWithActiveTopology({
       layerId: "pump-lines",
       symbology,
     }),
-    selectedPumpLinesLayer({
+    selectedPumpLinesLayerWithActiveTopology({
       source: "selected-features",
       layerId: "selected-pump-lines",
     }),
@@ -377,7 +384,7 @@ export function makeLayersWithActiveTopology({
       layerId: "valve-lines",
       symbology,
     }),
-    selectedValveLinesLayer({
+    selectedValveLinesLayerWithActiveTopology({
       source: "selected-features",
       layerId: "selected-valve-lines",
     }),
@@ -394,7 +401,7 @@ export function makeLayersWithActiveTopology({
       layerId: "pipe-arrows",
       symbology,
     }),
-    selectedPipeArrowsLayer({
+    selectedPipeArrowsLayerWithActiveTopology({
       source: "selected-features",
       layerId: "selected-pipe-arrows",
     }),
@@ -408,7 +415,7 @@ export function makeLayersWithActiveTopology({
       layerId: "junctions",
       symbology,
     }),
-    selectedJunctionsLayer({
+    selectedJunctionsLayerWithActiveTopology({
       source: "selected-features",
       layerId: "selected-junctions",
     }),
@@ -422,7 +429,7 @@ export function makeLayersWithActiveTopology({
       layerId: "junction-results",
       symbology,
     }),
-    selectedIconsHaloLayer({
+    selectedIconsHaloLayerWithActiveTopology({
       source: "selected-features",
       layerId: "selected-icons-halo",
     }),
@@ -441,7 +448,7 @@ export function makeLayersWithActiveTopology({
     }),
     ...reservoirLayersWithActiveTopology({ sources: ["icons"] }),
     ...tankLayersWithActiveTopology({ sources: ["icons"] }),
-    selectedIconsLayer({
+    selectedIconsLayerWithActiveTopology({
       source: "selected-features",
       layerId: "selected-icons",
     }),

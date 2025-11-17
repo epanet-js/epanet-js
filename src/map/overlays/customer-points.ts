@@ -5,11 +5,7 @@ import {
   CustomerPoints,
 } from "src/hydraulic-model/customer-points";
 import { hexToArray, strokeColorFor } from "src/lib/color";
-import {
-  colors,
-  CUSTOMER_POINT_COLORS_SELECTED,
-  CUSTOMER_POINT_COLORS_SELECTED_HALO,
-} from "src/lib/constants";
+import { colors } from "src/lib/constants";
 import { Position } from "src/types";
 import { AssetsMap } from "src/hydraulic-model";
 import { Pipe } from "src/hydraulic-model/asset-types/pipe";
@@ -43,11 +39,20 @@ const haloFillColor = hexToArray(colors.cyan300, 0.8) as [
   number,
 ];
 
-const selectionFillColor = hexToArray(CUSTOMER_POINT_COLORS_SELECTED);
-const selectionHaloFillColor = hexToArray(
-  CUSTOMER_POINT_COLORS_SELECTED_HALO,
-  0.8,
-) as [number, number, number, number];
+const selectionFillColor = hexToArray(colors.fuchsia500);
+const selectionHaloFillColor = hexToArray(colors.fuchsia300, 0.8) as [
+  number,
+  number,
+  number,
+  number,
+];
+const selectionDisabledFillColor = hexToArray(colors.fuchsia300);
+const selectionDisabledHaloFillColor = hexToArray(colors.gray300, 0.8) as [
+  number,
+  number,
+  number,
+  number,
+];
 
 export type CustomerPointsLayer = ScatterplotLayer | LineLayer | PathLayer;
 export type CustomerPointsOverlay = CustomerPointsLayer[];
@@ -313,6 +318,62 @@ export const buildCustomerPointsSelectionOverlay = (
     getFillColor: selectionFillColor,
     stroked: true,
     getLineColor: selectionHaloFillColor,
+    getLineWidth: 1,
+    lineWidthUnits: "pixels",
+    lineWidthMinPixels: 1,
+    lineWidthMaxPixels: 2,
+    antialiasing: true,
+    visible: isVisible,
+  });
+
+  return [haloLayer, selectionLayer];
+};
+
+export const buildCustomerPointsSelectionOverlayWithActiveTopology = (
+  selectedPoints: CustomerPoint[],
+  isActive: boolean,
+  zoom: number,
+): CustomerPointsOverlay => {
+  if (selectedPoints.length === 0) {
+    return [];
+  }
+
+  const isVisible = shouldShowOvelay(zoom);
+
+  const haloLayer = new ScatterplotLayer({
+    id: "customer-points-selection-halo-layer",
+    beforeId: "ephemeral-junction-highlight",
+    data: selectedPoints,
+    getPosition: (d: CustomerPoint) => d.coordinates as [number, number],
+
+    radiusUnits: "meters",
+    getRadius: 3,
+    radiusMinPixels: 0,
+    radiusMaxPixels: 6,
+
+    getFillColor: isActive
+      ? selectionHaloFillColor
+      : selectionDisabledHaloFillColor,
+    antialiasing: true,
+    visible: isVisible,
+  });
+
+  const selectionLayer = new ScatterplotLayer({
+    id: "customer-points-selection-layer",
+    beforeId: "ephemeral-junction-highlight",
+    data: selectedPoints,
+    getPosition: (d: CustomerPoint) => d.coordinates as [number, number],
+
+    radiusUnits: "meters",
+    getRadius: 1.5,
+    radiusMinPixels: 0,
+    radiusMaxPixels: 4,
+
+    getFillColor: isActive ? selectionFillColor : selectionDisabledFillColor,
+    stroked: true,
+    getLineColor: isActive
+      ? selectionHaloFillColor
+      : selectionDisabledHaloFillColor,
     getLineWidth: 1,
     lineWidthUnits: "pixels",
     lineWidthMinPixels: 1,

@@ -62,8 +62,6 @@ export const tankLayersWithActiveTopology = ({
             "symbol-placement": "point",
             "icon-image": [
               "case",
-              ["==", ["get", "selected"], true],
-              "tank-selected",
               ["==", ["get", "isActive"], false],
               "tank-disabled",
               "tank",
