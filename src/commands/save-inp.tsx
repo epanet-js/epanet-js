@@ -8,6 +8,7 @@ import type { fileSave as fileSaveType } from "browser-fs-access";
 import { useAtomValue, useSetAtom } from "jotai";
 import { notifyPromiseState } from "src/components/notifications";
 import { useUserTracking } from "src/infra/user-tracking";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 const getDefaultFsAccess = async () => {
   const { fileSave } = await import("browser-fs-access");
@@ -28,6 +29,7 @@ export const useSaveInp = ({
   const setDialogState = useSetAtom(dialogAtom);
   const fileInfo = useAtomValue(fileInfoAtom);
   const userTracking = useUserTracking();
+  const isActiveTopologyEnabled = useFeatureFlag("FLAG_ACTIVE_TOPOLOGY");
 
   const saveInp = useAtomCallback(
     useCallback(
@@ -53,7 +55,7 @@ export const useSaveInp = ({
             labelIds: true,
             customerDemands: true,
             customerPoints: true,
-            inactiveAssets: true,
+            inactiveAssets: isActiveTopologyEnabled,
           });
           const inpBlob = new Blob([inp], { type: "text/plain" });
 
@@ -92,7 +94,7 @@ export const useSaveInp = ({
           return false;
         }
       },
-      [getFsAccess, userTracking, translate],
+      [getFsAccess, userTracking, translate, isActiveTopologyEnabled],
     ),
   );
 

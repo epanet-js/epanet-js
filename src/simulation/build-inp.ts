@@ -305,12 +305,12 @@ const appendReservoir = (
   inactiveAssets: boolean,
   reservoir: Reservoir,
 ) => {
-  if (!reservoir.feature.properties.isActive && !inactiveAssets) {
+  if (!reservoir.isActive && !inactiveAssets) {
     return;
   }
 
   const reservoirId = idMap.nodeId(reservoir);
-  const commentPrefix = !reservoir.feature.properties.isActive ? ";" : "";
+  const commentPrefix = !reservoir.isActive ? ";" : "";
 
   sections.reservoirs.push(
     commentPrefix + [reservoirId, reservoir.head].join("\t"),
@@ -327,13 +327,13 @@ const appendTank = (
   inactiveAssets: boolean,
   tank: Tank,
 ) => {
-  if (!tank.feature.properties.isActive && !inactiveAssets) {
+  if (!tank.isActive && !inactiveAssets) {
     return;
   }
 
   const tankId = idMap.nodeId(tank);
   const nullCurveId = "*";
-  const commentPrefix = !tank.feature.properties.isActive ? ";" : "";
+  const commentPrefix = !tank.isActive ? ";" : "";
 
   sections.tanks.push(
     commentPrefix +
@@ -363,12 +363,12 @@ const appendJunction = (
   junction: Junction,
   customerPointsLookup: CustomerPointsLookup,
 ): boolean => {
-  if (!junction.feature.properties.isActive && !inactiveAssets) {
+  if (!junction.isActive && !inactiveAssets) {
     return false;
   }
 
   const junctionId = idMap.nodeId(junction);
-  const commentPrefix = !junction.feature.properties.isActive ? ";" : "";
+  const commentPrefix = !junction.isActive ? ";" : "";
 
   sections.junctions.push(
     commentPrefix + [junctionId, junction.elevation].join("\t"),
@@ -407,13 +407,13 @@ const appendPipe = (
   inactiveAssets: boolean,
   pipe: Pipe,
 ) => {
-  if (!pipe.feature.properties.isActive && !inactiveAssets) {
+  if (!pipe.isActive && !inactiveAssets) {
     return;
   }
 
   const linkId = idMap.linkId(pipe);
   const [startId, endId] = getLinkConnectionIds(hydraulicModel, idMap, pipe);
-  const commentPrefix = !pipe.feature.properties.isActive ? ";" : "";
+  const commentPrefix = !pipe.isActive ? ";" : "";
 
   sections.pipes.push(
     commentPrefix +
@@ -441,13 +441,13 @@ const appendPump = (
   inactiveAssets: boolean,
   pump: Pump,
 ) => {
-  if (!pump.feature.properties.isActive && !inactiveAssets) {
+  if (!pump.isActive && !inactiveAssets) {
     return; // Skip inactive assets when not including as comments
   }
 
   const linkId = idMap.linkId(pump);
   const [startId, endId] = getLinkConnectionIds(hydraulicModel, idMap, pump);
-  const commentPrefix = !pump.feature.properties.isActive ? ";" : "";
+  const commentPrefix = !pump.isActive ? ";" : "";
 
   if (pump.definitionType === "flow-vs-head") {
     sections.pumps.push(
@@ -489,12 +489,12 @@ const appendValve = (
   inactiveAssets: boolean,
   valve: Valve,
 ) => {
-  if (!valve.feature.properties.isActive && !inactiveAssets) {
+  if (!valve.isActive && !inactiveAssets) {
     return;
   }
 
   const linkId = idMap.linkId(valve);
-  const commentPrefix = !valve.feature.properties.isActive ? ";" : "";
+  const commentPrefix = !valve.isActive ? ";" : "";
 
   sections.valves.push(
     commentPrefix +
