@@ -208,6 +208,7 @@ export function AssetPanel({
           onPropertyChange={handlePropertyChange}
           onStatusChange={handleStatusChange}
           onActiveTopologyStatusChange={handleActiveTopologyStatusChange}
+          hydraulicModel={hydraulicModel}
         />
       );
     }
@@ -367,6 +368,7 @@ const PipeEditor = ({
   onPropertyChange,
   onStatusChange,
   onActiveTopologyStatusChange,
+  hydraulicModel,
 }: {
   pipe: Pipe;
   startNode: NodeAsset | null;
@@ -380,10 +382,26 @@ const PipeEditor = ({
     newValue: boolean,
     oldValue: boolean,
   ) => void;
+  hydraulicModel: HydraulicModel;
 }) => {
   const translate = useTranslate();
   const isActiveTopologyOn = useFeatureFlag("FLAG_ACTIVE_TOPOLOGY");
+  const isPipeCustomerPointsEnabled = useFeatureFlag(
+    "FLAG_PIPE_CUSTOMER_POINTS",
+  );
   const simulationStatusText = translate(pipeStatusLabel(pipe));
+
+  const customerPoints = useMemo(() => {
+    const connectedCustomerPoints =
+      hydraulicModel.customerPointsLookup.getCustomerPoints(pipe.id);
+    return Array.from(connectedCustomerPoints);
+  }, [pipe.id, hydraulicModel]);
+
+  const customerCount = customerPoints.length;
+  const totalDemand = customerPoints.reduce(
+    (sum, cp) => sum + cp.baseDemand,
+    0,
+  );
 
   const pipeStatusOptions = useMemo(() => {
     return pipeStatuses.map((status) => ({
@@ -458,6 +476,23 @@ const PipeEditor = ({
           onChange={onPropertyChange}
         />
       </Section>
+      {isPipeCustomerPointsEnabled && customerCount > 0 && (
+        <Section title={translate("demands")}>
+          <QuantityRow
+            name="customerDemand"
+            value={totalDemand}
+            unit={quantitiesMetadata.getUnit("baseDemand")}
+            decimals={quantitiesMetadata.getDecimals("baseDemand")}
+            readOnly={true}
+          />
+          <ConnectedCustomersRow
+            customerCount={customerCount}
+            customerPoints={customerPoints}
+            aggregateUnit={quantitiesMetadata.getUnit("customerDemand")}
+            customerUnit={quantitiesMetadata.getUnit("customerDemandPerDay")}
+          />
+        </Section>
+      )}
       <Section title={translate("simulationResults")}>
         <QuantityRow
           name="flow"

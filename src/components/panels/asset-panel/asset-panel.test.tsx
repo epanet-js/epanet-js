@@ -11,7 +11,7 @@ import FeatureEditor from "../feature-editor";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Valve } from "src/hydraulic-model/asset-types";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
+import { stubFeatureOn, stubFeatureOff } from "src/__helpers__/feature-flags";
 
 describe("AssetPanel", () => {
   beforeEach(() => {
@@ -82,6 +82,186 @@ describe("AssetPanel", () => {
       expectTextPropertyDisplayed("velocity (m/s)", "10.123");
       expectTextPropertyDisplayed("headloss (m)", "0.234");
       expectTextPropertyDisplayed("unit headloss (m/km)", "0.123");
+    });
+
+    describe("customer points", () => {
+      beforeEach(() => {
+        stubFeatureOn("FLAG_PIPE_CUSTOMER_POINTS");
+      });
+
+      it("shows Customer Demand field when pipe has customer points", () => {
+        const IDS = { J1: 1, J2: 2, P1: 3, CP1: 4, CP2: 5 };
+        const hydraulicModel = HydraulicModelBuilder.with()
+          .aJunction(IDS.J1, { label: "J1" })
+          .aJunction(IDS.J2, { label: "J2", coordinates: [10, 0] })
+          .aPipe(IDS.P1, {
+            label: "MY_PIPE",
+            startNodeId: IDS.J1,
+            endNodeId: IDS.J2,
+          })
+          .aCustomerPoint(IDS.CP1, {
+            label: "CP1",
+            coordinates: [1, 2],
+            demand: 25,
+            connection: {
+              pipeId: IDS.P1,
+              junctionId: IDS.J1,
+              snapPoint: [1, 2],
+            },
+          })
+          .aCustomerPoint(IDS.CP2, {
+            label: "CP2",
+            coordinates: [3, 4],
+            demand: 30,
+            connection: {
+              pipeId: IDS.P1,
+              junctionId: IDS.J1,
+              snapPoint: [3, 4],
+            },
+          })
+          .build();
+
+        const store = setInitialState({
+          hydraulicModel,
+          selectedAssetId: IDS.P1,
+        });
+
+        renderComponent(store);
+
+        expect(screen.getByText("MY_PIPE")).toBeInTheDocument();
+        expect(screen.getByText("Pipe")).toBeInTheDocument();
+
+        expectTextPropertyDisplayed("customer demand (l/s)", "55");
+
+        const connectedCustomersTrigger = screen.getByRole("button", {
+          name: /connected customers/i,
+        });
+        expect(connectedCustomersTrigger).toBeInTheDocument();
+        expect(connectedCustomersTrigger).toHaveTextContent("2");
+      });
+
+      it("opens popover when customer count button is clicked", async () => {
+        const IDS = { J1: 1, J2: 2, P1: 3, CP1: 4, CP2: 5 };
+        const hydraulicModel = HydraulicModelBuilder.with()
+          .aJunction(IDS.J1, { label: "J1" })
+          .aJunction(IDS.J2, { label: "J2", coordinates: [10, 0] })
+          .aPipe(IDS.P1, {
+            label: "MY_PIPE",
+            startNodeId: IDS.J1,
+            endNodeId: IDS.J2,
+          })
+          .aCustomerPoint(IDS.CP1, {
+            label: "CP1",
+            coordinates: [1, 2],
+            demand: 25,
+            connection: {
+              pipeId: IDS.P1,
+              junctionId: IDS.J1,
+              snapPoint: [1, 2],
+            },
+          })
+          .aCustomerPoint(IDS.CP2, {
+            label: "CP2",
+            coordinates: [3, 4],
+            demand: 30,
+            connection: {
+              pipeId: IDS.P1,
+              junctionId: IDS.J1,
+              snapPoint: [3, 4],
+            },
+          })
+          .build();
+
+        const store = setInitialState({
+          hydraulicModel,
+          selectedAssetId: IDS.P1,
+        });
+        const user = userEvent.setup();
+
+        renderComponent(store);
+
+        const connectedCustomersTrigger = screen.getByRole("button", {
+          name: /connected customers/i,
+        });
+
+        await user.click(connectedCustomersTrigger);
+
+        await waitFor(() => {
+          expect(screen.getByText("CP1")).toBeInTheDocument();
+        });
+        expect(screen.getByText("CP2")).toBeInTheDocument();
+        expect(screen.getByText("2,160,000")).toBeInTheDocument();
+        expect(screen.getByText("2,592,000")).toBeInTheDocument();
+      });
+
+      it("does not show Customer Demand field when pipe has no customer points", () => {
+        const IDS = { J1: 1, J2: 2, P1: 3 };
+        const hydraulicModel = HydraulicModelBuilder.with()
+          .aJunction(IDS.J1, { label: "J1" })
+          .aJunction(IDS.J2, { label: "J2", coordinates: [10, 0] })
+          .aPipe(IDS.P1, {
+            label: "MY_PIPE",
+            startNodeId: IDS.J1,
+            endNodeId: IDS.J2,
+          })
+          .build();
+
+        const store = setInitialState({
+          hydraulicModel,
+          selectedAssetId: IDS.P1,
+        });
+
+        renderComponent(store);
+
+        expect(screen.getByText("MY_PIPE")).toBeInTheDocument();
+        expect(screen.getByText("Pipe")).toBeInTheDocument();
+
+        expect(
+          screen.queryByLabelText(/label: customer demand \(l\/s\)/i),
+        ).not.toBeInTheDocument();
+      });
+
+      it("does not show Customer Demand section when feature flag is off", () => {
+        stubFeatureOff("FLAG_PIPE_CUSTOMER_POINTS");
+
+        const IDS = { J1: 1, J2: 2, P1: 3, CP1: 4 };
+        const hydraulicModel = HydraulicModelBuilder.with()
+          .aJunction(IDS.J1, { label: "J1" })
+          .aJunction(IDS.J2, { label: "J2", coordinates: [10, 0] })
+          .aPipe(IDS.P1, {
+            label: "MY_PIPE",
+            startNodeId: IDS.J1,
+            endNodeId: IDS.J2,
+          })
+          .aCustomerPoint(IDS.CP1, {
+            label: "CP1",
+            coordinates: [1, 2],
+            demand: 25,
+            connection: {
+              pipeId: IDS.P1,
+              junctionId: IDS.J1,
+              snapPoint: [1, 2],
+            },
+          })
+          .build();
+
+        const store = setInitialState({
+          hydraulicModel,
+          selectedAssetId: IDS.P1,
+        });
+
+        renderComponent(store);
+
+        expect(screen.getByText("MY_PIPE")).toBeInTheDocument();
+        expect(screen.getByText("Pipe")).toBeInTheDocument();
+
+        expect(
+          screen.queryByLabelText(/label: customer demand \(l\/s\)/i),
+        ).not.toBeInTheDocument();
+        expect(
+          screen.queryByRole("button", { name: /connected customers/i }),
+        ).not.toBeInTheDocument();
+      });
     });
   });
 

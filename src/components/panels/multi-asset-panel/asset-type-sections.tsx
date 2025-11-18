@@ -3,18 +3,24 @@ import { Section, SectionList } from "src/components/form/fields";
 import { MultiValueRow } from "./multi-value-row";
 import { AssetPropertySections } from "./data";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { Asset } from "src/hydraulic-model";
 
 type SectionProps = {
   sections: AssetPropertySections;
   hasSimulation?: boolean;
+  assetType?: Asset["type"];
 };
 
 export function AssetTypeSections({
   sections,
   hasSimulation = false,
+  assetType,
 }: SectionProps) {
   const translate = useTranslate();
   const isActiveTopologyEnabled = useFeatureFlag("FLAG_ACTIVE_TOPOLOGY");
+  const isPipeCustomerPointsEnabled = useFeatureFlag(
+    "FLAG_PIPE_CUSTOMER_POINTS",
+  );
 
   const sectionKeys: Array<keyof AssetPropertySections> =
     isActiveTopologyEnabled
@@ -29,6 +35,14 @@ export function AssetTypeSections({
         if (stats.length === 0) return null;
 
         if (sectionKey === "simulationResults" && !hasSimulation) return null;
+
+        if (
+          sectionKey === "demands" &&
+          assetType === "pipe" &&
+          !isPipeCustomerPointsEnabled
+        ) {
+          return null;
+        }
 
         return (
           <Section

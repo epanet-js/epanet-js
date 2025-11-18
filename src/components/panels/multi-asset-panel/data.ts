@@ -84,7 +84,12 @@ export const computeMultiAssetData = (
         break;
       case "pipe":
         counts.pipe++;
-        appendPipeStats(statsMaps.pipe, asset as Pipe, quantitiesMetadata);
+        appendPipeStats(
+          statsMaps.pipe,
+          asset as Pipe,
+          quantitiesMetadata,
+          hydraulicModel.customerPointsLookup,
+        );
         break;
       case "pump":
         counts.pump++;
@@ -207,6 +212,7 @@ const appendPipeStats = (
   statsMap: Map<string, AssetPropertyStats>,
   pipe: Pipe,
   quantitiesMetadata: Quantities,
+  customerPointsLookup: CustomerPointsLookup,
 ) => {
   updateCategoryStats(statsMap, "isEnabled", pipe.isActive ? "yes" : "no");
   updateCategoryStats(statsMap, "initialStatus", "pipe." + pipe.initialStatus);
@@ -224,6 +230,27 @@ const appendPipeStats = (
     pipe.minorLoss,
     quantitiesMetadata,
   );
+
+  const customerPoints = customerPointsLookup.getCustomerPoints(pipe.id);
+  if (customerPoints.size > 0) {
+    const totalCustomerDemand = Array.from(customerPoints).reduce(
+      (sum, cp) => sum + cp.baseDemand,
+      0,
+    );
+
+    updateQuantityStats(
+      statsMap,
+      "customerDemand",
+      totalCustomerDemand,
+      quantitiesMetadata,
+    );
+
+    updateCustomerCountStats(
+      statsMap,
+      "connectedCustomers",
+      customerPoints.size,
+    );
+  }
 
   if (pipe.flow !== null) {
     updateQuantityStats(statsMap, "flow", pipe.flow, quantitiesMetadata);
@@ -270,7 +297,10 @@ const buildPipeSections = (
       "roughness",
       "minorLoss",
     ]),
-    demands: [],
+    demands: getStatsForProperties(statsMap, [
+      "customerDemand",
+      "connectedCustomers",
+    ]),
     simulationResults: getStatsForProperties(statsMap, [
       "flow",
       "velocity",

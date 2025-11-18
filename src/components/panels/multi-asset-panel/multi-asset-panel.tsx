@@ -73,6 +73,7 @@ export function MultiAssetPanel({
           <AssetTypeSections
             sections={multiAssetData.pipe}
             hasSimulation={hasSimulation}
+            assetType="pipe"
           />
         </CollapsibleSection>
       )}
