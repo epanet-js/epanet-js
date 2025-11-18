@@ -2,13 +2,17 @@ import { CircleLayer, LineLayer, SymbolLayer } from "mapbox-gl";
 import { DataSource } from "../data-source";
 import { LayerId } from "./layer";
 import { strokeColorFor } from "src/lib/color";
-import { junctionCircleSizes } from "./junctions";
+import {
+  junctionCircleSizes,
+  junctionCircleSizesWithActiveTopology,
+} from "./junctions";
 import { colors } from "src/lib/constants";
 
 const LINE_COLORS_SELECTED = colors.fuchsia500;
 const POINT_COLORS_SELECTED = colors.fuchsia500;
+const POINT_COLORS_SELECTED_WITH_ACTIVE_TOPOLOGY = colors.fuchsia300;
 const LINE_COLORS_SELECTED_DISABLED = colors.fuchsia300;
-const POINT_COLORS_SELECTED_DISABLED = colors.fuchsia300;
+const POINT_COLORS_SELECTED_DISABLED = colors.fuchsia100;
 
 export const selectedPipesLayerWithActiveTopology = ({
   source,
@@ -141,8 +145,13 @@ export const selectedJunctionsLayerWithActiveTopology = ({
     filter: ["==", ["get", "type"], "junction"],
     paint: {
       "circle-opacity": 1,
-      "circle-stroke-color": strokeColorFor(POINT_COLORS_SELECTED),
-      ...junctionCircleSizes(),
+      "circle-stroke-color": [
+        "case",
+        ["==", ["get", "isActive"], false],
+        POINT_COLORS_SELECTED_WITH_ACTIVE_TOPOLOGY,
+        LINE_COLORS_SELECTED,
+      ],
+      ...junctionCircleSizesWithActiveTopology(),
       "circle-stroke-opacity": 1,
       "circle-color": [
         "case",

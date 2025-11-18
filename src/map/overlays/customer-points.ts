@@ -46,13 +46,18 @@ const selectionHaloFillColor = hexToArray(colors.fuchsia300, 0.8) as [
   number,
   number,
 ];
-const selectionDisabledFillColor = hexToArray(colors.fuchsia300);
-const selectionDisabledHaloFillColor = hexToArray(colors.gray300, 0.8) as [
+const selectionDisabledFillColor = hexToArray(colors.fuchsia200);
+const selectionDisabledHaloFillColor = hexToArray(colors.fuchsia300) as [
   number,
   number,
   number,
   number,
 ];
+const selectionFillColorWithActiveTopology = hexToArray(colors.fuchsia300);
+const selectionHaloFillColorWithActiveTopology = hexToArray(
+  colors.fuchsia600,
+  0.8,
+) as [number, number, number, number];
 
 export type CustomerPointsLayer = ScatterplotLayer | LineLayer | PathLayer;
 export type CustomerPointsOverlay = CustomerPointsLayer[];
@@ -352,7 +357,7 @@ export const buildCustomerPointsSelectionOverlayWithActiveTopology = (
     radiusMaxPixels: 6,
 
     getFillColor: isActive
-      ? selectionHaloFillColor
+      ? selectionHaloFillColorWithActiveTopology
       : selectionDisabledHaloFillColor,
     antialiasing: true,
     visible: isVisible,
@@ -369,10 +374,12 @@ export const buildCustomerPointsSelectionOverlayWithActiveTopology = (
     radiusMinPixels: 0,
     radiusMaxPixels: 4,
 
-    getFillColor: isActive ? selectionFillColor : selectionDisabledFillColor,
+    getFillColor: isActive
+      ? selectionFillColorWithActiveTopology
+      : selectionDisabledFillColor,
     stroked: true,
     getLineColor: isActive
-      ? selectionHaloFillColor
+      ? selectionHaloFillColorWithActiveTopology
       : selectionDisabledHaloFillColor,
     getLineWidth: 1,
     lineWidthUnits: "pixels",
