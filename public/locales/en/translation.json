@@ -650,7 +650,7 @@
     "polygonal": "Polygonal selection",
     "freehand": "Freehand selection",
     "drawingStartHint": "Click to start drawing the selection region",
-    "drawingRectangleEndHint": "Click to define oposite vertex",
+    "drawingRectangleEndHint": "Click to define opposite vertex",
     "drawingPolygonEndHint": "Click to define vertices. Finish by double clicking",
     "drawingFreehandEndHint": "Click to finish",
     "operationHint": "Hold {{1}} to add or {{2}} to remove from a selection"
