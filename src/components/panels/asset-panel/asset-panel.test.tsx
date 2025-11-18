@@ -11,7 +11,7 @@ import FeatureEditor from "../feature-editor";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Valve } from "src/hydraulic-model/asset-types";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
-import { stubFeatureOn, stubFeatureOff } from "src/__helpers__/feature-flags";
+import { stubFeatureOn } from "src/__helpers__/feature-flags";
 
 describe("AssetPanel", () => {
   beforeEach(() => {
@@ -85,10 +85,6 @@ describe("AssetPanel", () => {
     });
 
     describe("customer points", () => {
-      beforeEach(() => {
-        stubFeatureOn("FLAG_PIPE_CUSTOMER_POINTS");
-      });
-
       it("shows Customer Demand field when pipe has customer points", () => {
         const IDS = { J1: 1, J2: 2, P1: 3, CP1: 4, CP2: 5 };
         const hydraulicModel = HydraulicModelBuilder.with()
@@ -218,48 +214,6 @@ describe("AssetPanel", () => {
 
         expect(
           screen.queryByLabelText(/label: customer demand \(l\/s\)/i),
-        ).not.toBeInTheDocument();
-      });
-
-      it("does not show Customer Demand section when feature flag is off", () => {
-        stubFeatureOff("FLAG_PIPE_CUSTOMER_POINTS");
-
-        const IDS = { J1: 1, J2: 2, P1: 3, CP1: 4 };
-        const hydraulicModel = HydraulicModelBuilder.with()
-          .aJunction(IDS.J1, { label: "J1" })
-          .aJunction(IDS.J2, { label: "J2", coordinates: [10, 0] })
-          .aPipe(IDS.P1, {
-            label: "MY_PIPE",
-            startNodeId: IDS.J1,
-            endNodeId: IDS.J2,
-          })
-          .aCustomerPoint(IDS.CP1, {
-            label: "CP1",
-            coordinates: [1, 2],
-            demand: 25,
-            connection: {
-              pipeId: IDS.P1,
-              junctionId: IDS.J1,
-              snapPoint: [1, 2],
-            },
-          })
-          .build();
-
-        const store = setInitialState({
-          hydraulicModel,
-          selectedAssetId: IDS.P1,
-        });
-
-        renderComponent(store);
-
-        expect(screen.getByText("MY_PIPE")).toBeInTheDocument();
-        expect(screen.getByText("Pipe")).toBeInTheDocument();
-
-        expect(
-          screen.queryByLabelText(/label: customer demand \(l\/s\)/i),
-        ).not.toBeInTheDocument();
-        expect(
-          screen.queryByRole("button", { name: /connected customers/i }),
         ).not.toBeInTheDocument();
       });
     });

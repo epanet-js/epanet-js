@@ -389,9 +389,7 @@ const PipeEditor = ({
 }) => {
   const translate = useTranslate();
   const isActiveTopologyOn = useFeatureFlag("FLAG_ACTIVE_TOPOLOGY");
-  const isPipeCustomerPointsEnabled = useFeatureFlag(
-    "FLAG_PIPE_CUSTOMER_POINTS",
-  );
+
   const simulationStatusText = translate(pipeStatusLabel(pipe));
 
   const customerPoints = useMemo(() => {
@@ -479,7 +477,7 @@ const PipeEditor = ({
           onChange={onPropertyChange}
         />
       </Section>
-      {isPipeCustomerPointsEnabled && customerCount > 0 && (
+      {customerCount > 0 && (
         <Section title={translate("demands")}>
           <QuantityRow
             name="customerDemand"
