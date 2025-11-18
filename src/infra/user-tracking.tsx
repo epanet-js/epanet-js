@@ -105,6 +105,12 @@ type AssetSelected = {
 type MultiSelectUpdated = {
   name: "multiSelect.updated";
   count: number;
+  operation:
+    | "bulk_add"
+    | "bulk_remove"
+    | "new"
+    | "single_add"
+    | "single_remove";
 };
 
 type FullSelectionEnabled = {

@@ -23,6 +23,7 @@ export const useSelection = (selection: Sel) => {
     userTracking.capture({
       name: "multiSelect.updated",
       count: newCount,
+      operation: Array.isArray(assetId) ? "bulk_add" : "single_add",
     });
     setSelection(newSelection);
     setTab(TabOption.Asset);
@@ -38,6 +39,11 @@ export const useSelection = (selection: Sel) => {
   };
 
   const selectAssets = (assetIds: AssetId[]) => {
+    userTracking.capture({
+      name: "multiSelect.updated",
+      count: assetIds.length,
+      operation: "new",
+    });
     setSelection(USelection.fromIds(assetIds));
     setTab(TabOption.Asset);
   };
@@ -56,6 +62,7 @@ export const useSelection = (selection: Sel) => {
     userTracking.capture({
       name: "multiSelect.updated",
       count: newCount,
+      operation: Array.isArray(assetId) ? "bulk_remove" : "single_remove",
     });
     setSelection(newSelection);
   };
