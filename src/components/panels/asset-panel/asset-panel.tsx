@@ -10,6 +10,7 @@ import {
   NodeAsset,
   HydraulicModel,
 } from "src/hydraulic-model";
+import { getActiveCustomerPoints } from "src/hydraulic-model/customer-points";
 import { Valve } from "src/hydraulic-model/asset-types";
 import { Quantities } from "src/model-metadata/quantities-spec";
 import { useTranslate } from "src/hooks/use-translate";
@@ -273,9 +274,11 @@ const JunctionEditor = ({
   const translate = useTranslate();
   const isActiveTopologyOn = useFeatureFlag("FLAG_ACTIVE_TOPOLOGY");
   const customerPoints = useMemo(() => {
-    const connectedCustomerPoints =
-      hydraulicModel.customerPointsLookup.getCustomerPoints(junction.id);
-    return Array.from(connectedCustomerPoints);
+    return getActiveCustomerPoints(
+      hydraulicModel.customerPointsLookup,
+      hydraulicModel.assets,
+      junction.id,
+    );
   }, [junction.id, hydraulicModel]);
 
   const customerCount = customerPoints.length;

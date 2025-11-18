@@ -1,4 +1,8 @@
-import { buildCustomerPoint } from "src/__helpers__/hydraulic-model-builder";
+import {
+  buildCustomerPoint,
+  HydraulicModelBuilder,
+} from "src/__helpers__/hydraulic-model-builder";
+import { getActiveCustomerPoints } from "./customer-points";
 
 describe("CustomerPoint", () => {
   it("creates customer point with provided ID", () => {
@@ -63,5 +67,142 @@ describe("CustomerPoint", () => {
 
     expect(originalPoint.connection).not.toBeNull();
     expect(copiedPoint.connection).toBeNull();
+  });
+});
+
+describe("getActiveCustomerPoints", () => {
+  it("returns all customer points when connected pipe is active", () => {
+    const IDS = { J1: 1, J2: 2, P1: 3, CP1: 4, CP2: 5 };
+
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1, { coordinates: [0, 0] })
+      .aJunction(IDS.J2, { coordinates: [100, 0] })
+      .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
+      .aCustomerPoint(IDS.CP1, {
+        coordinates: [25, 0],
+        demand: 50,
+        connection: {
+          pipeId: IDS.P1,
+          junctionId: IDS.J1,
+          snapPoint: [25, 0],
+        },
+      })
+      .aCustomerPoint(IDS.CP2, {
+        coordinates: [75, 0],
+        demand: 30,
+        connection: {
+          pipeId: IDS.P1,
+          junctionId: IDS.J2,
+          snapPoint: [75, 0],
+        },
+      })
+      .build();
+
+    const activeCustomerPoints = getActiveCustomerPoints(
+      hydraulicModel.customerPointsLookup,
+      hydraulicModel.assets,
+      IDS.J1,
+    );
+
+    expect(activeCustomerPoints).toHaveLength(1);
+    expect(activeCustomerPoints[0].id).toBe(IDS.CP1);
+  });
+
+  it("filters out customer points when connected pipe is inactive", () => {
+    const IDS = { J1: 1, J2: 2, P1: 3, CP1: 4 };
+
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1, { coordinates: [0, 0] })
+      .aJunction(IDS.J2, { coordinates: [100, 0] })
+      .aPipe(IDS.P1, {
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
+        isActive: false,
+      })
+      .aCustomerPoint(IDS.CP1, {
+        coordinates: [50, 0],
+        demand: 100,
+        connection: {
+          pipeId: IDS.P1,
+          junctionId: IDS.J1,
+          snapPoint: [50, 0],
+        },
+      })
+      .build();
+
+    const activeCustomerPoints = getActiveCustomerPoints(
+      hydraulicModel.customerPointsLookup,
+      hydraulicModel.assets,
+      IDS.J1,
+    );
+
+    expect(activeCustomerPoints).toHaveLength(0);
+  });
+
+  it("returns empty array for disconnected customer points", () => {
+    const IDS = { J1: 1, CP1: 2 };
+
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1, { coordinates: [0, 0] })
+      .aCustomerPoint(IDS.CP1, {
+        coordinates: [10, 10],
+        demand: 75,
+      })
+      .build();
+
+    const activeCustomerPoints = getActiveCustomerPoints(
+      hydraulicModel.customerPointsLookup,
+      hydraulicModel.assets,
+      IDS.J1,
+    );
+
+    expect(activeCustomerPoints).toHaveLength(0);
+  });
+
+  it("handles mix of active and inactive pipes", () => {
+    const IDS = { J1: 1, J2: 2, J3: 3, P1: 4, P2: 5, CP1: 6, CP2: 7 };
+
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1, { coordinates: [0, 0] })
+      .aJunction(IDS.J2, { coordinates: [100, 0] })
+      .aJunction(IDS.J3, { coordinates: [200, 0] })
+      .aPipe(IDS.P1, {
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
+        isActive: true,
+      })
+      .aPipe(IDS.P2, {
+        startNodeId: IDS.J2,
+        endNodeId: IDS.J3,
+        isActive: false,
+      })
+      .aCustomerPoint(IDS.CP1, {
+        coordinates: [50, 0],
+        demand: 40,
+        connection: {
+          pipeId: IDS.P1,
+          junctionId: IDS.J2,
+          snapPoint: [50, 0],
+        },
+      })
+      .aCustomerPoint(IDS.CP2, {
+        coordinates: [150, 0],
+        demand: 60,
+        connection: {
+          pipeId: IDS.P2,
+          junctionId: IDS.J2,
+          snapPoint: [150, 0],
+        },
+      })
+      .build();
+
+    const activeCustomerPoints = getActiveCustomerPoints(
+      hydraulicModel.customerPointsLookup,
+      hydraulicModel.assets,
+      IDS.J2,
+    );
+
+    expect(activeCustomerPoints).toHaveLength(1);
+    expect(activeCustomerPoints[0].id).toBe(IDS.CP1);
   });
 });

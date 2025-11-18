@@ -2,6 +2,7 @@ import { Unit } from "src/quantity";
 import { Position } from "geojson";
 import { roundCoordinates } from "src/lib/geometry";
 import { AssetId } from "./asset-types/base-asset";
+import { CustomerPointsLookup } from "./customer-points-lookup";
 
 export const MAX_CUSTOMER_POINT_LABEL_LENGTH = 50;
 
@@ -93,4 +94,17 @@ export const getCustomerPoints = (
   return ids
     .map((id) => customerPoints.get(id))
     .filter((cp): cp is CustomerPoint => cp !== undefined);
+};
+
+export const getActiveCustomerPoints = (
+  lookup: CustomerPointsLookup,
+  assets: Map<AssetId, { isActive: boolean }>,
+  assetId: AssetId,
+): CustomerPoint[] => {
+  const customerPoints = lookup.getCustomerPoints(assetId);
+  return Array.from(customerPoints).filter((cp) => {
+    if (!cp.connection) return false;
+    const pipe = assets.get(cp.connection.pipeId);
+    return pipe?.isActive ?? true;
+  });
 };

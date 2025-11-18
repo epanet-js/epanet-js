@@ -8,7 +8,10 @@ import {
   Pump,
   Tank,
 } from "src/hydraulic-model";
-import { CustomerPoint } from "src/hydraulic-model/customer-points";
+import {
+  CustomerPoint,
+  getActiveCustomerPoints,
+} from "src/hydraulic-model/customer-points";
 import { CustomerPointsLookup } from "src/hydraulic-model/customer-points-lookup";
 import { Valve, AssetId } from "src/hydraulic-model/asset-types";
 import { checksum } from "src/infra/checksum";
@@ -216,6 +219,7 @@ export const buildInp = withDebugInstrumentation(
           opts.inactiveAssets,
           asset as Junction,
           hydraulicModel.customerPointsLookup,
+          hydraulicModel.assets,
         );
         customerDemandPatternUsed = customerDemandPatternUsed || patternUsed;
       }
@@ -362,6 +366,7 @@ const appendJunction = (
   inactiveAssets: boolean,
   junction: Junction,
   customerPointsLookup: CustomerPointsLookup,
+  assets: HydraulicModel["assets"],
 ): boolean => {
   if (!junction.isActive && !inactiveAssets) {
     return false;
@@ -379,8 +384,15 @@ const appendJunction = (
 
   let patternUsed = false;
   if (customerDemands) {
-    const totalCustomerDemand =
-      junction.getTotalCustomerDemand(customerPointsLookup);
+    const customerPoints = getActiveCustomerPoints(
+      customerPointsLookup,
+      assets,
+      junction.id,
+    );
+    const totalCustomerDemand = customerPoints.reduce(
+      (sum, cp) => sum + cp.baseDemand,
+      0,
+    );
     if (totalCustomerDemand > 0) {
       sections.demands.push(
         commentPrefix +

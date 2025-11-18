@@ -17,6 +17,7 @@ import {
 } from "src/hydraulic-model";
 import { Valve } from "src/hydraulic-model/asset-types";
 import { CustomerPointsLookup } from "src/hydraulic-model/customer-points-lookup";
+import { getActiveCustomerPoints } from "src/hydraulic-model/customer-points";
 
 export type QuantityStats = QuantityStatsDeprecated & {
   decimals: number;
@@ -80,6 +81,7 @@ export const computeMultiAssetData = (
           asset as Junction,
           quantitiesMetadata,
           hydraulicModel.customerPointsLookup,
+          hydraulicModel.assets,
         );
         break;
       case "pipe":
@@ -132,6 +134,7 @@ const appendJunctionStats = (
   junction: Junction,
   quantitiesMetadata: Quantities,
   customerPointsLookup: CustomerPointsLookup,
+  assets: HydraulicModel["assets"],
 ) => {
   updateCategoryStats(statsMap, "isEnabled", junction.isActive ? "yes" : "no");
   updateQuantityStats(
@@ -147,9 +150,14 @@ const appendJunctionStats = (
     quantitiesMetadata,
   );
 
-  const customerPoints = customerPointsLookup.getCustomerPoints(junction.id);
-  if (customerPoints.size > 0) {
-    const totalCustomerDemand = Array.from(customerPoints).reduce(
+  const customerPoints = getActiveCustomerPoints(
+    customerPointsLookup,
+    assets,
+    junction.id,
+  );
+
+  if (customerPoints.length > 0) {
+    const totalCustomerDemand = customerPoints.reduce(
       (sum, cp) => sum + cp.baseDemand,
       0,
     );
@@ -164,7 +172,7 @@ const appendJunctionStats = (
     updateCustomerCountStats(
       statsMap,
       "connectedCustomers",
-      customerPoints.size,
+      customerPoints.length,
     );
   }
 
