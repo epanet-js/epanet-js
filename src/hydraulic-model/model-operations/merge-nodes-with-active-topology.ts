@@ -10,7 +10,7 @@ import { CustomerPointsLookup } from "../customer-points-lookup";
 import {
   updateLinkConnection,
   reassignCustomerPointsForPipe,
-} from "./replace-node";
+} from "./replace-node-with-active-topology";
 
 type InputData = {
   sourceNodeId: AssetId;
