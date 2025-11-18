@@ -49,7 +49,6 @@ import { MapLoading } from "./map-loader";
 import { supportEmail } from "src/global-config";
 import { MapHandlers } from "./types";
 import { PipeDrawingFloatingPanel } from "src/components/pipe-drawing-floating-panel";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 mapboxgl.accessToken = env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
 mapboxgl.setRTLTextPlugin(
@@ -102,9 +101,6 @@ export const MapCanvas = memo(function MapCanvas({
   const data = useAtomValue(dataAtom);
   const ephemeralState = useAtomValue(ephemeralStateAtom);
   const [currentZoom, setCurrentZoom] = useAtom(currentZoomAtom);
-  const isSelectionModifiersEnabled = useFeatureFlag(
-    "FLAG_SELECTION_MODIFICATORS",
-  );
 
   if (isDebugAppStateOn) exposeAppStateInWindow(data, ephemeralState);
 
@@ -352,24 +348,18 @@ export const MapCanvas = memo(function MapCanvas({
     if (cursor === "not-allowed") return "placemark-cursor-not-allowed";
     if (cursor === "replace") return "placemark-cursor-replace";
 
-    if (cursor === "crosshair")
-      return isSelectionModifiersEnabled
-        ? "cursor-crosshair"
-        : "placemark-cursor-crosshair";
+    if (cursor === "crosshair") return "cursor-crosshair";
     if (cursor === "crosshair-add") return "cursor-crosshair-add";
     if (cursor === "crosshair-subtract") return "cursor-crosshair-subtract";
 
     if (cursor === "move") return "cursor-move";
 
-    if (mode.mode !== Mode.NONE)
-      return isSelectionModifiersEnabled
-        ? "cursor-crosshair"
-        : "placemark-cursor-crosshair";
+    if (mode.mode !== Mode.NONE) return "cursor-crosshair";
 
     if (cursor === "pointer") return "placemark-cursor-pointer";
 
     return "placemark-cursor-default";
-  }, [cursor, mode, isSelectionModifiersEnabled]);
+  }, [cursor, mode]);
 
   if (initError) return <MapError />;
 
