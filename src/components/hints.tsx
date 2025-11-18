@@ -14,6 +14,7 @@ import { Mode, modeAtom } from "src/state/mode";
 import { localizeKeybinding } from "src/infra/i18n";
 import { useTranslate } from "src/hooks/use-translate";
 import { symbologyAtom } from "src/state/symbology";
+import { PropsWithChildren } from "react";
 
 export const tipLike = `
     bg-white dark:bg-gray-900
@@ -22,15 +23,12 @@ export const tipLike = `
     ring-1 ring-gray-200 dark:ring-gray-700
     content-layout z-10`;
 
-function Hint({
+function HintWrapper({
   hintId,
-  text,
-  secondaryText,
-}: {
+  children,
+}: PropsWithChildren<{
   hintId: string;
-  text: string;
-  secondaryText?: string;
-}) {
+}>) {
   const [hideHints, setHideHints] = useAtom(hideHintsAtom);
 
   if (hideHints.includes(hintId)) {
@@ -48,13 +46,7 @@ function Hint({
       <div className="my-0.5">
         <InfoIcon />
       </div>
-      {!!secondaryText && (
-        <div>
-          <div>{text}</div>
-          <div className="text-gray-500 text-sm">{secondaryText}</div>
-        </div>
-      )}
-      {!secondaryText && <div>{text}</div>}
+      {children}
       <button
         onClick={() => {
           setHideHints((hints) => {
@@ -67,6 +59,28 @@ function Hint({
         </div>
       </button>
     </div>
+  );
+}
+
+function Hint({
+  hintId,
+  text,
+  secondaryText,
+}: {
+  hintId: string;
+  text: string;
+  secondaryText?: string;
+}) {
+  return (
+    <HintWrapper hintId={hintId}>
+      {!!secondaryText && (
+        <div>
+          <div>{text}</div>
+          <div className="text-gray-500 text-sm">{secondaryText}</div>
+        </div>
+      )}
+      {!secondaryText && <div>{text}</div>}
+    </HintWrapper>
   );
 }
 
@@ -266,11 +280,41 @@ export function Hints() {
       );
     }
     case Mode.SELECT_RECTANGULAR: {
+      if (ephemeralState.type === "areaSelect" && ephemeralState.isDrawing) {
+        return (
+          <Hint
+            hintId={"END_SELECTION_RECTANGULAR"}
+            text={translate("areaSelection.drawingRectangleEndHint")}
+            secondaryText={translate(
+              "areaSelection.operationHint",
+              localizeKeybinding("shift"),
+              localizeKeybinding("alt"),
+            )}
+          />
+        );
+      }
+      return (
+        <Hint
+          hintId={"START_SELECTION_RECTANGULAR"}
+          text={translate("areaSelection.drawingStartHint")}
+          secondaryText={translate(
+            "areaSelection.operationHint",
+            localizeKeybinding("shift"),
+            localizeKeybinding("alt"),
+          )}
+        />
+      );
+
       if (ephemeralState.type !== "areaSelect") {
         return (
           <Hint
-            hintId={"START_SELECTION"}
+            hintId={"START_SELECTION_RECTANGULAR"}
             text={translate("areaSelection.drawingStartHint")}
+            secondaryText={translate(
+              "areaSelection.operationHint",
+              localizeKeybinding("shift"),
+              localizeKeybinding("alt"),
+            )}
           />
         );
       }
@@ -282,13 +326,23 @@ export function Hints() {
           <Hint
             hintId={"END_SELECTION_POLYGONAL"}
             text={translate("areaSelection.drawingPolygonEndHint")}
+            secondaryText={translate(
+              "areaSelection.operationHint",
+              localizeKeybinding("shift"),
+              localizeKeybinding("alt"),
+            )}
           />
         );
       }
       return (
         <Hint
-          hintId={"START_SELECTION"}
+          hintId={"START_SELECTION_POLYGONAL"}
           text={translate("areaSelection.drawingStartHint")}
+          secondaryText={translate(
+            "areaSelection.operationHint",
+            localizeKeybinding("shift"),
+            localizeKeybinding("alt"),
+          )}
         />
       );
     }
@@ -296,15 +350,25 @@ export function Hints() {
       if (ephemeralState.type === "areaSelect" && ephemeralState.isDrawing) {
         return (
           <Hint
-            hintId={"END_SELECTION_POLYGONAL"}
+            hintId={"END_SELECTION_FREEHAND"}
             text={translate("areaSelection.drawingFreehandEndHint")}
+            secondaryText={translate(
+              "areaSelection.operationHint",
+              localizeKeybinding("shift"),
+              localizeKeybinding("alt"),
+            )}
           />
         );
       }
       return (
         <Hint
-          hintId={"START_SELECTION"}
+          hintId={"START_SELECTION_FREEHAND"}
           text={translate("areaSelection.drawingStartHint")}
+          secondaryText={translate(
+            "areaSelection.operationHint",
+            localizeKeybinding("shift"),
+            localizeKeybinding("alt"),
+          )}
         />
       );
     }
