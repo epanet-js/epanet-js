@@ -5,18 +5,23 @@ import { useDrawNodeHandlers } from "./draw-node";
 import { useDrawLinkHandlers } from "./draw-link";
 import { useConnectCustomerPointsHandlers } from "./connect-customer-points";
 import { useRedrawLinkHandlers } from "./redraw-link";
-import {
-  useRectangularSelectionHandlers,
-  usePolygonalSelectionHandlers,
-  useFreehandSelectionHandlers,
-} from "./area-selection";
+import { useAreaSelectionHandlers } from "./area-selection";
 
 export function useModeHandlers(handlerContext: HandlerContext) {
   const HANDLERS: Record<Mode, Handlers> = {
     [Mode.NONE]: useNoneHandlers(handlerContext),
-    [Mode.SELECT_RECTANGULAR]: useRectangularSelectionHandlers(handlerContext),
-    [Mode.SELECT_POLYGONAL]: usePolygonalSelectionHandlers(handlerContext),
-    [Mode.SELECT_FREEHAND]: useFreehandSelectionHandlers(handlerContext),
+    [Mode.SELECT_RECTANGULAR]: useAreaSelectionHandlers({
+      ...handlerContext,
+      selectionMode: "rectangular",
+    }),
+    [Mode.SELECT_POLYGONAL]: useAreaSelectionHandlers({
+      ...handlerContext,
+      selectionMode: "polygonal",
+    }),
+    [Mode.SELECT_FREEHAND]: useAreaSelectionHandlers({
+      ...handlerContext,
+      selectionMode: "freehand",
+    }),
     [Mode.DRAW_JUNCTION]: useDrawNodeHandlers({
       ...handlerContext,
       nodeType: "junction",
