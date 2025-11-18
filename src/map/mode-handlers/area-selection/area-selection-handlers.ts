@@ -17,7 +17,6 @@ import {
 import { useAreaSelection } from "./use-area-selection";
 import type { EphemeralEditingStateAreaSelection } from "./ephemeral-area-selection-state";
 import { useKeyboardState } from "src/keyboard/use-keyboard-state";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import mapboxgl from "mapbox-gl";
 
 const MIN_POINTS_DISTANCE_PX = 10;
@@ -36,9 +35,6 @@ export function useAreaSelectionHandlers({
   const { selectAssetsInArea, abort: abortSelection } =
     useAreaSelection(context);
   const { isShiftHeld, isAltHeld } = useKeyboardState();
-  const isSelectionModificatorsEnabled = useFeatureFlag(
-    "FLAG_SELECTION_MODIFICATORS",
-  );
 
   const drawingState = ephemeralState as EphemeralEditingStateAreaSelection;
 
@@ -70,12 +66,10 @@ export function useAreaSelectionHandlers({
   };
 
   const identifyOperation = (): "add" | "subtract" | undefined => {
-    if (isSelectionModificatorsEnabled) {
-      if (isAltHeld()) {
-        return "subtract";
-      } else if (isShiftHeld()) {
-        return "add";
-      }
+    if (isAltHeld()) {
+      return "subtract";
+    } else if (isShiftHeld()) {
+      return "add";
     }
     return undefined;
   };
