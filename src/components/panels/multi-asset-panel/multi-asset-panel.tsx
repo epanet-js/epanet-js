@@ -38,10 +38,12 @@ export function MultiAssetPanel({
   return (
     <SectionList>
       <div className="flex flex-col">
-        <div className="flex items-center justify-between">
+        <div className="flex items-start justify-between">
           <span className="font-semibold">
             {translate("selection")} (
-            {pluralize(translate, "asset", selectedFeatures.length)})
+            <span className="text-nowrap">
+              {pluralize(translate, "asset", selectedFeatures.length)})
+            </span>
           </span>
           <MultiAssetActions />
         </div>
