@@ -19,7 +19,18 @@ export const addNode: ModelOperation<InputData> = (
   hydraulicModel,
   { nodeType, coordinates, elevation = 0, pipeIdToSplit },
 ) => {
-  const node = createNode(hydraulicModel, nodeType, coordinates, elevation);
+  const isActive = getInheritedActiveTopologyStatus(
+    hydraulicModel,
+    pipeIdToSplit,
+  );
+
+  const node = createNode(
+    hydraulicModel,
+    nodeType,
+    coordinates,
+    elevation,
+    isActive,
+  );
   addMissingLabel(hydraulicModel.labelManager, node);
 
   if (pipeIdToSplit) {
@@ -37,6 +48,7 @@ const createNode = (
   nodeType: NodeType,
   coordinates: Position,
   elevation: number,
+  isActive: boolean,
 ): NodeAsset => {
   const { assetBuilder } = hydraulicModel;
 
@@ -45,16 +57,19 @@ const createNode = (
       return assetBuilder.buildJunction({
         coordinates,
         elevation,
+        isActive,
       });
     case "reservoir":
       return assetBuilder.buildReservoir({
         coordinates,
         elevation,
+        isActive,
       });
     case "tank":
       return assetBuilder.buildTank({
         coordinates,
         elevation,
+        isActive,
       });
     default:
       throw new Error(`Unsupported node type: ${nodeType as string}`);
@@ -82,6 +97,18 @@ const addNodeWithPipeSplitting = (
     putCustomerPoints: splitResult.putCustomerPoints,
     deleteAssets: splitResult.deleteAssets!,
   };
+};
+
+const getInheritedActiveTopologyStatus = (
+  hydraulicModel: HydraulicModel,
+  pipeIdToSplit?: AssetId,
+): boolean => {
+  if (!pipeIdToSplit) return true;
+  const pipe = hydraulicModel.assets.get(pipeIdToSplit) as Pipe;
+  if (!pipe || pipe.type !== "pipe") {
+    return true;
+  }
+  return pipe.feature.properties.isActive;
 };
 
 const addMissingLabel = (labelGenerator: LabelGenerator, node: NodeAsset) => {

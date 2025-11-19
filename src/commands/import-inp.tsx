@@ -17,7 +17,6 @@ import { HydraulicModel } from "src/hydraulic-model";
 import { EpanetUnitSystem } from "src/simulation/build-inp";
 import { notify } from "src/components/notifications";
 import { WarningIcon } from "src/icons";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export const inpExtension = ".inp";
 
@@ -29,7 +28,6 @@ export const useImportInp = () => {
   const rep = usePersistence();
   const transactImport = rep.useTransactImport();
   const userTracking = useUserTracking();
-  const inactiveAssetsEnabled = useFeatureFlag("FLAG_ACTIVE_TOPOLOGY");
 
   const importInp = useCallback(
     async (files: FileWithHandle[]) => {
@@ -65,7 +63,7 @@ export const useImportInp = () => {
         const { hydraulicModel, modelMetadata, issues, isMadeByApp, stats } =
           parseInp(content, {
             customerPoints: true,
-            inactiveAssets: inactiveAssetsEnabled,
+            inactiveAssets: true,
           });
         userTracking.capture(
           buildCompleteEvent(hydraulicModel, modelMetadata, issues, stats),
@@ -118,7 +116,6 @@ export const useImportInp = () => {
       setDialogState,
       userTracking,
       translate,
-      inactiveAssetsEnabled,
     ],
   );
 

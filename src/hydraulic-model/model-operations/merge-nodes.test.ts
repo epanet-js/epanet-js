@@ -19,7 +19,7 @@ describe("mergeNodes", () => {
         baseDemand: 30,
       })
       .aJunction(IDS.J3, { coordinates: [50, 60] })
-      .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J3 })
+      .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J3, isActive: true })
       .build();
 
     const moment = mergeNodes(model, {
@@ -37,6 +37,7 @@ describe("mergeNodes", () => {
     expect(survivingNode.coordinates).toEqual([30, 40]);
     expect(survivingNode.elevation).toBe(150);
     expect((survivingNode as Junction).baseDemand).toBe(80);
+    expect(survivingNode.isActive).toBe(true);
 
     const updatedPipe = moment.putAssets![1] as LinkAsset;
     expect(updatedPipe.id).toBe(IDS.P1);
@@ -100,8 +101,8 @@ describe("mergeNodes", () => {
       .aJunction(IDS.J2, { coordinates: [30, 40] })
       .aJunction(IDS.J3, { coordinates: [50, 60] })
       .aJunction(IDS.J4, { coordinates: [70, 80] })
-      .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J3 })
-      .aPipe(IDS.P2, { startNodeId: IDS.J2, endNodeId: IDS.J4 })
+      .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J3, isActive: true })
+      .aPipe(IDS.P2, { startNodeId: IDS.J2, endNodeId: IDS.J4, isActive: true })
       .build();
 
     const moment = mergeNodes(model, {
@@ -115,6 +116,7 @@ describe("mergeNodes", () => {
     const survivingNode = moment.putAssets![0] as NodeAsset;
     expect(survivingNode.id).toBe(IDS.J1);
     expect(survivingNode.coordinates).toEqual([30, 40]);
+    expect(survivingNode.isActive).toBe(true);
 
     const updatedPipe1 = moment.putAssets!.find(
       (asset) => asset.id === IDS.P1,
@@ -509,5 +511,73 @@ describe("mergeNodes", () => {
     expect(survivingNode.id).toBe(IDS.T1);
     expect(survivingNode.type).toBe("tank");
     expect((survivingNode as any).baseDemand).toBeUndefined();
+  });
+
+  it("sets merged node active when any connected link is active", () => {
+    const IDS = { J1: 1, J2: 2, J3: 3, J4: 4, P1: 5, P2: 6 };
+    const model = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1, { coordinates: [10, 20] })
+      .aJunction(IDS.J2, { coordinates: [30, 40], isActive: false })
+      .aJunction(IDS.J3, { coordinates: [50, 60] })
+      .aJunction(IDS.J4, { coordinates: [70, 80], isActive: false })
+      .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J3, isActive: true })
+      .aPipe(IDS.P2, {
+        startNodeId: IDS.J2,
+        endNodeId: IDS.J4,
+        isActive: false,
+      })
+      .build();
+
+    const moment = mergeNodes(model, {
+      sourceNodeId: IDS.J1,
+      targetNodeId: IDS.J2,
+    });
+
+    const survivingNode = moment.putAssets![0] as NodeAsset;
+    expect(survivingNode.isActive).toBe(true);
+  });
+
+  it("sets merged node inactive when all connected links are inactive", () => {
+    const IDS = { J1: 1, J2: 2, J3: 3, J4: 4, P1: 5, P2: 6 };
+    const model = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1, { coordinates: [10, 20], isActive: false })
+      .aJunction(IDS.J2, { coordinates: [30, 40], isActive: false })
+      .aJunction(IDS.J3, { coordinates: [50, 60], isActive: false })
+      .aJunction(IDS.J4, { coordinates: [70, 80], isActive: false })
+      .aPipe(IDS.P1, {
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J3,
+        isActive: false,
+      })
+      .aPipe(IDS.P2, {
+        startNodeId: IDS.J2,
+        endNodeId: IDS.J4,
+        isActive: false,
+      })
+      .build();
+
+    const moment = mergeNodes(model, {
+      sourceNodeId: IDS.J1,
+      targetNodeId: IDS.J2,
+    });
+
+    const survivingNode = moment.putAssets![0] as NodeAsset;
+    expect(survivingNode.isActive).toBe(false);
+  });
+
+  it("sets merged node inactive when merging isolated nodes", () => {
+    const IDS = { J1: 1, J2: 2 };
+    const model = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1, { coordinates: [10, 20], isActive: false })
+      .aJunction(IDS.J2, { coordinates: [30, 40], isActive: true })
+      .build();
+
+    const moment = mergeNodes(model, {
+      sourceNodeId: IDS.J1,
+      targetNodeId: IDS.J2,
+    });
+
+    const survivingNode = moment.putAssets![0] as NodeAsset;
+    expect(survivingNode.isActive).toBe(true);
   });
 });

@@ -10,7 +10,7 @@ const COLOR_SELECTED_CONTRAST = strokeColorFor(COLOR_SELECTED_DEFAULT);
 const COLOR_SELECTED_LIGHT = colors.fuchsia300;
 const COLOR_SELECTED_LIGHTER = colors.fuchsia100;
 
-export const selectedPipesLayerWithActiveTopology = ({
+export const selectedPipesLayer = ({
   source,
   layerId,
 }: {
@@ -49,7 +49,7 @@ export const selectedPipesLayerWithActiveTopology = ({
   };
 };
 
-export const selectedPumpLinesLayerWithActiveTopology = ({
+export const selectedPumpLinesLayer = ({
   source,
   layerId,
 }: {
@@ -88,7 +88,7 @@ export const selectedPumpLinesLayerWithActiveTopology = ({
   };
 };
 
-export const selectedValveLinesLayerWithActiveTopology = ({
+export const selectedValveLinesLayer = ({
   source,
   layerId,
 }: {
@@ -127,7 +127,7 @@ export const selectedValveLinesLayerWithActiveTopology = ({
   };
 };
 
-export const selectedJunctionsLayerWithActiveTopology = ({
+export const selectedJunctionsLayer = ({
   source,
   layerId,
 }: {
@@ -160,7 +160,7 @@ export const selectedJunctionsLayerWithActiveTopology = ({
   };
 };
 
-export const selectedIconsLayerWithActiveTopology = ({
+export const selectedIconsLayer = ({
   source,
   layerId,
 }: {
@@ -203,7 +203,7 @@ export const selectedIconsLayerWithActiveTopology = ({
   };
 };
 
-export const selectedIconsHaloLayerWithActiveTopology = ({
+export const selectedIconsHaloLayer = ({
   source,
   layerId,
 }: {
@@ -228,239 +228,6 @@ export const selectedIconsHaloLayerWithActiveTopology = ({
         COLOR_SELECTED_LIGHT,
         COLOR_SELECTED_DEFAULT,
       ],
-      "circle-opacity": 0.8,
-      "circle-blur": ["interpolate", ["linear"], ["zoom"], 12, 0, 20, 0.8],
-    },
-    minzoom: 10,
-  };
-};
-
-export const selectedPipeArrowsLayerWithActiveTopology = ({
-  source,
-  layerId,
-}: {
-  source: DataSource;
-  layerId: LayerId;
-}): SymbolLayer => {
-  return {
-    id: layerId,
-    type: "symbol",
-    source,
-    layout: {
-      "symbol-placement": "line-center",
-      "icon-image": "triangle",
-      "icon-size": ["interpolate", ["linear"], ["zoom"], 14, 0.2, 26, 0.5],
-      "icon-rotate": ["get", "rotation"],
-      "icon-ignore-placement": true,
-      "icon-allow-overlap": true,
-      visibility: "none",
-    },
-    filter: [
-      "all",
-      ["==", "$type", "LineString"],
-      ["==", "type", "pipe"],
-      ["==", "hasArrow", true],
-    ],
-    paint: {
-      "icon-color": COLOR_SELECTED_DEFAULT,
-      "icon-opacity": zoomOpacityExpression(
-        [14, 15, 16, 17, 18, 19, 20],
-        [200, 100, 50, 20, 10, 5, 0],
-      ),
-    },
-    minzoom: 14,
-  };
-};
-
-export const selectedPipesLayer = ({
-  source,
-  layerId,
-}: {
-  source: DataSource;
-  layerId: LayerId;
-}): LineLayer => {
-  return {
-    id: layerId,
-    type: "line",
-    source,
-    filter: ["==", "type", "pipe"],
-    paint: {
-      "line-opacity": 1,
-      "line-width": [
-        "interpolate",
-        ["linear"],
-        ["zoom"],
-        12,
-        ["case", ["==", ["get", "status"], "closed"], 0.5, 1],
-        16,
-        ["case", ["==", ["get", "status"], "closed"], 4, 5],
-      ],
-      "line-color": COLOR_SELECTED_DEFAULT,
-      "line-dasharray": [
-        "case",
-        ["==", ["get", "status"], "closed"],
-        ["literal", [2, 1]],
-        ["literal", [1, 0]],
-      ],
-    },
-  };
-};
-
-export const selectedPumpLinesLayer = ({
-  source,
-  layerId,
-}: {
-  source: DataSource;
-  layerId: LayerId;
-}): LineLayer => {
-  return {
-    id: layerId,
-    type: "line",
-    source,
-    filter: ["==", "type", "pump"],
-    paint: {
-      "line-opacity": 1,
-      "line-width": [
-        "interpolate",
-        ["linear"],
-        ["zoom"],
-        12,
-        ["case", ["==", ["get", "status"], "off"], 0.5, 1],
-        16,
-        ["case", ["==", ["get", "status"], "off"], 2, 3],
-      ],
-      "line-color": COLOR_SELECTED_DEFAULT,
-      "line-dasharray": [
-        "case",
-        ["==", ["get", "status"], "off"],
-        ["literal", [2, 1]],
-        ["literal", [1, 0]],
-      ],
-    },
-  };
-};
-
-export const selectedValveLinesLayer = ({
-  source,
-  layerId,
-}: {
-  source: DataSource;
-  layerId: LayerId;
-}): LineLayer => {
-  return {
-    id: layerId,
-    type: "line",
-    source,
-    filter: ["==", "type", "valve"],
-    paint: {
-      "line-opacity": 1,
-      "line-width": [
-        "interpolate",
-        ["linear"],
-        ["zoom"],
-        12,
-        ["case", ["==", ["get", "status"], "closed"], 0.5, 1],
-        16,
-        ["case", ["==", ["get", "status"], "closed"], 2, 3],
-      ],
-      "line-color": COLOR_SELECTED_DEFAULT,
-      "line-dasharray": [
-        "case",
-        ["==", ["get", "status"], "closed"],
-        ["literal", [2, 1]],
-        ["literal", [1, 0]],
-      ],
-    },
-  };
-};
-
-export const selectedJunctionsLayer = ({
-  source,
-  layerId,
-}: {
-  source: DataSource;
-  layerId: LayerId;
-}): CircleLayer => {
-  return {
-    id: layerId,
-    type: "circle",
-    source,
-    filter: ["==", ["get", "type"], "junction"],
-    paint: {
-      "circle-opacity": 1,
-      "circle-stroke-color": strokeColorFor(COLOR_SELECTED_DEFAULT),
-      "circle-stroke-opacity": 1,
-      "circle-color": COLOR_SELECTED_DEFAULT,
-      ...junctionCircleSizes(),
-    },
-    minzoom: 13,
-  };
-};
-
-export const selectedIconsLayer = ({
-  source,
-  layerId,
-}: {
-  source: DataSource;
-  layerId: LayerId;
-}): SymbolLayer => {
-  return {
-    id: layerId,
-    type: "symbol",
-    source,
-    layout: {
-      "icon-image": ["concat", ["get", "type"], "-selected"],
-      "icon-size": [
-        "interpolate",
-        ["linear"],
-        ["zoom"],
-        13,
-        ["match", ["get", "type"], "reservoir", 0.2, 0.2],
-        20,
-        ["match", ["get", "type"], "reservoir", 0.5, 0.4],
-      ],
-      "icon-allow-overlap": true,
-      "icon-rotation-alignment": "map",
-      "icon-rotate": ["get", "rotation"],
-    },
-    filter: [
-      "all",
-      ["has", "icon"],
-      [
-        "any",
-        ["==", "type", "pump"],
-        ["==", "type", "valve"],
-        ["==", "type", "tank"],
-        ["==", "type", "reservoir"],
-      ],
-    ],
-    paint: {
-      "icon-opacity": 1,
-    },
-    minzoom: 10,
-  };
-};
-
-export const selectedIconsHaloLayer = ({
-  source,
-  layerId,
-}: {
-  source: DataSource;
-  layerId: LayerId;
-}): CircleLayer => {
-  return {
-    id: layerId,
-    type: "circle",
-    source,
-    layout: {},
-    filter: [
-      "all",
-      ["==", "$type", "Point"],
-      ["any", ["==", "type", "pump"], ["==", "type", "valve"]],
-    ],
-    paint: {
-      "circle-radius": ["interpolate", ["linear"], ["zoom"], 12, 8, 20, 22],
-      "circle-color": COLOR_SELECTED_DEFAULT,
       "circle-opacity": 0.8,
       "circle-blur": ["interpolate", ["linear"], ["zoom"], 12, 0, 20, 0.8],
     },

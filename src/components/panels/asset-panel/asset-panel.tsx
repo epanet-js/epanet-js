@@ -14,7 +14,6 @@ import { getActiveCustomerPoints } from "src/hydraulic-model/customer-points";
 import { Valve } from "src/hydraulic-model/asset-types";
 import { Quantities } from "src/model-metadata/quantities-spec";
 import { useTranslate } from "src/hooks/use-translate";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { usePersistence } from "src/lib/persistence/context";
 import { useUserTracking } from "src/infra/user-tracking";
 import { dataAtom } from "src/state/jotai";
@@ -272,7 +271,6 @@ const JunctionEditor = ({
   hydraulicModel: HydraulicModel;
 }) => {
   const translate = useTranslate();
-  const isActiveTopologyOn = useFeatureFlag("FLAG_ACTIVE_TOPOLOGY");
   const customerPoints = useMemo(() => {
     return getActiveCustomerPoints(
       hydraulicModel.customerPointsLookup,
@@ -289,15 +287,13 @@ const JunctionEditor = ({
 
   return (
     <AssetEditorContent label={junction.label} type={translate("junction")}>
-      {isActiveTopologyOn && (
-        <Section title={translate("activeTopology")}>
-          <SwitchRow
-            name="isActive"
-            label={translate("isEnabled")}
-            enabled={junction.isActive}
-          />
-        </Section>
-      )}
+      <Section title={translate("activeTopology")}>
+        <SwitchRow
+          name="isActive"
+          label={translate("isEnabled")}
+          enabled={junction.isActive}
+        />
+      </Section>
       <Section title={translate("modelAttributes")}>
         <QuantityRow
           name="elevation"
@@ -388,7 +384,6 @@ const PipeEditor = ({
   hydraulicModel: HydraulicModel;
 }) => {
   const translate = useTranslate();
-  const isActiveTopologyOn = useFeatureFlag("FLAG_ACTIVE_TOPOLOGY");
 
   const simulationStatusText = translate(pipeStatusLabel(pipe));
 
@@ -425,16 +420,14 @@ const PipeEditor = ({
         <TextRow name="startNode" value={startNode ? startNode.label : ""} />
         <TextRow name="endNode" value={endNode ? endNode.label : ""} />
       </Section>
-      {isActiveTopologyOn && (
-        <Section title={translate("activeTopology")}>
-          <SwitchRow
-            name="isActive"
-            label={translate("isEnabled")}
-            enabled={pipe.isActive}
-            onChange={onActiveTopologyStatusChange}
-          />
-        </Section>
-      )}
+      <Section title={translate("activeTopology")}>
+        <SwitchRow
+          name="isActive"
+          label={translate("isEnabled")}
+          enabled={pipe.isActive}
+          onChange={onActiveTopologyStatusChange}
+        />
+      </Section>
       <Section title={translate("modelAttributes")}>
         <SelectRow
           name="initialStatus"
@@ -539,18 +532,15 @@ const ReservoirEditor = ({
   onPropertyChange: OnPropertyChange;
 }) => {
   const translate = useTranslate();
-  const isActiveTopologyOn = useFeatureFlag("FLAG_ACTIVE_TOPOLOGY");
   return (
     <AssetEditorContent label={reservoir.label} type={translate("reservoir")}>
-      {isActiveTopologyOn && (
-        <Section title={translate("activeTopology")}>
-          <SwitchRow
-            name="isActive"
-            label={translate("isEnabled")}
-            enabled={reservoir.isActive}
-          />
-        </Section>
-      )}
+      <Section title={translate("activeTopology")}>
+        <SwitchRow
+          name="isActive"
+          label={translate("isEnabled")}
+          enabled={reservoir.isActive}
+        />
+      </Section>
       <Section title={translate("modelAttributes")}>
         <QuantityRow
           name="elevation"
@@ -581,18 +571,15 @@ const TankEditor = ({
   onPropertyChange: OnPropertyChange;
 }) => {
   const translate = useTranslate();
-  const isActiveTopologyOn = useFeatureFlag("FLAG_ACTIVE_TOPOLOGY");
   return (
     <AssetEditorContent label={tank.label} type={translate("tank")}>
-      {isActiveTopologyOn && (
-        <Section title={translate("activeTopology")}>
-          <SwitchRow
-            name="isActive"
-            label={translate("isEnabled")}
-            enabled={tank.isActive}
-          />
-        </Section>
-      )}
+      <Section title={translate("activeTopology")}>
+        <SwitchRow
+          name="isActive"
+          label={translate("isEnabled")}
+          enabled={tank.isActive}
+        />
+      </Section>
       <Section title={translate("modelAttributes")}>
         <QuantityRow
           name="elevation"
@@ -707,7 +694,6 @@ const ValveEditor = ({
   ) => void;
 }) => {
   const translate = useTranslate();
-  const isActiveTopologyOn = useFeatureFlag("FLAG_ACTIVE_TOPOLOGY");
   const statusText = translate(valveStatusLabel(valve));
 
   const statusOptions = useMemo(() => {
@@ -758,16 +744,14 @@ const ValveEditor = ({
         <TextRow name="startNode" value={startNode ? startNode.label : ""} />
         <TextRow name="endNode" value={endNode ? endNode.label : ""} />
       </Section>
-      {isActiveTopologyOn && (
-        <Section title={translate("activeTopology")}>
-          <SwitchRow
-            name="isActive"
-            label={translate("isEnabled")}
-            enabled={valve.isActive}
-            onChange={onActiveTopologyStatusChange}
-          />
-        </Section>
-      )}
+      <Section title={translate("activeTopology")}>
+        <SwitchRow
+          name="isActive"
+          label={translate("isEnabled")}
+          enabled={valve.isActive}
+          onChange={onActiveTopologyStatusChange}
+        />
+      </Section>
       <Section title={translate("modelAttributes")}>
         <SelectRow
           name="valveType"
@@ -859,7 +843,6 @@ const PumpEditor = ({
   quantitiesMetadata: Quantities;
 }) => {
   const translate = useTranslate();
-  const isActiveTopologyOn = useFeatureFlag("FLAG_ACTIVE_TOPOLOGY");
   const statusText = translate(pumpStatusLabel(pump));
 
   const definitionOptions = useMemo(() => {
@@ -898,16 +881,14 @@ const PumpEditor = ({
         <TextRow name="startNode" value={startNode ? startNode.label : ""} />
         <TextRow name="endNode" value={endNode ? endNode.label : ""} />
       </Section>
-      {isActiveTopologyOn && (
-        <Section title={translate("activeTopology")}>
-          <SwitchRow
-            name="isActive"
-            label={translate("isEnabled")}
-            enabled={pump.isActive}
-            onChange={onActiveTopologyStatusChange}
-          />
-        </Section>
-      )}
+      <Section title={translate("activeTopology")}>
+        <SwitchRow
+          name="isActive"
+          label={translate("isEnabled")}
+          enabled={pump.isActive}
+          onChange={onActiveTopologyStatusChange}
+        />
+      </Section>
       <Section title={translate("modelAttributes")}>
         <SelectRow
           name="pumpType"

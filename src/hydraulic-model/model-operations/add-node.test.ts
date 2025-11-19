@@ -22,6 +22,7 @@ describe("addNode", () => {
       expect(junction.coordinates).toEqual([10, 10]);
       expect((junction as any).elevation).toBe(100);
       expect(junction.label).toBe("J1");
+      expect(junction.isActive).toBe(true);
     });
 
     it("adds a reservoir with specified elevation", () => {
@@ -257,6 +258,50 @@ describe("addNode", () => {
       expect(reconnectedCP.connection?.pipeId).toBe(pipe1.id);
       expect(reconnectedCP.connection?.junctionId).toBe(newJunction.id);
       expect(reconnectedCP.baseDemand).toBe(75);
+    });
+
+    it("inherits isActive from pipe being split when pipe is active", () => {
+      const IDS = { J1: 1, J2: 2, P1: 3 } as const;
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aNode(IDS.J1, [0, 0])
+        .aNode(IDS.J2, [10, 0])
+        .aPipe(IDS.P1, {
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
+          isActive: true,
+        })
+        .build();
+
+      const { putAssets } = addNode(hydraulicModel, {
+        nodeType: "junction",
+        coordinates: [5, 0],
+        pipeIdToSplit: IDS.P1,
+      });
+
+      const [newJunction] = putAssets!;
+      expect(newJunction.isActive).toBe(true);
+    });
+
+    it("inherits isActive from pipe being split when pipe is inactive", () => {
+      const IDS = { J1: 1, J2: 2, P1: 3 } as const;
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aNode(IDS.J1, [0, 0])
+        .aNode(IDS.J2, [10, 0])
+        .aPipe(IDS.P1, {
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
+          isActive: false,
+        })
+        .build();
+
+      const { putAssets } = addNode(hydraulicModel, {
+        nodeType: "junction",
+        coordinates: [5, 0],
+        pipeIdToSplit: IDS.P1,
+      });
+
+      const [newJunction] = putAssets!;
+      expect(newJunction.isActive).toBe(false);
     });
   });
 

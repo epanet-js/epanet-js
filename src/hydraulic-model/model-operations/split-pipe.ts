@@ -269,12 +269,14 @@ const buildPipePair = (
     label: originalPipe.label,
     coordinates: coords1,
     connections: [originalStartNodeId, split.id],
+    isActive: originalPipe.isActive,
   });
 
   const pipe2 = hydraulicModel.assetBuilder.buildPipe({
     label: originalPipe.label,
     coordinates: coords2,
     connections: [split.id, originalEndNodeId],
+    isActive: originalPipe.isActive,
   });
 
   copyPipeProperties(originalPipe, pipe1);

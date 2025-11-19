@@ -11,12 +11,8 @@ import FeatureEditor from "../feature-editor";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Valve } from "src/hydraulic-model/asset-types";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 
 describe("AssetPanel", () => {
-  beforeEach(() => {
-    stubFeatureOn("FLAG_ACTIVE_TOPOLOGY");
-  });
   describe("with a pipe", () => {
     it("can show its properties", () => {
       const IDS = { P1: 1, j1: 2, j2: 3 };

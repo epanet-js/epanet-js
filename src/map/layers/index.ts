@@ -1,17 +1,7 @@
-import { pipesLayer, pipesLayerWithActiveTopology } from "./pipes";
-import { junctionsLayer, junctionsLayerWithActiveTopology } from "./junctions";
-import {
-  reservoirLayers,
-  reservoirLayersWithActiveTopology,
-} from "./reservoirs";
+import { pipesLayer } from "./pipes";
+import { junctionsLayer } from "./junctions";
+import { reservoirLayers } from "./reservoirs";
 
-export {
-  pipesLayer,
-  junctionsLayer,
-  reservoirLayers,
-  pipesLayerWithActiveTopology,
-  junctionsLayerWithActiveTopology,
-  reservoirLayersWithActiveTopology,
-};
+export { pipesLayer, junctionsLayer, reservoirLayers };
 export type { LayerId } from "./layer";
 export { assetLayers } from "./layer";

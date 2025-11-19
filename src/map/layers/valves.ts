@@ -5,44 +5,6 @@ import { LineLayer, LinePaint, SymbolLayer } from "mapbox-gl";
 import { colors } from "src/lib/constants";
 import { asNumberExpression } from "src/lib/symbolization-deprecated";
 
-export const valveLines = ({
-  source,
-  layerId,
-  symbology,
-}: {
-  source: DataSource;
-  layerId: LayerId;
-  symbology: ISymbology;
-}): LineLayer => {
-  const paint = {
-    "line-opacity": [
-      "case",
-      ["boolean", ["feature-state", "hidden"], false],
-      0,
-      asNumberExpression({
-        symbology,
-        part: "stroke-opacity",
-        defaultValue: 1,
-      }),
-    ],
-    "line-width": ["interpolate", ["linear"], ["zoom"], 12, 0.5, 16, 2],
-    "line-color": ["coalesce", ["get", "color"], colors.orange700],
-    "line-dasharray": [
-      "case",
-      ["==", ["get", "status"], "closed"],
-      ["literal", [2, 1]],
-      ["literal", [1, 0]],
-    ],
-  };
-  return {
-    id: layerId,
-    type: "line",
-    source,
-    filter: ["==", "type", "valve"],
-    paint: paint as LinePaint,
-  };
-};
-
 export const valveIcons = ({
   source,
   layerId,
@@ -98,7 +60,7 @@ export const valveIcons = ({
   ];
 };
 
-export const valveLinesWithActiveTopology = ({
+export const valveLines = ({
   source,
   layerId,
   symbology,

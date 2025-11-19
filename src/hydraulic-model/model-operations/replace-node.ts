@@ -1,79 +1,14 @@
 import { AssetId, LinkAsset, NodeAsset } from "../asset-types";
 import { ModelOperation } from "../model-operation";
 import { HydraulicModel } from "../hydraulic-model";
-import { CustomerPoint, CustomerPoints } from "../customer-points";
+import { CustomerPoints } from "../customer-points";
 import { Pipe } from "../asset-types/pipe";
-import { findJunctionForCustomerPoint } from "../utilities/junction-assignment";
-import { lineString, point } from "@turf/helpers";
-import { findNearestPointOnLine } from "src/lib/geometry";
 import { Position } from "src/types";
+import { updateLinkConnections } from "../mutations/update-link-connections";
+import { isNodeAsset } from "../asset-types/type-guards";
+import { reassignCustomerPoints } from "../mutations/reassign-customer-points";
 
 type NodeType = "junction" | "reservoir" | "tank";
-
-export const findNearestSnappingPoint = (
-  pipe: Pipe,
-  customerPoint: CustomerPoint,
-): Position => {
-  const pipeLineString = lineString(pipe.coordinates);
-  const customerPointGeometry = point(customerPoint.coordinates);
-
-  const result = findNearestPointOnLine(pipeLineString, customerPointGeometry);
-  return result.coordinates;
-};
-
-export const updateLinkConnection = (
-  linkCopy: LinkAsset,
-  oldNodeId: AssetId,
-  newNodeId: AssetId,
-): void => {
-  const [startNodeId, endNodeId] = linkCopy.connections;
-  if (startNodeId === oldNodeId) {
-    linkCopy.setConnections(newNodeId, endNodeId);
-  } else if (endNodeId === oldNodeId) {
-    linkCopy.setConnections(startNodeId, newNodeId);
-  }
-};
-
-export const reassignCustomerPointsForPipe = (
-  pipeCopy: Pipe,
-  newNode: NodeAsset,
-  assets: HydraulicModel["assets"],
-  customerPointsLookup: HydraulicModel["customerPointsLookup"],
-  updatedCustomerPoints: CustomerPoints,
-): void => {
-  const connectedCustomerPoints = customerPointsLookup.getCustomerPoints(
-    pipeCopy.id,
-  );
-
-  for (const customerPoint of connectedCustomerPoints) {
-    if (!updatedCustomerPoints.has(customerPoint.id)) {
-      const [startNode, endNode] = pipeCopy.connections.map(
-        (connectedNodeId) =>
-          connectedNodeId === newNode.id
-            ? newNode
-            : (assets.get(connectedNodeId) as NodeAsset),
-      );
-
-      const customerPointCopy = customerPoint.copyDisconnected();
-      const snapPoint = findNearestSnappingPoint(pipeCopy, customerPointCopy);
-      const junctionId = findJunctionForCustomerPoint(
-        startNode,
-        endNode,
-        snapPoint,
-      );
-
-      if (junctionId) {
-        customerPointCopy.connect({
-          pipeId: pipeCopy.id,
-          snapPoint,
-          junctionId,
-        });
-      }
-
-      updatedCustomerPoints.set(customerPointCopy.id, customerPointCopy);
-    }
-  }
-};
 
 type InputData = {
   oldNodeId: AssetId;
@@ -94,12 +29,14 @@ export const replaceNode: ModelOperation<InputData> = (
 
   const oldCoordinates = oldNode.coordinates;
   const oldElevation = oldNode.elevation;
+  const oldIsActive = oldNode.isActive;
 
   const newNode = createNode(
     assetBuilder,
     newNodeType,
     oldCoordinates,
     oldElevation,
+    oldIsActive,
   );
 
   const newLabel = labelManager.generateFor(newNodeType, newNode.id);
@@ -113,13 +50,13 @@ export const replaceNode: ModelOperation<InputData> = (
     const link = assets.get(linkId) as LinkAsset;
     const linkCopy = link.copy();
 
-    updateLinkConnection(linkCopy, oldNodeId, newNode.id);
+    updateLinkConnections(linkCopy, oldNodeId, newNode.id);
 
     updatedLinks.push(linkCopy);
 
     if (linkCopy.type === "pipe") {
       const pipeCopy = linkCopy as Pipe;
-      reassignCustomerPointsForPipe(
+      reassignCustomerPoints(
         pipeCopy,
         newNode,
         assets,
@@ -140,33 +77,31 @@ export const replaceNode: ModelOperation<InputData> = (
   };
 };
 
-const isNodeAsset = (asset: unknown): asset is NodeAsset => {
-  if (!asset || typeof asset !== "object") return false;
-  const type = (asset as { type?: string }).type;
-  return type === "junction" || type === "reservoir" || type === "tank";
-};
-
 const createNode = (
   assetBuilder: HydraulicModel["assetBuilder"],
   nodeType: NodeType,
   coordinates: Position,
   elevation: number,
+  isActive: boolean,
 ): NodeAsset => {
   switch (nodeType) {
     case "junction":
       return assetBuilder.buildJunction({
         coordinates,
         elevation,
+        isActive,
       });
     case "reservoir":
       return assetBuilder.buildReservoir({
         coordinates,
         elevation,
+        isActive,
       });
     case "tank":
       return assetBuilder.buildTank({
         coordinates,
         elevation,
+        isActive,
       });
     default:
       throw new Error(`Unsupported node type: ${nodeType as string}`);

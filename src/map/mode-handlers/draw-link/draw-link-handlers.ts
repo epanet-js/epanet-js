@@ -21,15 +21,11 @@ import { nextTick } from "process";
 import { AssetId, LinkAsset, NodeAsset } from "src/hydraulic-model";
 import { useUserTracking } from "src/infra/user-tracking";
 import { LinkType } from "src/hydraulic-model";
-import {
-  addLink,
-  addLinkWithActiveTopology,
-} from "src/hydraulic-model/model-operations";
+import { addLink } from "src/hydraulic-model/model-operations";
 import { useElevations } from "src/map/elevations/use-elevations";
 import { LngLat, MapMouseEvent, MapTouchEvent } from "mapbox-gl";
 import { useSelection } from "src/selection";
 import { DEFAULT_SNAP_DISTANCE_PIXELS } from "../../search";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export type SnappingCandidate =
   | NodeAsset
@@ -151,7 +147,6 @@ export function useDrawLinkHandlers({
   const usingTouchEvents = useRef<boolean>(false);
   const { assetBuilder, units } = hydraulicModel;
   const { findSnappingCandidate } = useSnapping(map, hydraulicModel.assets);
-  const isActiveTopologyEnabled = useFeatureFlag("FLAG_ACTIVE_TOPOLOGY");
 
   const { isShiftHeld, isControlHeld } = useKeyboardState();
   const setCursor = useSetAtom(cursorStyleAtom);
@@ -310,21 +305,13 @@ export function useDrawLinkHandlers({
       return;
     }
 
-    const moment = isActiveTopologyEnabled
-      ? addLinkWithActiveTopology(hydraulicModel, {
-          link: link,
-          startNode,
-          endNode,
-          startPipeId,
-          endPipeId,
-        })
-      : addLink(hydraulicModel, {
-          link: link,
-          startNode,
-          endNode,
-          startPipeId,
-          endPipeId,
-        });
+    const moment = addLink(hydraulicModel, {
+      link: link,
+      startNode,
+      endNode,
+      startPipeId,
+      endPipeId,
+    });
 
     userTracking.capture({ name: "asset.created", type: link.type });
     transact(moment);

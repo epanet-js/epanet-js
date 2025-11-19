@@ -206,4 +206,34 @@ describe("replaceNode", () => {
     expect(reconnectedCP.connection).not.toBeNull();
     expect(reconnectedCP.connection?.pipeId).toBe(IDS.P1);
   });
+
+  it("preserves isActive when replacing active node", () => {
+    const IDS = { J1: 1 } as const;
+    const model = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1, { coordinates: [0, 0], isActive: true })
+      .build();
+
+    const moment = replaceNode(model, {
+      oldNodeId: IDS.J1,
+      newNodeType: "tank",
+    });
+
+    const newNode = moment.putAssets![0] as NodeAsset;
+    expect(newNode.isActive).toBe(true);
+  });
+
+  it("preserves isActive when replacing inactive node", () => {
+    const IDS = { J1: 1 } as const;
+    const model = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1, { coordinates: [0, 0], isActive: false })
+      .build();
+
+    const moment = replaceNode(model, {
+      oldNodeId: IDS.J1,
+      newNodeType: "reservoir",
+    });
+
+    const newNode = moment.putAssets![0] as NodeAsset;
+    expect(newNode.isActive).toBe(false);
+  });
 });

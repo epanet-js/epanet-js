@@ -7,10 +7,9 @@ import { HydraulicModel } from "../hydraulic-model";
 import { AssetsMap } from "../assets-map";
 import { Topology } from "../topology";
 import { CustomerPointsLookup } from "../customer-points-lookup";
-import {
-  updateLinkConnection,
-  reassignCustomerPointsForPipe,
-} from "./replace-node";
+import { updateLinkConnections } from "../mutations/update-link-connections";
+import { isNodeAsset } from "../asset-types/type-guards";
+import { reassignCustomerPoints } from "../mutations/reassign-customer-points";
 
 type InputData = {
   sourceNodeId: AssetId;
@@ -56,18 +55,17 @@ export const mergeNodes: ModelOperation<InputData> = (
     hydraulicModel,
   );
 
+  const shouldBeActive = updatedLinks.length
+    ? updatedLinks.some((link) => link.isActive)
+    : true;
+  mergedNode.setProperty("isActive", shouldBeActive);
+
   return buildMergeResult(
     mergedNode,
     loserNode,
     updatedLinks,
     updatedCustomerPoints,
   );
-};
-
-const isNodeAsset = (asset: unknown): asset is NodeAsset => {
-  if (!asset || typeof asset !== "object") return false;
-  const type = (asset as { type?: string }).type;
-  return type === "junction" || type === "reservoir" || type === "tank";
 };
 
 const validateAndGetNodes = (
@@ -136,7 +134,7 @@ const processLinkCustomerPoints = (
 ): void => {
   if (link.type === "pipe") {
     const pipe = link as Pipe;
-    reassignCustomerPointsForPipe(
+    reassignCustomerPoints(
       pipe,
       winnerNode,
       assets,
@@ -232,7 +230,7 @@ const updateLoserLinks = (
     const link = assets.get(linkId) as LinkAsset;
     const linkCopy = link.copy();
 
-    updateLinkConnection(linkCopy, loserNodeId, winnerNodeId);
+    updateLinkConnections(linkCopy, loserNodeId, winnerNodeId);
     updateLinkCoordinates(
       linkCopy,
       winnerNodeId,

@@ -39,8 +39,8 @@ const haloFillColor = hexToArray(colors.cyan300, 0.8) as [
   number,
 ];
 
-const selectionFillColor = hexToArray(colors.fuchsia500);
-const selectionHaloFillColor = hexToArray(colors.fuchsia300, 0.8) as [
+const selectionFillColor = hexToArray(colors.fuchsia300);
+const selectionHaloFillColor = hexToArray(colors.fuchsia600, 0.8) as [
   number,
   number,
   number,
@@ -53,11 +53,6 @@ const selectionDisabledHaloFillColor = hexToArray(colors.fuchsia300) as [
   number,
   number,
 ];
-const selectionFillColorWithActiveTopology = hexToArray(colors.fuchsia300);
-const selectionHaloFillColorWithActiveTopology = hexToArray(
-  colors.fuchsia600,
-  0.8,
-) as [number, number, number, number];
 
 export type CustomerPointsLayer = ScatterplotLayer | LineLayer | PathLayer;
 export type CustomerPointsOverlay = CustomerPointsLayer[];
@@ -75,76 +70,6 @@ export const updateCustomerPointsOverlayVisibility = (
 };
 
 export const buildCustomerPointsOverlay = (
-  customerPoints: CustomerPoints,
-  zoom: number,
-  excludedCustomerPointIds?: Set<number>,
-): CustomerPointsOverlay => {
-  const connectionLines: ConnectionLineData[] = [];
-  const visibleCustomerPoints: CustomerPoint[] = [];
-
-  for (const customerPoint of customerPoints.values()) {
-    if (excludedCustomerPointIds?.has(customerPoint.id)) {
-      continue;
-    }
-
-    visibleCustomerPoints.push(customerPoint);
-
-    const snapPosition = customerPoint.snapPosition;
-    if (snapPosition) {
-      connectionLines.push({
-        sourcePosition: customerPoint.coordinates as [number, number],
-        targetPosition: snapPosition as [number, number],
-        customerPointId: customerPoint.id,
-      });
-    }
-  }
-
-  const isVisible = shouldShowOvelay(zoom);
-
-  const connectionLinesLayer = new LineLayer({
-    id: "customer-connection-lines-layer",
-    beforeId: "imported-pipes",
-    data: connectionLines,
-    getSourcePosition: (d: ConnectionLineData) => d.sourcePosition,
-    getTargetPosition: (d: ConnectionLineData) => d.targetPosition,
-
-    widthUnits: "meters",
-    getWidth: 0.8,
-    widthMinPixels: 0,
-    widthMaxPixels: 2,
-
-    getColor: connectionLineColor,
-    antialiasing: true,
-    visible: isVisible,
-  });
-
-  const scatterLayer = new ScatterplotLayer({
-    id: "customer-points-layer",
-    beforeId: "ephemeral-junction-highlight",
-    data: visibleCustomerPoints,
-    getPosition: (d: CustomerPoint) => d.coordinates as [number, number],
-
-    radiusUnits: "meters",
-    getRadius: 1.5,
-    radiusMinPixels: 0,
-    radiusMaxPixels: 4,
-
-    getFillColor: fillColor,
-    stroked: true,
-    getLineColor: strokeColor,
-    getLineWidth: 1,
-    lineWidthUnits: "pixels",
-    lineWidthMinPixels: 1,
-    lineWidthMaxPixels: 2,
-    antialiasing: true,
-    visible: isVisible,
-    pickable: true,
-  });
-
-  return [connectionLinesLayer, scatterLayer];
-};
-
-export const buildCustomerPointsOverlayWithActiveTopology = (
   customerPoints: CustomerPoints,
   assets: AssetsMap,
   zoom: number,
@@ -285,57 +210,6 @@ export const buildCustomerPointsHighlightOverlay = (
 
 export const buildCustomerPointsSelectionOverlay = (
   selectedPoints: CustomerPoint[],
-  zoom: number,
-): CustomerPointsOverlay => {
-  if (selectedPoints.length === 0) {
-    return [];
-  }
-
-  const isVisible = shouldShowOvelay(zoom);
-
-  const haloLayer = new ScatterplotLayer({
-    id: "customer-points-selection-halo-layer",
-    beforeId: "ephemeral-junction-highlight",
-    data: selectedPoints,
-    getPosition: (d: CustomerPoint) => d.coordinates as [number, number],
-
-    radiusUnits: "meters",
-    getRadius: 3,
-    radiusMinPixels: 0,
-    radiusMaxPixels: 6,
-
-    getFillColor: selectionHaloFillColor,
-    antialiasing: true,
-    visible: isVisible,
-  });
-
-  const selectionLayer = new ScatterplotLayer({
-    id: "customer-points-selection-layer",
-    beforeId: "ephemeral-junction-highlight",
-    data: selectedPoints,
-    getPosition: (d: CustomerPoint) => d.coordinates as [number, number],
-
-    radiusUnits: "meters",
-    getRadius: 1.5,
-    radiusMinPixels: 0,
-    radiusMaxPixels: 4,
-
-    getFillColor: selectionFillColor,
-    stroked: true,
-    getLineColor: selectionHaloFillColor,
-    getLineWidth: 1,
-    lineWidthUnits: "pixels",
-    lineWidthMinPixels: 1,
-    lineWidthMaxPixels: 2,
-    antialiasing: true,
-    visible: isVisible,
-  });
-
-  return [haloLayer, selectionLayer];
-};
-
-export const buildCustomerPointsSelectionOverlayWithActiveTopology = (
-  selectedPoints: CustomerPoint[],
   isActive: boolean,
   zoom: number,
 ): CustomerPointsOverlay => {
@@ -357,7 +231,7 @@ export const buildCustomerPointsSelectionOverlayWithActiveTopology = (
     radiusMaxPixels: 6,
 
     getFillColor: isActive
-      ? selectionHaloFillColorWithActiveTopology
+      ? selectionHaloFillColor
       : selectionDisabledHaloFillColor,
     antialiasing: true,
     visible: isVisible,
@@ -374,12 +248,10 @@ export const buildCustomerPointsSelectionOverlayWithActiveTopology = (
     radiusMinPixels: 0,
     radiusMaxPixels: 4,
 
-    getFillColor: isActive
-      ? selectionFillColorWithActiveTopology
-      : selectionDisabledFillColor,
+    getFillColor: isActive ? selectionFillColor : selectionDisabledFillColor,
     stroked: true,
     getLineColor: isActive
-      ? selectionHaloFillColorWithActiveTopology
+      ? selectionHaloFillColor
       : selectionDisabledHaloFillColor,
     getLineWidth: 1,
     lineWidthUnits: "pixels",

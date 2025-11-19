@@ -9,18 +9,12 @@ import {
 import noop from "lodash/noop";
 import { useSetAtom, useAtom, useAtomValue } from "jotai";
 import { getMapCoord } from "../utils";
-import { addNode } from "src/hydraulic-model/model-operations/add-node";
-import {
-  addNodeWithActiveTopology,
-  replaceNodeWithActiveTopology,
-} from "src/hydraulic-model/model-operations";
-import { replaceNode } from "src/hydraulic-model/model-operations/replace-node";
+import { addNode, replaceNode } from "src/hydraulic-model/model-operations";
 import throttle from "lodash/throttle";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useElevations } from "../../elevations/use-elevations";
 import { useSnapping } from "../hooks/use-snapping";
 import { useSelection } from "src/selection";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 type NodeType = "junction" | "reservoir" | "tank";
 
@@ -40,7 +34,6 @@ export function useDrawNodeHandlers({
   const { fetchElevation, prefetchTile } = useElevations(units.elevation);
   const { findSnappingCandidate } = useSnapping(map, hydraulicModel.assets);
   const { selectAsset } = useSelection(selection);
-  const isActiveTopologyEnabled = useFeatureFlag("FLAG_ACTIVE_TOPOLOGY");
 
   const submitNode = (
     nodeType: NodeType,
@@ -48,19 +41,12 @@ export function useDrawNodeHandlers({
     elevation: number,
     pipeIdToSplit?: number,
   ) => {
-    const moment = isActiveTopologyEnabled
-      ? addNodeWithActiveTopology(hydraulicModel, {
-          nodeType,
-          coordinates,
-          elevation,
-          pipeIdToSplit,
-        })
-      : addNode(hydraulicModel, {
-          nodeType,
-          coordinates,
-          elevation,
-          pipeIdToSplit,
-        });
+    const moment = addNode(hydraulicModel, {
+      nodeType,
+      coordinates,
+      elevation,
+      pipeIdToSplit,
+    });
     transact(moment);
     userTracking.capture({ name: "asset.created", type: nodeType });
 
@@ -76,15 +62,10 @@ export function useDrawNodeHandlers({
       const snappingCandidate = findSnappingCandidate(e, mouseCoord);
 
       if (snappingCandidate && snappingCandidate.type !== "pipe") {
-        const moment = isActiveTopologyEnabled
-          ? replaceNodeWithActiveTopology(hydraulicModel, {
-              oldNodeId: snappingCandidate.id,
-              newNodeType: nodeType,
-            })
-          : replaceNode(hydraulicModel, {
-              oldNodeId: snappingCandidate.id,
-              newNodeType: nodeType,
-            });
+        const moment = replaceNode(hydraulicModel, {
+          oldNodeId: snappingCandidate.id,
+          newNodeType: nodeType,
+        });
         transact(moment);
         userTracking.capture({
           name: "asset.created",

@@ -48,7 +48,7 @@ export function OpenInpDialog({
       const content = new TextDecoder().decode(arrayBuffer);
       const { hydraulicModel, modelMetadata, issues, isMadeByApp } = parseInp(
         content,
-        { customerPoints: true },
+        { customerPoints: true, inactiveAssets: true },
       );
       if (
         !issues ||

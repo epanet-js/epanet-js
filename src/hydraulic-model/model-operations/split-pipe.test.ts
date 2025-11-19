@@ -582,14 +582,19 @@ describe("splitPipe", () => {
     expect(putCustomerPoints).toHaveLength(2);
 
     const [reconnectedCP1, reconnectedCP2] = putCustomerPoints!;
-    const [splitPipe1, splitPipe2] = putAssets as Pipe[];
+    const [splitPipeWithActiveTopology1, splitPipeWithActiveTopology2] =
+      putAssets as Pipe[];
 
     // Customer point 1 should connect to the first split (closer to J1)
-    expect(reconnectedCP1.connection?.pipeId).toBe(splitPipe1.id);
+    expect(reconnectedCP1.connection?.pipeId).toBe(
+      splitPipeWithActiveTopology1.id,
+    );
     expect(reconnectedCP1.connection?.junctionId).toBe(IDS.J1);
 
     // Customer point 2 should connect to the second split (closer to J2)
-    expect(reconnectedCP2.connection?.pipeId).toBe(splitPipe2.id);
+    expect(reconnectedCP2.connection?.pipeId).toBe(
+      splitPipeWithActiveTopology2.id,
+    );
     expect(reconnectedCP2.connection?.junctionId).toBe(IDS.J2);
   });
 
@@ -786,17 +791,24 @@ describe("splitPipe", () => {
     expect(putAssets).toHaveLength(2);
     expect(putCustomerPoints).toHaveLength(2);
 
-    const [splitPipe1, splitPipe2] = putAssets as Pipe[];
+    const [splitPipeWithActiveTopology1, splitPipeWithActiveTopology2] =
+      putAssets as Pipe[];
     const [reconnectedCP1, reconnectedCP2] = putCustomerPoints!;
 
-    expect(splitPipe1.connections).toEqual([IDS.R1, splitReservoir.id]);
-    expect(splitPipe2.connections).toEqual([splitReservoir.id, IDS.J1]);
+    expect(splitPipeWithActiveTopology1.connections).toEqual([
+      IDS.R1,
+      splitReservoir.id,
+    ]);
+    expect(splitPipeWithActiveTopology2.connections).toEqual([
+      splitReservoir.id,
+      IDS.J1,
+    ]);
 
     const cp1 = reconnectedCP1.id === IDS.CP1 ? reconnectedCP1 : reconnectedCP2;
     const cp2 = reconnectedCP1.id === IDS.CP2 ? reconnectedCP1 : reconnectedCP2;
 
     expect(cp1.connection).toBeNull();
-    expect(cp2.connection?.pipeId).toBe(splitPipe2.id);
+    expect(cp2.connection?.pipeId).toBe(splitPipeWithActiveTopology2.id);
     expect(cp2.connection?.junctionId).toBe(IDS.J1);
   });
 
@@ -1047,5 +1059,99 @@ describe("splitPipe", () => {
     ]);
     expect(pipe1.connections).toEqual([IDS.J1, splitNode.id]);
     expect(pipe2.connections).toEqual([splitNode.id, IDS.J2]);
+  });
+
+  it("preserves isActive when splitting active pipe", () => {
+    const IDS = { J1: 1, J2: 2, P1: 3 } as const;
+    const model = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1, { coordinates: [0, 0] })
+      .aJunction(IDS.J2, { coordinates: [100, 0] })
+      .aPipe(IDS.P1, {
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
+        isActive: true,
+      })
+      .build();
+
+    const pipe = model.assets.get(IDS.P1) as Pipe;
+    const splitNode = model.assetBuilder.buildJunction({
+      coordinates: [50, 0],
+    });
+
+    const moment = splitPipe(model, {
+      pipe,
+      splits: [splitNode],
+    });
+
+    const { putAssets } = moment;
+    expect(putAssets).toHaveLength(2);
+
+    const [pipe1, pipe2] = putAssets as Pipe[];
+    expect(pipe1.isActive).toBe(true);
+    expect(pipe2.isActive).toBe(true);
+  });
+
+  it("preserves isActive when splitting inactive pipe", () => {
+    const IDS = { J1: 1, J2: 2, P1: 3 } as const;
+    const model = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1, { coordinates: [0, 0] })
+      .aJunction(IDS.J2, { coordinates: [100, 0] })
+      .aPipe(IDS.P1, {
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
+        isActive: false,
+      })
+      .build();
+
+    const pipe = model.assets.get(IDS.P1) as Pipe;
+    const splitNode = model.assetBuilder.buildJunction({
+      coordinates: [50, 0],
+    });
+
+    const moment = splitPipe(model, {
+      pipe,
+      splits: [splitNode],
+    });
+
+    const { putAssets } = moment;
+    expect(putAssets).toHaveLength(2);
+
+    const [pipe1, pipe2] = putAssets as Pipe[];
+    expect(pipe1.isActive).toBe(false);
+    expect(pipe2.isActive).toBe(false);
+  });
+
+  it("creates inactive split segments when original pipe is inactive", () => {
+    const IDS = { J1: 1, J2: 2, P1: 3 } as const;
+    const model = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1, { coordinates: [0, 0] })
+      .aJunction(IDS.J2, { coordinates: [150, 0] })
+      .aPipe(IDS.P1, {
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
+        isActive: false,
+      })
+      .build();
+
+    const pipe = model.assets.get(IDS.P1) as Pipe;
+    const splitNode1 = model.assetBuilder.buildJunction({
+      coordinates: [50, 0],
+    });
+    const splitNode2 = model.assetBuilder.buildJunction({
+      coordinates: [100, 0],
+    });
+
+    const moment = splitPipe(model, {
+      pipe,
+      splits: [splitNode1, splitNode2],
+    });
+
+    const { putAssets } = moment;
+    expect(putAssets).toHaveLength(3);
+
+    const pipes = putAssets as Pipe[];
+    expect(pipes[0].isActive).toBe(false);
+    expect(pipes[1].isActive).toBe(false);
+    expect(pipes[2].isActive).toBe(false);
   });
 });

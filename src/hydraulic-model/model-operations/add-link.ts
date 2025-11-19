@@ -8,6 +8,7 @@ import { splitPipe } from "./split-pipe";
 import { AssetsMap } from "../assets-map";
 import { HydraulicModel } from "../hydraulic-model";
 import { CustomerPoint } from "../customer-points";
+import { TopologyQueries } from "../topology/types";
 
 type InputData = {
   link: LinkAsset;
@@ -17,10 +18,64 @@ type InputData = {
   endPipeId?: AssetId;
 };
 
-export const addLink: ModelOperation<InputData> = (
-  hydraulicModel,
-  { link, startNode, endNode, startPipeId, endPipeId },
-) => {
+const isSplittingInactivePipe = (
+  hydraulicModel: HydraulicModel,
+  pipeId?: AssetId,
+): boolean => {
+  if (pipeId === undefined) return false;
+
+  const pipe = hydraulicModel.assets.get(pipeId);
+  if (pipe && pipe.isActive === false) {
+    return true;
+  }
+  return false;
+};
+
+const shouldLinkBeInactive = (
+  hydraulicModel: HydraulicModel,
+  { link, startNode, endNode, startPipeId, endPipeId }: InputData,
+): boolean => {
+  const isStartNodeSplittingInactivePipe = isSplittingInactivePipe(
+    hydraulicModel,
+    startPipeId,
+  );
+  const isStartNodeInactive =
+    startNode.isActive === false || isStartNodeSplittingInactivePipe;
+  const isEndNodeSplittingInactivePipe = isSplittingInactivePipe(
+    hydraulicModel,
+    endPipeId,
+  );
+  const isEndNodeInactive =
+    endNode.isActive === false || isEndNodeSplittingInactivePipe;
+  const isStartNodeOrphan =
+    startPipeId === undefined &&
+    !nodeHasOtherConnections(startNode, hydraulicModel.topology, link);
+  const isEndNodeOrphan =
+    endPipeId === undefined &&
+    !nodeHasOtherConnections(endNode, hydraulicModel.topology, link);
+
+  if (
+    (isStartNodeInactive && (isEndNodeInactive || isEndNodeOrphan)) ||
+    (isEndNodeInactive && (isStartNodeInactive || isStartNodeOrphan))
+  )
+    return true;
+
+  return false;
+};
+
+const nodeHasOtherConnections = (
+  node: NodeAsset,
+  topology: TopologyQueries,
+  newLink: LinkAsset,
+): boolean => {
+  const connectedLinks = topology.getLinks(node.id);
+  const otherLinks = connectedLinks.filter((linkId) => linkId !== newLink.id);
+
+  return otherLinks.length > 0;
+};
+
+export const addLink: ModelOperation<InputData> = (hydraulicModel, data) => {
+  const { link, startNode, endNode, startPipeId, endPipeId } = data;
   const linkCopy = link.copy();
   const startNodeCopy = startNode.copy();
   const endNodeCopy = endNode.copy();
@@ -34,6 +89,15 @@ export const addLink: ModelOperation<InputData> = (
   linkCopy.setConnections(startNodeCopy.id, endNodeCopy.id);
   forceSpatialConnectivity(linkCopy, startNodeCopy, endNodeCopy);
   removeRedundantVertices(linkCopy);
+
+  if (shouldLinkBeInactive(hydraulicModel, data)) {
+    linkCopy.setProperty("isActive", false);
+    startNodeCopy.setProperty("isActive", false);
+    endNodeCopy.setProperty("isActive", false);
+  } else {
+    startNodeCopy.setProperty("isActive", true);
+    endNodeCopy.setProperty("isActive", true);
+  }
 
   const { putAssets, deleteAssets, putCustomerPoints } = handlePipeSplits({
     link: linkCopy,

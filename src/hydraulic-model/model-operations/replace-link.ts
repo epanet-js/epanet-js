@@ -7,6 +7,8 @@ import { HydraulicModel } from "../hydraulic-model";
 import { lineString, point } from "@turf/helpers";
 import { Position } from "geojson";
 import { findNearestPointOnLine } from "src/lib/geometry";
+import { Moment } from "src/lib/persistence/moment";
+import { inferNodeIsActiveFromRemainingConnections } from "../utilities/active-topology";
 
 type InputData = {
   sourceLinkId: AssetId;
@@ -34,6 +36,14 @@ export const replaceLink: ModelOperation<InputData> = (
     );
   }
 
+  newLink.setProperty("isActive", sourceLink.isActive);
+  if (!hydraulicModel.topology.hasNode(startNode.id)) {
+    startNode.setProperty("isActive", sourceLink.isActive);
+  }
+  if (!hydraulicModel.topology.hasNode(endNode.id)) {
+    endNode.setProperty("isActive", sourceLink.isActive);
+  }
+
   const addLinkResult = addLink(hydraulicModel, {
     link: newLink,
     startNode,
@@ -54,6 +64,17 @@ export const replaceLink: ModelOperation<InputData> = (
         )
       : [];
 
+  const oldNodesWithChanges = reevaluateAffectedNodes(
+    hydraulicModel,
+    sourceLinkAsset,
+    addLinkResult.putAssets || [],
+  );
+
+  const allPutAssets = [
+    ...(addLinkResult.putAssets || []),
+    ...oldNodesWithChanges,
+  ];
+
   const allPutCustomerPoints = [
     ...(addLinkResult.putCustomerPoints || []),
     ...reconnectedCustomerPoints,
@@ -61,7 +82,7 @@ export const replaceLink: ModelOperation<InputData> = (
 
   return {
     note: `Replace ${sourceLinkAsset.type}`,
-    putAssets: addLinkResult.putAssets,
+    putAssets: allPutAssets,
     deleteAssets: [...(addLinkResult.deleteAssets || []), sourceLinkId],
     putCustomerPoints:
       allPutCustomerPoints.length > 0 ? allPutCustomerPoints : undefined,
@@ -145,4 +166,35 @@ const reconnectCustomerPoints = (
   }
 
   return reconnectedCustomerPoints;
+};
+
+const reevaluateAffectedNodes = (
+  hydraulicModel: HydraulicModel,
+  originalLink: LinkAsset,
+  putAssets: Moment["putAssets"],
+): NodeAsset[] => {
+  const nodesWithDifferentActiveTopologyStatus: NodeAsset[] = [];
+  const putAssetIds = new Set(putAssets.map((asset) => asset.id));
+
+  for (const nodeId of originalLink.connections) {
+    if (putAssetIds.has(nodeId)) continue;
+
+    const node = hydraulicModel.assets.get(nodeId) as NodeAsset;
+    if (!node || node.isLink) continue;
+
+    const inferredState = inferNodeIsActiveFromRemainingConnections(
+      node,
+      new Set([originalLink.id]),
+      hydraulicModel.topology,
+      hydraulicModel.assets,
+    );
+
+    if (node.isActive !== inferredState) {
+      const nodeCopy = node.copy();
+      nodeCopy.setProperty("isActive", inferredState);
+      nodesWithDifferentActiveTopologyStatus.push(nodeCopy);
+    }
+  }
+
+  return nodesWithDifferentActiveTopologyStatus;
 };

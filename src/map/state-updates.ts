@@ -25,14 +25,9 @@ import {
   buildOptimizedAssetsSource,
   buildEphemeralStateSource,
   buildSelectionSource,
-  buildSelectionSourceWithActiveTopology,
 } from "./data-source";
 import { ISymbology, LayerConfigMap, SYMBOLIZATION_NONE } from "src/types";
-import {
-  buildBaseStyle,
-  makeLayers,
-  makeLayersWithActiveTopology,
-} from "./build-style";
+import { buildBaseStyle, makeLayers } from "./build-style";
 import { LayerId } from "./layers";
 import { Asset, AssetId, AssetsMap, filterAssets } from "src/hydraulic-model";
 import { MomentLog } from "src/lib/persistence/moment-log";
@@ -46,20 +41,16 @@ import { mapLoadingAtom } from "./state";
 import { offlineAtom } from "src/state/offline";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   CustomerPointsOverlay,
   buildCustomerPointsOverlay,
-  buildCustomerPointsOverlayWithActiveTopology,
   buildCustomerPointsHighlightOverlay,
   buildCustomerPointsSelectionOverlay,
   buildConnectCustomerPointsPreviewOverlay,
   updateCustomerPointsOverlayVisibility,
-  buildCustomerPointsSelectionOverlayWithActiveTopology,
 } from "./overlays/customer-points";
 import { CustomerPoints } from "src/hydraulic-model/customer-points";
 import { DEFAULT_ZOOM } from "./map-engine";
-import { buildIconPointsSourceWithActiveTopology } from "./data-source/icons";
 
 const SELECTION_LAYERS: LayerId[] = [
   "selected-pipes",
@@ -213,7 +204,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const ephemeralDeckLayersRef = useRef<CustomerPointsOverlay>([]);
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
-  const isActiveTopologyEnabled = useFeatureFlag("FLAG_ACTIVE_TOPOLOGY");
 
   const doUpdates = useCallback(() => {
     if (!map) return;
@@ -310,15 +300,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           hasNewSelection ||
           (hasNewSimulation && mapState.simulation.status !== "running")
         ) {
-          if (isActiveTopologyEnabled) {
-            await updateIconsSourceWithActiveTopology(
-              map,
-              assets,
-              mapState.selection,
-            );
-          } else {
-            await updateIconsSource(map, assets, mapState.selection);
-          }
+          await updateIconsSource(map, assets, mapState.selection);
         }
 
         if (
@@ -327,19 +309,11 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           hasNewStyles ||
           hasNewCustomerPoints
         ) {
-          if (isActiveTopologyEnabled) {
-            customerPointsOverlayRef.current =
-              buildCustomerPointsOverlayWithActiveTopology(
-                hydraulicModel.customerPoints,
-                assets,
-                mapState.currentZoom,
-              );
-          } else {
-            customerPointsOverlayRef.current = buildCustomerPointsOverlay(
-              hydraulicModel.customerPoints,
-              mapState.currentZoom,
-            );
-          }
+          customerPointsOverlayRef.current = buildCustomerPointsOverlay(
+            hydraulicModel.customerPoints,
+            assets,
+            mapState.currentZoom,
+          );
         }
 
         if (
@@ -375,18 +349,13 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         }
 
         if (hasNewSelection) {
-          selectionDeckLayersRef.current = isActiveTopologyEnabled
-            ? buildSelectionOverlayForCustomerPointsWithActiveTopology(
-                mapState.selection,
-                hydraulicModel.assets,
-                hydraulicModel.customerPoints,
-                mapState.currentZoom,
-              )
-            : buildSelectionOverlayForCustomerPoints(
-                mapState.selection,
-                hydraulicModel.customerPoints,
-                mapState.currentZoom,
-              );
+          selectionDeckLayersRef.current =
+            buildSelectionOverlayForCustomerPoints(
+              mapState.selection,
+              hydraulicModel.assets,
+              hydraulicModel.customerPoints,
+              mapState.currentZoom,
+            );
         }
 
         if (hasNewEphemeralState) {
@@ -409,16 +378,11 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
             mapState.selection,
             assets,
             mapState.movedAssetIds,
-            isActiveTopologyEnabled,
           );
         }
 
         if (hasNewStyles) {
-          addEditingLayersToMap(
-            map,
-            mapState.stylesConfig,
-            isActiveTopologyEnabled,
-          );
+          addEditingLayersToMap(map, mapState.stylesConfig);
           toggleAnalysisLayers(map, mapState.symbology);
         }
 
@@ -469,7 +433,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     translate,
     translateUnit,
     hydraulicModel,
-    isActiveTopologyEnabled,
   ]);
 
   doUpdates();
@@ -601,21 +564,6 @@ const updateIconsSource = withDebugInstrumentation(
   },
 );
 
-const updateIconsSourceWithActiveTopology = withDebugInstrumentation(
-  async (map: MapEngine, assets: AssetsMap, selection: Sel): Promise<void> => {
-    const selectionSet = new Set(USelection.toIds(selection));
-    const features = buildIconPointsSourceWithActiveTopology(
-      assets,
-      selectionSet,
-    );
-    await map.setSource("icons", features);
-  },
-  {
-    name: "MAP_STATE:UPDATE_ICONS_SOURCE",
-    maxDurationMs: 250,
-  },
-);
-
 const updateImportedSourceVisibility = withDebugInstrumentation(
   (
     map: MapEngine,
@@ -677,31 +625,20 @@ const updateSelection = withDebugInstrumentation(
     selection: Sel,
     assets: AssetsMap,
     movedAssetIds: Set<AssetId>,
-    isActiveTopologyEnabled: boolean,
   ): Promise<void> => {
-    const features = isActiveTopologyEnabled
-      ? buildSelectionSourceWithActiveTopology(assets, selection, movedAssetIds)
-      : buildSelectionSource(assets, selection, movedAssetIds);
+    const features = buildSelectionSource(assets, selection, movedAssetIds);
+
     await map.setSource("selected-features", features);
   },
   { name: "MAP_STATE:UPDATE_SELECTION", maxDurationMs: 100 },
 );
 
 const addEditingLayersToMap = withDebugInstrumentation(
-  (
-    map: MapEngine,
-    stylesConfig: StylesConfig,
-    isActiveTopologyEnabled: boolean,
-  ) => {
-    const layers = isActiveTopologyEnabled
-      ? makeLayersWithActiveTopology({
-          symbology: stylesConfig.symbology,
-          previewProperty: stylesConfig.previewProperty,
-        })
-      : makeLayers({
-          symbology: stylesConfig.symbology,
-          previewProperty: stylesConfig.previewProperty,
-        });
+  (map: MapEngine, stylesConfig: StylesConfig) => {
+    const layers = makeLayers({
+      symbology: stylesConfig.symbology,
+      previewProperty: stylesConfig.previewProperty,
+    });
 
     for (const layer of layers) {
       map.addLayer(layer);
@@ -771,20 +708,6 @@ const buildCustomerPointsEphemeralOverlay = (
 
 const buildSelectionOverlayForCustomerPoints = (
   selection: Sel,
-  customerPoints: CustomerPoints,
-  zoom: number,
-): CustomerPointsOverlay => {
-  if (selection.type === "singleCustomerPoint") {
-    const customerPoint = customerPoints.get(selection.id);
-    if (customerPoint) {
-      return buildCustomerPointsSelectionOverlay([customerPoint], zoom);
-    }
-  }
-  return [];
-};
-
-const buildSelectionOverlayForCustomerPointsWithActiveTopology = (
-  selection: Sel,
   assets: AssetsMap,
   customerPoints: CustomerPoints,
   zoom: number,
@@ -798,7 +721,7 @@ const buildSelectionOverlayForCustomerPointsWithActiveTopology = (
       if (pipe?.isActive) isActive = true;
     }
     if (customerPoint) {
-      return buildCustomerPointsSelectionOverlayWithActiveTopology(
+      return buildCustomerPointsSelectionOverlay(
         [customerPoint],
         isActive,
         zoom,

@@ -1,7 +1,9 @@
-import { AssetId, Asset, Pipe } from "../asset-types";
+import { AssetId, Asset, Pipe, NodeAsset, LinkAsset } from "../asset-types";
 import { ModelOperation } from "../model-operation";
 import { CustomerPoint } from "../customer-points";
 import { CustomerPointsLookup } from "../customer-points-lookup";
+import { HydraulicModel } from "../hydraulic-model";
+import { inferNodeIsActiveFromRemainingConnections } from "../utilities/active-topology";
 
 type InputData = {
   assetIds: readonly AssetId[];
@@ -9,9 +11,10 @@ type InputData = {
 };
 
 export const deleteAssets: ModelOperation<InputData> = (
-  { topology, assets, customerPointsLookup },
+  hydraulicModel,
   { assetIds, shouldUpdateCustomerPoints = false },
 ) => {
+  const { topology, assets, customerPointsLookup } = hydraulicModel;
   const affectedIds = new Set(assetIds);
   const disconnectedCustomerPoints = new Map<number, CustomerPoint>();
 
@@ -39,9 +42,12 @@ export const deleteAssets: ModelOperation<InputData> = (
     });
   });
 
+  const boundaryNodes = reevaluateBoundaryNodes(hydraulicModel, affectedIds);
+
   return {
     note: "Delete assets",
     deleteAssets: Array.from(affectedIds),
+    putAssets: boundaryNodes.length > 0 ? boundaryNodes : undefined,
     putCustomerPoints:
       shouldUpdateCustomerPoints && disconnectedCustomerPoints.size > 0
         ? Array.from(disconnectedCustomerPoints.values())
@@ -66,4 +72,41 @@ const addCustomerPointsToDisconnect = (
       disconnectedCustomerPoints.set(customerPoint.id, disconnectedCopy);
     }
   }
+};
+
+const reevaluateBoundaryNodes = (
+  hydraulicModel: HydraulicModel,
+  deletedAssetIds: Set<AssetId>,
+): NodeAsset[] => {
+  const { topology, assets } = hydraulicModel;
+  const boundaryNodeIds = new Set<AssetId>();
+  const boundaryNodes: NodeAsset[] = [];
+
+  for (const assetId of deletedAssetIds) {
+    const link = assets.get(assetId) as LinkAsset | undefined;
+    if (!link || !link.isLink) continue;
+
+    for (const nodeId of link.connections) {
+      if (!deletedAssetIds.has(nodeId)) boundaryNodeIds.add(nodeId);
+    }
+  }
+
+  for (const nodeId of boundaryNodeIds) {
+    const node = assets.get(nodeId) as NodeAsset;
+    if (!node || node.isLink) continue;
+    const inferredState = inferNodeIsActiveFromRemainingConnections(
+      node,
+      deletedAssetIds,
+      topology,
+      assets,
+    );
+
+    if (inferredState !== node.isActive) {
+      const nodeCopy = node.copy() as NodeAsset;
+      nodeCopy.setProperty("isActive", inferredState);
+      boundaryNodes.push(nodeCopy);
+    }
+  }
+
+  return boundaryNodes;
 };
