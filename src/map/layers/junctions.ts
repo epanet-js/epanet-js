@@ -23,15 +23,6 @@ export const junctionCircleSizes = (): Partial<CircleLayer["paint"]> => {
   };
 };
 
-export const junctionCircleSizesWithActiveTopology = (): Partial<
-  CircleLayer["paint"]
-> => {
-  return {
-    "circle-stroke-width": ["interpolate", ["linear"], ["zoom"], 13, 1, 16, 2],
-    "circle-radius": ["interpolate", ["linear"], ["zoom"], 12, 0.5, 16, 5],
-  };
-};
-
 export const junctionsLayer = ({
   source,
   layerId,
@@ -148,7 +139,7 @@ export const junctionsLayerWithActiveTopology = ({
     paint: {
       "circle-opacity": opacityExpression(symbology),
       "circle-stroke-color": strokeColorExpressionWithActiveTopology(),
-      ...junctionCircleSizesWithActiveTopology(),
+      ...junctionCircleSizes(),
       "circle-stroke-opacity": opacityExpression(symbology),
       "circle-color": colorExpressionWithActiveTopology(),
     },
@@ -168,13 +159,26 @@ export const junctionResultsLayerWithActiveTopology = ({
   id: layerId,
   type: "circle",
   source,
-  filter: ["==", ["get", "type"], "junction"],
+  filter: [
+    "all",
+    ["==", ["get", "type"], "junction"],
+    ["==", ["get", "isActive"], true],
+  ],
   layout: { visibility: "none" },
   paint: {
     "circle-opacity": opacityExpression(symbology),
     "circle-stroke-color": strokeColorExpressionWithActiveTopology(),
-    ...junctionCircleSizesWithActiveTopology(),
+    "circle-stroke-width": [
+      "interpolate",
+      ["linear"],
+      ["zoom"],
+      12,
+      0.1,
+      14,
+      1,
+    ],
     "circle-stroke-opacity": opacityExpression(symbology),
+    "circle-radius": ["interpolate", ["linear"], ["zoom"], 10, 1, 16, 6],
     "circle-color": colorExpressionWithActiveTopology(),
   },
   maxzoom: 13,

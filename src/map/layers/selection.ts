@@ -2,17 +2,13 @@ import { CircleLayer, LineLayer, SymbolLayer } from "mapbox-gl";
 import { DataSource } from "../data-source";
 import { LayerId } from "./layer";
 import { strokeColorFor } from "src/lib/color";
-import {
-  junctionCircleSizes,
-  junctionCircleSizesWithActiveTopology,
-} from "./junctions";
+import { junctionCircleSizes } from "./junctions";
 import { colors } from "src/lib/constants";
 
-const LINE_COLORS_SELECTED = colors.fuchsia500;
-const POINT_COLORS_SELECTED = colors.fuchsia500;
-const POINT_COLORS_SELECTED_WITH_ACTIVE_TOPOLOGY = colors.fuchsia300;
-const LINE_COLORS_SELECTED_DISABLED = colors.fuchsia300;
-const POINT_COLORS_SELECTED_DISABLED = colors.fuchsia100;
+const COLOR_SELECTED_DEFAULT = colors.fuchsia500;
+const COLOR_SELECTED_CONTRAST = strokeColorFor(COLOR_SELECTED_DEFAULT);
+const COLOR_SELECTED_LIGHT = colors.fuchsia300;
+const COLOR_SELECTED_LIGHTER = colors.fuchsia100;
 
 export const selectedPipesLayerWithActiveTopology = ({
   source,
@@ -40,8 +36,8 @@ export const selectedPipesLayerWithActiveTopology = ({
       "line-color": [
         "case",
         ["==", ["get", "isActive"], false],
-        LINE_COLORS_SELECTED_DISABLED,
-        LINE_COLORS_SELECTED,
+        COLOR_SELECTED_LIGHT,
+        COLOR_SELECTED_DEFAULT,
       ],
       "line-dasharray": [
         "case",
@@ -79,8 +75,8 @@ export const selectedPumpLinesLayerWithActiveTopology = ({
       "line-color": [
         "case",
         ["==", ["get", "isActive"], false],
-        LINE_COLORS_SELECTED_DISABLED,
-        LINE_COLORS_SELECTED,
+        COLOR_SELECTED_LIGHT,
+        COLOR_SELECTED_DEFAULT,
       ],
       "line-dasharray": [
         "case",
@@ -118,8 +114,8 @@ export const selectedValveLinesLayerWithActiveTopology = ({
       "line-color": [
         "case",
         ["==", ["get", "isActive"], false],
-        LINE_COLORS_SELECTED_DISABLED,
-        LINE_COLORS_SELECTED,
+        COLOR_SELECTED_LIGHT,
+        COLOR_SELECTED_DEFAULT,
       ],
       "line-dasharray": [
         "case",
@@ -148,17 +144,17 @@ export const selectedJunctionsLayerWithActiveTopology = ({
       "circle-stroke-color": [
         "case",
         ["==", ["get", "isActive"], false],
-        POINT_COLORS_SELECTED_WITH_ACTIVE_TOPOLOGY,
-        LINE_COLORS_SELECTED,
+        COLOR_SELECTED_LIGHT,
+        COLOR_SELECTED_CONTRAST,
       ],
-      ...junctionCircleSizesWithActiveTopology(),
       "circle-stroke-opacity": 1,
       "circle-color": [
         "case",
         ["==", ["get", "isActive"], false],
-        POINT_COLORS_SELECTED_DISABLED,
-        POINT_COLORS_SELECTED,
+        COLOR_SELECTED_LIGHTER,
+        COLOR_SELECTED_DEFAULT,
       ],
+      ...junctionCircleSizes(),
     },
     minzoom: 13,
   };
@@ -229,8 +225,8 @@ export const selectedIconsHaloLayerWithActiveTopology = ({
       "circle-color": [
         "case",
         ["==", ["get", "isActive"], false],
-        POINT_COLORS_SELECTED_DISABLED,
-        POINT_COLORS_SELECTED,
+        COLOR_SELECTED_LIGHT,
+        COLOR_SELECTED_DEFAULT,
       ],
       "circle-opacity": 0.8,
       "circle-blur": ["interpolate", ["linear"], ["zoom"], 12, 0, 20, 0.8],
@@ -266,7 +262,7 @@ export const selectedPipeArrowsLayerWithActiveTopology = ({
       ["==", "hasArrow", true],
     ],
     paint: {
-      "icon-color": LINE_COLORS_SELECTED,
+      "icon-color": COLOR_SELECTED_DEFAULT,
       "icon-opacity": zoomOpacityExpression(
         [14, 15, 16, 17, 18, 19, 20],
         [200, 100, 50, 20, 10, 5, 0],
@@ -299,7 +295,7 @@ export const selectedPipesLayer = ({
         16,
         ["case", ["==", ["get", "status"], "closed"], 4, 5],
       ],
-      "line-color": LINE_COLORS_SELECTED,
+      "line-color": COLOR_SELECTED_DEFAULT,
       "line-dasharray": [
         "case",
         ["==", ["get", "status"], "closed"],
@@ -333,7 +329,7 @@ export const selectedPumpLinesLayer = ({
         16,
         ["case", ["==", ["get", "status"], "off"], 2, 3],
       ],
-      "line-color": LINE_COLORS_SELECTED,
+      "line-color": COLOR_SELECTED_DEFAULT,
       "line-dasharray": [
         "case",
         ["==", ["get", "status"], "off"],
@@ -367,7 +363,7 @@ export const selectedValveLinesLayer = ({
         16,
         ["case", ["==", ["get", "status"], "closed"], 2, 3],
       ],
-      "line-color": LINE_COLORS_SELECTED,
+      "line-color": COLOR_SELECTED_DEFAULT,
       "line-dasharray": [
         "case",
         ["==", ["get", "status"], "closed"],
@@ -392,10 +388,10 @@ export const selectedJunctionsLayer = ({
     filter: ["==", ["get", "type"], "junction"],
     paint: {
       "circle-opacity": 1,
-      "circle-stroke-color": strokeColorFor(POINT_COLORS_SELECTED),
-      ...junctionCircleSizes(),
+      "circle-stroke-color": strokeColorFor(COLOR_SELECTED_DEFAULT),
       "circle-stroke-opacity": 1,
-      "circle-color": POINT_COLORS_SELECTED,
+      "circle-color": COLOR_SELECTED_DEFAULT,
+      ...junctionCircleSizes(),
     },
     minzoom: 13,
   };
@@ -464,7 +460,7 @@ export const selectedIconsHaloLayer = ({
     ],
     paint: {
       "circle-radius": ["interpolate", ["linear"], ["zoom"], 12, 8, 20, 22],
-      "circle-color": LINE_COLORS_SELECTED,
+      "circle-color": COLOR_SELECTED_DEFAULT,
       "circle-opacity": 0.8,
       "circle-blur": ["interpolate", ["linear"], ["zoom"], 12, 0, 20, 0.8],
     },
@@ -499,7 +495,7 @@ export const selectedPipeArrowsLayer = ({
       ["==", "hasArrow", true],
     ],
     paint: {
-      "icon-color": LINE_COLORS_SELECTED,
+      "icon-color": COLOR_SELECTED_DEFAULT,
       "icon-opacity": zoomOpacityExpression(
         [14, 15, 16, 17, 18, 19, 20],
         [200, 100, 50, 20, 10, 5, 0],
