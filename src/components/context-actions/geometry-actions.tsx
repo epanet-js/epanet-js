@@ -9,11 +9,23 @@ import { useZoomTo } from "src/hooks/use-zoom-to";
 import { IWrappedFeature } from "src/types";
 import { useTranslate } from "src/hooks/use-translate";
 import { useDeleteSelectedAssets } from "src/commands/delete-selected-assets";
-import { DeleteIcon, ZoomToIcon, RedrawIcon, ReverseIcon } from "src/icons";
+import {
+  useChangeSelectedAssetsActiveTopologyStatus,
+  changeActiveTopologyShortcut,
+} from "src/commands/change-selected-assets-active-topology-status";
+import {
+  DeleteIcon,
+  ZoomToIcon,
+  RedrawIcon,
+  ReverseIcon,
+  ActivateTopologyIcon,
+  DeactivateTopologyIcon,
+} from "src/icons";
 import { useAtomValue } from "jotai";
 import { Mode, modeAtom } from "src/state/mode";
 import { useSetRedrawMode } from "src/commands/set-redraw-mode";
 import { useReverseLink } from "src/commands/reverse-link";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export function useActions(
   selectedWrappedFeatures: IWrappedFeature[],
@@ -22,9 +34,16 @@ export function useActions(
   const translate = useTranslate();
   const zoomTo = useZoomTo();
   const deleteSelectedAssets = useDeleteSelectedAssets();
+  const {
+    changeSelectedAssetsActiveTopologyStatus: activateDeactivateAction,
+    allActive,
+  } = useChangeSelectedAssetsActiveTopologyStatus();
   const { mode: currentMode } = useAtomValue(modeAtom);
   const setRedrawMode = useSetRedrawMode();
   const reverseLinkAction = useReverseLink();
+  const isBulkActiveTopologyEnabled = useFeatureFlag(
+    "FLAG_BULK_ACTIVE_TOPOLOGY",
+  );
 
   const onDelete = useCallback(() => {
     const eventSource = source === "context-item" ? "context-menu" : "toolbar";
@@ -82,7 +101,30 @@ export function useActions(
     },
   };
 
-  return [zoomToAction, reverseAction, redrawAction, deleteAssetsAction];
+  const changeActiveTopologyStatusAction = {
+    icon: allActive ? <DeactivateTopologyIcon /> : <ActivateTopologyIcon />,
+    applicable: true,
+    label: allActive
+      ? translate("deactivateAssets")
+      : translate("activateAssets"),
+    shortcut: changeActiveTopologyShortcut,
+    onSelect: function activateDeactivateHandler() {
+      const eventSource =
+        source === "context-item" ? "context-menu" : "toolbar";
+      activateDeactivateAction({ source: eventSource });
+      return Promise.resolve();
+    },
+  };
+
+  return isBulkActiveTopologyEnabled
+    ? [
+        zoomToAction,
+        reverseAction,
+        redrawAction,
+        changeActiveTopologyStatusAction,
+        deleteAssetsAction,
+      ]
+    : [zoomToAction, reverseAction, redrawAction, deleteAssetsAction];
 }
 
 export function GeometryActions({

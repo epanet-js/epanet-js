@@ -656,5 +656,7 @@
     "operationHint": "Hold {{1}} to add or {{2}} to remove from a selection"
   },
   "activeTopology": "Active Topology",
-  "isEnabled": "Is enabled"
+  "isEnabled": "Enabled",
+  "activateAssets": "Include in Active Topology",
+  "deactivateAssets": "Exclude from Active Topology"
 }

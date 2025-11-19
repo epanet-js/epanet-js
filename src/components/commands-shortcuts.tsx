@@ -70,6 +70,11 @@ import {
   useCycleSelectionMode,
   selectionModeShortcut,
 } from "src/commands/set-area-selection-mode";
+import {
+  changeActiveTopologyShortcut,
+  useChangeSelectedAssetsActiveTopologyStatus,
+} from "src/commands/change-selected-assets-active-topology-status";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 const IGNORE_ROLES = new Set(["menuitem"]);
 
@@ -95,6 +100,12 @@ export const CommandShortcuts = () => {
   const toggleNetworkReview = useToggleNetworkReview();
   const toggleSidePanel = useToggleSidePanel();
   const cycleSelectionMode = useCycleSelectionMode();
+  const { changeSelectedAssetsActiveTopologyStatus } =
+    useChangeSelectedAssetsActiveTopologyStatus();
+
+  const isBulkActiveTopologyEnabled = useFeatureFlag(
+    "FLAG_BULK_ACTIVE_TOPOLOGY",
+  );
 
   useHotkeys(
     showReportShorcut,
@@ -347,6 +358,17 @@ export const CommandShortcuts = () => {
     },
     [cycleSelectionMode],
     "Set selection mode",
+  );
+
+  useHotkeys(
+    changeActiveTopologyShortcut,
+    (e) => {
+      e.preventDefault();
+      changeSelectedAssetsActiveTopologyStatus({ source: "shortcut" });
+    },
+    [changeSelectedAssetsActiveTopologyStatus],
+    "Activate/Deactivate assets",
+    !isBulkActiveTopologyEnabled,
   );
 
   for (const [mode, shortcut] of Object.entries(drawingModeShorcuts)) {

@@ -145,6 +145,18 @@ export type AssetsDeleted = {
   count: number;
 };
 
+export type AssetsIncludedInActiveTopology = {
+  name: "assets.includedInActiveTopology";
+  source: "shortcut" | "toolbar" | "context-menu";
+  count: number;
+};
+
+export type AssetsExcludedFromActiveTopology = {
+  name: "assets.excludedFromActiveTopology";
+  source: "shortcut" | "toolbar" | "context-menu";
+  count: number;
+};
+
 type WelcomeSeen = {
   name: "welcome.seen";
 };
@@ -612,6 +624,8 @@ export type UserEvent =
   | SatelliteViewToggled
   | AssetsDeleted
   | AssetDeleted
+  | AssetsIncludedInActiveTopology
+  | AssetsExcludedFromActiveTopology
   | WelcomeSeen
   | WelcomeOpened
   | WelcomeHidden

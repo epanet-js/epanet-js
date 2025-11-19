@@ -46,6 +46,8 @@ import {
   Redo2,
   RefreshCw,
   Rocket,
+  Route,
+  RouteOff,
   Save,
   SaveAll,
   Settings,
@@ -123,6 +125,8 @@ export const FileTextIcon = icon(FileText);
 export const FileSpreadsheetIcon = icon(FileSpreadsheet);
 export const DeleteIcon = icon(Trash);
 export const ZoomToIcon = icon(Crosshair);
+export const ActivateTopologyIcon = icon(Route);
+export const DeactivateTopologyIcon = icon(RouteOff);
 export const GlobeIcon = icon(Globe);
 export const SettingsIcon = icon(Settings);
 export const UpgradeIcon = icon(Rocket);
