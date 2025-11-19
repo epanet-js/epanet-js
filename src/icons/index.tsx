@@ -191,3 +191,5 @@ export { CustomProximityCheckIcon as ProximityCheckIcon } from "./custom-icons/p
 export { CustomPanelLeftActive as PanelLeftActiveIcon } from "./custom-icons/panel-left-active";
 export { CustomPanelRightActive as PanelRightActiveIcon } from "./custom-icons/panel-right-active";
 export { CustomPolygonalSelection as PolygonalSelectionIcon } from "./custom-icons/polygonal-selection";
+export { CustomActiveTopologyEnableIcon as ActiveTopologyEnableIcon } from "./custom-icons/active-topology-enable";
+export { CustomActiveTopologyDisableIcon as ActiveTopologyDisableIcon } from "./custom-icons/active-topology-disable";
