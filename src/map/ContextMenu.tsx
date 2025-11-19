@@ -6,6 +6,7 @@ import { CMContent } from "src/components/elements";
 import { wrappedFeaturesFromMapFeatures } from "src/lib/map-component-utils";
 import { useAtomValue } from "jotai";
 import { Mode, modeAtom } from "src/state/jotai";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export interface ContextInfo {
   features: ReturnType<typeof wrappedFeaturesFromMapFeatures>;
@@ -28,7 +29,10 @@ export const MapContextMenu = memo(function MapContextMenu({
   contextInfo: ContextInfo | null;
 }) {
   const mode = useAtomValue(modeAtom);
-  if (isExcludedMode(mode.mode)) return null;
+  const isBulkActiveTopologyEnabled = useFeatureFlag(
+    "FLAG_BULK_ACTIVE_TOPOLOGY",
+  );
+  if (isExcludedMode(mode.mode) && !isBulkActiveTopologyEnabled) return null;
 
   return (
     <CM.Portal>
