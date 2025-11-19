@@ -10,6 +10,7 @@ import { KeyboardIcon } from "src/icons";
 import { toggleNetworkReviewShortcut } from "src/commands/toggle-network-review";
 import { toggleSidePanelShortcut } from "src/commands/toggle-side-panel";
 import { selectionModeShortcut } from "src/commands/set-area-selection-mode";
+import { changeActiveTopologyShortcut } from "src/commands/change-selected-assets-active-topology-status";
 
 export const SEARCH_KEYBINDING = "Command+k";
 
@@ -39,11 +40,46 @@ const getBindings = (translate: ReturnType<typeof useTranslate>) => ({
   [toggleNetworkReviewShortcut]: translate("networkReview.toggle"),
 });
 
+const getBindingsWithActiveTopology = (
+  translate: ReturnType<typeof useTranslate>,
+) => ({
+  B: translate("toggleSatellite"),
+  "Shift+Enter": translate("simulate"),
+  [showSimulationSettingsShortcut]: translate("simulationSettings"),
+  "Alt+R": translate("viewReport"),
+  "Alt+N": translate("newProject"),
+  "Command+O": translate("openProject"),
+  "Command+S": translate("save"),
+  "Command+Shift+S": translate("save"),
+  "?": translate("help"),
+  "1": translate("select"),
+  [selectionModeShortcut]: translate("areaSelection.tool"),
+  "2": translate("junction"),
+  "3": translate("reservoir"),
+  "4": translate("tank"),
+  "5": translate("pipe"),
+  "6": translate("pump"),
+  "7": translate("valve"),
+  Esc: `${translate("exit")} / ${translate("clearSelection")}`,
+  [changeActiveTopologyShortcut]: translate("toggleActiveTopology"),
+  BACKSPACE: translate("delete"),
+  "Command+a": translate("selectAll"),
+  "Command+z": translate("undo"),
+  "Command+y": translate("redo"),
+  [toggleSidePanelShortcut]: translate("toggleSidePanel"),
+  [toggleNetworkReviewShortcut]: translate("networkReview.toggle"),
+});
+
 export function CheatsheetDialog() {
   const translate = useTranslate();
   const isMac = useFeatureFlag("FLAG_MAC");
+  const isBulkActiveTopologyEnabled = useFeatureFlag(
+    "FLAG_BULK_ACTIVE_TOPOLOGY",
+  );
 
-  const BINDINGS = getBindings(translate);
+  const BINDINGS = isBulkActiveTopologyEnabled
+    ? getBindingsWithActiveTopology(translate)
+    : getBindings(translate);
   return (
     <>
       <DialogHeader

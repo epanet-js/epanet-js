@@ -3,6 +3,8 @@ import once from "lodash/once";
 export const cmdSymbol = "⌘";
 export const macShiftSymbol = "⇧";
 export const optionSymbol = "⌥";
+export const backspaceSymbol = "⌫";
+export const deleteSymbol = "⌦";
 
 export function localizeKeybinding(
   keys: string,
@@ -13,6 +15,7 @@ export function localizeKeybinding(
     .replace("ENTER", "Enter")
     .replace("SHIFT", isMac ? macShiftSymbol : "Shift")
     .replace("ESC", "Esc")
+    .replace("BACKSPACE", backspaceSymbol)
     .replace("COMMAND", isMac ? cmdSymbol : "Ctrl")
     .replace("CTRL", isMac ? cmdSymbol : "Ctrl")
     .replace("ALT", isMac ? optionSymbol : "Alt")

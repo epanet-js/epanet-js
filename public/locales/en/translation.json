@@ -645,7 +645,7 @@
     "savePreferences": "Save preferences"
   },
   "areaSelection": {
-    "tool": "Area selection",
+    "tool": "Select area",
     "rectangular": "Rectangular selection",
     "polygonal": "Polygonal selection",
     "freehand": "Freehand selection",
@@ -657,6 +657,7 @@
   },
   "activeTopology": "Active Topology",
   "isEnabled": "Enabled",
-  "activateAssets": "Include in Active Topology",
-  "deactivateAssets": "Exclude from Active Topology"
+  "activateAssets": "Activate",
+  "deactivateAssets": "Deactivate",
+  "toggleActiveTopology": "Activate/Deactivate"
 }
