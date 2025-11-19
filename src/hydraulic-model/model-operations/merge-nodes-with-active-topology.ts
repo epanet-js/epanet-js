@@ -57,7 +57,7 @@ export const mergeNodesWithActiveTopology: ModelOperation<InputData> = (
 
   const shouldBeActive = updatedLinks.length
     ? updatedLinks.some((link) => link.isActive)
-    : winnerNode.isActive || loserNode.isActive;
+    : true;
   mergedNode.setProperty("isActive", shouldBeActive);
 
   return buildMergeResult(

@@ -8,6 +8,7 @@ import { lineString, point } from "@turf/helpers";
 import { Position } from "geojson";
 import { findNearestPointOnLine } from "src/lib/geometry";
 import { Moment } from "src/lib/persistence/moment";
+import { inferNodeIsActiveFromRemainingConnections } from "../utilities/active-topology";
 
 type InputData = {
   sourceLinkId: AssetId;
@@ -172,8 +173,6 @@ const reevaluateAffectedNodes = (
   originalLink: LinkAsset,
   putAssets: Moment["putAssets"],
 ): NodeAsset[] => {
-  if (!originalLink.isActive) return [];
-
   const nodesWithDifferentActiveTopologyStatus: NodeAsset[] = [];
   const putAssetIds = new Set(putAssets.map((asset) => asset.id));
 
@@ -183,16 +182,16 @@ const reevaluateAffectedNodes = (
     const node = hydraulicModel.assets.get(nodeId) as NodeAsset;
     if (!node || node.isLink) continue;
 
-    const connectedLinkIds = hydraulicModel.topology.getLinks(nodeId);
-    const hasOtherActiveLinks = connectedLinkIds.some((linkId) => {
-      if (linkId === originalLink.id) return false;
-      const link = hydraulicModel.assets.get(linkId) as LinkAsset;
-      return link && link.isActive;
-    });
+    const inferredState = inferNodeIsActiveFromRemainingConnections(
+      node,
+      new Set([originalLink.id]),
+      hydraulicModel.topology,
+      hydraulicModel.assets,
+    );
 
-    if (!hasOtherActiveLinks) {
+    if (node.isActive !== inferredState) {
       const nodeCopy = node.copy();
-      nodeCopy.setProperty("isActive", false);
+      nodeCopy.setProperty("isActive", inferredState);
       nodesWithDifferentActiveTopologyStatus.push(nodeCopy);
     }
   }

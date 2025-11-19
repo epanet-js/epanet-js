@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { replaceLinkWithActiveTopology } from "./replace-link-with-active-topology";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
-import { Pipe, NodeAsset, Junction } from "../asset-types";
+import { Pipe, NodeAsset } from "../asset-types";
 import { CustomerPoint } from "../customer-points";
 
 describe("replaceLinkWithActiveTopology", () => {
@@ -161,13 +161,12 @@ describe("replaceLinkWithActiveTopology", () => {
         .build();
 
       const newPipe = hydraulicModel.assetBuilder.buildPipe({
-        label: "P2",
+        id: IDS.P2,
         coordinates: [
           [0, 0],
           [10, 0],
         ],
       });
-      newPipe.setProperty("id", IDS.P2);
 
       const startNode = hydraulicModel.assets.get(IDS.J1) as NodeAsset;
       const endNode = hydraulicModel.assets.get(IDS.J2) as NodeAsset;
@@ -179,16 +178,13 @@ describe("replaceLinkWithActiveTopology", () => {
         endNode,
       });
 
-      const addedPipe = putAssets!.find(
-        (asset) => asset.type === "pipe",
-      ) as Pipe;
-      expect(addedPipe.isActive).toBe(true);
-      const addedNodes = putAssets!.filter(
-        (asset) => asset.type === "junction",
-      ) as Junction[];
-      expect(addedNodes.length).toBe(2);
-      expect(addedNodes[0].isActive).toBe(true);
-      expect(addedNodes[1].isActive).toBe(true);
+      expect(putAssets).toHaveLength(3);
+      const assetsActiveTopologyState = Object.fromEntries(
+        putAssets!.map((asset) => [asset.id, asset.isActive]),
+      );
+      expect(assetsActiveTopologyState[IDS.P2]).toBe(true);
+      expect(assetsActiveTopologyState[IDS.J1]).toBe(true);
+      expect(assetsActiveTopologyState[IDS.J2]).toBe(true);
     });
 
     it("inherits isActive from source link when replacing inactive link", () => {
@@ -222,13 +218,16 @@ describe("replaceLinkWithActiveTopology", () => {
         endNode,
       });
 
-      const addedPipe = putAssets!.find(
-        (asset) => asset.type === "pipe",
-      ) as Pipe;
-      expect(addedPipe.isActive).toBe(false);
+      expect(putAssets).toHaveLength(3);
+      const assetsActiveTopologyState = Object.fromEntries(
+        putAssets!.map((asset) => [asset.id, asset.isActive]),
+      );
+      expect(assetsActiveTopologyState[IDS.P2]).toBe(false);
+      expect(assetsActiveTopologyState[IDS.J1]).toBe(false);
+      expect(assetsActiveTopologyState[IDS.J2]).toBe(false);
     });
 
-    it("de-activates new nodes when replacing with non-active link", () => {
+    it("re-activates old nodes when removing only non-active link", () => {
       const IDS = { J1: 1, J2: 2, P1: 3, J3: 4, J4: 5, P2: 6 } as const;
       const hydraulicModel = HydraulicModelBuilder.with()
         .aJunction(IDS.J1, { coordinates: [0, 0], isActive: false })
@@ -244,16 +243,14 @@ describe("replaceLinkWithActiveTopology", () => {
         id: IDS.P2,
         label: "P2",
         coordinates: [
-          [0, 0],
-          [10, 0],
+          [2, 0],
+          [8, 0],
         ],
       });
-
       const newStartNode = hydraulicModel.assetBuilder.buildJunction({
         id: IDS.J3,
         coordinates: [2, 0],
       });
-
       const newEndNode = hydraulicModel.assetBuilder.buildJunction({
         id: IDS.J4,
         coordinates: [8, 0],
@@ -266,18 +263,17 @@ describe("replaceLinkWithActiveTopology", () => {
         endNode: newEndNode,
       });
 
-      const newNodeJ3 = putAssets!.find(
-        (asset) => asset.id === IDS.J3,
-      ) as NodeAsset;
-      const newNodeJ4 = putAssets!.find(
-        (asset) => asset.id === IDS.J4,
-      ) as NodeAsset;
-
-      expect(newNodeJ3.isActive).toBe(false);
-      expect(newNodeJ4.isActive).toBe(false);
+      expect(putAssets).toHaveLength(5);
+      const assetsActiveTopologyState = Object.fromEntries(
+        putAssets!.map((asset) => [asset.id, asset.isActive]),
+      );
+      expect(assetsActiveTopologyState[IDS.J1]).toBe(true);
+      expect(assetsActiveTopologyState[IDS.J2]).toBe(true);
+      expect(assetsActiveTopologyState[IDS.J3]).toBe(false);
+      expect(assetsActiveTopologyState[IDS.J4]).toBe(false);
     });
 
-    it("deactivates nodes when replacing only active link", () => {
+    it("deactivates previous nodes when removing only active link", () => {
       const IDS = { J1: 1, J2: 2, J3: 3, J4: 4, P0: 5, P1: 6, P2: 7 } as const;
       const hydraulicModel = HydraulicModelBuilder.with()
         .aJunction(IDS.J1, { coordinates: [0, 0], isActive: true })
@@ -320,58 +316,12 @@ describe("replaceLinkWithActiveTopology", () => {
         endNode: newEndNode,
       });
 
-      const oldJ1 = putAssets!.find(
-        (asset) => asset.id === IDS.J1,
-      ) as NodeAsset;
-      const oldJ2 = putAssets!.find(
-        (asset) => asset.id === IDS.J2,
-      ) as NodeAsset;
-
-      expect(oldJ1.isActive).toBe(false);
-      expect(oldJ2.isActive).toBe(false);
-    });
-
-    it("preserves active status of nodes with no other links", () => {
-      const IDS = { J1: 1, J2: 2, J3: 3, P1: 4, P2: 5, P3: 6 } as const;
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction(IDS.J1, { coordinates: [0, 0], isActive: true })
-        .aJunction(IDS.J2, { coordinates: [10, 0], isActive: true })
-        .aJunction(IDS.J3, { coordinates: [10, 10], isActive: true })
-        .aPipe(IDS.P1, {
-          startNodeId: IDS.J1,
-          endNodeId: IDS.J2,
-          isActive: true,
-        })
-        .build();
-
-      const newPipe = hydraulicModel.assetBuilder.buildPipe({
-        label: "P3",
-        coordinates: [
-          [0, 0],
-          [10, 0],
-        ],
-      });
-      newPipe.setProperty("id", IDS.P3);
-
-      const startNode = hydraulicModel.assets.get(IDS.J1) as NodeAsset;
-      const endNode = hydraulicModel.assets.get(IDS.J2) as NodeAsset;
-
-      const { putAssets } = replaceLinkWithActiveTopology(hydraulicModel, {
-        sourceLinkId: IDS.P1,
-        newLink: newPipe,
-        startNode,
-        endNode,
-      });
-
-      const j1 = putAssets!.find((asset) => asset.id === IDS.J1);
-      const j2 = putAssets!.find((asset) => asset.id === IDS.J2);
-
-      if (j1) {
-        expect(j1.isActive).toBe(true);
-      }
-      if (j2) {
-        expect(j2.isActive).toBe(true);
-      }
+      expect(putAssets).toHaveLength(5);
+      const assetsActiveTopologyState = Object.fromEntries(
+        putAssets!.map((asset) => [asset.id, asset.isActive]),
+      );
+      expect(assetsActiveTopologyState[IDS.J1]).toBe(false);
+      expect(assetsActiveTopologyState[IDS.J2]).toBe(false);
     });
   });
 

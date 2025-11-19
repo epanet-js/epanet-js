@@ -106,8 +106,8 @@ describe("deleteAssetsWithActiveTopology", () => {
   });
 
   describe("isActive re-evaluation", () => {
-    it("keeps node active when deleting all links to inactive node", () => {
-      const IDS = { J1: 1, J2: 2, P1: 3 } as const;
+    it("keeps node active when deleting all links", () => {
+      const IDS = { J1: 1, J2: 2, P1: 3, P2: 4 } as const;
       const hydraulicModel = HydraulicModelBuilder.with()
         .aNode(IDS.J1, [0, 0])
         .aNode(IDS.J2, [10, 0])
@@ -116,10 +116,15 @@ describe("deleteAssetsWithActiveTopology", () => {
           endNodeId: IDS.J2,
           isActive: true,
         })
+        .aPipe(IDS.P2, {
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
+          isActive: true,
+        })
         .build();
 
       const { putAssets } = deleteAssetsWithActiveTopology(hydraulicModel, {
-        assetIds: [IDS.P1],
+        assetIds: [IDS.P1, IDS.P2],
       });
 
       expect(putAssets).not.toBeDefined();
@@ -178,6 +183,30 @@ describe("deleteAssetsWithActiveTopology", () => {
       expect(deactivatedNode.isActive).toBe(false);
     });
 
+    it("activates orphan nodes when deleting last inactive link", () => {
+      const IDS = { J1: 1, J2: 2, P1: 3 } as const;
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, { coordinates: [0, 0], isActive: false })
+        .aJunction(IDS.J2, { coordinates: [10, 0], isActive: false })
+        .aPipe(IDS.P1, {
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
+          isActive: false,
+        })
+        .build();
+
+      const { putAssets } = deleteAssetsWithActiveTopology(hydraulicModel, {
+        assetIds: [IDS.P1],
+      });
+
+      expect(putAssets).toHaveLength(2);
+      const assetsActiveTopologyState = Object.fromEntries(
+        putAssets!.map((asset) => [asset.id, asset.isActive]),
+      );
+      expect(assetsActiveTopologyState[IDS.J1]).toBe(true);
+      expect(assetsActiveTopologyState[IDS.J2]).toBe(true);
+    });
+
     it("deactivates appropriate nodes when cascading node deletion removes links", () => {
       const IDS = { J1: 1, J2: 2, J3: 3, P1: 4, P2: 5, P3: 6 } as const;
       const hydraulicModel = HydraulicModelBuilder.with()
@@ -205,35 +234,12 @@ describe("deleteAssetsWithActiveTopology", () => {
         assetIds: [IDS.J2],
       });
 
-      expect(putAssets!.length).toBe(2);
-      const deactivatedNodeIds = putAssets?.map((asset) => asset.id) ?? [];
-      expect(deactivatedNodeIds).toContain(IDS.J1);
-      expect(deactivatedNodeIds).toContain(IDS.J3);
-      expect(putAssets!.every((node) => node.isActive === false)).toBe(true);
-    });
-
-    it("does not change node status when deleting inactive link", () => {
-      const IDS = { J1: 1, J2: 2, P1: 3 } as const;
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aNode(IDS.J1, [0, 0])
-        .aNode(IDS.J2, [10, 0])
-        .aPipe(IDS.P1, {
-          startNodeId: IDS.J1,
-          endNodeId: IDS.J2,
-          isActive: false,
-        })
-        .build();
-
-      const node1 = hydraulicModel.assets.get(IDS.J1);
-      const node2 = hydraulicModel.assets.get(IDS.J2);
-      expect(node1?.isActive).toBe(true);
-      expect(node2?.isActive).toBe(true);
-
-      const { putAssets } = deleteAssetsWithActiveTopology(hydraulicModel, {
-        assetIds: [IDS.P1],
-      });
-
-      expect(putAssets).toBeUndefined();
+      expect(putAssets).toHaveLength(2);
+      const assetsActiveTopologyState = Object.fromEntries(
+        putAssets!.map((asset) => [asset.id, asset.isActive]),
+      );
+      expect(assetsActiveTopologyState[IDS.J1]).toBe(false);
+      expect(assetsActiveTopologyState[IDS.J3]).toBe(false);
     });
   });
 });

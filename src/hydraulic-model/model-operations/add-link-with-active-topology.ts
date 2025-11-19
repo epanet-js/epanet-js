@@ -8,6 +8,7 @@ import { splitPipeWithActiveTopology } from "./split-pipe-with-active-topology";
 import { AssetsMap } from "../assets-map";
 import { HydraulicModel } from "../hydraulic-model";
 import { CustomerPoint } from "../customer-points";
+import { TopologyQueries } from "../topology/types";
 
 type InputData = {
   link: LinkAsset;
@@ -32,7 +33,7 @@ const isSplittingInactivePipe = (
 
 const shouldLinkBeInactive = (
   hydraulicModel: HydraulicModel,
-  { startNode, endNode, startPipeId, endPipeId }: InputData,
+  { link, startNode, endNode, startPipeId, endPipeId }: InputData,
 ): boolean => {
   const isStartNodeSplittingInactivePipe = isSplittingInactivePipe(
     hydraulicModel,
@@ -47,9 +48,11 @@ const shouldLinkBeInactive = (
   const isEndNodeInactive =
     endNode.isActive === false || isEndNodeSplittingInactivePipe;
   const isStartNodeOrphan =
-    startPipeId === undefined && !hydraulicModel.topology.hasNode(startNode.id);
+    startPipeId === undefined &&
+    !nodeHasOtherConnections(startNode, hydraulicModel.topology, link);
   const isEndNodeOrphan =
-    endPipeId === undefined && !hydraulicModel.topology.hasNode(endNode.id);
+    endPipeId === undefined &&
+    !nodeHasOtherConnections(endNode, hydraulicModel.topology, link);
 
   if (
     (isStartNodeInactive && (isEndNodeInactive || isEndNodeOrphan)) ||
@@ -58,6 +61,17 @@ const shouldLinkBeInactive = (
     return true;
 
   return false;
+};
+
+const nodeHasOtherConnections = (
+  node: NodeAsset,
+  topology: TopologyQueries,
+  newLink: LinkAsset,
+): boolean => {
+  const connectedLinks = topology.getLinks(node.id);
+  const otherLinks = connectedLinks.filter((linkId) => linkId !== newLink.id);
+
+  return otherLinks.length > 0;
 };
 
 export const addLinkWithActiveTopology: ModelOperation<InputData> = (
@@ -96,11 +110,6 @@ export const addLinkWithActiveTopology: ModelOperation<InputData> = (
     endPipeId,
     hydraulicModel,
   });
-
-  if (linkCopy.isActive) {
-    startNodeCopy.setProperty("isActive", true);
-    endNodeCopy.setProperty("isActive", true);
-  }
 
   return {
     note: `Add ${link.type}`,
