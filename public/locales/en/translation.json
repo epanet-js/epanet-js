@@ -657,7 +657,7 @@
   },
   "activeTopology": "Active Topology",
   "isEnabled": "Enabled",
-  "activateAssets": "Activate",
-  "deactivateAssets": "Deactivate",
-  "toggleActiveTopology": "Activate/Deactivate"
+  "activateAssets": "Enable",
+  "deactivateAssets": "Disable",
+  "toggleActiveTopology": "Enable/Disable"
 }
