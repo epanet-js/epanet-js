@@ -51,6 +51,8 @@ import {
 } from "./overlays/customer-points";
 import { CustomerPoints } from "src/hydraulic-model/customer-points";
 import { DEFAULT_ZOOM } from "./map-engine";
+import { junctionsSymbologyFilterExpression } from "./layers/junctions";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 const SELECTION_LAYERS: LayerId[] = [
   "selected-pipes",
@@ -204,6 +206,9 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const ephemeralDeckLayersRef = useRef<CustomerPointsOverlay>([]);
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
+  const isJunctionsSymbologyFixEnabled = useFeatureFlag(
+    "FLAG_JUNCTIONS_SYMBOLOGY_FIX",
+  );
 
   const doUpdates = useCallback(() => {
     if (!map) return;
@@ -379,6 +384,8 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
             assets,
             mapState.movedAssetIds,
           );
+          if (isJunctionsSymbologyFixEnabled)
+            hideSymbologyForSelectedJunctions(map, mapState.selection, assets);
         }
 
         if (hasNewStyles) {
@@ -433,6 +440,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     translate,
     translateUnit,
     hydraulicModel,
+    isJunctionsSymbologyFixEnabled,
   ]);
 
   doUpdates();
@@ -632,6 +640,28 @@ const updateSelection = withDebugInstrumentation(
   },
   { name: "MAP_STATE:UPDATE_SELECTION", maxDurationMs: 100 },
 );
+
+const hideSymbologyForSelectedJunctions = (
+  map: MapEngine,
+  selection: Sel,
+  assets: AssetsMap,
+) => {
+  const selectedIds = USelection.toIds(selection);
+
+  const selectedJunctionIds: AssetId[] = [];
+
+  selectedIds.forEach((selectedAssetId) => {
+    const asset = assets.get(selectedAssetId);
+    if (!!asset && asset.type === "junction") {
+      selectedJunctionIds.push(selectedAssetId);
+    }
+  });
+
+  const filter = junctionsSymbologyFilterExpression(selectedJunctionIds);
+
+  map.setLayerFilter("imported-junction-results", filter);
+  map.setLayerFilter("junction-results", filter);
+};
 
 const addEditingLayersToMap = withDebugInstrumentation(
   (map: MapEngine, stylesConfig: StylesConfig) => {

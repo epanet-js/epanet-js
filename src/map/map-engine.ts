@@ -223,6 +223,12 @@ export class MapEngine {
     }
   }
 
+  setLayerFilter(layerId: LayerId, filter: mapboxgl.Expression): void {
+    if (!this.map || !(this.map as any).style) return;
+
+    this.map.setFilter(layerId, filter);
+  }
+
   setOverlay(layers: LayersList) {
     this.overlay.setProps({ layers });
   }

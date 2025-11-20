@@ -228,10 +228,6 @@ export function makeLayers({
       layerId: "junctions",
       symbology,
     }),
-    selectedJunctionsLayer({
-      source: "selected-features",
-      layerId: "selected-junctions",
-    }),
     junctionResultsLayer({
       source: "imported-features",
       layerId: "imported-junction-results",
@@ -241,6 +237,10 @@ export function makeLayers({
       source: "features",
       layerId: "junction-results",
       symbology,
+    }),
+    selectedJunctionsLayer({
+      source: "selected-features",
+      layerId: "selected-junctions",
     }),
     selectedIconsHaloLayer({
       source: "selected-features",

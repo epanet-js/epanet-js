@@ -113,3 +113,17 @@ const strokeColorExpression = (): mapboxgl.Expression => {
     ["coalesce", ["get", "strokeColor"], strokeColorFor(defaultInnerColor)],
   ];
 };
+
+export const junctionsSymbologyFilterExpression = (
+  excludeIds: number[],
+): mapboxgl.Expression => {
+  const filters: mapboxgl.Expression[] = [
+    ["==", ["get", "type"], "junction"],
+    ["==", ["get", "isActive"], true],
+  ];
+
+  if (excludeIds.length) {
+    filters.push(["!", ["in", ["id"], ["literal", excludeIds]]]);
+  }
+  return ["all", filters];
+};
