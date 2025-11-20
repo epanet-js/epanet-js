@@ -1,4 +1,4 @@
-import { AssetId, LinkAsset, NodeAsset } from "../asset-types";
+import { Asset, AssetId, LinkAsset, NodeAsset } from "../asset-types";
 import { ModelOperation, ModelMoment } from "../model-operation";
 import { CustomerPoint } from "../customer-points";
 import { addLink } from "./add-link";
@@ -7,8 +7,7 @@ import { HydraulicModel } from "../hydraulic-model";
 import { lineString, point } from "@turf/helpers";
 import { Position } from "geojson";
 import { findNearestPointOnLine } from "src/lib/geometry";
-import { Moment } from "src/lib/persistence/moment";
-import { inferNodeIsActiveFromRemainingConnections } from "../utilities/active-topology";
+import { inferNodeIsActive } from "../utilities/active-topology";
 
 type InputData = {
   sourceLinkId: AssetId;
@@ -37,12 +36,6 @@ export const replaceLink: ModelOperation<InputData> = (
   }
 
   newLink.setProperty("isActive", sourceLink.isActive);
-  if (!hydraulicModel.topology.hasNode(startNode.id)) {
-    startNode.setProperty("isActive", sourceLink.isActive);
-  }
-  if (!hydraulicModel.topology.hasNode(endNode.id)) {
-    endNode.setProperty("isActive", sourceLink.isActive);
-  }
 
   const addLinkResult = addLink(hydraulicModel, {
     link: newLink,
@@ -171,7 +164,7 @@ const reconnectCustomerPoints = (
 const reevaluateAffectedNodes = (
   hydraulicModel: HydraulicModel,
   originalLink: LinkAsset,
-  putAssets: Moment["putAssets"],
+  putAssets: Asset[],
 ): NodeAsset[] => {
   const nodesWithDifferentActiveTopologyStatus: NodeAsset[] = [];
   const putAssetIds = new Set(putAssets.map((asset) => asset.id));
@@ -182,9 +175,10 @@ const reevaluateAffectedNodes = (
     const node = hydraulicModel.assets.get(nodeId) as NodeAsset;
     if (!node || node.isLink) continue;
 
-    const inferredState = inferNodeIsActiveFromRemainingConnections(
+    const inferredState = inferNodeIsActive(
       node,
       new Set([originalLink.id]),
+      putAssets,
       hydraulicModel.topology,
       hydraulicModel.assets,
     );

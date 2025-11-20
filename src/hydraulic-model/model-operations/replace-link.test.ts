@@ -317,6 +317,97 @@ describe("replaceLink", () => {
       expect(assetsActiveTopologyState[IDS.J1]).toBe(false);
       expect(assetsActiveTopologyState[IDS.J2]).toBe(false);
     });
+
+    it("sets correct active state for nodes when redrawing inactive pipe splitting inactive and active pipes", () => {
+      const IDS = {
+        J1: 1,
+        J2: 2,
+        J3: 3,
+        J4: 4,
+        P1: 5,
+        P2: 6,
+        P3: 7,
+        P1_Redrawn: 8,
+        N1: 9,
+        N2: 10,
+      } as const;
+
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, { coordinates: [0, 0], isActive: false })
+        .aJunction(IDS.J2, { coordinates: [10, 0], isActive: false })
+        .aPipe(IDS.P1, {
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
+          coordinates: [
+            [0, 0],
+            [10, 0],
+          ],
+          isActive: false,
+        })
+        .aJunction(IDS.J3, { coordinates: [0, 10], isActive: false })
+        .aJunction(IDS.J4, { coordinates: [10, 10], isActive: false })
+        .aPipe(IDS.P2, {
+          startNodeId: IDS.J3,
+          endNodeId: IDS.J4,
+          coordinates: [
+            [0, 10],
+            [10, 10],
+          ],
+          isActive: false,
+        })
+        .aJunction(IDS.J3 + 10, { coordinates: [0, 20], isActive: true })
+        .aJunction(IDS.J4 + 10, { coordinates: [10, 20], isActive: true })
+        .aPipe(IDS.P3, {
+          startNodeId: IDS.J3 + 10,
+          endNodeId: IDS.J4 + 10,
+          coordinates: [
+            [0, 20],
+            [10, 20],
+          ],
+          isActive: true,
+        })
+        .build();
+
+      const newPipe = hydraulicModel.assetBuilder.buildPipe({
+        id: IDS.P1_Redrawn,
+        label: "P1_Redrawn",
+        coordinates: [
+          [5, 10], // Will split P2
+          [5, 20], // Will split P3
+        ],
+      });
+
+      const startNode = hydraulicModel.assetBuilder.buildJunction({
+        id: IDS.N1,
+        label: "N1",
+        coordinates: [5, 10],
+      });
+
+      const endNode = hydraulicModel.assetBuilder.buildJunction({
+        id: IDS.N2,
+        label: "N2",
+        coordinates: [5, 20],
+      });
+
+      const { putAssets } = replaceLink(hydraulicModel, {
+        sourceLinkId: IDS.P1,
+        newLink: newPipe,
+        startNode,
+        endNode,
+        startPipeId: IDS.P2,
+        endPipeId: IDS.P3,
+      });
+
+      expect(putAssets).toBeDefined();
+
+      const assetsActiveTopologyState = Object.fromEntries(
+        putAssets!.map((asset) => [asset.id, asset.isActive]),
+      );
+
+      expect(assetsActiveTopologyState[IDS.P1_Redrawn]).toBe(false);
+      expect(assetsActiveTopologyState[IDS.N1]).toBe(false);
+      expect(assetsActiveTopologyState[IDS.N2]).toBe(true);
+    });
   });
 
   describe("customer points reconnection", () => {

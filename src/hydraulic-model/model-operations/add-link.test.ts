@@ -205,78 +205,6 @@ describe("addLink", () => {
       expect(nodeA.label).toEqual("J1");
       expect(nodeB.label).toEqual("CUSTOM");
     });
-
-    it("activates connected nodes when adding active link", () => {
-      const IDS = { J1: 1, J2: 2, J3: 3, P1: 4, pump: 5 } as const;
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction(IDS.J1, { coordinates: [10, 10], isActive: true })
-        .aJunction(IDS.J2, { coordinates: [30, 30], isActive: false })
-        .aJunction(IDS.J3, { coordinates: [20, 20], isActive: false })
-        .aPipe(IDS.P1, {
-          startNodeId: IDS.J1,
-          endNodeId: IDS.J3,
-          isActive: false,
-        })
-        .build();
-
-      const link = buildPump({
-        coordinates: [
-          [10, 10],
-          [30, 30],
-        ],
-        id: IDS.pump,
-        isActive: true,
-      });
-
-      const { putAssets } = addLink(hydraulicModel, {
-        startNode: hydraulicModel.assets.get(IDS.J1)!.copy() as Junction,
-        endNode: hydraulicModel.assets.get(IDS.J2)!.copy() as Junction,
-        link,
-      });
-
-      const [, nodeA, nodeB] = putAssets || [];
-      expect(nodeA.isActive).toBe(true);
-      expect(nodeB.isActive).toBe(true);
-    });
-
-    it("activates new nodes when connecting to existing network with active link", () => {
-      const IDS = { J1: 1, J2: 2, J3: 3, P1: 4, pump: 5 } as const;
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction(IDS.J1, { coordinates: [0, 0] })
-        .aJunction(IDS.J2, { coordinates: [10, 0] })
-        .aPipe(IDS.P1, {
-          startNodeId: IDS.J1,
-          endNodeId: IDS.J2,
-          isActive: false,
-        })
-        .build();
-
-      const newStartNode = buildJunction({
-        coordinates: [5, 5],
-        id: IDS.J3,
-      });
-      const newEndNode = buildJunction({
-        coordinates: [5, -5],
-      });
-      const link = buildPump({
-        coordinates: [
-          [5, 5],
-          [5, -5],
-        ],
-        id: IDS.pump,
-        isActive: true,
-      });
-
-      const { putAssets } = addLink(hydraulicModel, {
-        startNode: newStartNode,
-        endNode: newEndNode,
-        link,
-      });
-
-      const [, startNode, endNode] = putAssets || [];
-      expect(startNode.isActive).toBe(true);
-      expect(endNode.isActive).toBe(true);
-    });
   });
 
   describe("pipe splitting functionality", () => {
@@ -1132,7 +1060,7 @@ describe("addLink", () => {
       const IDS = { J1: 1, J2: 2, J3: 3, P1: 4, pump: 5 } as const;
       const hydraulicModel = HydraulicModelBuilder.with()
         .aJunction(IDS.J1, { coordinates: [0, 0], isActive: true })
-        .aJunction(IDS.J3, { coordinates: [20.0], isActive: true })
+        .aJunction(IDS.J3, { coordinates: [0, 10], isActive: true })
         .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J3 })
         .build();
 

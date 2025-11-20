@@ -3,7 +3,7 @@ import { ModelOperation } from "../model-operation";
 import { CustomerPoint } from "../customer-points";
 import { CustomerPointsLookup } from "../customer-points-lookup";
 import { HydraulicModel } from "../hydraulic-model";
-import { inferNodeIsActiveFromRemainingConnections } from "../utilities/active-topology";
+import { inferNodeIsActive } from "../utilities/active-topology";
 
 type InputData = {
   assetIds: readonly AssetId[];
@@ -94,9 +94,10 @@ const reevaluateBoundaryNodes = (
   for (const nodeId of boundaryNodeIds) {
     const node = assets.get(nodeId) as NodeAsset;
     if (!node || node.isLink) continue;
-    const inferredState = inferNodeIsActiveFromRemainingConnections(
+    const inferredState = inferNodeIsActive(
       node,
       deletedAssetIds,
+      [],
       topology,
       assets,
     );
