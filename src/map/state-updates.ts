@@ -385,7 +385,11 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
             mapState.movedAssetIds,
           );
           if (isJunctionsSymbologyFixEnabled)
-            hideSymbologyForSelectedJunctions(map, mapState.selection, assets);
+            await hideSymbologyForSelectedJunctions(
+              map,
+              mapState.selection,
+              assets,
+            );
         }
 
         if (hasNewStyles) {
@@ -641,27 +645,28 @@ const updateSelection = withDebugInstrumentation(
   { name: "MAP_STATE:UPDATE_SELECTION", maxDurationMs: 100 },
 );
 
-const hideSymbologyForSelectedJunctions = (
-  map: MapEngine,
-  selection: Sel,
-  assets: AssetsMap,
-) => {
-  const selectedIds = USelection.toIds(selection);
+const hideSymbologyForSelectedJunctions = withDebugInstrumentation(
+  async (map: MapEngine, selection: Sel, assets: AssetsMap): Promise<void> => {
+    const selectedIds = USelection.toIds(selection);
 
-  const selectedJunctionIds: AssetId[] = [];
+    const selectedJunctionIds: AssetId[] = [];
 
-  selectedIds.forEach((selectedAssetId) => {
-    const asset = assets.get(selectedAssetId);
-    if (!!asset && asset.type === "junction") {
-      selectedJunctionIds.push(selectedAssetId);
-    }
-  });
+    selectedIds.forEach((selectedAssetId) => {
+      const asset = assets.get(selectedAssetId);
+      if (!!asset && asset.type === "junction") {
+        selectedJunctionIds.push(selectedAssetId);
+      }
+    });
 
-  const filter = junctionsSymbologyFilterExpression(selectedJunctionIds);
+    const filter = junctionsSymbologyFilterExpression(selectedJunctionIds);
 
-  map.setLayerFilter("imported-junction-results", filter);
-  map.setLayerFilter("junction-results", filter);
-};
+    await map.waitForMapIdle(() => {
+      map.setLayerFilter("imported-junction-results", filter);
+      map.setLayerFilter("junction-results", filter);
+    }, selectedJunctionIds.length);
+  },
+  { name: "MAP_STATE:UPDATE_JUNCTIONS_SELECTION", maxDurationMs: 100 },
+);
 
 const addEditingLayersToMap = withDebugInstrumentation(
   (map: MapEngine, stylesConfig: StylesConfig) => {

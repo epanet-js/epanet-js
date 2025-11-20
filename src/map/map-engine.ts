@@ -125,34 +125,15 @@ export class MapEngine {
   }
 
   setSource(name: DataSource, sourceFeatures: Feature[]): Promise<void> {
-    if (!(this.map && (this.map as any).style)) {
-      return Promise.resolve();
-    }
-
-    const featuresSource = this.map.getSource(name) as mapboxgl.GeoJSONSource;
-    if (!featuresSource) return Promise.resolve();
-
-    return new Promise((resolve) => {
-      const idleTimeoutMs = sourceUpdateTimeoutFor(sourceFeatures.length);
-      const timeout = setTimeout(() => {
-        resolve();
-      }, idleTimeoutMs);
-
-      this.map.once("idle", () => {
-        clearTimeout(timeout);
-        resolve();
-      });
+    return this.waitForMapIdle(() => {
+      const featuresSource = this.map.getSource(name) as mapboxgl.GeoJSONSource;
+      if (!featuresSource) return;
 
       featuresSource.setData({
         type: "FeatureCollection",
         features: sourceFeatures,
       } as IFeatureCollection);
-
-      if (!sourceFeatures.length) {
-        clearTimeout(timeout);
-        resolve();
-      }
-    });
+    }, sourceFeatures.length);
   }
 
   removeSource(name: DataSource) {
@@ -334,5 +315,33 @@ export class MapEngine {
         (this.overlay as any).deck.redraw(true);
       }
     }
+  }
+
+  async waitForMapIdle(
+    callback: () => void,
+    updateSize: number,
+  ): Promise<void> {
+    if (!(this.map && (this.map as any).style)) {
+      return Promise.resolve();
+    }
+
+    return new Promise((resolve) => {
+      const idleTimeoutMs = sourceUpdateTimeoutFor(updateSize);
+      const timeout = setTimeout(() => {
+        resolve();
+      }, idleTimeoutMs);
+
+      this.map.once("idle", () => {
+        clearTimeout(timeout);
+        resolve();
+      });
+
+      callback();
+
+      if (!updateSize) {
+        clearTimeout(timeout);
+        resolve();
+      }
+    });
   }
 }

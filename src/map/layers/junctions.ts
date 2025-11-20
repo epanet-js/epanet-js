@@ -125,5 +125,5 @@ export const junctionsSymbologyFilterExpression = (
   if (excludeIds.length) {
     filters.push(["!", ["in", ["id"], ["literal", excludeIds]]]);
   }
-  return ["all", filters];
+  return ["all", ...filters];
 };
