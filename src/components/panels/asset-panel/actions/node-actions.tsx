@@ -42,7 +42,7 @@ export function NodeActions() {
   const actions = useNodeActions();
 
   return (
-    <div className="flex gap-1">
+    <div className="flex gap-1 h-8 my-[-0.5rem]">
       {actions
         .filter((action) => action.applicable)
         .map((action, i) => (
