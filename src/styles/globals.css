@@ -40,8 +40,6 @@ details > summary {
   list-style: none !important;
 }
 
-}
-
 :root {
   --cursor-grab: url('/cursors/cursor-grab.svg') 10 11, grab;
   --cursor-resize-ns: url('/cursors/cursor-resize-ns.svg') 15 15, ns-resize;
@@ -51,14 +49,14 @@ details > summary {
   cursor: url("/cursors/cursor-default.svg"), auto !important;
 }
 
-}
-
 .placemark-cursor-pointer .mapboxgl-canvas-container {
   cursor: pointer !important;
 }
+
 .placemark-cursor-not-allowed .mapboxgl-canvas-container {
   cursor: not-allowed !important;
 }
+
 .placemark-cursor-crosshair .mapboxgl-canvas-container {
   cursor: crosshair !important;
 }
