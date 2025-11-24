@@ -5,9 +5,21 @@ import { useZoomTo } from "src/hooks/use-zoom-to";
 import { useDeleteSelectedAssets } from "src/commands/delete-selected-assets";
 import { useSetRedrawMode } from "src/commands/set-redraw-mode";
 import { useReverseLink } from "src/commands/reverse-link";
-import { DeleteIcon, ZoomToIcon, RedrawIcon, ReverseIcon } from "src/icons";
+import {
+  DeleteIcon,
+  ZoomToIcon,
+  RedrawIcon,
+  ReverseIcon,
+  DeactivateTopologyIcon,
+  ActivateTopologyIcon,
+} from "src/icons";
 import { Mode, modeAtom, selectedFeaturesAtom } from "src/state/jotai";
 import { ActionButton, Action } from "./action-button";
+import {
+  changeActiveTopologyShortcut,
+  useChangeSelectedAssetsActiveTopologyStatus,
+} from "src/commands/change-selected-assets-active-topology-status";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export function useLinkActions(): Action[] {
   const translate = useTranslate();
@@ -17,6 +29,11 @@ export function useLinkActions(): Action[] {
   const setRedrawMode = useSetRedrawMode();
   const reverseLinkAction = useReverseLink();
   const selectedWrappedFeatures = useAtomValue(selectedFeaturesAtom);
+  const { changeSelectedAssetsActiveTopologyStatus, allActive } =
+    useChangeSelectedAssetsActiveTopologyStatus();
+  const isBulkActiveTopologyEnabled = useFeatureFlag(
+    "FLAG_BULK_ACTIVE_TOPOLOGY",
+  );
 
   const onDelete = useCallback(() => {
     deleteSelectedAssets({ source: "toolbar" });
@@ -61,7 +78,30 @@ export function useLinkActions(): Action[] {
     },
   };
 
-  return [zoomToAction, reverseAction, redrawAction, deleteAssetsAction];
+  const onChangeActiveTopology = useCallback(() => {
+    changeSelectedAssetsActiveTopologyStatus({ source: "toolbar" });
+    return Promise.resolve();
+  }, [changeSelectedAssetsActiveTopologyStatus]);
+
+  const changeActiveTopologyActionItem = {
+    icon: allActive ? <DeactivateTopologyIcon /> : <ActivateTopologyIcon />,
+    applicable: true,
+    label: allActive
+      ? translate("deactivateAssets")
+      : translate("activateAssets"),
+    shortcut: changeActiveTopologyShortcut,
+    onSelect: onChangeActiveTopology,
+  };
+
+  return isBulkActiveTopologyEnabled
+    ? [
+        zoomToAction,
+        reverseAction,
+        redrawAction,
+        changeActiveTopologyActionItem,
+        deleteAssetsAction,
+      ]
+    : [zoomToAction, reverseAction, redrawAction, deleteAssetsAction];
 }
 
 export function LinkActions() {
