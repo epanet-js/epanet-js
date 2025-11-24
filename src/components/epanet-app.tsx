@@ -48,6 +48,7 @@ import { useAppReady } from "src/hooks/use-app-ready";
 import { AppLoader } from "./app-loader";
 import { PrivacyBanner } from "./privacy-banner";
 import { usePrivacySettings } from "src/hooks/use-privacy-settings";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 type ResolvedLayout = "HORIZONTAL" | "VERTICAL" | "FLOATING";
 
@@ -69,6 +70,7 @@ export function EpanetApp() {
   const { user, isSignedIn } = useAuth();
   const { enableAllTracking } = usePrivacySettings();
   const hasIdentifiedRef = useRef(false);
+  const isCursorFamilyEnabled = useFeatureFlag("FLAG_CURSOR_FAMILY");
 
   useEffect(() => {
     if (isSignedIn && user && !hasIdentifiedRef.current) {
@@ -136,7 +138,13 @@ export function EpanetApp() {
   }
 
   return (
-    <main className="h-dvh flex flex-col bg-white dark:bg-gray-800">
+    <main
+      className={
+        isCursorFamilyEnabled
+          ? "ff-cursor-family h-dvh flex flex-col bg-white dark:bg-gray-800"
+          : "h-dvh flex flex-col bg-white dark:bg-gray-800"
+      }
+    >
       <MapContext.Provider value={map}>
         <div className="h-24">
           <MenuBarPlay />
