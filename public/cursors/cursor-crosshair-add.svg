@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" width="20" height="20" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10" viewBox="0 0 40 40">
+  <defs>
+    <filter id="a" width="200%" height="200%" x="-50%" y="-50%">
+      <feDropShadow dx="0" dy="2" flood-color="#000" flood-opacity=".5" stdDeviation="1"/>
+    </filter>
+  </defs>
+  <g filter="url(#a)">
+    <path d="M27,29L27,27L31,27L31,23L33,23L33,27L37,27L37,29L33,29L33,33L31,33L31,29L27,29" style="fill:none;stroke:#fff;stroke-width:4px;"/>
+    <path d="M27,29L27,27L31,27L31,23L33,23L33,27L37,27L37,29L33,29L33,33L31,33L31,29L27,29"/>
+    <path d="M7,21L7,19L19,19L19,7L21,7L21,19L33,19L33,21L21,21L21,33L19,33L19,21L7,21" style="fill:none;stroke:#fff;stroke-width:4px;"/>
+    <path d="M7,21L7,19L19,19L19,7L21,7L21,19L33,19L33,21L21,21L21,33L19,33L19,21L7,21"/>
+  </g>
+</svg>

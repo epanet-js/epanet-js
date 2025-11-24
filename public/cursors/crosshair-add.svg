@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" width="40" height="40" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10" viewBox="0 0 40 40"><defs><filter id="a" width="200%" height="200%" x="-50%" y="-50%"><feDropShadow dx="0" dy="1" flood-color="#000" flood-opacity=".5" stdDeviation=".5"/></filter></defs><g filter="url(#a)">
-    <path d="M3.5,10.5l0,-1l6,0l0,-6l1,0l0,6l6,0l0,1l-6,0l0,6l-1,0l0,-6l-6,0" style="fill:none;stroke:#fff;stroke-width:2px;"/>
-    <path d="M3.5,10.5l0,-1l6,0l0,-6l1,0l0,6l6,0l0,1l-6,0l0,6l-1,0l0,-6l-6,0"/>
-    <path d="M13.5,14.5l0,-1l5,0l0,1l-5,0" style="fill:none;stroke:#fff;stroke-width:2px;"/>
-    <path d="M15.5,11.5l1,0l0,5l-1,0l0,-5" style="fill:none;stroke:#fff;stroke-width:2px;"/>
-    <path d="M13.5,14.5l0,-1l5,0l0,1l-5,0"/>
-    <path d="M15.5,11.5l1,0l0,5l-1,0l0,-5"/>
-</g></svg>
