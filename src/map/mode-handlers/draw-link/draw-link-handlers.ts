@@ -21,7 +21,11 @@ import { nextTick } from "process";
 import { AssetId, LinkAsset, NodeAsset } from "src/hydraulic-model";
 import { useUserTracking } from "src/infra/user-tracking";
 import { LinkType } from "src/hydraulic-model";
-import { addLink } from "src/hydraulic-model/model-operations";
+import {
+  addLink,
+  addLinkWithPipeSegmentAutoReplace,
+} from "src/hydraulic-model/model-operations";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useElevations } from "src/map/elevations/use-elevations";
 import { LngLat, MapMouseEvent, MapTouchEvent } from "mapbox-gl";
 import { useSelection } from "src/selection";
@@ -151,6 +155,7 @@ export function useDrawLinkHandlers({
   const { isShiftHeld, isControlHeld } = useKeyboardState();
   const setCursor = useSetAtom(cursorStyleAtom);
   const pipeDrawingDefaults = useAtomValue(pipeDrawingDefaultsAtom);
+  const isAutoReplaceOn = useFeatureFlag("FLAG_AUTO_REPLACE_PIPE_SEGMENTS");
 
   const createLinkForType = (coordinates: Position[] = []) => {
     const startProperties = {
@@ -305,7 +310,10 @@ export function useDrawLinkHandlers({
       return;
     }
 
-    const moment = addLink(hydraulicModel, {
+    const addLinkOperation = isAutoReplaceOn
+      ? addLinkWithPipeSegmentAutoReplace
+      : addLink;
+    const moment = addLinkOperation(hydraulicModel, {
       link: link,
       startNode,
       endNode,

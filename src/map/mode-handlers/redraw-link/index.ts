@@ -4,7 +4,11 @@ import { useAtomValue, useSetAtom } from "jotai";
 import { selectionAtom, modeAtom, Mode } from "src/state/jotai";
 import { Asset, LinkAsset, NodeAsset } from "src/hydraulic-model";
 import { USelection, useSelection } from "src/selection";
-import { replaceLink } from "src/hydraulic-model/model-operations";
+import {
+  replaceLink,
+  replaceLinkWithPipeSegmentAutoReplace,
+} from "src/hydraulic-model/model-operations";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import measureLength from "@turf/length";
 import { useUserTracking } from "src/infra/user-tracking";
 
@@ -18,6 +22,8 @@ export function useRedrawLinkHandlers(
   const { hydraulicModel } = handlerContext;
   const { assets } = hydraulicModel;
   const { selectAsset } = useSelection(selection);
+
+  const isAutoReplaceOn = useFeatureFlag("FLAG_AUTO_REPLACE_PIPE_SEGMENTS");
 
   const selectedIds = USelection.toIds(selection);
   const selectedAssets = selectedIds
@@ -39,7 +45,10 @@ export function useRedrawLinkHandlers(
       return;
     }
 
-    const moment = replaceLink(hydraulicModel, {
+    const replaceLinkOperation = isAutoReplaceOn
+      ? replaceLinkWithPipeSegmentAutoReplace
+      : replaceLink;
+    const moment = replaceLinkOperation(hydraulicModel, {
       sourceLinkId: sourceLink.id,
       startNode,
       endNode,

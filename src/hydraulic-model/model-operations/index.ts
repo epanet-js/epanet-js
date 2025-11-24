@@ -6,6 +6,8 @@ export { connectCustomers } from "./connect-customers";
 export { addNode } from "./add-node";
 export { deleteAssets } from "./delete-assets";
 export { addLink } from "./add-link";
+export { addLinkWithPipeSegmentAutoReplace } from "./add-link-with-pipe-segment-auto-replace";
 export { replaceNode as replaceNode } from "./replace-node";
 export { replaceLink } from "./replace-link";
+export { replaceLinkWithPipeSegmentAutoReplace } from "./replace-link-with-pipe-segment-auto-replace";
 export { mergeNodes } from "./merge-nodes";
