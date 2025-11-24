@@ -46,6 +46,8 @@ details > summary {
 
 .placemark-cursor-grab .mapboxgl-canvas-container {
   cursor: grab !important;
+:root {
+  --cursor-resize-ns: url('/cursors/cursor-resize-ns.svg') 15 15, ns-resize;
 }
 
 .placemark-cursor-default .mapboxgl-canvas-container {
@@ -78,6 +80,10 @@ details > summary {
 
 .cursor-crosshair-subtract .mapboxgl-canvas-container {
   cursor: url("/cursors/crosshair-subtract.svg") 10 10, auto !important;
+}
+
+.ff-cursor-family .cursor-ns-resize {
+  cursor: var(--cursor-resize-ns) !important;
 }
 
 /** SAFARI COMPATIBILITY: it's the only browser
