@@ -44,9 +44,8 @@ details > summary {
   cursor: pointer !important;
 }
 
-.placemark-cursor-grab .mapboxgl-canvas-container {
-  cursor: grab !important;
 :root {
+  --cursor-grab: url('/cursors/cursor-grab.svg') 10 11, grab;
   --cursor-resize-ns: url('/cursors/cursor-resize-ns.svg') 15 15, ns-resize;
 }
 
@@ -64,6 +63,8 @@ details > summary {
 
 .cursor-crosshair .mapboxgl-canvas-container {
   cursor: url("/cursors/crosshair.svg") 10 10, auto !important;
+.placemark-cursor-grab .mapboxgl-canvas-container {
+  cursor: grab !important;
 }
 
 .placemark-cursor-not-allowed .mapboxgl-canvas-container {
@@ -72,6 +73,9 @@ details > summary {
 
 .placemark-cursor-replace .mapboxgl-canvas-container {
   cursor: url("/cursors/cursor-replace.svg") 10 10, auto !important;
+.ff-cursor-family .placemark-cursor-grab .mapboxgl-canvas-container {
+  cursor: var(--cursor-grab) !important;
+}
 }
 
 .cursor-crosshair-add .mapboxgl-canvas-container {
