@@ -33,18 +33,23 @@ export const AssetEditorContent = ({
   children: React.ReactNode;
 }) => {
   return (
-    <SectionList gap={3}>
-      <div className="flex flex-col">
-        <div className="flex items-center justify-between">
-          <span className="font-semibold truncate max-w-full" title={label}>
-            {label}
-          </span>
-          <PanelActions />
-        </div>
-        <span className="text-sm text-gray-500">{type}</span>
-      </div>
+    <SectionList header={<Header label={label} type={type} />} gap={3}>
       {children}
     </SectionList>
+  );
+};
+
+const Header = ({ label, type }: { label: string; type: string }) => {
+  return (
+    <div className="px-4 pt-4 pb-3">
+      <div className="flex items-center justify-between">
+        <span className="font-semibold truncate max-w-full" title={label}>
+          {label}
+        </span>
+        <PanelActions />
+      </div>
+      <span className="text-sm text-gray-500">{type}</span>
+    </div>
   );
 };
 

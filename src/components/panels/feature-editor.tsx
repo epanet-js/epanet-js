@@ -1,9 +1,10 @@
 import { useAtomValue } from "jotai";
-import { AssetEditor } from "./asset-editor";
 import React from "react";
 import { NothingSelected } from "src/components/nothing-selected";
 import { dataAtom, selectedFeaturesAtom } from "src/state/jotai";
 import { MultiAssetPanel } from "./multi-asset-panel";
+import { AssetPanel } from "./asset-panel";
+import { Asset } from "src/hydraulic-model";
 
 export default function FeatureEditor() {
   const selectedFeatures = useAtomValue(selectedFeaturesAtom);
@@ -18,9 +19,9 @@ export default function FeatureEditor() {
         quantitiesMetadata={quantities}
       />
     ) : selectedFeatures.length === 1 ? (
-      <AssetEditor
+      <AssetPanel
         quantitiesMetadata={quantities}
-        selectedFeature={selectedFeatures[0]}
+        asset={selectedFeatures[0] as Asset}
       />
     ) : (
       <NothingSelected />

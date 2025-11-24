@@ -3,7 +3,7 @@ import { useTranslate } from "src/hooks/use-translate";
 import { pluralize } from "src/lib/utils";
 import { IWrappedFeature } from "src/types";
 import { Quantities } from "src/model-metadata/quantities-spec";
-import { SectionList, CollapsibleSection } from "src/components/form/fields";
+import { CollapsibleSection, SectionList } from "src/components/form/fields";
 import { MultiAssetActions } from "./actions";
 import { Asset } from "src/hydraulic-model";
 import { AssetTypeSections } from "./asset-type-sections";
@@ -36,19 +36,7 @@ export function MultiAssetPanel({
   }, [selectedFeatures, quantitiesMetadata, hydraulicModel]);
 
   return (
-    <SectionList>
-      <div className="flex flex-col">
-        <div className="flex items-start justify-between">
-          <span className="font-semibold">
-            {translate("selection")} (
-            <span className="text-nowrap">
-              {pluralize(translate, "asset", selectedFeatures.length)})
-            </span>
-          </span>
-          <MultiAssetActions />
-        </div>
-      </div>
-
+    <SectionList header={<Header selectedCount={selectedFeatures.length} />}>
       {assetCounts.junction > 0 && (
         <CollapsibleSection
           title={`${translate("junction")} (${assetCounts.junction})`}
@@ -138,3 +126,21 @@ export function MultiAssetPanel({
     </SectionList>
   );
 }
+
+const Header = ({ selectedCount }: { selectedCount: number }) => {
+  const translate = useTranslate();
+
+  return (
+    <div className="px-4 pt-4 pb-3">
+      <div className="flex items-start justify-between">
+        <span className="font-semibold">
+          {translate("selection")} (
+          <span className="text-nowrap">
+            {pluralize(translate, "asset", selectedCount)})
+          </span>
+        </span>
+        <MultiAssetActions />
+      </div>
+    </div>
+  );
+};

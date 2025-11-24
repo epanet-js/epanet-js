@@ -94,20 +94,24 @@ export const Section = ({
 };
 
 export const SectionList = ({
+  header,
   children,
   gap = 5,
   padding = 4,
   overflow = true,
 }: {
+  header?: React.ReactNode;
   children: React.ReactNode;
   gap?: 1 | 2 | 3 | 4 | 5 | 6;
   padding?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
   overflow?: boolean;
 }) => {
-  return (
+  const content = (
     <div
       className={clsx(
-        overflow ? "flex-auto overflow-y-auto placemark-scrollbar" : "",
+        overflow
+          ? "flex-auto overflow-y-auto placemark-scrollbar scroll-shadows"
+          : "",
       )}
     >
       <div
@@ -131,6 +135,19 @@ export const SectionList = ({
       </div>
     </div>
   );
+
+  if (header) {
+    return (
+      <div className="flex flex-col flex-grow overflow-hidden">
+        <div className="sticky top-0 z-10 bg-white dark:bg-gray-950">
+          {header}
+        </div>
+        {content}
+      </div>
+    );
+  }
+
+  return content;
 };
 
 export const CollapsibleSection = ({
