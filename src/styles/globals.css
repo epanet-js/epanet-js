@@ -85,11 +85,11 @@ body:has(.ff-cursor-family) :is(
   cursor: grab !important;
 }
 
-.ff-cursor-family .placemark-cursor-grab .mapboxgl-canvas-container {
+body:has(.ff-cursor-family) .placemark-cursor-grab .mapboxgl-canvas-container {
   cursor: var(--cursor-grab) !important;
 }
 
-.ff-cursor-family .cursor-move .mapboxgl-canvas-container {
+body:has(.ff-cursor-family) .cursor-move .mapboxgl-canvas-container {
   cursor: var(--cursor-grabbing) !important;
 }
 
@@ -109,7 +109,7 @@ body:has(.ff-cursor-family) :is(
   cursor: url("/cursors/cursor-replace.svg") 10 10, auto !important;
 }
 
-.ff-cursor-family .cursor-ns-resize {
+body:has(.ff-cursor-family) .cursor-ns-resize {
   cursor: var(--cursor-resize-ns) !important;
 }
 
