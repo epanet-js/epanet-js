@@ -142,6 +142,10 @@ export class ItemData<T> {
   has(dirtyId: string) {
     return this.map.has(normalizeRef(dirtyId));
   }
+
+  entries(): IterableIterator<[string, T]> {
+    return this.map.entries();
+  }
 }
 
 export const nullInpData = (): InpData => {

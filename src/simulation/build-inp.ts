@@ -454,7 +454,7 @@ const appendPump = (
   pump: Pump,
 ) => {
   if (!pump.isActive && !inactiveAssets) {
-    return; // Skip inactive assets when not including as comments
+    return;
   }
 
   const linkId = idMap.linkId(pump);
@@ -472,6 +472,25 @@ const appendPump = (
       commentPrefix +
         [pump.id, String(pump.designFlow), String(pump.designHead)].join("\t"),
     );
+  } else if (
+    pump.definitionType === "design-point" ||
+    pump.definitionType === "standard"
+  ) {
+    const curve = hydraulicModel.curves.get(pump.curveId!);
+
+    sections.pumps.push(
+      commentPrefix +
+        [linkId, startId, endId, `HEAD ${pump.id}`, `SPEED ${pump.speed}`].join(
+          "\t",
+        ),
+    );
+
+    for (const point of curve!.points) {
+      sections.curves.push(
+        commentPrefix +
+          [pump.id, String(point.flow), String(point.head)].join("\t"),
+      );
+    }
   } else {
     sections.pumps.push(
       commentPrefix +
