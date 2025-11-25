@@ -16,6 +16,7 @@ import { Quantities } from "src/model-metadata/quantities-spec";
 import { useTranslate } from "src/hooks/use-translate";
 import { usePersistence } from "src/lib/persistence/context";
 import { useUserTracking } from "src/infra/user-tracking";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { dataAtom } from "src/state/jotai";
 import { changeProperty } from "src/hydraulic-model/model-operations";
 import { activateAssets } from "src/hydraulic-model/model-operations/activate-assets";
@@ -45,6 +46,8 @@ import {
   ConnectedCustomersRow,
 } from "./ui-components";
 import { Section } from "src/components/form/fields";
+import { PumpCurveDetails } from "./pump-curve-details";
+import { PumpCurvesData } from "src/hydraulic-model/pump-curves";
 
 type OnPropertyChange = (
   name: string,
@@ -217,6 +220,7 @@ export function AssetPanel({
       return (
         <PumpEditor
           pump={pump}
+          curves={hydraulicModel.curves}
           onPropertyChange={handlePropertyChange}
           onStatusChange={handleStatusChange}
           onDefinitionTypeChange={handleDefinitionTypeChange}
@@ -825,6 +829,7 @@ const PumpEditor = ({
   onDefinitionTypeChange,
   onActiveTopologyStatusChange,
   quantitiesMetadata,
+  curves,
 }: {
   pump: Pump;
   startNode: NodeAsset | null;
@@ -841,16 +846,26 @@ const PumpEditor = ({
     oldValue: boolean,
   ) => void;
   quantitiesMetadata: Quantities;
+  curves: PumpCurvesData;
 }) => {
   const translate = useTranslate();
   const statusText = translate(pumpStatusLabel(pump));
+  const isPumpCurvesOn = useFeatureFlag("FLAG_PUMP_STANDARD_CURVES");
 
   const definitionOptions = useMemo(() => {
-    return [
-      { label: translate("constantPower"), value: "power" },
-      { label: translate("flowVsHead"), value: "flow-vs-head" },
-    ] as { label: string; value: PumpDefintionType }[];
-  }, [translate]);
+    return (
+      isPumpCurvesOn
+        ? [
+            { label: translate("constantPower"), value: "power" },
+            { label: translate("designPoint"), value: "design-point" },
+            { label: translate("standardCurve"), value: "standard" },
+          ]
+        : [
+            { label: translate("constantPower"), value: "power" },
+            { label: translate("flowVsHead"), value: "flow-vs-head" },
+          ]
+    ) as { label: string; value: PumpDefintionType }[];
+  }, [translate, isPumpCurvesOn]);
 
   const statusOptions = useMemo(() => {
     return pumpStatuses.map((status) => ({
@@ -875,6 +890,9 @@ const PumpEditor = ({
     onStatusChange(newValue, oldValue);
   };
 
+  const hasCurve =
+    pump.curveId && ["design-point", "standard"].includes(pump.definitionType);
+
   return (
     <AssetEditorContent label={pump.label} type={translate("pump")}>
       <Section title={translate("connections")}>
@@ -891,7 +909,7 @@ const PumpEditor = ({
       </Section>
       <Section title={translate("modelAttributes")}>
         <SelectRow
-          name="pumpType"
+          name={isPumpCurvesOn ? "pumpCurve" : "pumpType"}
           selected={pump.definitionType}
           options={definitionOptions}
           onChange={handleDefinitionTypeChange}
@@ -922,6 +940,12 @@ const PumpEditor = ({
               onChange={onPropertyChange}
             />
           </>
+        )}
+        {isPumpCurvesOn && hasCurve && (
+          <PumpCurveDetails
+            curve={curves.get(pump.curveId)!}
+            quantities={quantitiesMetadata}
+          />
         )}
         <QuantityRow
           name="speed"

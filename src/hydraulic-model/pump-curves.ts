@@ -53,3 +53,16 @@ export class PumpCurves {
     return this.curves;
   }
 }
+
+export const standardCurvePoints = (curve: PumpCurve): PumpCurve["points"] => {
+  if (curve.type === "standard") return curve.points;
+
+  const designFlow = curve.points[0]?.flow || 0;
+  const designHead = curve.points[0]?.head || 0;
+
+  return [
+    { flow: 0, head: designHead * 1.33 },
+    { flow: designFlow, head: designHead },
+    { flow: designFlow * 2, head: 0 },
+  ];
+};
