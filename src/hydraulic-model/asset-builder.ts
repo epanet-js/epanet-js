@@ -39,6 +39,7 @@ export type PumpBuildData = {
   designFlow?: number;
   power?: number;
   speed?: number;
+  curveId?: string;
   isActive?: boolean;
 };
 
@@ -210,6 +211,7 @@ export class AssetBuilder {
     designFlow,
     power,
     speed = 1,
+    curveId,
     isActive = true,
   }: PumpBuildData = {}) {
     const internalId = id ?? this.idGenerator.newId();
@@ -230,6 +232,7 @@ export class AssetBuilder {
         designFlow: this.getPumpValue("designFlow", designFlow),
         power: this.getPumpValue("power", power),
         speed,
+        curveId,
         isActive,
       },
       this.units,

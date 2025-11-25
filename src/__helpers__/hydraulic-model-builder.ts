@@ -460,6 +460,7 @@ export class HydraulicModelBuilder {
       units: this.units,
       demands: this.demands,
       headlossFormula: this.headlossFormulaValue,
+      curves: new Map(),
     };
   }
 
