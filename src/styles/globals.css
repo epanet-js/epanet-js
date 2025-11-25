@@ -41,6 +41,8 @@ details > summary {
 }
 
 :root {
+  --cursor-default: url('/cursors/cursor-default.svg') 10 10, auto;
+  --cursor-true-default: url('/cursors/cursor-true-default.svg') 4 2, auto;
   --cursor-pointer: url('/cursors/cursor-pointer.svg') 8 1, pointer;
   --cursor-not-allowed: url('/cursors/cursor-not-allowed.svg') 7 3, not-allowed;
   --cursor-crosshair: url('/cursors/cursor-crosshair.svg') 10 10, crosshair;
@@ -53,6 +55,12 @@ details > summary {
 
 .placemark-cursor-default .mapboxgl-canvas-container {
   cursor: url("/cursors/cursor-default.svg"), auto !important;
+}
+
+body:has(.ff-cursor-family) html,
+body:has(.ff-cursor-family) body,
+body:has(.ff-cursor-family) .placemark-cursor-default .mapboxgl-canvas-container {
+  cursor: var(--cursor-true-default) !important;
 }
 
 .placemark-cursor-pointer .mapboxgl-canvas-container {
