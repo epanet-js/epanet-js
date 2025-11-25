@@ -8,6 +8,7 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { useShowShortcuts } from "src/commands/show-shortcuts";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { useOpenModelBuilder } from "src/commands/open-model-builder";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 import {
   FileSpreadsheetIcon,
@@ -15,6 +16,7 @@ import {
   TabsIcon,
   KeyboardIcon,
   MouseCursorDefaultIcon,
+  PointerClickIcon,
   SaveIcon,
   EarlyAccessIcon,
   ReservoirIcon,
@@ -23,6 +25,7 @@ import {
   JunctionIcon,
   PipeIcon,
 } from "src/icons";
+import { selectAllShortcut } from "src/commands/select-all";
 
 export const NothingSelected = memo(function NothingSelected() {
   const translate = useTranslate();
@@ -32,6 +35,34 @@ export const NothingSelected = memo(function NothingSelected() {
   const userTracking = useUserTracking();
   const isSmOrLarger = useBreakpoint("sm");
   const openModelBuilder = useOpenModelBuilder();
+  const removeTutorial = useFeatureFlag("FLAG_REMOVE_TUTORIAL");
+
+  if (removeTutorial) {
+    return (
+      <div className="flex-grow flex flex-col items-center justify-center px-4 pb-4">
+        <div className="text-gray-400">
+          <PointerClickIcon size={96} />
+        </div>
+        <div className="text-sm text-center py-4 text-gray-600 max-w-64 space-y-2">
+          <p className="font-semibold">
+            {translate("nothingSelectedClickAsset")}
+          </p>
+          <p>
+            {translate(
+              "nothingSelectedShiftClick",
+              localizeKeybinding("SHIFT"),
+            )}
+          </p>
+          <p>
+            {translate(
+              "nothingSelectedSelectAll",
+              localizeKeybinding(selectAllShortcut),
+            )}
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="px-3 pt-3 overflow-y-auto pb-4 text-gray-900 dark:text-gray-300 flex-auto placemark-scrollbar">

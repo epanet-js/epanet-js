@@ -38,6 +38,7 @@ import {
   MapIcon,
   Menu,
   MousePointer2,
+  MousePointerClick,
   PanelLeft,
   PanelRight,
   PencilLine,
@@ -151,6 +152,7 @@ export const JunctionIcon = icon(Circle);
 export const ReservoirIcon = icon(Triangle);
 export const TankIcon = icon(RectangleHorizontal);
 export const MouseCursorDefaultIcon = icon(MousePointer2);
+export const PointerClickIcon = icon(MousePointerClick);
 export const SubscribeIcon = icon(Bell);
 export const Draggable = icon(GripVertical);
 export const TabsIcon = icon(Grid2X2);
