@@ -24,6 +24,7 @@ import {
   RunSimulationIcon,
   JunctionIcon,
   PipeIcon,
+  PolygonalSelectionIcon,
 } from "src/icons";
 import { drawingModeShorcuts } from "src/commands/set-drawing-mode";
 import { Mode } from "src/state/mode";
@@ -45,20 +46,29 @@ export const NothingSelected = memo(function NothingSelected() {
         <div className="text-gray-400">
           <PointerClickIcon size={96} />
         </div>
-        <div className="text-sm py-4 text-gray-600 max-w-64 space-y-2">
-          <p className="font-semibold">{translate("nothingSelectedTitle")}</p>
-          <p className="leading-6">
-            <Keycap size="xs" className="inline-block">
+        <p className="text-sm font-semibold py-4 text-gray-600">
+          {translate("nothingSelectedTitle")}
+        </p>
+        <div
+          className="grid gap-x-2 gap-y-4 items-start text-sm text-gray-600 max-w-64"
+          style={{ gridTemplateColumns: "min-content 1fr" }}
+        >
+          <div className="flex items-center gap-1">
+            <MouseCursorDefaultIcon />
+            <span>/</span>
+            <Keycap size="xs">
               {localizeKeybinding(drawingModeShorcuts[Mode.NONE])}
-            </Keycap>{" "}
-            {translate("nothingSelectedClickToSelect")}
-          </p>
-          <p className="leading-6">
-            <Keycap size="xs" className="inline-block">
+            </Keycap>
+          </div>
+          <div>{translate("nothingSelectedClickToSelect")}</div>
+          <div className="flex items-center gap-1">
+            <PolygonalSelectionIcon />
+            <span>/</span>
+            <Keycap size="xs">
               {localizeKeybinding(selectionModeShortcut)}
-            </Keycap>{" "}
-            {translate("nothingSelectedAreaSelect")}
-          </p>
+            </Keycap>
+          </div>
+          <div>{translate("nothingSelectedAreaSelect")}</div>
         </div>
       </div>
     );
