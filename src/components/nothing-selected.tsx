@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { Button } from "./elements";
+import { Button, Keycap } from "./elements";
 import { localizeKeybinding } from "src/infra/i18n";
 import { useTranslate } from "src/hooks/use-translate";
 import { useOpenInpFromFs } from "src/commands/open-inp-from-fs";
@@ -25,7 +25,9 @@ import {
   JunctionIcon,
   PipeIcon,
 } from "src/icons";
-import { selectAllShortcut } from "src/commands/select-all";
+import { drawingModeShorcuts } from "src/commands/set-drawing-mode";
+import { Mode } from "src/state/mode";
+import { selectionModeShortcut } from "src/commands/set-area-selection-mode";
 
 export const NothingSelected = memo(function NothingSelected() {
   const translate = useTranslate();
@@ -43,21 +45,19 @@ export const NothingSelected = memo(function NothingSelected() {
         <div className="text-gray-400">
           <PointerClickIcon size={96} />
         </div>
-        <div className="text-sm text-center py-4 text-gray-600 max-w-64 space-y-2">
-          <p className="font-semibold">
-            {translate("nothingSelectedClickAsset")}
+        <div className="text-sm py-4 text-gray-600 max-w-64 space-y-2">
+          <p className="font-semibold">{translate("nothingSelectedTitle")}</p>
+          <p className="leading-6">
+            <Keycap size="xs" className="inline-block">
+              {localizeKeybinding(drawingModeShorcuts[Mode.NONE])}
+            </Keycap>{" "}
+            {translate("nothingSelectedClickToSelect")}
           </p>
-          <p>
-            {translate(
-              "nothingSelectedShiftClick",
-              localizeKeybinding("SHIFT"),
-            )}
-          </p>
-          <p>
-            {translate(
-              "nothingSelectedSelectAll",
-              localizeKeybinding(selectAllShortcut),
-            )}
+          <p className="leading-6">
+            <Keycap size="xs" className="inline-block">
+              {localizeKeybinding(selectionModeShortcut)}
+            </Keycap>{" "}
+            {translate("nothingSelectedAreaSelect")}
           </p>
         </div>
       </div>
