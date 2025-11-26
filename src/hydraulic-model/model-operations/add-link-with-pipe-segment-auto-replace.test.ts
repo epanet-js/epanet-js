@@ -939,13 +939,14 @@ describe("addLinkWithPipeSegmentAutoReplace", () => {
       expect(pipes).toHaveLength(4);
     });
 
-    it("reallocates customer points to remaining pipes when drawing valve", () => {
+    it("reallocates or disconnects customer points to remaining pipes when drawing valve", () => {
       const IDS = {
         J1: 1,
         J2: 2,
         P1: 3,
         CP1: 7,
         CP2: 8,
+        CP3: 9,
       } as const;
       const hydraulicModel = HydraulicModelBuilder.with()
         .aJunction(IDS.J1, { coordinates: [0, 0] })
@@ -972,10 +973,18 @@ describe("addLinkWithPipeSegmentAutoReplace", () => {
       });
       cp2.connect({ pipeId: IDS.P1, snapPoint: [25, 0], junctionId: IDS.J2 });
 
+      const cp3 = buildCustomerPoint(IDS.CP3, {
+        coordinates: [15, 1],
+        demand: 10,
+      });
+      cp3.connect({ pipeId: IDS.P1, snapPoint: [15, 0], junctionId: IDS.J2 });
+
       hydraulicModel.customerPoints.set(cp1.id, cp1);
       hydraulicModel.customerPoints.set(cp2.id, cp2);
+      hydraulicModel.customerPoints.set(cp3.id, cp3);
       hydraulicModel.customerPointsLookup.addConnection(cp1);
       hydraulicModel.customerPointsLookup.addConnection(cp2);
+      hydraulicModel.customerPointsLookup.addConnection(cp3);
 
       const startNode = hydraulicModel.assetBuilder.buildJunction({
         coordinates: [10, 0],
@@ -999,12 +1008,19 @@ describe("addLinkWithPipeSegmentAutoReplace", () => {
           endPipeId: IDS.P1,
         });
 
-      expect(putCustomerPoints).toHaveLength(2);
+      expect(putCustomerPoints).toHaveLength(3);
+      const connectedCustomerPoints = putCustomerPoints?.filter(
+        (cp) => !!cp.connection,
+      );
+      expect(connectedCustomerPoints).toHaveLength(2);
+      const disconnectedCustommerPoint = putCustomerPoints?.find(
+        (cp) => !cp.connection,
+      );
+      expect(disconnectedCustommerPoint!.id).toBe(cp3.id);
 
       const pipes = putAssets!.filter((a) => a.type === "pipe") as Pipe[];
       const pipeIds = pipes.map((p) => p.id);
-
-      for (const cp of putCustomerPoints!) {
+      for (const cp of connectedCustomerPoints!) {
         expect(pipeIds).toContain(cp.connection?.pipeId);
       }
     });

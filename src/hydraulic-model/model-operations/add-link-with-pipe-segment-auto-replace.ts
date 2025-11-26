@@ -343,9 +343,12 @@ const updateCustomerPoints = ({
     return customerPoints;
   }
 
-  return customerPoints.map((customerPoint) =>
-    customerPoint.copyDisconnected(),
-  );
+  return customerPoints.map((customerPoint) => {
+    if (customerPoint.connection?.pipeId === oldPipeId) {
+      return customerPoint.copyDisconnected();
+    }
+    return customerPoint;
+  });
 };
 
 const removeRedundantVertices = (link: LinkAsset) => {
