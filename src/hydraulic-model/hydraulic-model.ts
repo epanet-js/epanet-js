@@ -11,7 +11,7 @@ import { CustomerPoints, initializeCustomerPoints } from "./customer-points";
 import { CustomerPointsLookup } from "./customer-points-lookup";
 import { AssetIndex } from "./asset-index";
 import { Asset } from "./asset-types";
-import { PumpCurvesData } from "./pump-curves";
+import { Curves } from "./curves";
 
 export type HydraulicModel = {
   version: string;
@@ -25,7 +25,7 @@ export type HydraulicModel = {
   demands: Demands;
   headlossFormula: HeadlossFormula;
   labelManager: LabelManager;
-  curves: PumpCurvesData;
+  curves: Curves;
 };
 
 export { AssetsMap };

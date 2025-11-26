@@ -1,4 +1,4 @@
-import { CurveId } from "../pump-curves";
+import { CurveId } from "../curves";
 import { Link, LinkProperties } from "./link";
 import { Unit } from "src/quantity";
 

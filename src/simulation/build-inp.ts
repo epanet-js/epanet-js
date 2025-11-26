@@ -487,8 +487,7 @@ const appendPump = (
 
     for (const point of curve!.points) {
       sections.curves.push(
-        commentPrefix +
-          [pump.id, String(point.flow), String(point.head)].join("\t"),
+        commentPrefix + [pump.id, String(point.x), String(point.y)].join("\t"),
       );
     }
   } else {

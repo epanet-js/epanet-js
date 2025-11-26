@@ -1,9 +1,6 @@
 import { useTranslate } from "src/hooks/use-translate";
 import { NumericField } from "src/components/form/numeric-field";
-import {
-  PumpCurve,
-  standardCurvePoints,
-} from "src/hydraulic-model/pump-curves";
+import { ICurve } from "src/hydraulic-model/curves";
 import { Quantities } from "src/model-metadata/quantities-spec";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { CollapsibleSection } from "src/components/form/fields";
@@ -12,7 +9,7 @@ export const PumpCurveDetails = ({
   curve,
   quantities,
 }: {
-  curve: PumpCurve;
+  curve: ICurve;
   quantities: Quantities;
 }) => {
   const translate = useTranslate();
@@ -32,7 +29,7 @@ export const PumpCurveTable = ({
   curve,
   quantities,
 }: {
-  curve: PumpCurve;
+  curve: ICurve;
   quantities: Quantities;
 }) => {
   const translate = useTranslate();
@@ -40,7 +37,7 @@ export const PumpCurveTable = ({
   const flowDecimals = quantities.getDecimals("flow") ?? 2;
   const headDecimals = quantities.getDecimals("head") ?? 2;
 
-  const displayPoints = standardCurvePoints(curve);
+  const displayPoints = getStandardCurvePoints(curve);
 
   const pointLabels = [
     translate("shutoffPoint"),
@@ -139,4 +136,22 @@ const TableRow = ({
       </div>
     </div>
   );
+};
+
+interface PumpCurvePoint {
+  flow: number;
+  head: number;
+}
+
+const getStandardCurvePoints = (curve: ICurve): PumpCurvePoint[] => {
+  if (curve.points.length > 1)
+    return curve.points.map(({ x, y }) => ({ flow: x, head: y }));
+
+  const { x: designFlow, y: designHead } = curve.points[0];
+
+  return [
+    { flow: 0, head: designHead * 1.33 },
+    { flow: designFlow, head: designHead },
+    { flow: designFlow * 2, head: 0 },
+  ];
 };

@@ -1,10 +1,10 @@
 import { HydraulicModel, initializeHydraulicModel } from "src/hydraulic-model";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
-import { PumpCurves } from "src/hydraulic-model/pump-curves";
 import {
   InpData,
   ItemData,
   JunctionData,
+  normalizeRef,
   PipeData,
   PumpData,
   ReservoirData,
@@ -20,6 +20,7 @@ import { ValveStatus } from "src/hydraulic-model/asset-types/valve";
 import { ParseInpOptions } from "./parse-inp";
 import { AssetId } from "src/hydraulic-model/asset-types/base-asset";
 import { ConsecutiveIdsGenerator } from "src/hydraulic-model/id-generator";
+import { CurvesValidator } from "./validators";
 
 export const buildModelWithPumpCurves = (
   inpData: InpData,
@@ -37,7 +38,7 @@ export const buildModelWithPumpCurves = (
     demands: { multiplier: inpData.options.demandMultiplier },
   });
 
-  addPumpCurves(hydraulicModel, { inpData, issues });
+  const curvesValidator = new CurvesValidator(inpData.curves, issues);
 
   for (const junctionData of inpData.junctions) {
     addJunction(hydraulicModel, junctionData, { inpData, issues, nodeIds });
@@ -60,7 +61,7 @@ export const buildModelWithPumpCurves = (
   }
 
   for (const pumpData of inpData.pumps) {
-    addPump(hydraulicModel, pumpData, {
+    addPump(hydraulicModel, pumpData, curvesValidator, {
       inpData,
       issues,
       nodeIds,
@@ -121,29 +122,9 @@ export const buildModelWithPumpCurves = (
     hydraulicModel.customerPoints.set(id, customerPoint);
   }
 
+  hydraulicModel.curves = curvesValidator.getValidatedCurves();
+
   return { hydraulicModel, modelMetadata: { quantities } };
-};
-
-const addPumpCurves = (
-  hydraulicModel: HydraulicModel,
-  {
-    inpData,
-    issues,
-  }: {
-    inpData: InpData;
-    issues: IssuesAccumulator;
-  },
-) => {
-  const pumpCurves = new PumpCurves();
-  for (const [curveId, points] of inpData.curves.entries()) {
-    const added = pumpCurves.addCurve(curveId, points);
-
-    if (!added) {
-      issues.addUsedSection("[CURVES]");
-    }
-  }
-
-  hydraulicModel.curves = pumpCurves.getData();
 };
 
 const addJunction = (
@@ -240,6 +221,7 @@ const addTank = (
 const addPump = (
   hydraulicModel: HydraulicModel,
   pumpData: PumpData,
+  curvesValidator: CurvesValidator,
   {
     inpData,
     issues,
@@ -259,34 +241,30 @@ const addPump = (
 
   let definitionProps = {};
 
+  const curveType =
+    pumpData.curveId !== undefined
+      ? curvesValidator.getPumpCurveType(pumpData.curveId)
+      : undefined;
+
+  if (curveType) {
+    definitionProps = {
+      definitionType: curveType,
+      curveId: normalizeRef(pumpData.curveId!),
+    };
+  } else {
+    definitionProps = {
+      definitionType: "power",
+      power: 20,
+      curveId: undefined,
+    };
+  }
+
   if (pumpData.power !== undefined) {
     definitionProps = {
       definitionType: "power",
       power: pumpData.power,
+      curveId: undefined,
     };
-  }
-
-  if (pumpData.curveId !== undefined) {
-    if (hydraulicModel.curves.has(pumpData.curveId)) {
-      const curve = hydraulicModel.curves.get(pumpData.curveId)!;
-
-      if (curve.type === "design-point") {
-        definitionProps = {
-          definitionType: "design-point",
-          curveId: pumpData.curveId,
-        };
-      } else {
-        definitionProps = {
-          definitionType: "standard",
-          curveId: pumpData.curveId,
-        };
-      }
-    } else {
-      definitionProps = {
-        definitionType: "power",
-        power: 50,
-      };
-    }
   }
 
   let initialStatus: PumpStatus = "on";

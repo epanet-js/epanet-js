@@ -47,7 +47,7 @@ import {
 } from "./ui-components";
 import { Section } from "src/components/form/fields";
 import { PumpCurveDetails } from "./pump-curve-details";
-import { PumpCurvesData } from "src/hydraulic-model/pump-curves";
+import { Curves } from "src/hydraulic-model/curves";
 
 type OnPropertyChange = (
   name: string,
@@ -846,7 +846,7 @@ const PumpEditor = ({
     oldValue: boolean,
   ) => void;
   quantitiesMetadata: Quantities;
-  curves: PumpCurvesData;
+  curves: Curves;
 }) => {
   const translate = useTranslate();
   const statusText = translate(pumpStatusLabel(pump));
@@ -890,8 +890,10 @@ const PumpEditor = ({
     onStatusChange(newValue, oldValue);
   };
 
-  const hasCurve =
-    pump.curveId && ["design-point", "standard"].includes(pump.definitionType);
+  const pumpCurve =
+    pump.curveId && pump.definitionType !== "power"
+      ? curves.get(pump.curveId)
+      : undefined;
 
   return (
     <AssetEditorContent label={pump.label} type={translate("pump")}>
@@ -941,11 +943,8 @@ const PumpEditor = ({
             />
           </>
         )}
-        {isPumpCurvesOn && hasCurve && (
-          <PumpCurveDetails
-            curve={curves.get(pump.curveId)!}
-            quantities={quantitiesMetadata}
-          />
+        {isPumpCurvesOn && !!pumpCurve && (
+          <PumpCurveDetails curve={pumpCurve} quantities={quantitiesMetadata} />
         )}
         <QuantityRow
           name="speed"
