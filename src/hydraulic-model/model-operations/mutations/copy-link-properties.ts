@@ -15,8 +15,6 @@ export function copyPipePropertiesToLink(
 
   if (targetLink.type === "pipe") {
     const propertiesToCopy: CopyablePipePropertyKeys[] = [
-      "diameter",
-      "roughness",
       "minorLoss",
       "initialStatus",
     ];

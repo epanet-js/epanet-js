@@ -747,9 +747,6 @@ describe("addLinkWithPipeSegmentAutoReplace", () => {
 
       const newPipe = pipes.find((p) => p.id === link.id);
       expect(newPipe).toBeDefined();
-      expect(newPipe!.diameter).toBe(100);
-      expect(newPipe!.roughness).toBe(0.5);
-
       const remainingPipes = pipes.filter((p) => p.id !== link.id);
       expect(remainingPipes).toHaveLength(2);
 

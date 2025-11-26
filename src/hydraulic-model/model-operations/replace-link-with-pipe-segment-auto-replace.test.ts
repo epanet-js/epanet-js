@@ -209,8 +209,6 @@ describe("replaceLinkWithPipeSegmentAutoReplace", () => {
 
       const redrawnPipe = pipes.find((p) => p.id === IDS.P2);
       expect(redrawnPipe).toBeDefined();
-      expect(redrawnPipe!.diameter).toBe(100);
-      expect(redrawnPipe!.roughness).toBe(0.5);
     });
 
     it("replaces section when redrawing pipe as valve onto same pipe", () => {
