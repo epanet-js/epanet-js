@@ -46,22 +46,23 @@ export const PumpCurveTable = ({
   ];
 
   return (
-    <div className="overflow-hidden">
+    <table className="w-full">
       <TableHeader quantities={quantities} />
-
-      {displayPoints.map((point, index) => (
-        <TableRow
-          key={pointLabels[index]}
-          label={pointLabels[index]}
-          displayFlow={localizeDecimal(point.flow, {
-            decimals: flowDecimals,
-          })}
-          displayHead={localizeDecimal(point.head, {
-            decimals: headDecimals,
-          })}
-        />
-      ))}
-    </div>
+      <tbody>
+        {displayPoints.map((point, index) => (
+          <TableRow
+            key={pointLabels[index]}
+            label={pointLabels[index]}
+            displayFlow={localizeDecimal(point.flow, {
+              decimals: flowDecimals,
+            })}
+            displayHead={localizeDecimal(point.head, {
+              decimals: headDecimals,
+            })}
+          />
+        ))}
+      </tbody>
+    </table>
   );
 };
 
@@ -71,17 +72,19 @@ const TableHeader = ({ quantities }: { quantities: Quantities }) => {
   const headUnit = quantities.getUnit("head");
 
   return (
-    <div className="grid grid-cols-3">
-      <div className="px-2 py-1 text-xs font-medium text-gray-700">
-        {translate("curvePoint")}
-      </div>
-      <div className="px-2 py-1 text-xs font-medium text-gray-700">
-        {translate("flow")} ({flowUnit})
-      </div>
-      <div className="px-2 py-1 text-xs font-medium text-gray-700">
-        {translate("head")} ({headUnit})
-      </div>
-    </div>
+    <thead>
+      <tr>
+        <th className="px-2 py-1 text-xs font-medium text-gray-700 text-left">
+          {translate("curvePoint")}
+        </th>
+        <th className="px-2 py-1 text-xs font-medium text-gray-700 text-left">
+          {translate("flow")} ({flowUnit})
+        </th>
+        <th className="px-2 py-1 text-xs font-medium text-gray-700 text-left">
+          {translate("head")} ({headUnit})
+        </th>
+      </tr>
+    </thead>
   );
 };
 
@@ -99,12 +102,9 @@ const TableRow = ({
   onChangeHead?: (newValue: number) => void;
 }) => {
   return (
-    <div className="grid grid-cols-3">
-      <div className="px-3 py-2 text-xs text-gray-700 flex items-center">
-        {label}
-      </div>
-
-      <div className="px-3 py-2 flex items-center">
+    <tr>
+      <td className="px-3 py-2 text-xs text-gray-700 align-middle">{label}</td>
+      <td className="px-3 py-2 align-middle">
         <NumericField
           label={`${label}-x`}
           positiveOnly={true}
@@ -118,8 +118,8 @@ const TableRow = ({
             textSize: "xs",
           }}
         />
-      </div>
-      <div className="px-3 py-2 flex items-center">
+      </td>
+      <td className="px-3 py-2 align-middle">
         <NumericField
           label={`${label}-y`}
           positiveOnly={true}
@@ -133,8 +133,8 @@ const TableRow = ({
             textSize: "xs",
           }}
         />
-      </div>
-    </div>
+      </td>
+    </tr>
   );
 };
 
