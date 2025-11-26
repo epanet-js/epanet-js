@@ -4,13 +4,24 @@ import { ICurve } from "src/hydraulic-model/curves";
 import { Quantities } from "src/model-metadata/quantities-spec";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { CollapsibleSection } from "src/components/form/fields";
+import { PumpDefintionType } from "src/hydraulic-model/asset-types/pump";
+
+type OnChangeCurvePoint = (
+  pointIndex: number,
+  field: "flow" | "head",
+  value: number,
+) => void;
 
 export const PumpCurveDetails = ({
   curve,
+  definitionType,
   quantities,
+  onChangeCurvePoint,
 }: {
   curve: ICurve;
+  definitionType: PumpDefintionType;
   quantities: Quantities;
+  onChangeCurvePoint?: OnChangeCurvePoint;
 }) => {
   const translate = useTranslate();
   return (
@@ -20,17 +31,26 @@ export const PumpCurveDetails = ({
       defaultOpen={true}
       className="bg-gray-50 rounded-md "
     >
-      <PumpCurveTable curve={curve} quantities={quantities} />
+      <PumpCurveTable
+        curve={curve}
+        definitionType={definitionType}
+        quantities={quantities}
+        onChangeCurvePoint={onChangeCurvePoint}
+      />
     </CollapsibleSection>
   );
 };
 
 export const PumpCurveTable = ({
   curve,
+  definitionType,
   quantities,
+  onChangeCurvePoint,
 }: {
   curve: ICurve;
+  definitionType: PumpDefintionType;
   quantities: Quantities;
+  onChangeCurvePoint?: OnChangeCurvePoint;
 }) => {
   const translate = useTranslate();
 
@@ -45,22 +65,55 @@ export const PumpCurveTable = ({
     translate("maxOperatingPoint"),
   ];
 
+  const isDesignPoint = definitionType === "design-point";
+
+  const getEditHandlers = (displayIndex: number) => {
+    if (!onChangeCurvePoint) {
+      return { onChangeFlow: undefined, onChangeHead: undefined };
+    }
+
+    if (isDesignPoint) {
+      if (displayIndex === 1) {
+        return {
+          onChangeFlow: (value: number) => onChangeCurvePoint(0, "flow", value),
+          onChangeHead: (value: number) => onChangeCurvePoint(0, "head", value),
+        };
+      }
+      return { onChangeFlow: undefined, onChangeHead: undefined };
+    }
+
+    const storageIndex = displayIndex;
+    return {
+      onChangeFlow:
+        displayIndex === 0
+          ? undefined
+          : (value: number) => onChangeCurvePoint(storageIndex, "flow", value),
+      onChangeHead: (value: number) =>
+        onChangeCurvePoint(storageIndex, "head", value),
+    };
+  };
+
   return (
     <table className="w-full">
       <TableHeader quantities={quantities} />
       <tbody>
-        {displayPoints.map((point, index) => (
-          <TableRow
-            key={pointLabels[index]}
-            label={pointLabels[index]}
-            displayFlow={localizeDecimal(point.flow, {
-              decimals: flowDecimals,
-            })}
-            displayHead={localizeDecimal(point.head, {
-              decimals: headDecimals,
-            })}
-          />
-        ))}
+        {displayPoints.map((point, index) => {
+          const { onChangeFlow, onChangeHead } = getEditHandlers(index);
+          return (
+            <TableRow
+              key={pointLabels[index]}
+              label={pointLabels[index]}
+              displayFlow={localizeDecimal(point.flow, {
+                decimals: flowDecimals,
+              })}
+              displayHead={localizeDecimal(point.head, {
+                decimals: headDecimals,
+              })}
+              onChangeFlow={onChangeFlow}
+              onChangeHead={onChangeHead}
+            />
+          );
+        })}
       </tbody>
     </table>
   );

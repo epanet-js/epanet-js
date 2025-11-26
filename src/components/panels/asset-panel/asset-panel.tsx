@@ -190,6 +190,10 @@ export function AssetPanel({
     [hydraulicModel, asset.id, asset.type, transact, userTracking],
   );
 
+  const handleCurvePointChange = useCallback(() => {
+    return;
+  }, []);
+
   switch (asset.type) {
     case "junction":
       return (
@@ -225,6 +229,7 @@ export function AssetPanel({
           onStatusChange={handleStatusChange}
           onDefinitionTypeChange={handleDefinitionTypeChange}
           onActiveTopologyStatusChange={handleActiveTopologyStatusChange}
+          onChangeCurvePoint={handleCurvePointChange}
           quantitiesMetadata={quantitiesMetadata}
           {...getLinkNodes(hydraulicModel.assets, pump)}
         />
@@ -828,6 +833,7 @@ const PumpEditor = ({
   onPropertyChange,
   onDefinitionTypeChange,
   onActiveTopologyStatusChange,
+  onChangeCurvePoint,
   quantitiesMetadata,
   curves,
 }: {
@@ -844,6 +850,11 @@ const PumpEditor = ({
     property: string,
     newValue: boolean,
     oldValue: boolean,
+  ) => void;
+  onChangeCurvePoint?: (
+    pointIndex: number,
+    field: "flow" | "head",
+    value: number,
   ) => void;
   quantitiesMetadata: Quantities;
   curves: Curves;
@@ -944,7 +955,12 @@ const PumpEditor = ({
           </>
         )}
         {isPumpCurvesOn && !!pumpCurve && (
-          <PumpCurveDetails curve={pumpCurve} quantities={quantitiesMetadata} />
+          <PumpCurveDetails
+            curve={pumpCurve}
+            definitionType={pump.definitionType}
+            quantities={quantitiesMetadata}
+            onChangeCurvePoint={onChangeCurvePoint}
+          />
         )}
         <QuantityRow
           name="speed"
