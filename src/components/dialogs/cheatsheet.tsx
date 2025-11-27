@@ -70,6 +70,41 @@ const getBindingsWithActiveTopology = (
   [toggleNetworkReviewShortcut]: translate("networkReview.toggle"),
 });
 
+export function OldCheatsheetDialog() {
+  const translate = useTranslate();
+  const isMac = useFeatureFlag("FLAG_MAC");
+  const isBulkActiveTopologyEnabled = useFeatureFlag(
+    "FLAG_BULK_ACTIVE_TOPOLOGY",
+  );
+
+  const BINDINGS = isBulkActiveTopologyEnabled
+    ? getBindingsWithActiveTopology(translate)
+    : getBindings(translate);
+  return (
+    <>
+      <DialogHeader
+        title={translate("keyboardShortcuts")}
+        titleIcon={KeyboardIcon}
+      />
+      <div
+        className="grid gap-x-3 gap-y-2 pb-1"
+        style={{
+          gridTemplateColumns: "min-content 1fr",
+        }}
+      >
+        {Object.entries(BINDINGS).map(([key, description]) => (
+          <Fragment key={key}>
+            <div className="">
+              <Keycap>{localizeKeybinding(key, isMac || getIsMac())}</Keycap>
+            </div>
+            <div>{description}</div>
+          </Fragment>
+        ))}
+      </div>
+    </>
+  );
+}
+
 export function CheatsheetDialog() {
   const translate = useTranslate();
   const isMac = useFeatureFlag("FLAG_MAC");
