@@ -202,7 +202,7 @@ export function HelpDot() {
           }}
         >
           <KeyboardIcon />
-          {translate("keyboardShortcuts")}
+          {translate("keyboardShortcuts.title")}
         </StyledItem>
       </DDContent>
     </DD.Root>

@@ -163,7 +163,7 @@ export const NothingSelected = memo(function NothingSelected() {
                 showShortcuts();
               }}
             >
-              {translate("keyboardShortcuts")}
+              {translate("keyboardShortcuts.title")}
             </a>
             <div className="pt-[.125rem]">
               <UndoIcon />

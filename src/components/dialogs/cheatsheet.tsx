@@ -70,146 +70,157 @@ const oldGetBindingsWithActiveTopology = (
   [toggleNetworkReviewShortcut]: translate("networkReview.toggle"),
 });
 
-const getBindings = (translate: ReturnType<typeof useTranslate>) => [
+type KeybordShortcut = string;
+type TranslationKey = string;
+
+type Shortcut = {
+  binding: KeybordShortcut;
+  description: TranslationKey | TranslationKey[];
+};
+
+type ShortcutSection = {
+  group: TranslationKey;
+  shortcuts: Shortcut[];
+};
+
+const getBindings = (): ShortcutSection[] => [
   {
-    group: "File management",
+    group: "keyboardShortcuts.fileManagement",
     shortcuts: [
-      { binding: "Alt+N", description: translate("newProject") },
-      { binding: "Command+O", description: translate("openProject") },
-      { binding: "Command+S", description: translate("save") },
-      { binding: "Command+Shift+S", description: translate("saveAs") },
+      { binding: "Alt+N", description: "newProject" },
+      { binding: "Command+O", description: "openProject" },
+      { binding: "Command+S", description: "save" },
+      { binding: "Command+Shift+S", description: "saveAs" },
     ],
   },
   {
-    group: "Interface",
+    group: "keyboardShortcuts.interface",
     shortcuts: [
-      { binding: "B", description: translate("toggleSatellite") },
+      { binding: "B", description: "toggleSatellite" },
       {
-        binding: [toggleSidePanelShortcut],
-        description: translate("toggleSidePanel"),
+        binding: toggleSidePanelShortcut,
+        description: "toggleSidePanel",
       },
       {
-        binding: [toggleNetworkReviewShortcut],
-        description: translate("networkReview.toggle"),
+        binding: toggleNetworkReviewShortcut,
+        description: "networkReview.toggle",
       },
-      { binding: "?", description: translate("keyboardShortcuts") },
+      { binding: "?", description: "keyboardShortcuts.title" },
     ],
   },
   {
-    group: "Map tools",
+    group: "keyboardShortcuts.mapTools",
     shortcuts: [
-      { binding: "1", description: translate("select") },
-      { binding: "2", description: translate("junction") },
-      { binding: "3", description: translate("reservoir") },
-      { binding: "4", description: translate("tank") },
-      { binding: "5", description: translate("pipe") },
-      { binding: "6", description: translate("pump") },
-      { binding: "7", description: translate("valve") },
+      { binding: "1", description: "select" },
+      { binding: "2", description: "junction" },
+      { binding: "3", description: "reservoir" },
+      { binding: "4", description: "tank" },
+      { binding: "5", description: "pipe" },
+      { binding: "6", description: "pump" },
+      { binding: "7", description: "valve" },
     ],
   },
   {
-    group: "Simulation",
+    group: "keyboardShortcuts.simulation",
     shortcuts: [
-      { binding: "Shift+Enter", description: translate("simulate") },
+      { binding: "Shift+Enter", description: "simulate" },
       {
-        binding: [showSimulationSettingsShortcut],
-        description: translate("simulationSettings"),
+        binding: showSimulationSettingsShortcut,
+        description: "simulationSettings",
       },
-      { binding: "Alt+R", description: translate("viewReport") },
+      { binding: "Alt+R", description: "viewReport" },
     ],
   },
   {
-    group: "Editing & selection",
+    group: "keyboardShortcuts.editingSelection",
     shortcuts: [
       {
-        binding: [selectionModeShortcut],
-        description: translate("areaSelection.tool"),
+        binding: selectionModeShortcut,
+        description: "areaSelection.tool",
       },
-      { binding: "Command+a", description: translate("selectAll") },
+      { binding: "Command+a", description: "selectAll" },
       {
-        binding: [changeActiveTopologyShortcut],
-        description: translate("toggleActiveTopology"),
+        binding: changeActiveTopologyShortcut,
+        description: "toggleActiveTopology",
       },
       {
         binding: "Esc",
-        description: `${translate("exit")} / ${translate("clearSelection")}`,
+        description: ["exit", "clearSelection"],
       },
-      { binding: "BACKSPACE", description: translate("delete") },
-      { binding: "Command+z", description: translate("undo") },
-      { binding: "Command+y", description: translate("redo") },
+      { binding: "BACKSPACE", description: "delete" },
+      { binding: "Command+z", description: "undo" },
+      { binding: "Command+y", description: "redo" },
     ],
   },
 ];
 
-const getBindingsWithActiveTopology = (
-  translate: ReturnType<typeof useTranslate>,
-) => [
+const getBindingsWithActiveTopology = (): ShortcutSection[] => [
   {
-    group: "File management",
+    group: "keyboardShortcuts.fileManagement",
     shortcuts: [
-      { binding: "Alt+N", description: translate("newProject") },
-      { binding: "Command+O", description: translate("openProject") },
-      { binding: "Command+S", description: translate("save") },
-      { binding: "Command+Shift+S", description: translate("saveAs") },
+      { binding: "Alt+N", description: "newProject" },
+      { binding: "Command+O", description: "openProject" },
+      { binding: "Command+S", description: "save" },
+      { binding: "Command+Shift+S", description: "saveAs" },
     ],
   },
   {
-    group: "Interface",
+    group: "keyboardShortcuts.interface",
     shortcuts: [
-      { binding: "B", description: translate("toggleSatellite") },
+      { binding: "B", description: "toggleSatellite" },
       {
-        binding: [toggleSidePanelShortcut],
-        description: translate("toggleSidePanel"),
+        binding: toggleSidePanelShortcut,
+        description: "toggleSidePanel",
       },
       {
-        binding: [toggleNetworkReviewShortcut],
-        description: translate("networkReview.toggle"),
+        binding: toggleNetworkReviewShortcut,
+        description: "networkReview.toggle",
       },
-      { binding: "?", description: translate("keyboardShortcuts") },
+      { binding: "?", description: "keyboardShortcuts.title" },
     ],
   },
   {
-    group: "Map tools",
+    group: "keyboardShortcuts.mapTools",
     shortcuts: [
-      { binding: "1", description: translate("select") },
-      { binding: "2", description: translate("junction") },
-      { binding: "3", description: translate("reservoir") },
-      { binding: "4", description: translate("tank") },
-      { binding: "5", description: translate("pipe") },
-      { binding: "6", description: translate("pump") },
-      { binding: "7", description: translate("valve") },
+      { binding: "1", description: "select" },
+      { binding: "2", description: "junction" },
+      { binding: "3", description: "reservoir" },
+      { binding: "4", description: "tank" },
+      { binding: "5", description: "pipe" },
+      { binding: "6", description: "pump" },
+      { binding: "7", description: "valve" },
     ],
   },
   {
-    group: "Simulation",
+    group: "shortcuts.simulation",
     shortcuts: [
-      { binding: "Shift+Enter", description: translate("simulate") },
+      { binding: "Shift+Enter", description: "simulate" },
       {
-        binding: [showSimulationSettingsShortcut],
-        description: translate("simulationSettings"),
+        binding: showSimulationSettingsShortcut,
+        description: "simulationSettings",
       },
-      { binding: "Alt+R", description: translate("viewReport") },
+      { binding: "Alt+R", description: "viewReport" },
     ],
   },
   {
-    group: "Editing & selection",
+    group: "keyboardShortcuts.editingSelection",
     shortcuts: [
       {
-        binding: [selectionModeShortcut],
-        description: translate("areaSelection.tool"),
+        binding: selectionModeShortcut,
+        description: "areaSelection.tool",
       },
-      { binding: "Command+a", description: translate("selectAll") },
+      { binding: "Command+a", description: "selectAll" },
       {
-        binding: [changeActiveTopologyShortcut],
-        description: translate("toggleActiveTopology"),
+        binding: changeActiveTopologyShortcut,
+        description: "toggleActiveTopology",
       },
       {
         binding: "Esc",
-        description: `${translate("exit")} / ${translate("clearSelection")}`,
+        description: ["exit", "clearSelection"],
       },
-      { binding: "BACKSPACE", description: translate("delete") },
-      { binding: "Command+z", description: translate("undo") },
-      { binding: "Command+y", description: translate("redo") },
+      { binding: "BACKSPACE", description: "delete" },
+      { binding: "Command+z", description: "undo" },
+      { binding: "Command+y", description: "redo" },
     ],
   },
 ];
@@ -227,7 +238,7 @@ export function OldCheatsheetDialog() {
   return (
     <>
       <DialogHeader
-        title={translate("keyboardShortcuts")}
+        title={translate("keyboardShortcuts.title")}
         titleIcon={KeyboardIcon}
       />
       <div
@@ -257,40 +268,32 @@ export function CheatsheetDialog() {
   );
 
   const BINDINGS = isBulkActiveTopologyEnabled
-    ? getBindingsWithActiveTopology(translate)
-    : getBindings(translate);
+    ? getBindingsWithActiveTopology()
+    : getBindings();
 
   return (
     <DialogContainer size="md">
       <DialogHeader
-        title={translate("keyboardShortcuts")}
+        title={translate("keyboardShortcuts.title")}
         titleIcon={KeyboardIcon}
       />
       <div className="columns-3">
         {BINDINGS.map((section) => (
           <div key={section.group} className="break-inside-avoid mb-6">
             <h2 className="text-sm font-bold mb-2 text-gray-700">
-              {section.group}
+              {translate(section.group)}
             </h2>
             <div className="space-y-2">
               {section.shortcuts.map((item) => (
-                <div
-                  key={
-                    Array.isArray(item.binding)
-                      ? item.binding.join(",")
-                      : item.binding
-                  }
-                  className="flex items-start gap-2"
-                >
+                <div key={item.binding} className="flex items-start gap-2">
                   <Keycap className="w-16 flex-shrink-0">
-                    {localizeKeybinding(
-                      Array.isArray(item.binding)
-                        ? item.binding[0]
-                        : item.binding,
-                      isMac || getIsMac(),
-                    )}
+                    {localizeKeybinding(item.binding, isMac || getIsMac())}
                   </Keycap>
-                  <p className="text-xs pt-1">{item.description}</p>
+                  <p className="text-xs pt-1">
+                    {Array.isArray(item.description)
+                      ? item.description.map((k) => translate(k)).join(" / ")
+                      : translate(item.description)}
+                  </p>
                 </div>
               ))}
             </div>

@@ -12,7 +12,14 @@
   "reservoir": "Reservoir",
   "hintPipeDrawStart": "Click to start the pipe, then click to add each vertex.",
   "hintPipeDrawEnd": "End a pipe by double-clicking or hitting Enter.",
-  "keyboardShortcuts": "Keyboard shortcuts",
+  "keyboardShortcuts": {
+    "title": "Keyboard shortcuts",
+    "fileManagement": "File management",
+    "interface": "Interface",
+    "mapTools": "Map tools",
+    "simulation": "Simulation",
+    "editingSelection": "Editing & selection"
+  },
   "help": "Help",
   "helpCenter": "Help center",
   "roadmap": "Roadmap",
