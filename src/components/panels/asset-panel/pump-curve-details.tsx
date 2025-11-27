@@ -25,19 +25,21 @@ export const PumpCurveDetails = ({
 }) => {
   const translate = useTranslate();
   return (
-    <CollapsibleSection
-      title={translate("curveDetails")}
-      variant="secondary"
-      defaultOpen={true}
-      className="bg-gray-50 rounded-md "
-    >
-      <PumpCurveTable
-        curve={curve}
-        definitionType={definitionType}
-        quantities={quantities}
-        onChangeCurvePoint={onChangeCurvePoint}
-      />
-    </CollapsibleSection>
+    <div className="bg-gray-50 p-2 pb-0 -mx-2 rounded-md overflow-hidden">
+      <CollapsibleSection
+        title={translate("curveDetails")}
+        variant="secondary"
+        defaultOpen={true}
+        className="bg-gray-50 rounded-md "
+      >
+        <PumpCurveTable
+          curve={curve}
+          definitionType={definitionType}
+          quantities={quantities}
+          onChangeCurvePoint={onChangeCurvePoint}
+        />
+      </CollapsibleSection>
+    </div>
   );
 };
 
@@ -94,7 +96,7 @@ export const PumpCurveTable = ({
   };
 
   return (
-    <table className="w-full">
+    <table className="w-full -mx-2 mb-1">
       <TableHeader quantities={quantities} />
       <tbody>
         {displayPoints.map((point, index) => {
@@ -127,13 +129,13 @@ const TableHeader = ({ quantities }: { quantities: Quantities }) => {
   return (
     <thead>
       <tr>
-        <th className="px-2 py-1 text-xs font-medium text-gray-700 text-left">
+        <th className="px-2 py-1 text-sm font-semibold text-nowrap text-gray-500 text-left">
           {translate("curvePoint")}
         </th>
-        <th className="px-2 py-1 text-xs font-medium text-gray-700 text-left">
+        <th className="px-2 py-1 text-sm font-semibold text-nowrap text-gray-500 text-left">
           {translate("flow")} ({flowUnit})
         </th>
-        <th className="px-2 py-1 text-xs font-medium text-gray-700 text-left">
+        <th className="px-2 py-1 text-sm font-semibold text-nowrap text-gray-500 text-left">
           {translate("head")} ({headUnit})
         </th>
       </tr>
@@ -156,36 +158,43 @@ const TableRow = ({
 }) => {
   return (
     <tr>
-      <td className="px-3 py-2 text-xs text-gray-700 align-middle">{label}</td>
-      <td className="px-3 py-2 align-middle">
-        <NumericField
-          label={`${label}-x`}
-          positiveOnly={true}
-          isNullable={false}
-          readOnly={!onChangeFlow}
-          displayValue={displayFlow}
-          onChangeValue={onChangeFlow}
-          styleOptions={{
-            padding: "sm",
-            ghostBorder: !onChangeFlow,
-            textSize: "xs",
-          }}
-        />
+      <td className="px-2 pt-2 text-sm font-semibold text-nowrap text-gray-500">
+        {label}
       </td>
-      <td className="px-3 py-2 align-middle">
-        <NumericField
-          label={`${label}-y`}
-          positiveOnly={true}
-          isNullable={false}
-          readOnly={!onChangeHead}
-          displayValue={displayHead}
-          onChangeValue={onChangeHead}
-          styleOptions={{
-            padding: "sm",
-            ghostBorder: !onChangeHead,
-            textSize: "xs",
-          }}
-        />
+
+      <td className="px-2 pt-2">
+        <div className=" -mx-1">
+          <NumericField
+            label={`${label}-x`}
+            positiveOnly={true}
+            isNullable={false}
+            readOnly={!onChangeFlow}
+            displayValue={displayFlow}
+            onChangeValue={onChangeFlow}
+            styleOptions={{
+              padding: "sm",
+              ghostBorder: !onChangeFlow,
+              textSize: "sm",
+            }}
+          />
+        </div>
+      </td>
+      <td className="px-2 pt-2 -mx-1">
+        <div className=" -mx-1">
+          <NumericField
+            label={`${label}-y`}
+            positiveOnly={true}
+            isNullable={false}
+            readOnly={!onChangeHead}
+            displayValue={displayHead}
+            onChangeValue={onChangeHead}
+            styleOptions={{
+              padding: "sm",
+              ghostBorder: !onChangeHead,
+              textSize: "sm",
+            }}
+          />
+        </div>
       </td>
     </tr>
   );
