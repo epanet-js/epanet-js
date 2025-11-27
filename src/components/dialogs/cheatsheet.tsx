@@ -81,6 +81,31 @@ const getBindings = (translate: ReturnType<typeof useTranslate>) => [
     ],
   },
   {
+    group: "Map tools",
+    shortcuts: [
+      { binding: "1", description: translate("select") },
+      { binding: "2", description: translate("junction") },
+      { binding: "3", description: translate("reservoir") },
+      { binding: "4", description: translate("tank") },
+      { binding: "5", description: translate("pipe") },
+      { binding: "6", description: translate("pump") },
+      { binding: "7", description: translate("valve") },
+    ],
+  },
+  {
+    group: "Editing & selection",
+    shortcuts: [
+      { binding: "Command+a", description: translate("selectAll") },
+      {
+        binding: "Esc",
+        description: `${translate("exit")} / ${translate("clearSelection")}`,
+      },
+      { binding: "BACKSPACE", description: translate("delete") },
+      { binding: "Command+z", description: translate("undo") },
+      { binding: "Command+y", description: translate("redo") },
+    ],
+  },
+  {
     group: "Interface",
     shortcuts: [
       { binding: "B", description: translate("toggleSatellite") },
@@ -96,18 +121,6 @@ const getBindings = (translate: ReturnType<typeof useTranslate>) => [
     ],
   },
   {
-    group: "Map tools",
-    shortcuts: [
-      { binding: "1", description: translate("select") },
-      { binding: "2", description: translate("junction") },
-      { binding: "3", description: translate("reservoir") },
-      { binding: "4", description: translate("tank") },
-      { binding: "5", description: translate("pipe") },
-      { binding: "6", description: translate("pump") },
-      { binding: "7", description: translate("valve") },
-    ],
-  },
-  {
     group: "Simulation",
     shortcuts: [
       { binding: "Shift+Enter", description: translate("simulate") },
@@ -116,19 +129,6 @@ const getBindings = (translate: ReturnType<typeof useTranslate>) => [
         description: translate("simulationSettings"),
       },
       { binding: "Alt+R", description: translate("viewReport") },
-    ],
-  },
-  {
-    group: "Editing & selection",
-    shortcuts: [
-      { binding: "Command+a", description: translate("selectAll") },
-      {
-        binding: "Esc",
-        description: `${translate("exit")} / ${translate("clearSelection")}`,
-      },
-      { binding: "BACKSPACE", description: translate("delete") },
-      { binding: "Command+z", description: translate("undo") },
-      { binding: "Command+y", description: translate("redo") },
     ],
   },
 ];
