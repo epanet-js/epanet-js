@@ -1,4 +1,4 @@
-import { DialogHeader } from "src/components/dialog";
+import { DialogHeader, DialogContainer } from "src/components/dialog";
 import { Keycap } from "src/components/elements";
 import React, { Fragment } from "react";
 import { localizeKeybinding } from "src/infra/i18n";
@@ -81,31 +81,6 @@ const getBindings = (translate: ReturnType<typeof useTranslate>) => [
     ],
   },
   {
-    group: "Map tools",
-    shortcuts: [
-      { binding: "1", description: translate("select") },
-      { binding: "2", description: translate("junction") },
-      { binding: "3", description: translate("reservoir") },
-      { binding: "4", description: translate("tank") },
-      { binding: "5", description: translate("pipe") },
-      { binding: "6", description: translate("pump") },
-      { binding: "7", description: translate("valve") },
-    ],
-  },
-  {
-    group: "Editing & selection",
-    shortcuts: [
-      { binding: "Command+a", description: translate("selectAll") },
-      {
-        binding: "Esc",
-        description: `${translate("exit")} / ${translate("clearSelection")}`,
-      },
-      { binding: "BACKSPACE", description: translate("delete") },
-      { binding: "Command+z", description: translate("undo") },
-      { binding: "Command+y", description: translate("redo") },
-    ],
-  },
-  {
     group: "Interface",
     shortcuts: [
       { binding: "B", description: translate("toggleSatellite") },
@@ -121,6 +96,18 @@ const getBindings = (translate: ReturnType<typeof useTranslate>) => [
     ],
   },
   {
+    group: "Map tools",
+    shortcuts: [
+      { binding: "1", description: translate("select") },
+      { binding: "2", description: translate("junction") },
+      { binding: "3", description: translate("reservoir") },
+      { binding: "4", description: translate("tank") },
+      { binding: "5", description: translate("pipe") },
+      { binding: "6", description: translate("pump") },
+      { binding: "7", description: translate("valve") },
+    ],
+  },
+  {
     group: "Simulation",
     shortcuts: [
       { binding: "Shift+Enter", description: translate("simulate") },
@@ -131,7 +118,29 @@ const getBindings = (translate: ReturnType<typeof useTranslate>) => [
       { binding: "Alt+R", description: translate("viewReport") },
     ],
   },
+  {
+    group: "Editing & selection",
+    shortcuts: [
+      {
+        binding: [selectionModeShortcut],
+        description: translate("areaSelection.tool"),
+      },
+      { binding: "Command+a", description: translate("selectAll") },
+      {
+        binding: [changeActiveTopologyShortcut],
+        description: translate("toggleActiveTopology"),
+      },
+      {
+        binding: "Esc",
+        description: `${translate("exit")} / ${translate("clearSelection")}`,
+      },
+      { binding: "BACKSPACE", description: translate("delete") },
+      { binding: "Command+z", description: translate("undo") },
+      { binding: "Command+y", description: translate("redo") },
+    ],
+  },
 ];
+
 const getBindingsWithActiveTopology = (
   translate: ReturnType<typeof useTranslate>,
 ) => [
@@ -252,21 +261,17 @@ export function CheatsheetDialog() {
     : getBindings(translate);
 
   return (
-    <>
+    <DialogContainer size="md">
       <DialogHeader
         title={translate("keyboardShortcuts")}
         titleIcon={KeyboardIcon}
       />
-      <div className="grid gap-4 grid-cols-3">
+      <div className="columns-3">
         {BINDINGS.map((section) => (
-          /* OUTER LOOP: Renders the Group Container */
-          <div key={section.group} className="mb-6">
-            {/* The Group Header */}
-            <h3 className="text-lg font-bold mb-2 text-gray-700">
+          <div key={section.group} className="break-inside-avoid mb-6">
+            <h2 className="text-sm font-bold mb-2 text-gray-700">
               {section.group}
-            </h3>
-
-            {/* INNER LOOP: Renders the actual shortcuts */}
+            </h2>
             <div className="space-y-2">
               {section.shortcuts.map((item) => (
                 <div
@@ -275,26 +280,23 @@ export function CheatsheetDialog() {
                       ? item.binding.join(",")
                       : item.binding
                   }
-                  className="flex items-center justify-between"
+                  className="flex items-start gap-2"
                 >
-                  <div className="flex items-center">
-                    {/* Note: changed 'key' to 'item.binding' based on new data */}
-                    <Keycap>
-                      {localizeKeybinding(
-                        Array.isArray(item.binding)
-                          ? item.binding[0]
-                          : item.binding,
-                        isMac || getIsMac(),
-                      )}
-                    </Keycap>
-                  </div>
-                  <p className="text-sm">{item.description}</p>
+                  <Keycap className="w-16 flex-shrink-0">
+                    {localizeKeybinding(
+                      Array.isArray(item.binding)
+                        ? item.binding[0]
+                        : item.binding,
+                      isMac || getIsMac(),
+                    )}
+                  </Keycap>
+                  <p className="text-xs pt-1">{item.description}</p>
                 </div>
               ))}
             </div>
           </div>
         ))}
       </div>
-    </>
+    </DialogContainer>
   );
 }
