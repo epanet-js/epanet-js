@@ -52,7 +52,6 @@ import {
 import { CustomerPoints } from "src/hydraulic-model/customer-points";
 import { DEFAULT_ZOOM } from "./map-engine";
 import { junctionsSymbologyFilterExpression } from "./layers/junctions";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 const SELECTION_LAYERS: LayerId[] = [
   "selected-pipes",
@@ -206,9 +205,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const ephemeralDeckLayersRef = useRef<CustomerPointsOverlay>([]);
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
-  const isJunctionsSymbologyFixEnabled = useFeatureFlag(
-    "FLAG_JUNCTIONS_SYMBOLOGY_FIX",
-  );
 
   const doUpdates = useCallback(() => {
     if (!map) return;
@@ -384,12 +380,12 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
             assets,
             mapState.movedAssetIds,
           );
-          if (isJunctionsSymbologyFixEnabled)
-            await hideSymbologyForSelectedJunctions(
-              map,
-              mapState.selection,
-              assets,
-            );
+
+          await hideSymbologyForSelectedJunctions(
+            map,
+            mapState.selection,
+            assets,
+          );
         }
 
         if (hasNewStyles) {
@@ -444,7 +440,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     translate,
     translateUnit,
     hydraulicModel,
-    isJunctionsSymbologyFixEnabled,
   ]);
 
   doUpdates();
