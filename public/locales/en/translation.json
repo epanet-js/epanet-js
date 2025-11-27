@@ -363,10 +363,11 @@
   "shutoffPoint": "Shutoff",
   "designPointLabel": "Design",
   "maxOperatingPoint": "Max Operating",
-  "curveValidationError": "Invalid curve: flows must be in ascending order",
-  "curveValidation.fillDesignPoint": "Please enter the design point flow and head values.",
-  "curveValidation.fillAllPoints": "Please fill in all the curve points.",
-  "curveValidation.flowAscendingOrder": "Flow values must be in ascending order.",
+  "curveValidation": {
+    "fillDesignPoint": "Please enter the design point flow and head values.",
+    "fillAllPoints": "Please fill in all the curve points.",
+    "flowAscendingOrder": "Flow values must be in ascending order."
+  },
   "speed": "Speed",
   "pipeStatus": "Pipe status",
   "pumpStatus": "Pump status",

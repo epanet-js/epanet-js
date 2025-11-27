@@ -4,7 +4,7 @@ import { NumericField } from "src/components/form/numeric-field";
 import { ICurve } from "src/hydraulic-model/curves";
 import { Quantities } from "src/model-metadata/quantities-spec";
 import { localizeDecimal } from "src/infra/i18n/numbers";
-import { CollapsibleSection } from "src/components/form/fields";
+import { Section } from "src/components/form/fields";
 import { PumpDefintionType } from "src/hydraulic-model/asset-types/pump";
 
 export interface PumpCurvePoint {
@@ -32,20 +32,15 @@ export const PumpCurveDetails = ({
 }) => {
   const translate = useTranslate();
   return (
-    <div className="bg-gray-50 p-2 pb-0 -mx-2 rounded-md overflow-hidden">
-      <CollapsibleSection
-        title={translate("curveDetails")}
-        variant="secondary"
-        defaultOpen={true}
-        className="bg-gray-50 rounded-md "
-      >
+    <div className="bg-gray-50 p-2 -mx-2 rounded-md overflow-hidden">
+      <Section title={translate("curveDetails")} variant="secondary">
         <PumpCurveTable
           curve={curve}
           definitionType={definitionType}
           quantities={quantities}
           onCurveChange={onDefaultCurveChange}
         />
-      </CollapsibleSection>
+      </Section>
     </div>
   );
 };
@@ -277,34 +272,35 @@ export const PumpCurveTable = ({
 
   return (
     <div className="flex flex-col gap-2">
-      <table className="w-full -mx-2 mb-1">
-        <TableHeader quantities={quantities} />
-        <tbody>
-          {displayPoints.map((point, index) => {
-            const { onChangeFlow, onChangeHead } = getEditHandlers(index);
-            return (
-              <TableRow
-                key={pointLabels[index]}
-                label={pointLabels[index]}
-                displayFlow={
-                  point.flow !== undefined
-                    ? localizeDecimal(point.flow, { decimals: flowDecimals })
-                    : ""
-                }
-                displayHead={
-                  point.head !== undefined
-                    ? localizeDecimal(point.head, { decimals: headDecimals })
-                    : ""
-                }
-                onChangeFlow={onChangeFlow}
-                onChangeHead={onChangeHead}
-              />
-            );
-          })}
-        </tbody>
-      </table>
+      <div
+        role="table"
+        className="w-full grid grid-cols-[auto_1fr_1fr] items-center"
+      >
+        <GridHeader quantities={quantities} />
+        {displayPoints.map((point, index) => {
+          const { onChangeFlow, onChangeHead } = getEditHandlers(index);
+          return (
+            <GridRow
+              key={pointLabels[index]}
+              label={pointLabels[index]}
+              displayFlow={
+                point.flow !== undefined
+                  ? localizeDecimal(point.flow, { decimals: flowDecimals })
+                  : ""
+              }
+              displayHead={
+                point.head !== undefined
+                  ? localizeDecimal(point.head, { decimals: headDecimals })
+                  : ""
+              }
+              onChangeFlow={onChangeFlow}
+              onChangeHead={onChangeHead}
+            />
+          );
+        })}
+      </div>
       {!validationResult.valid && (
-        <p className="text-xs text-red-600 px-3">
+        <p className="text-sm font-semibold text-orange-800">
           {translate(validationResult.error)}
         </p>
       )}
@@ -312,29 +308,34 @@ export const PumpCurveTable = ({
   );
 };
 
-const TableHeader = ({ quantities }: { quantities: Quantities }) => {
+const GridHeader = ({ quantities }: { quantities: Quantities }) => {
   const translate = useTranslate();
   const flowUnit = quantities.getUnit("flow");
   const headUnit = quantities.getUnit("head");
 
   return (
-    <thead>
-      <tr>
-        <th className="px-2 py-1 text-sm font-semibold text-nowrap text-gray-500 text-left">
-          {translate("curvePoint")}
-        </th>
-        <th className="px-2 py-1 text-sm font-semibold text-nowrap text-gray-500 text-left">
-          {translate("flow")} ({flowUnit})
-        </th>
-        <th className="px-2 py-1 text-sm font-semibold text-nowrap text-gray-500 text-left">
-          {translate("head")} ({headUnit})
-        </th>
-      </tr>
-    </thead>
+    <>
+      <div role="columnheader"></div>
+
+      <div
+        role="columnheader"
+        className="pl-2 py-1 text-sm font-semibold text-gray-500 flex items-center gap-1"
+      >
+        <span className="min-w-0 truncate">{translate("flow")}</span>
+        <span className="flex-shrink-0">({flowUnit})</span>
+      </div>
+      <div
+        role="columnheader"
+        className="pl-2 py-1 text-sm font-semibold text-gray-500 flex items-center gap-1"
+      >
+        <span className="min-w-0">{translate("head")}</span>
+        <span className="flex-shrink-0">({headUnit})</span>
+      </div>
+    </>
   );
 };
 
-const TableRow = ({
+const GridRow = ({
   label,
   displayFlow,
   displayHead,
@@ -357,46 +358,42 @@ const TableRow = ({
     : undefined;
 
   return (
-    <tr>
-      <td className="px-2 pt-2 text-sm font-semibold text-nowrap text-gray-500">
+    <>
+      <div role="cell" className="pt-2 text-sm font-semibold text-gray-500">
         {label}
-      </td>
+      </div>
 
-      <td className="px-2 pt-2">
-        <div className=" -mx-1">
-          <NumericField
-            label={`${label}-x`}
-            positiveOnly={true}
-            isNullable={true}
-            readOnly={!onChangeFlow}
-            displayValue={displayFlow}
-            onChangeValue={handleFlowChange}
-            styleOptions={{
-              padding: "sm",
-              ghostBorder: !onChangeFlow,
-              textSize: "sm",
-            }}
-          />
-        </div>
-      </td>
+      <div role="cell" className="pl-2 pt-2">
+        <NumericField
+          label={`${label}-x`}
+          positiveOnly={true}
+          isNullable={true}
+          readOnly={!onChangeFlow}
+          displayValue={displayFlow}
+          onChangeValue={handleFlowChange}
+          styleOptions={{
+            padding: "sm",
+            ghostBorder: !onChangeFlow,
+            textSize: "sm",
+          }}
+        />
+      </div>
 
-      <td className="px-2 pt-2 -mx-1">
-        <div className=" -mx-1">
-          <NumericField
-            label={`${label}-y`}
-            positiveOnly={true}
-            isNullable={true}
-            readOnly={!onChangeHead}
-            displayValue={displayHead}
-            onChangeValue={handleHeadChange}
-            styleOptions={{
-              padding: "sm",
-              ghostBorder: !onChangeHead,
-              textSize: "sm",
-            }}
-          />
-        </div>
-      </td>
-    </tr>
+      <div role="cell" className="pl-2 pt-2">
+        <NumericField
+          label={`${label}-y`}
+          positiveOnly={true}
+          isNullable={true}
+          readOnly={!onChangeHead}
+          displayValue={displayHead}
+          onChangeValue={handleHeadChange}
+          styleOptions={{
+            padding: "sm",
+            ghostBorder: !onChangeHead,
+            textSize: "sm",
+          }}
+        />
+      </div>
+    </>
   );
 };
