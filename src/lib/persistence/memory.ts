@@ -32,6 +32,7 @@ import {
 import { ModelMoment } from "src/hydraulic-model";
 import { Asset, LinkAsset } from "src/hydraulic-model";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
+import { Curves, CurveId, ICurve } from "src/hydraulic-model/curves";
 import { nanoid } from "nanoid";
 import { ModelMetadata } from "src/model-metadata";
 import { MomentLog } from "./moment-log";
@@ -106,6 +107,7 @@ export class MemPersistence implements IPersistence {
         putAssets: moment.putAssets || [],
         putDemands: moment.putDemands,
         putCustomerPoints: moment.putCustomerPoints,
+        putCurves: moment.putCurves,
       };
       const newStateId = nanoid();
 
@@ -151,6 +153,7 @@ export class MemPersistence implements IPersistence {
         this.deleteAssetsInner(forwardMoment.deleteAssets, ctx),
         this.putAssetsInner(forwardMoment.putAssets, ctx),
         this.putCustomerPointsInner(forwardMoment.putCustomerPoints || [], ctx),
+        this.putCurvesInner(forwardMoment.putCurves, ctx),
       );
     }
 
@@ -163,6 +166,11 @@ export class MemPersistence implements IPersistence {
         ? new Map(ctx.hydraulicModel.customerPoints)
         : ctx.hydraulicModel.customerPoints;
 
+    const updatedCurves =
+      forwardMoment.putCurves && forwardMoment.putCurves.size > 0
+        ? new Map(ctx.hydraulicModel.curves)
+        : ctx.hydraulicModel.curves;
+
     this.store.set(dataAtom, {
       selection: ctx.selection,
       hydraulicModel: {
@@ -173,6 +181,7 @@ export class MemPersistence implements IPersistence {
           : ctx.hydraulicModel.demands,
         customerPoints: updatedCustomerPoints,
         customerPointsLookup: ctx.hydraulicModel.customerPointsLookup,
+        curves: updatedCurves,
       },
       folderMap: new Map(
         Array.from(ctx.folderMap).sort((a, b) => {
@@ -317,6 +326,28 @@ export class MemPersistence implements IPersistence {
       lookup.addConnection(customerPoint);
 
       ctx.hydraulicModel.customerPoints.set(customerPoint.id, customerPoint);
+    }
+
+    return reverseMoment;
+  }
+
+  private putCurvesInner(curves: Curves | undefined, ctx: Data) {
+    const reverseMoment = fMoment("Reverse curves");
+
+    if (!curves || !curves.size) return { putAssets: [], deleteAssets: [] };
+
+    const reverseCurves = new Map<CurveId, ICurve>() as Curves;
+
+    for (const [curveId, newCurve] of curves) {
+      const oldCurve = ctx.hydraulicModel.curves.get(curveId);
+      if (oldCurve) {
+        reverseCurves.set(curveId, oldCurve);
+      }
+      ctx.hydraulicModel.curves.set(curveId, newCurve);
+    }
+
+    if (reverseCurves.size) {
+      reverseMoment.putCurves = reverseCurves;
     }
 
     return reverseMoment;

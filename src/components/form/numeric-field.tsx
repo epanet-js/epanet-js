@@ -31,7 +31,7 @@ export const NumericField = ({
 }: {
   label: string;
   displayValue: string;
-  onChangeValue?: (newValue: number) => void;
+  onChangeValue?: (newValue: number, isEmpty: boolean) => void;
   isNullable?: boolean;
   positiveOnly?: boolean;
   readOnly?: boolean;
@@ -94,8 +94,9 @@ export const NumericField = ({
 
   const handleCommitLastChange = () => {
     const numericValue = parseLocaleNumber(inputValue);
-    setInputValue(String(numericValue));
-    onChangeValue && onChangeValue(numericValue);
+    const isEmpty = inputValue.trim() === "";
+    setInputValue(isNullable && isEmpty ? "" : String(numericValue));
+    onChangeValue && onChangeValue(numericValue, isEmpty);
 
     setDirty(false);
     setError(false);

@@ -1,3 +1,4 @@
+import { useState, useCallback } from "react";
 import { useTranslate } from "src/hooks/use-translate";
 import { NumericField } from "src/components/form/numeric-field";
 import { ICurve } from "src/hydraulic-model/curves";
@@ -6,22 +7,28 @@ import { localizeDecimal } from "src/infra/i18n/numbers";
 import { CollapsibleSection } from "src/components/form/fields";
 import { PumpDefintionType } from "src/hydraulic-model/asset-types/pump";
 
-type OnChangeCurvePoint = (
-  pointIndex: number,
-  field: "flow" | "head",
-  value: number,
-) => void;
+export interface PumpCurvePoint {
+  flow: number;
+  head: number;
+}
+
+interface MaybePumpCurvePoint {
+  flow?: number;
+  head?: number;
+}
+
+type OnCurveChange = (points: PumpCurvePoint[]) => void;
 
 export const PumpCurveDetails = ({
   curve,
   definitionType,
   quantities,
-  onChangeCurvePoint,
+  onDefaultCurveChange,
 }: {
-  curve: ICurve;
+  curve?: ICurve;
   definitionType: PumpDefintionType;
   quantities: Quantities;
-  onChangeCurvePoint?: OnChangeCurvePoint;
+  onDefaultCurveChange?: OnCurveChange;
 }) => {
   const translate = useTranslate();
   return (
@@ -36,30 +43,172 @@ export const PumpCurveDetails = ({
           curve={curve}
           definitionType={definitionType}
           quantities={quantities}
-          onChangeCurvePoint={onChangeCurvePoint}
+          onCurveChange={onDefaultCurveChange}
         />
       </CollapsibleSection>
     </div>
   );
 };
 
+const initialPointsFromCurve = (
+  curve: ICurve | undefined,
+  definitionType: PumpDefintionType,
+): MaybePumpCurvePoint[] => {
+  if (!curve || curve.points.length === 0) {
+    return [{ flow: 0 }, {}, {}];
+  }
+
+  if (definitionType === "design-point") {
+    const middleIndex = Math.floor(curve.points.length / 2);
+    const designPoint = curve.points[middleIndex] ?? curve.points[0];
+    const designFlow = designPoint.x;
+    const designHead = designPoint.y;
+    return calculateCurvePoints(
+      [{}, { flow: designFlow, head: designHead }, {}],
+      definitionType,
+    );
+  }
+
+  const points: MaybePumpCurvePoint[] = [];
+  for (let i = 0; i < 3; i++) {
+    if (i < curve.points.length) {
+      const { x, y } = curve.points[i];
+      points.push({ flow: x, head: y });
+    } else {
+      points.push({});
+    }
+  }
+
+  points[0] = { ...points[0], flow: 0 };
+
+  return points;
+};
+
+const calculateCurvePoints = (
+  editingPoints: MaybePumpCurvePoint[],
+  definitionType: PumpDefintionType,
+): MaybePumpCurvePoint[] => {
+  if (definitionType === "standard") {
+    return editingPoints;
+  }
+
+  if (definitionType === "design-point") {
+    const { flow: designFlow, head: designHead } = editingPoints[1];
+
+    return [
+      {
+        flow: 0,
+        head: designHead ? designHead * 1.33 : undefined,
+      },
+      { flow: designFlow, head: designHead },
+      {
+        flow: designFlow ? designFlow * 2 : undefined,
+        head: 0,
+      },
+    ];
+  }
+
+  return editingPoints;
+};
+
+const isValidPoint = (point: MaybePumpCurvePoint): point is PumpCurvePoint => {
+  return point.flow !== undefined && point.head !== undefined;
+};
+
+type ValidationErrorKey =
+  | "curveValidation.fillDesignPoint"
+  | "curveValidation.fillAllPoints"
+  | "curveValidation.flowAscendingOrder";
+
+type ValidationResult =
+  | { valid: true; points: PumpCurvePoint[] }
+  | { valid: false; error: ValidationErrorKey };
+
+const validateDesignPointCurve = (
+  points: MaybePumpCurvePoint[],
+): ValidationResult => {
+  const designPoint = points[1];
+  if (
+    !isValidPoint(designPoint) ||
+    designPoint.flow <= 0 ||
+    designPoint.head <= 0
+  ) {
+    return { valid: false, error: "curveValidation.fillDesignPoint" };
+  }
+  return { valid: true, points: [designPoint] };
+};
+
+const validateStandardCurve = (
+  points: MaybePumpCurvePoint[],
+): ValidationResult => {
+  if (points.length !== 3) {
+    return { valid: false, error: "curveValidation.fillAllPoints" };
+  }
+  const [shutoff, design, maxOp] = points;
+
+  if (
+    shutoff?.head === undefined ||
+    design?.flow === undefined ||
+    design?.head === undefined ||
+    maxOp?.flow === undefined ||
+    maxOp?.head === undefined
+  ) {
+    return { valid: false, error: "curveValidation.fillAllPoints" };
+  }
+
+  if (design.flow <= 0 || maxOp.flow <= design.flow) {
+    return { valid: false, error: "curveValidation.flowAscendingOrder" };
+  }
+
+  if (shutoff.head <= 0 || design.head <= 0 || maxOp.head < 0) {
+    return { valid: false, error: "curveValidation.fillAllPoints" };
+  }
+
+  return {
+    valid: true,
+    points: [
+      { flow: 0, head: shutoff.head },
+      { flow: design.flow, head: design.head },
+      { flow: maxOp.flow, head: maxOp.head },
+    ],
+  };
+};
+
+const validateCurve = (
+  points: MaybePumpCurvePoint[],
+  definitionType: PumpDefintionType,
+): ValidationResult => {
+  if (definitionType === "design-point") {
+    return validateDesignPointCurve(points);
+  }
+  if (definitionType === "standard") {
+    return validateStandardCurve(points);
+  }
+  return { valid: false, error: "curveValidation.fillAllPoints" };
+};
+
 export const PumpCurveTable = ({
   curve,
   definitionType,
   quantities,
-  onChangeCurvePoint,
+  onCurveChange,
 }: {
-  curve: ICurve;
+  curve?: ICurve;
   definitionType: PumpDefintionType;
   quantities: Quantities;
-  onChangeCurvePoint?: OnChangeCurvePoint;
+  onCurveChange?: OnCurveChange;
 }) => {
   const translate = useTranslate();
+
+  const [editingPoints, setEditingPoints] = useState<MaybePumpCurvePoint[]>(
+    () => initialPointsFromCurve(curve, definitionType),
+  );
 
   const flowDecimals = quantities.getDecimals("flow") ?? 2;
   const headDecimals = quantities.getDecimals("head") ?? 2;
 
-  const displayPoints = getStandardCurvePoints(curve);
+  const displayPoints = calculateCurvePoints(editingPoints, definitionType);
+  const validationResult = validateCurve(editingPoints, definitionType);
 
   const pointLabels = [
     translate("shutoffPoint"),
@@ -67,57 +216,99 @@ export const PumpCurveTable = ({
     translate("maxOperatingPoint"),
   ];
 
-  const isDesignPoint = definitionType === "design-point";
+  const handlePointChange = useCallback(
+    (
+      displayIndex: number,
+      field: "flow" | "head",
+      value: number | undefined,
+    ) => {
+      setEditingPoints((prevPoints) => {
+        let newPoints = prevPoints.map((point, idx) =>
+          idx === displayIndex ? { ...point, [field]: value } : point,
+        );
+
+        if (definitionType === "design-point") {
+          const designPoint = newPoints[1];
+
+          newPoints = calculateCurvePoints(
+            [{}, designPoint, {}],
+            definitionType,
+          );
+        }
+
+        const result = validateCurve(newPoints, definitionType);
+        if (onCurveChange && result.valid) {
+          onCurveChange(result.points);
+        }
+
+        return newPoints;
+      });
+    },
+    [definitionType, onCurveChange],
+  );
 
   const getEditHandlers = (displayIndex: number) => {
-    if (!onChangeCurvePoint) {
+    if (!onCurveChange) {
       return { onChangeFlow: undefined, onChangeHead: undefined };
     }
 
-    if (isDesignPoint) {
+    if (definitionType === "design-point") {
       if (displayIndex === 1) {
         return {
-          onChangeFlow: (value: number) => onChangeCurvePoint(0, "flow", value),
-          onChangeHead: (value: number) => onChangeCurvePoint(0, "head", value),
+          onChangeFlow: (value: number | undefined) =>
+            handlePointChange(displayIndex, "flow", value),
+          onChangeHead: (value: number | undefined) =>
+            handlePointChange(displayIndex, "head", value),
         };
       }
       return { onChangeFlow: undefined, onChangeHead: undefined };
     }
 
-    const storageIndex = displayIndex;
     return {
       onChangeFlow:
         displayIndex === 0
-          ? undefined
-          : (value: number) => onChangeCurvePoint(storageIndex, "flow", value),
-      onChangeHead: (value: number) =>
-        onChangeCurvePoint(storageIndex, "head", value),
+          ? undefined // Shutoff flow is always 0
+          : (value: number | undefined) =>
+              handlePointChange(displayIndex, "flow", value),
+      onChangeHead: (value: number | undefined) =>
+        handlePointChange(displayIndex, "head", value),
     };
   };
 
   return (
-    <table className="w-full -mx-2 mb-1">
-      <TableHeader quantities={quantities} />
-      <tbody>
-        {displayPoints.map((point, index) => {
-          const { onChangeFlow, onChangeHead } = getEditHandlers(index);
-          return (
-            <TableRow
-              key={pointLabels[index]}
-              label={pointLabels[index]}
-              displayFlow={localizeDecimal(point.flow, {
-                decimals: flowDecimals,
-              })}
-              displayHead={localizeDecimal(point.head, {
-                decimals: headDecimals,
-              })}
-              onChangeFlow={onChangeFlow}
-              onChangeHead={onChangeHead}
-            />
-          );
-        })}
-      </tbody>
-    </table>
+    <div className="flex flex-col gap-2">
+      <table className="w-full -mx-2 mb-1">
+        <TableHeader quantities={quantities} />
+        <tbody>
+          {displayPoints.map((point, index) => {
+            const { onChangeFlow, onChangeHead } = getEditHandlers(index);
+            return (
+              <TableRow
+                key={pointLabels[index]}
+                label={pointLabels[index]}
+                displayFlow={
+                  point.flow !== undefined
+                    ? localizeDecimal(point.flow, { decimals: flowDecimals })
+                    : ""
+                }
+                displayHead={
+                  point.head !== undefined
+                    ? localizeDecimal(point.head, { decimals: headDecimals })
+                    : ""
+                }
+                onChangeFlow={onChangeFlow}
+                onChangeHead={onChangeHead}
+              />
+            );
+          })}
+        </tbody>
+      </table>
+      {!validationResult.valid && (
+        <p className="text-xs text-red-600 px-3">
+          {translate(validationResult.error)}
+        </p>
+      )}
+    </div>
   );
 };
 
@@ -153,9 +344,18 @@ const TableRow = ({
   label: string;
   displayFlow: string;
   displayHead: string;
-  onChangeFlow?: (newValue: number) => void;
-  onChangeHead?: (newValue: number) => void;
+  onChangeFlow?: (newValue: number | undefined) => void;
+  onChangeHead?: (newValue: number | undefined) => void;
 }) => {
+  const handleFlowChange = onChangeFlow
+    ? (value: number, isEmpty: boolean) =>
+        onChangeFlow(isEmpty ? undefined : value)
+    : undefined;
+  const handleHeadChange = onChangeHead
+    ? (value: number, isEmpty: boolean) =>
+        onChangeHead(isEmpty ? undefined : value)
+    : undefined;
+
   return (
     <tr>
       <td className="px-2 pt-2 text-sm font-semibold text-nowrap text-gray-500">
@@ -167,10 +367,10 @@ const TableRow = ({
           <NumericField
             label={`${label}-x`}
             positiveOnly={true}
-            isNullable={false}
+            isNullable={true}
             readOnly={!onChangeFlow}
             displayValue={displayFlow}
-            onChangeValue={onChangeFlow}
+            onChangeValue={handleFlowChange}
             styleOptions={{
               padding: "sm",
               ghostBorder: !onChangeFlow,
@@ -179,15 +379,16 @@ const TableRow = ({
           />
         </div>
       </td>
+
       <td className="px-2 pt-2 -mx-1">
         <div className=" -mx-1">
           <NumericField
             label={`${label}-y`}
             positiveOnly={true}
-            isNullable={false}
+            isNullable={true}
             readOnly={!onChangeHead}
             displayValue={displayHead}
-            onChangeValue={onChangeHead}
+            onChangeValue={handleHeadChange}
             styleOptions={{
               padding: "sm",
               ghostBorder: !onChangeHead,
@@ -198,22 +399,4 @@ const TableRow = ({
       </td>
     </tr>
   );
-};
-
-interface PumpCurvePoint {
-  flow: number;
-  head: number;
-}
-
-const getStandardCurvePoints = (curve: ICurve): PumpCurvePoint[] => {
-  if (curve.points.length > 1)
-    return curve.points.map(({ x, y }) => ({ flow: x, head: y }));
-
-  const { x: designFlow, y: designHead } = curve.points[0];
-
-  return [
-    { flow: 0, head: designHead * 1.33 },
-    { flow: designFlow, head: designHead },
-    { flow: designFlow * 2, head: 0 },
-  ];
 };

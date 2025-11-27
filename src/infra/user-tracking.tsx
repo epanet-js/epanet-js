@@ -97,6 +97,11 @@ type AssetDefinitionTypeEdited = {
   oldType: string | null;
 };
 
+type CurveEdited = {
+  name: "curve.edited";
+  curveType: string;
+};
+
 type AssetSelected = {
   name: "asset.selected";
   type: Asset["type"];
@@ -621,6 +626,7 @@ export type UserEvent =
   | AssetPropertyEdited
   | AssetStatusEdited
   | AssetDefinitionTypeEdited
+  | CurveEdited
   | SatelliteViewToggled
   | AssetsDeleted
   | AssetDeleted

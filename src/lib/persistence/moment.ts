@@ -1,5 +1,6 @@
 import { Demands } from "src/hydraulic-model/demands";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
+import { Curves } from "src/hydraulic-model/curves";
 import type { IWrappedFeature, IWrappedFeatureInput } from "src/types";
 
 /**
@@ -13,6 +14,7 @@ export interface Moment {
   putAssets: IWrappedFeature[];
   deleteAssets: IWrappedFeature["id"][];
   putCustomerPoints?: CustomerPoint[];
+  putCurves?: Curves;
 }
 
 // This was previously posthog properties,
@@ -25,6 +27,7 @@ export interface MomentInput {
   putAssets: IWrappedFeatureInput[];
   putDemands?: Demands;
   putCustomerPoints?: CustomerPoint[];
+  putCurves?: Curves;
   deleteAssets: IWrappedFeature["id"][];
   skipMomentLog?: boolean;
 }
@@ -59,6 +62,7 @@ class CUMoment {
       putAssets: first.putAssets.slice(),
       deleteAssets: first.deleteAssets.slice(),
       putCustomerPoints: first.putCustomerPoints?.slice() || [],
+      putCurves: first.putCurves,
     };
 
     for (const moment of moments.slice(1)) {
@@ -68,6 +72,15 @@ class CUMoment {
         dst.putCustomerPoints = (dst.putCustomerPoints || []).concat(
           moment.putCustomerPoints,
         );
+      }
+      if (moment.putCurves) {
+        if (!dst.putCurves) {
+          dst.putCurves = new Map(moment.putCurves);
+        } else {
+          for (const [curveId, curve] of moment.putCurves) {
+            dst.putCurves.set(curveId, curve);
+          }
+        }
       }
     }
 
@@ -82,7 +95,8 @@ class CUMoment {
     return (
       moment.putAssets.length === 0 &&
       moment.deleteAssets.length === 0 &&
-      (!moment.putCustomerPoints || moment.putCustomerPoints.length === 0)
+      (!moment.putCustomerPoints || moment.putCustomerPoints.length === 0) &&
+      (!moment.putCurves || moment.putCurves.size === 0)
     );
   }
 }
