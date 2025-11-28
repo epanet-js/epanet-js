@@ -266,7 +266,7 @@ export const PumpCurveTable = ({
   };
 
   return (
-    <div className="bg-gray-50 p-2 -mx-2 rounded-md overflow-hidden flex flex-col gap-2">
+    <div className="bg-gray-50 p-2 py-1 border-l-2 border-gray-500 rounded-sm">
       <div
         role="table"
         className="w-full grid grid-cols-[auto_1fr_1fr] items-center"
@@ -320,17 +320,17 @@ const GridHeader = ({ quantities }: { quantities: Quantities }) => {
 
       <div
         role="columnheader"
-        className="pl-2 py-1 text-sm font-semibold text-gray-500 flex items-center gap-1"
+        className="pl-2 py-1 text-sm font-semibold text-gray-500"
       >
-        <span className="min-w-0 truncate">{translate("flow")}</span>
-        <span className="flex-shrink-0">({flowUnit})</span>
+        <span className="block">{translate("flow")}</span>
+        <span className="block">({flowUnit})</span>
       </div>
       <div
         role="columnheader"
-        className="pl-2 py-1 text-sm font-semibold text-gray-500 flex items-center gap-1"
+        className="pl-2 py-1 text-sm font-semibold text-gray-500"
       >
-        <span className="min-w-0">{translate("head")}</span>
-        <span className="flex-shrink-0">({headUnit})</span>
+        <span className="block">{translate("head")}</span>
+        <span className="block">({headUnit})</span>
       </div>
     </>
   );
