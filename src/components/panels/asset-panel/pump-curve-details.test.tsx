@@ -423,7 +423,7 @@ describe("PumpCurveDetails", () => {
           />,
         );
 
-        const select = screen.getByRole("combobox", { name: /pump curve/i });
+        const select = screen.getByRole("combobox", { name: /pump type/i });
         await user.click(select);
         await user.click(
           screen.getByRole("option", { name: /constant power/i }),
@@ -451,7 +451,7 @@ describe("PumpCurveDetails", () => {
           />,
         );
 
-        const select = screen.getByRole("combobox", { name: /pump curve/i });
+        const select = screen.getByRole("combobox", { name: /pump type/i });
         await user.click(select);
         await user.click(
           screen.getByRole("option", { name: /constant power/i }),
@@ -480,7 +480,7 @@ describe("PumpCurveDetails", () => {
           />,
         );
 
-        const select = screen.getByRole("combobox", { name: /pump curve/i });
+        const select = screen.getByRole("combobox", { name: /pump type/i });
         await user.click(select);
         await user.click(
           screen.getByRole("option", { name: /standard curve/i }),
@@ -526,7 +526,7 @@ describe("PumpCurveDetails", () => {
           />,
         );
 
-        const select = screen.getByRole("combobox", { name: /pump curve/i });
+        const select = screen.getByRole("combobox", { name: /pump type/i });
         await user.click(select);
         await user.click(screen.getByRole("option", { name: /design point/i }));
 
@@ -560,7 +560,7 @@ describe("PumpCurveDetails", () => {
           />,
         );
 
-        const select = screen.getByRole("combobox", { name: /pump curve/i });
+        const select = screen.getByRole("combobox", { name: /pump type/i });
         await user.click(select);
         await user.click(screen.getByRole("option", { name: /design point/i }));
 
@@ -583,7 +583,7 @@ describe("PumpCurveDetails", () => {
           />,
         );
 
-        const select = screen.getByRole("combobox", { name: /pump curve/i });
+        const select = screen.getByRole("combobox", { name: /pump type/i });
         await user.click(select);
         await user.click(
           screen.getByRole("option", { name: /standard curve/i }),
@@ -613,7 +613,7 @@ describe("PumpCurveDetails", () => {
           />,
         );
 
-        const select = screen.getByRole("combobox", { name: /pump curve/i });
+        const select = screen.getByRole("combobox", { name: /pump type/i });
         await user.click(select);
         await user.click(screen.getByRole("option", { name: /design point/i }));
 
@@ -647,7 +647,7 @@ describe("PumpCurveDetails", () => {
           />,
         );
 
-        const select = screen.getByRole("combobox", { name: /pump curve/i });
+        const select = screen.getByRole("combobox", { name: /pump type/i });
         await user.click(select);
         await user.click(screen.getByRole("option", { name: /design point/i }));
 
@@ -681,7 +681,7 @@ describe("PumpCurveDetails", () => {
           />,
         );
 
-        const select = screen.getByRole("combobox", { name: /pump curve/i });
+        const select = screen.getByRole("combobox", { name: /pump type/i });
         await user.click(select);
         await user.click(
           screen.getByRole("option", { name: /standard curve/i }),
@@ -717,7 +717,7 @@ describe("PumpCurveDetails", () => {
           />,
         );
 
-        const select = screen.getByRole("combobox", { name: /pump curve/i });
+        const select = screen.getByRole("combobox", { name: /pump type/i });
         await user.click(select);
         await user.click(
           screen.getByRole("option", { name: /standard curve/i }),
@@ -793,7 +793,7 @@ describe("PumpCurveDetails", () => {
       );
 
       expect(
-        screen.getByRole("combobox", { name: /pump curve/i }),
+        screen.getByRole("combobox", { name: /pump type/i }),
       ).toHaveTextContent(/design point/i);
 
       const updatedPump = buildPump({
@@ -811,7 +811,7 @@ describe("PumpCurveDetails", () => {
       );
 
       expect(
-        screen.getByRole("combobox", { name: /pump curve/i }),
+        screen.getByRole("combobox", { name: /pump type/i }),
       ).toHaveTextContent(/constant power/i);
     });
   });
