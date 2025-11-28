@@ -98,7 +98,7 @@ type AssetDefinitionTypeEdited = {
 };
 
 type PumpCurveEdited = {
-  name: "pumpCurve.edited";
+  name: "pumpType.edited";
   definitionType: string;
   pointsCount: number;
 };

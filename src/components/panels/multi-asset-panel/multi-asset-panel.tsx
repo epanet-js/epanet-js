@@ -13,7 +13,11 @@ import {
   dataAtom,
   multiAssetPanelCollapseAtom,
 } from "src/state/jotai";
-import { computeMultiAssetData } from "./data";
+import {
+  computeMultiAssetData,
+  computeMultiAssetDataWithPumpCurves,
+} from "./data";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export function MultiAssetPanel({
   selectedFeatures,
@@ -29,11 +33,15 @@ export function MultiAssetPanel({
   const [collapseState, setCollapseState] = useAtom(
     multiAssetPanelCollapseAtom,
   );
+  const isPumpCurvesOn = useFeatureFlag("FLAG_PUMP_STANDARD_CURVES");
 
   const { data: multiAssetData, counts: assetCounts } = useMemo(() => {
     const assets = selectedFeatures as Asset[];
-    return computeMultiAssetData(assets, quantitiesMetadata, hydraulicModel);
-  }, [selectedFeatures, quantitiesMetadata, hydraulicModel]);
+    const computeFn = isPumpCurvesOn
+      ? computeMultiAssetDataWithPumpCurves
+      : computeMultiAssetData;
+    return computeFn(assets, quantitiesMetadata, hydraulicModel);
+  }, [selectedFeatures, quantitiesMetadata, hydraulicModel, isPumpCurvesOn]);
 
   return (
     <SectionList header={<Header selectedCount={selectedFeatures.length} />}>

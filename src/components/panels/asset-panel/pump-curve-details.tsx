@@ -4,7 +4,6 @@ import { NumericField } from "src/components/form/numeric-field";
 import { CurveId, Curves, ICurve } from "src/hydraulic-model/curves";
 import { Quantities } from "src/model-metadata/quantities-spec";
 import { localizeDecimal } from "src/infra/i18n/numbers";
-import { Section } from "src/components/form/fields";
 import { Pump, PumpDefintionType } from "src/hydraulic-model/asset-types/pump";
 import { SelectRow, QuantityRow } from "./ui-components";
 
@@ -127,9 +126,9 @@ const PumpCurveDetailsInner = ({
   );
 
   return (
-    <Section title={translate("curveDetails")}>
+    <>
       <SelectRow
-        name="pumpCurve"
+        name="pumpType"
         selected={localDefinitionType}
         options={definitionOptions}
         onChange={handleDefinitionTypeChange}
@@ -151,7 +150,7 @@ const PumpCurveDetailsInner = ({
           onCurveChange={handleCurvePointsChange}
         />
       )}
-    </Section>
+    </>
   );
 };
 

@@ -201,7 +201,7 @@ export function AssetPanel({
       });
       transact(moment);
       userTracking.capture({
-        name: "pumpCurve.edited",
+        name: "pumpType.edited",
         definitionType: data.type,
         pointsCount: data.type === "power" ? 0 : data.points.length,
       });
@@ -927,7 +927,14 @@ const PumpEditor = ({
         />
       </Section>
       <Section title={translate("modelAttributes")}>
-        {!isPumpCurvesOn && (
+        {isPumpCurvesOn ? (
+          <PumpCurveDetails
+            pump={pump}
+            curves={curves}
+            quantities={quantitiesMetadata}
+            onChange={onPumpCurveChange}
+          />
+        ) : (
           <>
             <SelectRow
               name="pumpType"
@@ -978,14 +985,6 @@ const PumpEditor = ({
           onChange={handleStatusChange}
         />
       </Section>
-      {isPumpCurvesOn && (
-        <PumpCurveDetails
-          pump={pump}
-          curves={curves}
-          quantities={quantitiesMetadata}
-          onChange={onPumpCurveChange}
-        />
-      )}
       <Section title={translate("simulationResults")}>
         <QuantityRow
           name="flow"
