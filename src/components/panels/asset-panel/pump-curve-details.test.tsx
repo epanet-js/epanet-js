@@ -73,13 +73,10 @@ describe("PumpCurveTable", () => {
         />,
       );
 
-      // Shutoff: flow=0, head=100*1.33=133
       expect(getFlowInput("Shutoff")).toHaveValue("0");
       expect(getHeadInput("Shutoff")).toHaveValue("133");
-      // Design point: flow=50, head=100
       expect(getFlowInput("Design")).toHaveValue("50");
       expect(getHeadInput("Design")).toHaveValue("100");
-      // Max operating: flow=50*2=100, head=0
       expect(getFlowInput("Max Operating")).toHaveValue("100");
       expect(getHeadInput("Max Operating")).toHaveValue("0");
     });
@@ -100,7 +97,6 @@ describe("PumpCurveTable", () => {
         />,
       );
 
-      // Takes middle point (index 1) as design point
       expect(getFlowInput("Design")).toHaveValue("50");
       expect(getHeadInput("Design")).toHaveValue("100");
     });
@@ -119,13 +115,11 @@ describe("PumpCurveTable", () => {
         />,
       );
 
-      // Shutoff and max operating should be read-only
       expect(getFlowInput("Shutoff")).toHaveAttribute("readonly");
       expect(getHeadInput("Shutoff")).toHaveAttribute("readonly");
       expect(getFlowInput("Max Operating")).toHaveAttribute("readonly");
       expect(getHeadInput("Max Operating")).toHaveAttribute("readonly");
 
-      // Design point should be editable
       expect(getFlowInput("Design")).not.toHaveAttribute("readonly");
       expect(getHeadInput("Design")).not.toHaveAttribute("readonly");
     });
@@ -143,18 +137,16 @@ describe("PumpCurveTable", () => {
         />,
       );
 
-      // Change design head to 200
       const headInput = getHeadInput("Design");
       await user.click(headInput);
       await user.clear(headInput);
       await user.type(headInput, "200");
       await user.keyboard("{Enter}");
 
-      // Shutoff head should now be 200*1.33=266
       expect(getHeadInput("Shutoff")).toHaveValue("266");
     });
 
-    it("shows validation error when design point is incomplete", () => {
+    it("shows warning styling when design point is incomplete", () => {
       render(
         <PumpCurveTable
           definitionType="design-point"
@@ -163,7 +155,8 @@ describe("PumpCurveTable", () => {
         />,
       );
 
-      expect(screen.getByText(/design point/i)).toBeInTheDocument();
+      expect(getFlowInput("Design")).toHaveClass("border-orange-500");
+      expect(getHeadInput("Design")).toHaveClass("border-orange-500");
     });
 
     it("calls onCurveChange with single point when valid", async () => {
@@ -178,7 +171,6 @@ describe("PumpCurveTable", () => {
         />,
       );
 
-      // Enter design point values
       const flowInput = getFlowInput("Design");
       await user.click(flowInput);
       await user.type(flowInput, "50");
@@ -230,17 +222,15 @@ describe("PumpCurveTable", () => {
         />,
       );
 
-      // All head inputs should be editable
       expect(getHeadInput("Shutoff")).not.toHaveAttribute("readonly");
       expect(getHeadInput("Design")).not.toHaveAttribute("readonly");
       expect(getHeadInput("Max Operating")).not.toHaveAttribute("readonly");
 
-      // Design and max operating flow should be editable
       expect(getFlowInput("Design")).not.toHaveAttribute("readonly");
       expect(getFlowInput("Max Operating")).not.toHaveAttribute("readonly");
     });
 
-    it("shows validation error when points are missing", () => {
+    it("shows warning styling when points are missing", () => {
       render(
         <PumpCurveTable
           definitionType="standard"
@@ -249,7 +239,11 @@ describe("PumpCurveTable", () => {
         />,
       );
 
-      expect(screen.getByText(/fill.*all.*points/i)).toBeInTheDocument();
+      expect(getHeadInput("Shutoff")).toHaveClass("border-orange-500");
+      expect(getFlowInput("Design")).toHaveClass("border-orange-500");
+      expect(getHeadInput("Design")).toHaveClass("border-orange-500");
+      expect(getFlowInput("Max Operating")).toHaveClass("border-orange-500");
+      expect(getHeadInput("Max Operating")).toHaveClass("border-orange-500");
     });
 
     it("shows validation error when flows are not in ascending order", async () => {
@@ -269,7 +263,6 @@ describe("PumpCurveTable", () => {
         />,
       );
 
-      // Change max operating flow to be less than design flow
       const maxFlowInput = getFlowInput("Max Operating");
       await user.click(maxFlowInput);
       await user.clear(maxFlowInput);
@@ -297,7 +290,6 @@ describe("PumpCurveTable", () => {
         />,
       );
 
-      // Modify design head to trigger callback
       const headInput = getHeadInput("Design");
       await user.click(headInput);
       await user.clear(headInput);
@@ -313,7 +305,7 @@ describe("PumpCurveTable", () => {
   });
 
   describe("clearing values", () => {
-    it("clearing a field sets it to undefined and shows validation error", async () => {
+    it("clearing a field sets it to undefined and shows warning styling", async () => {
       const user = userEvent.setup();
       const curve = aCurve([
         { x: 0, y: 100 },
@@ -330,14 +322,13 @@ describe("PumpCurveTable", () => {
         />,
       );
 
-      // Clear design head
       const headInput = getHeadInput("Design");
       await user.click(headInput);
       await user.clear(headInput);
       await user.keyboard("{Enter}");
 
       expect(headInput).toHaveValue("");
-      expect(screen.getByText(/fill.*all.*points/i)).toBeInTheDocument();
+      expect(headInput).toHaveClass("border-orange-500");
     });
 
     it("clearing design point in design-point mode clears derived values", async () => {
@@ -353,13 +344,11 @@ describe("PumpCurveTable", () => {
         />,
       );
 
-      // Clear design head
       const headInput = getHeadInput("Design");
       await user.click(headInput);
       await user.clear(headInput);
       await user.keyboard("{Enter}");
 
-      // Shutoff head should now be empty (derived from undefined)
       expect(getHeadInput("Shutoff")).toHaveValue("");
     });
   });
@@ -388,12 +377,14 @@ describe("PumpCurveTable", () => {
       expect(getHeadInput("Max Operating")).toHaveAttribute("readonly");
     });
 
-    it("shows validation error even in read-only mode when curve is invalid", () => {
+    it("does not show warning styling in read-only mode when curve is invalid", () => {
       render(
         <PumpCurveTable definitionType="standard" quantities={quantities} />,
       );
 
-      expect(screen.getByText(/fill.*all.*points/i)).toBeInTheDocument();
+      expect(getHeadInput("Shutoff")).not.toHaveClass("border-orange-500");
+      expect(getFlowInput("Design")).not.toHaveClass("border-orange-500");
+      expect(getHeadInput("Design")).not.toHaveClass("border-orange-500");
     });
   });
 });

@@ -106,38 +106,38 @@ const calculateCurvePoints = (
   return editingPoints;
 };
 
-const isValidPoint = (point: MaybePumpCurvePoint): point is PumpCurvePoint => {
-  return point.flow !== undefined && point.head !== undefined;
-};
-
 type ValidationErrorKey =
-  | "curveValidation.fillDesignPoint"
-  | "curveValidation.fillAllPoints"
-  | "curveValidation.flowAscendingOrder";
+  | "missingValues"
+  | "curveValidation.flowAscendingOrder"
+  | "curveValidation.headDescendingOrder";
 
 type ValidationResult =
   | { valid: true; points: PumpCurvePoint[] }
-  | { valid: false; error: ValidationErrorKey };
+  | { valid: false; error: ValidationErrorKey; showTextError: boolean };
 
 const validateDesignPointCurve = (
   points: MaybePumpCurvePoint[],
 ): ValidationResult => {
   const designPoint = points[1];
-  if (
-    !isValidPoint(designPoint) ||
-    designPoint.flow <= 0 ||
-    designPoint.head <= 0
-  ) {
-    return { valid: false, error: "curveValidation.fillDesignPoint" };
+  if (designPoint.flow === undefined || designPoint.head === undefined) {
+    return {
+      valid: false,
+      error: "missingValues",
+      showTextError: false,
+    };
   }
-  return { valid: true, points: [designPoint] };
+  return { valid: true, points: [designPoint as PumpCurvePoint] };
 };
 
 const validateStandardCurve = (
   points: MaybePumpCurvePoint[],
 ): ValidationResult => {
   if (points.length !== 3) {
-    return { valid: false, error: "curveValidation.fillAllPoints" };
+    return {
+      valid: false,
+      error: "missingValues",
+      showTextError: false,
+    };
   }
   const [shutoff, design, maxOp] = points;
 
@@ -148,15 +148,27 @@ const validateStandardCurve = (
     maxOp?.flow === undefined ||
     maxOp?.head === undefined
   ) {
-    return { valid: false, error: "curveValidation.fillAllPoints" };
+    return {
+      valid: false,
+      error: "missingValues",
+      showTextError: false,
+    };
   }
 
   if (design.flow <= 0 || maxOp.flow <= design.flow) {
-    return { valid: false, error: "curveValidation.flowAscendingOrder" };
+    return {
+      valid: false,
+      error: "curveValidation.flowAscendingOrder",
+      showTextError: true,
+    };
   }
 
-  if (shutoff.head <= 0 || design.head <= 0 || maxOp.head < 0) {
-    return { valid: false, error: "curveValidation.fillAllPoints" };
+  if (shutoff.head <= design.head || design.head < maxOp.head) {
+    return {
+      valid: false,
+      error: "curveValidation.headDescendingOrder",
+      showTextError: true,
+    };
   }
 
   return {
@@ -179,7 +191,11 @@ const validateCurve = (
   if (definitionType === "standard") {
     return validateStandardCurve(points);
   }
-  return { valid: false, error: "curveValidation.fillAllPoints" };
+  return {
+    valid: false,
+    error: "missingValues",
+    showTextError: false,
+  };
 };
 
 export const PumpCurveTable = ({
@@ -270,6 +286,27 @@ export const PumpCurveTable = ({
     };
   };
 
+  const getErrorStates = (
+    displayIndex: number,
+    validationResult: ValidationResult,
+  ) => {
+    const point = displayPoints[displayIndex];
+    const { onChangeFlow, onChangeHead } = getEditHandlers(displayIndex);
+
+    return {
+      flowHasError:
+        onChangeFlow !== undefined &&
+        (point.flow === undefined ||
+          (!validationResult.valid &&
+            validationResult.error === "curveValidation.flowAscendingOrder")),
+      headHasError:
+        onChangeHead !== undefined &&
+        (point.head === undefined ||
+          (!validationResult.valid &&
+            validationResult.error === "curveValidation.headDescendingOrder")),
+    };
+  };
+
   return (
     <div className="flex flex-col gap-2">
       <div
@@ -279,6 +316,10 @@ export const PumpCurveTable = ({
         <GridHeader quantities={quantities} />
         {displayPoints.map((point, index) => {
           const { onChangeFlow, onChangeHead } = getEditHandlers(index);
+          const { flowHasError, headHasError } = getErrorStates(
+            index,
+            validationResult,
+          );
           return (
             <GridRow
               key={pointLabels[index]}
@@ -295,11 +336,13 @@ export const PumpCurveTable = ({
               }
               onChangeFlow={onChangeFlow}
               onChangeHead={onChangeHead}
+              flowHasError={flowHasError}
+              headHasError={headHasError}
             />
           );
         })}
       </div>
-      {!validationResult.valid && (
+      {!validationResult.valid && validationResult.showTextError && (
         <p className="text-sm font-semibold text-orange-800">
           {translate(validationResult.error)}
         </p>
@@ -341,12 +384,16 @@ const GridRow = ({
   displayHead,
   onChangeFlow,
   onChangeHead,
+  flowHasError,
+  headHasError,
 }: {
   label: string;
   displayFlow: string;
   displayHead: string;
   onChangeFlow?: (newValue: number | undefined) => void;
   onChangeHead?: (newValue: number | undefined) => void;
+  flowHasError?: boolean;
+  headHasError?: boolean;
 }) => {
   const handleFlowChange = onChangeFlow
     ? (value: number, isEmpty: boolean) =>
@@ -375,6 +422,7 @@ const GridRow = ({
             padding: "sm",
             ghostBorder: !onChangeFlow,
             textSize: "sm",
+            variant: flowHasError ? "warning" : "default",
           }}
         />
       </div>
@@ -391,6 +439,7 @@ const GridRow = ({
             padding: "sm",
             ghostBorder: !onChangeHead,
             textSize: "sm",
+            variant: headHasError ? "warning" : "default",
           }}
         />
       </div>

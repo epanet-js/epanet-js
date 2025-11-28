@@ -172,9 +172,11 @@ function styledInput({
       "border-none": border === "none",
       "border focus-visible:border-transparent": border === "sm",
     },
-    ghostBorder
+    ghostBorder && variant !== "warning"
       ? "border-transparent"
-      : "border-gray-300 hover:border-gray-200",
+      : variant === "warning"
+        ? "border-orange-500 dark:border-orange-700"
+        : "border-gray-300 hover:border-gray-200",
     !disabled && {
       "focus-visible:bg-purple-300/10 dark:focus-visible:bg-purple-700/40 dark:focus-visible:ring-purple-700 focus-visible:ring-purple-500":
         variant === "default",
