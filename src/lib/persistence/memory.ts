@@ -32,7 +32,7 @@ import {
 import { ModelMoment } from "src/hydraulic-model";
 import { Asset, LinkAsset } from "src/hydraulic-model";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
-import { Curves, CurveId, ICurve } from "src/hydraulic-model/curves";
+import { ICurve } from "src/hydraulic-model/curves";
 import { nanoid } from "nanoid";
 import { ModelMetadata } from "src/model-metadata";
 import { MomentLog } from "./moment-log";
@@ -167,7 +167,7 @@ export class MemPersistence implements IPersistence {
         : ctx.hydraulicModel.customerPoints;
 
     const updatedCurves =
-      forwardMoment.putCurves && forwardMoment.putCurves.size > 0
+      forwardMoment.putCurves && forwardMoment.putCurves.length > 0
         ? new Map(ctx.hydraulicModel.curves)
         : ctx.hydraulicModel.curves;
 
@@ -331,22 +331,23 @@ export class MemPersistence implements IPersistence {
     return reverseMoment;
   }
 
-  private putCurvesInner(curves: Curves | undefined, ctx: Data) {
+  private putCurvesInner(curves: ICurve[] | undefined, ctx: Data) {
     const reverseMoment = fMoment("Reverse curves");
 
-    if (!curves || !curves.size) return { putAssets: [], deleteAssets: [] };
+    if (!curves || curves.length === 0)
+      return { putAssets: [], deleteAssets: [] };
 
-    const reverseCurves = new Map<CurveId, ICurve>() as Curves;
+    const reverseCurves: ICurve[] = [];
 
-    for (const [curveId, newCurve] of curves) {
-      const oldCurve = ctx.hydraulicModel.curves.get(curveId);
+    for (const newCurve of curves) {
+      const oldCurve = ctx.hydraulicModel.curves.get(newCurve.id);
       if (oldCurve) {
-        reverseCurves.set(curveId, oldCurve);
+        reverseCurves.push(oldCurve);
       }
-      ctx.hydraulicModel.curves.set(curveId, newCurve);
+      ctx.hydraulicModel.curves.set(newCurve.id, newCurve);
     }
 
-    if (reverseCurves.size) {
+    if (reverseCurves.length > 0) {
       reverseMoment.putCurves = reverseCurves;
     }
 

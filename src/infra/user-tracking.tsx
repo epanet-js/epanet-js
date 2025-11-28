@@ -97,9 +97,10 @@ type AssetDefinitionTypeEdited = {
   oldType: string | null;
 };
 
-type CurveEdited = {
-  name: "curve.edited";
-  curveType: string;
+type PumpCurveEdited = {
+  name: "pumpCurve.edited";
+  definitionType: string;
+  pointsCount: number;
 };
 
 type AssetSelected = {
@@ -626,7 +627,7 @@ export type UserEvent =
   | AssetPropertyEdited
   | AssetStatusEdited
   | AssetDefinitionTypeEdited
-  | CurveEdited
+  | PumpCurveEdited
   | SatelliteViewToggled
   | AssetsDeleted
   | AssetDeleted

@@ -11,4 +11,4 @@ export { replaceNode as replaceNode } from "./replace-node";
 export { replaceLink } from "./replace-link";
 export { replaceLinkWithPipeSegmentAutoReplace } from "./replace-link-with-pipe-segment-auto-replace";
 export { mergeNodes } from "./merge-nodes";
-export { changeDefaultPumpCurve } from "./change-default-pump-curve";
+export { changePumpCurve } from "./change-pump-curve";

@@ -19,7 +19,7 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { dataAtom } from "src/state/jotai";
 import {
-  changeDefaultPumpCurve,
+  changePumpCurve,
   changeProperty,
 } from "src/hydraulic-model/model-operations";
 import { activateAssets } from "src/hydraulic-model/model-operations/activate-assets";
@@ -49,7 +49,7 @@ import {
   ConnectedCustomersRow,
 } from "./ui-components";
 import { Section } from "src/components/form/fields";
-import { PumpCurveDetails, PumpCurvePoint } from "./pump-curve-details";
+import { PumpCurveDetails, PumpDefinitionData } from "./pump-curve-details";
 import { Curves } from "src/hydraulic-model/curves";
 
 type OnPropertyChange = (
@@ -193,18 +193,20 @@ export function AssetPanel({
     [hydraulicModel, asset.id, asset.type, transact, userTracking],
   );
 
-  const handleDefaultPumpCurveChange = useCallback(
-    (points: PumpCurvePoint[]) => {
-      if (asset.type !== "pump") return;
-      const pump = asset as Pump;
-
-      const moment = changeDefaultPumpCurve(hydraulicModel, {
-        pumpId: pump.id,
-        points,
+  const handleChangePumpCurve = useCallback(
+    (data: PumpDefinitionData) => {
+      const moment = changePumpCurve(hydraulicModel, {
+        pumpId: asset.id,
+        data,
       });
       transact(moment);
+      userTracking.capture({
+        name: "pumpCurve.edited",
+        definitionType: data.type,
+        pointsCount: data.type === "power" ? 0 : data.points.length,
+      });
     },
-    [hydraulicModel, asset, transact],
+    [asset.id, hydraulicModel, transact, userTracking],
   );
 
   switch (asset.type) {
@@ -242,7 +244,7 @@ export function AssetPanel({
           onStatusChange={handleStatusChange}
           onDefinitionTypeChange={handleDefinitionTypeChange}
           onActiveTopologyStatusChange={handleActiveTopologyStatusChange}
-          onDefaultCurveChange={handleDefaultPumpCurveChange}
+          onPumpCurveChange={handleChangePumpCurve}
           quantitiesMetadata={quantitiesMetadata}
           {...getLinkNodes(hydraulicModel.assets, pump)}
         />
@@ -846,7 +848,7 @@ const PumpEditor = ({
   onPropertyChange,
   onDefinitionTypeChange,
   onActiveTopologyStatusChange,
-  onDefaultCurveChange,
+  onPumpCurveChange,
   quantitiesMetadata,
   curves,
 }: {
@@ -864,7 +866,7 @@ const PumpEditor = ({
     newValue: boolean,
     oldValue: boolean,
   ) => void;
-  onDefaultCurveChange?: (points: PumpCurvePoint[]) => void;
+  onPumpCurveChange: (data: PumpDefinitionData) => void;
   quantitiesMetadata: Quantities;
   curves: Curves;
 }) => {
@@ -910,11 +912,6 @@ const PumpEditor = ({
     onStatusChange(newValue, oldValue);
   };
 
-  const pumpCurve =
-    pump.curveId && pump.definitionType !== "power"
-      ? curves.get(pump.curveId)
-      : undefined;
-
   return (
     <AssetEditorContent label={pump.label} type={translate("pump")}>
       <Section title={translate("connections")}>
@@ -930,46 +927,42 @@ const PumpEditor = ({
         />
       </Section>
       <Section title={translate("modelAttributes")}>
-        <SelectRow
-          name={isPumpCurvesOn ? "pumpCurve" : "pumpType"}
-          selected={pump.definitionType}
-          options={definitionOptions}
-          onChange={handleDefinitionTypeChange}
-        />
-        {pump.definitionType === "power" && (
-          <QuantityRow
-            name="power"
-            value={pump.power}
-            unit={quantitiesMetadata.getUnit("power")}
-            decimals={quantitiesMetadata.getDecimals("power")}
-            onChange={onPropertyChange}
-          />
-        )}
-        {pump.definitionType === "flow-vs-head" && (
+        {!isPumpCurvesOn && (
           <>
-            <QuantityRow
-              name="designFlow"
-              value={pump.designFlow}
-              unit={quantitiesMetadata.getUnit("flow")}
-              decimals={quantitiesMetadata.getDecimals("flow")}
-              onChange={onPropertyChange}
+            <SelectRow
+              name="pumpType"
+              selected={pump.definitionType}
+              options={definitionOptions}
+              onChange={handleDefinitionTypeChange}
             />
-            <QuantityRow
-              name="designHead"
-              value={pump.designHead}
-              unit={quantitiesMetadata.getUnit("head")}
-              decimals={quantitiesMetadata.getDecimals("head")}
-              onChange={onPropertyChange}
-            />
+            {pump.definitionType === "power" && (
+              <QuantityRow
+                name="power"
+                value={pump.power}
+                unit={quantitiesMetadata.getUnit("power")}
+                decimals={quantitiesMetadata.getDecimals("power")}
+                onChange={onPropertyChange}
+              />
+            )}
+            {pump.definitionType === "flow-vs-head" && (
+              <>
+                <QuantityRow
+                  name="designFlow"
+                  value={pump.designFlow}
+                  unit={quantitiesMetadata.getUnit("flow")}
+                  decimals={quantitiesMetadata.getDecimals("flow")}
+                  onChange={onPropertyChange}
+                />
+                <QuantityRow
+                  name="designHead"
+                  value={pump.designHead}
+                  unit={quantitiesMetadata.getUnit("head")}
+                  decimals={quantitiesMetadata.getDecimals("head")}
+                  onChange={onPropertyChange}
+                />
+              </>
+            )}
           </>
-        )}
-        {isPumpCurvesOn && !!pumpCurve && (
-          <PumpCurveDetails
-            curve={pumpCurve}
-            definitionType={pump.definitionType}
-            quantities={quantitiesMetadata}
-            onDefaultCurveChange={onDefaultCurveChange}
-          />
         )}
         <QuantityRow
           name="speed"
@@ -985,6 +978,14 @@ const PumpEditor = ({
           onChange={handleStatusChange}
         />
       </Section>
+      {isPumpCurvesOn && (
+        <PumpCurveDetails
+          pump={pump}
+          curves={curves}
+          quantities={quantitiesMetadata}
+          onChange={onPumpCurveChange}
+        />
+      )}
       <Section title={translate("simulationResults")}>
         <QuantityRow
           name="flow"

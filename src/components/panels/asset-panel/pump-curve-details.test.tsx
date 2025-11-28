@@ -1,16 +1,28 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { PumpCurveTable } from "./pump-curve-details";
+import { PumpCurveTable, PumpCurveDetails } from "./pump-curve-details";
 import { Quantities, presets } from "src/model-metadata/quantities-spec";
-import { ICurve } from "src/hydraulic-model/curves";
+import { CurveId, Curves, ICurve } from "src/hydraulic-model/curves";
+import { buildPump } from "src/__helpers__/hydraulic-model-builder";
 
 const quantities = new Quantities(presets.LPS);
 
-const aCurve = (points: { x: number; y: number }[]): ICurve => ({
-  id: "curve1",
+const aCurve = (
+  points: { x: number; y: number }[],
+  id: CurveId = "curve1",
+): ICurve => ({
+  id,
   type: "pump",
   points,
 });
+
+const aCurvesMap = (curve?: ICurve): Curves => {
+  const map: Curves = new Map();
+  if (curve) {
+    map.set(curve.id, curve);
+  }
+  return map;
+};
 
 const getFlowInput = (rowLabel: string) =>
   screen.getByRole("textbox", { name: new RegExp(`${rowLabel}-x`, "i") });
@@ -385,6 +397,422 @@ describe("PumpCurveTable", () => {
       expect(getHeadInput("Shutoff")).not.toHaveClass("border-orange-500");
       expect(getFlowInput("Design")).not.toHaveClass("border-orange-500");
       expect(getHeadInput("Design")).not.toHaveClass("border-orange-500");
+    });
+  });
+});
+
+describe("PumpCurveDetails", () => {
+  describe("definition type changes", () => {
+    describe("changing to power type", () => {
+      it("emits onChange with power value when pump has power set", async () => {
+        const user = userEvent.setup();
+        const onChange = vi.fn();
+        const pump = buildPump({
+          definitionType: "design-point",
+          power: 50,
+          curveId: "curve1",
+        });
+        const curve = aCurve([{ x: 50, y: 100 }]);
+
+        render(
+          <PumpCurveDetails
+            pump={pump}
+            curves={aCurvesMap(curve)}
+            quantities={quantities}
+            onChange={onChange}
+          />,
+        );
+
+        const select = screen.getByRole("combobox", { name: /pump curve/i });
+        await user.click(select);
+        await user.click(
+          screen.getByRole("option", { name: /constant power/i }),
+        );
+
+        expect(onChange).toHaveBeenCalledWith({ type: "power", power: 50 });
+      });
+
+      it("emits onChange with power=0 when pump has no power set", async () => {
+        const user = userEvent.setup();
+        const onChange = vi.fn();
+        const pump = buildPump({
+          definitionType: "design-point",
+          power: 0,
+          curveId: "curve1",
+        });
+        const curve = aCurve([{ x: 50, y: 100 }]);
+
+        render(
+          <PumpCurveDetails
+            pump={pump}
+            curves={aCurvesMap(curve)}
+            quantities={quantities}
+            onChange={onChange}
+          />,
+        );
+
+        const select = screen.getByRole("combobox", { name: /pump curve/i });
+        await user.click(select);
+        await user.click(
+          screen.getByRole("option", { name: /constant power/i }),
+        );
+
+        expect(onChange).toHaveBeenCalledWith({ type: "power", power: 0 });
+      });
+    });
+
+    describe("changing between curve types", () => {
+      it("emits onChange when changing from design-point to standard", async () => {
+        const user = userEvent.setup();
+        const onChange = vi.fn();
+        const pump = buildPump({
+          definitionType: "design-point",
+          curveId: "curve1",
+        });
+        const curve = aCurve([{ x: 50, y: 100 }]);
+
+        render(
+          <PumpCurveDetails
+            pump={pump}
+            curves={aCurvesMap(curve)}
+            quantities={quantities}
+            onChange={onChange}
+          />,
+        );
+
+        const select = screen.getByRole("combobox", { name: /pump curve/i });
+        await user.click(select);
+        await user.click(
+          screen.getByRole("option", { name: /standard curve/i }),
+        );
+
+        expect(onChange).toHaveBeenCalledWith({
+          type: "standard",
+          curveId: "curve1",
+          points: [
+            { flow: 0, head: 133 },
+            { flow: 50, head: 100 },
+            { flow: 100, head: 0 },
+          ],
+        });
+
+        expect(getFlowInput("Shutoff")).toHaveValue("0");
+        expect(getHeadInput("Shutoff")).toHaveValue("133");
+        expect(getFlowInput("Design")).toHaveValue("50");
+        expect(getHeadInput("Design")).toHaveValue("100");
+        expect(getFlowInput("Max Operating")).toHaveValue("100");
+        expect(getHeadInput("Max Operating")).toHaveValue("0");
+      });
+
+      it("emits onChange when changing from standard to design-point", async () => {
+        const user = userEvent.setup();
+        const onChange = vi.fn();
+        const pump = buildPump({
+          definitionType: "standard",
+          curveId: "curve1",
+        });
+        const curve = aCurve([
+          { x: 0, y: 150 },
+          { x: 50, y: 100 },
+          { x: 80, y: 10 },
+        ]);
+
+        render(
+          <PumpCurveDetails
+            pump={pump}
+            curves={aCurvesMap(curve)}
+            quantities={quantities}
+            onChange={onChange}
+          />,
+        );
+
+        const select = screen.getByRole("combobox", { name: /pump curve/i });
+        await user.click(select);
+        await user.click(screen.getByRole("option", { name: /design point/i }));
+
+        expect(onChange).toHaveBeenCalledWith({
+          type: "design-point",
+          curveId: "curve1",
+          points: [{ flow: 50, head: 100 }],
+        });
+
+        expect(getFlowInput("Shutoff")).toHaveValue("0");
+        expect(getHeadInput("Shutoff")).toHaveValue("133");
+        expect(getFlowInput("Design")).toHaveValue("50");
+        expect(getHeadInput("Design")).toHaveValue("100");
+        expect(getFlowInput("Max Operating")).toHaveValue("100");
+        expect(getHeadInput("Max Operating")).toHaveValue("0");
+      });
+    });
+
+    describe("changing from power type", () => {
+      it("shows design-point in selector and table even when curve is invalid", async () => {
+        const user = userEvent.setup();
+        const onChange = vi.fn();
+        const pump = buildPump({ definitionType: "power", power: 50 });
+
+        render(
+          <PumpCurveDetails
+            pump={pump}
+            curves={aCurvesMap()}
+            quantities={quantities}
+            onChange={onChange}
+          />,
+        );
+
+        const select = screen.getByRole("combobox", { name: /pump curve/i });
+        await user.click(select);
+        await user.click(screen.getByRole("option", { name: /design point/i }));
+
+        expect(onChange).not.toHaveBeenCalled();
+        expect(select).toHaveTextContent(/design point/i);
+        expect(screen.getByRole("table")).toBeInTheDocument();
+      });
+
+      it("shows standard in selector and table even when curve is invalid", async () => {
+        const user = userEvent.setup();
+        const onChange = vi.fn();
+        const pump = buildPump({ definitionType: "power", power: 50 });
+
+        render(
+          <PumpCurveDetails
+            pump={pump}
+            curves={aCurvesMap()}
+            quantities={quantities}
+            onChange={onChange}
+          />,
+        );
+
+        const select = screen.getByRole("combobox", { name: /pump curve/i });
+        await user.click(select);
+        await user.click(
+          screen.getByRole("option", { name: /standard curve/i }),
+        );
+
+        expect(onChange).not.toHaveBeenCalled();
+        expect(select).toHaveTextContent(/standard curve/i);
+        expect(screen.getByRole("table")).toBeInTheDocument();
+      });
+
+      it("emits onChange when switching from power to design-point with 1-point curve", async () => {
+        const user = userEvent.setup();
+        const onChange = vi.fn();
+        const pump = buildPump({
+          definitionType: "power",
+          power: 50,
+          curveId: "curve1",
+        });
+        const curve = aCurve([{ x: 50, y: 100 }]);
+
+        render(
+          <PumpCurveDetails
+            pump={pump}
+            curves={aCurvesMap(curve)}
+            quantities={quantities}
+            onChange={onChange}
+          />,
+        );
+
+        const select = screen.getByRole("combobox", { name: /pump curve/i });
+        await user.click(select);
+        await user.click(screen.getByRole("option", { name: /design point/i }));
+
+        expect(onChange).toHaveBeenCalledWith({
+          type: "design-point",
+          curveId: "curve1",
+          points: [{ flow: 50, head: 100 }],
+        });
+      });
+
+      it("emits onChange when switching from power to design-point with 3-point curve", async () => {
+        const user = userEvent.setup();
+        const onChange = vi.fn();
+        const pump = buildPump({
+          definitionType: "power",
+          power: 50,
+          curveId: "curve1",
+        });
+        const curve = aCurve([
+          { x: 0, y: 150 },
+          { x: 50, y: 100 },
+          { x: 80, y: 10 },
+        ]);
+
+        render(
+          <PumpCurveDetails
+            pump={pump}
+            curves={aCurvesMap(curve)}
+            quantities={quantities}
+            onChange={onChange}
+          />,
+        );
+
+        const select = screen.getByRole("combobox", { name: /pump curve/i });
+        await user.click(select);
+        await user.click(screen.getByRole("option", { name: /design point/i }));
+
+        expect(onChange).toHaveBeenCalledWith({
+          type: "design-point",
+          curveId: "curve1",
+          points: [{ flow: 50, head: 100 }],
+        });
+      });
+
+      it("emits onChange when switching from power to standard with 3-point curve", async () => {
+        const user = userEvent.setup();
+        const onChange = vi.fn();
+        const pump = buildPump({
+          definitionType: "power",
+          power: 50,
+          curveId: "curve1",
+        });
+        const curve = aCurve([
+          { x: 0, y: 150 },
+          { x: 50, y: 100 },
+          { x: 80, y: 10 },
+        ]);
+
+        render(
+          <PumpCurveDetails
+            pump={pump}
+            curves={aCurvesMap(curve)}
+            quantities={quantities}
+            onChange={onChange}
+          />,
+        );
+
+        const select = screen.getByRole("combobox", { name: /pump curve/i });
+        await user.click(select);
+        await user.click(
+          screen.getByRole("option", { name: /standard curve/i }),
+        );
+
+        expect(onChange).toHaveBeenCalledWith({
+          type: "standard",
+          curveId: "curve1",
+          points: [
+            { flow: 0, head: 150 },
+            { flow: 50, head: 100 },
+            { flow: 80, head: 10 },
+          ],
+        });
+      });
+
+      it("emits onChange when switching from power to standard with 1-point curve", async () => {
+        const user = userEvent.setup();
+        const onChange = vi.fn();
+        const pump = buildPump({
+          definitionType: "power",
+          power: 50,
+          curveId: "curve1",
+        });
+        const curve = aCurve([{ x: 50, y: 100 }]);
+
+        render(
+          <PumpCurveDetails
+            pump={pump}
+            curves={aCurvesMap(curve)}
+            quantities={quantities}
+            onChange={onChange}
+          />,
+        );
+
+        const select = screen.getByRole("combobox", { name: /pump curve/i });
+        await user.click(select);
+        await user.click(
+          screen.getByRole("option", { name: /standard curve/i }),
+        );
+
+        expect(onChange).toHaveBeenCalledWith({
+          type: "standard",
+          curveId: "curve1",
+          points: [
+            { flow: 0, head: 133 },
+            { flow: 50, head: 100 },
+            { flow: 100, head: 0 },
+          ],
+        });
+      });
+    });
+  });
+
+  describe("external curve changes", () => {
+    it("updates display when curve changes externally (e.g., undo)", () => {
+      const onChange = vi.fn();
+      const pump = buildPump({
+        definitionType: "design-point",
+        curveId: "curve1",
+      });
+      const curves: Curves = new Map();
+      const initialCurve = aCurve([{ x: 50, y: 100 }]);
+      curves.set("curve1", initialCurve);
+
+      const { rerender } = render(
+        <PumpCurveDetails
+          pump={pump}
+          curves={curves}
+          quantities={quantities}
+          onChange={onChange}
+        />,
+      );
+
+      expect(getFlowInput("Design")).toHaveValue("50");
+      expect(getHeadInput("Design")).toHaveValue("100");
+
+      const updatedCurve = aCurve([{ x: 75, y: 150 }]);
+      curves.set("curve1", updatedCurve);
+
+      rerender(
+        <PumpCurveDetails
+          pump={pump}
+          curves={curves}
+          quantities={quantities}
+          onChange={onChange}
+        />,
+      );
+
+      expect(getFlowInput("Design")).toHaveValue("75");
+      expect(getHeadInput("Design")).toHaveValue("150");
+    });
+
+    it("updates selector when pump.definitionType changes externally (e.g., undo)", () => {
+      const onChange = vi.fn();
+      const pump = buildPump({
+        definitionType: "design-point",
+        curveId: "curve1",
+      });
+      const curve = aCurve([{ x: 50, y: 100 }]);
+
+      const { rerender } = render(
+        <PumpCurveDetails
+          pump={pump}
+          curves={aCurvesMap(curve)}
+          quantities={quantities}
+          onChange={onChange}
+        />,
+      );
+
+      expect(
+        screen.getByRole("combobox", { name: /pump curve/i }),
+      ).toHaveTextContent(/design point/i);
+
+      const updatedPump = buildPump({
+        definitionType: "power",
+        power: 50,
+      });
+
+      rerender(
+        <PumpCurveDetails
+          pump={updatedPump}
+          curves={aCurvesMap(curve)}
+          quantities={quantities}
+          onChange={onChange}
+        />,
+      );
+
+      expect(
+        screen.getByRole("combobox", { name: /pump curve/i }),
+      ).toHaveTextContent(/constant power/i);
     });
   });
 });
