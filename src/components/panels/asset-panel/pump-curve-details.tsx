@@ -301,7 +301,7 @@ export const PumpCurveTable = ({
           );
         })}
       </div>
-      {!validationResult.valid && validationResult.showTextError && (
+      {!validationResult.valid && (
         <p className="text-sm font-semibold text-orange-800">
           {translate(validationResult.error)}
         </p>
@@ -468,13 +468,13 @@ const calculateCurvePoints = (
 };
 
 type ValidationErrorKey =
-  | "missingValues"
+  | "curveValidation.missingValues"
   | "curveValidation.flowAscendingOrder"
   | "curveValidation.headDescendingOrder";
 
 type ValidationResult =
   | { valid: true; points: PumpCurvePoint[] }
-  | { valid: false; error: ValidationErrorKey; showTextError: boolean };
+  | { valid: false; error: ValidationErrorKey };
 
 const validateDesignPointCurve = (
   points: MaybePumpCurvePoint[],
@@ -483,8 +483,7 @@ const validateDesignPointCurve = (
   if (designPoint.flow === undefined || designPoint.head === undefined) {
     return {
       valid: false,
-      error: "missingValues",
-      showTextError: false,
+      error: "curveValidation.missingValues",
     };
   }
   return { valid: true, points: [designPoint as PumpCurvePoint] };
@@ -496,8 +495,7 @@ const validateStandardCurve = (
   if (points.length !== 3) {
     return {
       valid: false,
-      error: "missingValues",
-      showTextError: false,
+      error: "curveValidation.missingValues",
     };
   }
   const [shutoff, design, maxOp] = points;
@@ -511,8 +509,7 @@ const validateStandardCurve = (
   ) {
     return {
       valid: false,
-      error: "missingValues",
-      showTextError: false,
+      error: "curveValidation.missingValues",
     };
   }
 
@@ -520,7 +517,6 @@ const validateStandardCurve = (
     return {
       valid: false,
       error: "curveValidation.flowAscendingOrder",
-      showTextError: true,
     };
   }
 
@@ -528,7 +524,6 @@ const validateStandardCurve = (
     return {
       valid: false,
       error: "curveValidation.headDescendingOrder",
-      showTextError: true,
     };
   }
 
@@ -554,8 +549,7 @@ const validateCurve = (
   }
   return {
     valid: false,
-    error: "missingValues",
-    showTextError: false,
+    error: "curveValidation.missingValues",
   };
 };
 

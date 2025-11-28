@@ -364,6 +364,7 @@
   "designPointLabel": "Design",
   "maxOperatingPoint": "Max Operating",
   "curveValidation": {
+    "curveValidation.missingValues": "Please fill in all the values.",
     "flowAscendingOrder": "Flow values must be in ascending order.",
     "headDescendingOrder": "Head values must be in descending order."
   },
