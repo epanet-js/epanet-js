@@ -133,23 +133,25 @@ const PumpCurveDetailsInner = ({
         options={definitionOptions}
         onChange={handleDefinitionTypeChange}
       />
-      {localDefinitionType === "power" && (
-        <QuantityRow
-          name="power"
-          value={pump.power}
-          unit={quantities.getUnit("power")}
-          decimals={quantities.getDecimals("power")}
-          onChange={handlePowerChange}
-        />
-      )}
-      {localDefinitionType !== "power" && (
-        <PumpCurveTable
-          curve={curve}
-          definitionType={localDefinitionType}
-          quantities={quantities}
-          onCurveChange={handleCurvePointsChange}
-        />
-      )}
+      <div className="bg-gray-50 p-2 py-1 -mr-2 border-l-2 border-gray-400 rounded-sm">
+        {localDefinitionType === "power" && (
+          <QuantityRow
+            name="power"
+            value={pump.power}
+            unit={quantities.getUnit("power")}
+            decimals={quantities.getDecimals("power")}
+            onChange={handlePowerChange}
+          />
+        )}
+        {localDefinitionType !== "power" && (
+          <PumpCurveTable
+            curve={curve}
+            definitionType={localDefinitionType}
+            quantities={quantities}
+            onCurveChange={handleCurvePointsChange}
+          />
+        )}
+      </div>
     </>
   );
 };
@@ -266,7 +268,7 @@ export const PumpCurveTable = ({
   };
 
   return (
-    <div className="bg-gray-50 p-2 py-1 border-l-2 border-gray-500 rounded-sm">
+    <>
       <div
         role="table"
         className="w-full grid grid-cols-[auto_1fr_1fr] items-center"
@@ -305,7 +307,7 @@ export const PumpCurveTable = ({
           {translate(validationResult.error)}
         </p>
       )}
-    </div>
+    </>
   );
 };
 
@@ -320,17 +322,17 @@ const GridHeader = ({ quantities }: { quantities: Quantities }) => {
 
       <div
         role="columnheader"
-        className="pl-2 py-1 text-sm font-semibold text-gray-500"
+        className="pl-2 py-1 text-sm font-semibold text-gray-500 truncate"
       >
-        <span className="block">{translate("flow")}</span>
-        <span className="block">({flowUnit})</span>
+        <span>{translate("flow")}</span>
+        <span>({flowUnit})</span>
       </div>
       <div
         role="columnheader"
-        className="pl-2 py-1 text-sm font-semibold text-gray-500"
+        className="pl-2 py-1 text-sm font-semibold text-gray-500 truncate"
       >
-        <span className="block">{translate("head")}</span>
-        <span className="block">({headUnit})</span>
+        <span>{translate("head")}</span>
+        <span>({headUnit})</span>
       </div>
     </>
   );
@@ -364,7 +366,7 @@ const GridRow = ({
 
   return (
     <>
-      <div role="cell" className="pt-2 text-sm font-semibold text-gray-500">
+      <div role="cell" className="pt-2 text-sm text-gray-500">
         {label}
       </div>
 
