@@ -1,36 +1,30 @@
-import {
-  CurveId,
-  Curves,
-  getPumpCurveType,
-  ICurve,
-} from "src/hydraulic-model/curves";
+import { CurveId, Curves, ICurve } from "src/hydraulic-model/curves";
 
 import { ItemData, normalizeRef } from "./inp-data";
 import { IssuesAccumulator } from "./issues";
+import { DefaultQuantities } from "src/hydraulic-model/asset-builder";
 
 interface RawCurvePoint {
   x: number;
   y: number;
 }
 
-export class CurvesValidator {
+export class CurvesBuilder {
   private typedCurves: Curves = new Map();
 
   constructor(
     private rawCurves: ItemData<RawCurvePoint[]>,
     private issues: IssuesAccumulator,
+    private defaults: DefaultQuantities,
   ) {}
 
-  getPumpCurveType(curveId: CurveId): "standard" | "design-point" | undefined {
+  getPumpCurve(curveId: CurveId): ICurve {
     const normalizedId = normalizeRef(curveId);
     const validCurve = this.typedCurves.get(normalizedId);
-    if (validCurve) return getPumpCurveType(validCurve);
+    if (validCurve) return validCurve;
 
-    const rawCurvePoints = this.rawCurves.get(curveId);
-    if (!rawCurvePoints) {
-      this.issues.addUsedSection("[CURVES]");
-      return;
-    }
+    const rawCurvePoints =
+      this.rawCurves.get(curveId) || this.defaultPumpCurvePoints;
 
     if (this.isValidPumpCurve(rawCurvePoints)) {
       const curve: ICurve = {
@@ -39,11 +33,27 @@ export class CurvesValidator {
         points: rawCurvePoints,
       };
       this.typedCurves.set(normalizedId, curve);
-      return getPumpCurveType(curve);
-    }
+      return curve;
+    } else {
+      const middleIndex = Math.floor(rawCurvePoints.length / 2);
+      const designPoint = rawCurvePoints[middleIndex];
+      const curve: ICurve = {
+        id: normalizedId,
+        type: "pump",
+        points: [designPoint],
+      };
+      this.typedCurves.set(normalizedId, curve);
 
-    this.issues.addUsedSection("[CURVES]");
-    return;
+      this.issues.addUsedSection("[CURVES]");
+      return curve;
+    }
+  }
+
+  private get defaultPumpCurvePoints() {
+    const designFlow = this.defaults.pump["designFlow"] || 0;
+    const designHead = this.defaults.pump["designHead"] || 0;
+
+    return [{ x: designFlow, y: designHead }];
   }
 
   private isValidPumpCurve(points: ICurve["points"]): boolean {

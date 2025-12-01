@@ -21,6 +21,7 @@ import { nextTick } from "process";
 import { AssetId, LinkAsset, NodeAsset } from "src/hydraulic-model";
 import { useUserTracking } from "src/infra/user-tracking";
 import { LinkType } from "src/hydraulic-model";
+import { ICurve } from "src/hydraulic-model/curves";
 import {
   addLink,
   addLinkWithPipeSegmentAutoReplace,
@@ -156,6 +157,7 @@ export function useDrawLinkHandlers({
   const setCursor = useSetAtom(cursorStyleAtom);
   const pipeDrawingDefaults = useAtomValue(pipeDrawingDefaultsAtom);
   const isAutoReplaceOn = useFeatureFlag("FLAG_AUTO_REPLACE_PIPE_SEGMENTS");
+  const isPumpCurvesOn = useFeatureFlag("FLAG_PUMP_STANDARD_CURVES");
 
   const createLinkForType = (coordinates: Position[] = []) => {
     const startProperties = {
@@ -174,7 +176,9 @@ export function useDrawLinkHandlers({
           }),
         });
       case "pump":
-        return assetBuilder.buildPump(startProperties);
+        return isPumpCurvesOn
+          ? assetBuilder.buildPumpWithCurve(startProperties)
+          : assetBuilder.buildPump(startProperties);
       case "valve":
         return assetBuilder.buildValve(startProperties);
     }
@@ -320,6 +324,15 @@ export function useDrawLinkHandlers({
       startPipeId,
       endPipeId,
     });
+
+    if (isPumpCurvesOn && link.type === "pump") {
+      const defaultCurve: ICurve = {
+        id: String(link.id),
+        type: "pump",
+        points: [{ x: 1, y: 1 }],
+      };
+      moment.putCurves = [defaultCurve];
+    }
 
     userTracking.capture({ name: "asset.created", type: link.type });
     transact(moment);

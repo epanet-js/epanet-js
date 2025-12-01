@@ -84,7 +84,7 @@ describe("parse pumps", () => {
     ]);
   });
 
-  it("falls back to power mode when curve is invalid (2 points)", () => {
+  it("falls back to design-point mode when curve is invalid (2 points)", () => {
     const reservoirId = "r1";
     const junctionId = "j1";
     const pumpId = "pu1";
@@ -111,13 +111,16 @@ describe("parse pumps", () => {
     const { hydraulicModel, issues } = parseInpWithPumpCurves(inp);
 
     const pump = getByLabel(hydraulicModel.assets, pumpId) as Pump;
-    expect(pump.definitionType).toEqual("power");
-    expect(pump.power).toEqual(20); // Default fallback power
+    expect(pump.definitionType).toEqual("design-point");
+    expect(pump.curveId).toEqual("CU1");
+
+    const curve = hydraulicModel.curves.get("CU1");
+    expect(curve?.points).toEqual([{ x: 200, y: 300 }]);
 
     expect(issues?.unsupportedSections?.has("[CURVES]")).toBe(true);
   });
 
-  it("falls back to power mode when 3-point curve has invalid flow values", () => {
+  it("falls back to design-point mode when 3-point curve has invalid flow values", () => {
     const reservoirId = "r1";
     const junctionId = "j1";
     const pumpId = "pu1";
@@ -145,13 +148,16 @@ describe("parse pumps", () => {
     const { hydraulicModel, issues } = parseInpWithPumpCurves(inp);
 
     const pump = getByLabel(hydraulicModel.assets, pumpId) as Pump;
-    expect(pump.definitionType).toEqual("power");
-    expect(pump.power).toEqual(20); // Default fallback power
+    expect(pump.definitionType).toEqual("design-point");
+    expect(pump.curveId).toEqual("CU1");
+
+    const curve = hydraulicModel.curves.get("CU1");
+    expect(curve?.points).toEqual([{ x: 100, y: 250 }]);
 
     expect(issues?.unsupportedSections?.has("[CURVES]")).toBe(true);
   });
 
-  it("falls back to power mode when 3-point curve has non-ascending flow values", () => {
+  it("falls back to design-point mode when 3-point curve has non-ascending flow values", () => {
     const reservoirId = "r1";
     const junctionId = "j1";
     const pumpId = "pu1";
@@ -179,8 +185,11 @@ describe("parse pumps", () => {
     const { hydraulicModel, issues } = parseInpWithPumpCurves(inp);
 
     const pump = getByLabel(hydraulicModel.assets, pumpId) as Pump;
-    expect(pump.definitionType).toEqual("power");
-    expect(pump.power).toEqual(20); // Default fallback power
+    expect(pump.definitionType).toEqual("design-point");
+    expect(pump.curveId).toEqual("CU1");
+
+    const curve = hydraulicModel.curves.get("CU1");
+    expect(curve?.points).toEqual([{ x: 200, y: 250 }]);
 
     expect(issues?.unsupportedSections?.has("[CURVES]")).toBe(true);
   });
@@ -294,7 +303,7 @@ describe("parse pumps", () => {
     expect(pump.initialStatus).toEqual("on");
   });
 
-  it("falls back to power mode when curve is missing", () => {
+  it("falls back to design-point mode when curve is missing", () => {
     const reservoirId = "r1";
     const junctionId = "j1";
     const pumpId = "pu1";
@@ -317,7 +326,10 @@ describe("parse pumps", () => {
     const { hydraulicModel } = parseInpWithPumpCurves(inp);
 
     const pump = getByLabel(hydraulicModel.assets, pumpId) as Pump;
-    expect(pump.definitionType).toEqual("power");
-    expect(pump.power).toEqual(20); // Default fallback power
+    expect(pump.definitionType).toEqual("design-point");
+    expect(pump.curveId).toEqual("CU1");
+
+    const curve = hydraulicModel.curves.get("CU1");
+    expect(curve?.points).toEqual([{ x: 1, y: 1 }]);
   });
 });

@@ -10,6 +10,6 @@ export type Curves = Map<CurveId, ICurve>;
 
 export const getPumpCurveType = (
   curve: ICurve,
-): "design-point" | "standard" | undefined => {
+): "design-point" | "standard" => {
   return curve.points.length === 1 ? "design-point" : "standard";
 };
