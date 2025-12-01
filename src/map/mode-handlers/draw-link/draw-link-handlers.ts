@@ -22,15 +22,12 @@ import { AssetId, LinkAsset, NodeAsset } from "src/hydraulic-model";
 import { useUserTracking } from "src/infra/user-tracking";
 import { LinkType } from "src/hydraulic-model";
 import { ICurve } from "src/hydraulic-model/curves";
-import {
-  addLink,
-  addLinkWithPipeSegmentAutoReplace,
-} from "src/hydraulic-model/model-operations";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useElevations } from "src/map/elevations/use-elevations";
 import { LngLat, MapMouseEvent, MapTouchEvent } from "mapbox-gl";
 import { useSelection } from "src/selection";
 import { DEFAULT_SNAP_DISTANCE_PIXELS } from "../../search";
+import { addLink } from "src/hydraulic-model/model-operations";
 
 export type SnappingCandidate =
   | NodeAsset
@@ -156,7 +153,6 @@ export function useDrawLinkHandlers({
   const { isShiftHeld, isControlHeld } = useKeyboardState();
   const setCursor = useSetAtom(cursorStyleAtom);
   const pipeDrawingDefaults = useAtomValue(pipeDrawingDefaultsAtom);
-  const isAutoReplaceOn = useFeatureFlag("FLAG_AUTO_REPLACE_PIPE_SEGMENTS");
   const isPumpCurvesOn = useFeatureFlag("FLAG_PUMP_STANDARD_CURVES");
 
   const createLinkForType = (coordinates: Position[] = []) => {
@@ -314,10 +310,7 @@ export function useDrawLinkHandlers({
       return;
     }
 
-    const addLinkOperation = isAutoReplaceOn
-      ? addLinkWithPipeSegmentAutoReplace
-      : addLink;
-    const moment = addLinkOperation(hydraulicModel, {
+    const moment = addLink(hydraulicModel, {
       link: link,
       startNode,
       endNode,

@@ -1,7 +1,10 @@
 import { describe, it, expect } from "vitest";
 import { replaceLink } from "./replace-link";
-import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
-import { Pipe, NodeAsset } from "../asset-types";
+import {
+  HydraulicModelBuilder,
+  buildPipe,
+} from "src/__helpers__/hydraulic-model-builder";
+import { Pipe, NodeAsset, Valve } from "../asset-types";
 import { CustomerPoint } from "../customer-points";
 
 describe("replaceLink", () => {
@@ -45,7 +48,6 @@ describe("replaceLink", () => {
 
       expect(deleteAssets).toContain(IDS.P1);
       expect(putAssets).toBeDefined();
-      expect(putAssets!.length).toBeGreaterThan(0);
 
       const addedPipe = putAssets!.find(
         (asset) => asset.type === "pipe",
@@ -134,6 +136,132 @@ describe("replaceLink", () => {
       expect(deleteAssets).toContain(IDS.P1);
       expect(putAssets).toBeDefined();
       expect(putAssets!.length).toBeGreaterThan(1); // Should include split pipes + new pipe + nodes
+    });
+  });
+
+  describe("auto-replace pipe section when redrawing", () => {
+    it("replaces middle pipe section when redrawing pipe onto same pipe", () => {
+      const IDS = { J1: 1, J2: 2, P1: 3, P2: 4, J3: 5, J4: 6 } as const;
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, { coordinates: [0, 0] })
+        .aJunction(IDS.J2, { coordinates: [30, 0] })
+        .aPipe(IDS.P1, {
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
+          coordinates: [
+            [0, 0],
+            [30, 0],
+          ],
+          diameter: 100,
+          roughness: 0.5,
+        })
+        .aPipe(IDS.P2, {
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
+          coordinates: [
+            [0, 0],
+            [30, 0],
+          ],
+        })
+        .build();
+
+      const newPipe = buildPipe({
+        id: IDS.P2,
+        label: "P2",
+        coordinates: [
+          [10, 0],
+          [20, 0],
+        ],
+      });
+
+      const startNode = hydraulicModel.assetBuilder.buildJunction({
+        id: IDS.J3,
+        coordinates: [10, 0],
+      });
+      const endNode = hydraulicModel.assetBuilder.buildJunction({
+        id: IDS.J4,
+        coordinates: [20, 0],
+      });
+
+      const { putAssets, deleteAssets } = replaceLink(hydraulicModel, {
+        sourceLinkId: IDS.P2,
+        newLink: newPipe,
+        startNode,
+        endNode,
+        startPipeId: IDS.P1,
+        endPipeId: IDS.P1,
+      });
+
+      expect(deleteAssets).toContain(IDS.P1);
+      expect(deleteAssets).toContain(IDS.P2);
+
+      const pipes = putAssets!.filter((a) => a.type === "pipe") as Pipe[];
+      expect(pipes).toHaveLength(3);
+
+      const redrawnPipe = pipes.find((p) => p.id === IDS.P2);
+      expect(redrawnPipe).toBeDefined();
+    });
+
+    it("replaces section when redrawing pipe as valve onto same pipe", () => {
+      const IDS = { J1: 1, J2: 2, P1: 3, V1: 4, J3: 5, J4: 6 } as const;
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, { coordinates: [0, 0] })
+        .aJunction(IDS.J2, { coordinates: [30, 0] })
+        .aPipe(IDS.P1, {
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
+          coordinates: [
+            [0, 0],
+            [30, 0],
+          ],
+          diameter: 150,
+        })
+        .aValve(IDS.V1, {
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
+          coordinates: [
+            [0, 0],
+            [30, 0],
+          ],
+        })
+        .build();
+
+      const newValve = hydraulicModel.assetBuilder.buildValve({
+        id: IDS.V1,
+        label: "V1",
+        coordinates: [
+          [10, 0],
+          [20, 0],
+        ],
+      });
+
+      const startNode = hydraulicModel.assetBuilder.buildJunction({
+        id: IDS.J3,
+        coordinates: [10, 0],
+      });
+      const endNode = hydraulicModel.assetBuilder.buildJunction({
+        id: IDS.J4,
+        coordinates: [20, 0],
+      });
+
+      const { putAssets, deleteAssets } = replaceLink(hydraulicModel, {
+        sourceLinkId: IDS.V1,
+        newLink: newValve,
+        startNode,
+        endNode,
+        startPipeId: IDS.P1,
+        endPipeId: IDS.P1,
+      });
+
+      expect(deleteAssets).toContain(IDS.P1);
+      expect(deleteAssets).toContain(IDS.V1);
+
+      const valve = putAssets!.find((a) => a.type === "valve") as Valve;
+      expect(valve).toBeDefined();
+      expect(valve.diameter).toBe(150);
+
+      const pipes = putAssets!.filter((a) => a.type === "pipe") as Pipe[];
+      expect(pipes).toHaveLength(2);
     });
   });
 

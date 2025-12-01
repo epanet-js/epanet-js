@@ -9,6 +9,7 @@ import { AssetsMap } from "../assets-map";
 import { HydraulicModel } from "../hydraulic-model";
 import { CustomerPoint } from "../customer-points";
 import { inferNodeIsActive } from "../utilities/active-topology";
+import { copyPipePropertiesToLink } from "./mutations/copy-link-properties";
 
 type InputData = {
   link: LinkAsset;
@@ -70,9 +71,14 @@ export const addLink: ModelOperation<InputData> = (hydraulicModel, data) => {
 
   return {
     note: `Add ${link.type}`,
-    putAssets,
     deleteAssets: deleteAssets.length > 0 ? deleteAssets : undefined,
-    putCustomerPoints,
+    ...removeOverlappingPipes({
+      link: linkCopy,
+      startNode: startNodeCopy,
+      endNode: endNodeCopy,
+      putAssets,
+      putCustomerPoints,
+    }),
   };
 };
 
@@ -184,62 +190,162 @@ const handlePipeSplits = ({
   putCustomerPoints: CustomerPoint[];
 } => {
   const allPutAssets = [link, startNode, endNode];
-  const allPutCustomerPoints = [];
+  const allPutCustomerPoints: CustomerPoint[] = [];
   const allDeleteAssets: AssetId[] = [];
 
+  const plannedSplits: {
+    pipeId: AssetId;
+    splitNodes: NodeAsset[];
+    context: string;
+  }[] = [];
   if (startPipeId && endPipeId && startPipeId === endPipeId) {
+    plannedSplits.push({
+      pipeId: startPipeId,
+      splitNodes: [startNode, endNode],
+      context: "Pipe",
+    });
+  } else {
+    if (startPipeId) {
+      plannedSplits.push({
+        pipeId: startPipeId,
+        splitNodes: [startNode],
+        context: "Start pipe",
+      });
+    }
+    if (endPipeId) {
+      plannedSplits.push({
+        pipeId: endPipeId,
+        splitNodes: [endNode],
+        context: "End pipe",
+      });
+    }
+  }
+
+  plannedSplits.forEach((splitConfig) => {
     const pipe = validatePipeOrThrow(
       hydraulicModel.assets,
-      startPipeId,
-      "Pipe",
+      splitConfig.pipeId,
+      splitConfig.context,
     );
     const splitResult = splitPipe(hydraulicModel, {
       pipe,
-      splits: [startNode, endNode],
+      splits: splitConfig.splitNodes,
     });
     allPutAssets.push(...splitResult.putAssets!);
     allPutCustomerPoints.push(...(splitResult.putCustomerPoints || []));
     allDeleteAssets.push(...splitResult.deleteAssets!);
-  } else {
-    if (startPipeId) {
-      const startPipe = validatePipeOrThrow(
-        hydraulicModel.assets,
-        startPipeId,
-        "Start pipe",
-      );
-      const startPipeSplitResult = splitPipe(hydraulicModel, {
-        pipe: startPipe,
-        splits: [startNode],
-      });
-      allPutAssets.push(...startPipeSplitResult.putAssets!);
-      allPutCustomerPoints.push(
-        ...(startPipeSplitResult.putCustomerPoints || []),
-      );
-      allDeleteAssets.push(...startPipeSplitResult.deleteAssets!);
-    }
+  });
 
-    if (endPipeId) {
-      const endPipe = validatePipeOrThrow(
-        hydraulicModel.assets,
-        endPipeId,
-        "End pipe",
-      );
-      const endPipeSplitResult = splitPipe(hydraulicModel, {
-        pipe: endPipe,
-        splits: [endNode],
-      });
-      allPutAssets.push(...endPipeSplitResult.putAssets!);
-      allPutCustomerPoints.push(
-        ...(endPipeSplitResult.putCustomerPoints || []),
-      );
-      allDeleteAssets.push(...endPipeSplitResult.deleteAssets!);
-    }
-  }
   return {
-    putAssets: allPutAssets,
     deleteAssets: allDeleteAssets,
+    putAssets: allPutAssets,
     putCustomerPoints: allPutCustomerPoints,
   };
+};
+
+const removeOverlappingPipes = ({
+  link,
+  startNode,
+  endNode,
+  putAssets,
+  putCustomerPoints,
+}: {
+  link: LinkAsset;
+  startNode: NodeAsset;
+  endNode: NodeAsset;
+  putAssets: Asset[];
+  putCustomerPoints: CustomerPoint[];
+}) => {
+  const overlappingPipeIndex = findOverlappingPipeIndex({
+    link,
+    startNode,
+    endNode,
+    putAssets,
+  });
+
+  if (overlappingPipeIndex === -1) {
+    return { putAssets, putCustomerPoints };
+  }
+
+  const overlappingPipe = putAssets[overlappingPipeIndex] as Pipe;
+
+  putAssets.splice(overlappingPipeIndex, 1);
+  copyPipePropertiesToLink(overlappingPipe, link);
+
+  return {
+    putAssets,
+    putCustomerPoints: updateCustomerPoints({
+      customerPoints: putCustomerPoints,
+      oldPipeId: overlappingPipe.id,
+      newLink: link,
+    }),
+  };
+};
+
+const findOverlappingPipeIndex = ({
+  link,
+  startNode,
+  endNode,
+  putAssets,
+}: {
+  link: LinkAsset;
+  startNode: NodeAsset;
+  endNode: NodeAsset;
+  putAssets: Asset[];
+}): number => {
+  if (link.coordinates.length > 2) return -1;
+
+  const candidateOverlappingPipeIndex = putAssets.findIndex((asset) => {
+    if (asset.type !== "pipe" || asset.id === link.id) return;
+    const connections = new Set((asset as LinkAsset).connections);
+    if (connections.has(startNode.id) && connections.has(endNode.id))
+      return true;
+    return false;
+  });
+
+  if (candidateOverlappingPipeIndex === -1) return -1;
+
+  const candidateOverlappingPipe = putAssets[
+    candidateOverlappingPipeIndex
+  ] as LinkAsset;
+
+  if (candidateOverlappingPipe.coordinates.length > 2) {
+    return -1;
+  }
+
+  return candidateOverlappingPipeIndex;
+};
+
+const updateCustomerPoints = ({
+  customerPoints,
+  oldPipeId,
+  newLink,
+}: {
+  customerPoints: CustomerPoint[];
+  oldPipeId: number;
+  newLink: LinkAsset;
+}): CustomerPoint[] => {
+  const customerPointsThatNeedReallocation = customerPoints.filter(
+    (customerPoint) => customerPoint.connection?.pipeId === oldPipeId,
+  );
+
+  if (!customerPointsThatNeedReallocation.length) return customerPoints;
+
+  if (newLink.type === "pipe") {
+    customerPointsThatNeedReallocation.forEach((customerPoint) => {
+      if (!customerPoint.connection) return;
+      customerPoint.connection.pipeId = newLink.id;
+    });
+
+    return customerPoints;
+  }
+
+  return customerPoints.map((customerPoint) => {
+    if (customerPoint.connection?.pipeId === oldPipeId) {
+      return customerPoint.copyDisconnected();
+    }
+    return customerPoint;
+  });
 };
 
 const removeRedundantVertices = (link: LinkAsset) => {
