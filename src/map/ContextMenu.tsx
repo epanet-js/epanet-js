@@ -4,9 +4,6 @@ import type { IWrappedFeature } from "src/types";
 import { GeometryActions } from "src/components/context-actions/geometry-actions";
 import { CMContent } from "src/components/elements";
 import { wrappedFeaturesFromMapFeatures } from "src/lib/map-component-utils";
-import { useAtomValue } from "jotai";
-import { Mode, modeAtom } from "src/state/jotai";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export interface ContextInfo {
   features: ReturnType<typeof wrappedFeaturesFromMapFeatures>;
@@ -14,26 +11,11 @@ export interface ContextInfo {
   position: Pos2;
 }
 
-const EXCLUDED_MODES = [
-  Mode.SELECT_RECTANGULAR,
-  Mode.SELECT_POLYGONAL,
-  Mode.SELECT_FREEHAND,
-] as const;
-
-const isExcludedMode = (mode: Mode): boolean =>
-  EXCLUDED_MODES.includes(mode as (typeof EXCLUDED_MODES)[number]);
-
 export const MapContextMenu = memo(function MapContextMenu({
   contextInfo,
 }: {
   contextInfo: ContextInfo | null;
 }) {
-  const mode = useAtomValue(modeAtom);
-  const isBulkActiveTopologyEnabled = useFeatureFlag(
-    "FLAG_BULK_ACTIVE_TOPOLOGY",
-  );
-  if (isExcludedMode(mode.mode) && !isBulkActiveTopologyEnabled) return null;
-
   return (
     <CM.Portal>
       <CMContent>

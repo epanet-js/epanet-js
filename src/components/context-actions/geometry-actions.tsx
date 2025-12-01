@@ -25,7 +25,6 @@ import { useAtomValue } from "jotai";
 import { Mode, modeAtom } from "src/state/mode";
 import { useSetRedrawMode } from "src/commands/set-redraw-mode";
 import { useReverseLink } from "src/commands/reverse-link";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export function useActions(
   selectedWrappedFeatures: IWrappedFeature[],
@@ -41,9 +40,6 @@ export function useActions(
   const { mode: currentMode } = useAtomValue(modeAtom);
   const setRedrawMode = useSetRedrawMode();
   const reverseLinkAction = useReverseLink();
-  const isBulkActiveTopologyEnabled = useFeatureFlag(
-    "FLAG_BULK_ACTIVE_TOPOLOGY",
-  );
 
   const onDelete = useCallback(() => {
     const eventSource = source === "context-item" ? "context-menu" : "toolbar";
@@ -116,15 +112,13 @@ export function useActions(
     },
   };
 
-  return isBulkActiveTopologyEnabled
-    ? [
-        zoomToAction,
-        reverseAction,
-        redrawAction,
-        changeActiveTopologyStatusAction,
-        deleteAssetsAction,
-      ]
-    : [zoomToAction, reverseAction, redrawAction, deleteAssetsAction];
+  return [
+    zoomToAction,
+    reverseAction,
+    redrawAction,
+    changeActiveTopologyStatusAction,
+    deleteAssetsAction,
+  ];
 }
 
 export function GeometryActions({

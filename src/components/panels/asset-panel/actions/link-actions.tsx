@@ -19,7 +19,6 @@ import {
   changeActiveTopologyShortcut,
   useChangeSelectedAssetsActiveTopologyStatus,
 } from "src/commands/change-selected-assets-active-topology-status";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export function useLinkActions(): Action[] {
   const translate = useTranslate();
@@ -31,9 +30,6 @@ export function useLinkActions(): Action[] {
   const selectedWrappedFeatures = useAtomValue(selectedFeaturesAtom);
   const { changeSelectedAssetsActiveTopologyStatus, allActive } =
     useChangeSelectedAssetsActiveTopologyStatus();
-  const isBulkActiveTopologyEnabled = useFeatureFlag(
-    "FLAG_BULK_ACTIVE_TOPOLOGY",
-  );
 
   const onDelete = useCallback(() => {
     deleteSelectedAssets({ source: "toolbar" });
@@ -93,15 +89,13 @@ export function useLinkActions(): Action[] {
     onSelect: onChangeActiveTopology,
   };
 
-  return isBulkActiveTopologyEnabled
-    ? [
-        zoomToAction,
-        reverseAction,
-        redrawAction,
-        changeActiveTopologyActionItem,
-        deleteAssetsAction,
-      ]
-    : [zoomToAction, reverseAction, redrawAction, deleteAssetsAction];
+  return [
+    zoomToAction,
+    reverseAction,
+    redrawAction,
+    changeActiveTopologyActionItem,
+    deleteAssetsAction,
+  ];
 }
 
 export function LinkActions() {

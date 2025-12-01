@@ -25,34 +25,6 @@ const oldGetBindings = (translate: ReturnType<typeof useTranslate>) => ({
   "Command+Shift+S": translate("save"),
   "?": translate("help"),
   "1": translate("select"),
-  "2": translate("junction"),
-  "3": translate("reservoir"),
-  "4": translate("tank"),
-  "5": translate("pipe"),
-  "6": translate("pump"),
-  "7": translate("valve"),
-  Esc: `${translate("exit")} / ${translate("clearSelection")}`,
-  [selectionModeShortcut]: translate("areaSelection.tool"),
-  "Command+a": translate("selectAll"),
-  "Command+z": translate("undo"),
-  "Command+y": translate("redo"),
-  [toggleSidePanelShortcut]: translate("toggleSidePanel"),
-  [toggleNetworkReviewShortcut]: translate("networkReview.toggle"),
-});
-
-const oldGetBindingsWithActiveTopology = (
-  translate: ReturnType<typeof useTranslate>,
-) => ({
-  B: translate("toggleSatellite"),
-  "Shift+Enter": translate("simulate"),
-  [showSimulationSettingsShortcut]: translate("simulationSettings"),
-  "Alt+R": translate("viewReport"),
-  "Alt+N": translate("newProject"),
-  "Command+O": translate("openProject"),
-  "Command+S": translate("save"),
-  "Command+Shift+S": translate("save"),
-  "?": translate("help"),
-  "1": translate("select"),
   [selectionModeShortcut]: translate("areaSelection.tool"),
   "2": translate("junction"),
   "3": translate("reservoir"),
@@ -84,77 +56,6 @@ type ShortcutSection = {
 };
 
 const getBindings = (): ShortcutSection[] => [
-  {
-    group: "keyboardShortcuts.fileManagement",
-    shortcuts: [
-      { binding: "Alt+N", description: "newProject" },
-      { binding: "Command+O", description: "openProject" },
-      { binding: "Command+S", description: "save" },
-      { binding: "Command+Shift+S", description: "saveAs" },
-    ],
-  },
-  {
-    group: "keyboardShortcuts.interface",
-    shortcuts: [
-      { binding: "B", description: "toggleSatellite" },
-      {
-        binding: toggleSidePanelShortcut,
-        description: "toggleSidePanel",
-      },
-      {
-        binding: toggleNetworkReviewShortcut,
-        description: "networkReview.toggle",
-      },
-      { binding: "?", description: "keyboardShortcuts.title" },
-    ],
-  },
-  {
-    group: "keyboardShortcuts.mapTools",
-    shortcuts: [
-      { binding: "1", description: "select" },
-      { binding: "2", description: "junction" },
-      { binding: "3", description: "reservoir" },
-      { binding: "4", description: "tank" },
-      { binding: "5", description: "pipe" },
-      { binding: "6", description: "pump" },
-      { binding: "7", description: "valve" },
-    ],
-  },
-  {
-    group: "keyboardShortcuts.simulation",
-    shortcuts: [
-      { binding: "Shift+Enter", description: "simulate" },
-      {
-        binding: showSimulationSettingsShortcut,
-        description: "simulationSettings",
-      },
-      { binding: "Alt+R", description: "viewReport" },
-    ],
-  },
-  {
-    group: "keyboardShortcuts.editingSelection",
-    shortcuts: [
-      {
-        binding: selectionModeShortcut,
-        description: "areaSelection.tool",
-      },
-      { binding: "Command+a", description: "selectAll" },
-      {
-        binding: changeActiveTopologyShortcut,
-        description: "toggleActiveTopology",
-      },
-      {
-        binding: "Esc",
-        description: ["exit", "clearSelection"],
-      },
-      { binding: "BACKSPACE", description: "delete" },
-      { binding: "Command+z", description: "undo" },
-      { binding: "Command+y", description: "redo" },
-    ],
-  },
-];
-
-const getBindingsWithActiveTopology = (): ShortcutSection[] => [
   {
     group: "keyboardShortcuts.fileManagement",
     shortcuts: [
@@ -228,13 +129,9 @@ const getBindingsWithActiveTopology = (): ShortcutSection[] => [
 export function OldCheatsheetDialog() {
   const translate = useTranslate();
   const isMac = useFeatureFlag("FLAG_MAC");
-  const isBulkActiveTopologyEnabled = useFeatureFlag(
-    "FLAG_BULK_ACTIVE_TOPOLOGY",
-  );
 
-  const BINDINGS = isBulkActiveTopologyEnabled
-    ? oldGetBindingsWithActiveTopology(translate)
-    : oldGetBindings(translate);
+  const BINDINGS = oldGetBindings(translate);
+
   return (
     <>
       <DialogHeader
@@ -263,13 +160,8 @@ export function OldCheatsheetDialog() {
 export function CheatsheetDialog() {
   const translate = useTranslate();
   const isMac = useFeatureFlag("FLAG_MAC");
-  const isBulkActiveTopologyEnabled = useFeatureFlag(
-    "FLAG_BULK_ACTIVE_TOPOLOGY",
-  );
 
-  const BINDINGS = isBulkActiveTopologyEnabled
-    ? getBindingsWithActiveTopology()
-    : getBindings();
+  const BINDINGS = getBindings();
 
   return (
     <DialogContainer size="md">

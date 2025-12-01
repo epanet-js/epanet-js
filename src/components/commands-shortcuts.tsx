@@ -74,7 +74,6 @@ import {
   changeActiveTopologyShortcut,
   useChangeSelectedAssetsActiveTopologyStatus,
 } from "src/commands/change-selected-assets-active-topology-status";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 const IGNORE_ROLES = new Set(["menuitem"]);
 
@@ -102,10 +101,6 @@ export const CommandShortcuts = () => {
   const cycleSelectionMode = useCycleSelectionMode();
   const { changeSelectedAssetsActiveTopologyStatus } =
     useChangeSelectedAssetsActiveTopologyStatus();
-
-  const isBulkActiveTopologyEnabled = useFeatureFlag(
-    "FLAG_BULK_ACTIVE_TOPOLOGY",
-  );
 
   useHotkeys(
     showReportShorcut,
@@ -368,7 +363,6 @@ export const CommandShortcuts = () => {
     },
     [changeSelectedAssetsActiveTopologyStatus],
     "Activate/Deactivate assets",
-    !isBulkActiveTopologyEnabled,
   );
 
   for (const [mode, shortcut] of Object.entries(drawingModeShorcuts)) {

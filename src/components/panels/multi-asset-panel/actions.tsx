@@ -15,7 +15,6 @@ import {
 } from "src/icons";
 import { selectedFeaturesAtom } from "src/state/jotai";
 import { ActionButton, Action } from "../asset-panel/actions/action-button";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export function useMultiAssetActions(): Action[] {
   const translate = useTranslate();
@@ -24,9 +23,6 @@ export function useMultiAssetActions(): Action[] {
   const { changeSelectedAssetsActiveTopologyStatus, allActive } =
     useChangeSelectedAssetsActiveTopologyStatus();
   const selectedWrappedFeatures = useAtomValue(selectedFeaturesAtom);
-  const isBulkActiveTopologyEnabled = useFeatureFlag(
-    "FLAG_BULK_ACTIVE_TOPOLOGY",
-  );
 
   const onDelete = useCallback(() => {
     deleteSelectedAssets({ source: "toolbar" });
@@ -65,9 +61,7 @@ export function useMultiAssetActions(): Action[] {
     onSelect: onChangeActiveTopology,
   };
 
-  return isBulkActiveTopologyEnabled
-    ? [zoomToAction, changeActiveTopologyActionItem, deleteAssetsAction]
-    : [zoomToAction, deleteAssetsAction];
+  return [zoomToAction, changeActiveTopologyActionItem, deleteAssetsAction];
 }
 
 export function MultiAssetActions() {
