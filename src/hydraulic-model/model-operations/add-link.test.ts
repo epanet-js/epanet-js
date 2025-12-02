@@ -188,6 +188,59 @@ describe("addLink", () => {
       expect(pumpToCreate.label).toEqual("PU1");
     });
 
+    it("creates a default curve when adding a pump", () => {
+      const hydraulicModel = HydraulicModelBuilder.with().build();
+      const startNode = hydraulicModel.assetBuilder.buildJunction({
+        coordinates: [10, 10],
+      });
+      const endNode = hydraulicModel.assetBuilder.buildJunction({
+        coordinates: [30, 30],
+      });
+      const link = hydraulicModel.assetBuilder.buildPump({
+        coordinates: [
+          [10, 10],
+          [30, 30],
+        ],
+      });
+
+      const { putCurves } = addLink(hydraulicModel, {
+        startNode,
+        endNode,
+        link,
+      });
+
+      expect(putCurves).toHaveLength(1);
+      expect(putCurves![0]).toEqual({
+        id: String(link.id),
+        type: "pump",
+        points: [{ x: 1, y: 1 }],
+      });
+    });
+
+    it("does not create a curve when adding a pipe", () => {
+      const hydraulicModel = HydraulicModelBuilder.with().build();
+      const startNode = hydraulicModel.assetBuilder.buildJunction({
+        coordinates: [10, 10],
+      });
+      const endNode = hydraulicModel.assetBuilder.buildJunction({
+        coordinates: [30, 30],
+      });
+      const link = hydraulicModel.assetBuilder.buildPipe({
+        coordinates: [
+          [10, 10],
+          [30, 30],
+        ],
+      });
+
+      const { putCurves } = addLink(hydraulicModel, {
+        startNode,
+        endNode,
+        link,
+      });
+
+      expect(putCurves).toBeUndefined();
+    });
+
     it("adds a label to the nodes when missing", () => {
       const hydraulicModel = HydraulicModelBuilder.with().build();
       const startNode = hydraulicModel.assetBuilder.buildJunction({

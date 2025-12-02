@@ -1,6 +1,9 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { PumpCurveTable, PumpCurveDetails } from "./pump-curve-details";
+import {
+  PumpCurveTable,
+  PumpDefinitionDetails,
+} from "./pump-definition-details";
 import { Quantities, presets } from "src/model-metadata/quantities-spec";
 import { CurveId, Curves, ICurve } from "src/hydraulic-model/curves";
 import { buildPump } from "src/__helpers__/hydraulic-model-builder";
@@ -401,7 +404,7 @@ describe("PumpCurveTable", () => {
   });
 });
 
-describe("PumpCurveDetails", () => {
+describe("PumpDefinitionDetails", () => {
   describe("definition type changes", () => {
     describe("changing to power type", () => {
       it("emits onChange with power value when pump has power set", async () => {
@@ -415,7 +418,7 @@ describe("PumpCurveDetails", () => {
         const curve = aCurve([{ x: 50, y: 100 }]);
 
         render(
-          <PumpCurveDetails
+          <PumpDefinitionDetails
             pump={pump}
             curves={aCurvesMap(curve)}
             quantities={quantities}
@@ -443,7 +446,7 @@ describe("PumpCurveDetails", () => {
         const curve = aCurve([{ x: 50, y: 100 }]);
 
         render(
-          <PumpCurveDetails
+          <PumpDefinitionDetails
             pump={pump}
             curves={aCurvesMap(curve)}
             quantities={quantities}
@@ -472,7 +475,7 @@ describe("PumpCurveDetails", () => {
         const curve = aCurve([{ x: 50, y: 100 }]);
 
         render(
-          <PumpCurveDetails
+          <PumpDefinitionDetails
             pump={pump}
             curves={aCurvesMap(curve)}
             quantities={quantities}
@@ -518,7 +521,7 @@ describe("PumpCurveDetails", () => {
         ]);
 
         render(
-          <PumpCurveDetails
+          <PumpDefinitionDetails
             pump={pump}
             curves={aCurvesMap(curve)}
             quantities={quantities}
@@ -552,7 +555,7 @@ describe("PumpCurveDetails", () => {
         const pump = buildPump({ definitionType: "power", power: 50 });
 
         render(
-          <PumpCurveDetails
+          <PumpDefinitionDetails
             pump={pump}
             curves={aCurvesMap()}
             quantities={quantities}
@@ -575,7 +578,7 @@ describe("PumpCurveDetails", () => {
         const pump = buildPump({ definitionType: "power", power: 50 });
 
         render(
-          <PumpCurveDetails
+          <PumpDefinitionDetails
             pump={pump}
             curves={aCurvesMap()}
             quantities={quantities}
@@ -605,7 +608,7 @@ describe("PumpCurveDetails", () => {
         const curve = aCurve([{ x: 50, y: 100 }]);
 
         render(
-          <PumpCurveDetails
+          <PumpDefinitionDetails
             pump={pump}
             curves={aCurvesMap(curve)}
             quantities={quantities}
@@ -639,7 +642,7 @@ describe("PumpCurveDetails", () => {
         ]);
 
         render(
-          <PumpCurveDetails
+          <PumpDefinitionDetails
             pump={pump}
             curves={aCurvesMap(curve)}
             quantities={quantities}
@@ -673,7 +676,7 @@ describe("PumpCurveDetails", () => {
         ]);
 
         render(
-          <PumpCurveDetails
+          <PumpDefinitionDetails
             pump={pump}
             curves={aCurvesMap(curve)}
             quantities={quantities}
@@ -709,7 +712,7 @@ describe("PumpCurveDetails", () => {
         const curve = aCurve([{ x: 50, y: 100 }]);
 
         render(
-          <PumpCurveDetails
+          <PumpDefinitionDetails
             pump={pump}
             curves={aCurvesMap(curve)}
             quantities={quantities}
@@ -748,7 +751,7 @@ describe("PumpCurveDetails", () => {
       curves.set("curve1", initialCurve);
 
       const { rerender } = render(
-        <PumpCurveDetails
+        <PumpDefinitionDetails
           pump={pump}
           curves={curves}
           quantities={quantities}
@@ -763,7 +766,7 @@ describe("PumpCurveDetails", () => {
       curves.set("curve1", updatedCurve);
 
       rerender(
-        <PumpCurveDetails
+        <PumpDefinitionDetails
           pump={pump}
           curves={curves}
           quantities={quantities}
@@ -784,7 +787,7 @@ describe("PumpCurveDetails", () => {
       const curve = aCurve([{ x: 50, y: 100 }]);
 
       const { rerender } = render(
-        <PumpCurveDetails
+        <PumpDefinitionDetails
           pump={pump}
           curves={aCurvesMap(curve)}
           quantities={quantities}
@@ -802,7 +805,7 @@ describe("PumpCurveDetails", () => {
       });
 
       rerender(
-        <PumpCurveDetails
+        <PumpDefinitionDetails
           pump={updatedPump}
           curves={aCurvesMap(curve)}
           quantities={quantities}

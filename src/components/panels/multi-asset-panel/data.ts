@@ -129,90 +129,6 @@ export const computeMultiAssetData = (
   };
 };
 
-export const computeMultiAssetDataWithPumpCurves = (
-  assets: Asset[],
-  quantitiesMetadata: Quantities,
-  hydraulicModel: HydraulicModel,
-): ComputedMultiAssetData => {
-  const counts: AssetCounts = {
-    junction: 0,
-    pipe: 0,
-    pump: 0,
-    valve: 0,
-    reservoir: 0,
-    tank: 0,
-  };
-
-  const statsMaps = {
-    junction: new Map<string, AssetPropertyStats>(),
-    pipe: new Map<string, AssetPropertyStats>(),
-    pump: new Map<string, AssetPropertyStats>(),
-    valve: new Map<string, AssetPropertyStats>(),
-    reservoir: new Map<string, AssetPropertyStats>(),
-    tank: new Map<string, AssetPropertyStats>(),
-  };
-
-  for (const asset of assets) {
-    switch (asset.type) {
-      case "junction":
-        counts.junction++;
-        appendJunctionStats(
-          statsMaps.junction,
-          asset as Junction,
-          quantitiesMetadata,
-          hydraulicModel.customerPointsLookup,
-          hydraulicModel.assets,
-        );
-        break;
-      case "pipe":
-        counts.pipe++;
-        appendPipeStats(
-          statsMaps.pipe,
-          asset as Pipe,
-          quantitiesMetadata,
-          hydraulicModel.customerPointsLookup,
-        );
-        break;
-      case "pump":
-        counts.pump++;
-        appendPumpStatsWithCurves(
-          statsMaps.pump,
-          asset as Pump,
-          quantitiesMetadata,
-        );
-        break;
-      case "valve":
-        counts.valve++;
-        appendValveStats(statsMaps.valve, asset as Valve, quantitiesMetadata);
-        break;
-      case "reservoir":
-        counts.reservoir++;
-        appendReservoirStats(
-          statsMaps.reservoir,
-          asset as Reservoir,
-          quantitiesMetadata,
-        );
-        break;
-      case "tank":
-        counts.tank++;
-        appendTankStats(statsMaps.tank, asset as Tank, quantitiesMetadata);
-        break;
-    }
-  }
-
-  return {
-    data: {
-      junction: buildJunctionSections(statsMaps.junction),
-      pipe: buildPipeSections(statsMaps.pipe),
-      pump: buildPumpSectionsWithPumpCurves(statsMaps.pump),
-      valve: buildValveSections(statsMaps.valve),
-      reservoir: buildReservoirSections(statsMaps.reservoir),
-      tank: buildTankSections(statsMaps.tank),
-    },
-    counts,
-  };
-};
-
 const appendJunctionStats = (
   statsMap: Map<string, AssetPropertyStats>,
   junction: Junction,
@@ -409,33 +325,12 @@ const appendPumpStats = (
   quantitiesMetadata: Quantities,
 ) => {
   updateCategoryStats(statsMap, "isEnabled", pump.isActive ? "yes" : "no");
-  const pumpType = pump.definitionType === "power" ? "power" : "flowVsHead";
-  updateCategoryStats(statsMap, "pumpType", pumpType);
+  updateCategoryStats(statsMap, "pumpType", pump.definitionType);
   updateCategoryStats(statsMap, "initialStatus", "pump." + pump.initialStatus);
 
-  if (pump.power !== null) {
-    updateQuantityStats(statsMap, "power", pump.power, quantitiesMetadata);
-  }
-  if (pump.designFlow !== null) {
-    updateQuantityStats(
-      statsMap,
-      "designFlow",
-      pump.designFlow,
-      quantitiesMetadata,
-    );
-  }
-  if (pump.designHead !== null) {
-    updateQuantityStats(
-      statsMap,
-      "designHead",
-      pump.designHead,
-      quantitiesMetadata,
-    );
-  }
   if (pump.speed !== null) {
     updateQuantityStats(statsMap, "speed", pump.speed, quantitiesMetadata);
   }
-
   if (pump.flow !== null) {
     updateQuantityStats(statsMap, "flow", pump.flow, quantitiesMetadata);
   }
@@ -451,51 +346,6 @@ const appendPumpStats = (
 };
 
 const buildPumpSections = (
-  statsMap: Map<string, AssetPropertyStats>,
-): AssetPropertySections => {
-  return {
-    activeTopology: getStatsForProperties(statsMap, ["isEnabled"]),
-    modelAttributes: getStatsForProperties(statsMap, [
-      "pumpType",
-      "power",
-      "designFlow",
-      "designHead",
-      "speed",
-      "initialStatus",
-    ]),
-    demands: [],
-    simulationResults: getStatsForProperties(statsMap, [
-      "flow",
-      "pumpHead",
-      "pumpStatus",
-    ]),
-  };
-};
-
-const appendPumpStatsWithCurves = (
-  statsMap: Map<string, AssetPropertyStats>,
-  pump: Pump,
-  quantitiesMetadata: Quantities,
-) => {
-  updateCategoryStats(statsMap, "isEnabled", pump.isActive ? "yes" : "no");
-  updateCategoryStats(statsMap, "pumpType", pump.definitionType);
-  updateCategoryStats(statsMap, "initialStatus", "pump." + pump.initialStatus);
-
-  if (pump.flow !== null) {
-    updateQuantityStats(statsMap, "flow", pump.flow, quantitiesMetadata);
-  }
-  if (pump.head !== null) {
-    updateQuantityStats(statsMap, "pumpHead", pump.head, quantitiesMetadata);
-  }
-  if (pump.status !== null) {
-    const statusLabel = pump.statusWarning
-      ? `pump.${pump.status}.${pump.statusWarning}`
-      : "pump." + pump.status;
-    updateCategoryStats(statsMap, "pumpStatus", statusLabel);
-  }
-};
-
-const buildPumpSectionsWithPumpCurves = (
   statsMap: Map<string, AssetPropertyStats>,
 ): AssetPropertySections => {
   return {

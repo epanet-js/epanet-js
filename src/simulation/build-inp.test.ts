@@ -141,11 +141,10 @@ describe("build inp", () => {
         startNodeId: IDS.NODE1,
         endNodeId: IDS.NODE2,
         initialStatus: "on",
-        definitionType: "flow-vs-head",
-        designFlow: 20,
-        designHead: 40,
+        definitionType: "design-point",
         speed: 0.8,
       })
+      .aPumpCurve({ id: String(IDS.PUMP1), points: [{ x: 20, y: 40 }] })
       .build();
 
     const inp = buildInp(hydraulicModel);
@@ -167,11 +166,10 @@ describe("build inp", () => {
         endNodeId: IDS.NODE2,
         initialStatus: "on",
         definitionType: "power",
-        designFlow: 20,
-        designHead: 40,
         speed: 0.7,
         power: 100,
       })
+      .aPumpCurve({ id: String(IDS.PUMP1), points: [{ x: 20, y: 40 }] })
       .build();
 
     const inp = buildInp(hydraulicModel);
@@ -730,6 +728,7 @@ describe("build inp", () => {
           startNodeId: IDS.J1,
           endNodeId: IDS.J2,
           isActive: false,
+          definitionType: "power",
         })
         .aValve(IDS.VALVE1, {
           startNodeId: IDS.J3,
@@ -768,11 +767,10 @@ describe("build inp", () => {
         .aPump(IDS.PUMP1, {
           startNodeId: IDS.J1,
           endNodeId: IDS.J2,
-          definitionType: "flow-vs-head",
-          designFlow: 100,
-          designHead: 50,
+          definitionType: "design-point",
           isActive: false,
         })
+        .aPumpCurve({ id: String(IDS.PUMP1), points: [{ x: 100, y: 50 }] })
         .build();
 
       const inp = buildInp(hydraulicModel, { inactiveAssets: true });

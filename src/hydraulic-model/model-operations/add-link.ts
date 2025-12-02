@@ -1,4 +1,5 @@
 import { NodeAsset, LinkAsset, AssetId, Asset } from "../asset-types";
+import { ICurve } from "../curves";
 import { Pipe } from "../asset-types/pipe";
 import distance from "@turf/distance";
 import { ModelOperation } from "../model-operation";
@@ -69,9 +70,15 @@ export const addLink: ModelOperation<InputData> = (hydraulicModel, data) => {
     hydraulicModel,
   });
 
+  const putCurves: ICurve[] | undefined =
+    linkCopy.type === "pump"
+      ? [{ id: String(linkCopy.id), type: "pump", points: [{ x: 1, y: 1 }] }]
+      : undefined;
+
   return {
     note: `Add ${link.type}`,
     deleteAssets: deleteAssets.length > 0 ? deleteAssets : undefined,
+    putCurves,
     ...removeOverlappingPipes({
       link: linkCopy,
       startNode: startNodeCopy,

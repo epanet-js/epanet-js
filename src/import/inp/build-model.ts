@@ -19,6 +19,8 @@ import { ValveStatus } from "src/hydraulic-model/asset-types/valve";
 import { ParseInpOptions } from "./parse-inp";
 import { AssetId } from "src/hydraulic-model/asset-types/base-asset";
 import { ConsecutiveIdsGenerator } from "src/hydraulic-model/id-generator";
+import { CurvesBuilder } from "./curves-builder";
+import { getPumpCurveType } from "src/hydraulic-model/curves";
 
 export const buildModel = (
   inpData: InpData,
@@ -35,6 +37,12 @@ export const buildModel = (
     headlossFormula: inpData.options.headlossFormula,
     demands: { multiplier: inpData.options.demandMultiplier },
   });
+
+  const curvesBuilder = new CurvesBuilder(
+    inpData.curves,
+    issues,
+    quantities.defaults,
+  );
 
   for (const junctionData of inpData.junctions) {
     addJunction(hydraulicModel, junctionData, { inpData, issues, nodeIds });
@@ -57,7 +65,7 @@ export const buildModel = (
   }
 
   for (const pumpData of inpData.pumps) {
-    addPump(hydraulicModel, pumpData, {
+    addPump(hydraulicModel, pumpData, curvesBuilder, {
       inpData,
       issues,
       nodeIds,
@@ -117,6 +125,8 @@ export const buildModel = (
 
     hydraulicModel.customerPoints.set(id, customerPoint);
   }
+
+  hydraulicModel.curves = curvesBuilder.getValidatedCurves();
 
   return { hydraulicModel, modelMetadata: { quantities } };
 };
@@ -215,6 +225,7 @@ const addTank = (
 const addPump = (
   hydraulicModel: HydraulicModel,
   pumpData: PumpData,
+  curvesBuilder: CurvesBuilder,
   {
     inpData,
     issues,
@@ -238,26 +249,16 @@ const addPump = (
     definitionProps = {
       definitionType: "power",
       power: pumpData.power,
+      curveId: undefined,
     };
   }
 
-  if (pumpData.curveId !== undefined) {
-    const curvePoints = inpData.curves.get(pumpData.curveId) || [];
-
-    if (curvePoints.length > 1) {
-      issues.addUsedSection("[CURVES]");
-    }
-
-    const middleIndex = Math.floor(curvePoints.length / 2);
-    const point = curvePoints[middleIndex];
-
-    if (point) {
-      definitionProps = {
-        definitionType: "flow-vs-head",
-        designFlow: point.x,
-        designHead: point.y,
-      };
-    }
+  if (pumpData.curveId) {
+    const curve = curvesBuilder.getPumpCurve(pumpData.curveId);
+    definitionProps = {
+      definitionType: getPumpCurveType(curve),
+      curveId: curve.id,
+    };
   }
 
   let initialStatus: PumpStatus = "on";

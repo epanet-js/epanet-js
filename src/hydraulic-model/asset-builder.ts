@@ -35,8 +35,6 @@ export type PumpBuildData = {
   coordinates?: Position[];
   connections?: LinkConnections;
   definitionType?: PumpDefintionType;
-  designHead?: number;
-  designFlow?: number;
   power?: number;
   speed?: number;
   curveId?: string;
@@ -206,12 +204,10 @@ export class AssetBuilder {
     ],
     initialStatus = "on",
     connections = nullConnections,
-    definitionType = "flow-vs-head",
-    designHead,
-    designFlow,
+    definitionType = "design-point",
+    curveId,
     power,
     speed = 1,
-    curveId,
     isActive = true,
   }: PumpBuildData = {}) {
     const internalId = id ?? this.idGenerator.newId();
@@ -228,51 +224,9 @@ export class AssetBuilder {
         length: 10,
         initialStatus,
         definitionType,
-        designHead: this.getPumpValue("designHead", designHead),
-        designFlow: this.getPumpValue("designFlow", designFlow),
         power: this.getPumpValue("power", power),
         speed,
-        curveId,
-        isActive,
-      },
-      this.units,
-    );
-  }
-
-  buildPumpWithCurve({
-    id,
-    label,
-    coordinates = [
-      [0, 0],
-      [0, 0],
-    ],
-    initialStatus = "on",
-    connections = nullConnections,
-    designHead,
-    designFlow,
-    power,
-    speed = 1,
-    isActive = true,
-  }: Omit<PumpBuildData, "definitionType" | "curveId"> = {}) {
-    const internalId = id ?? this.idGenerator.newId();
-    return new Pump(
-      internalId,
-      coordinates,
-      {
-        type: "pump",
-        label:
-          label !== undefined
-            ? label
-            : this.labelGenerator.generateFor("pump", internalId),
-        connections,
-        length: 10,
-        initialStatus,
-        definitionType: "design-point",
-        designHead: this.getPumpValue("designHead", designHead),
-        designFlow: this.getPumpValue("designFlow", designFlow),
-        power: this.getPumpValue("power", power),
-        speed,
-        curveId: String(internalId),
+        curveId: curveId || String(internalId),
         isActive,
       },
       this.units,

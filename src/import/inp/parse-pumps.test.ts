@@ -48,12 +48,15 @@ describe("parse pumps", () => {
     expect(hydraulicModel.topology.hasLink(pump.id)).toBeTruthy();
   });
 
-  it("parses a pump with flow vs head type", () => {
+  it("parses a pump with 1-point curve as design-point type", () => {
     const reservoirId = "r1";
     const junctionId = "j1";
     const pumpId = "pu1";
     const curveId = "cu1";
     const anyNumber = 10;
+    const designFlow = 100;
+    const designHead = 200;
+
     const inp = `
     [RESERVOIRS]
     ${reservoirId}\t${anyNumber}
@@ -63,22 +66,67 @@ describe("parse pumps", () => {
     ${pumpId}\t${reservoirId}\t${junctionId}\tHEAD ${curveId}
 
     [COORDINATES]
-    ${reservoirId}\t${10}\t${20}
-    ${junctionId}\t${30}\t${40}
+    ${reservoirId}\t10\t20
+    ${junctionId}\t30\t40
 
     [CURVES]
-    ${curveId}\t10\t20
-    ${curveId}\t100\t200
-    ${curveId}\t1000\t2000
+    ${curveId}\t${designFlow}\t${designHead}
     `;
 
     const { hydraulicModel } = parseInp(inp);
 
     const pump = getByLabel(hydraulicModel.assets, pumpId) as Pump;
     expect(pump.initialStatus).toEqual("on");
-    expect(pump.definitionType).toEqual("flow-vs-head");
-    expect(pump.designFlow).toEqual(100);
-    expect(pump.designHead).toEqual(200);
+    expect(pump.definitionType).toEqual("design-point");
+    expect(pump.curveId).toEqual(curveId.toUpperCase());
+
+    expect(hydraulicModel.curves.has(curveId.toUpperCase())).toBe(true);
+    const curve = hydraulicModel.curves.get(curveId.toUpperCase());
+    expect(curve!.points.length).toEqual(1);
+    expect(curve!.points[0].x).toEqual(designFlow);
+    expect(curve!.points[0].y).toEqual(designHead);
+  });
+
+  it("parses a pump with 3-point curve as standard type", () => {
+    const reservoirId = "r1";
+    const junctionId = "j1";
+    const pumpId = "pu1";
+    const curveId = "cu1";
+    const anyNumber = 10;
+
+    const inp = `
+    [RESERVOIRS]
+    ${reservoirId}\t${anyNumber}
+    [JUNCTIONS]
+    ${junctionId}\t${anyNumber}
+    [PUMPS]
+    ${pumpId}\t${reservoirId}\t${junctionId}\tHEAD ${curveId}
+
+    [COORDINATES]
+    ${reservoirId}\t10\t20
+    ${junctionId}\t30\t40
+
+    [CURVES]
+    ${curveId}\t0\t300
+    ${curveId}\t100\t250
+    ${curveId}\t200\t150
+    `;
+
+    const { hydraulicModel } = parseInp(inp);
+
+    const pump = getByLabel(hydraulicModel.assets, pumpId) as Pump;
+    expect(pump.initialStatus).toEqual("on");
+    expect(pump.definitionType).toEqual("standard");
+    expect(pump.curveId).toEqual(curveId.toUpperCase());
+
+    expect(hydraulicModel.curves.has(curveId.toUpperCase())).toBe(true);
+    const curve = hydraulicModel.curves.get(curveId.toUpperCase());
+    expect(curve?.points).toHaveLength(3);
+    expect(curve!.points).toEqual([
+      { x: 0, y: 300 },
+      { x: 100, y: 250 },
+      { x: 200, y: 150 },
+    ]);
   });
 
   it("can read status from section", () => {
@@ -101,39 +149,15 @@ describe("parse pumps", () => {
     [COORDINATES]
     ${reservoirId}\t${10}\t${20}
     ${junctionId}\t${30}\t${40}
+
+    [CURVES]
+    ${curveId}\t100\t200
     `;
 
     const { hydraulicModel } = parseInp(inp);
 
     const pump = getByLabel(hydraulicModel.assets, pumpId) as Pump;
     expect(pump.initialStatus).toEqual("off");
-  });
-
-  it("can read speed from pump row", () => {
-    const reservoirId = "r1";
-    const junctionId = "j1";
-    const pumpId = "pu1";
-    const anyNumber = 10;
-    const speed = 0.89;
-    const inp = `
-    [RESERVOIRS]
-    ${reservoirId}\t${anyNumber}
-    [JUNCTIONS]
-    ${junctionId}\t${anyNumber}
-    [PUMPS]
-    ${pumpId}\t${reservoirId}\t${junctionId}\tSPEED ${speed}
-
-    [COORDINATES]
-    ${reservoirId}\t${10}\t${20}
-    ${junctionId}\t${30}\t${40}
-    `;
-
-    const { hydraulicModel } = parseInp(inp);
-
-    const pump = getByLabel(hydraulicModel.assets, pumpId) as Pump;
-    expect(pump.initialStatus).toEqual("on");
-    expect(pump.definitionType).toEqual("flow-vs-head");
-    expect(pump.speed).toEqual(speed);
   });
 
   it("overrides speed setting with value from status section", () => {
@@ -147,7 +171,7 @@ describe("parse pumps", () => {
     [JUNCTIONS]
     ${junctionId}\t${anyNumber}
     [PUMPS]
-    ${pumpId}\t${reservoirId}\t${junctionId}\tSPEED 0.8
+    ${pumpId}\t${reservoirId}\t${junctionId}\tSPEED 0.8\tPOWER 10
 
     [STATUS]
     ${pumpId}\t0.7
@@ -175,7 +199,7 @@ describe("parse pumps", () => {
     [JUNCTIONS]
     ${junctionId}\t${anyNumber}
     [PUMPS]
-    ${pumpId}\t${reservoirId}\t${junctionId}\tSPEED 0
+    ${pumpId}\t${reservoirId}\t${junctionId}\tSPEED 0\tPOWER 10
 
     [COORDINATES]
     ${reservoirId}\t${10}\t${20}
@@ -200,7 +224,7 @@ describe("parse pumps", () => {
     [JUNCTIONS]
     ${junctionId}\t${anyNumber}
     [PUMPS]
-    ${pumpId}\t${reservoirId}\t${junctionId}\tSPEED 0.8
+    ${pumpId}\t${reservoirId}\t${junctionId}\tSPEED 0.8\tPOWER 10
 
     [STATUS]
     ${pumpId}\tOPEN
@@ -226,7 +250,7 @@ describe("parse pumps", () => {
     j1\t${anyNumber}
     j2\t${anyNumber}
     [PUMPS]
-    ${pumpId}\tj1\tj2\tSPEED 0.8\tPATTERN PAT_1
+    ${pumpId}\tj1\tj2\tSPEED 0.8\tPATTERN PAT_1\tPOWER 10
 
     [STATUS]
     ${pumpId}\tOPEN
@@ -258,7 +282,7 @@ describe("parse pumps", () => {
     [JUNCTIONS]
     ${junctionId}\t${anyNumber}
     [PUMPS]
-    ${pumpId}\t${reservoirId}\t${junctionId}\tSPEED 0.8
+    ${pumpId}\t${reservoirId}\t${junctionId}\tSPEED 0.8\tPOWER 10
 
     [STATUS]
     ${pumpId}\tCLOSED
@@ -321,15 +345,17 @@ describe("parse pumps", () => {
 
     const pump3 = getByLabel(hydraulicModel.assets, "pu3") as Pump;
     expect(pump3.speed).toEqual(20);
-    expect(pump3.definitionType).toEqual("flow-vs-head");
-    expect(pump3.designFlow).toEqual(10);
-    expect(pump3.designHead).toEqual(20);
+    expect(pump3.definitionType).toEqual("design-point");
+    expect(pump3.curveId).toEqual("CU_1");
+    const pump3Curve = hydraulicModel.curves.get(pump3.curveId!);
+    expect(pump3Curve!.points).toEqual([{ x: 10, y: 20 }]);
 
     const pump4 = getByLabel(hydraulicModel.assets, "pu4") as Pump;
     expect(pump4.speed).toEqual(0.2);
-    expect(pump4.definitionType).toEqual("flow-vs-head");
-    expect(pump4.designFlow).toEqual(10);
-    expect(pump4.designHead).toEqual(20);
+    expect(pump4.definitionType).toEqual("design-point");
+    expect(pump4.curveId).toEqual("CU_1");
+    const pump4Curve = hydraulicModel.curves.get(pump4.curveId!);
+    expect(pump4Curve!.points).toEqual([{ x: 10, y: 20 }]);
 
     const pump5 = getByLabel(hydraulicModel.assets, "pu5") as Pump;
     expect(pump5.speed).toEqual(0.9);
@@ -368,35 +394,11 @@ describe("parse pumps", () => {
     expect(pump1.power).toEqual(10);
 
     const pump2 = getByLabel(hydraulicModel.assets, "pu2") as Pump;
-    expect(pump2.definitionType).toEqual("flow-vs-head");
-    expect(pump2.designFlow).toEqual(10);
-    expect(pump2.designHead).toEqual(20);
+    expect(pump2.definitionType).toEqual("design-point");
+    expect(pump2.curveId).toEqual("CU_1");
     expect(pump2.initialStatus).toEqual("off");
-  });
-
-  it("includes as issue when pump curve has more than one point", () => {
-    const anyNumber = 10;
-    const inp = `
-    [JUNCTIONS]
-    j1\t${anyNumber}
-    j2\t${anyNumber}
-
-    [PUMPS]
-    pu1\tj1\tj2\tHEAD CU_1
-
-    [CURVES]
-    CU_1\t10\t20
-    CU_1\t20\t30
-    CU_1\t30\t40
-
-    [COORDINATES]
-    j1\t${10}\t${20}
-    j2\t${10}\t${20}
-    `;
-
-    const { issues } = parseInp(inp);
-
-    expect(issues?.unsupportedSections?.has("[CURVES]")).toBeTruthy();
+    const pumpCurve = hydraulicModel.curves.get(pump2.curveId!);
+    expect(pumpCurve!.points).toEqual([{ x: 10, y: 20 }]);
   });
 
   it("doesnt include issue when curve is a single point", () => {
@@ -420,5 +422,278 @@ describe("parse pumps", () => {
     const { issues } = parseInp(inp);
 
     expect(issues?.unsupportedSections).toBeUndefined();
+  });
+
+  it("doesnt include issue when curve is a valid 3-point standard curve", () => {
+    const anyNumber = 10;
+    const inp = `
+    [JUNCTIONS]
+    j1\t${anyNumber}
+    j2\t${anyNumber}
+
+    [PUMPS]
+    pu1\tj1\tj2\tHEAD CU_1
+
+    [CURVES]
+    CU_1\t0\t300
+    CU_1\t100\t250
+    CU_1\t200\t150
+
+    [COORDINATES]
+    j1\t${10}\t${20}
+    j2\t${10}\t${20}
+    `;
+
+    const { issues } = parseInp(inp);
+
+    expect(issues?.unsupportedSections).toBeUndefined();
+  });
+
+  it("falls back to design-point mode when curve is invalid (2 points)", () => {
+    const reservoirId = "r1";
+    const junctionId = "j1";
+    const pumpId = "pu1";
+    const curveId = "cu1";
+    const anyNumber = 10;
+
+    const inp = `
+    [RESERVOIRS]
+    ${reservoirId}\t${anyNumber}
+    [JUNCTIONS]
+    ${junctionId}\t${anyNumber}
+    [PUMPS]
+    ${pumpId}\t${reservoirId}\t${junctionId}\tHEAD ${curveId}
+
+    [COORDINATES]
+    ${reservoirId}\t10\t20
+    ${junctionId}\t30\t40
+
+    [CURVES]
+    ${curveId}\t100\t200
+    ${curveId}\t200\t300
+    `;
+
+    const { hydraulicModel, issues } = parseInp(inp);
+
+    const pump = getByLabel(hydraulicModel.assets, pumpId) as Pump;
+    expect(pump.definitionType).toEqual("design-point");
+    expect(pump.curveId).toEqual("CU1");
+
+    const curve = hydraulicModel.curves.get("CU1");
+    expect(curve?.points).toEqual([{ x: 200, y: 300 }]);
+
+    expect(issues?.unsupportedSections?.has("[CURVES]")).toBe(true);
+  });
+
+  it("falls back to design-point mode when 3-point curve has invalid flow values", () => {
+    const reservoirId = "r1";
+    const junctionId = "j1";
+    const pumpId = "pu1";
+    const curveId = "cu1";
+    const anyNumber = 10;
+
+    const inp = `
+    [RESERVOIRS]
+    ${reservoirId}\t${anyNumber}
+    [JUNCTIONS]
+    ${junctionId}\t${anyNumber}
+    [PUMPS]
+    ${pumpId}\t${reservoirId}\t${junctionId}\tHEAD ${curveId}
+
+    [COORDINATES]
+    ${reservoirId}\t10\t20
+    ${junctionId}\t30\t40
+
+    [CURVES]
+    ${curveId}\t50\t300
+    ${curveId}\t100\t250
+    ${curveId}\t200\t150
+    `;
+
+    const { hydraulicModel, issues } = parseInp(inp);
+
+    const pump = getByLabel(hydraulicModel.assets, pumpId) as Pump;
+    expect(pump.definitionType).toEqual("design-point");
+    expect(pump.curveId).toEqual("CU1");
+
+    const curve = hydraulicModel.curves.get("CU1");
+    expect(curve?.points).toEqual([{ x: 100, y: 250 }]);
+
+    expect(issues?.unsupportedSections?.has("[CURVES]")).toBe(true);
+  });
+
+  it("falls back to design-point mode when 3-point curve has non-ascending flow values", () => {
+    const reservoirId = "r1";
+    const junctionId = "j1";
+    const pumpId = "pu1";
+    const curveId = "cu1";
+    const anyNumber = 10;
+
+    const inp = `
+    [RESERVOIRS]
+    ${reservoirId}\t${anyNumber}
+    [JUNCTIONS]
+    ${junctionId}\t${anyNumber}
+    [PUMPS]
+    ${pumpId}\t${reservoirId}\t${junctionId}\tHEAD ${curveId}
+
+    [COORDINATES]
+    ${reservoirId}\t10\t20
+    ${junctionId}\t30\t40
+
+    [CURVES]
+    ${curveId}\t0\t300
+    ${curveId}\t200\t250
+    ${curveId}\t100\t150
+    `;
+
+    const { hydraulicModel, issues } = parseInp(inp);
+
+    const pump = getByLabel(hydraulicModel.assets, pumpId) as Pump;
+    expect(pump.definitionType).toEqual("design-point");
+    expect(pump.curveId).toEqual("CU1");
+
+    const curve = hydraulicModel.curves.get("CU1");
+    expect(curve?.points).toEqual([{ x: 200, y: 250 }]);
+
+    expect(issues?.unsupportedSections?.has("[CURVES]")).toBe(true);
+  });
+
+  it("parses power-based pump correctly", () => {
+    const reservoirId = "r1";
+    const junctionId = "j1";
+    const pumpId = "pu1";
+    const power = 75;
+    const anyNumber = 10;
+
+    const inp = `
+    [RESERVOIRS]
+    ${reservoirId}\t${anyNumber}
+    [JUNCTIONS]
+    ${junctionId}\t${anyNumber}
+    [PUMPS]
+    ${pumpId}\t${reservoirId}\t${junctionId}\tPOWER ${power}
+
+    [COORDINATES]
+    ${reservoirId}\t10\t20
+    ${junctionId}\t30\t40
+    `;
+
+    const { hydraulicModel } = parseInp(inp);
+
+    const pump = getByLabel(hydraulicModel.assets, pumpId) as Pump;
+    expect(pump.definitionType).toEqual("power");
+    expect(pump.power).toEqual(power);
+  });
+
+  it("handles multiple pumps with different curve types", () => {
+    const anyNumber = 10;
+
+    const inp = `
+    [JUNCTIONS]
+    j1\t${anyNumber}
+    j2\t${anyNumber}
+    j3\t${anyNumber}
+    j4\t${anyNumber}
+
+    [PUMPS]
+    pu1\tj1\tj2\tPOWER 50
+    pu2\tj2\tj3\tHEAD cu1
+    pu3\tj3\tj4\tHEAD cu2
+
+    [COORDINATES]
+    j1\t10\t20
+    j2\t20\t20
+    j3\t30\t20
+    j4\t40\t20
+
+    [CURVES]
+    cu1\t100\t200
+    cu2\t0\t300
+    cu2\t100\t250
+    cu2\t200\t150
+    `;
+
+    const { hydraulicModel } = parseInp(inp);
+
+    const pump1 = getByLabel(hydraulicModel.assets, "pu1") as Pump;
+    expect(pump1.definitionType).toEqual("power");
+    expect(pump1.power).toEqual(50);
+
+    const pump2 = getByLabel(hydraulicModel.assets, "pu2") as Pump;
+    expect(pump2.definitionType).toEqual("design-point");
+    expect(pump2.curveId).toEqual("CU1");
+
+    const pump3 = getByLabel(hydraulicModel.assets, "pu3") as Pump;
+    expect(pump3.definitionType).toEqual("standard");
+    expect(pump3.curveId).toEqual("CU2");
+
+    expect(hydraulicModel.curves.size).toEqual(2);
+    expect(hydraulicModel.curves.has("CU1")).toBe(true);
+    expect(hydraulicModel.curves.has("CU2")).toBe(true);
+  });
+
+  it("handles pump status and speed with standard curves", () => {
+    const reservoirId = "r1";
+    const junctionId = "j1";
+    const pumpId = "pu1";
+    const curveId = "cu1";
+    const anyNumber = 10;
+    const speed = 0.85;
+
+    const inp = `
+    [RESERVOIRS]
+    ${reservoirId}\t${anyNumber}
+    [JUNCTIONS]
+    ${junctionId}\t${anyNumber}
+    [PUMPS]
+    ${pumpId}\t${reservoirId}\t${junctionId}\tHEAD ${curveId}\tSPEED ${speed}
+
+    [COORDINATES]
+    ${reservoirId}\t10\t20
+    ${junctionId}\t30\t40
+
+    [CURVES]
+    ${curveId}\t0\t300
+    ${curveId}\t100\t250
+    ${curveId}\t200\t150
+    `;
+
+    const { hydraulicModel } = parseInp(inp);
+
+    const pump = getByLabel(hydraulicModel.assets, pumpId) as Pump;
+    expect(pump.definitionType).toEqual("standard");
+    expect(pump.speed).toEqual(speed);
+    expect(pump.initialStatus).toEqual("on");
+  });
+
+  it("falls back to design-point mode when curve is missing", () => {
+    const reservoirId = "r1";
+    const junctionId = "j1";
+    const pumpId = "pu1";
+    const curveId = "cu1";
+    const anyNumber = 10;
+
+    const inp = `
+    [RESERVOIRS]
+    ${reservoirId}\t${anyNumber}
+    [JUNCTIONS]
+    ${junctionId}\t${anyNumber}
+    [PUMPS]
+    ${pumpId}\t${reservoirId}\t${junctionId}\tHEAD ${curveId}
+
+    [COORDINATES]
+    ${reservoirId}\t10\t20
+    ${junctionId}\t30\t40
+    `;
+
+    const { hydraulicModel } = parseInp(inp);
+
+    const pump = getByLabel(hydraulicModel.assets, pumpId) as Pump;
+    expect(pump.definitionType).toEqual("design-point");
+    expect(pump.curveId).toEqual("CU1");
+
+    const curve = hydraulicModel.curves.get("CU1");
+    expect(curve?.points).toEqual([{ x: 1, y: 1 }]);
   });
 });

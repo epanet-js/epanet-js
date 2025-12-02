@@ -16,7 +16,6 @@ import { Quantities } from "src/model-metadata/quantities-spec";
 import { useTranslate } from "src/hooks/use-translate";
 import { usePersistence } from "src/lib/persistence/context";
 import { useUserTracking } from "src/infra/user-tracking";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { dataAtom } from "src/state/jotai";
 import {
   changePumpCurve,
@@ -30,11 +29,7 @@ import {
   PipeStatus,
   pipeStatuses,
 } from "src/hydraulic-model/asset-types/pipe";
-import {
-  PumpDefintionType,
-  PumpStatus,
-  pumpStatuses,
-} from "src/hydraulic-model/asset-types/pump";
+import { PumpStatus, pumpStatuses } from "src/hydraulic-model/asset-types/pump";
 import {
   ValveKind,
   ValveStatus,
@@ -49,7 +44,10 @@ import {
   ConnectedCustomersRow,
 } from "./ui-components";
 import { Section } from "src/components/form/fields";
-import { PumpCurveDetails, PumpDefinitionData } from "./pump-curve-details";
+import {
+  PumpDefinitionDetails,
+  PumpDefinitionData,
+} from "./pump-definition-details";
 import { Curves } from "src/hydraulic-model/curves";
 
 type OnPropertyChange = (
@@ -133,25 +131,6 @@ export function AssetPanel({
     [hydraulicModel, asset.id, asset.type, transact, userTracking],
   );
 
-  const handleDefinitionTypeChange = useCallback(
-    (newType: PumpDefintionType, oldType: PumpDefintionType) => {
-      const moment = changeProperty(hydraulicModel, {
-        assetIds: [asset.id],
-        property: "definitionType",
-        value: newType,
-      });
-      transact(moment);
-      userTracking.capture({
-        name: "assetDefinitionType.edited",
-        type: asset.type,
-        property: "definitionType",
-        newType: newType,
-        oldType: oldType,
-      });
-    },
-    [hydraulicModel, asset.id, asset.type, transact, userTracking],
-  );
-
   const handleValveKindChange = useCallback(
     (newType: ValveKind, oldType: ValveKind) => {
       const moment = changeProperty(hydraulicModel, {
@@ -193,7 +172,7 @@ export function AssetPanel({
     [hydraulicModel, asset.id, asset.type, transact, userTracking],
   );
 
-  const handleChangePumpCurve = useCallback(
+  const handleChangePumpDefinition = useCallback(
     (data: PumpDefinitionData) => {
       const moment = changePumpCurve(hydraulicModel, {
         pumpId: asset.id,
@@ -201,12 +180,13 @@ export function AssetPanel({
       });
       transact(moment);
       userTracking.capture({
-        name: "pumpType.edited",
-        definitionType: data.type,
-        pointsCount: data.type === "power" ? 0 : data.points.length,
+        name: "assetDefinitionType.edited",
+        type: asset.type,
+        property: "definitionType",
+        newType: data.type,
       });
     },
-    [asset.id, hydraulicModel, transact, userTracking],
+    [asset.id, asset.type, hydraulicModel, transact, userTracking],
   );
 
   switch (asset.type) {
@@ -242,9 +222,8 @@ export function AssetPanel({
           curves={hydraulicModel.curves}
           onPropertyChange={handlePropertyChange}
           onStatusChange={handleStatusChange}
-          onDefinitionTypeChange={handleDefinitionTypeChange}
           onActiveTopologyStatusChange={handleActiveTopologyStatusChange}
-          onPumpCurveChange={handleChangePumpCurve}
+          onDefinitionChange={handleChangePumpDefinition}
           quantitiesMetadata={quantitiesMetadata}
           {...getLinkNodes(hydraulicModel.assets, pump)}
         />
@@ -846,9 +825,8 @@ const PumpEditor = ({
   endNode,
   onStatusChange,
   onPropertyChange,
-  onDefinitionTypeChange,
   onActiveTopologyStatusChange,
-  onPumpCurveChange,
+  onDefinitionChange,
   quantitiesMetadata,
   curves,
 }: {
@@ -857,37 +835,17 @@ const PumpEditor = ({
   endNode: NodeAsset | null;
   onPropertyChange: OnPropertyChange;
   onStatusChange: OnStatusChange<PumpStatus>;
-  onDefinitionTypeChange: (
-    newType: PumpDefintionType,
-    oldType: PumpDefintionType,
-  ) => void;
   onActiveTopologyStatusChange: (
     property: string,
     newValue: boolean,
     oldValue: boolean,
   ) => void;
-  onPumpCurveChange: (data: PumpDefinitionData) => void;
+  onDefinitionChange: (data: PumpDefinitionData) => void;
   quantitiesMetadata: Quantities;
   curves: Curves;
 }) => {
   const translate = useTranslate();
   const statusText = translate(pumpStatusLabel(pump));
-  const isPumpCurvesOn = useFeatureFlag("FLAG_PUMP_STANDARD_CURVES");
-
-  const definitionOptions = useMemo(() => {
-    return (
-      isPumpCurvesOn
-        ? [
-            { label: translate("constantPower"), value: "power" },
-            { label: translate("designPoint"), value: "design-point" },
-            { label: translate("standardCurve"), value: "standard" },
-          ]
-        : [
-            { label: translate("constantPower"), value: "power" },
-            { label: translate("flowVsHead"), value: "flow-vs-head" },
-          ]
-    ) as { label: string; value: PumpDefintionType }[];
-  }, [translate, isPumpCurvesOn]);
 
   const statusOptions = useMemo(() => {
     return pumpStatuses.map((status) => ({
@@ -895,14 +853,6 @@ const PumpEditor = ({
       value: status,
     }));
   }, [translate]);
-
-  const handleDefinitionTypeChange = (
-    name: string,
-    newValue: PumpDefintionType,
-    oldValue: PumpDefintionType,
-  ) => {
-    onDefinitionTypeChange(newValue, oldValue);
-  };
 
   const handleStatusChange = (
     name: string,
@@ -927,50 +877,12 @@ const PumpEditor = ({
         />
       </Section>
       <Section title={translate("modelAttributes")}>
-        {isPumpCurvesOn ? (
-          <PumpCurveDetails
-            pump={pump}
-            curves={curves}
-            quantities={quantitiesMetadata}
-            onChange={onPumpCurveChange}
-          />
-        ) : (
-          <>
-            <SelectRow
-              name="pumpType"
-              selected={pump.definitionType}
-              options={definitionOptions}
-              onChange={handleDefinitionTypeChange}
-            />
-            {pump.definitionType === "power" && (
-              <QuantityRow
-                name="power"
-                value={pump.power}
-                unit={quantitiesMetadata.getUnit("power")}
-                decimals={quantitiesMetadata.getDecimals("power")}
-                onChange={onPropertyChange}
-              />
-            )}
-            {pump.definitionType === "flow-vs-head" && (
-              <>
-                <QuantityRow
-                  name="designFlow"
-                  value={pump.designFlow}
-                  unit={quantitiesMetadata.getUnit("flow")}
-                  decimals={quantitiesMetadata.getDecimals("flow")}
-                  onChange={onPropertyChange}
-                />
-                <QuantityRow
-                  name="designHead"
-                  value={pump.designHead}
-                  unit={quantitiesMetadata.getUnit("head")}
-                  decimals={quantitiesMetadata.getDecimals("head")}
-                  onChange={onPropertyChange}
-                />
-              </>
-            )}
-          </>
-        )}
+        <PumpDefinitionDetails
+          pump={pump}
+          curves={curves}
+          quantities={quantitiesMetadata}
+          onChange={onDefinitionChange}
+        />
         <QuantityRow
           name="speed"
           value={pump.speed}

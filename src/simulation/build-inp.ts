@@ -461,18 +461,7 @@ const appendPump = (
   const [startId, endId] = getLinkConnectionIds(hydraulicModel, idMap, pump);
   const commentPrefix = !pump.isActive ? ";" : "";
 
-  if (pump.definitionType === "flow-vs-head") {
-    sections.pumps.push(
-      commentPrefix +
-        [linkId, startId, endId, `HEAD ${pump.id}`, `SPEED ${pump.speed}`].join(
-          "\t",
-        ),
-    );
-    sections.curves.push(
-      commentPrefix +
-        [pump.id, String(pump.designFlow), String(pump.designHead)].join("\t"),
-    );
-  } else if (
+  if (
     pump.definitionType === "design-point" ||
     pump.definitionType === "standard"
   ) {

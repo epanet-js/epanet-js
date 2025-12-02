@@ -46,6 +46,7 @@ import {
   CustomerPoints,
   initializeCustomerPoints,
 } from "src/hydraulic-model/customer-points";
+import { Curves, ICurve } from "src/hydraulic-model/curves";
 
 export const buildPipe = (
   data: PipeBuildData = {},
@@ -145,6 +146,7 @@ export class HydraulicModelBuilder {
   private demands: Demands;
   private customerPointsMap: CustomerPoints;
   private idGenerator: WritableIdGenerator;
+  private curves: Curves;
 
   static with(quantitiesSpec: AssetQuantitiesSpec = presets.LPS) {
     return new HydraulicModelBuilder(quantitiesSpec);
@@ -170,6 +172,7 @@ export class HydraulicModelBuilder {
     this.topology = new Topology();
     this.demands = nullDemands;
     this.headlossFormulaValue = "H-W";
+    this.curves = new Map();
   }
 
   aNode(id: number, coordinates: Position = [0, 0]) {
@@ -431,6 +434,11 @@ export class HydraulicModelBuilder {
     return this;
   }
 
+  aPumpCurve(curve: Omit<ICurve, "type">) {
+    this.curves.set(curve.id, { ...curve, type: "pump" });
+    return this;
+  }
+
   build(): HydraulicModel {
     const lookup = new CustomerPointsLookup();
 
@@ -461,7 +469,7 @@ export class HydraulicModelBuilder {
       units: this.units,
       demands: this.demands,
       headlossFormula: this.headlossFormulaValue,
-      curves: new Map(),
+      curves: this.curves,
       epsTiming: nullEPSTiming(),
     };
   }

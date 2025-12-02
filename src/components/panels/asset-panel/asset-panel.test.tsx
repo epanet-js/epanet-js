@@ -394,11 +394,10 @@ describe("AssetPanel", () => {
           label: "MY_PUMP",
           connections: [IDS.j1, IDS.j2],
           initialStatus: "on",
-          definitionType: "flow-vs-head",
-          designFlow: 20,
-          designHead: 10,
+          definitionType: "design-point",
           speed: 0.8,
         })
+        .aPumpCurve({ id: String(IDS.PU1), points: [{ x: 20, y: 10 }] })
         .build();
       const store = setInitialState({
         hydraulicModel,
@@ -409,8 +408,6 @@ describe("AssetPanel", () => {
 
       expect(screen.getByText("MY_PUMP")).toBeInTheDocument();
       expect(screen.getByText("Pump")).toBeInTheDocument();
-      expectPropertyDisplayed("design flow (l/s)", "20");
-      expectPropertyDisplayed("design head (m)", "10");
       expectPropertyDisplayed("speed", "0.8");
     });
 
@@ -450,11 +447,10 @@ describe("AssetPanel", () => {
           label: "MY_PUMP",
           connections: [IDS.j1, IDS.j2],
           initialStatus: "on",
-          definitionType: "flow-vs-head",
-          designFlow: 20,
-          designHead: 40,
+          definitionType: "design-point",
           power: 100,
         })
+        .aPumpCurve({ id: String(IDS.PU1), points: [{ x: 20, y: 40 }] })
         .build();
       const store = setInitialState({
         hydraulicModel,
@@ -463,8 +459,6 @@ describe("AssetPanel", () => {
       const user = userEvent.setup();
 
       renderComponent(store);
-
-      expectPropertyDisplayed("design flow (l/s)", "20");
 
       const selector = screen.getByRole("combobox", {
         name: /pump type/i,
@@ -513,7 +507,7 @@ describe("AssetPanel", () => {
 
       await user.click(selector);
 
-      await user.click(screen.getByText(/off/i));
+      await user.click(screen.getByText(/^off$/i));
 
       const { hydraulicModel: updatedHydraulicModel } = store.get(dataAtom);
       expect(

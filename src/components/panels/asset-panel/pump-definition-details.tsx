@@ -22,7 +22,7 @@ interface MaybePumpCurvePoint {
   head?: number;
 }
 
-export const PumpCurveDetails = ({
+export const PumpDefinitionDetails = ({
   pump,
   curves,
   quantities,
@@ -37,7 +37,7 @@ export const PumpCurveDetails = ({
   const componentKey = `${getCurveHash(curve)}|${pump.definitionType}`;
 
   return (
-    <PumpCurveDetailsInner
+    <PumpDefinitionDetailsInner
       key={componentKey}
       pump={pump}
       curve={curve}
@@ -47,7 +47,7 @@ export const PumpCurveDetails = ({
   );
 };
 
-const PumpCurveDetailsInner = ({
+const PumpDefinitionDetailsInner = ({
   pump,
   curve,
   quantities,
@@ -79,8 +79,6 @@ const PumpCurveDetailsInner = ({
       newValue: PumpDefintionType,
       oldValue: PumpDefintionType,
     ) => {
-      if (newValue === "flow-vs-head") return;
-
       setLocalDefinitionType(newValue);
 
       if (newValue === "power") {
@@ -113,10 +111,7 @@ const PumpCurveDetailsInner = ({
 
   const handleCurvePointsChange = useCallback(
     (points: PumpCurvePoint[]) => {
-      if (
-        localDefinitionType === "flow-vs-head" ||
-        localDefinitionType === "power"
-      ) {
+      if (localDefinitionType === "power") {
         return;
       }
       const curveId = pump.curveId || String(pump.id);

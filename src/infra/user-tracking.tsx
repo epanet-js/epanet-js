@@ -94,7 +94,7 @@ type AssetDefinitionTypeEdited = {
   type: Asset["type"];
   property: string;
   newType: string | null;
-  oldType: string | null;
+  oldType?: string | null;
 };
 
 type PumpCurveEdited = {

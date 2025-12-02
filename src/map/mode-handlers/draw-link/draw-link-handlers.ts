@@ -21,8 +21,6 @@ import { nextTick } from "process";
 import { AssetId, LinkAsset, NodeAsset } from "src/hydraulic-model";
 import { useUserTracking } from "src/infra/user-tracking";
 import { LinkType } from "src/hydraulic-model";
-import { ICurve } from "src/hydraulic-model/curves";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useElevations } from "src/map/elevations/use-elevations";
 import { LngLat, MapMouseEvent, MapTouchEvent } from "mapbox-gl";
 import { useSelection } from "src/selection";
@@ -153,7 +151,6 @@ export function useDrawLinkHandlers({
   const { isShiftHeld, isControlHeld } = useKeyboardState();
   const setCursor = useSetAtom(cursorStyleAtom);
   const pipeDrawingDefaults = useAtomValue(pipeDrawingDefaultsAtom);
-  const isPumpCurvesOn = useFeatureFlag("FLAG_PUMP_STANDARD_CURVES");
 
   const createLinkForType = (coordinates: Position[] = []) => {
     const startProperties = {
@@ -172,9 +169,10 @@ export function useDrawLinkHandlers({
           }),
         });
       case "pump":
-        return isPumpCurvesOn
-          ? assetBuilder.buildPumpWithCurve(startProperties)
-          : assetBuilder.buildPump(startProperties);
+        return assetBuilder.buildPump({
+          ...startProperties,
+          definitionType: "design-point",
+        });
       case "valve":
         return assetBuilder.buildValve(startProperties);
     }
@@ -317,15 +315,6 @@ export function useDrawLinkHandlers({
       startPipeId,
       endPipeId,
     });
-
-    if (isPumpCurvesOn && link.type === "pump") {
-      const defaultCurve: ICurve = {
-        id: String(link.id),
-        type: "pump",
-        points: [{ x: 1, y: 1 }],
-      };
-      moment.putCurves = [defaultCurve];
-    }
 
     userTracking.capture({ name: "asset.created", type: link.type });
     transact(moment);
