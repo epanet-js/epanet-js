@@ -1,5 +1,4 @@
 import { Position } from "geojson";
-import { nullEPSTiming } from "src/hydraulic-model";
 import {
   HeadlossFormula,
   PipeStatus,
@@ -107,10 +106,10 @@ export type InpData = {
     demandMultiplier: number;
   };
   times: {
-    duration: number;
-    hydraulicTimestep: number;
-    reportTimestep: number;
-    patternTimestep: number;
+    duration?: number;
+    hydraulicTimestep?: number;
+    reportTimestep?: number;
+    patternTimestep?: number;
   };
   nodeIds: NodeIds;
 };
@@ -171,7 +170,7 @@ export const nullInpData = (): InpData => {
     status: new ItemData(),
     curves: new ItemData(),
     options: { units: "GPM", headlossFormula: "H-W", demandMultiplier: 1 },
-    times: nullEPSTiming(),
+    times: {},
     nodeIds: new NodeIds(),
   };
 };

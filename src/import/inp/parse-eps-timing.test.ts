@@ -110,13 +110,13 @@ describe("parse EPS timing", () => {
     expect(hydraulicModel.epsTiming.patternTimestep).toEqual(3600);
   });
 
-  it("defaults to zero for missing time settings", () => {
+  it("leaves time settings undefined when not specified", () => {
     const { hydraulicModel } = parseInpWithEPS(baseInp);
 
-    expect(hydraulicModel.epsTiming.duration).toEqual(0);
-    expect(hydraulicModel.epsTiming.hydraulicTimestep).toEqual(0);
-    expect(hydraulicModel.epsTiming.reportTimestep).toEqual(0);
-    expect(hydraulicModel.epsTiming.patternTimestep).toEqual(0);
+    expect(hydraulicModel.epsTiming.duration).toBeUndefined();
+    expect(hydraulicModel.epsTiming.hydraulicTimestep).toBeUndefined();
+    expect(hydraulicModel.epsTiming.reportTimestep).toBeUndefined();
+    expect(hydraulicModel.epsTiming.patternTimestep).toBeUndefined();
   });
 
   it("reports EPS issue when DURATION is non-zero", () => {
@@ -172,5 +172,33 @@ describe("parse EPS timing", () => {
     const { issues } = parseInpWithEPS(inp);
 
     expect(issues?.nonDefaultTimes?.has("STATISTIC")).toBe(true);
+  });
+
+  it("sets simulationMode to 'eps' when DURATION is non-zero", () => {
+    const inp = `${baseInp}
+    [TIMES]
+    DURATION\t24:00
+    `;
+
+    const { hydraulicModel } = parseInpWithEPS(inp);
+
+    expect(hydraulicModel.simulationMode).toEqual("eps");
+  });
+
+  it("sets simulationMode to 'steadyState' when DURATION is zero", () => {
+    const inp = `${baseInp}
+    [TIMES]
+    DURATION\t0:00
+    `;
+
+    const { hydraulicModel } = parseInpWithEPS(inp);
+
+    expect(hydraulicModel.simulationMode).toEqual("steadyState");
+  });
+
+  it("sets simulationMode to 'steadyState' when DURATION is not specified", () => {
+    const { hydraulicModel } = parseInpWithEPS(baseInp);
+
+    expect(hydraulicModel.simulationMode).toEqual("steadyState");
   });
 });
