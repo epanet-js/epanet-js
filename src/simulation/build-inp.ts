@@ -7,6 +7,7 @@ import {
   Reservoir,
   Pump,
   Tank,
+  EPSTiming,
 } from "src/hydraulic-model";
 import {
   CustomerPoint,
@@ -37,6 +38,47 @@ export type EpanetUnitSystem =
 export const defaultAccuracy = 0.001;
 export const defaultUnbalanced = "CONTINUE 10";
 export const defaultCustomersPatternId = "epanetjs_customers";
+
+const formatSecondsToTime = (seconds: number): string => {
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = seconds % 60;
+
+  if (secs > 0) {
+    return `${hours}:${String(minutes).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+  }
+  if (minutes > 0) {
+    return `${hours}:${String(minutes).padStart(2, "0")}`;
+  }
+  return `${hours}`;
+};
+
+const buildTimesSection = (eps: boolean, epsTiming: EPSTiming): string[] => {
+  const section = ["[TIMES]"];
+
+  const duration = eps ? (epsTiming.duration ?? 0) : 0;
+  section.push(`Duration\t${formatSecondsToTime(duration)}`);
+
+  if (epsTiming.hydraulicTimestep !== undefined) {
+    section.push(
+      `Hydraulic Timestep\t${formatSecondsToTime(epsTiming.hydraulicTimestep)}`,
+    );
+  }
+
+  if (epsTiming.reportTimestep !== undefined) {
+    section.push(
+      `Report Timestep\t${formatSecondsToTime(epsTiming.reportTimestep)}`,
+    );
+  }
+
+  if (epsTiming.patternTimestep !== undefined) {
+    section.push(
+      `Pattern Timestep\t${formatSecondsToTime(epsTiming.patternTimestep)}`,
+    );
+  }
+
+  return section;
+};
 
 const chooseUnitSystem = (units: HydraulicModel["units"]): EpanetUnitSystem => {
   const flowUnit = units.flow;
@@ -134,6 +176,7 @@ type BuildOptions = {
   customerDemands?: boolean;
   customerPoints?: boolean;
   inactiveAssets?: boolean;
+  eps?: boolean;
 };
 
 export const buildInp = withDebugInstrumentation(
@@ -145,12 +188,12 @@ export const buildInp = withDebugInstrumentation(
       customerDemands: false,
       customerPoints: false,
       inactiveAssets: false,
+      eps: false,
     };
     const opts = { ...defaultOptions, ...options };
     const idMap = new EpanetIds({ strategy: opts.labelIds ? "label" : "id" });
     const units = chooseUnitSystem(hydraulicModel.units);
     const headlossFormula = hydraulicModel.headlossFormula;
-    const oneStep = 0;
     let customerDemandPatternUsed = false;
     const sections: InpSections = {
       junctions: ["[JUNCTIONS]", ";Id\tElevation"],
@@ -166,7 +209,7 @@ export const buildInp = withDebugInstrumentation(
       pumps: ["[PUMPS]", ";Id\tStart\tEnd\tProperties"],
       valves: ["[VALVES]", ";Id\tStart\tEnd\tDiameter\tSetting\tMinorLoss"],
       demands: ["[DEMANDS]", ";Id\tDemand\tPattern\tCategory"],
-      times: ["[TIMES]", `Duration\t${oneStep}`],
+      times: buildTimesSection(opts.eps, hydraulicModel.epsTiming),
       report: ["[REPORT]", "Status\tFULL", "Summary\tNo", "Page\t0"],
       status: ["[STATUS]", ";Id\tStatus"],
       curves: ["[CURVES]", ";Id\tX\tY"],

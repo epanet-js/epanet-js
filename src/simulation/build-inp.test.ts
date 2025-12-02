@@ -620,6 +620,88 @@ describe("build inp", () => {
     });
   });
 
+  describe("eps timing", () => {
+    it("outputs Duration 0 but keeps other timing parameters when eps option is false", () => {
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .eps({ duration: 86400, hydraulicTimestep: 3600 })
+        .build();
+
+      const inp = buildInp(hydraulicModel);
+
+      expect(inp).toContain("[TIMES]");
+      expect(inp).toContain("Duration\t0");
+      expect(inp).not.toContain("Duration\t24");
+      expect(inp).toContain("Hydraulic Timestep\t1");
+    });
+
+    it("outputs all timing parameters when eps option is true", () => {
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .eps({
+          duration: 86400,
+          hydraulicTimestep: 3600,
+          reportTimestep: 1800,
+          patternTimestep: 7200,
+        })
+        .build();
+
+      const inp = buildInp(hydraulicModel, { eps: true });
+
+      expect(inp).toContain("[TIMES]");
+      expect(inp).toContain("Duration\t24");
+      expect(inp).toContain("Hydraulic Timestep\t1");
+      expect(inp).toContain("Report Timestep\t0:30");
+      expect(inp).toContain("Pattern Timestep\t2");
+    });
+
+    it("only includes defined timing parameters", () => {
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .eps({
+          duration: 43200,
+          hydraulicTimestep: 1800,
+        })
+        .build();
+
+      const inp = buildInp(hydraulicModel, { eps: true });
+
+      expect(inp).toContain("Duration\t12");
+      expect(inp).toContain("Hydraulic Timestep\t0:30");
+      expect(inp).not.toContain("Report Timestep");
+      expect(inp).not.toContain("Pattern Timestep");
+    });
+
+    it("formats time with seconds when not divisible by 60", () => {
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .eps({
+          duration: 3661,
+        })
+        .build();
+
+      const inp = buildInp(hydraulicModel, { eps: true });
+
+      expect(inp).toContain("Duration\t1:01:01");
+    });
+
+    it("outputs Duration 0 when eps is true but duration is 0", () => {
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .eps({
+          duration: 0,
+        })
+        .build();
+
+      const inp = buildInp(hydraulicModel, { eps: true });
+
+      expect(inp).toContain("Duration\t0");
+    });
+
+    it("outputs Duration 0 when eps is true but duration is undefined", () => {
+      const hydraulicModel = HydraulicModelBuilder.with().eps({}).build();
+
+      const inp = buildInp(hydraulicModel, { eps: true });
+
+      expect(inp).toContain("Duration\t0");
+    });
+  });
+
   describe("inactive assets", () => {
     it("excludes inactive assets when inactiveAssets is 'exclude' (default)", () => {
       const IDS = { J1: 1, J2: 2, J3: 3, P1: 4 };

@@ -6,6 +6,7 @@ import { runSimulation as run } from "src/simulation";
 import { attachSimulation } from "src/hydraulic-model";
 import { useDrawingMode } from "./set-drawing-mode";
 import { Mode } from "src/state/mode";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export const runSimulationShortcut = "shift+enter";
 
@@ -15,12 +16,14 @@ export const useRunSimulation = () => {
   const { hydraulicModel } = useAtomValue(dataAtom);
   const setData = useSetAtom(dataAtom);
   const setDrawingMode = useDrawingMode();
+  const isEPSEnabled = useFeatureFlag("FLAG_EPS");
 
   const runSimulation = useCallback(async () => {
     setDrawingMode(Mode.NONE);
     setSimulationState((prev) => ({ ...prev, status: "running" }));
     const inp = buildInp(hydraulicModel, {
       customerDemands: true,
+      eps: isEPSEnabled && hydraulicModel.simulationMode === "eps",
     });
     const start = performance.now();
     setDialogState({ type: "loading" });
@@ -50,6 +53,7 @@ export const useRunSimulation = () => {
     setSimulationState,
     setData,
     setDialogState,
+    isEPSEnabled,
   ]);
 
   return runSimulation;

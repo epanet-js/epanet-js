@@ -54,6 +54,7 @@ export const useSaveInp = ({
             customerDemands: true,
             customerPoints: true,
             inactiveAssets: true,
+            eps: true,
           });
           const inpBlob = new Blob([inp], { type: "text/plain" });
 
