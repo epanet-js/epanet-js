@@ -16,7 +16,6 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { SimulationSettingsDialog } from "./dialogs/simulation-settings";
 import { LoadingDialog } from "./dialog";
 import { WelcomeDialog } from "./dialogs/welcome";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 const OpenInpDialog = dynamic<{
   modal: dialogState.OpenInpDialogState;
@@ -141,16 +140,6 @@ const AlertInpOutputDialog = dynamic<{
   },
 );
 
-const OldCheatsheetDialog = dynamic<Record<string, never>>(
-  () =>
-    import("src/components/dialogs/cheatsheet").then(
-      (r) => r.OldCheatsheetDialog,
-    ),
-  {
-    loading: () => <Loading />,
-  },
-);
-
 const CheatsheetDialog = dynamic<Record<string, never>>(
   () =>
     import("src/components/dialogs/cheatsheet").then((r) => r.CheatsheetDialog),
@@ -226,7 +215,6 @@ const ImportCustomerPointsWarningDialog = dynamic<{
 export const Dialogs = memo(function Dialogs() {
   const [dialog, setDialogState] = useAtom(dialogAtom);
   const userTracking = useUserTracking();
-  const isKeyboardShorcuts = useFeatureFlag("FLAG_KEYBOARD_SHORTCUTS");
 
   const onClose = useCallback(() => {
     setDialogState(null);
@@ -321,9 +309,7 @@ export const Dialogs = memo(function Dialogs() {
     .with({ type: "invalidFilesError" }, (modal) => (
       <InvalidFilesErrorDialog modal={modal} onClose={onClose} />
     ))
-    .with({ type: "cheatsheet" }, () =>
-      isKeyboardShorcuts ? <CheatsheetDialog /> : <OldCheatsheetDialog />,
-    )
+    .with({ type: "cheatsheet" }, () => <CheatsheetDialog />)
     .with({ type: "createNew" }, () => <CreateNewDialog onClose={onClose} />)
     .with({ type: "inpIssues" }, ({ issues }) => (
       <InpIssuesDialog issues={issues} onClose={onClose} />
