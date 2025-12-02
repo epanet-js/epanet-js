@@ -106,6 +106,22 @@ export class MomentLog {
     return result;
   }
 
+  getDeltasFrom(fromPointer: number): Moment[] {
+    const result = [];
+
+    if (this.pointer >= fromPointer) {
+      for (let i = fromPointer + 1; i <= this.pointer; i++) {
+        result.push(this.deltas[i].forward);
+      }
+    } else {
+      for (let i = fromPointer; i > this.pointer; i--) {
+        result.push(this.deltas[i].reverse);
+      }
+    }
+
+    return result;
+  }
+
   *[Symbol.iterator]() {
     for (const [position, action] of this.deltas.entries()) {
       const offset = this.pointer - Number(position);

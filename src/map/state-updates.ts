@@ -64,6 +64,8 @@ const SELECTION_LAYERS: LayerId[] = [
   "selected-icons",
 ];
 
+const FEATURE_STATE_THRESHOLD = 500;
+
 const getAssetIdsInMoments = (moments: Moment[]): Set<AssetId> => {
   const assetIds = new Set<AssetId>();
   moments.forEach((moment) => {
@@ -202,6 +204,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   } = useAtomValue(dataAtom);
   const lastHiddenFeatures = useRef<Set<AssetId>>(new Set([]));
   const previousMapStateRef = useRef<MapState>(nullMapState);
+  const consolidatedAtPointerRef = useRef<number>(-1);
   const customerPointsOverlayRef = useRef<CustomerPointsOverlay>([]);
   const selectionDeckLayersRef = useRef<CustomerPointsOverlay>([]);
   const ephemeralDeckLayersRef = useRef<CustomerPointsOverlay>([]);
@@ -270,6 +273,10 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
             quantities,
             translateUnit,
           );
+
+          if (hasNewImport && isMapLagFixOn) {
+            consolidatedAtPointerRef.current = -1;
+          }
         }
 
         if (
@@ -278,18 +285,29 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           hasNewSymbology ||
           (hasNewSimulation && mapState.simulation.status !== "running")
         ) {
-          const editedAssetIds = await updateEditionsSource(
-            map,
-            momentLog,
-            assets,
-            mapState.symbology,
-            quantities,
-            translateUnit,
-          );
-
           if (isMapLagFixOn) {
-            updateImportedSourceVisibilityWithFix(map, editedAssetIds);
+            const { newPointer, editedAssetIds } =
+              await updateSourcesWithConsolidation(
+                map,
+                momentLog,
+                consolidatedAtPointerRef.current,
+                assets,
+                mapState.symbology,
+                quantities,
+                translateUnit,
+              );
+            consolidatedAtPointerRef.current = newPointer;
+            lastHiddenFeatures.current = editedAssetIds;
           } else {
+            const editedAssetIds = await updateEditionsSource(
+              map,
+              momentLog,
+              assets,
+              mapState.symbology,
+              quantities,
+              translateUnit,
+            );
+
             const newHiddenFeatures = updateImportedSourceVisibility(
               map,
               lastHiddenFeatures.current,
@@ -598,7 +616,7 @@ const updateImportedSourceVisibility = withDebugInstrumentation(
 
 const updateImportedSourceVisibilityWithFix = withDebugInstrumentation(
   (map: MapEngine, editedAssetIds: Set<AssetId>): void => {
-    map.clearFeatureState("imported-features", "hidden");
+    map.clearFeatureState("imported-features");
 
     for (const assetId of editedAssetIds) {
       map.hideFeature("imported-features", assetId);
@@ -606,6 +624,98 @@ const updateImportedSourceVisibilityWithFix = withDebugInstrumentation(
   },
   { name: "MAP_STATE:UPDATE_VISIBILITIES", maxDurationMs: 100 },
 );
+
+const consolidateImportedSource = withDebugInstrumentation(
+  async (
+    map: MapEngine,
+    assets: AssetsMap,
+    symbology: SymbologySpec,
+    quantities: Quantities,
+    translateUnit: (unit: Unit) => string,
+  ): Promise<void> => {
+    const features = buildOptimizedAssetsSource(
+      assets,
+      symbology,
+      quantities,
+      translateUnit,
+    );
+    await map.setSource("imported-features", features);
+    await map.setSource("features", []);
+
+    map.clearFeatureState("imported-features");
+  },
+  { name: "MAP_STATE:CONSOLIDATE", maxDurationMs: 10000 },
+);
+
+const updateDeltaSource = withDebugInstrumentation(
+  async (
+    map: MapEngine,
+    assets: AssetsMap,
+    editedAssetIds: Set<AssetId>,
+    symbology: SymbologySpec,
+    quantities: Quantities,
+    translateUnit: (unit: Unit) => string,
+  ): Promise<void> => {
+    const editedAssets = filterAssets(assets, editedAssetIds);
+    const features = buildOptimizedAssetsSource(
+      editedAssets,
+      symbology,
+      quantities,
+      translateUnit,
+    );
+    await map.setSource("features", features);
+  },
+  { name: "MAP_STATE:UPDATE_DELTA_SOURCE", maxDurationMs: 250 },
+);
+
+const updateSourcesWithConsolidation = async (
+  map: MapEngine,
+  momentLog: MomentLog,
+  consolidatedAtPointer: number,
+  assets: AssetsMap,
+  symbology: SymbologySpec,
+  quantities: Quantities,
+  translateUnit: (unit: Unit) => string,
+): Promise<{ newPointer: number; editedAssetIds: Set<AssetId> }> => {
+  const currentPointer = momentLog.getPointer();
+
+  const deltasSinceConsolidation = momentLog.getDeltasFrom(
+    consolidatedAtPointer,
+  );
+  const editedSinceConsolidation = getAssetIdsInMoments(
+    deltasSinceConsolidation,
+  );
+
+  const shouldConsolidate =
+    editedSinceConsolidation.size > FEATURE_STATE_THRESHOLD;
+
+  if (shouldConsolidate) {
+    await consolidateImportedSource(
+      map,
+      assets,
+      symbology,
+      quantities,
+      translateUnit,
+    );
+    return { newPointer: currentPointer, editedAssetIds: new Set() };
+  }
+
+  await updateDeltaSource(
+    map,
+    assets,
+    editedSinceConsolidation,
+    symbology,
+    quantities,
+    translateUnit,
+  );
+
+  updateImportedSourceVisibilityWithFix(map, editedSinceConsolidation);
+
+  return {
+    newPointer: consolidatedAtPointer,
+    editedAssetIds: editedSinceConsolidation,
+  };
+};
 
 const updateEditionsVisibility = withDebugInstrumentation(
   (
