@@ -7,6 +7,7 @@ import { HeadlossFormula } from "./asset-types/pipe";
 import { ConsecutiveIdsGenerator } from "./id-generator";
 import { LabelManager } from "./label-manager";
 import { Demands, nullDemands } from "./demands";
+import { EPSTiming, nullEPSTiming } from "./eps-timing";
 import { CustomerPoints, initializeCustomerPoints } from "./customer-points";
 import { CustomerPointsLookup } from "./customer-points-lookup";
 import { AssetIndex } from "./asset-index";
@@ -26,6 +27,7 @@ export type HydraulicModel = {
   headlossFormula: HeadlossFormula;
   labelManager: LabelManager;
   curves: Curves;
+  epsTiming: EPSTiming;
 };
 
 export { AssetsMap };
@@ -35,11 +37,13 @@ export const initializeHydraulicModel = ({
   defaults,
   headlossFormula = "H-W",
   demands = nullDemands,
+  epsTiming = nullEPSTiming(),
 }: {
   units: UnitsSpec;
   defaults: DefaultQuantities;
   headlossFormula?: HeadlossFormula;
   demands?: Demands;
+  epsTiming?: EPSTiming;
 }) => {
   const labelManager = new LabelManager();
   const idGenerator = new ConsecutiveIdsGenerator();
@@ -57,6 +61,7 @@ export const initializeHydraulicModel = ({
     labelManager,
     headlossFormula,
     curves: new Map(),
+    epsTiming,
   };
 };
 

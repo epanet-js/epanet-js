@@ -13,6 +13,7 @@ import {
   NodeAsset,
   AssetId,
   HeadlossFormula,
+  nullEPSTiming,
 } from "src/hydraulic-model";
 import { AssetIndex } from "src/hydraulic-model/asset-index";
 import { CustomerPointsLookup } from "src/hydraulic-model/customer-points-lookup";
@@ -461,6 +462,7 @@ export class HydraulicModelBuilder {
       demands: this.demands,
       headlossFormula: this.headlossFormulaValue,
       curves: new Map(),
+      epsTiming: nullEPSTiming(),
     };
   }
 
