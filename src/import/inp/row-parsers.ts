@@ -310,26 +310,90 @@ export const parseVertex: RowParser = ({ trimmedRow, inpData }) => {
   inpData.vertices.set(linkId, vertices);
 };
 
-export const parseTimeSetting: RowParser = ({ trimmedRow, issues }) => {
-  const setting = readSetting(trimmedRow, {
-    DURATION: "0 SEC",
-    "PATTERN START": "0 SEC",
-  });
+const supportedTimeSettings = {
+  DURATION: "0",
+  "HYDRAULIC TIMESTEP": "0",
+  "REPORT TIMESTEP": "0",
+  "PATTERN TIMESTEP": "0",
+};
+
+const unsupportedTimeSettings = [
+  "QUALITY TIMESTEP",
+  "RULE TIMESTEP",
+  "PATTERN START",
+  "REPORT START",
+  "START CLOCKTIME",
+  "STATISTIC",
+];
+
+export const parseTimeSetting: RowParser = ({
+  trimmedRow,
+  inpData,
+  issues,
+}) => {
+  const upperRow = trimmedRow.toUpperCase();
+  for (const unsupported of unsupportedTimeSettings) {
+    if (upperRow.startsWith(unsupported)) {
+      issues.addUsedTimeSetting(unsupported, "not supported");
+      return;
+    }
+  }
+
+  const setting = readSetting(trimmedRow, supportedTimeSettings);
   if (!setting) return;
 
+  const seconds = parseTimeToSeconds(setting.value as string);
+
   if (setting.name === "DURATION") {
-    const [value] = readValues(setting.value as string);
-    if (parseInt(value) !== 0) {
+    inpData.times.duration = seconds;
+    if (seconds !== 0) {
       issues.addEPS();
-      issues.addUsedTimeSetting("DURATION", setting.defaultValue);
     }
   }
-  if (setting.name === "PATTERN START") {
-    const [value] = readValues(setting.value as string);
-    if (parseInt(value) !== 0) {
-      issues.addUsedTimeSetting(setting.name, setting.defaultValue);
+  if (setting.name === "HYDRAULIC TIMESTEP") {
+    inpData.times.hydraulicTimestep = seconds;
+  }
+  if (setting.name === "REPORT TIMESTEP") {
+    inpData.times.reportTimestep = seconds;
+  }
+  if (setting.name === "PATTERN TIMESTEP") {
+    inpData.times.patternTimestep = seconds;
+  }
+};
+
+const parseTimeToSeconds = (timeStr: string): number => {
+  const trimmed = timeStr.trim().toUpperCase();
+
+  if (trimmed.includes(":")) {
+    const parts = trimmed.split(":");
+    if (parts.length === 2) {
+      const hours = parseInt(parts[0], 10) || 0;
+      const minutes = parseInt(parts[1], 10) || 0;
+      return hours * 3600 + minutes * 60;
+    }
+    if (parts.length === 3) {
+      const hours = parseInt(parts[0], 10) || 0;
+      const minutes = parseInt(parts[1], 10) || 0;
+      const seconds = parseInt(parts[2], 10) || 0;
+      return hours * 3600 + minutes * 60 + seconds;
     }
   }
+
+  const numericMatch = trimmed.match(/^(\d+(?:\.\d+)?)\s*(.*)$/);
+  if (numericMatch) {
+    const value = parseFloat(numericMatch[1]);
+    const unit = numericMatch[2];
+
+    if (unit.startsWith("SEC") || unit === "S") return value;
+    if (unit.startsWith("MIN") || unit === "M") return value * 60;
+    if (unit.startsWith("HOUR") || unit === "H" || unit === "HR")
+      return value * 3600;
+    if (unit.startsWith("DAY") || unit === "D") return value * 86400;
+
+    return value * 3600;
+  }
+
+  return 0;
 };
 
 export const parseOption: RowParser = ({

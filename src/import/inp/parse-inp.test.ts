@@ -230,7 +230,7 @@ describe("Parse inp", () => {
     expect(issues).toBeNull();
   });
 
-  it("says when inp contains invalid duration settigs", () => {
+  it("says when inp contains unsupported time settings", () => {
     const inp = `
     [TIMES]
     Duration\t20
@@ -240,10 +240,7 @@ describe("Parse inp", () => {
     const { issues } = parseInp(inp);
 
     expect(issues!.extendedPeriodSimulation).toEqual(true);
-    expect([...issues!.nonDefaultTimes!.keys()]).toEqual([
-      "DURATION",
-      "PATTERN START",
-    ]);
+    expect([...issues!.nonDefaultTimes!.keys()]).toEqual(["PATTERN START"]);
   });
 
   it("says when coordinates are missing", () => {
@@ -361,7 +358,7 @@ describe("Parse inp", () => {
 
     [TIMES]
     Duration\t0
-    Pattern Start\t0 SEC
+    Pattern Timestep\t0
  `;
     const { issues } = parseInp(inp);
 

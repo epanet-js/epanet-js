@@ -10,12 +10,13 @@ import { OpenInpDialogState, dialogAtom } from "src/state/dialog";
 
 import { AckDialogAction } from "src/components/dialog";
 import { Loading } from "../elements";
-import { parseInp } from "src/import/inp";
+import { parseInp, parseInpWithEPS } from "src/import/inp";
 import { usePersistence } from "src/lib/persistence/context";
 import { captureError } from "src/infra/error-tracking";
 import { useSetAtom } from "jotai";
 import { fileInfoAtom } from "src/state/jotai";
 import { ErrorIcon } from "src/icons";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export type OnNext = (arg0: ConvertResult | null) => void;
 
@@ -36,6 +37,7 @@ export function OpenInpDialog({
   const rep = usePersistence();
   const transactImport = rep.useTransactImport();
   const setFileInfo = useSetAtom(fileInfoAtom);
+  const isEPSOn = useFeatureFlag("FLAG_EPS");
 
   const importInp = useCallback(async () => {
     try {
@@ -46,10 +48,10 @@ export function OpenInpDialog({
 
       const arrayBuffer = await file.arrayBuffer();
       const content = new TextDecoder().decode(arrayBuffer);
-      const { hydraulicModel, modelMetadata, issues, isMadeByApp } = parseInp(
-        content,
-        { customerPoints: true, inactiveAssets: true },
-      );
+      const parseOptions = { customerPoints: true, inactiveAssets: true };
+      const { hydraulicModel, modelMetadata, issues, isMadeByApp } = isEPSOn
+        ? parseInpWithEPS(content, parseOptions)
+        : parseInp(content, parseOptions);
       if (
         !issues ||
         (!issues.nodesMissingCoordinates &&
@@ -86,7 +88,15 @@ export function OpenInpDialog({
       captureError(error as Error);
       setError(true);
     }
-  }, [file, map?.map, onClose, transactImport, setFileInfo, setDialogState]);
+  }, [
+    file,
+    map?.map,
+    onClose,
+    transactImport,
+    setFileInfo,
+    setDialogState,
+    isEPSOn,
+  ]);
 
   useEffect(
     function onRender() {
