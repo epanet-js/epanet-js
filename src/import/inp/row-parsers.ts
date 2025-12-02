@@ -310,14 +310,36 @@ export const parseVertex: RowParser = ({ trimmedRow, inpData }) => {
   inpData.vertices.set(linkId, vertices);
 };
 
-const supportedTimeSettings = {
+export const parseTimeSetting: RowParser = ({ trimmedRow, issues }) => {
+  const setting = readSetting(trimmedRow, {
+    DURATION: "0 SEC",
+    "PATTERN START": "0 SEC",
+  });
+  if (!setting) return;
+
+  if (setting.name === "DURATION") {
+    const [value] = readValues(setting.value as string);
+    if (parseInt(value) !== 0) {
+      issues.addEPS();
+      issues.addUsedTimeSetting("DURATION", setting.defaultValue);
+    }
+  }
+  if (setting.name === "PATTERN START") {
+    const [value] = readValues(setting.value as string);
+    if (parseInt(value) !== 0) {
+      issues.addUsedTimeSetting(setting.name, setting.defaultValue);
+    }
+  }
+};
+
+const supportedTimeSettingsEPS = {
   DURATION: "0",
   "HYDRAULIC TIMESTEP": "0",
   "REPORT TIMESTEP": "0",
   "PATTERN TIMESTEP": "0",
 };
 
-const unsupportedTimeSettings = [
+const unsupportedTimeSettingsEPS = [
   "QUALITY TIMESTEP",
   "RULE TIMESTEP",
   "PATTERN START",
@@ -326,20 +348,20 @@ const unsupportedTimeSettings = [
   "STATISTIC",
 ];
 
-export const parseTimeSetting: RowParser = ({
+export const parseTimeSettingEPS: RowParser = ({
   trimmedRow,
   inpData,
   issues,
 }) => {
   const upperRow = trimmedRow.toUpperCase();
-  for (const unsupported of unsupportedTimeSettings) {
+  for (const unsupported of unsupportedTimeSettingsEPS) {
     if (upperRow.startsWith(unsupported)) {
       issues.addUsedTimeSetting(unsupported, "not supported");
       return;
     }
   }
 
-  const setting = readSetting(trimmedRow, supportedTimeSettings);
+  const setting = readSetting(trimmedRow, supportedTimeSettingsEPS);
   if (!setting) return;
 
   const seconds = parseTimeToSeconds(setting.value as string);

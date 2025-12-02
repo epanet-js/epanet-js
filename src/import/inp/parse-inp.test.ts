@@ -240,7 +240,10 @@ describe("Parse inp", () => {
     const { issues } = parseInp(inp);
 
     expect(issues!.extendedPeriodSimulation).toEqual(true);
-    expect([...issues!.nonDefaultTimes!.keys()]).toEqual(["PATTERN START"]);
+    expect([...issues!.nonDefaultTimes!.keys()]).toEqual([
+      "DURATION",
+      "PATTERN START",
+    ]);
   });
 
   it("says when coordinates are missing", () => {
