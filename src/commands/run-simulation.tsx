@@ -1,6 +1,7 @@
 import { useAtomValue, useSetAtom } from "jotai";
 import { useCallback } from "react";
 import { buildInp } from "src/simulation/build-inp";
+import { buildInpEPS } from "src/simulation/build-inp-eps";
 import { dataAtom, dialogAtom, simulationAtom } from "src/state/jotai";
 import { runSimulation as run } from "src/simulation";
 import { attachSimulation } from "src/hydraulic-model";
@@ -21,10 +22,9 @@ export const useRunSimulation = () => {
   const runSimulation = useCallback(async () => {
     setDrawingMode(Mode.NONE);
     setSimulationState((prev) => ({ ...prev, status: "running" }));
-    const inp = buildInp(hydraulicModel, {
-      customerDemands: true,
-      eps: isEPSEnabled && hydraulicModel.simulationMode === "eps",
-    });
+    const inp = isEPSEnabled
+      ? buildInpEPS(hydraulicModel, { customerDemands: true })
+      : buildInp(hydraulicModel, { customerDemands: true });
     const start = performance.now();
     setDialogState({ type: "loading" });
     const { report, status, results } = await run(inp);

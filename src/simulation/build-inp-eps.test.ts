@@ -1,8 +1,8 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
-import { buildInp } from "./build-inp";
+import { buildInpEPS } from "./build-inp-eps";
 import { presets } from "src/model-metadata/quantities-spec";
 
-describe("build inp", () => {
+describe("build inp EPS", () => {
   it("adds reservoirs", () => {
     const IDS = { R1: 1, R2: 2 };
     const hydraulicModel = HydraulicModelBuilder.with()
@@ -14,7 +14,7 @@ describe("build inp", () => {
       })
       .build();
 
-    const inp = buildInp(hydraulicModel);
+    const inp = buildInpEPS(hydraulicModel);
 
     expect(inp).toContain("[RESERVOIRS]");
     expect(inp).toContain("1\t10");
@@ -34,7 +34,7 @@ describe("build inp", () => {
       })
       .build();
 
-    const inp = buildInp(hydraulicModel);
+    const inp = buildInpEPS(hydraulicModel);
 
     expect(inp).toContain("[JUNCTIONS]");
     expect(inp).toContain("1\t10");
@@ -68,7 +68,7 @@ describe("build inp", () => {
       })
       .build();
 
-    const inp = buildInp(hydraulicModel);
+    const inp = buildInpEPS(hydraulicModel);
 
     expect(inp).toContain("[PIPES]");
     expect(inp).toContain("4\t1\t2\t10\t100\t1\t0\tOpen");
@@ -90,7 +90,7 @@ describe("build inp", () => {
       })
       .build();
 
-    const inp = buildInp(hydraulicModel);
+    const inp = buildInpEPS(hydraulicModel);
 
     expect(inp).toContain("[PIPES]");
     expect(inp).toContain("3\t1\t2\t15\t150\t1.5\t0\tCV");
@@ -122,7 +122,7 @@ describe("build inp", () => {
       })
       .build();
 
-    const inp = buildInp(hydraulicModel);
+    const inp = buildInpEPS(hydraulicModel);
 
     expect(inp).toContain("[VALVES]");
     expect(inp).toContain("4\t1\t2\t20\tTCV\t10\t0.1");
@@ -147,7 +147,7 @@ describe("build inp", () => {
       .aPumpCurve({ id: String(IDS.PUMP1), points: [{ x: 20, y: 40 }] })
       .build();
 
-    const inp = buildInp(hydraulicModel);
+    const inp = buildInpEPS(hydraulicModel);
 
     expect(inp).toContain("[PUMPS]");
     expect(inp).toContain("4\t1\t2\tHEAD 4\tSPEED 0.8");
@@ -172,7 +172,7 @@ describe("build inp", () => {
       .aPumpCurve({ id: String(IDS.PUMP1), points: [{ x: 20, y: 40 }] })
       .build();
 
-    const inp = buildInp(hydraulicModel);
+    const inp = buildInpEPS(hydraulicModel);
 
     expect(inp).toContain("[PUMPS]");
     expect(inp).toContain("4\t1\t2\tPOWER 100\tSPEED 0.7");
@@ -221,7 +221,7 @@ describe("build inp", () => {
       })
       .build();
 
-    const inp = buildInp(hydraulicModel);
+    const inp = buildInpEPS(hydraulicModel);
 
     expect(inp).toContain("[PUMPS]");
     expect(inp).toContain("5\t1\t2\tPOWER 10\tSPEED 0.7");
@@ -238,7 +238,7 @@ describe("build inp", () => {
       .demandMultiplier(10)
       .build();
 
-    const inp = buildInp(hydraulicModel);
+    const inp = buildInpEPS(hydraulicModel);
 
     expect(inp).toContain("[TIMES]");
     expect(inp).toContain("Duration\t0");
@@ -261,7 +261,7 @@ describe("build inp", () => {
   it("includes visualization settings for epanet", () => {
     const hydraulicModel = HydraulicModelBuilder.with().build();
 
-    const inp = buildInp(hydraulicModel, {
+    const inp = buildInpEPS(hydraulicModel, {
       geolocation: true,
     });
 
@@ -274,7 +274,7 @@ describe("build inp", () => {
       .headlossFormula("D-W")
       .build();
 
-    const inp = buildInp(hydraulicModel);
+    const inp = buildInpEPS(hydraulicModel);
 
     expect(inp).toContain("Headloss\tD-W");
   });
@@ -282,7 +282,7 @@ describe("build inp", () => {
   it("detects units based on the flow units of the model", () => {
     const hydraulicModel = HydraulicModelBuilder.with(presets.GPM).build();
 
-    const inp = buildInp(hydraulicModel);
+    const inp = buildInpEPS(hydraulicModel);
 
     expect(inp).toContain("Units\tGPM");
   });
@@ -315,11 +315,11 @@ describe("build inp", () => {
       })
       .build();
 
-    const without = buildInp(hydraulicModel);
+    const without = buildInpEPS(hydraulicModel);
     expect(without).not.toContain("[COORDINATES]");
     expect(without).not.toContain("[VERTICES]");
 
-    const inp = buildInp(hydraulicModel, {
+    const inp = buildInpEPS(hydraulicModel, {
       geolocation: true,
     });
 
@@ -341,7 +341,7 @@ describe("build inp", () => {
       .aJunction(IDS.JUNCTION1, { coordinates: [10, 1] })
       .build();
 
-    const inp = buildInp(hydraulicModel, {
+    const inp = buildInpEPS(hydraulicModel, {
       madeBy: true,
     });
 
@@ -373,7 +373,7 @@ describe("build inp", () => {
       })
       .build();
 
-    const inp = buildInp(hydraulicModel, {
+    const inp = buildInpEPS(hydraulicModel, {
       geolocation: true,
     });
 
@@ -404,7 +404,7 @@ describe("build inp", () => {
         })
         .build();
 
-      const inp = buildInp(hydraulicModel, { customerDemands: true });
+      const inp = buildInpEPS(hydraulicModel, { customerDemands: true });
 
       expect(inp).toContain("[DEMANDS]");
       expect(inp).toContain("1\t50");
@@ -431,7 +431,7 @@ describe("build inp", () => {
         })
         .build();
 
-      const inp = buildInp(hydraulicModel, { customerDemands: false });
+      const inp = buildInpEPS(hydraulicModel, { customerDemands: false });
 
       expect(inp).toContain("[DEMANDS]");
       expect(inp).toContain("1\t50");
@@ -458,7 +458,7 @@ describe("build inp", () => {
         })
         .build();
 
-      const inp = buildInp(hydraulicModel, { customerDemands: true });
+      const inp = buildInpEPS(hydraulicModel, { customerDemands: true });
 
       expect(inp).toContain("[DEMANDS]");
       expect(inp).toContain("1\t50");
@@ -491,7 +491,7 @@ describe("build inp", () => {
         })
         .build();
 
-      const inp = buildInp(hydraulicModel, { customerDemands: true });
+      const inp = buildInpEPS(hydraulicModel, { customerDemands: true });
 
       expect(inp).toContain("[DEMANDS]");
       expect(inp).toContain("1\t50");
@@ -526,7 +526,7 @@ describe("build inp", () => {
         })
         .build();
 
-      const inp = buildInp(hydraulicModel, { customerPoints: true });
+      const inp = buildInpEPS(hydraulicModel, { customerPoints: true });
 
       expect(inp).toContain(";[CUSTOMERS]");
       expect(inp).toContain(
@@ -570,7 +570,7 @@ describe("build inp", () => {
         })
         .build();
 
-      const inp = buildInp(hydraulicModel, {
+      const inp = buildInpEPS(hydraulicModel, {
         customerPoints: true,
         labelIds: true,
       });
@@ -584,7 +584,7 @@ describe("build inp", () => {
         .aJunction(IDS.J1, { elevation: 10 })
         .build();
 
-      const inp = buildInp(hydraulicModel, { customerPoints: true });
+      const inp = buildInpEPS(hydraulicModel, { customerPoints: true });
 
       expect(inp).not.toContain(";[CUSTOMERS]");
     });
@@ -599,7 +599,7 @@ describe("build inp", () => {
         })
         .build();
 
-      const inp = buildInp(hydraulicModel, { customerPoints: false });
+      const inp = buildInpEPS(hydraulicModel, { customerPoints: false });
 
       expect(inp).not.toContain(";[CUSTOMERS]");
     });
@@ -614,24 +614,118 @@ describe("build inp", () => {
         })
         .build();
 
-      const inp = buildInp(hydraulicModel);
+      const inp = buildInpEPS(hydraulicModel);
 
       expect(inp).not.toContain(";[CUSTOMERS]");
     });
   });
 
   describe("times section", () => {
-    it("always outputs Duration 0 and no other timing parameters", () => {
+    it("outputs duration from epsTiming", () => {
       const hydraulicModel = HydraulicModelBuilder.with()
-        .eps({ duration: 86400, hydraulicTimestep: 3600 })
+        .eps({ duration: 86400 }) // 24 hours
         .build();
 
-      const inp = buildInp(hydraulicModel);
+      const inp = buildInpEPS(hydraulicModel);
+
+      expect(inp).toContain("[TIMES]");
+      expect(inp).toContain("Duration\t24");
+    });
+
+    it("outputs hydraulic timestep when defined", () => {
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .eps({ duration: 86400, hydraulicTimestep: 3600 }) // 1 hour timestep
+        .build();
+
+      const inp = buildInpEPS(hydraulicModel);
+
+      expect(inp).toContain("[TIMES]");
+      expect(inp).toContain("Duration\t24");
+      expect(inp).toContain("Hydraulic Timestep\t1");
+    });
+
+    it("outputs report timestep when defined", () => {
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .eps({ duration: 86400, reportTimestep: 7200 }) // 2 hour timestep
+        .build();
+
+      const inp = buildInpEPS(hydraulicModel);
+
+      expect(inp).toContain("[TIMES]");
+      expect(inp).toContain("Report Timestep\t2");
+    });
+
+    it("outputs pattern timestep when defined", () => {
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .eps({ duration: 86400, patternTimestep: 10800 }) // 3 hour timestep
+        .build();
+
+      const inp = buildInpEPS(hydraulicModel);
+
+      expect(inp).toContain("[TIMES]");
+      expect(inp).toContain("Pattern Timestep\t3");
+    });
+
+    it("formats time with minutes when not on the hour", () => {
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .eps({ duration: 5400 }) // 1 hour 30 minutes
+        .build();
+
+      const inp = buildInpEPS(hydraulicModel);
+
+      expect(inp).toContain("Duration\t1:30");
+    });
+
+    it("formats time with seconds when not on the minute", () => {
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .eps({ duration: 3723 }) // 1 hour 2 minutes 3 seconds
+        .build();
+
+      const inp = buildInpEPS(hydraulicModel);
+
+      expect(inp).toContain("Duration\t1:02:03");
+    });
+
+    it("formats time as hours only when on exact hours", () => {
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .eps({ duration: 172800 }) // 48 hours
+        .build();
+
+      const inp = buildInpEPS(hydraulicModel);
+
+      expect(inp).toContain("Duration\t48");
+      expect(inp).not.toContain("Duration\t48:");
+    });
+
+    it("outputs all timing parameters when all are defined", () => {
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .eps({
+          duration: 86400, // 24 hours
+          hydraulicTimestep: 3600, // 1 hour
+          reportTimestep: 7200, // 2 hours
+          patternTimestep: 10800, // 3 hours
+        })
+        .build();
+
+      const inp = buildInpEPS(hydraulicModel);
+
+      expect(inp).toContain("[TIMES]");
+      expect(inp).toContain("Duration\t24");
+      expect(inp).toContain("Hydraulic Timestep\t1");
+      expect(inp).toContain("Report Timestep\t2");
+      expect(inp).toContain("Pattern Timestep\t3");
+    });
+
+    it("outputs Duration 0 when no epsTiming is configured", () => {
+      const hydraulicModel = HydraulicModelBuilder.with().build();
+
+      const inp = buildInpEPS(hydraulicModel);
 
       expect(inp).toContain("[TIMES]");
       expect(inp).toContain("Duration\t0");
-      expect(inp).not.toContain("Duration\t24");
       expect(inp).not.toContain("Hydraulic Timestep");
+      expect(inp).not.toContain("Report Timestep");
+      expect(inp).not.toContain("Pattern Timestep");
     });
   });
 
@@ -649,7 +743,7 @@ describe("build inp", () => {
         })
         .build();
 
-      const inp = buildInp(hydraulicModel);
+      const inp = buildInpEPS(hydraulicModel);
 
       expect(inp).toContain("[JUNCTIONS]");
       expect(inp).toContain("1\t10");
@@ -672,7 +766,7 @@ describe("build inp", () => {
         })
         .build();
 
-      const inp = buildInp(hydraulicModel, { inactiveAssets: true });
+      const inp = buildInpEPS(hydraulicModel, { inactiveAssets: true });
 
       expect(inp).toContain("[JUNCTIONS]");
       expect(inp).toContain("1\t10");
@@ -708,7 +802,7 @@ describe("build inp", () => {
         })
         .build();
 
-      const inp = buildInp(hydraulicModel, {
+      const inp = buildInpEPS(hydraulicModel, {
         geolocation: true,
         inactiveAssets: true,
       });
@@ -752,7 +846,7 @@ describe("build inp", () => {
         })
         .build();
 
-      const inp = buildInp(hydraulicModel, { inactiveAssets: true });
+      const inp = buildInpEPS(hydraulicModel, { inactiveAssets: true });
 
       expect(inp).toContain(";1\t100");
       expect(inp).toContain(";2\t200");
@@ -767,7 +861,7 @@ describe("build inp", () => {
         .aJunction(IDS.J2, { elevation: 20, baseDemand: 75, isActive: false })
         .build();
 
-      const inp = buildInp(hydraulicModel, { inactiveAssets: true });
+      const inp = buildInpEPS(hydraulicModel, { inactiveAssets: true });
 
       expect(inp).toContain("[DEMANDS]");
       expect(inp).toContain("1\t50");
@@ -788,7 +882,7 @@ describe("build inp", () => {
         .aPumpCurve({ id: String(IDS.PUMP1), points: [{ x: 100, y: 50 }] })
         .build();
 
-      const inp = buildInp(hydraulicModel, { inactiveAssets: true });
+      const inp = buildInpEPS(hydraulicModel, { inactiveAssets: true });
 
       expect(inp).toContain(";3\t1\t2\tHEAD 3\tSPEED 1");
       expect(inp).toContain(";3\t100\t50");
