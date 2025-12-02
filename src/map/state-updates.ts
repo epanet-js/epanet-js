@@ -52,6 +52,7 @@ import {
 import { CustomerPoints } from "src/hydraulic-model/customer-points";
 import { DEFAULT_ZOOM } from "./map-engine";
 import { junctionsSymbologyFilterExpression } from "./layers/junctions";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 const SELECTION_LAYERS: LayerId[] = [
   "selected-pipes",
@@ -192,6 +193,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const momentLog = useAtomValue(momentLogAtom);
   const mapState = useAtomValue(mapStateAtom);
   const setMapLoading = useSetAtom(mapLoadingAtom);
+  const isMapLagFixOn = useFeatureFlag("FLAG_MAP_LAG_FIX");
 
   const assets = useAtomValue(assetsAtom);
   const {
@@ -284,13 +286,17 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
             quantities,
             translateUnit,
           );
-          const newHiddenFeatures = updateImportedSourceVisibility(
-            map,
-            lastHiddenFeatures.current,
-            editedAssetIds,
-          );
 
-          lastHiddenFeatures.current = newHiddenFeatures;
+          if (isMapLagFixOn) {
+            updateImportedSourceVisibilityWithFix(map, editedAssetIds);
+          } else {
+            const newHiddenFeatures = updateImportedSourceVisibility(
+              map,
+              lastHiddenFeatures.current,
+              editedAssetIds,
+            );
+            lastHiddenFeatures.current = newHiddenFeatures;
+          }
         }
 
         if (
@@ -440,6 +446,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     translate,
     translateUnit,
     hydraulicModel,
+    isMapLagFixOn,
   ]);
 
   doUpdates();
@@ -587,6 +594,17 @@ const updateImportedSourceVisibility = withDebugInstrumentation(
     return new Set(newHiddenFeatures);
   },
   { name: "MAP_STATE:UPDATE_VISIBILTIES", maxDurationMs: 100 },
+);
+
+const updateImportedSourceVisibilityWithFix = withDebugInstrumentation(
+  (map: MapEngine, editedAssetIds: Set<AssetId>): void => {
+    map.clearFeatureState("imported-features", "hidden");
+
+    for (const assetId of editedAssetIds) {
+      map.hideFeature("imported-features", assetId);
+    }
+  },
+  { name: "MAP_STATE:UPDATE_VISIBILITIES", maxDurationMs: 100 },
 );
 
 const updateEditionsVisibility = withDebugInstrumentation(
