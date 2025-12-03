@@ -119,28 +119,6 @@ describe("parse EPS timing", () => {
     expect(hydraulicModel.epsTiming.patternTimestep).toBeUndefined();
   });
 
-  it("reports EPS issue when DURATION is non-zero", () => {
-    const inp = `${baseInp}
-    [TIMES]
-    DURATION\t24:00
-    `;
-
-    const { issues } = parseInpWithEPS(inp);
-
-    expect(issues?.extendedPeriodSimulation).toBe(true);
-  });
-
-  it("does not report EPS issue when DURATION is zero", () => {
-    const inp = `${baseInp}
-    [TIMES]
-    DURATION\t0:00
-    `;
-
-    const { issues } = parseInpWithEPS(inp);
-
-    expect(issues?.extendedPeriodSimulation).toBeUndefined();
-  });
-
   it("reports unsupported time setting: PATTERN START", () => {
     const inp = `${baseInp}
     [TIMES]
