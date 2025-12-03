@@ -265,17 +265,25 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           hasNewSymbology ||
           (hasNewSimulation && mapState.simulation.status !== "running")
         ) {
-          await updateImportSource(
-            map,
-            momentLog,
-            assets,
-            mapState.symbology,
-            quantities,
-            translateUnit,
-          );
-
-          if (hasNewImport && isMapLagFixOn) {
-            consolidatedAtPointerRef.current = -1;
+          if (isMapLagFixOn) {
+            await consolidateImportedSource(
+              map,
+              assets,
+              mapState.symbology,
+              quantities,
+              translateUnit,
+            );
+            consolidatedAtPointerRef.current = momentLog.getPointer();
+            lastHiddenFeatures.current = new Set();
+          } else {
+            await updateImportSource(
+              map,
+              momentLog,
+              assets,
+              mapState.symbology,
+              quantities,
+              translateUnit,
+            );
           }
         }
 
