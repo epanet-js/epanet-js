@@ -70,7 +70,7 @@ const getBindings = (): ShortcutSection[] => [
       { binding: "Shift+Enter", description: "simulate" },
       {
         binding: showSimulationSettingsShortcut,
-        description: "simulationSettings",
+        description: "simulationSettings.title",
       },
       { binding: "Alt+R", description: "viewReport" },
     ],

@@ -653,7 +653,7 @@ const updateMainSource = withDebugInstrumentation(
 
     map.clearFeatureState(FeatureSources.MAIN);
   },
-  { name: "MAP_STATE:CONSOLIDATE", maxDurationMs: 10000 },
+  { name: "MAP_STATE:UPDATE_MAIN_SOURCE", maxDurationMs: 10000 },
 );
 
 const updateDeltaSource = withDebugInstrumentation(

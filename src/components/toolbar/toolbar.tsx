@@ -170,7 +170,7 @@ export const Toolbar = () => {
           <RunSimulationIcon className="stroke-yellow-600" />
         </MenuAction>
         <MenuAction
-          label={translate("simulationSettings")}
+          label={translate("simulationSettings.title")}
           role="button"
           onClick={() => showSimulationSettings({ source: "toolbar" })}
           readOnlyHotkey={showSimulationSettingsShortcut}
