@@ -140,4 +140,63 @@ describe("MomentLog", () => {
   const aMoment = (name: string) => {
     return fMoment(name);
   };
+
+  describe("getDeltasFrom", () => {
+    it("returns empty array when pointer equals fromPointer", () => {
+      const momentLog = new MomentLog();
+      const action1 = anAction("FIRST");
+      momentLog.append(action1.forward, action1.reverse);
+
+      const deltas = momentLog.getDeltasFrom(0);
+      expect(deltas).toEqual([]);
+    });
+
+    it("returns forward moments when pointer > fromPointer", () => {
+      const momentLog = new MomentLog();
+      const action1 = anAction("FIRST");
+      const action2 = anAction("SECOND");
+      const action3 = anAction("THIRD");
+      momentLog.append(action1.forward, action1.reverse);
+      momentLog.append(action2.forward, action2.reverse);
+      momentLog.append(action3.forward, action3.reverse);
+
+      const deltas = momentLog.getDeltasFrom(0);
+      expect(deltas).toEqual([action2.forward, action3.forward]);
+    });
+
+    it("returns reverse moments when pointer < fromPointer (after undo)", () => {
+      const momentLog = new MomentLog();
+      const action1 = anAction("FIRST");
+      const action2 = anAction("SECOND");
+      momentLog.append(action1.forward, action1.reverse);
+      momentLog.append(action2.forward, action2.reverse);
+
+      momentLog.undo();
+
+      const deltas = momentLog.getDeltasFrom(1);
+      expect(deltas).toEqual([action2.reverse]);
+    });
+
+    it("returns multiple reverse moments for multiple undos", () => {
+      const momentLog = new MomentLog();
+      const action1 = anAction("FIRST");
+      const action2 = anAction("SECOND");
+      const action3 = anAction("THIRD");
+      momentLog.append(action1.forward, action1.reverse);
+      momentLog.append(action2.forward, action2.reverse);
+      momentLog.append(action3.forward, action3.reverse);
+
+      momentLog.undo();
+      momentLog.undo();
+
+      const deltas = momentLog.getDeltasFrom(2);
+      expect(deltas).toEqual([action3.reverse, action2.reverse]);
+    });
+
+    it("returns empty array when fromPointer is -1 and pointer is -1", () => {
+      const momentLog = new MomentLog();
+      const deltas = momentLog.getDeltasFrom(-1);
+      expect(deltas).toEqual([]);
+    });
+  });
 });

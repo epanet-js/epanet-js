@@ -53,11 +53,13 @@ class MapTestEngine {
     removeLayer: vi.fn(),
     removeSource: vi.fn(),
     removeFeatureState: (
-      source: { source: string; id: string },
+      source: { source: string; id?: string },
       key?: string,
     ) => {
       const sourceStates = this.featureStates.get(source.source);
-      if (sourceStates) {
+      if (!sourceStates) return;
+
+      if (source.id) {
         if (key) {
           const featureState = sourceStates.get(source.id) || {};
           delete featureState[key];
@@ -65,6 +67,8 @@ class MapTestEngine {
         } else {
           sourceStates.delete(source.id);
         }
+      } else {
+        sourceStates.clear();
       }
     },
     setFeatureState: (
@@ -138,6 +142,9 @@ class MapTestEngine {
   showFeatures() {}
   hideFeatures() {}
   setOverlay() {}
+  clearFeatureState(sourceName: DataSource): void {
+    this.map.removeFeatureState({ source: sourceName });
+  }
 
   queryRenderedFeatures(
     _pointOrBox?: PointLike | [PointLike, PointLike],

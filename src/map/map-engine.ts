@@ -204,14 +204,9 @@ export class MapEngine {
     }
   }
 
-  clearFeatureState(sourceName: DataSource, key?: string): void {
+  clearFeatureState(sourceName: DataSource): void {
     if (!this.map || !(this.map as any).style) return;
-
-    if (key) {
-      this.map.removeFeatureState({ source: sourceName }, key);
-    } else {
-      this.map.removeFeatureState({ source: sourceName });
-    }
+    this.map.removeFeatureState({ source: sourceName });
   }
 
   setLayerFilter(layerId: LayerId, filter: mapboxgl.Expression): void {

@@ -25,6 +25,7 @@ import {
   buildOptimizedAssetsSource,
   buildEphemeralStateSource,
   buildSelectionSource,
+  FeatureSources,
 } from "./data-source";
 import { ISymbology, LayerConfigMap, SYMBOLIZATION_NONE } from "src/types";
 import { buildBaseStyle, makeLayers } from "./build-style";
@@ -266,7 +267,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           (hasNewSimulation && mapState.simulation.status !== "running")
         ) {
           if (isMapLagFixOn) {
-            await consolidateImportedSource(
+            await updateMainSource(
               map,
               assets,
               mapState.symbology,
@@ -622,18 +623,18 @@ const updateImportedSourceVisibility = withDebugInstrumentation(
   { name: "MAP_STATE:UPDATE_VISIBILTIES", maxDurationMs: 100 },
 );
 
-const updateImportedSourceVisibilityWithFix = withDebugInstrumentation(
+const updateMainSourceVisibility = withDebugInstrumentation(
   (map: MapEngine, editedAssetIds: Set<AssetId>): void => {
-    map.clearFeatureState("imported-features");
+    map.clearFeatureState(FeatureSources.MAIN);
 
     for (const assetId of editedAssetIds) {
-      map.hideFeature("imported-features", assetId);
+      map.hideFeature(FeatureSources.MAIN, assetId);
     }
   },
   { name: "MAP_STATE:UPDATE_VISIBILITIES", maxDurationMs: 100 },
 );
 
-const consolidateImportedSource = withDebugInstrumentation(
+const updateMainSource = withDebugInstrumentation(
   async (
     map: MapEngine,
     assets: AssetsMap,
@@ -647,10 +648,10 @@ const consolidateImportedSource = withDebugInstrumentation(
       quantities,
       translateUnit,
     );
-    await map.setSource("imported-features", features);
-    await map.setSource("features", []);
+    await map.setSource(FeatureSources.MAIN, features);
+    await map.setSource(FeatureSources.DELTA, []);
 
-    map.clearFeatureState("imported-features");
+    map.clearFeatureState(FeatureSources.MAIN);
   },
   { name: "MAP_STATE:CONSOLIDATE", maxDurationMs: 10000 },
 );
@@ -671,7 +672,7 @@ const updateDeltaSource = withDebugInstrumentation(
       quantities,
       translateUnit,
     );
-    await map.setSource("features", features);
+    await map.setSource(FeatureSources.DELTA, features);
   },
   { name: "MAP_STATE:UPDATE_DELTA_SOURCE", maxDurationMs: 250 },
 );
@@ -698,13 +699,7 @@ const updateSourcesWithConsolidation = async (
     editedSinceConsolidation.size > FEATURE_STATE_THRESHOLD;
 
   if (shouldConsolidate) {
-    await consolidateImportedSource(
-      map,
-      assets,
-      symbology,
-      quantities,
-      translateUnit,
-    );
+    await updateMainSource(map, assets, symbology, quantities, translateUnit);
     return { newPointer: currentPointer, editedAssetIds: new Set() };
   }
 
@@ -717,7 +712,7 @@ const updateSourcesWithConsolidation = async (
     translateUnit,
   );
 
-  updateImportedSourceVisibilityWithFix(map, editedSinceConsolidation);
+  updateMainSourceVisibility(map, editedSinceConsolidation);
 
   return {
     newPointer: consolidatedAtPointer,
