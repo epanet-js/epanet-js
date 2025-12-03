@@ -14,8 +14,10 @@ import * as dialogState from "src/state/dialog";
 import { ParserIssues } from "src/import/inp";
 import { useUserTracking } from "src/infra/user-tracking";
 import { SimulationSettingsDialog } from "./dialogs/simulation-settings";
+import { SimulationSettingsEPSDialog } from "./dialogs/simulation-settings-eps";
 import { LoadingDialog } from "./dialog";
 import { WelcomeDialog } from "./dialogs/welcome";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 const OpenInpDialog = dynamic<{
   modal: dialogState.OpenInpDialogState;
@@ -215,6 +217,7 @@ const ImportCustomerPointsWarningDialog = dynamic<{
 export const Dialogs = memo(function Dialogs() {
   const [dialog, setDialogState] = useAtom(dialogAtom);
   const userTracking = useUserTracking();
+  const isEPSEnabled = useFeatureFlag("FLAG_EPS");
 
   const onClose = useCallback(() => {
     setDialogState(null);
@@ -259,7 +262,11 @@ export const Dialogs = memo(function Dialogs() {
     return <SimulationReportDialog />;
   }
   if (dialog.type === "simulationSettings") {
-    return <SimulationSettingsDialog />;
+    return isEPSEnabled ? (
+      <SimulationSettingsEPSDialog />
+    ) : (
+      <SimulationSettingsDialog />
+    );
   }
   if (dialog.type === "simulationSummary") {
     return <SimulationSummaryDialog modal={dialog} onClose={onClose} />;

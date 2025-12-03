@@ -44,7 +44,7 @@ export const SimulationSettingsDialog = () => {
   return (
     <DialogContainer size="xs">
       <DialogHeader
-        title={translate("simulationSettings")}
+        title={translate("simulationSettings.title")}
         titleIcon={SettingsIcon}
       />
       <Formik

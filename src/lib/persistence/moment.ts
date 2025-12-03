@@ -1,6 +1,7 @@
 import { Demands } from "src/hydraulic-model/demands";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import { ICurve } from "src/hydraulic-model/curves";
+import { EPSTiming } from "src/hydraulic-model/eps-timing";
 import type { IWrappedFeature, IWrappedFeatureInput } from "src/types";
 
 /**
@@ -26,6 +27,7 @@ export interface MomentInput {
   track?: string | [string, Properties];
   putAssets: IWrappedFeatureInput[];
   putDemands?: Demands;
+  putEPSTiming?: EPSTiming;
   putCustomerPoints?: CustomerPoint[];
   putCurves?: ICurve[];
   deleteAssets: IWrappedFeature["id"][];
