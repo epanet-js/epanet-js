@@ -368,9 +368,6 @@ export const parseTimeSettingEPS: RowParser = ({
 
   if (setting.name === "DURATION") {
     inpData.times.duration = seconds;
-    if (seconds !== 0) {
-      issues.addEPS();
-    }
   }
   if (setting.name === "HYDRAULIC TIMESTEP") {
     inpData.times.hydraulicTimestep = seconds;
