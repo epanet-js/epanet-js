@@ -14,7 +14,6 @@ import {
   AssetId,
   HeadlossFormula,
   EPSTiming,
-  SimulationMode,
 } from "src/hydraulic-model";
 import { AssetIndex } from "src/hydraulic-model/asset-index";
 import { CustomerPointsLookup } from "src/hydraulic-model/customer-points-lookup";
@@ -149,7 +148,6 @@ export class HydraulicModelBuilder {
   private idGenerator: WritableIdGenerator;
   private curves: Curves;
   private epsTiming: EPSTiming;
-  private simulationMode: SimulationMode;
 
   static with(quantitiesSpec: AssetQuantitiesSpec = presets.LPS) {
     return new HydraulicModelBuilder(quantitiesSpec);
@@ -177,7 +175,6 @@ export class HydraulicModelBuilder {
     this.headlossFormulaValue = "H-W";
     this.curves = new Map();
     this.epsTiming = {};
-    this.simulationMode = "steadyState";
   }
 
   aNode(id: number, coordinates: Position = [0, 0]) {
@@ -444,10 +441,8 @@ export class HydraulicModelBuilder {
     return this;
   }
 
-  eps(epsTiming: EPSTiming, simulationMode: SimulationMode = "steadyState") {
+  eps(epsTiming: EPSTiming) {
     this.epsTiming = epsTiming;
-    this.simulationMode =
-      simulationMode === "eps" && epsTiming.duration ? "eps" : "steadyState";
     return this;
   }
 
@@ -483,7 +478,6 @@ export class HydraulicModelBuilder {
       headlossFormula: this.headlossFormulaValue,
       curves: this.curves,
       epsTiming: this.epsTiming,
-      simulationMode: this.simulationMode,
     };
   }
 

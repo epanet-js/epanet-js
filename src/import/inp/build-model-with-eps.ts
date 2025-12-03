@@ -31,17 +31,12 @@ export const buildModelWithEPS = (
   const quantities = new Quantities(spec);
   const nodeIds = new ItemData<AssetId>();
   const linkIds = new ItemData<AssetId>();
-  const simulationMode =
-    inpData.times.duration !== undefined && inpData.times.duration > 0
-      ? "eps"
-      : "steadyState";
   const hydraulicModel = initializeHydraulicModel({
     units: quantities.units,
     defaults: quantities.defaults,
     headlossFormula: inpData.options.headlossFormula,
     demands: { multiplier: inpData.options.demandMultiplier },
     epsTiming: inpData.times,
-    simulationMode,
   });
 
   const curvesBuilder = new CurvesBuilder(

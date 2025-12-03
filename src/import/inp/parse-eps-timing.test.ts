@@ -173,32 +173,4 @@ describe("parse EPS timing", () => {
 
     expect(issues?.nonDefaultTimes?.has("STATISTIC")).toBe(true);
   });
-
-  it("sets simulationMode to 'eps' when DURATION is non-zero", () => {
-    const inp = `${baseInp}
-    [TIMES]
-    DURATION\t24:00
-    `;
-
-    const { hydraulicModel } = parseInpWithEPS(inp);
-
-    expect(hydraulicModel.simulationMode).toEqual("eps");
-  });
-
-  it("sets simulationMode to 'steadyState' when DURATION is zero", () => {
-    const inp = `${baseInp}
-    [TIMES]
-    DURATION\t0:00
-    `;
-
-    const { hydraulicModel } = parseInpWithEPS(inp);
-
-    expect(hydraulicModel.simulationMode).toEqual("steadyState");
-  });
-
-  it("sets simulationMode to 'steadyState' when DURATION is not specified", () => {
-    const { hydraulicModel } = parseInpWithEPS(baseInp);
-
-    expect(hydraulicModel.simulationMode).toEqual("steadyState");
-  });
 });

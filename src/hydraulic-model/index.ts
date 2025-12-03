@@ -1,4 +1,4 @@
-export type { HydraulicModel, SimulationMode } from "./hydraulic-model";
+export type { HydraulicModel } from "./hydraulic-model";
 export {
   initializeHydraulicModel,
   updateHydraulicModelAssets,

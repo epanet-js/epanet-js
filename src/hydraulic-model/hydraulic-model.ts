@@ -14,8 +14,6 @@ import { AssetIndex } from "./asset-index";
 import { Asset } from "./asset-types";
 import { Curves } from "./curves";
 
-export type SimulationMode = "steadyState" | "eps";
-
 export type HydraulicModel = {
   version: string;
   assets: AssetsMap;
@@ -30,7 +28,6 @@ export type HydraulicModel = {
   labelManager: LabelManager;
   curves: Curves;
   epsTiming: EPSTiming;
-  simulationMode: SimulationMode;
 };
 
 export { AssetsMap };
@@ -41,14 +38,12 @@ export const initializeHydraulicModel = ({
   headlossFormula = "H-W",
   demands = nullDemands,
   epsTiming = {},
-  simulationMode = "steadyState",
 }: {
   units: UnitsSpec;
   defaults: DefaultQuantities;
   headlossFormula?: HeadlossFormula;
   demands?: Demands;
   epsTiming?: EPSTiming;
-  simulationMode?: SimulationMode;
 }) => {
   const labelManager = new LabelManager();
   const idGenerator = new ConsecutiveIdsGenerator();
@@ -67,7 +62,6 @@ export const initializeHydraulicModel = ({
     headlossFormula,
     curves: new Map(),
     epsTiming,
-    simulationMode,
   };
 };
 
