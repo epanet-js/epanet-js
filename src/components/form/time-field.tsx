@@ -14,18 +14,21 @@ export const TimeField = ({
   onChangeValue,
   isNullable = true,
   tabIndex = 1,
+  hasError: externalError = false,
 }: {
   label: string;
   value: number | undefined;
   onChangeValue: (newValue: number | undefined) => void;
   isNullable?: boolean;
   tabIndex?: number;
+  hasError?: boolean;
 }) => {
-  const displayValue = formatSecondsToHHMM(value);
+  const displayValue = formatSecondsToDisplay(value);
   const inputRef = useRef<HTMLInputElement>(null);
   const [inputValue, setInputValue] = useState(displayValue);
-  const [hasError, setError] = useState(false);
+  const [internalError, setError] = useState(false);
   const [isDirty, setDirty] = useState(false);
+  const hasError = internalError || externalError;
 
   useEffect(() => {
     if (!isDirty && document.activeElement !== inputRef.current) {
@@ -38,14 +41,11 @@ export const TimeField = ({
       resetInput();
       return;
     }
-    if (e.key === "Enter" && !hasError) {
+    if (e.key === "Enter") {
       e.preventDefault();
-      handleCommitLastChange();
-      return;
-    }
-    if (e.key === "Enter" && hasError) {
-      e.preventDefault();
-      resetInput();
+      if (!internalError) {
+        handleCommitLastChange();
+      }
       return;
     }
 
@@ -62,10 +62,8 @@ export const TimeField = ({
   };
 
   const handleBlur = () => {
-    if (isDirty && !hasError) {
+    if (isDirty && !internalError) {
       handleCommitLastChange();
-    } else {
-      resetInput();
     }
   };
 
@@ -75,9 +73,9 @@ export const TimeField = ({
   };
 
   const handleCommitLastChange = () => {
-    const seconds = parseHHMMToSeconds(inputValue);
+    const seconds = parseValueToSeconds(inputValue);
     const finalValue = isNullable ? seconds : (seconds ?? 0);
-    setInputValue(formatSecondsToHHMM(finalValue));
+    setInputValue(formatSecondsToDisplay(finalValue));
     onChangeValue(finalValue);
 
     setDirty(false);
@@ -92,10 +90,10 @@ export const TimeField = ({
 
   const handleInputChange: ChangeEventHandler<HTMLInputElement> = (e) => {
     let newInputValue = e.target.value;
-    newInputValue = newInputValue.replace(/[^0-9:]/g, "");
+    newInputValue = newInputValue.replace(/[^0-9:.,]/g, "");
     setInputValue(newInputValue);
 
-    const seconds = parseHHMMToSeconds(newInputValue);
+    const seconds = parseValueToSeconds(newInputValue);
     setError(seconds === undefined && newInputValue.trim() !== "");
     setDirty(true);
   };
@@ -124,28 +122,44 @@ export const TimeField = ({
   );
 };
 
-const formatSecondsToHHMM = (seconds: number | undefined): string => {
-  if (seconds === undefined) return "";
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
+const formatSecondsToDisplay = (totalSeconds: number | undefined): string => {
+  if (totalSeconds === undefined) return "";
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  if (seconds !== 0) {
+    return `${hours}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+  }
   return `${hours}:${String(minutes).padStart(2, "0")}`;
 };
 
-const parseHHMMToSeconds = (value: string): number | undefined => {
+const parseValueToSeconds = (value: string): number | undefined => {
   if (!value || value.trim() === "") return undefined;
   const trimmed = value.trim();
 
   if (trimmed.includes(":")) {
-    const [hoursStr, minutesStr] = trimmed.split(":");
-    const hours = parseInt(hoursStr, 10);
-    const minutes = parseInt(minutesStr || "0", 10);
-    if (isNaN(hours) || isNaN(minutes)) return undefined;
-    return hours * 3600 + minutes * 60;
+    return parseTimeFormat(trimmed);
   }
 
-  const hours = parseInt(trimmed, 10);
-  if (isNaN(hours)) return undefined;
-  return hours * 3600;
+  return parseDecimalHours(trimmed);
+};
+
+const parseTimeFormat = (value: string): number | undefined => {
+  const parts = value.split(":");
+  const hours = parseInt(parts[0], 10);
+  const minutes = parseInt(parts[1] || "0", 10);
+  const seconds = parseInt(parts[2] || "0", 10);
+  if (isNaN(hours) || isNaN(minutes) || isNaN(seconds)) return undefined;
+  if (minutes > 59 || seconds > 59) return undefined;
+  return hours * 3600 + minutes * 60 + seconds;
+};
+
+const parseDecimalHours = (value: string): number | undefined => {
+  const normalized = value.replace(",", ".");
+  const decimalHours = parseFloat(normalized);
+  if (isNaN(decimalHours)) return undefined;
+  return Math.round(decimalHours * 3600);
 };
 
 function styledInput({

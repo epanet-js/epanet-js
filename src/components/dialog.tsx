@@ -224,6 +224,7 @@ export function SimpleDialogActions({
   autoFocusSubmit = true,
   secondary,
   variant = "md",
+  isDisabled = false,
 }: {
   action?: string;
   autoFocusSubmit?: boolean;
@@ -234,6 +235,7 @@ export function SimpleDialogActions({
     onClick: () => void;
   };
   variant?: "md" | "xs";
+  isDisabled?: boolean;
 }) {
   const translate = useTranslate();
   const { isSubmitting } = useFormikContext();
@@ -250,7 +252,7 @@ export function SimpleDialogActions({
       {action ? (
         <Button
           type="submit"
-          disabled={isSubmitting}
+          disabled={isSubmitting || isDisabled}
           variant="primary"
           autoFocus={autoFocusSubmit}
           size={fullWidthSubmit ? "full-width" : "sm"}

@@ -97,6 +97,8 @@ export const SimulationSettingsEPSDialog = () => {
       <Formik onSubmit={handleSubmit} initialValues={initialValues}>
         {({ values, setFieldValue }) => {
           const isEPS = values.simulationMode === "eps";
+          const hasInvalidDuration =
+            isEPS && (values.duration === undefined || values.duration === 0);
 
           return (
             <Form>
@@ -156,6 +158,7 @@ export const SimulationSettingsEPSDialog = () => {
                         onChange={(newValue) =>
                           setFieldValue("duration", newValue)
                         }
+                        hasError={hasInvalidDuration}
                       />
                     </SettingsInput>
 
@@ -204,12 +207,19 @@ export const SimulationSettingsEPSDialog = () => {
                         }
                       />
                     </SettingsInput>
+
+                    <p
+                      className={`col-span-2 text-sm font-semibold mt-1 ${hasInvalidDuration ? "text-orange-800" : "invisible"}`}
+                    >
+                      {translate("simulationSettings.epsZeroDuration")}
+                    </p>
                   </SettingsGrid>
                 </Section>
               </div>
               <SimpleDialogActions
                 onClose={closeDialog}
                 action={translate("simulationSettings.save")}
+                isDisabled={hasInvalidDuration}
               />
             </Form>
           );
@@ -242,11 +252,13 @@ const TimingInput = ({
   value,
   disabled,
   onChange,
+  hasError = false,
 }: {
   label: string;
   value: number | undefined;
   disabled: boolean;
   onChange: (value: number | undefined) => void;
+  hasError?: boolean;
 }) => {
   const translate = useTranslate();
 
@@ -258,5 +270,12 @@ const TimingInput = ({
     );
   }
 
-  return <TimeField label={label} value={value} onChangeValue={onChange} />;
+  return (
+    <TimeField
+      label={label}
+      value={value}
+      onChangeValue={onChange}
+      hasError={hasError}
+    />
+  );
 };

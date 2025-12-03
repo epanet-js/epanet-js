@@ -13,7 +13,7 @@ describe("TimeField", () => {
       expect(input).toHaveValue("");
     });
 
-    it("displays HH:MM format when minutes are zero", () => {
+    it("displays HH:MM format for full hours", () => {
       render(
         <TimeField label="test" value={24 * 3600} onChangeValue={vi.fn()} />,
       );
@@ -46,6 +46,19 @@ describe("TimeField", () => {
 
       const input = screen.getByRole("textbox", { name: /value for: test/i });
       expect(input).toHaveValue("2:05");
+    });
+
+    it("displays HH:MM:SS format when seconds are non-zero", () => {
+      render(
+        <TimeField
+          label="test"
+          value={1 * 3600 + 30 * 60 + 45}
+          onChangeValue={vi.fn()}
+        />,
+      );
+
+      const input = screen.getByRole("textbox", { name: /value for: test/i });
+      expect(input).toHaveValue("1:30:45");
     });
   });
 
@@ -88,6 +101,46 @@ describe("TimeField", () => {
       await user.keyboard("{Enter}");
 
       expect(onChangeValue).toHaveBeenCalledWith(1 * 3600 + 30 * 60);
+    });
+
+    it("parses decimal hours and converts to seconds", async () => {
+      const user = userEvent.setup();
+      const onChangeValue = vi.fn();
+
+      render(
+        <TimeField
+          label="test"
+          value={undefined}
+          onChangeValue={onChangeValue}
+        />,
+      );
+
+      const input = screen.getByRole("textbox", { name: /value for: test/i });
+      await user.click(input);
+      await user.type(input, "1.5");
+      await user.keyboard("{Enter}");
+
+      expect(onChangeValue).toHaveBeenCalledWith(1 * 3600 + 30 * 60);
+    });
+
+    it("parses HH:MM:SS format and converts to seconds", async () => {
+      const user = userEvent.setup();
+      const onChangeValue = vi.fn();
+
+      render(
+        <TimeField
+          label="test"
+          value={undefined}
+          onChangeValue={onChangeValue}
+        />,
+      );
+
+      const input = screen.getByRole("textbox", { name: /value for: test/i });
+      await user.click(input);
+      await user.type(input, "1:30:45");
+      await user.keyboard("{Enter}");
+
+      expect(onChangeValue).toHaveBeenCalledWith(1 * 3600 + 30 * 60 + 45);
     });
 
     it("calls onChangeValue with undefined when input is cleared", async () => {
@@ -140,7 +193,7 @@ describe("TimeField", () => {
       expect(onChangeValue).not.toHaveBeenCalled();
     });
 
-    it("resets invalid input on Enter", async () => {
+    it("preserves invalid input on Enter", async () => {
       const user = userEvent.setup();
       const onChangeValue = vi.fn();
 
@@ -154,7 +207,43 @@ describe("TimeField", () => {
       await user.type(input, ":");
       await user.keyboard("{Enter}");
 
-      expect(input).toHaveValue("1:00");
+      expect(input).toHaveValue(":");
+      expect(onChangeValue).not.toHaveBeenCalled();
+    });
+
+    it("rejects minutes over 59", async () => {
+      const user = userEvent.setup();
+      const onChangeValue = vi.fn();
+
+      render(
+        <TimeField label="test" value={3600} onChangeValue={onChangeValue} />,
+      );
+
+      const input = screen.getByRole("textbox", { name: /value for: test/i });
+      await user.click(input);
+      await user.clear(input);
+      await user.type(input, "1:60");
+      await user.keyboard("{Enter}");
+
+      expect(input).toHaveValue("1:60");
+      expect(onChangeValue).not.toHaveBeenCalled();
+    });
+
+    it("rejects seconds over 59", async () => {
+      const user = userEvent.setup();
+      const onChangeValue = vi.fn();
+
+      render(
+        <TimeField label="test" value={3600} onChangeValue={onChangeValue} />,
+      );
+
+      const input = screen.getByRole("textbox", { name: /value for: test/i });
+      await user.click(input);
+      await user.clear(input);
+      await user.type(input, "1:30:60");
+      await user.keyboard("{Enter}");
+
+      expect(input).toHaveValue("1:30:60");
       expect(onChangeValue).not.toHaveBeenCalled();
     });
   });
@@ -183,7 +272,7 @@ describe("TimeField", () => {
       expect(onChangeValue).toHaveBeenCalledWith(2 * 3600);
     });
 
-    it("resets invalid value on blur", async () => {
+    it("preserves invalid value on blur", async () => {
       const user = userEvent.setup();
       const onChangeValue = vi.fn();
 
@@ -200,7 +289,7 @@ describe("TimeField", () => {
       await user.type(input, ":");
       await user.click(screen.getByRole("button", { name: "other" }));
 
-      expect(input).toHaveValue("1:00");
+      expect(input).toHaveValue(":");
       expect(onChangeValue).not.toHaveBeenCalled();
     });
   });

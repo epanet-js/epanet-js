@@ -419,7 +419,8 @@
     "reportingTimestep": "Reporting time step (hh:mm)",
     "patternTimestep": "Pattern time step (hh:mm)",
     "notAvailable": "N/A",
-    "save": "Save settings"
+    "save": "Save settings",
+    "epsZeroDuration": "Duration cannot be zero in EPS mode."
   },
   "demandMultiplier": "Demand multiplier",
   "saveAndRun": "Save & run",
