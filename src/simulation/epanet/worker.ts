@@ -39,6 +39,7 @@ export type ProgressCallback = (progress: SimulationProgress) => void;
 export const runSimulation = async (
   inp: string,
   simulationId: string,
+  modelVersion: string,
   flags: Record<string, boolean> = {},
   onProgress?: ProgressCallback,
 ): Promise<SimulationResult> => {
@@ -108,6 +109,7 @@ export const runSimulation = async (
     // Create metadata
     const metadata: EPSSimulationMetadata = {
       simulationId,
+      modelVersion,
       createdAt: Date.now(),
       duration: totalDuration,
       timestepCount: prolog.reportingPeriods,
@@ -140,6 +142,7 @@ export const runSimulation = async (
     // Create error metadata
     const errorMetadata: EPSSimulationMetadata = {
       simulationId,
+      modelVersion,
       createdAt: Date.now(),
       duration: 0,
       timestepCount: 0,

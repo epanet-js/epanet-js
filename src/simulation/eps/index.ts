@@ -28,6 +28,7 @@ export {
   deleteEPSSimulation,
   listEPSSimulations,
   clearAllEPSSimulations,
+  findSimulationByModelVersion,
   type EPSSimulationMetadata,
   type EPSSimulationRecord,
   type TankTimestepData,
