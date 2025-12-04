@@ -1,17 +1,30 @@
-import { InitHydOption, Project, Workspace } from "epanet-js";
+import { Project, Workspace } from "epanet-js";
 import { SimulationStatus } from "../result";
+import {
+  saveEPSSimulation,
+  type EPSSimulationMetadata,
+  type EPSSimulationRecord,
+} from "../eps/eps-store";
+import { parseProlog } from "../eps/epanet-binary-reader";
 
-import { SimulationResults } from "./epanet-results";
-import { extractSimulationResults } from "./extract-simulation-results";
-
-export const runSimulation = async (
-  inp: string,
-  flags: Record<string, boolean>,
-): Promise<{
+export type SimulationResult = {
   status: SimulationStatus;
   report: string;
-  results: SimulationResults;
-}> => {
+  simulationId: string;
+  metadata: EPSSimulationMetadata;
+};
+
+/**
+ * Runs a hydraulic simulation and stores results in IndexedDB.
+ *
+ * Uses solveH + saveH to run the simulation and store binary output.
+ * Results are accessed via loadEPSSimulation() from the main thread.
+ */
+export const runSimulation = async (
+  inp: string,
+  simulationId: string,
+  flags: Record<string, boolean> = {},
+): Promise<SimulationResult> => {
   // eslint-disable-next-line
   if (Object.keys(flags).length) console.log("Running with flags", flags);
 
@@ -22,12 +35,34 @@ export const runSimulation = async (
   ws.writeFile("net.inp", inp);
 
   try {
+    // Open model and run full hydraulic simulation
     model.open("net.inp", "report.rpt", "results.out");
-    model.openH();
-    model.initH(InitHydOption.SaveAndInit);
-    model.runH();
+    model.solveH(); // Runs full simulation (handles both steady-state and EPS)
+    model.saveH(); // Save binary output to results.out
 
-    const results = extractSimulationResults(model);
+    // Read the binary output file
+    const binaryData = ws.readFile("results.out", "binary");
+
+    // Parse prolog to get metadata
+    const prolog = parseProlog(binaryData);
+
+    // Create metadata
+    const metadata: EPSSimulationMetadata = {
+      simulationId,
+      createdAt: Date.now(),
+      duration: 0, // Duration determined by INP time settings
+      timestepCount: prolog.reportingPeriods,
+      nodeCount: prolog.nodeCount,
+      linkCount: prolog.linkCount,
+    };
+
+    // Store in IndexedDB
+    const record: EPSSimulationRecord = {
+      metadata,
+      binaryData,
+    };
+    await saveEPSSimulation(record);
+
     model.close();
 
     const report = ws.readFile("report.rpt");
@@ -35,17 +70,29 @@ export const runSimulation = async (
     return {
       status: report.includes("WARNING") ? "warning" : "success",
       report: curateReport(report),
-      results,
+      simulationId,
+      metadata,
     };
   } catch (error) {
     model.close();
     const report = ws.readFile("report.rpt");
 
+    // Create error metadata
+    const errorMetadata: EPSSimulationMetadata = {
+      simulationId,
+      createdAt: Date.now(),
+      duration: 0,
+      timestepCount: 0,
+      nodeCount: 0,
+      linkCount: 0,
+    };
+
     return {
       status: "failure",
       report:
         report.length > 0 ? curateReport(report) : (error as Error).message,
-      results: new Map(),
+      simulationId,
+      metadata: errorMetadata,
     };
   }
 };

@@ -44,6 +44,22 @@ export type LinkTimestepResult = {
   friction: number;
 };
 
+/**
+ * EPANET link type codes stored in binary output.
+ * These match the LinkType enum in epanet-js.
+ */
+export enum BinaryLinkType {
+  CVPipe = 0,
+  Pipe = 1,
+  Pump = 2,
+  PRV = 3,
+  PSV = 4,
+  PBV = 5,
+  FCV = 6,
+  TCV = 7,
+  GPV = 8,
+}
+
 export type TimestepResults = {
   timestepIndex: number;
   nodes: NodeTimestepResult[];
@@ -109,31 +125,105 @@ export function extractLinkIds(
 }
 
 /**
+ * Extracts link types from the binary file.
+ * Link types are stored after: prolog, node IDs, link IDs, link start/end indices.
+ */
+export function extractLinkTypes(
+  data: Uint8Array,
+  prolog: EpanetProlog,
+): BinaryLinkType[] {
+  const types: BinaryLinkType[] = [];
+  const view = new DataView(data.buffer, data.byteOffset, data.byteLength);
+  // Offset: prolog + nodeIds + linkIds + linkStartIndices + linkEndIndices
+  const startOffset =
+    PROLOG_OFFSET +
+    ID_STRING_LENGTH * prolog.nodeCount +
+    ID_STRING_LENGTH * prolog.linkCount +
+    4 * prolog.linkCount + // link start node indices
+    4 * prolog.linkCount; // link end node indices
+
+  for (let i = 0; i < prolog.linkCount; i++) {
+    const offset = startOffset + 4 * i;
+    types.push(view.getInt32(offset, true) as BinaryLinkType);
+  }
+
+  return types;
+}
+
+/**
+ * Extracts tank/reservoir node indices from the binary file.
+ * Returns 0-based indices into the node array that identify tanks and reservoirs.
+ */
+export function extractTankIndices(
+  data: Uint8Array,
+  prolog: EpanetProlog,
+): number[] {
+  const indices: number[] = [];
+  const view = new DataView(data.buffer, data.byteOffset, data.byteLength);
+  // Offset: prolog + nodeIds + linkIds + linkStartIndices + linkEndIndices + linkTypes
+  const startOffset =
+    PROLOG_OFFSET +
+    ID_STRING_LENGTH * prolog.nodeCount +
+    ID_STRING_LENGTH * prolog.linkCount +
+    4 * prolog.linkCount + // link start node indices
+    4 * prolog.linkCount + // link end node indices
+    4 * prolog.linkCount; // link types
+
+  for (let i = 0; i < prolog.resAndTankCount; i++) {
+    const offset = startOffset + 4 * i;
+    // Binary stores 1-based indices, convert to 0-based
+    indices.push(view.getInt32(offset, true) - 1);
+  }
+
+  return indices;
+}
+
+/**
+ * Extracts tank cross-sectional areas from the binary file.
+ * Reservoirs have area = 0, tanks have area > 0.
+ */
+export function extractTankAreas(
+  data: Uint8Array,
+  prolog: EpanetProlog,
+): number[] {
+  const areas: number[] = [];
+  const view = new DataView(data.buffer, data.byteOffset, data.byteLength);
+  // Offset: same as tank indices base + tank indices size
+  const tankIndicesOffset =
+    PROLOG_OFFSET +
+    ID_STRING_LENGTH * prolog.nodeCount +
+    ID_STRING_LENGTH * prolog.linkCount +
+    4 * prolog.linkCount + // link start node indices
+    4 * prolog.linkCount + // link end node indices
+    4 * prolog.linkCount; // link types
+  const areasOffset = tankIndicesOffset + 4 * prolog.resAndTankCount;
+
+  for (let i = 0; i < prolog.resAndTankCount; i++) {
+    const offset = areasOffset + 4 * i;
+    areas.push(view.getFloat32(offset, true));
+  }
+
+  return areas;
+}
+
+/**
  * Calculates the byte offset where the results section starts.
+ *
+ * The prolog section contains:
+ * - 884 bytes of fixed header data
+ * - 36 bytes per node (32 byte ID + 4 byte elevation)
+ * - 52 bytes per link (32 byte ID + 8 byte indices + 4 byte type + 8 byte length/diameter)
+ * - 8 bytes per tank (4 byte index + 4 byte area)
+ * - 28 bytes per pump (energy data) + 4 bytes (peak energy)
  */
 function calculateResultsBaseOffset(prolog: EpanetProlog): number {
-  // After prolog, node IDs, link IDs, and additional metadata
-  const nodeIdsSize = ID_STRING_LENGTH * prolog.nodeCount;
-  const linkIdsSize = ID_STRING_LENGTH * prolog.linkCount;
-
-  // Additional sections before results:
-  // - Link types: 4 bytes × linkCount
-  // - Tank node indices: 4 bytes × resAndTankCount
-  // - Tank areas: 4 bytes × resAndTankCount
-  // - Energy usage headers: varies by pump count
-  const linkTypesSize = 4 * prolog.linkCount;
-  const tankIndicesSize = 4 * prolog.resAndTankCount;
-  const tankAreasSize = 4 * prolog.resAndTankCount;
-  const energyHeaderSize = 28 * prolog.pumpCount + 4; // 28 bytes per pump + 4 for peak energy
-
   return (
     PROLOG_OFFSET +
-    nodeIdsSize +
-    linkIdsSize +
-    linkTypesSize +
-    tankIndicesSize +
-    tankAreasSize +
-    energyHeaderSize
+    36 * prolog.nodeCount +
+    52 * prolog.linkCount +
+    8 * prolog.resAndTankCount +
+    28 * prolog.pumpCount +
+    4
   );
 }
 
@@ -232,6 +322,15 @@ function parseIdString(bytes: Uint8Array): string {
 }
 
 /**
+ * Node type as determined from binary file (similar to epanet-js NodeType enum).
+ */
+export enum BinaryNodeType {
+  Junction = 0,
+  Reservoir = 1,
+  Tank = 2,
+}
+
+/**
  * High-level reader that caches prolog and IDs for efficient repeated access.
  */
 export class EpanetBinaryReader {
@@ -239,12 +338,40 @@ export class EpanetBinaryReader {
   private prolog: EpanetProlog;
   private nodeIds: string[];
   private linkIds: string[];
+  private linkTypes: BinaryLinkType[];
+  private nodeTypes: BinaryNodeType[];
 
   constructor(data: Uint8Array) {
     this.data = data;
     this.prolog = parseProlog(data);
     this.nodeIds = extractNodeIds(data, this.prolog);
     this.linkIds = extractLinkIds(data, this.prolog);
+    this.linkTypes = extractLinkTypes(data, this.prolog);
+
+    // Build node types array from tank indices and areas
+    const tankIndices = extractTankIndices(data, this.prolog);
+    const tankAreas = extractTankAreas(data, this.prolog);
+    this.nodeTypes = this.buildNodeTypes(tankIndices, tankAreas);
+  }
+
+  private buildNodeTypes(
+    tankIndices: number[],
+    tankAreas: number[],
+  ): BinaryNodeType[] {
+    const types: BinaryNodeType[] = new Array(this.prolog.nodeCount).fill(
+      BinaryNodeType.Junction,
+    );
+
+    for (let i = 0; i < tankIndices.length; i++) {
+      const nodeIndex = tankIndices[i];
+      if (tankAreas[i] === 0) {
+        types[nodeIndex] = BinaryNodeType.Reservoir;
+      } else {
+        types[nodeIndex] = BinaryNodeType.Tank;
+      }
+    }
+
+    return types;
   }
 
   getProlog(): EpanetProlog {
@@ -261,6 +388,33 @@ export class EpanetBinaryReader {
 
   getLinkIds(): string[] {
     return this.linkIds;
+  }
+
+  getLinkTypes(): BinaryLinkType[] {
+    return this.linkTypes;
+  }
+
+  getNodeTypes(): BinaryNodeType[] {
+    return this.nodeTypes;
+  }
+
+  /**
+   * Get the node type for a specific node.
+   * @param nodeIndex 0-based index into the node array
+   */
+  getNodeType(nodeIndex: number): BinaryNodeType {
+    return this.nodeTypes[nodeIndex];
+  }
+
+  /**
+   * Check if a node is a tank or reservoir (vs junction).
+   * @param nodeIndex 0-based index into the node array
+   */
+  isTankOrReservoir(nodeIndex: number): boolean {
+    return (
+      this.nodeTypes[nodeIndex] === BinaryNodeType.Tank ||
+      this.nodeTypes[nodeIndex] === BinaryNodeType.Reservoir
+    );
   }
 
   getTimestepResults(timestepIndex: number): TimestepResults {
