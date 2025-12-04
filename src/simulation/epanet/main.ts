@@ -71,7 +71,11 @@ export const runSimulation = async (
 
   // Convert first timestep to SimulationResults
   const reader = new EpanetBinaryReader(record.binaryData);
-  const resultsData = convertTimestepToSimulationResults(reader, 0);
+  const resultsData = convertTimestepToSimulationResults(
+    reader,
+    0,
+    record.tankData,
+  );
   const results = new EpanetResultsReader(resultsData);
 
   return { status, report, results };

@@ -14,6 +14,7 @@ import {
 } from "../results-reader";
 import { SimulationResults } from "../epanet/epanet-results";
 import { BinaryLinkType, EpanetBinaryReader } from "./epanet-binary-reader";
+import type { TankTimestepData } from "./eps-store";
 
 /**
  * Binary output status values match EPANET API status codes:
@@ -34,15 +35,17 @@ const BINARY_STATUS_OPEN_THRESHOLD = 3;
 /**
  * Converts binary timestep results to SimulationResults format.
  *
- * Note: Tank level and volume are not available in the binary output format.
- * They will be set to 0 for tank results.
- *
  * Note: Status warnings (cannot-deliver-flow, etc.) are not available in
  * binary output format and will be set to null.
+ *
+ * @param reader - Binary reader for the simulation output
+ * @param timestepIndex - Index of the timestep to convert
+ * @param tankData - Optional tank level/volume data captured during simulation
  */
 export function convertTimestepToSimulationResults(
   reader: EpanetBinaryReader,
   timestepIndex: number,
+  tankData?: Map<string, TankTimestepData[]>,
 ): SimulationResults {
   const results: SimulationResults = new Map();
   const timestep = reader.getTimestepResults(timestepIndex);
@@ -54,13 +57,15 @@ export function convertTimestepToSimulationResults(
 
     if (reader.isTankOrReservoir(i)) {
       // Tank or reservoir - use TankSimulation type
-      // Note: level and volume are not in binary output, set to 0
+      // Get level/volume from tankData if available
+      const tankTimesteps = tankData?.get(node.id);
+      const tankValues = tankTimesteps?.[timestepIndex];
       const tankResult: TankSimulation = {
         type: "tank",
         pressure: node.pressure,
         head: node.head,
-        level: 0, // Not available in binary format
-        volume: 0, // Not available in binary format
+        level: tankValues?.level ?? 0,
+        volume: tankValues?.volume ?? 0,
       };
       results.set(node.id, tankResult);
     } else {

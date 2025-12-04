@@ -1,9 +1,16 @@
-import { InitHydOption, Project, Workspace } from "epanet-js";
+import {
+  InitHydOption,
+  NodeProperty,
+  NodeType,
+  Project,
+  Workspace,
+} from "epanet-js";
 import { SimulationStatus } from "../result";
 import {
   saveEPSSimulation,
   type EPSSimulationMetadata,
   type EPSSimulationRecord,
+  type TankTimestepData,
 } from "../eps/eps-store";
 import { parseProlog } from "../eps/epanet-binary-reader";
 
@@ -51,6 +58,21 @@ export const runSimulation = async (
     // Get total simulation duration from time parameters
     const totalDuration = model.getTimeParameter(0); // Duration parameter
 
+    // Find tank indices before simulation loop
+    const nodeCount = model.getCount(0); // CountType.Node = 0
+    const tankIndices: { index: number; id: string }[] = [];
+    for (let i = 1; i <= nodeCount; i++) {
+      if (model.getNodeType(i) === NodeType.Tank) {
+        tankIndices.push({ index: i, id: model.getNodeId(i) });
+      }
+    }
+
+    // Initialize tank data storage
+    const tankData = new Map<string, TankTimestepData[]>();
+    for (const tank of tankIndices) {
+      tankData.set(tank.id, []);
+    }
+
     // Run hydraulic simulation step by step for progress reporting
     model.openH();
     model.initH(InitHydOption.SaveAndInit);
@@ -60,6 +82,13 @@ export const runSimulation = async (
     // Run hydraulic timesteps
     do {
       currentTime = model.runH();
+
+      // Capture tank level and volume at each timestep
+      for (const tank of tankIndices) {
+        const level = model.getNodeValue(tank.index, NodeProperty.TankLevel);
+        const volume = model.getNodeValue(tank.index, NodeProperty.TankVolume);
+        tankData.get(tank.id)!.push({ level, volume });
+      }
 
       // Report progress
       if (onProgress) {
@@ -90,6 +119,7 @@ export const runSimulation = async (
     const record: EPSSimulationRecord = {
       metadata,
       binaryData,
+      tankData: tankData.size > 0 ? tankData : undefined,
     };
     await saveEPSSimulation(record);
 
