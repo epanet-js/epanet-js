@@ -1,4 +1,4 @@
-import { Project, Workspace } from "epanet-js";
+import { InitHydOption, Project, Workspace } from "epanet-js";
 import { SimulationStatus } from "../result";
 import {
   saveEPSSimulation,
@@ -14,16 +14,26 @@ export type SimulationResult = {
   metadata: EPSSimulationMetadata;
 };
 
+export type SimulationProgress = {
+  /** Current simulation time in seconds */
+  currentTime: number;
+  /** Total simulation duration in seconds (0 if unknown) */
+  totalDuration: number;
+};
+
+export type ProgressCallback = (progress: SimulationProgress) => void;
+
 /**
  * Runs a hydraulic simulation and stores results in IndexedDB.
  *
- * Uses solveH + saveH to run the simulation and store binary output.
+ * Uses step-by-step hydraulic solving to report progress.
  * Results are accessed via loadEPSSimulation() from the main thread.
  */
 export const runSimulation = async (
   inp: string,
   simulationId: string,
   flags: Record<string, boolean> = {},
+  onProgress?: ProgressCallback,
 ): Promise<SimulationResult> => {
   // eslint-disable-next-line
   if (Object.keys(flags).length) console.log("Running with flags", flags);
@@ -35,10 +45,30 @@ export const runSimulation = async (
   ws.writeFile("net.inp", inp);
 
   try {
-    // Open model and run full hydraulic simulation
+    // Open model
     model.open("net.inp", "report.rpt", "results.out");
-    model.solveH(); // Runs full simulation (handles both steady-state and EPS)
-    model.saveH(); // Save binary output to results.out
+
+    // Get total simulation duration from time parameters
+    const totalDuration = model.getTimeParameter(0); // Duration parameter
+
+    // Run hydraulic simulation step by step for progress reporting
+    model.openH();
+    model.initH(InitHydOption.SaveAndInit);
+
+    let currentTime = 0;
+
+    // Run hydraulic timesteps
+    do {
+      currentTime = model.runH();
+
+      // Report progress
+      if (onProgress) {
+        onProgress({ currentTime, totalDuration });
+      }
+    } while (model.nextH() > 0);
+
+    // Save results to binary file
+    model.saveH();
 
     // Read the binary output file
     const binaryData = ws.readFile("results.out", "binary");
@@ -50,7 +80,7 @@ export const runSimulation = async (
     const metadata: EPSSimulationMetadata = {
       simulationId,
       createdAt: Date.now(),
-      duration: 0, // Duration determined by INP time settings
+      duration: totalDuration,
       timestepCount: prolog.reportingPeriods,
       nodeCount: prolog.nodeCount,
       linkCount: prolog.linkCount,
