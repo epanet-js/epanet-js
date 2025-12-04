@@ -21,9 +21,20 @@ export type EPSSimulationMetadata = {
   linkCount: number;
 };
 
+/**
+ * Tank data captured during simulation (not available in binary format).
+ * Map from tank ID to array of { level, volume } per timestep.
+ */
+export type TankTimestepData = {
+  level: number;
+  volume: number;
+};
+
 export type EPSSimulationRecord = {
   metadata: EPSSimulationMetadata;
   binaryData: Uint8Array;
+  /** Tank level/volume per timestep, keyed by tank ID */
+  tankData?: Map<string, TankTimestepData[]>;
 };
 
 /**

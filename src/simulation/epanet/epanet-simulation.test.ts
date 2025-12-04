@@ -19,8 +19,8 @@ vi.mock("src/lib/worker", () => ({
   },
 }));
 
-// Store to capture binary data during simulation for test retrieval
-const capturedSimulationData: Map<string, Uint8Array> = new Map();
+// Store to capture simulation data during simulation for test retrieval
+const capturedSimulationData: Map<string, EPSSimulationRecord> = new Map();
 
 // Mock eps-store to use in-memory storage instead of IndexedDB
 vi.mock("../eps/eps-store", async (importOriginal) => {
@@ -28,26 +28,13 @@ vi.mock("../eps/eps-store", async (importOriginal) => {
   return {
     ...original,
     saveEPSSimulation: vi.fn((record: EPSSimulationRecord) => {
-      capturedSimulationData.set(
-        record.metadata.simulationId,
-        record.binaryData,
-      );
+      capturedSimulationData.set(record.metadata.simulationId, record);
       return Promise.resolve();
     }),
     loadEPSSimulation: vi.fn((simulationId: string) => {
-      const binaryData = capturedSimulationData.get(simulationId);
-      if (!binaryData) return Promise.resolve(null);
-      return Promise.resolve({
-        metadata: {
-          simulationId,
-          createdAt: Date.now(),
-          duration: 0,
-          timestepCount: 1,
-          nodeCount: 0,
-          linkCount: 0,
-        },
-        binaryData,
-      } as EPSSimulationRecord);
+      const record = capturedSimulationData.get(simulationId);
+      if (!record) return Promise.resolve(null);
+      return Promise.resolve(record);
     }),
   };
 });
@@ -214,10 +201,8 @@ describe("epanet simulation", () => {
       const tank = results.getTank(String(IDS.T1)) as TankSimulation;
       expect(tank.pressure).toBeGreaterThan(0);
       expect(tank.head).toBeGreaterThan(100);
-      // Note: level and volume are not available from binary output format
-      // They will be 0 when results are read from IndexedDB
-      expect(tank.level).toEqual(0);
-      expect(tank.volume).toEqual(0);
+      expect(tank.level).toBeGreaterThan(0);
+      expect(tank.volume).toBeGreaterThan(0);
     });
 
     it("can read closed status", async () => {

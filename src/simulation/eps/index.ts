@@ -30,4 +30,5 @@ export {
   clearAllEPSSimulations,
   type EPSSimulationMetadata,
   type EPSSimulationRecord,
+  type TankTimestepData,
 } from "./eps-store";
