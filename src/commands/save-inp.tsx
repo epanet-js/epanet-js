@@ -2,14 +2,12 @@ import { dataAtom, dialogAtom, fileInfoAtom } from "src/state/jotai";
 import { ExportOptions } from "src/types/export";
 import { useAtomCallback } from "jotai/utils";
 import { useCallback } from "react";
-import { buildInp } from "src/simulation/build-inp";
 import { buildInpEPS } from "src/simulation/build-inp-eps";
 import { useTranslate } from "src/hooks/use-translate";
 import type { fileSave as fileSaveType } from "browser-fs-access";
 import { useAtomValue, useSetAtom } from "jotai";
 import { notifyPromiseState } from "src/components/notifications";
 import { useUserTracking } from "src/infra/user-tracking";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 const getDefaultFsAccess = async () => {
   const { fileSave } = await import("browser-fs-access");
@@ -30,7 +28,6 @@ export const useSaveInp = ({
   const setDialogState = useSetAtom(dialogAtom);
   const fileInfo = useAtomValue(fileInfoAtom);
   const userTracking = useUserTracking();
-  const isEPSEnabled = useFeatureFlag("FLAG_EPS");
 
   const saveInp = useAtomCallback(
     useCallback(
@@ -58,9 +55,8 @@ export const useSaveInp = ({
             customerPoints: true,
             inactiveAssets: true,
           };
-          const inp = isEPSEnabled
-            ? buildInpEPS(data.hydraulicModel, buildOptions)
-            : buildInp(data.hydraulicModel, buildOptions);
+          // Always use EPS path in spike branch
+          const inp = buildInpEPS(data.hydraulicModel, buildOptions);
           const inpBlob = new Blob([inp], { type: "text/plain" });
 
           const newHandle = await fileSave(
@@ -98,7 +94,7 @@ export const useSaveInp = ({
           return false;
         }
       },
-      [getFsAccess, userTracking, translate, isEPSEnabled],
+      [getFsAccess, userTracking, translate],
     ),
   );
 
