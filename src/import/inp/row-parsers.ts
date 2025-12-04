@@ -332,53 +332,21 @@ export const parseTimeSetting: RowParser = ({ trimmedRow, issues }) => {
   }
 };
 
-const supportedTimeSettingsEPS = {
+const defaultTimeSettings = {
   DURATION: "0",
   "HYDRAULIC TIMESTEP": "0",
   "REPORT TIMESTEP": "0",
   "PATTERN TIMESTEP": "0",
+  "PATTERN START": "0",
+  "REPORT START": "0",
+  "START CLOCKTIME": "0",
+  STATISTIC: "NONE",
 };
 
-const unsupportedTimeSettingsEPS = [
+const timeSettingsCoveredByOtherWarnings = [
   "QUALITY TIMESTEP",
   "RULE TIMESTEP",
-  "PATTERN START",
-  "REPORT START",
-  "START CLOCKTIME",
-  "STATISTIC",
 ];
-
-export const parseTimeSettingEPS: RowParser = ({
-  trimmedRow,
-  inpData,
-  issues,
-}) => {
-  const upperRow = trimmedRow.toUpperCase();
-  for (const unsupported of unsupportedTimeSettingsEPS) {
-    if (upperRow.startsWith(unsupported)) {
-      issues.addUsedTimeSetting(unsupported, "not supported");
-      return;
-    }
-  }
-
-  const setting = readSetting(trimmedRow, supportedTimeSettingsEPS);
-  if (!setting) return;
-
-  const seconds = parseTimeToSeconds(setting.value as string);
-
-  if (setting.name === "DURATION") {
-    inpData.times.duration = seconds;
-  }
-  if (setting.name === "HYDRAULIC TIMESTEP") {
-    inpData.times.hydraulicTimestep = seconds;
-  }
-  if (setting.name === "REPORT TIMESTEP") {
-    inpData.times.reportTimestep = seconds;
-  }
-  if (setting.name === "PATTERN TIMESTEP") {
-    inpData.times.patternTimestep = seconds;
-  }
-};
 
 const parseTimeToSeconds = (timeStr: string): number => {
   const trimmed = timeStr.trim().toUpperCase();
@@ -413,6 +381,96 @@ const parseTimeToSeconds = (timeStr: string): number => {
   }
 
   return 0;
+};
+
+const parseClocktimeToSeconds = (timeStr: string): number => {
+  const trimmed = timeStr.trim().toUpperCase();
+
+  const isPM = trimmed.includes("PM");
+  const isAM = trimmed.includes("AM");
+  const timeOnly = trimmed.replace(/\s*(AM|PM)\s*$/i, "").trim();
+
+  let hours = 0;
+  let minutes = 0;
+
+  if (timeOnly.includes(":")) {
+    const parts = timeOnly.split(":");
+    hours = parseInt(parts[0], 10) || 0;
+    minutes = parseInt(parts[1], 10) || 0;
+  } else {
+    hours = parseInt(timeOnly, 10) || 0;
+  }
+
+  if (isAM || isPM) {
+    if (hours === 12) {
+      hours = isPM ? 12 : 0;
+    } else if (isPM) {
+      hours += 12;
+    }
+  }
+
+  return hours * 3600 + minutes * 60;
+};
+
+export const parseTimeSettingEPS: RowParser = ({
+  trimmedRow,
+  inpData,
+  issues,
+}) => {
+  const upperRow = trimmedRow.toUpperCase();
+
+  for (const covered of timeSettingsCoveredByOtherWarnings) {
+    if (upperRow.startsWith(covered)) {
+      return;
+    }
+  }
+
+  const setting = readSetting(trimmedRow, defaultTimeSettings);
+  if (!setting) return;
+
+  const { name, value, defaultValue } = setting as {
+    name: string;
+    value: string;
+    defaultValue: string;
+  };
+
+  if (name === "DURATION") {
+    inpData.times.duration = parseTimeToSeconds(value);
+  }
+  if (name === "HYDRAULIC TIMESTEP") {
+    inpData.times.hydraulicTimestep = parseTimeToSeconds(value);
+  }
+  if (name === "REPORT TIMESTEP") {
+    inpData.times.reportTimestep = parseTimeToSeconds(value);
+  }
+  if (name === "PATTERN TIMESTEP") {
+    inpData.times.patternTimestep = parseTimeToSeconds(value);
+  }
+  if (name === "PATTERN START") {
+    inpData.times.patternStart = parseTimeToSeconds(value);
+  }
+  if (name === "REPORT START") {
+    inpData.times.reportStart = parseTimeToSeconds(value);
+  }
+  if (name === "START CLOCKTIME") {
+    inpData.times.startClocktime = parseClocktimeToSeconds(value);
+  }
+  if (name === "STATISTIC") {
+    inpData.times.statistic = value;
+  }
+
+  if (name === "PATTERN START" && inpData.times.patternStart !== 0) {
+    issues.addUsedTimeSetting(name, 0);
+  }
+  if (name === "REPORT START" && inpData.times.reportStart !== 0) {
+    issues.addUsedTimeSetting(name, 0);
+  }
+  if (name === "START CLOCKTIME" && inpData.times.startClocktime !== 0) {
+    issues.addUsedTimeSetting(name, 0);
+  }
+  if (name === "STATISTIC" && inpData.times.statistic !== defaultValue) {
+    issues.addUsedTimeSetting(name, "NONE");
+  }
 };
 
 export const parseOption: RowParser = ({

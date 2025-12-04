@@ -110,6 +110,10 @@ export type InpData = {
     hydraulicTimestep?: number;
     reportTimestep?: number;
     patternTimestep?: number;
+    patternStart?: number;
+    reportStart?: number;
+    startClocktime?: number;
+    statistic?: string;
   };
   nodeIds: NodeIds;
 };

@@ -119,7 +119,7 @@ describe("parse EPS timing", () => {
     expect(hydraulicModel.epsTiming.patternTimestep).toBeUndefined();
   });
 
-  it("reports unsupported time setting: PATTERN START", () => {
+  it("warns for PATTERN START with non-zero value", () => {
     const inp = `${baseInp}
     [TIMES]
     PATTERN START\t6:00
@@ -130,7 +130,62 @@ describe("parse EPS timing", () => {
     expect(issues?.nonDefaultTimes?.has("PATTERN START")).toBe(true);
   });
 
-  it("reports unsupported time setting: QUALITY TIMESTEP", () => {
+  it("does not warn for PATTERN START with zero value", () => {
+    const inp = `${baseInp}
+    [TIMES]
+    PATTERN START\t0
+    `;
+
+    const { issues } = parseInpWithEPS(inp);
+
+    expect(issues?.nonDefaultTimes?.has("PATTERN START")).toBeFalsy();
+  });
+
+  it("does not warn for REPORT START with zero value", () => {
+    const inp = `${baseInp}
+    [TIMES]
+    REPORT START\t00:00
+    `;
+
+    const { issues } = parseInpWithEPS(inp);
+
+    expect(issues?.nonDefaultTimes?.has("REPORT START")).toBeFalsy();
+  });
+
+  it("warns for REPORT START with non-zero value", () => {
+    const inp = `${baseInp}
+    [TIMES]
+    REPORT START\t1:00
+    `;
+
+    const { issues } = parseInpWithEPS(inp);
+
+    expect(issues?.nonDefaultTimes?.has("REPORT START")).toBe(true);
+  });
+
+  it("does not warn for START CLOCKTIME with 12 AM (default)", () => {
+    const inp = `${baseInp}
+    [TIMES]
+    START CLOCKTIME\t12 AM
+    `;
+
+    const { issues } = parseInpWithEPS(inp);
+
+    expect(issues?.nonDefaultTimes?.has("START CLOCKTIME")).toBeFalsy();
+  });
+
+  it("warns for START CLOCKTIME with non-default value", () => {
+    const inp = `${baseInp}
+    [TIMES]
+    START CLOCKTIME\t6 AM
+    `;
+
+    const { issues } = parseInpWithEPS(inp);
+
+    expect(issues?.nonDefaultTimes?.has("START CLOCKTIME")).toBe(true);
+  });
+
+  it("does not warn for QUALITY TIMESTEP", () => {
     const inp = `${baseInp}
     [TIMES]
     QUALITY TIMESTEP\t0:05
@@ -138,10 +193,10 @@ describe("parse EPS timing", () => {
 
     const { issues } = parseInpWithEPS(inp);
 
-    expect(issues?.nonDefaultTimes?.has("QUALITY TIMESTEP")).toBe(true);
+    expect(issues?.nonDefaultTimes?.has("QUALITY TIMESTEP")).toBeFalsy();
   });
 
-  it("reports unsupported time setting: STATISTIC", () => {
+  it("warns for STATISTIC with non-NONE value", () => {
     const inp = `${baseInp}
     [TIMES]
     STATISTIC\tAVERAGE
@@ -150,5 +205,16 @@ describe("parse EPS timing", () => {
     const { issues } = parseInpWithEPS(inp);
 
     expect(issues?.nonDefaultTimes?.has("STATISTIC")).toBe(true);
+  });
+
+  it("does not warn for STATISTIC with NONE value", () => {
+    const inp = `${baseInp}
+    [TIMES]
+    STATISTIC\tNONE
+    `;
+
+    const { issues } = parseInpWithEPS(inp);
+
+    expect(issues?.nonDefaultTimes?.has("STATISTIC")).toBeFalsy();
   });
 });
