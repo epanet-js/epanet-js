@@ -320,14 +320,14 @@ const GridHeader = ({ quantities }: { quantities: Quantities }) => {
         className="pl-2 py-1 text-sm font-semibold text-gray-500 truncate"
       >
         <span>{translate("flow")}</span>
-        <span>({flowUnit})</span>
+        <span className="ml-1">({flowUnit})</span>
       </div>
       <div
         role="columnheader"
         className="pl-2 py-1 text-sm font-semibold text-gray-500 truncate"
       >
         <span>{translate("head")}</span>
-        <span>({headUnit})</span>
+        <span className="ml-1">({headUnit})</span>
       </div>
     </>
   );
