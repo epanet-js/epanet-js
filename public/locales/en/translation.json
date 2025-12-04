@@ -420,7 +420,8 @@
     "patternTimestep": "Pattern time step (hh:mm)",
     "notAvailable": "N/A",
     "save": "Save settings",
-    "epsZeroDuration": "Duration cannot be zero in EPS mode."
+    "epsMissingValues": "Please fill in all values.",
+    "epsZeroValues": "Values must be greater than zero."
   },
   "demandMultiplier": "Demand multiplier",
   "saveAndRun": "Save & run",
