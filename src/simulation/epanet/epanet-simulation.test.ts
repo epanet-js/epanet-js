@@ -36,6 +36,14 @@ vi.mock("../eps/eps-store", async (importOriginal) => {
       if (!record) return Promise.resolve(null);
       return Promise.resolve(record);
     }),
+    findSimulationByModelVersion: vi.fn(() => {
+      // Always return null to force running new simulation in tests
+      return Promise.resolve(null);
+    }),
+    clearAllEPSSimulations: vi.fn(() => {
+      capturedSimulationData.clear();
+      return Promise.resolve();
+    }),
   };
 });
 
@@ -54,7 +62,7 @@ describe("epanet simulation", () => {
       .build();
     const inp = buildInp(hydraulicModel);
 
-    const { status, report } = await runSimulation(inp);
+    const { status, report } = await runSimulation(inp, "test-version");
 
     expect(status).toEqual("success");
     expect(report).not.toContain("Error");
@@ -68,7 +76,7 @@ describe("epanet simulation", () => {
       .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.R2 })
       .build();
     const inp = buildInp(hydraulicModel);
-    const { status, report } = await runSimulation(inp);
+    const { status, report } = await runSimulation(inp, "test-version");
 
     expect(status).toEqual("failure");
     expect(report).toContain("Error 223: not enough nodes");
@@ -83,7 +91,9 @@ describe("epanet simulation", () => {
       .build();
     const inp = buildInp(hydraulicModel);
 
-    const { status, report } = await runSimulation(inp, { FLAG_WARNING: true });
+    const { status, report } = await runSimulation(inp, "test-version", {
+      FLAG_WARNING: true,
+    });
 
     expect(status).toEqual("warning");
     expect(report).toContain("WARNING");
@@ -98,7 +108,7 @@ describe("epanet simulation", () => {
       .aJunction(IDS.J2)
       .build();
     const inp = buildInp(hydraulicModel);
-    const { status, report } = await runSimulation(inp);
+    const { status, report } = await runSimulation(inp, "test-version");
 
     expect(status).toEqual("failure");
     expect(report.match(/Error 234/gi)!.length).toEqual(1);
@@ -119,7 +129,7 @@ describe("epanet simulation", () => {
         .build();
       const inp = buildInp(hydraulicModel);
 
-      const { status, results } = await runSimulation(inp);
+      const { status, results } = await runSimulation(inp, "test-version");
 
       expect(status).toEqual("success");
       expect(results.getJunction(String(IDS.J1))!.pressure).toBeCloseTo(10);
@@ -139,7 +149,7 @@ describe("epanet simulation", () => {
         .build();
       const inp = buildInp(hydraulicModel);
 
-      const { status, results } = await runSimulation(inp);
+      const { status, results } = await runSimulation(inp, "test-version");
 
       expect(status).toEqual("success");
       const junction = results.getJunction(
@@ -161,7 +171,7 @@ describe("epanet simulation", () => {
         .build();
       const inp = buildInp(hydraulicModel);
 
-      const { status, results } = await runSimulation(inp);
+      const { status, results } = await runSimulation(inp, "test-version");
 
       expect(status).toEqual("success");
       const valve = results.getValve(String(IDS.V1)) as ValveSimulation;
@@ -195,7 +205,7 @@ describe("epanet simulation", () => {
         .build();
       const inp = buildInp(hydraulicModel);
 
-      const { status, results } = await runSimulation(inp);
+      const { status, results } = await runSimulation(inp, "test-version");
 
       expect(status).toEqual("success");
       const tank = results.getTank(String(IDS.T1)) as TankSimulation;
@@ -218,7 +228,7 @@ describe("epanet simulation", () => {
         .build();
       const inp = buildInp(hydraulicModel);
 
-      const { status, results } = await runSimulation(inp);
+      const { status, results } = await runSimulation(inp, "test-version");
 
       expect(status).toEqual("warning");
       const valve = results.getValve(String(IDS.V1)) as ValveSimulation;
@@ -238,7 +248,7 @@ describe("epanet simulation", () => {
         .build();
       const inp = buildInp(hydraulicModel);
 
-      const { status, results } = await runSimulation(inp);
+      const { status, results } = await runSimulation(inp, "test-version");
 
       expect(status).toEqual("failure");
       expect(results.getJunction(String(IDS.J1))).toBeNull();

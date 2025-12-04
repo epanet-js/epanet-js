@@ -27,7 +27,7 @@ export const useRunSimulation = () => {
       : buildInp(hydraulicModel, { customerDemands: true });
     const start = performance.now();
     setDialogState({ type: "loading" });
-    const { report, status, results } = await run(inp);
+    const { report, status, results } = await run(inp, hydraulicModel.version);
 
     const updatedHydraulicModel = attachSimulation(hydraulicModel, results);
     setData((prev) => ({

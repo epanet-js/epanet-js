@@ -14,6 +14,7 @@ const STORES = {
 
 export type EPSSimulationMetadata = {
   simulationId: string;
+  modelVersion: string;
   createdAt: number;
   duration: number; // total simulation duration in seconds
   timestepCount: number;
@@ -170,6 +171,39 @@ export async function listEPSSimulations(): Promise<EPSSimulationMetadata[]> {
     request.onsuccess = () => {
       const records = request.result as EPSSimulationRecord[];
       resolve(records.map((r) => r.metadata));
+    };
+
+    transaction.oncomplete = () => {
+      db.close();
+    };
+  });
+}
+
+/**
+ * Finds an EPS simulation by model version.
+ * Returns the first matching simulation or null if none found.
+ */
+export async function findSimulationByModelVersion(
+  modelVersion: string,
+): Promise<EPSSimulationRecord | null> {
+  const db = await openDatabase();
+
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(STORES.SIMULATIONS, "readonly");
+    const store = transaction.objectStore(STORES.SIMULATIONS);
+
+    const request = store.getAll();
+
+    request.onerror = () => {
+      reject(new Error(`Failed to find simulation: ${request.error?.message}`));
+    };
+
+    request.onsuccess = () => {
+      const records = request.result as EPSSimulationRecord[];
+      const match = records.find(
+        (r) => r.metadata.modelVersion === modelVersion,
+      );
+      resolve(match ?? null);
     };
 
     transaction.oncomplete = () => {
