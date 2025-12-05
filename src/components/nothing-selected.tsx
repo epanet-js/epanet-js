@@ -1,29 +1,11 @@
 import { memo } from "react";
-import { Button, Keycap } from "./elements";
+import { Keycap } from "./elements";
 import { localizeKeybinding } from "src/infra/i18n";
 import { useTranslate } from "src/hooks/use-translate";
-import { useOpenInpFromFs } from "src/commands/open-inp-from-fs";
-import { useSaveInp } from "src/commands/save-inp";
-import { useUserTracking } from "src/infra/user-tracking";
-import { useShowShortcuts } from "src/commands/show-shortcuts";
-import { useBreakpoint } from "src/hooks/use-breakpoint";
-import { useOpenModelBuilder } from "src/commands/open-model-builder";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 import {
-  FileSpreadsheetIcon,
-  GlobeIcon,
-  TabsIcon,
-  KeyboardIcon,
   MouseCursorDefaultIcon,
   PointerClickIcon,
-  SaveIcon,
-  EarlyAccessIcon,
-  ReservoirIcon,
-  UndoIcon,
-  RunSimulationIcon,
-  JunctionIcon,
-  PipeIcon,
   PolygonalSelectionIcon,
 } from "src/icons";
 import { drawingModeShorcuts } from "src/commands/set-drawing-mode";
@@ -32,186 +14,33 @@ import { selectionModeShortcut } from "src/commands/set-area-selection-mode";
 
 export const NothingSelected = memo(function NothingSelected() {
   const translate = useTranslate();
-  const openInpFromFs = useOpenInpFromFs();
-  const saveInp = useSaveInp();
-  const showShortcuts = useShowShortcuts();
-  const userTracking = useUserTracking();
-  const isSmOrLarger = useBreakpoint("sm");
-  const openModelBuilder = useOpenModelBuilder();
-  const removeTutorial = useFeatureFlag("FLAG_REMOVE_TUTORIAL");
-
-  if (removeTutorial) {
-    return (
-      <div className="flex-grow flex flex-col items-center justify-center px-4 pb-4">
-        <div className="text-gray-400">
-          <PointerClickIcon size={96} />
-        </div>
-        <p className="text-sm font-semibold py-4 text-gray-600">
-          {translate("nothingSelectedTitle")}
-        </p>
-        <div
-          className="grid gap-x-2 gap-y-4 items-start text-sm text-gray-600 max-w-64"
-          style={{ gridTemplateColumns: "min-content 1fr" }}
-        >
-          <div className="flex items-center gap-1">
-            <MouseCursorDefaultIcon />
-            <span>/</span>
-            <Keycap size="xs">
-              {localizeKeybinding(drawingModeShorcuts[Mode.NONE])}
-            </Keycap>
-          </div>
-          <div>{translate("nothingSelectedClickToSelect")}</div>
-          <div className="flex items-center gap-1">
-            <PolygonalSelectionIcon />
-            <span>/</span>
-            <Keycap size="xs">
-              {localizeKeybinding(selectionModeShortcut)}
-            </Keycap>
-          </div>
-          <div>{translate("nothingSelectedAreaSelect")}</div>
-        </div>
-      </div>
-    );
-  }
 
   return (
-    <div className="px-3 pt-3 overflow-y-auto pb-4 text-gray-900 dark:text-gray-300 flex-auto placemark-scrollbar">
-      <div className="text-sm font-semibold pb-2">
-        {translate("onboardingViewAndEdit")}
+    <div className="flex-grow flex flex-col items-center justify-center px-4 pb-4">
+      <div className="text-gray-400">
+        <PointerClickIcon size={96} />
       </div>
+      <p className="text-sm font-semibold py-4 text-gray-600">
+        {translate("nothingSelectedTitle")}
+      </p>
       <div
-        className="grid gap-x-2 gap-y-4 items-start p-2 text-sm"
-        style={{
-          gridTemplateColumns: "min-content 1fr",
-        }}
+        className="grid gap-x-2 gap-y-4 items-start text-sm text-gray-600 max-w-64"
+        style={{ gridTemplateColumns: "min-content 1fr" }}
       >
-        <div className="pt-[.125rem]">
+        <div className="flex items-center gap-1">
           <MouseCursorDefaultIcon />
+          <span>/</span>
+          <Keycap size="xs">
+            {localizeKeybinding(drawingModeShorcuts[Mode.NONE])}
+          </Keycap>
         </div>
-        <div>{translate("onboardingSelectAsset")}</div>
-      </div>
-      {isSmOrLarger && (
-        <>
-          <div className="text-sm font-semibold pb-2">
-            {translate("onboardingSelectDrawing", "")}
-          </div>
-          <div
-            className="grid gap-x-2 gap-y-4 items-start p-2 text-sm"
-            style={{
-              gridTemplateColumns: "min-content 1fr",
-            }}
-          >
-            <div className="pt-[.125rem]">
-              <ReservoirIcon />
-            </div>
-            <div>{translate("onboardingDrawReservoir")}</div>
-            <div className="pt-[.125rem]">
-              <JunctionIcon />
-            </div>
-            <div>{translate("onboardingDrawJunctions")}</div>
-            <div className="pt-[.125rem]">
-              <PipeIcon />
-            </div>
-            <div>{translate("onboardingDrawPipe")}</div>
-          </div>
-        </>
-      )}
-      <div className="pt-4 space-y-3">
-        <div className="text-sm font-semibold pb-2">
-          {translate("onboardingRunningModel")}
+        <div>{translate("nothingSelectedClickToSelect")}</div>
+        <div className="flex items-center gap-1">
+          <PolygonalSelectionIcon />
+          <span>/</span>
+          <Keycap size="xs">{localizeKeybinding(selectionModeShortcut)}</Keycap>
         </div>
-      </div>
-      <div
-        className="grid gap-x-2 gap-y-4 items-start p-2 text-sm"
-        style={{
-          gridTemplateColumns: "min-content 1fr",
-        }}
-      >
-        <div className="pt-[.125rem]">
-          <RunSimulationIcon />
-        </div>
-        <div>{translate("onboardingRunSimulation")}</div>
-        <div className="pt-[.125rem]">
-          <TabsIcon />
-        </div>
-        <div>{translate("onboardingMap")}</div>
-      </div>
-      {isSmOrLarger && (
-        <>
-          <div className="pt-4 space-y-3">
-            <div className="text-sm font-semibold pb-2">
-              {translate("onboardingOtherFeatures")}
-            </div>
-          </div>
-          <div
-            className="grid gap-x-2 gap-y-4 items-start p-2 text-sm"
-            style={{
-              gridTemplateColumns: "min-content 1fr",
-            }}
-          >
-            <div className="pt-[.125rem]">
-              <KeyboardIcon />
-            </div>
-            <a
-              href="#"
-              className="!text-purple-800 hover:underline cursor:pointer"
-              onClick={() => {
-                userTracking.capture({
-                  name: "shortcuts.opened",
-                  source: "onboarding",
-                });
-                showShortcuts();
-              }}
-            >
-              {translate("keyboardShortcuts.title")}
-            </a>
-            <div className="pt-[.125rem]">
-              <UndoIcon />
-            </div>
-            <div>
-              {translate(
-                "onboardingUndoRedo",
-                localizeKeybinding("ctrl+z"),
-                localizeKeybinding("ctrl+y"),
-              )}
-            </div>
-          </div>
-        </>
-      )}
-      <div className="pt-4 space-y-3">
-        <div className="text-sm font-semibold pb-2">
-          {translate("onboardingFiles")}
-        </div>
-        <div className="flex flex-col items-start gap-y-2">
-          <Button
-            type="button"
-            onClick={() => {
-              void openInpFromFs({ source: "onboarding" });
-            }}
-          >
-            <FileSpreadsheetIcon />
-            {translate("openProject")}
-          </Button>
-          <Button
-            type="button"
-            onClick={() => {
-              void openModelBuilder({ source: "onboarding" });
-            }}
-          >
-            <GlobeIcon />
-            {translate("importFromGIS")}
-            <EarlyAccessIcon size="sm" className="ml-1" />
-          </Button>
-          <Button
-            type="button"
-            onClick={() => {
-              void saveInp({ source: "onboarding" });
-            }}
-          >
-            <SaveIcon />
-            {translate("save")}
-          </Button>
-        </div>
+        <div>{translate("nothingSelectedAreaSelect")}</div>
       </div>
     </div>
   );
