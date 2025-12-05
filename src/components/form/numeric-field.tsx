@@ -173,10 +173,11 @@ function styledInput({
       "border focus-visible:border-transparent": border === "sm",
     },
     ghostBorder && variant !== "warning"
-      ? "border-transparent"
+      ? "border-transparent bg-transparent"
       : variant === "warning"
         ? "border-orange-500 dark:border-orange-700"
         : "border-gray-300 hover:border-gray-200",
+    !ghostBorder && variant !== "warning" && "bg-white",
     !disabled && {
       "focus-visible:bg-purple-300/10 dark:focus-visible:bg-purple-700/40 dark:focus-visible:ring-purple-700 focus-visible:ring-purple-500":
         variant === "default",
@@ -189,6 +190,6 @@ function styledInput({
       "text-md": textSize === "md",
     },
 
-    "bg-transparent rounded-sm block tabular-nums overflow-hidden whitespace-nowrap text-ellipsis focus-visible:ring-inset w-full",
+    "rounded-sm block tabular-nums overflow-hidden whitespace-nowrap text-ellipsis focus-visible:ring-inset w-full",
   );
 }
