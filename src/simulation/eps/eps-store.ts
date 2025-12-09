@@ -24,10 +24,9 @@ export type EPSSimulationMetadata = {
 
 /**
  * Tank data captured during simulation (not available in binary format).
- * Map from tank ID to array of { level, volume } per timestep.
+ * Only volume is needed - level is available as node pressure in binary.
  */
 export type TankTimestepData = {
-  level: number;
   volume: number;
 };
 

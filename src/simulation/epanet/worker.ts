@@ -84,11 +84,10 @@ export const runSimulation = async (
     do {
       currentTime = model.runH();
 
-      // Capture tank level and volume at each timestep
+      // Capture tank volume at each timestep (level is available as pressure in binary)
       for (const tank of tankIndices) {
-        const level = model.getNodeValue(tank.index, NodeProperty.TankLevel);
         const volume = model.getNodeValue(tank.index, NodeProperty.TankVolume);
-        tankData.get(tank.id)!.push({ level, volume });
+        tankData.get(tank.id)!.push({ volume });
       }
 
       // Report progress

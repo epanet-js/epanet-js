@@ -57,14 +57,14 @@ export function convertTimestepToSimulationResults(
 
     if (reader.isTankOrReservoir(i)) {
       // Tank or reservoir - use TankSimulation type
-      // Get level/volume from tankData if available
+      // Level is stored as pressure in binary; volume from tankData
       const tankTimesteps = tankData?.get(node.id);
       const tankValues = tankTimesteps?.[timestepIndex];
       const tankResult: TankSimulation = {
         type: "tank",
         pressure: node.pressure,
         head: node.head,
-        level: tankValues?.level ?? 0,
+        level: node.pressure, // Tank level is stored as pressure in binary
         volume: tankValues?.volume ?? 0,
       };
       results.set(node.id, tankResult);
