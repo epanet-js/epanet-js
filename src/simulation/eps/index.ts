@@ -26,14 +26,16 @@ export {
 } from "./convert-binary-results";
 
 export {
+  initOPFS,
   writeBinaryToOPFS,
   writeTankBinaryToOPFS,
   getOPFSFile,
   readBinarySlice,
   readTankBinarySlice,
   readTimestepCountFromOPFS,
-  deleteSimulationFromOPFS,
   clearAllSimulationsFromOPFS,
+  updateHeartbeat,
+  cleanupStaleTabs,
 } from "./eps-store";
 
 export {

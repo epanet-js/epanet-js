@@ -3,10 +3,12 @@ import { lib as webWorker } from "src/lib/worker";
 import { SimulationResult } from "../result";
 import { EpanetResultsReader } from "./epanet-results";
 import {
+  initOPFS,
   readBinarySlice,
   readTankBinarySlice,
   readTimestepCountFromOPFS,
 } from "../eps/eps-store";
+import { getAppId } from "src/appInstance";
 import {
   convertTimestepSliceToSimulationResults,
   parsePrologHeader,
@@ -32,18 +34,17 @@ export type { SimulationProgress };
  * First reads the header to get counts, then reads the full prolog section.
  */
 async function readPrologMetadata(
-  simulationId: string,
   timestepCount: number,
 ): Promise<PartialReadMetadata | null> {
   // Read prolog header (first 884 bytes) to get counts
-  const headerData = await readBinarySlice(simulationId, 0, PROLOG_HEADER_SIZE);
+  const headerData = await readBinarySlice(0, PROLOG_HEADER_SIZE);
   if (!headerData) return null;
 
   const prolog = parsePrologHeader(headerData, timestepCount);
 
   // Calculate full prolog size and read it
   const prologSize = calculatePrologSize(prolog);
-  const prologData = await readBinarySlice(simulationId, 0, prologSize);
+  const prologData = await readBinarySlice(0, prologSize);
   if (!prologData) return null;
 
   // Extract metadata from prolog
@@ -69,7 +70,6 @@ async function readPrologMetadata(
  * @returns Float32Array of tank volumes in tank index order, or undefined if no tanks
  */
 async function readTankVolumesFromOPFS(
-  simulationId: string,
   tankCount: number,
   timestepIndex: number,
 ): Promise<Float32Array | undefined> {
@@ -79,7 +79,7 @@ async function readTankVolumesFromOPFS(
   const start = timestepIndex * tankCount * bytesPerFloat;
   const end = start + tankCount * bytesPerFloat;
 
-  const data = await readTankBinarySlice(simulationId, start, end);
+  const data = await readTankBinarySlice(start, end);
   if (!data) return undefined;
 
   // Copy to a new ArrayBuffer to ensure proper alignment for Float32Array
@@ -92,7 +92,6 @@ async function readTankVolumesFromOPFS(
  * Reads a single timestep from OPFS using partial reads.
  */
 async function readTimestepFromOPFS(
-  simulationId: string,
   metadata: PartialReadMetadata,
   timestepIndex: number,
 ): Promise<Uint8Array | null> {
@@ -101,29 +100,24 @@ async function readTimestepFromOPFS(
   const start = baseOffset + blockSize * timestepIndex;
   const end = start + blockSize;
 
-  return readBinarySlice(simulationId, start, end);
+  return readBinarySlice(start, end);
 }
 
 /**
  * Runs a hydraulic simulation and returns results.
  *
- * The worker stores binary results in OPFS.
- * This function loads the results and converts the first timestep to SimulationResults.
+ * The worker stores binary results in OPFS, overwriting any previous results.
+ * Only one simulation result is stored at a time to minimize storage usage.
  *
  * @param inp - The EPANET INP file content
- * @param modelVersion - The model version string
  * @param flags - Optional flags for the simulation
  * @param onProgress - Optional callback for progress updates during simulation
  */
 export const runSimulation = async (
   inp: string,
-  modelVersion: string,
   flags: Record<string, boolean> = {},
   onProgress?: ProgressCallback,
 ): Promise<SimulationResult> => {
-  // Generate unique simulation ID
-  const simulationId = `sim-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
-
   // Always log progress and forward to optional callback
   const wrappedProgress: ProgressCallback = (progress) => {
     const percent =
@@ -138,10 +132,13 @@ export const runSimulation = async (
   };
   const progressProxy = Comlink.proxy(wrappedProgress);
 
-  const { report, status } = await webWorker.runSimulation(
+  // Initialize OPFS with app ID (workers can't access sessionStorage)
+  const appId = getAppId();
+  initOPFS(appId);
+
+  const { status, report } = await webWorker.runSimulation(
     inp,
-    simulationId,
-    modelVersion,
+    appId,
     flags,
     progressProxy,
   );
@@ -156,7 +153,7 @@ export const runSimulation = async (
   }
 
   // Read timestep count from binary epilog
-  const timestepCount = await readTimestepCountFromOPFS(simulationId);
+  const timestepCount = await readTimestepCountFromOPFS();
   if (timestepCount === null || timestepCount === 0) {
     return {
       status,
@@ -166,28 +163,19 @@ export const runSimulation = async (
   }
 
   // Read prolog metadata using partial reads
-  const prologMetadata = await readPrologMetadata(simulationId, timestepCount);
+  const prologMetadata = await readPrologMetadata(timestepCount);
   if (!prologMetadata) {
-    throw new Error(
-      `Failed to read prolog metadata for simulation ${simulationId} from OPFS`,
-    );
+    throw new Error("Failed to read prolog metadata from OPFS");
   }
 
   // Read first timestep using partial reads
-  const timestepData = await readTimestepFromOPFS(
-    simulationId,
-    prologMetadata,
-    0,
-  );
+  const timestepData = await readTimestepFromOPFS(prologMetadata, 0);
   if (!timestepData) {
-    throw new Error(
-      `Failed to read timestep data for simulation ${simulationId} from OPFS`,
-    );
+    throw new Error("Failed to read timestep data from OPFS");
   }
 
   // Read tank volumes for first timestep from tank binary file
   const tankVolumes = await readTankVolumesFromOPFS(
-    simulationId,
     prologMetadata.tankIndices.length,
     0,
   );

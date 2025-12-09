@@ -23,7 +23,7 @@ export const useRunSimulation = () => {
     const inp = buildInpEPS(hydraulicModel, { customerDemands: true });
     const start = performance.now();
     setDialogState({ type: "loading" });
-    const { report, status, results } = await run(inp, hydraulicModel.version);
+    const { report, status, results } = await run(inp);
 
     const updatedHydraulicModel = attachSimulation(hydraulicModel, results);
     setData((prev) => ({

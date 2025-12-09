@@ -32,7 +32,7 @@ describe.skip("epanet simulation", () => {
       .build();
     const inp = buildInp(hydraulicModel);
 
-    const { status, report } = await runSimulation(inp, "test-version");
+    const { status, report } = await runSimulation(inp);
 
     expect(status).toEqual("success");
     expect(report).not.toContain("Error");
@@ -46,7 +46,7 @@ describe.skip("epanet simulation", () => {
       .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.R2 })
       .build();
     const inp = buildInp(hydraulicModel);
-    const { status, report } = await runSimulation(inp, "test-version");
+    const { status, report } = await runSimulation(inp);
 
     expect(status).toEqual("failure");
     expect(report).toContain("Error 223: not enough nodes");
@@ -61,7 +61,7 @@ describe.skip("epanet simulation", () => {
       .build();
     const inp = buildInp(hydraulicModel);
 
-    const { status, report } = await runSimulation(inp, "test-version", {
+    const { status, report } = await runSimulation(inp, {
       FLAG_WARNING: true,
     });
 
@@ -78,7 +78,7 @@ describe.skip("epanet simulation", () => {
       .aJunction(IDS.J2)
       .build();
     const inp = buildInp(hydraulicModel);
-    const { status, report } = await runSimulation(inp, "test-version");
+    const { status, report } = await runSimulation(inp);
 
     expect(status).toEqual("failure");
     expect(report.match(/Error 234/gi)!.length).toEqual(1);
@@ -99,7 +99,7 @@ describe.skip("epanet simulation", () => {
         .build();
       const inp = buildInp(hydraulicModel);
 
-      const { status, results } = await runSimulation(inp, "test-version");
+      const { status, results } = await runSimulation(inp);
 
       expect(status).toEqual("success");
       expect(results.getJunction(String(IDS.J1))!.pressure).toBeCloseTo(10);
@@ -119,7 +119,7 @@ describe.skip("epanet simulation", () => {
         .build();
       const inp = buildInp(hydraulicModel);
 
-      const { status, results } = await runSimulation(inp, "test-version");
+      const { status, results } = await runSimulation(inp);
 
       expect(status).toEqual("success");
       const junction = results.getJunction(
@@ -141,7 +141,7 @@ describe.skip("epanet simulation", () => {
         .build();
       const inp = buildInp(hydraulicModel);
 
-      const { status, results } = await runSimulation(inp, "test-version");
+      const { status, results } = await runSimulation(inp);
 
       expect(status).toEqual("success");
       const valve = results.getValve(String(IDS.V1)) as ValveSimulation;
@@ -175,7 +175,7 @@ describe.skip("epanet simulation", () => {
         .build();
       const inp = buildInp(hydraulicModel);
 
-      const { status, results } = await runSimulation(inp, "test-version");
+      const { status, results } = await runSimulation(inp);
 
       expect(status).toEqual("success");
       const tank = results.getTank(String(IDS.T1)) as TankSimulation;
@@ -198,7 +198,7 @@ describe.skip("epanet simulation", () => {
         .build();
       const inp = buildInp(hydraulicModel);
 
-      const { status, results } = await runSimulation(inp, "test-version");
+      const { status, results } = await runSimulation(inp);
 
       expect(status).toEqual("warning");
       const valve = results.getValve(String(IDS.V1)) as ValveSimulation;
@@ -218,7 +218,7 @@ describe.skip("epanet simulation", () => {
         .build();
       const inp = buildInp(hydraulicModel);
 
-      const { status, results } = await runSimulation(inp, "test-version");
+      const { status, results } = await runSimulation(inp);
 
       expect(status).toEqual("failure");
       expect(results.getJunction(String(IDS.J1))).toBeNull();

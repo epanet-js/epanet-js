@@ -6,12 +6,15 @@ import {
   Workspace,
 } from "epanet-js";
 import { SimulationStatus } from "../result";
-import { writeBinaryToOPFS, writeTankBinaryToOPFS } from "../eps/eps-store";
+import {
+  initOPFS,
+  writeBinaryToOPFS,
+  writeTankBinaryToOPFS,
+} from "../eps/eps-store";
 
 export type SimulationResult = {
   status: SimulationStatus;
   report: string;
-  simulationId: string;
 };
 
 export type SimulationProgress = {
@@ -31,13 +34,15 @@ export type ProgressCallback = (progress: SimulationProgress) => void;
  */
 export const runSimulation = async (
   inp: string,
-  simulationId: string,
-  _modelVersion: string,
+  appId: string,
   flags: Record<string, boolean> = {},
   onProgress?: ProgressCallback,
 ): Promise<SimulationResult> => {
   // eslint-disable-next-line
   if (Object.keys(flags).length) console.log("Running with flags", flags);
+
+  // Initialize OPFS with the app ID from main thread
+  initOPFS(appId);
 
   const ws = new Workspace();
   await ws.loadModule();
@@ -98,7 +103,7 @@ export const runSimulation = async (
     const binaryData = ws.readFile("results.out", "binary");
 
     // Write binary to OPFS for partial reading
-    await writeBinaryToOPFS(simulationId, binaryData);
+    await writeBinaryToOPFS(binaryData);
 
     // Convert tank volumes to binary format (Float32, organized by timestep)
     // Format: [timestep0_tank0, timestep0_tank1, ..., timestep1_tank0, ...]
@@ -111,10 +116,7 @@ export const runSimulation = async (
           tankBinaryData[t * tankCount + i] = tankVolumesPerTimestep[t][i];
         }
       }
-      await writeTankBinaryToOPFS(
-        simulationId,
-        new Uint8Array(tankBinaryData.buffer),
-      );
+      await writeTankBinaryToOPFS(new Uint8Array(tankBinaryData.buffer));
     }
 
     model.close();
@@ -124,7 +126,6 @@ export const runSimulation = async (
     return {
       status: report.includes("WARNING") ? "warning" : "success",
       report: curateReport(report),
-      simulationId,
     };
   } catch (error) {
     // eslint-disable-next-line no-console
@@ -136,7 +137,6 @@ export const runSimulation = async (
       status: "failure",
       report:
         report.length > 0 ? curateReport(report) : (error as Error).message,
-      simulationId,
     };
   }
 };

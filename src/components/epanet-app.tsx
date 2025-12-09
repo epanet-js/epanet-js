@@ -49,6 +49,12 @@ import { AppLoader } from "./app-loader";
 import { PrivacyBanner } from "./privacy-banner";
 import { usePrivacySettings } from "src/hooks/use-privacy-settings";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import {
+  initOPFS,
+  updateHeartbeat,
+  cleanupStaleTabs,
+} from "src/simulation/eps/eps-store";
+import { getAppId } from "src/appInstance";
 
 type ResolvedLayout = "HORIZONTAL" | "VERTICAL" | "FLOATING";
 
@@ -71,6 +77,15 @@ export function EpanetApp() {
   const { enableAllTracking } = usePrivacySettings();
   const hasIdentifiedRef = useRef(false);
   const isCursorFamilyEnabled = useFeatureFlag("FLAG_CURSOR_FAMILY");
+
+  // Initialize OPFS and cleanup stale tabs from other sessions
+  useEffect(() => {
+    initOPFS(getAppId());
+    void updateHeartbeat();
+    void cleanupStaleTabs();
+    const interval = setInterval(updateHeartbeat, 60 * 1000); // Every minute
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     if (isSignedIn && user && !hasIdentifiedRef.current) {
