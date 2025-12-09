@@ -70,8 +70,17 @@ const ID_STRING_LENGTH = 32;
 const PROLOG_OFFSET = 884;
 
 /**
+ * Size of the fixed prolog header (before variable-length sections).
+ * This contains counts and configuration values.
+ */
+export const PROLOG_HEADER_SIZE = 884;
+
+/**
  * Parses the prolog section of the EPANET binary file.
  * This is needed to calculate offsets for data access.
+ *
+ * Note: reportingPeriods is read from the epilog (last 12 bytes of file).
+ * For partial reads, use parsePrologHeader and provide reportingPeriods separately.
  */
 export function parseProlog(data: Uint8Array): EpanetProlog {
   const view = new DataView(data.buffer, data.byteOffset, data.byteLength);
@@ -84,6 +93,38 @@ export function parseProlog(data: Uint8Array): EpanetProlog {
     valveCount: view.getInt32(24, true),
     reportingPeriods: view.getInt32(data.byteLength - 12, true),
   };
+}
+
+/**
+ * Parses just the prolog header (first 884 bytes) without needing the full file.
+ * Use this for partial reads where reportingPeriods comes from metadata.
+ */
+export function parsePrologHeader(
+  headerData: Uint8Array,
+  reportingPeriods: number,
+): EpanetProlog {
+  const view = new DataView(
+    headerData.buffer,
+    headerData.byteOffset,
+    headerData.byteLength,
+  );
+
+  return {
+    nodeCount: view.getInt32(8, true),
+    resAndTankCount: view.getInt32(12, true),
+    linkCount: view.getInt32(16, true),
+    pumpCount: view.getInt32(20, true),
+    valveCount: view.getInt32(24, true),
+    reportingPeriods,
+  };
+}
+
+/**
+ * Calculates the size of the entire prolog section (all metadata before results).
+ * This is the amount of data needed to extract IDs, types, and tank info.
+ */
+export function calculatePrologSize(prolog: EpanetProlog): number {
+  return calculateResultsBaseOffset(prolog);
 }
 
 /**
@@ -216,7 +257,7 @@ export function extractTankAreas(
  * - 8 bytes per tank (4 byte index + 4 byte area)
  * - 28 bytes per pump (energy data) + 4 bytes (peak energy)
  */
-function calculateResultsBaseOffset(prolog: EpanetProlog): number {
+export function calculateResultsBaseOffset(prolog: EpanetProlog): number {
   return (
     PROLOG_OFFSET +
     36 * prolog.nodeCount +
@@ -230,7 +271,7 @@ function calculateResultsBaseOffset(prolog: EpanetProlog): number {
 /**
  * Calculates the size in bytes of one timestep's results.
  */
-function calculateTimestepBlockSize(prolog: EpanetProlog): number {
+export function calculateTimestepBlockSize(prolog: EpanetProlog): number {
   // Node results: 4 floats (demand, head, pressure, waterQuality) × nodeCount
   const nodeResultsSize = 16 * prolog.nodeCount;
   // Link results: 8 floats × linkCount
@@ -283,6 +324,78 @@ export function extractTimestepResults(
   const linkResultsOffset = timestepOffset + 16 * prolog.nodeCount;
   for (let i = 0; i < prolog.linkCount; i++) {
     // Link data layout: all flows, then all velocities, etc.
+    const flowOffset = linkResultsOffset + 4 * i;
+    const velocityOffset = linkResultsOffset + 4 * prolog.linkCount + 4 * i;
+    const headlossOffset = linkResultsOffset + 8 * prolog.linkCount + 4 * i;
+    const avgWQOffset = linkResultsOffset + 12 * prolog.linkCount + 4 * i;
+    const statusOffset = linkResultsOffset + 16 * prolog.linkCount + 4 * i;
+    const settingOffset = linkResultsOffset + 20 * prolog.linkCount + 4 * i;
+    const reactionRateOffset =
+      linkResultsOffset + 24 * prolog.linkCount + 4 * i;
+    const frictionOffset = linkResultsOffset + 28 * prolog.linkCount + 4 * i;
+
+    links.push({
+      id: linkIds[i],
+      flow: view.getFloat32(flowOffset, true),
+      velocity: view.getFloat32(velocityOffset, true),
+      headloss: view.getFloat32(headlossOffset, true),
+      avgWaterQuality: view.getFloat32(avgWQOffset, true),
+      status: view.getFloat32(statusOffset, true),
+      setting: view.getFloat32(settingOffset, true),
+      reactionRate: view.getFloat32(reactionRateOffset, true),
+      friction: view.getFloat32(frictionOffset, true),
+    });
+  }
+
+  return {
+    timestepIndex,
+    nodes,
+    links,
+  };
+}
+
+/**
+ * Extracts results from a timestep data slice (for partial reading from OPFS).
+ *
+ * The slice should contain exactly one timestep block of data.
+ * Use calculateTimestepBlockSize() to determine the required slice size.
+ *
+ * @param slice - Uint8Array containing one timestep block
+ * @param prolog - Prolog data for calculating offsets
+ * @param timestepIndex - The timestep index (for the result object)
+ * @param nodeIds - Array of node IDs
+ * @param linkIds - Array of link IDs
+ */
+export function extractTimestepFromSlice(
+  slice: Uint8Array,
+  prolog: EpanetProlog,
+  timestepIndex: number,
+  nodeIds: string[],
+  linkIds: string[],
+): TimestepResults {
+  const view = new DataView(slice.buffer, slice.byteOffset, slice.byteLength);
+
+  // Extract node results (data starts at offset 0 in the slice)
+  const nodes: NodeTimestepResult[] = [];
+  for (let i = 0; i < prolog.nodeCount; i++) {
+    const demandOffset = 4 * i;
+    const headOffset = 4 * prolog.nodeCount + 4 * i;
+    const pressureOffset = 8 * prolog.nodeCount + 4 * i;
+    const waterQualityOffset = 12 * prolog.nodeCount + 4 * i;
+
+    nodes.push({
+      id: nodeIds[i],
+      demand: view.getFloat32(demandOffset, true),
+      head: view.getFloat32(headOffset, true),
+      pressure: view.getFloat32(pressureOffset, true),
+      waterQuality: view.getFloat32(waterQualityOffset, true),
+    });
+  }
+
+  // Extract link results
+  const links: LinkTimestepResult[] = [];
+  const linkResultsOffset = 16 * prolog.nodeCount;
+  for (let i = 0; i < prolog.linkCount; i++) {
     const flowOffset = linkResultsOffset + 4 * i;
     const velocityOffset = linkResultsOffset + 4 * prolog.linkCount + 4 * i;
     const headlossOffset = linkResultsOffset + 8 * prolog.linkCount + 4 * i;

@@ -13,7 +13,13 @@ import {
   ValveSimulation,
 } from "../results-reader";
 import { SimulationResults } from "../epanet/epanet-results";
-import { BinaryLinkType, EpanetBinaryReader } from "./epanet-binary-reader";
+import {
+  BinaryLinkType,
+  BinaryNodeType,
+  EpanetBinaryReader,
+  type EpanetProlog,
+  type TimestepResults,
+} from "./epanet-binary-reader";
 import type { TankTimestepData } from "./eps-store";
 
 /**
@@ -154,4 +160,106 @@ export function binaryToSimulationResults(
 ): SimulationResults {
   const reader = new EpanetBinaryReader(binaryData);
   return convertTimestepToSimulationResults(reader, timestepIndex);
+}
+
+/**
+ * Metadata needed for partial reads (extracted from prolog section).
+ */
+export type PartialReadMetadata = {
+  prolog: EpanetProlog;
+  nodeIds: string[];
+  linkIds: string[];
+  linkTypes: BinaryLinkType[];
+  nodeTypes: BinaryNodeType[];
+};
+
+/**
+ * Converts a timestep slice to SimulationResults using pre-extracted metadata.
+ * This enables partial reading without loading the full binary file.
+ *
+ * @param timestepResults - Parsed timestep results from extractTimestepFromSlice
+ * @param metadata - Pre-extracted metadata (IDs, types) from prolog section
+ * @param tankData - Optional tank volume data captured during simulation
+ * @param timestepIndex - Index of the timestep (for tank data lookup)
+ */
+export function convertTimestepSliceToSimulationResults(
+  timestepResults: TimestepResults,
+  metadata: PartialReadMetadata,
+  tankData?: Map<string, TankTimestepData[]>,
+  timestepIndex: number = 0,
+): SimulationResults {
+  const results: SimulationResults = new Map();
+
+  // Convert node results
+  for (let i = 0; i < timestepResults.nodes.length; i++) {
+    const node = timestepResults.nodes[i];
+    const nodeType = metadata.nodeTypes[i];
+
+    if (
+      nodeType === BinaryNodeType.Tank ||
+      nodeType === BinaryNodeType.Reservoir
+    ) {
+      // Tank or reservoir - use TankSimulation type
+      const tankTimesteps = tankData?.get(node.id);
+      const tankValues = tankTimesteps?.[timestepIndex];
+      const tankResult: TankSimulation = {
+        type: "tank",
+        pressure: node.pressure,
+        head: node.head,
+        level: node.pressure, // Tank level is stored as pressure in binary
+        volume: tankValues?.volume ?? 0,
+      };
+      results.set(node.id, tankResult);
+    } else {
+      // Junction
+      const junctionResult: JunctionSimulation = {
+        type: "junction",
+        pressure: node.pressure,
+        head: node.head,
+        demand: node.demand,
+      };
+      results.set(node.id, junctionResult);
+    }
+  }
+
+  // Convert link results
+  for (let i = 0; i < timestepResults.links.length; i++) {
+    const link = timestepResults.links[i];
+    const linkType = metadata.linkTypes[i];
+    const isOpen = link.status >= BINARY_STATUS_OPEN_THRESHOLD;
+
+    if (linkType === BinaryLinkType.Pump) {
+      const pumpResult: PumpSimulation = {
+        type: "pump",
+        flow: link.flow,
+        headloss: link.headloss,
+        status: isOpen ? "on" : "off",
+        statusWarning: null,
+      };
+      results.set(link.id, pumpResult);
+    } else if (isValveType(linkType)) {
+      const valveResult: ValveSimulation = {
+        type: "valve",
+        flow: link.flow,
+        velocity: link.velocity,
+        headloss: link.headloss,
+        status: valveStatusFromBinary(link.status),
+        statusWarning: null,
+      };
+      results.set(link.id, valveResult);
+    } else {
+      // Pipe or CV Pipe
+      const pipeResult: PipeSimulation = {
+        type: "pipe",
+        flow: link.flow,
+        velocity: link.velocity,
+        headloss: link.headloss,
+        unitHeadloss: 0,
+        status: isOpen ? "open" : "closed",
+      };
+      results.set(link.id, pipeResult);
+    }
+  }
+
+  return results;
 }

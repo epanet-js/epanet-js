@@ -1,12 +1,13 @@
 /**
- * IndexedDB store for EPS simulation results.
+ * EPS simulation storage using OPFS for binary data and IndexedDB for metadata.
  *
- * Stores the raw EPANET binary output file and metadata for each simulation.
- * Multiple simulations can be stored and retrieved by ID.
+ * Binary output files are stored in OPFS for efficient partial reading.
+ * Metadata and tank data are stored in IndexedDB for quick access.
  */
 
 const DB_NAME = "epanet-eps";
 const DB_VERSION = 1;
+const OPFS_SIMULATIONS_DIR = "simulations";
 
 const STORES = {
   SIMULATIONS: "simulations",
@@ -30,12 +31,91 @@ export type TankTimestepData = {
   volume: number;
 };
 
+/**
+ * Record stored in IndexedDB (metadata only, binary is in OPFS).
+ */
 export type EPSSimulationRecord = {
   metadata: EPSSimulationMetadata;
-  binaryData: Uint8Array;
-  /** Tank level/volume per timestep, keyed by tank ID */
+  /** Tank volume per timestep, keyed by tank ID */
   tankData?: Map<string, TankTimestepData[]>;
 };
+
+/**
+ * Gets the OPFS directory for simulations, creating it if needed.
+ */
+async function getSimulationsDirectory(): Promise<FileSystemDirectoryHandle> {
+  const root = await navigator.storage.getDirectory();
+  return root.getDirectoryHandle(OPFS_SIMULATIONS_DIR, { create: true });
+}
+
+/**
+ * Writes binary data to OPFS for a simulation.
+ */
+export async function writeBinaryToOPFS(
+  simulationId: string,
+  binaryData: Uint8Array,
+): Promise<void> {
+  const dir = await getSimulationsDirectory();
+  const fileHandle = await dir.getFileHandle(`${simulationId}.out`, {
+    create: true,
+  });
+  const writable = await fileHandle.createWritable();
+  await writable.write(new Blob([binaryData as BlobPart]));
+  await writable.close();
+}
+
+/**
+ * Gets a File handle from OPFS for partial reading.
+ */
+export async function getOPFSFile(simulationId: string): Promise<File | null> {
+  try {
+    const dir = await getSimulationsDirectory();
+    const fileHandle = await dir.getFileHandle(`${simulationId}.out`);
+    return fileHandle.getFile();
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Reads a slice of bytes from an OPFS simulation file.
+ */
+export async function readBinarySlice(
+  simulationId: string,
+  start: number,
+  end: number,
+): Promise<Uint8Array | null> {
+  const file = await getOPFSFile(simulationId);
+  if (!file) return null;
+
+  const slice = file.slice(start, end);
+  const buffer = await slice.arrayBuffer();
+  return new Uint8Array(buffer);
+}
+
+/**
+ * Deletes binary data from OPFS for a simulation.
+ */
+async function deleteBinaryFromOPFS(simulationId: string): Promise<void> {
+  try {
+    const dir = await getSimulationsDirectory();
+    await dir.removeEntry(`${simulationId}.out`);
+  } catch {
+    // File may not exist, ignore
+  }
+}
+
+/**
+ * Clears all binary files from OPFS.
+ */
+async function clearAllBinaryFromOPFS(): Promise<void> {
+  try {
+    const root = await navigator.storage.getDirectory();
+    await root.removeEntry(OPFS_SIMULATIONS_DIR, { recursive: true });
+  } catch {
+    // Directory may not exist, ignore
+  }
+}
 
 /**
  * Opens the IndexedDB database, creating stores if needed.
@@ -122,9 +202,13 @@ export async function loadEPSSimulation(
 }
 
 /**
- * Deletes an EPS simulation from IndexedDB.
+ * Deletes an EPS simulation from IndexedDB and OPFS.
  */
 export async function deleteEPSSimulation(simulationId: string): Promise<void> {
+  // Delete from OPFS first
+  await deleteBinaryFromOPFS(simulationId);
+
+  // Delete from IndexedDB
   const db = await openDatabase();
 
   return new Promise((resolve, reject) => {
@@ -179,42 +263,13 @@ export async function listEPSSimulations(): Promise<EPSSimulationMetadata[]> {
 }
 
 /**
- * Finds an EPS simulation by model version.
- * Returns the first matching simulation or null if none found.
- */
-export async function findSimulationByModelVersion(
-  modelVersion: string,
-): Promise<EPSSimulationRecord | null> {
-  const db = await openDatabase();
-
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction(STORES.SIMULATIONS, "readonly");
-    const store = transaction.objectStore(STORES.SIMULATIONS);
-
-    const request = store.getAll();
-
-    request.onerror = () => {
-      reject(new Error(`Failed to find simulation: ${request.error?.message}`));
-    };
-
-    request.onsuccess = () => {
-      const records = request.result as EPSSimulationRecord[];
-      const match = records.find(
-        (r) => r.metadata.modelVersion === modelVersion,
-      );
-      resolve(match ?? null);
-    };
-
-    transaction.oncomplete = () => {
-      db.close();
-    };
-  });
-}
-
-/**
- * Clears all EPS simulations from IndexedDB.
+ * Clears all EPS simulations from IndexedDB and OPFS.
  */
 export async function clearAllEPSSimulations(): Promise<void> {
+  // Clear all binaries from OPFS first
+  await clearAllBinaryFromOPFS();
+
+  // Clear IndexedDB
   const db = await openDatabase();
 
   return new Promise((resolve, reject) => {

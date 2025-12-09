@@ -8,6 +8,7 @@ import {
 import { SimulationStatus } from "../result";
 import {
   saveEPSSimulation,
+  writeBinaryToOPFS,
   type EPSSimulationMetadata,
   type EPSSimulationRecord,
   type TankTimestepData,
@@ -116,10 +117,12 @@ export const runSimulation = async (
       linkCount: prolog.linkCount,
     };
 
-    // Store in IndexedDB
+    // Write binary to OPFS for partial reading
+    await writeBinaryToOPFS(simulationId, binaryData);
+
+    // Store metadata and tank data in IndexedDB
     const record: EPSSimulationRecord = {
       metadata,
-      binaryData,
       tankData: tankData.size > 0 ? tankData : undefined,
     };
     await saveEPSSimulation(record);
@@ -135,6 +138,8 @@ export const runSimulation = async (
       metadata,
     };
   } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error("Simulation failed:", error);
     model.close();
     const report = ws.readFile("report.rpt");
 

@@ -20,6 +20,8 @@ export {
 export {
   convertTimestepToSimulationResults,
   binaryToSimulationResults,
+  convertTimestepSliceToSimulationResults,
+  type PartialReadMetadata,
 } from "./convert-binary-results";
 
 export {
@@ -28,8 +30,18 @@ export {
   deleteEPSSimulation,
   listEPSSimulations,
   clearAllEPSSimulations,
-  findSimulationByModelVersion,
+  getOPFSFile,
+  readBinarySlice,
   type EPSSimulationMetadata,
   type EPSSimulationRecord,
   type TankTimestepData,
 } from "./eps-store";
+
+export {
+  calculateResultsBaseOffset,
+  calculateTimestepBlockSize,
+  extractTimestepFromSlice,
+  parsePrologHeader,
+  calculatePrologSize,
+  PROLOG_HEADER_SIZE,
+} from "./epanet-binary-reader";
