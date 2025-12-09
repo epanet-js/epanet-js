@@ -238,6 +238,12 @@ export type ImportInpCompleted = {
     | "nonDefaultOptions"
     | "nonDefaultTimes"
     | "unbalancedDiff"
+    | "hasReservoirPatterns"
+    | "hasTankCurves"
+    | "hasPumpPatterns"
+    | "hasPumpCurves"
+    | "hasControls"
+    | "hasRules"
   )[];
 };
 

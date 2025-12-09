@@ -11,6 +11,12 @@ export type ParserIssues = {
     customSetting: string;
   };
   gpvValves?: boolean;
+  hasReservoirPatterns?: boolean;
+  hasTankCurves?: boolean;
+  hasPumpPatterns?: boolean;
+  hasPumpCurves?: boolean;
+  hasControls?: boolean;
+  hasRules?: boolean;
 };
 
 export class IssuesAccumulator {
@@ -72,6 +78,30 @@ export class IssuesAccumulator {
 
   hasUnbalancedDiff(customSetting: string, defaultSetting: string) {
     this.issues.unbalancedDiff = { customSetting, defaultSetting };
+  }
+
+  addReservoirPattern() {
+    this.issues.hasReservoirPatterns = true;
+  }
+
+  addTankCurve() {
+    this.issues.hasTankCurves = true;
+  }
+
+  addPumpPattern() {
+    this.issues.hasPumpPatterns = true;
+  }
+
+  addPumpCurve() {
+    this.issues.hasPumpCurves = true;
+  }
+
+  addControls() {
+    this.issues.hasControls = true;
+  }
+
+  addRules() {
+    this.issues.hasRules = true;
   }
 
   buildResult(): ParserIssues | null {

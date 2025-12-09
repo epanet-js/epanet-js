@@ -303,6 +303,17 @@ export const parsePattern: RowParser = ({ trimmedRow, inpData }) => {
   inpData.patterns.set(patternId, factors);
 };
 
+export const parsePatternEPS: RowParser = ({ trimmedRow, inpData, issues }) => {
+  const [patternId, ...values] = readValues(trimmedRow);
+  const factors = inpData.patterns.get(patternId) || [];
+  factors.push(...values.map((v) => parseFloat(v)));
+  inpData.patterns.set(patternId, factors);
+
+  if (factors.length > 1) {
+    issues.addUsedSection("[PATTERNS]");
+  }
+};
+
 export const parseVertex: RowParser = ({ trimmedRow, inpData }) => {
   const [linkId, lng, lat] = readValues(trimmedRow);
   const vertices = inpData.vertices.get(linkId) || [];
@@ -547,4 +558,125 @@ const readSetting = <T extends Record<string, string | number>>(
   } else {
     return { name, value, defaultValue };
   }
+};
+
+export const parseReservoirEPS: RowParser = ({
+  trimmedRow,
+  inpData,
+  issues,
+  isCommented,
+}) => {
+  const [id, baseHead, patternId] = readValues(trimmedRow);
+
+  if (patternId) {
+    issues.addReservoirPattern();
+  }
+
+  inpData.reservoirs.push({
+    id,
+    baseHead: parseFloat(baseHead),
+    patternId,
+    isActive: !isCommented,
+  });
+  inpData.nodeIds.add(id);
+};
+
+export const parsePumpEPS: RowParser = ({
+  trimmedRow,
+  inpData,
+  issues,
+  isCommented,
+}) => {
+  const [id, startNodeDirtyId, endNodeDirtyId, ...settingFields] =
+    readValues(trimmedRow);
+
+  let power = undefined;
+  let curveId = undefined;
+  let speed = undefined;
+  let patternId = undefined;
+
+  for (let i = 0; i < settingFields.length; i += 2) {
+    const key = settingFields[i].toUpperCase();
+    const value = settingFields[i + 1];
+    if (key === "POWER") {
+      power = parseFloat(value);
+    }
+
+    if (key === "HEAD") {
+      curveId = value;
+    }
+
+    if (key === "SPEED") {
+      speed = parseFloat(value);
+    }
+
+    if (key === "PATTERN") {
+      patternId = value;
+      issues.addPumpPattern();
+    }
+  }
+
+  inpData.pumps.push({
+    id,
+    startNodeDirtyId,
+    endNodeDirtyId,
+    power,
+    curveId,
+    speed,
+    patternId,
+    isActive: !isCommented,
+  });
+};
+
+export const parseTankEPS: RowParser = ({
+  trimmedRow,
+  inpData,
+  issues,
+  isCommented,
+}) => {
+  const [
+    id,
+    elevation,
+    initialLevel,
+    minLevel,
+    maxLevel,
+    diameter,
+    minVolume,
+    volumeCurveId,
+    overflow,
+  ] = readValues(trimmedRow);
+
+  const tankData: TankData = {
+    id,
+    elevation: parseFloat(elevation),
+    initialLevel: parseFloat(initialLevel),
+    minLevel: parseFloat(minLevel),
+    maxLevel: parseFloat(maxLevel),
+    diameter: parseFloat(diameter),
+    minVolume: parseFloat(minVolume),
+    isActive: !isCommented,
+  };
+
+  if (volumeCurveId && volumeCurveId !== "*") {
+    tankData.volumeCurveId = volumeCurveId;
+    issues.addUsedSection("[CURVES]");
+    issues.addTankCurve();
+  }
+
+  if (overflow) {
+    tankData.overflow = overflow.toUpperCase() === "YES";
+  }
+
+  inpData.tanks.push(tankData);
+  inpData.nodeIds.add(id);
+};
+
+export const parseControlsEPS: RowParser = ({ sectionName, issues }) => {
+  issues.addUsedSection(sectionName);
+  issues.addControls();
+};
+
+export const parseRulesEPS: RowParser = ({ sectionName, issues }) => {
+  issues.addUsedSection(sectionName);
+  issues.addRules();
 };

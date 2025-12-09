@@ -45,6 +45,7 @@ export class CurvesBuilder {
       this.typedCurves.set(normalizedId, curve);
 
       this.issues.addUsedSection("[CURVES]");
+      this.issues.addPumpCurve();
       return curve;
     }
   }
