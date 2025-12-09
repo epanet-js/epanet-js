@@ -23,6 +23,7 @@
   "help": "Help",
   "helpCenter": "Help center",
   "roadmap": "Roadmap",
+  "utilities": "Utilities",
   "language": "Language",
   "experimentalLanguage": "This language is in beta. Please try it and contact support if you notice any inaccuracies.",
   "earlyAccess": "Early access",
@@ -661,7 +662,7 @@
     },
     "crossingPipes": {
       "title": "Crossing pipes",
-       "description": "Find pipes that intersect without a connecting node.",
+      "description": "Find pipes that intersect without a connecting node.",
       "summary_zero": "No intersections found",
       "summary_one": "1 intersection found",
       "summary_other": "{{count}} intersections found",

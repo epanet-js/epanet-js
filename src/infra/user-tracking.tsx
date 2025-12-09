@@ -340,6 +340,11 @@ type RoadmapVisited = {
   source: "menu";
 };
 
+type UtilitiesVisited = {
+  name: "utilities.visited";
+  source: "menu";
+};
+
 type RepoVisited = {
   name: "repo.visited";
   source: "welcome" | "menu";
@@ -666,6 +671,7 @@ export type UserEvent =
   | QuickStartVisited
   | HelpCenterVisited
   | RoadmapVisited
+  | UtilitiesVisited
   | RepoVisited
   | SignUpStarted
   | SignInStarted

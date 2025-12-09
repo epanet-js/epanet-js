@@ -60,6 +60,7 @@ import {
   Triangle,
   TriangleAlert,
   Type,
+  ToolCase,
   Undo2,
   Upload,
   User,
@@ -101,6 +102,7 @@ const icon = (Icon: LucideIcon): React.FC<IconProps> => {
 
 export const HelpIcon = icon(CircleQuestionMark);
 export const RoadmapIcon = icon(MapIcon);
+export const UtilitiesIcon = icon(ToolCase);
 export const InfoIcon = icon(Info);
 export const SuccessIcon = icon(CircleCheck);
 export const WarningIcon = icon(TriangleAlert);

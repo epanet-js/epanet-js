@@ -10,7 +10,12 @@ import {
 import { DebugDropdown } from "./menu-bar/menu-bar-dropdown";
 import { isDebugOn } from "src/infra/debug-mode";
 import { useTranslate } from "src/hooks/use-translate";
-import { helpCenterUrl, roadmapUrl, sourceCodeUrl } from "src/global-config";
+import {
+  helpCenterUrl,
+  roadmapUrl,
+  sourceCodeUrl,
+  utilitiesUrl,
+} from "src/global-config";
 import { SignedIn, SignedOut, UserButton, useAuth } from "src/auth";
 import { SignInButton, SignUpButton } from "./auth-buttons";
 import { useShowWelcome } from "src/commands/show-welcome";
@@ -27,6 +32,7 @@ import {
   GlobeIcon,
   HelpIcon,
   RoadmapIcon,
+  UtilitiesIcon,
   KeyboardIcon,
   MenuIcon,
   UpgradeIcon,
@@ -190,6 +196,21 @@ export function HelpDot() {
           <StyledItem>
             <RoadmapIcon />
             {translate("roadmap")}
+          </StyledItem>
+        </a>
+        <a
+          href={utilitiesUrl}
+          target="_blank"
+          onClick={() => {
+            userTracking.capture({
+              name: "utilities.visited",
+              source: "menu",
+            });
+          }}
+        >
+          <StyledItem>
+            <UtilitiesIcon />
+            {translate("utilities")}
           </StyledItem>
         </a>
         <StyledItem
