@@ -6,20 +6,12 @@ import {
   Workspace,
 } from "epanet-js";
 import { SimulationStatus } from "../result";
-import {
-  saveEPSSimulation,
-  writeBinaryToOPFS,
-  type EPSSimulationMetadata,
-  type EPSSimulationRecord,
-  type TankTimestepData,
-} from "../eps/eps-store";
-import { parseProlog } from "../eps/epanet-binary-reader";
+import { writeBinaryToOPFS, writeTankBinaryToOPFS } from "../eps/eps-store";
 
 export type SimulationResult = {
   status: SimulationStatus;
   report: string;
   simulationId: string;
-  metadata: EPSSimulationMetadata;
 };
 
 export type SimulationProgress = {
@@ -32,15 +24,15 @@ export type SimulationProgress = {
 export type ProgressCallback = (progress: SimulationProgress) => void;
 
 /**
- * Runs a hydraulic simulation and stores results in IndexedDB.
+ * Runs a hydraulic simulation and stores results in OPFS.
  *
  * Uses step-by-step hydraulic solving to report progress.
- * Results are accessed via loadEPSSimulation() from the main thread.
+ * Results are accessed via partial reads from the main thread.
  */
 export const runSimulation = async (
   inp: string,
   simulationId: string,
-  modelVersion: string,
+  _modelVersion: string,
   flags: Record<string, boolean> = {},
   onProgress?: ProgressCallback,
 ): Promise<SimulationResult> => {
@@ -60,20 +52,20 @@ export const runSimulation = async (
     // Get total simulation duration from time parameters
     const totalDuration = model.getTimeParameter(0); // Duration parameter
 
-    // Find tank indices before simulation loop
+    // Identify tanks and reservoirs for capturing volume data (1-based EPANET indices)
+    // Must match the order in the binary prolog (tanks and reservoirs together)
     const nodeCount = model.getCount(0); // CountType.Node = 0
-    const tankIndices: { index: number; id: string }[] = [];
+    const tankAndReservoirIndices: number[] = [];
     for (let i = 1; i <= nodeCount; i++) {
-      if (model.getNodeType(i) === NodeType.Tank) {
-        tankIndices.push({ index: i, id: model.getNodeId(i) });
+      const nodeType = model.getNodeType(i);
+      if (nodeType === NodeType.Tank || nodeType === NodeType.Reservoir) {
+        tankAndReservoirIndices.push(i);
       }
     }
+    const tankCount = tankAndReservoirIndices.length;
 
-    // Initialize tank data storage
-    const tankData = new Map<string, TankTimestepData[]>();
-    for (const tank of tankIndices) {
-      tankData.set(tank.id, []);
-    }
+    // Collect tank volumes per timestep (will convert to binary after simulation)
+    const tankVolumesPerTimestep: number[][] = [];
 
     // Run hydraulic simulation step by step for progress reporting
     model.openH();
@@ -85,11 +77,13 @@ export const runSimulation = async (
     do {
       currentTime = model.runH();
 
-      // Capture tank volume at each timestep (level is available as pressure in binary)
-      for (const tank of tankIndices) {
-        const volume = model.getNodeValue(tank.index, NodeProperty.TankVolume);
-        tankData.get(tank.id)!.push({ volume });
+      // Capture tank/reservoir volumes at this timestep (in tank index order)
+      const timestepVolumes: number[] = [];
+      for (const epanetIndex of tankAndReservoirIndices) {
+        const volume = model.getNodeValue(epanetIndex, NodeProperty.TankVolume);
+        timestepVolumes.push(volume);
       }
+      tankVolumesPerTimestep.push(timestepVolumes);
 
       // Report progress
       if (onProgress) {
@@ -103,29 +97,25 @@ export const runSimulation = async (
     // Read the binary output file
     const binaryData = ws.readFile("results.out", "binary");
 
-    // Parse prolog to get metadata
-    const prolog = parseProlog(binaryData);
-
-    // Create metadata
-    const metadata: EPSSimulationMetadata = {
-      simulationId,
-      modelVersion,
-      createdAt: Date.now(),
-      duration: totalDuration,
-      timestepCount: prolog.reportingPeriods,
-      nodeCount: prolog.nodeCount,
-      linkCount: prolog.linkCount,
-    };
-
     // Write binary to OPFS for partial reading
     await writeBinaryToOPFS(simulationId, binaryData);
 
-    // Store metadata and tank data in IndexedDB
-    const record: EPSSimulationRecord = {
-      metadata,
-      tankData: tankData.size > 0 ? tankData : undefined,
-    };
-    await saveEPSSimulation(record);
+    // Convert tank volumes to binary format (Float32, organized by timestep)
+    // Format: [timestep0_tank0, timestep0_tank1, ..., timestep1_tank0, ...]
+    if (tankCount > 0 && tankVolumesPerTimestep.length > 0) {
+      const tankBinaryData = new Float32Array(
+        tankVolumesPerTimestep.length * tankCount,
+      );
+      for (let t = 0; t < tankVolumesPerTimestep.length; t++) {
+        for (let i = 0; i < tankCount; i++) {
+          tankBinaryData[t * tankCount + i] = tankVolumesPerTimestep[t][i];
+        }
+      }
+      await writeTankBinaryToOPFS(
+        simulationId,
+        new Uint8Array(tankBinaryData.buffer),
+      );
+    }
 
     model.close();
 
@@ -135,7 +125,6 @@ export const runSimulation = async (
       status: report.includes("WARNING") ? "warning" : "success",
       report: curateReport(report),
       simulationId,
-      metadata,
     };
   } catch (error) {
     // eslint-disable-next-line no-console
@@ -143,23 +132,11 @@ export const runSimulation = async (
     model.close();
     const report = ws.readFile("report.rpt");
 
-    // Create error metadata
-    const errorMetadata: EPSSimulationMetadata = {
-      simulationId,
-      modelVersion,
-      createdAt: Date.now(),
-      duration: 0,
-      timestepCount: 0,
-      nodeCount: 0,
-      linkCount: 0,
-    };
-
     return {
       status: "failure",
       report:
         report.length > 0 ? curateReport(report) : (error as Error).message,
       simulationId,
-      metadata: errorMetadata,
     };
   }
 };

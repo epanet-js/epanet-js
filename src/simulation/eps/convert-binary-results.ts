@@ -20,7 +20,6 @@ import {
   type EpanetProlog,
   type TimestepResults,
 } from "./epanet-binary-reader";
-import type { TankTimestepData } from "./eps-store";
 
 /**
  * Binary output status values match EPANET API status codes:
@@ -46,12 +45,12 @@ const BINARY_STATUS_OPEN_THRESHOLD = 3;
  *
  * @param reader - Binary reader for the simulation output
  * @param timestepIndex - Index of the timestep to convert
- * @param tankData - Optional tank level/volume data captured during simulation
+ * @param tankAreas - Map of tank ID to cross-sectional area for volume calculation
  */
 export function convertTimestepToSimulationResults(
   reader: EpanetBinaryReader,
   timestepIndex: number,
-  tankData?: Map<string, TankTimestepData[]>,
+  tankAreas?: Map<string, number>,
 ): SimulationResults {
   const results: SimulationResults = new Map();
   const timestep = reader.getTimestepResults(timestepIndex);
@@ -63,15 +62,16 @@ export function convertTimestepToSimulationResults(
 
     if (reader.isTankOrReservoir(i)) {
       // Tank or reservoir - use TankSimulation type
-      // Level is stored as pressure in binary; volume from tankData
-      const tankTimesteps = tankData?.get(node.id);
-      const tankValues = tankTimesteps?.[timestepIndex];
+      // Level is stored as pressure in binary, volume = area × level
+      const level = node.pressure;
+      const area = tankAreas?.get(node.id) ?? 0;
+      const volume = area * level;
       const tankResult: TankSimulation = {
         type: "tank",
         pressure: node.pressure,
         head: node.head,
-        level: node.pressure, // Tank level is stored as pressure in binary
-        volume: tankValues?.volume ?? 0,
+        level,
+        volume,
       };
       results.set(node.id, tankResult);
     } else {
@@ -171,6 +171,8 @@ export type PartialReadMetadata = {
   linkIds: string[];
   linkTypes: BinaryLinkType[];
   nodeTypes: BinaryNodeType[];
+  /** Tank indices from prolog (0-based node indices that are tanks/reservoirs) */
+  tankIndices: number[];
 };
 
 /**
@@ -178,17 +180,21 @@ export type PartialReadMetadata = {
  * This enables partial reading without loading the full binary file.
  *
  * @param timestepResults - Parsed timestep results from extractTimestepFromSlice
- * @param metadata - Pre-extracted metadata (IDs, types) from prolog section
- * @param tankData - Optional tank volume data captured during simulation
- * @param timestepIndex - Index of the timestep (for tank data lookup)
+ * @param metadata - Pre-extracted metadata (IDs, types, tank indices) from prolog section
+ * @param tankVolumes - Tank volumes for this timestep (Float32Array in tank index order)
  */
 export function convertTimestepSliceToSimulationResults(
   timestepResults: TimestepResults,
   metadata: PartialReadMetadata,
-  tankData?: Map<string, TankTimestepData[]>,
-  timestepIndex: number = 0,
+  tankVolumes?: Float32Array,
 ): SimulationResults {
   const results: SimulationResults = new Map();
+
+  // Build a map from node index to tank volume index
+  const nodeIndexToTankIndex = new Map<number, number>();
+  for (let i = 0; i < metadata.tankIndices.length; i++) {
+    nodeIndexToTankIndex.set(metadata.tankIndices[i], i);
+  }
 
   // Convert node results
   for (let i = 0; i < timestepResults.nodes.length; i++) {
@@ -200,14 +206,18 @@ export function convertTimestepSliceToSimulationResults(
       nodeType === BinaryNodeType.Reservoir
     ) {
       // Tank or reservoir - use TankSimulation type
-      const tankTimesteps = tankData?.get(node.id);
-      const tankValues = tankTimesteps?.[timestepIndex];
+      // Level is stored as pressure in binary
+      const level = node.pressure;
+      // Volume is obtained from tank binary file (in tank index order)
+      const tankIndex = nodeIndexToTankIndex.get(i);
+      const volume =
+        tankIndex !== undefined && tankVolumes ? tankVolumes[tankIndex] : 0;
       const tankResult: TankSimulation = {
         type: "tank",
         pressure: node.pressure,
         head: node.head,
-        level: node.pressure, // Tank level is stored as pressure in binary
-        volume: tankValues?.volume ?? 0,
+        level,
+        volume,
       };
       results.set(node.id, tankResult);
     } else {

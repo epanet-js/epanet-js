@@ -2,9 +2,12 @@ import * as Comlink from "comlink";
 import { lib as webWorker } from "src/lib/worker";
 import { SimulationResult } from "../result";
 import { EpanetResultsReader } from "./epanet-results";
-import { loadEPSSimulation, readBinarySlice } from "../eps/eps-store";
 import {
-  BinaryNodeType,
+  readBinarySlice,
+  readTankBinarySlice,
+  readTimestepCountFromOPFS,
+} from "../eps/eps-store";
+import {
   convertTimestepSliceToSimulationResults,
   parsePrologHeader,
   calculatePrologSize,
@@ -16,36 +19,13 @@ import {
   extractLinkTypes,
   extractTankIndices,
   extractTankAreas,
+  buildNodeTypes,
   PROLOG_HEADER_SIZE,
   type PartialReadMetadata,
 } from "../eps";
 import type { ProgressCallback, SimulationProgress } from "./worker";
 
 export type { SimulationProgress };
-
-/**
- * Builds node types array from tank indices and areas.
- */
-function buildNodeTypes(
-  nodeCount: number,
-  tankIndices: number[],
-  tankAreas: number[],
-): BinaryNodeType[] {
-  const types: BinaryNodeType[] = new Array(nodeCount).fill(
-    BinaryNodeType.Junction,
-  );
-
-  for (let i = 0; i < tankIndices.length; i++) {
-    const nodeIndex = tankIndices[i];
-    if (tankAreas[i] === 0) {
-      types[nodeIndex] = BinaryNodeType.Reservoir;
-    } else {
-      types[nodeIndex] = BinaryNodeType.Tank;
-    }
-  }
-
-  return types;
-}
 
 /**
  * Reads prolog metadata from OPFS using partial reads.
@@ -80,7 +60,32 @@ async function readPrologMetadata(
     linkIds,
     linkTypes,
     nodeTypes,
+    tankIndices,
   };
+}
+
+/**
+ * Reads tank volumes for a specific timestep from the tank binary file.
+ * @returns Float32Array of tank volumes in tank index order, or undefined if no tanks
+ */
+async function readTankVolumesFromOPFS(
+  simulationId: string,
+  tankCount: number,
+  timestepIndex: number,
+): Promise<Float32Array | undefined> {
+  if (tankCount === 0) return undefined;
+
+  const bytesPerFloat = 4;
+  const start = timestepIndex * tankCount * bytesPerFloat;
+  const end = start + tankCount * bytesPerFloat;
+
+  const data = await readTankBinarySlice(simulationId, start, end);
+  if (!data) return undefined;
+
+  // Copy to a new ArrayBuffer to ensure proper alignment for Float32Array
+  const alignedBuffer = new ArrayBuffer(data.length);
+  new Uint8Array(alignedBuffer).set(data);
+  return new Float32Array(alignedBuffer);
 }
 
 /**
@@ -102,7 +107,7 @@ async function readTimestepFromOPFS(
 /**
  * Runs a hydraulic simulation and returns results.
  *
- * The worker stores binary results in OPFS and metadata in IndexedDB.
+ * The worker stores binary results in OPFS.
  * This function loads the results and converts the first timestep to SimulationResults.
  *
  * @param inp - The EPANET INP file content
@@ -133,7 +138,7 @@ export const runSimulation = async (
   };
   const progressProxy = Comlink.proxy(wrappedProgress);
 
-  const { report, status, metadata } = await webWorker.runSimulation(
+  const { report, status } = await webWorker.runSimulation(
     inp,
     simulationId,
     modelVersion,
@@ -142,7 +147,7 @@ export const runSimulation = async (
   );
 
   // If simulation failed, return empty results
-  if (status === "failure" || metadata.timestepCount === 0) {
+  if (status === "failure") {
     return {
       status,
       report,
@@ -150,17 +155,18 @@ export const runSimulation = async (
     };
   }
 
-  // Load metadata from IndexedDB
-  const record = await loadEPSSimulation(simulationId);
-  if (!record) {
-    throw new Error(`Failed to load simulation ${simulationId} from IndexedDB`);
+  // Read timestep count from binary epilog
+  const timestepCount = await readTimestepCountFromOPFS(simulationId);
+  if (timestepCount === null || timestepCount === 0) {
+    return {
+      status,
+      report,
+      results: new EpanetResultsReader(new Map()),
+    };
   }
 
   // Read prolog metadata using partial reads
-  const prologMetadata = await readPrologMetadata(
-    simulationId,
-    metadata.timestepCount,
-  );
+  const prologMetadata = await readPrologMetadata(simulationId, timestepCount);
   if (!prologMetadata) {
     throw new Error(
       `Failed to read prolog metadata for simulation ${simulationId} from OPFS`,
@@ -179,6 +185,13 @@ export const runSimulation = async (
     );
   }
 
+  // Read tank volumes for first timestep from tank binary file
+  const tankVolumes = await readTankVolumesFromOPFS(
+    simulationId,
+    prologMetadata.tankIndices.length,
+    0,
+  );
+
   // Parse and convert timestep to SimulationResults
   const timestepResults = extractTimestepFromSlice(
     timestepData,
@@ -190,8 +203,7 @@ export const runSimulation = async (
   const resultsData = convertTimestepSliceToSimulationResults(
     timestepResults,
     prologMetadata,
-    record.tankData,
-    0,
+    tankVolumes,
   );
   const results = new EpanetResultsReader(resultsData);
 

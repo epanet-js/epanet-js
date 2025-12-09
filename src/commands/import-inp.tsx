@@ -15,7 +15,7 @@ import { InpStats } from "src/import/inp/inp-data";
 import { ModelMetadata } from "src/model-metadata";
 import { HydraulicModel } from "src/hydraulic-model";
 import { EpanetUnitSystem } from "src/simulation/build-inp";
-import { clearAllEPSSimulations } from "src/simulation/eps/eps-store";
+import { clearAllSimulationsFromOPFS } from "src/simulation/eps/eps-store";
 import { notify } from "src/components/notifications";
 import { WarningIcon } from "src/icons";
 
@@ -59,7 +59,7 @@ export const useImportInp = () => {
       setDialogState({ type: "loading" });
 
       // Clear previous simulation data from IndexedDB
-      await clearAllEPSSimulations();
+      await clearAllSimulationsFromOPFS();
 
       try {
         const arrayBuffer = await file.arrayBuffer();

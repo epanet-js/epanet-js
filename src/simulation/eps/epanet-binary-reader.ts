@@ -436,11 +436,39 @@ function parseIdString(bytes: Uint8Array): string {
 
 /**
  * Node type as determined from binary file (similar to epanet-js NodeType enum).
+ * Note: The binary file doesn't store node types explicitly.
+ * Tanks/reservoirs are identified by tank indices, and reservoirs are
+ * distinguished from tanks by having cross-sectional area = 0.
  */
 export enum BinaryNodeType {
   Junction = 0,
   Reservoir = 1,
   Tank = 2,
+}
+
+/**
+ * Builds node types array from tank indices and areas.
+ * Reservoirs are distinguished from tanks by having area = 0.
+ */
+export function buildNodeTypes(
+  nodeCount: number,
+  tankIndices: number[],
+  tankAreas: number[],
+): BinaryNodeType[] {
+  const types: BinaryNodeType[] = new Array(nodeCount).fill(
+    BinaryNodeType.Junction,
+  );
+
+  for (let i = 0; i < tankIndices.length; i++) {
+    const nodeIndex = tankIndices[i];
+    if (tankAreas[i] === 0) {
+      types[nodeIndex] = BinaryNodeType.Reservoir;
+    } else {
+      types[nodeIndex] = BinaryNodeType.Tank;
+    }
+  }
+
+  return types;
 }
 
 /**
@@ -464,27 +492,11 @@ export class EpanetBinaryReader {
     // Build node types array from tank indices and areas
     const tankIndices = extractTankIndices(data, this.prolog);
     const tankAreas = extractTankAreas(data, this.prolog);
-    this.nodeTypes = this.buildNodeTypes(tankIndices, tankAreas);
-  }
-
-  private buildNodeTypes(
-    tankIndices: number[],
-    tankAreas: number[],
-  ): BinaryNodeType[] {
-    const types: BinaryNodeType[] = new Array(this.prolog.nodeCount).fill(
-      BinaryNodeType.Junction,
+    this.nodeTypes = buildNodeTypes(
+      this.prolog.nodeCount,
+      tankIndices,
+      tankAreas,
     );
-
-    for (let i = 0; i < tankIndices.length; i++) {
-      const nodeIndex = tankIndices[i];
-      if (tankAreas[i] === 0) {
-        types[nodeIndex] = BinaryNodeType.Reservoir;
-      } else {
-        types[nodeIndex] = BinaryNodeType.Tank;
-      }
-    }
-
-    return types;
   }
 
   getProlog(): EpanetProlog {

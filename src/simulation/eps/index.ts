@@ -9,6 +9,7 @@ export {
   extractTankIndices,
   extractTankAreas,
   extractTimestepResults,
+  buildNodeTypes,
   BinaryLinkType,
   BinaryNodeType,
   type EpanetProlog,
@@ -25,16 +26,14 @@ export {
 } from "./convert-binary-results";
 
 export {
-  saveEPSSimulation,
-  loadEPSSimulation,
-  deleteEPSSimulation,
-  listEPSSimulations,
-  clearAllEPSSimulations,
+  writeBinaryToOPFS,
+  writeTankBinaryToOPFS,
   getOPFSFile,
   readBinarySlice,
-  type EPSSimulationMetadata,
-  type EPSSimulationRecord,
-  type TankTimestepData,
+  readTankBinarySlice,
+  readTimestepCountFromOPFS,
+  deleteSimulationFromOPFS,
+  clearAllSimulationsFromOPFS,
 } from "./eps-store";
 
 export {
