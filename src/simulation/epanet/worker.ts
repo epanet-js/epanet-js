@@ -52,14 +52,22 @@ export const runSimulation = async (
 
   try {
     // Open model
+    // eslint-disable-next-line no-console
+    console.log("[WORKER] Opening model...");
     model.open("net.inp", "report.rpt", "results.out");
+    // eslint-disable-next-line no-console
+    console.log("[WORKER] Model opened");
 
     // Get total simulation duration from time parameters
     const totalDuration = model.getTimeParameter(0); // Duration parameter
+    // eslint-disable-next-line no-console
+    console.log(`[WORKER] Total duration: ${totalDuration}`);
 
     // Identify tanks and reservoirs for capturing volume data (1-based EPANET indices)
     // Must match the order in the binary prolog (tanks and reservoirs together)
     const nodeCount = model.getCount(0); // CountType.Node = 0
+    // eslint-disable-next-line no-console
+    console.log(`[WORKER] Node count: ${nodeCount}`);
     const tankAndReservoirIndices: number[] = [];
     for (let i = 1; i <= nodeCount; i++) {
       const nodeType = model.getNodeType(i);
@@ -68,27 +76,31 @@ export const runSimulation = async (
       }
     }
     const tankCount = tankAndReservoirIndices.length;
+    // eslint-disable-next-line no-console
+    console.log(`[WORKER] Tank count: ${tankCount}`);
 
     // Collect tank volumes per timestep (will convert to binary after simulation)
     const tankVolumesPerTimestep: number[][] = [];
 
-    // Run hydraulic simulation step by step for progress reporting
+    // Use step-by-step hydraulic solving to capture tank volumes at each timestep
+    // eslint-disable-next-line no-console
+    console.log("[WORKER] Running step-by-step hydraulic simulation...");
     model.openH();
     model.initH(InitHydOption.SaveAndInit);
 
-    let currentTime = 0;
-
-    // Run hydraulic timesteps
+    let currentTime: number;
     do {
       currentTime = model.runH();
 
-      // Capture tank/reservoir volumes at this timestep (in tank index order)
-      const timestepVolumes: number[] = [];
-      for (const epanetIndex of tankAndReservoirIndices) {
-        const volume = model.getNodeValue(epanetIndex, NodeProperty.TankVolume);
-        timestepVolumes.push(volume);
+      // Capture tank volumes at this timestep
+      if (tankCount > 0) {
+        const volumes: number[] = [];
+        for (const nodeIndex of tankAndReservoirIndices) {
+          const volume = model.getNodeValue(nodeIndex, NodeProperty.TankVolume);
+          volumes.push(volume);
+        }
+        tankVolumesPerTimestep.push(volumes);
       }
-      tankVolumesPerTimestep.push(timestepVolumes);
 
       // Report progress
       if (onProgress) {
@@ -96,14 +108,32 @@ export const runSimulation = async (
       }
     } while (model.nextH() > 0);
 
-    // Save results to binary file
+    // Close hydraulics first (finalizes the hydraulics file)
+    // Then saveH transfers from hydraulics file to output file
+    // eslint-disable-next-line no-console
+    console.log("[WORKER] Closing and saving hydraulic results...");
+    model.closeH();
     model.saveH();
+    // eslint-disable-next-line no-console
+    console.log(
+      `[WORKER] Simulation complete: ${tankVolumesPerTimestep.length} timesteps captured`,
+    );
 
     // Read the binary output file
+    // eslint-disable-next-line no-console
+    console.log("[WORKER] Reading binary file...");
     const binaryData = ws.readFile("results.out", "binary");
+    // eslint-disable-next-line no-console
+    console.log("[WORKER] Binary file read successfully");
+    // eslint-disable-next-line no-console
+    console.log(
+      `[WORKER] Binary data read from EPANET: ${binaryData.length} bytes, appId=${appId}`,
+    );
 
     // Write binary to OPFS for partial reading
     await writeBinaryToOPFS(binaryData);
+    // eslint-disable-next-line no-console
+    console.log("[WORKER] Binary data written to OPFS");
 
     // Convert tank volumes to binary format (Float32, organized by timestep)
     // Format: [timestep0_tank0, timestep0_tank1, ..., timestep1_tank0, ...]
@@ -130,6 +160,11 @@ export const runSimulation = async (
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error("Simulation failed:", error);
+    // eslint-disable-next-line no-console
+    console.error(
+      "Error details:",
+      error instanceof Error ? error.stack : String(error),
+    );
     model.close();
     const report = ws.readFile("report.rpt");
 

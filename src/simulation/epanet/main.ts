@@ -28,12 +28,16 @@ import {
 import type { ProgressCallback, SimulationProgress } from "./worker";
 
 export type { SimulationProgress };
+export type { PartialReadMetadata };
+export { readTimestepCountFromOPFS };
+export { extractTimestepFromSlice, convertTimestepSliceToSimulationResults };
+export { EpanetResultsReader };
 
 /**
  * Reads prolog metadata from OPFS using partial reads.
  * First reads the header to get counts, then reads the full prolog section.
  */
-async function readPrologMetadata(
+export async function readPrologMetadata(
   timestepCount: number,
 ): Promise<PartialReadMetadata | null> {
   // Read prolog header (first 884 bytes) to get counts
@@ -69,7 +73,7 @@ async function readPrologMetadata(
  * Reads tank volumes for a specific timestep from the tank binary file.
  * @returns Float32Array of tank volumes in tank index order, or undefined if no tanks
  */
-async function readTankVolumesFromOPFS(
+export async function readTankVolumesFromOPFS(
   tankCount: number,
   timestepIndex: number,
 ): Promise<Float32Array | undefined> {
@@ -91,7 +95,7 @@ async function readTankVolumesFromOPFS(
 /**
  * Reads a single timestep from OPFS using partial reads.
  */
-async function readTimestepFromOPFS(
+export async function readTimestepFromOPFS(
   metadata: PartialReadMetadata,
   timestepIndex: number,
 ): Promise<Uint8Array | null> {

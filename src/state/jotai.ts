@@ -69,6 +69,7 @@ export type SimulationFinished = {
   status: "success" | "failure" | "warning";
   report: string;
   modelVersion: string;
+  stepIndex?: number;
 };
 export type SimulationRunning = {
   status: "running";
