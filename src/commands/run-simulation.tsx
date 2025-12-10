@@ -12,6 +12,7 @@ import { attachSimulation } from "src/hydraulic-model";
 import { useDrawingMode } from "./set-drawing-mode";
 import { Mode } from "src/state/mode";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { getAppId } from "src/infra/app-instance";
 
 export const runSimulationShortcut = "shift+enter";
 
@@ -79,7 +80,12 @@ export const useRunSimulation = () => {
       });
     };
 
-    const { report, status } = await runEPSSimulation(inp, {}, reportProgress);
+    const { report, status } = await runEPSSimulation(
+      inp,
+      getAppId(),
+      {},
+      reportProgress,
+    );
 
     isCompleted = true;
 

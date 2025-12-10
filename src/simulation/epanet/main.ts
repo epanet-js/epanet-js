@@ -21,9 +21,10 @@ export const runSimulation = async (
 
 export const runEPSSimulation = async (
   inp: string,
+  appId: string,
   flags: Record<string, boolean> = {},
   onProgress?: ProgressCallback,
 ): Promise<EPSSimulationResult> => {
   const proxiedCallback = onProgress ? Comlink.proxy(onProgress) : undefined;
-  return await webWorker.runEPSSimulation(inp, flags, proxiedCallback);
+  return await webWorker.runEPSSimulation(inp, appId, flags, proxiedCallback);
 };

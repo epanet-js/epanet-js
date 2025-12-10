@@ -8,6 +8,10 @@ import {
   Workspace,
 } from "epanet-js";
 import { SimulationStatus } from "../result";
+import { OPFSStorage } from "src/infra/storage";
+
+export const RESULTS_OUT_KEY = "results.out";
+export const TANK_VOLUMES_KEY = "tank-volumes.bin";
 
 export type EPSSimulationResult = {
   status: SimulationStatus;
@@ -31,6 +35,7 @@ export type ProgressCallback = (progress: SimulationProgress) => void;
 
 export const runEPSSimulation = async (
   inp: string,
+  appId: string,
   flags: Record<string, boolean> = {},
   onProgress?: ProgressCallback,
 ): Promise<EPSSimulationResult> => {
@@ -86,6 +91,18 @@ export const runEPSSimulation = async (
     model.saveH();
 
     model.close();
+
+    const storage = new OPFSStorage(appId);
+    const resultsOutBinary = ws.readFile("results.out", "binary");
+    await storage.save(RESULTS_OUT_KEY, resultsOutBinary.buffer as ArrayBuffer);
+
+    if (supplySourcesCount > 0) {
+      const tankVolumesBinary = new Float32Array(tankVolumesPerTimestep.flat());
+      await storage.save(
+        TANK_VOLUMES_KEY,
+        tankVolumesBinary.buffer as ArrayBuffer,
+      );
+    }
 
     const report = ws.readFile("report.rpt");
 

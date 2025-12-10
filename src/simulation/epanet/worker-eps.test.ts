@@ -14,6 +14,14 @@ vi.mock("src/lib/worker", () => ({
   },
 }));
 
+vi.mock("src/infra/storage", async (importOriginal) => {
+  const original = await importOriginal<typeof import("src/infra/storage")>();
+  return {
+    ...original,
+    OPFSStorage: original.InMemoryStorage,
+  };
+});
+
 describe("EPS simulation", () => {
   beforeEach(() => {
     (lib.runEPSSimulation as unknown as Mock).mockImplementation(
@@ -30,7 +38,7 @@ describe("EPS simulation", () => {
       .build();
     const inp = buildInpEPS(hydraulicModel);
 
-    const { status, metadata } = await runEPSSimulation(inp);
+    const { status, metadata } = await runEPSSimulation(inp, "test-app-id");
 
     expect(status).toEqual("success");
     expect(metadata.timestepCount).toEqual(1);
@@ -49,7 +57,7 @@ describe("EPS simulation", () => {
       .build();
     const inp = buildInpEPS(hydraulicModel);
 
-    const { status, metadata } = await runEPSSimulation(inp);
+    const { status, metadata } = await runEPSSimulation(inp, "test-app-id");
 
     expect(status).toEqual("success");
     expect(metadata.timestepCount).toBe(3); // initial + 2 timesteps
@@ -72,7 +80,7 @@ describe("EPS simulation", () => {
       .build();
     const inp = buildInpEPS(hydraulicModel);
 
-    const { status, metadata } = await runEPSSimulation(inp);
+    const { status, metadata } = await runEPSSimulation(inp, "test-app-id");
 
     expect(status).toEqual("success");
     expect(metadata.supplySourcesCount).toEqual(2); // reservoir + tank
@@ -87,7 +95,7 @@ describe("EPS simulation", () => {
       .build();
     const inp = buildInpEPS(hydraulicModel);
 
-    const { status, metadata } = await runEPSSimulation(inp);
+    const { status, metadata } = await runEPSSimulation(inp, "test-app-id");
 
     expect(status).toEqual("failure");
     expect(metadata.timestepCount).toEqual(0);
@@ -108,7 +116,7 @@ describe("EPS simulation", () => {
       progressUpdates.push(progress);
     };
 
-    await runEPSSimulation(inp, {}, onProgress);
+    await runEPSSimulation(inp, "test-app-id", {}, onProgress);
 
     expect(progressUpdates.length).toBe(3); // initial + 2 timesteps
     expect(progressUpdates[0].totalDuration).toBe(7200);
