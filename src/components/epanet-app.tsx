@@ -49,6 +49,7 @@ import { AppLoader } from "./app-loader";
 import { PrivacyBanner } from "./privacy-banner";
 import { usePrivacySettings } from "src/hooks/use-privacy-settings";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { initStorage, stopHeartbeat } from "src/infra/storage";
 
 type ResolvedLayout = "HORIZONTAL" | "VERTICAL" | "FLOATING";
 
@@ -71,6 +72,11 @@ export function EpanetApp() {
   const { enableAllTracking } = usePrivacySettings();
   const hasIdentifiedRef = useRef(false);
   const isCursorFamilyEnabled = useFeatureFlag("FLAG_CURSOR_FAMILY");
+
+  useEffect(() => {
+    void initStorage();
+    return stopHeartbeat;
+  }, []);
 
   useEffect(() => {
     if (isSignedIn && user && !hasIdentifiedRef.current) {

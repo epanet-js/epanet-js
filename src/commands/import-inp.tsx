@@ -18,6 +18,8 @@ import { EpanetUnitSystem } from "src/simulation/build-inp";
 import { notify } from "src/components/notifications";
 import { WarningIcon } from "src/icons";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { OPFSStorage } from "src/infra/storage";
+import { getAppId } from "src/infra/app-instance";
 
 export const inpExtension = ".inp";
 
@@ -82,6 +84,9 @@ export const useImportInp = () => {
           setDialogState({ type: "inpMissingCoordinates", issues });
           return;
         }
+
+        const storage = new OPFSStorage(getAppId());
+        await storage.clear();
 
         transactImport(hydraulicModel, modelMetadata, file.name);
 
