@@ -1,7 +1,7 @@
 import { lib as webWorker } from "src/lib/worker";
 import { SimulationResult } from "../result";
 import { EpanetResultsReader } from "./epanet-results";
-import { EPSSimulationResult } from "./worker-eps";
+import { EPSSimulationResult, ProgressCallback } from "./worker-eps";
 
 export const runSimulation = async (
   inp: string,
@@ -21,6 +21,7 @@ export const runSimulation = async (
 export const runEPSSimulation = async (
   inp: string,
   flags: Record<string, boolean> = {},
+  onProgress?: ProgressCallback,
 ): Promise<EPSSimulationResult> => {
-  return await webWorker.runEPSSimulation(inp, flags);
+  return await webWorker.runEPSSimulation(inp, flags, onProgress);
 };

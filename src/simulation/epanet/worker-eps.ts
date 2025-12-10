@@ -4,6 +4,7 @@ import {
   NodeProperty,
   NodeType,
   Project,
+  TimeParameter,
   Workspace,
 } from "epanet-js";
 import { SimulationStatus } from "../result";
@@ -21,9 +22,17 @@ export type EPSMetadata = {
   supplySourcesCount: number; // tanks + reservoirs
 };
 
+export type SimulationProgress = {
+  currentTime: number;
+  totalDuration: number;
+};
+
+export type ProgressCallback = (progress: SimulationProgress) => void;
+
 export const runEPSSimulation = async (
   inp: string,
   flags: Record<string, boolean> = {},
+  onProgress?: ProgressCallback,
 ): Promise<EPSSimulationResult> => {
   // eslint-disable-next-line no-console
   if (Object.keys(flags).length) console.log("Running with flags", flags);
@@ -51,13 +60,17 @@ export const runEPSSimulation = async (
 
     const tankVolumesPerTimestep: number[][] = [];
 
+    const totalDuration = model.getTimeParameter(TimeParameter.Duration);
+
     model.openH();
     model.initH(InitHydOption.SaveAndInit);
 
     let timestepCount = 0;
     do {
-      model.runH();
+      const currentTime = model.runH();
       timestepCount++;
+
+      onProgress?.({ currentTime, totalDuration });
 
       if (supplySourcesCount > 0) {
         const volumes: number[] = [];
