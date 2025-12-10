@@ -65,7 +65,7 @@ const getBindings = (): ShortcutSection[] => [
     ],
   },
   {
-    group: "shortcuts.simulation",
+    group: "keyboardShortcuts.simulation",
     shortcuts: [
       { binding: "Shift+Enter", description: "simulate" },
       {
