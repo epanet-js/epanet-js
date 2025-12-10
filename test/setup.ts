@@ -18,6 +18,14 @@ vi.mock("src/auth", () => ({
   AuthProvider: AuthMockProvider,
 }));
 
+vi.mock("src/infra/storage", async (importOriginal) => {
+  const original = await importOriginal<typeof import("src/infra/storage")>();
+  return {
+    ...original,
+    OPFSStorage: original.InMemoryStorage,
+  };
+});
+
 beforeEach(() => {
   stubUserTracking();
 });
