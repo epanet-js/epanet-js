@@ -204,6 +204,18 @@ const ImportCustomerPointsWarningDialog = dynamic<{
   },
 );
 
+const SimulationProgressDialog = dynamic<{
+  modal: dialogState.SimulationProgressDialogState;
+}>(
+  () =>
+    import("src/components/dialogs/simulation-progress").then(
+      (r) => r.SimulationProgressDialog,
+    ),
+  {
+    loading: () => <LoadingDialog />,
+  },
+);
+
 export const Dialogs = memo(function Dialogs() {
   const [dialog, setDialogState] = useAtom(dialogAtom);
   const userTracking = useUserTracking();
@@ -275,6 +287,9 @@ export const Dialogs = memo(function Dialogs() {
   }
   if (dialog.type === "loading") {
     return <LoadingDialog />;
+  }
+  if (dialog.type === "simulationProgress") {
+    return <SimulationProgressDialog modal={dialog} />;
   }
 
   if (dialog.type === "upgrade") {

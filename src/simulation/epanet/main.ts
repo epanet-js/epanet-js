@@ -1,3 +1,4 @@
+import * as Comlink from "comlink";
 import { lib as webWorker } from "src/lib/worker";
 import { SimulationResult } from "../result";
 import { EpanetResultsReader } from "./epanet-results";
@@ -23,5 +24,6 @@ export const runEPSSimulation = async (
   flags: Record<string, boolean> = {},
   onProgress?: ProgressCallback,
 ): Promise<EPSSimulationResult> => {
-  return await webWorker.runEPSSimulation(inp, flags, onProgress);
+  const proxiedCallback = onProgress ? Comlink.proxy(onProgress) : undefined;
+  return await webWorker.runEPSSimulation(inp, flags, proxiedCallback);
 };

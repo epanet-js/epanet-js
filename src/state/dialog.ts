@@ -71,6 +71,12 @@ export type EarlyAccessDialogState = {
   afterSignupDialog?: string;
 };
 
+export type SimulationProgressDialogState = {
+  type: "simulationProgress";
+  currentTime: number;
+  totalDuration: number;
+};
+
 export type DialogState =
   | InvalidFilesErrorDialogState
   | {
@@ -92,6 +98,7 @@ export type DialogState =
   | UnexpectedErrorDialogState
   | ModelBuilderIframeDialogState
   | EarlyAccessDialogState
+  | SimulationProgressDialogState
   | { type: "simulationSettings" }
   | null;
 

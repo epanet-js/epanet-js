@@ -3,7 +3,11 @@ import { useCallback } from "react";
 import { buildInp } from "src/simulation/build-inp";
 import { buildInpEPS } from "src/simulation/build-inp-eps";
 import { dataAtom, dialogAtom, simulationAtom } from "src/state/jotai";
-import { runSimulation as run, runEPSSimulation } from "src/simulation";
+import {
+  ProgressCallback,
+  runSimulation,
+  runEPSSimulation,
+} from "src/simulation";
 import { attachSimulation } from "src/hydraulic-model";
 import { useDrawingMode } from "./set-drawing-mode";
 import { Mode } from "src/state/mode";
@@ -25,7 +29,7 @@ export const useRunSimulation = () => {
     const inp = buildInp(hydraulicModel, { customerDemands: true });
     const start = performance.now();
     setDialogState({ type: "loading" });
-    const { report, status, results } = await run(inp);
+    const { report, status, results } = await runSimulation(inp);
 
     const updatedHydraulicModel = attachSimulation(hydraulicModel, results);
     setData((prev) => ({
@@ -58,8 +62,26 @@ export const useRunSimulation = () => {
     setSimulationState((prev) => ({ ...prev, status: "running" }));
     const inp = buildInpEPS(hydraulicModel, { customerDemands: true });
     const start = performance.now();
-    setDialogState({ type: "loading" });
-    const { report, status } = await runEPSSimulation(inp);
+
+    let isCompleted = false;
+
+    setDialogState({
+      type: "simulationProgress",
+      currentTime: 0,
+      totalDuration: 0,
+    });
+
+    const reportProgress: ProgressCallback = (progress) => {
+      if (isCompleted) return;
+      setDialogState({
+        type: "simulationProgress",
+        ...progress,
+      });
+    };
+
+    const { report, status } = await runEPSSimulation(inp, {}, reportProgress);
+
+    isCompleted = true;
 
     setSimulationState({
       status,
