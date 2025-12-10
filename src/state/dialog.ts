@@ -1,11 +1,5 @@
-import { FileWithHandle } from "browser-fs-access";
 import { atomWithReset } from "jotai/utils";
 import { ParserIssues } from "src/import/inp";
-
-export type OpenInpDialogState = {
-  type: "openInp";
-  file: FileWithHandle;
-};
 
 export type InvalidFilesErrorDialogState = {
   type: "invalidFilesError";
@@ -78,7 +72,6 @@ export type EarlyAccessDialogState = {
 };
 
 export type DialogState =
-  | OpenInpDialogState
   | InvalidFilesErrorDialogState
   | {
       type: "cheatsheet";

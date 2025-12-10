@@ -19,16 +19,6 @@ import { LoadingDialog } from "./dialog";
 import { WelcomeDialog } from "./dialogs/welcome";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
-const OpenInpDialog = dynamic<{
-  modal: dialogState.OpenInpDialogState;
-  onClose: () => void;
-}>(
-  () => import("src/components/dialogs/open-inp").then((r) => r.OpenInpDialog),
-  {
-    loading: () => <Loading />,
-  },
-);
-
 const UpgradeDialog = dynamic<{
   onClose: () => void;
 }>(
@@ -309,9 +299,6 @@ export const Dialogs = memo(function Dialogs() {
         onContinue={onContinue}
         onClose={onClose}
       />
-    ))
-    .with({ type: "openInp" }, (modal) => (
-      <OpenInpDialog modal={modal} onClose={onClose} />
     ))
     .with({ type: "invalidFilesError" }, (modal) => (
       <InvalidFilesErrorDialog modal={modal} onClose={onClose} />
