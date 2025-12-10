@@ -1,1 +1,1 @@
-export { runSimulation } from "./epanet/main";
+export { runSimulation, runEPSSimulation } from "./epanet/main";
