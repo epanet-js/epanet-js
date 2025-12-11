@@ -25,15 +25,15 @@ export const nanoid = customAlphabet(
 const A = 1e9;
 
 export function encodeFeature(featureId: number): RawId {
-  return featureId as RawId;
+  return featureId;
 }
 
 export function encodeVertex(featureId: number, vertex: number): RawId {
-  return ((featureId + 1) * A + vertex * 2) as RawId;
+  return (featureId + 1) * A + vertex * 2;
 }
 
 export function encodeMidpoint(featureId: number, vertex: number): RawId {
-  return ((featureId + 1) * A + vertex * 2 + 1) as RawId;
+  return (featureId + 1) * A + vertex * 2 + 1;
 }
 
 export class CFeatureId implements FeatureId {

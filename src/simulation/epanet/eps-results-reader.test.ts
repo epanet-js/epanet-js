@@ -201,4 +201,98 @@ describe("EPSResultsReader", () => {
       /not initialized/i,
     );
   });
+
+  it("calculates pipe headloss from unit headloss and length", async () => {
+    const IDS = { R1: 1, J1: 2, P1: 3 } as const;
+    const pipeLength = 1000; // 1000 meters
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aReservoir(IDS.R1, { head: 100 })
+      .aJunction(IDS.J1, { baseDemand: 10 })
+      .aPipe(IDS.P1, {
+        startNodeId: IDS.R1,
+        endNodeId: IDS.J1,
+        length: pipeLength,
+      })
+      .build();
+    const inp = buildInpEPS(hydraulicModel);
+
+    const testAppId = "test-pipe-headloss";
+    await runEPSSimulation(inp, testAppId);
+
+    const storage = new InMemoryStorage(testAppId);
+    const reader = new EPSResultsReader(storage);
+    await reader.initialize();
+
+    const resultsReader = await reader.getResultsForTimestep(0);
+    const pipe = resultsReader.getPipe(String(IDS.P1));
+
+    expect(pipe).not.toBeNull();
+    // headloss = unitHeadloss * (length / 1000)
+    // For 1000m pipe: headloss should equal unitHeadloss
+    expect(pipe?.headloss).toBeCloseTo(pipe?.unitHeadloss ?? 0, 5);
+  });
+
+  it("reads pump results with headloss and status", async () => {
+    const IDS = { R1: 1, J1: 2, PUMP1: 3 } as const;
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aReservoir(IDS.R1, { head: 50 })
+      .aJunction(IDS.J1, { baseDemand: 10, elevation: 0 })
+      .aPump(IDS.PUMP1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
+      .aPumpCurve({ id: String(IDS.PUMP1), points: [{ x: 20, y: 40 }] })
+      .build();
+    const inp = buildInpEPS(hydraulicModel);
+
+    const testAppId = "test-pump-reader";
+    const { status } = await runEPSSimulation(inp, testAppId);
+    expect(status).toEqual("success");
+
+    const storage = new InMemoryStorage(testAppId);
+    const reader = new EPSResultsReader(storage);
+    await reader.initialize();
+
+    const resultsReader = await reader.getResultsForTimestep(0);
+    const pump = resultsReader.getPump(String(IDS.PUMP1));
+
+    expect(pump).not.toBeNull();
+    expect(pump?.type).toEqual("pump");
+    expect(pump?.flow).toBeGreaterThanOrEqual(0);
+    expect(pump?.headloss).toBeGreaterThanOrEqual(0); // Math.abs ensures positive
+    expect(pump?.status).toMatch(/on|off/);
+    // statusWarning should be null or one of the warning types
+    expect([null, "cannot-deliver-head", "cannot-deliver-flow"]).toContain(
+      pump?.statusWarning,
+    );
+  });
+
+  it("reads correct pipe length for headloss calculation", async () => {
+    const IDS = { R1: 1, J1: 2, P1: 3 } as const;
+    const pipeLength = 500; // 500 meters
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aReservoir(IDS.R1, { head: 100 })
+      .aJunction(IDS.J1, { baseDemand: 10 })
+      .aPipe(IDS.P1, {
+        startNodeId: IDS.R1,
+        endNodeId: IDS.J1,
+        length: pipeLength,
+      })
+      .build();
+    const inp = buildInpEPS(hydraulicModel);
+
+    const testAppId = "test-pipe-length";
+    await runEPSSimulation(inp, testAppId);
+
+    const storage = new InMemoryStorage(testAppId);
+    const reader = new EPSResultsReader(storage);
+    await reader.initialize();
+
+    const resultsReader = await reader.getResultsForTimestep(0);
+    const pipe = resultsReader.getPipe(String(IDS.P1));
+
+    expect(pipe).not.toBeNull();
+    // For 500m pipe: headloss = unitHeadloss * 0.5
+    // So unitHeadloss = headloss / 0.5 = headloss * 2
+    if (pipe && pipe.headloss !== 0) {
+      expect(pipe.unitHeadloss).toBeCloseTo(pipe.headloss * 2, 5);
+    }
+  });
 });
