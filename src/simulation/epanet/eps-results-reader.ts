@@ -19,7 +19,6 @@ export type { SimulationIds } from "./simulation-metadata";
 
 const ID_LENGTH = 32; // bytes per ID string
 const FLOAT_SIZE = 4;
-const INT_SIZE = 4;
 
 // Node result: demand, head, pressure, quality (4 floats)
 const NODE_RESULT_FLOATS = 4;
@@ -124,19 +123,14 @@ export class EPSResultsReader {
 
     const ids = simulationIds ?? (await this.readIdsFromFile(simMetadata));
 
-    const nodeIdsLength = simMetadata.nodeCount * ID_LENGTH;
-    const linkIdsLength = simMetadata.linkCount * ID_LENGTH;
-
+    // Binary format: prolog + nodeIds(32) + elevations(4) + linkIds(32) + indices(8) + types(4) + length/diameter(8) + ...
     const resultsBaseOffset =
       PROLOG_SIZE +
-      nodeIdsLength +
-      linkIdsLength +
-      simMetadata.linkCount * INT_SIZE * 2 + // start and end node indices
-      simMetadata.linkCount * INT_SIZE + // link types
-      simMetadata.resAndTankCount * INT_SIZE + // tank indices
-      simMetadata.resAndTankCount * FLOAT_SIZE + // tank areas
-      simMetadata.pumpCount * 7 * FLOAT_SIZE + // pump energy (7 floats per pump)
-      FLOAT_SIZE; // peak energy usage
+      36 * simMetadata.nodeCount + // 32 byte ID + 4 byte elevation
+      52 * simMetadata.linkCount + // 32 byte ID + 8 byte indices + 4 byte type + 8 byte length/diameter
+      8 * simMetadata.resAndTankCount + // 4 byte index + 4 byte area
+      28 * simMetadata.pumpCount + // 7 floats pump energy
+      4; // peak energy
 
     const timestepBlockSize =
       simMetadata.nodeCount * NODE_RESULT_FLOATS * FLOAT_SIZE +
