@@ -44,7 +44,7 @@ const checkDuration = (settings: Settings, start: number) => {
     );
   }
   //eslint-disable-next-line
-  console.log(`${settings.name} execution time: ${duration.toFixed(2)} ms`);
+  console.debug(`${settings.name} execution time: ${duration.toFixed(2)} ms`);
 };
 
 const checkCallsFrequency = (settings: Settings) => {

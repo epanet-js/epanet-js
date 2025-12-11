@@ -5,6 +5,7 @@ import { Tank, TankSimulation } from "./asset-types/tank";
 import { Pump, PumpSimulation } from "./asset-types/pump";
 import { Valve, ValveSimulation } from "./asset-types/valve";
 import { HydraulicModel, updateHydraulicModelAssets } from "./hydraulic-model";
+import { withDebugInstrumentation } from "src/infra/with-instrumentation";
 
 export interface ResultsReader {
   getValve: (valveId: string) => ValveSimulation | null;
@@ -14,34 +15,40 @@ export interface ResultsReader {
   getTank: (tank: string) => TankSimulation | null;
 }
 
-export const attachSimulation = (
-  hydraulicModel: HydraulicModel,
-  simulation: ResultsReader,
-): HydraulicModel => {
-  const newAssets = new Map();
-  hydraulicModel.assets.forEach((asset) => {
-    const stringId = String(asset.id);
-    switch (asset.type) {
-      case "valve":
-        (asset as Valve).setSimulation(simulation.getValve(stringId));
-        break;
-      case "pipe":
-        (asset as Pipe).setSimulation(simulation.getPipe(stringId));
-        break;
-      case "junction":
-        (asset as Junction).setSimulation(simulation.getJunction(stringId));
-        break;
-      case "pump":
-        (asset as Pump).setSimulation(simulation.getPump(stringId));
-        break;
-      case "reservoir":
-        break;
-      case "tank":
-        (asset as Tank).setSimulation(simulation.getTank(stringId));
-        break;
-    }
-    newAssets.set(asset.id, asset);
-  });
+export const attachSimulation = withDebugInstrumentation(
+  (
+    hydraulicModel: HydraulicModel,
+    simulation: ResultsReader,
+  ): HydraulicModel => {
+    const newAssets = new Map();
+    hydraulicModel.assets.forEach((asset) => {
+      const stringId = String(asset.id);
+      switch (asset.type) {
+        case "valve":
+          (asset as Valve).setSimulation(simulation.getValve(stringId));
+          break;
+        case "pipe":
+          (asset as Pipe).setSimulation(simulation.getPipe(stringId));
+          break;
+        case "junction":
+          (asset as Junction).setSimulation(simulation.getJunction(stringId));
+          break;
+        case "pump":
+          (asset as Pump).setSimulation(simulation.getPump(stringId));
+          break;
+        case "reservoir":
+          break;
+        case "tank":
+          (asset as Tank).setSimulation(simulation.getTank(stringId));
+          break;
+      }
+      newAssets.set(asset.id, asset);
+    });
 
-  return updateHydraulicModelAssets(hydraulicModel, newAssets);
-};
+    return updateHydraulicModelAssets(hydraulicModel, newAssets);
+  },
+  {
+    name: "SIMULATION:ATTACH_TO_MODEL",
+    maxDurationMs: 100,
+  },
+);

@@ -14,6 +14,7 @@ import {
   PROLOG_SIZE,
   EPILOG_SIZE,
 } from "./simulation-metadata";
+import { withDebugInstrumentation } from "src/infra/with-instrumentation";
 
 export type { SimulationIds } from "./simulation-metadata";
 
@@ -66,55 +67,58 @@ export class EPSResultsReader {
     return this.metadata.simulationMetadata.reportingPeriods;
   }
 
-  async getResultsForTimestep(timestepIndex: number): Promise<ResultsReader> {
-    if (!this.metadata) {
-      throw new Error(
-        "EPSResultsReader not initialized. Call initialize() first.",
+  getResultsForTimestep = withDebugInstrumentation(
+    async (timestepIndex: number): Promise<ResultsReader> => {
+      if (!this.metadata) {
+        throw new Error(
+          "EPSResultsReader not initialized. Call initialize() first.",
+        );
+      }
+
+      const {
+        simulationMetadata,
+        simulationIds,
+        linkLengths,
+        resultsBaseOffset,
+        timestepBlockSize,
+      } = this.metadata;
+
+      if (
+        timestepIndex < 0 ||
+        timestepIndex >= simulationMetadata.reportingPeriods
+      ) {
+        throw new Error(
+          `Timestep index ${timestepIndex} out of range [0, ${simulationMetadata.reportingPeriods - 1}]`,
+        );
+      }
+
+      const timestepOffset =
+        resultsBaseOffset + timestepIndex * timestepBlockSize;
+      const timestepData = await this.storage.readSlice(
+        RESULTS_OUT_KEY,
+        timestepOffset,
+        timestepBlockSize,
       );
-    }
 
-    const {
-      simulationMetadata,
-      simulationIds,
-      linkLengths,
-      resultsBaseOffset,
-      timestepBlockSize,
-    } = this.metadata;
+      if (!timestepData) {
+        throw new Error(
+          `Failed to read timestep ${timestepIndex} data from storage`,
+        );
+      }
 
-    if (
-      timestepIndex < 0 ||
-      timestepIndex >= simulationMetadata.reportingPeriods
-    ) {
-      throw new Error(
-        `Timestep index ${timestepIndex} out of range [0, ${simulationMetadata.reportingPeriods - 1}]`,
+      const tankVolumesForTimestep =
+        await this.readTankVolumesForTimestep(timestepIndex);
+
+      return new TimestepResultsReader(
+        new DataView(timestepData),
+        simulationMetadata,
+        simulationIds,
+        tankVolumesForTimestep,
+        linkLengths,
       );
-    }
-
-    const timestepOffset =
-      resultsBaseOffset + timestepIndex * timestepBlockSize;
-    const timestepData = await this.storage.readSlice(
-      RESULTS_OUT_KEY,
-      timestepOffset,
-      timestepBlockSize,
-    );
-
-    if (!timestepData) {
-      throw new Error(
-        `Failed to read timestep ${timestepIndex} data from storage`,
-      );
-    }
-
-    const tankVolumesForTimestep =
-      await this.readTankVolumesForTimestep(timestepIndex);
-
-    return new TimestepResultsReader(
-      new DataView(timestepData),
-      simulationMetadata,
-      simulationIds,
-      tankVolumesForTimestep,
-      linkLengths,
-    );
-  }
+    },
+    { name: "SIMULATION:FETCH_STEP_FROM_STORAGE", maxDurationMs: 100 },
+  );
 
   private async readMetadata(
     rawMetadata?: ArrayBuffer,
