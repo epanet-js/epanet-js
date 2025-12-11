@@ -1,6 +1,11 @@
 import { screen, render, waitFor } from "@testing-library/react";
 import { CommandContainer } from "./__helpers__/command-container";
-import { SimulationFinished, Store, simulationAtom } from "src/state/jotai";
+import {
+  SimulationFinished,
+  Store,
+  simulationAtom,
+  dataAtom,
+} from "src/state/jotai";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { setInitialState } from "src/__helpers__/state";
 import userEvent from "@testing-library/user-event";
@@ -9,6 +14,7 @@ import { lib } from "src/lib/worker";
 import { Mock } from "vitest";
 import { runEPSSimulation as workerRunEPSSimulation } from "src/simulation/epanet/worker-eps";
 import { stubFeatureOn } from "src/__helpers__/feature-flags";
+import { Pipe } from "src/hydraulic-model";
 
 vi.mock("src/lib/worker", () => ({
   lib: {
@@ -41,10 +47,14 @@ describe("Run EPS simulation", () => {
       const simulation = store.get(simulationAtom) as SimulationFinished;
       expect(simulation.status).toEqual("success");
       expect(simulation.report).not.toContain(/error/i);
-      expect(simulation.modelVersion).toEqual(hydraulicModel.version);
     });
 
-    // Note: EPS simulation does not attach results to hydraulic model yet
+    await waitFor(() => {
+      const { hydraulicModel: updatedModel } = store.get(dataAtom);
+      const pipe = updatedModel.assets.get(IDS.p1) as Pipe;
+      expect(pipe.flow).not.toBeNull();
+      expect(pipe.flow).toBeGreaterThan(0);
+    });
   });
 
   it("persists the state when the simulation fails", async () => {

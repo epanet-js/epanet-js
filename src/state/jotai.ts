@@ -31,6 +31,7 @@ import { EphemeralDrawNode } from "src/map/mode-handlers/draw-node/ephemeral-dra
 import { DEFAULT_ZOOM } from "src/map/map-engine";
 import { EphemeralDrawLink } from "src/map/mode-handlers/draw-link/ephemeral-link-state";
 import { EphemeralEditingStateAreaSelection } from "src/map/mode-handlers/area-selection/ephemeral-area-selection-state";
+import type { SimulationIds } from "src/simulation/epanet/simulation-metadata";
 
 export type Store = ReturnType<typeof createStore>;
 
@@ -69,6 +70,8 @@ export type SimulationFinished = {
   status: "success" | "failure" | "warning";
   report: string;
   modelVersion: string;
+  metadata?: ArrayBuffer;
+  simulationIds?: SimulationIds;
 };
 export type SimulationRunning = {
   status: "running";

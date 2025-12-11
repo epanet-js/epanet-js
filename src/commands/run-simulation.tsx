@@ -7,12 +7,14 @@ import {
   ProgressCallback,
   runSimulation,
   runEPSSimulation,
+  EPSResultsReader,
 } from "src/simulation";
 import { attachSimulation } from "src/hydraulic-model";
 import { useDrawingMode } from "./set-drawing-mode";
 import { Mode } from "src/state/mode";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { getAppId } from "src/infra/app-instance";
+import { OPFSStorage } from "src/infra/storage";
 
 export const runSimulationShortcut = "shift+enter";
 
@@ -80,19 +82,37 @@ export const useRunSimulation = () => {
       });
     };
 
-    const { report, status } = await runEPSSimulation(
+    const appId = getAppId();
+    const { report, status, metadata } = await runEPSSimulation(
       inp,
-      getAppId(),
+      appId,
       {},
       reportProgress,
     );
 
     isCompleted = true;
 
+    let updatedHydraulicModel = hydraulicModel;
+    let simulationIds;
+    if (status === "success" || status === "warning") {
+      const storage = new OPFSStorage(appId);
+      const epsReader = new EPSResultsReader(storage);
+      await epsReader.initialize(metadata);
+      simulationIds = epsReader.simulationIds;
+      const resultsReader = await epsReader.getResultsForTimestep(0);
+      updatedHydraulicModel = attachSimulation(hydraulicModel, resultsReader);
+      setData((prev) => ({
+        ...prev,
+        hydraulicModel: updatedHydraulicModel,
+      }));
+    }
+
     setSimulationState({
       status,
       report,
-      modelVersion: hydraulicModel.version,
+      modelVersion: updatedHydraulicModel.version,
+      metadata,
+      simulationIds,
     });
     const end = performance.now();
     const duration = end - start;
@@ -101,7 +121,13 @@ export const useRunSimulation = () => {
       status,
       duration,
     });
-  }, [setDrawingMode, hydraulicModel, setSimulationState, setDialogState]);
+  }, [
+    setDrawingMode,
+    hydraulicModel,
+    setSimulationState,
+    setDialogState,
+    setData,
+  ]);
 
   return isEPSEnabled ? runSimulationEPS : runSimulationLegacy;
 };

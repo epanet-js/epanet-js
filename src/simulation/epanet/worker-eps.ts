@@ -9,6 +9,7 @@ import {
 } from "epanet-js";
 import { SimulationStatus } from "../result";
 import { OPFSStorage } from "src/infra/storage";
+import { PROLOG_SIZE, EPILOG_SIZE } from "./simulation-metadata";
 
 export const RESULTS_OUT_KEY = "results.out";
 export const TANK_VOLUMES_KEY = "tank-volumes.bin";
@@ -16,14 +17,7 @@ export const TANK_VOLUMES_KEY = "tank-volumes.bin";
 export type EPSSimulationResult = {
   status: SimulationStatus;
   report: string;
-  metadata: EPSMetadata;
-};
-
-export type EPSMetadata = {
-  timestepCount: number;
-  nodeCount: number;
-  linkCount: number;
-  supplySourcesCount: number; // tanks + reservoirs
+  metadata: ArrayBuffer;
 };
 
 export type SimulationProgress = {
@@ -52,7 +46,6 @@ export const runEPSSimulation = async (
     model.open("net.inp", "report.rpt", "results.out");
 
     const nodeCount = model.getCount(CountType.NodeCount);
-    const linkCount = model.getCount(CountType.LinkCount);
 
     const supplySourceIndices: number[] = [];
     for (let i = 1; i <= nodeCount; i++) {
@@ -70,10 +63,8 @@ export const runEPSSimulation = async (
     model.openH();
     model.initH(InitHydOption.SaveAndInit);
 
-    let timestepCount = 0;
     do {
       const currentTime = model.runH();
-      timestepCount++;
 
       onProgress?.({ currentTime, totalDuration });
 
@@ -92,9 +83,10 @@ export const runEPSSimulation = async (
 
     model.close();
 
+    const { resultsBuffer, metadata } = extractResultsData(ws);
+
     const storage = new OPFSStorage(appId);
-    const resultsOutBinary = ws.readFile("results.out", "binary");
-    await storage.save(RESULTS_OUT_KEY, resultsOutBinary.buffer as ArrayBuffer);
+    await storage.save(RESULTS_OUT_KEY, resultsBuffer);
 
     if (supplySourcesCount > 0) {
       const tankVolumesBinary = new Float32Array(tankVolumesPerTimestep.flat());
@@ -109,12 +101,7 @@ export const runEPSSimulation = async (
     return {
       status: report.includes("WARNING") ? "warning" : "success",
       report: curateReport(report),
-      metadata: {
-        timestepCount,
-        nodeCount,
-        linkCount,
-        supplySourcesCount,
-      },
+      metadata,
     };
   } catch (error) {
     model.close();
@@ -124,12 +111,7 @@ export const runEPSSimulation = async (
       status: "failure",
       report:
         report.length > 0 ? curateReport(report) : (error as Error).message,
-      metadata: {
-        timestepCount: 0,
-        nodeCount: 0,
-        linkCount: 0,
-        supplySourcesCount: 0,
-      },
+      metadata: new ArrayBuffer(PROLOG_SIZE + EPILOG_SIZE),
     };
   }
 };
@@ -137,4 +119,25 @@ export const runEPSSimulation = async (
 const curateReport = (input: string): string => {
   const errorOnlyOncePerLine = /(Error [A-Za-z0-9]+:)(?=.*\1)/g;
   return input.replace(errorOnlyOncePerLine, "");
+};
+
+const extractResultsData = (ws: Workspace) => {
+  const resultsOutBinary = ws.readFile("results.out", "binary");
+  const fileSize = resultsOutBinary.byteLength;
+  const metadata = new ArrayBuffer(PROLOG_SIZE + EPILOG_SIZE);
+  const metadataView = new Uint8Array(metadata);
+  metadataView.set(new Uint8Array(resultsOutBinary.buffer, 0, PROLOG_SIZE), 0);
+  metadataView.set(
+    new Uint8Array(
+      resultsOutBinary.buffer,
+      fileSize - EPILOG_SIZE,
+      EPILOG_SIZE,
+    ),
+    PROLOG_SIZE,
+  );
+
+  return {
+    resultsBuffer: resultsOutBinary.buffer as ArrayBuffer,
+    metadata,
+  };
 };

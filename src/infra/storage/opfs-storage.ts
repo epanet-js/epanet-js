@@ -33,14 +33,12 @@ export class OPFSStorage implements IPrivateAppStorage {
     }
   }
 
-  async read(filename: string): Promise<ArrayBuffer | null> {
+  async getSize(filename: string): Promise<number | null> {
     try {
       const dir = await this.getAppDir();
       const fileHandle = await dir.getFileHandle(filename);
       const file = await fileHandle.getFile();
-      const result = await file.arrayBuffer();
-      await this.updateHeartbeat();
-      return result;
+      return file.size;
     } catch {
       return null;
     }

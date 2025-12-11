@@ -26,8 +26,11 @@ vi.mock("src/infra/storage", async (importOriginal) => {
   };
 });
 
-beforeEach(() => {
+beforeEach(async () => {
   stubUserTracking();
+  // Reset shared in-memory storage between tests
+  const { InMemoryStorage } = await import("src/infra/storage");
+  InMemoryStorage.resetAll();
 });
 
 const passMessage = (expect: "Left" | "Right") => () =>

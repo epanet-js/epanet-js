@@ -50,7 +50,7 @@ describe("OPFSStorage", () => {
     writable = createMockWritable(),
   ) => ({
     getFile: vi.fn().mockResolvedValue({
-      arrayBuffer: vi.fn().mockResolvedValue(data),
+      size: data.byteLength,
       slice: vi.fn((start: number, end: number) => ({
         arrayBuffer: vi.fn().mockResolvedValue(data.slice(start, end)),
       })),
@@ -83,43 +83,6 @@ describe("OPFSStorage", () => {
 
       const storage = new OPFSStorage("test-app-id");
       await storage.save("results.out", new Uint8Array([1]).buffer);
-
-      expect(mockAppDir.getFileHandle).toHaveBeenCalledWith("heartbeat.json", {
-        create: true,
-      });
-    });
-  });
-
-  describe("read", () => {
-    it("reads file from app directory", async () => {
-      const fileData = new Uint8Array([1, 2, 3, 4, 5]).buffer;
-      mockAppDir.getFileHandle.mockResolvedValue(
-        createMockFileHandle(fileData),
-      );
-
-      const storage = new OPFSStorage("test-app-id");
-      const result = await storage.read("results.out");
-
-      expect(mockAppDir.getFileHandle).toHaveBeenCalledWith("results.out");
-      expect(result).toEqual(fileData);
-    });
-
-    it("returns null when file does not exist", async () => {
-      mockAppDir.getFileHandle.mockRejectedValue(new Error("File not found"));
-
-      const storage = new OPFSStorage("test-app-id");
-      const result = await storage.read("non-existent");
-
-      expect(result).toBeNull();
-    });
-
-    it("updates heartbeat after reading", async () => {
-      mockAppDir.getFileHandle.mockResolvedValue(
-        createMockFileHandle(new Uint8Array([1]).buffer),
-      );
-
-      const storage = new OPFSStorage("test-app-id");
-      await storage.read("results.out");
 
       expect(mockAppDir.getFileHandle).toHaveBeenCalledWith("heartbeat.json", {
         create: true,

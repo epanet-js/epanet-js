@@ -6,6 +6,7 @@ import {
   runEPSSimulation as workerRunEPSSimulation,
   SimulationProgress,
 } from "./worker-eps";
+import { SimulationMetadata } from "./simulation-metadata";
 import { Mock } from "vitest";
 
 vi.mock("src/lib/worker", () => ({
@@ -31,12 +32,13 @@ describe("EPS simulation", () => {
     const inp = buildInpEPS(hydraulicModel);
 
     const { status, metadata } = await runEPSSimulation(inp, "test-app-id");
+    const simulationMetadata = new SimulationMetadata(metadata);
 
     expect(status).toEqual("success");
-    expect(metadata.timestepCount).toEqual(1);
-    expect(metadata.nodeCount).toEqual(2);
-    expect(metadata.linkCount).toEqual(1);
-    expect(metadata.supplySourcesCount).toEqual(1); // reservoir
+    expect(simulationMetadata.reportingPeriods).toEqual(1);
+    expect(simulationMetadata.nodeCount).toEqual(2);
+    expect(simulationMetadata.linkCount).toEqual(1);
+    expect(simulationMetadata.resAndTankCount).toEqual(1); // reservoir
   });
 
   it("returns metadata with multiple timesteps for EPS duration", async () => {
@@ -50,9 +52,10 @@ describe("EPS simulation", () => {
     const inp = buildInpEPS(hydraulicModel);
 
     const { status, metadata } = await runEPSSimulation(inp, "test-app-id");
+    const simulationMetadata = new SimulationMetadata(metadata);
 
     expect(status).toEqual("success");
-    expect(metadata.timestepCount).toBe(3); // initial + 2 timesteps
+    expect(simulationMetadata.reportingPeriods).toBe(3); // initial + 2 timesteps
   });
 
   it("counts tanks and reservoirs as supply sources", async () => {
@@ -73,9 +76,10 @@ describe("EPS simulation", () => {
     const inp = buildInpEPS(hydraulicModel);
 
     const { status, metadata } = await runEPSSimulation(inp, "test-app-id");
+    const simulationMetadata = new SimulationMetadata(metadata);
 
     expect(status).toEqual("success");
-    expect(metadata.supplySourcesCount).toEqual(2); // reservoir + tank
+    expect(simulationMetadata.resAndTankCount).toEqual(2); // reservoir + tank
   });
 
   it("returns failure status with zero metadata on error", async () => {
@@ -88,9 +92,10 @@ describe("EPS simulation", () => {
     const inp = buildInpEPS(hydraulicModel);
 
     const { status, metadata } = await runEPSSimulation(inp, "test-app-id");
+    const simulationMetadata = new SimulationMetadata(metadata);
 
     expect(status).toEqual("failure");
-    expect(metadata.timestepCount).toEqual(0);
+    expect(simulationMetadata.reportingPeriods).toEqual(0);
   });
 
   it("calls progress callback during simulation", async () => {

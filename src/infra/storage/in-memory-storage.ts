@@ -1,14 +1,21 @@
 import { IPrivateAppStorage } from "./private-app-storage";
 
-export class InMemoryStorage implements IPrivateAppStorage {
-  private data = new Map<string, ArrayBuffer>();
-  private heartbeatTimestamp: number | null = null;
+// Shared storage across all InMemoryStorage instances (keyed by appId)
+const sharedStorage = new Map<string, Map<string, ArrayBuffer>>();
 
-  constructor(private readonly appId: string) {}
+export class InMemoryStorage implements IPrivateAppStorage {
+  constructor(private readonly appId: string) {
+    if (!sharedStorage.has(appId)) {
+      sharedStorage.set(appId, new Map());
+    }
+  }
+
+  private get data(): Map<string, ArrayBuffer> {
+    return sharedStorage.get(this.appId)!;
+  }
 
   save(key: string, data: ArrayBuffer): Promise<void> {
     this.data.set(key, data);
-    this.heartbeatTimestamp = Date.now();
     return Promise.resolve();
   }
 
@@ -19,25 +26,22 @@ export class InMemoryStorage implements IPrivateAppStorage {
   ): Promise<ArrayBuffer | null> {
     const data = this.data.get(key);
     if (!data) return Promise.resolve(null);
-    this.heartbeatTimestamp = Date.now();
     return Promise.resolve(data.slice(offset, offset + length));
   }
 
-  read(key: string): Promise<ArrayBuffer | null> {
+  getSize(key: string): Promise<number | null> {
     const data = this.data.get(key);
     if (!data) return Promise.resolve(null);
-    this.heartbeatTimestamp = Date.now();
-    return Promise.resolve(data);
+    return Promise.resolve(data.byteLength);
   }
 
   clear(): Promise<void> {
     this.data.clear();
-    this.heartbeatTimestamp = null;
     return Promise.resolve();
   }
 
   updateHeartbeat(): Promise<void> {
-    this.heartbeatTimestamp = Date.now();
+    // No-op for in-memory storage (heartbeat is only needed for OPFS cleanup)
     return Promise.resolve();
   }
 
@@ -47,15 +51,16 @@ export class InMemoryStorage implements IPrivateAppStorage {
     return this.appId;
   }
 
-  getHeartbeatTimestamp(): number | null {
-    return this.heartbeatTimestamp;
-  }
-
   has(key: string): boolean {
     return this.data.has(key);
   }
 
   getCount(): number {
     return this.data.size;
+  }
+
+  // Static test helper to reset all shared storage between tests
+  static resetAll(): void {
+    sharedStorage.clear();
   }
 }

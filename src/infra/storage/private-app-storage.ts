@@ -7,7 +7,7 @@ export interface IPrivateAppStorage {
     length: number,
   ): Promise<ArrayBuffer | null>;
 
-  read(key: string): Promise<ArrayBuffer | null>;
+  getSize(key: string): Promise<number | null>;
 
   clear(): Promise<void>;
 
