@@ -56,6 +56,7 @@ import {
   SquareStack,
   Star,
   Sun,
+  Timer,
   Trash,
   Triangle,
   TriangleAlert,
@@ -143,6 +144,7 @@ export const SaveIcon = icon(Save);
 export const SaveAllIcon = icon(SaveAll);
 export const OutdatedSimulationIcon = icon(History);
 export const RunSimulationIcon = icon(Zap);
+export const TimerIcon = icon(Timer);
 export const CustomerPointIcon = icon(House);
 export const ImportCustomerPointsIcon = icon(HousePlus);
 export const UnavailableIcon = icon(CircleSlash2);

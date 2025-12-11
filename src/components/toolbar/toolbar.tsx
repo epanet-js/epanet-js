@@ -13,6 +13,7 @@ import {
   PanelLeftActiveIcon,
   PanelRightActiveIcon,
   PanelRightIcon,
+  TimerIcon,
 } from "src/icons";
 import Modes from "../modes";
 import { useAtomValue } from "jotai";
@@ -50,15 +51,21 @@ import {
   toggleSidePanelShortcut,
   useToggleSidePanel,
 } from "src/commands/toggle-side-panel";
+import { useRunSimulationPerformanceTest } from "src/commands/run-simulation-performance-test";
+import { isDebugOn } from "src/infra/debug-mode";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export const Toolbar = () => {
   const translate = useTranslate();
   const saveInp = useSaveInp();
   const userTracking = useUserTracking();
   const runSimulation = useRunSimulation();
+  const runPerformanceTest = useRunSimulationPerformanceTest();
   const showSimulationSettings = useShowSimulationSettings();
   const showReport = useShowReport();
   const importCustomerPoints = useImportCustomerPoints();
+  const isEPSEnabled = useFeatureFlag("FLAG_EPS");
+  const showPerformanceTest = isDebugOn && isEPSEnabled;
 
   const { undo, redo } = useHistoryControl();
 
@@ -169,6 +176,18 @@ export const Toolbar = () => {
         >
           <RunSimulationIcon className="stroke-yellow-600" />
         </MenuAction>
+        {showPerformanceTest && (
+          <MenuAction
+            label="Performance Test"
+            role="button"
+            onClick={() => {
+              void runPerformanceTest();
+            }}
+            disabled={simulation.status === "idle"}
+          >
+            <TimerIcon />
+          </MenuAction>
+        )}
         <MenuAction
           label={translate("simulationSettings.title")}
           role="button"
