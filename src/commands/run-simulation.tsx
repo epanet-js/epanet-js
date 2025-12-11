@@ -113,6 +113,7 @@ export const useRunSimulation = () => {
       modelVersion: updatedHydraulicModel.version,
       metadata,
       simulationIds,
+      currentTimestepIndex: 0,
     });
     const end = performance.now();
     const duration = end - start;

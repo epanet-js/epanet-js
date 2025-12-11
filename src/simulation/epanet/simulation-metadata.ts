@@ -35,6 +35,18 @@ export class SimulationMetadata {
     return this.prologView.getInt32(24, true);
   }
 
+  get reportingStartTime(): number {
+    return this.prologView.getInt32(48, true);
+  }
+
+  get reportingTimeStep(): number {
+    return this.prologView.getInt32(52, true);
+  }
+
+  get simulationDuration(): number {
+    return this.prologView.getInt32(56, true);
+  }
+
   get reportingPeriods(): number {
     return this.epilogView.getInt32(0, true);
   }

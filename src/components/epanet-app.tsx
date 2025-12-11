@@ -31,6 +31,7 @@ import {
 import { restrictToWindowEdges } from "@dnd-kit/modifiers";
 import debounce from "lodash/debounce";
 import { Legends } from "./legends";
+import { TimestepSelector } from "./timestep-selector";
 import { Toolbar } from "./toolbar/toolbar";
 import { Footer } from "./footer";
 import { useHydrateAtoms } from "jotai/utils";
@@ -249,6 +250,7 @@ function DraggableMap({
         <MapCanvas setMap={setMap} />
       </div>
       <Legends />
+      <TimestepSelector />
     </div>
   );
 }

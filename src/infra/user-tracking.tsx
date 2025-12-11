@@ -213,6 +213,12 @@ type SimulationExecuted = {
   source: "shortcut" | "toolbar";
 };
 
+type SimulationTimestepChanged = {
+  name: "simulation.timestep.changed";
+  timestepIndex: number;
+  source: "previous" | "next" | "dropdown";
+};
+
 type ReportOpened = {
   name: "report.opened";
   source: "shortcut" | "resultDialog" | "toolbar";
@@ -651,6 +657,7 @@ export type UserEvent =
   | UnsavedChangesSeen
   | ExampleModelClicked
   | SimulationExecuted
+  | SimulationTimestepChanged
   | ReportOpened
   | OpenInpStarted
   | ImportInpCompleted

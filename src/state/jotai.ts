@@ -72,6 +72,7 @@ export type SimulationFinished = {
   modelVersion: string;
   metadata?: ArrayBuffer;
   simulationIds?: SimulationIds;
+  currentTimestepIndex?: number;
 };
 export type SimulationRunning = {
   status: "running";
