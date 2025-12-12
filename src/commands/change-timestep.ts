@@ -53,6 +53,7 @@ export const useChangeTimestep = () => {
         });
       } catch (error) {
         captureError(error as Error);
+        setSimulationState({ status: "idle" });
       }
     },
     [simulation, setData, setSimulationState, userTracking],
