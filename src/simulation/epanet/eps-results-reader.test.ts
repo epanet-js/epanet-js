@@ -295,4 +295,66 @@ describe("EPSResultsReader", () => {
       expect(pipe.unitHeadloss).toBeCloseTo(pipe.headloss * 2, 5);
     }
   });
+
+  it("reads pump XFLOW status warning when pump exceeds max flow", async () => {
+    const IDS = { R1: 1, J1: 2, PUMP1: 3 } as const;
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aReservoir(IDS.R1, { head: 50 })
+      .aJunction(IDS.J1, { baseDemand: 3, elevation: 0 })
+      .aPump(IDS.PUMP1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
+      .aPumpCurve({ id: String(IDS.PUMP1), points: [{ x: 1, y: 1 }] })
+      .eps({ duration: 3600, hydraulicTimestep: 3600 })
+      .build();
+    const inp = buildInpEPS(hydraulicModel);
+
+    const testAppId = "test-pump-xflow";
+    const { status } = await runEPSSimulation(inp, testAppId);
+    // Expect warning because pump is operating beyond its curve
+    expect(status).toEqual("warning");
+
+    const storage = new InMemoryStorage(testAppId);
+    const reader = new EPSResultsReader(storage);
+    await reader.initialize();
+
+    const resultsReader = await reader.getResultsForTimestep(0);
+    const pump = resultsReader.getPump(String(IDS.PUMP1));
+
+    expect(pump).not.toBeNull();
+    expect(pump?.type).toEqual("pump");
+    expect(pump?.status).toEqual("on");
+    expect(pump?.statusWarning).toEqual("cannot-deliver-flow");
+  });
+
+  it("reads pump status across multiple timesteps", async () => {
+    const IDS = { R1: 1, J1: 2, PUMP1: 3 } as const;
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aReservoir(IDS.R1, { head: 50 })
+      .aJunction(IDS.J1, { baseDemand: 10, elevation: 0 })
+      .aPump(IDS.PUMP1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
+      .aPumpCurve({ id: String(IDS.PUMP1), points: [{ x: 20, y: 40 }] })
+      .eps({ duration: 7200, hydraulicTimestep: 3600 }) // 2 hours, 1 hour timestep
+      .build();
+    const inp = buildInpEPS(hydraulicModel);
+
+    const testAppId = "test-pump-multi-timestep";
+    const { status } = await runEPSSimulation(inp, testAppId);
+    expect(status).toEqual("success");
+
+    const storage = new InMemoryStorage(testAppId);
+    const reader = new EPSResultsReader(storage);
+    await reader.initialize();
+
+    // Should have 3 timesteps (initial + 2)
+    expect(reader.timestepCount).toBe(3);
+
+    // Read pump status from each timestep
+    for (let i = 0; i < reader.timestepCount; i++) {
+      const resultsReader = await reader.getResultsForTimestep(i);
+      const pump = resultsReader.getPump(String(IDS.PUMP1));
+
+      expect(pump).not.toBeNull();
+      expect(pump?.type).toEqual("pump");
+      expect(pump?.status).toMatch(/on|off/);
+    }
+  });
 });

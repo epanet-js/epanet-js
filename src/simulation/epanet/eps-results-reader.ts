@@ -7,7 +7,11 @@ import {
   TankSimulation,
 } from "../results-reader";
 import { IPrivateAppStorage } from "src/infra/storage/private-app-storage";
-import { RESULTS_OUT_KEY, TANK_VOLUMES_KEY } from "./worker-eps";
+import {
+  RESULTS_OUT_KEY,
+  TANK_VOLUMES_KEY,
+  PUMP_STATUS_KEY,
+} from "./worker-eps";
 import {
   SimulationMetadata,
   type SimulationIds,
@@ -21,10 +25,9 @@ export type { SimulationIds } from "./simulation-metadata";
 const ID_LENGTH = 32; // bytes per ID string
 const FLOAT_SIZE = 4;
 
-// Node result: demand, head, pressure, quality (4 floats)
 const NODE_RESULT_FLOATS = 4;
-// Link result: flow, velocity, headloss, avgQuality, status, setting, reactionRate, friction (8 floats)
 const LINK_RESULT_FLOATS = 8;
+const PUMP_ENERGY_FLOATS = 7;
 
 interface CachedMetadata {
   simulationMetadata: SimulationMetadata;
@@ -109,12 +112,16 @@ export class EPSResultsReader {
       const tankVolumesForTimestep =
         await this.readTankVolumesForTimestep(timestepIndex);
 
+      const pumpStatusForTimestep =
+        await this.readPumpStatusForTimestep(timestepIndex);
+
       return new TimestepResultsReader(
         new DataView(timestepData),
         simulationMetadata,
         simulationIds,
         tankVolumesForTimestep,
         linkLengths,
+        pumpStatusForTimestep,
       );
     },
     { name: "SIMULATION:FETCH_STEP_FROM_STORAGE", maxDurationMs: 100 },
@@ -131,33 +138,15 @@ export class EPSResultsReader {
     const ids = simulationIds ?? (await this.readIdsFromFile(simMetadata));
     const linkLengths = await this.readLinkLengthsFromFile(simMetadata);
 
-    // Binary format order (after 884-byte prolog):
-    // 1. Node IDs (32 × Nnodes)
-    // 2. Link IDs (32 × Nlinks)
-    // 3. Head node indices (4 × Nlinks)
-    // 4. Tail node indices (4 × Nlinks)
-    // 5. Link types (4 × Nlinks)
-    // 6. Tank node indices (4 × Ntanks)
-    // 7. Tank surface areas (4 × Ntanks)
-    // 8. Node elevations (4 × Nnodes)
-    // 9. Link lengths (4 × Nlinks)
-    // 10. Link diameters (4 × Nlinks)
-    // 11. Pump energy data (7 floats × Npumps)
-    // 12. Peak energy usage (1 float)
-    // Then dynamic results begin
     const resultsBaseOffset =
       PROLOG_SIZE +
       ID_LENGTH * simMetadata.nodeCount +
       ID_LENGTH * simMetadata.linkCount +
-      FLOAT_SIZE * simMetadata.linkCount +
-      FLOAT_SIZE * simMetadata.linkCount +
-      FLOAT_SIZE * simMetadata.linkCount +
-      FLOAT_SIZE * simMetadata.resAndTankCount +
-      FLOAT_SIZE * simMetadata.resAndTankCount +
+      3 * FLOAT_SIZE * simMetadata.linkCount +
+      2 * FLOAT_SIZE * simMetadata.resAndTankCount +
       FLOAT_SIZE * simMetadata.nodeCount +
-      FLOAT_SIZE * simMetadata.linkCount +
-      FLOAT_SIZE * simMetadata.linkCount +
-      28 * simMetadata.pumpCount +
+      2 * FLOAT_SIZE * simMetadata.linkCount +
+      PUMP_ENERGY_FLOATS * FLOAT_SIZE * simMetadata.pumpCount +
       4;
 
     const timestepBlockSize =
@@ -276,11 +265,8 @@ export class EPSResultsReader {
       PROLOG_SIZE +
       ID_LENGTH * simMetadata.nodeCount +
       ID_LENGTH * simMetadata.linkCount +
-      FLOAT_SIZE * simMetadata.linkCount +
-      FLOAT_SIZE * simMetadata.linkCount +
-      FLOAT_SIZE * simMetadata.linkCount +
-      FLOAT_SIZE * simMetadata.resAndTankCount +
-      FLOAT_SIZE * simMetadata.resAndTankCount +
+      3 * FLOAT_SIZE * simMetadata.linkCount +
+      2 * FLOAT_SIZE * simMetadata.resAndTankCount +
       FLOAT_SIZE * simMetadata.nodeCount;
 
     const linkLengthSize = simMetadata.linkCount * FLOAT_SIZE;
@@ -298,6 +284,45 @@ export class EPSResultsReader {
     return new Float32Array(data);
   }
 
+  private async readPumpPositionMapFromFile(
+    simMetadata: SimulationMetadata,
+  ): Promise<Map<number, number>> {
+    const map = new Map<number, number>();
+    if (simMetadata.pumpCount === 0) return map;
+
+    const pumpEnergyOffset =
+      PROLOG_SIZE +
+      ID_LENGTH * simMetadata.nodeCount +
+      ID_LENGTH * simMetadata.linkCount +
+      3 * FLOAT_SIZE * simMetadata.linkCount +
+      2 * FLOAT_SIZE * simMetadata.resAndTankCount +
+      FLOAT_SIZE * simMetadata.nodeCount +
+      2 * FLOAT_SIZE * simMetadata.linkCount;
+
+    const pumpEnergySize =
+      PUMP_ENERGY_FLOATS * FLOAT_SIZE * simMetadata.pumpCount;
+
+    const data = await this.storage.readSlice(
+      RESULTS_OUT_KEY,
+      pumpEnergyOffset,
+      pumpEnergySize,
+    );
+
+    if (!data) {
+      throw new Error("Failed to read pump energy data from results.out");
+    }
+
+    const dataView = new DataView(data);
+
+    for (let position = 0; position < simMetadata.pumpCount; position++) {
+      const byteOffset = position * PUMP_ENERGY_FLOATS * FLOAT_SIZE;
+      const linkIndex1Based = dataView.getInt32(byteOffset, true);
+      map.set(linkIndex1Based - 1, position);
+    }
+
+    return map;
+  }
+
   private async readTankVolumesForTimestep(
     timestepIndex: number,
   ): Promise<Float32Array | null> {
@@ -312,6 +337,32 @@ export class EPSResultsReader {
 
     return new Float32Array(data);
   }
+
+  private async readPumpStatusForTimestep(
+    timestepIndex: number,
+  ): Promise<PumpStatusForTimestep | null> {
+    const simMetadata = this.metadata!.simulationMetadata;
+    if (simMetadata.pumpCount === 0) return null;
+
+    const offset = timestepIndex * simMetadata.pumpCount * FLOAT_SIZE;
+    const length = simMetadata.pumpCount * FLOAT_SIZE;
+
+    const data = await this.storage.readSlice(PUMP_STATUS_KEY, offset, length);
+    if (!data) return null;
+
+    const pumpPositionByLinkIndex =
+      await this.readPumpPositionMapFromFile(simMetadata);
+
+    return {
+      pumpPositionByLinkIndex,
+      statuses: new Float32Array(data),
+    };
+  }
+}
+
+interface PumpStatusForTimestep {
+  pumpPositionByLinkIndex: Map<number, number>;
+  statuses: Float32Array;
 }
 
 class TimestepResultsReader implements ResultsReader {
@@ -320,6 +371,7 @@ class TimestepResultsReader implements ResultsReader {
   private simulationIds: SimulationIds;
   private tankVolumes: Float32Array | null;
   private linkLengths: Float32Array;
+  private pumpStatus: PumpStatusForTimestep | null;
 
   constructor(
     view: DataView,
@@ -327,12 +379,14 @@ class TimestepResultsReader implements ResultsReader {
     simulationIds: SimulationIds,
     tankVolumes: Float32Array | null,
     linkLengths: Float32Array,
+    pumpStatus: PumpStatusForTimestep | null,
   ) {
     this.view = view;
     this.simulationMetadata = simulationMetadata;
     this.simulationIds = simulationIds;
     this.tankVolumes = tankVolumes;
     this.linkLengths = linkLengths;
+    this.pumpStatus = pumpStatus;
   }
 
   getValve(valveId: string): ValveSimulation | null {
@@ -357,7 +411,9 @@ class TimestepResultsReader implements ResultsReader {
     if (linkIndex === undefined) return null;
 
     const linkData = this.getLinkData(linkIndex);
-    const statusValue = linkData.status;
+
+    const statusValue =
+      this.getPumpStatusFromStorage(linkIndex) ?? linkData.status;
     const isOn = statusValue >= 3;
 
     return {
@@ -367,6 +423,15 @@ class TimestepResultsReader implements ResultsReader {
       status: isOn ? "on" : "off",
       statusWarning: this.mapPumpStatusWarning(statusValue),
     };
+  }
+
+  private getPumpStatusFromStorage(linkIndex: number): number | null {
+    if (!this.pumpStatus) return null;
+
+    const pumpPosition = this.pumpStatus.pumpPositionByLinkIndex.get(linkIndex);
+    if (pumpPosition === undefined) return null;
+
+    return this.pumpStatus.statuses[pumpPosition];
   }
 
   getJunction(junctionId: string): JunctionSimulation | null {

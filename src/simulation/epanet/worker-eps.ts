@@ -1,6 +1,8 @@
 import {
   CountType,
   InitHydOption,
+  LinkProperty,
+  LinkType,
   NodeProperty,
   NodeType,
   Project,
@@ -13,6 +15,7 @@ import { PROLOG_SIZE, EPILOG_SIZE } from "./simulation-metadata";
 
 export const RESULTS_OUT_KEY = "results.out";
 export const TANK_VOLUMES_KEY = "tank-volumes.bin";
+export const PUMP_STATUS_KEY = "pump-status.bin";
 
 export type EPSSimulationResult = {
   status: SimulationStatus;
@@ -46,6 +49,7 @@ export const runEPSSimulation = async (
     model.open("net.inp", "report.rpt", "results.out");
 
     const nodeCount = model.getCount(CountType.NodeCount);
+    const linkCount = model.getCount(CountType.LinkCount);
 
     const supplySourceIndices: number[] = [];
     for (let i = 1; i <= nodeCount; i++) {
@@ -56,7 +60,17 @@ export const runEPSSimulation = async (
     }
     const supplySourcesCount = supplySourceIndices.length;
 
+    const pumpIndices: number[] = [];
+    for (let i = 1; i <= linkCount; i++) {
+      const linkType = model.getLinkType(i);
+      if (linkType === LinkType.Pump) {
+        pumpIndices.push(i);
+      }
+    }
+    const pumpCount = pumpIndices.length;
+
     const tankVolumesPerTimestep: number[][] = [];
+    const pumpStatusPerTimestep: number[][] = [];
 
     const totalDuration = model.getTimeParameter(TimeParameter.Duration);
 
@@ -76,6 +90,15 @@ export const runEPSSimulation = async (
         }
         tankVolumesPerTimestep.push(volumes);
       }
+
+      if (pumpCount > 0) {
+        const statuses: number[] = [];
+        for (const linkIndex of pumpIndices) {
+          const status = model.getLinkValue(linkIndex, LinkProperty.PumpState);
+          statuses.push(status);
+        }
+        pumpStatusPerTimestep.push(statuses);
+      }
     } while (model.nextH() > 0);
 
     model.closeH();
@@ -93,6 +116,14 @@ export const runEPSSimulation = async (
       await storage.save(
         TANK_VOLUMES_KEY,
         tankVolumesBinary.buffer as ArrayBuffer,
+      );
+    }
+
+    if (pumpCount > 0) {
+      const pumpStatusBinary = new Float32Array(pumpStatusPerTimestep.flat());
+      await storage.save(
+        PUMP_STATUS_KEY,
+        pumpStatusBinary.buffer as ArrayBuffer,
       );
     }
 
