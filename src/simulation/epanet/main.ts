@@ -4,6 +4,7 @@ import { SimulationResult } from "../result";
 import { EpanetResultsReader } from "./epanet-results";
 import { EPSSimulationResult, ProgressCallback } from "./worker-eps";
 import { withDebugInstrumentation } from "src/infra/with-instrumentation";
+import { captureError } from "src/infra/error-tracking";
 
 export const runSimulation = async (
   inp: string,
@@ -28,7 +29,16 @@ export const runEPSSimulation = withDebugInstrumentation(
     onProgress?: ProgressCallback,
   ): Promise<EPSSimulationResult> => {
     const proxiedCallback = onProgress ? Comlink.proxy(onProgress) : undefined;
-    return await webWorker.runEPSSimulation(inp, appId, flags, proxiedCallback);
+    const result = await webWorker.runEPSSimulation(
+      inp,
+      appId,
+      flags,
+      proxiedCallback,
+    );
+    if (result.jsError) {
+      captureError(new Error(`Simulation JS error: ${result.jsError}`));
+    }
+    return result;
   },
   { name: "SIMULATION:RUN", maxDurationMs: 5000 },
 );

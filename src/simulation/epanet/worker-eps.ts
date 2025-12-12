@@ -21,6 +21,7 @@ export type EPSSimulationResult = {
   status: SimulationStatus;
   report: string;
   metadata: ArrayBuffer;
+  jsError?: string;
 };
 
 export type SimulationProgress = {
@@ -137,12 +138,14 @@ export const runEPSSimulation = async (
   } catch (error) {
     model.close();
     const report = ws.readFile("report.rpt");
+    const errorMessage = (error as Error).message;
+    const isEpanetError = /EPANET Error|^Error \d+/.test(errorMessage);
 
     return {
       status: "failure",
-      report:
-        report.length > 0 ? curateReport(report) : (error as Error).message,
+      report: report.length > 0 ? curateReport(report) : errorMessage,
       metadata: new ArrayBuffer(PROLOG_SIZE + EPILOG_SIZE),
+      jsError: isEpanetError ? undefined : errorMessage,
     };
   }
 };
