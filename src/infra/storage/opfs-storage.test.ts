@@ -107,7 +107,7 @@ describe("OPFSStorage", () => {
       expect(mockWritable.close).toHaveBeenCalled();
     });
 
-    it("updates last access after saving", async () => {
+    it("does not update last access after saving (save runs in Web Worker where localStorage is unavailable)", async () => {
       mockAppDir.getFileHandle.mockResolvedValue(
         createMockFileHandle(new ArrayBuffer(0)),
       );
@@ -115,10 +115,7 @@ describe("OPFSStorage", () => {
       const storage = new OPFSStorage("test-app-id");
       await storage.save("results.out", new Uint8Array([1]).buffer);
 
-      expect(mockLocalStorage.setItem).toHaveBeenCalledWith(
-        "last-simulation-access:test-app-id",
-        expect.stringContaining("timestamp"),
-      );
+      expect(mockLocalStorage.setItem).not.toHaveBeenCalled();
     });
   });
 

@@ -12,7 +12,6 @@ export class OPFSStorage implements IPrivateAppStorage {
     const writable = await fileHandle.createWritable();
     await writable.write(data);
     await writable.close();
-    this.touchLastAccess();
   }
 
   async readSlice(
