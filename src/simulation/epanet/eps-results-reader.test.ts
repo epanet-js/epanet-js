@@ -236,9 +236,9 @@ describe("EPSResultsReader", () => {
     const IDS = { R1: 1, J1: 2, PUMP1: 3 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
       .aReservoir(IDS.R1, { head: 50 })
-      .aJunction(IDS.J1, { baseDemand: 10, elevation: 0 })
+      .aJunction(IDS.J1, { baseDemand: 1, elevation: 0 })
       .aPump(IDS.PUMP1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
-      .aPumpCurve({ id: String(IDS.PUMP1), points: [{ x: 20, y: 40 }] })
+      .aPumpCurve({ id: String(IDS.PUMP1), points: [{ x: 1, y: 1 }] })
       .build();
     const inp = buildInpEPS(hydraulicModel);
 
@@ -256,7 +256,7 @@ describe("EPSResultsReader", () => {
     expect(pump).not.toBeNull();
     expect(pump?.type).toEqual("pump");
     expect(pump?.flow).toBeGreaterThanOrEqual(0);
-    expect(pump?.headloss).toBeGreaterThanOrEqual(0); // Math.abs ensures positive
+    expect(pump?.headloss).toBeCloseTo(-1);
     expect(pump?.status).toMatch(/on|off/);
     // statusWarning should be null or one of the warning types
     expect([null, "cannot-deliver-head", "cannot-deliver-flow"]).toContain(

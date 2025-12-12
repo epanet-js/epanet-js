@@ -363,7 +363,7 @@ class TimestepResultsReader implements ResultsReader {
     return {
       type: "pump",
       flow: linkData.flow,
-      headloss: Math.abs(linkData.headloss), // Pumps headloss is negative
+      headloss: linkData.headloss,
       status: isOn ? "on" : "off",
       statusWarning: this.mapPumpStatusWarning(statusValue),
     };
