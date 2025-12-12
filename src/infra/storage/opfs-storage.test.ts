@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
-import { OPFSStorage } from "./opfs-storage";
+import { OPFSStorage, cleanupStaleOPFS } from "./opfs-storage";
 
 describe("OPFSStorage", () => {
   let mockAppDir: {
@@ -15,7 +15,38 @@ describe("OPFSStorage", () => {
     getDirectoryHandle: ReturnType<typeof vi.fn>;
   };
 
+  // Mock localStorage
+  let mockLocalStorageData: Map<string, string>;
+  let mockLocalStorage: {
+    getItem: ReturnType<typeof vi.fn>;
+    setItem: ReturnType<typeof vi.fn>;
+    removeItem: ReturnType<typeof vi.fn>;
+    key: ReturnType<typeof vi.fn>;
+    length: number;
+  };
+
   beforeEach(() => {
+    mockLocalStorageData = new Map();
+
+    mockLocalStorage = {
+      getItem: vi.fn((key: string) => mockLocalStorageData.get(key) ?? null),
+      setItem: vi.fn((key: string, value: string) => {
+        mockLocalStorageData.set(key, value);
+      }),
+      removeItem: vi.fn((key: string) => {
+        mockLocalStorageData.delete(key);
+      }),
+      key: vi.fn((index: number) => {
+        const keys = Array.from(mockLocalStorageData.keys());
+        return keys[index] ?? null;
+      }),
+      get length() {
+        return mockLocalStorageData.size;
+      },
+    };
+
+    vi.stubGlobal("localStorage", mockLocalStorage);
+
     mockAppDir = {
       getFileHandle: vi.fn(),
       removeEntry: vi.fn(),
@@ -76,7 +107,7 @@ describe("OPFSStorage", () => {
       expect(mockWritable.close).toHaveBeenCalled();
     });
 
-    it("updates heartbeat after saving", async () => {
+    it("updates last access after saving", async () => {
       mockAppDir.getFileHandle.mockResolvedValue(
         createMockFileHandle(new ArrayBuffer(0)),
       );
@@ -84,9 +115,10 @@ describe("OPFSStorage", () => {
       const storage = new OPFSStorage("test-app-id");
       await storage.save("results.out", new Uint8Array([1]).buffer);
 
-      expect(mockAppDir.getFileHandle).toHaveBeenCalledWith("heartbeat.json", {
-        create: true,
-      });
+      expect(mockLocalStorage.setItem).toHaveBeenCalledWith(
+        "last-simulation-access:test-app-id",
+        expect.stringContaining("timestamp"),
+      );
     });
   });
 
@@ -112,7 +144,7 @@ describe("OPFSStorage", () => {
       expect(result).toBeNull();
     });
 
-    it("updates heartbeat after reading slice", async () => {
+    it("updates last access after reading slice", async () => {
       mockAppDir.getFileHandle.mockResolvedValue(
         createMockFileHandle(new Uint8Array([1, 2, 3]).buffer),
       );
@@ -120,9 +152,10 @@ describe("OPFSStorage", () => {
       const storage = new OPFSStorage("test-app-id");
       await storage.readSlice("results.out", 0, 2);
 
-      expect(mockAppDir.getFileHandle).toHaveBeenCalledWith("heartbeat.json", {
-        create: true,
-      });
+      expect(mockLocalStorage.setItem).toHaveBeenCalledWith(
+        "last-simulation-access:test-app-id",
+        expect.stringContaining("timestamp"),
+      );
     });
   });
 
@@ -145,100 +178,56 @@ describe("OPFSStorage", () => {
       const storage = new OPFSStorage("test-app-id");
       await expect(storage.clear()).resolves.not.toThrow();
     });
-  });
 
-  describe("updateHeartbeat", () => {
-    it("writes timestamp to heartbeat file", async () => {
-      const mockWritable = createMockWritable();
-      mockAppDir.getFileHandle.mockResolvedValue({
-        createWritable: vi.fn().mockResolvedValue(mockWritable),
-      });
+    it("deletes last access from localStorage", async () => {
+      mockSimulationDir.removeEntry.mockResolvedValue(undefined);
 
       const storage = new OPFSStorage("test-app-id");
-      const beforeTime = Date.now();
-      await storage.updateHeartbeat();
-      const afterTime = Date.now();
+      await storage.clear();
 
-      expect(mockAppDir.getFileHandle).toHaveBeenCalledWith("heartbeat.json", {
-        create: true,
-      });
-
-      const writtenData = mockWritable.write.mock.calls[0][0] as string;
-      const parsed = JSON.parse(writtenData);
-      expect(parsed.timestamp).toBeGreaterThanOrEqual(beforeTime);
-      expect(parsed.timestamp).toBeLessThanOrEqual(afterTime);
+      expect(mockLocalStorage.removeItem).toHaveBeenCalledWith(
+        "last-simulation-access:test-app-id",
+      );
     });
   });
 
   describe("cleanupStale", () => {
     const TWO_WEEKS_MS = 1000 * 60 * 60 * 24 * 14;
 
-    const createHeartbeatFile = (timestamp: number) => ({
-      text: vi.fn().mockResolvedValue(JSON.stringify({ timestamp })),
-    });
-
-    it("removes directories with old heartbeats", async () => {
+    it("removes directories with old last access timestamps", async () => {
       const oldTimestamp = Date.now() - 1000 * 60 * 60 * 24 * 15; // 15 days ago
-      const staleAppDir = {
-        kind: "directory",
-        getFileHandle: vi.fn().mockResolvedValue({
-          getFile: vi.fn().mockResolvedValue(createHeartbeatFile(oldTimestamp)),
-        }),
-      };
-      mockSimulationDir.entries.mockReturnValue({
-        async *[Symbol.asyncIterator]() {
-          await Promise.resolve();
-          yield ["stale-app", staleAppDir];
-        },
-      });
+      mockLocalStorageData.set(
+        "last-simulation-access:stale-app",
+        JSON.stringify({ timestamp: oldTimestamp }),
+      );
 
-      await OPFSStorage.cleanupStale(TWO_WEEKS_MS);
+      await cleanupStaleOPFS(TWO_WEEKS_MS);
 
       expect(mockSimulationDir.removeEntry).toHaveBeenCalledWith("stale-app", {
         recursive: true,
       });
+      expect(mockLocalStorage.removeItem).toHaveBeenCalledWith(
+        "last-simulation-access:stale-app",
+      );
     });
 
-    it("keeps directories with recent heartbeats", async () => {
+    it("keeps directories with recent last access timestamps", async () => {
       const recentTimestamp = Date.now() - 1000 * 60 * 60; // 1 hour ago
-      const recentAppDir = {
-        kind: "directory",
-        getFileHandle: vi.fn().mockResolvedValue({
-          getFile: vi
-            .fn()
-            .mockResolvedValue(createHeartbeatFile(recentTimestamp)),
-        }),
-      };
-      mockSimulationDir.entries.mockReturnValue({
-        async *[Symbol.asyncIterator]() {
-          await Promise.resolve();
-          yield ["recent-app", recentAppDir];
-        },
-      });
+      mockLocalStorageData.set(
+        "last-simulation-access:recent-app",
+        JSON.stringify({ timestamp: recentTimestamp }),
+      );
 
-      await OPFSStorage.cleanupStale(TWO_WEEKS_MS);
+      await cleanupStaleOPFS(TWO_WEEKS_MS);
 
       expect(mockSimulationDir.removeEntry).not.toHaveBeenCalled();
+      expect(mockLocalStorage.removeItem).not.toHaveBeenCalled();
     });
 
-    it("removes directories without heartbeat files", async () => {
-      const noHeartbeatDir = {
-        kind: "directory",
-        getFileHandle: vi.fn().mockRejectedValue(new Error("Not found")),
-      };
-      mockSimulationDir.entries.mockReturnValue({
-        async *[Symbol.asyncIterator]() {
-          await Promise.resolve();
-          yield ["no-heartbeat-app", noHeartbeatDir];
-        },
-      });
+    it("does not remove anything when no last access timestamps exist", async () => {
+      await cleanupStaleOPFS(TWO_WEEKS_MS);
 
-      await OPFSStorage.cleanupStale(TWO_WEEKS_MS);
-
-      expect(mockSimulationDir.removeEntry).toHaveBeenCalledWith(
-        "no-heartbeat-app",
-        { recursive: true },
-      );
+      expect(mockSimulationDir.removeEntry).not.toHaveBeenCalled();
     });
   });
 });

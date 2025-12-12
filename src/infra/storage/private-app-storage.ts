@@ -10,6 +10,4 @@ export interface IPrivateAppStorage {
   getSize(key: string): Promise<number | null>;
 
   clear(): Promise<void>;
-
-  updateHeartbeat(): Promise<void>;
 }

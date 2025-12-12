@@ -1,7 +1,7 @@
 import { IPrivateAppStorage } from "./private-app-storage";
 
 const ROOT_DIR = "epanet-simulation";
-const HEARTBEAT_FILE = "heartbeat.json";
+const HEARTBEAT_KEY_PREFIX = "last-simulation-access:";
 
 export class OPFSStorage implements IPrivateAppStorage {
   constructor(private readonly appId: string) {}
@@ -12,7 +12,7 @@ export class OPFSStorage implements IPrivateAppStorage {
     const writable = await fileHandle.createWritable();
     await writable.write(data);
     await writable.close();
-    await this.updateHeartbeat();
+    this.touchLastAccess();
   }
 
   async readSlice(
@@ -26,7 +26,7 @@ export class OPFSStorage implements IPrivateAppStorage {
       const file = await fileHandle.getFile();
       const slice = file.slice(offset, offset + length);
       const result = await slice.arrayBuffer();
-      await this.updateHeartbeat();
+      this.touchLastAccess();
       return result;
     } catch {
       return null;
@@ -45,71 +45,64 @@ export class OPFSStorage implements IPrivateAppStorage {
   }
 
   async clear(): Promise<void> {
-    try {
-      const root = await this.getRootDir();
-      await root.removeEntry(this.appId, { recursive: true });
-    } catch {
-      // Directory may not exist
-    }
+    await clearApp(this.appId);
   }
 
-  async updateHeartbeat(): Promise<void> {
-    const dir = await this.getAppDir();
-    const fileHandle = await dir.getFileHandle(HEARTBEAT_FILE, {
-      create: true,
-    });
-    const writable = await fileHandle.createWritable();
-    const data = JSON.stringify({ timestamp: Date.now() });
-    await writable.write(data);
-    await writable.close();
-  }
-
-  static async cleanupStale(thresholdMs: number): Promise<void> {
-    try {
-      const root = await navigator.storage.getDirectory();
-      const simulationDir = await root.getDirectoryHandle(ROOT_DIR);
-
-      const now = Date.now();
-      const entriesToRemove: string[] = [];
-
-      for await (const [name, handle] of simulationDir.entries()) {
-        if (handle.kind !== "directory") continue;
-
-        try {
-          const appDir = handle;
-          const heartbeatHandle = await appDir.getFileHandle(HEARTBEAT_FILE);
-          const file = await heartbeatHandle.getFile();
-          const text = await file.text();
-          const { timestamp } = JSON.parse(text);
-
-          if (now - timestamp > thresholdMs) {
-            entriesToRemove.push(name);
-          }
-        } catch {
-          // No heartbeat file or invalid - consider it stale
-          entriesToRemove.push(name);
-        }
-      }
-
-      for (const name of entriesToRemove) {
-        try {
-          await simulationDir.removeEntry(name, { recursive: true });
-        } catch {
-          // Ignore removal errors
-        }
-      }
-    } catch {
-      // Root dir may not exist yet
-    }
-  }
-
-  private async getRootDir(): Promise<FileSystemDirectoryHandle> {
-    const root = await navigator.storage.getDirectory();
-    return await root.getDirectoryHandle(ROOT_DIR, { create: true });
+  private touchLastAccess(): void {
+    localStorage.setItem(
+      `${HEARTBEAT_KEY_PREFIX}${this.appId}`,
+      JSON.stringify({ timestamp: Date.now() }),
+    );
   }
 
   private async getAppDir(): Promise<FileSystemDirectoryHandle> {
-    const root = await this.getRootDir();
+    const root = await getRootDir();
     return await root.getDirectoryHandle(this.appId, { create: true });
   }
+}
+
+export async function cleanupStaleOPFS(thresholdMs: number): Promise<void> {
+  const staleAppIds = findStaleAppIds(thresholdMs);
+
+  for (const appId of staleAppIds) {
+    await clearApp(appId);
+  }
+}
+
+async function getRootDir(): Promise<FileSystemDirectoryHandle> {
+  const root = await navigator.storage.getDirectory();
+  return await root.getDirectoryHandle(ROOT_DIR, { create: true });
+}
+
+async function clearApp(appId: string): Promise<void> {
+  try {
+    const root = await getRootDir();
+    await root.removeEntry(appId, { recursive: true });
+  } catch {
+    // Directory may not exist
+  }
+
+  localStorage.removeItem(`${HEARTBEAT_KEY_PREFIX}${appId}`);
+}
+
+function findStaleAppIds(thresholdMs: number): string[] {
+  const now = Date.now();
+  const staleAppIds: string[] = [];
+
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (!key?.startsWith(HEARTBEAT_KEY_PREFIX)) continue;
+
+    try {
+      const data = localStorage.getItem(key);
+      const { timestamp } = JSON.parse(data || "{}") as { timestamp: number };
+      if (now - timestamp > thresholdMs) {
+        staleAppIds.push(key.slice(HEARTBEAT_KEY_PREFIX.length));
+      }
+    } catch {
+      staleAppIds.push(key.slice(HEARTBEAT_KEY_PREFIX.length));
+    }
+  }
+
+  return staleAppIds;
 }

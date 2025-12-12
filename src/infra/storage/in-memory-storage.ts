@@ -40,11 +40,6 @@ export class InMemoryStorage implements IPrivateAppStorage {
     return Promise.resolve();
   }
 
-  updateHeartbeat(): Promise<void> {
-    // No-op for in-memory storage (heartbeat is only needed for OPFS cleanup)
-    return Promise.resolve();
-  }
-
   // Test helpers
 
   getAppId(): string {
