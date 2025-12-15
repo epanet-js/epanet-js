@@ -5,7 +5,6 @@ export type DemandPatterns = Map<PatternId, DemandPattern>;
 export type JunctionDemand = {
   baseDemand: number;
   patternId?: string;
-  category?: string;
 };
 
 export type Demands = {

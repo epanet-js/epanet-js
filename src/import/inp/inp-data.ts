@@ -104,6 +104,7 @@ export type InpData = {
     units: EpanetUnitSystem;
     headlossFormula: HeadlossFormula;
     demandMultiplier: number;
+    defaultPattern?: string;
   };
   times: {
     duration?: number;

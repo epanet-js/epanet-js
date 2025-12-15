@@ -30,7 +30,7 @@ const epanetDefaultOptions = {
   "SPECIFIC GRAVITY": 1.0,
   VISCOSITY: 1.0,
   TRIALS: 40,
-  PATTERN: 1,
+  PATTERN: "1",
   "DEMAND MULTIPLIER": 1.0,
   "EMITTER EXPONENT": 0.5,
   QUALITY: "NONE",
@@ -512,6 +512,11 @@ export const parseOption: RowParser = ({
 
   if (name === "DEMAND MULTIPLIER") {
     inpData.options.demandMultiplier = value as number;
+    return;
+  }
+
+  if (name === "PATTERN") {
+    inpData.options.defaultPattern = value as string;
     return;
   }
 
