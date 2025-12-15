@@ -39,7 +39,7 @@ import {
   presets,
 } from "src/model-metadata/quantities-spec";
 import { ValveSimulation } from "src/hydraulic-model/asset-types/valve";
-import { Demands, nullDemands } from "src/hydraulic-model/demands";
+import { Demands, createEmptyDemands } from "src/hydraulic-model/demands";
 import {
   AllocationRule,
   CustomerPoint,
@@ -171,7 +171,7 @@ export class HydraulicModelBuilder {
       this.labelManager,
     );
     this.topology = new Topology();
-    this.demands = nullDemands;
+    this.demands = createEmptyDemands();
     this.headlossFormulaValue = "H-W";
     this.curves = new Map();
     this.epsTiming = {};
@@ -390,7 +390,12 @@ export class HydraulicModelBuilder {
   }
 
   demandMultiplier(multiplier: number) {
-    this.demands = { multiplier, patterns: new Map() };
+    this.demands = { multiplier, patterns: this.demands.patterns };
+    return this;
+  }
+
+  aDemandPattern(patternId: string, factors: number[]) {
+    this.demands.patterns.set(patternId, factors);
     return this;
   }
 

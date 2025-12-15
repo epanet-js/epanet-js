@@ -12,7 +12,7 @@ export type Demands = {
   patterns: DemandPatterns;
 };
 
-export const nullDemands: Demands = {
+export const createEmptyDemands = (): Demands => ({
   multiplier: 1,
   patterns: new Map(),
-};
+});

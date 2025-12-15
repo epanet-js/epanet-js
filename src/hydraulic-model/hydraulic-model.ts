@@ -6,7 +6,7 @@ import { nanoid } from "nanoid";
 import { HeadlossFormula } from "./asset-types/pipe";
 import { ConsecutiveIdsGenerator } from "./id-generator";
 import { LabelManager } from "./label-manager";
-import { Demands, nullDemands } from "./demands";
+import { Demands, createEmptyDemands } from "./demands";
 import { EPSTiming } from "./eps-timing";
 import { CustomerPoints, initializeCustomerPoints } from "./customer-points";
 import { CustomerPointsLookup } from "./customer-points-lookup";
@@ -36,7 +36,7 @@ export const initializeHydraulicModel = ({
   units,
   defaults,
   headlossFormula = "H-W",
-  demands = nullDemands,
+  demands = createEmptyDemands(),
   epsTiming = {},
 }: {
   units: UnitsSpec;
