@@ -6,10 +6,13 @@ type InputData = {
 };
 
 export const changeDemands: ModelOperation<InputData> = (
-  _,
+  _hydraulicModel,
   { demandMultiplier },
 ) => {
-  const demands: Demands = { multiplier: demandMultiplier };
+  const demands: Demands = {
+    multiplier: demandMultiplier,
+    patterns: new Map(),
+  };
   return {
     note: "Change demands",
     putDemands: demands,

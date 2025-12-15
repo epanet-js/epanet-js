@@ -195,10 +195,14 @@ export class HydraulicModelBuilder {
       }
     > = {},
   ) {
-    const { simulation, ...properties } = data;
+    const { simulation, baseDemand, ...properties } = data;
+    const demands =
+      properties.demands ?? (baseDemand ? [{ baseDemand }] : undefined);
     const junction = this.assetBuilder.buildJunction({
       id,
       ...properties,
+      baseDemand,
+      demands,
     });
     if (simulation) {
       junction.setSimulation({
@@ -386,7 +390,7 @@ export class HydraulicModelBuilder {
   }
 
   demandMultiplier(multiplier: number) {
-    this.demands = { multiplier };
+    this.demands = { multiplier, patterns: new Map() };
     return this;
   }
 

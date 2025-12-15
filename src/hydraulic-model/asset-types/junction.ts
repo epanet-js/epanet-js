@@ -1,9 +1,11 @@
 import { Node, NodeProperties } from "./node";
 import { CustomerPointsLookup } from "../customer-points-lookup";
+import { JunctionDemand } from "../demands";
 
 export type JunctionProperties = {
   type: "junction";
   baseDemand: number;
+  demands: JunctionDemand[];
 } & NodeProperties;
 
 export const junctionQuantities = [
@@ -28,6 +30,10 @@ export class Junction extends Node<JunctionProperties> {
 
   setBaseDemand(value: number) {
     this.properties.baseDemand = value;
+  }
+
+  get demands(): JunctionDemand[] {
+    return this.properties.demands;
   }
 
   get pressure() {
@@ -71,7 +77,10 @@ export class Junction extends Node<JunctionProperties> {
     const newJunction = new Junction(
       this.id,
       [...this.coordinates],
-      { ...this.properties },
+      {
+        ...this.properties,
+        demands: this.properties.demands.map((d) => ({ ...d })),
+      },
       this.units,
     );
 

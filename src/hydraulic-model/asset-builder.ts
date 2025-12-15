@@ -5,6 +5,7 @@ import { LinkConnections, nullConnections } from "./asset-types/link";
 import { Position } from "geojson";
 import { Reservoir, ReservoirQuantity } from "./asset-types/reservoir";
 import { Tank, TankQuantity } from "./asset-types/tank";
+import { JunctionDemand } from "./demands";
 
 export type JunctionBuildData = {
   id?: AssetId;
@@ -12,6 +13,7 @@ export type JunctionBuildData = {
   coordinates?: Position;
   elevation?: number;
   baseDemand?: number;
+  demands?: JunctionDemand[];
   isActive?: boolean;
 };
 
@@ -239,6 +241,7 @@ export class AssetBuilder {
     coordinates = [0, 0],
     elevation,
     baseDemand,
+    demands,
     isActive = true,
   }: JunctionBuildData = {}) {
     const internalId = id ?? this.idGenerator.newId();
@@ -253,6 +256,7 @@ export class AssetBuilder {
             : this.labelGenerator.generateFor("junction", internalId),
         elevation: this.getJunctionValue("elevation", elevation),
         baseDemand: this.getJunctionValue("baseDemand", baseDemand),
+        demands: demands ?? [],
         isActive,
       },
       this.units,

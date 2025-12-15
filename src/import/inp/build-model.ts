@@ -35,7 +35,10 @@ export const buildModel = (
     units: quantities.units,
     defaults: quantities.defaults,
     headlossFormula: inpData.options.headlossFormula,
-    demands: { multiplier: inpData.options.demandMultiplier },
+    demands: {
+      multiplier: inpData.options.demandMultiplier,
+      patterns: new Map(),
+    },
   });
 
   const curvesBuilder = new CurvesBuilder(

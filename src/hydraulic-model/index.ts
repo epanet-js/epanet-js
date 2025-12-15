@@ -32,3 +32,10 @@ export type { HeadlossFormula } from "./asset-types/pipe";
 export { headlossFormulas } from "./asset-types/pipe";
 export type { LinkType, NodeType, AssetType } from "./asset-types/types";
 export type { EPSTiming } from "./eps-timing";
+export type {
+  DemandPattern,
+  PatternId,
+  DemandPatterns,
+  Demands,
+  JunctionDemand,
+} from "./demands";

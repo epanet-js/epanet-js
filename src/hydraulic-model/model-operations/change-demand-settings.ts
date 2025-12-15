@@ -6,10 +6,13 @@ type InputData = {
 };
 
 export const changeDemandSettings: ModelOperation<InputData> = (
-  _,
+  { demands: currentDemands },
   { demandMultiplier },
 ) => {
-  const demands: Demands = { multiplier: demandMultiplier };
+  const demands: Demands = {
+    multiplier: demandMultiplier,
+    patterns: currentDemands.patterns,
+  };
   return {
     note: "Change demand settings",
     putDemands: demands,
