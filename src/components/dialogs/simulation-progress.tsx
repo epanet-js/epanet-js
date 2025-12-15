@@ -44,7 +44,7 @@ export const SimulationProgressDialog = ({
               <p className="text-sm text-gray-500">
                 {translate("runningSimulation")}
               </p>
-              <p className="text-xl font-bold text-gray-900 tabular-nums">
+              <p className="text-sm font-bold text-gray-900 tabular-nums">
                 {formatTime(currentTime)}
               </p>
             </div>
