@@ -64,13 +64,14 @@ export const TimestepSelectorUI = ({
   }, [timestepCount, reportTimestep]);
 
   return (
-    <div className="absolute top-12 right-3 flex items-center gap-1 bg-white dark:bg-gray-900 border border-gray-300 dark:border-black rounded-sm shadow-sm">
+    <div className="absolute top-3 right-3 flex items-center gap-1 p-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-black rounded-sm shadow-sm">
       <button
         onClick={() => onChangeTimestep(currentTimestepIndex - 1, "previous")}
         disabled={!canGoPrevious}
         className={clsx(
-          "p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-l-sm",
-          { "opacity-40 cursor-not-allowed": !canGoPrevious },
+          "size-[1.875rem] p-1.5 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-l-sm",
+          "active:bg-gray-300 dark:active:bg-gray-600",
+          "disabled:opacity-40 disabled:active:bg-gray-200 disabled:cursor-not-allowed",
         )}
         aria-label="Previous timestep"
       >
@@ -79,22 +80,22 @@ export const TimestepSelectorUI = ({
       <button
         onClick={() => onChangeTimestep(currentTimestepIndex + 1, "next")}
         disabled={!canGoNext}
-        className={clsx("p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800", {
-          "opacity-40 cursor-not-allowed": !canGoNext,
-        })}
+        className={clsx(
+          "size-[1.875rem] p-1.5 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-r-sm",
+          "active:bg-gray-300 dark:active:bg-gray-600",
+          "disabled:opacity-40 disabled:active:bg-gray-200 disabled:cursor-not-allowed",
+        )}
         aria-label="Next timestep"
       >
         <ChevronRightIcon />
       </button>
-      <div className="border-l border-gray-300 dark:border-gray-700">
-        <Selector
-          options={options}
-          selected={String(currentTimestepIndex)}
-          onChange={(value) => onChangeTimestep(Number(value), "dropdown")}
-          ariaLabel="Select timestep"
-          styleOptions={{ border: false, paddingX: 2, paddingY: 1 }}
-        />
-      </div>
+      <Selector
+        options={options}
+        selected={String(currentTimestepIndex)}
+        onChange={(value) => onChangeTimestep(Number(value), "dropdown")}
+        ariaLabel="Select timestep"
+        styleOptions={{ paddingX: 1.5, paddingY: 1 }}
+      />
     </div>
   );
 };
