@@ -32,8 +32,18 @@ export class Junction extends Node<JunctionProperties> {
     this.properties.baseDemand = value;
   }
 
+  get constantDemand() {
+    return this.properties.demands
+      .filter((d) => !d.patternId)
+      .reduce((sum, d) => sum + d.baseDemand, 0);
+  }
+
   get demands(): JunctionDemand[] {
     return this.properties.demands;
+  }
+
+  setDemands(demands: JunctionDemand[]) {
+    this.properties.demands = demands;
   }
 
   get pressure() {

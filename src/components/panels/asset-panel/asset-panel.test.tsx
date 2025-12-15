@@ -1,7 +1,7 @@
 import { render, screen, waitFor, act } from "@testing-library/react";
 import { Store, dataAtom, nullData } from "src/state/jotai";
 import { Provider as JotaiProvider, createStore } from "jotai";
-import { HydraulicModel, Pipe, Pump } from "src/hydraulic-model";
+import { HydraulicModel, Pipe, Pump, Junction } from "src/hydraulic-model";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { PersistenceContext } from "src/lib/persistence/context";
 import { MemPersistence } from "src/lib/persistence/memory";
@@ -11,6 +11,7 @@ import FeatureEditor from "../feature-editor";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Valve } from "src/hydraulic-model/asset-types";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
+import { stubFeatureOn, stubFeatureOff } from "src/__helpers__/feature-flags";
 
 describe("AssetPanel", () => {
   describe("with a pipe", () => {
@@ -704,6 +705,55 @@ describe("AssetPanel", () => {
       expect(
         screen.queryByLabelText(/label: customer demand \(l\/s\)/i),
       ).not.toBeInTheDocument();
+    });
+
+    describe("with FLAG_EPS enabled", () => {
+      beforeEach(() => {
+        stubFeatureOn("FLAG_EPS");
+      });
+
+      afterEach(() => {
+        stubFeatureOff("FLAG_EPS");
+      });
+
+      it("updates constant demand while preserving pattern demands", async () => {
+        const IDS = { J1: 1 };
+        const hydraulicModel = HydraulicModelBuilder.with()
+          .aJunction(IDS.J1, {
+            label: "MY_JUNCTION",
+            demands: [
+              { baseDemand: 10 },
+              { baseDemand: 50, patternId: "pattern1" },
+              { baseDemand: 10 },
+              { baseDemand: 30, patternId: "pattern2" },
+            ],
+          })
+          .build();
+        const store = setInitialState({
+          hydraulicModel,
+          selectedAssetId: IDS.J1,
+        });
+        const user = userEvent.setup();
+
+        renderComponent(store);
+
+        expectPropertyDisplayed("constant demand (l/s)", "20");
+
+        const field = screen.getByRole("textbox", {
+          name: /value for: constant demand/i,
+        });
+        await user.clear(field);
+        await user.type(field, "100");
+        await user.keyboard("{Enter}");
+
+        const { hydraulicModel: updated } = store.get(dataAtom);
+        const junction = updated.assets.get(IDS.J1) as Junction;
+        expect(junction.demands).toEqual([
+          { baseDemand: 100 },
+          { baseDemand: 50, patternId: "pattern1" },
+          { baseDemand: 30, patternId: "pattern2" },
+        ]);
+      });
     });
   });
 

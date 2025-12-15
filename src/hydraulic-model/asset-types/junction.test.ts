@@ -76,4 +76,34 @@ describe("Junction", () => {
     expect(copy.baseDemand).toBe(100);
     expect(copy.demands[0].baseDemand).toBe(50);
   });
+
+  describe("constantDemand", () => {
+    it("returns 0 when demands is empty", () => {
+      const junction = buildJunction();
+      expect(junction.constantDemand).toEqual(0);
+    });
+
+    it("returns 0 when no constant demand exists", () => {
+      const junction = buildJunction({
+        demands: [
+          { baseDemand: 50, patternId: "pattern1" },
+          { baseDemand: 30, patternId: "pattern2" },
+        ],
+      });
+      expect(junction.constantDemand).toEqual(0);
+    });
+
+    it("returns sum of constant demands", () => {
+      const junction = buildJunction({
+        demands: [
+          { baseDemand: 20 },
+          { baseDemand: 50, patternId: "pattern1" },
+          { baseDemand: 15 },
+          { baseDemand: 30, patternId: "pattern2" },
+          { baseDemand: 10 },
+        ],
+      });
+      expect(junction.constantDemand).toEqual(45); // 20 + 15 + 10
+    });
+  });
 });
