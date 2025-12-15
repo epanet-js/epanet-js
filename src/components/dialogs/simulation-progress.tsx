@@ -34,39 +34,33 @@ export const SimulationProgressDialog = ({
         <Dialog.Title></Dialog.Title>
         <Dialog.Description></Dialog.Description>
         <StyledDialogContent
-          size="sm"
+          size="xs"
           onEscapeKeyDown={(e) => e.preventDefault()}
           onInteractOutside={(e) => e.preventDefault()}
           onOpenAutoFocus={(e) => e.preventDefault()}
         >
           <DefaultErrorBoundary>
-            <div className="flex flex-col items-center py-4">
-              <h1 className="text-lg font-semibold text-gray-900 mb-6">
+            <div className="flex flex-row items-baseline gap-1 mb-2">
+              <p className="text-sm text-gray-500">
                 {translate("runningSimulation")}
-              </h1>
-
-              <Progress.Root
-                className="relative overflow-hidden bg-gray-200 rounded-full w-full h-2"
-                value={currentTime}
-                max={totalDuration}
-              >
-                <Progress.Indicator
-                  className="bg-purple-500 w-full h-full transition-transform duration-300 ease-out"
-                  style={{
-                    transform: `translateX(-${100 - progressPercent}%)`,
-                  }}
-                />
-              </Progress.Root>
-
-              <div className="mt-6 text-center">
-                <p className="text-sm text-gray-500">
-                  {translate("simulationTime")}
-                </p>
-                <p className="text-2xl font-semibold text-gray-900">
-                  {formatTime(currentTime)}
-                </p>
-              </div>
+              </p>
+              <p className="text-xl font-bold text-gray-900 tabular-nums">
+                {formatTime(currentTime)}
+              </p>
             </div>
+
+            <Progress.Root
+              className="relative overflow-hidden bg-gray-200 rounded-full w-full h-2"
+              value={currentTime}
+              max={totalDuration}
+            >
+              <Progress.Indicator
+                className="bg-purple-500 w-full h-full transition-transform duration-300 ease-out"
+                style={{
+                  transform: `translateX(-${100 - progressPercent}%)`,
+                }}
+              />
+            </Progress.Root>
           </DefaultErrorBoundary>
         </StyledDialogContent>
       </Dialog.Portal>
