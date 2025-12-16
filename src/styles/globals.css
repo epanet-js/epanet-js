@@ -512,3 +512,8 @@ body.dark .mapboxgl-ctrl-attrib-button {
 .logo-text {
   fill: oklch(55.1% 0.027 264.364);
 }
+
+.mapboxgl-ctrl-group.mapboxgl-ctrl-group button {
+  width: 2rem;
+  height: 2rem;
+}
