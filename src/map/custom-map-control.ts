@@ -47,6 +47,10 @@ export class CustomMapControl implements mapboxgl.IControl {
         this.onClick({ name: this.options.name, map: this.map });
       }
     });
+    button.addEventListener("contextmenu", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+    });
 
     this.container.appendChild(button);
     return this.container;
