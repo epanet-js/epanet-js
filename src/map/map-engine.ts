@@ -10,6 +10,12 @@ import { prepareIconsSprite } from "./icons";
 import { IconImage } from "./icons";
 import { LayerId } from "./layers";
 import type { MapHandlers, MoveEvent } from "./types";
+import {
+  CustomMapControl,
+  CustomMapControlClick,
+  FIT_TO_EXTENT_CONTROL,
+  FIT_TO_EXTENT_ICON,
+} from "./custom-map-control";
 
 export const DEFAULT_ZOOM = 15.5;
 
@@ -40,9 +46,13 @@ export class MapEngine {
   constructor({
     element,
     handlers,
+    onControlClick,
+    useFitToExtentControl,
   }: {
     element: HTMLDivElement;
     handlers: React.MutableRefObject<MapHandlers>;
+    onControlClick: (event: CustomMapControlClick) => void;
+    useFitToExtentControl: boolean;
   }) {
     const defaultStart = {
       center: [-4.3800042, 55.914314] as mapboxgl.LngLatLike,
@@ -70,16 +80,21 @@ export class MapEngine {
       "bottom-right",
     );
     map.addControl(new mapboxgl.NavigationControl({}), "bottom-right");
-    map.addControl(
-      new mapboxgl.GeolocateControl({
-        showUserLocation: false,
-        showAccuracyCircle: false,
-        positionOptions: {
-          enableHighAccuracy: true,
-        },
-      }),
-      "bottom-right",
-    );
+    if (useFitToExtentControl) {
+      map.addControl(
+        new CustomMapControl(
+          {
+            name: FIT_TO_EXTENT_CONTROL,
+            title: "Fit to network",
+            icon: FIT_TO_EXTENT_ICON,
+          },
+          onControlClick,
+        ),
+        "bottom-right",
+      );
+    } else {
+      map.addControl(new mapboxgl.GeolocateControl({}), "bottom-right");
+    }
     map.getCanvas().style.cursor = CURSOR_DEFAULT;
     map.on("click", (e) => this.handlers.current.onClick(e));
     map.on("mousedown", (e) => this.handlers.current.onMapMouseDown(e));

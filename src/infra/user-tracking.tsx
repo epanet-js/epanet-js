@@ -795,7 +795,8 @@ export type UserEvent =
       property: "diameter" | "roughness";
       newValue: number;
     }
-  | { name: "unexpectedError.seen" };
+  | { name: "unexpectedError.seen" }
+  | { name: "fitMapToNetworkExtent.clicked" };
 
 const debugPostHog = {
   capture: (...data: any[]) => {

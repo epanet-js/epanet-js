@@ -41,6 +41,12 @@ import { isDebugAppStateOn, isDebugOn } from "src/infra/debug-mode";
 import { useMapStateUpdates } from "./state-updates";
 import { clickableLayers } from "./layers/layer";
 import { SatelliteToggle } from "./SatelliteToggle";
+import { useFitToExtent } from "./use-fit-to-extent";
+import {
+  CustomMapControlClick,
+  FIT_TO_EXTENT_CONTROL,
+} from "./custom-map-control";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { Hints } from "src/components/hints";
 import { useAuth } from "src/auth";
 import { satelliteLimitedZoom } from "src/commands/toggle-satellite";
@@ -133,6 +139,20 @@ export const MapCanvas = memo(function MapCanvas({
     useRef<DragTarget>(null);
   const mapHandlers = useRef<MapHandlers>();
 
+  const fitToExtent = useFitToExtent();
+  const useFitToExtentControl = useFeatureFlag("FLAG_CENTER_NETWORK");
+
+  const onControlClick = useCallback(
+    (event: CustomMapControlClick) => {
+      switch (event.name) {
+        case FIT_TO_EXTENT_CONTROL:
+          fitToExtent(event.map);
+          break;
+      }
+    },
+    [fitToExtent],
+  );
+
   useMapStateUpdates(mapRef.current);
 
   useEffect(() => {
@@ -143,6 +163,8 @@ export const MapCanvas = memo(function MapCanvas({
       mapRef.current = new MapEngine({
         element: mapDivRef.current,
         handlers: mapHandlers as MutableRefObject<MapHandlers>,
+        onControlClick,
+        useFitToExtentControl,
       });
       setMap(mapRef.current);
     } catch (error) {
@@ -160,7 +182,7 @@ export const MapCanvas = memo(function MapCanvas({
       }
       mapRef.current = null;
     };
-  }, [mapRef, mapDivRef, setMap]);
+  }, [mapRef, mapDivRef, setMap, onControlClick, useFitToExtentControl]);
 
   if (isDebugOn) (window as any).mapEngine = mapRef.current;
 
