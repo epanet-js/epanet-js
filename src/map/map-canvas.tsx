@@ -46,7 +46,6 @@ import {
   CustomMapControlClick,
   FIT_TO_EXTENT_CONTROL,
 } from "./custom-map-control";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { Hints } from "src/components/hints";
 import { useAuth } from "src/auth";
 import { satelliteLimitedZoom } from "src/commands/toggle-satellite";
@@ -140,7 +139,6 @@ export const MapCanvas = memo(function MapCanvas({
   const mapHandlers = useRef<MapHandlers>();
 
   const fitToExtent = useFitToExtent();
-  const useFitToExtentControl = useFeatureFlag("FLAG_CENTER_NETWORK");
 
   const onControlClick = useCallback(
     (event: CustomMapControlClick) => {
@@ -164,7 +162,6 @@ export const MapCanvas = memo(function MapCanvas({
         element: mapDivRef.current,
         handlers: mapHandlers as MutableRefObject<MapHandlers>,
         onControlClick,
-        useFitToExtentControl,
       });
       setMap(mapRef.current);
     } catch (error) {
@@ -182,7 +179,7 @@ export const MapCanvas = memo(function MapCanvas({
       }
       mapRef.current = null;
     };
-  }, [mapRef, mapDivRef, setMap, onControlClick, useFitToExtentControl]);
+  }, [mapRef, mapDivRef, setMap, onControlClick]);
 
   if (isDebugOn) (window as any).mapEngine = mapRef.current;
 

@@ -47,12 +47,10 @@ export class MapEngine {
     element,
     handlers,
     onControlClick,
-    useFitToExtentControl,
   }: {
     element: HTMLDivElement;
     handlers: React.MutableRefObject<MapHandlers>;
     onControlClick: (event: CustomMapControlClick) => void;
-    useFitToExtentControl: boolean;
   }) {
     const defaultStart = {
       center: [-4.3800042, 55.914314] as mapboxgl.LngLatLike,
@@ -80,21 +78,17 @@ export class MapEngine {
       "bottom-right",
     );
     map.addControl(new mapboxgl.NavigationControl({}), "bottom-right");
-    if (useFitToExtentControl) {
-      map.addControl(
-        new CustomMapControl(
-          {
-            name: FIT_TO_EXTENT_CONTROL,
-            title: "Fit to network",
-            icon: FIT_TO_EXTENT_ICON,
-          },
-          onControlClick,
-        ),
-        "bottom-right",
-      );
-    } else {
-      map.addControl(new mapboxgl.GeolocateControl({}), "bottom-right");
-    }
+    map.addControl(
+      new CustomMapControl(
+        {
+          name: FIT_TO_EXTENT_CONTROL,
+          title: "Fit to network",
+          icon: FIT_TO_EXTENT_ICON,
+        },
+        onControlClick,
+      ),
+      "bottom-right",
+    );
     map.getCanvas().style.cursor = CURSOR_DEFAULT;
     map.on("click", (e) => this.handlers.current.onClick(e));
     map.on("mousedown", (e) => this.handlers.current.onMapMouseDown(e));
