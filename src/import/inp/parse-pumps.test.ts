@@ -482,7 +482,7 @@ describe("parse pumps", () => {
     const curve = hydraulicModel.curves.get("CU1");
     expect(curve?.points).toEqual([{ x: 200, y: 300 }]);
 
-    expect(issues?.unsupportedSections?.has("[CURVES]")).toBe(true);
+    expect(issues?.hasPumpCurves).toBe(1);
   });
 
   it("falls back to design-point mode when 3-point curve has invalid flow values", () => {
@@ -519,7 +519,7 @@ describe("parse pumps", () => {
     const curve = hydraulicModel.curves.get("CU1");
     expect(curve?.points).toEqual([{ x: 100, y: 250 }]);
 
-    expect(issues?.unsupportedSections?.has("[CURVES]")).toBe(true);
+    expect(issues?.hasPumpCurves).toBe(1);
   });
 
   it("falls back to design-point mode when 3-point curve has non-ascending flow values", () => {
@@ -556,7 +556,7 @@ describe("parse pumps", () => {
     const curve = hydraulicModel.curves.get("CU1");
     expect(curve?.points).toEqual([{ x: 200, y: 250 }]);
 
-    expect(issues?.unsupportedSections?.has("[CURVES]")).toBe(true);
+    expect(issues?.hasPumpCurves).toBe(1);
   });
 
   it("parses power-based pump correctly", () => {

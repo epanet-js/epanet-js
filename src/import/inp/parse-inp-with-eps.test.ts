@@ -1,11 +1,11 @@
 import { Junction, Pipe, Reservoir } from "src/hydraulic-model";
-import { parseInp } from "./parse-inp";
+import { parseInpWithEPS } from "./parse-inp-with-eps";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
-import { buildInp } from "src/simulation/build-inp";
+import { buildInpEPS } from "src/simulation/build-inp-eps";
 import { getByLabel } from "src/__helpers__/asset-queries";
 import { Valve } from "src/hydraulic-model/asset-types";
 
-describe("Parse inp", () => {
+describe("Parse inp with EPS", () => {
   it("can read values separated by spaces", () => {
     const IDS = { J1: 1 } as const;
     const elevation = 100;
@@ -23,14 +23,14 @@ describe("Parse inp", () => {
     ${IDS.J1} ${demand}
     `;
 
-    const { hydraulicModel } = parseInp(inp);
+    const { hydraulicModel } = parseInpWithEPS(inp);
 
     const junction = getByLabel(
       hydraulicModel.assets,
       String(IDS.J1),
     ) as Junction;
     expect(junction.elevation).toEqual(elevation);
-    expect(junction.baseDemand).toEqual(demand);
+    expect(junction.demands[0].baseDemand).toEqual(demand);
     expect(junction.coordinates).toEqual([20, 10]);
   });
 
@@ -61,14 +61,14 @@ describe("Parse inp", () => {
     ${IDS.J2} ${otherDemand}
     `;
 
-    const { hydraulicModel } = parseInp(inp);
+    const { hydraulicModel } = parseInpWithEPS(inp);
 
     const junction = getByLabel(
       hydraulicModel.assets,
       String(IDS.J1),
     ) as Junction;
     expect(junction.elevation).toEqual(elevation);
-    expect(junction.baseDemand).toEqual(demand);
+    expect(junction.demands[0].baseDemand).toEqual(demand);
     expect(junction.coordinates).toEqual([20, 10]);
 
     const otherJunction = getByLabel(
@@ -76,7 +76,7 @@ describe("Parse inp", () => {
       String(IDS.J2),
     ) as Junction;
     expect(otherJunction.elevation).toEqual(otherElevation);
-    expect(otherJunction.baseDemand).toEqual(otherDemand);
+    expect(otherJunction.demands[0].baseDemand).toEqual(otherDemand);
     expect(otherJunction.coordinates).toEqual([40, 30]);
   });
 
@@ -100,7 +100,7 @@ describe("Parse inp", () => {
     ${IDS.P1}\t${IDS.R1}\t${IDS.J1}\t10\t10\t10\t10\tOpen;__anothercommnet
     `;
 
-    const { hydraulicModel } = parseInp(inp);
+    const { hydraulicModel } = parseInpWithEPS(inp);
 
     const reservoir = getByLabel(
       hydraulicModel.assets,
@@ -130,7 +130,7 @@ describe("Parse inp", () => {
     ANYTHING
     `;
 
-    const { hydraulicModel } = parseInp(inp);
+    const { hydraulicModel } = parseInpWithEPS(inp);
 
     const reservoir = getByLabel(
       hydraulicModel.assets,
@@ -153,7 +153,7 @@ describe("Parse inp", () => {
     [COORDINATES]
     ${IDS.R1}\t1\t1
     `;
-    const { hydraulicModel, modelMetadata } = parseInp(inp);
+    const { hydraulicModel, modelMetadata } = parseInpWithEPS(inp);
     expect(hydraulicModel.units).toMatchObject({
       flow: "gal/min",
     });
@@ -179,7 +179,7 @@ describe("Parse inp", () => {
     [COORDINATES]
     ${IDS.R1}\t1\t1
     `;
-    const { hydraulicModel } = parseInp(inp);
+    const { hydraulicModel } = parseInpWithEPS(inp);
     expect(hydraulicModel.units).toMatchObject({
       flow: "l/s",
     });
@@ -199,7 +199,7 @@ describe("Parse inp", () => {
     ANY
     `;
 
-    const { hydraulicModel } = parseInp(inp);
+    const { hydraulicModel } = parseInpWithEPS(inp);
 
     expect(hydraulicModel.headlossFormula).toEqual("D-W");
   });
@@ -211,7 +211,7 @@ describe("Parse inp", () => {
     [NEW]
     `;
 
-    const { issues } = parseInp(inp);
+    const { issues } = parseInpWithEPS(inp);
 
     expect(issues!.unsupportedSections!.values()).toContain("[MIXING]");
     expect(issues!.unsupportedSections!.values()).toContain("[NEW]");
@@ -225,25 +225,9 @@ describe("Parse inp", () => {
     ANY
     `;
 
-    const { issues } = parseInp(inp);
+    const { issues } = parseInpWithEPS(inp);
 
     expect(issues).toBeNull();
-  });
-
-  it("says when inp contains unsupported time settings", () => {
-    const inp = `
-    [TIMES]
-    Duration\t20
-    Pattern Start\t10 SEC
-    `;
-
-    const { issues } = parseInp(inp);
-
-    expect(issues!.extendedPeriodSimulation).toEqual(true);
-    expect([...issues!.nonDefaultTimes!.keys()]).toEqual([
-      "DURATION",
-      "PATTERN START",
-    ]);
   });
 
   it("says when coordinates are missing", () => {
@@ -266,7 +250,7 @@ describe("Parse inp", () => {
     const {
       hydraulicModel: { assets },
       issues,
-    } = parseInp(inp);
+    } = parseInpWithEPS(inp);
 
     expect(issues!.nodesMissingCoordinates!.values()).toContain(String(IDS.J1));
     expect(getByLabel(assets, String(IDS.J1))).toBeUndefined();
@@ -291,7 +275,7 @@ describe("Parse inp", () => {
     const {
       hydraulicModel: { assets },
       issues,
-    } = parseInp(inp);
+    } = parseInpWithEPS(inp);
 
     expect(issues!.invalidCoordinates!.values()).toContain(String(IDS.J1));
     expect(assets.get(IDS.J1)).toBeUndefined();
@@ -326,7 +310,7 @@ describe("Parse inp", () => {
     const {
       hydraulicModel: { assets },
       issues,
-    } = parseInp(inp);
+    } = parseInpWithEPS(inp);
 
     expect(issues!.invalidVertices!.values()).toContain(String(IDS.P1));
     expect(getByLabel(assets, String(IDS.P1))).not.toBeUndefined();
@@ -342,7 +326,7 @@ describe("Parse inp", () => {
     Quality\tNONE
     `;
 
-    const { issues } = parseInp(inp);
+    const { issues } = parseInpWithEPS(inp);
 
     expect([...issues!.nonDefaultOptions!.keys()]).toEqual([
       "SPECIFIC GRAVITY",
@@ -363,7 +347,7 @@ describe("Parse inp", () => {
     Duration\t0
     Pattern Timestep\t0
  `;
-    const { issues } = parseInp(inp);
+    const { issues } = parseInpWithEPS(inp);
 
     expect(issues).toBeNull();
   });
@@ -377,7 +361,7 @@ describe("Parse inp", () => {
     Units     MGD
     Headloss H-W
  `;
-    const { modelMetadata, issues } = parseInp(inp);
+    const { modelMetadata, issues } = parseInpWithEPS(inp);
 
     expect(issues).toBeNull();
     expect(modelMetadata.quantities.specName).toEqual("MGD");
@@ -392,7 +376,7 @@ describe("Parse inp", () => {
     Units LPS
     Headloss H-W
     `;
-    const { issues } = parseInp(inp);
+    const { issues } = parseInpWithEPS(inp);
 
     expect(issues).toBeNull();
   });
@@ -403,7 +387,7 @@ describe("Parse inp", () => {
     Unbalanced\tContinue 20
     `;
 
-    const { issues } = parseInp(inp);
+    const { issues } = parseInpWithEPS(inp);
 
     expect(issues!.unbalancedDiff).toEqual({
       defaultSetting: "CONTINUE 10",
@@ -416,15 +400,15 @@ describe("Parse inp", () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction(IDS.J1, { coordinates: [10, 1] })
       .build();
-    let inp = buildInp(hydraulicModel, {
+    let inp = buildInpEPS(hydraulicModel, {
       madeBy: true,
     });
 
-    expect(parseInp(inp).isMadeByApp).toBeTruthy();
+    expect(parseInpWithEPS(inp).isMadeByApp).toBeTruthy();
 
     inp += ";some other stuff";
 
-    expect(parseInp(inp).isMadeByApp).toBeFalsy();
+    expect(parseInpWithEPS(inp).isMadeByApp).toBeFalsy();
   });
 
   it("provides the count of items in each section", () => {
@@ -447,7 +431,7 @@ describe("Parse inp", () => {
     ${IDS.P1}\t${IDS.R1}\t${IDS.J1}\t10\t10\t10\t10\tOpen;__anothercommnet
     `;
 
-    const { stats } = parseInp(inp);
+    const { stats } = parseInpWithEPS(inp);
 
     expect(stats.counts.get("[RESERVOIRS]")).toEqual(1);
     expect(stats.counts.get("[COORDINATES]")).toEqual(2);
@@ -471,7 +455,7 @@ describe("Parse inp", () => {
 
     `;
 
-    const { hydraulicModel } = parseInp(inp);
+    const { hydraulicModel } = parseInpWithEPS(inp);
 
     const valve = getByLabel(hydraulicModel.assets, String(IDS.V1)) as Valve;
     expect(valve).toBeUndefined();
@@ -498,7 +482,7 @@ describe("Parse inp", () => {
     ${IDS.J1} 0.5
     `;
 
-    const { hydraulicModel } = parseInp(inp);
+    const { hydraulicModel } = parseInpWithEPS(inp);
 
     expect(hydraulicModel.assets.size).toEqual(3);
 
@@ -508,7 +492,7 @@ describe("Parse inp", () => {
     ) as Junction;
     expect(junction).toBeDefined();
     expect(junction.elevation).toEqual(100);
-    expect(junction.baseDemand).toEqual(0.5);
+    expect(junction.demands[0].baseDemand).toEqual(0.5);
 
     const pipe = getByLabel(hydraulicModel.assets, String(IDS.P1)) as Pipe;
     expect(pipe).toBeDefined();
@@ -528,7 +512,7 @@ describe("Parse inp", () => {
       [TAGS]
       `;
 
-      const { issues } = parseInp(inp);
+      const { issues } = parseInpWithEPS(inp);
 
       expect(issues?.unsupportedSections?.has("[TAGS]")).toBeFalsy();
     });
@@ -539,7 +523,7 @@ describe("Parse inp", () => {
       NODE J1 Tag1
       `;
 
-      const { issues } = parseInp(inp);
+      const { issues } = parseInpWithEPS(inp);
 
       expect(issues?.unsupportedSections?.has("[TAGS]")).toBe(true);
     });
@@ -552,7 +536,7 @@ describe("Parse inp", () => {
       Demand Charge      0
       `;
 
-      const { issues } = parseInp(inp);
+      const { issues } = parseInpWithEPS(inp);
 
       expect(issues?.unsupportedSections?.has("[ENERGY]")).toBeFalsy();
     });
@@ -563,7 +547,7 @@ describe("Parse inp", () => {
       Global Efficiency  80
       `;
 
-      const { issues } = parseInp(inp);
+      const { issues } = parseInpWithEPS(inp);
 
       expect(issues?.unsupportedSections?.has("[ENERGY]")).toBe(true);
     });
@@ -575,7 +559,7 @@ describe("Parse inp", () => {
       J2  0.0
       `;
 
-      const { issues } = parseInp(inp);
+      const { issues } = parseInpWithEPS(inp);
 
       expect(issues?.unsupportedSections?.has("[EMITTERS]")).toBeFalsy();
     });
@@ -586,7 +570,7 @@ describe("Parse inp", () => {
       J1  0.5
       `;
 
-      const { issues } = parseInp(inp);
+      const { issues } = parseInpWithEPS(inp);
 
       expect(issues?.unsupportedSections?.has("[EMITTERS]")).toBe(true);
     });
@@ -603,7 +587,7 @@ describe("Parse inp", () => {
       Roughness Correlation 0
       `;
 
-      const { issues } = parseInp(inp);
+      const { issues } = parseInpWithEPS(inp);
 
       expect(issues?.unsupportedSections?.has("[REACTIONS]")).toBeFalsy();
     });
@@ -614,7 +598,7 @@ describe("Parse inp", () => {
       Global Bulk  0.5
       `;
 
-      const { issues } = parseInp(inp);
+      const { issues } = parseInpWithEPS(inp);
 
       expect(issues?.unsupportedSections?.has("[REACTIONS]")).toBe(true);
     });
@@ -625,9 +609,20 @@ describe("Parse inp", () => {
       Bulk  P1  0.5
       `;
 
-      const { issues } = parseInp(inp);
+      const { issues } = parseInpWithEPS(inp);
 
       expect(issues?.unsupportedSections?.has("[REACTIONS]")).toBe(true);
+    });
+
+    it("does not report [PATTERNS] as unsupported", () => {
+      const inp = `
+      [PATTERNS]
+      PAT1  1.0  1.2  0.8  1.1
+      `;
+
+      const { issues } = parseInpWithEPS(inp);
+
+      expect(issues?.unsupportedSections?.has("[PATTERNS]")).toBeFalsy();
     });
 
     it("reports PCV valves with curves", () => {
@@ -647,7 +642,7 @@ describe("Parse inp", () => {
       Curve1  10  5
       `;
 
-      const { issues } = parseInp(inp);
+      const { issues } = parseInpWithEPS(inp);
 
       expect(issues?.hasPCVCurves).toBe(1);
     });
@@ -666,7 +661,7 @@ describe("Parse inp", () => {
       V1  J1  J2  100  PCV  50  0
       `;
 
-      const { issues } = parseInp(inp);
+      const { issues } = parseInpWithEPS(inp);
 
       expect(issues?.hasPCVCurves).toBeFalsy();
     });
@@ -692,7 +687,7 @@ describe("Parse inp", () => {
       Curve2  20  10
       `;
 
-      const { issues } = parseInp(inp);
+      const { issues } = parseInpWithEPS(inp);
 
       expect(issues?.hasPCVCurves).toBe(2);
     });

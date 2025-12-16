@@ -11,10 +11,11 @@ export type ParserIssues = {
     customSetting: string;
   };
   gpvValves?: boolean;
-  hasReservoirPatterns?: boolean;
-  hasTankCurves?: boolean;
-  hasPumpPatterns?: boolean;
-  hasPumpCurves?: boolean;
+  hasReservoirPatterns?: number;
+  hasTankCurves?: number;
+  hasPumpPatterns?: number;
+  hasPumpCurves?: number;
+  hasPCVCurves?: number;
   hasControls?: boolean;
   hasRules?: boolean;
 };
@@ -81,19 +82,24 @@ export class IssuesAccumulator {
   }
 
   addReservoirPattern() {
-    this.issues.hasReservoirPatterns = true;
+    this.issues.hasReservoirPatterns =
+      (this.issues.hasReservoirPatterns || 0) + 1;
   }
 
   addTankCurve() {
-    this.issues.hasTankCurves = true;
+    this.issues.hasTankCurves = (this.issues.hasTankCurves || 0) + 1;
   }
 
   addPumpPattern() {
-    this.issues.hasPumpPatterns = true;
+    this.issues.hasPumpPatterns = (this.issues.hasPumpPatterns || 0) + 1;
   }
 
   addPumpCurve() {
-    this.issues.hasPumpCurves = true;
+    this.issues.hasPumpCurves = (this.issues.hasPumpCurves || 0) + 1;
+  }
+
+  addPCVCurve() {
+    this.issues.hasPCVCurves = (this.issues.hasPCVCurves || 0) + 1;
   }
 
   addControls() {

@@ -13,6 +13,7 @@ import { newsletterUrl, projectionConverterUrl } from "src/global-config";
 import { ParserIssues } from "src/import/inp";
 import { useShowWelcome } from "src/commands/show-welcome";
 import { useUserTracking } from "src/infra/user-tracking";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 import {
   ChevronDownIcon,
@@ -282,6 +283,7 @@ const IssuesSummary = ({ issues }: { issues: ParserIssues }) => {
   const translate = useTranslate();
   const [isExpaned, setExpanded] = useState(false);
   const userTracking = useUserTracking();
+  const isEPSOn = useFeatureFlag("FLAG_EPS");
 
   return (
     <div className="pb-4">
@@ -366,11 +368,60 @@ const IssuesSummary = ({ issues }: { issues: ParserIssues }) => {
               </div>
             </div>
           )}
-          {issues.gpvValves && (
+          {(issues.gpvValves || issues.hasPCVCurves) && (
             <div>
               <p>{translate("ignoredValuesDetected", "[VALVES]")}:</p>
               <div className="flex flex-col gap-y-1 items-start">
-                <span>- {translate("valueIgnored", "GPV", "TCV")}</span>
+                {issues.gpvValves && (
+                  <span>- {translate("valueIgnored", "GPV", "TCV")}</span>
+                )}
+                {issues.hasPCVCurves && (
+                  <span>
+                    - {translate("pcvCurves", String(issues.hasPCVCurves))}
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+          {isEPSOn && issues.hasReservoirPatterns && (
+            <div>
+              <p>{translate("useOfUnsupportedSection", "[RESERVOIRS]")}:</p>
+              <div className="flex flex-col gap-y-1 items-start">
+                <span>
+                  -{" "}
+                  {translate(
+                    "reservoirPatterns",
+                    String(issues.hasReservoirPatterns),
+                  )}
+                </span>
+              </div>
+            </div>
+          )}
+          {issues.hasTankCurves && (
+            <div>
+              <p>{translate("useOfUnsupportedSection", "[TANKS]")}:</p>
+              <div className="flex flex-col gap-y-1 items-start">
+                <span>
+                  - {translate("tankCurves", String(issues.hasTankCurves))}
+                </span>
+              </div>
+            </div>
+          )}
+          {((isEPSOn && issues.hasPumpPatterns) || issues.hasPumpCurves) && (
+            <div>
+              <p>{translate("useOfUnsupportedSection", "[PUMPS]")}:</p>
+              <div className="flex flex-col gap-y-1 items-start">
+                {isEPSOn && issues.hasPumpPatterns && (
+                  <span>
+                    -{" "}
+                    {translate("pumpPatterns", String(issues.hasPumpPatterns))}
+                  </span>
+                )}
+                {issues.hasPumpCurves && (
+                  <span>
+                    - {translate("pumpCurves", String(issues.hasPumpCurves))}
+                  </span>
+                )}
               </div>
             </div>
           )}

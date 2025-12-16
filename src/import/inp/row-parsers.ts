@@ -53,6 +53,59 @@ export const ignore: RowParser = () => {};
 export const unsupported: RowParser = ({ sectionName, issues }) => {
   issues.addUsedSection(sectionName);
 };
+
+const defaultEnergySettings: Record<string, number> = {
+  "GLOBAL EFFICIENCY": 75,
+  "GLOBAL PRICE": 0,
+  "DEMAND CHARGE": 0,
+};
+
+export const parseEnergy: RowParser = ({ sectionName, trimmedRow, issues }) => {
+  const setting = readSetting(trimmedRow, defaultEnergySettings);
+  if (setting && setting.value !== setting.defaultValue) {
+    issues.addUsedSection(sectionName);
+  } else if (!setting) {
+    // Unsupported Energy settings
+    issues.addUsedSection(sectionName);
+  }
+};
+
+export const parseEmitter: RowParser = ({
+  sectionName,
+  trimmedRow,
+  issues,
+}) => {
+  const [, coefficient] = readValues(trimmedRow);
+  const value = parseFloat(coefficient);
+  if (!isNaN(value) && value !== 0) {
+    issues.addUsedSection(sectionName);
+  }
+};
+
+const defaultReactionSettings: Record<string, number> = {
+  "ORDER BULK": 1,
+  "ORDER TANK": 1,
+  "ORDER WALL": 1,
+  "GLOBAL BULK": 0,
+  "GLOBAL WALL": 0,
+  "LIMITING POTENTIAL": 0,
+  "ROUGHNESS CORRELATION": 0,
+};
+
+export const parseReaction: RowParser = ({
+  sectionName,
+  trimmedRow,
+  issues,
+}) => {
+  const setting = readSetting(trimmedRow, defaultReactionSettings);
+  if (setting && setting.value !== setting.defaultValue) {
+    issues.addUsedSection(sectionName);
+  } else if (!setting) {
+    // Unsupported Reaction settings
+    issues.addUsedSection(sectionName);
+  }
+};
+
 export const parseReservoir: RowParser = ({
   trimmedRow,
   inpData,
@@ -102,12 +155,17 @@ export const parseValve: RowParser = ({
     type,
     setting,
     minorLoss,
+    curveId,
   ] = readValues(trimmedRow);
 
   let kind = type.toLowerCase();
   if (kind === "gpv") {
     issues.addGPVUsed();
     kind = "tcv";
+  }
+
+  if (kind === "pcv" && curveId) {
+    issues.addPCVCurve();
   }
 
   inpData.valves.push({
@@ -230,7 +288,7 @@ export const parseTank: RowParser = ({
 
   if (volumeCurveId && volumeCurveId !== "*") {
     tankData.volumeCurveId = volumeCurveId;
-    issues.addUsedSection("[CURVES]");
+    issues.addTankCurve();
   }
 
   if (overflow) {
@@ -303,15 +361,11 @@ export const parsePattern: RowParser = ({ trimmedRow, inpData }) => {
   inpData.patterns.set(patternId, factors);
 };
 
-export const parsePatternEPS: RowParser = ({ trimmedRow, inpData, issues }) => {
+export const parsePatternEPS: RowParser = ({ trimmedRow, inpData }) => {
   const [patternId, ...values] = readValues(trimmedRow);
   const factors = inpData.patterns.get(patternId) || [];
   factors.push(...values.map((v) => parseFloat(v)));
   inpData.patterns.set(patternId, factors);
-
-  if (factors.length > 1) {
-    issues.addUsedSection("[PATTERNS]");
-  }
 };
 
 export const parseVertex: RowParser = ({ trimmedRow, inpData }) => {
@@ -471,16 +525,16 @@ export const parseTimeSettingEPS: RowParser = ({
   }
 
   if (name === "PATTERN START" && inpData.times.patternStart !== 0) {
-    issues.addUsedTimeSetting(name, 0);
+    issues.addUsedTimeSetting(name, defaultValue);
   }
   if (name === "REPORT START" && inpData.times.reportStart !== 0) {
-    issues.addUsedTimeSetting(name, 0);
+    issues.addUsedTimeSetting(name, defaultValue);
   }
   if (name === "START CLOCKTIME" && inpData.times.startClocktime !== 0) {
-    issues.addUsedTimeSetting(name, 0);
+    issues.addUsedTimeSetting(name, defaultValue);
   }
   if (name === "STATISTIC" && inpData.times.statistic !== defaultValue) {
-    issues.addUsedTimeSetting(name, "NONE");
+    issues.addUsedTimeSetting(name, defaultValue);
   }
 };
 
@@ -631,49 +685,6 @@ export const parsePumpEPS: RowParser = ({
     patternId,
     isActive: !isCommented,
   });
-};
-
-export const parseTankEPS: RowParser = ({
-  trimmedRow,
-  inpData,
-  issues,
-  isCommented,
-}) => {
-  const [
-    id,
-    elevation,
-    initialLevel,
-    minLevel,
-    maxLevel,
-    diameter,
-    minVolume,
-    volumeCurveId,
-    overflow,
-  ] = readValues(trimmedRow);
-
-  const tankData: TankData = {
-    id,
-    elevation: parseFloat(elevation),
-    initialLevel: parseFloat(initialLevel),
-    minLevel: parseFloat(minLevel),
-    maxLevel: parseFloat(maxLevel),
-    diameter: parseFloat(diameter),
-    minVolume: parseFloat(minVolume),
-    isActive: !isCommented,
-  };
-
-  if (volumeCurveId && volumeCurveId !== "*") {
-    tankData.volumeCurveId = volumeCurveId;
-    issues.addUsedSection("[CURVES]");
-    issues.addTankCurve();
-  }
-
-  if (overflow) {
-    tankData.overflow = overflow.toUpperCase() === "YES";
-  }
-
-  inpData.tanks.push(tankData);
-  inpData.nodeIds.add(id);
 };
 
 export const parseControlsEPS: RowParser = ({ sectionName, issues }) => {

@@ -77,7 +77,7 @@ describe("parse tanks", () => {
     expect(tank.coordinates).toEqual([-10, 10]);
 
     expect(stats.counts.get("[CURVES]")).toBeUndefined();
-    expect(issues?.unsupportedSections?.has("[CURVES]")).toBe(true);
+    expect(issues?.hasTankCurves).toBe(1);
   });
 
   it("does not register CURVES section when tank uses asterisk placeholder", () => {
@@ -102,7 +102,7 @@ describe("parse tanks", () => {
     expect(tank.coordinates).toEqual([-10, 10]);
 
     expect(stats.counts.get("[CURVES]")).toBeUndefined();
-    expect(issues?.unsupportedSections?.has("[CURVES]") || false).toBe(false);
+    expect(issues?.hasTankCurves).toBeFalsy();
   });
 
   it("sets overflow to false when tank overflow is NO", () => {

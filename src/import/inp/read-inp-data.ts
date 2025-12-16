@@ -19,6 +19,9 @@ import {
   parseStatus,
   parseValve,
   unsupported,
+  parseEnergy,
+  parseEmitter,
+  parseReaction,
 } from "./row-parsers";
 import { MAX_CUSTOMER_POINT_LABEL_LENGTH } from "src/hydraulic-model/customer-points";
 
@@ -39,11 +42,11 @@ const buildSectionParserDefinitions = (): SectionParserDefinition[] => [
   { names: ["BACKDROP"], parser: ignore },
   { names: ["JUNCTIONS", "JUNCTION"], parser: parseJunction },
   { names: ["PATTERNS", "PATTERN"], parser: parsePattern },
-  { names: ["REACTIONS"], parser: unsupported },
+  { names: ["REACTIONS"], parser: parseReaction },
   { names: ["TIMES"], parser: parseTimeSetting },
   { names: ["COORDINATES", "COORDINATE"], parser: parsePosition },
   { names: ["RESERVOIRS", "RESERVOIR"], parser: parseReservoir },
-  { names: ["ENERGY"], parser: unsupported },
+  { names: ["ENERGY"], parser: parseEnergy },
   { names: ["SOURCES"], parser: unsupported },
   { names: ["REPORT"], parser: ignore },
   { names: ["VERTICES", "VERTEX"], parser: parseVertex },
@@ -57,7 +60,8 @@ const buildSectionParserDefinitions = (): SectionParserDefinition[] => [
   { names: ["RULES"], parser: unsupported },
   { names: ["VALVES", "VALVE"], parser: parseValve },
   { names: ["DEMANDS", "DEMAND"], parser: parseDemand },
-  { names: ["EMITTERS"], parser: unsupported },
+  { names: ["EMITTERS"], parser: parseEmitter },
+  { names: ["TAGS"], parser: unsupported },
 ];
 
 const buildSectionParsers = (): SectionParsers => {

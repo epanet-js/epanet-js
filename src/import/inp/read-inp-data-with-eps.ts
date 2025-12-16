@@ -11,7 +11,7 @@ import {
   parsePipe,
   parsePosition,
   parseReservoirEPS,
-  parseTankEPS,
+  parseTank,
   parseVertex,
   parsePumpEPS,
   parseCurve,
@@ -21,6 +21,9 @@ import {
   parseTimeSettingEPS,
   parseControlsEPS,
   parseRulesEPS,
+  parseEnergy,
+  parseEmitter,
+  parseReaction,
 } from "./row-parsers";
 import { MAX_CUSTOMER_POINT_LABEL_LENGTH } from "src/hydraulic-model/customer-points";
 
@@ -41,15 +44,15 @@ const buildSectionParserDefinitions = (): SectionParserDefinition[] => [
   { names: ["BACKDROP"], parser: ignore },
   { names: ["JUNCTIONS", "JUNCTION"], parser: parseJunction },
   { names: ["PATTERNS", "PATTERN"], parser: parsePatternEPS },
-  { names: ["REACTIONS"], parser: unsupported },
+  { names: ["REACTIONS"], parser: parseReaction },
   { names: ["TIMES"], parser: parseTimeSettingEPS },
   { names: ["COORDINATES", "COORDINATE"], parser: parsePosition },
   { names: ["RESERVOIRS", "RESERVOIR"], parser: parseReservoirEPS },
-  { names: ["ENERGY"], parser: unsupported },
+  { names: ["ENERGY"], parser: parseEnergy },
   { names: ["SOURCES"], parser: unsupported },
   { names: ["REPORT"], parser: ignore },
   { names: ["VERTICES", "VERTEX"], parser: parseVertex },
-  { names: ["TANKS", "TANK"], parser: parseTankEPS },
+  { names: ["TANKS", "TANK"], parser: parseTank },
   { names: ["STATUS"], parser: parseStatus },
   { names: ["MIXING"], parser: unsupported },
   { names: ["LABELS"], parser: unsupported },
@@ -59,7 +62,8 @@ const buildSectionParserDefinitions = (): SectionParserDefinition[] => [
   { names: ["RULES"], parser: parseRulesEPS },
   { names: ["VALVES", "VALVE"], parser: parseValve },
   { names: ["DEMANDS", "DEMAND"], parser: parseDemand },
-  { names: ["EMITTERS"], parser: unsupported },
+  { names: ["EMITTERS"], parser: parseEmitter },
+  { names: ["TAGS"], parser: unsupported },
 ];
 
 const buildSectionParsers = (): SectionParsers => {
