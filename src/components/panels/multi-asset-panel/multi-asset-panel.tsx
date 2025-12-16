@@ -14,6 +14,8 @@ import {
   multiAssetPanelCollapseAtom,
 } from "src/state/jotai";
 import { computeMultiAssetData } from "./data";
+import { computeMultiAssetDataEps } from "./data-eps";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export function MultiAssetPanel({
   selectedFeatures,
@@ -29,11 +31,15 @@ export function MultiAssetPanel({
   const [collapseState, setCollapseState] = useAtom(
     multiAssetPanelCollapseAtom,
   );
+  const isEPSEnabled = useFeatureFlag("FLAG_EPS");
 
   const { data: multiAssetData, counts: assetCounts } = useMemo(() => {
     const assets = selectedFeatures as Asset[];
-    return computeMultiAssetData(assets, quantitiesMetadata, hydraulicModel);
-  }, [selectedFeatures, quantitiesMetadata, hydraulicModel]);
+    const compute = isEPSEnabled
+      ? computeMultiAssetDataEps
+      : computeMultiAssetData;
+    return compute(assets, quantitiesMetadata, hydraulicModel);
+  }, [selectedFeatures, quantitiesMetadata, hydraulicModel, isEPSEnabled]);
 
   return (
     <SectionList header={<Header selectedCount={selectedFeatures.length} />}>

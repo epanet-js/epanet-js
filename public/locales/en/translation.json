@@ -42,6 +42,7 @@
   "length": "Length",
   "demand": "Demand",
   "baseDemand": "Base demand",
+  "averageDemand": "Average demand",
   "constantDemand": "Constant demand",
   "demandCategories": "Demand categories",
   "timePattern": "Time pattern",
