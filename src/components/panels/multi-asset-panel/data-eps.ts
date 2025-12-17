@@ -54,22 +54,20 @@ const calculateAverageDemand = (
   junction: Junction,
   demands: Demands,
 ): number => {
-  return (
-    junction.demands.reduce((total, demand) => {
-      if (!demand.patternId) {
-        return total + demand.baseDemand;
-      }
+  return junction.demands.reduce((total, demand) => {
+    if (!demand.patternId) {
+      return total + demand.baseDemand;
+    }
 
-      const pattern = demands.patterns.get(demand.patternId);
-      if (!pattern || pattern.length === 0) {
-        return total + demand.baseDemand;
-      }
+    const pattern = demands.patterns.get(demand.patternId);
+    if (!pattern || pattern.length === 0) {
+      return total + demand.baseDemand;
+    }
 
-      const avgMultiplier =
-        pattern.reduce((sum, m) => sum + m, 0) / pattern.length;
-      return total + demand.baseDemand * avgMultiplier;
-    }, 0) * demands.multiplier
-  );
+    const avgMultiplier =
+      pattern.reduce((sum, m) => sum + m, 0) / pattern.length;
+    return total + demand.baseDemand * avgMultiplier;
+  }, 0);
 };
 
 export const computeMultiAssetDataEps = (

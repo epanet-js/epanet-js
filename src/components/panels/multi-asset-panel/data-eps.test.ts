@@ -535,7 +535,7 @@ describe("computeMultiAssetDataEps", () => {
       expect(demandStat.mean).toBe(20); // (10 + 20 + 30) / 3 = 20
     });
 
-    it("applies global demand multiplier to average demand", () => {
+    it("ignores global demand multiplier to average demand", () => {
       const IDS = { J1: 1 } as const;
       const hydraulicModel = HydraulicModelBuilder.with()
         .demandMultiplier(2.0)
@@ -555,11 +555,10 @@ describe("computeMultiAssetDataEps", () => {
         result.data.junction.demands,
         "averageDemand",
       );
-      // baseDemand 50 * global multiplier 2.0 = 100
-      expect(demandStat.min).toBe(100);
+      expect(demandStat.min).toBe(50);
     });
 
-    it("applies global demand multiplier with pattern demands", () => {
+    it("ignores global demand multiplier with pattern demands", () => {
       const IDS = { J1: 1 } as const;
       // Pattern [0.5, 1.5] -> average = 1.0
       const hydraulicModel = HydraulicModelBuilder.with()
@@ -581,8 +580,7 @@ describe("computeMultiAssetDataEps", () => {
         result.data.junction.demands,
         "averageDemand",
       );
-      // baseDemand 20 * pattern avg 1.0 * global multiplier 3.0 = 60
-      expect(demandStat.min).toBe(60);
+      expect(demandStat.min).toBe(20);
     });
   });
 
