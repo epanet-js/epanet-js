@@ -4,7 +4,12 @@ import { dialogAtom, fileInfoAtom } from "src/state/jotai";
 import { captureError } from "src/infra/error-tracking";
 import { FileWithHandle } from "browser-fs-access";
 import { useTranslate } from "src/hooks/use-translate";
-import { ParserIssues, parseInp, parseInpWithEPS } from "src/import/inp";
+import {
+  ParserIssues,
+  parseInp,
+  parseInpWithEPS,
+  parseInpWithControls,
+} from "src/import/inp";
 import { usePersistence } from "src/lib/persistence/context";
 import { FeatureCollection } from "geojson";
 import { getExtent } from "src/lib/geometry";
@@ -32,6 +37,7 @@ export const useImportInp = () => {
   const transactImport = rep.useTransactImport();
   const userTracking = useUserTracking();
   const isEPSOn = useFeatureFlag("FLAG_EPS");
+  const isControlsOn = useFeatureFlag("FLAG_CONTROLS");
 
   const importInp = useCallback(
     async (files: FileWithHandle[]) => {
@@ -69,9 +75,11 @@ export const useImportInp = () => {
           inactiveAssets: true,
         };
         const { hydraulicModel, modelMetadata, issues, isMadeByApp, stats } =
-          isEPSOn
-            ? parseInpWithEPS(content, parseOptions)
-            : parseInp(content, parseOptions);
+          isControlsOn
+            ? parseInpWithControls(content, parseOptions)
+            : isEPSOn
+              ? parseInpWithEPS(content, parseOptions)
+              : parseInp(content, parseOptions);
         userTracking.capture(
           buildCompleteEvent(hydraulicModel, modelMetadata, issues, stats),
         );
@@ -127,6 +135,7 @@ export const useImportInp = () => {
       userTracking,
       translate,
       isEPSOn,
+      isControlsOn,
     ],
   );
 
