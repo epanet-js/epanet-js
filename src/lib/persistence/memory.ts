@@ -115,6 +115,7 @@ export class MemPersistence implements IPersistence {
         putAssets: moment.putAssets || [],
         putDemands: moment.putDemands,
         putEPSTiming: moment.putEPSTiming,
+        putControls: moment.putControls,
         putCustomerPoints: moment.putCustomerPoints,
         putCurves: moment.putCurves,
       };
@@ -163,7 +164,11 @@ export class MemPersistence implements IPersistence {
   private apply(stateId: string, forwardMoment: MomentInput) {
     const ctx = this.store.get(dataAtom);
     let reverseMoment;
-    if (forwardMoment.putDemands || forwardMoment.putEPSTiming) {
+    if (
+      forwardMoment.putDemands ||
+      forwardMoment.putEPSTiming ||
+      forwardMoment.putControls
+    ) {
       reverseMoment = {
         note: "Reverse simulation settings",
         putDemands: forwardMoment.putDemands
@@ -171,6 +176,9 @@ export class MemPersistence implements IPersistence {
           : undefined,
         putEPSTiming: forwardMoment.putEPSTiming
           ? ctx.hydraulicModel.epsTiming
+          : undefined,
+        putControls: forwardMoment.putControls
+          ? ctx.hydraulicModel.controls
           : undefined,
         putAssets: [],
         deleteAssets: [],
@@ -210,6 +218,9 @@ export class MemPersistence implements IPersistence {
         epsTiming: forwardMoment.putEPSTiming
           ? forwardMoment.putEPSTiming
           : ctx.hydraulicModel.epsTiming,
+        controls: forwardMoment.putControls
+          ? forwardMoment.putControls
+          : ctx.hydraulicModel.controls,
         customerPoints: updatedCustomerPoints,
         customerPointsLookup: ctx.hydraulicModel.customerPointsLookup,
         curves: updatedCurves,

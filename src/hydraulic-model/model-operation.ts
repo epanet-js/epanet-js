@@ -1,4 +1,4 @@
-import { HydraulicModel } from "./hydraulic-model";
+import { Controls, HydraulicModel } from "./hydraulic-model";
 import { AssetId, Asset } from "./asset-types";
 import { Demands } from "./demands";
 import { CustomerPoint } from "./customer-points";
@@ -13,6 +13,7 @@ export type ModelMoment = {
   putEPSTiming?: EPSTiming;
   putCustomerPoints?: CustomerPoint[];
   putCurves?: ICurve[];
+  putControls?: Controls;
 };
 
 export type ModelOperation<T> = (model: HydraulicModel, data: T) => ModelMoment;
