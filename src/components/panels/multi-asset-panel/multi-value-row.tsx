@@ -265,10 +265,10 @@ const SortableValuesList = ({
 
   return (
     <div role="table" aria-label={translate("values")}>
-      <div className="flex items-center gap-x-2 pb-2" role="row">
+      <div className="flex justify-between pb-2" role="row">
         <button
           onClick={() => handleSort("value")}
-          className="flex-auto text-left text-xs text-gray-500 font-bold hover:text-gray-700 dark:hover:text-gray-300 cursor-pointer"
+          className="text-xs text-gray-500 font-bold hover:text-gray-700 dark:hover:text-gray-300 cursor-pointer"
           role="columnheader"
           aria-sort={getAriaSort("value")}
         >
