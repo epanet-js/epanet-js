@@ -44,6 +44,9 @@ import {
   savedSymbologiesAtom,
 } from "src/state/symbology";
 import { nullSymbologySpec } from "src/map/symbology";
+import { mapSnapshotPointerAtom, MapSnapshotPointer } from "src/state/map";
+
+const MAX_CHANGES_BEFORE_SNAPSHOT = 500;
 
 export class MemPersistence implements IPersistence {
   private store: Store;
@@ -85,6 +88,7 @@ export class MemPersistence implements IPersistence {
         modelMetadata,
       });
       this.store.set(momentLogAtom, momentLog);
+      this.store.set(mapSnapshotPointerAtom, { pointer: -1, version: 0 });
       this.store.set(simulationAtom, initialSimulationState);
       this.store.set(nodeSymbologyAtom, nullSymbologySpec.node);
       this.store.set(linkSymbologyAtom, nullSymbologySpec.link);
@@ -99,6 +103,10 @@ export class MemPersistence implements IPersistence {
   useTransact() {
     return (moment: ModelMoment) => {
       const momentLog = this.store.get(momentLogAtom).copy();
+      const mapSnapshotPointer = this.store.get(mapSnapshotPointerAtom);
+
+      const isTruncatingHistory = momentLog.nextRedo() !== null;
+
       trackMoment(moment);
       const forwardMoment = {
         ...EMPTY_MOMENT,
@@ -116,7 +124,14 @@ export class MemPersistence implements IPersistence {
 
       momentLog.append(forwardMoment, reverseMoment, newStateId);
 
+      const newSnapshotPointer = this.computeSnapshotPointer(
+        mapSnapshotPointer,
+        momentLog,
+        isTruncatingHistory,
+      );
+
       this.store.set(momentLogAtom, momentLog);
+      this.store.set(mapSnapshotPointerAtom, newSnapshotPointer);
     };
   }
 
@@ -124,6 +139,7 @@ export class MemPersistence implements IPersistence {
     return (direction: "undo" | "redo") => {
       const isUndo = direction === "undo";
       const momentLog = this.store.get(momentLogAtom).copy();
+      const mapSnapshotPointer = this.store.get(mapSnapshotPointerAtom);
       const action = isUndo ? momentLog.nextUndo() : momentLog.nextRedo();
       if (!action) return;
 
@@ -131,7 +147,13 @@ export class MemPersistence implements IPersistence {
 
       isUndo ? momentLog.undo() : momentLog.redo();
 
+      const newSnapshotPointer = this.computeSnapshotPointer(
+        mapSnapshotPointer,
+        momentLog,
+      );
+
       this.store.set(momentLogAtom, momentLog);
+      this.store.set(mapSnapshotPointerAtom, newSnapshotPointer);
     };
   }
   /**
@@ -361,5 +383,35 @@ export class MemPersistence implements IPersistence {
     }
 
     return reverseMoment;
+  }
+
+  private exceedsMaxChangesSinceSnapshot(
+    momentLog: MomentLog,
+    snapshotPointer: number,
+  ): boolean {
+    const deltasFromSnapshot = momentLog.getDeltasFrom(snapshotPointer);
+    const editedAssetsCount = deltasFromSnapshot.reduce(
+      (count, moment) =>
+        count + moment.deleteAssets.length + moment.putAssets.length,
+      0,
+    );
+    return editedAssetsCount > MAX_CHANGES_BEFORE_SNAPSHOT;
+  }
+
+  private computeSnapshotPointer(
+    current: MapSnapshotPointer,
+    momentLog: MomentLog,
+    force: boolean = false,
+  ): MapSnapshotPointer {
+    if (
+      force ||
+      this.exceedsMaxChangesSinceSnapshot(momentLog, current.pointer)
+    ) {
+      return {
+        pointer: momentLog.getPointer(),
+        version: current.version + 1,
+      };
+    }
+    return current;
   }
 }
