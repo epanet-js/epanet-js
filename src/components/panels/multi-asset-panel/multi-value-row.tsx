@@ -7,7 +7,11 @@ import { InlineField } from "src/components/form/fields";
 import { TextField } from "../asset-panel/ui-components";
 import * as P from "@radix-ui/react-popover";
 import { StyledPopoverArrow, StyledPopoverContent } from "../../elements";
-import { MultipleValuesIcon } from "src/icons";
+import {
+  MultipleValuesIcon,
+  SortAscendingIcon,
+  SortDescendingIcon,
+} from "src/icons";
 import {
   PropertyStats,
   QuantityStatsDeprecated,
@@ -250,10 +254,14 @@ const SortableValuesList = ({
     const isActive = sortColumn === column;
     return (
       <span
-        className={`ml-1 ${isActive ? "" : "invisible"}`}
+        className={`ml-1 inline-flex align-middle ${isActive ? "" : "invisible"}`}
         aria-hidden="true"
       >
-        {sortDirection === "asc" ? "↓" : "↑"}
+        {sortDirection === "asc" ? (
+          <SortAscendingIcon size="sm" />
+        ) : (
+          <SortDescendingIcon size="sm" />
+        )}
       </span>
     );
   };

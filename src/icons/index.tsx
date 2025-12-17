@@ -1,8 +1,10 @@
 import {
   LucideProps,
   LucideIcon,
+  ArrowDownWideNarrow,
   ArrowDownUp,
   ArrowRight,
+  ArrowUpNarrowWide,
   Bell,
   Check,
   ChevronDown,
@@ -170,6 +172,8 @@ export const OrphanNodeIcon = icon(CircleDotDashed);
 export const NoIssuesIcon = icon(Goal);
 export const RectangularSelectionIcon = icon(SquareDashed);
 export const FreeHandSelectionIcon = icon(Lasso);
+export const SortAscendingIcon = icon(ArrowUpNarrowWide);
+export const SortDescendingIcon = icon(ArrowDownWideNarrow);
 
 export const ReverseIcon: React.FC<IconProps> = ({
   size: rawSize = "md",
