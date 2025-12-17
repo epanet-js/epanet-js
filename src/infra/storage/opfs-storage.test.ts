@@ -71,14 +71,14 @@ describe("OPFSStorage", () => {
     vi.unstubAllGlobals();
   });
 
-  const createMockWritable = () => ({
-    write: vi.fn().mockResolvedValue(undefined),
-    close: vi.fn().mockResolvedValue(undefined),
+  const createMockSyncAccessHandle = () => ({
+    write: vi.fn(),
+    close: vi.fn(),
   });
 
   const createMockFileHandle = (
     data: ArrayBuffer,
-    writable = createMockWritable(),
+    syncAccessHandle = createMockSyncAccessHandle(),
   ) => ({
     getFile: vi.fn().mockResolvedValue({
       size: data.byteLength,
@@ -86,14 +86,14 @@ describe("OPFSStorage", () => {
         arrayBuffer: vi.fn().mockResolvedValue(data.slice(start, end)),
       })),
     }),
-    createWritable: vi.fn().mockResolvedValue(writable),
+    createSyncAccessHandle: vi.fn().mockResolvedValue(syncAccessHandle),
   });
 
   describe("save", () => {
     it("creates file and writes data", async () => {
-      const mockWritable = createMockWritable();
+      const mockAccessHandle = createMockSyncAccessHandle();
       mockAppDir.getFileHandle.mockResolvedValue(
-        createMockFileHandle(new ArrayBuffer(0), mockWritable),
+        createMockFileHandle(new ArrayBuffer(0), mockAccessHandle),
       );
 
       const storage = new OPFSStorage("test-app-id");
@@ -103,8 +103,8 @@ describe("OPFSStorage", () => {
       expect(mockAppDir.getFileHandle).toHaveBeenCalledWith("results.out", {
         create: true,
       });
-      expect(mockWritable.write).toHaveBeenCalledWith(data);
-      expect(mockWritable.close).toHaveBeenCalled();
+      expect(mockAccessHandle.write).toHaveBeenCalledWith(data);
+      expect(mockAccessHandle.close).toHaveBeenCalled();
     });
 
     it("does not update last access after saving (save runs in Web Worker where localStorage is unavailable)", async () => {

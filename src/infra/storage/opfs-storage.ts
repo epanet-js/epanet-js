@@ -9,9 +9,10 @@ export class OPFSStorage implements IPrivateAppStorage {
   async save(filename: string, data: ArrayBuffer): Promise<void> {
     const dir = await this.getAppDir();
     const fileHandle = await dir.getFileHandle(filename, { create: true });
-    const writable = await fileHandle.createWritable();
-    await writable.write(data);
-    await writable.close();
+    // @ts-expect-error createSyncAccessHandle is only available in Web Workers (lib.webworker.d.ts)
+    const accessHandle = await fileHandle.createSyncAccessHandle();
+    accessHandle.write(data);
+    accessHandle.close();
   }
 
   async readSlice(
