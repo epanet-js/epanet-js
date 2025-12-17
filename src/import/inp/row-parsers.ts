@@ -575,12 +575,16 @@ export const parseOption: RowParser = ({
   }
 
   if (name === "QUALITY") {
-    const normalizedValue =
-      typeof value === "string" && value.toUpperCase().startsWith("NONE")
-        ? "NONE"
-        : value;
-    if (defaultValue !== normalizedValue) {
-      issues.addUsedOption(name, defaultValue);
+    const upperValue =
+      typeof value === "string" ? value.toUpperCase() : String(value);
+    if (upperValue.startsWith("NONE")) return;
+
+    if (upperValue.startsWith("AGE")) {
+      issues.addWaterQualityType("AGE");
+    } else if (upperValue.startsWith("TRACE")) {
+      issues.addWaterQualityType("TRACE");
+    } else {
+      issues.addWaterQualityType("CHEMICAL");
     }
     return;
   }
@@ -687,12 +691,10 @@ export const parsePumpEPS: RowParser = ({
   });
 };
 
-export const parseControlsEPS: RowParser = ({ sectionName, issues }) => {
-  issues.addUsedSection(sectionName);
+export const parseControlsEPS: RowParser = ({ issues }) => {
   issues.addControls();
 };
 
-export const parseRulesEPS: RowParser = ({ sectionName, issues }) => {
-  issues.addUsedSection(sectionName);
+export const parseRulesEPS: RowParser = ({ issues }) => {
   issues.addRules();
 };

@@ -1,3 +1,5 @@
+export type WaterQualityType = "AGE" | "CHEMICAL" | "TRACE";
+
 export type ParserIssues = {
   unsupportedSections?: Set<string>;
   extendedPeriodSimulation?: boolean;
@@ -18,6 +20,7 @@ export type ParserIssues = {
   hasPCVCurves?: number;
   hasControls?: boolean;
   hasRules?: boolean;
+  waterQualityType?: WaterQualityType;
 };
 
 export class IssuesAccumulator {
@@ -108,6 +111,10 @@ export class IssuesAccumulator {
 
   addRules() {
     this.issues.hasRules = true;
+  }
+
+  addWaterQualityType(type: WaterQualityType) {
+    this.issues.waterQualityType = type;
   }
 
   buildResult(): ParserIssues | null {

@@ -139,11 +139,25 @@ const buildCompleteEvent = (
   issues: ParserIssues | null,
   stats: InpStats,
 ): ImportInpCompleted => {
+  const issueKeys = issues ? Object.keys(issues) : [];
+
+  const processedIssues = issueKeys.flatMap((key) => {
+    if (key === "waterQualityType" && issues?.waterQualityType) {
+      const typeMap = {
+        AGE: "hasWaterAge",
+        CHEMICAL: "hasWaterChemical",
+        TRACE: "hasWaterTrace",
+      } as const;
+      return [typeMap[issues.waterQualityType]];
+    }
+    return [key];
+  });
+
   return {
     name: "importInp.completed",
     counts: Object.fromEntries(stats.counts),
     headlossFormula: hydraulicModel.headlossFormula,
     units: modelMetadata.quantities.specName as EpanetUnitSystem,
-    issues: issues ? Object.keys(issues) : [],
+    issues: processedIssues,
   } as ImportInpCompleted;
 };

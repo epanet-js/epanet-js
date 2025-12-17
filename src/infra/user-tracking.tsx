@@ -251,6 +251,9 @@ export type ImportInpCompleted = {
     | "hasPCVCurves"
     | "hasControls"
     | "hasRules"
+    | "hasWaterAge"
+    | "hasWaterChemical"
+    | "hasWaterTrace"
   )[];
 };
 

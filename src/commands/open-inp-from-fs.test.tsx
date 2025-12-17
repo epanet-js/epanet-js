@@ -312,7 +312,7 @@ it("shows warning when using unsupported features", async () => {
     expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
   });
 
-  expect(screen.getByText(/not fully supported yet/i)).toBeInTheDocument();
+  expect(screen.getByText(/partially supported features/i)).toBeInTheDocument();
 
   await userEvent.click(screen.getByRole("button", { name: /understood/i }));
 

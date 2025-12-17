@@ -24,6 +24,23 @@ import {
   SubscribeIcon,
 } from "src/icons";
 
+const roadmapUrls = {
+  waterQuality:
+    "https://roadmap.epanetjs.com/simulation-engine/p/standard-water-quality-analysis",
+  gpv: "https://roadmap.epanetjs.com/network-elements/p/gpv-general-purpose-valve",
+  patterns:
+    "https://roadmap.epanetjs.com/data-libraries/p/manage-time-series-patterns",
+  reservoirPatterns:
+    "https://roadmap.epanetjs.com/element-properties/p/define-reservoir-patterns",
+  tankCurves:
+    "https://roadmap.epanetjs.com/element-properties/p/define-tank-curves",
+  pumpCurves:
+    "https://roadmap.epanetjs.com/element-properties/p/define-pump-curves",
+  pcv: "https://roadmap.epanetjs.com/network-elements/p/pcv-positional-control-valve",
+  controlsRules:
+    "https://roadmap.epanetjs.com/adv-analysis-operations/p/controls-rules",
+} as const;
+
 export const GeocodingNotSupportedDialog = ({
   onClose: _onClose,
 }: {
@@ -279,11 +296,35 @@ const CoordinatesIssues = ({ issues }: { issues: ParserIssues }) => {
   );
 };
 
+const RoadmapLink = ({
+  href,
+  children,
+}: {
+  href: string;
+  children: React.ReactNode;
+}) => (
+  <a
+    href={href}
+    target="_blank"
+    rel="noopener noreferrer"
+    className="hover:underline text-purple-700 dark:text-purple-300"
+  >
+    {children}
+  </a>
+);
+
 const IssuesSummary = ({ issues }: { issues: ParserIssues }) => {
   const translate = useTranslate();
   const [isExpaned, setExpanded] = useState(false);
   const userTracking = useUserTracking();
   const isEPSOn = useFeatureFlag("FLAG_EPS");
+
+  const waterQualityLabel =
+    issues.waterQualityType === "AGE"
+      ? translate("waterQualityAge")
+      : issues.waterQualityType === "TRACE"
+        ? translate("waterQualityTrace")
+        : translate("waterQualityChemical");
 
   return (
     <div className="pb-4">
@@ -304,14 +345,41 @@ const IssuesSummary = ({ issues }: { issues: ParserIssues }) => {
         {translate("issuesSummary")}{" "}
       </Button>
       {isExpaned && (
-        <div className="p-2 flex flex-col gap-y-4  ml-3 mt-2 border font-mono rounded-sm text-sm bg-gray-100 text-gray-700 max-h-[300px] overflow-y-auto">
-          {issues.unsupportedSections && (
+        <div className="p-2 flex flex-col gap-y-4  ml-3 mt-2 border font-mono rounded-sm text-sm bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 max-h-[300px] overflow-y-auto">
+          {issues.waterQualityType && (
+            <div>
+              <p>{translate("waterQualitySimulation")}:</p>
+              <div className="flex flex-col gap-y-1 items-start">
+                <RoadmapLink href={roadmapUrls.waterQuality}>
+                  - {waterQualityLabel}
+                </RoadmapLink>
+              </div>
+            </div>
+          )}
+          {(issues.unsupportedSections ||
+            issues.hasControls ||
+            issues.hasRules) && (
             <div>
               <p>{translate("useOfUnsupported")}:</p>
               <div className="flex flex-col gap-y-1 items-start">
-                {Array.from(issues.unsupportedSections).map((sectionName) => (
-                  <span key={sectionName}>- {sectionName}</span>
-                ))}
+                {issues.hasControls && (
+                  <div className="flex flex-col gap-y-1 items-start">
+                    <RoadmapLink href={roadmapUrls.controlsRules}>
+                      - [CONTROLS]
+                    </RoadmapLink>
+                  </div>
+                )}
+                {issues.hasRules && (
+                  <div className="flex flex-col gap-y-1 items-start">
+                    <RoadmapLink href={roadmapUrls.controlsRules}>
+                      - [RULES]
+                    </RoadmapLink>
+                  </div>
+                )}
+                {issues.unsupportedSections &&
+                  Array.from(issues.unsupportedSections).map((sectionName) => (
+                    <span key={sectionName}>- {sectionName}</span>
+                  ))}
               </div>
             </div>
           )}
@@ -373,54 +441,56 @@ const IssuesSummary = ({ issues }: { issues: ParserIssues }) => {
               <p>{translate("ignoredValuesDetected", "[VALVES]")}:</p>
               <div className="flex flex-col gap-y-1 items-start">
                 {issues.gpvValves && (
-                  <span>- {translate("valueIgnored", "GPV", "TCV")}</span>
+                  <RoadmapLink href={roadmapUrls.gpv}>
+                    - {translate("valueIgnored", "GPV", "TCV")}
+                  </RoadmapLink>
                 )}
                 {issues.hasPCVCurves && (
-                  <span>
+                  <RoadmapLink href={roadmapUrls.pcv}>
                     - {translate("pcvCurves", String(issues.hasPCVCurves))}
-                  </span>
+                  </RoadmapLink>
                 )}
               </div>
             </div>
           )}
           {isEPSOn && issues.hasReservoirPatterns && (
             <div>
-              <p>{translate("useOfUnsupportedSection", "[RESERVOIRS]")}:</p>
+              <p>{translate("ignoredValuesDetected", "[RESERVOIRS]")}:</p>
               <div className="flex flex-col gap-y-1 items-start">
-                <span>
+                <RoadmapLink href={roadmapUrls.reservoirPatterns}>
                   -{" "}
                   {translate(
                     "reservoirPatterns",
                     String(issues.hasReservoirPatterns),
                   )}
-                </span>
+                </RoadmapLink>
               </div>
             </div>
           )}
           {issues.hasTankCurves && (
             <div>
-              <p>{translate("useOfUnsupportedSection", "[TANKS]")}:</p>
+              <p>{translate("ignoredValuesDetected", "[TANKS]")}:</p>
               <div className="flex flex-col gap-y-1 items-start">
-                <span>
+                <RoadmapLink href={roadmapUrls.tankCurves}>
                   - {translate("tankCurves", String(issues.hasTankCurves))}
-                </span>
+                </RoadmapLink>
               </div>
             </div>
           )}
           {((isEPSOn && issues.hasPumpPatterns) || issues.hasPumpCurves) && (
             <div>
-              <p>{translate("useOfUnsupportedSection", "[PUMPS]")}:</p>
+              <p>{translate("ignoredValuesDetected", "[PUMPS]")}:</p>
               <div className="flex flex-col gap-y-1 items-start">
                 {isEPSOn && issues.hasPumpPatterns && (
-                  <span>
+                  <RoadmapLink href={roadmapUrls.patterns}>
                     -{" "}
                     {translate("pumpPatterns", String(issues.hasPumpPatterns))}
-                  </span>
+                  </RoadmapLink>
                 )}
                 {issues.hasPumpCurves && (
-                  <span>
+                  <RoadmapLink href={roadmapUrls.pumpCurves}>
                     - {translate("pumpCurves", String(issues.hasPumpCurves))}
-                  </span>
+                  </RoadmapLink>
                 )}
               </div>
             </div>
