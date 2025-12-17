@@ -82,7 +82,11 @@ export function MultiValueRow({
                   decimals={decimals}
                 />
               )}
-              <ValuesList values={propertyStats.values} decimals={decimals} />
+              <ValuesList
+                values={propertyStats.values}
+                decimals={decimals}
+                type={propertyStats.type}
+              />
             </StyledPopoverContent>
           </P.Portal>
         </P.Root>
@@ -141,12 +145,22 @@ const QuantityStatsDeprecatedFields = ({
 const ValuesList = ({
   values,
   decimals,
+  type,
 }: {
   values: Map<JsonValue, number>;
   decimals?: number;
+  type: "quantity" | "category";
 }) => {
   const translate = useTranslate();
-  const valueEntries = Array.from(values.entries());
+  const valueEntries = Array.from(values.entries()).sort(
+    ([a, countA], [b, countB]) => {
+      if (type === "quantity") {
+        return (b as number) - (a as number);
+      } else {
+        return countB - countA;
+      }
+    },
+  );
 
   return (
     <div>
