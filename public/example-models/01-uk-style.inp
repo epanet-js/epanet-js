@@ -1,4 +1,4 @@
-;MADE BY EPANET-JS [4c58289b]
+;MADE BY EPANET-JS [0d90b809]
 [JUNCTIONS]
 ;Id	Elevation
 J1	40.9
@@ -305,7 +305,7 @@ P154	J63	J136	45.85	300	130	0	Open
 
 [PUMPS]
 ;Id	Start	End	Properties
-PU1	R2	J111	HEAD 138	SPEED 1
+PU1	R2	J111	HEAD 139	SPEED 1
 
 [VALVES]
 ;Id	Start	End	Diameter	Setting	MinorLoss
@@ -313,263 +313,132 @@ V1	J112	J113	150	PRV	26	0
 
 [DEMANDS]
 ;Id	Demand	Pattern	Category
-J1	0
 J1	0.020606782407407407	epanetjs_customers
-J107	0
 J107	0.023427569444444442	epanetjs_customers
-J67	0
 J67	0.061184085648148145	epanetjs_customers
-J68	0
 J68	0.2621548032407407	epanetjs_customers
-J69	0
-J7	0
 J7	0.03951070601851852	epanetjs_customers
-J70	0
 J70	0.006001643518518518	epanetjs_customers
-J71	0
 J71	0.09457166666666666	epanetjs_customers
-J72	0
 J72	0.09264015046296298	epanetjs_customers
-J73	0
 J73	0.2361871412037037	epanetjs_customers
-J74	0
 J74	0.030409050925925926	epanetjs_customers
 J75	0.047292
-J108	0
 J108	0.08670435185185185	epanetjs_customers
-J76	0
 J76	0.09481278935185186	epanetjs_customers
-J77	0
 J77	0.11240395833333332	epanetjs_customers
-J78	0
 J78	0.13643359953703704	epanetjs_customers
-J79	0
 J79	0.11560560185185186	epanetjs_customers
-J8	0
 J8	0.0809508449074074	epanetjs_customers
-J80	0
 J80	0.2215498263888889	epanetjs_customers
-J81	0
 J81	0.08644134259259259	epanetjs_customers
-J82	0
 J82	0.1077023726851852	epanetjs_customers
-J83	0
 J83	0.049447488425925924	epanetjs_customers
-J84	0
 J84	0.05480310185185185	epanetjs_customers
-J109	0
 J109	0.04479292824074074	epanetjs_customers
-J85	0
 J85	0.09733923611111112	epanetjs_customers
-J86	0
 J86	0.08319994212962963	epanetjs_customers
-J87	0
 J87	0.41818079861111107	epanetjs_customers
-J88	0
 J88	0.11601344907407408	epanetjs_customers
-J89	0
 J89	0.06866385416666665	epanetjs_customers
-J9	0
 J9	0.11895925925925926	epanetjs_customers
-J90	0
 J90	0.06954162037037037	epanetjs_customers
-J91	0
 J91	0.2739982986111111	epanetjs_customers
-J92	0
 J92	0.12930336805555556	epanetjs_customers
-J93	0
 J93	0.01120099537037037	epanetjs_customers
-J11	0
 J11	0.1627448148148148	epanetjs_customers
-J94	0
 J94	0.057300000000000004	epanetjs_customers
-J95	0
 J95	0.07616738425925926	epanetjs_customers
-J96	0
 J96	0.053606226851851846	epanetjs_customers
-J97	0
 J97	0.07711203703703703	epanetjs_customers
-J98	0
 J98	0.0647463425925926	epanetjs_customers
-J99	0
 J99	0.020219895833333335	epanetjs_customers
-J12	0
 J12	0.09562165509259259	epanetjs_customers
-J13	0
 J13	0.06959296296296295	epanetjs_customers
-J14	0
 J14	0.11512054398148149	epanetjs_customers
-J15	0
 J15	0.1434744675925926	epanetjs_customers
-J16	0
 J16	0.17542134259259254	epanetjs_customers
-J17	0
 J17	0.09890032407407406	epanetjs_customers
-J10	0
 J10	0.01426380787037037	epanetjs_customers
-J18	0
 J18	0.07556902777777777	epanetjs_customers
-J19	0
 J19	0.0063926967592592586	epanetjs_customers
-J2	0
 J2	0.09066940972222222	epanetjs_customers
-J20	0
 J20	0.07571541666666666	epanetjs_customers
-J21	0
 J21	0.044369155092592594	epanetjs_customers
-J22	0
 J22	0.20612946759259257	epanetjs_customers
-J23	0
 J23	0.056070972222222216	epanetjs_customers
-J110	0
 J110	0.06906791666666666	epanetjs_customers
-J24	0
 J24	0.058009884259259265	epanetjs_customers
-J111	0
-J136	0
 J136	0.03709922453703704	epanetjs_customers
-J100	0
 J100	0.06803893518518518	epanetjs_customers
-J25	0
 J25	0.11409138888888888	epanetjs_customers
-J112	0
-J26	0
 J26	0.029999652777777774	epanetjs_customers
-J113	0
-J114	0
 J114	0.011663206018518517	epanetjs_customers
-J115	0
 J115	0.03876961805555555	epanetjs_customers
-J27	0
 J27	0.037970879629629625	epanetjs_customers
-J116	0
 J116	0.010681273148148148	epanetjs_customers
 J117	0.21
-J118	0
 J118	0.01087212962962963	epanetjs_customers
-J101	0
 J101	0.053361631944444446	epanetjs_customers
 J119	0.2
-J28	0
 J28	0.005828842592592593	epanetjs_customers
-J120	0
-J121	0
 J121	0.007356805555555556	epanetjs_customers
 J122	0.45
-J29	0
 J29	0.05043471064814815	epanetjs_customers
-J123	0
 J123	0.016598055555555553	epanetjs_customers
-J124	0
 J124	0.036463217592592585	epanetjs_customers
 J125	0.04
-J126	0
 J126	0.006545173611111112	epanetjs_customers
-J102	0
 J102	0.018455787037037038	epanetjs_customers
-J3	0
 J3	0.019803425925925926	epanetjs_customers
-J30	0
 J30	0.19077759259259258	epanetjs_customers
-J127	0
 J127	0.28198202546296297	epanetjs_customers
-J128	0
 J128	0.2322793865740741	epanetjs_customers
-J129	0
-J31	0
 J31	0.12007921296296295	epanetjs_customers
-J130	0
 J130	0.24285049768518516	epanetjs_customers
-J131	0
 J131	0.23467881944444444	epanetjs_customers
-J32	0
 J32	0.02839365740740741	epanetjs_customers
-J132	0
-J103	0
 J103	0.12040766203703701	epanetjs_customers
-J33	0
-J133	0
 J133	0.01178394675925926	epanetjs_customers
-J134	0
 J134	0.004893657407407407	epanetjs_customers
-J34	0
 J34	0.12452011574074076	epanetjs_customers
-J135	0
 J135	0.016673472222222225	epanetjs_customers
-J35	0
 J35	0.06576362268518518	epanetjs_customers
-J36	0
 J36	0.025537418981481482	epanetjs_customers
-J37	0
 J37	0.16578982638888887	epanetjs_customers
-J38	0
 J38	0.04734075231481481	epanetjs_customers
-J39	0
 J39	0.20680212962962963	epanetjs_customers
-J104	0
 J104	0.14405239583333332	epanetjs_customers
-J4	0
 J4	0.043892870370370374	epanetjs_customers
-J40	0
 J40	0.09447642361111111	epanetjs_customers
-J41	0
 J41	0.11870384259259259	epanetjs_customers
-J42	0
 J42	0.022852511574074075	epanetjs_customers
-J43	0
 J43	0.011755185185185184	epanetjs_customers
-J44	0
 J44	0.2740918171296296	epanetjs_customers
-J45	0
 J45	0.09462636574074074	epanetjs_customers
-J46	0
 J46	0.07091200231481481	epanetjs_customers
-J47	0
 J47	0.09812327546296297	epanetjs_customers
-J48	0
 J48	0.008821782407407408	epanetjs_customers
-J105	0
 J105	0.14554084490740737	epanetjs_customers
-J49	0
 J49	0.1709730324074074	epanetjs_customers
-J5	0
 J5	0.17696905092592588	epanetjs_customers
-J50	0
-J51	0
 J51	0.09712339120370371	epanetjs_customers
-J52	0
 J52	0.0337149074074074	epanetjs_customers
-J53	0
 J53	0.16549587962962964	epanetjs_customers
-J54	0
 J54	0.07636601851851851	epanetjs_customers
-J55	0
 J55	0.06564119212962963	epanetjs_customers
-J56	0
 J56	0.11647247685185186	epanetjs_customers
-J57	0
 J57	0.09736896990740741	epanetjs_customers
-J106	0
 J106	0.024029733796296297	epanetjs_customers
-J58	0
 J58	0.0934777662037037	epanetjs_customers
-J59	0
 J59	0.027455891203703703	epanetjs_customers
-J6	0
 J6	0.1521113078703704	epanetjs_customers
-J60	0
 J60	0.1864742824074074	epanetjs_customers
-J61	0
 J61	0.055114363425925926	epanetjs_customers
-J62	0
 J62	0.023862013888888887	epanetjs_customers
-J63	0
 J63	0.0374725	epanetjs_customers
-J64	0
 J64	0.12059953703703702	epanetjs_customers
-J65	0
 J65	0.07860762731481481	epanetjs_customers
-J66	0
 J66	0.03980793981481481	epanetjs_customers
 
 [STATUS]
@@ -578,14 +447,18 @@ PU1	Closed
 
 [CURVES]
 ;Id	X	Y
-138	20	40
+139	20	40
 
 [PATTERNS]
 ;Id	Multiplier
+CONSTANT	1
 epanetjs_customers	1
 
 [TIMES]
-Duration	0
+Duration	24
+Hydraulic Timestep	1
+Report Timestep	1
+Pattern Timestep	1
 
 [REPORT]
 Status	FULL
@@ -599,6 +472,7 @@ Accuracy	0.001
 Units	LPS
 Headloss	H-W
 Demand Multiplier	1
+Pattern	CONSTANT
 
 [BACKDROP]
 Units	DEGREES
@@ -646,8 +520,6 @@ J96	-4.376963	55.9175717
 J97	-4.3799979	55.9162114
 J98	-4.3876431	55.910351
 J99	-4.3789573	55.9160191
-R2	-4.3869324	55.9090409
-T1	-4.383709	55.9165505
 J12	-4.3786567	55.9142354
 J13	-4.3809159	55.9152283
 J14	-4.3787828	55.9157701
@@ -743,6 +615,8 @@ J63	-4.3861229	55.9107862
 J64	-4.3790582	55.9156988
 J65	-4.3780235	55.9153417
 J66	-4.3738638	55.9186122
+R2	-4.3869324	55.9090409
+T1	-4.383709	55.9165505
 
 [VERTICES]
 ;link	X-coord	Y-coord
