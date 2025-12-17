@@ -116,6 +116,10 @@ export type InpData = {
     startClocktime?: number;
     statistic?: string;
   };
+  controls: {
+    simple: string;
+    ruleBased: string;
+  };
   nodeIds: NodeIds;
 };
 
@@ -176,6 +180,7 @@ export const nullInpData = (): InpData => {
     curves: new ItemData(),
     options: { units: "GPM", headlossFormula: "H-W", demandMultiplier: 1 },
     times: {},
+    controls: { simple: "", ruleBased: "" },
     nodeIds: new NodeIds(),
   };
 };

@@ -698,3 +698,22 @@ export const parseControlsEPS: RowParser = ({ issues }) => {
 export const parseRulesEPS: RowParser = ({ issues }) => {
   issues.addRules();
 };
+
+export const parseControlsWithControls: RowParser = ({
+  trimmedRow,
+  inpData,
+}) => {
+  if (inpData.controls.simple) {
+    inpData.controls.simple += "\n" + trimmedRow;
+  } else {
+    inpData.controls.simple = trimmedRow;
+  }
+};
+
+export const parseRulesWithControls: RowParser = ({ trimmedRow, inpData }) => {
+  if (inpData.controls.ruleBased) {
+    inpData.controls.ruleBased += "\n" + trimmedRow;
+  } else {
+    inpData.controls.ruleBased = trimmedRow;
+  }
+};
