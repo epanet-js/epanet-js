@@ -14,6 +14,8 @@ import {
   AssetId,
   HeadlossFormula,
   EPSTiming,
+  Controls,
+  createEmptyControls,
 } from "src/hydraulic-model";
 import { AssetIndex } from "src/hydraulic-model/asset-index";
 import { CustomerPointsLookup } from "src/hydraulic-model/customer-points-lookup";
@@ -148,6 +150,7 @@ export class HydraulicModelBuilder {
   private idGenerator: WritableIdGenerator;
   private curves: Curves;
   private epsTiming: EPSTiming;
+  private controlsValue: Controls;
 
   static with(quantitiesSpec: AssetQuantitiesSpec = presets.LPS) {
     return new HydraulicModelBuilder(quantitiesSpec);
@@ -175,6 +178,7 @@ export class HydraulicModelBuilder {
     this.headlossFormulaValue = "H-W";
     this.curves = new Map();
     this.epsTiming = {};
+    this.controlsValue = createEmptyControls();
   }
 
   aNode(id: number, coordinates: Position = [0, 0]) {
@@ -455,6 +459,11 @@ export class HydraulicModelBuilder {
     return this;
   }
 
+  controls(controls: Controls) {
+    this.controlsValue = controls;
+    return this;
+  }
+
   build(): HydraulicModel {
     const lookup = new CustomerPointsLookup();
 
@@ -487,6 +496,7 @@ export class HydraulicModelBuilder {
       headlossFormula: this.headlossFormulaValue,
       curves: this.curves,
       epsTiming: this.epsTiming,
+      controls: this.controlsValue,
     };
   }
 

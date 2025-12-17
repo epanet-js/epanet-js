@@ -14,6 +14,16 @@ import { AssetIndex } from "./asset-index";
 import { Asset } from "./asset-types";
 import { Curves } from "./curves";
 
+export type Controls = {
+  simple: string;
+  ruleBased: string;
+};
+
+export const createEmptyControls = (): Controls => ({
+  simple: "",
+  ruleBased: "",
+});
+
 export type HydraulicModel = {
   version: string;
   assets: AssetsMap;
@@ -28,6 +38,7 @@ export type HydraulicModel = {
   labelManager: LabelManager;
   curves: Curves;
   epsTiming: EPSTiming;
+  controls: Controls;
 };
 
 export { AssetsMap };
@@ -38,12 +49,14 @@ export const initializeHydraulicModel = ({
   headlossFormula = "H-W",
   demands = createEmptyDemands(),
   epsTiming = {},
+  controls = createEmptyControls(),
 }: {
   units: UnitsSpec;
   defaults: DefaultQuantities;
   headlossFormula?: HeadlossFormula;
   demands?: Demands;
   epsTiming?: EPSTiming;
+  controls?: Controls;
 }) => {
   const labelManager = new LabelManager();
   const idGenerator = new ConsecutiveIdsGenerator();
@@ -62,6 +75,7 @@ export const initializeHydraulicModel = ({
     headlossFormula,
     curves: new Map(),
     epsTiming,
+    controls,
   };
 };
 

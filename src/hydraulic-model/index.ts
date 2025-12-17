@@ -1,7 +1,8 @@
-export type { HydraulicModel } from "./hydraulic-model";
+export type { HydraulicModel, Controls } from "./hydraulic-model";
 export {
   initializeHydraulicModel,
   updateHydraulicModelAssets,
+  createEmptyControls,
 } from "./hydraulic-model";
 export { AssetBuilder } from "./asset-builder";
 export type {
