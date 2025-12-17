@@ -1,5 +1,4 @@
 import { nanoid } from "nanoid";
-import { captureWarning } from "src/infra/error-tracking";
 import { Moment } from "./moment";
 
 export const generateStateId = () => nanoid();
@@ -110,25 +109,12 @@ export class MomentLog {
   getDeltasFrom(fromPointer: number): Moment[] {
     const result = [];
 
-    // Clamp fromPointer to valid bounds: -1 (before any deltas) to last valid index
-    const maxValidPointer = this.deltas.length - 1;
-    const validFromPointer = Math.max(
-      -1,
-      Math.min(fromPointer, maxValidPointer),
-    );
-
-    if (fromPointer !== validFromPointer) {
-      captureWarning(
-        `[MomentLog] getDeltasFrom out of bounds: fromPointer=${fromPointer}, clamped to ${validFromPointer}, pointer=${this.pointer}, deltasLength=${this.deltas.length}`,
-      );
-    }
-
-    if (this.pointer >= validFromPointer) {
-      for (let i = validFromPointer + 1; i <= this.pointer; i++) {
+    if (this.pointer >= fromPointer) {
+      for (let i = fromPointer + 1; i <= this.pointer; i++) {
         result.push(this.deltas[i].forward);
       }
     } else {
-      for (let i = validFromPointer; i > this.pointer; i--) {
+      for (let i = fromPointer; i > this.pointer; i--) {
         result.push(this.deltas[i].reverse);
       }
     }

@@ -209,40 +209,5 @@ describe("MomentLog", () => {
       const deltas = momentLog.getDeltasFrom(-1);
       expect(deltas).toEqual([action1.forward, action2.forward]);
     });
-
-    it("returns empty array when fromPointer exceeds deltas length and pointer is -1", () => {
-      const momentLog = new MomentLog();
-      // No entries, pointer = -1, fromPointer = 5 (out of bounds)
-      const deltas = momentLog.getDeltasFrom(5);
-      expect(deltas).toEqual([]);
-    });
-
-    it("clamps fromPointer when it exceeds deltas length", () => {
-      const momentLog = new MomentLog();
-      const action1 = anAction("FIRST");
-      const action2 = anAction("SECOND");
-      momentLog.append(action1.forward, action1.reverse);
-      momentLog.append(action2.forward, action2.reverse);
-      // pointer = 1, fromPointer = 10 (out of bounds, should clamp to 1)
-
-      const deltas = momentLog.getDeltasFrom(10);
-      expect(deltas).toEqual([]);
-    });
-
-    it("handles fromPointer out of bounds after undo", () => {
-      const momentLog = new MomentLog();
-      const action1 = anAction("FIRST");
-      const action2 = anAction("SECOND");
-      momentLog.append(action1.forward, action1.reverse);
-      momentLog.append(action2.forward, action2.reverse);
-
-      momentLog.undo();
-      momentLog.undo();
-      // pointer = -1, fromPointer = 5 (out of bounds)
-      // Should clamp fromPointer to 1 (last valid index), then return reverse moments
-
-      const deltas = momentLog.getDeltasFrom(5);
-      expect(deltas).toEqual([action2.reverse, action1.reverse]);
-    });
   });
 });
