@@ -14,6 +14,7 @@ import {
 } from "../asset-property-stats";
 import { pluralize } from "src/lib/utils";
 import { JsonValue } from "type-fest";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 type MultiValueRowProps = {
   name: string;
@@ -31,6 +32,7 @@ export function MultiValueRow({
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
   const [isOpen, setIsOpen] = useState(false);
+  const isSortableListsEnabled = useFeatureFlag("FLAG_SORTABLE_LISTS");
 
   const label = unit
     ? `${translate(name)} (${translateUnit(unit)})`
@@ -82,11 +84,19 @@ export function MultiValueRow({
                   decimals={decimals}
                 />
               )}
-              <ValuesList
-                values={propertyStats.values}
-                decimals={decimals}
-                type={propertyStats.type}
-              />
+              {isSortableListsEnabled ? (
+                <SortableValuesList
+                  values={propertyStats.values}
+                  decimals={decimals}
+                  type={propertyStats.type}
+                />
+              ) : (
+                <ValuesList
+                  values={propertyStats.values}
+                  decimals={decimals}
+                  type={propertyStats.type}
+                />
+              )}
             </StyledPopoverContent>
           </P.Portal>
         </P.Root>
@@ -181,6 +191,120 @@ const ValuesList = ({
                 {formatValue(value, translate, decimals)}
               </div>
               <div className="text-xs font-mono" title={translate("assets")}>
+                ({localizeDecimal(count)})
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+type SortColumn = "value" | "count";
+type SortDirection = "asc" | "desc";
+
+const SortableValuesList = ({
+  values,
+  decimals,
+  type,
+}: {
+  values: Map<JsonValue, number>;
+  decimals?: number;
+  type: "quantity" | "category";
+}) => {
+  const translate = useTranslate();
+
+  const [sortColumn, setSortColumn] = useState<SortColumn>(
+    type === "quantity" ? "value" : "count",
+  );
+  const [sortDirection, setSortDirection] = useState<SortDirection>(
+    type === "quantity" ? "desc" : "asc",
+  );
+
+  const handleSort = (column: SortColumn) => {
+    if (sortColumn === column) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortColumn(column);
+      setSortDirection("desc");
+    }
+  };
+
+  const valueEntries = Array.from(values.entries()).sort(
+    ([a, countA], [b, countB]) => {
+      const multiplier = sortDirection === "asc" ? 1 : -1;
+      if (sortColumn === "value") {
+        if (type === "quantity") {
+          return ((a as number) - (b as number)) * multiplier;
+        } else {
+          return String(a).localeCompare(String(b)) * multiplier;
+        }
+      } else {
+        return (countA - countB) * multiplier;
+      }
+    },
+  );
+
+  const SortIndicator = ({ column }: { column: SortColumn }) => {
+    const isActive = sortColumn === column;
+    return (
+      <span
+        className={`ml-1 ${isActive ? "" : "invisible"}`}
+        aria-hidden="true"
+      >
+        {sortDirection === "asc" ? "↓" : "↑"}
+      </span>
+    );
+  };
+
+  const getAriaSort = (column: SortColumn) => {
+    if (sortColumn !== column) return "none";
+    return sortDirection === "asc" ? "ascending" : "descending";
+  };
+
+  return (
+    <div role="table" aria-label={translate("values")}>
+      <div className="flex items-center gap-x-2 pb-2" role="row">
+        <button
+          onClick={() => handleSort("value")}
+          className="flex-auto text-left text-xs text-gray-500 font-bold hover:text-gray-700 dark:hover:text-gray-300 cursor-pointer"
+          role="columnheader"
+          aria-sort={getAriaSort("value")}
+        >
+          {translate("values")}
+          <SortIndicator column="value" />
+        </button>
+        <button
+          onClick={() => handleSort("count")}
+          className="text-xs text-gray-500 font-bold hover:text-gray-700 dark:hover:text-gray-300 cursor-pointer"
+          role="columnheader"
+          aria-sort={getAriaSort("count")}
+        >
+          {translate("count")}
+          <SortIndicator column="count" />
+        </button>
+      </div>
+      <div className="max-h-32 overflow-y-auto" role="rowgroup">
+        <div className="w-full">
+          {valueEntries.map(([value, count], index) => (
+            <div
+              key={index}
+              className="py-2 px-2 flex items-center hover:bg-gray-200 dark:hover:bg-gray-700 gap-x-2 even:bg-gray-100"
+              role="row"
+            >
+              <div
+                title={formatValue(value, translate, decimals)}
+                className="flex-auto font-mono text-xs truncate"
+                role="cell"
+              >
+                {formatValue(value, translate, decimals)}
+              </div>
+              <div
+                className="text-xs font-mono"
+                title={translate("assets")}
+                role="cell"
+              >
                 ({localizeDecimal(count)})
               </div>
             </div>

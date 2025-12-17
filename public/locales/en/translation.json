@@ -61,6 +61,7 @@
   "properties": "Properties",
   "value": "Value",
   "values": "Values",
+  "count": "Count",
   "status": "Status",
   "simulationStatus": "Simulation status",
   "actualStatus": "Actual status",
