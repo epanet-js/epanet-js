@@ -52,7 +52,7 @@ const TabBar = ({
   return (
     <div
       role="tablist"
-      className="flex h-8 border-b border-gray-200 dark:border-black px-6 -mx-6"
+      className="flex h-8 border-b border-gray-200 dark:border-black px-8 -mx-8"
     >
       <TabButton
         label={translate("controls.simpleTab")}
@@ -84,10 +84,10 @@ const TabButton = ({
       aria-selected={isActive}
       onClick={onClick}
       className={clsx(
-        "text-sm py-1 px-3 focus:outline-none border border-gray-200 -m-px",
+        "text-sm py-1 px-3 focus:outline-none border-t border-l border-b last:border-r border-gray-200",
         isActive
-          ? "text-black dark:text-white border-b-2 border-b-white"
-          : "text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-gray-200 bg-gray-100",
+          ? "text-black dark:text-white border-b-white -mb-px"
+          : "text-gray-500 dark:text-gray-400 border-b-transparent hover:text-black dark:hover:text-gray-200 bg-gray-100",
       )}
     >
       {label}
