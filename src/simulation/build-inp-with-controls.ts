@@ -190,7 +190,14 @@ export const buildInpWithControls = withDebugInstrumentation(
       customerPoints: false,
       inactiveAssets: false,
     };
-    const opts = { ...defaultOptions, ...options };
+    const opts = {
+      ...defaultOptions,
+      ...options,
+      labelIds:
+        options.labelIds ||
+        hydraulicModel.controls.simple !== "" ||
+        hydraulicModel.controls.ruleBased !== "",
+    };
     const idMap = new EpanetIds({ strategy: opts.labelIds ? "label" : "id" });
     const units = chooseUnitSystem(hydraulicModel.units);
     const headlossFormula = hydraulicModel.headlossFormula;
