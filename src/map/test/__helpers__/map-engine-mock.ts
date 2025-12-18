@@ -142,6 +142,9 @@ class MapTestEngine {
   showFeatures() {}
   hideFeatures() {}
   setOverlay() {}
+  isStyleLoaded(): boolean {
+    return true;
+  }
   clearFeatureState(sourceName: DataSource): void {
     this.map.removeFeatureState({ source: sourceName });
   }

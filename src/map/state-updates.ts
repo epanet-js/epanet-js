@@ -168,6 +168,7 @@ const mapStateAtom = atom<MapState>((get) => {
 const detectChanges = (
   state: MapState,
   prev: MapState,
+  map: MapEngine,
 ): {
   hasNewImport: boolean;
   hasNewEditions: boolean;
@@ -185,6 +186,7 @@ const detectChanges = (
     hasNewImport: state.momentLogId !== prev.momentLogId,
     hasNewEditions: state.momentLogPointer !== prev.momentLogPointer,
     hasNewStyles:
+      !map.isStyleLoaded() ||
       state.stylesConfig !== prev.stylesConfig ||
       (!state.isOffline && prev.isOffline),
     hasNewSelection: state.selection !== prev.selection,
@@ -228,7 +230,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     const previousMapState = previousMapStateRef.current;
     previousMapStateRef.current = mapState;
 
-    const changes = detectChanges(mapState, previousMapState);
+    const changes = detectChanges(mapState, previousMapState, map);
     const {
       hasNewImport,
       hasNewStyles,

@@ -228,6 +228,14 @@ export class MapEngine {
     this.overlay.setProps({ layers });
   }
 
+  isStyleLoaded(): boolean {
+    return !!(
+      this.map &&
+      (this.map as any).style &&
+      this.map.getSource("features")
+    );
+  }
+
   pickOverlayObjects({
     x,
     y,
