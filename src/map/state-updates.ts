@@ -30,7 +30,7 @@ import {
 import { ISymbology, LayerConfigMap, SYMBOLIZATION_NONE } from "src/types";
 import { buildBaseStyle, makeLayers } from "./build-style";
 import { LayerId } from "./layers";
-import { Asset, AssetId, AssetsMap, filterAssets } from "src/hydraulic-model";
+import { AssetId, AssetsMap, filterAssets } from "src/hydraulic-model";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { captureError } from "src/infra/error-tracking";
 import { withDebugInstrumentation } from "src/infra/with-instrumentation";
@@ -53,7 +53,6 @@ import {
 import { CustomerPoints } from "src/hydraulic-model/customer-points";
 import { DEFAULT_ZOOM } from "./map-engine";
 import { junctionsSymbologyFilterExpression } from "./layers/junctions";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { mapSnapshotPointerAtom } from "src/state/map";
 
 const SELECTION_LAYERS: LayerId[] = [
@@ -207,7 +206,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const setMapSnapshotPointer = useSetAtom(mapSnapshotPointerAtom);
   const mapState = useAtomValue(mapStateAtom);
   const setMapLoading = useSetAtom(mapLoadingAtom);
-  const isMapLagFixOn = useFeatureFlag("FLAG_MAP_LAG_FIX");
 
   const assets = useAtomValue(assetsAtom);
   const {
@@ -273,78 +271,37 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           toggleAnalysisLayers(map, mapState.symbology);
         }
 
-        if (isMapLagFixOn) {
-          if (
-            hasSnapshotPointerChanged ||
-            hasNewImport ||
-            hasNewStyles ||
-            hasNewSymbology ||
-            (hasNewSimulation && mapState.simulation.status !== "running")
-          ) {
-            await updateMainSource(
-              map,
-              assets,
-              mapState.symbology,
-              quantities,
-              translateUnit,
-            );
-            lastHiddenFeatures.current = new Set();
-            setMapSnapshotPointer((prev) => {
-              return { pointer: momentLog.getPointer(), version: prev.version };
-            });
-          }
+        if (
+          hasSnapshotPointerChanged ||
+          hasNewImport ||
+          hasNewStyles ||
+          hasNewSymbology ||
+          (hasNewSimulation && mapState.simulation.status !== "running")
+        ) {
+          await rebuildSources(
+            map,
+            assets,
+            mapState.symbology,
+            quantities,
+            translateUnit,
+          );
+          lastHiddenFeatures.current = new Set();
+          setMapSnapshotPointer((prev) => {
+            return { pointer: momentLog.getPointer(), version: prev.version };
+          });
+        }
 
-          if (hasNewEditions && !hasSnapshotPointerChanged) {
-            const { editedAssetIds } = await updateSourcesWithConsolidation(
-              map,
-              momentLog,
-              mapState.snapshotPointer,
-              assets,
-              mapState.symbology,
-              quantities,
-              translateUnit,
-            );
-            lastHiddenFeatures.current = editedAssetIds;
-          }
-        } else {
-          if (
-            hasNewImport ||
-            hasNewStyles ||
-            hasNewSymbology ||
-            (hasNewSimulation && mapState.simulation.status !== "running")
-          ) {
-            await updateImportSource(
-              map,
-              momentLog,
-              assets,
-              mapState.symbology,
-              quantities,
-              translateUnit,
-            );
-          }
-
-          if (
-            hasNewEditions ||
-            hasNewStyles ||
-            hasNewSymbology ||
-            (hasNewSimulation && mapState.simulation.status !== "running")
-          ) {
-            const editedAssetIds = await updateEditionsSource(
-              map,
-              momentLog,
-              assets,
-              mapState.symbology,
-              quantities,
-              translateUnit,
-            );
-
-            const newHiddenFeatures = updateImportedSourceVisibility(
-              map,
-              lastHiddenFeatures.current,
-              editedAssetIds,
-            );
-            lastHiddenFeatures.current = newHiddenFeatures;
-          }
+        if (hasNewEditions && !hasSnapshotPointerChanged) {
+          const { editedAssetIds } = await syncSourcesWithEdits(
+            map,
+            momentLog,
+            mapState.snapshotPointer,
+            assets,
+            mapState.symbology,
+            quantities,
+            translateUnit,
+          );
+          lastHiddenFeatures.current = editedAssetIds;
         }
 
         if (
@@ -490,7 +447,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     translate,
     translateUnit,
     hydraulicModel,
-    isMapLagFixOn,
   ]);
 
   doUpdates();
@@ -543,73 +499,6 @@ const toggleAnalysisLayers = withDebugInstrumentation(
   { name: "MAP_STATE:TOGGLE_ANALYSIS_LAYERS", maxDurationMs: 100 },
 );
 
-const updateImportSource = withDebugInstrumentation(
-  async (
-    map: MapEngine,
-    momentLog: MomentLog,
-    assets: AssetsMap,
-    symbology: SymbologySpec,
-    quantities: Quantities,
-    translateUnit: (unit: Unit) => string,
-  ) => {
-    const importSnapshot = momentLog.getSnapshot();
-    if (!importSnapshot) {
-      await map.setSource("imported-features", []);
-      return;
-    }
-
-    const importedAssets = new AssetsMap();
-    const { moment } = importSnapshot;
-    for (const asset of moment.putAssets as Asset[]) {
-      importedAssets.set(asset.id, asset);
-    }
-
-    const features = buildOptimizedAssetsSource(
-      importedAssets,
-      symbology,
-      quantities,
-      translateUnit,
-    );
-    await map.setSource("imported-features", features);
-  },
-  {
-    name: "MAP_STATE:UPDATE_IMPORT_SOURCE",
-    maxDurationMs: 10000,
-    maxCalls: 10,
-    callsIntervalMs: 1000,
-  },
-);
-
-const updateEditionsSource = withDebugInstrumentation(
-  async (
-    map: MapEngine,
-    momentLog: MomentLog,
-    assets: AssetsMap,
-    symbology: SymbologySpec,
-    quantities: Quantities,
-    translateUnit: (unit: Unit) => string,
-  ): Promise<Set<AssetId>> => {
-    const editionMoments = momentLog.getDeltas();
-
-    const editionAssetIds = getAssetIdsInMoments(editionMoments);
-    const editedAssets = filterAssets(assets, editionAssetIds);
-
-    const features = buildOptimizedAssetsSource(
-      editedAssets,
-      symbology,
-      quantities,
-      translateUnit,
-    );
-    await map.setSource("features", features);
-
-    return editionAssetIds;
-  },
-  {
-    name: "MAP_STATE:UPDATE_EDITIONS_SOURCE",
-    maxDurationMs: 250,
-  },
-);
-
 const updateIconsSource = withDebugInstrumentation(
   async (map: MapEngine, assets: AssetsMap, selection: Sel): Promise<void> => {
     const selectionSet = new Set(USelection.toIds(selection));
@@ -620,24 +509,6 @@ const updateIconsSource = withDebugInstrumentation(
     name: "MAP_STATE:UPDATE_ICONS_SOURCE",
     maxDurationMs: 250,
   },
-);
-
-const updateImportedSourceVisibility = withDebugInstrumentation(
-  (
-    map: MapEngine,
-    lastHiddenFeatures: Set<AssetId>,
-    editedAssetIds: Set<AssetId>,
-  ): Set<AssetId> => {
-    const newHiddenFeatures = Array.from(editedAssetIds);
-    const newShownFeatures = Array.from(lastHiddenFeatures).filter(
-      (assetId) => !editedAssetIds.has(assetId),
-    );
-    map.showFeatures("imported-features", newShownFeatures);
-    map.hideFeatures("imported-features", newHiddenFeatures);
-
-    return new Set(newHiddenFeatures);
-  },
-  { name: "MAP_STATE:UPDATE_VISIBILTIES", maxDurationMs: 100 },
 );
 
 const updateMainSourceVisibility = withDebugInstrumentation(
@@ -651,7 +522,7 @@ const updateMainSourceVisibility = withDebugInstrumentation(
   { name: "MAP_STATE:UPDATE_VISIBILITIES", maxDurationMs: 100 },
 );
 
-const updateMainSource = withDebugInstrumentation(
+const rebuildSources = withDebugInstrumentation(
   async (
     map: MapEngine,
     assets: AssetsMap,
@@ -694,7 +565,7 @@ const updateDeltaSource = withDebugInstrumentation(
   { name: "MAP_STATE:UPDATE_DELTA_SOURCE", maxDurationMs: 250 },
 );
 
-const updateSourcesWithConsolidation = async (
+const syncSourcesWithEdits = async (
   map: MapEngine,
   momentLog: MomentLog,
   mapSnapshotPointer: number,
