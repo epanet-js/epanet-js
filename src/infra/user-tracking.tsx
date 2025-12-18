@@ -77,8 +77,8 @@ type AssetPropertyEdited = {
   name: "assetProperty.edited";
   type: Asset["type"];
   property: string;
-  newValue: number | null;
-  oldValue: number | null;
+  newValue: number | string | null;
+  oldValue: number | string | null;
 };
 
 type AssetStatusEdited = {

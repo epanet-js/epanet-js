@@ -22,6 +22,7 @@ import {
   changePumpCurve,
   changeProperty,
   changeJunctionDemands,
+  changeLabel,
 } from "src/hydraulic-model/model-operations";
 import { activateAssets } from "src/hydraulic-model/model-operations/activate-assets";
 import { deactivateAssets } from "src/hydraulic-model/model-operations/deactivate-assets";
@@ -93,6 +94,7 @@ export function AssetPanel({
   const rep = usePersistence();
   const transact = rep.useTransact();
   const userTracking = useUserTracking();
+  const isEditLabelsEnabled = useFeatureFlag("FLAG_EDIT_LABELS");
 
   const handlePropertyChange = useCallback(
     (
@@ -213,6 +215,31 @@ export function AssetPanel({
     [asset, hydraulicModel, transact, userTracking],
   );
 
+  const handleLabelChange = useCallback(
+    (newLabel: string) => {
+      const oldLabel = asset.label;
+      if (newLabel === oldLabel) return;
+
+      const moment = changeLabel(hydraulicModel, {
+        assetId: asset.id,
+        newLabel,
+      });
+      transact(moment);
+      userTracking.capture({
+        name: "assetProperty.edited",
+        type: asset.type,
+        property: "label",
+        newValue: newLabel,
+        oldValue: oldLabel,
+      });
+    },
+    [asset.id, asset.label, asset.type, hydraulicModel, transact, userTracking],
+  );
+
+  const labelChangeHandler = isEditLabelsEnabled
+    ? handleLabelChange
+    : undefined;
+
   switch (asset.type) {
     case "junction":
       return (
@@ -221,6 +248,7 @@ export function AssetPanel({
           quantitiesMetadata={quantitiesMetadata}
           onPropertyChange={handlePropertyChange}
           onConstantDemandChange={handleChangeJunctionDemand}
+          onLabelChange={labelChangeHandler}
           hydraulicModel={hydraulicModel}
         />
       );
@@ -235,6 +263,7 @@ export function AssetPanel({
           onPropertyChange={handlePropertyChange}
           onStatusChange={handleStatusChange}
           onActiveTopologyStatusChange={handleActiveTopologyStatusChange}
+          onLabelChange={labelChangeHandler}
           hydraulicModel={hydraulicModel}
         />
       );
@@ -249,6 +278,7 @@ export function AssetPanel({
           onStatusChange={handleStatusChange}
           onActiveTopologyStatusChange={handleActiveTopologyStatusChange}
           onDefinitionChange={handleChangePumpDefinition}
+          onLabelChange={labelChangeHandler}
           quantitiesMetadata={quantitiesMetadata}
           {...getLinkNodes(hydraulicModel.assets, pump)}
         />
@@ -264,6 +294,7 @@ export function AssetPanel({
           onStatusChange={handleStatusChange}
           onTypeChange={handleValveKindChange}
           onActiveTopologyStatusChange={handleActiveTopologyStatusChange}
+          onLabelChange={labelChangeHandler}
           {...getLinkNodes(hydraulicModel.assets, valve)}
         />
       );
@@ -274,6 +305,7 @@ export function AssetPanel({
           reservoir={asset as Reservoir}
           quantitiesMetadata={quantitiesMetadata}
           onPropertyChange={handlePropertyChange}
+          onLabelChange={labelChangeHandler}
         />
       );
     case "tank":
@@ -282,6 +314,7 @@ export function AssetPanel({
           tank={asset as Tank}
           quantitiesMetadata={quantitiesMetadata}
           onPropertyChange={handlePropertyChange}
+          onLabelChange={labelChangeHandler}
         />
       );
   }
@@ -292,12 +325,14 @@ const JunctionEditor = ({
   quantitiesMetadata,
   onPropertyChange,
   onConstantDemandChange,
+  onLabelChange,
   hydraulicModel,
 }: {
   junction: Junction;
   quantitiesMetadata: Quantities;
   onPropertyChange: OnPropertyChange;
   onConstantDemandChange: (newValue: number, oldValue: number) => void;
+  onLabelChange?: (newLabel: string) => void;
   hydraulicModel: HydraulicModel;
 }) => {
   const translate = useTranslate();
@@ -317,7 +352,11 @@ const JunctionEditor = ({
   );
 
   return (
-    <AssetEditorContent label={junction.label} type={translate("junction")}>
+    <AssetEditorContent
+      label={junction.label}
+      type={translate("junction")}
+      onLabelChange={onLabelChange}
+    >
       <Section title={translate("activeTopology")}>
         <SwitchRow
           name="isActive"
@@ -416,6 +455,7 @@ const PipeEditor = ({
   onPropertyChange,
   onStatusChange,
   onActiveTopologyStatusChange,
+  onLabelChange,
   hydraulicModel,
 }: {
   pipe: Pipe;
@@ -430,6 +470,7 @@ const PipeEditor = ({
     newValue: boolean,
     oldValue: boolean,
   ) => void;
+  onLabelChange?: (newLabel: string) => void;
   hydraulicModel: HydraulicModel;
 }) => {
   const translate = useTranslate();
@@ -464,7 +505,11 @@ const PipeEditor = ({
   };
 
   return (
-    <AssetEditorContent label={pipe.label} type={translate("pipe")}>
+    <AssetEditorContent
+      label={pipe.label}
+      type={translate("pipe")}
+      onLabelChange={onLabelChange}
+    >
       <Section title={translate("connections")}>
         <TextRow name="startNode" value={startNode ? startNode.label : ""} />
         <TextRow name="endNode" value={endNode ? endNode.label : ""} />
@@ -575,14 +620,20 @@ const ReservoirEditor = ({
   reservoir,
   quantitiesMetadata,
   onPropertyChange,
+  onLabelChange,
 }: {
   reservoir: Reservoir;
   quantitiesMetadata: Quantities;
   onPropertyChange: OnPropertyChange;
+  onLabelChange?: (newLabel: string) => void;
 }) => {
   const translate = useTranslate();
   return (
-    <AssetEditorContent label={reservoir.label} type={translate("reservoir")}>
+    <AssetEditorContent
+      label={reservoir.label}
+      type={translate("reservoir")}
+      onLabelChange={onLabelChange}
+    >
       <Section title={translate("activeTopology")}>
         <SwitchRow
           name="isActive"
@@ -614,14 +665,20 @@ const TankEditor = ({
   tank,
   quantitiesMetadata,
   onPropertyChange,
+  onLabelChange,
 }: {
   tank: Tank;
   quantitiesMetadata: Quantities;
   onPropertyChange: OnPropertyChange;
+  onLabelChange?: (newLabel: string) => void;
 }) => {
   const translate = useTranslate();
   return (
-    <AssetEditorContent label={tank.label} type={translate("tank")}>
+    <AssetEditorContent
+      label={tank.label}
+      type={translate("tank")}
+      onLabelChange={onLabelChange}
+    >
       <Section title={translate("activeTopology")}>
         <SwitchRow
           name="isActive"
@@ -728,6 +785,7 @@ const ValveEditor = ({
   onStatusChange,
   onTypeChange,
   onActiveTopologyStatusChange,
+  onLabelChange,
 }: {
   valve: Valve;
   startNode: NodeAsset | null;
@@ -741,6 +799,7 @@ const ValveEditor = ({
     newValue: boolean,
     oldValue: boolean,
   ) => void;
+  onLabelChange?: (newLabel: string) => void;
 }) => {
   const translate = useTranslate();
   const statusText = translate(valveStatusLabel(valve));
@@ -788,7 +847,11 @@ const ValveEditor = ({
   };
 
   return (
-    <AssetEditorContent label={valve.label} type={translate("valve")}>
+    <AssetEditorContent
+      label={valve.label}
+      type={translate("valve")}
+      onLabelChange={onLabelChange}
+    >
       <Section title={translate("connections")}>
         <TextRow name="startNode" value={startNode ? startNode.label : ""} />
         <TextRow name="endNode" value={endNode ? endNode.label : ""} />
@@ -873,6 +936,7 @@ const PumpEditor = ({
   onPropertyChange,
   onActiveTopologyStatusChange,
   onDefinitionChange,
+  onLabelChange,
   quantitiesMetadata,
   curves,
 }: {
@@ -887,6 +951,7 @@ const PumpEditor = ({
     oldValue: boolean,
   ) => void;
   onDefinitionChange: (data: PumpDefinitionData) => void;
+  onLabelChange?: (newLabel: string) => void;
   quantitiesMetadata: Quantities;
   curves: Curves;
 }) => {
@@ -909,7 +974,11 @@ const PumpEditor = ({
   };
 
   return (
-    <AssetEditorContent label={pump.label} type={translate("pump")}>
+    <AssetEditorContent
+      label={pump.label}
+      type={translate("pump")}
+      onLabelChange={onLabelChange}
+    >
       <Section title={translate("connections")}>
         <TextRow name="startNode" value={startNode ? startNode.label : ""} />
         <TextRow name="endNode" value={endNode ? endNode.label : ""} />

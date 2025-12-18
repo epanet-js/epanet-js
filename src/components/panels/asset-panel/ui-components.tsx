@@ -1,4 +1,5 @@
 import { useRef, useState, KeyboardEventHandler } from "react";
+import { EditableTextField } from "src/components/form/editable-text-field";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { Unit, convertTo } from "src/quantity";
@@ -27,29 +28,63 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 export const AssetEditorContent = ({
   label,
   type,
+  onLabelChange,
   children,
 }: {
   label: string;
   type: string;
+  onLabelChange?: (newLabel: string) => void;
   children: React.ReactNode;
 }) => {
   return (
-    <SectionList header={<Header label={label} type={type} />} gap={3}>
+    <SectionList
+      header={
+        <Header label={label} type={type} onLabelChange={onLabelChange} />
+      }
+      gap={3}
+    >
       {children}
     </SectionList>
   );
 };
 
-const Header = ({ label, type }: { label: string; type: string }) => {
+const Header = ({
+  label,
+  type,
+  onLabelChange,
+}: {
+  label: string;
+  type: string;
+  onLabelChange?: (newLabel: string) => void;
+}) => {
   return (
-    <div className="px-4 pt-4 pb-3">
-      <div className="flex items-center justify-between">
-        <span className="font-semibold truncate max-w-full" title={label}>
-          {label}
-        </span>
+    <div className="px-3 pt-4 pb-3">
+      <div className="flex items-center justify-between gap-2">
+        <div className="min-w-0 flex-1">
+          {onLabelChange ? (
+            <EditableTextField
+              label={label}
+              value={label}
+              onChangeValue={onLabelChange}
+              styleOptions={{
+                padding: "sm",
+                ghostBorder: true,
+                fontWeight: "semibold",
+                textSize: "sm",
+              }}
+            />
+          ) : (
+            <span
+              className="font-semibold text-sm text-gray-700 dark:text-gray-100 truncate block p-1"
+              title={label}
+            >
+              {label}
+            </span>
+          )}
+        </div>
         <PanelActions />
       </div>
-      <span className="text-sm text-gray-500">{type}</span>
+      <span className="text-sm text-gray-500 pl-1">{type}</span>
     </div>
   );
 };
