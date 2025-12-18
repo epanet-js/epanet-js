@@ -4,6 +4,7 @@ import { useAtomCallback } from "jotai/utils";
 import { useCallback } from "react";
 import { buildInp } from "src/simulation/build-inp";
 import { buildInpEPS } from "src/simulation/build-inp-eps";
+import { buildInpWithControls } from "src/simulation/build-inp-with-controls";
 import { useTranslate } from "src/hooks/use-translate";
 import type { fileSave as fileSaveType } from "browser-fs-access";
 import { useAtomValue, useSetAtom } from "jotai";
@@ -31,6 +32,7 @@ export const useSaveInp = ({
   const fileInfo = useAtomValue(fileInfoAtom);
   const userTracking = useUserTracking();
   const isEPSEnabled = useFeatureFlag("FLAG_EPS");
+  const isControlsEnabled = useFeatureFlag("FLAG_CONTROLS");
 
   const saveInp = useAtomCallback(
     useCallback(
@@ -58,9 +60,11 @@ export const useSaveInp = ({
             customerPoints: true,
             inactiveAssets: true,
           };
-          const inp = isEPSEnabled
-            ? buildInpEPS(data.hydraulicModel, buildOptions)
-            : buildInp(data.hydraulicModel, buildOptions);
+          const inp = isControlsEnabled
+            ? buildInpWithControls(data.hydraulicModel, buildOptions)
+            : isEPSEnabled
+              ? buildInpEPS(data.hydraulicModel, buildOptions)
+              : buildInp(data.hydraulicModel, buildOptions);
           const inpBlob = new Blob([inp], { type: "text/plain" });
 
           const newHandle = await fileSave(
@@ -98,7 +102,7 @@ export const useSaveInp = ({
           return false;
         }
       },
-      [getFsAccess, userTracking, translate, isEPSEnabled],
+      [getFsAccess, userTracking, translate, isEPSEnabled, isControlsEnabled],
     ),
   );
 

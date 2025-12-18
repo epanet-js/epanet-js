@@ -2,6 +2,7 @@ import { useAtomValue, useSetAtom } from "jotai";
 import { useCallback } from "react";
 import { buildInp } from "src/simulation/build-inp";
 import { buildInpEPS } from "src/simulation/build-inp-eps";
+import { buildInpWithControls } from "src/simulation/build-inp-with-controls";
 import { dataAtom, dialogAtom, simulationAtom } from "src/state/jotai";
 import {
   ProgressCallback,
@@ -25,6 +26,7 @@ export const useRunSimulation = () => {
   const setData = useSetAtom(dataAtom);
   const setDrawingMode = useDrawingMode();
   const isEPSEnabled = useFeatureFlag("FLAG_EPS");
+  const isControlsEnabled = useFeatureFlag("FLAG_CONTROLS");
 
   const runSimulationLegacy = useCallback(async () => {
     setDrawingMode(Mode.NONE);
@@ -63,7 +65,9 @@ export const useRunSimulation = () => {
   const runSimulationEPS = useCallback(async () => {
     setDrawingMode(Mode.NONE);
     setSimulationState((prev) => ({ ...prev, status: "running" }));
-    const inp = buildInpEPS(hydraulicModel, { customerDemands: true });
+    const inp = isControlsEnabled
+      ? buildInpWithControls(hydraulicModel, { customerDemands: true })
+      : buildInpEPS(hydraulicModel, { customerDemands: true });
     const start = performance.now();
 
     let isCompleted = false;
@@ -128,6 +132,7 @@ export const useRunSimulation = () => {
     setSimulationState,
     setDialogState,
     setData,
+    isControlsEnabled,
   ]);
 
   return isEPSEnabled ? runSimulationEPS : runSimulationLegacy;
