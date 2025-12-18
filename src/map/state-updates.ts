@@ -267,6 +267,8 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
             mapState.stylesConfig,
             translate,
           );
+          addEditingLayersToMap(map, mapState.stylesConfig);
+          toggleAnalysisLayers(map, mapState.symbology);
         }
 
         if (isMapLagFixOn) {
@@ -436,11 +438,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
             mapState.selection,
             assets,
           );
-        }
-
-        if (hasNewStyles) {
-          addEditingLayersToMap(map, mapState.stylesConfig);
-          toggleAnalysisLayers(map, mapState.symbology);
         }
 
         if (hasNewSymbology && !hasNewStyles) {
