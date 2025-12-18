@@ -258,9 +258,9 @@ const SortableValuesList = ({
         aria-hidden="true"
       >
         {sortDirection === "asc" ? (
-          <SortAscendingIcon size="sm" />
+          <SortAscendingIcon size="md" />
         ) : (
-          <SortDescendingIcon size="sm" />
+          <SortDescendingIcon size="md" />
         )}
       </span>
     );
