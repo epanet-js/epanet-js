@@ -172,7 +172,9 @@ const SortableValuesList = ({
       setSortDirection(sortDirection === "asc" ? "desc" : "asc");
     } else {
       setSortColumn(column);
-      setSortDirection("desc");
+      const defaultDirection =
+        column === "value" && type === "category" ? "asc" : "desc";
+      setSortDirection(defaultDirection);
     }
   };
 
