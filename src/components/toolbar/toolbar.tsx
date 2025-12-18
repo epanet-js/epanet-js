@@ -1,6 +1,7 @@
 import { useTranslate } from "src/hooks/use-translate";
 import MenuAction from "../menu-action";
 import {
+  ControlsIcon,
   FileTextIcon,
   UndoIcon,
   RedoIcon,
@@ -39,6 +40,7 @@ import {
   showSimulationSettingsShortcut,
   useShowSimulationSettings,
 } from "src/commands/show-simulation-settings";
+import { useShowControls } from "src/commands/show-controls";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { useImportCustomerPoints } from "src/commands/import-customer-points";
 import { CreateNewDropdown } from "./create-new-dropdown";
@@ -62,9 +64,11 @@ export const Toolbar = () => {
   const runSimulation = useRunSimulation();
   const runPerformanceTest = useRunSimulationPerformanceTest();
   const showSimulationSettings = useShowSimulationSettings();
+  const showControls = useShowControls();
   const showReport = useShowReport();
   const importCustomerPoints = useImportCustomerPoints();
   const isEPSEnabled = useFeatureFlag("FLAG_EPS");
+  const isControlsEnabled = useFeatureFlag("FLAG_CONTROLS");
   const showPerformanceTest = isDebugOn && isEPSEnabled;
 
   const { undo, redo } = useHistoryControl();
@@ -207,6 +211,18 @@ export const Toolbar = () => {
         >
           <FileTextIcon />
         </MenuAction>
+        {isControlsEnabled && (
+          <>
+            <Divider />
+            <MenuAction
+              label={translate("controls.title")}
+              role="button"
+              onClick={() => showControls({ source: "toolbar" })}
+            >
+              <ControlsIcon />
+            </MenuAction>
+          </>
+        )}
         {isMdOrLarger && !shouldHideContextActions && (
           <>
             <ContextActions />

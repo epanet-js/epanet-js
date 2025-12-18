@@ -216,6 +216,16 @@ const SimulationProgressDialog = dynamic<{
   },
 );
 
+const ControlsDialog = dynamic(
+  () =>
+    import("src/components/dialogs/controls-dialog").then(
+      (r) => r.ControlsDialog,
+    ),
+  {
+    loading: () => <LoadingDialog />,
+  },
+);
+
 export const Dialogs = memo(function Dialogs() {
   const [dialog, setDialogState] = useAtom(dialogAtom);
   const userTracking = useUserTracking();
@@ -290,6 +300,9 @@ export const Dialogs = memo(function Dialogs() {
   }
   if (dialog.type === "simulationProgress") {
     return <SimulationProgressDialog modal={dialog} />;
+  }
+  if (dialog.type === "controls") {
+    return <ControlsDialog />;
   }
 
   if (dialog.type === "upgrade") {

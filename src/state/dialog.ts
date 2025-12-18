@@ -100,6 +100,7 @@ export type DialogState =
   | EarlyAccessDialogState
   | SimulationProgressDialogState
   | { type: "simulationSettings" }
+  | { type: "controls" }
   | null;
 
 export const dialogFromUrl = (): DialogState => {

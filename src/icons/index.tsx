@@ -54,6 +54,7 @@ import {
   Save,
   SaveAll,
   Settings,
+  SlidersHorizontal,
   SquareDashed,
   SquareStack,
   Star,
@@ -135,6 +136,7 @@ export const ActivateTopologyIcon = icon(Route);
 export const DeactivateTopologyIcon = icon(RouteOff);
 export const GlobeIcon = icon(Globe);
 export const SettingsIcon = icon(Settings);
+export const ControlsIcon = icon(SlidersHorizontal);
 export const UpgradeIcon = icon(Rocket);
 export const CircleIcon = icon(Circle);
 export const MenuIcon = icon(Menu);

@@ -439,6 +439,13 @@
     "epsMissingValues": "Please fill in all values.",
     "epsZeroValues": "Values must be greater than zero."
   },
+  "controls": {
+    "title": "Controls",
+    "simpleTab": "Simple",
+    "rulesTab": "Rule-based",
+    "simpleEmpty": "No simple controls defined",
+    "rulesEmpty": "No rule-based controls defined"
+  },
   "demandMultiplier": "Demand multiplier",
   "saveAndRun": "Save & run",
   "failedToFetchElevation": "Failed to fetch elevation",

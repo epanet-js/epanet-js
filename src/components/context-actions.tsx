@@ -4,6 +4,7 @@ import React from "react";
 import { GeometryActions } from "./context-actions/geometry-actions";
 import { CustomerPointActions } from "./context-actions/customer-point-actions";
 import { useTranslate } from "src/hooks/use-translate";
+import { Divider } from "./menu-bar";
 
 export function ContextActions() {
   const translate = useTranslate();
@@ -13,6 +14,7 @@ export function ContextActions() {
   if (selection.type === "singleCustomerPoint") {
     return (
       <div className="flex items-center">
+        <Divider />
         <div className="h-12 self-stretch flex items-center text-xs pl-2 pr-1 text-gray-700 dark:text-white">
           {translate("selection")} (
           {translate(
