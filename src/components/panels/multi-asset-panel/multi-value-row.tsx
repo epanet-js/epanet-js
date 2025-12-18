@@ -18,7 +18,6 @@ import {
 } from "../asset-property-stats";
 import { pluralize } from "src/lib/utils";
 import { JsonValue } from "type-fest";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 type MultiValueRowProps = {
   name: string;
@@ -36,7 +35,6 @@ export function MultiValueRow({
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
   const [isOpen, setIsOpen] = useState(false);
-  const isSortableListsEnabled = useFeatureFlag("FLAG_SORTABLE_LISTS");
 
   const label = unit
     ? `${translate(name)} (${translateUnit(unit)})`
@@ -88,19 +86,11 @@ export function MultiValueRow({
                   decimals={decimals}
                 />
               )}
-              {isSortableListsEnabled ? (
-                <SortableValuesList
-                  values={propertyStats.values}
-                  decimals={decimals}
-                  type={propertyStats.type}
-                />
-              ) : (
-                <ValuesList
-                  values={propertyStats.values}
-                  decimals={decimals}
-                  type={propertyStats.type}
-                />
-              )}
+              <SortableValuesList
+                values={propertyStats.values}
+                decimals={decimals}
+                type={propertyStats.type}
+              />
             </StyledPopoverContent>
           </P.Portal>
         </P.Root>
@@ -152,55 +142,6 @@ const QuantityStatsDeprecatedFields = ({
           </div>
         );
       })}
-    </div>
-  );
-};
-
-const ValuesList = ({
-  values,
-  decimals,
-  type,
-}: {
-  values: Map<JsonValue, number>;
-  decimals?: number;
-  type: "quantity" | "category";
-}) => {
-  const translate = useTranslate();
-  const valueEntries = Array.from(values.entries()).sort(
-    ([a, countA], [b, countB]) => {
-      if (type === "quantity") {
-        return (b as number) - (a as number);
-      } else {
-        return countB - countA;
-      }
-    },
-  );
-
-  return (
-    <div>
-      <div className="pb-2 text-xs text-gray-500 font-bold">
-        {translate("values")}
-      </div>
-      <div className="max-h-32 overflow-y-auto">
-        <div className="w-full">
-          {valueEntries.map(([value, count], index) => (
-            <div
-              key={index}
-              className="py-2 px-2 flex items-center hover:bg-gray-200 dark:hover:bg-gray-700 gap-x-2 even:bg-gray-100"
-            >
-              <div
-                title={formatValue(value, translate, decimals)}
-                className="flex-auto font-mono text-xs truncate"
-              >
-                {formatValue(value, translate, decimals)}
-              </div>
-              <div className="text-xs font-mono" title={translate("assets")}>
-                ({localizeDecimal(count)})
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
     </div>
   );
 };
