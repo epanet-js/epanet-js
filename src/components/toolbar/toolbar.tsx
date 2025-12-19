@@ -70,9 +70,8 @@ export const Toolbar = () => {
   const showControls = useShowControls();
   const showReport = useShowReport();
   const importCustomerPoints = useImportCustomerPoints();
-  const isEPSEnabled = useFeatureFlag("FLAG_EPS");
   const isControlsEnabled = useFeatureFlag("FLAG_CONTROLS");
-  const showPerformanceTest = isDebugOn && isEPSEnabled;
+  const showPerformanceTest = isDebugOn;
 
   const { undo, redo } = useHistoryControl();
 

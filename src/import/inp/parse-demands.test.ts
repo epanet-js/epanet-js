@@ -33,6 +33,7 @@ describe("parse demands", () => {
     const { hydraulicModel } = parseInp(inp);
     const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
 
-    expect(junction.baseDemand).toEqual(50);
+    expect(junction.demands).toHaveLength(1);
+    expect(junction.demands[0].baseDemand).toEqual(50);
   });
 });

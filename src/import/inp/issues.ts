@@ -2,7 +2,6 @@ export type WaterQualityType = "AGE" | "CHEMICAL" | "TRACE";
 
 export type ParserIssues = {
   unsupportedSections?: Set<string>;
-  extendedPeriodSimulation?: boolean;
   nodesMissingCoordinates?: Set<string>;
   invalidCoordinates?: Set<string>;
   invalidVertices?: Set<string>;
@@ -53,10 +52,6 @@ export class IssuesAccumulator {
       this.issues.nonDefaultTimes = new Map<string, string | number>();
 
     this.issues.nonDefaultTimes.set(optionName, defaultValue);
-  }
-
-  addEPS() {
-    this.issues.extendedPeriodSimulation = true;
   }
 
   addMissingCoordinates(nodeId: string) {

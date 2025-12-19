@@ -109,9 +109,14 @@ export const parseReaction: RowParser = ({
 export const parseReservoir: RowParser = ({
   trimmedRow,
   inpData,
+  issues,
   isCommented,
 }) => {
   const [id, baseHead, patternId] = readValues(trimmedRow);
+
+  if (patternId) {
+    issues.addReservoirPattern();
+  }
 
   inpData.reservoirs.push({
     id,
@@ -180,7 +185,12 @@ export const parseValve: RowParser = ({
   });
 };
 
-export const parsePump: RowParser = ({ trimmedRow, inpData, isCommented }) => {
+export const parsePump: RowParser = ({
+  trimmedRow,
+  inpData,
+  isCommented,
+  issues,
+}) => {
   const [id, startNodeDirtyId, endNodeDirtyId, ...settingFields] =
     readValues(trimmedRow);
 
@@ -206,6 +216,7 @@ export const parsePump: RowParser = ({ trimmedRow, inpData, isCommented }) => {
 
     if (key === "PATTERN") {
       patternId = value;
+      issues.addPumpPattern();
     }
   }
 
@@ -361,13 +372,6 @@ export const parsePattern: RowParser = ({ trimmedRow, inpData }) => {
   inpData.patterns.set(patternId, factors);
 };
 
-export const parsePatternEPS: RowParser = ({ trimmedRow, inpData }) => {
-  const [patternId, ...values] = readValues(trimmedRow);
-  const factors = inpData.patterns.get(patternId) || [];
-  factors.push(...values.map((v) => parseFloat(v)));
-  inpData.patterns.set(patternId, factors);
-};
-
 export const parseVertex: RowParser = ({ trimmedRow, inpData }) => {
   const [linkId, lng, lat] = readValues(trimmedRow);
   const vertices = inpData.vertices.get(linkId) || [];
@@ -375,25 +379,64 @@ export const parseVertex: RowParser = ({ trimmedRow, inpData }) => {
   inpData.vertices.set(linkId, vertices);
 };
 
-export const parseTimeSetting: RowParser = ({ trimmedRow, issues }) => {
-  const setting = readSetting(trimmedRow, {
-    DURATION: "0 SEC",
-    "PATTERN START": "0 SEC",
-  });
-  if (!setting) return;
+export const parseTimeSetting: RowParser = ({
+  trimmedRow,
+  inpData,
+  issues,
+}) => {
+  const upperRow = trimmedRow.toUpperCase();
 
-  if (setting.name === "DURATION") {
-    const [value] = readValues(setting.value as string);
-    if (parseInt(value) !== 0) {
-      issues.addEPS();
-      issues.addUsedTimeSetting("DURATION", setting.defaultValue);
+  for (const covered of timeSettingsCoveredByOtherWarnings) {
+    if (upperRow.startsWith(covered)) {
+      return;
     }
   }
-  if (setting.name === "PATTERN START") {
-    const [value] = readValues(setting.value as string);
-    if (parseInt(value) !== 0) {
-      issues.addUsedTimeSetting(setting.name, setting.defaultValue);
-    }
+
+  const setting = readSetting(trimmedRow, defaultTimeSettings);
+  if (!setting) return;
+
+  const { name, value, defaultValue } = setting as {
+    name: string;
+    value: string;
+    defaultValue: string;
+  };
+
+  if (name === "DURATION") {
+    inpData.times.duration = parseTimeToSeconds(value);
+  }
+  if (name === "HYDRAULIC TIMESTEP") {
+    inpData.times.hydraulicTimestep = parseTimeToSeconds(value);
+  }
+  if (name === "REPORT TIMESTEP") {
+    inpData.times.reportTimestep = parseTimeToSeconds(value);
+  }
+  if (name === "PATTERN TIMESTEP") {
+    inpData.times.patternTimestep = parseTimeToSeconds(value);
+  }
+  if (name === "PATTERN START") {
+    inpData.times.patternStart = parseTimeToSeconds(value);
+  }
+  if (name === "REPORT START") {
+    inpData.times.reportStart = parseTimeToSeconds(value);
+  }
+  if (name === "START CLOCKTIME") {
+    inpData.times.startClocktime = parseClocktimeToSeconds(value);
+  }
+  if (name === "STATISTIC") {
+    inpData.times.statistic = value;
+  }
+
+  if (name === "PATTERN START" && inpData.times.patternStart !== 0) {
+    issues.addUsedTimeSetting(name, defaultValue);
+  }
+  if (name === "REPORT START" && inpData.times.reportStart !== 0) {
+    issues.addUsedTimeSetting(name, defaultValue);
+  }
+  if (name === "START CLOCKTIME" && inpData.times.startClocktime !== 0) {
+    issues.addUsedTimeSetting(name, defaultValue);
+  }
+  if (name === "STATISTIC" && inpData.times.statistic !== defaultValue) {
+    issues.addUsedTimeSetting(name, defaultValue);
   }
 };
 
@@ -475,67 +518,6 @@ const parseClocktimeToSeconds = (timeStr: string): number => {
   }
 
   return hours * 3600 + minutes * 60;
-};
-
-export const parseTimeSettingEPS: RowParser = ({
-  trimmedRow,
-  inpData,
-  issues,
-}) => {
-  const upperRow = trimmedRow.toUpperCase();
-
-  for (const covered of timeSettingsCoveredByOtherWarnings) {
-    if (upperRow.startsWith(covered)) {
-      return;
-    }
-  }
-
-  const setting = readSetting(trimmedRow, defaultTimeSettings);
-  if (!setting) return;
-
-  const { name, value, defaultValue } = setting as {
-    name: string;
-    value: string;
-    defaultValue: string;
-  };
-
-  if (name === "DURATION") {
-    inpData.times.duration = parseTimeToSeconds(value);
-  }
-  if (name === "HYDRAULIC TIMESTEP") {
-    inpData.times.hydraulicTimestep = parseTimeToSeconds(value);
-  }
-  if (name === "REPORT TIMESTEP") {
-    inpData.times.reportTimestep = parseTimeToSeconds(value);
-  }
-  if (name === "PATTERN TIMESTEP") {
-    inpData.times.patternTimestep = parseTimeToSeconds(value);
-  }
-  if (name === "PATTERN START") {
-    inpData.times.patternStart = parseTimeToSeconds(value);
-  }
-  if (name === "REPORT START") {
-    inpData.times.reportStart = parseTimeToSeconds(value);
-  }
-  if (name === "START CLOCKTIME") {
-    inpData.times.startClocktime = parseClocktimeToSeconds(value);
-  }
-  if (name === "STATISTIC") {
-    inpData.times.statistic = value;
-  }
-
-  if (name === "PATTERN START" && inpData.times.patternStart !== 0) {
-    issues.addUsedTimeSetting(name, defaultValue);
-  }
-  if (name === "REPORT START" && inpData.times.reportStart !== 0) {
-    issues.addUsedTimeSetting(name, defaultValue);
-  }
-  if (name === "START CLOCKTIME" && inpData.times.startClocktime !== 0) {
-    issues.addUsedTimeSetting(name, defaultValue);
-  }
-  if (name === "STATISTIC" && inpData.times.statistic !== defaultValue) {
-    issues.addUsedTimeSetting(name, defaultValue);
-  }
 };
 
 export const parseOption: RowParser = ({
@@ -623,79 +605,11 @@ const readSetting = <T extends Record<string, string | number>>(
   }
 };
 
-export const parseReservoirEPS: RowParser = ({
-  trimmedRow,
-  inpData,
-  issues,
-  isCommented,
-}) => {
-  const [id, baseHead, patternId] = readValues(trimmedRow);
-
-  if (patternId) {
-    issues.addReservoirPattern();
-  }
-
-  inpData.reservoirs.push({
-    id,
-    baseHead: parseFloat(baseHead),
-    patternId,
-    isActive: !isCommented,
-  });
-  inpData.nodeIds.add(id);
-};
-
-export const parsePumpEPS: RowParser = ({
-  trimmedRow,
-  inpData,
-  issues,
-  isCommented,
-}) => {
-  const [id, startNodeDirtyId, endNodeDirtyId, ...settingFields] =
-    readValues(trimmedRow);
-
-  let power = undefined;
-  let curveId = undefined;
-  let speed = undefined;
-  let patternId = undefined;
-
-  for (let i = 0; i < settingFields.length; i += 2) {
-    const key = settingFields[i].toUpperCase();
-    const value = settingFields[i + 1];
-    if (key === "POWER") {
-      power = parseFloat(value);
-    }
-
-    if (key === "HEAD") {
-      curveId = value;
-    }
-
-    if (key === "SPEED") {
-      speed = parseFloat(value);
-    }
-
-    if (key === "PATTERN") {
-      patternId = value;
-      issues.addPumpPattern();
-    }
-  }
-
-  inpData.pumps.push({
-    id,
-    startNodeDirtyId,
-    endNodeDirtyId,
-    power,
-    curveId,
-    speed,
-    patternId,
-    isActive: !isCommented,
-  });
-};
-
-export const parseControlsEPS: RowParser = ({ issues }) => {
+export const parseControls: RowParser = ({ issues }) => {
   issues.addControls();
 };
 
-export const parseRulesEPS: RowParser = ({ issues }) => {
+export const parseRules: RowParser = ({ issues }) => {
   issues.addRules();
 };
 

@@ -370,7 +370,7 @@ describe("addCustomerPoints", () => {
     );
 
     const updatedJ1 = updatedModel.assets.get(IDS.J1) as Junction;
-    expect(updatedJ1.baseDemand).toBe(0);
+    expect(updatedJ1.demands).toHaveLength(0);
 
     const j1CustomerPoints =
       updatedModel.customerPointsLookup.getCustomerPoints(IDS.J1);

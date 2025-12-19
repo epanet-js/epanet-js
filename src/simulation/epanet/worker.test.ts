@@ -1,25 +1,23 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { lib } from "src/lib/worker";
-import { buildInpEPS } from "../build-inp-eps";
-import { runEPSSimulation } from "./main";
+import { buildInp } from "../build-inp";
 import {
-  runEPSSimulation as workerRunEPSSimulation,
+  runSimulation as workerSimulation,
   SimulationProgress,
-} from "./worker-eps";
+} from "./worker";
 import { SimulationMetadata } from "./simulation-metadata";
 import { Mock } from "vitest";
+import { runSimulation } from "./main";
 
 vi.mock("src/lib/worker", () => ({
   lib: {
-    runEPSSimulation: vi.fn(),
+    runSimulation: vi.fn(),
   },
 }));
 
 describe("EPS simulation", () => {
   beforeEach(() => {
-    (lib.runEPSSimulation as unknown as Mock).mockImplementation(
-      workerRunEPSSimulation,
-    );
+    (lib.runSimulation as unknown as Mock).mockImplementation(workerSimulation);
   });
 
   it("returns metadata with timestep count for single timestep", async () => {
@@ -29,9 +27,9 @@ describe("EPS simulation", () => {
       .aJunction(IDS.J1)
       .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
       .build();
-    const inp = buildInpEPS(hydraulicModel);
+    const inp = buildInp(hydraulicModel);
 
-    const { status, metadata } = await runEPSSimulation(inp, "test-app-id");
+    const { status, metadata } = await runSimulation(inp, "test-app-id");
     const simulationMetadata = new SimulationMetadata(metadata);
 
     expect(status).toEqual("success");
@@ -49,9 +47,9 @@ describe("EPS simulation", () => {
       .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
       .eps({ duration: 7200, hydraulicTimestep: 3600 }) // 2 hours, 1 hour timestep
       .build();
-    const inp = buildInpEPS(hydraulicModel);
+    const inp = buildInp(hydraulicModel);
 
-    const { status, metadata } = await runEPSSimulation(inp, "test-app-id");
+    const { status, metadata } = await runSimulation(inp, "test-app-id");
     const simulationMetadata = new SimulationMetadata(metadata);
 
     expect(status).toEqual("success");
@@ -73,9 +71,9 @@ describe("EPS simulation", () => {
       .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.T1 })
       .aPipe(IDS.P2, { startNodeId: IDS.T1, endNodeId: IDS.J1 })
       .build();
-    const inp = buildInpEPS(hydraulicModel);
+    const inp = buildInp(hydraulicModel);
 
-    const { status, metadata } = await runEPSSimulation(inp, "test-app-id");
+    const { status, metadata } = await runSimulation(inp, "test-app-id");
     const simulationMetadata = new SimulationMetadata(metadata);
 
     expect(status).toEqual("success");
@@ -89,9 +87,9 @@ describe("EPS simulation", () => {
       .aReservoir(IDS.R2)
       .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.R2 })
       .build();
-    const inp = buildInpEPS(hydraulicModel);
+    const inp = buildInp(hydraulicModel);
 
-    const { status, metadata } = await runEPSSimulation(inp, "test-app-id");
+    const { status, metadata } = await runSimulation(inp, "test-app-id");
     const simulationMetadata = new SimulationMetadata(metadata);
 
     expect(status).toEqual("failure");
@@ -106,17 +104,80 @@ describe("EPS simulation", () => {
       .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
       .eps({ duration: 7200, hydraulicTimestep: 3600 }) // 2 hours, 1 hour timestep
       .build();
-    const inp = buildInpEPS(hydraulicModel);
+    const inp = buildInp(hydraulicModel);
 
     const progressUpdates: SimulationProgress[] = [];
     const onProgress = (progress: SimulationProgress) => {
       progressUpdates.push(progress);
     };
 
-    await runEPSSimulation(inp, "test-app-id", {}, onProgress);
+    await runSimulation(inp, "test-app-id", {}, onProgress);
 
     expect(progressUpdates.length).toBe(3); // initial + 2 timesteps
     expect(progressUpdates[0].totalDuration).toBe(7200);
     expect(progressUpdates[progressUpdates.length - 1].currentTime).toBe(7200);
+  });
+
+  it("includes a report", async () => {
+    const IDS = { R1: 1, J1: 2, P1: 3 } as const;
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aReservoir(IDS.R1)
+      .aJunction(IDS.J1)
+      .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
+      .build();
+    const inp = buildInp(hydraulicModel);
+
+    const { status, report } = await runSimulation(inp, "APP_ID");
+
+    expect(status).toEqual("success");
+    expect(report).not.toContain("Error");
+  });
+
+  it("reports says when simulation fails", async () => {
+    const IDS = { R1: 1, R2: 2, P1: 3 } as const;
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aReservoir(IDS.R1)
+      .aReservoir(IDS.R2)
+      .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.R2 })
+      .build();
+    const inp = buildInp(hydraulicModel);
+    const { status, report } = await runSimulation(inp, "APP_ID");
+
+    expect(status).toEqual("failure");
+    expect(report).toContain("Error 223: not enough nodes");
+  });
+
+  it("report says when simulation has warnings", async () => {
+    const IDS = { R1: 1, J1: 2, P1: 3 } as const;
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aReservoir(IDS.R1, { head: 0 })
+      .aJunction(IDS.J1, { baseDemand: 10 })
+      .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
+      .build();
+    const inp = buildInp(hydraulicModel);
+
+    const { status, report } = await runSimulation(inp, "APP_ID", {
+      FLAG_WARNING: true,
+    });
+
+    expect(status).toEqual("warning");
+    expect(report).toContain("WARNING");
+  });
+
+  it("can include multiple errors in the report", async () => {
+    const IDS = { R1: 1, J1: 2, P1: 3, J2: 4 } as const;
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aReservoir(IDS.R1)
+      .aJunction(IDS.J1)
+      .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
+      .aJunction(IDS.J2)
+      .build();
+    const inp = buildInp(hydraulicModel);
+    const { status, report } = await runSimulation(inp, "APP_ID");
+
+    expect(status).toEqual("failure");
+    expect(report.match(/Error 234/gi)!.length).toEqual(1);
+    expect(report).toContain("4");
+    expect(report).toContain("Error 200");
   });
 });

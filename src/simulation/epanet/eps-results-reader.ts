@@ -7,11 +7,7 @@ import {
   TankSimulation,
 } from "../results-reader";
 import { IPrivateAppStorage } from "src/infra/storage/private-app-storage";
-import {
-  RESULTS_OUT_KEY,
-  TANK_VOLUMES_KEY,
-  PUMP_STATUS_KEY,
-} from "./worker-eps";
+import { RESULTS_OUT_KEY, TANK_VOLUMES_KEY, PUMP_STATUS_KEY } from "./worker";
 import {
   SimulationMetadata,
   type SimulationIds,
@@ -19,6 +15,7 @@ import {
   EPILOG_SIZE,
 } from "./simulation-metadata";
 import { withDebugInstrumentation } from "src/infra/with-instrumentation";
+import { captureError } from "src/infra/error-tracking";
 
 export type { SimulationIds } from "./simulation-metadata";
 
@@ -49,7 +46,25 @@ export class EPSResultsReader {
     epsMetadata?: ArrayBuffer,
     simulationIds?: SimulationIds,
   ): Promise<void> {
-    this.metadata = await this.readMetadata(epsMetadata, simulationIds);
+    try {
+      this.metadata = await this.readMetadata(epsMetadata, simulationIds);
+    } catch (error) {
+      captureError(error as Error);
+      this.metadata = {
+        simulationMetadata: new SimulationMetadata(
+          new ArrayBuffer(PROLOG_SIZE + EPILOG_SIZE),
+        ),
+        simulationIds: {
+          nodeIds: [],
+          linkIds: [],
+          nodeIdToIndex: new Map(),
+          linkIdToIndex: new Map(),
+        },
+        linkLengths: new Float32Array(0),
+        resultsBaseOffset: 0,
+        timestepBlockSize: 0,
+      };
+    }
   }
 
   get simulationIds(): SimulationIds {
@@ -85,6 +100,10 @@ export class EPSResultsReader {
         resultsBaseOffset,
         timestepBlockSize,
       } = this.metadata;
+
+      if (simulationMetadata.reportingPeriods === 0) {
+        return new EmptyResultsReader();
+      }
 
       if (
         timestepIndex < 0 ||
@@ -588,5 +607,23 @@ class TimestepResultsReader implements ResultsReader {
       return nodeIndex - firstSupplySourceIndex;
     }
     return -1;
+  }
+}
+
+class EmptyResultsReader implements ResultsReader {
+  getValve(): ValveSimulation | null {
+    return null;
+  }
+  getPump(): PumpSimulation | null {
+    return null;
+  }
+  getJunction(): JunctionSimulation | null {
+    return null;
+  }
+  getPipe(): PipeSimulation | null {
+    return null;
+  }
+  getTank(): TankSimulation | null {
+    return null;
   }
 }

@@ -44,6 +44,64 @@ describe("build inp", () => {
     expect(inp).toContain("2\t2");
   });
 
+  describe("junction demands", () => {
+    it("exports multiple demand categories per junction", () => {
+      const IDS = { J1: 1 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, {
+          elevation: 10,
+          demands: [
+            { baseDemand: 5 },
+            { baseDemand: 10, patternId: "residential" },
+            { baseDemand: 15, patternId: "commercial" },
+          ],
+        })
+        .aDemandPattern("residential", [0.8, 1.2, 1.0])
+        .aDemandPattern("commercial", [1.0, 1.5, 0.5])
+        .build();
+
+      const inp = buildInp(hydraulicModel);
+
+      expect(inp).toContain("[DEMANDS]");
+      expect(inp).toContain("1\t5"); // constant demand
+      expect(inp).toContain("1\t10\tresidential");
+      expect(inp).toContain("1\t15\tcommercial");
+      expect(inp).toContain("[PATTERNS]");
+      expect(inp).toContain("residential\t0.8\t1.2\t1");
+      expect(inp).toContain("commercial\t1\t1.5\t0.5");
+    });
+
+    it("omits pattern ID for constant demands (uses default pattern)", () => {
+      const IDS = { J1: 1 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, {
+          elevation: 10,
+          demands: [{ baseDemand: 25 }],
+        })
+        .build();
+
+      const inp = buildInp(hydraulicModel);
+
+      expect(inp).toContain("1\t25"); //constant demand
+      expect(inp).not.toContain("1\t25\t");
+    });
+
+    it("includes pattern ID for pattern demands", () => {
+      const IDS = { J1: 1 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, {
+          elevation: 10,
+          demands: [{ baseDemand: 30, patternId: "daily" }],
+        })
+        .aDemandPattern("daily", [0.5, 1.0, 1.5])
+        .build();
+
+      const inp = buildInp(hydraulicModel);
+
+      expect(inp).toContain("1\t30\tdaily");
+    });
+  });
+
   it("adds pipes", () => {
     const IDS = { NODE1: 1, NODE2: 2, NODE3: 3, PIPE1: 4, PIPE2: 5 };
     const hydraulicModel = HydraulicModelBuilder.with()
@@ -436,7 +494,7 @@ describe("build inp", () => {
       expect(inp).toContain("[DEMANDS]");
       expect(inp).toContain("1\t50");
       expect(inp).not.toContain("1\t25");
-      expect(inp).not.toContain("[PATTERNS]");
+      expect(inp).toContain("[PATTERNS]");
       expect(inp).not.toContain("epanetjs_customers");
     });
 
@@ -465,7 +523,7 @@ describe("build inp", () => {
 
       const demandsSection = inp.match(/\[DEMANDS\]([\s\S]*?)\n\n/)?.[1] || "";
       expect(demandsSection).not.toContain("1\t0");
-      expect(inp).not.toContain("[PATTERNS]");
+      expect(inp).toContain("[PATTERNS]");
       expect(inp).not.toContain("epanetjs_customers");
     });
 
@@ -621,17 +679,111 @@ describe("build inp", () => {
   });
 
   describe("times section", () => {
-    it("always outputs Duration 0 and no other timing parameters", () => {
+    it("outputs duration from epsTiming", () => {
       const hydraulicModel = HydraulicModelBuilder.with()
-        .eps({ duration: 86400, hydraulicTimestep: 3600 })
+        .eps({ duration: 86400 }) // 24 hours
         .build();
 
       const inp = buildInp(hydraulicModel);
 
       expect(inp).toContain("[TIMES]");
+      expect(inp).toContain("Duration\t24");
+    });
+
+    it("outputs hydraulic timestep when defined", () => {
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .eps({ duration: 86400, hydraulicTimestep: 3600 }) // 1 hour timestep
+        .build();
+
+      const inp = buildInp(hydraulicModel);
+
+      expect(inp).toContain("[TIMES]");
+      expect(inp).toContain("Duration\t24");
+      expect(inp).toContain("Hydraulic Timestep\t1");
+    });
+
+    it("outputs report timestep when defined", () => {
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .eps({ duration: 86400, reportTimestep: 7200 }) // 2 hour timestep
+        .build();
+
+      const inp = buildInp(hydraulicModel);
+
+      expect(inp).toContain("[TIMES]");
+      expect(inp).toContain("Report Timestep\t2");
+    });
+
+    it("outputs pattern timestep when defined", () => {
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .eps({ duration: 86400, patternTimestep: 10800 }) // 3 hour timestep
+        .build();
+
+      const inp = buildInp(hydraulicModel);
+
+      expect(inp).toContain("[TIMES]");
+      expect(inp).toContain("Pattern Timestep\t3");
+    });
+
+    it("formats time with minutes when not on the hour", () => {
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .eps({ duration: 5400 }) // 1 hour 30 minutes
+        .build();
+
+      const inp = buildInp(hydraulicModel);
+
+      expect(inp).toContain("Duration\t1:30");
+    });
+
+    it("formats time with seconds when not on the minute", () => {
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .eps({ duration: 3723 }) // 1 hour 2 minutes 3 seconds
+        .build();
+
+      const inp = buildInp(hydraulicModel);
+
+      expect(inp).toContain("Duration\t1:02:03");
+    });
+
+    it("formats time as hours only when on exact hours", () => {
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .eps({ duration: 172800 }) // 48 hours
+        .build();
+
+      const inp = buildInp(hydraulicModel);
+
+      expect(inp).toContain("Duration\t48");
+      expect(inp).not.toContain("Duration\t48:");
+    });
+
+    it("outputs all timing parameters when all are defined", () => {
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .eps({
+          duration: 86400, // 24 hours
+          hydraulicTimestep: 3600, // 1 hour
+          reportTimestep: 7200, // 2 hours
+          patternTimestep: 10800, // 3 hours
+        })
+        .build();
+
+      const inp = buildInp(hydraulicModel);
+
+      expect(inp).toContain("[TIMES]");
+      expect(inp).toContain("Duration\t24");
+      expect(inp).toContain("Hydraulic Timestep\t1");
+      expect(inp).toContain("Report Timestep\t2");
+      expect(inp).toContain("Pattern Timestep\t3");
+    });
+
+    it("outputs Duration 0 when no epsTiming is configured", () => {
+      const hydraulicModel = HydraulicModelBuilder.with().build();
+
+      const inp = buildInp(hydraulicModel);
+
+      expect(inp).toContain("[TIMES]");
       expect(inp).toContain("Duration\t0");
-      expect(inp).not.toContain("Duration\t24");
       expect(inp).not.toContain("Hydraulic Timestep");
+      expect(inp).not.toContain("Report Timestep");
+      expect(inp).not.toContain("Pattern Timestep");
     });
   });
 
@@ -793,6 +945,140 @@ describe("build inp", () => {
       expect(inp).toContain(";3\t1\t2\tHEAD 3\tSPEED 1");
       expect(inp).toContain(";3\t100\t50");
       expect(inp).toContain(";3\tOpen");
+    });
+  });
+
+  describe("constant pattern ID ", () => {
+    it("uses CONSTANT as default pattern ID when no collision exists", () => {
+      const IDS = { J1: 1 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, { elevation: 10, baseDemand: 50 })
+        .build();
+
+      const inp = buildInp(hydraulicModel);
+
+      expect(inp).toContain("Pattern\tCONSTANT");
+      expect(inp).toContain("CONSTANT\t1");
+    });
+
+    it("uses CONSTANT_1 when CONSTANT pattern already exists", () => {
+      const IDS = { J1: 1 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, {
+          elevation: 10,
+          demands: [{ baseDemand: 50, patternId: "CONSTANT" }],
+        })
+        .aDemandPattern("CONSTANT", [1.2, 0.8, 1.0])
+        .build();
+
+      const inp = buildInp(hydraulicModel);
+
+      expect(inp).toContain("Pattern\tCONSTANT_1");
+      expect(inp).toContain("CONSTANT_1\t1");
+      // Original pattern should still be there (used by junction)
+      expect(inp).toContain("CONSTANT\t1.2\t0.8\t1");
+    });
+
+    it("uses CONSTANT_2 when CONSTANT and CONSTANT_1 already exist", () => {
+      const IDS = { J1: 1 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, { elevation: 10, baseDemand: 50 })
+        .aDemandPattern("CONSTANT", [1.2, 0.8])
+        .aDemandPattern("CONSTANT_1", [0.9, 1.1])
+        .build();
+
+      const inp = buildInp(hydraulicModel);
+
+      expect(inp).toContain("Pattern\tCONSTANT_2");
+      expect(inp).toContain("CONSTANT_2\t1");
+    });
+  });
+
+  describe("demand patterns", () => {
+    it("includes only used demand patterns in INP", () => {
+      const IDS = { J1: 1, J2: 2 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, {
+          elevation: 10,
+          demands: [{ baseDemand: 50, patternId: "residential" }],
+        })
+        .aJunction(IDS.J2, {
+          elevation: 20,
+          demands: [{ baseDemand: 30 }], // constant demand, no pattern
+        })
+        .aDemandPattern("residential", [0.8, 1.2, 1.0])
+        .aDemandPattern("commercial", [1.0, 1.5, 0.5])
+        .aDemandPattern("industrial", [0.5, 1.0, 1.5])
+        .build();
+
+      const inp = buildInp(hydraulicModel);
+
+      expect(inp).toContain("[PATTERNS]");
+      expect(inp).toContain("Pattern\tCONSTANT");
+      expect(inp).toContain("CONSTANT\t1");
+      expect(inp).toContain("residential\t0.8\t1.2\t1");
+      // Unused patterns should not be included
+      expect(inp).not.toContain("commercial\t");
+      expect(inp).not.toContain("industrial\t");
+    });
+
+    it("excludes patterns only used by demands with zero baseDemand", () => {
+      const IDS = { J1: 1 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, {
+          elevation: 10,
+          demands: [{ baseDemand: 0, patternId: "residential" }],
+        })
+        .aDemandPattern("residential", [0.8, 1.2, 1.0])
+        .build();
+
+      const inp = buildInp(hydraulicModel);
+
+      expect(inp).not.toContain("residential\t"); // Pattern not included
+      expect(inp).not.toContain("1\t0\tresidential"); // Demand not included
+    });
+
+    it("includes pattern when multiple junctions reference it", () => {
+      const IDS = { J1: 1, J2: 2 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, {
+          elevation: 10,
+          demands: [{ baseDemand: 25, patternId: "residential" }],
+        })
+        .aJunction(IDS.J2, {
+          elevation: 20,
+          demands: [{ baseDemand: 50, patternId: "residential" }],
+        })
+        .aDemandPattern("residential", [0.8, 1.2, 1.0])
+        .build();
+
+      const inp = buildInp(hydraulicModel);
+
+      expect(inp).toContain("residential\t0.8\t1.2\t1");
+      expect(inp).toContain("1\t25\tresidential");
+      expect(inp).toContain("2\t50\tresidential");
+    });
+
+    it("splits long patterns across multiple lines (8 factors per line)", () => {
+      const IDS = { J1: 1 };
+      const hourlyPattern = [
+        0.5, 0.4, 0.3, 0.3, 0.4, 0.6, 0.9, 1.2, 1.3, 1.2, 1.1, 1.0, 1.0, 1.1,
+        1.2, 1.3, 1.4, 1.3, 1.2, 1.1, 1.0, 0.9, 0.7, 0.6,
+      ];
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, {
+          elevation: 10,
+          demands: [{ baseDemand: 100, patternId: "hourly" }],
+        })
+        .aDemandPattern("hourly", hourlyPattern)
+        .build();
+
+      const inp = buildInp(hydraulicModel);
+
+      const line1 = "hourly\t0.5\t0.4\t0.3\t0.3\t0.4\t0.6\t0.9\t1.2";
+      const line2 = "hourly\t1.3\t1.2\t1.1\t1\t1\t1.1\t1.2\t1.3";
+      const line3 = "hourly\t1.4\t1.3\t1.2\t1.1\t1\t0.9\t0.7\t0.6";
+      expect(inp).toContain(`${line1}\n${line2}\n${line3}`);
     });
   });
 });

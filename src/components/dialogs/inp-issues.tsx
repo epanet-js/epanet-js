@@ -13,7 +13,6 @@ import { newsletterUrl, projectionConverterUrl } from "src/global-config";
 import { ParserIssues } from "src/import/inp";
 import { useShowWelcome } from "src/commands/show-welcome";
 import { useUserTracking } from "src/infra/user-tracking";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 import {
   ChevronDownIcon,
@@ -317,7 +316,6 @@ const IssuesSummary = ({ issues }: { issues: ParserIssues }) => {
   const translate = useTranslate();
   const [isExpaned, setExpanded] = useState(false);
   const userTracking = useUserTracking();
-  const isEPSOn = useFeatureFlag("FLAG_EPS");
 
   const waterQualityLabel =
     issues.waterQualityType === "AGE"
@@ -453,7 +451,7 @@ const IssuesSummary = ({ issues }: { issues: ParserIssues }) => {
               </div>
             </div>
           )}
-          {isEPSOn && issues.hasReservoirPatterns && (
+          {issues.hasReservoirPatterns && (
             <div>
               <p>{translate("ignoredValuesDetected", "[RESERVOIRS]")}:</p>
               <div className="flex flex-col gap-y-1 items-start">
@@ -477,11 +475,11 @@ const IssuesSummary = ({ issues }: { issues: ParserIssues }) => {
               </div>
             </div>
           )}
-          {((isEPSOn && issues.hasPumpPatterns) || issues.hasPumpCurves) && (
+          {(issues.hasPumpPatterns || issues.hasPumpCurves) && (
             <div>
               <p>{translate("ignoredValuesDetected", "[PUMPS]")}:</p>
               <div className="flex flex-col gap-y-1 items-start">
-                {isEPSOn && issues.hasPumpPatterns && (
+                {issues.hasPumpPatterns && (
                   <RoadmapLink href={roadmapUrls.patterns}>
                     -{" "}
                     {translate("pumpPatterns", String(issues.hasPumpPatterns))}

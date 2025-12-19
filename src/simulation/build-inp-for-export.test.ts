@@ -1,6 +1,6 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
-import { buildInp } from "./build-inp";
 import { presets } from "src/model-metadata/quantities-spec";
+import { buildInp } from "./build-inp";
 
 describe("build inp export ", () => {
   const exportOptions = { labelIds: true, geolocation: true };

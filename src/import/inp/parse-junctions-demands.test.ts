@@ -1,4 +1,4 @@
-import { parseInpWithEPS } from "./parse-inp-with-eps";
+import { parseInp } from "./parse-inp";
 import { Junction } from "src/hydraulic-model";
 import { getByLabel } from "src/__helpers__/asset-queries";
 
@@ -17,7 +17,7 @@ describe("parse junctions demands", () => {
     [END]
     `;
 
-    const { hydraulicModel } = parseInpWithEPS(inp);
+    const { hydraulicModel } = parseInp(inp);
     const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
 
     expect(junction.demands).toHaveLength(1);
@@ -46,7 +46,7 @@ describe("parse junctions demands", () => {
     [END]
     `;
 
-    const { hydraulicModel } = parseInpWithEPS(inp);
+    const { hydraulicModel } = parseInp(inp);
     const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
 
     expect(junction.demands).toHaveLength(1);
@@ -72,7 +72,7 @@ describe("parse junctions demands", () => {
     [END]
     `;
 
-    const { hydraulicModel } = parseInpWithEPS(inp);
+    const { hydraulicModel } = parseInp(inp);
 
     expect(hydraulicModel.demands.patterns.size).toBe(1);
     expect(hydraulicModel.demands.patterns.has("PATTERN1")).toBe(true);
@@ -93,7 +93,7 @@ describe("parse junctions demands", () => {
     [END]
     `;
 
-    const { hydraulicModel } = parseInpWithEPS(inp);
+    const { hydraulicModel } = parseInp(inp);
     const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
 
     expect(junction.baseDemand).toBe(0);
@@ -115,7 +115,7 @@ describe("parse junctions demands", () => {
     [END]
     `;
 
-    const { hydraulicModel } = parseInpWithEPS(inp);
+    const { hydraulicModel } = parseInp(inp);
 
     expect(hydraulicModel.demands.patterns.get("LONGPATTERN")).toEqual([
       1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 0.9, 0.8, 0.7,
@@ -142,7 +142,7 @@ describe("parse junctions demands", () => {
     [END]
     `;
 
-    const { hydraulicModel } = parseInpWithEPS(inp);
+    const { hydraulicModel } = parseInp(inp);
     const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
 
     expect(junction.demands).toHaveLength(2);
@@ -175,7 +175,7 @@ describe("parse junctions demands", () => {
     [END]
     `;
 
-    const { hydraulicModel } = parseInpWithEPS(inp);
+    const { hydraulicModel } = parseInp(inp);
     const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
 
     expect(junction.demands).toHaveLength(1);
@@ -201,7 +201,7 @@ describe("parse junctions demands", () => {
     [END]
     `;
 
-    const { hydraulicModel } = parseInpWithEPS(inp);
+    const { hydraulicModel } = parseInp(inp);
     const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
 
     expect(junction.demands).toHaveLength(1);
@@ -224,7 +224,7 @@ describe("parse junctions demands", () => {
     [END]
     `;
 
-    const { hydraulicModel } = parseInpWithEPS(inp);
+    const { hydraulicModel } = parseInp(inp);
     const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
 
     expect(junction.demands).toHaveLength(1);
@@ -244,7 +244,7 @@ describe("parse junctions demands", () => {
     [END]
     `;
 
-    const { hydraulicModel } = parseInpWithEPS(inp);
+    const { hydraulicModel } = parseInp(inp);
     const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
 
     expect(junction.demands).toHaveLength(0);
@@ -266,7 +266,7 @@ describe("parse junctions demands", () => {
       [END]
       `;
 
-      const { hydraulicModel } = parseInpWithEPS(inp);
+      const { hydraulicModel } = parseInp(inp);
       const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
 
       expect(junction.demands).toHaveLength(1);
@@ -289,7 +289,7 @@ describe("parse junctions demands", () => {
       [END]
       `;
 
-      const { hydraulicModel } = parseInpWithEPS(inp);
+      const { hydraulicModel } = parseInp(inp);
       const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
 
       expect(junction.demands).toHaveLength(1);
@@ -315,7 +315,7 @@ describe("parse junctions demands", () => {
       [END]
       `;
 
-      const { hydraulicModel } = parseInpWithEPS(inp);
+      const { hydraulicModel } = parseInp(inp);
       const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
 
       expect(junction.demands).toHaveLength(1);
@@ -348,7 +348,7 @@ describe("parse junctions demands", () => {
       [END]
       `;
 
-      const { hydraulicModel } = parseInpWithEPS(inp);
+      const { hydraulicModel } = parseInp(inp);
       const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
 
       expect(junction.demands).toHaveLength(1);
@@ -376,7 +376,7 @@ describe("parse junctions demands", () => {
       [END]
       `;
 
-      const { hydraulicModel } = parseInpWithEPS(inp);
+      const { hydraulicModel } = parseInp(inp);
       const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
 
       expect(junction.demands).toHaveLength(1);
@@ -402,7 +402,7 @@ describe("parse junctions demands", () => {
       [END]
       `;
 
-      const { hydraulicModel } = parseInpWithEPS(inp);
+      const { hydraulicModel } = parseInp(inp);
       const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
 
       expect(junction.demands).toHaveLength(1);
@@ -427,7 +427,7 @@ describe("parse junctions demands", () => {
       [END]
       `;
 
-      const { hydraulicModel } = parseInpWithEPS(inp);
+      const { hydraulicModel } = parseInp(inp);
       const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
 
       expect(junction.demands).toHaveLength(1);
@@ -455,7 +455,7 @@ describe("parse junctions demands", () => {
       [END]
       `;
 
-      const { hydraulicModel } = parseInpWithEPS(inp);
+      const { hydraulicModel } = parseInp(inp);
       const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
 
       expect(junction.demands).toHaveLength(1);
@@ -481,7 +481,7 @@ describe("parse junctions demands", () => {
       [END]
       `;
 
-      const { hydraulicModel } = parseInpWithEPS(inp);
+      const { hydraulicModel } = parseInp(inp);
       const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
 
       expect(junction.demands).toHaveLength(1);

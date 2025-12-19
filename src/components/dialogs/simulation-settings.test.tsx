@@ -8,20 +8,20 @@ import { stubUserTracking } from "src/__helpers__/user-tracking";
 import { MemPersistence } from "src/lib/persistence/memory";
 import { PersistenceContext } from "src/lib/persistence/context";
 import { Store } from "src/state/jotai";
-import { SimulationSettingsEPSDialog } from "./simulation-settings-eps";
+import { SimulationSettingsDialog } from "./simulation-settings";
 
 const renderDialog = (store: Store) => {
   const persistence = new MemPersistence(store);
   return render(
     <PersistenceContext.Provider value={persistence}>
       <JotaiProvider store={store}>
-        <SimulationSettingsEPSDialog />
+        <SimulationSettingsDialog />
       </JotaiProvider>
     </PersistenceContext.Provider>,
   );
 };
 
-describe("SimulationSettingsEPSDialog", () => {
+describe("SimulationSettingsDialog", () => {
   beforeEach(() => {
     stubUserTracking();
   });
