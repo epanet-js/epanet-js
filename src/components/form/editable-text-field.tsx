@@ -26,6 +26,8 @@ export const EditableTextField = ({
   disabled = false,
   styleOptions = {},
   tabIndex = 1,
+  allowedChars,
+  maxByteLength,
 }: {
   label: string;
   value: string;
@@ -34,6 +36,8 @@ export const EditableTextField = ({
   disabled?: boolean;
   styleOptions?: Partial<StyleOptions>;
   tabIndex?: number;
+  allowedChars?: RegExp;
+  maxByteLength?: number;
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [inputValue, setInputValue] = useState(value);
@@ -95,7 +99,20 @@ export const EditableTextField = ({
   };
 
   const handleInputChange: ChangeEventHandler<HTMLInputElement> = (e) => {
-    setInputValue(e.target.value);
+    let newValue = e.target.value;
+    if (allowedChars) {
+      newValue = newValue
+        .split("")
+        .filter((char) => allowedChars.test(char))
+        .join("");
+    }
+    if (maxByteLength !== undefined) {
+      const encoder = new TextEncoder();
+      while (encoder.encode(newValue).length > maxByteLength) {
+        newValue = newValue.slice(0, -1);
+      }
+    }
+    setInputValue(newValue);
     setDirty(true);
   };
 

@@ -66,6 +66,8 @@ const Header = ({
               label={label}
               value={label}
               onChangeValue={onLabelChange}
+              allowedChars={/[!#$%&(,.:<=>\?@\[\]_`{}~0-9A-Za-z\xA0-\xFF]/}
+              maxByteLength={31}
               styleOptions={{
                 padding: "sm",
                 ghostBorder: true,
