@@ -16,6 +16,7 @@ import {
 } from "src/hydraulic-model/controls";
 import { usePersistence } from "src/lib/persistence/context";
 import { changeControls } from "src/hydraulic-model/model-operations";
+import { useUserTracking } from "src/infra/user-tracking";
 
 type Tab = "simple" | "ruleBased";
 
@@ -32,6 +33,7 @@ export const ControlsDialog = () => {
 
   const rep = usePersistence();
   const transact = rep.useTransact();
+  const userTracking = useUserTracking();
 
   const { controls, assets } = hydraulicModel;
 
@@ -60,11 +62,16 @@ export const ControlsDialog = () => {
         values.rulesText,
         assets,
       );
+      userTracking.capture({
+        name: "controls.changed",
+        simpleControlsCount: newControls.simple.length,
+        rulesCount: newControls.rules.length,
+      });
       const moment = changeControls(hydraulicModel, newControls);
       transact(moment);
       closeDialog();
     },
-    [assets, hydraulicModel, transact, closeDialog],
+    [assets, hydraulicModel, transact, closeDialog, userTracking],
   );
 
   return (
@@ -189,7 +196,7 @@ const ControlsTextArea = ({
       value={value}
       onChange={(e) => setFieldValue(name, e.target.value)}
       placeholder={placeholder}
-      className="w-full h-64 p-3 font-mono text-sm bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-sm resize-none focus-visible:outline-none focus-visible:border-transparent focus-visible:bg-purple-300/10 dark:focus-visible:bg-purple-700/40 focus-visible:ring-purple-500 dark:focus-visible:ring-purple-700 focus-visible:ring-inset"
+      className="w-full h-64 p-3 font-mono text-sm bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-sm resize-none focus-visible:outline-none focus-visible:border-transparent focus-visible:ring-purple-500 dark:focus-visible:ring-purple-700 focus-visible:ring-inset"
     />
   );
 };

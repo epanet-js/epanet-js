@@ -801,7 +801,12 @@ export type UserEvent =
       newValue: number;
     }
   | { name: "unexpectedError.seen" }
-  | { name: "fitMapToNetworkExtent.clicked" };
+  | { name: "fitMapToNetworkExtent.clicked" }
+  | {
+      name: "controls.changed";
+      simpleControlsCount: number;
+      rulesCount: number;
+    };
 
 const debugPostHog = {
   capture: (...data: any[]) => {
