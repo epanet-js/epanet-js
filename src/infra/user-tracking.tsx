@@ -781,6 +781,7 @@ export type UserEvent =
       source: "menu" | "customLayers";
     }
   | { name: "simulationSettings.opened"; source: string }
+  | { name: "controls.opened"; source: string }
   | { name: "assetControls.opened"; source: string }
   | {
       name: "simulationSetting.changed";

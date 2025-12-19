@@ -5,8 +5,8 @@ import { disconnectCustomers } from "src/hydraulic-model/model-operations";
 import { usePersistence } from "src/lib/persistence/context";
 import { useUserTracking } from "src/infra/user-tracking";
 
-export const connectCustomersShortcut = "alt+c";
-export const disconnectCustomersShortcut = "alt+d";
+export const connectCustomersShortcut = "shift+c";
+export const disconnectCustomersShortcut = "shift+d";
 
 export const useConnectCustomerPoints = () => {
   const selection = useAtomValue(selectionAtom);

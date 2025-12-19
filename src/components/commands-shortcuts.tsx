@@ -74,6 +74,11 @@ import {
   changeActiveTopologyShortcut,
   useChangeSelectedAssetsActiveTopologyStatus,
 } from "src/commands/change-selected-assets-active-topology-status";
+import {
+  showControlsShortcut,
+  useShowControls,
+} from "src/commands/show-controls";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 const IGNORE_ROLES = new Set(["menuitem"]);
 
@@ -101,6 +106,8 @@ export const CommandShortcuts = () => {
   const cycleSelectionMode = useCycleSelectionMode();
   const { changeSelectedAssetsActiveTopologyStatus } =
     useChangeSelectedAssetsActiveTopologyStatus();
+  const showControls = useShowControls();
+  const isControlsEnabled = useFeatureFlag("FLAG_CONTROLS");
 
   useHotkeys(
     showReportShorcut,
@@ -278,6 +285,17 @@ export const CommandShortcuts = () => {
     },
     [showSimulationSettings],
     `Show simulaton settings`,
+  );
+
+  useHotkeys(
+    showControlsShortcut,
+    (e) => {
+      e.preventDefault();
+      showControls({ source: "shortcut" });
+    },
+    [showControls],
+    `Show controls`,
+    !isControlsEnabled,
   );
 
   useHotkeys(

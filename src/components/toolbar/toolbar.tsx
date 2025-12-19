@@ -40,7 +40,10 @@ import {
   showSimulationSettingsShortcut,
   useShowSimulationSettings,
 } from "src/commands/show-simulation-settings";
-import { useShowControls } from "src/commands/show-controls";
+import {
+  showControlsShortcut,
+  useShowControls,
+} from "src/commands/show-controls";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { useImportCustomerPoints } from "src/commands/import-customer-points";
 import { CreateNewDropdown } from "./create-new-dropdown";
@@ -218,6 +221,7 @@ export const Toolbar = () => {
               label={translate("controls.title")}
               role="button"
               onClick={() => showControls({ source: "toolbar" })}
+              readOnlyHotkey={showControlsShortcut}
             >
               <ControlsIcon />
             </MenuAction>

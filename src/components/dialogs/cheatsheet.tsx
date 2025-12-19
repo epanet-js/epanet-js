@@ -4,6 +4,7 @@ import React from "react";
 import { localizeKeybinding } from "src/infra/i18n";
 import { useTranslate } from "src/hooks/use-translate";
 import { showSimulationSettingsShortcut } from "src/commands/show-simulation-settings";
+import { showControlsShortcut } from "src/commands/show-controls";
 import { getIsMac } from "src/infra/i18n/mac";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { KeyboardIcon } from "src/icons";
@@ -27,82 +28,89 @@ type ShortcutSection = {
   shortcuts: Shortcut[];
 };
 
-const getBindings = (): ShortcutSection[] => [
-  {
-    group: "keyboardShortcuts.fileManagement",
-    shortcuts: [
-      { binding: "Alt+N", description: "newProject" },
-      { binding: "Command+O", description: "openProject" },
-      { binding: "Command+S", description: "save" },
-      { binding: "Command+Shift+S", description: "saveAs" },
-    ],
-  },
-  {
-    group: "keyboardShortcuts.interface",
-    shortcuts: [
-      { binding: "B", description: "toggleSatellite" },
-      {
-        binding: toggleSidePanelShortcut,
-        description: "toggleSidePanel",
-      },
-      {
-        binding: toggleNetworkReviewShortcut,
-        description: "networkReview.toggle",
-      },
-      { binding: "?", description: "keyboardShortcuts.title" },
-    ],
-  },
-  {
-    group: "keyboardShortcuts.mapTools",
-    shortcuts: [
-      { binding: "1", description: "select" },
-      { binding: "2", description: "junction" },
-      { binding: "3", description: "reservoir" },
-      { binding: "4", description: "tank" },
-      { binding: "5", description: "pipe" },
-      { binding: "6", description: "pump" },
-      { binding: "7", description: "valve" },
-    ],
-  },
-  {
-    group: "keyboardShortcuts.simulation",
-    shortcuts: [
-      { binding: "Shift+Enter", description: "simulate" },
-      {
-        binding: showSimulationSettingsShortcut,
-        description: "simulationSettings.title",
-      },
-      { binding: "Alt+R", description: "viewReport" },
-    ],
-  },
-  {
-    group: "keyboardShortcuts.editingSelection",
-    shortcuts: [
-      {
-        binding: selectionModeShortcut,
-        description: "areaSelection.tool",
-      },
-      { binding: "Command+a", description: "selectAll" },
-      {
-        binding: changeActiveTopologyShortcut,
-        description: "toggleActiveTopology",
-      },
-      {
-        binding: "Esc",
-        description: ["exit", "clearSelection"],
-      },
-      { binding: "BACKSPACE", description: "delete" },
-      { binding: "Command+z", description: "undo" },
-      { binding: "Command+y", description: "redo" },
-    ],
-  },
-];
-
 export function CheatsheetDialog() {
   const translate = useTranslate();
   const isMac = useFeatureFlag("FLAG_MAC");
+  const isControlsEnabled = useFeatureFlag("FLAG_CONTROLS");
 
-  const BINDINGS = getBindings();
+  const BINDINGS: ShortcutSection[] = [
+    {
+      group: "keyboardShortcuts.fileManagement",
+      shortcuts: [
+        { binding: "Alt+N", description: "newProject" },
+        { binding: "Command+O", description: "openProject" },
+        { binding: "Command+S", description: "save" },
+        { binding: "Command+Shift+S", description: "saveAs" },
+      ],
+    },
+    {
+      group: "keyboardShortcuts.interface",
+      shortcuts: [
+        { binding: "B", description: "toggleSatellite" },
+        {
+          binding: toggleSidePanelShortcut,
+          description: "toggleSidePanel",
+        },
+        {
+          binding: toggleNetworkReviewShortcut,
+          description: "networkReview.toggle",
+        },
+        { binding: "?", description: "keyboardShortcuts.title" },
+      ],
+    },
+    {
+      group: "keyboardShortcuts.mapTools",
+      shortcuts: [
+        { binding: "1", description: "select" },
+        { binding: "2", description: "junction" },
+        { binding: "3", description: "reservoir" },
+        { binding: "4", description: "tank" },
+        { binding: "5", description: "pipe" },
+        { binding: "6", description: "pump" },
+        { binding: "7", description: "valve" },
+      ],
+    },
+    {
+      group: "keyboardShortcuts.simulation",
+      shortcuts: [
+        { binding: "Shift+Enter", description: "simulate" },
+        {
+          binding: showSimulationSettingsShortcut,
+          description: "simulationSettings.title",
+        },
+        { binding: "Alt+R", description: "viewReport" },
+        ...(isControlsEnabled
+          ? [
+              {
+                binding: showControlsShortcut,
+                description: "controls.title" as TranslationKey,
+              },
+            ]
+          : []),
+      ],
+    },
+    {
+      group: "keyboardShortcuts.editingSelection",
+      shortcuts: [
+        {
+          binding: selectionModeShortcut,
+          description: "areaSelection.tool",
+        },
+        { binding: "Command+a", description: "selectAll" },
+        {
+          binding: changeActiveTopologyShortcut,
+          description: "toggleActiveTopology",
+        },
+        {
+          binding: "Esc",
+          description: ["exit", "clearSelection"],
+        },
+        { binding: "BACKSPACE", description: "delete" },
+        { binding: "Command+z", description: "undo" },
+        { binding: "Command+y", description: "redo" },
+      ],
+    },
+  ];
 
   return (
     <DialogContainer size="md">
