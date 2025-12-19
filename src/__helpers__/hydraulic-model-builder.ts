@@ -17,6 +17,7 @@ import {
   Controls,
   createEmptyControls,
 } from "src/hydraulic-model";
+import { SimpleControl, RuleBasedControl } from "src/hydraulic-model/controls";
 import { AssetIndex } from "src/hydraulic-model/asset-index";
 import { CustomerPointsLookup } from "src/hydraulic-model/customer-points-lookup";
 import {
@@ -459,8 +460,35 @@ export class HydraulicModelBuilder {
     return this;
   }
 
-  controls(controls: Controls) {
-    this.controlsValue = controls;
+  aSimpleControl(data: {
+    template: string;
+    assetReferences: { assetId: AssetId; isActionTarget?: boolean }[];
+  }) {
+    const control: SimpleControl = {
+      template: data.template,
+      assetReferences: data.assetReferences.map((ref) => ({
+        assetId: ref.assetId,
+        isActionTarget: ref.isActionTarget ?? false,
+      })),
+    };
+    this.controlsValue.simple.push(control);
+    return this;
+  }
+
+  aRule(data: {
+    ruleId: string;
+    template: string;
+    assetReferences: { assetId: AssetId; isActionTarget?: boolean }[];
+  }) {
+    const rule: RuleBasedControl = {
+      ruleId: data.ruleId,
+      template: data.template,
+      assetReferences: data.assetReferences.map((ref) => ({
+        assetId: ref.assetId,
+        isActionTarget: ref.isActionTarget ?? false,
+      })),
+    };
+    this.controlsValue.rules.push(rule);
     return this;
   }
 

@@ -7,6 +7,11 @@ import { useTranslate } from "src/hooks/use-translate";
 import { dataAtom } from "src/state/jotai";
 import { ControlsIcon } from "src/icons";
 import { AckDialogAction } from "src/components/dialog";
+import {
+  formatSimpleControl,
+  formatRuleBasedControl,
+  IdResolver,
+} from "src/hydraulic-model/controls";
 
 type Tab = "simple" | "ruleBased";
 
@@ -16,7 +21,20 @@ export const ControlsDialog = () => {
   const { hydraulicModel } = useAtomValue(dataAtom);
   const [activeTab, setActiveTab] = useState<Tab>("simple");
 
-  const controls = hydraulicModel.controls;
+  const { controls, assets } = hydraulicModel;
+
+  const idResolver: IdResolver = (assetId) => {
+    const asset = assets.get(assetId);
+    return asset?.label ?? String(assetId);
+  };
+
+  const simpleControlsText = controls.simple
+    .map((control) => formatSimpleControl(control, idResolver))
+    .join("\n");
+
+  const rulesText = controls.rules
+    .map((rule) => formatRuleBasedControl(rule, idResolver))
+    .join("\n\n");
 
   return (
     <DialogContainer size="md">
@@ -27,7 +45,7 @@ export const ControlsDialog = () => {
       <div className="flex flex-col gap-4">
         <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
         <ControlsTextArea
-          value={activeTab === "simple" ? controls.simple : controls.ruleBased}
+          value={activeTab === "simple" ? simpleControlsText : rulesText}
           placeholder={
             activeTab === "simple"
               ? translate("controls.simpleEmpty")
@@ -35,7 +53,7 @@ export const ControlsDialog = () => {
           }
         />
       </div>
-      <AckDialogAction label={translate("cancel")} onAck={closeDialog} />
+      <AckDialogAction label={translate("close")} onAck={closeDialog} />
     </DialogContainer>
   );
 };

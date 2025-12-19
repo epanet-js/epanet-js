@@ -25,6 +25,7 @@ import { AssetId } from "src/hydraulic-model/asset-types/base-asset";
 import { ConsecutiveIdsGenerator } from "src/hydraulic-model/id-generator";
 import { CurvesBuilder } from "./curves-builder";
 import { PatternsBuilder } from "./patterns-builder";
+import { ControlsBuilder } from "./controls-builder";
 import { getPumpCurveType } from "src/hydraulic-model/curves";
 
 export const buildModelWithControls = (
@@ -46,7 +47,6 @@ export const buildModelWithControls = (
       patterns: new Map(),
     },
     epsTiming: inpData.times,
-    controls: inpData.controls,
   });
 
   const curvesBuilder = new CurvesBuilder(
@@ -149,6 +149,13 @@ export const buildModelWithControls = (
 
   hydraulicModel.curves = curvesBuilder.getValidatedCurves();
   hydraulicModel.demands.patterns = patternsBuilder.getUsedPatterns();
+
+  const controlsBuilder = new ControlsBuilder(
+    inpData.controls,
+    nodeIds,
+    linkIds,
+  );
+  hydraulicModel.controls = controlsBuilder.build();
 
   return { hydraulicModel, modelMetadata: { quantities } };
 };

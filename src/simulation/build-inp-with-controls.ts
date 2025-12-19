@@ -17,6 +17,11 @@ import { CustomerPointsLookup } from "src/hydraulic-model/customer-points-lookup
 import { Valve, AssetId } from "src/hydraulic-model/asset-types";
 import { checksum } from "src/infra/checksum";
 import { withDebugInstrumentation } from "src/infra/with-instrumentation";
+import {
+  formatSimpleControl,
+  formatRuleBasedControl,
+  IdResolver,
+} from "src/hydraulic-model/controls";
 
 type SimulationPipeStatus = "Open" | "Closed" | "CV";
 type SimulationPumpStatus = "Open" | "Closed";
@@ -190,14 +195,7 @@ export const buildInpWithControls = withDebugInstrumentation(
       customerPoints: false,
       inactiveAssets: false,
     };
-    const opts = {
-      ...defaultOptions,
-      ...options,
-      labelIds:
-        options.labelIds ||
-        hydraulicModel.controls.simple !== "" ||
-        hydraulicModel.controls.ruleBased !== "",
-    };
+    const opts = { ...defaultOptions, ...options };
     const idMap = new EpanetIds({ strategy: opts.labelIds ? "label" : "id" });
     const units = chooseUnitSystem(hydraulicModel.units);
     const headlossFormula = hydraulicModel.headlossFormula;
@@ -331,7 +329,7 @@ export const buildInpWithControls = withDebugInstrumentation(
       usedPatternIds,
     );
 
-    appendControls(sections, hydraulicModel.controls);
+    appendControls(sections, hydraulicModel.controls, idMap, hydraulicModel);
 
     const hasControls = sections.controls.length > 1;
     const hasRules = sections.rules.length > 1;
@@ -701,16 +699,27 @@ const getConstantPatternId = (usedPatternIds: Set<string>): string => {
 const appendControls = (
   sections: InpSections,
   controls: HydraulicModel["controls"],
+  idMap: EpanetIds,
+  hydraulicModel: HydraulicModel,
 ) => {
-  if (controls.simple) {
-    for (const line of controls.simple.split("\n")) {
-      sections.controls.push(line);
+  const idResolver: IdResolver = (assetId: AssetId) => {
+    const asset = hydraulicModel.assets.get(assetId);
+    if (!asset) {
+      return String(assetId);
     }
+    if (asset.isLink) {
+      return idMap.linkId(asset as LinkAsset);
+    } else {
+      return idMap.nodeId(asset as NodeAsset);
+    }
+  };
+
+  for (const control of controls.simple) {
+    sections.controls.push(formatSimpleControl(control, idResolver));
   }
-  if (controls.ruleBased) {
-    for (const line of controls.ruleBased.split("\n")) {
-      sections.rules.push(line);
-    }
+
+  for (const rule of controls.rules) {
+    sections.rules.push(formatRuleBasedControl(rule, idResolver));
   }
 };
 

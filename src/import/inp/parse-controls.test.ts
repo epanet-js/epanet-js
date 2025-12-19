@@ -11,57 +11,94 @@ describe("Parse CONTROLS and RULES sections", () => {
 
       const { hydraulicModel } = parseInpWithControls(inp);
 
-      expect(hydraulicModel.controls.simple).toEqual("");
-      expect(hydraulicModel.controls.ruleBased).toEqual("");
+      expect(hydraulicModel.controls.simple).toEqual([]);
+      expect(hydraulicModel.controls.rules).toEqual([]);
     });
 
-    it("parses single line CONTROLS section", () => {
+    it("parses single line CONTROLS section with resolvable assets", () => {
+      const LABELS = { T1: "1", P1: "2", J1: "3" } as const;
       const inp = `
+      [TANKS]
+      ${LABELS.T1}\t50\t10\t0\t20\t50\t0
+
+      [JUNCTIONS]
+      ${LABELS.J1}\t50
+
+      [PIPES]
+      ${LABELS.P1}\t${LABELS.T1}\t${LABELS.J1}\t100\t100\t100\t0\tOpen
+
+      [COORDINATES]
+      ${LABELS.T1}\t1\t1
+      ${LABELS.J1}\t2\t2
+
       [CONTROLS]
-      LINK P1 OPEN IF NODE T1 ABOVE 100
+      LINK ${LABELS.P1} OPEN IF NODE ${LABELS.T1} ABOVE 100
 
       [END]
       `;
 
       const { hydraulicModel } = parseInpWithControls(inp);
 
-      expect(hydraulicModel.controls.simple).toEqual(
-        "LINK P1 OPEN IF NODE T1 ABOVE 100",
-      );
+      // Find assets by label
+      const assets = [...hydraulicModel.assets.values()];
+      const pipe = assets.find(
+        (a) => a.feature.properties.label === LABELS.P1,
+      )!;
+      const tank = assets.find(
+        (a) => a.feature.properties.label === LABELS.T1,
+      )!;
+
+      expect(hydraulicModel.controls.simple).toHaveLength(1);
+
+      const control = hydraulicModel.controls.simple[0];
+      expect(control.template).toBe("LINK {{0}} OPEN IF NODE {{1}} ABOVE 100");
+      expect(control.assetReferences).toHaveLength(2);
+      expect(control.assetReferences[0].assetId).toBe(pipe.id);
+      expect(control.assetReferences[0].isActionTarget).toBe(true);
+      expect(control.assetReferences[1].assetId).toBe(tank.id);
+      expect(control.assetReferences[1].isActionTarget).toBe(false);
     });
 
     it("parses multi-line CONTROLS section", () => {
+      const IDS = { T1: 1, P1: 2, J1: 3, PUMP1: 4 } as const;
       const inp = `
+      [TANKS]
+      ${IDS.T1}\t50\t10\t0\t20\t50\t0
+
+      [JUNCTIONS]
+      ${IDS.J1}\t50
+
+      [PIPES]
+      ${IDS.P1}\t${IDS.T1}\t${IDS.J1}\t100\t100\t100\t0\tOpen
+
+      [PUMPS]
+      ${IDS.PUMP1}\t${IDS.T1}\t${IDS.J1}\tPOWER 10
+
+      [COORDINATES]
+      ${IDS.T1}\t1\t1
+      ${IDS.J1}\t2\t2
+
       [CONTROLS]
-      LINK P1 OPEN IF NODE T1 ABOVE 100
-      LINK P1 CLOSED IF NODE T1 BELOW 50
-      LINK PUMP1 OPEN AT TIME 6
+      LINK ${IDS.P1} OPEN IF NODE ${IDS.T1} ABOVE 100
+      LINK ${IDS.P1} CLOSED IF NODE ${IDS.T1} BELOW 50
+      LINK ${IDS.PUMP1} OPEN AT TIME 6
 
       [END]
       `;
 
       const { hydraulicModel } = parseInpWithControls(inp);
 
-      expect(hydraulicModel.controls.simple).toEqual(
-        "LINK P1 OPEN IF NODE T1 ABOVE 100\n" +
-          "LINK P1 CLOSED IF NODE T1 BELOW 50\n" +
-          "LINK PUMP1 OPEN AT TIME 6",
-      );
-    });
+      expect(hydraulicModel.controls.simple).toHaveLength(3);
 
-    it("preserves controls with special characters", () => {
-      const inp = `
-      [CONTROLS]
-      LINK P-1 OPEN IF NODE T_1 ABOVE 100.5
-
-      [END]
-      `;
-
-      const { hydraulicModel } = parseInpWithControls(inp);
-
-      expect(hydraulicModel.controls.simple).toEqual(
-        "LINK P-1 OPEN IF NODE T_1 ABOVE 100.5",
-      );
+      expect(
+        hydraulicModel.controls.simple[0].assetReferences[0].isActionTarget,
+      ).toBe(true);
+      expect(
+        hydraulicModel.controls.simple[1].assetReferences[0].isActionTarget,
+      ).toBe(true);
+      expect(
+        hydraulicModel.controls.simple[2].assetReferences[0].isActionTarget,
+      ).toBe(true);
     });
   });
 
@@ -75,74 +112,128 @@ describe("Parse CONTROLS and RULES sections", () => {
 
       const { hydraulicModel } = parseInpWithControls(inp);
 
-      expect(hydraulicModel.controls.simple).toEqual("");
-      expect(hydraulicModel.controls.ruleBased).toEqual("");
+      expect(hydraulicModel.controls.simple).toEqual([]);
+      expect(hydraulicModel.controls.rules).toEqual([]);
     });
 
-    it("parses single RULES section", () => {
+    it("parses single RULES section with resolvable assets", () => {
+      const LABELS = { T1: "1", P1: "2", J1: "3" } as const;
       const inp = `
+      [TANKS]
+      ${LABELS.T1}\t50\t10\t0\t20\t50\t0
+
+      [JUNCTIONS]
+      ${LABELS.J1}\t50
+
+      [PIPES]
+      ${LABELS.P1}\t${LABELS.T1}\t${LABELS.J1}\t100\t100\t100\t0\tOpen
+
+      [COORDINATES]
+      ${LABELS.T1}\t1\t1
+      ${LABELS.J1}\t2\t2
+
       [RULES]
       RULE 1
-      IF NODE T1 LEVEL > 100
-      THEN LINK P1 STATUS IS OPEN
+      IF NODE ${LABELS.T1} LEVEL > 100
+      THEN LINK ${LABELS.P1} STATUS IS OPEN
 
       [END]
       `;
 
       const { hydraulicModel } = parseInpWithControls(inp);
 
-      expect(hydraulicModel.controls.ruleBased).toEqual(
-        "RULE 1\n" + "IF NODE T1 LEVEL > 100\n" + "THEN LINK P1 STATUS IS OPEN",
-      );
+      const assets = [...hydraulicModel.assets.values()];
+      const tank = assets.find(
+        (a) => a.feature.properties.label === LABELS.T1,
+      )!;
+      const pipe = assets.find(
+        (a) => a.feature.properties.label === LABELS.P1,
+      )!;
+
+      expect(hydraulicModel.controls.rules).toHaveLength(1);
+
+      const rule = hydraulicModel.controls.rules[0];
+      expect(rule.ruleId).toBe("1");
+      expect(rule.template).toBe(`RULE {{id}}
+IF NODE {{0}} LEVEL > 100
+THEN LINK {{1}} STATUS IS OPEN`);
+
+      expect(rule.assetReferences).toHaveLength(2);
+      expect(rule.assetReferences[0].assetId).toBe(tank.id);
+      expect(rule.assetReferences[0].isActionTarget).toBe(false);
+      expect(rule.assetReferences[1].assetId).toBe(pipe.id);
+      expect(rule.assetReferences[1].isActionTarget).toBe(true);
     });
 
     it("parses multi-rule RULES section", () => {
+      const IDS = { T1: 1, P1: 2, J1: 3 } as const;
       const inp = `
+      [TANKS]
+      ${IDS.T1}\t50\t10\t0\t20\t50\t0
+
+      [JUNCTIONS]
+      ${IDS.J1}\t50
+
+      [PIPES]
+      ${IDS.P1}\t${IDS.T1}\t${IDS.J1}\t100\t100\t100\t0\tOpen
+
+      [COORDINATES]
+      ${IDS.T1}\t1\t1
+      ${IDS.J1}\t2\t2
+
       [RULES]
       RULE 1
-      IF NODE T1 LEVEL > 100
-      THEN LINK P1 STATUS IS OPEN
+      IF NODE ${IDS.T1} LEVEL > 100
+      THEN LINK ${IDS.P1} STATUS IS OPEN
 
       RULE 2
-      IF NODE T1 LEVEL < 50
-      THEN LINK P1 STATUS IS CLOSED
+      IF NODE ${IDS.T1} LEVEL < 50
+      THEN LINK ${IDS.P1} STATUS IS CLOSED
 
       [END]
       `;
 
       const { hydraulicModel } = parseInpWithControls(inp);
 
-      expect(hydraulicModel.controls.ruleBased).toContain("RULE 1");
-      expect(hydraulicModel.controls.ruleBased).toContain("RULE 2");
-      expect(hydraulicModel.controls.ruleBased).toContain(
-        "THEN LINK P1 STATUS IS OPEN",
-      );
-      expect(hydraulicModel.controls.ruleBased).toContain(
-        "THEN LINK P1 STATUS IS CLOSED",
-      );
+      expect(hydraulicModel.controls.rules).toHaveLength(2);
+      expect(hydraulicModel.controls.rules[0].ruleId).toBe("1");
+      expect(hydraulicModel.controls.rules[1].ruleId).toBe("2");
     });
   });
 
   describe("CONTROLS and RULES together", () => {
     it("parses both CONTROLS and RULES sections", () => {
+      const IDS = { T1: 1, P1: 2, P2: 3, J1: 4 } as const;
       const inp = `
+      [TANKS]
+      ${IDS.T1}\t50\t10\t0\t20\t50\t0
+
+      [JUNCTIONS]
+      ${IDS.J1}\t50
+
+      [PIPES]
+      ${IDS.P1}\t${IDS.T1}\t${IDS.J1}\t100\t100\t100\t0\tOpen
+      ${IDS.P2}\t${IDS.T1}\t${IDS.J1}\t100\t100\t100\t0\tOpen
+
+      [COORDINATES]
+      ${IDS.T1}\t1\t1
+      ${IDS.J1}\t2\t2
+
       [CONTROLS]
-      LINK P1 OPEN IF NODE T1 ABOVE 100
+      LINK ${IDS.P1} OPEN IF NODE ${IDS.T1} ABOVE 100
 
       [RULES]
       RULE 1
-      IF NODE T1 LEVEL > 100
-      THEN LINK P2 STATUS IS OPEN
+      IF NODE ${IDS.T1} LEVEL > 100
+      THEN LINK ${IDS.P2} STATUS IS OPEN
 
       [END]
       `;
 
       const { hydraulicModel } = parseInpWithControls(inp);
 
-      expect(hydraulicModel.controls.simple).toEqual(
-        "LINK P1 OPEN IF NODE T1 ABOVE 100",
-      );
-      expect(hydraulicModel.controls.ruleBased).toContain("RULE 1");
+      expect(hydraulicModel.controls.simple).toHaveLength(1);
+      expect(hydraulicModel.controls.rules).toHaveLength(1);
     });
 
     it("parses controls alongside other sections", () => {
@@ -175,39 +266,77 @@ describe("Parse CONTROLS and RULES sections", () => {
       const { hydraulicModel } = parseInpWithControls(inp);
 
       expect(hydraulicModel.assets.size).toEqual(3);
-      expect(hydraulicModel.controls.simple).toContain("LINK 3 CLOSED");
-      expect(hydraulicModel.controls.ruleBased).toContain("RULE 1");
+      expect(hydraulicModel.controls.simple).toHaveLength(1);
+      expect(hydraulicModel.controls.rules).toHaveLength(1);
+
+      expect(hydraulicModel.controls.simple[0].template).toContain("CLOSED");
+      expect(hydraulicModel.controls.rules[0].template).toContain(
+        "RULE {{id}}",
+      );
+      expect(hydraulicModel.controls.rules[0].ruleId).toBe("1");
     });
 
     it("preserves inline comments in CONTROLS", () => {
+      const IDS = { T1: 1, P1: 2, J1: 3 } as const;
       const inp = `
+      [TANKS]
+      ${IDS.T1}\t50\t10\t0\t20\t50\t0
+
+      [JUNCTIONS]
+      ${IDS.J1}\t50
+
+      [PIPES]
+      ${IDS.P1}\t${IDS.T1}\t${IDS.J1}\t100\t100\t100\t0\tOpen
+
+      [COORDINATES]
+      ${IDS.T1}\t1\t1
+      ${IDS.J1}\t2\t2
+
       [CONTROLS]
-      LINK P1 OPEN IF NODE T1 ABOVE 100 ;open when tank is full
+      LINK ${IDS.P1} OPEN IF NODE ${IDS.T1} ABOVE 100 ;open when tank is full
 
       [END]
       `;
 
       const { hydraulicModel } = parseInpWithControls(inp);
 
-      expect(hydraulicModel.controls.simple).toEqual(
-        "LINK P1 OPEN IF NODE T1 ABOVE 100 ;open when tank is full",
+      expect(hydraulicModel.controls.simple[0].template).toContain(
+        ";open when tank is full",
       );
     });
 
     it("preserves inline comments in RULES", () => {
+      const IDS = { T1: 1, P1: 2, J1: 3 } as const;
       const inp = `
+      [TANKS]
+      ${IDS.T1}\t50\t10\t0\t20\t50\t0
+
+      [JUNCTIONS]
+      ${IDS.J1}\t50
+
+      [PIPES]
+      ${IDS.P1}\t${IDS.T1}\t${IDS.J1}\t100\t100\t100\t0\tOpen
+
+      [COORDINATES]
+      ${IDS.T1}\t1\t1
+      ${IDS.J1}\t2\t2
+
       [RULES]
       RULE 1 ;main tank control
-      IF NODE T1 LEVEL > 100
-      THEN LINK P1 STATUS IS OPEN ;activate pump
+      IF NODE ${IDS.T1} LEVEL > 100
+      THEN LINK ${IDS.P1} STATUS IS OPEN ;activate pump
 
       [END]
       `;
 
       const { hydraulicModel } = parseInpWithControls(inp);
 
-      expect(hydraulicModel.controls.ruleBased).toContain(";main tank control");
-      expect(hydraulicModel.controls.ruleBased).toContain(";activate pump");
+      expect(hydraulicModel.controls.rules[0].template).toContain(
+        ";main tank control",
+      );
+      expect(hydraulicModel.controls.rules[0].template).toContain(
+        ";activate pump",
+      );
     });
   });
 });

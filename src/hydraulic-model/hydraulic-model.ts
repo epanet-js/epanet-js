@@ -13,16 +13,7 @@ import { CustomerPointsLookup } from "./customer-points-lookup";
 import { AssetIndex } from "./asset-index";
 import { Asset } from "./asset-types";
 import { Curves } from "./curves";
-
-export type Controls = {
-  simple: string;
-  ruleBased: string;
-};
-
-export const createEmptyControls = (): Controls => ({
-  simple: "",
-  ruleBased: "",
-});
+import { Controls, createEmptyControls } from "./controls";
 
 export type HydraulicModel = {
   version: string;

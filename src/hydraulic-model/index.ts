@@ -1,9 +1,10 @@
-export type { HydraulicModel, Controls } from "./hydraulic-model";
+export type { HydraulicModel } from "./hydraulic-model";
 export {
   initializeHydraulicModel,
   updateHydraulicModelAssets,
-  createEmptyControls,
 } from "./hydraulic-model";
+export type { Controls } from "./controls";
+export { createEmptyControls } from "./controls";
 export { AssetBuilder } from "./asset-builder";
 export type {
   JunctionBuildData,

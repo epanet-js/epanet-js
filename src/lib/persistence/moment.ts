@@ -2,7 +2,7 @@ import { Demands } from "src/hydraulic-model/demands";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import { ICurve } from "src/hydraulic-model/curves";
 import { EPSTiming } from "src/hydraulic-model/eps-timing";
-import { Controls } from "src/hydraulic-model/hydraulic-model";
+import { Controls } from "src/hydraulic-model/controls";
 import type { IWrappedFeature, IWrappedFeatureInput } from "src/types";
 
 /**

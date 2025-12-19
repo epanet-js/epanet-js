@@ -1106,38 +1106,26 @@ describe("build inp with controls", () => {
 
   describe("controls section", () => {
     it("does not include CONTROLS section when controls.simple is empty", () => {
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .controls({ simple: "", ruleBased: "" })
-        .build();
+      const hydraulicModel = HydraulicModelBuilder.with().build();
 
       const inp = buildInpWithControls(hydraulicModel);
 
       expect(inp).not.toContain("[CONTROLS]");
     });
 
-    it("includes CONTROLS section when controls.simple has content", () => {
+    it("includes simple CONTROLS even when assets are not found", () => {
       const hydraulicModel = HydraulicModelBuilder.with()
-        .controls({
-          simple: "LINK P1 OPEN IF NODE T1 ABOVE 100",
-          ruleBased: "",
+        .aSimpleControl({
+          template: "LINK P1 OPEN IF NODE T1 ABOVE 100",
+          assetReferences: [],
         })
-        .build();
-
-      const inp = buildInpWithControls(hydraulicModel);
-
-      expect(inp).toContain("[CONTROLS]");
-      expect(inp).toContain("LINK P1 OPEN IF NODE T1 ABOVE 100");
-    });
-
-    it("includes multiline CONTROLS content", () => {
-      const controlsContent = `LINK P1 OPEN IF NODE T1 ABOVE 100
-LINK P1 CLOSED IF NODE T1 BELOW 50
-LINK P2 OPEN AT TIME 6`;
-
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .controls({
-          simple: controlsContent,
-          ruleBased: "",
+        .aSimpleControl({
+          template: "LINK P1 CLOSED IF NODE T1 BELOW 50",
+          assetReferences: [],
+        })
+        .aSimpleControl({
+          template: "LINK P2 OPEN AT TIME 6",
+          assetReferences: [],
         })
         .build();
 
@@ -1151,9 +1139,9 @@ LINK P2 OPEN AT TIME 6`;
 
     it("preserves inline comments in CONTROLS", () => {
       const hydraulicModel = HydraulicModelBuilder.with()
-        .controls({
-          simple: "LINK P1 OPEN IF NODE T1 ABOVE 100 ;open when tank is full",
-          ruleBased: "",
+        .aSimpleControl({
+          template: "LINK P1 OPEN IF NODE T1 ABOVE 100 ;open when tank is full",
+          assetReferences: [],
         })
         .build();
 
@@ -1168,69 +1156,50 @@ LINK P2 OPEN AT TIME 6`;
 
   describe("rules section", () => {
     it("does not include RULES section when controls.ruleBased is empty", () => {
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .controls({ simple: "", ruleBased: "" })
-        .build();
+      const hydraulicModel = HydraulicModelBuilder.with().build();
 
       const inp = buildInpWithControls(hydraulicModel);
 
       expect(inp).not.toContain("[RULES]");
     });
 
-    it("includes RULES section when controls.ruleBased has content", () => {
-      const rulesContent = `RULE 1
-IF NODE T1 LEVEL > 100
-THEN LINK P1 STATUS IS OPEN`;
-
+    it("includes rules in order", () => {
       const hydraulicModel = HydraulicModelBuilder.with()
-        .controls({
-          simple: "",
-          ruleBased: rulesContent,
+        .aRule({
+          ruleId: "1",
+          template: `RULE {{id}}
+IF NODE T1 LEVEL > 100
+THEN LINK P1 STATUS IS OPEN`,
+          assetReferences: [],
+        })
+        .aRule({
+          ruleId: "2",
+          template: `RULE {{id}}
+IF NODE T1 LEVEL < 50
+THEN LINK P1 STATUS IS CLOSED`,
+          assetReferences: [],
         })
         .build();
 
       const inp = buildInpWithControls(hydraulicModel);
 
-      expect(inp).toContain("[RULES]");
-      expect(inp).toContain("RULE 1");
-      expect(inp).toContain("IF NODE T1 LEVEL > 100");
-      expect(inp).toContain("THEN LINK P1 STATUS IS OPEN");
-    });
-
-    it("includes multiple rules", () => {
-      const rulesContent = `RULE 1
+      expect(inp).toContain(`[RULES]
+RULE 1
 IF NODE T1 LEVEL > 100
 THEN LINK P1 STATUS IS OPEN
-
 RULE 2
 IF NODE T1 LEVEL < 50
-THEN LINK P1 STATUS IS CLOSED`;
-
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .controls({
-          simple: "",
-          ruleBased: rulesContent,
-        })
-        .build();
-
-      const inp = buildInpWithControls(hydraulicModel);
-
-      expect(inp).toContain("[RULES]");
-      expect(inp).toContain("RULE 1");
-      expect(inp).toContain("RULE 2");
-      expect(inp).toContain("THEN LINK P1 STATUS IS OPEN");
-      expect(inp).toContain("THEN LINK P1 STATUS IS CLOSED");
+THEN LINK P1 STATUS IS CLOSED`);
     });
 
     it("preserves inline comments in RULES", () => {
-      const rulesContent = `RULE 1 ;main tank control
-IF NODE T1 LEVEL > 100
-THEN LINK P1 STATUS IS OPEN ;activate pump`;
-
       const hydraulicModel = HydraulicModelBuilder.with()
-        .controls({
-          simple: "",
-          ruleBased: rulesContent,
+        .aRule({
+          ruleId: "1",
+          template: `RULE {{id}} ;main tank control
+IF NODE T1 LEVEL > 100
+THEN LINK P1 STATUS IS OPEN ;activate pump`,
+          assetReferences: [],
         })
         .build();
 
@@ -1240,45 +1209,77 @@ THEN LINK P1 STATUS IS OPEN ;activate pump`;
       expect(inp).toContain(";main tank control");
       expect(inp).toContain(";activate pump");
     });
-  });
 
-  describe("both controls and rules", () => {
-    it("includes both CONTROLS and RULES sections when both have content", () => {
+    it("resolves asset placeholders to numeric IDs by default", () => {
+      const IDS = { T1: 1, J1: 2, P1: 3 };
       const hydraulicModel = HydraulicModelBuilder.with()
-        .controls({
-          simple: "LINK P1 OPEN IF NODE T1 ABOVE 100",
-          ruleBased: `RULE 1
-IF NODE T2 LEVEL > 80
-THEN LINK P2 STATUS IS CLOSED`,
+        .aTank(IDS.T1, { label: "Tank-A", coordinates: [0, 0] })
+        .aJunction(IDS.J1, { coordinates: [1, 0] })
+        .aPipe(IDS.P1, {
+          startNodeId: IDS.T1,
+          endNodeId: IDS.J1,
+          label: "Pipe-1",
+        })
+        .aSimpleControl({
+          template: "LINK {{0}} OPEN IF NODE {{1}} ABOVE 100",
+          assetReferences: [
+            { assetId: IDS.P1, isActionTarget: true },
+            { assetId: IDS.T1 },
+          ],
+        })
+        .aRule({
+          ruleId: "1",
+          template: `RULE {{id}}
+IF NODE {{0}} LEVEL > 100
+THEN LINK {{1}} STATUS IS OPEN`,
+          assetReferences: [
+            { assetId: IDS.T1 },
+            { assetId: IDS.P1, isActionTarget: true },
+          ],
         })
         .build();
 
       const inp = buildInpWithControls(hydraulicModel);
 
-      expect(inp).toContain("[CONTROLS]");
-      expect(inp).toContain("LINK P1 OPEN IF NODE T1 ABOVE 100");
-      expect(inp).toContain("[RULES]");
-      expect(inp).toContain("RULE 1");
-      expect(inp).toContain("IF NODE T2 LEVEL > 80");
+      expect(inp).toContain("LINK 3 OPEN IF NODE 1 ABOVE 100");
+      expect(inp).toContain("IF NODE 1 LEVEL > 100");
+      expect(inp).toContain("THEN LINK 3 STATUS IS OPEN");
     });
 
-    it("places CONTROLS and RULES sections before [END]", () => {
+    it("resolves asset placeholders to labels when labelIds is true", () => {
+      const IDS = { T1: 1, J1: 2, P1: 3 };
       const hydraulicModel = HydraulicModelBuilder.with()
-        .controls({
-          simple: "LINK P1 OPEN IF NODE T1 ABOVE 100",
-          ruleBased:
-            "RULE 1\nIF NODE T1 LEVEL > 100\nTHEN LINK P1 STATUS IS OPEN",
+        .aTank(IDS.T1, { label: "Tank-A", coordinates: [0, 0] })
+        .aJunction(IDS.J1, { coordinates: [1, 0], label: "J1" })
+        .aPipe(IDS.P1, {
+          startNodeId: IDS.T1,
+          endNodeId: IDS.J1,
+          label: "Pipe-1",
+        })
+        .aSimpleControl({
+          template: "LINK {{0}} OPEN IF NODE {{1}} ABOVE 100",
+          assetReferences: [
+            { assetId: IDS.P1, isActionTarget: true },
+            { assetId: IDS.T1 },
+          ],
+        })
+        .aRule({
+          ruleId: "1",
+          template: `RULE {{id}}
+IF NODE {{0}} LEVEL > 100
+THEN LINK {{1}} STATUS IS OPEN`,
+          assetReferences: [
+            { assetId: IDS.T1 },
+            { assetId: IDS.P1, isActionTarget: true },
+          ],
         })
         .build();
 
-      const inp = buildInpWithControls(hydraulicModel);
+      const inp = buildInpWithControls(hydraulicModel, { labelIds: true });
 
-      const controlsIndex = inp.indexOf("[CONTROLS]");
-      const rulesIndex = inp.indexOf("[RULES]");
-      const endIndex = inp.indexOf("[END]");
-
-      expect(controlsIndex).toBeLessThan(endIndex);
-      expect(rulesIndex).toBeLessThan(endIndex);
+      expect(inp).toContain("LINK Pipe-1 OPEN IF NODE Tank-A ABOVE 100");
+      expect(inp).toContain("IF NODE Tank-A LEVEL > 100");
+      expect(inp).toContain("THEN LINK Pipe-1 STATUS IS OPEN");
     });
   });
 });
