@@ -86,6 +86,73 @@ describe("label manager", () => {
     expect(labelManager.generateFor("pipe", anId())).toEqual("P4");
   });
 
+  describe("isLabelAvailable", () => {
+    it("returns true for unused labels", () => {
+      const labelManager = new LabelManager();
+      expect(labelManager.isLabelAvailable("NewLabel", "pipe")).toBe(true);
+    });
+
+    it("returns false when label is used by same asset type", () => {
+      const labelManager = new LabelManager();
+      labelManager.register("P1", "pipe", anId());
+
+      expect(labelManager.isLabelAvailable("P1", "pipe")).toBe(false);
+    });
+
+    it("returns false when label is used by different asset type in same category (nodes)", () => {
+      const labelManager = new LabelManager();
+      const junctionId = anId();
+      labelManager.register("N1", "junction", junctionId);
+
+      expect(labelManager.isLabelAvailable("N1", "tank")).toBe(false);
+      expect(labelManager.isLabelAvailable("N1", "reservoir")).toBe(false);
+    });
+
+    it("returns false when label is used by different asset type in same category (links)", () => {
+      const labelManager = new LabelManager();
+      labelManager.register("L1", "pipe", anId());
+
+      expect(labelManager.isLabelAvailable("L1", "pump")).toBe(false);
+      expect(labelManager.isLabelAvailable("L1", "valve")).toBe(false);
+    });
+
+    it("returns true when label is used by asset in different category", () => {
+      const labelManager = new LabelManager();
+      labelManager.register("SHARED", "pipe", anId());
+
+      expect(labelManager.isLabelAvailable("SHARED", "junction")).toBe(true);
+      expect(labelManager.isLabelAvailable("SHARED", "tank")).toBe(true);
+      expect(labelManager.isLabelAvailable("SHARED", "reservoir")).toBe(true);
+    });
+
+    it("returns true when label is used by asset in different category (node to link)", () => {
+      const labelManager = new LabelManager();
+      labelManager.register("SHARED", "junction", anId());
+
+      expect(labelManager.isLabelAvailable("SHARED", "pipe")).toBe(true);
+      expect(labelManager.isLabelAvailable("SHARED", "pump")).toBe(true);
+      expect(labelManager.isLabelAvailable("SHARED", "valve")).toBe(true);
+    });
+
+    it("excludes specified asset from conflict check", () => {
+      const labelManager = new LabelManager();
+      const pipeId = anId();
+      labelManager.register("P1", "pipe", pipeId);
+
+      expect(labelManager.isLabelAvailable("P1", "pipe", pipeId)).toBe(true);
+    });
+
+    it("still detects conflicts when excluding a different asset", () => {
+      const labelManager = new LabelManager();
+      const pipeId1 = anId();
+      const pipeId2 = anId();
+      labelManager.register("P1", "pipe", pipeId1);
+      labelManager.register("P1", "pipe", pipeId2);
+
+      expect(labelManager.isLabelAvailable("P1", "pipe", pipeId1)).toBe(false);
+    });
+  });
+
   describe("generateNextLabel", () => {
     it("generates next numbered label from base label", () => {
       const labelManager = new LabelManager();

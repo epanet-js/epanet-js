@@ -9,6 +9,7 @@
   "selection": "Selection",
   "junction": "Junction",
   "pipe": "Pipe",
+  "labelDuplicate": "Label already in use",
   "reservoir": "Reservoir",
   "hintPipeDrawStart": "Click to start the pipe, then click to add each vertex.",
   "hintPipeDrawEnd": "End a pipe by double-clicking or hitting Enter.",

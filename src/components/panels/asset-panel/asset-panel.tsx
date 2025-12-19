@@ -94,6 +94,7 @@ export function AssetPanel({
   const rep = usePersistence();
   const transact = rep.useTransact();
   const userTracking = useUserTracking();
+  const translate = useTranslate();
   const isEditLabelsEnabled = useFeatureFlag("FLAG_EDIT_LABELS");
 
   const handlePropertyChange = useCallback(
@@ -216,9 +217,18 @@ export function AssetPanel({
   );
 
   const handleLabelChange = useCallback(
-    (newLabel: string) => {
+    (newLabel: string): string | undefined => {
       const oldLabel = asset.label;
-      if (newLabel === oldLabel) return;
+      if (newLabel === oldLabel) return undefined;
+
+      const isAvailable = hydraulicModel.labelManager.isLabelAvailable(
+        newLabel,
+        asset.type,
+        asset.id,
+      );
+      if (!isAvailable) {
+        return translate("labelDuplicate");
+      }
 
       const moment = changeLabel(hydraulicModel, {
         assetId: asset.id,
@@ -232,8 +242,17 @@ export function AssetPanel({
         newValue: newLabel,
         oldValue: oldLabel,
       });
+      return undefined;
     },
-    [asset.id, asset.label, asset.type, hydraulicModel, transact, userTracking],
+    [
+      asset.id,
+      asset.label,
+      asset.type,
+      hydraulicModel,
+      transact,
+      translate,
+      userTracking,
+    ],
   );
 
   const labelChangeHandler = isEditLabelsEnabled
@@ -332,7 +351,7 @@ const JunctionEditor = ({
   quantitiesMetadata: Quantities;
   onPropertyChange: OnPropertyChange;
   onConstantDemandChange: (newValue: number, oldValue: number) => void;
-  onLabelChange?: (newLabel: string) => void;
+  onLabelChange?: (newLabel: string) => string | undefined;
   hydraulicModel: HydraulicModel;
 }) => {
   const translate = useTranslate();
@@ -470,7 +489,7 @@ const PipeEditor = ({
     newValue: boolean,
     oldValue: boolean,
   ) => void;
-  onLabelChange?: (newLabel: string) => void;
+  onLabelChange?: (newLabel: string) => string | undefined;
   hydraulicModel: HydraulicModel;
 }) => {
   const translate = useTranslate();
@@ -625,7 +644,7 @@ const ReservoirEditor = ({
   reservoir: Reservoir;
   quantitiesMetadata: Quantities;
   onPropertyChange: OnPropertyChange;
-  onLabelChange?: (newLabel: string) => void;
+  onLabelChange?: (newLabel: string) => string | undefined;
 }) => {
   const translate = useTranslate();
   return (
@@ -670,7 +689,7 @@ const TankEditor = ({
   tank: Tank;
   quantitiesMetadata: Quantities;
   onPropertyChange: OnPropertyChange;
-  onLabelChange?: (newLabel: string) => void;
+  onLabelChange?: (newLabel: string) => string | undefined;
 }) => {
   const translate = useTranslate();
   return (
@@ -799,7 +818,7 @@ const ValveEditor = ({
     newValue: boolean,
     oldValue: boolean,
   ) => void;
-  onLabelChange?: (newLabel: string) => void;
+  onLabelChange?: (newLabel: string) => string | undefined;
 }) => {
   const translate = useTranslate();
   const statusText = translate(valveStatusLabel(valve));
@@ -951,7 +970,7 @@ const PumpEditor = ({
     oldValue: boolean,
   ) => void;
   onDefinitionChange: (data: PumpDefinitionData) => void;
-  onLabelChange?: (newLabel: string) => void;
+  onLabelChange?: (newLabel: string) => string | undefined;
   quantitiesMetadata: Quantities;
   curves: Curves;
 }) => {

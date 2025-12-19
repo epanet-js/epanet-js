@@ -48,6 +48,22 @@ export class LabelManager implements LabelGenerator {
     return (this.assetIndex.get(label) || []).length;
   }
 
+  isLabelAvailable(
+    label: string,
+    assetType: Asset["type"],
+    excludeAssetId?: Asset["id"],
+  ): boolean {
+    const assetsWithLabel = this.assetIndex.get(label) || [];
+    const isNodeType = (t: Asset["type"]) =>
+      t === "junction" || t === "reservoir" || t === "tank";
+    const isAssetNodeType = isNodeType(assetType);
+
+    return !assetsWithLabel.some((labelAsset) => {
+      if (excludeAssetId && labelAsset.id === excludeAssetId) return false;
+      return isNodeType(labelAsset.type) === isAssetNodeType; // Same category = conflict
+    });
+  }
+
   generateFor(type: Asset["type"], id: Asset["id"]) {
     const nextIndex = this.indexPerType.get(type) || 1;
     const { label, index: effectiveIndex } = this.ensureUnique(type, nextIndex);

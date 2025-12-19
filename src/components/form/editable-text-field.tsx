@@ -28,6 +28,9 @@ export const EditableTextField = ({
   tabIndex = 1,
   allowedChars,
   maxByteLength,
+  onInputChange,
+  onReset,
+  hasError = false,
 }: {
   label: string;
   value: string;
@@ -38,6 +41,9 @@ export const EditableTextField = ({
   tabIndex?: number;
   allowedChars?: RegExp;
   maxByteLength?: number;
+  onInputChange?: (value: string) => void;
+  onReset?: () => void;
+  hasError?: boolean;
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [inputValue, setInputValue] = useState(value);
@@ -68,10 +74,15 @@ export const EditableTextField = ({
   const resetInput = () => {
     setInputValue(value);
     setDirty(false);
+    onReset?.();
     blurInput();
   };
 
   const handleBlur = () => {
+    if (hasError) {
+      focusInput();
+      return;
+    }
     if (isDirty) {
       handleCommitLastChange();
     } else {
@@ -84,6 +95,9 @@ export const EditableTextField = ({
   };
 
   const handleCommitLastChange = () => {
+    if (hasError) {
+      return;
+    }
     const trimmedValue = inputValue.trim();
     if (trimmedValue && trimmedValue !== value) {
       onChangeValue && onChangeValue(trimmedValue);
@@ -92,10 +106,14 @@ export const EditableTextField = ({
     blurInput();
   };
 
+  const focusInput = () => {
+    setTimeout(() => inputRef.current?.focus(), 0);
+  };
+
   const blurInput = () => {
     if (inputRef.current !== document.activeElement) return;
 
-    setTimeout(() => inputRef.current && inputRef.current.blur(), 0);
+    setTimeout(() => inputRef.current?.blur(), 0);
   };
 
   const handleInputChange: ChangeEventHandler<HTMLInputElement> = (e) => {
@@ -114,7 +132,10 @@ export const EditableTextField = ({
     }
     setInputValue(newValue);
     setDirty(true);
+    onInputChange?.(newValue);
   };
+
+  const variant = hasError ? "warning" : styleOptions.variant;
 
   return (
     <input
@@ -130,7 +151,12 @@ export const EditableTextField = ({
       value={inputValue}
       onFocus={handleFocus}
       tabIndex={readOnly ? -1 : tabIndex}
-      className={styledInput({ ...styleOptions, disabled, readOnly })}
+      className={styledInput({
+        ...styleOptions,
+        variant,
+        disabled,
+        readOnly,
+      })}
     />
   );
 };
