@@ -13,3 +13,4 @@ export { mergeNodes } from "./merge-nodes";
 export { mergeNodesEps } from "./merge-nodes-eps";
 export { changePumpCurve } from "./change-pump-curve";
 export { changeJunctionDemands } from "./change-junction-demands";
+export { changeControls } from "./change-controls";

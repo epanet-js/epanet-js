@@ -25,8 +25,12 @@ import { AssetId } from "src/hydraulic-model/asset-types/base-asset";
 import { ConsecutiveIdsGenerator } from "src/hydraulic-model/id-generator";
 import { CurvesBuilder } from "./curves-builder";
 import { PatternsBuilder } from "./patterns-builder";
-import { ControlsBuilder } from "./controls-builder";
 import { getPumpCurveType } from "src/hydraulic-model/curves";
+import {
+  LabelResolver,
+  parseSimpleControlsFromText,
+  parseRulesFromText,
+} from "src/hydraulic-model/controls";
 
 export const buildModelWithControls = (
   inpData: InpData,
@@ -150,12 +154,7 @@ export const buildModelWithControls = (
   hydraulicModel.curves = curvesBuilder.getValidatedCurves();
   hydraulicModel.demands.patterns = patternsBuilder.getUsedPatterns();
 
-  const controlsBuilder = new ControlsBuilder(
-    inpData.controls,
-    nodeIds,
-    linkIds,
-  );
-  hydraulicModel.controls = controlsBuilder.build();
+  addControls(hydraulicModel, inpData.controls, nodeIds, linkIds);
 
   return { hydraulicModel, modelMetadata: { quantities } };
 };
@@ -530,4 +529,23 @@ const calculateReservoirHead = (
     head = reservoir.baseHead * pattern[0];
   }
   return head;
+};
+
+const LINK_KEYWORDS = ["LINK", "PIPE", "PUMP", "VALVE"];
+
+const addControls = (
+  hydraulicModel: HydraulicModel,
+  rawControls: InpData["controls"],
+  nodeIds: ItemData<AssetId>,
+  linkIds: ItemData<AssetId>,
+): void => {
+  const resolveLabel: LabelResolver = (keyword, label) => {
+    const isLinkKeyword = LINK_KEYWORDS.includes(keyword);
+    return isLinkKeyword ? linkIds.get(label) : nodeIds.get(label);
+  };
+
+  hydraulicModel.controls = {
+    simple: parseSimpleControlsFromText(rawControls.simple, resolveLabel),
+    rules: parseRulesFromText(rawControls.ruleBased, resolveLabel),
+  };
 };

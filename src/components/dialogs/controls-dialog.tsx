@@ -1,25 +1,37 @@
 import { useAtomValue } from "jotai";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import clsx from "clsx";
+import { Form, Formik, useFormikContext } from "formik";
 
 import { DialogContainer, DialogHeader, useDialogState } from "../dialog";
 import { useTranslate } from "src/hooks/use-translate";
 import { dataAtom } from "src/state/jotai";
 import { ControlsIcon } from "src/icons";
-import { AckDialogAction } from "src/components/dialog";
+import { SimpleDialogActions } from "src/components/dialog";
 import {
   formatSimpleControl,
   formatRuleBasedControl,
   IdResolver,
+  parseControlsFromText,
 } from "src/hydraulic-model/controls";
+import { usePersistence } from "src/lib/persistence/context";
+import { changeControls } from "src/hydraulic-model/model-operations";
 
 type Tab = "simple" | "ruleBased";
+
+type FormValues = {
+  simpleText: string;
+  rulesText: string;
+};
 
 export const ControlsDialog = () => {
   const translate = useTranslate();
   const { closeDialog } = useDialogState();
   const { hydraulicModel } = useAtomValue(dataAtom);
   const [activeTab, setActiveTab] = useState<Tab>("simple");
+
+  const rep = usePersistence();
+  const transact = rep.useTransact();
 
   const { controls, assets } = hydraulicModel;
 
@@ -28,13 +40,32 @@ export const ControlsDialog = () => {
     return asset?.label ?? String(assetId);
   };
 
-  const simpleControlsText = controls.simple
+  const initialSimpleText = controls.simple
     .map((control) => formatSimpleControl(control, idResolver))
     .join("\n");
 
-  const rulesText = controls.rules
+  const initialRulesText = controls.rules
     .map((rule) => formatRuleBasedControl(rule, idResolver))
     .join("\n\n");
+
+  const initialValues: FormValues = {
+    simpleText: initialSimpleText,
+    rulesText: initialRulesText,
+  };
+
+  const handleSubmit = useCallback(
+    (values: FormValues) => {
+      const newControls = parseControlsFromText(
+        values.simpleText,
+        values.rulesText,
+        assets,
+      );
+      const moment = changeControls(hydraulicModel, newControls);
+      transact(moment);
+      closeDialog();
+    },
+    [assets, hydraulicModel, transact, closeDialog],
+  );
 
   return (
     <DialogContainer size="md">
@@ -42,19 +73,45 @@ export const ControlsDialog = () => {
         title={translate("controls.title")}
         titleIcon={ControlsIcon}
       />
+      <Formik onSubmit={handleSubmit} initialValues={initialValues}>
+        <ControlsForm
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          onClose={closeDialog}
+        />
+      </Formik>
+    </DialogContainer>
+  );
+};
+
+const ControlsForm = ({
+  activeTab,
+  onTabChange,
+  onClose,
+}: {
+  activeTab: Tab;
+  onTabChange: (tab: Tab) => void;
+  onClose: () => void;
+}) => {
+  const translate = useTranslate();
+
+  return (
+    <Form>
       <div className="flex flex-col gap-4">
-        <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
+        <TabBar activeTab={activeTab} onTabChange={onTabChange} />
         <ControlsTextArea
-          value={activeTab === "simple" ? simpleControlsText : rulesText}
-          placeholder={
-            activeTab === "simple"
-              ? translate("controls.simpleEmpty")
-              : translate("controls.rulesEmpty")
-          }
+          name="simpleText"
+          placeholder={translate("controls.simpleEmpty")}
+          hidden={activeTab !== "simple"}
+        />
+        <ControlsTextArea
+          name="rulesText"
+          placeholder={translate("controls.rulesEmpty")}
+          hidden={activeTab !== "ruleBased"}
         />
       </div>
-      <AckDialogAction label={translate("close")} onAck={closeDialog} />
-    </DialogContainer>
+      <SimpleDialogActions onClose={onClose} action={translate("save")} />
+    </Form>
   );
 };
 
@@ -114,18 +171,25 @@ const TabButton = ({
 };
 
 const ControlsTextArea = ({
-  value,
+  name,
   placeholder,
+  hidden,
 }: {
-  value: string;
+  name: string;
   placeholder: string;
+  hidden: boolean;
 }) => {
+  const { values, setFieldValue } = useFormikContext<FormValues>();
+  const value = values[name as keyof FormValues];
+
+  if (hidden) return null;
+
   return (
     <textarea
-      readOnly
       value={value}
+      onChange={(e) => setFieldValue(name, e.target.value)}
       placeholder={placeholder}
-      className="w-full h-64 p-3 font-mono text-sm bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md resize-none focus:outline-none"
+      className="w-full h-64 p-3 font-mono text-sm bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-sm resize-none focus-visible:outline-none focus-visible:border-transparent focus-visible:bg-purple-300/10 dark:focus-visible:bg-purple-700/40 focus-visible:ring-purple-500 dark:focus-visible:ring-purple-700 focus-visible:ring-inset"
     />
   );
 };
