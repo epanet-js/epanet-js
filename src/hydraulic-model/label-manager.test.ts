@@ -33,6 +33,17 @@ describe("label manager", () => {
     expect(labelManager.count("LABEL_1")).toEqual(2);
   });
 
+  it("count is case-insensitive", () => {
+    const labelManager = new LabelManager();
+
+    labelManager.register("MyLabel", "junction", anId());
+    labelManager.register("mylabel", "junction", anId());
+
+    expect(labelManager.count("MyLabel")).toEqual(2);
+    expect(labelManager.count("MYLABEL")).toEqual(2);
+    expect(labelManager.count("mylabel")).toEqual(2);
+  });
+
   it("only register once a label for the same asset", () => {
     const labelManager = new LabelManager();
 
@@ -59,6 +70,17 @@ describe("label manager", () => {
     expect(labelManager.count("P1")).toEqual(0);
 
     expect(labelManager.generateFor("pipe", firstId)).toEqual("P1");
+  });
+
+  it("remove is case-insensitive", () => {
+    const labelManager = new LabelManager();
+    const id = anId();
+
+    labelManager.register("MyPipe", "pipe", id);
+    expect(labelManager.count("MyPipe")).toEqual(1);
+
+    labelManager.remove("mypipe", "pipe", id);
+    expect(labelManager.count("MyPipe")).toEqual(0);
   });
 
   it("fills gaps when removing labels", () => {
@@ -150,6 +172,31 @@ describe("label manager", () => {
       labelManager.register("P1", "pipe", pipeId2);
 
       expect(labelManager.isLabelAvailable("P1", "pipe", pipeId1)).toBe(false);
+    });
+
+    it("detects duplicates case-insensitively", () => {
+      const labelManager = new LabelManager();
+      labelManager.register("Pipe1", "pipe", anId());
+
+      expect(labelManager.isLabelAvailable("pipe1", "pipe")).toBe(false);
+      expect(labelManager.isLabelAvailable("PIPE1", "pipe")).toBe(false);
+      expect(labelManager.isLabelAvailable("Pipe1", "pipe")).toBe(false);
+    });
+
+    it("detects duplicates case-insensitively across node types", () => {
+      const labelManager = new LabelManager();
+      labelManager.register("Node1", "junction", anId());
+
+      expect(labelManager.isLabelAvailable("node1", "tank")).toBe(false);
+      expect(labelManager.isLabelAvailable("NODE1", "reservoir")).toBe(false);
+    });
+
+    it("allows same label case-insensitively for different categories", () => {
+      const labelManager = new LabelManager();
+      labelManager.register("Asset1", "pipe", anId());
+
+      expect(labelManager.isLabelAvailable("asset1", "junction")).toBe(true);
+      expect(labelManager.isLabelAvailable("ASSET1", "tank")).toBe(true);
     });
   });
 

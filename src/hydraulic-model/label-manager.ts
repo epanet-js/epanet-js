@@ -24,10 +24,16 @@ export class LabelManager implements LabelGenerator {
     this.assetIndex = new Map();
   }
 
-  register(label: string, type: Asset["type"], id: Asset["id"]) {
-    if ((this.assetIndex.get(label) || []).some((a) => a.id === id)) return;
+  private normalizeLabel(label: string): string {
+    return label.toUpperCase();
+  }
 
-    const regexp = new RegExp(`^(?:${typeToPrefix[type]})(\\d+)$`);
+  register(label: string, type: Asset["type"], id: Asset["id"]) {
+    const normalizedLabel = this.normalizeLabel(label);
+    if ((this.assetIndex.get(normalizedLabel) || []).some((a) => a.id === id))
+      return;
+
+    const regexp = new RegExp(`^(?:${typeToPrefix[type]})(\\d+)$`, "i");
     const match = label.match(regexp);
     if (match) {
       const index = parseInt(match[1]);
@@ -38,14 +44,14 @@ export class LabelManager implements LabelGenerator {
       );
     }
 
-    this.assetIndex.set(label, [
-      ...(this.assetIndex.get(label) || []),
+    this.assetIndex.set(normalizedLabel, [
+      ...(this.assetIndex.get(normalizedLabel) || []),
       { type, id },
     ]);
   }
 
   count(label: string) {
-    return (this.assetIndex.get(label) || []).length;
+    return (this.assetIndex.get(this.normalizeLabel(label)) || []).length;
   }
 
   isLabelAvailable(
@@ -53,7 +59,8 @@ export class LabelManager implements LabelGenerator {
     assetType: Asset["type"],
     excludeAssetId?: Asset["id"],
   ): boolean {
-    const assetsWithLabel = this.assetIndex.get(label) || [];
+    const assetsWithLabel =
+      this.assetIndex.get(this.normalizeLabel(label)) || [];
     const isNodeType = (t: Asset["type"]) =>
       t === "junction" || t === "reservoir" || t === "tank";
     const isAssetNodeType = isNodeType(assetType);
@@ -67,16 +74,18 @@ export class LabelManager implements LabelGenerator {
   generateFor(type: Asset["type"], id: Asset["id"]) {
     const nextIndex = this.indexPerType.get(type) || 1;
     const { label, index: effectiveIndex } = this.ensureUnique(type, nextIndex);
+    const normalizedLabel = this.normalizeLabel(label);
     this.indexPerType.set(type, effectiveIndex);
-    this.assetIndex.set(label, [
-      ...(this.assetIndex.get(label) || []),
+    this.assetIndex.set(normalizedLabel, [
+      ...(this.assetIndex.get(normalizedLabel) || []),
       { id, type },
     ]);
     return label;
   }
 
   remove(label: string, type: Asset["type"], id: Asset["id"]) {
-    const regexp = new RegExp(`^(?:${typeToPrefix[type]})(\\d+)$`);
+    const normalizedLabel = this.normalizeLabel(label);
+    const regexp = new RegExp(`^(?:${typeToPrefix[type]})(\\d+)$`, "i");
     const match = label.match(regexp);
     if (match) {
       const index = parseInt(match[1]);
@@ -87,8 +96,8 @@ export class LabelManager implements LabelGenerator {
       );
     }
     this.assetIndex.set(
-      label,
-      (this.assetIndex.get(label) || []).filter((a) => a.id !== id),
+      normalizedLabel,
+      (this.assetIndex.get(normalizedLabel) || []).filter((a) => a.id !== id),
     );
   }
 
@@ -145,8 +154,11 @@ export class LabelManager implements LabelGenerator {
     let iterationIndex = index;
     while (true) {
       const candidate = `${typeToPrefix[type]}${iterationIndex}`;
+      const normalizedCandidate = this.normalizeLabel(candidate);
       if (
-        !(this.assetIndex.get(candidate) || []).some((a) => a.type === type)
+        !(this.assetIndex.get(normalizedCandidate) || []).some(
+          (a) => a.type === type,
+        )
       ) {
         return { label: candidate, index: iterationIndex };
       }
