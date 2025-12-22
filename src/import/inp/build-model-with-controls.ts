@@ -531,17 +531,14 @@ const calculateReservoirHead = (
   return head;
 };
 
-const LINK_KEYWORDS = ["LINK", "PIPE", "PUMP", "VALVE"];
-
 const addControls = (
   hydraulicModel: HydraulicModel,
   rawControls: InpData["controls"],
   nodeIds: ItemData<AssetId>,
   linkIds: ItemData<AssetId>,
 ): void => {
-  const resolveLabel: LabelResolver = (keyword, label) => {
-    const isLinkKeyword = LINK_KEYWORDS.includes(keyword);
-    return isLinkKeyword ? linkIds.get(label) : nodeIds.get(label);
+  const resolveLabel: LabelResolver = (assetType, label) => {
+    return assetType === "link" ? linkIds.get(label) : nodeIds.get(label);
   };
 
   hydraulicModel.controls = {

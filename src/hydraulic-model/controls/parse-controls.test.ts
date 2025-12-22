@@ -100,6 +100,76 @@ VALVE VALVE1 OPEN AT TIME 3`;
     expect(result[2].assetReferences[0].assetId).toBe(3);
   });
 
+  describe("flexible keywords", () => {
+    it("parses control with custom keywords (non-standard words)", () => {
+      const resolver = createResolver({ P1: 1, T1: 2 });
+      const text = "ELEMENTO P1 OPEN IF NODO T1 ABOVE 100";
+
+      const result = parseSimpleControlsFromText(text, resolver);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].template).toBe(
+        "ELEMENTO {{0}} OPEN IF NODO {{1}} ABOVE 100",
+      );
+      expect(result[0].assetReferences).toHaveLength(2);
+      expect(result[0].assetReferences[0].assetId).toBe(1);
+      expect(result[0].assetReferences[0].isActionTarget).toBe(true);
+      expect(result[0].assetReferences[1].assetId).toBe(2);
+      expect(result[0].assetReferences[1].isActionTarget).toBe(false);
+    });
+
+    it("parses AT TIME control with custom keyword", () => {
+      const resolver = createResolver({ PUMP1: 1 });
+      const text = "X PUMP1 1.5 AT TIME 16";
+
+      const result = parseSimpleControlsFromText(text, resolver);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].template).toBe("X {{0}} 1.5 AT TIME 16");
+      expect(result[0].assetReferences).toHaveLength(1);
+      expect(result[0].assetReferences[0].assetId).toBe(1);
+      expect(result[0].assetReferences[0].isActionTarget).toBe(true);
+    });
+
+    it("preserves original custom keyword in template", () => {
+      const resolver = createResolver({ P1: 1, T1: 2 });
+      const text = "TUBERIA P1 CLOSED IF TANQUE T1 BELOW 50";
+
+      const result = parseSimpleControlsFromText(text, resolver);
+
+      expect(result[0].template).toBe(
+        "TUBERIA {{0}} CLOSED IF TANQUE {{1}} BELOW 50",
+      );
+    });
+
+    it("handles partial resolution - link resolves but node does not", () => {
+      const resolver = createResolver({ P1: 1 });
+      const text = "FOO P1 OPEN IF BAR UNKNOWN_NODE ABOVE 100";
+
+      const result = parseSimpleControlsFromText(text, resolver);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].template).toBe(
+        "FOO {{0}} OPEN IF BAR UNKNOWN_NODE ABOVE 100",
+      );
+      expect(result[0].assetReferences).toHaveLength(1);
+      expect(result[0].assetReferences[0].assetId).toBe(1);
+    });
+
+    it("returns original line with empty refs when link does not resolve", () => {
+      const resolver = createResolver({ T1: 2 });
+      const text = "FOO UNKNOWN_LINK OPEN IF BAR T1 ABOVE 100";
+
+      const result = parseSimpleControlsFromText(text, resolver);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].template).toBe(
+        "FOO UNKNOWN_LINK OPEN IF BAR T1 ABOVE 100",
+      );
+      expect(result[0].assetReferences).toHaveLength(0);
+    });
+  });
+
   describe("invalid input handling", () => {
     it("handles random text without crashing", () => {
       const resolver = createResolver({});
@@ -397,8 +467,7 @@ describe("createLabelResolverFromAssets", () => {
 
     const resolver = createLabelResolverFromAssets(model.assets);
 
-    expect(resolver("LINK", "MainPipe")).toBe(3);
-    expect(resolver("PIPE", "MainPipe")).toBe(3);
+    expect(resolver("link", "MainPipe")).toBe(3);
   });
 
   it("resolves node labels", () => {
@@ -409,8 +478,8 @@ describe("createLabelResolverFromAssets", () => {
 
     const resolver = createLabelResolverFromAssets(model.assets);
 
-    expect(resolver("NODE", "Junction1")).toBe(1);
-    expect(resolver("TANK", "Tank1")).toBe(2);
+    expect(resolver("node", "Junction1")).toBe(1);
+    expect(resolver("node", "Tank1")).toBe(2);
   });
 
   it("is case-insensitive for labels", () => {
@@ -420,9 +489,9 @@ describe("createLabelResolverFromAssets", () => {
 
     const resolver = createLabelResolverFromAssets(model.assets);
 
-    expect(resolver("NODE", "myjunction")).toBe(1);
-    expect(resolver("NODE", "MYJUNCTION")).toBe(1);
-    expect(resolver("NODE", "MyJunction")).toBe(1);
+    expect(resolver("node", "myjunction")).toBe(1);
+    expect(resolver("node", "MYJUNCTION")).toBe(1);
+    expect(resolver("node", "MyJunction")).toBe(1);
   });
 
   it("returns undefined for unknown labels", () => {
@@ -430,7 +499,7 @@ describe("createLabelResolverFromAssets", () => {
 
     const resolver = createLabelResolverFromAssets(model.assets);
 
-    expect(resolver("NODE", "UnknownNode")).toBeUndefined();
-    expect(resolver("LINK", "UnknownLink")).toBeUndefined();
+    expect(resolver("node", "UnknownNode")).toBeUndefined();
+    expect(resolver("link", "UnknownLink")).toBeUndefined();
   });
 });

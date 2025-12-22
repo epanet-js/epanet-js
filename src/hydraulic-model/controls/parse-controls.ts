@@ -8,7 +8,7 @@ import {
 } from "./types";
 
 export type LabelResolver = (
-  keyword: string,
+  assetType: "link" | "node",
   label: string,
 ) => AssetId | undefined;
 
@@ -64,10 +64,9 @@ export const createLabelResolverFromAssets = (
     }
   }
 
-  return (keyword: string, label: string): AssetId | undefined => {
-    const isLinkKeyword = LINK_KEYWORDS.includes(keyword);
+  return (assetType: "link" | "node", label: string): AssetId | undefined => {
     const normalizedLabel = label.toUpperCase();
-    return isLinkKeyword
+    return assetType === "link"
       ? linkLabels.get(normalizedLabel)
       : nodeLabels.get(normalizedLabel);
   };
@@ -98,7 +97,10 @@ const parseSimpleControl = (
   line: string,
   resolveLabel: LabelResolver,
 ): SimpleControl => {
-  const { template, assetReferences } = convertToTemplate(line, resolveLabel);
+  const { template, assetReferences } = convertSimpleControlToTemplate(
+    line,
+    resolveLabel,
+  );
 
   markSimpleControlActionTargets(assetReferences);
 
@@ -106,6 +108,43 @@ const parseSimpleControl = (
     template,
     assetReferences,
   };
+};
+
+const convertSimpleControlToTemplate = (
+  line: string,
+  resolveLabel: LabelResolver,
+): { template: string; assetReferences: AssetReference[] } => {
+  const tokens = line.split(/\s+/);
+
+  if (tokens.length < 2) {
+    return { template: line, assetReferences: [] };
+  }
+
+  const linkLabel = tokens[1];
+  const linkAssetId = resolveLabel("link", linkLabel);
+
+  if (linkAssetId === undefined) {
+    return { template: line, assetReferences: [] };
+  }
+
+  const assetReferences: AssetReference[] = [
+    { assetId: linkAssetId, isActionTarget: false },
+  ];
+
+  tokens[1] = "{{0}}";
+
+  const ifIndex = tokens.findIndex((t) => t.toUpperCase() === "IF");
+  if (ifIndex !== -1 && ifIndex + 2 < tokens.length) {
+    const nodeLabel = tokens[ifIndex + 2];
+    const nodeAssetId = resolveLabel("node", nodeLabel);
+
+    if (nodeAssetId !== undefined) {
+      assetReferences.push({ assetId: nodeAssetId, isActionTarget: false });
+      tokens[ifIndex + 2] = "{{1}}";
+    }
+  }
+
+  return { template: tokens.join(" "), assetReferences };
 };
 
 const parseRuleBasedControl = (
@@ -176,7 +215,8 @@ const convertToTemplate = (
   const validMatchIndices: number[] = [];
   for (let i = 0; i < matches.length; i++) {
     const { keyword, label } = matches[i];
-    const assetId = resolveLabel(keyword, label);
+    const assetType = LINK_KEYWORDS.includes(keyword) ? "link" : "node";
+    const assetId = resolveLabel(assetType, label);
     if (assetId !== undefined) {
       assetReferences.push({
         assetId,
