@@ -5,7 +5,7 @@ import { buildInp } from "src/simulation/build-inp";
 import { getByLabel } from "src/__helpers__/asset-queries";
 import { Valve } from "src/hydraulic-model/asset-types";
 
-describe("Parse inp", () => {
+describe("Parse inp with", () => {
   it("can read values separated by spaces", () => {
     const IDS = { J1: 1 } as const;
     const elevation = 100;
@@ -30,7 +30,7 @@ describe("Parse inp", () => {
       String(IDS.J1),
     ) as Junction;
     expect(junction.elevation).toEqual(elevation);
-    expect(junction.baseDemand).toEqual(demand);
+    expect(junction.demands[0].baseDemand).toEqual(demand);
     expect(junction.coordinates).toEqual([20, 10]);
   });
 
@@ -68,7 +68,7 @@ describe("Parse inp", () => {
       String(IDS.J1),
     ) as Junction;
     expect(junction.elevation).toEqual(elevation);
-    expect(junction.baseDemand).toEqual(demand);
+    expect(junction.demands[0].baseDemand).toEqual(demand);
     expect(junction.coordinates).toEqual([20, 10]);
 
     const otherJunction = getByLabel(
@@ -76,7 +76,7 @@ describe("Parse inp", () => {
       String(IDS.J2),
     ) as Junction;
     expect(otherJunction.elevation).toEqual(otherElevation);
-    expect(otherJunction.baseDemand).toEqual(otherDemand);
+    expect(otherJunction.demands[0].baseDemand).toEqual(otherDemand);
     expect(otherJunction.coordinates).toEqual([40, 30]);
   });
 
@@ -228,22 +228,6 @@ describe("Parse inp", () => {
     const { issues } = parseInp(inp);
 
     expect(issues).toBeNull();
-  });
-
-  it("says when inp contains unsupported time settings", () => {
-    const inp = `
-    [TIMES]
-    Duration\t20
-    Pattern Start\t10 SEC
-    `;
-
-    const { issues } = parseInp(inp);
-
-    expect(issues!.extendedPeriodSimulation).toEqual(true);
-    expect([...issues!.nonDefaultTimes!.keys()]).toEqual([
-      "DURATION",
-      "PATTERN START",
-    ]);
   });
 
   it("says when coordinates are missing", () => {
@@ -508,7 +492,7 @@ describe("Parse inp", () => {
     ) as Junction;
     expect(junction).toBeDefined();
     expect(junction.elevation).toEqual(100);
-    expect(junction.baseDemand).toEqual(0.5);
+    expect(junction.demands[0].baseDemand).toEqual(0.5);
 
     const pipe = getByLabel(hydraulicModel.assets, String(IDS.P1)) as Pipe;
     expect(pipe).toBeDefined();
@@ -628,6 +612,17 @@ describe("Parse inp", () => {
       const { issues } = parseInp(inp);
 
       expect(issues?.unsupportedSections?.has("[REACTIONS]")).toBe(true);
+    });
+
+    it("does not report [PATTERNS] as unsupported", () => {
+      const inp = `
+      [PATTERNS]
+      PAT1  1.0  1.2  0.8  1.1
+      `;
+
+      const { issues } = parseInp(inp);
+
+      expect(issues?.unsupportedSections?.has("[PATTERNS]")).toBeFalsy();
     });
 
     it("reports PCV valves with curves", () => {

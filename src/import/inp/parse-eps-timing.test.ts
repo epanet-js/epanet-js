@@ -1,4 +1,4 @@
-import { parseInpWithEPS } from "./parse-inp-with-eps";
+import { parseInp } from "./parse-inp";
 
 describe("parse EPS timing", () => {
   const baseInp = `
@@ -22,7 +22,7 @@ describe("parse EPS timing", () => {
     DURATION\t24:00
     `;
 
-    const { hydraulicModel } = parseInpWithEPS(inp);
+    const { hydraulicModel } = parseInp(inp);
 
     expect(hydraulicModel.epsTiming.duration).toEqual(24 * 3600);
   });
@@ -33,7 +33,7 @@ describe("parse EPS timing", () => {
     DURATION\t1:30:00
     `;
 
-    const { hydraulicModel } = parseInpWithEPS(inp);
+    const { hydraulicModel } = parseInp(inp);
 
     expect(hydraulicModel.epsTiming.duration).toEqual(1 * 3600 + 30 * 60);
   });
@@ -44,7 +44,7 @@ describe("parse EPS timing", () => {
     DURATION\t48 HOURS
     `;
 
-    const { hydraulicModel } = parseInpWithEPS(inp);
+    const { hydraulicModel } = parseInp(inp);
 
     expect(hydraulicModel.epsTiming.duration).toEqual(48 * 3600);
   });
@@ -55,7 +55,7 @@ describe("parse EPS timing", () => {
     DURATION\t12
     `;
 
-    const { hydraulicModel } = parseInpWithEPS(inp);
+    const { hydraulicModel } = parseInp(inp);
 
     expect(hydraulicModel.epsTiming.duration).toEqual(12 * 3600);
   });
@@ -66,7 +66,7 @@ describe("parse EPS timing", () => {
     HYDRAULIC TIMESTEP\t1:00
     `;
 
-    const { hydraulicModel } = parseInpWithEPS(inp);
+    const { hydraulicModel } = parseInp(inp);
 
     expect(hydraulicModel.epsTiming.hydraulicTimestep).toEqual(3600);
   });
@@ -77,7 +77,7 @@ describe("parse EPS timing", () => {
     REPORT TIMESTEP\t0:30
     `;
 
-    const { hydraulicModel } = parseInpWithEPS(inp);
+    const { hydraulicModel } = parseInp(inp);
 
     expect(hydraulicModel.epsTiming.reportTimestep).toEqual(30 * 60);
   });
@@ -88,7 +88,7 @@ describe("parse EPS timing", () => {
     PATTERN TIMESTEP\t1:00
     `;
 
-    const { hydraulicModel } = parseInpWithEPS(inp);
+    const { hydraulicModel } = parseInp(inp);
 
     expect(hydraulicModel.epsTiming.patternTimestep).toEqual(3600);
   });
@@ -102,7 +102,7 @@ describe("parse EPS timing", () => {
     PATTERN TIMESTEP\t1:00
     `;
 
-    const { hydraulicModel } = parseInpWithEPS(inp);
+    const { hydraulicModel } = parseInp(inp);
 
     expect(hydraulicModel.epsTiming.duration).toEqual(24 * 3600);
     expect(hydraulicModel.epsTiming.hydraulicTimestep).toEqual(3600);
@@ -111,7 +111,7 @@ describe("parse EPS timing", () => {
   });
 
   it("leaves time settings undefined when not specified", () => {
-    const { hydraulicModel } = parseInpWithEPS(baseInp);
+    const { hydraulicModel } = parseInp(baseInp);
 
     expect(hydraulicModel.epsTiming.duration).toBeUndefined();
     expect(hydraulicModel.epsTiming.hydraulicTimestep).toBeUndefined();
@@ -125,7 +125,7 @@ describe("parse EPS timing", () => {
     PATTERN START\t6:00
     `;
 
-    const { issues } = parseInpWithEPS(inp);
+    const { issues } = parseInp(inp);
 
     expect(issues?.nonDefaultTimes?.has("PATTERN START")).toBe(true);
   });
@@ -136,7 +136,7 @@ describe("parse EPS timing", () => {
     PATTERN START\t0
     `;
 
-    const { issues } = parseInpWithEPS(inp);
+    const { issues } = parseInp(inp);
 
     expect(issues?.nonDefaultTimes?.has("PATTERN START")).toBeFalsy();
   });
@@ -147,7 +147,7 @@ describe("parse EPS timing", () => {
     REPORT START\t00:00
     `;
 
-    const { issues } = parseInpWithEPS(inp);
+    const { issues } = parseInp(inp);
 
     expect(issues?.nonDefaultTimes?.has("REPORT START")).toBeFalsy();
   });
@@ -158,7 +158,7 @@ describe("parse EPS timing", () => {
     REPORT START\t1:00
     `;
 
-    const { issues } = parseInpWithEPS(inp);
+    const { issues } = parseInp(inp);
 
     expect(issues?.nonDefaultTimes?.has("REPORT START")).toBe(true);
   });
@@ -169,7 +169,7 @@ describe("parse EPS timing", () => {
     START CLOCKTIME\t12 AM
     `;
 
-    const { issues } = parseInpWithEPS(inp);
+    const { issues } = parseInp(inp);
 
     expect(issues?.nonDefaultTimes?.has("START CLOCKTIME")).toBeFalsy();
   });
@@ -180,7 +180,7 @@ describe("parse EPS timing", () => {
     START CLOCKTIME\t6 AM
     `;
 
-    const { issues } = parseInpWithEPS(inp);
+    const { issues } = parseInp(inp);
 
     expect(issues?.nonDefaultTimes?.has("START CLOCKTIME")).toBe(true);
   });
@@ -191,7 +191,7 @@ describe("parse EPS timing", () => {
     QUALITY TIMESTEP\t0:05
     `;
 
-    const { issues } = parseInpWithEPS(inp);
+    const { issues } = parseInp(inp);
 
     expect(issues?.nonDefaultTimes?.has("QUALITY TIMESTEP")).toBeFalsy();
   });
@@ -202,7 +202,7 @@ describe("parse EPS timing", () => {
     STATISTIC\tAVERAGE
     `;
 
-    const { issues } = parseInpWithEPS(inp);
+    const { issues } = parseInp(inp);
 
     expect(issues?.nonDefaultTimes?.has("STATISTIC")).toBe(true);
   });
@@ -213,7 +213,7 @@ describe("parse EPS timing", () => {
     STATISTIC\tNONE
     `;
 
-    const { issues } = parseInpWithEPS(inp);
+    const { issues } = parseInp(inp);
 
     expect(issues?.nonDefaultTimes?.has("STATISTIC")).toBeFalsy();
   });
