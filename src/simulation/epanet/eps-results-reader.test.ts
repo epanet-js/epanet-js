@@ -1,5 +1,5 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
-import { buildInpEPS } from "../build-inp-eps";
+import { buildInp } from "../build-inp";
 import { runEPSSimulation as workerRunEPSSimulation } from "./worker-eps";
 import { runEPSSimulation } from "./main";
 import { lib } from "src/lib/worker";
@@ -32,7 +32,7 @@ describe("EPSResultsReader", () => {
       .aJunction(IDS.J1, { baseDemand: 10, elevation: 10 })
       .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
       .build();
-    const inp = buildInpEPS(hydraulicModel);
+    const inp = buildInp(hydraulicModel);
 
     const testAppId = "test-junction-reader";
     const { status } = await runEPSSimulation(inp, testAppId);
@@ -60,7 +60,7 @@ describe("EPSResultsReader", () => {
       .aJunction(IDS.J1, { baseDemand: 10 })
       .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
       .build();
-    const inp = buildInpEPS(hydraulicModel);
+    const inp = buildInp(hydraulicModel);
 
     const testAppId = "test-pipe-reader";
     const { status } = await runEPSSimulation(inp, testAppId);
@@ -87,7 +87,7 @@ describe("EPSResultsReader", () => {
       .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
       .eps({ duration: 7200, hydraulicTimestep: 3600 }) // 2 hours, 1 hour timestep
       .build();
-    const inp = buildInpEPS(hydraulicModel);
+    const inp = buildInp(hydraulicModel);
 
     const testAppId = "test-multi-timestep";
     const { status, metadata } = await runEPSSimulation(inp, testAppId);
@@ -125,7 +125,7 @@ describe("EPSResultsReader", () => {
       .aPipe(IDS.P2, { startNodeId: IDS.T1, endNodeId: IDS.J1 })
       .eps({ duration: 3600, hydraulicTimestep: 3600 })
       .build();
-    const inp = buildInpEPS(hydraulicModel);
+    const inp = buildInp(hydraulicModel);
 
     const testAppId = "test-tank-reader";
     const { status } = await runEPSSimulation(inp, testAppId);
@@ -150,7 +150,7 @@ describe("EPSResultsReader", () => {
       .aJunction(IDS.J1)
       .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
       .build();
-    const inp = buildInpEPS(hydraulicModel);
+    const inp = buildInp(hydraulicModel);
 
     const testAppId = "test-nonexistent";
     await runEPSSimulation(inp, testAppId);
@@ -175,7 +175,7 @@ describe("EPSResultsReader", () => {
       .aJunction(IDS.J1)
       .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
       .build();
-    const inp = buildInpEPS(hydraulicModel);
+    const inp = buildInp(hydraulicModel);
 
     const testAppId = "test-out-of-range";
     await runEPSSimulation(inp, testAppId);
@@ -214,7 +214,7 @@ describe("EPSResultsReader", () => {
         length: pipeLength,
       })
       .build();
-    const inp = buildInpEPS(hydraulicModel);
+    const inp = buildInp(hydraulicModel);
 
     const testAppId = "test-pipe-headloss";
     await runEPSSimulation(inp, testAppId);
@@ -240,7 +240,7 @@ describe("EPSResultsReader", () => {
       .aPump(IDS.PUMP1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
       .aPumpCurve({ id: String(IDS.PUMP1), points: [{ x: 1, y: 1 }] })
       .build();
-    const inp = buildInpEPS(hydraulicModel);
+    const inp = buildInp(hydraulicModel);
 
     const testAppId = "test-pump-reader";
     const { status } = await runEPSSimulation(inp, testAppId);
@@ -276,7 +276,7 @@ describe("EPSResultsReader", () => {
         length: pipeLength,
       })
       .build();
-    const inp = buildInpEPS(hydraulicModel);
+    const inp = buildInp(hydraulicModel);
 
     const testAppId = "test-pipe-length";
     await runEPSSimulation(inp, testAppId);
@@ -305,7 +305,7 @@ describe("EPSResultsReader", () => {
       .aPumpCurve({ id: String(IDS.PUMP1), points: [{ x: 1, y: 1 }] })
       .eps({ duration: 3600, hydraulicTimestep: 3600 })
       .build();
-    const inp = buildInpEPS(hydraulicModel);
+    const inp = buildInp(hydraulicModel);
 
     const testAppId = "test-pump-xflow";
     const { status } = await runEPSSimulation(inp, testAppId);
@@ -334,7 +334,7 @@ describe("EPSResultsReader", () => {
       .aPumpCurve({ id: String(IDS.PUMP1), points: [{ x: 20, y: 40 }] })
       .eps({ duration: 7200, hydraulicTimestep: 3600 }) // 2 hours, 1 hour timestep
       .build();
-    const inp = buildInpEPS(hydraulicModel);
+    const inp = buildInp(hydraulicModel);
 
     const testAppId = "test-pump-multi-timestep";
     const { status } = await runEPSSimulation(inp, testAppId);

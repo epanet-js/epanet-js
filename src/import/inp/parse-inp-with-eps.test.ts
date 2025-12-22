@@ -1,11 +1,11 @@
 import { Junction, Pipe, Reservoir } from "src/hydraulic-model";
 import { parseInpWithEPS } from "./parse-inp-with-eps";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
-import { buildInpEPS } from "src/simulation/build-inp-eps";
+import { buildInp } from "src/simulation/build-inp";
 import { getByLabel } from "src/__helpers__/asset-queries";
 import { Valve } from "src/hydraulic-model/asset-types";
 
-describe("Parse inp with EPS", () => {
+describe("Parse inp with", () => {
   it("can read values separated by spaces", () => {
     const IDS = { J1: 1 } as const;
     const elevation = 100;
@@ -400,7 +400,7 @@ describe("Parse inp with EPS", () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction(IDS.J1, { coordinates: [10, 1] })
       .build();
-    let inp = buildInpEPS(hydraulicModel, {
+    let inp = buildInp(hydraulicModel, {
       madeBy: true,
     });
 

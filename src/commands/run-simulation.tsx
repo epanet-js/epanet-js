@@ -1,6 +1,6 @@
 import { useAtomValue, useSetAtom } from "jotai";
 import { useCallback } from "react";
-import { buildInpEPS } from "src/simulation/build-inp-eps";
+import { buildInp } from "src/simulation/build-inp";
 import { buildInpWithControls } from "src/simulation/build-inp-with-controls";
 import { dataAtom, dialogAtom, simulationAtom } from "src/state/jotai";
 import {
@@ -30,7 +30,7 @@ export const useRunSimulation = () => {
     setSimulationState((prev) => ({ ...prev, status: "running" }));
     const inp = isControlsEnabled
       ? buildInpWithControls(hydraulicModel, { customerDemands: true })
-      : buildInpEPS(hydraulicModel, { customerDemands: true });
+      : buildInp(hydraulicModel, { customerDemands: true });
     const start = performance.now();
 
     let isCompleted = false;

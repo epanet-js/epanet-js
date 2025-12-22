@@ -1,6 +1,6 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { lib } from "src/lib/worker";
-import { buildInpEPS } from "../build-inp-eps";
+import { buildInp } from "../build-inp";
 import { runEPSSimulation } from "./main";
 import {
   runEPSSimulation as workerRunEPSSimulation,
@@ -29,7 +29,7 @@ describe("EPS simulation", () => {
       .aJunction(IDS.J1)
       .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
       .build();
-    const inp = buildInpEPS(hydraulicModel);
+    const inp = buildInp(hydraulicModel);
 
     const { status, metadata } = await runEPSSimulation(inp, "test-app-id");
     const simulationMetadata = new SimulationMetadata(metadata);
@@ -49,7 +49,7 @@ describe("EPS simulation", () => {
       .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
       .eps({ duration: 7200, hydraulicTimestep: 3600 }) // 2 hours, 1 hour timestep
       .build();
-    const inp = buildInpEPS(hydraulicModel);
+    const inp = buildInp(hydraulicModel);
 
     const { status, metadata } = await runEPSSimulation(inp, "test-app-id");
     const simulationMetadata = new SimulationMetadata(metadata);
@@ -73,7 +73,7 @@ describe("EPS simulation", () => {
       .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.T1 })
       .aPipe(IDS.P2, { startNodeId: IDS.T1, endNodeId: IDS.J1 })
       .build();
-    const inp = buildInpEPS(hydraulicModel);
+    const inp = buildInp(hydraulicModel);
 
     const { status, metadata } = await runEPSSimulation(inp, "test-app-id");
     const simulationMetadata = new SimulationMetadata(metadata);
@@ -89,7 +89,7 @@ describe("EPS simulation", () => {
       .aReservoir(IDS.R2)
       .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.R2 })
       .build();
-    const inp = buildInpEPS(hydraulicModel);
+    const inp = buildInp(hydraulicModel);
 
     const { status, metadata } = await runEPSSimulation(inp, "test-app-id");
     const simulationMetadata = new SimulationMetadata(metadata);
@@ -106,7 +106,7 @@ describe("EPS simulation", () => {
       .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
       .eps({ duration: 7200, hydraulicTimestep: 3600 }) // 2 hours, 1 hour timestep
       .build();
-    const inp = buildInpEPS(hydraulicModel);
+    const inp = buildInp(hydraulicModel);
 
     const progressUpdates: SimulationProgress[] = [];
     const onProgress = (progress: SimulationProgress) => {
