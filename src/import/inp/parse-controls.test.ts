@@ -338,5 +338,35 @@ THEN LINK {{1}} STATUS IS OPEN`);
         ";activate pump",
       );
     });
+
+    it("preserves PRIORITY clause in template", () => {
+      const IDS = { T1: 1, P1: 2, J1: 3 } as const;
+      const inp = `
+      [TANKS]
+      ${IDS.T1}\t50\t10\t0\t20\t50\t0
+
+      [JUNCTIONS]
+      ${IDS.J1}\t50
+
+      [PIPES]
+      ${IDS.P1}\t${IDS.T1}\t${IDS.J1}\t100\t100\t100\t0\tOpen
+
+      [COORDINATES]
+      ${IDS.T1}\t1\t1
+      ${IDS.J1}\t2\t2
+
+      [RULES]
+      RULE 1
+      IF NODE ${IDS.T1} LEVEL > 100
+      THEN LINK ${IDS.P1} STATUS IS OPEN
+      PRIORITY 5
+
+      [END]
+      `;
+
+      const { hydraulicModel } = parseInpWithControls(inp);
+
+      expect(hydraulicModel.controls.rules[0].template).toContain("PRIORITY 5");
+    });
   });
 });
