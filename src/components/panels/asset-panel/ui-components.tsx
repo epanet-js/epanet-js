@@ -83,7 +83,7 @@ const Header = ({
       onInputChange={handleInputChange}
       onReset={handleReset}
       hasError={!!error}
-      allowedChars={/[!#$%&(),.:<=>\?@\[\]_`{}~|0-9A-Za-z\xA0-\xFF]/}
+      allowedChars={/(?![\s;])[\x00-\xFF]/}
       maxByteLength={31}
       styleOptions={{
         padding: "sm",
