@@ -375,6 +375,7 @@ const JunctionEditor = ({
       label={junction.label}
       type={translate("junction")}
       onLabelChange={onLabelChange}
+      key={junction.id}
     >
       <Section title={translate("activeTopology")}>
         <SwitchRow
@@ -528,6 +529,7 @@ const PipeEditor = ({
       label={pipe.label}
       type={translate("pipe")}
       onLabelChange={onLabelChange}
+      key={pipe.id}
     >
       <Section title={translate("connections")}>
         <TextRow name="startNode" value={startNode ? startNode.label : ""} />
@@ -652,6 +654,7 @@ const ReservoirEditor = ({
       label={reservoir.label}
       type={translate("reservoir")}
       onLabelChange={onLabelChange}
+      key={reservoir.id}
     >
       <Section title={translate("activeTopology")}>
         <SwitchRow
@@ -697,6 +700,7 @@ const TankEditor = ({
       label={tank.label}
       type={translate("tank")}
       onLabelChange={onLabelChange}
+      key={tank.id}
     >
       <Section title={translate("activeTopology")}>
         <SwitchRow
@@ -870,6 +874,7 @@ const ValveEditor = ({
       label={valve.label}
       type={translate("valve")}
       onLabelChange={onLabelChange}
+      key={valve.id}
     >
       <Section title={translate("connections")}>
         <TextRow name="startNode" value={startNode ? startNode.label : ""} />
@@ -997,6 +1002,7 @@ const PumpEditor = ({
       label={pump.label}
       type={translate("pump")}
       onLabelChange={onLabelChange}
+      key={pump.id}
     >
       <Section title={translate("connections")}>
         <TextRow name="startNode" value={startNode ? startNode.label : ""} />
