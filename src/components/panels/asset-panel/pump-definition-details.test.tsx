@@ -33,6 +33,25 @@ const getFlowInput = (rowLabel: string) =>
 const getHeadInput = (rowLabel: string) =>
   screen.getByRole("textbox", { name: new RegExp(`${rowLabel}-y`, "i") });
 
+const queryFlowInput = (rowLabel: string) =>
+  screen.queryByRole("textbox", { name: new RegExp(`${rowLabel}-x`, "i") });
+
+const queryHeadInput = (rowLabel: string) =>
+  screen.queryByRole("textbox", { name: new RegExp(`${rowLabel}-y`, "i") });
+
+const getFlowSpan = (rowLabel: string) => {
+  const row = screen.getByText(rowLabel).closest('[role="cell"]');
+  const nextCell = row?.nextElementSibling;
+  return nextCell?.querySelector("span") as HTMLElement;
+};
+
+const getHeadSpan = (rowLabel: string) => {
+  const row = screen.getByText(rowLabel).closest('[role="cell"]');
+  const flowCell = row?.nextElementSibling;
+  const headCell = flowCell?.nextElementSibling;
+  return headCell?.querySelector("span") as HTMLElement;
+};
+
 describe("PumpCurveTable", () => {
   describe("initialization", () => {
     it("shows 3 rows with shutoff flow=0 when no curve provided", () => {
@@ -44,7 +63,7 @@ describe("PumpCurveTable", () => {
         />,
       );
 
-      expect(getFlowInput("Shutoff")).toHaveValue("0");
+      expect(getFlowSpan("Shutoff")).toHaveTextContent("0");
       expect(getHeadInput("Shutoff")).toHaveValue("");
       expect(getFlowInput("Design")).toHaveValue("");
       expect(getHeadInput("Design")).toHaveValue("");
@@ -68,7 +87,7 @@ describe("PumpCurveTable", () => {
         />,
       );
 
-      expect(getFlowInput("Shutoff")).toHaveValue("0");
+      expect(getFlowSpan("Shutoff")).toHaveTextContent("0");
       expect(getHeadInput("Shutoff")).toHaveValue("100");
       expect(getFlowInput("Design")).toHaveValue("50");
       expect(getHeadInput("Design")).toHaveValue("80");
@@ -88,12 +107,12 @@ describe("PumpCurveTable", () => {
         />,
       );
 
-      expect(getFlowInput("Shutoff")).toHaveValue("0");
-      expect(getHeadInput("Shutoff")).toHaveValue("133");
+      expect(getFlowSpan("Shutoff")).toHaveTextContent("0");
+      expect(getHeadSpan("Shutoff")).toHaveTextContent("133");
       expect(getFlowInput("Design")).toHaveValue("50");
       expect(getHeadInput("Design")).toHaveValue("100");
-      expect(getFlowInput("Max Operating")).toHaveValue("100");
-      expect(getHeadInput("Max Operating")).toHaveValue("0");
+      expect(getFlowSpan("Max Operating")).toHaveTextContent("100");
+      expect(getHeadSpan("Max Operating")).toHaveTextContent("0");
     });
 
     it("takes middle point from multi-point curve in design-point mode", () => {
@@ -130,13 +149,12 @@ describe("PumpCurveTable", () => {
         />,
       );
 
-      expect(getFlowInput("Shutoff")).toHaveAttribute("readonly");
-      expect(getHeadInput("Shutoff")).toHaveAttribute("readonly");
-      expect(getFlowInput("Max Operating")).toHaveAttribute("readonly");
-      expect(getHeadInput("Max Operating")).toHaveAttribute("readonly");
-
-      expect(getFlowInput("Design")).not.toHaveAttribute("readonly");
-      expect(getHeadInput("Design")).not.toHaveAttribute("readonly");
+      expect(queryFlowInput("Shutoff")).toBeNull();
+      expect(queryHeadInput("Shutoff")).toBeNull();
+      expect(queryFlowInput("Max Operating")).toBeNull();
+      expect(queryHeadInput("Max Operating")).toBeNull();
+      expect(getFlowInput("Design")).toBeInTheDocument();
+      expect(getHeadInput("Design")).toBeInTheDocument();
     });
 
     it("updates derived values when design point changes", async () => {
@@ -158,7 +176,7 @@ describe("PumpCurveTable", () => {
       await user.type(headInput, "200");
       await user.keyboard("{Enter}");
 
-      expect(getHeadInput("Shutoff")).toHaveValue("266");
+      expect(getHeadSpan("Shutoff")).toHaveTextContent("266");
     });
 
     it("shows warning styling when design point is incomplete", () => {
@@ -217,8 +235,8 @@ describe("PumpCurveTable", () => {
         />,
       );
 
-      expect(getFlowInput("Shutoff")).toHaveAttribute("readonly");
-      expect(getFlowInput("Shutoff")).toHaveValue("0");
+      expect(queryFlowInput("Shutoff")).toBeNull();
+      expect(getFlowSpan("Shutoff")).toHaveTextContent("0");
     });
 
     it("allows editing all head values and design/maxOp flows", () => {
@@ -237,12 +255,12 @@ describe("PumpCurveTable", () => {
         />,
       );
 
-      expect(getHeadInput("Shutoff")).not.toHaveAttribute("readonly");
-      expect(getHeadInput("Design")).not.toHaveAttribute("readonly");
-      expect(getHeadInput("Max Operating")).not.toHaveAttribute("readonly");
+      expect(getHeadInput("Shutoff")).toBeInTheDocument();
+      expect(getHeadInput("Design")).toBeInTheDocument();
+      expect(getHeadInput("Max Operating")).toBeInTheDocument();
 
-      expect(getFlowInput("Design")).not.toHaveAttribute("readonly");
-      expect(getFlowInput("Max Operating")).not.toHaveAttribute("readonly");
+      expect(getFlowInput("Design")).toBeInTheDocument();
+      expect(getFlowInput("Max Operating")).toBeInTheDocument();
     });
 
     it("shows warning styling when points are missing", () => {
@@ -364,12 +382,12 @@ describe("PumpCurveTable", () => {
       await user.clear(headInput);
       await user.keyboard("{Enter}");
 
-      expect(getHeadInput("Shutoff")).toHaveValue("");
+      expect(getHeadSpan("Shutoff")).toHaveTextContent("");
     });
   });
 
   describe("read-only mode", () => {
-    it("all fields are read-only when onCurveChange is undefined", () => {
+    it("all fields are rendered as spans when onCurveChange is undefined", () => {
       const curve = aCurve([
         { x: 0, y: 100 },
         { x: 50, y: 80 },
@@ -384,12 +402,14 @@ describe("PumpCurveTable", () => {
         />,
       );
 
-      expect(getFlowInput("Shutoff")).toHaveAttribute("readonly");
-      expect(getHeadInput("Shutoff")).toHaveAttribute("readonly");
-      expect(getFlowInput("Design")).toHaveAttribute("readonly");
-      expect(getHeadInput("Design")).toHaveAttribute("readonly");
-      expect(getFlowInput("Max Operating")).toHaveAttribute("readonly");
-      expect(getHeadInput("Max Operating")).toHaveAttribute("readonly");
+      expect(queryFlowInput("Shutoff")).toBeNull();
+      expect(queryHeadInput("Shutoff")).toBeNull();
+      expect(queryFlowInput("Design")).toBeNull();
+      expect(queryHeadInput("Design")).toBeNull();
+      expect(queryFlowInput("Max Operating")).toBeNull();
+      expect(queryHeadInput("Max Operating")).toBeNull();
+      expect(getFlowSpan("Shutoff")).toHaveTextContent("0");
+      expect(getHeadSpan("Shutoff")).toHaveTextContent("100");
     });
 
     it("does not show warning styling in read-only mode when curve is invalid", () => {
@@ -397,9 +417,9 @@ describe("PumpCurveTable", () => {
         <PumpCurveTable definitionType="standard" quantities={quantities} />,
       );
 
-      expect(getHeadInput("Shutoff")).not.toHaveClass("border-orange-500");
-      expect(getFlowInput("Design")).not.toHaveClass("border-orange-500");
-      expect(getHeadInput("Design")).not.toHaveClass("border-orange-500");
+      expect(getHeadSpan("Shutoff")).not.toHaveClass("border-orange-500");
+      expect(getFlowSpan("Design")).not.toHaveClass("border-orange-500");
+      expect(getHeadSpan("Design")).not.toHaveClass("border-orange-500");
     });
   });
 });
@@ -499,7 +519,7 @@ describe("PumpDefinitionDetails", () => {
           ],
         });
 
-        expect(getFlowInput("Shutoff")).toHaveValue("0");
+        expect(getFlowSpan("Shutoff")).toHaveTextContent("0");
         expect(getHeadInput("Shutoff")).toHaveValue("133");
         expect(getFlowInput("Design")).toHaveValue("50");
         expect(getHeadInput("Design")).toHaveValue("100");
@@ -539,12 +559,12 @@ describe("PumpDefinitionDetails", () => {
           points: [{ flow: 50, head: 100 }],
         });
 
-        expect(getFlowInput("Shutoff")).toHaveValue("0");
-        expect(getHeadInput("Shutoff")).toHaveValue("133");
+        expect(getFlowSpan("Shutoff")).toHaveTextContent("0");
+        expect(getHeadSpan("Shutoff")).toHaveTextContent("133");
         expect(getFlowInput("Design")).toHaveValue("50");
         expect(getHeadInput("Design")).toHaveValue("100");
-        expect(getFlowInput("Max Operating")).toHaveValue("100");
-        expect(getHeadInput("Max Operating")).toHaveValue("0");
+        expect(getFlowSpan("Max Operating")).toHaveTextContent("100");
+        expect(getHeadSpan("Max Operating")).toHaveTextContent("0");
       });
     });
 

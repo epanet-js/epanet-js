@@ -366,37 +366,45 @@ const GridRow = ({
       </div>
 
       <div role="cell" className="pl-2 pt-2">
-        <NumericField
-          label={`${label}-x`}
-          positiveOnly={true}
-          isNullable={true}
-          readOnly={!onChangeFlow}
-          displayValue={displayFlow}
-          onChangeValue={handleFlowChange}
-          styleOptions={{
-            padding: "sm",
-            ghostBorder: !onChangeFlow,
-            textSize: "sm",
-            variant: flowHasError ? "warning" : "default",
-          }}
-        />
+        {onChangeFlow ? (
+          <NumericField
+            label={`${label}-x`}
+            positiveOnly={true}
+            isNullable={true}
+            displayValue={displayFlow}
+            onChangeValue={handleFlowChange}
+            styleOptions={{
+              padding: "sm",
+              textSize: "sm",
+              variant: flowHasError ? "warning" : "default",
+            }}
+          />
+        ) : (
+          <span className="block p-1 text-sm text-gray-700 dark:text-gray-100 tabular-nums border border-transparent">
+            {displayFlow}
+          </span>
+        )}
       </div>
 
       <div role="cell" className="pl-2 pt-2">
-        <NumericField
-          label={`${label}-y`}
-          positiveOnly={true}
-          isNullable={true}
-          readOnly={!onChangeHead}
-          displayValue={displayHead}
-          onChangeValue={handleHeadChange}
-          styleOptions={{
-            padding: "sm",
-            ghostBorder: !onChangeHead,
-            textSize: "sm",
-            variant: headHasError ? "warning" : "default",
-          }}
-        />
+        {onChangeHead ? (
+          <NumericField
+            label={`${label}-y`}
+            positiveOnly={true}
+            isNullable={true}
+            displayValue={displayHead}
+            onChangeValue={handleHeadChange}
+            styleOptions={{
+              padding: "sm",
+              textSize: "sm",
+              variant: headHasError ? "warning" : "default",
+            }}
+          />
+        ) : (
+          <span className="block p-1 text-sm text-gray-700 dark:text-gray-100 tabular-nums border border-transparent">
+            {displayHead}
+          </span>
+        )}
       </div>
     </>
   );
