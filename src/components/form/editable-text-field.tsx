@@ -28,20 +28,20 @@ export const EditableTextField = ({
   tabIndex = 1,
   allowedChars,
   maxByteLength,
-  onInputChange,
+  onDirty,
   onReset,
   hasError = false,
 }: {
   label: string;
   value: string;
-  onChangeValue?: (newValue: string) => void;
+  onChangeValue?: (newValue: string) => boolean;
   readOnly?: boolean;
   disabled?: boolean;
   styleOptions?: Partial<StyleOptions>;
   tabIndex?: number;
   allowedChars?: RegExp;
   maxByteLength?: number;
-  onInputChange?: (value: string) => void;
+  onDirty?: () => void;
   onReset?: () => void;
   hasError?: boolean;
 }) => {
@@ -79,10 +79,6 @@ export const EditableTextField = ({
   };
 
   const handleBlur = () => {
-    if (hasError) {
-      focusInput();
-      return;
-    }
     if (isDirty) {
       handleCommitLastChange();
     } else {
@@ -100,14 +96,13 @@ export const EditableTextField = ({
     }
     const trimmedValue = inputValue.trim();
     if (trimmedValue && trimmedValue !== value) {
-      onChangeValue && onChangeValue(trimmedValue);
+      const hasValidationError = onChangeValue?.(trimmedValue);
+      if (hasValidationError) {
+        return;
+      }
     }
     setDirty(false);
     blurInput();
-  };
-
-  const focusInput = () => {
-    setTimeout(() => inputRef.current?.focus(), 0);
   };
 
   const blurInput = () => {
@@ -132,7 +127,7 @@ export const EditableTextField = ({
     }
     setInputValue(newValue);
     setDirty(true);
-    onInputChange?.(newValue);
+    onDirty?.();
   };
 
   const variant = hasError ? "warning" : styleOptions.variant;

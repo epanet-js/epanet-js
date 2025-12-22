@@ -60,18 +60,15 @@ const Header = ({
   const [error, setError] = useState<string | null>(null);
 
   const handleChange = useCallback(
-    (newLabel: string) => {
+    (newLabel: string): boolean => {
       const validationError = onLabelChange?.(newLabel);
       setError(validationError ?? null);
+      return !!validationError;
     },
     [onLabelChange],
   );
 
-  const handleInputChange = useCallback(() => {
-    setError(null);
-  }, []);
-
-  const handleReset = useCallback(() => {
+  const clearError = useCallback(() => {
     setError(null);
   }, []);
 
@@ -80,8 +77,8 @@ const Header = ({
       label={label}
       value={label}
       onChangeValue={handleChange}
-      onInputChange={handleInputChange}
-      onReset={handleReset}
+      onReset={clearError}
+      onDirty={clearError}
       hasError={!!error}
       allowedChars={/(?![\s;])[\x00-\xFF]/}
       maxByteLength={31}
