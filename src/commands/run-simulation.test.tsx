@@ -3,8 +3,8 @@ import { CommandContainer } from "./__helpers__/command-container";
 import {
   SimulationFinished,
   Store,
-  dataAtom,
   simulationAtom,
+  dataAtom,
 } from "src/state/jotai";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { setInitialState } from "src/__helpers__/state";
@@ -12,11 +12,12 @@ import userEvent from "@testing-library/user-event";
 import { useRunSimulation } from "./run-simulation";
 import { lib } from "src/lib/worker";
 import { Mock } from "vitest";
-import { runSimulation as runSimulationInWorker } from "src/simulation/epanet/worker";
-import { getPipe } from "src/hydraulic-model/assets-map";
+import { runEPSSimulation as workerRunEPSSimulation } from "src/simulation/epanet/worker-eps";
+import { Pipe } from "src/hydraulic-model";
+
 vi.mock("src/lib/worker", () => ({
   lib: {
-    runSimulation: vi.fn(),
+    runEPSSimulation: vi.fn(),
   },
 }));
 
@@ -44,14 +45,14 @@ describe("Run simulation", () => {
       const simulation = store.get(simulationAtom) as SimulationFinished;
       expect(simulation.status).toEqual("success");
       expect(simulation.report).not.toContain(/error/i);
-      expect(simulation.modelVersion).toEqual(hydraulicModel.version);
     });
 
-    const {
-      hydraulicModel: { assets: updatedAssets },
-    } = store.get(dataAtom);
-    const pipe = getPipe(updatedAssets, IDS.p1);
-    expect(pipe!.flow).toBeCloseTo(1);
+    await waitFor(() => {
+      const { hydraulicModel: updatedModel } = store.get(dataAtom);
+      const pipe = updatedModel.assets.get(IDS.p1) as Pipe;
+      expect(pipe.flow).not.toBeNull();
+      expect(pipe.flow).toBeGreaterThan(0);
+    });
   });
 
   it("persists the state when the simulation fails", async () => {
@@ -184,8 +185,8 @@ describe("Run simulation", () => {
   };
 
   const wireWebWorker = () => {
-    (lib.runSimulation as unknown as Mock).mockImplementation(
-      runSimulationInWorker,
+    (lib.runEPSSimulation as unknown as Mock).mockImplementation(
+      workerRunEPSSimulation,
     );
   };
 

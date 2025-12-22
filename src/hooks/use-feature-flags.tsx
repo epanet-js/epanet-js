@@ -82,6 +82,9 @@ export const FeatureFlagsProvider = isPosthogConfigured
 const useFeatureFlagWithPostHog = (name: string): boolean => {
   const posthog = usePostHog();
 
+  // FLAG_EPS cleanup: hardcode to true before removing dead code paths
+  if (name === "FLAG_EPS") return true;
+
   if (posthog?.isFeatureEnabled) {
     const posthogFlag = posthog.isFeatureEnabled(name);
     if (posthogFlag !== undefined) {
@@ -93,6 +96,9 @@ const useFeatureFlagWithPostHog = (name: string): boolean => {
 };
 
 const useFeatureFlagWithUrl = (name: string): boolean => {
+  // FLAG_EPS cleanup: hardcode to true before removing dead code paths
+  if (name === "FLAG_EPS") return true;
+
   const flagsFromUrl = getEnabledFlagsFromUrl();
   return flagsFromUrl.includes(name);
 };

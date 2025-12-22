@@ -1,12 +1,10 @@
 import { useAtomValue, useSetAtom } from "jotai";
 import { useCallback } from "react";
-import { buildInp } from "src/simulation/build-inp";
 import { buildInpEPS } from "src/simulation/build-inp-eps";
 import { buildInpWithControls } from "src/simulation/build-inp-with-controls";
 import { dataAtom, dialogAtom, simulationAtom } from "src/state/jotai";
 import {
   ProgressCallback,
-  runSimulation,
   runEPSSimulation,
   EPSResultsReader,
 } from "src/simulation";
@@ -25,44 +23,9 @@ export const useRunSimulation = () => {
   const { hydraulicModel } = useAtomValue(dataAtom);
   const setData = useSetAtom(dataAtom);
   const setDrawingMode = useDrawingMode();
-  const isEPSEnabled = useFeatureFlag("FLAG_EPS");
   const isControlsEnabled = useFeatureFlag("FLAG_CONTROLS");
 
-  const runSimulationLegacy = useCallback(async () => {
-    setDrawingMode(Mode.NONE);
-    setSimulationState((prev) => ({ ...prev, status: "running" }));
-    const inp = buildInp(hydraulicModel, { customerDemands: true });
-    const start = performance.now();
-    setDialogState({ type: "loading" });
-    const { report, status, results } = await runSimulation(inp);
-
-    const updatedHydraulicModel = attachSimulation(hydraulicModel, results);
-    setData((prev) => ({
-      ...prev,
-      hydraulicModel: updatedHydraulicModel,
-    }));
-
-    setSimulationState({
-      status,
-      report,
-      modelVersion: updatedHydraulicModel.version,
-    });
-    const end = performance.now();
-    const duration = end - start;
-    setDialogState({
-      type: "simulationSummary",
-      status,
-      duration,
-    });
-  }, [
-    setDrawingMode,
-    hydraulicModel,
-    setSimulationState,
-    setData,
-    setDialogState,
-  ]);
-
-  const runSimulationEPS = useCallback(async () => {
+  const runSimulation = useCallback(async () => {
     setDrawingMode(Mode.NONE);
     setSimulationState((prev) => ({ ...prev, status: "running" }));
     const inp = isControlsEnabled
@@ -135,5 +98,5 @@ export const useRunSimulation = () => {
     isControlsEnabled,
   ]);
 
-  return isEPSEnabled ? runSimulationEPS : runSimulationLegacy;
+  return runSimulation;
 };
