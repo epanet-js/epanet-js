@@ -38,7 +38,7 @@ describe("AssetPanel", () => {
 
       renderComponent(store);
 
-      expect(screen.getByText("MY_PIPE")).toBeInTheDocument();
+      expect(screen.getByDisplayValue("MY_PIPE")).toBeInTheDocument();
       expect(screen.getByText("Pipe")).toBeInTheDocument();
       expect(
         screen.getByRole("combobox", {
@@ -120,7 +120,7 @@ describe("AssetPanel", () => {
 
         renderComponent(store);
 
-        expect(screen.getByText("MY_PIPE")).toBeInTheDocument();
+        expect(screen.getByDisplayValue("MY_PIPE")).toBeInTheDocument();
         expect(screen.getByText("Pipe")).toBeInTheDocument();
 
         expectTextPropertyDisplayed("customer demand (l/s)", "55");
@@ -205,7 +205,7 @@ describe("AssetPanel", () => {
 
         renderComponent(store);
 
-        expect(screen.getByText("MY_PIPE")).toBeInTheDocument();
+        expect(screen.getByDisplayValue("MY_PIPE")).toBeInTheDocument();
         expect(screen.getByText("Pipe")).toBeInTheDocument();
 
         expect(
@@ -235,7 +235,7 @@ describe("AssetPanel", () => {
 
       renderComponent(store);
 
-      expect(screen.getByText("MY_VALVE")).toBeInTheDocument();
+      expect(screen.getByDisplayValue("MY_VALVE")).toBeInTheDocument();
       expect(screen.getByText("Valve")).toBeInTheDocument();
       expectTextPropertyDisplayed("start node", "J1");
       expectTextPropertyDisplayed("end node", "J2");
@@ -373,7 +373,7 @@ describe("AssetPanel", () => {
 
       renderComponent(store);
 
-      expect(screen.getByText("MY_PUMP")).toBeInTheDocument();
+      expect(screen.getByDisplayValue("MY_PUMP")).toBeInTheDocument();
       expect(screen.getByText("Pump")).toBeInTheDocument();
       expectTextPropertyDisplayed("start node", "J1");
       expectTextPropertyDisplayed("end node", "J2");
@@ -406,7 +406,7 @@ describe("AssetPanel", () => {
 
       renderComponent(store);
 
-      expect(screen.getByText("MY_PUMP")).toBeInTheDocument();
+      expect(screen.getByDisplayValue("MY_PUMP")).toBeInTheDocument();
       expect(screen.getByText("Pump")).toBeInTheDocument();
       expectPropertyDisplayed("speed", "0.8");
     });
@@ -432,7 +432,7 @@ describe("AssetPanel", () => {
 
       renderComponent(store);
 
-      expect(screen.getByText("MY_PUMP")).toBeInTheDocument();
+      expect(screen.getByDisplayValue("MY_PUMP")).toBeInTheDocument();
       expect(screen.getByText("Pump")).toBeInTheDocument();
       expectPropertyDisplayed("power (kW)", "100");
     });
@@ -544,7 +544,7 @@ describe("AssetPanel", () => {
 
       renderComponent(store);
 
-      expect(screen.getByText("MY_JUNCTION")).toBeInTheDocument();
+      expect(screen.getByDisplayValue("MY_JUNCTION")).toBeInTheDocument();
       expect(screen.getByText("Junction")).toBeInTheDocument();
       expectPropertyDisplayed("elevation (m)", "10");
       expectPropertyDisplayed("constant demand (l/s)", "100");
@@ -613,7 +613,7 @@ describe("AssetPanel", () => {
 
       renderComponent(store);
 
-      expect(screen.getByText("MY_JUNCTION")).toBeInTheDocument();
+      expect(screen.getByDisplayValue("MY_JUNCTION")).toBeInTheDocument();
       expect(screen.getByText("Junction")).toBeInTheDocument();
       expectPropertyDisplayed("constant demand (l/s)", "50");
 
@@ -697,7 +697,7 @@ describe("AssetPanel", () => {
 
       renderComponent(store);
 
-      expect(screen.getByText("MY_JUNCTION")).toBeInTheDocument();
+      expect(screen.getByDisplayValue("MY_JUNCTION")).toBeInTheDocument();
       expect(screen.getByText("Junction")).toBeInTheDocument();
       expectPropertyDisplayed("constant demand (l/s)", "100");
 
@@ -763,7 +763,7 @@ describe("AssetPanel", () => {
 
       renderComponent(store);
 
-      expect(screen.getByText("MY_RESERVOIR")).toBeInTheDocument();
+      expect(screen.getByDisplayValue("MY_RESERVOIR")).toBeInTheDocument();
       expect(screen.getByText("Reservoir")).toBeInTheDocument();
       expectPropertyDisplayed("elevation (m)", "10");
       expectPropertyDisplayed("head (m)", "100");
@@ -792,7 +792,7 @@ describe("AssetPanel", () => {
 
       renderComponent(store);
 
-      expect(screen.getByText("MY_TANK")).toBeInTheDocument();
+      expect(screen.getByDisplayValue("MY_TANK")).toBeInTheDocument();
       expect(screen.getByText("Tank")).toBeInTheDocument();
       expectPropertyDisplayed("elevation (m)", "10");
       expectPropertyDisplayed("diameter (m)", "300");
@@ -820,7 +820,7 @@ describe("AssetPanel", () => {
 
       renderComponent(store);
 
-      expect(screen.getByText("MY_TANK")).toBeInTheDocument();
+      expect(screen.getByDisplayValue("MY_TANK")).toBeInTheDocument();
       expect(screen.getByText("Tank")).toBeInTheDocument();
       expect(
         screen.getByRole("checkbox", { name: /overflow/i }),
@@ -1034,6 +1034,13 @@ describe("AssetPanel", () => {
     const user = userEvent.setup();
 
     renderComponent(store);
+
+    await user.tab();
+    // First tab focuses the label input field
+    const labelInput = screen.getByRole("textbox", {
+      name: /value for: P1/i,
+    });
+    expect(labelInput).toHaveFocus();
 
     await user.tab();
     const selector = screen.getByRole("combobox", {

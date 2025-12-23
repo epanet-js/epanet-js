@@ -33,7 +33,7 @@ export const AssetEditorContent = ({
 }: {
   label: string;
   type: string;
-  onLabelChange?: (newLabel: string) => string | undefined;
+  onLabelChange: (newLabel: string) => string | undefined;
   children: React.ReactNode;
 }) => {
   return (
@@ -55,13 +55,13 @@ const Header = ({
 }: {
   label: string;
   type: string;
-  onLabelChange?: (newLabel: string) => string | undefined;
+  onLabelChange: (newLabel: string) => string | undefined;
 }) => {
   const [error, setError] = useState<string | null>(null);
 
   const handleChange = useCallback(
     (newLabel: string): boolean => {
-      const validationError = onLabelChange?.(newLabel);
+      const validationError = onLabelChange(newLabel);
       setError(validationError ?? null);
       return !!validationError;
     },
@@ -72,36 +72,27 @@ const Header = ({
     setError(null);
   }, []);
 
-  const labelElement = onLabelChange ? (
-    <EditableTextField
-      label={label}
-      value={label}
-      onChangeValue={handleChange}
-      onReset={clearError}
-      onDirty={clearError}
-      hasError={!!error}
-      allowedChars={/(?![\s;])[\x00-\xFF]/}
-      maxByteLength={31}
-      styleOptions={{
-        padding: "sm",
-        ghostBorder: true,
-        fontWeight: "semibold",
-        textSize: "sm",
-      }}
-    />
-  ) : (
-    <span
-      className="font-semibold text-sm text-gray-700 dark:text-gray-100 truncate block p-1"
-      title={label}
-    >
-      {label}
-    </span>
-  );
-
   return (
     <div className="px-3 pt-4 pb-3">
       <div className="flex items-center justify-between gap-2">
-        <div className="min-w-0 flex-1">{labelElement}</div>
+        <div className="min-w-0 flex-1">
+          <EditableTextField
+            label={label}
+            value={label}
+            onChangeValue={handleChange}
+            onReset={clearError}
+            onDirty={clearError}
+            hasError={!!error}
+            allowedChars={/(?![\s;])[\x00-\xFF]/}
+            maxByteLength={31}
+            styleOptions={{
+              padding: "sm",
+              ghostBorder: true,
+              fontWeight: "semibold",
+              textSize: "sm",
+            }}
+          />
+        </div>
         <PanelActions />
       </div>
       {error && (

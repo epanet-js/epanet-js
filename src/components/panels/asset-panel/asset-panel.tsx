@@ -14,7 +14,6 @@ import { getActiveCustomerPoints } from "src/hydraulic-model/customer-points";
 import { Valve } from "src/hydraulic-model/asset-types";
 import { Quantities } from "src/model-metadata/quantities-spec";
 import { useTranslate } from "src/hooks/use-translate";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { usePersistence } from "src/lib/persistence/context";
 import { useUserTracking } from "src/infra/user-tracking";
 import { dataAtom } from "src/state/jotai";
@@ -95,7 +94,6 @@ export function AssetPanel({
   const transact = rep.useTransact();
   const userTracking = useUserTracking();
   const translate = useTranslate();
-  const isEditLabelsEnabled = useFeatureFlag("FLAG_EDIT_LABELS");
 
   const handlePropertyChange = useCallback(
     (
@@ -255,10 +253,6 @@ export function AssetPanel({
     ],
   );
 
-  const labelChangeHandler = isEditLabelsEnabled
-    ? handleLabelChange
-    : undefined;
-
   switch (asset.type) {
     case "junction":
       return (
@@ -267,7 +261,7 @@ export function AssetPanel({
           quantitiesMetadata={quantitiesMetadata}
           onPropertyChange={handlePropertyChange}
           onConstantDemandChange={handleChangeJunctionDemand}
-          onLabelChange={labelChangeHandler}
+          onLabelChange={handleLabelChange}
           hydraulicModel={hydraulicModel}
         />
       );
@@ -282,7 +276,7 @@ export function AssetPanel({
           onPropertyChange={handlePropertyChange}
           onStatusChange={handleStatusChange}
           onActiveTopologyStatusChange={handleActiveTopologyStatusChange}
-          onLabelChange={labelChangeHandler}
+          onLabelChange={handleLabelChange}
           hydraulicModel={hydraulicModel}
         />
       );
@@ -297,7 +291,7 @@ export function AssetPanel({
           onStatusChange={handleStatusChange}
           onActiveTopologyStatusChange={handleActiveTopologyStatusChange}
           onDefinitionChange={handleChangePumpDefinition}
-          onLabelChange={labelChangeHandler}
+          onLabelChange={handleLabelChange}
           quantitiesMetadata={quantitiesMetadata}
           {...getLinkNodes(hydraulicModel.assets, pump)}
         />
@@ -313,7 +307,7 @@ export function AssetPanel({
           onStatusChange={handleStatusChange}
           onTypeChange={handleValveKindChange}
           onActiveTopologyStatusChange={handleActiveTopologyStatusChange}
-          onLabelChange={labelChangeHandler}
+          onLabelChange={handleLabelChange}
           {...getLinkNodes(hydraulicModel.assets, valve)}
         />
       );
@@ -324,7 +318,7 @@ export function AssetPanel({
           reservoir={asset as Reservoir}
           quantitiesMetadata={quantitiesMetadata}
           onPropertyChange={handlePropertyChange}
-          onLabelChange={labelChangeHandler}
+          onLabelChange={handleLabelChange}
         />
       );
     case "tank":
@@ -333,7 +327,7 @@ export function AssetPanel({
           tank={asset as Tank}
           quantitiesMetadata={quantitiesMetadata}
           onPropertyChange={handlePropertyChange}
-          onLabelChange={labelChangeHandler}
+          onLabelChange={handleLabelChange}
         />
       );
   }
@@ -351,7 +345,7 @@ const JunctionEditor = ({
   quantitiesMetadata: Quantities;
   onPropertyChange: OnPropertyChange;
   onConstantDemandChange: (newValue: number, oldValue: number) => void;
-  onLabelChange?: (newLabel: string) => string | undefined;
+  onLabelChange: (newLabel: string) => string | undefined;
   hydraulicModel: HydraulicModel;
 }) => {
   const translate = useTranslate();
@@ -475,7 +469,7 @@ const PipeEditor = ({
     newValue: boolean,
     oldValue: boolean,
   ) => void;
-  onLabelChange?: (newLabel: string) => string | undefined;
+  onLabelChange: (newLabel: string) => string | undefined;
   hydraulicModel: HydraulicModel;
 }) => {
   const translate = useTranslate();
@@ -631,7 +625,7 @@ const ReservoirEditor = ({
   reservoir: Reservoir;
   quantitiesMetadata: Quantities;
   onPropertyChange: OnPropertyChange;
-  onLabelChange?: (newLabel: string) => string | undefined;
+  onLabelChange: (newLabel: string) => string | undefined;
 }) => {
   const translate = useTranslate();
   return (
@@ -677,7 +671,7 @@ const TankEditor = ({
   tank: Tank;
   quantitiesMetadata: Quantities;
   onPropertyChange: OnPropertyChange;
-  onLabelChange?: (newLabel: string) => string | undefined;
+  onLabelChange: (newLabel: string) => string | undefined;
 }) => {
   const translate = useTranslate();
   return (
@@ -807,7 +801,7 @@ const ValveEditor = ({
     newValue: boolean,
     oldValue: boolean,
   ) => void;
-  onLabelChange?: (newLabel: string) => string | undefined;
+  onLabelChange: (newLabel: string) => string | undefined;
 }) => {
   const translate = useTranslate();
   const statusText = translate(valveStatusLabel(valve));
@@ -960,7 +954,7 @@ const PumpEditor = ({
     oldValue: boolean,
   ) => void;
   onDefinitionChange: (data: PumpDefinitionData) => void;
-  onLabelChange?: (newLabel: string) => string | undefined;
+  onLabelChange: (newLabel: string) => string | undefined;
   quantitiesMetadata: Quantities;
   curves: Curves;
 }) => {
