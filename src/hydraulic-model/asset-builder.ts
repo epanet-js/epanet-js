@@ -12,7 +12,6 @@ export type JunctionBuildData = {
   label?: string;
   coordinates?: Position;
   elevation?: number;
-  baseDemand?: number;
   demands?: JunctionDemand[];
   isActive?: boolean;
 };
@@ -240,7 +239,6 @@ export class AssetBuilder {
     label,
     coordinates = [0, 0],
     elevation,
-    baseDemand,
     demands,
     isActive = true,
   }: JunctionBuildData = {}) {
@@ -255,7 +253,6 @@ export class AssetBuilder {
             ? label
             : this.labelGenerator.generateFor("junction", internalId),
         elevation: this.getJunctionValue("elevation", elevation),
-        baseDemand: this.getJunctionValue("baseDemand", baseDemand),
         demands: demands ?? [],
         isActive,
       },

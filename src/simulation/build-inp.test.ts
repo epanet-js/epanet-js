@@ -26,11 +26,11 @@ describe("build inp", () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction(IDS.J1, {
         elevation: 10,
-        baseDemand: 1,
+        demands: [{ baseDemand: 1 }],
       })
       .aJunction(IDS.J2, {
         elevation: 20,
-        baseDemand: 2,
+        demands: [{ baseDemand: 2 }],
       })
       .build();
 
@@ -447,7 +447,7 @@ describe("build inp", () => {
     it("includes customer demands when enabled", () => {
       const IDS = { J1: 1, P1: 2, CP1: 3 };
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction(IDS.J1, { elevation: 10, baseDemand: 50 })
+        .aJunction(IDS.J1, { elevation: 10, demands: [{ baseDemand: 50 }] })
         .aPipe(IDS.P1, {
           startNodeId: IDS.J1,
           endNodeId: IDS.J1,
@@ -474,7 +474,7 @@ describe("build inp", () => {
     it("does not include customer demands when disabled", () => {
       const IDS = { J1: 1, P1: 2, CP1: 3 };
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction(IDS.J1, { elevation: 10, baseDemand: 50 })
+        .aJunction(IDS.J1, { elevation: 10, demands: [{ baseDemand: 50 }] })
         .aPipe(IDS.P1, {
           startNodeId: IDS.J1,
           endNodeId: IDS.J1,
@@ -501,7 +501,7 @@ describe("build inp", () => {
     it("skips customer demands when they are zero", () => {
       const IDS = { J1: 1, P1: 2, CP1: 3 };
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction(IDS.J1, { elevation: 10, baseDemand: 50 })
+        .aJunction(IDS.J1, { elevation: 10, demands: [{ baseDemand: 50 }] })
         .aPipe(IDS.P1, {
           startNodeId: IDS.J1,
           endNodeId: IDS.J1,
@@ -530,7 +530,7 @@ describe("build inp", () => {
     it("handles multiple customer points on same junction", () => {
       const IDS = { J1: 1, P1: 2, CP1: 3, CP2: 4 };
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction(IDS.J1, { elevation: 10, baseDemand: 50 })
+        .aJunction(IDS.J1, { elevation: 10, demands: [{ baseDemand: 50 }] })
         .aPipe(IDS.P1, {
           startNodeId: IDS.J1,
           endNodeId: IDS.J1,
@@ -915,8 +915,16 @@ describe("build inp", () => {
     it("comments out demands for inactive junctions", () => {
       const IDS = { J1: 1, J2: 2 };
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction(IDS.J1, { elevation: 10, baseDemand: 50, isActive: true })
-        .aJunction(IDS.J2, { elevation: 20, baseDemand: 75, isActive: false })
+        .aJunction(IDS.J1, {
+          elevation: 10,
+          demands: [{ baseDemand: 50 }],
+          isActive: true,
+        })
+        .aJunction(IDS.J2, {
+          elevation: 20,
+          demands: [{ baseDemand: 75 }],
+          isActive: false,
+        })
         .build();
 
       const inp = buildInp(hydraulicModel, { inactiveAssets: true });
@@ -952,7 +960,7 @@ describe("build inp", () => {
     it("uses CONSTANT as default pattern ID when no collision exists", () => {
       const IDS = { J1: 1 };
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction(IDS.J1, { elevation: 10, baseDemand: 50 })
+        .aJunction(IDS.J1, { elevation: 10, demands: [{ baseDemand: 50 }] })
         .build();
 
       const inp = buildInp(hydraulicModel);
@@ -982,7 +990,7 @@ describe("build inp", () => {
     it("uses CONSTANT_2 when CONSTANT and CONSTANT_1 already exist", () => {
       const IDS = { J1: 1 };
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction(IDS.J1, { elevation: 10, baseDemand: 50 })
+        .aJunction(IDS.J1, { elevation: 10, demands: [{ baseDemand: 50 }] })
         .aDemandPattern("CONSTANT", [1.2, 0.8])
         .aDemandPattern("CONSTANT_1", [0.9, 1.1])
         .build();

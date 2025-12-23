@@ -200,14 +200,10 @@ export class HydraulicModelBuilder {
       }
     > = {},
   ) {
-    const { simulation, baseDemand, ...properties } = data;
-    const demands =
-      properties.demands ?? (baseDemand ? [{ baseDemand }] : undefined);
+    const { simulation, ...properties } = data;
     const junction = this.assetBuilder.buildJunction({
       id,
       ...properties,
-      baseDemand,
-      demands,
     });
     if (simulation) {
       junction.setSimulation({

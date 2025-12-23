@@ -183,8 +183,14 @@ describe.skip("importCustomerPoints", () => {
     const IDS = { J1: 1, J2: 2, P1: 3 } as const;
     const store = setInitialState({
       hydraulicModel: HydraulicModelBuilder.with()
-        .aJunction(IDS.J1, { coordinates: [0, 0], baseDemand: 30 })
-        .aJunction(IDS.J2, { coordinates: [0.001, 0.001], baseDemand: 45 })
+        .aJunction(IDS.J1, {
+          coordinates: [0, 0],
+          demands: [{ baseDemand: 30 }],
+        })
+        .aJunction(IDS.J2, {
+          coordinates: [0.001, 0.001],
+          demands: [{ baseDemand: 45 }],
+        })
         .aPipe(IDS.P1, {
           startNodeId: IDS.J1,
           endNodeId: IDS.J2,
@@ -242,7 +248,7 @@ describe.skip("importCustomerPoints", () => {
     const { hydraulicModel } = store.get(dataAtom);
     const junction = hydraulicModel.assets.get(IDS.J1) as Junction;
 
-    expect(junction.baseDemand).toBe(30);
+    expect(junction.constantDemand).toBe(30);
 
     const junctionCustomerPoints =
       hydraulicModel.customerPointsLookup.getCustomerPoints(IDS.J1);
@@ -256,8 +262,14 @@ describe.skip("importCustomerPoints", () => {
     const IDS = { J1: 1, J2: 2, P1: 3 } as const;
     const store = setInitialState({
       hydraulicModel: HydraulicModelBuilder.with()
-        .aJunction(IDS.J1, { coordinates: [0, 0], baseDemand: 40 })
-        .aJunction(IDS.J2, { coordinates: [0.001, 0.001], baseDemand: 60 })
+        .aJunction(IDS.J1, {
+          coordinates: [0, 0],
+          demands: [{ baseDemand: 40 }],
+        })
+        .aJunction(IDS.J2, {
+          coordinates: [0.001, 0.001],
+          demands: [{ baseDemand: 60 }],
+        })
         .aPipe(IDS.P1, {
           startNodeId: IDS.J1,
           endNodeId: IDS.J2,
@@ -311,7 +323,7 @@ describe.skip("importCustomerPoints", () => {
     const { hydraulicModel } = store.get(dataAtom);
     const junction = hydraulicModel.assets.get(IDS.J1) as Junction;
 
-    expect(junction.baseDemand).toBe(0);
+    expect(junction.constantDemand).toBe(0);
 
     const junctionCustomerPoints =
       hydraulicModel.customerPointsLookup.getCustomerPoints(IDS.J1);

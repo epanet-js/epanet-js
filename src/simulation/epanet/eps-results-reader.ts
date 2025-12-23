@@ -7,11 +7,7 @@ import {
   TankSimulation,
 } from "../results-reader";
 import { IPrivateAppStorage } from "src/infra/storage/private-app-storage";
-import {
-  RESULTS_OUT_KEY,
-  TANK_VOLUMES_KEY,
-  PUMP_STATUS_KEY,
-} from "./worker";
+import { RESULTS_OUT_KEY, TANK_VOLUMES_KEY, PUMP_STATUS_KEY } from "./worker";
 import {
   SimulationMetadata,
   type SimulationIds,

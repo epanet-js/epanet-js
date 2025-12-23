@@ -6,18 +6,18 @@ describe("change property", () => {
   it("changes a property of an asset", () => {
     const IDS = { junctionID: 1 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aJunction(IDS.junctionID, { baseDemand: 15 })
+      .aJunction(IDS.junctionID, { elevation: 15 })
       .build();
     const { putAssets } = changeProperty(hydraulicModel, {
       assetIds: [IDS.junctionID],
-      property: "baseDemand",
+      property: "elevation",
       value: 20,
     });
 
     expect(putAssets!.length).toEqual(1);
     const updatedJunction = putAssets![0] as Junction;
     expect(updatedJunction.id).toEqual(IDS.junctionID);
-    expect(updatedJunction.baseDemand).toEqual(20);
+    expect(updatedJunction.elevation).toEqual(20);
   });
 
   it("can change properties of many assets", () => {

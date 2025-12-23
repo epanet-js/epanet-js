@@ -20,31 +20,32 @@ describe("Junction", () => {
     const junction = buildJunction();
 
     expect(junction.elevation).toEqual(0);
-    expect(junction.baseDemand).toEqual(0);
+    expect(junction.constantDemand).toEqual(0);
     expect(junction.demands).toEqual([]);
     expect(junction.id).not.toBeUndefined();
   });
 
-  it("can assign baseDemand property", () => {
+  it("can assign demands via builder", () => {
     const junction = buildJunction({
-      baseDemand: 10,
+      demands: [{ baseDemand: 10 }],
       elevation: 100,
     });
 
-    expect(junction.baseDemand).toEqual(10);
+    expect(junction.constantDemand).toEqual(10);
+    expect(junction.demands).toEqual([{ baseDemand: 10 }]);
     expect(junction.elevation).toEqual(100);
   });
 
-  it("can set base demand", () => {
-    const junction = buildJunction({ baseDemand: 50 });
+  it("can set demands", () => {
+    const junction = buildJunction({ demands: [{ baseDemand: 50 }] });
 
-    expect(junction.baseDemand).toEqual(50);
+    expect(junction.constantDemand).toEqual(50);
 
-    junction.setBaseDemand(25);
-    expect(junction.baseDemand).toEqual(25);
+    junction.setDemands([{ baseDemand: 25 }]);
+    expect(junction.constantDemand).toEqual(25);
 
-    junction.setBaseDemand(0);
-    expect(junction.baseDemand).toEqual(0);
+    junction.setDemands([]);
+    expect(junction.constantDemand).toEqual(0);
   });
 
   it("supports demands array with multiple categories", () => {
@@ -64,17 +65,14 @@ describe("Junction", () => {
 
   it("copy creates independent demands array", () => {
     const junction = buildJunction({
-      baseDemand: 50,
       demands: [{ baseDemand: 50, patternId: "pattern1" }],
     });
 
     const copy = junction.copy();
-    copy.setBaseDemand(100);
+    copy.setDemands([{ baseDemand: 100 }]);
 
-    expect(junction.baseDemand).toBe(50);
-
-    expect(copy.baseDemand).toBe(100);
-    expect(copy.demands[0].baseDemand).toBe(50);
+    expect(junction.demands[0].baseDemand).toBe(50);
+    expect(copy.demands[0].baseDemand).toBe(100);
   });
 
   describe("constantDemand", () => {

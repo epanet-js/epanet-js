@@ -116,7 +116,11 @@ describe("replaceNode", () => {
   it("uses default properties for new node type", () => {
     const IDS = { J1: 1 } as const;
     const model = HydraulicModelBuilder.with()
-      .aJunction(IDS.J1, { coordinates: [1, 1], elevation: 10, baseDemand: 50 })
+      .aJunction(IDS.J1, {
+        coordinates: [1, 1],
+        elevation: 10,
+        demands: [{ baseDemand: 50 }],
+      })
       .build();
 
     const moment = replaceNode(model, {

@@ -312,7 +312,7 @@ describe("addCustomerPoints", () => {
   it("preserves junction base demands by default", () => {
     const IDS = { J1: 1, CP1: 2 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aJunction(IDS.J1, { coordinates: [0, 0], baseDemand: 30 })
+      .aJunction(IDS.J1, { coordinates: [0, 0], demands: [{ baseDemand: 30 }] })
       .build();
 
     const customerPointsToAdd: CustomerPoint[] = [];
@@ -331,7 +331,7 @@ describe("addCustomerPoints", () => {
     const updatedModel = addCustomerPoints(hydraulicModel, customerPointsToAdd);
 
     const updatedJ1 = updatedModel.assets.get(IDS.J1) as Junction;
-    expect(updatedJ1.baseDemand).toBe(30);
+    expect(updatedJ1.constantDemand).toBe(30);
 
     const j1CustomerPoints =
       updatedModel.customerPointsLookup.getCustomerPoints(IDS.J1);
@@ -345,7 +345,7 @@ describe("addCustomerPoints", () => {
   it("resets junction base demands to 0 when preserveJunctionDemands is false", () => {
     const IDS = { J1: 1, CP1: 2 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aJunction(IDS.J1, { coordinates: [0, 0], baseDemand: 60 })
+      .aJunction(IDS.J1, { coordinates: [0, 0], demands: [{ baseDemand: 60 }] })
       .build();
 
     const customerPointsToAdd: CustomerPoint[] = [];
@@ -370,7 +370,7 @@ describe("addCustomerPoints", () => {
     );
 
     const updatedJ1 = updatedModel.assets.get(IDS.J1) as Junction;
-    expect(updatedJ1.baseDemand).toBe(0);
+    expect(updatedJ1.constantDemand).toBe(0);
 
     const j1CustomerPoints =
       updatedModel.customerPointsLookup.getCustomerPoints(IDS.J1);

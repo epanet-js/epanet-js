@@ -35,12 +35,12 @@ describe("build inp export ", () => {
       .aJunction(IDS.J1, {
         label: "J_1",
         elevation: 10,
-        baseDemand: 1,
+        demands: [{ baseDemand: 1 }],
       })
       .aJunction(IDS.J2, {
         label: "J_2",
         elevation: 20,
-        baseDemand: 2,
+        demands: [{ baseDemand: 2 }],
       })
       .build();
 
