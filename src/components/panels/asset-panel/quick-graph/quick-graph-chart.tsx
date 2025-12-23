@@ -2,9 +2,10 @@ import { useMemo, useCallback } from "react";
 import ReactECharts from "echarts-for-react";
 import type { EChartsOption } from "echarts";
 import { QuickGraphChartVisx } from "./quick-graph-chart-visx";
+import { QuickGraphChartNivo } from "./quick-graph-chart-nivo";
 
-// Toggle between chart implementations: "echarts" | "visx"
-const CHART_LIBRARY: "echarts" | "visx" = "visx";
+// Toggle between chart implementations: "echarts" | "visx" | "nivo"
+const CHART_LIBRARY: "echarts" | "visx" | "nivo" = "nivo";
 
 interface QuickGraphChartProps {
   values: Float32Array | number[];
@@ -19,6 +20,10 @@ interface QuickGraphChartProps {
 export function QuickGraphChart(props: QuickGraphChartProps) {
   if (CHART_LIBRARY === "visx") {
     return <QuickGraphChartVisx {...props} />;
+  }
+
+  if (CHART_LIBRARY === "nivo") {
+    return <QuickGraphChartNivo {...props} />;
   }
 
   return <QuickGraphChartECharts {...props} />;
