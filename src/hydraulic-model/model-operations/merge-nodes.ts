@@ -99,9 +99,9 @@ const createMergedNode = (
   if (winnerNode.type === "junction" && loserNode.type === "junction") {
     const winnerJunction = winnerNodeCopy as Junction;
     const loserJunction = loserNode as Junction;
-    const aggregatedDemand =
-      winnerJunction.baseDemand + loserJunction.baseDemand;
-    winnerJunction.setBaseDemand(aggregatedDemand);
+
+    const mergedDemands = [...winnerJunction.demands, ...loserJunction.demands];
+    winnerJunction.setDemands(mergedDemands);
   }
 
   return winnerNodeCopy;

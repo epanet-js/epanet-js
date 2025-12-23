@@ -9,12 +9,7 @@ import { searchNearbyRenderedFeatures } from "src/map/search";
 import { clickableLayers } from "src/map/layers/layer";
 
 import { getNode } from "src/hydraulic-model";
-import {
-  moveNode,
-  mergeNodes,
-  mergeNodesEps,
-} from "src/hydraulic-model/model-operations";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { moveNode, mergeNodes } from "src/hydraulic-model/model-operations";
 import { nodesShareLink } from "src/hydraulic-model/topology";
 import { useMoveState } from "./move-state";
 import noop from "lodash/noop";
@@ -46,7 +41,6 @@ export function useNoneHandlers({
   map,
   hydraulicModel,
 }: HandlerContext): Handlers {
-  const isEPSEnabled = useFeatureFlag("FLAG_EPS");
   const { getClickedAsset } = useClickedAsset(map, hydraulicModel.assets);
 
   const setMode = useSetAtom(modeAtom);
@@ -263,8 +257,7 @@ export function useNoneHandlers({
         );
 
         if (!shareLink) {
-          const merge = isEPSEnabled ? mergeNodesEps : mergeNodes;
-          const moment = merge(hydraulicModel, {
+          const moment = mergeNodes(hydraulicModel, {
             sourceNodeId: assetId,
             targetNodeId: snappingCandidate.id,
           });
