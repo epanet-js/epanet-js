@@ -5,7 +5,7 @@ import { runSimulation } from "./main";
 import {
   runSimulation as workerRunSimulation,
   SimulationProgress,
-} from "./worker-eps";
+} from "./worker";
 import { SimulationMetadata } from "./simulation-metadata";
 import { Mock } from "vitest";
 
@@ -130,7 +130,7 @@ describe("EPS simulation", () => {
       progressUpdates.push(progress);
     };
 
-    await runSimulation(inp, "test-app-id", {}, onProgress);
+    await runSimulation(inp, "test-app-id", onProgress);
 
     expect(progressUpdates.length).toBe(3); // initial + 2 timesteps
     expect(progressUpdates[0].totalDuration).toBe(7200);

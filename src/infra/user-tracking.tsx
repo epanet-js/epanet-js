@@ -237,7 +237,6 @@ export type ImportInpCompleted = {
   units: EpanetUnitSystem;
   issues: (
     | "unsupportedSections"
-    | "extendedPeriodSimulation"
     | "nodesMissingCoordinates"
     | "invalidVertices"
     | "invalidCoordinates"

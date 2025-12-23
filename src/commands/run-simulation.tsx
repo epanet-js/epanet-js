@@ -53,7 +53,6 @@ export const useRunSimulation = () => {
     const { report, status, metadata } = await runSimulationWorker(
       inp,
       appId,
-      {},
       reportProgress,
     );
 

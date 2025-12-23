@@ -1,6 +1,6 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { buildInp } from "../build-inp";
-import { runSimulation as workerRunSimulation } from "./worker-eps";
+import { runSimulation as workerRunSimulation } from "./worker";
 import { runSimulation } from "./main";
 import { lib } from "src/lib/worker";
 import { Mock } from "vitest";

@@ -12,7 +12,7 @@ import userEvent from "@testing-library/user-event";
 import { useRunSimulation } from "./run-simulation";
 import { lib } from "src/lib/worker";
 import { Mock } from "vitest";
-import { runSimulation as workerRunSimulation } from "src/simulation/epanet/worker-eps";
+import { runSimulation as workerRunSimulation } from "src/simulation/epanet/worker";
 import { Pipe } from "src/hydraulic-model";
 
 vi.mock("src/lib/worker", () => ({

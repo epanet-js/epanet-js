@@ -34,8 +34,8 @@ export type ProgressCallback = (progress: SimulationProgress) => void;
 export const runSimulation = async (
   inp: string,
   appId: string,
-  flags: Record<string, boolean> = {},
   onProgress?: ProgressCallback,
+  flags: Record<string, boolean> = {},
 ): Promise<EPSSimulationResult> => {
   // eslint-disable-next-line no-console
   if (Object.keys(flags).length) console.log("Running with flags", flags);
