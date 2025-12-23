@@ -11,7 +11,6 @@ import FeatureEditor from "../feature-editor";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Valve } from "src/hydraulic-model/asset-types";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
-import { stubFeatureOn, stubFeatureOff } from "src/__helpers__/feature-flags";
 
 describe("AssetPanel", () => {
   describe("with a pipe", () => {
@@ -535,7 +534,7 @@ describe("AssetPanel", () => {
         .aJunction(IDS.J1, {
           label: "MY_JUNCTION",
           elevation: 10,
-          baseDemand: 100,
+          demands: [{ baseDemand: 100 }],
         })
         .build();
       const store = setInitialState({
@@ -548,7 +547,7 @@ describe("AssetPanel", () => {
       expect(screen.getByText("MY_JUNCTION")).toBeInTheDocument();
       expect(screen.getByText("Junction")).toBeInTheDocument();
       expectPropertyDisplayed("elevation (m)", "10");
-      expectPropertyDisplayed("direct demand (l/s)", "100");
+      expectPropertyDisplayed("constant demand (l/s)", "100");
       expect(screen.queryAllByText("Not available").length).toBeGreaterThan(0);
     });
 
@@ -557,7 +556,7 @@ describe("AssetPanel", () => {
       const hydraulicModel = HydraulicModelBuilder.with()
         .aJunction(IDS.J1, {
           elevation: 10,
-          baseDemand: 100,
+          demands: [{ baseDemand: 100 }],
           simulation: { pressure: 20, head: 10, demand: 20 },
         })
         .build();
@@ -578,7 +577,7 @@ describe("AssetPanel", () => {
       const hydraulicModel = HydraulicModelBuilder.with()
         .aJunction(IDS.J1, {
           label: "MY_JUNCTION",
-          baseDemand: 50,
+          demands: [{ baseDemand: 50 }],
         })
         .aJunction(IDS.J2, { coordinates: [10, 0] })
         .aPipe(IDS.P1, {
@@ -616,7 +615,7 @@ describe("AssetPanel", () => {
 
       expect(screen.getByText("MY_JUNCTION")).toBeInTheDocument();
       expect(screen.getByText("Junction")).toBeInTheDocument();
-      expectPropertyDisplayed("direct demand (l/s)", "50");
+      expectPropertyDisplayed("constant demand (l/s)", "50");
 
       expectTextPropertyDisplayed("customer demand (l/s)", "55");
 
@@ -632,7 +631,7 @@ describe("AssetPanel", () => {
       const hydraulicModel = HydraulicModelBuilder.with()
         .aJunction(IDS.J1, {
           label: "MY_JUNCTION",
-          baseDemand: 50,
+          demands: [{ baseDemand: 50 }],
         })
         .aJunction(IDS.J2, { coordinates: [10, 0] })
         .aPipe(IDS.P1, {
@@ -688,7 +687,7 @@ describe("AssetPanel", () => {
       const hydraulicModel = HydraulicModelBuilder.with()
         .aJunction(IDS.J1, {
           label: "MY_JUNCTION",
-          baseDemand: 100,
+          demands: [{ baseDemand: 100 }],
         })
         .build();
       const store = setInitialState({
@@ -700,60 +699,50 @@ describe("AssetPanel", () => {
 
       expect(screen.getByText("MY_JUNCTION")).toBeInTheDocument();
       expect(screen.getByText("Junction")).toBeInTheDocument();
-      expectPropertyDisplayed("direct demand (l/s)", "100");
+      expectPropertyDisplayed("constant demand (l/s)", "100");
 
       expect(
         screen.queryByLabelText(/label: customer demand \(l\/s\)/i),
       ).not.toBeInTheDocument();
     });
 
-    describe("with FLAG_EPS enabled", () => {
-      beforeEach(() => {
-        stubFeatureOn("FLAG_EPS");
+    it("updates constant demand while preserving pattern demands", async () => {
+      const IDS = { J1: 1 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, {
+          label: "MY_JUNCTION",
+          demands: [
+            { baseDemand: 10 },
+            { baseDemand: 50, patternId: "pattern1" },
+            { baseDemand: 10 },
+            { baseDemand: 30, patternId: "pattern2" },
+          ],
+        })
+        .build();
+      const store = setInitialState({
+        hydraulicModel,
+        selectedAssetId: IDS.J1,
       });
+      const user = userEvent.setup();
 
-      afterEach(() => {
-        stubFeatureOff("FLAG_EPS");
+      renderComponent(store);
+
+      expectPropertyDisplayed("constant demand (l/s)", "20");
+
+      const field = screen.getByRole("textbox", {
+        name: /value for: constant demand/i,
       });
+      await user.clear(field);
+      await user.type(field, "100");
+      await user.keyboard("{Enter}");
 
-      it("updates constant demand while preserving pattern demands", async () => {
-        const IDS = { J1: 1 };
-        const hydraulicModel = HydraulicModelBuilder.with()
-          .aJunction(IDS.J1, {
-            label: "MY_JUNCTION",
-            demands: [
-              { baseDemand: 10 },
-              { baseDemand: 50, patternId: "pattern1" },
-              { baseDemand: 10 },
-              { baseDemand: 30, patternId: "pattern2" },
-            ],
-          })
-          .build();
-        const store = setInitialState({
-          hydraulicModel,
-          selectedAssetId: IDS.J1,
-        });
-        const user = userEvent.setup();
-
-        renderComponent(store);
-
-        expectPropertyDisplayed("constant demand (l/s)", "20");
-
-        const field = screen.getByRole("textbox", {
-          name: /value for: constant demand/i,
-        });
-        await user.clear(field);
-        await user.type(field, "100");
-        await user.keyboard("{Enter}");
-
-        const { hydraulicModel: updated } = store.get(dataAtom);
-        const junction = updated.assets.get(IDS.J1) as Junction;
-        expect(junction.demands).toEqual([
-          { baseDemand: 100 },
-          { baseDemand: 50, patternId: "pattern1" },
-          { baseDemand: 30, patternId: "pattern2" },
-        ]);
-      });
+      const { hydraulicModel: updated } = store.get(dataAtom);
+      const junction = updated.assets.get(IDS.J1) as Junction;
+      expect(junction.demands).toEqual([
+        { baseDemand: 100 },
+        { baseDemand: 50, patternId: "pattern1" },
+        { baseDemand: 30, patternId: "pattern2" },
+      ]);
     });
   });
 
@@ -1228,11 +1217,11 @@ describe("AssetPanel", () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction(IDS.J1, {
         label: "Junction_1",
-        baseDemand: 100,
+        demands: [{ baseDemand: 100 }],
       })
       .aJunction(IDS.J2, {
         label: "Junction_2",
-        baseDemand: 200,
+        demands: [{ baseDemand: 200 }],
       })
       .aPipe(IDS.P1, {
         label: "Pipe_1",
@@ -1257,7 +1246,7 @@ describe("AssetPanel", () => {
 
     renderComponent(store);
 
-    expectPropertyDisplayed("direct demand (l/s)", "100");
+    expectPropertyDisplayed("constant demand (l/s)", "100");
 
     act(() => {
       store.set(dataAtom, {
@@ -1266,7 +1255,7 @@ describe("AssetPanel", () => {
       });
     });
 
-    expectPropertyDisplayed("direct demand (l/s)", "200");
+    expectPropertyDisplayed("constant demand (l/s)", "200");
 
     act(() => {
       store.set(dataAtom, {

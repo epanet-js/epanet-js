@@ -355,7 +355,6 @@ const JunctionEditor = ({
   hydraulicModel: HydraulicModel;
 }) => {
   const translate = useTranslate();
-  const isEPSEnabled = useFeatureFlag("FLAG_EPS");
   const customerPoints = useMemo(() => {
     return getActiveCustomerPoints(
       hydraulicModel.customerPointsLookup,
@@ -394,33 +393,19 @@ const JunctionEditor = ({
         />
       </Section>
       <Section title={translate("demands")}>
-        {isEPSEnabled ? (
-          <>
-            <QuantityRow
-              name="constantDemand"
-              value={junction.constantDemand}
-              unit={quantitiesMetadata.getUnit("baseDemand")}
-              decimals={quantitiesMetadata.getDecimals("baseDemand")}
-              onChange={(_name, newValue, oldValue) =>
-                onConstantDemandChange(newValue, oldValue ?? 0)
-              }
-            />
-            <DemandCategoriesRow
-              demands={junction.demands}
-              unit={quantitiesMetadata.getUnit("baseDemand")}
-            />
-          </>
-        ) : (
-          <QuantityRow
-            name="directDemand"
-            value={junction.baseDemand}
-            unit={quantitiesMetadata.getUnit("baseDemand")}
-            decimals={quantitiesMetadata.getDecimals("baseDemand")}
-            onChange={(_name, newValue, oldValue) =>
-              onPropertyChange("baseDemand", newValue, oldValue)
-            }
-          />
-        )}
+        <QuantityRow
+          name="constantDemand"
+          value={junction.constantDemand}
+          unit={quantitiesMetadata.getUnit("baseDemand")}
+          decimals={quantitiesMetadata.getDecimals("baseDemand")}
+          onChange={(_name, newValue, oldValue) =>
+            onConstantDemandChange(newValue, oldValue ?? 0)
+          }
+        />
+        <DemandCategoriesRow
+          demands={junction.demands}
+          unit={quantitiesMetadata.getUnit("baseDemand")}
+        />
         {customerCount > 0 && (
           <>
             <QuantityRow
