@@ -18,6 +18,7 @@ import {
 import { Valve } from "src/hydraulic-model/asset-types";
 import { CustomerPointsLookup } from "src/hydraulic-model/customer-points-lookup";
 import { getActiveCustomerPoints } from "src/hydraulic-model/customer-points";
+import { Demands } from "src/hydraulic-model/demands";
 
 export type QuantityStats = QuantityStatsDeprecated & {
   decimals: number;
@@ -82,6 +83,7 @@ export const computeMultiAssetData = (
           quantitiesMetadata,
           hydraulicModel.customerPointsLookup,
           hydraulicModel.assets,
+          hydraulicModel.demands,
         );
         break;
       case "pipe":
@@ -129,12 +131,33 @@ export const computeMultiAssetData = (
   };
 };
 
+const calculateAverageDemand = (
+  junction: Junction,
+  demands: Demands,
+): number => {
+  return junction.demands.reduce((total, demand) => {
+    if (!demand.patternId) {
+      return total + demand.baseDemand;
+    }
+
+    const pattern = demands.patterns.get(demand.patternId);
+    if (!pattern || pattern.length === 0) {
+      return total + demand.baseDemand;
+    }
+
+    const avgMultiplier =
+      pattern.reduce((sum, m) => sum + m, 0) / pattern.length;
+    return total + demand.baseDemand * avgMultiplier;
+  }, 0);
+};
+
 const appendJunctionStats = (
   statsMap: Map<string, AssetPropertyStats>,
   junction: Junction,
   quantitiesMetadata: Quantities,
   customerPointsLookup: CustomerPointsLookup,
   assets: HydraulicModel["assets"],
+  demands: Demands,
 ) => {
   updateCategoryStats(statsMap, "isEnabled", junction.isActive ? "yes" : "no");
   updateQuantityStats(
@@ -143,10 +166,12 @@ const appendJunctionStats = (
     junction.elevation,
     quantitiesMetadata,
   );
+
+  const averageDemand = calculateAverageDemand(junction, demands);
   updateQuantityStats(
     statsMap,
-    "baseDemand",
-    junction.baseDemand,
+    "averageDemand",
+    averageDemand,
     quantitiesMetadata,
   );
 
@@ -204,7 +229,7 @@ const buildJunctionSections = (
     activeTopology: getStatsForProperties(statsMap, ["isEnabled"]),
     modelAttributes: getStatsForProperties(statsMap, ["elevation"]),
     demands: getStatsForProperties(statsMap, [
-      "baseDemand",
+      "averageDemand",
       "customerDemand",
       "connectedCustomers",
     ]),

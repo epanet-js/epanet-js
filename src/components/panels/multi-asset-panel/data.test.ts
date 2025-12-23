@@ -51,8 +51,14 @@ describe("computeMultiAssetData", () => {
   it("computes junction stats with sections", () => {
     const IDS = { J1: 1, J2: 2 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aJunction(IDS.J1, { elevation: 100, baseDemand: 10 })
-      .aJunction(IDS.J2, { elevation: 150, baseDemand: 20 })
+      .aJunction(IDS.J1, {
+        elevation: 100,
+        demands: [{ baseDemand: 10 }],
+      })
+      .aJunction(IDS.J2, {
+        elevation: 150,
+        demands: [{ baseDemand: 20 }],
+      })
       .build();
 
     const assets = Array.from(hydraulicModel.assets.values());
@@ -73,7 +79,7 @@ describe("computeMultiAssetData", () => {
     expect(elevationStat.unit).toBe("m");
     expect(elevationStat.decimals).toBe(3);
 
-    const demandStat = findQuantityStat(junctionData.demands, "baseDemand");
+    const demandStat = findQuantityStat(junctionData.demands, "averageDemand");
     expect(demandStat.min).toBe(10);
     expect(demandStat.max).toBe(20);
     expect(demandStat.unit).toBe("l/s");
@@ -347,5 +353,224 @@ describe("computeMultiAssetData", () => {
     );
     expect(isEnabledStat.values.get("yes")).toBe(2);
     expect(isEnabledStat.values.get("no")).toBe(1);
+  });
+
+  describe("average demand calculation", () => {
+    it("calculates average demand for junction with only constant demands", () => {
+      const IDS = { J1: 1, J2: 2 } as const;
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, {
+          demands: [{ baseDemand: 10 }, { baseDemand: 20 }],
+        })
+        .aJunction(IDS.J2, {
+          demands: [{ baseDemand: 30 }],
+        })
+        .build();
+
+      const assets = Array.from(hydraulicModel.assets.values());
+      const result = computeMultiAssetData(assets, quantities, hydraulicModel);
+
+      const demandStat = findQuantityStat(
+        result.data.junction.demands,
+        "averageDemand",
+      );
+      expect(demandStat.min).toBe(30); // J1: 10+20=30, J2: 30
+      expect(demandStat.max).toBe(30);
+      expect(demandStat.mean).toBe(30);
+      expect(demandStat.unit).toBe("l/s");
+    });
+
+    it("calculates average demand with pattern multipliers", () => {
+      const IDS = { J1: 1 } as const;
+      // Pattern with multipliers [0.5, 1.0, 1.5] -> average = 1.0
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aDemandPattern("pattern1", [0.5, 1.0, 1.5])
+        .aJunction(IDS.J1, {
+          demands: [{ baseDemand: 100, patternId: "pattern1" }],
+        })
+        .build();
+
+      const assets = Array.from(hydraulicModel.assets.values());
+      const result = computeMultiAssetData(assets, quantities, hydraulicModel);
+
+      const demandStat = findQuantityStat(
+        result.data.junction.demands,
+        "averageDemand",
+      );
+      // baseDemand 100 * average multiplier 1.0 = 100
+      expect(demandStat.min).toBe(100);
+      expect(demandStat.max).toBe(100);
+    });
+
+    it("calculates average demand with non-uniform pattern multipliers", () => {
+      const IDS = { J1: 1 } as const;
+      // Pattern with multipliers [0.5, 0.5, 2.0] -> average = 1.0
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aDemandPattern("pattern1", [0.5, 0.5, 2.0])
+        .aJunction(IDS.J1, {
+          demands: [{ baseDemand: 60, patternId: "pattern1" }],
+        })
+        .build();
+
+      const assets = Array.from(hydraulicModel.assets.values());
+      const result = computeMultiAssetData(assets, quantities, hydraulicModel);
+
+      const demandStat = findQuantityStat(
+        result.data.junction.demands,
+        "averageDemand",
+      );
+      // baseDemand 60 * average multiplier 1.0 = 60
+      expect(demandStat.min).toBe(60);
+    });
+
+    it("calculates average demand with mixed constant and pattern demands", () => {
+      const IDS = { J1: 1 } as const;
+      // Pattern with multipliers [2.0, 2.0] -> average = 2.0
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aDemandPattern("pattern1", [2.0, 2.0])
+        .aJunction(IDS.J1, {
+          demands: [
+            { baseDemand: 10 }, // constant -> 10
+            { baseDemand: 20, patternId: "pattern1" }, // 20 * 2.0 = 40
+          ],
+        })
+        .build();
+
+      const assets = Array.from(hydraulicModel.assets.values());
+      const result = computeMultiAssetData(assets, quantities, hydraulicModel);
+
+      const demandStat = findQuantityStat(
+        result.data.junction.demands,
+        "averageDemand",
+      );
+      // 10 + 40 = 50
+      expect(demandStat.min).toBe(50);
+    });
+
+    it("handles empty demands array", () => {
+      const IDS = { J1: 1 } as const;
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, { demands: [] })
+        .build();
+
+      const assets = Array.from(hydraulicModel.assets.values());
+      const result = computeMultiAssetData(assets, quantities, hydraulicModel);
+
+      const demandStat = findQuantityStat(
+        result.data.junction.demands,
+        "averageDemand",
+      );
+      expect(demandStat.min).toBe(0);
+      expect(demandStat.max).toBe(0);
+    });
+
+    it("treats missing pattern as constant (multiplier = 1)", () => {
+      const IDS = { J1: 1 } as const;
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, {
+          demands: [{ baseDemand: 50, patternId: "nonexistent" }],
+        })
+        .build();
+
+      const assets = Array.from(hydraulicModel.assets.values());
+      const result = computeMultiAssetData(assets, quantities, hydraulicModel);
+
+      const demandStat = findQuantityStat(
+        result.data.junction.demands,
+        "averageDemand",
+      );
+      // Treat as constant when pattern not found
+      expect(demandStat.min).toBe(50);
+    });
+
+    it("computes statistics across multiple junctions with different average demands", () => {
+      const IDS = { J1: 1, J2: 2, J3: 3 } as const;
+      // Pattern [0.5, 1.5] -> average = 1.0
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aDemandPattern("pattern1", [0.5, 1.5])
+        .aJunction(IDS.J1, { demands: [{ baseDemand: 10 }] }) // avg = 10
+        .aJunction(IDS.J2, { demands: [{ baseDemand: 20 }] }) // avg = 20
+        .aJunction(IDS.J3, {
+          demands: [{ baseDemand: 30, patternId: "pattern1" }],
+        }) // avg = 30 * 1.0 = 30
+        .build();
+
+      const assets = Array.from(hydraulicModel.assets.values());
+      const result = computeMultiAssetData(assets, quantities, hydraulicModel);
+
+      const demandStat = findQuantityStat(
+        result.data.junction.demands,
+        "averageDemand",
+      );
+      expect(demandStat.min).toBe(10);
+      expect(demandStat.max).toBe(30);
+      expect(demandStat.mean).toBe(20); // (10 + 20 + 30) / 3 = 20
+    });
+
+    it("ignores global demand multiplier to average demand", () => {
+      const IDS = { J1: 1 } as const;
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .demandMultiplier(2.0)
+        .aJunction(IDS.J1, {
+          demands: [{ baseDemand: 50 }],
+        })
+        .build();
+
+      const assets = Array.from(hydraulicModel.assets.values());
+      const result = computeMultiAssetData(assets, quantities, hydraulicModel);
+
+      const demandStat = findQuantityStat(
+        result.data.junction.demands,
+        "averageDemand",
+      );
+      expect(demandStat.min).toBe(50);
+    });
+
+    it("ignores global demand multiplier with pattern demands", () => {
+      const IDS = { J1: 1 } as const;
+      // Pattern [0.5, 1.5] -> average = 1.0
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .demandMultiplier(3.0)
+        .aDemandPattern("pattern1", [0.5, 1.5])
+        .aJunction(IDS.J1, {
+          demands: [{ baseDemand: 20, patternId: "pattern1" }],
+        })
+        .build();
+
+      const assets = Array.from(hydraulicModel.assets.values());
+      const result = computeMultiAssetData(assets, quantities, hydraulicModel);
+
+      const demandStat = findQuantityStat(
+        result.data.junction.demands,
+        "averageDemand",
+      );
+      expect(demandStat.min).toBe(20);
+    });
+  });
+
+  describe("other asset types unchanged", () => {
+    it("computes pipe stats the same as non-EPS version", () => {
+      const IDS = { J1: 1, J2: 2, P1: 3 } as const;
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.J1)
+        .aJunction(IDS.J2)
+        .aPipe(IDS.P1, {
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
+          diameter: 300,
+          length: 1000,
+        })
+        .build();
+
+      const assets = Array.from(hydraulicModel.assets.values());
+      const result = computeMultiAssetData(assets, quantities, hydraulicModel);
+
+      const diameterStat = findQuantityStat(
+        result.data.pipe.modelAttributes,
+        "diameter",
+      );
+      expect(diameterStat.min).toBe(300);
+      expect(diameterStat.unit).toBe("mm");
+    });
   });
 });
