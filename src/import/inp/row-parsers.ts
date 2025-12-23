@@ -109,9 +109,14 @@ export const parseReaction: RowParser = ({
 export const parseReservoir: RowParser = ({
   trimmedRow,
   inpData,
+  issues,
   isCommented,
 }) => {
   const [id, baseHead, patternId] = readValues(trimmedRow);
+
+  if (patternId) {
+    issues.addReservoirPattern();
+  }
 
   inpData.reservoirs.push({
     id,
@@ -180,7 +185,12 @@ export const parseValve: RowParser = ({
   });
 };
 
-export const parsePump: RowParser = ({ trimmedRow, inpData, isCommented }) => {
+export const parsePump: RowParser = ({
+  trimmedRow,
+  inpData,
+  issues,
+  isCommented,
+}) => {
   const [id, startNodeDirtyId, endNodeDirtyId, ...settingFields] =
     readValues(trimmedRow);
 
@@ -206,6 +216,7 @@ export const parsePump: RowParser = ({ trimmedRow, inpData, isCommented }) => {
 
     if (key === "PATTERN") {
       patternId = value;
+      issues.addPumpPattern();
     }
   }
 
@@ -361,40 +372,11 @@ export const parsePattern: RowParser = ({ trimmedRow, inpData }) => {
   inpData.patterns.set(patternId, factors);
 };
 
-export const parsePatternEPS: RowParser = ({ trimmedRow, inpData }) => {
-  const [patternId, ...values] = readValues(trimmedRow);
-  const factors = inpData.patterns.get(patternId) || [];
-  factors.push(...values.map((v) => parseFloat(v)));
-  inpData.patterns.set(patternId, factors);
-};
-
 export const parseVertex: RowParser = ({ trimmedRow, inpData }) => {
   const [linkId, lng, lat] = readValues(trimmedRow);
   const vertices = inpData.vertices.get(linkId) || [];
   vertices.push([parseFloat(lng), parseFloat(lat)]);
   inpData.vertices.set(linkId, vertices);
-};
-
-export const parseTimeSetting: RowParser = ({ trimmedRow, issues }) => {
-  const setting = readSetting(trimmedRow, {
-    DURATION: "0 SEC",
-    "PATTERN START": "0 SEC",
-  });
-  if (!setting) return;
-
-  if (setting.name === "DURATION") {
-    const [value] = readValues(setting.value as string);
-    if (parseInt(value) !== 0) {
-      issues.addEPS();
-      issues.addUsedTimeSetting("DURATION", setting.defaultValue);
-    }
-  }
-  if (setting.name === "PATTERN START") {
-    const [value] = readValues(setting.value as string);
-    if (parseInt(value) !== 0) {
-      issues.addUsedTimeSetting(setting.name, setting.defaultValue);
-    }
-  }
 };
 
 const defaultTimeSettings = {
@@ -477,7 +459,7 @@ const parseClocktimeToSeconds = (timeStr: string): number => {
   return hours * 3600 + minutes * 60;
 };
 
-export const parseTimeSettingEPS: RowParser = ({
+export const parseTimeSetting: RowParser = ({
   trimmedRow,
   inpData,
   issues,
@@ -623,79 +605,11 @@ const readSetting = <T extends Record<string, string | number>>(
   }
 };
 
-export const parseReservoirEPS: RowParser = ({
-  trimmedRow,
-  inpData,
-  issues,
-  isCommented,
-}) => {
-  const [id, baseHead, patternId] = readValues(trimmedRow);
-
-  if (patternId) {
-    issues.addReservoirPattern();
-  }
-
-  inpData.reservoirs.push({
-    id,
-    baseHead: parseFloat(baseHead),
-    patternId,
-    isActive: !isCommented,
-  });
-  inpData.nodeIds.add(id);
-};
-
-export const parsePumpEPS: RowParser = ({
-  trimmedRow,
-  inpData,
-  issues,
-  isCommented,
-}) => {
-  const [id, startNodeDirtyId, endNodeDirtyId, ...settingFields] =
-    readValues(trimmedRow);
-
-  let power = undefined;
-  let curveId = undefined;
-  let speed = undefined;
-  let patternId = undefined;
-
-  for (let i = 0; i < settingFields.length; i += 2) {
-    const key = settingFields[i].toUpperCase();
-    const value = settingFields[i + 1];
-    if (key === "POWER") {
-      power = parseFloat(value);
-    }
-
-    if (key === "HEAD") {
-      curveId = value;
-    }
-
-    if (key === "SPEED") {
-      speed = parseFloat(value);
-    }
-
-    if (key === "PATTERN") {
-      patternId = value;
-      issues.addPumpPattern();
-    }
-  }
-
-  inpData.pumps.push({
-    id,
-    startNodeDirtyId,
-    endNodeDirtyId,
-    power,
-    curveId,
-    speed,
-    patternId,
-    isActive: !isCommented,
-  });
-};
-
-export const parseControlsEPS: RowParser = ({ issues }) => {
+export const parseControl: RowParser = ({ issues }) => {
   issues.addControls();
 };
 
-export const parseRulesEPS: RowParser = ({ issues }) => {
+export const parseRule: RowParser = ({ issues }) => {
   issues.addRules();
 };
 

@@ -1,4 +1,8 @@
-import { HydraulicModel, initializeHydraulicModel } from "src/hydraulic-model";
+import {
+  HydraulicModel,
+  initializeHydraulicModel,
+  JunctionDemand,
+} from "src/hydraulic-model";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import {
   InpData,
@@ -20,6 +24,7 @@ import { ParseInpOptions } from "./parse-inp";
 import { AssetId } from "src/hydraulic-model/asset-types/base-asset";
 import { ConsecutiveIdsGenerator } from "src/hydraulic-model/id-generator";
 import { CurvesBuilder } from "./curves-builder";
+import { PatternsBuilder } from "./patterns-builder";
 import { getPumpCurveType } from "src/hydraulic-model/curves";
 
 export const buildModel = (
@@ -31,6 +36,7 @@ export const buildModel = (
   const quantities = new Quantities(spec);
   const nodeIds = new ItemData<AssetId>();
   const linkIds = new ItemData<AssetId>();
+
   const hydraulicModel = initializeHydraulicModel({
     units: quantities.units,
     defaults: quantities.defaults,
@@ -39,6 +45,7 @@ export const buildModel = (
       multiplier: inpData.options.demandMultiplier,
       patterns: new Map(),
     },
+    epsTiming: inpData.times,
   });
 
   const curvesBuilder = new CurvesBuilder(
@@ -47,8 +54,18 @@ export const buildModel = (
     quantities.defaults,
   );
 
+  const patternsBuilder = new PatternsBuilder(
+    inpData.patterns,
+    inpData.options.defaultPattern,
+  );
+
   for (const junctionData of inpData.junctions) {
-    addJunction(hydraulicModel, junctionData, { inpData, issues, nodeIds });
+    addJunction(hydraulicModel, junctionData, {
+      inpData,
+      issues,
+      nodeIds,
+      patternsBuilder,
+    });
   }
 
   for (const reservoirData of inpData.reservoirs) {
@@ -130,6 +147,7 @@ export const buildModel = (
   }
 
   hydraulicModel.curves = curvesBuilder.getValidatedCurves();
+  hydraulicModel.demands.patterns = patternsBuilder.getUsedPatterns();
 
   return { hydraulicModel, modelMetadata: { quantities } };
 };
@@ -141,26 +159,56 @@ const addJunction = (
     inpData,
     issues,
     nodeIds,
+    patternsBuilder,
   }: {
     inpData: InpData;
     issues: IssuesAccumulator;
     nodeIds: ItemData<AssetId>;
+    patternsBuilder: PatternsBuilder;
   },
 ) => {
   const coordinates = getNodeCoordinates(inpData, junctionData.id, issues);
   if (!coordinates) return;
 
-  const baseDemand = calculateJunctionDemand(
-    junctionData,
-    inpData.demands,
-    inpData.patterns,
-  );
+  let demands: JunctionDemand[] = [];
+
+  if (junctionData.baseDemand) {
+    const effectivePatternId = patternsBuilder.getEffectivePatternId(
+      junctionData.patternId,
+    );
+    demands = [
+      {
+        baseDemand: junctionData.baseDemand,
+        patternId: effectivePatternId,
+      },
+    ];
+  }
+
+  const junctionDemands = inpData.demands.get(junctionData.id) || [];
+  if (junctionDemands.length > 0) {
+    demands = [];
+
+    junctionDemands.forEach((d) => {
+      if (!d.baseDemand) return;
+      const effectivePatternId = patternsBuilder.getEffectivePatternId(
+        d.patternId,
+      );
+      demands.push({
+        baseDemand: d.baseDemand,
+        patternId: effectivePatternId,
+      });
+    });
+  }
+
+  for (const d of demands) {
+    patternsBuilder.markPatternUsed(d.patternId);
+  }
 
   const junction = hydraulicModel.assetBuilder.buildJunction({
     label: junctionData.id,
     coordinates,
     elevation: junctionData.elevation,
-    baseDemand,
+    demands,
     isActive: junctionData.isActive,
   });
   hydraulicModel.assets.set(junction.id, junction);
@@ -462,29 +510,6 @@ const getPattern = (
   patternId: string | undefined,
 ): number[] => {
   return patterns.get(patternId || defaultPatternId) || [1];
-};
-
-const calculateJunctionDemand = (
-  junction: { id: string; baseDemand?: number; patternId?: string },
-  demands: InpData["demands"],
-  patterns: InpData["patterns"],
-): number => {
-  let demand = 0;
-
-  const junctionDemands = demands.get(junction.id) || [];
-  if (!!junctionDemands.length) {
-    junctionDemands.forEach(({ baseDemand, patternId }) => {
-      const pattern = getPattern(patterns, patternId);
-      demand += baseDemand * pattern[0];
-    });
-  } else {
-    if (junction.baseDemand) {
-      const pattern = getPattern(patterns, junction.patternId);
-      demand += junction.baseDemand * pattern[0];
-    }
-  }
-
-  return demand;
 };
 
 const calculateReservoirHead = (

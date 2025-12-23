@@ -1,7 +1,7 @@
 import { ModelMetadata } from "src/model-metadata";
 import { IssuesAccumulator, ParserIssues } from "./issues";
-import { readInpDataWithEPS } from "./read-inp-data-with-eps";
-import { buildModelWithEPS } from "./build-model-with-eps";
+import { readInpData } from "./read-inp-data";
+import { buildModel } from "./build-model";
 import { HydraulicModel } from "src/hydraulic-model";
 import { checksum } from "src/infra/checksum";
 import { InpStats } from "./inp-data";
@@ -30,8 +30,8 @@ export const parseInp = (
     inactiveAssets: isMadeByApp ? options?.inactiveAssets : false,
   };
 
-  const { inpData, stats } = readInpDataWithEPS(inp, issues, safeOptions);
-  const { hydraulicModel, modelMetadata } = buildModelWithEPS(
+  const { inpData, stats } = readInpData(inp, issues, safeOptions);
+  const { hydraulicModel, modelMetadata } = buildModel(
     inpData,
     issues,
     safeOptions,
