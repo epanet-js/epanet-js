@@ -1,6 +1,10 @@
 import { useMemo, useCallback } from "react";
 import ReactECharts from "echarts-for-react";
 import type { EChartsOption } from "echarts";
+import { QuickGraphChartVisx } from "./quick-graph-chart-visx";
+
+// Toggle between chart implementations: "echarts" | "visx"
+const CHART_LIBRARY: "echarts" | "visx" = "visx";
 
 interface QuickGraphChartProps {
   values: Float32Array | number[];
@@ -12,7 +16,15 @@ interface QuickGraphChartProps {
   noDataMessage?: string;
 }
 
-export function QuickGraphChart({
+export function QuickGraphChart(props: QuickGraphChartProps) {
+  if (CHART_LIBRARY === "visx") {
+    return <QuickGraphChartVisx {...props} />;
+  }
+
+  return <QuickGraphChartECharts {...props} />;
+}
+
+function QuickGraphChartECharts({
   values,
   timestepCount,
   reportingTimeStep,
