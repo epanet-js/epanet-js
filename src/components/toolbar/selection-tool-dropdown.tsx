@@ -138,6 +138,7 @@ const SelectionToolDropdown = () => {
                 <Button
                   ref={buttonRef}
                   variant="quiet/mode"
+                  className="relative"
                   role="radio"
                   aria-checked={isSelectionModeActive}
                   aria-expanded={
@@ -150,6 +151,13 @@ const SelectionToolDropdown = () => {
                   onContextMenu={handleContextMenu}
                 >
                   <DisplayedIcon />
+                  <span
+                    className="absolute bottom-1 right-1 border-l-[5px] border-l-transparent border-b-[5px] border-b-gray-400 aria-expanded:border-b-white"
+                    aria-expanded={
+                      isOpen || isSelectionModeActive ? "true" : "false"
+                    }
+                    aria-hidden="true"
+                  />
                 </Button>
               </Tooltip.Trigger>
             </DD.Trigger>
