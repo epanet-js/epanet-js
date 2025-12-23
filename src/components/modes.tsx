@@ -6,7 +6,7 @@ import { IWrappedFeature } from "src/types";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useDrawingMode } from "src/commands/set-drawing-mode";
 import { useTranslate } from "src/hooks/use-translate";
-import { SelectionTool } from "./toolbar/selection-tool-dropdown";
+import { SelectionTool } from "./toolbar/selection-tool";
 
 import {
   JunctionIcon,

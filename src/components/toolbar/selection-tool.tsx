@@ -18,8 +18,6 @@ import {
   selectionModeShortcut,
   useCycleSelectionMode,
 } from "src/commands/set-area-selection-mode";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import MenuAction from "../menu-action";
 import { useUserTracking } from "src/infra/user-tracking";
 
 const SELECTION_MODES = new Map([
@@ -39,7 +37,7 @@ const SELECTION_MODES = new Map([
 
 const LONG_PRESS_DURATION_MS = 500;
 
-const SelectionToolDropdown = () => {
+export const SelectionTool = () => {
   const translate = useTranslate();
   const setDrawingMode = useDrawingMode();
   const { mode: currentMode } = useAtomValue(modeAtom);
@@ -193,42 +191,4 @@ const SelectionToolDropdown = () => {
       </Tooltip.Root>
     </div>
   );
-};
-
-const SelectionToolButton = () => {
-  const translate = useTranslate();
-  const setDrawingMode = useDrawingMode();
-  const { mode: currentMode } = useAtomValue(modeAtom);
-  const userTracking = useUserTracking();
-
-  return (
-    <MenuAction
-      role="radio"
-      selected={currentMode === Mode.SELECT_POLYGONAL}
-      readOnlyHotkey={selectionModeShortcut}
-      label={translate("areaSelection.tool")}
-      onClick={() => {
-        userTracking.capture({
-          name: "drawingMode.enabled",
-          source: "toolbar",
-          type: MODE_INFO[Mode.SELECT_POLYGONAL].name,
-        });
-        setDrawingMode(Mode.SELECT_POLYGONAL);
-      }}
-    >
-      <PolygonalSelectionIcon />
-    </MenuAction>
-  );
-};
-
-export const SelectionTool = () => {
-  const isSelectionModeChoiceEnabled = useFeatureFlag(
-    "FLAG_SELECTION_MODE_CHOICE",
-  );
-
-  if (isSelectionModeChoiceEnabled) {
-    return <SelectionToolDropdown />;
-  }
-
-  return <SelectionToolButton />;
 };
