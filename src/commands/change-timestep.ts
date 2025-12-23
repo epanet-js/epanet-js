@@ -8,7 +8,7 @@ import { getAppId } from "src/infra/app-instance";
 import { captureError } from "src/infra/error-tracking";
 import { useUserTracking } from "src/infra/user-tracking";
 
-type ChangeTimestepSource = "previous" | "next" | "dropdown";
+type ChangeTimestepSource = "previous" | "next" | "dropdown" | "quickGraph";
 
 export const useChangeTimestep = () => {
   const simulation = useAtomValue(simulationAtom);

@@ -11,6 +11,7 @@ const nextConfig = {
   compress: false,
   swcMinify: true,
   poweredByHeader: false,
+  transpilePackages: ["echarts", "zrender"],
 
   typescript: {
     ignoreBuildErrors: false,

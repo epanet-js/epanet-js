@@ -216,7 +216,7 @@ type SimulationExecuted = {
 type SimulationTimestepChanged = {
   name: "simulation.timestep.changed";
   timestepIndex: number;
-  source: "previous" | "next" | "dropdown";
+  source: "previous" | "next" | "dropdown" | "quickGraph";
 };
 
 type ReportOpened = {
