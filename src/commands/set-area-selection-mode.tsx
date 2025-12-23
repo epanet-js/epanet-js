@@ -1,6 +1,6 @@
-import { useAtomValue } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import { useCallback } from "react";
-import { Mode, modeAtom } from "src/state/mode";
+import { lastSelectionModeAtom, Mode, modeAtom } from "src/state/mode";
 import { useDrawingMode } from "./set-drawing-mode";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
@@ -15,6 +15,9 @@ const SELECTION_MODES = [
 export const useCycleSelectionMode = () => {
   const setDrawingMode = useDrawingMode();
   const currentMode = useAtomValue(modeAtom);
+  const [lastSelectionMode, setLastSelectionMode] = useAtom(
+    lastSelectionModeAtom,
+  );
   const isSelectionModeChoiceEnabled = useFeatureFlag(
     "FLAG_SELECTION_MODE_CHOICE",
   );
@@ -29,13 +32,24 @@ export const useCycleSelectionMode = () => {
       currentMode.mode as (typeof SELECTION_MODES)[number],
     );
 
-    const nextIndex =
-      currentIndex === -1 ? 0 : (currentIndex + 1) % SELECTION_MODES.length;
+    if (currentIndex === -1) {
+      setDrawingMode(lastSelectionMode);
+      return lastSelectionMode;
+    }
+
+    const nextIndex = (currentIndex + 1) % SELECTION_MODES.length;
     const nextMode = SELECTION_MODES[nextIndex];
 
+    setLastSelectionMode(nextMode);
     setDrawingMode(nextMode);
     return nextMode;
-  }, [setDrawingMode, currentMode.mode, isSelectionModeChoiceEnabled]);
+  }, [
+    setDrawingMode,
+    currentMode.mode,
+    isSelectionModeChoiceEnabled,
+    lastSelectionMode,
+    setLastSelectionMode,
+  ]);
 
   return cycleSelectionMode;
 };

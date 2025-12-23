@@ -1,102 +1,189 @@
-import React from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import * as DD from "@radix-ui/react-dropdown-menu";
 import * as Tooltip from "@radix-ui/react-tooltip";
 
 import {
-  ChevronDownIcon,
   RectangularSelectionIcon,
   PolygonalSelectionIcon,
   FreeHandSelectionIcon,
 } from "src/icons";
 import { useDrawingMode } from "src/commands/set-drawing-mode";
-import { Mode, MODE_INFO } from "src/state/mode";
-import { useAtomValue } from "jotai";
+import { Mode, MODE_INFO, lastSelectionModeAtom } from "src/state/mode";
+import { useAtom, useAtomValue } from "jotai";
 import { modeAtom } from "src/state/jotai";
 import { Button, DDContent, Keycap, StyledItem, TContent } from "../elements";
 import { useTranslate } from "src/hooks/use-translate";
 import { localizeKeybinding } from "src/infra/i18n";
-import { selectionModeShortcut } from "src/commands/set-area-selection-mode";
+import {
+  selectionModeShortcut,
+  useCycleSelectionMode,
+} from "src/commands/set-area-selection-mode";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import MenuAction from "../menu-action";
 import { useUserTracking } from "src/infra/user-tracking";
 
-const SELECTION_MODES = [
-  {
-    mode: Mode.SELECT_RECTANGULAR,
-    key: "areaSelection.rectangular",
-    Icon: RectangularSelectionIcon,
-  },
-  {
-    mode: Mode.SELECT_POLYGONAL,
-    key: "areaSelection.polygonal",
-    Icon: PolygonalSelectionIcon,
-  },
-  {
-    mode: Mode.SELECT_FREEHAND,
-    key: "areaSelection.freehand",
-    Icon: FreeHandSelectionIcon,
-  },
-] as const;
+const SELECTION_MODES = new Map([
+  [
+    Mode.SELECT_RECTANGULAR,
+    { key: "areaSelection.rectangular", Icon: RectangularSelectionIcon },
+  ],
+  [
+    Mode.SELECT_POLYGONAL,
+    { key: "areaSelection.polygonal", Icon: PolygonalSelectionIcon },
+  ],
+  [
+    Mode.SELECT_FREEHAND,
+    { key: "areaSelection.freehand", Icon: FreeHandSelectionIcon },
+  ],
+]);
+
+const LONG_PRESS_DURATION_MS = 500;
 
 const SelectionToolDropdown = () => {
   const translate = useTranslate();
   const setDrawingMode = useDrawingMode();
   const { mode: currentMode } = useAtomValue(modeAtom);
   const userTracking = useUserTracking();
+  const [lastSelectionMode, setLastSelectionMode] = useAtom(
+    lastSelectionModeAtom,
+  );
+  const cycleSelectionMode = useCycleSelectionMode();
 
-  const currentSelection =
-    SELECTION_MODES.find((m) => m.mode === currentMode) || SELECTION_MODES[0];
+  const [isOpen, setIsOpen] = useState(false);
+  const longPressTimerRef = useRef<number | null>(null);
+  const wasLongPressRef = useRef(false);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
-  const isSelectionModeActive = SELECTION_MODES.some(
-    (m) => m.mode === currentMode,
+  const handleOpenChange = useCallback((open: boolean) => {
+    setIsOpen(open);
+  }, []);
+
+  const isSelectionModeActive = SELECTION_MODES.has(currentMode);
+
+  const displayedMode = isSelectionModeActive ? currentMode : lastSelectionMode;
+  const displayedSelection =
+    SELECTION_MODES.get(displayedMode) ??
+    SELECTION_MODES.get(Mode.SELECT_POLYGONAL)!;
+
+  const DisplayedIcon = displayedSelection.Icon;
+
+  useEffect(() => {
+    return () => {
+      if (longPressTimerRef.current) {
+        clearTimeout(longPressTimerRef.current);
+      }
+    };
+  }, []);
+
+  const selectMode = useCallback(
+    (mode: Mode) => {
+      setLastSelectionMode(mode);
+      userTracking.capture({
+        name: "drawingMode.enabled",
+        source: "toolbar",
+        type: MODE_INFO[mode].name,
+      });
+      setDrawingMode(mode);
+      setIsOpen(false);
+    },
+    [setLastSelectionMode, userTracking, setDrawingMode],
   );
 
-  const CurrentIcon = currentSelection.Icon;
+  const handlePointerDown = useCallback((e: React.PointerEvent) => {
+    // Prevent Radix's default dropdown toggle behavior
+    e.preventDefault();
+
+    if (e.button === 2) return; // Right-click handled by context menu
+    wasLongPressRef.current = false;
+    longPressTimerRef.current = window.setTimeout(() => {
+      wasLongPressRef.current = true;
+      setIsOpen(true);
+    }, LONG_PRESS_DURATION_MS);
+  }, []);
+
+  const handlePointerUp = useCallback(() => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+    if (!wasLongPressRef.current && !isOpen) {
+      const mode = cycleSelectionMode();
+      userTracking.capture({
+        name: "drawingMode.enabled",
+        source: "toolbar",
+        type: MODE_INFO[mode].name,
+      });
+    }
+  }, [isOpen, cycleSelectionMode, userTracking]);
+
+  const handlePointerLeave = useCallback(() => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+  }, []);
+
+  const handleContextMenu = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsOpen(true);
+  }, []);
 
   return (
-    <Tooltip.Root delayDuration={200}>
-      <div className="h-10 w-12 group bn flex items-stretch py-1 focus:outline-none">
-        <DD.Root>
-          <Tooltip.Trigger asChild>
+    <div className="relative">
+      <Tooltip.Root delayDuration={200}>
+        <div className="h-10 w-8 group bn flex items-stretch py-1 focus:outline-none">
+          <DD.Root open={isOpen} onOpenChange={handleOpenChange}>
             <DD.Trigger asChild>
-              <Button
-                variant={isSelectionModeActive ? "quiet/mode" : "quiet"}
-                aria-expanded={isSelectionModeActive ? "true" : "false"}
-              >
-                <CurrentIcon />
-                <ChevronDownIcon size="sm" />
-              </Button>
-            </DD.Trigger>
-          </Tooltip.Trigger>
-          <DD.Portal>
-            <DDContent align="start" side="bottom">
-              {SELECTION_MODES.map(({ mode, key, Icon }) => (
-                <StyledItem
-                  key={mode}
-                  onSelect={() => {
-                    userTracking.capture({
-                      name: "drawingMode.enabled",
-                      source: "toolbar",
-                      type: MODE_INFO[mode].name,
-                    });
-                    setDrawingMode(mode);
-                  }}
+              <Tooltip.Trigger asChild>
+                <Button
+                  ref={buttonRef}
+                  variant="quiet/mode"
+                  role="radio"
+                  aria-checked={isSelectionModeActive}
+                  aria-expanded={
+                    isOpen || isSelectionModeActive ? "true" : "false"
+                  }
+                  aria-label={translate("areaSelection.tool")}
+                  onPointerDown={handlePointerDown}
+                  onPointerUp={handlePointerUp}
+                  onPointerLeave={handlePointerLeave}
+                  onContextMenu={handleContextMenu}
                 >
-                  <Icon />
-                  {translate(key)}
-                </StyledItem>
-              ))}
-            </DDContent>
-          </DD.Portal>
-        </DD.Root>
-      </div>
-      <TContent side="bottom">
-        <div className="flex gap-x-2 items-center">
-          {translate("areaSelection.tool")}
-          <Keycap size="xs">{localizeKeybinding(selectionModeShortcut)}</Keycap>
+                  <DisplayedIcon />
+                </Button>
+              </Tooltip.Trigger>
+            </DD.Trigger>
+            <DD.Portal>
+              <DDContent
+                align="start"
+                side="bottom"
+                onEscapeKeyDown={() => {
+                  buttonRef.current?.blur();
+                }}
+                onCloseAutoFocus={(e) => {
+                  e.preventDefault();
+                }}
+              >
+                {[...SELECTION_MODES].map(([mode, { key, Icon }]) => (
+                  <StyledItem key={mode} onSelect={() => selectMode(mode)}>
+                    <Icon />
+                    {translate(key)}
+                  </StyledItem>
+                ))}
+              </DDContent>
+            </DD.Portal>
+          </DD.Root>
         </div>
-      </TContent>
-    </Tooltip.Root>
+        <TContent side="bottom">
+          <div className="flex gap-x-2 items-center">
+            {translate("areaSelection.tool")}
+            <Keycap size="xs">
+              {localizeKeybinding(selectionModeShortcut)}
+            </Keycap>
+          </div>
+        </TContent>
+      </Tooltip.Root>
+    </div>
   );
 };
 

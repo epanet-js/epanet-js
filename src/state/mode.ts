@@ -76,3 +76,5 @@ export type ModeWithOptions = {
 export const modeAtom = atom<ModeWithOptions>({
   mode: Mode.NONE,
 });
+
+export const lastSelectionModeAtom = atom<Mode>(Mode.SELECT_POLYGONAL);
