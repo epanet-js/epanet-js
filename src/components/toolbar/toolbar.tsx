@@ -70,9 +70,7 @@ export const Toolbar = () => {
   const showControls = useShowControls();
   const showReport = useShowReport();
   const importCustomerPoints = useImportCustomerPoints();
-  const isEPSEnabled = useFeatureFlag("FLAG_EPS");
   const isControlsEnabled = useFeatureFlag("FLAG_CONTROLS");
-  const showPerformanceTest = isDebugOn && isEPSEnabled;
 
   const { undo, redo } = useHistoryControl();
 
@@ -183,7 +181,7 @@ export const Toolbar = () => {
         >
           <RunSimulationIcon className="stroke-yellow-600" />
         </MenuAction>
-        {showPerformanceTest && (
+        {isDebugOn && (
           <MenuAction
             label="Performance Test"
             role="button"
