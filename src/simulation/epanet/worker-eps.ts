@@ -31,7 +31,7 @@ export type SimulationProgress = {
 
 export type ProgressCallback = (progress: SimulationProgress) => void;
 
-export const runEPSSimulation = async (
+export const runSimulation = async (
   inp: string,
   appId: string,
   flags: Record<string, boolean> = {},

@@ -1,9 +1,9 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { lib } from "src/lib/worker";
 import { buildInp } from "../build-inp";
-import { runEPSSimulation } from "./main";
+import { runSimulation } from "./main";
 import {
-  runEPSSimulation as workerRunEPSSimulation,
+  runSimulation as workerRunSimulation,
   SimulationProgress,
 } from "./worker-eps";
 import { SimulationMetadata } from "./simulation-metadata";
@@ -11,14 +11,14 @@ import { Mock } from "vitest";
 
 vi.mock("src/lib/worker", () => ({
   lib: {
-    runEPSSimulation: vi.fn(),
+    runSimulation: vi.fn(),
   },
 }));
 
 describe("EPS simulation", () => {
   beforeEach(() => {
-    (lib.runEPSSimulation as unknown as Mock).mockImplementation(
-      workerRunEPSSimulation,
+    (lib.runSimulation as unknown as Mock).mockImplementation(
+      workerRunSimulation,
     );
   });
 
@@ -31,7 +31,7 @@ describe("EPS simulation", () => {
       .build();
     const inp = buildInp(hydraulicModel);
 
-    const { status, metadata } = await runEPSSimulation(inp, "test-app-id");
+    const { status, metadata } = await runSimulation(inp, "test-app-id");
     const simulationMetadata = new SimulationMetadata(metadata);
 
     expect(status).toEqual("success");
@@ -51,7 +51,7 @@ describe("EPS simulation", () => {
       .build();
     const inp = buildInp(hydraulicModel);
 
-    const { status, metadata } = await runEPSSimulation(inp, "test-app-id");
+    const { status, metadata } = await runSimulation(inp, "test-app-id");
     const simulationMetadata = new SimulationMetadata(metadata);
 
     expect(status).toEqual("success");
@@ -75,7 +75,7 @@ describe("EPS simulation", () => {
       .build();
     const inp = buildInp(hydraulicModel);
 
-    const { status, metadata } = await runEPSSimulation(inp, "test-app-id");
+    const { status, metadata } = await runSimulation(inp, "test-app-id");
     const simulationMetadata = new SimulationMetadata(metadata);
 
     expect(status).toEqual("success");
@@ -91,11 +91,28 @@ describe("EPS simulation", () => {
       .build();
     const inp = buildInp(hydraulicModel);
 
-    const { status, metadata } = await runEPSSimulation(inp, "test-app-id");
+    const { status, metadata } = await runSimulation(inp, "test-app-id");
     const simulationMetadata = new SimulationMetadata(metadata);
 
     expect(status).toEqual("failure");
     expect(simulationMetadata.reportingPeriods).toEqual(0);
+  });
+
+  it("includes multiple errors in report", async () => {
+    const IDS = { R1: 1, J1: 2, P1: 3, J2: 4 } as const;
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aReservoir(IDS.R1)
+      .aJunction(IDS.J1)
+      .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
+      .aJunction(IDS.J2) // Disconnected junction
+      .build();
+    const inp = buildInp(hydraulicModel);
+
+    const { status, report } = await runSimulation(inp, "test-multi-error");
+
+    expect(status).toEqual("failure");
+    expect(report).toContain("Error 200");
+    expect(report).toContain("4"); // Reference to disconnected node
   });
 
   it("calls progress callback during simulation", async () => {
@@ -113,7 +130,7 @@ describe("EPS simulation", () => {
       progressUpdates.push(progress);
     };
 
-    await runEPSSimulation(inp, "test-app-id", {}, onProgress);
+    await runSimulation(inp, "test-app-id", {}, onProgress);
 
     expect(progressUpdates.length).toBe(3); // initial + 2 timesteps
     expect(progressUpdates[0].totalDuration).toBe(7200);

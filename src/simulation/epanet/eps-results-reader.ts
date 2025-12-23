@@ -19,6 +19,7 @@ import {
   EPILOG_SIZE,
 } from "./simulation-metadata";
 import { withDebugInstrumentation } from "src/infra/with-instrumentation";
+import { captureError } from "src/infra/error-tracking";
 
 export type { SimulationIds } from "./simulation-metadata";
 
@@ -90,9 +91,12 @@ export class EPSResultsReader {
         timestepIndex < 0 ||
         timestepIndex >= simulationMetadata.reportingPeriods
       ) {
-        throw new Error(
-          `Timestep index ${timestepIndex} out of range [0, ${simulationMetadata.reportingPeriods - 1}]`,
+        captureError(
+          new Error(
+            `Timestep index ${timestepIndex} out of range [0, ${simulationMetadata.reportingPeriods - 1}]`,
+          ),
         );
+        return new NullResultsReader();
       }
 
       const timestepOffset =
@@ -135,6 +139,21 @@ export class EPSResultsReader {
       ? new SimulationMetadata(rawMetadata)
       : await this.readMetadataFromFile();
 
+    if (simMetadata.reportingPeriods === 0) {
+      return {
+        simulationMetadata: simMetadata,
+        simulationIds: {
+          nodeIds: [],
+          linkIds: [],
+          nodeIdToIndex: new Map(),
+          linkIdToIndex: new Map(),
+        },
+        linkLengths: new Float32Array(0),
+        resultsBaseOffset: 0,
+        timestepBlockSize: 0,
+      };
+    }
+
     const ids = simulationIds ?? (await this.readIdsFromFile(simMetadata));
     const linkLengths = await this.readLinkLengthsFromFile(simMetadata);
 
@@ -163,35 +182,40 @@ export class EPSResultsReader {
   }
 
   private async readMetadataFromFile(): Promise<SimulationMetadata> {
-    const prologData = await this.storage.readSlice(
-      RESULTS_OUT_KEY,
-      0,
-      PROLOG_SIZE,
-    );
-    if (!prologData) {
-      throw new Error("Failed to read prolog from results.out");
+    try {
+      const prologData = await this.storage.readSlice(
+        RESULTS_OUT_KEY,
+        0,
+        PROLOG_SIZE,
+      );
+      if (!prologData) {
+        throw new Error("Failed to read prolog from results.out");
+      }
+
+      const fileSize = await this.storage.getSize(RESULTS_OUT_KEY);
+      if (!fileSize) {
+        throw new Error("Failed to get size of results.out");
+      }
+
+      const epilogData = await this.storage.readSlice(
+        RESULTS_OUT_KEY,
+        fileSize - EPILOG_SIZE,
+        EPILOG_SIZE,
+      );
+      if (!epilogData) {
+        throw new Error("Failed to read epilog from results.out");
+      }
+
+      const prologAndEpilog = new ArrayBuffer(PROLOG_SIZE + EPILOG_SIZE);
+      const view = new Uint8Array(prologAndEpilog);
+      view.set(new Uint8Array(prologData), 0);
+      view.set(new Uint8Array(epilogData), PROLOG_SIZE);
+
+      return new SimulationMetadata(prologAndEpilog);
+    } catch (error) {
+      captureError(error as Error);
+      return new SimulationMetadata(new ArrayBuffer(PROLOG_SIZE + EPILOG_SIZE));
     }
-
-    const fileSize = await this.storage.getSize(RESULTS_OUT_KEY);
-    if (!fileSize) {
-      throw new Error("Failed to get size of results.out");
-    }
-
-    const epilogData = await this.storage.readSlice(
-      RESULTS_OUT_KEY,
-      fileSize - EPILOG_SIZE,
-      EPILOG_SIZE,
-    );
-    if (!epilogData) {
-      throw new Error("Failed to read epilog from results.out");
-    }
-
-    const prologAndEpilog = new ArrayBuffer(PROLOG_SIZE + EPILOG_SIZE);
-    const view = new Uint8Array(prologAndEpilog);
-    view.set(new Uint8Array(prologData), 0);
-    view.set(new Uint8Array(epilogData), PROLOG_SIZE);
-
-    return new SimulationMetadata(prologAndEpilog);
   }
 
   private async readIdsFromFile(
@@ -588,5 +612,23 @@ class TimestepResultsReader implements ResultsReader {
       return nodeIndex - firstSupplySourceIndex;
     }
     return -1;
+  }
+}
+
+class NullResultsReader implements ResultsReader {
+  getValve(): ValveSimulation | null {
+    return null;
+  }
+  getPump(): PumpSimulation | null {
+    return null;
+  }
+  getJunction(): JunctionSimulation | null {
+    return null;
+  }
+  getPipe(): PipeSimulation | null {
+    return null;
+  }
+  getTank(): TankSimulation | null {
+    return null;
   }
 }

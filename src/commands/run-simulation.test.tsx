@@ -12,12 +12,12 @@ import userEvent from "@testing-library/user-event";
 import { useRunSimulation } from "./run-simulation";
 import { lib } from "src/lib/worker";
 import { Mock } from "vitest";
-import { runEPSSimulation as workerRunEPSSimulation } from "src/simulation/epanet/worker-eps";
+import { runSimulation as workerRunSimulation } from "src/simulation/epanet/worker-eps";
 import { Pipe } from "src/hydraulic-model";
 
 vi.mock("src/lib/worker", () => ({
   lib: {
-    runEPSSimulation: vi.fn(),
+    runSimulation: vi.fn(),
   },
 }));
 
@@ -185,8 +185,8 @@ describe("Run simulation", () => {
   };
 
   const wireWebWorker = () => {
-    (lib.runEPSSimulation as unknown as Mock).mockImplementation(
-      workerRunEPSSimulation,
+    (lib.runSimulation as unknown as Mock).mockImplementation(
+      workerRunSimulation,
     );
   };
 

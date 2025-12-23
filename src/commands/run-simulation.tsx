@@ -5,7 +5,7 @@ import { buildInpWithControls } from "src/simulation/build-inp-with-controls";
 import { dataAtom, dialogAtom, simulationAtom } from "src/state/jotai";
 import {
   ProgressCallback,
-  runEPSSimulation,
+  runSimulation as runSimulationWorker,
   EPSResultsReader,
 } from "src/simulation";
 import { attachSimulation } from "src/hydraulic-model";
@@ -50,7 +50,7 @@ export const useRunSimulation = () => {
     };
 
     const appId = getAppId();
-    const { report, status, metadata } = await runEPSSimulation(
+    const { report, status, metadata } = await runSimulationWorker(
       inp,
       appId,
       {},

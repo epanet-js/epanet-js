@@ -1,27 +1,10 @@
 import * as Comlink from "comlink";
 import { lib as webWorker } from "src/lib/worker";
-import { SimulationResult } from "../result";
-import { EpanetResultsReader } from "./epanet-results";
 import { EPSSimulationResult, ProgressCallback } from "./worker-eps";
 import { withDebugInstrumentation } from "src/infra/with-instrumentation";
 import { captureError } from "src/infra/error-tracking";
 
-export const runSimulation = async (
-  inp: string,
-  flags: Record<string, boolean> = {},
-): Promise<SimulationResult> => {
-  const {
-    report,
-    status,
-    results: resultsData,
-  } = await webWorker.runSimulation(inp, flags);
-
-  const results = new EpanetResultsReader(resultsData);
-
-  return { status, report, results };
-};
-
-export const runEPSSimulation = withDebugInstrumentation(
+export const runSimulation = withDebugInstrumentation(
   async (
     inp: string,
     appId: string,
@@ -29,7 +12,7 @@ export const runEPSSimulation = withDebugInstrumentation(
     onProgress?: ProgressCallback,
   ): Promise<EPSSimulationResult> => {
     const proxiedCallback = onProgress ? Comlink.proxy(onProgress) : undefined;
-    const result = await webWorker.runEPSSimulation(
+    const result = await webWorker.runSimulation(
       inp,
       appId,
       flags,

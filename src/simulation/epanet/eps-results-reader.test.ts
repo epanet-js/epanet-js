@@ -1,7 +1,7 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { buildInp } from "../build-inp";
-import { runEPSSimulation as workerRunEPSSimulation } from "./worker-eps";
-import { runEPSSimulation } from "./main";
+import { runSimulation as workerRunSimulation } from "./worker-eps";
+import { runSimulation } from "./main";
 import { lib } from "src/lib/worker";
 import { Mock } from "vitest";
 import { EPSResultsReader } from "./eps-results-reader";
@@ -10,14 +10,14 @@ import { InMemoryStorage } from "src/infra/storage";
 
 vi.mock("src/lib/worker", () => ({
   lib: {
-    runEPSSimulation: vi.fn(),
+    runSimulation: vi.fn(),
   },
 }));
 
 describe("EPSResultsReader", () => {
   beforeEach(() => {
-    (lib.runEPSSimulation as unknown as Mock).mockImplementation(
-      workerRunEPSSimulation,
+    (lib.runSimulation as unknown as Mock).mockImplementation(
+      workerRunSimulation,
     );
   });
 
@@ -35,7 +35,7 @@ describe("EPSResultsReader", () => {
     const inp = buildInp(hydraulicModel);
 
     const testAppId = "test-junction-reader";
-    const { status } = await runEPSSimulation(inp, testAppId);
+    const { status } = await runSimulation(inp, testAppId);
     expect(status).toEqual("success");
 
     const storage = new InMemoryStorage(testAppId);
@@ -63,7 +63,7 @@ describe("EPSResultsReader", () => {
     const inp = buildInp(hydraulicModel);
 
     const testAppId = "test-pipe-reader";
-    const { status } = await runEPSSimulation(inp, testAppId);
+    const { status } = await runSimulation(inp, testAppId);
     expect(status).toEqual("success");
 
     const storage = new InMemoryStorage(testAppId);
@@ -90,7 +90,7 @@ describe("EPSResultsReader", () => {
     const inp = buildInp(hydraulicModel);
 
     const testAppId = "test-multi-timestep";
-    const { status, metadata } = await runEPSSimulation(inp, testAppId);
+    const { status, metadata } = await runSimulation(inp, testAppId);
     const prolog = new SimulationMetadata(metadata);
     expect(status).toEqual("success");
     expect(prolog.reportingPeriods).toBe(3); // initial + 2 timesteps
@@ -128,7 +128,7 @@ describe("EPSResultsReader", () => {
     const inp = buildInp(hydraulicModel);
 
     const testAppId = "test-tank-reader";
-    const { status } = await runEPSSimulation(inp, testAppId);
+    const { status } = await runSimulation(inp, testAppId);
     expect(status).toEqual("success");
 
     const storage = new InMemoryStorage(testAppId);
@@ -153,7 +153,7 @@ describe("EPSResultsReader", () => {
     const inp = buildInp(hydraulicModel);
 
     const testAppId = "test-nonexistent";
-    await runEPSSimulation(inp, testAppId);
+    await runSimulation(inp, testAppId);
 
     const storage = new InMemoryStorage(testAppId);
     const reader = new EPSResultsReader(storage);
@@ -168,7 +168,7 @@ describe("EPSResultsReader", () => {
     expect(resultsReader.getTank("nonexistent")).toBeNull();
   });
 
-  it("throws error when accessing timestep out of range", async () => {
+  it("returns null results reader when accessing timestep out of range", async () => {
     const IDS = { R1: 1, J1: 2, P1: 3 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
       .aReservoir(IDS.R1)
@@ -178,18 +178,17 @@ describe("EPSResultsReader", () => {
     const inp = buildInp(hydraulicModel);
 
     const testAppId = "test-out-of-range";
-    await runEPSSimulation(inp, testAppId);
+    await runSimulation(inp, testAppId);
 
     const storage = new InMemoryStorage(testAppId);
     const reader = new EPSResultsReader(storage);
     await reader.initialize();
 
-    await expect(reader.getResultsForTimestep(-1)).rejects.toThrow(
-      /out of range/,
-    );
-    await expect(reader.getResultsForTimestep(100)).rejects.toThrow(
-      /out of range/,
-    );
+    const negativeIndexReader = await reader.getResultsForTimestep(-1);
+    expect(negativeIndexReader.getJunction(String(IDS.J1))).toBeNull();
+
+    const highIndexReader = await reader.getResultsForTimestep(100);
+    expect(highIndexReader.getPipe(String(IDS.P1))).toBeNull();
   });
 
   it("throws error when not initialized", async () => {
@@ -217,7 +216,7 @@ describe("EPSResultsReader", () => {
     const inp = buildInp(hydraulicModel);
 
     const testAppId = "test-pipe-headloss";
-    await runEPSSimulation(inp, testAppId);
+    await runSimulation(inp, testAppId);
 
     const storage = new InMemoryStorage(testAppId);
     const reader = new EPSResultsReader(storage);
@@ -243,7 +242,7 @@ describe("EPSResultsReader", () => {
     const inp = buildInp(hydraulicModel);
 
     const testAppId = "test-pump-reader";
-    const { status } = await runEPSSimulation(inp, testAppId);
+    const { status } = await runSimulation(inp, testAppId);
     expect(status).toEqual("success");
 
     const storage = new InMemoryStorage(testAppId);
@@ -279,7 +278,7 @@ describe("EPSResultsReader", () => {
     const inp = buildInp(hydraulicModel);
 
     const testAppId = "test-pipe-length";
-    await runEPSSimulation(inp, testAppId);
+    await runSimulation(inp, testAppId);
 
     const storage = new InMemoryStorage(testAppId);
     const reader = new EPSResultsReader(storage);
@@ -308,7 +307,7 @@ describe("EPSResultsReader", () => {
     const inp = buildInp(hydraulicModel);
 
     const testAppId = "test-pump-xflow";
-    const { status } = await runEPSSimulation(inp, testAppId);
+    const { status } = await runSimulation(inp, testAppId);
     // Expect warning because pump is operating beyond its curve
     expect(status).toEqual("warning");
 
@@ -337,7 +336,7 @@ describe("EPSResultsReader", () => {
     const inp = buildInp(hydraulicModel);
 
     const testAppId = "test-pump-multi-timestep";
-    const { status } = await runEPSSimulation(inp, testAppId);
+    const { status } = await runSimulation(inp, testAppId);
     expect(status).toEqual("success");
 
     const storage = new InMemoryStorage(testAppId);
@@ -356,5 +355,86 @@ describe("EPSResultsReader", () => {
       expect(pump?.type).toEqual("pump");
       expect(pump?.status).toMatch(/on|off/);
     }
+  });
+
+  it("reads valve results with flow and status", async () => {
+    const IDS = { R1: 1, J1: 2, V1: 3 } as const;
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aReservoir(IDS.R1, { head: 100 })
+      .aJunction(IDS.J1, { baseDemand: 1 })
+      .aValve(IDS.V1, {
+        startNodeId: IDS.R1,
+        endNodeId: IDS.J1,
+      })
+      .build();
+    const inp = buildInp(hydraulicModel);
+
+    const testAppId = "test-valve-reader";
+    const { status } = await runSimulation(inp, testAppId);
+    expect(status).toEqual("success");
+
+    const storage = new InMemoryStorage(testAppId);
+    const reader = new EPSResultsReader(storage);
+    await reader.initialize();
+
+    const resultsReader = await reader.getResultsForTimestep(0);
+    const valve = resultsReader.getValve(String(IDS.V1));
+
+    expect(valve).not.toBeNull();
+    expect(valve?.type).toEqual("valve");
+    expect(valve?.flow).toBeGreaterThan(0);
+    expect(valve?.status).toMatch(/active|open|closed/);
+  });
+
+  it("reads closed valve status", async () => {
+    const IDS = { R1: 1, J1: 2, V1: 3 } as const;
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aReservoir(IDS.R1, { head: 100 })
+      .aJunction(IDS.J1, { baseDemand: 1 })
+      .aValve(IDS.V1, {
+        startNodeId: IDS.R1,
+        endNodeId: IDS.J1,
+        initialStatus: "closed",
+      })
+      .build();
+    const inp = buildInp(hydraulicModel);
+
+    const testAppId = "test-valve-closed";
+    const { status } = await runSimulation(inp, testAppId);
+    expect(status).toEqual("warning"); // Warning due to negative pressures
+
+    const storage = new InMemoryStorage(testAppId);
+    const reader = new EPSResultsReader(storage);
+    await reader.initialize();
+
+    const resultsReader = await reader.getResultsForTimestep(0);
+    const valve = resultsReader.getValve(String(IDS.V1));
+
+    expect(valve).not.toBeNull();
+    expect(valve?.status).toEqual("closed");
+  });
+
+  it("returns null results when simulation fails", async () => {
+    const IDS = { R1: 1, J1: 2, J2: 3, P1: 4 } as const;
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aReservoir(IDS.R1)
+      .aJunction(IDS.J1, { baseDemand: 1 })
+      .aJunction(IDS.J2) // Disconnected junction causes failure
+      .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
+      .build();
+    const inp = buildInp(hydraulicModel);
+
+    const testAppId = "test-failed-simulation";
+    const { status } = await runSimulation(inp, testAppId);
+    expect(status).toEqual("failure");
+
+    const storage = new InMemoryStorage(testAppId);
+    const reader = new EPSResultsReader(storage);
+    await reader.initialize();
+
+    expect(reader.timestepCount).toEqual(0);
+    const resultsReader = await reader.getResultsForTimestep(0);
+    expect(resultsReader.getJunction(String(IDS.J1))).toBeNull();
+    expect(resultsReader.getPipe(String(IDS.P1))).toBeNull();
   });
 });
