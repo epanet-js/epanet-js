@@ -78,6 +78,11 @@ import {
   showControlsShortcut,
   useShowControls,
 } from "src/commands/show-controls";
+import {
+  previousTimestepShortcut,
+  nextTimestepShortcut,
+  useChangeTimestep,
+} from "src/commands/change-timestep";
 
 const IGNORE_ROLES = new Set(["menuitem"]);
 
@@ -106,6 +111,7 @@ export const CommandShortcuts = () => {
   const { changeSelectedAssetsActiveTopologyStatus } =
     useChangeSelectedAssetsActiveTopologyStatus();
   const showControls = useShowControls();
+  const { goToPreviousTimestep, goToNextTimestep } = useChangeTimestep();
 
   useHotkeys(
     showReportShorcut,
@@ -378,6 +384,26 @@ export const CommandShortcuts = () => {
     },
     [changeSelectedAssetsActiveTopologyStatus],
     "Activate/Deactivate assets",
+  );
+
+  useHotkeys(
+    previousTimestepShortcut,
+    (e) => {
+      e.preventDefault();
+      void goToPreviousTimestep();
+    },
+    [goToPreviousTimestep],
+    "Previous timestep",
+  );
+
+  useHotkeys(
+    nextTimestepShortcut,
+    (e) => {
+      e.preventDefault();
+      void goToNextTimestep();
+    },
+    [goToNextTimestep],
+    "Next timestep",
   );
 
   for (const [mode, shortcut] of Object.entries(drawingModeShorcuts)) {

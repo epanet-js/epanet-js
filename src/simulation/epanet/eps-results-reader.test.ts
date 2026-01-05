@@ -93,7 +93,7 @@ describe("EPSResultsReader", () => {
     const { status, metadata } = await runSimulation(inp, testAppId);
     const prolog = new SimulationMetadata(metadata);
     expect(status).toEqual("success");
-    expect(prolog.reportingPeriods).toBe(3); // initial + 2 timesteps
+    expect(prolog.reportingStepsCount).toBe(3); // initial + 2 timesteps
 
     const storage = new InMemoryStorage(testAppId);
     const reader = new EPSResultsReader(storage);

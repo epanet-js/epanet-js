@@ -7,6 +7,10 @@ import { EPSResultsReader } from "src/simulation/epanet/eps-results-reader";
 import { getAppId } from "src/infra/app-instance";
 import { captureError } from "src/infra/error-tracking";
 import { useUserTracking } from "src/infra/user-tracking";
+import { getSimulationMetadata } from "src/simulation/epanet/simulation-metadata";
+
+export const previousTimestepShortcut = "shift+left";
+export const nextTimestepShortcut = "shift+right";
 
 type ChangeTimestepSource = "previous" | "next" | "dropdown";
 
@@ -24,6 +28,11 @@ export const useChangeTimestep = () => {
 
       const { metadata, simulationIds } = simulation;
       if (!metadata) {
+        return;
+      }
+
+      const timestepCount = getSimulationMetadata(metadata).reportingStepsCount;
+      if (timestepIndex < 0 || timestepIndex >= timestepCount) {
         return;
       }
 
@@ -59,5 +68,21 @@ export const useChangeTimestep = () => {
     [simulation, setData, setSimulationState, userTracking],
   );
 
-  return { changeTimestep };
+  const goToPreviousTimestep = useCallback(async () => {
+    const currentIndex =
+      "currentTimestepIndex" in simulation
+        ? (simulation.currentTimestepIndex ?? 0)
+        : 0;
+    await changeTimestep(currentIndex - 1, "previous");
+  }, [simulation, changeTimestep]);
+
+  const goToNextTimestep = useCallback(async () => {
+    const currentIndex =
+      "currentTimestepIndex" in simulation
+        ? (simulation.currentTimestepIndex ?? 0)
+        : 0;
+    await changeTimestep(currentIndex + 1, "next");
+  }, [simulation, changeTimestep]);
+
+  return { changeTimestep, goToPreviousTimestep, goToNextTimestep };
 };

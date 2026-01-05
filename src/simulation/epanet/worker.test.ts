@@ -35,7 +35,7 @@ describe("EPS simulation", () => {
     const simulationMetadata = new SimulationMetadata(metadata);
 
     expect(status).toEqual("success");
-    expect(simulationMetadata.reportingPeriods).toEqual(1);
+    expect(simulationMetadata.reportingStepsCount).toEqual(1);
     expect(simulationMetadata.nodeCount).toEqual(2);
     expect(simulationMetadata.linkCount).toEqual(1);
     expect(simulationMetadata.resAndTankCount).toEqual(1); // reservoir
@@ -55,7 +55,7 @@ describe("EPS simulation", () => {
     const simulationMetadata = new SimulationMetadata(metadata);
 
     expect(status).toEqual("success");
-    expect(simulationMetadata.reportingPeriods).toBe(3); // initial + 2 timesteps
+    expect(simulationMetadata.reportingStepsCount).toBe(3); // initial + 2 timesteps
   });
 
   it("counts tanks and reservoirs as supply sources", async () => {
@@ -95,7 +95,7 @@ describe("EPS simulation", () => {
     const simulationMetadata = new SimulationMetadata(metadata);
 
     expect(status).toEqual("failure");
-    expect(simulationMetadata.reportingPeriods).toEqual(0);
+    expect(simulationMetadata.reportingStepsCount).toEqual(0);
   });
 
   it("includes multiple errors in report", async () => {

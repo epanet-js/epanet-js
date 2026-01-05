@@ -90,6 +90,7 @@ export class MapEngine {
       "bottom-right",
     );
     map.getCanvas().style.cursor = CURSOR_DEFAULT;
+    map.keyboard.disableRotation();
     map.on("click", (e) => this.handlers.current.onClick(e));
     map.on("mousedown", (e) => this.handlers.current.onMapMouseDown(e));
     map.on("mousemove", (e) => this.handlers.current.onMapMouseMove(e));

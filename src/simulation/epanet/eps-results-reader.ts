@@ -64,7 +64,7 @@ export class EPSResultsReader {
         "EPSResultsReader not initialized. Call initialize() first.",
       );
     }
-    return this.metadata.simulationMetadata.reportingPeriods;
+    return this.metadata.simulationMetadata.reportingStepsCount;
   }
 
   getResultsForTimestep = withDebugInstrumentation(
@@ -85,11 +85,11 @@ export class EPSResultsReader {
 
       if (
         timestepIndex < 0 ||
-        timestepIndex >= simulationMetadata.reportingPeriods
+        timestepIndex >= simulationMetadata.reportingStepsCount
       ) {
         captureError(
           new Error(
-            `Timestep index ${timestepIndex} out of range [0, ${simulationMetadata.reportingPeriods - 1}]`,
+            `Timestep index ${timestepIndex} out of range [0, ${simulationMetadata.reportingStepsCount - 1}]`,
           ),
         );
         return new NullResultsReader();
@@ -135,7 +135,7 @@ export class EPSResultsReader {
       ? new SimulationMetadata(rawMetadata)
       : await this.readMetadataFromFile();
 
-    if (simMetadata.reportingPeriods === 0) {
+    if (simMetadata.reportingStepsCount === 0) {
       return {
         simulationMetadata: simMetadata,
         simulationIds: {

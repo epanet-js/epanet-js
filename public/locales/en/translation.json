@@ -235,6 +235,8 @@
   "yes": "Yes",
   "no": "No",
   "viewReport": "View report",
+  "previousTimestep": "Previous timestep",
+  "nextTimestep": "Next timestep",
   "viewNetworkReview": "Review network",
   "ignore": "Ignore",
   "loading": "Loading...",

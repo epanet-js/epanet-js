@@ -12,6 +12,10 @@ import { toggleNetworkReviewShortcut } from "src/commands/toggle-network-review"
 import { toggleSidePanelShortcut } from "src/commands/toggle-side-panel";
 import { selectionModeShortcut } from "src/commands/set-area-selection-mode";
 import { changeActiveTopologyShortcut } from "src/commands/change-selected-assets-active-topology-status";
+import {
+  previousTimestepShortcut,
+  nextTimestepShortcut,
+} from "src/commands/change-timestep";
 
 export const SEARCH_KEYBINDING = "Command+k";
 
@@ -81,6 +85,14 @@ export function CheatsheetDialog() {
         {
           binding: showControlsShortcut,
           description: "controls.title",
+        },
+        {
+          binding: previousTimestepShortcut,
+          description: "previousTimestep",
+        },
+        {
+          binding: nextTimestepShortcut,
+          description: "nextTimestep",
         },
       ],
     },

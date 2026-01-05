@@ -6,11 +6,7 @@ import { Selector } from "./form/selector";
 import { useMemo } from "react";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { useChangeTimestep } from "src/commands/change-timestep";
-import {
-  SimulationMetadata,
-  PROLOG_SIZE,
-  EPILOG_SIZE,
-} from "src/simulation/epanet/simulation-metadata";
+import { getSimulationMetadata } from "src/simulation/epanet/simulation-metadata";
 
 export const TimestepSelector = () => {
   const simulation = useAtomValue(simulationAtom);
@@ -100,16 +96,10 @@ export const TimestepSelectorUI = ({
   );
 };
 
-function getSimulationMetadataValues(metadata: ArrayBuffer | undefined): {
-  timestepCount: number;
-  reportingTimeStep: number;
-} {
-  if (!metadata || metadata.byteLength !== PROLOG_SIZE + EPILOG_SIZE) {
-    return { timestepCount: 1, reportingTimeStep: 3600 };
-  }
-  const simMetadata = new SimulationMetadata(metadata);
+function getSimulationMetadataValues(metadata: ArrayBuffer | undefined) {
+  const simMetadata = getSimulationMetadata(metadata);
   return {
-    timestepCount: simMetadata.reportingPeriods,
+    timestepCount: simMetadata.reportingStepsCount,
     reportingTimeStep: simMetadata.reportingTimeStep,
   };
 }
