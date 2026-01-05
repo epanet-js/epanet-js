@@ -1,5 +1,5 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
-import { buildInpWithControls } from "./build-inp-with-controls";
+import { buildInp } from "./build-inp";
 import { presets } from "src/model-metadata/quantities-spec";
 
 describe("build inp with controls", () => {
@@ -14,7 +14,7 @@ describe("build inp with controls", () => {
       })
       .build();
 
-    const inp = buildInpWithControls(hydraulicModel);
+    const inp = buildInp(hydraulicModel);
 
     expect(inp).toContain("[RESERVOIRS]");
     expect(inp).toContain("1\t10");
@@ -34,7 +34,7 @@ describe("build inp with controls", () => {
       })
       .build();
 
-    const inp = buildInpWithControls(hydraulicModel);
+    const inp = buildInp(hydraulicModel);
 
     expect(inp).toContain("[JUNCTIONS]");
     expect(inp).toContain("1\t10");
@@ -60,7 +60,7 @@ describe("build inp with controls", () => {
         .aDemandPattern("commercial", [1.0, 1.5, 0.5])
         .build();
 
-      const inp = buildInpWithControls(hydraulicModel);
+      const inp = buildInp(hydraulicModel);
 
       expect(inp).toContain("[DEMANDS]");
       expect(inp).toContain("1\t5"); // constant demand
@@ -80,7 +80,7 @@ describe("build inp with controls", () => {
         })
         .build();
 
-      const inp = buildInpWithControls(hydraulicModel);
+      const inp = buildInp(hydraulicModel);
 
       expect(inp).toContain("1\t25"); //constant demand
       expect(inp).not.toContain("1\t25\t");
@@ -96,7 +96,7 @@ describe("build inp with controls", () => {
         .aDemandPattern("daily", [0.5, 1.0, 1.5])
         .build();
 
-      const inp = buildInpWithControls(hydraulicModel);
+      const inp = buildInp(hydraulicModel);
 
       expect(inp).toContain("1\t30\tdaily");
     });
@@ -126,7 +126,7 @@ describe("build inp with controls", () => {
       })
       .build();
 
-    const inp = buildInpWithControls(hydraulicModel);
+    const inp = buildInp(hydraulicModel);
 
     expect(inp).toContain("[PIPES]");
     expect(inp).toContain("4\t1\t2\t10\t100\t1\t0\tOpen");
@@ -148,7 +148,7 @@ describe("build inp with controls", () => {
       })
       .build();
 
-    const inp = buildInpWithControls(hydraulicModel);
+    const inp = buildInp(hydraulicModel);
 
     expect(inp).toContain("[PIPES]");
     expect(inp).toContain("3\t1\t2\t15\t150\t1.5\t0\tCV");
@@ -180,7 +180,7 @@ describe("build inp with controls", () => {
       })
       .build();
 
-    const inp = buildInpWithControls(hydraulicModel);
+    const inp = buildInp(hydraulicModel);
 
     expect(inp).toContain("[VALVES]");
     expect(inp).toContain("4\t1\t2\t20\tTCV\t10\t0.1");
@@ -205,7 +205,7 @@ describe("build inp with controls", () => {
       .aPumpCurve({ id: String(IDS.PUMP1), points: [{ x: 20, y: 40 }] })
       .build();
 
-    const inp = buildInpWithControls(hydraulicModel);
+    const inp = buildInp(hydraulicModel);
 
     expect(inp).toContain("[PUMPS]");
     expect(inp).toContain("4\t1\t2\tHEAD 4\tSPEED 0.8");
@@ -230,7 +230,7 @@ describe("build inp with controls", () => {
       .aPumpCurve({ id: String(IDS.PUMP1), points: [{ x: 20, y: 40 }] })
       .build();
 
-    const inp = buildInpWithControls(hydraulicModel);
+    const inp = buildInp(hydraulicModel);
 
     expect(inp).toContain("[PUMPS]");
     expect(inp).toContain("4\t1\t2\tPOWER 100\tSPEED 0.7");
@@ -279,7 +279,7 @@ describe("build inp with controls", () => {
       })
       .build();
 
-    const inp = buildInpWithControls(hydraulicModel);
+    const inp = buildInp(hydraulicModel);
 
     expect(inp).toContain("[PUMPS]");
     expect(inp).toContain("5\t1\t2\tPOWER 10\tSPEED 0.7");
@@ -296,7 +296,7 @@ describe("build inp with controls", () => {
       .demandMultiplier(10)
       .build();
 
-    const inp = buildInpWithControls(hydraulicModel);
+    const inp = buildInp(hydraulicModel);
 
     expect(inp).toContain("[TIMES]");
     expect(inp).toContain("Duration\t0");
@@ -319,7 +319,7 @@ describe("build inp with controls", () => {
   it("includes visualization settings for epanet", () => {
     const hydraulicModel = HydraulicModelBuilder.with().build();
 
-    const inp = buildInpWithControls(hydraulicModel, {
+    const inp = buildInp(hydraulicModel, {
       geolocation: true,
     });
 
@@ -332,7 +332,7 @@ describe("build inp with controls", () => {
       .headlossFormula("D-W")
       .build();
 
-    const inp = buildInpWithControls(hydraulicModel);
+    const inp = buildInp(hydraulicModel);
 
     expect(inp).toContain("Headloss\tD-W");
   });
@@ -340,7 +340,7 @@ describe("build inp with controls", () => {
   it("detects units based on the flow units of the model", () => {
     const hydraulicModel = HydraulicModelBuilder.with(presets.GPM).build();
 
-    const inp = buildInpWithControls(hydraulicModel);
+    const inp = buildInp(hydraulicModel);
 
     expect(inp).toContain("Units\tGPM");
   });
@@ -373,11 +373,11 @@ describe("build inp with controls", () => {
       })
       .build();
 
-    const without = buildInpWithControls(hydraulicModel);
+    const without = buildInp(hydraulicModel);
     expect(without).not.toContain("[COORDINATES]");
     expect(without).not.toContain("[VERTICES]");
 
-    const inp = buildInpWithControls(hydraulicModel, {
+    const inp = buildInp(hydraulicModel, {
       geolocation: true,
     });
 
@@ -399,7 +399,7 @@ describe("build inp with controls", () => {
       .aJunction(IDS.JUNCTION1, { coordinates: [10, 1] })
       .build();
 
-    const inp = buildInpWithControls(hydraulicModel, {
+    const inp = buildInp(hydraulicModel, {
       madeBy: true,
     });
 
@@ -431,7 +431,7 @@ describe("build inp with controls", () => {
       })
       .build();
 
-    const inp = buildInpWithControls(hydraulicModel, {
+    const inp = buildInp(hydraulicModel, {
       geolocation: true,
     });
 
@@ -462,7 +462,7 @@ describe("build inp with controls", () => {
         })
         .build();
 
-      const inp = buildInpWithControls(hydraulicModel, {
+      const inp = buildInp(hydraulicModel, {
         customerDemands: true,
       });
 
@@ -491,7 +491,7 @@ describe("build inp with controls", () => {
         })
         .build();
 
-      const inp = buildInpWithControls(hydraulicModel, {
+      const inp = buildInp(hydraulicModel, {
         customerDemands: false,
       });
 
@@ -520,7 +520,7 @@ describe("build inp with controls", () => {
         })
         .build();
 
-      const inp = buildInpWithControls(hydraulicModel, {
+      const inp = buildInp(hydraulicModel, {
         customerDemands: true,
       });
 
@@ -555,7 +555,7 @@ describe("build inp with controls", () => {
         })
         .build();
 
-      const inp = buildInpWithControls(hydraulicModel, {
+      const inp = buildInp(hydraulicModel, {
         customerDemands: true,
       });
 
@@ -592,7 +592,7 @@ describe("build inp with controls", () => {
         })
         .build();
 
-      const inp = buildInpWithControls(hydraulicModel, {
+      const inp = buildInp(hydraulicModel, {
         customerPoints: true,
       });
 
@@ -638,7 +638,7 @@ describe("build inp with controls", () => {
         })
         .build();
 
-      const inp = buildInpWithControls(hydraulicModel, {
+      const inp = buildInp(hydraulicModel, {
         customerPoints: true,
         labelIds: true,
       });
@@ -652,7 +652,7 @@ describe("build inp with controls", () => {
         .aJunction(IDS.J1, { elevation: 10 })
         .build();
 
-      const inp = buildInpWithControls(hydraulicModel, {
+      const inp = buildInp(hydraulicModel, {
         customerPoints: true,
       });
 
@@ -669,7 +669,7 @@ describe("build inp with controls", () => {
         })
         .build();
 
-      const inp = buildInpWithControls(hydraulicModel, {
+      const inp = buildInp(hydraulicModel, {
         customerPoints: false,
       });
 
@@ -686,7 +686,7 @@ describe("build inp with controls", () => {
         })
         .build();
 
-      const inp = buildInpWithControls(hydraulicModel);
+      const inp = buildInp(hydraulicModel);
 
       expect(inp).not.toContain(";[CUSTOMERS]");
     });
@@ -698,7 +698,7 @@ describe("build inp with controls", () => {
         .eps({ duration: 86400 }) // 24 hours
         .build();
 
-      const inp = buildInpWithControls(hydraulicModel);
+      const inp = buildInp(hydraulicModel);
 
       expect(inp).toContain("[TIMES]");
       expect(inp).toContain("Duration\t24");
@@ -709,7 +709,7 @@ describe("build inp with controls", () => {
         .eps({ duration: 86400, hydraulicTimestep: 3600 }) // 1 hour timestep
         .build();
 
-      const inp = buildInpWithControls(hydraulicModel);
+      const inp = buildInp(hydraulicModel);
 
       expect(inp).toContain("[TIMES]");
       expect(inp).toContain("Duration\t24");
@@ -721,7 +721,7 @@ describe("build inp with controls", () => {
         .eps({ duration: 86400, reportTimestep: 7200 }) // 2 hour timestep
         .build();
 
-      const inp = buildInpWithControls(hydraulicModel);
+      const inp = buildInp(hydraulicModel);
 
       expect(inp).toContain("[TIMES]");
       expect(inp).toContain("Report Timestep\t2");
@@ -732,7 +732,7 @@ describe("build inp with controls", () => {
         .eps({ duration: 86400, patternTimestep: 10800 }) // 3 hour timestep
         .build();
 
-      const inp = buildInpWithControls(hydraulicModel);
+      const inp = buildInp(hydraulicModel);
 
       expect(inp).toContain("[TIMES]");
       expect(inp).toContain("Pattern Timestep\t3");
@@ -743,7 +743,7 @@ describe("build inp with controls", () => {
         .eps({ duration: 5400 }) // 1 hour 30 minutes
         .build();
 
-      const inp = buildInpWithControls(hydraulicModel);
+      const inp = buildInp(hydraulicModel);
 
       expect(inp).toContain("Duration\t1:30");
     });
@@ -753,7 +753,7 @@ describe("build inp with controls", () => {
         .eps({ duration: 3723 }) // 1 hour 2 minutes 3 seconds
         .build();
 
-      const inp = buildInpWithControls(hydraulicModel);
+      const inp = buildInp(hydraulicModel);
 
       expect(inp).toContain("Duration\t1:02:03");
     });
@@ -763,7 +763,7 @@ describe("build inp with controls", () => {
         .eps({ duration: 172800 }) // 48 hours
         .build();
 
-      const inp = buildInpWithControls(hydraulicModel);
+      const inp = buildInp(hydraulicModel);
 
       expect(inp).toContain("Duration\t48");
       expect(inp).not.toContain("Duration\t48:");
@@ -779,7 +779,7 @@ describe("build inp with controls", () => {
         })
         .build();
 
-      const inp = buildInpWithControls(hydraulicModel);
+      const inp = buildInp(hydraulicModel);
 
       expect(inp).toContain("[TIMES]");
       expect(inp).toContain("Duration\t24");
@@ -791,7 +791,7 @@ describe("build inp with controls", () => {
     it("outputs Duration 0 when no epsTiming is configured", () => {
       const hydraulicModel = HydraulicModelBuilder.with().build();
 
-      const inp = buildInpWithControls(hydraulicModel);
+      const inp = buildInp(hydraulicModel);
 
       expect(inp).toContain("[TIMES]");
       expect(inp).toContain("Duration\t0");
@@ -815,7 +815,7 @@ describe("build inp with controls", () => {
         })
         .build();
 
-      const inp = buildInpWithControls(hydraulicModel);
+      const inp = buildInp(hydraulicModel);
 
       expect(inp).toContain("[JUNCTIONS]");
       expect(inp).toContain("1\t10");
@@ -838,7 +838,7 @@ describe("build inp with controls", () => {
         })
         .build();
 
-      const inp = buildInpWithControls(hydraulicModel, {
+      const inp = buildInp(hydraulicModel, {
         inactiveAssets: true,
       });
 
@@ -876,7 +876,7 @@ describe("build inp with controls", () => {
         })
         .build();
 
-      const inp = buildInpWithControls(hydraulicModel, {
+      const inp = buildInp(hydraulicModel, {
         geolocation: true,
         inactiveAssets: true,
       });
@@ -920,7 +920,7 @@ describe("build inp with controls", () => {
         })
         .build();
 
-      const inp = buildInpWithControls(hydraulicModel, {
+      const inp = buildInp(hydraulicModel, {
         inactiveAssets: true,
       });
 
@@ -945,7 +945,7 @@ describe("build inp with controls", () => {
         })
         .build();
 
-      const inp = buildInpWithControls(hydraulicModel, {
+      const inp = buildInp(hydraulicModel, {
         inactiveAssets: true,
       });
 
@@ -968,7 +968,7 @@ describe("build inp with controls", () => {
         .aPumpCurve({ id: String(IDS.PUMP1), points: [{ x: 100, y: 50 }] })
         .build();
 
-      const inp = buildInpWithControls(hydraulicModel, {
+      const inp = buildInp(hydraulicModel, {
         inactiveAssets: true,
       });
 
@@ -985,7 +985,7 @@ describe("build inp with controls", () => {
         .aJunction(IDS.J1, { elevation: 10, demands: [{ baseDemand: 50 }] })
         .build();
 
-      const inp = buildInpWithControls(hydraulicModel);
+      const inp = buildInp(hydraulicModel);
 
       expect(inp).toContain("Pattern\tCONSTANT");
       expect(inp).toContain("CONSTANT\t1");
@@ -1001,7 +1001,7 @@ describe("build inp with controls", () => {
         .aDemandPattern("CONSTANT", [1.2, 0.8, 1.0])
         .build();
 
-      const inp = buildInpWithControls(hydraulicModel);
+      const inp = buildInp(hydraulicModel);
 
       expect(inp).toContain("Pattern\tCONSTANT_1");
       expect(inp).toContain("CONSTANT_1\t1");
@@ -1017,7 +1017,7 @@ describe("build inp with controls", () => {
         .aDemandPattern("CONSTANT_1", [0.9, 1.1])
         .build();
 
-      const inp = buildInpWithControls(hydraulicModel);
+      const inp = buildInp(hydraulicModel);
 
       expect(inp).toContain("Pattern\tCONSTANT_2");
       expect(inp).toContain("CONSTANT_2\t1");
@@ -1041,7 +1041,7 @@ describe("build inp with controls", () => {
         .aDemandPattern("industrial", [0.5, 1.0, 1.5])
         .build();
 
-      const inp = buildInpWithControls(hydraulicModel);
+      const inp = buildInp(hydraulicModel);
 
       expect(inp).toContain("[PATTERNS]");
       expect(inp).toContain("Pattern\tCONSTANT");
@@ -1062,7 +1062,7 @@ describe("build inp with controls", () => {
         .aDemandPattern("residential", [0.8, 1.2, 1.0])
         .build();
 
-      const inp = buildInpWithControls(hydraulicModel);
+      const inp = buildInp(hydraulicModel);
 
       expect(inp).not.toContain("residential\t"); // Pattern not included
       expect(inp).not.toContain("1\t0\tresidential"); // Demand not included
@@ -1082,7 +1082,7 @@ describe("build inp with controls", () => {
         .aDemandPattern("residential", [0.8, 1.2, 1.0])
         .build();
 
-      const inp = buildInpWithControls(hydraulicModel);
+      const inp = buildInp(hydraulicModel);
 
       expect(inp).toContain("residential\t0.8\t1.2\t1");
       expect(inp).toContain("1\t25\tresidential");
@@ -1103,7 +1103,7 @@ describe("build inp with controls", () => {
         .aDemandPattern("hourly", hourlyPattern)
         .build();
 
-      const inp = buildInpWithControls(hydraulicModel);
+      const inp = buildInp(hydraulicModel);
 
       const line1 = "hourly\t0.5\t0.4\t0.3\t0.3\t0.4\t0.6\t0.9\t1.2";
       const line2 = "hourly\t1.3\t1.2\t1.1\t1\t1\t1.1\t1.2\t1.3";
@@ -1116,7 +1116,7 @@ describe("build inp with controls", () => {
     it("does not include CONTROLS section when controls.simple is empty", () => {
       const hydraulicModel = HydraulicModelBuilder.with().build();
 
-      const inp = buildInpWithControls(hydraulicModel);
+      const inp = buildInp(hydraulicModel);
 
       expect(inp).not.toContain("[CONTROLS]");
     });
@@ -1137,7 +1137,7 @@ describe("build inp with controls", () => {
         })
         .build();
 
-      const inp = buildInpWithControls(hydraulicModel);
+      const inp = buildInp(hydraulicModel);
 
       expect(inp).toContain("[CONTROLS]");
       expect(inp).toContain("LINK P1 OPEN IF NODE T1 ABOVE 100");
@@ -1153,7 +1153,7 @@ describe("build inp with controls", () => {
         })
         .build();
 
-      const inp = buildInpWithControls(hydraulicModel);
+      const inp = buildInp(hydraulicModel);
 
       expect(inp).toContain("[CONTROLS]");
       expect(inp).toContain(
@@ -1166,7 +1166,7 @@ describe("build inp with controls", () => {
     it("does not include RULES section when controls.ruleBased is empty", () => {
       const hydraulicModel = HydraulicModelBuilder.with().build();
 
-      const inp = buildInpWithControls(hydraulicModel);
+      const inp = buildInp(hydraulicModel);
 
       expect(inp).not.toContain("[RULES]");
     });
@@ -1189,7 +1189,7 @@ THEN LINK P1 STATUS IS CLOSED`,
         })
         .build();
 
-      const inp = buildInpWithControls(hydraulicModel);
+      const inp = buildInp(hydraulicModel);
 
       expect(inp).toContain(`[RULES]
 RULE 1
@@ -1211,7 +1211,7 @@ THEN LINK P1 STATUS IS OPEN ;activate pump`,
         })
         .build();
 
-      const inp = buildInpWithControls(hydraulicModel);
+      const inp = buildInp(hydraulicModel);
 
       expect(inp).toContain("[RULES]");
       expect(inp).toContain(";main tank control");
@@ -1247,7 +1247,7 @@ THEN LINK {{1}} STATUS IS OPEN`,
         })
         .build();
 
-      const inp = buildInpWithControls(hydraulicModel);
+      const inp = buildInp(hydraulicModel);
 
       expect(inp).toContain("LINK 3 OPEN IF NODE 1 ABOVE 100");
       expect(inp).toContain("IF NODE 1 LEVEL > 100");
@@ -1283,7 +1283,7 @@ THEN LINK {{1}} STATUS IS OPEN`,
         })
         .build();
 
-      const inp = buildInpWithControls(hydraulicModel, { labelIds: true });
+      const inp = buildInp(hydraulicModel, { labelIds: true });
 
       expect(inp).toContain("LINK Pipe-1 OPEN IF NODE Tank-A ABOVE 100");
       expect(inp).toContain("IF NODE Tank-A LEVEL > 100");

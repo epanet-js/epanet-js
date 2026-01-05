@@ -1,7 +1,6 @@
 import { useAtomValue, useSetAtom } from "jotai";
 import { useCallback } from "react";
 import { buildInp } from "src/simulation/build-inp";
-import { buildInpWithControls } from "src/simulation/build-inp-with-controls";
 import { dataAtom, dialogAtom, simulationAtom } from "src/state/jotai";
 import {
   ProgressCallback,
@@ -11,7 +10,6 @@ import {
 import { attachSimulation } from "src/hydraulic-model";
 import { useDrawingMode } from "./set-drawing-mode";
 import { Mode } from "src/state/mode";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { getAppId } from "src/infra/app-instance";
 import { OPFSStorage } from "src/infra/storage";
 
@@ -23,14 +21,11 @@ export const useRunSimulation = () => {
   const { hydraulicModel } = useAtomValue(dataAtom);
   const setData = useSetAtom(dataAtom);
   const setDrawingMode = useDrawingMode();
-  const isControlsEnabled = useFeatureFlag("FLAG_CONTROLS");
 
   const runSimulation = useCallback(async () => {
     setDrawingMode(Mode.NONE);
     setSimulationState((prev) => ({ ...prev, status: "running" }));
-    const inp = isControlsEnabled
-      ? buildInpWithControls(hydraulicModel, { customerDemands: true })
-      : buildInp(hydraulicModel, { customerDemands: true });
+    const inp = buildInp(hydraulicModel, { customerDemands: true });
     const start = performance.now();
 
     let isCompleted = false;
@@ -94,7 +89,6 @@ export const useRunSimulation = () => {
     setSimulationState,
     setDialogState,
     setData,
-    isControlsEnabled,
   ]);
 
   return runSimulation;

@@ -78,7 +78,6 @@ import {
   showControlsShortcut,
   useShowControls,
 } from "src/commands/show-controls";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 const IGNORE_ROLES = new Set(["menuitem"]);
 
@@ -107,7 +106,6 @@ export const CommandShortcuts = () => {
   const { changeSelectedAssetsActiveTopologyStatus } =
     useChangeSelectedAssetsActiveTopologyStatus();
   const showControls = useShowControls();
-  const isControlsEnabled = useFeatureFlag("FLAG_CONTROLS");
 
   useHotkeys(
     showReportShorcut,
@@ -295,7 +293,6 @@ export const CommandShortcuts = () => {
     },
     [showControls],
     `Show controls`,
-    !isControlsEnabled,
   );
 
   useHotkeys(

@@ -26,6 +26,11 @@ import { ConsecutiveIdsGenerator } from "src/hydraulic-model/id-generator";
 import { CurvesBuilder } from "./curves-builder";
 import { PatternsBuilder } from "./patterns-builder";
 import { getPumpCurveType } from "src/hydraulic-model/curves";
+import {
+  LabelResolver,
+  parseSimpleControlsFromText,
+  parseRulesFromText,
+} from "src/hydraulic-model/controls";
 
 export const buildModel = (
   inpData: InpData,
@@ -148,6 +153,8 @@ export const buildModel = (
 
   hydraulicModel.curves = curvesBuilder.getValidatedCurves();
   hydraulicModel.demands.patterns = patternsBuilder.getUsedPatterns();
+
+  addControls(hydraulicModel, inpData.controls, nodeIds, linkIds);
 
   return { hydraulicModel, modelMetadata: { quantities } };
 };
@@ -522,4 +529,20 @@ const calculateReservoirHead = (
     head = reservoir.baseHead * pattern[0];
   }
   return head;
+};
+
+const addControls = (
+  hydraulicModel: HydraulicModel,
+  rawControls: InpData["controls"],
+  nodeIds: ItemData<AssetId>,
+  linkIds: ItemData<AssetId>,
+): void => {
+  const resolveLabel: LabelResolver = (assetType, label) => {
+    return assetType === "link" ? linkIds.get(label) : nodeIds.get(label);
+  };
+
+  hydraulicModel.controls = {
+    simple: parseSimpleControlsFromText(rawControls.simple, resolveLabel),
+    rules: parseRulesFromText(rawControls.ruleBased, resolveLabel),
+  };
 };

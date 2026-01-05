@@ -1,4 +1,4 @@
-import { parseInpWithControls } from "./parse-inp-with-controls";
+import { parseInp } from "./parse-inp";
 
 describe("Parse CONTROLS and RULES sections", () => {
   describe("CONTROLS section parsing", () => {
@@ -9,7 +9,7 @@ describe("Parse CONTROLS and RULES sections", () => {
       [END]
       `;
 
-      const { hydraulicModel } = parseInpWithControls(inp);
+      const { hydraulicModel } = parseInp(inp);
 
       expect(hydraulicModel.controls.simple).toEqual([]);
       expect(hydraulicModel.controls.rules).toEqual([]);
@@ -37,7 +37,7 @@ describe("Parse CONTROLS and RULES sections", () => {
       [END]
       `;
 
-      const { hydraulicModel } = parseInpWithControls(inp);
+      const { hydraulicModel } = parseInp(inp);
 
       // Find assets by label
       const assets = [...hydraulicModel.assets.values()];
@@ -86,7 +86,7 @@ describe("Parse CONTROLS and RULES sections", () => {
       [END]
       `;
 
-      const { hydraulicModel } = parseInpWithControls(inp);
+      const { hydraulicModel } = parseInp(inp);
 
       expect(hydraulicModel.controls.simple).toHaveLength(3);
 
@@ -110,7 +110,7 @@ describe("Parse CONTROLS and RULES sections", () => {
       [END]
       `;
 
-      const { hydraulicModel } = parseInpWithControls(inp);
+      const { hydraulicModel } = parseInp(inp);
 
       expect(hydraulicModel.controls.simple).toEqual([]);
       expect(hydraulicModel.controls.rules).toEqual([]);
@@ -140,7 +140,7 @@ describe("Parse CONTROLS and RULES sections", () => {
       [END]
       `;
 
-      const { hydraulicModel } = parseInpWithControls(inp);
+      const { hydraulicModel } = parseInp(inp);
 
       const assets = [...hydraulicModel.assets.values()];
       const tank = assets.find(
@@ -193,7 +193,7 @@ THEN LINK {{1}} STATUS IS OPEN`);
       [END]
       `;
 
-      const { hydraulicModel } = parseInpWithControls(inp);
+      const { hydraulicModel } = parseInp(inp);
 
       expect(hydraulicModel.controls.rules).toHaveLength(2);
       expect(hydraulicModel.controls.rules[0].ruleId).toBe("1");
@@ -230,7 +230,7 @@ THEN LINK {{1}} STATUS IS OPEN`);
       [END]
       `;
 
-      const { hydraulicModel } = parseInpWithControls(inp);
+      const { hydraulicModel } = parseInp(inp);
 
       expect(hydraulicModel.controls.simple).toHaveLength(1);
       expect(hydraulicModel.controls.rules).toHaveLength(1);
@@ -263,7 +263,7 @@ THEN LINK {{1}} STATUS IS OPEN`);
       [END]
       `;
 
-      const { hydraulicModel } = parseInpWithControls(inp);
+      const { hydraulicModel } = parseInp(inp);
 
       expect(hydraulicModel.assets.size).toEqual(3);
       expect(hydraulicModel.controls.simple).toHaveLength(1);
@@ -298,7 +298,7 @@ THEN LINK {{1}} STATUS IS OPEN`);
       [END]
       `;
 
-      const { hydraulicModel } = parseInpWithControls(inp);
+      const { hydraulicModel } = parseInp(inp);
 
       expect(hydraulicModel.controls.simple[0].template).toContain(
         ";open when tank is full",
@@ -329,7 +329,7 @@ THEN LINK {{1}} STATUS IS OPEN`);
       [END]
       `;
 
-      const { hydraulicModel } = parseInpWithControls(inp);
+      const { hydraulicModel } = parseInp(inp);
 
       expect(hydraulicModel.controls.rules[0].template).toContain(
         ";main tank control",
@@ -364,7 +364,7 @@ THEN LINK {{1}} STATUS IS OPEN`);
       [END]
       `;
 
-      const { hydraulicModel } = parseInpWithControls(inp);
+      const { hydraulicModel } = parseInp(inp);
 
       expect(hydraulicModel.controls.rules[0].template).toContain("PRIORITY 5");
     });

@@ -17,6 +17,11 @@ import { CustomerPointsLookup } from "src/hydraulic-model/customer-points-lookup
 import { Valve, AssetId } from "src/hydraulic-model/asset-types";
 import { checksum } from "src/infra/checksum";
 import { withDebugInstrumentation } from "src/infra/with-instrumentation";
+import {
+  formatSimpleControl,
+  formatRuleBasedControl,
+  IdResolver,
+} from "src/hydraulic-model/controls";
 
 type SimulationPipeStatus = "Open" | "Closed" | "CV";
 type SimulationPumpStatus = "Open" | "Closed";
@@ -167,6 +172,8 @@ type InpSections = {
   coordinates: string[];
   vertices: string[];
   customers: string[];
+  controls: string[];
+  rules: string[];
 };
 
 type BuildOptions = {
@@ -231,6 +238,8 @@ export const buildInp = withDebugInstrumentation(
         ";[CUSTOMERS]",
         ";Id\tX-coord\tY-coord\tBaseDemand\tPipeId\tJunctionId\tSnapX\tSnapY",
       ],
+      controls: ["[CONTROLS]"],
+      rules: ["[RULES]"],
     };
 
     const usedPatternIds = new Set<string>();
@@ -320,6 +329,11 @@ export const buildInp = withDebugInstrumentation(
       usedPatternIds,
     );
 
+    appendControls(sections, hydraulicModel.controls, idMap, hydraulicModel);
+
+    const hasControls = sections.controls.length > 1;
+    const hasRules = sections.rules.length > 1;
+
     let content = [
       sections.junctions.join("\n"),
       sections.reservoirs.join("\n"),
@@ -338,6 +352,8 @@ export const buildInp = withDebugInstrumentation(
       opts.geolocation && sections.coordinates.join("\n"),
       opts.geolocation && sections.vertices.join("\n"),
       includeCustomerPoints && sections.customers.join("\n"),
+      hasControls && sections.controls.join("\n"),
+      hasRules && sections.rules.join("\n"),
       "[END]",
     ]
       .filter((f) => !!f)
@@ -678,6 +694,33 @@ const getConstantPatternId = (usedPatternIds: Set<string>): string => {
     count++;
   }
   return `${base}_${count}`;
+};
+
+const appendControls = (
+  sections: InpSections,
+  controls: HydraulicModel["controls"],
+  idMap: EpanetIds,
+  hydraulicModel: HydraulicModel,
+) => {
+  const idResolver: IdResolver = (assetId: AssetId) => {
+    const asset = hydraulicModel.assets.get(assetId);
+    if (!asset) {
+      return String(assetId);
+    }
+    if (asset.isLink) {
+      return idMap.linkId(asset as LinkAsset);
+    } else {
+      return idMap.nodeId(asset as NodeAsset);
+    }
+  };
+
+  for (const control of controls.simple) {
+    sections.controls.push(formatSimpleControl(control, idResolver));
+  }
+
+  for (const rule of controls.rules) {
+    sections.rules.push(formatRuleBasedControl(rule, idResolver));
+  }
 };
 
 const appendDemandPatterns = (

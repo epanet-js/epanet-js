@@ -36,8 +36,6 @@ const roadmapUrls = {
   pumpCurves:
     "https://roadmap.epanetjs.com/element-properties/p/define-pump-curves",
   pcv: "https://roadmap.epanetjs.com/network-elements/p/pcv-positional-control-valve",
-  controlsRules:
-    "https://roadmap.epanetjs.com/adv-analysis-operations/p/controls-rules",
 } as const;
 
 export const GeocodingNotSupportedDialog = ({
@@ -354,26 +352,10 @@ const IssuesSummary = ({ issues }: { issues: ParserIssues }) => {
               </div>
             </div>
           )}
-          {(issues.unsupportedSections ||
-            issues.hasControls ||
-            issues.hasRules) && (
+          {issues.unsupportedSections && (
             <div>
               <p>{translate("useOfUnsupported")}:</p>
               <div className="flex flex-col gap-y-1 items-start">
-                {issues.hasControls && (
-                  <div className="flex flex-col gap-y-1 items-start">
-                    <RoadmapLink href={roadmapUrls.controlsRules}>
-                      - [CONTROLS]
-                    </RoadmapLink>
-                  </div>
-                )}
-                {issues.hasRules && (
-                  <div className="flex flex-col gap-y-1 items-start">
-                    <RoadmapLink href={roadmapUrls.controlsRules}>
-                      - [RULES]
-                    </RoadmapLink>
-                  </div>
-                )}
                 {issues.unsupportedSections &&
                   Array.from(issues.unsupportedSections).map((sectionName) => (
                     <span key={sectionName}>- {sectionName}</span>

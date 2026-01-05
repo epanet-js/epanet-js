@@ -17,8 +17,6 @@ export type ParserIssues = {
   hasPumpPatterns?: number;
   hasPumpCurves?: number;
   hasPCVCurves?: number;
-  hasControls?: boolean;
-  hasRules?: boolean;
   waterQualityType?: WaterQualityType;
 };
 
@@ -98,14 +96,6 @@ export class IssuesAccumulator {
 
   addPCVCurve() {
     this.issues.hasPCVCurves = (this.issues.hasPCVCurves || 0) + 1;
-  }
-
-  addControls() {
-    this.issues.hasControls = true;
-  }
-
-  addRules() {
-    this.issues.hasRules = true;
   }
 
   addWaterQualityType(type: WaterQualityType) {

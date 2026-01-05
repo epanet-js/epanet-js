@@ -605,18 +605,7 @@ const readSetting = <T extends Record<string, string | number>>(
   }
 };
 
-export const parseControl: RowParser = ({ issues }) => {
-  issues.addControls();
-};
-
-export const parseRule: RowParser = ({ issues }) => {
-  issues.addRules();
-};
-
-export const parseControlsWithControls: RowParser = ({
-  trimmedRow,
-  inpData,
-}) => {
+export const parseControl: RowParser = ({ trimmedRow, inpData }) => {
   if (inpData.controls.simple) {
     inpData.controls.simple += "\n" + trimmedRow;
   } else {
@@ -624,7 +613,7 @@ export const parseControlsWithControls: RowParser = ({
   }
 };
 
-export const parseRulesWithControls: RowParser = ({ trimmedRow, inpData }) => {
+export const parseRule: RowParser = ({ trimmedRow, inpData }) => {
   if (inpData.controls.ruleBased) {
     inpData.controls.ruleBased += "\n" + trimmedRow;
   } else {

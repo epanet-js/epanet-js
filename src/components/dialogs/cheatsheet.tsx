@@ -31,7 +31,6 @@ type ShortcutSection = {
 export function CheatsheetDialog() {
   const translate = useTranslate();
   const isMac = useFeatureFlag("FLAG_MAC");
-  const isControlsEnabled = useFeatureFlag("FLAG_CONTROLS");
 
   const BINDINGS: ShortcutSection[] = [
     {
@@ -79,14 +78,10 @@ export function CheatsheetDialog() {
           description: "simulationSettings.title",
         },
         { binding: "Alt+R", description: "viewReport" },
-        ...(isControlsEnabled
-          ? [
-              {
-                binding: showControlsShortcut,
-                description: "controls.title" as TranslationKey,
-              },
-            ]
-          : []),
+        {
+          binding: showControlsShortcut,
+          description: "controls.title",
+        },
       ],
     },
     {
