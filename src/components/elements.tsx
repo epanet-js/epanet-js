@@ -959,7 +959,7 @@ export const Keycap = classed.div(({ size = "sm" }: { size?: B3Size }) => [
   },
   `text-center
   dark:bg-gray-700/50
-  font-mono rounded
+  rounded
   ring-1 ring-gray-100 dark:ring-black
   border border-b-4 border-r-2
   border-gray-300 dark:border-gray-500`,
