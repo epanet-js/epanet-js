@@ -1,12 +1,24 @@
 export const PROLOG_SIZE = 884;
 export const EPILOG_SIZE = 12;
 
+// Pressure Units Option from EPANET binary output
+export type PressureUnits = "psi" | "kPa" | "m" | "bar" | "ft";
+
+const PRESSURE_UNITS_MAP: Record<number, PressureUnits> = {
+  0: "psi",
+  1: "kPa",
+  2: "m",
+  3: "bar",
+  4: "ft",
+};
+
 export interface ISimulationMetadata {
   nodeCount: number;
   resAndTankCount: number;
   linkCount: number;
   pumpCount: number;
   valveCount: number;
+  pressureUnits: PressureUnits;
   reportingStartTime: number;
   reportingTimeStep: number;
   simulationDuration: number;
@@ -23,6 +35,7 @@ export function getSimulationMetadata(
       linkCount: 0,
       pumpCount: 0,
       valveCount: 0,
+      pressureUnits: "m", // default to meters
       reportingStartTime: 0,
       reportingTimeStep: 3600,
       simulationDuration: 0,
@@ -59,6 +72,11 @@ export class SimulationMetadata implements ISimulationMetadata {
 
   get valveCount(): number {
     return this.prologView.getInt32(24, true);
+  }
+
+  get pressureUnits(): PressureUnits {
+    const rawValue = this.prologView.getInt32(40, true);
+    return PRESSURE_UNITS_MAP[rawValue] ?? "m";
   }
 
   get reportingStartTime(): number {

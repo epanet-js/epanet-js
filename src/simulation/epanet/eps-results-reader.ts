@@ -7,15 +7,11 @@ import {
   TankSimulation,
 } from "../results-reader";
 import { IPrivateAppStorage } from "src/infra/storage/private-app-storage";
-import {
-  RESULTS_OUT_KEY,
-  TANK_VOLUMES_KEY,
-  TANK_LEVELS_KEY,
-  PUMP_STATUS_KEY,
-} from "./worker";
+import { RESULTS_OUT_KEY, TANK_VOLUMES_KEY, PUMP_STATUS_KEY } from "./worker";
 import {
   SimulationMetadata,
   type SimulationIds,
+  type PressureUnits,
   PROLOG_SIZE,
   EPILOG_SIZE,
 } from "./simulation-metadata";
@@ -31,6 +27,28 @@ const FLOAT_SIZE = 4;
 const NODE_RESULT_FLOATS = 4;
 const LINK_RESULT_FLOATS = 8;
 const PUMP_ENERGY_FLOATS = 7;
+
+// Conversion factor: 1 foot of water = 0.4333 psi
+// To convert psi to feet: level = pressure / 0.4333
+const PSI_PER_FOOT = 0.4333;
+
+/**
+ * Converts pressure value to tank level based on pressure units.
+ * For tanks, the "pressure" in EPANET output represents the water depth above the tank base.
+ * - For SI units (m, kPa, bar): pressure value already equals level
+ * - For US units (psi): need to convert to feet (level = pressure / 0.4333)
+ * - For feet: pressure value already equals level
+ */
+function pressureToLevel(
+  pressure: number,
+  pressureUnits: PressureUnits,
+): number {
+  if (pressureUnits === "psi") {
+    return pressure / PSI_PER_FOOT;
+  }
+  // For m, kPa, bar, ft: pressure value equals level in the corresponding length unit
+  return pressure;
+}
 
 export type JunctionProperty = "demand" | "head" | "pressure" | "quality";
 export type TankProperty = "head" | "pressure" | "level" | "volume";
@@ -176,8 +194,7 @@ export class EPSResultsReader {
       case "tank":
         if (property === "volume")
           return this._getTankPropertyTimeSeries(assetId, TANK_VOLUMES_KEY);
-        if (property === "level")
-          return this._getTankPropertyTimeSeries(assetId, TANK_LEVELS_KEY);
+        if (property === "level") return this._getTankLevelTimeSeries(assetId);
         return this._getNodePropertyTimeSeries(
           assetId,
           property as NodeProperty,
@@ -237,6 +254,28 @@ export class EPSResultsReader {
       simulationMetadata.reportingStepsCount,
     );
     return this._buildTimeSeries(values);
+  }
+
+  private async _getTankLevelTimeSeries(
+    tankId: AssetId,
+  ): Promise<TimeSeries | null> {
+    const pressureSeries = await this._getNodePropertyTimeSeries(
+      tankId,
+      "pressure",
+    );
+    if (!pressureSeries) return null;
+
+    const { pressureUnits } = this.metadata!.simulationMetadata;
+    const levelValues = new Float32Array(pressureSeries.values.length);
+    for (let i = 0; i < pressureSeries.values.length; i++) {
+      levelValues[i] = pressureToLevel(pressureSeries.values[i], pressureUnits);
+    }
+
+    return {
+      values: levelValues,
+      timestepCount: pressureSeries.timestepCount,
+      reportingTimeStep: pressureSeries.reportingTimeStep,
+    };
   }
 
   private async _getLinkPropertyTimeSeries(
@@ -383,9 +422,6 @@ export class EPSResultsReader {
       const tankVolumesForTimestep =
         await this.readTankVolumesForTimestep(timestepIndex);
 
-      const tankLevelsForTimestep =
-        await this.readTankLevelsForTimestep(timestepIndex);
-
       const pumpStatusForTimestep =
         await this.readPumpStatusForTimestep(timestepIndex);
 
@@ -394,7 +430,6 @@ export class EPSResultsReader {
         simulationMetadata,
         simulationIds,
         tankVolumesForTimestep,
-        tankLevelsForTimestep,
         linkLengths,
         pumpStatusForTimestep,
       );
@@ -633,21 +668,6 @@ export class EPSResultsReader {
     return new Float32Array(data);
   }
 
-  private async readTankLevelsForTimestep(
-    timestepIndex: number,
-  ): Promise<Float32Array | null> {
-    const resAndTankCount = this.metadata!.simulationMetadata.resAndTankCount;
-    if (resAndTankCount === 0) return null;
-
-    const offset = timestepIndex * resAndTankCount * FLOAT_SIZE;
-    const length = resAndTankCount * FLOAT_SIZE;
-
-    const data = await this.storage.readSlice(TANK_LEVELS_KEY, offset, length);
-    if (!data) return null;
-
-    return new Float32Array(data);
-  }
-
   private async readPumpStatusForTimestep(
     timestepIndex: number,
   ): Promise<PumpStatusForTimestep | null> {
@@ -680,7 +700,6 @@ class TimestepResultsReader implements ResultsReader {
   private simulationMetadata: SimulationMetadata;
   private simulationIds: SimulationIds;
   private tankVolumes: Float32Array | null;
-  private tankLevels: Float32Array | null;
   private linkLengths: Float32Array;
   private pumpStatus: PumpStatusForTimestep | null;
 
@@ -689,7 +708,6 @@ class TimestepResultsReader implements ResultsReader {
     simulationMetadata: SimulationMetadata,
     simulationIds: SimulationIds,
     tankVolumes: Float32Array | null,
-    tankLevels: Float32Array | null,
     linkLengths: Float32Array,
     pumpStatus: PumpStatusForTimestep | null,
   ) {
@@ -697,7 +715,6 @@ class TimestepResultsReader implements ResultsReader {
     this.simulationMetadata = simulationMetadata;
     this.simulationIds = simulationIds;
     this.tankVolumes = tankVolumes;
-    this.tankLevels = tankLevels;
     this.linkLengths = linkLengths;
     this.pumpStatus = pumpStatus;
   }
@@ -788,17 +805,18 @@ class TimestepResultsReader implements ResultsReader {
     const nodeData = this.getNodeData(nodeIndex);
 
     let volume = 0;
-    let level = 0;
     const tankIndexInSupplySources =
       this.findTankIndexInSupplySources(nodeIndex);
     if (tankIndexInSupplySources !== -1) {
       if (this.tankVolumes) {
         volume = this.tankVolumes[tankIndexInSupplySources] ?? 0;
       }
-      if (this.tankLevels) {
-        level = this.tankLevels[tankIndexInSupplySources] ?? 0;
-      }
     }
+
+    const level = pressureToLevel(
+      nodeData.pressure,
+      this.simulationMetadata.pressureUnits,
+    );
 
     return {
       type: "tank",
