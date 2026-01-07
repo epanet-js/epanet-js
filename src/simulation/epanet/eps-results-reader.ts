@@ -28,17 +28,8 @@ const NODE_RESULT_FLOATS = 4;
 const LINK_RESULT_FLOATS = 8;
 const PUMP_ENERGY_FLOATS = 7;
 
-// Conversion factor: 1 foot of water = 0.4333 psi
-// To convert psi to feet: level = pressure / 0.4333
 const PSI_PER_FOOT = 0.4333;
 
-/**
- * Converts pressure value to tank level based on pressure units.
- * For tanks, the "pressure" in EPANET output represents the water depth above the tank base.
- * - For SI units (m, kPa, bar): pressure value already equals level
- * - For US units (psi): need to convert to feet (level = pressure / 0.4333)
- * - For feet: pressure value already equals level
- */
 function pressureToLevel(
   pressure: number,
   pressureUnits: PressureUnits,
@@ -46,7 +37,6 @@ function pressureToLevel(
   if (pressureUnits === "psi") {
     return pressure / PSI_PER_FOOT;
   }
-  // For m, kPa, bar, ft: pressure value equals level in the corresponding length unit
   return pressure;
 }
 
@@ -88,8 +78,8 @@ const LINK_PROPERTY_INDEX: Record<LinkProperty, number> = {
 
 export interface TimeSeries {
   values: Float32Array;
-  timestepCount: number;
-  reportingTimeStep: number; // seconds between timesteps
+  intervalsCount: number;
+  intervalSeconds: number;
 }
 
 interface CachedMetadata {
@@ -142,7 +132,6 @@ export class EPSResultsReader {
     return this.metadata.simulationMetadata.reportingTimeStep;
   }
 
-  // Overloaded method signatures for type-safe API
   getTimeSeries(
     assetId: AssetId,
     assetType: "junction",
@@ -193,7 +182,7 @@ export class EPSResultsReader {
         );
       case "tank":
         if (property === "volume")
-          return this._getTankPropertyTimeSeries(assetId, TANK_VOLUMES_KEY);
+          return this._getTankVolumeTimeSeries(assetId);
         if (property === "level") return this._getTankLevelTimeSeries(assetId);
         return this._getNodePropertyTimeSeries(
           assetId,
@@ -220,8 +209,8 @@ export class EPSResultsReader {
     const values = new Float32Array(buffer);
     return {
       values,
-      timestepCount: values.length,
-      reportingTimeStep: simulationMetadata.reportingTimeStep,
+      intervalsCount: values.length,
+      intervalSeconds: simulationMetadata.reportingTimeStep,
     };
   }
 
@@ -273,8 +262,8 @@ export class EPSResultsReader {
 
     return {
       values: levelValues,
-      timestepCount: pressureSeries.timestepCount,
-      reportingTimeStep: pressureSeries.reportingTimeStep,
+      intervalsCount: pressureSeries.intervalsCount,
+      intervalSeconds: pressureSeries.intervalSeconds,
     };
   }
 
@@ -311,9 +300,8 @@ export class EPSResultsReader {
     return this._buildTimeSeries(values);
   }
 
-  private async _getTankPropertyTimeSeries(
+  private async _getTankVolumeTimeSeries(
     tankId: AssetId,
-    storageKey: string,
   ): Promise<TimeSeries | null> {
     if (!this.metadata) return null;
 
@@ -335,7 +323,7 @@ export class EPSResultsReader {
     const blockSize = resAndTankCount * FLOAT_SIZE;
 
     const values = await this.storage.readBlockSeries(
-      storageKey,
+      TANK_VOLUMES_KEY,
       baseOffset,
       FLOAT_SIZE,
       blockSize,

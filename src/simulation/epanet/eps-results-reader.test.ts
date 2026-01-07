@@ -501,10 +501,10 @@ describe("EPSResultsReader", () => {
         );
 
         expect(timeSeries).not.toBeNull();
-        expect(timeSeries!.timestepCount).toBe(3);
+        expect(timeSeries!.intervalsCount).toBe(3);
         expect(timeSeries!.values).toBeInstanceOf(Float32Array);
         expect(timeSeries!.values.length).toBe(3);
-        expect(timeSeries!.reportingTimeStep).toBe(3600);
+        expect(timeSeries!.intervalSeconds).toBe(3600);
       });
 
       it("returns values matching getResultsForTimestep", async () => {
@@ -624,10 +624,10 @@ describe("EPSResultsReader", () => {
         const timeSeries = await reader.getTimeSeries(IDS.P1, "pipe", "flow");
 
         expect(timeSeries).not.toBeNull();
-        expect(timeSeries!.timestepCount).toBe(3);
+        expect(timeSeries!.intervalsCount).toBe(3);
         expect(timeSeries!.values).toBeInstanceOf(Float32Array);
         expect(timeSeries!.values.length).toBe(3);
-        expect(timeSeries!.reportingTimeStep).toBe(3600);
+        expect(timeSeries!.intervalSeconds).toBe(3600);
       });
 
       it("returns values matching getResultsForTimestep", async () => {
@@ -741,10 +741,10 @@ describe("EPSResultsReader", () => {
         const timeSeries = await reader.getTimeSeries(IDS.T1, "tank", "volume");
 
         expect(timeSeries).not.toBeNull();
-        expect(timeSeries!.timestepCount).toBe(3);
+        expect(timeSeries!.intervalsCount).toBe(3);
         expect(timeSeries!.values).toBeInstanceOf(Float32Array);
         expect(timeSeries!.values.length).toBe(3);
-        expect(timeSeries!.reportingTimeStep).toBe(3600);
+        expect(timeSeries!.intervalSeconds).toBe(3600);
       });
 
       it("returns volume values matching getResultsForTimestep", async () => {
@@ -908,7 +908,7 @@ describe("EPSResultsReader", () => {
 
         expect(flowSeries).not.toBeNull();
         expect(flowSeries!.values).toBeInstanceOf(Float32Array);
-        expect(flowSeries!.timestepCount).toBe(3);
+        expect(flowSeries!.intervalsCount).toBe(3);
       });
 
       it("reads pump status time series from separate file", async () => {
@@ -937,7 +937,7 @@ describe("EPSResultsReader", () => {
 
         expect(statusSeries).not.toBeNull();
         expect(statusSeries!.values).toBeInstanceOf(Float32Array);
-        expect(statusSeries!.timestepCount).toBe(3);
+        expect(statusSeries!.intervalsCount).toBe(3);
       });
     });
 
@@ -966,7 +966,7 @@ describe("EPSResultsReader", () => {
 
         expect(flowSeries).not.toBeNull();
         expect(flowSeries!.values).toBeInstanceOf(Float32Array);
-        expect(flowSeries!.timestepCount).toBe(3);
+        expect(flowSeries!.intervalsCount).toBe(3);
       });
     });
 
