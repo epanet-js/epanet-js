@@ -390,7 +390,7 @@ export const CommandShortcuts = () => {
     previousTimestepShortcut,
     (e) => {
       e.preventDefault();
-      void goToPreviousTimestep();
+      void goToPreviousTimestep("shortcut");
     },
     [goToPreviousTimestep],
     "Previous timestep",
@@ -400,7 +400,7 @@ export const CommandShortcuts = () => {
     nextTimestepShortcut,
     (e) => {
       e.preventDefault();
-      void goToNextTimestep();
+      void goToNextTimestep("shortcut");
     },
     [goToNextTimestep],
     "Next timestep",

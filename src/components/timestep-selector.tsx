@@ -34,7 +34,7 @@ export const TimestepSelector = () => {
   );
 };
 
-type ChangeTimestepSource = "previous" | "next" | "dropdown";
+type ChangeTimestepSource = "buttons" | "dropdown";
 
 type TimestepSelectorUIProps = {
   currentTimestepIndex: number;
@@ -62,7 +62,7 @@ export const TimestepSelectorUI = ({
   return (
     <div className="absolute top-3 right-3 flex items-center gap-1 p-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-black rounded-sm shadow-sm">
       <button
-        onClick={() => onChangeTimestep(currentTimestepIndex - 1, "previous")}
+        onClick={() => onChangeTimestep(currentTimestepIndex - 1, "buttons")}
         disabled={!canGoPrevious}
         className={clsx(
           "size-[1.875rem] p-1.5 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-l-sm",
@@ -74,7 +74,7 @@ export const TimestepSelectorUI = ({
         <ChevronLeftIcon />
       </button>
       <button
-        onClick={() => onChangeTimestep(currentTimestepIndex + 1, "next")}
+        onClick={() => onChangeTimestep(currentTimestepIndex + 1, "buttons")}
         disabled={!canGoNext}
         className={clsx(
           "size-[1.875rem] p-1.5 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-r-sm",

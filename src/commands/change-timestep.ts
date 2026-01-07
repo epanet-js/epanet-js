@@ -12,7 +12,7 @@ import { getSimulationMetadata } from "src/simulation/epanet/simulation-metadata
 export const previousTimestepShortcut = "shift+left";
 export const nextTimestepShortcut = "shift+right";
 
-type ChangeTimestepSource = "previous" | "next" | "dropdown";
+type ChangeTimestepSource = "shortcut" | "buttons" | "dropdown";
 
 export const useChangeTimestep = () => {
   const simulation = useAtomValue(simulationAtom);
@@ -68,21 +68,27 @@ export const useChangeTimestep = () => {
     [simulation, setData, setSimulationState, userTracking],
   );
 
-  const goToPreviousTimestep = useCallback(async () => {
-    const currentIndex =
-      "currentTimestepIndex" in simulation
-        ? (simulation.currentTimestepIndex ?? 0)
-        : 0;
-    await changeTimestep(currentIndex - 1, "previous");
-  }, [simulation, changeTimestep]);
+  const goToPreviousTimestep = useCallback(
+    async (source: ChangeTimestepSource = "shortcut") => {
+      const currentIndex =
+        "currentTimestepIndex" in simulation
+          ? (simulation.currentTimestepIndex ?? 0)
+          : 0;
+      await changeTimestep(currentIndex - 1, source);
+    },
+    [simulation, changeTimestep],
+  );
 
-  const goToNextTimestep = useCallback(async () => {
-    const currentIndex =
-      "currentTimestepIndex" in simulation
-        ? (simulation.currentTimestepIndex ?? 0)
-        : 0;
-    await changeTimestep(currentIndex + 1, "next");
-  }, [simulation, changeTimestep]);
+  const goToNextTimestep = useCallback(
+    async (source: ChangeTimestepSource = "shortcut") => {
+      const currentIndex =
+        "currentTimestepIndex" in simulation
+          ? (simulation.currentTimestepIndex ?? 0)
+          : 0;
+      await changeTimestep(currentIndex + 1, source);
+    },
+    [simulation, changeTimestep],
+  );
 
   return { changeTimestep, goToPreviousTimestep, goToNextTimestep };
 };
