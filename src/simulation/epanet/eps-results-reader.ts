@@ -7,7 +7,12 @@ import {
   TankSimulation,
 } from "../results-reader";
 import { IPrivateAppStorage } from "src/infra/storage/private-app-storage";
-import { RESULTS_OUT_KEY, TANK_VOLUMES_KEY, PUMP_STATUS_KEY } from "./worker";
+import {
+  RESULTS_OUT_KEY,
+  TANK_VOLUMES_KEY,
+  TANK_LEVELS_KEY,
+  PUMP_STATUS_KEY,
+} from "./worker";
 import {
   SimulationMetadata,
   type SimulationIds,
@@ -366,6 +371,9 @@ export class EPSResultsReader {
       const tankVolumesForTimestep =
         await this.readTankVolumesForTimestep(timestepIndex);
 
+      const tankLevelsForTimestep =
+        await this.readTankLevelsForTimestep(timestepIndex);
+
       const pumpStatusForTimestep =
         await this.readPumpStatusForTimestep(timestepIndex);
 
@@ -374,6 +382,7 @@ export class EPSResultsReader {
         simulationMetadata,
         simulationIds,
         tankVolumesForTimestep,
+        tankLevelsForTimestep,
         linkLengths,
         pumpStatusForTimestep,
       );
@@ -612,6 +621,21 @@ export class EPSResultsReader {
     return new Float32Array(data);
   }
 
+  private async readTankLevelsForTimestep(
+    timestepIndex: number,
+  ): Promise<Float32Array | null> {
+    const resAndTankCount = this.metadata!.simulationMetadata.resAndTankCount;
+    if (resAndTankCount === 0) return null;
+
+    const offset = timestepIndex * resAndTankCount * FLOAT_SIZE;
+    const length = resAndTankCount * FLOAT_SIZE;
+
+    const data = await this.storage.readSlice(TANK_LEVELS_KEY, offset, length);
+    if (!data) return null;
+
+    return new Float32Array(data);
+  }
+
   private async readPumpStatusForTimestep(
     timestepIndex: number,
   ): Promise<PumpStatusForTimestep | null> {
@@ -644,6 +668,7 @@ class TimestepResultsReader implements ResultsReader {
   private simulationMetadata: SimulationMetadata;
   private simulationIds: SimulationIds;
   private tankVolumes: Float32Array | null;
+  private tankLevels: Float32Array | null;
   private linkLengths: Float32Array;
   private pumpStatus: PumpStatusForTimestep | null;
 
@@ -652,6 +677,7 @@ class TimestepResultsReader implements ResultsReader {
     simulationMetadata: SimulationMetadata,
     simulationIds: SimulationIds,
     tankVolumes: Float32Array | null,
+    tankLevels: Float32Array | null,
     linkLengths: Float32Array,
     pumpStatus: PumpStatusForTimestep | null,
   ) {
@@ -659,6 +685,7 @@ class TimestepResultsReader implements ResultsReader {
     this.simulationMetadata = simulationMetadata;
     this.simulationIds = simulationIds;
     this.tankVolumes = tankVolumes;
+    this.tankLevels = tankLevels;
     this.linkLengths = linkLengths;
     this.pumpStatus = pumpStatus;
   }
@@ -749,11 +776,15 @@ class TimestepResultsReader implements ResultsReader {
     const nodeData = this.getNodeData(nodeIndex);
 
     let volume = 0;
-    if (this.tankVolumes) {
-      const tankIndexInSupplySources =
-        this.findTankIndexInSupplySources(nodeIndex);
-      if (tankIndexInSupplySources !== -1) {
+    let level = 0;
+    const tankIndexInSupplySources =
+      this.findTankIndexInSupplySources(nodeIndex);
+    if (tankIndexInSupplySources !== -1) {
+      if (this.tankVolumes) {
         volume = this.tankVolumes[tankIndexInSupplySources] ?? 0;
+      }
+      if (this.tankLevels) {
+        level = this.tankLevels[tankIndexInSupplySources] ?? 0;
       }
     }
 
@@ -761,7 +792,7 @@ class TimestepResultsReader implements ResultsReader {
       type: "tank",
       pressure: nodeData.pressure,
       head: nodeData.head,
-      level: nodeData.pressure,
+      level,
       volume,
     };
   }

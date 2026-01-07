@@ -15,6 +15,7 @@ import { PROLOG_SIZE, EPILOG_SIZE } from "./simulation-metadata";
 
 export const RESULTS_OUT_KEY = "results.out";
 export const TANK_VOLUMES_KEY = "tank-volumes.bin";
+export const TANK_LEVELS_KEY = "tank-levels.bin";
 export const PUMP_STATUS_KEY = "pump-status.bin";
 
 export type EPSSimulationResult = {
@@ -71,6 +72,7 @@ export const runSimulation = async (
     const pumpCount = pumpIndices.length;
 
     const tankVolumesPerTimestep: number[][] = [];
+    const tankLevelsPerTimestep: number[][] = [];
     const pumpStatusPerTimestep: number[][] = [];
 
     const totalDuration = model.getTimeParameter(TimeParameter.Duration);
@@ -85,11 +87,15 @@ export const runSimulation = async (
 
       if (supplySourcesCount > 0) {
         const volumes: number[] = [];
+        const levels: number[] = [];
         for (const nodeIndex of supplySourceIndices) {
           const volume = model.getNodeValue(nodeIndex, NodeProperty.TankVolume);
+          const level = model.getNodeValue(nodeIndex, NodeProperty.TankLevel);
           volumes.push(volume);
+          levels.push(level);
         }
         tankVolumesPerTimestep.push(volumes);
+        tankLevelsPerTimestep.push(levels);
       }
 
       if (pumpCount > 0) {
@@ -117,6 +123,11 @@ export const runSimulation = async (
       await storage.save(
         TANK_VOLUMES_KEY,
         tankVolumesBinary.buffer as ArrayBuffer,
+      );
+      const tankLevelsBinary = new Float32Array(tankLevelsPerTimestep.flat());
+      await storage.save(
+        TANK_LEVELS_KEY,
+        tankLevelsBinary.buffer as ArrayBuffer,
       );
     }
 

@@ -144,6 +144,41 @@ describe("EPSResultsReader", () => {
       expect(tank?.head).toBeGreaterThan(0);
     });
 
+    it("reads tank level", async () => {
+      const IDS = { R1: 1, T1: 2, J1: 3, P1: 4, P2: 5 } as const;
+      const tankInitialLevel = 15;
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aReservoir(IDS.R1, { head: 120 })
+        .aTank(IDS.T1, {
+          elevation: 100,
+          initialLevel: tankInitialLevel,
+          minLevel: 5,
+          maxLevel: 25,
+          diameter: 120,
+        })
+        .aJunction(IDS.J1, { demands: [{ baseDemand: 10 }] })
+        .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.T1 })
+        .aPipe(IDS.P2, { startNodeId: IDS.T1, endNodeId: IDS.J1 })
+        .eps({ duration: 3600, hydraulicTimestep: 3600 })
+        .build();
+      const inp = buildInp(hydraulicModel);
+
+      const testAppId = "test-tank-level-reader";
+      const { status } = await runSimulation(inp, testAppId);
+      expect(status).toEqual("success");
+
+      const storage = new InMemoryStorage(testAppId);
+      const reader = new EPSResultsReader(storage);
+      await reader.initialize();
+
+      const resultsReader = await reader.getResultsForTimestep(0);
+      const tank = resultsReader.getTank(String(IDS.T1));
+
+      expect(tank).not.toBeNull();
+      // Level at timestep 0 should be close to initial level
+      expect(tank?.level).toBeCloseTo(tankInitialLevel, 0);
+    });
+
     it("returns null for non-existent assets", async () => {
       const IDS = { R1: 1, J1: 2, P1: 3 } as const;
       const hydraulicModel = HydraulicModelBuilder.with()
