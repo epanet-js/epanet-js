@@ -16,6 +16,7 @@ import {
 } from "./simulation-metadata";
 import { withDebugInstrumentation } from "src/infra/with-instrumentation";
 import { captureError } from "src/infra/error-tracking";
+import { AssetId } from "src/hydraulic-model";
 
 export type { SimulationIds } from "./simulation-metadata";
 
@@ -25,6 +26,41 @@ const FLOAT_SIZE = 4;
 const NODE_RESULT_FLOATS = 4;
 const LINK_RESULT_FLOATS = 8;
 const PUMP_ENERGY_FLOATS = 7;
+
+export type NodeProperty = "demand" | "head" | "pressure" | "quality";
+export type LinkProperty =
+  | "flow"
+  | "velocity"
+  | "headloss"
+  | "avgQuality"
+  | "status"
+  | "setting"
+  | "reactionRate"
+  | "friction";
+
+const NODE_PROPERTY_INDEX: Record<NodeProperty, number> = {
+  demand: 0,
+  head: 1,
+  pressure: 2,
+  quality: 3,
+};
+
+const LINK_PROPERTY_INDEX: Record<LinkProperty, number> = {
+  flow: 0,
+  velocity: 1,
+  headloss: 2,
+  avgQuality: 3,
+  status: 4,
+  setting: 5,
+  reactionRate: 6,
+  friction: 7,
+};
+
+export interface TimeSeries {
+  values: Float32Array;
+  timestepCount: number;
+  reportingTimeStep: number; // seconds between timesteps
+}
 
 interface CachedMetadata {
   simulationMetadata: SimulationMetadata;
@@ -65,6 +101,224 @@ export class EPSResultsReader {
       );
     }
     return this.metadata.simulationMetadata.reportingStepsCount;
+  }
+
+  get reportingTimeStep(): number {
+    if (!this.metadata) {
+      throw new Error(
+        "EPSResultsReader not initialized. Call initialize() first.",
+      );
+    }
+    return this.metadata.simulationMetadata.reportingTimeStep;
+  }
+
+  async getNodeTimeSeries(
+    nodeId: AssetId,
+    property: NodeProperty,
+  ): Promise<TimeSeries | null> {
+    if (!this.metadata) {
+      throw new Error(
+        "EPSResultsReader not initialized. Call initialize() first.",
+      );
+    }
+
+    const nodeIndex = this.metadata.simulationIds.nodeIdToIndex.get(
+      String(nodeId),
+    );
+    if (nodeIndex === undefined) return null;
+
+    const { simulationMetadata, resultsBaseOffset, timestepBlockSize } =
+      this.metadata;
+    const timestepCount = simulationMetadata.reportingStepsCount;
+
+    if (timestepCount === 0) {
+      return {
+        values: new Float32Array(0),
+        timestepCount: 0,
+        reportingTimeStep: simulationMetadata.reportingTimeStep,
+      };
+    }
+
+    const values = new Float32Array(timestepCount);
+    const propertyIndex = NODE_PROPERTY_INDEX[property];
+    const { nodeCount } = simulationMetadata;
+
+    const propertyOffsetInBlock =
+      propertyIndex * nodeCount * FLOAT_SIZE + nodeIndex * FLOAT_SIZE;
+
+    // Read all timesteps - batch reads for efficiency
+    const BATCH_SIZE = 50;
+    for (
+      let batch = 0;
+      batch < Math.ceil(timestepCount / BATCH_SIZE);
+      batch++
+    ) {
+      const startIdx = batch * BATCH_SIZE;
+      const endIdx = Math.min(startIdx + BATCH_SIZE, timestepCount);
+
+      // Read each timestep in the batch
+      const readPromises = [];
+      for (let t = startIdx; t < endIdx; t++) {
+        const offset =
+          resultsBaseOffset + t * timestepBlockSize + propertyOffsetInBlock;
+        readPromises.push(
+          this.storage.readSlice(RESULTS_OUT_KEY, offset, FLOAT_SIZE),
+        );
+      }
+
+      const results = await Promise.all(readPromises);
+      for (let i = 0; i < results.length; i++) {
+        const data = results[i];
+        if (data) {
+          values[startIdx + i] = new DataView(data).getFloat32(0, true);
+        }
+      }
+    }
+
+    return {
+      values,
+      timestepCount,
+      reportingTimeStep: simulationMetadata.reportingTimeStep,
+    };
+  }
+
+  async getLinkTimeSeries(
+    linkId: AssetId,
+    property: LinkProperty,
+  ): Promise<TimeSeries | null> {
+    if (!this.metadata) {
+      throw new Error(
+        "EPSResultsReader not initialized. Call initialize() first.",
+      );
+    }
+
+    const linkIndex = this.metadata.simulationIds.linkIdToIndex.get(
+      String(linkId),
+    );
+    if (linkIndex === undefined) return null;
+
+    const { simulationMetadata, resultsBaseOffset, timestepBlockSize } =
+      this.metadata;
+    const timestepCount = simulationMetadata.reportingStepsCount;
+
+    if (timestepCount === 0) {
+      return {
+        values: new Float32Array(0),
+        timestepCount: 0,
+        reportingTimeStep: simulationMetadata.reportingTimeStep,
+      };
+    }
+
+    const values = new Float32Array(timestepCount);
+    const propertyIndex = LINK_PROPERTY_INDEX[property];
+    const { nodeCount, linkCount } = simulationMetadata;
+
+    const nodeDataSize = nodeCount * NODE_RESULT_FLOATS * FLOAT_SIZE;
+
+    const propertyOffsetInBlock =
+      nodeDataSize +
+      propertyIndex * linkCount * FLOAT_SIZE +
+      linkIndex * FLOAT_SIZE;
+
+    const BATCH_SIZE = 50;
+    for (
+      let batch = 0;
+      batch < Math.ceil(timestepCount / BATCH_SIZE);
+      batch++
+    ) {
+      const startIdx = batch * BATCH_SIZE;
+      const endIdx = Math.min(startIdx + BATCH_SIZE, timestepCount);
+
+      const readPromises = [];
+      for (let t = startIdx; t < endIdx; t++) {
+        const offset =
+          resultsBaseOffset + t * timestepBlockSize + propertyOffsetInBlock;
+        readPromises.push(
+          this.storage.readSlice(RESULTS_OUT_KEY, offset, FLOAT_SIZE),
+        );
+      }
+
+      const results = await Promise.all(readPromises);
+      for (let i = 0; i < results.length; i++) {
+        const data = results[i];
+        if (data) {
+          values[startIdx + i] = new DataView(data).getFloat32(0, true);
+        }
+      }
+    }
+
+    return {
+      values,
+      timestepCount,
+      reportingTimeStep: simulationMetadata.reportingTimeStep,
+    };
+  }
+
+  async getTankVolumeTimeSeries(tankId: AssetId): Promise<TimeSeries | null> {
+    if (!this.metadata) {
+      throw new Error(
+        "EPSResultsReader not initialized. Call initialize() first.",
+      );
+    }
+
+    const nodeIndex = this.metadata.simulationIds.nodeIdToIndex.get(
+      String(tankId),
+    );
+    if (nodeIndex === undefined) return null;
+
+    const { simulationMetadata } = this.metadata;
+    const { resAndTankCount, nodeCount } = simulationMetadata;
+
+    if (resAndTankCount === 0) return null;
+
+    const firstSupplySourceIndex = nodeCount - resAndTankCount;
+    if (nodeIndex < firstSupplySourceIndex) return null;
+
+    const tankIndex = nodeIndex - firstSupplySourceIndex;
+    const timestepCount = simulationMetadata.reportingStepsCount;
+
+    if (timestepCount === 0) {
+      return {
+        values: new Float32Array(0),
+        timestepCount: 0,
+        reportingTimeStep: simulationMetadata.reportingTimeStep,
+      };
+    }
+
+    const values = new Float32Array(timestepCount);
+
+    const BATCH_SIZE = 50;
+    for (
+      let batch = 0;
+      batch < Math.ceil(timestepCount / BATCH_SIZE);
+      batch++
+    ) {
+      const startIdx = batch * BATCH_SIZE;
+      const endIdx = Math.min(startIdx + BATCH_SIZE, timestepCount);
+
+      const readPromises = [];
+      for (let t = startIdx; t < endIdx; t++) {
+        const offset =
+          t * resAndTankCount * FLOAT_SIZE + tankIndex * FLOAT_SIZE;
+        readPromises.push(
+          this.storage.readSlice(TANK_VOLUMES_KEY, offset, FLOAT_SIZE),
+        );
+      }
+
+      const results = await Promise.all(readPromises);
+      for (let i = 0; i < results.length; i++) {
+        const data = results[i];
+        if (data) {
+          values[startIdx + i] = new DataView(data).getFloat32(0, true);
+        }
+      }
+    }
+
+    return {
+      values,
+      timestepCount,
+      reportingTimeStep: simulationMetadata.reportingTimeStep,
+    };
   }
 
   getResultsForTimestep = withDebugInstrumentation(
