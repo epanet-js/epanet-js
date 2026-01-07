@@ -130,6 +130,8 @@
     "d3-dsv": "^2.0.0",
     "d3-geo": "^3.1.1",
     "date-fns": "^2.30.0",
+    "echarts": "^6.0.0",
+    "echarts-for-react": "^3.0.5",
     "email-addresses": "^5.0.0",
     "envsafe": "^2.0.3",
     "epanet-js": "0.8.0-alpha.7",
