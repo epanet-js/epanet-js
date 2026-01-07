@@ -7,6 +7,14 @@ export interface IPrivateAppStorage {
     length: number,
   ): Promise<ArrayBuffer | null>;
 
+  readBlockSeries(
+    key: string,
+    baseOffset: number,
+    readSize: number,
+    blockSize: number,
+    blockCount: number,
+  ): Promise<ArrayBuffer>;
+
   getSize(key: string): Promise<number | null>;
 
   clear(): Promise<void>;

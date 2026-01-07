@@ -475,374 +475,510 @@ describe("EPSResultsReader", () => {
     });
   });
 
-  describe("getNodeTimeSeries", () => {
-    it("reads node pressure time series across multiple timesteps", async () => {
-      const IDS = { R1: 1, J1: 2, P1: 3 } as const;
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aReservoir(IDS.R1, { head: 100 })
-        .aJunction(IDS.J1, { demands: [{ baseDemand: 10 }], elevation: 10 })
-        .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
-        .eps({ duration: 7200, hydraulicTimestep: 3600 })
-        .build();
-      const inp = buildInp(hydraulicModel);
+  describe("getTimeSeries", () => {
+    describe("junction", () => {
+      it("reads junction pressure time series across multiple timesteps", async () => {
+        const IDS = { R1: 1, J1: 2, P1: 3 } as const;
+        const hydraulicModel = HydraulicModelBuilder.with()
+          .aReservoir(IDS.R1, { head: 100 })
+          .aJunction(IDS.J1, { demands: [{ baseDemand: 10 }], elevation: 10 })
+          .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
+          .eps({ duration: 7200, hydraulicTimestep: 3600 })
+          .build();
+        const inp = buildInp(hydraulicModel);
 
-      const testAppId = "test-node-time-series";
-      await runSimulation(inp, testAppId);
+        const testAppId = "test-junction-time-series";
+        await runSimulation(inp, testAppId);
 
-      const storage = new InMemoryStorage(testAppId);
-      const reader = new EPSResultsReader(storage);
-      await reader.initialize();
+        const storage = new InMemoryStorage(testAppId);
+        const reader = new EPSResultsReader(storage);
+        await reader.initialize();
 
-      const timeSeries = await reader.getNodeTimeSeries(IDS.J1, "pressure");
+        const timeSeries = await reader.getTimeSeries(
+          IDS.J1,
+          "junction",
+          "pressure",
+        );
 
-      expect(timeSeries).not.toBeNull();
-      expect(timeSeries!.timestepCount).toBe(3);
-      expect(timeSeries!.values).toBeInstanceOf(Float32Array);
-      expect(timeSeries!.values.length).toBe(3);
-      expect(timeSeries!.reportingTimeStep).toBe(3600);
-    });
-
-    it("returns values matching getResultsForTimestep", async () => {
-      const IDS = { R1: 1, J1: 2, P1: 3 } as const;
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aReservoir(IDS.R1, { head: 100 })
-        .aJunction(IDS.J1, { demands: [{ baseDemand: 10 }], elevation: 10 })
-        .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
-        .eps({ duration: 7200, hydraulicTimestep: 3600 })
-        .build();
-      const inp = buildInp(hydraulicModel);
-
-      const testAppId = "test-node-series-values";
-      await runSimulation(inp, testAppId);
-
-      const storage = new InMemoryStorage(testAppId);
-      const reader = new EPSResultsReader(storage);
-      await reader.initialize();
-
-      const pressureSeries = await reader.getNodeTimeSeries(IDS.J1, "pressure");
-      const headSeries = await reader.getNodeTimeSeries(IDS.J1, "head");
-      const demandSeries = await reader.getNodeTimeSeries(IDS.J1, "demand");
-
-      for (let t = 0; t < reader.timestepCount; t++) {
-        const resultsReader = await reader.getResultsForTimestep(t);
-        const junction = resultsReader.getJunction(String(IDS.J1));
-
-        expect(pressureSeries!.values[t]).toBeCloseTo(junction!.pressure, 5);
-        expect(headSeries!.values[t]).toBeCloseTo(junction!.head, 5);
-        expect(demandSeries!.values[t]).toBeCloseTo(junction!.demand, 5);
-      }
-    });
-
-    it("returns null for non-existent node", async () => {
-      const IDS = { R1: 1, J1: 2, P1: 3 } as const;
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aReservoir(IDS.R1, { head: 100 })
-        .aJunction(IDS.J1)
-        .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
-        .build();
-      const inp = buildInp(hydraulicModel);
-
-      const testAppId = "test-node-nonexistent";
-      await runSimulation(inp, testAppId);
-
-      const storage = new InMemoryStorage(testAppId);
-      const reader = new EPSResultsReader(storage);
-      await reader.initialize();
-
-      const timeSeries = await reader.getNodeTimeSeries(999, "pressure");
-      expect(timeSeries).toBeNull();
-    });
-
-    it("reads all node property types", async () => {
-      const IDS = { R1: 1, J1: 2, P1: 3 } as const;
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aReservoir(IDS.R1, { head: 100 })
-        .aJunction(IDS.J1, { demands: [{ baseDemand: 10 }], elevation: 10 })
-        .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
-        .build();
-      const inp = buildInp(hydraulicModel);
-
-      const testAppId = "test-node-all-properties";
-      await runSimulation(inp, testAppId);
-
-      const storage = new InMemoryStorage(testAppId);
-      const reader = new EPSResultsReader(storage);
-      await reader.initialize();
-
-      const properties = ["demand", "head", "pressure", "quality"] as const;
-      for (const property of properties) {
-        const timeSeries = await reader.getNodeTimeSeries(IDS.J1, property);
         expect(timeSeries).not.toBeNull();
+        expect(timeSeries!.timestepCount).toBe(3);
         expect(timeSeries!.values).toBeInstanceOf(Float32Array);
-      }
+        expect(timeSeries!.values.length).toBe(3);
+        expect(timeSeries!.reportingTimeStep).toBe(3600);
+      });
+
+      it("returns values matching getResultsForTimestep", async () => {
+        const IDS = { R1: 1, J1: 2, P1: 3 } as const;
+        const hydraulicModel = HydraulicModelBuilder.with()
+          .aReservoir(IDS.R1, { head: 100 })
+          .aJunction(IDS.J1, { demands: [{ baseDemand: 10 }], elevation: 10 })
+          .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
+          .eps({ duration: 7200, hydraulicTimestep: 3600 })
+          .build();
+        const inp = buildInp(hydraulicModel);
+
+        const testAppId = "test-junction-series-values";
+        await runSimulation(inp, testAppId);
+
+        const storage = new InMemoryStorage(testAppId);
+        const reader = new EPSResultsReader(storage);
+        await reader.initialize();
+
+        const pressureSeries = await reader.getTimeSeries(
+          IDS.J1,
+          "junction",
+          "pressure",
+        );
+        const headSeries = await reader.getTimeSeries(
+          IDS.J1,
+          "junction",
+          "head",
+        );
+        const demandSeries = await reader.getTimeSeries(
+          IDS.J1,
+          "junction",
+          "demand",
+        );
+
+        for (let t = 0; t < reader.timestepCount; t++) {
+          const resultsReader = await reader.getResultsForTimestep(t);
+          const junction = resultsReader.getJunction(String(IDS.J1));
+
+          expect(pressureSeries!.values[t]).toBeCloseTo(junction!.pressure, 5);
+          expect(headSeries!.values[t]).toBeCloseTo(junction!.head, 5);
+          expect(demandSeries!.values[t]).toBeCloseTo(junction!.demand, 5);
+        }
+      });
+
+      it("returns null for non-existent junction", async () => {
+        const IDS = { R1: 1, J1: 2, P1: 3 } as const;
+        const hydraulicModel = HydraulicModelBuilder.with()
+          .aReservoir(IDS.R1, { head: 100 })
+          .aJunction(IDS.J1)
+          .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
+          .build();
+        const inp = buildInp(hydraulicModel);
+
+        const testAppId = "test-junction-nonexistent";
+        await runSimulation(inp, testAppId);
+
+        const storage = new InMemoryStorage(testAppId);
+        const reader = new EPSResultsReader(storage);
+        await reader.initialize();
+
+        const timeSeries = await reader.getTimeSeries(
+          999,
+          "junction",
+          "pressure",
+        );
+        expect(timeSeries).toBeNull();
+      });
+
+      it("reads all junction property types", async () => {
+        const IDS = { R1: 1, J1: 2, P1: 3 } as const;
+        const hydraulicModel = HydraulicModelBuilder.with()
+          .aReservoir(IDS.R1, { head: 100 })
+          .aJunction(IDS.J1, { demands: [{ baseDemand: 10 }], elevation: 10 })
+          .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
+          .build();
+        const inp = buildInp(hydraulicModel);
+
+        const testAppId = "test-junction-all-properties";
+        await runSimulation(inp, testAppId);
+
+        const storage = new InMemoryStorage(testAppId);
+        const reader = new EPSResultsReader(storage);
+        await reader.initialize();
+
+        const properties = ["demand", "head", "pressure", "quality"] as const;
+        for (const property of properties) {
+          const timeSeries = await reader.getTimeSeries(
+            IDS.J1,
+            "junction",
+            property,
+          );
+          expect(timeSeries).not.toBeNull();
+          expect(timeSeries!.values).toBeInstanceOf(Float32Array);
+        }
+      });
     });
 
-    it("throws error when not initialized", async () => {
-      const storage = new InMemoryStorage("test-node-uninitialized");
-      const reader = new EPSResultsReader(storage);
+    describe("pipe", () => {
+      it("reads pipe flow time series across multiple timesteps", async () => {
+        const IDS = { R1: 1, J1: 2, P1: 3 } as const;
+        const hydraulicModel = HydraulicModelBuilder.with()
+          .aReservoir(IDS.R1, { head: 100 })
+          .aJunction(IDS.J1, { demands: [{ baseDemand: 10 }] })
+          .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
+          .eps({ duration: 7200, hydraulicTimestep: 3600 })
+          .build();
+        const inp = buildInp(hydraulicModel);
 
-      await expect(reader.getNodeTimeSeries(1, "pressure")).rejects.toThrow(
-        /not initialized/i,
-      );
-    });
-  });
+        const testAppId = "test-pipe-time-series";
+        await runSimulation(inp, testAppId);
 
-  describe("getLinkTimeSeries", () => {
-    it("reads link flow time series across multiple timesteps", async () => {
-      const IDS = { R1: 1, J1: 2, P1: 3 } as const;
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aReservoir(IDS.R1, { head: 100 })
-        .aJunction(IDS.J1, { demands: [{ baseDemand: 10 }] })
-        .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
-        .eps({ duration: 7200, hydraulicTimestep: 3600 })
-        .build();
-      const inp = buildInp(hydraulicModel);
+        const storage = new InMemoryStorage(testAppId);
+        const reader = new EPSResultsReader(storage);
+        await reader.initialize();
 
-      const testAppId = "test-link-time-series";
-      await runSimulation(inp, testAppId);
+        const timeSeries = await reader.getTimeSeries(IDS.P1, "pipe", "flow");
 
-      const storage = new InMemoryStorage(testAppId);
-      const reader = new EPSResultsReader(storage);
-      await reader.initialize();
-
-      const timeSeries = await reader.getLinkTimeSeries(IDS.P1, "flow");
-
-      expect(timeSeries).not.toBeNull();
-      expect(timeSeries!.timestepCount).toBe(3);
-      expect(timeSeries!.values).toBeInstanceOf(Float32Array);
-      expect(timeSeries!.values.length).toBe(3);
-      expect(timeSeries!.reportingTimeStep).toBe(3600);
-    });
-
-    it("returns values matching getResultsForTimestep", async () => {
-      const IDS = { R1: 1, J1: 2, P1: 3 } as const;
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aReservoir(IDS.R1, { head: 100 })
-        .aJunction(IDS.J1, { demands: [{ baseDemand: 10 }] })
-        .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
-        .eps({ duration: 7200, hydraulicTimestep: 3600 })
-        .build();
-      const inp = buildInp(hydraulicModel);
-
-      const testAppId = "test-link-series-values";
-      await runSimulation(inp, testAppId);
-
-      const storage = new InMemoryStorage(testAppId);
-      const reader = new EPSResultsReader(storage);
-      await reader.initialize();
-
-      const flowSeries = await reader.getLinkTimeSeries(IDS.P1, "flow");
-      const velocitySeries = await reader.getLinkTimeSeries(IDS.P1, "velocity");
-
-      for (let t = 0; t < reader.timestepCount; t++) {
-        const resultsReader = await reader.getResultsForTimestep(t);
-        const pipe = resultsReader.getPipe(String(IDS.P1));
-
-        expect(flowSeries!.values[t]).toBeCloseTo(pipe!.flow, 5);
-        expect(velocitySeries!.values[t]).toBeCloseTo(pipe!.velocity, 5);
-      }
-    });
-
-    it("returns null for non-existent link", async () => {
-      const IDS = { R1: 1, J1: 2, P1: 3 } as const;
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aReservoir(IDS.R1, { head: 100 })
-        .aJunction(IDS.J1)
-        .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
-        .build();
-      const inp = buildInp(hydraulicModel);
-
-      const testAppId = "test-link-nonexistent";
-      await runSimulation(inp, testAppId);
-
-      const storage = new InMemoryStorage(testAppId);
-      const reader = new EPSResultsReader(storage);
-      await reader.initialize();
-
-      const timeSeries = await reader.getLinkTimeSeries(999, "flow");
-      expect(timeSeries).toBeNull();
-    });
-
-    it("reads all link property types", async () => {
-      const IDS = { R1: 1, J1: 2, P1: 3 } as const;
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aReservoir(IDS.R1, { head: 100 })
-        .aJunction(IDS.J1, { demands: [{ baseDemand: 10 }] })
-        .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
-        .build();
-      const inp = buildInp(hydraulicModel);
-
-      const testAppId = "test-link-all-properties";
-      await runSimulation(inp, testAppId);
-
-      const storage = new InMemoryStorage(testAppId);
-      const reader = new EPSResultsReader(storage);
-      await reader.initialize();
-
-      const properties = [
-        "flow",
-        "velocity",
-        "headloss",
-        "avgQuality",
-        "status",
-        "setting",
-        "reactionRate",
-        "friction",
-      ] as const;
-      for (const property of properties) {
-        const timeSeries = await reader.getLinkTimeSeries(IDS.P1, property);
         expect(timeSeries).not.toBeNull();
+        expect(timeSeries!.timestepCount).toBe(3);
         expect(timeSeries!.values).toBeInstanceOf(Float32Array);
-      }
+        expect(timeSeries!.values.length).toBe(3);
+        expect(timeSeries!.reportingTimeStep).toBe(3600);
+      });
+
+      it("returns values matching getResultsForTimestep", async () => {
+        const IDS = { R1: 1, J1: 2, P1: 3 } as const;
+        const hydraulicModel = HydraulicModelBuilder.with()
+          .aReservoir(IDS.R1, { head: 100 })
+          .aJunction(IDS.J1, { demands: [{ baseDemand: 10 }] })
+          .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
+          .eps({ duration: 7200, hydraulicTimestep: 3600 })
+          .build();
+        const inp = buildInp(hydraulicModel);
+
+        const testAppId = "test-pipe-series-values";
+        await runSimulation(inp, testAppId);
+
+        const storage = new InMemoryStorage(testAppId);
+        const reader = new EPSResultsReader(storage);
+        await reader.initialize();
+
+        const flowSeries = await reader.getTimeSeries(IDS.P1, "pipe", "flow");
+        const velocitySeries = await reader.getTimeSeries(
+          IDS.P1,
+          "pipe",
+          "velocity",
+        );
+
+        for (let t = 0; t < reader.timestepCount; t++) {
+          const resultsReader = await reader.getResultsForTimestep(t);
+          const pipe = resultsReader.getPipe(String(IDS.P1));
+
+          expect(flowSeries!.values[t]).toBeCloseTo(pipe!.flow, 5);
+          expect(velocitySeries!.values[t]).toBeCloseTo(pipe!.velocity, 5);
+        }
+      });
+
+      it("returns null for non-existent pipe", async () => {
+        const IDS = { R1: 1, J1: 2, P1: 3 } as const;
+        const hydraulicModel = HydraulicModelBuilder.with()
+          .aReservoir(IDS.R1, { head: 100 })
+          .aJunction(IDS.J1)
+          .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
+          .build();
+        const inp = buildInp(hydraulicModel);
+
+        const testAppId = "test-pipe-nonexistent";
+        await runSimulation(inp, testAppId);
+
+        const storage = new InMemoryStorage(testAppId);
+        const reader = new EPSResultsReader(storage);
+        await reader.initialize();
+
+        const timeSeries = await reader.getTimeSeries(999, "pipe", "flow");
+        expect(timeSeries).toBeNull();
+      });
+
+      it("reads all pipe property types", async () => {
+        const IDS = { R1: 1, J1: 2, P1: 3 } as const;
+        const hydraulicModel = HydraulicModelBuilder.with()
+          .aReservoir(IDS.R1, { head: 100 })
+          .aJunction(IDS.J1, { demands: [{ baseDemand: 10 }] })
+          .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
+          .build();
+        const inp = buildInp(hydraulicModel);
+
+        const testAppId = "test-pipe-all-properties";
+        await runSimulation(inp, testAppId);
+
+        const storage = new InMemoryStorage(testAppId);
+        const reader = new EPSResultsReader(storage);
+        await reader.initialize();
+
+        const properties = ["flow", "velocity", "headloss", "status"] as const;
+        for (const property of properties) {
+          const timeSeries = await reader.getTimeSeries(
+            IDS.P1,
+            "pipe",
+            property,
+          );
+          expect(timeSeries).not.toBeNull();
+          expect(timeSeries!.values).toBeInstanceOf(Float32Array);
+        }
+      });
+    });
+
+    describe("tank", () => {
+      it("reads tank volume time series across multiple timesteps", async () => {
+        const IDS = { R1: 1, T1: 2, J1: 3, P1: 4, P2: 5 } as const;
+        const hydraulicModel = HydraulicModelBuilder.with()
+          .aReservoir(IDS.R1, { head: 120 })
+          .aTank(IDS.T1, {
+            elevation: 100,
+            initialLevel: 15,
+            minLevel: 5,
+            maxLevel: 25,
+            diameter: 120,
+          })
+          .aJunction(IDS.J1, { demands: [{ baseDemand: 10 }] })
+          .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.T1 })
+          .aPipe(IDS.P2, { startNodeId: IDS.T1, endNodeId: IDS.J1 })
+          .eps({ duration: 7200, hydraulicTimestep: 3600 })
+          .build();
+        const inp = buildInp(hydraulicModel);
+
+        const testAppId = "test-tank-volume-series";
+        await runSimulation(inp, testAppId);
+
+        const storage = new InMemoryStorage(testAppId);
+        const reader = new EPSResultsReader(storage);
+        await reader.initialize();
+
+        const timeSeries = await reader.getTimeSeries(IDS.T1, "tank", "volume");
+
+        expect(timeSeries).not.toBeNull();
+        expect(timeSeries!.timestepCount).toBe(3);
+        expect(timeSeries!.values).toBeInstanceOf(Float32Array);
+        expect(timeSeries!.values.length).toBe(3);
+        expect(timeSeries!.reportingTimeStep).toBe(3600);
+      });
+
+      it("returns volume values matching getResultsForTimestep", async () => {
+        const IDS = { R1: 1, T1: 2, J1: 3, P1: 4, P2: 5 } as const;
+        const hydraulicModel = HydraulicModelBuilder.with()
+          .aReservoir(IDS.R1, { head: 120 })
+          .aTank(IDS.T1, {
+            elevation: 100,
+            initialLevel: 15,
+            minLevel: 5,
+            maxLevel: 25,
+            diameter: 120,
+          })
+          .aJunction(IDS.J1, { demands: [{ baseDemand: 10 }] })
+          .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.T1 })
+          .aPipe(IDS.P2, { startNodeId: IDS.T1, endNodeId: IDS.J1 })
+          .eps({ duration: 7200, hydraulicTimestep: 3600 })
+          .build();
+        const inp = buildInp(hydraulicModel);
+
+        const testAppId = "test-tank-volume-values";
+        await runSimulation(inp, testAppId);
+
+        const storage = new InMemoryStorage(testAppId);
+        const reader = new EPSResultsReader(storage);
+        await reader.initialize();
+
+        const volumeSeries = await reader.getTimeSeries(
+          IDS.T1,
+          "tank",
+          "volume",
+        );
+
+        for (let t = 0; t < reader.timestepCount; t++) {
+          const resultsReader = await reader.getResultsForTimestep(t);
+          const tank = resultsReader.getTank(String(IDS.T1));
+
+          expect(volumeSeries!.values[t]).toBeCloseTo(tank!.volume);
+        }
+      });
+
+      it("reads tank level (maps to pressure internally)", async () => {
+        const IDS = { R1: 1, T1: 2, J1: 3, P1: 4, P2: 5 } as const;
+        const hydraulicModel = HydraulicModelBuilder.with()
+          .aReservoir(IDS.R1, { head: 120 })
+          .aTank(IDS.T1, {
+            elevation: 100,
+            initialLevel: 15,
+            minLevel: 5,
+            maxLevel: 25,
+            diameter: 120,
+          })
+          .aJunction(IDS.J1, { demands: [{ baseDemand: 10 }] })
+          .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.T1 })
+          .aPipe(IDS.P2, { startNodeId: IDS.T1, endNodeId: IDS.J1 })
+          .eps({ duration: 7200, hydraulicTimestep: 3600 })
+          .build();
+        const inp = buildInp(hydraulicModel);
+
+        const testAppId = "test-tank-level-series";
+        await runSimulation(inp, testAppId);
+
+        const storage = new InMemoryStorage(testAppId);
+        const reader = new EPSResultsReader(storage);
+        await reader.initialize();
+
+        const levelSeries = await reader.getTimeSeries(IDS.T1, "tank", "level");
+
+        expect(levelSeries).not.toBeNull();
+        expect(levelSeries!.values).toBeInstanceOf(Float32Array);
+
+        // Level should match the tank's level from getResultsForTimestep
+        for (let t = 0; t < reader.timestepCount; t++) {
+          const resultsReader = await reader.getResultsForTimestep(t);
+          const tank = resultsReader.getTank(String(IDS.T1));
+          expect(levelSeries!.values[t]).toBeCloseTo(tank!.level);
+        }
+      });
+
+      it("returns null for non-existent tank", async () => {
+        const IDS = { R1: 1, T1: 2, J1: 3, P1: 4, P2: 5 } as const;
+        const hydraulicModel = HydraulicModelBuilder.with()
+          .aReservoir(IDS.R1, { head: 120 })
+          .aTank(IDS.T1, {
+            elevation: 100,
+            initialLevel: 15,
+            minLevel: 5,
+            maxLevel: 25,
+            diameter: 120,
+          })
+          .aJunction(IDS.J1)
+          .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.T1 })
+          .aPipe(IDS.P2, { startNodeId: IDS.T1, endNodeId: IDS.J1 })
+          .build();
+        const inp = buildInp(hydraulicModel);
+
+        const testAppId = "test-tank-nonexistent";
+        await runSimulation(inp, testAppId);
+
+        const storage = new InMemoryStorage(testAppId);
+        const reader = new EPSResultsReader(storage);
+        await reader.initialize();
+
+        const timeSeries = await reader.getTimeSeries(999, "tank", "volume");
+        expect(timeSeries).toBeNull();
+      });
+
+      it("returns null for junction when requesting tank volume", async () => {
+        const IDS = { R1: 1, T1: 2, J1: 3, P1: 4, P2: 5 } as const;
+        const hydraulicModel = HydraulicModelBuilder.with()
+          .aReservoir(IDS.R1, { head: 120 })
+          .aTank(IDS.T1, {
+            elevation: 100,
+            initialLevel: 15,
+            minLevel: 5,
+            maxLevel: 25,
+            diameter: 120,
+          })
+          .aJunction(IDS.J1)
+          .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.T1 })
+          .aPipe(IDS.P2, { startNodeId: IDS.T1, endNodeId: IDS.J1 })
+          .build();
+        const inp = buildInp(hydraulicModel);
+
+        const testAppId = "test-tank-junction-volume";
+        await runSimulation(inp, testAppId);
+
+        const storage = new InMemoryStorage(testAppId);
+        const reader = new EPSResultsReader(storage);
+        await reader.initialize();
+
+        const timeSeries = await reader.getTimeSeries(IDS.J1, "tank", "volume");
+        expect(timeSeries).toBeNull();
+      });
+    });
+
+    describe("pump", () => {
+      it("reads pump flow time series", async () => {
+        const IDS = { R1: 1, J1: 2, PUMP1: 3 } as const;
+        const hydraulicModel = HydraulicModelBuilder.with()
+          .aReservoir(IDS.R1, { head: 50 })
+          .aJunction(IDS.J1, { demands: [{ baseDemand: 10 }], elevation: 0 })
+          .aPump(IDS.PUMP1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
+          .aPumpCurve({ id: String(IDS.PUMP1), points: [{ x: 20, y: 40 }] })
+          .eps({ duration: 7200, hydraulicTimestep: 3600 })
+          .build();
+        const inp = buildInp(hydraulicModel);
+
+        const testAppId = "test-pump-flow-series";
+        await runSimulation(inp, testAppId);
+
+        const storage = new InMemoryStorage(testAppId);
+        const reader = new EPSResultsReader(storage);
+        await reader.initialize();
+
+        const flowSeries = await reader.getTimeSeries(
+          IDS.PUMP1,
+          "pump",
+          "flow",
+        );
+
+        expect(flowSeries).not.toBeNull();
+        expect(flowSeries!.values).toBeInstanceOf(Float32Array);
+        expect(flowSeries!.timestepCount).toBe(3);
+      });
+
+      it("reads pump status time series from separate file", async () => {
+        const IDS = { R1: 1, J1: 2, PUMP1: 3 } as const;
+        const hydraulicModel = HydraulicModelBuilder.with()
+          .aReservoir(IDS.R1, { head: 50 })
+          .aJunction(IDS.J1, { demands: [{ baseDemand: 10 }], elevation: 0 })
+          .aPump(IDS.PUMP1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
+          .aPumpCurve({ id: String(IDS.PUMP1), points: [{ x: 20, y: 40 }] })
+          .eps({ duration: 7200, hydraulicTimestep: 3600 })
+          .build();
+        const inp = buildInp(hydraulicModel);
+
+        const testAppId = "test-pump-status-series";
+        await runSimulation(inp, testAppId);
+
+        const storage = new InMemoryStorage(testAppId);
+        const reader = new EPSResultsReader(storage);
+        await reader.initialize();
+
+        const statusSeries = await reader.getTimeSeries(
+          IDS.PUMP1,
+          "pump",
+          "status",
+        );
+
+        expect(statusSeries).not.toBeNull();
+        expect(statusSeries!.values).toBeInstanceOf(Float32Array);
+        expect(statusSeries!.timestepCount).toBe(3);
+      });
+    });
+
+    describe("valve", () => {
+      it("reads valve flow time series", async () => {
+        const IDS = { R1: 1, J1: 2, V1: 3 } as const;
+        const hydraulicModel = HydraulicModelBuilder.with()
+          .aReservoir(IDS.R1, { head: 100 })
+          .aJunction(IDS.J1, { demands: [{ baseDemand: 1 }] })
+          .aValve(IDS.V1, {
+            startNodeId: IDS.R1,
+            endNodeId: IDS.J1,
+          })
+          .eps({ duration: 7200, hydraulicTimestep: 3600 })
+          .build();
+        const inp = buildInp(hydraulicModel);
+
+        const testAppId = "test-valve-flow-series";
+        await runSimulation(inp, testAppId);
+
+        const storage = new InMemoryStorage(testAppId);
+        const reader = new EPSResultsReader(storage);
+        await reader.initialize();
+
+        const flowSeries = await reader.getTimeSeries(IDS.V1, "valve", "flow");
+
+        expect(flowSeries).not.toBeNull();
+        expect(flowSeries!.values).toBeInstanceOf(Float32Array);
+        expect(flowSeries!.timestepCount).toBe(3);
+      });
     });
 
     it("throws error when not initialized", async () => {
-      const storage = new InMemoryStorage("test-link-uninitialized");
+      const storage = new InMemoryStorage("test-timeseries-uninitialized");
       const reader = new EPSResultsReader(storage);
 
-      await expect(reader.getLinkTimeSeries(1, "flow")).rejects.toThrow(
-        /not initialized/i,
-      );
-    });
-  });
-
-  describe("getTankVolumeTimeSeries", () => {
-    it("reads tank volume time series across multiple timesteps", async () => {
-      const IDS = { R1: 1, T1: 2, J1: 3, P1: 4, P2: 5 } as const;
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aReservoir(IDS.R1, { head: 120 })
-        .aTank(IDS.T1, {
-          elevation: 100,
-          initialLevel: 15,
-          minLevel: 5,
-          maxLevel: 25,
-          diameter: 120,
-        })
-        .aJunction(IDS.J1, { demands: [{ baseDemand: 10 }] })
-        .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.T1 })
-        .aPipe(IDS.P2, { startNodeId: IDS.T1, endNodeId: IDS.J1 })
-        .eps({ duration: 7200, hydraulicTimestep: 3600 })
-        .build();
-      const inp = buildInp(hydraulicModel);
-
-      const testAppId = "test-tank-volume-series";
-      await runSimulation(inp, testAppId);
-
-      const storage = new InMemoryStorage(testAppId);
-      const reader = new EPSResultsReader(storage);
-      await reader.initialize();
-
-      const timeSeries = await reader.getTankVolumeTimeSeries(IDS.T1);
-
-      expect(timeSeries).not.toBeNull();
-      expect(timeSeries!.timestepCount).toBe(3);
-      expect(timeSeries!.values).toBeInstanceOf(Float32Array);
-      expect(timeSeries!.values.length).toBe(3);
-      expect(timeSeries!.reportingTimeStep).toBe(3600);
+      await expect(
+        reader.getTimeSeries(1, "junction", "pressure"),
+      ).rejects.toThrow(/not initialized/i);
     });
 
-    it("returns values matching getResultsForTimestep tank volumes", async () => {
-      const IDS = { R1: 1, T1: 2, J1: 3, P1: 4, P2: 5 } as const;
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aReservoir(IDS.R1, { head: 120 })
-        .aTank(IDS.T1, {
-          elevation: 100,
-          initialLevel: 15,
-          minLevel: 5,
-          maxLevel: 25,
-          diameter: 120,
-        })
-        .aJunction(IDS.J1, { demands: [{ baseDemand: 10 }] })
-        .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.T1 })
-        .aPipe(IDS.P2, { startNodeId: IDS.T1, endNodeId: IDS.J1 })
-        .eps({ duration: 7200, hydraulicTimestep: 3600 })
-        .build();
-      const inp = buildInp(hydraulicModel);
-
-      const testAppId = "test-tank-volume-values";
-      await runSimulation(inp, testAppId);
-
-      const storage = new InMemoryStorage(testAppId);
-      const reader = new EPSResultsReader(storage);
-      await reader.initialize();
-
-      const volumeSeries = await reader.getTankVolumeTimeSeries(IDS.T1);
-
-      for (let t = 0; t < reader.timestepCount; t++) {
-        const resultsReader = await reader.getResultsForTimestep(t);
-        const tank = resultsReader.getTank(String(IDS.T1));
-
-        expect(volumeSeries!.values[t]).toBeCloseTo(tank!.volume, 5);
-      }
-    });
-
-    it("returns null for non-existent tank", async () => {
-      const IDS = { R1: 1, T1: 2, J1: 3, P1: 4, P2: 5 } as const;
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aReservoir(IDS.R1, { head: 120 })
-        .aTank(IDS.T1, {
-          elevation: 100,
-          initialLevel: 15,
-          minLevel: 5,
-          maxLevel: 25,
-          diameter: 120,
-        })
-        .aJunction(IDS.J1)
-        .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.T1 })
-        .aPipe(IDS.P2, { startNodeId: IDS.T1, endNodeId: IDS.J1 })
-        .build();
-      const inp = buildInp(hydraulicModel);
-
-      const testAppId = "test-tank-nonexistent";
-      await runSimulation(inp, testAppId);
-
-      const storage = new InMemoryStorage(testAppId);
-      const reader = new EPSResultsReader(storage);
-      await reader.initialize();
-
-      const timeSeries = await reader.getTankVolumeTimeSeries(999);
-      expect(timeSeries).toBeNull();
-    });
-
-    it("returns null for junction (non-tank node)", async () => {
-      const IDS = { R1: 1, T1: 2, J1: 3, P1: 4, P2: 5 } as const;
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aReservoir(IDS.R1, { head: 120 })
-        .aTank(IDS.T1, {
-          elevation: 100,
-          initialLevel: 15,
-          minLevel: 5,
-          maxLevel: 25,
-          diameter: 120,
-        })
-        .aJunction(IDS.J1)
-        .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.T1 })
-        .aPipe(IDS.P2, { startNodeId: IDS.T1, endNodeId: IDS.J1 })
-        .build();
-      const inp = buildInp(hydraulicModel);
-
-      const testAppId = "test-tank-junction";
-      await runSimulation(inp, testAppId);
-
-      const storage = new InMemoryStorage(testAppId);
-      const reader = new EPSResultsReader(storage);
-      await reader.initialize();
-
-      const timeSeries = await reader.getTankVolumeTimeSeries(IDS.J1);
-      expect(timeSeries).toBeNull();
-    });
-
-    it("throws error when not initialized", async () => {
-      const storage = new InMemoryStorage("test-tank-uninitialized");
-      const reader = new EPSResultsReader(storage);
-
-      await expect(reader.getTankVolumeTimeSeries(1)).rejects.toThrow(
-        /not initialized/i,
-      );
-    });
-  });
-
-  describe("edge cases", () => {
     it("returns null for time series when simulation fails with 0 timesteps", async () => {
       const IDS = { R1: 1, J1: 2, J2: 3, P1: 4 } as const;
       const hydraulicModel = HydraulicModelBuilder.with()
@@ -864,10 +1000,14 @@ describe("EPSResultsReader", () => {
       expect(reader.timestepCount).toBe(0);
 
       // When simulation fails, no IDs are available so lookups return null
-      const nodeSeries = await reader.getNodeTimeSeries(IDS.J1, "pressure");
+      const nodeSeries = await reader.getTimeSeries(
+        IDS.J1,
+        "junction",
+        "pressure",
+      );
       expect(nodeSeries).toBeNull();
 
-      const linkSeries = await reader.getLinkTimeSeries(IDS.P1, "flow");
+      const linkSeries = await reader.getTimeSeries(IDS.P1, "pipe", "flow");
       expect(linkSeries).toBeNull();
     });
 

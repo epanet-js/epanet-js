@@ -21,7 +21,7 @@ import {
 } from "./simulation-metadata";
 import { withDebugInstrumentation } from "src/infra/with-instrumentation";
 import { captureError } from "src/infra/error-tracking";
-import { AssetId } from "src/hydraulic-model";
+import { AssetId, AssetType } from "src/hydraulic-model";
 
 export type { SimulationIds } from "./simulation-metadata";
 
@@ -32,8 +32,15 @@ const NODE_RESULT_FLOATS = 4;
 const LINK_RESULT_FLOATS = 8;
 const PUMP_ENERGY_FLOATS = 7;
 
-export type NodeProperty = "demand" | "head" | "pressure" | "quality";
-export type LinkProperty =
+export type JunctionProperty = "demand" | "head" | "pressure" | "quality";
+export type TankProperty = "head" | "pressure" | "level" | "volume";
+export type ReservoirProperty = "head";
+export type PipeProperty = "flow" | "velocity" | "headloss" | "status";
+export type PumpProperty = "flow" | "headloss" | "status";
+export type ValveProperty = "flow" | "velocity" | "headloss" | "status";
+
+type NodeProperty = "demand" | "head" | "pressure" | "quality";
+type LinkProperty =
   | "flow"
   | "velocity"
   | "headloss"
@@ -117,154 +124,159 @@ export class EPSResultsReader {
     return this.metadata.simulationMetadata.reportingTimeStep;
   }
 
-  async getNodeTimeSeries(
-    nodeId: AssetId,
-    property: NodeProperty,
+  // Overloaded method signatures for type-safe API
+  getTimeSeries(
+    assetId: AssetId,
+    assetType: "junction",
+    property: JunctionProperty,
+  ): Promise<TimeSeries | null>;
+  getTimeSeries(
+    assetId: AssetId,
+    assetType: "tank",
+    property: TankProperty,
+  ): Promise<TimeSeries | null>;
+  getTimeSeries(
+    assetId: AssetId,
+    assetType: "reservoir",
+    property: ReservoirProperty,
+  ): Promise<TimeSeries | null>;
+  getTimeSeries(
+    assetId: AssetId,
+    assetType: "pipe",
+    property: PipeProperty,
+  ): Promise<TimeSeries | null>;
+  getTimeSeries(
+    assetId: AssetId,
+    assetType: "pump",
+    property: PumpProperty,
+  ): Promise<TimeSeries | null>;
+  getTimeSeries(
+    assetId: AssetId,
+    assetType: "valve",
+    property: ValveProperty,
+  ): Promise<TimeSeries | null>;
+  async getTimeSeries(
+    assetId: AssetId,
+    assetType: AssetType,
+    property: string,
   ): Promise<TimeSeries | null> {
     if (!this.metadata) {
       throw new Error(
         "EPSResultsReader not initialized. Call initialize() first.",
       );
     }
+
+    switch (assetType) {
+      case "junction":
+      case "reservoir":
+        return this._getNodePropertyTimeSeries(
+          assetId,
+          property as NodeProperty,
+        );
+      case "tank":
+        if (property === "volume")
+          return this._getTankPropertyTimeSeries(assetId, TANK_VOLUMES_KEY);
+        if (property === "level")
+          return this._getTankPropertyTimeSeries(assetId, TANK_LEVELS_KEY);
+        return this._getNodePropertyTimeSeries(
+          assetId,
+          property as NodeProperty,
+        );
+      case "pipe":
+      case "valve":
+        return this._getLinkPropertyTimeSeries(
+          assetId,
+          property as LinkProperty,
+        );
+      case "pump":
+        if (property === "status")
+          return this._getPumpStatusTimeSeries(assetId);
+        return this._getLinkPropertyTimeSeries(
+          assetId,
+          property as LinkProperty,
+        );
+    }
+  }
+
+  private _buildTimeSeries(buffer: ArrayBuffer): TimeSeries {
+    const { simulationMetadata } = this.metadata!;
+    const values = new Float32Array(buffer);
+    return {
+      values,
+      timestepCount: values.length,
+      reportingTimeStep: simulationMetadata.reportingTimeStep,
+    };
+  }
+
+  private async _getNodePropertyTimeSeries(
+    nodeId: AssetId,
+    property: NodeProperty,
+  ): Promise<TimeSeries | null> {
+    if (!this.metadata) return null;
 
     const nodeIndex = this.metadata.simulationIds.nodeIdToIndex.get(
       String(nodeId),
     );
     if (nodeIndex === undefined) return null;
 
-    const { simulationMetadata, resultsBaseOffset, timestepBlockSize } =
+    const { resultsBaseOffset, timestepBlockSize, simulationMetadata } =
       this.metadata;
-    const timestepCount = simulationMetadata.reportingStepsCount;
-
-    if (timestepCount === 0) {
-      return {
-        values: new Float32Array(0),
-        timestepCount: 0,
-        reportingTimeStep: simulationMetadata.reportingTimeStep,
-      };
-    }
-
-    const values = new Float32Array(timestepCount);
     const propertyIndex = NODE_PROPERTY_INDEX[property];
     const { nodeCount } = simulationMetadata;
 
-    const propertyOffsetInBlock =
-      propertyIndex * nodeCount * FLOAT_SIZE + nodeIndex * FLOAT_SIZE;
+    const baseOffset =
+      resultsBaseOffset +
+      propertyIndex * nodeCount * FLOAT_SIZE +
+      nodeIndex * FLOAT_SIZE;
 
-    // Read all timesteps - batch reads for efficiency
-    const BATCH_SIZE = 50;
-    for (
-      let batch = 0;
-      batch < Math.ceil(timestepCount / BATCH_SIZE);
-      batch++
-    ) {
-      const startIdx = batch * BATCH_SIZE;
-      const endIdx = Math.min(startIdx + BATCH_SIZE, timestepCount);
-
-      // Read each timestep in the batch
-      const readPromises = [];
-      for (let t = startIdx; t < endIdx; t++) {
-        const offset =
-          resultsBaseOffset + t * timestepBlockSize + propertyOffsetInBlock;
-        readPromises.push(
-          this.storage.readSlice(RESULTS_OUT_KEY, offset, FLOAT_SIZE),
-        );
-      }
-
-      const results = await Promise.all(readPromises);
-      for (let i = 0; i < results.length; i++) {
-        const data = results[i];
-        if (data) {
-          values[startIdx + i] = new DataView(data).getFloat32(0, true);
-        }
-      }
-    }
-
-    return {
-      values,
-      timestepCount,
-      reportingTimeStep: simulationMetadata.reportingTimeStep,
-    };
+    const values = await this.storage.readBlockSeries(
+      RESULTS_OUT_KEY,
+      baseOffset,
+      FLOAT_SIZE,
+      timestepBlockSize,
+      simulationMetadata.reportingStepsCount,
+    );
+    return this._buildTimeSeries(values);
   }
 
-  async getLinkTimeSeries(
+  private async _getLinkPropertyTimeSeries(
     linkId: AssetId,
     property: LinkProperty,
   ): Promise<TimeSeries | null> {
-    if (!this.metadata) {
-      throw new Error(
-        "EPSResultsReader not initialized. Call initialize() first.",
-      );
-    }
+    if (!this.metadata) return null;
 
     const linkIndex = this.metadata.simulationIds.linkIdToIndex.get(
       String(linkId),
     );
     if (linkIndex === undefined) return null;
 
-    const { simulationMetadata, resultsBaseOffset, timestepBlockSize } =
+    const { resultsBaseOffset, timestepBlockSize, simulationMetadata } =
       this.metadata;
-    const timestepCount = simulationMetadata.reportingStepsCount;
-
-    if (timestepCount === 0) {
-      return {
-        values: new Float32Array(0),
-        timestepCount: 0,
-        reportingTimeStep: simulationMetadata.reportingTimeStep,
-      };
-    }
-
-    const values = new Float32Array(timestepCount);
     const propertyIndex = LINK_PROPERTY_INDEX[property];
     const { nodeCount, linkCount } = simulationMetadata;
 
     const nodeDataSize = nodeCount * NODE_RESULT_FLOATS * FLOAT_SIZE;
-
-    const propertyOffsetInBlock =
+    const baseOffset =
+      resultsBaseOffset +
       nodeDataSize +
       propertyIndex * linkCount * FLOAT_SIZE +
       linkIndex * FLOAT_SIZE;
 
-    const BATCH_SIZE = 50;
-    for (
-      let batch = 0;
-      batch < Math.ceil(timestepCount / BATCH_SIZE);
-      batch++
-    ) {
-      const startIdx = batch * BATCH_SIZE;
-      const endIdx = Math.min(startIdx + BATCH_SIZE, timestepCount);
-
-      const readPromises = [];
-      for (let t = startIdx; t < endIdx; t++) {
-        const offset =
-          resultsBaseOffset + t * timestepBlockSize + propertyOffsetInBlock;
-        readPromises.push(
-          this.storage.readSlice(RESULTS_OUT_KEY, offset, FLOAT_SIZE),
-        );
-      }
-
-      const results = await Promise.all(readPromises);
-      for (let i = 0; i < results.length; i++) {
-        const data = results[i];
-        if (data) {
-          values[startIdx + i] = new DataView(data).getFloat32(0, true);
-        }
-      }
-    }
-
-    return {
-      values,
-      timestepCount,
-      reportingTimeStep: simulationMetadata.reportingTimeStep,
-    };
+    const values = await this.storage.readBlockSeries(
+      RESULTS_OUT_KEY,
+      baseOffset,
+      FLOAT_SIZE,
+      timestepBlockSize,
+      simulationMetadata.reportingStepsCount,
+    );
+    return this._buildTimeSeries(values);
   }
 
-  async getTankVolumeTimeSeries(tankId: AssetId): Promise<TimeSeries | null> {
-    if (!this.metadata) {
-      throw new Error(
-        "EPSResultsReader not initialized. Call initialize() first.",
-      );
-    }
+  private async _getTankPropertyTimeSeries(
+    tankId: AssetId,
+    storageKey: string,
+  ): Promise<TimeSeries | null> {
+    if (!this.metadata) return null;
 
     const nodeIndex = this.metadata.simulationIds.nodeIdToIndex.get(
       String(tankId),
@@ -280,50 +292,50 @@ export class EPSResultsReader {
     if (nodeIndex < firstSupplySourceIndex) return null;
 
     const tankIndex = nodeIndex - firstSupplySourceIndex;
-    const timestepCount = simulationMetadata.reportingStepsCount;
+    const baseOffset = tankIndex * FLOAT_SIZE;
+    const blockSize = resAndTankCount * FLOAT_SIZE;
 
-    if (timestepCount === 0) {
-      return {
-        values: new Float32Array(0),
-        timestepCount: 0,
-        reportingTimeStep: simulationMetadata.reportingTimeStep,
-      };
-    }
+    const values = await this.storage.readBlockSeries(
+      storageKey,
+      baseOffset,
+      FLOAT_SIZE,
+      blockSize,
+      simulationMetadata.reportingStepsCount,
+    );
+    return this._buildTimeSeries(values);
+  }
 
-    const values = new Float32Array(timestepCount);
+  private async _getPumpStatusTimeSeries(
+    pumpId: AssetId,
+  ): Promise<TimeSeries | null> {
+    if (!this.metadata) return null;
 
-    const BATCH_SIZE = 50;
-    for (
-      let batch = 0;
-      batch < Math.ceil(timestepCount / BATCH_SIZE);
-      batch++
-    ) {
-      const startIdx = batch * BATCH_SIZE;
-      const endIdx = Math.min(startIdx + BATCH_SIZE, timestepCount);
+    const linkIndex = this.metadata.simulationIds.linkIdToIndex.get(
+      String(pumpId),
+    );
+    if (linkIndex === undefined) return null;
 
-      const readPromises = [];
-      for (let t = startIdx; t < endIdx; t++) {
-        const offset =
-          t * resAndTankCount * FLOAT_SIZE + tankIndex * FLOAT_SIZE;
-        readPromises.push(
-          this.storage.readSlice(TANK_VOLUMES_KEY, offset, FLOAT_SIZE),
-        );
-      }
+    const { simulationMetadata } = this.metadata;
+    const { pumpCount } = simulationMetadata;
 
-      const results = await Promise.all(readPromises);
-      for (let i = 0; i < results.length; i++) {
-        const data = results[i];
-        if (data) {
-          values[startIdx + i] = new DataView(data).getFloat32(0, true);
-        }
-      }
-    }
+    if (pumpCount === 0) return null;
 
-    return {
-      values,
-      timestepCount,
-      reportingTimeStep: simulationMetadata.reportingTimeStep,
-    };
+    const pumpPositionMap =
+      await this.readPumpPositionMapFromFile(simulationMetadata);
+    const pumpPosition = pumpPositionMap.get(linkIndex);
+    if (pumpPosition === undefined) return null;
+
+    const baseOffset = pumpPosition * FLOAT_SIZE;
+    const blockSize = pumpCount * FLOAT_SIZE;
+
+    const values = await this.storage.readBlockSeries(
+      PUMP_STATUS_KEY,
+      baseOffset,
+      FLOAT_SIZE,
+      blockSize,
+      simulationMetadata.reportingStepsCount,
+    );
+    return this._buildTimeSeries(values);
   }
 
   getResultsForTimestep = withDebugInstrumentation(
