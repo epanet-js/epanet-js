@@ -44,6 +44,8 @@ import {
   PanelLeft,
   PanelRight,
   PencilLine,
+  Pin,
+  PinOff,
   Plus,
   RectangleHorizontal,
   Redo2,
@@ -176,6 +178,8 @@ export const RectangularSelectionIcon = icon(SquareDashed);
 export const FreeHandSelectionIcon = icon(Lasso);
 export const SortAscendingIcon = icon(ArrowUpNarrowWide);
 export const SortDescendingIcon = icon(ArrowDownWideNarrow);
+export const PinIcon = icon(Pin);
+export const PinOffIcon = icon(PinOff);
 
 export const ReverseIcon: React.FC<IconProps> = ({
   size: rawSize = "md",

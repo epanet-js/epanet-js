@@ -52,6 +52,7 @@ import {
   PumpDefinitionData,
 } from "./pump-definition-details";
 import { Curves } from "src/hydraulic-model/curves";
+import { QuickGraph } from "./quick-graph";
 
 type OnPropertyChange = (
   name: string,
@@ -441,6 +442,7 @@ const JunctionEditor = ({
           readOnly={true}
         />
       </Section>
+      <QuickGraph assetId={junction.id} assetType="junction" />
     </AssetEditorContent>
   );
 };
@@ -612,6 +614,7 @@ const PipeEditor = ({
         />
         <TextRow name="actualStatus" value={simulationStatusText} />
       </Section>
+      <QuickGraph assetId={pipe.id} assetType="pipe" />
     </AssetEditorContent>
   );
 };
@@ -658,6 +661,7 @@ const ReservoirEditor = ({
           onChange={onPropertyChange}
         />
       </Section>
+      <QuickGraph assetId={reservoir.id} assetType="reservoir" />
     </AssetEditorContent>
   );
 };
@@ -774,6 +778,7 @@ const TankEditor = ({
           readOnly={true}
         />
       </Section>
+      <QuickGraph assetId={tank.id} assetType="tank" />
     </AssetEditorContent>
   );
 };
@@ -927,6 +932,7 @@ const ValveEditor = ({
         />
         <TextRow name="status" value={statusText} />
       </Section>
+      <QuickGraph assetId={valve.id} assetType="valve" />
     </AssetEditorContent>
   );
 };
@@ -1033,6 +1039,7 @@ const PumpEditor = ({
         />
         <TextRow name="status" value={statusText} />
       </Section>
+      <QuickGraph assetId={pump.id} assetType="pump" />
     </AssetEditorContent>
   );
 };

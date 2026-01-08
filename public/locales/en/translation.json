@@ -724,5 +724,10 @@
   "isEnabled": "Enabled",
   "activateAssets": "Enable",
   "deactivateAssets": "Disable",
-  "toggleActiveTopology": "Enable/Disable"
+  "toggleActiveTopology": "Enable/Disable",
+  "quickGraph": "Quick graph",
+  "pin": "Pin",
+  "unpin": "Unpin",
+  "errorLoadingData": "Error loading data",
+  "noDataAvailable": "No data available"
 }
