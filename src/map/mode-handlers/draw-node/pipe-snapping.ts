@@ -18,7 +18,7 @@ export const usePipeSnapping = (map: MapEngine, assetsMap: AssetsMap) => {
   ): PipeSnapResult | null => {
     const pipeFeatures = searchNearbyRenderedFeatures(map, {
       point: screenPoint,
-      layers: ["pipes", "imported-pipes"],
+      layers: ["delta-features-pipes", "main-features-pipes"],
     });
 
     if (!pipeFeatures.length) return null;

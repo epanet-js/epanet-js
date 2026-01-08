@@ -115,7 +115,7 @@ export const buildCustomerPointsOverlay = (
 
   const connectionLinesLayer = new LineLayer({
     id: "customer-connection-lines-layer",
-    beforeId: "imported-pipes",
+    beforeId: "main-features-pipes",
     data: connectionLinesData,
     getSourcePosition: (d: ConnectionLineData) => d.sourcePosition,
     getTargetPosition: (d: ConnectionLineData) => d.targetPosition,
@@ -298,7 +298,7 @@ export const buildConnectCustomerPointsPreviewOverlay = (
 
   const previewConnectionLinesLayer = new PathLayer({
     id: "customer-connect-preview-lines-layer",
-    beforeId: "imported-pipes",
+    beforeId: "main-features-pipes",
     data: connectionLines,
     getPath: (d: ConnectionLineData) => [d.sourcePosition, d.targetPosition],
     widthUnits: "meters",

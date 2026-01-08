@@ -233,7 +233,7 @@ export class MapEngine {
     return !!(
       this.map &&
       (this.map as any).style &&
-      this.map.getSource("features")
+      this.map.getSource("delta-features")
     );
   }
 

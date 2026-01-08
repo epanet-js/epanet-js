@@ -41,12 +41,10 @@ export const useSnapping = (
     const pointFeatures = searchNearbyRenderedFeatures(map, {
       point,
       layers: [
-        "junctions",
-        "imported-junctions",
-        "reservoirs",
-        "imported-reservoirs",
-        "junction-results",
-        "imported-junction-results",
+        "delta-features-junctions",
+        "main-features-junctions",
+        "delta-features-junction-results",
+        "main-features-junction-results",
         "icons-tanks",
         "icons-reservoirs",
       ],
@@ -78,7 +76,7 @@ export const useSnapping = (
 
     const pipeFeatures = searchNearbyRenderedFeatures(map, {
       point: screenPoint,
-      layers: ["pipes", "imported-pipes"],
+      layers: ["delta-features-pipes", "main-features-pipes"],
     });
 
     if (!pipeFeatures.length) return null;

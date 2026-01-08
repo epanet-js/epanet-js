@@ -1,53 +1,44 @@
 export type LayerId =
-  | "pipes"
-  | "imported-pipes"
+  | "delta-features-pipes"
+  | "main-features-pipes"
   | "selected-pipes"
-  | "junctions"
-  | "imported-junctions"
+  | "delta-features-junctions"
+  | "main-features-junctions"
   | "selected-junctions"
-  | "junction-results"
-  | "imported-junction-results"
-  | "imported-pipe-arrows"
-  | "pipe-arrows"
+  | "delta-features-junction-results"
+  | "main-features-junction-results"
+  | "main-features-pipe-arrows"
+  | "delta-features-pipe-arrows"
   | "selected-pipe-arrows"
-  | "imported-pump-lines"
-  | "pump-lines"
+  | "main-features-pump-lines"
+  | "delta-features-pump-lines"
   | "selected-pump-lines"
-  | "imported-valve-lines"
-  | "valve-lines"
+  | "main-features-valve-lines"
+  | "delta-features-valve-lines"
   | "selected-valve-lines"
-  | "imported-pump-icons"
   | "pump-icons"
   | "valve-icons-control-valves"
   | "valve-icons-isolation-valves"
   | "selected-icons"
   | "selected-icons-halo"
-  | "reservoirs"
-  | "imported-reservoirs"
-  | "reservoirs-selected"
-  | "imported-reservoirs-selected"
   | "icons-tanks"
   | "icons-reservoirs";
 
 export const assetLayers: LayerId[] = [
-  "pipes",
-  "imported-pipes",
-  "junctions",
-  "imported-junctions",
-  "junction-results",
-  "imported-junction-results",
-  "reservoirs",
+  "delta-features-pipes",
+  "main-features-pipes",
+  "delta-features-junctions",
+  "main-features-junctions",
+  "delta-features-junction-results",
+  "main-features-junction-results",
   "icons-reservoirs",
-  "reservoirs-selected",
-  "imported-reservoirs",
-  "imported-reservoirs-selected",
-  "imported-pump-lines",
-  "pump-lines",
+  "main-features-pump-lines",
+  "delta-features-pump-lines",
   "pump-icons",
   "valve-icons-control-valves",
   "valve-icons-isolation-valves",
-  "imported-valve-lines",
-  "valve-lines",
+  "main-features-valve-lines",
+  "delta-features-valve-lines",
   "icons-tanks",
 ];
 
@@ -55,11 +46,11 @@ export const clickableLayers: LayerId[] = assetLayers;
 
 export const editingLayers: string[] = [
   ...assetLayers,
-  "imported-pipe-arrows",
-  "pipe-arrows",
-  "imported-features-link-labels",
-  "features-link-labels",
-  "imported-features-node-labels",
-  "features-node-labels",
+  "main-features-pipe-arrows",
+  "delta-features-pipe-arrows",
+  "main-features-link-labels",
+  "delta-features-link-labels",
+  "main-features-node-labels",
+  "delta-features-node-labels",
   "check-valve-icons",
 ];

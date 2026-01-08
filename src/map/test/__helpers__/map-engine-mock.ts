@@ -21,11 +21,11 @@ class MapTestEngine {
     handlers: React.MutableRefObject<MapHandlers>;
   }) {
     this.handlers = handlers;
-    this.sources.set("features", {
+    this.sources.set("delta-features", {
       type: "geojson",
       data: { type: "FeatureCollection", features: [] },
     });
-    this.sources.set("imported-features", {
+    this.sources.set("main-features", {
       type: "geojson",
       data: { type: "FeatureCollection", features: [] },
     });

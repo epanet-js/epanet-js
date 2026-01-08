@@ -81,7 +81,7 @@ describe("Drawing a pipe", () => {
     await fireDoubleClick(map, thirdClick);
 
     await waitFor(() => {
-      expect(getSourceFeatures(map, "features")).toEqual([
+      expect(getSourceFeatures(map, "delta-features")).toEqual([
         matchLineString({
           coordinates: [
             [10, 20],
@@ -145,7 +145,7 @@ describe("Drawing a pipe", () => {
     await fireDoubleClick(map, endClick);
 
     await waitFor(() => {
-      expect(getSourceFeatures(map, "features")).toEqual([
+      expect(getSourceFeatures(map, "delta-features")).toEqual([
         matchLineString({
           coordinates: [existingNodeCoords, [50, 60]],
         }),
@@ -221,7 +221,7 @@ describe("Drawing a pipe", () => {
     await fireDoubleClick(map, nearbyEndClick);
 
     await waitFor(() => {
-      expect(getSourceFeatures(map, "features")).toEqual([
+      expect(getSourceFeatures(map, "delta-features")).toEqual([
         matchLineString({
           coordinates: [[10, 20], existingNodeCoords],
         }),
@@ -305,7 +305,7 @@ describe("Drawing a pipe", () => {
     stubKeyboardState({ ctrl: false });
 
     await waitFor(() => {
-      expect(getSourceFeatures(map, "features")).toEqual([
+      expect(getSourceFeatures(map, "delta-features")).toEqual([
         matchLineString({
           coordinates: [
             [10, 20],
@@ -334,7 +334,7 @@ describe("Drawing a pipe", () => {
     await fireDoubleClick(map, thirdClick);
 
     await waitFor(() => {
-      expect(getSourceFeatures(map, "features")).toEqual([
+      expect(getSourceFeatures(map, "delta-features")).toEqual([
         matchLineString({
           coordinates: [
             [10, 20],

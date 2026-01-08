@@ -60,8 +60,8 @@ export async function buildBaseStyle({
 }
 
 export function defineEmptySources(style: Style) {
-  style.sources["imported-features"] = emptyGeoJSONSource;
-  style.sources["features"] = emptyGeoJSONSource;
+  style.sources["main-features"] = emptyGeoJSONSource;
+  style.sources["delta-features"] = emptyGeoJSONSource;
   style.sources["icons"] = emptyGeoJSONSource;
   style.sources["selected-features"] = emptyGeoJSONSource;
   style.sources["ephemeral"] = emptyGeoJSONSource;
@@ -98,20 +98,20 @@ import {
 } from "src/map/layers/selection";
 import type * as mapboxgl from "mapbox-gl";
 
-const FEATURES_POINT_LABEL_LAYER_NAME = "features-point-label";
-const FEATURES_LINE_LABEL_LAYER_NAME = "features-line-label";
-const FEATURES_LINE_LAYER_NAME = "features-line";
-const FEATURES_POINT_LAYER_NAME = "features-symbol";
+const DELTA_FEATURES_POINT_LABEL_LAYER_NAME = "delta-features-point-label";
+const DELTA_FEATURES_LINE_LABEL_LAYER_NAME = "delta-features-line-label";
+const DELTA_FEATURES_LINE_LAYER_NAME = "delta-features-line";
+const DELTA_FEATURES_POINT_LAYER_NAME = "delta-features-symbol";
 
 const CONTENT_LAYER_FILTERS: {
   [key: string]: mapboxgl.Layer["filter"];
 } = {
-  [FEATURES_LINE_LAYER_NAME]: [
+  [DELTA_FEATURES_LINE_LAYER_NAME]: [
     "any",
     ["==", "$type", "LineString"],
     ["==", "$type", "Polygon"],
   ],
-  [FEATURES_POINT_LAYER_NAME]: ["all", ["==", "$type", "Point"]],
+  [DELTA_FEATURES_POINT_LAYER_NAME]: ["all", ["==", "$type", "Point"]],
 };
 
 function addPreviewFilter(
@@ -160,13 +160,13 @@ export function makeLayers({
   return [
     ephemeralHaloLayer({ source: "ephemeral" }),
     pipesLayer({
-      source: "imported-features",
-      layerId: "imported-pipes",
+      source: "main-features",
+      layerId: "main-features-pipes",
       symbology,
     }),
     pipesLayer({
-      source: "features",
-      layerId: "pipes",
+      source: "delta-features",
+      layerId: "delta-features-pipes",
       symbology,
     }),
     selectedPipesLayer({
@@ -174,13 +174,13 @@ export function makeLayers({
       layerId: "selected-pipes",
     }),
     pumpLines({
-      source: "imported-features",
-      layerId: "imported-pump-lines",
+      source: "main-features",
+      layerId: "main-features-pump-lines",
       symbology,
     }),
     pumpLines({
-      source: "features",
-      layerId: "pump-lines",
+      source: "delta-features",
+      layerId: "delta-features-pump-lines",
       symbology,
     }),
     selectedPumpLinesLayer({
@@ -188,13 +188,13 @@ export function makeLayers({
       layerId: "selected-pump-lines",
     }),
     valveLines({
-      source: "imported-features",
-      layerId: "imported-valve-lines",
+      source: "main-features",
+      layerId: "main-features-valve-lines",
       symbology,
     }),
     valveLines({
-      source: "features",
-      layerId: "valve-lines",
+      source: "delta-features",
+      layerId: "delta-features-valve-lines",
       symbology,
     }),
     selectedValveLinesLayer({
@@ -205,13 +205,13 @@ export function makeLayers({
     ephemeralDraftLineLayer({ source: "ephemeral" }),
     ephemeralPipeHighlightLayer({ source: "ephemeral" }),
     pipeArrows({
-      source: "imported-features",
-      layerId: "imported-pipe-arrows",
+      source: "main-features",
+      layerId: "main-features-pipe-arrows",
       symbology,
     }),
     pipeArrows({
-      source: "features",
-      layerId: "pipe-arrows",
+      source: "delta-features",
+      layerId: "delta-features-pipe-arrows",
       symbology,
     }),
     selectedPipeArrowsLayer({
@@ -219,23 +219,23 @@ export function makeLayers({
       layerId: "selected-pipe-arrows",
     }),
     junctionsLayer({
-      source: "imported-features",
-      layerId: "imported-junctions",
+      source: "main-features",
+      layerId: "main-features-junctions",
       symbology,
     }),
     junctionsLayer({
-      source: "features",
-      layerId: "junctions",
+      source: "delta-features",
+      layerId: "delta-features-junctions",
       symbology,
     }),
     junctionResultsLayer({
-      source: "imported-features",
-      layerId: "imported-junction-results",
+      source: "main-features",
+      layerId: "main-features-junction-results",
       symbology,
     }),
     junctionResultsLayer({
-      source: "features",
-      layerId: "junction-results",
+      source: "delta-features",
+      layerId: "delta-features-junction-results",
       symbology,
     }),
     selectedJunctionsLayer({
@@ -268,32 +268,32 @@ export function makeLayers({
     ephemeralJunctionHighlightLayers({ source: "ephemeral" }),
     ephemeralIconHighlightLayers({ source: "ephemeral" }),
     ...linkLabelsLayer({
-      sources: ["imported-features", "features"],
+      sources: ["main-features", "delta-features"],
     }),
     ...nodeLabelsLayer({
-      sources: ["imported-features", "features"],
+      sources: ["main-features", "delta-features"],
     }),
     ...(typeof previewProperty === "string"
       ? [
           {
-            id: FEATURES_POINT_LABEL_LAYER_NAME,
+            id: DELTA_FEATURES_POINT_LABEL_LAYER_NAME,
             type: "symbol",
-            source: "features",
+            source: "delta-features",
             paint: LABEL_PAINT(symbology, previewProperty),
             layout: LABEL_LAYOUT(previewProperty, "point"),
             filter: addPreviewFilter(
-              CONTENT_LAYER_FILTERS[FEATURES_POINT_LAYER_NAME],
+              CONTENT_LAYER_FILTERS[DELTA_FEATURES_POINT_LAYER_NAME],
               previewProperty,
             ),
           } as mapboxgl.AnyLayer,
           {
-            id: FEATURES_LINE_LABEL_LAYER_NAME,
+            id: DELTA_FEATURES_LINE_LABEL_LAYER_NAME,
             type: "symbol",
-            source: "features",
+            source: "delta-features",
             paint: LABEL_PAINT(symbology, previewProperty),
             layout: LABEL_LAYOUT(previewProperty, "line"),
             filter: addPreviewFilter(
-              CONTENT_LAYER_FILTERS[FEATURES_LINE_LAYER_NAME],
+              CONTENT_LAYER_FILTERS[DELTA_FEATURES_LINE_LAYER_NAME],
               previewProperty,
             ),
           } as mapboxgl.AnyLayer,

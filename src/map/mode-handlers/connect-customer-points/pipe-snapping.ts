@@ -24,7 +24,7 @@ export const usePipeSnappingForCustomerPoints = (
     const pipeFeatures = searchNearbyRenderedFeatures(map, {
       point: screenPoint,
       distance: 20,
-      layers: ["pipes", "imported-pipes"],
+      layers: ["delta-features-pipes", "main-features-pipes"],
     });
 
     if (!pipeFeatures.length) return null;

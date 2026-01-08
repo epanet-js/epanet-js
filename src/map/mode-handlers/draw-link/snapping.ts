@@ -11,12 +11,10 @@ export const useSnapping = (map: MapEngine, assetsMap: AssetsMap) => {
     const pointFeatures = searchNearbyRenderedFeatures(map, {
       point,
       layers: [
-        "junctions",
-        "imported-junctions",
-        "reservoirs",
-        "imported-reservoirs",
-        "junction-results",
-        "imported-junction-results",
+        "delta-features-junctions",
+        "main-features-junctions",
+        "delta-features-junction-results",
+        "main-features-junction-results",
         "icons-tanks",
         "icons-reservoirs",
       ],

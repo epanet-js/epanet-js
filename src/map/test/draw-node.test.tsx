@@ -23,7 +23,7 @@ describe("Drawing a junction", () => {
     await fireMapClick(map, clickPoint);
 
     await waitFor(() => {
-      const features = getSourceFeatures(map, "features");
+      const features = getSourceFeatures(map, "delta-features");
       expect(features).toHaveLength(1);
 
       const feature = features[0];

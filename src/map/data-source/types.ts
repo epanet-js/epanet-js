@@ -1,11 +1,11 @@
 export type DataSource =
-  | "imported-features"
-  | "features"
+  | "main-features"
+  | "delta-features"
   | "icons"
   | "selected-features"
   | "ephemeral";
 
 export const FeatureSources = {
-  MAIN: "imported-features" as const,
-  DELTA: "features" as const,
+  MAIN: "main-features" as const,
+  DELTA: "delta-features" as const,
 } satisfies Record<string, DataSource>;

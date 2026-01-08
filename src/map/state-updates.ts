@@ -454,8 +454,8 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
 
 const resetMapState = withDebugInstrumentation(
   (map: MapEngine) => {
-    map.removeSource("features");
-    map.removeSource("imported-features");
+    map.removeSource("delta-features");
+    map.removeSource("main-features");
   },
   { name: "MAP_STATE:RESET_SOURCES", maxDurationMs: 100 },
 );
@@ -479,21 +479,27 @@ const toggleAnalysisLayers = withDebugInstrumentation(
   (map: MapEngine, symbology: SymbologySpec) => {
     if (!symbology.link.colorRule) {
       map.hideLayers([
-        "imported-pipe-arrows",
-        "pipe-arrows",
+        "main-features-pipe-arrows",
+        "delta-features-pipe-arrows",
         "selected-pipe-arrows",
       ]);
     } else {
       map.showLayers([
-        "imported-pipe-arrows",
-        "pipe-arrows",
+        "main-features-pipe-arrows",
+        "delta-features-pipe-arrows",
         "selected-pipe-arrows",
       ]);
     }
     if (!symbology.node.colorRule) {
-      map.hideLayers(["imported-junction-results", "junction-results"]);
+      map.hideLayers([
+        "main-features-junction-results",
+        "delta-features-junction-results",
+      ]);
     } else {
-      map.showLayers(["imported-junction-results", "junction-results"]);
+      map.showLayers([
+        "main-features-junction-results",
+        "delta-features-junction-results",
+      ]);
     }
   },
   { name: "MAP_STATE:TOGGLE_ANALYSIS_LAYERS", maxDurationMs: 100 },
@@ -602,21 +608,21 @@ const updateEditionsVisibility = withDebugInstrumentation(
     featuresHiddenFromImport: Set<AssetId>,
   ) => {
     for (const assetId of previousMovedAssetIds.values()) {
-      map.showFeature("features", assetId);
+      map.showFeature("delta-features", assetId);
       map.showFeature("icons", assetId);
 
       if (featuresHiddenFromImport.has(assetId)) continue;
 
-      map.showFeature("imported-features", assetId);
+      map.showFeature("main-features", assetId);
     }
 
     for (const assetId of movedAssetIds.values()) {
-      map.hideFeature("features", assetId);
+      map.hideFeature("delta-features", assetId);
       map.hideFeature("icons", assetId);
 
       if (featuresHiddenFromImport.has(assetId)) continue;
 
-      map.hideFeature("imported-features", assetId);
+      map.hideFeature("main-features", assetId);
     }
 
     if (movedAssetIds.size > 0) {
@@ -661,8 +667,8 @@ const hideSymbologyForSelectedJunctions = withDebugInstrumentation(
     const filter = junctionsSymbologyFilterExpression(selectedJunctionIds);
 
     await map.waitForMapIdle(() => {
-      map.setLayerFilter("imported-junction-results", filter);
-      map.setLayerFilter("junction-results", filter);
+      map.setLayerFilter("main-features-junction-results", filter);
+      map.setLayerFilter("delta-features-junction-results", filter);
     }, selectedJunctionIds.length);
   },
   { name: "MAP_STATE:UPDATE_JUNCTIONS_SELECTION", maxDurationMs: 100 },
