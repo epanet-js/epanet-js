@@ -8,6 +8,8 @@ type Action = { stateId: string; forward: Moment; reverse: Moment };
 
 type Snapshot = { stateId: string; moment: Moment };
 
+const START_POINTER = -1;
+
 export class MomentLog {
   protected deltas: Action[];
   protected pointer: number;
@@ -17,7 +19,7 @@ export class MomentLog {
   constructor(id: string = nanoid()) {
     this.id = id;
     this.deltas = [];
-    this.pointer = -1;
+    this.pointer = START_POINTER;
     this.snapshot = null;
   }
 
@@ -98,23 +100,15 @@ export class MomentLog {
     return this.pointer;
   }
 
-  getDeltas(): Moment[] {
-    const result = [];
-    for (let i = 0; i <= this.pointer; i++) {
-      result.push(this.deltas[i].forward);
-    }
-    return result;
-  }
-
-  getDeltasFrom(fromPointer: number): Moment[] {
+  getDeltas(since: number = START_POINTER): Moment[] {
     const result = [];
 
-    if (this.pointer >= fromPointer) {
-      for (let i = fromPointer + 1; i <= this.pointer; i++) {
+    if (this.pointer >= since) {
+      for (let i = since + 1; i <= this.pointer; i++) {
         result.push(this.deltas[i].forward);
       }
     } else {
-      for (let i = fromPointer; i > this.pointer; i--) {
+      for (let i = since; i > this.pointer; i--) {
         result.push(this.deltas[i].reverse);
       }
     }

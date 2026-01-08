@@ -53,7 +53,7 @@ import {
 import { CustomerPoints } from "src/hydraulic-model/customer-points";
 import { DEFAULT_ZOOM } from "./map-engine";
 import { junctionsSymbologyFilterExpression } from "./layers/junctions";
-import { mapSnapshotPointerAtom } from "src/state/map";
+import { mapSyncMomentAtom } from "src/state/map";
 
 const SELECTION_LAYERS: LayerId[] = [
   "selected-pipes",
@@ -85,8 +85,8 @@ type StylesConfig = {
 type MapState = {
   momentLogId: string;
   momentLogPointer: number;
-  snapshotPointer: number;
-  snapshotVersion: number;
+  syncMomentPointer: number;
+  syncMomentVersion: number;
   stylesConfig: StylesConfig;
   selection: Sel;
   ephemeralState: EphemeralEditingState;
@@ -102,8 +102,8 @@ type MapState = {
 const nullMapState: MapState = {
   momentLogId: "",
   momentLogPointer: -1,
-  snapshotPointer: -1,
-  snapshotVersion: 0,
+  syncMomentPointer: -1,
+  syncMomentVersion: 0,
   stylesConfig: {
     symbology: SYMBOLIZATION_NONE,
     previewProperty: null,
@@ -133,7 +133,7 @@ const stylesConfigAtom = atom<StylesConfig>((get) => {
 
 const mapStateAtom = atom<MapState>((get) => {
   const momentLog = get(momentLogAtom);
-  const mapSnapshotPointer = get(mapSnapshotPointerAtom);
+  const mapSyncMoment = get(mapSyncMomentAtom);
   const stylesConfig = get(stylesConfigAtom);
   const selection = get(selectionAtom);
   const ephemeralState = get(ephemeralStateAtom);
@@ -149,8 +149,8 @@ const mapStateAtom = atom<MapState>((get) => {
   return {
     momentLogId: momentLog.id,
     momentLogPointer: momentLog.getPointer(),
-    snapshotPointer: mapSnapshotPointer.pointer,
-    snapshotVersion: mapSnapshotPointer.version,
+    syncMomentPointer: mapSyncMoment.pointer,
+    syncMomentVersion: mapSyncMoment.version,
     stylesConfig,
     selection,
     ephemeralState,
@@ -179,7 +179,7 @@ const detectChanges = (
   hasNewSymbology: boolean;
   hasNewCustomerPoints: boolean;
   hasNewZoom: boolean;
-  hasSnapshotPointerChanged: boolean;
+  hasSyncMomentChanged: boolean;
 } => {
   return {
     hasNewImport: state.momentLogId !== prev.momentLogId,
@@ -197,13 +197,13 @@ const detectChanges = (
     hasNewSymbology: state.symbology !== prev.symbology,
     hasNewCustomerPoints: state.customerPoints !== prev.customerPoints,
     hasNewZoom: state.currentZoom !== prev.currentZoom,
-    hasSnapshotPointerChanged: state.snapshotVersion !== prev.snapshotVersion,
+    hasSyncMomentChanged: state.syncMomentVersion !== prev.syncMomentVersion,
   };
 };
 
 export const useMapStateUpdates = (map: MapEngine | null) => {
   const momentLog = useAtomValue(momentLogAtom);
-  const setMapSnapshotPointer = useSetAtom(mapSnapshotPointerAtom);
+  const setMapSyncMoment = useSetAtom(mapSyncMomentAtom);
   const mapState = useAtomValue(mapStateAtom);
   const setMapLoading = useSetAtom(mapLoadingAtom);
 
@@ -240,7 +240,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       hasNewSimulation,
       hasNewCustomerPoints,
       hasNewZoom,
-      hasSnapshotPointerChanged,
+      hasSyncMomentChanged,
     } = changes;
 
     const selectionSize = USelection.toIds(mapState.selection).length;
@@ -272,7 +272,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         }
 
         if (
-          hasSnapshotPointerChanged ||
+          hasSyncMomentChanged ||
           hasNewImport ||
           hasNewStyles ||
           hasNewSymbology ||
@@ -286,16 +286,16 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
             translateUnit,
           );
           lastHiddenFeatures.current = new Set();
-          setMapSnapshotPointer((prev) => {
+          setMapSyncMoment((prev) => {
             return { pointer: momentLog.getPointer(), version: prev.version };
           });
         }
 
-        if (hasNewEditions && !hasSnapshotPointerChanged) {
+        if (hasNewEditions && !hasSyncMomentChanged) {
           const { editedAssetIds } = await syncSourcesWithEdits(
             map,
             momentLog,
-            mapState.snapshotPointer,
+            mapState.syncMomentPointer,
             assets,
             mapState.symbology,
             quantities,
@@ -441,7 +441,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     assets,
     map,
     momentLog,
-    setMapSnapshotPointer,
+    setMapSyncMoment,
     quantities,
     setMapLoading,
     translate,
@@ -568,14 +568,14 @@ const updateDeltaSource = withDebugInstrumentation(
 const syncSourcesWithEdits = async (
   map: MapEngine,
   momentLog: MomentLog,
-  mapSnapshotPointer: number,
+  mapSyncMoment: number,
   assets: AssetsMap,
   symbology: SymbologySpec,
   quantities: Quantities,
   translateUnit: (unit: Unit) => string,
 ): Promise<{ editedAssetIds: Set<AssetId> }> => {
   const editedSinceConsolidation = getAssetIdsInMoments(
-    momentLog.getDeltasFrom(mapSnapshotPointer),
+    momentLog.getDeltas(mapSyncMoment),
   );
 
   await updateDeltaSource(

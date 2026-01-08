@@ -1,11 +1,11 @@
 import { atom } from "jotai";
 
-export type MapSnapshotPointer = {
+export type MomentPointer = {
   pointer: number;
   version: number;
 };
 
-export const mapSnapshotPointerAtom = atom<MapSnapshotPointer>({
+export const mapSyncMomentAtom = atom<MomentPointer>({
   pointer: -1,
   version: 0,
 });

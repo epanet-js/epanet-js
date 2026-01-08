@@ -147,7 +147,7 @@ describe("MomentLog", () => {
       const action1 = anAction("FIRST");
       momentLog.append(action1.forward, action1.reverse);
 
-      const deltas = momentLog.getDeltasFrom(0);
+      const deltas = momentLog.getDeltas(0);
       expect(deltas).toEqual([]);
     });
 
@@ -160,7 +160,7 @@ describe("MomentLog", () => {
       momentLog.append(action2.forward, action2.reverse);
       momentLog.append(action3.forward, action3.reverse);
 
-      const deltas = momentLog.getDeltasFrom(0);
+      const deltas = momentLog.getDeltas(0);
       expect(deltas).toEqual([action2.forward, action3.forward]);
     });
 
@@ -173,7 +173,7 @@ describe("MomentLog", () => {
 
       momentLog.undo();
 
-      const deltas = momentLog.getDeltasFrom(1);
+      const deltas = momentLog.getDeltas(1);
       expect(deltas).toEqual([action2.reverse]);
     });
 
@@ -189,13 +189,13 @@ describe("MomentLog", () => {
       momentLog.undo();
       momentLog.undo();
 
-      const deltas = momentLog.getDeltasFrom(2);
+      const deltas = momentLog.getDeltas(2);
       expect(deltas).toEqual([action3.reverse, action2.reverse]);
     });
 
     it("returns empty array when fromPointer is -1 and pointer is -1", () => {
       const momentLog = new MomentLog();
-      const deltas = momentLog.getDeltasFrom(-1);
+      const deltas = momentLog.getDeltas(-1);
       expect(deltas).toEqual([]);
     });
 
@@ -206,7 +206,7 @@ describe("MomentLog", () => {
       momentLog.append(action1.forward, action1.reverse);
       momentLog.append(action2.forward, action2.reverse);
 
-      const deltas = momentLog.getDeltasFrom(-1);
+      const deltas = momentLog.getDeltas(-1);
       expect(deltas).toEqual([action1.forward, action2.forward]);
     });
   });

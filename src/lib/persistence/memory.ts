@@ -44,9 +44,9 @@ import {
   savedSymbologiesAtom,
 } from "src/state/symbology";
 import { nullSymbologySpec } from "src/map/symbology";
-import { mapSnapshotPointerAtom, MapSnapshotPointer } from "src/state/map";
+import { mapSyncMomentAtom, MomentPointer } from "src/state/map";
 
-const MAX_CHANGES_BEFORE_SNAPSHOT = 500;
+const MAX_CHANGES_BEFORE_MAP_SYNC = 500;
 
 export class MemPersistence implements IPersistence {
   private store: Store;
@@ -88,7 +88,7 @@ export class MemPersistence implements IPersistence {
         modelMetadata,
       });
       this.store.set(momentLogAtom, momentLog);
-      this.store.set(mapSnapshotPointerAtom, { pointer: -1, version: 0 });
+      this.store.set(mapSyncMomentAtom, { pointer: -1, version: 0 });
       this.store.set(simulationAtom, initialSimulationState);
       this.store.set(nodeSymbologyAtom, nullSymbologySpec.node);
       this.store.set(linkSymbologyAtom, nullSymbologySpec.link);
@@ -103,7 +103,7 @@ export class MemPersistence implements IPersistence {
   useTransact() {
     return (moment: ModelMoment) => {
       const momentLog = this.store.get(momentLogAtom).copy();
-      const mapSnapshotPointer = this.store.get(mapSnapshotPointerAtom);
+      const mapSyncMoment = this.store.get(mapSyncMomentAtom);
 
       const isTruncatingHistory = momentLog.nextRedo() !== null;
 
@@ -125,14 +125,14 @@ export class MemPersistence implements IPersistence {
 
       momentLog.append(forwardMoment, reverseMoment, newStateId);
 
-      const newSnapshotPointer = this.computeSnapshotPointer(
-        mapSnapshotPointer,
+      const newMapSyncMoment = this.computeSyncMoment(
+        mapSyncMoment,
         momentLog,
         isTruncatingHistory,
       );
 
       this.store.set(momentLogAtom, momentLog);
-      this.store.set(mapSnapshotPointerAtom, newSnapshotPointer);
+      this.store.set(mapSyncMomentAtom, newMapSyncMoment);
     };
   }
 
@@ -140,7 +140,7 @@ export class MemPersistence implements IPersistence {
     return (direction: "undo" | "redo") => {
       const isUndo = direction === "undo";
       const momentLog = this.store.get(momentLogAtom).copy();
-      const mapSnapshotPointer = this.store.get(mapSnapshotPointerAtom);
+      const mapSyncMoment = this.store.get(mapSyncMomentAtom);
       const action = isUndo ? momentLog.nextUndo() : momentLog.nextRedo();
       if (!action) return;
 
@@ -148,13 +148,10 @@ export class MemPersistence implements IPersistence {
 
       isUndo ? momentLog.undo() : momentLog.redo();
 
-      const newSnapshotPointer = this.computeSnapshotPointer(
-        mapSnapshotPointer,
-        momentLog,
-      );
+      const newMapSyncMoment = this.computeSyncMoment(mapSyncMoment, momentLog);
 
       this.store.set(momentLogAtom, momentLog);
-      this.store.set(mapSnapshotPointerAtom, newSnapshotPointer);
+      this.store.set(mapSyncMomentAtom, newMapSyncMoment);
     };
   }
   /**
@@ -396,27 +393,27 @@ export class MemPersistence implements IPersistence {
     return reverseMoment;
   }
 
-  private exceedsMaxChangesSinceSnapshot(
+  private exceedsMaxChangesSinceLastSync(
     momentLog: MomentLog,
-    snapshotPointer: number,
+    lastSyncPointer: number,
   ): boolean {
-    const deltasFromSnapshot = momentLog.getDeltasFrom(snapshotPointer);
-    const editedAssetsCount = deltasFromSnapshot.reduce(
+    const deltasSinceLastSync = momentLog.getDeltas(lastSyncPointer);
+    const editedAssetsCount = deltasSinceLastSync.reduce(
       (count, moment) =>
         count + moment.deleteAssets.length + moment.putAssets.length,
       0,
     );
-    return editedAssetsCount > MAX_CHANGES_BEFORE_SNAPSHOT;
+    return editedAssetsCount > MAX_CHANGES_BEFORE_MAP_SYNC;
   }
 
-  private computeSnapshotPointer(
-    current: MapSnapshotPointer,
+  private computeSyncMoment(
+    current: MomentPointer,
     momentLog: MomentLog,
     force: boolean = false,
-  ): MapSnapshotPointer {
+  ): MomentPointer {
     if (
       force ||
-      this.exceedsMaxChangesSinceSnapshot(momentLog, current.pointer)
+      this.exceedsMaxChangesSinceLastSync(momentLog, current.pointer)
     ) {
       return {
         pointer: momentLog.getPointer(),
