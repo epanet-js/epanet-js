@@ -49,30 +49,7 @@ export const runSimulation = async (
   try {
     model.open("net.inp", "report.rpt", "results.out");
 
-    const nodeCount = model.getCount(CountType.NodeCount);
-    const linkCount = model.getCount(CountType.LinkCount);
-
-    const supplySourceIndices: number[] = [];
-    for (let i = 1; i <= nodeCount; i++) {
-      const nodeType = model.getNodeType(i);
-      if (nodeType === NodeType.Tank || nodeType === NodeType.Reservoir) {
-        supplySourceIndices.push(i);
-      }
-    }
-    const supplySourcesCount = supplySourceIndices.length;
-
-    const pumpIndices: number[] = [];
-    for (let i = 1; i <= linkCount; i++) {
-      const linkType = model.getLinkType(i);
-      if (linkType === LinkType.Pump) {
-        pumpIndices.push(i);
-      }
-    }
-    const pumpCount = pumpIndices.length;
-
-    const tankVolumesPerTimestep: number[][] = [];
-    const pumpStatusPerTimestep: number[][] = [];
-
+    const missingDataAccumulator = new MissingSimulationDataAccumulator(model);
     const totalDuration = model.getTimeParameter(TimeParameter.Duration);
 
     model.openH();
@@ -80,26 +57,8 @@ export const runSimulation = async (
 
     do {
       const currentTime = model.runH();
-
+      missingDataAccumulator.appendTimestepData(model);
       onProgress?.({ currentTime, totalDuration });
-
-      if (supplySourcesCount > 0) {
-        const volumes: number[] = [];
-        for (const nodeIndex of supplySourceIndices) {
-          const volume = model.getNodeValue(nodeIndex, NodeProperty.TankVolume);
-          volumes.push(volume);
-        }
-        tankVolumesPerTimestep.push(volumes);
-      }
-
-      if (pumpCount > 0) {
-        const statuses: number[] = [];
-        for (const linkIndex of pumpIndices) {
-          const status = model.getLinkValue(linkIndex, LinkProperty.PumpState);
-          statuses.push(status);
-        }
-        pumpStatusPerTimestep.push(statuses);
-      }
     } while (model.nextH() > 0);
 
     model.closeH();
@@ -111,22 +70,8 @@ export const runSimulation = async (
 
     const storage = new OPFSStorage(appId);
     await storage.save(RESULTS_OUT_KEY, resultsBuffer);
-
-    if (supplySourcesCount > 0) {
-      const tankVolumesBinary = new Float32Array(tankVolumesPerTimestep.flat());
-      await storage.save(
-        TANK_VOLUMES_KEY,
-        tankVolumesBinary.buffer as ArrayBuffer,
-      );
-    }
-
-    if (pumpCount > 0) {
-      const pumpStatusBinary = new Float32Array(pumpStatusPerTimestep.flat());
-      await storage.save(
-        PUMP_STATUS_KEY,
-        pumpStatusBinary.buffer as ArrayBuffer,
-      );
-    }
+    await storage.save(TANK_VOLUMES_KEY, missingDataAccumulator.tankVolumes());
+    await storage.save(PUMP_STATUS_KEY, missingDataAccumulator.pumpStatus());
 
     const report = ws.readFile("report.rpt");
 
@@ -175,3 +120,73 @@ const extractResultsData = (ws: Workspace) => {
     metadata,
   };
 };
+
+class MissingSimulationDataAccumulator {
+  private nodeCount: number;
+  private linkCount: number;
+  private supplySourcesCount: number;
+  private pumpCount: number;
+  private supplySourceIndices: number[] = [];
+  private pumpIndices: number[] = [];
+  private tankVolumesPerTimestep: number[][] = [];
+  private pumpStatusPerTimestep: number[][] = [];
+
+  constructor(model: Project) {
+    this.nodeCount = model.getCount(CountType.NodeCount);
+    this.linkCount = model.getCount(CountType.LinkCount);
+
+    for (let i = 1; i <= this.nodeCount; i++) {
+      const nodeType = model.getNodeType(i);
+      if (nodeType === NodeType.Tank || nodeType === NodeType.Reservoir) {
+        this.supplySourceIndices.push(i);
+      }
+    }
+    this.supplySourcesCount = this.supplySourceIndices.length;
+
+    for (let i = 1; i <= this.linkCount; i++) {
+      const linkType = model.getLinkType(i);
+      if (linkType === LinkType.Pump) {
+        this.pumpIndices.push(i);
+      }
+    }
+    this.pumpCount = this.pumpIndices.length;
+  }
+
+  appendTimestepData(model: Project) {
+    if (this.supplySourcesCount > 0) {
+      const volumes: number[] = [];
+      for (const nodeIndex of this.supplySourceIndices) {
+        const volume = model.getNodeValue(nodeIndex, NodeProperty.TankVolume);
+        volumes.push(volume);
+      }
+      this.tankVolumesPerTimestep.push(volumes);
+    }
+
+    if (this.pumpCount > 0) {
+      const statuses: number[] = [];
+      for (const linkIndex of this.pumpIndices) {
+        const status = model.getLinkValue(linkIndex, LinkProperty.PumpState);
+        statuses.push(status);
+      }
+      this.pumpStatusPerTimestep.push(statuses);
+    }
+  }
+
+  tankVolumes(): ArrayBuffer {
+    if (this.supplySourcesCount === 0) return new ArrayBuffer(0);
+
+    const tankVolumesBinary = new Float32Array(
+      this.tankVolumesPerTimestep.flat(),
+    );
+    return tankVolumesBinary.buffer as ArrayBuffer;
+  }
+
+  pumpStatus(): ArrayBuffer {
+    if (this.pumpCount === 0) return new ArrayBuffer(0);
+
+    const pumpStatusBinary = new Float32Array(
+      this.pumpStatusPerTimestep.flat(),
+    );
+    return pumpStatusBinary.buffer as ArrayBuffer;
+  }
+}
