@@ -10,6 +10,7 @@ interface QuickGraphChartProps {
   intervalsCount: number;
   intervalSeconds: number; // seconds
   currentIntervalIndex?: number;
+  decimals?: number;
   onIntevalClick?: (intervalIndex: number) => void;
 }
 
@@ -22,6 +23,7 @@ function QuickGraphChartECharts({
   intervalsCount,
   intervalSeconds,
   currentIntervalIndex,
+  decimals,
   onIntevalClick,
 }: QuickGraphChartProps) {
   const translate = useTranslate();
@@ -68,7 +70,7 @@ function QuickGraphChartECharts({
           color: colors.gray500,
           fontSize: 10,
           formatter: (value: number) => {
-            return localizeDecimal(value);
+            return localizeDecimal(value, { decimals });
           },
         },
       },
@@ -109,13 +111,13 @@ function QuickGraphChartECharts({
         formatter: (params: any) => {
           const data = params[0];
           if (!data) return "";
-          const value = localizeDecimal(data.value);
+          const value = localizeDecimal(data.value, { decimals });
 
           return `${data.name}<br/>${value}`;
         },
       },
     };
-  }, [values, timeLabels, currentIntervalIndex]);
+  }, [values, timeLabels, currentIntervalIndex, decimals]);
 
   const handleChartClick = useCallback(
     (params: any) => {

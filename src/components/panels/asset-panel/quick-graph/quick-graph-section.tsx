@@ -5,7 +5,7 @@ import { Button } from "src/components/elements";
 import { Section } from "src/components/form/fields";
 import { Selector } from "src/components/form/selector";
 import { useTranslate } from "src/hooks/use-translate";
-import { simulationAtom } from "src/state/jotai";
+import { dataAtom, simulationAtom } from "src/state/jotai";
 import { getSimulationMetadata } from "src/simulation/epanet/simulation-metadata";
 import {
   assetPanelFooterPinnedAtom,
@@ -54,8 +54,16 @@ const QuickGraphSection = ({ assetId, assetType }: QuickGraphSectionProps) => {
   const [isPinned, setIsPinned] = useAtom(assetPanelFooterPinnedAtom);
   const [propertyByType, setPropertyByType] = useAtom(quickGraphPropertyAtom);
   const simulation = useAtomValue(simulationAtom);
+  const {
+    modelMetadata: { quantities },
+  } = useAtomValue(dataAtom);
 
   const selectedProperty = propertyByType[assetType];
+  const quantityKey =
+    selectedProperty === "demand" ? "actualDemand" : selectedProperty;
+  const decimals = quantities.getDecimals(
+    quantityKey as Parameters<typeof quantities.getDecimals>[0],
+  );
 
   const { data, isLoading } = useTimeSeries({
     assetId,
@@ -117,6 +125,7 @@ const QuickGraphSection = ({ assetId, assetType }: QuickGraphSectionProps) => {
             intervalSeconds={data.intervalSeconds}
             intervalsCount={data.intervalsCount}
             currentIntervalIndex={timeStepIndex}
+            decimals={decimals}
           />
         ) : (
           <div className="h-full flex items-center justify-center text-gray-400 text-xs">
