@@ -14,7 +14,9 @@ import {
   type QuickGraphAssetType,
   type QuickGraphPropertyByAssetType,
 } from "src/state/quick-graph";
+import { useTimeSeries } from "./use-time-series";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { QuickGraphChart } from "./quick-graph-chart";
 
 export const useShowQuickGraph = () => {
   const simulation = useAtomValue(simulationAtom);
@@ -47,12 +49,25 @@ interface QuickGraphSectionProps {
   assetType: QuickGraphAssetType;
 }
 
-const QuickGraphSection = ({ assetType }: QuickGraphSectionProps) => {
+const QuickGraphSection = ({ assetId, assetType }: QuickGraphSectionProps) => {
   const translate = useTranslate();
   const [isPinned, setIsPinned] = useAtom(assetPanelFooterPinnedAtom);
   const [propertyByType, setPropertyByType] = useAtom(quickGraphPropertyAtom);
+  const simulation = useAtomValue(simulationAtom);
 
   const selectedProperty = propertyByType[assetType];
+
+  const { data, isLoading } = useTimeSeries({
+    assetId,
+    assetType,
+    property: selectedProperty,
+  });
+
+  const values = useMemo(() => (data ? Array.from(data.values) : []), [data]);
+  const timeStepIndex =
+    simulation.status === "success" || simulation.status === "warning"
+      ? simulation.currentTimestepIndex
+      : 0;
 
   const propertyOptions = useMemo(() => {
     const options = QUICK_GRAPH_PROPERTIES[assetType];
@@ -91,6 +106,25 @@ const QuickGraphSection = ({ assetType }: QuickGraphSectionProps) => {
 
   return (
     <Section title={translate("quickGraph")} button={pinButton}>
+      <div className="relative h-[100px]">
+        {isLoading ? (
+          <div className="absolute inset-0 flex items-center justify-center bg-white/50 dark:bg-gray-900/50 z-10">
+            <div className="w-4 h-4 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : data !== null ? (
+          <QuickGraphChart
+            values={values}
+            intervalSeconds={data.intervalSeconds}
+            intervalsCount={data.intervalsCount}
+            currentIntervalIndex={timeStepIndex}
+          />
+        ) : (
+          <div className="h-full flex items-center justify-center text-gray-400 text-xs">
+            {translate("errorLoadingData")}
+          </div>
+        )}
+      </div>
+
       <Selector
         options={propertyOptions}
         selected={selectedProperty}
