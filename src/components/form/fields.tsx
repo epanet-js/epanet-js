@@ -95,12 +95,16 @@ export const Section = ({
 
 export const SectionList = ({
   header,
+  footer,
+  isStickyFooter = false,
   children,
   gap = 5,
   padding = 4,
   overflow = true,
 }: {
   header?: React.ReactNode;
+  footer?: React.ReactNode;
+  isStickyFooter?: boolean;
   children: React.ReactNode;
   gap?: 1 | 2 | 3 | 4 | 5 | 6;
   padding?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
@@ -132,17 +136,39 @@ export const SectionList = ({
         })}
       >
         {children}
+        {!isStickyFooter && footer}
       </div>
     </div>
   );
 
-  if (header) {
+  if (header || footer) {
     return (
       <div className="flex flex-col flex-grow overflow-hidden">
-        <div className="sticky top-0 z-10 bg-white dark:bg-gray-950">
-          {header}
-        </div>
+        {header && (
+          <div className="sticky top-0 z-10 bg-white dark:bg-gray-950">
+            {header}
+          </div>
+        )}
         {content}
+        {isStickyFooter && footer && (
+          <div
+            className={clsx(
+              "sticky bottom-0 z-10 bg-white dark:bg-gray-950",
+              "has-[>*]:border-t border-gray-200 dark:border-gray-800",
+              {
+                "p-0 has-[>*]:p-0": padding === 0,
+                "has-[>*]:p-1": padding === 1,
+                "has-[>*]:p-2": padding === 2,
+                "has-[>*]:p-3": padding === 3,
+                "has-[>*]:p-4": padding === 4,
+                "has-[>*]:p-5": padding === 5,
+                "has-[>*]:p-6": padding === 6,
+              },
+            )}
+          >
+            {footer}
+          </div>
+        )}
       </div>
     );
   }

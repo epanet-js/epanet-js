@@ -19,8 +19,8 @@ export interface QuickGraphPropertyByAssetType {
 
 export type QuickGraphAssetType = keyof QuickGraphPropertyByAssetType;
 
-export const quickGraphPinnedAtom = atomWithStorage<boolean>(
-  "quickGraphPinned",
+export const assetPanelFooterPinnedAtom = atomWithStorage<boolean>(
+  "assetPanelFooterPinned",
   false,
 );
 

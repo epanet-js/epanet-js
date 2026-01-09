@@ -52,7 +52,7 @@ import {
   PumpDefinitionData,
 } from "./pump-definition-details";
 import { Curves } from "src/hydraulic-model/curves";
-import { QuickGraph } from "./quick-graph";
+import { QuickGraph, useShowQuickGraph } from "./quick-graph";
 
 type OnPropertyChange = (
   name: string,
@@ -350,6 +350,7 @@ const JunctionEditor = ({
   hydraulicModel: HydraulicModel;
 }) => {
   const translate = useTranslate();
+  const showQuickGraph = useShowQuickGraph();
   const customerPoints = useMemo(() => {
     return getActiveCustomerPoints(
       hydraulicModel.customerPointsLookup,
@@ -364,11 +365,16 @@ const JunctionEditor = ({
     0,
   );
 
+  const footer = showQuickGraph ? (
+    <QuickGraph assetId={junction.id} assetType="junction" />
+  ) : undefined;
+
   return (
     <AssetEditorContent
       label={junction.label}
       type={translate("junction")}
       onLabelChange={onLabelChange}
+      footer={footer}
       key={junction.id}
     >
       <Section title={translate("activeTopology")}>
@@ -442,7 +448,6 @@ const JunctionEditor = ({
           readOnly={true}
         />
       </Section>
-      <QuickGraph assetId={junction.id} assetType="junction" />
     </AssetEditorContent>
   );
 };
@@ -475,6 +480,7 @@ const PipeEditor = ({
   hydraulicModel: HydraulicModel;
 }) => {
   const translate = useTranslate();
+  const showQuickGraph = useShowQuickGraph();
 
   const simulationStatusText = translate(pipeStatusLabel(pipe));
 
@@ -505,11 +511,16 @@ const PipeEditor = ({
     onStatusChange(newValue, oldValue);
   };
 
+  const footer = showQuickGraph ? (
+    <QuickGraph assetId={pipe.id} assetType="pipe" />
+  ) : undefined;
+
   return (
     <AssetEditorContent
       label={pipe.label}
       type={translate("pipe")}
       onLabelChange={onLabelChange}
+      footer={footer}
       key={pipe.id}
     >
       <Section title={translate("connections")}>
@@ -614,7 +625,6 @@ const PipeEditor = ({
         />
         <TextRow name="actualStatus" value={simulationStatusText} />
       </Section>
-      <QuickGraph assetId={pipe.id} assetType="pipe" />
     </AssetEditorContent>
   );
 };
@@ -631,11 +641,18 @@ const ReservoirEditor = ({
   onLabelChange: (newLabel: string) => string | undefined;
 }) => {
   const translate = useTranslate();
+  const showQuickGraph = useShowQuickGraph();
+
+  const footer = showQuickGraph ? (
+    <QuickGraph assetId={reservoir.id} assetType="reservoir" />
+  ) : undefined;
+
   return (
     <AssetEditorContent
       label={reservoir.label}
       type={translate("reservoir")}
       onLabelChange={onLabelChange}
+      footer={footer}
       key={reservoir.id}
     >
       <Section title={translate("activeTopology")}>
@@ -661,7 +678,6 @@ const ReservoirEditor = ({
           onChange={onPropertyChange}
         />
       </Section>
-      <QuickGraph assetId={reservoir.id} assetType="reservoir" />
     </AssetEditorContent>
   );
 };
@@ -678,11 +694,18 @@ const TankEditor = ({
   onLabelChange: (newLabel: string) => string | undefined;
 }) => {
   const translate = useTranslate();
+  const showQuickGraph = useShowQuickGraph();
+
+  const footer = showQuickGraph ? (
+    <QuickGraph assetId={tank.id} assetType="tank" />
+  ) : undefined;
+
   return (
     <AssetEditorContent
       label={tank.label}
       type={translate("tank")}
       onLabelChange={onLabelChange}
+      footer={footer}
       key={tank.id}
     >
       <Section title={translate("activeTopology")}>
@@ -778,7 +801,6 @@ const TankEditor = ({
           readOnly={true}
         />
       </Section>
-      <QuickGraph assetId={tank.id} assetType="tank" />
     </AssetEditorContent>
   );
 };
@@ -809,6 +831,7 @@ const ValveEditor = ({
   onLabelChange: (newLabel: string) => string | undefined;
 }) => {
   const translate = useTranslate();
+  const showQuickGraph = useShowQuickGraph();
   const statusText = translate(valveStatusLabel(valve));
 
   const statusOptions = useMemo(() => {
@@ -853,11 +876,16 @@ const ValveEditor = ({
     return null;
   };
 
+  const footer = showQuickGraph ? (
+    <QuickGraph assetId={valve.id} assetType="valve" />
+  ) : undefined;
+
   return (
     <AssetEditorContent
       label={valve.label}
       type={translate("valve")}
       onLabelChange={onLabelChange}
+      footer={footer}
       key={valve.id}
     >
       <Section title={translate("connections")}>
@@ -932,7 +960,6 @@ const ValveEditor = ({
         />
         <TextRow name="status" value={statusText} />
       </Section>
-      <QuickGraph assetId={valve.id} assetType="valve" />
     </AssetEditorContent>
   );
 };
@@ -965,6 +992,7 @@ const PumpEditor = ({
   curves: Curves;
 }) => {
   const translate = useTranslate();
+  const showQuickGraph = useShowQuickGraph();
   const statusText = translate(pumpStatusLabel(pump));
 
   const statusOptions = useMemo(() => {
@@ -982,11 +1010,16 @@ const PumpEditor = ({
     onStatusChange(newValue, oldValue);
   };
 
+  const footer = showQuickGraph ? (
+    <QuickGraph assetId={pump.id} assetType="pump" />
+  ) : undefined;
+
   return (
     <AssetEditorContent
       label={pump.label}
       type={translate("pump")}
       onLabelChange={onLabelChange}
+      footer={footer}
       key={pump.id}
     >
       <Section title={translate("connections")}>
@@ -1039,7 +1072,6 @@ const PumpEditor = ({
         />
         <TextRow name="status" value={statusText} />
       </Section>
-      <QuickGraph assetId={pump.id} assetType="pump" />
     </AssetEditorContent>
   );
 };

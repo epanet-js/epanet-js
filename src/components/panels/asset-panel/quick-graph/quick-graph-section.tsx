@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import { useAtom, useAtomValue } from "jotai";
 import { PinIcon, PinOffIcon } from "src/icons";
 import { Button } from "src/components/elements";
@@ -6,14 +6,41 @@ import { Section } from "src/components/form/fields";
 import { Selector } from "src/components/form/selector";
 import { useTranslate } from "src/hooks/use-translate";
 import { simulationAtom } from "src/state/jotai";
+import { getSimulationMetadata } from "src/simulation/epanet/simulation-metadata";
 import {
-  quickGraphPinnedAtom,
+  assetPanelFooterPinnedAtom,
   quickGraphPropertyAtom,
   QUICK_GRAPH_PROPERTIES,
   type QuickGraphAssetType,
   type QuickGraphPropertyByAssetType,
 } from "src/state/quick-graph";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
+
+export const useShowQuickGraph = () => {
+  const simulation = useAtomValue(simulationAtom);
+  const isQuickGraphEnabled = useFeatureFlag("FLAG_QUICK_GRAPH");
+  const hadValidSimulationRef = useRef(false);
+
+  if (!isQuickGraphEnabled) return false;
+
+  const hasCompletedSimulation =
+    simulation.status === "success" || simulation.status === "warning";
+
+  if (hasCompletedSimulation) {
+    const metadata = getSimulationMetadata(simulation.metadata);
+    hadValidSimulationRef.current = metadata.reportingStepsCount > 1;
+  }
+
+  if (hasCompletedSimulation) {
+    return hadValidSimulationRef.current;
+  }
+
+  if (simulation.status === "running") {
+    return hadValidSimulationRef.current;
+  }
+
+  return false;
+};
 
 interface QuickGraphSectionProps {
   assetId: number;
@@ -22,8 +49,7 @@ interface QuickGraphSectionProps {
 
 const QuickGraphSection = ({ assetType }: QuickGraphSectionProps) => {
   const translate = useTranslate();
-  const simulation = useAtomValue(simulationAtom);
-  const [isPinned, setIsPinned] = useAtom(quickGraphPinnedAtom);
+  const [isPinned, setIsPinned] = useAtom(assetPanelFooterPinnedAtom);
   const [propertyByType, setPropertyByType] = useAtom(quickGraphPropertyAtom);
 
   const selectedProperty = propertyByType[assetType];
@@ -50,13 +76,6 @@ const QuickGraphSection = ({ assetType }: QuickGraphSectionProps) => {
     setIsPinned((prev) => !prev);
   }, [setIsPinned]);
 
-  const hasSimulation =
-    simulation.status === "success" || simulation.status === "warning";
-
-  if (!hasSimulation) {
-    return null;
-  }
-
   const pinButton = (
     <Button
       variant="ultra-quiet"
@@ -66,7 +85,7 @@ const QuickGraphSection = ({ assetType }: QuickGraphSectionProps) => {
       aria-label={isPinned ? translate("unpin") : translate("pin")}
       data-state-on={isPinned || undefined}
     >
-      {isPinned ? <PinIcon size="sm" /> : <PinOffIcon size="sm" />}
+      {isPinned ? <PinOffIcon size="sm" /> : <PinIcon size="sm" />}
     </Button>
   );
 
@@ -77,10 +96,9 @@ const QuickGraphSection = ({ assetType }: QuickGraphSectionProps) => {
         selected={selectedProperty}
         onChange={handlePropertyChange}
         styleOptions={{
-          textSize: "text-xs",
           border: true,
-          paddingX: 2,
-          paddingY: 1,
+          textSize: "text-sm",
+          paddingY: 2,
         }}
       />
     </Section>
@@ -88,8 +106,8 @@ const QuickGraphSection = ({ assetType }: QuickGraphSectionProps) => {
 };
 
 const QuickGraphFeature = ({ assetId, assetType }: QuickGraphSectionProps) => {
-  const isQuickGraphEnabled = useFeatureFlag("FLAG_QUICK_GRAPH");
-  return isQuickGraphEnabled ? (
+  const showQuickGraph = useShowQuickGraph();
+  return showQuickGraph ? (
     <QuickGraphSection assetId={assetId} assetType={assetType} />
   ) : null;
 };
