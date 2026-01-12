@@ -144,16 +144,17 @@ const QuickGraphSection = ({ assetId, assetType }: QuickGraphSectionProps) => {
   }, [setIsPinned]);
 
   const pinButton = (
-    <Button
-      variant="ultra-quiet"
-      size="xxs"
-      onClick={handlePinToggle}
-      title={isPinned ? translate("unpin") : translate("pin")}
-      aria-label={isPinned ? translate("unpin") : translate("pin")}
-      data-state-on={isPinned || undefined}
-    >
-      {isPinned ? <PinOffIcon size="sm" /> : <PinIcon size="sm" />}
-    </Button>
+    <div className="flex h-8 my-[-0.5rem]">
+      <Button
+        variant="quiet"
+        onClick={handlePinToggle}
+        title={isPinned ? translate("unpin") : translate("pin")}
+        aria-label={isPinned ? translate("unpin") : translate("pin")}
+        data-state-on={isPinned || undefined}
+      >
+        {isPinned ? <PinOffIcon /> : <PinIcon />}
+      </Button>
+    </div>
   );
 
   return (
