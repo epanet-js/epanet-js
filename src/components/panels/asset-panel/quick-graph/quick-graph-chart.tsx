@@ -63,7 +63,7 @@ function QuickGraphChartECharts({
       yAxis: {
         type: "value",
         minInterval: 0.001,
-        splitLine: { show: false },
+        splitLine: { show: true, lineStyle: { color: colors.gray300 } },
         axisLine: { show: false },
         axisTick: { show: false },
         axisLabel: {
