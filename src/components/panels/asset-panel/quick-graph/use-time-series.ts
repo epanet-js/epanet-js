@@ -34,18 +34,27 @@ export function useTimeSeries<T extends QuickGraphAssetType>({
   const [isLoading, setIsLoading] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
 
+  const status = simulation.status;
+  const metadata =
+    status === "success" || status === "warning"
+      ? simulation.metadata
+      : undefined;
+  const simulationIds =
+    status === "success" || status === "warning"
+      ? simulation.simulationIds
+      : undefined;
+
   useEffect(() => {
-    if (simulation.status === "failure") {
+    if (status === "failure") {
       setData(null);
       setIsLoading(false);
       return;
     }
 
-    if (simulation.status !== "success" && simulation.status !== "warning") {
+    if (status !== "success" && status !== "warning") {
       return;
     }
 
-    const { metadata, simulationIds } = simulation;
     if (!metadata || !simulationIds) {
       return;
     }
@@ -92,7 +101,7 @@ export function useTimeSeries<T extends QuickGraphAssetType>({
     return () => {
       abortControllerRef.current?.abort();
     };
-  }, [assetId, assetType, property, simulation]);
+  }, [assetId, assetType, property, status, metadata, simulationIds]);
 
   return { data, isLoading };
 }
