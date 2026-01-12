@@ -10,13 +10,52 @@ import { getSimulationMetadata } from "src/simulation/epanet/simulation-metadata
 import {
   assetPanelFooterPinnedAtom,
   quickGraphPropertyAtom,
-  QUICK_GRAPH_PROPERTIES,
   type QuickGraphAssetType,
   type QuickGraphPropertyByAssetType,
 } from "src/state/quick-graph";
+import type { QuantityProperty } from "src/model-metadata/quantities-spec";
 import { useTimeSeries } from "./use-time-series";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { QuickGraphChart } from "./quick-graph-chart";
+
+const QUICK_GRAPH_PROPERTIES: {
+  [K in QuickGraphAssetType]: {
+    value: QuickGraphPropertyByAssetType[K];
+    labelKey: string;
+    quantityKey: QuantityProperty;
+  }[];
+} = {
+  junction: [
+    { value: "pressure", labelKey: "pressure", quantityKey: "pressure" },
+    { value: "head", labelKey: "head", quantityKey: "head" },
+    { value: "demand", labelKey: "actualDemand", quantityKey: "actualDemand" },
+  ],
+  pipe: [
+    { value: "flow", labelKey: "flow", quantityKey: "flow" },
+    { value: "velocity", labelKey: "velocity", quantityKey: "velocity" },
+    {
+      value: "headloss",
+      labelKey: "unitHeadloss",
+      quantityKey: "unitHeadloss",
+    },
+  ],
+  pump: [
+    { value: "flow", labelKey: "flow", quantityKey: "flow" },
+    { value: "headloss", labelKey: "pumpHead", quantityKey: "head" },
+  ],
+  valve: [
+    { value: "flow", labelKey: "flow", quantityKey: "flow" },
+    { value: "velocity", labelKey: "velocity", quantityKey: "velocity" },
+    { value: "headloss", labelKey: "headlossShort", quantityKey: "headloss" },
+  ],
+  tank: [
+    { value: "level", labelKey: "level", quantityKey: "level" },
+    { value: "volume", labelKey: "volume", quantityKey: "volume" },
+    { value: "pressure", labelKey: "pressure", quantityKey: "pressure" },
+    { value: "head", labelKey: "head", quantityKey: "head" },
+  ],
+  reservoir: [{ value: "head", labelKey: "head", quantityKey: "head" }],
+};
 
 export const useShowQuickGraph = () => {
   const simulation = useAtomValue(simulationAtom);
@@ -59,11 +98,12 @@ const QuickGraphSection = ({ assetId, assetType }: QuickGraphSectionProps) => {
   } = useAtomValue(dataAtom);
 
   const selectedProperty = propertyByType[assetType];
-  const quantityKey =
-    selectedProperty === "demand" ? "actualDemand" : selectedProperty;
-  const decimals = quantities.getDecimals(
-    quantityKey as Parameters<typeof quantities.getDecimals>[0],
+  const selectedOption = QUICK_GRAPH_PROPERTIES[assetType].find(
+    (opt) => opt.value === selectedProperty,
   );
+  const decimals = selectedOption
+    ? quantities.getDecimals(selectedOption.quantityKey)
+    : undefined;
 
   const { data, isLoading } = useTimeSeries({
     assetId,
@@ -79,11 +119,15 @@ const QuickGraphSection = ({ assetId, assetType }: QuickGraphSectionProps) => {
 
   const propertyOptions = useMemo(() => {
     const options = QUICK_GRAPH_PROPERTIES[assetType];
-    return options.map((opt) => ({
-      value: opt.value,
-      label: translate(opt.labelKey),
-    }));
-  }, [assetType, translate]);
+    return options.map((opt) => {
+      const label = translate(opt.labelKey);
+      const unit = quantities.getUnit(opt.quantityKey);
+      return {
+        value: opt.value,
+        label: unit ? `${label} (${unit})` : label,
+      };
+    });
+  }, [assetType, translate, quantities]);
 
   const handlePropertyChange = useCallback(
     (value: QuickGraphPropertyByAssetType[typeof assetType]) => {
