@@ -2,14 +2,14 @@ import { useCallback, useMemo, useRef } from "react";
 import { useAtom, useAtomValue } from "jotai";
 import { PinIcon, PinOffIcon } from "src/icons";
 import { Button } from "src/components/elements";
-import { Section } from "src/components/form/fields";
 import { Selector } from "src/components/form/selector";
 import { useTranslate } from "src/hooks/use-translate";
 import { dataAtom, simulationAtom } from "src/state/jotai";
 import { getSimulationMetadata } from "src/simulation/epanet/simulation-metadata";
 import {
-  assetPanelFooterPinnedAtom,
+  assetPanelFooterAtom,
   quickGraphPropertyAtom,
+  DEFAULT_FOOTER_HEIGHT,
   type QuickGraphAssetType,
   type QuickGraphPropertyByAssetType,
 } from "src/state/quick-graph";
@@ -93,7 +93,7 @@ interface QuickGraphSectionProps {
 
 const QuickGraphSection = ({ assetId, assetType }: QuickGraphSectionProps) => {
   const translate = useTranslate();
-  const [isPinned, setIsPinned] = useAtom(assetPanelFooterPinnedAtom);
+  const [footerState, setFooterState] = useAtom(assetPanelFooterAtom);
   const [propertyByType, setPropertyByType] = useAtom(quickGraphPropertyAtom);
   const simulation = useAtomValue(simulationAtom);
   const {
@@ -149,8 +149,11 @@ const QuickGraphSection = ({ assetId, assetType }: QuickGraphSectionProps) => {
   );
 
   const handlePinToggle = useCallback(() => {
-    setIsPinned((prev) => !prev);
-  }, [setIsPinned]);
+    setFooterState((prev) => ({
+      isPinned: !prev.isPinned,
+      height: DEFAULT_FOOTER_HEIGHT,
+    }));
+  }, [setFooterState]);
 
   const handleIntervalClick = useCallback(
     (intervalIndex: number) => {
@@ -158,6 +161,8 @@ const QuickGraphSection = ({ assetId, assetType }: QuickGraphSectionProps) => {
     },
     [changeTimestep],
   );
+
+  const { isPinned } = footerState;
 
   const pinButton = (
     <div className="flex h-8 my-[-0.5rem]">
@@ -174,8 +179,12 @@ const QuickGraphSection = ({ assetId, assetType }: QuickGraphSectionProps) => {
   );
 
   return (
-    <Section title={translate("quickGraph")} button={pinButton}>
-      <div className="w-max mx-auto">
+    <div className="flex flex-col flex-1 min-h-0">
+      <div className="flex items-start justify-between text-sm font-semibold pb-2">
+        {translate("quickGraph")}
+        {pinButton}
+      </div>
+      <div className="w-max mx-auto pb-2">
         <Selector
           options={propertyOptions}
           selected={selectedProperty}
@@ -183,32 +192,35 @@ const QuickGraphSection = ({ assetId, assetType }: QuickGraphSectionProps) => {
           styleOptions={{
             border: true,
             textSize: "text-sm",
-            paddingY: 2,
+            paddingY: 1,
           }}
         />
       </div>
 
-      <div className="relative h-[100px]">
-        {isLoading ? (
+      <div className="relative flex-1 min-h-[60px]">
+        {isLoading && (
           <div className="absolute inset-0 flex items-center justify-center bg-white/50 dark:bg-gray-900/50 z-10">
             <div className="w-4 h-4 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
           </div>
-        ) : data !== null ? (
-          <QuickGraphChart
-            values={values}
-            intervalSeconds={data.intervalSeconds}
-            intervalsCount={data.intervalsCount}
-            currentIntervalIndex={timeStepIndex}
-            decimals={decimals}
-            onIntevalClick={handleIntervalClick}
-          />
+        )}
+        {data !== null ? (
+          <div className="absolute inset-0">
+            <QuickGraphChart
+              values={values}
+              intervalSeconds={data.intervalSeconds}
+              intervalsCount={data.intervalsCount}
+              currentIntervalIndex={timeStepIndex}
+              decimals={decimals}
+              onIntevalClick={handleIntervalClick}
+            />
+          </div>
         ) : (
           <div className="h-full flex items-center justify-center text-gray-400 text-xs">
             {translate("errorLoadingData")}
           </div>
         )}
       </div>
-    </Section>
+    </div>
   );
 };
 

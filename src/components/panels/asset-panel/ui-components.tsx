@@ -20,9 +20,9 @@ import * as P from "@radix-ui/react-popover";
 import { StyledPopoverArrow, StyledPopoverContent } from "../../elements";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import { JunctionDemand } from "src/hydraulic-model/demands";
-import { useSetAtom, useAtomValue } from "jotai";
+import { useSetAtom, useAtom } from "jotai";
 import { ephemeralStateAtom } from "src/state/jotai";
-import { assetPanelFooterPinnedAtom } from "src/state/quick-graph";
+import { assetPanelFooterAtom } from "src/state/quick-graph";
 import { MultipleValuesIcon } from "src/icons";
 import { useVirtualizer } from "@tanstack/react-virtual";
 
@@ -39,7 +39,14 @@ export const AssetEditorContent = ({
   footer?: React.ReactNode;
   children: React.ReactNode;
 }) => {
-  const isFooterPinned = useAtomValue(assetPanelFooterPinnedAtom);
+  const [footerState, setFooterState] = useAtom(assetPanelFooterAtom);
+
+  const handleFooterHeightChange = useCallback(
+    (height: number) => {
+      setFooterState((prev) => ({ ...prev, height }));
+    },
+    [setFooterState],
+  );
 
   return (
     <SectionList
@@ -47,7 +54,9 @@ export const AssetEditorContent = ({
         <Header label={label} type={type} onLabelChange={onLabelChange} />
       }
       footer={footer}
-      isStickyFooter={isFooterPinned}
+      isStickyFooter={footerState.isPinned}
+      stickyFooterHeight={footerState.height}
+      onStickyFooterHeightChange={handleFooterHeightChange}
       gap={3}
     >
       {children}

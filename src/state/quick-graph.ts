@@ -1,3 +1,4 @@
+import { atom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 import type {
   JunctionProperty,
@@ -19,10 +20,17 @@ export interface QuickGraphPropertyByAssetType {
 
 export type QuickGraphAssetType = keyof QuickGraphPropertyByAssetType;
 
-export const assetPanelFooterPinnedAtom = atomWithStorage<boolean>(
-  "assetPanelFooterPinned",
-  false,
-);
+interface AssetPanelFooterState {
+  isPinned: boolean;
+  height: number;
+}
+
+export const DEFAULT_FOOTER_HEIGHT = 158;
+
+export const assetPanelFooterAtom = atom<AssetPanelFooterState>({
+  isPinned: false,
+  height: DEFAULT_FOOTER_HEIGHT,
+});
 
 export const quickGraphPropertyAtom =
   atomWithStorage<QuickGraphPropertyByAssetType>("quickGraphProperty", {

@@ -2,6 +2,7 @@ import clsx from "clsx";
 import { useState } from "react";
 import * as C from "@radix-ui/react-collapsible";
 import { ChevronDownIcon, ChevronRightIcon } from "src/icons";
+import { FooterResizer } from "src/components/resizer";
 
 export const FieldList = ({ children }: { children: React.ReactNode }) => {
   return <div className="flex flex-col gap-y-1">{children}</div>;
@@ -97,6 +98,8 @@ export const SectionList = ({
   header,
   footer,
   isStickyFooter = false,
+  stickyFooterHeight,
+  onStickyFooterHeightChange,
   children,
   gap = 5,
   padding = 4,
@@ -105,11 +108,18 @@ export const SectionList = ({
   header?: React.ReactNode;
   footer?: React.ReactNode;
   isStickyFooter?: boolean;
+  stickyFooterHeight?: number;
+  onStickyFooterHeightChange?: (height: number) => void;
   children: React.ReactNode;
   gap?: 1 | 2 | 3 | 4 | 5 | 6;
   padding?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
   overflow?: boolean;
 }) => {
+  const isResizableFooter =
+    isStickyFooter &&
+    stickyFooterHeight !== undefined &&
+    onStickyFooterHeightChange !== undefined;
+
   const content = (
     <div
       className={clsx(
@@ -153,20 +163,32 @@ export const SectionList = ({
         {isStickyFooter && footer && (
           <div
             className={clsx(
-              "sticky bottom-0 z-10 bg-white dark:bg-gray-950",
-              "has-[>*]:border-t border-gray-200 dark:border-gray-800",
-              {
-                "p-0 has-[>*]:p-0": padding === 0,
-                "has-[>*]:p-1": padding === 1,
-                "has-[>*]:p-2": padding === 2,
-                "has-[>*]:p-3": padding === 3,
-                "has-[>*]:p-4": padding === 4,
-                "has-[>*]:p-5": padding === 5,
-                "has-[>*]:p-6": padding === 6,
-              },
+              "z-10 bg-white dark:bg-gray-950 flex flex-col relative border-t border-gray-200 dark:border-gray-800",
+              isResizableFooter ? "flex-shrink-0" : "sticky bottom-0",
             )}
+            style={
+              isResizableFooter ? { height: stickyFooterHeight } : undefined
+            }
           >
-            {footer}
+            {isResizableFooter && (
+              <FooterResizer
+                height={stickyFooterHeight}
+                onHeightChange={onStickyFooterHeightChange}
+              />
+            )}
+            <div
+              className={clsx("flex-1 min-h-0 flex flex-col", {
+                "p-0": padding === 0,
+                "p-1": padding === 1,
+                "p-2": padding === 2,
+                "p-3": padding === 3,
+                "p-4": padding === 4,
+                "p-5": padding === 5,
+                "p-6": padding === 6,
+              })}
+            >
+              {footer}
+            </div>
           </div>
         )}
       </div>

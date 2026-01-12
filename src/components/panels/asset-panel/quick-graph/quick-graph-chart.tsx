@@ -1,4 +1,4 @@
-import { useMemo, useCallback } from "react";
+import { useMemo, useCallback, useRef, useEffect } from "react";
 import ReactECharts, { EChartsInstance } from "echarts-for-react";
 import type { EChartsOption } from "echarts";
 import { useTranslate } from "src/hooks/use-translate";
@@ -122,6 +122,22 @@ function QuickGraphChartECharts({
     };
   }, [values, timeLabels, currentIntervalIndex, decimals]);
 
+  const chartRef = useRef<ReactECharts>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const resizeObserver = new ResizeObserver(() => {
+      const chart = chartRef.current?.getEchartsInstance();
+      chart?.resize();
+    });
+
+    resizeObserver.observe(container);
+    return () => resizeObserver.disconnect();
+  }, []);
+
   const onChartReady = useCallback(
     (chart: EChartsInstance) => {
       if (!onIntevalClick) return;
@@ -150,19 +166,22 @@ function QuickGraphChartECharts({
 
   if (intervalsCount === 0 || values.length === 0) {
     return (
-      <div className="h-[100px] flex items-center justify-center text-gray-400 text-xs">
+      <div className="h-full flex items-center justify-center text-gray-400 text-xs">
         {translate("noDataAvailable")}
       </div>
     );
   }
 
   return (
-    <ReactECharts
-      option={option}
-      style={{ height: "100px", width: "100%" }}
-      opts={{ renderer: "svg" }}
-      onChartReady={onChartReady}
-      notMerge={true}
-    />
+    <div ref={containerRef} className="h-full w-full">
+      <ReactECharts
+        ref={chartRef}
+        option={option}
+        style={{ height: "100%", width: "100%" }}
+        opts={{ renderer: "svg" }}
+        onChartReady={onChartReady}
+        notMerge={true}
+      />
+    </div>
   );
 }

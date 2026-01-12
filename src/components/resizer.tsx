@@ -317,3 +317,60 @@ export const BottomResizer = memo(function BottomResizerInner() {
     </button>
   );
 });
+
+const MIN_FOOTER_HEIGHT = 150;
+const MAX_FOOTER_HEIGHT = 400;
+
+export const FooterResizer = memo(function FooterResizerInner({
+  height,
+  onHeightChange,
+}: {
+  height: number;
+  onHeightChange: (height: number) => void;
+}) {
+  const rawHeight = useRef<number | null>(null);
+  const heightRef = useRef(height);
+  heightRef.current = height;
+
+  const { moveProps } = useMove({
+    onMoveStart() {
+      rawHeight.current = heightRef.current;
+    },
+    onMove(e) {
+      if (rawHeight.current === null) return;
+      rawHeight.current -= Math.round(e.deltaY);
+      const newHeight = Math.max(
+        MIN_FOOTER_HEIGHT,
+        Math.min(MAX_FOOTER_HEIGHT, rawHeight.current),
+      );
+      onHeightChange(newHeight);
+    },
+    onMoveEnd() {
+      rawHeight.current = null;
+    },
+  });
+
+  return (
+    <button
+      {...moveProps}
+      type="button"
+      role="separator"
+      aria-orientation="horizontal"
+      aria-label="Resize footer"
+      tabIndex={1}
+      style={{ cursor: "row-resize" }}
+      className="absolute top-0 left-0 right-0 h-3 -translate-y-1/2 z-20
+        touch-none
+        flex items-center justify-center
+        group"
+    >
+      <div
+        className="w-full h-1
+          bg-purple-700 dark:bg-purple-700
+          opacity-0
+          group-hover:opacity-100
+          pointer-events-none"
+      />
+    </button>
+  );
+});
