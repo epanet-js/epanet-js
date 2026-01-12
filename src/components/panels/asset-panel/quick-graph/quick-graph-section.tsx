@@ -177,7 +177,7 @@ const QuickGraphSection = ({ assetId, assetType }: QuickGraphSectionProps) => {
         {translate("quickGraph")}
         {pinButton}
       </div>
-      <div className="w-max mx-auto pb-2">
+      <div className="w-max pb-2">
         <Selector
           options={propertyOptions}
           selected={selectedProperty}
