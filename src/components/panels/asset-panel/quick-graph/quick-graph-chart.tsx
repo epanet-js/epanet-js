@@ -8,10 +8,10 @@ import { colors } from "src/lib/constants";
 interface QuickGraphChartProps {
   values: number[];
   intervalsCount: number;
-  intervalSeconds: number; // seconds
-  currentIntervalIndex?: number;
-  decimals?: number;
-  onIntevalClick?: (intervalIndex: number) => void;
+  intervalSeconds: number;
+  decimals: number;
+  currentIntervalIndex: number;
+  onIntevalClick: (intervalIndex: number) => void;
 }
 
 export function QuickGraphChart(props: QuickGraphChartProps) {
@@ -39,12 +39,12 @@ function QuickGraphChartECharts({
     return labels;
   }, [intervalsCount, intervalSeconds]);
 
-  const option: EChartsOption = useMemo(() => {
-    const markLineData =
-      currentIntervalIndex !== undefined
-        ? [{ xAxis: currentIntervalIndex }]
-        : [];
+  const yAxisMinInterval = useMemo(
+    () => calculateMinInterval(decimals, values),
+    [values, decimals],
+  );
 
+  const option: EChartsOption = useMemo(() => {
     return {
       animation: false,
       grid: {
@@ -63,8 +63,8 @@ function QuickGraphChartECharts({
       yAxis: {
         type: "value",
         scale: true,
-        minInterval: decimals !== undefined ? Math.pow(10, -decimals) : 0.001,
-        splitNumber: 3,
+        minInterval: yAxisMinInterval,
+        splitNumber: 1,
         splitLine: { show: true, lineStyle: { color: colors.gray300 } },
         axisLine: { show: false },
         axisTick: { show: false },
@@ -87,20 +87,17 @@ function QuickGraphChartECharts({
           symbol: "none",
           smooth: false,
           triggerLineEvent: true,
-          markLine:
-            markLineData.length > 0
-              ? {
-                  silent: true,
-                  symbol: "none",
-                  data: markLineData,
-                  lineStyle: {
-                    type: "dashed",
-                    color: colors.gray500,
-                    width: 1,
-                  },
-                  label: { show: false },
-                }
-              : undefined,
+          markLine: {
+            silent: true,
+            symbol: "none",
+            data: [{ xAxis: currentIntervalIndex }],
+            lineStyle: {
+              type: "dashed",
+              color: colors.gray500,
+              width: 1,
+            },
+            label: { show: false },
+          },
         },
       ],
       tooltip: {
@@ -120,7 +117,7 @@ function QuickGraphChartECharts({
         },
       },
     };
-  }, [values, timeLabels, currentIntervalIndex, decimals]);
+  }, [timeLabels, yAxisMinInterval, values, currentIntervalIndex, decimals]);
 
   const chartRef = useRef<ReactECharts>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -140,8 +137,6 @@ function QuickGraphChartECharts({
 
   const onChartReady = useCallback(
     (chart: EChartsInstance) => {
-      if (!onIntevalClick) return;
-
       const zr = chart.getZr();
 
       zr.on("click", (params: any) => {
@@ -185,3 +180,20 @@ function QuickGraphChartECharts({
     </div>
   );
 }
+
+const calculateMinInterval = (decimals: number, values: number[]) => {
+  const factor = Math.pow(10, decimals);
+  const minVal =
+    values.length > 0 ? Math.floor(Math.min(...values) * factor) / factor : 0;
+  const maxVal =
+    values.length > 0 ? Math.ceil(Math.max(...values) * factor) / factor : 0;
+
+  const dataRange = Math.abs(maxVal - minVal);
+  const precisionInterval = Math.pow(10, -decimals + 1);
+  const rangeBasedInterval =
+    dataRange > 0 ? Math.ceil((dataRange / 3) * factor) / factor : 0;
+
+  return rangeBasedInterval < precisionInterval
+    ? precisionInterval
+    : rangeBasedInterval;
+};

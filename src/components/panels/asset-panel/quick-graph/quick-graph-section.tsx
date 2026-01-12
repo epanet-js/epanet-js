@@ -19,8 +19,6 @@ import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { QuickGraphChart } from "./quick-graph-chart";
 import { useChangeTimestep } from "src/commands/change-timestep";
 
-const USE_ROUNDING = false;
-
 const QUICK_GRAPH_PROPERTIES: {
   [K in QuickGraphAssetType]: {
     value: QuickGraphPropertyByAssetType[K];
@@ -106,8 +104,8 @@ const QuickGraphSection = ({ assetId, assetType }: QuickGraphSectionProps) => {
     (opt) => opt.value === selectedProperty,
   );
   const decimals = selectedOption
-    ? quantities.getDecimals(selectedOption.quantityKey)
-    : undefined;
+    ? (quantities.getDecimals(selectedOption.quantityKey) ?? 0)
+    : 0;
 
   const { data, isLoading } = useTimeSeries({
     assetId,
@@ -115,15 +113,10 @@ const QuickGraphSection = ({ assetId, assetType }: QuickGraphSectionProps) => {
     property: selectedProperty,
   });
 
-  const values = useMemo(() => {
-    if (!data) return [];
-    if (!USE_ROUNDING || decimals === undefined) return Array.from(data.values);
-    const factor = Math.pow(10, decimals);
-    return Array.from(data.values).map((v) => Math.round(v * factor) / factor);
-  }, [data, decimals]);
+  const values = useMemo(() => (data ? Array.from(data.values) : []), [data]);
   const timeStepIndex =
     simulation.status === "success" || simulation.status === "warning"
-      ? simulation.currentTimestepIndex
+      ? (simulation.currentTimestepIndex ?? 0)
       : 0;
 
   const propertyOptions = useMemo(() => {
