@@ -2,7 +2,7 @@ import clsx from "clsx";
 import { useState } from "react";
 import * as C from "@radix-ui/react-collapsible";
 import { ChevronDownIcon, ChevronRightIcon } from "src/icons";
-import { FooterResizer } from "src/components/resizer";
+import { FooterResizer, useBigScreen } from "src/components/resizer";
 
 export const FieldList = ({ children }: { children: React.ReactNode }) => {
   return <div className="flex flex-col gap-y-1">{children}</div>;
@@ -115,7 +115,9 @@ export const SectionList = ({
   padding?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
   overflow?: boolean;
 }) => {
+  const isBigScreen = useBigScreen();
   const isResizableFooter =
+    isBigScreen &&
     isStickyFooter &&
     stickyFooterHeight !== undefined &&
     onStickyFooterHeightChange !== undefined;
