@@ -17,6 +17,7 @@ import type { QuantityProperty } from "src/model-metadata/quantities-spec";
 import { useTimeSeries } from "./use-time-series";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { QuickGraphChart } from "./quick-graph-chart";
+import { useChangeTimestep } from "src/commands/change-timestep";
 
 const USE_ROUNDING = false;
 
@@ -98,6 +99,7 @@ const QuickGraphSection = ({ assetId, assetType }: QuickGraphSectionProps) => {
   const {
     modelMetadata: { quantities },
   } = useAtomValue(dataAtom);
+  const { changeTimestep } = useChangeTimestep();
 
   const selectedProperty = propertyByType[assetType];
   const selectedOption = QUICK_GRAPH_PROPERTIES[assetType].find(
@@ -150,6 +152,13 @@ const QuickGraphSection = ({ assetId, assetType }: QuickGraphSectionProps) => {
     setIsPinned((prev) => !prev);
   }, [setIsPinned]);
 
+  const handleIntervalClick = useCallback(
+    (intervalIndex: number) => {
+      void changeTimestep(intervalIndex, "quick-graph");
+    },
+    [changeTimestep],
+  );
+
   const pinButton = (
     <div className="flex h-8 my-[-0.5rem]">
       <Button
@@ -191,6 +200,7 @@ const QuickGraphSection = ({ assetId, assetType }: QuickGraphSectionProps) => {
             intervalsCount={data.intervalsCount}
             currentIntervalIndex={timeStepIndex}
             decimals={decimals}
+            onIntevalClick={handleIntervalClick}
           />
         ) : (
           <div className="h-full flex items-center justify-center text-gray-400 text-xs">

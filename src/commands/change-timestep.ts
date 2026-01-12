@@ -12,7 +12,7 @@ import { getSimulationMetadata } from "src/simulation/epanet/simulation-metadata
 export const previousTimestepShortcut = "shift+left";
 export const nextTimestepShortcut = "shift+right";
 
-type ChangeTimestepSource = "shortcut" | "buttons" | "dropdown";
+type ChangeTimestepSource = "shortcut" | "buttons" | "dropdown" | "quick-graph";
 
 export const useChangeTimestep = () => {
   const simulation = useAtomValue(simulationAtom);

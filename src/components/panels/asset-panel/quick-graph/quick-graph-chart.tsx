@@ -1,5 +1,5 @@
 import { useMemo, useCallback } from "react";
-import ReactECharts from "echarts-for-react";
+import ReactECharts, { EChartsInstance } from "echarts-for-react";
 import type { EChartsOption } from "echarts";
 import { useTranslate } from "src/hooks/use-translate";
 import { localizeDecimal } from "src/infra/i18n/numbers";
@@ -86,6 +86,7 @@ function QuickGraphChartECharts({
           },
           symbol: "none",
           smooth: false,
+          triggerLineEvent: true,
           markLine:
             markLineData.length > 0
               ? {
@@ -121,20 +122,30 @@ function QuickGraphChartECharts({
     };
   }, [values, timeLabels, currentIntervalIndex, decimals]);
 
-  const handleChartClick = useCallback(
-    (params: any) => {
-      if (params.dataIndex !== undefined && onIntevalClick) {
-        onIntevalClick(params.dataIndex);
-      }
-    },
-    [onIntevalClick],
-  );
+  const onChartReady = useCallback(
+    (chart: EChartsInstance) => {
+      if (!onIntevalClick) return;
 
-  const onEvents = useMemo(
-    () => ({
-      click: handleChartClick,
-    }),
-    [handleChartClick],
+      const zr = chart.getZr();
+
+      zr.on("click", (params: any) => {
+        const pointInPixel = [params.offsetX, params.offsetY];
+        if (!chart.containPixel("grid", pointInPixel)) return;
+
+        const pointInGrid = chart.convertFromPixel("grid", pointInPixel);
+        const dataIndex = Math.round(pointInGrid[0]);
+        if (dataIndex >= 0 && dataIndex < values.length) {
+          onIntevalClick(dataIndex);
+        }
+      });
+
+      zr.on("mousemove", (params: any) => {
+        const pointInPixel = [params.offsetX, params.offsetY];
+        const isInGrid = chart.containPixel("grid", pointInPixel);
+        zr.setCursorStyle(isInGrid ? "pointer" : "default");
+      });
+    },
+    [onIntevalClick, values.length],
   );
 
   if (intervalsCount === 0 || values.length === 0) {
@@ -150,7 +161,7 @@ function QuickGraphChartECharts({
       option={option}
       style={{ height: "100px", width: "100%" }}
       opts={{ renderer: "svg" }}
-      onEvents={onEvents}
+      onChartReady={onChartReady}
       notMerge={true}
     />
   );
