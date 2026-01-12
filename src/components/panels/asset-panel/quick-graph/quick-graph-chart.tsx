@@ -68,7 +68,7 @@ function QuickGraphChartECharts({
         axisTick: { show: false },
         axisLabel: {
           color: colors.gray500,
-          fontSize: 10,
+          fontSize: 12,
           formatter: (value: number) => {
             return localizeDecimal(value, { decimals });
           },
@@ -106,7 +106,7 @@ function QuickGraphChartECharts({
         borderColor: colors.gray300,
         textStyle: {
           color: colors.gray700,
-          fontSize: 11,
+          fontSize: 12,
         },
         formatter: (params: any) => {
           const data = params[0];

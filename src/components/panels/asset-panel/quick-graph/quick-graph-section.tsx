@@ -159,16 +159,18 @@ const QuickGraphSection = ({ assetId, assetType }: QuickGraphSectionProps) => {
 
   return (
     <Section title={translate("quickGraph")} button={pinButton}>
-      <Selector
-        options={propertyOptions}
-        selected={selectedProperty}
-        onChange={handlePropertyChange}
-        styleOptions={{
-          border: true,
-          textSize: "text-sm",
-          paddingY: 2,
-        }}
-      />
+      <div className="w-max mx-auto">
+        <Selector
+          options={propertyOptions}
+          selected={selectedProperty}
+          onChange={handlePropertyChange}
+          styleOptions={{
+            border: true,
+            textSize: "text-sm",
+            paddingY: 2,
+          }}
+        />
+      </div>
 
       <div className="relative h-[100px]">
         {isLoading ? (
