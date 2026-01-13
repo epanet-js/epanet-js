@@ -216,6 +216,21 @@ export class MemPersistence implements IPersistence {
     });
   }
 
+  setModelVersion(version: string): void {
+    const ctx = this.store.get(dataAtom);
+    this.store.set(dataAtom, {
+      ...ctx,
+      hydraulicModel: {
+        ...ctx.hydraulicModel,
+        version,
+      },
+    });
+  }
+
+  getModelVersion(): string {
+    return this.store.get(dataAtom).hydraulicModel.version;
+  }
+
   restoreToBase(baseSnapshot: { moment: Moment; stateId: string }): void {
     const current = this.store.get(mapSyncMomentAtom);
     const ctx = this.store.get(dataAtom);

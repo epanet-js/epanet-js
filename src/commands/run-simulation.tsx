@@ -12,6 +12,7 @@ import { useDrawingMode } from "./set-drawing-mode";
 import { Mode } from "src/state/mode";
 import { getAppId } from "src/infra/app-instance";
 import { OPFSStorage } from "src/infra/storage";
+import { scenariosAtom } from "src/state/scenarios";
 
 export const runSimulationShortcut = "shift+enter";
 
@@ -21,6 +22,7 @@ export const useRunSimulation = () => {
   const { hydraulicModel } = useAtomValue(dataAtom);
   const setData = useSetAtom(dataAtom);
   const setDrawingMode = useDrawingMode();
+  const scenariosState = useAtomValue(scenariosAtom);
 
   const runSimulation = useCallback(async () => {
     setDrawingMode(Mode.NONE);
@@ -45,10 +47,13 @@ export const useRunSimulation = () => {
     };
 
     const appId = getAppId();
+    const scenarioKey = scenariosState.activeScenarioId ?? "main";
     const { report, status, metadata } = await runSimulationWorker(
       inp,
       appId,
       reportProgress,
+      {},
+      scenarioKey,
     );
 
     isCompleted = true;
@@ -56,7 +61,7 @@ export const useRunSimulation = () => {
     let updatedHydraulicModel = hydraulicModel;
     let simulationIds;
     if (status === "success" || status === "warning") {
-      const storage = new OPFSStorage(appId);
+      const storage = new OPFSStorage(appId, scenarioKey);
       const epsReader = new EPSResultsReader(storage);
       await epsReader.initialize(metadata);
       simulationIds = epsReader.simulationIds;
@@ -89,6 +94,7 @@ export const useRunSimulation = () => {
     setSimulationState,
     setDialogState,
     setData,
+    scenariosState.activeScenarioId,
   ]);
 
   return runSimulation;

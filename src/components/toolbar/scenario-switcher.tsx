@@ -13,6 +13,7 @@ import {
   scenariosListAtom,
   createScenario,
 } from "src/state/scenarios";
+import { simulationAtom, initialSimulationState } from "src/state/jotai";
 import {
   Button,
   DDContent,
@@ -41,6 +42,7 @@ export const ScenarioSwitcher = () => {
   const persistence = usePersistence() as MemPersistence;
   const [scenariosState, setScenariosState] = useAtom(scenariosAtom);
   const scenariosList = useAtomValue(scenariosListAtom);
+  const [simulation, setSimulation] = useAtom(simulationAtom);
 
   const activeScenarioId = scenariosState.activeScenarioId;
   const isMainActive = activeScenarioId === null;
@@ -67,9 +69,12 @@ export const ScenarioSwitcher = () => {
       scenarioName: "Main",
     });
 
+    // Save current scenario's state (momentLog + simulation + modelVersion)
     const currentScenario = scenariosState.scenarios.get(activeScenarioId);
     if (currentScenario) {
       currentScenario.momentLog = persistence.getMomentLog();
+      currentScenario.simulation = simulation;
+      currentScenario.modelVersion = persistence.getModelVersion();
       console.log("DEBUG [handleSelectMain] Saved current scenario momentLog, deltas:", currentScenario.momentLog.getDeltas().length);
     }
 
@@ -88,6 +93,15 @@ export const ScenarioSwitcher = () => {
       }
       persistence.switchMomentLog(scenariosState.mainMomentLog);
     }
+
+    // Restore Main's modelVersion (must be after replay to override corrupted version)
+    if (scenariosState.mainModelVersion) {
+      persistence.setModelVersion(scenariosState.mainModelVersion);
+    }
+
+    // Restore Main's simulation state
+    setSimulation(scenariosState.mainSimulation ?? initialSimulationState);
+
     console.log("DEBUG === handleSelectMain END ===");
 
     setScenariosState((prev) => ({
@@ -108,16 +122,21 @@ export const ScenarioSwitcher = () => {
       scenarioName: scenario?.name,
     });
 
+    // Save current state (momentLog + simulation + modelVersion)
     if (isMainActive) {
-      console.log("DEBUG [handleSelectScenario] Saving main momentLog");
+      console.log("DEBUG [handleSelectScenario] Saving main momentLog + simulation + modelVersion");
       setScenariosState((prev) => ({
         ...prev,
         mainMomentLog: persistence.getMomentLog(),
+        mainSimulation: simulation,
+        mainModelVersion: persistence.getModelVersion(),
       }));
     } else {
       const currentScenario = scenariosState.scenarios.get(activeScenarioId);
       if (currentScenario) {
         currentScenario.momentLog = persistence.getMomentLog();
+        currentScenario.simulation = simulation;
+        currentScenario.modelVersion = persistence.getModelVersion();
         console.log("DEBUG [handleSelectScenario] Saved current scenario momentLog, deltas:", currentScenario.momentLog.getDeltas().length);
       }
     }
@@ -136,7 +155,14 @@ export const ScenarioSwitcher = () => {
         persistence.applySnapshot(delta, "");
       }
       persistence.switchMomentLog(scenario.momentLog);
+
+      // Restore scenario's modelVersion (must be after replay to override corrupted version)
+      persistence.setModelVersion(scenario.modelVersion);
     }
+
+    // Restore target scenario's simulation state
+    setSimulation(scenario?.simulation ?? initialSimulationState);
+
     console.log("DEBUG === handleSelectScenario END ===");
 
     setScenariosState((prev) => ({
@@ -155,14 +181,25 @@ export const ScenarioSwitcher = () => {
     }
     console.log("DEBUG [handleCreateScenario] baseSnapshot assets:", baseSnapshot.moment.putAssets?.length || 0);
 
+    // Save current state (momentLog + simulation + modelVersion)
     const mainMomentLog = isMainActive
       ? persistence.getMomentLog()
       : scenariosState.mainMomentLog;
+
+    const mainSimulation = isMainActive
+      ? simulation
+      : scenariosState.mainSimulation;
+
+    const mainModelVersion = isMainActive
+      ? persistence.getModelVersion()
+      : scenariosState.mainModelVersion;
 
     if (!isMainActive) {
       const currentScenario = scenariosState.scenarios.get(activeScenarioId);
       if (currentScenario) {
         currentScenario.momentLog = persistence.getMomentLog();
+        currentScenario.simulation = simulation;
+        currentScenario.modelVersion = persistence.getModelVersion();
         console.log("DEBUG [handleCreateScenario] Saved current scenario momentLog, deltas:", currentScenario.momentLog.getDeltas().length);
       }
     }
@@ -170,7 +207,11 @@ export const ScenarioSwitcher = () => {
     const newMomentLog = new MomentLog();
     newMomentLog.setSnapshot(baseSnapshot.moment, baseSnapshot.stateId);
 
-    const newScenario = createScenario(scenariosState, newMomentLog);
+    const newScenario = createScenario(
+      scenariosState,
+      newMomentLog,
+      baseSnapshot.stateId,
+    );
 
     userTracking.capture({
       name: "scenario.created",
@@ -182,6 +223,13 @@ export const ScenarioSwitcher = () => {
     console.log("DEBUG [handleCreateScenario] Restoring to base...");
     persistence.restoreToBase(baseSnapshot);
     persistence.switchMomentLog(newMomentLog);
+
+    // Set model version to base snapshot (new scenario starts at base state)
+    persistence.setModelVersion(baseSnapshot.stateId);
+
+    // New scenario starts with no simulation results
+    setSimulation(initialSimulationState);
+
     console.log("DEBUG === handleCreateScenario END ===");
 
     setScenariosState((prev) => {
@@ -194,6 +242,8 @@ export const ScenarioSwitcher = () => {
         activeScenarioId: newScenario.id,
         baseModelSnapshot: baseSnapshot,
         mainMomentLog: mainMomentLog,
+        mainSimulation: mainSimulation,
+        mainModelVersion: mainModelVersion,
       };
     });
   };

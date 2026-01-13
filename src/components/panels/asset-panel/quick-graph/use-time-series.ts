@@ -12,6 +12,7 @@ import type {
   QuickGraphAssetType,
   QuickGraphPropertyByAssetType,
 } from "src/state/quick-graph";
+import { scenariosAtom } from "src/state/scenarios";
 
 interface UseTimeSeriesOptions<T extends QuickGraphAssetType> {
   assetId: number;
@@ -30,6 +31,7 @@ export function useTimeSeries<T extends QuickGraphAssetType>({
   property,
 }: UseTimeSeriesOptions<T>): UseTimeSeriesResult {
   const simulation = useAtomValue(simulationAtom);
+  const scenariosState = useAtomValue(scenariosAtom);
   const [data, setData] = useState<TimeSeries | null>(null);
   const [isLoading, setIsLoading] = useState(() => {
     return simulation.status === "success" || simulation.status === "warning";
@@ -71,7 +73,8 @@ export function useTimeSeries<T extends QuickGraphAssetType>({
 
       try {
         const appId = getAppId();
-        const storage = new OPFSStorage(appId);
+        const scenarioKey = scenariosState.activeScenarioId ?? "main";
+        const storage = new OPFSStorage(appId, scenarioKey);
         const epsReader = new EPSResultsReader(storage);
         await epsReader.initialize(metadata, simulationIds);
 
@@ -103,7 +106,7 @@ export function useTimeSeries<T extends QuickGraphAssetType>({
     return () => {
       abortControllerRef.current?.abort();
     };
-  }, [assetId, assetType, property, status, metadata, simulationIds]);
+  }, [assetId, assetType, property, status, metadata, simulationIds, scenariosState.activeScenarioId]);
 
   return { data, isLoading };
 }

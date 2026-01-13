@@ -8,6 +8,7 @@ import { getAppId } from "src/infra/app-instance";
 import { captureError } from "src/infra/error-tracking";
 import { useUserTracking } from "src/infra/user-tracking";
 import { getSimulationMetadata } from "src/simulation/epanet/simulation-metadata";
+import { scenariosAtom } from "src/state/scenarios";
 
 export const previousTimestepShortcut = "shift+left";
 export const nextTimestepShortcut = "shift+right";
@@ -19,6 +20,7 @@ export const useChangeTimestep = () => {
   const setData = useSetAtom(dataAtom);
   const setSimulationState = useSetAtom(simulationAtom);
   const userTracking = useUserTracking();
+  const scenariosState = useAtomValue(scenariosAtom);
 
   const changeTimestep = useCallback(
     async (timestepIndex: number, source: ChangeTimestepSource) => {
@@ -38,7 +40,8 @@ export const useChangeTimestep = () => {
 
       try {
         const appId = getAppId();
-        const storage = new OPFSStorage(appId);
+        const scenarioKey = scenariosState.activeScenarioId ?? "main";
+        const storage = new OPFSStorage(appId, scenarioKey);
         const epsReader = new EPSResultsReader(storage);
         await epsReader.initialize(metadata, simulationIds);
 
@@ -65,7 +68,7 @@ export const useChangeTimestep = () => {
         setSimulationState({ status: "idle" });
       }
     },
-    [simulation, setData, setSimulationState, userTracking],
+    [simulation, setData, setSimulationState, userTracking, scenariosState.activeScenarioId],
   );
 
   const goToPreviousTimestep = useCallback(
