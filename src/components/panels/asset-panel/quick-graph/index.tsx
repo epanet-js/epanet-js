@@ -1,1 +1,5 @@
-export { QuickGraph, useShowQuickGraph } from "./quick-graph-section";
+export {
+  QuickGraph,
+  useShowQuickGraph,
+  useQuickGraph,
+} from "./quick-graph-section";

@@ -14,6 +14,7 @@ import {
   type QuickGraphPropertyByAssetType,
 } from "src/state/quick-graph";
 import type { QuantityProperty } from "src/model-metadata/quantities-spec";
+import type { TimeSeries } from "src/simulation/epanet/eps-results-reader";
 import { useTimeSeries } from "./use-time-series";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { QuickGraphChart } from "./quick-graph-chart";
@@ -85,11 +86,16 @@ export const useShowQuickGraph = () => {
 };
 
 interface QuickGraphSectionProps {
-  assetId: number;
   assetType: QuickGraphAssetType;
+  data: TimeSeries | null;
+  isLoading: boolean;
 }
 
-const QuickGraphSection = ({ assetId, assetType }: QuickGraphSectionProps) => {
+const QuickGraphSection = ({
+  assetType,
+  data,
+  isLoading,
+}: QuickGraphSectionProps) => {
   const translate = useTranslate();
   const [footerState, setFooterState] = useAtom(assetPanelFooterAtom);
   const [propertyByType, setPropertyByType] = useAtom(quickGraphPropertyAtom);
@@ -106,12 +112,6 @@ const QuickGraphSection = ({ assetId, assetType }: QuickGraphSectionProps) => {
   const decimals = selectedOption
     ? (quantities.getDecimals(selectedOption.quantityKey) ?? 0)
     : 0;
-
-  const { data, isLoading } = useTimeSeries({
-    assetId,
-    assetType,
-    property: selectedProperty,
-  });
 
   const values = useMemo(() => (data ? Array.from(data.values) : []), [data]);
   const timeStepIndex =
@@ -217,11 +217,25 @@ const QuickGraphSection = ({ assetId, assetType }: QuickGraphSectionProps) => {
   );
 };
 
-const QuickGraphFeature = ({ assetId, assetType }: QuickGraphSectionProps) => {
-  const showQuickGraph = useShowQuickGraph();
-  return showQuickGraph ? (
-    <QuickGraphSection assetId={assetId} assetType={assetType} />
-  ) : null;
-};
+export const QuickGraph = QuickGraphSection;
 
-export const QuickGraph = QuickGraphFeature;
+export function useQuickGraph<T extends QuickGraphAssetType>(
+  assetId: number,
+  assetType: T,
+) {
+  const showQuickGraph = useShowQuickGraph();
+  const [propertyByType] = useAtom(quickGraphPropertyAtom);
+  const selectedProperty = propertyByType[assetType];
+
+  const { data, isLoading } = useTimeSeries({
+    assetId,
+    assetType,
+    property: selectedProperty,
+  });
+
+  const footer = showQuickGraph ? (
+    <QuickGraph assetType={assetType} data={data} isLoading={isLoading} />
+  ) : undefined;
+
+  return { footer };
+}

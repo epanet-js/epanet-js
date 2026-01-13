@@ -31,7 +31,9 @@ export function useTimeSeries<T extends QuickGraphAssetType>({
 }: UseTimeSeriesOptions<T>): UseTimeSeriesResult {
   const simulation = useAtomValue(simulationAtom);
   const [data, setData] = useState<TimeSeries | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(() => {
+    return simulation.status === "success" || simulation.status === "warning";
+  });
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const status = simulation.status;

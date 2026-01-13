@@ -165,7 +165,7 @@ export const SectionList = ({
         {isStickyFooter && footer && (
           <div
             className={clsx(
-              "z-10 bg-white dark:bg-gray-950 flex flex-col relative border-t border-gray-200 dark:border-gray-800",
+              "z-10 bg-white dark:bg-gray-950 flex flex-col relative border-y border-gray-200 dark:border-gray-800",
               isResizableFooter ? "flex-shrink-0" : "sticky bottom-0",
             )}
             style={
