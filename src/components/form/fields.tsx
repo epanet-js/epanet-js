@@ -1,8 +1,10 @@
 import clsx from "clsx";
 import { useState } from "react";
 import * as C from "@radix-ui/react-collapsible";
+import * as Tooltip from "@radix-ui/react-tooltip";
 import { ChevronDownIcon, ChevronRightIcon } from "src/icons";
 import { FooterResizer, useBigScreen } from "src/components/resizer";
+import { TContent } from "src/components/elements";
 
 export const FieldList = ({ children }: { children: React.ReactNode }) => {
   return <div className="flex flex-col gap-y-1">{children}</div>;
@@ -13,15 +15,21 @@ export const InlineField = ({
   layout = "fixed-label",
   labelSize = "sm",
   align = "center",
+  hasChanged = false,
+  baseDisplayValue,
   children,
 }: {
   name: string;
   layout?: "fixed-label" | "half-split" | "label-flex-none";
   labelSize?: "sm" | "md";
   align?: "start" | "center";
+  hasChanged?: boolean;
+  baseDisplayValue?: string;
   children: React.ReactNode;
 }) => {
-  const labelClasses = clsx("text-sm text-gray-500", {
+  const labelClasses = clsx("text-sm", {
+    "text-gray-500": !hasChanged,
+    "text-purple-600 dark:text-purple-400 font-medium": hasChanged,
     "max-w-[67px] w-full flex-shrink-0":
       layout === "fixed-label" && labelSize === "sm",
     "w-[120px] flex-shrink-0": layout === "fixed-label" && labelSize === "md",
@@ -36,6 +44,26 @@ export const InlineField = ({
 
   const spacingClass = labelSize === "md" ? "gap-1" : "space-x-4";
 
+  const labelElement = (
+    <label className={labelClasses} aria-label={`label: ${name}`}>
+      {name}
+    </label>
+  );
+
+  const wrappedLabel =
+    hasChanged && baseDisplayValue !== undefined ? (
+      <Tooltip.Root delayDuration={200}>
+        <Tooltip.Trigger asChild>{labelElement}</Tooltip.Trigger>
+        <Tooltip.Portal>
+          <TContent side="left" sideOffset={4}>
+            Base: {baseDisplayValue}
+          </TContent>
+        </Tooltip.Portal>
+      </Tooltip.Root>
+    ) : (
+      labelElement
+    );
+
   return (
     <div
       className={clsx("flex", spacingClass, {
@@ -43,10 +71,7 @@ export const InlineField = ({
         "items-center": align === "center",
       })}
     >
-      <label className={labelClasses} aria-label={`label: ${name}`}>
-        {name}
-      </label>
-
+      {wrappedLabel}
       <div className={inputWrapperClasses}>{children}</div>
     </div>
   );

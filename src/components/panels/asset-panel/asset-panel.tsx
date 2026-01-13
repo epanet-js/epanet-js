@@ -19,6 +19,7 @@ import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { usePersistence } from "src/lib/persistence/context";
 import { useUserTracking } from "src/infra/user-tracking";
 import { dataAtom } from "src/state/jotai";
+import { useAssetComparison } from "src/hooks/use-base-asset-comparison";
 import {
   changePumpCurve,
   changeProperty,
@@ -376,6 +377,7 @@ const JunctionEditor = ({
   const translate = useTranslate();
   const { footer } = useQuickGraph(junction.id, "junction");
   const isEditJunctionDemandsOn = useFeatureFlag("FLAG_EDIT_JUNCTION_DEMANDS");
+  const { getComparison } = useAssetComparison(junction);
 
   const customerPoints = useMemo(() => {
     return getActiveCustomerPoints(
@@ -404,6 +406,7 @@ const JunctionEditor = ({
           name="isActive"
           label={translate("isEnabled")}
           enabled={junction.isActive}
+          comparison={getComparison("isActive", junction.isActive)}
         />
       </Section>
       <Section title={translate("modelAttributes")}>
@@ -413,6 +416,7 @@ const JunctionEditor = ({
           unit={quantitiesMetadata.getUnit("elevation")}
           decimals={quantitiesMetadata.getDecimals("elevation")}
           onChange={onPropertyChange}
+          comparison={getComparison("elevation", junction.elevation)}
         />
       </Section>
       <Section title={translate("demands")}>
@@ -514,6 +518,7 @@ const PipeEditor = ({
 }) => {
   const translate = useTranslate();
   const { footer } = useQuickGraph(pipe.id, "pipe");
+  const { getComparison } = useAssetComparison(pipe);
 
   const simulationStatusText = translate(pipeStatusLabel(pipe));
 
@@ -562,6 +567,7 @@ const PipeEditor = ({
           label={translate("isEnabled")}
           enabled={pipe.isActive}
           onChange={onActiveTopologyStatusChange}
+          comparison={getComparison("isActive", pipe.isActive)}
         />
       </Section>
       <Section title={translate("modelAttributes")}>
@@ -570,6 +576,7 @@ const PipeEditor = ({
           selected={pipe.initialStatus}
           options={pipeStatusOptions}
           onChange={handleStatusChange}
+          comparison={getComparison("initialStatus", pipe.initialStatus)}
         />
         <QuantityRow
           name="diameter"
@@ -579,6 +586,7 @@ const PipeEditor = ({
           unit={quantitiesMetadata.getUnit("diameter")}
           decimals={quantitiesMetadata.getDecimals("diameter")}
           onChange={onPropertyChange}
+          comparison={getComparison("diameter", pipe.diameter)}
         />
         <QuantityRow
           name="length"
@@ -588,6 +596,7 @@ const PipeEditor = ({
           unit={quantitiesMetadata.getUnit("length")}
           decimals={quantitiesMetadata.getDecimals("length")}
           onChange={onPropertyChange}
+          comparison={getComparison("length", pipe.length)}
         />
         <QuantityRow
           name="roughness"
@@ -596,6 +605,7 @@ const PipeEditor = ({
           unit={quantitiesMetadata.getUnit("roughness")}
           decimals={quantitiesMetadata.getDecimals("roughness")}
           onChange={onPropertyChange}
+          comparison={getComparison("roughness", pipe.roughness)}
         />
         <QuantityRow
           name="minorLoss"
@@ -604,6 +614,7 @@ const PipeEditor = ({
           unit={quantitiesMetadata.getMinorLossUnit(headlossFormula)}
           decimals={quantitiesMetadata.getDecimals("minorLoss")}
           onChange={onPropertyChange}
+          comparison={getComparison("minorLoss", pipe.minorLoss)}
         />
       </Section>
       {customerCount > 0 && (
@@ -671,6 +682,7 @@ const ReservoirEditor = ({
 }) => {
   const translate = useTranslate();
   const { footer } = useQuickGraph(reservoir.id, "reservoir");
+  const { getComparison } = useAssetComparison(reservoir);
 
   return (
     <AssetEditorContent
@@ -685,6 +697,7 @@ const ReservoirEditor = ({
           name="isActive"
           label={translate("isEnabled")}
           enabled={reservoir.isActive}
+          comparison={getComparison("isActive", reservoir.isActive)}
         />
       </Section>
       <Section title={translate("modelAttributes")}>
@@ -694,6 +707,7 @@ const ReservoirEditor = ({
           unit={quantitiesMetadata.getUnit("elevation")}
           decimals={quantitiesMetadata.getDecimals("elevation")}
           onChange={onPropertyChange}
+          comparison={getComparison("elevation", reservoir.elevation)}
         />
         <QuantityRow
           name="head"
@@ -701,6 +715,7 @@ const ReservoirEditor = ({
           unit={quantitiesMetadata.getUnit("head")}
           decimals={quantitiesMetadata.getDecimals("head")}
           onChange={onPropertyChange}
+          comparison={getComparison("totalHead", reservoir.head)}
         />
       </Section>
     </AssetEditorContent>
@@ -720,6 +735,7 @@ const TankEditor = ({
 }) => {
   const translate = useTranslate();
   const { footer } = useQuickGraph(tank.id, "tank");
+  const { getComparison } = useAssetComparison(tank);
 
   return (
     <AssetEditorContent
@@ -734,6 +750,7 @@ const TankEditor = ({
           name="isActive"
           label={translate("isEnabled")}
           enabled={tank.isActive}
+          comparison={getComparison("isActive", tank.isActive)}
         />
       </Section>
       <Section title={translate("modelAttributes")}>
@@ -743,6 +760,7 @@ const TankEditor = ({
           unit={quantitiesMetadata.getUnit("elevation")}
           decimals={quantitiesMetadata.getDecimals("elevation")}
           onChange={onPropertyChange}
+          comparison={getComparison("elevation", tank.elevation)}
         />
         <QuantityRow
           name="initialLevel"
@@ -751,6 +769,7 @@ const TankEditor = ({
           decimals={quantitiesMetadata.getDecimals("initialLevel")}
           onChange={onPropertyChange}
           positiveOnly={true}
+          comparison={getComparison("initialLevel", tank.initialLevel)}
         />
         <QuantityRow
           name="minLevel"
@@ -759,6 +778,7 @@ const TankEditor = ({
           decimals={quantitiesMetadata.getDecimals("minLevel")}
           onChange={onPropertyChange}
           positiveOnly={true}
+          comparison={getComparison("minLevel", tank.minLevel)}
         />
         <QuantityRow
           name="maxLevel"
@@ -767,6 +787,7 @@ const TankEditor = ({
           decimals={quantitiesMetadata.getDecimals("maxLevel")}
           onChange={onPropertyChange}
           positiveOnly={true}
+          comparison={getComparison("maxLevel", tank.maxLevel)}
         />
         <QuantityRow
           name="diameter"
@@ -776,6 +797,7 @@ const TankEditor = ({
           onChange={onPropertyChange}
           positiveOnly={true}
           isNullable={false}
+          comparison={getComparison("diameter", tank.diameter)}
         />
         <QuantityRow
           name="minVolume"
@@ -784,12 +806,14 @@ const TankEditor = ({
           decimals={quantitiesMetadata.getDecimals("minVolume")}
           onChange={onPropertyChange}
           positiveOnly={true}
+          comparison={getComparison("minVolume", tank.minVolume)}
         />
         <SwitchRow
           name="overflow"
           label={translate("canOverflow")}
           enabled={tank.overflow}
           onChange={onPropertyChange}
+          comparison={getComparison("overflow", tank.overflow)}
         />
       </Section>
       <Section title={translate("simulationResults")}>
@@ -853,7 +877,7 @@ const ValveEditor = ({
 }) => {
   const translate = useTranslate();
   const { footer } = useQuickGraph(valve.id, "valve");
-
+  const { getComparison } = useAssetComparison(valve);
   const statusText = translate(valveStatusLabel(valve));
 
   const statusOptions = useMemo(() => {
@@ -916,6 +940,7 @@ const ValveEditor = ({
           label={translate("isEnabled")}
           enabled={valve.isActive}
           onChange={onActiveTopologyStatusChange}
+          comparison={getComparison("isActive", valve.isActive)}
         />
       </Section>
       <Section title={translate("modelAttributes")}>
@@ -924,18 +949,21 @@ const ValveEditor = ({
           selected={valve.kind}
           options={kindOptions}
           onChange={handleKindChange}
+          comparison={getComparison("kind", valve.kind)}
         />
         <QuantityRow
           name="setting"
           value={valve.setting}
           unit={getSettingUnit()}
           onChange={onPropertyChange}
+          comparison={getComparison("setting", valve.setting)}
         />
         <SelectRow
           name="initialStatus"
           selected={valve.initialStatus}
           options={statusOptions}
           onChange={handleStatusChange}
+          comparison={getComparison("initialStatus", valve.initialStatus)}
         />
         <QuantityRow
           name="diameter"
@@ -944,6 +972,7 @@ const ValveEditor = ({
           unit={quantitiesMetadata.getUnit("diameter")}
           decimals={quantitiesMetadata.getDecimals("diameter")}
           onChange={onPropertyChange}
+          comparison={getComparison("diameter", valve.diameter)}
         />
         <QuantityRow
           name="minorLoss"
@@ -952,6 +981,7 @@ const ValveEditor = ({
           unit={quantitiesMetadata.getUnit("minorLoss")}
           decimals={quantitiesMetadata.getDecimals("minorLoss")}
           onChange={onPropertyChange}
+          comparison={getComparison("minorLoss", valve.minorLoss)}
         />
       </Section>
       <Section title={translate("simulationResults")}>
@@ -1011,7 +1041,7 @@ const PumpEditor = ({
 }) => {
   const translate = useTranslate();
   const { footer } = useQuickGraph(pump.id, "pump");
-
+  const { getComparison } = useAssetComparison(pump);
   const statusText = translate(pumpStatusLabel(pump));
 
   const statusOptions = useMemo(() => {
@@ -1047,6 +1077,7 @@ const PumpEditor = ({
           label={translate("isEnabled")}
           enabled={pump.isActive}
           onChange={onActiveTopologyStatusChange}
+          comparison={getComparison("isActive", pump.isActive)}
         />
       </Section>
       <Section title={translate("modelAttributes")}>
@@ -1062,12 +1093,14 @@ const PumpEditor = ({
           unit={quantitiesMetadata.getUnit("speed")}
           decimals={quantitiesMetadata.getDecimals("speed")}
           onChange={onPropertyChange}
+          comparison={getComparison("speed", pump.speed)}
         />
         <SelectRow
           name="initialStatus"
           selected={pump.initialStatus}
           options={statusOptions}
           onChange={handleStatusChange}
+          comparison={getComparison("initialStatus", pump.initialStatus)}
         />
       </Section>
       <Section title={translate("simulationResults")}>
