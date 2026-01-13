@@ -12,8 +12,10 @@ import {
 } from "src/hydraulic-model";
 import { getActiveCustomerPoints } from "src/hydraulic-model/customer-points";
 import { Valve } from "src/hydraulic-model/asset-types";
+import { JunctionDemand } from "src/hydraulic-model/demands";
 import { Quantities } from "src/model-metadata/quantities-spec";
 import { useTranslate } from "src/hooks/use-translate";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { usePersistence } from "src/lib/persistence/context";
 import { useUserTracking } from "src/infra/user-tracking";
 import { dataAtom } from "src/state/jotai";
@@ -51,6 +53,7 @@ import {
   PumpDefinitionDetails,
   PumpDefinitionData,
 } from "./pump-definition-details";
+import { DemandCategoriesEditor } from "./demand-categories-editor";
 import { Curves } from "src/hydraulic-model/curves";
 import { useQuickGraph } from "./quick-graph";
 
@@ -215,6 +218,24 @@ export function AssetPanel({
     [asset, hydraulicModel, transact, userTracking],
   );
 
+  const handleDemandsChange = useCallback(
+    (newDemands: JunctionDemand[]) => {
+      const moment = changeJunctionDemands(hydraulicModel, {
+        junctionId: asset.id,
+        demands: newDemands,
+      });
+      transact(moment);
+      userTracking.capture({
+        name: "assetProperty.edited",
+        type: asset.type,
+        property: "demands",
+        newValue: newDemands.length,
+        oldValue: null,
+      });
+    },
+    [asset.id, asset.type, hydraulicModel, transact, userTracking],
+  );
+
   const handleLabelChange = useCallback(
     (newLabel: string): string | undefined => {
       const oldLabel = asset.label;
@@ -262,6 +283,7 @@ export function AssetPanel({
           quantitiesMetadata={quantitiesMetadata}
           onPropertyChange={handlePropertyChange}
           onConstantDemandChange={handleChangeJunctionDemand}
+          onDemandsChange={handleDemandsChange}
           onLabelChange={handleLabelChange}
           hydraulicModel={hydraulicModel}
         />
@@ -339,6 +361,7 @@ const JunctionEditor = ({
   quantitiesMetadata,
   onPropertyChange,
   onConstantDemandChange,
+  onDemandsChange,
   onLabelChange,
   hydraulicModel,
 }: {
@@ -346,11 +369,13 @@ const JunctionEditor = ({
   quantitiesMetadata: Quantities;
   onPropertyChange: OnPropertyChange;
   onConstantDemandChange: (newValue: number, oldValue: number) => void;
+  onDemandsChange: (newDemands: JunctionDemand[]) => void;
   onLabelChange: (newLabel: string) => string | undefined;
   hydraulicModel: HydraulicModel;
 }) => {
   const translate = useTranslate();
   const { footer } = useQuickGraph(junction.id, "junction");
+  const isEditJunctionDemandsOn = useFeatureFlag("FLAG_EDIT_JUNCTION_DEMANDS");
 
   const customerPoints = useMemo(() => {
     return getActiveCustomerPoints(
@@ -391,19 +416,30 @@ const JunctionEditor = ({
         />
       </Section>
       <Section title={translate("demands")}>
-        <QuantityRow
-          name="constantDemand"
-          value={junction.constantDemand}
-          unit={quantitiesMetadata.getUnit("baseDemand")}
-          decimals={quantitiesMetadata.getDecimals("baseDemand")}
-          onChange={(_name, newValue, oldValue) =>
-            onConstantDemandChange(newValue, oldValue ?? 0)
-          }
-        />
-        <DemandCategoriesRow
-          demands={junction.demands}
-          unit={quantitiesMetadata.getUnit("baseDemand")}
-        />
+        {isEditJunctionDemandsOn ? (
+          <DemandCategoriesEditor
+            demands={junction.demands}
+            patterns={hydraulicModel.demands.patterns}
+            unit={quantitiesMetadata.getUnit("baseDemand")}
+            onDemandsChange={onDemandsChange}
+          />
+        ) : (
+          <>
+            <QuantityRow
+              name="constantDemand"
+              value={junction.constantDemand}
+              unit={quantitiesMetadata.getUnit("baseDemand")}
+              decimals={quantitiesMetadata.getDecimals("baseDemand")}
+              onChange={(_name, newValue, oldValue) =>
+                onConstantDemandChange(newValue, oldValue ?? 0)
+              }
+            />
+            <DemandCategoriesRow
+              demands={junction.demands}
+              unit={quantitiesMetadata.getUnit("baseDemand")}
+            />
+          </>
+        )}
         {customerCount > 0 && (
           <>
             <QuantityRow
