@@ -1,23 +1,35 @@
 import { atom } from "jotai";
 import { nanoid } from "nanoid";
+import { MomentLog } from "src/lib/persistence/moment-log";
+import { Moment } from "src/lib/persistence/moment";
 
 export interface Scenario {
   id: string;
   name: string;
   number: number;
   createdAt: number;
+  momentLog: MomentLog;
+}
+
+export interface BaseModelSnapshot {
+  moment: Moment;
+  stateId: string;
 }
 
 export interface ScenariosState {
   activeScenarioId: string | null;
   scenarios: Map<string, Scenario>;
   highestScenarioNumber: number;
+  baseModelSnapshot: BaseModelSnapshot | null;
+  mainMomentLog: MomentLog | null;
 }
 
 export const initialScenariosState: ScenariosState = {
   activeScenarioId: null,
   scenarios: new Map(),
   highestScenarioNumber: 0,
+  baseModelSnapshot: null,
+  mainMomentLog: null,
 };
 
 export const scenariosAtom = atom<ScenariosState>(initialScenariosState);
@@ -29,12 +41,16 @@ export const scenariosListAtom = atom((get) => {
   );
 });
 
-export const createScenario = (state: ScenariosState): Scenario => {
+export const createScenario = (
+  state: ScenariosState,
+  momentLog: MomentLog,
+): Scenario => {
   const newNumber = state.highestScenarioNumber + 1;
   return {
     id: nanoid(),
     name: `Scenario #${newNumber}`,
     number: newNumber,
     createdAt: Date.now(),
+    momentLog,
   };
 };

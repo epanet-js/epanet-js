@@ -6,6 +6,7 @@ import {
   UMoment,
   EMPTY_MOMENT,
   MomentInput,
+  Moment,
 } from "src/lib/persistence/moment";
 import { generateKeyBetween } from "fractional-indexing";
 import {
@@ -154,6 +155,123 @@ export class MemPersistence implements IPersistence {
       this.store.set(mapSyncMomentAtom, newMapSyncMoment);
     };
   }
+
+  // SCENARIO SWITCHING METHODS --------------------------------
+
+  getMomentLog(): MomentLog {
+    return this.store.get(momentLogAtom);
+  }
+
+  captureModelSnapshot(): { moment: Moment; stateId: string } {
+    const ctx = this.store.get(dataAtom);
+    const { hydraulicModel } = ctx;
+
+    const moment: Moment = {
+      note: "Scenario base snapshot",
+      putAssets: [...hydraulicModel.assets.values()],
+      deleteAssets: [],
+      putDemands: hydraulicModel.demands,
+      putEPSTiming: hydraulicModel.epsTiming,
+      putControls: hydraulicModel.controls,
+      putCustomerPoints: [...hydraulicModel.customerPoints.values()],
+      putCurves: [...hydraulicModel.curves.values()],
+    };
+
+    return { moment, stateId: hydraulicModel.version };
+  }
+
+  applySnapshot(moment: MomentInput, stateId: string): void {
+    const current = this.store.get(mapSyncMomentAtom);
+
+    // Debug: show what we're applying
+    console.log("DEBUG [applySnapshot] applying delta:", {
+      note: moment.note,
+      putAssetsCount: moment.putAssets?.length || 0,
+      deleteAssetsCount: moment.deleteAssets?.length || 0,
+      putAssetIds: moment.putAssets?.map((a) => a.id).join(",") || "",
+    });
+
+    this.apply(stateId, moment);
+
+    // Debug: show state after
+    const afterCtx = this.store.get(dataAtom);
+    const afterIds = [...afterCtx.hydraulicModel.assets.keys()].sort((a, b) => a - b);
+    console.log("DEBUG [applySnapshot] AFTER:", {
+      version: afterCtx.hydraulicModel.version,
+      assetCount: afterIds.length,
+    });
+
+    this.store.set(mapSyncMomentAtom, {
+      pointer: -1,
+      version: current.version + 1,
+    });
+  }
+
+  switchMomentLog(momentLog: MomentLog): void {
+    const current = this.store.get(mapSyncMomentAtom);
+    this.store.set(momentLogAtom, momentLog);
+    this.store.set(mapSyncMomentAtom, {
+      pointer: momentLog.getPointer(),
+      version: current.version + 1,
+    });
+  }
+
+  restoreToBase(baseSnapshot: { moment: Moment; stateId: string }): void {
+    const current = this.store.get(mapSyncMomentAtom);
+    const ctx = this.store.get(dataAtom);
+
+    // Debug: show state before restore
+    const beforeIds = [...ctx.hydraulicModel.assets.keys()].sort((a, b) => a - b);
+    console.log("DEBUG [restoreToBase] BEFORE:", {
+      version: ctx.hydraulicModel.version,
+      assetCount: beforeIds.length,
+      assetIds: beforeIds.join(","),
+    });
+
+    // Compute assets to delete: everything not in base
+    const baseAssetIds = new Set(
+      baseSnapshot.moment.putAssets?.map((a) => a.id) || [],
+    );
+    const toDelete: number[] = [];
+    for (const id of ctx.hydraulicModel.assets.keys()) {
+      if (!baseAssetIds.has(id)) {
+        toDelete.push(id);
+      }
+    }
+
+    console.log("DEBUG [restoreToBase] baseSnapshot:", {
+      stateId: baseSnapshot.stateId,
+      putAssetsCount: baseSnapshot.moment.putAssets?.length || 0,
+      baseAssetIds: [...baseAssetIds].sort((a, b) => a - b).join(","),
+    });
+    console.log("DEBUG [restoreToBase] toDelete:", toDelete);
+
+    // Apply base with deletions
+    // NOTE: Don't spread the full moment - if putDemands/putEPSTiming/putControls
+    // are present, apply() skips asset processing. Only pass asset-related props.
+    this.apply(baseSnapshot.stateId, {
+      note: baseSnapshot.moment.note,
+      putAssets: baseSnapshot.moment.putAssets || [],
+      deleteAssets: toDelete,
+      putCustomerPoints: baseSnapshot.moment.putCustomerPoints,
+      putCurves: baseSnapshot.moment.putCurves,
+    });
+
+    // Debug: show state after restore
+    const afterCtx = this.store.get(dataAtom);
+    const afterIds = [...afterCtx.hydraulicModel.assets.keys()].sort((a, b) => a - b);
+    console.log("DEBUG [restoreToBase] AFTER:", {
+      version: afterCtx.hydraulicModel.version,
+      assetCount: afterIds.length,
+      assetIds: afterIds.join(","),
+    });
+
+    this.store.set(mapSyncMomentAtom, {
+      pointer: -1,
+      version: current.version + 1,
+    });
+  }
+
   /**
    * This could and should be improved. It does do some weird stuff:
    * we need to write to the moment log and to features.
