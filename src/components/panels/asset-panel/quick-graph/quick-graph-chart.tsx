@@ -243,7 +243,7 @@ const buildYAxis = (
   values: number[],
   decimals: number,
 ): EChartsOption["yAxis"] => {
-  const { min, max, interval } = calculateNiceInterval(decimals, values, 5);
+  const { min, max, interval } = calculateInterval(decimals, values, 5);
   return {
     type: "value",
     scale: true,
@@ -266,10 +266,10 @@ const buildYAxis = (
   };
 };
 
-const calculateNiceInterval = (
+export const calculateInterval = (
   decimals: number,
   values: number[],
-  targetTickCount = 5,
+  targetIntervalsCount = 5,
 ): { min: number; max: number; interval: number } => {
   if (values.length === 0) return { min: 0, max: 0, interval: 0 };
 
@@ -283,7 +283,7 @@ const calculateNiceInterval = (
   const minPrecision = Math.pow(10, -decimals) * 10;
   let niceInterval = minPrecision;
   if (range > 0) {
-    const roughInterval = range / (targetTickCount - 1);
+    const roughInterval = range / (targetIntervalsCount - 1);
     const magnitude = Math.pow(10, Math.floor(Math.log10(roughInterval)));
     const normalizedInterval = roughInterval / magnitude;
 
@@ -303,9 +303,12 @@ const calculateNiceInterval = (
   }
 
   const offset =
-    ((targetTickCount - 1) * minPrecision - Math.abs(maxVal - minVal)) / 2;
+    ((targetIntervalsCount - 1) * minPrecision - Math.abs(maxVal - minVal)) / 2;
 
-  const min = Math.ceil((minVal - offset) / minPrecision) * minPrecision;
+  const min =
+    offset > minVal && minVal >= 0
+      ? 0
+      : Math.ceil((minVal - offset) / minPrecision) * minPrecision;
   const max = Math.floor((maxVal + offset) / minPrecision) * minPrecision;
 
   return { min, max, interval: minPrecision };
