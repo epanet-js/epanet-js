@@ -35,7 +35,7 @@ describe("calculateInterval", () => {
     it("handles 0 decimals", () => {
       const result = calculateInterval(0, [1.5, 8.7]);
       expect(result.min).toBeCloseTo(0);
-      expect(result.max).toBeCloseTo(20);
+      expect(result.max).toBeCloseTo(40);
       expect(result.interval).toBeCloseTo(10);
     });
 
@@ -161,7 +161,7 @@ describe("calculateInterval", () => {
       const values = [0.001, 0.002, 0.003];
       const result = calculateInterval(3, values);
       expect(result.min).toBeCloseTo(0);
-      expect(result.max).toBeCloseTo(0.02);
+      expect(result.max).toBeCloseTo(0.04);
       expect(result.interval).toBeCloseTo(0.01);
     });
 
@@ -177,7 +177,7 @@ describe("calculateInterval", () => {
       const values = [0, 0, 0, 5, 10];
       const result = calculateInterval(0, values);
       expect(result.min).toBeCloseTo(0);
-      expect(result.max).toBeCloseTo(20);
+      expect(result.max).toBeCloseTo(40);
       expect(result.interval).toBeCloseTo(10);
     });
   });

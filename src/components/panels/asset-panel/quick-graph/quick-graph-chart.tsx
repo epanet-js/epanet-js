@@ -303,13 +303,20 @@ export const calculateInterval = (
   }
 
   const offset =
-    ((targetIntervalsCount - 1) * minPrecision - Math.abs(maxVal - minVal)) / 2;
+    (targetIntervalsCount - 1) * minPrecision - Math.abs(maxVal - minVal);
+  const halfOffset = offset / 2;
 
-  const min =
-    offset > minVal && minVal >= 0
-      ? 0
-      : Math.ceil((minVal - offset) / minPrecision) * minPrecision;
-  const max = Math.floor((maxVal + offset) / minPrecision) * minPrecision;
-
-  return { min, max, interval: minPrecision };
+  if (minVal >= 0 && minVal < halfOffset) {
+    const maxOffset = offset - minVal;
+    return {
+      min: 0,
+      max: Math.floor((maxVal + maxOffset) / minPrecision) * minPrecision,
+      interval: minPrecision,
+    };
+  }
+  return {
+    min: Math.ceil((minVal - halfOffset) / minPrecision) * minPrecision,
+    max: Math.floor((maxVal + halfOffset) / minPrecision) * minPrecision,
+    interval: minPrecision,
+  };
 };
