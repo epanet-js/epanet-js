@@ -51,7 +51,8 @@ export const ScenarioSwitcher = () => {
   const currentMomentLog = persistence.getMomentLog();
   const currentStats = getMomentLogStats(currentMomentLog);
   const mainStats = getMomentLogStats(scenariosState.mainMomentLog);
-  const baseAssets = scenariosState.baseModelSnapshot?.moment.putAssets?.length || 0;
+  const baseAssets =
+    scenariosState.baseModelSnapshot?.moment.putAssets?.length || 0;
 
   const activeDisplayName = isMainActive
     ? translate("scenarios.main")
@@ -60,8 +61,6 @@ export const ScenarioSwitcher = () => {
 
   const handleSelectMain = () => {
     if (isMainActive) return;
-
-    console.log("DEBUG === handleSelectMain START ===");
 
     userTracking.capture({
       name: "scenario.switched",
@@ -75,19 +74,16 @@ export const ScenarioSwitcher = () => {
       currentScenario.momentLog = persistence.getMomentLog();
       currentScenario.simulation = simulation;
       currentScenario.modelVersion = persistence.getModelVersion();
-      console.log("DEBUG [handleSelectMain] Saved current scenario momentLog, deltas:", currentScenario.momentLog.getDeltas().length);
     }
 
     // Restore to base state (deletes scenario-added assets)
     if (scenariosState.baseModelSnapshot) {
-      console.log("DEBUG [handleSelectMain] Restoring to base...");
       persistence.restoreToBase(scenariosState.baseModelSnapshot);
     }
 
     // Replay main's deltas on top
     if (scenariosState.mainMomentLog) {
       const deltas = scenariosState.mainMomentLog.getDeltas();
-      console.log("DEBUG [handleSelectMain] Replaying main deltas:", deltas.length);
       for (const delta of deltas) {
         persistence.applySnapshot(delta, "");
       }
@@ -102,8 +98,6 @@ export const ScenarioSwitcher = () => {
     // Restore Main's simulation state
     setSimulation(scenariosState.mainSimulation ?? initialSimulationState);
 
-    console.log("DEBUG === handleSelectMain END ===");
-
     setScenariosState((prev) => ({
       ...prev,
       activeScenarioId: null,
@@ -112,8 +106,6 @@ export const ScenarioSwitcher = () => {
 
   const handleSelectScenario = (scenarioId: string) => {
     if (activeScenarioId === scenarioId) return;
-
-    console.log("DEBUG === handleSelectScenario START ===", scenarioId);
 
     const scenario = scenariosState.scenarios.get(scenarioId);
     userTracking.capture({
@@ -124,7 +116,6 @@ export const ScenarioSwitcher = () => {
 
     // Save current state (momentLog + simulation + modelVersion)
     if (isMainActive) {
-      console.log("DEBUG [handleSelectScenario] Saving main momentLog + simulation + modelVersion");
       setScenariosState((prev) => ({
         ...prev,
         mainMomentLog: persistence.getMomentLog(),
@@ -137,20 +128,17 @@ export const ScenarioSwitcher = () => {
         currentScenario.momentLog = persistence.getMomentLog();
         currentScenario.simulation = simulation;
         currentScenario.modelVersion = persistence.getModelVersion();
-        console.log("DEBUG [handleSelectScenario] Saved current scenario momentLog, deltas:", currentScenario.momentLog.getDeltas().length);
       }
     }
 
     // Restore to base state (deletes scenario-added assets)
     if (scenariosState.baseModelSnapshot) {
-      console.log("DEBUG [handleSelectScenario] Restoring to base...");
       persistence.restoreToBase(scenariosState.baseModelSnapshot);
     }
 
     // Replay target scenario's deltas on top
     if (scenario) {
       const deltas = scenario.momentLog.getDeltas();
-      console.log("DEBUG [handleSelectScenario] Replaying scenario deltas:", deltas.length);
       for (const delta of deltas) {
         persistence.applySnapshot(delta, "");
       }
@@ -163,8 +151,6 @@ export const ScenarioSwitcher = () => {
     // Restore target scenario's simulation state
     setSimulation(scenario?.simulation ?? initialSimulationState);
 
-    console.log("DEBUG === handleSelectScenario END ===");
-
     setScenariosState((prev) => ({
       ...prev,
       activeScenarioId: scenarioId,
@@ -172,14 +158,10 @@ export const ScenarioSwitcher = () => {
   };
 
   const handleCreateScenario = () => {
-    console.log("DEBUG === handleCreateScenario START ===");
-
     let baseSnapshot = scenariosState.baseModelSnapshot;
     if (!baseSnapshot) {
-      console.log("DEBUG [handleCreateScenario] Capturing new base snapshot");
       baseSnapshot = persistence.captureModelSnapshot();
     }
-    console.log("DEBUG [handleCreateScenario] baseSnapshot assets:", baseSnapshot.moment.putAssets?.length || 0);
 
     // Save current state (momentLog + simulation + modelVersion)
     const mainMomentLog = isMainActive
@@ -200,7 +182,6 @@ export const ScenarioSwitcher = () => {
         currentScenario.momentLog = persistence.getMomentLog();
         currentScenario.simulation = simulation;
         currentScenario.modelVersion = persistence.getModelVersion();
-        console.log("DEBUG [handleCreateScenario] Saved current scenario momentLog, deltas:", currentScenario.momentLog.getDeltas().length);
       }
     }
 
@@ -220,7 +201,6 @@ export const ScenarioSwitcher = () => {
     });
 
     // Restore to base state (deletes scenario-added assets) before switching to new scenario
-    console.log("DEBUG [handleCreateScenario] Restoring to base...");
     persistence.restoreToBase(baseSnapshot);
     persistence.switchMomentLog(newMomentLog);
 
@@ -229,8 +209,6 @@ export const ScenarioSwitcher = () => {
 
     // New scenario starts with no simulation results
     setSimulation(initialSimulationState);
-
-    console.log("DEBUG === handleCreateScenario END ===");
 
     setScenariosState((prev) => {
       const newScenarios = new Map(prev.scenarios);
@@ -272,7 +250,10 @@ export const ScenarioSwitcher = () => {
             <DDContent align="start" side="bottom" className="min-w-64">
               {/* Debug info */}
               <div className="px-2 py-1 text-xs text-gray-500 border-b border-gray-200">
-                <div>Current: {currentStats.deltas}d, +{currentStats.puts}, -{currentStats.deletes}</div>
+                <div>
+                  Current: {currentStats.deltas}d, +{currentStats.puts}, -
+                  {currentStats.deletes}
+                </div>
                 <div>Base assets: {baseAssets}</div>
               </div>
 
@@ -281,7 +262,8 @@ export const ScenarioSwitcher = () => {
                   <div className="flex-1">
                     <div>{translate("scenarios.main")}</div>
                     <div className="text-xs text-gray-400">
-                      {mainStats.deltas}d, +{mainStats.puts}, -{mainStats.deletes}
+                      {mainStats.deltas}d, +{mainStats.puts}, -
+                      {mainStats.deletes}
                     </div>
                   </div>
                   <div className="w-4 h-4 flex items-center justify-center">

@@ -96,7 +96,9 @@ export class OPFSStorage implements IPrivateAppStorage {
     const root = await getRootDir();
     const appDir = await root.getDirectoryHandle(this.appId, { create: true });
     if (this.scenarioKey) {
-      return await appDir.getDirectoryHandle(this.scenarioKey, { create: true });
+      return await appDir.getDirectoryHandle(this.scenarioKey, {
+        create: true,
+      });
     }
     return appDir;
   }

@@ -68,7 +68,13 @@ export const useChangeTimestep = () => {
         setSimulationState({ status: "idle" });
       }
     },
-    [simulation, setData, setSimulationState, userTracking, scenariosState.activeScenarioId],
+    [
+      simulation,
+      setData,
+      setSimulationState,
+      userTracking,
+      scenariosState.activeScenarioId,
+    ],
   );
 
   const goToPreviousTimestep = useCallback(

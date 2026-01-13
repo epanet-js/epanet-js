@@ -106,7 +106,15 @@ export function useTimeSeries<T extends QuickGraphAssetType>({
     return () => {
       abortControllerRef.current?.abort();
     };
-  }, [assetId, assetType, property, status, metadata, simulationIds, scenariosState.activeScenarioId]);
+  }, [
+    assetId,
+    assetType,
+    property,
+    status,
+    metadata,
+    simulationIds,
+    scenariosState.activeScenarioId,
+  ]);
 
   return { data, isLoading };
 }

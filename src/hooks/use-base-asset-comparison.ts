@@ -19,7 +19,7 @@ export function useAssetComparison(asset: Asset | undefined) {
     return scenariosState.baseModelSnapshot.moment.putAssets?.find(
       (a) => a.id === asset.id,
     );
-  }, [isInScenario, asset?.id, scenariosState.baseModelSnapshot]);
+  }, [isInScenario, asset, scenariosState.baseModelSnapshot]);
 
   const getComparison = (
     propertyName: string,
@@ -29,9 +29,9 @@ export function useAssetComparison(asset: Asset | undefined) {
       return { hasChanged: false };
     }
 
-    const baseValue = (
-      baseAsset.feature.properties as Record<string, unknown>
-    )[propertyName];
+    const baseValue = (baseAsset.feature.properties as Record<string, unknown>)[
+      propertyName
+    ];
     const hasChanged = baseValue !== currentValue;
 
     return { hasChanged, baseValue };
