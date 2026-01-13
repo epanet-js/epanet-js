@@ -64,7 +64,7 @@ function QuickGraphChartECharts({
           symbol: "none",
           data: [{ xAxis: currentIntervalIndex }],
           lineStyle: {
-            type: "dotted",
+            type: "solid",
             color: colors.purple300,
             width: 1.5,
           },
@@ -280,7 +280,7 @@ export const calculateInterval = (
     values.length > 0 ? Math.ceil(Math.max(...values) * factor) / factor : 0;
   const range = maxVal - minVal;
 
-  const minPrecision = Math.pow(10, -decimals) * 10;
+  const minPrecision = Math.pow(10, -decimals + 1);
   let niceInterval = minPrecision;
   if (range > 0) {
     const roughInterval = range / (targetIntervalsCount - 1);
@@ -294,7 +294,7 @@ export const calculateInterval = (
         : prev;
     });
 
-    niceInterval = niceFactor * magnitude;
+    niceInterval = Math.round(niceFactor * magnitude * factor) / factor;
   }
   if (niceInterval > minPrecision) {
     const min = Math.floor(minVal / niceInterval) * niceInterval;
