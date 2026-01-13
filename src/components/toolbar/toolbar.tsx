@@ -47,6 +47,8 @@ import {
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { useImportCustomerPoints } from "src/commands/import-customer-points";
 import { CreateNewDropdown } from "./create-new-dropdown";
+import { ScenarioSwitcher } from "./scenario-switcher";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   toggleNetworkReviewShortcut,
   useToggleNetworkReview,
@@ -78,6 +80,7 @@ export const Toolbar = () => {
 
   const isMdOrLarger = useBreakpoint("md");
   const isSmOrLarger = useBreakpoint("sm");
+  const isScenariosOn = useFeatureFlag("FLAG_SCENARIOS");
 
   const shouldHideContextActions =
     selectedWrappedFeatures.length === 1 &&
@@ -90,6 +93,12 @@ export const Toolbar = () => {
     >
       <div className="flex flex-row items-center justify-start">
         <CreateNewDropdown />
+        {isScenariosOn && (
+          <>
+            <ScenarioSwitcher />
+            <Divider />
+          </>
+        )}
         {
           <>
             <MenuAction

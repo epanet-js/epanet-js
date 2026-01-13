@@ -806,6 +806,17 @@ export type UserEvent =
       name: "controls.changed";
       simpleControlsCount: number;
       rulesCount: number;
+    }
+  | { name: "scenarioSwitcher.opened" }
+  | {
+      name: "scenario.switched";
+      scenarioId: string | null;
+      scenarioName: string | undefined;
+    }
+  | {
+      name: "scenario.created";
+      scenarioId: string;
+      scenarioName: string;
     };
 
 const debugPostHog = {
