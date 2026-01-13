@@ -45,7 +45,12 @@ export type TankProperty = "head" | "pressure" | "level" | "volume";
 export type ReservoirProperty = "head";
 export type PipeProperty = "flow" | "velocity" | "headloss" | "status";
 export type PumpProperty = "flow" | "headloss" | "status";
-export type ValveProperty = "flow" | "velocity" | "headloss" | "status";
+export type ValveProperty =
+  | "flow"
+  | "velocity"
+  | "headloss"
+  | "status"
+  | "setting";
 
 type NodeProperty = "demand" | "head" | "pressure" | "quality";
 type LinkProperty =

@@ -15,6 +15,7 @@ import {
 } from "src/state/quick-graph";
 import type { QuantityProperty } from "src/model-metadata/quantities-spec";
 import type { TimeSeries } from "src/simulation/epanet/eps-results-reader";
+import type { AssetId, Valve } from "src/hydraulic-model/asset-types";
 import { useTimeSeries } from "./use-time-series";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { QuickGraphChart } from "./quick-graph-chart";
@@ -49,6 +50,7 @@ const QUICK_GRAPH_PROPERTIES: {
     { value: "flow", labelKey: "flow", quantityKey: "flow" },
     { value: "velocity", labelKey: "velocity", quantityKey: "velocity" },
     { value: "headloss", labelKey: "headlossShort", quantityKey: "headloss" },
+    { value: "setting", labelKey: "setting", quantityKey: "tcvSetting" },
   ],
   tank: [
     { value: "level", labelKey: "level", quantityKey: "level" },
@@ -87,12 +89,21 @@ export const useShowQuickGraph = () => {
 
 interface QuickGraphSectionProps {
   assetType: QuickGraphAssetType;
+  assetId: AssetId;
   data: TimeSeries | null;
   isLoading: boolean;
 }
 
+const getValveSettingQuantityKey = (valve: Valve): QuantityProperty | null => {
+  if (valve.kind === "tcv") return null;
+  if (["psv", "prv", "pbv"].includes(valve.kind)) return "pressure";
+  if (valve.kind === "fcv") return "flow";
+  return null;
+};
+
 const QuickGraphSection = ({
   assetType,
+  assetId,
   data,
   isLoading,
 }: QuickGraphSectionProps) => {
@@ -101,6 +112,7 @@ const QuickGraphSection = ({
   const [propertyByType, setPropertyByType] = useAtom(quickGraphPropertyAtom);
   const simulation = useAtomValue(simulationAtom);
   const {
+    hydraulicModel,
     modelMetadata: { quantities },
   } = useAtomValue(dataAtom);
   const { changeTimestep } = useChangeTimestep();
@@ -109,9 +121,24 @@ const QuickGraphSection = ({
   const selectedOption = QUICK_GRAPH_PROPERTIES[assetType].find(
     (opt) => opt.value === selectedProperty,
   );
-  const decimals = selectedOption
-    ? (quantities.getDecimals(selectedOption.quantityKey) ?? 0)
-    : 0;
+  const decimals = useMemo(() => {
+    if (!selectedOption) return 0;
+    let quantityKey = selectedOption.quantityKey;
+    if (assetType === "valve" && selectedProperty === "setting") {
+      const valve = hydraulicModel.assets.get(assetId) as Valve | undefined;
+      if (valve) {
+        quantityKey = getValveSettingQuantityKey(valve) ?? quantityKey;
+      }
+    }
+    return quantities.getDecimals(quantityKey) ?? 0;
+  }, [
+    selectedOption,
+    assetType,
+    selectedProperty,
+    assetId,
+    hydraulicModel,
+    quantities,
+  ]);
 
   const values = useMemo(() => (data ? Array.from(data.values) : []), [data]);
   const timeStepIndex =
@@ -123,13 +150,20 @@ const QuickGraphSection = ({
     const options = QUICK_GRAPH_PROPERTIES[assetType];
     return options.map((opt) => {
       const label = translate(opt.labelKey);
-      const unit = quantities.getUnit(opt.quantityKey);
+      let quantityKey = opt.quantityKey;
+      if (assetType === "valve" && opt.value === "setting") {
+        const valve = hydraulicModel.assets.get(assetId) as Valve | undefined;
+        if (valve) {
+          quantityKey = getValveSettingQuantityKey(valve) ?? opt.quantityKey;
+        }
+      }
+      const unit = quantities.getUnit(quantityKey);
       return {
         value: opt.value,
         label: unit ? `${label} (${unit})` : label,
       };
     });
-  }, [assetType, translate, quantities]);
+  }, [assetType, assetId, hydraulicModel, translate, quantities]);
 
   const handlePropertyChange = useCallback(
     (value: QuickGraphPropertyByAssetType[typeof assetType]) => {
@@ -234,7 +268,12 @@ export function useQuickGraph<T extends QuickGraphAssetType>(
   });
 
   const footer = showQuickGraph ? (
-    <QuickGraph assetType={assetType} data={data} isLoading={isLoading} />
+    <QuickGraph
+      assetId={assetId}
+      assetType={assetType}
+      data={data}
+      isLoading={isLoading}
+    />
   ) : undefined;
 
   return { footer };
