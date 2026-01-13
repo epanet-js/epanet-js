@@ -28,96 +28,67 @@ function QuickGraphChartECharts({
 }: QuickGraphChartProps) {
   const translate = useTranslate();
 
-  const timeLabels = useMemo(() => {
-    const labels: string[] = [];
-    for (let i = 0; i < intervalsCount; i++) {
-      const totalSeconds = i * intervalSeconds;
-      const hours = Math.floor(totalSeconds / 3600);
-      const minutes = Math.floor((totalSeconds % 3600) / 60);
-      labels.push(`${hours}:${minutes.toString().padStart(2, "0")}`);
-    }
-    return labels;
-  }, [intervalsCount, intervalSeconds]);
-
-  const yAxisMinInterval = useMemo(
-    () => calculateMinInterval(decimals, values),
+  const xAxis: EChartsOption["xAxis"] = useMemo(
+    () => buildXAxis(intervalsCount, intervalSeconds),
+    [intervalsCount, intervalSeconds],
+  );
+  const yAxis: EChartsOption["yAxis"] = useMemo(
+    () => buildYAxis(values, decimals),
     [values, decimals],
   );
 
-  const option: EChartsOption = useMemo(() => {
-    return {
-      animation: false,
-      grid: {
-        top: 8,
-        right: 8,
-        bottom: 4,
-        left: 36,
-        containLabel: false,
-      },
-      xAxis: {
-        type: "category",
-        data: timeLabels,
-        show: false,
-        boundaryGap: false,
-      },
-      yAxis: {
-        type: "value",
-        scale: true,
-        minInterval: yAxisMinInterval,
-        splitNumber: 1,
-        splitLine: { show: true, lineStyle: { color: colors.gray300 } },
-        axisLine: { show: false },
-        axisTick: { show: false },
-        axisLabel: {
-          color: colors.gray500,
-          fontSize: 12,
-          formatter: (value: number) => {
-            return localizeDecimal(value, { decimals });
-          },
+  const option: EChartsOption = {
+    animation: false,
+    grid: {
+      top: 8,
+      right: 8,
+      bottom: 4,
+      left: 36,
+      containLabel: false,
+    },
+    xAxis,
+    yAxis,
+    series: [
+      {
+        type: "line",
+        data: values,
+        lineStyle: {
+          color: colors.purple500,
+          width: 2,
         },
-      },
-      series: [
-        {
-          type: "line",
-          data: values,
+        symbol: "none",
+        smooth: false,
+        triggerLineEvent: true,
+        markLine: {
+          silent: true,
+          symbol: "none",
+          data: [{ xAxis: currentIntervalIndex }],
           lineStyle: {
-            color: colors.purple500,
+            type: "dotted",
+            color: colors.purple300,
             width: 1.5,
           },
-          symbol: "none",
-          smooth: false,
-          triggerLineEvent: true,
-          markLine: {
-            silent: true,
-            symbol: "none",
-            data: [{ xAxis: currentIntervalIndex }],
-            lineStyle: {
-              type: "dashed",
-              color: colors.gray500,
-              width: 1,
-            },
-            label: { show: false },
-          },
-        },
-      ],
-      tooltip: {
-        trigger: "axis",
-        backgroundColor: "white",
-        borderColor: colors.gray300,
-        textStyle: {
-          color: colors.gray700,
-          fontSize: 12,
-        },
-        formatter: (params: any) => {
-          const data = params[0];
-          if (!data) return "";
-          const value = localizeDecimal(data.value, { decimals });
-
-          return `${data.name}<br/>${value}`;
+          label: { show: false },
         },
       },
-    };
-  }, [timeLabels, yAxisMinInterval, values, currentIntervalIndex, decimals]);
+    ],
+    tooltip: {
+      trigger: "axis",
+      backgroundColor: "white",
+      borderColor: colors.gray300,
+      textStyle: {
+        color: colors.gray700,
+        fontSize: 12,
+      },
+      formatter: (params: any) => {
+        const data = params[0];
+        if (!data) return "";
+        const value = localizeDecimal(data.value, { decimals });
+
+        return `${data.name}<br/>${value}`;
+      },
+    },
+  };
 
   const chartRef = useRef<ReactECharts>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -181,19 +152,161 @@ function QuickGraphChartECharts({
   );
 }
 
-const calculateMinInterval = (decimals: number, values: number[]) => {
+const buildXAxis = (
+  intervalsCount: number,
+  intervalSeconds: number,
+): EChartsOption["xAxis"] => {
+  const xAxisInterval = calculateXAxisInterval(intervalsCount, intervalSeconds);
+  const xAxisStep = calculateXAxisStep(intervalsCount, intervalSeconds);
+  return {
+    type: "category",
+    data: buildTimeLabels(intervalsCount, intervalSeconds),
+    show: true,
+    boundaryGap: false,
+    splitLine: {
+      show: true,
+      lineStyle: { color: colors.gray300, type: "dashed" },
+      interval: (index: number) => {
+        if (index === intervalsCount - 1) return false;
+        return index % xAxisStep === 0;
+      },
+    },
+    axisTick: {
+      show: true,
+      alignWithLabel: true,
+      lineStyle: { color: colors.gray300 },
+      interval: (index: number) => index % xAxisStep === 0,
+    },
+    axisLabel: {
+      show: true,
+      interval: xAxisInterval,
+      color: colors.gray500,
+      fontSize: 12,
+    },
+    axisLine: { show: true, lineStyle: { color: colors.gray300 } },
+  };
+};
+
+const buildTimeLabels = (intervalsCount: number, intervalSeconds: number) => {
+  const labels: string[] = [];
+  for (let i = 0; i < intervalsCount; i++) {
+    const totalSeconds = i * intervalSeconds;
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    labels.push(`${hours}:${minutes.toString().padStart(2, "0")}`);
+  }
+  return labels;
+};
+
+const calculateXAxisInterval = (
+  intervalCount: number,
+  intervalSeconds: number,
+  targetTickCount = 5,
+) => {
+  const totalSeconds = intervalCount * intervalSeconds;
+
+  const logicalSteps = [3600, 7200, 10800, 14400, 21600, 28800, 43200, 86400];
+
+  const idealStep = totalSeconds / (targetTickCount - 1 || 1);
+
+  const bestStepSeconds = logicalSteps.reduce((prev, curr) => {
+    return Math.abs(curr - idealStep) < Math.abs(prev - idealStep)
+      ? curr
+      : prev;
+  });
+
+  const indexInterval = Math.round(bestStepSeconds / intervalSeconds);
+
+  return (index: number) => {
+    return index % indexInterval === 0;
+  };
+};
+
+const calculateXAxisStep = (
+  intervalCount: number,
+  intervalSeconds: number,
+  targetTickCount = 5,
+): number => {
+  const totalSeconds = intervalCount * intervalSeconds;
+  const rawStep = totalSeconds / Math.max(targetTickCount - 1, 1);
+
+  const step = [3600, 7200, 10800, 14400, 21600, 28800, 43200, 86400].reduce(
+    (prev, curr) => {
+      return Math.abs(curr - rawStep) < Math.abs(prev - rawStep) ? curr : prev;
+    },
+  );
+
+  return Math.max(1, Math.round(step / intervalSeconds));
+};
+
+const buildYAxis = (
+  values: number[],
+  decimals: number,
+): EChartsOption["yAxis"] => {
+  const { min, max, interval } = calculateNiceInterval(decimals, values, 5);
+  return {
+    type: "value",
+    scale: true,
+    min,
+    max,
+    interval,
+    splitLine: {
+      show: true,
+      lineStyle: { color: colors.gray300, type: "dashed" },
+    },
+    axisLine: { show: true, lineStyle: { color: colors.gray300 } },
+    axisTick: { show: true, lineStyle: { color: colors.gray300 } },
+    axisLabel: {
+      color: colors.gray500,
+      fontSize: 12,
+      formatter: (value: number) => {
+        return localizeDecimal(value, { decimals });
+      },
+    },
+  };
+};
+
+const calculateNiceInterval = (
+  decimals: number,
+  values: number[],
+  targetTickCount = 5,
+): { min: number; max: number; interval: number } => {
+  if (values.length === 0) return { min: 0, max: 0, interval: 0 };
+
   const factor = Math.pow(10, decimals);
   const minVal =
     values.length > 0 ? Math.floor(Math.min(...values) * factor) / factor : 0;
   const maxVal =
     values.length > 0 ? Math.ceil(Math.max(...values) * factor) / factor : 0;
+  const range = maxVal - minVal;
 
-  const dataRange = Math.abs(maxVal - minVal);
-  const precisionInterval = Math.pow(10, -decimals + 1);
-  const rangeBasedInterval =
-    dataRange > 0 ? Math.ceil((dataRange / 3) * factor) / factor : 0;
+  const minPrecision = Math.pow(10, -decimals) * 10;
+  let niceInterval = minPrecision;
+  if (range > 0) {
+    const roughInterval = range / (targetTickCount - 1);
+    const magnitude = Math.pow(10, Math.floor(Math.log10(roughInterval)));
+    const normalizedInterval = roughInterval / magnitude;
 
-  return rangeBasedInterval < precisionInterval
-    ? precisionInterval
-    : rangeBasedInterval;
+    const niceFactor = [1, 2, 2.5, 5, 10].reduce((prev, curr) => {
+      return Math.abs(curr - normalizedInterval) <
+        Math.abs(prev - normalizedInterval)
+        ? curr
+        : prev;
+    });
+
+    niceInterval = niceFactor * magnitude;
+  }
+  if (niceInterval > minPrecision) {
+    const min = Math.floor(minVal / niceInterval) * niceInterval;
+    const max = Math.ceil(maxVal / niceInterval) * niceInterval;
+    return { min, max, interval: niceInterval };
+  }
+
+  const offset =
+    ((targetTickCount - 1) * minPrecision - Math.abs(maxVal - minVal)) / 2;
+
+  const min = Math.ceil((minVal - offset) / minPrecision) * minPrecision;
+  const max = Math.floor((maxVal + offset) / minPrecision) * minPrecision;
+
+  return { min, max, interval: minPrecision };
 };

@@ -318,7 +318,7 @@ export const BottomResizer = memo(function BottomResizerInner() {
   );
 });
 
-const MIN_FOOTER_HEIGHT = 150;
+const MIN_FOOTER_HEIGHT = 205;
 const MAX_FOOTER_HEIGHT = 400;
 
 export const FooterResizer = memo(function FooterResizerInner({

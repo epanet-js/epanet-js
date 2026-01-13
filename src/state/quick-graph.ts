@@ -25,7 +25,7 @@ interface AssetPanelFooterState {
   height: number;
 }
 
-export const DEFAULT_FOOTER_HEIGHT = 158;
+export const DEFAULT_FOOTER_HEIGHT = 220;
 
 export const assetPanelFooterAtom = atom<AssetPanelFooterState>({
   isPinned: false,
