@@ -43,7 +43,7 @@ const SelectCell: CellComponent<string | null, SelectCellProps> = ({
   }, [active, setActiveCell, columnIndex, rowIndex]);
 
   return (
-    <div className="w-full h-full [&>div]:w-full [&>div]:h-full [&_button]:w-full [&_button]:h-full">
+    <div className="w-full h-full [&>div]:w-full [&>div]:h-full [&_button]:w-full [&_button]:h-full [&_button]:pr-0">
       <Selector
         options={selectorOptions}
         selected={rowData}

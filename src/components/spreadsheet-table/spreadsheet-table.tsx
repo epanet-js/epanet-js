@@ -92,7 +92,7 @@ export function SpreadsheetTable<T extends Record<string, unknown>>({
           stickyRightColumn={rowActionsColumn}
           gutterColumn={false}
           onActiveCellChange={handleActiveCellChange}
-          className="text-sm [&_input]:text-sm [&_input]:w-full [&_input]:h-full [&_input]:px-2 [&_.dsg-cell-sticky-right]:transform-none [&_.dsg-cell-header]:bg-[var(--spreadsheet-header-bg)] [&_.dsg-cell-header]:font-semibold [&_.dsg-cell-sticky-right]:bg-[var(--spreadsheet-header-bg)]"
+          className="text-sm [&_input]:text-sm [&_input]:w-full [&_input]:h-full [&_input]:px-2 [&_.dsg-cell-sticky-right]:transform-none [&_.dsg-cell-header]:bg-[var(--spreadsheet-header-bg)] [&_.dsg-cell-header]:font-semibold [&_.dsg-cell-header-container]:truncate [&_.dsg-cell-header-container]:px-2 [&_.dsg-cell-sticky-right]:bg-[var(--spreadsheet-header-bg)]"
           style={
             {
               "--dsg-selection-border-color": colors.purple500,

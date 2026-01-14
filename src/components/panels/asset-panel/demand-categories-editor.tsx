@@ -144,7 +144,7 @@ export const DemandCategoriesEditor = ({
       {
         ...keyColumn("baseDemand", createFloatColumn({ deleteValue: 0 })),
         title: translate("baseDemand"),
-        grow: 2,
+        grow: 6,
       },
       {
         ...keyColumn(
@@ -155,7 +155,7 @@ export const DemandCategoriesEditor = ({
           }),
         ),
         title: translate("timePattern"),
-        grow: 3,
+        grow: 7,
       },
     ],
     [patternOptions, translate],
