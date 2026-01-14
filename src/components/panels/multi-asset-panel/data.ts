@@ -18,7 +18,7 @@ import {
 import { Valve } from "src/hydraulic-model/asset-types";
 import { CustomerPointsLookup } from "src/hydraulic-model/customer-points-lookup";
 import { getActiveCustomerPoints } from "src/hydraulic-model/customer-points";
-import { Demands } from "src/hydraulic-model/demands";
+import { Demands, calculateAverageDemand } from "src/hydraulic-model/demands";
 
 export type QuantityStats = QuantityStatsDeprecated & {
   decimals: number;
@@ -131,26 +131,6 @@ export const computeMultiAssetData = (
   };
 };
 
-const calculateAverageDemand = (
-  junction: Junction,
-  demands: Demands,
-): number => {
-  return junction.demands.reduce((total, demand) => {
-    if (!demand.patternId) {
-      return total + demand.baseDemand;
-    }
-
-    const pattern = demands.patterns.get(demand.patternId);
-    if (!pattern || pattern.length === 0) {
-      return total + demand.baseDemand;
-    }
-
-    const avgMultiplier =
-      pattern.reduce((sum, m) => sum + m, 0) / pattern.length;
-    return total + demand.baseDemand * avgMultiplier;
-  }, 0);
-};
-
 const appendJunctionStats = (
   statsMap: Map<string, AssetPropertyStats>,
   junction: Junction,
@@ -167,7 +147,10 @@ const appendJunctionStats = (
     quantitiesMetadata,
   );
 
-  const averageDemand = calculateAverageDemand(junction, demands);
+  const averageDemand = calculateAverageDemand(
+    junction.demands,
+    demands.patterns,
+  );
   updateQuantityStats(
     statsMap,
     "averageDemand",

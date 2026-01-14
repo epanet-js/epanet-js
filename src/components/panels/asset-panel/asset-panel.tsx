@@ -12,7 +12,10 @@ import {
 } from "src/hydraulic-model";
 import { getActiveCustomerPoints } from "src/hydraulic-model/customer-points";
 import { Valve } from "src/hydraulic-model/asset-types";
-import { JunctionDemand } from "src/hydraulic-model/demands";
+import {
+  JunctionDemand,
+  calculateAverageDemand,
+} from "src/hydraulic-model/demands";
 import { Quantities } from "src/model-metadata/quantities-spec";
 import { useTranslate } from "src/hooks/use-translate";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
@@ -391,6 +394,12 @@ const JunctionEditor = ({
     0,
   );
 
+  const averageDemand = useMemo(
+    () =>
+      calculateAverageDemand(junction.demands, hydraulicModel.demands.patterns),
+    [junction.demands, hydraulicModel.demands.patterns],
+  );
+
   return (
     <AssetEditorContent
       label={junction.label}
@@ -417,11 +426,20 @@ const JunctionEditor = ({
       </Section>
       <Section title={translate("demands")}>
         {isEditJunctionDemandsOn ? (
-          <DemandCategoriesEditor
-            demands={junction.demands}
-            patterns={hydraulicModel.demands.patterns}
-            onDemandsChange={onDemandsChange}
-          />
+          <>
+            <QuantityRow
+              name="averageDemand"
+              value={averageDemand}
+              unit={quantitiesMetadata.getUnit("averageDemand")}
+              decimals={quantitiesMetadata.getDecimals("averageDemand")}
+              readOnly={true}
+            />
+            <DemandCategoriesEditor
+              demands={junction.demands}
+              patterns={hydraulicModel.demands.patterns}
+              onDemandsChange={onDemandsChange}
+            />
+          </>
         ) : (
           <>
             <QuantityRow
