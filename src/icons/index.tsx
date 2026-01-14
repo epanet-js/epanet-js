@@ -19,6 +19,7 @@ import {
   CircleSlash2,
   CircleX,
   Crosshair,
+  EllipsisVertical,
   Eye,
   EyeOff,
   File,
@@ -180,6 +181,7 @@ export const SortAscendingIcon = icon(ArrowUpNarrowWide);
 export const SortDescendingIcon = icon(ArrowDownWideNarrow);
 export const PinIcon = icon(Pin);
 export const PinOffIcon = icon(PinOff);
+export const MoreActionsIcon = icon(EllipsisVertical);
 
 export const ReverseIcon: React.FC<IconProps> = ({
   size: rawSize = "md",

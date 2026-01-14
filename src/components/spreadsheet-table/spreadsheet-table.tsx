@@ -2,31 +2,44 @@ import {
   DynamicDataSheetGrid,
   Column,
   DataSheetGridRef,
+  SimpleColumn,
 } from "react-datasheet-grid";
 import { useCallback, useMemo, useRef } from "react";
 import { colors } from "src/lib/constants";
 import { SpreadsheetProvider } from "./spreadsheet-context";
+import { createActionsColumn, RowAction } from "./actions-column";
 
-type SpreadsheetTableProps<T> = {
+type SpreadsheetTableProps<T extends Record<string, unknown>> = {
   data: T[];
-  columns: Column<T>[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  columns: Partial<Column<T, any, any>>[];
   onChange: (data: T[]) => void;
   createRow: () => T;
   lockRows?: boolean;
   emptyState?: React.ReactNode;
+  rowActions?: RowAction[];
 };
 
-export function SpreadsheetTable<T>({
+export function SpreadsheetTable<T extends Record<string, unknown>>({
   data,
   columns,
   onChange,
   createRow,
   lockRows = false,
   emptyState,
+  rowActions,
 }: SpreadsheetTableProps<T>) {
   const gridRef = useRef<DataSheetGridRef>(null);
   const memoizedColumns = useMemo(() => columns, [columns]);
   const memoizedCreateRow = useCallback(createRow, [createRow]);
+
+  const rowActionsColumn = useMemo(
+    () =>
+      rowActions
+        ? (createActionsColumn(rowActions) as SimpleColumn<T, unknown>)
+        : undefined,
+    [rowActions],
+  );
 
   const setActiveCell = useCallback((cell: { col: number; row: number }) => {
     gridRef.current?.setActiveCell(cell);
@@ -62,6 +75,7 @@ export function SpreadsheetTable<T>({
           createRow={memoizedCreateRow}
           lockRows={lockRows}
           rowHeight={38}
+          stickyRightColumn={rowActionsColumn}
         />
       </div>
     </SpreadsheetProvider>

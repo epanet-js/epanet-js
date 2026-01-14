@@ -128,6 +128,8 @@
   "none": "None",
   "type": "Type",
   "delete": "Delete",
+  "insertRowAbove": "Insert row above",
+  "insertRowBelow": "Insert row below",
   "redraw": "Redraw",
   "reverse": "Reverse",
   "zoomTo": "Zoom to",

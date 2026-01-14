@@ -1,13 +1,15 @@
 import { useMemo, useCallback } from "react";
-import { keyColumn, floatColumn, Column } from "react-datasheet-grid";
+import { keyColumn, Column } from "react-datasheet-grid";
 import {
   SpreadsheetTable,
   createSelectColumn,
+  createFloatColumn,
 } from "src/components/spreadsheet-table";
 import { JunctionDemand, PatternId } from "src/hydraulic-model/demands";
 import { Unit } from "src/quantity";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
+import { DeleteIcon, AddIcon } from "src/icons";
 
 type DemandCategoryRow = {
   baseDemand: number | null;
@@ -50,11 +52,72 @@ export const DemandCategoriesEditor = ({
     return options;
   }, [patterns]);
 
-  const columns: Column<DemandCategoryRow>[] = useMemo(
+  const handleDeleteRow = useCallback(
+    (rowIndex: number) => {
+      const newRows = rowData.filter((_, i) => i !== rowIndex);
+      const newDemands = newRows.map(fromRow);
+      onDemandsChange(newDemands);
+    },
+    [rowData, onDemandsChange],
+  );
+
+  const handleInsertRowAbove = useCallback(
+    (rowIndex: number) => {
+      const newRow: DemandCategoryRow = { baseDemand: 0, patternId: null };
+      const newRows = [
+        ...rowData.slice(0, rowIndex),
+        newRow,
+        ...rowData.slice(rowIndex),
+      ];
+      const newDemands = newRows.map(fromRow);
+      onDemandsChange(newDemands);
+    },
+    [rowData, onDemandsChange],
+  );
+
+  const handleInsertRowBelow = useCallback(
+    (rowIndex: number) => {
+      const newRow: DemandCategoryRow = { baseDemand: 0, patternId: null };
+      const newRows = [
+        ...rowData.slice(0, rowIndex + 1),
+        newRow,
+        ...rowData.slice(rowIndex + 1),
+      ];
+      const newDemands = newRows.map(fromRow);
+      onDemandsChange(newDemands);
+    },
+    [rowData, onDemandsChange],
+  );
+
+  const rowActions = useMemo(
     () => [
       {
-        ...keyColumn("baseDemand", floatColumn),
+        label: translate("delete"),
+        icon: <DeleteIcon size="sm" />,
+        onSelect: handleDeleteRow,
+      },
+      {
+        label: translate("insertRowAbove"),
+        icon: <AddIcon size="sm" />,
+        onSelect: handleInsertRowAbove,
+      },
+      {
+        label: translate("insertRowBelow"),
+        icon: <AddIcon size="sm" />,
+        onSelect: handleInsertRowBelow,
+      },
+    ],
+    [translate, handleDeleteRow, handleInsertRowAbove, handleInsertRowBelow],
+  );
+
+  const columns = useMemo(
+    (): Partial<Column>[] => [
+      {
+        ...keyColumn("baseDemand", createFloatColumn()),
         title: `${translate("baseDemand")} (${translateUnit(unit)})`,
+        basis: 80,
+        grow: 0,
+        shrink: 0,
       },
       {
         ...keyColumn(
@@ -92,6 +155,7 @@ export const DemandCategoriesEditor = ({
       columns={columns}
       onChange={handleChange}
       createRow={createRow}
+      rowActions={rowActions}
     />
   );
 };
