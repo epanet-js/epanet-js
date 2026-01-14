@@ -420,7 +420,6 @@ const JunctionEditor = ({
           <DemandCategoriesEditor
             demands={junction.demands}
             patterns={hydraulicModel.demands.patterns}
-            unit={quantitiesMetadata.getUnit("baseDemand")}
             onDemandsChange={onDemandsChange}
           />
         ) : (

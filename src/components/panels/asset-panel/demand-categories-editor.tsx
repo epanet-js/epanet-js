@@ -6,9 +6,7 @@ import {
   createFloatColumn,
 } from "src/components/spreadsheet-table";
 import { JunctionDemand, PatternId } from "src/hydraulic-model/demands";
-import { Unit } from "src/quantity";
 import { useTranslate } from "src/hooks/use-translate";
-import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { DeleteIcon, AddIcon } from "src/icons";
 
 type DemandCategoryRow = {
@@ -19,7 +17,6 @@ type DemandCategoryRow = {
 type Props = {
   demands: JunctionDemand[];
   patterns: Map<PatternId, number[]>;
-  unit: Unit;
   onDemandsChange: (newDemands: JunctionDemand[]) => void;
 };
 
@@ -36,11 +33,9 @@ const fromRow = (row: DemandCategoryRow): JunctionDemand => ({
 export const DemandCategoriesEditor = ({
   demands,
   patterns,
-  unit,
   onDemandsChange,
 }: Props) => {
   const translate = useTranslate();
-  const translateUnit = useTranslateUnit();
 
   const rowData = useMemo(() => demands.map(toRow), [demands]);
 
@@ -114,23 +109,22 @@ export const DemandCategoriesEditor = ({
     (): Partial<Column>[] => [
       {
         ...keyColumn("baseDemand", createFloatColumn()),
-        title: `${translate("baseDemand")} (${translateUnit(unit)})`,
-        basis: 80,
-        grow: 0,
-        shrink: 0,
+        title: translate("baseDemand"),
+        grow: 2,
       },
       {
         ...keyColumn(
           "patternId",
           createSelectColumn({
             options: patternOptions,
-            placeholder: translate("constant"),
+            placeholder: translate("constant").toUpperCase(),
           }),
         ),
         title: translate("timePattern"),
+        grow: 3,
       },
     ],
-    [patternOptions, unit, translate, translateUnit],
+    [patternOptions, translate],
   );
 
   const createRow = useCallback(
@@ -156,6 +150,8 @@ export const DemandCategoriesEditor = ({
       onChange={handleChange}
       createRow={createRow}
       rowActions={rowActions}
+      height={150}
+      addRowLabel={translate("addDemandCategory")}
     />
   );
 };

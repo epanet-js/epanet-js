@@ -130,6 +130,7 @@
   "delete": "Delete",
   "insertRowAbove": "Insert row above",
   "insertRowBelow": "Insert row below",
+  "addDemandCategory": "Add demand category",
   "redraw": "Redraw",
   "reverse": "Reverse",
   "zoomTo": "Zoom to",
