@@ -426,20 +426,22 @@ const JunctionEditor = ({
       </Section>
       <Section title={translate("demands")}>
         {isEditJunctionDemandsOn ? (
-          <>
-            <QuantityRow
-              name="averageDemand"
-              value={averageDemand}
-              unit={quantitiesMetadata.getUnit("averageDemand")}
-              decimals={quantitiesMetadata.getDecimals("averageDemand")}
-              readOnly={true}
-            />
+          <div className="flex flex-col gap-2">
+            {averageDemand > 0 && (
+              <QuantityRow
+                name="averageDemand"
+                value={averageDemand}
+                unit={quantitiesMetadata.getUnit("averageDemand")}
+                decimals={quantitiesMetadata.getDecimals("averageDemand")}
+                readOnly={true}
+              />
+            )}
             <DemandCategoriesEditor
               demands={junction.demands}
               patterns={hydraulicModel.demands.patterns}
               onDemandsChange={onDemandsChange}
             />
-          </>
+          </div>
         ) : (
           <>
             <QuantityRow

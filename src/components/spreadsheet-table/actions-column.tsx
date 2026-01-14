@@ -6,6 +6,7 @@ export type RowAction = {
   label: string;
   icon: React.ReactNode;
   onSelect: (rowIndex: number) => void;
+  disabled?: (rowIndex: number) => boolean;
 };
 
 type ActionsCellProps = {
@@ -34,16 +35,24 @@ const ActionsCell: CellComponent<null, ActionsCellProps> = ({
           className="bg-white border rounded-md shadow-md z-50 min-w-[160px]"
           align="end"
         >
-          {actions.map((action, index) => (
-            <DD.Item
-              key={index}
-              className="flex items-center gap-2 px-3 py-2 text-sm cursor-pointer hover:bg-gray-100 outline-none"
-              onSelect={() => action.onSelect(rowIndex)}
-            >
-              {action.icon}
-              {action.label}
-            </DD.Item>
-          ))}
+          {actions.map((action, index) => {
+            const isDisabled = action.disabled?.(rowIndex) ?? false;
+            return (
+              <DD.Item
+                key={index}
+                className={`flex items-center gap-2 px-3 py-2 text-sm outline-none ${
+                  isDisabled
+                    ? "text-gray-400 cursor-not-allowed"
+                    : "cursor-pointer hover:bg-gray-100"
+                }`}
+                onSelect={() => !isDisabled && action.onSelect(rowIndex)}
+                disabled={isDisabled}
+              >
+                {action.icon}
+                {action.label}
+              </DD.Item>
+            );
+          })}
         </DD.Content>
       </DD.Portal>
     </DD.Root>

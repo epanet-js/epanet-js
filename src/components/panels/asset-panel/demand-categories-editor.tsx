@@ -37,7 +37,15 @@ export const DemandCategoriesEditor = ({
 }: Props) => {
   const translate = useTranslate();
 
-  const rowData = useMemo(() => demands.map(toRow), [demands]);
+  const createDefaultRow = (): DemandCategoryRow => ({
+    baseDemand: 0,
+    patternId: null,
+  });
+
+  const rowData = useMemo(
+    () => (demands.length === 0 ? [createDefaultRow()] : demands.map(toRow)),
+    [demands],
+  );
 
   const patternOptions = useMemo(() => {
     const options: { value: string; label: string }[] = [];
@@ -84,12 +92,22 @@ export const DemandCategoriesEditor = ({
     [rowData, onDemandsChange],
   );
 
+  const isDeleteDisabled = useCallback(
+    (rowIndex: number) => {
+      if (rowData.length > 1) return false;
+      const row = rowData[rowIndex];
+      return row?.baseDemand === 0 && row?.patternId === null;
+    },
+    [rowData],
+  );
+
   const rowActions = useMemo(
     () => [
       {
         label: translate("delete"),
         icon: <DeleteIcon size="sm" />,
         onSelect: handleDeleteRow,
+        disabled: isDeleteDisabled,
       },
       {
         label: translate("insertRowAbove"),
@@ -102,7 +120,13 @@ export const DemandCategoriesEditor = ({
         onSelect: handleInsertRowBelow,
       },
     ],
-    [translate, handleDeleteRow, handleInsertRowAbove, handleInsertRowBelow],
+    [
+      translate,
+      handleDeleteRow,
+      handleInsertRowAbove,
+      handleInsertRowBelow,
+      isDeleteDisabled,
+    ],
   );
 
   const columns = useMemo(
@@ -127,17 +151,13 @@ export const DemandCategoriesEditor = ({
     [patternOptions, translate],
   );
 
-  const createRow = useCallback(
-    (): DemandCategoryRow => ({
-      baseDemand: 0,
-      patternId: null,
-    }),
-    [],
-  );
+  const createRow = useCallback(createDefaultRow, []);
 
   const handleChange = useCallback(
     (newRows: DemandCategoryRow[]) => {
-      const newDemands = newRows.map(fromRow);
+      const nonZeroRows = newRows.filter((row) => row.baseDemand !== 0);
+      const newDemands =
+        newRows.length === 1 ? nonZeroRows.map(fromRow) : newRows.map(fromRow);
       onDemandsChange(newDemands);
     },
     [onDemandsChange],
