@@ -11,6 +11,7 @@ type SelectOption<T extends string = string> = {
 type SelectColumnOptions<T extends string = string> = {
   options: SelectOption<T>[];
   placeholder?: string;
+  deleteValue?: T | null;
 };
 
 type SelectCellProps<T extends string = string> = {
@@ -80,6 +81,6 @@ export const createSelectColumn = <T extends string = string>(
     );
     return match ? match.value : null;
   },
-  deleteValue: () => null,
+  deleteValue: () => options.deleteValue ?? null,
   disableKeys: true,
 });

@@ -142,7 +142,7 @@ export const DemandCategoriesEditor = ({
   const columns = useMemo(
     (): Partial<Column>[] => [
       {
-        ...keyColumn("baseDemand", createFloatColumn()),
+        ...keyColumn("baseDemand", createFloatColumn({ deleteValue: 0 })),
         title: translate("baseDemand"),
         grow: 2,
       },
@@ -151,6 +151,7 @@ export const DemandCategoriesEditor = ({
           "patternId",
           createSelectColumn({
             options: patternOptions,
+            deleteValue: CONSTANT_PATTERN_SENTINEL,
           }),
         ),
         title: translate("timePattern"),

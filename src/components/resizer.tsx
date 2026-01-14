@@ -188,7 +188,7 @@ export const Resizer = memo(function ResizerInner({
         role="separator"
         aria-orientation="vertical"
         aria-label="Resize panel"
-        tabIndex={1}
+        tabIndex={-1}
         style={{
           cursor: "col-resize",
           [side]: showPanel ? splits[side] : 0,
@@ -283,7 +283,7 @@ export const BottomResizer = memo(function BottomResizerInner() {
       role="separator"
       aria-orientation="vertical"
       aria-label="Resize panel"
-      tabIndex={1}
+      tabIndex={-1}
       style={{
         cursor: "row-resize",
         bottom: splits.bottom,
@@ -357,7 +357,7 @@ export const FooterResizer = memo(function FooterResizerInner({
       role="separator"
       aria-orientation="horizontal"
       aria-label="Resize footer"
-      tabIndex={1}
+      tabIndex={-1}
       style={{ cursor: "row-resize" }}
       className="absolute top-0 left-0 right-0 h-3 -translate-y-1/2 z-20
         touch-none
