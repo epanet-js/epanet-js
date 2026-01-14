@@ -1,6 +1,7 @@
 import { CellComponent, Column } from "react-datasheet-grid";
 import { Selector } from "src/components/form/selector";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
+import { useSpreadsheetContext } from "./spreadsheet-context";
 
 type SelectOption<T extends string = string> = {
   value: T;
@@ -19,33 +20,47 @@ type SelectCellProps<T extends string = string> = {
 
 const SelectCell: CellComponent<string | null, SelectCellProps> = ({
   rowData,
+  rowIndex,
+  columnIndex,
   setRowData,
+  active,
   focus,
   columnData,
 }) => {
   const { options, placeholder } = columnData;
+  const { setActiveCell } = useSpreadsheetContext();
 
   const selectorOptions = useMemo(
     () => options.map((opt) => ({ value: opt.value, label: opt.label })),
     [options],
   );
 
+  const handleFocus = useCallback(() => {
+    if (!active) {
+      setActiveCell({ col: columnIndex, row: rowIndex });
+    }
+  }, [active, setActiveCell, columnIndex, rowIndex]);
+
   return (
-    <Selector
-      options={selectorOptions}
-      selected={rowData}
-      onChange={(newValue) => setRowData(newValue)}
-      nullable={true}
-      placeholder={placeholder}
-      styleOptions={{
-        border: false,
-        textSize: "text-xs",
-        paddingX: 1,
-        paddingY: 1,
-      }}
-      disableFocusOnClose={true}
-      tabIndex={focus ? 0 : -1}
-    />
+    <div className="w-full h-full [&>div]:w-full [&>div]:h-full [&_button]:w-full [&_button]:h-full">
+      <Selector
+        options={selectorOptions}
+        selected={rowData}
+        onChange={(newValue) => setRowData(newValue)}
+        nullable={true}
+        placeholder={placeholder}
+        styleOptions={{
+          border: false,
+          textSize: "text-sm",
+          paddingX: 2,
+          paddingY: 0,
+          disableHoverEffects: true,
+        }}
+        disableFocusOnClose={true}
+        tabIndex={focus ? 0 : -1}
+        onDropdownInteraction={handleFocus}
+      />
+    </div>
   );
 };
 

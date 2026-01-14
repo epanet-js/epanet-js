@@ -16,18 +16,22 @@ type StyleOptions = {
   textSize?: "text-xs" | "text-sm";
   paddingX?: number;
   paddingY?: number;
+  disableHoverEffects?: boolean;
 };
 export const triggerStylesFor = (styleOptions: StyleOptions) => {
   const effectiveStyleOptions = { ...defaultStyleOptions, ...styleOptions };
   return clsx(
-    "flex items-center gap-x-2 text-gray-700 focus:justify-between hover:border hover:rounded-sm hover:border-gray-200 hover:justify-between w-full min-w-[90px]",
-    "border rounded-sm",
-    { "border-gray-300 justify-between": effectiveStyleOptions.border },
+    "flex items-center gap-x-2 text-gray-700 w-full",
+    !effectiveStyleOptions.disableHoverEffects &&
+      "focus:justify-between hover:border hover:rounded-sm hover:border-gray-200 hover:justify-between min-w-[90px]",
+    "border rounded-sm justify-between",
+    { "border-gray-300": effectiveStyleOptions.border },
     { "border-transparent": !effectiveStyleOptions.border },
     `px-${effectiveStyleOptions.paddingX} py-${effectiveStyleOptions.paddingY}`,
     effectiveStyleOptions.textSize,
     "pl-min-2",
-    "focus:ring-inset focus:ring-1 focus:ring-purple-500 focus:bg-purple-300/10",
+    !effectiveStyleOptions.disableHoverEffects &&
+      "focus:ring-inset focus:ring-1 focus:ring-purple-500 focus:bg-purple-300/10",
   );
 };
 
@@ -80,6 +84,7 @@ type SelectorPropsBase<T extends string> = {
   tabIndex?: number;
   styleOptions?: StyleOptions;
   disableFocusOnClose?: boolean;
+  onDropdownInteraction?: () => void;
 };
 
 type SelectorPropsNonNullable<T extends string> = SelectorPropsBase<T> & {
@@ -118,6 +123,7 @@ export function Selector<T extends string>({
   styleOptions = {},
   nullable = false,
   placeholder,
+  onDropdownInteraction,
 }: SelectorProps<T>) {
   const effectiveStyleOptions = useMemo(
     () => ({ ...defaultStyleOptions, ...styleOptions }),
@@ -125,8 +131,12 @@ export function Selector<T extends string>({
   );
   const [isOpen, setOpen] = useState(false);
 
-  const handleOpenChange = (isOpen: boolean) => {
-    setOpen(isOpen);
+  const handleOpenChange = (open: boolean) => {
+    onDropdownInteraction?.();
+    if (open && options.length <= 1) {
+      return;
+    }
+    setOpen(open);
   };
 
   const handleKeyDown: KeyboardEventHandler<HTMLDivElement> = (event) => {
