@@ -2,7 +2,12 @@ import * as DD from "@radix-ui/react-dropdown-menu";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import { useAtom, useAtomValue } from "jotai";
 
-import { ChevronDownIcon, GitBranchIcon, GitBranchPlusIcon, LockIcon } from "src/icons";
+import {
+  ChevronDownIcon,
+  GitBranchIcon,
+  GitBranchPlusIcon,
+  LockIcon,
+} from "src/icons";
 import { useTranslate } from "src/hooks/use-translate";
 import { useUserTracking } from "src/infra/user-tracking";
 import { usePersistence } from "src/lib/persistence/context";
@@ -243,10 +248,12 @@ export const ScenarioSwitcher = () => {
             <DD.Trigger asChild>
               <Button variant="quiet" className="w-full justify-between">
                 <div className="flex items-center gap-1">
-                  {isMainActive ? <LockIcon size="sm" /> : <GitBranchIcon size="sm" />}
-                  <span className="truncate text-sm">
-                    {activeDisplayName}
-                  </span>
+                  {isMainActive ? (
+                    <LockIcon size="sm" />
+                  ) : (
+                    <GitBranchIcon size="sm" />
+                  )}
+                  <span className="truncate text-sm">{activeDisplayName}</span>
                 </div>
                 <ChevronDownIcon size="sm" />
               </Button>
@@ -255,7 +262,9 @@ export const ScenarioSwitcher = () => {
           <DD.Portal>
             <DDContent align="start" side="bottom" className="min-w-64">
               <StyledItem onSelect={handleSelectMain}>
-                <div className={`flex items-center w-full gap-2 ${isMainActive ? "text-purple-600" : ""}`}>
+                <div
+                  className={`flex items-center w-full gap-2 ${isMainActive ? "text-purple-600" : ""}`}
+                >
                   <LockIcon size="sm" />
                   <div className="flex-1">{translate("scenarios.main")}</div>
                   <button
@@ -276,8 +285,12 @@ export const ScenarioSwitcher = () => {
                   key={scenario.id}
                   onSelect={() => handleSelectScenario(scenario.id)}
                 >
-                  <div className={`flex items-center w-full gap-2 ${activeScenarioId === scenario.id ? "text-purple-600" : ""}`}>
-                    <span className={`font-mono text-sm pl-1 ${activeScenarioId === scenario.id ? "text-purple-400" : "text-gray-400"}`}>
+                  <div
+                    className={`flex items-center w-full gap-2 ${activeScenarioId === scenario.id ? "text-purple-600" : ""}`}
+                  >
+                    <span
+                      className={`font-mono text-sm pl-1 ${activeScenarioId === scenario.id ? "text-purple-400" : "text-gray-400"}`}
+                    >
                       {index === scenariosList.length - 1 ? "└──" : "├──"}
                     </span>
                     <div className="flex-1">{scenario.name}</div>
