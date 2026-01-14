@@ -7,11 +7,14 @@ import { colors } from "src/lib/constants";
 
 interface QuickGraphChartProps {
   values: number[];
+  mainValues: number[] | null;
+  mainLabel: string | null;
   intervalsCount: number;
   intervalSeconds: number;
   decimals: number;
   currentIntervalIndex: number;
   onIntevalClick: (intervalIndex: number) => void;
+  scenarioName: string | null;
 }
 
 export function QuickGraphChart(props: QuickGraphChartProps) {
@@ -20,58 +23,112 @@ export function QuickGraphChart(props: QuickGraphChartProps) {
 
 function QuickGraphChartECharts({
   values,
+  mainValues,
+  mainLabel,
   intervalsCount,
   intervalSeconds,
   currentIntervalIndex,
   decimals,
   onIntevalClick,
+  scenarioName,
 }: QuickGraphChartProps) {
   const translate = useTranslate();
+
+  const showLegend = mainValues && mainValues.length > 0;
+
+  const allValues = useMemo(() => {
+    if (!mainValues || mainValues.length === 0) return values;
+    return [...values, ...mainValues];
+  }, [values, mainValues]);
 
   const xAxis: EChartsOption["xAxis"] = useMemo(
     () => buildXAxis(intervalsCount, intervalSeconds),
     [intervalsCount, intervalSeconds],
   );
   const yAxis: EChartsOption["yAxis"] = useMemo(
-    () => buildYAxis(values, decimals),
-    [values, decimals],
+    () => buildYAxis(allValues, decimals),
+    [allValues, decimals],
   );
+
+  const series: EChartsOption["series"] = useMemo(() => {
+    const scenarioSeries = {
+      type: "line" as const,
+      name: scenarioName ?? undefined,
+      data: values,
+      lineStyle: {
+        color: colors.purple500,
+        width: 2,
+      },
+      itemStyle: {
+        color: colors.purple500,
+      },
+      symbol: "none",
+      smooth: false,
+      triggerLineEvent: true,
+      markLine: {
+        silent: true,
+        symbol: "none",
+        data: [{ xAxis: currentIntervalIndex }],
+        lineStyle: {
+          type: "solid" as const,
+          color: colors.purple300,
+          width: 1.5,
+        },
+        label: { show: false },
+      },
+    };
+
+    if (!mainValues || mainValues.length === 0) {
+      return [scenarioSeries];
+    }
+
+    const mainSeries = {
+      type: "line" as const,
+      name: mainLabel ?? undefined,
+      data: mainValues,
+      lineStyle: {
+        color: colors.gray400,
+        width: 1.5,
+      },
+      itemStyle: {
+        color: colors.gray400,
+      },
+      symbol: "none",
+      smooth: false,
+      z: 0,
+    };
+
+    return [mainSeries, scenarioSeries];
+  }, [values, mainValues, mainLabel, scenarioName, currentIntervalIndex]);
+
+  const legend: EChartsOption["legend"] = useMemo(() => {
+    if (!showLegend) return undefined;
+    return {
+      show: true,
+      top: 0,
+      right: 0,
+      itemWidth: 16,
+      itemHeight: 8,
+      textStyle: {
+        fontSize: 10,
+        color: colors.gray600,
+      },
+    };
+  }, [showLegend]);
 
   const option: EChartsOption = {
     animation: false,
     grid: {
-      top: 8,
+      top: showLegend ? 20 : 8,
       right: 8,
       bottom: 4,
       left: 36,
       containLabel: false,
     },
+    legend,
     xAxis,
     yAxis,
-    series: [
-      {
-        type: "line",
-        data: values,
-        lineStyle: {
-          color: colors.purple500,
-          width: 2,
-        },
-        symbol: "none",
-        smooth: false,
-        triggerLineEvent: true,
-        markLine: {
-          silent: true,
-          symbol: "none",
-          data: [{ xAxis: currentIntervalIndex }],
-          lineStyle: {
-            type: "solid",
-            color: colors.purple300,
-            width: 1.5,
-          },
-          label: { show: false },
-        },
-      },
-    ],
+    series,
     tooltip: {
       trigger: "axis",
       backgroundColor: "white",
@@ -81,11 +138,14 @@ function QuickGraphChartECharts({
         fontSize: 12,
       },
       formatter: (params: any) => {
-        const data = params[0];
-        if (!data) return "";
-        const value = localizeDecimal(data.value, { decimals });
-
-        return `${data.name}<br/>${value}`;
+        if (!Array.isArray(params) || params.length === 0) return "";
+        const timeLabel = params[0]?.name ?? "";
+        const lines = params.map((p: any) => {
+          const value = localizeDecimal(p.value, { decimals });
+          const colorDot = `<span style="display:inline-block;width:8px;height:8px;background:${p.color};margin-right:4px;border-radius:50%;"></span>`;
+          return `${colorDot}${p.seriesName ?? ""}: ${value}`;
+        });
+        return `${timeLabel}<br/>${lines.join("<br/>")}`;
       },
     },
   };

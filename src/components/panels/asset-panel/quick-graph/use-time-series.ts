@@ -22,6 +22,7 @@ interface UseTimeSeriesOptions<T extends QuickGraphAssetType> {
 
 interface UseTimeSeriesResult {
   data: TimeSeries | null;
+  mainData: TimeSeries | null;
   isLoading: boolean;
 }
 
@@ -33,10 +34,14 @@ export function useTimeSeries<T extends QuickGraphAssetType>({
   const simulation = useAtomValue(simulationAtom);
   const scenariosState = useAtomValue(scenariosAtom);
   const [data, setData] = useState<TimeSeries | null>(null);
+  const [mainData, setMainData] = useState<TimeSeries | null>(null);
   const [isLoading, setIsLoading] = useState(() => {
     return simulation.status === "success" || simulation.status === "warning";
   });
   const abortControllerRef = useRef<AbortController | null>(null);
+
+  const isInScenario = scenariosState.activeScenarioId !== null;
+  const mainSimulation = scenariosState.mainSimulation;
 
   const status = simulation.status;
   const metadata =
@@ -51,6 +56,7 @@ export function useTimeSeries<T extends QuickGraphAssetType>({
   useEffect(() => {
     if (status === "failure") {
       setData(null);
+      setMainData(null);
       setIsLoading(false);
       return;
     }
@@ -89,6 +95,40 @@ export function useTimeSeries<T extends QuickGraphAssetType>({
           return;
         }
         setData(result);
+
+        if (
+          isInScenario &&
+          mainSimulation &&
+          (mainSimulation.status === "success" ||
+            mainSimulation.status === "warning") &&
+          mainSimulation.metadata &&
+          mainSimulation.simulationIds
+        ) {
+          try {
+            const mainStorage = new OPFSStorage(appId, "main");
+            const mainReader = new EPSResultsReader(mainStorage);
+            await mainReader.initialize(
+              mainSimulation.metadata,
+              mainSimulation.simulationIds,
+            );
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const mainResult = await mainReader.getTimeSeries(
+              assetId,
+              assetType as any,
+              property as any,
+            );
+
+            if (abortControllerRef.current?.signal.aborted) {
+              return;
+            }
+            setMainData(mainResult);
+          } catch {
+            setMainData(null);
+          }
+        } else {
+          setMainData(null);
+        }
       } catch (err) {
         if (abortControllerRef.current?.signal.aborted) {
           return;
@@ -96,6 +136,7 @@ export function useTimeSeries<T extends QuickGraphAssetType>({
         const error = err as Error;
         captureError(error);
         setData(null);
+        setMainData(null);
       } finally {
         setIsLoading(false);
       }
@@ -114,7 +155,9 @@ export function useTimeSeries<T extends QuickGraphAssetType>({
     metadata,
     simulationIds,
     scenariosState.activeScenarioId,
+    isInScenario,
+    mainSimulation,
   ]);
 
-  return { data, isLoading };
+  return { data, mainData, isLoading };
 }
