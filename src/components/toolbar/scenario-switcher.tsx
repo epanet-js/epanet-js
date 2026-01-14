@@ -2,7 +2,7 @@ import * as DD from "@radix-ui/react-dropdown-menu";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import { useAtom, useAtomValue } from "jotai";
 
-import { AddIcon, CheckIcon, ChevronDownIcon } from "src/icons";
+import { ChevronDownIcon, GitBranchIcon, GitBranchPlusIcon, LockIcon } from "src/icons";
 import { useTranslate } from "src/hooks/use-translate";
 import { useUserTracking } from "src/infra/user-tracking";
 import { usePersistence } from "src/lib/persistence/context";
@@ -17,24 +17,10 @@ import { simulationAtom, initialSimulationState } from "src/state/jotai";
 import {
   Button,
   DDContent,
-  DDSeparator,
   StyledItem,
   StyledTooltipArrow,
   TContent,
 } from "../elements";
-
-// Debug helper to get momentLog stats
-const getMomentLogStats = (momentLog: MomentLog | null | undefined) => {
-  if (!momentLog) return { deltas: 0, puts: 0, deletes: 0 };
-  const deltas = momentLog.getDeltas();
-  let puts = 0;
-  let deletes = 0;
-  for (const delta of deltas) {
-    puts += delta.putAssets?.length || 0;
-    deletes += delta.deleteAssets?.length || 0;
-  }
-  return { deltas: deltas.length, puts, deletes };
-};
 
 export const ScenarioSwitcher = () => {
   const translate = useTranslate();
@@ -46,13 +32,6 @@ export const ScenarioSwitcher = () => {
 
   const activeScenarioId = scenariosState.activeScenarioId;
   const isMainActive = activeScenarioId === null;
-
-  // Debug: get current stats
-  const currentMomentLog = persistence.getMomentLog();
-  const currentStats = getMomentLogStats(currentMomentLog);
-  const mainStats = getMomentLogStats(scenariosState.mainMomentLog);
-  const baseAssets =
-    scenariosState.baseModelSnapshot?.moment.putAssets?.length || 0;
 
   const activeDisplayName = isMainActive
     ? translate("scenarios.main")
@@ -226,9 +205,33 @@ export const ScenarioSwitcher = () => {
     });
   };
 
+  const hasScenarios = scenariosList.length > 0;
+
+  if (!hasScenarios) {
+    return (
+      <div className="w-44 flex items-center">
+        <Tooltip.Root delayDuration={200}>
+          <Tooltip.Trigger asChild>
+            <button
+              onClick={handleCreateScenario}
+              className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 text-sm text-purple-600 bg-purple-50 hover:bg-purple-100 border border-purple-200 rounded-md transition-colors"
+            >
+              <GitBranchIcon size="sm" />
+              <span>{translate("scenarios.enableScenarios")}</span>
+            </button>
+          </Tooltip.Trigger>
+          <TContent side="bottom">
+            <StyledTooltipArrow />
+            {translate("scenarios.enableScenarios")}
+          </TContent>
+        </Tooltip.Root>
+      </div>
+    );
+  }
+
   return (
     <Tooltip.Root delayDuration={200}>
-      <div className="h-10 group bn flex items-stretch py-1 focus:outline-none">
+      <div className="w-44 h-10 group bn flex items-stretch py-1 focus:outline-none">
         <DD.Root
           onOpenChange={(open) => {
             if (open) {
@@ -238,70 +241,49 @@ export const ScenarioSwitcher = () => {
         >
           <Tooltip.Trigger asChild>
             <DD.Trigger asChild>
-              <Button variant="quiet">
-                <span className="max-w-24 truncate text-sm">
-                  {activeDisplayName}
-                </span>
+              <Button variant="quiet" className="w-full justify-between">
+                <div className="flex items-center gap-1">
+                  {isMainActive ? <LockIcon size="sm" /> : <GitBranchIcon size="sm" />}
+                  <span className="truncate text-sm">
+                    {activeDisplayName}
+                  </span>
+                </div>
                 <ChevronDownIcon size="sm" />
               </Button>
             </DD.Trigger>
           </Tooltip.Trigger>
           <DD.Portal>
             <DDContent align="start" side="bottom" className="min-w-64">
-              {/* Debug info */}
-              <div className="px-2 py-1 text-xs text-gray-500 border-b border-gray-200">
-                <div>
-                  Current: {currentStats.deltas}d, +{currentStats.puts}, -
-                  {currentStats.deletes}
-                </div>
-                <div>Base assets: {baseAssets}</div>
-              </div>
-
               <StyledItem onSelect={handleSelectMain}>
-                <div className="flex items-center w-full gap-2">
-                  <div className="flex-1">
-                    <div>{translate("scenarios.main")}</div>
-                    <div className="text-xs text-gray-400">
-                      {mainStats.deltas}d, +{mainStats.puts}, -
-                      {mainStats.deletes}
-                    </div>
-                  </div>
-                  <div className="w-4 h-4 flex items-center justify-center">
-                    {isMainActive && <CheckIcon className="text-purple-700" />}
-                  </div>
+                <div className={`flex items-center w-full gap-2 ${isMainActive ? "text-purple-600" : ""}`}>
+                  <LockIcon size="sm" />
+                  <div className="flex-1">{translate("scenarios.main")}</div>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleCreateScenario();
+                    }}
+                    className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-100 px-2 py-1 rounded"
+                  >
+                    <GitBranchPlusIcon size="sm" />
+                    {translate("scenarios.newScenario")}
+                  </button>
                 </div>
               </StyledItem>
 
-              {scenariosList.map((scenario) => {
-                const stats = getMomentLogStats(scenario.momentLog);
-                return (
-                  <StyledItem
-                    key={scenario.id}
-                    onSelect={() => handleSelectScenario(scenario.id)}
-                  >
-                    <div className="flex items-center w-full gap-2">
-                      <div className="flex-1">
-                        <div>{scenario.name}</div>
-                        <div className="text-xs text-gray-400">
-                          {stats.deltas}d, +{stats.puts}, -{stats.deletes}
-                        </div>
-                      </div>
-                      <div className="w-4 h-4 flex items-center justify-center">
-                        {activeScenarioId === scenario.id && (
-                          <CheckIcon className="text-purple-700" />
-                        )}
-                      </div>
-                    </div>
-                  </StyledItem>
-                );
-              })}
-
-              <DDSeparator />
-
-              <StyledItem onSelect={handleCreateScenario}>
-                <AddIcon size="sm" />
-                {translate("scenarios.createNew")}
-              </StyledItem>
+              {scenariosList.map((scenario, index) => (
+                <StyledItem
+                  key={scenario.id}
+                  onSelect={() => handleSelectScenario(scenario.id)}
+                >
+                  <div className={`flex items-center w-full gap-2 ${activeScenarioId === scenario.id ? "text-purple-600" : ""}`}>
+                    <span className={`font-mono text-sm pl-1 ${activeScenarioId === scenario.id ? "text-purple-400" : "text-gray-400"}`}>
+                      {index === scenariosList.length - 1 ? "└──" : "├──"}
+                    </span>
+                    <div className="flex-1">{scenario.name}</div>
+                  </div>
+                </StyledItem>
+              ))}
             </DDContent>
           </DD.Portal>
         </DD.Root>

@@ -6,6 +6,8 @@ import { SimulationState, dataAtom, simulationAtom } from "src/state/jotai";
 import * as Popover from "@radix-ui/react-popover";
 import { Button, StyledPopoverArrow, StyledPopoverContent } from "./elements";
 import { HydraulicModel } from "src/hydraulic-model";
+import { ScenarioSwitcher } from "./toolbar/scenario-switcher";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 import {
   ErrorIcon,
@@ -19,14 +21,20 @@ import {
 export const Footer = () => {
   const translate = useTranslate();
   const { hydraulicModel, modelMetadata } = useAtomValue(dataAtom);
-  const isXlOrLarger = useBreakpoint("xl");
   const isLgOrLarger = useBreakpoint("lg");
   const isSmOrLarger = useBreakpoint("sm");
+  const isScenariosOn = useFeatureFlag("FLAG_SCENARIOS");
 
   return (
     <nav className="fixed bottom-0 left-0 w-full bg-gray-50 border-t border-gray-300 shadow-lg">
       <div className="flex flex-row items-center text-sm text-gray-500 space-x-1">
-        {!isXlOrLarger && (
+        {isScenariosOn && (
+          <>
+            <ScenarioSwitcher />
+            <div className="border-r-2 border-gray-150 h-10"></div>
+          </>
+        )}
+        {!isLgOrLarger && (
           <div className="px-2">
             <CollapsedPopover
               unitsSpecName={modelMetadata.quantities.specName}
@@ -36,18 +44,6 @@ export const Footer = () => {
           </div>
         )}
         <div className="border-r-2 border-gray-100 h-10"></div>
-        {isXlOrLarger && (
-          <>
-            <span className="px-4 py-2">
-              {translate("autoLengths")}: {translate("on")}
-            </span>
-            <div className="border-r-2 border-gray-150 h-10"></div>
-            <span className="px-4 py-2">
-              {translate("autoElevations")}: {translate("on")}
-            </span>
-            <div className="border-r-2 border-gray-150 h-10"></div>
-          </>
-        )}
         {isLgOrLarger && (
           <>
             <span className="px-4 py-2">
@@ -99,12 +95,6 @@ const CollapsedPopover = ({
       <Popover.Portal>
         <StyledPopoverContent size="auto">
           <div className="grid grid-cols-[max-content_1fr] gap-x-3 gap-y-4 text-sm text-gray-500 p-2">
-            <span>{translate("autoLengths")}</span>
-            <span className="text-gray-700">{translate("on")}</span>
-
-            <span>{translate("autoElevations")}</span>
-            <span className="text-gray-700">{translate("on")}</span>
-
             {!isLgOrLarger && (
               <>
                 <span>{translate("units")}</span>

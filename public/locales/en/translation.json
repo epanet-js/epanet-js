@@ -733,6 +733,8 @@
   "scenarios": {
     "main": "Main",
     "createNew": "Create new scenario",
-    "switcherTooltip": "Switch scenario"
+    "newScenario": "New",
+    "switcherTooltip": "Switch scenario",
+    "enableScenarios": "Enable Scenarios"
   }
 }

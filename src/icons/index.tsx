@@ -25,6 +25,8 @@ import {
   FilePlus,
   FileSpreadsheet,
   FileText,
+  GitBranch,
+  GitBranchPlus,
   Goal,
   Globe,
   Grid2X2,
@@ -37,6 +39,7 @@ import {
   Lasso,
   Link2,
   Link2Off,
+  Lock,
   MapIcon,
   Menu,
   MousePointer2,
@@ -132,6 +135,9 @@ export const FileIcon = icon(File);
 export const FileAddIcon = icon(FilePlus);
 export const FileTextIcon = icon(FileText);
 export const FileSpreadsheetIcon = icon(FileSpreadsheet);
+export const GitBranchIcon = icon(GitBranch);
+export const GitBranchPlusIcon = icon(GitBranchPlus);
+export const LockIcon = icon(Lock);
 export const DeleteIcon = icon(Trash);
 export const ZoomToIcon = icon(Crosshair);
 export const ActivateTopologyIcon = icon(Route);
