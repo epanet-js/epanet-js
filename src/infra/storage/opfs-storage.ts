@@ -4,7 +4,10 @@ const ROOT_DIR = "epanet-simulation";
 const HEARTBEAT_KEY_PREFIX = "last-simulation-access:";
 
 export class OPFSStorage implements IPrivateAppStorage {
-  constructor(private readonly appId: string) {}
+  constructor(
+    private readonly appId: string,
+    private readonly scenarioKey?: string,
+  ) {}
 
   async save(filename: string, data: ArrayBuffer): Promise<void> {
     const dir = await this.getAppDir();
@@ -91,7 +94,13 @@ export class OPFSStorage implements IPrivateAppStorage {
 
   private async getAppDir(): Promise<FileSystemDirectoryHandle> {
     const root = await getRootDir();
-    return await root.getDirectoryHandle(this.appId, { create: true });
+    const appDir = await root.getDirectoryHandle(this.appId, { create: true });
+    if (this.scenarioKey) {
+      return await appDir.getDirectoryHandle(this.scenarioKey, {
+        create: true,
+      });
+    }
+    return appDir;
   }
 }
 

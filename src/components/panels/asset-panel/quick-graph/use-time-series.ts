@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from "react";
 import { useAtomValue } from "jotai";
 import { simulationAtom } from "src/state/jotai";
 import { OPFSStorage } from "src/infra/storage/opfs-storage";
+import { scenariosAtom } from "src/state/scenarios";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   EPSResultsReader,
   TimeSeries,
@@ -30,6 +32,8 @@ export function useTimeSeries<T extends QuickGraphAssetType>({
   property,
 }: UseTimeSeriesOptions<T>): UseTimeSeriesResult {
   const simulation = useAtomValue(simulationAtom);
+  const scenariosState = useAtomValue(scenariosAtom);
+  const isScenariosOn = useFeatureFlag("FLAG_SCENARIOS");
   const [data, setData] = useState<TimeSeries | null>(null);
   const [isLoading, setIsLoading] = useState(() => {
     return simulation.status === "success" || simulation.status === "warning";
@@ -71,7 +75,10 @@ export function useTimeSeries<T extends QuickGraphAssetType>({
 
       try {
         const appId = getAppId();
-        const storage = new OPFSStorage(appId);
+        const scenarioKey = isScenariosOn
+          ? (scenariosState.activeScenarioId ?? "main")
+          : undefined;
+        const storage = new OPFSStorage(appId, scenarioKey);
         const epsReader = new EPSResultsReader(storage);
         await epsReader.initialize(metadata, simulationIds);
 
@@ -103,7 +110,16 @@ export function useTimeSeries<T extends QuickGraphAssetType>({
     return () => {
       abortControllerRef.current?.abort();
     };
-  }, [assetId, assetType, property, status, metadata, simulationIds]);
+  }, [
+    assetId,
+    assetType,
+    property,
+    status,
+    metadata,
+    simulationIds,
+    isScenariosOn,
+    scenariosState.activeScenarioId,
+  ]);
 
   return { data, isLoading };
 }
