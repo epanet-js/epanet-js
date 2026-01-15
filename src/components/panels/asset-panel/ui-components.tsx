@@ -1,4 +1,5 @@
 import { useRef, useState, KeyboardEventHandler, useCallback } from "react";
+import type { PropertyComparison } from "src/hooks/use-asset-comparison";
 import { EditableTextField } from "src/components/form/editable-text-field";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
@@ -141,11 +142,23 @@ export const TextField = ({
   </span>
 );
 
-export const TextRow = ({ name, value }: { name: string; value: string }) => {
+export const TextRow = ({
+  name,
+  value,
+  comparison,
+}: {
+  name: string;
+  value: string;
+  comparison?: PropertyComparison;
+}) => {
   const translate = useTranslate();
   const label = translate(name);
   return (
-    <InlineField name={label} labelSize="md">
+    <InlineField
+      name={label}
+      labelSize="md"
+      hasChanged={comparison?.hasChanged}
+    >
       <TextField>{value}</TextField>
     </InlineField>
   );
@@ -159,6 +172,7 @@ export const QuantityRow = ({
   positiveOnly = false,
   readOnly = false,
   isNullable = true,
+  comparison,
   onChange,
 }: {
   name: string;
@@ -168,6 +182,7 @@ export const QuantityRow = ({
   isNullable?: boolean;
   readOnly?: boolean;
   decimals?: number;
+  comparison?: PropertyComparison;
   onChange?: (name: string, newValue: number, oldValue: number | null) => void;
 }) => {
   const translate = useTranslate();
@@ -189,7 +204,11 @@ export const QuantityRow = ({
   };
 
   return (
-    <InlineField name={label} labelSize="md">
+    <InlineField
+      name={label}
+      labelSize="md"
+      hasChanged={comparison?.hasChanged}
+    >
       {readOnly ? (
         <TextField padding="md">{displayValue}</TextField>
       ) : (
@@ -224,18 +243,24 @@ export const SelectRow = <
   label,
   selected,
   options,
+  comparison,
   onChange,
 }: {
   name: string;
   label?: string;
   selected: T;
   options: { label: string; description?: string; value: T }[];
+  comparison?: PropertyComparison;
   onChange: (name: string, newValue: T, oldValue: T) => void;
 }) => {
   const translate = useTranslate();
   const actualLabel = label || translate(name);
   return (
-    <InlineField name={actualLabel} labelSize="md">
+    <InlineField
+      name={actualLabel}
+      labelSize="md"
+      hasChanged={comparison?.hasChanged}
+    >
       <div className="w-full">
         <Selector
           ariaLabel={actualLabel}
@@ -258,11 +283,13 @@ export const SwitchRow = ({
   name,
   label,
   enabled,
+  comparison,
   onChange,
 }: {
   name: string;
   label?: string;
   enabled: boolean;
+  comparison?: PropertyComparison;
   onChange?: (property: string, newValue: boolean, oldValue: boolean) => void;
 }) => {
   const translate = useTranslate();
@@ -273,7 +300,11 @@ export const SwitchRow = ({
   };
 
   return (
-    <InlineField name={actualLabel} labelSize="md">
+    <InlineField
+      name={actualLabel}
+      labelSize="md"
+      hasChanged={comparison?.hasChanged}
+    >
       <div className="p-2 flex items-center h-[38px]">
         <Checkbox
           checked={enabled}

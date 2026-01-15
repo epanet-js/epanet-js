@@ -13,12 +13,14 @@ export const InlineField = ({
   layout = "fixed-label",
   labelSize = "sm",
   align = "center",
+  hasChanged = false,
   children,
 }: {
   name: string;
   layout?: "fixed-label" | "half-split" | "label-flex-none";
   labelSize?: "sm" | "md";
   align?: "start" | "center";
+  hasChanged?: boolean;
   children: React.ReactNode;
 }) => {
   const labelClasses = clsx("text-sm text-gray-500", {
@@ -38,11 +40,14 @@ export const InlineField = ({
 
   return (
     <div
-      className={clsx("flex", spacingClass, {
+      className={clsx("flex relative", spacingClass, {
         "items-start": align === "start",
         "items-center": align === "center",
       })}
     >
+      {hasChanged && (
+        <div className="absolute left-0 top-0 bottom-0 w-0.5 -ml-2 bg-purple-500 rounded-full" />
+      )}
       <label className={labelClasses} aria-label={`label: ${name}`}>
         {name}
       </label>
