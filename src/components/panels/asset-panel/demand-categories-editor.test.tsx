@@ -10,13 +10,15 @@ const aPatterns = (
 };
 
 const getBaseDemandInput = (rowIndex: number) => {
+  // Each row has 2 textboxes: baseDemand (index 0, 2, 4...) and pattern selector (index 1, 3, 5...)
   const inputs = screen.getAllByRole("textbox");
-  return inputs[rowIndex];
+  return inputs[rowIndex * 2];
 };
 
 const getPatternSelector = (rowIndex: number) => {
-  const selectors = screen.getAllByRole("combobox");
-  return selectors[rowIndex];
+  // Each row has 2 textboxes: baseDemand (index 0, 2, 4...) and pattern selector (index 1, 3, 5...)
+  const inputs = screen.getAllByRole("textbox");
+  return inputs[rowIndex * 2 + 1];
 };
 
 const getAddRowButton = () => {
@@ -40,7 +42,7 @@ describe("DemandCategoriesEditor", () => {
       );
 
       expect(getBaseDemandInput(0)).toHaveValue("0");
-      expect(getPatternSelector(0)).toHaveTextContent(/constant/i);
+      expect(getPatternSelector(0)).toHaveValue("CONSTANT");
     });
 
     it("displays existing demands", () => {
@@ -58,13 +60,14 @@ describe("DemandCategoriesEditor", () => {
       );
 
       expect(getBaseDemandInput(0)).toHaveValue("100");
-      expect(getPatternSelector(0)).toHaveTextContent("Pattern1");
+      expect(getPatternSelector(0)).toHaveValue("Pattern1");
       expect(getBaseDemandInput(1)).toHaveValue("50");
-      expect(getPatternSelector(1)).toHaveTextContent(/constant/i);
+      expect(getPatternSelector(1)).toHaveValue("CONSTANT");
     });
 
     it("shows all available patterns in the dropdown", async () => {
-      const user = userEvent.setup();
+      // Skip pointer events check because react-datasheet-grid uses pointer-events: none on inactive cells
+      const user = userEvent.setup({ pointerEventsCheck: 0 });
 
       render(
         <DemandCategoriesEditor
@@ -74,10 +77,15 @@ describe("DemandCategoriesEditor", () => {
         />,
       );
 
-      await user.click(getPatternSelector(0));
+      // Click the input to focus it and trigger dropdown open
+      const patternInput = getPatternSelector(0);
+      await user.click(patternInput);
+      // Focus the input directly to simulate cell activation
+      patternInput.focus();
 
+      // Wait for dropdown to open and options to appear
       expect(
-        screen.getByRole("option", { name: /constant/i }),
+        await screen.findByRole("option", { name: /constant/i }),
       ).toBeInTheDocument();
       expect(
         screen.getByRole("option", { name: "Pattern1" }),
@@ -116,7 +124,8 @@ describe("DemandCategoriesEditor", () => {
 
   describe("editing pattern", () => {
     it("calls onDemandsChange when pattern is changed", async () => {
-      const user = userEvent.setup();
+      // Skip pointer events check because react-datasheet-grid uses pointer-events: none on inactive cells
+      const user = userEvent.setup({ pointerEventsCheck: 0 });
       const onDemandsChange = vi.fn();
 
       render(
@@ -127,8 +136,15 @@ describe("DemandCategoriesEditor", () => {
         />,
       );
 
-      await user.click(getPatternSelector(0));
-      await user.click(screen.getByRole("option", { name: "Pattern1" }));
+      // Click and focus to activate cell and open dropdown
+      const patternInput = getPatternSelector(0);
+      await user.click(patternInput);
+      patternInput.focus();
+      // Wait for dropdown to open
+      const pattern1Option = await screen.findByRole("option", {
+        name: "Pattern1",
+      });
+      await user.click(pattern1Option);
 
       expect(onDemandsChange).toHaveBeenCalledWith([
         { baseDemand: 100, patternId: "Pattern1" },
@@ -136,7 +152,8 @@ describe("DemandCategoriesEditor", () => {
     });
 
     it("sets patternId to undefined when constant is selected", async () => {
-      const user = userEvent.setup();
+      // Skip pointer events check because react-datasheet-grid uses pointer-events: none on inactive cells
+      const user = userEvent.setup({ pointerEventsCheck: 0 });
       const onDemandsChange = vi.fn();
 
       render(
@@ -147,8 +164,15 @@ describe("DemandCategoriesEditor", () => {
         />,
       );
 
-      await user.click(getPatternSelector(0));
-      await user.click(screen.getByRole("option", { name: /constant/i }));
+      // Click and focus to activate cell and open dropdown
+      const patternInput = getPatternSelector(0);
+      await user.click(patternInput);
+      patternInput.focus();
+      // Wait for dropdown to open
+      const constantOption = await screen.findByRole("option", {
+        name: /constant/i,
+      });
+      await user.click(constantOption);
 
       expect(onDemandsChange).toHaveBeenCalledWith([
         { baseDemand: 100, patternId: undefined },

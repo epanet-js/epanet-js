@@ -165,8 +165,6 @@ export const DemandCategoriesEditor = ({
 
   const handleChange = useCallback(
     (newRows: DemandCategoryRow[]) => {
-      // eslint-disable-next-line no-console
-      console.log("DemandCategoriesEditor onChange:", newRows);
       const nonZeroRows = newRows.filter((row) => row.baseDemand !== 0);
       const newDemands =
         newRows.length === 1 ? nonZeroRows.map(fromRow) : newRows.map(fromRow);
