@@ -46,7 +46,7 @@ export const InlineField = ({
       })}
     >
       {hasChanged && (
-        <div className="absolute left-0 top-0 bottom-0 w-0.5 -ml-2 bg-purple-500 rounded-full" />
+        <div className="absolute -left-4 top-0 bottom-0 w-1 bg-purple-500 rounded-full" />
       )}
       <label className={labelClasses} aria-label={`label: ${name}`}>
         {name}

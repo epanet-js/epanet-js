@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useAtomValue } from "jotai";
 import { scenariosAtom } from "src/state/scenarios";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import type { Asset } from "src/hydraulic-model";
 
 export type PropertyComparison = {
@@ -10,7 +11,9 @@ export type PropertyComparison = {
 
 export function useAssetComparison(asset: Asset | undefined) {
   const scenariosState = useAtomValue(scenariosAtom);
-  const isInScenario = scenariosState.activeScenarioId !== null;
+  const isScenariosOn = useFeatureFlag("FLAG_SCENARIOS");
+  const isInScenario =
+    isScenariosOn && scenariosState.activeScenarioId !== null;
 
   const baseAsset = useMemo(() => {
     if (!isInScenario || !asset || !scenariosState.baseModelSnapshot) {
@@ -20,6 +23,8 @@ export function useAssetComparison(asset: Asset | undefined) {
       (a) => a.id === asset.id,
     );
   }, [isInScenario, asset, scenariosState.baseModelSnapshot]);
+
+  const isNew = isInScenario && asset !== undefined && baseAsset === undefined;
 
   const getComparison = (
     propertyName: string,
@@ -37,5 +42,5 @@ export function useAssetComparison(asset: Asset | undefined) {
     return { hasChanged, baseValue };
   };
 
-  return { isInScenario, getComparison };
+  return { isInScenario, getComparison, isNew };
 }

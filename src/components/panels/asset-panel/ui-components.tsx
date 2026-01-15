@@ -30,12 +30,14 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 export const AssetEditorContent = ({
   label,
   type,
+  isNew,
   onLabelChange,
   footer,
   children,
 }: {
   label: string;
   type: string;
+  isNew?: boolean;
   onLabelChange: (newLabel: string) => string | undefined;
   footer?: React.ReactNode;
   children: React.ReactNode;
@@ -52,7 +54,12 @@ export const AssetEditorContent = ({
   return (
     <SectionList
       header={
-        <Header label={label} type={type} onLabelChange={onLabelChange} />
+        <Header
+          label={label}
+          type={type}
+          isNew={isNew}
+          onLabelChange={onLabelChange}
+        />
       }
       footer={footer}
       isStickyFooter={footerState.isPinned}
@@ -68,10 +75,12 @@ export const AssetEditorContent = ({
 const Header = ({
   label,
   type,
+  isNew,
   onLabelChange,
 }: {
   label: string;
   type: string;
+  isNew?: boolean;
   onLabelChange: (newLabel: string) => string | undefined;
 }) => {
   const [error, setError] = useState<string | null>(null);
@@ -90,7 +99,10 @@ const Header = ({
   }, []);
 
   return (
-    <div className="px-3 pt-4 pb-3">
+    <div className="px-3 pt-4 pb-3 relative">
+      {isNew && (
+        <div className="absolute left-0 top-0 bottom-0 w-1 bg-purple-500 rounded-full" />
+      )}
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0 flex-1">
           <EditableTextField

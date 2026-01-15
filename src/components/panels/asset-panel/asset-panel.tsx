@@ -380,7 +380,7 @@ const JunctionEditor = ({
   const translate = useTranslate();
   const { footer } = useQuickGraph(junction.id, "junction");
   const isEditJunctionDemandsOn = useFeatureFlag("FLAG_EDIT_JUNCTION_DEMANDS");
-  const { getComparison } = useAssetComparison(junction);
+  const { getComparison, isNew } = useAssetComparison(junction);
 
   const customerPoints = useMemo(() => {
     return getActiveCustomerPoints(
@@ -406,6 +406,7 @@ const JunctionEditor = ({
     <AssetEditorContent
       label={junction.label}
       type={translate("junction")}
+      isNew={isNew}
       onLabelChange={onLabelChange}
       footer={footer}
       key={junction.id}
@@ -537,7 +538,7 @@ const PipeEditor = ({
 }) => {
   const translate = useTranslate();
   const { footer } = useQuickGraph(pipe.id, "pipe");
-  const { getComparison } = useAssetComparison(pipe);
+  const { getComparison, isNew } = useAssetComparison(pipe);
 
   const simulationStatusText = translate(pipeStatusLabel(pipe));
 
@@ -572,6 +573,7 @@ const PipeEditor = ({
     <AssetEditorContent
       label={pipe.label}
       type={translate("pipe")}
+      isNew={isNew}
       onLabelChange={onLabelChange}
       footer={footer}
       key={pipe.id}
@@ -701,12 +703,13 @@ const ReservoirEditor = ({
 }) => {
   const translate = useTranslate();
   const { footer } = useQuickGraph(reservoir.id, "reservoir");
-  const { getComparison } = useAssetComparison(reservoir);
+  const { getComparison, isNew } = useAssetComparison(reservoir);
 
   return (
     <AssetEditorContent
       label={reservoir.label}
       type={translate("reservoir")}
+      isNew={isNew}
       onLabelChange={onLabelChange}
       footer={footer}
       key={reservoir.id}
@@ -754,12 +757,13 @@ const TankEditor = ({
 }) => {
   const translate = useTranslate();
   const { footer } = useQuickGraph(tank.id, "tank");
-  const { getComparison } = useAssetComparison(tank);
+  const { getComparison, isNew } = useAssetComparison(tank);
 
   return (
     <AssetEditorContent
       label={tank.label}
       type={translate("tank")}
+      isNew={isNew}
       onLabelChange={onLabelChange}
       footer={footer}
       key={tank.id}
@@ -896,7 +900,7 @@ const ValveEditor = ({
 }) => {
   const translate = useTranslate();
   const { footer } = useQuickGraph(valve.id, "valve");
-  const { getComparison } = useAssetComparison(valve);
+  const { getComparison, isNew } = useAssetComparison(valve);
 
   const statusText = translate(valveStatusLabel(valve));
 
@@ -946,6 +950,7 @@ const ValveEditor = ({
     <AssetEditorContent
       label={valve.label}
       type={translate("valve")}
+      isNew={isNew}
       onLabelChange={onLabelChange}
       footer={footer}
       key={valve.id}
@@ -1061,7 +1066,7 @@ const PumpEditor = ({
 }) => {
   const translate = useTranslate();
   const { footer } = useQuickGraph(pump.id, "pump");
-  const { getComparison } = useAssetComparison(pump);
+  const { getComparison, isNew } = useAssetComparison(pump);
 
   const statusText = translate(pumpStatusLabel(pump));
 
@@ -1084,6 +1089,7 @@ const PumpEditor = ({
     <AssetEditorContent
       label={pump.label}
       type={translate("pump")}
+      isNew={isNew}
       onLabelChange={onLabelChange}
       footer={footer}
       key={pump.id}
