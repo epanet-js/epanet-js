@@ -43,7 +43,7 @@ export const BranchDropdown = () => {
   const createBranch = async () => {
     if (!legitFs) return;
 
-    const branchName = prompt("Enter branch name:");
+    const branchName = prompt("Enter scenario name:");
     if (!branchName || !branchName.trim()) {
       return;
     }
@@ -104,7 +104,7 @@ export const BranchDropdown = () => {
         <DDContent align="start" side="bottom">
           <StyledItem onSelect={handleCreateBranch}>
             <AddIcon />
-            Create branch
+            Scenario
           </StyledItem>
           <StyledSelectSeparator />
           {branches.map((branch) => (
@@ -121,7 +121,7 @@ export const BranchDropdown = () => {
   ) : (
     <Button variant="quiet" onClick={handleCreateBranch}>
       <AddIcon />
-      <span>Branch</span>
+      <span>Scenario</span>
     </Button>
   );
 };
