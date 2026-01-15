@@ -2,9 +2,9 @@ import { useMemo, useCallback } from "react";
 import { keyColumn, Column } from "react-datasheet-grid";
 import {
   SpreadsheetTable,
+  createSelectColumn,
   createFloatColumn,
 } from "src/components/spreadsheet-table";
-import { createFilterableSelectColumn } from "src/components/spreadsheet-table/filterable-select-column";
 import { JunctionDemand, PatternId } from "src/hydraulic-model/demands";
 import { useTranslate } from "src/hooks/use-translate";
 import { DeleteIcon, AddIcon } from "src/icons";
@@ -149,7 +149,7 @@ export const DemandCategoriesEditor = ({
       {
         ...keyColumn(
           "patternId",
-          createFilterableSelectColumn({
+          createSelectColumn({
             options: patternOptions,
             deleteValue: CONSTANT_PATTERN_SENTINEL,
           }),
@@ -165,8 +165,6 @@ export const DemandCategoriesEditor = ({
 
   const handleChange = useCallback(
     (newRows: DemandCategoryRow[]) => {
-      // eslint-disable-next-line no-console
-      console.log("DemandCategoriesEditor onChange:", newRows);
       const nonZeroRows = newRows.filter((row) => row.baseDemand !== 0);
       const newDemands =
         newRows.length === 1 ? nonZeroRows.map(fromRow) : newRows.map(fromRow);
