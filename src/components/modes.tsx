@@ -53,8 +53,10 @@ const MODE_OPTIONS = [
 
 export default memo(function Modes({
   replaceGeometryForId,
+  disabled = false,
 }: {
   replaceGeometryForId: IWrappedFeature["id"] | null;
+  disabled?: boolean;
 }) {
   const { mode: currentMode } = useAtomValue(modeAtom);
   const setDrawingMode = useDrawingMode();
@@ -102,6 +104,7 @@ export default memo(function Modes({
               });
               void setDrawingMode(mode);
             }}
+            disabled={disabled}
           >
             <Icon />
           </MenuAction>

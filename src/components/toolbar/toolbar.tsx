@@ -59,7 +59,7 @@ import {
 import { useRunSimulationPerformanceTest } from "src/commands/run-simulation-performance-test";
 import { isDebugOn } from "src/infra/debug-mode";
 
-export const Toolbar = () => {
+export const Toolbar = ({ readonly = false }: { readonly?: boolean }) => {
   const translate = useTranslate();
   const saveInp = useSaveInp();
   const userTracking = useUserTracking();
@@ -120,6 +120,7 @@ export const Toolbar = () => {
           onClick={() => {
             void importCustomerPoints({ source: "toolbar" });
           }}
+          disabled={readonly}
         >
           <ImportCustomerPointsIcon />
         </MenuAction>
@@ -138,6 +139,7 @@ export const Toolbar = () => {
                 void undo();
               }}
               readOnlyHotkey={"ctrl+z"}
+              disabled={readonly}
             >
               <UndoIcon />
             </MenuAction>
@@ -152,6 +154,7 @@ export const Toolbar = () => {
                 void redo();
               }}
               readOnlyHotkey={"ctrl+y"}
+              disabled={readonly}
             >
               <RedoIcon />
             </MenuAction>
@@ -160,7 +163,7 @@ export const Toolbar = () => {
         )}
         {isMdOrLarger && (
           <>
-            <Modes replaceGeometryForId={null} />
+            <Modes replaceGeometryForId={null} disabled={readonly} />
             <Divider />
           </>
         )}

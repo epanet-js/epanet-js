@@ -18,7 +18,7 @@ import { Resizer, useWindowResizeSplits } from "src/components/resizer";
 import { BottomPanel, LeftSidePanel, SidePanel } from "src/components/panels";
 import { MapContext } from "src/map";
 import Notifications from "src/components/notifications";
-import { atom, useAtom } from "jotai";
+import { atom, useAtom, useAtomValue } from "jotai";
 import { defaultSplits, dialogAtom, splitsAtom } from "src/state/jotai";
 import clsx from "clsx";
 import {
@@ -51,6 +51,7 @@ import { PrivacyBanner } from "./privacy-banner";
 import { usePrivacySettings } from "src/hooks/use-privacy-settings";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { initStorage } from "src/infra/storage";
+import { scenariosAtom } from "src/state/scenarios";
 
 type ResolvedLayout = "HORIZONTAL" | "VERTICAL" | "FLOATING";
 
@@ -73,6 +74,12 @@ export function EpanetApp() {
   const { enableAllTracking } = usePrivacySettings();
   const hasIdentifiedRef = useRef(false);
   const isCursorFamilyEnabled = useFeatureFlag("FLAG_CURSOR_FAMILY");
+  const isScenariosOn = useFeatureFlag("FLAG_SCENARIOS");
+  const scenariosState = useAtomValue(scenariosAtom);
+  const isToolbarReadonly =
+    isScenariosOn &&
+    scenariosState.scenarios.size > 0 &&
+    scenariosState.activeScenarioId === null;
 
   useEffect(() => {
     void initStorage();
@@ -154,7 +161,7 @@ export function EpanetApp() {
       <MapContext.Provider value={map}>
         <div className="h-24">
           <MenuBarPlay />
-          <Toolbar />
+          <Toolbar readonly={isToolbarReadonly} />
         </div>
         <div
           className={clsx(
