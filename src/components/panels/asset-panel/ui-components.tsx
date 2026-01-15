@@ -165,11 +165,18 @@ export const TextRow = ({
 }) => {
   const translate = useTranslate();
   const label = translate(name);
+
+  const baseDisplayValue =
+    comparison?.hasChanged && comparison.baseValue != null
+      ? String(comparison.baseValue)
+      : undefined;
+
   return (
     <InlineField
       name={label}
       labelSize="md"
       hasChanged={comparison?.hasChanged}
+      baseDisplayValue={baseDisplayValue}
     >
       <TextField>{value}</TextField>
     </InlineField>
@@ -210,6 +217,11 @@ export const QuantityRow = ({
     ? `${translate(name)} (${translateUnit(unit)})`
     : `${translate(name)}`;
 
+  const baseDisplayValue =
+    comparison?.hasChanged && comparison.baseValue != null
+      ? localizeDecimal(comparison.baseValue as number, { decimals })
+      : undefined;
+
   const handleChange = (newValue: number) => {
     lastChange.current = Date.now();
     onChange && onChange(name, newValue, value);
@@ -220,6 +232,7 @@ export const QuantityRow = ({
       name={label}
       labelSize="md"
       hasChanged={comparison?.hasChanged}
+      baseDisplayValue={baseDisplayValue}
     >
       {readOnly ? (
         <TextField padding="md">{displayValue}</TextField>
@@ -267,11 +280,19 @@ export const SelectRow = <
 }) => {
   const translate = useTranslate();
   const actualLabel = label || translate(name);
+
+  const baseDisplayValue =
+    comparison?.hasChanged && comparison.baseValue != null
+      ? (options.find((o) => o.value === comparison.baseValue)?.label ??
+        String(comparison.baseValue))
+      : undefined;
+
   return (
     <InlineField
       name={actualLabel}
       labelSize="md"
       hasChanged={comparison?.hasChanged}
+      baseDisplayValue={baseDisplayValue}
     >
       <div className="w-full">
         <Selector
@@ -307,6 +328,13 @@ export const SwitchRow = ({
   const translate = useTranslate();
   const actualLabel = label || translate(name);
 
+  const baseDisplayValue =
+    comparison?.hasChanged && comparison.baseValue != null
+      ? comparison.baseValue
+        ? translate("enabled")
+        : translate("disabled")
+      : undefined;
+
   const handleToggle = (checked: boolean) => {
     onChange?.(name, checked, enabled);
   };
@@ -316,6 +344,7 @@ export const SwitchRow = ({
       name={actualLabel}
       labelSize="md"
       hasChanged={comparison?.hasChanged}
+      baseDisplayValue={baseDisplayValue}
     >
       <div className="p-2 flex items-center h-[38px]">
         <Checkbox
