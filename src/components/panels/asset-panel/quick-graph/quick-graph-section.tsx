@@ -5,6 +5,7 @@ import { Button } from "src/components/elements";
 import { Selector } from "src/components/form/selector";
 import { useTranslate } from "src/hooks/use-translate";
 import { dataAtom, simulationAtom } from "src/state/jotai";
+import { scenariosAtom } from "src/state/scenarios";
 import { getSimulationMetadata } from "src/simulation/epanet/simulation-metadata";
 import {
   assetPanelFooterAtom,
@@ -91,6 +92,7 @@ interface QuickGraphSectionProps {
   assetType: QuickGraphAssetType;
   assetId: AssetId;
   data: TimeSeries | null;
+  mainData: TimeSeries | null;
   isLoading: boolean;
 }
 
@@ -105,17 +107,27 @@ const QuickGraphSection = ({
   assetType,
   assetId,
   data,
+  mainData,
   isLoading,
 }: QuickGraphSectionProps) => {
   const translate = useTranslate();
   const [footerState, setFooterState] = useAtom(assetPanelFooterAtom);
   const [propertyByType, setPropertyByType] = useAtom(quickGraphPropertyAtom);
   const simulation = useAtomValue(simulationAtom);
+  const scenariosState = useAtomValue(scenariosAtom);
   const {
     hydraulicModel,
     modelMetadata: { quantities },
   } = useAtomValue(dataAtom);
   const { changeTimestep } = useChangeTimestep();
+
+  const activeScenario = scenariosState.activeScenarioId
+    ? scenariosState.scenarios.get(scenariosState.activeScenarioId)
+    : null;
+  const scenarioName = activeScenario?.name ?? null;
+  const mainLabel = scenariosState.activeScenarioId
+    ? translate("scenarios.main")
+    : null;
 
   const selectedProperty = propertyByType[assetType];
   const selectedOption = QUICK_GRAPH_PROPERTIES[assetType].find(
@@ -141,6 +153,10 @@ const QuickGraphSection = ({
   ]);
 
   const values = useMemo(() => (data ? Array.from(data.values) : []), [data]);
+  const mainValues = useMemo(
+    () => (mainData ? Array.from(mainData.values) : null),
+    [mainData],
+  );
   const timeStepIndex =
     simulation.status === "success" || simulation.status === "warning"
       ? (simulation.currentTimestepIndex ?? 0)
@@ -234,11 +250,14 @@ const QuickGraphSection = ({
           <div className="absolute inset-0">
             <QuickGraphChart
               values={values}
+              mainValues={mainValues}
+              mainLabel={mainLabel}
               intervalSeconds={data.intervalSeconds}
               intervalsCount={data.intervalsCount}
               currentIntervalIndex={timeStepIndex}
               decimals={decimals}
               onIntevalClick={handleIntervalClick}
+              scenarioName={scenarioName}
             />
           </div>
         ) : (
@@ -261,7 +280,7 @@ export function useQuickGraph<T extends QuickGraphAssetType>(
   const [propertyByType] = useAtom(quickGraphPropertyAtom);
   const selectedProperty = propertyByType[assetType];
 
-  const { data, isLoading } = useTimeSeries({
+  const { data, mainData, isLoading } = useTimeSeries({
     assetId,
     assetType,
     property: selectedProperty,
@@ -272,6 +291,7 @@ export function useQuickGraph<T extends QuickGraphAssetType>(
       assetId={assetId}
       assetType={assetType}
       data={data}
+      mainData={mainData}
       isLoading={isLoading}
     />
   ) : undefined;
