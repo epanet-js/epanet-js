@@ -9,7 +9,7 @@ export const openInpFromFsShortcut = "ctrl+o";
 
 export const useOpenInpFromFs = () => {
   const checkUnsavedChanges = useUnsavedChangesCheck();
-  const importInp = useImportInp();
+  const { importInp } = useImportInp();
   const userTracking = useUserTracking();
   const { openFile, isReady } = useFileOpen();
 

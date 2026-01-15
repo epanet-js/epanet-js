@@ -48,7 +48,7 @@ const handleModelBuildComplete = (
   message: ModelBuildCompleteMessage,
   userTracking: ReturnType<typeof useUserTracking>,
   checkUnsavedChanges: ReturnType<typeof useUnsavedChangesCheck>,
-  importInp: ReturnType<typeof useImportInp>,
+  importInp: ReturnType<typeof useImportInp>["importInp"],
 ) => {
   if (!message.data.inpContent) {
     return;
@@ -102,7 +102,7 @@ export const ModelBuilderIframeDialog = ({
 }) => {
   const translate = useTranslate();
   const [isLoading, setIsLoading] = useState(true);
-  const importInp = useImportInp();
+  const { importInp } = useImportInp();
   const checkUnsavedChanges = useUnsavedChangesCheck();
   const userTracking = useUserTracking();
   const isMdOrLarger = useBreakpoint("md");

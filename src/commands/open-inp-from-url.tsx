@@ -14,7 +14,7 @@ export const useOpenInpFromUrl = () => {
   const setDialogState = useSetAtom(dialogAtom);
   const checkUnsavedChanges = useUnsavedChangesCheck();
   const userTracking = useUserTracking();
-  const importInp = useImportInp();
+  const { importInp } = useImportInp();
 
   const handleDownloadError = useCallback(() => {
     notify({

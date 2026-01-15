@@ -32,7 +32,7 @@ const Drop = () => {
   const translate = useTranslate();
   const [dragging, setDragging] = useState<boolean>(false);
   const checkUnsavedChanges = useUnsavedChangesCheck();
-  const importInp = useImportInp();
+  const { importInp } = useImportInp();
   const userTracking = useUserTracking();
   const dialog = useAtomValue(dialogAtom);
 

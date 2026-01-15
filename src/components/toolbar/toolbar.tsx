@@ -58,6 +58,7 @@ import {
 } from "src/commands/toggle-side-panel";
 import { useRunSimulationPerformanceTest } from "src/commands/run-simulation-performance-test";
 import { isDebugOn } from "src/infra/debug-mode";
+import { BranchDropdown } from "./branch-dropdown";
 
 export const Toolbar = () => {
   const translate = useTranslate();
@@ -123,6 +124,8 @@ export const Toolbar = () => {
         >
           <ImportCustomerPointsIcon />
         </MenuAction>
+        <Divider />
+        <BranchDropdown />
         <Divider />
         {isMdOrLarger && (
           <>

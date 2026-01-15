@@ -1,5 +1,5 @@
 import { useCallback, useContext } from "react";
-import { useSetAtom } from "jotai";
+import { useSetAtom, useAtomValue } from "jotai";
 import { dialogAtom, fileInfoAtom } from "src/state/jotai";
 import { captureError } from "src/infra/error-tracking";
 import { FileWithHandle } from "browser-fs-access";
@@ -19,6 +19,7 @@ import { notify } from "src/components/notifications";
 import { WarningIcon } from "src/icons";
 import { OPFSStorage } from "src/infra/storage";
 import { getAppId } from "src/infra/app-instance";
+import { useLegitFs } from "src/components/legit-fs-provider";
 
 export const inpExtension = ".inp";
 
@@ -27,9 +28,70 @@ export const useImportInp = () => {
   const setDialogState = useSetAtom(dialogAtom);
   const map = useContext(MapContext);
   const setFileInfo = useSetAtom(fileInfoAtom);
+  const fileInfo = useAtomValue(fileInfoAtom);
   const rep = usePersistence();
   const transactImport = rep.useTransactImport();
   const userTracking = useUserTracking();
+  const legitFs = useLegitFs();
+
+  // Shared logic for processing and importing INP content
+  const processAndImportInp = useCallback(
+    async (
+      content: string,
+      fileName: string,
+      fileHandle?: FileSystemFileHandle,
+    ) => {
+      const parseOptions = {
+        customerPoints: true,
+        inactiveAssets: true,
+      };
+      const { hydraulicModel, modelMetadata, issues, isMadeByApp, stats } =
+        parseInp(content, parseOptions);
+      userTracking.capture(
+        buildCompleteEvent(hydraulicModel, modelMetadata, issues, stats),
+      );
+      if (issues && (issues.invalidVertices || issues.invalidCoordinates)) {
+        setDialogState({ type: "inpGeocodingNotSupported" });
+        return;
+      }
+
+      if (issues && issues.nodesMissingCoordinates) {
+        setDialogState({ type: "inpMissingCoordinates", issues });
+        return;
+      }
+
+      const storage = new OPFSStorage(getAppId());
+      await storage.clear();
+
+      transactImport(hydraulicModel, modelMetadata, fileName);
+
+      const features: FeatureCollection = {
+        type: "FeatureCollection",
+        features: [...hydraulicModel.assets.values()].map((a) => a.feature),
+      };
+      const nextExtent = getExtent(features);
+      nextExtent.map((importedExtent) => {
+        map?.map.fitBounds(importedExtent as LngLatBoundsLike, {
+          padding: 100,
+          duration: 0,
+        });
+      });
+      setFileInfo({
+        name: fileName,
+        handle: isMadeByApp ? fileHandle : undefined,
+        modelVersion: hydraulicModel.version,
+        isMadeByApp,
+        options: { type: "inp", folderId: "" },
+      });
+      if (!issues) {
+        setDialogState(null);
+        return;
+      }
+
+      setDialogState({ type: "inpIssues", issues });
+    },
+    [setDialogState, userTracking, transactImport, map?.map, setFileInfo],
+  );
 
   const importInp = useCallback(
     async (files: FileWithHandle[]) => {
@@ -60,72 +122,56 @@ export const useImportInp = () => {
       setDialogState({ type: "loading" });
 
       try {
-        const arrayBuffer = await file.arrayBuffer();
-        const content = new TextDecoder().decode(arrayBuffer);
-        const parseOptions = {
-          customerPoints: true,
-          inactiveAssets: true,
-        };
-        const { hydraulicModel, modelMetadata, issues, isMadeByApp, stats } =
-          parseInp(content, parseOptions);
-        userTracking.capture(
-          buildCompleteEvent(hydraulicModel, modelMetadata, issues, stats),
-        );
-        if (issues && (issues.invalidVertices || issues.invalidCoordinates)) {
-          setDialogState({ type: "inpGeocodingNotSupported" });
-          return;
+        let content: string;
+        // Try to read from versioned filesystem first
+        if (legitFs) {
+          try {
+            content = await legitFs.promises.readFile(file.name, "utf8");
+          } catch (legitFsError) {
+            // File doesn't exist in versioned FS, fall back to File API
+            const arrayBuffer = await file.arrayBuffer();
+            content = new TextDecoder().decode(arrayBuffer);
+          }
+        } else {
+          // No versioned FS available, use File API
+          const arrayBuffer = await file.arrayBuffer();
+          content = new TextDecoder().decode(arrayBuffer);
         }
-
-        if (issues && issues.nodesMissingCoordinates) {
-          setDialogState({ type: "inpMissingCoordinates", issues });
-          return;
-        }
-
-        const storage = new OPFSStorage(getAppId());
-        await storage.clear();
-
-        transactImport(hydraulicModel, modelMetadata, file.name);
-
-        const features: FeatureCollection = {
-          type: "FeatureCollection",
-          features: [...hydraulicModel.assets.values()].map((a) => a.feature),
-        };
-        const nextExtent = getExtent(features);
-        nextExtent.map((importedExtent) => {
-          map?.map.fitBounds(importedExtent as LngLatBoundsLike, {
-            padding: 100,
-            duration: 0,
-          });
-        });
-        setFileInfo({
-          name: file.name,
-          handle: isMadeByApp ? file.handle : undefined,
-          modelVersion: hydraulicModel.version,
-          isMadeByApp,
-          options: { type: "inp", folderId: "" },
-        });
-        if (!issues) {
-          setDialogState(null);
-          return;
-        }
-
-        setDialogState({ type: "inpIssues", issues });
+        await processAndImportInp(content, file.name, file.handle);
       } catch (error) {
         captureError(error as Error);
         setDialogState({ type: "invalidFilesError" });
       }
     },
-    [
-      map?.map,
-      transactImport,
-      setFileInfo,
-      setDialogState,
-      userTracking,
-      translate,
-    ],
+    [translate, setDialogState, userTracking, legitFs, processAndImportInp],
   );
 
-  return importInp;
+  const reloadFromVersionedFs = useCallback(
+    async (fileName: string) => {
+      if (!legitFs) {
+        return;
+      }
+
+      setDialogState({ type: "loading" });
+
+      try {
+        const content = await legitFs.promises.readFile(fileName, "utf8");
+        await processAndImportInp(
+          content,
+          fileName,
+          fileInfo?.handle instanceof FileSystemFileHandle
+            ? fileInfo.handle
+            : undefined,
+        );
+      } catch (error) {
+        captureError(error as Error);
+        setDialogState({ type: "invalidFilesError" });
+      }
+    },
+    [legitFs, setDialogState, processAndImportInp, fileInfo?.handle],
+  );
+
+  return { importInp, reloadFromVersionedFs };
 };
 
 const buildCompleteEvent = (

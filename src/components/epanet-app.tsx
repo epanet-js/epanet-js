@@ -51,6 +51,7 @@ import { PrivacyBanner } from "./privacy-banner";
 import { usePrivacySettings } from "src/hooks/use-privacy-settings";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { initStorage } from "src/infra/storage";
+import { LegitFsProvider } from "./legit-fs-provider";
 
 type ResolvedLayout = "HORIZONTAL" | "VERTICAL" | "FLOATING";
 
@@ -151,54 +152,56 @@ export function EpanetApp() {
           : "h-dvh flex flex-col bg-white dark:bg-gray-800"
       }
     >
-      <MapContext.Provider value={map}>
-        <div className="h-24">
-          <MenuBarPlay />
-          <Toolbar />
-        </div>
-        <div
-          className={clsx(
-            layout === "VERTICAL" && "flex-col h-full",
-            "flex flex-grow relative border-t border-gray-200 dark:border-gray-900",
-            "pb-10",
-          )}
-        >
-          {layout === "HORIZONTAL" && <LeftSidePanel />}
-          <DndContext
-            sensors={sensor}
-            modifiers={[restrictToWindowEdges]}
-            onDragEnd={(end) => {
-              setPersistentTransform((transform) => {
-                return {
-                  x: transform.x + end.delta.x,
-                  y: transform.y + end.delta.y,
-                };
-              });
-            }}
+      <LegitFsProvider>
+        <MapContext.Provider value={map}>
+          <div className="h-24">
+            <MenuBarPlay />
+            <Toolbar />
+          </div>
+          <div
+            className={clsx(
+              layout === "VERTICAL" && "flex-col h-full",
+              "flex flex-grow relative border-t border-gray-200 dark:border-gray-900",
+              "pb-10",
+            )}
           >
-            <DraggableMap
-              persistentTransform={persistentTransform}
-              setMap={setMap}
-              layout={layout}
-            />
-          </DndContext>
-          {layout === "HORIZONTAL" && (
-            <>
-              <SidePanel />
-              <Resizer side="left" isToggleAllowed={false} />
-              <Resizer side="right" isToggleAllowed={false} />
-            </>
-          )}
-          {layout === "VERTICAL" && <BottomPanel />}
-        </div>
-        <Drop />
-        <Dialogs />
-        <Suspense fallback={null}>
-          <CommandShortcuts />
-        </Suspense>
-        <Notifications />
-        <Footer />
-      </MapContext.Provider>
+            {layout === "HORIZONTAL" && <LeftSidePanel />}
+            <DndContext
+              sensors={sensor}
+              modifiers={[restrictToWindowEdges]}
+              onDragEnd={(end) => {
+                setPersistentTransform((transform) => {
+                  return {
+                    x: transform.x + end.delta.x,
+                    y: transform.y + end.delta.y,
+                  };
+                });
+              }}
+            >
+              <DraggableMap
+                persistentTransform={persistentTransform}
+                setMap={setMap}
+                layout={layout}
+              />
+            </DndContext>
+            {layout === "HORIZONTAL" && (
+              <>
+                <SidePanel />
+                <Resizer side="left" isToggleAllowed={false} />
+                <Resizer side="right" isToggleAllowed={false} />
+              </>
+            )}
+            {layout === "VERTICAL" && <BottomPanel />}
+          </div>
+          <Drop />
+          <Dialogs />
+          <Suspense fallback={null}>
+            <CommandShortcuts />
+          </Suspense>
+          <Notifications />
+          <Footer />
+        </MapContext.Provider>
+      </LegitFsProvider>
       <TabCloseGuard />
       <OfflineGuard />
       <NotificationFromUrl />
