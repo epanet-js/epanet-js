@@ -18,9 +18,11 @@ import { computeMultiAssetData } from "./data";
 export function MultiAssetPanel({
   selectedFeatures,
   quantitiesMetadata,
+  readonly: _readonly = false,
 }: {
   selectedFeatures: IWrappedFeature[];
   quantitiesMetadata: Quantities;
+  readonly?: boolean;
 }) {
   const translate = useTranslate();
   const simulationState = useAtomValue(simulationAtom);

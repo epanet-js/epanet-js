@@ -26,11 +26,13 @@ export const PumpDefinitionDetails = ({
   pump,
   curves,
   quantities,
+  readonly = false,
   onChange,
 }: {
   pump: Pump;
   curves: Curves;
   quantities: Quantities;
+  readonly?: boolean;
   onChange: (newData: PumpDefinitionData) => void;
 }) => {
   const curve = pump.curveId ? curves.get(pump.curveId) : undefined;
@@ -42,6 +44,7 @@ export const PumpDefinitionDetails = ({
       pump={pump}
       curve={curve}
       quantities={quantities}
+      readonly={readonly}
       onChange={onChange}
     />
   );
@@ -51,11 +54,13 @@ const PumpDefinitionDetailsInner = ({
   pump,
   curve,
   quantities,
+  readonly = false,
   onChange,
 }: {
   pump: Pump;
   curve: ICurve | undefined;
   quantities: Quantities;
+  readonly?: boolean;
   onChange: (newData: PumpDefinitionData) => void;
 }) => {
   const translate = useTranslate();
@@ -126,6 +131,7 @@ const PumpDefinitionDetailsInner = ({
         name="pumpType"
         selected={localDefinitionType}
         options={definitionOptions}
+        readOnly={readonly}
         onChange={handleDefinitionTypeChange}
       />
       <div className="bg-gray-50 p-2 py-1 -mr-2 border-l-2 border-gray-400 rounded-sm">
@@ -135,6 +141,7 @@ const PumpDefinitionDetailsInner = ({
             value={pump.power}
             unit={quantities.getUnit("power")}
             decimals={quantities.getDecimals("power")}
+            readOnly={readonly}
             onChange={handlePowerChange}
           />
         )}
@@ -143,7 +150,7 @@ const PumpDefinitionDetailsInner = ({
             curve={curve}
             definitionType={localDefinitionType}
             quantities={quantities}
-            onCurveChange={handleCurvePointsChange}
+            onCurveChange={readonly ? undefined : handleCurvePointsChange}
           />
         )}
       </div>

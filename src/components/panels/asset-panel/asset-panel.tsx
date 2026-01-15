@@ -93,9 +93,11 @@ export const valveStatusLabel = (valve: Valve) => {
 export function AssetPanel({
   asset,
   quantitiesMetadata,
+  readonly = false,
 }: {
   asset: Asset;
   quantitiesMetadata: Quantities;
+  readonly?: boolean;
 }) {
   const { hydraulicModel } = useAtomValue(dataAtom);
   const rep = usePersistence();
@@ -290,6 +292,7 @@ export function AssetPanel({
           onDemandsChange={handleDemandsChange}
           onLabelChange={handleLabelChange}
           hydraulicModel={hydraulicModel}
+          readonly={readonly}
         />
       );
     case "pipe": {
@@ -305,6 +308,7 @@ export function AssetPanel({
           onActiveTopologyStatusChange={handleActiveTopologyStatusChange}
           onLabelChange={handleLabelChange}
           hydraulicModel={hydraulicModel}
+          readonly={readonly}
         />
       );
     }
@@ -321,6 +325,7 @@ export function AssetPanel({
           onLabelChange={handleLabelChange}
           quantitiesMetadata={quantitiesMetadata}
           {...getLinkNodes(hydraulicModel.assets, pump)}
+          readonly={readonly}
         />
       );
     }
@@ -336,6 +341,7 @@ export function AssetPanel({
           onActiveTopologyStatusChange={handleActiveTopologyStatusChange}
           onLabelChange={handleLabelChange}
           {...getLinkNodes(hydraulicModel.assets, valve)}
+          readonly={readonly}
         />
       );
     }
@@ -346,6 +352,7 @@ export function AssetPanel({
           quantitiesMetadata={quantitiesMetadata}
           onPropertyChange={handlePropertyChange}
           onLabelChange={handleLabelChange}
+          readonly={readonly}
         />
       );
     case "tank":
@@ -355,6 +362,7 @@ export function AssetPanel({
           quantitiesMetadata={quantitiesMetadata}
           onPropertyChange={handlePropertyChange}
           onLabelChange={handleLabelChange}
+          readonly={readonly}
         />
       );
   }
@@ -368,6 +376,7 @@ const JunctionEditor = ({
   onDemandsChange,
   onLabelChange,
   hydraulicModel,
+  readonly = false,
 }: {
   junction: Junction;
   quantitiesMetadata: Quantities;
@@ -376,6 +385,7 @@ const JunctionEditor = ({
   onDemandsChange: (newDemands: JunctionDemand[]) => void;
   onLabelChange: (newLabel: string) => string | undefined;
   hydraulicModel: HydraulicModel;
+  readonly?: boolean;
 }) => {
   const translate = useTranslate();
   const { footer } = useQuickGraph(junction.id, "junction");
@@ -417,6 +427,7 @@ const JunctionEditor = ({
           label={translate("isEnabled")}
           enabled={junction.isActive}
           comparison={getComparison("isActive", junction.isActive)}
+          readOnly={readonly}
         />
       </Section>
       <Section title={translate("modelAttributes")}>
@@ -427,6 +438,7 @@ const JunctionEditor = ({
           decimals={quantitiesMetadata.getDecimals("elevation")}
           comparison={getComparison("elevation", junction.elevation)}
           onChange={onPropertyChange}
+          readOnly={readonly}
         />
       </Section>
       <Section title={translate("demands")}>
@@ -441,11 +453,13 @@ const JunctionEditor = ({
                 readOnly={true}
               />
             )}
-            <DemandCategoriesEditor
-              demands={junction.demands}
-              patterns={hydraulicModel.demands.patterns}
-              onDemandsChange={onDemandsChange}
-            />
+            {!readonly && (
+              <DemandCategoriesEditor
+                demands={junction.demands}
+                patterns={hydraulicModel.demands.patterns}
+                onDemandsChange={onDemandsChange}
+              />
+            )}
           </div>
         ) : (
           <>
@@ -457,6 +471,7 @@ const JunctionEditor = ({
               onChange={(_name, newValue, oldValue) =>
                 onConstantDemandChange(newValue, oldValue ?? 0)
               }
+              readOnly={readonly}
             />
             <DemandCategoriesRow
               demands={junction.demands}
@@ -520,6 +535,7 @@ const PipeEditor = ({
   onActiveTopologyStatusChange,
   onLabelChange,
   hydraulicModel,
+  readonly = false,
 }: {
   pipe: Pipe;
   startNode: NodeAsset | null;
@@ -535,6 +551,7 @@ const PipeEditor = ({
   ) => void;
   onLabelChange: (newLabel: string) => string | undefined;
   hydraulicModel: HydraulicModel;
+  readonly?: boolean;
 }) => {
   const translate = useTranslate();
   const { footer } = useQuickGraph(pipe.id, "pipe");
@@ -589,6 +606,7 @@ const PipeEditor = ({
           enabled={pipe.isActive}
           comparison={getComparison("isActive", pipe.isActive)}
           onChange={onActiveTopologyStatusChange}
+          readOnly={readonly}
         />
       </Section>
       <Section title={translate("modelAttributes")}>
@@ -598,6 +616,7 @@ const PipeEditor = ({
           options={pipeStatusOptions}
           comparison={getComparison("initialStatus", pipe.initialStatus)}
           onChange={handleStatusChange}
+          readOnly={readonly}
         />
         <QuantityRow
           name="diameter"
@@ -608,6 +627,7 @@ const PipeEditor = ({
           decimals={quantitiesMetadata.getDecimals("diameter")}
           comparison={getComparison("diameter", pipe.diameter)}
           onChange={onPropertyChange}
+          readOnly={readonly}
         />
         <QuantityRow
           name="length"
@@ -618,6 +638,7 @@ const PipeEditor = ({
           decimals={quantitiesMetadata.getDecimals("length")}
           comparison={getComparison("length", pipe.length)}
           onChange={onPropertyChange}
+          readOnly={readonly}
         />
         <QuantityRow
           name="roughness"
@@ -627,6 +648,7 @@ const PipeEditor = ({
           decimals={quantitiesMetadata.getDecimals("roughness")}
           comparison={getComparison("roughness", pipe.roughness)}
           onChange={onPropertyChange}
+          readOnly={readonly}
         />
         <QuantityRow
           name="minorLoss"
@@ -636,6 +658,7 @@ const PipeEditor = ({
           decimals={quantitiesMetadata.getDecimals("minorLoss")}
           comparison={getComparison("minorLoss", pipe.minorLoss)}
           onChange={onPropertyChange}
+          readOnly={readonly}
         />
       </Section>
       {customerCount > 0 && (
@@ -695,11 +718,13 @@ const ReservoirEditor = ({
   quantitiesMetadata,
   onPropertyChange,
   onLabelChange,
+  readonly = false,
 }: {
   reservoir: Reservoir;
   quantitiesMetadata: Quantities;
   onPropertyChange: OnPropertyChange;
   onLabelChange: (newLabel: string) => string | undefined;
+  readonly?: boolean;
 }) => {
   const translate = useTranslate();
   const { footer } = useQuickGraph(reservoir.id, "reservoir");
@@ -720,6 +745,7 @@ const ReservoirEditor = ({
           label={translate("isEnabled")}
           enabled={reservoir.isActive}
           comparison={getComparison("isActive", reservoir.isActive)}
+          readOnly={readonly}
         />
       </Section>
       <Section title={translate("modelAttributes")}>
@@ -730,6 +756,7 @@ const ReservoirEditor = ({
           decimals={quantitiesMetadata.getDecimals("elevation")}
           comparison={getComparison("elevation", reservoir.elevation)}
           onChange={onPropertyChange}
+          readOnly={readonly}
         />
         <QuantityRow
           name="head"
@@ -738,6 +765,7 @@ const ReservoirEditor = ({
           decimals={quantitiesMetadata.getDecimals("head")}
           comparison={getComparison("head", reservoir.head)}
           onChange={onPropertyChange}
+          readOnly={readonly}
         />
       </Section>
     </AssetEditorContent>
@@ -749,11 +777,13 @@ const TankEditor = ({
   quantitiesMetadata,
   onPropertyChange,
   onLabelChange,
+  readonly = false,
 }: {
   tank: Tank;
   quantitiesMetadata: Quantities;
   onPropertyChange: OnPropertyChange;
   onLabelChange: (newLabel: string) => string | undefined;
+  readonly?: boolean;
 }) => {
   const translate = useTranslate();
   const { footer } = useQuickGraph(tank.id, "tank");
@@ -774,6 +804,7 @@ const TankEditor = ({
           label={translate("isEnabled")}
           enabled={tank.isActive}
           comparison={getComparison("isActive", tank.isActive)}
+          readOnly={readonly}
         />
       </Section>
       <Section title={translate("modelAttributes")}>
@@ -784,6 +815,7 @@ const TankEditor = ({
           decimals={quantitiesMetadata.getDecimals("elevation")}
           comparison={getComparison("elevation", tank.elevation)}
           onChange={onPropertyChange}
+          readOnly={readonly}
         />
         <QuantityRow
           name="initialLevel"
@@ -793,6 +825,7 @@ const TankEditor = ({
           comparison={getComparison("initialLevel", tank.initialLevel)}
           onChange={onPropertyChange}
           positiveOnly={true}
+          readOnly={readonly}
         />
         <QuantityRow
           name="minLevel"
@@ -802,6 +835,7 @@ const TankEditor = ({
           comparison={getComparison("minLevel", tank.minLevel)}
           onChange={onPropertyChange}
           positiveOnly={true}
+          readOnly={readonly}
         />
         <QuantityRow
           name="maxLevel"
@@ -811,6 +845,7 @@ const TankEditor = ({
           comparison={getComparison("maxLevel", tank.maxLevel)}
           onChange={onPropertyChange}
           positiveOnly={true}
+          readOnly={readonly}
         />
         <QuantityRow
           name="diameter"
@@ -821,6 +856,7 @@ const TankEditor = ({
           onChange={onPropertyChange}
           positiveOnly={true}
           isNullable={false}
+          readOnly={readonly}
         />
         <QuantityRow
           name="minVolume"
@@ -830,6 +866,7 @@ const TankEditor = ({
           comparison={getComparison("minVolume", tank.minVolume)}
           onChange={onPropertyChange}
           positiveOnly={true}
+          readOnly={readonly}
         />
         <SwitchRow
           name="overflow"
@@ -837,6 +874,7 @@ const TankEditor = ({
           enabled={tank.overflow}
           comparison={getComparison("overflow", tank.overflow)}
           onChange={onPropertyChange}
+          readOnly={readonly}
         />
       </Section>
       <Section title={translate("simulationResults")}>
@@ -883,6 +921,7 @@ const ValveEditor = ({
   onTypeChange,
   onActiveTopologyStatusChange,
   onLabelChange,
+  readonly = false,
 }: {
   valve: Valve;
   startNode: NodeAsset | null;
@@ -897,6 +936,7 @@ const ValveEditor = ({
     oldValue: boolean,
   ) => void;
   onLabelChange: (newLabel: string) => string | undefined;
+  readonly?: boolean;
 }) => {
   const translate = useTranslate();
   const { footer } = useQuickGraph(valve.id, "valve");
@@ -966,6 +1006,7 @@ const ValveEditor = ({
           enabled={valve.isActive}
           comparison={getComparison("isActive", valve.isActive)}
           onChange={onActiveTopologyStatusChange}
+          readOnly={readonly}
         />
       </Section>
       <Section title={translate("modelAttributes")}>
@@ -975,6 +1016,7 @@ const ValveEditor = ({
           options={kindOptions}
           comparison={getComparison("kind", valve.kind)}
           onChange={handleKindChange}
+          readOnly={readonly}
         />
         <QuantityRow
           name="setting"
@@ -982,6 +1024,7 @@ const ValveEditor = ({
           unit={getSettingUnit()}
           comparison={getComparison("setting", valve.setting)}
           onChange={onPropertyChange}
+          readOnly={readonly}
         />
         <SelectRow
           name="initialStatus"
@@ -989,6 +1032,7 @@ const ValveEditor = ({
           options={statusOptions}
           comparison={getComparison("initialStatus", valve.initialStatus)}
           onChange={handleStatusChange}
+          readOnly={readonly}
         />
         <QuantityRow
           name="diameter"
@@ -998,6 +1042,7 @@ const ValveEditor = ({
           decimals={quantitiesMetadata.getDecimals("diameter")}
           comparison={getComparison("diameter", valve.diameter)}
           onChange={onPropertyChange}
+          readOnly={readonly}
         />
         <QuantityRow
           name="minorLoss"
@@ -1007,6 +1052,7 @@ const ValveEditor = ({
           decimals={quantitiesMetadata.getDecimals("minorLoss")}
           comparison={getComparison("minorLoss", valve.minorLoss)}
           onChange={onPropertyChange}
+          readOnly={readonly}
         />
       </Section>
       <Section title={translate("simulationResults")}>
@@ -1048,6 +1094,7 @@ const PumpEditor = ({
   onLabelChange,
   quantitiesMetadata,
   curves,
+  readonly = false,
 }: {
   pump: Pump;
   startNode: NodeAsset | null;
@@ -1063,6 +1110,7 @@ const PumpEditor = ({
   onLabelChange: (newLabel: string) => string | undefined;
   quantitiesMetadata: Quantities;
   curves: Curves;
+  readonly?: boolean;
 }) => {
   const translate = useTranslate();
   const { footer } = useQuickGraph(pump.id, "pump");
@@ -1105,6 +1153,7 @@ const PumpEditor = ({
           enabled={pump.isActive}
           comparison={getComparison("isActive", pump.isActive)}
           onChange={onActiveTopologyStatusChange}
+          readOnly={readonly}
         />
       </Section>
       <Section title={translate("modelAttributes")}>
@@ -1113,6 +1162,7 @@ const PumpEditor = ({
           curves={curves}
           quantities={quantitiesMetadata}
           onChange={onDefinitionChange}
+          readonly={readonly}
         />
         <QuantityRow
           name="speed"
@@ -1121,6 +1171,7 @@ const PumpEditor = ({
           decimals={quantitiesMetadata.getDecimals("speed")}
           comparison={getComparison("speed", pump.speed)}
           onChange={onPropertyChange}
+          readOnly={readonly}
         />
         <SelectRow
           name="initialStatus"
@@ -1128,6 +1179,7 @@ const PumpEditor = ({
           options={statusOptions}
           comparison={getComparison("initialStatus", pump.initialStatus)}
           onChange={handleStatusChange}
+          readOnly={readonly}
         />
       </Section>
       <Section title={translate("simulationResults")}>

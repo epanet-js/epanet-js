@@ -269,6 +269,7 @@ export const SelectRow = <
   selected,
   options,
   comparison,
+  readOnly = false,
   onChange,
 }: {
   name: string;
@@ -276,7 +277,8 @@ export const SelectRow = <
   selected: T;
   options: { label: string; description?: string; value: T }[];
   comparison?: PropertyComparison;
-  onChange: (name: string, newValue: T, oldValue: T) => void;
+  readOnly?: boolean;
+  onChange?: (name: string, newValue: T, oldValue: T) => void;
 }) => {
   const translate = useTranslate();
   const actualLabel = label || translate(name);
@@ -287,6 +289,8 @@ export const SelectRow = <
         String(comparison.baseValue))
       : undefined;
 
+  const selectedOption = options.find((o) => o.value === selected);
+
   return (
     <InlineField
       name={actualLabel}
@@ -294,20 +298,26 @@ export const SelectRow = <
       hasChanged={comparison?.hasChanged}
       baseDisplayValue={baseDisplayValue}
     >
-      <div className="w-full">
-        <Selector
-          ariaLabel={actualLabel}
-          options={options}
-          selected={selected}
-          onChange={(newValue, oldValue) => onChange(name, newValue, oldValue)}
-          disableFocusOnClose={true}
-          styleOptions={{
-            border: true,
-            textSize: "text-sm",
-            paddingY: 2,
-          }}
-        />
-      </div>
+      {readOnly ? (
+        <TextField padding="md">{selectedOption?.label ?? ""}</TextField>
+      ) : (
+        <div className="w-full">
+          <Selector
+            ariaLabel={actualLabel}
+            options={options}
+            selected={selected}
+            onChange={(newValue, oldValue) =>
+              onChange?.(name, newValue, oldValue)
+            }
+            disableFocusOnClose={true}
+            styleOptions={{
+              border: true,
+              textSize: "text-sm",
+              paddingY: 2,
+            }}
+          />
+        </div>
+      )}
     </InlineField>
   );
 };
@@ -317,12 +327,14 @@ export const SwitchRow = ({
   label,
   enabled,
   comparison,
+  readOnly = false,
   onChange,
 }: {
   name: string;
   label?: string;
   enabled: boolean;
   comparison?: PropertyComparison;
+  readOnly?: boolean;
   onChange?: (property: string, newValue: boolean, oldValue: boolean) => void;
 }) => {
   const translate = useTranslate();
@@ -351,7 +363,7 @@ export const SwitchRow = ({
           checked={enabled}
           aria-label={actualLabel}
           onChange={(e) => handleToggle(e.target.checked)}
-          disabled={!onChange}
+          disabled={readOnly || !onChange}
         />
       </div>
     </InlineField>
