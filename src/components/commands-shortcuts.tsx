@@ -44,6 +44,7 @@ import {
 } from "src/commands/toggle-satellite";
 import { useAtomValue } from "jotai";
 import { simulationAtom } from "src/state/jotai";
+import { useIsMainReadonly } from "src/hooks/use-is-main-readonly";
 import {
   showSimulationSettingsShortcut,
   useShowSimulationSettings,
@@ -113,6 +114,7 @@ export const CommandShortcuts = () => {
     useChangeSelectedAssetsActiveTopologyStatus();
   const showControls = useShowControls();
   const { goToPreviousTimestep, goToNextTimestep } = useChangeTimestep();
+  const isMainReadonly = useIsMainReadonly();
 
   useHotkeys(
     showReportShorcut,
@@ -189,6 +191,7 @@ export const CommandShortcuts = () => {
     undoShortcut,
     (e) => {
       if (e.preventDefault) e.preventDefault();
+      if (isMainReadonly) return;
 
       userTracking.capture({
         name: "operation.undone",
@@ -196,7 +199,7 @@ export const CommandShortcuts = () => {
       });
       void undo();
     },
-    [undoShortcut, undo],
+    [undoShortcut, undo, isMainReadonly],
     "Undo",
   );
 
@@ -204,6 +207,7 @@ export const CommandShortcuts = () => {
     redoShortcut,
     (e) => {
       if (e.preventDefault) e.preventDefault();
+      if (isMainReadonly) return;
 
       userTracking.capture({
         name: "operation.redone",
@@ -211,7 +215,7 @@ export const CommandShortcuts = () => {
       });
       void redo();
     },
-    [redoShortcut, redo],
+    [redoShortcut, redo, isMainReadonly],
     "Redo",
   );
 
@@ -219,6 +223,7 @@ export const CommandShortcuts = () => {
     redoShortcut,
     (e) => {
       if (e.preventDefault) e.preventDefault();
+      if (isMainReadonly) return;
 
       userTracking.capture({
         name: "operation.redone",
@@ -226,7 +231,7 @@ export const CommandShortcuts = () => {
       });
       void redo();
     },
-    [redoShortcut, redo],
+    [redoShortcut, redo, isMainReadonly],
     "Redo",
   );
 
@@ -251,11 +256,12 @@ export const CommandShortcuts = () => {
       if (IGNORE_ROLES.has((e.target as HTMLElement).getAttribute("role")!))
         return;
       if (hasActiveSpreadsheet()) return;
+      if (isMainReadonly) return;
 
       e.preventDefault();
       void deleteSelectedAssets({ source: "shortcut" });
     },
-    [deleteSelectedAssets],
+    [deleteSelectedAssets, isMainReadonly],
     "DELETE",
   );
 
@@ -307,9 +313,10 @@ export const CommandShortcuts = () => {
     connectCustomersShortcut,
     (e) => {
       e.preventDefault();
+      if (isMainReadonly) return;
       connectCustomerPoints({ source: "shortcut" });
     },
-    [connectCustomerPoints],
+    [connectCustomerPoints, isMainReadonly],
     "Connect/Reconnect customer points",
   );
 
@@ -317,9 +324,10 @@ export const CommandShortcuts = () => {
     disconnectCustomersShortcut,
     (e) => {
       e.preventDefault();
+      if (isMainReadonly) return;
       disconnectCustomerPoints({ source: "shortcut" });
     },
-    [disconnectCustomerPoints],
+    [disconnectCustomerPoints, isMainReadonly],
     "Disconnect customer points",
   );
 
@@ -327,9 +335,10 @@ export const CommandShortcuts = () => {
     redrawModeShortcut,
     (e) => {
       e.preventDefault();
+      if (isMainReadonly) return;
       setRedrawMode({ source: "shortcut" });
     },
-    [setRedrawMode],
+    [setRedrawMode, isMainReadonly],
     "Set redraw mode",
   );
 
@@ -337,9 +346,10 @@ export const CommandShortcuts = () => {
     reverseLinkShortcut,
     (e) => {
       e.preventDefault();
+      if (isMainReadonly) return;
       reverseLinkAction({ source: "shortcut" });
     },
-    [reverseLinkAction],
+    [reverseLinkAction, isMainReadonly],
     "Reverse link",
   );
 
@@ -382,9 +392,10 @@ export const CommandShortcuts = () => {
     changeActiveTopologyShortcut,
     (e) => {
       e.preventDefault();
+      if (isMainReadonly) return;
       changeSelectedAssetsActiveTopologyStatus({ source: "shortcut" });
     },
-    [changeSelectedAssetsActiveTopologyStatus],
+    [changeSelectedAssetsActiveTopologyStatus, isMainReadonly],
     "Activate/Deactivate assets",
   );
 
@@ -414,6 +425,7 @@ export const CommandShortcuts = () => {
       shortcut,
       (e) => {
         if (e.preventDefault) e.preventDefault();
+        if (isMainReadonly) return;
 
         userTracking.capture({
           name: "drawingMode.enabled",
@@ -422,7 +434,7 @@ export const CommandShortcuts = () => {
         });
         void setDrawingMode(mode as Mode);
       },
-      [shortcut, mode, setDrawingMode],
+      [shortcut, mode, setDrawingMode, isMainReadonly],
       `Set ${mode} mode`,
     );
   }
