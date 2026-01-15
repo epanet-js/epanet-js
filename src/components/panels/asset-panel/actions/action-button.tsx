@@ -16,6 +16,7 @@ export interface Action {
   variant?: B3Variant;
   shortcut?: string;
   selected?: boolean;
+  disabled?: boolean;
 }
 
 export function ActionButton({ action }: { action: Action }) {
@@ -26,17 +27,19 @@ export function ActionButton({ action }: { action: Action }) {
     variant = "quiet",
     shortcut,
     selected = false,
+    disabled = false,
   } = action;
 
   return (
     <Tooltip.Root>
       <Tooltip.Trigger
-        onClick={(evt) => onSelect(evt as unknown as Event)}
+        onClick={(evt) => !disabled && onSelect(evt as unknown as Event)}
         asChild
       >
         <Button
           variant={selected ? "quiet/mode" : variant}
           aria-expanded={selected ? "true" : "false"}
+          disabled={disabled}
         >
           {icon}
         </Button>

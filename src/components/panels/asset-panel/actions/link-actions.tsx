@@ -20,7 +20,7 @@ import {
   useChangeSelectedAssetsActiveTopologyStatus,
 } from "src/commands/change-selected-assets-active-topology-status";
 
-export function useLinkActions(): Action[] {
+export function useLinkActions(readonly = false): Action[] {
   const translate = useTranslate();
   const zoomTo = useZoomTo();
   const deleteSelectedAssets = useDeleteSelectedAssets();
@@ -40,6 +40,7 @@ export function useLinkActions(): Action[] {
     label: translate("delete"),
     variant: "danger-quiet" as const,
     applicable: true,
+    disabled: readonly,
     icon: <DeleteIcon />,
     onSelect: onDelete,
   };
@@ -56,6 +57,7 @@ export function useLinkActions(): Action[] {
   const redrawAction = {
     icon: <RedrawIcon />,
     applicable: true,
+    disabled: readonly,
     label: translate("redraw"),
     selected: currentMode === Mode.REDRAW_LINK,
     onSelect: function redrawLink() {
@@ -67,6 +69,7 @@ export function useLinkActions(): Action[] {
   const reverseAction = {
     icon: <ReverseIcon />,
     applicable: true,
+    disabled: readonly,
     label: translate("reverse"),
     onSelect: function reverseLinkActionHandler() {
       reverseLinkAction({ source: "toolbar" });
@@ -82,6 +85,7 @@ export function useLinkActions(): Action[] {
   const changeActiveTopologyActionItem = {
     icon: allActive ? <DeactivateTopologyIcon /> : <ActivateTopologyIcon />,
     applicable: true,
+    disabled: readonly,
     label: allActive
       ? translate("deactivateAssets")
       : translate("activateAssets"),
@@ -98,8 +102,8 @@ export function useLinkActions(): Action[] {
   ];
 }
 
-export function LinkActions() {
-  const actions = useLinkActions();
+export function LinkActions({ readonly = false }: { readonly?: boolean }) {
+  const actions = useLinkActions(readonly);
 
   return (
     <div className="flex gap-1 h-8 my-[-0.5rem]">

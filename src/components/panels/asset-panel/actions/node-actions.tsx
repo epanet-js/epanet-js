@@ -7,7 +7,7 @@ import { DeleteIcon, ZoomToIcon } from "src/icons";
 import { selectedFeaturesAtom } from "src/state/jotai";
 import { ActionButton, Action } from "./action-button";
 
-export function useNodeActions(): Action[] {
+export function useNodeActions(readonly = false): Action[] {
   const translate = useTranslate();
   const zoomTo = useZoomTo();
   const deleteSelectedAssets = useDeleteSelectedAssets();
@@ -22,6 +22,7 @@ export function useNodeActions(): Action[] {
     label: translate("delete"),
     variant: "danger-quiet" as const,
     applicable: true,
+    disabled: readonly,
     icon: <DeleteIcon />,
     onSelect: onDelete,
   };
@@ -38,8 +39,8 @@ export function useNodeActions(): Action[] {
   return [zoomToAction, deleteAssetsAction];
 }
 
-export function NodeActions() {
-  const actions = useNodeActions();
+export function NodeActions({ readonly = false }: { readonly?: boolean }) {
+  const actions = useNodeActions(readonly);
 
   return (
     <div className="flex gap-1 h-8 my-[-0.5rem]">
