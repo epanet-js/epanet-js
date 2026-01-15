@@ -15,8 +15,9 @@ import {
 } from "src/icons";
 import { selectedFeaturesAtom } from "src/state/jotai";
 import { ActionButton, Action } from "../asset-panel/actions/action-button";
+import { useIsMainReadonly } from "src/hooks/use-is-main-readonly";
 
-export function useMultiAssetActions(): Action[] {
+export function useMultiAssetActions(readonly = false): Action[] {
   const translate = useTranslate();
   const zoomTo = useZoomTo();
   const deleteSelectedAssets = useDeleteSelectedAssets();
@@ -38,6 +39,7 @@ export function useMultiAssetActions(): Action[] {
     label: translate("delete"),
     variant: "danger-quiet" as const,
     applicable: true,
+    disabled: readonly,
     icon: <DeleteIcon />,
     onSelect: onDelete,
   };
@@ -54,6 +56,7 @@ export function useMultiAssetActions(): Action[] {
   const changeActiveTopologyActionItem = {
     icon: allActive ? <DeactivateTopologyIcon /> : <ActivateTopologyIcon />,
     applicable: true,
+    disabled: readonly,
     label: allActive
       ? translate("deactivateAssets")
       : translate("activateAssets"),
@@ -65,7 +68,8 @@ export function useMultiAssetActions(): Action[] {
 }
 
 export function MultiAssetActions() {
-  const actions = useMultiAssetActions();
+  const isMainReadonly = useIsMainReadonly();
+  const actions = useMultiAssetActions(isMainReadonly);
 
   return (
     <div className="flex gap-1">
