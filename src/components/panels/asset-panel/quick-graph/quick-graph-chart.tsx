@@ -205,6 +205,7 @@ function QuickGraphChartECharts({
     <div ref={containerRef} className="h-full w-full">
       <ReactECharts
         ref={chartRef}
+        key={`${intervalSeconds}-${intervalsCount}`}
         option={option}
         style={{ height: "100%", width: "100%" }}
         opts={{ renderer: "svg" }}
