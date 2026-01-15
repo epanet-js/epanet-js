@@ -637,6 +637,22 @@ type SidePanelClosed = {
   source: string;
 };
 
+type ScenarioSwitcherOpened = {
+  name: "scenarioSwitcher.opened";
+};
+
+type ScenarioCreated = {
+  name: "scenario.created";
+  scenarioId: string;
+  scenarioName: string;
+};
+
+type ScenarioSwitched = {
+  name: "scenario.switched";
+  scenarioId: string | null;
+  scenarioName: string | undefined;
+};
+
 export type UserEvent =
   | AssetCreated
   | AssetRedrawed
@@ -738,6 +754,9 @@ export type UserEvent =
   | NetworkReviewChanged
   | SidePanelOpened
   | SidePanelClosed
+  | ScenarioSwitcherOpened
+  | ScenarioCreated
+  | ScenarioSwitched
   | { name: "map.labels.shown"; type: string; subtype: string }
   | { name: "map.labels.hidden"; type: string }
   | { name: "map.customerPoints.shown" }

@@ -732,5 +732,12 @@
   "pin": "Pin",
   "unpin": "Unpin",
   "errorLoadingData": "Error loading data",
-  "noDataAvailable": "No data available"
+  "noDataAvailable": "No data available",
+  "scenarios": {
+    "main": "Main",
+    "createNew": "Create new scenario",
+    "newScenario": "New",
+    "switcherTooltip": "Switch scenario",
+    "enableScenarios": "Enable Scenarios"
+  }
 }

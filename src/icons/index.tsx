@@ -26,6 +26,8 @@ import {
   FilePlus,
   FileSpreadsheet,
   FileText,
+  GitBranch,
+  GitBranchPlus,
   Goal,
   Globe,
   Grid2X2,
@@ -38,6 +40,7 @@ import {
   Lasso,
   Link2,
   Link2Off,
+  Lock,
   MapIcon,
   Menu,
   MousePointer2,
@@ -182,6 +185,9 @@ export const SortDescendingIcon = icon(ArrowDownWideNarrow);
 export const PinIcon = icon(Pin);
 export const PinOffIcon = icon(PinOff);
 export const MoreActionsIcon = icon(EllipsisVertical);
+export const ScenarioIcon = icon(GitBranch);
+export const AddScenarioIcon = icon(GitBranchPlus);
+export const MainModelIcon = icon(Lock);
 
 export const ReverseIcon: React.FC<IconProps> = ({
   size: rawSize = "md",
