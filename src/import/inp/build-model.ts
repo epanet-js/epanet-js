@@ -122,12 +122,16 @@ export const buildModel = (
   for (const customerPointData of inpData.customerPoints) {
     const id = customerPointIdGenerator.newId();
 
+    const demands = customerPointData.demands ?? [
+      { baseDemand: customerPointData.baseDemand },
+    ];
     const customerPoint = CustomerPoint.build(
       id,
       customerPointData.coordinates,
       {
         baseDemand: customerPointData.baseDemand,
         label: customerPointData.label,
+        demands,
       },
     );
 

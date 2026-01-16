@@ -3,6 +3,7 @@ import { Position } from "geojson";
 import { roundCoordinates } from "src/lib/geometry";
 import { AssetId } from "./asset-types/base-asset";
 import { CustomerPointsLookup } from "./customer-points-lookup";
+import { JunctionDemand } from "./demands";
 
 export const MAX_CUSTOMER_POINT_LABEL_LENGTH = 50;
 
@@ -35,30 +36,45 @@ export class CustomerPoint {
   public readonly id: number;
   public readonly label: string;
   public readonly coordinates: Position;
-  private properties: { baseDemand: number };
+  private properties: { baseDemand: number; demands: JunctionDemand[] };
   private connectionData: CustomerPointConnection | null = null;
 
   constructor(
     id: number,
     coordinates: Position,
-    properties: { baseDemand: number; label: string },
+    properties: {
+      baseDemand: number;
+      label: string;
+      demands: JunctionDemand[];
+    },
   ) {
     this.id = id;
     this.label = properties.label;
     this.coordinates = coordinates;
-    this.properties = { baseDemand: properties.baseDemand };
+    this.properties = {
+      baseDemand: properties.baseDemand,
+      demands: properties.demands,
+    };
   }
 
   static build(
     id: number,
     coordinates: Position,
-    properties: { baseDemand: number; label: string },
+    properties: {
+      baseDemand: number;
+      label: string;
+      demands: JunctionDemand[];
+    },
   ): CustomerPoint {
     return new CustomerPoint(id, roundCoordinates(coordinates), properties);
   }
 
   get baseDemand() {
     return this.properties.baseDemand;
+  }
+
+  get demands(): JunctionDemand[] {
+    return this.properties.demands;
   }
 
   get snapPosition(): Position | null {
@@ -77,6 +93,7 @@ export class CustomerPoint {
     return new CustomerPoint(this.id, [...this.coordinates], {
       baseDemand: this.baseDemand,
       label: this.label,
+      demands: this.properties.demands.map((d) => ({ ...d })),
     });
   }
 }
