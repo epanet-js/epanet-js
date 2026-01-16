@@ -19,6 +19,7 @@ import {
   CircleQuestionMark,
   CircleSlash2,
   CircleX,
+  Copy,
   Crosshair,
   EllipsisVertical,
   Eye,
@@ -67,6 +68,7 @@ import {
   SquareStack,
   Star,
   Sun,
+  TextCursorInput,
   Timer,
   Trash,
   Triangle,
@@ -192,6 +194,8 @@ export const AddScenarioIcon = icon(GitBranchPlus);
 export const MainModelIcon = icon(Lock);
 export const ControlsIconAlt = icon(FileCode);
 export const PatternsIcon = icon(ChartColumn);
+export const RenameIcon = icon(TextCursorInput);
+export const DuplicateIcon = icon(Copy);
 
 export const ReverseIcon: React.FC<IconProps> = ({
   size: rawSize = "md",

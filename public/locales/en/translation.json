@@ -748,5 +748,12 @@
   },
   "curvesAndPatterns": "Demand patterns",
   "curvesAndPatternsEmpty": "No demand patterns defined",
-  "operationalData": "Operational data"
+  "operationalData": "Operational data",
+  "demandPatterns": "Demand patterns",
+  "selectPatternPrompt": "Select a pattern to view its details",
+  "patternSelected": "Pattern: {{1}}",
+  "addPattern": "Add pattern",
+  "curvesAndPatternsEmptyTitle": "Demand patterns is empty",
+  "curvesAndPatternsEmptyDescription": "Please create a new pattern to get started.",
+  "curvesAndPatternsNoSelection": "Select a pattern to view its details."
 }
