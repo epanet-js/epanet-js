@@ -27,6 +27,18 @@ import {
   StyledTooltipArrow,
   TContent,
 } from "../elements";
+import { modeAtom, Mode } from "src/state/mode";
+
+const DRAWING_MODES: Mode[] = [
+  Mode.DRAW_JUNCTION,
+  Mode.DRAW_PIPE,
+  Mode.DRAW_RESERVOIR,
+  Mode.DRAW_PUMP,
+  Mode.DRAW_VALVE,
+  Mode.DRAW_TANK,
+  Mode.CONNECT_CUSTOMER_POINTS,
+  Mode.REDRAW_LINK,
+];
 
 export const ScenarioSwitcher = () => {
   const translate = useTranslate();
@@ -35,6 +47,7 @@ export const ScenarioSwitcher = () => {
   const [scenariosState, setScenariosState] = useAtom(scenariosAtom);
   const scenariosList = useAtomValue(scenariosListAtom);
   const [simulation, setSimulation] = useAtom(simulationAtom);
+  const [modeState, setMode] = useAtom(modeAtom);
 
   const activeScenarioId = scenariosState.activeScenarioId;
   const isMainActive = activeScenarioId === null;
@@ -82,6 +95,10 @@ export const ScenarioSwitcher = () => {
       ...prev,
       activeScenarioId: null,
     }));
+
+    if (DRAWING_MODES.includes(modeState.mode)) {
+      setMode({ mode: Mode.NONE });
+    }
   };
 
   const handleSelectScenario = (scenarioId: string) => {
