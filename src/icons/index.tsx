@@ -6,6 +6,7 @@ import {
   ArrowRight,
   ArrowUpNarrowWide,
   Bell,
+  ChartColumn,
   Check,
   ChevronDown,
   ChevronLeft,
@@ -23,9 +24,11 @@ import {
   Eye,
   EyeOff,
   File,
+  FileCode,
   FilePlus,
   FileSpreadsheet,
   FileText,
+  FolderKanban,
   GitBranch,
   GitBranchPlus,
   Goal,
@@ -188,6 +191,9 @@ export const MoreActionsIcon = icon(EllipsisVertical);
 export const ScenarioIcon = icon(GitBranch);
 export const AddScenarioIcon = icon(GitBranchPlus);
 export const MainModelIcon = icon(Lock);
+export const AdvancedSettingsIcon = icon(FolderKanban);
+export const ControlsIconAlt = icon(FileCode);
+export const PatternsIcon = icon(ChartColumn);
 
 export const ReverseIcon: React.FC<IconProps> = ({
   size: rawSize = "md",

@@ -741,5 +741,6 @@
     "enableScenarios": "Enable Scenarios"
   },
   "curvesAndPatterns": "Demand patterns",
-  "curvesAndPatternsEmpty": "No demand patterns defined"
+  "curvesAndPatternsEmpty": "No demand patterns defined",
+  "advancedSettings": "Advanced settings"
 }

@@ -3,7 +3,6 @@ import MenuAction from "../menu-action";
 import {
   ControlsIcon,
   FileTextIcon,
-  FileSpreadsheetIcon,
   UndoIcon,
   RedoIcon,
   SettingsIcon,
@@ -45,10 +44,10 @@ import {
   showControlsShortcut,
   useShowControls,
 } from "src/commands/show-controls";
-import { useShowCurvesAndPatterns } from "src/commands/show-curves-and-patterns";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { useImportCustomerPoints } from "src/commands/import-customer-points";
 import { CreateNewDropdown } from "./create-new-dropdown";
+import { AdvancedSettingsDropdown } from "./advanced-settings-dropdown";
 import {
   toggleNetworkReviewShortcut,
   useToggleNetworkReview,
@@ -70,7 +69,6 @@ export const Toolbar = ({ readonly = false }: { readonly?: boolean }) => {
   const runPerformanceTest = useRunSimulationPerformanceTest();
   const showSimulationSettings = useShowSimulationSettings();
   const showControls = useShowControls();
-  const showCurvesAndPatterns = useShowCurvesAndPatterns();
   const showReport = useShowReport();
   const importCustomerPoints = useImportCustomerPoints();
   const isPatternLibraryOn = useFeatureFlag("FLAG_PATTERN_LIBRARY");
@@ -219,21 +217,16 @@ export const Toolbar = ({ readonly = false }: { readonly?: boolean }) => {
           <FileTextIcon />
         </MenuAction>
         <Divider />
-        <MenuAction
-          label={translate("controls.title")}
-          role="button"
-          onClick={() => showControls({ source: "toolbar" })}
-          readOnlyHotkey={showControlsShortcut}
-        >
-          <ControlsIcon />
-        </MenuAction>
-        {isPatternLibraryOn && (
+        {isPatternLibraryOn ? (
+          <AdvancedSettingsDropdown />
+        ) : (
           <MenuAction
-            label={translate("curvesAndPatterns")}
+            label={translate("controls.title")}
             role="button"
-            onClick={() => showCurvesAndPatterns({ source: "toolbar" })}
+            onClick={() => showControls({ source: "toolbar" })}
+            readOnlyHotkey={showControlsShortcut}
           >
-            <FileSpreadsheetIcon />
+            <ControlsIcon />
           </MenuAction>
         )}
         {isMdOrLarger && !shouldHideContextActions && (
