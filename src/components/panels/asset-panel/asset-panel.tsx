@@ -419,6 +419,7 @@ const JunctionEditor = ({
       isNew={isNew}
       onLabelChange={onLabelChange}
       footer={footer}
+      readOnly={readonly}
       key={junction.id}
     >
       <Section title={translate("activeTopology")}>
@@ -593,6 +594,7 @@ const PipeEditor = ({
       isNew={isNew}
       onLabelChange={onLabelChange}
       footer={footer}
+      readOnly={readonly}
       key={pipe.id}
     >
       <Section title={translate("connections")}>
@@ -737,6 +739,7 @@ const ReservoirEditor = ({
       isNew={isNew}
       onLabelChange={onLabelChange}
       footer={footer}
+      readOnly={readonly}
       key={reservoir.id}
     >
       <Section title={translate("activeTopology")}>
@@ -796,6 +799,7 @@ const TankEditor = ({
       isNew={isNew}
       onLabelChange={onLabelChange}
       footer={footer}
+      readOnly={readonly}
       key={tank.id}
     >
       <Section title={translate("activeTopology")}>
@@ -993,6 +997,7 @@ const ValveEditor = ({
       isNew={isNew}
       onLabelChange={onLabelChange}
       footer={footer}
+      readOnly={readonly}
       key={valve.id}
     >
       <Section title={translate("connections")}>
@@ -1140,6 +1145,7 @@ const PumpEditor = ({
       isNew={isNew}
       onLabelChange={onLabelChange}
       footer={footer}
+      readOnly={readonly}
       key={pump.id}
     >
       <Section title={translate("connections")}>

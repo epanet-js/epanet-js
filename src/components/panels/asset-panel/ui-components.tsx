@@ -34,6 +34,7 @@ export const AssetEditorContent = ({
   onLabelChange,
   footer,
   children,
+  readOnly = false,
 }: {
   label: string;
   type: string;
@@ -41,6 +42,7 @@ export const AssetEditorContent = ({
   onLabelChange: (newLabel: string) => string | undefined;
   footer?: React.ReactNode;
   children: React.ReactNode;
+  readOnly?: boolean;
 }) => {
   const [footerState, setFooterState] = useAtom(assetPanelFooterAtom);
 
@@ -59,6 +61,7 @@ export const AssetEditorContent = ({
           type={type}
           isNew={isNew}
           onLabelChange={onLabelChange}
+          readOnly={readOnly}
         />
       }
       footer={footer}
@@ -77,11 +80,13 @@ const Header = ({
   type,
   isNew,
   onLabelChange,
+  readOnly = false,
 }: {
   label: string;
   type: string;
   isNew?: boolean;
   onLabelChange: (newLabel: string) => string | undefined;
+  readOnly?: boolean;
 }) => {
   const [error, setError] = useState<string | null>(null);
 
@@ -112,6 +117,7 @@ const Header = ({
             onReset={clearError}
             onDirty={clearError}
             hasError={!!error}
+            readOnly={readOnly}
             allowedChars={/(?![\s;])[\x00-\xFF]/}
             maxByteLength={31}
             styleOptions={{

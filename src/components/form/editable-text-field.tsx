@@ -132,6 +132,17 @@ export const EditableTextField = ({
 
   const variant = hasError ? "warning" : styleOptions.variant;
 
+  if (readOnly) {
+    return (
+      <span
+        className={styledReadOnlyText(styleOptions)}
+        aria-label={`Value for: ${label}`}
+      >
+        {value}
+      </span>
+    );
+  }
+
   return (
     <input
       onChange={handleInputChange}
@@ -145,7 +156,7 @@ export const EditableTextField = ({
       ref={inputRef}
       value={inputValue}
       onFocus={handleFocus}
-      tabIndex={readOnly ? -1 : tabIndex}
+      tabIndex={tabIndex}
       className={styledInput({
         ...styleOptions,
         variant,
@@ -155,6 +166,30 @@ export const EditableTextField = ({
     />
   );
 };
+
+function styledReadOnlyText({
+  padding = "md",
+  textSize = "xs",
+  fontWeight = "normal",
+}: Partial<StyleOptions> = {}) {
+  return clsx(
+    "text-gray-700 dark:text-gray-100",
+    {
+      "p-1": padding === "sm",
+      "p-2": padding === "md",
+    },
+    {
+      "text-xs": textSize === "xs",
+      "text-sm": textSize === "sm",
+      "text-md": textSize === "md",
+    },
+    {
+      "font-normal": fontWeight === "normal",
+      "font-semibold": fontWeight === "semibold",
+    },
+    "block overflow-hidden whitespace-nowrap text-ellipsis w-full border border-transparent",
+  );
+}
 
 function styledInput({
   padding = "md",
