@@ -234,6 +234,21 @@ const CurvesAndPatternsDialog = dynamic(
   },
 );
 
+const DeleteScenarioConfirmationDialog = dynamic<{
+  scenarioId: string;
+  scenarioName: string;
+  onConfirm: (scenarioId: string) => void;
+  onClose: () => void;
+}>(
+  () =>
+    import("src/components/dialogs/delete-scenario-confirmation").then(
+      (r) => r.DeleteScenarioConfirmationDialog,
+    ),
+  {
+    loading: () => <LoadingDialog />,
+  },
+);
+
 export const Dialogs = memo(function Dialogs() {
   const [dialog, setDialogState] = useAtom(dialogAtom);
   const userTracking = useUserTracking();
@@ -348,6 +363,17 @@ export const Dialogs = memo(function Dialogs() {
     .with({ type: "inpMissingCoordinates" }, ({ issues }) => (
       <MissingCoordinatesDialog issues={issues} onClose={onClose} />
     ))
+    .with(
+      { type: "deleteScenarioConfirmation" },
+      ({ scenarioId, scenarioName, onConfirm }) => (
+        <DeleteScenarioConfirmationDialog
+          scenarioId={scenarioId}
+          scenarioName={scenarioName}
+          onConfirm={onConfirm}
+          onClose={onClose}
+        />
+      ),
+    )
     .exhaustive();
 
   //DEPRECATED PATH! NEW DIALOGS SHOW USE DialogContainer COMPONENT

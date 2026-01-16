@@ -738,7 +738,13 @@
     "createNew": "Create new scenario",
     "newScenario": "New",
     "switcherTooltip": "Switch scenario",
-    "enableScenarios": "Enable Scenarios"
+    "enableScenarios": "Enable Scenarios",
+    "delete": "Delete",
+    "deleteConfirmation": {
+      "title": "Delete Scenario",
+      "message": "Are you sure you want to delete scenario \"{{1}}\"?",
+      "confirm": "Delete scenario"
+    }
   },
   "curvesAndPatterns": "Demand patterns",
   "curvesAndPatternsEmpty": "No demand patterns defined",

@@ -653,6 +653,16 @@ type ScenarioSwitched = {
   scenarioName: string | undefined;
 };
 
+type ScenarioDeleted = {
+  name: "scenario.deleted";
+  scenarioId: string;
+  scenarioName: string;
+};
+
+type ScenarioDeleteDialogCancel = {
+  name: "scenario.deleteDialog.cancel";
+};
+
 export type UserEvent =
   | AssetCreated
   | AssetRedrawed
@@ -757,6 +767,8 @@ export type UserEvent =
   | ScenarioSwitcherOpened
   | ScenarioCreated
   | ScenarioSwitched
+  | ScenarioDeleted
+  | ScenarioDeleteDialogCancel
   | { name: "map.labels.shown"; type: string; subtype: string }
   | { name: "map.labels.hidden"; type: string }
   | { name: "map.customerPoints.shown" }

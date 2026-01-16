@@ -1,12 +1,14 @@
 import * as DD from "@radix-ui/react-dropdown-menu";
 import * as Tooltip from "@radix-ui/react-tooltip";
-import { useAtom, useAtomValue } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 
 import {
   ChevronDownIcon,
   ScenarioIcon,
   AddScenarioIcon,
   MainModelIcon,
+  MoreActionsIcon,
+  DeleteIcon,
 } from "src/icons";
 import { useTranslate } from "src/hooks/use-translate";
 import { useUserTracking } from "src/infra/user-tracking";
@@ -18,7 +20,11 @@ import {
   scenariosListAtom,
   createScenario,
 } from "src/state/scenarios";
-import { simulationAtom, initialSimulationState } from "src/state/jotai";
+import {
+  simulationAtom,
+  initialSimulationState,
+  dialogAtom,
+} from "src/state/jotai";
 import {
   Button,
   DDContent,
@@ -48,6 +54,7 @@ export const ScenarioSwitcher = () => {
   const scenariosList = useAtomValue(scenariosListAtom);
   const [simulation, setSimulation] = useAtom(simulationAtom);
   const [modeState, setMode] = useAtom(modeAtom);
+  const setDialog = useSetAtom(dialogAtom);
 
   const activeScenarioId = scenariosState.activeScenarioId;
   const isMainActive = activeScenarioId === null;
@@ -214,6 +221,91 @@ export const ScenarioSwitcher = () => {
     });
   };
 
+  const handleDeleteScenario = (scenarioId: string) => {
+    const scenarioToDelete = scenariosState.scenarios.get(scenarioId);
+    if (!scenarioToDelete) return;
+
+    const remainingScenarios = scenariosList.filter((s) => s.id !== scenarioId);
+    const isDeletedActive = activeScenarioId === scenarioId;
+
+    if (remainingScenarios.length === 0) {
+      // Last scenario being deleted - reset to initial state
+      if (scenariosState.baseModelSnapshot) {
+        persistence.restoreToBase(scenariosState.baseModelSnapshot);
+      }
+
+      if (scenariosState.mainMomentLog) {
+        const deltas = scenariosState.mainMomentLog.getDeltas();
+        for (const delta of deltas) {
+          persistence.applySnapshot(delta, "");
+        }
+        persistence.switchMomentLog(scenariosState.mainMomentLog);
+      }
+
+      if (scenariosState.mainModelVersion) {
+        persistence.setModelVersion(scenariosState.mainModelVersion);
+      }
+
+      setSimulation(scenariosState.mainSimulation ?? initialSimulationState);
+
+      setScenariosState((prev) => ({
+        ...prev,
+        scenarios: new Map(),
+        activeScenarioId: null,
+        baseModelSnapshot: null,
+        mainMomentLog: null,
+        mainSimulation: null,
+        mainModelVersion: null,
+        highestScenarioNumber: 0,
+      }));
+    } else if (isDeletedActive) {
+      // Deleted scenario was active - switch to first remaining scenario
+      const nextScenario = remainingScenarios[0];
+
+      if (scenariosState.baseModelSnapshot) {
+        persistence.restoreToBase(scenariosState.baseModelSnapshot);
+      }
+
+      const deltas = nextScenario.momentLog.getDeltas();
+      for (const delta of deltas) {
+        persistence.applySnapshot(delta, "");
+      }
+      persistence.switchMomentLog(nextScenario.momentLog);
+      persistence.setModelVersion(nextScenario.modelVersion);
+
+      setSimulation(nextScenario.simulation ?? initialSimulationState);
+
+      setScenariosState((prev) => {
+        const newScenarios = new Map(prev.scenarios);
+        newScenarios.delete(scenarioId);
+        return {
+          ...prev,
+          scenarios: newScenarios,
+          activeScenarioId: nextScenario.id,
+        };
+      });
+    } else {
+      // Deleted scenario was not active - just remove from list
+      setScenariosState((prev) => {
+        const newScenarios = new Map(prev.scenarios);
+        newScenarios.delete(scenarioId);
+        return {
+          ...prev,
+          scenarios: newScenarios,
+        };
+      });
+    }
+  };
+
+  const openDeleteConfirmation = (scenarioId: string, scenarioName: string) => {
+    setDialog({
+      type: "deleteScenarioConfirmation",
+      scenarioId,
+      scenarioName,
+      onConfirm: handleDeleteScenario,
+    });
+  };
+
   const hasScenarios = scenariosList.length > 0;
 
   if (!hasScenarios) {
@@ -278,6 +370,7 @@ export const ScenarioSwitcher = () => {
                 <StyledItem
                   key={scenario.id}
                   onSelect={() => handleSelectScenario(scenario.id)}
+                  className="group/scenario"
                 >
                   <div
                     className={`flex items-center w-full gap-2 ${activeScenarioId === scenario.id ? "text-purple-600" : ""}`}
@@ -288,6 +381,29 @@ export const ScenarioSwitcher = () => {
                       {index === scenariosList.length - 1 ? "└──" : "├──"}
                     </span>
                     <div className="flex-1">{scenario.name}</div>
+                    <DD.Root>
+                      <DD.Trigger asChild>
+                        <button
+                          className="opacity-0 group-hover/scenario:opacity-100 data-[state=open]:opacity-100 p-1 rounded hover:bg-gray-300 dark:hover:bg-gray-500 text-gray-500 dark:text-gray-400"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <MoreActionsIcon size="sm" />
+                        </button>
+                      </DD.Trigger>
+                      <DD.Portal>
+                        <DDContent side="right" align="start" sideOffset={4}>
+                          <StyledItem
+                            onSelect={() =>
+                              openDeleteConfirmation(scenario.id, scenario.name)
+                            }
+                            className="text-red-500 dark:text-red-300"
+                          >
+                            <DeleteIcon size="sm" />
+                            <span>{translate("scenarios.delete")}</span>
+                          </StyledItem>
+                        </DDContent>
+                      </DD.Portal>
+                    </DD.Root>
                   </div>
                 </StyledItem>
               ))}
