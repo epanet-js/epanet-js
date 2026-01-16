@@ -50,7 +50,7 @@ export default function MenuAction({
       <Tooltip.Root open={open} onOpenChange={setOpen} delayDuration={200}>
         <div
           className={`h-10 ${expanded ? "" : "w-8"} ${
-            disabled ? "opacity-60" : ""
+            disabled ? "opacity-60 cursor-not-allowed" : ""
           } group bn flex items-stretch py-1 focus:outline-none`}
         >
           <Tooltip.Trigger asChild>

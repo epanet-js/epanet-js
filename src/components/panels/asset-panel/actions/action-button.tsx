@@ -40,6 +40,7 @@ export function ActionButton({ action }: { action: Action }) {
           variant={selected ? "quiet/mode" : variant}
           aria-expanded={selected ? "true" : "false"}
           disabled={disabled}
+          className={disabled ? "cursor-not-allowed" : ""}
         >
           {icon}
         </Button>
