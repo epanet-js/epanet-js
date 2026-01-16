@@ -247,10 +247,10 @@ Junction-B	3	4
     const inp = `
     [JUNCTIONS]
     J1	10
-    
+
     [COORDINATES]
     J1	1	2
-    
+
     ;[CUSTOMERS]
     ;Id	X-coord	Y-coord	BaseDemand	PipeId	JunctionId	SnapX	SnapY
     ;CP1	1.5	2.5	2.5
@@ -262,5 +262,264 @@ Junction-B	3	4
 
     expect(isMadeByApp).toBe(false);
     expect(hydraulicModel.customerPoints.size).toBe(0);
+  });
+});
+
+describe("Parse customer demands", () => {
+  it("parses customer demands from CUSTOMERS_DEMANDS section", () => {
+    const IDS = { CP1: 1 } as const;
+
+    const baseContent = `[JUNCTIONS]
+J1	10
+
+[PIPES]
+P1	J1	J1	100	300	130	0	Open
+
+[PATTERNS]
+residential	1	1.2	0.8
+
+[COORDINATES]
+J1	1	2
+
+[END]`;
+
+    const customerPointsSection = `;[CUSTOMERS]
+;Id	X-coord	Y-coord	BaseDemand	PipeId	JunctionId	SnapX	SnapY
+;CP1	1.5	2.5	0	P1	J1	1.2	2.2
+
+;[CUSTOMERS_DEMANDS]
+;Label	BaseDemand	PatternId
+;CP1	25	residential`;
+
+    const validAppInp = createAppMadeInpWithCustomerPoints(
+      baseContent,
+      customerPointsSection,
+    );
+
+    const { hydraulicModel } = parseInp(validAppInp, { customerPoints: true });
+
+    const cp1 = hydraulicModel.customerPoints.get(IDS.CP1);
+    expect(cp1).toBeDefined();
+    expect(cp1?.demands).toHaveLength(1);
+    expect(cp1?.demands[0].baseDemand).toBe(25);
+    expect(cp1?.demands[0].patternId).toBe("residential");
+  });
+
+  it("parses multiple demands per customer point", () => {
+    const IDS = { CP1: 1 } as const;
+
+    const baseContent = `[JUNCTIONS]
+J1	10
+
+[PIPES]
+P1	J1	J1	100	300	130	0	Open
+
+[PATTERNS]
+residential	1	1.2	0.8
+commercial	0.5	1.5	1.0
+
+[COORDINATES]
+J1	1	2
+
+[END]`;
+
+    const customerPointsSection = `;[CUSTOMERS]
+;Id	X-coord	Y-coord	BaseDemand	PipeId	JunctionId	SnapX	SnapY
+;CP1	1.5	2.5	0	P1	J1	1.2	2.2
+
+;[CUSTOMERS_DEMANDS]
+;Label	BaseDemand	PatternId
+;CP1	25	residential
+;CP1	15	commercial`;
+
+    const validAppInp = createAppMadeInpWithCustomerPoints(
+      baseContent,
+      customerPointsSection,
+    );
+
+    const { hydraulicModel } = parseInp(validAppInp, { customerPoints: true });
+
+    const cp1 = hydraulicModel.customerPoints.get(IDS.CP1);
+    expect(cp1).toBeDefined();
+    expect(cp1?.demands).toHaveLength(2);
+    expect(cp1?.demands[0].baseDemand).toBe(25);
+    expect(cp1?.demands[0].patternId).toBe("residential");
+    expect(cp1?.demands[1].baseDemand).toBe(15);
+    expect(cp1?.demands[1].patternId).toBe("commercial");
+  });
+
+  it("parses customer demands without pattern", () => {
+    const IDS = { CP1: 1 } as const;
+
+    const baseContent = `[JUNCTIONS]
+J1	10
+
+[PIPES]
+P1	J1	J1	100	300	130	0	Open
+
+[COORDINATES]
+J1	1	2
+
+[END]`;
+
+    const customerPointsSection = `;[CUSTOMERS]
+;Id	X-coord	Y-coord	BaseDemand	PipeId	JunctionId	SnapX	SnapY
+;CP1	1.5	2.5	0	P1	J1	1.2	2.2
+
+;[CUSTOMERS_DEMANDS]
+;Label	BaseDemand	PatternId
+;CP1	30`;
+
+    const validAppInp = createAppMadeInpWithCustomerPoints(
+      baseContent,
+      customerPointsSection,
+    );
+
+    const { hydraulicModel } = parseInp(validAppInp, { customerPoints: true });
+
+    const cp1 = hydraulicModel.customerPoints.get(IDS.CP1);
+    expect(cp1).toBeDefined();
+    expect(cp1?.demands).toHaveLength(1);
+    expect(cp1?.demands[0].baseDemand).toBe(30);
+    expect(cp1?.demands[0].patternId).toBeUndefined();
+  });
+
+  it("falls back to baseDemand when no CUSTOMERS_DEMANDS section exists", () => {
+    const IDS = { CP1: 1 } as const;
+
+    const baseContent = `[JUNCTIONS]
+J1	10
+
+[PIPES]
+P1	J1	J1	100	300	130	0	Open
+
+[COORDINATES]
+J1	1	2
+
+[END]`;
+
+    const customerPointsSection = `;[CUSTOMERS]
+;Id	X-coord	Y-coord	BaseDemand	PipeId	JunctionId	SnapX	SnapY
+;CP1	1.5	2.5	42	P1	J1	1.2	2.2`;
+
+    const validAppInp = createAppMadeInpWithCustomerPoints(
+      baseContent,
+      customerPointsSection,
+    );
+
+    const { hydraulicModel } = parseInp(validAppInp, { customerPoints: true });
+
+    const cp1 = hydraulicModel.customerPoints.get(IDS.CP1);
+    expect(cp1).toBeDefined();
+    expect(cp1?.baseDemand).toBe(42);
+    expect(cp1?.demands).toHaveLength(1);
+    expect(cp1?.demands[0].baseDemand).toBe(42);
+    expect(cp1?.demands[0].patternId).toBeUndefined();
+  });
+
+  it("parses demands for multiple customer points", () => {
+    const IDS = { CP1: 1, CP2: 2 } as const;
+
+    const baseContent = `[JUNCTIONS]
+J1	10
+
+[PIPES]
+P1	J1	J1	100	300	130	0	Open
+
+[PATTERNS]
+residential	1	1.2	0.8
+commercial	0.5	1.5	1.0
+
+[COORDINATES]
+J1	1	2
+
+[END]`;
+
+    const customerPointsSection = `;[CUSTOMERS]
+;Id	X-coord	Y-coord	BaseDemand	PipeId	JunctionId	SnapX	SnapY
+;CP1	1.5	2.5	0	P1	J1	1.2	2.2
+;CP2	3	4	0	P1	J1	2.5	3.5
+
+;[CUSTOMERS_DEMANDS]
+;Label	BaseDemand	PatternId
+;CP1	25	residential
+;CP2	15	commercial`;
+
+    const validAppInp = createAppMadeInpWithCustomerPoints(
+      baseContent,
+      customerPointsSection,
+    );
+
+    const { hydraulicModel } = parseInp(validAppInp, { customerPoints: true });
+
+    const cp1 = hydraulicModel.customerPoints.get(IDS.CP1);
+    expect(cp1?.demands).toHaveLength(1);
+    expect(cp1?.demands[0].baseDemand).toBe(25);
+    expect(cp1?.demands[0].patternId).toBe("residential");
+
+    const cp2 = hydraulicModel.customerPoints.get(IDS.CP2);
+    expect(cp2?.demands).toHaveLength(1);
+    expect(cp2?.demands[0].baseDemand).toBe(15);
+    expect(cp2?.demands[0].patternId).toBe("commercial");
+  });
+
+  it("ignores CUSTOMERS_DEMANDS section when customerPoints option is false", () => {
+    const baseContent = `[JUNCTIONS]
+J1	10
+
+[COORDINATES]
+J1	1	2
+
+[END]`;
+
+    const customerPointsSection = `;[CUSTOMERS]
+;CP1	1.5	2.5	0
+
+;[CUSTOMERS_DEMANDS]
+;CP1	25	residential`;
+
+    const validAppInp = createAppMadeInpWithCustomerPoints(
+      baseContent,
+      customerPointsSection,
+    );
+
+    const { hydraulicModel } = parseInp(validAppInp, { customerPoints: false });
+
+    expect(hydraulicModel.customerPoints.size).toBe(0);
+  });
+
+  it("skips malformed customer demand lines", () => {
+    const IDS = { CP1: 1 } as const;
+
+    const baseContent = `[JUNCTIONS]
+J1	10
+
+[PIPES]
+P1	J1	J1	100	300	130	0	Open
+
+[COORDINATES]
+J1	1	2
+
+[END]`;
+
+    const customerPointsSection = `;[CUSTOMERS]
+;Id	X-coord	Y-coord	BaseDemand	PipeId	JunctionId	SnapX	SnapY
+;CP1	1.5	2.5	0	P1	J1	1.2	2.2
+
+;[CUSTOMERS_DEMANDS]
+;Label	BaseDemand	PatternId
+;MISSING_DEMAND
+;CP1	25`;
+
+    const validAppInp = createAppMadeInpWithCustomerPoints(
+      baseContent,
+      customerPointsSection,
+    );
+
+    const { hydraulicModel } = parseInp(validAppInp, { customerPoints: true });
+
+    const cp1 = hydraulicModel.customerPoints.get(IDS.CP1);
+    expect(cp1?.demands).toHaveLength(1);
+    expect(cp1?.demands[0].baseDemand).toBe(25);
   });
 });

@@ -124,8 +124,16 @@ export const readInpData = (
         section = "CUSTOMERS_COMMENTED";
         continue;
       }
-      if (section === "CUSTOMERS_COMMENTED" && trimmedRow.startsWith(";")) {
+      if (options?.customerPoints && trimmedRow === ";[CUSTOMERS_DEMANDS]") {
+        section = "CUSTOMERS_DEMANDS_COMMENTED";
+        continue;
+      }
+      if (section === "CUSTOMERS_COMMENTED") {
         parseCommentedCustomerPoint(trimmedRow, inpData);
+        continue;
+      }
+      if (section === "CUSTOMERS_DEMANDS_COMMENTED") {
+        parseCommentedCustomerDemand(trimmedRow, inpData);
         continue;
       }
 
@@ -234,4 +242,22 @@ const parseCommentedCustomerPoint = (trimmedRow: string, inpData: InpData) => {
       baseDemand: parseFloat(demand),
     });
   }
+};
+
+const parseCommentedCustomerDemand = (trimmedRow: string, inpData: InpData) => {
+  const line = trimmedRow.substring(1);
+  if (line.startsWith("Id\t") || line.startsWith("[CUSTOMERS_DEMANDS]")) return;
+
+  const parts = line.split("\t");
+  if (parts.length < 2) return;
+
+  const [rawLabel, baseDemand, patternId] = parts;
+  const label = rawLabel.substring(0, MAX_CUSTOMER_POINT_LABEL_LENGTH);
+
+  const demands = inpData.customerDemands.get(label) || [];
+  demands.push({
+    baseDemand: parseFloat(baseDemand),
+    patternId: patternId || undefined,
+  });
+  inpData.customerDemands.set(label, demands);
 };

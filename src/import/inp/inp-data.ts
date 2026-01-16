@@ -99,7 +99,8 @@ export type InpData = {
   customerPoints: CustomerPointData[];
   coordinates: ItemData<Position>;
   vertices: ItemData<Position[]>;
-  demands: ItemData<{ baseDemand: number; patternId?: string }[]>;
+  demands: ItemData<JunctionDemand[]>;
+  customerDemands: ItemData<JunctionDemand[]>;
   patterns: ItemData<number[]>;
   status: ItemData<string>;
   curves: ItemData<{ x: number; y: number }[]>;
@@ -178,6 +179,7 @@ export const nullInpData = (): InpData => {
     coordinates: new ItemData(),
     vertices: new ItemData(),
     demands: new ItemData(),
+    customerDemands: new ItemData(),
     patterns: new ItemData(),
     status: new ItemData(),
     curves: new ItemData(),

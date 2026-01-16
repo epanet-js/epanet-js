@@ -1,6 +1,7 @@
 import { useAtomValue, useSetAtom } from "jotai";
 import { useCallback } from "react";
 import { buildInp } from "src/simulation/build-inp";
+import { buildInpWithCustomerDemands } from "src/simulation/build-inp-with-customer-demands";
 import { dataAtom, dialogAtom, simulationAtom } from "src/state/jotai";
 import {
   ProgressCallback,
@@ -25,11 +26,15 @@ export const useRunSimulation = () => {
   const setDrawingMode = useDrawingMode();
   const scenariosState = useAtomValue(scenariosAtom);
   const isScenariosOn = useFeatureFlag("FLAG_SCENARIOS");
+  const isCustomerDemandsOn = useFeatureFlag("FLAG_CUSTOMER_DEMANDS");
 
   const runSimulation = useCallback(async () => {
     setDrawingMode(Mode.NONE);
     setSimulationState((prev) => ({ ...prev, status: "running" }));
-    const inp = buildInp(hydraulicModel, { customerDemands: true });
+    const buildInpFn = isCustomerDemandsOn
+      ? buildInpWithCustomerDemands
+      : buildInp;
+    const inp = buildInpFn(hydraulicModel, { customerDemands: true });
     const start = performance.now();
 
     let isCompleted = false;
@@ -99,6 +104,7 @@ export const useRunSimulation = () => {
     setDialogState,
     setData,
     isScenariosOn,
+    isCustomerDemandsOn,
     scenariosState.activeScenarioId,
   ]);
 

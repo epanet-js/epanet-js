@@ -526,5 +526,57 @@ describe("parse junctions demands", () => {
 
       expect(junction.demands).toEqual([{ baseDemand: 50 }]);
     });
+
+    it("ignores demands with epanetjs_customers in comment", () => {
+      const inp = `
+      [JUNCTIONS]
+      J1\t100
+
+      [DEMANDS]
+      J1\t50\tpattern1
+      J1\t25\tresidential;epanetjs_customers
+
+      [COORDINATES]
+      J1\t0\t0
+
+      [PATTERNS]
+      pattern1\t1\t1.2
+      residential\t0.8\t1.2
+      `;
+
+      const { hydraulicModel } = parseInp(inp);
+      const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
+
+      expect(junction.demands).toHaveLength(1);
+      expect(junction.demands[0].baseDemand).toBe(50);
+      expect(junction.demands[0].patternId).toBe("PATTERN1");
+    });
+
+    it("keeps demands without epanetjs_customers pattern or comment", () => {
+      const inp = `
+      [JUNCTIONS]
+      J1\t100
+
+      [DEMANDS]
+      J1\t50\tpattern1
+      J1\t25\tresidential;regular customer demand
+
+      [COORDINATES]
+      J1\t0\t0
+
+      [PATTERNS]
+      pattern1\t1\t1.2
+      residential\t0.8\t1.2
+      `;
+
+      const { hydraulicModel } = parseInp(inp);
+      const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
+
+      expect(junction.demands).toHaveLength(2);
+      expect(junction.demands[0].baseDemand).toBe(50);
+      expect(junction.demands[0].patternId).toBe("PATTERN1");
+      expect(junction.demands[1].baseDemand).toBe(25);
+      expect(junction.demands[1].patternId).toBe("RESIDENTIAL");
+    });
   });
 });

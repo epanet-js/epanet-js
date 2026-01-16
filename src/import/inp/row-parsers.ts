@@ -347,8 +347,12 @@ export const parsePipe: RowParser = ({ trimmedRow, inpData, isCommented }) => {
 
 export const parseDemand: RowParser = ({ trimmedRow, inpData }) => {
   const [nodeId, baseDemand, patternId] = readValues(trimmedRow);
+  const comment = readComment(trimmedRow);
 
-  if (patternId === defaultCustomersPatternId) {
+  if (
+    patternId === defaultCustomersPatternId ||
+    comment.includes(defaultCustomersPatternId)
+  ) {
     return;
   }
 
@@ -579,6 +583,11 @@ export const parseOption: RowParser = ({
 const readValues = (row: string): string[] => {
   const rowWithoutComments = row.split(commentIdentifier)[0];
   return rowWithoutComments.split(/\s+/).map((s) => s.trim());
+};
+
+const readComment = (row: string): string => {
+  const comment = row.split(commentIdentifier)?.[1];
+  return comment ? comment.trim() : "";
 };
 
 const readSetting = <T extends Record<string, string | number>>(

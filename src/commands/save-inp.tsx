@@ -3,7 +3,9 @@ import { ExportOptions } from "src/types/export";
 import { useAtomCallback } from "jotai/utils";
 import { useCallback } from "react";
 import { buildInp } from "src/simulation/build-inp";
+import { buildInpWithCustomerDemands } from "src/simulation/build-inp-with-customer-demands";
 import { useTranslate } from "src/hooks/use-translate";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import type { fileSave as fileSaveType } from "browser-fs-access";
 import { useAtomValue, useSetAtom } from "jotai";
 import { notifyPromiseState } from "src/components/notifications";
@@ -28,6 +30,7 @@ export const useSaveInp = ({
   const setDialogState = useSetAtom(dialogAtom);
   const fileInfo = useAtomValue(fileInfoAtom);
   const userTracking = useUserTracking();
+  const isCustomerDemandsOn = useFeatureFlag("FLAG_CUSTOMER_DEMANDS");
 
   const saveInp = useAtomCallback(
     useCallback(
@@ -55,7 +58,10 @@ export const useSaveInp = ({
             customerPoints: true,
             inactiveAssets: true,
           };
-          const inp = buildInp(data.hydraulicModel, buildOptions);
+          const buildInpFn = isCustomerDemandsOn
+            ? buildInpWithCustomerDemands
+            : buildInp;
+          const inp = buildInpFn(data.hydraulicModel, buildOptions);
           const inpBlob = new Blob([inp], { type: "text/plain" });
 
           const newHandle = await fileSave(
@@ -93,7 +99,7 @@ export const useSaveInp = ({
           return false;
         }
       },
-      [getFsAccess, userTracking, translate],
+      [getFsAccess, userTracking, translate, isCustomerDemandsOn],
     ),
   );
 
