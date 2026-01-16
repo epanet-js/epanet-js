@@ -47,7 +47,7 @@ import {
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { useImportCustomerPoints } from "src/commands/import-customer-points";
 import { CreateNewDropdown } from "./create-new-dropdown";
-import { AdvancedSettingsDropdown } from "./advanced-settings-dropdown";
+import { OperationalDataDropdown } from "./operational-data-dropdown";
 import {
   toggleNetworkReviewShortcut,
   useToggleNetworkReview,
@@ -218,7 +218,7 @@ export const Toolbar = ({ readonly = false }: { readonly?: boolean }) => {
         </MenuAction>
         <Divider />
         {isPatternLibraryOn ? (
-          <AdvancedSettingsDropdown />
+          <OperationalDataDropdown />
         ) : (
           <MenuAction
             label={translate("controls.title")}

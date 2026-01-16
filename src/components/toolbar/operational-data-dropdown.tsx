@@ -18,7 +18,7 @@ import {
 import { useShowControls } from "src/commands/show-controls";
 import { useShowCurvesAndPatterns } from "src/commands/show-curves-and-patterns";
 
-export const AdvancedSettingsDropdown = () => {
+export const OperationalDataDropdown = () => {
   const translate = useTranslate();
   const showControls = useShowControls();
   const showCurvesAndPatterns = useShowCurvesAndPatterns();
@@ -54,7 +54,7 @@ export const AdvancedSettingsDropdown = () => {
       </div>
       <TContent side="bottom">
         <StyledTooltipArrow />
-        {translate("advancedSettings")}
+        {translate("operationalData")}
       </TContent>
     </Tooltip.Root>
   );
