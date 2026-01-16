@@ -37,7 +37,11 @@ export const useSaveInp = ({
       async function saveNative(
         get,
         set,
-        { source, isSaveAs = false }: { source: string; isSaveAs?: boolean },
+        {
+          source,
+          isSaveAs = false,
+          exportInp = false,
+        }: { source: string; isSaveAs?: boolean; exportInp?: boolean },
       ) {
         userTracking.capture({
           name: "model.saved",
@@ -61,39 +65,110 @@ export const useSaveInp = ({
           const inp = buildInp(data.hydraulicModel, buildOptions);
           const inpBlob = new Blob([inp], { type: "text/plain" });
 
+          const inpFileName = fileInfo
+            ? fileInfo.name.replace(/\.zip$/, ".inp")
+            : "my-network.inp";
+
           // save to versioned memory file system
           if (legitFs) {
             try {
-              await legitFs.promises.writeFile(
-                fileInfo ? fileInfo.name : "my-network.inp",
-                inp,
-              );
+              await legitFs.promises.writeFile(inpFileName, inp);
             } catch (error) {
               captureError(error as Error);
             }
           }
 
+          // get number of branches
+          let isMultipleBranches = false;
+          if (legitFs) {
+            try {
+              let branches = await legitFs.promises.readdir("/.legit/branches");
+              branches = branches.filter(
+                (branch) => branch !== "anonymous" && branch !== "main",
+              );
+
+              isMultipleBranches = branches.length > 0;
+            } catch (error) {
+              captureError(error as Error);
+            }
+          }
           // save to local file system
-          const newHandle = await fileSave(
-            inpBlob,
-            {
-              fileName: fileInfo ? fileInfo.name : "my-network.inp",
-              extensions: [".inp"],
-              description: ".INP",
-              mimeTypes: ["text/plain"],
-            },
-            fileInfo && !isSaveAs
-              ? (fileInfo.handle as FileSystemFileHandle)
-              : null,
-          );
-          if (newHandle) {
-            set(fileInfoAtom, {
-              name: newHandle.name,
-              modelVersion: data.hydraulicModel.version,
-              handle: newHandle,
-              options: exportOptions,
-              isMadeByApp: true,
-            });
+          if (isMultipleBranches && legitFs && !exportInp) {
+            // If multiple branches exist, use archive function instead of normal save
+            try {
+              const archive = await legitFs.saveArchive();
+              let archiveBlob: Blob;
+              if (archive instanceof Blob) {
+                archiveBlob = archive;
+              } else if (archive instanceof ArrayBuffer) {
+                archiveBlob = new Blob([archive], { type: "application/zip" });
+              } else if (archive instanceof Uint8Array) {
+                const uint8Copy = new Uint8Array(archive);
+                archiveBlob = new Blob([uint8Copy], {
+                  type: "application/zip",
+                });
+              } else {
+                archiveBlob = new Blob([archive as unknown as BlobPart], {
+                  type: "application/zip",
+                });
+              }
+
+              const fileName = fileInfo
+                ? fileInfo.name.replace(/\.inp$/, ".zip")
+                : "my-network.zip";
+
+              const newHandle = await fileSave(
+                archiveBlob,
+                {
+                  fileName,
+                  extensions: [".zip"],
+                  description: ".ZIP",
+                  mimeTypes: ["application/zip"],
+                },
+                fileInfo && !isSaveAs
+                  ? (fileInfo.handle as FileSystemFileHandle)
+                  : null,
+              );
+
+              if (newHandle) {
+                set(fileInfoAtom, {
+                  name: newHandle.name.endsWith(".zip")
+                    ? newHandle.name
+                    : newHandle.name.replace(/\.inp$/, ".zip"),
+                  modelVersion: data.hydraulicModel.version,
+                  handle: newHandle,
+                  options: exportOptions,
+                  isMadeByApp: true,
+                });
+              }
+            } catch (error) {
+              captureError(error as Error);
+            }
+          } else {
+            // save inp file
+            const newHandle = await fileSave(
+              inpBlob,
+              {
+                fileName: fileInfo
+                  ? fileInfo.name.replace(/\.zip$/, ".inp")
+                  : "my-network.inp",
+                extensions: [".inp"],
+                description: ".INP",
+                mimeTypes: ["text/plain"],
+              },
+              fileInfo && !isSaveAs
+                ? (fileInfo.handle as FileSystemFileHandle)
+                : null,
+            );
+            if (newHandle && !exportInp) {
+              set(fileInfoAtom, {
+                name: newHandle.name,
+                modelVersion: data.hydraulicModel.version,
+                handle: newHandle,
+                options: exportOptions,
+                isMadeByApp: true,
+              });
+            }
           }
         };
 
@@ -114,14 +189,22 @@ export const useSaveInp = ({
   );
 
   const saveAlerting = useCallback(
-    ({ source, isSaveAs = false }: { source: string; isSaveAs?: boolean }) => {
+    ({
+      source,
+      isSaveAs = false,
+      exportInp = false,
+    }: {
+      source: string;
+      isSaveAs?: boolean;
+      exportInp?: boolean;
+    }) => {
       if (fileInfo && !fileInfo.isMadeByApp) {
         setDialogState({
           type: "alertInpOutput",
-          onContinue: () => saveInp({ source, isSaveAs }),
+          onContinue: () => saveInp({ source, isSaveAs, exportInp }),
         });
       } else {
-        return saveInp({ source, isSaveAs });
+        return saveInp({ source, isSaveAs, exportInp });
       }
     },
     [fileInfo, setDialogState, saveInp],

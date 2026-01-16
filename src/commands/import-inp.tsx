@@ -152,13 +152,16 @@ export const useImportInp = () => {
         return;
       }
 
+      const projectName = fileName;
+      const inpFileName = fileName.replace(/\.zip$/, ".inp");
+
       setDialogState({ type: "loading" });
 
       try {
-        const content = await legitFs.promises.readFile(fileName, "utf8");
+        const content = await legitFs.promises.readFile(inpFileName, "utf8");
         await processAndImportInp(
           content,
-          fileName,
+          projectName,
           fileInfo?.handle instanceof FileSystemFileHandle
             ? fileInfo.handle
             : undefined,

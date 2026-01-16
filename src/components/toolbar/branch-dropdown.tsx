@@ -34,11 +34,30 @@ export const BranchDropdown = () => {
     }
   }, [legitFs]);
 
+  const getBranches = useCallback(async () => {
+    if (!legitFs) return;
+    try {
+      const branches = await legitFs.promises.readdir(`/.legit/branches`);
+      // filter out main branch
+      setBranches(branches);
+    } catch (error) {
+      captureError(error as Error);
+    }
+  }, [legitFs]);
+
   useEffect(() => {
     if (legitFs) {
       void getCurrentBranch();
     }
   }, [legitFs, getCurrentBranch]);
+
+  // Refresh branches when fileInfo.name changes (e.g., after loading an archive)
+  useEffect(() => {
+    if (legitFs && fileInfo?.name) {
+      void getBranches();
+      void getCurrentBranch();
+    }
+  }, [legitFs, fileInfo?.name, getBranches, getCurrentBranch]);
 
   const createBranch = async () => {
     if (!legitFs) return;
@@ -54,18 +73,6 @@ export const BranchDropdown = () => {
       await legitFs.setCurrentBranch(trimmedName);
       setBranches([trimmedName]);
       setBranch(trimmedName);
-    } catch (error) {
-      captureError(error as Error);
-    }
-  };
-
-  const getBranches = async () => {
-    if (!legitFs) return;
-    try {
-      let branches = await legitFs.promises.readdir(`/.legit/branches`);
-      // filter out anonymous branch
-      branches = branches.filter((branch) => branch !== "anonymous");
-      setBranches(branches);
     } catch (error) {
       captureError(error as Error);
     }
@@ -93,7 +100,7 @@ export const BranchDropdown = () => {
     checkUnsavedChanges(() => switchToBranch(branch));
   };
 
-  return branches.length > 0 ? (
+  return branches.filter((branch) => branch !== "main").length > 0 ? (
     <DD.Root onOpenChange={getBranches}>
       <DD.Trigger asChild>
         <Button variant="quiet">

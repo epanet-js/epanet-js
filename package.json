@@ -44,7 +44,7 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@google-cloud/storage": "^7.13.0",
     "@headlessui/react": "^1.7.19",
-    "@legit-sdk/core": "^0.5.0",
+    "@legit-sdk/core": "^0.6.0",
     "@lezer/highlight": "^1.2.0",
     "@logtail/node": "^0.4.21",
     "@logtail/types": "^0.4.20",

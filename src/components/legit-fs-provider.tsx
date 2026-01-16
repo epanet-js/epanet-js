@@ -21,7 +21,10 @@ export function LegitFsProvider({ children }: { children: React.ReactNode }) {
 
     void (async () => {
       try {
-        const openedFs = await openLegitFsWithMemoryFs();
+        // @ts-expect-error - this is a valid configuration the type needs a fix
+        const openedFs = await openLegitFsWithMemoryFs({
+          anonymousBranch: "main",
+        });
         setFs(openedFs);
       } catch (error) {
         captureError(error as Error);
@@ -31,14 +34,14 @@ export function LegitFsProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (fs) {
-      void (async () => {
-        try {
-          await fs.promises.mkdir(`/.legit/branches/main`);
-        } catch (error) {
-          captureError(error as Error);
-        }
-        void fs.setCurrentBranch("main");
-      })();
+      // void (async () => {
+      //   try {
+      //     await fs.promises.mkdir(`/.legit/branches/main`);
+      //   } catch (error) {
+      //     captureError(error as Error);
+      //   }
+      //   void fs.setCurrentBranch("main");
+      // })();
 
       (window as unknown as { legitFs: LegitFs }).legitFs = fs;
     }
