@@ -739,5 +739,7 @@
     "newScenario": "New",
     "switcherTooltip": "Switch scenario",
     "enableScenarios": "Enable Scenarios"
-  }
+  },
+  "curvesAndPatterns": "Demand patterns",
+  "curvesAndPatternsEmpty": "No demand patterns defined"
 }

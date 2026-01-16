@@ -3,6 +3,7 @@ import MenuAction from "../menu-action";
 import {
   ControlsIcon,
   FileTextIcon,
+  FileSpreadsheetIcon,
   UndoIcon,
   RedoIcon,
   SettingsIcon,
@@ -44,6 +45,7 @@ import {
   showControlsShortcut,
   useShowControls,
 } from "src/commands/show-controls";
+import { useShowCurvesAndPatterns } from "src/commands/show-curves-and-patterns";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { useImportCustomerPoints } from "src/commands/import-customer-points";
 import { CreateNewDropdown } from "./create-new-dropdown";
@@ -58,6 +60,7 @@ import {
 } from "src/commands/toggle-side-panel";
 import { useRunSimulationPerformanceTest } from "src/commands/run-simulation-performance-test";
 import { isDebugOn } from "src/infra/debug-mode";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export const Toolbar = ({ readonly = false }: { readonly?: boolean }) => {
   const translate = useTranslate();
@@ -67,8 +70,10 @@ export const Toolbar = ({ readonly = false }: { readonly?: boolean }) => {
   const runPerformanceTest = useRunSimulationPerformanceTest();
   const showSimulationSettings = useShowSimulationSettings();
   const showControls = useShowControls();
+  const showCurvesAndPatterns = useShowCurvesAndPatterns();
   const showReport = useShowReport();
   const importCustomerPoints = useImportCustomerPoints();
+  const isPatternLibraryOn = useFeatureFlag("FLAG_PATTERN_LIBRARY");
 
   const { undo, redo } = useHistoryControl();
 
@@ -222,6 +227,15 @@ export const Toolbar = ({ readonly = false }: { readonly?: boolean }) => {
         >
           <ControlsIcon />
         </MenuAction>
+        {isPatternLibraryOn && (
+          <MenuAction
+            label={translate("curvesAndPatterns")}
+            role="button"
+            onClick={() => showCurvesAndPatterns({ source: "toolbar" })}
+          >
+            <FileSpreadsheetIcon />
+          </MenuAction>
+        )}
         {isMdOrLarger && !shouldHideContextActions && (
           <>
             <ContextActions />

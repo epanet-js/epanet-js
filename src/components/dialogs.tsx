@@ -224,6 +224,16 @@ const ControlsDialog = dynamic(
   },
 );
 
+const CurvesAndPatternsDialog = dynamic(
+  () =>
+    import("src/components/dialogs/curves-and-patterns").then(
+      (r) => r.CurvesAndPatternsDialog,
+    ),
+  {
+    loading: () => <LoadingDialog />,
+  },
+);
+
 export const Dialogs = memo(function Dialogs() {
   const [dialog, setDialogState] = useAtom(dialogAtom);
   const userTracking = useUserTracking();
@@ -296,6 +306,9 @@ export const Dialogs = memo(function Dialogs() {
   }
   if (dialog.type === "controls") {
     return <ControlsDialog />;
+  }
+  if (dialog.type === "curvesAndPatterns") {
+    return <CurvesAndPatternsDialog />;
   }
 
   if (dialog.type === "upgrade") {

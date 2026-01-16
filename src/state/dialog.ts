@@ -77,6 +77,10 @@ export type SimulationProgressDialogState = {
   totalDuration: number;
 };
 
+export type CurvesAndPatternsDialogState = {
+  type: "curvesAndPatterns";
+};
+
 export type DialogState =
   | InvalidFilesErrorDialogState
   | {
@@ -101,6 +105,7 @@ export type DialogState =
   | SimulationProgressDialogState
   | { type: "simulationSettings" }
   | { type: "controls" }
+  | CurvesAndPatternsDialogState
   | null;
 
 export const dialogFromUrl = (): DialogState => {
