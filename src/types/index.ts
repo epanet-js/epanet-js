@@ -319,6 +319,7 @@ export interface HandlerContext {
   folderMap: FolderMap;
   rep: IPersistence;
   map: MapEngine;
+  readonly?: boolean;
 }
 
 /**

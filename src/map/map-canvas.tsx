@@ -54,6 +54,7 @@ import { MapLoading } from "./map-loader";
 import { supportEmail } from "src/global-config";
 import { MapHandlers } from "./types";
 import { PipeDrawingFloatingPanel } from "src/components/pipe-drawing-floating-panel";
+import { useIsMainReadonly } from "src/hooks/use-is-main-readonly";
 mapboxgl.accessToken = env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
 mapboxgl.setRTLTextPlugin(
@@ -127,6 +128,7 @@ export const MapCanvas = memo(function MapCanvas({
   const selection = data.selection;
   const mode = useAtomValue(modeAtom);
   const cursor = useAtomValue(cursorStyleAtom);
+  const isMainReadonly = useIsMainReadonly();
   const [initError, setInitError] = useState<boolean>(false);
 
   // Refs
@@ -193,6 +195,7 @@ export const MapCanvas = memo(function MapCanvas({
     selection,
     map: mapRef.current!,
     rep,
+    readonly: isMainReadonly,
   };
 
   const HANDLERS = useModeHandlers(handlerContext);

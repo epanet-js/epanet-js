@@ -132,6 +132,7 @@ export function useDrawLinkHandlers({
   sourceLink,
   onSubmitLink,
   disableEndAndContinue,
+  readonly = false,
 }: HandlerContext & {
   linkType: LinkType;
   sourceLink?: LinkAsset;
@@ -398,6 +399,8 @@ export function useDrawLinkHandlers({
 
   const handlers: Handlers = {
     click: (e) => {
+      if (readonly) return;
+
       isClickInProgress.current = true;
 
       const doAsyncClick = async () => {

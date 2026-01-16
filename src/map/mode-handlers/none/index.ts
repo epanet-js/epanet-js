@@ -40,6 +40,7 @@ export function useNoneHandlers({
   rep,
   map,
   hydraulicModel,
+  readonly = false,
 }: HandlerContext): Handlers {
   const { getClickedAsset } = useClickedAsset(map, hydraulicModel.assets);
 
@@ -144,7 +145,9 @@ export function useNoneHandlers({
       if (!node) return;
 
       setStartPoint(e.point);
-      setCursor("move");
+      if (!readonly) {
+        setCursor("move");
+      }
     },
     move: throttle(
       (e: mapboxgl.MapMouseEvent | mapboxgl.MapTouchEvent) => {
@@ -152,6 +155,12 @@ export function useNoneHandlers({
         if (selection.type !== "single" || !isMoving || isCommitting) {
           return skipMove(e);
         }
+
+        if (readonly) {
+          setCursor("not-allowed");
+          return;
+        }
+
         void prefetchTile(e.lngLat);
 
         const [assetId] = getSelectionIds();
@@ -227,6 +236,11 @@ export function useNoneHandlers({
       { trailing: false },
     ),
     up: (e) => {
+      if (readonly) {
+        resetMove();
+        return;
+      }
+
       e.preventDefault();
       if (selection.type !== "single" || !isMoving) {
         return skipMove(e);

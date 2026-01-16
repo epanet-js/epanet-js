@@ -23,6 +23,7 @@ export function useDrawNodeHandlers({
   rep,
   nodeType,
   map,
+  readonly = false,
 }: HandlerContext & { nodeType: NodeType }): Handlers {
   const setMode = useSetAtom(modeAtom);
   const [ephemeralState, setEphemeralState] = useAtom(ephemeralStateAtom);
@@ -58,6 +59,8 @@ export function useDrawNodeHandlers({
 
   return {
     click: async (e) => {
+      if (readonly) return;
+
       const mouseCoord = getMapCoord(e);
       const snappingCandidate = findSnappingCandidate(e, mouseCoord);
 
