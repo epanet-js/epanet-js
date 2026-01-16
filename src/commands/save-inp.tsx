@@ -66,7 +66,7 @@ export const useSaveInp = ({
           const inpBlob = new Blob([inp], { type: "text/plain" });
 
           const inpFileName = fileInfo
-            ? fileInfo.name.replace(/\.zip$/, ".inp")
+            ? fileInfo.name.replace(/\.epanet$/, ".inp")
             : "my-network.inp";
 
           // save to versioned memory file system
@@ -114,15 +114,15 @@ export const useSaveInp = ({
               }
 
               const fileName = fileInfo
-                ? fileInfo.name.replace(/\.inp$/, ".zip")
-                : "my-network.zip";
+                ? fileInfo.name.replace(/\.inp$/, ".epanet")
+                : "my-network.epanet";
 
               const newHandle = await fileSave(
                 archiveBlob,
                 {
                   fileName,
-                  extensions: [".zip"],
-                  description: ".ZIP",
+                  extensions: [".epanet"],
+                  description: ".EPANET",
                   mimeTypes: ["application/zip"],
                 },
                 fileInfo && !isSaveAs
@@ -132,9 +132,9 @@ export const useSaveInp = ({
 
               if (newHandle) {
                 set(fileInfoAtom, {
-                  name: newHandle.name.endsWith(".zip")
+                  name: newHandle.name.endsWith(".epanet")
                     ? newHandle.name
-                    : newHandle.name.replace(/\.inp$/, ".zip"),
+                    : newHandle.name.replace(/\.inp$/, ".epanet"),
                   modelVersion: data.hydraulicModel.version,
                   handle: newHandle,
                   options: exportOptions,
@@ -150,7 +150,7 @@ export const useSaveInp = ({
               inpBlob,
               {
                 fileName: fileInfo
-                  ? fileInfo.name.replace(/\.zip$/, ".inp")
+                  ? fileInfo.name.replace(/\.epanet$/, ".inp")
                   : "my-network.inp",
                 extensions: [".inp"],
                 description: ".INP",

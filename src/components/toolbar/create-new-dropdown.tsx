@@ -95,7 +95,7 @@ export const CreateNewDropdown = () => {
                 }}
               >
                 <UploadIcon />
-                Load Archive
+                Open Archive
               </StyledItem>
 
               <StyledItem

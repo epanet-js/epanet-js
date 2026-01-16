@@ -16,8 +16,8 @@ export const useOpenArchiveFromFs = () => {
     try {
       const file = await openFile({
         multiple: false,
-        extensions: [".zip"],
-        description: ".ZIP",
+        extensions: [".epanet"],
+        description: ".EPANET",
       });
 
       if (!file) {

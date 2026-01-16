@@ -153,7 +153,7 @@ export const useImportInp = () => {
       }
 
       const projectName = fileName;
-      const inpFileName = fileName.replace(/\.zip$/, ".inp");
+      const inpFileName = fileName.replace(/\.epanet$/, ".inp");
 
       setDialogState({ type: "loading" });
 
