@@ -28,7 +28,6 @@ import {
   FilePlus,
   FileSpreadsheet,
   FileText,
-  FolderKanban,
   GitBranch,
   GitBranchPlus,
   Goal,
@@ -191,7 +190,6 @@ export const MoreActionsIcon = icon(EllipsisVertical);
 export const ScenarioIcon = icon(GitBranch);
 export const AddScenarioIcon = icon(GitBranchPlus);
 export const MainModelIcon = icon(Lock);
-export const AdvancedSettingsIcon = icon(FolderKanban);
 export const ControlsIconAlt = icon(FileCode);
 export const PatternsIcon = icon(ChartColumn);
 
@@ -223,3 +221,4 @@ export { CustomPanelRightActive as PanelRightActiveIcon } from "./custom-icons/p
 export { CustomPolygonalSelection as PolygonalSelectionIcon } from "./custom-icons/polygonal-selection";
 export { CustomActiveTopologyEnableIcon as ActiveTopologyEnableIcon } from "./custom-icons/active-topology-enable";
 export { CustomActiveTopologyDisableIcon as ActiveTopologyDisableIcon } from "./custom-icons/active-topology-disable";
+export { CustomOperationalDataIcon as AdvancedSettingsIcon } from "./custom-icons/operational-data";
