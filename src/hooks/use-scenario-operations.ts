@@ -46,7 +46,14 @@ export const useScenarioOperations = () => {
       }
       return modeState;
     });
-  }, [persistence, scenariosState, simulation, setScenariosState, setSimulation, setMode]);
+  }, [
+    persistence,
+    scenariosState,
+    simulation,
+    setScenariosState,
+    setSimulation,
+    setMode,
+  ]);
 
   const switchToScenario = useCallback(
     (scenarioId: string) => {
@@ -67,7 +74,11 @@ export const useScenarioOperations = () => {
   );
 
   const createNewScenario = useCallback(() => {
-    const { state: newState, scenarioId, scenarioName } = persistence.createScenario(
+    const {
+      state: newState,
+      scenarioId,
+      scenarioName,
+    } = persistence.createScenario(
       scenariosState,
       (state) => {
         const newMomentLog = new MomentLog();
@@ -84,7 +95,13 @@ export const useScenarioOperations = () => {
     setSimulation(initialSimulationState);
 
     return { scenarioId, scenarioName };
-  }, [persistence, scenariosState, simulation, setScenariosState, setSimulation]);
+  }, [
+    persistence,
+    scenariosState,
+    simulation,
+    setScenariosState,
+    setSimulation,
+  ]);
 
   const deleteScenarioById = useCallback(
     (scenarioId: string) => {

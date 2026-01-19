@@ -260,7 +260,9 @@ export class MemPersistence implements IPersistence {
       return currentState;
     }
 
-    const currentScenario = currentState.scenarios.get(currentState.activeScenarioId);
+    const currentScenario = currentState.scenarios.get(
+      currentState.activeScenarioId,
+    );
     const updatedScenarios = new Map(currentState.scenarios);
     if (currentScenario) {
       updatedScenarios.set(currentState.activeScenarioId, {
@@ -311,14 +313,16 @@ export class MemPersistence implements IPersistence {
     const isMainActive = currentState.activeScenarioId === null;
     const updatedScenarios = new Map(currentState.scenarios);
 
-    let newState = { ...currentState, scenarios: updatedScenarios };
+    const newState = { ...currentState, scenarios: updatedScenarios };
 
     if (isMainActive) {
       newState.mainMomentLog = this.getMomentLog();
       newState.mainSimulation = getCurrentSimulation();
       newState.mainModelVersion = this.getModelVersion();
     } else {
-      const currentScenario = currentState.scenarios.get(currentState.activeScenarioId!);
+      const currentScenario = currentState.scenarios.get(
+        currentState.activeScenarioId!,
+      );
       if (currentScenario) {
         updatedScenarios.set(currentState.activeScenarioId!, {
           ...currentScenario,
@@ -373,7 +377,9 @@ export class MemPersistence implements IPersistence {
     const updatedScenarios = new Map(currentState.scenarios);
 
     if (!isMainActive) {
-      const currentScenario = currentState.scenarios.get(currentState.activeScenarioId!);
+      const currentScenario = currentState.scenarios.get(
+        currentState.activeScenarioId!,
+      );
       if (currentScenario) {
         updatedScenarios.set(currentState.activeScenarioId!, {
           ...currentScenario,
@@ -422,7 +428,6 @@ export class MemPersistence implements IPersistence {
   deleteScenario(
     currentState: ScenariosState,
     scenarioId: string,
-    getCurrentSimulation: () => SimulationState,
   ): ScenariosState {
     const scenarioToDelete = currentState.scenarios.get(scenarioId);
     if (!scenarioToDelete) {
