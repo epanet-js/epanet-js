@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useAtomValue } from "jotai";
 import { DialogContainer, DialogHeader, useDialogState } from "../../dialog";
 import { useTranslate } from "src/hooks/use-translate";
 import { Button } from "src/components/elements";
 import { PatternSidebar } from "./pattern-sidebar";
-import { PatternId } from "src/hydraulic-model/demands";
+import { PatternTable } from "./pattern-table";
+import { DemandPattern, PatternId } from "src/hydraulic-model/demands";
 import { PatternsIcon } from "src/icons";
 import { dataAtom } from "src/state/jotai";
 
@@ -16,6 +17,25 @@ export const CurvesAndPatternsDialog = () => {
   const [selectedPatternId, setSelectedPatternId] = useState<PatternId | null>(
     null,
   );
+  const [editedPatterns, setEditedPatterns] = useState<
+    Map<PatternId, DemandPattern>
+  >(() => new Map(hydraulicModel.demands.patterns));
+
+  const patternTimestepSeconds =
+    hydraulicModel.epsTiming.patternTimestep ?? 3600;
+
+  const getPatternData = useCallback(
+    (patternId: PatternId): DemandPattern =>
+      editedPatterns.get(patternId) ?? [],
+    [editedPatterns],
+  );
+
+  const handlePatternChange = useCallback(
+    (patternId: PatternId, newPattern: DemandPattern) => {
+      setEditedPatterns((prev) => new Map(prev).set(patternId, newPattern));
+    },
+    [],
+  );
 
   return (
     <DialogContainer size="lg">
@@ -25,15 +45,23 @@ export const CurvesAndPatternsDialog = () => {
           selectedPatternId={selectedPatternId}
           onSelectPattern={setSelectedPatternId}
         />
-        <div className="flex-1 flex items-center justify-center">
+        <div className="flex-1 flex flex-col min-h-0 p-4">
           {selectedPatternId ? (
-            <div className="text-gray-500">
-              {translate("patternSelected", selectedPatternId)}
-            </div>
+            <PatternTable
+              pattern={getPatternData(selectedPatternId)}
+              patternTimestepSeconds={patternTimestepSeconds}
+              onChange={(newPattern) =>
+                handlePatternChange(selectedPatternId, newPattern)
+              }
+            />
           ) : hasPatterns ? (
-            <NoSelectionState />
+            <div className="flex-1 flex items-center justify-center">
+              <NoSelectionState />
+            </div>
           ) : (
-            <EmptyState />
+            <div className="flex-1 flex items-center justify-center">
+              <EmptyState />
+            </div>
           )}
         </div>
       </div>

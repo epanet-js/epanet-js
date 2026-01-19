@@ -23,6 +23,7 @@ type SpreadsheetTableProps<T extends Record<string, unknown>> = {
   rowActions?: RowAction[];
   height?: number;
   addRowLabel?: string;
+  gutterColumn?: boolean;
 };
 
 export function SpreadsheetTable<T extends Record<string, unknown>>({
@@ -35,6 +36,7 @@ export function SpreadsheetTable<T extends Record<string, unknown>>({
   rowActions,
   height,
   addRowLabel,
+  gutterColumn = false,
 }: SpreadsheetTableProps<T>) {
   const gridRef = useRef<DataSheetGridRef>(null);
   const memoizedColumns = useMemo(() => columns, [columns]);
@@ -70,6 +72,26 @@ export function SpreadsheetTable<T extends Record<string, unknown>>({
     onChange([...data, newRow]);
   }, [createRow, onChange, data]);
 
+  const handleChange = useCallback(
+    (newData: T[]) => {
+      const selection = gridRef.current?.selection;
+      const numColumns = columns.length;
+      const isFullRowSelected =
+        selection &&
+        selection.min.col === 0 &&
+        selection.max.col === numColumns - 1;
+
+      if (isFullRowSelected && !lockRows) {
+        const minRow = selection.min.row;
+        const maxRow = selection.max.row;
+        onChange([...data.slice(0, minRow), ...data.slice(maxRow + 1)]);
+      } else {
+        onChange(newData);
+      }
+    },
+    [data, onChange, lockRows, columns.length],
+  );
+
   if (data.length === 0 && emptyState) {
     return (
       <SpreadsheetProvider value={contextValue}>
@@ -84,13 +106,13 @@ export function SpreadsheetTable<T extends Record<string, unknown>>({
         <DynamicDataSheetGrid
           ref={gridRef}
           value={data}
-          onChange={(newData) => onChange(newData)}
+          onChange={handleChange}
           columns={memoizedColumns}
           createRow={memoizedCreateRow}
           lockRows={lockRows}
           rowHeight={32}
           stickyRightColumn={rowActionsColumn}
-          gutterColumn={false}
+          gutterColumn={gutterColumn ? {} : false}
           onActiveCellChange={handleActiveCellChange}
           className="text-sm [&_input]:text-sm [&_input]:w-full [&_input]:h-full [&_input]:px-2 [&_.dsg-cell-sticky-right]:transform-none [&_.dsg-cell-header]:bg-[var(--spreadsheet-header-bg)] [&_.dsg-cell-header]:font-semibold [&_.dsg-cell-header-container]:truncate [&_.dsg-cell-header-container]:px-2 [&_.dsg-cell-sticky-right]:bg-[var(--spreadsheet-header-bg)]"
           style={
