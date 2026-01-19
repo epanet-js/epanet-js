@@ -86,8 +86,10 @@ import {
   useChangeTimestep,
 } from "src/commands/change-timestep";
 import {
+  createScenarioShortcut,
   toggleScenarioShortcut,
   cycleScenarioShortcut,
+  useCreateScenario,
   useToggleScenario,
   useCycleScenario,
 } from "src/commands/scenario-shortcuts";
@@ -121,6 +123,7 @@ export const CommandShortcuts = () => {
   const showControls = useShowControls();
   const { goToPreviousTimestep, goToNextTimestep } = useChangeTimestep();
   const isMainReadonly = useIsMainReadonly();
+  const createScenario = useCreateScenario();
   const toggleScenario = useToggleScenario();
   const cycleScenario = useCycleScenario();
 
@@ -425,6 +428,22 @@ export const CommandShortcuts = () => {
     },
     [goToNextTimestep],
     "Next timestep",
+  );
+
+  useHotkeys(
+    createScenarioShortcut,
+    (e) => {
+      e.preventDefault();
+      if (isMainReadonly) return;
+      const { scenarioId, scenarioName } = createScenario();
+      userTracking.capture({
+        name: "scenario.created",
+        scenarioId,
+        scenarioName,
+      });
+    },
+    [createScenario, isMainReadonly, userTracking],
+    "Create new scenario",
   );
 
   useHotkeys(

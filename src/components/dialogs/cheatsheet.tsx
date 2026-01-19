@@ -17,6 +17,7 @@ import {
   nextTimestepShortcut,
 } from "src/commands/change-timestep";
 import {
+  createScenarioShortcut,
   toggleScenarioShortcut,
   cycleScenarioShortcut,
 } from "src/commands/scenario-shortcuts";
@@ -66,12 +67,16 @@ export function CheatsheetDialog() {
         ...(isScenariosOn
           ? [
               {
-                binding: toggleScenarioShortcut,
-                description: "toggleScenario",
+                binding: createScenarioShortcut,
+                description: "createScenario",
               },
               {
                 binding: cycleScenarioShortcut,
                 description: "cycleScenario",
+              },
+              {
+                binding: toggleScenarioShortcut,
+                description: "toggleScenario",
               },
             ]
           : []),

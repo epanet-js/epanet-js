@@ -3,8 +3,9 @@ import { useCallback } from "react";
 import { useScenarioOperations } from "src/hooks/use-scenario-operations";
 import { scenariosAtom, scenariosListAtom } from "src/state/scenarios";
 
-export const toggleScenarioShortcut = "y";
-export const cycleScenarioShortcut = "alt+y";
+export const createScenarioShortcut = "alt+y";
+export const cycleScenarioShortcut = "y";
+export const toggleScenarioShortcut = "shift+y";
 
 export const useToggleScenario = () => {
   const scenariosState = useAtomValue(scenariosAtom);
@@ -61,4 +62,12 @@ export const useCycleScenario = () => {
       switchToScenario(scenariosList[nextIndex].id);
     }
   }, [scenariosState, scenariosList, switchToScenario]);
+};
+
+export const useCreateScenario = () => {
+  const { createNewScenario } = useScenarioOperations();
+
+  return useCallback(() => {
+    return createNewScenario();
+  }, [createNewScenario]);
 };
