@@ -16,6 +16,10 @@ import {
   previousTimestepShortcut,
   nextTimestepShortcut,
 } from "src/commands/change-timestep";
+import {
+  toggleScenarioShortcut,
+  cycleScenarioShortcut,
+} from "src/commands/scenario-shortcuts";
 
 export const SEARCH_KEYBINDING = "Command+k";
 
@@ -35,6 +39,7 @@ type ShortcutSection = {
 export function CheatsheetDialog() {
   const translate = useTranslate();
   const isMac = useFeatureFlag("FLAG_MAC");
+  const isScenariosOn = useFeatureFlag("FLAG_SCENARIOS");
 
   const BINDINGS: ShortcutSection[] = [
     {
@@ -58,6 +63,18 @@ export function CheatsheetDialog() {
           binding: toggleNetworkReviewShortcut,
           description: "networkReview.toggle",
         },
+        ...(isScenariosOn
+          ? [
+              {
+                binding: toggleScenarioShortcut,
+                description: "toggleScenario",
+              },
+              {
+                binding: cycleScenarioShortcut,
+                description: "cycleScenario",
+              },
+            ]
+          : []),
         { binding: "?", description: "keyboardShortcuts.title" },
       ],
     },

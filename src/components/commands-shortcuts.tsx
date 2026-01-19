@@ -85,6 +85,12 @@ import {
   nextTimestepShortcut,
   useChangeTimestep,
 } from "src/commands/change-timestep";
+import {
+  toggleScenarioShortcut,
+  cycleScenarioShortcut,
+  useToggleScenario,
+  useCycleScenario,
+} from "src/commands/scenario-shortcuts";
 
 const IGNORE_ROLES = new Set(["menuitem"]);
 
@@ -115,6 +121,8 @@ export const CommandShortcuts = () => {
   const showControls = useShowControls();
   const { goToPreviousTimestep, goToNextTimestep } = useChangeTimestep();
   const isMainReadonly = useIsMainReadonly();
+  const toggleScenario = useToggleScenario();
+  const cycleScenario = useCycleScenario();
 
   useHotkeys(
     showReportShorcut,
@@ -417,6 +425,34 @@ export const CommandShortcuts = () => {
     },
     [goToNextTimestep],
     "Next timestep",
+  );
+
+  useHotkeys(
+    toggleScenarioShortcut,
+    (e) => {
+      e.preventDefault();
+      userTracking.capture({
+        name: "scenario.toggled",
+        source: "shortcut",
+      });
+      toggleScenario();
+    },
+    [toggleScenario],
+    "Toggle scenario/main",
+  );
+
+  useHotkeys(
+    cycleScenarioShortcut,
+    (e) => {
+      e.preventDefault();
+      userTracking.capture({
+        name: "scenario.cycled",
+        source: "shortcut",
+      });
+      cycleScenario();
+    },
+    [cycleScenario],
+    "Cycle scenarios",
   );
 
   for (const [mode, shortcut] of Object.entries(drawingModeShorcuts)) {

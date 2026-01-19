@@ -105,11 +105,7 @@ export const useScenarioOperations = () => {
 
   const deleteScenarioById = useCallback(
     (scenarioId: string) => {
-      const newState = persistence.deleteScenario(
-        scenariosState,
-        scenarioId,
-        () => simulation,
-      );
+      const newState = persistence.deleteScenario(scenariosState, scenarioId);
       setScenariosState(newState);
 
       const newSimulation = persistence.getSimulationForState(
@@ -118,7 +114,7 @@ export const useScenarioOperations = () => {
       );
       setSimulation(newSimulation);
     },
-    [persistence, scenariosState, simulation, setScenariosState, setSimulation],
+    [persistence, scenariosState, setScenariosState, setSimulation],
   );
 
   return {

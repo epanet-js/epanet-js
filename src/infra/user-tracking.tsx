@@ -668,6 +668,16 @@ type ScenarioDeleteDialogCancel = {
   name: "scenario.deleteDialog.cancel";
 };
 
+type ScenarioToggled = {
+  name: "scenario.toggled";
+  source: string;
+};
+
+type ScenarioCycled = {
+  name: "scenario.cycled";
+  source: string;
+};
+
 export type UserEvent =
   | AssetCreated
   | AssetRedrawed
@@ -775,6 +785,8 @@ export type UserEvent =
   | ScenarioSwitched
   | ScenarioDeleted
   | ScenarioDeleteDialogCancel
+  | ScenarioToggled
+  | ScenarioCycled
   | { name: "map.labels.shown"; type: string; subtype: string }
   | { name: "map.labels.hidden"; type: string }
   | { name: "map.customerPoints.shown" }

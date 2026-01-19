@@ -21,6 +21,7 @@ export interface BaseModelSnapshot {
 
 export interface ScenariosState {
   activeScenarioId: string | null;
+  lastActiveScenarioId: string | null;
   scenarios: Map<string, Scenario>;
   highestScenarioNumber: number;
   baseModelSnapshot: BaseModelSnapshot | null;
@@ -31,6 +32,7 @@ export interface ScenariosState {
 
 export const initialScenariosState: ScenariosState = {
   activeScenarioId: null,
+  lastActiveScenarioId: null,
   scenarios: new Map(),
   highestScenarioNumber: 0,
   baseModelSnapshot: null,

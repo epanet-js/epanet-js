@@ -260,6 +260,8 @@ export class MemPersistence implements IPersistence {
       return currentState;
     }
 
+    const lastActiveScenarioId = currentState.activeScenarioId;
+
     const currentScenario = currentState.scenarios.get(
       currentState.activeScenarioId,
     );
@@ -293,6 +295,7 @@ export class MemPersistence implements IPersistence {
       ...currentState,
       scenarios: updatedScenarios,
       activeScenarioId: null,
+      lastActiveScenarioId,
     };
   }
 
@@ -347,6 +350,7 @@ export class MemPersistence implements IPersistence {
     return {
       ...newState,
       activeScenarioId: scenarioId,
+      lastActiveScenarioId: scenarioId,
     };
   }
 
@@ -466,6 +470,7 @@ export class MemPersistence implements IPersistence {
         mainSimulation: null,
         mainModelVersion: null,
         highestScenarioNumber: 0,
+        lastActiveScenarioId: null,
       };
     }
 
@@ -490,15 +495,22 @@ export class MemPersistence implements IPersistence {
         ...currentState,
         scenarios: updatedScenarios,
         activeScenarioId: nextScenario.id,
+        lastActiveScenarioId: nextScenario.id,
       };
     }
 
     const updatedScenarios = new Map(currentState.scenarios);
     updatedScenarios.delete(scenarioId);
 
+    const clearedLastActive =
+      currentState.lastActiveScenarioId === scenarioId
+        ? null
+        : currentState.lastActiveScenarioId;
+
     return {
       ...currentState,
       scenarios: updatedScenarios,
+      lastActiveScenarioId: clearedLastActive,
     };
   }
 
