@@ -31,6 +31,7 @@ export const useOpenArchiveFromFs = () => {
 
       const arrayBuffer = await file.arrayBuffer();
       const uint8Array = new Uint8Array(arrayBuffer);
+      // opens the archive in a clean state
       await legitFs.loadArchive({
         legitArchive: uint8Array,
         clearExisting: true,

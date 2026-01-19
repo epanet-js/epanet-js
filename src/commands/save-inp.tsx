@@ -65,6 +65,9 @@ export const useSaveInp = ({
           const inp = buildInp(data.hydraulicModel, buildOptions);
           const inpBlob = new Blob([inp], { type: "text/plain" });
 
+          // Interim fix for .epanet files
+          // TODO: Remove this once we have a proper way to handle .epanet files
+          // assumption inp and epanet file are named the same
           const inpFileName = fileInfo
             ? fileInfo.name.replace(/\.epanet$/, ".inp")
             : "my-network.inp";
@@ -78,7 +81,7 @@ export const useSaveInp = ({
             }
           }
 
-          // get number of branches
+          // check if there are multiple branches -> indicate the need of a epanet archive
           let isMultipleBranches = false;
           if (legitFs) {
             try {
@@ -92,6 +95,7 @@ export const useSaveInp = ({
               captureError(error as Error);
             }
           }
+
           // save to local file system
           if (isMultipleBranches && legitFs && !exportInp) {
             // If multiple branches exist, use archive function instead of normal save

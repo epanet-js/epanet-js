@@ -153,6 +153,9 @@ export const useImportInp = () => {
       }
 
       const projectName = fileName;
+      // Interim fix for .epanet files
+      // TODO: Remove this once we have a proper way to handle .epanet files
+      // assumption inp and epanet file are named the same
       const inpFileName = fileName.replace(/\.epanet$/, ".inp");
 
       setDialogState({ type: "loading" });
