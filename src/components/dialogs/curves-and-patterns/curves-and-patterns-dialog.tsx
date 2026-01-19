@@ -5,6 +5,7 @@ import { useTranslate } from "src/hooks/use-translate";
 import { Button } from "src/components/elements";
 import { PatternSidebar } from "./pattern-sidebar";
 import { PatternTable } from "./pattern-table";
+import { QuickBarGraph } from "./quick-bar-graph";
 import { DemandPattern, PatternId } from "src/hydraulic-model/demands";
 import { PatternsIcon } from "src/icons";
 import { dataAtom } from "src/state/jotai";
@@ -45,15 +46,25 @@ export const CurvesAndPatternsDialog = () => {
           selectedPatternId={selectedPatternId}
           onSelectPattern={setSelectedPatternId}
         />
-        <div className="flex-1 flex flex-col min-h-0 p-4">
+        <div className="flex-1 flex flex-col min-h-0 p-4 w-full">
           {selectedPatternId ? (
-            <PatternTable
-              pattern={getPatternData(selectedPatternId)}
-              patternTimestepSeconds={patternTimestepSeconds}
-              onChange={(newPattern) =>
-                handlePatternChange(selectedPatternId, newPattern)
-              }
-            />
+            <div className="flex gap-4 h-full">
+              <div className="flex-1 overflow-hidden">
+                <PatternTable
+                  pattern={getPatternData(selectedPatternId)}
+                  patternTimestepSeconds={patternTimestepSeconds}
+                  onChange={(newPattern) =>
+                    handlePatternChange(selectedPatternId, newPattern)
+                  }
+                />
+              </div>
+              <div className="flex-1 h-full pt-4">
+                <QuickBarGraph
+                  values={getPatternData(selectedPatternId)}
+                  intervalSeconds={patternTimestepSeconds}
+                />
+              </div>
+            </div>
           ) : hasPatterns ? (
             <div className="flex-1 flex items-center justify-center">
               <NoSelectionState />
