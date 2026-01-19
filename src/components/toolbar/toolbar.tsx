@@ -61,7 +61,13 @@ import { useRunSimulationPerformanceTest } from "src/commands/run-simulation-per
 import { isDebugOn } from "src/infra/debug-mode";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
-export const Toolbar = ({ readonly = false }: { readonly?: boolean }) => {
+export const Toolbar = ({
+  readonly = false,
+  customerAllocationDisabled = false,
+}: {
+  readonly?: boolean;
+  customerAllocationDisabled?: boolean;
+}) => {
   const translate = useTranslate();
   const saveInp = useSaveInp();
   const userTracking = useUserTracking();
@@ -123,7 +129,7 @@ export const Toolbar = ({ readonly = false }: { readonly?: boolean }) => {
           onClick={() => {
             void importCustomerPoints({ source: "toolbar" });
           }}
-          disabled={readonly}
+          disabled={customerAllocationDisabled}
         >
           <ImportCustomerPointsIcon />
         </MenuAction>

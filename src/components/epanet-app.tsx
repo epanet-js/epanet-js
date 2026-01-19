@@ -52,6 +52,7 @@ import { usePrivacySettings } from "src/hooks/use-privacy-settings";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { initStorage } from "src/infra/storage";
 import { useIsMainReadonly } from "src/hooks/use-is-main-readonly";
+import { useIsCustomerAllocationDisabled } from "src/hooks/use-is-customer-allocation-disabled";
 
 type ResolvedLayout = "HORIZONTAL" | "VERTICAL" | "FLOATING";
 
@@ -75,6 +76,7 @@ export function EpanetApp() {
   const hasIdentifiedRef = useRef(false);
   const isCursorFamilyEnabled = useFeatureFlag("FLAG_CURSOR_FAMILY");
   const isMainReadonly = useIsMainReadonly();
+  const isCustomerAllocationDisabled = useIsCustomerAllocationDisabled();
 
   useEffect(() => {
     void initStorage();
@@ -156,7 +158,10 @@ export function EpanetApp() {
       <MapContext.Provider value={map}>
         <div className="h-24">
           <MenuBarPlay />
-          <Toolbar readonly={isMainReadonly} />
+          <Toolbar
+            readonly={isMainReadonly}
+            customerAllocationDisabled={isCustomerAllocationDisabled}
+          />
         </div>
         <div
           className={clsx(
