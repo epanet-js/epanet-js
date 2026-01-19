@@ -31,7 +31,6 @@ export const CurvesAndPatternsDialog = () => {
   const translate = useTranslate();
   const { closeDialog } = useDialogState();
   const { hydraulicModel } = useAtomValue(dataAtom);
-  const hasPatterns = hydraulicModel.demands.patterns.size > 0;
   const [selectedPatternId, setSelectedPatternId] = useState<PatternId | null>(
     null,
   );
@@ -40,6 +39,7 @@ export const CurvesAndPatternsDialog = () => {
   >(() => new Map(hydraulicModel.demands.patterns));
   const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
 
+  const hasPatterns = editedPatterns.size > 0;
   const patternTimestepSeconds =
     hydraulicModel.epsTiming.patternTimestep ?? 3600;
   const totalDurationSeconds = hydraulicModel.epsTiming.duration;
@@ -53,6 +53,17 @@ export const CurvesAndPatternsDialog = () => {
   const handlePatternChange = useCallback(
     (patternId: PatternId, newPattern: DemandPattern) => {
       setEditedPatterns((prev) => new Map(prev).set(patternId, newPattern));
+    },
+    [],
+  );
+
+  const handleAddPattern = useCallback(
+    (patternId: PatternId, pattern: DemandPattern) => {
+      setEditedPatterns((prev) => {
+        const next = new Map(prev);
+        next.set(patternId, pattern);
+        return next;
+      });
     },
     [],
   );
@@ -92,8 +103,10 @@ export const CurvesAndPatternsDialog = () => {
       <DialogHeader title={translate("curvesAndPatterns")} />
       <div className="flex-1 flex min-h-0">
         <PatternSidebar
+          patterns={editedPatterns}
           selectedPatternId={selectedPatternId}
           onSelectPattern={setSelectedPatternId}
+          onAddPattern={handleAddPattern}
         />
         <div className="flex-1 flex flex-col min-h-0 p-2 w-full">
           {selectedPatternId ? (

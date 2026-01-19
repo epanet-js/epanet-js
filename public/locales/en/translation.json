@@ -762,6 +762,7 @@
   "selectPatternPrompt": "Select a pattern to view its details",
   "patternSelected": "Pattern: {{1}}",
   "addPattern": "Add pattern",
+  "patternName": "Pattern name",
   "curvesAndPatternsEmptyTitle": "Demand patterns is empty",
   "curvesAndPatternsEmptyDescription": "Please create a new pattern to get started.",
   "curvesAndPatternsNoSelection": "Select a pattern to view its details.",
