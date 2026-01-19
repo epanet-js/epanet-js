@@ -54,21 +54,24 @@ export const DialogContainer = ({
   fillMode = "full",
   children,
   disableOutsideClick = false,
+  onClose,
 }: {
   size?: "sm" | "xs" | "md" | "lg" | "xl" | "fullscreen";
   height?: "sm" | "md" | "lg" | "xl" | "fullscreen";
   fillMode?: "full" | "auto";
   children: React.ReactNode;
   disableOutsideClick?: boolean;
+  onClose?: () => void;
 }) => {
   const { closeDialog } = useDialogState();
+  const handleClose = onClose ?? closeDialog;
 
   return (
     <Dialog.Root
       open={!!children}
       onOpenChange={(isOpen) => {
         if (!isOpen) {
-          closeDialog();
+          handleClose();
         }
       }}
     >
@@ -87,7 +90,7 @@ export const DialogContainer = ({
           <StyledDialogContent
             widthClasses=""
             onEscapeKeyDown={(e) => {
-              closeDialog();
+              handleClose();
               e.preventDefault();
               e.stopPropagation();
             }}

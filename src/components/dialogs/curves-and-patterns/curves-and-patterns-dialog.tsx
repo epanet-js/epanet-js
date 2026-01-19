@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useAtomValue } from "jotai";
 import { DialogContainer, DialogHeader, useDialogState } from "../../dialog";
 import { useTranslate } from "src/hooks/use-translate";
@@ -9,6 +9,23 @@ import { PatternGraph } from "./pattern-graph";
 import { DemandPattern, PatternId } from "src/hydraulic-model/demands";
 import { PatternsIcon } from "src/icons";
 import { dataAtom } from "src/state/jotai";
+import { usePersistence } from "src/lib/persistence/context";
+import { changeDemandSettings } from "src/hydraulic-model/model-operations/change-demand-settings";
+
+const arePatternsEqual = (
+  original: Map<PatternId, DemandPattern>,
+  edited: Map<PatternId, DemandPattern>,
+): boolean => {
+  if (original.size !== edited.size) return false;
+  for (const [patternId, originalPattern] of original) {
+    const editedPattern = edited.get(patternId);
+    if (!editedPattern) return false;
+    if (originalPattern.length !== editedPattern.length) return false;
+    if (!originalPattern.every((val, idx) => val === editedPattern[idx]))
+      return false;
+  }
+  return true;
+};
 
 export const CurvesAndPatternsDialog = () => {
   const translate = useTranslate();
@@ -21,6 +38,7 @@ export const CurvesAndPatternsDialog = () => {
   const [editedPatterns, setEditedPatterns] = useState<
     Map<PatternId, DemandPattern>
   >(() => new Map(hydraulicModel.demands.patterns));
+  const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
 
   const patternTimestepSeconds =
     hydraulicModel.epsTiming.patternTimestep ?? 3600;
@@ -39,8 +57,38 @@ export const CurvesAndPatternsDialog = () => {
     [],
   );
 
+  const rep = usePersistence();
+  const transact = rep.useTransact();
+
+  const hasChanges = useMemo(
+    () => !arePatternsEqual(hydraulicModel.demands.patterns, editedPatterns),
+    [hydraulicModel.demands.patterns, editedPatterns],
+  );
+
+  const handleSave = useCallback(() => {
+    if (!hasChanges) {
+      closeDialog();
+      return;
+    }
+
+    const moment = changeDemandSettings(hydraulicModel, {
+      patterns: editedPatterns,
+    });
+    transact(moment);
+
+    closeDialog();
+  }, [hasChanges, hydraulicModel, editedPatterns, transact, closeDialog]);
+
+  const handleCancel = useCallback(() => {
+    if (hasChanges) {
+      setShowDiscardConfirm(true);
+      return;
+    }
+    closeDialog();
+  }, [hasChanges, closeDialog]);
+
   return (
-    <DialogContainer size="lg">
+    <DialogContainer size="lg" onClose={handleCancel}>
       <DialogHeader title={translate("curvesAndPatterns")} />
       <div className="flex-1 flex min-h-0">
         <PatternSidebar
@@ -79,12 +127,33 @@ export const CurvesAndPatternsDialog = () => {
         </div>
       </div>
       <div className="pt-6 flex flex-row-reverse gap-x-3">
-        <Button type="button" variant="primary" disabled>
-          {translate("save")}
-        </Button>
-        <Button type="button" onClick={closeDialog}>
-          {translate("cancel")}
-        </Button>
+        {showDiscardConfirm ? (
+          <>
+            <Button type="button" variant="danger" onClick={closeDialog}>
+              {translate("discardChanges")}
+            </Button>
+            <Button type="button" onClick={() => setShowDiscardConfirm(false)}>
+              {translate("keepEditing")}
+            </Button>
+            <span className="flex-1 text-sm text-gray-600 self-center">
+              {translate("curvesAndPatternsUnsavedWarning")}
+            </span>
+          </>
+        ) : (
+          <>
+            <Button
+              type="button"
+              variant="primary"
+              onClick={handleSave}
+              disabled={!hasChanges}
+            >
+              {translate("save")}
+            </Button>
+            <Button type="button" onClick={handleCancel}>
+              {translate("cancel")}
+            </Button>
+          </>
+        )}
       </div>
     </DialogContainer>
   );

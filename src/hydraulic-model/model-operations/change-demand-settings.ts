@@ -1,20 +1,29 @@
-import { Demands } from "../demands";
+import { Demands, DemandPatterns } from "../demands";
 import { ModelOperation } from "../model-operation";
 
 type InputData = {
-  demandMultiplier: number;
+  demandMultiplier?: number;
+  patterns?: DemandPatterns;
 };
 
 export const changeDemandSettings: ModelOperation<InputData> = (
   { demands: currentDemands },
-  { demandMultiplier },
+  { demandMultiplier, patterns },
 ) => {
   const demands: Demands = {
-    multiplier: demandMultiplier,
-    patterns: currentDemands.patterns,
+    multiplier: demandMultiplier ?? currentDemands.multiplier,
+    patterns: patterns ?? currentDemands.patterns,
   };
+
+  const note =
+    demandMultiplier !== undefined && patterns !== undefined
+      ? "Change demand settings"
+      : patterns !== undefined
+        ? "Change demand patterns"
+        : "Change demand multiplier";
+
   return {
-    note: "Change demand settings",
+    note,
     putDemands: demands,
   };
 };
