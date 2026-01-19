@@ -4,7 +4,14 @@ import {
   DataSheetGridRef,
   SimpleColumn,
 } from "react-datasheet-grid";
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { colors } from "src/lib/constants";
 import { SpreadsheetProvider } from "./spreadsheet-context";
 import { createActionsColumn, RowAction } from "./actions-column";
@@ -21,7 +28,6 @@ type SpreadsheetTableProps<T extends Record<string, unknown>> = {
   lockRows?: boolean;
   emptyState?: React.ReactNode;
   rowActions?: RowAction[];
-  height?: number;
   addRowLabel?: string;
   gutterColumn?: boolean;
 };
@@ -34,11 +40,14 @@ export function SpreadsheetTable<T extends Record<string, unknown>>({
   lockRows = false,
   emptyState,
   rowActions,
-  height,
   addRowLabel,
   gutterColumn = false,
 }: SpreadsheetTableProps<T>) {
   const gridRef = useRef<DataSheetGridRef>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [containerHeight, setContainerHeight] = useState<number | undefined>(
+    undefined,
+  );
   const memoizedColumns = useMemo(() => columns, [columns]);
   const memoizedCreateRow = useCallback(createRow, [createRow]);
 
@@ -67,9 +76,33 @@ export function SpreadsheetTable<T extends Record<string, unknown>>({
     return () => setSpreadsheetActive(false);
   }, []);
 
+  useLayoutEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    let lastHeight: number | undefined;
+
+    const observer = new ResizeObserver((entries) => {
+      const newHeight = entries[0]?.contentRect.height;
+
+      // Only update if height changed by more than 2 pixels to prevent feedback loop
+      // where setting grid height causes small container height changes
+      if (lastHeight === undefined || Math.abs(newHeight - lastHeight) > 2) {
+        lastHeight = newHeight;
+        setContainerHeight(newHeight);
+      }
+    });
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, []);
+
   const handleAddRow = useCallback(() => {
     const newRow = createRow();
+    const newRowIndex = data.length;
     onChange([...data, newRow]);
+    setTimeout(function scrollToBottom() {
+      gridRef.current?.setActiveCell({ col: 0, row: newRowIndex });
+    }, 0);
   }, [createRow, onChange, data]);
 
   const handleChange = useCallback(
@@ -92,6 +125,19 @@ export function SpreadsheetTable<T extends Record<string, unknown>>({
     [data, onChange, lockRows, columns.length],
   );
 
+  // Without a gutter column, the sticky right column (actions) needs transform disabled
+  // to align correctly with data rows
+  const stickyColumnAlignmentFix = !gutterColumn
+    ? "[&_.dsg-cell-sticky-right]:transform-none"
+    : "";
+
+  // Button height (32px) + margin-top (6px) = 38px
+  const BUTTON_SPACE = 38;
+  const gridHeight =
+    containerHeight !== undefined && addRowLabel
+      ? Math.max(0, containerHeight - BUTTON_SPACE)
+      : containerHeight;
+
   if (data.length === 0 && emptyState) {
     return (
       <SpreadsheetProvider value={contextValue}>
@@ -102,7 +148,7 @@ export function SpreadsheetTable<T extends Record<string, unknown>>({
 
   return (
     <SpreadsheetProvider value={contextValue}>
-      <div>
+      <div ref={containerRef} className="flex flex-col justify-between h-full">
         <DynamicDataSheetGrid
           ref={gridRef}
           value={data}
@@ -112,9 +158,9 @@ export function SpreadsheetTable<T extends Record<string, unknown>>({
           lockRows={lockRows}
           rowHeight={32}
           stickyRightColumn={rowActionsColumn}
-          gutterColumn={gutterColumn ? {} : false}
+          gutterColumn={gutterColumn ? { grow: 0 } : false}
           onActiveCellChange={handleActiveCellChange}
-          className="text-sm [&_input]:text-sm [&_input]:w-full [&_input]:h-full [&_input]:px-2 [&_.dsg-cell-sticky-right]:transform-none [&_.dsg-cell-header]:bg-[var(--spreadsheet-header-bg)] [&_.dsg-cell-header]:font-semibold [&_.dsg-cell-header-container]:truncate [&_.dsg-cell-header-container]:px-2 [&_.dsg-cell-sticky-right]:bg-[var(--spreadsheet-header-bg)]"
+          className={`text-sm [&_input]:text-sm [&_input]:w-full [&_input]:h-full [&_input]:px-2 [&_.dsg-cell-header]:bg-[var(--spreadsheet-header-bg)] [&_.dsg-cell-header]:font-semibold [&_.dsg-cell-header-container]:truncate [&_.dsg-cell-header-container]:px-2 [&_.dsg-cell-sticky-right]:bg-[var(--spreadsheet-header-bg)] ${stickyColumnAlignmentFix}`}
           style={
             {
               "--dsg-selection-border-color": colors.purple500,
@@ -125,23 +171,23 @@ export function SpreadsheetTable<T extends Record<string, unknown>>({
               "--spreadsheet-header-bg": colors.gray100,
             } as React.CSSProperties
           }
-          height={height}
+          height={gridHeight}
           disableContextMenu={!!rowActions}
           disableExpandSelection={true}
           addRowsComponent={false}
         />
+        {addRowLabel && (
+          <Button
+            variant="default"
+            size="sm"
+            onClick={handleAddRow}
+            className="w-full justify-center mt-2"
+          >
+            <AddIcon size="sm" />
+            {addRowLabel}
+          </Button>
+        )}
       </div>
-      {addRowLabel && (
-        <Button
-          variant="default"
-          size="sm"
-          onClick={handleAddRow}
-          className="w-full justify-center"
-        >
-          <AddIcon size="sm" />
-          {addRowLabel}
-        </Button>
-      )}
     </SpreadsheetProvider>
   );
 }

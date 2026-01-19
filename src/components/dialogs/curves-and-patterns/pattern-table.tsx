@@ -149,7 +149,7 @@ export const PatternTable = ({
           createTextReadonlyColumn({ className: "text-gray-500 bg-gray-50" }),
         ),
         title: translate("timestep"),
-        grow: 3,
+        minWidth: 50,
       },
       {
         ...keyColumn(
@@ -157,7 +157,7 @@ export const PatternTable = ({
           createFloatColumn({ deleteValue: DEFAULT_MULTIPLIER }),
         ),
         title: translate("multiplier"),
-        grow: 4,
+        minWidth: 40,
       },
     ],
     [translate],
@@ -184,15 +184,16 @@ export const PatternTable = ({
   );
 
   return (
-    <SpreadsheetTable<PatternRow>
-      data={rowData}
-      columns={columns}
-      onChange={handleChange}
-      createRow={createRow}
-      rowActions={rowActions}
-      height={300}
-      addRowLabel={translate("addTimestep")}
-      gutterColumn
-    />
+    <div className="h-full">
+      <SpreadsheetTable<PatternRow>
+        data={rowData}
+        columns={columns}
+        onChange={handleChange}
+        createRow={createRow}
+        rowActions={rowActions}
+        addRowLabel={translate("addTimestep")}
+        gutterColumn
+      />
+    </div>
   );
 };

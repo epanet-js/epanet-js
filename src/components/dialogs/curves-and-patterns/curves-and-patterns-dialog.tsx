@@ -47,10 +47,10 @@ export const CurvesAndPatternsDialog = () => {
           selectedPatternId={selectedPatternId}
           onSelectPattern={setSelectedPatternId}
         />
-        <div className="flex-1 flex flex-col min-h-0 p-4 w-full">
+        <div className="flex-1 flex flex-col min-h-0 p-2 w-full">
           {selectedPatternId ? (
-            <div className="flex gap-4 h-full">
-              <div className="flex-1 overflow-hidden">
+            <div className="grid grid-cols-2 gap-4 h-full">
+              <div className="h-full overflow-hidden">
                 <PatternTable
                   pattern={getPatternData(selectedPatternId)}
                   patternTimestepSeconds={patternTimestepSeconds}
@@ -59,7 +59,7 @@ export const CurvesAndPatternsDialog = () => {
                   }
                 />
               </div>
-              <div className="flex-1 h-full pt-4">
+              <div className="h-full pt-4">
                 <PatternGraph
                   pattern={getPatternData(selectedPatternId)}
                   intervalSeconds={patternTimestepSeconds}
