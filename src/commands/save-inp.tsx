@@ -121,6 +121,14 @@ export const useSaveInp = ({
                 ? fileInfo.name.replace(/\.inp$/, ".epanet")
                 : "my-network.epanet";
 
+              // Only use existing handle if file extension matches
+              // This prevents silent save to wrong file type when transitioning from .epanet to .inp
+              const shouldUseExistingHandle =
+                fileInfo &&
+                !isSaveAs &&
+                fileInfo.handle &&
+                fileInfo.name.endsWith(".epanet");
+
               const newHandle = await fileSave(
                 archiveBlob,
                 {
@@ -129,16 +137,14 @@ export const useSaveInp = ({
                   description: ".EPANET",
                   mimeTypes: ["application/zip"],
                 },
-                fileInfo && !isSaveAs
+                shouldUseExistingHandle
                   ? (fileInfo.handle as FileSystemFileHandle)
                   : null,
               );
 
               if (newHandle) {
                 set(fileInfoAtom, {
-                  name: newHandle.name.endsWith(".epanet")
-                    ? newHandle.name
-                    : newHandle.name.replace(/\.inp$/, ".epanet"),
+                  name: newHandle.name.replace(/\.inp$/, ".epanet"),
                   modelVersion: data.hydraulicModel.version,
                   handle: newHandle,
                   options: exportOptions,
