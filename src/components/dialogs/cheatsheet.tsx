@@ -142,7 +142,7 @@ export function CheatsheetDialog() {
         title={translate("keyboardShortcuts.title")}
         titleIcon={KeyboardIcon}
       />
-      <div className="columns-3">
+      <div className="columns-1 md:columns-2">
         {BINDINGS.map((section) => (
           <div key={section.group} className="break-inside-avoid mb-6">
             <h2 className="text-sm font-bold mb-2 text-gray-700">
@@ -150,8 +150,8 @@ export function CheatsheetDialog() {
             </h2>
             <div className="space-y-2">
               {section.shortcuts.map((item) => (
-                <div key={item.binding} className="flex items-start gap-2">
-                  <Keycap className="w-16 flex-shrink-0">
+                <div key={item.binding} className="flex items-start gap-4">
+                  <Keycap className="w-28 flex-shrink-0">
                     {localizeKeybinding(item.binding, isMac || getIsMac())}
                   </Keycap>
                   <p className="text-xs pt-1">
