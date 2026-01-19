@@ -390,6 +390,7 @@ const JunctionEditor = ({
   const translate = useTranslate();
   const { footer } = useQuickGraph(junction.id, "junction");
   const isEditJunctionDemandsOn = useFeatureFlag("FLAG_EDIT_JUNCTION_DEMANDS");
+  const isCustomerDemandsOn = useFeatureFlag("FLAG_CUSTOMER_DEMANDS");
   const { getComparison, isNew } = useAssetComparison(junction);
 
   const customerPoints = useMemo(() => {
@@ -401,10 +402,17 @@ const JunctionEditor = ({
   }, [junction.id, hydraulicModel]);
 
   const customerCount = customerPoints.length;
-  const totalDemand = customerPoints.reduce(
-    (sum, cp) => sum + cp.baseDemand,
-    0,
-  );
+  const totalDemand = useMemo(() => {
+    if (isCustomerDemandsOn) {
+      return customerPoints.reduce(
+        (sum, cp) =>
+          sum +
+          calculateAverageDemand(cp.demands, hydraulicModel.demands.patterns),
+        0,
+      );
+    }
+    return customerPoints.reduce((sum, cp) => sum + cp.baseDemand, 0);
+  }, [customerPoints, isCustomerDemandsOn, hydraulicModel.demands.patterns]);
 
   const averageDemand = useMemo(
     () =>
@@ -494,6 +502,7 @@ const JunctionEditor = ({
               customerPoints={customerPoints}
               aggregateUnit={quantitiesMetadata.getUnit("customerDemand")}
               customerUnit={quantitiesMetadata.getUnit("customerDemandPerDay")}
+              patterns={hydraulicModel.demands.patterns}
             />
           </>
         )}
@@ -557,6 +566,7 @@ const PipeEditor = ({
   const translate = useTranslate();
   const { footer } = useQuickGraph(pipe.id, "pipe");
   const { getComparison, isNew } = useAssetComparison(pipe);
+  const isCustomerDemandsOn = useFeatureFlag("FLAG_CUSTOMER_DEMANDS");
 
   const simulationStatusText = translate(pipeStatusLabel(pipe));
 
@@ -567,10 +577,17 @@ const PipeEditor = ({
   }, [pipe.id, hydraulicModel]);
 
   const customerCount = customerPoints.length;
-  const totalDemand = customerPoints.reduce(
-    (sum, cp) => sum + cp.baseDemand,
-    0,
-  );
+  const totalDemand = useMemo(() => {
+    if (isCustomerDemandsOn) {
+      return customerPoints.reduce(
+        (sum, cp) =>
+          sum +
+          calculateAverageDemand(cp.demands, hydraulicModel.demands.patterns),
+        0,
+      );
+    }
+    return customerPoints.reduce((sum, cp) => sum + cp.baseDemand, 0);
+  }, [customerPoints, isCustomerDemandsOn, hydraulicModel.demands.patterns]);
 
   const pipeStatusOptions = useMemo(() => {
     return pipeStatuses.map((status) => ({
@@ -677,6 +694,7 @@ const PipeEditor = ({
             customerPoints={customerPoints}
             aggregateUnit={quantitiesMetadata.getUnit("customerDemand")}
             customerUnit={quantitiesMetadata.getUnit("customerDemandPerDay")}
+            patterns={hydraulicModel.demands.patterns}
           />
         </Section>
       )}

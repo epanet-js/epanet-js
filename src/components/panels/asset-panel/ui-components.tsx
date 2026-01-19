@@ -20,7 +20,12 @@ import clsx from "clsx";
 import * as P from "@radix-ui/react-popover";
 import { StyledPopoverArrow, StyledPopoverContent } from "../../elements";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
-import { JunctionDemand } from "src/hydraulic-model/demands";
+import {
+  DemandPatterns,
+  JunctionDemand,
+  calculateAverageDemand,
+} from "src/hydraulic-model/demands";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useSetAtom, useAtom } from "jotai";
 import { ephemeralStateAtom } from "src/state/jotai";
 import { assetPanelFooterAtom } from "src/state/quick-graph";
@@ -381,11 +386,13 @@ export const ConnectedCustomersRow = ({
   customerPoints,
   aggregateUnit,
   customerUnit,
+  patterns,
 }: {
   customerCount: number;
   customerPoints: CustomerPoint[];
   aggregateUnit: Unit;
   customerUnit: Unit;
+  patterns: DemandPatterns;
 }) => {
   const translate = useTranslate();
   const [isOpen, setIsOpen] = useState(false);
@@ -436,6 +443,7 @@ export const ConnectedCustomersRow = ({
               customerPoints={customerPoints}
               aggregateUnit={aggregateUnit}
               customerUnit={customerUnit}
+              patterns={patterns}
               onClose={handleClose}
             />
           </StyledPopoverContent>
@@ -451,17 +459,20 @@ const CustomerPointsPopover = ({
   customerPoints,
   aggregateUnit,
   customerUnit,
+  patterns,
   onClose,
 }: {
   customerPoints: CustomerPoint[];
   aggregateUnit: Unit;
   customerUnit: Unit;
+  patterns: DemandPatterns;
   onClose: () => void;
 }) => {
   const parentRef = useRef<HTMLDivElement | null>(null);
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
   const setEphemeralState = useSetAtom(ephemeralStateAtom);
+  const isCustomerDemandsOn = useFeatureFlag("FLAG_CUSTOMER_DEMANDS");
 
   const handleCustomerPointHover = (customerPoint: CustomerPoint) => {
     setEphemeralState({
@@ -524,11 +535,11 @@ const CustomerPointsPopover = ({
         >
           {rowVirtualizer.getVirtualItems().map((virtualRow) => {
             const customerPoint = customerPoints[virtualRow.index];
+            const demand = isCustomerDemandsOn
+              ? calculateAverageDemand(customerPoint.demands, patterns)
+              : customerPoint.baseDemand;
             const demandValue = localizeDecimal(
-              convertTo(
-                { value: customerPoint.baseDemand, unit: aggregateUnit },
-                customerUnit,
-              ),
+              convertTo({ value: demand, unit: aggregateUnit }, customerUnit),
             );
             const displayValue = customerPoint.label;
 

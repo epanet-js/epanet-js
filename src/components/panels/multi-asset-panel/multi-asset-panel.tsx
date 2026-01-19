@@ -14,6 +14,8 @@ import {
   multiAssetPanelCollapseAtom,
 } from "src/state/jotai";
 import { computeMultiAssetData } from "./data";
+import { computeMultiAssetDataWithCustomerDemands } from "./data-with-customer-demands";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export function MultiAssetPanel({
   selectedFeatures,
@@ -31,11 +33,24 @@ export function MultiAssetPanel({
   const [collapseState, setCollapseState] = useAtom(
     multiAssetPanelCollapseAtom,
   );
+  const isCustomerDemandsOn = useFeatureFlag("FLAG_CUSTOMER_DEMANDS");
 
   const { data: multiAssetData, counts: assetCounts } = useMemo(() => {
     const assets = selectedFeatures as Asset[];
+    if (isCustomerDemandsOn) {
+      return computeMultiAssetDataWithCustomerDemands(
+        assets,
+        quantitiesMetadata,
+        hydraulicModel,
+      );
+    }
     return computeMultiAssetData(assets, quantitiesMetadata, hydraulicModel);
-  }, [selectedFeatures, quantitiesMetadata, hydraulicModel]);
+  }, [
+    selectedFeatures,
+    quantitiesMetadata,
+    hydraulicModel,
+    isCustomerDemandsOn,
+  ]);
 
   return (
     <SectionList header={<Header selectedCount={selectedFeatures.length} />}>
