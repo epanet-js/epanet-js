@@ -4,6 +4,7 @@ import { setInitialState } from "src/__helpers__/state";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
 import { stubProjectionsReady } from "src/__helpers__/projections";
+import { stubFeatureOn, stubFeatureOff } from "src/__helpers__/feature-flags";
 import { setWizardState } from "./__helpers__/wizard-state";
 import { waitFor } from "@testing-library/react";
 import { renderWizard } from "./__helpers__/render-wizard";
@@ -204,6 +205,164 @@ describe("DataMappingStep", () => {
 
       expect(screen.getByRole("button", { name: /next/i })).toBeDisabled();
       expect(screen.getByRole("button", { name: /back/i })).not.toBeDisabled();
+    });
+  });
+
+  describe("pattern selector", () => {
+    const createInputData = () => ({
+      properties: new Set(["name", "demand"]),
+      features: [
+        {
+          type: "Feature" as const,
+          geometry: {
+            type: "Point" as const,
+            coordinates: [0.001, 0.001],
+          },
+          properties: {
+            name: "Point1",
+            demand: 25.5,
+          },
+        },
+      ],
+    });
+
+    it("shows pattern selector when FLAG_CUSTOMER_DEMANDS is enabled and patterns exist", () => {
+      stubFeatureOn("FLAG_CUSTOMER_DEMANDS");
+
+      const store = setInitialState({
+        hydraulicModel: HydraulicModelBuilder.with()
+          .aDemandPattern("daily", [1, 1.2, 0.8])
+          .build(),
+      });
+
+      setWizardState(store, {
+        selectedFile: new File(["test"], "test.geojson", {
+          type: "application/json",
+        }),
+        inputData: createInputData(),
+      });
+
+      renderWizard(store);
+
+      expect(
+        screen.getByRole("combobox", { name: "Time pattern" }),
+      ).toBeInTheDocument();
+    });
+
+    it("does not show pattern selector when FLAG_CUSTOMER_DEMANDS is disabled", () => {
+      stubFeatureOff("FLAG_CUSTOMER_DEMANDS");
+
+      const store = setInitialState({
+        hydraulicModel: HydraulicModelBuilder.with()
+          .aDemandPattern("daily", [1, 1.2, 0.8])
+          .build(),
+      });
+
+      setWizardState(store, {
+        selectedFile: new File(["test"], "test.geojson", {
+          type: "application/json",
+        }),
+        inputData: createInputData(),
+      });
+
+      renderWizard(store);
+
+      expect(
+        screen.queryByRole("combobox", { name: "Time pattern" }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("does not show pattern selector when no patterns exist", () => {
+      stubFeatureOn("FLAG_CUSTOMER_DEMANDS");
+
+      const store = setInitialState({
+        hydraulicModel: HydraulicModelBuilder.with().build(),
+      });
+
+      setWizardState(store, {
+        selectedFile: new File(["test"], "test.geojson", {
+          type: "application/json",
+        }),
+        inputData: createInputData(),
+      });
+
+      renderWizard(store);
+
+      expect(
+        screen.queryByRole("combobox", { name: "Time pattern" }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("applies selected pattern to parsed customer points", async () => {
+      stubFeatureOn("FLAG_CUSTOMER_DEMANDS");
+      const user = userEvent.setup();
+
+      const store = setInitialState({
+        hydraulicModel: HydraulicModelBuilder.with()
+          .aDemandPattern("daily", [1, 1.2, 0.8])
+          .aDemandPattern("weekly", [1, 1, 1, 1, 1, 0.5, 0.5])
+          .build(),
+      });
+
+      setWizardState(store, {
+        selectedFile: new File(["test"], "test.geojson", {
+          type: "application/json",
+        }),
+        inputData: createInputData(),
+      });
+
+      renderWizard(store);
+
+      // Select demand property first
+      const demandSelector = screen.getByRole("combobox", { name: "Demand" });
+      await user.click(demandSelector);
+      const demandOption = await screen.findByRole("option", {
+        name: "demand",
+      });
+      await user.click(demandOption);
+
+      await waitFor(() => {
+        expect(screen.getByText(/Customer points \(1\)/)).toBeInTheDocument();
+      });
+
+      // Now select a pattern
+      const patternSelector = screen.getByRole("combobox", {
+        name: "Time pattern",
+      });
+      await user.click(patternSelector);
+      const patternOption = await screen.findByRole("option", {
+        name: "daily",
+      });
+      await user.click(patternOption);
+
+      // Verify re-parsing occurs (customer points table should still show data)
+      await waitFor(() => {
+        expect(screen.getByText(/Customer points \(1\)/)).toBeInTheDocument();
+      });
+    });
+
+    it("shows CONSTANT option as default in pattern selector", () => {
+      stubFeatureOn("FLAG_CUSTOMER_DEMANDS");
+
+      const store = setInitialState({
+        hydraulicModel: HydraulicModelBuilder.with()
+          .aDemandPattern("daily", [1, 1.2, 0.8])
+          .build(),
+      });
+
+      setWizardState(store, {
+        selectedFile: new File(["test"], "test.geojson", {
+          type: "application/json",
+        }),
+        inputData: createInputData(),
+      });
+
+      renderWizard(store);
+
+      const patternSelector = screen.getByRole("combobox", {
+        name: "Time pattern",
+      });
+      expect(patternSelector).toHaveTextContent("CONSTANT");
     });
   });
 });

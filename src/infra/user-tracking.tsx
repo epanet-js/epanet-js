@@ -477,6 +477,11 @@ type ImportCustomerPointsDataSelectLabelProperty = {
   property: string;
 };
 
+type ImportCustomerPointsDataSelectPatternProperty = {
+  name: "importCustomerPoints.dataMapping.selectPattern";
+  patternId: string;
+};
+
 type ImportCustomerPointsDataInputSchemaExtracted = {
   name: "importCustomerPoints.dataInput.next";
   fileName: string;
@@ -757,6 +762,7 @@ export type UserEvent =
   | ExamplesOpened
   | ImportCustomerPointsDataSelectDemandProperty
   | ImportCustomerPointsDataSelectLabelProperty
+  | ImportCustomerPointsDataSelectPatternProperty
   | NetworkReviewOpened
   | NetworkReviewClosed
   | NetworkReviewChecked

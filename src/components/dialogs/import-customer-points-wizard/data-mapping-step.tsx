@@ -1,10 +1,13 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import { Feature } from "geojson";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { useUserTracking } from "src/infra/user-tracking";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useAtomValue } from "jotai";
 import { dataAtom } from "src/state/jotai";
+
+const CONSTANT_PATTERN_SENTINEL = ";CONSTANT";
 import { parseCustomerPoints } from "src/import/customer-points/parse-customer-points";
 import {
   CustomerPointsIssuesAccumulator,
@@ -34,7 +37,9 @@ export const DataMappingStep: React.FC<{
 }> = ({ onNext, onBack, wizardState }) => {
   const translate = useTranslate();
   const userTracking = useUserTracking();
-  const { modelMetadata } = useAtomValue(dataAtom);
+  const { modelMetadata, hydraulicModel } = useAtomValue(dataAtom);
+  const patterns = hydraulicModel.demands.patterns;
+  const isCustomerDemandsEnabled = useFeatureFlag("FLAG_CUSTOMER_DEMANDS");
 
   const {
     parsedDataSummary,
@@ -43,19 +48,35 @@ export const DataMappingStep: React.FC<{
     selectedFile,
     selectedDemandProperty,
     selectedLabelProperty,
+    selectedPatternId,
     setLoading,
     setError,
     setParsedDataSummary,
     setSelectedDemandProperty,
     setSelectedLabelProperty,
+    setSelectedPatternId,
     isLoading,
   } = wizardState;
+
+  const patternOptions = useMemo(() => {
+    const options: { value: string; label: string }[] = [
+      {
+        value: CONSTANT_PATTERN_SENTINEL,
+        label: translate("constant").toUpperCase(),
+      },
+    ];
+    for (const patternId of patterns.keys()) {
+      options.push({ value: patternId, label: patternId });
+    }
+    return options;
+  }, [patterns, translate]);
 
   const parseInputDataToCustomerPoints = useCallback(
     (
       inputData: InputData,
       demandPropertyName: string,
       labelPropertyName: string | null = null,
+      patternId: string | null = null,
     ) => {
       setLoading(true);
       setError(null);
@@ -85,6 +106,7 @@ export const DataMappingStep: React.FC<{
             1,
             demandPropertyName,
             labelPropertyName,
+            patternId,
           )) {
             totalCount++;
             if (customerPoint) {
@@ -148,6 +170,7 @@ export const DataMappingStep: React.FC<{
         inputData as InputData,
         property,
         selectedLabelProperty,
+        selectedPatternId,
       );
     },
     [
@@ -157,6 +180,7 @@ export const DataMappingStep: React.FC<{
       parseInputDataToCustomerPoints,
       inputData,
       selectedLabelProperty,
+      selectedPatternId,
     ],
   );
 
@@ -173,6 +197,7 @@ export const DataMappingStep: React.FC<{
           inputData as InputData,
           selectedDemandProperty,
           property,
+          selectedPatternId,
         );
       }
     },
@@ -183,6 +208,35 @@ export const DataMappingStep: React.FC<{
       setParsedDataSummary,
       parseInputDataToCustomerPoints,
       inputData,
+      selectedPatternId,
+    ],
+  );
+
+  const handlePatternChange = useCallback(
+    (patternId: string | null) => {
+      userTracking.capture({
+        name: "importCustomerPoints.dataMapping.selectPattern",
+        patternId: patternId ?? "none",
+      });
+      setSelectedPatternId(patternId);
+      if (selectedDemandProperty) {
+        setParsedDataSummary(null);
+        parseInputDataToCustomerPoints(
+          inputData as InputData,
+          selectedDemandProperty,
+          selectedLabelProperty,
+          patternId,
+        );
+      }
+    },
+    [
+      userTracking,
+      setSelectedPatternId,
+      selectedDemandProperty,
+      setParsedDataSummary,
+      parseInputDataToCustomerPoints,
+      inputData,
+      selectedLabelProperty,
     ],
   );
 
@@ -192,6 +246,7 @@ export const DataMappingStep: React.FC<{
   const showNoDataMessage = !inputData;
   const validCount = parsedDataSummary?.validCustomerPoints.length || 0;
   const MAX_PREVIEW_ROWS = 15;
+  const hasDemandPatterns = isCustomerDemandsEnabled && patterns.size > 0;
 
   const isNextDisabled =
     isLoading ||
@@ -213,7 +268,11 @@ export const DataMappingStep: React.FC<{
                   "importCustomerPoints.wizard.dataMapping.attributesMapping.description",
                 )}
               </p>
-              <div className="space-y-4 md:grid md:grid-cols-2 md:gap-4 md:space-y-0">
+              <div
+                className={`space-y-4 md:grid md:gap-4 md:space-y-0 ${
+                  hasDemandPatterns ? "md:grid-cols-3" : "md:grid-cols-2"
+                }`}
+              >
                 <div>
                   <label className="block text-sm text-gray-700 dark:text-gray-300 mb-2">
                     {translate(
@@ -278,6 +337,32 @@ export const DataMappingStep: React.FC<{
                     )}
                   </p>
                 </div>
+                {hasDemandPatterns && (
+                  <div>
+                    <label className="block text-sm text-gray-700 dark:text-gray-300 mb-2">
+                      {`${translate(
+                        "importCustomerPoints.wizard.demandOptions.timePattern.title",
+                      )} (${translate("optional")})`}
+                    </label>
+                    <Selector
+                      options={patternOptions}
+                      selected={selectedPatternId || CONSTANT_PATTERN_SENTINEL}
+                      onChange={(value) => {
+                        const patternId =
+                          value === CONSTANT_PATTERN_SENTINEL ? null : value;
+                        handlePatternChange(patternId);
+                      }}
+                      ariaLabel={translate(
+                        "importCustomerPoints.wizard.demandOptions.timePattern.title",
+                      )}
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      {translate(
+                        "importCustomerPoints.wizard.demandOptions.timePattern.description",
+                      )}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
 

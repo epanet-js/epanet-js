@@ -34,6 +34,7 @@ const initialState: WizardState = {
   isAllocating: false,
   lastAllocatedRules: null,
   isEditingRules: false,
+  selectedPatternId: null,
 };
 
 export const wizardStateAtom = atom<WizardState>(initialState);
@@ -149,6 +150,10 @@ export const useWizardState = (): Omit<WizardState, "allocationRules"> & {
     setWizardState((prev) => ({ ...prev, isEditingRules }));
   };
 
+  const setSelectedPatternId = (patternId: string | null) => {
+    setWizardState((prev) => ({ ...prev, selectedPatternId: patternId }));
+  };
+
   const reset = () => {
     setWizardState(initialState);
   };
@@ -179,6 +184,7 @@ export const useWizardState = (): Omit<WizardState, "allocationRules"> & {
     setIsAllocating,
     setLastAllocatedRules,
     setIsEditingRules,
+    setSelectedPatternId,
     reset,
   };
 };

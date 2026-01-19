@@ -26,6 +26,7 @@ export const setWizardState = (
     isAllocating: false,
     lastAllocatedRules: null,
     isEditingRules: false,
+    selectedPatternId: null,
   };
 
   act(() => {

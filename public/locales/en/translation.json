@@ -589,6 +589,10 @@
           "title": "Add customer demands on top of existing demands",
           "description": "Keep the current base demands and add customer point demands on top. Use this if you want to include both existing and customer-based demands."
         },
+        "timePattern": {
+          "title": "Time pattern",
+          "description": "Optionally apply a time pattern to all imported customer demands."
+        },
         "processingMessage": "Connecting customer points to network..."
       },
       "allocationStep": {
