@@ -125,13 +125,16 @@ export const useImportInp = () => {
         let content: string;
         // Try to read from versioned filesystem first
         if (legitFs) {
+          const arrayBuffer = await file.arrayBuffer();
           try {
-            content = await legitFs.promises.readFile(file.name, "utf8");
+            await legitFs.promises.writeFile(
+              file.name,
+              new Uint8Array(arrayBuffer),
+            );
           } catch (legitFsError) {
-            // File doesn't exist in versioned FS, fall back to File API
-            const arrayBuffer = await file.arrayBuffer();
-            content = new TextDecoder().decode(arrayBuffer);
+            captureError(legitFsError as Error);
           }
+          content = new TextDecoder().decode(arrayBuffer);
         } else {
           // No versioned FS available, use File API
           const arrayBuffer = await file.arrayBuffer();
