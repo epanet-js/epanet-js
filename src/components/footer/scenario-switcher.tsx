@@ -1,6 +1,6 @@
 import * as DD from "@radix-ui/react-dropdown-menu";
 import * as Tooltip from "@radix-ui/react-tooltip";
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 
 import {
   ChevronDownIcon,
@@ -12,19 +12,9 @@ import {
 } from "src/icons";
 import { useTranslate } from "src/hooks/use-translate";
 import { useUserTracking } from "src/infra/user-tracking";
-import { usePersistence } from "src/lib/persistence/context";
-import { MemPersistence } from "src/lib/persistence/memory";
-import { MomentLog } from "src/lib/persistence/moment-log";
-import {
-  scenariosAtom,
-  scenariosListAtom,
-  createScenario,
-} from "src/state/scenarios";
-import {
-  simulationAtom,
-  initialSimulationState,
-  dialogAtom,
-} from "src/state/jotai";
+import { useScenarioOperations } from "src/hooks/use-scenario-operations";
+import { scenariosAtom, scenariosListAtom } from "src/state/scenarios";
+import { dialogAtom } from "src/state/jotai";
 import {
   Button,
   DDContent,
@@ -33,28 +23,21 @@ import {
   StyledTooltipArrow,
   TContent,
 } from "../elements";
-import { modeAtom, Mode } from "src/state/mode";
-
-const DRAWING_MODES: Mode[] = [
-  Mode.DRAW_JUNCTION,
-  Mode.DRAW_PIPE,
-  Mode.DRAW_RESERVOIR,
-  Mode.DRAW_PUMP,
-  Mode.DRAW_VALVE,
-  Mode.DRAW_TANK,
-  Mode.CONNECT_CUSTOMER_POINTS,
-  Mode.REDRAW_LINK,
-];
 
 export const ScenarioSwitcher = () => {
   const translate = useTranslate();
   const userTracking = useUserTracking();
-  const persistence = usePersistence() as MemPersistence;
-  const [scenariosState, setScenariosState] = useAtom(scenariosAtom);
+  const scenariosState = useAtomValue(scenariosAtom);
   const scenariosList = useAtomValue(scenariosListAtom);
-  const [simulation, setSimulation] = useAtom(simulationAtom);
-  const [modeState, setMode] = useAtom(modeAtom);
   const setDialog = useSetAtom(dialogAtom);
+
+  // Use the new hook for scenario operations
+  const {
+    switchToMain,
+    switchToScenario,
+    createNewScenario,
+    deleteScenarioById,
+  } = useScenarioOperations();
 
   const activeScenarioId = scenariosState.activeScenarioId;
   const isMainActive = activeScenarioId === null;
@@ -73,39 +56,7 @@ export const ScenarioSwitcher = () => {
       scenarioName: "Main",
     });
 
-    const currentScenario = scenariosState.scenarios.get(activeScenarioId);
-    if (currentScenario) {
-      currentScenario.momentLog = persistence.getMomentLog();
-      currentScenario.simulation = simulation;
-      currentScenario.modelVersion = persistence.getModelVersion();
-    }
-
-    if (scenariosState.baseModelSnapshot) {
-      persistence.restoreToBase(scenariosState.baseModelSnapshot);
-    }
-
-    if (scenariosState.mainMomentLog) {
-      const deltas = scenariosState.mainMomentLog.getDeltas();
-      for (const delta of deltas) {
-        persistence.applySnapshot(delta, "");
-      }
-      persistence.switchMomentLog(scenariosState.mainMomentLog);
-    }
-
-    if (scenariosState.mainModelVersion) {
-      persistence.setModelVersion(scenariosState.mainModelVersion);
-    }
-
-    setSimulation(scenariosState.mainSimulation ?? initialSimulationState);
-
-    setScenariosState((prev) => ({
-      ...prev,
-      activeScenarioId: null,
-    }));
-
-    if (DRAWING_MODES.includes(modeState.mode)) {
-      setMode({ mode: Mode.NONE });
-    }
+    switchToMain();
   };
 
   const handleSelectScenario = (scenarioId: string) => {
@@ -118,183 +69,21 @@ export const ScenarioSwitcher = () => {
       scenarioName: scenario?.name,
     });
 
-    if (isMainActive) {
-      setScenariosState((prev) => ({
-        ...prev,
-        mainMomentLog: persistence.getMomentLog(),
-        mainSimulation: simulation,
-        mainModelVersion: persistence.getModelVersion(),
-      }));
-    } else {
-      const currentScenario = scenariosState.scenarios.get(activeScenarioId);
-      if (currentScenario) {
-        currentScenario.momentLog = persistence.getMomentLog();
-        currentScenario.simulation = simulation;
-        currentScenario.modelVersion = persistence.getModelVersion();
-      }
-    }
-
-    if (scenariosState.baseModelSnapshot) {
-      persistence.restoreToBase(scenariosState.baseModelSnapshot);
-    }
-
-    if (scenario) {
-      const deltas = scenario.momentLog.getDeltas();
-      for (const delta of deltas) {
-        persistence.applySnapshot(delta, "");
-      }
-      persistence.switchMomentLog(scenario.momentLog);
-
-      persistence.setModelVersion(scenario.modelVersion);
-    }
-
-    setSimulation(scenario?.simulation ?? initialSimulationState);
-
-    setScenariosState((prev) => ({
-      ...prev,
-      activeScenarioId: scenarioId,
-    }));
+    switchToScenario(scenarioId);
   };
 
   const handleCreateScenario = () => {
-    let baseSnapshot = scenariosState.baseModelSnapshot;
-    if (!baseSnapshot) {
-      baseSnapshot = persistence.captureModelSnapshot();
-    }
-
-    const mainMomentLog = isMainActive
-      ? persistence.getMomentLog()
-      : scenariosState.mainMomentLog;
-
-    const mainSimulation = isMainActive
-      ? simulation
-      : scenariosState.mainSimulation;
-
-    const mainModelVersion = isMainActive
-      ? persistence.getModelVersion()
-      : scenariosState.mainModelVersion;
-
-    if (!isMainActive) {
-      const currentScenario = scenariosState.scenarios.get(activeScenarioId);
-      if (currentScenario) {
-        currentScenario.momentLog = persistence.getMomentLog();
-        currentScenario.simulation = simulation;
-        currentScenario.modelVersion = persistence.getModelVersion();
-      }
-    }
-
-    const newMomentLog = new MomentLog();
-    newMomentLog.setSnapshot(baseSnapshot.moment, baseSnapshot.stateId);
-
-    const newScenario = createScenario(
-      scenariosState,
-      newMomentLog,
-      baseSnapshot.stateId,
-    );
+    const { scenarioId, scenarioName } = createNewScenario();
 
     userTracking.capture({
       name: "scenario.created",
-      scenarioId: newScenario.id,
-      scenarioName: newScenario.name,
-    });
-
-    persistence.restoreToBase(baseSnapshot);
-    persistence.switchMomentLog(newMomentLog);
-
-    persistence.setModelVersion(baseSnapshot.stateId);
-
-    setSimulation(initialSimulationState);
-
-    setScenariosState((prev) => {
-      const newScenarios = new Map(prev.scenarios);
-      newScenarios.set(newScenario.id, newScenario);
-      return {
-        ...prev,
-        scenarios: newScenarios,
-        highestScenarioNumber: newScenario.number,
-        activeScenarioId: newScenario.id,
-        baseModelSnapshot: baseSnapshot,
-        mainMomentLog: mainMomentLog,
-        mainSimulation: mainSimulation,
-        mainModelVersion: mainModelVersion,
-      };
+      scenarioId,
+      scenarioName,
     });
   };
 
   const handleDeleteScenario = (scenarioId: string) => {
-    const scenarioToDelete = scenariosState.scenarios.get(scenarioId);
-    if (!scenarioToDelete) return;
-
-    const remainingScenarios = scenariosList.filter((s) => s.id !== scenarioId);
-    const isDeletedActive = activeScenarioId === scenarioId;
-
-    if (remainingScenarios.length === 0) {
-      // Last scenario being deleted - reset to initial state
-      if (scenariosState.baseModelSnapshot) {
-        persistence.restoreToBase(scenariosState.baseModelSnapshot);
-      }
-
-      if (scenariosState.mainMomentLog) {
-        const deltas = scenariosState.mainMomentLog.getDeltas();
-        for (const delta of deltas) {
-          persistence.applySnapshot(delta, "");
-        }
-        persistence.switchMomentLog(scenariosState.mainMomentLog);
-      }
-
-      if (scenariosState.mainModelVersion) {
-        persistence.setModelVersion(scenariosState.mainModelVersion);
-      }
-
-      setSimulation(scenariosState.mainSimulation ?? initialSimulationState);
-
-      setScenariosState((prev) => ({
-        ...prev,
-        scenarios: new Map(),
-        activeScenarioId: null,
-        baseModelSnapshot: null,
-        mainMomentLog: null,
-        mainSimulation: null,
-        mainModelVersion: null,
-        highestScenarioNumber: 0,
-      }));
-    } else if (isDeletedActive) {
-      // Deleted scenario was active - switch to first remaining scenario
-      const nextScenario = remainingScenarios[0];
-
-      if (scenariosState.baseModelSnapshot) {
-        persistence.restoreToBase(scenariosState.baseModelSnapshot);
-      }
-
-      const deltas = nextScenario.momentLog.getDeltas();
-      for (const delta of deltas) {
-        persistence.applySnapshot(delta, "");
-      }
-      persistence.switchMomentLog(nextScenario.momentLog);
-      persistence.setModelVersion(nextScenario.modelVersion);
-
-      setSimulation(nextScenario.simulation ?? initialSimulationState);
-
-      setScenariosState((prev) => {
-        const newScenarios = new Map(prev.scenarios);
-        newScenarios.delete(scenarioId);
-        return {
-          ...prev,
-          scenarios: newScenarios,
-          activeScenarioId: nextScenario.id,
-        };
-      });
-    } else {
-      // Deleted scenario was not active - just remove from list
-      setScenariosState((prev) => {
-        const newScenarios = new Map(prev.scenarios);
-        newScenarios.delete(scenarioId);
-        return {
-          ...prev,
-          scenarios: newScenarios,
-        };
-      });
-    }
+    deleteScenarioById(scenarioId);
   };
 
   const openDeleteConfirmation = (scenarioId: string, scenarioName: string) => {

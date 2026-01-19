@@ -8,6 +8,8 @@ import {
   MomentInput,
   Moment,
 } from "src/lib/persistence/moment";
+import type { ScenariosState, Scenario } from "src/state/scenarios";
+import type { SimulationState } from "src/state/jotai";
 import { generateKeyBetween } from "fractional-indexing";
 import {
   Data,
@@ -248,6 +250,262 @@ export class MemPersistence implements IPersistence {
         version,
       },
     });
+  }
+
+  switchToMainScenario(
+    currentState: ScenariosState,
+    getCurrentSimulation: () => SimulationState,
+  ): ScenariosState {
+    if (currentState.activeScenarioId === null) {
+      return currentState;
+    }
+
+    const currentScenario = currentState.scenarios.get(currentState.activeScenarioId);
+    const updatedScenarios = new Map(currentState.scenarios);
+    if (currentScenario) {
+      updatedScenarios.set(currentState.activeScenarioId, {
+        ...currentScenario,
+        momentLog: this.getMomentLog(),
+        simulation: getCurrentSimulation(),
+        modelVersion: this.getModelVersion(),
+      });
+    }
+
+    if (currentState.baseModelSnapshot) {
+      this.restoreToBase(currentState.baseModelSnapshot);
+    }
+
+    if (currentState.mainMomentLog) {
+      const deltas = currentState.mainMomentLog.getDeltas();
+      for (const delta of deltas) {
+        this.applySnapshot(delta, "");
+      }
+      this.switchMomentLog(currentState.mainMomentLog);
+    }
+
+    if (currentState.mainModelVersion) {
+      this.setModelVersion(currentState.mainModelVersion);
+    }
+
+    return {
+      ...currentState,
+      scenarios: updatedScenarios,
+      activeScenarioId: null,
+    };
+  }
+
+  switchToScenario(
+    currentState: ScenariosState,
+    scenarioId: string,
+    getCurrentSimulation: () => SimulationState,
+  ): ScenariosState {
+    if (currentState.activeScenarioId === scenarioId) {
+      return currentState;
+    }
+
+    const scenario = currentState.scenarios.get(scenarioId);
+    if (!scenario) {
+      throw new Error(`Scenario ${scenarioId} not found`);
+    }
+
+    const isMainActive = currentState.activeScenarioId === null;
+    const updatedScenarios = new Map(currentState.scenarios);
+
+    let newState = { ...currentState, scenarios: updatedScenarios };
+
+    if (isMainActive) {
+      newState.mainMomentLog = this.getMomentLog();
+      newState.mainSimulation = getCurrentSimulation();
+      newState.mainModelVersion = this.getModelVersion();
+    } else {
+      const currentScenario = currentState.scenarios.get(currentState.activeScenarioId!);
+      if (currentScenario) {
+        updatedScenarios.set(currentState.activeScenarioId!, {
+          ...currentScenario,
+          momentLog: this.getMomentLog(),
+          simulation: getCurrentSimulation(),
+          modelVersion: this.getModelVersion(),
+        });
+      }
+    }
+
+    if (currentState.baseModelSnapshot) {
+      this.restoreToBase(currentState.baseModelSnapshot);
+    }
+
+    const deltas = scenario.momentLog.getDeltas();
+    for (const delta of deltas) {
+      this.applySnapshot(delta, "");
+    }
+    this.switchMomentLog(scenario.momentLog);
+    this.setModelVersion(scenario.modelVersion);
+
+    return {
+      ...newState,
+      activeScenarioId: scenarioId,
+    };
+  }
+
+  createScenario(
+    currentState: ScenariosState,
+    scenarioFactory: (state: ScenariosState) => Scenario,
+    getCurrentSimulation: () => SimulationState,
+  ): { state: ScenariosState; scenarioId: string; scenarioName: string } {
+    let baseSnapshot = currentState.baseModelSnapshot;
+    if (!baseSnapshot) {
+      baseSnapshot = this.captureModelSnapshot();
+    }
+
+    const isMainActive = currentState.activeScenarioId === null;
+
+    const mainMomentLog = isMainActive
+      ? this.getMomentLog()
+      : currentState.mainMomentLog;
+
+    const mainSimulation = isMainActive
+      ? getCurrentSimulation()
+      : currentState.mainSimulation;
+
+    const mainModelVersion = isMainActive
+      ? this.getModelVersion()
+      : currentState.mainModelVersion;
+
+    const updatedScenarios = new Map(currentState.scenarios);
+
+    if (!isMainActive) {
+      const currentScenario = currentState.scenarios.get(currentState.activeScenarioId!);
+      if (currentScenario) {
+        updatedScenarios.set(currentState.activeScenarioId!, {
+          ...currentScenario,
+          momentLog: this.getMomentLog(),
+          simulation: getCurrentSimulation(),
+          modelVersion: this.getModelVersion(),
+        });
+      }
+    }
+
+    const newScenario = scenarioFactory({
+      ...currentState,
+      baseModelSnapshot: baseSnapshot,
+    });
+
+    const newMomentLog = new MomentLog();
+    newMomentLog.setSnapshot(baseSnapshot.moment, baseSnapshot.stateId);
+
+    const finalScenario = {
+      ...newScenario,
+      momentLog: newMomentLog,
+    };
+
+    this.restoreToBase(baseSnapshot);
+    this.switchMomentLog(newMomentLog);
+    this.setModelVersion(baseSnapshot.stateId);
+
+    updatedScenarios.set(finalScenario.id, finalScenario);
+
+    return {
+      scenarioId: finalScenario.id,
+      scenarioName: finalScenario.name,
+      state: {
+        ...currentState,
+        scenarios: updatedScenarios,
+        highestScenarioNumber: finalScenario.number,
+        activeScenarioId: finalScenario.id,
+        baseModelSnapshot: baseSnapshot,
+        mainMomentLog,
+        mainSimulation,
+        mainModelVersion,
+      },
+    };
+  }
+
+  deleteScenario(
+    currentState: ScenariosState,
+    scenarioId: string,
+    getCurrentSimulation: () => SimulationState,
+  ): ScenariosState {
+    const scenarioToDelete = currentState.scenarios.get(scenarioId);
+    if (!scenarioToDelete) {
+      return currentState;
+    }
+
+    const remainingScenarios = Array.from(currentState.scenarios.values())
+      .filter((s) => s.id !== scenarioId)
+      .sort((a, b) => a.createdAt - b.createdAt);
+
+    const isDeletedActive = currentState.activeScenarioId === scenarioId;
+
+    if (remainingScenarios.length === 0) {
+      if (currentState.baseModelSnapshot) {
+        this.restoreToBase(currentState.baseModelSnapshot);
+      }
+
+      if (currentState.mainMomentLog) {
+        const deltas = currentState.mainMomentLog.getDeltas();
+        for (const delta of deltas) {
+          this.applySnapshot(delta, "");
+        }
+        this.switchMomentLog(currentState.mainMomentLog);
+      }
+
+      if (currentState.mainModelVersion) {
+        this.setModelVersion(currentState.mainModelVersion);
+      }
+
+      return {
+        ...currentState,
+        scenarios: new Map(),
+        activeScenarioId: null,
+        baseModelSnapshot: null,
+        mainMomentLog: null,
+        mainSimulation: null,
+        mainModelVersion: null,
+        highestScenarioNumber: 0,
+      };
+    }
+
+    if (isDeletedActive) {
+      const nextScenario = remainingScenarios[0];
+
+      if (currentState.baseModelSnapshot) {
+        this.restoreToBase(currentState.baseModelSnapshot);
+      }
+
+      const deltas = nextScenario.momentLog.getDeltas();
+      for (const delta of deltas) {
+        this.applySnapshot(delta, "");
+      }
+      this.switchMomentLog(nextScenario.momentLog);
+      this.setModelVersion(nextScenario.modelVersion);
+
+      const updatedScenarios = new Map(currentState.scenarios);
+      updatedScenarios.delete(scenarioId);
+
+      return {
+        ...currentState,
+        scenarios: updatedScenarios,
+        activeScenarioId: nextScenario.id,
+      };
+    }
+
+    const updatedScenarios = new Map(currentState.scenarios);
+    updatedScenarios.delete(scenarioId);
+
+    return {
+      ...currentState,
+      scenarios: updatedScenarios,
+    };
+  }
+
+  getSimulationForState(
+    state: ScenariosState,
+    initialSimulationState: SimulationState,
+  ): SimulationState {
+    if (state.activeScenarioId === null) {
+      return state.mainSimulation ?? initialSimulationState;
+    }
+    const scenario = state.scenarios.get(state.activeScenarioId);
+    return scenario?.simulation ?? initialSimulationState;
   }
 
   /**
