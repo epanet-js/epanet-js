@@ -174,14 +174,15 @@ export const DemandCategoriesEditor = ({
   );
 
   return (
-    <SpreadsheetTable<DemandCategoryRow>
-      data={rowData}
-      columns={columns}
-      onChange={handleChange}
-      createRow={createRow}
-      rowActions={rowActions}
-      height={150}
-      addRowLabel={translate("addDemandCategory")}
-    />
+    <div className="max-h-[150px]">
+      <SpreadsheetTable<DemandCategoryRow>
+        data={rowData}
+        columns={columns}
+        onChange={handleChange}
+        createRow={createRow}
+        rowActions={rowActions}
+        addRowLabel={translate("addDemandCategory")}
+      />
+    </div>
   );
 };
