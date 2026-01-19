@@ -64,22 +64,6 @@ export function CheatsheetDialog() {
           binding: toggleNetworkReviewShortcut,
           description: "networkReview.toggle",
         },
-        ...(isScenariosOn
-          ? [
-              {
-                binding: createScenarioShortcut,
-                description: "createScenario",
-              },
-              {
-                binding: cycleScenarioShortcut,
-                description: "cycleScenario",
-              },
-              {
-                binding: toggleScenarioShortcut,
-                description: "toggleScenario",
-              },
-            ]
-          : []),
         { binding: "?", description: "keyboardShortcuts.title" },
       ],
     },
@@ -118,6 +102,27 @@ export function CheatsheetDialog() {
         },
       ],
     },
+    ...(isScenariosOn
+      ? [
+          {
+            group: "keyboardShortcuts.scenarios",
+            shortcuts: [
+              {
+                binding: createScenarioShortcut,
+                description: "createScenario",
+              },
+              {
+                binding: cycleScenarioShortcut,
+                description: "cycleScenario",
+              },
+              {
+                binding: toggleScenarioShortcut,
+                description: "toggleScenario",
+              },
+            ],
+          },
+        ]
+      : []),
     {
       group: "keyboardShortcuts.editingSelection",
       shortcuts: [

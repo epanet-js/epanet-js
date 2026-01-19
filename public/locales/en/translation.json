@@ -19,6 +19,7 @@
     "interface": "Interface",
     "mapTools": "Map tools",
     "simulation": "Simulation",
+    "scenarios": "Scenarios",
     "editingSelection": "Editing & selection"
   },
   "help": "Help",
