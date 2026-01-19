@@ -144,7 +144,8 @@ function QuickGraphChartECharts({
         const timeLabel = params[0]?.name ?? "";
         const lines = params.map((p: any) => {
           const value = localizeDecimal(p.value, { decimals });
-          if (!isScenariosOn) return value;
+          const isComparingScenarios = isScenariosOn && mainValues !== null;
+          if (!isComparingScenarios) return value;
           const colorDot = `<span style="display:inline-block;width:8px;height:8px;background:${p.color};margin-right:4px;border-radius:50%;"></span>`;
           return `${colorDot}${p.seriesName ?? ""}: ${value}`;
         });
