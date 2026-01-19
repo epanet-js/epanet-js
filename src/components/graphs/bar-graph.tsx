@@ -5,35 +5,30 @@ import { useTranslate } from "src/hooks/use-translate";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { colors } from "src/lib/constants";
 
-interface QuickBarGraphProps {
+interface BarGraphProps {
   values: number[];
-  intervalSeconds: number;
+  labels: string[];
 }
 
-export function QuickBarGraph({ values, intervalSeconds }: QuickBarGraphProps) {
+export function BarGraph({ values, labels }: BarGraphProps) {
   const translate = useTranslate();
   const chartRef = useRef<ReactECharts>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const timeLabels = useMemo(
-    () => buildTimeLabels(values.length, intervalSeconds),
-    [values.length, intervalSeconds],
-  );
-
   const xAxis: EChartsOption["xAxis"] = useMemo(
     () => ({
       type: "category",
-      data: timeLabels,
+      data: labels,
       axisLine: { show: true, lineStyle: { color: colors.gray300 } },
       axisTick: { show: true, lineStyle: { color: colors.gray300 } },
       axisLabel: {
         show: true,
         color: colors.gray500,
         fontSize: 11,
-        interval: calculateLabelInterval(values.length),
+        interval: calculateLabelInterval(labels.length),
       },
     }),
-    [timeLabels, values.length],
+    [labels],
   );
 
   const yAxis: EChartsOption["yAxis"] = useMemo(
@@ -118,20 +113,6 @@ export function QuickBarGraph({ values, intervalSeconds }: QuickBarGraphProps) {
     </div>
   );
 }
-
-const buildTimeLabels = (
-  intervalsCount: number,
-  intervalSeconds: number,
-): string[] => {
-  const labels: string[] = [];
-  for (let i = 0; i < intervalsCount; i++) {
-    const totalSeconds = i * intervalSeconds;
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    labels.push(`${hours}:${minutes.toString().padStart(2, "0")}`);
-  }
-  return labels;
-};
 
 const calculateLabelInterval = (count: number): number => {
   if (count <= 6) return 0;

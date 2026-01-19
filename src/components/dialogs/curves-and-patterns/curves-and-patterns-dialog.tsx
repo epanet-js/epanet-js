@@ -5,7 +5,7 @@ import { useTranslate } from "src/hooks/use-translate";
 import { Button } from "src/components/elements";
 import { PatternSidebar } from "./pattern-sidebar";
 import { PatternTable } from "./pattern-table";
-import { QuickBarGraph } from "./quick-bar-graph";
+import { PatternGraph } from "./pattern-graph";
 import { DemandPattern, PatternId } from "src/hydraulic-model/demands";
 import { PatternsIcon } from "src/icons";
 import { dataAtom } from "src/state/jotai";
@@ -24,6 +24,7 @@ export const CurvesAndPatternsDialog = () => {
 
   const patternTimestepSeconds =
     hydraulicModel.epsTiming.patternTimestep ?? 3600;
+  const totalDurationSeconds = hydraulicModel.epsTiming.duration;
 
   const getPatternData = useCallback(
     (patternId: PatternId): DemandPattern =>
@@ -59,9 +60,10 @@ export const CurvesAndPatternsDialog = () => {
                 />
               </div>
               <div className="flex-1 h-full pt-4">
-                <QuickBarGraph
-                  values={getPatternData(selectedPatternId)}
+                <PatternGraph
+                  pattern={getPatternData(selectedPatternId)}
                   intervalSeconds={patternTimestepSeconds}
+                  totalDurationSeconds={totalDurationSeconds}
                 />
               </div>
             </div>
