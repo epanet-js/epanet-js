@@ -12,18 +12,29 @@ interface PatternGraphProps {
   pattern: DemandPattern;
   intervalSeconds: number;
   totalDurationSeconds: number;
+  highlightedBarIndex?: number | null;
+  onBarClick?: (index: number) => void;
 }
 
 export function PatternGraph({
   pattern,
   intervalSeconds,
   totalDurationSeconds,
+  highlightedBarIndex,
+  onBarClick,
 }: PatternGraphProps) {
   const { values, labels } = useMemo(() => {
     return buildPatternData(pattern, intervalSeconds, totalDurationSeconds);
   }, [pattern, intervalSeconds, totalDurationSeconds]);
 
-  return <BarGraph values={values} labels={labels} />;
+  return (
+    <BarGraph
+      values={values}
+      labels={labels}
+      highlightedIndex={highlightedBarIndex}
+      onBarClick={onBarClick}
+    />
+  );
 }
 
 function getColorForCategory(category: BarCategory): string {

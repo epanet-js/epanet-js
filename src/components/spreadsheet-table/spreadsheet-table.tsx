@@ -5,8 +5,10 @@ import {
   SimpleColumn,
 } from "react-datasheet-grid";
 import {
+  forwardRef,
   useCallback,
   useEffect,
+  useImperativeHandle,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -30,20 +32,26 @@ type SpreadsheetTableProps<T extends Record<string, unknown>> = {
   rowActions?: RowAction[];
   addRowLabel?: string;
   gutterColumn?: boolean;
+  onActiveRowChange?: (rowIndex: number | null) => void;
 };
 
-export function SpreadsheetTable<T extends Record<string, unknown>>({
-  data,
-  columns,
-  onChange,
-  createRow,
-  lockRows = false,
-  emptyState,
-  rowActions,
-  addRowLabel,
-  gutterColumn = false,
-}: SpreadsheetTableProps<T>) {
+function SpreadsheetTableInner<T extends Record<string, unknown>>(
+  {
+    data,
+    columns,
+    onChange,
+    createRow,
+    lockRows = false,
+    emptyState,
+    rowActions,
+    addRowLabel,
+    gutterColumn = false,
+    onActiveRowChange,
+  }: SpreadsheetTableProps<T>,
+  ref: React.ForwardedRef<DataSheetGridRef>,
+) {
   const gridRef = useRef<DataSheetGridRef>(null);
+  useImperativeHandle(ref, () => gridRef.current!, []);
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerHeight, setContainerHeight] = useState<number | undefined>(
     undefined,
@@ -68,8 +76,9 @@ export function SpreadsheetTable<T extends Record<string, unknown>>({
   const handleActiveCellChange = useCallback(
     ({ cell }: { cell: { col: number; row: number } | null }) => {
       setSpreadsheetActive(cell !== null);
+      onActiveRowChange?.(cell?.row ?? null);
     },
-    [],
+    [onActiveRowChange],
   );
 
   useEffect(() => {
@@ -185,6 +194,14 @@ export function SpreadsheetTable<T extends Record<string, unknown>>({
     </SpreadsheetProvider>
   );
 }
+
+export const SpreadsheetTable = forwardRef(SpreadsheetTableInner) as <
+  T extends Record<string, unknown>,
+>(
+  props: SpreadsheetTableProps<T> & {
+    ref?: React.ForwardedRef<DataSheetGridRef>;
+  },
+) => React.ReactElement;
 
 const getGridStyles = (gutterColumn: boolean) => {
   const inputStyles = [

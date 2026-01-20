@@ -4,8 +4,7 @@ import { DialogContainer, DialogHeader, useDialogState } from "../../dialog";
 import { useTranslate } from "src/hooks/use-translate";
 import { Button } from "src/components/elements";
 import { PatternSidebar } from "./pattern-sidebar";
-import { PatternTable } from "./pattern-table";
-import { PatternGraph } from "./pattern-graph";
+import { PatternDetail } from "./pattern-detail";
 import { DemandPattern, PatternId } from "src/hydraulic-model/demands";
 import { PatternsIcon } from "src/icons";
 import { dataAtom } from "src/state/jotai";
@@ -110,24 +109,15 @@ export const CurvesAndPatternsDialog = () => {
         />
         <div className="flex-1 flex flex-col min-h-0 p-2 w-full">
           {selectedPatternId ? (
-            <div className="grid grid-cols-5 gap-4 h-full">
-              <div className="col-span-2 h-full overflow-hidden">
-                <PatternTable
-                  pattern={getPatternData(selectedPatternId)}
-                  patternTimestepSeconds={patternTimestepSeconds}
-                  onChange={(newPattern) =>
-                    handlePatternChange(selectedPatternId, newPattern)
-                  }
-                />
-              </div>
-              <div className="col-span-3 h-full pt-4">
-                <PatternGraph
-                  pattern={getPatternData(selectedPatternId)}
-                  intervalSeconds={patternTimestepSeconds}
-                  totalDurationSeconds={totalDurationSeconds}
-                />
-              </div>
-            </div>
+            <PatternDetail
+              key={selectedPatternId}
+              pattern={getPatternData(selectedPatternId)}
+              patternTimestepSeconds={patternTimestepSeconds}
+              totalDurationSeconds={totalDurationSeconds}
+              onChange={(newPattern) =>
+                handlePatternChange(selectedPatternId, newPattern)
+              }
+            />
           ) : hasPatterns ? (
             <div className="flex-1 flex items-center justify-center">
               <NoSelectionState />

@@ -1,5 +1,5 @@
-import { useMemo, useRef, useEffect } from "react";
-import ReactECharts from "echarts-for-react";
+import { useMemo, useRef, useEffect, useCallback } from "react";
+import ReactECharts, { EChartsInstance } from "echarts-for-react";
 import type { EChartsOption } from "echarts";
 import { useTranslate } from "src/hooks/use-translate";
 import { localizeDecimal } from "src/infra/i18n/numbers";
@@ -15,9 +15,16 @@ export type BarValue = number | StyledBarValue;
 interface BarGraphProps {
   values: BarValue[];
   labels: string[];
+  highlightedIndex?: number | null;
+  onBarClick?: (index: number) => void;
 }
 
-export function BarGraph({ values, labels }: BarGraphProps) {
+export function BarGraph({
+  values,
+  labels,
+  highlightedIndex,
+  onBarClick,
+}: BarGraphProps) {
   const translate = useTranslate();
   const chartRef = useRef<ReactECharts>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -55,40 +62,48 @@ export function BarGraph({ values, labels }: BarGraphProps) {
             : v,
         ),
         barMaxWidth: 40,
+        emphasis: {
+          itemStyle: {
+            color: colors.fuchsia500,
+          },
+        },
       },
     ],
     [values],
   );
 
-  const option: EChartsOption = {
-    animation: false,
-    grid: {
-      top: 16,
-      right: 16,
-      bottom: 24,
-      left: 40,
-      containLabel: false,
-    },
-    xAxis,
-    yAxis,
-    series,
-    tooltip: {
-      trigger: "axis",
-      backgroundColor: "white",
-      borderColor: colors.gray300,
-      textStyle: {
-        color: colors.gray700,
-        fontSize: 12,
+  const option: EChartsOption = useMemo(
+    () => ({
+      animation: false,
+      grid: {
+        top: 16,
+        right: 16,
+        bottom: 24,
+        left: 40,
+        containLabel: false,
       },
-      formatter: (params: unknown) => {
-        if (!Array.isArray(params) || params.length === 0) return "";
-        const p = params[0] as { name: string; value: number };
-        const label = (p.name ?? "").trim();
-        const value = localizeDecimal(p.value, { decimals: 2 });
-        return [label, value].filter(Boolean).join("<br/>");
+      xAxis,
+      yAxis,
+      series,
+      tooltip: {
+        trigger: "axis",
+        backgroundColor: "white",
+        borderColor: colors.gray300,
+        textStyle: {
+          color: colors.gray700,
+          fontSize: 12,
+        },
+        formatter: (params: unknown) => {
+          if (!Array.isArray(params) || params.length === 0) return "";
+          const p = params[0] as { name: string; value: number };
+          const label = (p.name ?? "").trim();
+          const value = localizeDecimal(p.value, { decimals: 2 });
+          return [label, value].filter(Boolean).join("<br/>");
+        },
       },
-    },
-  };
+    }),
+    [xAxis, yAxis, series],
+  );
 
   useEffect(() => {
     const container = containerRef.current;
@@ -102,6 +117,44 @@ export function BarGraph({ values, labels }: BarGraphProps) {
     resizeObserver.observe(container);
     return () => resizeObserver.disconnect();
   }, []);
+
+  const onChartReady = useCallback(
+    (chart: EChartsInstance) => {
+      const zr = chart.getZr();
+
+      zr.on("click", (params: { offsetX: number; offsetY: number }) => {
+        const pointInPixel = [params.offsetX, params.offsetY];
+        if (!chart.containPixel("grid", pointInPixel)) return;
+
+        const pointInGrid = chart.convertFromPixel("grid", pointInPixel);
+        const dataIndex = Math.round(pointInGrid[0]);
+        if (dataIndex >= 0 && dataIndex < values.length) {
+          onBarClick?.(dataIndex);
+        }
+      });
+
+      zr.on("mousemove", (params: { offsetX: number; offsetY: number }) => {
+        const pointInPixel = [params.offsetX, params.offsetY];
+        const isInGrid = chart.containPixel("grid", pointInPixel);
+        zr.setCursorStyle(isInGrid ? "pointer" : "default");
+      });
+    },
+    [onBarClick, values.length],
+  );
+
+  useEffect(() => {
+    const chart = chartRef.current?.getEchartsInstance();
+    if (!chart) return;
+
+    chart.dispatchAction({ type: "downplay", seriesIndex: 0 });
+    if (highlightedIndex != null) {
+      chart.dispatchAction({
+        type: "highlight",
+        seriesIndex: 0,
+        dataIndex: highlightedIndex,
+      });
+    }
+  }, [highlightedIndex]);
 
   if (values.length === 0) {
     return (
@@ -119,6 +172,7 @@ export function BarGraph({ values, labels }: BarGraphProps) {
         style={{ height: "100%", width: "100%" }}
         opts={{ renderer: "svg" }}
         notMerge={true}
+        onChartReady={onChartReady}
       />
     </div>
   );
