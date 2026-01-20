@@ -5,8 +5,15 @@ import { useTranslate } from "src/hooks/use-translate";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { colors } from "src/lib/constants";
 
+export interface StyledBarValue {
+  value: number;
+  itemStyle: { color: string };
+}
+
+export type BarValue = number | StyledBarValue;
+
 interface BarGraphProps {
-  values: number[];
+  values: BarValue[];
   labels: string[];
 }
 
@@ -31,19 +38,22 @@ export function BarGraph({ values, labels }: BarGraphProps) {
     [labels],
   );
 
-  const yAxis: EChartsOption["yAxis"] = useMemo(
-    () => buildYAxis(values),
-    [values],
-  );
+  const yAxis: EChartsOption["yAxis"] = useMemo(() => {
+    const numericValues = values.map((v) =>
+      typeof v === "number" ? v : v.value,
+    );
+    return buildYAxis(numericValues);
+  }, [values]);
 
   const series: EChartsOption["series"] = useMemo(
     () => [
       {
         type: "bar",
-        data: values,
-        itemStyle: {
-          color: colors.purple500,
-        },
+        data: values.map((v) =>
+          typeof v === "number"
+            ? { value: v, itemStyle: { color: colors.purple500 } }
+            : v,
+        ),
         barMaxWidth: 40,
       },
     ],

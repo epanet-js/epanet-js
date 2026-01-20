@@ -42,7 +42,7 @@ export const CurvesAndPatternsDialog = () => {
   const hasPatterns = editedPatterns.size > 0;
   const patternTimestepSeconds =
     hydraulicModel.epsTiming.patternTimestep ?? 3600;
-  const totalDurationSeconds = hydraulicModel.epsTiming.duration;
+  const totalDurationSeconds = hydraulicModel.epsTiming.duration ?? 0;
 
   const getPatternData = useCallback(
     (patternId: PatternId): DemandPattern =>
