@@ -126,6 +126,7 @@ export const PatternTable = ({
         label: translate("delete"),
         icon: <DeleteIcon size="sm" />,
         onSelect: handleDeleteRow,
+        disabled: () => rowData.length <= 1,
       },
       {
         label: translate("insertRowAbove"),
@@ -138,7 +139,13 @@ export const PatternTable = ({
         onSelect: handleInsertRowBelow,
       },
     ],
-    [translate, handleDeleteRow, handleInsertRowAbove, handleInsertRowBelow],
+    [
+      translate,
+      handleDeleteRow,
+      handleInsertRowAbove,
+      handleInsertRowBelow,
+      rowData.length,
+    ],
   );
 
   const columns = useMemo(
