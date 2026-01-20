@@ -10,7 +10,9 @@ import {
   MoreActionsIcon,
   DeleteIcon,
   RenameIcon,
+  SuccessIcon,
 } from "src/icons";
+import { notify } from "src/components/notifications";
 import { useTranslate } from "src/hooks/use-translate";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useScenarioOperations } from "src/hooks/use-scenario-operations";
@@ -81,6 +83,13 @@ export const ScenarioSwitcher = () => {
       name: "scenario.created",
       scenarioId,
       scenarioName,
+    });
+
+    notify({
+      variant: "success",
+      title: translate("scenarios.created"),
+      Icon: SuccessIcon,
+      duration: 3000,
     });
   };
 

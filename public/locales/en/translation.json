@@ -744,6 +744,7 @@
   "noDataAvailable": "No data available",
   "scenarios": {
     "main": "Main",
+    "created": "Scenario created",
     "createNew": "Create new scenario",
     "newScenario": "New",
     "switcherTooltip": "Switch scenario",
