@@ -15,14 +15,14 @@ export type BarValue = number | StyledBarValue;
 interface BarGraphProps {
   values: BarValue[];
   labels: string[];
-  highlightedIndex?: number | null;
-  onBarClick?: (index: number) => void;
+  highlightedIndices?: number[];
+  onBarClick?: (index: number | null) => void;
 }
 
 export function BarGraph({
   values,
   labels,
-  highlightedIndex,
+  highlightedIndices,
   onBarClick,
 }: BarGraphProps) {
   const translate = useTranslate();
@@ -124,7 +124,10 @@ export function BarGraph({
 
       zr.on("click", (params: { offsetX: number; offsetY: number }) => {
         const pointInPixel = [params.offsetX, params.offsetY];
-        if (!chart.containPixel("grid", pointInPixel)) return;
+        if (!chart.containPixel("grid", pointInPixel)) {
+          onBarClick?.(null);
+          return;
+        }
 
         const pointInGrid = chart.convertFromPixel("grid", pointInPixel);
         const dataIndex = Math.round(pointInGrid[0]);
@@ -147,14 +150,16 @@ export function BarGraph({
     if (!chart) return;
 
     chart.dispatchAction({ type: "downplay", seriesIndex: 0 });
-    if (highlightedIndex != null) {
-      chart.dispatchAction({
-        type: "highlight",
-        seriesIndex: 0,
-        dataIndex: highlightedIndex,
-      });
+    if (highlightedIndices && highlightedIndices.length > 0) {
+      for (const index of highlightedIndices) {
+        chart.dispatchAction({
+          type: "highlight",
+          seriesIndex: 0,
+          dataIndex: index,
+        });
+      }
     }
-  }, [highlightedIndex]);
+  }, [highlightedIndices]);
 
   if (values.length === 0) {
     return (

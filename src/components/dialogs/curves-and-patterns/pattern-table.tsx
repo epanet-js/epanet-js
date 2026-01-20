@@ -15,11 +15,13 @@ type PatternRow = {
   multiplier: number;
 };
 
+type RowRange = { minRow: number; maxRow: number };
+
 type PatternTableProps = {
   pattern: DemandPattern;
   patternTimestepSeconds: number;
   onChange: (pattern: DemandPattern) => void;
-  onActiveRowChange?: (rowIndex: number | null) => void;
+  onSelectedRowsChange?: (range: RowRange | null) => void;
 };
 
 export type PatternTableRef = SpreadsheetTableRef;
@@ -60,7 +62,7 @@ const fromRows = (rows: PatternRow[]): DemandPattern => {
 
 export const PatternTable = forwardRef<SpreadsheetTableRef, PatternTableProps>(
   function PatternTable(
-    { pattern, patternTimestepSeconds, onChange, onActiveRowChange },
+    { pattern, patternTimestepSeconds, onChange, onSelectedRowsChange },
     ref,
   ) {
     const translate = useTranslate();
@@ -194,6 +196,20 @@ export const PatternTable = forwardRef<SpreadsheetTableRef, PatternTableProps>(
       [onChange, recalculateTimesteps],
     );
 
+    const handleSelectionChange = useCallback(
+      (selection: { min: { row: number }; max: { row: number } } | null) => {
+        if (selection === null) {
+          onSelectedRowsChange?.(null);
+        } else {
+          onSelectedRowsChange?.({
+            minRow: selection.min.row,
+            maxRow: selection.max.row,
+          });
+        }
+      },
+      [onSelectedRowsChange],
+    );
+
     return (
       <div className="h-full">
         <SpreadsheetTable<PatternRow>
@@ -205,7 +221,7 @@ export const PatternTable = forwardRef<SpreadsheetTableRef, PatternTableProps>(
           rowActions={rowActions}
           addRowLabel={translate("addTimestep")}
           gutterColumn
-          onActiveRowChange={onActiveRowChange}
+          onSelectionChange={handleSelectionChange}
         />
       </div>
     );

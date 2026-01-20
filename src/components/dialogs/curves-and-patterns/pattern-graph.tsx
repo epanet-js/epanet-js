@@ -12,15 +12,15 @@ interface PatternGraphProps {
   pattern: DemandPattern;
   intervalSeconds: number;
   totalDurationSeconds: number;
-  highlightedBarIndex?: number | null;
-  onBarClick?: (index: number) => void;
+  highlightedBarIndices?: number[];
+  onBarClick?: (index: number | null) => void;
 }
 
 export function PatternGraph({
   pattern,
   intervalSeconds,
   totalDurationSeconds,
-  highlightedBarIndex,
+  highlightedBarIndices,
   onBarClick,
 }: PatternGraphProps) {
   const { values, labels } = useMemo(() => {
@@ -31,7 +31,7 @@ export function PatternGraph({
     <BarGraph
       values={values}
       labels={labels}
-      highlightedIndex={highlightedBarIndex}
+      highlightedIndices={highlightedBarIndices}
       onBarClick={onBarClick}
     />
   );

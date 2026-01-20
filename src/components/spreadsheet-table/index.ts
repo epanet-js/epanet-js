@@ -6,3 +6,4 @@ export { createTextReadonlyColumn } from "./text-readonly-column";
 export { hasActiveSpreadsheet } from "./spreadsheet-focus";
 export type { RowAction } from "./actions-column";
 export type { DataSheetGridRef } from "react-datasheet-grid";
+export type { Selection } from "./spreadsheet-table";

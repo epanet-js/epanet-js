@@ -21,6 +21,11 @@ import { Button } from "src/components/elements";
 import { AddIcon } from "src/icons";
 import { setSpreadsheetActive } from "./spreadsheet-focus";
 
+export type Selection = {
+  min: { col: number; row: number };
+  max: { col: number; row: number };
+};
+
 type SpreadsheetTableProps<T extends Record<string, unknown>> = {
   data: T[];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -33,6 +38,7 @@ type SpreadsheetTableProps<T extends Record<string, unknown>> = {
   addRowLabel?: string;
   gutterColumn?: boolean;
   onActiveRowChange?: (rowIndex: number | null) => void;
+  onSelectionChange?: (selection: Selection | null) => void;
 };
 
 export type SpreadsheetTableRef = DataSheetGridRef;
@@ -51,6 +57,7 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
     addRowLabel,
     gutterColumn = false,
     onActiveRowChange,
+    onSelectionChange,
   }: SpreadsheetTableProps<T>,
   ref: React.ForwardedRef<SpreadsheetTableRef>,
 ) {
@@ -87,17 +94,10 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
   );
 
   const handleSelectionChange = useCallback(
-    ({
-      selection: _selection,
-    }: {
-      selection: {
-        min: { col: number; row: number };
-        max: { col: number; row: number };
-      } | null;
-    }) => {
-      // Placeholder for future selection change handling
+    ({ selection }: { selection: Selection | null }) => {
+      onSelectionChange?.(selection);
     },
-    [],
+    [onSelectionChange],
   );
 
   useEffect(() => {
