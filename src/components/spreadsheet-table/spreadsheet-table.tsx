@@ -35,7 +35,11 @@ type SpreadsheetTableProps<T extends Record<string, unknown>> = {
   onActiveRowChange?: (rowIndex: number | null) => void;
 };
 
-function SpreadsheetTableInner<T extends Record<string, unknown>>(
+export type SpreadsheetTableRef = DataSheetGridRef;
+
+export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
+  T extends Record<string, unknown>,
+>(
   {
     data,
     columns,
@@ -48,9 +52,10 @@ function SpreadsheetTableInner<T extends Record<string, unknown>>(
     gutterColumn = false,
     onActiveRowChange,
   }: SpreadsheetTableProps<T>,
-  ref: React.ForwardedRef<DataSheetGridRef>,
+  ref: React.ForwardedRef<SpreadsheetTableRef>,
 ) {
   const gridRef = useRef<DataSheetGridRef>(null);
+
   useImperativeHandle(ref, () => gridRef.current!, []);
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerHeight, setContainerHeight] = useState<number | undefined>(
@@ -79,6 +84,20 @@ function SpreadsheetTableInner<T extends Record<string, unknown>>(
       onActiveRowChange?.(cell?.row ?? null);
     },
     [onActiveRowChange],
+  );
+
+  const handleSelectionChange = useCallback(
+    ({
+      selection: _selection,
+    }: {
+      selection: {
+        min: { col: number; row: number };
+        max: { col: number; row: number };
+      } | null;
+    }) => {
+      // Placeholder for future selection change handling
+    },
+    [],
   );
 
   useEffect(() => {
@@ -163,6 +182,7 @@ function SpreadsheetTableInner<T extends Record<string, unknown>>(
           stickyRightColumn={rowActionsColumn}
           gutterColumn={gutterColumn ? { grow: 0 } : false}
           onActiveCellChange={handleActiveCellChange}
+          onSelectionChange={handleSelectionChange}
           className={getGridStyles(gutterColumn)}
           style={
             {
@@ -193,14 +213,8 @@ function SpreadsheetTableInner<T extends Record<string, unknown>>(
       </div>
     </SpreadsheetProvider>
   );
-}
-
-export const SpreadsheetTable = forwardRef(SpreadsheetTableInner) as <
-  T extends Record<string, unknown>,
->(
-  props: SpreadsheetTableProps<T> & {
-    ref?: React.ForwardedRef<DataSheetGridRef>;
-  },
+}) as <T extends Record<string, unknown>>(
+  props: SpreadsheetTableProps<T> & { ref?: React.Ref<SpreadsheetTableRef> },
 ) => React.ReactElement;
 
 const getGridStyles = (gutterColumn: boolean) => {

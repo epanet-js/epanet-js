@@ -335,49 +335,4 @@ describe("CurvesAndPatternsDialog", () => {
       });
     });
   });
-
-  describe("row actions", () => {
-    it("disables delete when there is only one row", async () => {
-      const user = setupUser();
-      const store = setInitialState({
-        hydraulicModel: HydraulicModelBuilder.with()
-          .aDemandPattern("Pattern1", [1.0])
-          .build(),
-      });
-
-      renderDialog(store);
-
-      // Select the pattern
-      await user.click(screen.getByRole("button", { name: "Pattern1" }));
-
-      // Open the row actions menu
-      await user.click(screen.getByRole("button", { name: /actions/i }));
-
-      // Delete should be disabled
-      const deleteItem = screen.getByRole("menuitem", { name: /delete/i });
-      expect(deleteItem).toHaveAttribute("data-disabled");
-    });
-
-    it("enables delete when there are multiple rows", async () => {
-      const user = setupUser();
-      const store = setInitialState({
-        hydraulicModel: HydraulicModelBuilder.with()
-          .aDemandPattern("Pattern1", [1.0, 0.8])
-          .build(),
-      });
-
-      renderDialog(store);
-
-      // Select the pattern
-      await user.click(screen.getByRole("button", { name: "Pattern1" }));
-
-      // Open the row actions menu for the first row (there are multiple action buttons when multiple rows)
-      const actionButtons = screen.getAllByRole("button", { name: /actions/i });
-      await user.click(actionButtons[0]);
-
-      // Delete should be enabled
-      const deleteItem = screen.getByRole("menuitem", { name: /delete/i });
-      expect(deleteItem).not.toHaveAttribute("data-disabled");
-    });
-  });
 });

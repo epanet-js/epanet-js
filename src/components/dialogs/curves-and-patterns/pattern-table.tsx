@@ -4,7 +4,7 @@ import {
   SpreadsheetTable,
   createFloatColumn,
   createTextReadonlyColumn,
-  type DataSheetGridRef,
+  type SpreadsheetTableRef,
 } from "src/components/spreadsheet-table";
 import { DemandPattern } from "src/hydraulic-model/demands";
 import { useTranslate } from "src/hooks/use-translate";
@@ -21,6 +21,8 @@ type PatternTableProps = {
   onChange: (pattern: DemandPattern) => void;
   onActiveRowChange?: (rowIndex: number | null) => void;
 };
+
+export type PatternTableRef = SpreadsheetTableRef;
 
 const DEFAULT_MULTIPLIER = 1.0;
 
@@ -56,7 +58,7 @@ const fromRows = (rows: PatternRow[]): DemandPattern => {
   return rows.map((row) => row.multiplier);
 };
 
-export const PatternTable = forwardRef<DataSheetGridRef, PatternTableProps>(
+export const PatternTable = forwardRef<SpreadsheetTableRef, PatternTableProps>(
   function PatternTable(
     { pattern, patternTimestepSeconds, onChange, onActiveRowChange },
     ref,
