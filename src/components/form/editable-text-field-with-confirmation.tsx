@@ -86,9 +86,6 @@ export const EditableTextFieldWithConfirmation = forwardRef<
   };
 
   const handleCommitLastChange = () => {
-    if (hasError) {
-      return;
-    }
     const trimmedValue = inputValue.trim();
     if (trimmedValue && trimmedValue !== value) {
       const hasValidationError = onChangeValue?.(trimmedValue);
