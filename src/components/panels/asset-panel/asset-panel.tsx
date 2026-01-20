@@ -1137,7 +1137,7 @@ const PumpEditor = ({
 }) => {
   const translate = useTranslate();
   const { footer } = useQuickGraph(pump.id, "pump");
-  const { getComparison, isNew } = useAssetComparison(pump);
+  const { getComparison, getBaseCurve, isNew } = useAssetComparison(pump);
 
   const statusText = translate(pumpStatusLabel(pump));
 
@@ -1187,6 +1187,8 @@ const PumpEditor = ({
           quantities={quantitiesMetadata}
           onChange={onDefinitionChange}
           readonly={readonly}
+          getComparison={getComparison}
+          baseCurve={getBaseCurve(pump.curveId)}
         />
         <QuantityRow
           name="speed"

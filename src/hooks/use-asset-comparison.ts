@@ -3,6 +3,7 @@ import { useAtomValue } from "jotai";
 import { scenariosAtom } from "src/state/scenarios";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import type { Asset } from "src/hydraulic-model";
+import type { CurveId, ICurve } from "src/hydraulic-model/curves";
 
 export type PropertyComparison = {
   hasChanged: boolean;
@@ -26,6 +27,16 @@ export function useAssetComparison(asset: Asset | undefined) {
 
   const isNew = isInScenario && asset !== undefined && baseAsset === undefined;
 
+  const baseCurves = useMemo(() => {
+    if (!isInScenario || !scenariosState.baseModelSnapshot) return undefined;
+    return scenariosState.baseModelSnapshot.moment.putCurves;
+  }, [isInScenario, scenariosState.baseModelSnapshot]);
+
+  const getBaseCurve = (curveId: CurveId | undefined): ICurve | undefined => {
+    if (!curveId || !baseCurves) return undefined;
+    return baseCurves.find((c) => c.id === curveId);
+  };
+
   const getComparison = (
     propertyName: string,
     currentValue: unknown,
@@ -42,5 +53,5 @@ export function useAssetComparison(asset: Asset | undefined) {
     return { hasChanged, baseValue };
   };
 
-  return { isInScenario, getComparison, isNew };
+  return { isInScenario, getComparison, getBaseCurve, isNew };
 }

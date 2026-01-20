@@ -6,6 +6,10 @@ import { Quantities } from "src/model-metadata/quantities-spec";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { Pump, PumpDefintionType } from "src/hydraulic-model/asset-types/pump";
 import { SelectRow, QuantityRow } from "./ui-components";
+import type { PropertyComparison } from "src/hooks/use-asset-comparison";
+import * as Tooltip from "@radix-ui/react-tooltip";
+import { TContent } from "src/components/elements";
+import clsx from "clsx";
 
 export interface PumpCurvePoint {
   flow: number;
@@ -28,12 +32,16 @@ export const PumpDefinitionDetails = ({
   quantities,
   readonly = false,
   onChange,
+  getComparison,
+  baseCurve,
 }: {
   pump: Pump;
   curves: Curves;
   quantities: Quantities;
   readonly?: boolean;
   onChange: (newData: PumpDefinitionData) => void;
+  getComparison?: (name: string, value: unknown) => PropertyComparison;
+  baseCurve?: ICurve;
 }) => {
   const curve = pump.curveId ? curves.get(pump.curveId) : undefined;
   const componentKey = `${getCurveHash(curve)}|${pump.definitionType}`;
@@ -46,6 +54,8 @@ export const PumpDefinitionDetails = ({
       quantities={quantities}
       readonly={readonly}
       onChange={onChange}
+      getComparison={getComparison}
+      baseCurve={baseCurve}
     />
   );
 };
@@ -56,17 +66,71 @@ const PumpDefinitionDetailsInner = ({
   quantities,
   readonly = false,
   onChange,
+  getComparison,
+  baseCurve,
 }: {
   pump: Pump;
   curve: ICurve | undefined;
   quantities: Quantities;
   readonly?: boolean;
   onChange: (newData: PumpDefinitionData) => void;
+  getComparison?: (name: string, value: unknown) => PropertyComparison;
+  baseCurve?: ICurve;
 }) => {
   const translate = useTranslate();
 
   const [localDefinitionType, setLocalDefinitionType] =
     useState<PumpDefintionType>(pump.definitionType);
+
+  const definitionTypeComparison = getComparison?.(
+    "definitionType",
+    pump.definitionType,
+  );
+  const definitionTypeHasChanged =
+    definitionTypeComparison?.hasChanged ?? false;
+
+  const curveHasChanged = useMemo(() => {
+    if (
+      definitionTypeHasChanged ||
+      localDefinitionType === "power" ||
+      !baseCurve ||
+      !curve
+    ) {
+      return false;
+    }
+    if (curve.points.length !== baseCurve.points.length) return true;
+    return curve.points.some(
+      (p, i) => p.x !== baseCurve.points[i].x || p.y !== baseCurve.points[i].y,
+    );
+  }, [definitionTypeHasChanged, localDefinitionType, baseCurve, curve]);
+
+  const baseCurveDisplayText = useMemo(() => {
+    if (!curveHasChanged || !baseCurve) return undefined;
+    const flowUnit = quantities.getUnit("flow");
+    const headUnit = quantities.getUnit("head");
+    return baseCurve.points
+      .map(
+        (p) =>
+          `${localizeDecimal(p.x)} ${flowUnit}, ${localizeDecimal(p.y)} ${headUnit}`,
+      )
+      .join("\n");
+  }, [curveHasChanged, baseCurve, quantities]);
+
+  const powerComparison = getComparison?.("power", pump.power);
+  const powerHasChanged =
+    !definitionTypeHasChanged &&
+    localDefinitionType === "power" &&
+    (powerComparison?.hasChanged ?? false);
+
+  const basePowerDisplayText = useMemo(() => {
+    if (!powerHasChanged || powerComparison?.baseValue == null)
+      return undefined;
+    const powerUnit = quantities.getUnit("power");
+    return `${localizeDecimal(powerComparison.baseValue as number)} ${powerUnit}`;
+  }, [powerHasChanged, powerComparison?.baseValue, quantities]);
+
+  const definitionHasChanged = curveHasChanged || powerHasChanged;
+  const baseDisplayText = baseCurveDisplayText ?? basePowerDisplayText;
 
   const definitionOptions = useMemo(
     () =>
@@ -125,6 +189,34 @@ const PumpDefinitionDetailsInner = ({
     [onChange, pump, localDefinitionType],
   );
 
+  const containerClasses = clsx(
+    "bg-gray-50 p-2 py-1 -mr-2 border-l-2 rounded-sm",
+    definitionHasChanged ? "border-purple-500" : "border-gray-400",
+  );
+
+  const containerContent = (
+    <div className={containerClasses}>
+      {localDefinitionType === "power" && (
+        <QuantityRow
+          name="power"
+          value={pump.power}
+          unit={quantities.getUnit("power")}
+          decimals={quantities.getDecimals("power")}
+          readOnly={readonly}
+          onChange={handlePowerChange}
+        />
+      )}
+      {localDefinitionType !== "power" && (
+        <PumpCurveTable
+          curve={curve}
+          definitionType={localDefinitionType}
+          quantities={quantities}
+          onCurveChange={readonly ? undefined : handleCurvePointsChange}
+        />
+      )}
+    </div>
+  );
+
   return (
     <>
       <SelectRow
@@ -133,27 +225,23 @@ const PumpDefinitionDetailsInner = ({
         options={definitionOptions}
         readOnly={readonly}
         onChange={handleDefinitionTypeChange}
+        comparison={definitionTypeComparison}
       />
-      <div className="bg-gray-50 p-2 py-1 -mr-2 border-l-2 border-gray-400 rounded-sm">
-        {localDefinitionType === "power" && (
-          <QuantityRow
-            name="power"
-            value={pump.power}
-            unit={quantities.getUnit("power")}
-            decimals={quantities.getDecimals("power")}
-            readOnly={readonly}
-            onChange={handlePowerChange}
-          />
-        )}
-        {localDefinitionType !== "power" && (
-          <PumpCurveTable
-            curve={curve}
-            definitionType={localDefinitionType}
-            quantities={quantities}
-            onCurveChange={readonly ? undefined : handleCurvePointsChange}
-          />
-        )}
-      </div>
+      {definitionHasChanged && baseDisplayText ? (
+        <Tooltip.Root delayDuration={200}>
+          <Tooltip.Trigger asChild>{containerContent}</Tooltip.Trigger>
+          <Tooltip.Portal>
+            <TContent side="left" sideOffset={4}>
+              <div className="whitespace-pre-line">
+                {translate("scenarios.main")}:{"\n"}
+                {baseDisplayText}
+              </div>
+            </TContent>
+          </Tooltip.Portal>
+        </Tooltip.Root>
+      ) : (
+        containerContent
+      )}
     </>
   );
 };
