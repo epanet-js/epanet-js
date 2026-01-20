@@ -664,6 +664,13 @@ type ScenarioDeleted = {
   scenarioName: string;
 };
 
+type ScenarioRenamed = {
+  name: "scenario.renamed";
+  scenarioId: string;
+  oldName: string;
+  newName: string;
+};
+
 type ScenarioDeleteDialogCancel = {
   name: "scenario.deleteDialog.cancel";
 };
@@ -784,6 +791,7 @@ export type UserEvent =
   | ScenarioCreated
   | ScenarioSwitched
   | ScenarioDeleted
+  | ScenarioRenamed
   | ScenarioDeleteDialogCancel
   | ScenarioToggled
   | ScenarioCycled

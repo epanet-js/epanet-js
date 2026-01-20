@@ -249,6 +249,21 @@ const DeleteScenarioConfirmationDialog = dynamic<{
   },
 );
 
+const RenameScenarioDialog = dynamic<{
+  scenarioId: string;
+  currentName: string;
+  onConfirm: (scenarioId: string, newName: string) => void;
+  onClose: () => void;
+}>(
+  () =>
+    import("src/components/dialogs/rename-scenario").then(
+      (r) => r.RenameScenarioDialog,
+    ),
+  {
+    loading: () => <LoadingDialog />,
+  },
+);
+
 export const Dialogs = memo(function Dialogs() {
   const [dialog, setDialogState] = useAtom(dialogAtom);
   const userTracking = useUserTracking();
@@ -369,6 +384,17 @@ export const Dialogs = memo(function Dialogs() {
         <DeleteScenarioConfirmationDialog
           scenarioId={scenarioId}
           scenarioName={scenarioName}
+          onConfirm={onConfirm}
+          onClose={onClose}
+        />
+      ),
+    )
+    .with(
+      { type: "renameScenario" },
+      ({ scenarioId, currentName, onConfirm }) => (
+        <RenameScenarioDialog
+          scenarioId={scenarioId}
+          currentName={currentName}
           onConfirm={onConfirm}
           onClose={onClose}
         />

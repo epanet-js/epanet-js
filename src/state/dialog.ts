@@ -88,6 +88,13 @@ export type DeleteScenarioConfirmationDialogState = {
   onConfirm: (scenarioId: string) => void;
 };
 
+export type RenameScenarioDialogState = {
+  type: "renameScenario";
+  scenarioId: string;
+  currentName: string;
+  onConfirm: (scenarioId: string, newName: string) => void;
+};
+
 export type DialogState =
   | InvalidFilesErrorDialogState
   | {
@@ -114,6 +121,7 @@ export type DialogState =
   | { type: "controls" }
   | CurvesAndPatternsDialogState
   | DeleteScenarioConfirmationDialogState
+  | RenameScenarioDialogState
   | null;
 
 export const dialogFromUrl = (): DialogState => {

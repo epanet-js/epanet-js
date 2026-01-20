@@ -749,6 +749,15 @@
     "switcherTooltip": "Switch scenario",
     "enableScenarios": "Enable Scenarios",
     "delete": "Delete",
+    "rename": "Rename",
+    "renameDialog": {
+      "title": "Rename Scenario",
+      "label": "Scenario name",
+      "placeholder": "Enter scenario name",
+      "errorEmpty": "Scenario name cannot be empty",
+      "errorDuplicate": "This name is already in use",
+      "errorReserved": "This name is reserved"
+    },
     "deleteConfirmation": {
       "title": "Delete Scenario",
       "message": "Are you sure you want to delete scenario \"{{1}}\"?",

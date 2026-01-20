@@ -117,10 +117,23 @@ export const useScenarioOperations = () => {
     [persistence, scenariosState, setScenariosState, setSimulation],
   );
 
+  const renameScenarioById = useCallback(
+    (scenarioId: string, newName: string) => {
+      const newState = persistence.renameScenario(
+        scenariosState,
+        scenarioId,
+        newName,
+      );
+      setScenariosState(newState);
+    },
+    [persistence, scenariosState, setScenariosState],
+  );
+
   return {
     switchToMain,
     switchToScenario,
     createNewScenario,
     deleteScenarioById,
+    renameScenarioById,
   };
 };

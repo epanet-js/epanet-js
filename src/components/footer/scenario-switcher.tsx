@@ -9,6 +9,7 @@ import {
   MainModelIcon,
   MoreActionsIcon,
   DeleteIcon,
+  RenameIcon,
 } from "src/icons";
 import { useTranslate } from "src/hooks/use-translate";
 import { useUserTracking } from "src/infra/user-tracking";
@@ -37,6 +38,7 @@ export const ScenarioSwitcher = () => {
     switchToScenario,
     createNewScenario,
     deleteScenarioById,
+    renameScenarioById,
   } = useScenarioOperations();
 
   const activeScenarioId = scenariosState.activeScenarioId;
@@ -92,6 +94,19 @@ export const ScenarioSwitcher = () => {
       scenarioId,
       scenarioName,
       onConfirm: handleDeleteScenario,
+    });
+  };
+
+  const handleRenameScenario = (scenarioId: string, newName: string) => {
+    renameScenarioById(scenarioId, newName);
+  };
+
+  const openRenameDialog = (scenarioId: string, scenarioName: string) => {
+    setDialog({
+      type: "renameScenario",
+      scenarioId,
+      currentName: scenarioName,
+      onConfirm: handleRenameScenario,
     });
   };
 
@@ -181,6 +196,15 @@ export const ScenarioSwitcher = () => {
                       </DD.Trigger>
                       <DD.Portal>
                         <DDContent side="right" align="start" sideOffset={4}>
+                          <StyledItem
+                            onSelect={() =>
+                              openRenameDialog(scenario.id, scenario.name)
+                            }
+                          >
+                            <RenameIcon size="sm" />
+                            <span>{translate("scenarios.rename")}</span>
+                          </StyledItem>
+
                           <StyledItem
                             onSelect={() =>
                               openDeleteConfirmation(scenario.id, scenario.name)
