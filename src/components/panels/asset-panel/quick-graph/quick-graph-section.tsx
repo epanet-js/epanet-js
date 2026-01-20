@@ -18,7 +18,6 @@ import type { QuantityProperty } from "src/model-metadata/quantities-spec";
 import type { TimeSeries } from "src/simulation/epanet/eps-results-reader";
 import type { AssetId, Valve } from "src/hydraulic-model/asset-types";
 import { useTimeSeries } from "./use-time-series";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { QuickGraphChart } from "./quick-graph-chart";
 import { useChangeTimestep } from "src/commands/change-timestep";
 
@@ -64,10 +63,7 @@ const QUICK_GRAPH_PROPERTIES: {
 
 export const useShowQuickGraph = () => {
   const simulation = useAtomValue(simulationAtom);
-  const isQuickGraphEnabled = useFeatureFlag("FLAG_QUICK_GRAPH");
   const hadValidSimulationRef = useRef(false);
-
-  if (!isQuickGraphEnabled) return false;
 
   const hasCompletedSimulation =
     simulation.status === "success" || simulation.status === "warning";
