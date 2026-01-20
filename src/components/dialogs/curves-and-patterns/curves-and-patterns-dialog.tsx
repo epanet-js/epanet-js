@@ -99,7 +99,7 @@ export const CurvesAndPatternsDialog = () => {
   }, [hasChanges, closeDialog]);
 
   return (
-    <DialogContainer size="lg" onClose={handleCancel}>
+    <DialogContainer size="lg" height="lg" onClose={handleCancel}>
       <DialogHeader title={translate("curvesAndPatterns")} />
       <div className="flex-1 flex min-h-0">
         <PatternSidebar
