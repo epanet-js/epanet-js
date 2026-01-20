@@ -83,9 +83,9 @@ export function BarGraph({ values, labels }: BarGraphProps) {
       formatter: (params: unknown) => {
         if (!Array.isArray(params) || params.length === 0) return "";
         const p = params[0] as { name: string; value: number };
-        const timeLabel = p.name ?? "";
+        const label = (p.name ?? "").trim();
         const value = localizeDecimal(p.value, { decimals: 2 });
-        return `${timeLabel}<br/>${value}`;
+        return [label, value].filter(Boolean).join("<br/>");
       },
     },
   };
