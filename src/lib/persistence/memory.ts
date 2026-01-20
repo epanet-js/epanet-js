@@ -522,7 +522,6 @@ export class MemPersistence implements IPersistence {
     const scenario = currentState.scenarios.get(scenarioId);
 
     if (!scenario) {
-      console.warn(`Scenario ${scenarioId} not found`);
       return currentState;
     }
 
