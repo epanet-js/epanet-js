@@ -125,13 +125,7 @@ export function SpreadsheetTable<T extends Record<string, unknown>>({
     [data, onChange, lockRows, columns.length],
   );
 
-  // Without a gutter column, the sticky right column (actions) needs transform disabled
-  // to align correctly with data rows
-  const stickyColumnAlignmentFix = !gutterColumn
-    ? "[&_.dsg-cell-sticky-right]:transform-none"
-    : "";
-
-  // Button height (32px) + margin-top (6px) = 38px
+  // Button height (30px) + margin-top (8px) = 38px
   const BUTTON_SPACE = 38;
   const gridHeight =
     containerHeight !== undefined && addRowLabel
@@ -160,7 +154,7 @@ export function SpreadsheetTable<T extends Record<string, unknown>>({
           stickyRightColumn={rowActionsColumn}
           gutterColumn={gutterColumn ? { grow: 0 } : false}
           onActiveCellChange={handleActiveCellChange}
-          className={`text-sm [&_input]:text-sm [&_input]:w-full [&_input]:h-full [&_input]:px-2 [&_.dsg-cell-header]:bg-[var(--spreadsheet-header-bg)] [&_.dsg-cell-header]:font-semibold [&_.dsg-cell-header-container]:truncate [&_.dsg-cell-header-container]:px-2 [&_.dsg-cell-sticky-right]:bg-[var(--spreadsheet-header-bg)] ${stickyColumnAlignmentFix}`}
+          className={getGridStyles(gutterColumn)}
           style={
             {
               "--dsg-selection-border-color": colors.purple500,
@@ -191,3 +185,41 @@ export function SpreadsheetTable<T extends Record<string, unknown>>({
     </SpreadsheetProvider>
   );
 }
+
+const getGridStyles = (gutterColumn: boolean) => {
+  const inputStyles = [
+    "[&_input]:text-sm",
+    "[&_input]:w-full",
+    "[&_input]:h-full",
+    "[&_input]:px-2",
+  ];
+
+  const headerStyles = [
+    "[&_.dsg-cell-header]:bg-[var(--spreadsheet-header-bg)]",
+    "[&_.dsg-cell-header]:font-semibold",
+    "[&_.dsg-cell-header-container]:truncate",
+    "[&_.dsg-cell-header-container]:px-2",
+  ];
+
+  const gutterStyles = [
+    "[&_.dsg-cell-gutter]:bg-[var(--spreadsheet-header-bg)]",
+  ];
+
+  const stickyColumnStyles = [
+    "[&_.dsg-cell-sticky-right]:bg-white",
+    "[&_.dsg-cell-header.dsg-cell-sticky-right]:bg-[var(--spreadsheet-header-bg)]",
+    // Without a gutter column, the sticky right column needs transform disabled
+    // to align correctly with data rows
+    !gutterColumn ? "[&_.dsg-cell-sticky-right]:transform-none" : "",
+  ];
+
+  return [
+    "text-sm",
+    ...inputStyles,
+    ...headerStyles,
+    ...gutterStyles,
+    ...stickyColumnStyles,
+  ]
+    .filter(Boolean)
+    .join(" ");
+};

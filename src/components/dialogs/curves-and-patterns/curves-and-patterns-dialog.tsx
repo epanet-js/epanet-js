@@ -110,8 +110,8 @@ export const CurvesAndPatternsDialog = () => {
         />
         <div className="flex-1 flex flex-col min-h-0 p-2 w-full">
           {selectedPatternId ? (
-            <div className="grid grid-cols-2 gap-4 h-full">
-              <div className="h-full overflow-hidden">
+            <div className="grid grid-cols-5 gap-4 h-full">
+              <div className="col-span-2 h-full overflow-hidden">
                 <PatternTable
                   pattern={getPatternData(selectedPatternId)}
                   patternTimestepSeconds={patternTimestepSeconds}
@@ -120,7 +120,7 @@ export const CurvesAndPatternsDialog = () => {
                   }
                 />
               </div>
-              <div className="h-full pt-4">
+              <div className="col-span-3 h-full pt-4">
                 <PatternGraph
                   pattern={getPatternData(selectedPatternId)}
                   intervalSeconds={patternTimestepSeconds}
@@ -148,7 +148,7 @@ export const CurvesAndPatternsDialog = () => {
             <Button type="button" onClick={() => setShowDiscardConfirm(false)}>
               {translate("keepEditing")}
             </Button>
-            <span className="flex-1 text-sm text-gray-600 self-center">
+            <span className="text-sm text-gray-600 self-center">
               {translate("curvesAndPatternsUnsavedWarning")}
             </span>
           </>

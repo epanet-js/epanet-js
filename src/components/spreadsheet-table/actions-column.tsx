@@ -1,6 +1,7 @@
 import { CellComponent, Column } from "react-datasheet-grid";
 import * as DD from "@radix-ui/react-dropdown-menu";
 import { MoreActionsIcon } from "src/icons";
+import { Button } from "../elements";
 
 export type RowAction = {
   label: string;
@@ -22,13 +23,14 @@ const ActionsCell: CellComponent<null, ActionsCellProps> = ({
   return (
     <DD.Root>
       <DD.Trigger asChild>
-        <button
-          type="button"
-          className="flex items-center justify-center w-full h-full text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+        <Button
+          variant="quiet"
+          size="sm"
+          className="w-full h-full justify-center"
           aria-label="Actions"
         >
           <MoreActionsIcon size="md" />
-        </button>
+        </Button>
       </DD.Trigger>
       <DD.Portal>
         <DD.Content

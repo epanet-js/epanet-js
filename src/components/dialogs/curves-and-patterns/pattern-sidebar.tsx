@@ -145,7 +145,7 @@ const NewPatternItem = ({ onCommit, onCancel }: NewPatternItemProps) => {
   };
 
   return (
-    <li className="flex items-center text-sm bg-white dark:bg-gray-700 pl-2">
+    <li className="flex items-center text-sm bg-white dark:bg-gray-700 pl-1 pt-1">
       <EditableTextFieldWithConfirmation
         label="New pattern name"
         value=""

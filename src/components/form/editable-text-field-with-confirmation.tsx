@@ -154,7 +154,7 @@ export const EditableTextFieldWithConfirmation = forwardRef<
       <div className="self-stretch flex">
         <Button
           variant="quiet"
-          size="xs"
+          size="sm"
           onClick={handleConfirm}
           disabled={!inputValue.trim()}
           className="h-full hover:bg-green-500/30 dark:hover:bg-green-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
