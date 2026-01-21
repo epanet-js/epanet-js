@@ -117,21 +117,12 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
     return () => observer.disconnect();
   }, []);
 
-  const handleAddRow = useCallback(() => {
-    const newRow = createRow();
-    const newRowIndex = data.length;
-    const lastColIndex = columns.length - 1;
-    const newSelection = {
-      min: { col: 0, row: newRowIndex },
-      max: { col: lastColIndex, row: newRowIndex },
-    };
-    onChange([...data, newRow]);
-    onSelectionChange?.(newSelection);
-    setTimeout(function scrollToNewRow() {
-      gridRef.current?.setActiveCell({ col: 0, row: newRowIndex });
-      gridRef.current?.setSelection(newSelection);
-    }, 0);
-  }, [createRow, onChange, onSelectionChange, data, columns.length]);
+  // Button height (30px) + margin-top (8px) = 38px
+  const BUTTON_SPACE = 38;
+  const gridHeight =
+    containerHeight !== undefined && addRowLabel
+      ? Math.max(0, containerHeight - BUTTON_SPACE)
+      : containerHeight;
 
   const handleChange = useCallback(
     (newData: T[]) => {
@@ -152,13 +143,6 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
     },
     [data, onChange, lockRows, columns.length],
   );
-
-  // Button height (30px) + margin-top (8px) = 38px
-  const BUTTON_SPACE = 38;
-  const gridHeight =
-    containerHeight !== undefined && addRowLabel
-      ? Math.max(0, containerHeight - BUTTON_SPACE)
-      : containerHeight;
 
   if (data.length === 0 && emptyState) {
     return (
@@ -197,25 +181,42 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
           height={gridHeight}
           disableContextMenu={!!rowActions}
           disableExpandSelection={true}
-          addRowsComponent={false}
+          addRowsComponent={
+            addRowLabel ? createAddRowsComponent(addRowLabel) : false
+          }
         />
-        {addRowLabel && (
-          <Button
-            variant="default"
-            size="sm"
-            onClick={handleAddRow}
-            className="w-full justify-center mt-2"
-          >
-            <AddIcon size="sm" />
-            {addRowLabel}
-          </Button>
-        )}
       </div>
     </SpreadsheetProvider>
   );
 }) as <T extends Record<string, unknown>>(
   props: SpreadsheetTableProps<T> & { ref?: React.Ref<SpreadsheetTableRef> },
 ) => React.ReactElement;
+
+function AddRowButton({
+  addRows,
+  label,
+}: {
+  addRows: (count: number) => void;
+  label: string;
+}) {
+  return (
+    <Button
+      variant="default"
+      size="sm"
+      onClick={() => addRows(1)}
+      className="w-full justify-center mt-2"
+    >
+      <AddIcon size="sm" />
+      {label}
+    </Button>
+  );
+}
+
+function createAddRowsComponent(label: string) {
+  return (props: { addRows: (count: number) => void }) => (
+    <AddRowButton addRows={props.addRows} label={label} />
+  );
+}
 
 const getGridStyles = (gutterColumn: boolean) => {
   const inputStyles = [
