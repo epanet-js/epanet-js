@@ -18,6 +18,8 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { useScenarioOperations } from "src/hooks/use-scenario-operations";
 import { scenariosAtom, scenariosListAtom } from "src/state/scenarios";
 import { dialogAtom } from "src/state/jotai";
+import { useAuth } from "src/auth";
+import { limits } from "src/user-plan";
 import {
   Button,
   DDContent,
@@ -33,6 +35,7 @@ export const ScenarioSwitcher = () => {
   const scenariosState = useAtomValue(scenariosAtom);
   const scenariosList = useAtomValue(scenariosListAtom);
   const setDialog = useSetAtom(dialogAtom);
+  const { user } = useAuth();
 
   // Use the new hook for scenario operations
   const {
@@ -77,6 +80,14 @@ export const ScenarioSwitcher = () => {
   };
 
   const handleCreateScenario = () => {
+    const isFirstTimeEnabling = scenariosList.length === 0;
+
+    if (isFirstTimeEnabling && !limits.canUseScenarios(user.plan)) {
+      setDialog({ type: "scenariosPaywall" });
+      userTracking.capture({ name: "scenariosPaywall.triggered" });
+      return;
+    }
+
     const { scenarioId, scenarioName } = createNewScenario();
 
     userTracking.capture({

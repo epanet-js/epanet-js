@@ -264,6 +264,18 @@ const RenameScenarioDialog = dynamic<{
   },
 );
 
+const ScenariosPaywallDialog = dynamic<{
+  onClose: () => void;
+}>(
+  () =>
+    import("src/components/dialogs/scenarios-paywall").then(
+      (r) => r.ScenariosPaywallDialog,
+    ),
+  {
+    loading: () => <LoadingDialog />,
+  },
+);
+
 export const Dialogs = memo(function Dialogs() {
   const [dialog, setDialogState] = useAtom(dialogAtom);
   const userTracking = useUserTracking();
@@ -302,6 +314,9 @@ export const Dialogs = memo(function Dialogs() {
       }
       if (dialog.type === "unexpectedError") {
         userTracking.capture({ name: "unexpectedError.seen" });
+      }
+      if (dialog.type === "scenariosPaywall") {
+        userTracking.capture({ name: "scenariosPaywall.seen" });
       }
     }
     previousDialog.current = dialog;
@@ -343,6 +358,10 @@ export const Dialogs = memo(function Dialogs() {
 
   if (dialog.type === "upgrade") {
     return <UpgradeDialog onClose={onClose} />;
+  }
+
+  if (dialog.type === "scenariosPaywall") {
+    return <ScenariosPaywallDialog onClose={onClose} />;
   }
 
   const content = match(dialog)

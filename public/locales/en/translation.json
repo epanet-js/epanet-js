@@ -763,6 +763,15 @@
       "title": "Delete Scenario",
       "message": "Are you sure you want to delete scenario \"{{1}}\"?",
       "confirm": "Delete scenario"
+    },
+    "paywall": {
+      "title": "Upgrade to unlock scenarios",
+      "description": "We are building the smoothest experience for scenarios on the market. You can unlock scenarios with a personal account to support our open-source development and move your projects forward.",
+      "supportButton": "Support & Try with Personal",
+      "or": "OR",
+      "choosePlanButton": "Choose your plan",
+      "needMoreDetails": "Need more details?",
+      "contactSales": "Contact sales"
     }
   },
   "curvesAndPatterns": "Demand patterns",

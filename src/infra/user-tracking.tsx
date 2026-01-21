@@ -864,7 +864,11 @@ export type UserEvent =
       name: "controls.changed";
       simpleControlsCount: number;
       rulesCount: number;
-    };
+    }
+  | { name: "scenariosPaywall.seen" }
+  | { name: "scenariosPaywall.triggered" }
+  | { name: "scenariosPaywall.clickedChoosePlan" }
+  | { name: "scenariosPaywall.clickedPersonal" };
 
 const debugPostHog = {
   capture: (...data: any[]) => {

@@ -17,7 +17,7 @@ export const CheckoutButton = ({
 }: {
   plan: Plan;
   paymentType: PaymentType;
-  variant?: "primary" | "quiet";
+  variant?: "primary" | "quiet" | "default";
   children: ReactNode;
 }) => {
   const { startCheckout } = useCheckout();

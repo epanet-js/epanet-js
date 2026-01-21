@@ -95,6 +95,10 @@ export type RenameScenarioDialogState = {
   onConfirm: (scenarioId: string, newName: string) => void;
 };
 
+export type ScenariosPaywallDialogState = {
+  type: "scenariosPaywall";
+};
+
 export type DialogState =
   | InvalidFilesErrorDialogState
   | {
@@ -122,6 +126,7 @@ export type DialogState =
   | CurvesAndPatternsDialogState
   | DeleteScenarioConfirmationDialogState
   | RenameScenarioDialogState
+  | ScenariosPaywallDialogState
   | null;
 
 export const dialogFromUrl = (): DialogState => {
