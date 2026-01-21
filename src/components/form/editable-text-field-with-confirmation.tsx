@@ -5,6 +5,7 @@ import {
   useState,
   useRef,
   useImperativeHandle,
+  useEffect,
 } from "react";
 import clsx from "clsx";
 import { Button } from "src/components/elements";
@@ -25,6 +26,7 @@ type EditableTextFieldWithConfirmationProps = {
   allowedChars?: RegExp;
   maxByteLength?: number;
   styleOptions?: Partial<StyleOptions>;
+  autoFocus?: boolean;
 };
 
 export const EditableTextFieldWithConfirmation = forwardRef<
@@ -41,6 +43,7 @@ export const EditableTextFieldWithConfirmation = forwardRef<
     allowedChars,
     maxByteLength,
     styleOptions = {},
+    autoFocus = false,
   },
   ref,
 ) {
@@ -50,8 +53,16 @@ export const EditableTextFieldWithConfirmation = forwardRef<
 
   useImperativeHandle(ref, () => internalRef.current!, []);
 
+  useEffect(() => {
+    if (autoFocus) {
+      internalRef.current?.focus();
+    }
+  }, [autoFocus]);
+
   const handleKeyDown: KeyboardEventHandler<HTMLInputElement> = (e) => {
     if (e.key === "Escape") {
+      e.stopPropagation();
+      e.preventDefault();
       resetInput();
       return;
     }
@@ -87,7 +98,7 @@ export const EditableTextFieldWithConfirmation = forwardRef<
 
   const handleCommitLastChange = () => {
     const trimmedValue = inputValue.trim();
-    if (trimmedValue && trimmedValue !== value) {
+    if (trimmedValue !== value || !trimmedValue) {
       const hasValidationError = onChangeValue?.(trimmedValue);
       if (hasValidationError) {
         return;

@@ -90,9 +90,14 @@ export const DialogContainer = ({
           <StyledDialogContent
             widthClasses=""
             onEscapeKeyDown={(e) => {
+              // Allow elements to capture Escape (e.g., inputs that reset on Escape)
+              if (
+                (e.target as HTMLElement).closest("[data-capture-escape-key]")
+              ) {
+                e.preventDefault();
+                return;
+              }
               handleClose();
-              e.preventDefault();
-              e.stopPropagation();
             }}
             onInteractOutside={(e) => {
               const target = e.target as HTMLElement;

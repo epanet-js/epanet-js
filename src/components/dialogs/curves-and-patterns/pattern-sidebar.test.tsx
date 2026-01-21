@@ -85,6 +85,24 @@ describe("PatternSidebar", () => {
       expect(screen.getByRole("textbox")).toBeInTheDocument();
     });
 
+    it("focuses input field when clicking add pattern", async () => {
+      const user = setupUser();
+
+      render(
+        <PatternSidebar
+          patterns={new Map()}
+          selectedPatternId={null}
+          onSelectPattern={vi.fn()}
+          onAddPattern={vi.fn()}
+        />,
+      );
+
+      await user.click(screen.getByRole("button", { name: /add pattern/i }));
+
+      const input = screen.getByRole("textbox");
+      expect(input).toHaveFocus();
+    });
+
     it("calls onAddPattern with normalized uppercase name and default pattern", async () => {
       const user = setupUser();
       const onAddPattern = vi.fn();
