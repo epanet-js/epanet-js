@@ -391,7 +391,8 @@ const JunctionEditor = ({
   const { footer } = useQuickGraph(junction.id, "junction");
   const isEditJunctionDemandsOn = useFeatureFlag("FLAG_EDIT_JUNCTION_DEMANDS");
   const isCustomerDemandsOn = useFeatureFlag("FLAG_CUSTOMER_DEMANDS");
-  const { getComparison, isNew } = useAssetComparison(junction);
+  const { getComparison, getConstantDemandComparison, isNew } =
+    useAssetComparison(junction);
 
   const customerPoints = useMemo(() => {
     return getActiveCustomerPoints(
@@ -477,6 +478,7 @@ const JunctionEditor = ({
               value={junction.constantDemand}
               unit={quantitiesMetadata.getUnit("baseDemand")}
               decimals={quantitiesMetadata.getDecimals("baseDemand")}
+              comparison={getConstantDemandComparison(junction.constantDemand)}
               onChange={(_name, newValue, oldValue) =>
                 onConstantDemandChange(newValue, oldValue ?? 0)
               }

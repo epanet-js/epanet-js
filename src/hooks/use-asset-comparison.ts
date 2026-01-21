@@ -4,6 +4,7 @@ import { scenariosAtom } from "src/state/scenarios";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import type { Asset } from "src/hydraulic-model";
 import type { CurveId, ICurve } from "src/hydraulic-model/curves";
+import type { JunctionDemand } from "src/hydraulic-model/demands";
 
 export type PropertyComparison = {
   hasChanged: boolean;
@@ -53,5 +54,35 @@ export function useAssetComparison(asset: Asset | undefined) {
     return { hasChanged, baseValue };
   };
 
-  return { isInScenario, getComparison, getBaseCurve, isNew };
+  const getConstantDemandComparison = (
+    currentConstantDemand: number,
+  ): PropertyComparison => {
+    if (!isInScenario || !baseAsset) {
+      return { hasChanged: false };
+    }
+
+    const baseDemands = (
+      baseAsset.feature.properties as Record<string, unknown>
+    ).demands as JunctionDemand[] | undefined;
+
+    if (!baseDemands) {
+      return { hasChanged: false };
+    }
+
+    const baseConstantDemand = baseDemands
+      .filter((d) => !d.patternId)
+      .reduce((sum, d) => sum + d.baseDemand, 0);
+
+    const hasChanged = baseConstantDemand !== currentConstantDemand;
+
+    return { hasChanged, baseValue: baseConstantDemand };
+  };
+
+  return {
+    isInScenario,
+    getComparison,
+    getBaseCurve,
+    getConstantDemandComparison,
+    isNew,
+  };
 }
