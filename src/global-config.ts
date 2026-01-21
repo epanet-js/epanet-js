@@ -12,7 +12,7 @@ export const termsAndConditionsUrl = "https://epanetjs.com/terms-conditions";
 export const projectionConverterUrl =
   "https://utils.epanetjs.com/projection-converter";
 export const studentAccountActiviationHelpUrl =
-  "https://help.epanetjs.com/Free-educational-licenses-for-epanet-js-1cee18c9f0f68090aa35cd3336577ac3";
+  "https://help.epanetjs.com/Free-educational-licenses-for-epanet-js-2a1e18c9f0f68192a785cbe61747addf";
 
 export const supportEmail = "support@epanetjs.com";
 export const signUpUrl = process.env.NEXT_PUBLIC_SIGN_UP_URL as string;
