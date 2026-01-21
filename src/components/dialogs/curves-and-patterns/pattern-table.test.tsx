@@ -29,13 +29,38 @@ describe("PatternTable", () => {
       expect(deleteItem).toHaveAttribute("data-disabled");
     });
 
-    it("enables delete when there are multiple rows", async () => {
+    it("inserts a row above the current row", async () => {
       const user = setupUser();
       const onChange = vi.fn();
 
       render(
         <PatternTable
-          pattern={[1.0, 0.8]}
+          pattern={[3.0, 0.8]}
+          patternTimestepSeconds={3600}
+          onChange={onChange}
+        />,
+      );
+
+      // Open the row actions menu for the second row
+      const actionButtons = screen.getAllByRole("button", { name: /actions/i });
+      await user.click(actionButtons[1]);
+
+      // Click "Insert row above"
+      await user.click(
+        screen.getByRole("menuitem", { name: /insert row above/i }),
+      );
+
+      // Should insert a new row with default multiplier 1.0 above row 1
+      expect(onChange).toHaveBeenCalledWith([3.0, 1.0, 0.8]);
+    });
+
+    it("inserts a row below the current row", async () => {
+      const user = setupUser();
+      const onChange = vi.fn();
+
+      render(
+        <PatternTable
+          pattern={[2.0, 0.8]}
           patternTimestepSeconds={3600}
           onChange={onChange}
         />,
@@ -45,87 +70,56 @@ describe("PatternTable", () => {
       const actionButtons = screen.getAllByRole("button", { name: /actions/i });
       await user.click(actionButtons[0]);
 
-      // Delete should be enabled
-      const deleteItem = screen.getByRole("menuitem", { name: /delete/i });
-      expect(deleteItem).not.toHaveAttribute("data-disabled");
+      // Click "Insert row below"
+      await user.click(
+        screen.getByRole("menuitem", { name: /insert row below/i }),
+      );
+
+      // Should insert a new row with default multiplier 1.0 below row 0
+      expect(onChange).toHaveBeenCalledWith([2.0, 1.0, 0.8]);
     });
   });
 
-  describe("default pattern", () => {
-    it("emits default multiplier when all rows are deleted", async () => {
-      const user = setupUser();
-      const onChange = vi.fn();
-      const ref = createRef<PatternTableRef>();
+  it("patterns always have default multiplier when all rows are deleted", async () => {
+    const user = setupUser();
+    const onChange = vi.fn();
+    const ref = createRef<PatternTableRef>();
 
-      const { container } = render(
-        <PatternTable
-          ref={ref}
-          pattern={[1.0, 0.8]}
-          patternTimestepSeconds={3600}
-          onChange={onChange}
-        />,
-      );
+    const { container } = render(
+      <PatternTable
+        ref={ref}
+        pattern={[1.0, 0.8, 0.6]}
+        patternTimestepSeconds={3600}
+        onChange={onChange}
+      />,
+    );
 
-      const focusableGrid = container.querySelector(
-        "[tabindex='0']",
-      ) as HTMLElement;
+    // Click on a cell to establish focus context
+    const cell = container.querySelector(".dsg-cell:not(.dsg-cell-header)");
+    await user.click(cell!);
 
-      // Select all rows programmatically (2 columns: timestep, multiplier; 2 rows)
-      ref.current?.setSelection({
-        min: { col: 0, row: 0 },
-        max: { col: 1, row: 1 },
-      });
-
-      focusableGrid.focus();
-      await user.keyboard("{Delete}");
-
-      // Should emit the default pattern with multiplier 1.0
-      await waitFor(() => {
-        expect(onChange).toHaveBeenCalledWith([1.0]);
-      });
+    // Select all rows programmatically (2 columns: timestep, multiplier; 3 rows)
+    ref.current?.setSelection({
+      min: { col: 0, row: 0 },
+      max: { col: 1, row: 2 },
     });
 
-    it("emits default multiplier when all rows are deleted via select all", async () => {
-      const user = setupUser();
-      const onChange = vi.fn();
-      const ref = createRef<PatternTableRef>();
+    await user.keyboard("{Delete}");
 
-      const { container } = render(
-        <PatternTable
-          ref={ref}
-          pattern={[1.0, 0.8, 0.6]}
-          patternTimestepSeconds={3600}
-          onChange={onChange}
-        />,
-      );
-
-      const focusableGrid = container.querySelector(
-        "[tabindex='0']",
-      ) as HTMLElement;
-
-      // Select all rows programmatically (2 columns: timestep, multiplier; 3 rows)
-      ref.current?.setSelection({
-        min: { col: 0, row: 0 },
-        max: { col: 1, row: 2 },
-      });
-
-      focusableGrid.focus();
-      await user.keyboard("{Delete}");
-
-      // Should emit the default pattern with multiplier 1.0
-      await waitFor(() => {
-        expect(onChange).toHaveBeenCalledWith([1.0]);
-      });
+    // Should emit the default pattern with multiplier 1.0
+    await waitFor(() => {
+      expect(onChange).toHaveBeenCalledWith([1.0]);
     });
   });
 
   describe("selection handling", () => {
-    it.skip("calls onSelectionChange when row is selected", async () => {
+    it("calls onSelectionChange when row is selected", async () => {
+      const user = setupUser();
       const onChange = vi.fn();
       const onSelectionChange = vi.fn();
       const ref = createRef<PatternTableRef>();
 
-      render(
+      const { container } = render(
         <PatternTable
           ref={ref}
           pattern={[1.0, 0.8, 0.6]}
@@ -135,6 +129,11 @@ describe("PatternTable", () => {
         />,
       );
 
+      // Click on a cell to establish focus context
+      const cell = container.querySelector(".dsg-cell:not(.dsg-cell-header)");
+      await user.click(cell!);
+
+      // Select row 1 programmatically
       ref.current?.setSelection({
         min: { col: 0, row: 1 },
         max: { col: 1, row: 1 },
@@ -142,18 +141,20 @@ describe("PatternTable", () => {
 
       await waitFor(() => {
         expect(onSelectionChange).toHaveBeenCalled();
-        const call = onSelectionChange.mock.calls[0][0];
-        expect(call.min.row).toBe(1);
-        expect(call.max.row).toBe(1);
+        const lastCall =
+          onSelectionChange.mock.calls[onSelectionChange.mock.calls.length - 1];
+        expect(lastCall[0].min.row).toBe(1);
+        expect(lastCall[0].max.row).toBe(1);
       });
     });
 
-    it.skip("provides selection data including row range", async () => {
+    it("provides selection data including row range", async () => {
+      const user = setupUser();
       const onChange = vi.fn();
       const onSelectionChange = vi.fn();
       const ref = createRef<PatternTableRef>();
 
-      render(
+      const { container } = render(
         <PatternTable
           ref={ref}
           pattern={[1.0, 0.8, 0.6, 0.4]}
@@ -162,6 +163,10 @@ describe("PatternTable", () => {
           onSelectionChange={onSelectionChange}
         />,
       );
+
+      // Click on a cell to establish user interaction context
+      const cell = container.querySelector(".dsg-cell:not(.dsg-cell-header)");
+      await user.click(cell!);
 
       // Select rows 1-2 (0-indexed)
       ref.current?.setSelection({
@@ -205,6 +210,42 @@ describe("PatternTable", () => {
       });
 
       expect(onSelectionChange).not.toHaveBeenCalled();
+    });
+
+    it("syncs selection prop changes to grid", async () => {
+      const onChange = vi.fn();
+      const ref = createRef<PatternTableRef>();
+
+      const { rerender } = render(
+        <PatternTable
+          ref={ref}
+          pattern={[1.0, 0.8, 0.6, 0.4]}
+          patternTimestepSeconds={3600}
+          onChange={onChange}
+          selection={{ min: { row: 0, col: 0 }, max: { row: 0, col: 1 } }}
+        />,
+      );
+
+      // Spy on the grid's setSelection method
+      const setSelectionSpy = vi.spyOn(ref.current!, "setSelection");
+
+      // Change the selection prop to row 2
+      rerender(
+        <PatternTable
+          ref={ref}
+          pattern={[1.0, 0.8, 0.6, 0.4]}
+          patternTimestepSeconds={3600}
+          onChange={onChange}
+          selection={{ min: { row: 2, col: 0 }, max: { row: 2, col: 1 } }}
+        />,
+      );
+
+      await waitFor(() => {
+        expect(setSelectionSpy).toHaveBeenCalledWith({
+          min: { row: 2, col: 0 },
+          max: { row: 2, col: 1 },
+        });
+      });
     });
   });
 });

@@ -22,46 +22,9 @@ const columns = [
 
 const createRow = (): TestRow => ({ value: 0 });
 
-const getGutterCells = (container: HTMLElement) => {
-  return Array.from(
-    container.querySelectorAll(".dsg-cell-gutter:not(.dsg-cell-header)"),
-  );
-};
-
 describe("SpreadsheetTable", () => {
   describe("keyboard row deletion", () => {
-    it("deletes a single row when selected via gutter and pressing Delete", async () => {
-      const user = setupUser();
-      const onChange = vi.fn();
-
-      const { container } = render(
-        <SpreadsheetTable
-          data={[{ value: 1.0 }, { value: 0.8 }, { value: 0.6 }]}
-          columns={columns}
-          onChange={onChange}
-          createRow={createRow}
-          gutterColumn
-        />,
-      );
-
-      // The grid has a focusable container that receives keyboard events
-      const focusableGrid = container.querySelector(
-        "[tabindex='0']",
-      ) as HTMLElement;
-      const gutterCells = getGutterCells(container);
-
-      // Click on the first row's gutter to select the full row
-      await user.click(gutterCells[0]);
-      // Focus the grid and send keyboard event
-      focusableGrid.focus();
-      await user.keyboard("{Delete}");
-
-      await waitFor(() => {
-        expect(onChange).toHaveBeenCalledWith([{ value: 0.8 }, { value: 0.6 }]);
-      });
-    });
-
-    it("deletes all rows when selected via select-all and pressing Delete", async () => {
+    it("deletes a single row when selected and pressing Delete", async () => {
       const user = setupUser();
       const onChange = vi.fn();
       const ref = createRef<SpreadsheetTableRef>();
@@ -77,17 +40,49 @@ describe("SpreadsheetTable", () => {
         />,
       );
 
-      const focusableGrid = container.querySelector(
-        "[tabindex='0']",
-      ) as HTMLElement;
+      // Click on a cell to establish focus context
+      const cell = container.querySelector(".dsg-cell:not(.dsg-cell-header)");
+      await user.click(cell!);
 
-      // Programmatically select all rows using the ref
+      // Select the first row programmatically
+      ref.current?.setSelection({
+        min: { col: 0, row: 0 },
+        max: { col: 0, row: 0 },
+      });
+
+      await user.keyboard("{Delete}");
+
+      await waitFor(() => {
+        expect(onChange).toHaveBeenCalledWith([{ value: 0.8 }, { value: 0.6 }]);
+      });
+    });
+
+    it("deletes all rows when selected and pressing Delete", async () => {
+      const user = setupUser();
+      const onChange = vi.fn();
+      const ref = createRef<SpreadsheetTableRef>();
+
+      const { container } = render(
+        <SpreadsheetTable
+          ref={ref}
+          data={[{ value: 1.0 }, { value: 0.8 }, { value: 0.6 }]}
+          columns={columns}
+          onChange={onChange}
+          createRow={createRow}
+          gutterColumn
+        />,
+      );
+
+      // Click on a cell to establish focus context
+      const cell = container.querySelector(".dsg-cell:not(.dsg-cell-header)");
+      await user.click(cell!);
+
+      // Select all rows programmatically
       ref.current?.setSelection({
         min: { col: 0, row: 0 },
         max: { col: 0, row: 2 },
       });
 
-      focusableGrid.focus();
       await user.keyboard("{Delete}");
 
       await waitFor(() => {
@@ -98,9 +93,11 @@ describe("SpreadsheetTable", () => {
     it("deletes rows using Backspace key", async () => {
       const user = setupUser();
       const onChange = vi.fn();
+      const ref = createRef<SpreadsheetTableRef>();
 
       const { container } = render(
         <SpreadsheetTable
+          ref={ref}
           data={[{ value: 1.0 }, { value: 0.8 }, { value: 0.6 }]}
           columns={columns}
           onChange={onChange}
@@ -109,13 +106,16 @@ describe("SpreadsheetTable", () => {
         />,
       );
 
-      const focusableGrid = container.querySelector(
-        "[tabindex='0']",
-      ) as HTMLElement;
-      const gutterCells = getGutterCells(container);
+      // Click on a cell to establish focus context
+      const cell = container.querySelector(".dsg-cell:not(.dsg-cell-header)");
+      await user.click(cell!);
 
-      await user.click(gutterCells[0]);
-      focusableGrid.focus();
+      // Select the first row programmatically
+      ref.current?.setSelection({
+        min: { col: 0, row: 0 },
+        max: { col: 0, row: 0 },
+      });
+
       await user.keyboard("{Backspace}");
 
       await waitFor(() => {

@@ -3,11 +3,10 @@ import { BarGraph, type StyledBarValue } from "src/components/graphs/bar-graph";
 import { DemandPattern } from "src/hydraulic-model/demands";
 import { colors } from "src/lib/constants";
 
-type BarCategory =
-  | "original-in-duration"
-  | "original-out-of-duration"
-  | "cycled";
-
+const VALUE_COLOR = colors.purple500;
+const FILLED_VALUE_COLOR = colors.purple300;
+const IGNORED_VALUE_COLOR = colors.gray300;
+const SELECTED_VALUE_COLOR = colors.fuchsia500;
 interface PatternGraphProps {
   pattern: DemandPattern;
   intervalSeconds: number;
@@ -35,21 +34,6 @@ export function PatternGraph({
   return <BarGraph values={values} labels={labels} onBarClick={onBarClick} />;
 }
 
-function getColorForCategory(
-  category: BarCategory,
-  isHighlighted: boolean,
-): string {
-  if (isHighlighted) return colors.fuchsia500;
-  switch (category) {
-    case "original-in-duration":
-      return colors.purple500;
-    case "original-out-of-duration":
-      return colors.gray300;
-    case "cycled":
-      return colors.purple300;
-  }
-}
-
 export function buildPatternData(
   pattern: DemandPattern,
   intervalSeconds: number,
@@ -65,9 +49,47 @@ export function buildPatternData(
       ? 1
       : Math.ceil(totalDurationSeconds / intervalSeconds);
 
-  const totalBars = Math.max(pattern.length, totalSimulationIntervals);
+  const patternValuesCount = Math.max(pattern.length, totalSimulationIntervals);
+  const highlightedSet = expandSelectionWithFilledValues(
+    highlightedBarIndices,
+    pattern,
+    patternValuesCount,
+  );
 
-  // Expand highlighted indices to include cycled occurrences
+  const values: StyledBarValue[] = [];
+  const labels: string[] = [];
+
+  for (let i = 0; i < patternValuesCount; i++) {
+    const patternIndex = i % pattern.length;
+    const value = pattern[patternIndex];
+
+    values.push({
+      value,
+      itemStyle: {
+        color: getValueColor(
+          i,
+          highlightedSet,
+          pattern.length,
+          totalSimulationIntervals,
+        ),
+      },
+    });
+
+    if (i < totalSimulationIntervals) {
+      labels.push(buildTimeLabel(i, intervalSeconds));
+    } else {
+      labels.push("");
+    }
+  }
+
+  return { values, labels };
+}
+
+function expandSelectionWithFilledValues(
+  highlightedBarIndices: number[] | undefined,
+  pattern: DemandPattern,
+  totalBars: number,
+) {
   const highlightedSet = new Set<number>();
   if (highlightedBarIndices && pattern.length > 0) {
     for (const patternIndex of highlightedBarIndices) {
@@ -76,40 +98,24 @@ export function buildPatternData(
       }
     }
   }
+  return highlightedSet;
+}
 
-  const values: StyledBarValue[] = [];
-  const labels: string[] = [];
+function buildTimeLabel(i: number, intervalSeconds: number) {
+  const totalSeconds = i * intervalSeconds;
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  return `${hours}:${minutes.toString().padStart(2, "0")}`;
+}
 
-  for (let i = 0; i < totalBars; i++) {
-    const patternIndex = i % pattern.length;
-    const value = pattern[patternIndex];
-    const isCycled = i >= pattern.length;
-    const isWithinDuration = i < totalSimulationIntervals;
-    const isHighlighted = highlightedSet.has(i);
-
-    let category: BarCategory;
-    if (isCycled) {
-      category = "cycled";
-    } else if (isWithinDuration) {
-      category = "original-in-duration";
-    } else {
-      category = "original-out-of-duration";
-    }
-
-    values.push({
-      value,
-      itemStyle: { color: getColorForCategory(category, isHighlighted) },
-    });
-
-    if (isWithinDuration) {
-      const totalSeconds = i * intervalSeconds;
-      const hours = Math.floor(totalSeconds / 3600);
-      const minutes = Math.floor((totalSeconds % 3600) / 60);
-      labels.push(`${hours}:${minutes.toString().padStart(2, "0")}`);
-    } else {
-      labels.push("");
-    }
-  }
-
-  return { values, labels };
+function getValueColor(
+  index: number,
+  highlightedIndices: Set<number>,
+  patternLength: number,
+  intervalsCount: number,
+) {
+  if (highlightedIndices.has(index)) return SELECTED_VALUE_COLOR;
+  if (index >= patternLength) return FILLED_VALUE_COLOR;
+  if (index >= intervalsCount) return IGNORED_VALUE_COLOR;
+  return VALUE_COLOR;
 }

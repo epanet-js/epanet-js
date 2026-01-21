@@ -82,6 +82,11 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
   const handleActiveCellChange = useCallback(
     ({ cell }: { cell: { col: number; row: number } | null }) => {
       setSpreadsheetActive(cell !== null);
+      // The grid blurs document.activeElement when a cell becomes active.
+      // Re-focus our container so parent components can detect focus within.
+      if (cell !== null) {
+        containerRef.current?.focus();
+      }
     },
     [],
   );
@@ -126,8 +131,7 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
         selection.min.col === 0 &&
         selection.max.col === numColumns - 1;
 
-      // Convert "clear full row" (UPDATE) into "delete row" when full row is selected
-      // For actual DELETE operations, trust the grid's newData
+      // Convert "clear full row" (UPDATE) into "delete row"
       if (isUpdateOperation && isFullRowSelected && !lockRows) {
         const minRow = selection.min.row;
         const maxRow = selection.max.row;
@@ -149,7 +153,11 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
 
   return (
     <SpreadsheetProvider value={contextValue}>
-      <div ref={containerRef} className="flex flex-col justify-between h-full">
+      <div
+        ref={containerRef}
+        tabIndex={-1}
+        className="flex flex-col justify-between h-full outline-none"
+      >
         <DynamicDataSheetGrid
           ref={gridRef}
           value={data}
@@ -175,7 +183,8 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
           }
           height={gridHeight}
           disableContextMenu={!!rowActions}
-          disableExpandSelection={true}
+          disableExpandSelection
+          disableSmartDelete
           addRowsComponent={
             addRowLabel ? createAddRowsComponent(addRowLabel) : false
           }

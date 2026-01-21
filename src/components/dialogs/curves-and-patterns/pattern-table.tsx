@@ -113,12 +113,6 @@ export const PatternTable = forwardRef<SpreadsheetTableRef, PatternTableProps>(
         if (!gridRef.current) return;
         if (isInteracting.current) return;
 
-        if (selection) {
-          gridRef.current.setActiveCell({
-            col: selection.min.col,
-            row: selection.min.row,
-          });
-        }
         gridRef.current.setSelection(selection);
       },
       [selection],
@@ -156,11 +150,8 @@ export const PatternTable = forwardRef<SpreadsheetTableRef, PatternTableProps>(
           min: { col: 0, row: rowIndex },
           max: { col: 1, row: rowIndex },
         };
+        gridRef.current?.setSelection(newSelection);
         onSelectionChange?.(newSelection);
-        setTimeout(() => {
-          gridRef.current?.setActiveCell({ col: 0, row: rowIndex });
-          gridRef.current?.setSelection(newSelection);
-        }, 0);
       },
       [onSelectionChange],
     );
@@ -273,14 +264,6 @@ export const PatternTable = forwardRef<SpreadsheetTableRef, PatternTableProps>(
       (newSelection: SpreadsheetSelection | null) => {
         if (!onSelectionChange) return;
         if (newSelection === null) return;
-
-        // Only accept selection changes from actual user interaction:
-        // - isInteracting: mouse interaction in the table
-        // - hasFocus: keyboard navigation (focus is within the table)
-        // This prevents stale callbacks from overriding programmatic selections
-        const hasFocus = containerRef.current?.contains(document.activeElement);
-        if (!isInteracting.current && !hasFocus) return;
-
         if (newSelection === selection) return;
         if (
           selection?.min.row === newSelection?.min.row &&
