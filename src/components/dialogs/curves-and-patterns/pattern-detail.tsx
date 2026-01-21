@@ -2,7 +2,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { PatternTable } from "./pattern-table";
 import { PatternGraph } from "./pattern-graph";
 import { DemandPattern } from "src/hydraulic-model/demands";
-import { DataGridSelection } from "src/components/spreadsheet-table/spreadsheet-table";
+import { SpreadsheetSelection } from "src/components/spreadsheet-table";
 
 interface PatternDetailProps {
   pattern: DemandPattern;
@@ -17,9 +17,8 @@ export function PatternDetail({
   totalDurationSeconds,
   onChange,
 }: PatternDetailProps) {
-  const [selectedCells, setSelectedCells] = useState<DataGridSelection | null>(
-    null,
-  );
+  const [selectedCells, setSelectedCells] =
+    useState<SpreadsheetSelection | null>(null);
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const graphContainerRef = useRef<HTMLDivElement>(null);
 
@@ -90,7 +89,7 @@ export function PatternDetail({
 }
 
 function isSameSelection(
-  tableSelection: DataGridSelection | null,
+  tableSelection: SpreadsheetSelection | null,
   graphSelection: number | null,
   dataLength: number,
 ): boolean {

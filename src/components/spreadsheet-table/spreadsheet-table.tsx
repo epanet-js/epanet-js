@@ -21,7 +21,7 @@ import { Button } from "src/components/elements";
 import { AddIcon } from "src/icons";
 import { setSpreadsheetActive } from "./spreadsheet-focus";
 
-export type DataGridSelection = {
+export type SpreadsheetSelection = {
   min: { col: number; row: number };
   max: { col: number; row: number };
 };
@@ -37,8 +37,7 @@ type SpreadsheetTableProps<T extends Record<string, unknown>> = {
   rowActions?: RowAction[];
   addRowLabel?: string;
   gutterColumn?: boolean;
-  onActiveRowChange?: (rowIndex: number | null) => void;
-  onSelectionChange?: (selection: DataGridSelection | null) => void;
+  onSelectionChange?: (selection: SpreadsheetSelection | null) => void;
 };
 
 export type SpreadsheetTableRef = DataSheetGridRef;
@@ -56,20 +55,15 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
     rowActions,
     addRowLabel,
     gutterColumn = false,
-    onActiveRowChange,
     onSelectionChange,
   }: SpreadsheetTableProps<T>,
   ref: React.ForwardedRef<SpreadsheetTableRef>,
 ) {
   const gridRef = useRef<DataSheetGridRef>(null);
-
   useImperativeHandle(ref, () => gridRef.current!, []);
+
   const containerRef = useRef<HTMLDivElement>(null);
-  const [containerHeight, setContainerHeight] = useState<number | undefined>(
-    undefined,
-  );
-  const memoizedColumns = useMemo(() => columns, [columns]);
-  const memoizedCreateRow = useCallback(createRow, [createRow]);
+  const [gridHeight, setGridHeight] = useState<number | undefined>(undefined);
 
   const rowActionsColumn = useMemo(
     () =>
@@ -88,44 +82,43 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
   const handleActiveCellChange = useCallback(
     ({ cell }: { cell: { col: number; row: number } | null }) => {
       setSpreadsheetActive(cell !== null);
-      onActiveRowChange?.(cell?.row ?? null);
     },
-    [onActiveRowChange],
+    [],
   );
 
   useEffect(() => {
     return () => setSpreadsheetActive(false);
   }, []);
 
-  useLayoutEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
+  useLayoutEffect(
+    function resizeVertically() {
+      const container = containerRef.current;
+      if (!container) return;
 
-    let lastHeight: number | undefined;
+      let lastHeight: number | undefined;
 
-    const observer = new ResizeObserver((entries) => {
-      const newHeight = entries[0]?.contentRect.height;
+      // Button height (30px) + margin-top (8px) = 38px
+      const BUTTON_SPACE = 38;
 
-      // Only update if height changed by more than 2 pixels to prevent feedback loop
-      // where setting grid height causes small container height changes
-      if (lastHeight === undefined || Math.abs(newHeight - lastHeight) > 2) {
-        lastHeight = newHeight;
-        setContainerHeight(newHeight);
-      }
-    });
-    observer.observe(container);
-    return () => observer.disconnect();
-  }, []);
-
-  // Button height (30px) + margin-top (8px) = 38px
-  const BUTTON_SPACE = 38;
-  const gridHeight =
-    containerHeight !== undefined && addRowLabel
-      ? Math.max(0, containerHeight - BUTTON_SPACE)
-      : containerHeight;
+      const observer = new ResizeObserver((entries) => {
+        const containerHeight = entries[0]?.contentRect.height;
+        if (lastHeight === undefined || containerHeight !== lastHeight) {
+          lastHeight = containerHeight;
+          const newGridHeight = addRowLabel
+            ? Math.max(0, containerHeight - BUTTON_SPACE)
+            : containerHeight;
+          setGridHeight(newGridHeight);
+        }
+      });
+      observer.observe(container);
+      return () => observer.disconnect();
+    },
+    [addRowLabel],
+  );
 
   const handleChange = useCallback(
-    (newData: T[]) => {
+    (newData: T[], operations: { type: "UPDATE" | "DELETE" | "CREATE" }[]) => {
+      const isUpdateOperation = operations.some((op) => op.type === "UPDATE");
       const selection = gridRef.current?.selection;
       const numColumns = columns.length;
       const isFullRowSelected =
@@ -133,7 +126,9 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
         selection.min.col === 0 &&
         selection.max.col === numColumns - 1;
 
-      if (isFullRowSelected && !lockRows) {
+      // Convert "clear full row" (UPDATE) into "delete row" when full row is selected
+      // For actual DELETE operations, trust the grid's newData
+      if (isUpdateOperation && isFullRowSelected && !lockRows) {
         const minRow = selection.min.row;
         const maxRow = selection.max.row;
         onChange([...data.slice(0, minRow), ...data.slice(maxRow + 1)]);
@@ -159,8 +154,8 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
           ref={gridRef}
           value={data}
           onChange={handleChange}
-          columns={memoizedColumns}
-          createRow={memoizedCreateRow}
+          columns={columns}
+          createRow={createRow}
           lockRows={lockRows}
           rowHeight={32}
           stickyRightColumn={rowActionsColumn}

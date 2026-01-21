@@ -16,7 +16,7 @@ import {
 import { DemandPattern } from "src/hydraulic-model/demands";
 import { useTranslate } from "src/hooks/use-translate";
 import { DeleteIcon, AddIcon } from "src/icons";
-import { DataGridSelection } from "src/components/spreadsheet-table/spreadsheet-table";
+import { SpreadsheetSelection } from "src/components/spreadsheet-table";
 
 type PatternRow = {
   timestep: string;
@@ -27,8 +27,8 @@ type PatternTableProps = {
   pattern: DemandPattern;
   patternTimestepSeconds: number;
   onChange: (pattern: DemandPattern) => void;
-  onSelectionChange?: (selection: DataGridSelection | null) => void;
-  selection?: DataGridSelection | null;
+  onSelectionChange?: (selection: SpreadsheetSelection | null) => void;
+  selection?: SpreadsheetSelection | null;
 };
 
 export type PatternTableRef = SpreadsheetTableRef;
@@ -270,7 +270,7 @@ export const PatternTable = forwardRef<SpreadsheetTableRef, PatternTableProps>(
     );
 
     const handleSelectionChange = useCallback(
-      (newSelection: DataGridSelection | null) => {
+      (newSelection: SpreadsheetSelection | null) => {
         if (!onSelectionChange) return;
         if (newSelection === null) return;
 
