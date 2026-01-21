@@ -287,7 +287,7 @@ const PersonalPlan = ({ paymentType }: { paymentType: PaymentType }) => {
             textColor="text-gray-500"
             items={[
               {
-                feature: translate("scenarios"),
+                feature: translate("scenariosItem"),
                 Icon: CheckIcon,
                 iconColor: "text-gray-400",
               },
@@ -417,7 +417,7 @@ const ProPlan = ({ paymentType }: { paymentType: PaymentType }) => {
             textColor="text-gray-500"
             items={[
               {
-                feature: translate("scenarios"),
+                feature: translate("scenariosItem"),
                 Icon: CheckIcon,
                 iconColor: "text-gray-400",
               },
