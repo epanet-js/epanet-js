@@ -1,4 +1,11 @@
-import { useMemo, useCallback, forwardRef } from "react";
+import {
+  useMemo,
+  useCallback,
+  forwardRef,
+  useRef,
+  useImperativeHandle,
+  useEffect,
+} from "react";
 import { keyColumn, Column } from "react-datasheet-grid";
 import {
   SpreadsheetTable,
@@ -9,19 +16,19 @@ import {
 import { DemandPattern } from "src/hydraulic-model/demands";
 import { useTranslate } from "src/hooks/use-translate";
 import { DeleteIcon, AddIcon } from "src/icons";
+import { DataGridSelection } from "src/components/spreadsheet-table/spreadsheet-table";
 
 type PatternRow = {
   timestep: string;
   multiplier: number;
 };
 
-type RowRange = { minRow: number; maxRow: number };
-
 type PatternTableProps = {
   pattern: DemandPattern;
   patternTimestepSeconds: number;
   onChange: (pattern: DemandPattern) => void;
-  onSelectedRowsChange?: (range: RowRange | null) => void;
+  onSelectionChange?: (selection: DataGridSelection | null) => void;
+  selection?: DataGridSelection | null;
 };
 
 export type PatternTableRef = SpreadsheetTableRef;
@@ -62,10 +69,60 @@ const fromRows = (rows: PatternRow[]): DemandPattern => {
 
 export const PatternTable = forwardRef<SpreadsheetTableRef, PatternTableProps>(
   function PatternTable(
-    { pattern, patternTimestepSeconds, onChange, onSelectedRowsChange },
+    {
+      pattern,
+      patternTimestepSeconds,
+      onChange,
+      onSelectionChange,
+      selection = null,
+    },
     ref,
   ) {
     const translate = useTranslate();
+    const gridRef = useRef<SpreadsheetTableRef>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
+    const isInteracting = useRef(false);
+
+    useImperativeHandle(ref, () => gridRef.current!, []);
+
+    useEffect(function trackUserMouseInteraction() {
+      const container = containerRef.current;
+      if (!container) return;
+
+      const handleMouseDown = () => {
+        isInteracting.current = true;
+      };
+      const handleMouseUp = () => {
+        isInteracting.current = false;
+      };
+
+      container.addEventListener("mousedown", handleMouseDown);
+      document.addEventListener("mouseup", handleMouseUp);
+
+      return () => {
+        container.removeEventListener("mousedown", handleMouseDown);
+        document.removeEventListener("mouseup", handleMouseUp);
+      };
+    }, []);
+
+    // Sync external selection prop to the grid
+    // Note: setSelection may not work for rows added after initial render due to
+    // a react-datasheet-grid bug where it uses a stale data.length in its closure
+    useEffect(
+      function syncExternalSelection() {
+        if (!gridRef.current) return;
+        if (isInteracting.current) return;
+
+        if (selection) {
+          gridRef.current.setActiveCell({
+            col: selection.min.col,
+            row: selection.min.row,
+          });
+        }
+        gridRef.current.setSelection(selection);
+      },
+      [selection],
+    );
 
     const rowData = useMemo(
       () => toRows(pattern, patternTimestepSeconds),
@@ -84,7 +141,6 @@ export const PatternTable = forwardRef<SpreadsheetTableRef, PatternTableProps>(
     const handleDeleteRow = useCallback(
       (rowIndex: number) => {
         if (rowData.length === 1) {
-          // Reset to default instead of deleting the last row
           onChange([DEFAULT_MULTIPLIER]);
         } else {
           const newRows = rowData.filter((_, i) => i !== rowIndex);
@@ -92,6 +148,21 @@ export const PatternTable = forwardRef<SpreadsheetTableRef, PatternTableProps>(
         }
       },
       [rowData, onChange, recalculateTimesteps],
+    );
+
+    const selectRow = useCallback(
+      (rowIndex: number) => {
+        const newSelection = {
+          min: { col: 0, row: rowIndex },
+          max: { col: 1, row: rowIndex },
+        };
+        onSelectionChange?.(newSelection);
+        setTimeout(() => {
+          gridRef.current?.setActiveCell({ col: 0, row: rowIndex });
+          gridRef.current?.setSelection(newSelection);
+        }, 0);
+      },
+      [onSelectionChange],
     );
 
     const handleInsertRowAbove = useCallback(
@@ -106,8 +177,9 @@ export const PatternTable = forwardRef<SpreadsheetTableRef, PatternTableProps>(
           ...rowData.slice(rowIndex),
         ];
         onChange(fromRows(recalculateTimesteps(newRows)));
+        selectRow(rowIndex);
       },
-      [rowData, onChange, recalculateTimesteps],
+      [rowData, onChange, recalculateTimesteps, selectRow],
     );
 
     const handleInsertRowBelow = useCallback(
@@ -122,8 +194,9 @@ export const PatternTable = forwardRef<SpreadsheetTableRef, PatternTableProps>(
           ...rowData.slice(rowIndex + 1),
         ];
         onChange(fromRows(recalculateTimesteps(newRows)));
+        selectRow(rowIndex + 1);
       },
-      [rowData, onChange, recalculateTimesteps],
+      [rowData, onChange, recalculateTimesteps, selectRow],
     );
 
     const rowActions = useMemo(
@@ -197,23 +270,35 @@ export const PatternTable = forwardRef<SpreadsheetTableRef, PatternTableProps>(
     );
 
     const handleSelectionChange = useCallback(
-      (selection: { min: { row: number }; max: { row: number } } | null) => {
-        if (selection === null) {
-          onSelectedRowsChange?.(null);
-        } else {
-          onSelectedRowsChange?.({
-            minRow: selection.min.row,
-            maxRow: selection.max.row,
-          });
-        }
+      (newSelection: DataGridSelection | null) => {
+        if (!onSelectionChange) return;
+        if (newSelection === null) return;
+
+        // Only accept selection changes from actual user interaction:
+        // - isInteracting: mouse interaction in the table
+        // - hasFocus: keyboard navigation (focus is within the table)
+        // This prevents stale callbacks from overriding programmatic selections
+        const hasFocus = containerRef.current?.contains(document.activeElement);
+        if (!isInteracting.current && !hasFocus) return;
+
+        if (newSelection === selection) return;
+        if (
+          selection?.min.row === newSelection?.min.row &&
+          selection?.min.col === newSelection?.min.col &&
+          selection?.max.row === newSelection?.max.row &&
+          selection?.max.col === newSelection?.max.col
+        )
+          return;
+
+        onSelectionChange(newSelection);
       },
-      [onSelectedRowsChange],
+      [onSelectionChange, selection],
     );
 
     return (
-      <div className="h-full">
+      <div ref={containerRef} className="h-full">
         <SpreadsheetTable<PatternRow>
-          ref={ref}
+          ref={gridRef}
           data={rowData}
           columns={columns}
           onChange={handleChange}

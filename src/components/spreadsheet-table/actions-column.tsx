@@ -36,6 +36,7 @@ const ActionsCell: CellComponent<null, ActionsCellProps> = ({
         <DD.Content
           className="bg-white border rounded-md shadow-md z-50 min-w-[160px]"
           align="end"
+          onClick={(e) => e.stopPropagation()}
         >
           {actions.map((action, index) => {
             const isDisabled = action.disabled?.(rowIndex) ?? false;

@@ -21,7 +21,7 @@ import { Button } from "src/components/elements";
 import { AddIcon } from "src/icons";
 import { setSpreadsheetActive } from "./spreadsheet-focus";
 
-export type Selection = {
+export type DataGridSelection = {
   min: { col: number; row: number };
   max: { col: number; row: number };
 };
@@ -38,7 +38,7 @@ type SpreadsheetTableProps<T extends Record<string, unknown>> = {
   addRowLabel?: string;
   gutterColumn?: boolean;
   onActiveRowChange?: (rowIndex: number | null) => void;
-  onSelectionChange?: (selection: Selection | null) => void;
+  onSelectionChange?: (selection: DataGridSelection | null) => void;
 };
 
 export type SpreadsheetTableRef = DataSheetGridRef;
@@ -93,13 +93,6 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
     [onActiveRowChange],
   );
 
-  const handleSelectionChange = useCallback(
-    ({ selection }: { selection: Selection | null }) => {
-      onSelectionChange?.(selection);
-    },
-    [onSelectionChange],
-  );
-
   useEffect(() => {
     return () => setSpreadsheetActive(false);
   }, []);
@@ -127,11 +120,18 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
   const handleAddRow = useCallback(() => {
     const newRow = createRow();
     const newRowIndex = data.length;
+    const lastColIndex = columns.length - 1;
+    const newSelection = {
+      min: { col: 0, row: newRowIndex },
+      max: { col: lastColIndex, row: newRowIndex },
+    };
     onChange([...data, newRow]);
-    setTimeout(function scrollToBottom() {
+    onSelectionChange?.(newSelection);
+    setTimeout(function scrollToNewRow() {
       gridRef.current?.setActiveCell({ col: 0, row: newRowIndex });
+      gridRef.current?.setSelection(newSelection);
     }, 0);
-  }, [createRow, onChange, data]);
+  }, [createRow, onChange, onSelectionChange, data, columns.length]);
 
   const handleChange = useCallback(
     (newData: T[]) => {
@@ -182,7 +182,7 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
           stickyRightColumn={rowActionsColumn}
           gutterColumn={gutterColumn ? { grow: 0 } : false}
           onActiveCellChange={handleActiveCellChange}
-          onSelectionChange={handleSelectionChange}
+          onSelectionChange={({ selection }) => onSelectionChange?.(selection)}
           className={getGridStyles(gutterColumn)}
           style={
             {

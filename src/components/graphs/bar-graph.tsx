@@ -15,19 +15,15 @@ export type BarValue = number | StyledBarValue;
 interface BarGraphProps {
   values: BarValue[];
   labels: string[];
-  highlightedIndices?: number[];
   onBarClick?: (index: number | null) => void;
 }
 
-export function BarGraph({
-  values,
-  labels,
-  highlightedIndices,
-  onBarClick,
-}: BarGraphProps) {
+export function BarGraph({ values, labels, onBarClick }: BarGraphProps) {
   const translate = useTranslate();
   const chartRef = useRef<ReactECharts>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const onBarClickRef = useRef(onBarClick);
+  onBarClickRef.current = onBarClick;
 
   const xAxis: EChartsOption["xAxis"] = useMemo(
     () => ({
@@ -52,15 +48,18 @@ export function BarGraph({
     return buildYAxis(numericValues);
   }, [values]);
 
-  const series: EChartsOption["series"] = useMemo(
-    () => [
+  const series: EChartsOption["series"] = useMemo(() => {
+    return [
       {
         type: "bar",
-        data: values.map((v) =>
-          typeof v === "number"
-            ? { value: v, itemStyle: { color: colors.purple500 } }
-            : v,
-        ),
+        data: values.map((v) => {
+          const color =
+            typeof v === "number" ? colors.purple500 : v.itemStyle.color;
+          return {
+            value: typeof v === "number" ? v : v.value,
+            itemStyle: { color },
+          };
+        }),
         barMaxWidth: 40,
         emphasis: {
           itemStyle: {
@@ -68,9 +67,8 @@ export function BarGraph({
           },
         },
       },
-    ],
-    [values],
-  );
+    ];
+  }, [values]);
 
   const option: EChartsOption = useMemo(
     () => ({
@@ -118,48 +116,27 @@ export function BarGraph({
     return () => resizeObserver.disconnect();
   }, []);
 
-  const onChartReady = useCallback(
-    (chart: EChartsInstance) => {
-      const zr = chart.getZr();
+  const onChartReady = useCallback((chart: EChartsInstance) => {
+    const zr = chart.getZr();
 
-      zr.on("click", (params: { offsetX: number; offsetY: number }) => {
-        const pointInPixel = [params.offsetX, params.offsetY];
-        if (!chart.containPixel("grid", pointInPixel)) {
-          onBarClick?.(null);
-          return;
-        }
-
-        const pointInGrid = chart.convertFromPixel("grid", pointInPixel);
-        const dataIndex = Math.round(pointInGrid[0]);
-        if (dataIndex >= 0 && dataIndex < values.length) {
-          onBarClick?.(dataIndex);
-        }
-      });
-
-      zr.on("mousemove", (params: { offsetX: number; offsetY: number }) => {
-        const pointInPixel = [params.offsetX, params.offsetY];
-        const isInGrid = chart.containPixel("grid", pointInPixel);
-        zr.setCursorStyle(isInGrid ? "pointer" : "default");
-      });
-    },
-    [onBarClick, values.length],
-  );
-
-  useEffect(() => {
-    const chart = chartRef.current?.getEchartsInstance();
-    if (!chart) return;
-
-    chart.dispatchAction({ type: "downplay", seriesIndex: 0 });
-    if (highlightedIndices && highlightedIndices.length > 0) {
-      for (const index of highlightedIndices) {
-        chart.dispatchAction({
-          type: "highlight",
-          seriesIndex: 0,
-          dataIndex: index,
-        });
+    zr.on("click", (params: { offsetX: number; offsetY: number }) => {
+      const pointInPixel = [params.offsetX, params.offsetY];
+      if (!chart.containPixel("grid", pointInPixel)) {
+        onBarClickRef.current?.(null);
+        return;
       }
-    }
-  }, [highlightedIndices]);
+
+      const pointInGrid = chart.convertFromPixel("grid", pointInPixel);
+      const dataIndex = Math.round(pointInGrid[0]);
+      onBarClickRef.current?.(dataIndex);
+    });
+
+    zr.on("mousemove", (params: { offsetX: number; offsetY: number }) => {
+      const pointInPixel = [params.offsetX, params.offsetY];
+      const isInGrid = chart.containPixel("grid", pointInPixel);
+      zr.setCursorStyle(isInGrid ? "pointer" : "default");
+    });
+  }, []);
 
   if (values.length === 0) {
     return (

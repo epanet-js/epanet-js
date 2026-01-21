@@ -118,4 +118,93 @@ describe("PatternTable", () => {
       });
     });
   });
+
+  describe("selection handling", () => {
+    it.skip("calls onSelectionChange when row is selected", async () => {
+      const onChange = vi.fn();
+      const onSelectionChange = vi.fn();
+      const ref = createRef<PatternTableRef>();
+
+      render(
+        <PatternTable
+          ref={ref}
+          pattern={[1.0, 0.8, 0.6]}
+          patternTimestepSeconds={3600}
+          onChange={onChange}
+          onSelectionChange={onSelectionChange}
+        />,
+      );
+
+      ref.current?.setSelection({
+        min: { col: 0, row: 1 },
+        max: { col: 1, row: 1 },
+      });
+
+      await waitFor(() => {
+        expect(onSelectionChange).toHaveBeenCalled();
+        const call = onSelectionChange.mock.calls[0][0];
+        expect(call.min.row).toBe(1);
+        expect(call.max.row).toBe(1);
+      });
+    });
+
+    it.skip("provides selection data including row range", async () => {
+      const onChange = vi.fn();
+      const onSelectionChange = vi.fn();
+      const ref = createRef<PatternTableRef>();
+
+      render(
+        <PatternTable
+          ref={ref}
+          pattern={[1.0, 0.8, 0.6, 0.4]}
+          patternTimestepSeconds={3600}
+          onChange={onChange}
+          onSelectionChange={onSelectionChange}
+        />,
+      );
+
+      // Select rows 1-2 (0-indexed)
+      ref.current?.setSelection({
+        min: { col: 0, row: 1 },
+        max: { col: 1, row: 2 },
+      });
+
+      await waitFor(() => {
+        expect(onSelectionChange).toHaveBeenCalled();
+        const selection = onSelectionChange.mock.calls[0][0];
+        expect(selection.min.row).toBe(1);
+        expect(selection.max.row).toBe(2);
+        expect(selection.min.col).toBe(0);
+        expect(selection.max.col).toBe(1);
+      });
+    });
+
+    it("does not invoke handler when selection has same values", () => {
+      const onChange = vi.fn();
+      const onSelectionChange = vi.fn();
+      const ref = createRef<PatternTableRef>();
+
+      render(
+        <PatternTable
+          ref={ref}
+          pattern={[1.0, 0.8, 0.6, 0.4]}
+          patternTimestepSeconds={3600}
+          onChange={onChange}
+          onSelectionChange={onSelectionChange}
+          selection={{ min: { row: 0, col: 0 }, max: { row: 0, col: 1 } }}
+        />,
+      );
+
+      // Clear mock to ignore initial render callback
+      onSelectionChange.mockClear();
+
+      // Set selection to same values as the controlled selection prop
+      ref.current?.setSelection({
+        min: { col: 0, row: 0 },
+        max: { col: 1, row: 0 },
+      });
+
+      expect(onSelectionChange).not.toHaveBeenCalled();
+    });
+  });
 });

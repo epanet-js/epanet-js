@@ -24,20 +24,22 @@ export function PatternGraph({
   onBarClick,
 }: PatternGraphProps) {
   const { values, labels } = useMemo(() => {
-    return buildPatternData(pattern, intervalSeconds, totalDurationSeconds);
-  }, [pattern, intervalSeconds, totalDurationSeconds]);
+    return buildPatternData(
+      pattern,
+      intervalSeconds,
+      totalDurationSeconds,
+      highlightedBarIndices,
+    );
+  }, [pattern, intervalSeconds, totalDurationSeconds, highlightedBarIndices]);
 
-  return (
-    <BarGraph
-      values={values}
-      labels={labels}
-      highlightedIndices={highlightedBarIndices}
-      onBarClick={onBarClick}
-    />
-  );
+  return <BarGraph values={values} labels={labels} onBarClick={onBarClick} />;
 }
 
-function getColorForCategory(category: BarCategory): string {
+function getColorForCategory(
+  category: BarCategory,
+  isHighlighted: boolean,
+): string {
+  if (isHighlighted) return colors.fuchsia500;
   switch (category) {
     case "original-in-duration":
       return colors.purple500;
@@ -52,6 +54,7 @@ export function buildPatternData(
   pattern: DemandPattern,
   intervalSeconds: number,
   totalDurationSeconds: number,
+  highlightedBarIndices?: number[],
 ): { values: StyledBarValue[]; labels: string[] } {
   if (pattern.length === 0) {
     return { values: [], labels: [] };
@@ -64,6 +67,16 @@ export function buildPatternData(
 
   const totalBars = Math.max(pattern.length, totalSimulationIntervals);
 
+  // Expand highlighted indices to include cycled occurrences
+  const highlightedSet = new Set<number>();
+  if (highlightedBarIndices && pattern.length > 0) {
+    for (const patternIndex of highlightedBarIndices) {
+      for (let i = patternIndex; i < totalBars; i += pattern.length) {
+        highlightedSet.add(i);
+      }
+    }
+  }
+
   const values: StyledBarValue[] = [];
   const labels: string[] = [];
 
@@ -72,6 +85,7 @@ export function buildPatternData(
     const value = pattern[patternIndex];
     const isCycled = i >= pattern.length;
     const isWithinDuration = i < totalSimulationIntervals;
+    const isHighlighted = highlightedSet.has(i);
 
     let category: BarCategory;
     if (isCycled) {
@@ -84,7 +98,7 @@ export function buildPatternData(
 
     values.push({
       value,
-      itemStyle: { color: getColorForCategory(category) },
+      itemStyle: { color: getColorForCategory(category, isHighlighted) },
     });
 
     if (isWithinDuration) {
