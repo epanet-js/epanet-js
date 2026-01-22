@@ -201,7 +201,7 @@ export const buildInpWithCustomerDemands = withDebugInstrumentation(
     const units = chooseUnitSystem(hydraulicModel.units);
     const headlossFormula = hydraulicModel.headlossFormula;
     const constantPatternId = getConstantPatternId(
-      new Set(hydraulicModel.demands.patterns.keys()),
+      new Set(hydraulicModel.demands.patternsLegacy.keys()),
     );
     const sections: InpSections = {
       junctions: ["[JUNCTIONS]", ";Id\tElevation"],
@@ -333,7 +333,7 @@ export const buildInpWithCustomerDemands = withDebugInstrumentation(
     appendDemandPatterns(
       sections,
       constantPatternId,
-      hydraulicModel.demands.patterns,
+      hydraulicModel.demands.patternsLegacy,
       usedPatternIds,
     );
 
@@ -457,14 +457,14 @@ const appendJunction = (
   for (const demand of junction.demands) {
     if (demand.baseDemand === 0) continue;
 
-    const demandLine = demand.patternId
-      ? [junctionId, demand.baseDemand, demand.patternId]
+    const demandLine = demand.patternLabel
+      ? [junctionId, demand.baseDemand, demand.patternLabel]
       : [junctionId, demand.baseDemand];
 
     sections.demands.push(commentPrefix + demandLine.join("\t"));
 
-    if (demand.patternId) {
-      usedPatternIds.add(demand.patternId);
+    if (demand.patternLabel) {
+      usedPatternIds.add(demand.patternLabel);
     }
   }
 
@@ -479,9 +479,9 @@ const appendJunction = (
     for (const cp of customerPoints) {
       for (const demand of cp.demands) {
         if (demand.baseDemand === 0) continue;
-        const currentTotal = demandsByPattern.get(demand.patternId) ?? 0;
+        const currentTotal = demandsByPattern.get(demand.patternLabel) ?? 0;
         demandsByPattern.set(
-          demand.patternId,
+          demand.patternLabel,
           currentTotal + demand.baseDemand,
         );
       }
@@ -803,13 +803,15 @@ const appendCustomerPoint = (
   for (const demand of customerPoint.demands) {
     sections.customersDemands.push(
       ";" +
-        [customerPoint.label, demand.baseDemand, demand.patternId ?? ""].join(
-          "\t",
-        ),
+        [
+          customerPoint.label,
+          demand.baseDemand,
+          demand.patternLabel ?? "",
+        ].join("\t"),
     );
 
-    if (demand.patternId) {
-      usedPatternIds.add(demand.patternId);
+    if (demand.patternLabel) {
+      usedPatternIds.add(demand.patternLabel);
     }
   }
 };

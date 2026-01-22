@@ -1,10 +1,13 @@
-import { DemandPattern, DemandPatterns } from "src/hydraulic-model/demands";
+import {
+  PatternMultipliers,
+  DemandPatternsLegacy,
+} from "src/hydraulic-model/demands";
 import { ItemData, normalizeRef } from "./inp-data";
 
 const DEFAULT_PATTERN_ID = "1";
 
 export class PatternsBuilder {
-  private builtPatterns: DemandPatterns = new Map();
+  private builtPatterns: DemandPatternsLegacy = new Map();
   private usedPatternIds: Set<string> = new Set();
   private fallbackPatternId: string | undefined;
 
@@ -45,8 +48,8 @@ export class PatternsBuilder {
     this.usedPatternIds.add(patternId);
   }
 
-  getUsedPatterns(): DemandPatterns {
-    const result: DemandPatterns = new Map();
+  getUsedPatterns(): DemandPatternsLegacy {
+    const result: DemandPatternsLegacy = new Map();
 
     for (const normalizedId of this.usedPatternIds) {
       const pattern = this.builtPatterns.get(normalizedId);
@@ -58,7 +61,7 @@ export class PatternsBuilder {
     return result;
   }
 
-  private getPatternData(raw_id: string): DemandPattern | undefined {
+  private getPatternData(raw_id: string): PatternMultipliers | undefined {
     const normalizedId = normalizeRef(raw_id);
 
     const existingPattern = this.builtPatterns.get(normalizedId);
@@ -67,12 +70,12 @@ export class PatternsBuilder {
     const rawFactors = this.rawPatterns.get(raw_id);
     if (!rawFactors) return undefined;
 
-    const pattern: DemandPattern = rawFactors;
+    const pattern: PatternMultipliers = rawFactors;
     this.builtPatterns.set(normalizedId, pattern);
     return pattern;
   }
 }
 
-const isConstantPattern = (pattern: DemandPattern): boolean => {
+const isConstantPattern = (pattern: PatternMultipliers): boolean => {
   return pattern.every((value) => value === 1);
 };

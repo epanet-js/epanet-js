@@ -16,7 +16,7 @@ describe("PatternSidebar", () => {
       render(
         <PatternSidebar
           patterns={patterns}
-          selectedPatternId={null}
+          selectedPatternLabel={null}
           onSelectPattern={vi.fn()}
           onAddPattern={vi.fn()}
         />,
@@ -34,7 +34,7 @@ describe("PatternSidebar", () => {
       render(
         <PatternSidebar
           patterns={new Map()}
-          selectedPatternId={null}
+          selectedPatternLabel={null}
           onSelectPattern={vi.fn()}
           onAddPattern={vi.fn()}
         />,
@@ -55,7 +55,7 @@ describe("PatternSidebar", () => {
       render(
         <PatternSidebar
           patterns={patterns}
-          selectedPatternId={null}
+          selectedPatternLabel={null}
           onSelectPattern={onSelectPattern}
           onAddPattern={vi.fn()}
         />,
@@ -74,7 +74,7 @@ describe("PatternSidebar", () => {
       render(
         <PatternSidebar
           patterns={new Map()}
-          selectedPatternId={null}
+          selectedPatternLabel={null}
           onSelectPattern={vi.fn()}
           onAddPattern={vi.fn()}
         />,
@@ -91,7 +91,7 @@ describe("PatternSidebar", () => {
       render(
         <PatternSidebar
           patterns={new Map()}
-          selectedPatternId={null}
+          selectedPatternLabel={null}
           onSelectPattern={vi.fn()}
           onAddPattern={vi.fn()}
         />,
@@ -111,7 +111,7 @@ describe("PatternSidebar", () => {
       render(
         <PatternSidebar
           patterns={new Map()}
-          selectedPatternId={null}
+          selectedPatternLabel={null}
           onSelectPattern={onSelectPattern}
           onAddPattern={onAddPattern}
         />,
@@ -132,7 +132,7 @@ describe("PatternSidebar", () => {
       render(
         <PatternSidebar
           patterns={new Map()}
-          selectedPatternId={null}
+          selectedPatternLabel={null}
           onSelectPattern={vi.fn()}
           onAddPattern={vi.fn()}
         />,
@@ -155,7 +155,7 @@ describe("PatternSidebar", () => {
       render(
         <PatternSidebar
           patterns={new Map()}
-          selectedPatternId={null}
+          selectedPatternLabel={null}
           onSelectPattern={vi.fn()}
           onAddPattern={onAddPattern}
         />,
@@ -177,7 +177,7 @@ describe("PatternSidebar", () => {
       render(
         <PatternSidebar
           patterns={new Map()}
-          selectedPatternId={null}
+          selectedPatternLabel={null}
           onSelectPattern={vi.fn()}
           onAddPattern={onAddPattern}
         />,
@@ -199,7 +199,7 @@ describe("PatternSidebar", () => {
       render(
         <PatternSidebar
           patterns={patterns}
-          selectedPatternId={null}
+          selectedPatternLabel={null}
           onSelectPattern={vi.fn()}
           onAddPattern={onAddPattern}
         />,
@@ -220,7 +220,7 @@ describe("PatternSidebar", () => {
       render(
         <PatternSidebar
           patterns={new Map()}
-          selectedPatternId={null}
+          selectedPatternLabel={null}
           onSelectPattern={vi.fn()}
           onAddPattern={onAddPattern}
         />,
@@ -247,7 +247,7 @@ describe("PatternSidebar", () => {
       render(
         <PatternSidebar
           patterns={new Map()}
-          selectedPatternId={null}
+          selectedPatternLabel={null}
           onSelectPattern={vi.fn()}
           onAddPattern={onAddPattern}
         />,
@@ -269,7 +269,7 @@ describe("PatternSidebar", () => {
       render(
         <PatternSidebar
           patterns={patterns}
-          selectedPatternId={null}
+          selectedPatternLabel={null}
           onSelectPattern={vi.fn()}
           onAddPattern={onAddPattern}
         />,

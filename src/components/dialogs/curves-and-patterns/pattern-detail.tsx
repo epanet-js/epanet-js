@@ -1,14 +1,14 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { PatternTable } from "./pattern-table";
 import { PatternGraph } from "./pattern-graph";
-import { DemandPattern } from "src/hydraulic-model/demands";
+import { PatternMultipliers } from "src/hydraulic-model/demands";
 import { SpreadsheetSelection } from "src/components/spreadsheet-table";
 
 interface PatternDetailProps {
-  pattern: DemandPattern;
+  pattern: PatternMultipliers;
   patternTimestepSeconds: number;
   totalDurationSeconds: number;
-  onChange: (pattern: DemandPattern) => void;
+  onChange: (pattern: PatternMultipliers) => void;
 }
 
 export function PatternDetail({

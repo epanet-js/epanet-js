@@ -14,7 +14,7 @@ import { getActiveCustomerPoints } from "src/hydraulic-model/customer-points";
 import { Valve } from "src/hydraulic-model/asset-types";
 import {
   JunctionDemand,
-  calculateAverageDemand,
+  calculateAverageDemandLegacy,
 } from "src/hydraulic-model/demands";
 import { Quantities } from "src/model-metadata/quantities-spec";
 import { useTranslate } from "src/hooks/use-translate";
@@ -206,7 +206,7 @@ export function AssetPanel({
   const handleChangeJunctionDemand = useCallback(
     (newValue: number, oldValue: number) => {
       const junction = asset as Junction;
-      const patternDemands = junction.demands.filter((d) => d.patternId);
+      const patternDemands = junction.demands.filter((d) => d.patternLabel);
       const newDemands = [{ baseDemand: newValue }, ...patternDemands];
       const moment = changeJunctionDemands(hydraulicModel, {
         junctionId: asset.id,
@@ -408,17 +408,27 @@ const JunctionEditor = ({
       return customerPoints.reduce(
         (sum, cp) =>
           sum +
-          calculateAverageDemand(cp.demands, hydraulicModel.demands.patterns),
+          calculateAverageDemandLegacy(
+            cp.demands,
+            hydraulicModel.demands.patternsLegacy,
+          ),
         0,
       );
     }
     return customerPoints.reduce((sum, cp) => sum + cp.baseDemand, 0);
-  }, [customerPoints, isCustomerDemandsOn, hydraulicModel.demands.patterns]);
+  }, [
+    customerPoints,
+    isCustomerDemandsOn,
+    hydraulicModel.demands.patternsLegacy,
+  ]);
 
   const averageDemand = useMemo(
     () =>
-      calculateAverageDemand(junction.demands, hydraulicModel.demands.patterns),
-    [junction.demands, hydraulicModel.demands.patterns],
+      calculateAverageDemandLegacy(
+        junction.demands,
+        hydraulicModel.demands.patternsLegacy,
+      ),
+    [junction.demands, hydraulicModel.demands.patternsLegacy],
   );
 
   return (
@@ -466,7 +476,7 @@ const JunctionEditor = ({
             {!readonly && (
               <DemandCategoriesEditor
                 demands={junction.demands}
-                patterns={hydraulicModel.demands.patterns}
+                patterns={hydraulicModel.demands.patternsLegacy}
                 onDemandsChange={onDemandsChange}
               />
             )}
@@ -504,7 +514,7 @@ const JunctionEditor = ({
               customerPoints={customerPoints}
               aggregateUnit={quantitiesMetadata.getUnit("customerDemand")}
               customerUnit={quantitiesMetadata.getUnit("customerDemandPerDay")}
-              patterns={hydraulicModel.demands.patterns}
+              patterns={hydraulicModel.demands.patternsLegacy}
             />
           </>
         )}
@@ -584,12 +594,19 @@ const PipeEditor = ({
       return customerPoints.reduce(
         (sum, cp) =>
           sum +
-          calculateAverageDemand(cp.demands, hydraulicModel.demands.patterns),
+          calculateAverageDemandLegacy(
+            cp.demands,
+            hydraulicModel.demands.patternsLegacy,
+          ),
         0,
       );
     }
     return customerPoints.reduce((sum, cp) => sum + cp.baseDemand, 0);
-  }, [customerPoints, isCustomerDemandsOn, hydraulicModel.demands.patterns]);
+  }, [
+    customerPoints,
+    isCustomerDemandsOn,
+    hydraulicModel.demands.patternsLegacy,
+  ]);
 
   const pipeStatusOptions = useMemo(() => {
     return pipeStatuses.map((status) => ({
@@ -696,7 +713,7 @@ const PipeEditor = ({
             customerPoints={customerPoints}
             aggregateUnit={quantitiesMetadata.getUnit("customerDemand")}
             customerUnit={quantitiesMetadata.getUnit("customerDemandPerDay")}
-            patterns={hydraulicModel.demands.patterns}
+            patterns={hydraulicModel.demands.patternsLegacy}
           />
         </Section>
       )}

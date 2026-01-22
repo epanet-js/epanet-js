@@ -5,18 +5,21 @@ import {
   createFloatColumn,
   createFilterableSelectColumn,
 } from "src/components/spreadsheet-table";
-import { JunctionDemand, PatternId } from "src/hydraulic-model/demands";
+import {
+  JunctionDemand,
+  DemandPatternsLegacy,
+} from "src/hydraulic-model/demands";
 import { useTranslate } from "src/hooks/use-translate";
 import { DeleteIcon, AddIcon } from "src/icons";
 
 type DemandCategoryRow = {
   baseDemand: number | null;
-  patternId: string;
+  patternLabel: string;
 };
 
 type Props = {
   demands: JunctionDemand[];
-  patterns: Map<PatternId, number[]>;
+  patterns: DemandPatternsLegacy;
   onDemandsChange: (newDemands: JunctionDemand[]) => void;
 };
 
@@ -24,18 +27,20 @@ const CONSTANT_PATTERN_SENTINEL = ";CONSTANT";
 
 const toRow = (demand: JunctionDemand): DemandCategoryRow => ({
   baseDemand: demand.baseDemand,
-  patternId: demand.patternId ?? CONSTANT_PATTERN_SENTINEL,
+  patternLabel: demand.patternLabel ?? CONSTANT_PATTERN_SENTINEL,
 });
 
 const fromRow = (row: DemandCategoryRow): JunctionDemand => ({
   baseDemand: row.baseDemand ?? 0,
-  patternId:
-    row.patternId === CONSTANT_PATTERN_SENTINEL ? undefined : row.patternId,
+  patternLabel:
+    row.patternLabel === CONSTANT_PATTERN_SENTINEL
+      ? undefined
+      : row.patternLabel,
 });
 
 const createDefaultRow = (): DemandCategoryRow => ({
   baseDemand: 0,
-  patternId: CONSTANT_PATTERN_SENTINEL,
+  patternLabel: CONSTANT_PATTERN_SENTINEL,
 });
 
 export const DemandCategoriesEditor = ({
@@ -105,7 +110,7 @@ export const DemandCategoriesEditor = ({
       if (rowData.length > 1) return false;
       const row = rowData[rowIndex];
       return (
-        row?.baseDemand === 0 && row?.patternId === CONSTANT_PATTERN_SENTINEL
+        row?.baseDemand === 0 && row?.patternLabel === CONSTANT_PATTERN_SENTINEL
       );
     },
     [rowData],
@@ -148,7 +153,7 @@ export const DemandCategoriesEditor = ({
       },
       {
         ...keyColumn(
-          "patternId",
+          "patternLabel",
           createFilterableSelectColumn({
             options: patternOptions,
             deleteValue: CONSTANT_PATTERN_SENTINEL,

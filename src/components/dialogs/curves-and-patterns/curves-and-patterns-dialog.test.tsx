@@ -105,7 +105,7 @@ describe("CurvesAndPatternsDialog", () => {
       // Verify the model was updated
       const data = store.get(dataAtom);
       const updatedPattern =
-        data.hydraulicModel.demands.patterns.get("Pattern1");
+        data.hydraulicModel.demands.patternsLegacy.get("Pattern1");
       expect(updatedPattern?.[0]).toBe(2.0);
     });
   });
@@ -240,7 +240,8 @@ describe("CurvesAndPatternsDialog", () => {
 
       // Model should not have been updated
       const data = store.get(dataAtom);
-      const pattern = data.hydraulicModel.demands.patterns.get("Pattern1");
+      const pattern =
+        data.hydraulicModel.demands.patternsLegacy.get("Pattern1");
       expect(pattern?.[0]).toBe(1.0);
     });
   });
@@ -309,7 +310,8 @@ describe("CurvesAndPatternsDialog", () => {
 
       // Verify the model was updated with the new pattern
       const data = store.get(dataAtom);
-      const newPattern = data.hydraulicModel.demands.patterns.get("NEWPATTERN");
+      const newPattern =
+        data.hydraulicModel.demands.patternsLegacy.get("NEWPATTERN");
       expect(newPattern).toEqual([1]); // Default pattern value
     });
 

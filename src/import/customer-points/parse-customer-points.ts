@@ -220,7 +220,7 @@ const processGeoJSONFeature = (
         label,
         demands: [
           patternId
-            ? { baseDemand: demandInTargetUnit, patternId }
+            ? { baseDemand: demandInTargetUnit, patternLabel: patternId }
             : { baseDemand: demandInTargetUnit },
         ],
       },

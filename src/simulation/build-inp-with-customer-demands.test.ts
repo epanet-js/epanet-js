@@ -45,15 +45,15 @@ describe("buildInpWithCustomerDemands", () => {
           ],
         })
         .aCustomerPoint(IDS.CP1, {
-          demands: [{ baseDemand: 10, patternId: "residential" }],
+          demands: [{ baseDemand: 10, patternLabel: "residential" }],
           connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
         })
         .aCustomerPoint(IDS.CP2, {
-          demands: [{ baseDemand: 15, patternId: "residential" }],
+          demands: [{ baseDemand: 15, patternLabel: "residential" }],
           connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
         })
         .aCustomerPoint(IDS.CP3, {
-          demands: [{ baseDemand: 20, patternId: "commercial" }],
+          demands: [{ baseDemand: 20, patternLabel: "commercial" }],
           connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
         })
         .aDemandPattern("residential", [1, 1.2, 0.8])
@@ -89,7 +89,7 @@ describe("buildInpWithCustomerDemands", () => {
           ],
         })
         .aCustomerPoint(IDS.CP1, {
-          demands: [{ baseDemand: 25, patternId: "residential" }],
+          demands: [{ baseDemand: 25, patternLabel: "residential" }],
           connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
         })
         .aDemandPattern("residential", [1, 1.2, 0.8])
@@ -207,7 +207,7 @@ describe("buildInpWithCustomerDemands", () => {
           ],
         })
         .aCustomerPoint(IDS.CP1, {
-          demands: [{ baseDemand: 25, patternId: "daily_pattern" }],
+          demands: [{ baseDemand: 25, patternLabel: "daily_pattern" }],
           coordinates: [1, 1],
           connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
         })
@@ -239,8 +239,8 @@ describe("buildInpWithCustomerDemands", () => {
         })
         .aCustomerPoint(IDS.CP1, {
           demands: [
-            { baseDemand: 10, patternId: "pat1" },
-            { baseDemand: 5, patternId: "pat2" },
+            { baseDemand: 10, patternLabel: "pat1" },
+            { baseDemand: 5, patternLabel: "pat2" },
           ],
           coordinates: [1.5, 2.5],
           connection: { pipeId: IDS.P1, junctionId: IDS.J1 },

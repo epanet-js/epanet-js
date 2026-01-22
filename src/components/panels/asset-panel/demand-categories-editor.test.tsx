@@ -1,11 +1,15 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { DemandCategoriesEditor } from "./demand-categories-editor";
-import { JunctionDemand, PatternId } from "src/hydraulic-model/demands";
+import {
+  JunctionDemand,
+  PatternLabel,
+  PatternMultipliers,
+} from "src/hydraulic-model/demands";
 
 const aPatterns = (
-  ...patterns: [PatternId, number[]][]
-): Map<PatternId, number[]> => {
+  ...patterns: [PatternLabel, PatternMultipliers][]
+): Map<PatternLabel, PatternMultipliers> => {
   return new Map(patterns);
 };
 
@@ -47,8 +51,8 @@ describe("DemandCategoriesEditor", () => {
 
     it("displays existing demands", () => {
       const demands: JunctionDemand[] = [
-        { baseDemand: 100, patternId: "Pattern1" },
-        { baseDemand: 50, patternId: undefined },
+        { baseDemand: 100, patternLabel: "Pattern1" },
+        { baseDemand: 50, patternLabel: undefined },
       ];
 
       render(
@@ -71,7 +75,7 @@ describe("DemandCategoriesEditor", () => {
 
       render(
         <DemandCategoriesEditor
-          demands={[{ baseDemand: 100, patternId: undefined }]}
+          demands={[{ baseDemand: 100, patternLabel: undefined }]}
           patterns={aPatterns(["Pattern1", [1]], ["Pattern2", [2]])}
           onDemandsChange={vi.fn()}
         />,
@@ -104,7 +108,7 @@ describe("DemandCategoriesEditor", () => {
 
       render(
         <DemandCategoriesEditor
-          demands={[{ baseDemand: 100, patternId: undefined }]}
+          demands={[{ baseDemand: 100, patternLabel: undefined }]}
           patterns={aPatterns()}
           onDemandsChange={onDemandsChange}
         />,
@@ -117,7 +121,7 @@ describe("DemandCategoriesEditor", () => {
       await user.keyboard("{Enter}");
 
       expect(onDemandsChange).toHaveBeenCalledWith([
-        { baseDemand: 200, patternId: undefined },
+        { baseDemand: 200, patternLabel: undefined },
       ]);
     });
   });
@@ -130,7 +134,7 @@ describe("DemandCategoriesEditor", () => {
 
       render(
         <DemandCategoriesEditor
-          demands={[{ baseDemand: 100, patternId: undefined }]}
+          demands={[{ baseDemand: 100, patternLabel: undefined }]}
           patterns={aPatterns(["Pattern1", [1, 2, 3]])}
           onDemandsChange={onDemandsChange}
         />,
@@ -147,7 +151,7 @@ describe("DemandCategoriesEditor", () => {
       await user.click(pattern1Option);
 
       expect(onDemandsChange).toHaveBeenCalledWith([
-        { baseDemand: 100, patternId: "Pattern1" },
+        { baseDemand: 100, patternLabel: "Pattern1" },
       ]);
     });
 
@@ -158,7 +162,7 @@ describe("DemandCategoriesEditor", () => {
 
       render(
         <DemandCategoriesEditor
-          demands={[{ baseDemand: 100, patternId: "Pattern1" }]}
+          demands={[{ baseDemand: 100, patternLabel: "Pattern1" }]}
           patterns={aPatterns(["Pattern1", [1, 2, 3]])}
           onDemandsChange={onDemandsChange}
         />,
@@ -175,7 +179,7 @@ describe("DemandCategoriesEditor", () => {
       await user.click(constantOption);
 
       expect(onDemandsChange).toHaveBeenCalledWith([
-        { baseDemand: 100, patternId: undefined },
+        { baseDemand: 100, patternLabel: undefined },
       ]);
     });
   });
@@ -187,7 +191,7 @@ describe("DemandCategoriesEditor", () => {
 
       render(
         <DemandCategoriesEditor
-          demands={[{ baseDemand: 100, patternId: undefined }]}
+          demands={[{ baseDemand: 100, patternLabel: undefined }]}
           patterns={aPatterns()}
           onDemandsChange={onDemandsChange}
         />,
@@ -196,8 +200,8 @@ describe("DemandCategoriesEditor", () => {
       await user.click(getAddRowButton());
 
       expect(onDemandsChange).toHaveBeenCalledWith([
-        { baseDemand: 100, patternId: undefined },
-        { baseDemand: 0, patternId: undefined },
+        { baseDemand: 100, patternLabel: undefined },
+        { baseDemand: 0, patternLabel: undefined },
       ]);
     });
   });
@@ -210,8 +214,8 @@ describe("DemandCategoriesEditor", () => {
       render(
         <DemandCategoriesEditor
           demands={[
-            { baseDemand: 100, patternId: undefined },
-            { baseDemand: 200, patternId: undefined },
+            { baseDemand: 100, patternLabel: undefined },
+            { baseDemand: 200, patternLabel: undefined },
           ]}
           patterns={aPatterns()}
           onDemandsChange={onDemandsChange}
@@ -222,7 +226,7 @@ describe("DemandCategoriesEditor", () => {
       await user.click(screen.getByRole("menuitem", { name: /delete/i }));
 
       expect(onDemandsChange).toHaveBeenCalledWith([
-        { baseDemand: 200, patternId: undefined },
+        { baseDemand: 200, patternLabel: undefined },
       ]);
     });
 
@@ -232,7 +236,7 @@ describe("DemandCategoriesEditor", () => {
 
       render(
         <DemandCategoriesEditor
-          demands={[{ baseDemand: 100, patternId: undefined }]}
+          demands={[{ baseDemand: 100, patternLabel: undefined }]}
           patterns={aPatterns()}
           onDemandsChange={onDemandsChange}
         />,
@@ -244,8 +248,8 @@ describe("DemandCategoriesEditor", () => {
       );
 
       expect(onDemandsChange).toHaveBeenCalledWith([
-        { baseDemand: 0, patternId: undefined },
-        { baseDemand: 100, patternId: undefined },
+        { baseDemand: 0, patternLabel: undefined },
+        { baseDemand: 100, patternLabel: undefined },
       ]);
     });
 
@@ -255,7 +259,7 @@ describe("DemandCategoriesEditor", () => {
 
       render(
         <DemandCategoriesEditor
-          demands={[{ baseDemand: 100, patternId: undefined }]}
+          demands={[{ baseDemand: 100, patternLabel: undefined }]}
           patterns={aPatterns()}
           onDemandsChange={onDemandsChange}
         />,
@@ -267,8 +271,8 @@ describe("DemandCategoriesEditor", () => {
       );
 
       expect(onDemandsChange).toHaveBeenCalledWith([
-        { baseDemand: 100, patternId: undefined },
-        { baseDemand: 0, patternId: undefined },
+        { baseDemand: 100, patternLabel: undefined },
+        { baseDemand: 0, patternLabel: undefined },
       ]);
     });
 
@@ -294,7 +298,7 @@ describe("DemandCategoriesEditor", () => {
 
       render(
         <DemandCategoriesEditor
-          demands={[{ baseDemand: 100, patternId: undefined }]}
+          demands={[{ baseDemand: 100, patternLabel: undefined }]}
           patterns={aPatterns()}
           onDemandsChange={vi.fn()}
         />,
@@ -312,8 +316,8 @@ describe("DemandCategoriesEditor", () => {
       render(
         <DemandCategoriesEditor
           demands={[
-            { baseDemand: 0, patternId: undefined },
-            { baseDemand: 0, patternId: undefined },
+            { baseDemand: 0, patternLabel: undefined },
+            { baseDemand: 0, patternLabel: undefined },
           ]}
           patterns={aPatterns()}
           onDemandsChange={vi.fn()}
@@ -335,7 +339,7 @@ describe("DemandCategoriesEditor", () => {
 
       render(
         <DemandCategoriesEditor
-          demands={[{ baseDemand: 100, patternId: undefined }]}
+          demands={[{ baseDemand: 100, patternLabel: undefined }]}
           patterns={aPatterns()}
           onDemandsChange={onDemandsChange}
         />,
@@ -358,8 +362,8 @@ describe("DemandCategoriesEditor", () => {
       render(
         <DemandCategoriesEditor
           demands={[
-            { baseDemand: 100, patternId: undefined },
-            { baseDemand: 50, patternId: undefined },
+            { baseDemand: 100, patternLabel: undefined },
+            { baseDemand: 50, patternLabel: undefined },
           ]}
           patterns={aPatterns()}
           onDemandsChange={onDemandsChange}
@@ -373,8 +377,8 @@ describe("DemandCategoriesEditor", () => {
       await user.keyboard("{Enter}");
 
       expect(onDemandsChange).toHaveBeenCalledWith([
-        { baseDemand: 0, patternId: undefined },
-        { baseDemand: 50, patternId: undefined },
+        { baseDemand: 0, patternLabel: undefined },
+        { baseDemand: 50, patternLabel: undefined },
       ]);
     });
   });

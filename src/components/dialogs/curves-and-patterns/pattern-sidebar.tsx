@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import * as DD from "@radix-ui/react-dropdown-menu";
 import { useTranslate } from "src/hooks/use-translate";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { DemandPattern, PatternId } from "src/hydraulic-model/demands";
+import { PatternMultipliers, PatternLabel } from "src/hydraulic-model/demands";
 import {
   AddIcon,
   CloseIcon,
@@ -14,15 +14,15 @@ import { Button, DDContent, StyledItem } from "src/components/elements";
 import { EditableTextFieldWithConfirmation } from "src/components/form/editable-text-field-with-confirmation";
 
 type PatternSidebarProps = {
-  patterns: Map<PatternId, DemandPattern>;
-  selectedPatternId: PatternId | null;
-  onSelectPattern: (patternId: PatternId) => void;
-  onAddPattern: (patternId: PatternId, pattern: DemandPattern) => void;
+  patterns: Map<PatternLabel, PatternMultipliers>;
+  selectedPatternLabel: PatternLabel | null;
+  onSelectPattern: (patternId: PatternLabel) => void;
+  onAddPattern: (patternId: PatternLabel, pattern: PatternMultipliers) => void;
 };
 
 export const PatternSidebar = ({
   patterns,
-  selectedPatternId,
+  selectedPatternLabel,
   onSelectPattern,
   onAddPattern,
 }: PatternSidebarProps) => {
@@ -30,7 +30,7 @@ export const PatternSidebar = ({
   const [isCreatingNew, setIsCreatingNew] = useState(false);
   const listRef = useRef<HTMLUListElement>(null);
 
-  const patternIds = Array.from(patterns.keys());
+  const patternLabels = Array.from(patterns.keys());
 
   useEffect(() => {
     if (isCreatingNew && listRef.current) {
@@ -64,14 +64,14 @@ export const PatternSidebar = ({
 
   return (
     <div className="w-56 flex-shrink-0 border-r border-gray-200 dark:border-gray-700 flex flex-col p-2 gap-2">
-      {(patternIds.length > 0 || isCreatingNew) && (
+      {(patternLabels.length > 0 || isCreatingNew) && (
         <ul ref={listRef} className="flex-1 overflow-y-auto gap-2">
-          {patternIds.map((patternId) => (
+          {patternLabels.map((patternLabel) => (
             <PatternSidebarItem
-              key={patternId}
-              patternId={patternId}
-              isSelected={patternId === selectedPatternId}
-              onSelect={() => onSelectPattern(patternId)}
+              key={patternLabel}
+              patternLabel={patternLabel}
+              isSelected={patternLabel === selectedPatternLabel}
+              onSelect={() => onSelectPattern(patternLabel)}
             />
           ))}
           {isCreatingNew && (
@@ -96,13 +96,13 @@ export const PatternSidebar = ({
 };
 
 type PatternSidebarItemProps = {
-  patternId: PatternId;
+  patternLabel: PatternLabel;
   isSelected: boolean;
   onSelect: () => void;
 };
 
 const PatternSidebarItem = ({
-  patternId,
+  patternLabel,
   isSelected,
   onSelect,
 }: PatternSidebarItemProps) => {
@@ -122,7 +122,7 @@ const PatternSidebarItem = ({
         onClick={onSelect}
         className="flex-1 justify-start truncate hover:bg-transparent dark:hover:bg-transparent"
       >
-        {patternId}
+        {patternLabel}
       </Button>
       {showAdvancedFeatures && <PatternActionsMenu isSelected={isSelected} />}
     </li>

@@ -38,7 +38,7 @@ export const DataMappingStep: React.FC<{
   const translate = useTranslate();
   const userTracking = useUserTracking();
   const { modelMetadata, hydraulicModel } = useAtomValue(dataAtom);
-  const patterns = hydraulicModel.demands.patterns;
+  const patterns = hydraulicModel.demands.patternsLegacy;
   const isCustomerDemandsEnabled = useFeatureFlag("FLAG_CUSTOMER_DEMANDS");
 
   const {
@@ -65,8 +65,8 @@ export const DataMappingStep: React.FC<{
         label: translate("constant").toUpperCase(),
       },
     ];
-    for (const patternId of patterns.keys()) {
-      options.push({ value: patternId, label: patternId });
+    for (const patternLabel of patterns.keys()) {
+      options.push({ value: patternLabel, label: patternLabel });
     }
     return options;
   }, [patterns, translate]);
@@ -76,7 +76,7 @@ export const DataMappingStep: React.FC<{
       inputData: InputData,
       demandPropertyName: string,
       labelPropertyName: string | null = null,
-      patternId: string | null = null,
+      patternLabel: string | null = null,
     ) => {
       setLoading(true);
       setError(null);
@@ -106,7 +106,7 @@ export const DataMappingStep: React.FC<{
             1,
             demandPropertyName,
             labelPropertyName,
-            patternId,
+            patternLabel,
           )) {
             totalCount++;
             if (customerPoint) {
@@ -213,19 +213,19 @@ export const DataMappingStep: React.FC<{
   );
 
   const handlePatternChange = useCallback(
-    (patternId: string | null) => {
+    (patternLabel: string | null) => {
       userTracking.capture({
         name: "importCustomerPoints.dataMapping.selectPattern",
-        patternId: patternId ?? "none",
+        patternId: patternLabel ?? "none",
       });
-      setSelectedPatternId(patternId);
+      setSelectedPatternId(patternLabel);
       if (selectedDemandProperty) {
         setParsedDataSummary(null);
         parseInputDataToCustomerPoints(
           inputData as InputData,
           selectedDemandProperty,
           selectedLabelProperty,
-          patternId,
+          patternLabel,
         );
       }
     },
@@ -348,9 +348,9 @@ export const DataMappingStep: React.FC<{
                       options={patternOptions}
                       selected={selectedPatternId || CONSTANT_PATTERN_SENTINEL}
                       onChange={(value) => {
-                        const patternId =
+                        const patternLabel =
                           value === CONSTANT_PATTERN_SENTINEL ? null : value;
-                        handlePatternChange(patternId);
+                        handlePatternChange(patternLabel);
                       }}
                       ariaLabel={translate(
                         "importCustomerPoints.wizard.demandOptions.timePattern.title",

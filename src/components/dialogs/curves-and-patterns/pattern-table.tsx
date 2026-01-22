@@ -13,7 +13,7 @@ import {
   createTextReadonlyColumn,
   type SpreadsheetTableRef,
 } from "src/components/spreadsheet-table";
-import { DemandPattern } from "src/hydraulic-model/demands";
+import { PatternMultipliers } from "src/hydraulic-model/demands";
 import { useTranslate } from "src/hooks/use-translate";
 import { DeleteIcon, AddIcon } from "src/icons";
 import { SpreadsheetSelection } from "src/components/spreadsheet-table";
@@ -24,9 +24,9 @@ type PatternRow = {
 };
 
 type PatternTableProps = {
-  pattern: DemandPattern;
+  pattern: PatternMultipliers;
   patternTimestepSeconds: number;
-  onChange: (pattern: DemandPattern) => void;
+  onChange: (pattern: PatternMultipliers) => void;
   onSelectionChange?: (selection: SpreadsheetSelection | null) => void;
   selection?: SpreadsheetSelection | null;
 };
@@ -46,7 +46,7 @@ function formatTimestepTime(
 }
 
 const toRows = (
-  pattern: DemandPattern,
+  pattern: PatternMultipliers,
   patternTimestepSeconds: number,
 ): PatternRow[] => {
   if (pattern.length === 0) {
@@ -63,7 +63,7 @@ const toRows = (
   }));
 };
 
-const fromRows = (rows: PatternRow[]): DemandPattern => {
+const fromRows = (rows: PatternRow[]): PatternMultipliers => {
   return rows.map((row) => row.multiplier);
 };
 

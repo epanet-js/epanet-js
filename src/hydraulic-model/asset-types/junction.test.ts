@@ -51,21 +51,21 @@ describe("Junction", () => {
   it("supports demands array with multiple categories", () => {
     const junction = buildJunction({
       demands: [
-        { baseDemand: 50, patternId: "pattern1" },
-        { baseDemand: 30, patternId: "pattern2" },
+        { baseDemand: 50, patternLabel: "pattern1" },
+        { baseDemand: 30, patternLabel: "pattern2" },
       ],
     });
 
     expect(junction.demands).toHaveLength(2);
     expect(junction.demands[0].baseDemand).toBe(50);
-    expect(junction.demands[0].patternId).toBe("pattern1");
+    expect(junction.demands[0].patternLabel).toBe("pattern1");
     expect(junction.demands[1].baseDemand).toBe(30);
-    expect(junction.demands[1].patternId).toBe("pattern2");
+    expect(junction.demands[1].patternLabel).toBe("pattern2");
   });
 
   it("copy creates independent demands array", () => {
     const junction = buildJunction({
-      demands: [{ baseDemand: 50, patternId: "pattern1" }],
+      demands: [{ baseDemand: 50, patternLabel: "pattern1" }],
     });
 
     const copy = junction.copy();
@@ -84,8 +84,8 @@ describe("Junction", () => {
     it("returns 0 when no constant demand exists", () => {
       const junction = buildJunction({
         demands: [
-          { baseDemand: 50, patternId: "pattern1" },
-          { baseDemand: 30, patternId: "pattern2" },
+          { baseDemand: 50, patternLabel: "pattern1" },
+          { baseDemand: 30, patternLabel: "pattern2" },
         ],
       });
       expect(junction.constantDemand).toEqual(0);
@@ -95,9 +95,9 @@ describe("Junction", () => {
       const junction = buildJunction({
         demands: [
           { baseDemand: 20 },
-          { baseDemand: 50, patternId: "pattern1" },
+          { baseDemand: 50, patternLabel: "pattern1" },
           { baseDemand: 15 },
-          { baseDemand: 30, patternId: "pattern2" },
+          { baseDemand: 30, patternLabel: "pattern2" },
           { baseDemand: 10 },
         ],
       });

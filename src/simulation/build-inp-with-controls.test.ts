@@ -52,8 +52,8 @@ describe("build inp with controls", () => {
           elevation: 10,
           demands: [
             { baseDemand: 5 },
-            { baseDemand: 10, patternId: "residential" },
-            { baseDemand: 15, patternId: "commercial" },
+            { baseDemand: 10, patternLabel: "residential" },
+            { baseDemand: 15, patternLabel: "commercial" },
           ],
         })
         .aDemandPattern("residential", [0.8, 1.2, 1.0])
@@ -91,7 +91,7 @@ describe("build inp with controls", () => {
       const hydraulicModel = HydraulicModelBuilder.with()
         .aJunction(IDS.J1, {
           elevation: 10,
-          demands: [{ baseDemand: 30, patternId: "daily" }],
+          demands: [{ baseDemand: 30, patternLabel: "daily" }],
         })
         .aDemandPattern("daily", [0.5, 1.0, 1.5])
         .build();
@@ -996,7 +996,7 @@ describe("build inp with controls", () => {
       const hydraulicModel = HydraulicModelBuilder.with()
         .aJunction(IDS.J1, {
           elevation: 10,
-          demands: [{ baseDemand: 50, patternId: "CONSTANT" }],
+          demands: [{ baseDemand: 50, patternLabel: "CONSTANT" }],
         })
         .aDemandPattern("CONSTANT", [1.2, 0.8, 1.0])
         .build();
@@ -1030,7 +1030,7 @@ describe("build inp with controls", () => {
       const hydraulicModel = HydraulicModelBuilder.with()
         .aJunction(IDS.J1, {
           elevation: 10,
-          demands: [{ baseDemand: 50, patternId: "residential" }],
+          demands: [{ baseDemand: 50, patternLabel: "residential" }],
         })
         .aJunction(IDS.J2, {
           elevation: 20,
@@ -1057,7 +1057,7 @@ describe("build inp with controls", () => {
       const hydraulicModel = HydraulicModelBuilder.with()
         .aJunction(IDS.J1, {
           elevation: 10,
-          demands: [{ baseDemand: 0, patternId: "residential" }],
+          demands: [{ baseDemand: 0, patternLabel: "residential" }],
         })
         .aDemandPattern("residential", [0.8, 1.2, 1.0])
         .build();
@@ -1073,11 +1073,11 @@ describe("build inp with controls", () => {
       const hydraulicModel = HydraulicModelBuilder.with()
         .aJunction(IDS.J1, {
           elevation: 10,
-          demands: [{ baseDemand: 25, patternId: "residential" }],
+          demands: [{ baseDemand: 25, patternLabel: "residential" }],
         })
         .aJunction(IDS.J2, {
           elevation: 20,
-          demands: [{ baseDemand: 50, patternId: "residential" }],
+          demands: [{ baseDemand: 50, patternLabel: "residential" }],
         })
         .aDemandPattern("residential", [0.8, 1.2, 1.0])
         .build();
@@ -1098,7 +1098,7 @@ describe("build inp with controls", () => {
       const hydraulicModel = HydraulicModelBuilder.with()
         .aJunction(IDS.J1, {
           elevation: 10,
-          demands: [{ baseDemand: 100, patternId: "hourly" }],
+          demands: [{ baseDemand: 100, patternLabel: "hourly" }],
         })
         .aDemandPattern("hourly", hourlyPattern)
         .build();

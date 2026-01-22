@@ -257,7 +257,7 @@ const parseCommentedCustomerDemand = (trimmedRow: string, inpData: InpData) => {
   const demands = inpData.customerDemands.get(label) || [];
   demands.push({
     baseDemand: parseFloat(baseDemand),
-    patternId: patternId || undefined,
+    patternLabel: patternId || undefined,
   });
   inpData.customerDemands.set(label, demands);
 };

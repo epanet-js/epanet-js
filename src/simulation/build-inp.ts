@@ -200,7 +200,7 @@ export const buildInp = withDebugInstrumentation(
     const units = chooseUnitSystem(hydraulicModel.units);
     const headlossFormula = hydraulicModel.headlossFormula;
     const constantPatternId = getConstantPatternId(
-      new Set(hydraulicModel.demands.patterns.keys()),
+      new Set(hydraulicModel.demands.patternsLegacy.keys()),
     );
     const sections: InpSections = {
       junctions: ["[JUNCTIONS]", ";Id\tElevation"],
@@ -325,7 +325,7 @@ export const buildInp = withDebugInstrumentation(
     appendDemandPatterns(
       sections,
       constantPatternId,
-      hydraulicModel.demands.patterns,
+      hydraulicModel.demands.patternsLegacy,
       usedPatternIds,
     );
 
@@ -448,14 +448,14 @@ const appendJunction = (
   for (const demand of junction.demands) {
     if (demand.baseDemand === 0) continue;
 
-    const demandLine = demand.patternId
-      ? [junctionId, demand.baseDemand, demand.patternId]
+    const demandLine = demand.patternLabel
+      ? [junctionId, demand.baseDemand, demand.patternLabel]
       : [junctionId, demand.baseDemand];
 
     sections.demands.push(commentPrefix + demandLine.join("\t"));
 
-    if (demand.patternId) {
-      usedPatternIds.add(demand.patternId);
+    if (demand.patternLabel) {
+      usedPatternIds.add(demand.patternLabel);
     }
   }
 

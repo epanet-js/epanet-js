@@ -48,7 +48,7 @@ export const buildModel = (
     headlossFormula: inpData.options.headlossFormula,
     demands: {
       multiplier: inpData.options.demandMultiplier,
-      patterns: new Map(),
+      patternsLegacy: new Map(),
     },
     epsTiming: inpData.times,
   });
@@ -157,7 +157,7 @@ export const buildModel = (
   }
 
   hydraulicModel.curves = curvesBuilder.getValidatedCurves();
-  hydraulicModel.demands.patterns = patternsBuilder.getUsedPatterns();
+  hydraulicModel.demands.patternsLegacy = patternsBuilder.getUsedPatterns();
 
   addControls(hydraulicModel, inpData.controls, nodeIds, linkIds);
 
@@ -191,7 +191,7 @@ const addJunction = (
     demands = [
       {
         baseDemand: junctionData.baseDemand,
-        patternId: effectivePatternId,
+        patternLabel: effectivePatternId,
       },
     ];
   }
@@ -203,17 +203,17 @@ const addJunction = (
     junctionDemands.forEach((d) => {
       if (!d.baseDemand) return;
       const effectivePatternId = patternsBuilder.getEffectivePatternId(
-        d.patternId,
+        d.patternLabel,
       );
       demands.push({
         baseDemand: d.baseDemand,
-        patternId: effectivePatternId,
+        patternLabel: effectivePatternId,
       });
     });
   }
 
   for (const d of demands) {
-    patternsBuilder.markPatternUsed(d.patternId);
+    patternsBuilder.markPatternUsed(d.patternLabel);
   }
 
   const junction = hydraulicModel.assetBuilder.buildJunction({

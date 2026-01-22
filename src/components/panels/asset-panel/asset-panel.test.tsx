@@ -713,9 +713,9 @@ describe("AssetPanel", () => {
           label: "MY_JUNCTION",
           demands: [
             { baseDemand: 10 },
-            { baseDemand: 50, patternId: "pattern1" },
+            { baseDemand: 50, patternLabel: "pattern1" },
             { baseDemand: 10 },
-            { baseDemand: 30, patternId: "pattern2" },
+            { baseDemand: 30, patternLabel: "pattern2" },
           ],
         })
         .build();
@@ -740,8 +740,8 @@ describe("AssetPanel", () => {
       const junction = updated.assets.get(IDS.J1) as Junction;
       expect(junction.demands).toEqual([
         { baseDemand: 100 },
-        { baseDemand: 50, patternId: "pattern1" },
-        { baseDemand: 30, patternId: "pattern2" },
+        { baseDemand: 50, patternLabel: "pattern1" },
+        { baseDemand: 30, patternLabel: "pattern2" },
       ]);
     });
   });

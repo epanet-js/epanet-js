@@ -302,7 +302,7 @@ J1	1	2
     expect(cp1).toBeDefined();
     expect(cp1?.demands).toHaveLength(1);
     expect(cp1?.demands[0].baseDemand).toBe(25);
-    expect(cp1?.demands[0].patternId).toBe("residential");
+    expect(cp1?.demands[0].patternLabel).toBe("residential");
   });
 
   it("parses multiple demands per customer point", () => {
@@ -343,9 +343,9 @@ J1	1	2
     expect(cp1).toBeDefined();
     expect(cp1?.demands).toHaveLength(2);
     expect(cp1?.demands[0].baseDemand).toBe(25);
-    expect(cp1?.demands[0].patternId).toBe("residential");
+    expect(cp1?.demands[0].patternLabel).toBe("residential");
     expect(cp1?.demands[1].baseDemand).toBe(15);
-    expect(cp1?.demands[1].patternId).toBe("commercial");
+    expect(cp1?.demands[1].patternLabel).toBe("commercial");
   });
 
   it("parses customer demands without pattern", () => {
@@ -381,7 +381,7 @@ J1	1	2
     expect(cp1).toBeDefined();
     expect(cp1?.demands).toHaveLength(1);
     expect(cp1?.demands[0].baseDemand).toBe(30);
-    expect(cp1?.demands[0].patternId).toBeUndefined();
+    expect(cp1?.demands[0].patternLabel).toBeUndefined();
   });
 
   it("falls back to baseDemand when no CUSTOMERS_DEMANDS section exists", () => {
@@ -414,7 +414,7 @@ J1	1	2
     expect(cp1?.baseDemand).toBe(42);
     expect(cp1?.demands).toHaveLength(1);
     expect(cp1?.demands[0].baseDemand).toBe(42);
-    expect(cp1?.demands[0].patternId).toBeUndefined();
+    expect(cp1?.demands[0].patternLabel).toBeUndefined();
   });
 
   it("parses demands for multiple customer points", () => {
@@ -455,12 +455,12 @@ J1	1	2
     const cp1 = hydraulicModel.customerPoints.get(IDS.CP1);
     expect(cp1?.demands).toHaveLength(1);
     expect(cp1?.demands[0].baseDemand).toBe(25);
-    expect(cp1?.demands[0].patternId).toBe("residential");
+    expect(cp1?.demands[0].patternLabel).toBe("residential");
 
     const cp2 = hydraulicModel.customerPoints.get(IDS.CP2);
     expect(cp2?.demands).toHaveLength(1);
     expect(cp2?.demands[0].baseDemand).toBe(15);
-    expect(cp2?.demands[0].patternId).toBe("commercial");
+    expect(cp2?.demands[0].patternLabel).toBe("commercial");
   });
 
   it("ignores CUSTOMERS_DEMANDS section when customerPoints option is false", () => {

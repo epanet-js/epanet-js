@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { BarGraph, type StyledBarValue } from "src/components/graphs/bar-graph";
-import { DemandPattern } from "src/hydraulic-model/demands";
+import { PatternMultipliers } from "src/hydraulic-model/demands";
 import { colors } from "src/lib/constants";
 
 const VALUE_COLOR = colors.purple500;
@@ -8,7 +8,7 @@ const FILLED_VALUE_COLOR = colors.purple300;
 const IGNORED_VALUE_COLOR = colors.gray300;
 const SELECTED_VALUE_COLOR = colors.fuchsia500;
 interface PatternGraphProps {
-  pattern: DemandPattern;
+  pattern: PatternMultipliers;
   intervalSeconds: number;
   totalDurationSeconds: number;
   highlightedBarIndices?: number[];
@@ -35,7 +35,7 @@ export function PatternGraph({
 }
 
 export function buildPatternData(
-  pattern: DemandPattern,
+  pattern: PatternMultipliers,
   intervalSeconds: number,
   totalDurationSeconds: number,
   highlightedBarIndices?: number[],
@@ -87,7 +87,7 @@ export function buildPatternData(
 
 function expandSelectionWithFilledValues(
   highlightedBarIndices: number[] | undefined,
-  pattern: DemandPattern,
+  pattern: PatternMultipliers,
   totalBars: number,
 ) {
   const highlightedSet = new Set<number>();

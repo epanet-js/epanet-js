@@ -359,7 +359,7 @@ export const parseDemand: RowParser = ({ trimmedRow, inpData }) => {
   const demands = inpData.demands.get(nodeId) || [];
   demands.push({
     baseDemand: parseFloat(baseDemand),
-    patternId,
+    patternLabel: patternId,
   });
   inpData.demands.set(nodeId, demands);
 };

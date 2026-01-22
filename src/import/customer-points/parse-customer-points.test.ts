@@ -24,7 +24,7 @@ describe("parseCustomerPoints", () => {
       const customerPoint = results[0];
       expect(customerPoint).not.toBeNull();
       expect(customerPoint!.demands).toHaveLength(1);
-      expect(customerPoint!.demands[0].patternId).toBeUndefined();
+      expect(customerPoint!.demands[0].patternLabel).toBeUndefined();
     });
 
     it("creates customer points with patternId when provided", () => {
@@ -57,7 +57,7 @@ describe("parseCustomerPoints", () => {
       const customerPoint = results[0];
       expect(customerPoint).not.toBeNull();
       expect(customerPoint!.demands).toHaveLength(1);
-      expect(customerPoint!.demands[0].patternId).toBe("pattern-1");
+      expect(customerPoint!.demands[0].patternLabel).toBe("pattern-1");
     });
 
     it("applies patternId to all customer points when parsing multiple features", () => {
@@ -99,7 +99,7 @@ describe("parseCustomerPoints", () => {
       expect(results).toHaveLength(3);
       results.forEach((customerPoint) => {
         expect(customerPoint).not.toBeNull();
-        expect(customerPoint!.demands[0].patternId).toBe("daily-pattern");
+        expect(customerPoint!.demands[0].patternLabel).toBe("daily-pattern");
       });
     });
 
@@ -124,7 +124,7 @@ describe("parseCustomerPoints", () => {
       expect(results).toHaveLength(2);
       results.forEach((customerPoint) => {
         expect(customerPoint).not.toBeNull();
-        expect(customerPoint!.demands[0].patternId).toBe("weekly-pattern");
+        expect(customerPoint!.demands[0].patternLabel).toBe("weekly-pattern");
       });
     });
 
@@ -157,7 +157,7 @@ describe("parseCustomerPoints", () => {
       expect(results).toHaveLength(1);
       const customerPoint = results[0];
       expect(customerPoint).not.toBeNull();
-      expect(customerPoint!.demands[0].patternId).toBeUndefined();
+      expect(customerPoint!.demands[0].patternLabel).toBeUndefined();
     });
   });
 });

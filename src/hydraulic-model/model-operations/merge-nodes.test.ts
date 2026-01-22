@@ -14,7 +14,7 @@ describe("mergeNodes", () => {
           elevation: 100,
           demands: [
             { baseDemand: 20 },
-            { baseDemand: 50, patternId: "pattern1" },
+            { baseDemand: 50, patternLabel: "pattern1" },
           ],
         })
         .aJunction(IDS.J2, {
@@ -22,7 +22,7 @@ describe("mergeNodes", () => {
           elevation: 150,
           demands: [
             { baseDemand: 30 },
-            { baseDemand: 40, patternId: "pattern2" },
+            { baseDemand: 40, patternLabel: "pattern2" },
           ],
         })
         .build();
@@ -36,9 +36,9 @@ describe("mergeNodes", () => {
       expect(survivingJunction.id).toBe(IDS.J1);
       expect(survivingJunction.demands).toEqual([
         { baseDemand: 20 },
-        { baseDemand: 50, patternId: "pattern1" },
+        { baseDemand: 50, patternLabel: "pattern1" },
         { baseDemand: 30 },
-        { baseDemand: 40, patternId: "pattern2" },
+        { baseDemand: 40, patternLabel: "pattern2" },
       ]);
     });
 

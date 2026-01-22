@@ -21,7 +21,7 @@ export class Junction extends Node<JunctionProperties> {
 
   get constantDemand() {
     return this.properties.demands
-      .filter((d) => !d.patternId)
+      .filter((d) => !d.patternLabel)
       .reduce((sum, d) => sum + d.baseDemand, 0);
   }
 

@@ -1,32 +1,32 @@
-export type PatternId = string;
-export type DemandPattern = number[];
-export type DemandPatterns = Map<PatternId, DemandPattern>;
+export type PatternLabel = string;
+export type PatternMultipliers = number[];
+export type DemandPatternsLegacy = Map<PatternLabel, PatternMultipliers>;
 
 export type JunctionDemand = {
   baseDemand: number;
-  patternId?: string;
+  patternLabel?: string;
 };
 
 export type Demands = {
   multiplier: number;
-  patterns: DemandPatterns;
+  patternsLegacy: DemandPatternsLegacy;
 };
 
 export const createEmptyDemands = (): Demands => ({
   multiplier: 1,
-  patterns: new Map(),
+  patternsLegacy: new Map(),
 });
 
-export const calculateAverageDemand = (
+export const calculateAverageDemandLegacy = (
   demands: JunctionDemand[],
-  patterns: DemandPatterns,
+  patterns: DemandPatternsLegacy,
 ): number => {
   return demands.reduce((total, demand) => {
-    if (!demand.patternId) {
+    if (!demand.patternLabel) {
       return total + demand.baseDemand;
     }
 
-    const pattern = patterns.get(demand.patternId);
+    const pattern = patterns.get(demand.patternLabel);
     if (!pattern || pattern.length === 0) {
       return total + demand.baseDemand;
     }
