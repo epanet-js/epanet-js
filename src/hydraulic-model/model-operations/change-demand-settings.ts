@@ -13,6 +13,7 @@ export const changeDemandSettings: ModelOperation<InputData> = (
   const demands: Demands = {
     multiplier: demandMultiplier ?? currentDemands.multiplier,
     patternsLegacy: patternsLegacy ?? currentDemands.patternsLegacy,
+    patterns: currentDemands.patterns,
   };
 
   const note =

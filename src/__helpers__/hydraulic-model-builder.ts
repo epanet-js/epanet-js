@@ -395,7 +395,11 @@ export class HydraulicModelBuilder {
   }
 
   demandMultiplier(multiplier: number) {
-    this.demands = { multiplier, patternsLegacy: this.demands.patternsLegacy };
+    this.demands = {
+      multiplier,
+      patternsLegacy: this.demands.patternsLegacy,
+      patterns: this.demands.patterns,
+    };
     return this;
   }
 

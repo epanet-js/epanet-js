@@ -49,6 +49,7 @@ export const buildModel = (
     demands: {
       multiplier: inpData.options.demandMultiplier,
       patternsLegacy: new Map(),
+      patterns: new Map(),
     },
     epsTiming: inpData.times,
   });
