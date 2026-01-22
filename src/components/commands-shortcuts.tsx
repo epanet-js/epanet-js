@@ -1,5 +1,5 @@
 import { useHotkeys } from "src/keyboard/hotkeys";
-import { hasActiveSpreadsheet } from "src/components/spreadsheet-table/spreadsheet-focus";
+import { hasActiveSpreadsheet } from "src/components/spreadsheet-table";
 import { showReportShorcut, useShowReport } from "src/commands/show-report";
 import { useUserTracking } from "src/infra/user-tracking";
 import {

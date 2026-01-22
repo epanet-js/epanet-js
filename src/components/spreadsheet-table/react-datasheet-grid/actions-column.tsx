@@ -1,7 +1,7 @@
 import { CellComponent, Column } from "react-datasheet-grid";
 import * as DD from "@radix-ui/react-dropdown-menu";
 import { MoreActionsIcon } from "src/icons";
-import { Button } from "../elements";
+import { Button } from "../../elements";
 
 export type RowAction = {
   label: string;

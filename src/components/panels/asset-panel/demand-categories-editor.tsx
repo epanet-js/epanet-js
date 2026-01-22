@@ -3,8 +3,8 @@ import { keyColumn, Column } from "react-datasheet-grid";
 import {
   SpreadsheetTable,
   createFloatColumn,
+  createFilterableSelectColumn,
 } from "src/components/spreadsheet-table";
-import { createFilterableSelectColumn } from "src/components/spreadsheet-table/filterable-select-column";
 import { JunctionDemand, PatternId } from "src/hydraulic-model/demands";
 import { useTranslate } from "src/hooks/use-translate";
 import { DeleteIcon, AddIcon } from "src/icons";
