@@ -1,6 +1,5 @@
 import {
   DynamicDataSheetGrid,
-  Column,
   DataSheetGridRef,
   SimpleColumn,
 } from "react-datasheet-grid";
@@ -29,7 +28,7 @@ export type SpreadsheetSelection = {
 type SpreadsheetTableProps<T extends Record<string, unknown>> = {
   data: T[];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  columns: Partial<Column<T, any, any>>[];
+  columns: any[];
   onChange: (data: T[]) => void;
   createRow: () => T;
   lockRows?: boolean;

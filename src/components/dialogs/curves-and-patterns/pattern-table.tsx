@@ -6,7 +6,7 @@ import {
   useImperativeHandle,
   useEffect,
 } from "react";
-import { keyColumn, Column } from "react-datasheet-grid";
+import { keyColumn } from "react-datasheet-grid";
 import {
   SpreadsheetTable,
   createFloatColumn,
@@ -219,7 +219,7 @@ export const PatternTable = forwardRef<SpreadsheetTableRef, PatternTableProps>(
     );
 
     const columns = useMemo(
-      (): Partial<Column>[] => [
+      () => [
         {
           ...keyColumn(
             "timestep",

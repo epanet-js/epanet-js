@@ -1,5 +1,5 @@
 import { useMemo, useCallback } from "react";
-import { keyColumn, Column } from "react-datasheet-grid";
+import { keyColumn } from "react-datasheet-grid";
 import {
   SpreadsheetTable,
   createFloatColumn,
@@ -145,11 +145,11 @@ export const DemandCategoriesEditor = ({
   );
 
   const columns = useMemo(
-    (): Partial<Column>[] => [
+    () => [
       {
         ...keyColumn("baseDemand", createFloatColumn({ deleteValue: 0 })),
         title: translate("baseDemand"),
-        grow: 6,
+        minWidth: 100,
       },
       {
         ...keyColumn(
@@ -160,7 +160,7 @@ export const DemandCategoriesEditor = ({
           }),
         ),
         title: translate("timePattern"),
-        grow: 7,
+        minWidth: 120,
       },
     ],
     [patternOptions, translate],
