@@ -2,7 +2,12 @@ import { useState, useRef, useEffect } from "react";
 import * as DD from "@radix-ui/react-dropdown-menu";
 import { useTranslate } from "src/hooks/use-translate";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { PatternMultipliers, PatternLabel } from "src/hydraulic-model/demands";
+import {
+  PatternMultipliers,
+  DemandPatterns,
+  DemandPattern,
+  PatternId,
+} from "src/hydraulic-model/demands";
 import {
   AddIcon,
   CloseIcon,
@@ -14,23 +19,24 @@ import { Button, DDContent, StyledItem } from "src/components/elements";
 import { EditableTextFieldWithConfirmation } from "src/components/form/editable-text-field-with-confirmation";
 
 type PatternSidebarProps = {
-  patterns: Map<PatternLabel, PatternMultipliers>;
-  selectedPatternLabel: PatternLabel | null;
-  onSelectPattern: (patternId: PatternLabel) => void;
-  onAddPattern: (patternId: PatternLabel, pattern: PatternMultipliers) => void;
+  patterns: DemandPatterns;
+  selectedPatternId: PatternId | null;
+  onSelectPattern: (patternId: PatternId) => void;
+  onAddPattern: (label: string, multipliers: PatternMultipliers) => PatternId;
 };
 
 export const PatternSidebar = ({
   patterns,
-  selectedPatternLabel,
+  selectedPatternId,
   onSelectPattern,
   onAddPattern,
 }: PatternSidebarProps) => {
   const translate = useTranslate();
   const [isCreatingNew, setIsCreatingNew] = useState(false);
+  const [newPatternId, setNewPatternId] = useState<PatternId | null>(null);
   const listRef = useRef<HTMLUListElement>(null);
 
-  const patternLabels = Array.from(patterns.keys());
+  const patternsList = Array.from(patterns.values());
 
   useEffect(() => {
     if (isCreatingNew && listRef.current) {
@@ -48,15 +54,26 @@ export const PatternSidebar = ({
       return true; // validation error
     }
     const normalizedName = trimmedName.toUpperCase();
-    if (patterns.has(normalizedName)) {
+    const labelExists = patternsList.some(
+      (p) => p.label.toUpperCase() === normalizedName,
+    );
+    if (labelExists) {
       return true; // duplicate name error
     }
 
-    onAddPattern(normalizedName, [1]);
+    const newId = onAddPattern(normalizedName, [1]);
     setIsCreatingNew(false);
-    onSelectPattern(normalizedName);
+    setNewPatternId(newId);
     return false; // no error
   };
+
+  // Select the newly created pattern after it's added
+  useEffect(() => {
+    if (newPatternId !== null && patterns.has(newPatternId)) {
+      onSelectPattern(newPatternId);
+      setNewPatternId(null);
+    }
+  }, [newPatternId, patterns, onSelectPattern]);
 
   const handleCancelNewPattern = () => {
     setIsCreatingNew(false);
@@ -64,14 +81,14 @@ export const PatternSidebar = ({
 
   return (
     <div className="w-56 flex-shrink-0 border-r border-gray-200 dark:border-gray-700 flex flex-col p-2 gap-2">
-      {(patternLabels.length > 0 || isCreatingNew) && (
+      {(patternsList.length > 0 || isCreatingNew) && (
         <ul ref={listRef} className="flex-1 overflow-y-auto gap-2">
-          {patternLabels.map((patternLabel) => (
+          {patternsList.map((pattern) => (
             <PatternSidebarItem
-              key={patternLabel}
-              patternLabel={patternLabel}
-              isSelected={patternLabel === selectedPatternLabel}
-              onSelect={() => onSelectPattern(patternLabel)}
+              key={pattern.id}
+              pattern={pattern}
+              isSelected={pattern.id === selectedPatternId}
+              onSelect={() => onSelectPattern(pattern.id)}
             />
           ))}
           {isCreatingNew && (
@@ -96,13 +113,13 @@ export const PatternSidebar = ({
 };
 
 type PatternSidebarItemProps = {
-  patternLabel: PatternLabel;
+  pattern: DemandPattern;
   isSelected: boolean;
   onSelect: () => void;
 };
 
 const PatternSidebarItem = ({
-  patternLabel,
+  pattern,
   isSelected,
   onSelect,
 }: PatternSidebarItemProps) => {
@@ -122,7 +139,7 @@ const PatternSidebarItem = ({
         onClick={onSelect}
         className="flex-1 justify-start truncate hover:bg-transparent dark:hover:bg-transparent"
       >
-        {patternLabel}
+        {pattern.label}
       </Button>
       {showAdvancedFeatures && <PatternActionsMenu isSelected={isSelected} />}
     </li>

@@ -2,21 +2,33 @@ import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { render } from "@testing-library/react";
 import { PatternSidebar } from "./pattern-sidebar";
+import { DemandPatterns } from "src/hydraulic-model/demands";
 
 const setupUser = () => userEvent.setup();
 
+const createMockOnAddPattern = () => {
+  let nextId = 1;
+  return vi.fn(() => nextId++);
+};
+
+const createPatterns = (
+  entries: Array<{ id: number; label: string; multipliers: number[] }>,
+): DemandPatterns => {
+  return new Map(entries.map((e) => [e.id, e]));
+};
+
 describe("PatternSidebar", () => {
   describe("rendering patterns", () => {
-    it("renders pattern IDs as buttons", () => {
-      const patterns = new Map([
-        ["PATTERN1", [1.0, 0.8]],
-        ["PATTERN2", [1.0, 1.2]],
+    it("renders pattern labels as buttons", () => {
+      const patterns = createPatterns([
+        { id: 1, label: "PATTERN1", multipliers: [1.0, 0.8] },
+        { id: 2, label: "PATTERN2", multipliers: [1.0, 1.2] },
       ]);
 
       render(
         <PatternSidebar
           patterns={patterns}
-          selectedPatternLabel={null}
+          selectedPatternId={null}
           onSelectPattern={vi.fn()}
           onAddPattern={vi.fn()}
         />,
@@ -34,7 +46,7 @@ describe("PatternSidebar", () => {
       render(
         <PatternSidebar
           patterns={new Map()}
-          selectedPatternLabel={null}
+          selectedPatternId={null}
           onSelectPattern={vi.fn()}
           onAddPattern={vi.fn()}
         />,
@@ -47,15 +59,17 @@ describe("PatternSidebar", () => {
   });
 
   describe("selecting patterns", () => {
-    it("calls onSelectPattern when a pattern is clicked", async () => {
+    it("calls onSelectPattern with pattern ID when a pattern is clicked", async () => {
       const user = setupUser();
       const onSelectPattern = vi.fn();
-      const patterns = new Map([["PATTERN1", [1.0]]]);
+      const patterns = createPatterns([
+        { id: 1, label: "PATTERN1", multipliers: [1.0] },
+      ]);
 
       render(
         <PatternSidebar
           patterns={patterns}
-          selectedPatternLabel={null}
+          selectedPatternId={null}
           onSelectPattern={onSelectPattern}
           onAddPattern={vi.fn()}
         />,
@@ -63,7 +77,7 @@ describe("PatternSidebar", () => {
 
       await user.click(screen.getByRole("button", { name: "PATTERN1" }));
 
-      expect(onSelectPattern).toHaveBeenCalledWith("PATTERN1");
+      expect(onSelectPattern).toHaveBeenCalledWith(1);
     });
   });
 
@@ -74,7 +88,7 @@ describe("PatternSidebar", () => {
       render(
         <PatternSidebar
           patterns={new Map()}
-          selectedPatternLabel={null}
+          selectedPatternId={null}
           onSelectPattern={vi.fn()}
           onAddPattern={vi.fn()}
         />,
@@ -91,7 +105,7 @@ describe("PatternSidebar", () => {
       render(
         <PatternSidebar
           patterns={new Map()}
-          selectedPatternLabel={null}
+          selectedPatternId={null}
           onSelectPattern={vi.fn()}
           onAddPattern={vi.fn()}
         />,
@@ -105,14 +119,13 @@ describe("PatternSidebar", () => {
 
     it("calls onAddPattern with normalized uppercase name and default pattern", async () => {
       const user = setupUser();
-      const onAddPattern = vi.fn();
-      const onSelectPattern = vi.fn();
+      const onAddPattern = createMockOnAddPattern();
 
       render(
         <PatternSidebar
           patterns={new Map()}
-          selectedPatternLabel={null}
-          onSelectPattern={onSelectPattern}
+          selectedPatternId={null}
+          onSelectPattern={vi.fn()}
           onAddPattern={onAddPattern}
         />,
       );
@@ -123,7 +136,6 @@ describe("PatternSidebar", () => {
       await user.keyboard("{Enter}");
 
       expect(onAddPattern).toHaveBeenCalledWith("NEWPATTERN", [1]);
-      expect(onSelectPattern).toHaveBeenCalledWith("NEWPATTERN");
     });
 
     it("hides input after successful pattern creation", async () => {
@@ -132,9 +144,9 @@ describe("PatternSidebar", () => {
       render(
         <PatternSidebar
           patterns={new Map()}
-          selectedPatternLabel={null}
+          selectedPatternId={null}
           onSelectPattern={vi.fn()}
-          onAddPattern={vi.fn()}
+          onAddPattern={createMockOnAddPattern()}
         />,
       );
 
@@ -155,7 +167,7 @@ describe("PatternSidebar", () => {
       render(
         <PatternSidebar
           patterns={new Map()}
-          selectedPatternLabel={null}
+          selectedPatternId={null}
           onSelectPattern={vi.fn()}
           onAddPattern={onAddPattern}
         />,
@@ -177,7 +189,7 @@ describe("PatternSidebar", () => {
       render(
         <PatternSidebar
           patterns={new Map()}
-          selectedPatternLabel={null}
+          selectedPatternId={null}
           onSelectPattern={vi.fn()}
           onAddPattern={onAddPattern}
         />,
@@ -194,12 +206,14 @@ describe("PatternSidebar", () => {
     it("does not add pattern with duplicate name", async () => {
       const user = setupUser();
       const onAddPattern = vi.fn();
-      const patterns = new Map([["EXISTING", [1.0]]]);
+      const patterns = createPatterns([
+        { id: 1, label: "EXISTING", multipliers: [1.0] },
+      ]);
 
       render(
         <PatternSidebar
           patterns={patterns}
-          selectedPatternLabel={null}
+          selectedPatternId={null}
           onSelectPattern={vi.fn()}
           onAddPattern={onAddPattern}
         />,
@@ -220,7 +234,7 @@ describe("PatternSidebar", () => {
       render(
         <PatternSidebar
           patterns={new Map()}
-          selectedPatternLabel={null}
+          selectedPatternId={null}
           onSelectPattern={vi.fn()}
           onAddPattern={onAddPattern}
         />,
@@ -242,12 +256,12 @@ describe("PatternSidebar", () => {
 
     it("trims whitespace from pattern name", async () => {
       const user = setupUser();
-      const onAddPattern = vi.fn();
+      const onAddPattern = createMockOnAddPattern();
 
       render(
         <PatternSidebar
           patterns={new Map()}
-          selectedPatternLabel={null}
+          selectedPatternId={null}
           onSelectPattern={vi.fn()}
           onAddPattern={onAddPattern}
         />,
@@ -263,13 +277,15 @@ describe("PatternSidebar", () => {
 
     it("allows saving after editing a duplicate name to be unique", async () => {
       const user = setupUser();
-      const onAddPattern = vi.fn();
-      const patterns = new Map([["EXISTING", [1.0]]]);
+      const onAddPattern = createMockOnAddPattern();
+      const patterns = createPatterns([
+        { id: 1, label: "EXISTING", multipliers: [1.0] },
+      ]);
 
       render(
         <PatternSidebar
           patterns={patterns}
-          selectedPatternLabel={null}
+          selectedPatternId={null}
           onSelectPattern={vi.fn()}
           onAddPattern={onAddPattern}
         />,

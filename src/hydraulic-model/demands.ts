@@ -30,6 +30,17 @@ export const createEmptyDemands = (): Demands => ({
   patterns: new Map(),
 });
 
+export const getNextPatternId = (
+  patterns: DemandPatterns,
+  startId?: number,
+): PatternId => {
+  let nextId = startId ?? Math.max(patterns.size - 1, 1);
+  while (patterns.has(nextId)) {
+    nextId += 1;
+  }
+  return nextId;
+};
+
 export const calculateAverageDemandLegacy = (
   demands: JunctionDemand[],
   patterns: DemandPatternsLegacy,

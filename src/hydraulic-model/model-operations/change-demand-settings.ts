@@ -1,27 +1,31 @@
-import { Demands, DemandPatternsLegacy, DemandPatterns } from "../demands";
+import { Demands, DemandPatterns } from "../demands";
 import { ModelOperation } from "../model-operation";
 
 type InputData = {
   demandMultiplier?: number;
-  patternsLegacy?: DemandPatternsLegacy;
   patterns?: DemandPatterns;
 };
 
 export const changeDemandSettings: ModelOperation<InputData> = (
   { demands: currentDemands },
-  { demandMultiplier, patternsLegacy, patterns },
+  { demandMultiplier, patterns },
 ) => {
+  const syncedPatternsLegacy = patterns
+    ? new Map(
+        Array.from(patterns.values()).map((p) => [p.label, p.multipliers]),
+      )
+    : undefined;
+
   const demands: Demands = {
     multiplier: demandMultiplier ?? currentDemands.multiplier,
-    patternsLegacy: patternsLegacy ?? currentDemands.patternsLegacy,
+    patternsLegacy: syncedPatternsLegacy ?? currentDemands.patternsLegacy,
     patterns: patterns ?? currentDemands.patterns,
   };
 
   const note =
-    demandMultiplier !== undefined &&
-    (patternsLegacy !== undefined || patterns !== undefined)
+    demandMultiplier !== undefined && patterns !== undefined
       ? "Change demand settings"
-      : patternsLegacy !== undefined || patterns !== undefined
+      : patterns !== undefined
         ? "Change demand patterns"
         : "Change demand multiplier";
 

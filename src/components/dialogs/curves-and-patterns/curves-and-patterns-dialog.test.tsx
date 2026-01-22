@@ -336,5 +336,54 @@ describe("CurvesAndPatternsDialog", () => {
         ).toBeInTheDocument();
       });
     });
+
+    it("assigns unique IDs when adding patterns to existing ones", async () => {
+      const user = setupUser();
+      const store = setInitialState({
+        hydraulicModel: HydraulicModelBuilder.with()
+          .aDemandPattern(1, "EXISTING1", [1.0])
+          .aDemandPattern(2, "EXISTING2", [1.0, 0.8])
+          .build(),
+      });
+
+      renderDialog(store);
+
+      // Add a new pattern
+      await user.click(screen.getByRole("button", { name: /add pattern/i }));
+      const nameInput = screen.getByRole("textbox");
+      await user.type(nameInput, "NEWPATTERN");
+      await user.keyboard("{Enter}");
+
+      // Wait for pattern to be added
+      await waitFor(() => {
+        expect(
+          screen.getByRole("button", { name: "NEWPATTERN" }),
+        ).toBeInTheDocument();
+      });
+
+      // Save the changes
+      await user.click(screen.getByRole("button", { name: /save/i }));
+
+      // Verify the model has all three patterns with unique IDs
+      const data = store.get(dataAtom);
+      const patterns = data.hydraulicModel.demands.patterns;
+
+      expect(patterns.size).toBe(3);
+
+      // Get all pattern IDs
+      const patternIds = Array.from(patterns.keys());
+      const uniqueIds = new Set(patternIds);
+
+      // All IDs should be unique
+      expect(uniqueIds.size).toBe(3);
+
+      // The new pattern should have an ID that doesn't conflict with existing ones
+      const newPattern = Array.from(patterns.values()).find(
+        (p) => p.label === "NEWPATTERN",
+      );
+      expect(newPattern).toBeDefined();
+      expect(newPattern?.id).not.toBe(1);
+      expect(newPattern?.id).not.toBe(2);
+    });
   });
 });
