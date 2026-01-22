@@ -56,8 +56,8 @@ describe("buildInpWithCustomerDemands", () => {
           demands: [{ baseDemand: 20, patternLabel: "commercial" }],
           connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
         })
-        .aDemandPattern("residential", [1, 1.2, 0.8])
-        .aDemandPattern("commercial", [0.5, 1.5, 1.0])
+        .aDemandPattern(100, "residential", [1, 1.2, 0.8])
+        .aDemandPattern(100, "commercial", [0.5, 1.5, 1.0])
         .build();
 
       const inp = buildInpWithCustomerDemands(hydraulicModel, {
@@ -92,7 +92,7 @@ describe("buildInpWithCustomerDemands", () => {
           demands: [{ baseDemand: 25, patternLabel: "residential" }],
           connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
         })
-        .aDemandPattern("residential", [1, 1.2, 0.8])
+        .aDemandPattern(100, "residential", [1, 1.2, 0.8])
         .build();
 
       const inp = buildInpWithCustomerDemands(hydraulicModel, {
@@ -211,8 +211,8 @@ describe("buildInpWithCustomerDemands", () => {
           coordinates: [1, 1],
           connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
         })
-        .aDemandPattern("daily_pattern", [0.8, 1.0, 1.2, 1.0])
-        .aDemandPattern("unused_pattern", [1, 1, 1])
+        .aDemandPattern(100, "daily_pattern", [0.8, 1.0, 1.2, 1.0])
+        .aDemandPattern(100, "unused_pattern", [1, 1, 1])
         .build();
 
       const inp = buildInpWithCustomerDemands(hydraulicModel, {
@@ -245,8 +245,8 @@ describe("buildInpWithCustomerDemands", () => {
           coordinates: [1.5, 2.5],
           connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
         })
-        .aDemandPattern("pat1", [1, 2])
-        .aDemandPattern("pat2", [0.5, 1.5])
+        .aDemandPattern(100, "pat1", [1, 2])
+        .aDemandPattern(100, "pat2", [0.5, 1.5])
         .build();
 
       const inp = buildInpWithCustomerDemands(hydraulicModel, {

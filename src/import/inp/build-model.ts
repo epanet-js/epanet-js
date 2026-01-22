@@ -13,6 +13,8 @@ import {
   ReservoirData,
   TankData,
   ValveData,
+  CustomerPointData,
+  PatternData,
 } from "./inp-data";
 import { IssuesAccumulator } from "./issues";
 import { ModelMetadata } from "src/model-metadata";
@@ -22,15 +24,33 @@ import { PumpStatus } from "src/hydraulic-model/asset-types/pump";
 import { ValveStatus } from "src/hydraulic-model/asset-types/valve";
 import { ParseInpOptions } from "./parse-inp";
 import { AssetId } from "src/hydraulic-model/asset-types/base-asset";
-import { ConsecutiveIdsGenerator } from "src/hydraulic-model/id-generator";
+import {
+  ConsecutiveIdsGenerator,
+  IdGenerator,
+} from "src/hydraulic-model/id-generator";
 import { CurvesBuilder } from "./curves-builder";
-import { PatternsBuilder } from "./patterns-builder";
 import { getPumpCurveType } from "src/hydraulic-model/curves";
 import {
   LabelResolver,
   parseSimpleControlsFromText,
   parseRulesFromText,
 } from "src/hydraulic-model/controls";
+import { LabelManager } from "src/hydraulic-model/label-manager";
+import {
+  DemandPattern,
+  DemandPatterns,
+  DemandPatternsLegacy,
+  PatternId,
+  PatternMultipliers,
+} from "src/hydraulic-model/demands";
+
+type BuildPatternContext = {
+  patterns: DemandPatterns;
+  fallbackPatternId?: PatternId;
+  usedPatternIds: Set<PatternId>;
+  idGenerator: IdGenerator;
+  labelManager: LabelManager;
+};
 
 export const buildModel = (
   inpData: InpData,
@@ -60,7 +80,8 @@ export const buildModel = (
     quantities.defaults,
   );
 
-  const patternsBuilder = new PatternsBuilder(
+  const patternContext: BuildPatternContext = initializeBuildPatternContext(
+    hydraulicModel.labelManager,
     inpData.patterns,
     inpData.options.defaultPattern,
   );
@@ -70,7 +91,7 @@ export const buildModel = (
       inpData,
       issues,
       nodeIds,
-      patternsBuilder,
+      patternContext,
     });
   }
 
@@ -121,48 +142,167 @@ export const buildModel = (
   const customerPointIdGenerator = new ConsecutiveIdsGenerator();
 
   for (const customerPointData of inpData.customerPoints) {
-    const id = customerPointIdGenerator.newId();
-
-    const demands = customerPointData.demands ??
-      inpData.customerDemands.get(customerPointData.label) ?? [
-        { baseDemand: customerPointData.baseDemand },
-      ];
-    const customerPoint = CustomerPoint.build(
-      id,
-      customerPointData.coordinates,
-      {
-        baseDemand: customerPointData.baseDemand,
-        label: customerPointData.label,
-        demands,
-      },
-    );
-
-    if (
-      customerPointData.pipeId &&
-      customerPointData.snapPoint &&
-      customerPointData.junctionId
-    ) {
-      const junctionId = nodeIds.get(customerPointData.junctionId);
-      const pipeId = linkIds.get(customerPointData.pipeId);
-      if (junctionId && pipeId) {
-        customerPoint.connect({
-          pipeId,
-          junctionId,
-          snapPoint: customerPointData.snapPoint,
-        });
-      }
-      hydraulicModel.customerPointsLookup.addConnection(customerPoint);
-    }
-
-    hydraulicModel.customerPoints.set(id, customerPoint);
+    addCustomerPoint(hydraulicModel, customerPointData, {
+      inpData,
+      nodeIds,
+      linkIds,
+      patternContext,
+      customerPointIdGenerator,
+    });
   }
 
   hydraulicModel.curves = curvesBuilder.getValidatedCurves();
-  hydraulicModel.demands.patternsLegacy = patternsBuilder.getUsedPatterns();
+
+  const usedPatterns = filterUsedPatterns(
+    patternContext.patterns,
+    patternContext.usedPatternIds,
+  );
+  hydraulicModel.demands.patterns = usedPatterns;
+  hydraulicModel.demands.patternsLegacy = buildPatternsLegacy(usedPatterns);
 
   addControls(hydraulicModel, inpData.controls, nodeIds, linkIds);
 
   return { hydraulicModel, modelMetadata: { quantities } };
+};
+
+const initializeBuildPatternContext = (
+  labelManager: LabelManager,
+  rawPatterns: ItemData<PatternData>,
+  defaultPatternOption?: string,
+): BuildPatternContext => {
+  const patternContext: BuildPatternContext = {
+    patterns: new Map(),
+    usedPatternIds: new Set(),
+    labelManager: labelManager,
+    idGenerator: new ConsecutiveIdsGenerator(),
+  };
+
+  for (const [, patternData] of rawPatterns.entries()) {
+    addPattern(patternContext, patternData.label, patternData.multipliers);
+  }
+
+  patternContext.fallbackPatternId = determineFallbackPatternId(
+    patternContext.patterns,
+    patternContext.labelManager,
+    defaultPatternOption,
+  );
+
+  const { patterns } = patternContext;
+
+  const id = labelManager.getIdByLabel(defaultPatternOption || "1", "pattern");
+  if (id !== undefined && patterns.has(id)) {
+    patternContext.fallbackPatternId = id;
+  } else {
+    const pattern1Id = labelManager.getIdByLabel("1", "pattern");
+    if (pattern1Id !== undefined && patterns.has(pattern1Id)) {
+      patternContext.fallbackPatternId = pattern1Id;
+    }
+  }
+
+  return patternContext;
+};
+
+const buildPattern = (
+  idGenerator: IdGenerator,
+  label: string,
+  factors: PatternMultipliers,
+): DemandPattern | undefined => {
+  if (factors.length === 0) return undefined;
+  if (isConstantPattern(factors)) return undefined;
+
+  const id = idGenerator.newId();
+  return {
+    id,
+    label,
+    multipliers: factors,
+  };
+};
+
+const addPattern = (
+  patternsContext: BuildPatternContext,
+  label: string,
+  factors: PatternMultipliers,
+): DemandPattern | undefined => {
+  const { patterns, idGenerator, labelManager } = patternsContext;
+  const pattern = buildPattern(idGenerator, label, factors);
+  if (!pattern) return undefined;
+
+  patterns.set(pattern.id, pattern);
+  labelManager.register(pattern.label, "pattern", pattern.id);
+
+  return pattern;
+};
+
+const determineFallbackPatternId = (
+  patterns: DemandPatterns,
+  labelManager: LabelManager,
+  defaultPatternLabel?: string,
+): PatternId | undefined => {
+  const id = labelManager.getIdByLabel(defaultPatternLabel || "1", "pattern");
+  if (id !== undefined && patterns.has(id)) return id;
+
+  const pattern1Id = labelManager.getIdByLabel("1", "pattern");
+  return pattern1Id !== undefined && patterns.has(pattern1Id)
+    ? pattern1Id
+    : undefined;
+};
+
+const buildDemand = (
+  patternContext: BuildPatternContext,
+  baseDemand: number,
+  patternLabel: string | undefined,
+): JunctionDemand => {
+  const { patterns, fallbackPatternId, labelManager, usedPatternIds } =
+    patternContext;
+
+  if (patternLabel) {
+    const patternId = labelManager.getIdByLabel(patternLabel, "pattern");
+    if (patternId !== undefined) {
+      usedPatternIds.add(patternId);
+      return {
+        baseDemand,
+        patternLabel: patternLabel.toUpperCase(),
+        patternId,
+      };
+    }
+  }
+
+  if (fallbackPatternId !== undefined) {
+    usedPatternIds.add(fallbackPatternId);
+    return {
+      baseDemand,
+      patternLabel: patterns.get(fallbackPatternId)?.label?.toUpperCase(),
+      patternId: fallbackPatternId,
+    };
+  }
+
+  return { baseDemand };
+};
+
+const filterUsedPatterns = (
+  patterns: DemandPatterns,
+  usedPatternIds: Set<PatternId>,
+): DemandPatterns => {
+  const used: DemandPatterns = new Map();
+  for (const id of usedPatternIds) {
+    const pattern = patterns.get(id);
+    if (pattern) used.set(id, pattern);
+  }
+  return used;
+};
+
+const buildPatternsLegacy = (
+  patterns: DemandPatterns,
+): DemandPatternsLegacy => {
+  const legacy: DemandPatternsLegacy = new Map();
+  for (const pattern of patterns.values()) {
+    legacy.set(pattern.label.toUpperCase(), pattern.multipliers);
+  }
+  return legacy;
+};
+
+const isConstantPattern = (pattern: PatternMultipliers): boolean => {
+  return pattern.every((value) => value === 1);
 };
 
 const addJunction = (
@@ -172,50 +312,33 @@ const addJunction = (
     inpData,
     issues,
     nodeIds,
-    patternsBuilder,
+    patternContext,
   }: {
     inpData: InpData;
     issues: IssuesAccumulator;
     nodeIds: ItemData<AssetId>;
-    patternsBuilder: PatternsBuilder;
+    patternContext: BuildPatternContext;
   },
 ) => {
   const coordinates = getNodeCoordinates(inpData, junctionData.id, issues);
   if (!coordinates) return;
 
-  let demands: JunctionDemand[] = [];
-
-  if (junctionData.baseDemand) {
-    const effectivePatternId = patternsBuilder.getEffectivePatternId(
-      junctionData.patternId,
-    );
-    demands = [
-      {
-        baseDemand: junctionData.baseDemand,
-        patternLabel: effectivePatternId,
-      },
-    ];
-  }
-
   const junctionDemands = inpData.demands.get(junctionData.id) || [];
-  if (junctionDemands.length > 0) {
-    demands = [];
 
-    junctionDemands.forEach((d) => {
-      if (!d.baseDemand) return;
-      const effectivePatternId = patternsBuilder.getEffectivePatternId(
-        d.patternLabel,
-      );
-      demands.push({
-        baseDemand: d.baseDemand,
-        patternLabel: effectivePatternId,
-      });
-    });
-  }
-
-  for (const d of demands) {
-    patternsBuilder.markPatternUsed(d.patternLabel);
-  }
+  const demands: JunctionDemand[] =
+    junctionDemands.length > 0
+      ? junctionDemands
+          .filter((d) => d.baseDemand)
+          .map((d) => buildDemand(patternContext, d.baseDemand, d.patternLabel))
+      : junctionData.baseDemand
+        ? [
+            buildDemand(
+              patternContext,
+              junctionData.baseDemand,
+              junctionData.patternId,
+            ),
+          ]
+        : [];
 
   const junction = hydraulicModel.assetBuilder.buildJunction({
     label: junctionData.id,
@@ -448,6 +571,60 @@ const addPipe = (
   linkIds.set(pipeData.id, pipe.id);
 };
 
+const addCustomerPoint = (
+  hydraulicModel: HydraulicModel,
+  customerPointData: CustomerPointData,
+  {
+    inpData,
+    nodeIds,
+    linkIds,
+    patternContext,
+    customerPointIdGenerator,
+  }: {
+    inpData: InpData;
+    nodeIds: ItemData<AssetId>;
+    linkIds: ItemData<AssetId>;
+    patternContext: BuildPatternContext;
+    customerPointIdGenerator: IdGenerator;
+  },
+) => {
+  const id = customerPointIdGenerator.newId();
+
+  const rawDemands = customerPointData.demands ??
+    inpData.customerDemands.get(customerPointData.label) ?? [
+      { baseDemand: customerPointData.baseDemand },
+    ];
+
+  const demands = rawDemands.map((d) =>
+    buildDemand(patternContext, d.baseDemand, d.patternLabel),
+  );
+
+  const customerPoint = CustomerPoint.build(id, customerPointData.coordinates, {
+    baseDemand: customerPointData.baseDemand,
+    label: customerPointData.label,
+    demands,
+  });
+
+  if (
+    customerPointData.pipeId &&
+    customerPointData.snapPoint &&
+    customerPointData.junctionId
+  ) {
+    const junctionId = nodeIds.get(customerPointData.junctionId);
+    const pipeId = linkIds.get(customerPointData.pipeId);
+    if (junctionId && pipeId) {
+      customerPoint.connect({
+        pipeId,
+        junctionId,
+        snapPoint: customerPointData.snapPoint,
+      });
+    }
+    hydraulicModel.customerPointsLookup.addConnection(customerPoint);
+  }
+
+  hydraulicModel.customerPoints.set(id, customerPoint);
+};
+
 const getLinkProperties = (
   inpData: InpData,
   issues: IssuesAccumulator,
@@ -522,7 +699,7 @@ const getPattern = (
   patterns: InpData["patterns"],
   patternId: string | undefined,
 ): number[] => {
-  return patterns.get(patternId || defaultPatternId) || [1];
+  return patterns.get(patternId || defaultPatternId)?.multipliers || [1];
 };
 
 const calculateReservoirHead = (

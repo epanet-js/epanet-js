@@ -371,9 +371,11 @@ export const parsePosition: RowParser = ({ trimmedRow, inpData }) => {
 
 export const parsePattern: RowParser = ({ trimmedRow, inpData }) => {
   const [patternId, ...values] = readValues(trimmedRow);
-  const factors = inpData.patterns.get(patternId) || [];
-  factors.push(...values.map((v) => parseFloat(v)));
-  inpData.patterns.set(patternId, factors);
+  const normalizedLabel = patternId.toUpperCase();
+  const existing = inpData.patterns.get(normalizedLabel);
+  const multipliers = existing?.multipliers || [];
+  multipliers.push(...values.map((v) => parseFloat(v)));
+  inpData.patterns.set(normalizedLabel, { label: patternId, multipliers });
 };
 
 export const parseVertex: RowParser = ({ trimmedRow, inpData }) => {

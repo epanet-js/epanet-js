@@ -231,7 +231,7 @@ describe("DataMappingStep", () => {
 
       const store = setInitialState({
         hydraulicModel: HydraulicModelBuilder.with()
-          .aDemandPattern("daily", [1, 1.2, 0.8])
+          .aDemandPattern(100, "daily", [1, 1.2, 0.8])
           .build(),
       });
 
@@ -254,7 +254,7 @@ describe("DataMappingStep", () => {
 
       const store = setInitialState({
         hydraulicModel: HydraulicModelBuilder.with()
-          .aDemandPattern("daily", [1, 1.2, 0.8])
+          .aDemandPattern(100, "daily", [1, 1.2, 0.8])
           .build(),
       });
 
@@ -299,8 +299,8 @@ describe("DataMappingStep", () => {
 
       const store = setInitialState({
         hydraulicModel: HydraulicModelBuilder.with()
-          .aDemandPattern("daily", [1, 1.2, 0.8])
-          .aDemandPattern("weekly", [1, 1, 1, 1, 1, 0.5, 0.5])
+          .aDemandPattern(100, "daily", [1, 1.2, 0.8])
+          .aDemandPattern(101, "weekly", [1, 1, 1, 1, 1, 0.5, 0.5])
           .build(),
       });
 
@@ -346,7 +346,7 @@ describe("DataMappingStep", () => {
 
       const store = setInitialState({
         hydraulicModel: HydraulicModelBuilder.with()
-          .aDemandPattern("daily", [1, 1.2, 0.8])
+          .aDemandPattern(100, "daily", [1, 1.2, 0.8])
           .build(),
       });
 

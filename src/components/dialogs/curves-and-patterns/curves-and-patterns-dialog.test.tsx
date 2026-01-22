@@ -38,7 +38,7 @@ describe("CurvesAndPatternsDialog", () => {
     it("is disabled when there are no changes", () => {
       const store = setInitialState({
         hydraulicModel: HydraulicModelBuilder.with()
-          .aDemandPattern("Pattern1", [1.0, 0.8, 0.6])
+          .aDemandPattern(100, "Pattern1", [1.0, 0.8, 0.6])
           .build(),
       });
 
@@ -51,7 +51,7 @@ describe("CurvesAndPatternsDialog", () => {
       const user = setupUser();
       const store = setInitialState({
         hydraulicModel: HydraulicModelBuilder.with()
-          .aDemandPattern("Pattern1", [1.0, 0.8, 0.6])
+          .aDemandPattern(100, "Pattern1", [1.0, 0.8, 0.6])
           .build(),
       });
 
@@ -78,7 +78,7 @@ describe("CurvesAndPatternsDialog", () => {
       const user = setupUser();
       const store = setInitialState({
         hydraulicModel: HydraulicModelBuilder.with()
-          .aDemandPattern("Pattern1", [1.0, 0.8, 0.6])
+          .aDemandPattern(100, "Pattern1", [1.0, 0.8, 0.6])
           .build(),
       });
 
@@ -115,7 +115,7 @@ describe("CurvesAndPatternsDialog", () => {
       const user = setupUser();
       const store = setInitialState({
         hydraulicModel: HydraulicModelBuilder.with()
-          .aDemandPattern("Pattern1", [1.0, 0.8, 0.6])
+          .aDemandPattern(100, "Pattern1", [1.0, 0.8, 0.6])
           .build(),
       });
 
@@ -135,7 +135,7 @@ describe("CurvesAndPatternsDialog", () => {
       const user = setupUser();
       const store = setInitialState({
         hydraulicModel: HydraulicModelBuilder.with()
-          .aDemandPattern("Pattern1", [1.0, 0.8, 0.6])
+          .aDemandPattern(100, "Pattern1", [1.0, 0.8, 0.6])
           .build(),
       });
 
@@ -171,7 +171,7 @@ describe("CurvesAndPatternsDialog", () => {
       const user = setupUser();
       const store = setInitialState({
         hydraulicModel: HydraulicModelBuilder.with()
-          .aDemandPattern("Pattern1", [1.0, 0.8, 0.6])
+          .aDemandPattern(100, "Pattern1", [1.0, 0.8, 0.6])
           .build(),
       });
 
@@ -206,7 +206,7 @@ describe("CurvesAndPatternsDialog", () => {
       const user = setupUser();
       const store = setInitialState({
         hydraulicModel: HydraulicModelBuilder.with()
-          .aDemandPattern("Pattern1", [1.0, 0.8, 0.6])
+          .aDemandPattern(100, "Pattern1", [1.0, 0.8, 0.6])
           .build(),
       });
 

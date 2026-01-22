@@ -48,18 +48,23 @@ export const initializeHydraulicModel = ({
   demands?: Demands;
   epsTiming?: EPSTiming;
   controls?: Controls;
-}) => {
+}): HydraulicModel => {
   const labelManager = new LabelManager();
-  const idGenerator = new ConsecutiveIdsGenerator();
+  const assetIdGenerator = new ConsecutiveIdsGenerator();
   const assets = new Map();
   return {
     version: nanoid(),
     assets,
     customerPoints: initializeCustomerPoints(),
     customerPointsLookup: new CustomerPointsLookup(),
-    assetBuilder: new AssetBuilder(units, defaults, idGenerator, labelManager),
+    assetBuilder: new AssetBuilder(
+      units,
+      defaults,
+      assetIdGenerator,
+      labelManager,
+    ),
     topology: new Topology(),
-    assetIndex: new AssetIndex(idGenerator, assets),
+    assetIndex: new AssetIndex(assetIdGenerator, assets),
     demands,
     units,
     labelManager,

@@ -302,7 +302,11 @@ J1	1	2
     expect(cp1).toBeDefined();
     expect(cp1?.demands).toHaveLength(1);
     expect(cp1?.demands[0].baseDemand).toBe(25);
-    expect(cp1?.demands[0].patternLabel).toBe("residential");
+    expect(cp1?.demands[0].patternLabel).toBe("RESIDENTIAL");
+    expect(cp1?.demands[0].patternId).toBe(1);
+
+    expect(hydraulicModel.demands.patterns.size).toBe(1);
+    expect(hydraulicModel.demands.patterns.get(1)?.label).toBe("residential");
   });
 
   it("parses multiple demands per customer point", () => {
@@ -343,9 +347,15 @@ J1	1	2
     expect(cp1).toBeDefined();
     expect(cp1?.demands).toHaveLength(2);
     expect(cp1?.demands[0].baseDemand).toBe(25);
-    expect(cp1?.demands[0].patternLabel).toBe("residential");
+    expect(cp1?.demands[0].patternLabel).toBe("RESIDENTIAL");
+    expect(cp1?.demands[0].patternId).toBe(1);
     expect(cp1?.demands[1].baseDemand).toBe(15);
-    expect(cp1?.demands[1].patternLabel).toBe("commercial");
+    expect(cp1?.demands[1].patternLabel).toBe("COMMERCIAL");
+    expect(cp1?.demands[1].patternId).toBe(2);
+
+    expect(hydraulicModel.demands.patterns.size).toBe(2);
+    expect(hydraulicModel.demands.patterns.get(1)?.label).toBe("residential");
+    expect(hydraulicModel.demands.patterns.get(2)?.label).toBe("commercial");
   });
 
   it("parses customer demands without pattern", () => {
@@ -382,6 +392,7 @@ J1	1	2
     expect(cp1?.demands).toHaveLength(1);
     expect(cp1?.demands[0].baseDemand).toBe(30);
     expect(cp1?.demands[0].patternLabel).toBeUndefined();
+    expect(cp1?.demands[0].patternId).toBeUndefined();
   });
 
   it("falls back to baseDemand when no CUSTOMERS_DEMANDS section exists", () => {
@@ -415,6 +426,7 @@ J1	1	2
     expect(cp1?.demands).toHaveLength(1);
     expect(cp1?.demands[0].baseDemand).toBe(42);
     expect(cp1?.demands[0].patternLabel).toBeUndefined();
+    expect(cp1?.demands[0].patternId).toBeUndefined();
   });
 
   it("parses demands for multiple customer points", () => {
@@ -455,12 +467,18 @@ J1	1	2
     const cp1 = hydraulicModel.customerPoints.get(IDS.CP1);
     expect(cp1?.demands).toHaveLength(1);
     expect(cp1?.demands[0].baseDemand).toBe(25);
-    expect(cp1?.demands[0].patternLabel).toBe("residential");
+    expect(cp1?.demands[0].patternLabel).toBe("RESIDENTIAL");
+    expect(cp1?.demands[0].patternId).toBe(1);
 
     const cp2 = hydraulicModel.customerPoints.get(IDS.CP2);
     expect(cp2?.demands).toHaveLength(1);
     expect(cp2?.demands[0].baseDemand).toBe(15);
-    expect(cp2?.demands[0].patternLabel).toBe("commercial");
+    expect(cp2?.demands[0].patternLabel).toBe("COMMERCIAL");
+    expect(cp2?.demands[0].patternId).toBe(2);
+
+    expect(hydraulicModel.demands.patterns.size).toBe(2);
+    expect(hydraulicModel.demands.patterns.get(1)?.label).toBe("residential");
+    expect(hydraulicModel.demands.patterns.get(2)?.label).toBe("commercial");
   });
 
   it("ignores CUSTOMERS_DEMANDS section when customerPoints option is false", () => {

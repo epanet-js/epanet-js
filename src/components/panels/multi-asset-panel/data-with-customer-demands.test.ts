@@ -437,10 +437,10 @@ describe("computeMultiAssetDataWithCustomerDemands", () => {
     });
 
     it("calculates average demand with pattern multipliers", () => {
-      const IDS = { J1: 1 } as const;
+      const IDS = { J1: 1, PAT1: 2 } as const;
       // Pattern with multipliers [0.5, 1.0, 1.5] -> average = 1.0
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aDemandPattern("pattern1", [0.5, 1.0, 1.5])
+        .aDemandPattern(IDS.PAT1, "pattern1", [0.5, 1.0, 1.5])
         .aJunction(IDS.J1, {
           demands: [{ baseDemand: 100, patternLabel: "pattern1" }],
         })
@@ -463,10 +463,10 @@ describe("computeMultiAssetDataWithCustomerDemands", () => {
     });
 
     it("calculates average demand with non-uniform pattern multipliers", () => {
-      const IDS = { J1: 1 } as const;
+      const IDS = { J1: 1, PAT1: 2 } as const;
       // Pattern with multipliers [0.5, 0.5, 2.0] -> average = 1.0
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aDemandPattern("pattern1", [0.5, 0.5, 2.0])
+        .aDemandPattern(IDS.PAT1, "pattern1", [0.5, 0.5, 2.0])
         .aJunction(IDS.J1, {
           demands: [{ baseDemand: 60, patternLabel: "pattern1" }],
         })
@@ -488,14 +488,14 @@ describe("computeMultiAssetDataWithCustomerDemands", () => {
     });
 
     it("calculates average demand with mixed constant and pattern demands", () => {
-      const IDS = { J1: 1 } as const;
+      const IDS = { J1: 1, PAT1: 2 } as const;
       // Pattern with multipliers [2.0, 2.0] -> average = 2.0
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aDemandPattern("pattern1", [2.0, 2.0])
+        .aDemandPattern(IDS.PAT1, "pattern1", [2.0, 2.0])
         .aJunction(IDS.J1, {
           demands: [
             { baseDemand: 10 }, // constant -> 10
-            { baseDemand: 20, patternLabel: "pattern1" }, // 20 * 2.0 = 40
+            { baseDemand: 20, patternLabel: "pattern1", patternId: IDS.PAT1 }, // 20 * 2.0 = 40
           ],
         })
         .build();
@@ -560,10 +560,10 @@ describe("computeMultiAssetDataWithCustomerDemands", () => {
     });
 
     it("computes statistics across multiple junctions with different average demands", () => {
-      const IDS = { J1: 1, J2: 2, J3: 3 } as const;
+      const IDS = { J1: 1, J2: 2, J3: 3, PAT1: 10 } as const;
       // Pattern [0.5, 1.5] -> average = 1.0
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aDemandPattern("pattern1", [0.5, 1.5])
+        .aDemandPattern(IDS.PAT1, "pattern1", [0.5, 1.5])
         .aJunction(IDS.J1, { demands: [{ baseDemand: 10 }] }) // avg = 10
         .aJunction(IDS.J2, { demands: [{ baseDemand: 20 }] }) // avg = 20
         .aJunction(IDS.J3, {
@@ -611,11 +611,11 @@ describe("computeMultiAssetDataWithCustomerDemands", () => {
     });
 
     it("ignores global demand multiplier with pattern demands", () => {
-      const IDS = { J1: 1 } as const;
+      const IDS = { J1: 1, PAT1: 2 } as const;
       // Pattern [0.5, 1.5] -> average = 1.0
       const hydraulicModel = HydraulicModelBuilder.with()
         .demandMultiplier(3.0)
-        .aDemandPattern("pattern1", [0.5, 1.5])
+        .aDemandPattern(IDS.PAT1, "pattern1", [0.5, 1.5])
         .aJunction(IDS.J1, {
           demands: [{ baseDemand: 20, patternLabel: "pattern1" }],
         })
@@ -638,10 +638,10 @@ describe("computeMultiAssetDataWithCustomerDemands", () => {
 
   describe("customer point demand calculation with patterns", () => {
     it("calculates customer demand using average demand with patterns", () => {
-      const IDS = { J1: 1, P1: 2, J2: 3, CP1: 4 } as const;
+      const IDS = { J1: 1, P1: 2, J2: 3, CP1: 4, PAT1: 5 } as const;
       // Pattern with multipliers [0.5, 1.5] -> average = 1.0
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aDemandPattern("residential", [0.5, 1.5])
+        .aDemandPattern(IDS.PAT1, "residential", [0.5, 1.5])
         .aJunction(IDS.J1)
         .aJunction(IDS.J2)
         .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
@@ -670,10 +670,10 @@ describe("computeMultiAssetDataWithCustomerDemands", () => {
     });
 
     it("calculates customer demand with non-uniform pattern", () => {
-      const IDS = { J1: 1, P1: 2, J2: 3, CP1: 4 } as const;
+      const IDS = { J1: 1, P1: 2, J2: 3, CP1: 4, PAT1: 5 } as const;
       // Pattern with multipliers [0.5, 1.0, 1.5, 2.0] -> average = 1.25
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aDemandPattern("variable", [0.5, 1.0, 1.5, 2.0])
+        .aDemandPattern(IDS.PAT1, "variable", [0.5, 1.0, 1.5, 2.0])
         .aJunction(IDS.J1)
         .aJunction(IDS.J2)
         .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
@@ -701,10 +701,10 @@ describe("computeMultiAssetDataWithCustomerDemands", () => {
     });
 
     it("calculates customer demand with multiple demands per customer point", () => {
-      const IDS = { J1: 1, P1: 2, J2: 3, CP1: 4 } as const;
+      const IDS = { J1: 1, P1: 2, J2: 3, CP1: 4, PAT1: 5 } as const;
       // Pattern [2.0, 2.0] -> average = 2.0
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aDemandPattern("high", [2.0, 2.0])
+        .aDemandPattern(IDS.PAT1, "high", [2.0, 2.0])
         .aJunction(IDS.J1)
         .aJunction(IDS.J2)
         .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
@@ -735,10 +735,10 @@ describe("computeMultiAssetDataWithCustomerDemands", () => {
     });
 
     it("sums customer demands from multiple customer points with patterns", () => {
-      const IDS = { J1: 1, P1: 2, J2: 3, CP1: 4, CP2: 5 } as const;
+      const IDS = { J1: 1, P1: 2, J2: 3, CP1: 4, CP2: 5, PAT1: 5 } as const;
       // Pattern [0.5, 1.5] -> average = 1.0
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aDemandPattern("residential", [0.5, 1.5])
+        .aDemandPattern(IDS.PAT1, "residential", [0.5, 1.5])
         .aJunction(IDS.J1)
         .aJunction(IDS.J2)
         .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
@@ -770,10 +770,10 @@ describe("computeMultiAssetDataWithCustomerDemands", () => {
     });
 
     it("calculates pipe customer demand using average demand with patterns", () => {
-      const IDS = { J1: 1, P1: 2, J2: 3, CP1: 4 } as const;
+      const IDS = { J1: 1, P1: 2, J2: 3, CP1: 4, PAT1: 5 } as const;
       // Pattern with multipliers [0.5, 1.5] -> average = 1.0
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aDemandPattern("commercial", [0.5, 1.5])
+        .aDemandPattern(IDS.PAT1, "commercial", [0.5, 1.5])
         .aJunction(IDS.J1)
         .aJunction(IDS.J2)
         .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })

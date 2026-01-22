@@ -56,8 +56,8 @@ describe("build inp", () => {
             { baseDemand: 15, patternLabel: "commercial" },
           ],
         })
-        .aDemandPattern("residential", [0.8, 1.2, 1.0])
-        .aDemandPattern("commercial", [1.0, 1.5, 0.5])
+        .aDemandPattern(100, "residential", [0.8, 1.2, 1.0])
+        .aDemandPattern(100, "commercial", [1.0, 1.5, 0.5])
         .build();
 
       const inp = buildInp(hydraulicModel);
@@ -93,7 +93,7 @@ describe("build inp", () => {
           elevation: 10,
           demands: [{ baseDemand: 30, patternLabel: "daily" }],
         })
-        .aDemandPattern("daily", [0.5, 1.0, 1.5])
+        .aDemandPattern(100, "daily", [0.5, 1.0, 1.5])
         .build();
 
       const inp = buildInp(hydraulicModel);
@@ -976,7 +976,7 @@ describe("build inp", () => {
           elevation: 10,
           demands: [{ baseDemand: 50, patternLabel: "CONSTANT" }],
         })
-        .aDemandPattern("CONSTANT", [1.2, 0.8, 1.0])
+        .aDemandPattern(100, "CONSTANT", [1.2, 0.8, 1.0])
         .build();
 
       const inp = buildInp(hydraulicModel);
@@ -991,8 +991,8 @@ describe("build inp", () => {
       const IDS = { J1: 1 };
       const hydraulicModel = HydraulicModelBuilder.with()
         .aJunction(IDS.J1, { elevation: 10, demands: [{ baseDemand: 50 }] })
-        .aDemandPattern("CONSTANT", [1.2, 0.8])
-        .aDemandPattern("CONSTANT_1", [0.9, 1.1])
+        .aDemandPattern(100, "CONSTANT", [1.2, 0.8])
+        .aDemandPattern(100, "CONSTANT_1", [0.9, 1.1])
         .build();
 
       const inp = buildInp(hydraulicModel);
@@ -1014,9 +1014,9 @@ describe("build inp", () => {
           elevation: 20,
           demands: [{ baseDemand: 30 }], // constant demand, no pattern
         })
-        .aDemandPattern("residential", [0.8, 1.2, 1.0])
-        .aDemandPattern("commercial", [1.0, 1.5, 0.5])
-        .aDemandPattern("industrial", [0.5, 1.0, 1.5])
+        .aDemandPattern(100, "residential", [0.8, 1.2, 1.0])
+        .aDemandPattern(100, "commercial", [1.0, 1.5, 0.5])
+        .aDemandPattern(100, "industrial", [0.5, 1.0, 1.5])
         .build();
 
       const inp = buildInp(hydraulicModel);
@@ -1037,7 +1037,7 @@ describe("build inp", () => {
           elevation: 10,
           demands: [{ baseDemand: 0, patternLabel: "residential" }],
         })
-        .aDemandPattern("residential", [0.8, 1.2, 1.0])
+        .aDemandPattern(100, "residential", [0.8, 1.2, 1.0])
         .build();
 
       const inp = buildInp(hydraulicModel);
@@ -1057,7 +1057,7 @@ describe("build inp", () => {
           elevation: 20,
           demands: [{ baseDemand: 50, patternLabel: "residential" }],
         })
-        .aDemandPattern("residential", [0.8, 1.2, 1.0])
+        .aDemandPattern(100, "residential", [0.8, 1.2, 1.0])
         .build();
 
       const inp = buildInp(hydraulicModel);
@@ -1078,7 +1078,7 @@ describe("build inp", () => {
           elevation: 10,
           demands: [{ baseDemand: 100, patternLabel: "hourly" }],
         })
-        .aDemandPattern("hourly", hourlyPattern)
+        .aDemandPattern(100, "hourly", hourlyPattern)
         .build();
 
       const inp = buildInp(hydraulicModel);

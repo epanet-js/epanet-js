@@ -69,6 +69,11 @@ export type ValveData = {
   isActive: boolean;
 };
 
+export type PatternData = {
+  label: string;
+  multipliers: number[];
+};
+
 export type CustomerPointData =
   | {
       label: string;
@@ -101,7 +106,7 @@ export type InpData = {
   vertices: ItemData<Position[]>;
   demands: ItemData<JunctionDemand[]>;
   customerDemands: ItemData<JunctionDemand[]>;
-  patterns: ItemData<number[]>;
+  patterns: ItemData<PatternData>;
   status: ItemData<string>;
   curves: ItemData<{ x: number; y: number }[]>;
   options: {
