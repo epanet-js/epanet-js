@@ -33,7 +33,15 @@ describe("buildInpWithCustomerDemands", () => {
     });
 
     it("groups customer demands by pattern", () => {
-      const IDS = { J1: 1, P1: 2, CP1: 3, CP2: 4, CP3: 5 };
+      const IDS = {
+        J1: 1,
+        P1: 2,
+        CP1: 3,
+        CP2: 4,
+        CP3: 5,
+        PAT1: 100,
+        PAT2: 101,
+      };
       const hydraulicModel = HydraulicModelBuilder.with()
         .aJunction(IDS.J1, { elevation: 10, demands: [{ baseDemand: 50 }] })
         .aPipe(IDS.P1, {
@@ -45,19 +53,19 @@ describe("buildInpWithCustomerDemands", () => {
           ],
         })
         .aCustomerPoint(IDS.CP1, {
-          demands: [{ baseDemand: 10, patternLabel: "residential" }],
+          demands: [{ baseDemand: 10, patternId: IDS.PAT1 }],
           connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
         })
         .aCustomerPoint(IDS.CP2, {
-          demands: [{ baseDemand: 15, patternLabel: "residential" }],
+          demands: [{ baseDemand: 15, patternId: IDS.PAT1 }],
           connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
         })
         .aCustomerPoint(IDS.CP3, {
-          demands: [{ baseDemand: 20, patternLabel: "commercial" }],
+          demands: [{ baseDemand: 20, patternId: IDS.PAT2 }],
           connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
         })
-        .aDemandPattern(100, "residential", [1, 1.2, 0.8])
-        .aDemandPattern(100, "commercial", [0.5, 1.5, 1.0])
+        .aDemandPattern(IDS.PAT1, "residential", [1, 1.2, 0.8])
+        .aDemandPattern(IDS.PAT2, "commercial", [0.5, 1.5, 1.0])
         .build();
 
       const inp = buildInpWithCustomerDemands(hydraulicModel, {
@@ -67,17 +75,17 @@ describe("buildInpWithCustomerDemands", () => {
       expect(inp).toContain("[DEMANDS]");
       expect(inp).toContain("1\t50");
       // Residential pattern should have total of 25 (10 + 15)
-      expect(inp).toContain("1\t25\tresidential");
+      expect(inp).toContain(`1\t25\t${IDS.PAT1}`);
       // Commercial pattern should have total of 20
-      expect(inp).toContain("1\t20\tcommercial");
+      expect(inp).toContain(`1\t20\t${IDS.PAT2}`);
       // Patterns should be in the PATTERNS section
       expect(inp).toContain("[PATTERNS]");
-      expect(inp).toContain("residential\t1\t1.2\t0.8");
-      expect(inp).toContain("commercial\t0.5\t1.5\t1");
+      expect(inp).toContain(`${IDS.PAT1}\t1\t1.2\t0.8`);
+      expect(inp).toContain(`${IDS.PAT2}\t0.5\t1.5\t1`);
     });
 
     it("marks customer demands with epanetjs_customers comment for re-import", () => {
-      const IDS = { J1: 1, P1: 2, CP1: 3 };
+      const IDS = { J1: 1, P1: 2, CP1: 3, PAT1: 100 };
       const hydraulicModel = HydraulicModelBuilder.with()
         .aJunction(IDS.J1, { elevation: 10, demands: [{ baseDemand: 50 }] })
         .aPipe(IDS.P1, {
@@ -89,10 +97,10 @@ describe("buildInpWithCustomerDemands", () => {
           ],
         })
         .aCustomerPoint(IDS.CP1, {
-          demands: [{ baseDemand: 25, patternLabel: "residential" }],
+          demands: [{ baseDemand: 25, patternId: IDS.PAT1 }],
           connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
         })
-        .aDemandPattern(100, "residential", [1, 1.2, 0.8])
+        .aDemandPattern(IDS.PAT1, "residential", [1, 1.2, 0.8])
         .build();
 
       const inp = buildInpWithCustomerDemands(hydraulicModel, {
@@ -100,7 +108,7 @@ describe("buildInpWithCustomerDemands", () => {
       });
 
       // Customer demand should have the comment marker for re-import identification
-      expect(inp).toContain("1\t25\tresidential\t;epanetjs_customers");
+      expect(inp).toContain(`1\t25\t${IDS.PAT1}\t;epanetjs_customers`);
       // Junction's own demand should NOT have the comment marker
       expect(inp).toContain("1\t50");
       expect(inp).not.toContain("1\t50\t;epanetjs_customers");
@@ -195,7 +203,7 @@ describe("buildInpWithCustomerDemands", () => {
     });
 
     it("tracks used patterns from customer points for export", () => {
-      const IDS = { J1: 1, P1: 2, CP1: 3 };
+      const IDS = { J1: 1, P1: 2, CP1: 3, PAT1: 100, PAT2: 101 };
       const hydraulicModel = HydraulicModelBuilder.with()
         .aJunction(IDS.J1, { elevation: 10 })
         .aPipe(IDS.P1, {
@@ -207,12 +215,12 @@ describe("buildInpWithCustomerDemands", () => {
           ],
         })
         .aCustomerPoint(IDS.CP1, {
-          demands: [{ baseDemand: 25, patternLabel: "daily_pattern" }],
+          demands: [{ baseDemand: 25, patternId: IDS.PAT1 }],
           coordinates: [1, 1],
           connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
         })
-        .aDemandPattern(100, "daily_pattern", [0.8, 1.0, 1.2, 1.0])
-        .aDemandPattern(100, "unused_pattern", [1, 1, 1])
+        .aDemandPattern(IDS.PAT1, "daily_pattern", [0.8, 1.0, 1.2, 1.0])
+        .aDemandPattern(IDS.PAT2, "unused_pattern", [1, 1, 1])
         .build();
 
       const inp = buildInpWithCustomerDemands(hydraulicModel, {
@@ -221,15 +229,15 @@ describe("buildInpWithCustomerDemands", () => {
       });
 
       // Used pattern should be in the output
-      expect(inp).toContain("daily_pattern\t0.8\t1\t1.2\t1");
+      expect(inp).toContain(`${IDS.PAT1}\t0.8\t1\t1.2\t1`);
       // Unused pattern should NOT be in the output
-      expect(inp).not.toContain("unused_pattern");
+      expect(inp).not.toContain(`${IDS.PAT2}`);
     });
   });
 
   describe("customer points section", () => {
     it("includes customers demands section when customer points exist", () => {
-      const IDS = { J1: 1, J2: 2, P1: 3, CP1: 4 };
+      const IDS = { J1: 1, J2: 2, P1: 3, CP1: 4, PAT1: 100, PAT2: 101 };
       const hydraulicModel = HydraulicModelBuilder.with()
         .aJunction(IDS.J1, { elevation: 10, coordinates: [1, 2] })
         .aJunction(IDS.J2, { elevation: 20, coordinates: [3, 4] })
@@ -239,14 +247,14 @@ describe("buildInpWithCustomerDemands", () => {
         })
         .aCustomerPoint(IDS.CP1, {
           demands: [
-            { baseDemand: 10, patternLabel: "pat1" },
-            { baseDemand: 5, patternLabel: "pat2" },
+            { baseDemand: 10, patternId: IDS.PAT1 },
+            { baseDemand: 5, patternId: IDS.PAT2 },
           ],
           coordinates: [1.5, 2.5],
           connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
         })
-        .aDemandPattern(100, "pat1", [1, 2])
-        .aDemandPattern(100, "pat2", [0.5, 1.5])
+        .aDemandPattern(IDS.PAT1, "pat1", [1, 2])
+        .aDemandPattern(IDS.PAT2, "pat2", [0.5, 1.5])
         .build();
 
       const inp = buildInpWithCustomerDemands(hydraulicModel, {
@@ -255,8 +263,8 @@ describe("buildInpWithCustomerDemands", () => {
       });
 
       expect(inp).toContain(";[CUSTOMERS_DEMANDS]");
-      expect(inp).toContain(`;${IDS.CP1}\t10\tpat1`);
-      expect(inp).toContain(`;${IDS.CP1}\t5\tpat2`);
+      expect(inp).toContain(`;${IDS.CP1}\t10\t${IDS.PAT1}`);
+      expect(inp).toContain(`;${IDS.CP1}\t5\t${IDS.PAT2}`);
     });
   });
 });

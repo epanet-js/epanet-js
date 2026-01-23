@@ -8,6 +8,7 @@ import {
   Pump,
   Tank,
   EPSTiming,
+  PatternId,
 } from "src/hydraulic-model";
 import {
   CustomerPoint,
@@ -22,6 +23,7 @@ import {
   formatRuleBasedControl,
   IdResolver,
 } from "src/hydraulic-model/controls";
+import { DemandPattern, DemandPatterns } from "src/hydraulic-model/demands";
 
 type SimulationPipeStatus = "Open" | "Closed" | "CV";
 type SimulationPumpStatus = "Open" | "Closed";
@@ -43,6 +45,7 @@ export type EpanetUnitSystem =
 export const defaultAccuracy = 0.001;
 export const defaultUnbalanced = "CONTINUE 10";
 export const defaultCustomersPatternId = "epanetjs_customers";
+const defaultConstantPatternId = 0;
 
 const formatSecondsToTime = (seconds: number): string => {
   const hours = Math.floor(seconds / 3600);
@@ -106,12 +109,16 @@ class EpanetIds {
   private assetIds: Map<AssetId, string>;
   private linkIds: Set<string>;
   private nodeIds: Set<string>;
+  private patternIds: Map<PatternId, string>;
+  private patternLabels: Set<string>;
 
   constructor({ strategy }: { strategy: "id" | "label" }) {
     this.strategy = strategy;
     this.nodeIds = new Set();
     this.linkIds = new Set();
     this.assetIds = new Map();
+    this.patternIds = new Map();
+    this.patternLabels = new Set();
   }
 
   linkId(link: LinkAsset) {
@@ -138,6 +145,24 @@ class EpanetIds {
         this.assetIds.set(node.id, id);
         return id;
     }
+  }
+
+  registerPatternId(pattern: Pick<DemandPattern, "id" | "label">) {
+    switch (this.strategy) {
+      case "id":
+        return String(pattern.id);
+      case "label":
+        if (this.patternIds.has(pattern.id))
+          return this.patternIds.get(pattern.id)!;
+        const id = this.ensureUnique(this.patternLabels, pattern.label);
+        this.patternLabels.add(id);
+        this.patternIds.set(pattern.id, id);
+        return id;
+    }
+  }
+
+  patternId(patternId: PatternId): string {
+    return this.patternIds.get(patternId) ?? String(patternId);
   }
 
   private ensureUnique(
@@ -199,9 +224,6 @@ export const buildInp = withDebugInstrumentation(
     const idMap = new EpanetIds({ strategy: opts.labelIds ? "label" : "id" });
     const units = chooseUnitSystem(hydraulicModel.units);
     const headlossFormula = hydraulicModel.headlossFormula;
-    const constantPatternId = getConstantPatternId(
-      new Set(hydraulicModel.demands.patternsLegacy.keys()),
-    );
     const sections: InpSections = {
       junctions: ["[JUNCTIONS]", ";Id\tElevation"],
       reservoirs: ["[RESERVOIRS]", ";Id\tHead\tPattern"],
@@ -229,7 +251,7 @@ export const buildInp = withDebugInstrumentation(
         `Units\t${units}`,
         `Headloss\t${headlossFormula}`,
         `Demand Multiplier\t${hydraulicModel.demands.multiplier}`,
-        `Pattern\t${constantPatternId}`,
+        `Pattern\t${idMap.registerPatternId({ id: defaultConstantPatternId, label: "constant" })}`,
       ],
       backdrop: ["[BACKDROP]", "Units\tDEGREES"],
       coordinates: ["[COORDINATES]", ";Node\tX-coord\tY-coord"],
@@ -243,6 +265,10 @@ export const buildInp = withDebugInstrumentation(
     };
 
     const usedPatternIds = new Set<string>();
+
+    for (const pattern of hydraulicModel.demands.patterns.values()) {
+      idMap.registerPatternId(pattern); // Ensure pattern IDs are registered
+    }
 
     for (const asset of hydraulicModel.assets.values()) {
       if (asset.type === "reservoir") {
@@ -324,9 +350,9 @@ export const buildInp = withDebugInstrumentation(
 
     appendDemandPatterns(
       sections,
-      constantPatternId,
-      hydraulicModel.demands.patternsLegacy,
+      hydraulicModel.demands.patterns,
       usedPatternIds,
+      idMap,
     );
 
     appendControls(sections, hydraulicModel.controls, idMap, hydraulicModel);
@@ -448,14 +474,14 @@ const appendJunction = (
   for (const demand of junction.demands) {
     if (demand.baseDemand === 0) continue;
 
-    const demandLine = demand.patternLabel
-      ? [junctionId, demand.baseDemand, demand.patternLabel]
+    const demandLine = demand.patternId
+      ? [junctionId, demand.baseDemand, idMap.patternId(demand.patternId)]
       : [junctionId, demand.baseDemand];
 
     sections.demands.push(commentPrefix + demandLine.join("\t"));
 
-    if (demand.patternLabel) {
-      usedPatternIds.add(demand.patternLabel);
+    if (demand.patternId) {
+      usedPatternIds.add(idMap.patternId(demand.patternId));
     }
   }
 
@@ -685,17 +711,6 @@ const kindFor = (valve: Valve): EpanetValveType => {
   return valve.kind.toUpperCase() as EpanetValveType;
 };
 
-const getConstantPatternId = (usedPatternIds: Set<string>): string => {
-  const base = "CONSTANT";
-  if (!usedPatternIds.has(base)) return base;
-
-  let count = 1;
-  while (usedPatternIds.has(`${base}_${count}`)) {
-    count++;
-  }
-  return `${base}_${count}`;
-};
-
 const appendControls = (
   sections: InpSections,
   controls: HydraulicModel["controls"],
@@ -725,19 +740,21 @@ const appendControls = (
 
 const appendDemandPatterns = (
   sections: InpSections,
-  constantPatternId: string,
-  patterns: Map<string, number[]>,
+  patterns: DemandPatterns,
   usedPatternIds: Set<string>,
+  idMap: EpanetIds,
 ) => {
+  const constantPatternId = idMap.patternId(defaultConstantPatternId);
   sections.patterns.push([constantPatternId, "1"].join("\t"));
 
-  for (const [patternId, factors] of patterns) {
-    if (!usedPatternIds.has(patternId)) continue;
+  for (const pattern of patterns.values()) {
+    const mappedId = idMap.patternId(pattern.id);
+    if (!usedPatternIds.has(mappedId)) continue;
 
     const FACTORS_PER_LINE = 8;
-    for (let i = 0; i < factors.length; i += FACTORS_PER_LINE) {
-      const chunk = factors.slice(i, i + FACTORS_PER_LINE);
-      sections.patterns.push([patternId, ...chunk.map(String)].join("\t"));
+    for (let i = 0; i < pattern.multipliers.length; i += FACTORS_PER_LINE) {
+      const chunk = pattern.multipliers.slice(i, i + FACTORS_PER_LINE);
+      sections.patterns.push([mappedId, ...chunk.map(String)].join("\t"));
     }
   }
 
