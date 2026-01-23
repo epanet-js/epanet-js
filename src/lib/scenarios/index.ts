@@ -1,0 +1,12 @@
+export type {
+  ScenarioApplyTarget,
+  ScenarioContext,
+  ScenarioOperationResult,
+  CreateScenarioResult,
+} from "./types";
+export { createScenario } from "./create-scenario";
+export { switchToScenario, switchToMain } from "./switch-scenario";
+export { deleteScenario } from "./delete-scenario";
+export { renameScenario } from "./rename-scenario";
+export { captureModelSnapshot } from "./capture-snapshot";
+export { getSimulationForState } from "./get-simulation";

@@ -1,5 +1,4 @@
 import { atom } from "jotai";
-import { nanoid } from "nanoid";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { Moment } from "src/lib/persistence/moment";
 import type { SimulationState } from "src/state/jotai";
@@ -49,20 +48,3 @@ export const scenariosListAtom = atom((get) => {
     (a, b) => a.createdAt - b.createdAt,
   );
 });
-
-export const createScenario = (
-  state: ScenariosState,
-  momentLog: MomentLog,
-  modelVersion: string,
-): Scenario => {
-  const newNumber = state.highestScenarioNumber + 1;
-  return {
-    id: nanoid(),
-    name: `Scenario #${newNumber}`,
-    number: newNumber,
-    createdAt: Date.now(),
-    momentLog,
-    simulation: null,
-    modelVersion,
-  };
-};

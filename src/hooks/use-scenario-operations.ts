@@ -2,13 +2,18 @@ import { useAtom, useSetAtom } from "jotai";
 import { useCallback } from "react";
 import { usePersistence } from "src/lib/persistence/context";
 import { MemPersistence } from "src/lib/persistence/memory";
-import {
-  scenariosAtom,
-  createScenario as createScenarioObject,
-} from "src/state/scenarios";
+import { scenariosAtom } from "src/state/scenarios";
 import { simulationAtom, initialSimulationState } from "src/state/jotai";
 import { modeAtom, Mode } from "src/state/mode";
-import { MomentLog } from "src/lib/persistence/moment-log";
+import {
+  createScenario,
+  switchToScenario as switchToScenarioFn,
+  switchToMain as switchToMainFn,
+  deleteScenario,
+  renameScenario,
+  getSimulationForState,
+  type ScenarioContext,
+} from "src/lib/scenarios";
 
 const DRAWING_MODES: Mode[] = [
   Mode.DRAW_JUNCTION,
@@ -27,18 +32,24 @@ export const useScenarioOperations = () => {
   const [simulation, setSimulation] = useAtom(simulationAtom);
   const setMode = useSetAtom(modeAtom);
 
-  const switchToMain = useCallback(() => {
-    const newState = persistence.switchToMainScenario(
-      scenariosState,
-      () => simulation,
-    );
-    setScenariosState(newState);
+  const getContext = useCallback(
+    (): ScenarioContext => ({
+      currentMomentLog: persistence.getMomentLog(),
+      currentModelVersion: persistence.getModelVersion(),
+      currentSimulation: simulation,
+    }),
+    [persistence, simulation],
+  );
 
-    const newSimulation = persistence.getSimulationForState(
-      newState,
-      initialSimulationState,
-    );
-    setSimulation(newSimulation);
+  const switchToMain = useCallback(() => {
+    const result = switchToMainFn(scenariosState, getContext());
+
+    if (result.applyTarget) {
+      persistence.applyScenarioTarget(result.applyTarget);
+    }
+
+    setScenariosState(result.state);
+    setSimulation(getSimulationForState(result.state, initialSimulationState));
 
     setMode((modeState) => {
       if (DRAWING_MODES.includes(modeState.mode)) {
@@ -49,7 +60,7 @@ export const useScenarioOperations = () => {
   }, [
     persistence,
     scenariosState,
-    simulation,
+    getContext,
     setScenariosState,
     setSimulation,
     setMode,
@@ -57,76 +68,64 @@ export const useScenarioOperations = () => {
 
   const switchToScenario = useCallback(
     (scenarioId: string) => {
-      const newState = persistence.switchToScenario(
+      const result = switchToScenarioFn(
         scenariosState,
         scenarioId,
-        () => simulation,
+        getContext(),
       );
-      setScenariosState(newState);
 
-      const newSimulation = persistence.getSimulationForState(
-        newState,
-        initialSimulationState,
+      if (result.applyTarget) {
+        persistence.applyScenarioTarget(result.applyTarget);
+      }
+
+      setScenariosState(result.state);
+      setSimulation(
+        getSimulationForState(result.state, initialSimulationState),
       );
-      setSimulation(newSimulation);
     },
-    [persistence, scenariosState, simulation, setScenariosState, setSimulation],
+    [persistence, scenariosState, getContext, setScenariosState, setSimulation],
   );
 
   const createNewScenario = useCallback(() => {
-    const {
-      state: newState,
-      scenarioId,
-      scenarioName,
-    } = persistence.createScenario(
-      scenariosState,
-      (state) => {
-        const newMomentLog = new MomentLog();
-        return createScenarioObject(
-          state,
-          newMomentLog,
-          state.baseModelSnapshot!.stateId,
-        );
-      },
-      () => simulation,
-    );
+    const baseSnapshot =
+      scenariosState.baseModelSnapshot ?? persistence.captureModelSnapshot();
 
-    setScenariosState(newState);
+    const result = createScenario(scenariosState, getContext(), baseSnapshot);
+
+    persistence.applyScenarioTarget(result.applyTarget);
+    setScenariosState(result.state);
     setSimulation(initialSimulationState);
 
-    return { scenarioId, scenarioName };
+    return { scenarioId: result.scenarioId, scenarioName: result.scenarioName };
   }, [
     persistence,
     scenariosState,
-    simulation,
+    getContext,
     setScenariosState,
     setSimulation,
   ]);
 
   const deleteScenarioById = useCallback(
     (scenarioId: string) => {
-      const newState = persistence.deleteScenario(scenariosState, scenarioId);
-      setScenariosState(newState);
+      const result = deleteScenario(scenariosState, scenarioId);
 
-      const newSimulation = persistence.getSimulationForState(
-        newState,
-        initialSimulationState,
+      if (result.applyTarget) {
+        persistence.applyScenarioTarget(result.applyTarget);
+      }
+
+      setScenariosState(result.state);
+      setSimulation(
+        getSimulationForState(result.state, initialSimulationState),
       );
-      setSimulation(newSimulation);
     },
     [persistence, scenariosState, setScenariosState, setSimulation],
   );
 
   const renameScenarioById = useCallback(
     (scenarioId: string, newName: string) => {
-      const newState = persistence.renameScenario(
-        scenariosState,
-        scenarioId,
-        newName,
-      );
-      setScenariosState(newState);
+      setScenariosState(renameScenario(scenariosState, scenarioId, newName));
     },
-    [persistence, scenariosState, setScenariosState],
+    [scenariosState, setScenariosState],
   );
 
   return {

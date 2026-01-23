@@ -8,9 +8,9 @@ import {
   MomentInput,
   Moment,
 } from "src/lib/persistence/moment";
-import type { ScenariosState, Scenario } from "src/state/scenarios";
-import type { SimulationState } from "src/state/jotai";
 import { generateKeyBetween } from "fractional-indexing";
+import type { ScenarioApplyTarget } from "src/lib/scenarios/types";
+import type { BaseModelSnapshot } from "src/state/scenarios";
 import {
   Data,
   dataAtom,
@@ -163,7 +163,7 @@ export class MemPersistence implements IPersistence {
     return this.store.get(momentLogAtom);
   }
 
-  captureModelSnapshot(): { moment: Moment; stateId: string } {
+  captureModelSnapshot(): BaseModelSnapshot {
     const ctx = this.store.get(dataAtom);
     const { hydraulicModel } = ctx;
 
@@ -181,7 +181,7 @@ export class MemPersistence implements IPersistence {
     return { moment, stateId: hydraulicModel.version };
   }
 
-  applySnapshot(
+  private applySnapshot(
     moment: MomentInput,
     stateId: string,
     mergeAssetsAndSettings = false,
@@ -196,7 +196,7 @@ export class MemPersistence implements IPersistence {
     });
   }
 
-  switchMomentLog(momentLog: MomentLog): void {
+  private switchMomentLog(momentLog: MomentLog): void {
     const current = this.store.get(mapSyncMomentAtom);
     this.store.set(momentLogAtom, momentLog);
     this.store.set(mapSyncMomentAtom, {
@@ -205,7 +205,7 @@ export class MemPersistence implements IPersistence {
     });
   }
 
-  restoreToBase(baseSnapshot: { moment: Moment; stateId: string }): void {
+  private restoreToBase(baseSnapshot: BaseModelSnapshot): void {
     const ctx = this.store.get(dataAtom);
     const { hydraulicModel } = ctx;
 
@@ -242,7 +242,7 @@ export class MemPersistence implements IPersistence {
     return ctx.hydraulicModel.version;
   }
 
-  setModelVersion(version: string): void {
+  private setModelVersion(version: string): void {
     const ctx = this.store.get(dataAtom);
     this.store.set(dataAtom, {
       ...ctx,
@@ -253,300 +253,18 @@ export class MemPersistence implements IPersistence {
     });
   }
 
-  switchToMainScenario(
-    currentState: ScenariosState,
-    getCurrentSimulation: () => SimulationState,
-  ): ScenariosState {
-    if (currentState.activeScenarioId === null) {
-      return currentState;
-    }
+  applyScenarioTarget(target: ScenarioApplyTarget): void {
+    if (!target) return;
 
-    const lastActiveScenarioId = currentState.activeScenarioId;
+    this.restoreToBase(target.baseSnapshot);
 
-    const currentScenario = currentState.scenarios.get(
-      currentState.activeScenarioId,
-    );
-    const updatedScenarios = new Map(currentState.scenarios);
-    if (currentScenario) {
-      updatedScenarios.set(currentState.activeScenarioId, {
-        ...currentScenario,
-        momentLog: this.getMomentLog(),
-        simulation: getCurrentSimulation(),
-        modelVersion: this.getModelVersion(),
-      });
-    }
-
-    if (currentState.baseModelSnapshot) {
-      this.restoreToBase(currentState.baseModelSnapshot);
-    }
-
-    if (currentState.mainMomentLog) {
-      const deltas = currentState.mainMomentLog.getDeltas();
-      for (const delta of deltas) {
-        this.applySnapshot(delta, "");
-      }
-      this.switchMomentLog(currentState.mainMomentLog);
-    }
-
-    if (currentState.mainModelVersion) {
-      this.setModelVersion(currentState.mainModelVersion);
-    }
-
-    return {
-      ...currentState,
-      scenarios: updatedScenarios,
-      activeScenarioId: null,
-      lastActiveScenarioId,
-    };
-  }
-
-  switchToScenario(
-    currentState: ScenariosState,
-    scenarioId: string,
-    getCurrentSimulation: () => SimulationState,
-  ): ScenariosState {
-    if (currentState.activeScenarioId === scenarioId) {
-      return currentState;
-    }
-
-    const scenario = currentState.scenarios.get(scenarioId);
-    if (!scenario) {
-      throw new Error(`Scenario ${scenarioId} not found`);
-    }
-
-    const isMainActive = currentState.activeScenarioId === null;
-    const updatedScenarios = new Map(currentState.scenarios);
-
-    const newState = { ...currentState, scenarios: updatedScenarios };
-
-    if (isMainActive) {
-      newState.mainMomentLog = this.getMomentLog();
-      newState.mainSimulation = getCurrentSimulation();
-      newState.mainModelVersion = this.getModelVersion();
-    } else {
-      const currentScenario = currentState.scenarios.get(
-        currentState.activeScenarioId!,
-      );
-      if (currentScenario) {
-        updatedScenarios.set(currentState.activeScenarioId!, {
-          ...currentScenario,
-          momentLog: this.getMomentLog(),
-          simulation: getCurrentSimulation(),
-          modelVersion: this.getModelVersion(),
-        });
-      }
-    }
-
-    if (currentState.baseModelSnapshot) {
-      this.restoreToBase(currentState.baseModelSnapshot);
-    }
-
-    const deltas = scenario.momentLog.getDeltas();
+    const deltas = target.momentLog.getDeltas();
     for (const delta of deltas) {
       this.applySnapshot(delta, "");
     }
-    this.switchMomentLog(scenario.momentLog);
-    this.setModelVersion(scenario.modelVersion);
 
-    return {
-      ...newState,
-      activeScenarioId: scenarioId,
-      lastActiveScenarioId: scenarioId,
-    };
-  }
-
-  createScenario(
-    currentState: ScenariosState,
-    scenarioFactory: (state: ScenariosState) => Scenario,
-    getCurrentSimulation: () => SimulationState,
-  ): { state: ScenariosState; scenarioId: string; scenarioName: string } {
-    let baseSnapshot = currentState.baseModelSnapshot;
-    if (!baseSnapshot) {
-      baseSnapshot = this.captureModelSnapshot();
-    }
-
-    const isMainActive = currentState.activeScenarioId === null;
-
-    const mainMomentLog = isMainActive
-      ? this.getMomentLog()
-      : currentState.mainMomentLog;
-
-    const mainSimulation = isMainActive
-      ? getCurrentSimulation()
-      : currentState.mainSimulation;
-
-    const mainModelVersion = isMainActive
-      ? this.getModelVersion()
-      : currentState.mainModelVersion;
-
-    const updatedScenarios = new Map(currentState.scenarios);
-
-    if (!isMainActive) {
-      const currentScenario = currentState.scenarios.get(
-        currentState.activeScenarioId!,
-      );
-      if (currentScenario) {
-        updatedScenarios.set(currentState.activeScenarioId!, {
-          ...currentScenario,
-          momentLog: this.getMomentLog(),
-          simulation: getCurrentSimulation(),
-          modelVersion: this.getModelVersion(),
-        });
-      }
-    }
-
-    const newScenario = scenarioFactory({
-      ...currentState,
-      baseModelSnapshot: baseSnapshot,
-    });
-
-    const newMomentLog = new MomentLog();
-    newMomentLog.setSnapshot(baseSnapshot.moment, baseSnapshot.stateId);
-
-    const finalScenario = {
-      ...newScenario,
-      momentLog: newMomentLog,
-    };
-
-    this.restoreToBase(baseSnapshot);
-    this.switchMomentLog(newMomentLog);
-    this.setModelVersion(baseSnapshot.stateId);
-
-    updatedScenarios.set(finalScenario.id, finalScenario);
-
-    return {
-      scenarioId: finalScenario.id,
-      scenarioName: finalScenario.name,
-      state: {
-        ...currentState,
-        scenarios: updatedScenarios,
-        highestScenarioNumber: finalScenario.number,
-        activeScenarioId: finalScenario.id,
-        baseModelSnapshot: baseSnapshot,
-        mainMomentLog,
-        mainSimulation,
-        mainModelVersion,
-      },
-    };
-  }
-
-  deleteScenario(
-    currentState: ScenariosState,
-    scenarioId: string,
-  ): ScenariosState {
-    const scenarioToDelete = currentState.scenarios.get(scenarioId);
-    if (!scenarioToDelete) {
-      return currentState;
-    }
-
-    const remainingScenarios = Array.from(currentState.scenarios.values())
-      .filter((s) => s.id !== scenarioId)
-      .sort((a, b) => a.createdAt - b.createdAt);
-
-    const isDeletedActive = currentState.activeScenarioId === scenarioId;
-
-    if (remainingScenarios.length === 0) {
-      if (currentState.baseModelSnapshot) {
-        this.restoreToBase(currentState.baseModelSnapshot);
-      }
-
-      if (currentState.mainMomentLog) {
-        const deltas = currentState.mainMomentLog.getDeltas();
-        for (const delta of deltas) {
-          this.applySnapshot(delta, "");
-        }
-        this.switchMomentLog(currentState.mainMomentLog);
-      }
-
-      if (currentState.mainModelVersion) {
-        this.setModelVersion(currentState.mainModelVersion);
-      }
-
-      return {
-        ...currentState,
-        scenarios: new Map(),
-        activeScenarioId: null,
-        baseModelSnapshot: null,
-        mainMomentLog: null,
-        mainSimulation: null,
-        mainModelVersion: null,
-        highestScenarioNumber: 0,
-        lastActiveScenarioId: null,
-      };
-    }
-
-    if (isDeletedActive) {
-      const nextScenario = remainingScenarios[0];
-
-      if (currentState.baseModelSnapshot) {
-        this.restoreToBase(currentState.baseModelSnapshot);
-      }
-
-      const deltas = nextScenario.momentLog.getDeltas();
-      for (const delta of deltas) {
-        this.applySnapshot(delta, "");
-      }
-      this.switchMomentLog(nextScenario.momentLog);
-      this.setModelVersion(nextScenario.modelVersion);
-
-      const updatedScenarios = new Map(currentState.scenarios);
-      updatedScenarios.delete(scenarioId);
-
-      return {
-        ...currentState,
-        scenarios: updatedScenarios,
-        activeScenarioId: nextScenario.id,
-        lastActiveScenarioId: nextScenario.id,
-      };
-    }
-
-    const updatedScenarios = new Map(currentState.scenarios);
-    updatedScenarios.delete(scenarioId);
-
-    const clearedLastActive =
-      currentState.lastActiveScenarioId === scenarioId
-        ? null
-        : currentState.lastActiveScenarioId;
-
-    return {
-      ...currentState,
-      scenarios: updatedScenarios,
-      lastActiveScenarioId: clearedLastActive,
-    };
-  }
-
-  renameScenario(
-    currentState: ScenariosState,
-    scenarioId: string,
-    newName: string,
-  ): ScenariosState {
-    const scenario = currentState.scenarios.get(scenarioId);
-
-    if (!scenario) {
-      return currentState;
-    }
-
-    const updatedScenarios = new Map(currentState.scenarios);
-    updatedScenarios.set(scenarioId, {
-      ...scenario,
-      name: newName,
-    });
-
-    return {
-      ...currentState,
-      scenarios: updatedScenarios,
-    };
-  }
-
-  getSimulationForState(
-    state: ScenariosState,
-    initialSimulationState: SimulationState,
-  ): SimulationState {
-    if (state.activeScenarioId === null) {
-      return state.mainSimulation ?? initialSimulationState;
-    }
-    const scenario = state.scenarios.get(state.activeScenarioId);
-    return scenario?.simulation ?? initialSimulationState;
+    this.switchMomentLog(target.momentLog);
+    this.setModelVersion(target.modelVersion);
   }
 
   /**
