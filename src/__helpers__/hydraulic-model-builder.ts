@@ -397,7 +397,6 @@ export class HydraulicModelBuilder {
   demandMultiplier(multiplier: number) {
     this.demands = {
       multiplier,
-      patternsLegacy: this.demands.patternsLegacy,
       patterns: this.demands.patterns,
     };
     return this;
@@ -409,7 +408,6 @@ export class HydraulicModelBuilder {
       label: patternLabel,
       multipliers: factors.length ? factors : [1],
     });
-    this.demands.patternsLegacy.set(patternLabel, factors);
     this.labelManager.register(patternLabel, "pattern", patternId);
 
     return this;
@@ -520,11 +518,6 @@ export class HydraulicModelBuilder {
       } else if (asset.isNode) {
         assetIndex.addNode(asset.id);
       }
-    }
-
-    // Derive patternsLegacy from patterns
-    for (const pattern of this.demands.patterns.values()) {
-      this.demands.patternsLegacy.set(pattern.label, pattern.multipliers);
     }
 
     return {

@@ -39,7 +39,6 @@ import { LabelManager } from "src/hydraulic-model/label-manager";
 import {
   DemandPattern,
   DemandPatterns,
-  DemandPatternsLegacy,
   PatternId,
   PatternMultipliers,
 } from "src/hydraulic-model/demands";
@@ -68,7 +67,6 @@ export const buildModel = (
     headlossFormula: inpData.options.headlossFormula,
     demands: {
       multiplier: inpData.options.demandMultiplier,
-      patternsLegacy: new Map(),
       patterns: new Map(),
     },
     epsTiming: inpData.times,
@@ -158,7 +156,6 @@ export const buildModel = (
     patternContext.usedPatternIds,
   );
   hydraulicModel.demands.patterns = usedPatterns;
-  hydraulicModel.demands.patternsLegacy = buildPatternsLegacy(usedPatterns);
 
   addControls(hydraulicModel, inpData.controls, nodeIds, linkIds);
 
@@ -286,16 +283,6 @@ const filterUsedPatterns = (
     if (pattern) used.set(id, pattern);
   }
   return used;
-};
-
-const buildPatternsLegacy = (
-  patterns: DemandPatterns,
-): DemandPatternsLegacy => {
-  const legacy: DemandPatternsLegacy = new Map();
-  for (const pattern of patterns.values()) {
-    legacy.set(pattern.label.toUpperCase(), pattern.multipliers);
-  }
-  return legacy;
 };
 
 const isConstantPattern = (pattern: PatternMultipliers): boolean => {

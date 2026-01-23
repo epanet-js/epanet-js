@@ -1,6 +1,4 @@
-export type PatternLabel = string;
 export type PatternMultipliers = number[];
-export type DemandPatternsLegacy = Map<PatternLabel, PatternMultipliers>;
 
 export type PatternId = number;
 
@@ -19,13 +17,11 @@ export type JunctionDemand = {
 
 export type Demands = {
   multiplier: number;
-  patternsLegacy: DemandPatternsLegacy;
   patterns: DemandPatterns;
 };
 
 export const createEmptyDemands = (): Demands => ({
   multiplier: 1,
-  patternsLegacy: new Map(),
   patterns: new Map(),
 });
 

@@ -103,10 +103,9 @@ describe("CurvesAndPatternsDialog", () => {
       await user.click(screen.getByRole("button", { name: /save/i }));
 
       // Verify the model was updated
-      const data = store.get(dataAtom);
-      const updatedPattern =
-        data.hydraulicModel.demands.patternsLegacy.get("Pattern1");
-      expect(updatedPattern?.[0]).toBe(2.0);
+      const { hydraulicModel } = store.get(dataAtom);
+      const updatedPattern = hydraulicModel.demands.patterns.get(100);
+      expect(updatedPattern?.multipliers[0]).toBe(2.0);
     });
   });
 
@@ -239,10 +238,9 @@ describe("CurvesAndPatternsDialog", () => {
       });
 
       // Model should not have been updated
-      const data = store.get(dataAtom);
-      const pattern =
-        data.hydraulicModel.demands.patternsLegacy.get("Pattern1");
-      expect(pattern?.[0]).toBe(1.0);
+      const { hydraulicModel } = store.get(dataAtom);
+      const pattern = hydraulicModel.demands.patterns.get(100);
+      expect(pattern?.multipliers[0]).toBe(1.0);
     });
   });
 
@@ -309,10 +307,17 @@ describe("CurvesAndPatternsDialog", () => {
       await user.click(screen.getByRole("button", { name: /save/i }));
 
       // Verify the model was updated with the new pattern
-      const data = store.get(dataAtom);
-      const newPattern =
-        data.hydraulicModel.demands.patternsLegacy.get("NEWPATTERN");
-      expect(newPattern).toEqual([1]); // Default pattern value
+      const { hydraulicModel } = store.get(dataAtom);
+      const newPatternId = hydraulicModel.labelManager.getIdByLabel(
+        "newpattern",
+        "pattern",
+      )!;
+      const newPattern = hydraulicModel.demands.patterns.get(newPatternId);
+      expect(newPattern).toEqual({
+        id: newPatternId,
+        label: "NEWPATTERN",
+        multipliers: [1],
+      });
     });
 
     it("normalizes pattern name to uppercase", async () => {

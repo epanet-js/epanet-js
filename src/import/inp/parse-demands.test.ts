@@ -29,11 +29,6 @@ describe("parse junctions demands", () => {
     expect(pattern).toBeDefined();
     expect(pattern?.label).toBe("pattern1");
     expect(pattern?.multipliers).toEqual([1.0, 1.2, 0.8]);
-
-    expect(hydraulicModel.demands.patternsLegacy.size).toBe(1);
-    expect(hydraulicModel.demands.patternsLegacy.get("PATTERN1")).toEqual([
-      1.0, 1.2, 0.8,
-    ]);
   });
 
   it("parses junction with pattern from DEMANDS section", () => {
@@ -64,10 +59,6 @@ describe("parse junctions demands", () => {
     const pattern = hydraulicModel.demands.patterns.get(1);
     expect(pattern?.label).toBe("pattern2");
     expect(pattern?.multipliers).toEqual([0.5, 1.5]);
-
-    expect(hydraulicModel.demands.patternsLegacy.get("PATTERN2")).toEqual([
-      0.5, 1.5,
-    ]);
   });
 
   it("only stores patterns used by junctions with non-zero demand", () => {
@@ -91,12 +82,6 @@ describe("parse junctions demands", () => {
 
     expect(hydraulicModel.demands.patterns.size).toBe(1);
     expect(hydraulicModel.demands.patterns.get(1)?.label).toBe("pattern1");
-
-    expect(hydraulicModel.demands.patternsLegacy.size).toBe(1);
-    expect(hydraulicModel.demands.patternsLegacy.has("PATTERN1")).toBe(true);
-    expect(hydraulicModel.demands.patternsLegacy.has("unusedPattern")).toBe(
-      false,
-    );
   });
 
   it("handles junction with zero demand (no pattern stored)", () => {
@@ -118,7 +103,6 @@ describe("parse junctions demands", () => {
 
     expect(junction.constantDemand).toBe(0);
     expect(hydraulicModel.demands.patterns.size).toBe(0);
-    expect(hydraulicModel.demands.patternsLegacy.size).toBe(0);
   });
 
   it("parses multi-line patterns", () => {
@@ -144,9 +128,6 @@ describe("parse junctions demands", () => {
       1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 0.9, 0.8, 0.7,
     ]);
     expect(pattern.label).toBe("longPattern");
-    expect(hydraulicModel.demands.patternsLegacy.get("LONGPATTERN")).toEqual([
-      1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 0.9, 0.8, 0.7,
-    ]);
   });
 
   it("parses multiple demand categories per junction from DEMANDS section", () => {
@@ -182,11 +163,6 @@ describe("parse junctions demands", () => {
     expect(hydraulicModel.demands.patterns.get(2)?.label).toBe("pattern2");
     expect(hydraulicModel.demands.patterns.get(3)?.label).toBe("pattern3");
     expect(hydraulicModel.demands.patterns.has(1)).toBe(false);
-
-    expect(hydraulicModel.demands.patternsLegacy.size).toBe(2);
-    expect(hydraulicModel.demands.patternsLegacy.has("PATTERN2")).toBe(true);
-    expect(hydraulicModel.demands.patternsLegacy.has("PATTERN3")).toBe(true);
-    expect(hydraulicModel.demands.patternsLegacy.has("PATTERN1")).toBe(false);
   });
 
   it("DEMANDS section overwrites JUNCTIONS section demand", () => {
@@ -217,10 +193,6 @@ describe("parse junctions demands", () => {
     expect(hydraulicModel.demands.patterns.size).toBe(1);
     expect(hydraulicModel.demands.patterns.get(2)?.label).toBe("pattern2");
     expect(hydraulicModel.demands.patterns.has(1)).toBe(false);
-
-    expect(hydraulicModel.demands.patternsLegacy.size).toBe(1);
-    expect(hydraulicModel.demands.patternsLegacy.has("PATTERN2")).toBe(true);
-    expect(hydraulicModel.demands.patternsLegacy.has("PATTERN1")).toBe(false);
   });
 
   it("treats pattern with all 1s as constant (no pattern stored)", () => {
@@ -244,7 +216,6 @@ describe("parse junctions demands", () => {
     expect(junction.demands[0].baseDemand).toBe(50);
     expect(junction.demands[0].patternId).toBeUndefined();
     expect(hydraulicModel.demands.patterns.size).toBe(0);
-    expect(hydraulicModel.demands.patternsLegacy.size).toBe(0);
   });
 
   it("parses constant demand from DEMANDS section (no pattern)", () => {
@@ -268,7 +239,6 @@ describe("parse junctions demands", () => {
     expect(junction.demands[0].baseDemand).toBe(75);
     expect(junction.demands[0].patternId).toBeUndefined();
     expect(hydraulicModel.demands.patterns.size).toBe(0);
-    expect(hydraulicModel.demands.patternsLegacy.size).toBe(0);
   });
 
   it("returns empty demands array when junction has no demand", () => {
@@ -287,7 +257,6 @@ describe("parse junctions demands", () => {
 
     expect(junction.demands).toHaveLength(0);
     expect(hydraulicModel.demands.patterns.size).toBe(0);
-    expect(hydraulicModel.demands.patternsLegacy.size).toBe(0);
   });
 
   describe("default pattern", () => {
@@ -316,11 +285,6 @@ describe("parse junctions demands", () => {
       expect(hydraulicModel.demands.patterns.get(1)?.multipliers).toEqual([
         1.0, 1.5, 0.5,
       ]);
-
-      expect(hydraulicModel.demands.patternsLegacy.has("1")).toBe(true);
-      expect(hydraulicModel.demands.patternsLegacy.get("1")).toEqual([
-        1.0, 1.5, 0.5,
-      ]);
     });
 
     it("uses constant demand when default pattern '1' does not exist", () => {
@@ -344,7 +308,6 @@ describe("parse junctions demands", () => {
       expect(junction.demands[0].baseDemand).toBe(50);
       expect(junction.demands[0].patternId).toBeUndefined();
       expect(hydraulicModel.demands.patterns.size).toBe(0);
-      expect(hydraulicModel.demands.patternsLegacy.size).toBe(0);
     });
 
     it("uses OPTIONS PATTERN as default for JUNCTIONS section", () => {
@@ -375,13 +338,6 @@ describe("parse junctions demands", () => {
       expect(pattern?.id).toBe(1);
       expect(pattern?.label).toBe("myDefaultPattern");
       expect(pattern?.multipliers).toEqual([0.8, 1.2, 1.0]);
-
-      expect(
-        hydraulicModel.demands.patternsLegacy.has("MYDEFAULTPATTERN"),
-      ).toBe(true);
-      expect(
-        hydraulicModel.demands.patternsLegacy.get("MYDEFAULTPATTERN"),
-      ).toEqual([0.8, 1.2, 1.0]);
     });
 
     it("uses OPTIONS PATTERN as default for DEMANDS section", () => {
@@ -416,10 +372,6 @@ describe("parse junctions demands", () => {
       expect(pattern?.id).toBe(1);
       expect(pattern?.label).toBe("myDefaultPattern");
       expect(pattern?.multipliers).toEqual([0.8, 1.2, 1.0]);
-
-      expect(
-        hydraulicModel.demands.patternsLegacy.has("MYDEFAULTPATTERN"),
-      ).toBe(true);
     });
 
     it("falls back to pattern '1' when OPTIONS PATTERN does not exist", () => {
@@ -450,11 +402,6 @@ describe("parse junctions demands", () => {
       expect(pattern?.id).toBe(1);
       expect(pattern?.label).toBe("1");
       expect(pattern?.multipliers).toEqual([1.0, 1.5]);
-
-      expect(hydraulicModel.demands.patternsLegacy.size).toBe(1);
-      expect(hydraulicModel.demands.patternsLegacy.get("1")).toEqual([
-        1.0, 1.5,
-      ]);
     });
 
     it("uses constant demand when OPTIONS PATTERN does not exist and pattern '1' does not exist", () => {
@@ -480,7 +427,6 @@ describe("parse junctions demands", () => {
       expect(junction.demands).toHaveLength(1);
       expect(junction.demands[0].patternId).toBeUndefined();
       expect(hydraulicModel.demands.patterns.size).toBe(0);
-      expect(hydraulicModel.demands.patternsLegacy.size).toBe(0);
     });
 
     it("uses constant demand when OPTIONS PATTERN does not exist and pattern '1' is constant", () => {
@@ -506,7 +452,6 @@ describe("parse junctions demands", () => {
       expect(junction.demands).toHaveLength(1);
       expect(junction.demands[0].patternId).toBeUndefined();
       expect(hydraulicModel.demands.patterns.size).toBe(0);
-      expect(hydraulicModel.demands.patternsLegacy.size).toBe(0);
     });
 
     it("uses constant demand for DEMANDS section when OPTIONS PATTERN does not exist", () => {
@@ -536,7 +481,6 @@ describe("parse junctions demands", () => {
       expect(junction.demands[0].baseDemand).toBe(75);
       expect(junction.demands[0].patternId).toBeUndefined();
       expect(hydraulicModel.demands.patterns.size).toBe(0);
-      expect(hydraulicModel.demands.patternsLegacy.size).toBe(0);
     });
 
     it("uses constant demand when OPTIONS PATTERN is a constant pattern (all 1s)", () => {
@@ -563,7 +507,6 @@ describe("parse junctions demands", () => {
       expect(junction.demands[0].baseDemand).toBe(50);
       expect(junction.demands[0].patternId).toBeUndefined();
       expect(hydraulicModel.demands.patterns.size).toBe(0);
-      expect(hydraulicModel.demands.patternsLegacy.size).toBe(0);
     });
   });
 
@@ -602,7 +545,6 @@ describe("parse junctions demands", () => {
 
       expect(junction.demands).toEqual([{ baseDemand: 50 }]);
       expect(hydraulicModel.demands.patterns.size).toBe(0);
-      expect(hydraulicModel.demands.patternsLegacy.size).toBe(0);
     });
 
     it("ignores demands with epanetjs_customers in comment", () => {

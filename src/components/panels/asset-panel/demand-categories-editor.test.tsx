@@ -6,17 +6,15 @@ import {
   DemandPatterns,
   JunctionDemand,
   PatternId,
-  PatternLabel,
   PatternMultipliers,
 } from "src/hydraulic-model/demands";
 
 const aPatterns = (
-  ...patterns: [PatternLabel, PatternMultipliers][]
+  ...patterns: [PatternId, string, PatternMultipliers][]
 ): Map<PatternId, DemandPattern> => {
   const demandPatterns: DemandPatterns = new Map();
-  (patterns || []).forEach(([label, multipliers], i) => {
-    const id = i + 1;
-    demandPatterns.set(id, { label, multipliers, id });
+  (patterns || []).forEach(([id, label, multipliers]) => {
+    demandPatterns.set(id, { id, label, multipliers });
   });
   return demandPatterns;
 };
@@ -58,15 +56,16 @@ describe("DemandCategoriesEditor", () => {
     });
 
     it("displays existing demands", () => {
+      const PATTERN_ID = 1;
       const demands: JunctionDemand[] = [
-        { baseDemand: 100, patternId: 1 },
+        { baseDemand: 100, patternId: PATTERN_ID },
         { baseDemand: 50 },
       ];
 
       render(
         <DemandCategoriesEditor
           demands={demands}
-          patterns={aPatterns(["Pattern1", [1, 2, 3]])}
+          patterns={aPatterns([PATTERN_ID, "Pattern1", [1, 2, 3]])}
           onDemandsChange={vi.fn()}
         />,
       );
@@ -80,11 +79,15 @@ describe("DemandCategoriesEditor", () => {
     it("shows all available patterns in the dropdown", async () => {
       // Skip pointer events check because react-datasheet-grid uses pointer-events: none on inactive cells
       const user = userEvent.setup({ pointerEventsCheck: 0 });
+      const IDS = { PAT1: 1, PAT2: 2 };
 
       render(
         <DemandCategoriesEditor
           demands={[{ baseDemand: 100 }]}
-          patterns={aPatterns(["Pattern1", [1]], ["Pattern2", [2]])}
+          patterns={aPatterns(
+            [IDS.PAT1, "Pattern1", [1]],
+            [IDS.PAT2, "Pattern2", [2]],
+          )}
           onDemandsChange={vi.fn()}
         />,
       );
@@ -134,6 +137,7 @@ describe("DemandCategoriesEditor", () => {
 
   describe("editing pattern", () => {
     it("calls onDemandsChange when pattern is changed", async () => {
+      const PATTERN_ID = 1;
       // Skip pointer events check because react-datasheet-grid uses pointer-events: none on inactive cells
       const user = userEvent.setup({ pointerEventsCheck: 0 });
       const onDemandsChange = vi.fn();
@@ -141,7 +145,7 @@ describe("DemandCategoriesEditor", () => {
       render(
         <DemandCategoriesEditor
           demands={[{ baseDemand: 100 }]}
-          patterns={aPatterns(["Pattern1", [1, 2, 3]])}
+          patterns={aPatterns([PATTERN_ID, "Pattern1", [1, 2, 3]])}
           onDemandsChange={onDemandsChange}
         />,
       );
@@ -157,11 +161,12 @@ describe("DemandCategoriesEditor", () => {
       await user.click(pattern1Option);
 
       expect(onDemandsChange).toHaveBeenCalledWith([
-        { baseDemand: 100, patternId: 1 },
+        { baseDemand: 100, patternId: PATTERN_ID },
       ]);
     });
 
     it("sets patternId to undefined when constant is selected", async () => {
+      const PATTERN_ID = 1;
       // Skip pointer events check because react-datasheet-grid uses pointer-events: none on inactive cells
       const user = userEvent.setup({ pointerEventsCheck: 0 });
       const onDemandsChange = vi.fn();
@@ -169,7 +174,7 @@ describe("DemandCategoriesEditor", () => {
       render(
         <DemandCategoriesEditor
           demands={[{ baseDemand: 100, patternId: 1 }]}
-          patterns={aPatterns(["Pattern1", [1, 2, 3]])}
+          patterns={aPatterns([PATTERN_ID, "Pattern1", [1, 2, 3]])}
           onDemandsChange={onDemandsChange}
         />,
       );
