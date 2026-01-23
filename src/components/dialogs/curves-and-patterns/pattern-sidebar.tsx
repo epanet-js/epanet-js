@@ -17,6 +17,7 @@ import {
 } from "src/icons";
 import { Button, DDContent, StyledItem } from "src/components/elements";
 import { EditableTextFieldWithConfirmation } from "src/components/form/editable-text-field-with-confirmation";
+import { LabelManager } from "src/hydraulic-model/label-manager";
 
 type PatternSidebarProps = {
   patterns: DemandPatterns;
@@ -32,9 +33,17 @@ export const PatternSidebar = ({
   onAddPattern,
 }: PatternSidebarProps) => {
   const translate = useTranslate();
+  const labelManager = useRef(new LabelManager());
   const [isCreatingNew, setIsCreatingNew] = useState(false);
   const [newPatternId, setNewPatternId] = useState<PatternId | null>(null);
   const listRef = useRef<HTMLUListElement>(null);
+
+  useEffect(() => {
+    labelManager.current = new LabelManager();
+    for (const pattern of patterns.values()) {
+      labelManager.current.register(pattern.label, "pattern", pattern.id);
+    }
+  }, [patterns]);
 
   const patternsList = Array.from(patterns.values());
 
@@ -51,20 +60,16 @@ export const PatternSidebar = ({
   const handleCommitNewPattern = (name: string): boolean => {
     const trimmedName = name.trim();
     if (!trimmedName) {
-      return true; // validation error
+      return true;
     }
-    const normalizedName = trimmedName.toUpperCase();
-    const labelExists = patternsList.some(
-      (p) => p.label.toUpperCase() === normalizedName,
-    );
-    if (labelExists) {
-      return true; // duplicate name error
+    if (!labelManager.current.isLabelAvailable(trimmedName, "pattern")) {
+      return true;
     }
 
-    const newId = onAddPattern(normalizedName, [1]);
+    const newId = onAddPattern(trimmedName, [1]);
     setIsCreatingNew(false);
     setNewPatternId(newId);
-    return false; // no error
+    return false;
   };
 
   // Select the newly created pattern after it's added

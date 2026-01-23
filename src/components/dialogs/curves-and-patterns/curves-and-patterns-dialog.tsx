@@ -81,7 +81,7 @@ export const CurvesAndPatternsDialog = () => {
   );
 
   const handleAddPattern = useCallback(
-    (label: string, multipliers: PatternMultipliers) => {
+    (label: string, multipliers: PatternMultipliers): PatternId => {
       const id = nextPatternIdRef.current;
       setEditedPatterns((prev) => {
         const patterns = new Map(prev);

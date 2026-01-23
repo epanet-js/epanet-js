@@ -117,7 +117,7 @@ describe("PatternSidebar", () => {
       expect(input).toHaveFocus();
     });
 
-    it("calls onAddPattern with normalized uppercase name and default pattern", async () => {
+    it("calls onAddPattern with name and default pattern", async () => {
       const user = setupUser();
       const onAddPattern = createMockOnAddPattern();
 
@@ -132,10 +132,10 @@ describe("PatternSidebar", () => {
 
       await user.click(screen.getByRole("button", { name: /add pattern/i }));
       const input = screen.getByRole("textbox");
-      await user.type(input, "newpattern");
+      await user.type(input, "  NewPattern ");
       await user.keyboard("{Enter}");
 
-      expect(onAddPattern).toHaveBeenCalledWith("NEWPATTERN", [1]);
+      expect(onAddPattern).toHaveBeenCalledWith("NewPattern", [1]);
     });
 
     it("hides input after successful pattern creation", async () => {
@@ -203,7 +203,7 @@ describe("PatternSidebar", () => {
       expect(onAddPattern).not.toHaveBeenCalled();
     });
 
-    it("does not add pattern with duplicate name", async () => {
+    it("does not add pattern with duplicated name", async () => {
       const user = setupUser();
       const onAddPattern = vi.fn();
       const patterns = createPatterns([
@@ -254,27 +254,6 @@ describe("PatternSidebar", () => {
       expect(onAddPattern).not.toHaveBeenCalled();
     });
 
-    it("trims whitespace from pattern name", async () => {
-      const user = setupUser();
-      const onAddPattern = createMockOnAddPattern();
-
-      render(
-        <PatternSidebar
-          patterns={new Map()}
-          selectedPatternId={null}
-          onSelectPattern={vi.fn()}
-          onAddPattern={onAddPattern}
-        />,
-      );
-
-      await user.click(screen.getByRole("button", { name: /add pattern/i }));
-      const input = screen.getByRole("textbox");
-      await user.type(input, "  PATTERN  ");
-      await user.keyboard("{Enter}");
-
-      expect(onAddPattern).toHaveBeenCalledWith("PATTERN", [1]);
-    });
-
     it("allows saving after editing a duplicate name to be unique", async () => {
       const user = setupUser();
       const onAddPattern = createMockOnAddPattern();
@@ -306,7 +285,7 @@ describe("PatternSidebar", () => {
       await user.keyboard("{Enter}");
 
       // Should now succeed with the modified name
-      expect(onAddPattern).toHaveBeenCalledWith("EXISTING2", [1]);
+      expect(onAddPattern).toHaveBeenCalledWith("existing2", [1]);
     });
   });
 });
