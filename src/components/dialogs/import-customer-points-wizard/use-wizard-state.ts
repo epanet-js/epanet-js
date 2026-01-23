@@ -150,7 +150,7 @@ export const useWizardState = (): Omit<WizardState, "allocationRules"> & {
     setWizardState((prev) => ({ ...prev, isEditingRules }));
   };
 
-  const setSelectedPatternId = (patternId: string | null) => {
+  const setSelectedPatternId = (patternId: number | null) => {
     setWizardState((prev) => ({ ...prev, selectedPatternId: patternId }));
   };
 

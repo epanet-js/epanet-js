@@ -6,8 +6,6 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useAtomValue } from "jotai";
 import { dataAtom } from "src/state/jotai";
-
-const CONSTANT_PATTERN_SENTINEL = ";CONSTANT";
 import { parseCustomerPoints } from "src/import/customer-points/parse-customer-points";
 import {
   CustomerPointsIssuesAccumulator,
@@ -30,6 +28,8 @@ import { convertTo } from "src/quantity";
 import { ChevronDownIcon, ChevronRightIcon } from "src/icons";
 import { Selector } from "src/components/form/selector";
 
+const CONSTANT_PATTERN_ID = 0;
+
 export const DataMappingStep: React.FC<{
   onNext: () => void;
   onBack: () => void;
@@ -38,7 +38,7 @@ export const DataMappingStep: React.FC<{
   const translate = useTranslate();
   const userTracking = useUserTracking();
   const { modelMetadata, hydraulicModel } = useAtomValue(dataAtom);
-  const patterns = hydraulicModel.demands.patternsLegacy;
+  const patterns = hydraulicModel.demands.patterns;
   const isCustomerDemandsEnabled = useFeatureFlag("FLAG_CUSTOMER_DEMANDS");
 
   const {
@@ -59,14 +59,14 @@ export const DataMappingStep: React.FC<{
   } = wizardState;
 
   const patternOptions = useMemo(() => {
-    const options: { value: string; label: string }[] = [
+    const options: { value: number; label: string }[] = [
       {
-        value: CONSTANT_PATTERN_SENTINEL,
+        value: CONSTANT_PATTERN_ID,
         label: translate("constant").toUpperCase(),
       },
     ];
-    for (const patternLabel of patterns.keys()) {
-      options.push({ value: patternLabel, label: patternLabel });
+    for (const [patternId, { label }] of patterns.entries()) {
+      options.push({ value: patternId, label });
     }
     return options;
   }, [patterns, translate]);
@@ -76,7 +76,7 @@ export const DataMappingStep: React.FC<{
       inputData: InputData,
       demandPropertyName: string,
       labelPropertyName: string | null = null,
-      patternLabel: string | null = null,
+      patternId: number | null = null,
     ) => {
       setLoading(true);
       setError(null);
@@ -106,7 +106,7 @@ export const DataMappingStep: React.FC<{
             1,
             demandPropertyName,
             labelPropertyName,
-            patternLabel,
+            patternId,
           )) {
             totalCount++;
             if (customerPoint) {
@@ -213,21 +213,22 @@ export const DataMappingStep: React.FC<{
   );
 
   const handlePatternChange = useCallback(
-    (patternLabel: string | null) => {
-      userTracking.capture({
-        name: "importCustomerPoints.dataMapping.selectPattern",
-        patternId: patternLabel ?? "none",
-      });
-      setSelectedPatternId(patternLabel);
+    (rawPatternId: number) => {
+      const patternId = rawPatternId ? rawPatternId : null;
+      setSelectedPatternId(patternId);
       if (selectedDemandProperty) {
         setParsedDataSummary(null);
         parseInputDataToCustomerPoints(
           inputData as InputData,
           selectedDemandProperty,
           selectedLabelProperty,
-          patternLabel,
+          patternId,
         );
       }
+      userTracking.capture({
+        name: "importCustomerPoints.dataMapping.selectPattern",
+        patternId: patternId ? patterns.get(patternId)!.label : "CONSTANT",
+      });
     },
     [
       userTracking,
@@ -237,6 +238,7 @@ export const DataMappingStep: React.FC<{
       parseInputDataToCustomerPoints,
       inputData,
       selectedLabelProperty,
+      patterns,
     ],
   );
 
@@ -346,12 +348,8 @@ export const DataMappingStep: React.FC<{
                     </label>
                     <Selector
                       options={patternOptions}
-                      selected={selectedPatternId || CONSTANT_PATTERN_SENTINEL}
-                      onChange={(value) => {
-                        const patternLabel =
-                          value === CONSTANT_PATTERN_SENTINEL ? null : value;
-                        handlePatternChange(patternLabel);
-                      }}
+                      selected={selectedPatternId ?? CONSTANT_PATTERN_ID}
+                      onChange={handlePatternChange}
                       ariaLabel={translate(
                         "importCustomerPoints.wizard.demandOptions.timePattern.title",
                       )}

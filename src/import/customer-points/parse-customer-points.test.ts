@@ -24,43 +24,10 @@ describe("parseCustomerPoints", () => {
       const customerPoint = results[0];
       expect(customerPoint).not.toBeNull();
       expect(customerPoint!.demands).toHaveLength(1);
-      expect(customerPoint!.demands[0].patternLabel).toBeUndefined();
+      expect(customerPoint!.demands[0].patternId).toBeUndefined();
     });
 
-    it("creates customer points with patternId when provided", () => {
-      const geoJson = JSON.stringify({
-        type: "FeatureCollection",
-        features: [
-          {
-            type: "Feature",
-            geometry: { type: "Point", coordinates: [0.001, 0.001] },
-            properties: { demand: 100 },
-          },
-        ],
-      });
-
-      const issues = new CustomerPointsIssuesAccumulator();
-      const results = Array.from(
-        parseCustomerPoints(
-          geoJson,
-          issues,
-          "l/d",
-          "l/d",
-          1,
-          "demand",
-          null,
-          "pattern-1",
-        ),
-      );
-
-      expect(results).toHaveLength(1);
-      const customerPoint = results[0];
-      expect(customerPoint).not.toBeNull();
-      expect(customerPoint!.demands).toHaveLength(1);
-      expect(customerPoint!.demands[0].patternLabel).toBe("pattern-1");
-    });
-
-    it("applies patternId to all customer points when parsing multiple features", () => {
+    it("applies patternId to all customer points", () => {
       const geoJson = JSON.stringify({
         type: "FeatureCollection",
         features: [
@@ -81,6 +48,7 @@ describe("parseCustomerPoints", () => {
           },
         ],
       });
+      const PATTERN_ID = 2;
 
       const issues = new CustomerPointsIssuesAccumulator();
       const results = Array.from(
@@ -92,14 +60,14 @@ describe("parseCustomerPoints", () => {
           1,
           "demand",
           null,
-          "daily-pattern",
+          PATTERN_ID,
         ),
       );
 
       expect(results).toHaveLength(3);
       results.forEach((customerPoint) => {
         expect(customerPoint).not.toBeNull();
-        expect(customerPoint!.demands[0].patternLabel).toBe("daily-pattern");
+        expect(customerPoint!.demands[0].patternId).toBe(PATTERN_ID);
       });
     });
 
@@ -107,6 +75,7 @@ describe("parseCustomerPoints", () => {
       const geoJsonL = `{"type":"Feature","geometry":{"type":"Point","coordinates":[0.001,0.001]},"properties":{"demand":100}}
 {"type":"Feature","geometry":{"type":"Point","coordinates":[0.002,0.002]},"properties":{"demand":200}}`;
 
+      const PATTERN_ID = 3;
       const issues = new CustomerPointsIssuesAccumulator();
       const results = Array.from(
         parseCustomerPoints(
@@ -117,14 +86,14 @@ describe("parseCustomerPoints", () => {
           1,
           "demand",
           null,
-          "weekly-pattern",
+          PATTERN_ID,
         ),
       );
 
       expect(results).toHaveLength(2);
       results.forEach((customerPoint) => {
         expect(customerPoint).not.toBeNull();
-        expect(customerPoint!.demands[0].patternLabel).toBe("weekly-pattern");
+        expect(customerPoint!.demands[0].patternId).toBe(PATTERN_ID);
       });
     });
 
@@ -157,7 +126,7 @@ describe("parseCustomerPoints", () => {
       expect(results).toHaveLength(1);
       const customerPoint = results[0];
       expect(customerPoint).not.toBeNull();
-      expect(customerPoint!.demands[0].patternLabel).toBeUndefined();
+      expect(customerPoint!.demands[0].patternId).toBeUndefined();
     });
   });
 });

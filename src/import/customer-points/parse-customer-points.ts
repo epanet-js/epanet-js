@@ -5,6 +5,7 @@ import {
 } from "src/hydraulic-model/customer-points";
 import { CustomerPointsIssuesAccumulator } from "./parse-customer-points-issues";
 import { convertTo, Unit } from "src/quantity";
+import { PatternId } from "src/hydraulic-model";
 
 export function* parseCustomerPoints(
   fileContent: string,
@@ -14,7 +15,7 @@ export function* parseCustomerPoints(
   startingId: number = 1,
   demandPropertyName: string = "demand",
   labelPropertyName: string | null = null,
-  patternId: string | null = null,
+  patternId: PatternId | null = null,
 ): Generator<CustomerPoint | null, void, unknown> {
   const trimmedContent = fileContent.trim();
 
@@ -57,7 +58,7 @@ function* parseGeoJSONFeatures(
   startingId: number = 1,
   demandPropertyName: string = "demand",
   labelPropertyName: string | null = null,
-  patternId: string | null = null,
+  patternId: PatternId | null = null,
 ): Generator<CustomerPoint | null, void, unknown> {
   if (!geoJson || geoJson.type !== "FeatureCollection") {
     throw new Error("Invalid GeoJSON: must be a FeatureCollection");
@@ -89,7 +90,7 @@ function* parseGeoJSONLFeatures(
   startingId: number = 1,
   demandPropertyName: string = "demand",
   labelPropertyName: string | null = null,
-  patternId: string | null = null,
+  patternId: PatternId | null = null,
 ): Generator<CustomerPoint | null, void, unknown> {
   const lines = geoJsonLText.split("\n").filter((line) => line.trim());
   let currentId = startingId;
@@ -135,7 +136,7 @@ const processGeoJSONFeature = (
   demandTargetUnit: Unit,
   demandPropertyName: string = "demand",
   labelPropertyName: string | null = null,
-  patternId: string | null = null,
+  patternId: PatternId | null = null,
 ): ProcessFeatureResult => {
   if (!feature.geometry || feature.geometry.type !== "Point") {
     if (!feature.geometry) {
@@ -220,7 +221,7 @@ const processGeoJSONFeature = (
         label,
         demands: [
           patternId
-            ? { baseDemand: demandInTargetUnit, patternLabel: patternId }
+            ? { baseDemand: demandInTargetUnit, patternId }
             : { baseDemand: demandInTargetUnit },
         ],
       },
