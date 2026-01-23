@@ -1,4 +1,7 @@
-import type { ScenariosState } from "src/state/scenarios";
+import {
+  initialScenariosState,
+  type ScenariosState,
+} from "src/state/scenarios";
 import type { ScenarioOperationResult } from "./types";
 
 export const deleteScenario = (
@@ -18,17 +21,7 @@ export const deleteScenario = (
 
   if (remainingScenarios.length === 0) {
     return {
-      state: {
-        ...currentState,
-        scenarios: new Map(),
-        activeScenarioId: null,
-        baseModelSnapshot: null,
-        mainMomentLog: null,
-        mainSimulation: null,
-        mainModelVersion: null,
-        highestScenarioNumber: 0,
-        lastActiveScenarioId: null,
-      },
+      state: initialScenariosState,
       applyTarget: currentState.mainMomentLog
         ? {
             baseSnapshot: currentState.baseModelSnapshot!,
