@@ -5,8 +5,10 @@ import {
 } from "src/components/form/filterable-selector";
 import { SpreadsheetCellProps, SpreadsheetColumnDef } from "../types";
 
-type FilterableSelectCellExtraProps = {
-  options: FilterableSelectorOption[];
+type FilterableSelectCellExtraProps<
+  T extends string | number = string | number,
+> = {
+  options: FilterableSelectorOption<T>[];
   placeholder: string;
 };
 
@@ -17,11 +19,12 @@ export function FilterableSelectCell({
   focus,
   options,
   placeholder,
-}: SpreadsheetCellProps<string | null> & FilterableSelectCellExtraProps) {
+}: SpreadsheetCellProps<string | number | null> &
+  FilterableSelectCellExtraProps<string | number>) {
   const ref = useRef<HTMLInputElement>(null);
 
   const handleChange = useCallback(
-    (newValue: string | null) => {
+    (newValue: string | number | null) => {
       onChange(newValue);
       stopEditing();
     },
@@ -67,25 +70,27 @@ export function FilterableSelectCell({
  */
 export function createFilterableSelectColumn<
   TData extends Record<string, unknown>,
+  T extends string | number = string,
 >(options: {
-  options: FilterableSelectorOption[];
+  options: FilterableSelectorOption<T>[];
   placeholder?: string;
-  deleteValue?: string | null;
-}): Partial<SpreadsheetColumnDef<TData, string | null>> {
+  deleteValue?: T | null;
+}): Partial<SpreadsheetColumnDef<TData, T | null>> {
   return {
     meta: {
-      cellComponent: (props: SpreadsheetCellProps<string | null>) => (
+      cellComponent: (props: SpreadsheetCellProps<T | null>) => (
         <FilterableSelectCell
-          {...props}
+          {...(props as SpreadsheetCellProps<string | number | null>)}
           options={options.options}
           placeholder={options.placeholder ?? ""}
         />
       ),
-      copyValue: (v) => v ?? "",
+      copyValue: (v) => String(v ?? ""),
       pasteValue: (v) => {
         const match = options.options.find(
           (opt) =>
-            opt.value === v || opt.label.toLowerCase() === v.toLowerCase(),
+            String(opt.value) === v ||
+            opt.label.toLowerCase() === v.toLowerCase(),
         );
         return match ? match.value : null;
       },

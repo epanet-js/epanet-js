@@ -5,26 +5,20 @@ import {
 } from "src/components/form/filterable-selector";
 import { useCallback, useLayoutEffect, useRef } from "react";
 
-type FilterableSelectColumnOptions = {
-  options: FilterableSelectorOption[];
-  placeholder?: string;
-  deleteValue?: string | null;
-};
-
-type FilterableSelectCellProps = {
-  options: FilterableSelectorOption[];
+type FilterableSelectCellProps<T extends string | number = string | number> = {
+  options: FilterableSelectorOption<T>[];
   placeholder: string;
 };
 
 const FilterableSelectCell: CellComponent<
-  string | null,
-  FilterableSelectCellProps
+  string | number | null,
+  FilterableSelectCellProps<string | number>
 > = ({ rowData, setRowData, focus, stopEditing, columnData }) => {
   const { options, placeholder } = columnData;
   const ref = useRef<HTMLInputElement>(null);
 
   const handleChange = useCallback(
-    (newValue: string | null) => {
+    (newValue: string | number | null) => {
       setRowData(newValue);
       stopEditing();
     },
@@ -65,19 +59,27 @@ const FilterableSelectCell: CellComponent<
   );
 };
 
-export const createFilterableSelectColumn = (
-  options: FilterableSelectColumnOptions,
-): Partial<Column<string | null, FilterableSelectCellProps>> => ({
-  component: FilterableSelectCell,
+export const createFilterableSelectColumn = <
+  T extends string | number,
+>(options: {
+  options: FilterableSelectorOption<T>[];
+  placeholder?: string;
+  deleteValue?: T | null;
+}): Partial<Column<T | null, FilterableSelectCellProps<T>>> => ({
+  component: FilterableSelectCell as CellComponent<
+    T | null,
+    FilterableSelectCellProps<T>
+  >,
   columnData: {
     options: options.options,
     placeholder: options.placeholder ?? "",
   },
-  copyValue: ({ rowData }) => rowData ?? "",
+  copyValue: ({ rowData }) => String(rowData ?? ""),
   pasteValue: ({ value }) => {
     const match = options.options.find(
       (opt) =>
-        opt.value === value || opt.label.toLowerCase() === value.toLowerCase(),
+        String(opt.value) === value ||
+        opt.label.toLowerCase() === value.toLowerCase(),
     );
     return match ? match.value : null;
   },

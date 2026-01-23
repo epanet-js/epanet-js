@@ -1,4 +1,4 @@
-import {
+import React, {
   useState,
   useRef,
   useCallback,
@@ -11,8 +11,8 @@ import * as Popover from "@radix-ui/react-popover";
 import clsx from "clsx";
 import { CheckIcon } from "src/icons";
 
-export type FilterableSelectorOption = {
-  value: string;
+export type FilterableSelectorOption<T extends string | number = string> = {
+  value: T;
   label: string;
 };
 
@@ -32,25 +32,25 @@ const defaultStyleOptions: StyleOptions = {
   disableFocusStyles: false,
 };
 
-type FilterableSelectorProps = {
-  options: FilterableSelectorOption[];
-  selected: string | null;
-  onChange: (value: string | null) => void;
+type FilterableSelectorProps<T extends string | number = string> = {
+  options: FilterableSelectorOption<T>[];
+  selected: T | null;
+  onChange: (value: T | null) => void;
   placeholder?: string;
   styleOptions?: StyleOptions;
   tabIndex?: number;
 };
 
 type FilteredOptions = {
-  matching: FilterableSelectorOption[];
-  nonMatching: FilterableSelectorOption[];
-  all: FilterableSelectorOption[];
+  matching: FilterableSelectorOption<string | number>[];
+  nonMatching: FilterableSelectorOption<string | number>[];
+  all: FilterableSelectorOption<string | number>[];
 };
 
-export const FilterableSelector = forwardRef<
+const FilterableSelectorInner = forwardRef<
   HTMLInputElement,
-  FilterableSelectorProps
->(function FilterableSelector(
+  FilterableSelectorProps<string | number>
+>(function FilterableSelectorInner(
   {
     options,
     selected,
@@ -91,7 +91,7 @@ export const FilterableSelector = forwardRef<
   );
 
   const commit = useCallback(
-    (option: FilterableSelectorOption) => {
+    (option: FilterableSelectorOption<string | number>) => {
       onChange(option.value);
       setOpen(false);
     },
@@ -207,16 +207,22 @@ export const FilterableSelector = forwardRef<
   );
 });
 
+export const FilterableSelector = FilterableSelectorInner as <
+  T extends string | number = string,
+>(
+  props: FilterableSelectorProps<T> & React.RefAttributes<HTMLInputElement>,
+) => React.ReactElement | null;
+
 function filterOptions(
-  options: FilterableSelectorOption[],
+  options: FilterableSelectorOption<string | number>[],
   query: string,
 ): FilteredOptions {
   if (!query.trim()) {
     return { matching: options, nonMatching: [], all: options };
   }
   const lowerQuery = query.toLowerCase();
-  const matching: FilterableSelectorOption[] = [];
-  const nonMatching: FilterableSelectorOption[] = [];
+  const matching: FilterableSelectorOption<string | number>[] = [];
+  const nonMatching: FilterableSelectorOption<string | number>[] = [];
   for (const opt of options) {
     if (opt.label.toLowerCase().includes(lowerQuery)) {
       matching.push(opt);
@@ -349,9 +355,9 @@ function calculateNextListIndex(
 type OptionsListProps = {
   filteredOptions: FilteredOptions;
   activeIndex: number;
-  selected: string | null;
+  selected: string | number | null;
   onActiveIndexChange: (index: number) => void;
-  onSelect: (option: FilterableSelectorOption) => void;
+  onSelect: (option: FilterableSelectorOption<string | number>) => void;
 };
 
 const OptionsList: FunctionComponent<OptionsListProps> = ({
@@ -437,13 +443,13 @@ const OptionsList: FunctionComponent<OptionsListProps> = ({
 };
 
 type OptionProps = {
-  option: FilterableSelectorOption;
+  option: FilterableSelectorOption<string | number>;
   index: number;
   isActive: boolean;
   isSelected: boolean;
   onMouseEnter: (index: number) => void;
   onMouseDown: (e: React.MouseEvent) => void;
-  onClick: (option: FilterableSelectorOption) => void;
+  onClick: (option: FilterableSelectorOption<string | number>) => void;
 };
 
 const Option: FunctionComponent<OptionProps> = ({

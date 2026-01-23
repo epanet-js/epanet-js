@@ -71,14 +71,14 @@ export const SelectorLikeButton = React.forwardRef<
   },
 );
 
-type SelectorOption<T extends string> = {
+type SelectorOption<T extends string | number> = {
   label: string;
   description?: string;
   value: T;
   disabled?: boolean;
 };
 
-type SelectorPropsBase<T extends string> = {
+type SelectorPropsBase<T extends string | number> = {
   options: SelectorOption<T>[];
   ariaLabel?: string;
   tabIndex?: number;
@@ -87,33 +87,34 @@ type SelectorPropsBase<T extends string> = {
   onDropdownInteraction?: () => void;
 };
 
-type SelectorPropsNonNullable<T extends string> = SelectorPropsBase<T> & {
-  selected: T;
-  onChange: (selected: T, oldValue: T) => void;
-  nullable?: false;
-  placeholder?: never;
-};
+type SelectorPropsNonNullable<T extends string | number> =
+  SelectorPropsBase<T> & {
+    selected: T;
+    onChange: (selected: T, oldValue: T) => void;
+    nullable?: false;
+    placeholder?: never;
+  };
 
-type SelectorPropsNullable<T extends string> = SelectorPropsBase<T> & {
+type SelectorPropsNullable<T extends string | number> = SelectorPropsBase<T> & {
   selected: T | null;
   onChange: (selected: T | null, oldValue: T | null) => void;
   nullable: true;
   placeholder: string;
 };
 
-type SelectorProps<T extends string> =
+type SelectorProps<T extends string | number> =
   | SelectorPropsNonNullable<T>
   | SelectorPropsNullable<T>;
 
-export function Selector<T extends string>(
+export function Selector<T extends string | number>(
   props: SelectorPropsNonNullable<T>,
 ): JSX.Element;
 
-export function Selector<T extends string>(
+export function Selector<T extends string | number>(
   props: SelectorPropsNullable<T>,
 ): JSX.Element;
 
-export function Selector<T extends string>({
+export function Selector<T extends string | number>({
   options,
   selected,
   onChange,
@@ -161,8 +162,10 @@ export function Selector<T extends string>({
         selected,
       );
     } else {
+      const typedValue = options.find((o) => String(o.value) === newValue)
+        ?.value as T;
       (onChange as (selected: T, oldValue: T) => void)(
-        newValue as T,
+        typedValue,
         selected as T,
       );
     }
@@ -171,7 +174,7 @@ export function Selector<T extends string>({
   return (
     <div className="relative group-1">
       <Select.Root
-        value={selected ?? ""}
+        value={selected != null ? String(selected) : ""}
         open={isOpen}
         onOpenChange={handleOpenChange}
         onValueChange={handleValueChange}
@@ -199,7 +202,7 @@ export function Selector<T extends string>({
               {options.map((option, i) => (
                 <Select.Item
                   key={i}
-                  value={option.value}
+                  value={String(option.value)}
                   disabled={option.disabled}
                   className={clsx([
                     "flex items-center justify-between gap-4 px-2 py-2 focus:bg-purple-300/40",
