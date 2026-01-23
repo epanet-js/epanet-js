@@ -1,8 +1,8 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import { PatternTable } from "./pattern-table";
 import { PatternGraph } from "./pattern-graph";
 import { PatternMultipliers } from "src/hydraulic-model/demands";
 import { SpreadsheetSelection } from "src/components/spreadsheet-table";
+import { PatternTableLegacy } from "./pattern-table-legacy";
 
 interface PatternDetailProps {
   pattern: PatternMultipliers;
@@ -65,7 +65,7 @@ export function PatternDetail({
         ref={tableContainerRef}
         className="col-span-2 h-full overflow-hidden"
       >
-        <PatternTable
+        <PatternTableLegacy
           pattern={pattern}
           patternTimestepSeconds={patternTimestepSeconds}
           onChange={onChange}

@@ -1,9 +1,9 @@
 import { useMemo, useCallback } from "react";
 import { keyColumn } from "react-datasheet-grid";
 import {
-  SpreadsheetTable,
-  createFilterableSelectColumn,
-  createFloatColumn,
+  SpreadsheetTableLegacy,
+  createFloatColumnLegacy,
+  createFilterableSelectColumnLegacy,
 } from "src/components/spreadsheet-table";
 import { JunctionDemand, DemandPatterns, PatternId } from "src/hydraulic-model";
 import { useTranslate } from "src/hooks/use-translate";
@@ -54,7 +54,7 @@ const createDefaultRow = (): DemandCategoryRow => ({
   patternId: CONSTANT_PATTERN_ID,
 });
 
-export const DemandCategoriesEditor = ({
+export const DemandCategoriesEditorLegacy = ({
   demands,
   patterns,
   onDemandsChange,
@@ -159,14 +159,14 @@ export const DemandCategoriesEditor = ({
   const columns = useMemo(
     () => [
       {
-        ...keyColumn("baseDemand", createFloatColumn({ deleteValue: 0 })),
+        ...keyColumn("baseDemand", createFloatColumnLegacy({ deleteValue: 0 })),
         title: translate("baseDemand"),
         minWidth: 100,
       },
       {
         ...keyColumn(
           "patternId",
-          createFilterableSelectColumn({
+          createFilterableSelectColumnLegacy({
             options: patternOptions,
             deleteValue: CONSTANT_PATTERN_ID,
           }),
@@ -194,7 +194,7 @@ export const DemandCategoriesEditor = ({
 
   return (
     <div className="max-h-[150px]">
-      <SpreadsheetTable<DemandCategoryRow>
+      <SpreadsheetTableLegacy<DemandCategoryRow>
         data={rowData}
         columns={columns}
         onChange={handleChange}

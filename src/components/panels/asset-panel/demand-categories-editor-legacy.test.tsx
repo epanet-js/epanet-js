@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { DemandCategoriesEditor } from "./demand-categories-editor";
+import { DemandCategoriesEditorLegacy } from "./demand-categories-editor-legacy";
 import {
   DemandPattern,
   DemandPatterns,
@@ -40,11 +40,11 @@ const getActionsButton = (rowIndex: number) => {
   return buttons[rowIndex];
 };
 
-describe("DemandCategoriesEditor", () => {
+describe("DemandCategoriesEditorLegacy", () => {
   describe("initialization", () => {
     it("shows a default row with base demand 0 and constant pattern when no demands provided", () => {
       render(
-        <DemandCategoriesEditor
+        <DemandCategoriesEditorLegacy
           demands={[]}
           patterns={aPatterns()}
           onDemandsChange={vi.fn()}
@@ -63,7 +63,7 @@ describe("DemandCategoriesEditor", () => {
       ];
 
       render(
-        <DemandCategoriesEditor
+        <DemandCategoriesEditorLegacy
           demands={demands}
           patterns={aPatterns([PATTERN_ID, "Pattern1", [1, 2, 3]])}
           onDemandsChange={vi.fn()}
@@ -82,7 +82,7 @@ describe("DemandCategoriesEditor", () => {
       const IDS = { PAT1: 1, PAT2: 2 };
 
       render(
-        <DemandCategoriesEditor
+        <DemandCategoriesEditorLegacy
           demands={[{ baseDemand: 100 }]}
           patterns={aPatterns(
             [IDS.PAT1, "Pattern1", [1]],
@@ -118,7 +118,7 @@ describe("DemandCategoriesEditor", () => {
       const onDemandsChange = vi.fn();
 
       render(
-        <DemandCategoriesEditor
+        <DemandCategoriesEditorLegacy
           demands={[{ baseDemand: 100 }]}
           patterns={aPatterns()}
           onDemandsChange={onDemandsChange}
@@ -143,7 +143,7 @@ describe("DemandCategoriesEditor", () => {
       const onDemandsChange = vi.fn();
 
       render(
-        <DemandCategoriesEditor
+        <DemandCategoriesEditorLegacy
           demands={[{ baseDemand: 100 }]}
           patterns={aPatterns([PATTERN_ID, "Pattern1", [1, 2, 3]])}
           onDemandsChange={onDemandsChange}
@@ -172,7 +172,7 @@ describe("DemandCategoriesEditor", () => {
       const onDemandsChange = vi.fn();
 
       render(
-        <DemandCategoriesEditor
+        <DemandCategoriesEditorLegacy
           demands={[{ baseDemand: 100, patternId: 1 }]}
           patterns={aPatterns([PATTERN_ID, "Pattern1", [1, 2, 3]])}
           onDemandsChange={onDemandsChange}
@@ -199,7 +199,7 @@ describe("DemandCategoriesEditor", () => {
       const onDemandsChange = vi.fn();
 
       render(
-        <DemandCategoriesEditor
+        <DemandCategoriesEditorLegacy
           demands={[{ baseDemand: 100 }]}
           patterns={aPatterns()}
           onDemandsChange={onDemandsChange}
@@ -221,7 +221,7 @@ describe("DemandCategoriesEditor", () => {
       const onDemandsChange = vi.fn();
 
       render(
-        <DemandCategoriesEditor
+        <DemandCategoriesEditorLegacy
           demands={[{ baseDemand: 100 }, { baseDemand: 200 }]}
           patterns={aPatterns()}
           onDemandsChange={onDemandsChange}
@@ -239,7 +239,7 @@ describe("DemandCategoriesEditor", () => {
       const onDemandsChange = vi.fn();
 
       render(
-        <DemandCategoriesEditor
+        <DemandCategoriesEditorLegacy
           demands={[{ baseDemand: 100 }]}
           patterns={aPatterns()}
           onDemandsChange={onDemandsChange}
@@ -262,7 +262,7 @@ describe("DemandCategoriesEditor", () => {
       const onDemandsChange = vi.fn();
 
       render(
-        <DemandCategoriesEditor
+        <DemandCategoriesEditorLegacy
           demands={[{ baseDemand: 100 }]}
           patterns={aPatterns()}
           onDemandsChange={onDemandsChange}
@@ -284,7 +284,7 @@ describe("DemandCategoriesEditor", () => {
       const user = userEvent.setup();
 
       render(
-        <DemandCategoriesEditor
+        <DemandCategoriesEditorLegacy
           demands={[]}
           patterns={aPatterns()}
           onDemandsChange={vi.fn()}
@@ -301,7 +301,7 @@ describe("DemandCategoriesEditor", () => {
       const user = userEvent.setup();
 
       render(
-        <DemandCategoriesEditor
+        <DemandCategoriesEditorLegacy
           demands={[{ baseDemand: 100 }]}
           patterns={aPatterns()}
           onDemandsChange={vi.fn()}
@@ -318,7 +318,7 @@ describe("DemandCategoriesEditor", () => {
       const user = userEvent.setup();
 
       render(
-        <DemandCategoriesEditor
+        <DemandCategoriesEditorLegacy
           demands={[{ baseDemand: 0 }, { baseDemand: 0 }]}
           patterns={aPatterns()}
           onDemandsChange={vi.fn()}
@@ -339,7 +339,7 @@ describe("DemandCategoriesEditor", () => {
       const onDemandsChange = vi.fn();
 
       render(
-        <DemandCategoriesEditor
+        <DemandCategoriesEditorLegacy
           demands={[{ baseDemand: 100 }]}
           patterns={aPatterns()}
           onDemandsChange={onDemandsChange}
@@ -361,7 +361,7 @@ describe("DemandCategoriesEditor", () => {
       const onDemandsChange = vi.fn();
 
       render(
-        <DemandCategoriesEditor
+        <DemandCategoriesEditorLegacy
           demands={[{ baseDemand: 100 }, { baseDemand: 50 }]}
           patterns={aPatterns()}
           onDemandsChange={onDemandsChange}

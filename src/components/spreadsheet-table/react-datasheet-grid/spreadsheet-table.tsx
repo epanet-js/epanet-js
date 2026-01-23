@@ -2,6 +2,7 @@ import {
   DynamicDataSheetGrid,
   DataSheetGridRef,
   SimpleColumn,
+  Column,
 } from "react-datasheet-grid";
 import {
   forwardRef,
@@ -20,15 +21,14 @@ import { Button } from "src/components/elements";
 import { AddIcon } from "src/icons";
 import { setSpreadsheetActive } from "./spreadsheet-focus";
 
-export type SpreadsheetSelection = {
+export type SpreadsheetSelectionLegacy = {
   min: { col: number; row: number };
   max: { col: number; row: number };
 };
 
-type SpreadsheetTableProps<T extends Record<string, unknown>> = {
+type SpreadsheetTablePropsLegacy<T extends Record<string, unknown>> = {
   data: T[];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  columns: any[];
+  columns: Partial<Column<any, any, any>>[];
   onChange: (data: T[]) => void;
   createRow: () => T;
   lockRows?: boolean;
@@ -36,163 +36,170 @@ type SpreadsheetTableProps<T extends Record<string, unknown>> = {
   rowActions?: RowAction[];
   addRowLabel?: string;
   gutterColumn?: boolean;
-  onSelectionChange?: (selection: SpreadsheetSelection | null) => void;
+  onSelectionChange?: (selection: SpreadsheetSelectionLegacy | null) => void;
 };
 
-export type SpreadsheetTableRef = DataSheetGridRef;
+export type SpreadsheetTableRefLegacy = DataSheetGridRef;
 
-export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
-  T extends Record<string, unknown>,
->(
-  {
-    data,
-    columns,
-    onChange,
-    createRow,
-    lockRows = false,
-    emptyState,
-    rowActions,
-    addRowLabel,
-    gutterColumn = false,
-    onSelectionChange,
-  }: SpreadsheetTableProps<T>,
-  ref: React.ForwardedRef<SpreadsheetTableRef>,
-) {
-  const gridRef = useRef<DataSheetGridRef>(null);
-  useImperativeHandle(ref, () => gridRef.current!, []);
+export const SpreadsheetTableLegacy = forwardRef(
+  function SpreadsheetTableLegacy<T extends Record<string, unknown>>(
+    {
+      data,
+      columns,
+      onChange,
+      createRow,
+      lockRows = false,
+      emptyState,
+      rowActions,
+      addRowLabel,
+      gutterColumn = false,
+      onSelectionChange,
+    }: SpreadsheetTablePropsLegacy<T>,
+    ref: React.ForwardedRef<SpreadsheetTableRefLegacy>,
+  ) {
+    const gridRef = useRef<DataSheetGridRef>(null);
+    useImperativeHandle(ref, () => gridRef.current!, []);
 
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [gridHeight, setGridHeight] = useState<number | undefined>(undefined);
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [gridHeight, setGridHeight] = useState<number | undefined>(undefined);
 
-  const rowActionsColumn = useMemo(
-    () =>
-      rowActions
-        ? (createActionsColumn(rowActions) as SimpleColumn<T, unknown>)
-        : undefined,
-    [rowActions],
-  );
+    const rowActionsColumn = useMemo(
+      () =>
+        rowActions
+          ? (createActionsColumn(rowActions) as SimpleColumn<T, unknown>)
+          : undefined,
+      [rowActions],
+    );
 
-  const setActiveCell = useCallback((cell: { col: number; row: number }) => {
-    gridRef.current?.setActiveCell(cell);
-  }, []);
+    const setActiveCell = useCallback((cell: { col: number; row: number }) => {
+      gridRef.current?.setActiveCell(cell);
+    }, []);
 
-  const contextValue = useMemo(() => ({ setActiveCell }), [setActiveCell]);
+    const contextValue = useMemo(() => ({ setActiveCell }), [setActiveCell]);
 
-  const handleActiveCellChange = useCallback(
-    ({ cell }: { cell: { col: number; row: number } | null }) => {
-      setSpreadsheetActive(cell !== null);
-      // The grid blurs document.activeElement when a cell becomes active.
-      // Re-focus our container so parent components can detect focus within.
-      if (cell !== null) {
-        containerRef.current?.focus();
-      }
-    },
-    [],
-  );
-
-  useEffect(() => {
-    return () => setSpreadsheetActive(false);
-  }, []);
-
-  useLayoutEffect(
-    function resizeVertically() {
-      const container = containerRef.current;
-      if (!container) return;
-
-      let lastHeight: number | undefined;
-
-      // Button height (30px) + margin-top (8px) = 38px
-      const BUTTON_SPACE = 38;
-
-      const observer = new ResizeObserver((entries) => {
-        const containerHeight = entries[0]?.contentRect.height;
-        if (lastHeight === undefined || containerHeight !== lastHeight) {
-          lastHeight = containerHeight;
-          const newGridHeight = addRowLabel
-            ? Math.max(0, containerHeight - BUTTON_SPACE)
-            : containerHeight;
-          setGridHeight(newGridHeight);
+    const handleActiveCellChange = useCallback(
+      ({ cell }: { cell: { col: number; row: number } | null }) => {
+        setSpreadsheetActive(cell !== null);
+        // The grid blurs document.activeElement when a cell becomes active.
+        // Re-focus our container so parent components can detect focus within.
+        if (cell !== null) {
+          containerRef.current?.focus();
         }
-      });
-      observer.observe(container);
-      return () => observer.disconnect();
-    },
-    [addRowLabel],
-  );
+      },
+      [],
+    );
 
-  const handleChange = useCallback(
-    (newData: T[], operations: { type: "UPDATE" | "DELETE" | "CREATE" }[]) => {
-      const isUpdateOperation = operations.some((op) => op.type === "UPDATE");
-      const selection = gridRef.current?.selection;
-      const numColumns = columns.length;
-      const isFullRowSelected =
-        selection &&
-        selection.min.col === 0 &&
-        selection.max.col === numColumns - 1;
+    useEffect(() => {
+      return () => setSpreadsheetActive(false);
+    }, []);
 
-      // Convert "clear full row" (UPDATE) into "delete row"
-      if (isUpdateOperation && isFullRowSelected && !lockRows) {
-        const minRow = selection.min.row;
-        const maxRow = selection.max.row;
-        onChange([...data.slice(0, minRow), ...data.slice(maxRow + 1)]);
-      } else {
-        onChange(newData);
-      }
-    },
-    [data, onChange, lockRows, columns.length],
-  );
+    useLayoutEffect(
+      function resizeVertically() {
+        const container = containerRef.current;
+        if (!container) return;
 
-  if (data.length === 0 && emptyState) {
+        let lastHeight: number | undefined;
+
+        // Button height (30px) + margin-top (8px) = 38px
+        const BUTTON_SPACE = 38;
+
+        const observer = new ResizeObserver((entries) => {
+          const containerHeight = entries[0]?.contentRect.height;
+          if (lastHeight === undefined || containerHeight !== lastHeight) {
+            lastHeight = containerHeight;
+            const newGridHeight = addRowLabel
+              ? Math.max(0, containerHeight - BUTTON_SPACE)
+              : containerHeight;
+            setGridHeight(newGridHeight);
+          }
+        });
+        observer.observe(container);
+        return () => observer.disconnect();
+      },
+      [addRowLabel],
+    );
+
+    const handleChange = useCallback(
+      (
+        newData: T[],
+        operations: { type: "UPDATE" | "DELETE" | "CREATE" }[],
+      ) => {
+        const isUpdateOperation = operations.some((op) => op.type === "UPDATE");
+        const selection = gridRef.current?.selection;
+        const numColumns = columns.length;
+        const isFullRowSelected =
+          selection &&
+          selection.min.col === 0 &&
+          selection.max.col === numColumns - 1;
+
+        // Convert "clear full row" (UPDATE) into "delete row"
+        if (isUpdateOperation && isFullRowSelected && !lockRows) {
+          const minRow = selection.min.row;
+          const maxRow = selection.max.row;
+          onChange([...data.slice(0, minRow), ...data.slice(maxRow + 1)]);
+        } else {
+          onChange(newData);
+        }
+      },
+      [data, onChange, lockRows, columns.length],
+    );
+
+    if (data.length === 0 && emptyState) {
+      return (
+        <SpreadsheetProvider value={contextValue}>
+          {emptyState}
+        </SpreadsheetProvider>
+      );
+    }
+
     return (
       <SpreadsheetProvider value={contextValue}>
-        {emptyState}
+        <div
+          ref={containerRef}
+          tabIndex={-1}
+          className="flex flex-col justify-between h-full outline-none"
+        >
+          <DynamicDataSheetGrid
+            ref={gridRef}
+            value={data}
+            onChange={handleChange}
+            columns={columns}
+            createRow={createRow}
+            lockRows={lockRows}
+            rowHeight={32}
+            stickyRightColumn={rowActionsColumn}
+            gutterColumn={gutterColumn ? { grow: 0 } : false}
+            onActiveCellChange={handleActiveCellChange}
+            onSelectionChange={({ selection }) =>
+              onSelectionChange?.(selection)
+            }
+            className={getGridStyles(gutterColumn)}
+            style={
+              {
+                "--dsg-selection-border-color": colors.purple500,
+                "--dsg-selection-border-width": "1px",
+                "--dsg-selection-background-color": `${colors.purple300}1a`,
+                "--dsg-header-text-color": colors.gray600,
+                "--dsg-header-active-text-color": colors.gray600,
+                "--spreadsheet-header-bg": colors.gray100,
+              } as React.CSSProperties
+            }
+            height={gridHeight}
+            disableContextMenu={!!rowActions}
+            disableExpandSelection
+            disableSmartDelete
+            addRowsComponent={
+              addRowLabel ? createAddRowsComponent(addRowLabel) : false
+            }
+          />
+        </div>
       </SpreadsheetProvider>
     );
-  }
-
-  return (
-    <SpreadsheetProvider value={contextValue}>
-      <div
-        ref={containerRef}
-        tabIndex={-1}
-        className="flex flex-col justify-between h-full outline-none"
-      >
-        <DynamicDataSheetGrid
-          ref={gridRef}
-          value={data}
-          onChange={handleChange}
-          columns={columns}
-          createRow={createRow}
-          lockRows={lockRows}
-          rowHeight={32}
-          stickyRightColumn={rowActionsColumn}
-          gutterColumn={gutterColumn ? { grow: 0 } : false}
-          onActiveCellChange={handleActiveCellChange}
-          onSelectionChange={({ selection }) => onSelectionChange?.(selection)}
-          className={getGridStyles(gutterColumn)}
-          style={
-            {
-              "--dsg-selection-border-color": colors.purple500,
-              "--dsg-selection-border-width": "1px",
-              "--dsg-selection-background-color": `${colors.purple300}1a`,
-              "--dsg-header-text-color": colors.gray600,
-              "--dsg-header-active-text-color": colors.gray600,
-              "--spreadsheet-header-bg": colors.gray100,
-            } as React.CSSProperties
-          }
-          height={gridHeight}
-          disableContextMenu={!!rowActions}
-          disableExpandSelection
-          disableSmartDelete
-          addRowsComponent={
-            addRowLabel ? createAddRowsComponent(addRowLabel) : false
-          }
-        />
-      </div>
-    </SpreadsheetProvider>
-  );
-}) as <T extends Record<string, unknown>>(
-  props: SpreadsheetTableProps<T> & { ref?: React.Ref<SpreadsheetTableRef> },
+  },
+) as <T extends Record<string, unknown>>(
+  props: SpreadsheetTablePropsLegacy<T> & {
+    ref?: React.Ref<SpreadsheetTableRefLegacy>;
+  },
 ) => React.ReactElement;
 
 function AddRowButton({

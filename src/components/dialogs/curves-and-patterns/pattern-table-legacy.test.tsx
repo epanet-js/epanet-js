@@ -2,19 +2,23 @@ import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { render } from "@testing-library/react";
 import { createRef } from "react";
-import { PatternTable, PatternTableRef } from "./pattern-table";
+import {
+  PatternTableLegacy,
+  PatternTableRefLegacy,
+} from "./pattern-table-legacy";
 
 // Skip pointer events check because react-datasheet-grid uses pointer-events: none on inactive cells
 const setupUser = () => userEvent.setup({ pointerEventsCheck: 0 });
 
-describe("PatternTable", () => {
+// Tests for the legacy react-datasheet-grid implementation
+describe("PatternTableLegacy", () => {
   describe("row actions", () => {
     it("disables delete when there is only one row", async () => {
       const user = setupUser();
       const onChange = vi.fn();
 
       render(
-        <PatternTable
+        <PatternTableLegacy
           pattern={[1.0]}
           patternTimestepSeconds={3600}
           onChange={onChange}
@@ -34,7 +38,7 @@ describe("PatternTable", () => {
       const onChange = vi.fn();
 
       render(
-        <PatternTable
+        <PatternTableLegacy
           pattern={[3.0, 0.8]}
           patternTimestepSeconds={3600}
           onChange={onChange}
@@ -59,7 +63,7 @@ describe("PatternTable", () => {
       const onChange = vi.fn();
 
       render(
-        <PatternTable
+        <PatternTableLegacy
           pattern={[2.0, 0.8]}
           patternTimestepSeconds={3600}
           onChange={onChange}
@@ -83,10 +87,10 @@ describe("PatternTable", () => {
   it("patterns always have default multiplier when all rows are deleted", async () => {
     const user = setupUser();
     const onChange = vi.fn();
-    const ref = createRef<PatternTableRef>();
+    const ref = createRef<PatternTableRefLegacy>();
 
     const { container } = render(
-      <PatternTable
+      <PatternTableLegacy
         ref={ref}
         pattern={[1.0, 0.8, 0.6]}
         patternTimestepSeconds={3600}
@@ -117,10 +121,10 @@ describe("PatternTable", () => {
       const user = setupUser();
       const onChange = vi.fn();
       const onSelectionChange = vi.fn();
-      const ref = createRef<PatternTableRef>();
+      const ref = createRef<PatternTableRefLegacy>();
 
       const { container } = render(
-        <PatternTable
+        <PatternTableLegacy
           ref={ref}
           pattern={[1.0, 0.8, 0.6]}
           patternTimestepSeconds={3600}
@@ -152,10 +156,10 @@ describe("PatternTable", () => {
       const user = setupUser();
       const onChange = vi.fn();
       const onSelectionChange = vi.fn();
-      const ref = createRef<PatternTableRef>();
+      const ref = createRef<PatternTableRefLegacy>();
 
       const { container } = render(
-        <PatternTable
+        <PatternTableLegacy
           ref={ref}
           pattern={[1.0, 0.8, 0.6, 0.4]}
           patternTimestepSeconds={3600}
@@ -187,10 +191,10 @@ describe("PatternTable", () => {
     it("does not invoke handler when selection has same values", () => {
       const onChange = vi.fn();
       const onSelectionChange = vi.fn();
-      const ref = createRef<PatternTableRef>();
+      const ref = createRef<PatternTableRefLegacy>();
 
       render(
-        <PatternTable
+        <PatternTableLegacy
           ref={ref}
           pattern={[1.0, 0.8, 0.6, 0.4]}
           patternTimestepSeconds={3600}
@@ -214,10 +218,10 @@ describe("PatternTable", () => {
 
     it("syncs selection prop changes to grid", async () => {
       const onChange = vi.fn();
-      const ref = createRef<PatternTableRef>();
+      const ref = createRef<PatternTableRefLegacy>();
 
       const { rerender } = render(
-        <PatternTable
+        <PatternTableLegacy
           ref={ref}
           pattern={[1.0, 0.8, 0.6, 0.4]}
           patternTimestepSeconds={3600}
@@ -231,7 +235,7 @@ describe("PatternTable", () => {
 
       // Change the selection prop to row 2
       rerender(
-        <PatternTable
+        <PatternTableLegacy
           ref={ref}
           pattern={[1.0, 0.8, 0.6, 0.4]}
           patternTimestepSeconds={3600}

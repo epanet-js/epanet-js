@@ -3,9 +3,9 @@ import { render, waitFor } from "@testing-library/react";
 import { createRef } from "react";
 import { keyColumn } from "react-datasheet-grid";
 import {
-  SpreadsheetTable,
-  SpreadsheetTableRef,
-  createFloatColumn,
+  SpreadsheetTableLegacy,
+  SpreadsheetTableRefLegacy,
+  createFloatColumnLegacy,
 } from "./index";
 
 // Skip pointer events check because react-datasheet-grid uses pointer-events: none on inactive cells
@@ -15,22 +15,22 @@ type TestRow = { value: number };
 
 const columns = [
   {
-    ...keyColumn("value", createFloatColumn({ deleteValue: 0 })),
+    ...keyColumn("value", createFloatColumnLegacy({ deleteValue: 0 })),
     title: "Value",
   },
 ];
 
 const createRow = (): TestRow => ({ value: 0 });
 
-describe("SpreadsheetTable", () => {
+describe("SpreadsheetTableLegacy", () => {
   describe("keyboard row deletion", () => {
     it("deletes a single row when selected and pressing Delete", async () => {
       const user = setupUser();
       const onChange = vi.fn();
-      const ref = createRef<SpreadsheetTableRef>();
+      const ref = createRef<SpreadsheetTableRefLegacy>();
 
       const { container } = render(
-        <SpreadsheetTable
+        <SpreadsheetTableLegacy
           ref={ref}
           data={[{ value: 1.0 }, { value: 0.8 }, { value: 0.6 }]}
           columns={columns}
@@ -60,10 +60,10 @@ describe("SpreadsheetTable", () => {
     it("deletes all rows when selected and pressing Delete", async () => {
       const user = setupUser();
       const onChange = vi.fn();
-      const ref = createRef<SpreadsheetTableRef>();
+      const ref = createRef<SpreadsheetTableRefLegacy>();
 
       const { container } = render(
-        <SpreadsheetTable
+        <SpreadsheetTableLegacy
           ref={ref}
           data={[{ value: 1.0 }, { value: 0.8 }, { value: 0.6 }]}
           columns={columns}
@@ -93,10 +93,10 @@ describe("SpreadsheetTable", () => {
     it("deletes rows using Backspace key", async () => {
       const user = setupUser();
       const onChange = vi.fn();
-      const ref = createRef<SpreadsheetTableRef>();
+      const ref = createRef<SpreadsheetTableRefLegacy>();
 
       const { container } = render(
-        <SpreadsheetTable
+        <SpreadsheetTableLegacy
           ref={ref}
           data={[{ value: 1.0 }, { value: 0.8 }, { value: 0.6 }]}
           columns={columns}

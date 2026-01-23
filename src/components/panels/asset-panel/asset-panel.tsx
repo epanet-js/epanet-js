@@ -56,10 +56,10 @@ import {
   PumpDefinitionDetails,
   PumpDefinitionData,
 } from "./pump-definition-details";
-import { DemandCategoriesEditor } from "./demand-categories-editor";
 import { Curves } from "src/hydraulic-model/curves";
 import { useQuickGraph } from "./quick-graph";
 import { useAssetComparison } from "src/hooks/use-asset-comparison";
+import { DemandCategoriesEditorLegacy } from "./demand-categories-editor-legacy";
 
 type OnPropertyChange = (
   name: string,
@@ -464,7 +464,7 @@ const JunctionEditor = ({
               />
             )}
             {!readonly && (
-              <DemandCategoriesEditor
+              <DemandCategoriesEditorLegacy
                 demands={junction.demands}
                 patterns={hydraulicModel.demands.patterns}
                 onDemandsChange={onDemandsChange}
