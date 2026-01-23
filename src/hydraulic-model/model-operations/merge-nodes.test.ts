@@ -7,14 +7,16 @@ import { Junction } from "src/hydraulic-model/asset-types/junction";
 describe("mergeNodes", () => {
   describe("demands merging", () => {
     it("concatenates demands from both junctions", () => {
-      const IDS = { J1: 1, J2: 2 };
+      const IDS = { J1: 1, J2: 2, PAT1: 3, PAT2: 4 };
       const model = HydraulicModelBuilder.with()
+        .aDemandPattern(IDS.PAT1, "PATTERN1", [1.0])
+        .aDemandPattern(IDS.PAT2, "PATTERN2", [1.0])
         .aJunction(IDS.J1, {
           coordinates: [10, 20],
           elevation: 100,
           demands: [
             { baseDemand: 20 },
-            { baseDemand: 50, patternLabel: "pattern1" },
+            { baseDemand: 50, patternId: IDS.PAT1 },
           ],
         })
         .aJunction(IDS.J2, {
@@ -22,7 +24,7 @@ describe("mergeNodes", () => {
           elevation: 150,
           demands: [
             { baseDemand: 30 },
-            { baseDemand: 40, patternLabel: "pattern2" },
+            { baseDemand: 40, patternId: IDS.PAT2 },
           ],
         })
         .build();
@@ -36,9 +38,9 @@ describe("mergeNodes", () => {
       expect(survivingJunction.id).toBe(IDS.J1);
       expect(survivingJunction.demands).toEqual([
         { baseDemand: 20 },
-        { baseDemand: 50, patternLabel: "pattern1" },
+        { baseDemand: 50, patternId: IDS.PAT1 },
         { baseDemand: 30 },
-        { baseDemand: 40, patternLabel: "pattern2" },
+        { baseDemand: 40, patternId: IDS.PAT2 },
       ]);
     });
 

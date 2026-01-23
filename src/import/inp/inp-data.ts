@@ -4,7 +4,6 @@ import {
   PipeStatus,
 } from "src/hydraulic-model/asset-types/pipe";
 import { ValveKind } from "src/hydraulic-model/asset-types/valve";
-import { JunctionDemand } from "src/hydraulic-model/demands";
 import { EpanetUnitSystem } from "src/simulation/build-inp";
 
 export type PipeData = {
@@ -74,12 +73,17 @@ export type PatternData = {
   multipliers: number[];
 };
 
+export type DemandData = {
+  patternLabel?: string;
+  baseDemand: number;
+};
+
 export type CustomerPointData =
   | {
       label: string;
       coordinates: [number, number];
       baseDemand: number;
-      demands?: JunctionDemand[];
+      demands?: DemandData[];
       pipeId: string;
       junctionId: string;
       snapPoint: [number, number];
@@ -88,7 +92,7 @@ export type CustomerPointData =
       label: string;
       coordinates: [number, number];
       baseDemand: number;
-      demands?: JunctionDemand[];
+      demands?: DemandData[];
       pipeId?: undefined;
       junctionId?: undefined;
       snapPoint?: undefined;
@@ -104,8 +108,8 @@ export type InpData = {
   customerPoints: CustomerPointData[];
   coordinates: ItemData<Position>;
   vertices: ItemData<Position[]>;
-  demands: ItemData<JunctionDemand[]>;
-  customerDemands: ItemData<JunctionDemand[]>;
+  demands: ItemData<DemandData[]>;
+  customerDemands: ItemData<DemandData[]>;
   patterns: ItemData<PatternData>;
   status: ItemData<string>;
   curves: ItemData<{ x: number; y: number }[]>;

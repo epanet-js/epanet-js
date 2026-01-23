@@ -302,7 +302,6 @@ J1	1	2
     expect(cp1).toBeDefined();
     expect(cp1?.demands).toHaveLength(1);
     expect(cp1?.demands[0].baseDemand).toBe(25);
-    expect(cp1?.demands[0].patternLabel).toBe("RESIDENTIAL");
     expect(cp1?.demands[0].patternId).toBe(1);
 
     expect(hydraulicModel.demands.patterns.size).toBe(1);
@@ -347,10 +346,8 @@ J1	1	2
     expect(cp1).toBeDefined();
     expect(cp1?.demands).toHaveLength(2);
     expect(cp1?.demands[0].baseDemand).toBe(25);
-    expect(cp1?.demands[0].patternLabel).toBe("RESIDENTIAL");
     expect(cp1?.demands[0].patternId).toBe(1);
     expect(cp1?.demands[1].baseDemand).toBe(15);
-    expect(cp1?.demands[1].patternLabel).toBe("COMMERCIAL");
     expect(cp1?.demands[1].patternId).toBe(2);
 
     expect(hydraulicModel.demands.patterns.size).toBe(2);
@@ -391,7 +388,6 @@ J1	1	2
     expect(cp1).toBeDefined();
     expect(cp1?.demands).toHaveLength(1);
     expect(cp1?.demands[0].baseDemand).toBe(30);
-    expect(cp1?.demands[0].patternLabel).toBeUndefined();
     expect(cp1?.demands[0].patternId).toBeUndefined();
   });
 
@@ -425,7 +421,6 @@ J1	1	2
     expect(cp1?.baseDemand).toBe(42);
     expect(cp1?.demands).toHaveLength(1);
     expect(cp1?.demands[0].baseDemand).toBe(42);
-    expect(cp1?.demands[0].patternLabel).toBeUndefined();
     expect(cp1?.demands[0].patternId).toBeUndefined();
   });
 
@@ -467,13 +462,11 @@ J1	1	2
     const cp1 = hydraulicModel.customerPoints.get(IDS.CP1);
     expect(cp1?.demands).toHaveLength(1);
     expect(cp1?.demands[0].baseDemand).toBe(25);
-    expect(cp1?.demands[0].patternLabel).toBe("RESIDENTIAL");
     expect(cp1?.demands[0].patternId).toBe(1);
 
     const cp2 = hydraulicModel.customerPoints.get(IDS.CP2);
     expect(cp2?.demands).toHaveLength(1);
     expect(cp2?.demands[0].baseDemand).toBe(15);
-    expect(cp2?.demands[0].patternLabel).toBe("COMMERCIAL");
     expect(cp2?.demands[0].patternId).toBe(2);
 
     expect(hydraulicModel.demands.patterns.size).toBe(2);

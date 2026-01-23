@@ -252,8 +252,7 @@ const buildDemand = (
   baseDemand: number,
   patternLabel: string | undefined,
 ): JunctionDemand => {
-  const { patterns, fallbackPatternId, labelManager, usedPatternIds } =
-    patternContext;
+  const { fallbackPatternId, labelManager, usedPatternIds } = patternContext;
 
   if (patternLabel) {
     const patternId = labelManager.getIdByLabel(patternLabel, "pattern");
@@ -261,7 +260,6 @@ const buildDemand = (
       usedPatternIds.add(patternId);
       return {
         baseDemand,
-        patternLabel: patternLabel.toUpperCase(),
         patternId,
       };
     }
@@ -271,7 +269,6 @@ const buildDemand = (
     usedPatternIds.add(fallbackPatternId);
     return {
       baseDemand,
-      patternLabel: patterns.get(fallbackPatternId)?.label?.toUpperCase(),
       patternId: fallbackPatternId,
     };
   }

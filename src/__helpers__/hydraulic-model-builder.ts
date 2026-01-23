@@ -17,7 +17,6 @@ import {
   EPSTiming,
   Controls,
   createEmptyControls,
-  Junction,
 } from "src/hydraulic-model";
 import { SimpleControl, RuleBasedControl } from "src/hydraulic-model/controls";
 import { AssetIndex } from "src/hydraulic-model/asset-index";
@@ -405,15 +404,13 @@ export class HydraulicModelBuilder {
   }
 
   aDemandPattern(patternId: number, patternLabel: string, factors: number[]) {
-    const normalizedLabel = patternLabel.toUpperCase();
-
     this.demands.patterns.set(patternId, {
       id: patternId,
       label: patternLabel,
       multipliers: factors.length ? factors : [1],
     });
     this.demands.patternsLegacy.set(patternLabel, factors);
-    this.labelManager.register(normalizedLabel, "pattern", patternId);
+    this.labelManager.register(patternLabel, "pattern", patternId);
 
     return this;
   }
@@ -522,27 +519,6 @@ export class HydraulicModelBuilder {
         assetIndex.addLink(asset.id);
       } else if (asset.isNode) {
         assetIndex.addNode(asset.id);
-      }
-    }
-
-    // Update junction demands with patternId
-    for (const asset of this.assets.values()) {
-      if (asset.type === "junction") {
-        const junction = asset as Junction;
-        const updatedDemands = junction.demands.map((demand) => {
-          if (demand.patternId !== undefined) {
-            return demand;
-          }
-          if (demand.patternLabel === undefined) {
-            return { baseDemand: demand.baseDemand };
-          }
-          const patternId = this.labelManager.getIdByLabel(
-            demand.patternLabel.toUpperCase(),
-            "pattern",
-          );
-          return patternId !== undefined ? { ...demand, patternId } : demand;
-        });
-        junction.setDemands(updatedDemands);
       }
     }
 
