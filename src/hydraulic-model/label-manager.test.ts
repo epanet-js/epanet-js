@@ -200,6 +200,48 @@ describe("label manager", () => {
     });
   });
 
+  describe("pattern type", () => {
+    it("generates PAT-prefixed labels", () => {
+      const labelManager = new LabelManager();
+      expect(labelManager.generateFor("pattern", anId())).toEqual("PAT1");
+      expect(labelManager.generateFor("pattern", anId())).toEqual("PAT2");
+      expect(labelManager.generateFor("pattern", anId())).toEqual("PAT3");
+    });
+
+    it("skips registered pattern labels", () => {
+      const labelManager = new LabelManager();
+      labelManager.register("PAT1", "pattern", anId());
+      labelManager.register("PAT3", "pattern", anId());
+
+      expect(labelManager.generateFor("pattern", anId())).toEqual("PAT2");
+      expect(labelManager.generateFor("pattern", anId())).toEqual("PAT4");
+    });
+
+    it("patterns are in their own label group (no conflict with nodes or links)", () => {
+      const labelManager = new LabelManager();
+      labelManager.register("SHARED", "pattern", anId());
+
+      expect(labelManager.isLabelAvailable("SHARED", "pipe")).toBe(true);
+      expect(labelManager.isLabelAvailable("SHARED", "junction")).toBe(true);
+      expect(labelManager.isLabelAvailable("SHARED", "pump")).toBe(true);
+    });
+
+    it("patterns conflict with other patterns", () => {
+      const labelManager = new LabelManager();
+      labelManager.register("PAT1", "pattern", anId());
+
+      expect(labelManager.isLabelAvailable("PAT1", "pattern")).toBe(false);
+    });
+
+    it("nodes and links do not conflict with patterns", () => {
+      const labelManager = new LabelManager();
+      labelManager.register("LABEL", "pipe", anId());
+      labelManager.register("LABEL", "junction", anId());
+
+      expect(labelManager.isLabelAvailable("LABEL", "pattern")).toBe(true);
+    });
+  });
+
   describe("generateNextLabel", () => {
     it("generates next numbered label from base label", () => {
       const labelManager = new LabelManager();

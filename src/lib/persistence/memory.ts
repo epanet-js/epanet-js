@@ -29,6 +29,7 @@ import {
 import { getFreshAt, momentForDeleteFeatures, trackMoment } from "./shared";
 import { sortAts } from "src/lib/parse-stored";
 import {
+  Demands,
   HydraulicModel,
   updateHydraulicModelAssets,
 } from "src/hydraulic-model";
@@ -560,10 +561,7 @@ export class MemPersistence implements IPersistence {
     const ctx = this.store.get(dataAtom);
     let reverseMoment;
 
-    const hasSettings =
-      forwardMoment.putDemands ||
-      forwardMoment.putEPSTiming ||
-      forwardMoment.putControls;
+    const hasSettings = forwardMoment.putEPSTiming || forwardMoment.putControls;
 
     if (mergeAssetsAndSettings || !hasSettings) {
       const assetReverseMoment = UMoment.merge(
@@ -572,14 +570,12 @@ export class MemPersistence implements IPersistence {
         this.putAssetsInner(forwardMoment.putAssets, ctx),
         this.putCustomerPointsInner(forwardMoment.putCustomerPoints || [], ctx),
         this.putCurvesInner(forwardMoment.putCurves, ctx),
+        this.putDemandsInner(forwardMoment.putDemands, ctx),
       );
 
       if (mergeAssetsAndSettings && hasSettings) {
         reverseMoment = {
           ...assetReverseMoment,
-          putDemands: forwardMoment.putDemands
-            ? ctx.hydraulicModel.demands
-            : undefined,
           putEPSTiming: forwardMoment.putEPSTiming
             ? ctx.hydraulicModel.epsTiming
             : undefined,
@@ -805,6 +801,29 @@ export class MemPersistence implements IPersistence {
 
     if (reverseCurves.length > 0) {
       reverseMoment.putCurves = reverseCurves;
+    }
+
+    return reverseMoment;
+  }
+
+  private putDemandsInner(demands: Demands | undefined, ctx: Data) {
+    const reverseMoment = fMoment("Reverse demands");
+    if (!demands) return reverseMoment;
+
+    for (const pattern of ctx.hydraulicModel.demands.patterns.values()) {
+      ctx.hydraulicModel.labelManager.remove(
+        pattern.label,
+        "pattern",
+        pattern.id,
+      );
+    }
+    ctx.hydraulicModel.demands = demands;
+    for (const pattern of demands.patterns.values()) {
+      ctx.hydraulicModel.labelManager.register(
+        pattern.label,
+        "pattern",
+        pattern.id,
+      );
     }
 
     return reverseMoment;
