@@ -27,6 +27,7 @@ import { WizardActions as WizardActionsComponent } from "src/components/wizard";
 import { convertTo } from "src/quantity";
 import { ChevronDownIcon, ChevronRightIcon } from "src/icons";
 import { Selector } from "src/components/form/selector";
+import { DemandPatterns } from "src/hydraulic-model";
 
 const CONSTANT_PATTERN_ID = 0;
 
@@ -107,6 +108,7 @@ export const DataMappingStep: React.FC<{
             demandPropertyName,
             labelPropertyName,
             patternId,
+            getPatternLabel(patternId, patterns),
           )) {
             totalCount++;
             if (customerPoint) {
@@ -150,11 +152,12 @@ export const DataMappingStep: React.FC<{
     [
       setLoading,
       setError,
-      setParsedDataSummary,
       modelMetadata.quantities,
+      setParsedDataSummary,
       userTracking,
-      translate,
       selectedFile,
+      patterns,
+      translate,
     ],
   );
 
@@ -690,3 +693,10 @@ const IssueSection: React.FC<IssueSectionProps> = ({ title, features }) => {
     </div>
   );
 };
+
+function getPatternLabel(
+  patternId: number | null,
+  patterns: DemandPatterns,
+): string | undefined {
+  return patternId ? patterns.get(patternId)?.label : undefined;
+}

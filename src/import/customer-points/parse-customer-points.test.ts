@@ -17,7 +17,17 @@ describe("parseCustomerPoints", () => {
 
       const issues = new CustomerPointsIssuesAccumulator();
       const results = Array.from(
-        parseCustomerPoints(geoJson, issues, "l/d", "l/d", 1, "demand", null),
+        parseCustomerPoints(
+          geoJson,
+          issues,
+          "l/d",
+          "l/d",
+          1,
+          "demand",
+          null,
+          null,
+          undefined,
+        ),
       );
 
       expect(results).toHaveLength(1);
@@ -51,6 +61,7 @@ describe("parseCustomerPoints", () => {
       const PATTERN_ID = 2;
 
       const issues = new CustomerPointsIssuesAccumulator();
+      const PATTERN_LABEL = "test-pattern";
       const results = Array.from(
         parseCustomerPoints(
           geoJson,
@@ -61,6 +72,7 @@ describe("parseCustomerPoints", () => {
           "demand",
           null,
           PATTERN_ID,
+          PATTERN_LABEL,
         ),
       );
 
@@ -68,6 +80,7 @@ describe("parseCustomerPoints", () => {
       results.forEach((customerPoint) => {
         expect(customerPoint).not.toBeNull();
         expect(customerPoint!.demands[0].patternId).toBe(PATTERN_ID);
+        expect(customerPoint!.demands[0].patternLabel).toBe(PATTERN_LABEL);
       });
     });
 
@@ -76,6 +89,7 @@ describe("parseCustomerPoints", () => {
 {"type":"Feature","geometry":{"type":"Point","coordinates":[0.002,0.002]},"properties":{"demand":200}}`;
 
       const PATTERN_ID = 3;
+      const PATTERN_LABEL = "weekly-pattern";
       const issues = new CustomerPointsIssuesAccumulator();
       const results = Array.from(
         parseCustomerPoints(
@@ -87,6 +101,7 @@ describe("parseCustomerPoints", () => {
           "demand",
           null,
           PATTERN_ID,
+          PATTERN_LABEL,
         ),
       );
 
@@ -94,6 +109,7 @@ describe("parseCustomerPoints", () => {
       results.forEach((customerPoint) => {
         expect(customerPoint).not.toBeNull();
         expect(customerPoint!.demands[0].patternId).toBe(PATTERN_ID);
+        expect(customerPoint!.demands[0].patternLabel).toBe(PATTERN_LABEL);
       });
     });
 
@@ -120,6 +136,7 @@ describe("parseCustomerPoints", () => {
           "demand",
           null,
           null,
+          undefined,
         ),
       );
 
