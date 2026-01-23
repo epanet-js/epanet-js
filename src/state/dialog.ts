@@ -14,6 +14,7 @@ export type SimulationSummaryState = {
   type: "simulationSummary";
   status: "success" | "failure" | "warning";
   duration?: number;
+  onContinue?: () => void;
 };
 
 export type SimulationReportDialogState = {

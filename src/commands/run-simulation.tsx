@@ -28,85 +28,96 @@ export const useRunSimulation = () => {
   const isScenariosOn = useFeatureFlag("FLAG_SCENARIOS");
   const isCustomerDemandsOn = useFeatureFlag("FLAG_CUSTOMER_DEMANDS");
 
-  const runSimulation = useCallback(async () => {
-    setDrawingMode(Mode.NONE);
-    setSimulationState((prev) => ({ ...prev, status: "running" }));
-    const buildInpFn = isCustomerDemandsOn
-      ? buildInpWithCustomerDemands
-      : buildInp;
-    const inp = buildInpFn(hydraulicModel, { customerDemands: true });
-    const start = performance.now();
+  const runSimulation = useCallback(
+    async (options?: { onContinue?: () => void }) => {
+      setDrawingMode(Mode.NONE);
+      setSimulationState((prev) => ({ ...prev, status: "running" }));
+      const buildInpFn = isCustomerDemandsOn
+        ? buildInpWithCustomerDemands
+        : buildInp;
+      const inp = buildInpFn(hydraulicModel, { customerDemands: true });
+      const start = performance.now();
 
-    let isCompleted = false;
+      let isCompleted = false;
 
-    setDialogState({
-      type: "simulationProgress",
-      currentTime: 0,
-      totalDuration: 0,
-    });
-
-    const reportProgress: ProgressCallback = (progress) => {
-      if (isCompleted) return;
       setDialogState({
         type: "simulationProgress",
-        ...progress,
+        currentTime: 0,
+        totalDuration: 0,
       });
-    };
 
-    const appId = getAppId();
-    const scenarioKey = isScenariosOn
-      ? (scenariosState.activeScenarioId ?? "main")
-      : undefined;
-    const { report, status, metadata } = await runSimulationWorker(
-      inp,
-      appId,
-      reportProgress,
-      {},
-      scenarioKey,
-    );
+      const reportProgress: ProgressCallback = (progress) => {
+        if (isCompleted) return;
+        setDialogState({
+          type: "simulationProgress",
+          ...progress,
+        });
+      };
 
-    isCompleted = true;
+      const appId = getAppId();
+      const scenarioKey = isScenariosOn
+        ? (scenariosState.activeScenarioId ?? "main")
+        : undefined;
+      const { report, status, metadata } = await runSimulationWorker(
+        inp,
+        appId,
+        reportProgress,
+        {},
+        scenarioKey,
+      );
 
-    let updatedHydraulicModel = hydraulicModel;
-    let simulationIds;
-    if (status === "success" || status === "warning") {
-      const storage = new OPFSStorage(appId, scenarioKey);
-      const epsReader = new EPSResultsReader(storage);
-      await epsReader.initialize(metadata);
-      simulationIds = epsReader.simulationIds;
-      const resultsReader = await epsReader.getResultsForTimestep(0);
-      updatedHydraulicModel = attachSimulation(hydraulicModel, resultsReader);
-      setData((prev) => ({
-        ...prev,
-        hydraulicModel: updatedHydraulicModel,
-      }));
-    }
+      isCompleted = true;
 
-    setSimulationState({
-      status,
-      report,
-      modelVersion: updatedHydraulicModel.version,
-      metadata,
-      simulationIds,
-      currentTimestepIndex: 0,
-    });
-    const end = performance.now();
-    const duration = end - start;
-    setDialogState({
-      type: "simulationSummary",
-      status,
-      duration,
-    });
-  }, [
-    setDrawingMode,
-    hydraulicModel,
-    setSimulationState,
-    setDialogState,
-    setData,
-    isScenariosOn,
-    isCustomerDemandsOn,
-    scenariosState.activeScenarioId,
-  ]);
+      let updatedHydraulicModel = hydraulicModel;
+      let simulationIds;
+      if (status === "success" || status === "warning") {
+        const storage = new OPFSStorage(appId, scenarioKey);
+        const epsReader = new EPSResultsReader(storage);
+        await epsReader.initialize(metadata);
+        simulationIds = epsReader.simulationIds;
+        const resultsReader = await epsReader.getResultsForTimestep(0);
+        updatedHydraulicModel = attachSimulation(hydraulicModel, resultsReader);
+        setData((prev) => ({
+          ...prev,
+          hydraulicModel: updatedHydraulicModel,
+        }));
+      }
+
+      setSimulationState({
+        status,
+        report,
+        modelVersion: updatedHydraulicModel.version,
+        metadata,
+        simulationIds,
+        currentTimestepIndex: 0,
+      });
+      const end = performance.now();
+      const duration = end - start;
+
+      if (options?.onContinue && status === "success") {
+        setDialogState(null);
+        options.onContinue();
+        return;
+      }
+
+      setDialogState({
+        type: "simulationSummary",
+        status,
+        duration,
+        onContinue: options?.onContinue,
+      });
+    },
+    [
+      setDrawingMode,
+      hydraulicModel,
+      setSimulationState,
+      setDialogState,
+      setData,
+      isScenariosOn,
+      isCustomerDemandsOn,
+      scenariosState.activeScenarioId,
+    ],
+  );
 
   return runSimulation;
 };

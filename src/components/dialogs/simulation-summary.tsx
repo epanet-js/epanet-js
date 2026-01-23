@@ -25,6 +25,11 @@ export const SimulationSummaryDialog = ({
     showReport({ source: "resultDialog" });
   };
   const { status, duration } = modal;
+  const handleIgnore = () => {
+    modal.onContinue?.();
+    onClose();
+  };
+
   if (status === "warning")
     return (
       <DialogContainer size="sm">
@@ -42,7 +47,7 @@ export const SimulationSummaryDialog = ({
               autoFocusSubmit={true}
               secondary={{
                 action: translate("ignore"),
-                onClick: onClose,
+                onClick: handleIgnore,
               }}
               action={translate("viewReport")}
             />
@@ -67,7 +72,7 @@ export const SimulationSummaryDialog = ({
               autoFocusSubmit={true}
               secondary={{
                 action: translate("ignore"),
-                onClick: onClose,
+                onClick: handleIgnore,
               }}
               action={translate("viewReport")}
             />
