@@ -21,9 +21,9 @@ import * as P from "@radix-ui/react-popover";
 import { StyledPopoverArrow, StyledPopoverContent } from "../../elements";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import {
-  DemandPatternsLegacy,
+  DemandPatterns,
   JunctionDemand,
-  calculateAverageDemandLegacy,
+  calculateAverageDemand,
 } from "src/hydraulic-model/demands";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useSetAtom, useAtom } from "jotai";
@@ -392,7 +392,7 @@ export const ConnectedCustomersRow = ({
   customerPoints: CustomerPoint[];
   aggregateUnit: Unit;
   customerUnit: Unit;
-  patterns: DemandPatternsLegacy;
+  patterns: DemandPatterns;
 }) => {
   const translate = useTranslate();
   const [isOpen, setIsOpen] = useState(false);
@@ -465,7 +465,7 @@ const CustomerPointsPopover = ({
   customerPoints: CustomerPoint[];
   aggregateUnit: Unit;
   customerUnit: Unit;
-  patterns: DemandPatternsLegacy;
+  patterns: DemandPatterns;
   onClose: () => void;
 }) => {
   const parentRef = useRef<HTMLDivElement | null>(null);
@@ -536,7 +536,7 @@ const CustomerPointsPopover = ({
           {rowVirtualizer.getVirtualItems().map((virtualRow) => {
             const customerPoint = customerPoints[virtualRow.index];
             const demand = isCustomerDemandsOn
-              ? calculateAverageDemandLegacy(customerPoint.demands, patterns)
+              ? calculateAverageDemand(customerPoint.demands, patterns)
               : customerPoint.baseDemand;
             const demandValue = localizeDecimal(
               convertTo({ value: demand, unit: aggregateUnit }, customerUnit),
@@ -581,15 +581,17 @@ const CustomerPointsPopover = ({
 
 export const DemandCategoriesRow = ({
   demands,
+  patterns,
   unit,
 }: {
   demands: JunctionDemand[];
+  patterns: DemandPatterns;
   unit: Unit;
 }) => {
   const translate = useTranslate();
   const [isOpen, setIsOpen] = useState(false);
 
-  const hasPatternDemands = demands.some((d) => d.patternLabel);
+  const hasPatternDemands = demands.some((d) => d.patternId);
   if (!hasPatternDemands) return null;
 
   const handleTriggerKeyDown: KeyboardEventHandler<HTMLButtonElement> = (
@@ -618,6 +620,7 @@ export const DemandCategoriesRow = ({
             <DemandCategoriesPopover
               demands={demands}
               unit={unit}
+              patterns={patterns}
               onClose={() => setIsOpen(false)}
             />
           </StyledPopoverContent>
@@ -630,10 +633,12 @@ export const DemandCategoriesRow = ({
 const DemandCategoriesPopover = ({
   demands,
   unit,
+  patterns,
   onClose,
 }: {
   demands: JunctionDemand[];
   unit: Unit;
+  patterns: DemandPatterns;
   onClose: () => void;
 }) => {
   const parentRef = useRef<HTMLDivElement | null>(null);
@@ -687,7 +692,9 @@ const DemandCategoriesPopover = ({
           {rowVirtualizer.getVirtualItems().map((virtualRow) => {
             const demand = demands[virtualRow.index];
             const demandValue = localizeDecimal(demand.baseDemand);
-            const patternDisplay = demand.patternLabel || translate("constant");
+            const patternDisplay = demand.patternId
+              ? patterns.get(demand.patternId)!.label
+              : translate("constant");
 
             return (
               <div
@@ -708,7 +715,7 @@ const DemandCategoriesPopover = ({
                 <div
                   className={clsx(
                     "text-xs font-mono text-gray-600 dark:text-gray-300 truncate max-w-[120px]",
-                    { italic: !demand.patternLabel },
+                    { italic: !demand.patternId },
                   )}
                   title={patternDisplay}
                 >

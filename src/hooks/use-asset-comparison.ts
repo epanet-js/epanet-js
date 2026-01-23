@@ -70,7 +70,7 @@ export function useAssetComparison(asset: Asset | undefined) {
     }
 
     const baseConstantDemand = baseDemands
-      .filter((d) => !d.patternLabel)
+      .filter((d) => !d.patternId)
       .reduce((sum, d) => sum + d.baseDemand, 0);
 
     const hasChanged = baseConstantDemand !== currentConstantDemand;

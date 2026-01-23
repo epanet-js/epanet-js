@@ -2,45 +2,56 @@ import { useMemo, useCallback } from "react";
 import { keyColumn } from "react-datasheet-grid";
 import {
   SpreadsheetTable,
-  createFloatColumn,
   createFilterableSelectColumn,
+  createFloatColumn,
 } from "src/components/spreadsheet-table";
-import {
-  JunctionDemand,
-  DemandPatternsLegacy,
-} from "src/hydraulic-model/demands";
+import { JunctionDemand, DemandPatterns, PatternId } from "src/hydraulic-model";
 import { useTranslate } from "src/hooks/use-translate";
 import { DeleteIcon, AddIcon } from "src/icons";
 
 type DemandCategoryRow = {
   baseDemand: number | null;
-  patternLabel: string;
+  patternId: PatternId;
 };
 
 type Props = {
   demands: JunctionDemand[];
-  patterns: DemandPatternsLegacy;
+  patterns: DemandPatterns;
   onDemandsChange: (newDemands: JunctionDemand[]) => void;
 };
 
-const CONSTANT_PATTERN_SENTINEL = ";CONSTANT";
+const CONSTANT_PATTERN_ID = 0;
 
-const toRow = (demand: JunctionDemand): DemandCategoryRow => ({
-  baseDemand: demand.baseDemand,
-  patternLabel: demand.patternLabel ?? CONSTANT_PATTERN_SENTINEL,
-});
+const toRow = (
+  demand: JunctionDemand,
+  patterns: DemandPatterns,
+): DemandCategoryRow => {
+  if (demand.patternId) {
+    const pattern = patterns.get(demand.patternId);
+    if (pattern) {
+      return {
+        baseDemand: demand.baseDemand,
+        patternId: demand.patternId,
+      };
+    }
+  }
+  return {
+    baseDemand: demand.baseDemand,
+    patternId: CONSTANT_PATTERN_ID,
+  };
+};
 
-const fromRow = (row: DemandCategoryRow): JunctionDemand => ({
-  baseDemand: row.baseDemand ?? 0,
-  patternLabel:
-    row.patternLabel === CONSTANT_PATTERN_SENTINEL
-      ? undefined
-      : row.patternLabel,
-});
+const fromRow = (row: DemandCategoryRow): JunctionDemand => {
+  return {
+    baseDemand: row.baseDemand ?? 0,
+    patternId:
+      row.patternId === CONSTANT_PATTERN_ID ? undefined : row.patternId,
+  };
+};
 
 const createDefaultRow = (): DemandCategoryRow => ({
   baseDemand: 0,
-  patternLabel: CONSTANT_PATTERN_SENTINEL,
+  patternId: CONSTANT_PATTERN_ID,
 });
 
 export const DemandCategoriesEditor = ({
@@ -51,19 +62,22 @@ export const DemandCategoriesEditor = ({
   const translate = useTranslate();
 
   const rowData = useMemo(
-    () => (demands.length === 0 ? [createDefaultRow()] : demands.map(toRow)),
-    [demands],
+    () =>
+      demands.length === 0
+        ? [createDefaultRow()]
+        : demands.map((demand) => toRow(demand, patterns)),
+    [demands, patterns],
   );
 
   const patternOptions = useMemo(() => {
-    const options: { value: string; label: string }[] = [
+    const options: { value: number; label: string }[] = [
       {
-        value: CONSTANT_PATTERN_SENTINEL,
+        value: CONSTANT_PATTERN_ID,
         label: translate("constant").toUpperCase(),
       },
     ];
-    for (const patternId of patterns.keys()) {
-      options.push({ value: patternId, label: patternId });
+    for (const [patternId, { label }] of patterns.entries()) {
+      options.push({ value: patternId, label });
     }
     return options;
   }, [patterns, translate]);
@@ -71,7 +85,7 @@ export const DemandCategoriesEditor = ({
   const handleDeleteRow = useCallback(
     (rowIndex: number) => {
       const newRows = rowData.filter((_, i) => i !== rowIndex);
-      const newDemands = newRows.map(fromRow);
+      const newDemands = newRows.map((row) => fromRow(row));
       onDemandsChange(newDemands);
     },
     [rowData, onDemandsChange],
@@ -85,7 +99,7 @@ export const DemandCategoriesEditor = ({
         newRow,
         ...rowData.slice(rowIndex),
       ];
-      const newDemands = newRows.map(fromRow);
+      const newDemands = newRows.map((row) => fromRow(row));
       onDemandsChange(newDemands);
     },
     [rowData, onDemandsChange],
@@ -99,7 +113,7 @@ export const DemandCategoriesEditor = ({
         newRow,
         ...rowData.slice(rowIndex + 1),
       ];
-      const newDemands = newRows.map(fromRow);
+      const newDemands = newRows.map((row) => fromRow(row));
       onDemandsChange(newDemands);
     },
     [rowData, onDemandsChange],
@@ -109,9 +123,7 @@ export const DemandCategoriesEditor = ({
     (rowIndex: number) => {
       if (rowData.length > 1) return false;
       const row = rowData[rowIndex];
-      return (
-        row?.baseDemand === 0 && row?.patternLabel === CONSTANT_PATTERN_SENTINEL
-      );
+      return row?.baseDemand === 0 && row?.patternId === CONSTANT_PATTERN_ID;
     },
     [rowData],
   );
@@ -153,17 +165,17 @@ export const DemandCategoriesEditor = ({
       },
       {
         ...keyColumn(
-          "patternLabel",
+          "patternId",
           createFilterableSelectColumn({
             options: patternOptions,
-            deleteValue: CONSTANT_PATTERN_SENTINEL,
+            deleteValue: CONSTANT_PATTERN_ID,
           }),
         ),
         title: translate("timePattern"),
         minWidth: 120,
       },
     ],
-    [patternOptions, translate],
+    [translate, patternOptions],
   );
 
   const createRow = createDefaultRow;
@@ -172,7 +184,9 @@ export const DemandCategoriesEditor = ({
     (newRows: DemandCategoryRow[]) => {
       const nonZeroRows = newRows.filter((row) => row.baseDemand !== 0);
       const newDemands =
-        newRows.length === 1 ? nonZeroRows.map(fromRow) : newRows.map(fromRow);
+        newRows.length === 1
+          ? nonZeroRows.map((row) => fromRow(row))
+          : newRows.map((row) => fromRow(row));
       onDemandsChange(newDemands);
     },
     [onDemandsChange],

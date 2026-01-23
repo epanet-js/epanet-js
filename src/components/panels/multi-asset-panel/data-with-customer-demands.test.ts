@@ -442,7 +442,7 @@ describe("computeMultiAssetDataWithCustomerDemands", () => {
       const hydraulicModel = HydraulicModelBuilder.with()
         .aDemandPattern(IDS.PAT1, "pattern1", [0.5, 1.0, 1.5])
         .aJunction(IDS.J1, {
-          demands: [{ baseDemand: 100, patternLabel: "pattern1" }],
+          demands: [{ baseDemand: 100, patternId: IDS.PAT1 }],
         })
         .build();
 
@@ -468,7 +468,7 @@ describe("computeMultiAssetDataWithCustomerDemands", () => {
       const hydraulicModel = HydraulicModelBuilder.with()
         .aDemandPattern(IDS.PAT1, "pattern1", [0.5, 0.5, 2.0])
         .aJunction(IDS.J1, {
-          demands: [{ baseDemand: 60, patternLabel: "pattern1" }],
+          demands: [{ baseDemand: 60, patternId: IDS.PAT1 }],
         })
         .build();
 
@@ -495,7 +495,7 @@ describe("computeMultiAssetDataWithCustomerDemands", () => {
         .aJunction(IDS.J1, {
           demands: [
             { baseDemand: 10 }, // constant -> 10
-            { baseDemand: 20, patternLabel: "pattern1", patternId: IDS.PAT1 }, // 20 * 2.0 = 40
+            { baseDemand: 20, patternId: IDS.PAT1 }, // 20 * 2.0 = 40
           ],
         })
         .build();
@@ -540,7 +540,7 @@ describe("computeMultiAssetDataWithCustomerDemands", () => {
       const IDS = { J1: 1 } as const;
       const hydraulicModel = HydraulicModelBuilder.with()
         .aJunction(IDS.J1, {
-          demands: [{ baseDemand: 50, patternLabel: "nonexistent" }],
+          demands: [{ baseDemand: 50, patternId: 404 }],
         })
         .build();
 
@@ -567,7 +567,7 @@ describe("computeMultiAssetDataWithCustomerDemands", () => {
         .aJunction(IDS.J1, { demands: [{ baseDemand: 10 }] }) // avg = 10
         .aJunction(IDS.J2, { demands: [{ baseDemand: 20 }] }) // avg = 20
         .aJunction(IDS.J3, {
-          demands: [{ baseDemand: 30, patternLabel: "pattern1" }],
+          demands: [{ baseDemand: 30, patternId: IDS.PAT1 }],
         }) // avg = 30 * 1.0 = 30
         .build();
 
@@ -617,7 +617,7 @@ describe("computeMultiAssetDataWithCustomerDemands", () => {
         .demandMultiplier(3.0)
         .aDemandPattern(IDS.PAT1, "pattern1", [0.5, 1.5])
         .aJunction(IDS.J1, {
-          demands: [{ baseDemand: 20, patternLabel: "pattern1" }],
+          demands: [{ baseDemand: 20, patternId: IDS.PAT1 }],
         })
         .build();
 
@@ -646,7 +646,7 @@ describe("computeMultiAssetDataWithCustomerDemands", () => {
         .aJunction(IDS.J2)
         .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
         .aCustomerPoint(IDS.CP1, {
-          demands: [{ baseDemand: 100, patternLabel: "residential" }],
+          demands: [{ baseDemand: 100, patternId: IDS.PAT1 }],
           connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
         })
         .build();
@@ -678,7 +678,7 @@ describe("computeMultiAssetDataWithCustomerDemands", () => {
         .aJunction(IDS.J2)
         .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
         .aCustomerPoint(IDS.CP1, {
-          demands: [{ baseDemand: 100, patternLabel: "variable" }],
+          demands: [{ baseDemand: 100, patternId: IDS.PAT1 }],
           connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
         })
         .build();
@@ -711,7 +711,7 @@ describe("computeMultiAssetDataWithCustomerDemands", () => {
         .aCustomerPoint(IDS.CP1, {
           demands: [
             { baseDemand: 10 }, // constant -> 10
-            { baseDemand: 20, patternLabel: "high" }, // 20 * 2.0 = 40
+            { baseDemand: 20, patternId: IDS.PAT1 }, // 20 * 2.0 = 40
           ],
           connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
         })
@@ -743,7 +743,7 @@ describe("computeMultiAssetDataWithCustomerDemands", () => {
         .aJunction(IDS.J2)
         .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
         .aCustomerPoint(IDS.CP1, {
-          demands: [{ baseDemand: 30, patternLabel: "residential" }],
+          demands: [{ baseDemand: 30, patternId: IDS.PAT1 }],
           connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
         })
         .aCustomerPoint(IDS.CP2, {
@@ -778,7 +778,7 @@ describe("computeMultiAssetDataWithCustomerDemands", () => {
         .aJunction(IDS.J2)
         .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
         .aCustomerPoint(IDS.CP1, {
-          demands: [{ baseDemand: 80, patternLabel: "commercial" }],
+          demands: [{ baseDemand: 80, patternId: IDS.PAT1 }],
           connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
         })
         .build();
@@ -807,7 +807,7 @@ describe("computeMultiAssetDataWithCustomerDemands", () => {
         .aJunction(IDS.J2)
         .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
         .aCustomerPoint(IDS.CP1, {
-          demands: [{ baseDemand: 50, patternLabel: "nonexistent" }],
+          demands: [{ baseDemand: 50, patternId: 404 }],
           connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
         })
         .build();

@@ -17,8 +17,9 @@ import {
   getActiveCustomerPoints,
 } from "src/hydraulic-model/customer-points";
 import {
+  DemandPatterns,
   Demands,
-  calculateAverageDemandLegacy,
+  calculateAverageDemand,
 } from "src/hydraulic-model/demands";
 import {
   AssetPropertyStats,
@@ -30,10 +31,10 @@ import {
 
 const calculateCustomerPointsDemand = (
   customerPoints: CustomerPoint[],
-  patterns: Demands["patternsLegacy"],
+  patterns: DemandPatterns,
 ): number => {
   return customerPoints.reduce(
-    (sum, cp) => sum + calculateAverageDemandLegacy(cp.demands, patterns),
+    (sum, cp) => sum + calculateAverageDemand(cp.demands, patterns),
     0,
   );
 };
@@ -136,9 +137,9 @@ const appendJunctionStats = (
     quantitiesMetadata,
   );
 
-  const averageDemand = calculateAverageDemandLegacy(
+  const averageDemand = calculateAverageDemand(
     junction.demands,
-    demands.patternsLegacy,
+    demands.patterns,
   );
   updateQuantityStats(
     statsMap,
@@ -156,7 +157,7 @@ const appendJunctionStats = (
   if (customerPoints.length > 0) {
     const totalCustomerDemand = calculateCustomerPointsDemand(
       customerPoints,
-      demands.patternsLegacy,
+      demands.patterns,
     );
 
     updateQuantityStats(
@@ -241,7 +242,7 @@ const appendPipeStats = (
   if (customerPoints.size > 0) {
     const totalCustomerDemand = calculateCustomerPointsDemand(
       Array.from(customerPoints),
-      demands.patternsLegacy,
+      demands.patterns,
     );
 
     updateQuantityStats(

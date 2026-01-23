@@ -707,17 +707,19 @@ describe("AssetPanel", () => {
     });
 
     it("updates constant demand while preserving pattern demands", async () => {
-      const IDS = { J1: 1 };
+      const IDS = { J1: 1, PAT1: 2, PAT2: 3 };
       const hydraulicModel = HydraulicModelBuilder.with()
         .aJunction(IDS.J1, {
           label: "MY_JUNCTION",
           demands: [
             { baseDemand: 10 },
-            { baseDemand: 50, patternLabel: "pattern1" },
+            { baseDemand: 50, patternId: IDS.PAT1 },
             { baseDemand: 10 },
-            { baseDemand: 30, patternLabel: "pattern2" },
+            { baseDemand: 30, patternId: IDS.PAT2 },
           ],
         })
+        .aDemandPattern(IDS.PAT1, "pattern1", [0])
+        .aDemandPattern(IDS.PAT2, "pattern2", [1])
         .build();
       const store = setInitialState({
         hydraulicModel,
@@ -740,8 +742,8 @@ describe("AssetPanel", () => {
       const junction = updated.assets.get(IDS.J1) as Junction;
       expect(junction.demands).toEqual([
         { baseDemand: 100 },
-        { baseDemand: 50, patternLabel: "pattern1" },
-        { baseDemand: 30, patternLabel: "pattern2" },
+        { baseDemand: 50, patternId: IDS.PAT1 },
+        { baseDemand: 30, patternId: IDS.PAT2 },
       ]);
     });
   });

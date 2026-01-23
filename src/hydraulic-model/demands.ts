@@ -41,22 +41,22 @@ export const getNextPatternId = (
   return nextId;
 };
 
-export const calculateAverageDemandLegacy = (
+export const calculateAverageDemand = (
   demands: JunctionDemand[],
-  patterns: DemandPatternsLegacy,
+  patterns: DemandPatterns,
 ): number => {
   return demands.reduce((total, demand) => {
-    if (!demand.patternLabel) {
-      return total + demand.baseDemand;
+    if (demand.patternId) {
+      const pattern = patterns.get(demand.patternId);
+
+      if (pattern && pattern.multipliers.length >= 0) {
+        const avgMultiplier =
+          pattern.multipliers.reduce((sum, m) => sum + m, 0) /
+          pattern.multipliers.length;
+        return total + demand.baseDemand * avgMultiplier;
+      }
     }
 
-    const pattern = patterns.get(demand.patternLabel);
-    if (!pattern || pattern.length === 0) {
-      return total + demand.baseDemand;
-    }
-
-    const avgMultiplier =
-      pattern.reduce((sum, m) => sum + m, 0) / pattern.length;
-    return total + demand.baseDemand * avgMultiplier;
+    return total + demand.baseDemand;
   }, 0);
 };

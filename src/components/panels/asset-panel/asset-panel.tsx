@@ -14,7 +14,7 @@ import { getActiveCustomerPoints } from "src/hydraulic-model/customer-points";
 import { Valve } from "src/hydraulic-model/asset-types";
 import {
   JunctionDemand,
-  calculateAverageDemandLegacy,
+  calculateAverageDemand,
 } from "src/hydraulic-model/demands";
 import { Quantities } from "src/model-metadata/quantities-spec";
 import { useTranslate } from "src/hooks/use-translate";
@@ -206,7 +206,7 @@ export function AssetPanel({
   const handleChangeJunctionDemand = useCallback(
     (newValue: number, oldValue: number) => {
       const junction = asset as Junction;
-      const patternDemands = junction.demands.filter((d) => d.patternLabel);
+      const patternDemands = junction.demands.filter((d) => d.patternId);
       const newDemands = [{ baseDemand: newValue }, ...patternDemands];
       const moment = changeJunctionDemands(hydraulicModel, {
         junctionId: asset.id,
@@ -408,27 +408,17 @@ const JunctionEditor = ({
       return customerPoints.reduce(
         (sum, cp) =>
           sum +
-          calculateAverageDemandLegacy(
-            cp.demands,
-            hydraulicModel.demands.patternsLegacy,
-          ),
+          calculateAverageDemand(cp.demands, hydraulicModel.demands.patterns),
         0,
       );
     }
     return customerPoints.reduce((sum, cp) => sum + cp.baseDemand, 0);
-  }, [
-    customerPoints,
-    isCustomerDemandsOn,
-    hydraulicModel.demands.patternsLegacy,
-  ]);
+  }, [customerPoints, isCustomerDemandsOn, hydraulicModel.demands.patterns]);
 
   const averageDemand = useMemo(
     () =>
-      calculateAverageDemandLegacy(
-        junction.demands,
-        hydraulicModel.demands.patternsLegacy,
-      ),
-    [junction.demands, hydraulicModel.demands.patternsLegacy],
+      calculateAverageDemand(junction.demands, hydraulicModel.demands.patterns),
+    [junction.demands, hydraulicModel.demands.patterns],
   );
 
   return (
@@ -476,7 +466,7 @@ const JunctionEditor = ({
             {!readonly && (
               <DemandCategoriesEditor
                 demands={junction.demands}
-                patterns={hydraulicModel.demands.patternsLegacy}
+                patterns={hydraulicModel.demands.patterns}
                 onDemandsChange={onDemandsChange}
               />
             )}
@@ -496,6 +486,7 @@ const JunctionEditor = ({
             />
             <DemandCategoriesRow
               demands={junction.demands}
+              patterns={hydraulicModel.demands.patterns}
               unit={quantitiesMetadata.getUnit("baseDemand")}
             />
           </>
@@ -514,7 +505,7 @@ const JunctionEditor = ({
               customerPoints={customerPoints}
               aggregateUnit={quantitiesMetadata.getUnit("customerDemand")}
               customerUnit={quantitiesMetadata.getUnit("customerDemandPerDay")}
-              patterns={hydraulicModel.demands.patternsLegacy}
+              patterns={hydraulicModel.demands.patterns}
             />
           </>
         )}
@@ -594,19 +585,12 @@ const PipeEditor = ({
       return customerPoints.reduce(
         (sum, cp) =>
           sum +
-          calculateAverageDemandLegacy(
-            cp.demands,
-            hydraulicModel.demands.patternsLegacy,
-          ),
+          calculateAverageDemand(cp.demands, hydraulicModel.demands.patterns),
         0,
       );
     }
     return customerPoints.reduce((sum, cp) => sum + cp.baseDemand, 0);
-  }, [
-    customerPoints,
-    isCustomerDemandsOn,
-    hydraulicModel.demands.patternsLegacy,
-  ]);
+  }, [customerPoints, isCustomerDemandsOn, hydraulicModel.demands.patterns]);
 
   const pipeStatusOptions = useMemo(() => {
     return pipeStatuses.map((status) => ({
@@ -713,7 +697,7 @@ const PipeEditor = ({
             customerPoints={customerPoints}
             aggregateUnit={quantitiesMetadata.getUnit("customerDemand")}
             customerUnit={quantitiesMetadata.getUnit("customerDemandPerDay")}
-            patterns={hydraulicModel.demands.patternsLegacy}
+            patterns={hydraulicModel.demands.patterns}
           />
         </Section>
       )}

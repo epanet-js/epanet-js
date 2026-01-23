@@ -18,10 +18,7 @@ import {
 import { Valve } from "src/hydraulic-model/asset-types";
 import { CustomerPointsLookup } from "src/hydraulic-model/customer-points-lookup";
 import { getActiveCustomerPoints } from "src/hydraulic-model/customer-points";
-import {
-  Demands,
-  calculateAverageDemandLegacy,
-} from "src/hydraulic-model/demands";
+import { Demands, calculateAverageDemand } from "src/hydraulic-model/demands";
 
 export type QuantityStats = QuantityStatsDeprecated & {
   decimals: number;
@@ -150,9 +147,9 @@ const appendJunctionStats = (
     quantitiesMetadata,
   );
 
-  const averageDemand = calculateAverageDemandLegacy(
+  const averageDemand = calculateAverageDemand(
     junction.demands,
-    demands.patternsLegacy,
+    demands.patterns,
   );
   updateQuantityStats(
     statsMap,
