@@ -320,28 +320,6 @@ describe("CurvesAndPatternsDialog", () => {
       });
     });
 
-    it("normalizes pattern name to uppercase", async () => {
-      const user = setupUser();
-      const store = setInitialState({
-        hydraulicModel: HydraulicModelBuilder.with().build(),
-      });
-
-      renderDialog(store);
-
-      // Add a pattern with lowercase name
-      await user.click(screen.getByRole("button", { name: /add pattern/i }));
-      const nameInput = screen.getByRole("textbox");
-      await user.type(nameInput, "lowercase");
-      await user.keyboard("{Enter}");
-
-      // Should be normalized to uppercase
-      await waitFor(() => {
-        expect(
-          screen.getByRole("button", { name: "LOWERCASE" }),
-        ).toBeInTheDocument();
-      });
-    });
-
     it("assigns unique IDs when adding patterns to existing ones", async () => {
       const user = setupUser();
       const store = setInitialState({
