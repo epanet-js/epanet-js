@@ -2,37 +2,37 @@ import type { ScenariosState } from "src/state/scenarios";
 import type { ScenarioContext, ScenarioOperationResult } from "./types";
 
 export const switchToScenario = (
-  currentState: ScenariosState,
+  scenariosState: ScenariosState,
   scenarioId: string,
   context: ScenarioContext,
 ): ScenarioOperationResult => {
-  if (currentState.activeScenarioId === scenarioId) {
+  if (scenariosState.activeScenarioId === scenarioId) {
     return {
-      state: currentState,
+      state: scenariosState,
       applyTarget: null,
       simulation: context.currentSimulation,
     };
   }
 
-  const scenario = currentState.scenarios.get(scenarioId);
+  const scenario = scenariosState.scenarios.get(scenarioId);
   if (!scenario) {
     throw new Error(`Scenario ${scenarioId} not found`);
   }
 
-  const isMainActive = currentState.activeScenarioId === null;
-  const updatedScenarios = new Map(currentState.scenarios);
-  const newState = { ...currentState, scenarios: updatedScenarios };
+  const isMainActive = scenariosState.activeScenarioId === null;
+  const updatedScenarios = new Map(scenariosState.scenarios);
+  const newState = { ...scenariosState, scenarios: updatedScenarios };
 
   if (isMainActive) {
     newState.mainMomentLog = context.currentMomentLog;
     newState.mainSimulation = context.currentSimulation;
     newState.mainModelVersion = context.currentModelVersion;
   } else {
-    const currentScenario = currentState.scenarios.get(
-      currentState.activeScenarioId!,
+    const currentScenario = scenariosState.scenarios.get(
+      scenariosState.activeScenarioId!,
     );
     if (currentScenario) {
-      updatedScenarios.set(currentState.activeScenarioId!, {
+      updatedScenarios.set(scenariosState.activeScenarioId!, {
         ...currentScenario,
         momentLog: context.currentMomentLog,
         simulation: context.currentSimulation,
@@ -48,7 +48,7 @@ export const switchToScenario = (
       lastActiveScenarioId: scenarioId,
     },
     applyTarget: {
-      baseSnapshot: currentState.baseModelSnapshot!,
+      baseSnapshot: scenariosState.baseModelSnapshot!,
       momentLog: scenario.momentLog,
       modelVersion: scenario.modelVersion,
     },
@@ -57,25 +57,25 @@ export const switchToScenario = (
 };
 
 export const switchToMain = (
-  currentState: ScenariosState,
+  scenariosState: ScenariosState,
   context: ScenarioContext,
 ): ScenarioOperationResult => {
-  if (currentState.activeScenarioId === null) {
+  if (scenariosState.activeScenarioId === null) {
     return {
-      state: currentState,
+      state: scenariosState,
       applyTarget: null,
       simulation: context.currentSimulation,
     };
   }
 
-  const lastActiveScenarioId = currentState.activeScenarioId;
-  const updatedScenarios = new Map(currentState.scenarios);
+  const lastActiveScenarioId = scenariosState.activeScenarioId;
+  const updatedScenarios = new Map(scenariosState.scenarios);
 
-  const currentScenario = currentState.scenarios.get(
-    currentState.activeScenarioId,
+  const currentScenario = scenariosState.scenarios.get(
+    scenariosState.activeScenarioId,
   );
   if (currentScenario) {
-    updatedScenarios.set(currentState.activeScenarioId, {
+    updatedScenarios.set(scenariosState.activeScenarioId, {
       ...currentScenario,
       momentLog: context.currentMomentLog,
       simulation: context.currentSimulation,
@@ -85,18 +85,18 @@ export const switchToMain = (
 
   return {
     state: {
-      ...currentState,
+      ...scenariosState,
       scenarios: updatedScenarios,
       activeScenarioId: null,
       lastActiveScenarioId,
     },
-    applyTarget: currentState.mainMomentLog
+    applyTarget: scenariosState.mainMomentLog
       ? {
-          baseSnapshot: currentState.baseModelSnapshot!,
-          momentLog: currentState.mainMomentLog,
-          modelVersion: currentState.mainModelVersion!,
+          baseSnapshot: scenariosState.baseModelSnapshot!,
+          momentLog: scenariosState.mainMomentLog,
+          modelVersion: scenariosState.mainModelVersion!,
         }
       : null,
-    simulation: currentState.mainSimulation,
+    simulation: scenariosState.mainSimulation,
   };
 };

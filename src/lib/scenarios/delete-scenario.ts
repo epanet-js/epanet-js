@@ -5,48 +5,48 @@ import {
 import type { ScenarioOperationResult } from "./types";
 
 export const deleteScenario = (
-  currentState: ScenariosState,
+  scenariosState: ScenariosState,
   scenarioId: string,
 ): ScenarioOperationResult => {
-  const scenarioToDelete = currentState.scenarios.get(scenarioId);
+  const scenarioToDelete = scenariosState.scenarios.get(scenarioId);
   if (!scenarioToDelete) {
-    return { state: currentState, applyTarget: null, simulation: null };
+    return { state: scenariosState, applyTarget: null, simulation: null };
   }
 
-  const remainingScenarios = Array.from(currentState.scenarios.values())
+  const remainingScenarios = Array.from(scenariosState.scenarios.values())
     .filter((s) => s.id !== scenarioId)
     .sort((a, b) => a.createdAt - b.createdAt);
 
-  const isDeletedActive = currentState.activeScenarioId === scenarioId;
+  const isDeletedActive = scenariosState.activeScenarioId === scenarioId;
 
   if (remainingScenarios.length === 0) {
     return {
       state: initialScenariosState,
-      applyTarget: currentState.mainMomentLog
+      applyTarget: scenariosState.mainMomentLog
         ? {
-            baseSnapshot: currentState.baseModelSnapshot!,
-            momentLog: currentState.mainMomentLog,
-            modelVersion: currentState.mainModelVersion!,
+            baseSnapshot: scenariosState.baseModelSnapshot!,
+            momentLog: scenariosState.mainMomentLog,
+            modelVersion: scenariosState.mainModelVersion!,
           }
         : null,
-      simulation: currentState.mainSimulation,
+      simulation: scenariosState.mainSimulation,
     };
   }
 
   if (isDeletedActive) {
     const nextScenario = remainingScenarios[0];
-    const updatedScenarios = new Map(currentState.scenarios);
+    const updatedScenarios = new Map(scenariosState.scenarios);
     updatedScenarios.delete(scenarioId);
 
     return {
       state: {
-        ...currentState,
+        ...scenariosState,
         scenarios: updatedScenarios,
         activeScenarioId: nextScenario.id,
         lastActiveScenarioId: nextScenario.id,
       },
       applyTarget: {
-        baseSnapshot: currentState.baseModelSnapshot!,
+        baseSnapshot: scenariosState.baseModelSnapshot!,
         momentLog: nextScenario.momentLog,
         modelVersion: nextScenario.modelVersion,
       },
@@ -54,17 +54,17 @@ export const deleteScenario = (
     };
   }
 
-  const updatedScenarios = new Map(currentState.scenarios);
+  const updatedScenarios = new Map(scenariosState.scenarios);
   updatedScenarios.delete(scenarioId);
 
   return {
     state: {
-      ...currentState,
+      ...scenariosState,
       scenarios: updatedScenarios,
       lastActiveScenarioId:
-        currentState.lastActiveScenarioId === scenarioId
+        scenariosState.lastActiveScenarioId === scenarioId
           ? null
-          : currentState.lastActiveScenarioId,
+          : scenariosState.lastActiveScenarioId,
     },
     applyTarget: null,
     simulation: null,

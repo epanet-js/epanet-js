@@ -1,15 +1,15 @@
 import type { ScenariosState } from "src/state/scenarios";
 
 export const renameScenario = (
-  currentState: ScenariosState,
+  scenariosState: ScenariosState,
   scenarioId: string,
   newName: string,
 ): ScenariosState => {
-  const scenario = currentState.scenarios.get(scenarioId);
-  if (!scenario) return currentState;
+  const scenario = scenariosState.scenarios.get(scenarioId);
+  if (!scenario) return scenariosState;
 
-  const updatedScenarios = new Map(currentState.scenarios);
+  const updatedScenarios = new Map(scenariosState.scenarios);
   updatedScenarios.set(scenarioId, { ...scenario, name: newName });
 
-  return { ...currentState, scenarios: updatedScenarios };
+  return { ...scenariosState, scenarios: updatedScenarios };
 };

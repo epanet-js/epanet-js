@@ -8,30 +8,30 @@ import { MomentLog } from "src/lib/persistence/moment-log";
 import { nanoid } from "nanoid";
 
 export const createScenario = (
-  currentState: ScenariosState,
+  scenariosState: ScenariosState,
   context: ScenarioContext,
   baseSnapshot: BaseModelSnapshot,
 ): CreateScenarioResult => {
-  const isMainActive = currentState.activeScenarioId === null;
+  const isMainActive = scenariosState.activeScenarioId === null;
 
   const mainMomentLog = isMainActive
     ? context.currentMomentLog
-    : currentState.mainMomentLog;
+    : scenariosState.mainMomentLog;
   const mainSimulation = isMainActive
     ? context.currentSimulation
-    : currentState.mainSimulation;
+    : scenariosState.mainSimulation;
   const mainModelVersion = isMainActive
     ? context.currentModelVersion
-    : currentState.mainModelVersion;
+    : scenariosState.mainModelVersion;
 
-  const updatedScenarios = new Map(currentState.scenarios);
+  const updatedScenarios = new Map(scenariosState.scenarios);
 
-  if (!isMainActive && currentState.activeScenarioId) {
-    const currentScenario = currentState.scenarios.get(
-      currentState.activeScenarioId,
+  if (!isMainActive && scenariosState.activeScenarioId) {
+    const currentScenario = scenariosState.scenarios.get(
+      scenariosState.activeScenarioId,
     );
     if (currentScenario) {
-      updatedScenarios.set(currentState.activeScenarioId, {
+      updatedScenarios.set(scenariosState.activeScenarioId, {
         ...currentScenario,
         momentLog: context.currentMomentLog,
         simulation: context.currentSimulation,
@@ -40,7 +40,7 @@ export const createScenario = (
     }
   }
 
-  const newNumber = currentState.highestScenarioNumber + 1;
+  const newNumber = scenariosState.highestScenarioNumber + 1;
   const newMomentLog = new MomentLog();
   newMomentLog.setSnapshot(baseSnapshot.moment, baseSnapshot.stateId);
 
@@ -61,7 +61,7 @@ export const createScenario = (
     scenarioName: newScenario.name,
     simulation: null,
     state: {
-      ...currentState,
+      ...scenariosState,
       scenarios: updatedScenarios,
       highestScenarioNumber: newNumber,
       activeScenarioId: newScenario.id,

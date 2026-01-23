@@ -3,7 +3,7 @@ import { useCallback } from "react";
 import { usePersistence } from "src/lib/persistence/context";
 import { MemPersistence } from "src/lib/persistence/memory";
 import { scenariosAtom } from "src/state/scenarios";
-import { simulationAtom, initialSimulationState } from "src/state/jotai";
+import { initialSimulationState, simulationAtom } from "src/state/jotai";
 import { modeAtom, Mode } from "src/state/mode";
 import {
   createScenario,
@@ -29,16 +29,16 @@ const DRAWING_MODES: Mode[] = [
 export const useScenarioOperations = () => {
   const persistence = usePersistence() as MemPersistence;
   const [scenariosState, setScenariosState] = useAtom(scenariosAtom);
-  const [simulation, setSimulation] = useAtom(simulationAtom);
+  const setSimulation = useSetAtom(simulationAtom);
   const setMode = useSetAtom(modeAtom);
 
   const getContext = useCallback(
     (): ScenarioContext => ({
       currentMomentLog: persistence.getMomentLog(),
       currentModelVersion: persistence.getModelVersion(),
-      currentSimulation: simulation,
+      currentSimulation: persistence.getSimulation(),
     }),
-    [persistence, simulation],
+    [persistence],
   );
 
   const switchToMain = useCallback(() => {

@@ -12,6 +12,7 @@ import { generateKeyBetween } from "fractional-indexing";
 import type { ScenarioApplyTarget } from "src/lib/scenarios/types";
 import type { BaseModelSnapshot } from "src/state/scenarios";
 import {
+  type SimulationState,
   Data,
   dataAtom,
   Store,
@@ -161,6 +162,10 @@ export class MemPersistence implements IPersistence {
 
   getMomentLog(): MomentLog {
     return this.store.get(momentLogAtom);
+  }
+
+  getSimulation(): SimulationState {
+    return this.store.get(simulationAtom);
   }
 
   captureModelSnapshot(): BaseModelSnapshot {
