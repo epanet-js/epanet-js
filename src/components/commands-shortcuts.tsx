@@ -86,13 +86,15 @@ import {
   useChangeTimestep,
 } from "src/commands/change-timestep";
 import {
-  createScenarioShortcut,
   toggleScenarioShortcut,
   cycleScenarioShortcut,
-  useCreateScenario,
   useToggleScenario,
   useCycleScenario,
 } from "src/commands/scenario-shortcuts";
+import {
+  createScenarioShortcut,
+  useCreateScenario,
+} from "src/commands/create-scenario";
 
 const IGNORE_ROLES = new Set(["menuitem"]);
 
@@ -435,14 +437,9 @@ export const CommandShortcuts = () => {
     (e) => {
       e.preventDefault();
       if (isMainReadonly) return;
-      const { scenarioId, scenarioName } = createScenario();
-      userTracking.capture({
-        name: "scenario.created",
-        scenarioId,
-        scenarioName,
-      });
+      createScenario({ source: "shortcut" });
     },
-    [createScenario, isMainReadonly, userTracking],
+    [createScenario, isMainReadonly],
     "Create new scenario",
   );
 

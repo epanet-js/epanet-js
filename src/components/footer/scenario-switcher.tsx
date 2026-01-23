@@ -10,16 +10,13 @@ import {
   MoreActionsIcon,
   DeleteIcon,
   RenameIcon,
-  SuccessIcon,
 } from "src/icons";
-import { notify } from "src/components/notifications";
 import { useTranslate } from "src/hooks/use-translate";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useScenarioOperations } from "src/hooks/use-scenario-operations";
 import { scenariosAtom, scenariosListAtom } from "src/state/scenarios";
 import { dialogAtom } from "src/state/jotai";
-import { useAuth } from "src/auth";
-import { limits } from "src/user-plan";
+import { useCreateScenario } from "src/commands/create-scenario";
 import {
   Button,
   DDContent,
@@ -35,13 +32,11 @@ export const ScenarioSwitcher = () => {
   const scenariosState = useAtomValue(scenariosAtom);
   const scenariosList = useAtomValue(scenariosListAtom);
   const setDialog = useSetAtom(dialogAtom);
-  const { user } = useAuth();
+  const createScenario = useCreateScenario();
 
-  // Use the new hook for scenario operations
   const {
     switchToMain,
     switchToScenario,
-    createNewScenario,
     deleteScenarioById,
     renameScenarioById,
   } = useScenarioOperations();
@@ -80,28 +75,7 @@ export const ScenarioSwitcher = () => {
   };
 
   const handleCreateScenario = () => {
-    const isFirstTimeEnabling = scenariosList.length === 0;
-
-    if (isFirstTimeEnabling && !limits.canUseScenarios(user.plan)) {
-      setDialog({ type: "scenariosPaywall" });
-      userTracking.capture({ name: "scenariosPaywall.triggered" });
-      return;
-    }
-
-    const { scenarioId, scenarioName } = createNewScenario();
-
-    userTracking.capture({
-      name: "scenario.created",
-      scenarioId,
-      scenarioName,
-    });
-
-    notify({
-      variant: "success",
-      title: translate("scenarios.created"),
-      Icon: SuccessIcon,
-      duration: 3000,
-    });
+    createScenario({ source: "scenario-switcher" });
   };
 
   const handleDeleteScenario = (scenarioId: string) => {

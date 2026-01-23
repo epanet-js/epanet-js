@@ -17,10 +17,10 @@ import {
   nextTimestepShortcut,
 } from "src/commands/change-timestep";
 import {
-  createScenarioShortcut,
   toggleScenarioShortcut,
   cycleScenarioShortcut,
 } from "src/commands/scenario-shortcuts";
+import { createScenarioShortcut } from "src/commands/create-scenario";
 
 export const SEARCH_KEYBINDING = "Command+k";
 

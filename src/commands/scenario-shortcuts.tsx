@@ -2,11 +2,7 @@ import { useAtomValue } from "jotai";
 import { useCallback } from "react";
 import { useScenarioOperations } from "src/hooks/use-scenario-operations";
 import { scenariosAtom, scenariosListAtom } from "src/state/scenarios";
-import { notify } from "src/components/notifications";
-import { SuccessIcon } from "src/icons";
-import { useTranslate } from "src/hooks/use-translate";
 
-export const createScenarioShortcut = "alt+y";
 export const cycleScenarioShortcut = "y";
 export const toggleScenarioShortcut = "shift+y";
 
@@ -65,22 +61,4 @@ export const useCycleScenario = () => {
       switchToScenario(scenariosList[nextIndex].id);
     }
   }, [scenariosState, scenariosList, switchToScenario]);
-};
-
-export const useCreateScenario = () => {
-  const { createNewScenario } = useScenarioOperations();
-  const translate = useTranslate();
-
-  return useCallback(() => {
-    const result = createNewScenario();
-
-    notify({
-      variant: "success",
-      title: translate("scenarios.created"),
-      Icon: SuccessIcon,
-      duration: 3000,
-    });
-
-    return result;
-  }, [createNewScenario, translate]);
 };
