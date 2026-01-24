@@ -18,7 +18,7 @@ export interface BaseModelSnapshot {
   stateId: string;
 }
 
-export interface ScenariosState {
+export interface Worktree {
   activeScenarioId: string | null;
   lastActiveScenarioId: string | null;
   scenarios: Map<string, Scenario>;
@@ -29,7 +29,7 @@ export interface ScenariosState {
   mainModelVersion: string | null;
 }
 
-export const initialScenariosState: ScenariosState = {
+export const initialWorktree: Worktree = {
   activeScenarioId: null,
   lastActiveScenarioId: null,
   scenarios: new Map(),
@@ -40,10 +40,10 @@ export const initialScenariosState: ScenariosState = {
   mainModelVersion: null,
 };
 
-export const scenariosAtom = atom<ScenariosState>(initialScenariosState);
+export const worktreeAtom = atom<Worktree>(initialWorktree);
 
 export const scenariosListAtom = atom((get) => {
-  const state = get(scenariosAtom);
+  const state = get(worktreeAtom);
   return Array.from(state.scenarios.values()).sort(
     (a, b) => a.createdAt - b.createdAt,
   );

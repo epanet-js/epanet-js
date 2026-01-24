@@ -2,7 +2,7 @@ import { useAtom, useSetAtom } from "jotai";
 import { useCallback } from "react";
 import { usePersistence } from "src/lib/persistence/context";
 import { MemPersistence } from "src/lib/persistence/memory";
-import { scenariosAtom } from "src/state/scenarios";
+import { worktreeAtom } from "src/state/scenarios";
 import { initialSimulationState, simulationAtom } from "src/state/jotai";
 import { modeAtom, Mode } from "src/state/mode";
 import {
@@ -28,7 +28,7 @@ const DRAWING_MODES: Mode[] = [
 
 export const useScenarioOperations = () => {
   const persistence = usePersistence() as MemPersistence;
-  const [scenariosState, setScenariosState] = useAtom(scenariosAtom);
+  const [worktree, setWorktree] = useAtom(worktreeAtom);
   const setSimulation = useSetAtom(simulationAtom);
   const setMode = useSetAtom(modeAtom);
 
@@ -42,13 +42,13 @@ export const useScenarioOperations = () => {
   );
 
   const switchToMain = useCallback(() => {
-    const result = switchToMainFn(scenariosState, getContext());
+    const result = switchToMainFn(worktree, getContext());
 
     if (result.applyTarget) {
       persistence.applyScenarioTarget(result.applyTarget);
     }
 
-    setScenariosState(result.state);
+    setWorktree(result.state);
     setSimulation(getSimulationForState(result.state, initialSimulationState));
 
     setMode((modeState) => {
@@ -57,75 +57,58 @@ export const useScenarioOperations = () => {
       }
       return modeState;
     });
-  }, [
-    persistence,
-    scenariosState,
-    getContext,
-    setScenariosState,
-    setSimulation,
-    setMode,
-  ]);
+  }, [persistence, worktree, getContext, setWorktree, setSimulation, setMode]);
 
   const switchToScenario = useCallback(
     (scenarioId: string) => {
-      const result = switchToScenarioFn(
-        scenariosState,
-        scenarioId,
-        getContext(),
-      );
+      const result = switchToScenarioFn(worktree, scenarioId, getContext());
 
       if (result.applyTarget) {
         persistence.applyScenarioTarget(result.applyTarget);
       }
 
-      setScenariosState(result.state);
+      setWorktree(result.state);
       setSimulation(
         getSimulationForState(result.state, initialSimulationState),
       );
     },
-    [persistence, scenariosState, getContext, setScenariosState, setSimulation],
+    [persistence, worktree, getContext, setWorktree, setSimulation],
   );
 
   const createNewScenario = useCallback(() => {
     const baseSnapshot =
-      scenariosState.baseModelSnapshot ?? persistence.captureModelSnapshot();
+      worktree.baseModelSnapshot ?? persistence.captureModelSnapshot();
 
-    const result = createScenario(scenariosState, getContext(), baseSnapshot);
+    const result = createScenario(worktree, getContext(), baseSnapshot);
 
     persistence.applyScenarioTarget(result.applyTarget);
-    setScenariosState(result.state);
+    setWorktree(result.state);
     setSimulation(initialSimulationState);
 
     return { scenarioId: result.scenarioId, scenarioName: result.scenarioName };
-  }, [
-    persistence,
-    scenariosState,
-    getContext,
-    setScenariosState,
-    setSimulation,
-  ]);
+  }, [persistence, worktree, getContext, setWorktree, setSimulation]);
 
   const deleteScenarioById = useCallback(
     (scenarioId: string) => {
-      const result = deleteScenario(scenariosState, scenarioId);
+      const result = deleteScenario(worktree, scenarioId);
 
       if (result.applyTarget) {
         persistence.applyScenarioTarget(result.applyTarget);
       }
 
-      setScenariosState(result.state);
+      setWorktree(result.state);
       setSimulation(
         getSimulationForState(result.state, initialSimulationState),
       );
     },
-    [persistence, scenariosState, setScenariosState, setSimulation],
+    [persistence, worktree, setWorktree, setSimulation],
   );
 
   const renameScenarioById = useCallback(
     (scenarioId: string, newName: string) => {
-      setScenariosState(renameScenario(scenariosState, scenarioId, newName));
+      setWorktree(renameScenario(worktree, scenarioId, newName));
     },
-    [scenariosState, setScenariosState],
+    [worktree, setWorktree],
   );
 
   return {

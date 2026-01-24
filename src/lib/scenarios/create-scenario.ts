@@ -1,37 +1,35 @@
 import type {
   BaseModelSnapshot,
   Scenario,
-  ScenariosState,
+  Worktree,
 } from "src/state/scenarios";
 import type { ScenarioContext, CreateScenarioResult } from "./types";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { nanoid } from "nanoid";
 
 export const createScenario = (
-  scenariosState: ScenariosState,
+  worktree: Worktree,
   context: ScenarioContext,
   baseSnapshot: BaseModelSnapshot,
 ): CreateScenarioResult => {
-  const isMainActive = scenariosState.activeScenarioId === null;
+  const isMainActive = worktree.activeScenarioId === null;
 
   const mainMomentLog = isMainActive
     ? context.currentMomentLog
-    : scenariosState.mainMomentLog;
+    : worktree.mainMomentLog;
   const mainSimulation = isMainActive
     ? context.currentSimulation
-    : scenariosState.mainSimulation;
+    : worktree.mainSimulation;
   const mainModelVersion = isMainActive
     ? context.currentModelVersion
-    : scenariosState.mainModelVersion;
+    : worktree.mainModelVersion;
 
-  const updatedScenarios = new Map(scenariosState.scenarios);
+  const updatedScenarios = new Map(worktree.scenarios);
 
-  if (!isMainActive && scenariosState.activeScenarioId) {
-    const currentScenario = scenariosState.scenarios.get(
-      scenariosState.activeScenarioId,
-    );
+  if (!isMainActive && worktree.activeScenarioId) {
+    const currentScenario = worktree.scenarios.get(worktree.activeScenarioId);
     if (currentScenario) {
-      updatedScenarios.set(scenariosState.activeScenarioId, {
+      updatedScenarios.set(worktree.activeScenarioId, {
         ...currentScenario,
         momentLog: context.currentMomentLog,
         simulation: context.currentSimulation,
@@ -40,7 +38,7 @@ export const createScenario = (
     }
   }
 
-  const newNumber = scenariosState.highestScenarioNumber + 1;
+  const newNumber = worktree.highestScenarioNumber + 1;
   const newMomentLog = new MomentLog();
   newMomentLog.setSnapshot(baseSnapshot.moment, baseSnapshot.stateId);
 
@@ -61,7 +59,7 @@ export const createScenario = (
     scenarioName: newScenario.name,
     simulation: null,
     state: {
-      ...scenariosState,
+      ...worktree,
       scenarios: updatedScenarios,
       highestScenarioNumber: newNumber,
       activeScenarioId: newScenario.id,

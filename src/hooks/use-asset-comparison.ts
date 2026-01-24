@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useAtomValue } from "jotai";
-import { scenariosAtom } from "src/state/scenarios";
+import { worktreeAtom } from "src/state/scenarios";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import type { Asset } from "src/hydraulic-model";
 import type { CurveId, ICurve } from "src/hydraulic-model/curves";
@@ -12,26 +12,25 @@ export type PropertyComparison = {
 };
 
 export function useAssetComparison(asset: Asset | undefined) {
-  const scenariosState = useAtomValue(scenariosAtom);
+  const worktree = useAtomValue(worktreeAtom);
   const isScenariosOn = useFeatureFlag("FLAG_SCENARIOS");
-  const isInScenario =
-    isScenariosOn && scenariosState.activeScenarioId !== null;
+  const isInScenario = isScenariosOn && worktree.activeScenarioId !== null;
 
   const baseAsset = useMemo(() => {
-    if (!isInScenario || !asset || !scenariosState.baseModelSnapshot) {
+    if (!isInScenario || !asset || !worktree.baseModelSnapshot) {
       return undefined;
     }
-    return scenariosState.baseModelSnapshot.moment.putAssets?.find(
+    return worktree.baseModelSnapshot.moment.putAssets?.find(
       (a) => a.id === asset.id,
     );
-  }, [isInScenario, asset, scenariosState.baseModelSnapshot]);
+  }, [isInScenario, asset, worktree.baseModelSnapshot]);
 
   const isNew = isInScenario && asset !== undefined && baseAsset === undefined;
 
   const baseCurves = useMemo(() => {
-    if (!isInScenario || !scenariosState.baseModelSnapshot) return undefined;
-    return scenariosState.baseModelSnapshot.moment.putCurves;
-  }, [isInScenario, scenariosState.baseModelSnapshot]);
+    if (!isInScenario || !worktree.baseModelSnapshot) return undefined;
+    return worktree.baseModelSnapshot.moment.putCurves;
+  }, [isInScenario, worktree.baseModelSnapshot]);
 
   const getBaseCurve = (curveId: CurveId | undefined): ICurve | undefined => {
     if (!curveId || !baseCurves) return undefined;

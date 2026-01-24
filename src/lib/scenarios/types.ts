@@ -1,5 +1,5 @@
 import type { MomentLog } from "src/lib/persistence/moment-log";
-import type { BaseModelSnapshot, ScenariosState } from "src/state/scenarios";
+import type { BaseModelSnapshot, Worktree } from "src/state/scenarios";
 import type { SimulationState } from "src/state/jotai";
 
 export type ScenarioApplyTarget = {
@@ -15,7 +15,7 @@ export interface ScenarioContext {
 }
 
 export interface ScenarioOperationResult {
-  state: ScenariosState;
+  state: Worktree;
   applyTarget: ScenarioApplyTarget;
   simulation: SimulationState | null;
 }

@@ -5,7 +5,7 @@ import { Button } from "src/components/elements";
 import { Selector } from "src/components/form/selector";
 import { useTranslate } from "src/hooks/use-translate";
 import { dataAtom, simulationAtom } from "src/state/jotai";
-import { scenariosAtom } from "src/state/scenarios";
+import { worktreeAtom } from "src/state/scenarios";
 import { getSimulationMetadata } from "src/simulation/epanet/simulation-metadata";
 import {
   assetPanelFooterAtom,
@@ -110,18 +110,18 @@ const QuickGraphSection = ({
   const [footerState, setFooterState] = useAtom(assetPanelFooterAtom);
   const [propertyByType, setPropertyByType] = useAtom(quickGraphPropertyAtom);
   const simulation = useAtomValue(simulationAtom);
-  const scenariosState = useAtomValue(scenariosAtom);
+  const worktree = useAtomValue(worktreeAtom);
   const {
     hydraulicModel,
     modelMetadata: { quantities },
   } = useAtomValue(dataAtom);
   const { changeTimestep } = useChangeTimestep();
 
-  const activeScenario = scenariosState.activeScenarioId
-    ? scenariosState.scenarios.get(scenariosState.activeScenarioId)
+  const activeScenario = worktree.activeScenarioId
+    ? worktree.scenarios.get(worktree.activeScenarioId)
     : null;
   const scenarioName = activeScenario?.name ?? null;
-  const mainLabel = scenariosState.activeScenarioId
+  const mainLabel = worktree.activeScenarioId
     ? translate("scenarios.main")
     : null;
 

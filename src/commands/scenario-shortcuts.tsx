@@ -1,18 +1,18 @@
 import { useAtomValue } from "jotai";
 import { useCallback } from "react";
 import { useScenarioOperations } from "src/hooks/use-scenario-operations";
-import { scenariosAtom, scenariosListAtom } from "src/state/scenarios";
+import { worktreeAtom, scenariosListAtom } from "src/state/scenarios";
 
 export const cycleScenarioShortcut = "y";
 export const toggleScenarioShortcut = "shift+y";
 
 export const useToggleScenario = () => {
-  const scenariosState = useAtomValue(scenariosAtom);
+  const worktree = useAtomValue(worktreeAtom);
   const { switchToMain, switchToScenario } = useScenarioOperations();
 
   return useCallback(() => {
-    const isMainActive = scenariosState.activeScenarioId === null;
-    const hasScenarios = scenariosState.scenarios.size > 0;
+    const isMainActive = worktree.activeScenarioId === null;
+    const hasScenarios = worktree.scenarios.size > 0;
 
     if (!hasScenarios) {
       return;
@@ -20,10 +20,10 @@ export const useToggleScenario = () => {
 
     if (isMainActive) {
       const targetScenarioId =
-        scenariosState.lastActiveScenarioId &&
-        scenariosState.scenarios.has(scenariosState.lastActiveScenarioId)
-          ? scenariosState.lastActiveScenarioId
-          : Array.from(scenariosState.scenarios.values()).sort(
+        worktree.lastActiveScenarioId &&
+        worktree.scenarios.has(worktree.lastActiveScenarioId)
+          ? worktree.lastActiveScenarioId
+          : Array.from(worktree.scenarios.values()).sort(
               (a, b) => a.createdAt - b.createdAt,
             )[0]?.id;
 
@@ -33,11 +33,11 @@ export const useToggleScenario = () => {
     } else {
       switchToMain();
     }
-  }, [scenariosState, switchToMain, switchToScenario]);
+  }, [worktree, switchToMain, switchToScenario]);
 };
 
 export const useCycleScenario = () => {
-  const scenariosState = useAtomValue(scenariosAtom);
+  const worktree = useAtomValue(worktreeAtom);
   const scenariosList = useAtomValue(scenariosListAtom);
   const { switchToScenario } = useScenarioOperations();
 
@@ -48,7 +48,7 @@ export const useCycleScenario = () => {
       return;
     }
 
-    const currentScenarioId = scenariosState.activeScenarioId;
+    const currentScenarioId = worktree.activeScenarioId;
     const isMainActive = currentScenarioId === null;
 
     if (isMainActive) {
@@ -60,5 +60,5 @@ export const useCycleScenario = () => {
       const nextIndex = (currentIndex + 1) % scenariosList.length;
       switchToScenario(scenariosList[nextIndex].id);
     }
-  }, [scenariosState, scenariosList, switchToScenario]);
+  }, [worktree, scenariosList, switchToScenario]);
 };

@@ -13,7 +13,7 @@ import { useDrawingMode } from "./set-drawing-mode";
 import { Mode } from "src/state/mode";
 import { getAppId } from "src/infra/app-instance";
 import { OPFSStorage } from "src/infra/storage";
-import { scenariosAtom } from "src/state/scenarios";
+import { worktreeAtom } from "src/state/scenarios";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export const runSimulationShortcut = "shift+enter";
@@ -24,7 +24,7 @@ export const useRunSimulation = () => {
   const { hydraulicModel } = useAtomValue(dataAtom);
   const setData = useSetAtom(dataAtom);
   const setDrawingMode = useDrawingMode();
-  const scenariosState = useAtomValue(scenariosAtom);
+  const worktree = useAtomValue(worktreeAtom);
   const isScenariosOn = useFeatureFlag("FLAG_SCENARIOS");
   const isCustomerDemandsOn = useFeatureFlag("FLAG_CUSTOMER_DEMANDS");
 
@@ -56,7 +56,7 @@ export const useRunSimulation = () => {
 
       const appId = getAppId();
       const scenarioKey = isScenariosOn
-        ? (scenariosState.activeScenarioId ?? "main")
+        ? (worktree.activeScenarioId ?? "main")
         : undefined;
       const { report, status, metadata } = await runSimulationWorker(
         inp,
@@ -115,7 +115,7 @@ export const useRunSimulation = () => {
       setData,
       isScenariosOn,
       isCustomerDemandsOn,
-      scenariosState.activeScenarioId,
+      worktree.activeScenarioId,
     ],
   );
 

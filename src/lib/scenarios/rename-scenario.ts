@@ -1,15 +1,15 @@
-import type { ScenariosState } from "src/state/scenarios";
+import type { Worktree } from "src/state/scenarios";
 
 export const renameScenario = (
-  scenariosState: ScenariosState,
+  worktree: Worktree,
   scenarioId: string,
   newName: string,
-): ScenariosState => {
-  const scenario = scenariosState.scenarios.get(scenarioId);
-  if (!scenario) return scenariosState;
+): Worktree => {
+  const scenario = worktree.scenarios.get(scenarioId);
+  if (!scenario) return worktree;
 
-  const updatedScenarios = new Map(scenariosState.scenarios);
+  const updatedScenarios = new Map(worktree.scenarios);
   updatedScenarios.set(scenarioId, { ...scenario, name: newName });
 
-  return { ...scenariosState, scenarios: updatedScenarios };
+  return { ...worktree, scenarios: updatedScenarios };
 };

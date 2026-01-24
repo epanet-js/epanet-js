@@ -1,14 +1,14 @@
 import { useAtomValue } from "jotai";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { scenariosAtom } from "src/state/scenarios";
+import { worktreeAtom } from "src/state/scenarios";
 
 export const useIsMainReadonly = () => {
   const isScenariosOn = useFeatureFlag("FLAG_SCENARIOS");
-  const scenariosState = useAtomValue(scenariosAtom);
+  const worktree = useAtomValue(worktreeAtom);
 
   return (
     isScenariosOn &&
-    scenariosState.scenarios.size > 0 &&
-    scenariosState.activeScenarioId === null
+    worktree.scenarios.size > 0 &&
+    worktree.activeScenarioId === null
   );
 };

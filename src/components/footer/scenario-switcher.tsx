@@ -14,7 +14,7 @@ import {
 import { useTranslate } from "src/hooks/use-translate";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useScenarioOperations } from "src/hooks/use-scenario-operations";
-import { scenariosAtom, scenariosListAtom } from "src/state/scenarios";
+import { worktreeAtom, scenariosListAtom } from "src/state/scenarios";
 import { dialogAtom } from "src/state/jotai";
 import { useCreateScenario } from "src/commands/create-scenario";
 import {
@@ -29,7 +29,7 @@ import {
 export const ScenarioSwitcher = () => {
   const translate = useTranslate();
   const userTracking = useUserTracking();
-  const scenariosState = useAtomValue(scenariosAtom);
+  const worktree = useAtomValue(worktreeAtom);
   const scenariosList = useAtomValue(scenariosListAtom);
   const setDialog = useSetAtom(dialogAtom);
   const createScenario = useCreateScenario();
@@ -41,12 +41,12 @@ export const ScenarioSwitcher = () => {
     renameScenarioById,
   } = useScenarioOperations();
 
-  const activeScenarioId = scenariosState.activeScenarioId;
+  const activeScenarioId = worktree.activeScenarioId;
   const isMainActive = activeScenarioId === null;
 
   const activeDisplayName = isMainActive
     ? translate("scenarios.main")
-    : (scenariosState.scenarios.get(activeScenarioId)?.name ??
+    : (worktree.scenarios.get(activeScenarioId)?.name ??
       translate("scenarios.main"));
 
   const handleSelectMain = () => {
@@ -64,7 +64,7 @@ export const ScenarioSwitcher = () => {
   const handleSelectScenario = (scenarioId: string) => {
     if (activeScenarioId === scenarioId) return;
 
-    const scenario = scenariosState.scenarios.get(scenarioId);
+    const scenario = worktree.scenarios.get(scenarioId);
     userTracking.capture({
       name: "scenario.switched",
       scenarioId,

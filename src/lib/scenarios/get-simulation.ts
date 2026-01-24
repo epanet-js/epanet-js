@@ -1,8 +1,8 @@
-import type { ScenariosState } from "src/state/scenarios";
+import type { Worktree } from "src/state/scenarios";
 import type { SimulationState } from "src/state/jotai";
 
 export const getSimulationForState = (
-  state: ScenariosState,
+  state: Worktree,
   initialSimulationState: SimulationState,
 ): SimulationState => {
   if (state.activeScenarioId === null) {

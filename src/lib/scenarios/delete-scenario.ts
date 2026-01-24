@@ -1,52 +1,49 @@
-import {
-  initialScenariosState,
-  type ScenariosState,
-} from "src/state/scenarios";
+import { initialWorktree, type Worktree } from "src/state/scenarios";
 import type { ScenarioOperationResult } from "./types";
 
 export const deleteScenario = (
-  scenariosState: ScenariosState,
+  worktree: Worktree,
   scenarioId: string,
 ): ScenarioOperationResult => {
-  const scenarioToDelete = scenariosState.scenarios.get(scenarioId);
+  const scenarioToDelete = worktree.scenarios.get(scenarioId);
   if (!scenarioToDelete) {
-    return { state: scenariosState, applyTarget: null, simulation: null };
+    return { state: worktree, applyTarget: null, simulation: null };
   }
 
-  const remainingScenarios = Array.from(scenariosState.scenarios.values())
+  const remainingScenarios = Array.from(worktree.scenarios.values())
     .filter((s) => s.id !== scenarioId)
     .sort((a, b) => a.createdAt - b.createdAt);
 
-  const isDeletedActive = scenariosState.activeScenarioId === scenarioId;
+  const isDeletedActive = worktree.activeScenarioId === scenarioId;
 
   if (remainingScenarios.length === 0) {
     return {
-      state: initialScenariosState,
-      applyTarget: scenariosState.mainMomentLog
+      state: initialWorktree,
+      applyTarget: worktree.mainMomentLog
         ? {
-            baseSnapshot: scenariosState.baseModelSnapshot!,
-            momentLog: scenariosState.mainMomentLog,
-            modelVersion: scenariosState.mainModelVersion!,
+            baseSnapshot: worktree.baseModelSnapshot!,
+            momentLog: worktree.mainMomentLog,
+            modelVersion: worktree.mainModelVersion!,
           }
         : null,
-      simulation: scenariosState.mainSimulation,
+      simulation: worktree.mainSimulation,
     };
   }
 
   if (isDeletedActive) {
     const nextScenario = remainingScenarios[0];
-    const updatedScenarios = new Map(scenariosState.scenarios);
+    const updatedScenarios = new Map(worktree.scenarios);
     updatedScenarios.delete(scenarioId);
 
     return {
       state: {
-        ...scenariosState,
+        ...worktree,
         scenarios: updatedScenarios,
         activeScenarioId: nextScenario.id,
         lastActiveScenarioId: nextScenario.id,
       },
       applyTarget: {
-        baseSnapshot: scenariosState.baseModelSnapshot!,
+        baseSnapshot: worktree.baseModelSnapshot!,
         momentLog: nextScenario.momentLog,
         modelVersion: nextScenario.modelVersion,
       },
@@ -54,17 +51,17 @@ export const deleteScenario = (
     };
   }
 
-  const updatedScenarios = new Map(scenariosState.scenarios);
+  const updatedScenarios = new Map(worktree.scenarios);
   updatedScenarios.delete(scenarioId);
 
   return {
     state: {
-      ...scenariosState,
+      ...worktree,
       scenarios: updatedScenarios,
       lastActiveScenarioId:
-        scenariosState.lastActiveScenarioId === scenarioId
+        worktree.lastActiveScenarioId === scenarioId
           ? null
-          : scenariosState.lastActiveScenarioId,
+          : worktree.lastActiveScenarioId,
     },
     applyTarget: null,
     simulation: null,
