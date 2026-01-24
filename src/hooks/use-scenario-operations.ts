@@ -49,8 +49,10 @@ export const useScenarioOperations = () => {
       persistence.applyScenarioTarget(result.applyTarget);
     }
 
-    setWorktree(result.state);
-    setSimulation(getSimulationForState(result.state, initialSimulationState));
+    setWorktree(result.worktree);
+    setSimulation(
+      getSimulationForState(result.worktree, initialSimulationState),
+    );
 
     setMode((modeState) => {
       if (DRAWING_MODES.includes(modeState.mode)) {
@@ -68,9 +70,9 @@ export const useScenarioOperations = () => {
         persistence.applyScenarioTarget(result.applyTarget);
       }
 
-      setWorktree(result.state);
+      setWorktree(result.worktree);
       setSimulation(
-        getSimulationForState(result.state, initialSimulationState),
+        getSimulationForState(result.worktree, initialSimulationState),
       );
     },
     [persistence, worktree, getContext, setWorktree, setSimulation],
@@ -93,7 +95,7 @@ export const useScenarioOperations = () => {
       persistence.applyScenarioTarget(result.applyTarget);
     }
 
-    setWorktree(result.state);
+    setWorktree(result.worktree);
     setSimulation(initialSimulationState);
 
     return {

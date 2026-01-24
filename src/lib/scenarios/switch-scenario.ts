@@ -1,14 +1,19 @@
 import type { Worktree } from "src/state/scenarios";
-import type { ScenarioContext, ScenarioOperationResult } from "./types";
+import type { ScenarioApplyTarget, ScenarioContext } from "./types";
+import { SimulationState } from "src/state/jotai";
 
 export const switchToScenario = (
   worktree: Worktree,
   scenarioId: string,
   context: ScenarioContext,
-): ScenarioOperationResult => {
+): {
+  worktree: Worktree;
+  applyTarget: ScenarioApplyTarget;
+  simulation: SimulationState | null;
+} => {
   if (worktree.activeScenarioId === scenarioId) {
     return {
-      state: worktree,
+      worktree,
       applyTarget: null,
       simulation: context.currentSimulation,
     };
@@ -40,7 +45,7 @@ export const switchToScenario = (
   }
 
   return {
-    state: {
+    worktree: {
       ...newState,
       activeScenarioId: scenarioId,
       lastActiveScenarioId: scenarioId,
@@ -57,10 +62,14 @@ export const switchToScenario = (
 export const switchToMain = (
   worktree: Worktree,
   context: ScenarioContext,
-): ScenarioOperationResult => {
+): {
+  worktree: Worktree;
+  applyTarget: ScenarioApplyTarget;
+  simulation: SimulationState | null;
+} => {
   if (worktree.activeScenarioId === null) {
     return {
-      state: worktree,
+      worktree,
       applyTarget: null,
       simulation: context.currentSimulation,
     };
@@ -80,7 +89,7 @@ export const switchToMain = (
   }
 
   return {
-    state: {
+    worktree: {
       ...worktree,
       scenarios: updatedScenarios,
       activeScenarioId: null,
