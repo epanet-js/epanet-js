@@ -79,13 +79,24 @@ export const useScenarioOperations = () => {
     const baseSnapshot =
       worktree.baseModelSnapshot ?? persistence.captureModelSnapshot();
 
-    const result = createScenario(worktree, getContext(), baseSnapshot);
+    const created = createScenario(worktree, baseSnapshot);
+    const result = switchToScenarioFn(
+      created.worktree,
+      created.scenario.id,
+      getContext(),
+    );
 
-    persistence.applyScenarioTarget(result.applyTarget);
+    if (result.applyTarget) {
+      persistence.applyScenarioTarget(result.applyTarget);
+    }
+
     setWorktree(result.state);
     setSimulation(initialSimulationState);
 
-    return { scenarioId: result.scenarioId, scenarioName: result.scenarioName };
+    return {
+      scenarioId: created.scenario.id,
+      scenarioName: created.scenario.name,
+    };
   }, [persistence, worktree, getContext, setWorktree, setSimulation]);
 
   const deleteScenarioById = useCallback(

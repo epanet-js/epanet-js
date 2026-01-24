@@ -19,8 +19,3 @@ export interface ScenarioOperationResult {
   applyTarget: ScenarioApplyTarget;
   simulation: SimulationState | null;
 }
-
-export interface CreateScenarioResult extends ScenarioOperationResult {
-  scenarioId: string;
-  scenarioName: string;
-}

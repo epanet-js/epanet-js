@@ -2,7 +2,6 @@ export type {
   ScenarioApplyTarget,
   ScenarioContext,
   ScenarioOperationResult,
-  CreateScenarioResult,
 } from "./types";
 export { createScenario } from "./create-scenario";
 export { switchToScenario, switchToMain } from "./switch-scenario";

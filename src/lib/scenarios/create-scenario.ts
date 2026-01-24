@@ -3,41 +3,13 @@ import type {
   Scenario,
   Worktree,
 } from "src/state/scenarios";
-import type { ScenarioContext, CreateScenarioResult } from "./types";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { nanoid } from "nanoid";
 
 export const createScenario = (
   worktree: Worktree,
-  context: ScenarioContext,
   baseSnapshot: BaseModelSnapshot,
-): CreateScenarioResult => {
-  const isMainActive = worktree.activeScenarioId === null;
-
-  const mainMomentLog = isMainActive
-    ? context.currentMomentLog
-    : worktree.mainMomentLog;
-  const mainSimulation = isMainActive
-    ? context.currentSimulation
-    : worktree.mainSimulation;
-  const mainModelVersion = isMainActive
-    ? context.currentModelVersion
-    : worktree.mainModelVersion;
-
-  const updatedScenarios = new Map(worktree.scenarios);
-
-  if (!isMainActive && worktree.activeScenarioId) {
-    const currentScenario = worktree.scenarios.get(worktree.activeScenarioId);
-    if (currentScenario) {
-      updatedScenarios.set(worktree.activeScenarioId, {
-        ...currentScenario,
-        momentLog: context.currentMomentLog,
-        simulation: context.currentSimulation,
-        modelVersion: context.currentModelVersion,
-      });
-    }
-  }
-
+): { scenario: Scenario; worktree: Worktree } => {
   const newNumber = worktree.highestScenarioNumber + 1;
   const newMomentLog = new MomentLog();
   newMomentLog.setSnapshot(baseSnapshot.moment, baseSnapshot.stateId);
@@ -52,26 +24,16 @@ export const createScenario = (
     modelVersion: baseSnapshot.stateId,
   };
 
+  const updatedScenarios = new Map(worktree.scenarios);
   updatedScenarios.set(newScenario.id, newScenario);
 
   return {
-    scenarioId: newScenario.id,
-    scenarioName: newScenario.name,
-    simulation: null,
-    state: {
+    scenario: newScenario,
+    worktree: {
       ...worktree,
       scenarios: updatedScenarios,
       highestScenarioNumber: newNumber,
-      activeScenarioId: newScenario.id,
       baseModelSnapshot: baseSnapshot,
-      mainMomentLog,
-      mainSimulation,
-      mainModelVersion,
-    },
-    applyTarget: {
-      baseSnapshot,
-      momentLog: newMomentLog,
-      modelVersion: baseSnapshot.stateId,
     },
   };
 };
