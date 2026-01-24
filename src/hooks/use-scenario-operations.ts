@@ -6,6 +6,7 @@ import { worktreeAtom } from "src/state/scenarios";
 import { initialSimulationState, simulationAtom } from "src/state/jotai";
 import { modeAtom, Mode } from "src/state/mode";
 import {
+  initializeWorktree,
   createScenario,
   switchToScenario as switchToScenarioFn,
   switchToMain as switchToMainFn,
@@ -76,10 +77,12 @@ export const useScenarioOperations = () => {
   );
 
   const createNewScenario = useCallback(() => {
-    const baseSnapshot =
-      worktree.baseModelSnapshot ?? persistence.captureModelSnapshot();
+    const initialized =
+      worktree.scenarios.size === 0
+        ? initializeWorktree(persistence.captureModelSnapshot(), getContext())
+        : worktree;
 
-    const created = createScenario(worktree, baseSnapshot);
+    const created = createScenario(initialized);
     const result = switchToScenarioFn(
       created.worktree,
       created.scenario.id,

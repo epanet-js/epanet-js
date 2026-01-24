@@ -3,6 +3,7 @@ export type {
   ScenarioContext,
   ScenarioOperationResult,
 } from "./types";
+export { initializeWorktree } from "./initialize-worktree";
 export { createScenario } from "./create-scenario";
 export { switchToScenario, switchToMain } from "./switch-scenario";
 export { deleteScenario } from "./delete-scenario";

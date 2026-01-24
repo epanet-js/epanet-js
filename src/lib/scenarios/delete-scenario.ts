@@ -19,13 +19,11 @@ export const deleteScenario = (
   if (remainingScenarios.length === 0) {
     return {
       state: initialWorktree,
-      applyTarget: worktree.mainMomentLog
-        ? {
-            baseSnapshot: worktree.baseModelSnapshot!,
-            momentLog: worktree.mainMomentLog,
-            modelVersion: worktree.mainModelVersion!,
-          }
-        : null,
+      applyTarget: {
+        baseSnapshot: worktree.baseModelSnapshot,
+        momentLog: worktree.mainMomentLog,
+        modelVersion: worktree.mainModelVersion,
+      },
       simulation: worktree.mainSimulation,
     };
   }
@@ -43,7 +41,7 @@ export const deleteScenario = (
         lastActiveScenarioId: nextScenario.id,
       },
       applyTarget: {
-        baseSnapshot: worktree.baseModelSnapshot!,
+        baseSnapshot: worktree.baseModelSnapshot,
         momentLog: nextScenario.momentLog,
         modelVersion: nextScenario.modelVersion,
       },

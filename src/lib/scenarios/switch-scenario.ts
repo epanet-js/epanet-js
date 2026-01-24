@@ -46,7 +46,7 @@ export const switchToScenario = (
       lastActiveScenarioId: scenarioId,
     },
     applyTarget: {
-      baseSnapshot: worktree.baseModelSnapshot!,
+      baseSnapshot: worktree.baseModelSnapshot,
       momentLog: scenario.momentLog,
       modelVersion: scenario.modelVersion,
     },
@@ -86,13 +86,11 @@ export const switchToMain = (
       activeScenarioId: null,
       lastActiveScenarioId,
     },
-    applyTarget: worktree.mainMomentLog
-      ? {
-          baseSnapshot: worktree.baseModelSnapshot!,
-          momentLog: worktree.mainMomentLog,
-          modelVersion: worktree.mainModelVersion!,
-        }
-      : null,
+    applyTarget: {
+      baseSnapshot: worktree.baseModelSnapshot,
+      momentLog: worktree.mainMomentLog,
+      modelVersion: worktree.mainModelVersion,
+    },
     simulation: worktree.mainSimulation,
   };
 };

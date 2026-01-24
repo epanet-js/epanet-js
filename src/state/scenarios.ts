@@ -1,7 +1,7 @@
 import { atom } from "jotai";
 import { MomentLog } from "src/lib/persistence/moment-log";
-import { Moment } from "src/lib/persistence/moment";
-import type { SimulationState } from "src/state/jotai";
+import type { Moment } from "src/lib/persistence/moment";
+import { type SimulationState, initialSimulationState } from "src/state/jotai";
 
 export interface Scenario {
   id: string;
@@ -23,21 +23,26 @@ export interface Worktree {
   lastActiveScenarioId: string | null;
   scenarios: Map<string, Scenario>;
   highestScenarioNumber: number;
-  baseModelSnapshot: BaseModelSnapshot | null;
-  mainMomentLog: MomentLog | null;
-  mainSimulation: SimulationState | null;
-  mainModelVersion: string | null;
+  baseModelSnapshot: BaseModelSnapshot;
+  mainMomentLog: MomentLog;
+  mainSimulation: SimulationState;
+  mainModelVersion: string;
 }
+
+const emptySnapshot: BaseModelSnapshot = {
+  moment: { note: "", putAssets: [], deleteAssets: [] },
+  stateId: "",
+};
 
 export const initialWorktree: Worktree = {
   activeScenarioId: null,
   lastActiveScenarioId: null,
   scenarios: new Map(),
   highestScenarioNumber: 0,
-  baseModelSnapshot: null,
-  mainMomentLog: null,
-  mainSimulation: null,
-  mainModelVersion: null,
+  baseModelSnapshot: emptySnapshot,
+  mainMomentLog: new MomentLog(),
+  mainSimulation: initialSimulationState,
+  mainModelVersion: "",
 };
 
 export const worktreeAtom = atom<Worktree>(initialWorktree);
