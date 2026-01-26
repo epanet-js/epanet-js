@@ -64,11 +64,11 @@ describe("build inp with controls", () => {
 
       expect(inp).toContain("[DEMANDS]");
       expect(inp).toContain("1\t5"); // constant demand
-      expect(inp).toContain(`1\t10\t${IDS.PAT1}`);
-      expect(inp).toContain(`1\t15\t${IDS.PAT2}`);
+      expect(inp).toContain(`1\t10\tresidential`);
+      expect(inp).toContain(`1\t15\tcommercial`);
       expect(inp).toContain("[PATTERNS]");
-      expect(inp).toContain(`${IDS.PAT1}\t0.8\t1.2\t1`);
-      expect(inp).toContain(`${IDS.PAT2}\t1\t1.5\t0.5`);
+      expect(inp).toContain(`residential\t0.8\t1.2\t1`);
+      expect(inp).toContain(`commercial\t1\t1.5\t0.5`);
     });
 
     it("omits pattern ID for constant demands (uses default pattern)", () => {
@@ -98,7 +98,7 @@ describe("build inp with controls", () => {
 
       const inp = buildInp(hydraulicModel);
 
-      expect(inp).toContain(`1\t30\t${IDS.PAT1}`);
+      expect(inp).toContain(`1\t30\tdaily`);
     });
   });
 
@@ -978,8 +978,8 @@ describe("build inp with controls", () => {
     });
   });
 
-  describe("constant pattern ID ", () => {
-    it("uses constant pattern ID 0 as default pattern", () => {
+  describe("constant pattern", () => {
+    it("uses 'constant' as default pattern label", () => {
       const IDS = { J1: 1 };
       const hydraulicModel = HydraulicModelBuilder.with()
         .aJunction(IDS.J1, { elevation: 10, demands: [{ baseDemand: 50 }] })
@@ -987,26 +987,27 @@ describe("build inp with controls", () => {
 
       const inp = buildInp(hydraulicModel);
 
-      expect(inp).toContain("Pattern\t0");
-      expect(inp).toContain("0\t1");
+      expect(inp).toContain("Pattern\tconstant");
+      expect(inp).toContain("constant\t1");
     });
 
-    it("constant pattern ID does not collide with user patterns", () => {
+    it("constant pattern does not collide with user patterns with same label", () => {
       const IDS = { J1: 1, PAT1: 100 };
       const hydraulicModel = HydraulicModelBuilder.with()
         .aJunction(IDS.J1, {
           elevation: 10,
           demands: [{ baseDemand: 50, patternId: IDS.PAT1 }],
         })
-        .aDemandPattern(IDS.PAT1, "CONSTANT", [1.2, 0.8, 1.0])
+        .aDemandPattern(IDS.PAT1, "constant", [1.2, 0.8, 1.0])
         .build();
 
       const inp = buildInp(hydraulicModel);
 
-      expect(inp).toContain("Pattern\t0");
-      expect(inp).toContain("0\t1");
-      // User pattern should still be there
-      expect(inp).toContain(`${IDS.PAT1}\t1.2\t0.8\t1`);
+      // System default pattern is registered first, so it gets "constant"
+      // User pattern with same label gets deduplicated to "constant.1"
+      expect(inp).toContain("constant\t1"); // system default pattern
+      expect(inp).toContain("constant.1\t1.2\t0.8\t1"); // user pattern
+      expect(inp).toContain("Pattern\tconstant"); // default pattern reference
     });
   });
 
@@ -1030,12 +1031,12 @@ describe("build inp with controls", () => {
       const inp = buildInp(hydraulicModel);
 
       expect(inp).toContain("[PATTERNS]");
-      expect(inp).toContain("Pattern\t0");
-      expect(inp).toContain("0\t1");
-      expect(inp).toContain(`${IDS.PAT1}\t0.8\t1.2\t1`);
+      expect(inp).toContain("Pattern\tconstant");
+      expect(inp).toContain("constant\t1");
+      expect(inp).toContain(`residential\t0.8\t1.2\t1`);
       // All patterns should be included by default
-      expect(inp).toContain(`${IDS.PAT2}\t1\t1.5\t0.5`);
-      expect(inp).toContain(`${IDS.PAT3}\t0.5\t1\t1.5`);
+      expect(inp).toContain(`commercial\t1\t1.5\t0.5`);
+      expect(inp).toContain(`industrial\t0.5\t1\t1.5`);
     });
 
     it("includes only used demand patterns when usedPatterns is true", () => {
@@ -1057,12 +1058,12 @@ describe("build inp with controls", () => {
       const inp = buildInp(hydraulicModel, { usedPatterns: true });
 
       expect(inp).toContain("[PATTERNS]");
-      expect(inp).toContain("Pattern\t0");
-      expect(inp).toContain("0\t1");
-      expect(inp).toContain(`${IDS.PAT1}\t0.8\t1.2\t1`);
+      expect(inp).toContain("Pattern\tconstant");
+      expect(inp).toContain("constant\t1");
+      expect(inp).toContain(`residential\t0.8\t1.2\t1`);
       // Unused patterns should not be included
-      expect(inp).not.toContain(`${IDS.PAT2}\t`);
-      expect(inp).not.toContain(`${IDS.PAT3}\t`);
+      expect(inp).not.toContain(`commercial\t`);
+      expect(inp).not.toContain(`industrial\t`);
     });
 
     it("includes patterns even when only used by demands with zero baseDemand by default", () => {
@@ -1077,8 +1078,8 @@ describe("build inp with controls", () => {
 
       const inp = buildInp(hydraulicModel);
 
-      expect(inp).toContain(`${IDS.PAT1}\t0.8\t1.2\t1`); // Pattern included by default
-      expect(inp).not.toContain(`1\t0\t${IDS.PAT1}`); // Demand not included (zero baseDemand)
+      expect(inp).toContain(`residential\t0.8\t1.2\t1`); // Pattern included by default
+      expect(inp).not.toContain(`1\t0\tresidential`); // Demand not included (zero baseDemand)
     });
 
     it("excludes patterns only used by demands with zero baseDemand when usedPatterns is true", () => {
@@ -1093,8 +1094,8 @@ describe("build inp with controls", () => {
 
       const inp = buildInp(hydraulicModel, { usedPatterns: true });
 
-      expect(inp).not.toContain(`${IDS.PAT1}\t`); // Pattern not included
-      expect(inp).not.toContain(`1\t0\t${IDS.PAT1}`); // Demand not included
+      expect(inp).not.toContain(`residential\t`); // Pattern not included
+      expect(inp).not.toContain(`1\t0\tresidential`); // Demand not included
     });
 
     it("includes pattern when multiple junctions reference it", () => {
@@ -1113,9 +1114,9 @@ describe("build inp with controls", () => {
 
       const inp = buildInp(hydraulicModel);
 
-      expect(inp).toContain(`${IDS.PAT1}\t0.8\t1.2\t1`);
-      expect(inp).toContain(`1\t25\t${IDS.PAT1}`);
-      expect(inp).toContain(`2\t50\t${IDS.PAT1}`);
+      expect(inp).toContain(`residential\t0.8\t1.2\t1`);
+      expect(inp).toContain(`1\t25\tresidential`);
+      expect(inp).toContain(`2\t50\tresidential`);
     });
 
     it("splits long patterns across multiple lines (8 factors per line)", () => {
@@ -1134,9 +1135,9 @@ describe("build inp with controls", () => {
 
       const inp = buildInp(hydraulicModel);
 
-      const line1 = `${IDS.PAT1}\t0.5\t0.4\t0.3\t0.3\t0.4\t0.6\t0.9\t1.2`;
-      const line2 = `${IDS.PAT1}\t1.3\t1.2\t1.1\t1\t1\t1.1\t1.2\t1.3`;
-      const line3 = `${IDS.PAT1}\t1.4\t1.3\t1.2\t1.1\t1\t0.9\t0.7\t0.6`;
+      const line1 = `hourly\t0.5\t0.4\t0.3\t0.3\t0.4\t0.6\t0.9\t1.2`;
+      const line2 = `hourly\t1.3\t1.2\t1.1\t1\t1\t1.1\t1.2\t1.3`;
+      const line3 = `hourly\t1.4\t1.3\t1.2\t1.1\t1\t0.9\t0.7\t0.6`;
       expect(inp).toContain(`${line1}\n${line2}\n${line3}`);
     });
   });

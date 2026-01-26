@@ -148,17 +148,12 @@ class EpanetIds {
   }
 
   registerPatternId(pattern: Pick<DemandPattern, "id" | "label">) {
-    switch (this.strategy) {
-      case "id":
-        return String(pattern.id);
-      case "label":
-        if (this.patternIds.has(pattern.id))
-          return this.patternIds.get(pattern.id)!;
-        const id = this.ensureUnique(this.patternLabels, pattern.label);
-        this.patternLabels.add(id);
-        this.patternIds.set(pattern.id, id);
-        return id;
-    }
+    if (this.patternIds.has(pattern.id))
+      return this.patternIds.get(pattern.id)!;
+    const label = this.ensureUnique(this.patternLabels, pattern.label);
+    this.patternLabels.add(label);
+    this.patternIds.set(pattern.id, label);
+    return label;
   }
 
   patternId(patternId: PatternId): string {

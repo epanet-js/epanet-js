@@ -75,13 +75,13 @@ describe("buildInpWithCustomerDemands", () => {
       expect(inp).toContain("[DEMANDS]");
       expect(inp).toContain("1\t50");
       // Residential pattern should have total of 25 (10 + 15)
-      expect(inp).toContain(`1\t25\t${IDS.PAT1}`);
+      expect(inp).toContain(`1\t25\tresidential`);
       // Commercial pattern should have total of 20
-      expect(inp).toContain(`1\t20\t${IDS.PAT2}`);
+      expect(inp).toContain(`1\t20\tcommercial`);
       // Patterns should be in the PATTERNS section
       expect(inp).toContain("[PATTERNS]");
-      expect(inp).toContain(`${IDS.PAT1}\t1\t1.2\t0.8`);
-      expect(inp).toContain(`${IDS.PAT2}\t0.5\t1.5\t1`);
+      expect(inp).toContain(`residential\t1\t1.2\t0.8`);
+      expect(inp).toContain(`commercial\t0.5\t1.5\t1`);
     });
 
     it("marks customer demands with epanetjs_customers comment for re-import", () => {
@@ -108,7 +108,7 @@ describe("buildInpWithCustomerDemands", () => {
       });
 
       // Customer demand should have the comment marker for re-import identification
-      expect(inp).toContain(`1\t25\t${IDS.PAT1}\t;epanetjs_customers`);
+      expect(inp).toContain(`1\t25\tresidential\t;epanetjs_customers`);
       // Junction's own demand should NOT have the comment marker
       expect(inp).toContain("1\t50");
       expect(inp).not.toContain("1\t50\t;epanetjs_customers");
@@ -229,8 +229,8 @@ describe("buildInpWithCustomerDemands", () => {
       });
 
       // All patterns should be in the output by default
-      expect(inp).toContain(`${IDS.PAT1}\t0.8\t1\t1.2\t1`);
-      expect(inp).toContain(`${IDS.PAT2}\t0.5\t1.5\t1`);
+      expect(inp).toContain(`daily_pattern\t0.8\t1\t1.2\t1`);
+      expect(inp).toContain(`unused_pattern\t0.5\t1.5\t1`);
     });
 
     it("includes only used patterns when usedPatterns is true", () => {
@@ -261,9 +261,9 @@ describe("buildInpWithCustomerDemands", () => {
       });
 
       // Used pattern should be in the output
-      expect(inp).toContain(`${IDS.PAT1}\t0.8\t1\t1.2\t1`);
+      expect(inp).toContain(`daily_pattern\t0.8\t1\t1.2\t1`);
       // Unused pattern should NOT be in the output
-      expect(inp).not.toContain(`${IDS.PAT2}`);
+      expect(inp).not.toContain(`unused_pattern`);
     });
   });
 
@@ -295,8 +295,8 @@ describe("buildInpWithCustomerDemands", () => {
       });
 
       expect(inp).toContain(";[CUSTOMERS_DEMANDS]");
-      expect(inp).toContain(`;${IDS.CP1}\t10\t${IDS.PAT1}`);
-      expect(inp).toContain(`;${IDS.CP1}\t5\t${IDS.PAT2}`);
+      expect(inp).toContain(`;${IDS.CP1}\t10\tpat1`);
+      expect(inp).toContain(`;${IDS.CP1}\t5\tpat2`);
     });
   });
 });

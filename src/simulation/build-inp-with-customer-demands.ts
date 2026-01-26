@@ -148,17 +148,13 @@ class EpanetIds {
   }
 
   registerPatternId(pattern: Pick<DemandPattern, "id" | "label">) {
-    switch (this.strategy) {
-      case "id":
-        return String(pattern.id);
-      case "label":
-        if (this.patternIds.has(pattern.id))
-          return this.patternIds.get(pattern.id)!;
-        const id = this.ensureUnique(this.patternLabels, pattern.label);
-        this.patternLabels.add(id);
-        this.patternIds.set(pattern.id, id);
-        return id;
-    }
+    // Always use labels for patterns, regardless of strategy
+    if (this.patternIds.has(pattern.id))
+      return this.patternIds.get(pattern.id)!;
+    const id = this.ensureUnique(this.patternLabels, pattern.label);
+    this.patternLabels.add(id);
+    this.patternIds.set(pattern.id, id);
+    return id;
   }
 
   patternId(patternId: PatternId): string {
