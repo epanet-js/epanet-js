@@ -14,8 +14,8 @@ import {
   deleteScenario,
   renameScenario,
   getSimulationForState,
-} from "src/lib/scenarios";
-import type { ScenarioContext } from "src/lib/scenarios";
+} from "src/lib/worktree";
+import type { ScenarioContext } from "src/lib/worktree";
 
 const DRAWING_MODES: Mode[] = [
   Mode.DRAW_JUNCTION,

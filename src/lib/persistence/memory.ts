@@ -11,7 +11,7 @@ import {
 import { generateKeyBetween } from "fractional-indexing";
 import type { BaseModelSnapshot } from "src/state/scenarios";
 import { worktreeAtom } from "src/state/scenarios";
-import type { Snapshot } from "src/lib/scenarios/types";
+import type { Snapshot } from "src/lib/worktree/types";
 import {
   type SimulationState,
   Data,

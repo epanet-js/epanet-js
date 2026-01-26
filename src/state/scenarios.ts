@@ -2,7 +2,7 @@ import { atom } from "jotai";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import type { Moment } from "src/lib/persistence/moment";
 import { initialSimulationState } from "src/state/jotai";
-import type { Snapshot } from "src/lib/scenarios/types";
+import type { Snapshot } from "src/lib/worktree/types";
 
 export interface BaseModelSnapshot {
   moment: Moment;
@@ -51,4 +51,4 @@ export const scenariosListAtom = atom((get) => {
     .filter((s): s is Snapshot => s !== undefined);
 });
 
-export type { Snapshot } from "src/lib/scenarios/types";
+export type { Snapshot } from "src/lib/worktree/types";
