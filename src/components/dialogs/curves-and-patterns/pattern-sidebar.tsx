@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import * as DD from "@radix-ui/react-dropdown-menu";
 import { useTranslate } from "src/hooks/use-translate";
 import {
@@ -56,16 +56,50 @@ export const PatternSidebar = ({
     }
   }, [patterns]);
 
-  const patternsList = Array.from(patterns.values());
   const isCreating = actionState?.action === "creating";
+  const patternIds = useMemo(() => Array.from(patterns.keys()), [patterns]);
 
   useEffect(
-    function autoScrollToNewItem() {
-      if (actionState?.action === "creating" && listRef.current) {
-        listRef.current.scrollTop = listRef.current.scrollHeight;
-      }
+    function autoScrollToSelectedItem() {
+      if (!selectedPatternId) return;
+      const item = listRef.current?.querySelector(
+        `[data-pattern-id="${selectedPatternId}"]`,
+      );
+      item?.scrollIntoView({ block: "nearest" });
     },
-    [actionState],
+    [selectedPatternId, patterns],
+  );
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLUListElement>) => {
+      if (e.key !== "ArrowUp" && e.key !== "ArrowDown") return;
+      if (patternIds.length === 0) return;
+
+      e.preventDefault();
+      e.stopPropagation();
+
+      const selectedIndex = selectedPatternId
+        ? patternIds.indexOf(selectedPatternId)
+        : -1;
+
+      let nextIndex: number;
+      if (e.key === "ArrowDown") {
+        nextIndex =
+          selectedIndex < patternIds.length - 1 ? selectedIndex + 1 : 0;
+      } else {
+        nextIndex =
+          selectedIndex > 0 ? selectedIndex - 1 : patternIds.length - 1;
+      }
+
+      const nextPatternId = patternIds[nextIndex];
+      onSelectPattern(nextPatternId);
+
+      const item = listRef.current?.querySelector(
+        `[data-pattern-id="${nextPatternId}"]`,
+      );
+      item?.scrollIntoView({ block: "nearest" });
+    },
+    [patternIds, selectedPatternId, onSelectPattern],
   );
 
   const handlePatternLabelChange = (name: string): boolean => {
@@ -99,8 +133,13 @@ export const PatternSidebar = ({
 
   return (
     <div className="w-56 flex-shrink-0 border-r border-gray-200 dark:border-gray-700 flex flex-col p-2 gap-2">
-      <ul ref={listRef} className="flex-1 overflow-y-auto gap-2">
-        {patternsList.map((pattern) => (
+      <ul
+        ref={listRef}
+        className="flex-1 overflow-y-auto gap-2 outline-none"
+        onKeyDown={handleKeyDown}
+        tabIndex={0}
+      >
+        {[...patterns.values()].map((pattern) => (
           <PatternSidebarItem
             key={pattern.id}
             pattern={pattern}
@@ -189,6 +228,7 @@ const PatternSidebarItem = ({
   return (
     <>
       <li
+        data-pattern-id={pattern.id}
         className={`group flex items-center justify-between text-sm cursor-pointer h-8 ${
           isSelected
             ? "bg-gray-200 dark:hover:bg-gray-700"
@@ -196,10 +236,10 @@ const PatternSidebarItem = ({
         }`}
       >
         <Button
-          variant="quiet"
+          variant="quiet/list"
           size="sm"
           onClick={onSelect}
-          className="flex-1 justify-start truncate hover:bg-transparent dark:hover:bg-transparent"
+          className="flex-1 justify-start truncate hover:bg-transparent dark:hover:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
         >
           {pattern.label}
         </Button>
