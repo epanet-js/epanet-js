@@ -7,24 +7,19 @@ export const deleteScenario = (
 ): ScenarioOperationResult => {
   const scenarioToDelete = worktree.scenarios.get(scenarioId);
   if (!scenarioToDelete) {
-    return { state: worktree, applyTarget: null, simulation: null };
+    return { worktree, snapshot: null };
   }
 
-  const remainingScenarios = Array.from(worktree.scenarios.values())
-    .filter((s) => s.id !== scenarioId)
-    .sort((a, b) => a.createdAt - b.createdAt);
+  const remainingScenarios = Array.from(worktree.scenarios.values()).filter(
+    (s) => s.id !== scenarioId,
+  );
 
   const isDeletedActive = worktree.activeScenarioId === scenarioId;
 
   if (remainingScenarios.length === 0) {
     return {
-      state: initialWorktree,
-      applyTarget: {
-        baseSnapshot: worktree.baseModelSnapshot,
-        momentLog: worktree.mainMomentLog,
-        modelVersion: worktree.mainModelVersion,
-      },
-      simulation: worktree.mainSimulation,
+      worktree: initialWorktree,
+      snapshot: worktree.mainRevision,
     };
   }
 
@@ -34,18 +29,13 @@ export const deleteScenario = (
     updatedScenarios.delete(scenarioId);
 
     return {
-      state: {
+      worktree: {
         ...worktree,
         scenarios: updatedScenarios,
         activeScenarioId: nextScenario.id,
         lastActiveScenarioId: nextScenario.id,
       },
-      applyTarget: {
-        baseSnapshot: worktree.baseModelSnapshot,
-        momentLog: nextScenario.momentLog,
-        modelVersion: nextScenario.modelVersion,
-      },
-      simulation: nextScenario.simulation,
+      snapshot: nextScenario,
     };
   }
 
@@ -53,7 +43,7 @@ export const deleteScenario = (
   updatedScenarios.delete(scenarioId);
 
   return {
-    state: {
+    worktree: {
       ...worktree,
       scenarios: updatedScenarios,
       lastActiveScenarioId:
@@ -61,7 +51,6 @@ export const deleteScenario = (
           ? null
           : worktree.lastActiveScenarioId,
     },
-    applyTarget: null,
-    simulation: null,
+    snapshot: null,
   };
 };

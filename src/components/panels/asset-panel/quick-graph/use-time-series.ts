@@ -43,7 +43,7 @@ export function useTimeSeries<T extends QuickGraphAssetType>({
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const isInScenario = isScenariosOn && worktree.activeScenarioId !== null;
-  const mainSimulation = worktree.mainSimulation;
+  const mainSimulation = worktree.mainRevision.simulation;
 
   const status = simulation.status;
   const metadata =

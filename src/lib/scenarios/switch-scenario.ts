@@ -1,22 +1,13 @@
 import type { Worktree } from "src/state/scenarios";
-import type { ScenarioApplyTarget, ScenarioContext } from "./types";
-import { SimulationState } from "src/state/jotai";
+import type { ScenarioContext, ScenarioOperationResult } from "./types";
 
 export const switchToScenario = (
   worktree: Worktree,
   scenarioId: string,
   context: ScenarioContext,
-): {
-  worktree: Worktree;
-  applyTarget: ScenarioApplyTarget;
-  simulation: SimulationState | null;
-} => {
+): ScenarioOperationResult => {
   if (worktree.activeScenarioId === scenarioId) {
-    return {
-      worktree,
-      applyTarget: null,
-      simulation: context.currentSimulation,
-    };
+    return { worktree, snapshot: null };
   }
 
   const scenario = worktree.scenarios.get(scenarioId);
@@ -26,12 +17,18 @@ export const switchToScenario = (
 
   const isMainActive = worktree.activeScenarioId === null;
   const updatedScenarios = new Map(worktree.scenarios);
-  const newState = { ...worktree, scenarios: updatedScenarios };
+  let newState = { ...worktree, scenarios: updatedScenarios };
 
   if (isMainActive) {
-    newState.mainMomentLog = context.currentMomentLog;
-    newState.mainSimulation = context.currentSimulation;
-    newState.mainModelVersion = context.currentModelVersion;
+    newState = {
+      ...newState,
+      mainRevision: {
+        ...worktree.mainRevision,
+        momentLog: context.currentMomentLog,
+        simulation: context.currentSimulation,
+        version: context.currentModelVersion,
+      },
+    };
   } else {
     const currentScenario = worktree.scenarios.get(worktree.activeScenarioId!);
     if (currentScenario) {
@@ -39,7 +36,7 @@ export const switchToScenario = (
         ...currentScenario,
         momentLog: context.currentMomentLog,
         simulation: context.currentSimulation,
-        modelVersion: context.currentModelVersion,
+        version: context.currentModelVersion,
       });
     }
   }
@@ -50,29 +47,16 @@ export const switchToScenario = (
       activeScenarioId: scenarioId,
       lastActiveScenarioId: scenarioId,
     },
-    applyTarget: {
-      baseSnapshot: worktree.baseModelSnapshot,
-      momentLog: scenario.momentLog,
-      modelVersion: scenario.modelVersion,
-    },
-    simulation: scenario.simulation,
+    snapshot: scenario,
   };
 };
 
 export const switchToMain = (
   worktree: Worktree,
   context: ScenarioContext,
-): {
-  worktree: Worktree;
-  applyTarget: ScenarioApplyTarget;
-  simulation: SimulationState | null;
-} => {
+): ScenarioOperationResult => {
   if (worktree.activeScenarioId === null) {
-    return {
-      worktree,
-      applyTarget: null,
-      simulation: context.currentSimulation,
-    };
+    return { worktree, snapshot: null };
   }
 
   const lastActiveScenarioId = worktree.activeScenarioId;
@@ -84,7 +68,7 @@ export const switchToMain = (
       ...currentScenario,
       momentLog: context.currentMomentLog,
       simulation: context.currentSimulation,
-      modelVersion: context.currentModelVersion,
+      version: context.currentModelVersion,
     });
   }
 
@@ -95,11 +79,6 @@ export const switchToMain = (
       activeScenarioId: null,
       lastActiveScenarioId,
     },
-    applyTarget: {
-      baseSnapshot: worktree.baseModelSnapshot,
-      momentLog: worktree.mainMomentLog,
-      modelVersion: worktree.mainModelVersion,
-    },
-    simulation: worktree.mainSimulation,
+    snapshot: worktree.mainRevision,
   };
 };

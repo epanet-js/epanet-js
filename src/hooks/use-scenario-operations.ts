@@ -45,8 +45,8 @@ export const useScenarioOperations = () => {
   const switchToMain = useCallback(() => {
     const result = switchToMainFn(worktree, getContext());
 
-    if (result.applyTarget) {
-      persistence.applyScenarioTarget(result.applyTarget);
+    if (result.snapshot) {
+      persistence.applySnapshot(result.snapshot);
     }
 
     setWorktree(result.worktree);
@@ -66,8 +66,8 @@ export const useScenarioOperations = () => {
     (scenarioId: string) => {
       const result = switchToScenarioFn(worktree, scenarioId, getContext());
 
-      if (result.applyTarget) {
-        persistence.applyScenarioTarget(result.applyTarget);
+      if (result.snapshot) {
+        persistence.applySnapshot(result.snapshot);
       }
 
       setWorktree(result.worktree);
@@ -91,8 +91,8 @@ export const useScenarioOperations = () => {
       getContext(),
     );
 
-    if (result.applyTarget) {
-      persistence.applyScenarioTarget(result.applyTarget);
+    if (result.snapshot) {
+      persistence.applySnapshot(result.snapshot);
     }
 
     setWorktree(result.worktree);
@@ -108,13 +108,13 @@ export const useScenarioOperations = () => {
     (scenarioId: string) => {
       const result = deleteScenario(worktree, scenarioId);
 
-      if (result.applyTarget) {
-        persistence.applyScenarioTarget(result.applyTarget);
+      if (result.snapshot) {
+        persistence.applySnapshot(result.snapshot);
       }
 
-      setWorktree(result.state);
+      setWorktree(result.worktree);
       setSimulation(
-        getSimulationForState(result.state, initialSimulationState),
+        getSimulationForState(result.worktree, initialSimulationState),
       );
     },
     [persistence, worktree, setWorktree, setSimulation],

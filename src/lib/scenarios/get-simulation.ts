@@ -6,7 +6,7 @@ export const getSimulationForState = (
   initialSimulationState: SimulationState,
 ): SimulationState => {
   if (state.activeScenarioId === null) {
-    return state.mainSimulation ?? initialSimulationState;
+    return state.mainRevision.simulation ?? initialSimulationState;
   }
   const scenario = state.scenarios.get(state.activeScenarioId);
   return scenario?.simulation ?? initialSimulationState;

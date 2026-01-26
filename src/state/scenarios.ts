@@ -1,17 +1,8 @@
 import { atom } from "jotai";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import type { Moment } from "src/lib/persistence/moment";
-import { type SimulationState, initialSimulationState } from "src/state/jotai";
-
-export interface Scenario {
-  id: string;
-  name: string;
-  number: number;
-  createdAt: number;
-  momentLog: MomentLog;
-  simulation: SimulationState | null;
-  modelVersion: string;
-}
+import { initialSimulationState } from "src/state/jotai";
+import type { Snapshot } from "src/lib/scenarios/types";
 
 export interface BaseModelSnapshot {
   moment: Moment;
@@ -21,12 +12,9 @@ export interface BaseModelSnapshot {
 export interface Worktree {
   activeScenarioId: string | null;
   lastActiveScenarioId: string | null;
-  scenarios: Map<string, Scenario>;
+  scenarios: Map<string, Snapshot>;
+  mainRevision: Snapshot;
   highestScenarioNumber: number;
-  baseModelSnapshot: BaseModelSnapshot;
-  mainMomentLog: MomentLog;
-  mainSimulation: SimulationState;
-  mainModelVersion: string;
 }
 
 const emptySnapshot: BaseModelSnapshot = {
@@ -34,22 +22,29 @@ const emptySnapshot: BaseModelSnapshot = {
   stateId: "",
 };
 
+const emptyMainRevision: Snapshot = {
+  id: "main",
+  name: "Main",
+  base: emptySnapshot,
+  version: "",
+  momentLog: new MomentLog(),
+  simulation: initialSimulationState,
+  status: "open",
+};
+
 export const initialWorktree: Worktree = {
   activeScenarioId: null,
   lastActiveScenarioId: null,
   scenarios: new Map(),
   highestScenarioNumber: 0,
-  baseModelSnapshot: emptySnapshot,
-  mainMomentLog: new MomentLog(),
-  mainSimulation: initialSimulationState,
-  mainModelVersion: "",
+  mainRevision: emptyMainRevision,
 };
 
 export const worktreeAtom = atom<Worktree>(initialWorktree);
 
 export const scenariosListAtom = atom((get) => {
   const state = get(worktreeAtom);
-  return Array.from(state.scenarios.values()).sort(
-    (a, b) => a.createdAt - b.createdAt,
-  );
+  return Array.from(state.scenarios.values());
 });
+
+export type { Snapshot } from "src/lib/scenarios/types";

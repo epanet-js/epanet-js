@@ -1,23 +1,23 @@
-import type { Scenario, Worktree } from "src/state/scenarios";
+import type { Worktree, Snapshot } from "src/state/scenarios";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { nanoid } from "nanoid";
 
 export const createScenario = (
   worktree: Worktree,
-): { scenario: Scenario; worktree: Worktree } => {
-  const { baseModelSnapshot } = worktree;
+): { scenario: Snapshot; worktree: Worktree } => {
+  const base = worktree.mainRevision.base;
   const newNumber = worktree.highestScenarioNumber + 1;
   const newMomentLog = new MomentLog();
-  newMomentLog.setSnapshot(baseModelSnapshot.moment, baseModelSnapshot.stateId);
+  newMomentLog.setSnapshot(base.moment, base.stateId);
 
-  const newScenario: Scenario = {
+  const newScenario: Snapshot = {
     id: nanoid(),
     name: `Scenario #${newNumber}`,
-    number: newNumber,
-    createdAt: Date.now(),
+    base,
+    version: base.stateId,
     momentLog: newMomentLog,
     simulation: null,
-    modelVersion: baseModelSnapshot.stateId,
+    status: "open",
   };
 
   const updatedScenarios = new Map(worktree.scenarios);

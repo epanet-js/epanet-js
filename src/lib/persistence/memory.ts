@@ -9,8 +9,8 @@ import {
   Moment,
 } from "src/lib/persistence/moment";
 import { generateKeyBetween } from "fractional-indexing";
-import type { ScenarioApplyTarget } from "src/lib/scenarios/types";
 import type { BaseModelSnapshot } from "src/state/scenarios";
+import type { Snapshot } from "src/lib/scenarios/types";
 import {
   type SimulationState,
   Data,
@@ -186,7 +186,7 @@ export class MemPersistence implements IPersistence {
     return { moment, stateId: hydraulicModel.version };
   }
 
-  private applySnapshot(
+  private applyMomentAndForceMapSync(
     moment: MomentInput,
     stateId: string,
     mergeAssetsAndSettings = false,
@@ -239,7 +239,11 @@ export class MemPersistence implements IPersistence {
       hydraulicModel.labelManager.remove(asset.label, asset.type, asset.id);
     }
 
-    this.applySnapshot(baseSnapshot.moment, baseSnapshot.stateId, true);
+    this.applyMomentAndForceMapSync(
+      baseSnapshot.moment,
+      baseSnapshot.stateId,
+      true,
+    );
   }
 
   getModelVersion(): string {
@@ -258,18 +262,15 @@ export class MemPersistence implements IPersistence {
     });
   }
 
-  applyScenarioTarget(target: ScenarioApplyTarget): void {
-    if (!target) return;
+  applySnapshot(snapshot: Snapshot): void {
+    this.restoreToBase(snapshot.base);
 
-    this.restoreToBase(target.baseSnapshot);
-
-    const deltas = target.momentLog.getDeltas();
-    for (const delta of deltas) {
-      this.applySnapshot(delta, "");
+    for (const delta of snapshot.momentLog.getDeltas()) {
+      this.applyMomentAndForceMapSync(delta, "");
     }
 
-    this.switchMomentLog(target.momentLog);
-    this.setModelVersion(target.modelVersion);
+    this.switchMomentLog(snapshot.momentLog);
+    this.setModelVersion(snapshot.version);
   }
 
   /**

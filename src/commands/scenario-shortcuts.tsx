@@ -23,9 +23,7 @@ export const useToggleScenario = () => {
         worktree.lastActiveScenarioId &&
         worktree.scenarios.has(worktree.lastActiveScenarioId)
           ? worktree.lastActiveScenarioId
-          : Array.from(worktree.scenarios.values()).sort(
-              (a, b) => a.createdAt - b.createdAt,
-            )[0]?.id;
+          : Array.from(worktree.scenarios.values())[0]?.id;
 
       if (targetScenarioId) {
         switchToScenario(targetScenarioId);
