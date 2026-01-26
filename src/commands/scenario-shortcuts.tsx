@@ -1,62 +1,39 @@
 import { useAtomValue } from "jotai";
 import { useCallback } from "react";
 import { useScenarioOperations } from "src/hooks/use-scenario-operations";
-import { worktreeAtom, scenariosListAtom } from "src/state/scenarios";
+import { worktreeAtom } from "src/state/scenarios";
 
-export const cycleScenarioShortcut = "y";
-export const toggleScenarioShortcut = "shift+y";
+export const toggleSnapshotShortcut = "y";
+export const goToMainShortcut = "shift+y";
 
-export const useToggleScenario = () => {
+export const useToggleSnapshot = () => {
   const worktree = useAtomValue(worktreeAtom);
-  const { switchToMain, switchToScenario } = useScenarioOperations();
+  const { switchToSnapshot } = useScenarioOperations();
 
   return useCallback(() => {
-    const isMainActive = worktree.activeScenarioId === null;
-    const hasScenarios = worktree.scenarios.size > 0;
-
+    const hasScenarios = worktree.scenarios.length > 0;
     if (!hasScenarios) {
       return;
     }
 
-    if (isMainActive) {
-      const targetScenarioId =
-        worktree.lastActiveScenarioId &&
-        worktree.scenarios.has(worktree.lastActiveScenarioId)
-          ? worktree.lastActiveScenarioId
-          : Array.from(worktree.scenarios.values())[0]?.id;
-
-      if (targetScenarioId) {
-        switchToScenario(targetScenarioId);
-      }
+    if (worktree.activeSnapshotId !== worktree.lastActiveSnapshotId) {
+      switchToSnapshot(worktree.lastActiveSnapshotId);
     } else {
-      switchToMain();
+      const firstScenarioId = worktree.scenarios[0];
+      if (firstScenarioId) {
+        switchToSnapshot(firstScenarioId);
+      }
     }
-  }, [worktree, switchToMain, switchToScenario]);
+  }, [worktree, switchToSnapshot]);
 };
 
-export const useCycleScenario = () => {
+export const useGoToMain = () => {
   const worktree = useAtomValue(worktreeAtom);
-  const scenariosList = useAtomValue(scenariosListAtom);
-  const { switchToScenario } = useScenarioOperations();
+  const { switchToMain } = useScenarioOperations();
 
   return useCallback(() => {
-    const hasScenarios = scenariosList.length > 0;
-
-    if (!hasScenarios) {
-      return;
+    if (worktree.activeSnapshotId !== worktree.mainId) {
+      switchToMain();
     }
-
-    const currentScenarioId = worktree.activeScenarioId;
-    const isMainActive = currentScenarioId === null;
-
-    if (isMainActive) {
-      switchToScenario(scenariosList[0].id);
-    } else {
-      const currentIndex = scenariosList.findIndex(
-        (s) => s.id === currentScenarioId,
-      );
-      const nextIndex = (currentIndex + 1) % scenariosList.length;
-      switchToScenario(scenariosList[nextIndex].id);
-    }
-  }, [worktree, scenariosList, switchToScenario]);
+  }, [worktree, switchToMain]);
 };

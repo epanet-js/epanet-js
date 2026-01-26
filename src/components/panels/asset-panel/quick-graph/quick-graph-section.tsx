@@ -117,13 +117,10 @@ const QuickGraphSection = ({
   } = useAtomValue(dataAtom);
   const { changeTimestep } = useChangeTimestep();
 
-  const activeScenario = worktree.activeScenarioId
-    ? worktree.scenarios.get(worktree.activeScenarioId)
-    : null;
-  const scenarioName = activeScenario?.name ?? null;
-  const mainLabel = worktree.activeScenarioId
-    ? translate("scenarios.main")
-    : null;
+  const isInScenario = worktree.activeSnapshotId !== worktree.mainId;
+  const activeSnapshot = worktree.snapshots.get(worktree.activeSnapshotId);
+  const scenarioName = isInScenario ? (activeSnapshot?.name ?? null) : null;
+  const mainLabel = isInScenario ? translate("scenarios.main") : null;
 
   const selectedProperty = propertyByType[assetType];
   const selectedOption = QUICK_GRAPH_PROPERTIES[assetType].find(

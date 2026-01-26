@@ -5,9 +5,6 @@ export const getSimulationForState = (
   state: Worktree,
   initialSimulationState: SimulationState,
 ): SimulationState => {
-  if (state.activeScenarioId === null) {
-    return state.mainRevision.simulation ?? initialSimulationState;
-  }
-  const scenario = state.scenarios.get(state.activeScenarioId);
-  return scenario?.simulation ?? initialSimulationState;
+  const activeSnapshot = state.snapshots.get(state.activeSnapshotId);
+  return activeSnapshot?.simulation ?? initialSimulationState;
 };

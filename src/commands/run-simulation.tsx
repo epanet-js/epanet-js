@@ -55,9 +55,7 @@ export const useRunSimulation = () => {
       };
 
       const appId = getAppId();
-      const scenarioKey = isScenariosOn
-        ? (worktree.activeScenarioId ?? "main")
-        : undefined;
+      const scenarioKey = isScenariosOn ? worktree.activeSnapshotId : undefined;
       const { report, status, metadata } = await runSimulationWorker(
         inp,
         appId,
@@ -115,7 +113,7 @@ export const useRunSimulation = () => {
       setData,
       isScenariosOn,
       isCustomerDemandsOn,
-      worktree.activeScenarioId,
+      worktree.activeSnapshotId,
     ],
   );
 

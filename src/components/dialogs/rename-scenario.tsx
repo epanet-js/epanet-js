@@ -51,9 +51,11 @@ export const RenameScenarioDialog = ({
         return translate("scenarios.renameDialog.errorReserved");
       }
 
-      const scenarios = Array.from(worktree.scenarios.values());
+      const scenarios = worktree.scenarios
+        .map((id) => worktree.snapshots.get(id))
+        .filter(Boolean);
       const isDuplicate = scenarios.some(
-        (s) => s.id !== scenarioId && s.name === trimmed,
+        (s) => s!.id !== scenarioId && s!.name === trimmed,
       );
 
       if (isDuplicate) {
@@ -62,7 +64,7 @@ export const RenameScenarioDialog = ({
 
       return null;
     },
-    [scenarioId, worktree.scenarios, translate],
+    [scenarioId, worktree.scenarios, worktree.snapshots, translate],
   );
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {

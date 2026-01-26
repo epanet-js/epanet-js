@@ -14,23 +14,23 @@ export type PropertyComparison = {
 export function useAssetComparison(asset: Asset | undefined) {
   const worktree = useAtomValue(worktreeAtom);
   const isScenariosOn = useFeatureFlag("FLAG_SCENARIOS");
-  const isInScenario = isScenariosOn && worktree.activeScenarioId !== null;
+  const isInScenario =
+    isScenariosOn && worktree.activeSnapshotId !== worktree.mainId;
+  const mainSnapshot = worktree.snapshots.get(worktree.mainId);
 
   const baseAsset = useMemo(() => {
-    if (!isInScenario || !asset || !worktree.mainRevision.base) {
+    if (!isInScenario || !asset || !mainSnapshot?.base) {
       return undefined;
     }
-    return worktree.mainRevision.base.moment.putAssets?.find(
-      (a) => a.id === asset.id,
-    );
-  }, [isInScenario, asset, worktree.mainRevision.base]);
+    return mainSnapshot.base.moment.putAssets?.find((a) => a.id === asset.id);
+  }, [isInScenario, asset, mainSnapshot?.base]);
 
   const isNew = isInScenario && asset !== undefined && baseAsset === undefined;
 
   const baseCurves = useMemo(() => {
-    if (!isInScenario || !worktree.mainRevision.base) return undefined;
-    return worktree.mainRevision.base.moment.putCurves;
-  }, [isInScenario, worktree.mainRevision.base]);
+    if (!isInScenario || !mainSnapshot?.base) return undefined;
+    return mainSnapshot.base.moment.putCurves;
+  }, [isInScenario, mainSnapshot?.base]);
 
   const getBaseCurve = (curveId: CurveId | undefined): ICurve | undefined => {
     if (!curveId || !baseCurves) return undefined;

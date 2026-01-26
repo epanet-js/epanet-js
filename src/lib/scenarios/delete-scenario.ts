@@ -1,55 +1,76 @@
-import { initialWorktree, type Worktree } from "src/state/scenarios";
+import type { Worktree } from "src/state/scenarios";
 import type { ScenarioOperationResult } from "./types";
 
 export const deleteScenario = (
   worktree: Worktree,
   scenarioId: string,
 ): ScenarioOperationResult => {
-  const scenarioToDelete = worktree.scenarios.get(scenarioId);
+  if (!worktree.scenarios.includes(scenarioId)) {
+    return { worktree, snapshot: null };
+  }
+
+  const scenarioToDelete = worktree.snapshots.get(scenarioId);
   if (!scenarioToDelete) {
     return { worktree, snapshot: null };
   }
 
-  const remainingScenarios = Array.from(worktree.scenarios.values()).filter(
-    (s) => s.id !== scenarioId,
+  const remainingScenarioIds = worktree.scenarios.filter(
+    (id) => id !== scenarioId,
   );
+  const isDeletedActive = worktree.activeSnapshotId === scenarioId;
+  const isLastScenario = remainingScenarioIds.length === 0;
 
-  const isDeletedActive = worktree.activeScenarioId === scenarioId;
+  const updatedSnapshots = new Map(worktree.snapshots);
+  updatedSnapshots.delete(scenarioId);
 
-  if (remainingScenarios.length === 0) {
-    return {
-      worktree: initialWorktree,
-      snapshot: worktree.mainRevision,
-    };
-  }
-
-  if (isDeletedActive) {
-    const nextScenario = remainingScenarios[0];
-    const updatedScenarios = new Map(worktree.scenarios);
-    updatedScenarios.delete(scenarioId);
+  if (isLastScenario) {
+    const mainSnapshot = worktree.snapshots.get(worktree.mainId);
+    if (mainSnapshot) {
+      updatedSnapshots.set(worktree.mainId, {
+        ...mainSnapshot,
+        status: "open",
+      });
+    }
+    const unlockedMain = updatedSnapshots.get(worktree.mainId);
 
     return {
       worktree: {
         ...worktree,
-        scenarios: updatedScenarios,
-        activeScenarioId: nextScenario.id,
-        lastActiveScenarioId: nextScenario.id,
+        snapshots: updatedSnapshots,
+        scenarios: [],
+        activeSnapshotId: worktree.mainId,
+        lastActiveSnapshotId: worktree.mainId,
+        highestScenarioNumber: 0,
       },
-      snapshot: nextScenario,
+      snapshot: unlockedMain ?? null,
     };
   }
 
-  const updatedScenarios = new Map(worktree.scenarios);
-  updatedScenarios.delete(scenarioId);
+  if (isDeletedActive) {
+    const nextScenarioId = remainingScenarioIds[0];
+    const nextScenario = updatedSnapshots.get(nextScenarioId);
+
+    return {
+      worktree: {
+        ...worktree,
+        snapshots: updatedSnapshots,
+        scenarios: remainingScenarioIds,
+        activeSnapshotId: nextScenarioId,
+        lastActiveSnapshotId: nextScenarioId,
+      },
+      snapshot: nextScenario ?? null,
+    };
+  }
 
   return {
     worktree: {
       ...worktree,
-      scenarios: updatedScenarios,
-      lastActiveScenarioId:
-        worktree.lastActiveScenarioId === scenarioId
-          ? null
-          : worktree.lastActiveScenarioId,
+      snapshots: updatedSnapshots,
+      scenarios: remainingScenarioIds,
+      lastActiveSnapshotId:
+        worktree.lastActiveSnapshotId === scenarioId
+          ? worktree.mainId
+          : worktree.lastActiveSnapshotId,
     },
     snapshot: null,
   };

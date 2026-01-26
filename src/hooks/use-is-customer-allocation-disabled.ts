@@ -6,5 +6,5 @@ export const useIsCustomerAllocationDisabled = () => {
   const isScenariosOn = useFeatureFlag("FLAG_SCENARIOS");
   const worktree = useAtomValue(worktreeAtom);
 
-  return isScenariosOn && worktree.scenarios.size > 0;
+  return isScenariosOn && worktree.scenarios.length > 0;
 };

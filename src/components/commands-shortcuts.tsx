@@ -86,10 +86,10 @@ import {
   useChangeTimestep,
 } from "src/commands/change-timestep";
 import {
-  toggleScenarioShortcut,
-  cycleScenarioShortcut,
-  useToggleScenario,
-  useCycleScenario,
+  toggleSnapshotShortcut,
+  goToMainShortcut,
+  useToggleSnapshot,
+  useGoToMain,
 } from "src/commands/scenario-shortcuts";
 import {
   createScenarioShortcut,
@@ -126,8 +126,8 @@ export const CommandShortcuts = () => {
   const { goToPreviousTimestep, goToNextTimestep } = useChangeTimestep();
   const isMainReadonly = useIsMainReadonly();
   const createScenario = useCreateScenario();
-  const toggleScenario = useToggleScenario();
-  const cycleScenario = useCycleScenario();
+  const toggleSnapshot = useToggleSnapshot();
+  const goToMain = useGoToMain();
 
   useHotkeys(
     showReportShorcut,
@@ -444,31 +444,32 @@ export const CommandShortcuts = () => {
   );
 
   useHotkeys(
-    toggleScenarioShortcut,
+    toggleSnapshotShortcut,
     (e) => {
       e.preventDefault();
       userTracking.capture({
         name: "scenario.toggled",
         source: "shortcut",
       });
-      toggleScenario();
+      toggleSnapshot();
     },
-    [toggleScenario],
-    "Toggle scenario/main",
+    [toggleSnapshot],
+    "Toggle snapshot",
   );
 
   useHotkeys(
-    cycleScenarioShortcut,
+    goToMainShortcut,
     (e) => {
       e.preventDefault();
       userTracking.capture({
-        name: "scenario.cycled",
-        source: "shortcut",
+        name: "scenario.switched",
+        scenarioId: null,
+        scenarioName: "Main",
       });
-      cycleScenario();
+      goToMain();
     },
-    [cycleScenario],
-    "Cycle scenarios",
+    [goToMain],
+    "Go to main",
   );
 
   for (const [mode, shortcut] of Object.entries(drawingModeShorcuts)) {

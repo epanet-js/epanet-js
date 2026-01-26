@@ -42,8 +42,10 @@ export function useTimeSeries<T extends QuickGraphAssetType>({
   });
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  const isInScenario = isScenariosOn && worktree.activeScenarioId !== null;
-  const mainSimulation = worktree.mainRevision.simulation;
+  const isInScenario =
+    isScenariosOn && worktree.activeSnapshotId !== worktree.mainId;
+  const mainSnapshot = worktree.snapshots.get(worktree.mainId);
+  const mainSimulation = mainSnapshot?.simulation ?? null;
 
   const status = simulation.status;
   const metadata =
@@ -82,7 +84,7 @@ export function useTimeSeries<T extends QuickGraphAssetType>({
       try {
         const appId = getAppId();
         const scenarioKey = isScenariosOn
-          ? (worktree.activeScenarioId ?? "main")
+          ? worktree.activeSnapshotId
           : undefined;
         const storage = new OPFSStorage(appId, scenarioKey);
         const epsReader = new EPSResultsReader(storage);
@@ -159,7 +161,7 @@ export function useTimeSeries<T extends QuickGraphAssetType>({
     metadata,
     simulationIds,
     isScenariosOn,
-    worktree.activeScenarioId,
+    worktree.activeSnapshotId,
     isInScenario,
     mainSimulation,
   ]);

@@ -8,6 +8,7 @@ import { modeAtom, Mode } from "src/state/mode";
 import {
   initializeWorktree,
   createScenario,
+  switchToSnapshot as switchToSnapshotFn,
   switchToScenario as switchToScenarioFn,
   switchToMain as switchToMainFn,
   deleteScenario,
@@ -62,6 +63,22 @@ export const useScenarioOperations = () => {
     });
   }, [persistence, worktree, getContext, setWorktree, setSimulation, setMode]);
 
+  const switchToSnapshot = useCallback(
+    (snapshotId: string) => {
+      const result = switchToSnapshotFn(worktree, snapshotId, getContext());
+
+      if (result.snapshot) {
+        persistence.applySnapshot(result.snapshot);
+      }
+
+      setWorktree(result.worktree);
+      setSimulation(
+        getSimulationForState(result.worktree, initialSimulationState),
+      );
+    },
+    [persistence, worktree, getContext, setWorktree, setSimulation],
+  );
+
   const switchToScenario = useCallback(
     (scenarioId: string) => {
       const result = switchToScenarioFn(worktree, scenarioId, getContext());
@@ -80,7 +97,7 @@ export const useScenarioOperations = () => {
 
   const createNewScenario = useCallback(() => {
     const initialized =
-      worktree.scenarios.size === 0
+      worktree.scenarios.length === 0
         ? initializeWorktree(persistence.captureModelSnapshot(), getContext())
         : worktree;
 
@@ -128,6 +145,7 @@ export const useScenarioOperations = () => {
   );
 
   return {
+    switchToSnapshot,
     switchToMain,
     switchToScenario,
     createNewScenario,

@@ -43,7 +43,7 @@ export const useChangeTimestep = () => {
       try {
         const appId = getAppId();
         const scenarioKey = isScenariosOn
-          ? (worktree.activeScenarioId ?? "main")
+          ? worktree.activeSnapshotId
           : undefined;
         const storage = new OPFSStorage(appId, scenarioKey);
         const epsReader = new EPSResultsReader(storage);
@@ -78,7 +78,7 @@ export const useChangeTimestep = () => {
       setSimulationState,
       userTracking,
       isScenariosOn,
-      worktree.activeScenarioId,
+      worktree.activeSnapshotId,
     ],
   );
 

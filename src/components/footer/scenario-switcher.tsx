@@ -41,12 +41,12 @@ export const ScenarioSwitcher = () => {
     renameScenarioById,
   } = useScenarioOperations();
 
-  const activeScenarioId = worktree.activeScenarioId;
-  const isMainActive = activeScenarioId === null;
+  const activeSnapshotId = worktree.activeSnapshotId;
+  const isMainActive = activeSnapshotId === worktree.mainId;
 
   const activeDisplayName = isMainActive
     ? translate("scenarios.main")
-    : (worktree.scenarios.get(activeScenarioId)?.name ??
+    : (worktree.snapshots.get(activeSnapshotId)?.name ??
       translate("scenarios.main"));
 
   const handleSelectMain = () => {
@@ -62,9 +62,9 @@ export const ScenarioSwitcher = () => {
   };
 
   const handleSelectScenario = (scenarioId: string) => {
-    if (activeScenarioId === scenarioId) return;
+    if (activeSnapshotId === scenarioId) return;
 
-    const scenario = worktree.scenarios.get(scenarioId);
+    const scenario = worktree.snapshots.get(scenarioId);
     userTracking.capture({
       name: "scenario.switched",
       scenarioId,
@@ -171,10 +171,10 @@ export const ScenarioSwitcher = () => {
                   className="group/scenario"
                 >
                   <div
-                    className={`flex items-center w-full gap-2 ${activeScenarioId === scenario.id ? "text-purple-600" : ""}`}
+                    className={`flex items-center w-full gap-2 ${activeSnapshotId === scenario.id ? "text-purple-600" : ""}`}
                   >
                     <span
-                      className={`font-mono text-sm pl-1 ${activeScenarioId === scenario.id ? "text-purple-400" : "text-gray-400"}`}
+                      className={`font-mono text-sm pl-1 ${activeSnapshotId === scenario.id ? "text-purple-400" : "text-gray-400"}`}
                     >
                       {index === scenariosList.length - 1 ? "└──" : "├──"}
                     </span>

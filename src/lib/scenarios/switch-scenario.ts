@@ -1,71 +1,26 @@
 import type { Worktree } from "src/state/scenarios";
 import type { ScenarioContext, ScenarioOperationResult } from "./types";
 
-export const switchToScenario = (
+export const switchToSnapshot = (
   worktree: Worktree,
-  scenarioId: string,
+  targetSnapshotId: string,
   context: ScenarioContext,
 ): ScenarioOperationResult => {
-  if (worktree.activeScenarioId === scenarioId) {
+  if (worktree.activeSnapshotId === targetSnapshotId) {
     return { worktree, snapshot: null };
   }
 
-  const scenario = worktree.scenarios.get(scenarioId);
-  if (!scenario) {
-    throw new Error(`Scenario ${scenarioId} not found`);
+  const targetSnapshot = worktree.snapshots.get(targetSnapshotId);
+  if (!targetSnapshot) {
+    throw new Error(`Snapshot ${targetSnapshotId} not found`);
   }
 
-  const isMainActive = worktree.activeScenarioId === null;
-  const updatedScenarios = new Map(worktree.scenarios);
-  let newState = { ...worktree, scenarios: updatedScenarios };
+  const updatedSnapshots = new Map(worktree.snapshots);
+  const currentSnapshot = worktree.snapshots.get(worktree.activeSnapshotId);
 
-  if (isMainActive) {
-    newState = {
-      ...newState,
-      mainRevision: {
-        ...worktree.mainRevision,
-        momentLog: context.currentMomentLog,
-        simulation: context.currentSimulation,
-        version: context.currentModelVersion,
-      },
-    };
-  } else {
-    const currentScenario = worktree.scenarios.get(worktree.activeScenarioId!);
-    if (currentScenario) {
-      updatedScenarios.set(worktree.activeScenarioId!, {
-        ...currentScenario,
-        momentLog: context.currentMomentLog,
-        simulation: context.currentSimulation,
-        version: context.currentModelVersion,
-      });
-    }
-  }
-
-  return {
-    worktree: {
-      ...newState,
-      activeScenarioId: scenarioId,
-      lastActiveScenarioId: scenarioId,
-    },
-    snapshot: scenario,
-  };
-};
-
-export const switchToMain = (
-  worktree: Worktree,
-  context: ScenarioContext,
-): ScenarioOperationResult => {
-  if (worktree.activeScenarioId === null) {
-    return { worktree, snapshot: null };
-  }
-
-  const lastActiveScenarioId = worktree.activeScenarioId;
-  const updatedScenarios = new Map(worktree.scenarios);
-
-  const currentScenario = worktree.scenarios.get(worktree.activeScenarioId);
-  if (currentScenario) {
-    updatedScenarios.set(worktree.activeScenarioId, {
-      ...currentScenario,
+  if (currentSnapshot) {
+    updatedSnapshots.set(worktree.activeSnapshotId, {
+      ...currentSnapshot,
       momentLog: context.currentMomentLog,
       simulation: context.currentSimulation,
       version: context.currentModelVersion,
@@ -75,10 +30,25 @@ export const switchToMain = (
   return {
     worktree: {
       ...worktree,
-      scenarios: updatedScenarios,
-      activeScenarioId: null,
-      lastActiveScenarioId,
+      snapshots: updatedSnapshots,
+      activeSnapshotId: targetSnapshotId,
+      lastActiveSnapshotId: worktree.activeSnapshotId,
     },
-    snapshot: worktree.mainRevision,
+    snapshot: targetSnapshot,
   };
+};
+
+export const switchToScenario = (
+  worktree: Worktree,
+  scenarioId: string,
+  context: ScenarioContext,
+): ScenarioOperationResult => {
+  return switchToSnapshot(worktree, scenarioId, context);
+};
+
+export const switchToMain = (
+  worktree: Worktree,
+  context: ScenarioContext,
+): ScenarioOperationResult => {
+  return switchToSnapshot(worktree, worktree.mainId, context);
 };

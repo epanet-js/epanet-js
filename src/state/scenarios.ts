@@ -10,10 +10,11 @@ export interface BaseModelSnapshot {
 }
 
 export interface Worktree {
-  activeScenarioId: string | null;
-  lastActiveScenarioId: string | null;
-  scenarios: Map<string, Snapshot>;
-  mainRevision: Snapshot;
+  activeSnapshotId: string;
+  lastActiveSnapshotId: string;
+  snapshots: Map<string, Snapshot>;
+  mainId: string;
+  scenarios: string[];
   highestScenarioNumber: number;
 }
 
@@ -22,7 +23,7 @@ const emptySnapshot: BaseModelSnapshot = {
   stateId: "",
 };
 
-const emptyMainRevision: Snapshot = {
+const emptyMainSnapshot: Snapshot = {
   id: "main",
   name: "Main",
   base: emptySnapshot,
@@ -33,18 +34,21 @@ const emptyMainRevision: Snapshot = {
 };
 
 export const initialWorktree: Worktree = {
-  activeScenarioId: null,
-  lastActiveScenarioId: null,
-  scenarios: new Map(),
+  activeSnapshotId: "main",
+  lastActiveSnapshotId: "main",
+  snapshots: new Map([["main", emptyMainSnapshot]]),
+  mainId: "main",
+  scenarios: [],
   highestScenarioNumber: 0,
-  mainRevision: emptyMainRevision,
 };
 
 export const worktreeAtom = atom<Worktree>(initialWorktree);
 
 export const scenariosListAtom = atom((get) => {
   const state = get(worktreeAtom);
-  return Array.from(state.scenarios.values());
+  return state.scenarios
+    .map((id) => state.snapshots.get(id))
+    .filter((s): s is Snapshot => s !== undefined);
 });
 
 export type { Snapshot } from "src/lib/scenarios/types";
