@@ -47,7 +47,7 @@ export const useScenarioOperations = () => {
     const result = switchToMainFn(worktree);
 
     if (result.snapshot) {
-      persistence.applySnapshot(result.snapshot);
+      persistence.applySnapshot(result.worktree, result.snapshot.id);
     }
 
     setWorktree(result.worktree);
@@ -68,7 +68,7 @@ export const useScenarioOperations = () => {
       const result = switchToSnapshotFn(worktree, snapshotId);
 
       if (result.snapshot) {
-        persistence.applySnapshot(result.snapshot);
+        persistence.applySnapshot(result.worktree, result.snapshot.id);
       }
 
       setWorktree(result.worktree);
@@ -84,7 +84,7 @@ export const useScenarioOperations = () => {
       const result = switchToScenarioFn(worktree, scenarioId);
 
       if (result.snapshot) {
-        persistence.applySnapshot(result.snapshot);
+        persistence.applySnapshot(result.worktree, result.snapshot.id);
       }
 
       setWorktree(result.worktree);
@@ -105,7 +105,7 @@ export const useScenarioOperations = () => {
     const result = switchToScenarioFn(created.worktree, created.scenario.id);
 
     if (result.snapshot) {
-      persistence.applySnapshot(result.snapshot);
+      persistence.applySnapshot(result.worktree, result.snapshot.id);
     }
 
     setWorktree(result.worktree);
@@ -122,7 +122,7 @@ export const useScenarioOperations = () => {
       const result = deleteScenario(worktree, scenarioId);
 
       if (result.snapshot) {
-        persistence.applySnapshot(result.snapshot);
+        persistence.applySnapshot(result.worktree, result.snapshot.id);
       }
 
       setWorktree(result.worktree);

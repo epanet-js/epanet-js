@@ -1,10 +1,14 @@
 import type { HydraulicModel } from "src/hydraulic-model";
 import type { Moment } from "src/lib/persistence/moment";
-import type { BaseModelSnapshot } from "./types";
+
+export type CapturedSnapshot = {
+  moment: Moment;
+  version: string;
+};
 
 export const captureModelSnapshot = (
   hydraulicModel: HydraulicModel,
-): BaseModelSnapshot => {
+): CapturedSnapshot => {
   const moment: Moment = {
     note: "Scenario base snapshot",
     putAssets: [...hydraulicModel.assets.values()],
@@ -15,5 +19,5 @@ export const captureModelSnapshot = (
     putCustomerPoints: [...hydraulicModel.customerPoints.values()],
     putCurves: [...hydraulicModel.curves.values()],
   };
-  return { moment, stateId: hydraulicModel.version };
+  return { moment, version: hydraulicModel.version };
 };

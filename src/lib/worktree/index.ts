@@ -1,11 +1,10 @@
 export type {
-  BaseModelSnapshot,
   Worktree,
   Snapshot,
   ScenarioContext,
   ScenarioOperationResult,
 } from "./types";
-export { buildSnapshot } from "./types";
+export type { CapturedSnapshot } from "./capture-snapshot";
 export { initializeWorktree } from "./initialize-worktree";
 export { createScenario } from "./create-scenario";
 export {

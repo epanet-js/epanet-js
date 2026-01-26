@@ -10,7 +10,8 @@ import {
 } from "src/lib/persistence/moment";
 import { generateKeyBetween } from "fractional-indexing";
 import { worktreeAtom } from "src/state/scenarios";
-import type { BaseModelSnapshot, Snapshot } from "src/lib/worktree/types";
+import type { Snapshot, Worktree } from "src/lib/worktree/types";
+import type { CapturedSnapshot } from "src/lib/worktree/capture-snapshot";
 import {
   type SimulationState,
   Data,
@@ -33,6 +34,7 @@ import {
   Demands,
   HydraulicModel,
   updateHydraulicModelAssets,
+  initializeHydraulicModel,
 } from "src/hydraulic-model";
 import { ModelMoment } from "src/hydraulic-model";
 import { Asset, LinkAsset } from "src/hydraulic-model";
@@ -203,7 +205,7 @@ export class MemPersistence implements IPersistence {
     this.store.set(worktreeAtom, { ...worktree, snapshots: updatedSnapshots });
   }
 
-  captureModelSnapshot(): BaseModelSnapshot {
+  captureModelSnapshot(): CapturedSnapshot {
     const ctx = this.store.get(dataAtom);
     const { hydraulicModel } = ctx;
 
@@ -218,7 +220,7 @@ export class MemPersistence implements IPersistence {
       putCurves: [...hydraulicModel.curves.values()],
     };
 
-    return { moment, stateId: hydraulicModel.version };
+    return { moment, version: hydraulicModel.version };
   }
 
   private applyMomentAndForceMapSync(
@@ -245,42 +247,6 @@ export class MemPersistence implements IPersistence {
     });
   }
 
-  private restoreToBase(baseSnapshot: BaseModelSnapshot): void {
-    const ctx = this.store.get(dataAtom);
-    const { hydraulicModel } = ctx;
-
-    const currentAssetIds = [...hydraulicModel.assets.keys()];
-    const baseAssetIds = new Set(
-      baseSnapshot.moment.putAssets.map((a) => a.id),
-    );
-
-    const assetsToDelete = currentAssetIds.filter(
-      (id) => !baseAssetIds.has(id),
-    );
-
-    for (const id of assetsToDelete) {
-      const asset = hydraulicModel.assets.get(id);
-      if (!asset) continue;
-
-      if (asset.isLink) {
-        hydraulicModel.assetIndex.removeLink(asset.id);
-      } else if (asset.isNode) {
-        hydraulicModel.assetIndex.removeNode(asset.id);
-      }
-
-      hydraulicModel.assets.delete(id);
-      hydraulicModel.topology.removeNode(id);
-      hydraulicModel.topology.removeLink(id);
-      hydraulicModel.labelManager.remove(asset.label, asset.type, asset.id);
-    }
-
-    this.applyMomentAndForceMapSync(
-      baseSnapshot.moment,
-      baseSnapshot.stateId,
-      true,
-    );
-  }
-
   getModelVersion(): string {
     const ctx = this.store.get(dataAtom);
     return ctx.hydraulicModel.version;
@@ -297,15 +263,126 @@ export class MemPersistence implements IPersistence {
     });
   }
 
-  applySnapshot(snapshot: Snapshot): void {
-    this.restoreToBase(snapshot.base);
+  applySnapshot(worktree: Worktree, snapshotId: string): void {
+    const snapshot = worktree.snapshots.get(snapshotId);
+    if (!snapshot) return;
 
-    for (const delta of snapshot.momentLog.getDeltas()) {
-      this.applyMomentAndForceMapSync(delta, "");
+    const allDeltas: Moment[] = [];
+    let current: Snapshot | undefined = snapshot;
+
+    while (current) {
+      allDeltas.unshift(...current.deltas);
+      current = current.parentId
+        ? worktree.snapshots.get(current.parentId)
+        : undefined;
     }
+
+    allDeltas.push(...snapshot.momentLog.getDeltas());
+
+    const ctx = this.store.get(dataAtom);
+    const hydraulicModel = initializeHydraulicModel({
+      units: ctx.hydraulicModel.units,
+      defaults: ctx.modelMetadata.quantities.defaults,
+    });
+
+    for (const delta of allDeltas) {
+      this.applyMomentToModel(hydraulicModel, delta);
+    }
+
+    this.store.set(dataAtom, {
+      ...ctx,
+      hydraulicModel,
+    });
 
     this.switchMomentLog(snapshot.momentLog);
     this.setModelVersion(snapshot.version);
+  }
+
+  private applyMomentToModel(model: HydraulicModel, moment: Moment): void {
+    for (const id of moment.deleteAssets || []) {
+      const asset = model.assets.get(id);
+      if (!asset) continue;
+
+      if (asset.isLink) {
+        model.assetIndex.removeLink(asset.id);
+      } else if (asset.isNode) {
+        model.assetIndex.removeNode(asset.id);
+      }
+
+      model.assets.delete(id);
+      model.topology.removeNode(id);
+      model.topology.removeLink(id);
+      model.labelManager.remove(asset.label, asset.type, asset.id);
+    }
+
+    for (const inputFeature of moment.putAssets || []) {
+      const oldVersion = model.assets.get(inputFeature.id);
+
+      model.assets.set(inputFeature.id, inputFeature as Asset);
+
+      const assetToIndex = inputFeature as Asset;
+      if (assetToIndex.isLink) {
+        model.assetIndex.addLink(assetToIndex.id);
+      } else if (assetToIndex.isNode) {
+        model.assetIndex.addNode(assetToIndex.id);
+      }
+
+      if (oldVersion && model.topology.hasLink(oldVersion.id)) {
+        const oldLink = oldVersion as LinkAsset;
+        const oldConnections = oldLink.connections;
+        oldConnections && model.topology.removeLink(oldVersion.id);
+        model.labelManager.remove(
+          oldVersion.label,
+          oldVersion.type,
+          oldVersion.id,
+        );
+      }
+
+      if (
+        inputFeature.feature.properties &&
+        (inputFeature as LinkAsset).connections
+      ) {
+        const [start, end] = (inputFeature as LinkAsset).connections;
+        model.topology.addLink(inputFeature.id, start, end);
+      }
+
+      model.labelManager.register(
+        (inputFeature as Asset).label,
+        (inputFeature as Asset).type,
+        (inputFeature as Asset).id,
+      );
+    }
+
+    for (const customerPoint of moment.putCustomerPoints || []) {
+      const oldVersion = model.customerPoints.get(customerPoint.id);
+      if (oldVersion) {
+        model.customerPointsLookup.removeConnection(oldVersion);
+      }
+      model.customerPointsLookup.addConnection(customerPoint);
+      model.customerPoints.set(customerPoint.id, customerPoint);
+    }
+
+    for (const curve of moment.putCurves || []) {
+      model.curves.set(curve.id, curve);
+    }
+
+    if (moment.putDemands) {
+      for (const pattern of model.demands.patterns.values()) {
+        model.labelManager.remove(pattern.label, "pattern", pattern.id);
+      }
+      model.demands = moment.putDemands;
+      for (const pattern of moment.putDemands.patterns.values()) {
+        model.labelManager.register(pattern.label, "pattern", pattern.id);
+      }
+    }
+
+    if (moment.putEPSTiming) {
+      model.epsTiming = moment.putEPSTiming;
+    }
+
+    if (moment.putControls) {
+      model.controls = moment.putControls;
+    }
   }
 
   /**

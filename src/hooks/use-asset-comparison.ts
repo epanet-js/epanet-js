@@ -18,19 +18,21 @@ export function useAssetComparison(asset: Asset | undefined) {
     isScenariosOn && worktree.activeSnapshotId !== worktree.mainId;
   const mainSnapshot = worktree.snapshots.get(worktree.mainId);
 
+  const baseMoment = mainSnapshot?.deltas[0];
+
   const baseAsset = useMemo(() => {
-    if (!isInScenario || !asset || !mainSnapshot?.base) {
+    if (!isInScenario || !asset || !baseMoment) {
       return undefined;
     }
-    return mainSnapshot.base.moment.putAssets?.find((a) => a.id === asset.id);
-  }, [isInScenario, asset, mainSnapshot?.base]);
+    return baseMoment.putAssets?.find((a) => a.id === asset.id);
+  }, [isInScenario, asset, baseMoment]);
 
   const isNew = isInScenario && asset !== undefined && baseAsset === undefined;
 
   const baseCurves = useMemo(() => {
-    if (!isInScenario || !mainSnapshot?.base) return undefined;
-    return mainSnapshot.base.moment.putCurves;
-  }, [isInScenario, mainSnapshot?.base]);
+    if (!isInScenario || !baseMoment) return undefined;
+    return baseMoment.putCurves;
+  }, [isInScenario, baseMoment]);
 
   const getBaseCurve = (curveId: CurveId | undefined): ICurve | undefined => {
     if (!curveId || !baseCurves) return undefined;

@@ -1,21 +1,18 @@
-import type {
-  BaseModelSnapshot,
-  Worktree,
-  ScenarioContext,
-  Snapshot,
-} from "./types";
+import type { Worktree, ScenarioContext, Snapshot } from "./types";
+import type { CapturedSnapshot } from "./capture-snapshot";
 
 const MAIN_ID = "main";
 
 export const initializeWorktree = (
-  baseSnapshot: BaseModelSnapshot,
+  captured: CapturedSnapshot,
   context: ScenarioContext,
 ): Worktree => {
   const mainSnapshot: Snapshot = {
     id: MAIN_ID,
     name: "Main",
-    base: baseSnapshot,
-    version: context.currentModelVersion,
+    parentId: null,
+    deltas: [captured.moment],
+    version: captured.version,
     momentLog: context.currentMomentLog,
     simulation: context.currentSimulation,
     status: "open",

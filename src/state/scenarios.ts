@@ -1,21 +1,13 @@
 import { atom } from "jotai";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { initialSimulationState } from "src/state/jotai";
-import type {
-  BaseModelSnapshot,
-  Worktree,
-  Snapshot,
-} from "src/lib/worktree/types";
-
-const emptySnapshot: BaseModelSnapshot = {
-  moment: { note: "", putAssets: [], deleteAssets: [] },
-  stateId: "",
-};
+import type { Worktree, Snapshot } from "src/lib/worktree/types";
 
 const emptyMainSnapshot: Snapshot = {
   id: "main",
   name: "Main",
-  base: emptySnapshot,
+  parentId: null,
+  deltas: [],
   version: "",
   momentLog: new MomentLog(),
   simulation: initialSimulationState,
@@ -40,8 +32,4 @@ export const scenariosListAtom = atom((get) => {
     .filter((s): s is Snapshot => s !== undefined);
 });
 
-export type {
-  BaseModelSnapshot,
-  Worktree,
-  Snapshot,
-} from "src/lib/worktree/types";
+export type { Worktree, Snapshot } from "src/lib/worktree/types";

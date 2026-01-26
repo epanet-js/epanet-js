@@ -10,16 +10,17 @@ export const createScenario = (
     throw new Error("Main snapshot not found");
   }
 
-  const base = mainSnapshot.base;
+  const baseMoment = mainSnapshot.deltas[0];
   const newNumber = worktree.highestScenarioNumber + 1;
   const newMomentLog = new MomentLog();
-  newMomentLog.setSnapshot(base.moment, base.stateId);
+  newMomentLog.setSnapshot(baseMoment, mainSnapshot.version);
 
   const newScenario: Snapshot = {
     id: nanoid(),
     name: `Scenario #${newNumber}`,
-    base,
-    version: base.stateId,
+    parentId: worktree.mainId,
+    deltas: [],
+    version: mainSnapshot.version,
     momentLog: newMomentLog,
     simulation: null,
     status: "open",
