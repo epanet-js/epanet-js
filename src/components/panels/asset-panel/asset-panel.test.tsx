@@ -11,8 +11,13 @@ import FeatureEditor from "../feature-editor";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Valve } from "src/hydraulic-model/asset-types";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
+import { stubFeatureOn, stubFeatureOff } from "src/__helpers__/feature-flags";
 
 describe("AssetPanel", () => {
+  afterEach(() => {
+    stubFeatureOff("FLAG_CUSTOMER_DEMANDS");
+  });
+
   describe("with a pipe", () => {
     it("can show its properties", () => {
       const IDS = { P1: 1, j1: 2, j2: 3 };
@@ -210,6 +215,76 @@ describe("AssetPanel", () => {
 
         expect(
           screen.queryByLabelText(/label: customer demand \(l\/s\)/i),
+        ).not.toBeInTheDocument();
+      });
+
+      it("shows Customer Demand Pattern when customer points have a demand pattern", () => {
+        stubFeatureOn("FLAG_CUSTOMER_DEMANDS");
+        const IDS = { J1: 1, J2: 2, P1: 3, CP1: 4, PAT1: 5 };
+        const hydraulicModel = HydraulicModelBuilder.with()
+          .aJunction(IDS.J1, { label: "J1" })
+          .aJunction(IDS.J2, { label: "J2", coordinates: [10, 0] })
+          .aPipe(IDS.P1, {
+            label: "MY_PIPE",
+            startNodeId: IDS.J1,
+            endNodeId: IDS.J2,
+          })
+          .aDemandPattern(IDS.PAT1, "Daily Pattern", [1, 0.8, 1.2])
+          .aCustomerPoint(IDS.CP1, {
+            label: "CP1",
+            coordinates: [1, 2],
+            demand: 25,
+            demands: [{ baseDemand: 25, patternId: IDS.PAT1 }],
+            connection: {
+              pipeId: IDS.P1,
+              junctionId: IDS.J1,
+              snapPoint: [1, 2],
+            },
+          })
+          .build();
+
+        const store = setInitialState({
+          hydraulicModel,
+          selectedAssetId: IDS.P1,
+        });
+
+        renderComponent(store);
+
+        expectTextPropertyDisplayed("customer demand pattern", "Daily Pattern");
+      });
+
+      it("does not show Customer Demand Pattern when customer points have no demand pattern", () => {
+        stubFeatureOn("FLAG_CUSTOMER_DEMANDS");
+        const IDS = { J1: 1, J2: 2, P1: 3, CP1: 4 };
+        const hydraulicModel = HydraulicModelBuilder.with()
+          .aJunction(IDS.J1, { label: "J1" })
+          .aJunction(IDS.J2, { label: "J2", coordinates: [10, 0] })
+          .aPipe(IDS.P1, {
+            label: "MY_PIPE",
+            startNodeId: IDS.J1,
+            endNodeId: IDS.J2,
+          })
+          .aCustomerPoint(IDS.CP1, {
+            label: "CP1",
+            coordinates: [1, 2],
+            demand: 25,
+            connection: {
+              pipeId: IDS.P1,
+              junctionId: IDS.J1,
+              snapPoint: [1, 2],
+            },
+          })
+          .build();
+
+        const store = setInitialState({
+          hydraulicModel,
+          selectedAssetId: IDS.P1,
+        });
+
+        renderComponent(store);
+
+        expect(
+          screen.queryByLabelText(/label: customer demand pattern/i),
         ).not.toBeInTheDocument();
       });
     });
@@ -703,6 +778,74 @@ describe("AssetPanel", () => {
 
       expect(
         screen.queryByLabelText(/label: customer demand \(l\/s\)/i),
+      ).not.toBeInTheDocument();
+    });
+
+    it("shows Customer Demand Pattern when customer points have a demand pattern", () => {
+      stubFeatureOn("FLAG_CUSTOMER_DEMANDS");
+      const IDS = { J1: 1, J2: 2, P1: 3, CP1: 4, PAT1: 5 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, { label: "MY_JUNCTION" })
+        .aJunction(IDS.J2, { coordinates: [10, 0] })
+        .aPipe(IDS.P1, {
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
+        })
+        .aDemandPattern(IDS.PAT1, "Daily Pattern", [1, 0.8, 1.2])
+        .aCustomerPoint(IDS.CP1, {
+          label: "CP1",
+          coordinates: [1, 2],
+          demand: 25,
+          demands: [{ baseDemand: 25, patternId: IDS.PAT1 }],
+          connection: {
+            pipeId: IDS.P1,
+            junctionId: IDS.J1,
+            snapPoint: [1, 2],
+          },
+        })
+        .build();
+
+      const store = setInitialState({
+        hydraulicModel,
+        selectedAssetId: IDS.J1,
+      });
+
+      renderComponent(store);
+
+      expectTextPropertyDisplayed("customer demand pattern", "Daily Pattern");
+    });
+
+    it("does not show Customer Demand Pattern when customer points have no demand pattern", () => {
+      stubFeatureOn("FLAG_CUSTOMER_DEMANDS");
+      const IDS = { J1: 1, J2: 2, P1: 3, CP1: 4 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, { label: "MY_JUNCTION" })
+        .aJunction(IDS.J2, { coordinates: [10, 0] })
+        .aPipe(IDS.P1, {
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
+        })
+        .aCustomerPoint(IDS.CP1, {
+          label: "CP1",
+          coordinates: [1, 2],
+          demand: 25,
+          connection: {
+            pipeId: IDS.P1,
+            junctionId: IDS.J1,
+            snapPoint: [1, 2],
+          },
+        })
+        .build();
+
+      const store = setInitialState({
+        hydraulicModel,
+        selectedAssetId: IDS.J1,
+      });
+
+      renderComponent(store);
+
+      expect(
+        screen.queryByLabelText(/label: customer demand pattern/i),
       ).not.toBeInTheDocument();
     });
 

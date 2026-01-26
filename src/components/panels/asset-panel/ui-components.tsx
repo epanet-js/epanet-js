@@ -273,7 +273,8 @@ export const SelectRow = <
     | ValveKind
     | ValveStatus
     | PumpDefintionType
-    | PumpStatus,
+    | PumpStatus
+    | number,
 >({
   name,
   label,

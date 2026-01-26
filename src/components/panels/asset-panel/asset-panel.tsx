@@ -10,9 +10,13 @@ import {
   NodeAsset,
   HydraulicModel,
 } from "src/hydraulic-model";
-import { getActiveCustomerPoints } from "src/hydraulic-model/customer-points";
+import {
+  CustomerPoint,
+  getActiveCustomerPoints,
+} from "src/hydraulic-model/customer-points";
 import { Valve } from "src/hydraulic-model/asset-types";
 import {
+  DemandPatterns,
   JunctionDemand,
   calculateAverageDemand,
 } from "src/hydraulic-model/demands";
@@ -415,6 +419,12 @@ const JunctionEditor = ({
     return customerPoints.reduce((sum, cp) => sum + cp.baseDemand, 0);
   }, [customerPoints, isCustomerDemandsOn, hydraulicModel.demands.patterns]);
 
+  const customerDemandPattern = useMemo(
+    () =>
+      getCustomerPointsPattern(customerPoints, hydraulicModel.demands.patterns),
+    [customerPoints, hydraulicModel.demands.patterns],
+  );
+
   const averageDemand = useMemo(
     () =>
       calculateAverageDemand(junction.demands, hydraulicModel.demands.patterns),
@@ -500,6 +510,14 @@ const JunctionEditor = ({
               decimals={quantitiesMetadata.getDecimals("baseDemand")}
               readOnly={true}
             />
+            {isCustomerDemandsOn && !!customerDemandPattern && (
+              <SelectRow
+                name="customerPattern"
+                selected={customerDemandPattern.value}
+                options={[customerDemandPattern]}
+                readOnly={true}
+              />
+            )}
             <ConnectedCustomersRow
               customerCount={customerCount}
               customerPoints={customerPoints}
@@ -591,6 +609,12 @@ const PipeEditor = ({
     }
     return customerPoints.reduce((sum, cp) => sum + cp.baseDemand, 0);
   }, [customerPoints, isCustomerDemandsOn, hydraulicModel.demands.patterns]);
+
+  const customerDemandPattern = useMemo(
+    () =>
+      getCustomerPointsPattern(customerPoints, hydraulicModel.demands.patterns),
+    [customerPoints, hydraulicModel.demands.patterns],
+  );
 
   const pipeStatusOptions = useMemo(() => {
     return pipeStatuses.map((status) => ({
@@ -692,6 +716,14 @@ const PipeEditor = ({
             decimals={quantitiesMetadata.getDecimals("baseDemand")}
             readOnly={true}
           />
+          {isCustomerDemandsOn && !!customerDemandPattern && (
+            <SelectRow
+              name="customerPattern"
+              selected={customerDemandPattern.value}
+              options={[customerDemandPattern]}
+              readOnly={true}
+            />
+          )}
           <ConnectedCustomersRow
             customerCount={customerCount}
             customerPoints={customerPoints}
@@ -1231,3 +1263,22 @@ const PumpEditor = ({
     </AssetEditorContent>
   );
 };
+
+function getCustomerPointsPattern(
+  customerPoints: CustomerPoint[],
+  patterns: DemandPatterns,
+) {
+  if (!customerPoints.length) return;
+  const firstCustomerPointWithDemand = customerPoints.find(
+    (customerPoint) => customerPoint.demands?.[0],
+  );
+  if (!firstCustomerPointWithDemand) return;
+  const patternId = firstCustomerPointWithDemand.demands[0].patternId;
+  if (!patternId) return;
+  const pattern = patterns.get(patternId);
+  if (!pattern) return;
+  return {
+    value: patternId,
+    label: pattern.label,
+  };
+}
