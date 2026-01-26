@@ -239,7 +239,7 @@ const PatternSidebarItem = ({
           variant="quiet/list"
           size="sm"
           onClick={onSelect}
-          className="flex-1 justify-start truncate hover:bg-transparent dark:hover:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
+          className="flex-1 justify-start truncate hover:bg-transparent dark:hover:bg-transparent focus-visible:!ring-0 focus-visible:!ring-offset-0"
         >
           {pattern.label}
         </Button>
