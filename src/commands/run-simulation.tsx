@@ -38,7 +38,10 @@ export const useRunSimulation = () => {
       const buildInpFn = isCustomerDemandsOn
         ? buildInpWithCustomerDemands
         : buildInp;
-      const inp = buildInpFn(hydraulicModel, { customerDemands: true });
+      const inp = buildInpFn(hydraulicModel, {
+        customerDemands: true,
+        usedPatterns: true,
+      });
       const start = performance.now();
 
       let isCompleted = false;

@@ -1011,7 +1011,7 @@ describe("build inp with controls", () => {
   });
 
   describe("demand patterns", () => {
-    it("includes only used demand patterns in INP", () => {
+    it("includes all demand patterns by default", () => {
       const IDS = { J1: 1, J2: 2, PAT1: 100, PAT2: 101, PAT3: 102 };
       const hydraulicModel = HydraulicModelBuilder.with()
         .aJunction(IDS.J1, {
@@ -1033,12 +1033,39 @@ describe("build inp with controls", () => {
       expect(inp).toContain("Pattern\t0");
       expect(inp).toContain("0\t1");
       expect(inp).toContain(`${IDS.PAT1}\t0.8\t1.2\t1`);
+      // All patterns should be included by default
+      expect(inp).toContain(`${IDS.PAT2}\t1\t1.5\t0.5`);
+      expect(inp).toContain(`${IDS.PAT3}\t0.5\t1\t1.5`);
+    });
+
+    it("includes only used demand patterns when usedPatterns is true", () => {
+      const IDS = { J1: 1, J2: 2, PAT1: 100, PAT2: 101, PAT3: 102 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, {
+          elevation: 10,
+          demands: [{ baseDemand: 50, patternId: IDS.PAT1 }],
+        })
+        .aJunction(IDS.J2, {
+          elevation: 20,
+          demands: [{ baseDemand: 30 }], // constant demand, no pattern
+        })
+        .aDemandPattern(IDS.PAT1, "residential", [0.8, 1.2, 1.0])
+        .aDemandPattern(IDS.PAT2, "commercial", [1.0, 1.5, 0.5])
+        .aDemandPattern(IDS.PAT3, "industrial", [0.5, 1.0, 1.5])
+        .build();
+
+      const inp = buildInp(hydraulicModel, { usedPatterns: true });
+
+      expect(inp).toContain("[PATTERNS]");
+      expect(inp).toContain("Pattern\t0");
+      expect(inp).toContain("0\t1");
+      expect(inp).toContain(`${IDS.PAT1}\t0.8\t1.2\t1`);
       // Unused patterns should not be included
       expect(inp).not.toContain(`${IDS.PAT2}\t`);
       expect(inp).not.toContain(`${IDS.PAT3}\t`);
     });
 
-    it("excludes patterns only used by demands with zero baseDemand", () => {
+    it("includes patterns even when only used by demands with zero baseDemand by default", () => {
       const IDS = { J1: 1, PAT1: 100 };
       const hydraulicModel = HydraulicModelBuilder.with()
         .aJunction(IDS.J1, {
@@ -1049,6 +1076,22 @@ describe("build inp with controls", () => {
         .build();
 
       const inp = buildInp(hydraulicModel);
+
+      expect(inp).toContain(`${IDS.PAT1}\t0.8\t1.2\t1`); // Pattern included by default
+      expect(inp).not.toContain(`1\t0\t${IDS.PAT1}`); // Demand not included (zero baseDemand)
+    });
+
+    it("excludes patterns only used by demands with zero baseDemand when usedPatterns is true", () => {
+      const IDS = { J1: 1, PAT1: 100 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, {
+          elevation: 10,
+          demands: [{ baseDemand: 0, patternId: IDS.PAT1 }],
+        })
+        .aDemandPattern(IDS.PAT1, "residential", [0.8, 1.2, 1.0])
+        .build();
+
+      const inp = buildInp(hydraulicModel, { usedPatterns: true });
 
       expect(inp).not.toContain(`${IDS.PAT1}\t`); // Pattern not included
       expect(inp).not.toContain(`1\t0\t${IDS.PAT1}`); // Demand not included

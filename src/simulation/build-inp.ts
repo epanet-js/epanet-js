@@ -208,6 +208,7 @@ type BuildOptions = {
   customerDemands?: boolean;
   customerPoints?: boolean;
   inactiveAssets?: boolean;
+  usedPatterns?: boolean;
 };
 
 export const buildInp = withDebugInstrumentation(
@@ -219,6 +220,7 @@ export const buildInp = withDebugInstrumentation(
       customerDemands: false,
       customerPoints: false,
       inactiveAssets: false,
+      usedPatterns: false,
     };
     const opts = { ...defaultOptions, ...options };
     const idMap = new EpanetIds({ strategy: opts.labelIds ? "label" : "id" });
@@ -353,6 +355,7 @@ export const buildInp = withDebugInstrumentation(
       hydraulicModel.demands.patterns,
       usedPatternIds,
       idMap,
+      opts.usedPatterns,
     );
 
     appendControls(sections, hydraulicModel.controls, idMap, hydraulicModel);
@@ -743,13 +746,14 @@ const appendDemandPatterns = (
   patterns: DemandPatterns,
   usedPatternIds: Set<string>,
   idMap: EpanetIds,
+  usedPatternsOnly: boolean,
 ) => {
   const constantPatternId = idMap.patternId(defaultConstantPatternId);
   sections.patterns.push([constantPatternId, "1"].join("\t"));
 
   for (const pattern of patterns.values()) {
     const mappedId = idMap.patternId(pattern.id);
-    if (!usedPatternIds.has(mappedId)) continue;
+    if (usedPatternsOnly && !usedPatternIds.has(mappedId)) continue;
 
     const FACTORS_PER_LINE = 8;
     for (let i = 0; i < pattern.multipliers.length; i += FACTORS_PER_LINE) {

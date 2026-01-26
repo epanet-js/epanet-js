@@ -151,11 +151,9 @@ export const buildModel = (
 
   hydraulicModel.curves = curvesBuilder.getValidatedCurves();
 
-  const usedPatterns = filterUsedPatterns(
-    patternContext.patterns,
-    patternContext.usedPatternIds,
-  );
-  hydraulicModel.demands.patterns = usedPatterns;
+  hydraulicModel.demands.patterns = options?.usedPatterns
+    ? filterUsedPatterns(patternContext.patterns, patternContext.usedPatternIds)
+    : patternContext.patterns;
 
   addControls(hydraulicModel, inpData.controls, nodeIds, linkIds);
 

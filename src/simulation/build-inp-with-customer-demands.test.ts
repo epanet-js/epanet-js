@@ -202,7 +202,7 @@ describe("buildInpWithCustomerDemands", () => {
       expect(demandsSection).not.toContain("1\t0");
     });
 
-    it("tracks used patterns from customer points for export", () => {
+    it("includes all patterns by default", () => {
       const IDS = { J1: 1, P1: 2, CP1: 3, PAT1: 100, PAT2: 101 };
       const hydraulicModel = HydraulicModelBuilder.with()
         .aJunction(IDS.J1, { elevation: 10 })
@@ -220,12 +220,44 @@ describe("buildInpWithCustomerDemands", () => {
           connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
         })
         .aDemandPattern(IDS.PAT1, "daily_pattern", [0.8, 1.0, 1.2, 1.0])
-        .aDemandPattern(IDS.PAT2, "unused_pattern", [1, 1, 1])
+        .aDemandPattern(IDS.PAT2, "unused_pattern", [0.5, 1.5, 1.0])
         .build();
 
       const inp = buildInpWithCustomerDemands(hydraulicModel, {
         customerDemands: true,
         customerPoints: true,
+      });
+
+      // All patterns should be in the output by default
+      expect(inp).toContain(`${IDS.PAT1}\t0.8\t1\t1.2\t1`);
+      expect(inp).toContain(`${IDS.PAT2}\t0.5\t1.5\t1`);
+    });
+
+    it("includes only used patterns when usedPatterns is true", () => {
+      const IDS = { J1: 1, P1: 2, CP1: 3, PAT1: 100, PAT2: 101 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, { elevation: 10 })
+        .aPipe(IDS.P1, {
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J1,
+          coordinates: [
+            [0, 0],
+            [10, 0],
+          ],
+        })
+        .aCustomerPoint(IDS.CP1, {
+          demands: [{ baseDemand: 25, patternId: IDS.PAT1 }],
+          coordinates: [1, 1],
+          connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
+        })
+        .aDemandPattern(IDS.PAT1, "daily_pattern", [0.8, 1.0, 1.2, 1.0])
+        .aDemandPattern(IDS.PAT2, "unused_pattern", [0.5, 1.5, 1.0])
+        .build();
+
+      const inp = buildInpWithCustomerDemands(hydraulicModel, {
+        customerDemands: true,
+        customerPoints: true,
+        usedPatterns: true,
       });
 
       // Used pattern should be in the output
