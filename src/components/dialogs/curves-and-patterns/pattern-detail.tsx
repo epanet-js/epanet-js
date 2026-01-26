@@ -1,7 +1,5 @@
-import { useState, useRef, useCallback, useEffect } from "react";
 import { PatternGraph } from "./pattern-graph";
 import { PatternMultipliers } from "src/hydraulic-model/demands";
-import { SpreadsheetSelection } from "src/components/spreadsheet-table";
 import { PatternTableLegacy } from "./pattern-table-legacy";
 
 interface PatternDetailProps {
@@ -17,88 +15,24 @@ export function PatternDetail({
   totalDurationSeconds,
   onChange,
 }: PatternDetailProps) {
-  const [selectedCells, setSelectedCells] =
-    useState<SpreadsheetSelection | null>(null);
-  const tableContainerRef = useRef<HTMLDivElement>(null);
-  const graphContainerRef = useRef<HTMLDivElement>(null);
-
-  const handleGraphClick = useCallback(
-    (barIndex: number | null) => {
-      setSelectedCells((prev) => {
-        const isSame = isSameSelection(prev, barIndex, pattern.length);
-        if (isSame) return prev ? { ...prev } : prev;
-        if (barIndex === null) return null;
-        const rowIndex = barIndex % pattern.length;
-        return {
-          min: { col: 1, row: rowIndex },
-          max: { col: 1, row: rowIndex },
-        };
-      });
-    },
-    [pattern.length],
-  );
-
-  useEffect(() => {
-    const handleDocumentClick = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      const isInsideTable = tableContainerRef.current?.contains(target);
-      const isInsideGraph = graphContainerRef.current?.contains(target);
-      if (!isInsideTable && !isInsideGraph) {
-        setSelectedCells(null);
-      }
-    };
-
-    document.addEventListener("click", handleDocumentClick);
-    return () => document.removeEventListener("click", handleDocumentClick);
-  }, []);
-
-  const graphSelectedIndexes = selectedCells
-    ? Array.from(
-        { length: selectedCells.max.row - selectedCells.min.row + 1 },
-        (_, i) => selectedCells.min.row + i,
-      )
-    : [];
-
   return (
     <div className="grid grid-cols-5 gap-4 h-full">
-      <div
-        ref={tableContainerRef}
-        className="col-span-2 h-full overflow-hidden"
-      >
+      <div className="col-span-2 h-full overflow-hidden">
         <PatternTableLegacy
           pattern={pattern}
           patternTimestepSeconds={patternTimestepSeconds}
           onChange={onChange}
-          onSelectionChange={setSelectedCells}
-          selection={selectedCells}
         />
       </div>
       <div className="col-span-3 h-full pt-4">
-        <div ref={graphContainerRef} className="h-full">
+        <div className="h-full">
           <PatternGraph
             pattern={pattern}
             intervalSeconds={patternTimestepSeconds}
             totalDurationSeconds={totalDurationSeconds}
-            highlightedBarIndices={graphSelectedIndexes}
-            onBarClick={handleGraphClick}
           />
         </div>
       </div>
     </div>
-  );
-}
-
-function isSameSelection(
-  tableSelection: SpreadsheetSelection | null,
-  graphSelection: number | null,
-  dataLength: number,
-): boolean {
-  if (tableSelection === null || graphSelection === null) {
-    return tableSelection === graphSelection;
-  }
-
-  const rowIndex = graphSelection % dataLength;
-  return (
-    tableSelection.min.row === rowIndex || tableSelection.max.row === rowIndex
   );
 }

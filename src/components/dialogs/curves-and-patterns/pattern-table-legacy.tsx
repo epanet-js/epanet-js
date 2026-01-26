@@ -4,7 +4,6 @@ import {
   forwardRef,
   useRef,
   useImperativeHandle,
-  useEffect,
 } from "react";
 import { keyColumn } from "react-datasheet-grid";
 import {
@@ -12,7 +11,6 @@ import {
   createFloatColumnLegacy,
   createTextReadonlyColumnLegacy,
   type SpreadsheetTableRefLegacy,
-  SpreadsheetSelection,
 } from "src/components/spreadsheet-table";
 import { PatternMultipliers } from "src/hydraulic-model/demands";
 import { useTranslate } from "src/hooks/use-translate";
@@ -27,8 +25,6 @@ type PatternTableLegacyProps = {
   pattern: PatternMultipliers;
   patternTimestepSeconds: number;
   onChange: (pattern: PatternMultipliers) => void;
-  onSelectionChange?: (selection: SpreadsheetSelection | null) => void;
-  selection?: SpreadsheetSelection | null;
 };
 
 export type PatternTableRefLegacy = SpreadsheetTableRefLegacy;
@@ -71,46 +67,14 @@ export const PatternTableLegacy = forwardRef<
   SpreadsheetTableRefLegacy,
   PatternTableLegacyProps
 >(function PatternTableLegacy(
-  { pattern, patternTimestepSeconds, onChange, onSelectionChange, selection },
+  { pattern, patternTimestepSeconds, onChange },
   ref,
 ) {
   const translate = useTranslate();
   const gridRef = useRef<SpreadsheetTableRefLegacy>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const isInteracting = useRef(false);
 
   useImperativeHandle(ref, () => gridRef.current!, []);
-
-  useEffect(function trackUserMouseInteraction() {
-    const container = containerRef.current;
-    if (!container) return;
-
-    const handleMouseDown = () => {
-      isInteracting.current = true;
-    };
-    const handleMouseUp = () => {
-      isInteracting.current = false;
-    };
-
-    container.addEventListener("mousedown", handleMouseDown);
-    document.addEventListener("mouseup", handleMouseUp);
-
-    return () => {
-      container.removeEventListener("mousedown", handleMouseDown);
-      document.removeEventListener("mouseup", handleMouseUp);
-    };
-  }, []);
-
-  // Sync external selection prop to the grid
-  useEffect(
-    function syncExternalSelection() {
-      if (!gridRef.current) return;
-      if (isInteracting.current) return;
-
-      gridRef.current.setSelection(selection ?? null);
-    },
-    [selection],
-  );
 
   const rowData = useMemo(
     () => toRows(pattern, patternTimestepSeconds),
@@ -138,17 +102,13 @@ export const PatternTableLegacy = forwardRef<
     [rowData, onChange, recalculateTimesteps],
   );
 
-  const selectRow = useCallback(
-    (rowIndex: number) => {
-      const newSelection = {
-        min: { col: 0, row: rowIndex },
-        max: { col: 1, row: rowIndex },
-      };
-      gridRef.current?.setSelection(newSelection);
-      onSelectionChange?.(newSelection);
-    },
-    [onSelectionChange],
-  );
+  const selectRow = useCallback((rowIndex: number) => {
+    const newSelection = {
+      min: { col: 0, row: rowIndex },
+      max: { col: 1, row: rowIndex },
+    };
+    gridRef.current?.setSelection(newSelection);
+  }, []);
 
   const handleInsertRowAbove = useCallback(
     (rowIndex: number) => {
@@ -255,24 +215,6 @@ export const PatternTableLegacy = forwardRef<
     [onChange, recalculateTimesteps],
   );
 
-  const handleSelectionChange = useCallback(
-    (newSelection: SpreadsheetSelection | null) => {
-      if (!onSelectionChange) return;
-      if (newSelection === null) return;
-      if (newSelection === selection) return;
-      if (
-        selection?.min.row === newSelection?.min.row &&
-        selection?.min.col === newSelection?.min.col &&
-        selection?.max.row === newSelection?.max.row &&
-        selection?.max.col === newSelection?.max.col
-      )
-        return;
-
-      onSelectionChange(newSelection);
-    },
-    [onSelectionChange, selection],
-  );
-
   return (
     <div ref={containerRef} className="h-full">
       <SpreadsheetTableLegacy<PatternRow>
@@ -284,7 +226,6 @@ export const PatternTableLegacy = forwardRef<
         rowActions={rowActions}
         addRowLabel={translate("addTimestep")}
         gutterColumn
-        onSelectionChange={handleSelectionChange}
       />
     </div>
   );
