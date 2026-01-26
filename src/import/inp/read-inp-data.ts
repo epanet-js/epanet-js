@@ -166,7 +166,7 @@ export const readInpData = (
 };
 
 const isEnd = (trimmedRow: string) => {
-  return trimmedRow.includes("[END]");
+  return trimmedRow.toUpperCase().includes("[END]");
 };
 
 const isLineComment = (trimmedRow: string) =>
@@ -193,9 +193,10 @@ const detectNewSectionName = (
   sectionParsers: SectionParsers,
 ): string | null => {
   if (!trimmedRow.startsWith("[")) return null;
+  const normalizedRow = trimmedRow.toUpperCase();
 
   const sectionName = Object.keys(sectionParsers).find((name) =>
-    trimmedRow.includes(name),
+    normalizedRow.includes(name),
   );
   if (sectionName === undefined) {
     issues.addUsedSection(trimmedRow);

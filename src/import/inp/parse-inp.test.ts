@@ -506,6 +506,52 @@ describe("Parse inp with", () => {
     expect(reservoir.head).toEqual(200);
   });
 
+  it("supports case-insensitive section names", () => {
+    const IDS = { J1: 1, R1: 2, P1: 3 } as const;
+
+    const inp = `
+    [junctions]
+    ${IDS.J1} 100
+
+    [Reservoirs]
+    ${IDS.R1} 200
+
+    [PIPES]
+    ${IDS.P1} ${IDS.R1} ${IDS.J1} 10 10 10 10 Open
+
+    [coordinates]
+    ${IDS.J1} 1 1
+    ${IDS.R1} 2 2
+
+    [Demands]
+    ${IDS.J1} 0.5
+
+    [end]
+    `;
+
+    const { hydraulicModel } = parseInp(inp);
+
+    expect(hydraulicModel.assets.size).toEqual(3);
+
+    const junction = getByLabel(
+      hydraulicModel.assets,
+      String(IDS.J1),
+    ) as Junction;
+    expect(junction).toBeDefined();
+    expect(junction.elevation).toEqual(100);
+    expect(junction.demands[0].baseDemand).toEqual(0.5);
+
+    const reservoir = getByLabel(
+      hydraulicModel.assets,
+      String(IDS.R1),
+    ) as Reservoir;
+    expect(reservoir).toBeDefined();
+    expect(reservoir.head).toEqual(200);
+
+    const pipe = getByLabel(hydraulicModel.assets, String(IDS.P1)) as Pipe;
+    expect(pipe).toBeDefined();
+  });
+
   describe("section-specific issue reporting", () => {
     it("ignores empty [TAGS] section", () => {
       const inp = `
