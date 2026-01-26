@@ -29,6 +29,7 @@ type PatternSidebarProps = {
   onSelectPattern: (patternId: PatternId) => void;
   onAddPattern: (label: string, multipliers: PatternMultipliers) => PatternId;
   onChangePattern: (patternId: PatternId, updates: { label: string }) => void;
+  onDeletePattern: (patternId: PatternId) => void;
 };
 
 export const PatternSidebar = ({
@@ -37,6 +38,7 @@ export const PatternSidebar = ({
   onSelectPattern,
   onAddPattern,
   onChangePattern,
+  onDeletePattern,
 }: PatternSidebarProps) => {
   const translate = useTranslate();
   const labelManager = useRef(new LabelManager());
@@ -115,6 +117,7 @@ export const PatternSidebar = ({
                 sourcePattern: pattern,
               })
             }
+            onDelete={() => onDeletePattern(pattern.id)}
             onPatternLabelChange={handlePatternLabelChange}
           />
         ))}
@@ -149,6 +152,7 @@ type PatternSidebarItemProps = {
   onCancel: () => void;
   onStartRename: (patternId: PatternId) => void;
   onStartClone: (pattern: DemandPattern) => void;
+  onDelete: () => void;
   onPatternLabelChange: (name: string) => boolean;
 };
 
@@ -160,6 +164,7 @@ const PatternSidebarItem = ({
   onCancel,
   onStartRename,
   onStartClone,
+  onDelete,
   onPatternLabelChange,
 }: PatternSidebarItemProps) => {
   const translate = useTranslate();
@@ -208,6 +213,7 @@ const PatternSidebarItem = ({
             onSelect();
             onStartClone(pattern);
           }}
+          onDelete={onDelete}
         />
       </li>
       {isCloning && (
@@ -274,12 +280,14 @@ type PatternActionsMenuProps = {
   isSelected: boolean;
   onRename: () => void;
   onDuplicate: () => void;
+  onDelete: () => void;
 };
 
 const PatternActionsMenu = ({
   isSelected,
   onRename,
   onDuplicate,
+  onDelete,
 }: PatternActionsMenuProps) => {
   const translate = useTranslate();
 
@@ -310,7 +318,7 @@ const PatternActionsMenu = ({
               <DuplicateIcon size="sm" />
               {translate("duplicate")}
             </StyledItem>
-            <StyledItem variant="destructive" onSelect={() => {}}>
+            <StyledItem variant="destructive" onSelect={onDelete}>
               <CloseIcon size="sm" />
               {translate("delete")}
             </StyledItem>

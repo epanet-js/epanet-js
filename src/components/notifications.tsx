@@ -88,6 +88,9 @@ export const notify = ({
           },
           t.visible ? "animate-enter" : "animate-leave",
         )}
+        onClick={(e) => e.stopPropagation()}
+        onPointerDown={(e) => e.stopPropagation()}
+        data-notification
       >
         {Icon && (
           <Icon

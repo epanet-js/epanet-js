@@ -369,4 +369,151 @@ describe("CurvesAndPatternsDialog", () => {
       expect(newPattern?.id).not.toBe(2);
     });
   });
+
+  describe("deleting patterns", () => {
+    it("deletes a pattern that is not in use", async () => {
+      const user = setupUser();
+      const store = setInitialState({
+        hydraulicModel: HydraulicModelBuilder.with()
+          .aDemandPattern(100, "Pattern1", [1.0, 0.8])
+          .aDemandPattern(200, "Pattern2", [1.0, 1.2])
+          .build(),
+      });
+
+      renderDialog(store);
+
+      // Open actions menu for Pattern1 and click delete
+      const actionsButtons = screen.getAllByRole("button", {
+        name: /actions/i,
+      });
+      await user.click(actionsButtons[0]);
+      await user.click(screen.getByRole("menuitem", { name: /delete/i }));
+
+      // Pattern1 should be removed from the list
+      await waitFor(() => {
+        expect(
+          screen.queryByRole("button", { name: "Pattern1" }),
+        ).not.toBeInTheDocument();
+      });
+
+      // Pattern2 should still be there
+      expect(
+        screen.getByRole("button", { name: "Pattern2" }),
+      ).toBeInTheDocument();
+
+      // Save button should be enabled
+      expect(screen.getByRole("button", { name: /save/i })).toBeEnabled();
+    });
+
+    it("persists deletion when saved", async () => {
+      const user = setupUser();
+      const store = setInitialState({
+        hydraulicModel: HydraulicModelBuilder.with()
+          .aDemandPattern(100, "Pattern1", [1.0, 0.8])
+          .aDemandPattern(200, "Pattern2", [1.0, 1.2])
+          .build(),
+      });
+
+      renderDialog(store);
+
+      // Delete Pattern1
+      const actionsButtons = screen.getAllByRole("button", {
+        name: /actions/i,
+      });
+      await user.click(actionsButtons[0]);
+      await user.click(screen.getByRole("menuitem", { name: /delete/i }));
+
+      // Wait for deletion and save
+      await waitFor(() => {
+        expect(screen.getByRole("button", { name: /save/i })).toBeEnabled();
+      });
+      await user.click(screen.getByRole("button", { name: /save/i }));
+
+      // Verify the model was updated
+      const { hydraulicModel } = store.get(dataAtom);
+      expect(hydraulicModel.demands.patterns.has(100)).toBe(false);
+      expect(hydraulicModel.demands.patterns.has(200)).toBe(true);
+    });
+
+    it("blocks deletion of a pattern used by a junction", async () => {
+      const user = setupUser();
+      const store = setInitialState({
+        hydraulicModel: HydraulicModelBuilder.with()
+          .aDemandPattern(100, "UsedPattern", [1.0, 0.8])
+          .aJunction(1, { demands: [{ baseDemand: 10, patternId: 100 }] })
+          .build(),
+      });
+
+      renderDialog(store);
+
+      // Try to delete the pattern
+      await user.click(screen.getByRole("button", { name: /actions/i }));
+      await user.click(screen.getByRole("menuitem", { name: /delete/i }));
+
+      // Pattern should still be in the list
+      expect(
+        screen.getByRole("button", { name: "UsedPattern" }),
+      ).toBeInTheDocument();
+
+      // Save button should be disabled (no changes)
+      expect(screen.getByRole("button", { name: /save/i })).toBeDisabled();
+    });
+
+    it("blocks deletion of a pattern used by a customer point", async () => {
+      const user = setupUser();
+      const store = setInitialState({
+        hydraulicModel: HydraulicModelBuilder.with()
+          .aDemandPattern(100, "UsedPattern", [1.0, 0.8])
+          .aCustomerPoint(1, {
+            demands: [{ baseDemand: 5, patternId: 100 }],
+          })
+          .build(),
+      });
+
+      renderDialog(store);
+
+      // Try to delete the pattern
+      await user.click(screen.getByRole("button", { name: /actions/i }));
+      await user.click(screen.getByRole("menuitem", { name: /delete/i }));
+
+      // Pattern should still be in the list
+      expect(
+        screen.getByRole("button", { name: "UsedPattern" }),
+      ).toBeInTheDocument();
+
+      // Save button should be disabled (no changes)
+      expect(screen.getByRole("button", { name: /save/i })).toBeDisabled();
+    });
+
+    it("clears selection when deleting the selected pattern", async () => {
+      const user = setupUser();
+      const store = setInitialState({
+        hydraulicModel: HydraulicModelBuilder.with()
+          .aDemandPattern(100, "Pattern1", [1.0, 0.8])
+          .build(),
+      });
+
+      renderDialog(store);
+
+      // Select the pattern first
+      await user.click(screen.getByRole("button", { name: "Pattern1" }));
+
+      // Delete the selected pattern
+      const actionsButtons = screen.getAllByRole("button", {
+        name: /actions/i,
+      });
+      await user.click(actionsButtons[0]);
+      await user.click(screen.getByRole("menuitem", { name: /delete/i }));
+
+      // Pattern should be removed
+      await waitFor(() => {
+        expect(
+          screen.queryByRole("button", { name: "Pattern1" }),
+        ).not.toBeInTheDocument();
+      });
+
+      // Should show empty state
+      expect(screen.getByText(/demand patterns is empty/i)).toBeInTheDocument();
+    });
+  });
 });

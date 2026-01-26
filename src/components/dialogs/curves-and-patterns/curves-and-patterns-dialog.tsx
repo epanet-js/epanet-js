@@ -16,29 +16,11 @@ import { PatternsIcon } from "src/icons";
 import { dataAtom } from "src/state/jotai";
 import { usePersistence } from "src/lib/persistence/context";
 import { changeDemandSettings } from "src/hydraulic-model/model-operations/change-demand-settings";
+import { HydraulicModel } from "src/hydraulic-model/hydraulic-model";
+import { Junction } from "src/hydraulic-model/asset-types/junction";
+import { notify } from "src/components/notifications";
 
 type PatternUpdate = Partial<Pick<DemandPattern, "label" | "multipliers">>;
-
-const arePatternsEqual = (
-  original: DemandPatterns,
-  edited: DemandPatterns,
-): boolean => {
-  if (original.size !== edited.size) return false;
-  for (const [id, originalPattern] of original) {
-    const editedPattern = edited.get(id);
-    if (!editedPattern) return false;
-    if (originalPattern.label !== editedPattern.label) return false;
-    if (originalPattern.multipliers.length !== editedPattern.multipliers.length)
-      return false;
-    if (
-      !originalPattern.multipliers.every(
-        (val, idx) => val === editedPattern.multipliers[idx],
-      )
-    )
-      return false;
-  }
-  return true;
-};
 
 export const CurvesAndPatternsDialog = () => {
   const translate = useTranslate();
@@ -96,6 +78,28 @@ export const CurvesAndPatternsDialog = () => {
     [],
   );
 
+  const handleDeletePattern = useCallback(
+    (patternId: PatternId) => {
+      if (isPatternInUse(hydraulicModel, patternId)) {
+        notify({
+          variant: "error",
+          title: translate("deletePatternInUse"),
+        });
+        return;
+      }
+
+      setEditedPatterns((prev) => {
+        const next = new Map(prev);
+        next.delete(patternId);
+        return next;
+      });
+      if (selectedPatternId === patternId) {
+        setSelectedPatternId(null);
+      }
+    },
+    [hydraulicModel, selectedPatternId, translate],
+  );
+
   const rep = usePersistence();
   const transact = rep.useTransact();
 
@@ -136,6 +140,7 @@ export const CurvesAndPatternsDialog = () => {
           onSelectPattern={setSelectedPatternId}
           onAddPattern={handleAddPattern}
           onChangePattern={handlePatternChange}
+          onDeletePattern={handleDeletePattern}
         />
         <div className="flex-1 flex flex-col min-h-0 p-2 w-full">
           {selectedPatternId ? (
@@ -223,4 +228,56 @@ const EmptyState = () => {
       </p>
     </div>
   );
+};
+
+const isPatternInUse = (
+  hydraulicModel: HydraulicModel,
+  patternId: PatternId,
+): boolean => {
+  // Check customer points - only check the first one with demands
+  for (const customerPoint of hydraulicModel.customerPoints.values()) {
+    if (customerPoint.demands.length > 0) {
+      for (const demand of customerPoint.demands) {
+        if (demand.patternId === patternId) {
+          return true;
+        }
+      }
+      break;
+    }
+  }
+
+  // Check junctions
+  for (const asset of hydraulicModel.assets.values()) {
+    if (asset.type === "junction") {
+      const junction = asset as Junction;
+      for (const demand of junction.demands) {
+        if (demand.patternId === patternId) {
+          return true;
+        }
+      }
+    }
+  }
+
+  return false;
+};
+
+const arePatternsEqual = (
+  original: DemandPatterns,
+  edited: DemandPatterns,
+): boolean => {
+  if (original.size !== edited.size) return false;
+  for (const [id, originalPattern] of original) {
+    const editedPattern = edited.get(id);
+    if (!editedPattern) return false;
+    if (originalPattern.label !== editedPattern.label) return false;
+    if (originalPattern.multipliers.length !== editedPattern.multipliers.length)
+      return false;
+    if (
+      !originalPattern.multipliers.every(
+        (val, idx) => val === editedPattern.multipliers[idx],
+      )
+    )
+      return false;
+  }
+  return true;
 };

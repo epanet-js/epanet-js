@@ -787,6 +787,7 @@
   "curvesAndPatternsEmptyDescription": "Please create a new pattern to get started.",
   "curvesAndPatternsNoSelection": "Select a pattern to view its details.",
   "curvesAndPatternsUnsavedWarning": "You have unsaved changes. Are you sure you want to discard them?",
+  "deletePatternInUse": "Cannot delete a pattern that is in use",
   "rename": "Rename",
   "duplicate": "Duplicate",
   "addTimestep": "Add timestep",

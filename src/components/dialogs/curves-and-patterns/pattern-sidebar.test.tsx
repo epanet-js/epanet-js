@@ -32,6 +32,7 @@ describe("PatternSidebar", () => {
           onSelectPattern={vi.fn()}
           onAddPattern={vi.fn()}
           onChangePattern={vi.fn()}
+          onDeletePattern={vi.fn()}
         />,
       );
 
@@ -51,6 +52,7 @@ describe("PatternSidebar", () => {
           onSelectPattern={vi.fn()}
           onAddPattern={vi.fn()}
           onChangePattern={vi.fn()}
+          onDeletePattern={vi.fn()}
         />,
       );
 
@@ -75,6 +77,7 @@ describe("PatternSidebar", () => {
           onSelectPattern={onSelectPattern}
           onAddPattern={vi.fn()}
           onChangePattern={vi.fn()}
+          onDeletePattern={vi.fn()}
         />,
       );
 
@@ -95,6 +98,7 @@ describe("PatternSidebar", () => {
           onSelectPattern={vi.fn()}
           onAddPattern={vi.fn()}
           onChangePattern={vi.fn()}
+          onDeletePattern={vi.fn()}
         />,
       );
 
@@ -113,6 +117,7 @@ describe("PatternSidebar", () => {
           onSelectPattern={vi.fn()}
           onAddPattern={vi.fn()}
           onChangePattern={vi.fn()}
+          onDeletePattern={vi.fn()}
         />,
       );
 
@@ -133,6 +138,7 @@ describe("PatternSidebar", () => {
           onSelectPattern={vi.fn()}
           onAddPattern={onAddPattern}
           onChangePattern={vi.fn()}
+          onDeletePattern={vi.fn()}
         />,
       );
 
@@ -154,6 +160,7 @@ describe("PatternSidebar", () => {
           onSelectPattern={vi.fn()}
           onAddPattern={createMockOnAddPattern()}
           onChangePattern={vi.fn()}
+          onDeletePattern={vi.fn()}
         />,
       );
 
@@ -178,6 +185,7 @@ describe("PatternSidebar", () => {
           onSelectPattern={vi.fn()}
           onAddPattern={onAddPattern}
           onChangePattern={vi.fn()}
+          onDeletePattern={vi.fn()}
         />,
       );
 
@@ -201,6 +209,7 @@ describe("PatternSidebar", () => {
           onSelectPattern={vi.fn()}
           onAddPattern={onAddPattern}
           onChangePattern={vi.fn()}
+          onDeletePattern={vi.fn()}
         />,
       );
 
@@ -226,6 +235,7 @@ describe("PatternSidebar", () => {
           onSelectPattern={vi.fn()}
           onAddPattern={onAddPattern}
           onChangePattern={vi.fn()}
+          onDeletePattern={vi.fn()}
         />,
       );
 
@@ -248,6 +258,7 @@ describe("PatternSidebar", () => {
           onSelectPattern={vi.fn()}
           onAddPattern={onAddPattern}
           onChangePattern={vi.fn()}
+          onDeletePattern={vi.fn()}
         />,
       );
 
@@ -279,6 +290,7 @@ describe("PatternSidebar", () => {
           onSelectPattern={vi.fn()}
           onAddPattern={onAddPattern}
           onChangePattern={vi.fn()}
+          onDeletePattern={vi.fn()}
         />,
       );
 
@@ -315,6 +327,7 @@ describe("PatternSidebar", () => {
           onSelectPattern={vi.fn()}
           onAddPattern={vi.fn()}
           onChangePattern={vi.fn()}
+          onDeletePattern={vi.fn()}
         />,
       );
 
@@ -340,6 +353,7 @@ describe("PatternSidebar", () => {
           onSelectPattern={vi.fn()}
           onAddPattern={vi.fn()}
           onChangePattern={onChange}
+          onDeletePattern={vi.fn()}
         />,
       );
 
@@ -368,6 +382,7 @@ describe("PatternSidebar", () => {
           onSelectPattern={vi.fn()}
           onAddPattern={vi.fn()}
           onChangePattern={onChange}
+          onDeletePattern={vi.fn()}
         />,
       );
 
@@ -396,6 +411,7 @@ describe("PatternSidebar", () => {
           onSelectPattern={vi.fn()}
           onAddPattern={vi.fn()}
           onChangePattern={onChange}
+          onDeletePattern={vi.fn()}
         />,
       );
 
@@ -425,6 +441,7 @@ describe("PatternSidebar", () => {
           onSelectPattern={vi.fn()}
           onAddPattern={vi.fn()}
           onChangePattern={onChange}
+          onDeletePattern={vi.fn()}
         />,
       );
 
@@ -457,6 +474,7 @@ describe("PatternSidebar", () => {
           onSelectPattern={vi.fn()}
           onAddPattern={vi.fn()}
           onChangePattern={onChange}
+          onDeletePattern={vi.fn()}
         />,
       );
 
@@ -490,6 +508,7 @@ describe("PatternSidebar", () => {
           onSelectPattern={vi.fn()}
           onAddPattern={vi.fn()}
           onChangePattern={vi.fn()}
+          onDeletePattern={vi.fn()}
         />,
       );
 
@@ -515,6 +534,7 @@ describe("PatternSidebar", () => {
           onSelectPattern={vi.fn()}
           onAddPattern={onAddPattern}
           onChangePattern={vi.fn()}
+          onDeletePattern={vi.fn()}
         />,
       );
 
@@ -542,6 +562,7 @@ describe("PatternSidebar", () => {
           onSelectPattern={vi.fn()}
           onAddPattern={onAddPattern}
           onChangePattern={vi.fn()}
+          onDeletePattern={vi.fn()}
         />,
       );
 
@@ -570,6 +591,7 @@ describe("PatternSidebar", () => {
           onSelectPattern={vi.fn()}
           onAddPattern={onAddPattern}
           onChangePattern={vi.fn()}
+          onDeletePattern={vi.fn()}
         />,
       );
 
@@ -601,6 +623,7 @@ describe("PatternSidebar", () => {
           onSelectPattern={vi.fn()}
           onAddPattern={onAddPattern}
           onChangePattern={vi.fn()}
+          onDeletePattern={vi.fn()}
         />,
       );
 
@@ -633,6 +656,7 @@ describe("PatternSidebar", () => {
           onSelectPattern={onSelectPattern}
           onAddPattern={vi.fn()}
           onChangePattern={vi.fn()}
+          onDeletePattern={vi.fn()}
         />,
       );
 

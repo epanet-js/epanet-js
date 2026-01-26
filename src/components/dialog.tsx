@@ -105,6 +105,10 @@ export const DialogContainer = ({
                 e.preventDefault();
                 return;
               }
+              if (target.closest("[data-notification]")) {
+                e.preventDefault();
+                return;
+              }
               if (disableOutsideClick) {
                 e.preventDefault();
               }
