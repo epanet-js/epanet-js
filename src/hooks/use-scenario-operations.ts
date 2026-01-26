@@ -14,8 +14,8 @@ import {
   deleteScenario,
   renameScenario,
   getSimulationForState,
-  type ScenarioContext,
 } from "src/lib/scenarios";
+import type { ScenarioContext } from "src/lib/scenarios";
 
 const DRAWING_MODES: Mode[] = [
   Mode.DRAW_JUNCTION,
@@ -44,7 +44,7 @@ export const useScenarioOperations = () => {
   );
 
   const switchToMain = useCallback(() => {
-    const result = switchToMainFn(worktree, getContext());
+    const result = switchToMainFn(worktree);
 
     if (result.snapshot) {
       persistence.applySnapshot(result.snapshot);
@@ -61,11 +61,11 @@ export const useScenarioOperations = () => {
       }
       return modeState;
     });
-  }, [persistence, worktree, getContext, setWorktree, setSimulation, setMode]);
+  }, [persistence, worktree, setWorktree, setSimulation, setMode]);
 
   const switchToSnapshot = useCallback(
     (snapshotId: string) => {
-      const result = switchToSnapshotFn(worktree, snapshotId, getContext());
+      const result = switchToSnapshotFn(worktree, snapshotId);
 
       if (result.snapshot) {
         persistence.applySnapshot(result.snapshot);
@@ -76,12 +76,12 @@ export const useScenarioOperations = () => {
         getSimulationForState(result.worktree, initialSimulationState),
       );
     },
-    [persistence, worktree, getContext, setWorktree, setSimulation],
+    [persistence, worktree, setWorktree, setSimulation],
   );
 
   const switchToScenario = useCallback(
     (scenarioId: string) => {
-      const result = switchToScenarioFn(worktree, scenarioId, getContext());
+      const result = switchToScenarioFn(worktree, scenarioId);
 
       if (result.snapshot) {
         persistence.applySnapshot(result.snapshot);
@@ -92,7 +92,7 @@ export const useScenarioOperations = () => {
         getSimulationForState(result.worktree, initialSimulationState),
       );
     },
-    [persistence, worktree, getContext, setWorktree, setSimulation],
+    [persistence, worktree, setWorktree, setSimulation],
   );
 
   const createNewScenario = useCallback(() => {
@@ -102,11 +102,7 @@ export const useScenarioOperations = () => {
         : worktree;
 
     const created = createScenario(initialized);
-    const result = switchToScenarioFn(
-      created.worktree,
-      created.scenario.id,
-      getContext(),
-    );
+    const result = switchToScenarioFn(created.worktree, created.scenario.id);
 
     if (result.snapshot) {
       persistence.applySnapshot(result.snapshot);

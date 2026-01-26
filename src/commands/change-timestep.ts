@@ -10,6 +10,8 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { getSimulationMetadata } from "src/simulation/epanet/simulation-metadata";
 import { worktreeAtom } from "src/state/scenarios";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { usePersistence } from "src/lib/persistence/context";
+import type { MemPersistence } from "src/lib/persistence/memory";
 
 export const previousTimestepShortcut = "shift+left";
 export const nextTimestepShortcut = "shift+right";
@@ -23,6 +25,7 @@ export const useChangeTimestep = () => {
   const userTracking = useUserTracking();
   const worktree = useAtomValue(worktreeAtom);
   const isScenariosOn = useFeatureFlag("FLAG_SCENARIOS");
+  const persistence = usePersistence() as MemPersistence;
 
   const changeTimestep = useCallback(
     async (timestepIndex: number, source: ChangeTimestepSource) => {
@@ -57,10 +60,12 @@ export const useChangeTimestep = () => {
           hydraulicModel: attachSimulation(prev.hydraulicModel, resultsReader),
         }));
 
-        setSimulationState((prev) => ({
-          ...prev,
+        const updatedSimulation = {
+          ...simulation,
           currentTimestepIndex: timestepIndex,
-        }));
+        };
+        setSimulationState(updatedSimulation);
+        persistence.syncSnapshotSimulation(updatedSimulation);
 
         userTracking.capture({
           name: "simulation.timestep.changed",
@@ -79,6 +84,7 @@ export const useChangeTimestep = () => {
       userTracking,
       isScenariosOn,
       worktree.activeSnapshotId,
+      persistence,
     ],
   );
 

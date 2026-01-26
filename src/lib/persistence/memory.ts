@@ -10,6 +10,7 @@ import {
 } from "src/lib/persistence/moment";
 import { generateKeyBetween } from "fractional-indexing";
 import type { BaseModelSnapshot } from "src/state/scenarios";
+import { worktreeAtom } from "src/state/scenarios";
 import type { Snapshot } from "src/lib/scenarios/types";
 import {
   type SimulationState,
@@ -138,6 +139,7 @@ export class MemPersistence implements IPersistence {
 
       this.store.set(momentLogAtom, momentLog);
       this.store.set(mapSyncMomentAtom, newMapSyncMoment);
+      this.syncSnapshotMomentLog(momentLog, newStateId);
     };
   }
 
@@ -157,6 +159,7 @@ export class MemPersistence implements IPersistence {
 
       this.store.set(momentLogAtom, momentLog);
       this.store.set(mapSyncMomentAtom, newMapSyncMoment);
+      this.syncSnapshotMomentLog(momentLog, action.stateId);
     };
   }
 
@@ -166,6 +169,39 @@ export class MemPersistence implements IPersistence {
 
   getSimulation(): SimulationState {
     return this.store.get(simulationAtom);
+  }
+
+  private syncSnapshotMomentLog(momentLog: MomentLog, version: string): void {
+    const worktree = this.store.get(worktreeAtom);
+    if (worktree.scenarios.length === 0) return;
+
+    const snapshot = worktree.snapshots.get(worktree.activeSnapshotId);
+    if (!snapshot) return;
+
+    const updatedSnapshots = new Map(worktree.snapshots);
+    updatedSnapshots.set(worktree.activeSnapshotId, {
+      ...snapshot,
+      momentLog,
+      version,
+    });
+
+    this.store.set(worktreeAtom, { ...worktree, snapshots: updatedSnapshots });
+  }
+
+  syncSnapshotSimulation(simulation: SimulationState): void {
+    const worktree = this.store.get(worktreeAtom);
+    if (worktree.scenarios.length === 0) return;
+
+    const snapshot = worktree.snapshots.get(worktree.activeSnapshotId);
+    if (!snapshot) return;
+
+    const updatedSnapshots = new Map(worktree.snapshots);
+    updatedSnapshots.set(worktree.activeSnapshotId, {
+      ...snapshot,
+      simulation,
+    });
+
+    this.store.set(worktreeAtom, { ...worktree, snapshots: updatedSnapshots });
   }
 
   captureModelSnapshot(): BaseModelSnapshot {

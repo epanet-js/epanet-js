@@ -15,6 +15,8 @@ import { getAppId } from "src/infra/app-instance";
 import { OPFSStorage } from "src/infra/storage";
 import { worktreeAtom } from "src/state/scenarios";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { usePersistence } from "src/lib/persistence/context";
+import type { MemPersistence } from "src/lib/persistence/memory";
 
 export const runSimulationShortcut = "shift+enter";
 
@@ -27,6 +29,7 @@ export const useRunSimulation = () => {
   const worktree = useAtomValue(worktreeAtom);
   const isScenariosOn = useFeatureFlag("FLAG_SCENARIOS");
   const isCustomerDemandsOn = useFeatureFlag("FLAG_CUSTOMER_DEMANDS");
+  const persistence = usePersistence() as MemPersistence;
 
   const runSimulation = useCallback(
     async (options?: { onContinue?: () => void }) => {
@@ -81,14 +84,16 @@ export const useRunSimulation = () => {
         }));
       }
 
-      setSimulationState({
+      const simulationResult = {
         status,
         report,
         modelVersion: updatedHydraulicModel.version,
         metadata,
         simulationIds,
         currentTimestepIndex: 0,
-      });
+      };
+      setSimulationState(simulationResult);
+      persistence.syncSnapshotSimulation(simulationResult);
       const end = performance.now();
       const duration = end - start;
 
@@ -114,6 +119,7 @@ export const useRunSimulation = () => {
       isScenariosOn,
       isCustomerDemandsOn,
       worktree.activeSnapshotId,
+      persistence,
     ],
   );
 
