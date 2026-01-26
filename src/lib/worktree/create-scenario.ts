@@ -1,4 +1,4 @@
-import type { Worktree, Snapshot } from "src/state/scenarios";
+import type { Worktree, Snapshot } from "./types";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { nanoid } from "nanoid";
 

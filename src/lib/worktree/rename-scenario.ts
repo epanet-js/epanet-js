@@ -1,4 +1,4 @@
-import type { Worktree } from "src/state/scenarios";
+import type { Worktree } from "./types";
 
 export const renameScenario = (
   worktree: Worktree,

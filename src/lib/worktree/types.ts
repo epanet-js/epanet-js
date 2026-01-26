@@ -1,6 +1,11 @@
 import type { MomentLog } from "src/lib/persistence/moment-log";
-import type { BaseModelSnapshot, Worktree } from "src/state/scenarios";
+import type { Moment } from "src/lib/persistence/moment";
 import type { SimulationState } from "src/state/jotai";
+
+export interface BaseModelSnapshot {
+  moment: Moment;
+  stateId: string;
+}
 
 export type Snapshot = {
   id: string;
@@ -11,6 +16,15 @@ export type Snapshot = {
   simulation: SimulationState | null;
   status: "open" | "locked";
 };
+
+export interface Worktree {
+  activeSnapshotId: string;
+  lastActiveSnapshotId: string;
+  snapshots: Map<string, Snapshot>;
+  mainId: string;
+  scenarios: string[];
+  highestScenarioNumber: number;
+}
 
 export const buildSnapshot = (
   id: string,

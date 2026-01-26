@@ -1,4 +1,4 @@
-import type { Worktree } from "src/state/scenarios";
+import type { Worktree } from "./types";
 import type { SimulationState } from "src/state/jotai";
 
 export const getSimulationForState = (

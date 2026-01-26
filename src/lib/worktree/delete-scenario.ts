@@ -1,5 +1,4 @@
-import type { Worktree } from "src/state/scenarios";
-import type { ScenarioOperationResult } from "./types";
+import type { Worktree, ScenarioOperationResult } from "./types";
 
 export const deleteScenario = (
   worktree: Worktree,

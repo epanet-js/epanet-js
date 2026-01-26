@@ -1,6 +1,6 @@
 import type { HydraulicModel } from "src/hydraulic-model";
 import type { Moment } from "src/lib/persistence/moment";
-import type { BaseModelSnapshot } from "src/state/scenarios";
+import type { BaseModelSnapshot } from "./types";
 
 export const captureModelSnapshot = (
   hydraulicModel: HydraulicModel,

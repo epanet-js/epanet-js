@@ -1,4 +1,6 @@
 export type {
+  BaseModelSnapshot,
+  Worktree,
   Snapshot,
   ScenarioContext,
   ScenarioOperationResult,

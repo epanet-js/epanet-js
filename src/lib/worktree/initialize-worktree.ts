@@ -1,5 +1,9 @@
-import type { BaseModelSnapshot, Worktree } from "src/state/scenarios";
-import type { ScenarioContext, Snapshot } from "./types";
+import type {
+  BaseModelSnapshot,
+  Worktree,
+  ScenarioContext,
+  Snapshot,
+} from "./types";
 
 const MAIN_ID = "main";
 
