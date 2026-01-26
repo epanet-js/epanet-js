@@ -31,6 +31,7 @@ describe("PatternSidebar", () => {
           selectedPatternId={null}
           onSelectPattern={vi.fn()}
           onAddPattern={vi.fn()}
+          onChange={vi.fn()}
         />,
       );
 
@@ -49,6 +50,7 @@ describe("PatternSidebar", () => {
           selectedPatternId={null}
           onSelectPattern={vi.fn()}
           onAddPattern={vi.fn()}
+          onChange={vi.fn()}
         />,
       );
 
@@ -72,6 +74,7 @@ describe("PatternSidebar", () => {
           selectedPatternId={null}
           onSelectPattern={onSelectPattern}
           onAddPattern={vi.fn()}
+          onChange={vi.fn()}
         />,
       );
 
@@ -91,6 +94,7 @@ describe("PatternSidebar", () => {
           selectedPatternId={null}
           onSelectPattern={vi.fn()}
           onAddPattern={vi.fn()}
+          onChange={vi.fn()}
         />,
       );
 
@@ -108,6 +112,7 @@ describe("PatternSidebar", () => {
           selectedPatternId={null}
           onSelectPattern={vi.fn()}
           onAddPattern={vi.fn()}
+          onChange={vi.fn()}
         />,
       );
 
@@ -127,6 +132,7 @@ describe("PatternSidebar", () => {
           selectedPatternId={null}
           onSelectPattern={vi.fn()}
           onAddPattern={onAddPattern}
+          onChange={vi.fn()}
         />,
       );
 
@@ -147,6 +153,7 @@ describe("PatternSidebar", () => {
           selectedPatternId={null}
           onSelectPattern={vi.fn()}
           onAddPattern={createMockOnAddPattern()}
+          onChange={vi.fn()}
         />,
       );
 
@@ -170,6 +177,7 @@ describe("PatternSidebar", () => {
           selectedPatternId={null}
           onSelectPattern={vi.fn()}
           onAddPattern={onAddPattern}
+          onChange={vi.fn()}
         />,
       );
 
@@ -192,6 +200,7 @@ describe("PatternSidebar", () => {
           selectedPatternId={null}
           onSelectPattern={vi.fn()}
           onAddPattern={onAddPattern}
+          onChange={vi.fn()}
         />,
       );
 
@@ -216,6 +225,7 @@ describe("PatternSidebar", () => {
           selectedPatternId={null}
           onSelectPattern={vi.fn()}
           onAddPattern={onAddPattern}
+          onChange={vi.fn()}
         />,
       );
 
@@ -237,6 +247,7 @@ describe("PatternSidebar", () => {
           selectedPatternId={null}
           onSelectPattern={vi.fn()}
           onAddPattern={onAddPattern}
+          onChange={vi.fn()}
         />,
       );
 
@@ -267,6 +278,7 @@ describe("PatternSidebar", () => {
           selectedPatternId={null}
           onSelectPattern={vi.fn()}
           onAddPattern={onAddPattern}
+          onChange={vi.fn()}
         />,
       );
 
@@ -286,6 +298,181 @@ describe("PatternSidebar", () => {
 
       // Should now succeed with the modified name
       expect(onAddPattern).toHaveBeenCalledWith("existing2", [1]);
+    });
+  });
+
+  describe("renaming patterns", () => {
+    it("shows editable field with current label when clicking rename", async () => {
+      const user = setupUser();
+      const patterns = createPatterns([
+        { id: 1, label: "PATTERN1", multipliers: [1.0] },
+      ]);
+
+      render(
+        <PatternSidebar
+          patterns={patterns}
+          selectedPatternId={1}
+          onSelectPattern={vi.fn()}
+          onAddPattern={vi.fn()}
+          onChange={vi.fn()}
+        />,
+      );
+
+      await user.click(screen.getByRole("button", { name: /actions/i }));
+      await user.click(screen.getByRole("menuitem", { name: /rename/i }));
+
+      const input = screen.getByRole("textbox");
+      expect(input).toBeInTheDocument();
+      expect(input).toHaveValue("PATTERN1");
+    });
+
+    it("calls onChange with new label on successful rename", async () => {
+      const user = setupUser();
+      const onChange = vi.fn();
+      const patterns = createPatterns([
+        { id: 1, label: "PATTERN1", multipliers: [1.0] },
+      ]);
+
+      render(
+        <PatternSidebar
+          patterns={patterns}
+          selectedPatternId={1}
+          onSelectPattern={vi.fn()}
+          onAddPattern={vi.fn()}
+          onChange={onChange}
+        />,
+      );
+
+      await user.click(screen.getByRole("button", { name: /actions/i }));
+      await user.click(screen.getByRole("menuitem", { name: /rename/i }));
+
+      const input = screen.getByRole("textbox");
+      await user.clear(input);
+      await user.type(input, "NEWNAME");
+      await user.keyboard("{Enter}");
+
+      expect(onChange).toHaveBeenCalledWith(1, { label: "NEWNAME" });
+    });
+
+    it("trims whitespace from renamed pattern", async () => {
+      const user = setupUser();
+      const onChange = vi.fn();
+      const patterns = createPatterns([
+        { id: 1, label: "PATTERN1", multipliers: [1.0] },
+      ]);
+
+      render(
+        <PatternSidebar
+          patterns={patterns}
+          selectedPatternId={1}
+          onSelectPattern={vi.fn()}
+          onAddPattern={vi.fn()}
+          onChange={onChange}
+        />,
+      );
+
+      await user.click(screen.getByRole("button", { name: /actions/i }));
+      await user.click(screen.getByRole("menuitem", { name: /rename/i }));
+
+      const input = screen.getByRole("textbox");
+      await user.clear(input);
+      await user.type(input, "  TRIMMED  ");
+      await user.keyboard("{Enter}");
+
+      expect(onChange).toHaveBeenCalledWith(1, { label: "TRIMMED" });
+    });
+
+    it("does not rename with empty name", async () => {
+      const user = setupUser();
+      const onChange = vi.fn();
+      const patterns = createPatterns([
+        { id: 1, label: "PATTERN1", multipliers: [1.0] },
+      ]);
+
+      render(
+        <PatternSidebar
+          patterns={patterns}
+          selectedPatternId={1}
+          onSelectPattern={vi.fn()}
+          onAddPattern={vi.fn()}
+          onChange={onChange}
+        />,
+      );
+
+      await user.click(screen.getByRole("button", { name: /actions/i }));
+      await user.click(screen.getByRole("menuitem", { name: /rename/i }));
+
+      const input = screen.getByRole("textbox");
+      await user.clear(input);
+      await user.keyboard("{Enter}");
+
+      expect(onChange).not.toHaveBeenCalled();
+      expect(input).toBeInTheDocument();
+    });
+
+    it("does not rename with duplicate name", async () => {
+      const user = setupUser();
+      const onChange = vi.fn();
+      const patterns = createPatterns([
+        { id: 1, label: "PATTERN1", multipliers: [1.0] },
+        { id: 2, label: "PATTERN2", multipliers: [1.0] },
+      ]);
+
+      render(
+        <PatternSidebar
+          patterns={patterns}
+          selectedPatternId={1}
+          onSelectPattern={vi.fn()}
+          onAddPattern={vi.fn()}
+          onChange={onChange}
+        />,
+      );
+
+      const actionsButtons = screen.getAllByRole("button", {
+        name: /actions/i,
+      });
+      await user.click(actionsButtons[0]);
+      await user.click(screen.getByRole("menuitem", { name: /rename/i }));
+
+      const input = screen.getByRole("textbox");
+      await user.clear(input);
+      await user.type(input, "PATTERN2");
+      await user.keyboard("{Enter}");
+
+      expect(onChange).not.toHaveBeenCalled();
+      expect(input).toBeInTheDocument();
+    });
+
+    it("cancels rename when pressing Escape", async () => {
+      const user = setupUser();
+      const onChange = vi.fn();
+      const patterns = createPatterns([
+        { id: 1, label: "PATTERN1", multipliers: [1.0] },
+      ]);
+
+      render(
+        <PatternSidebar
+          patterns={patterns}
+          selectedPatternId={1}
+          onSelectPattern={vi.fn()}
+          onAddPattern={vi.fn()}
+          onChange={onChange}
+        />,
+      );
+
+      await user.click(screen.getByRole("button", { name: /actions/i }));
+      await user.click(screen.getByRole("menuitem", { name: /rename/i }));
+
+      expect(screen.getByRole("textbox")).toBeInTheDocument();
+      await user.keyboard("{Escape}");
+
+      await waitFor(() => {
+        expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
+      });
+      expect(onChange).not.toHaveBeenCalled();
+      expect(
+        screen.getByRole("button", { name: "PATTERN1" }),
+      ).toBeInTheDocument();
     });
   });
 });

@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import * as DD from "@radix-ui/react-dropdown-menu";
 import { useTranslate } from "src/hooks/use-translate";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   PatternMultipliers,
   DemandPatterns,
@@ -24,6 +23,7 @@ type PatternSidebarProps = {
   selectedPatternId: PatternId | null;
   onSelectPattern: (patternId: PatternId) => void;
   onAddPattern: (label: string, multipliers: PatternMultipliers) => PatternId;
+  onChange: (patternId: PatternId, updates: { label: string }) => void;
 };
 
 export const PatternSidebar = ({
@@ -31,11 +31,15 @@ export const PatternSidebar = ({
   selectedPatternId,
   onSelectPattern,
   onAddPattern,
+  onChange,
 }: PatternSidebarProps) => {
   const translate = useTranslate();
   const labelManager = useRef(new LabelManager());
   const [isCreatingNew, setIsCreatingNew] = useState(false);
   const [newPatternId, setNewPatternId] = useState<PatternId | null>(null);
+  const [renamingPatternId, setRenamingPatternId] = useState<PatternId | null>(
+    null,
+  );
   const listRef = useRef<HTMLUListElement>(null);
 
   useEffect(() => {
@@ -84,6 +88,26 @@ export const PatternSidebar = ({
     setIsCreatingNew(false);
   };
 
+  const handleCommitRename = (patternId: PatternId, name: string): boolean => {
+    const trimmedName = name.trim();
+    if (!trimmedName) {
+      return true;
+    }
+    if (
+      !labelManager.current.isLabelAvailable(trimmedName, "pattern", patternId)
+    ) {
+      return true;
+    }
+
+    onChange(patternId, { label: trimmedName });
+    setRenamingPatternId(null);
+    return false;
+  };
+
+  const handleCancelRename = () => {
+    setRenamingPatternId(null);
+  };
+
   return (
     <div className="w-56 flex-shrink-0 border-r border-gray-200 dark:border-gray-700 flex flex-col p-2 gap-2">
       {(patternsList.length > 0 || isCreatingNew) && (
@@ -93,11 +117,21 @@ export const PatternSidebar = ({
               key={pattern.id}
               pattern={pattern}
               isSelected={pattern.id === selectedPatternId}
+              isRenaming={pattern.id === renamingPatternId}
               onSelect={() => onSelectPattern(pattern.id)}
+              onStartRename={() => {
+                onSelectPattern(pattern.id);
+                setRenamingPatternId(pattern.id);
+              }}
+              onCommitRename={(name) => handleCommitRename(pattern.id, name)}
+              onCancelRename={handleCancelRename}
             />
           ))}
           {isCreatingNew && (
-            <NewPatternItem
+            <PatternLabelInput
+              label="New pattern name"
+              value=""
+              placeholder={translate("patternName")}
               onCommit={handleCommitNewPattern}
               onCancel={handleCancelNewPattern}
             />
@@ -120,19 +154,36 @@ export const PatternSidebar = ({
 type PatternSidebarItemProps = {
   pattern: DemandPattern;
   isSelected: boolean;
+  isRenaming: boolean;
   onSelect: () => void;
+  onStartRename: () => void;
+  onCommitRename: (name: string) => boolean;
+  onCancelRename: () => void;
 };
 
 const PatternSidebarItem = ({
   pattern,
   isSelected,
+  isRenaming,
   onSelect,
+  onStartRename,
+  onCommitRename,
+  onCancelRename,
 }: PatternSidebarItemProps) => {
-  const showAdvancedFeatures = useFeatureFlag("FLAG_DEMAND_PATTERNS_ADVANCED");
+  if (isRenaming) {
+    return (
+      <PatternLabelInput
+        label="Rename pattern"
+        value={pattern.label}
+        onCommit={onCommitRename}
+        onCancel={onCancelRename}
+      />
+    );
+  }
 
   return (
     <li
-      className={`group flex items-center justify-between text-sm cursor-pointer ${
+      className={`group flex items-center justify-between text-sm cursor-pointer h-8 ${
         isSelected
           ? "bg-gray-200 dark:hover:bg-gray-700"
           : "hover:bg-gray-100 dark:hover:bg-gray-800"
@@ -146,34 +197,42 @@ const PatternSidebarItem = ({
       >
         {pattern.label}
       </Button>
-      {showAdvancedFeatures && <PatternActionsMenu isSelected={isSelected} />}
+      <PatternActionsMenu isSelected={isSelected} onRename={onStartRename} />
     </li>
   );
 };
 
-type NewPatternItemProps = {
+type PatternLabelInputProps = {
+  label: string;
+  value: string;
+  placeholder?: string;
   onCommit: (name: string) => boolean;
   onCancel: () => void;
 };
 
-const NewPatternItem = ({ onCommit, onCancel }: NewPatternItemProps) => {
+const PatternLabelInput = ({
+  label,
+  value,
+  placeholder,
+  onCommit,
+  onCancel,
+}: PatternLabelInputProps) => {
   const [hasError, setHasError] = useState(false);
-  const translate = useTranslate();
 
-  const handleChangeValue = (value: string): boolean => {
-    const hasValidationError = onCommit(value);
+  const handleChangeValue = (newValue: string): boolean => {
+    const hasValidationError = onCommit(newValue);
     setHasError(hasValidationError);
     return hasValidationError;
   };
 
   return (
     <li
-      className="flex items-center text-sm bg-white dark:bg-gray-700 pl-1 pt-1"
+      className="flex items-center text-sm bg-white dark:bg-gray-700 pl-1 h-8"
       data-capture-escape-key
     >
       <EditableTextFieldWithConfirmation
-        label="New pattern name"
-        value=""
+        label={label}
+        value={value}
         onChangeValue={handleChangeValue}
         onReset={onCancel}
         hasError={hasError}
@@ -183,7 +242,7 @@ const NewPatternItem = ({ onCommit, onCancel }: NewPatternItemProps) => {
           padding: "sm",
           textSize: "sm",
         }}
-        placeholder={translate("patternName")}
+        placeholder={placeholder}
         autoFocus
       />
     </li>
@@ -192,9 +251,13 @@ const NewPatternItem = ({ onCommit, onCancel }: NewPatternItemProps) => {
 
 type PatternActionsMenuProps = {
   isSelected: boolean;
+  onRename: () => void;
 };
 
-const PatternActionsMenu = ({ isSelected }: PatternActionsMenuProps) => {
+const PatternActionsMenu = ({
+  isSelected,
+  onRename,
+}: PatternActionsMenuProps) => {
   const translate = useTranslate();
 
   return (
@@ -204,6 +267,7 @@ const PatternActionsMenu = ({ isSelected }: PatternActionsMenuProps) => {
           <Button
             variant="quiet"
             size="xs"
+            aria-label="Actions"
             className={`h-full ${
               isSelected
                 ? "hover:bg-white/30 dark:hover:bg-white/10"
@@ -215,7 +279,7 @@ const PatternActionsMenu = ({ isSelected }: PatternActionsMenuProps) => {
         </DD.Trigger>
         <DD.Portal>
           <DDContent align="start" side="bottom" className="z-50">
-            <StyledItem onSelect={() => {}}>
+            <StyledItem onSelect={onRename}>
               <RenameIcon size="sm" />
               {translate("rename")}
             </StyledItem>

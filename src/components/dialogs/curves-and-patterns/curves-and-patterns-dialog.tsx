@@ -8,6 +8,7 @@ import { PatternDetail } from "./pattern-detail";
 import {
   PatternMultipliers,
   DemandPatterns,
+  DemandPattern,
   PatternId,
   getNextPatternId,
 } from "src/hydraulic-model/demands";
@@ -15,6 +16,8 @@ import { PatternsIcon } from "src/icons";
 import { dataAtom } from "src/state/jotai";
 import { usePersistence } from "src/lib/persistence/context";
 import { changeDemandSettings } from "src/hydraulic-model/model-operations/change-demand-settings";
+
+type PatternUpdate = Partial<Pick<DemandPattern, "label" | "multipliers">>;
 
 const arePatternsEqual = (
   original: DemandPatterns,
@@ -68,12 +71,12 @@ export const CurvesAndPatternsDialog = () => {
   );
 
   const handlePatternChange = useCallback(
-    (patternId: PatternId, newMultipliers: PatternMultipliers) => {
+    (patternId: PatternId, updates: PatternUpdate) => {
       setEditedPatterns((prev) => {
         const existing = prev.get(patternId);
         if (!existing) return prev;
         const next = new Map(prev);
-        next.set(patternId, { ...existing, multipliers: newMultipliers });
+        next.set(patternId, { ...existing, ...updates });
         return next;
       });
     },
@@ -132,6 +135,7 @@ export const CurvesAndPatternsDialog = () => {
           selectedPatternId={selectedPatternId}
           onSelectPattern={setSelectedPatternId}
           onAddPattern={handleAddPattern}
+          onChange={handlePatternChange}
         />
         <div className="flex-1 flex flex-col min-h-0 p-2 w-full">
           {selectedPatternId ? (
@@ -140,8 +144,8 @@ export const CurvesAndPatternsDialog = () => {
               pattern={getPatternMultipliers(selectedPatternId)}
               patternTimestepSeconds={patternTimestepSeconds}
               totalDurationSeconds={totalDurationSeconds}
-              onChange={(newPattern) =>
-                handlePatternChange(selectedPatternId, newPattern)
+              onChange={(multipliers) =>
+                handlePatternChange(selectedPatternId, { multipliers })
               }
             />
           ) : hasPatterns ? (
