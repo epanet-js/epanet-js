@@ -97,6 +97,7 @@ export const DialogContainer = ({
                 e.preventDefault();
                 return;
               }
+              e.stopPropagation();
               handleClose();
             }}
             onInteractOutside={(e) => {
