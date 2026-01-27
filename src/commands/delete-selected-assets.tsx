@@ -3,7 +3,7 @@ import { useCallback } from "react";
 import { Asset } from "src/hydraulic-model";
 import { deleteAssets } from "src/hydraulic-model/model-operations";
 import { AssetDeleted, useUserTracking } from "src/infra/user-tracking";
-import { usePersistence } from "src/lib/persistence/context";
+import { usePersistence } from "src/lib/persistence";
 import { USelection } from "src/selection";
 import {
   dataAtom,

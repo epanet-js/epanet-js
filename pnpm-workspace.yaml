@@ -1,0 +1,7 @@
+ignoredBuiltDependencies:
+  - '@clerk/shared'
+  - '@sentry/cli'
+  - canvas
+  - core-js
+  - esbuild
+  - sodium-native

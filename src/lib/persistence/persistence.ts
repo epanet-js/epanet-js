@@ -1,6 +1,6 @@
 import type { IWrappedFeature, IWrappedFeatureInput } from "src/types";
 import once from "lodash/once";
-import type { IPersistence } from "src/lib/persistence/ipersistence";
+import type { IPersistenceWithSnapshots } from "src/lib/persistence/ipersistence";
 import {
   fMoment,
   UMoment,
@@ -55,7 +55,7 @@ import { mapSyncMomentAtom, MomentPointer } from "src/state/map";
 
 const MAX_CHANGES_BEFORE_MAP_SYNC = 500;
 
-export class MemPersistence implements IPersistence {
+export class Persistence implements IPersistenceWithSnapshots {
   private store: Store;
   constructor(store: Store) {
     this.store = store;
@@ -385,10 +385,6 @@ export class MemPersistence implements IPersistence {
     }
   }
 
-  /**
-   * This could and should be improved. It does do some weird stuff:
-   * we need to write to the moment log and to features.
-   */
   private apply(
     stateId: string,
     forwardMoment: MomentInput,
@@ -481,16 +477,6 @@ export class MemPersistence implements IPersistence {
     return reverseMoment;
   }
 
-  // PRIVATE --------------------------------------------
-  //
-  /**
-   * Inner workings of delete features. Beware,
-   * changes ctx by reference.
-   *
-   * @param features input features
-   * @param ctx MUTATED
-   * @returns new moment
-   */
   private deleteAssetsInner(
     features: readonly IWrappedFeature["id"][],
     ctx: Data,
@@ -540,9 +526,6 @@ export class MemPersistence implements IPersistence {
         reverseMoment.putAssets.push(oldVersion);
       } else {
         reverseMoment.deleteAssets.push(inputFeature.id);
-        // If we're inserting a new feature but its
-        // at value is already in the set, find it a
-        // new value at the start
         if (atsSet().has(inputFeature.at)) {
           inputFeature.at = generateKeyBetween(null, ats()[0]);
         }

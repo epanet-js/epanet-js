@@ -5,8 +5,7 @@ import "src/styles/globals.css";
 import * as T from "@radix-ui/react-tooltip";
 
 import { Suspense } from "react";
-import { PersistenceContext } from "src/lib/persistence/context";
-import { MemPersistence } from "src/lib/persistence/memory";
+import { PersistenceProvider } from "src/lib/persistence";
 import { Provider, createStore } from "jotai";
 import { Store, layerConfigAtom } from "src/state/jotai";
 import { newFeatureId } from "src/lib/id";
@@ -51,11 +50,11 @@ function ScratchpadInner({ store }: { store: Store }) {
       <UserTrackingProvider>
         <FeatureFlagsProvider>
           <LocaleProvider>
-            <PersistenceContext.Provider value={new MemPersistence(store)}>
+            <PersistenceProvider store={store}>
               <Suspense fallback={null}>
                 <EpanetApp />
               </Suspense>
-            </PersistenceContext.Provider>
+            </PersistenceProvider>
           </LocaleProvider>
         </FeatureFlagsProvider>
       </UserTrackingProvider>
