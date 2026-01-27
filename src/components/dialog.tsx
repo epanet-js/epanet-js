@@ -90,10 +90,13 @@ export const DialogContainer = ({
           <StyledDialogContent
             widthClasses=""
             onEscapeKeyDown={(e) => {
-              // Allow elements to capture Escape (e.g., inputs that reset on Escape)
-              if (
-                (e.target as HTMLElement).closest("[data-capture-escape-key]")
-              ) {
+              const target = e.target as HTMLElement;
+              const isInputFocused =
+                target.tagName === "INPUT" ||
+                target.tagName === "TEXTAREA" ||
+                target.isContentEditable;
+
+              if (isInputFocused) {
                 e.preventDefault();
                 return;
               }
