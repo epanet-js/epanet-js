@@ -8,6 +8,7 @@ import {
   fileInfoAtom,
   momentLogAtom,
   simulationAtom,
+  stagingModelAtom,
 } from "src/state/jotai";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import userEvent from "@testing-library/user-event";
@@ -49,7 +50,7 @@ describe("openInpFromFs", () => {
       expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
     });
 
-    const { hydraulicModel } = store.get(dataAtom);
+    const hydraulicModel = store.get(stagingModelAtom);
     expect(getByLabel(hydraulicModel.assets, "1")).toBeTruthy();
 
     expect(store.get(fileInfoAtom)!.handle).toEqual(newHandle);
@@ -100,7 +101,7 @@ describe("openInpFromFs", () => {
       expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
     });
 
-    const { hydraulicModel } = store.get(dataAtom);
+    const hydraulicModel = store.get(stagingModelAtom);
     expect(getByLabel(hydraulicModel.assets, "J1")).toBeTruthy();
 
     expect(store.get(fileInfoAtom)!.handle).toEqual(undefined);
@@ -175,7 +176,8 @@ describe("openInpFromFs", () => {
       expect(screen.queryByText(/loading/i)).not.toBeInTheDocument(),
     );
 
-    const { hydraulicModel, selection } = store.get(dataAtom);
+    const hydraulicModel = store.get(stagingModelAtom);
+    const { selection } = store.get(dataAtom);
     expect(getByLabel(hydraulicModel.assets, "J1")).toBeTruthy();
     expect(getByLabel(hydraulicModel.assets, "P1")).toBeFalsy();
 
@@ -228,7 +230,7 @@ describe("openInpFromFs", () => {
 
     await waitForNotLoading();
 
-    const { hydraulicModel } = store.get(dataAtom);
+    const hydraulicModel = store.get(stagingModelAtom);
     expect(getByLabel(hydraulicModel.assets, "J1")).toBeTruthy();
 
     expect(store.get(fileInfoAtom)!.handle).toEqual(undefined);
@@ -264,7 +266,7 @@ describe("openInpFromFs", () => {
       expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
     });
 
-    const { hydraulicModel } = store.get(dataAtom);
+    const hydraulicModel = store.get(stagingModelAtom);
     expect(getByLabel(hydraulicModel.assets, "J1")).toBeTruthy();
   });
 });
@@ -291,7 +293,7 @@ it("doesnt create model when coordinates not supported", async () => {
   await userEvent.click(screen.getByRole("button", { name: /understood/i }));
 
   expect(screen.queryByText(/coordinates missing/i)).not.toBeInTheDocument();
-  const { hydraulicModel } = store.get(dataAtom);
+  const hydraulicModel = store.get(stagingModelAtom);
   expect(hydraulicModel.assets.size).toEqual(0);
 });
 
@@ -317,7 +319,7 @@ it("shows warning when using unsupported features", async () => {
   await userEvent.click(screen.getByRole("button", { name: /understood/i }));
 
   expect(screen.queryByText(/coordinates missing/i)).not.toBeInTheDocument();
-  const { hydraulicModel } = store.get(dataAtom);
+  const hydraulicModel = store.get(stagingModelAtom);
   expect(getByLabel(hydraulicModel.assets, "J1")).toBeTruthy();
 });
 

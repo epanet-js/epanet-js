@@ -1,7 +1,12 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import userEvent from "@testing-library/user-event";
-import { Store, dataAtom, fileInfoAtom, momentLogAtom } from "src/state/jotai";
+import {
+  Store,
+  fileInfoAtom,
+  momentLogAtom,
+  stagingModelAtom,
+} from "src/state/jotai";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { fMoment } from "../lib/persistence/moment";
 import { useNewProject } from "./create-new-project";
@@ -25,7 +30,7 @@ describe("create new project", () => {
 
     await userEvent.click(screen.getByRole("button", { name: /create/i }));
 
-    const { hydraulicModel } = store.get(dataAtom);
+    const hydraulicModel = store.get(stagingModelAtom);
     expect(hydraulicModel.units.flow).toEqual("gal/min");
   });
 
@@ -43,7 +48,7 @@ describe("create new project", () => {
 
     await userEvent.click(screen.getByRole("button", { name: /create/i }));
 
-    const { hydraulicModel } = store.get(dataAtom);
+    const hydraulicModel = store.get(stagingModelAtom);
     expect(hydraulicModel.headlossFormula).toEqual("D-W");
   });
 
@@ -75,7 +80,7 @@ describe("create new project", () => {
     });
     await userEvent.click(screen.getByRole("button", { name: /create/i }));
 
-    const { hydraulicModel } = store.get(dataAtom);
+    const hydraulicModel = store.get(stagingModelAtom);
     expect(hydraulicModel.assets.size).toEqual(0);
     expect(hydraulicModel.units.flow).toEqual("l/s");
 
@@ -105,7 +110,7 @@ describe("create new project", () => {
       expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
     });
     await userEvent.click(screen.getByRole("button", { name: /cancel/i }));
-    const { hydraulicModel } = store.get(dataAtom);
+    const hydraulicModel = store.get(stagingModelAtom);
     expect(hydraulicModel.assets.get(IDS.J1)).not.toBeUndefined();
   });
 

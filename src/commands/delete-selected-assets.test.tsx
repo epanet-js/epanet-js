@@ -1,4 +1,4 @@
-import { Store, dataAtom, selectionAtom } from "src/state/jotai";
+import { Store, selectionAtom, stagingModelAtom } from "src/state/jotai";
 import { screen, render } from "@testing-library/react";
 import { CommandContainer } from "./__helpers__/command-container";
 import userEvent from "@testing-library/user-event";
@@ -27,7 +27,7 @@ describe("delete selected", () => {
 
     const updatedSelection = store.get(selectionAtom);
     expect(updatedSelection.type).toEqual("none");
-    const { hydraulicModel: updatedHydraulicModel } = store.get(dataAtom);
+    const updatedHydraulicModel = store.get(stagingModelAtom);
     expect(updatedHydraulicModel.assets.has(IDS.J1)).toBeFalsy();
     expect(userTracking.capture).toHaveBeenCalledWith({
       name: "asset.deleted",
@@ -53,7 +53,7 @@ describe("delete selected", () => {
 
     const updatedSelection = store.get(selectionAtom);
     expect(updatedSelection.type).toEqual("none");
-    const { hydraulicModel: updatedHydraulicModel } = store.get(dataAtom);
+    const updatedHydraulicModel = store.get(stagingModelAtom);
     expect(updatedHydraulicModel.assets.has(IDS.J1)).toBeFalsy();
     expect(updatedHydraulicModel.assets.has(IDS.J2)).toBeFalsy();
     expect(userTracking.capture).toHaveBeenCalledWith({

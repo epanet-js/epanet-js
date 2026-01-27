@@ -4,10 +4,10 @@ import { processReportWithSlots, ReportRow } from "src/simulation/report";
 import { useMemo, useCallback } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import {
-  dataAtom,
   simulationAtom,
   selectionAtom,
   dialogAtom,
+  stagingModelAtom,
 } from "src/state/jotai";
 import { FileTextIcon } from "src/icons";
 import { useSelection } from "src/selection/use-selection";
@@ -19,7 +19,7 @@ import { captureError, setErrorContext } from "src/infra/error-tracking";
 export const SimulationReportDialog = () => {
   const translate = useTranslate();
   const simulation = useAtomValue(simulationAtom);
-  const { hydraulicModel } = useAtomValue(dataAtom);
+  const hydraulicModel = useAtomValue(stagingModelAtom);
   const selection = useAtomValue(selectionAtom);
   const { selectAsset } = useSelection(selection);
   const setDialog = useSetAtom(dialogAtom);

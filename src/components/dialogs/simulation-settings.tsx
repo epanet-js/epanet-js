@@ -6,7 +6,7 @@ import { useTranslate } from "src/hooks/use-translate";
 import { Form, Formik, useFormikContext } from "formik";
 import { NumericField } from "../form/numeric-field";
 import { TimeField } from "../form/time-field";
-import { dataAtom } from "src/state/jotai";
+import { stagingModelAtom } from "src/state/jotai";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { SimpleDialogActions } from "src/components/dialog";
 import { usePersistence } from "src/lib/persistence";
@@ -32,7 +32,7 @@ export const SimulationSettingsDialog = () => {
   const translate = useTranslate();
   const { closeDialog } = useDialogState();
 
-  const { hydraulicModel } = useAtomValue(dataAtom);
+  const hydraulicModel = useAtomValue(stagingModelAtom);
   const rep = usePersistence();
   const transact = rep.useTransact();
   const userTracking = useUserTracking();
@@ -187,7 +187,7 @@ const ONE_HOUR = 3600;
 
 const TimesSettings = () => {
   const translate = useTranslate();
-  const { hydraulicModel } = useAtomValue(dataAtom);
+  const hydraulicModel = useAtomValue(stagingModelAtom);
   const { values, setFieldValue } = useFormikContext<FormValues>();
   const { hasMissingValues, hasZeroValues, fieldErrors } =
     useTimeSettingsValidation();

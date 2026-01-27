@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import React from "react";
 import { render, screen, waitFor, cleanup } from "@testing-library/react";
-import { Store, dataAtom } from "src/state/jotai";
+import { Store, stagingModelAtom } from "src/state/jotai";
 import userEvent from "@testing-library/user-event";
 import { aTestFile } from "src/__helpers__/file";
 import { setInitialState } from "src/__helpers__/state";
@@ -205,7 +205,7 @@ const runSingleNetworkBenchmark = async ({
 
   const finishTime = performance.now() - stepStartTime;
 
-  const { hydraulicModel: finalModel } = store.get(dataAtom);
+  const finalModel = store.get(stagingModelAtom);
   const totalPoints = finalModel.customerPoints.size;
   const totalTime = uploadTime + previewTime + allocationTime + finishTime;
 

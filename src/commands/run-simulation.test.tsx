@@ -4,7 +4,7 @@ import {
   SimulationFinished,
   Store,
   simulationAtom,
-  dataAtom,
+  stagingModelAtom,
 } from "src/state/jotai";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { setInitialState } from "src/__helpers__/state";
@@ -48,7 +48,7 @@ describe("Run simulation", () => {
     });
 
     await waitFor(() => {
-      const { hydraulicModel: updatedModel } = store.get(dataAtom);
+      const updatedModel = store.get(stagingModelAtom);
       const pipe = updatedModel.assets.get(IDS.p1) as Pipe;
       expect(pipe.flow).not.toBeNull();
       expect(pipe.flow).toBeGreaterThan(0);

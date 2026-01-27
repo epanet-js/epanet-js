@@ -13,7 +13,7 @@ import {
   getNextPatternId,
 } from "src/hydraulic-model/demands";
 import { PatternsIcon } from "src/icons";
-import { dataAtom } from "src/state/jotai";
+import { stagingModelAtom } from "src/state/jotai";
 import { usePersistence } from "src/lib/persistence";
 import { changeDemandSettings } from "src/hydraulic-model/model-operations/change-demand-settings";
 import { HydraulicModel } from "src/hydraulic-model/hydraulic-model";
@@ -26,7 +26,7 @@ type PatternUpdate = Partial<Pick<DemandPattern, "label" | "multipliers">>;
 export const CurvesAndPatternsDialog = () => {
   const translate = useTranslate();
   const { closeDialog } = useDialogState();
-  const { hydraulicModel } = useAtomValue(dataAtom);
+  const hydraulicModel = useAtomValue(stagingModelAtom);
   const userTracking = useUserTracking();
   const [selectedPatternId, setSelectedPatternId] = useState<PatternId | null>(
     null,

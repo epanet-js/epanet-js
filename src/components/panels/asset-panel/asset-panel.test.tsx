@@ -1,5 +1,5 @@
 import { render, screen, waitFor, act } from "@testing-library/react";
-import { Store, dataAtom, nullData } from "src/state/jotai";
+import { Store, dataAtom, nullData, stagingModelAtom } from "src/state/jotai";
 import { Provider as JotaiProvider, createStore } from "jotai";
 import { HydraulicModel, Pipe, Pump, Junction } from "src/hydraulic-model";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
@@ -339,7 +339,7 @@ describe("AssetPanel", () => {
 
       await user.click(screen.getByText(/closed/i));
 
-      const { hydraulicModel: updatedHydraulicModel } = store.get(dataAtom);
+      const updatedHydraulicModel = store.get(stagingModelAtom);
       expect(
         (getLink(updatedHydraulicModel.assets, IDS.V1) as Valve).initialStatus,
       ).toEqual("closed");
@@ -382,7 +382,7 @@ describe("AssetPanel", () => {
 
       await user.click(screen.getByText(/psv: pressure sustaining valve/i));
 
-      const { hydraulicModel: updatedHydraulicModel } = store.get(dataAtom);
+      const updatedHydraulicModel = store.get(stagingModelAtom);
       expect(
         (getLink(updatedHydraulicModel.assets, IDS.V1) as Valve).kind,
       ).toEqual("psv");
@@ -584,7 +584,7 @@ describe("AssetPanel", () => {
 
       await user.click(screen.getByText(/^off$/i));
 
-      const { hydraulicModel: updatedHydraulicModel } = store.get(dataAtom);
+      const updatedHydraulicModel = store.get(stagingModelAtom);
       expect(
         (getLink(updatedHydraulicModel.assets, IDS.PU1) as Pump).initialStatus,
       ).toEqual("off");
@@ -881,7 +881,7 @@ describe("AssetPanel", () => {
       await user.type(field, "100");
       await user.keyboard("{Enter}");
 
-      const { hydraulicModel: updated } = store.get(dataAtom);
+      const updated = store.get(stagingModelAtom);
       const junction = updated.assets.get(IDS.J1) as Junction;
       expect(junction.demands).toEqual([
         { baseDemand: 100 },
@@ -1029,7 +1029,7 @@ describe("AssetPanel", () => {
 
     await user.click(screen.getByText(/closed/i));
 
-    const { hydraulicModel: updatedHydraulicModel } = store.get(dataAtom);
+    const updatedHydraulicModel = store.get(stagingModelAtom);
     expect(
       (getPipe(updatedHydraulicModel.assets, IDS.PIPE1) as Pipe).initialStatus,
     ).toEqual("closed");
@@ -1068,7 +1068,7 @@ describe("AssetPanel", () => {
     await user.type(field, "20.5");
     await user.keyboard("{Enter}");
 
-    const { hydraulicModel: updatedHydraulicModel } = store.get(dataAtom);
+    const updatedHydraulicModel = store.get(stagingModelAtom);
     expect(
       (getPipe(updatedHydraulicModel.assets, IDS.PIPE1) as Pipe).diameter,
     ).toEqual(20.5);
@@ -1155,7 +1155,7 @@ describe("AssetPanel", () => {
     await user.type(field, "1000.4");
     await user.keyboard("{Enter}");
 
-    const { hydraulicModel: updatedHydraulicModel } = store.get(dataAtom);
+    const updatedHydraulicModel = store.get(stagingModelAtom);
     expect(
       (getPipe(updatedHydraulicModel.assets, IDS.PIPE1) as Pipe).length,
     ).toEqual(1000.4);
@@ -1340,7 +1340,7 @@ describe("AssetPanel", () => {
       ).toHaveClass(/orange/i);
       await user.keyboard("{Enter}");
 
-      const { hydraulicModel: updatedHydraulicModel } = store.get(dataAtom);
+      const updatedHydraulicModel = store.get(stagingModelAtom);
       expect(
         (getPipe(updatedHydraulicModel.assets, IDS.PIPE1) as Pipe).diameter,
       ).toEqual(10);
@@ -1439,9 +1439,9 @@ describe("AssetPanel", () => {
     hydraulicModel?: HydraulicModel;
     selectedAssetId: AssetId;
   }): Store => {
+    store.set(stagingModelAtom, hydraulicModel);
     store.set(dataAtom, {
       ...nullData,
-      hydraulicModel: hydraulicModel,
       selection: { type: "single", id: selectedAssetId, parts: [] },
     });
     return store;

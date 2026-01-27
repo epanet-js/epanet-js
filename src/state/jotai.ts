@@ -1,5 +1,5 @@
 import { atom, createStore } from "jotai";
-import { atomWithStorage, selectAtom } from "jotai/utils";
+import { atomWithStorage } from "jotai/utils";
 import type { FileSystemHandle } from "browser-fs-access";
 import type { SetOptional } from "type-fest";
 import {
@@ -21,17 +21,23 @@ import { QItemAddable } from "src/lib/geocode";
 import { PersistenceMetadataMemory } from "src/lib/persistence/ipersistence";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import { ScaleUnit } from "src/lib/constants";
-import { HydraulicModel } from "src/hydraulic-model";
 import { EphemeralMoveAssets } from "src/map/mode-handlers/none/move-state";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { Quantities, presets } from "src/model-metadata/quantities-spec";
-import { initializeHydraulicModel } from "src/hydraulic-model";
 import { ModelMetadata } from "src/model-metadata";
 import { EphemeralDrawNode } from "src/map/mode-handlers/draw-node/ephemeral-draw-node-state";
 import { DEFAULT_ZOOM } from "src/map/map-engine";
 import { EphemeralDrawLink } from "src/map/mode-handlers/draw-link/ephemeral-link-state";
 import { EphemeralEditingStateAreaSelection } from "src/map/mode-handlers/area-selection/ephemeral-area-selection-state";
 import type { SimulationIds } from "src/simulation/epanet/simulation-metadata";
+import { stagingModelAtom } from "src/state/hydraulic-model";
+
+export {
+  stagingModelAtom,
+  assetsAtom,
+  customerPointsAtom,
+  nullHydraulicModel,
+} from "src/state/hydraulic-model";
 
 export type Store = ReturnType<typeof createStore>;
 
@@ -95,7 +101,6 @@ export const simulationAtom = atom<SimulationState>(initialSimulationState);
 export interface Data {
   folderMap: FolderMap;
   selection: Sel;
-  hydraulicModel: HydraulicModel;
   modelMetadata: ModelMetadata;
 }
 
@@ -106,10 +111,6 @@ export const nullData: Data = {
   selection: {
     type: "none",
   },
-  hydraulicModel: initializeHydraulicModel({
-    units: quantities.units,
-    defaults: quantities.defaults,
-  }),
   modelMetadata,
 };
 export const dataAtom = atom<Data>(nullData);
@@ -121,26 +122,20 @@ export const satelliteModeOnAtom = atom<boolean>((get) => {
   return [...layersConfig.values()].some((layer) => layer.name === "Satellite");
 });
 
-export const selectedFeaturesAtom = selectAtom(dataAtom, (data) => {
-  return USelection.getSelectedFeatures(data);
+export const selectedFeaturesAtom = atom((get) => {
+  const data = get(dataAtom);
+  const hydraulicModel = get(stagingModelAtom);
+  return USelection.getSelectedFeatures({ ...data, hydraulicModel });
 });
-
-export const assetsAtom = focusAtom(dataAtom, (optic) =>
-  optic.prop("hydraulicModel").prop("assets"),
-);
 
 export const selectionAtom = focusAtom(dataAtom, (optic) =>
   optic.prop("selection"),
 );
 
-export const customerPointsAtom = focusAtom(dataAtom, (optic) =>
-  optic.prop("hydraulicModel").prop("customerPoints"),
-);
-
 export const hasUnsavedChangesAtom = atom<boolean>((get) => {
   const fileInfo = get(fileInfoAtom);
   const momentLog = get(momentLogAtom);
-  const { hydraulicModel } = get(dataAtom);
+  const hydraulicModel = get(stagingModelAtom);
 
   if (fileInfo) {
     return fileInfo.modelVersion !== hydraulicModel.version;

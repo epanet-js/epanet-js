@@ -2,7 +2,7 @@ import { IWrappedFeature, IFolder } from "src/types";
 import { fMoment, Moment, MomentInput } from "./moment";
 import { Data } from "src/state/jotai";
 import { isDebugOn } from "src/infra/debug-mode";
-import { ModelMoment } from "src/hydraulic-model";
+import { HydraulicModel, ModelMoment } from "src/hydraulic-model";
 
 // This  used to send to posthog, but now could be removed
 // or wired into your own product analytics.
@@ -28,12 +28,12 @@ export function trackMoment(moment: ModelMoment) {
  * create an undelete operation.
  *
  * @param features The folders to delete by ID
- * @param param1 internal context
+ * @param hydraulicModel The hydraulic model
  * @returns a moment with an undelete
  */
 export function momentForDeleteFeatures(
   features: readonly IWrappedFeature["id"][],
-  { hydraulicModel }: Data,
+  hydraulicModel: HydraulicModel,
 ): Moment {
   const moment = fMoment("Update features");
   for (const id of features) {
@@ -60,10 +60,11 @@ function getLastAtInMap(map: Map<unknown, IFolder | IWrappedFeature>): string {
  * the need for this by keeping things sorted. That is a big TODO.
  *
  * @param ctx
+ * @param hydraulicModel
  * @returns the last at, or a0
  */
-export function getFreshAt(ctx: Data): string {
-  const a = getLastAtInMap(ctx.hydraulicModel.assets);
+export function getFreshAt(ctx: Data, hydraulicModel: HydraulicModel): string {
+  const a = getLastAtInMap(hydraulicModel.assets);
   const b = getLastAtInMap(ctx.folderMap);
   return a > b ? a : b;
 }

@@ -9,7 +9,7 @@ import {
   SubNetwork,
 } from "src/lib/network-review/connectivity-trace";
 import { USelection, useSelection } from "src/selection";
-import { dataAtom, selectionAtom } from "src/state/jotai";
+import { selectionAtom, stagingModelAtom } from "src/state/jotai";
 import {
   CheckType,
   EmptyState,
@@ -225,7 +225,7 @@ const deferToAllowRender = () =>
 
 const useCheckConnectivityTrace = () => {
   const [subnetworks, setSubnetworks] = useState<SubNetwork[]>([]);
-  const { hydraulicModel } = useAtomValue(dataAtom);
+  const hydraulicModel = useAtomValue(stagingModelAtom);
   const { startLoading, finishLoading, isLoading } = useLoadingStatus();
   const isReady = useRef(false);
 

@@ -7,7 +7,7 @@ import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
 import { MemPersistenceDeprecated } from "src/lib/persistence/memory-deprecated";
 import { PersistenceContext } from "src/lib/persistence/context";
-import { Store, dataAtom } from "src/state/jotai";
+import { Store, stagingModelAtom } from "src/state/jotai";
 import { CurvesAndPatternsDialog } from "./curves-and-patterns-dialog";
 
 const renderDialog = (store: Store) => {
@@ -104,7 +104,7 @@ describe("CurvesAndPatternsDialog", () => {
       await user.click(screen.getByRole("button", { name: /save/i }));
 
       // Verify the model was updated
-      const { hydraulicModel } = store.get(dataAtom);
+      const hydraulicModel = store.get(stagingModelAtom);
       const updatedPattern = hydraulicModel.demands.patterns.get(100);
       expect(updatedPattern?.multipliers[0]).toBe(2.0);
     });
@@ -242,7 +242,7 @@ describe("CurvesAndPatternsDialog", () => {
       });
 
       // Model should not have been updated
-      const { hydraulicModel } = store.get(dataAtom);
+      const hydraulicModel = store.get(stagingModelAtom);
       const pattern = hydraulicModel.demands.patterns.get(100);
       expect(pattern?.multipliers[0]).toBe(1.0);
     });
@@ -311,7 +311,7 @@ describe("CurvesAndPatternsDialog", () => {
       await user.click(screen.getByRole("button", { name: /save/i }));
 
       // Verify the model was updated with the new pattern
-      const { hydraulicModel } = store.get(dataAtom);
+      const hydraulicModel = store.get(stagingModelAtom);
       const newPatternId = hydraulicModel.labelManager.getIdByLabel(
         "newpattern",
         "pattern",
@@ -352,8 +352,8 @@ describe("CurvesAndPatternsDialog", () => {
       await user.click(screen.getByRole("button", { name: /save/i }));
 
       // Verify the model has all three patterns with unique IDs
-      const data = store.get(dataAtom);
-      const patterns = data.hydraulicModel.demands.patterns;
+      const hydraulicModel = store.get(stagingModelAtom);
+      const patterns = hydraulicModel.demands.patterns;
 
       expect(patterns.size).toBe(3);
 
@@ -366,7 +366,7 @@ describe("CurvesAndPatternsDialog", () => {
 
       // The new pattern should have an ID that doesn't conflict with existing ones
       const newPattern = Array.from(patterns.values()).find(
-        (p) => p.label === "NEWPATTERN",
+        (p: { label: string; id: number }) => p.label === "NEWPATTERN",
       );
       expect(newPattern).toBeDefined();
       expect(newPattern?.id).not.toBe(1);
@@ -434,7 +434,7 @@ describe("CurvesAndPatternsDialog", () => {
       await user.click(screen.getByRole("button", { name: /save/i }));
 
       // Verify the model was updated
-      const { hydraulicModel } = store.get(dataAtom);
+      const hydraulicModel = store.get(stagingModelAtom);
       expect(hydraulicModel.demands.patterns.has(100)).toBe(false);
       expect(hydraulicModel.demands.patterns.has(200)).toBe(true);
     });

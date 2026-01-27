@@ -3,7 +3,7 @@ import { stubElevation } from "./__helpers__/elevations";
 import { setInitialState } from "src/__helpers__/state";
 import { Mode } from "src/state/mode";
 import { renderMap } from "./__helpers__/map";
-import { dataAtom, selectionAtom } from "src/state/jotai";
+import { selectionAtom, stagingModelAtom } from "src/state/jotai";
 import { Junction } from "src/hydraulic-model/asset-types/junction";
 import { getAssetsByType } from "src/__helpers__/asset-queries";
 import { vi } from "vitest";
@@ -43,9 +43,7 @@ describe("Drawing a junction", () => {
 
     await fireMapClick(map, clickPoint);
 
-    const {
-      hydraulicModel: { assets },
-    } = store.get(dataAtom);
+    const { assets } = store.get(stagingModelAtom);
 
     const junctions = getAssetsByType<Junction>(assets, "junction");
 

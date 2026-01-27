@@ -4,7 +4,7 @@ import { PinIcon, PinOffIcon } from "src/icons";
 import { Button } from "src/components/elements";
 import { Selector } from "src/components/form/selector";
 import { useTranslate } from "src/hooks/use-translate";
-import { dataAtom, simulationAtom } from "src/state/jotai";
+import { dataAtom, simulationAtom, stagingModelAtom } from "src/state/jotai";
 import { worktreeAtom } from "src/state/scenarios";
 import { getSimulationMetadata } from "src/simulation/epanet/simulation-metadata";
 import {
@@ -112,9 +112,9 @@ const QuickGraphSection = ({
   const simulation = useAtomValue(simulationAtom);
   const worktree = useAtomValue(worktreeAtom);
   const {
-    hydraulicModel,
     modelMetadata: { quantities },
   } = useAtomValue(dataAtom);
+  const hydraulicModel = useAtomValue(stagingModelAtom);
   const { changeTimestep } = useChangeTimestep();
 
   const isInScenario = worktree.activeSnapshotId !== worktree.mainId;

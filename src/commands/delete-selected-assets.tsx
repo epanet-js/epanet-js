@@ -6,17 +6,17 @@ import { AssetDeleted, useUserTracking } from "src/infra/user-tracking";
 import { usePersistence } from "src/lib/persistence";
 import { USelection } from "src/selection";
 import {
-  dataAtom,
   selectionAtom,
   ephemeralStateAtom,
   modeAtom,
   Mode,
+  stagingModelAtom,
 } from "src/state/jotai";
 
 export const deleteSelectedShortcuts = ["backspace", "del"];
 
 export const useDeleteSelectedAssets = () => {
-  const { hydraulicModel } = useAtomValue(dataAtom);
+  const hydraulicModel = useAtomValue(stagingModelAtom);
   const [selection, setSelection] = useAtom(selectionAtom);
   const setMode = useSetAtom(modeAtom);
   const setEphemeralState = useSetAtom(ephemeralStateAtom);

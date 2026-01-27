@@ -2,7 +2,7 @@ import { useAtom, useAtomValue } from "jotai";
 import {
   ephemeralStateAtom,
   selectionAtom,
-  dataAtom,
+  stagingModelAtom,
   EphemeralConnectCustomerPoints,
 } from "src/state/jotai";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
@@ -12,17 +12,15 @@ import { useMemo } from "react";
 export const useConnectCustomerPointsState = () => {
   const [ephemeralState, setEphemeralState] = useAtom(ephemeralStateAtom);
   const selection = useAtomValue(selectionAtom);
-  const data = useAtomValue(dataAtom);
+  const hydraulicModel = useAtomValue(stagingModelAtom);
 
   const customerPoints = useMemo(() => {
     if (selection.type === "singleCustomerPoint") {
-      const customerPoint = data.hydraulicModel.customerPoints.get(
-        selection.id,
-      );
+      const customerPoint = hydraulicModel.customerPoints.get(selection.id);
       return customerPoint ? [customerPoint] : [];
     }
     return [];
-  }, [data.hydraulicModel.customerPoints, selection]);
+  }, [hydraulicModel.customerPoints, selection]);
 
   const setConnectState = (state: {
     customerPoints: CustomerPoint[];

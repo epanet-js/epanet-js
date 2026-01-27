@@ -6,7 +6,7 @@ import { setInitialState } from "src/__helpers__/state";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { MemPersistenceDeprecated } from "src/lib/persistence/memory-deprecated";
 import { PersistenceContext } from "src/lib/persistence/context";
-import { Store, dataAtom } from "src/state/jotai";
+import { Store, stagingModelAtom } from "src/state/jotai";
 import { ControlsDialog } from "./controls-dialog";
 
 const renderDialog = (store: Store) => {
@@ -90,7 +90,7 @@ describe("ControlsDialog", () => {
     await userEvent.click(saveButton);
 
     await waitFor(() => {
-      const { hydraulicModel } = store.get(dataAtom);
+      const hydraulicModel = store.get(stagingModelAtom);
       expect(hydraulicModel.controls.simple).toHaveLength(1);
       expect(hydraulicModel.controls.simple[0].template).toBe(
         "LINK {{0}} CLOSED IF NODE {{1}} BELOW 50",
@@ -134,7 +134,7 @@ describe("ControlsDialog", () => {
     await userEvent.click(saveButton);
 
     await waitFor(() => {
-      const { hydraulicModel } = store.get(dataAtom);
+      const hydraulicModel = store.get(stagingModelAtom);
       expect(hydraulicModel.controls.simple).toHaveLength(1);
       expect(hydraulicModel.controls.rules).toHaveLength(1);
     });

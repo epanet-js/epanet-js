@@ -15,6 +15,7 @@ import {
   nullData,
   simulationAtom,
   modeAtom,
+  stagingModelAtom,
 } from "src/state/jotai";
 import { Mode } from "src/state/mode";
 import { Asset, HydraulicModel } from "src/hydraulic-model";
@@ -59,10 +60,10 @@ export const setInitialState = ({
   locale?: Locale;
   mode?: Mode;
 } = {}): Store => {
+  store.set(stagingModelAtom, hydraulicModel);
   store.set(dataAtom, {
     ...nullData,
     selection,
-    hydraulicModel: hydraulicModel,
   });
   store.set(momentLogAtom, momentLog);
   store.set(simulationAtom, simulation);

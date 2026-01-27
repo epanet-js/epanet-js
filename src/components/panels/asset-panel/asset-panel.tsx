@@ -25,7 +25,7 @@ import { useTranslate } from "src/hooks/use-translate";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { usePersistence } from "src/lib/persistence";
 import { useUserTracking } from "src/infra/user-tracking";
-import { dataAtom } from "src/state/jotai";
+import { stagingModelAtom } from "src/state/jotai";
 import {
   changePumpCurve,
   changeProperty,
@@ -103,7 +103,7 @@ export function AssetPanel({
   quantitiesMetadata: Quantities;
   readonly?: boolean;
 }) {
-  const { hydraulicModel } = useAtomValue(dataAtom);
+  const hydraulicModel = useAtomValue(stagingModelAtom);
   const rep = usePersistence();
   const transact = rep.useTransact();
   const userTracking = useUserTracking();

@@ -24,6 +24,7 @@ import {
   EphemeralEditingState,
   satelliteModeOnAtom,
   currentZoomAtom,
+  stagingModelAtom,
 } from "src/state/jotai";
 import { MapEngine } from "./map-engine";
 import { EmptyIndex } from "src/lib/generate-flatbush-instance";
@@ -110,7 +111,8 @@ export const MapCanvas = memo(function MapCanvas({
 
   if (isDebugAppStateOn) exposeAppStateInWindow(data, ephemeralState);
 
-  const { folderMap, hydraulicModel } = data;
+  const { folderMap } = data;
+  const hydraulicModel = useAtomValue(stagingModelAtom);
   // State
   const [flatbushInstance, setFlatbushInstance] =
     useState<FlatbushLike>(EmptyIndex);
@@ -320,9 +322,7 @@ export const MapCanvas = memo(function MapCanvas({
   const onContextMenu = useAtomCallback(
     useCallback(
       (get, _set, event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-        const {
-          hydraulicModel: { assets },
-        } = get(dataAtom);
+        const { assets } = get(stagingModelAtom);
         const mapDivBox = mapDivRef.current?.getBoundingClientRect();
         const map = mapRef.current;
         if (mapDivBox && map) {

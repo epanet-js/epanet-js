@@ -18,7 +18,7 @@ import {
   OrphanAsset,
 } from "src/lib/network-review/orphan-assets";
 import { useSelection } from "src/selection";
-import { dataAtom, selectionAtom } from "src/state/jotai";
+import { selectionAtom, stagingModelAtom } from "src/state/jotai";
 import {
   CheckType,
   EmptyState,
@@ -36,7 +36,7 @@ export const OrphanAssets = ({ onGoBack }: { onGoBack: () => void }) => {
   const selection = useAtomValue(selectionAtom);
   const { selectAsset, isSelected, clearSelection } = useSelection(selection);
   const zoomTo = useZoomTo();
-  const { hydraulicModel } = useAtomValue(dataAtom);
+  const hydraulicModel = useAtomValue(stagingModelAtom);
   const [selectedOrphanAssetId, setSelectedOrphanAssetId] = useState<
     number | null
   >(null);
@@ -218,7 +218,7 @@ const deferToAllowRender = () =>
 
 const useCheckOrphanAssets = () => {
   const [orphanAssets, setOrphanAssets] = useState<OrphanAsset[]>([]);
-  const { hydraulicModel } = useAtomValue(dataAtom);
+  const hydraulicModel = useAtomValue(stagingModelAtom);
   const { startLoading, finishLoading, isLoading } = useLoadingStatus();
   const isReady = useRef(false);
 

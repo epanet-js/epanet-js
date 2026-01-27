@@ -1,6 +1,11 @@
 import { useAtomValue, useSetAtom } from "jotai";
 import { useCallback } from "react";
-import { selectionAtom, dataAtom, modeAtom, Mode } from "src/state/jotai";
+import {
+  selectionAtom,
+  modeAtom,
+  Mode,
+  stagingModelAtom,
+} from "src/state/jotai";
 import { disconnectCustomers } from "src/hydraulic-model/model-operations";
 import { usePersistence } from "src/lib/persistence";
 import { useUserTracking } from "src/infra/user-tracking";
@@ -10,7 +15,7 @@ export const disconnectCustomersShortcut = "shift+d";
 
 export const useConnectCustomerPoints = () => {
   const selection = useAtomValue(selectionAtom);
-  const data = useAtomValue(dataAtom);
+  const hydraulicModel = useAtomValue(stagingModelAtom);
   const userTracking = useUserTracking();
   const setMode = useSetAtom(modeAtom);
 
@@ -18,9 +23,7 @@ export const useConnectCustomerPoints = () => {
     ({ source }: { source: "shortcut" | "toolbar" | "context-menu" }) => {
       if (selection.type !== "singleCustomerPoint") return;
 
-      const customerPoint = data.hydraulicModel.customerPoints.get(
-        selection.id,
-      );
+      const customerPoint = hydraulicModel.customerPoints.get(selection.id);
       if (!customerPoint) return;
 
       const isReconnecting = customerPoint.connection !== null;
@@ -36,7 +39,7 @@ export const useConnectCustomerPoints = () => {
 
       setMode({ mode: Mode.CONNECT_CUSTOMER_POINTS });
     },
-    [selection, data, userTracking, setMode],
+    [selection, hydraulicModel, userTracking, setMode],
   );
 
   return connectCustomerPoints;
@@ -44,7 +47,7 @@ export const useConnectCustomerPoints = () => {
 
 export const useDisconnectCustomerPoints = () => {
   const selection = useAtomValue(selectionAtom);
-  const data = useAtomValue(dataAtom);
+  const hydraulicModel = useAtomValue(stagingModelAtom);
   const rep = usePersistence();
   const transact = rep.useTransact();
   const userTracking = useUserTracking();
@@ -53,9 +56,7 @@ export const useDisconnectCustomerPoints = () => {
     ({ source }: { source: "shortcut" | "toolbar" | "context-menu" }) => {
       if (selection.type !== "singleCustomerPoint") return;
 
-      const customerPoint = data.hydraulicModel.customerPoints.get(
-        selection.id,
-      );
+      const customerPoint = hydraulicModel.customerPoints.get(selection.id);
       if (!customerPoint) return;
 
       userTracking.capture({
@@ -64,12 +65,12 @@ export const useDisconnectCustomerPoints = () => {
         source,
       });
 
-      const moment = disconnectCustomers(data.hydraulicModel, {
+      const moment = disconnectCustomers(hydraulicModel, {
         customerPointIds: [customerPoint.id],
       });
       transact(moment);
     },
-    [selection, data, transact, userTracking],
+    [selection, hydraulicModel, transact, userTracking],
   );
 
   return disconnectCustomerPoints;

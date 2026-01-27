@@ -3,12 +3,12 @@ import { useBreakpoint } from "src/hooks/use-breakpoint";
 import clsx from "clsx";
 import { useAtom, useAtomValue } from "jotai";
 import {
-  dataAtom,
   dialogAtom,
   ephemeralStateAtom,
   hideHintsAtom,
   selectionAtom,
   simulationAtom,
+  stagingModelAtom,
 } from "src/state/jotai";
 import { Mode, modeAtom } from "src/state/mode";
 import { localizeKeybinding } from "src/infra/i18n";
@@ -88,7 +88,7 @@ function Hint({
 export function Hints() {
   const translate = useTranslate();
   const mode = useAtomValue(modeAtom);
-  const { hydraulicModel } = useAtomValue(dataAtom);
+  const hydraulicModel = useAtomValue(stagingModelAtom);
   const simulation = useAtomValue(simulationAtom);
   const selection = useAtomValue(selectionAtom);
   const dialogState = useAtomValue(dialogAtom);

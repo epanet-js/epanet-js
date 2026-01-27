@@ -1,4 +1,4 @@
-import { dataAtom, dialogAtom, fileInfoAtom } from "src/state/jotai";
+import { dialogAtom, fileInfoAtom, stagingModelAtom } from "src/state/jotai";
 import { ExportOptions } from "src/types/export";
 import { useAtomCallback } from "jotai/utils";
 import { useCallback } from "react";
@@ -49,7 +49,7 @@ export const useSaveInp = ({
           const { fileSave } = await getFsAccess();
           const fileInfo = get(fileInfoAtom);
 
-          const data = get(dataAtom);
+          const hydraulicModel = get(stagingModelAtom);
           const buildOptions = {
             geolocation: true,
             madeBy: true,
@@ -61,7 +61,7 @@ export const useSaveInp = ({
           const buildInpFn = isCustomerDemandsOn
             ? buildInpWithCustomerDemands
             : buildInp;
-          const inp = buildInpFn(data.hydraulicModel, buildOptions);
+          const inp = buildInpFn(hydraulicModel, buildOptions);
           const inpBlob = new Blob([inp], { type: "text/plain" });
 
           const newHandle = await fileSave(
@@ -79,7 +79,7 @@ export const useSaveInp = ({
           if (newHandle) {
             set(fileInfoAtom, {
               name: newHandle.name,
-              modelVersion: data.hydraulicModel.version,
+              modelVersion: hydraulicModel.version,
               handle: newHandle,
               options: exportOptions,
               isMadeByApp: true,

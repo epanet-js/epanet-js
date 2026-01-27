@@ -9,7 +9,7 @@ import {
 } from "./common";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useAtomValue } from "jotai";
-import { dataAtom, selectionAtom } from "src/state/jotai";
+import { selectionAtom, stagingModelAtom } from "src/state/jotai";
 import { useUserTracking } from "src/infra/user-tracking";
 import {
   findCrossingPipes,
@@ -30,7 +30,7 @@ export const CrossingPipes = ({ onGoBack }: { onGoBack: () => void }) => {
   const selection = useAtomValue(selectionAtom);
   const { setSelection, isSelected, clearSelection } = useSelection(selection);
   const zoomTo = useZoomTo();
-  const { hydraulicModel } = useAtomValue(dataAtom);
+  const hydraulicModel = useAtomValue(stagingModelAtom);
   const [selectedCrossingId, setSelectedCrossingId] = useState<string | null>(
     null,
   );
@@ -183,7 +183,7 @@ const CrossingPipeItem = ({
   selectedId: string | null;
 }) => {
   const translate = useTranslate();
-  const { hydraulicModel } = useAtomValue(dataAtom);
+  const hydraulicModel = useAtomValue(stagingModelAtom);
   const crossingId = `${crossing.pipe1Id}-${crossing.pipe2Id}`;
   const isSelected = selectedId === crossingId;
 
@@ -240,7 +240,7 @@ const deferToAllowRender = () =>
 
 const useCheckCrossingPipes = () => {
   const [crossingPipes, setCrossingPipes] = useState<CrossingPipe[]>([]);
-  const { hydraulicModel } = useAtomValue(dataAtom);
+  const hydraulicModel = useAtomValue(stagingModelAtom);
   const { startLoading, finishLoading, isLoading } = useLoadingStatus();
   const isReady = useRef(false);
 

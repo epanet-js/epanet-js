@@ -6,7 +6,7 @@ import { ActionItem } from "./action-item";
 import { useCallback } from "react";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import { useAtomValue } from "jotai";
-import { selectionAtom, dataAtom } from "src/state/jotai";
+import { selectionAtom, stagingModelAtom } from "src/state/jotai";
 import { useTranslate } from "src/hooks/use-translate";
 import {
   useConnectCustomerPoints,
@@ -65,11 +65,11 @@ export function useCustomerPointActions(
 
 export function CustomerPointActions({ as }: { as: ActionProps["as"] }) {
   const selection = useAtomValue(selectionAtom);
-  const data = useAtomValue(dataAtom);
+  const hydraulicModel = useAtomValue(stagingModelAtom);
 
   const customerPoint =
     selection.type === "singleCustomerPoint"
-      ? data.hydraulicModel.customerPoints.get(selection.id)
+      ? hydraulicModel.customerPoints.get(selection.id)
       : undefined;
 
   const actions = useCustomerPointActions(customerPoint, as);

@@ -10,8 +10,8 @@ import { AssetTypeSections } from "./asset-type-sections";
 import { useAtom, useAtomValue } from "jotai";
 import {
   simulationAtom,
-  dataAtom,
   multiAssetPanelCollapseAtom,
+  stagingModelAtom,
 } from "src/state/jotai";
 import { computeMultiAssetData } from "./data";
 import { computeMultiAssetDataWithCustomerDemands } from "./data-with-customer-demands";
@@ -28,7 +28,7 @@ export function MultiAssetPanel({
 }) {
   const translate = useTranslate();
   const simulationState = useAtomValue(simulationAtom);
-  const { hydraulicModel } = useAtomValue(dataAtom);
+  const hydraulicModel = useAtomValue(stagingModelAtom);
   const hasSimulation = simulationState.status !== "idle";
   const [collapseState, setCollapseState] = useAtom(
     multiAssetPanelCollapseAtom,

@@ -5,7 +5,7 @@ import { Form, Formik, useFormikContext } from "formik";
 
 import { DialogContainer, DialogHeader, useDialogState } from "../dialog";
 import { useTranslate } from "src/hooks/use-translate";
-import { dataAtom } from "src/state/jotai";
+import { stagingModelAtom } from "src/state/jotai";
 import { ControlsIcon } from "src/icons";
 import { SimpleDialogActions } from "src/components/dialog";
 import {
@@ -28,7 +28,7 @@ type FormValues = {
 export const ControlsDialog = () => {
   const translate = useTranslate();
   const { closeDialog } = useDialogState();
-  const { hydraulicModel } = useAtomValue(dataAtom);
+  const hydraulicModel = useAtomValue(stagingModelAtom);
   const [activeTab, setActiveTab] = useState<Tab>("simple");
 
   const rep = usePersistence();

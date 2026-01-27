@@ -18,6 +18,7 @@ import {
   simulationAtom,
   currentZoomAtom,
   customerPointsAtom,
+  stagingModelAtom,
 } from "src/state/jotai";
 import { MapEngine } from "./map-engine";
 import {
@@ -208,8 +209,8 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const setMapLoading = useSetAtom(mapLoadingAtom);
 
   const assets = useAtomValue(assetsAtom);
+  const hydraulicModel = useAtomValue(stagingModelAtom);
   const {
-    hydraulicModel,
     modelMetadata: { quantities },
   } = useAtomValue(dataAtom);
   const lastHiddenFeatures = useRef<Set<AssetId>>(new Set([]));

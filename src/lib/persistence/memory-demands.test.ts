@@ -4,7 +4,7 @@ import { MemPersistenceDeprecated } from "./memory-deprecated";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { setInitialState } from "src/__helpers__/state";
 import { Demands, createEmptyDemands } from "src/hydraulic-model/demands";
-import { dataAtom } from "src/state/jotai";
+import { stagingModelAtom } from "src/state/jotai";
 
 const makeDemands = (
   patterns: { id: number; label: string; multipliers?: number[] }[],
@@ -36,8 +36,8 @@ describe("MemPersistenceDeprecated putDemands", () => {
       deleteAssets: [],
     });
 
-    const ctx = store.get(dataAtom);
-    expect(ctx.hydraulicModel.labelManager.count("PAT1")).toEqual(1);
+    const hydraulicModel = store.get(stagingModelAtom);
+    expect(hydraulicModel.labelManager.count("PAT1")).toEqual(1);
   });
 
   it("registers new pattern labels in label manager", () => {
@@ -56,8 +56,8 @@ describe("MemPersistenceDeprecated putDemands", () => {
       putDemands: newDemands,
     });
 
-    const ctx = store.get(dataAtom);
-    expect(ctx.hydraulicModel.labelManager.count("MyPattern")).toEqual(1);
+    const hydraulicModel = store.get(stagingModelAtom);
+    expect(hydraulicModel.labelManager.count("MyPattern")).toEqual(1);
   });
 
   it("handles renaming a pattern (old removed, new registered)", () => {
@@ -76,9 +76,9 @@ describe("MemPersistenceDeprecated putDemands", () => {
       putDemands: newDemands,
     });
 
-    const ctx = store.get(dataAtom);
-    expect(ctx.hydraulicModel.labelManager.count("OriginalName")).toEqual(0);
-    expect(ctx.hydraulicModel.labelManager.count("RenamedPattern")).toEqual(1);
+    const hydraulicModel = store.get(stagingModelAtom);
+    expect(hydraulicModel.labelManager.count("OriginalName")).toEqual(0);
+    expect(hydraulicModel.labelManager.count("RenamedPattern")).toEqual(1);
   });
 
   it("handles removing a pattern from demands", () => {
@@ -98,8 +98,8 @@ describe("MemPersistenceDeprecated putDemands", () => {
       putDemands: newDemands,
     });
 
-    const ctx = store.get(dataAtom);
-    expect(ctx.hydraulicModel.labelManager.count("KeepThis")).toEqual(1);
-    expect(ctx.hydraulicModel.labelManager.count("RemoveThis")).toEqual(0);
+    const hydraulicModel = store.get(stagingModelAtom);
+    expect(hydraulicModel.labelManager.count("KeepThis")).toEqual(1);
+    expect(hydraulicModel.labelManager.count("RemoveThis")).toEqual(0);
   });
 });

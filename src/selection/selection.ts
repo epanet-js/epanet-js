@@ -1,14 +1,20 @@
 import type {
-  Data,
   Sel,
   SelFolder,
   SelSingle,
   SelSingleCustomerPoint,
 } from "src/state/jotai";
-import type { IFolder, IWrappedFeature } from "src/types";
+import type { FolderMap, IFolder, IWrappedFeature } from "src/types";
+import type { HydraulicModel } from "src/hydraulic-model";
 import { toggle } from "src/lib/utils";
 import { EMPTY_ARRAY } from "src/lib/constants";
 import { getFoldersInTree } from "src/lib/folder";
+
+type SelectionData = {
+  selection: Sel;
+  hydraulicModel: HydraulicModel;
+  folderMap: FolderMap;
+};
 
 export const USelection = {
   /**
@@ -16,9 +22,7 @@ export const USelection = {
    * drawing mode. This preserves the parent folder selection so that
    * we can place a feature in that.
    */
-  selectionToFolder(
-    data: Pick<Data, "selection" | "hydraulicModel" | "folderMap">,
-  ): Sel {
+  selectionToFolder(data: SelectionData): Sel {
     const { selection } = data;
 
     switch (selection.type) {
@@ -107,10 +111,7 @@ export const USelection = {
     selection,
     hydraulicModel,
     folderMap,
-  }: Pick<
-    Data,
-    "selection" | "hydraulicModel" | "folderMap"
-  >): IWrappedFeature[] {
+  }: SelectionData): IWrappedFeature[] {
     switch (selection.type) {
       case "none": {
         return EMPTY_ARRAY as IWrappedFeature[];

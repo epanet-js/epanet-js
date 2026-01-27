@@ -5,12 +5,12 @@ import { deactivateAssets } from "src/hydraulic-model/model-operations/deactivat
 import { useUserTracking } from "src/infra/user-tracking";
 import { usePersistence } from "src/lib/persistence";
 import { USelection } from "src/selection";
-import { dataAtom, selectionAtom } from "src/state/jotai";
+import { selectionAtom, stagingModelAtom } from "src/state/jotai";
 
 export const changeActiveTopologyShortcut = "a";
 
 export const useChangeSelectedAssetsActiveTopologyStatus = () => {
-  const { hydraulicModel } = useAtomValue(dataAtom);
+  const hydraulicModel = useAtomValue(stagingModelAtom);
   const selection = useAtomValue(selectionAtom);
   const userTracking = useUserTracking();
   const rep = usePersistence();

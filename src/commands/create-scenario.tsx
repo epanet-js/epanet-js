@@ -2,7 +2,7 @@ import { useCallback } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { useScenarioOperations } from "src/hooks/use-scenario-operations";
 import { scenariosListAtom } from "src/state/scenarios";
-import { dataAtom, dialogAtom, simulationAtom } from "src/state/jotai";
+import { dialogAtom, simulationAtom, stagingModelAtom } from "src/state/jotai";
 import { useAuth } from "src/auth";
 import { limits } from "src/user-plan";
 import { useUserTracking } from "src/infra/user-tracking";
@@ -21,7 +21,7 @@ export const useCreateScenario = () => {
   const userTracking = useUserTracking();
   const translate = useTranslate();
   const simulation = useAtomValue(simulationAtom);
-  const { hydraulicModel } = useAtomValue(dataAtom);
+  const hydraulicModel = useAtomValue(stagingModelAtom);
   const runSimulation = useRunSimulation();
 
   return useCallback(

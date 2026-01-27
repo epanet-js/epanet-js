@@ -2,7 +2,7 @@ import { useAtomValue } from "jotai";
 import * as Popover from "@radix-ui/react-popover";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
-import { dataAtom, simulationAtom } from "src/state/jotai";
+import { dataAtom, simulationAtom, stagingModelAtom } from "src/state/jotai";
 import { Selector, SelectorLikeButton } from "../form/selector";
 import { useUserTracking } from "src/infra/user-tracking";
 import {
@@ -89,9 +89,9 @@ const SymbologyEditor = ({
   } = useSymbologyState();
   const symbology = geometryType === "node" ? nodeSymbology : linkSymbology;
   const {
-    hydraulicModel,
     modelMetadata: { quantities },
   } = useAtomValue(dataAtom);
+  const hydraulicModel = useAtomValue(stagingModelAtom);
 
   const userTracking = useUserTracking();
 

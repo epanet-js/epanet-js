@@ -3,7 +3,12 @@ import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useTranslate } from "src/hooks/use-translate";
 import { localizeDecimal } from "src/infra/i18n/numbers";
-import { SimulationState, dataAtom, simulationAtom } from "src/state/jotai";
+import {
+  SimulationState,
+  dataAtom,
+  simulationAtom,
+  stagingModelAtom,
+} from "src/state/jotai";
 import * as Popover from "@radix-ui/react-popover";
 import { Button, StyledPopoverArrow, StyledPopoverContent } from "../elements";
 import { HydraulicModel } from "src/hydraulic-model";
@@ -20,7 +25,8 @@ import {
 
 export const Footer = () => {
   const translate = useTranslate();
-  const { hydraulicModel, modelMetadata } = useAtomValue(dataAtom);
+  const { modelMetadata } = useAtomValue(dataAtom);
+  const hydraulicModel = useAtomValue(stagingModelAtom);
   const isScenariosOn = useFeatureFlag("FLAG_SCENARIOS");
   const isLgOrLarger = useBreakpoint("lg");
   const isSmOrLarger = useBreakpoint("sm");
@@ -192,7 +198,7 @@ const buildSimulationStatusStyles = (
 export const SimulationStatusText = () => {
   const translate = useTranslate();
   const simulation = useAtomValue(simulationAtom);
-  const { hydraulicModel } = useAtomValue(dataAtom);
+  const hydraulicModel = useAtomValue(stagingModelAtom);
 
   const { Icon, colorClass, text } = buildSimulationStatusStyles(
     simulation,

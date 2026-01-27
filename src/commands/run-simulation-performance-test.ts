@@ -3,11 +3,10 @@ import { useAtomValue, useSetAtom } from "jotai";
 import { MapEngine } from "src/map/map-engine";
 import { HydraulicModel, attachSimulation } from "src/hydraulic-model";
 import {
-  Data,
   SimulationFinished,
   SimulationState,
-  dataAtom,
   simulationAtom,
+  stagingModelAtom,
 } from "src/state/jotai";
 import { EPSResultsReader } from "src/simulation";
 import { OPFSStorage } from "src/infra/storage";
@@ -32,7 +31,9 @@ type PerformanceResult = {
 export async function runSimulationPerformanceTest(
   hydraulicModel: HydraulicModel,
   mapEngine: MapEngine,
-  setData: (updater: (prev: Data) => Data) => void,
+  setHydraulicModel: (
+    updater: (prev: HydraulicModel) => HydraulicModel,
+  ) => void,
   setSimulationState: (
     updater: (prev: SimulationState) => SimulationState,
   ) => void,
@@ -71,10 +72,7 @@ export async function runSimulationPerformanceTest(
 
     const startRender = performance.now();
     await mapEngine.waitForMapIdle(() => {
-      setData((prev) => ({
-        ...prev,
-        hydraulicModel: updatedModel,
-      }));
+      setHydraulicModel(() => updatedModel);
       setSimulationState((prev) => ({
         ...prev,
         currentTimestepIndex: i,
@@ -141,9 +139,9 @@ function logPerformanceResults(results: PerformanceResult[]): void {
 }
 
 export const useRunSimulationPerformanceTest = () => {
-  const { hydraulicModel } = useAtomValue(dataAtom);
+  const hydraulicModel = useAtomValue(stagingModelAtom);
   const simulationState = useAtomValue(simulationAtom);
-  const setData = useSetAtom(dataAtom);
+  const setHydraulicModel = useSetAtom(stagingModelAtom);
   const setSimulationState = useSetAtom(simulationAtom);
   const mapEngine = useContext(MapContext);
 
@@ -162,10 +160,16 @@ export const useRunSimulationPerformanceTest = () => {
     await runSimulationPerformanceTest(
       hydraulicModel,
       mapEngine,
-      setData,
+      setHydraulicModel,
       setSimulationState,
       simulationState,
       getAppId(),
     );
-  }, [hydraulicModel, mapEngine, setData, setSimulationState, simulationState]);
+  }, [
+    hydraulicModel,
+    mapEngine,
+    setHydraulicModel,
+    setSimulationState,
+    simulationState,
+  ]);
 };

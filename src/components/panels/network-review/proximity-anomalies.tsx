@@ -12,7 +12,7 @@ import {
 } from "./common";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useAtomValue } from "jotai";
-import { dataAtom, selectionAtom } from "src/state/jotai";
+import { selectionAtom, stagingModelAtom } from "src/state/jotai";
 import { useTranslate } from "src/hooks/use-translate";
 import { convertTo, Quantity } from "src/quantity";
 import {
@@ -36,7 +36,7 @@ export const ProximityAnomalies = ({ onGoBack }: { onGoBack: () => void }) => {
   const selection = useAtomValue(selectionAtom);
   const { setSelection, isSelected, clearSelection } = useSelection(selection);
   const zoomTo = useZoomTo();
-  const { hydraulicModel } = useAtomValue(dataAtom);
+  const hydraulicModel = useAtomValue(stagingModelAtom);
   const [selectedProximityAnomalyId, setSelectedProximityAnomalyId] = useState<
     string | null
   >(null);
@@ -205,10 +205,8 @@ const DistanceInput = ({
 
 const useDistance = () => {
   const {
-    hydraulicModel: {
-      units: { length: unit },
-    },
-  } = useAtomValue(dataAtom);
+    units: { length: unit },
+  } = useAtomValue(stagingModelAtom);
   const [distance, setDistance] = useState<number>(() =>
     unit === "ft" ? DEFAULT_DISTANCE_FT : DEFAULT_DISTANCE_M,
   );
@@ -236,7 +234,7 @@ const useCheckProximityAnomalies = () => {
   const [proximityAnomalies, setProximityAnomalies] = useState<
     ProximityAnomaly[]
   >([]);
-  const { hydraulicModel } = useAtomValue(dataAtom);
+  const hydraulicModel = useAtomValue(stagingModelAtom);
   const { startLoading, finishLoading, isLoading } = useLoadingStatus();
   const isReady = useRef(false);
 
@@ -317,7 +315,7 @@ const ProximityAnomalyItem = ({
   selectedId: string | null;
 }) => {
   const translate = useTranslate();
-  const { hydraulicModel } = useAtomValue(dataAtom);
+  const hydraulicModel = useAtomValue(stagingModelAtom);
   const connectionId = `${anomaly.nodeId}-${anomaly.pipeId}`;
   const isSelected = selectedId === connectionId;
 

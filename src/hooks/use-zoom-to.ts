@@ -5,7 +5,7 @@ import { LngLatBoundsLike } from "mapbox-gl";
 import { Maybe } from "purify-ts/Maybe";
 import { useCallback, useContext } from "react";
 import { USelection } from "src/selection";
-import { dataAtom, Sel } from "src/state/jotai";
+import { dataAtom, Sel, stagingModelAtom } from "src/state/jotai";
 import { BBox, FeatureCollection, IWrappedFeature } from "src/types";
 
 export function useZoomTo() {
@@ -20,6 +20,7 @@ export function useZoomTo() {
         maxZoom?: number,
       ) => {
         const data = get(dataAtom);
+        const hydraulicModel = get(stagingModelAtom);
         let extent: Maybe<BBox>;
         if (Maybe.isMaybe(selection)) {
           extent = selection;
@@ -30,6 +31,7 @@ export function useZoomTo() {
               ? selection.map((f) => f.feature)
               : USelection.getSelectedFeatures({
                   ...data,
+                  hydraulicModel,
                   selection,
                 }).map((f) => f.feature),
           };

@@ -5,7 +5,7 @@ import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useAtomValue } from "jotai";
-import { dataAtom } from "src/state/jotai";
+import { dataAtom, stagingModelAtom } from "src/state/jotai";
 import { parseCustomerPoints } from "src/import/customer-points/parse-customer-points";
 import {
   CustomerPointsIssuesAccumulator,
@@ -37,7 +37,8 @@ export const DataMappingStep: React.FC<{
 }> = ({ onNext, onBack, wizardState }) => {
   const translate = useTranslate();
   const userTracking = useUserTracking();
-  const { modelMetadata, hydraulicModel } = useAtomValue(dataAtom);
+  const { modelMetadata } = useAtomValue(dataAtom);
+  const hydraulicModel = useAtomValue(stagingModelAtom);
   const patterns = hydraulicModel.demands.patterns;
   const isCustomerDemandsEnabled = useFeatureFlag("FLAG_CUSTOMER_DEMANDS");
 

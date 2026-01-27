@@ -4,17 +4,17 @@ import { LinkAsset } from "src/hydraulic-model";
 import { useUserTracking } from "src/infra/user-tracking";
 import { USelection } from "src/selection";
 import {
-  dataAtom,
   selectionAtom,
   ephemeralStateAtom,
   modeAtom,
   Mode,
+  stagingModelAtom,
 } from "src/state/jotai";
 
 export const redrawModeShortcut = "e";
 
 export const useSetRedrawMode = () => {
-  const { hydraulicModel } = useAtomValue(dataAtom);
+  const hydraulicModel = useAtomValue(stagingModelAtom);
   const selection = useAtomValue(selectionAtom);
   const setMode = useSetAtom(modeAtom);
   const setEphemeralState = useSetAtom(ephemeralStateAtom);

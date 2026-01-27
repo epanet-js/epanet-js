@@ -1,12 +1,12 @@
 import { useCallback } from "react";
 import { useSetAtom, useAtomValue } from "jotai";
-import { dialogAtom, dataAtom } from "src/state/jotai";
+import { dialogAtom, stagingModelAtom } from "src/state/jotai";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useEarlyAccess } from "src/hooks/use-early-access";
 
 export const useImportCustomerPoints = () => {
   const setDialogState = useSetAtom(dialogAtom);
-  const data = useAtomValue(dataAtom);
+  const hydraulicModel = useAtomValue(stagingModelAtom);
   const userTracking = useUserTracking();
   const onlyEarlyAccess = useEarlyAccess();
 
@@ -19,7 +19,7 @@ export const useImportCustomerPoints = () => {
         });
 
         const hasExistingCustomerPoints =
-          data.hydraulicModel.customerPoints.size > 0;
+          hydraulicModel.customerPoints.size > 0;
 
         if (hasExistingCustomerPoints) {
           setDialogState({
@@ -40,7 +40,7 @@ export const useImportCustomerPoints = () => {
     [
       setDialogState,
       userTracking,
-      data.hydraulicModel.customerPoints.size,
+      hydraulicModel.customerPoints.size,
       onlyEarlyAccess,
     ],
   );

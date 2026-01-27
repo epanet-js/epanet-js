@@ -2,7 +2,7 @@ import { useAtomValue, useSetAtom } from "jotai";
 import { useCallback } from "react";
 import { buildInp } from "src/simulation/build-inp";
 import { buildInpWithCustomerDemands } from "src/simulation/build-inp-with-customer-demands";
-import { dataAtom, dialogAtom, simulationAtom } from "src/state/jotai";
+import { dialogAtom, simulationAtom, stagingModelAtom } from "src/state/jotai";
 import {
   ProgressCallback,
   runSimulation as runSimulationWorker,
@@ -22,8 +22,8 @@ export const runSimulationShortcut = "shift+enter";
 export const useRunSimulation = () => {
   const setSimulationState = useSetAtom(simulationAtom);
   const setDialogState = useSetAtom(dialogAtom);
-  const { hydraulicModel } = useAtomValue(dataAtom);
-  const setData = useSetAtom(dataAtom);
+  const hydraulicModel = useAtomValue(stagingModelAtom);
+  const setHydraulicModel = useSetAtom(stagingModelAtom);
   const setDrawingMode = useDrawingMode();
   const worktree = useAtomValue(worktreeAtom);
   const isScenariosOn = useFeatureFlag("FLAG_SCENARIOS");
@@ -80,10 +80,7 @@ export const useRunSimulation = () => {
         simulationIds = epsReader.simulationIds;
         const resultsReader = await epsReader.getResultsForTimestep(0);
         updatedHydraulicModel = attachSimulation(hydraulicModel, resultsReader);
-        setData((prev) => ({
-          ...prev,
-          hydraulicModel: updatedHydraulicModel,
-        }));
+        setHydraulicModel(updatedHydraulicModel);
       }
 
       const simulationResult = {
@@ -117,7 +114,7 @@ export const useRunSimulation = () => {
       hydraulicModel,
       setSimulationState,
       setDialogState,
-      setData,
+      setHydraulicModel,
       isScenariosOn,
       isCustomerDemandsOn,
       worktree.activeSnapshotId,

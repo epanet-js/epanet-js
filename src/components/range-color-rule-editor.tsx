@@ -23,7 +23,7 @@ import {
 } from "src/map/symbology/range-color-rule";
 import { useTranslate } from "src/hooks/use-translate";
 import { useCallback, useMemo, useState } from "react";
-import { dataAtom } from "src/state/jotai";
+import { stagingModelAtom } from "src/state/jotai";
 
 import { Selector } from "src/components/form/selector";
 import * as d3 from "d3-array";
@@ -42,9 +42,7 @@ export const RangeColorRuleEditor = ({
   geometryType?: "node" | "link";
 }) => {
   const translate = useTranslate();
-  const {
-    hydraulicModel: { assets },
-  } = useAtomValue(dataAtom);
+  const { assets } = useAtomValue(stagingModelAtom);
   const {
     linkSymbology,
     nodeSymbology,
