@@ -17,12 +17,6 @@ export function TextReadonlyCell({
   );
 }
 
-/**
- * Creates a text readonly column.
- *
- * @example
- * textReadonlyColumn("id", { header: "ID", className: "text-gray-500" })
- */
 export function textReadonlyColumn(
   accessorKey: string,
   options: {

@@ -184,6 +184,7 @@ const PatternTableTanstack = forwardRef<SpreadsheetTableRef, PatternTableProps>(
           header: translate("multiplier"),
           size: 82,
           deleteValue: DEFAULT_MULTIPLIER,
+          nullValue: 0,
         }),
       ],
       [translate],

@@ -7,6 +7,7 @@ import {
   useEffect,
 } from "react";
 import { parseLocaleNumber, reformatWithoutGroups } from "src/infra/i18n";
+import { normalizeNumericInput } from "./numeric-input-utils";
 import clsx from "clsx";
 
 type StyleOptions = {
@@ -110,12 +111,7 @@ export const NumericField = ({
   };
 
   const handleInputChange: ChangeEventHandler<HTMLInputElement> = (e) => {
-    let newInputValue = e.target.value;
-    newInputValue = newInputValue.replace(/[^0-9\-eE.,]/g, "");
-
-    if (positiveOnly) {
-      newInputValue = newInputValue.replace(/^-/g, "");
-    }
+    const newInputValue = normalizeNumericInput(e.target.value, { positiveOnly });
     setInputValue(newInputValue);
     const numericValue = parseLocaleNumber(newInputValue);
     setError(isNaN(numericValue) || (!isNullable && numericValue === 0));
@@ -156,7 +152,7 @@ function styledInput({
   padding = "md",
   border = "sm",
   variant = "default",
-  textSize = "xs",
+  textSize = "sm",
   ghostBorder = false,
   disabled = false,
 }: StyleOptions = {}) {

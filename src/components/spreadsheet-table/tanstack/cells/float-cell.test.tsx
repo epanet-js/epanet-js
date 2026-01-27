@@ -203,7 +203,7 @@ describe("FloatCell", () => {
       expect(stopEditing).toHaveBeenCalled();
     });
 
-    it("normalizes comma to period when parsing", async () => {
+    it("parses numbers with period as decimal separator", async () => {
       const user = setupUser();
       const onChange = vi.fn();
 
@@ -220,7 +220,7 @@ describe("FloatCell", () => {
 
       const input = screen.getByRole("textbox");
       await user.clear(input);
-      await user.type(input, "1,5");
+      await user.type(input, "1.5");
       await user.keyboard("{Enter}");
 
       expect(onChange).toHaveBeenCalledWith(1.5);
@@ -321,10 +321,11 @@ describe("floatColumn", () => {
       expect(column.pasteValue?.("123.45")).toBe(123.45);
     });
 
-    it("normalizes comma to period", () => {
+    it("parses numbers with thousands separator", () => {
       const column = floatColumn("value", { header: "Value" });
 
-      expect(column.pasteValue?.("123,45")).toBe(123.45);
+      // In English locale, comma is thousands separator
+      expect(column.pasteValue?.("1,234.56")).toBe(1234.56);
     });
 
     it("returns null for invalid string", () => {

@@ -163,6 +163,7 @@ const DemandCategoriesEditorTanstack = ({
         header: translate("baseDemand"),
         size: 100,
         deleteValue: 0,
+        nullValue: 0,
       }),
       filterableSelectColumn("patternId", {
         header: translate("timePattern"),

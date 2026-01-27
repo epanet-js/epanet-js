@@ -1,6 +1,7 @@
 import {
   forwardRef,
   useCallback,
+  useEffect,
   useImperativeHandle,
   useLayoutEffect,
   useRef,
@@ -11,9 +12,11 @@ import {
   getCoreRowModel,
   flexRender,
   ColumnDef,
+  Cell,
+  Table,
 } from "@tanstack/react-table";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { colors } from "src/lib/constants";
+import clsx from "clsx";
 import { Button } from "src/components/elements";
 import { AddIcon } from "src/icons";
 import {
@@ -21,15 +24,14 @@ import {
   SpreadsheetTableRef,
   SpreadsheetColumn,
   CellPosition,
+  RowAction,
 } from "./types";
 import { useSelection } from "./use-selection";
 import { useKeyboardNavigation } from "./use-keyboard-navigation";
 import { useClipboard } from "./use-clipboard";
 import { ActionsCell } from "./cells/actions-cell";
 
-const ROW_HEIGHT = 32;
-const GUTTER_WIDTH = 40;
-const ACTIONS_WIDTH = 40;
+const ROW_HEIGHT = 32; // h-8, needed for virtualizer estimateSize
 
 export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
   TData extends Record<string, unknown>,
@@ -52,11 +54,9 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
   const scrollRef = useRef<HTMLDivElement>(null);
   const [gridHeight, setGridHeight] = useState<number | undefined>(undefined);
 
-  // Filter out gutter/action columns for data column count
   const dataColumns = columns;
   const colCount = dataColumns.length;
 
-  // Selection state
   const {
     activeCell,
     selection,
@@ -76,7 +76,6 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
     onSelectionChange,
   });
 
-  // Keyboard navigation
   const { handleKeyDown } = useKeyboardNavigation({
     activeCell,
     selection,
@@ -92,7 +91,15 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
     stopEditing,
   });
 
-  // Clipboard
+  useEffect(
+    function refocusWhenEditingStops() {
+      if (!isEditing && scrollRef.current) {
+        scrollRef.current.focus();
+      }
+    },
+    [isEditing],
+  );
+
   const { handleCopy, handlePaste } = useClipboard({
     selection,
     columns: dataColumns,
@@ -100,7 +107,6 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
     onChange,
   });
 
-  // Expose ref methods
   useImperativeHandle(
     ref,
     () => ({
@@ -111,7 +117,6 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
     [setActiveCell, setSelection, selection],
   );
 
-  // Vertical auto-sizing
   useLayoutEffect(
     function resizeVertically() {
       const container = containerRef.current;
@@ -144,7 +149,6 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
     getCoreRowModel: getCoreRowModel(),
   });
 
-  // Virtualization
   const rowVirtualizer = useVirtualizer({
     count: data.length,
     getScrollElement: () => scrollRef.current,
@@ -152,13 +156,11 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
     overscan: 5,
   });
 
-  // Add row handler
   const handleAddRow = useCallback(() => {
     const newRow = createRow();
     onChange([...data, newRow]);
   }, [createRow, data, onChange]);
 
-  // Cell click handler
   const handleCellClick = useCallback(
     (col: number, row: number, e: React.MouseEvent) => {
       setActiveCell({ col, row }, e.shiftKey);
@@ -166,7 +168,6 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
     [setActiveCell],
   );
 
-  // Cell double click handler (start editing)
   const handleCellDoubleClick = useCallback(
     (col: number) => {
       const column = dataColumns[col] as SpreadsheetColumn | undefined;
@@ -177,7 +178,6 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
     [dataColumns, startEditing],
   );
 
-  // Gutter click handler
   const handleGutterClick = useCallback(
     (row: number, e: React.MouseEvent) => {
       selectRow(row, e.shiftKey);
@@ -185,7 +185,6 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
     [selectRow],
   );
 
-  // Cell value change handler
   const handleCellChange = useCallback(
     (rowIndex: number, columnId: string, value: unknown) => {
       const newData = data.map((row, idx) => {
@@ -199,7 +198,6 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
     [data, onChange],
   );
 
-  // Empty state
   if (data.length === 0 && emptyState) {
     return emptyState as React.ReactElement;
   }
@@ -211,69 +209,22 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
     <div ref={containerRef} className="flex flex-col justify-between h-full">
       <div
         ref={scrollRef}
+        role="grid"
+        aria-rowcount={data.length}
+        aria-colcount={colCount}
         tabIndex={0}
         onKeyDown={handleKeyDown}
         onCopy={handleCopy}
         onPaste={handlePaste}
-        className="outline-none overflow-auto relative"
-        style={{
-          height: gridHeight,
-          ["--spreadsheet-selection-border-color" as string]: colors.purple500,
-          ["--spreadsheet-selection-bg" as string]: `${colors.purple300}1a`,
-          ["--spreadsheet-header-bg" as string]: colors.gray100,
-          ["--spreadsheet-header-text" as string]: colors.gray600,
-        }}
+        className="outline-none overflow-auto relative border border-gray-200"
+        style={{ height: gridHeight }}
       >
-        {/* Header row */}
-        <div
-          className="flex sticky top-0 z-10"
-          style={{ backgroundColor: "var(--spreadsheet-header-bg)" }}
-        >
-          {gutterColumn && (
-            <div
-              className="flex items-center justify-center font-semibold text-sm shrink-0"
-              style={{
-                width: GUTTER_WIDTH,
-                height: ROW_HEIGHT,
-                color: "var(--spreadsheet-header-text)",
-                backgroundColor: "var(--spreadsheet-header-bg)",
-              }}
-            />
-          )}
-          {table.getHeaderGroups().map((headerGroup) =>
-            headerGroup.headers.map((header) => (
-              <div
-                key={header.id}
-                className="flex items-center px-2 font-semibold text-sm truncate"
-                style={{
-                  width: header.getSize(),
-                  minWidth: header.getSize(),
-                  height: ROW_HEIGHT,
-                  color: "var(--spreadsheet-header-text)",
-                  backgroundColor: "var(--spreadsheet-header-bg)",
-                  flexGrow: 1,
-                }}
-              >
-                {flexRender(
-                  header.column.columnDef.header,
-                  header.getContext(),
-                )}
-              </div>
-            )),
-          )}
-          {rowActions && (
-            <div
-              className="shrink-0 sticky right-0"
-              style={{
-                width: ACTIONS_WIDTH,
-                height: ROW_HEIGHT,
-                backgroundColor: "var(--spreadsheet-header-bg)",
-              }}
-            />
-          )}
-        </div>
+        <TableHeader
+          table={table}
+          showGutterColumn={gutterColumn}
+          showActionsColumn={!!rowActions}
+        />
 
-        {/* Virtual rows container */}
         <div
           style={{
             height: totalSize,
@@ -287,101 +238,52 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
             return (
               <div
                 key={row.id}
-                className="flex absolute w-full"
-                style={{
-                  height: ROW_HEIGHT,
-                  transform: `translateY(${virtualRow.start}px)`,
-                }}
+                role="row"
+                aria-rowindex={rowIndex + 2}
+                className="flex absolute w-full h-8"
+                style={{ transform: `translateY(${virtualRow.start}px)` }}
               >
-                {/* Gutter column */}
                 {gutterColumn && (
-                  <div
-                    className="flex items-center justify-center text-xs shrink-0 cursor-pointer select-none"
-                    style={{
-                      width: GUTTER_WIDTH,
-                      height: ROW_HEIGHT,
-                      backgroundColor: "var(--spreadsheet-header-bg)",
-                      color: "var(--spreadsheet-header-text)",
-                    }}
+                  <TableGutterCell
+                    rowIndex={rowIndex}
                     onClick={(e) => handleGutterClick(rowIndex, e)}
-                  >
-                    {rowIndex + 1}
-                  </div>
+                  />
                 )}
 
-                {/* Data cells */}
                 {row.getVisibleCells().map((cell, colIndex) => {
                   const column = dataColumns[colIndex];
-                  const isActive = isCellActive(colIndex, rowIndex);
-                  const isSelected = isCellSelected(colIndex, rowIndex);
-                  const CellComponent = column.cellComponent;
                   const accessorKey = column.accessorKey;
 
                   return (
-                    <div
+                    <TableDataCell
                       key={cell.id}
-                      className="relative border-b border-r border-gray-200"
-                      style={{
-                        width: cell.column.getSize(),
-                        minWidth: cell.column.getSize(),
-                        height: ROW_HEIGHT,
-                        flexGrow: 1,
-                        backgroundColor: isSelected
-                          ? "var(--spreadsheet-selection-bg)"
-                          : "white",
-                        outline: isActive
-                          ? `2px solid var(--spreadsheet-selection-border-color)`
-                          : "none",
-                        outlineOffset: "-2px",
-                        zIndex: isActive ? 1 : 0,
-                      }}
+                      cell={cell}
+                      colIndex={colIndex}
+                      rowIndex={rowIndex}
+                      isSelected={isCellSelected(colIndex, rowIndex)}
+                      isActive={isCellActive(colIndex, rowIndex)}
+                      isEditing={isEditing}
                       onClick={(e) => handleCellClick(colIndex, rowIndex, e)}
                       onDoubleClick={() => handleCellDoubleClick(colIndex)}
-                    >
-                      {CellComponent ? (
-                        <CellComponent
-                          value={cell.getValue()}
-                          rowIndex={rowIndex}
-                          columnIndex={colIndex}
-                          isActive={isActive}
-                          isEditing={isActive && isEditing}
-                          isSelected={isSelected}
-                          onChange={(newValue) =>
-                            accessorKey &&
-                            handleCellChange(rowIndex, accessorKey, newValue)
-                          }
-                          stopEditing={stopEditing}
-                          focus={isActive}
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center px-2 text-sm">
-                          {String(cell.getValue() ?? "")}
-                        </div>
-                      )}
-                    </div>
+                      onBlur={stopEditing}
+                      onChange={
+                        accessorKey
+                          ? (value) =>
+                              handleCellChange(rowIndex, accessorKey, value)
+                          : undefined
+                      }
+                      CellComponent={column.cellComponent}
+                    />
                   );
                 })}
 
-                {/* Actions column */}
-                {rowActions && (
-                  <div
-                    className="sticky right-0 shrink-0 border-b border-gray-200"
-                    style={{
-                      width: ACTIONS_WIDTH,
-                      height: ROW_HEIGHT,
-                      backgroundColor: "white",
-                    }}
-                  >
-                    <ActionsCell rowIndex={rowIndex} actions={rowActions} />
-                  </div>
-                )}
+                <TableActionsCell rowActions={rowActions} rowIndex={rowIndex} />
               </div>
             );
           })}
         </div>
       </div>
 
-      {/* Add row button */}
       {addRowLabel && (
         <Button
           variant="default"
@@ -400,3 +302,145 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
     ref?: React.Ref<SpreadsheetTableRef>;
   },
 ) => React.ReactElement;
+
+function TableHeader<T>({
+  showGutterColumn,
+  showActionsColumn,
+  table,
+}: {
+  showGutterColumn: boolean;
+  showActionsColumn: boolean;
+  table: Table<T>;
+}) {
+  return (
+    <div role="row" className="flex sticky top-0 z-10 bg-gray-100">
+      {showGutterColumn && (
+        <div
+          role="columnheader"
+          className="flex items-center justify-center font-semibold text-sm shrink-0 w-10 h-8 text-gray-600 bg-gray-100"
+        />
+      )}
+      {table.getHeaderGroups().map((headerGroup) =>
+        headerGroup.headers.map((header) => (
+          <div
+            key={header.id}
+            role="columnheader"
+            className="flex items-center px-2 font-semibold text-sm truncate h-8 grow text-gray-600 bg-gray-100"
+            style={{
+              width: header.getSize(),
+              minWidth: header.getSize(),
+            }}
+          >
+            {flexRender(header.column.columnDef.header, header.getContext())}
+          </div>
+        )),
+      )}
+      {showActionsColumn && (
+        <div
+          role="columnheader"
+          className="shrink-0 sticky right-0 w-8 h-8 z-10 bg-gray-100"
+        />
+      )}
+    </div>
+  );
+}
+
+function TableGutterCell({
+  rowIndex,
+  onClick,
+}: {
+  rowIndex: number;
+  onClick: (e: React.MouseEvent) => void;
+}) {
+  return (
+    <div
+      role="rowheader"
+      className="flex items-center justify-center text-xs shrink-0 cursor-pointer select-none w-10 h-8 bg-gray-100 text-gray-600"
+      onClick={onClick}
+    >
+      {rowIndex + 1}
+    </div>
+  );
+}
+
+function TableDataCell<T>({
+  cell,
+  colIndex,
+  rowIndex,
+  isSelected,
+  isActive,
+  isEditing,
+  onClick,
+  onDoubleClick,
+  onBlur,
+  onChange,
+  CellComponent,
+}: {
+  cell: Cell<T, unknown>;
+  colIndex: number;
+  rowIndex: number;
+  isSelected: boolean;
+  isActive: boolean;
+  isEditing: boolean;
+  onClick: (e: React.MouseEvent) => void;
+  onDoubleClick: () => void;
+  onChange?: (value: unknown) => void;
+  onBlur: () => void;
+  CellComponent: SpreadsheetColumn["cellComponent"];
+}) {
+  return (
+    <div
+      key={cell.id}
+      role="gridcell"
+      aria-colindex={colIndex + 1}
+      aria-selected={isSelected}
+      className={clsx(
+        "relative border-t border-l border-gray-200 h-8 grow",
+        isSelected ? "bg-purple-300/10" : "bg-white",
+        isActive &&
+          "outline outline-1 -outline-offset-1 outline-purple-500 z-[1]",
+      )}
+      style={{
+        width: cell.column.getSize(),
+        minWidth: cell.column.getSize(),
+      }}
+      onClick={onClick}
+      onDoubleClick={onDoubleClick}
+    >
+      {CellComponent ? (
+        <CellComponent
+          value={cell.getValue()}
+          rowIndex={rowIndex}
+          columnIndex={colIndex}
+          isActive={isActive}
+          isEditing={isActive && isEditing}
+          isSelected={isSelected}
+          onChange={(newValue) => onChange?.(newValue)}
+          stopEditing={onBlur}
+          focus={isActive}
+        />
+      ) : (
+        <div className="w-full h-full flex items-center px-2 text-sm">
+          {String(cell.getValue() ?? "")}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function TableActionsCell({
+  rowIndex,
+  rowActions,
+}: {
+  rowIndex: number;
+  rowActions?: RowAction[];
+}) {
+  return rowActions ? (
+    <div
+      role="gridcell"
+      className="sticky right-0 shrink-0 border-t border-l border-gray-200 w-8 h-8 bg-white z-10"
+    >
+      <ActionsCell rowIndex={rowIndex} actions={rowActions} />
+    </div>
+  ) : null;
+}

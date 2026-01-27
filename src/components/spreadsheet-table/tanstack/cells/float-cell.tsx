@@ -1,22 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  formatNumericDisplay,
+  normalizeNumericInput,
+  parseNumericInput,
+} from "src/components/form/numeric-input-utils";
 import { SpreadsheetCellProps, SpreadsheetColumn } from "../types";
 
-// Format number for display using locale-aware formatting
-const formatDisplayValue = (value: number | null): string => {
-  if (value === null || value === undefined) return "";
-  return new Intl.NumberFormat().format(value);
-};
-
-// Normalize input: replace comma with period, filter invalid chars
-const normalizeInput = (input: string): string => {
-  return input.replace(/[^0-9\-.,]/g, "");
-};
-
-// Parse input value: normalize comma to period then parse
-const parseInputValue = (input: string): number | null => {
-  const normalized = input.replace(",", ".");
-  const parsed = parseFloat(normalized);
-  return isNaN(parsed) ? null : parsed;
+type FloatCellProps = SpreadsheetCellProps<number | null> & {
+  nullValue?: number | null;
 };
 
 export function FloatCell({
@@ -25,13 +16,13 @@ export function FloatCell({
   onChange,
   stopEditing,
   focus,
-}: SpreadsheetCellProps<number | null>) {
+  nullValue = null,
+}: FloatCellProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [editValue, setEditValue] = useState("");
 
   useEffect(() => {
     if (isEditing && focus) {
-      // Show raw number for editing (not locale-formatted)
       setEditValue(value?.toString() ?? "");
       inputRef.current?.focus();
       inputRef.current?.select();
@@ -39,28 +30,37 @@ export function FloatCell({
   }, [isEditing, focus, value]);
 
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    // Allow digits, decimal separators, minus sign
-    setEditValue(normalizeInput(e.target.value));
+    setEditValue(
+      normalizeNumericInput(e.target.value, { allowExponentSign: true }),
+    );
   }, []);
 
-  const handleBlur = useCallback(() => {
-    if (isEditing) {
-      onChange(parseInputValue(editValue));
-      stopEditing();
+  const commit = useCallback(() => {
+    const parsed = parseNumericInput(editValue);
+    if (parsed !== null) {
+      onChange(parsed);
+    } else if (editValue.trim() === "") {
+      onChange(nullValue);
     }
-  }, [isEditing, editValue, onChange, stopEditing]);
+  }, [editValue, onChange, nullValue]);
+
+  const handleBlur = useCallback(() => {
+    if (!isEditing) return;
+    commit();
+    stopEditing();
+  }, [isEditing, commit, stopEditing]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       if (e.key === "Enter") {
         e.preventDefault();
-        handleBlur();
+        commit();
       } else if (e.key === "Escape") {
         e.preventDefault();
         stopEditing();
       }
     },
-    [handleBlur, stopEditing],
+    [commit, stopEditing],
   );
 
   if (isEditing && focus) {
@@ -80,7 +80,7 @@ export function FloatCell({
 
   return (
     <div className="w-full h-full flex items-center px-2 text-sm tabular-nums">
-      {formatDisplayValue(value)}
+      {formatNumericDisplay(value)}
     </div>
   );
 }
@@ -90,6 +90,7 @@ export function FloatCell({
  *
  * @example
  * floatColumn("price", { header: "Price", size: 100, deleteValue: 0 })
+ * floatColumn("quantity", { header: "Qty", nullValue: 0 }) // empty input becomes 0
  */
 export function floatColumn(
   accessorKey: string,
@@ -97,19 +98,25 @@ export function floatColumn(
     header: string;
     size?: number;
     deleteValue?: number | null;
+    nullValue?: number | null;
   },
 ): SpreadsheetColumn {
+  const { nullValue } = options;
+
+  const CellComponent =
+    nullValue !== undefined
+      ? (props: SpreadsheetCellProps<number | null>) => (
+          <FloatCell {...props} nullValue={nullValue} />
+        )
+      : FloatCell;
+
   return {
     accessorKey,
     header: options.header,
     size: options.size,
-    cellComponent: FloatCell,
+    cellComponent: CellComponent,
     copyValue: (v) => (v as number | null)?.toString() ?? "",
-    pasteValue: (v) => {
-      const normalized = v.replace(",", ".");
-      const parsed = parseFloat(normalized);
-      return isNaN(parsed) ? null : parsed;
-    },
+    pasteValue: (v) => parseNumericInput(v) ?? nullValue ?? null,
     deleteValue: options.deleteValue ?? null,
   };
 }
