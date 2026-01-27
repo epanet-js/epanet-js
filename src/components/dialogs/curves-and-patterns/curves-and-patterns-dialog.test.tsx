@@ -89,10 +89,11 @@ describe("CurvesAndPatternsDialog", () => {
 
       // Modify the first multiplier
       const firstMultiplier = getMultiplierInput(0);
-      await user.click(firstMultiplier);
+      await user.dblClick(firstMultiplier);
       await user.clear(firstMultiplier);
       await user.type(firstMultiplier, "2.0");
-      await user.keyboard("{Enter}");
+      // Tab away from the input to commit the value
+      await user.tab();
 
       // Wait for save button to be enabled
       await waitFor(() => {
@@ -143,10 +144,11 @@ describe("CurvesAndPatternsDialog", () => {
       // Select the pattern and make changes
       await user.click(screen.getByRole("button", { name: "Pattern1" }));
       const firstMultiplier = getMultiplierInput(0);
-      await user.click(firstMultiplier);
+      await user.dblClick(firstMultiplier);
       await user.clear(firstMultiplier);
       await user.type(firstMultiplier, "2.0");
-      await user.keyboard("{Enter}");
+      // Tab away from the input to commit the value
+      await user.tab();
 
       // Wait for changes to be detected
       await waitFor(() => {
@@ -179,10 +181,11 @@ describe("CurvesAndPatternsDialog", () => {
       // Select the pattern and make changes
       await user.click(screen.getByRole("button", { name: "Pattern1" }));
       const firstMultiplier = getMultiplierInput(0);
-      await user.click(firstMultiplier);
+      await user.dblClick(firstMultiplier);
       await user.clear(firstMultiplier);
       await user.type(firstMultiplier, "2.0");
-      await user.keyboard("{Enter}");
+      // Tab away from the input to commit the value
+      await user.tab();
 
       // Wait for changes to be detected and click cancel
       await waitFor(() => {
@@ -214,10 +217,11 @@ describe("CurvesAndPatternsDialog", () => {
       // Select the pattern and make changes
       await user.click(screen.getByRole("button", { name: "Pattern1" }));
       const firstMultiplier = getMultiplierInput(0);
-      await user.click(firstMultiplier);
+      await user.dblClick(firstMultiplier);
       await user.clear(firstMultiplier);
       await user.type(firstMultiplier, "2.0");
-      await user.keyboard("{Enter}");
+      // Tab away from the input to commit the value
+      await user.tab();
 
       // Wait for changes and click cancel
       await waitFor(() => {
