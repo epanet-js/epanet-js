@@ -18,4 +18,4 @@ export { filterableSelectColumn } from "./cells/filterable-select-cell";
 export { textReadonlyColumn } from "./cells/text-readonly-cell";
 
 // Focus management
-export { hasActiveSpreadsheet } from "./spreadsheet-focus";
+export { setSpreadsheetActive } from "./spreadsheet-focus";

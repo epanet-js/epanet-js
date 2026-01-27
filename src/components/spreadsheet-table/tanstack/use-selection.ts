@@ -166,7 +166,7 @@ export function useSelection({
             };
 
       setState({
-        activeCell: { col: 0, row: rowIndex },
+        activeCell: { col: colCount - 1, row: rowIndex },
         anchor: extend
           ? (state.anchor ?? { col: 0, row: state.activeCell?.row ?? rowIndex })
           : { col: 0, row: rowIndex },

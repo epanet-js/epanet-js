@@ -1,7 +1,6 @@
 import {
   forwardRef,
   useCallback,
-  useEffect,
   useImperativeHandle,
   useLayoutEffect,
   useRef,
@@ -27,7 +26,6 @@ import { useSelection } from "./use-selection";
 import { useKeyboardNavigation } from "./use-keyboard-navigation";
 import { useClipboard } from "./use-clipboard";
 import { ActionsCell } from "./cells/actions-cell";
-import { setSpreadsheetActive } from "./spreadsheet-focus";
 
 const ROW_HEIGHT = 32;
 const GUTTER_WIDTH = 40;
@@ -112,19 +110,6 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
     }),
     [setActiveCell, setSelection, selection],
   );
-
-  // Track focus state for global spreadsheet tracking
-  const handleFocus = useCallback(() => {
-    setSpreadsheetActive(true);
-  }, []);
-
-  const handleBlur = useCallback(() => {
-    setSpreadsheetActive(false);
-  }, []);
-
-  useEffect(() => {
-    return () => setSpreadsheetActive(false);
-  }, []);
 
   // Vertical auto-sizing
   useLayoutEffect(
@@ -230,8 +215,6 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
         onKeyDown={handleKeyDown}
         onCopy={handleCopy}
         onPaste={handlePaste}
-        onFocus={handleFocus}
-        onBlur={handleBlur}
         className="outline-none overflow-auto relative"
         style={{
           height: gridHeight,
