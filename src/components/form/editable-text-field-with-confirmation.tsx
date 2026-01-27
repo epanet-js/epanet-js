@@ -27,6 +27,7 @@ type EditableTextFieldWithConfirmationProps = {
   maxByteLength?: number;
   styleOptions?: Partial<StyleOptions>;
   autoFocus?: boolean;
+  forceValidation?: boolean;
 };
 
 export const EditableTextFieldWithConfirmation = forwardRef<
@@ -44,6 +45,7 @@ export const EditableTextFieldWithConfirmation = forwardRef<
     maxByteLength,
     styleOptions = {},
     autoFocus = false,
+    forceValidation = false,
   },
   ref,
 ) {
@@ -98,7 +100,7 @@ export const EditableTextFieldWithConfirmation = forwardRef<
 
   const handleCommitLastChange = () => {
     const trimmedValue = inputValue.trim();
-    if (trimmedValue !== value || !trimmedValue) {
+    if (trimmedValue !== value || !trimmedValue || forceValidation) {
       const hasValidationError = onChangeValue?.(trimmedValue);
       if (hasValidationError) {
         return;

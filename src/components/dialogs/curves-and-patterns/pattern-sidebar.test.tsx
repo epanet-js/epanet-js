@@ -147,7 +147,7 @@ describe("PatternSidebar", () => {
       await user.type(input, "  NewPattern ");
       await user.keyboard("{Enter}");
 
-      expect(onAddPattern).toHaveBeenCalledWith("NewPattern", [1]);
+      expect(onAddPattern).toHaveBeenCalledWith("NewPattern", [1], "new");
     });
 
     it("hides input after successful pattern creation", async () => {
@@ -309,7 +309,7 @@ describe("PatternSidebar", () => {
       await user.keyboard("{Enter}");
 
       // Should now succeed with the modified name
-      expect(onAddPattern).toHaveBeenCalledWith("existing2", [1]);
+      expect(onAddPattern).toHaveBeenCalledWith("existing2", [1], "new");
     });
   });
 
@@ -495,7 +495,7 @@ describe("PatternSidebar", () => {
   });
 
   describe("duplicating patterns", () => {
-    it("shows empty input when clicking duplicate", async () => {
+    it("shows input with source label when clicking duplicate", async () => {
       const user = setupUser();
       const patterns = createPatterns([
         { id: 1, label: "PATTERN1", multipliers: [1.0, 0.8] },
@@ -517,7 +517,7 @@ describe("PatternSidebar", () => {
 
       const input = screen.getByRole("textbox");
       expect(input).toBeInTheDocument();
-      expect(input).toHaveValue("");
+      expect(input).toHaveValue("PATTERN1");
     });
 
     it("calls onAddPattern with source multipliers on successful duplicate", async () => {
@@ -542,10 +542,15 @@ describe("PatternSidebar", () => {
       await user.click(screen.getByRole("menuitem", { name: /duplicate/i }));
 
       const input = screen.getByRole("textbox");
+      await user.clear(input);
       await user.type(input, "CLONED");
       await user.keyboard("{Enter}");
 
-      expect(onAddPattern).toHaveBeenCalledWith("CLONED", [1.0, 0.8, 1.2]);
+      expect(onAddPattern).toHaveBeenCalledWith(
+        "CLONED",
+        [1.0, 0.8, 1.2],
+        "clone",
+      );
     });
 
     it("does not duplicate with empty name", async () => {
@@ -570,8 +575,41 @@ describe("PatternSidebar", () => {
       await user.click(screen.getByRole("menuitem", { name: /duplicate/i }));
 
       const input = screen.getByRole("textbox");
+      await user.clear(input);
       await user.keyboard("{Enter}");
 
+      expect(onAddPattern).not.toHaveBeenCalled();
+      expect(input).toBeInTheDocument();
+    });
+
+    it("does not duplicate when pressing Enter without changing the pre-filled source label", async () => {
+      const user = setupUser();
+      const onAddPattern = vi.fn();
+      const patterns = createPatterns([
+        { id: 1, label: "PATTERN1", multipliers: [1.0] },
+      ]);
+
+      render(
+        <PatternSidebar
+          patterns={patterns}
+          selectedPatternId={1}
+          onSelectPattern={vi.fn()}
+          onAddPattern={onAddPattern}
+          onChangePattern={vi.fn()}
+          onDeletePattern={vi.fn()}
+        />,
+      );
+
+      await user.click(screen.getByRole("button", { name: /actions/i }));
+      await user.click(screen.getByRole("menuitem", { name: /duplicate/i }));
+
+      const input = screen.getByRole("textbox");
+      expect(input).toHaveValue("PATTERN1");
+
+      // Press Enter without modifying the pre-filled label
+      await user.keyboard("{Enter}");
+
+      // Should reject because PATTERN1 already exists
       expect(onAddPattern).not.toHaveBeenCalled();
       expect(input).toBeInTheDocument();
     });
@@ -602,6 +640,7 @@ describe("PatternSidebar", () => {
       await user.click(screen.getByRole("menuitem", { name: /duplicate/i }));
 
       const input = screen.getByRole("textbox");
+      await user.clear(input);
       await user.type(input, "existing");
       await user.keyboard("{Enter}");
 

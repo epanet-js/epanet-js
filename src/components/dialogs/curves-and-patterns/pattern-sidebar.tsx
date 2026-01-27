@@ -267,10 +267,11 @@ const PatternSidebarItem = ({
       {isCloning && (
         <PatternLabelInput
           label="Clone pattern name"
-          value=""
+          value={pattern.label}
           placeholder={translate("patternName")}
           onCommit={onPatternLabelChange}
           onCancel={onCancel}
+          forceValidation
         />
       )}
     </>
@@ -283,6 +284,7 @@ type PatternLabelInputProps = {
   placeholder?: string;
   onCommit: (name: string) => boolean;
   onCancel: () => void;
+  forceValidation?: boolean;
 };
 
 const PatternLabelInput = ({
@@ -291,6 +293,7 @@ const PatternLabelInput = ({
   placeholder,
   onCommit,
   onCancel,
+  forceValidation,
 }: PatternLabelInputProps) => {
   const [hasError, setHasError] = useState(false);
 
@@ -319,6 +322,7 @@ const PatternLabelInput = ({
         }}
         placeholder={placeholder}
         autoFocus
+        forceValidation={forceValidation}
       />
     </li>
   );
