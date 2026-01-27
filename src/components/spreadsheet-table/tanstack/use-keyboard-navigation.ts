@@ -101,6 +101,11 @@ export function useKeyboardNavigation<TData extends Record<string, unknown>>({
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
+      const atLeftEdge = activeCell?.col === 0;
+      const atRightEdge = activeCell?.col === columns.length - 1;
+      const isTabOut =
+        (e.shiftKey && atLeftEdge) || (!e.shiftKey && atRightEdge);
+
       if (isEditing) {
         if (e.key === "Enter" && !e.shiftKey) {
           e.preventDefault();
@@ -108,6 +113,13 @@ export function useKeyboardNavigation<TData extends Record<string, unknown>>({
           moveActiveCell("down");
           return;
         } else if (e.key === "Tab") {
+          if (isTabOut) {
+            stopEditing();
+            clearSelection();
+            blurGrid();
+            return; // Let browser handle tab
+          }
+
           e.preventDefault();
           stopEditing();
           moveActiveCell(e.shiftKey ? "left" : "right");
@@ -169,10 +181,23 @@ export function useKeyboardNavigation<TData extends Record<string, unknown>>({
           moveByPage("down", visibleRowCount, e.shiftKey);
           break;
 
-        case "Tab":
+        case "Tab": {
+          // No active cell - let browser handle tab
+          if (!activeCell) {
+            return;
+          }
+
+          // Release focus when tabbing out of the grid
+          if (isTabOut) {
+            clearSelection();
+            blurGrid();
+            return; // Let browser handle tab
+          }
+
           e.preventDefault();
           moveActiveCell(e.shiftKey ? "left" : "right");
           break;
+        }
 
         case "Enter":
           e.preventDefault();

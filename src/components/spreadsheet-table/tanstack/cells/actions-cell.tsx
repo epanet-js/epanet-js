@@ -17,6 +17,7 @@ export function ActionsCell({ rowIndex, actions }: ActionsCellProps) {
           size="sm"
           className="w-full h-full justify-center"
           aria-label="Actions"
+          tabIndex={-1}
         >
           <MoreActionsIcon size="md" />
         </Button>

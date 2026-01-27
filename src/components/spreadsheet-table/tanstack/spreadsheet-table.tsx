@@ -268,10 +268,23 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
     [activeCell, gutterColumn, dataColumns],
   );
 
+  const firstEditableCol = dataColumns.findIndex((col) => !col.disabled);
+
+  const focusRow = useCallback(
+    (rowIndex: number) => {
+      if (dataColumns.length === 0) return;
+      const col = firstEditableCol !== -1 ? firstEditableCol : 0;
+      setActiveCell({ col, row: rowIndex });
+      scrollRef.current?.focus();
+    },
+    [dataColumns.length, firstEditableCol, setActiveCell],
+  );
+
   const handleAddRow = useCallback(() => {
     const newRow = createRow();
     onChange([...data, newRow]);
-  }, [createRow, data, onChange]);
+    focusRow(data.length);
+  }, [createRow, data, onChange, focusRow]);
 
   const handleCellMouseDown = useCallback(
     (col: number, row: number, e: React.MouseEvent) => {
@@ -323,6 +336,11 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
     [data, onChange],
   );
 
+  const handleFocus = useCallback(() => {
+    if (activeCell || data.length === 0) return;
+    focusRow(0);
+  }, [activeCell, data.length, focusRow]);
+
   if (data.length === 0 && emptyState) {
     return emptyState as React.ReactElement;
   }
@@ -349,6 +367,7 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
           aria-multiselectable="true"
           tabIndex={isReady ? 0 : -1}
           onKeyDown={handleKeyDown}
+          onFocus={handleFocus}
           onCopy={handleCopy}
           onPaste={handlePaste}
           className="outline-none overflow-auto h-full border border-gray-200"
