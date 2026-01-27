@@ -195,19 +195,15 @@ if (
       this.cb = cb;
     }
     observe() {
-      // eslint-disable-next-line
-      this.cb([{ borderBoxSize: { inlineSize: 0, blockSize: 0 } }]);
+      // Call with contentRect that has a non-zero height for grid virtualization
+      this.cb([{ contentRect: { height: 300, width: 400 } }]);
     }
     unobserve() {}
+    disconnect() {}
   };
 
   window.HTMLElement.prototype.hasPointerCapture = vi.fn();
   window.HTMLElement.prototype.scrollIntoView = vi.fn();
-  const resizeObserverMock = vi.fn(() => ({
-    observe: vi.fn(),
-    unobserve: vi.fn(),
-    disconnect: vi.fn(),
-  }));
   Object.defineProperty(window, "matchMedia", {
     writable: true,
     value: vi.fn().mockImplementation((query) => ({
@@ -221,8 +217,6 @@ if (
       dispatchEvent: vi.fn(),
     })),
   });
-
-  global.ResizeObserver = resizeObserverMock;
 
   window.Blob.prototype.text = function () {
     const reader = new FileReader();

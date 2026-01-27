@@ -401,7 +401,10 @@ describe("SpreadsheetTable", () => {
       const cell = screen.getByText("1");
       await user.dblClick(cell);
 
-      // Type new value then escape
+      // Wait for edit mode and type new value then escape
+      await waitFor(() => {
+        expect(screen.getByRole("textbox")).toBeInTheDocument();
+      });
       const input = screen.getByRole("textbox");
       await user.clear(input);
       await user.type(input, "999");
@@ -418,11 +421,9 @@ describe("SpreadsheetTable", () => {
     it("deletes selected rows when pressing Delete with full row selected", async () => {
       const user = setupUser();
       const onChange = vi.fn();
-      const ref = createRef<SpreadsheetTableRef>();
 
       const { container } = render(
         <SpreadsheetTable
-          ref={ref}
           data={defaultData}
           columns={columns}
           onChange={onChange}
@@ -431,17 +432,11 @@ describe("SpreadsheetTable", () => {
         />,
       );
 
-      // Select full row via setSelection
-      ref.current?.setSelection({
-        min: { col: 0, row: 0 },
-        max: { col: 1, row: 0 },
-      });
+      // Select full row by clicking the gutter
+      const gutterCells = container.querySelectorAll('[role="rowheader"]');
+      await user.click(gutterCells[0]);
 
-      // Focus container and press Delete
-      const scrollContainer = container.querySelector(
-        '[tabindex="0"]',
-      ) as HTMLElement;
-      scrollContainer.focus();
+      // Press Delete
       await user.keyboard("{Delete}");
 
       await waitFor(() => {
@@ -455,11 +450,9 @@ describe("SpreadsheetTable", () => {
     it("does not delete rows when lockRows is true", async () => {
       const user = setupUser();
       const onChange = vi.fn();
-      const ref = createRef<SpreadsheetTableRef>();
 
       const { container } = render(
         <SpreadsheetTable
-          ref={ref}
           data={defaultData}
           columns={columns}
           onChange={onChange}
@@ -469,17 +462,11 @@ describe("SpreadsheetTable", () => {
         />,
       );
 
-      // Select full row
-      ref.current?.setSelection({
-        min: { col: 0, row: 0 },
-        max: { col: 1, row: 0 },
-      });
+      // Select full row by clicking the gutter
+      const gutterCells = container.querySelectorAll('[role="rowheader"]');
+      await user.click(gutterCells[0]);
 
-      // Focus container and press Delete
-      const scrollContainer = container.querySelector(
-        '[tabindex="0"]',
-      ) as HTMLElement;
-      scrollContainer.focus();
+      // Press Delete
       await user.keyboard("{Delete}");
 
       // Should not delete rows, but may clear cell values
