@@ -6,7 +6,7 @@ import { getMapCoord } from "../utils";
 import { useConnectCustomerPointsState } from "./connect-state";
 import { usePipeSnappingForCustomerPoints } from "./pipe-snapping";
 import { connectCustomers } from "src/hydraulic-model/model-operations";
-import { usePersistence } from "src/lib/persistence/context";
+import { usePersistence } from "src/lib/persistence";
 import { useUserTracking } from "src/infra/user-tracking";
 import { captureError } from "src/infra/error-tracking";
 import { useKeyboardState } from "src/keyboard/use-keyboard-state";

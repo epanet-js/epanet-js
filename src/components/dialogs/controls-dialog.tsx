@@ -14,7 +14,7 @@ import {
   IdResolver,
   parseControlsFromText,
 } from "src/hydraulic-model/controls";
-import { usePersistence } from "src/lib/persistence/context";
+import { usePersistence } from "src/lib/persistence";
 import { changeControls } from "src/hydraulic-model/model-operations";
 import { useUserTracking } from "src/infra/user-tracking";
 

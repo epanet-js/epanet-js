@@ -1,7 +1,6 @@
 import { useAtom, useSetAtom } from "jotai";
 import { useCallback } from "react";
-import { usePersistence } from "src/lib/persistence/context";
-import { MemPersistence } from "src/lib/persistence/memory";
+import { usePersistenceWithSnapshots } from "src/lib/persistence";
 import { worktreeAtom } from "src/state/scenarios";
 import { initialSimulationState, simulationAtom } from "src/state/jotai";
 import { modeAtom, Mode } from "src/state/mode";
@@ -29,7 +28,7 @@ const DRAWING_MODES: Mode[] = [
 ];
 
 export const useScenarioOperations = () => {
-  const persistence = usePersistence() as MemPersistence;
+  const persistence = usePersistenceWithSnapshots();
   const [worktree, setWorktree] = useAtom(worktreeAtom);
   const setSimulation = useSetAtom(simulationAtom);
   const setMode = useSetAtom(modeAtom);

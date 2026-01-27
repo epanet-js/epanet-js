@@ -5,13 +5,13 @@ import { Provider as JotaiProvider } from "jotai";
 import { setInitialState } from "src/__helpers__/state";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
-import { MemPersistence } from "src/lib/persistence/memory";
+import { MemPersistenceDeprecated } from "src/lib/persistence/memory-deprecated";
 import { PersistenceContext } from "src/lib/persistence/context";
 import { Store, dataAtom } from "src/state/jotai";
 import { CurvesAndPatternsDialog } from "./curves-and-patterns-dialog";
 
 const renderDialog = (store: Store) => {
-  const persistence = new MemPersistence(store);
+  const persistence = new MemPersistenceDeprecated(store);
   return render(
     <PersistenceContext.Provider value={persistence}>
       <JotaiProvider store={store}>

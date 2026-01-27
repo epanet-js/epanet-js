@@ -10,8 +10,7 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { getSimulationMetadata } from "src/simulation/epanet/simulation-metadata";
 import { worktreeAtom } from "src/state/scenarios";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { usePersistence } from "src/lib/persistence/context";
-import type { MemPersistence } from "src/lib/persistence/memory";
+import { usePersistenceWithSnapshots } from "src/lib/persistence";
 
 export const previousTimestepShortcut = "shift+left";
 export const nextTimestepShortcut = "shift+right";
@@ -25,7 +24,7 @@ export const useChangeTimestep = () => {
   const userTracking = useUserTracking();
   const worktree = useAtomValue(worktreeAtom);
   const isScenariosOn = useFeatureFlag("FLAG_SCENARIOS");
-  const persistence = usePersistence() as MemPersistence;
+  const persistence = usePersistenceWithSnapshots();
 
   const changeTimestep = useCallback(
     async (timestepIndex: number, source: ChangeTimestepSource) => {

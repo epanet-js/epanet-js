@@ -4,7 +4,7 @@ import { Provider as JotaiProvider, createStore } from "jotai";
 import { HydraulicModel, Pipe, Pump, Junction } from "src/hydraulic-model";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { PersistenceContext } from "src/lib/persistence/context";
-import { MemPersistence } from "src/lib/persistence/memory";
+import { MemPersistenceDeprecated } from "src/lib/persistence/memory-deprecated";
 import userEvent from "@testing-library/user-event";
 import { AssetId, getLink, getPipe } from "src/hydraulic-model/assets-map";
 import FeatureEditor from "../feature-editor";
@@ -1448,7 +1448,7 @@ describe("AssetPanel", () => {
   };
 
   const renderComponent = (store: Store) => {
-    const persistence = new MemPersistence(store);
+    const persistence = new MemPersistenceDeprecated(store);
     render(
       <QueryClientProvider client={new QueryClient()}>
         <JotaiProvider store={store}>

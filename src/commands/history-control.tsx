@@ -1,6 +1,6 @@
 import { useSetAtom } from "jotai";
 import { useCallback } from "react";
-import { usePersistence } from "src/lib/persistence/context";
+import { usePersistence } from "src/lib/persistence";
 import { ephemeralStateAtom } from "src/state/jotai";
 import { Mode, modeAtom } from "src/state/mode";
 

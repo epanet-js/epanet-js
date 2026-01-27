@@ -5,7 +5,7 @@ import { captureError } from "src/infra/error-tracking";
 import { FileWithHandle } from "browser-fs-access";
 import { useTranslate } from "src/hooks/use-translate";
 import { ParserIssues, parseInp } from "src/import/inp";
-import { usePersistence } from "src/lib/persistence/context";
+import { usePersistence } from "src/lib/persistence";
 import { FeatureCollection } from "geojson";
 import { getExtent } from "src/lib/geometry";
 import { LngLatBoundsLike } from "mapbox-gl";

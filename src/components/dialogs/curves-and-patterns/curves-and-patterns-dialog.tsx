@@ -14,7 +14,7 @@ import {
 } from "src/hydraulic-model/demands";
 import { PatternsIcon } from "src/icons";
 import { dataAtom } from "src/state/jotai";
-import { usePersistence } from "src/lib/persistence/context";
+import { usePersistence } from "src/lib/persistence";
 import { changeDemandSettings } from "src/hydraulic-model/model-operations/change-demand-settings";
 import { HydraulicModel } from "src/hydraulic-model/hydraulic-model";
 import { Junction } from "src/hydraulic-model/asset-types/junction";

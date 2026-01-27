@@ -1,6 +1,6 @@
 import { MapTestEngine, stubNoSnapping } from "./map-engine-mock";
 import { Store } from "src/state/jotai";
-import { MemPersistence } from "src/lib/persistence/memory";
+import { MemPersistenceDeprecated } from "src/lib/persistence/memory-deprecated";
 import { render, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Provider as JotaiProvider } from "jotai";
@@ -9,7 +9,7 @@ import { MapCanvas } from "src/map/map-canvas";
 
 export const renderMap = async (store: Store): Promise<MapTestEngine> => {
   let mapEngine: MapTestEngine | null = null;
-  const persistence = new MemPersistence(store);
+  const persistence = new MemPersistenceDeprecated(store);
   render(
     <QueryClientProvider client={new QueryClient()}>
       <JotaiProvider store={store}>

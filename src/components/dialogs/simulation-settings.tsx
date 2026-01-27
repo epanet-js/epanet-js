@@ -9,7 +9,7 @@ import { TimeField } from "../form/time-field";
 import { dataAtom } from "src/state/jotai";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { SimpleDialogActions } from "src/components/dialog";
-import { usePersistence } from "src/lib/persistence/context";
+import { usePersistence } from "src/lib/persistence";
 import { Section } from "../form/fields";
 import { useUserTracking } from "src/infra/user-tracking";
 import { SettingsIcon } from "src/icons";

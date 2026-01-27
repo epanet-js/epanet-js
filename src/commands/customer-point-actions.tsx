@@ -2,7 +2,7 @@ import { useAtomValue, useSetAtom } from "jotai";
 import { useCallback } from "react";
 import { selectionAtom, dataAtom, modeAtom, Mode } from "src/state/jotai";
 import { disconnectCustomers } from "src/hydraulic-model/model-operations";
-import { usePersistence } from "src/lib/persistence/context";
+import { usePersistence } from "src/lib/persistence";
 import { useUserTracking } from "src/infra/user-tracking";
 
 export const connectCustomersShortcut = "shift+c";
