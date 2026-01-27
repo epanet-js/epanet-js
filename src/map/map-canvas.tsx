@@ -33,7 +33,7 @@ import { ContextInfo, MapContextMenu } from "src/map/ContextMenu";
 import { useModeHandlers } from "./mode-handlers";
 import { wrappedFeaturesFromMapFeatures } from "src/lib/map-component-utils";
 import "mapbox-gl/dist/mapbox-gl.css";
-import { usePersistence } from "src/lib/persistence";
+import { usePersistence } from "src/lib/persistence/context";
 import { useAtom, useAtomValue } from "jotai";
 import { useHotkeys } from "src/keyboard/hotkeys";
 import { useAtomCallback } from "jotai/utils";

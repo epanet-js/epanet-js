@@ -3,7 +3,7 @@ import { useCallback } from "react";
 import { activateAssets } from "src/hydraulic-model/model-operations/activate-assets";
 import { deactivateAssets } from "src/hydraulic-model/model-operations/deactivate-assets";
 import { useUserTracking } from "src/infra/user-tracking";
-import { usePersistence } from "src/lib/persistence";
+import { usePersistence } from "src/lib/persistence/context";
 import { USelection } from "src/selection";
 import { dataAtom, selectionAtom } from "src/state/jotai";
 

@@ -10,7 +10,7 @@ import {
   DDSubTriggerItem,
 } from "src/components/elements";
 import React, { useMemo } from "react";
-import { usePersistence } from "src/lib/persistence";
+import { usePersistence } from "src/lib/persistence/context";
 import { ArrowRightIcon, ChevronRightIcon } from "src/icons";
 
 function UndoList() {

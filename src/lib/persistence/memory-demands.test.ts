@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createStore } from "jotai";
-import { MemPersistenceDeprecated } from "./memory-deprecated";
+import { MemPersistence } from "./memory";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { setInitialState } from "src/__helpers__/state";
 import { Demands, createEmptyDemands } from "src/hydraulic-model/demands";
@@ -20,14 +20,14 @@ const makeDemands = (
   return demands;
 };
 
-describe("MemPersistenceDeprecated putDemands", () => {
+describe("MemPersistence putDemands", () => {
   it("keeps old demands when moment does not include demands", () => {
     const store = createStore();
     const model = HydraulicModelBuilder.with()
       .aDemandPattern(1, "PAT1", [1, 2])
       .build();
     setInitialState({ store, hydraulicModel: model });
-    const persistence = new MemPersistenceDeprecated(store);
+    const persistence = new MemPersistence(store);
     const transact = persistence.useTransact();
 
     transact({
@@ -44,7 +44,7 @@ describe("MemPersistenceDeprecated putDemands", () => {
     const store = createStore();
     const model = HydraulicModelBuilder.with().build();
     setInitialState({ store, hydraulicModel: model });
-    const persistence = new MemPersistenceDeprecated(store);
+    const persistence = new MemPersistence(store);
     const transact = persistence.useTransact();
 
     const newDemands = makeDemands([
@@ -66,7 +66,7 @@ describe("MemPersistenceDeprecated putDemands", () => {
       .aDemandPattern(1, "OriginalName", [1])
       .build();
     setInitialState({ store, hydraulicModel: model });
-    const persistence = new MemPersistenceDeprecated(store);
+    const persistence = new MemPersistence(store);
     const transact = persistence.useTransact();
 
     const newDemands = makeDemands([{ id: 1, label: "RenamedPattern" }]);
@@ -88,7 +88,7 @@ describe("MemPersistenceDeprecated putDemands", () => {
       .aDemandPattern(2, "RemoveThis", [2])
       .build();
     setInitialState({ store, hydraulicModel: model });
-    const persistence = new MemPersistenceDeprecated(store);
+    const persistence = new MemPersistence(store);
     const transact = persistence.useTransact();
 
     const newDemands = makeDemands([{ id: 1, label: "KeepThis" }]);

@@ -14,7 +14,7 @@ import { localizeDecimal } from "src/infra/i18n/numbers";
 import { useTranslate } from "src/hooks/use-translate";
 import { useUserTracking } from "src/infra/user-tracking";
 import { notify } from "src/components/notifications";
-import { usePersistence } from "src/lib/persistence";
+import { usePersistence } from "src/lib/persistence/context";
 import { Button } from "src/components/elements";
 import { SuccessIcon, WarningIcon } from "src/icons";
 

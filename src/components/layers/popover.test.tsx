@@ -5,7 +5,7 @@ import { Provider as JotaiProvider } from "jotai";
 import { PersistenceContext } from "src/lib/persistence/context";
 import { Dialogs } from "../dialogs";
 import Notifications from "../notifications";
-import { MemPersistenceDeprecated } from "src/lib/persistence/memory-deprecated";
+import { MemPersistence } from "src/lib/persistence/memory";
 import { aLayerConfig, setInitialState } from "src/__helpers__/state";
 import { LayersPopover } from "./popover";
 import { ILayerConfig, LayerConfigMap } from "src/types";
@@ -285,9 +285,7 @@ describe.skip("layers popover", () => {
         <QueryClientProvider client={new QueryClient()}>
           <JotaiProvider store={store}>
             <TooltipProvider>
-              <PersistenceContext.Provider
-                value={new MemPersistenceDeprecated(store)}
-              >
+              <PersistenceContext.Provider value={new MemPersistence(store)}>
                 <Dialogs></Dialogs>
                 <Notifications duration={1} successDuration={1} />
                 {children}
