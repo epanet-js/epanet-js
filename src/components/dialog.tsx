@@ -95,8 +95,11 @@ export const DialogContainer = ({
                 target.tagName === "INPUT" ||
                 target.tagName === "TEXTAREA" ||
                 target.isContentEditable;
+              const shouldCaptureEscape = target.closest(
+                "[data-capture-escape-key]",
+              );
 
-              if (isInputFocused) {
+              if (isInputFocused || shouldCaptureEscape) {
                 e.preventDefault();
                 return;
               }

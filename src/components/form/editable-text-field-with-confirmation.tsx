@@ -61,13 +61,15 @@ export const EditableTextFieldWithConfirmation = forwardRef<
     }
   }, [autoFocus]);
 
-  const handleKeyDown: KeyboardEventHandler<HTMLInputElement> = (e) => {
+  const handleContainerKeyDown: KeyboardEventHandler<HTMLDivElement> = (e) => {
     if (e.key === "Escape") {
       e.stopPropagation();
       e.preventDefault();
       resetInput();
-      return;
     }
+  };
+
+  const handleInputKeyDown: KeyboardEventHandler<HTMLInputElement> = (e) => {
     if (e.key === "Enter") {
       e.preventDefault();
       handleCommitLastChange();
@@ -87,7 +89,7 @@ export const EditableTextFieldWithConfirmation = forwardRef<
   };
 
   const handleBlur = () => {
-    if (isDirty) {
+    if (isDirty || forceValidation) {
       handleCommitLastChange();
     } else {
       resetInput();
@@ -143,10 +145,14 @@ export const EditableTextFieldWithConfirmation = forwardRef<
   const variant = hasError ? "warning" : "default";
 
   return (
-    <div className="flex items-center gap-1">
+    <div
+      className="flex items-center gap-1"
+      onKeyDownCapture={handleContainerKeyDown}
+      data-capture-escape-key
+    >
       <input
         onChange={handleInputChange}
-        onKeyDown={handleKeyDown}
+        onKeyDown={handleInputKeyDown}
         spellCheck="false"
         type="text"
         aria-label={`Value for: ${label}`}
