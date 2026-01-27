@@ -10,13 +10,21 @@ export const useToggleNetworkReview = () => {
   const userTracking = useUserTracking();
 
   const toggleNetworkReview = useCallback(
-    ({ source }: { source: "toolbar" | "shortcut" }) => {
+    ({
+      source,
+      state,
+    }: {
+      source: "toolbar" | "shortcut" | "auto";
+      state?: boolean;
+    }) => {
       setPanelSplits((splits) => {
-        const isShown = !splits.leftOpen;
-        userTracking.capture({
-          name: isShown ? "networkReview.opened" : "networkReview.closed",
-          source,
-        });
+        const isShown = state !== undefined ? state : !splits.leftOpen;
+        if (isShown !== splits.leftOpen) {
+          userTracking.capture({
+            name: isShown ? "networkReview.opened" : "networkReview.closed",
+            source,
+          });
+        }
         return { ...splits, leftOpen: isShown, left: defaultSplits.left };
       });
     },

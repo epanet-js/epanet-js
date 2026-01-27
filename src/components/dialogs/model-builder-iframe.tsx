@@ -6,7 +6,9 @@ import { EarlyAccessBadge } from "../early-access-badge";
 import { useImportInp } from "src/commands/import-inp";
 import { useUnsavedChangesCheck } from "src/commands/check-unsaved-changes";
 import { useUserTracking, UserEvent } from "src/infra/user-tracking";
+import { useToggleNetworkReview } from "src/commands/toggle-network-review";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { modelBuilderUrl } from "src/global-config";
 import { GlobeIcon } from "src/icons";
 
@@ -49,6 +51,8 @@ const handleModelBuildComplete = (
   userTracking: ReturnType<typeof useUserTracking>,
   checkUnsavedChanges: ReturnType<typeof useUnsavedChangesCheck>,
   importInp: ReturnType<typeof useImportInp>,
+  toggleNetworkReview: ReturnType<typeof useToggleNetworkReview>,
+  autoOpenNetworkReview: boolean,
 ) => {
   if (!message.data.inpContent) {
     return;
@@ -68,6 +72,9 @@ const handleModelBuildComplete = (
 
     checkUnsavedChanges(() => {
       void importInp([inpFile]);
+      if (autoOpenNetworkReview) {
+        toggleNetworkReview({ source: "auto", state: true });
+      }
     });
   }, 1000);
 };
@@ -105,6 +112,8 @@ export const ModelBuilderIframeDialog = ({
   const importInp = useImportInp();
   const checkUnsavedChanges = useUnsavedChangesCheck();
   const userTracking = useUserTracking();
+  const toggleNetworkReview = useToggleNetworkReview();
+  const autoOpenNetworkReview = useFeatureFlag("FLAG_AUTO_NETWORK_REVIEW");
   const isMdOrLarger = useBreakpoint("md");
 
   useEffect(() => {
@@ -126,6 +135,8 @@ export const ModelBuilderIframeDialog = ({
             userTracking,
             checkUnsavedChanges,
             importInp,
+            toggleNetworkReview,
+            autoOpenNetworkReview,
           );
         } else if (message.type === "trackUserEvent") {
           handleUserEvent(message as TrackUserEventMessage, userTracking);
@@ -142,7 +153,13 @@ export const ModelBuilderIframeDialog = ({
     return () => {
       window.removeEventListener("message", handleMessage);
     };
-  }, [importInp, checkUnsavedChanges, userTracking]);
+  }, [
+    importInp,
+    checkUnsavedChanges,
+    userTracking,
+    toggleNetworkReview,
+    autoOpenNetworkReview,
+  ]);
   return (
     <DialogContainer size={isMdOrLarger ? "xl" : "fullscreen"}>
       <DialogHeader
