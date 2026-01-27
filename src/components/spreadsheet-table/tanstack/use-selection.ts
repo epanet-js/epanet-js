@@ -18,6 +18,11 @@ export function useSelection({
     isEditing: false,
   });
 
+  const [isDragging, setIsDragging] = useState(false);
+
+  const startDrag = useCallback(() => setIsDragging(true), []);
+  const stopDrag = useCallback(() => setIsDragging(false), []);
+
   // Compute selection from active cell and anchor
   const selection = useMemo((): SpreadsheetSelection | null => {
     if (!state.activeCell) return null;
@@ -436,5 +441,8 @@ export function useSelection({
     selectAll,
     isCellSelected,
     isCellActive,
+    isDragging,
+    startDrag,
+    stopDrag,
   };
 }

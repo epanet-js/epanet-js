@@ -78,6 +78,9 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
     selectAll,
     isCellSelected,
     isCellActive,
+    isDragging,
+    startDrag,
+    stopDrag,
   } = useSelection({
     rowCount: data.length,
     colCount,
@@ -123,6 +126,17 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
       }
     },
     [isEditing],
+  );
+
+  useEffect(
+    function stopDragOnMouseUp() {
+      if (!isDragging) return;
+
+      const handleMouseUp = () => stopDrag();
+      document.addEventListener("mouseup", handleMouseUp);
+      return () => document.removeEventListener("mouseup", handleMouseUp);
+    },
+    [isDragging, stopDrag],
   );
 
   const { handleCopy, handlePaste } = useClipboard({
@@ -181,30 +195,26 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
     overscan: 5,
   });
 
-  // Scroll active cell into view when it changes
   useEffect(
     function scrollActiveCellIntoView() {
       if (!activeCell || !scrollRef.current) return;
 
       const container = scrollRef.current;
 
-      // Row positions in scroll container (header takes first ROW_HEIGHT)
+      // vertical scroll
       const rowTop = (activeCell.row + 1) * ROW_HEIGHT;
       const rowBottom = (activeCell.row + 2) * ROW_HEIGHT;
 
-      // Visible area (sticky header covers top ROW_HEIGHT of viewport)
       const visibleTop = container.scrollTop + ROW_HEIGHT;
       const visibleBottom = container.scrollTop + container.clientHeight;
 
       if (rowTop < visibleTop) {
-        // Scroll up - position row just below header
         container.scrollTop = rowTop - ROW_HEIGHT;
       } else if (rowBottom > visibleBottom) {
-        // Scroll down - position row at bottom of viewport
         container.scrollTop = rowBottom - container.clientHeight;
       }
 
-      // Horizontal scroll
+      // horixontal scroll
       const gutterWidth = gutterColumn ? 40 : 0; // w-10 = 40px
       let colStart = gutterWidth;
       for (let i = 0; i < activeCell.col; i++) {
@@ -229,11 +239,24 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
     onChange([...data, newRow]);
   }, [createRow, data, onChange]);
 
-  const handleCellClick = useCallback(
+  const handleCellMouseDown = useCallback(
     (col: number, row: number, e: React.MouseEvent) => {
+      if (e.button !== 0) return; // Only left click
       setActiveCell({ col, row }, e.shiftKey);
+      if (!e.shiftKey) {
+        startDrag();
+      }
     },
-    [setActiveCell],
+    [setActiveCell, startDrag],
+  );
+
+  const handleCellMouseEnter = useCallback(
+    (col: number, row: number) => {
+      if (isDragging) {
+        setActiveCell({ col, row }, true);
+      }
+    },
+    [isDragging, setActiveCell],
   );
 
   const handleCellDoubleClick = useCallback(
@@ -346,7 +369,12 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
                             }
                           : undefined
                       }
-                      onClick={(e) => handleCellClick(colIndex, rowIndex, e)}
+                      onMouseDown={(e) =>
+                        handleCellMouseDown(colIndex, rowIndex, e)
+                      }
+                      onMouseEnter={() =>
+                        handleCellMouseEnter(colIndex, rowIndex)
+                      }
                       onDoubleClick={() => handleCellDoubleClick(colIndex)}
                       onBlur={stopEditing}
                       onChange={
@@ -467,7 +495,8 @@ function TableDataCell<T>({
   isActive,
   isEditing,
   selectionEdge,
-  onClick,
+  onMouseDown,
+  onMouseEnter,
   onDoubleClick,
   onBlur,
   onChange,
@@ -480,7 +509,8 @@ function TableDataCell<T>({
   isActive: boolean;
   isEditing: boolean;
   selectionEdge?: SelectionEdge;
-  onClick: (e: React.MouseEvent) => void;
+  onMouseDown: (e: React.MouseEvent) => void;
+  onMouseEnter: () => void;
   onDoubleClick: () => void;
   onChange?: (value: unknown) => void;
   onBlur: () => void;
@@ -493,24 +523,21 @@ function TableDataCell<T>({
       aria-colindex={colIndex + 1}
       aria-selected={isSelected}
       className={clsx(
-        "relative h-8 grow",
-        // Base borders (gray grid lines)
+        "relative h-8 grow select-none",
         "border-t border-l border-gray-200",
-        // Background: active cell is white, selected cells are purple tinted
         isActive ? "bg-white" : isSelected ? "bg-purple-300/10" : "bg-white",
-        // Selection border on perimeter edges
         selectionEdge?.top && "border-t-purple-500",
         selectionEdge?.left && "border-l-purple-500",
         selectionEdge?.bottom && "border-b border-b-purple-500",
         selectionEdge?.right && "border-r border-r-purple-500",
-        // Z-index for proper layering
         selectionEdge && "z-[1]",
       )}
       style={{
         width: cell.column.getSize(),
         minWidth: cell.column.getSize(),
       }}
-      onClick={onClick}
+      onMouseDown={onMouseDown}
+      onMouseEnter={onMouseEnter}
       onDoubleClick={onDoubleClick}
     >
       {CellComponent ? (
