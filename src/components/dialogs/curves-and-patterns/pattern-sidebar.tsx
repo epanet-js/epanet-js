@@ -17,6 +17,7 @@ import {
 import { Button, DDContent, StyledItem } from "src/components/elements";
 import { EditableTextFieldWithConfirmation } from "src/components/form/editable-text-field-with-confirmation";
 import { LabelManager } from "src/hydraulic-model/label-manager";
+import { useUserTracking } from "src/infra/user-tracking";
 
 type ActionState =
   | { action: "creating" }
@@ -27,7 +28,11 @@ type PatternSidebarProps = {
   patterns: DemandPatterns;
   selectedPatternId: PatternId | null;
   onSelectPattern: (patternId: PatternId) => void;
-  onAddPattern: (label: string, multipliers: PatternMultipliers) => PatternId;
+  onAddPattern: (
+    label: string,
+    multipliers: PatternMultipliers,
+    source: "new" | "clone",
+  ) => PatternId;
   onChangePattern: (patternId: PatternId, updates: { label: string }) => void;
   onDeletePattern: (patternId: PatternId) => void;
 };
@@ -41,6 +46,7 @@ export const PatternSidebar = ({
   onDeletePattern,
 }: PatternSidebarProps) => {
   const translate = useTranslate();
+  const userTracking = useUserTracking();
   const labelManager = useRef(new LabelManager());
   const listRef = useRef<HTMLUListElement>(null);
   const [actionState, setActionState] = useState<ActionState | undefined>(
@@ -113,17 +119,19 @@ export const PatternSidebar = ({
     if (
       !labelManager.current.isLabelAvailable(trimmedName, "pattern", excludeId)
     ) {
+      userTracking.capture({ name: "pattern.labelDuplicate" });
       return true;
     }
 
     if (actionState.action === "renaming") {
       onChangePattern(actionState.patternId, { label: trimmedName });
     } else {
-      const multipliers =
-        actionState.action === "cloning"
-          ? [...actionState.sourcePattern.multipliers]
-          : [1];
-      const newId = onAddPattern(trimmedName, multipliers);
+      const isCloning = actionState.action === "cloning";
+      const multipliers = isCloning
+        ? [...actionState.sourcePattern.multipliers]
+        : [1];
+      const source = isCloning ? "clone" : "new";
+      const newId = onAddPattern(trimmedName, multipliers, source);
       onSelectPattern(newId);
     }
 

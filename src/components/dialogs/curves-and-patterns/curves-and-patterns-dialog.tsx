@@ -19,6 +19,7 @@ import { changeDemandSettings } from "src/hydraulic-model/model-operations/chang
 import { HydraulicModel } from "src/hydraulic-model/hydraulic-model";
 import { Junction } from "src/hydraulic-model/asset-types/junction";
 import { notify } from "src/components/notifications";
+import { useUserTracking } from "src/infra/user-tracking";
 
 type PatternUpdate = Partial<Pick<DemandPattern, "label" | "multipliers">>;
 
@@ -26,6 +27,7 @@ export const CurvesAndPatternsDialog = () => {
   const translate = useTranslate();
   const { closeDialog } = useDialogState();
   const { hydraulicModel } = useAtomValue(dataAtom);
+  const userTracking = useUserTracking();
   const [selectedPatternId, setSelectedPatternId] = useState<PatternId | null>(
     null,
   );
@@ -61,21 +63,28 @@ export const CurvesAndPatternsDialog = () => {
         next.set(patternId, { ...existing, ...updates });
         return next;
       });
+      const property = "label" in updates ? "label" : "multipliers";
+      userTracking.capture({ name: "pattern.changed", property });
     },
-    [],
+    [userTracking],
   );
 
   const handleAddPattern = useCallback(
-    (label: string, multipliers: PatternMultipliers): PatternId => {
+    (
+      label: string,
+      multipliers: PatternMultipliers,
+      source: "new" | "clone",
+    ): PatternId => {
       const id = nextPatternIdRef.current;
       setEditedPatterns((prev) => {
         const patterns = new Map(prev);
         patterns.set(id, { id, label, multipliers });
         return patterns;
       });
+      userTracking.capture({ name: "pattern.added", source });
       return id;
     },
-    [],
+    [userTracking],
   );
 
   const handleDeletePattern = useCallback(
@@ -96,8 +105,9 @@ export const CurvesAndPatternsDialog = () => {
       if (selectedPatternId === patternId) {
         setSelectedPatternId(null);
       }
+      userTracking.capture({ name: "pattern.deleted" });
     },
-    [hydraulicModel, selectedPatternId, translate],
+    [hydraulicModel, selectedPatternId, translate, userTracking],
   );
 
   const rep = usePersistence();
@@ -118,9 +128,20 @@ export const CurvesAndPatternsDialog = () => {
       patterns: editedPatterns,
     });
     transact(moment);
+    userTracking.capture({
+      name: "patterns.updated",
+      count: editedPatterns.size,
+    });
 
     closeDialog();
-  }, [hasChanges, hydraulicModel, editedPatterns, transact, closeDialog]);
+  }, [
+    hasChanges,
+    hydraulicModel,
+    editedPatterns,
+    transact,
+    closeDialog,
+    userTracking,
+  ]);
 
   const handleCancel = useCallback(() => {
     if (hasChanges) {
@@ -129,6 +150,11 @@ export const CurvesAndPatternsDialog = () => {
     }
     closeDialog();
   }, [hasChanges, closeDialog]);
+
+  const handleDiscard = useCallback(() => {
+    userTracking.capture({ name: "patterns.discarded" });
+    closeDialog();
+  }, [userTracking, closeDialog]);
 
   return (
     <DialogContainer size="lg" height="lg" onClose={handleCancel}>
@@ -167,7 +193,7 @@ export const CurvesAndPatternsDialog = () => {
       <div className="pt-6 flex flex-row-reverse gap-x-3">
         {showDiscardConfirm ? (
           <>
-            <Button type="button" variant="danger" onClick={closeDialog}>
+            <Button type="button" variant="danger" onClick={handleDiscard}>
               {translate("discardChanges")}
             </Button>
             <Button type="button" onClick={() => setShowDiscardConfirm(false)}>

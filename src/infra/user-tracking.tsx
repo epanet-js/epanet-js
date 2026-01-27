@@ -685,6 +685,33 @@ type ScenarioCycled = {
   source: string;
 };
 
+type PatternChanged = {
+  name: "pattern.changed";
+  property: "label" | "multipliers";
+};
+
+type PatternAdded = {
+  name: "pattern.added";
+  source: "new" | "clone";
+};
+
+type PatternDeleted = {
+  name: "pattern.deleted";
+};
+
+type PatternLabelDuplicate = {
+  name: "pattern.labelDuplicate";
+};
+
+type PatternsUpdated = {
+  name: "patterns.updated";
+  count: number;
+};
+
+type PatternsDiscarded = {
+  name: "patterns.discarded";
+};
+
 export type UserEvent =
   | AssetCreated
   | AssetRedrawed
@@ -868,7 +895,13 @@ export type UserEvent =
   | { name: "scenariosPaywall.seen" }
   | { name: "scenariosPaywall.triggered" }
   | { name: "scenariosPaywall.clickedChoosePlan" }
-  | { name: "scenariosPaywall.clickedPersonal" };
+  | { name: "scenariosPaywall.clickedPersonal" }
+  | PatternChanged
+  | PatternAdded
+  | PatternDeleted
+  | PatternLabelDuplicate
+  | PatternsUpdated
+  | PatternsDiscarded;
 
 const debugPostHog = {
   capture: (...data: any[]) => {
