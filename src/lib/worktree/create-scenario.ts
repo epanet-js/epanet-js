@@ -11,6 +11,9 @@ export const createScenario = (
   }
 
   const baseMoment = mainSnapshot.deltas[0];
+  if (!baseMoment) {
+    throw new Error("Cannot create scenario: no model imported yet");
+  }
   const newNumber = worktree.highestScenarioNumber + 1;
   const newMomentLog = new MomentLog();
   newMomentLog.setSnapshot(baseMoment, mainSnapshot.version);

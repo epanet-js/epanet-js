@@ -22,12 +22,6 @@ export interface Worktree {
   highestScenarioNumber: number;
 }
 
-export interface ScenarioContext {
-  currentMomentLog: MomentLog;
-  currentModelVersion: string;
-  currentSimulation: SimulationState;
-}
-
 export interface ScenarioOperationResult {
   worktree: Worktree;
   snapshot: Snapshot | null;

@@ -6,7 +6,6 @@ import { ModelMetadata } from "src/model-metadata";
 import type { SimulationState } from "src/state/jotai";
 import type { MomentLog } from "src/lib/persistence/moment-log";
 import type { Worktree } from "src/lib/worktree/types";
-import type { CapturedSnapshot } from "src/lib/worktree/capture-snapshot";
 
 export type PersistenceMetadataMemory = {
   type: "memory";
@@ -58,7 +57,6 @@ export interface IPersistenceWithSnapshots extends IPersistence {
   getSimulation(): SimulationState;
   getModelVersion(): string;
   applySnapshot(worktree: Worktree, snapshotId: string): void;
-  captureModelSnapshot(): CapturedSnapshot;
   syncSnapshotSimulation(simulation: SimulationState): void;
   deleteSnapshotFromCache(snapshotId: string): void;
 }

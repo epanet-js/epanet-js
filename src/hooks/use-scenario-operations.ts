@@ -5,7 +5,6 @@ import { worktreeAtom } from "src/state/scenarios";
 import { initialSimulationState, simulationAtom } from "src/state/jotai";
 import { modeAtom, Mode } from "src/state/mode";
 import {
-  initializeWorktree,
   createScenario,
   switchToSnapshot as switchToSnapshotFn,
   switchToScenario as switchToScenarioFn,
@@ -14,7 +13,6 @@ import {
   renameScenario,
   getSimulationForState,
 } from "src/lib/worktree";
-import type { ScenarioContext } from "src/lib/worktree";
 
 const DRAWING_MODES: Mode[] = [
   Mode.DRAW_JUNCTION,
@@ -32,15 +30,6 @@ export const useScenarioOperations = () => {
   const [worktree, setWorktree] = useAtom(worktreeAtom);
   const setSimulation = useSetAtom(simulationAtom);
   const setMode = useSetAtom(modeAtom);
-
-  const getContext = useCallback(
-    (): ScenarioContext => ({
-      currentMomentLog: persistence.getMomentLog(),
-      currentModelVersion: persistence.getModelVersion(),
-      currentSimulation: persistence.getSimulation(),
-    }),
-    [persistence],
-  );
 
   const switchToMain = useCallback(() => {
     const result = switchToMainFn(worktree);
@@ -95,12 +84,7 @@ export const useScenarioOperations = () => {
   );
 
   const createNewScenario = useCallback(() => {
-    const initialized =
-      worktree.scenarios.length === 0
-        ? initializeWorktree(persistence.captureModelSnapshot(), getContext())
-        : worktree;
-
-    const created = createScenario(initialized);
+    const created = createScenario(worktree);
     const result = switchToScenarioFn(created.worktree, created.scenario.id);
 
     if (result.snapshot) {
@@ -114,7 +98,7 @@ export const useScenarioOperations = () => {
       scenarioId: created.scenario.id,
       scenarioName: created.scenario.name,
     };
-  }, [persistence, worktree, getContext, setWorktree, setSimulation]);
+  }, [persistence, worktree, setWorktree, setSimulation]);
 
   const deleteScenarioById = useCallback(
     (scenarioId: string) => {

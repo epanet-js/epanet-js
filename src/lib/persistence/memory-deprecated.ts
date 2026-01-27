@@ -11,7 +11,6 @@ import {
 import { generateKeyBetween } from "fractional-indexing";
 import { worktreeAtom } from "src/state/scenarios";
 import type { Snapshot, Worktree } from "src/lib/worktree/types";
-import type { CapturedSnapshot } from "src/lib/worktree/capture-snapshot";
 import {
   type SimulationState,
   Data,
@@ -204,23 +203,6 @@ export class MemPersistenceDeprecated implements IPersistence {
     });
 
     this.store.set(worktreeAtom, { ...worktree, snapshots: updatedSnapshots });
-  }
-
-  captureModelSnapshot(): CapturedSnapshot {
-    const hydraulicModel = this.store.get(stagingModelAtom);
-
-    const moment: Moment = {
-      note: "Scenario base snapshot",
-      putAssets: [...hydraulicModel.assets.values()],
-      deleteAssets: [],
-      putDemands: hydraulicModel.demands,
-      putEPSTiming: hydraulicModel.epsTiming,
-      putControls: hydraulicModel.controls,
-      putCustomerPoints: [...hydraulicModel.customerPoints.values()],
-      putCurves: [...hydraulicModel.curves.values()],
-    };
-
-    return { moment, version: hydraulicModel.version };
   }
 
   private applyMomentAndForceMapSync(

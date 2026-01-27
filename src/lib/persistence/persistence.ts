@@ -11,7 +11,6 @@ import {
 import { generateKeyBetween } from "fractional-indexing";
 import { worktreeAtom } from "src/state/scenarios";
 import type { Snapshot, Worktree } from "src/lib/worktree/types";
-import type { CapturedSnapshot } from "src/lib/worktree/capture-snapshot";
 import {
   type SimulationState,
   Data,
@@ -71,18 +70,23 @@ export class Persistence implements IPersistenceWithSnapshots {
       name: string,
     ) => {
       const momentLog = new MomentLog();
-      const moment = {
+
+      const assets = [...hydraulicModel.assets.values()];
+
+      const snapshotMoment: Moment = {
         note: `Import ${name}`,
-        putAssets: [...hydraulicModel.assets.values()],
-      };
-      trackMoment(moment);
-      const forwardMoment = {
-        ...EMPTY_MOMENT,
-        note: moment.note,
+        putAssets: assets,
         deleteAssets: [],
-        putAssets: moment.putAssets,
+        putDemands: hydraulicModel.demands,
+        putEPSTiming: hydraulicModel.epsTiming,
+        putControls: hydraulicModel.controls,
+        putCustomerPoints: [...hydraulicModel.customerPoints.values()],
+        putCurves: [...hydraulicModel.curves.values()],
       };
-      moment.putAssets.forEach((asset) => {
+
+      trackMoment({ note: snapshotMoment.note!, putAssets: assets });
+
+      assets.forEach((asset) => {
         hydraulicModel.labelManager.register(asset.label, asset.type, asset.id);
         if (asset.isLink) {
           hydraulicModel.assetIndex.addLink(asset.id);
@@ -90,11 +94,11 @@ export class Persistence implements IPersistenceWithSnapshots {
           hydraulicModel.assetIndex.addNode(asset.id);
         }
       });
-      momentLog.setSnapshot(forwardMoment, hydraulicModel.version);
+
+      momentLog.setSnapshot(snapshotMoment, hydraulicModel.version);
       this.store.set(splitsAtom, defaultSplits);
       this.store.set(stagingModelAtom, hydraulicModel);
       this.store.set(baseModelAtom, hydraulicModel);
-      this.modelCache.clear();
       this.store.set(dataAtom, {
         ...nullData,
         folderMap: new Map(),
@@ -110,7 +114,41 @@ export class Persistence implements IPersistenceWithSnapshots {
       this.store.set(ephemeralStateAtom, { type: "none" });
       this.store.set(selectionAtom, { type: "none" });
       this.store.set(pipeDrawingDefaultsAtom, {});
+
+      this.resetWorktree(snapshotMoment, hydraulicModel.version, momentLog);
     };
+  }
+
+  private resetWorktree(
+    moment: Moment,
+    version: string,
+    momentLog: MomentLog,
+  ): void {
+    const mainSnapshot: Snapshot = {
+      id: "main",
+      name: "Main",
+      parentId: null,
+      deltas: [moment],
+      version,
+      momentLog,
+      simulation: initialSimulationState,
+      status: "open",
+    };
+
+    const worktree: Worktree = {
+      activeSnapshotId: "main",
+      lastActiveSnapshotId: "main",
+      snapshots: new Map([["main", mainSnapshot]]),
+      mainId: "main",
+      scenarios: [],
+      highestScenarioNumber: 0,
+    };
+
+    this.store.set(worktreeAtom, worktree);
+
+    this.modelCache.clear();
+    const importedModel = this.store.get(stagingModelAtom);
+    this.modelCache.set("main", importedModel);
   }
 
   useTransact() {
@@ -223,23 +261,6 @@ export class Persistence implements IPersistenceWithSnapshots {
     });
 
     this.store.set(worktreeAtom, { ...worktree, snapshots: updatedSnapshots });
-  }
-
-  captureModelSnapshot(): CapturedSnapshot {
-    const hydraulicModel = this.store.get(stagingModelAtom);
-
-    const moment: Moment = {
-      note: "Scenario base snapshot",
-      putAssets: [...hydraulicModel.assets.values()],
-      deleteAssets: [],
-      putDemands: hydraulicModel.demands,
-      putEPSTiming: hydraulicModel.epsTiming,
-      putControls: hydraulicModel.controls,
-      putCustomerPoints: [...hydraulicModel.customerPoints.values()],
-      putCurves: [...hydraulicModel.curves.values()],
-    };
-
-    return { moment, version: hydraulicModel.version };
   }
 
   private applyMomentAndForceMapSync(

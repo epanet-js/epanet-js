@@ -1,11 +1,4 @@
-export type {
-  Worktree,
-  Snapshot,
-  ScenarioContext,
-  ScenarioOperationResult,
-} from "./types";
-export type { CapturedSnapshot } from "./capture-snapshot";
-export { initializeWorktree } from "./initialize-worktree";
+export type { Worktree, Snapshot, ScenarioOperationResult } from "./types";
 export { createScenario } from "./create-scenario";
 export {
   switchToSnapshot,
@@ -14,5 +7,4 @@ export {
 } from "./switch-scenario";
 export { deleteScenario } from "./delete-scenario";
 export { renameScenario } from "./rename-scenario";
-export { captureModelSnapshot } from "./capture-snapshot";
 export { getSimulationForState } from "./get-simulation";
