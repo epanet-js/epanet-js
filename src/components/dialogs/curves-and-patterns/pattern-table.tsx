@@ -178,7 +178,6 @@ const PatternTableTanstack = forwardRef<SpreadsheetTableRef, PatternTableProps>(
         textReadonlyColumn("timestep", {
           header: translate("timestep"),
           size: 82,
-          className: "text-gray-500 bg-gray-50",
         }),
         floatColumn("multiplier", {
           header: translate("multiplier"),

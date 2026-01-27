@@ -177,6 +177,218 @@ export function useSelection({
     [colCount, onSelectionChange, state.anchor, state.activeCell],
   );
 
+  const selectColumn = useCallback(
+    (colIndex: number) => {
+      const newSelection: SpreadsheetSelection = {
+        min: { col: colIndex, row: 0 },
+        max: { col: colIndex, row: rowCount - 1 },
+      };
+
+      setState({
+        activeCell: { col: colIndex, row: rowCount - 1 },
+        anchor: { col: colIndex, row: 0 },
+        isEditing: false,
+      });
+      onSelectionChange?.(newSelection);
+    },
+    [rowCount, onSelectionChange],
+  );
+
+  const selectAll = useCallback(() => {
+    if (rowCount === 0 || colCount === 0) return;
+
+    const newSelection: SpreadsheetSelection = {
+      min: { col: 0, row: 0 },
+      max: { col: colCount - 1, row: rowCount - 1 },
+    };
+
+    setState({
+      activeCell: { col: colCount - 1, row: rowCount - 1 },
+      anchor: { col: 0, row: 0 },
+      isEditing: false,
+    });
+    onSelectionChange?.(newSelection);
+  }, [rowCount, colCount, onSelectionChange]);
+
+  const moveToRowStart = useCallback(
+    (extend = false) => {
+      setState((prev) => {
+        if (!prev.activeCell) return prev;
+
+        const newCell = { col: 0, row: prev.activeCell.row };
+        const newAnchor = extend ? (prev.anchor ?? prev.activeCell) : null;
+
+        const newSelection: SpreadsheetSelection = newAnchor
+          ? {
+              min: {
+                col: Math.min(newCell.col, newAnchor.col),
+                row: Math.min(newCell.row, newAnchor.row),
+              },
+              max: {
+                col: Math.max(newCell.col, newAnchor.col),
+                row: Math.max(newCell.row, newAnchor.row),
+              },
+            }
+          : { min: newCell, max: newCell };
+
+        onSelectionChange?.(newSelection);
+
+        return {
+          activeCell: newCell,
+          anchor: newAnchor,
+          isEditing: false,
+        };
+      });
+    },
+    [onSelectionChange],
+  );
+
+  const moveToRowEnd = useCallback(
+    (extend = false) => {
+      setState((prev) => {
+        if (!prev.activeCell) return prev;
+
+        const newCell = { col: colCount - 1, row: prev.activeCell.row };
+        const newAnchor = extend ? (prev.anchor ?? prev.activeCell) : null;
+
+        const newSelection: SpreadsheetSelection = newAnchor
+          ? {
+              min: {
+                col: Math.min(newCell.col, newAnchor.col),
+                row: Math.min(newCell.row, newAnchor.row),
+              },
+              max: {
+                col: Math.max(newCell.col, newAnchor.col),
+                row: Math.max(newCell.row, newAnchor.row),
+              },
+            }
+          : { min: newCell, max: newCell };
+
+        onSelectionChange?.(newSelection);
+
+        return {
+          activeCell: newCell,
+          anchor: newAnchor,
+          isEditing: false,
+        };
+      });
+    },
+    [colCount, onSelectionChange],
+  );
+
+  const moveToGridStart = useCallback(
+    (extend = false) => {
+      setState((prev) => {
+        if (!prev.activeCell && !extend) {
+          // If no active cell, just set to first cell
+          const newCell = { col: 0, row: 0 };
+          onSelectionChange?.({ min: newCell, max: newCell });
+          return { activeCell: newCell, anchor: null, isEditing: false };
+        }
+
+        const newCell = { col: 0, row: 0 };
+        const newAnchor = extend ? (prev.anchor ?? prev.activeCell) : null;
+
+        const newSelection: SpreadsheetSelection = newAnchor
+          ? {
+              min: {
+                col: Math.min(newCell.col, newAnchor.col),
+                row: Math.min(newCell.row, newAnchor.row),
+              },
+              max: {
+                col: Math.max(newCell.col, newAnchor.col),
+                row: Math.max(newCell.row, newAnchor.row),
+              },
+            }
+          : { min: newCell, max: newCell };
+
+        onSelectionChange?.(newSelection);
+
+        return {
+          activeCell: newCell,
+          anchor: newAnchor,
+          isEditing: false,
+        };
+      });
+    },
+    [onSelectionChange],
+  );
+
+  const moveToGridEnd = useCallback(
+    (extend = false) => {
+      setState((prev) => {
+        if (!prev.activeCell && !extend) {
+          const newCell = { col: colCount - 1, row: rowCount - 1 };
+          onSelectionChange?.({ min: newCell, max: newCell });
+          return { activeCell: newCell, anchor: null, isEditing: false };
+        }
+
+        const newCell = { col: colCount - 1, row: rowCount - 1 };
+        const newAnchor = extend ? (prev.anchor ?? prev.activeCell) : null;
+
+        const newSelection: SpreadsheetSelection = newAnchor
+          ? {
+              min: {
+                col: Math.min(newCell.col, newAnchor.col),
+                row: Math.min(newCell.row, newAnchor.row),
+              },
+              max: {
+                col: Math.max(newCell.col, newAnchor.col),
+                row: Math.max(newCell.row, newAnchor.row),
+              },
+            }
+          : { min: newCell, max: newCell };
+
+        onSelectionChange?.(newSelection);
+
+        return {
+          activeCell: newCell,
+          anchor: newAnchor,
+          isEditing: false,
+        };
+      });
+    },
+    [rowCount, colCount, onSelectionChange],
+  );
+
+  const moveByPage = useCallback(
+    (direction: "up" | "down", pageSize: number, extend = false) => {
+      setState((prev) => {
+        if (!prev.activeCell) return prev;
+
+        const delta = direction === "up" ? -pageSize : pageSize;
+        const newRow = Math.max(
+          0,
+          Math.min(rowCount - 1, prev.activeCell.row + delta),
+        );
+        const newCell = { col: prev.activeCell.col, row: newRow };
+        const newAnchor = extend ? (prev.anchor ?? prev.activeCell) : null;
+
+        const newSelection: SpreadsheetSelection = newAnchor
+          ? {
+              min: {
+                col: Math.min(newCell.col, newAnchor.col),
+                row: Math.min(newCell.row, newAnchor.row),
+              },
+              max: {
+                col: Math.max(newCell.col, newAnchor.col),
+                row: Math.max(newCell.row, newAnchor.row),
+              },
+            }
+          : { min: newCell, max: newCell };
+
+        onSelectionChange?.(newSelection);
+
+        return {
+          activeCell: newCell,
+          anchor: newAnchor,
+          isEditing: false,
+        };
+      });
+    },
+    [rowCount, onSelectionChange],
+  );
+
   const isFullRowSelected = useMemo(() => {
     if (!selection) return false;
     return selection.min.col === 0 && selection.max.col === colCount - 1;
@@ -214,7 +426,14 @@ export function useSelection({
     startEditing,
     stopEditing,
     moveActiveCell,
+    moveToRowStart,
+    moveToRowEnd,
+    moveToGridStart,
+    moveToGridEnd,
+    moveByPage,
     selectRow,
+    selectColumn,
+    selectAll,
     isCellSelected,
     isCellActive,
   };

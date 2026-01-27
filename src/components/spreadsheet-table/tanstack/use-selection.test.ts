@@ -1,7 +1,8 @@
 /**
  * @vitest-environment jsdom
  */
-import { renderHook, act } from "@testing-library/react";
+import { act } from "react";
+import { renderHook } from "@testing-library/react";
 import { useSelection } from "./use-selection";
 
 describe("useSelection", () => {
@@ -463,6 +464,463 @@ describe("useSelection", () => {
       const { result } = renderHook(() => useSelection(defaultOptions));
 
       expect(result.current.isCellActive(0, 0)).toBe(false);
+    });
+  });
+
+  describe("selectColumn", () => {
+    it("selects entire column", () => {
+      const { result } = renderHook(() => useSelection(defaultOptions));
+
+      act(() => {
+        result.current.selectColumn(1);
+      });
+
+      expect(result.current.selection).toEqual({
+        min: { col: 1, row: 0 },
+        max: { col: 1, row: 4 }, // rowCount - 1
+      });
+    });
+
+    it("sets active cell to bottom of column", () => {
+      const { result } = renderHook(() => useSelection(defaultOptions));
+
+      act(() => {
+        result.current.selectColumn(1);
+      });
+
+      expect(result.current.activeCell).toEqual({ col: 1, row: 4 });
+    });
+
+    it("calls onSelectionChange callback", () => {
+      const onSelectionChange = vi.fn();
+      const { result } = renderHook(() =>
+        useSelection({ ...defaultOptions, onSelectionChange }),
+      );
+
+      act(() => {
+        result.current.selectColumn(2);
+      });
+
+      expect(onSelectionChange).toHaveBeenCalledWith({
+        min: { col: 2, row: 0 },
+        max: { col: 2, row: 4 },
+      });
+    });
+  });
+
+  describe("selectAll", () => {
+    it("selects all cells", () => {
+      const { result } = renderHook(() => useSelection(defaultOptions));
+
+      act(() => {
+        result.current.selectAll();
+      });
+
+      expect(result.current.selection).toEqual({
+        min: { col: 0, row: 0 },
+        max: { col: 2, row: 4 }, // colCount - 1, rowCount - 1
+      });
+    });
+
+    it("sets active cell to bottom-right corner", () => {
+      const { result } = renderHook(() => useSelection(defaultOptions));
+
+      act(() => {
+        result.current.selectAll();
+      });
+
+      expect(result.current.activeCell).toEqual({ col: 2, row: 4 });
+    });
+
+    it("does nothing when rowCount is 0", () => {
+      const { result } = renderHook(() =>
+        useSelection({ rowCount: 0, colCount: 3 }),
+      );
+
+      act(() => {
+        result.current.selectAll();
+      });
+
+      expect(result.current.selection).toBeNull();
+    });
+
+    it("does nothing when colCount is 0", () => {
+      const { result } = renderHook(() =>
+        useSelection({ rowCount: 5, colCount: 0 }),
+      );
+
+      act(() => {
+        result.current.selectAll();
+      });
+
+      expect(result.current.selection).toBeNull();
+    });
+
+    it("calls onSelectionChange callback", () => {
+      const onSelectionChange = vi.fn();
+      const { result } = renderHook(() =>
+        useSelection({ ...defaultOptions, onSelectionChange }),
+      );
+
+      act(() => {
+        result.current.selectAll();
+      });
+
+      expect(onSelectionChange).toHaveBeenCalledWith({
+        min: { col: 0, row: 0 },
+        max: { col: 2, row: 4 },
+      });
+    });
+  });
+
+  describe("moveToRowStart", () => {
+    it("moves to first column of current row", () => {
+      const { result } = renderHook(() => useSelection(defaultOptions));
+
+      act(() => {
+        result.current.setActiveCell({ col: 2, row: 3 });
+      });
+
+      act(() => {
+        result.current.moveToRowStart();
+      });
+
+      expect(result.current.activeCell).toEqual({ col: 0, row: 3 });
+    });
+
+    it("creates single-cell selection at new position", () => {
+      const { result } = renderHook(() => useSelection(defaultOptions));
+
+      act(() => {
+        result.current.setActiveCell({ col: 2, row: 3 });
+      });
+
+      act(() => {
+        result.current.moveToRowStart();
+      });
+
+      expect(result.current.selection).toEqual({
+        min: { col: 0, row: 3 },
+        max: { col: 0, row: 3 },
+      });
+    });
+
+    it("extends selection when extend is true", () => {
+      const { result } = renderHook(() => useSelection(defaultOptions));
+
+      act(() => {
+        result.current.setActiveCell({ col: 2, row: 1 });
+      });
+
+      act(() => {
+        result.current.moveToRowStart(true);
+      });
+
+      expect(result.current.selection).toEqual({
+        min: { col: 0, row: 1 },
+        max: { col: 2, row: 1 },
+      });
+    });
+
+    it("does nothing if no active cell", () => {
+      const { result } = renderHook(() => useSelection(defaultOptions));
+
+      act(() => {
+        result.current.moveToRowStart();
+      });
+
+      expect(result.current.activeCell).toBeNull();
+    });
+  });
+
+  describe("moveToRowEnd", () => {
+    it("moves to last column of current row", () => {
+      const { result } = renderHook(() => useSelection(defaultOptions));
+
+      act(() => {
+        result.current.setActiveCell({ col: 0, row: 2 });
+      });
+
+      act(() => {
+        result.current.moveToRowEnd();
+      });
+
+      expect(result.current.activeCell).toEqual({ col: 2, row: 2 });
+    });
+
+    it("creates single-cell selection at new position", () => {
+      const { result } = renderHook(() => useSelection(defaultOptions));
+
+      act(() => {
+        result.current.setActiveCell({ col: 0, row: 2 });
+      });
+
+      act(() => {
+        result.current.moveToRowEnd();
+      });
+
+      expect(result.current.selection).toEqual({
+        min: { col: 2, row: 2 },
+        max: { col: 2, row: 2 },
+      });
+    });
+
+    it("extends selection when extend is true", () => {
+      const { result } = renderHook(() => useSelection(defaultOptions));
+
+      act(() => {
+        result.current.setActiveCell({ col: 0, row: 1 });
+      });
+
+      act(() => {
+        result.current.moveToRowEnd(true);
+      });
+
+      expect(result.current.selection).toEqual({
+        min: { col: 0, row: 1 },
+        max: { col: 2, row: 1 },
+      });
+    });
+
+    it("does nothing if no active cell", () => {
+      const { result } = renderHook(() => useSelection(defaultOptions));
+
+      act(() => {
+        result.current.moveToRowEnd();
+      });
+
+      expect(result.current.activeCell).toBeNull();
+    });
+  });
+
+  describe("moveToGridStart", () => {
+    it("moves to first cell (0, 0)", () => {
+      const { result } = renderHook(() => useSelection(defaultOptions));
+
+      act(() => {
+        result.current.setActiveCell({ col: 2, row: 3 });
+      });
+
+      act(() => {
+        result.current.moveToGridStart();
+      });
+
+      expect(result.current.activeCell).toEqual({ col: 0, row: 0 });
+    });
+
+    it("creates single-cell selection at (0, 0)", () => {
+      const { result } = renderHook(() => useSelection(defaultOptions));
+
+      act(() => {
+        result.current.setActiveCell({ col: 2, row: 3 });
+      });
+
+      act(() => {
+        result.current.moveToGridStart();
+      });
+
+      expect(result.current.selection).toEqual({
+        min: { col: 0, row: 0 },
+        max: { col: 0, row: 0 },
+      });
+    });
+
+    it("extends selection from anchor to (0, 0) when extend is true", () => {
+      const { result } = renderHook(() => useSelection(defaultOptions));
+
+      act(() => {
+        result.current.setActiveCell({ col: 2, row: 3 });
+      });
+
+      act(() => {
+        result.current.moveToGridStart(true);
+      });
+
+      expect(result.current.selection).toEqual({
+        min: { col: 0, row: 0 },
+        max: { col: 2, row: 3 },
+      });
+    });
+
+    it("sets cell to (0, 0) even if no active cell", () => {
+      const { result } = renderHook(() => useSelection(defaultOptions));
+
+      act(() => {
+        result.current.moveToGridStart();
+      });
+
+      expect(result.current.activeCell).toEqual({ col: 0, row: 0 });
+    });
+  });
+
+  describe("moveToGridEnd", () => {
+    it("moves to last cell", () => {
+      const { result } = renderHook(() => useSelection(defaultOptions));
+
+      act(() => {
+        result.current.setActiveCell({ col: 0, row: 0 });
+      });
+
+      act(() => {
+        result.current.moveToGridEnd();
+      });
+
+      expect(result.current.activeCell).toEqual({ col: 2, row: 4 });
+    });
+
+    it("creates single-cell selection at last cell", () => {
+      const { result } = renderHook(() => useSelection(defaultOptions));
+
+      act(() => {
+        result.current.setActiveCell({ col: 0, row: 0 });
+      });
+
+      act(() => {
+        result.current.moveToGridEnd();
+      });
+
+      expect(result.current.selection).toEqual({
+        min: { col: 2, row: 4 },
+        max: { col: 2, row: 4 },
+      });
+    });
+
+    it("extends selection from anchor to last cell when extend is true", () => {
+      const { result } = renderHook(() => useSelection(defaultOptions));
+
+      act(() => {
+        result.current.setActiveCell({ col: 0, row: 0 });
+      });
+
+      act(() => {
+        result.current.moveToGridEnd(true);
+      });
+
+      expect(result.current.selection).toEqual({
+        min: { col: 0, row: 0 },
+        max: { col: 2, row: 4 },
+      });
+    });
+
+    it("sets cell to last cell even if no active cell", () => {
+      const { result } = renderHook(() => useSelection(defaultOptions));
+
+      act(() => {
+        result.current.moveToGridEnd();
+      });
+
+      expect(result.current.activeCell).toEqual({ col: 2, row: 4 });
+    });
+  });
+
+  describe("moveByPage", () => {
+    it("moves down by page size", () => {
+      const { result } = renderHook(() =>
+        useSelection({ rowCount: 100, colCount: 3 }),
+      );
+
+      act(() => {
+        result.current.setActiveCell({ col: 1, row: 0 });
+      });
+
+      act(() => {
+        result.current.moveByPage("down", 10);
+      });
+
+      expect(result.current.activeCell).toEqual({ col: 1, row: 10 });
+    });
+
+    it("moves up by page size", () => {
+      const { result } = renderHook(() =>
+        useSelection({ rowCount: 100, colCount: 3 }),
+      );
+
+      act(() => {
+        result.current.setActiveCell({ col: 1, row: 50 });
+      });
+
+      act(() => {
+        result.current.moveByPage("up", 10);
+      });
+
+      expect(result.current.activeCell).toEqual({ col: 1, row: 40 });
+    });
+
+    it("does not go below row 0", () => {
+      const { result } = renderHook(() => useSelection(defaultOptions));
+
+      act(() => {
+        result.current.setActiveCell({ col: 1, row: 2 });
+      });
+
+      act(() => {
+        result.current.moveByPage("up", 10);
+      });
+
+      expect(result.current.activeCell).toEqual({ col: 1, row: 0 });
+    });
+
+    it("does not go past last row", () => {
+      const { result } = renderHook(() => useSelection(defaultOptions));
+
+      act(() => {
+        result.current.setActiveCell({ col: 1, row: 2 });
+      });
+
+      act(() => {
+        result.current.moveByPage("down", 10);
+      });
+
+      expect(result.current.activeCell).toEqual({ col: 1, row: 4 }); // rowCount - 1
+    });
+
+    it("extends selection when extend is true", () => {
+      const { result } = renderHook(() =>
+        useSelection({ rowCount: 100, colCount: 3 }),
+      );
+
+      act(() => {
+        result.current.setActiveCell({ col: 1, row: 10 });
+      });
+
+      act(() => {
+        result.current.moveByPage("down", 5, true);
+      });
+
+      expect(result.current.selection).toEqual({
+        min: { col: 1, row: 10 },
+        max: { col: 1, row: 15 },
+      });
+    });
+
+    it("does nothing if no active cell", () => {
+      const { result } = renderHook(() => useSelection(defaultOptions));
+
+      act(() => {
+        result.current.moveByPage("down", 10);
+      });
+
+      expect(result.current.activeCell).toBeNull();
+    });
+
+    it("calls onSelectionChange callback", () => {
+      const onSelectionChange = vi.fn();
+      const { result } = renderHook(() =>
+        useSelection({ rowCount: 100, colCount: 3, onSelectionChange }),
+      );
+
+      act(() => {
+        result.current.setActiveCell({ col: 1, row: 0 });
+      });
+
+      act(() => {
+        result.current.moveByPage("down", 10);
+      });
+
+      expect(onSelectionChange).toHaveBeenLastCalledWith({
+        min: { col: 1, row: 10 },
+        max: { col: 1, row: 10 },
+      });
     });
   });
 });

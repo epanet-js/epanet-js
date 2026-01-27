@@ -172,7 +172,7 @@ describe("FloatCell", () => {
       await user.keyboard("{Enter}");
 
       expect(onChange).toHaveBeenCalledWith(2.5);
-      expect(stopEditing).toHaveBeenCalled();
+      expect(stopEditing).not.toHaveBeenCalled();
     });
 
     it("commits value on blur", async () => {

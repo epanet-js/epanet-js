@@ -14,9 +14,24 @@ type UseKeyboardNavigationOptions<TData extends Record<string, unknown>> = {
     direction: "up" | "down" | "left" | "right",
     extend?: boolean,
   ) => void;
-  setActiveCell: (cell: CellPosition, extend?: boolean) => void;
+  moveToRowStart: (extend?: boolean) => void;
+  moveToRowEnd: (extend?: boolean) => void;
+  moveToGridStart: (extend?: boolean) => void;
+  moveToGridEnd: (extend?: boolean) => void;
+  moveByPage: (
+    direction: "up" | "down",
+    pageSize: number,
+    extend?: boolean,
+  ) => void;
+  setSelection: (selection: SpreadsheetSelection | null) => void;
+  selectRow: (rowIndex: number, extend?: boolean) => void;
+  selectColumn: (colIndex: number) => void;
+  selectAll: () => void;
   startEditing: () => void;
   stopEditing: () => void;
+  clearSelection: () => void;
+  blurGrid: () => void;
+  visibleRowCount: number;
 };
 
 export function useKeyboardNavigation<TData extends Record<string, unknown>>({
@@ -29,8 +44,20 @@ export function useKeyboardNavigation<TData extends Record<string, unknown>>({
   onChange,
   lockRows,
   moveActiveCell,
+  moveToRowStart,
+  moveToRowEnd,
+  moveToGridStart,
+  moveToGridEnd,
+  moveByPage,
+  setSelection,
+  selectRow,
+  selectColumn,
+  selectAll,
   startEditing,
   stopEditing,
+  clearSelection,
+  blurGrid,
+  visibleRowCount,
 }: UseKeyboardNavigationOptions<TData>) {
   const handleDelete = useCallback(() => {
     if (!selection) return;
@@ -74,24 +101,25 @@ export function useKeyboardNavigation<TData extends Record<string, unknown>>({
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
-      // If we're editing, let the cell handle most keys
       if (isEditing) {
-        if (e.key === "Escape") {
-          e.preventDefault();
-          stopEditing();
-        } else if (e.key === "Enter" && !e.shiftKey) {
+        if (e.key === "Enter" && !e.shiftKey) {
           e.preventDefault();
           stopEditing();
           moveActiveCell("down");
+          return;
         } else if (e.key === "Tab") {
           e.preventDefault();
           stopEditing();
           moveActiveCell(e.shiftKey ? "left" : "right");
+          return;
+        } else if (e.key !== "Escape") {
+          return;
         }
-        return;
       }
 
-      // Navigation keys
+      const isMod = e.ctrlKey || e.metaKey;
+
+      // https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Reference/Roles/grid_role#keyboard_interactions
       switch (e.key) {
         case "ArrowUp":
           e.preventDefault();
@@ -113,6 +141,34 @@ export function useKeyboardNavigation<TData extends Record<string, unknown>>({
           moveActiveCell("right", e.shiftKey);
           break;
 
+        case "Home":
+          e.preventDefault();
+          if (isMod) {
+            moveToGridStart(e.shiftKey);
+          } else {
+            moveToRowStart(e.shiftKey);
+          }
+          break;
+
+        case "End":
+          e.preventDefault();
+          if (isMod) {
+            moveToGridEnd(e.shiftKey);
+          } else {
+            moveToRowEnd(e.shiftKey);
+          }
+          break;
+
+        case "PageUp":
+          e.preventDefault();
+          moveByPage("up", visibleRowCount, e.shiftKey);
+          break;
+
+        case "PageDown":
+          e.preventDefault();
+          moveByPage("down", visibleRowCount, e.shiftKey);
+          break;
+
         case "Tab":
           e.preventDefault();
           moveActiveCell(e.shiftKey ? "left" : "right");
@@ -129,8 +185,22 @@ export function useKeyboardNavigation<TData extends Record<string, unknown>>({
           break;
 
         case "Escape":
-          e.preventDefault();
-          stopEditing();
+          if (isEditing) {
+            e.preventDefault();
+            stopEditing();
+          } else if (selection) {
+            e.preventDefault();
+            const isMultiCell =
+              selection.min.col !== selection.max.col ||
+              selection.min.row !== selection.max.row;
+
+            if (isMultiCell && activeCell) {
+              setSelection({ min: activeCell, max: activeCell });
+            } else {
+              clearSelection();
+              blurGrid();
+            }
+          }
           break;
 
         case "Delete":
@@ -139,8 +209,25 @@ export function useKeyboardNavigation<TData extends Record<string, unknown>>({
           handleDelete();
           break;
 
+        case " ": // Space
+          if (e.shiftKey && activeCell) {
+            e.preventDefault();
+            selectRow(activeCell.row);
+          } else if (isMod && activeCell) {
+            e.preventDefault();
+            selectColumn(activeCell.col);
+          }
+          break;
+
+        case "a":
+        case "A":
+          if (isMod) {
+            e.preventDefault();
+            selectAll();
+          }
+          break;
+
         default:
-          // Start editing on alphanumeric key press
           if (
             activeCell &&
             e.key.length === 1 &&
@@ -151,7 +238,6 @@ export function useKeyboardNavigation<TData extends Record<string, unknown>>({
             const column = columns[activeCell.col];
             if (!column?.disabled && !column?.disableKeys) {
               startEditing();
-              // Note: The actual character will be handled by the cell input
             }
           }
           break;
@@ -160,10 +246,23 @@ export function useKeyboardNavigation<TData extends Record<string, unknown>>({
     [
       isEditing,
       activeCell,
+      selection,
       columns,
       moveActiveCell,
+      moveToRowStart,
+      moveToRowEnd,
+      moveToGridStart,
+      moveToGridEnd,
+      moveByPage,
+      visibleRowCount,
+      setSelection,
+      selectRow,
+      selectColumn,
+      selectAll,
       startEditing,
       stopEditing,
+      clearSelection,
+      blurGrid,
       handleDelete,
     ],
   );

@@ -64,10 +64,18 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
     isFullRowSelected,
     setActiveCell,
     setSelection,
+    clearSelection,
     startEditing,
     stopEditing,
     moveActiveCell,
+    moveToRowStart,
+    moveToRowEnd,
+    moveToGridStart,
+    moveToGridEnd,
+    moveByPage,
     selectRow,
+    selectColumn,
+    selectAll,
     isCellSelected,
     isCellActive,
   } = useSelection({
@@ -75,6 +83,12 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
     colCount,
     onSelectionChange,
   });
+
+  const visibleRowCount = gridHeight ? Math.floor(gridHeight / ROW_HEIGHT) : 10;
+
+  const blurGrid = useCallback(() => {
+    scrollRef.current?.blur();
+  }, []);
 
   const { handleKeyDown } = useKeyboardNavigation({
     activeCell,
@@ -86,9 +100,20 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
     onChange,
     lockRows,
     moveActiveCell,
-    setActiveCell,
+    moveToRowStart,
+    moveToRowEnd,
+    moveToGridStart,
+    moveToGridEnd,
+    moveByPage,
+    setSelection,
+    selectRow,
+    selectColumn,
+    selectAll,
     startEditing,
     stopEditing,
+    clearSelection,
+    blurGrid,
+    visibleRowCount,
   });
 
   useEffect(
@@ -156,6 +181,49 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
     overscan: 5,
   });
 
+  // Scroll active cell into view when it changes
+  useEffect(
+    function scrollActiveCellIntoView() {
+      if (!activeCell || !scrollRef.current) return;
+
+      const container = scrollRef.current;
+
+      // Row positions in scroll container (header takes first ROW_HEIGHT)
+      const rowTop = (activeCell.row + 1) * ROW_HEIGHT;
+      const rowBottom = (activeCell.row + 2) * ROW_HEIGHT;
+
+      // Visible area (sticky header covers top ROW_HEIGHT of viewport)
+      const visibleTop = container.scrollTop + ROW_HEIGHT;
+      const visibleBottom = container.scrollTop + container.clientHeight;
+
+      if (rowTop < visibleTop) {
+        // Scroll up - position row just below header
+        container.scrollTop = rowTop - ROW_HEIGHT;
+      } else if (rowBottom > visibleBottom) {
+        // Scroll down - position row at bottom of viewport
+        container.scrollTop = rowBottom - container.clientHeight;
+      }
+
+      // Horizontal scroll
+      const gutterWidth = gutterColumn ? 40 : 0; // w-10 = 40px
+      let colStart = gutterWidth;
+      for (let i = 0; i < activeCell.col; i++) {
+        colStart += dataColumns[i]?.size ?? 100;
+      }
+      const colEnd = colStart + (dataColumns[activeCell.col]?.size ?? 100);
+
+      const scrollLeft = container.scrollLeft;
+      const viewportWidth = container.clientWidth;
+
+      if (colStart < scrollLeft + gutterWidth) {
+        container.scrollLeft = colStart - gutterWidth;
+      } else if (colEnd > scrollLeft + viewportWidth) {
+        container.scrollLeft = colEnd - viewportWidth;
+      }
+    },
+    [activeCell, gutterColumn, dataColumns],
+  );
+
   const handleAddRow = useCallback(() => {
     const newRow = createRow();
     onChange([...data, newRow]);
@@ -212,17 +280,21 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
         role="grid"
         aria-rowcount={data.length}
         aria-colcount={colCount}
+        aria-multiselectable="true"
         tabIndex={0}
         onKeyDown={handleKeyDown}
         onCopy={handleCopy}
         onPaste={handlePaste}
         className="outline-none overflow-auto relative border border-gray-200"
         style={{ height: gridHeight }}
+        data-capture-escape-key
       >
         <TableHeader
           table={table}
           showGutterColumn={gutterColumn}
           showActionsColumn={!!rowActions}
+          onSelectColumn={selectColumn}
+          onSelectAll={selectAll}
         />
 
         <div
@@ -253,6 +325,7 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
                 {row.getVisibleCells().map((cell, colIndex) => {
                   const column = dataColumns[colIndex];
                   const accessorKey = column.accessorKey;
+                  const cellSelected = isCellSelected(colIndex, rowIndex);
 
                   return (
                     <TableDataCell
@@ -260,9 +333,19 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
                       cell={cell}
                       colIndex={colIndex}
                       rowIndex={rowIndex}
-                      isSelected={isCellSelected(colIndex, rowIndex)}
+                      isSelected={cellSelected}
                       isActive={isCellActive(colIndex, rowIndex)}
                       isEditing={isEditing}
+                      selectionEdge={
+                        cellSelected && selection
+                          ? {
+                              top: rowIndex === selection.min.row,
+                              bottom: rowIndex === selection.max.row,
+                              left: colIndex === selection.min.col,
+                              right: colIndex === selection.max.col,
+                            }
+                          : undefined
+                      }
                       onClick={(e) => handleCellClick(colIndex, rowIndex, e)}
                       onDoubleClick={() => handleCellDoubleClick(colIndex)}
                       onBlur={stopEditing}
@@ -307,29 +390,35 @@ function TableHeader<T>({
   showGutterColumn,
   showActionsColumn,
   table,
+  onSelectColumn,
+  onSelectAll,
 }: {
   showGutterColumn: boolean;
   showActionsColumn: boolean;
   table: Table<T>;
+  onSelectColumn: (colIndex: number) => void;
+  onSelectAll: () => void;
 }) {
   return (
     <div role="row" className="flex sticky top-0 z-10 bg-gray-100">
       {showGutterColumn && (
         <div
           role="columnheader"
-          className="flex items-center justify-center font-semibold text-sm shrink-0 w-10 h-8 text-gray-600 bg-gray-100"
+          className="flex items-center justify-center font-semibold text-sm shrink-0 cursor-pointer select-none w-10 h-8 text-gray-600 bg-gray-100"
+          onClick={onSelectAll}
         />
       )}
       {table.getHeaderGroups().map((headerGroup) =>
-        headerGroup.headers.map((header) => (
+        headerGroup.headers.map((header, colIndex) => (
           <div
             key={header.id}
             role="columnheader"
-            className="flex items-center px-2 font-semibold text-sm truncate h-8 grow text-gray-600 bg-gray-100"
+            className="flex items-center px-2 font-semibold text-sm truncate cursor-pointer select-none h-8 grow text-gray-600 bg-gray-100"
             style={{
               width: header.getSize(),
               minWidth: header.getSize(),
             }}
+            onClick={() => onSelectColumn(colIndex)}
           >
             {flexRender(header.column.columnDef.header, header.getContext())}
           </div>
@@ -363,6 +452,13 @@ function TableGutterCell({
   );
 }
 
+type SelectionEdge = {
+  top: boolean;
+  bottom: boolean;
+  left: boolean;
+  right: boolean;
+};
+
 function TableDataCell<T>({
   cell,
   colIndex,
@@ -370,6 +466,7 @@ function TableDataCell<T>({
   isSelected,
   isActive,
   isEditing,
+  selectionEdge,
   onClick,
   onDoubleClick,
   onBlur,
@@ -382,6 +479,7 @@ function TableDataCell<T>({
   isSelected: boolean;
   isActive: boolean;
   isEditing: boolean;
+  selectionEdge?: SelectionEdge;
   onClick: (e: React.MouseEvent) => void;
   onDoubleClick: () => void;
   onChange?: (value: unknown) => void;
@@ -395,10 +493,18 @@ function TableDataCell<T>({
       aria-colindex={colIndex + 1}
       aria-selected={isSelected}
       className={clsx(
-        "relative border-t border-l border-gray-200 h-8 grow",
-        isSelected ? "bg-purple-300/10" : "bg-white",
-        isActive &&
-          "outline outline-1 -outline-offset-1 outline-purple-500 z-[1]",
+        "relative h-8 grow",
+        // Base borders (gray grid lines)
+        "border-t border-l border-gray-200",
+        // Background: active cell is white, selected cells are purple tinted
+        isActive ? "bg-white" : isSelected ? "bg-purple-300/10" : "bg-white",
+        // Selection border on perimeter edges
+        selectionEdge?.top && "border-t-purple-500",
+        selectionEdge?.left && "border-l-purple-500",
+        selectionEdge?.bottom && "border-b border-b-purple-500",
+        selectionEdge?.right && "border-r border-r-purple-500",
+        // Z-index for proper layering
+        selectionEdge && "z-[1]",
       )}
       style={{
         width: cell.column.getSize(),
