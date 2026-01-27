@@ -53,6 +53,10 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
   const containerRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [gridHeight, setGridHeight] = useState<number | undefined>(undefined);
+  const [scrollState, setScrollState] = useState({
+    canScrollUp: false,
+    canScrollDown: false,
+  });
 
   const dataColumns = columns;
   const colCount = dataColumns.length;
@@ -119,11 +123,13 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
     visibleRowCount,
   });
 
+  const wasEditingRef = useRef(false);
   useEffect(
     function refocusWhenEditingStops() {
-      if (!isEditing && scrollRef.current) {
+      if (wasEditingRef.current && !isEditing && scrollRef.current) {
         scrollRef.current.focus();
       }
+      wasEditingRef.current = isEditing;
     },
     [isEditing],
   );
@@ -137,6 +143,34 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
       return () => document.removeEventListener("mouseup", handleMouseUp);
     },
     [isDragging, stopDrag],
+  );
+
+  const updateScrollState = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setScrollState({
+      canScrollUp: el.scrollTop > 0,
+      canScrollDown: el.scrollTop + el.clientHeight < el.scrollHeight - 1,
+    });
+  }, []);
+
+  useEffect(
+    function trackScrollState() {
+      const el = scrollRef.current;
+      if (!el) return;
+
+      updateScrollState();
+      el.addEventListener("scroll", updateScrollState);
+      return () => el.removeEventListener("scroll", updateScrollState);
+    },
+    [updateScrollState],
+  );
+
+  useEffect(
+    function updateScrollStateOnResize() {
+      updateScrollState();
+    },
+    [data.length, gridHeight, updateScrollState],
   );
 
   const { handleCopy, handlePaste } = useClipboard({
@@ -296,103 +330,118 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
   const virtualRows = rowVirtualizer.getVirtualItems();
   const totalSize = rowVirtualizer.getTotalSize();
 
+  const isReady = gridHeight !== undefined;
+
   return (
     <div ref={containerRef} className="flex flex-col justify-between h-full">
       <div
-        ref={scrollRef}
-        role="grid"
-        aria-rowcount={data.length}
-        aria-colcount={colCount}
-        aria-multiselectable="true"
-        tabIndex={0}
-        onKeyDown={handleKeyDown}
-        onCopy={handleCopy}
-        onPaste={handlePaste}
-        className="outline-none overflow-auto relative border border-gray-200"
-        style={{ height: gridHeight }}
-        data-capture-escape-key
+        className="relative"
+        style={{
+          height: gridHeight,
+          visibility: isReady ? "visible" : "hidden",
+        }}
       >
-        <TableHeader
-          table={table}
-          showGutterColumn={gutterColumn}
-          showActionsColumn={!!rowActions}
-          onSelectColumn={selectColumn}
-          onSelectAll={selectAll}
-        />
-
         <div
-          style={{
-            height: totalSize,
-            position: "relative",
-          }}
+          ref={scrollRef}
+          role="grid"
+          aria-rowcount={data.length}
+          aria-colcount={colCount}
+          aria-multiselectable="true"
+          tabIndex={isReady ? 0 : -1}
+          onKeyDown={handleKeyDown}
+          onCopy={handleCopy}
+          onPaste={handlePaste}
+          className="outline-none overflow-auto h-full border border-gray-200"
+          data-capture-escape-key
         >
-          {virtualRows.map((virtualRow) => {
-            const row = table.getRowModel().rows[virtualRow.index];
-            const rowIndex = virtualRow.index;
+          <TableHeader
+            table={table}
+            showGutterColumn={gutterColumn}
+            showActionsColumn={!!rowActions}
+            onSelectColumn={selectColumn}
+            onSelectAll={selectAll}
+          />
 
-            return (
-              <div
-                key={row.id}
-                role="row"
-                aria-rowindex={rowIndex + 2}
-                className="flex absolute w-full h-8"
-                style={{ transform: `translateY(${virtualRow.start}px)` }}
-              >
-                {gutterColumn && (
-                  <TableGutterCell
-                    rowIndex={rowIndex}
-                    onClick={(e) => handleGutterClick(rowIndex, e)}
-                  />
-                )}
+          <div
+            style={{
+              height: totalSize,
+              position: "relative",
+            }}
+          >
+            {virtualRows.map((virtualRow) => {
+              const row = table.getRowModel().rows[virtualRow.index];
+              const rowIndex = virtualRow.index;
 
-                {row.getVisibleCells().map((cell, colIndex) => {
-                  const column = dataColumns[colIndex];
-                  const accessorKey = column.accessorKey;
-                  const cellSelected = isCellSelected(colIndex, rowIndex);
-
-                  return (
-                    <TableDataCell
-                      key={cell.id}
-                      cell={cell}
-                      colIndex={colIndex}
+              return (
+                <div
+                  key={row.id}
+                  role="row"
+                  aria-rowindex={rowIndex + 2}
+                  className="flex absolute w-full h-8"
+                  style={{ transform: `translateY(${virtualRow.start}px)` }}
+                >
+                  {gutterColumn && (
+                    <TableGutterCell
                       rowIndex={rowIndex}
-                      isSelected={cellSelected}
-                      isActive={isCellActive(colIndex, rowIndex)}
-                      isEditing={isEditing}
-                      selectionEdge={
-                        cellSelected && selection
-                          ? {
-                              top: rowIndex === selection.min.row,
-                              bottom: rowIndex === selection.max.row,
-                              left: colIndex === selection.min.col,
-                              right: colIndex === selection.max.col,
-                            }
-                          : undefined
-                      }
-                      onMouseDown={(e) =>
-                        handleCellMouseDown(colIndex, rowIndex, e)
-                      }
-                      onMouseEnter={() =>
-                        handleCellMouseEnter(colIndex, rowIndex)
-                      }
-                      onDoubleClick={() => handleCellDoubleClick(colIndex)}
-                      onBlur={stopEditing}
-                      onChange={
-                        accessorKey
-                          ? (value) =>
-                              handleCellChange(rowIndex, accessorKey, value)
-                          : undefined
-                      }
-                      CellComponent={column.cellComponent}
+                      onClick={(e) => handleGutterClick(rowIndex, e)}
                     />
-                  );
-                })}
+                  )}
 
-                <TableActionsCell rowActions={rowActions} rowIndex={rowIndex} />
-              </div>
-            );
-          })}
+                  {row.getVisibleCells().map((cell, colIndex) => {
+                    const column = dataColumns[colIndex];
+                    const accessorKey = column.accessorKey;
+                    const cellSelected = isCellSelected(colIndex, rowIndex);
+
+                    return (
+                      <TableDataCell
+                        key={cell.id}
+                        cell={cell}
+                        colIndex={colIndex}
+                        rowIndex={rowIndex}
+                        isSelected={cellSelected}
+                        isActive={isCellActive(colIndex, rowIndex)}
+                        isEditing={isEditing}
+                        selectionEdge={
+                          cellSelected && selection
+                            ? {
+                                top: rowIndex === selection.min.row,
+                                bottom: rowIndex === selection.max.row,
+                                left: colIndex === selection.min.col,
+                                right: colIndex === selection.max.col,
+                              }
+                            : undefined
+                        }
+                        onMouseDown={(e) =>
+                          handleCellMouseDown(colIndex, rowIndex, e)
+                        }
+                        onMouseEnter={() =>
+                          handleCellMouseEnter(colIndex, rowIndex)
+                        }
+                        onDoubleClick={() => handleCellDoubleClick(colIndex)}
+                        onBlur={stopEditing}
+                        onChange={
+                          accessorKey
+                            ? (value) =>
+                                handleCellChange(rowIndex, accessorKey, value)
+                            : undefined
+                        }
+                        CellComponent={column.cellComponent}
+                      />
+                    );
+                  })}
+
+                  <TableActionsCell
+                    rowActions={rowActions}
+                    rowIndex={rowIndex}
+                  />
+                </div>
+              );
+            })}
+          </div>
         </div>
+
+        <ScrollShadow position="top" visible={scrollState.canScrollUp} />
+        <ScrollShadow position="bottom" visible={scrollState.canScrollDown} />
       </div>
 
       {addRowLabel && (
@@ -428,7 +477,10 @@ function TableHeader<T>({
   onSelectAll: () => void;
 }) {
   return (
-    <div role="row" className="flex sticky top-0 z-10 bg-gray-100">
+    <div
+      role="row"
+      className="flex sticky top-0 z-10 bg-gray-100 border-b border-gray-20 -mb-1"
+    >
       {showGutterColumn && (
         <div
           role="columnheader"
@@ -576,4 +628,29 @@ function TableActionsCell({
       <ActionsCell rowIndex={rowIndex} actions={rowActions} />
     </div>
   ) : null;
+}
+
+function ScrollShadow({
+  position,
+  visible,
+}: {
+  position: "top" | "bottom";
+  visible: boolean;
+}) {
+  if (!visible) return null;
+
+  const isTop = position === "top";
+  return (
+    <div
+      className={clsx(
+        "absolute left-0 right-0 h-2.5 pointer-events-none z-20",
+        isTop ? "top-8" : "bottom-0",
+      )}
+      style={{
+        background: isTop
+          ? "radial-gradient(farthest-side at 50% 0, rgba(0, 0, 0, 0.12), transparent)"
+          : "radial-gradient(farthest-side at 50% 100%, rgba(0, 0, 0, 0.12), transparent)",
+      }}
+    />
+  );
 }
