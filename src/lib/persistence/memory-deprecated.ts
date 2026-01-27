@@ -293,6 +293,10 @@ export class MemPersistenceDeprecated implements IPersistence {
     this.setModelVersion(snapshot.version);
   }
 
+  deleteSnapshotFromCache(_snapshotId: string): void {
+    // No-op: deprecated persistence doesn't use caching
+  }
+
   private applyMomentToModel(model: HydraulicModel, moment: Moment): void {
     for (const id of moment.deleteAssets || []) {
       const asset = model.assets.get(id);

@@ -60,4 +60,5 @@ export interface IPersistenceWithSnapshots extends IPersistence {
   applySnapshot(worktree: Worktree, snapshotId: string): void;
   captureModelSnapshot(): CapturedSnapshot;
   syncSnapshotSimulation(simulation: SimulationState): void;
+  deleteSnapshotFromCache(snapshotId: string): void;
 }

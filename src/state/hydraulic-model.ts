@@ -12,6 +12,8 @@ export const nullHydraulicModel: HydraulicModel = initializeHydraulicModel({
 
 export const stagingModelAtom = atom<HydraulicModel>(nullHydraulicModel);
 
+export const baseModelAtom = atom<HydraulicModel>(nullHydraulicModel);
+
 export const assetsAtom = focusAtom(stagingModelAtom, (optic) =>
   optic.prop("assets"),
 );

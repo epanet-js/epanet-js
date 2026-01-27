@@ -29,6 +29,7 @@ import {
   pipeDrawingDefaultsAtom,
   stagingModelAtom,
 } from "src/state/jotai";
+import { baseModelAtom } from "src/state/hydraulic-model";
 import { getFreshAt, momentForDeleteFeatures, trackMoment } from "./shared";
 import { sortAts } from "src/lib/parse-stored";
 import {
@@ -58,6 +59,8 @@ const MAX_CHANGES_BEFORE_MAP_SYNC = 500;
 
 export class Persistence implements IPersistenceWithSnapshots {
   private store: Store;
+  private modelCache = new Map<string, HydraulicModel>();
+
   constructor(store: Store) {
     this.store = store;
   }
@@ -90,6 +93,8 @@ export class Persistence implements IPersistenceWithSnapshots {
       momentLog.setSnapshot(forwardMoment, hydraulicModel.version);
       this.store.set(splitsAtom, defaultSplits);
       this.store.set(stagingModelAtom, hydraulicModel);
+      this.store.set(baseModelAtom, hydraulicModel);
+      this.modelCache.clear();
       this.store.set(dataAtom, {
         ...nullData,
         folderMap: new Map(),
@@ -142,7 +147,16 @@ export class Persistence implements IPersistenceWithSnapshots {
       this.store.set(momentLogAtom, momentLog);
       this.store.set(mapSyncMomentAtom, newMapSyncMoment);
       this.syncSnapshotMomentLog(momentLog, newStateId);
+      this.updateCacheAfterTransact();
     };
+  }
+
+  private updateCacheAfterTransact(): void {
+    const worktree = this.store.get(worktreeAtom);
+    if (worktree.scenarios.length === 0) return;
+
+    const updatedModel = this.store.get(stagingModelAtom);
+    this.modelCache.set(worktree.activeSnapshotId, updatedModel);
   }
 
   useHistoryControl() {
@@ -162,7 +176,12 @@ export class Persistence implements IPersistenceWithSnapshots {
       this.store.set(momentLogAtom, momentLog);
       this.store.set(mapSyncMomentAtom, newMapSyncMoment);
       this.syncSnapshotMomentLog(momentLog, action.stateId);
+      this.updateCacheAfterTransact();
     };
+  }
+
+  deleteSnapshotFromCache(snapshotId: string): void {
+    this.modelCache.delete(snapshotId);
   }
 
   getMomentLog(): MomentLog {
@@ -264,6 +283,39 @@ export class Persistence implements IPersistenceWithSnapshots {
     const snapshot = worktree.snapshots.get(snapshotId);
     if (!snapshot) return;
 
+    const stagingModel = this.getOrBuildModel(worktree, snapshotId);
+    this.store.set(stagingModelAtom, stagingModel);
+
+    const baseModel = this.getOrBuildModel(worktree, worktree.mainId);
+    this.store.set(baseModelAtom, baseModel);
+
+    this.switchMomentLog(snapshot.momentLog);
+    this.setModelVersion(snapshot.version);
+  }
+
+  private getOrBuildModel(
+    worktree: Worktree,
+    snapshotId: string,
+  ): HydraulicModel {
+    const cached = this.modelCache.get(snapshotId);
+    if (cached) {
+      return cached;
+    }
+
+    const model = this.buildModelFromDeltas(worktree, snapshotId);
+    this.modelCache.set(snapshotId, model);
+    return model;
+  }
+
+  private buildModelFromDeltas(
+    worktree: Worktree,
+    snapshotId: string,
+  ): HydraulicModel {
+    const snapshot = worktree.snapshots.get(snapshotId);
+    if (!snapshot) {
+      throw new Error(`Snapshot ${snapshotId} not found`);
+    }
+
     const allDeltas: Moment[] = [];
     let current: Snapshot | undefined = snapshot;
 
@@ -278,19 +330,16 @@ export class Persistence implements IPersistenceWithSnapshots {
 
     const ctx = this.store.get(dataAtom);
     const currentHydraulicModel = this.store.get(stagingModelAtom);
-    const hydraulicModel = initializeHydraulicModel({
+    const model = initializeHydraulicModel({
       units: currentHydraulicModel.units,
       defaults: ctx.modelMetadata.quantities.defaults,
     });
 
     for (const delta of allDeltas) {
-      this.applyMomentToModel(hydraulicModel, delta);
+      this.applyMomentToModel(model, delta);
     }
 
-    this.store.set(stagingModelAtom, hydraulicModel);
-
-    this.switchMomentLog(snapshot.momentLog);
-    this.setModelVersion(snapshot.version);
+    return model;
   }
 
   private applyMomentToModel(model: HydraulicModel, moment: Moment): void {

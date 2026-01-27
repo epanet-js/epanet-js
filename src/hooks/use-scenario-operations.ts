@@ -120,6 +120,8 @@ export const useScenarioOperations = () => {
     (scenarioId: string) => {
       const result = deleteScenario(worktree, scenarioId);
 
+      persistence.deleteSnapshotFromCache(scenarioId);
+
       if (result.snapshot) {
         persistence.applySnapshot(result.worktree, result.snapshot.id);
       }
