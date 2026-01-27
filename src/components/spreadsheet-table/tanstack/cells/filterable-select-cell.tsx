@@ -3,7 +3,7 @@ import {
   FilterableSelector,
   FilterableSelectorOption,
 } from "src/components/form/filterable-selector";
-import { SpreadsheetCellProps, SpreadsheetColumnDef } from "../types";
+import { SpreadsheetCellProps, SpreadsheetColumn } from "../types";
 
 type FilterableSelectCellExtraProps<
   T extends string | number = string | number,
@@ -65,37 +65,46 @@ export function FilterableSelectCell({
 }
 
 /**
- * Creates a filterable select (searchable dropdown) column definition.
- * Use with keyColumn: keyColumn("fieldName", createFilterableSelectColumn({ options: [...] }))
+ * Creates a filterable select (searchable dropdown) column.
+ *
+ * @example
+ * filterableSelectColumn("pattern", {
+ *   header: "Pattern",
+ *   size: 120,
+ *   options: [{ value: "pat1", label: "Pattern 1" }],
+ * })
  */
-export function createFilterableSelectColumn<
-  TData extends Record<string, unknown>,
-  T extends string | number = string,
->(options: {
-  options: FilterableSelectorOption<T>[];
-  placeholder?: string;
-  deleteValue?: T | null;
-}): Partial<SpreadsheetColumnDef<TData, T | null>> {
+export function filterableSelectColumn<T extends string | number = string>(
+  accessorKey: string,
+  options: {
+    header: string;
+    size?: number;
+    options: FilterableSelectorOption<T>[];
+    placeholder?: string;
+    deleteValue?: T | null;
+  },
+): SpreadsheetColumn {
   return {
-    meta: {
-      cellComponent: (props: SpreadsheetCellProps<T | null>) => (
-        <FilterableSelectCell
-          {...(props as SpreadsheetCellProps<string | number | null>)}
-          options={options.options}
-          placeholder={options.placeholder ?? ""}
-        />
-      ),
-      copyValue: (v) => String(v ?? ""),
-      pasteValue: (v) => {
-        const match = options.options.find(
-          (opt) =>
-            String(opt.value) === v ||
-            opt.label.toLowerCase() === v.toLowerCase(),
-        );
-        return match ? match.value : null;
-      },
-      deleteValue: options.deleteValue ?? null,
-      disableKeys: true,
+    accessorKey,
+    header: options.header,
+    size: options.size,
+    cellComponent: (props: SpreadsheetCellProps<string | number | null>) => (
+      <FilterableSelectCell
+        {...props}
+        options={options.options as FilterableSelectorOption<string | number>[]}
+        placeholder={options.placeholder ?? ""}
+      />
+    ),
+    copyValue: (v) => String(v ?? ""),
+    pasteValue: (v) => {
+      const match = options.options.find(
+        (opt) =>
+          String(opt.value) === v ||
+          opt.label.toLowerCase() === v.toLowerCase(),
+      );
+      return match ? match.value : null;
     },
+    deleteValue: options.deleteValue ?? null,
+    disableKeys: true,
   };
 }

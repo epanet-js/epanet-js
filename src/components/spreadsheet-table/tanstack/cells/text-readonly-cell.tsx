@@ -1,4 +1,4 @@
-import { SpreadsheetCellProps, SpreadsheetColumnDef } from "../types";
+import { SpreadsheetCellProps, SpreadsheetColumn } from "../types";
 
 type TextReadonlyCellExtraProps = {
   className?: string;
@@ -18,24 +18,30 @@ export function TextReadonlyCell({
 }
 
 /**
- * Creates a text readonly column definition.
- * Use with keyColumn: keyColumn("fieldName", createTextReadonlyColumn({ className: "..." }))
+ * Creates a text readonly column.
+ *
+ * @example
+ * textReadonlyColumn("id", { header: "ID", className: "text-gray-500" })
  */
-export function createTextReadonlyColumn<
-  TData extends Record<string, unknown>,
->(options?: {
-  className?: string;
-}): Partial<SpreadsheetColumnDef<TData, string>> {
+export function textReadonlyColumn(
+  accessorKey: string,
+  options: {
+    header: string;
+    size?: number;
+    className?: string;
+  },
+): SpreadsheetColumn {
   return {
-    meta: {
-      cellComponent: (props: SpreadsheetCellProps<string>) => (
-        <TextReadonlyCell {...props} className={options?.className} />
-      ),
-      copyValue: (v) => v,
-      pasteValue: (v) => v,
-      deleteValue: "",
-      disabled: true,
-      disableKeys: true,
-    },
+    accessorKey,
+    header: options.header,
+    size: options.size,
+    cellComponent: (props: SpreadsheetCellProps<string>) => (
+      <TextReadonlyCell {...props} className={options.className} />
+    ),
+    copyValue: (v) => v as string,
+    pasteValue: (v) => v,
+    deleteValue: "",
+    disabled: true,
+    disableKeys: true,
   };
 }

@@ -1,6 +1,3 @@
-import { CellContext, ColumnDef } from "@tanstack/react-table";
-
-// Selection types (compatible with react-datasheet-grid)
 export type CellPosition = { col: number; row: number };
 
 export type SpreadsheetSelection = {
@@ -14,25 +11,12 @@ export type SelectionState = {
   isEditing: boolean;
 };
 
-// Row action type (compatible with existing API)
+// Row action type for dropdown actions column
 export type RowAction = {
   label: string;
   icon: React.ReactNode;
   onSelect: (rowIndex: number) => void;
   disabled?: (rowIndex: number) => boolean;
-};
-
-// Column definition for spreadsheet cells
-export type SpreadsheetColumnMeta<TValue = unknown> = {
-  // Cell rendering
-  cellComponent?: React.ComponentType<SpreadsheetCellProps<TValue>>;
-  // Copy/paste handlers
-  copyValue?: (value: TValue) => string;
-  pasteValue?: (value: string) => TValue;
-  deleteValue?: TValue | (() => TValue);
-  // Column behavior
-  disabled?: boolean;
-  disableKeys?: boolean;
 };
 
 // Props passed to custom cell components
@@ -48,17 +32,27 @@ export type SpreadsheetCellProps<TValue = unknown> = {
   focus: boolean;
 };
 
-// Extended column def with spreadsheet metadata
-export type SpreadsheetColumnDef<TData, TValue = unknown> = ColumnDef<
-  TData,
-  TValue
-> & {
-  meta?: SpreadsheetColumnMeta<TValue>;
-};
+// Column definition - simple flat structure
+export type SpreadsheetColumn = {
+  // Required
+  accessorKey: string;
+  header: string;
 
-// Context for cell components
-export type SpreadsheetContextValue = {
-  setActiveCell: (cell: CellPosition) => void;
+  // Layout
+  size?: number;
+
+  // Cell rendering
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  cellComponent?: React.ComponentType<SpreadsheetCellProps<any>>;
+
+  // Copy/paste/delete behavior
+  copyValue?: (value: unknown) => string;
+  pasteValue?: (value: string) => unknown;
+  deleteValue?: unknown;
+
+  // Column behavior
+  disabled?: boolean;
+  disableKeys?: boolean;
 };
 
 // Ref type for programmatic control
@@ -68,13 +62,10 @@ export type SpreadsheetTableRef = {
   selection: SpreadsheetSelection | null;
 };
 
-// Main component props (compatible with existing API)
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// Main component props
 export type SpreadsheetTableProps<TData extends Record<string, unknown>> = {
   data: TData[];
-  // Using any for columns to allow flexible column definitions from keyColumn helper
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  columns: any[];
+  columns: SpreadsheetColumn[];
   onChange: (data: TData[]) => void;
   createRow: () => TData;
   lockRows?: boolean;
@@ -85,5 +76,7 @@ export type SpreadsheetTableProps<TData extends Record<string, unknown>> = {
   onSelectionChange?: (selection: SpreadsheetSelection | null) => void;
 };
 
-// Helper to get typed cell context
-export type TypedCellContext<TData, TValue> = CellContext<TData, TValue>;
+// Context for cell components
+export type SpreadsheetContextValue = {
+  setActiveCell: (cell: CellPosition) => void;
+};

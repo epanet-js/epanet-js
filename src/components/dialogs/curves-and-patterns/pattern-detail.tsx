@@ -1,6 +1,6 @@
 import { PatternGraph } from "./pattern-graph";
 import { PatternMultipliers } from "src/hydraulic-model/demands";
-import { PatternTableLegacy } from "./pattern-table-legacy";
+import { PatternTable } from "./pattern-table";
 
 interface PatternDetailProps {
   pattern: PatternMultipliers;
@@ -18,7 +18,7 @@ export function PatternDetail({
   return (
     <div className="grid grid-cols-5 h-full">
       <div className="col-span-2 h-full overflow-hidden p-2 border-y border-r border-gray-200 dark:border-gray-700">
-        <PatternTableLegacy
+        <PatternTable
           pattern={pattern}
           patternTimestepSeconds={patternTimestepSeconds}
           onChange={onChange}

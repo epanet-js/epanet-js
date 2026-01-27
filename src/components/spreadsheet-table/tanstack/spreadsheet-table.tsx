@@ -11,6 +11,7 @@ import {
   useReactTable,
   getCoreRowModel,
   flexRender,
+  ColumnDef,
 } from "@tanstack/react-table";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { colors } from "src/lib/constants";
@@ -19,7 +20,7 @@ import { AddIcon } from "src/icons";
 import {
   SpreadsheetTableProps,
   SpreadsheetTableRef,
-  SpreadsheetColumnDef,
+  SpreadsheetColumn,
   CellPosition,
 } from "./types";
 import { useSelection } from "./use-selection";
@@ -151,9 +152,10 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
   );
 
   // TanStack Table setup
+  // Cast to ColumnDef[] because Partial<SpreadsheetColumnDef> breaks union type inference
   const table = useReactTable({
     data,
-    columns: dataColumns,
+    columns: dataColumns as ColumnDef<TData, unknown>[],
     getCoreRowModel: getCoreRowModel(),
   });
 
@@ -182,8 +184,8 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
   // Cell double click handler (start editing)
   const handleCellDoubleClick = useCallback(
     (col: number) => {
-      const column = dataColumns[col];
-      if (!column?.meta?.disabled && !column?.meta?.disableKeys) {
+      const column = dataColumns[col] as SpreadsheetColumn | undefined;
+      if (!column?.disabled && !column?.disableKeys) {
         startEditing();
       }
     },
@@ -326,15 +328,11 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
 
                 {/* Data cells */}
                 {row.getVisibleCells().map((cell, colIndex) => {
-                  const column = dataColumns[colIndex] as SpreadsheetColumnDef<
-                    TData,
-                    unknown
-                  >;
+                  const column = dataColumns[colIndex];
                   const isActive = isCellActive(colIndex, rowIndex);
                   const isSelected = isCellSelected(colIndex, rowIndex);
-                  const CellComponent = column.meta?.cellComponent;
-                  const accessorKey = (column as { accessorKey?: string })
-                    .accessorKey;
+                  const CellComponent = column.cellComponent;
+                  const accessorKey = column.accessorKey;
 
                   return (
                     <div

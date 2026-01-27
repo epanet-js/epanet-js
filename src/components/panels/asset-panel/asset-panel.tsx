@@ -63,7 +63,7 @@ import {
 import { Curves } from "src/hydraulic-model/curves";
 import { useQuickGraph } from "./quick-graph";
 import { useAssetComparison } from "src/hooks/use-asset-comparison";
-import { DemandCategoriesEditorLegacy } from "./demand-categories-editor-legacy";
+import { DemandCategoriesEditor } from "./demand-categories-editor";
 
 type OnPropertyChange = (
   name: string,
@@ -474,7 +474,7 @@ const JunctionEditor = ({
               />
             )}
             {!readonly && (
-              <DemandCategoriesEditorLegacy
+              <DemandCategoriesEditor
                 demands={junction.demands}
                 patterns={hydraulicModel.demands.patterns}
                 onDemandsChange={onDemandsChange}

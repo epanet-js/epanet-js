@@ -1,9 +1,9 @@
 import { useCallback } from "react";
-import { SpreadsheetColumnDef, SpreadsheetSelection } from "./types";
+import { SpreadsheetColumn, SpreadsheetSelection } from "./types";
 
 type UseClipboardOptions<TData extends Record<string, unknown>> = {
   selection: SpreadsheetSelection | null;
-  columns: SpreadsheetColumnDef<TData, unknown>[];
+  columns: SpreadsheetColumn[];
   data: TData[];
   onChange: (data: TData[]) => void;
 };
@@ -33,14 +33,14 @@ export function useClipboard<TData extends Record<string, unknown>>({
         colIndex++
       ) {
         const column = columns[colIndex];
-        const accessorKey = (column as { accessorKey?: string }).accessorKey;
+        const accessorKey = column?.accessorKey;
         if (!accessorKey) {
           cells.push("");
           continue;
         }
 
         const value = (row as Record<string, unknown>)[accessorKey];
-        const copyValue = column.meta?.copyValue;
+        const copyValue = column.copyValue;
         const stringValue = copyValue
           ? copyValue(value)
           : (value?.toString() ?? "");
@@ -76,12 +76,12 @@ export function useClipboard<TData extends Record<string, unknown>>({
           if (colIndex >= columns.length) break;
 
           const column = columns[colIndex];
-          if (column.meta?.disabled) continue;
+          if (column?.disabled) continue;
 
-          const accessorKey = (column as { accessorKey?: string }).accessorKey;
+          const accessorKey = column?.accessorKey;
           if (!accessorKey) continue;
 
-          const pasteValue = column.meta?.pasteValue;
+          const pasteValue = column.pasteValue;
           const value = pasteValue
             ? pasteValue(clipboardRow[j])
             : clipboardRow[j];

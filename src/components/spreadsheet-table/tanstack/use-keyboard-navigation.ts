@@ -1,16 +1,12 @@
 import { useCallback } from "react";
-import {
-  CellPosition,
-  SpreadsheetColumnDef,
-  SpreadsheetSelection,
-} from "./types";
+import { CellPosition, SpreadsheetColumn, SpreadsheetSelection } from "./types";
 
 type UseKeyboardNavigationOptions<TData extends Record<string, unknown>> = {
   activeCell: CellPosition | null;
   selection: SpreadsheetSelection | null;
   isEditing: boolean;
   isFullRowSelected: boolean;
-  columns: SpreadsheetColumnDef<TData, unknown>[];
+  columns: SpreadsheetColumn[];
   data: TData[];
   onChange: (data: TData[]) => void;
   lockRows: boolean;
@@ -60,12 +56,12 @@ export function useKeyboardNavigation<TData extends Record<string, unknown>>({
         colIndex++
       ) {
         const column = columns[colIndex];
-        if (column?.meta?.disabled) continue;
+        if (column?.disabled) continue;
 
-        const accessorKey = (column as { accessorKey?: string }).accessorKey;
+        const accessorKey = column?.accessorKey;
         if (!accessorKey) continue;
 
-        const deleteValue = column.meta?.deleteValue;
+        const deleteValue = column.deleteValue;
         const value =
           typeof deleteValue === "function" ? deleteValue() : deleteValue;
         (newRow as Record<string, unknown>)[accessorKey] = value ?? null;
@@ -126,7 +122,7 @@ export function useKeyboardNavigation<TData extends Record<string, unknown>>({
           e.preventDefault();
           if (activeCell) {
             const column = columns[activeCell.col];
-            if (!column?.meta?.disabled && !column?.meta?.disableKeys) {
+            if (!column?.disabled && !column?.disableKeys) {
               startEditing();
             }
           }
@@ -153,7 +149,7 @@ export function useKeyboardNavigation<TData extends Record<string, unknown>>({
             !e.altKey
           ) {
             const column = columns[activeCell.col];
-            if (!column?.meta?.disabled && !column?.meta?.disableKeys) {
+            if (!column?.disabled && !column?.disableKeys) {
               startEditing();
               // Note: The actual character will be handled by the cell input
             }

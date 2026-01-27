@@ -13,4 +13,18 @@ export type {
   RowActionLegacy,
 } from "./react-datasheet-grid";
 
-export type { SpreadsheetSelection } from "./tanstack";
+// TanStack implementation (new)
+export {
+  SpreadsheetTable,
+  floatColumn,
+  selectColumn,
+  filterableSelectColumn,
+  textReadonlyColumn,
+} from "./tanstack";
+export type {
+  SpreadsheetTableRef,
+  SpreadsheetSelection,
+  SpreadsheetColumn,
+  RowAction,
+  CellPosition,
+} from "./tanstack";

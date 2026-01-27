@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from "react";
 import { Selector } from "src/components/form/selector";
-import { SpreadsheetCellProps, SpreadsheetColumnDef } from "../types";
+import { SpreadsheetCellProps, SpreadsheetColumn } from "../types";
 
 type SelectOption<T extends string = string> = {
   value: T;
@@ -54,36 +54,44 @@ export function SelectCell<T extends string = string>({
 }
 
 /**
- * Creates a select (dropdown) column definition.
- * Use with keyColumn: keyColumn("fieldName", createSelectColumn({ options: [...] }))
+ * Creates a select (dropdown) column.
+ *
+ * @example
+ * selectColumn("status", {
+ *   header: "Status",
+ *   size: 120,
+ *   options: [{ value: "active", label: "Active" }],
+ * })
  */
-export function createSelectColumn<
-  TData extends Record<string, unknown>,
-  T extends string = string,
->(options: {
-  options: SelectOption<T>[];
-  placeholder?: string;
-  deleteValue?: T | null;
-}): Partial<SpreadsheetColumnDef<TData, T | null>> {
+export function selectColumn<T extends string = string>(
+  accessorKey: string,
+  options: {
+    header: string;
+    size?: number;
+    options: SelectOption<T>[];
+    placeholder?: string;
+    deleteValue?: T | null;
+  },
+): SpreadsheetColumn {
   return {
-    meta: {
-      cellComponent: (props: SpreadsheetCellProps<T | null>) => (
-        <SelectCell
-          {...props}
-          options={options.options}
-          placeholder={options.placeholder ?? ""}
-        />
-      ),
-      copyValue: (v) => v ?? "",
-      pasteValue: (v) => {
-        const match = options.options.find(
-          (opt) =>
-            opt.value === v || opt.label.toLowerCase() === v.toLowerCase(),
-        );
-        return match ? match.value : null;
-      },
-      deleteValue: options.deleteValue ?? null,
-      disableKeys: true,
+    accessorKey,
+    header: options.header,
+    size: options.size,
+    cellComponent: (props: SpreadsheetCellProps<T | null>) => (
+      <SelectCell
+        {...props}
+        options={options.options}
+        placeholder={options.placeholder ?? ""}
+      />
+    ),
+    copyValue: (v) => (v as T | null) ?? "",
+    pasteValue: (v) => {
+      const match = options.options.find(
+        (opt) => opt.value === v || opt.label.toLowerCase() === v.toLowerCase(),
+      );
+      return match ? match.value : null;
     },
+    deleteValue: options.deleteValue ?? null,
+    disableKeys: true,
   };
 }
