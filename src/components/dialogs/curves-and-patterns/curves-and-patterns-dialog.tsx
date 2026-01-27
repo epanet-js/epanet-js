@@ -142,7 +142,7 @@ export const CurvesAndPatternsDialog = () => {
           onChangePattern={handlePatternChange}
           onDeletePattern={handleDeletePattern}
         />
-        <div className="flex-1 flex flex-col min-h-0 p-2 w-full">
+        <div className="flex-1 flex flex-col min-h-0 w-full">
           {selectedPatternId ? (
             <PatternDetail
               key={selectedPatternId}
@@ -154,11 +154,11 @@ export const CurvesAndPatternsDialog = () => {
               }
             />
           ) : hasPatterns ? (
-            <div className="flex-1 flex items-center justify-center">
+            <div className="flex-1 flex items-center justify-center p-2 border-y border-r border-gray-200 dark:border-gray-700">
               <NoSelectionState />
             </div>
           ) : (
-            <div className="flex-1 flex items-center justify-center">
+            <div className="flex-1 flex items-center justify-center p-2 border-y border-r border-gray-200 dark:border-gray-700">
               <EmptyState />
             </div>
           )}

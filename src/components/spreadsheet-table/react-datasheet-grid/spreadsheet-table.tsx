@@ -100,8 +100,8 @@ export const SpreadsheetTableLegacy = forwardRef(
 
         let lastHeight: number | undefined;
 
-        // Button height (30px) + margin-top (8px) = 38px
-        const BUTTON_SPACE = 38;
+        // Button height (32px) + margin-top (8px) = 38px
+        const BUTTON_SPACE = 40;
 
         const observer = new ResizeObserver((entries) => {
           const containerHeight = entries[0]?.contentRect.height;
@@ -255,12 +255,20 @@ const getGridStyles = (gutterColumn: boolean) => {
     !gutterColumn ? "[&_.dsg-cell-sticky-right]:transform-none" : "",
   ];
 
+  const containerStyles = [
+    "[&_.dsg-container]:border-solid",
+    "[&_.dsg-container]:border-y",
+    "[&_.dsg-container]:border-gray-200",
+    "dark:[&_.dsg-container]:border-gray-700",
+  ];
+
   return [
     "text-sm",
     ...inputStyles,
     ...headerStyles,
     ...gutterStyles,
     ...stickyColumnStyles,
+    ...containerStyles,
   ]
     .filter(Boolean)
     .join(" ");

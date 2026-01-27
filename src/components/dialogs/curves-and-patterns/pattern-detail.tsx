@@ -16,15 +16,15 @@ export function PatternDetail({
   onChange,
 }: PatternDetailProps) {
   return (
-    <div className="grid grid-cols-5 gap-4 h-full">
-      <div className="col-span-2 h-full overflow-hidden">
+    <div className="grid grid-cols-5 h-full">
+      <div className="col-span-2 h-full overflow-hidden p-2 border-y border-r border-gray-200 dark:border-gray-700">
         <PatternTableLegacy
           pattern={pattern}
           patternTimestepSeconds={patternTimestepSeconds}
           onChange={onChange}
         />
       </div>
-      <div className="col-span-3 h-full pt-4">
+      <div className="col-span-3 h-full pt-4 p-2 border-y border-r border-gray-200 dark:border-gray-700">
         <div className="h-full">
           <PatternGraph
             pattern={pattern}
