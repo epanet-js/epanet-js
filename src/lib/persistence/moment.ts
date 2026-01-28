@@ -68,6 +68,7 @@ class CUMoment {
       note: first.note,
       putAssets: first.putAssets.slice(),
       deleteAssets: first.deleteAssets.slice(),
+      putDemands: first.putDemands,
       putCustomerPoints: first.putCustomerPoints?.slice() || [],
       putCurves: first.putCurves?.slice() || [],
     };
@@ -75,6 +76,9 @@ class CUMoment {
     for (const moment of moments.slice(1)) {
       dst.putAssets = dst.putAssets.concat(moment.putAssets);
       dst.deleteAssets = dst.deleteAssets.concat(moment.deleteAssets);
+      if (moment.putDemands) {
+        dst.putDemands = moment.putDemands;
+      }
       if (moment.putCustomerPoints) {
         dst.putCustomerPoints = (dst.putCustomerPoints || []).concat(
           moment.putCustomerPoints,
@@ -96,6 +100,7 @@ class CUMoment {
     return (
       moment.putAssets.length === 0 &&
       moment.deleteAssets.length === 0 &&
+      !moment.putDemands &&
       (!moment.putCustomerPoints || moment.putCustomerPoints.length === 0) &&
       (!moment.putCurves || moment.putCurves.length === 0)
     );

@@ -708,6 +708,8 @@ export class Persistence implements IPersistenceWithSnapshots {
     const reverseMoment = fMoment("Reverse demands");
     if (!demands) return reverseMoment;
 
+    reverseMoment.putDemands = hydraulicModel.demands;
+
     for (const pattern of hydraulicModel.demands.patterns.values()) {
       hydraulicModel.labelManager.remove(pattern.label, "pattern", pattern.id);
     }
