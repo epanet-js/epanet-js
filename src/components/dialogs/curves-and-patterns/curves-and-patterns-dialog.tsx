@@ -161,7 +161,7 @@ export const CurvesAndPatternsDialog = () => {
   return (
     <DialogContainer size="lg" height="lg" onClose={handleCancel}>
       <DialogHeader title={translate("curvesAndPatterns")} />
-      <div className="flex-1 flex min-h-0">
+      <div className="flex-1 flex min-h-0 gap-4">
         <PatternSidebar
           patterns={editedPatterns}
           selectedPatternId={selectedPatternId}
@@ -182,11 +182,11 @@ export const CurvesAndPatternsDialog = () => {
               }
             />
           ) : hasPatterns ? (
-            <div className="flex-1 flex items-center justify-center p-2 border-y border-r border-gray-200 dark:border-gray-700">
+            <div className="flex-1 flex items-center justify-center p-2 border border-gray-200 dark:border-gray-700">
               <NoSelectionState />
             </div>
           ) : (
-            <div className="flex-1 flex items-center justify-center p-2 border-y border-r border-gray-200 dark:border-gray-700">
+            <div className="flex-1 flex items-center justify-center p-2 border border-gray-200 dark:border-gray-700">
               <EmptyState />
             </div>
           )}

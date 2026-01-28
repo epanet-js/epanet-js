@@ -140,7 +140,7 @@ export const PatternSidebar = ({
   };
 
   return (
-    <div className="w-56 flex-shrink-0 border border-gray-200 dark:border-gray-700 flex flex-col p-2 gap-2">
+    <div className="w-56 flex-shrink-0 flex flex-col gap-2">
       <ul
         ref={listRef}
         className="flex-1 overflow-y-auto gap-2 outline-none placemark-scrollbar scroll-shadows border border-gray-200 dark:border-gray-700 rounded"
