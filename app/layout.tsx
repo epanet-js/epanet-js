@@ -1,5 +1,4 @@
 import "src/styles/globals.css";
-import "react-datasheet-grid/dist/style.css";
 
 export default function RootLayout({
   children,
