@@ -896,6 +896,8 @@ export type UserEvent =
   | { name: "scenariosPaywall.triggered" }
   | { name: "scenariosPaywall.clickedChoosePlan" }
   | { name: "scenariosPaywall.clickedPersonal" }
+  | { name: "firstScenario.dialogEnabled" }
+  | { name: "firstScenario.dialogHidden" }
   | PatternChanged
   | PatternAdded
   | PatternDeleted

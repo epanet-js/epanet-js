@@ -276,6 +276,19 @@ const ScenariosPaywallDialog = dynamic<{
   },
 );
 
+const FirstScenarioDialog = dynamic<{
+  onConfirm: () => void;
+  onClose: () => void;
+}>(
+  () =>
+    import("src/components/dialogs/first-scenario").then(
+      (r) => r.FirstScenarioDialog,
+    ),
+  {
+    loading: () => <LoadingDialog />,
+  },
+);
+
 export const Dialogs = memo(function Dialogs() {
   const [dialog, setDialogState] = useAtom(dialogAtom);
   const userTracking = useUserTracking();
@@ -362,6 +375,12 @@ export const Dialogs = memo(function Dialogs() {
 
   if (dialog.type === "scenariosPaywall") {
     return <ScenariosPaywallDialog onClose={onClose} />;
+  }
+
+  if (dialog.type === "firstScenario") {
+    return (
+      <FirstScenarioDialog onConfirm={dialog.onConfirm} onClose={onClose} />
+    );
   }
 
   const content = match(dialog)

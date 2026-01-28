@@ -100,6 +100,11 @@ export type ScenariosPaywallDialogState = {
   type: "scenariosPaywall";
 };
 
+export type FirstScenarioDialogState = {
+  type: "firstScenario";
+  onConfirm: () => void;
+};
+
 export type DialogState =
   | InvalidFilesErrorDialogState
   | {
@@ -128,6 +133,7 @@ export type DialogState =
   | DeleteScenarioConfirmationDialogState
   | RenameScenarioDialogState
   | ScenariosPaywallDialogState
+  | FirstScenarioDialogState
   | null;
 
 export const dialogFromUrl = (): DialogState => {

@@ -10,6 +10,7 @@ import { useTranslate } from "src/hooks/use-translate";
 import { notify } from "src/components/notifications";
 import { SuccessIcon } from "src/icons";
 import { useRunSimulation } from "./run-simulation";
+import { userSettingsAtom } from "src/state/user-settings";
 
 export const createScenarioShortcut = "alt+y";
 
@@ -23,6 +24,7 @@ export const useCreateScenario = () => {
   const simulation = useAtomValue(simulationAtom);
   const hydraulicModel = useAtomValue(stagingModelAtom);
   const runSimulation = useRunSimulation();
+  const userSettings = useAtomValue(userSettingsAtom);
 
   return useCallback(
     ({ source: _source }: { source: string }) => {
@@ -53,6 +55,17 @@ export const useCreateScenario = () => {
         return { scenarioId, scenarioName };
       };
 
+      const showDialogOrProceed = () => {
+        if (userSettings.showFirstScenarioDialog) {
+          setDialog({
+            type: "firstScenario",
+            onConfirm: proceedWithCreation,
+          });
+          return null;
+        }
+        return proceedWithCreation();
+      };
+
       if (isFirstTimeEnabling) {
         const isSimulationUpToDate =
           simulation.status !== "idle" &&
@@ -60,9 +73,11 @@ export const useCreateScenario = () => {
           simulation.modelVersion === hydraulicModel.version;
 
         if (!isSimulationUpToDate) {
-          void runSimulation({ onContinue: proceedWithCreation });
+          void runSimulation({ onContinue: showDialogOrProceed });
           return null;
         }
+
+        return showDialogOrProceed();
       }
 
       return proceedWithCreation();
@@ -77,6 +92,7 @@ export const useCreateScenario = () => {
       simulation,
       hydraulicModel,
       runSimulation,
+      userSettings,
     ],
   );
 };
