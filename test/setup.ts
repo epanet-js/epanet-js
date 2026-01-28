@@ -196,6 +196,7 @@ if (
     }
     observe() {
       // Call with contentRect that has a non-zero height for grid virtualization
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
       this.cb([{ contentRect: { height: 300, width: 400 } }]);
     }
     unobserve() {}

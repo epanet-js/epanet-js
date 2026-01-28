@@ -13,8 +13,11 @@ export class OPFSStorage implements IPrivateAppStorage {
     const dir = await this.getAppDir();
     const fileHandle = await dir.getFileHandle(filename, { create: true });
     // @ts-expect-error createSyncAccessHandle is only available in Web Workers (lib.webworker.d.ts)
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     const accessHandle = await fileHandle.createSyncAccessHandle();
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     accessHandle.write(data);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     accessHandle.close();
   }
 
