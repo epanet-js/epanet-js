@@ -255,7 +255,7 @@ describe("CurvesAndPatternsDialog", () => {
 
       renderDialog(store);
 
-      expect(screen.getByText(/demand patterns is empty/i)).toBeInTheDocument();
+      expect(screen.getByText(/patterns are empty/i)).toBeInTheDocument();
     });
   });
 
@@ -516,7 +516,7 @@ describe("CurvesAndPatternsDialog", () => {
       });
 
       // Should show empty state
-      expect(screen.getByText(/demand patterns is empty/i)).toBeInTheDocument();
+      expect(screen.getByText(/patterns are empty/i)).toBeInTheDocument();
     });
   });
 });
