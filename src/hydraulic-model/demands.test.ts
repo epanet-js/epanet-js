@@ -54,6 +54,11 @@ describe("getNextPatternId", () => {
       expect(getNextPatternId(patterns, 10)).toBe(10);
     });
 
+    it("returns 1 when startId is 0", () => {
+      const patterns: DemandPatterns = new Map();
+      expect(getNextPatternId(patterns, 0)).toBe(1);
+    });
+
     it("handles non-sequential ids correctly", () => {
       const patterns = createPatterns([
         { id: 5, label: "P5", multipliers: [1] },

@@ -29,7 +29,7 @@ export const getNextPatternId = (
   patterns: DemandPatterns,
   startId?: number,
 ): PatternId => {
-  let nextId = startId ?? Math.max(patterns.size - 1, 1);
+  let nextId = Math.max(startId ?? patterns.size, 1);
   while (patterns.has(nextId)) {
     nextId += 1;
   }
