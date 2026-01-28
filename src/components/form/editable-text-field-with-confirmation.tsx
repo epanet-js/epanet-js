@@ -154,7 +154,7 @@ export const EditableTextFieldWithConfirmation = forwardRef<
 
   return (
     <div
-      className="flex items-center gap-1"
+      className="w-full flex items-center gap-1"
       onKeyDownCapture={handleContainerKeyDown}
       data-capture-escape-key
     >

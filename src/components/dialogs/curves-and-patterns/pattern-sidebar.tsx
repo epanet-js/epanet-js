@@ -338,7 +338,7 @@ const PatternLabelInput = ({
 
   return (
     <li
-      className="flex items-center text-sm bg-white dark:bg-gray-700 pl-1 h-8"
+      className="flex items-center text-sm bg-white dark:bg-gray-700 px-1 h-8"
       data-capture-escape-key
     >
       <EditableTextFieldWithConfirmation
@@ -377,14 +377,17 @@ const PatternActionsMenu = ({
   const translate = useTranslate();
 
   return (
-    <div onClick={(e) => e.stopPropagation()} className="self-stretch flex">
+    <div
+      onClick={(e) => e.stopPropagation()}
+      className="self-stretch flex pr-1"
+    >
       <DD.Root modal={false}>
         <DD.Trigger asChild>
           <Button
             variant="quiet"
             size="xs"
             aria-label="Actions"
-            className={`h-full ${
+            className={`h-6 w-6 self-center ${
               isSelected
                 ? "hover:bg-white/30 dark:hover:bg-white/10"
                 : "invisible group-hover:visible hover:bg-gray-200 dark:hover:bg-gray-700"
