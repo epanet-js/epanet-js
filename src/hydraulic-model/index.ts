@@ -42,3 +42,4 @@ export type {
   JunctionDemand,
 } from "./demands";
 export type { IdGenerator } from "./id-generator";
+export { applyMomentToModel } from "./mutations/apply-moment";

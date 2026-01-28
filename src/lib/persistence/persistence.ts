@@ -36,6 +36,7 @@ import {
   HydraulicModel,
   updateHydraulicModelAssets,
   initializeHydraulicModel,
+  applyMomentToModel,
 } from "src/hydraulic-model";
 import { ModelMoment } from "src/hydraulic-model";
 import { Asset, LinkAsset } from "src/hydraulic-model";
@@ -263,21 +264,6 @@ export class Persistence implements IPersistenceWithSnapshots {
     this.store.set(worktreeAtom, { ...worktree, snapshots: updatedSnapshots });
   }
 
-  private applyMomentAndForceMapSync(
-    moment: MomentInput,
-    stateId: string,
-    mergeAssetsAndSettings = false,
-  ): void {
-    const current = this.store.get(mapSyncMomentAtom);
-
-    this.apply(stateId, moment, mergeAssetsAndSettings);
-
-    this.store.set(mapSyncMomentAtom, {
-      pointer: -1,
-      version: current.version + 1,
-    });
-  }
-
   private switchMomentLog(momentLog: MomentLog): void {
     const current = this.store.get(mapSyncMomentAtom);
     this.store.set(momentLogAtom, momentLog);
@@ -359,98 +345,10 @@ export class Persistence implements IPersistenceWithSnapshots {
     });
 
     for (const delta of allDeltas) {
-      this.applyMomentToModel(model, delta);
+      applyMomentToModel(model, delta as ModelMoment);
     }
 
     return model;
-  }
-
-  private applyMomentToModel(model: HydraulicModel, moment: Moment): void {
-    for (const id of moment.deleteAssets || []) {
-      const asset = model.assets.get(id);
-      if (!asset) continue;
-
-      if (asset.isLink) {
-        model.assetIndex.removeLink(asset.id);
-      } else if (asset.isNode) {
-        model.assetIndex.removeNode(asset.id);
-      }
-
-      model.assets.delete(id);
-      model.topology.removeNode(id);
-      model.topology.removeLink(id);
-      model.labelManager.remove(asset.label, asset.type, asset.id);
-    }
-
-    for (const inputFeature of moment.putAssets || []) {
-      const oldVersion = model.assets.get(inputFeature.id);
-
-      model.assets.set(inputFeature.id, inputFeature as Asset);
-
-      const assetToIndex = inputFeature as Asset;
-      if (assetToIndex.isLink) {
-        model.assetIndex.addLink(assetToIndex.id);
-      } else if (assetToIndex.isNode) {
-        model.assetIndex.addNode(assetToIndex.id);
-      }
-
-      if (oldVersion && model.topology.hasLink(oldVersion.id)) {
-        const oldLink = oldVersion as LinkAsset;
-        const oldConnections = oldLink.connections;
-        oldConnections && model.topology.removeLink(oldVersion.id);
-        model.labelManager.remove(
-          oldVersion.label,
-          oldVersion.type,
-          oldVersion.id,
-        );
-      }
-
-      const hasConnections =
-        inputFeature.feature.properties &&
-        (inputFeature as LinkAsset).connections;
-
-      if (hasConnections) {
-        const [start, end] = (inputFeature as LinkAsset).connections;
-        model.topology.addLink(inputFeature.id, start, end);
-      }
-
-      model.labelManager.register(
-        (inputFeature as Asset).label,
-        (inputFeature as Asset).type,
-        (inputFeature as Asset).id,
-      );
-    }
-
-    for (const customerPoint of moment.putCustomerPoints || []) {
-      const oldVersion = model.customerPoints.get(customerPoint.id);
-      if (oldVersion) {
-        model.customerPointsLookup.removeConnection(oldVersion);
-      }
-      model.customerPointsLookup.addConnection(customerPoint);
-      model.customerPoints.set(customerPoint.id, customerPoint);
-    }
-
-    for (const curve of moment.putCurves || []) {
-      model.curves.set(curve.id, curve);
-    }
-
-    if (moment.putDemands) {
-      for (const pattern of model.demands.patterns.values()) {
-        model.labelManager.remove(pattern.label, "pattern", pattern.id);
-      }
-      model.demands = moment.putDemands;
-      for (const pattern of moment.putDemands.patterns.values()) {
-        model.labelManager.register(pattern.label, "pattern", pattern.id);
-      }
-    }
-
-    if (moment.putEPSTiming) {
-      model.epsTiming = moment.putEPSTiming;
-    }
-
-    if (moment.putControls) {
-      model.controls = moment.putControls;
-    }
   }
 
   private apply(
