@@ -88,9 +88,23 @@ export const EditableTextFieldWithConfirmation = forwardRef<
     blurInput();
   };
 
+  const tryCommit = (): boolean => {
+    const trimmedValue = inputValue.trim();
+    if (trimmedValue !== value || !trimmedValue || forceValidation) {
+      const hasValidationError = onChangeValue?.(trimmedValue);
+      if (hasValidationError) {
+        return false;
+      }
+    }
+    setDirty(false);
+    return true;
+  };
+
   const handleBlur = () => {
     if (isDirty || forceValidation) {
-      handleCommitLastChange();
+      if (!tryCommit()) {
+        resetInput();
+      }
     } else {
       resetInput();
     }
@@ -101,15 +115,9 @@ export const EditableTextFieldWithConfirmation = forwardRef<
   };
 
   const handleCommitLastChange = () => {
-    const trimmedValue = inputValue.trim();
-    if (trimmedValue !== value || !trimmedValue || forceValidation) {
-      const hasValidationError = onChangeValue?.(trimmedValue);
-      if (hasValidationError) {
-        return;
-      }
+    if (tryCommit()) {
+      blurInput();
     }
-    setDirty(false);
-    blurInput();
   };
 
   const blurInput = () => {
