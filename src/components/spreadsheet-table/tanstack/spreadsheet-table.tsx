@@ -393,7 +393,7 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
               const row = rowsModel.rows[virtualRow.index];
               const rowIndex = virtualRow.index;
               const isLast = virtualRow.index === rowsModel.rows.length - 1;
-              const hasScroll = rowsModel.rows.length > visibleRowCount;
+              const hasScroll = data.length > visibleRowCount;
 
               return (
                 <div
@@ -610,7 +610,7 @@ function TableDataCell<T>({
       aria-selected={isSelected}
       className={clsx(
         "relative h-8 grow select-none",
-        "border-l border-gray-200",
+        "border-gray-200 border-l",
         className,
         isActive ? "bg-white" : isSelected ? "bg-purple-300/10" : "bg-white",
         selectionEdge?.top && "border-t border-t-purple-500",

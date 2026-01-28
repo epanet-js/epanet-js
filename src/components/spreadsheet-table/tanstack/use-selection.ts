@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { CellPosition, SelectionState, SpreadsheetSelection } from "./types";
 
 type UseSelectionOptions = {
@@ -22,6 +22,51 @@ export function useSelection({
 
   const startDrag = useCallback(() => setIsDragging(true), []);
   const stopDrag = useCallback(() => setIsDragging(false), []);
+
+  useEffect(
+    function clampSelectionWhenDataSizeChanges() {
+      setState((prev) => {
+        if (!prev.activeCell) return prev;
+
+        const maxRow = rowCount - 1;
+        const maxCol = colCount - 1;
+
+        if (maxRow < 0 || maxCol < 0) {
+          return { activeCell: null, anchor: null, isEditing: false };
+        }
+
+        const clampedActiveCell = {
+          col: Math.min(prev.activeCell.col, maxCol),
+          row: Math.min(prev.activeCell.row, maxRow),
+        };
+
+        const clampedAnchor = prev.anchor
+          ? {
+              col: Math.min(prev.anchor.col, maxCol),
+              row: Math.min(prev.anchor.row, maxRow),
+            }
+          : null;
+
+        const activeCellChanged =
+          clampedActiveCell.col !== prev.activeCell.col ||
+          clampedActiveCell.row !== prev.activeCell.row;
+        const anchorChanged =
+          clampedAnchor?.col !== prev.anchor?.col ||
+          clampedAnchor?.row !== prev.anchor?.row;
+
+        if (activeCellChanged || anchorChanged) {
+          return {
+            activeCell: clampedActiveCell,
+            anchor: clampedAnchor,
+            isEditing: prev.isEditing,
+          };
+        }
+
+        return prev;
+      });
+    },
+    [rowCount, colCount],
+  );
 
   // Compute selection from active cell and anchor
   const selection = useMemo((): SpreadsheetSelection | null => {

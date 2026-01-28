@@ -813,6 +813,114 @@ describe("useSelection", () => {
     });
   });
 
+  describe("clamps selection when grid size decreases", () => {
+    it("clamps active cell row when rowCount decreases", () => {
+      const { result, rerender } = renderHook(
+        ({ rowCount, colCount }) => useSelection({ rowCount, colCount }),
+        { initialProps: { rowCount: 10, colCount: 3 } },
+      );
+
+      act(() => {
+        result.current.setActiveCell({ col: 1, row: 8 });
+      });
+
+      expect(result.current.activeCell).toEqual({ col: 1, row: 8 });
+
+      rerender({ rowCount: 5, colCount: 3 });
+
+      expect(result.current.activeCell).toEqual({ col: 1, row: 4 });
+    });
+
+    it("clamps active cell col when colCount decreases", () => {
+      const { result, rerender } = renderHook(
+        ({ rowCount, colCount }) => useSelection({ rowCount, colCount }),
+        { initialProps: { rowCount: 5, colCount: 10 } },
+      );
+
+      act(() => {
+        result.current.setActiveCell({ col: 8, row: 2 });
+      });
+
+      expect(result.current.activeCell).toEqual({ col: 8, row: 2 });
+
+      rerender({ rowCount: 5, colCount: 5 });
+
+      expect(result.current.activeCell).toEqual({ col: 4, row: 2 });
+    });
+
+    it("clamps both anchor and active cell when selection spans deleted rows", () => {
+      const { result, rerender } = renderHook(
+        ({ rowCount, colCount }) => useSelection({ rowCount, colCount }),
+        { initialProps: { rowCount: 10, colCount: 3 } },
+      );
+
+      act(() => {
+        result.current.setSelection({
+          min: { col: 0, row: 5 },
+          max: { col: 2, row: 9 },
+        });
+      });
+
+      expect(result.current.selection).toEqual({
+        min: { col: 0, row: 5 },
+        max: { col: 2, row: 9 },
+      });
+
+      rerender({ rowCount: 7, colCount: 3 });
+
+      expect(result.current.selection).toEqual({
+        min: { col: 0, row: 5 },
+        max: { col: 2, row: 6 },
+      });
+    });
+
+    it("clears selection when all rows are removed", () => {
+      const { result, rerender } = renderHook(
+        ({ rowCount, colCount }) => useSelection({ rowCount, colCount }),
+        { initialProps: { rowCount: 5, colCount: 3 } },
+      );
+
+      act(() => {
+        result.current.setActiveCell({ col: 1, row: 2 });
+      });
+
+      rerender({ rowCount: 0, colCount: 3 });
+
+      expect(result.current.activeCell).toBeNull();
+      expect(result.current.selection).toBeNull();
+    });
+
+    it("does not change selection when grid size stays the same", () => {
+      const { result, rerender } = renderHook(
+        ({ rowCount, colCount }) => useSelection({ rowCount, colCount }),
+        { initialProps: { rowCount: 5, colCount: 3 } },
+      );
+
+      act(() => {
+        result.current.setActiveCell({ col: 1, row: 2 });
+      });
+
+      rerender({ rowCount: 5, colCount: 3 });
+
+      expect(result.current.activeCell).toEqual({ col: 1, row: 2 });
+    });
+
+    it("does not change selection when grid size increases", () => {
+      const { result, rerender } = renderHook(
+        ({ rowCount, colCount }) => useSelection({ rowCount, colCount }),
+        { initialProps: { rowCount: 5, colCount: 3 } },
+      );
+
+      act(() => {
+        result.current.setActiveCell({ col: 1, row: 2 });
+      });
+
+      rerender({ rowCount: 10, colCount: 5 });
+
+      expect(result.current.activeCell).toEqual({ col: 1, row: 2 });
+    });
+  });
+
   describe("moveByPage", () => {
     it("moves down by page size", () => {
       const { result } = renderHook(() =>
