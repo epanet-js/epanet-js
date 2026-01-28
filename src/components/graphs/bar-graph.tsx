@@ -30,7 +30,11 @@ export function BarGraph({ values, labels, onBarClick }: BarGraphProps) {
       type: "category",
       data: labels,
       axisLine: { show: true, lineStyle: { color: colors.gray300 } },
-      axisTick: { show: true, alignWithLabel: true, lineStyle: { color: colors.gray300 } },
+      axisTick: {
+        show: true,
+        alignWithLabel: true,
+        lineStyle: { color: colors.gray300 },
+      },
       axisLabel: {
         show: true,
         color: colors.gray500,

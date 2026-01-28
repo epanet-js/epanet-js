@@ -178,6 +178,7 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
     columns: dataColumns,
     data,
     onChange,
+    createRow,
   });
 
   useImperativeHandle(

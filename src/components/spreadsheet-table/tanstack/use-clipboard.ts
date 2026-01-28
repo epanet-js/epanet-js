@@ -6,6 +6,7 @@ type UseClipboardOptions<TData extends Record<string, unknown>> = {
   columns: SpreadsheetColumn[];
   data: TData[];
   onChange: (data: TData[]) => void;
+  createRow: () => TData;
 };
 
 export function useClipboard<TData extends Record<string, unknown>>({
@@ -13,6 +14,7 @@ export function useClipboard<TData extends Record<string, unknown>>({
   columns,
   data,
   onChange,
+  createRow,
 }: UseClipboardOptions<TData>) {
   const copyToClipboard = useCallback(async () => {
     if (!selection) return;
@@ -64,9 +66,14 @@ export function useClipboard<TData extends Record<string, unknown>>({
       const clipboardRows = text.split("\n").map((row) => row.split("\t"));
       const newData = [...data];
 
+      // Extend data array if clipboard content exceeds current size
+      const requiredRows = selection.min.row + clipboardRows.length;
+      while (newData.length < requiredRows) {
+        newData.push(createRow());
+      }
+
       for (let i = 0; i < clipboardRows.length; i++) {
         const rowIndex = selection.min.row + i;
-        if (rowIndex >= data.length) break;
 
         const clipboardRow = clipboardRows[i];
         const newRow = { ...newData[rowIndex] };
@@ -95,7 +102,7 @@ export function useClipboard<TData extends Record<string, unknown>>({
     } catch {
       // Clipboard access denied or other error
     }
-  }, [selection, columns, data, onChange]);
+  }, [selection, columns, data, onChange, createRow]);
 
   const handleCopy = useCallback(
     (e: React.ClipboardEvent) => {
