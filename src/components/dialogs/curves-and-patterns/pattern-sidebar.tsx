@@ -286,14 +286,9 @@ const PatternSidebarItem = ({
         </Button>
         <PatternActionsMenu
           isSelected={isSelected}
-          onRename={() => {
-            onSelect();
-            onStartRename(pattern.id);
-          }}
-          onDuplicate={() => {
-            onSelect();
-            onStartClone(pattern);
-          }}
+          onOpen={onSelect}
+          onRename={() => onStartRename(pattern.id)}
+          onDuplicate={() => onStartClone(pattern)}
           onDelete={onDelete}
         />
       </li>
@@ -363,6 +358,7 @@ const PatternLabelInput = ({
 
 type PatternActionsMenuProps = {
   isSelected: boolean;
+  onOpen: () => void;
   onRename: () => void;
   onDuplicate: () => void;
   onDelete: () => void;
@@ -370,18 +366,23 @@ type PatternActionsMenuProps = {
 
 const PatternActionsMenu = ({
   isSelected,
+  onOpen,
   onRename,
   onDuplicate,
   onDelete,
 }: PatternActionsMenuProps) => {
   const translate = useTranslate();
 
+  const handleOpenChange = (open: boolean) => {
+    if (open) onOpen();
+  };
+
   return (
     <div
       onClick={(e) => e.stopPropagation()}
       className="self-stretch flex pr-1"
     >
-      <DD.Root modal={false}>
+      <DD.Root modal={false} onOpenChange={handleOpenChange}>
         <DD.Trigger asChild>
           <Button
             variant="quiet"
