@@ -183,8 +183,6 @@ export class Persistence implements IPersistenceWithSnapshots {
 
   private updateCacheAfterTransact(): void {
     const worktree = this.store.get(worktreeAtom);
-    if (worktree.scenarios.length === 0) return;
-
     const updatedModel = this.store.get(stagingModelAtom);
     this.modelCache.set(worktree.activeSnapshotId, updatedModel);
   }
@@ -224,8 +222,6 @@ export class Persistence implements IPersistenceWithSnapshots {
 
   private syncSnapshotMomentLog(momentLog: MomentLog, version: string): void {
     const worktree = this.store.get(worktreeAtom);
-    if (worktree.scenarios.length === 0) return;
-
     const snapshot = worktree.snapshots.get(worktree.activeSnapshotId);
     if (!snapshot) return;
 
@@ -241,8 +237,6 @@ export class Persistence implements IPersistenceWithSnapshots {
 
   syncSnapshotSimulation(simulation: SimulationState): void {
     const worktree = this.store.get(worktreeAtom);
-    if (worktree.scenarios.length === 0) return;
-
     const snapshot = worktree.snapshots.get(worktree.activeSnapshotId);
     if (!snapshot) return;
 
