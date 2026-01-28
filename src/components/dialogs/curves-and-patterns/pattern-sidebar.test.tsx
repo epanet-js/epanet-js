@@ -29,6 +29,7 @@ describe("PatternSidebar", () => {
         <PatternSidebar
           patterns={patterns}
           selectedPatternId={null}
+          minPatternSteps={1}
           onSelectPattern={vi.fn()}
           onAddPattern={vi.fn()}
           onChangePattern={vi.fn()}
@@ -49,6 +50,7 @@ describe("PatternSidebar", () => {
         <PatternSidebar
           patterns={new Map()}
           selectedPatternId={null}
+          minPatternSteps={1}
           onSelectPattern={vi.fn()}
           onAddPattern={vi.fn()}
           onChangePattern={vi.fn()}
@@ -74,6 +76,7 @@ describe("PatternSidebar", () => {
         <PatternSidebar
           patterns={patterns}
           selectedPatternId={null}
+          minPatternSteps={1}
           onSelectPattern={onSelectPattern}
           onAddPattern={vi.fn()}
           onChangePattern={vi.fn()}
@@ -95,6 +98,7 @@ describe("PatternSidebar", () => {
         <PatternSidebar
           patterns={new Map()}
           selectedPatternId={null}
+          minPatternSteps={1}
           onSelectPattern={vi.fn()}
           onAddPattern={vi.fn()}
           onChangePattern={vi.fn()}
@@ -114,6 +118,7 @@ describe("PatternSidebar", () => {
         <PatternSidebar
           patterns={new Map()}
           selectedPatternId={null}
+          minPatternSteps={1}
           onSelectPattern={vi.fn()}
           onAddPattern={vi.fn()}
           onChangePattern={vi.fn()}
@@ -135,6 +140,7 @@ describe("PatternSidebar", () => {
         <PatternSidebar
           patterns={new Map()}
           selectedPatternId={null}
+          minPatternSteps={1}
           onSelectPattern={vi.fn()}
           onAddPattern={onAddPattern}
           onChangePattern={vi.fn()}
@@ -157,6 +163,7 @@ describe("PatternSidebar", () => {
         <PatternSidebar
           patterns={new Map()}
           selectedPatternId={null}
+          minPatternSteps={1}
           onSelectPattern={vi.fn()}
           onAddPattern={createMockOnAddPattern()}
           onChangePattern={vi.fn()}
@@ -182,6 +189,7 @@ describe("PatternSidebar", () => {
         <PatternSidebar
           patterns={new Map()}
           selectedPatternId={null}
+          minPatternSteps={1}
           onSelectPattern={vi.fn()}
           onAddPattern={onAddPattern}
           onChangePattern={vi.fn()}
@@ -206,6 +214,7 @@ describe("PatternSidebar", () => {
         <PatternSidebar
           patterns={new Map()}
           selectedPatternId={null}
+          minPatternSteps={1}
           onSelectPattern={vi.fn()}
           onAddPattern={onAddPattern}
           onChangePattern={vi.fn()}
@@ -232,6 +241,7 @@ describe("PatternSidebar", () => {
         <PatternSidebar
           patterns={patterns}
           selectedPatternId={null}
+          minPatternSteps={1}
           onSelectPattern={vi.fn()}
           onAddPattern={onAddPattern}
           onChangePattern={vi.fn()}
@@ -255,6 +265,7 @@ describe("PatternSidebar", () => {
         <PatternSidebar
           patterns={new Map()}
           selectedPatternId={null}
+          minPatternSteps={1}
           onSelectPattern={vi.fn()}
           onAddPattern={onAddPattern}
           onChangePattern={vi.fn()}
@@ -287,6 +298,7 @@ describe("PatternSidebar", () => {
         <PatternSidebar
           patterns={patterns}
           selectedPatternId={null}
+          minPatternSteps={1}
           onSelectPattern={vi.fn()}
           onAddPattern={onAddPattern}
           onChangePattern={vi.fn()}
@@ -311,6 +323,34 @@ describe("PatternSidebar", () => {
       // Should now succeed with the modified name
       expect(onAddPattern).toHaveBeenCalledWith("existing2", [1], "new");
     });
+
+    it("creates default multipliers array with length based on minPatternSteps", async () => {
+      const user = setupUser();
+      const onAddPattern = createMockOnAddPattern();
+
+      render(
+        <PatternSidebar
+          patterns={new Map()}
+          selectedPatternId={null}
+          minPatternSteps={24}
+          onSelectPattern={vi.fn()}
+          onAddPattern={onAddPattern}
+          onChangePattern={vi.fn()}
+          onDeletePattern={vi.fn()}
+        />,
+      );
+
+      await user.click(screen.getByRole("button", { name: /add pattern/i }));
+      const input = screen.getByRole("textbox");
+      await user.type(input, "NewPattern");
+      await user.keyboard("{Enter}");
+
+      expect(onAddPattern).toHaveBeenCalledWith(
+        "NewPattern",
+        Array(24).fill(1),
+        "new",
+      );
+    });
   });
 
   describe("renaming patterns", () => {
@@ -324,6 +364,7 @@ describe("PatternSidebar", () => {
         <PatternSidebar
           patterns={patterns}
           selectedPatternId={1}
+          minPatternSteps={1}
           onSelectPattern={vi.fn()}
           onAddPattern={vi.fn()}
           onChangePattern={vi.fn()}
@@ -350,6 +391,7 @@ describe("PatternSidebar", () => {
         <PatternSidebar
           patterns={patterns}
           selectedPatternId={1}
+          minPatternSteps={1}
           onSelectPattern={vi.fn()}
           onAddPattern={vi.fn()}
           onChangePattern={onChange}
@@ -379,6 +421,7 @@ describe("PatternSidebar", () => {
         <PatternSidebar
           patterns={patterns}
           selectedPatternId={1}
+          minPatternSteps={1}
           onSelectPattern={vi.fn()}
           onAddPattern={vi.fn()}
           onChangePattern={onChange}
@@ -408,6 +451,7 @@ describe("PatternSidebar", () => {
         <PatternSidebar
           patterns={patterns}
           selectedPatternId={1}
+          minPatternSteps={1}
           onSelectPattern={vi.fn()}
           onAddPattern={vi.fn()}
           onChangePattern={onChange}
@@ -438,6 +482,7 @@ describe("PatternSidebar", () => {
         <PatternSidebar
           patterns={patterns}
           selectedPatternId={1}
+          minPatternSteps={1}
           onSelectPattern={vi.fn()}
           onAddPattern={vi.fn()}
           onChangePattern={onChange}
@@ -471,6 +516,7 @@ describe("PatternSidebar", () => {
         <PatternSidebar
           patterns={patterns}
           selectedPatternId={1}
+          minPatternSteps={1}
           onSelectPattern={vi.fn()}
           onAddPattern={vi.fn()}
           onChangePattern={onChange}
@@ -505,6 +551,7 @@ describe("PatternSidebar", () => {
         <PatternSidebar
           patterns={patterns}
           selectedPatternId={1}
+          minPatternSteps={1}
           onSelectPattern={vi.fn()}
           onAddPattern={vi.fn()}
           onChangePattern={vi.fn()}
@@ -531,6 +578,7 @@ describe("PatternSidebar", () => {
         <PatternSidebar
           patterns={patterns}
           selectedPatternId={1}
+          minPatternSteps={1}
           onSelectPattern={vi.fn()}
           onAddPattern={onAddPattern}
           onChangePattern={vi.fn()}
@@ -564,6 +612,7 @@ describe("PatternSidebar", () => {
         <PatternSidebar
           patterns={patterns}
           selectedPatternId={1}
+          minPatternSteps={1}
           onSelectPattern={vi.fn()}
           onAddPattern={onAddPattern}
           onChangePattern={vi.fn()}
@@ -593,6 +642,7 @@ describe("PatternSidebar", () => {
         <PatternSidebar
           patterns={patterns}
           selectedPatternId={1}
+          minPatternSteps={1}
           onSelectPattern={vi.fn()}
           onAddPattern={onAddPattern}
           onChangePattern={vi.fn()}
@@ -626,6 +676,7 @@ describe("PatternSidebar", () => {
         <PatternSidebar
           patterns={patterns}
           selectedPatternId={1}
+          minPatternSteps={1}
           onSelectPattern={vi.fn()}
           onAddPattern={onAddPattern}
           onChangePattern={vi.fn()}
@@ -659,6 +710,7 @@ describe("PatternSidebar", () => {
         <PatternSidebar
           patterns={patterns}
           selectedPatternId={1}
+          minPatternSteps={1}
           onSelectPattern={vi.fn()}
           onAddPattern={onAddPattern}
           onChangePattern={vi.fn()}
@@ -692,6 +744,7 @@ describe("PatternSidebar", () => {
         <PatternSidebar
           patterns={patterns}
           selectedPatternId={null}
+          minPatternSteps={1}
           onSelectPattern={onSelectPattern}
           onAddPattern={vi.fn()}
           onChangePattern={vi.fn()}

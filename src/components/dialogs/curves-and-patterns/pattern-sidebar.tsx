@@ -27,6 +27,7 @@ type ActionState =
 type PatternSidebarProps = {
   patterns: DemandPatterns;
   selectedPatternId: PatternId | null;
+  minPatternSteps: number;
   onSelectPattern: (patternId: PatternId) => void;
   onAddPattern: (
     label: string,
@@ -40,6 +41,7 @@ type PatternSidebarProps = {
 export const PatternSidebar = ({
   patterns,
   selectedPatternId,
+  minPatternSteps,
   onSelectPattern,
   onAddPattern,
   onChangePattern,
@@ -160,7 +162,7 @@ export const PatternSidebar = ({
       const isCloning = actionState.action === "cloning";
       const multipliers = isCloning
         ? [...actionState.sourcePattern.multipliers]
-        : [1];
+        : Array(minPatternSteps).fill(1);
       const source = isCloning ? "clone" : "new";
       const newId = onAddPattern(trimmedName, multipliers, source);
       onSelectPattern(newId);

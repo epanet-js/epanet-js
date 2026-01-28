@@ -49,6 +49,10 @@ export const CurvesAndPatternsDialog = () => {
   const patternTimestepSeconds =
     hydraulicModel.epsTiming.patternTimestep ?? 3600;
   const totalDurationSeconds = hydraulicModel.epsTiming.duration ?? 0;
+  const minPatternSteps =
+    totalDurationSeconds > 0
+      ? Math.ceil(totalDurationSeconds / patternTimestepSeconds)
+      : 1;
 
   const getPatternMultipliers = useCallback(
     (patternId: PatternId): PatternMultipliers =>
@@ -165,6 +169,7 @@ export const CurvesAndPatternsDialog = () => {
         <PatternSidebar
           patterns={editedPatterns}
           selectedPatternId={selectedPatternId}
+          minPatternSteps={minPatternSteps}
           onSelectPattern={setSelectedPatternId}
           onAddPattern={handleAddPattern}
           onChangePattern={handlePatternChange}
