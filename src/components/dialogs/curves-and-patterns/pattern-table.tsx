@@ -10,6 +10,7 @@ import {
   floatColumn,
   textReadonlyColumn,
   type SpreadsheetTableRef,
+  type SpreadsheetSelection,
   type RowAction,
 } from "src/components/spreadsheet-table";
 import { PatternMultipliers } from "src/hydraulic-model/demands";
@@ -28,6 +29,7 @@ type PatternTableProps = {
   pattern: PatternMultipliers;
   patternTimestepSeconds: number;
   onChange: (pattern: PatternMultipliers) => void;
+  onSelectionChange?: (selection: SpreadsheetSelection | null) => void;
 };
 
 export type PatternTableRef = SpreadsheetTableRef | PatternTableRefLegacy;
@@ -68,7 +70,7 @@ const fromRows = (rows: PatternRow[]): PatternMultipliers => {
 
 const PatternTableTanstack = forwardRef<SpreadsheetTableRef, PatternTableProps>(
   function PatternTableTanstack(
-    { pattern, patternTimestepSeconds, onChange },
+    { pattern, patternTimestepSeconds, onChange, onSelectionChange },
     ref,
   ) {
     const translate = useTranslate();
@@ -219,6 +221,7 @@ const PatternTableTanstack = forwardRef<SpreadsheetTableRef, PatternTableProps>(
           rowActions={rowActions}
           addRowLabel={translate("addTimestep")}
           gutterColumn
+          onSelectionChange={onSelectionChange}
         />
       </div>
     );

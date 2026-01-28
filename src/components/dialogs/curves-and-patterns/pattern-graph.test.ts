@@ -121,4 +121,71 @@ describe("buildPatternData", () => {
       expect(result.labels).toEqual(["0:00", "1:00", "2:00"]);
     });
   });
+
+  describe("highlighted bar indices", () => {
+    it("highlights specified indices with fuchsia color", () => {
+      const pattern = [1.0, 0.8, 0.6, 0.4];
+      const result = buildPatternData(pattern, HOUR, 4 * HOUR, [1, 3]);
+
+      expect(result.values[0].itemStyle.color).toBe(colors.purple500);
+      expect(result.values[1].itemStyle.color).toBe(colors.fuchsia500);
+      expect(result.values[2].itemStyle.color).toBe(colors.purple500);
+      expect(result.values[3].itemStyle.color).toBe(colors.fuchsia500);
+    });
+
+    it("expands highlighted indices to cycled occurrences", () => {
+      const pattern = [1.0, 0.8, 0.6];
+      // 6 bars total: indices 0,1,2 (original) and 3,4,5 (cycled)
+      // Highlighting index 1 should also highlight index 4 (1 + 3)
+      const result = buildPatternData(pattern, HOUR, 6 * HOUR, [1]);
+
+      expect(result.values[0].itemStyle.color).toBe(colors.purple500);
+      expect(result.values[1].itemStyle.color).toBe(colors.fuchsia500);
+      expect(result.values[2].itemStyle.color).toBe(colors.purple500);
+      expect(result.values[3].itemStyle.color).toBe(colors.purple300);
+      expect(result.values[4].itemStyle.color).toBe(colors.fuchsia500);
+      expect(result.values[5].itemStyle.color).toBe(colors.purple300);
+    });
+
+    it("highlights multiple cycled occurrences", () => {
+      const pattern = [1.0, 0.8];
+      // 6 bars: 0,1 (original), 2,3,4,5 (cycled)
+      // Highlighting index 0 should highlight 0, 2, 4
+      const result = buildPatternData(pattern, HOUR, 6 * HOUR, [0]);
+
+      expect(result.values[0].itemStyle.color).toBe(colors.fuchsia500);
+      expect(result.values[1].itemStyle.color).toBe(colors.purple500);
+      expect(result.values[2].itemStyle.color).toBe(colors.fuchsia500);
+      expect(result.values[3].itemStyle.color).toBe(colors.purple300);
+      expect(result.values[4].itemStyle.color).toBe(colors.fuchsia500);
+      expect(result.values[5].itemStyle.color).toBe(colors.purple300);
+    });
+
+    it("returns normal colors when no indices are highlighted", () => {
+      const pattern = [1.0, 0.8, 0.6];
+      const result = buildPatternData(pattern, HOUR, 3 * HOUR, []);
+
+      expect(result.values[0].itemStyle.color).toBe(colors.purple500);
+      expect(result.values[1].itemStyle.color).toBe(colors.purple500);
+      expect(result.values[2].itemStyle.color).toBe(colors.purple500);
+    });
+
+    it("returns normal colors when highlightedBarIndices is undefined", () => {
+      const pattern = [1.0, 0.8, 0.6];
+      const result = buildPatternData(pattern, HOUR, 3 * HOUR, undefined);
+
+      expect(result.values[0].itemStyle.color).toBe(colors.purple500);
+      expect(result.values[1].itemStyle.color).toBe(colors.purple500);
+      expect(result.values[2].itemStyle.color).toBe(colors.purple500);
+    });
+
+    it("highlights out-of-duration bars", () => {
+      const pattern = [1.0, 0.8, 0.6, 0.4, 0.5];
+      // 3 in-duration, 2 out-of-duration
+      const result = buildPatternData(pattern, HOUR, 3 * HOUR, [4]);
+
+      expect(result.values[3].itemStyle.color).toBe(colors.gray300);
+      expect(result.values[4].itemStyle.color).toBe(colors.fuchsia500);
+    });
+  });
 });

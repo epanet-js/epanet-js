@@ -342,6 +342,15 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
     focusRow(0);
   }, [activeCell, data.length, focusRow]);
 
+  const handleEmptyAreaMouseDown = useCallback(
+    (e: React.MouseEvent) => {
+      if (e.target === e.currentTarget) {
+        clearSelection();
+      }
+    },
+    [clearSelection],
+  );
+
   if (data.length === 0 && emptyState) {
     return emptyState as React.ReactElement;
   }
@@ -369,6 +378,7 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
           tabIndex={0}
           onKeyDown={handleKeyDown}
           onFocus={handleFocus}
+          onMouseDown={handleEmptyAreaMouseDown}
           onCopy={handleCopy}
           onPaste={handlePaste}
           className="outline-none overflow-auto h-full border border-gray-200"
