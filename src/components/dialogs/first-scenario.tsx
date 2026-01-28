@@ -9,7 +9,7 @@ import { Checkbox } from "../form/Checkbox";
 import { useTranslate } from "src/hooks/use-translate";
 import { useUserTracking } from "src/infra/user-tracking";
 import { userSettingsAtom } from "src/state/user-settings";
-import { ScenarioIcon } from "src/icons";
+import { AddScenarioIcon } from "src/icons";
 import { EarlyAccessBadge } from "../early-access-badge";
 
 export const FirstScenarioDialog = ({
@@ -45,7 +45,7 @@ export const FirstScenarioDialog = ({
     <DialogContainer size="sm">
       <DialogHeader
         title={translate("scenarios.firstScenario.title")}
-        titleIcon={ScenarioIcon}
+        titleIcon={AddScenarioIcon}
         badge={<EarlyAccessBadge />}
       />
 
