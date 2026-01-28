@@ -1,6 +1,10 @@
 import { Node, NodeProperties } from "./node";
 import { CustomerPointsLookup } from "../customer-points-lookup";
-import { JunctionDemand } from "../demands";
+import {
+  JunctionDemand,
+  DemandPatterns,
+  calculateAverageDemand,
+} from "../demands";
 
 export type JunctionProperties = {
   type: "junction";
@@ -59,13 +63,16 @@ export class Junction extends Node<JunctionProperties> {
     return this.units[key];
   }
 
-  getTotalCustomerDemand(customerPointsLookup: CustomerPointsLookup): number {
+  getTotalCustomerDemand(
+    customerPointsLookup: CustomerPointsLookup,
+    patterns: DemandPatterns,
+  ): number {
     const connectedCustomerPoints = customerPointsLookup.getCustomerPoints(
       this.id,
     );
 
     return Array.from(connectedCustomerPoints).reduce(
-      (sum, cp) => sum + cp.baseDemand,
+      (sum, cp) => sum + calculateAverageDemand(cp.demands, patterns),
       0,
     );
   }

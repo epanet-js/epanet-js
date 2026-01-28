@@ -1,7 +1,6 @@
 import { useAtomValue, useSetAtom } from "jotai";
 import { useCallback } from "react";
 import { buildInp } from "src/simulation/build-inp";
-import { buildInpWithCustomerDemands } from "src/simulation/build-inp-with-customer-demands";
 import { dialogAtom, simulationAtom, stagingModelAtom } from "src/state/jotai";
 import {
   ProgressCallback,
@@ -27,17 +26,13 @@ export const useRunSimulation = () => {
   const setDrawingMode = useDrawingMode();
   const worktree = useAtomValue(worktreeAtom);
   const isScenariosOn = useFeatureFlag("FLAG_SCENARIOS");
-  const isCustomerDemandsOn = useFeatureFlag("FLAG_CUSTOMER_DEMANDS");
   const persistence = usePersistenceWithSnapshots();
 
   const runSimulation = useCallback(
     async (options?: { onContinue?: () => void }) => {
       setDrawingMode(Mode.NONE);
       setSimulationState((prev) => ({ ...prev, status: "running" }));
-      const buildInpFn = isCustomerDemandsOn
-        ? buildInpWithCustomerDemands
-        : buildInp;
-      const inp = buildInpFn(hydraulicModel, {
+      const inp = buildInp(hydraulicModel, {
         customerDemands: true,
         usedPatterns: true,
       });
@@ -116,7 +111,6 @@ export const useRunSimulation = () => {
       setDialogState,
       setHydraulicModel,
       isScenariosOn,
-      isCustomerDemandsOn,
       worktree.activeSnapshotId,
       persistence,
     ],

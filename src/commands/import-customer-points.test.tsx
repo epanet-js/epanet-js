@@ -254,7 +254,10 @@ describe.skip("importCustomerPoints", () => {
       hydraulicModel.customerPointsLookup.getCustomerPoints(IDS.J1);
     expect(junctionCustomerPoints?.size).toBe(1);
     expect(
-      junction.getTotalCustomerDemand(hydraulicModel.customerPointsLookup),
+      junction.getTotalCustomerDemand(
+        hydraulicModel.customerPointsLookup,
+        hydraulicModel.demands.patterns,
+      ),
     ).toBeCloseTo(0.000231, 6);
   });
 
@@ -329,7 +332,10 @@ describe.skip("importCustomerPoints", () => {
       hydraulicModel.customerPointsLookup.getCustomerPoints(IDS.J1);
     expect(junctionCustomerPoints?.size).toBe(1);
     expect(
-      junction.getTotalCustomerDemand(hydraulicModel.customerPointsLookup),
+      junction.getTotalCustomerDemand(
+        hydraulicModel.customerPointsLookup,
+        hydraulicModel.demands.patterns,
+      ),
     ).toBeCloseTo(0.000289, 6);
   });
 
@@ -400,7 +406,7 @@ describe.skip("importCustomerPoints", () => {
           .aJunction(IDS.J1, { coordinates: [0, 0] })
           .aCustomerPoint(IDS.EXISTING, {
             coordinates: [5, 5],
-            demand: 100,
+            demands: [{ baseDemand: 100 }],
           })
           .build(),
       });

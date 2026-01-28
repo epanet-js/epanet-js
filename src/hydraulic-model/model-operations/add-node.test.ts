@@ -230,7 +230,7 @@ describe("addNode", () => {
 
       const customerPoint = buildCustomerPoint(IDS.CP1, {
         coordinates: [3, 1],
-        demand: 75,
+        demands: [{ baseDemand: 75 }],
       });
 
       customerPoint.connect({

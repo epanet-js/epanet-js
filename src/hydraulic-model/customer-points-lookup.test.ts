@@ -8,14 +8,12 @@ describe("CustomerPointsLookup", () => {
     const lookup = new CustomerPointsLookup();
 
     const cp1 = new CustomerPoint(IDS.CP1, [0, 0], {
-      baseDemand: 10,
       label: "cp1",
       demands: [{ baseDemand: 10 }],
     });
     cp1.connect({ pipeId: IDS.P1, snapPoint: [1, 1], junctionId: IDS.J1 });
 
     const cp2 = new CustomerPoint(IDS.CP2, [0, 0], {
-      baseDemand: 20,
       label: "cp2",
       demands: [{ baseDemand: 20 }],
     });
@@ -34,14 +32,12 @@ describe("CustomerPointsLookup", () => {
     const lookup = new CustomerPointsLookup();
 
     const cp1 = new CustomerPoint(IDS.CP1, [0, 0], {
-      baseDemand: 10,
       label: "cp1",
       demands: [{ baseDemand: 10 }],
     });
     cp1.connect({ pipeId: IDS.P1, snapPoint: [1, 1], junctionId: IDS.J1 });
 
     const cp2 = new CustomerPoint(IDS.CP2, [0, 0], {
-      baseDemand: 20,
       label: "cp2",
       demands: [{ baseDemand: 20 }],
     });
@@ -61,14 +57,12 @@ describe("CustomerPointsLookup", () => {
     const lookup = new CustomerPointsLookup();
 
     const cp1 = new CustomerPoint(IDS.CP1, [0, 0], {
-      baseDemand: 10,
       label: "cp1",
       demands: [{ baseDemand: 10 }],
     });
     cp1.connect({ pipeId: IDS.P1, snapPoint: [1, 1], junctionId: IDS.J1 });
 
     const cp2 = new CustomerPoint(IDS.CP2, [0, 0], {
-      baseDemand: 20,
       label: "cp2",
       demands: [{ baseDemand: 20 }],
     });
@@ -86,14 +80,12 @@ describe("CustomerPointsLookup", () => {
     const lookup = new CustomerPointsLookup();
 
     const cp1 = new CustomerPoint(IDS.CP1, [0, 0], {
-      baseDemand: 10,
       label: "cp1",
       demands: [{ baseDemand: 10 }],
     });
     cp1.connect({ pipeId: IDS.P1, snapPoint: [1, 1], junctionId: IDS.J1 });
 
     const cp2 = new CustomerPoint(IDS.CP2, [0, 0], {
-      baseDemand: 20,
       label: "cp2",
       demands: [{ baseDemand: 20 }],
     });
@@ -111,7 +103,6 @@ describe("CustomerPointsLookup", () => {
     const lookup = new CustomerPointsLookup();
 
     const cp1 = new CustomerPoint(IDS.CP1, [0, 0], {
-      baseDemand: 10,
       label: "cp1",
       demands: [{ baseDemand: 10 }],
     });
@@ -127,7 +118,6 @@ describe("CustomerPointsLookup", () => {
     const lookup = new CustomerPointsLookup();
 
     const cp1 = new CustomerPoint(IDS.CP1, [0, 0], {
-      baseDemand: 10,
       label: "cp1",
       demands: [{ baseDemand: 10 }],
     });
@@ -147,7 +137,6 @@ describe("CustomerPointsLookup", () => {
     const lookup = new CustomerPointsLookup();
 
     const cp1 = new CustomerPoint(IDS.CP1, [0, 0], {
-      baseDemand: 10,
       label: "cp1",
       demands: [{ baseDemand: 10 }],
     });

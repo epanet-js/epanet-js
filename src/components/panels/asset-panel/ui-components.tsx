@@ -25,7 +25,6 @@ import {
   JunctionDemand,
   calculateAverageDemand,
 } from "src/hydraulic-model/demands";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useSetAtom, useAtom } from "jotai";
 import { ephemeralStateAtom } from "src/state/jotai";
 import { assetPanelFooterAtom } from "src/state/quick-graph";
@@ -473,7 +472,6 @@ const CustomerPointsPopover = ({
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
   const setEphemeralState = useSetAtom(ephemeralStateAtom);
-  const isCustomerDemandsOn = useFeatureFlag("FLAG_CUSTOMER_DEMANDS");
 
   const handleCustomerPointHover = (customerPoint: CustomerPoint) => {
     setEphemeralState({
@@ -536,9 +534,11 @@ const CustomerPointsPopover = ({
         >
           {rowVirtualizer.getVirtualItems().map((virtualRow) => {
             const customerPoint = customerPoints[virtualRow.index];
-            const demand = isCustomerDemandsOn
-              ? calculateAverageDemand(customerPoint.demands, patterns)
-              : customerPoint.baseDemand;
+            const demand = calculateAverageDemand(
+              customerPoint.demands,
+              patterns,
+            );
+
             const demandValue = localizeDecimal(
               convertTo({ value: demand, unit: aggregateUnit }, customerUnit),
             );

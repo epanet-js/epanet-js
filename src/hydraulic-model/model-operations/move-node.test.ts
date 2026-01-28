@@ -67,7 +67,7 @@ describe("moveNode", () => {
         })
         .aCustomerPoint(IDS.CP1, {
           coordinates: [20, 15],
-          demand: 1,
+          demands: [{ baseDemand: 1 }],
           connection: {
             pipeId: IDS.P1,
             snapPoint: [20, 10],
@@ -104,7 +104,7 @@ describe("moveNode", () => {
         })
         .aCustomerPoint(IDS.CP1, {
           coordinates: [20, 15],
-          demand: 1,
+          demands: [{ baseDemand: 1 }],
           connection: {
             pipeId: IDS.P1,
             snapPoint: [20, 10],
@@ -155,7 +155,7 @@ describe("moveNode", () => {
         })
         .aCustomerPoint(IDS.CP1, {
           coordinates: [5, 0],
-          demand: 10,
+          demands: [{ baseDemand: 10 }],
           connection: {
             pipeId: IDS.P1,
             junctionId: IDS.J1,
@@ -189,7 +189,7 @@ describe("moveNode", () => {
         })
         .aCustomerPoint(IDS.CP1, {
           coordinates: [2, 0],
-          demand: 10,
+          demands: [{ baseDemand: 10 }],
           connection: {
             pipeId: IDS.P1,
             junctionId: IDS.J1,
@@ -224,7 +224,7 @@ describe("moveNode", () => {
         })
         .aCustomerPoint(IDS.CP1, {
           coordinates: [5, 0],
-          demand: 5,
+          demands: [{ baseDemand: 5 }],
           connection: {
             pipeId: IDS.P1,
             junctionId: IDS.J1,
@@ -233,7 +233,7 @@ describe("moveNode", () => {
         })
         .aCustomerPoint(IDS.CP2, {
           coordinates: [25, 0],
-          demand: 8,
+          demands: [{ baseDemand: 8 }],
           connection: {
             pipeId: IDS.P1,
             junctionId: IDS.J2,
@@ -270,7 +270,7 @@ describe("moveNode", () => {
         })
         .aCustomerPoint(IDS.CP1, {
           coordinates: [-122.414, 37.775],
-          demand: 10,
+          demands: [{ baseDemand: 10 }],
           connection: {
             pipeId: IDS.P1,
             junctionId: IDS.J1,
@@ -334,7 +334,7 @@ describe("moveNode", () => {
       .aPipe(IDS.P2, { startNodeId: IDS.J3, endNodeId: IDS.J4 })
       .aCustomerPoint(IDS.CP1, {
         coordinates: [3, 1],
-        demand: 50,
+        demands: [{ baseDemand: 50 }],
         connection: {
           pipeId: IDS.P1,
           snapPoint: [3, 0],
@@ -343,7 +343,7 @@ describe("moveNode", () => {
       })
       .aCustomerPoint(IDS.CP2, {
         coordinates: [0, 12],
-        demand: 75,
+        demands: [{ baseDemand: 75 }],
         connection: {
           pipeId: IDS.P2,
           snapPoint: [0, 10],
@@ -490,7 +490,7 @@ describe("moveNode", () => {
       })
       .aCustomerPoint(IDS.CP1, {
         coordinates: [3, 1],
-        demand: 50,
+        demands: [{ baseDemand: 50 }],
         connection: {
           pipeId: IDS.P1,
           snapPoint: [3, 0],

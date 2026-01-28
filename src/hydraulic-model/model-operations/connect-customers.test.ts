@@ -106,7 +106,7 @@ describe("connectCustomers", () => {
         ],
       })
       .aCustomerPoint(IDS.CP1, {
-        demand: 25,
+        demands: [{ baseDemand: 25 }],
         coordinates: [2, 5],
         connection: { pipeId: IDS.P2, junctionId: IDS.J1 },
       })

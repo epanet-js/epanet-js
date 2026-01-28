@@ -443,8 +443,8 @@ describe("build inp", () => {
     expect(inp).toContain("2\t30\t40");
   });
 
-  describe("customer demands", () => {
-    it("includes customer demands when enabled", () => {
+  describe("customer demands grouped by pattern", () => {
+    it("includes customer demands without pattern when no pattern assigned", () => {
       const IDS = { J1: 1, P1: 2, CP1: 3 };
       const hydraulicModel = HydraulicModelBuilder.with()
         .aJunction(IDS.J1, { elevation: 10, demands: [{ baseDemand: 50 }] })
@@ -457,18 +457,133 @@ describe("build inp", () => {
           ],
         })
         .aCustomerPoint(IDS.CP1, {
-          demand: 25,
+          demands: [{ baseDemand: 25 }],
           connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
         })
         .build();
 
-      const inp = buildInp(hydraulicModel, { customerDemands: true });
+      const inp = buildInp(hydraulicModel, {
+        customerDemands: true,
+      });
 
       expect(inp).toContain("[DEMANDS]");
       expect(inp).toContain("1\t50");
-      expect(inp).toContain("1\t25\tepanetjs_customers");
+      // Customer demand without pattern should have comment marker
+      expect(inp).toContain("1\t25\t;epanetjs_customers");
+    });
+
+    it("groups customer demands by pattern", () => {
+      const IDS = {
+        J1: 1,
+        P1: 2,
+        CP1: 3,
+        CP2: 4,
+        CP3: 5,
+        PAT1: 100,
+        PAT2: 101,
+      };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, { elevation: 10, demands: [{ baseDemand: 50 }] })
+        .aPipe(IDS.P1, {
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J1,
+          coordinates: [
+            [0, 0],
+            [10, 0],
+          ],
+        })
+        .aCustomerPoint(IDS.CP1, {
+          demands: [{ baseDemand: 10, patternId: IDS.PAT1 }],
+          connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
+        })
+        .aCustomerPoint(IDS.CP2, {
+          demands: [{ baseDemand: 15, patternId: IDS.PAT1 }],
+          connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
+        })
+        .aCustomerPoint(IDS.CP3, {
+          demands: [{ baseDemand: 20, patternId: IDS.PAT2 }],
+          connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
+        })
+        .aDemandPattern(IDS.PAT1, "residential", [1, 1.2, 0.8])
+        .aDemandPattern(IDS.PAT2, "commercial", [0.5, 1.5, 1.0])
+        .build();
+
+      const inp = buildInp(hydraulicModel, {
+        customerDemands: true,
+      });
+
+      expect(inp).toContain("[DEMANDS]");
+      expect(inp).toContain("1\t50");
+      // Residential pattern should have total of 25 (10 + 15)
+      expect(inp).toContain(`1\t25\tresidential`);
+      // Commercial pattern should have total of 20
+      expect(inp).toContain(`1\t20\tcommercial`);
+      // Patterns should be in the PATTERNS section
       expect(inp).toContain("[PATTERNS]");
-      expect(inp).toContain("epanetjs_customers\t1");
+      expect(inp).toContain(`residential\t1\t1.2\t0.8`);
+      expect(inp).toContain(`commercial\t0.5\t1.5\t1`);
+    });
+
+    it("marks customer demands with epanetjs_customers comment for re-import", () => {
+      const IDS = { J1: 1, P1: 2, CP1: 3, PAT1: 100 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, { elevation: 10, demands: [{ baseDemand: 50 }] })
+        .aPipe(IDS.P1, {
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J1,
+          coordinates: [
+            [0, 0],
+            [10, 0],
+          ],
+        })
+        .aCustomerPoint(IDS.CP1, {
+          demands: [{ baseDemand: 25, patternId: IDS.PAT1 }],
+          connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
+        })
+        .aDemandPattern(IDS.PAT1, "residential", [1, 1.2, 0.8])
+        .build();
+
+      const inp = buildInp(hydraulicModel, {
+        customerDemands: true,
+      });
+
+      // Customer demand should have the comment marker for re-import identification
+      expect(inp).toContain(`1\t25\tresidential\t;epanetjs_customers`);
+      // Junction's own demand should NOT have the comment marker
+      expect(inp).toContain("1\t50");
+      expect(inp).not.toContain("1\t50\t;epanetjs_customers");
+    });
+
+    it("handles multiple customer points on same junction without patterns", () => {
+      const IDS = { J1: 1, P1: 2, CP1: 3, CP2: 4 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, { elevation: 10, demands: [{ baseDemand: 50 }] })
+        .aPipe(IDS.P1, {
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J1,
+          coordinates: [
+            [0, 0],
+            [10, 0],
+          ],
+        })
+        .aCustomerPoint(IDS.CP1, {
+          demands: [{ baseDemand: 25 }],
+          connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
+        })
+        .aCustomerPoint(IDS.CP2, {
+          demands: [{ baseDemand: 30 }],
+          connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
+        })
+        .build();
+
+      const inp = buildInp(hydraulicModel, {
+        customerDemands: true,
+      });
+
+      expect(inp).toContain("[DEMANDS]");
+      expect(inp).toContain("1\t50");
+      // Should aggregate to 55 without a pattern, with comment marker
+      expect(inp).toContain("1\t55\t;epanetjs_customers");
     });
 
     it("does not include customer demands when disabled", () => {
@@ -484,18 +599,18 @@ describe("build inp", () => {
           ],
         })
         .aCustomerPoint(IDS.CP1, {
-          demand: 25,
+          demands: [{ baseDemand: 25 }],
           connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
         })
         .build();
 
-      const inp = buildInp(hydraulicModel, { customerDemands: false });
+      const inp = buildInp(hydraulicModel, {
+        customerDemands: false,
+      });
 
       expect(inp).toContain("[DEMANDS]");
       expect(inp).toContain("1\t50");
       expect(inp).not.toContain("1\t25");
-      expect(inp).toContain("[PATTERNS]");
-      expect(inp).not.toContain("epanetjs_customers");
     });
 
     it("skips customer demands when they are zero", () => {
@@ -511,26 +626,26 @@ describe("build inp", () => {
           ],
         })
         .aCustomerPoint(IDS.CP1, {
-          demand: 0,
+          demands: [{ baseDemand: 0 }],
           connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
         })
         .build();
 
-      const inp = buildInp(hydraulicModel, { customerDemands: true });
+      const inp = buildInp(hydraulicModel, {
+        customerDemands: true,
+      });
 
       expect(inp).toContain("[DEMANDS]");
       expect(inp).toContain("1\t50");
 
       const demandsSection = inp.match(/\[DEMANDS\]([\s\S]*?)\n\n/)?.[1] || "";
       expect(demandsSection).not.toContain("1\t0");
-      expect(inp).toContain("[PATTERNS]");
-      expect(inp).not.toContain("epanetjs_customers");
     });
 
-    it("handles multiple customer points on same junction", () => {
-      const IDS = { J1: 1, P1: 2, CP1: 3, CP2: 4 };
+    it("includes all patterns by default", () => {
+      const IDS = { J1: 1, P1: 2, CP1: 3, PAT1: 100, PAT2: 101 };
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction(IDS.J1, { elevation: 10, demands: [{ baseDemand: 50 }] })
+        .aJunction(IDS.J1, { elevation: 10 })
         .aPipe(IDS.P1, {
           startNodeId: IDS.J1,
           endNodeId: IDS.J1,
@@ -540,28 +655,61 @@ describe("build inp", () => {
           ],
         })
         .aCustomerPoint(IDS.CP1, {
-          demand: 25,
+          demands: [{ baseDemand: 25, patternId: IDS.PAT1 }],
+          coordinates: [1, 1],
           connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
         })
-        .aCustomerPoint(IDS.CP2, {
-          demand: 30,
-          connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
-        })
+        .aDemandPattern(IDS.PAT1, "daily_pattern", [0.8, 1.0, 1.2, 1.0])
+        .aDemandPattern(IDS.PAT2, "unused_pattern", [0.5, 1.5, 1.0])
         .build();
 
-      const inp = buildInp(hydraulicModel, { customerDemands: true });
+      const inp = buildInp(hydraulicModel, {
+        customerDemands: true,
+        customerPoints: true,
+      });
 
-      expect(inp).toContain("[DEMANDS]");
-      expect(inp).toContain("1\t50");
-      expect(inp).toContain("1\t55\tepanetjs_customers");
-      expect(inp).toContain("[PATTERNS]");
-      expect(inp).toContain("epanetjs_customers\t1");
+      // All patterns should be in the output by default
+      expect(inp).toContain(`daily_pattern\t0.8\t1\t1.2\t1`);
+      expect(inp).toContain(`unused_pattern\t0.5\t1.5\t1`);
+    });
+
+    it("includes only used patterns when usedPatterns is true", () => {
+      const IDS = { J1: 1, P1: 2, CP1: 3, PAT1: 100, PAT2: 101 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, { elevation: 10 })
+        .aPipe(IDS.P1, {
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J1,
+          coordinates: [
+            [0, 0],
+            [10, 0],
+          ],
+        })
+        .aCustomerPoint(IDS.CP1, {
+          demands: [{ baseDemand: 25, patternId: IDS.PAT1 }],
+          coordinates: [1, 1],
+          connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
+        })
+        .aDemandPattern(IDS.PAT1, "daily_pattern", [0.8, 1.0, 1.2, 1.0])
+        .aDemandPattern(IDS.PAT2, "unused_pattern", [0.5, 1.5, 1.0])
+        .build();
+
+      const inp = buildInp(hydraulicModel, {
+        customerDemands: true,
+        customerPoints: true,
+        usedPatterns: true,
+      });
+
+      // Used pattern should be in the output
+      expect(inp).toContain(`daily_pattern\t0.8\t1\t1.2\t1`);
+      // Unused pattern should NOT be in the output
+      expect(inp).not.toContain(`unused_pattern`);
     });
   });
 
-  describe("customer points", () => {
-    it("includes customer points section when customer points exist", () => {
-      const IDS = { J1: 1, J2: 2, P1: 3, CP1: 4, CP2: 5 };
+  describe("customer points section", () => {
+    it("includes customers demands section when customer points exist", () => {
+      const IDS = { J1: 1, J2: 2, P1: 3, CP1: 4, PAT1: 100, PAT2: 101 };
       const hydraulicModel = HydraulicModelBuilder.with()
         .aJunction(IDS.J1, { elevation: 10, coordinates: [1, 2] })
         .aJunction(IDS.J2, { elevation: 20, coordinates: [3, 4] })
@@ -570,111 +718,25 @@ describe("build inp", () => {
           endNodeId: IDS.J2,
         })
         .aCustomerPoint(IDS.CP1, {
-          demand: 2.5,
+          demands: [
+            { baseDemand: 10, patternId: IDS.PAT1 },
+            { baseDemand: 5, patternId: IDS.PAT2 },
+          ],
           coordinates: [1.5, 2.5],
-          connection: {
-            pipeId: IDS.P1,
-            junctionId: IDS.J1,
-            snapPoint: [1.2, 2.2],
-          },
+          connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
         })
-        .aCustomerPoint(IDS.CP2, {
-          demand: 1.8,
-          coordinates: [5, 6],
-        })
-        .build();
-
-      const inp = buildInp(hydraulicModel, { customerPoints: true });
-
-      expect(inp).toContain(";[CUSTOMERS]");
-      expect(inp).toContain(
-        ";Id\tX-coord\tY-coord\tBaseDemand\tPipeId\tJunctionId\tSnapX\tSnapY",
-      );
-      expect(inp).toContain(";4\t1.5\t2.5\t2.5\t3\t1\t1.2\t2.2");
-      expect(inp).toContain(";5\t5\t6\t1.8\t\t\t\t");
-    });
-
-    it("uses junction labels instead of IDs when labelIds is true", () => {
-      const IDS = {
-        JUNCTION_UUID_123: 1,
-        JUNCTION_UUID_456: 2,
-        PIPE_UUID_789: 3,
-        CP1: 4,
-      };
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction(IDS.JUNCTION_UUID_123, {
-          elevation: 10,
-          coordinates: [1, 2],
-          label: "Junction-A",
-        })
-        .aJunction(IDS.JUNCTION_UUID_456, {
-          elevation: 20,
-          coordinates: [3, 4],
-          label: "Junction-B",
-        })
-        .aPipe(IDS.PIPE_UUID_789, {
-          startNodeId: IDS.JUNCTION_UUID_123,
-          endNodeId: IDS.JUNCTION_UUID_456,
-          label: "Pipe-1",
-        })
-        .aCustomerPoint(IDS.CP1, {
-          demand: 2.5,
-          coordinates: [1.5, 2.5],
-          connection: {
-            pipeId: IDS.PIPE_UUID_789,
-            junctionId: IDS.JUNCTION_UUID_123,
-            snapPoint: [1.2, 2.2],
-          },
-        })
+        .aDemandPattern(IDS.PAT1, "pat1", [1, 2])
+        .aDemandPattern(IDS.PAT2, "pat2", [0.5, 1.5])
         .build();
 
       const inp = buildInp(hydraulicModel, {
         customerPoints: true,
-        labelIds: true,
+        geolocation: true,
       });
 
-      expect(inp).toContain(";4\t1.5\t2.5\t2.5\tPipe-1\tJunction-A\t1.2\t2.2");
-    });
-
-    it("does not include customer points section when no customer points exist", () => {
-      const IDS = { J1: 1 };
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction(IDS.J1, { elevation: 10 })
-        .build();
-
-      const inp = buildInp(hydraulicModel, { customerPoints: true });
-
-      expect(inp).not.toContain(";[CUSTOMERS]");
-    });
-
-    it("does not include customer points section when customerPoints option is disabled", () => {
-      const IDS = { J1: 1, CP1: 2 };
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction(IDS.J1, { elevation: 10 })
-        .aCustomerPoint(IDS.CP1, {
-          demand: 2.5,
-          coordinates: [1.5, 2.5],
-        })
-        .build();
-
-      const inp = buildInp(hydraulicModel, { customerPoints: false });
-
-      expect(inp).not.toContain(";[CUSTOMERS]");
-    });
-
-    it("does not include customer points section by default", () => {
-      const IDS = { J1: 1, CP1: 2 };
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction(IDS.J1, { elevation: 10 })
-        .aCustomerPoint(IDS.CP1, {
-          demand: 2.5,
-          coordinates: [1.5, 2.5],
-        })
-        .build();
-
-      const inp = buildInp(hydraulicModel);
-
-      expect(inp).not.toContain(";[CUSTOMERS]");
+      expect(inp).toContain(";[CUSTOMERS_DEMANDS]");
+      expect(inp).toContain(`;${IDS.CP1}\t10\tpat1`);
+      expect(inp).toContain(`;${IDS.CP1}\t5\tpat2`);
     });
   });
 
@@ -1101,6 +1163,185 @@ describe("build inp", () => {
       const line2 = `hourly\t1.3\t1.2\t1.1\t1\t1\t1.1\t1.2\t1.3`;
       const line3 = `hourly\t1.4\t1.3\t1.2\t1.1\t1\t0.9\t0.7\t0.6`;
       expect(inp).toContain(`${line1}\n${line2}\n${line3}`);
+    });
+  });
+
+  describe("controls section", () => {
+    it("does not include CONTROLS section when controls.simple is empty", () => {
+      const hydraulicModel = HydraulicModelBuilder.with().build();
+
+      const inp = buildInp(hydraulicModel);
+
+      expect(inp).not.toContain("[CONTROLS]");
+    });
+
+    it("includes simple CONTROLS even when assets are not found", () => {
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aSimpleControl({
+          template: "LINK P1 OPEN IF NODE T1 ABOVE 100",
+          assetReferences: [],
+        })
+        .aSimpleControl({
+          template: "LINK P1 CLOSED IF NODE T1 BELOW 50",
+          assetReferences: [],
+        })
+        .aSimpleControl({
+          template: "LINK P2 OPEN AT TIME 6",
+          assetReferences: [],
+        })
+        .build();
+
+      const inp = buildInp(hydraulicModel);
+
+      expect(inp).toContain("[CONTROLS]");
+      expect(inp).toContain("LINK P1 OPEN IF NODE T1 ABOVE 100");
+      expect(inp).toContain("LINK P1 CLOSED IF NODE T1 BELOW 50");
+      expect(inp).toContain("LINK P2 OPEN AT TIME 6");
+    });
+
+    it("preserves inline comments in CONTROLS", () => {
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aSimpleControl({
+          template: "LINK P1 OPEN IF NODE T1 ABOVE 100 ;open when tank is full",
+          assetReferences: [],
+        })
+        .build();
+
+      const inp = buildInp(hydraulicModel);
+
+      expect(inp).toContain("[CONTROLS]");
+      expect(inp).toContain(
+        "LINK P1 OPEN IF NODE T1 ABOVE 100 ;open when tank is full",
+      );
+    });
+  });
+
+  describe("rules section", () => {
+    it("does not include RULES section when controls.ruleBased is empty", () => {
+      const hydraulicModel = HydraulicModelBuilder.with().build();
+
+      const inp = buildInp(hydraulicModel);
+
+      expect(inp).not.toContain("[RULES]");
+    });
+
+    it("includes rules in order", () => {
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aRule({
+          ruleId: "1",
+          template: `RULE {{id}}
+IF NODE T1 LEVEL > 100
+THEN LINK P1 STATUS IS OPEN`,
+          assetReferences: [],
+        })
+        .aRule({
+          ruleId: "2",
+          template: `RULE {{id}}
+IF NODE T1 LEVEL < 50
+THEN LINK P1 STATUS IS CLOSED`,
+          assetReferences: [],
+        })
+        .build();
+
+      const inp = buildInp(hydraulicModel);
+
+      expect(inp).toContain(`[RULES]
+RULE 1
+IF NODE T1 LEVEL > 100
+THEN LINK P1 STATUS IS OPEN
+RULE 2
+IF NODE T1 LEVEL < 50
+THEN LINK P1 STATUS IS CLOSED`);
+    });
+
+    it("preserves inline comments in RULES", () => {
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aRule({
+          ruleId: "1",
+          template: `RULE {{id}} ;main tank control
+IF NODE T1 LEVEL > 100
+THEN LINK P1 STATUS IS OPEN ;activate pump`,
+          assetReferences: [],
+        })
+        .build();
+
+      const inp = buildInp(hydraulicModel);
+
+      expect(inp).toContain("[RULES]");
+      expect(inp).toContain(";main tank control");
+      expect(inp).toContain(";activate pump");
+    });
+
+    it("resolves asset placeholders to numeric IDs by default", () => {
+      const IDS = { T1: 1, J1: 2, P1: 3 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aTank(IDS.T1, { label: "Tank-A", coordinates: [0, 0] })
+        .aJunction(IDS.J1, { coordinates: [1, 0] })
+        .aPipe(IDS.P1, {
+          startNodeId: IDS.T1,
+          endNodeId: IDS.J1,
+          label: "Pipe-1",
+        })
+        .aSimpleControl({
+          template: "LINK {{0}} OPEN IF NODE {{1}} ABOVE 100",
+          assetReferences: [
+            { assetId: IDS.P1, isActionTarget: true },
+            { assetId: IDS.T1 },
+          ],
+        })
+        .aRule({
+          ruleId: "1",
+          template: `RULE {{id}}
+IF NODE {{0}} LEVEL > 100
+THEN LINK {{1}} STATUS IS OPEN`,
+          assetReferences: [
+            { assetId: IDS.T1 },
+            { assetId: IDS.P1, isActionTarget: true },
+          ],
+        })
+        .build();
+
+      const inp = buildInp(hydraulicModel);
+
+      expect(inp).toContain("LINK 3 OPEN IF NODE 1 ABOVE 100");
+      expect(inp).toContain("IF NODE 1 LEVEL > 100");
+      expect(inp).toContain("THEN LINK 3 STATUS IS OPEN");
+    });
+
+    it("resolves asset placeholders to labels when labelIds is true", () => {
+      const IDS = { T1: 1, J1: 2, P1: 3 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aTank(IDS.T1, { label: "Tank-A", coordinates: [0, 0] })
+        .aJunction(IDS.J1, { coordinates: [1, 0], label: "J1" })
+        .aPipe(IDS.P1, {
+          startNodeId: IDS.T1,
+          endNodeId: IDS.J1,
+          label: "Pipe-1",
+        })
+        .aSimpleControl({
+          template: "LINK {{0}} OPEN IF NODE {{1}} ABOVE 100",
+          assetReferences: [
+            { assetId: IDS.P1, isActionTarget: true },
+            { assetId: IDS.T1 },
+          ],
+        })
+        .aRule({
+          ruleId: "1",
+          template: `RULE {{id}}
+IF NODE {{0}} LEVEL > 100
+THEN LINK {{1}} STATUS IS OPEN`,
+          assetReferences: [
+            { assetId: IDS.T1 },
+            { assetId: IDS.P1, isActionTarget: true },
+          ],
+        })
+        .build();
+
+      const inp = buildInp(hydraulicModel, { labelIds: true });
+
+      expect(inp).toContain("LINK Pipe-1 OPEN IF NODE Tank-A ABOVE 100");
+      expect(inp).toContain("IF NODE Tank-A LEVEL > 100");
+      expect(inp).toContain("THEN LINK Pipe-1 STATUS IS OPEN");
     });
   });
 });

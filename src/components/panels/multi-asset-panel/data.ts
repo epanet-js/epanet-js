@@ -93,6 +93,7 @@ export const computeMultiAssetData = (
           asset as Pipe,
           quantitiesMetadata,
           hydraulicModel.customerPointsLookup,
+          hydraulicModel.demands,
         );
         break;
       case "pump":
@@ -166,7 +167,7 @@ const appendJunctionStats = (
 
   if (customerPoints.length > 0) {
     const totalCustomerDemand = customerPoints.reduce(
-      (sum, cp) => sum + cp.baseDemand,
+      (sum, cp) => sum + calculateAverageDemand(cp.demands, demands.patterns),
       0,
     );
 
@@ -229,6 +230,7 @@ const appendPipeStats = (
   pipe: Pipe,
   quantitiesMetadata: Quantities,
   customerPointsLookup: CustomerPointsLookup,
+  demands: Demands,
 ) => {
   updateCategoryStats(statsMap, "isEnabled", pipe.isActive ? "yes" : "no");
   updateCategoryStats(statsMap, "initialStatus", "pipe." + pipe.initialStatus);
@@ -250,7 +252,7 @@ const appendPipeStats = (
   const customerPoints = customerPointsLookup.getCustomerPoints(pipe.id);
   if (customerPoints.size > 0) {
     const totalCustomerDemand = Array.from(customerPoints).reduce(
-      (sum, cp) => sum + cp.baseDemand,
+      (sum, cp) => sum + calculateAverageDemand(cp.demands, demands.patterns),
       0,
     );
 

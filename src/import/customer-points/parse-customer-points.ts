@@ -217,7 +217,6 @@ const processGeoJSONFeature = (
       id,
       [coordinates[0], coordinates[1]] as Position,
       {
-        baseDemand: demandInTargetUnit,
         label,
         demands: [
           patternId

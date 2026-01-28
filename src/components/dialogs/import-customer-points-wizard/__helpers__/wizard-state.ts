@@ -41,11 +41,11 @@ export const createValidParsedDataSummary = (): ParsedDataSummary => {
     validCustomerPoints: [
       buildCustomerPoint(IDS.CP1, {
         coordinates: [0.001, 0.001],
-        demand: 25.5,
+        demands: [{ baseDemand: 25.5 }],
       }),
       buildCustomerPoint(IDS.CP2, {
         coordinates: [0.002, 0.002],
-        demand: 50.0,
+        demands: [{ baseDemand: 50.0 }],
       }),
     ],
     issues: null,
@@ -60,11 +60,11 @@ export const createParsedDataSummaryWithIssues = (): ParsedDataSummary => {
     validCustomerPoints: [
       buildCustomerPoint(IDS.CP1, {
         coordinates: [0.001, 0.001],
-        demand: 25.5,
+        demands: [{ baseDemand: 25.5 }],
       }),
       buildCustomerPoint(IDS.CP2, {
         coordinates: [0.002, 0.002],
-        demand: 50.0,
+        demands: [{ baseDemand: 50.0 }],
       }),
     ],
     issues: {
@@ -110,7 +110,7 @@ export const createParsedDataSummaryWithInvalidDemands =
       validCustomerPoints: [
         buildCustomerPoint(IDS.CP1, {
           coordinates: [0.001, 0.001],
-          demand: 25.5,
+          demands: [{ baseDemand: 25.5 }],
         }),
       ],
       issues: {

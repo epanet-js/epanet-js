@@ -4,7 +4,6 @@ import { setInitialState } from "src/__helpers__/state";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
 import { stubProjectionsReady } from "src/__helpers__/projections";
-import { stubFeatureOn, stubFeatureOff } from "src/__helpers__/feature-flags";
 import { setWizardState } from "./__helpers__/wizard-state";
 import { waitFor } from "@testing-library/react";
 import { renderWizard } from "./__helpers__/render-wizard";
@@ -226,9 +225,7 @@ describe("DataMappingStep", () => {
       ],
     });
 
-    it("shows pattern selector when FLAG_CUSTOMER_DEMANDS is enabled and patterns exist", () => {
-      stubFeatureOn("FLAG_CUSTOMER_DEMANDS");
-
+    it("shows pattern selector when patterns exist", () => {
       const store = setInitialState({
         hydraulicModel: HydraulicModelBuilder.with()
           .aDemandPattern(100, "daily", [1, 1.2, 0.8])
@@ -249,32 +246,7 @@ describe("DataMappingStep", () => {
       ).toBeInTheDocument();
     });
 
-    it("does not show pattern selector when FLAG_CUSTOMER_DEMANDS is disabled", () => {
-      stubFeatureOff("FLAG_CUSTOMER_DEMANDS");
-
-      const store = setInitialState({
-        hydraulicModel: HydraulicModelBuilder.with()
-          .aDemandPattern(100, "daily", [1, 1.2, 0.8])
-          .build(),
-      });
-
-      setWizardState(store, {
-        selectedFile: new File(["test"], "test.geojson", {
-          type: "application/json",
-        }),
-        inputData: createInputData(),
-      });
-
-      renderWizard(store);
-
-      expect(
-        screen.queryByRole("combobox", { name: "Time pattern" }),
-      ).not.toBeInTheDocument();
-    });
-
     it("does not show pattern selector when no patterns exist", () => {
-      stubFeatureOn("FLAG_CUSTOMER_DEMANDS");
-
       const store = setInitialState({
         hydraulicModel: HydraulicModelBuilder.with().build(),
       });
@@ -294,7 +266,6 @@ describe("DataMappingStep", () => {
     });
 
     it("applies selected pattern to parsed customer points", async () => {
-      stubFeatureOn("FLAG_CUSTOMER_DEMANDS");
       const user = userEvent.setup();
 
       const store = setInitialState({
@@ -342,8 +313,6 @@ describe("DataMappingStep", () => {
     });
 
     it("shows CONSTANT option as default in pattern selector", () => {
-      stubFeatureOn("FLAG_CUSTOMER_DEMANDS");
-
       const store = setInitialState({
         hydraulicModel: HydraulicModelBuilder.with()
           .aDemandPattern(100, "daily", [1, 1.2, 0.8])

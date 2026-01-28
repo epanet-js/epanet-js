@@ -394,7 +394,6 @@ const JunctionEditor = ({
   const translate = useTranslate();
   const { footer } = useQuickGraph(junction.id, "junction");
   const isEditJunctionDemandsOn = useFeatureFlag("FLAG_EDIT_JUNCTION_DEMANDS");
-  const isCustomerDemandsOn = useFeatureFlag("FLAG_CUSTOMER_DEMANDS");
   const { getComparison, getConstantDemandComparison, isNew } =
     useAssetComparison(junction);
 
@@ -408,16 +407,13 @@ const JunctionEditor = ({
 
   const customerCount = customerPoints.length;
   const totalDemand = useMemo(() => {
-    if (isCustomerDemandsOn) {
-      return customerPoints.reduce(
-        (sum, cp) =>
-          sum +
-          calculateAverageDemand(cp.demands, hydraulicModel.demands.patterns),
-        0,
-      );
-    }
-    return customerPoints.reduce((sum, cp) => sum + cp.baseDemand, 0);
-  }, [customerPoints, isCustomerDemandsOn, hydraulicModel.demands.patterns]);
+    return customerPoints.reduce(
+      (sum, cp) =>
+        sum +
+        calculateAverageDemand(cp.demands, hydraulicModel.demands.patterns),
+      0,
+    );
+  }, [customerPoints, hydraulicModel.demands.patterns]);
 
   const customerDemandPattern = useMemo(
     () =>
@@ -510,7 +506,7 @@ const JunctionEditor = ({
               decimals={quantitiesMetadata.getDecimals("baseDemand")}
               readOnly={true}
             />
-            {isCustomerDemandsOn && !!customerDemandPattern && (
+            {!!customerDemandPattern && (
               <SelectRow
                 name="customerPattern"
                 selected={customerDemandPattern.value}
@@ -587,7 +583,6 @@ const PipeEditor = ({
   const translate = useTranslate();
   const { footer } = useQuickGraph(pipe.id, "pipe");
   const { getComparison, isNew } = useAssetComparison(pipe);
-  const isCustomerDemandsOn = useFeatureFlag("FLAG_CUSTOMER_DEMANDS");
 
   const simulationStatusText = translate(pipeStatusLabel(pipe));
 
@@ -599,16 +594,13 @@ const PipeEditor = ({
 
   const customerCount = customerPoints.length;
   const totalDemand = useMemo(() => {
-    if (isCustomerDemandsOn) {
-      return customerPoints.reduce(
-        (sum, cp) =>
-          sum +
-          calculateAverageDemand(cp.demands, hydraulicModel.demands.patterns),
-        0,
-      );
-    }
-    return customerPoints.reduce((sum, cp) => sum + cp.baseDemand, 0);
-  }, [customerPoints, isCustomerDemandsOn, hydraulicModel.demands.patterns]);
+    return customerPoints.reduce(
+      (sum, cp) =>
+        sum +
+        calculateAverageDemand(cp.demands, hydraulicModel.demands.patterns),
+      0,
+    );
+  }, [customerPoints, hydraulicModel.demands.patterns]);
 
   const customerDemandPattern = useMemo(
     () =>
@@ -716,7 +708,7 @@ const PipeEditor = ({
             decimals={quantitiesMetadata.getDecimals("baseDemand")}
             readOnly={true}
           />
-          {isCustomerDemandsOn && !!customerDemandPattern && (
+          {!!customerDemandPattern && (
             <SelectRow
               name="customerPattern"
               selected={customerDemandPattern.value}

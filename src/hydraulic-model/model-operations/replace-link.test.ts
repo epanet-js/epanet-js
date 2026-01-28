@@ -711,7 +711,6 @@ describe("replaceLink", () => {
         .build();
 
       const customerPoint = CustomerPoint.build(IDS.CP1, [5, 1], {
-        baseDemand: 10,
         label: "CP1",
         demands: [{ baseDemand: 10 }],
       });

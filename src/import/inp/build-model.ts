@@ -582,7 +582,6 @@ const addCustomerPoint = (
   );
 
   const customerPoint = CustomerPoint.build(id, customerPointData.coordinates, {
-    baseDemand: customerPointData.baseDemand,
     label: customerPointData.label,
     demands,
   });

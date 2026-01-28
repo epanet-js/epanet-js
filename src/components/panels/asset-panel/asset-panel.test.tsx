@@ -11,13 +11,8 @@ import FeatureEditor from "../feature-editor";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Valve } from "src/hydraulic-model/asset-types";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
-import { stubFeatureOn, stubFeatureOff } from "src/__helpers__/feature-flags";
 
 describe("AssetPanel", () => {
-  afterEach(() => {
-    stubFeatureOff("FLAG_CUSTOMER_DEMANDS");
-  });
-
   describe("with a pipe", () => {
     it("can show its properties", () => {
       const IDS = { P1: 1, j1: 2, j2: 3 };
@@ -99,7 +94,7 @@ describe("AssetPanel", () => {
           .aCustomerPoint(IDS.CP1, {
             label: "CP1",
             coordinates: [1, 2],
-            demand: 25,
+            demands: [{ baseDemand: 25 }],
             connection: {
               pipeId: IDS.P1,
               junctionId: IDS.J1,
@@ -109,7 +104,7 @@ describe("AssetPanel", () => {
           .aCustomerPoint(IDS.CP2, {
             label: "CP2",
             coordinates: [3, 4],
-            demand: 30,
+            demands: [{ baseDemand: 30 }],
             connection: {
               pipeId: IDS.P1,
               junctionId: IDS.J1,
@@ -150,7 +145,7 @@ describe("AssetPanel", () => {
           .aCustomerPoint(IDS.CP1, {
             label: "CP1",
             coordinates: [1, 2],
-            demand: 25,
+            demands: [{ baseDemand: 25 }],
             connection: {
               pipeId: IDS.P1,
               junctionId: IDS.J1,
@@ -160,7 +155,7 @@ describe("AssetPanel", () => {
           .aCustomerPoint(IDS.CP2, {
             label: "CP2",
             coordinates: [3, 4],
-            demand: 30,
+            demands: [{ baseDemand: 30 }],
             connection: {
               pipeId: IDS.P1,
               junctionId: IDS.J1,
@@ -219,7 +214,6 @@ describe("AssetPanel", () => {
       });
 
       it("shows Customer Demand Pattern when customer points have a demand pattern", () => {
-        stubFeatureOn("FLAG_CUSTOMER_DEMANDS");
         const IDS = { J1: 1, J2: 2, P1: 3, CP1: 4, PAT1: 5 };
         const hydraulicModel = HydraulicModelBuilder.with()
           .aJunction(IDS.J1, { label: "J1" })
@@ -233,7 +227,6 @@ describe("AssetPanel", () => {
           .aCustomerPoint(IDS.CP1, {
             label: "CP1",
             coordinates: [1, 2],
-            demand: 25,
             demands: [{ baseDemand: 25, patternId: IDS.PAT1 }],
             connection: {
               pipeId: IDS.P1,
@@ -254,7 +247,6 @@ describe("AssetPanel", () => {
       });
 
       it("does not show Customer Demand Pattern when customer points have no demand pattern", () => {
-        stubFeatureOn("FLAG_CUSTOMER_DEMANDS");
         const IDS = { J1: 1, J2: 2, P1: 3, CP1: 4 };
         const hydraulicModel = HydraulicModelBuilder.with()
           .aJunction(IDS.J1, { label: "J1" })
@@ -267,7 +259,7 @@ describe("AssetPanel", () => {
           .aCustomerPoint(IDS.CP1, {
             label: "CP1",
             coordinates: [1, 2],
-            demand: 25,
+            demands: [{ baseDemand: 25 }],
             connection: {
               pipeId: IDS.P1,
               junctionId: IDS.J1,
@@ -662,7 +654,7 @@ describe("AssetPanel", () => {
         .aCustomerPoint(IDS.CP1, {
           label: "CP1",
           coordinates: [1, 2],
-          demand: 25,
+          demands: [{ baseDemand: 25 }],
           connection: {
             pipeId: IDS.P1,
             junctionId: IDS.J1,
@@ -672,7 +664,7 @@ describe("AssetPanel", () => {
         .aCustomerPoint(IDS.CP2, {
           label: "CP2",
           coordinates: [3, 4],
-          demand: 30,
+          demands: [{ baseDemand: 30 }],
           connection: {
             pipeId: IDS.P1,
             junctionId: IDS.J1,
@@ -716,7 +708,7 @@ describe("AssetPanel", () => {
         .aCustomerPoint(IDS.CP1, {
           label: "CP1",
           coordinates: [1, 2],
-          demand: 25,
+          demands: [{ baseDemand: 25 }],
           connection: {
             pipeId: IDS.P1,
             junctionId: IDS.J1,
@@ -726,7 +718,7 @@ describe("AssetPanel", () => {
         .aCustomerPoint(IDS.CP2, {
           label: "CP2",
           coordinates: [3, 4],
-          demand: 30,
+          demands: [{ baseDemand: 30 }],
           connection: {
             pipeId: IDS.P1,
             junctionId: IDS.J1,
@@ -782,7 +774,6 @@ describe("AssetPanel", () => {
     });
 
     it("shows Customer Demand Pattern when customer points have a demand pattern", () => {
-      stubFeatureOn("FLAG_CUSTOMER_DEMANDS");
       const IDS = { J1: 1, J2: 2, P1: 3, CP1: 4, PAT1: 5 };
       const hydraulicModel = HydraulicModelBuilder.with()
         .aJunction(IDS.J1, { label: "MY_JUNCTION" })
@@ -795,7 +786,6 @@ describe("AssetPanel", () => {
         .aCustomerPoint(IDS.CP1, {
           label: "CP1",
           coordinates: [1, 2],
-          demand: 25,
           demands: [{ baseDemand: 25, patternId: IDS.PAT1 }],
           connection: {
             pipeId: IDS.P1,
@@ -816,7 +806,6 @@ describe("AssetPanel", () => {
     });
 
     it("does not show Customer Demand Pattern when customer points have no demand pattern", () => {
-      stubFeatureOn("FLAG_CUSTOMER_DEMANDS");
       const IDS = { J1: 1, J2: 2, P1: 3, CP1: 4 };
       const hydraulicModel = HydraulicModelBuilder.with()
         .aJunction(IDS.J1, { label: "MY_JUNCTION" })
@@ -828,7 +817,7 @@ describe("AssetPanel", () => {
         .aCustomerPoint(IDS.CP1, {
           label: "CP1",
           coordinates: [1, 2],
-          demand: 25,
+          demands: [{ baseDemand: 25 }],
           connection: {
             pipeId: IDS.P1,
             junctionId: IDS.J1,

@@ -36,14 +36,13 @@ export class CustomerPoint {
   public readonly id: number;
   public readonly label: string;
   public readonly coordinates: Position;
-  private properties: { baseDemand: number; demands: JunctionDemand[] };
+  private properties: { demands: JunctionDemand[] };
   private connectionData: CustomerPointConnection | null = null;
 
   constructor(
     id: number,
     coordinates: Position,
     properties: {
-      baseDemand: number;
       label: string;
       demands: JunctionDemand[];
     },
@@ -52,7 +51,6 @@ export class CustomerPoint {
     this.label = properties.label;
     this.coordinates = coordinates;
     this.properties = {
-      baseDemand: properties.baseDemand,
       demands: properties.demands,
     };
   }
@@ -61,7 +59,6 @@ export class CustomerPoint {
     id: number,
     coordinates: Position,
     properties: {
-      baseDemand: number;
       label: string;
       demands: JunctionDemand[];
     },
@@ -70,7 +67,7 @@ export class CustomerPoint {
   }
 
   get baseDemand() {
-    return this.properties.baseDemand;
+    return this.demands?.[0]?.baseDemand ?? 0;
   }
 
   get demands(): JunctionDemand[] {
@@ -91,7 +88,6 @@ export class CustomerPoint {
 
   copyDisconnected(): CustomerPoint {
     return new CustomerPoint(this.id, [...this.coordinates], {
-      baseDemand: this.baseDemand,
       label: this.label,
       demands: this.properties.demands.map((d) => ({ ...d })),
     });

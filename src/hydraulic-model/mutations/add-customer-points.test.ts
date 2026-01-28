@@ -27,7 +27,7 @@ describe("addCustomerPoints", () => {
 
     const cp1 = buildCustomerPoint(IDS.CP1, {
       coordinates: [2, 1],
-      demand: 25,
+      demands: [{ baseDemand: 25 }],
     });
     cp1.connect({
       pipeId: IDS.P1,
@@ -37,7 +37,7 @@ describe("addCustomerPoints", () => {
 
     const cp2 = buildCustomerPoint(IDS.CP2, {
       coordinates: [8, 1],
-      demand: 50,
+      demands: [{ baseDemand: 50 }],
     });
     cp2.connect({
       pipeId: IDS.P1,
@@ -89,7 +89,7 @@ describe("addCustomerPoints", () => {
 
     const cpWithoutConnection = buildCustomerPoint(IDS.CP1, {
       coordinates: [2, 1],
-      demand: 25,
+      demands: [{ baseDemand: 25 }],
     });
     customerPointsToAdd.push(cpWithoutConnection);
 
@@ -122,7 +122,7 @@ describe("addCustomerPoints", () => {
 
     const connectedCP = buildCustomerPoint(IDS.CP1, {
       coordinates: [2, 1],
-      demand: 25,
+      demands: [{ baseDemand: 25 }],
     });
     connectedCP.connect({
       pipeId: IDS.P1,
@@ -132,7 +132,7 @@ describe("addCustomerPoints", () => {
 
     const disconnectedCP = buildCustomerPoint(IDS.CP2, {
       coordinates: [5, 5],
-      demand: 30,
+      demands: [{ baseDemand: 30 }],
     });
 
     customerPointsToAdd.push(connectedCP);
@@ -160,7 +160,7 @@ describe("addCustomerPoints", () => {
 
     const cpWithInvalidJunction = buildCustomerPoint(IDS.CP1, {
       coordinates: [2, 1],
-      demand: 25,
+      demands: [{ baseDemand: 25 }],
     });
 
     cpWithInvalidJunction.connect({
@@ -200,7 +200,7 @@ describe("addCustomerPoints", () => {
 
     const cp1 = buildCustomerPoint(IDS.CP1, {
       coordinates: [1, 1],
-      demand: 25,
+      demands: [{ baseDemand: 25 }],
     });
     cp1.connect({
       pipeId: IDS.P1,
@@ -210,7 +210,7 @@ describe("addCustomerPoints", () => {
 
     const cp2 = buildCustomerPoint(IDS.CP2, {
       coordinates: [2, 1],
-      demand: 30,
+      demands: [{ baseDemand: 30 }],
     });
     cp2.connect({
       pipeId: IDS.P1,
@@ -248,7 +248,7 @@ describe("addCustomerPoints", () => {
 
     const cp1 = buildCustomerPoint(IDS.CP1, {
       coordinates: [2, 1],
-      demand: 25,
+      demands: [{ baseDemand: 25 }],
     });
     cp1.connect({
       pipeId: 999,
@@ -279,7 +279,7 @@ describe("addCustomerPoints", () => {
       .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
       .aCustomerPoint(IDS.EXISTING, {
         coordinates: [1, 1],
-        demand: 10,
+        demands: [{ baseDemand: 10 }],
         connection: {
           pipeId: IDS.P1,
           junctionId: IDS.J1,
@@ -291,7 +291,7 @@ describe("addCustomerPoints", () => {
     const customerPointsToAdd: CustomerPoint[] = [];
     const newCP = buildCustomerPoint(IDS.CP1, {
       coordinates: [2, 1],
-      demand: 25,
+      demands: [{ baseDemand: 25 }],
     });
     newCP.connect({
       pipeId: IDS.P1,
@@ -319,7 +319,7 @@ describe("addCustomerPoints", () => {
 
     const cp1 = buildCustomerPoint(IDS.CP1, {
       coordinates: [2, 1],
-      demand: 25,
+      demands: [{ baseDemand: 25 }],
     });
     cp1.connect({
       pipeId: 999,
@@ -352,7 +352,7 @@ describe("addCustomerPoints", () => {
 
     const cp1 = buildCustomerPoint(IDS.CP1, {
       coordinates: [2, 1],
-      demand: 35,
+      demands: [{ baseDemand: 35 }],
     });
     cp1.connect({
       pipeId: 999,
@@ -400,7 +400,7 @@ describe("addCustomerPoints", () => {
 
     const cp1 = buildCustomerPoint(IDS.CP1, {
       coordinates: [2, 1],
-      demand: 25,
+      demands: [{ baseDemand: 25 }],
     });
     cp1.connect({
       pipeId: IDS.P1,
@@ -410,7 +410,7 @@ describe("addCustomerPoints", () => {
 
     const cp2 = buildCustomerPoint(IDS.CP2, {
       coordinates: [8, 1],
-      demand: 50,
+      demands: [{ baseDemand: 50 }],
     });
     cp2.connect({
       pipeId: IDS.P1,
@@ -448,7 +448,7 @@ describe("addCustomerPoints", () => {
 
     const cp1 = buildCustomerPoint(IDS.CP1, {
       coordinates: [2, 1],
-      demand: 100,
+      demands: [{ baseDemand: 100 }],
     });
     cp1.connect({
       pipeId: IDS.P1,
@@ -458,7 +458,7 @@ describe("addCustomerPoints", () => {
 
     const cp2 = buildCustomerPoint(IDS.CP2, {
       coordinates: [8, 1],
-      demand: 150,
+      demands: [{ baseDemand: 150 }],
     });
     cp2.connect({
       pipeId: IDS.P1,
@@ -503,7 +503,7 @@ describe("addCustomerPoints", () => {
       .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
       .aCustomerPoint(IDS.EXISTING1, {
         coordinates: [1, 1],
-        demand: 10,
+        demands: [{ baseDemand: 10 }],
         connection: {
           pipeId: IDS.P1,
           junctionId: IDS.J1,
@@ -512,7 +512,7 @@ describe("addCustomerPoints", () => {
       })
       .aCustomerPoint(IDS.EXISTING2, {
         coordinates: [9, 1],
-        demand: 20,
+        demands: [{ baseDemand: 20 }],
         connection: {
           pipeId: IDS.P1,
           junctionId: IDS.J2,
@@ -525,7 +525,7 @@ describe("addCustomerPoints", () => {
 
     const newCP = buildCustomerPoint(IDS.NEW1, {
       coordinates: [5, 1],
-      demand: 100,
+      demands: [{ baseDemand: 100 }],
     });
     newCP.connect({
       pipeId: IDS.P1,
@@ -560,7 +560,7 @@ describe("addCustomerPoints", () => {
       .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
       .aCustomerPoint(IDS.EXISTING, {
         coordinates: [1, 1],
-        demand: 10,
+        demands: [{ baseDemand: 10 }],
         connection: {
           pipeId: IDS.P1,
           junctionId: IDS.J1,
@@ -571,7 +571,7 @@ describe("addCustomerPoints", () => {
 
     const newCP = buildCustomerPoint(IDS.NEW1, {
       coordinates: [5, 1],
-      demand: 100,
+      demands: [{ baseDemand: 100 }],
     });
     newCP.connect({
       pipeId: IDS.P1,
@@ -604,7 +604,7 @@ describe("addCustomerPoints", () => {
       .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
       .aCustomerPoint(IDS.EXISTING, {
         coordinates: [1, 1],
-        demand: 10,
+        demands: [{ baseDemand: 10 }],
         connection: {
           pipeId: IDS.P1,
           junctionId: IDS.J1,

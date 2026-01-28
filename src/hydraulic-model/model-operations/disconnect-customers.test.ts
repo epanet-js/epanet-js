@@ -19,7 +19,7 @@ describe("disconnectCustomers", () => {
         ],
       })
       .aCustomerPoint(IDS.CP1, {
-        demand: 25,
+        demands: [{ baseDemand: 25 }],
         coordinates: [2, 1],
         connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
       })
@@ -53,12 +53,12 @@ describe("disconnectCustomers", () => {
         ],
       })
       .aCustomerPoint(IDS.CP1, {
-        demand: 25,
+        demands: [{ baseDemand: 25 }],
         coordinates: [2, 1],
         connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
       })
       .aCustomerPoint(IDS.CP2, {
-        demand: 50,
+        demands: [{ baseDemand: 50 }],
         coordinates: [8, 1],
         connection: { pipeId: IDS.P1, junctionId: IDS.J2 },
       })
@@ -84,7 +84,7 @@ describe("disconnectCustomers", () => {
     const IDS = { J1: 1, CP1: 2 } as const;
     const disconnectedCP = buildCustomerPoint(IDS.CP1, {
       coordinates: [2, 1],
-      demand: 25,
+      demands: [{ baseDemand: 25 }],
     });
 
     const hydraulicModel = HydraulicModelBuilder.with()
@@ -122,7 +122,7 @@ describe("disconnectCustomers", () => {
     const IDS = { J1: 1, CP1: 2 } as const;
     const originalCP = buildCustomerPoint(IDS.CP1, {
       coordinates: [2, 1],
-      demand: 25,
+      demands: [{ baseDemand: 25 }],
     });
     originalCP.connect({
       pipeId: IDS.J1,
@@ -154,7 +154,7 @@ describe("disconnectCustomers", () => {
     const IDS = { J1: 1, CP1: 2, CP2: 3 } as const;
     const connectedCP = buildCustomerPoint(IDS.CP1, {
       coordinates: [2, 1],
-      demand: 25,
+      demands: [{ baseDemand: 25 }],
     });
     connectedCP.connect({
       pipeId: IDS.J1,
@@ -164,7 +164,7 @@ describe("disconnectCustomers", () => {
 
     const disconnectedCP = buildCustomerPoint(IDS.CP2, {
       coordinates: [8, 1],
-      demand: 50,
+      demands: [{ baseDemand: 50 }],
     });
 
     const hydraulicModel = HydraulicModelBuilder.with()
@@ -187,7 +187,10 @@ describe("disconnectCustomers", () => {
 
   it("returns correct note", () => {
     const IDS = { J1: 1, CP1: 2 } as const;
-    const cp = buildCustomerPoint(IDS.CP1, { coordinates: [0, 0], demand: 10 });
+    const cp = buildCustomerPoint(IDS.CP1, {
+      coordinates: [0, 0],
+      demands: [{ baseDemand: 10 }],
+    });
 
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction(IDS.J1, { coordinates: [0, 0] })
@@ -206,7 +209,7 @@ describe("disconnectCustomers", () => {
     const IDS = { J1: 1, CP1: 2 } as const;
     const cp = buildCustomerPoint(IDS.CP1, {
       coordinates: [2, 1],
-      demand: 25,
+      demands: [{ baseDemand: 25 }],
     });
     cp.connect({
       pipeId: IDS.J1,

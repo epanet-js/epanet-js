@@ -188,7 +188,7 @@ describe("replaceNode", () => {
       .aJunction(IDS.J2, { coordinates: [10, 0] })
       .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
       .aCustomerPoint(IDS.CP1, {
-        demand: 25,
+        demands: [{ baseDemand: 25 }],
         coordinates: [2, 0],
         connection: {
           pipeId: IDS.P1,

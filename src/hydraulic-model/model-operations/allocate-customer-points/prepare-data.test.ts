@@ -338,9 +338,15 @@ describe("prepareWorkerData", () => {
         const IDS = { J1: 1, CP1: 2, J2: 3, CP2: 4, P1: 5 };
         const hydraulicModel = HydraulicModelBuilder.with()
           .aJunction(IDS.J1, { coordinates: [0, 0] })
-          .aCustomerPoint(IDS.CP1, { coordinates: [5, 10], demand: 1.5 })
+          .aCustomerPoint(IDS.CP1, {
+            coordinates: [5, 10],
+            demands: [{ baseDemand: 1.5 }],
+          })
           .aJunction(IDS.J2, { coordinates: [10, 0] })
-          .aCustomerPoint(IDS.CP2, { coordinates: [15, 20], demand: 2.0 })
+          .aCustomerPoint(IDS.CP2, {
+            coordinates: [15, 20],
+            demands: [{ baseDemand: 2.0 }],
+          })
           .aPipe(IDS.P1, {
             startNodeId: IDS.J1,
             endNodeId: IDS.J2,
@@ -395,13 +401,25 @@ describe("prepareWorkerData", () => {
         };
         const hydraulicModel = HydraulicModelBuilder.with()
           .aJunction(IDS.J1, { coordinates: [0, 0] })
-          .aCustomerPoint(IDS.CP1, { coordinates: [5, 10], demand: 1.5 })
+          .aCustomerPoint(IDS.CP1, {
+            coordinates: [5, 10],
+            demands: [{ baseDemand: 1.5 }],
+          })
           .aJunction(IDS.J2, { coordinates: [10, 0] })
-          .aCustomerPoint(IDS.CP2, { coordinates: [15, 20], demand: 2.0 })
+          .aCustomerPoint(IDS.CP2, {
+            coordinates: [15, 20],
+            demands: [{ baseDemand: 2.0 }],
+          })
           .aJunction(IDS.J3, { coordinates: [20, 0] })
-          .aCustomerPoint(IDS.CP3, { coordinates: [25, 30], demand: 3.0 })
+          .aCustomerPoint(IDS.CP3, {
+            coordinates: [25, 30],
+            demands: [{ baseDemand: 3.0 }],
+          })
           .aJunction(IDS.J4, { coordinates: [30, 0] })
-          .aCustomerPoint(IDS.CP4, { coordinates: [35, 40], demand: 4.0 })
+          .aCustomerPoint(IDS.CP4, {
+            coordinates: [35, 40],
+            demands: [{ baseDemand: 4.0 }],
+          })
           .aPipe(IDS.P1, {
             startNodeId: IDS.J1,
             endNodeId: IDS.J2,

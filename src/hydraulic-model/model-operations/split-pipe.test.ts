@@ -542,11 +542,11 @@ describe("splitPipe", () => {
 
     const customerPoint1 = buildCustomerPoint(IDS.CP1, {
       coordinates: [2, 1],
-      demand: 50,
+      demands: [{ baseDemand: 50 }],
     });
     const customerPoint2 = buildCustomerPoint(IDS.CP2, {
       coordinates: [8, 1],
-      demand: 75,
+      demands: [{ baseDemand: 75 }],
     });
 
     // Connect customer points to the original pipe
@@ -609,15 +609,15 @@ describe("splitPipe", () => {
 
     const customerPoint1 = buildCustomerPoint(IDS.CP1, {
       coordinates: [3, 1],
-      demand: 30,
+      demands: [{ baseDemand: 30 }],
     });
     const customerPoint2 = buildCustomerPoint(IDS.CP2, {
       coordinates: [10, 1],
-      demand: 50,
+      demands: [{ baseDemand: 50 }],
     });
     const customerPoint3 = buildCustomerPoint(IDS.CP3, {
       coordinates: [17, 1],
-      demand: 40,
+      demands: [{ baseDemand: 40 }],
     });
 
     // Connect customer points to original pipe at different locations
@@ -710,7 +710,7 @@ describe("splitPipe", () => {
 
     const customerPoint = buildCustomerPoint(IDS.CP1, {
       coordinates: [3, 1],
-      demand: 125,
+      demands: [{ baseDemand: 125 }],
     });
 
     customerPoint.connect({
@@ -754,11 +754,11 @@ describe("splitPipe", () => {
 
     const customerPoint1 = buildCustomerPoint(IDS.CP1, {
       coordinates: [2, 1],
-      demand: 50,
+      demands: [{ baseDemand: 50 }],
     });
     const customerPoint2 = buildCustomerPoint(IDS.CP2, {
       coordinates: [8, 1],
-      demand: 75,
+      demands: [{ baseDemand: 75 }],
     });
 
     customerPoint1.connect({

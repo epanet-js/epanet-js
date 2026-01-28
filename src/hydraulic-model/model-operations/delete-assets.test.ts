@@ -17,7 +17,7 @@ describe("deleteAssets", () => {
         ],
       })
       .aCustomerPoint(IDS.CP1, {
-        demand: 25,
+        demands: [{ baseDemand: 25 }],
         coordinates: [2, 1],
         connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
       })
@@ -56,7 +56,7 @@ describe("deleteAssets", () => {
         ],
       })
       .aCustomerPoint(IDS.CP1, {
-        demand: 25,
+        demands: [{ baseDemand: 25 }],
         coordinates: [2, 1],
         connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
       })
@@ -94,7 +94,7 @@ describe("deleteAssets", () => {
         ],
       })
       .aCustomerPoint(IDS.CP1, {
-        demand: 25,
+        demands: [{ baseDemand: 25 }],
         coordinates: [2, 1],
         connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
       })

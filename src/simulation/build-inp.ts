@@ -192,6 +192,7 @@ type InpSections = {
   coordinates: string[];
   vertices: string[];
   customers: string[];
+  customersDemands: string[];
   controls: string[];
   rules: string[];
 };
@@ -257,6 +258,7 @@ export const buildInp = withDebugInstrumentation(
         ";[CUSTOMERS]",
         ";Id\tX-coord\tY-coord\tBaseDemand\tPipeId\tJunctionId\tSnapX\tSnapY",
       ],
+      customersDemands: [";[CUSTOMERS_DEMANDS]", ";Id\tBaseDemand\tPatternId"],
       controls: ["[CONTROLS]"],
       rules: ["[RULES]"],
     };
@@ -338,7 +340,13 @@ export const buildInp = withDebugInstrumentation(
 
     if (opts.customerPoints) {
       for (const customerPoint of hydraulicModel.customerPoints.values()) {
-        appendCustomerPoint(sections, idMap, hydraulicModel, customerPoint);
+        appendCustomerPoint(
+          sections,
+          idMap,
+          hydraulicModel,
+          customerPoint,
+          usedPatternIds,
+        );
       }
     }
 
@@ -376,6 +384,7 @@ export const buildInp = withDebugInstrumentation(
       opts.geolocation && sections.coordinates.join("\n"),
       opts.geolocation && sections.vertices.join("\n"),
       includeCustomerPoints && sections.customers.join("\n"),
+      includeCustomerPoints && sections.customersDemands.join("\n"),
       hasControls && sections.controls.join("\n"),
       hasRules && sections.rules.join("\n"),
       "[END]",
@@ -489,18 +498,30 @@ const appendJunction = (
       assets,
       junction.id,
     );
-    const totalCustomerDemand = customerPoints.reduce(
-      (sum, cp) => sum + cp.baseDemand,
-      0,
-    );
-    if (totalCustomerDemand > 0) {
-      sections.demands.push(
-        commentPrefix +
-          [junctionId, totalCustomerDemand, defaultCustomersPatternId].join(
-            "\t",
-          ),
-      );
-      usedPatternIds.add(defaultCustomersPatternId);
+
+    const demandsByPattern = new Map<number | undefined, number>();
+    for (const cp of customerPoints) {
+      for (const demand of cp.demands) {
+        if (demand.baseDemand === 0) continue;
+        const currentTotal = demandsByPattern.get(demand.patternId) ?? 0;
+        demandsByPattern.set(
+          demand.patternId,
+          currentTotal + demand.baseDemand,
+        );
+      }
+    }
+
+    for (const [patternId, totalDemand] of demandsByPattern) {
+      const demandLine = patternId
+        ? [junctionId, totalDemand, idMap.patternId(patternId)]
+        : [junctionId, totalDemand];
+
+      demandLine.push(";" + defaultCustomersPatternId);
+      sections.demands.push(commentPrefix + demandLine.join("\t"));
+
+      if (patternId) {
+        usedPatternIds.add(idMap.patternId(patternId));
+      }
     }
   }
 
@@ -757,10 +778,6 @@ const appendDemandPatterns = (
       sections.patterns.push([mappedId, ...chunk.map(String)].join("\t"));
     }
   }
-
-  if (usedPatternIds.has(defaultCustomersPatternId)) {
-    sections.patterns.push([defaultCustomersPatternId, "1"].join("\t"));
-  }
 };
 
 const appendCustomerPoint = (
@@ -768,10 +785,10 @@ const appendCustomerPoint = (
   idMap: EpanetIds,
   hydraulicModel: HydraulicModel,
   customerPoint: CustomerPoint,
+  usedPatternIds: Set<string>,
 ) => {
   const connection = customerPoint.connection;
   const [x, y] = customerPoint.coordinates;
-  const baseDemand = customerPoint.baseDemand;
 
   if (connection) {
     const [snapX, snapY] = connection.snapPoint;
@@ -786,7 +803,7 @@ const appendCustomerPoint = (
           customerPoint.label,
           x,
           y,
-          baseDemand,
+          "",
           idMap.linkId(pipe),
           idMap.nodeId(junction),
           snapX,
@@ -795,7 +812,23 @@ const appendCustomerPoint = (
     );
   } else {
     sections.customers.push(
-      ";" + [customerPoint.label, x, y, baseDemand, "", "", "", ""].join("\t"),
+      ";" + [customerPoint.label, x, y, "", "", "", "", ""].join("\t"),
     );
+  }
+
+  for (const demand of customerPoint.demands) {
+    const mappedPatternId = demand.patternId
+      ? idMap.patternId(demand.patternId)
+      : undefined;
+    sections.customersDemands.push(
+      ";" +
+        [customerPoint.label, demand.baseDemand, mappedPatternId ?? ""].join(
+          "\t",
+        ),
+    );
+
+    if (mappedPatternId) {
+      usedPatternIds.add(mappedPatternId);
+    }
   }
 };

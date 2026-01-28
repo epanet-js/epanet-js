@@ -107,17 +107,15 @@ export const buildReservoir = (data: ReservoirBuildData = {}) => {
 export const buildCustomerPoint = (
   id: number,
   options: {
-    demand?: number;
     demands?: JunctionDemand[];
     coordinates?: Position;
     junctionId?: number;
     label?: string;
   } = {},
 ) => {
-  const { demand = 0, coordinates = [0, 0], label = String(id) } = options;
+  const { coordinates = [0, 0], label = String(id) } = options;
   const demands = options.demands ?? [];
   return CustomerPoint.build(id, coordinates, {
-    baseDemand: demand,
     label,
     demands,
   });
@@ -416,7 +414,6 @@ export class HydraulicModelBuilder {
   aCustomerPoint(
     id: number,
     options: {
-      demand?: number;
       demands?: JunctionDemand[];
       coordinates?: Position;
       label?: string;

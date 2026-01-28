@@ -3,7 +3,6 @@ import { Feature } from "geojson";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { useUserTracking } from "src/infra/user-tracking";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useAtomValue } from "jotai";
 import { dataAtom, stagingModelAtom } from "src/state/jotai";
 import { parseCustomerPoints } from "src/import/customer-points/parse-customer-points";
@@ -40,7 +39,6 @@ export const DataMappingStep: React.FC<{
   const { modelMetadata } = useAtomValue(dataAtom);
   const hydraulicModel = useAtomValue(stagingModelAtom);
   const patterns = hydraulicModel.demands.patterns;
-  const isCustomerDemandsEnabled = useFeatureFlag("FLAG_CUSTOMER_DEMANDS");
 
   const {
     parsedDataSummary,
@@ -249,7 +247,7 @@ export const DataMappingStep: React.FC<{
   const showNoDataMessage = !inputData;
   const validCount = parsedDataSummary?.validCustomerPoints.length || 0;
   const MAX_PREVIEW_ROWS = 15;
-  const hasDemandPatterns = isCustomerDemandsEnabled && patterns.size > 0;
+  const hasDemandPatterns = patterns.size > 0;
 
   const isNextDisabled =
     isLoading ||
