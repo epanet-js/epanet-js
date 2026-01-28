@@ -78,23 +78,54 @@ export const PatternSidebar = ({
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLUListElement>) => {
-      if (e.key !== "ArrowUp" && e.key !== "ArrowDown") return;
+      const validKeys = [
+        "ArrowUp",
+        "ArrowDown",
+        "PageUp",
+        "PageDown",
+        "Home",
+        "End",
+      ];
+      if (!validKeys.includes(e.key)) return;
       if (patternIds.length === 0) return;
 
       e.preventDefault();
       e.stopPropagation();
 
+      if (actionState) return;
+
       const selectedIndex = selectedPatternId
         ? patternIds.indexOf(selectedPatternId)
         : -1;
 
+      const itemHeight = 32; // h-8
+      const containerHeight = listRef.current?.clientHeight ?? itemHeight;
+      const pageSize = Math.max(1, Math.floor(containerHeight / itemHeight));
+
       let nextIndex: number;
-      if (e.key === "ArrowDown") {
-        nextIndex =
-          selectedIndex < patternIds.length - 1 ? selectedIndex + 1 : 0;
-      } else {
-        nextIndex =
-          selectedIndex > 0 ? selectedIndex - 1 : patternIds.length - 1;
+      switch (e.key) {
+        case "ArrowDown":
+          nextIndex =
+            selectedIndex < patternIds.length - 1 ? selectedIndex + 1 : 0;
+          break;
+        case "ArrowUp":
+          nextIndex =
+            selectedIndex > 0 ? selectedIndex - 1 : patternIds.length - 1;
+          break;
+        case "PageDown":
+          nextIndex = Math.min(selectedIndex + pageSize, patternIds.length - 1);
+          break;
+        case "PageUp":
+          nextIndex = Math.max(selectedIndex - pageSize, 0);
+          break;
+        case "Home":
+          nextIndex = 0;
+          break;
+        case "End":
+          nextIndex = patternIds.length - 1;
+          break;
+        default:
+          return;
       }
 
       const nextPatternId = patternIds[nextIndex];
@@ -105,7 +136,7 @@ export const PatternSidebar = ({
       );
       item?.scrollIntoView({ block: "nearest" });
     },
-    [patternIds, selectedPatternId, onSelectPattern],
+    [actionState, patternIds, selectedPatternId, onSelectPattern],
   );
 
   const handlePatternLabelChange = (name: string): boolean => {
