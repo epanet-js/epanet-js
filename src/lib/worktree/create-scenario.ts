@@ -22,7 +22,7 @@ export const createScenario = (
     id: nanoid(),
     name: `Scenario #${newNumber}`,
     parentId: worktree.mainId,
-    deltas: [],
+    deltas: mainSnapshot.momentLog.getDeltas(),
     version: mainSnapshot.version,
     momentLog: newMomentLog,
     simulation: null,
