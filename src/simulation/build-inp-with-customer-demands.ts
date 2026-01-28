@@ -663,6 +663,7 @@ const getLinkConnectionIds = (
   link: LinkAsset,
 ) => {
   const [nodeStart, nodeEnd] = link.connections;
+
   const startNodeId = idMap.nodeId(
     hydraulicModel.assets.get(nodeStart) as NodeAsset,
   );

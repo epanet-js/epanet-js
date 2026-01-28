@@ -41,3 +41,4 @@ export type {
   Demands,
   JunctionDemand,
 } from "./demands";
+export type { IdGenerator } from "./id-generator";

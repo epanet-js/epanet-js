@@ -347,13 +347,15 @@ export class Persistence implements IPersistenceWithSnapshots {
         : undefined;
     }
 
-    allDeltas.push(...snapshot.momentLog.getDeltas());
+    const momentLogDeltas = snapshot.momentLog.getDeltas();
+    allDeltas.push(...momentLogDeltas);
 
     const ctx = this.store.get(dataAtom);
     const currentHydraulicModel = this.store.get(stagingModelAtom);
     const model = initializeHydraulicModel({
       units: currentHydraulicModel.units,
       defaults: ctx.modelMetadata.quantities.defaults,
+      idGenerator: currentHydraulicModel.assetBuilder.idGenerator,
     });
 
     for (const delta of allDeltas) {
@@ -403,10 +405,11 @@ export class Persistence implements IPersistenceWithSnapshots {
         );
       }
 
-      if (
+      const hasConnections =
         inputFeature.feature.properties &&
-        (inputFeature as LinkAsset).connections
-      ) {
+        (inputFeature as LinkAsset).connections;
+
+      if (hasConnections) {
         const [start, end] = (inputFeature as LinkAsset).connections;
         model.topology.addLink(inputFeature.id, start, end);
       }

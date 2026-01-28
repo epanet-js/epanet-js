@@ -4,7 +4,7 @@ import { AssetBuilder, DefaultQuantities } from "./asset-builder";
 import { UnitsSpec } from "src/model-metadata/quantities-spec";
 import { nanoid } from "nanoid";
 import { HeadlossFormula } from "./asset-types/pipe";
-import { ConsecutiveIdsGenerator } from "./id-generator";
+import { ConsecutiveIdsGenerator, IdGenerator } from "./id-generator";
 import { LabelManager } from "./label-manager";
 import { Demands, createEmptyDemands } from "./demands";
 import { EPSTiming } from "./eps-timing";
@@ -41,6 +41,7 @@ export const initializeHydraulicModel = ({
   demands = createEmptyDemands(),
   epsTiming = {},
   controls = createEmptyControls(),
+  idGenerator,
 }: {
   units: UnitsSpec;
   defaults: DefaultQuantities;
@@ -48,9 +49,10 @@ export const initializeHydraulicModel = ({
   demands?: Demands;
   epsTiming?: EPSTiming;
   controls?: Controls;
+  idGenerator?: IdGenerator;
 }): HydraulicModel => {
   const labelManager = new LabelManager();
-  const assetIdGenerator = new ConsecutiveIdsGenerator();
+  const assetIdGenerator = idGenerator ?? new ConsecutiveIdsGenerator();
   const assets = new Map();
   return {
     version: nanoid(),
