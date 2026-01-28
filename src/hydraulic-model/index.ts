@@ -13,7 +13,11 @@ export type {
 } from "./asset-builder";
 export type { AssetId } from "./assets-map";
 export { filterAssets, getNode, AssetsMap } from "./assets-map";
-export type { ModelOperation, ModelMoment } from "./model-operation";
+export type {
+  ModelOperation,
+  ModelMoment,
+  ReverseMoment,
+} from "./model-operation";
 export { BaseAsset } from "./asset-types";
 export type {
   AssetStatus,

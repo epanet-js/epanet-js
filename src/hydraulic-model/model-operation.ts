@@ -17,4 +17,15 @@ export type ModelMoment = {
   putControls?: Controls;
 };
 
+export type ReverseMoment = {
+  note: string;
+  deleteAssets: AssetId[];
+  putAssets: Asset[];
+  putDemands?: Demands;
+  putEPSTiming?: EPSTiming;
+  putCustomerPoints: CustomerPoint[];
+  putCurves: ICurve[];
+  putControls?: Controls;
+};
+
 export type ModelOperation<T> = (model: HydraulicModel, data: T) => ModelMoment;

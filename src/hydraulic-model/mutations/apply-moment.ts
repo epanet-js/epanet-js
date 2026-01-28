@@ -1,29 +1,66 @@
 import { HydraulicModel } from "../hydraulic-model";
-import { ModelMoment } from "../model-operation";
+import { ModelMoment, ReverseMoment } from "../model-operation";
 import { Asset, LinkAsset } from "../asset-types";
 import { AssetId } from "../assets-map";
 import { CustomerPoint } from "../customer-points";
 import { ICurve } from "../curves";
 import { Demands } from "../demands";
 
+type PutAssetResult = {
+  oldAsset: Asset | undefined;
+  isNew: boolean;
+};
+
 export const applyMomentToModel = (
   hydraulicModel: HydraulicModel,
   moment: ModelMoment,
-): void => {
+): ReverseMoment => {
+  const reverseMoment: ReverseMoment = {
+    note: `Reverse: ${moment.note}`,
+    putAssets: [],
+    deleteAssets: [],
+    putCustomerPoints: [],
+    putCurves: [],
+  };
+
+  if (moment.putDemands) {
+    reverseMoment.putDemands = hydraulicModel.demands;
+  }
+  if (moment.putEPSTiming) {
+    reverseMoment.putEPSTiming = hydraulicModel.epsTiming;
+  }
+  if (moment.putControls) {
+    reverseMoment.putControls = hydraulicModel.controls;
+  }
+
   for (const id of moment.deleteAssets || []) {
-    deleteAsset(hydraulicModel, id);
+    const deleted = deleteAsset(hydraulicModel, id);
+    if (deleted) {
+      reverseMoment.putAssets.push(deleted);
+    }
   }
 
   for (const asset of moment.putAssets || []) {
-    putAsset(hydraulicModel, asset);
+    const result = putAsset(hydraulicModel, asset);
+    if (result.oldAsset) {
+      reverseMoment.putAssets.push(result.oldAsset);
+    } else {
+      reverseMoment.deleteAssets.push(asset.id);
+    }
   }
 
   for (const cp of moment.putCustomerPoints || []) {
-    putCustomerPoint(hydraulicModel, cp);
+    const oldCp = putCustomerPoint(hydraulicModel, cp);
+    if (oldCp) {
+      reverseMoment.putCustomerPoints.push(oldCp);
+    }
   }
 
   for (const curve of moment.putCurves || []) {
-    putCurve(hydraulicModel, curve);
+    const oldCurve = putCurve(hydraulicModel, curve);
+    if (oldCurve) {
+      reverseMoment.putCurves.push(oldCurve);
+    }
   }
 
   if (moment.putDemands) {
@@ -37,11 +74,16 @@ export const applyMomentToModel = (
   if (moment.putControls) {
     hydraulicModel.controls = moment.putControls;
   }
+
+  return reverseMoment;
 };
 
-const deleteAsset = (hydraulicModel: HydraulicModel, id: AssetId): void => {
+const deleteAsset = (
+  hydraulicModel: HydraulicModel,
+  id: AssetId,
+): Asset | undefined => {
   const asset = hydraulicModel.assets.get(id);
-  if (!asset) return;
+  if (!asset) return undefined;
 
   if (asset.isLink) {
     hydraulicModel.assetIndex.removeLink(asset.id);
@@ -53,9 +95,14 @@ const deleteAsset = (hydraulicModel: HydraulicModel, id: AssetId): void => {
   hydraulicModel.topology.removeNode(id);
   hydraulicModel.topology.removeLink(id);
   hydraulicModel.labelManager.remove(asset.label, asset.type, asset.id);
+
+  return asset;
 };
 
-const putAsset = (hydraulicModel: HydraulicModel, asset: Asset): void => {
+const putAsset = (
+  hydraulicModel: HydraulicModel,
+  asset: Asset,
+): PutAssetResult => {
   const oldVersion = hydraulicModel.assets.get(asset.id);
 
   hydraulicModel.assets.set(asset.id, asset);
@@ -85,22 +132,34 @@ const putAsset = (hydraulicModel: HydraulicModel, asset: Asset): void => {
   }
 
   hydraulicModel.labelManager.register(asset.label, asset.type, asset.id);
+
+  return {
+    oldAsset: oldVersion,
+    isNew: !oldVersion,
+  };
 };
 
 const putCustomerPoint = (
   hydraulicModel: HydraulicModel,
   customerPoint: CustomerPoint,
-): void => {
+): CustomerPoint | undefined => {
   const oldVersion = hydraulicModel.customerPoints.get(customerPoint.id);
   if (oldVersion) {
     hydraulicModel.customerPointsLookup.removeConnection(oldVersion);
   }
   hydraulicModel.customerPointsLookup.addConnection(customerPoint);
   hydraulicModel.customerPoints.set(customerPoint.id, customerPoint);
+
+  return oldVersion;
 };
 
-const putCurve = (hydraulicModel: HydraulicModel, curve: ICurve): void => {
+const putCurve = (
+  hydraulicModel: HydraulicModel,
+  curve: ICurve,
+): ICurve | undefined => {
+  const oldCurve = hydraulicModel.curves.get(curve.id);
   hydraulicModel.curves.set(curve.id, curve);
+  return oldCurve;
 };
 
 const putDemands = (hydraulicModel: HydraulicModel, demands: Demands): void => {

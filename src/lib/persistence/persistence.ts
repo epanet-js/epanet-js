@@ -1,13 +1,7 @@
-import type { IWrappedFeature, IWrappedFeatureInput } from "src/types";
+import type { IWrappedFeatureInput } from "src/types";
 import once from "lodash/once";
 import type { IPersistenceWithSnapshots } from "src/lib/persistence/ipersistence";
-import {
-  fMoment,
-  UMoment,
-  EMPTY_MOMENT,
-  MomentInput,
-  Moment,
-} from "src/lib/persistence/moment";
+import { EMPTY_MOMENT, MomentInput, Moment } from "src/lib/persistence/moment";
 import { generateKeyBetween } from "fractional-indexing";
 import { worktreeAtom } from "src/state/scenarios";
 import type { Snapshot, Worktree } from "src/lib/worktree/types";
@@ -29,19 +23,16 @@ import {
   stagingModelAtom,
 } from "src/state/jotai";
 import { baseModelAtom } from "src/state/hydraulic-model";
-import { getFreshAt, momentForDeleteFeatures, trackMoment } from "./shared";
+import { getFreshAt, trackMoment } from "./shared";
 import { sortAts } from "src/lib/parse-stored";
 import {
-  Demands,
   HydraulicModel,
   updateHydraulicModelAssets,
   initializeHydraulicModel,
   applyMomentToModel,
 } from "src/hydraulic-model";
 import { ModelMoment } from "src/hydraulic-model";
-import { Asset, LinkAsset } from "src/hydraulic-model";
-import { CustomerPoint } from "src/hydraulic-model/customer-points";
-import { ICurve } from "src/hydraulic-model/curves";
+import { Asset } from "src/hydraulic-model";
 import { nanoid } from "nanoid";
 import { ModelMetadata } from "src/model-metadata";
 import { MomentLog } from "./moment-log";
@@ -351,59 +342,21 @@ export class Persistence implements IPersistenceWithSnapshots {
     return model;
   }
 
-  private apply(
-    stateId: string,
-    forwardMoment: MomentInput,
-    mergeAssetsAndSettings = false,
-  ) {
+  private apply(stateId: string, forwardMoment: MomentInput) {
     const ctx = this.store.get(dataAtom);
     const hydraulicModel = this.store.get(stagingModelAtom);
-    let reverseMoment;
 
-    const hasSettings = forwardMoment.putEPSTiming || forwardMoment.putControls;
+    const processedMoment: ModelMoment = {
+      ...forwardMoment,
+      note: forwardMoment.note || "Update",
+      putAssets: this.ensureAtValues(
+        forwardMoment.putAssets,
+        hydraulicModel,
+        ctx,
+      ),
+    };
 
-    if (mergeAssetsAndSettings || !hasSettings) {
-      const assetReverseMoment = UMoment.merge(
-        fMoment(forwardMoment.note || `Reverse`),
-        this.deleteAssetsInner(forwardMoment.deleteAssets, ctx, hydraulicModel),
-        this.putAssetsInner(forwardMoment.putAssets, ctx, hydraulicModel),
-        this.putCustomerPointsInner(
-          forwardMoment.putCustomerPoints || [],
-          hydraulicModel,
-        ),
-        this.putCurvesInner(forwardMoment.putCurves, hydraulicModel),
-        this.putDemandsInner(forwardMoment.putDemands, hydraulicModel),
-      );
-
-      if (mergeAssetsAndSettings && hasSettings) {
-        reverseMoment = {
-          ...assetReverseMoment,
-          putEPSTiming: forwardMoment.putEPSTiming
-            ? hydraulicModel.epsTiming
-            : undefined,
-          putControls: forwardMoment.putControls
-            ? hydraulicModel.controls
-            : undefined,
-        };
-      } else {
-        reverseMoment = assetReverseMoment;
-      }
-    } else {
-      reverseMoment = {
-        note: "Reverse simulation settings",
-        putDemands: forwardMoment.putDemands
-          ? hydraulicModel.demands
-          : undefined,
-        putEPSTiming: forwardMoment.putEPSTiming
-          ? hydraulicModel.epsTiming
-          : undefined,
-        putControls: forwardMoment.putControls
-          ? hydraulicModel.controls
-          : undefined,
-        putAssets: [],
-        deleteAssets: [],
-      };
-    }
+    const reverseMoment = applyMomentToModel(hydraulicModel, processedMoment);
 
     const updatedHydraulicModel = updateHydraulicModelAssets(hydraulicModel);
 
@@ -420,17 +373,7 @@ export class Persistence implements IPersistenceWithSnapshots {
     this.store.set(stagingModelAtom, {
       ...updatedHydraulicModel,
       version: stateId,
-      demands: forwardMoment.putDemands
-        ? forwardMoment.putDemands
-        : hydraulicModel.demands,
-      epsTiming: forwardMoment.putEPSTiming
-        ? forwardMoment.putEPSTiming
-        : hydraulicModel.epsTiming,
-      controls: forwardMoment.putControls
-        ? forwardMoment.putControls
-        : hydraulicModel.controls,
       customerPoints: updatedCustomerPoints,
-      customerPointsLookup: hydraulicModel.customerPointsLookup,
       curves: updatedCurves,
     });
     this.store.set(dataAtom, {
@@ -445,36 +388,13 @@ export class Persistence implements IPersistenceWithSnapshots {
     return reverseMoment;
   }
 
-  private deleteAssetsInner(
-    features: readonly IWrappedFeature["id"][],
-    ctx: Data,
-    hydraulicModel: HydraulicModel,
-  ) {
-    const moment = momentForDeleteFeatures(features, hydraulicModel);
-    for (const id of features) {
-      const asset = hydraulicModel.assets.get(id);
-      if (!asset) continue;
-
-      if (asset.isLink) {
-        hydraulicModel.assetIndex.removeLink(asset.id);
-      } else if (asset.isNode) {
-        hydraulicModel.assetIndex.removeNode(asset.id);
-      }
-
-      hydraulicModel.assets.delete(id);
-      hydraulicModel.topology.removeNode(id);
-      hydraulicModel.topology.removeLink(id);
-      hydraulicModel.labelManager.remove(asset.label, asset.type, asset.id);
-    }
-    return moment;
-  }
-
-  private putAssetsInner(
+  private ensureAtValues(
     features: IWrappedFeatureInput[],
-    ctx: Data,
     hydraulicModel: HydraulicModel,
-  ) {
-    const reverseMoment = fMoment("Put features");
+    ctx: Data,
+  ): Asset[] {
+    if (!features || features.length === 0) return [];
+
     const ats = once(() =>
       Array.from(
         hydraulicModel.assets.values(),
@@ -486,7 +406,8 @@ export class Persistence implements IPersistenceWithSnapshots {
     let lastAt: string | null = null;
 
     for (const inputFeature of features) {
-      const oldVersion = hydraulicModel.assets.get(inputFeature.id);
+      const isNew = !hydraulicModel.assets.has(inputFeature.id);
+
       if (inputFeature.at === undefined) {
         if (!lastAt) lastAt = getFreshAt(ctx, hydraulicModel);
         const at = generateKeyBetween(lastAt, null);
@@ -494,133 +415,12 @@ export class Persistence implements IPersistenceWithSnapshots {
         inputFeature.at = at;
       }
 
-      if (oldVersion) {
-        reverseMoment.putAssets.push(oldVersion);
-      } else {
-        reverseMoment.deleteAssets.push(inputFeature.id);
-        if (atsSet().has(inputFeature.at)) {
-          inputFeature.at = generateKeyBetween(null, ats()[0]);
-        }
+      if (isNew && atsSet().has(inputFeature.at)) {
+        inputFeature.at = generateKeyBetween(null, ats()[0]);
       }
-
-      const { assets, topology } = hydraulicModel;
-      assets.set(inputFeature.id, inputFeature as Asset);
-
-      const assetToIndex = inputFeature as Asset;
-      if (assetToIndex.isLink) {
-        hydraulicModel.assetIndex.addLink(assetToIndex.id);
-      } else if (assetToIndex.isNode) {
-        hydraulicModel.assetIndex.addNode(assetToIndex.id);
-      }
-
-      if (oldVersion && topology.hasLink(oldVersion.id)) {
-        const oldLink = oldVersion as LinkAsset;
-        const oldConnections = oldLink.connections;
-
-        oldConnections && topology.removeLink(oldVersion.id);
-        hydraulicModel.labelManager.remove(
-          oldVersion.label,
-          oldVersion.type,
-          oldVersion.id,
-        );
-      }
-
-      if (
-        inputFeature.feature.properties &&
-        (inputFeature as LinkAsset).connections
-      ) {
-        const [start, end] = (inputFeature as LinkAsset).connections;
-
-        topology.addLink(inputFeature.id, start, end);
-      }
-
-      hydraulicModel.labelManager.register(
-        (inputFeature as Asset).label,
-        (inputFeature as Asset).type,
-        (inputFeature as Asset).id,
-      );
     }
 
-    return reverseMoment;
-  }
-
-  private putCustomerPointsInner(
-    customerPoints: CustomerPoint[],
-    hydraulicModel: HydraulicModel,
-  ) {
-    const reverseMoment = {
-      note: "Put customer points",
-      putCustomerPoints: [] as CustomerPoint[],
-      putAssets: [],
-      deleteAssets: [],
-    };
-
-    const lookup = hydraulicModel.customerPointsLookup;
-
-    for (const customerPoint of customerPoints) {
-      const oldVersion = hydraulicModel.customerPoints.get(customerPoint.id);
-      if (oldVersion) {
-        reverseMoment.putCustomerPoints.push(oldVersion);
-
-        lookup.removeConnection(oldVersion);
-      }
-
-      lookup.addConnection(customerPoint);
-
-      hydraulicModel.customerPoints.set(customerPoint.id, customerPoint);
-    }
-
-    return reverseMoment;
-  }
-
-  private putCurvesInner(
-    curves: ICurve[] | undefined,
-    hydraulicModel: HydraulicModel,
-  ) {
-    const reverseMoment = fMoment("Reverse curves");
-
-    if (!curves || curves.length === 0)
-      return { putAssets: [], deleteAssets: [] };
-
-    const reverseCurves: ICurve[] = [];
-
-    for (const newCurve of curves) {
-      const oldCurve = hydraulicModel.curves.get(newCurve.id);
-      if (oldCurve) {
-        reverseCurves.push(oldCurve);
-      }
-      hydraulicModel.curves.set(newCurve.id, newCurve);
-    }
-
-    if (reverseCurves.length > 0) {
-      reverseMoment.putCurves = reverseCurves;
-    }
-
-    return reverseMoment;
-  }
-
-  private putDemandsInner(
-    demands: Demands | undefined,
-    hydraulicModel: HydraulicModel,
-  ) {
-    const reverseMoment = fMoment("Reverse demands");
-    if (!demands) return reverseMoment;
-
-    reverseMoment.putDemands = hydraulicModel.demands;
-
-    for (const pattern of hydraulicModel.demands.patterns.values()) {
-      hydraulicModel.labelManager.remove(pattern.label, "pattern", pattern.id);
-    }
-    hydraulicModel.demands = demands;
-    for (const pattern of demands.patterns.values()) {
-      hydraulicModel.labelManager.register(
-        pattern.label,
-        "pattern",
-        pattern.id,
-      );
-    }
-
-    return reverseMoment;
+    return features as Asset[];
   }
 
   private exceedsMaxChangesSinceLastSync(
