@@ -388,8 +388,11 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
             }}
           >
             {virtualRows.map((virtualRow) => {
-              const row = table.getRowModel().rows[virtualRow.index];
+              const rowsModel = table.getRowModel();
+              const row = rowsModel.rows[virtualRow.index];
               const rowIndex = virtualRow.index;
+              const isLast = virtualRow.index === rowsModel.rows.length - 1;
+              const hasScroll = rowsModel.rows.length > visibleRowCount;
 
               return (
                 <div
@@ -403,6 +406,7 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
                     <TableGutterCell
                       rowIndex={rowIndex}
                       onClick={(e) => handleGutterClick(rowIndex, e)}
+                      className={isLast && !hasScroll ? "border-b" : ""}
                     />
                   )}
 
@@ -445,6 +449,9 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
                             : undefined
                         }
                         CellComponent={column.cellComponent}
+                        className={
+                          !isLast || (isLast && !hasScroll) ? "border-b" : ""
+                        }
                       />
                     );
                   })}
@@ -452,6 +459,9 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
                   <TableActionsCell
                     rowActions={rowActions}
                     rowIndex={rowIndex}
+                    className={
+                      !isLast || (isLast && !hasScroll) ? "border-b" : ""
+                    }
                   />
                 </div>
               );
@@ -498,7 +508,7 @@ function TableHeader<T>({
   return (
     <div
       role="row"
-      className="flex sticky top-0 z-10 bg-gray-100 border-b border-gray-20 -mb-1"
+      className="flex sticky top-0 z-10 bg-gray-100 border-b border-gray-200"
     >
       {showGutterColumn && (
         <div
@@ -536,14 +546,16 @@ function TableHeader<T>({
 function TableGutterCell({
   rowIndex,
   onClick,
+  className = "",
 }: {
   rowIndex: number;
   onClick: (e: React.MouseEvent) => void;
+  className?: string;
 }) {
   return (
     <div
       role="rowheader"
-      className="flex items-center justify-center text-xs shrink-0 cursor-pointer select-none w-10 h-8 bg-gray-100 text-gray-600"
+      className={`flex items-center justify-center text-xs shrink-0 cursor-pointer select-none w-10 h-8 bg-gray-100 text-gray-600 border-gray-200 ${className}`}
       onClick={onClick}
     >
       {rowIndex + 1}
@@ -572,6 +584,7 @@ function TableDataCell<T>({
   onBlur,
   onChange,
   CellComponent,
+  className = "",
 }: {
   cell: Cell<T, unknown>;
   colIndex: number;
@@ -586,6 +599,7 @@ function TableDataCell<T>({
   onChange?: (value: unknown) => void;
   onBlur: () => void;
   CellComponent: SpreadsheetColumn["cellComponent"];
+  className?: string;
 }) {
   return (
     <div
@@ -595,10 +609,11 @@ function TableDataCell<T>({
       aria-selected={isSelected}
       className={clsx(
         "relative h-8 grow select-none",
-        "border-t border-l border-gray-200",
+        "border-l border-gray-200",
+        className,
         isActive ? "bg-white" : isSelected ? "bg-purple-300/10" : "bg-white",
-        selectionEdge?.top && "border-t-purple-500",
-        selectionEdge?.left && "border-l-purple-500",
+        selectionEdge?.top && "border-t border-t-purple-500",
+        selectionEdge?.left && "border-l border-l-purple-500",
         selectionEdge?.bottom && "border-b border-b-purple-500",
         selectionEdge?.right && "border-r border-r-purple-500",
         selectionEdge && "z-[1]",
@@ -635,14 +650,19 @@ function TableDataCell<T>({
 function TableActionsCell({
   rowIndex,
   rowActions,
+  className = "",
 }: {
   rowIndex: number;
   rowActions?: RowAction[];
+  className?: string;
 }) {
   return rowActions ? (
     <div
       role="gridcell"
-      className="sticky right-0 shrink-0 border-t border-l border-gray-200 w-8 h-8 bg-white z-10"
+      className={clsx(
+        "sticky right-0 shrink-0 border-l border-gray-200 w-8 h-8 bg-white z-10",
+        className,
+      )}
     >
       <ActionsCell rowIndex={rowIndex} actions={rowActions} />
     </div>
