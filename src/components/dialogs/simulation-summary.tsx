@@ -26,8 +26,8 @@ export const SimulationSummaryDialog = ({
   };
   const { status, duration } = modal;
   const handleIgnore = () => {
-    modal.onContinue?.();
     onClose();
+    (modal.onIgnore ?? modal.onContinue)?.();
   };
 
   if (status === "warning")
@@ -46,7 +46,7 @@ export const SimulationSummaryDialog = ({
             <SimpleDialogActions
               autoFocusSubmit={true}
               secondary={{
-                action: translate("ignore"),
+                action: modal.ignoreLabel || translate("ignore"),
                 onClick: handleIgnore,
               }}
               action={translate("viewReport")}
@@ -71,7 +71,7 @@ export const SimulationSummaryDialog = ({
             <SimpleDialogActions
               autoFocusSubmit={true}
               secondary={{
-                action: translate("ignore"),
+                action: modal.ignoreLabel || translate("ignore"),
                 onClick: handleIgnore,
               }}
               action={translate("viewReport")}

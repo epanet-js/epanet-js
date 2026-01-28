@@ -73,7 +73,11 @@ export const useCreateScenario = () => {
           simulation.modelVersion === hydraulicModel.version;
 
         if (!isSimulationUpToDate) {
-          void runSimulation({ onContinue: showDialogOrProceed });
+          void runSimulation({
+            onContinue: showDialogOrProceed,
+            onIgnore: showDialogOrProceed,
+            ignoreLabel: translate("scenarios.ignoreAndCreate"),
+          });
           return null;
         }
 

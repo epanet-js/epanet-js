@@ -15,6 +15,8 @@ export type SimulationSummaryState = {
   status: "success" | "failure" | "warning";
   duration?: number;
   onContinue?: () => void;
+  onIgnore?: () => void;
+  ignoreLabel?: string;
 };
 
 export type SimulationReportDialogState = {

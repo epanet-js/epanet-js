@@ -29,7 +29,11 @@ export const useRunSimulation = () => {
   const persistence = usePersistenceWithSnapshots();
 
   const runSimulation = useCallback(
-    async (options?: { onContinue?: () => void }) => {
+    async (options?: {
+      onContinue?: () => void;
+      onIgnore?: () => void;
+      ignoreLabel?: string;
+    }) => {
       setDrawingMode(Mode.NONE);
       setSimulationState((prev) => ({ ...prev, status: "running" }));
       const inp = buildInp(hydraulicModel, {
@@ -102,6 +106,8 @@ export const useRunSimulation = () => {
         status,
         duration,
         onContinue: options?.onContinue,
+        onIgnore: options?.onIgnore,
+        ignoreLabel: options?.ignoreLabel,
       });
     },
     [

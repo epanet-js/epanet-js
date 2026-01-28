@@ -754,6 +754,7 @@
     "enableScenarios": "Enable Scenarios",
     "delete": "Delete",
     "rename": "Rename",
+    "ignoreAndCreate": "Ignore and create scenario",
     "renameDialog": {
       "title": "Rename Scenario",
       "label": "Scenario name",
