@@ -72,8 +72,18 @@ export const useScenarioOperations = () => {
         setSimulation(
           getSimulationForState(result.worktree, initialSimulationState),
         );
+
+        const targetSnapshot = result.worktree.snapshots.get(snapshotId);
+        if (targetSnapshot?.status === "locked") {
+          setMode((modeState) => {
+            if (DRAWING_MODES.includes(modeState.mode)) {
+              return { mode: Mode.NONE };
+            }
+            return modeState;
+          });
+        }
       },
-      [persistence, setWorktree, setSimulation],
+      [persistence, setWorktree, setSimulation, setMode],
     ),
   );
 
