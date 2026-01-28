@@ -4,7 +4,7 @@ import { DialogContainer, DialogHeader } from "../dialog";
 import { Button, Loading } from "../elements";
 import { CheckoutButton } from "../checkout-button";
 import { dialogAtom } from "src/state/dialog";
-import { scenariosPromoVideoUrl, supportEmail } from "src/global-config";
+import { scenariosPromoVideoUrl } from "src/global-config";
 import { ScenarioIcon } from "src/icons";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useTranslate } from "src/hooks/use-translate";
@@ -30,7 +30,7 @@ export const ScenariosPaywallDialog = ({
   };
 
   return (
-    <DialogContainer size="lg">
+    <DialogContainer size="md">
       <DialogHeader
         title={translate("scenarios.paywall.title")}
         titleIcon={ScenarioIcon}
@@ -54,47 +54,53 @@ export const ScenariosPaywallDialog = ({
         </div>
 
         <div className="flex flex-col">
-          <p className="text-sm text-gray-700 dark:text-gray-300 pb-6">
-            {translate("scenarios.paywall.description")}
-          </p>
-
-          <div className="flex flex-col gap-3">
-            <div onClick={handlePersonalCheckout}>
-              <CheckoutButton
-                plan="personal"
-                paymentType="yearly"
-                variant="primary"
-              >
-                {translate("scenarios.paywall.supportButton")}
-              </CheckoutButton>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <div className="flex-1 border-t border-gray-300 dark:border-gray-600" />
-              <span className="text-xs text-gray-500 dark:text-gray-400">
-                {translate("scenarios.paywall.or")}
-              </span>
-              <div className="flex-1 border-t border-gray-300 dark:border-gray-600" />
-            </div>
-
-            <Button
-              variant="default"
-              size="full-width"
-              onClick={handleChooseYourPlan}
-            >
-              {translate("scenarios.paywall.choosePlanButton")}
-            </Button>
+          <div className="space-y-3 pb-6">
+            <p className="text-sm text-gray-700 dark:text-gray-300">
+              {translate("scenarios.paywall.description1")}
+            </p>
+            <p className="text-sm text-gray-700 dark:text-gray-300">
+              {translate("scenarios.paywall.description2")}
+            </p>
+            <p className="text-sm text-gray-700 dark:text-gray-300">
+              {translate("scenarios.paywall.description3")}
+            </p>
           </div>
 
-          <p className="text-xs text-gray-500 dark:text-gray-400 text-center mt-auto pt-4">
-            {translate("scenarios.paywall.needMoreDetails")}{" "}
-            <a
-              href={`mailto:${supportEmail}`}
-              className="text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 underline"
-            >
-              {translate("scenarios.paywall.contactSales")}
-            </a>
-          </p>
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-2">
+              <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                {translate("scenarios.paywall.nonCommercial.title")}
+              </h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                {translate("scenarios.paywall.nonCommercial.description")}
+              </p>
+              <div onClick={handlePersonalCheckout}>
+                <CheckoutButton
+                  plan="personal"
+                  paymentType="yearly"
+                  variant="default"
+                >
+                  {translate("scenarios.paywall.nonCommercial.cta")}
+                </CheckoutButton>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                {translate("scenarios.paywall.commercial.title")}
+              </h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                {translate("scenarios.paywall.commercial.description")}
+              </p>
+              <Button
+                variant="primary"
+                size="full-width"
+                onClick={handleChooseYourPlan}
+              >
+                {translate("scenarios.paywall.commercial.cta")}
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
     </DialogContainer>
