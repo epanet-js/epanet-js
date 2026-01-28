@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from "react";
 import { Selector } from "src/components/form/selector";
-import { SpreadsheetCellProps, SpreadsheetColumn } from "../types";
+import { CellProps, GridColumn } from "../types";
 
 type SelectOption<T extends string = string> = {
   value: T;
@@ -18,7 +18,7 @@ export function SelectCell<T extends string = string>({
   focus,
   options,
   placeholder,
-}: SpreadsheetCellProps<T | null> & SelectCellExtraProps<T>) {
+}: CellProps<T | null> & SelectCellExtraProps<T>) {
   const selectorOptions = useMemo(
     () => options.map((opt) => ({ value: opt.value, label: opt.label })),
     [options],
@@ -72,12 +72,12 @@ export function selectColumn<T extends string = string>(
     placeholder?: string;
     deleteValue?: T | null;
   },
-): SpreadsheetColumn {
+): GridColumn {
   return {
     accessorKey,
     header: options.header,
     size: options.size,
-    cellComponent: (props: SpreadsheetCellProps<T | null>) => (
+    cellComponent: (props: CellProps<T | null>) => (
       <SelectCell
         {...props}
         options={options.options}

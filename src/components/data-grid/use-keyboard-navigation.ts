@@ -1,12 +1,12 @@
 import { useCallback } from "react";
-import { CellPosition, SpreadsheetColumn, SpreadsheetSelection } from "./types";
+import { CellPosition, GridColumn, GridSelection } from "./types";
 
 type UseKeyboardNavigationOptions<TData extends Record<string, unknown>> = {
   activeCell: CellPosition | null;
-  selection: SpreadsheetSelection | null;
+  selection: GridSelection | null;
   isEditing: boolean;
   isFullRowSelected: boolean;
-  columns: SpreadsheetColumn[];
+  columns: GridColumn[];
   data: TData[];
   onChange: (data: TData[]) => void;
   lockRows: boolean;
@@ -23,7 +23,7 @@ type UseKeyboardNavigationOptions<TData extends Record<string, unknown>> = {
     pageSize: number,
     extend?: boolean,
   ) => void;
-  setSelection: (selection: SpreadsheetSelection | null) => void;
+  setSelection: (selection: GridSelection | null) => void;
   selectRow: (rowIndex: number, extend?: boolean) => void;
   selectColumn: (colIndex: number) => void;
   selectAll: () => void;

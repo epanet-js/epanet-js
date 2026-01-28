@@ -6,13 +6,13 @@ import {
   useImperativeHandle,
 } from "react";
 import {
-  SpreadsheetTable,
+  DataGrid,
   floatColumn,
   textReadonlyColumn,
-  type SpreadsheetTableRef,
-  type SpreadsheetSelection,
+  type DataGridRef,
+  type GridSelection,
   type RowAction,
-} from "src/components/spreadsheet-table";
+} from "src/components/data-grid";
 import { PatternMultipliers } from "src/hydraulic-model/demands";
 import { useTranslate } from "src/hooks/use-translate";
 import { DeleteIcon, AddIcon } from "src/icons";
@@ -26,10 +26,10 @@ type PatternTableProps = {
   pattern: PatternMultipliers;
   patternTimestepSeconds: number;
   onChange: (pattern: PatternMultipliers) => void;
-  onSelectionChange?: (selection: SpreadsheetSelection | null) => void;
+  onSelectionChange?: (selection: GridSelection | null) => void;
 };
 
-export type PatternTableRef = SpreadsheetTableRef;
+export type PatternTableRef = DataGridRef;
 
 const DEFAULT_MULTIPLIER = 1.0;
 
@@ -65,13 +65,13 @@ const fromRows = (rows: PatternRow[]): PatternMultipliers => {
   return rows.map((row) => row.multiplier);
 };
 
-export const PatternTable = forwardRef<SpreadsheetTableRef, PatternTableProps>(
+export const PatternTable = forwardRef<DataGridRef, PatternTableProps>(
   function PatternTableTanstack(
     { pattern, patternTimestepSeconds, onChange, onSelectionChange },
     ref,
   ) {
     const translate = useTranslate();
-    const gridRef = useRef<SpreadsheetTableRef>(null);
+    const gridRef = useRef<DataGridRef>(null);
     const containerRef = useRef<HTMLDivElement>(null);
 
     useImperativeHandle(ref, () => gridRef.current!, []);
@@ -209,7 +209,7 @@ export const PatternTable = forwardRef<SpreadsheetTableRef, PatternTableProps>(
 
     return (
       <div ref={containerRef} className="h-full">
-        <SpreadsheetTable<PatternRow>
+        <DataGrid<PatternRow>
           ref={gridRef}
           data={rowData}
           columns={columns}

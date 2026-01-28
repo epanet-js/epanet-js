@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { PatternGraph } from "./pattern-graph";
 import { PatternMultipliers } from "src/hydraulic-model/demands";
-import { type SpreadsheetSelection } from "src/components/spreadsheet-table";
+import { type GridSelection } from "src/components/data-grid";
 import { PatternTable, type PatternTableRef } from "./pattern-table";
 
 interface PatternDetailProps {
@@ -17,8 +17,9 @@ export function PatternDetail({
   totalDurationSeconds,
   onChange,
 }: PatternDetailProps) {
-  const [selectedCells, setSelectedCells] =
-    useState<SpreadsheetSelection | null>(null);
+  const [selectedCells, setSelectedCells] = useState<GridSelection | null>(
+    null,
+  );
   const tableRef = useRef<PatternTableRef>(null);
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const graphContainerRef = useRef<HTMLDivElement>(null);
@@ -63,7 +64,7 @@ export function PatternDetail({
     : [];
 
   const handleTableSelectionChange = useCallback(
-    (selection: SpreadsheetSelection | null) => {
+    (selection: GridSelection | null) => {
       setSelectedCells(selection);
     },
     [],

@@ -1,10 +1,9 @@
-export { SpreadsheetTable } from "./spreadsheet-table";
+export { DataGrid } from "./data-grid";
 
 export type {
-  SpreadsheetTableRef,
-  SpreadsheetSelection,
-  SpreadsheetTableProps,
-  SpreadsheetColumn,
+  DataGridRef,
+  GridSelection,
+  GridColumn,
   RowAction,
   CellPosition,
 } from "./types";

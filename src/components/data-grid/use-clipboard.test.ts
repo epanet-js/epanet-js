@@ -4,11 +4,11 @@
 import { act } from "react";
 import { renderHook } from "@testing-library/react";
 import { useClipboard } from "./use-clipboard";
-import { SpreadsheetColumn, SpreadsheetSelection } from "./types";
+import { GridColumn, GridSelection } from "./types";
 
 type TestRow = { id: string; name: string; value: string };
 
-const createTestColumns = (): SpreadsheetColumn[] => [
+const createTestColumns = (): GridColumn[] => [
   { accessorKey: "id", header: "ID" },
   { accessorKey: "name", header: "Name" },
   { accessorKey: "value", header: "Value" },
@@ -32,7 +32,7 @@ describe("useClipboard", () => {
         { id: "2", name: "Bob", value: "200" },
       ];
       const onChange = vi.fn();
-      const selection: SpreadsheetSelection = {
+      const selection: GridSelection = {
         min: { col: 1, row: 0 },
         max: { col: 1, row: 0 },
       };
@@ -66,7 +66,7 @@ describe("useClipboard", () => {
     it("extends data array when pasting content that exceeds current rows", async () => {
       const data: TestRow[] = [{ id: "1", name: "Alice", value: "100" }];
       const onChange = vi.fn();
-      const selection: SpreadsheetSelection = {
+      const selection: GridSelection = {
         min: { col: 1, row: 0 },
         max: { col: 1, row: 0 },
       };
@@ -106,7 +106,7 @@ describe("useClipboard", () => {
       ];
       const onChange = vi.fn();
       // Start pasting at row 1
-      const selection: SpreadsheetSelection = {
+      const selection: GridSelection = {
         min: { col: 1, row: 1 },
         max: { col: 1, row: 1 },
       };
@@ -143,7 +143,7 @@ describe("useClipboard", () => {
     it("pastes multi-column content", async () => {
       const data: TestRow[] = [{ id: "1", name: "Alice", value: "100" }];
       const onChange = vi.fn();
-      const selection: SpreadsheetSelection = {
+      const selection: GridSelection = {
         min: { col: 0, row: 0 },
         max: { col: 0, row: 0 },
       };
@@ -178,12 +178,12 @@ describe("useClipboard", () => {
     it("does not paste into disabled columns", async () => {
       const data: TestRow[] = [{ id: "1", name: "Alice", value: "100" }];
       const onChange = vi.fn();
-      const selection: SpreadsheetSelection = {
+      const selection: GridSelection = {
         min: { col: 0, row: 0 },
         max: { col: 0, row: 0 },
       };
 
-      const columns: SpreadsheetColumn[] = [
+      const columns: GridColumn[] = [
         { accessorKey: "id", header: "ID", disabled: true },
         { accessorKey: "name", header: "Name" },
         { accessorKey: "value", header: "Value" },
@@ -239,7 +239,7 @@ describe("useClipboard", () => {
     it("does nothing when clipboard is empty", async () => {
       const data: TestRow[] = [{ id: "1", name: "Alice", value: "100" }];
       const onChange = vi.fn();
-      const selection: SpreadsheetSelection = {
+      const selection: GridSelection = {
         min: { col: 0, row: 0 },
         max: { col: 0, row: 0 },
       };
@@ -274,7 +274,7 @@ describe("useClipboard", () => {
         { id: "1", name: "Alice", value: "100" },
         { id: "2", name: "Bob", value: "200" },
       ];
-      const selection: SpreadsheetSelection = {
+      const selection: GridSelection = {
         min: { col: 0, row: 0 },
         max: { col: 1, row: 1 },
       };

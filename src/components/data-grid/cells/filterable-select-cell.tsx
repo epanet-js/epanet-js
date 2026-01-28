@@ -3,7 +3,7 @@ import {
   FilterableSelector,
   FilterableSelectorOption,
 } from "src/components/form/filterable-selector";
-import { SpreadsheetCellProps, SpreadsheetColumn } from "../types";
+import { CellProps, GridColumn } from "../types";
 
 type FilterableSelectCellExtraProps<
   T extends string | number = string | number,
@@ -19,7 +19,7 @@ export function FilterableSelectCell({
   focus,
   options,
   placeholder,
-}: SpreadsheetCellProps<string | number | null> &
+}: CellProps<string | number | null> &
   FilterableSelectCellExtraProps<string | number>) {
   const ref = useRef<HTMLInputElement>(null);
 
@@ -83,12 +83,12 @@ export function filterableSelectColumn<T extends string | number = string>(
     placeholder?: string;
     deleteValue?: T | null;
   },
-): SpreadsheetColumn {
+): GridColumn {
   return {
     accessorKey,
     header: options.header,
     size: options.size,
-    cellComponent: (props: SpreadsheetCellProps<string | number | null>) => (
+    cellComponent: (props: CellProps<string | number | null>) => (
       <FilterableSelectCell
         {...props}
         options={options.options as FilterableSelectorOption<string | number>[]}

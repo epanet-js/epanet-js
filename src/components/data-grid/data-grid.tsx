@@ -11,7 +11,6 @@ import {
   useReactTable,
   getCoreRowModel,
   flexRender,
-  ColumnDef,
   Cell,
   Table,
 } from "@tanstack/react-table";
@@ -20,11 +19,11 @@ import clsx from "clsx";
 import { Button } from "src/components/elements";
 import { AddIcon } from "src/icons";
 import {
-  SpreadsheetTableProps,
-  SpreadsheetTableRef,
-  SpreadsheetColumn,
+  DataGridRef,
+  GridColumn,
   CellPosition,
   RowAction,
+  GridSelection,
 } from "./types";
 import { useSelection } from "./use-selection";
 import { useKeyboardNavigation } from "./use-keyboard-navigation";
@@ -33,7 +32,20 @@ import { ActionsCell } from "./cells/actions-cell";
 
 const ROW_HEIGHT = 32; // h-8, needed for virtualizer estimateSize
 
-export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
+type DataGridProps<TData extends Record<string, unknown>> = {
+  data: TData[];
+  columns: GridColumn[];
+  onChange: (data: TData[]) => void;
+  createRow: () => TData;
+  lockRows?: boolean;
+  emptyState?: React.ReactNode;
+  rowActions?: RowAction[];
+  addRowLabel?: string;
+  gutterColumn?: boolean;
+  onSelectionChange?: (selection: GridSelection | null) => void;
+};
+
+export const DataGrid = forwardRef(function DataGrid<
   TData extends Record<string, unknown>,
 >(
   {
@@ -47,8 +59,8 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
     addRowLabel,
     gutterColumn = false,
     onSelectionChange,
-  }: SpreadsheetTableProps<TData>,
-  ref: React.ForwardedRef<SpreadsheetTableRef>,
+  }: DataGridProps<TData>,
+  ref: React.ForwardedRef<DataGridRef>,
 ) {
   const containerRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -215,11 +227,9 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
     [addRowLabel],
   );
 
-  // TanStack Table setup
-  // Cast to ColumnDef[] because Partial<SpreadsheetColumnDef> breaks union type inference
   const table = useReactTable({
     data,
-    columns: dataColumns as ColumnDef<TData, unknown>[],
+    columns: dataColumns,
     getCoreRowModel: getCoreRowModel(),
   });
 
@@ -309,7 +319,7 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
 
   const handleCellDoubleClick = useCallback(
     (col: number) => {
-      const column = dataColumns[col] as SpreadsheetColumn | undefined;
+      const column = dataColumns[col] as GridColumn | undefined;
       if (!column?.disabled && !column?.disableKeys) {
         startEditing();
       }
@@ -384,7 +394,7 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
           className="outline-none overflow-auto h-full border border-gray-200"
           data-capture-escape-key
         >
-          <TableHeader
+          <GridHeader
             table={table}
             showGutterColumn={gutterColumn}
             showActionsColumn={!!rowActions}
@@ -414,7 +424,7 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
                   style={{ transform: `translateY(${virtualRow.start}px)` }}
                 >
                   {gutterColumn && (
-                    <TableGutterCell
+                    <RowGutterCell
                       rowIndex={rowIndex}
                       onClick={(e) => handleGutterClick(rowIndex, e)}
                       className={isLast && !hasScroll ? "border-b" : ""}
@@ -427,7 +437,7 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
                     const cellSelected = isCellSelected(colIndex, rowIndex);
 
                     return (
-                      <TableDataCell
+                      <GridDataCell
                         key={cell.id}
                         cell={cell}
                         colIndex={colIndex}
@@ -467,7 +477,7 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
                     );
                   })}
 
-                  <TableActionsCell
+                  <RowActionsCell
                     rowActions={rowActions}
                     rowIndex={rowIndex}
                     className={
@@ -498,12 +508,12 @@ export const SpreadsheetTable = forwardRef(function SpreadsheetTable<
     </div>
   );
 }) as <TData extends Record<string, unknown>>(
-  props: SpreadsheetTableProps<TData> & {
-    ref?: React.Ref<SpreadsheetTableRef>;
+  props: DataGridProps<TData> & {
+    ref?: React.Ref<DataGridRef>;
   },
 ) => React.ReactElement;
 
-function TableHeader<T>({
+function GridHeader<T>({
   showGutterColumn,
   showActionsColumn,
   table,
@@ -554,7 +564,7 @@ function TableHeader<T>({
   );
 }
 
-function TableGutterCell({
+function RowGutterCell({
   rowIndex,
   onClick,
   className = "",
@@ -581,7 +591,7 @@ type SelectionEdge = {
   right: boolean;
 };
 
-function TableDataCell<T>({
+function GridDataCell<T>({
   cell,
   colIndex,
   rowIndex,
@@ -609,7 +619,7 @@ function TableDataCell<T>({
   onDoubleClick: () => void;
   onChange?: (value: unknown) => void;
   onBlur: () => void;
-  CellComponent: SpreadsheetColumn["cellComponent"];
+  CellComponent: GridColumn["cellComponent"];
   className?: string;
 }) {
   return (
@@ -658,7 +668,7 @@ function TableDataCell<T>({
   );
 }
 
-function TableActionsCell({
+function RowActionsCell({
   rowIndex,
   rowActions,
   className = "",

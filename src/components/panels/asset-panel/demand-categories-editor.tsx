@@ -1,9 +1,10 @@
 import { useMemo, useCallback } from "react";
 import {
-  SpreadsheetTable,
+  DataGrid,
   floatColumn,
   filterableSelectColumn,
-} from "src/components/spreadsheet-table";
+  GridColumn,
+} from "src/components/data-grid";
 import { JunctionDemand, DemandPatterns, PatternId } from "src/hydraulic-model";
 import { useTranslate } from "src/hooks/use-translate";
 import { DeleteIcon, AddIcon } from "src/icons";
@@ -155,7 +156,7 @@ export const DemandCategoriesEditor = ({
     ],
   );
 
-  const columns = useMemo(
+  const columns: GridColumn[] = useMemo(
     () => [
       floatColumn("baseDemand", {
         header: translate("baseDemand"),
@@ -189,7 +190,7 @@ export const DemandCategoriesEditor = ({
 
   return (
     <div className="max-h-[150px]">
-      <SpreadsheetTable<DemandCategoryRow>
+      <DataGrid<DemandCategoryRow>
         data={rowData}
         columns={columns}
         onChange={handleChange}

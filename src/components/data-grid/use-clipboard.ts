@@ -1,9 +1,9 @@
 import { useCallback } from "react";
-import { SpreadsheetColumn, SpreadsheetSelection } from "./types";
+import { GridColumn, GridSelection } from "./types";
 
 type UseClipboardOptions<TData extends Record<string, unknown>> = {
-  selection: SpreadsheetSelection | null;
-  columns: SpreadsheetColumn[];
+  selection: GridSelection | null;
+  columns: GridColumn[];
   data: TData[];
   onChange: (data: TData[]) => void;
   createRow: () => TData;

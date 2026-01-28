@@ -1,6 +1,6 @@
-import { SpreadsheetCellProps, SpreadsheetColumn } from "../types";
+import { CellProps, GridColumn } from "../types";
 
-type TextReadonlyCellProps = SpreadsheetCellProps<string> & {
+type TextReadonlyCellProps = CellProps<string> & {
   className?: string;
 };
 
@@ -25,7 +25,7 @@ export function textReadonlyColumn(
     size?: number;
     className?: string;
   },
-): SpreadsheetColumn {
+): GridColumn {
   const { className } = options;
 
   return {
@@ -33,7 +33,7 @@ export function textReadonlyColumn(
     header: options.header,
     size: options.size,
     cellComponent: className
-      ? (props: SpreadsheetCellProps<string>) => (
+      ? (props: CellProps<string>) => (
           <TextReadonlyCell {...props} className={className} />
         )
       : TextReadonlyCell,

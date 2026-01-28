@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { CellPosition, SelectionState, SpreadsheetSelection } from "./types";
+import { CellPosition, SelectionState, GridSelection } from "./types";
 
 type UseSelectionOptions = {
   rowCount: number;
   colCount: number;
-  onSelectionChange?: (selection: SpreadsheetSelection | null) => void;
+  onSelectionChange?: (selection: GridSelection | null) => void;
 };
 
 export function useSelection({
@@ -69,7 +69,7 @@ export function useSelection({
   );
 
   // Compute selection from active cell and anchor
-  const selection = useMemo((): SpreadsheetSelection | null => {
+  const selection = useMemo((): GridSelection | null => {
     if (!state.activeCell) return null;
 
     const anchor = state.anchor ?? state.activeCell;
@@ -97,7 +97,7 @@ export function useSelection({
       });
 
       // Compute selection for callback
-      const newSelection: SpreadsheetSelection =
+      const newSelection: GridSelection =
         extend && state.anchor
           ? {
               min: {
@@ -116,7 +116,7 @@ export function useSelection({
   );
 
   const setSelection = useCallback(
-    (newSelection: SpreadsheetSelection | null) => {
+    (newSelection: GridSelection | null) => {
       if (newSelection === null) {
         setState({ activeCell: null, anchor: null, isEditing: false });
         onSelectionChange?.(null);
@@ -171,7 +171,7 @@ export function useSelection({
         const newCell = { col: newCol, row: newRow };
         const newAnchor = extend ? (prev.anchor ?? prev.activeCell) : null;
 
-        const newSelection: SpreadsheetSelection = newAnchor
+        const newSelection: GridSelection = newAnchor
           ? {
               min: {
                 col: Math.min(newCell.col, newAnchor.col),
@@ -198,7 +198,7 @@ export function useSelection({
 
   const selectRow = useCallback(
     (rowIndex: number, extend = false) => {
-      const newSelection: SpreadsheetSelection =
+      const newSelection: GridSelection =
         extend && state.anchor
           ? {
               min: {
@@ -229,7 +229,7 @@ export function useSelection({
 
   const selectColumn = useCallback(
     (colIndex: number) => {
-      const newSelection: SpreadsheetSelection = {
+      const newSelection: GridSelection = {
         min: { col: colIndex, row: 0 },
         max: { col: colIndex, row: rowCount - 1 },
       };
@@ -247,7 +247,7 @@ export function useSelection({
   const selectAll = useCallback(() => {
     if (rowCount === 0 || colCount === 0) return;
 
-    const newSelection: SpreadsheetSelection = {
+    const newSelection: GridSelection = {
       min: { col: 0, row: 0 },
       max: { col: colCount - 1, row: rowCount - 1 },
     };
@@ -268,7 +268,7 @@ export function useSelection({
         const newCell = { col: 0, row: prev.activeCell.row };
         const newAnchor = extend ? (prev.anchor ?? prev.activeCell) : null;
 
-        const newSelection: SpreadsheetSelection = newAnchor
+        const newSelection: GridSelection = newAnchor
           ? {
               min: {
                 col: Math.min(newCell.col, newAnchor.col),
@@ -301,7 +301,7 @@ export function useSelection({
         const newCell = { col: colCount - 1, row: prev.activeCell.row };
         const newAnchor = extend ? (prev.anchor ?? prev.activeCell) : null;
 
-        const newSelection: SpreadsheetSelection = newAnchor
+        const newSelection: GridSelection = newAnchor
           ? {
               min: {
                 col: Math.min(newCell.col, newAnchor.col),
@@ -339,7 +339,7 @@ export function useSelection({
         const newCell = { col: 0, row: 0 };
         const newAnchor = extend ? (prev.anchor ?? prev.activeCell) : null;
 
-        const newSelection: SpreadsheetSelection = newAnchor
+        const newSelection: GridSelection = newAnchor
           ? {
               min: {
                 col: Math.min(newCell.col, newAnchor.col),
@@ -376,7 +376,7 @@ export function useSelection({
         const newCell = { col: colCount - 1, row: rowCount - 1 };
         const newAnchor = extend ? (prev.anchor ?? prev.activeCell) : null;
 
-        const newSelection: SpreadsheetSelection = newAnchor
+        const newSelection: GridSelection = newAnchor
           ? {
               min: {
                 col: Math.min(newCell.col, newAnchor.col),
@@ -414,7 +414,7 @@ export function useSelection({
         const newCell = { col: prev.activeCell.col, row: newRow };
         const newAnchor = extend ? (prev.anchor ?? prev.activeCell) : null;
 
-        const newSelection: SpreadsheetSelection = newAnchor
+        const newSelection: GridSelection = newAnchor
           ? {
               min: {
                 col: Math.min(newCell.col, newAnchor.col),

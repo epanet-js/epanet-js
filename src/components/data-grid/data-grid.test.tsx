@@ -1,16 +1,16 @@
 import userEvent from "@testing-library/user-event";
 import { render, screen, waitFor } from "@testing-library/react";
 import { createRef } from "react";
-import { SpreadsheetTable } from "./spreadsheet-table";
+import { DataGrid } from "./data-grid";
 import { floatColumn } from "./cells/float-cell";
 import { textReadonlyColumn } from "./cells/text-readonly-cell";
-import type { SpreadsheetTableRef, SpreadsheetColumn } from "./types";
+import type { DataGridRef, GridColumn } from "./types";
 
 const setupUser = () => userEvent.setup({ pointerEventsCheck: 0 });
 
 type TestRow = { value: number | null; label: string };
 
-const columns: SpreadsheetColumn[] = [
+const columns: GridColumn[] = [
   textReadonlyColumn("label", { header: "Label", size: 80 }),
   floatColumn("value", { header: "Value", size: 100, deleteValue: 0 }),
 ];
@@ -23,11 +23,11 @@ const defaultData: TestRow[] = [
   { value: 0.6, label: "Row 3" },
 ];
 
-describe("SpreadsheetTable", () => {
+describe("DataGrid", () => {
   describe("rendering", () => {
     it("renders column headers", () => {
       render(
-        <SpreadsheetTable
+        <DataGrid
           data={defaultData}
           columns={columns}
           onChange={vi.fn()}
@@ -41,7 +41,7 @@ describe("SpreadsheetTable", () => {
 
     it("renders row data", () => {
       render(
-        <SpreadsheetTable
+        <DataGrid
           data={defaultData}
           columns={columns}
           onChange={vi.fn()}
@@ -58,7 +58,7 @@ describe("SpreadsheetTable", () => {
       const emptyState = <div data-testid="empty-state">No data</div>;
 
       render(
-        <SpreadsheetTable
+        <DataGrid
           data={[]}
           columns={columns}
           onChange={vi.fn()}
@@ -72,7 +72,7 @@ describe("SpreadsheetTable", () => {
 
     it("renders gutter column with row numbers when enabled", () => {
       const { container } = render(
-        <SpreadsheetTable
+        <DataGrid
           data={defaultData}
           columns={columns}
           onChange={vi.fn()}
@@ -91,7 +91,7 @@ describe("SpreadsheetTable", () => {
 
     it("renders add row button when addRowLabel is provided", () => {
       render(
-        <SpreadsheetTable
+        <DataGrid
           data={defaultData}
           columns={columns}
           onChange={vi.fn()}
@@ -112,7 +112,7 @@ describe("SpreadsheetTable", () => {
       const onChange = vi.fn();
 
       render(
-        <SpreadsheetTable
+        <DataGrid
           data={defaultData}
           columns={columns}
           onChange={onChange}
@@ -136,7 +136,7 @@ describe("SpreadsheetTable", () => {
       const onSelectionChange = vi.fn();
 
       render(
-        <SpreadsheetTable
+        <DataGrid
           data={defaultData}
           columns={columns}
           onChange={vi.fn()}
@@ -157,11 +157,11 @@ describe("SpreadsheetTable", () => {
 
   describe("ref methods", () => {
     it("exposes setActiveCell method", async () => {
-      const ref = createRef<SpreadsheetTableRef>();
+      const ref = createRef<DataGridRef>();
       const onSelectionChange = vi.fn();
 
       render(
-        <SpreadsheetTable
+        <DataGrid
           ref={ref}
           data={defaultData}
           columns={columns}
@@ -182,11 +182,11 @@ describe("SpreadsheetTable", () => {
     });
 
     it("exposes setSelection method", async () => {
-      const ref = createRef<SpreadsheetTableRef>();
+      const ref = createRef<DataGridRef>();
       const onSelectionChange = vi.fn();
 
       render(
-        <SpreadsheetTable
+        <DataGrid
           ref={ref}
           data={defaultData}
           columns={columns}
@@ -210,10 +210,10 @@ describe("SpreadsheetTable", () => {
     });
 
     it("exposes selection property", async () => {
-      const ref = createRef<SpreadsheetTableRef>();
+      const ref = createRef<DataGridRef>();
 
       render(
-        <SpreadsheetTable
+        <DataGrid
           ref={ref}
           data={defaultData}
           columns={columns}
@@ -242,7 +242,7 @@ describe("SpreadsheetTable", () => {
       const onSelectionChange = vi.fn();
 
       render(
-        <SpreadsheetTable
+        <DataGrid
           data={defaultData}
           columns={columns}
           onChange={vi.fn()}
@@ -270,7 +270,7 @@ describe("SpreadsheetTable", () => {
       const onSelectionChange = vi.fn();
 
       render(
-        <SpreadsheetTable
+        <DataGrid
           data={defaultData}
           columns={columns}
           onChange={vi.fn()}
@@ -296,7 +296,7 @@ describe("SpreadsheetTable", () => {
       const onSelectionChange = vi.fn();
 
       render(
-        <SpreadsheetTable
+        <DataGrid
           data={defaultData}
           columns={columns}
           onChange={vi.fn()}
@@ -323,7 +323,7 @@ describe("SpreadsheetTable", () => {
       const user = setupUser();
 
       render(
-        <SpreadsheetTable
+        <DataGrid
           data={defaultData}
           columns={columns}
           onChange={vi.fn()}
@@ -353,7 +353,7 @@ describe("SpreadsheetTable", () => {
       ];
 
       render(
-        <SpreadsheetTable
+        <DataGrid
           data={testData}
           columns={columns}
           onChange={onChange}
@@ -389,7 +389,7 @@ describe("SpreadsheetTable", () => {
       const onChange = vi.fn();
 
       render(
-        <SpreadsheetTable
+        <DataGrid
           data={defaultData}
           columns={columns}
           onChange={onChange}
@@ -423,7 +423,7 @@ describe("SpreadsheetTable", () => {
       const onChange = vi.fn();
 
       const { container } = render(
-        <SpreadsheetTable
+        <DataGrid
           data={defaultData}
           columns={columns}
           onChange={onChange}
@@ -452,7 +452,7 @@ describe("SpreadsheetTable", () => {
       const onChange = vi.fn();
 
       const { container } = render(
-        <SpreadsheetTable
+        <DataGrid
           data={defaultData}
           columns={columns}
           onChange={onChange}
@@ -483,7 +483,7 @@ describe("SpreadsheetTable", () => {
       const onSelectionChange = vi.fn();
 
       const { container } = render(
-        <SpreadsheetTable
+        <DataGrid
           data={defaultData}
           columns={columns}
           onChange={vi.fn()}

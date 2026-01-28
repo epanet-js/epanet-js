@@ -1,6 +1,6 @@
 export type CellPosition = { col: number; row: number };
 
-export type SpreadsheetSelection = {
+export type GridSelection = {
   min: CellPosition;
   max: CellPosition;
 };
@@ -11,7 +11,6 @@ export type SelectionState = {
   isEditing: boolean;
 };
 
-// Row action type for dropdown actions column
 export type RowAction = {
   label: string;
   icon: React.ReactNode;
@@ -19,8 +18,7 @@ export type RowAction = {
   disabled?: (rowIndex: number) => boolean;
 };
 
-// Props passed to custom cell components
-export type SpreadsheetCellProps<TValue = unknown> = {
+export type CellProps<TValue = unknown> = {
   value: TValue;
   rowIndex: number;
   columnIndex: number;
@@ -32,8 +30,7 @@ export type SpreadsheetCellProps<TValue = unknown> = {
   focus: boolean;
 };
 
-// Column definition - simple flat structure
-export type SpreadsheetColumn = {
+export type GridColumn = {
   // Required
   accessorKey: string;
   header: string;
@@ -43,7 +40,7 @@ export type SpreadsheetColumn = {
 
   // Cell rendering
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  cellComponent?: React.ComponentType<SpreadsheetCellProps<any>>;
+  cellComponent?: React.ComponentType<CellProps<any>>;
 
   // Copy/paste/delete behavior
   copyValue?: (value: unknown) => string;
@@ -55,28 +52,12 @@ export type SpreadsheetColumn = {
   disableKeys?: boolean;
 };
 
-// Ref type for programmatic control
-export type SpreadsheetTableRef = {
+export type DataGridRef = {
   setActiveCell: (cell: CellPosition) => void;
-  setSelection: (selection: SpreadsheetSelection | null) => void;
-  selection: SpreadsheetSelection | null;
+  setSelection: (selection: GridSelection | null) => void;
+  selection: GridSelection | null;
 };
 
-// Main component props
-export type SpreadsheetTableProps<TData extends Record<string, unknown>> = {
-  data: TData[];
-  columns: SpreadsheetColumn[];
-  onChange: (data: TData[]) => void;
-  createRow: () => TData;
-  lockRows?: boolean;
-  emptyState?: React.ReactNode;
-  rowActions?: RowAction[];
-  addRowLabel?: string;
-  gutterColumn?: boolean;
-  onSelectionChange?: (selection: SpreadsheetSelection | null) => void;
-};
-
-// Context for cell components
-export type SpreadsheetContextValue = {
+export type CellContext = {
   setActiveCell: (cell: CellPosition) => void;
 };

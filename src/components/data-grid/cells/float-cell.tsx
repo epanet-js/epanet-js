@@ -4,9 +4,9 @@ import {
   normalizeNumericInput,
   parseNumericInput,
 } from "src/components/form/numeric-input-utils";
-import { SpreadsheetCellProps, SpreadsheetColumn } from "../types";
+import { CellProps, GridColumn } from "../types";
 
-type FloatCellProps = SpreadsheetCellProps<number | null> & {
+type FloatCellProps = CellProps<number | null> & {
   nullValue?: number | null;
 };
 
@@ -100,12 +100,12 @@ export function floatColumn(
     deleteValue?: number | null;
     nullValue?: number | null;
   },
-): SpreadsheetColumn {
+): GridColumn {
   const { nullValue } = options;
 
   const CellComponent =
     nullValue !== undefined
-      ? (props: SpreadsheetCellProps<number | null>) => (
+      ? (props: CellProps<number | null>) => (
           <FloatCell {...props} nullValue={nullValue} />
         )
       : FloatCell;
