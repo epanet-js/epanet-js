@@ -8,7 +8,6 @@ import { scenariosPromoVideoUrl } from "src/global-config";
 import { ScenarioIcon } from "src/icons";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useTranslate } from "src/hooks/use-translate";
-import { EarlyAccessBadge } from "../early-access-badge";
 
 export const ScenariosPaywallDialog = ({
   onClose: _onClose,
@@ -34,7 +33,6 @@ export const ScenariosPaywallDialog = ({
       <DialogHeader
         title={translate("scenarios.paywall.title")}
         titleIcon={ScenarioIcon}
-        badge={<EarlyAccessBadge />}
       />
       <div className="grid grid-cols-1 md:grid-cols-[3fr_2fr] gap-8 py-4">
         <div className="relative aspect-video bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden">
