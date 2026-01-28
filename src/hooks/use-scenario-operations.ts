@@ -8,12 +8,11 @@ import { modeAtom, Mode } from "src/state/mode";
 import {
   createScenario,
   switchToSnapshot as switchToSnapshotFn,
-  switchToScenario as switchToScenarioFn,
-  switchToMain as switchToMainFn,
   deleteScenario,
   renameScenario,
   getSimulationForState,
 } from "src/lib/worktree";
+import type { Worktree } from "src/lib/worktree";
 
 const DRAWING_MODES: Mode[] = [
   Mode.DRAW_JUNCTION,
@@ -32,77 +31,51 @@ export const useScenarioOperations = () => {
   const setSimulation = useSetAtom(simulationAtom);
   const setMode = useSetAtom(modeAtom);
 
-  const switchToMain = useAtomCallback(
-    useCallback(
-      (get) => {
-        const worktree = get(worktreeAtom);
-        const result = switchToMainFn(worktree);
+  const performSwitch = useCallback(
+    (worktree: Worktree, snapshotId: string) => {
+      const result = switchToSnapshotFn(worktree, snapshotId);
 
-        if (result.snapshot) {
-          persistence.applySnapshot(result.worktree, result.snapshot.id);
-        }
+      if (result.snapshot) {
+        persistence.applySnapshot(result.worktree, result.snapshot.id);
+      }
 
-        setWorktree(result.worktree);
-        setSimulation(
-          getSimulationForState(result.worktree, initialSimulationState),
-        );
+      setWorktree(result.worktree);
+      setSimulation(
+        getSimulationForState(result.worktree, initialSimulationState),
+      );
 
+      const targetSnapshot = result.worktree.snapshots.get(snapshotId);
+      if (targetSnapshot?.status === "locked") {
         setMode((modeState) => {
           if (DRAWING_MODES.includes(modeState.mode)) {
             return { mode: Mode.NONE };
           }
           return modeState;
         });
-      },
-      [persistence, setWorktree, setSimulation, setMode],
-    ),
+      }
+
+      return result;
+    },
+    [persistence, setWorktree, setSimulation, setMode],
   );
 
   const switchToSnapshot = useAtomCallback(
     useCallback(
       (get, _set, snapshotId: string) => {
         const worktree = get(worktreeAtom);
-        const result = switchToSnapshotFn(worktree, snapshotId);
-
-        if (result.snapshot) {
-          persistence.applySnapshot(result.worktree, result.snapshot.id);
-        }
-
-        setWorktree(result.worktree);
-        setSimulation(
-          getSimulationForState(result.worktree, initialSimulationState),
-        );
-
-        const targetSnapshot = result.worktree.snapshots.get(snapshotId);
-        if (targetSnapshot?.status === "locked") {
-          setMode((modeState) => {
-            if (DRAWING_MODES.includes(modeState.mode)) {
-              return { mode: Mode.NONE };
-            }
-            return modeState;
-          });
-        }
+        performSwitch(worktree, snapshotId);
       },
-      [persistence, setWorktree, setSimulation, setMode],
+      [performSwitch],
     ),
   );
 
-  const switchToScenario = useAtomCallback(
+  const switchToMain = useAtomCallback(
     useCallback(
-      (get, _set, scenarioId: string) => {
+      (get) => {
         const worktree = get(worktreeAtom);
-        const result = switchToScenarioFn(worktree, scenarioId);
-
-        if (result.snapshot) {
-          persistence.applySnapshot(result.worktree, result.snapshot.id);
-        }
-
-        setWorktree(result.worktree);
-        setSimulation(
-          getSimulationForState(result.worktree, initialSimulationState),
-        );
+        performSwitch(worktree, worktree.mainId);
       },
-      [persistence, setWorktree, setSimulation],
+      [performSwitch],
     ),
   );
 
@@ -111,7 +84,7 @@ export const useScenarioOperations = () => {
       (get) => {
         const worktree = get(worktreeAtom);
         const created = createScenario(worktree);
-        const result = switchToScenarioFn(
+        const result = switchToSnapshotFn(
           created.worktree,
           created.scenario.id,
         );
@@ -166,7 +139,6 @@ export const useScenarioOperations = () => {
   return {
     switchToSnapshot,
     switchToMain,
-    switchToScenario,
     createNewScenario,
     deleteScenarioById,
     renameScenarioById,

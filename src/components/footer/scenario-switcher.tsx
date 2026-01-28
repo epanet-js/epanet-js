@@ -36,7 +36,7 @@ export const ScenarioSwitcher = () => {
 
   const {
     switchToMain,
-    switchToScenario,
+    switchToSnapshot,
     deleteScenarioById,
     renameScenarioById,
   } = useScenarioOperations();
@@ -71,7 +71,7 @@ export const ScenarioSwitcher = () => {
       scenarioName: scenario?.name,
     });
 
-    switchToScenario(scenarioId);
+    switchToSnapshot(scenarioId);
   };
 
   const handleCreateScenario = () => {
