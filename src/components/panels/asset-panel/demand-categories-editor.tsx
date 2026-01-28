@@ -7,8 +7,6 @@ import {
 import { JunctionDemand, DemandPatterns, PatternId } from "src/hydraulic-model";
 import { useTranslate } from "src/hooks/use-translate";
 import { DeleteIcon, AddIcon } from "src/icons";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { DemandCategoriesEditorLegacy } from "./demand-categories-editor-legacy";
 
 type DemandCategoryRow = {
   baseDemand: number | null;
@@ -55,7 +53,7 @@ const createDefaultRow = (): DemandCategoryRow => ({
   patternId: CONSTANT_PATTERN_ID,
 });
 
-const DemandCategoriesEditorTanstack = ({
+export const DemandCategoriesEditor = ({
   demands,
   patterns,
   onDemandsChange,
@@ -201,14 +199,4 @@ const DemandCategoriesEditorTanstack = ({
       />
     </div>
   );
-};
-
-export const DemandCategoriesEditor = (props: Props) => {
-  const useTanstack = useFeatureFlag("FLAG_SPREADSHEET");
-
-  if (useTanstack) {
-    return <DemandCategoriesEditorTanstack {...props} />;
-  }
-
-  return <DemandCategoriesEditorLegacy {...props} />;
 };

@@ -1,30 +1,15 @@
-// Legacy implementation (react-datasheet-grid)
-export {
-  SpreadsheetTableLegacy,
-  createSelectColumnLegacy,
-  createFloatColumnLegacy,
-  createTextReadonlyColumnLegacy,
-  createFilterableSelectColumnLegacy,
-  hasActiveSpreadsheet,
-} from "./react-datasheet-grid";
-export type {
-  SpreadsheetTableRefLegacy,
-  SpreadsheetSelectionLegacy,
-  RowActionLegacy,
-} from "./react-datasheet-grid";
+export { SpreadsheetTable } from "./spreadsheet-table";
 
-// TanStack implementation (new)
-export {
-  SpreadsheetTable,
-  floatColumn,
-  selectColumn,
-  filterableSelectColumn,
-  textReadonlyColumn,
-} from "./tanstack";
 export type {
   SpreadsheetTableRef,
   SpreadsheetSelection,
+  SpreadsheetTableProps,
   SpreadsheetColumn,
   RowAction,
   CellPosition,
-} from "./tanstack";
+} from "./types";
+
+export { floatColumn } from "./cells/float-cell";
+export { selectColumn } from "./cells/select-cell";
+export { filterableSelectColumn } from "./cells/filterable-select-cell";
+export { textReadonlyColumn } from "./cells/text-readonly-cell";

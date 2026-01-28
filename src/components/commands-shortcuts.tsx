@@ -1,5 +1,4 @@
 import { useHotkeys } from "src/keyboard/hotkeys";
-import { hasActiveSpreadsheet } from "src/components/spreadsheet-table";
 import { showReportShorcut, useShowReport } from "src/commands/show-report";
 import { useUserTracking } from "src/infra/user-tracking";
 import {
@@ -268,7 +267,6 @@ export const CommandShortcuts = () => {
     (e) => {
       if (IGNORE_ROLES.has((e.target as HTMLElement).getAttribute("role")!))
         return;
-      if (hasActiveSpreadsheet()) return;
       if (isMainReadonly) return;
 
       e.preventDefault();

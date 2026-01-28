@@ -1,24 +1,19 @@
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { render } from "@testing-library/react";
-import { createRef } from "react";
-import {
-  PatternTableLegacy,
-  PatternTableRefLegacy,
-} from "./pattern-table-legacy";
+import { PatternTable } from "./pattern-table";
 
 // Skip pointer events check because react-datasheet-grid uses pointer-events: none on inactive cells
 const setupUser = () => userEvent.setup({ pointerEventsCheck: 0 });
 
-// Tests for the legacy react-datasheet-grid implementation
-describe("PatternTableLegacy", () => {
+describe("PatternTable", () => {
   describe("row actions", () => {
     it("disables delete when there is only one row", async () => {
       const user = setupUser();
       const onChange = vi.fn();
 
       render(
-        <PatternTableLegacy
+        <PatternTable
           pattern={[1.0]}
           patternTimestepSeconds={3600}
           onChange={onChange}
@@ -38,7 +33,7 @@ describe("PatternTableLegacy", () => {
       const onChange = vi.fn();
 
       render(
-        <PatternTableLegacy
+        <PatternTable
           pattern={[3.0, 0.8]}
           patternTimestepSeconds={3600}
           onChange={onChange}
@@ -63,7 +58,7 @@ describe("PatternTableLegacy", () => {
       const onChange = vi.fn();
 
       render(
-        <PatternTableLegacy
+        <PatternTable
           pattern={[2.0, 0.8]}
           patternTimestepSeconds={3600}
           onChange={onChange}
@@ -87,26 +82,18 @@ describe("PatternTableLegacy", () => {
   it("patterns always have default multiplier when all rows are deleted", async () => {
     const user = setupUser();
     const onChange = vi.fn();
-    const ref = createRef<PatternTableRefLegacy>();
 
     const { container } = render(
-      <PatternTableLegacy
-        ref={ref}
+      <PatternTable
         pattern={[1.0, 0.8, 0.6]}
         patternTimestepSeconds={3600}
         onChange={onChange}
       />,
     );
 
-    // Click on a cell to establish focus context
-    const cell = container.querySelector(".dsg-cell:not(.dsg-cell-header)");
-    await user.click(cell!);
-
-    // Select all rows programmatically (2 columns: timestep, multiplier; 3 rows)
-    ref.current?.setSelection({
-      min: { col: 0, row: 0 },
-      max: { col: 1, row: 2 },
-    });
+    // Click on the gutter column header to select all rows
+    const gutterHeader = container.querySelector('[role="columnheader"]');
+    await user.click(gutterHeader!);
 
     await user.keyboard("{Delete}");
 

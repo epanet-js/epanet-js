@@ -21,12 +21,14 @@ const renderDialog = (store: Store) => {
   );
 };
 
-// Skip pointer events check because react-datasheet-grid uses pointer-events: none on inactive cells
+// Skip pointer events check because the spreadsheet table uses pointer-events: none on inactive cells
 const setupUser = () => userEvent.setup({ pointerEventsCheck: 0 });
 
-const getMultiplierInput = (rowIndex: number) => {
-  const inputs = screen.getAllByRole("textbox");
-  return inputs[rowIndex];
+const getMultiplierCell = (rowIndex: number) => {
+  const gridCells = screen.getAllByRole("gridcell");
+  // Columns: timestep (0), multiplier (1)
+  // Row N multiplier is at index N * 2 + 1
+  return gridCells[rowIndex * 2 + 1];
 };
 
 describe("CurvesAndPatternsDialog", () => {
@@ -61,11 +63,14 @@ describe("CurvesAndPatternsDialog", () => {
       await user.click(screen.getByRole("button", { name: "Pattern1" }));
 
       // Find and modify the first multiplier cell
-      const firstMultiplier = getMultiplierInput(0);
-      await user.click(firstMultiplier);
-      await user.clear(firstMultiplier);
-      await user.type(firstMultiplier, "2.0");
-      await user.keyboard("{Enter}");
+      const firstMultiplierCell = getMultiplierCell(0);
+      await user.dblClick(firstMultiplierCell);
+      await waitFor(() => {
+        expect(screen.getByRole("textbox")).toBeInTheDocument();
+      });
+      const input = screen.getByRole("textbox");
+      await user.tripleClick(input);
+      await user.type(input, "2.0{Enter}");
 
       await waitFor(() => {
         expect(screen.getByRole("button", { name: /save/i })).toBeEnabled();
@@ -74,7 +79,7 @@ describe("CurvesAndPatternsDialog", () => {
   });
 
   describe("saving patterns", () => {
-    it.skip("persists changes to the hydraulic model when save is clicked", async () => {
+    it("persists changes to the hydraulic model when save is clicked", async () => {
       const user = setupUser();
       const store = setInitialState({
         hydraulicModel: HydraulicModelBuilder.with()
@@ -88,11 +93,14 @@ describe("CurvesAndPatternsDialog", () => {
       await user.click(screen.getByRole("button", { name: "Pattern1" }));
 
       // Modify the first multiplier
-      const firstMultiplier = getMultiplierInput(0);
-      await user.dblClick(firstMultiplier);
-      await user.clear(firstMultiplier);
-      await user.type(firstMultiplier, "2.0");
-      await user.keyboard("{Enter}");
+      const firstMultiplierCell = getMultiplierCell(0);
+      await user.dblClick(firstMultiplierCell);
+      await waitFor(() => {
+        expect(screen.getByRole("textbox")).toBeInTheDocument();
+      });
+      const input = screen.getByRole("textbox");
+      await user.tripleClick(input);
+      await user.type(input, "2.0{Enter}");
 
       // Wait for save button to be enabled
       await waitFor(() => {
@@ -142,12 +150,14 @@ describe("CurvesAndPatternsDialog", () => {
 
       // Select the pattern and make changes
       await user.click(screen.getByRole("button", { name: "Pattern1" }));
-      const firstMultiplier = getMultiplierInput(0);
-      await user.dblClick(firstMultiplier);
-      await user.clear(firstMultiplier);
-      await user.type(firstMultiplier, "2.0");
-      // Tab away from the input to commit the value
-      await user.tab();
+      const firstMultiplierCell = getMultiplierCell(0);
+      await user.dblClick(firstMultiplierCell);
+      await waitFor(() => {
+        expect(screen.getByRole("textbox")).toBeInTheDocument();
+      });
+      const input = screen.getByRole("textbox");
+      await user.tripleClick(input);
+      await user.type(input, "2.0{Enter}");
 
       // Wait for changes to be detected
       await waitFor(() => {
@@ -179,12 +189,14 @@ describe("CurvesAndPatternsDialog", () => {
 
       // Select the pattern and make changes
       await user.click(screen.getByRole("button", { name: "Pattern1" }));
-      const firstMultiplier = getMultiplierInput(0);
-      await user.dblClick(firstMultiplier);
-      await user.clear(firstMultiplier);
-      await user.type(firstMultiplier, "2.0");
-      // Tab away from the input to commit the value
-      await user.tab();
+      const firstMultiplierCell = getMultiplierCell(0);
+      await user.dblClick(firstMultiplierCell);
+      await waitFor(() => {
+        expect(screen.getByRole("textbox")).toBeInTheDocument();
+      });
+      const input = screen.getByRole("textbox");
+      await user.tripleClick(input);
+      await user.type(input, "2.0{Enter}");
 
       // Wait for changes to be detected and click cancel
       await waitFor(() => {
@@ -215,12 +227,14 @@ describe("CurvesAndPatternsDialog", () => {
 
       // Select the pattern and make changes
       await user.click(screen.getByRole("button", { name: "Pattern1" }));
-      const firstMultiplier = getMultiplierInput(0);
-      await user.dblClick(firstMultiplier);
-      await user.clear(firstMultiplier);
-      await user.type(firstMultiplier, "2.0");
-      // Tab away from the input to commit the value
-      await user.tab();
+      const firstMultiplierCell = getMultiplierCell(0);
+      await user.dblClick(firstMultiplierCell);
+      await waitFor(() => {
+        expect(screen.getByRole("textbox")).toBeInTheDocument();
+      });
+      const input = screen.getByRole("textbox");
+      await user.tripleClick(input);
+      await user.type(input, "2.0{Enter}");
 
       // Wait for changes and click cancel
       await waitFor(() => {

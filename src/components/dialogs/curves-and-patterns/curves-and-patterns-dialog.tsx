@@ -20,7 +20,6 @@ import { HydraulicModel } from "src/hydraulic-model/hydraulic-model";
 import { Junction } from "src/hydraulic-model/asset-types/junction";
 import { notify } from "src/components/notifications";
 import { useUserTracking } from "src/infra/user-tracking";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 type PatternUpdate = Partial<Pick<DemandPattern, "label" | "multipliers">>;
 
@@ -29,7 +28,6 @@ export const CurvesAndPatternsDialog = () => {
   const { closeDialog } = useDialogState();
   const hydraulicModel = useAtomValue(stagingModelAtom);
   const userTracking = useUserTracking();
-  const useTanstackTable = useFeatureFlag("FLAG_SPREADSHEET");
   const [selectedPatternId, setSelectedPatternId] = useState<PatternId | null>(
     null,
   );
@@ -178,7 +176,6 @@ export const CurvesAndPatternsDialog = () => {
         <div className="flex-1 flex flex-col min-h-0 w-full">
           {selectedPatternId ? (
             <PatternDetail
-              key={useTanstackTable ? undefined : selectedPatternId}
               pattern={getPatternMultipliers(selectedPatternId)}
               patternTimestepSeconds={patternTimestepSeconds}
               totalDurationSeconds={totalDurationSeconds}

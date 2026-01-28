@@ -16,9 +16,6 @@ import {
 import { PatternMultipliers } from "src/hydraulic-model/demands";
 import { useTranslate } from "src/hooks/use-translate";
 import { DeleteIcon, AddIcon } from "src/icons";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { PatternTableLegacy } from "./pattern-table-legacy";
-import type { PatternTableRefLegacy } from "./pattern-table-legacy";
 
 type PatternRow = {
   timestep: string;
@@ -32,7 +29,7 @@ type PatternTableProps = {
   onSelectionChange?: (selection: SpreadsheetSelection | null) => void;
 };
 
-export type PatternTableRef = SpreadsheetTableRef | PatternTableRefLegacy;
+export type PatternTableRef = SpreadsheetTableRef;
 
 const DEFAULT_MULTIPLIER = 1.0;
 
@@ -68,7 +65,7 @@ const fromRows = (rows: PatternRow[]): PatternMultipliers => {
   return rows.map((row) => row.multiplier);
 };
 
-const PatternTableTanstack = forwardRef<SpreadsheetTableRef, PatternTableProps>(
+export const PatternTable = forwardRef<SpreadsheetTableRef, PatternTableProps>(
   function PatternTableTanstack(
     { pattern, patternTimestepSeconds, onChange, onSelectionChange },
     ref,
@@ -224,28 +221,6 @@ const PatternTableTanstack = forwardRef<SpreadsheetTableRef, PatternTableProps>(
           onSelectionChange={onSelectionChange}
         />
       </div>
-    );
-  },
-);
-
-export const PatternTable = forwardRef<PatternTableRef, PatternTableProps>(
-  function PatternTable(props, ref) {
-    const useTanstack = useFeatureFlag("FLAG_SPREADSHEET");
-
-    if (useTanstack) {
-      return (
-        <PatternTableTanstack
-          ref={ref as React.ForwardedRef<SpreadsheetTableRef>}
-          {...props}
-        />
-      );
-    }
-
-    return (
-      <PatternTableLegacy
-        ref={ref as React.ForwardedRef<PatternTableRefLegacy>}
-        {...props}
-      />
     );
   },
 );
