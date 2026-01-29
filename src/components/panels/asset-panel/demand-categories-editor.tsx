@@ -159,14 +159,14 @@ export const DemandCategoriesEditor = ({
   const columns: GridColumn[] = useMemo(
     () => [
       floatColumn("baseDemand", {
-        header: translate("baseDemand"),
-        size: 100,
+        header: translate("demand"),
+        size: 79,
         deleteValue: 0,
         nullValue: 0,
       }),
       filterableSelectColumn("patternId", {
         header: translate("timePattern"),
-        size: 120,
+        size: 100,
         options: patternOptions,
         deleteValue: CONSTANT_PATTERN_ID,
       }),
@@ -189,14 +189,17 @@ export const DemandCategoriesEditor = ({
   );
 
   return (
-    <div className="max-h-[150px]">
+    <div className="border-l-2 border-gray-400 bg-gray-50 pr-2">
       <DataGrid<DemandCategoryRow>
+        variant="rows"
+        maxHeight={150}
         data={rowData}
         columns={columns}
         onChange={handleChange}
         createRow={createRow}
         rowActions={rowActions}
         addRowLabel={translate("addDemandCategory")}
+        gutterColumn
       />
     </div>
   );

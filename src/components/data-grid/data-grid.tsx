@@ -43,6 +43,8 @@ type DataGridProps<TData extends Record<string, unknown>> = {
   addRowLabel?: string;
   gutterColumn?: boolean;
   onSelectionChange?: (selection: GridSelection | null) => void;
+  variant?: "spreadsheet" | "rows";
+  maxHeight?: number;
 };
 
 export const DataGrid = forwardRef(function DataGrid<
@@ -59,6 +61,8 @@ export const DataGrid = forwardRef(function DataGrid<
     addRowLabel,
     gutterColumn = false,
     onSelectionChange,
+    variant = "spreadsheet",
+    maxHeight,
   }: DataGridProps<TData>,
   ref: React.ForwardedRef<DataGridRef>,
 ) {
@@ -208,9 +212,18 @@ export const DataGrid = forwardRef(function DataGrid<
       const container = containerRef.current;
       if (!container) return;
 
-      let lastHeight: number | undefined;
       const BUTTON_SPACE = 38; // Button height (30px) + margin-top (8px)
 
+      if (maxHeight !== undefined) {
+        const contentHeight = 3 + (data.length + 1) * ROW_HEIGHT;
+        const availableHeight = addRowLabel
+          ? maxHeight - BUTTON_SPACE
+          : maxHeight;
+        setGridHeight(Math.min(contentHeight, availableHeight));
+        return;
+      }
+
+      let lastHeight: number | undefined;
       const observer = new ResizeObserver((entries) => {
         const containerHeight = entries[0]?.contentRect.height;
         if (lastHeight === undefined || containerHeight !== lastHeight) {
@@ -224,7 +237,7 @@ export const DataGrid = forwardRef(function DataGrid<
       observer.observe(container);
       return () => observer.disconnect();
     },
-    [addRowLabel],
+    [addRowLabel, maxHeight, data.length],
   );
 
   const table = useReactTable({
@@ -367,11 +380,18 @@ export const DataGrid = forwardRef(function DataGrid<
 
   const virtualRows = rowVirtualizer.getVirtualItems();
   const totalSize = rowVirtualizer.getTotalSize();
+  const hasScroll = data.length > visibleRowCount;
 
   const isReady = gridHeight !== undefined;
 
+  const backgroundClass =
+    variant === "spreadsheet" ? "bg-gray-100" : "bg-gray-50";
+
   return (
-    <div ref={containerRef} className="flex flex-col justify-between h-full">
+    <div
+      ref={containerRef}
+      className={clsx("flex flex-col justify-between", !maxHeight && "h-full")}
+    >
       <div
         className="relative"
         style={{
@@ -391,7 +411,9 @@ export const DataGrid = forwardRef(function DataGrid<
           onMouseDown={handleEmptyAreaMouseDown}
           onCopy={handleCopy}
           onPaste={handlePaste}
-          className="outline-none overflow-auto h-full border border-gray-200"
+          className={clsx("outline-none overflow-auto h-full border-gray-200", {
+            border: variant === "spreadsheet",
+          })}
           data-capture-escape-key
         >
           <GridHeader
@@ -400,6 +422,7 @@ export const DataGrid = forwardRef(function DataGrid<
             showActionsColumn={!!rowActions}
             onSelectColumn={selectColumn}
             onSelectAll={selectAll}
+            className={backgroundClass}
           />
 
           <div
@@ -413,7 +436,6 @@ export const DataGrid = forwardRef(function DataGrid<
               const row = rowsModel.rows[virtualRow.index];
               const rowIndex = virtualRow.index;
               const isLast = virtualRow.index === rowsModel.rows.length - 1;
-              const hasScroll = data.length > visibleRowCount;
 
               return (
                 <div
@@ -427,7 +449,9 @@ export const DataGrid = forwardRef(function DataGrid<
                     <RowGutterCell
                       rowIndex={rowIndex}
                       onClick={(e) => handleGutterClick(rowIndex, e)}
-                      className={isLast && !hasScroll ? "border-b" : ""}
+                      className={
+                        isLast && !hasScroll && !maxHeight ? "border-b" : ""
+                      }
                     />
                   )}
 
@@ -470,9 +494,11 @@ export const DataGrid = forwardRef(function DataGrid<
                             : undefined
                         }
                         CellComponent={column.cellComponent}
-                        className={
-                          !isLast || (isLast && !hasScroll) ? "border-b" : ""
-                        }
+                        className={clsx(
+                          (!isLast || (isLast && !hasScroll && !maxHeight)) &&
+                            "border-b",
+                          variant === "spreadsheet" && "border-l",
+                        )}
                       />
                     );
                   })}
@@ -480,9 +506,11 @@ export const DataGrid = forwardRef(function DataGrid<
                   <RowActionsCell
                     rowActions={rowActions}
                     rowIndex={rowIndex}
-                    className={
-                      !isLast || (isLast && !hasScroll) ? "border-b" : ""
-                    }
+                    className={clsx(
+                      variant === "spreadsheet" && "border-l",
+                      (!isLast || (isLast && !hasScroll && !maxHeight)) &&
+                        "border-b",
+                    )}
                   />
                 </div>
               );
@@ -496,10 +524,13 @@ export const DataGrid = forwardRef(function DataGrid<
 
       {addRowLabel && (
         <Button
-          variant="default"
+          variant={variant === "spreadsheet" ? "default" : "ultra-quiet"}
           size="sm"
           onClick={handleAddRow}
-          className="w-full justify-center mt-2"
+          className={clsx({
+            "w-full justify-center mt-2": variant === "spreadsheet",
+            "m-auto": variant === "rows",
+          })}
         >
           <AddIcon size="sm" />
           {addRowLabel}
@@ -519,22 +550,27 @@ function GridHeader<T>({
   table,
   onSelectColumn,
   onSelectAll,
+  className = "",
 }: {
   showGutterColumn: boolean;
   showActionsColumn: boolean;
   table: Table<T>;
   onSelectColumn: (colIndex: number) => void;
   onSelectAll: () => void;
+  className?: string;
 }) {
   return (
     <div
       role="row"
-      className="flex sticky top-0 z-10 bg-gray-100 border-b border-gray-200"
+      className={clsx(
+        "flex sticky top-0 z-10 border-b border-gray-200",
+        className,
+      )}
     >
       {showGutterColumn && (
         <div
           role="columnheader"
-          className="flex items-center justify-center font-semibold text-sm shrink-0 cursor-pointer select-none w-10 h-8 text-gray-600 bg-gray-100"
+          className="flex items-center justify-center font-semibold text-sm shrink-0 cursor-pointer select-none w-10 h-8 text-gray-600"
           onClick={onSelectAll}
         />
       )}
@@ -543,7 +579,7 @@ function GridHeader<T>({
           <div
             key={header.id}
             role="columnheader"
-            className="flex items-center px-2 font-semibold text-sm truncate cursor-pointer select-none h-8 grow text-gray-600 bg-gray-100"
+            className="flex items-center px-2 font-semibold text-sm truncate cursor-pointer select-none h-8 grow min-w-0 text-gray-600"
             style={{
               width: header.getSize(),
               minWidth: header.getSize(),
@@ -557,7 +593,7 @@ function GridHeader<T>({
       {showActionsColumn && (
         <div
           role="columnheader"
-          className="shrink-0 sticky right-0 w-8 h-8 z-10 bg-gray-100"
+          className={clsx("shrink-0 sticky right-0 w-8 h-8 z-10", className)}
         />
       )}
     </div>
@@ -630,7 +666,7 @@ function GridDataCell<T>({
       aria-selected={isSelected}
       className={clsx(
         "relative h-8 grow select-none",
-        "border-gray-200 border-l",
+        "border-gray-200",
         className,
         isActive ? "bg-white" : isSelected ? "bg-purple-300/10" : "bg-white",
         selectionEdge?.top && "border-t border-t-purple-500",
@@ -681,7 +717,7 @@ function RowActionsCell({
     <div
       role="gridcell"
       className={clsx(
-        "sticky right-0 shrink-0 border-l border-gray-200 w-8 h-8 bg-white z-10",
+        "sticky right-0 shrink-0 border-gray-200 w-8 h-8 bg-white z-10",
         className,
       )}
     >
