@@ -226,3 +226,4 @@ export { CustomPolygonalSelection as PolygonalSelectionIcon } from "./custom-ico
 export { CustomActiveTopologyEnableIcon as ActiveTopologyEnableIcon } from "./custom-icons/active-topology-enable";
 export { CustomActiveTopologyDisableIcon as ActiveTopologyDisableIcon } from "./custom-icons/active-topology-disable";
 export { CustomOperationalDataIcon as AdvancedSettingsIcon } from "./custom-icons/operational-data";
+export { CustomTableSelectAllIcon as TableSelectAllIcon } from "./custom-icons/table-select-all-icon";
