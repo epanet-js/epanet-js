@@ -9,7 +9,6 @@ import { SelectRow, QuantityRow } from "./ui-components";
 import type { PropertyComparison } from "src/hooks/use-asset-comparison";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import { TContent } from "src/components/elements";
-import clsx from "clsx";
 
 export interface PumpCurvePoint {
   flow: number;
@@ -189,13 +188,13 @@ const PumpDefinitionDetailsInner = ({
     [onChange, pump, localDefinitionType],
   );
 
-  const containerClasses = clsx(
-    "bg-gray-50 p-2 py-1 -mr-2 border-l-2 rounded-sm",
-    definitionHasChanged ? "border-purple-500" : "border-gray-400",
-  );
+  const purpleLine = definitionHasChanged ? (
+    <div className="absolute -left-4 top-0 bottom-0 w-1 bg-purple-500 rounded-full" />
+  ) : null;
 
   const containerContent = (
-    <div className={containerClasses}>
+    <div className="relative bg-gray-50 p-2 py-1 -mr-2 border-l-2 border-gray-400 rounded-sm">
+      {purpleLine}
       {localDefinitionType === "power" && (
         <QuantityRow
           name="power"
