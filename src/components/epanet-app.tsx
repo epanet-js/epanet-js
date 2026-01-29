@@ -51,7 +51,7 @@ import { PrivacyBanner } from "./privacy-banner";
 import { usePrivacySettings } from "src/hooks/use-privacy-settings";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { initStorage } from "src/infra/storage";
-import { useIsMainReadonly } from "src/hooks/use-is-main-readonly";
+import { useIsSnapshotLocked } from "src/hooks/use-is-snapshot-locked";
 import { useIsCustomerAllocationDisabled } from "src/hooks/use-is-customer-allocation-disabled";
 
 type ResolvedLayout = "HORIZONTAL" | "VERTICAL" | "FLOATING";
@@ -75,7 +75,7 @@ export function EpanetApp() {
   const { enableAllTracking } = usePrivacySettings();
   const hasIdentifiedRef = useRef(false);
   const isCursorFamilyEnabled = useFeatureFlag("FLAG_CURSOR_FAMILY");
-  const isMainReadonly = useIsMainReadonly();
+  const isSnapshotLocked = useIsSnapshotLocked();
   const isCustomerAllocationDisabled = useIsCustomerAllocationDisabled();
 
   useEffect(() => {
@@ -159,7 +159,7 @@ export function EpanetApp() {
         <div className="h-24">
           <MenuBarPlay />
           <Toolbar
-            readonly={isMainReadonly}
+            readonly={isSnapshotLocked}
             customerAllocationDisabled={isCustomerAllocationDisabled}
           />
         </div>

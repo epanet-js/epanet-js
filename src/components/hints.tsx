@@ -14,7 +14,7 @@ import { Mode, modeAtom } from "src/state/mode";
 import { localizeKeybinding } from "src/infra/i18n";
 import { useTranslate } from "src/hooks/use-translate";
 import { symbologyAtom } from "src/state/symbology";
-import { useIsMainReadonly } from "src/hooks/use-is-main-readonly";
+import { useIsSnapshotLocked } from "src/hooks/use-is-snapshot-locked";
 import { PropsWithChildren } from "react";
 
 export const tipLike = `
@@ -95,7 +95,7 @@ export function Hints() {
   const symbology = useAtomValue(symbologyAtom);
   const ephemeralState = useAtomValue(ephemeralStateAtom);
   const show = useBreakpoint("lg");
-  const isMainReadonly = useIsMainReadonly();
+  const isSnapshotLocked = useIsSnapshotLocked();
 
   if (!show || !!dialogState) {
     return null;
@@ -144,7 +144,7 @@ export function Hints() {
           }
         }
       }
-      if (selection.type === "single" && !isMainReadonly) {
+      if (selection.type === "single" && !isSnapshotLocked) {
         const asset = hydraulicModel.assets.get(selection.id);
         if (asset && asset.isNode) {
           return (

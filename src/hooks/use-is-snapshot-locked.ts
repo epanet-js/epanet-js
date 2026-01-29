@@ -2,14 +2,10 @@ import { useAtomValue } from "jotai";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { worktreeAtom } from "src/state/scenarios";
 
-export const useIsMainReadonly = () => {
+export const useIsSnapshotLocked = () => {
   const isScenariosOn = useFeatureFlag("FLAG_SCENARIOS");
   const worktree = useAtomValue(worktreeAtom);
-  const mainSnapshot = worktree.snapshots.get(worktree.mainId);
+  const activeSnapshot = worktree.snapshots.get(worktree.activeSnapshotId);
 
-  return (
-    isScenariosOn &&
-    mainSnapshot?.status === "locked" &&
-    worktree.activeSnapshotId === worktree.mainId
-  );
+  return isScenariosOn && activeSnapshot?.status === "locked";
 };

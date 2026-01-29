@@ -15,7 +15,7 @@ import {
 } from "src/icons";
 import { selectedFeaturesAtom } from "src/state/jotai";
 import { ActionButton, Action } from "../asset-panel/actions/action-button";
-import { useIsMainReadonly } from "src/hooks/use-is-main-readonly";
+import { useIsSnapshotLocked } from "src/hooks/use-is-snapshot-locked";
 
 export function useMultiAssetActions(readonly = false): Action[] {
   const translate = useTranslate();
@@ -68,8 +68,8 @@ export function useMultiAssetActions(readonly = false): Action[] {
 }
 
 export function MultiAssetActions() {
-  const isMainReadonly = useIsMainReadonly();
-  const actions = useMultiAssetActions(isMainReadonly);
+  const isSnapshotLocked = useIsSnapshotLocked();
+  const actions = useMultiAssetActions(isSnapshotLocked);
 
   return (
     <div className="flex gap-1">

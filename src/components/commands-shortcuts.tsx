@@ -43,7 +43,7 @@ import {
 } from "src/commands/toggle-satellite";
 import { useAtomValue } from "jotai";
 import { simulationAtom } from "src/state/jotai";
-import { useIsMainReadonly } from "src/hooks/use-is-main-readonly";
+import { useIsSnapshotLocked } from "src/hooks/use-is-snapshot-locked";
 import {
   showSimulationSettingsShortcut,
   useShowSimulationSettings,
@@ -123,7 +123,7 @@ export const CommandShortcuts = () => {
     useChangeSelectedAssetsActiveTopologyStatus();
   const showControls = useShowControls();
   const { goToPreviousTimestep, goToNextTimestep } = useChangeTimestep();
-  const isMainReadonly = useIsMainReadonly();
+  const isSnapshotLocked = useIsSnapshotLocked();
   const createScenario = useCreateScenario();
   const toggleSnapshot = useToggleSnapshot();
   const goToMain = useGoToMain();
@@ -203,7 +203,7 @@ export const CommandShortcuts = () => {
     undoShortcut,
     (e) => {
       if (e.preventDefault) e.preventDefault();
-      if (isMainReadonly) return;
+      if (isSnapshotLocked) return;
 
       userTracking.capture({
         name: "operation.undone",
@@ -211,7 +211,7 @@ export const CommandShortcuts = () => {
       });
       void undo();
     },
-    [undoShortcut, undo, isMainReadonly],
+    [undoShortcut, undo, isSnapshotLocked],
     "Undo",
   );
 
@@ -219,7 +219,7 @@ export const CommandShortcuts = () => {
     redoShortcut,
     (e) => {
       if (e.preventDefault) e.preventDefault();
-      if (isMainReadonly) return;
+      if (isSnapshotLocked) return;
 
       userTracking.capture({
         name: "operation.redone",
@@ -227,7 +227,7 @@ export const CommandShortcuts = () => {
       });
       void redo();
     },
-    [redoShortcut, redo, isMainReadonly],
+    [redoShortcut, redo, isSnapshotLocked],
     "Redo",
   );
 
@@ -235,7 +235,7 @@ export const CommandShortcuts = () => {
     redoShortcut,
     (e) => {
       if (e.preventDefault) e.preventDefault();
-      if (isMainReadonly) return;
+      if (isSnapshotLocked) return;
 
       userTracking.capture({
         name: "operation.redone",
@@ -243,7 +243,7 @@ export const CommandShortcuts = () => {
       });
       void redo();
     },
-    [redoShortcut, redo, isMainReadonly],
+    [redoShortcut, redo, isSnapshotLocked],
     "Redo",
   );
 
@@ -267,12 +267,12 @@ export const CommandShortcuts = () => {
     (e) => {
       if (IGNORE_ROLES.has((e.target as HTMLElement).getAttribute("role")!))
         return;
-      if (isMainReadonly) return;
+      if (isSnapshotLocked) return;
 
       e.preventDefault();
       void deleteSelectedAssets({ source: "shortcut" });
     },
-    [deleteSelectedAssets, isMainReadonly],
+    [deleteSelectedAssets, isSnapshotLocked],
     "DELETE",
   );
 
@@ -324,10 +324,10 @@ export const CommandShortcuts = () => {
     connectCustomersShortcut,
     (e) => {
       e.preventDefault();
-      if (isMainReadonly) return;
+      if (isSnapshotLocked) return;
       connectCustomerPoints({ source: "shortcut" });
     },
-    [connectCustomerPoints, isMainReadonly],
+    [connectCustomerPoints, isSnapshotLocked],
     "Connect/Reconnect customer points",
   );
 
@@ -335,10 +335,10 @@ export const CommandShortcuts = () => {
     disconnectCustomersShortcut,
     (e) => {
       e.preventDefault();
-      if (isMainReadonly) return;
+      if (isSnapshotLocked) return;
       disconnectCustomerPoints({ source: "shortcut" });
     },
-    [disconnectCustomerPoints, isMainReadonly],
+    [disconnectCustomerPoints, isSnapshotLocked],
     "Disconnect customer points",
   );
 
@@ -346,10 +346,10 @@ export const CommandShortcuts = () => {
     redrawModeShortcut,
     (e) => {
       e.preventDefault();
-      if (isMainReadonly) return;
+      if (isSnapshotLocked) return;
       setRedrawMode({ source: "shortcut" });
     },
-    [setRedrawMode, isMainReadonly],
+    [setRedrawMode, isSnapshotLocked],
     "Set redraw mode",
   );
 
@@ -357,10 +357,10 @@ export const CommandShortcuts = () => {
     reverseLinkShortcut,
     (e) => {
       e.preventDefault();
-      if (isMainReadonly) return;
+      if (isSnapshotLocked) return;
       reverseLinkAction({ source: "shortcut" });
     },
-    [reverseLinkAction, isMainReadonly],
+    [reverseLinkAction, isSnapshotLocked],
     "Reverse link",
   );
 
@@ -403,10 +403,10 @@ export const CommandShortcuts = () => {
     changeActiveTopologyShortcut,
     (e) => {
       e.preventDefault();
-      if (isMainReadonly) return;
+      if (isSnapshotLocked) return;
       changeSelectedAssetsActiveTopologyStatus({ source: "shortcut" });
     },
-    [changeSelectedAssetsActiveTopologyStatus, isMainReadonly],
+    [changeSelectedAssetsActiveTopologyStatus, isSnapshotLocked],
     "Activate/Deactivate assets",
   );
 
@@ -434,10 +434,10 @@ export const CommandShortcuts = () => {
     createScenarioShortcut,
     (e) => {
       e.preventDefault();
-      if (isMainReadonly) return;
+      if (isSnapshotLocked) return;
       createScenario({ source: "shortcut" });
     },
-    [createScenario, isMainReadonly],
+    [createScenario, isSnapshotLocked],
     "Create new scenario",
   );
 
@@ -476,7 +476,7 @@ export const CommandShortcuts = () => {
       shortcut,
       (e) => {
         if (e.preventDefault) e.preventDefault();
-        if (isMainReadonly) return;
+        if (isSnapshotLocked) return;
 
         userTracking.capture({
           name: "drawingMode.enabled",
@@ -485,7 +485,7 @@ export const CommandShortcuts = () => {
         });
         void setDrawingMode(mode as Mode);
       },
-      [shortcut, mode, setDrawingMode, isMainReadonly],
+      [shortcut, mode, setDrawingMode, isSnapshotLocked],
       `Set ${mode} mode`,
     );
   }
