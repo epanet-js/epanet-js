@@ -83,7 +83,7 @@ describe("computeMultiAssetDataWithCustomerDemands", () => {
     expect(elevationStat.unit).toBe("m");
     expect(elevationStat.decimals).toBe(3);
 
-    const demandStat = findQuantityStat(junctionData.demands, "averageDemand");
+    const demandStat = findQuantityStat(junctionData.demands, "directDemand");
     expect(demandStat.min).toBe(10);
     expect(demandStat.max).toBe(20);
     expect(demandStat.unit).toBe("l/s");
@@ -428,7 +428,7 @@ describe("computeMultiAssetDataWithCustomerDemands", () => {
 
       const demandStat = findQuantityStat(
         result.data.junction.demands,
-        "averageDemand",
+        "directDemand",
       );
       expect(demandStat.min).toBe(30); // J1: 10+20=30, J2: 30
       expect(demandStat.max).toBe(30);
@@ -455,7 +455,7 @@ describe("computeMultiAssetDataWithCustomerDemands", () => {
 
       const demandStat = findQuantityStat(
         result.data.junction.demands,
-        "averageDemand",
+        "directDemand",
       );
       // baseDemand 100 * average multiplier 1.0 = 100
       expect(demandStat.min).toBe(100);
@@ -481,7 +481,7 @@ describe("computeMultiAssetDataWithCustomerDemands", () => {
 
       const demandStat = findQuantityStat(
         result.data.junction.demands,
-        "averageDemand",
+        "directDemand",
       );
       // baseDemand 60 * average multiplier 1.0 = 60
       expect(demandStat.min).toBe(60);
@@ -509,7 +509,7 @@ describe("computeMultiAssetDataWithCustomerDemands", () => {
 
       const demandStat = findQuantityStat(
         result.data.junction.demands,
-        "averageDemand",
+        "directDemand",
       );
       // 10 + 40 = 50
       expect(demandStat.min).toBe(50);
@@ -530,7 +530,7 @@ describe("computeMultiAssetDataWithCustomerDemands", () => {
 
       const demandStat = findQuantityStat(
         result.data.junction.demands,
-        "averageDemand",
+        "directDemand",
       );
       expect(demandStat.min).toBe(0);
       expect(demandStat.max).toBe(0);
@@ -553,7 +553,7 @@ describe("computeMultiAssetDataWithCustomerDemands", () => {
 
       const demandStat = findQuantityStat(
         result.data.junction.demands,
-        "averageDemand",
+        "directDemand",
       );
       // Treat as constant when pattern not found
       expect(demandStat.min).toBe(50);
@@ -580,7 +580,7 @@ describe("computeMultiAssetDataWithCustomerDemands", () => {
 
       const demandStat = findQuantityStat(
         result.data.junction.demands,
-        "averageDemand",
+        "directDemand",
       );
       expect(demandStat.min).toBe(10);
       expect(demandStat.max).toBe(30);
@@ -605,7 +605,7 @@ describe("computeMultiAssetDataWithCustomerDemands", () => {
 
       const demandStat = findQuantityStat(
         result.data.junction.demands,
-        "averageDemand",
+        "directDemand",
       );
       expect(demandStat.min).toBe(50);
     });
@@ -630,7 +630,7 @@ describe("computeMultiAssetDataWithCustomerDemands", () => {
 
       const demandStat = findQuantityStat(
         result.data.junction.demands,
-        "averageDemand",
+        "directDemand",
       );
       expect(demandStat.min).toBe(20);
     });

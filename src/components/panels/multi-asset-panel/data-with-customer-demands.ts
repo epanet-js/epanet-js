@@ -143,7 +143,7 @@ const appendJunctionStats = (
   );
   updateQuantityStats(
     statsMap,
-    "averageDemand",
+    "directDemand",
     averageDemand,
     quantitiesMetadata,
   );
@@ -202,7 +202,7 @@ const buildJunctionSections = (
     activeTopology: getStatsForProperties(statsMap, ["isEnabled"]),
     modelAttributes: getStatsForProperties(statsMap, ["elevation"]),
     demands: getStatsForProperties(statsMap, [
-      "averageDemand",
+      "directDemand",
       "customerDemand",
       "connectedCustomers",
     ]),

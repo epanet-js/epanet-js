@@ -462,10 +462,10 @@ const JunctionEditor = ({
           <div className="flex flex-col gap-2">
             {averageDemand > 0 && (
               <QuantityRow
-                name="averageDemand"
+                name="directDemand"
                 value={averageDemand}
-                unit={quantitiesMetadata.getUnit("averageDemand")}
-                decimals={quantitiesMetadata.getDecimals("averageDemand")}
+                unit={quantitiesMetadata.getUnit("directDemand")}
+                decimals={quantitiesMetadata.getDecimals("directDemand")}
                 readOnly={true}
               />
             )}

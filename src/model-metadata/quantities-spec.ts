@@ -19,7 +19,7 @@ export type QuantityProperty =
   | "velocity"
   | "elevation"
   | "baseDemand"
-  | "averageDemand"
+  | "directDemand"
   | "actualDemand"
   | "customerDemand"
   | "customerDemandPerDay"
@@ -67,7 +67,7 @@ export type AssetQuantitiesSpec = {
 const allFlowUnits = (unit: Unit) => ({
   flow: unit,
   baseDemand: unit,
-  averageDemand: unit,
+  directDemand: unit,
   actualDemand: unit,
 });
 
