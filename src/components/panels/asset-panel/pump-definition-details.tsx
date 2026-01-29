@@ -87,49 +87,27 @@ const PumpDefinitionDetailsInner = ({
   );
   const definitionTypeHasChanged =
     definitionTypeComparison?.hasChanged ?? false;
+  const baseDefinitionType = definitionTypeComparison?.baseValue as
+    | PumpDefintionType
+    | undefined;
+
+  const powerComparison = getComparison?.("power", pump.power);
 
   const curveHasChanged = useMemo(() => {
-    if (
-      definitionTypeHasChanged ||
-      localDefinitionType === "power" ||
-      !baseCurve ||
-      !curve
-    ) {
+    if (localDefinitionType === "power" || !baseCurve || !curve) {
       return false;
     }
     if (curve.points.length !== baseCurve.points.length) return true;
     return curve.points.some(
       (p, i) => p.x !== baseCurve.points[i].x || p.y !== baseCurve.points[i].y,
     );
-  }, [definitionTypeHasChanged, localDefinitionType, baseCurve, curve]);
+  }, [localDefinitionType, baseCurve, curve]);
 
-  const baseCurveDisplayText = useMemo(() => {
-    if (!curveHasChanged || !baseCurve) return undefined;
-    const flowUnit = quantities.getUnit("flow");
-    const headUnit = quantities.getUnit("head");
-    return baseCurve.points
-      .map(
-        (p) =>
-          `${localizeDecimal(p.x)} ${flowUnit}, ${localizeDecimal(p.y)} ${headUnit}`,
-      )
-      .join("\n");
-  }, [curveHasChanged, baseCurve, quantities]);
-
-  const powerComparison = getComparison?.("power", pump.power);
   const powerHasChanged =
-    !definitionTypeHasChanged &&
-    localDefinitionType === "power" &&
-    (powerComparison?.hasChanged ?? false);
+    localDefinitionType === "power" && (powerComparison?.hasChanged ?? false);
 
-  const basePowerDisplayText = useMemo(() => {
-    if (!powerHasChanged || powerComparison?.baseValue == null)
-      return undefined;
-    const powerUnit = quantities.getUnit("power");
-    return `${localizeDecimal(powerComparison.baseValue as number)} ${powerUnit}`;
-  }, [powerHasChanged, powerComparison?.baseValue, quantities]);
-
-  const definitionHasChanged = curveHasChanged || powerHasChanged;
-  const baseDisplayText = baseCurveDisplayText ?? basePowerDisplayText;
+  const definitionHasChanged =
+    definitionTypeHasChanged || curveHasChanged || powerHasChanged;
 
   const definitionOptions = useMemo(
     () =>
@@ -140,6 +118,59 @@ const PumpDefinitionDetailsInner = ({
       ] as { label: string; value: PumpDefintionType }[],
     [translate],
   );
+
+  const baseDisplayText = useMemo(() => {
+    if (!definitionHasChanged) return undefined;
+
+    const lines: string[] = [];
+
+    if (baseDefinitionType) {
+      const typeLabel =
+        definitionOptions.find((o) => o.value === baseDefinitionType)?.label ??
+        baseDefinitionType;
+      lines.push(`${translate("pumpType")}: ${typeLabel}`);
+    }
+
+    if (baseDefinitionType === "power" && powerComparison?.baseValue != null) {
+      const powerUnit = quantities.getUnit("power");
+      lines.push(
+        `${translate("power")}: ${localizeDecimal(powerComparison.baseValue as number)} ${powerUnit}`,
+      );
+    } else if (baseDefinitionType === "design-point" && baseCurve) {
+      const flowUnit = quantities.getUnit("flow");
+      const headUnit = quantities.getUnit("head");
+      const designPoint = baseCurve.points[0];
+      if (designPoint) {
+        lines.push(
+          `${translate("designPointLabel")}: ${localizeDecimal(designPoint.x)} ${flowUnit}, ${localizeDecimal(designPoint.y)} ${headUnit}`,
+        );
+      }
+    } else if (baseDefinitionType === "standard" && baseCurve) {
+      const flowUnit = quantities.getUnit("flow");
+      const headUnit = quantities.getUnit("head");
+      const pointLabels = [
+        translate("shutoffPoint"),
+        translate("designPointLabel"),
+        translate("maxOperatingPoint"),
+      ];
+      baseCurve.points.forEach((p, i) => {
+        const label = pointLabels[i] ?? `Point ${i + 1}`;
+        lines.push(
+          `${label}: ${localizeDecimal(p.x)} ${flowUnit}, ${localizeDecimal(p.y)} ${headUnit}`,
+        );
+      });
+    }
+
+    return lines.join("\n");
+  }, [
+    definitionHasChanged,
+    baseDefinitionType,
+    definitionOptions,
+    powerComparison?.baseValue,
+    baseCurve,
+    quantities,
+    translate,
+  ]);
 
   const handleDefinitionTypeChange = useCallback(
     (
@@ -192,57 +223,56 @@ const PumpDefinitionDetailsInner = ({
     <div className="absolute -left-4 top-0 bottom-0 w-1 bg-purple-500 rounded-full" />
   ) : null;
 
-  const containerContent = (
-    <div className="relative bg-gray-50 p-2 py-1 -mr-2 border-l-2 border-gray-400 rounded-sm">
+  const sectionContent = (
+    <div className="relative">
       {purpleLine}
-      {localDefinitionType === "power" && (
-        <QuantityRow
-          name="power"
-          value={pump.power}
-          unit={quantities.getUnit("power")}
-          decimals={quantities.getDecimals("power")}
-          readOnly={readonly}
-          onChange={handlePowerChange}
-        />
-      )}
-      {localDefinitionType !== "power" && (
-        <PumpCurveTable
-          curve={curve}
-          definitionType={localDefinitionType}
-          quantities={quantities}
-          onCurveChange={readonly ? undefined : handleCurvePointsChange}
-        />
-      )}
-    </div>
-  );
-
-  return (
-    <>
       <SelectRow
         name="pumpType"
         selected={localDefinitionType}
         options={definitionOptions}
         readOnly={readonly}
         onChange={handleDefinitionTypeChange}
-        comparison={definitionTypeComparison}
       />
-      {definitionHasChanged && baseDisplayText ? (
-        <Tooltip.Root delayDuration={200}>
-          <Tooltip.Trigger asChild>{containerContent}</Tooltip.Trigger>
-          <Tooltip.Portal>
-            <TContent side="left" sideOffset={4}>
-              <div className="whitespace-pre-line">
-                {translate("scenarios.main")}:{"\n"}
-                {baseDisplayText}
-              </div>
-            </TContent>
-          </Tooltip.Portal>
-        </Tooltip.Root>
-      ) : (
-        containerContent
-      )}
-    </>
+      <div className="bg-gray-50 p-2 py-1 -mr-2 border-l-2 border-gray-400 rounded-sm">
+        {localDefinitionType === "power" && (
+          <QuantityRow
+            name="power"
+            value={pump.power}
+            unit={quantities.getUnit("power")}
+            decimals={quantities.getDecimals("power")}
+            readOnly={readonly}
+            onChange={handlePowerChange}
+          />
+        )}
+        {localDefinitionType !== "power" && (
+          <PumpCurveTable
+            curve={curve}
+            definitionType={localDefinitionType}
+            quantities={quantities}
+            onCurveChange={readonly ? undefined : handleCurvePointsChange}
+          />
+        )}
+      </div>
+    </div>
   );
+
+  if (definitionHasChanged && baseDisplayText) {
+    return (
+      <Tooltip.Root delayDuration={200}>
+        <Tooltip.Trigger asChild>{sectionContent}</Tooltip.Trigger>
+        <Tooltip.Portal>
+          <TContent side="left" sideOffset={4}>
+            <div className="whitespace-pre-line">
+              {translate("scenarios.main")}:{"\n"}
+              {baseDisplayText}
+            </div>
+          </TContent>
+        </Tooltip.Portal>
+      </Tooltip.Root>
+    );
+  }
+
+  return sectionContent;
 };
 
 type OnCurveChange = (points: PumpCurvePoint[]) => void;
