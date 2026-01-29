@@ -434,10 +434,9 @@ export const CommandShortcuts = () => {
     createScenarioShortcut,
     (e) => {
       e.preventDefault();
-      if (isSnapshotLocked) return;
       createScenario({ source: "shortcut" });
     },
-    [createScenario, isSnapshotLocked],
+    [createScenario],
     "Create new scenario",
   );
 
