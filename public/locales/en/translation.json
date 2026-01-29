@@ -299,6 +299,8 @@
   "alertInpOutput": "Some data may be lost",
   "alertInpOutputSubtitle": "Your INP file was created with another application.",
   "alertInpOutputDetail": "Please note that some sections and settings may be formatted differently or omitted. We encourage you to save a copy instead of overriding the original content.",
+  "alertScenariosNotSaved": "Scenarios won't be saved",
+  "alertScenariosNotSavedDetail": "Only the main model will be saved. Your scenarios will remain available in this session but will be lost when you close the app. Full scenario persistence is coming soon.",
   "label": "Label",
   "login": "Log in",
   "register": "Register",

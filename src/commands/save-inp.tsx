@@ -8,6 +8,7 @@ import type { fileSave as fileSaveType } from "browser-fs-access";
 import { useAtomValue, useSetAtom } from "jotai";
 import { notifyPromiseState } from "src/components/notifications";
 import { useUserTracking } from "src/infra/user-tracking";
+import { worktreeAtom } from "src/state/scenarios";
 
 const getDefaultFsAccess = async () => {
   const { fileSave } = await import("browser-fs-access");
@@ -97,18 +98,32 @@ export const useSaveInp = ({
     ),
   );
 
+  const worktree = useAtomValue(worktreeAtom);
+  const hasScenarios = worktree.scenarios.length > 0;
+
   const saveAlerting = useCallback(
     ({ source, isSaveAs = false }: { source: string; isSaveAs?: boolean }) => {
-      if (fileInfo && !fileInfo.isMadeByApp) {
+      const proceedWithSave = () => {
+        if (fileInfo && !fileInfo.isMadeByApp) {
+          setDialogState({
+            type: "alertInpOutput",
+            onContinue: () => saveInp({ source, isSaveAs }),
+          });
+        } else {
+          return saveInp({ source, isSaveAs });
+        }
+      };
+
+      if (hasScenarios) {
         setDialogState({
-          type: "alertInpOutput",
-          onContinue: () => saveInp({ source, isSaveAs }),
+          type: "alertScenariosNotSaved",
+          onContinue: proceedWithSave,
         });
       } else {
-        return saveInp({ source, isSaveAs });
+        return proceedWithSave();
       }
     },
-    [fileInfo, setDialogState, saveInp],
+    [fileInfo, setDialogState, saveInp, hasScenarios],
   );
 
   return saveAlerting;

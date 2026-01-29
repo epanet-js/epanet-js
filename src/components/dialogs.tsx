@@ -130,6 +130,19 @@ const AlertInpOutputDialog = dynamic<{
   },
 );
 
+const AlertScenariosNotSavedDialog = dynamic<{
+  onContinue: () => void;
+  onClose: () => void;
+}>(
+  () =>
+    import("src/components/dialogs/alert-scenarios-not-saved").then(
+      (r) => r.AlertScenariosNotSavedDialog,
+    ),
+  {
+    loading: () => <Loading />,
+  },
+);
+
 const CheatsheetDialog = dynamic<Record<string, never>>(
   () =>
     import("src/components/dialogs/cheatsheet").then((r) => r.CheatsheetDialog),
@@ -389,6 +402,9 @@ export const Dialogs = memo(function Dialogs() {
     ))
     .with({ type: "alertInpOutput" }, ({ onContinue }) => (
       <AlertInpOutputDialog onContinue={onContinue} onClose={onClose} />
+    ))
+    .with({ type: "alertScenariosNotSaved" }, ({ onContinue }) => (
+      <AlertScenariosNotSavedDialog onContinue={onContinue} onClose={onClose} />
     ))
     .with({ type: "earlyAccess" }, ({ onContinue, afterSignupDialog }) => (
       <EarlyAccessDialog
