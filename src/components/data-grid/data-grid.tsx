@@ -24,13 +24,18 @@ import {
   CellPosition,
   RowAction,
   GridSelection,
+  DataGridVariant,
 } from "./types";
 import { useSelection } from "./use-selection";
 import { useKeyboardNavigation } from "./use-keyboard-navigation";
 import { useClipboard } from "./use-clipboard";
 import { ActionsCell } from "./cells/actions-cell";
-
-const ROW_HEIGHT = 32; // h-8, needed for virtualizer estimateSize
+import {
+  ROW_HEIGHT,
+  RowsContainer,
+  RowsContainerRef,
+  RowsContainerState,
+} from "./rows-container";
 
 type DataGridProps<TData extends Record<string, unknown>> = {
   data: TData[];
@@ -43,7 +48,7 @@ type DataGridProps<TData extends Record<string, unknown>> = {
   addRowLabel?: string;
   gutterColumn?: boolean;
   onSelectionChange?: (selection: GridSelection | null) => void;
-  variant?: "spreadsheet" | "rows";
+  variant?: DataGridVariant;
   maxHeight?: number;
 };
 
@@ -67,11 +72,15 @@ export const DataGrid = forwardRef(function DataGrid<
   ref: React.ForwardedRef<DataGridRef>,
 ) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const rowsContainerRef = useRef<RowsContainerRef>(null);
   const [gridHeight, setGridHeight] = useState<number | undefined>(undefined);
-  const [scrollState, setScrollState] = useState({
+  const [scrollState, setScrollState] = useState<RowsContainerState>({
     canScrollUp: false,
     canScrollDown: false,
+    canScrollLeft: false,
+    canScrollRight: false,
+    scrollbarWidth: 0,
+    scrollbarHeight: 0,
   });
 
   const dataColumns = columns;
@@ -110,7 +119,7 @@ export const DataGrid = forwardRef(function DataGrid<
   const visibleRowCount = gridHeight ? Math.floor(gridHeight / ROW_HEIGHT) : 10;
 
   const blurGrid = useCallback(() => {
-    scrollRef.current?.blur();
+    rowsContainerRef.current?.blur();
   }, []);
 
   const { handleKeyDown } = useKeyboardNavigation({
@@ -142,8 +151,8 @@ export const DataGrid = forwardRef(function DataGrid<
   const wasEditingRef = useRef(false);
   useEffect(
     function refocusWhenEditingStops() {
-      if (wasEditingRef.current && !isEditing && scrollRef.current) {
-        scrollRef.current.focus();
+      if (wasEditingRef.current && !isEditing) {
+        rowsContainerRef.current?.focus();
       }
       wasEditingRef.current = isEditing;
     },
@@ -159,34 +168,6 @@ export const DataGrid = forwardRef(function DataGrid<
       return () => document.removeEventListener("mouseup", handleMouseUp);
     },
     [isDragging, stopDrag],
-  );
-
-  const updateScrollState = useCallback(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    setScrollState({
-      canScrollUp: el.scrollTop > 0,
-      canScrollDown: el.scrollTop + el.clientHeight < el.scrollHeight - 1,
-    });
-  }, []);
-
-  useEffect(
-    function trackScrollState() {
-      const el = scrollRef.current;
-      if (!el) return;
-
-      updateScrollState();
-      el.addEventListener("scroll", updateScrollState);
-      return () => el.removeEventListener("scroll", updateScrollState);
-    },
-    [updateScrollState],
-  );
-
-  useEffect(
-    function updateScrollStateOnResize() {
-      updateScrollState();
-    },
-    [data.length, gridHeight, updateScrollState],
   );
 
   const { handleCopy, handlePaste } = useClipboard({
@@ -248,16 +229,15 @@ export const DataGrid = forwardRef(function DataGrid<
 
   const rowVirtualizer = useVirtualizer({
     count: data.length,
-    getScrollElement: () => scrollRef.current,
+    getScrollElement: () => rowsContainerRef.current?.element ?? null,
     estimateSize: () => ROW_HEIGHT,
     overscan: 5,
   });
 
   useEffect(
     function scrollActiveCellIntoView() {
-      if (!activeCell || !scrollRef.current) return;
-
-      const container = scrollRef.current;
+      const container = rowsContainerRef.current?.element;
+      if (!activeCell || !container) return;
 
       // vertical scroll
       const rowTop = (activeCell.row + 1) * ROW_HEIGHT;
@@ -299,7 +279,7 @@ export const DataGrid = forwardRef(function DataGrid<
       if (dataColumns.length === 0) return;
       const col = firstEditableCol !== -1 ? firstEditableCol : 0;
       setActiveCell({ col, row: rowIndex });
-      scrollRef.current?.focus();
+      rowsContainerRef.current?.focus();
     },
     [dataColumns.length, firstEditableCol, setActiveCell],
   );
@@ -384,47 +364,47 @@ export const DataGrid = forwardRef(function DataGrid<
 
   const isReady = gridHeight !== undefined;
 
-  const backgroundClass =
-    variant === "spreadsheet" ? "bg-gray-100" : "bg-gray-50";
-
   return (
     <div
       ref={containerRef}
       className={clsx("flex flex-col justify-between", !maxHeight && "h-full")}
     >
       <div
-        className="relative"
+        className="relative flex flex-col"
         style={{
           height: gridHeight,
           visibility: isReady ? "visible" : "hidden",
         }}
       >
-        <div
-          ref={scrollRef}
+        <GridHeader
+          table={table}
+          showGutterColumn={gutterColumn}
+          showActionsColumn={!!rowActions}
+          onSelectColumn={selectColumn}
+          onSelectAll={selectAll}
+          variant={variant}
+          style={{ paddingRight: scrollState.scrollbarWidth || undefined }}
+        />
+
+        <RowsContainer
+          ref={rowsContainerRef}
           role="grid"
           aria-rowcount={data.length}
           aria-colcount={colCount}
-          aria-multiselectable="true"
+          aria-multiselectable={true}
           tabIndex={0}
           onKeyDown={handleKeyDown}
           onFocus={handleFocus}
           onMouseDown={handleEmptyAreaMouseDown}
           onCopy={handleCopy}
           onPaste={handlePaste}
-          className={clsx("outline-none overflow-auto h-full border-gray-200", {
-            border: variant === "spreadsheet",
-          })}
+          className="scrollbar-border"
           data-capture-escape-key
+          onScrollStateChange={setScrollState}
+          variant={variant}
+          showGutter={gutterColumn}
+          showActions={!!rowActions}
         >
-          <GridHeader
-            table={table}
-            showGutterColumn={gutterColumn}
-            showActionsColumn={!!rowActions}
-            onSelectColumn={selectColumn}
-            onSelectAll={selectAll}
-            className={backgroundClass}
-          />
-
           <div
             style={{
               height: totalSize,
@@ -449,9 +429,8 @@ export const DataGrid = forwardRef(function DataGrid<
                     <RowGutterCell
                       rowIndex={rowIndex}
                       onClick={(e) => handleGutterClick(rowIndex, e)}
-                      className={
-                        isLast && !hasScroll && !maxHeight ? "border-b" : ""
-                      }
+                      variant={variant}
+                      isLastRow={isLast}
                     />
                   )}
 
@@ -494,11 +473,8 @@ export const DataGrid = forwardRef(function DataGrid<
                             : undefined
                         }
                         CellComponent={column.cellComponent}
-                        className={clsx(
-                          (!isLast || (isLast && !hasScroll && !maxHeight)) &&
-                            "border-b",
-                          variant === "spreadsheet" && "border-l",
-                        )}
+                        variant={variant}
+                        isLastRow={isLast}
                       />
                     );
                   })}
@@ -506,20 +482,15 @@ export const DataGrid = forwardRef(function DataGrid<
                   <RowActionsCell
                     rowActions={rowActions}
                     rowIndex={rowIndex}
-                    className={clsx(
-                      variant === "spreadsheet" && "border-l",
-                      (!isLast || (isLast && !hasScroll && !maxHeight)) &&
-                        "border-b",
-                    )}
+                    variant={variant}
+                    isLastRow={isLast}
+                    isLastCol={!hasScroll}
                   />
                 </div>
               );
             })}
           </div>
-        </div>
-
-        <ScrollShadow position="top" visible={scrollState.canScrollUp} />
-        <ScrollShadow position="bottom" visible={scrollState.canScrollDown} />
+        </RowsContainer>
       </div>
 
       {addRowLabel && (
@@ -550,27 +521,43 @@ function GridHeader<T>({
   table,
   onSelectColumn,
   onSelectAll,
-  className = "",
+  variant,
+  style,
 }: {
   showGutterColumn: boolean;
   showActionsColumn: boolean;
   table: Table<T>;
   onSelectColumn: (colIndex: number) => void;
   onSelectAll: () => void;
-  className?: string;
+  variant: DataGridVariant;
+  style?: React.CSSProperties;
 }) {
   return (
     <div
       role="row"
       className={clsx(
-        "flex sticky top-0 z-10 border-b border-gray-200",
-        className,
+        "flex shrink-0 z-10 border-gray-200",
+        {
+          "bg-gray-100": variant === "spreadsheet",
+          "bg-gray-50": variant === "rows",
+        },
+        {
+          "border-t border-x": variant === "spreadsheet",
+        },
       )}
+      style={style}
     >
       {showGutterColumn && (
         <div
           role="columnheader"
-          className="flex items-center justify-center font-semibold text-sm shrink-0 cursor-pointer select-none w-10 h-8 text-gray-600"
+          className={clsx(
+            "flex items-center justify-center font-semibold text-sm shrink-0 cursor-pointer select-none h-8 text-gray-600 sticky left-0 z-10",
+            { "w-10": variant === "spreadsheet", "w-8": variant === "rows" },
+            {
+              "bg-gray-100": variant === "spreadsheet",
+              "bg-gray-50": variant === "rows",
+            },
+          )}
           onClick={onSelectAll}
         />
       )}
@@ -593,7 +580,7 @@ function GridHeader<T>({
       {showActionsColumn && (
         <div
           role="columnheader"
-          className={clsx("shrink-0 sticky right-0 w-8 h-8 z-10", className)}
+          className={clsx("shrink-0 sticky right-0 w-8 h-8 z-10")}
         />
       )}
     </div>
@@ -603,16 +590,27 @@ function GridHeader<T>({
 function RowGutterCell({
   rowIndex,
   onClick,
-  className = "",
+  variant,
+  isLastRow,
 }: {
   rowIndex: number;
   onClick: (e: React.MouseEvent) => void;
-  className?: string;
+  variant: DataGridVariant;
+  isLastRow: boolean;
 }) {
   return (
     <div
       role="rowheader"
-      className={`flex items-center justify-center text-xs shrink-0 cursor-pointer select-none w-10 h-8 bg-gray-100 text-gray-600 border-gray-200 ${className}`}
+      className={clsx(
+        "flex items-center justify-center text-xs shrink-0 cursor-pointer select-none h-8 text-gray-600 border-gray-200 sticky left-0 z-10",
+        { "w-10": variant === "spreadsheet", "w-8": variant === "rows" },
+        { "border-b": variant === "spreadsheet" && isLastRow },
+        { "border-l": variant === "spreadsheet" },
+        {
+          "bg-gray-100": variant === "spreadsheet",
+          "bg-gray-50": variant === "rows",
+        },
+      )}
       onClick={onClick}
     >
       {rowIndex + 1}
@@ -641,7 +639,8 @@ function GridDataCell<T>({
   onBlur,
   onChange,
   CellComponent,
-  className = "",
+  variant,
+  isLastRow,
 }: {
   cell: Cell<T, unknown>;
   colIndex: number;
@@ -656,7 +655,8 @@ function GridDataCell<T>({
   onChange?: (value: unknown) => void;
   onBlur: () => void;
   CellComponent: GridColumn["cellComponent"];
-  className?: string;
+  variant: DataGridVariant;
+  isLastRow: boolean;
 }) {
   return (
     <div
@@ -666,8 +666,9 @@ function GridDataCell<T>({
       aria-selected={isSelected}
       className={clsx(
         "relative h-8 grow select-none",
-        "border-gray-200",
-        className,
+        "border-gray-200 border-t",
+        { "border-b": isLastRow },
+        { "border-l": variant === "spreadsheet" },
         isActive ? "bg-white" : isSelected ? "bg-purple-300/10" : "bg-white",
         selectionEdge?.top && "border-t border-t-purple-500",
         selectionEdge?.left && "border-l border-l-purple-500",
@@ -707,46 +708,28 @@ function GridDataCell<T>({
 function RowActionsCell({
   rowIndex,
   rowActions,
-  className = "",
+  variant,
+  isLastRow,
+  isLastCol,
 }: {
   rowIndex: number;
   rowActions?: RowAction[];
-  className?: string;
+  variant: DataGridVariant;
+  isLastRow: boolean;
+  isLastCol: boolean;
 }) {
   return rowActions ? (
     <div
       role="gridcell"
       className={clsx(
-        "sticky right-0 shrink-0 border-gray-200 w-8 h-8 bg-white z-10",
-        className,
+        "sticky right-0 shrink-0 w-8 h-8 bg-white z-10",
+        "border-gray-200, border-t",
+        { "border-b": isLastRow },
+        { "border-l": variant === "spreadsheet" },
+        { "border-r": variant === "spreadsheet" && isLastCol },
       )}
     >
       <ActionsCell rowIndex={rowIndex} actions={rowActions} />
     </div>
   ) : null;
-}
-
-function ScrollShadow({
-  position,
-  visible,
-}: {
-  position: "top" | "bottom";
-  visible: boolean;
-}) {
-  if (!visible) return null;
-
-  const isTop = position === "top";
-  return (
-    <div
-      className={clsx(
-        "absolute left-0 right-0 h-2.5 pointer-events-none z-20",
-        isTop ? "top-8" : "bottom-0",
-      )}
-      style={{
-        background: isTop
-          ? "radial-gradient(farthest-side at 50% 0, rgba(0, 0, 0, 0.12), transparent)"
-          : "radial-gradient(farthest-side at 50% 100%, rgba(0, 0, 0, 0.12), transparent)",
-      }}
-    />
-  );
 }

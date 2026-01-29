@@ -61,3 +61,5 @@ export type DataGridRef = {
 export type CellContext = {
   setActiveCell: (cell: CellPosition) => void;
 };
+
+export type DataGridVariant = "spreadsheet" | "rows";
