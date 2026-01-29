@@ -72,6 +72,7 @@ export const DataGrid = forwardRef(function DataGrid<
   ref: React.ForwardedRef<DataGridRef>,
 ) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const gridRef = useRef<HTMLDivElement>(null);
   const rowsContainerRef = useRef<RowsContainerRef>(null);
   const [gridHeight, setGridHeight] = useState<number | undefined>(undefined);
   const [scrollState, setScrollState] = useState<RowsContainerState>({
@@ -119,7 +120,7 @@ export const DataGrid = forwardRef(function DataGrid<
   const visibleRowCount = gridHeight ? Math.floor(gridHeight / ROW_HEIGHT) : 10;
 
   const blurGrid = useCallback(() => {
-    rowsContainerRef.current?.blur();
+    gridRef.current?.blur();
   }, []);
 
   const { handleKeyDown } = useKeyboardNavigation({
@@ -152,7 +153,7 @@ export const DataGrid = forwardRef(function DataGrid<
   useEffect(
     function refocusWhenEditingStops() {
       if (wasEditingRef.current && !isEditing) {
-        rowsContainerRef.current?.focus();
+        gridRef.current?.focus();
       }
       wasEditingRef.current = isEditing;
     },
@@ -279,7 +280,7 @@ export const DataGrid = forwardRef(function DataGrid<
       if (dataColumns.length === 0) return;
       const col = firstEditableCol !== -1 ? firstEditableCol : 0;
       setActiveCell({ col, row: rowIndex });
-      rowsContainerRef.current?.focus();
+      gridRef.current?.focus();
     },
     [dataColumns.length, firstEditableCol, setActiveCell],
   );
@@ -370,11 +371,22 @@ export const DataGrid = forwardRef(function DataGrid<
       className={clsx("flex flex-col justify-between", !maxHeight && "h-full")}
     >
       <div
-        className="relative flex flex-col"
+        ref={gridRef}
+        role="grid"
+        aria-rowcount={data.length}
+        aria-colcount={colCount}
+        aria-multiselectable={true}
+        tabIndex={0}
+        onKeyDown={handleKeyDown}
+        onFocus={handleFocus}
+        onCopy={handleCopy}
+        onPaste={handlePaste}
+        className="relative flex flex-col outline-none"
         style={{
           height: gridHeight,
           visibility: isReady ? "visible" : "hidden",
         }}
+        data-capture-escape-key
       >
         <GridHeader
           table={table}
@@ -388,18 +400,8 @@ export const DataGrid = forwardRef(function DataGrid<
 
         <RowsContainer
           ref={rowsContainerRef}
-          role="grid"
-          aria-rowcount={data.length}
-          aria-colcount={colCount}
-          aria-multiselectable={true}
-          tabIndex={0}
-          onKeyDown={handleKeyDown}
-          onFocus={handleFocus}
           onMouseDown={handleEmptyAreaMouseDown}
-          onCopy={handleCopy}
-          onPaste={handlePaste}
           className="scrollbar-border"
-          data-capture-escape-key
           onScrollStateChange={setScrollState}
           variant={variant}
           showGutter={gutterColumn}
@@ -535,16 +537,11 @@ function GridHeader<T>({
   return (
     <div
       role="row"
-      className={clsx(
-        "flex shrink-0 z-10 border-gray-200",
-        {
-          "bg-gray-100": variant === "spreadsheet",
-          "bg-gray-50": variant === "rows",
-        },
-        {
-          "border-t border-x": variant === "spreadsheet",
-        },
-      )}
+      className={clsx("flex shrink-0 z-10", "border border-transparent", {
+        "bg-gray-100 border-t-gray-200 border-x-gray-200":
+          variant === "spreadsheet",
+        "bg-gray-50": variant === "rows",
+      })}
       style={style}
     >
       {showGutterColumn && (
@@ -552,6 +549,7 @@ function GridHeader<T>({
           role="columnheader"
           className={clsx(
             "flex items-center justify-center font-semibold text-sm shrink-0 cursor-pointer select-none h-8 text-gray-600 sticky left-0 z-10",
+            "border border-transparent",
             { "w-10": variant === "spreadsheet", "w-8": variant === "rows" },
             {
               "bg-gray-100": variant === "spreadsheet",
@@ -566,7 +564,7 @@ function GridHeader<T>({
           <div
             key={header.id}
             role="columnheader"
-            className="flex items-center px-2 font-semibold text-sm truncate cursor-pointer select-none h-8 grow min-w-0 text-gray-600"
+            className="flex items-center px-2 font-semibold text-sm truncate cursor-pointer select-none h-8 grow min-w-0 text-gray-600 border border-transparent"
             style={{
               width: header.getSize(),
               minWidth: header.getSize(),
@@ -580,7 +578,9 @@ function GridHeader<T>({
       {showActionsColumn && (
         <div
           role="columnheader"
-          className={clsx("shrink-0 sticky right-0 w-8 h-8 z-10")}
+          className={clsx(
+            "shrink-0 sticky right-0 w-8 h-8 z-10 border border-transparent",
+          )}
         />
       )}
     </div>
@@ -602,10 +602,11 @@ function RowGutterCell({
     <div
       role="rowheader"
       className={clsx(
-        "flex items-center justify-center text-xs shrink-0 cursor-pointer select-none h-8 text-gray-600 border-gray-200 sticky left-0 z-10",
+        "flex items-center justify-center text-xs shrink-0 cursor-pointer select-none h-8 text-gray-600 sticky left-0 z-10",
+        "border border-transparent",
         { "w-10": variant === "spreadsheet", "w-8": variant === "rows" },
-        { "border-b": variant === "spreadsheet" && isLastRow },
-        { "border-l": variant === "spreadsheet" },
+        { "border-b-gray-200": variant === "spreadsheet" && isLastRow },
+        { "border-l-gray-200": variant === "spreadsheet" },
         {
           "bg-gray-100": variant === "spreadsheet",
           "bg-gray-50": variant === "rows",
@@ -665,20 +666,30 @@ function GridDataCell<T>({
       aria-colindex={colIndex + 1}
       aria-selected={isSelected}
       className={clsx(
-        "relative h-8 grow select-none",
-        "border-gray-200 border-t",
-        { "border-b": isLastRow },
-        { "border-l": variant === "spreadsheet" },
+        "relative h-8 grow select-none border",
         isActive ? "bg-white" : isSelected ? "bg-purple-300/10" : "bg-white",
-        selectionEdge?.top && "border-t border-t-purple-500",
-        selectionEdge?.left && "border-l border-l-purple-500",
-        selectionEdge?.bottom && "border-b border-b-purple-500",
-        selectionEdge?.right && "border-r border-r-purple-500",
-        selectionEdge && "z-[1]",
+        { "z-[1]": selectionEdge },
       )}
       style={{
         width: cell.column.getSize(),
         minWidth: cell.column.getSize(),
+        // Inline styles ensure colors override Tailwind classes
+        borderTopColor: selectionEdge?.top
+          ? "rgb(168 85 247)"
+          : "rgb(229 231 235)",
+        borderBottomColor: selectionEdge?.bottom
+          ? "rgb(168 85 247)"
+          : isLastRow
+            ? "rgb(229 231 235)"
+            : "transparent",
+        borderLeftColor: selectionEdge?.left
+          ? "rgb(168 85 247)"
+          : variant === "spreadsheet"
+            ? "rgb(229 231 235)"
+            : "transparent",
+        borderRightColor: selectionEdge?.right
+          ? "rgb(168 85 247)"
+          : "transparent",
       }}
       onMouseDown={onMouseDown}
       onMouseEnter={onMouseEnter}
@@ -723,10 +734,10 @@ function RowActionsCell({
       role="gridcell"
       className={clsx(
         "sticky right-0 shrink-0 w-8 h-8 bg-white z-10",
-        "border-gray-200, border-t",
-        { "border-b": isLastRow },
-        { "border-l": variant === "spreadsheet" },
-        { "border-r": variant === "spreadsheet" && isLastCol },
+        "border border-transparent border-t-gray-200",
+        { "border-b-gray-200": isLastRow },
+        { "border-l-gray-200": variant === "spreadsheet" },
+        { "border-r-gray-200": variant === "spreadsheet" && isLastCol },
       )}
     >
       <ActionsCell rowIndex={rowIndex} actions={rowActions} />
