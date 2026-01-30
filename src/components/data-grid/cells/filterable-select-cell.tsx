@@ -80,6 +80,7 @@ export function FilterableSelectCell({
   const showSearch = options.length >= minOptionsForSearch;
   const buttonRef = useRef<HTMLButtonElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const listContainerRef = useRef<HTMLDivElement>(null);
 
   const selectedOption = useMemo(
     () => options.find((opt) => opt.value === value),
@@ -93,18 +94,34 @@ export function FilterableSelectCell({
     FilterableSelectOption<string | number>[]
   >(() => options);
 
-  // Reset state when popover opens/closes
-  useEffect(() => {
-    if (open) {
-      setSearchQuery("");
-      setFilteredOptions(options);
-      setActiveIndex(-1);
-      // Focus search input when popover opens
-      requestAnimationFrame(() => {
-        searchInputRef.current?.focus();
-      });
-    }
-  }, [open, options]);
+  const isNavigating = activeIndex >= 0;
+
+  const setMode = useCallback((mode: "search" | "selection") => {
+    setActiveIndex(mode === "search" ? -1 : 0);
+  }, []);
+
+  useEffect(
+    function resetStateOnPopoverOpen() {
+      if (open) {
+        setSearchQuery("");
+        setFilteredOptions(options);
+        setMode("search");
+        requestAnimationFrame(() => {
+          if (showSearch) {
+            searchInputRef.current?.focus();
+          } else {
+            listContainerRef.current?.focus();
+          }
+        });
+      }
+    },
+    [open, options, showSearch, setMode],
+  );
+
+  const closePopover = useCallback(() => {
+    setOpen(false);
+    stopEditing();
+  }, [stopEditing]);
 
   const commit = useCallback(
     (option: FilterableSelectOption<string | number>) => {
@@ -121,48 +138,104 @@ export function FilterableSelectCell({
       setSearchQuery(query);
       const filtered = filterOptions(options, query);
       setFilteredOptions(filtered);
-      setActiveIndex(query.trim() && filtered.length > 0 ? 0 : -1);
+      setMode("search");
     },
-    [options],
+    [options, setMode],
   );
 
-  const handleKeyDown = useCallback(
+  // Unified keyboard handler for the popover content
+  const handlePopoverKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
+      // Navigation keys - always handle
       if (LIST_NAVIGATION_KEYS.includes(e.key)) {
         e.preventDefault();
         e.stopPropagation();
         if (filteredOptions.length > 0) {
-          setActiveIndex(
-            (prev) =>
+          setActiveIndex((prev) => {
+            // If starting from search mode, go to first or last item
+            if (prev === -1) {
+              if (e.key === "ArrowUp" || e.key === "End") {
+                return filteredOptions.length - 1;
+              }
+              return 0;
+            }
+            return (
               calculateNextListIndex(e.key, prev, filteredOptions.length) ??
-              prev,
-          );
+              prev
+            );
+          });
         }
         return;
       }
 
+      // Enter - commit if navigating, otherwise start navigation
       if (e.key === "Enter") {
         e.preventDefault();
-        if (filteredOptions.length > 0 && activeIndex >= 0) {
-          commit(filteredOptions[activeIndex]);
-        }
-        return;
-      }
-
-      if (e.key === "Escape") {
         e.stopPropagation();
-        setOpen(false);
+        if (isNavigating && filteredOptions[activeIndex]) {
+          commit(filteredOptions[activeIndex]);
+        } else if (filteredOptions.length > 0) {
+          setActiveIndex(0);
+        }
         return;
       }
 
-      if (e.key === "Tab") {
-        if (filteredOptions.length > 0 && activeIndex >= 0) {
-          commit(filteredOptions[activeIndex]);
+      // Escape - go back to search mode or close
+      if (e.key === "Escape") {
+        e.preventDefault();
+        e.stopPropagation();
+        e.nativeEvent.stopImmediatePropagation();
+        if (isNavigating && showSearch) {
+          setMode("search");
+          searchInputRef.current?.focus();
+          searchInputRef.current?.select();
+        } else {
+          closePopover();
         }
-        setOpen(false);
+        return;
+      }
+
+      // Tab - close without committing
+      if (e.key === "Tab") {
+        e.preventDefault();
+        e.stopPropagation();
+        closePopover();
+        return;
+      }
+
+      // Backspace/Delete - stop propagation to prevent grid from handling it
+      if (showSearch && (e.key === "Backspace" || e.key === "Delete")) {
+        e.stopPropagation();
+        if (isNavigating) {
+          setMode("search");
+          searchInputRef.current?.focus();
+        }
+        // Don't prevent default - let key work on input
+        return;
+      }
+
+      // Character keys while navigating - go to search mode and type
+      if (
+        isNavigating &&
+        showSearch &&
+        e.key.length === 1 &&
+        !e.ctrlKey &&
+        !e.metaKey
+      ) {
+        setMode("search");
+        searchInputRef.current?.focus();
+        // Don't prevent default - let character be typed
       }
     },
-    [filteredOptions, activeIndex, commit],
+    [
+      filteredOptions,
+      activeIndex,
+      isNavigating,
+      showSearch,
+      commit,
+      closePopover,
+      setMode,
+    ],
   );
 
   const handleButtonKeyDown = useCallback((e: React.KeyboardEvent) => {
@@ -172,15 +245,16 @@ export function FilterableSelectCell({
     }
   }, []);
 
-  // Handle focus from parent cell
-  useEffect(() => {
-    if (focus) {
-      buttonRef.current?.focus();
-    } else {
-      buttonRef.current?.blur();
-      setOpen(false);
-    }
-  }, [focus]);
+  useEffect(
+    function handleCellFocus() {
+      if (focus) {
+        buttonRef.current?.focus();
+      } else {
+        setOpen(false);
+      }
+    },
+    [focus],
+  );
 
   return (
     <div
@@ -213,30 +287,42 @@ export function FilterableSelectCell({
             align="start"
             className="bg-white min-w-[180px] border text-sm rounded-md shadow-md z-50 mt-1"
             onOpenAutoFocus={(e) => e.preventDefault()}
-            onCloseAutoFocus={(e) => e.preventDefault()}
-            onEscapeKeyDown={() => setOpen(false)}
+            onCloseAutoFocus={(e) => {
+              e.preventDefault();
+              buttonRef.current?.focus();
+            }}
             onPointerDownOutside={() => setOpen(false)}
+            onEscapeKeyDown={(e) => {
+              // Prevent Radix from handling escape - we handle it in handlePopoverKeyDown
+              e.preventDefault();
+            }}
           >
-            {showSearch && (
-              <div className="p-2 border-b border-gray-200">
-                <input
-                  ref={searchInputRef}
-                  type="text"
-                  value={searchQuery}
-                  onChange={handleSearchChange}
-                  onKeyDown={handleKeyDown}
-                  placeholder="Search..."
-                  className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
-                />
-              </div>
-            )}
-            <OptionsList
-              options={filteredOptions}
-              activeIndex={activeIndex}
-              selected={value}
-              onActiveIndexChange={setActiveIndex}
-              onSelect={commit}
-            />
+            <div
+              ref={listContainerRef}
+              tabIndex={showSearch ? -1 : 0}
+              onKeyDown={handlePopoverKeyDown}
+              className="outline-none"
+            >
+              {showSearch && (
+                <div className="p-2 border-b border-gray-200">
+                  <input
+                    ref={searchInputRef}
+                    type="text"
+                    value={searchQuery}
+                    onChange={handleSearchChange}
+                    placeholder="Search..."
+                    className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+                  />
+                </div>
+              )}
+              <OptionsList
+                options={filteredOptions}
+                activeIndex={activeIndex}
+                selected={value}
+                onActiveIndexChange={setActiveIndex}
+                onSelect={commit}
+              />
+            </div>
           </Popover.Content>
         </Popover.Portal>
       </Popover.Root>
@@ -282,11 +368,7 @@ const OptionsList: FunctionComponent<OptionsListProps> = ({
   }, []);
 
   if (options.length === 0) {
-    return (
-      <div className="p-3 text-sm text-gray-500 text-center">
-        No options found
-      </div>
-    );
+    return null;
   }
 
   return (
@@ -373,7 +455,10 @@ export function filterableSelectColumn<T extends string | number = string>(
         minOptionsForSearch={options.minOptionsForSearch}
       />
     ),
-    copyValue: (v) => String(v ?? ""),
+    copyValue: (v) => {
+      const match = options.options.find((opt) => opt.value === v);
+      return match?.label ?? "";
+    },
     pasteValue: (v) => {
       const match = options.options.find(
         (opt) =>
