@@ -107,6 +107,7 @@ export function useGridEditing<TData extends Record<string, unknown>>({
           return;
         } else if (e.key === "Escape") {
           e.preventDefault();
+          e.stopPropagation();
           stopEditing();
           return;
         }
@@ -129,6 +130,7 @@ export function useGridEditing<TData extends Record<string, unknown>>({
         case "Escape":
           if (selection) {
             e.preventDefault();
+            e.stopPropagation();
             const isMultiCell =
               selection.min.col !== selection.max.col ||
               selection.min.row !== selection.max.row;

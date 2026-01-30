@@ -531,4 +531,101 @@ describe("DataGrid", () => {
       });
     });
   });
+
+  describe("escape key handling", () => {
+    it("reduces multi-cell selection to single active cell on first Escape", async () => {
+      const user = setupUser();
+      const onSelectionChange = vi.fn();
+      const ref = createRef<DataGridRef>();
+
+      const { container } = render(
+        <DataGrid
+          ref={ref}
+          data={defaultData}
+          columns={columns}
+          onChange={vi.fn()}
+          createRow={createRow}
+          onSelectionChange={onSelectionChange}
+        />,
+      );
+
+      // Set up multi-cell selection (2x2)
+      ref.current?.setSelection({
+        min: { col: 0, row: 0 },
+        max: { col: 1, row: 1 },
+      });
+
+      await waitFor(() => {
+        // Verify multiple cells are selected via aria-selected
+        const selectedCells = container.querySelectorAll(
+          '[role="gridcell"][aria-selected="true"]',
+        );
+        expect(selectedCells.length).toBe(4);
+      });
+
+      // Focus the grid and press Escape
+      const grid = screen.getByRole("grid");
+      grid.focus();
+      await user.keyboard("{Escape}");
+
+      // Should reduce to single cell (the active cell at max position)
+      await waitFor(() => {
+        expect(onSelectionChange).toHaveBeenLastCalledWith({
+          min: { col: 1, row: 1 },
+          max: { col: 1, row: 1 },
+        });
+      });
+
+      // Verify only one cell is now selected via aria-selected
+      const selectedCells = container.querySelectorAll(
+        '[role="gridcell"][aria-selected="true"]',
+      );
+      expect(selectedCells.length).toBe(1);
+    });
+
+    it("clears selection and blurs grid on Escape with single cell selected", async () => {
+      const user = setupUser();
+      const onSelectionChange = vi.fn();
+
+      const { container } = render(
+        <DataGrid
+          data={defaultData}
+          columns={columns}
+          onChange={vi.fn()}
+          createRow={createRow}
+          onSelectionChange={onSelectionChange}
+        />,
+      );
+
+      // Click on a cell to select it
+      const cell = screen.getByText("Row 1");
+      await user.click(cell);
+
+      await waitFor(() => {
+        expect(onSelectionChange).toHaveBeenCalledWith({
+          min: { col: 0, row: 0 },
+          max: { col: 0, row: 0 },
+        });
+      });
+
+      // Verify cell is selected via aria-selected
+      expect(
+        container.querySelectorAll('[role="gridcell"][aria-selected="true"]')
+          .length,
+      ).toBe(1);
+
+      // Press Escape to clear selection
+      await user.keyboard("{Escape}");
+
+      await waitFor(() => {
+        expect(onSelectionChange).toHaveBeenLastCalledWith(null);
+      });
+
+      // Verify no cells are selected via aria-selected
+      expect(
+        container.querySelectorAll('[role="gridcell"][aria-selected="true"]')
+          .length,
+      ).toBe(0);
+    });
+  });
 });

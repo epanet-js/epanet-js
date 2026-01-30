@@ -114,8 +114,9 @@ export const DataGrid = forwardRef(function DataGrid<
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
+      const wasPreventedBefore = e.defaultPrevented;
       rowsRef.current?.handleKeyDown(e);
-      if (!e.defaultPrevented) {
+      if (wasPreventedBefore || !e.defaultPrevented) {
         handleEditingKeyDown(e);
       }
     },
