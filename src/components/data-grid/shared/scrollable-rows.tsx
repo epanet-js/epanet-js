@@ -273,7 +273,7 @@ export const ScrollableRows = forwardRef(function ScrollableRows<TData>(
                     rowIndex={rowIndex}
                     onClick={(e) => onGutterClick(rowIndex, e)}
                     variant={variant}
-                    isLastRow={isLast && hasVerticalScroll}
+                    isLastRow={isLast && !hasVerticalScroll}
                   />
                 )}
 
