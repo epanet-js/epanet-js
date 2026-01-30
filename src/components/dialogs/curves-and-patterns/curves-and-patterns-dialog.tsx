@@ -199,7 +199,11 @@ export const CurvesAndPatternsDialog = () => {
         </div>
       </div>
       <div className="pt-6 flex flex-row-reverse gap-x-3">
-        {showDiscardConfirm ? (
+        {isSnapshotLocked ? (
+          <Button type="button" onClick={closeDialog}>
+            {translate("close")}
+          </Button>
+        ) : showDiscardConfirm ? (
           <>
             <Button type="button" variant="danger" onClick={handleDiscard}>
               {translate("discardChanges")}

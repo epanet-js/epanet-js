@@ -145,6 +145,7 @@
   "opening": "Opening...",
   "export": "Export",
   "cancel": "Cancel",
+  "close": "Close",
   "failedToOpenModel": "Failed to open model",
   "failedToOpenModelDetail": "Make sure to provide a valid INP file.",
   "understood": "Understood",
