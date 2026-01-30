@@ -18,6 +18,7 @@ type Props = {
   demands: JunctionDemand[];
   patterns: DemandPatterns;
   onDemandsChange: (newDemands: JunctionDemand[]) => void;
+  readOnly?: boolean;
 };
 
 const CONSTANT_PATTERN_ID = 0;
@@ -58,6 +59,7 @@ export const DemandCategoriesEditor = ({
   demands,
   patterns,
   onDemandsChange,
+  readOnly = false,
 }: Props) => {
   const translate = useTranslate();
 
@@ -199,6 +201,7 @@ export const DemandCategoriesEditor = ({
         addRowLabel={translate("addDemandCategory")}
         variant="rows"
         gutterColumn
+        readOnly={readOnly}
       />
     </div>
   );

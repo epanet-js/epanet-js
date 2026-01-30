@@ -469,13 +469,12 @@ const JunctionEditor = ({
                 readOnly={true}
               />
             )}
-            {!readonly && (
-              <DemandCategoriesEditor
-                demands={junction.demands}
-                patterns={hydraulicModel.demands.patterns}
-                onDemandsChange={onDemandsChange}
-              />
-            )}
+            <DemandCategoriesEditor
+              demands={junction.demands}
+              patterns={hydraulicModel.demands.patterns}
+              onDemandsChange={onDemandsChange}
+              readOnly={readonly}
+            />
           </div>
         ) : (
           <>

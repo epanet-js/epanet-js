@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { DemandCategoriesEditor } from "./demand-categories-editor";
 import {
@@ -19,17 +19,17 @@ const aPatterns = (
   return demandPatterns;
 };
 
-const getBaseDemandInput = (rowIndex: number) => {
-  // Each row has 2 textboxes: baseDemand (index 0, 2, 4...) and pattern selector (index 1, 3, 5...)
-  const inputs = screen.getAllByRole("textbox");
-  return inputs[rowIndex * 2];
+const getRows = () => screen.getAllByRole("row").slice(1); // Skip header row
+
+const getCell = (rowIndex: number, colIndex: number) => {
+  const rows = getRows();
+  const row = rows[rowIndex];
+  const cells = within(row).getAllByRole("gridcell");
+  return cells[colIndex];
 };
 
-const getPatternSelector = (rowIndex: number) => {
-  // Each row has 2 textboxes: baseDemand (index 0, 2, 4...) and pattern selector (index 1, 3, 5...)
-  const inputs = screen.getAllByRole("textbox");
-  return inputs[rowIndex * 2 + 1];
-};
+const getBaseDemandCell = (rowIndex: number) => getCell(rowIndex, 0);
+const getPatternCell = (rowIndex: number) => getCell(rowIndex, 1);
 
 const getAddRowButton = () => {
   return screen.getByRole("button", { name: /add demand category/i });
@@ -40,7 +40,7 @@ const getActionsButton = (rowIndex: number) => {
   return buttons[rowIndex];
 };
 
-describe.skip("DemandCategoriesEditorLegacy", () => {
+describe("DemandCategoriesEditor", () => {
   describe("initialization", () => {
     it("shows a default row with base demand 0 and constant pattern when no demands provided", () => {
       render(
@@ -48,11 +48,12 @@ describe.skip("DemandCategoriesEditorLegacy", () => {
           demands={[]}
           patterns={aPatterns()}
           onDemandsChange={vi.fn()}
+          readOnly={false}
         />,
       );
 
-      expect(getBaseDemandInput(0)).toHaveValue("0");
-      expect(getPatternSelector(0)).toHaveValue("CONSTANT");
+      expect(getBaseDemandCell(0)).toHaveTextContent("0");
+      expect(getPatternCell(0)).toHaveTextContent("CONSTANT");
     });
 
     it("displays existing demands", () => {
@@ -67,18 +68,18 @@ describe.skip("DemandCategoriesEditorLegacy", () => {
           demands={demands}
           patterns={aPatterns([PATTERN_ID, "Pattern1", [1, 2, 3]])}
           onDemandsChange={vi.fn()}
+          readOnly={false}
         />,
       );
 
-      expect(getBaseDemandInput(0)).toHaveValue("100");
-      expect(getPatternSelector(0)).toHaveValue("Pattern1");
-      expect(getBaseDemandInput(1)).toHaveValue("50");
-      expect(getPatternSelector(1)).toHaveValue("CONSTANT");
+      expect(getBaseDemandCell(0)).toHaveTextContent("100");
+      expect(getPatternCell(0)).toHaveTextContent("Pattern1");
+      expect(getBaseDemandCell(1)).toHaveTextContent("50");
+      expect(getPatternCell(1)).toHaveTextContent("CONSTANT");
     });
 
     it("shows all available patterns in the dropdown", async () => {
-      // Skip pointer events check because react-datasheet-grid uses pointer-events: none on inactive cells
-      const user = userEvent.setup({ pointerEventsCheck: 0 });
+      const user = userEvent.setup();
       const IDS = { PAT1: 1, PAT2: 2 };
 
       render(
@@ -89,14 +90,17 @@ describe.skip("DemandCategoriesEditorLegacy", () => {
             [IDS.PAT2, "Pattern2", [2]],
           )}
           onDemandsChange={vi.fn()}
+          readOnly={false}
         />,
       );
 
-      // Click the input to focus it and trigger dropdown open
-      const patternInput = getPatternSelector(0);
-      await user.click(patternInput);
-      // Focus the input directly to simulate cell activation
-      patternInput.focus();
+      // Click the pattern cell to select it, then click the dropdown trigger button
+      const patternCell = getPatternCell(0);
+      await user.click(patternCell);
+
+      // The FilterableSelectCell has a button that opens the dropdown
+      const dropdownButton = within(patternCell).getByRole("button");
+      await user.click(dropdownButton);
 
       // Wait for dropdown to open and options to appear
       expect(
@@ -113,8 +117,7 @@ describe.skip("DemandCategoriesEditorLegacy", () => {
 
   describe("editing base demand", () => {
     it("calls onDemandsChange when base demand is changed", async () => {
-      // Skip pointer events check because react-datasheet-grid uses pointer-events: none on inactive cells
-      const user = userEvent.setup({ pointerEventsCheck: 0 });
+      const user = userEvent.setup();
       const onDemandsChange = vi.fn();
 
       render(
@@ -122,14 +125,19 @@ describe.skip("DemandCategoriesEditorLegacy", () => {
           demands={[{ baseDemand: 100 }]}
           patterns={aPatterns()}
           onDemandsChange={onDemandsChange}
+          readOnly={false}
         />,
       );
 
-      const input = getBaseDemandInput(0);
-      await user.click(input);
-      await user.clear(input);
-      await user.type(input, "200");
-      await user.keyboard("{Enter}");
+      // Click cell to select, then double-click to edit
+      const baseDemandCell = getBaseDemandCell(0);
+      await user.click(baseDemandCell);
+      await user.dblClick(baseDemandCell);
+
+      // Find the input, triple-click to select all, then type
+      const input = within(baseDemandCell).getByRole("textbox");
+      await user.tripleClick(input);
+      await user.keyboard("200{Enter}");
 
       expect(onDemandsChange).toHaveBeenCalledWith([{ baseDemand: 200 }]);
     });
@@ -138,8 +146,7 @@ describe.skip("DemandCategoriesEditorLegacy", () => {
   describe("editing pattern", () => {
     it("calls onDemandsChange when pattern is changed", async () => {
       const PATTERN_ID = 1;
-      // Skip pointer events check because react-datasheet-grid uses pointer-events: none on inactive cells
-      const user = userEvent.setup({ pointerEventsCheck: 0 });
+      const user = userEvent.setup();
       const onDemandsChange = vi.fn();
 
       render(
@@ -147,14 +154,19 @@ describe.skip("DemandCategoriesEditorLegacy", () => {
           demands={[{ baseDemand: 100 }]}
           patterns={aPatterns([PATTERN_ID, "Pattern1", [1, 2, 3]])}
           onDemandsChange={onDemandsChange}
+          readOnly={false}
         />,
       );
 
-      // Click and focus to activate cell and open dropdown
-      const patternInput = getPatternSelector(0);
-      await user.click(patternInput);
-      patternInput.focus();
-      // Wait for dropdown to open
+      // Click the pattern cell to select it, then click the dropdown trigger button
+      const patternCell = getPatternCell(0);
+      await user.click(patternCell);
+
+      // The FilterableSelectCell has a button that opens the dropdown
+      const dropdownButton = within(patternCell).getByRole("button");
+      await user.click(dropdownButton);
+
+      // Wait for dropdown to open and select option
       const pattern1Option = await screen.findByRole("option", {
         name: "Pattern1",
       });
@@ -167,8 +179,7 @@ describe.skip("DemandCategoriesEditorLegacy", () => {
 
     it("sets patternId to undefined when constant is selected", async () => {
       const PATTERN_ID = 1;
-      // Skip pointer events check because react-datasheet-grid uses pointer-events: none on inactive cells
-      const user = userEvent.setup({ pointerEventsCheck: 0 });
+      const user = userEvent.setup();
       const onDemandsChange = vi.fn();
 
       render(
@@ -176,14 +187,19 @@ describe.skip("DemandCategoriesEditorLegacy", () => {
           demands={[{ baseDemand: 100, patternId: 1 }]}
           patterns={aPatterns([PATTERN_ID, "Pattern1", [1, 2, 3]])}
           onDemandsChange={onDemandsChange}
+          readOnly={false}
         />,
       );
 
-      // Click and focus to activate cell and open dropdown
-      const patternInput = getPatternSelector(0);
-      await user.click(patternInput);
-      patternInput.focus();
-      // Wait for dropdown to open
+      // Click the pattern cell to select it, then click the dropdown trigger button
+      const patternCell = getPatternCell(0);
+      await user.click(patternCell);
+
+      // The FilterableSelectCell has a button that opens the dropdown
+      const dropdownButton = within(patternCell).getByRole("button");
+      await user.click(dropdownButton);
+
+      // Wait for dropdown to open and select CONSTANT
       const constantOption = await screen.findByRole("option", {
         name: /constant/i,
       });
@@ -203,6 +219,7 @@ describe.skip("DemandCategoriesEditorLegacy", () => {
           demands={[{ baseDemand: 100 }]}
           patterns={aPatterns()}
           onDemandsChange={onDemandsChange}
+          readOnly={false}
         />,
       );
 
@@ -225,6 +242,7 @@ describe.skip("DemandCategoriesEditorLegacy", () => {
           demands={[{ baseDemand: 100 }, { baseDemand: 200 }]}
           patterns={aPatterns()}
           onDemandsChange={onDemandsChange}
+          readOnly={false}
         />,
       );
 
@@ -243,6 +261,7 @@ describe.skip("DemandCategoriesEditorLegacy", () => {
           demands={[{ baseDemand: 100 }]}
           patterns={aPatterns()}
           onDemandsChange={onDemandsChange}
+          readOnly={false}
         />,
       );
 
@@ -266,6 +285,7 @@ describe.skip("DemandCategoriesEditorLegacy", () => {
           demands={[{ baseDemand: 100 }]}
           patterns={aPatterns()}
           onDemandsChange={onDemandsChange}
+          readOnly={false}
         />,
       );
 
@@ -288,6 +308,7 @@ describe.skip("DemandCategoriesEditorLegacy", () => {
           demands={[]}
           patterns={aPatterns()}
           onDemandsChange={vi.fn()}
+          readOnly={false}
         />,
       );
 
@@ -305,6 +326,7 @@ describe.skip("DemandCategoriesEditorLegacy", () => {
           demands={[{ baseDemand: 100 }]}
           patterns={aPatterns()}
           onDemandsChange={vi.fn()}
+          readOnly={false}
         />,
       );
 
@@ -322,6 +344,7 @@ describe.skip("DemandCategoriesEditorLegacy", () => {
           demands={[{ baseDemand: 0 }, { baseDemand: 0 }]}
           patterns={aPatterns()}
           onDemandsChange={vi.fn()}
+          readOnly={false}
         />,
       );
 
@@ -334,8 +357,7 @@ describe.skip("DemandCategoriesEditorLegacy", () => {
 
   describe("filtering zero demands", () => {
     it("filters out zero demand when there is only one row", async () => {
-      // Skip pointer events check because react-datasheet-grid uses pointer-events: none on inactive cells
-      const user = userEvent.setup({ pointerEventsCheck: 0 });
+      const user = userEvent.setup();
       const onDemandsChange = vi.fn();
 
       render(
@@ -343,21 +365,25 @@ describe.skip("DemandCategoriesEditorLegacy", () => {
           demands={[{ baseDemand: 100 }]}
           patterns={aPatterns()}
           onDemandsChange={onDemandsChange}
+          readOnly={false}
         />,
       );
 
-      const input = getBaseDemandInput(0);
-      await user.click(input);
-      await user.clear(input);
-      await user.type(input, "0");
-      await user.keyboard("{Enter}");
+      // Click cell to select, then double-click to edit
+      const baseDemandCell = getBaseDemandCell(0);
+      await user.click(baseDemandCell);
+      await user.dblClick(baseDemandCell);
+
+      // Find the input, triple-click to select all, then type
+      const input = within(baseDemandCell).getByRole("textbox");
+      await user.tripleClick(input);
+      await user.keyboard("0{Enter}");
 
       expect(onDemandsChange).toHaveBeenCalledWith([]);
     });
 
     it("keeps zero demand when there are multiple rows", async () => {
-      // Skip pointer events check because react-datasheet-grid uses pointer-events: none on inactive cells
-      const user = userEvent.setup({ pointerEventsCheck: 0 });
+      const user = userEvent.setup();
       const onDemandsChange = vi.fn();
 
       render(
@@ -365,19 +391,87 @@ describe.skip("DemandCategoriesEditorLegacy", () => {
           demands={[{ baseDemand: 100 }, { baseDemand: 50 }]}
           patterns={aPatterns()}
           onDemandsChange={onDemandsChange}
+          readOnly={false}
         />,
       );
 
-      const input = getBaseDemandInput(0);
-      await user.click(input);
-      await user.clear(input);
-      await user.type(input, "0");
-      await user.keyboard("{Enter}");
+      // Click cell to select, then double-click to edit
+      const baseDemandCell = getBaseDemandCell(0);
+      await user.click(baseDemandCell);
+      await user.dblClick(baseDemandCell);
+
+      // Find the input, triple-click to select all, then type
+      const input = within(baseDemandCell).getByRole("textbox");
+      await user.tripleClick(input);
+      await user.keyboard("0{Enter}");
 
       expect(onDemandsChange).toHaveBeenCalledWith([
         { baseDemand: 0 },
         { baseDemand: 50 },
       ]);
+    });
+  });
+
+  describe("read-only mode", () => {
+    it("does not show add row button when readOnly is true", () => {
+      render(
+        <DemandCategoriesEditor
+          demands={[{ baseDemand: 100 }]}
+          patterns={aPatterns()}
+          onDemandsChange={vi.fn()}
+          readOnly={true}
+        />,
+      );
+
+      expect(
+        screen.queryByRole("button", { name: /add demand category/i }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("does not show row actions when readOnly is true", () => {
+      render(
+        <DemandCategoriesEditor
+          demands={[{ baseDemand: 100 }]}
+          patterns={aPatterns()}
+          onDemandsChange={vi.fn()}
+          readOnly={true}
+        />,
+      );
+
+      expect(
+        screen.queryByRole("button", { name: /actions/i }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("displays values but does not allow editing when readOnly is true", async () => {
+      const user = userEvent.setup();
+      const onDemandsChange = vi.fn();
+
+      render(
+        <DemandCategoriesEditor
+          demands={[{ baseDemand: 100 }]}
+          patterns={aPatterns()}
+          onDemandsChange={onDemandsChange}
+          readOnly={true}
+        />,
+      );
+
+      // Values should be displayed
+      expect(getBaseDemandCell(0)).toHaveTextContent("100");
+      expect(getPatternCell(0)).toHaveTextContent("CONSTANT");
+
+      // Click cell to select, then double-click should not enable editing
+      const baseDemandCell = getBaseDemandCell(0);
+      await user.click(baseDemandCell);
+      await user.dblClick(baseDemandCell);
+
+      // Should not find any input (editing mode should not activate)
+      expect(
+        within(getBaseDemandCell(0)).queryByRole("textbox"),
+      ).not.toBeInTheDocument();
+
+      // onDemandsChange should not be called
+      expect(onDemandsChange).not.toHaveBeenCalled();
     });
   });
 });
