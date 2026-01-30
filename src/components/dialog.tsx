@@ -291,7 +291,7 @@ export function SimpleDialogActions({
       ) : null}
       {onClose ? (
         <Button type="button" onClick={onClose}>
-          {translate("cancel")}
+          {translate(action || secondary ? "cancel" : "close")}
         </Button>
       ) : null}
       <RefreshIcon

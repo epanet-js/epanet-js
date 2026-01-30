@@ -8,6 +8,7 @@ import { useTranslate } from "src/hooks/use-translate";
 import { stagingModelAtom } from "src/state/jotai";
 import { ControlsIcon } from "src/icons";
 import { SimpleDialogActions } from "src/components/dialog";
+import { useIsSnapshotLocked } from "src/hooks/use-is-snapshot-locked";
 import {
   formatSimpleControl,
   formatRuleBasedControl,
@@ -30,6 +31,7 @@ export const ControlsDialog = () => {
   const { closeDialog } = useDialogState();
   const hydraulicModel = useAtomValue(stagingModelAtom);
   const [activeTab, setActiveTab] = useState<Tab>("simple");
+  const isSnapshotLocked = useIsSnapshotLocked();
 
   const rep = usePersistence();
   const transact = rep.useTransact();
@@ -85,6 +87,7 @@ export const ControlsDialog = () => {
           activeTab={activeTab}
           onTabChange={setActiveTab}
           onClose={closeDialog}
+          readOnly={isSnapshotLocked}
         />
       </Formik>
     </DialogContainer>
@@ -95,10 +98,12 @@ const ControlsForm = ({
   activeTab,
   onTabChange,
   onClose,
+  readOnly = false,
 }: {
   activeTab: Tab;
   onTabChange: (tab: Tab) => void;
   onClose: () => void;
+  readOnly?: boolean;
 }) => {
   const translate = useTranslate();
 
@@ -110,14 +115,19 @@ const ControlsForm = ({
           name="simpleText"
           placeholder={translate("controls.simpleEmpty")}
           hidden={activeTab !== "simple"}
+          readOnly={readOnly}
         />
         <ControlsTextArea
           name="rulesText"
           placeholder={translate("controls.rulesEmpty")}
           hidden={activeTab !== "ruleBased"}
+          readOnly={readOnly}
         />
       </div>
-      <SimpleDialogActions onClose={onClose} action={translate("save")} />
+      <SimpleDialogActions
+        onClose={onClose}
+        action={readOnly ? undefined : translate("save")}
+      />
     </Form>
   );
 };
@@ -181,10 +191,12 @@ const ControlsTextArea = ({
   name,
   placeholder,
   hidden,
+  readOnly = false,
 }: {
   name: string;
   placeholder: string;
   hidden: boolean;
+  readOnly?: boolean;
 }) => {
   const { values, setFieldValue } = useFormikContext<FormValues>();
   const value = values[name as keyof FormValues];
@@ -196,6 +208,7 @@ const ControlsTextArea = ({
       value={value}
       onChange={(e) => setFieldValue(name, e.target.value)}
       placeholder={placeholder}
+      readOnly={readOnly}
       className="w-full h-64 p-3 font-mono text-sm bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-sm resize-none focus-visible:outline-none focus-visible:border-transparent focus-visible:ring-purple-500 dark:focus-visible:ring-purple-700 focus-visible:ring-inset"
     />
   );
