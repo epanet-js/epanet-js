@@ -472,7 +472,7 @@ describe("DataGrid", () => {
       });
     });
 
-    it("does not delete rows when lockRows is true", async () => {
+    it("does not delete rows or clear values when readOnly is true", async () => {
       const user = setupUser();
       const onChange = vi.fn();
 
@@ -483,7 +483,7 @@ describe("DataGrid", () => {
           onChange={onChange}
           createRow={createRow}
           gutterColumn
-          lockRows
+          readOnly
         />,
       );
 
@@ -494,11 +494,8 @@ describe("DataGrid", () => {
       // Press Delete
       await user.keyboard("{Delete}");
 
-      // Should not delete rows, but may clear cell values
-      expect(onChange).not.toHaveBeenCalledWith([
-        { value: 0.8, label: "Row 2" },
-        { value: 0.6, label: "Row 3" },
-      ]);
+      // Should not trigger any changes in readOnly mode
+      expect(onChange).not.toHaveBeenCalled();
     });
   });
 
@@ -626,6 +623,196 @@ describe("DataGrid", () => {
         container.querySelectorAll('[role="gridcell"][aria-selected="true"]')
           .length,
       ).toBe(0);
+    });
+  });
+
+  describe("read-only mode", () => {
+    it("does not show add row button when readOnly is true", () => {
+      render(
+        <DataGrid
+          data={defaultData}
+          columns={columns}
+          onChange={vi.fn()}
+          createRow={createRow}
+          addRowLabel="Add row"
+          readOnly
+        />,
+      );
+
+      expect(
+        screen.queryByRole("button", { name: /add row/i }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("does not show row actions when readOnly is true", () => {
+      const rowActions = [
+        { label: "Delete", icon: null, onSelect: vi.fn() },
+        { label: "Duplicate", icon: null, onSelect: vi.fn() },
+      ];
+
+      render(
+        <DataGrid
+          data={defaultData}
+          columns={columns}
+          onChange={vi.fn()}
+          createRow={createRow}
+          rowActions={rowActions}
+          readOnly
+        />,
+      );
+
+      expect(
+        screen.queryByRole("button", { name: /actions/i }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("does not start editing when Enter is pressed in readOnly mode", async () => {
+      const user = setupUser();
+
+      const { container } = render(
+        <DataGrid
+          data={defaultData}
+          columns={columns}
+          onChange={vi.fn()}
+          createRow={createRow}
+          readOnly
+        />,
+      );
+
+      // Click a cell to select it
+      const cells = container.querySelectorAll('[role="gridcell"]');
+      await user.click(cells[1]); // Click the value column (editable)
+
+      // Press Enter
+      await user.keyboard("{Enter}");
+
+      // Should not find any textbox (editing mode should not activate)
+      expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
+    });
+
+    it("does not start editing when typing a character in readOnly mode", async () => {
+      const user = setupUser();
+
+      const { container } = render(
+        <DataGrid
+          data={defaultData}
+          columns={columns}
+          onChange={vi.fn()}
+          createRow={createRow}
+          readOnly
+        />,
+      );
+
+      // Click a cell to select it
+      const cells = container.querySelectorAll('[role="gridcell"]');
+      await user.click(cells[1]); // Click the value column (editable)
+
+      // Type a character
+      await user.keyboard("5");
+
+      // Should not find any textbox (editing mode should not activate)
+      expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
+    });
+
+    it("can still select cells when readOnly is true", async () => {
+      const user = setupUser();
+      const onSelectionChange = vi.fn();
+
+      const { container } = render(
+        <DataGrid
+          data={defaultData}
+          columns={columns}
+          onChange={vi.fn()}
+          createRow={createRow}
+          onSelectionChange={onSelectionChange}
+          readOnly
+        />,
+      );
+
+      // Click a cell to select it
+      const cells = container.querySelectorAll('[role="gridcell"]');
+      await user.click(cells[0]);
+
+      await waitFor(() => {
+        expect(onSelectionChange).toHaveBeenCalledWith({
+          min: { col: 0, row: 0 },
+          max: { col: 0, row: 0 },
+        });
+      });
+
+      // Verify cell is selected via aria-selected
+      expect(
+        container.querySelectorAll('[role="gridcell"][aria-selected="true"]')
+          .length,
+      ).toBe(1);
+    });
+
+    it("can still navigate with arrow keys when readOnly is true", async () => {
+      const user = setupUser();
+      const onSelectionChange = vi.fn();
+
+      const { container } = render(
+        <DataGrid
+          data={defaultData}
+          columns={columns}
+          onChange={vi.fn()}
+          createRow={createRow}
+          onSelectionChange={onSelectionChange}
+          readOnly
+        />,
+      );
+
+      // Click a cell to select it
+      const cells = container.querySelectorAll('[role="gridcell"]');
+      await user.click(cells[0]);
+
+      await waitFor(() => {
+        expect(onSelectionChange).toHaveBeenCalledWith({
+          min: { col: 0, row: 0 },
+          max: { col: 0, row: 0 },
+        });
+      });
+
+      // Navigate right
+      await user.keyboard("{ArrowRight}");
+
+      await waitFor(() => {
+        expect(onSelectionChange).toHaveBeenLastCalledWith({
+          min: { col: 1, row: 0 },
+          max: { col: 1, row: 0 },
+        });
+      });
+    });
+
+    it("does not paste when readOnly is true", async () => {
+      const user = setupUser();
+      const onChange = vi.fn();
+
+      // Mock clipboard with valid data
+      const clipboardData = "999";
+      vi.spyOn(navigator.clipboard, "readText").mockResolvedValue(
+        clipboardData,
+      );
+
+      const { container } = render(
+        <DataGrid
+          data={defaultData}
+          columns={columns}
+          onChange={onChange}
+          createRow={createRow}
+          readOnly
+        />,
+      );
+
+      // Click a cell to select it (the value column which is editable)
+      const cells = container.querySelectorAll('[role="gridcell"]');
+      await user.click(cells[1]);
+
+      // Try to paste with Ctrl+V
+      await user.keyboard("{Control>}v{/Control}");
+
+      // onChange should not be called in readOnly mode
+      expect(onChange).not.toHaveBeenCalled();
     });
   });
 });

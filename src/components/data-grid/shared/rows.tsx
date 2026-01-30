@@ -31,6 +31,7 @@ type RowsProps<TData> = {
   stopEditing: () => void;
   gutterColumn: boolean;
   rowActions?: RowAction[];
+  readOnly: boolean;
   variant: DataGridVariant;
   // Navigation props
   activeCell: CellPosition | null;
@@ -70,6 +71,7 @@ export const Rows = forwardRef(function Rows<TData>(
     stopEditing,
     gutterColumn,
     rowActions,
+    readOnly,
     variant,
     activeCell,
     moveActiveCell,
@@ -151,6 +153,7 @@ export const Rows = forwardRef(function Rows<TData>(
                   isSelected={cellSelected}
                   isActive={isCellActive(colIndex, rowIndex)}
                   isEditing={isEditing}
+                  readOnly={readOnly}
                   selectionEdge={
                     cellSelected && selection
                       ? {
@@ -182,6 +185,7 @@ export const Rows = forwardRef(function Rows<TData>(
               rowIndex={rowIndex}
               variant={variant}
               isLastRow={isLast}
+              disabled={readOnly}
             />
           </div>
         );

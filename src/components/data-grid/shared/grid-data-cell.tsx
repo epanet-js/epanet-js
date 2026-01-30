@@ -16,6 +16,7 @@ type GridDataCellProps<T> = {
   isSelected: boolean;
   isActive: boolean;
   isEditing: boolean;
+  readOnly: boolean;
   selectionEdge?: SelectionEdge;
   onMouseDown: (e: React.MouseEvent) => void;
   onMouseEnter: () => void;
@@ -34,6 +35,7 @@ export function GridDataCell<T>({
   isSelected,
   isActive,
   isEditing,
+  readOnly,
   selectionEdge,
   onMouseDown,
   onMouseEnter,
@@ -87,6 +89,7 @@ export function GridDataCell<T>({
           isActive={isActive}
           isEditing={isActive && isEditing}
           isSelected={isSelected}
+          readOnly={readOnly}
           onChange={(newValue) => onChange?.(newValue)}
           stopEditing={onBlur}
           focus={isActive}

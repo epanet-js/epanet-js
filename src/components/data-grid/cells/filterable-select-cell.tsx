@@ -72,6 +72,7 @@ export function FilterableSelectCell({
   onChange,
   stopEditing,
   focus,
+  readOnly,
   options,
   placeholder,
   minOptionsForSearch = 8,
@@ -255,6 +256,14 @@ export function FilterableSelectCell({
     },
     [focus],
   );
+
+  if (readOnly) {
+    return (
+      <div className="w-full h-full flex items-center pl-2 text-sm text-gray-700">
+        <span className="truncate">{selectedOption?.label ?? ""}</span>
+      </div>
+    );
+  }
 
   return (
     <div

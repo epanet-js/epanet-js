@@ -7,6 +7,7 @@ type RowActionsCellProps = {
   rowActions?: RowAction[];
   variant: DataGridVariant;
   isLastRow: boolean;
+  disabled?: boolean;
 };
 
 export function RowActionsCell({
@@ -14,6 +15,7 @@ export function RowActionsCell({
   rowActions,
   variant,
   isLastRow,
+  disabled = false,
 }: RowActionsCellProps) {
   return rowActions ? (
     <div
@@ -31,7 +33,11 @@ export function RowActionsCell({
         { "border-l-gray-200": variant === "spreadsheet" },
       )}
     >
-      <ActionsCell rowIndex={rowIndex} actions={rowActions} />
+      <ActionsCell
+        rowIndex={rowIndex}
+        actions={rowActions}
+        disabled={disabled}
+      />
     </div>
   ) : null;
 }

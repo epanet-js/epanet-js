@@ -9,7 +9,7 @@ type UseKeyboardNavigationOptions<TData extends Record<string, unknown>> = {
   columns: GridColumn[];
   data: TData[];
   onChange: (data: TData[]) => void;
-  lockRows: boolean;
+  readOnly: boolean;
   moveActiveCell: (
     direction: "up" | "down" | "left" | "right",
     extend?: boolean,
@@ -42,7 +42,7 @@ export function useKeyboardNavigation<TData extends Record<string, unknown>>({
   columns,
   data,
   onChange,
-  lockRows,
+  readOnly,
   moveActiveCell,
   moveToRowStart,
   moveToRowEnd,
@@ -60,10 +60,10 @@ export function useKeyboardNavigation<TData extends Record<string, unknown>>({
   visibleRowCount,
 }: UseKeyboardNavigationOptions<TData>) {
   const handleDelete = useCallback(() => {
-    if (!selection) return;
+    if (!selection || readOnly) return;
 
-    // If full row(s) selected and lockRows is false, delete rows
-    if (isFullRowSelected && !lockRows) {
+    // If full row(s) selected, delete rows
+    if (isFullRowSelected) {
       const minRow = selection.min.row;
       const maxRow = selection.max.row;
       onChange([...data.slice(0, minRow), ...data.slice(maxRow + 1)]);
@@ -97,7 +97,7 @@ export function useKeyboardNavigation<TData extends Record<string, unknown>>({
     });
 
     onChange(newData);
-  }, [selection, isFullRowSelected, lockRows, data, columns, onChange]);
+  }, [selection, readOnly, isFullRowSelected, data, columns, onChange]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -201,7 +201,7 @@ export function useKeyboardNavigation<TData extends Record<string, unknown>>({
 
         case "Enter":
           e.preventDefault();
-          if (activeCell) {
+          if (activeCell && !readOnly) {
             const column = columns[activeCell.col];
             if (!column?.disabled && !column?.disableKeys) {
               startEditing();
@@ -255,6 +255,7 @@ export function useKeyboardNavigation<TData extends Record<string, unknown>>({
         default:
           if (
             activeCell &&
+            !readOnly &&
             e.key.length === 1 &&
             !e.ctrlKey &&
             !e.metaKey &&
@@ -273,6 +274,7 @@ export function useKeyboardNavigation<TData extends Record<string, unknown>>({
       activeCell,
       selection,
       columns,
+      readOnly,
       moveActiveCell,
       moveToRowStart,
       moveToRowEnd,

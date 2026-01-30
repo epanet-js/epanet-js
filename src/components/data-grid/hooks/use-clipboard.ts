@@ -7,6 +7,7 @@ type UseClipboardOptions<TData extends Record<string, unknown>> = {
   data: TData[];
   onChange: (data: TData[]) => void;
   createRow: () => TData;
+  readOnly?: boolean;
 };
 
 export function useClipboard<TData extends Record<string, unknown>>({
@@ -15,6 +16,7 @@ export function useClipboard<TData extends Record<string, unknown>>({
   data,
   onChange,
   createRow,
+  readOnly = false,
 }: UseClipboardOptions<TData>) {
   const copyToClipboard = useCallback(async () => {
     if (!selection) return;
@@ -57,7 +59,7 @@ export function useClipboard<TData extends Record<string, unknown>>({
   }, [selection, columns, data]);
 
   const pasteFromClipboard = useCallback(async () => {
-    if (!selection) return;
+    if (!selection || readOnly) return;
 
     try {
       const text = await navigator.clipboard.readText();
@@ -102,7 +104,7 @@ export function useClipboard<TData extends Record<string, unknown>>({
     } catch {
       // Clipboard access denied or other error
     }
-  }, [selection, columns, data, onChange, createRow]);
+  }, [selection, columns, data, onChange, createRow, readOnly]);
 
   const handleCopy = useCallback(
     (e: React.ClipboardEvent) => {

@@ -25,6 +25,7 @@ export type CellProps<TValue = unknown> = {
   isActive: boolean;
   isEditing: boolean;
   isSelected: boolean;
+  readOnly: boolean;
   onChange: (newValue: TValue) => void;
   stopEditing: () => void;
   focus: boolean;

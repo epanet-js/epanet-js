@@ -40,6 +40,7 @@ type ScrollableRowsProps<TData> = {
   onEmptyAreaMouseDown: (e: React.MouseEvent) => void;
   gutterColumn: boolean;
   rowActions?: RowAction[];
+  readOnly: boolean;
   variant: DataGridVariant;
   // Navigation props
   activeCell: CellPosition | null;
@@ -80,6 +81,7 @@ export const ScrollableRows = forwardRef(function ScrollableRows<TData>(
     onEmptyAreaMouseDown,
     gutterColumn,
     rowActions,
+    readOnly,
     variant,
     activeCell,
     moveActiveCell,
@@ -291,6 +293,7 @@ export const ScrollableRows = forwardRef(function ScrollableRows<TData>(
                       isSelected={cellSelected}
                       isActive={isCellActive(colIndex, rowIndex)}
                       isEditing={isEditing}
+                      readOnly={readOnly}
                       selectionEdge={
                         cellSelected && selection
                           ? {
@@ -325,6 +328,7 @@ export const ScrollableRows = forwardRef(function ScrollableRows<TData>(
                   rowIndex={rowIndex}
                   variant={variant}
                   isLastRow={isLast && hasVerticalScroll}
+                  disabled={readOnly}
                 />
               </div>
             );

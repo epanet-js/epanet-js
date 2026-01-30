@@ -96,6 +96,7 @@ describe("FilterableSelectCell", () => {
     columnIndex: 0,
     isActive: true,
     isSelected: true,
+    readOnly: false,
     options,
     placeholder: "Select...",
     minOptionsForSearch: 8, // Disable search by default for simpler tests
@@ -519,6 +520,62 @@ describe("FilterableSelectCell", () => {
         (el) => el.getAttribute("aria-selected") === "true",
       );
       expect(selectedOption).toHaveTextContent("Pattern B");
+    });
+  });
+
+  describe("read-only mode", () => {
+    it("displays only the label without dropdown button when readOnly is true", () => {
+      render(<FilterableSelectCell {...defaultProps} value={1} readOnly />);
+
+      // Should show the label
+      expect(screen.getByText("Pattern A")).toBeInTheDocument();
+
+      // Should not have a button (dropdown trigger)
+      expect(screen.queryByRole("button")).not.toBeInTheDocument();
+    });
+
+    it("displays empty content when no value is selected in readOnly mode", () => {
+      const { container } = render(
+        <FilterableSelectCell {...defaultProps} value={null} readOnly />,
+      );
+
+      // Should not show the placeholder in readOnly mode
+      expect(screen.queryByText("Select...")).not.toBeInTheDocument();
+      // Should have empty span
+      const span = container.querySelector("span");
+      expect(span?.textContent).toBe("");
+      expect(screen.queryByRole("button")).not.toBeInTheDocument();
+    });
+
+    it("does not open dropdown when clicked in readOnly mode", async () => {
+      const user = setupUser();
+      const { container } = render(
+        <FilterableSelectCell {...defaultProps} value={1} readOnly />,
+      );
+
+      // Click the cell
+      await user.click(container.firstChild as HTMLElement);
+
+      // Should not find a listbox (dropdown should not open)
+      expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
+    });
+
+    it("does not call onChange in readOnly mode", async () => {
+      const user = setupUser();
+      const onChange = vi.fn();
+      const { container } = render(
+        <FilterableSelectCell
+          {...defaultProps}
+          value={1}
+          readOnly
+          onChange={onChange}
+        />,
+      );
+
+      // Try to interact with the cell
+      await user.click(container.firstChild as HTMLElement);
+
+      expect(onChange).not.toHaveBeenCalled();
     });
   });
 });

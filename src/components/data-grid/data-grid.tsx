@@ -28,7 +28,7 @@ type DataGridProps<TData extends Record<string, unknown>> = {
   columns: GridColumn[];
   onChange: (data: TData[]) => void;
   createRow: () => TData;
-  lockRows?: boolean;
+  readOnly?: boolean;
   emptyState?: React.ReactNode;
   rowActions?: RowAction[];
   addRowLabel?: string;
@@ -45,7 +45,7 @@ export const DataGrid = forwardRef(function DataGrid<
     columns,
     onChange,
     createRow,
-    lockRows = false,
+    readOnly = false,
     emptyState,
     rowActions,
     addRowLabel,
@@ -102,7 +102,7 @@ export const DataGrid = forwardRef(function DataGrid<
     columns,
     data,
     onChange,
-    lockRows,
+    readOnly,
     colCount,
     moveActiveCell,
     setSelection,
@@ -151,6 +151,7 @@ export const DataGrid = forwardRef(function DataGrid<
     data,
     onChange,
     createRow,
+    readOnly,
   });
 
   useImperativeHandle(
@@ -209,12 +210,13 @@ export const DataGrid = forwardRef(function DataGrid<
 
   const handleCellDoubleClick = useCallback(
     (col: number) => {
+      if (readOnly) return;
       const column = columns[col] as GridColumn | undefined;
       if (!column?.disabled && !column?.disableKeys) {
         startEditing();
       }
     },
-    [columns, startEditing],
+    [columns, readOnly, startEditing],
   );
 
   const handleGutterClick = useCallback(
@@ -271,7 +273,8 @@ export const DataGrid = forwardRef(function DataGrid<
     onCellChange: handleCellChange,
     stopEditing,
     gutterColumn,
-    rowActions,
+    rowActions: readOnly ? undefined : rowActions,
+    readOnly,
     variant,
     activeCell,
     moveActiveCell,
@@ -310,7 +313,7 @@ export const DataGrid = forwardRef(function DataGrid<
         <GridHeader
           table={table}
           showGutterColumn={gutterColumn}
-          showActionsColumn={!!rowActions}
+          showActionsColumn={!readOnly && !!rowActions}
           onSelectColumn={selectColumn}
           onSelectAll={selectAll}
           variant={variant}
@@ -327,11 +330,13 @@ export const DataGrid = forwardRef(function DataGrid<
         )}
       </div>
 
-      <AddRowButton
-        label={addRowLabel}
-        onClick={handleAddRow}
-        variant={variant}
-      />
+      {!readOnly && (
+        <AddRowButton
+          label={addRowLabel}
+          onClick={handleAddRow}
+          variant={variant}
+        />
+      )}
     </div>
   );
 }) as <TData extends Record<string, unknown>>(

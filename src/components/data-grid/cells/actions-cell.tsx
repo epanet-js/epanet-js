@@ -6,9 +6,14 @@ import { RowAction } from "../types";
 type ActionsCellProps = {
   rowIndex: number;
   actions: RowAction[];
+  disabled?: boolean;
 };
 
-export function ActionsCell({ rowIndex, actions }: ActionsCellProps) {
+export function ActionsCell({
+  rowIndex,
+  actions,
+  disabled = false,
+}: ActionsCellProps) {
   return (
     <DD.Root>
       <DD.Trigger asChild>
@@ -18,6 +23,7 @@ export function ActionsCell({ rowIndex, actions }: ActionsCellProps) {
           className="w-full h-full justify-center"
           aria-label="Actions"
           tabIndex={-1}
+          disabled={disabled}
         >
           <MoreActionsIcon size="md" />
         </Button>

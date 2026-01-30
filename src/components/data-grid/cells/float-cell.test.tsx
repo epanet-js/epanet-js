@@ -11,6 +11,7 @@ const defaultProps = {
   isActive: false,
   isEditing: false,
   isSelected: false,
+  readOnly: false,
   onChange: vi.fn(),
   stopEditing: vi.fn(),
   focus: false,
