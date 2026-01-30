@@ -19,6 +19,7 @@ export type FilterableSelectOption<T extends string | number = string> = {
 type FilterableSelectCellProps<T extends string | number = string | number> = {
   options: FilterableSelectOption<T>[];
   placeholder: string;
+  minOptionsForSearch?: number;
 };
 
 const PAGE_SIZE = 5;
@@ -73,8 +74,10 @@ export function FilterableSelectCell({
   focus,
   options,
   placeholder,
+  minOptionsForSearch = 8,
 }: CellProps<string | number | null> &
   FilterableSelectCellProps<string | number>) {
+  const showSearch = options.length >= minOptionsForSearch;
   const buttonRef = useRef<HTMLButtonElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -191,14 +194,16 @@ export function FilterableSelectCell({
             type="button"
             tabIndex={-1}
             onKeyDown={handleButtonKeyDown}
-            className="w-full h-full px-2 flex items-center justify-between gap-1 text-sm text-gray-700 bg-transparent border-none outline-none text-left min-w-0"
+            className="w-full h-full pl-2 flex items-center justify-between gap-1 text-sm text-gray-700 bg-transparent border-none outline-none text-left min-w-0"
           >
             <span
               className={clsx("truncate", !selectedOption && "text-gray-400")}
             >
               {selectedOption?.label ?? placeholder}
             </span>
-            <ChevronDownIcon className="w-4 h-4 text-gray-400 flex-shrink-0" />
+            <div className="pl-1">
+              <ChevronDownIcon />
+            </div>
           </button>
         </Popover.Trigger>
 
@@ -212,17 +217,19 @@ export function FilterableSelectCell({
             onEscapeKeyDown={() => setOpen(false)}
             onPointerDownOutside={() => setOpen(false)}
           >
-            <div className="p-2 border-b border-gray-200">
-              <input
-                ref={searchInputRef}
-                type="text"
-                value={searchQuery}
-                onChange={handleSearchChange}
-                onKeyDown={handleKeyDown}
-                placeholder="Search..."
-                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
-              />
-            </div>
+            {showSearch && (
+              <div className="p-2 border-b border-gray-200">
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  value={searchQuery}
+                  onChange={handleSearchChange}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Search..."
+                  className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+                />
+              </div>
+            )}
             <OptionsList
               options={filteredOptions}
               activeIndex={activeIndex}
@@ -351,6 +358,7 @@ export function filterableSelectColumn<T extends string | number = string>(
     options: FilterableSelectOption<T>[];
     placeholder?: string;
     deleteValue?: T | null;
+    minOptionsForSearch?: number;
   },
 ): GridColumn {
   return {
@@ -362,6 +370,7 @@ export function filterableSelectColumn<T extends string | number = string>(
         {...props}
         options={options.options as FilterableSelectOption<string | number>[]}
         placeholder={options.placeholder ?? ""}
+        minOptionsForSearch={options.minOptionsForSearch}
       />
     ),
     copyValue: (v) => String(v ?? ""),
