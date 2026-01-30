@@ -51,14 +51,16 @@ export function GridHeader<T>({
           <div
             key={header.id}
             role="columnheader"
-            className="flex items-center px-2 font-semibold text-sm truncate cursor-pointer select-none h-8 grow min-w-0 text-gray-600 border border-transparent"
+            className="flex items-center px-2 font-semibold text-sm cursor-pointer select-none h-8 grow min-w-0 text-gray-600 border border-transparent"
             style={{
               width: header.getSize(),
               minWidth: header.getSize(),
             }}
             onClick={() => onSelectColumn(colIndex)}
           >
-            {flexRender(header.column.columnDef.header, header.getContext())}
+            <span className="truncate">
+              {flexRender(header.column.columnDef.header, header.getContext())}
+            </span>
           </div>
         )),
       )}
