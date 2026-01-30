@@ -1,10 +1,11 @@
-import { useMemo, useCallback } from "react";
+import { useMemo, useCallback, useState } from "react";
 import {
   DataGrid,
   floatColumn,
   filterableSelectColumn,
   GridColumn,
 } from "src/components/data-grid";
+import { Button } from "src/components/elements";
 import { JunctionDemand, DemandPatterns, PatternId } from "src/hydraulic-model";
 import { useTranslate } from "src/hooks/use-translate";
 import { DeleteIcon, AddIcon } from "src/icons";
@@ -62,14 +63,18 @@ export const DemandCategoriesEditor = ({
   readOnly = false,
 }: Props) => {
   const translate = useTranslate();
+  const [showEmptyGrid, setShowEmptyGrid] = useState(false);
 
-  const rowData = useMemo(
-    () =>
-      demands.length === 0
-        ? [createDefaultRow()]
-        : demands.map((demand) => toRow(demand, patterns)),
-    [demands, patterns],
-  );
+  const rowData = useMemo(() => {
+    if (demands.length === 0 && showEmptyGrid) {
+      return [createDefaultRow()];
+    }
+    return demands.map((demand) => toRow(demand, patterns));
+  }, [demands, patterns, showEmptyGrid]);
+
+  const handleAddFirstDemand = useCallback(() => {
+    setShowEmptyGrid(true);
+  }, []);
 
   const patternOptions = useMemo(() => {
     const options: { value: number; label: string }[] = [
@@ -185,10 +190,34 @@ export const DemandCategoriesEditor = ({
         newRows.length === 1
           ? nonZeroRows.map((row) => fromRow(row))
           : newRows.map((row) => fromRow(row));
+
+      if (newDemands.length === 0 && demands.length === 0) {
+        setShowEmptyGrid(false);
+        return;
+      }
+
       onDemandsChange(newDemands);
     },
-    [onDemandsChange],
+    [onDemandsChange, demands.length],
   );
+
+  if (demands.length === 0 && !showEmptyGrid) {
+    if (readOnly) {
+      return null;
+    }
+
+    return (
+      <Button
+        variant="default"
+        size="sm"
+        onClick={handleAddFirstDemand}
+        className="w-full justify-center"
+      >
+        <AddIcon size="sm" />
+        {translate("addDirectDemand")}
+      </Button>
+    );
+  }
 
   return (
     <div className="border-l-2 border-gray-400 bg-gray-50 pr-2 pb-2">

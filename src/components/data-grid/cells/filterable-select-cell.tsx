@@ -300,7 +300,13 @@ export function FilterableSelectCell({
               e.preventDefault();
               buttonRef.current?.focus();
             }}
-            onPointerDownOutside={() => setOpen(false)}
+            onPointerDownOutside={(e) => {
+              // Don't close if clicking the trigger button (it will toggle via Radix)
+              if (buttonRef.current?.contains(e.target as Node)) {
+                return;
+              }
+              setOpen(false);
+            }}
             onEscapeKeyDown={(e) => {
               // Prevent Radix from handling escape - we handle it in handlePopoverKeyDown
               e.preventDefault();

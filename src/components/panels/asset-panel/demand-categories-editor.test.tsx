@@ -42,7 +42,7 @@ const getActionsButton = (rowIndex: number) => {
 
 describe("DemandCategoriesEditor", () => {
   describe("initialization", () => {
-    it("shows a default row with base demand 0 and constant pattern when no demands provided", () => {
+    it("shows add direct demand button when no demands provided", () => {
       render(
         <DemandCategoriesEditor
           demands={[]}
@@ -52,8 +52,47 @@ describe("DemandCategoriesEditor", () => {
         />,
       );
 
+      expect(
+        screen.getByRole("button", { name: /add direct demand/i }),
+      ).toBeInTheDocument();
+    });
+
+    it("shows grid with default row when add direct demand button is clicked", async () => {
+      const user = userEvent.setup();
+      const onDemandsChange = vi.fn();
+
+      render(
+        <DemandCategoriesEditor
+          demands={[]}
+          patterns={aPatterns()}
+          onDemandsChange={onDemandsChange}
+          readOnly={false}
+        />,
+      );
+
+      await user.click(
+        screen.getByRole("button", { name: /add direct demand/i }),
+      );
+
+      // Grid should be shown with default row
       expect(getBaseDemandCell(0)).toHaveTextContent("0");
       expect(getPatternCell(0)).toHaveTextContent("CONSTANT");
+
+      // onDemandsChange should not be called until actual changes are made
+      expect(onDemandsChange).not.toHaveBeenCalled();
+    });
+
+    it("renders nothing when no demands and readOnly is true", () => {
+      const { container } = render(
+        <DemandCategoriesEditor
+          demands={[]}
+          patterns={aPatterns()}
+          onDemandsChange={vi.fn()}
+          readOnly={true}
+        />,
+      );
+
+      expect(container.firstChild).toBeNull();
     });
 
     it("displays existing demands", () => {
@@ -305,7 +344,7 @@ describe("DemandCategoriesEditor", () => {
 
       render(
         <DemandCategoriesEditor
-          demands={[]}
+          demands={[{ baseDemand: 0 }]}
           patterns={aPatterns()}
           onDemandsChange={vi.fn()}
           readOnly={false}
