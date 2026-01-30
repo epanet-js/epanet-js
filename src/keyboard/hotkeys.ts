@@ -32,7 +32,14 @@ export const useHotkeys = (
 
     if (!!dialog) return;
 
-    if (disabled === false) Mousetrap.bind(localizedKeys, fn);
+    // Wrap the callback to check if the event was already handled
+    const wrappedFn = (e: Event) => {
+      // Skip if event was already handled (e.g., by a data grid or other component)
+      if (e.defaultPrevented) return;
+      fn(e);
+    };
+
+    if (disabled === false) Mousetrap.bind(localizedKeys, wrappedFn);
     return () => {
       Mousetrap.unbind(localizedKeys);
     };
