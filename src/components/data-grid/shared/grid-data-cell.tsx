@@ -51,7 +51,7 @@ export function GridDataCell<T>({
       aria-colindex={colIndex + 1}
       aria-selected={isSelected}
       className={clsx(
-        "relative h-8 grow select-none border",
+        "relative h-8 grow select-none border cursor-cell",
         isActive ? "bg-white" : isSelected ? "bg-purple-300/10" : "bg-white",
         { "z-[1]": selectionEdge },
         selectionEdge?.left
