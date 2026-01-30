@@ -5,6 +5,7 @@ import { useTranslate } from "src/hooks/use-translate";
 import { Button } from "src/components/elements";
 import { PatternSidebar } from "./pattern-sidebar";
 import { PatternDetail } from "./pattern-detail";
+import { useIsSnapshotLocked } from "src/hooks/use-is-snapshot-locked";
 import {
   PatternMultipliers,
   DemandPatterns,
@@ -28,6 +29,7 @@ export const CurvesAndPatternsDialog = () => {
   const { closeDialog } = useDialogState();
   const hydraulicModel = useAtomValue(stagingModelAtom);
   const userTracking = useUserTracking();
+  const isSnapshotLocked = useIsSnapshotLocked();
   const [selectedPatternId, setSelectedPatternId] = useState<PatternId | null>(
     null,
   );
@@ -172,6 +174,7 @@ export const CurvesAndPatternsDialog = () => {
           onAddPattern={handleAddPattern}
           onChangePattern={handlePatternChange}
           onDeletePattern={handleDeletePattern}
+          readOnly={isSnapshotLocked}
         />
         <div className="flex-1 flex flex-col min-h-0 w-full">
           {selectedPatternId ? (
@@ -182,6 +185,7 @@ export const CurvesAndPatternsDialog = () => {
               onChange={(multipliers) =>
                 handlePatternChange(selectedPatternId, { multipliers })
               }
+              readOnly={isSnapshotLocked}
             />
           ) : hasPatterns ? (
             <div className="flex-1 flex items-center justify-center p-2 border border-gray-200 dark:border-gray-700">
@@ -189,7 +193,7 @@ export const CurvesAndPatternsDialog = () => {
             </div>
           ) : (
             <div className="flex-1 flex items-center justify-center p-2 border border-gray-200 dark:border-gray-700">
-              <EmptyState />
+              <EmptyState readOnly={isSnapshotLocked} />
             </div>
           )}
         </div>
@@ -242,7 +246,7 @@ const NoSelectionState = () => {
   );
 };
 
-const EmptyState = () => {
+const EmptyState = ({ readOnly }: { readOnly: boolean }) => {
   const translate = useTranslate();
 
   return (
@@ -253,9 +257,11 @@ const EmptyState = () => {
       <p className="text-sm font-semibold py-4 text-gray-600">
         {translate("curvesAndPatternsEmptyTitle")}
       </p>
-      <p className="text-sm text-gray-600 text-center max-w-64">
-        {translate("curvesAndPatternsEmptyDescription")}
-      </p>
+      {!readOnly && (
+        <p className="text-sm text-gray-600 text-center max-w-64">
+          {translate("curvesAndPatternsEmptyDescription")}
+        </p>
+      )}
     </div>
   );
 };

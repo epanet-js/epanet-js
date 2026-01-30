@@ -36,6 +36,7 @@ type PatternSidebarProps = {
   ) => PatternId;
   onChangePattern: (patternId: PatternId, updates: { label: string }) => void;
   onDeletePattern: (patternId: PatternId) => void;
+  readOnly?: boolean;
 };
 
 export const PatternSidebar = ({
@@ -46,6 +47,7 @@ export const PatternSidebar = ({
   onAddPattern,
   onChangePattern,
   onDeletePattern,
+  readOnly = false,
 }: PatternSidebarProps) => {
   const translate = useTranslate();
   const userTracking = useUserTracking();
@@ -199,6 +201,7 @@ export const PatternSidebar = ({
             }
             onDelete={() => onDeletePattern(pattern.id)}
             onPatternLabelChange={handlePatternLabelChange}
+            readOnly={readOnly}
           />
         ))}
         {isCreating && (
@@ -211,15 +214,17 @@ export const PatternSidebar = ({
           />
         )}
       </ul>
-      <Button
-        variant="default"
-        size="sm"
-        className="w-full justify-center"
-        onClick={() => setActionState({ action: "creating" })}
-      >
-        <AddIcon size="sm" />
-        {translate("addPattern")}
-      </Button>
+      {!readOnly && (
+        <Button
+          variant="default"
+          size="sm"
+          className="w-full justify-center"
+          onClick={() => setActionState({ action: "creating" })}
+        >
+          <AddIcon size="sm" />
+          {translate("addPattern")}
+        </Button>
+      )}
     </div>
   );
 };
@@ -234,6 +239,7 @@ type PatternSidebarItemProps = {
   onStartClone: (pattern: DemandPattern) => void;
   onDelete: () => void;
   onPatternLabelChange: (name: string) => boolean;
+  readOnly?: boolean;
 };
 
 const PatternSidebarItem = ({
@@ -246,6 +252,7 @@ const PatternSidebarItem = ({
   onStartClone,
   onDelete,
   onPatternLabelChange,
+  readOnly = false,
 }: PatternSidebarItemProps) => {
   const translate = useTranslate();
 
@@ -284,13 +291,15 @@ const PatternSidebarItem = ({
         >
           {pattern.label}
         </Button>
-        <PatternActionsMenu
-          isSelected={isSelected}
-          onOpen={onSelect}
-          onRename={() => onStartRename(pattern.id)}
-          onDuplicate={() => onStartClone(pattern)}
-          onDelete={onDelete}
-        />
+        {!readOnly && (
+          <PatternActionsMenu
+            isSelected={isSelected}
+            onOpen={onSelect}
+            onRename={() => onStartRename(pattern.id)}
+            onDuplicate={() => onStartClone(pattern)}
+            onDelete={onDelete}
+          />
+        )}
       </li>
       {isCloning && (
         <PatternLabelInput

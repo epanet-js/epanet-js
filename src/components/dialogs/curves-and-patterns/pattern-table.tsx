@@ -27,6 +27,7 @@ type PatternTableProps = {
   patternTimestepSeconds: number;
   onChange: (pattern: PatternMultipliers) => void;
   onSelectionChange?: (selection: GridSelection | null) => void;
+  readOnly?: boolean;
 };
 
 export type PatternTableRef = DataGridRef;
@@ -66,8 +67,14 @@ const fromRows = (rows: PatternRow[]): PatternMultipliers => {
 };
 
 export const PatternTable = forwardRef<DataGridRef, PatternTableProps>(
-  function PatternTableTanstack(
-    { pattern, patternTimestepSeconds, onChange, onSelectionChange },
+  function PatternTable(
+    {
+      pattern,
+      patternTimestepSeconds,
+      onChange,
+      onSelectionChange,
+      readOnly = false,
+    },
     ref,
   ) {
     const translate = useTranslate();
@@ -220,6 +227,7 @@ export const PatternTable = forwardRef<DataGridRef, PatternTableProps>(
           gutterColumn
           onSelectionChange={onSelectionChange}
           variant="spreadsheet"
+          readOnly={readOnly}
         />
       </div>
     );

@@ -9,6 +9,7 @@ interface PatternDetailProps {
   patternTimestepSeconds: number;
   totalDurationSeconds: number;
   onChange: (pattern: PatternMultipliers) => void;
+  readOnly?: boolean;
 }
 
 export function PatternDetail({
@@ -16,6 +17,7 @@ export function PatternDetail({
   patternTimestepSeconds,
   totalDurationSeconds,
   onChange,
+  readOnly = false,
 }: PatternDetailProps) {
   const [selectedCells, setSelectedCells] = useState<GridSelection | null>(
     null,
@@ -82,6 +84,7 @@ export function PatternDetail({
           patternTimestepSeconds={patternTimestepSeconds}
           onChange={onChange}
           onSelectionChange={handleTableSelectionChange}
+          readOnly={readOnly}
         />
       </div>
       <div className="col-span-3 h-full p-2 pt-4 border border-gray-200 dark:border-gray-700">
