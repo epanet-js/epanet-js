@@ -460,6 +460,12 @@ const JunctionEditor = ({
       <Section title={translate("demands")}>
         {isEditJunctionDemandsOn ? (
           <div className="flex flex-col gap-2">
+            <DemandCategoriesEditor
+              demands={junction.demands}
+              patterns={hydraulicModel.demands.patterns}
+              onDemandsChange={onDemandsChange}
+              readOnly={readonly}
+            />
             {averageDemand > 0 && (
               <QuantityRow
                 name="directDemand"
@@ -469,12 +475,6 @@ const JunctionEditor = ({
                 readOnly={true}
               />
             )}
-            <DemandCategoriesEditor
-              demands={junction.demands}
-              patterns={hydraulicModel.demands.patterns}
-              onDemandsChange={onDemandsChange}
-              readOnly={readonly}
-            />
           </div>
         ) : (
           <>
