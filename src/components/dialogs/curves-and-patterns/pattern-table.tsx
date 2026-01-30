@@ -6,8 +6,8 @@ import {
   useImperativeHandle,
 } from "react";
 import {
-  DataGrid,
   floatColumn,
+  DataGrid,
   textReadonlyColumn,
   type DataGridRef,
   type GridSelection,
@@ -219,6 +219,7 @@ export const PatternTable = forwardRef<DataGridRef, PatternTableProps>(
           addRowLabel={translate("addTimestep")}
           gutterColumn
           onSelectionChange={onSelectionChange}
+          variant="spreadsheet"
         />
       </div>
     );

@@ -189,16 +189,15 @@ export const DemandCategoriesEditor = ({
   );
 
   return (
-    <div className="border-l-2 border-gray-400 bg-gray-50 pr-2">
+    <div className="border-l-2 border-gray-400 bg-gray-50 pr-2 pb-2">
       <DataGrid<DemandCategoryRow>
-        variant="rows"
-        maxHeight={150}
         data={rowData}
         columns={columns}
         onChange={handleChange}
         createRow={createRow}
         rowActions={rowActions}
         addRowLabel={translate("addDemandCategory")}
+        variant="rows"
         gutterColumn
       />
     </div>

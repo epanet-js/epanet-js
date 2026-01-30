@@ -4,7 +4,7 @@
 import { act } from "react";
 import { renderHook } from "@testing-library/react";
 import { useClipboard } from "./use-clipboard";
-import { GridColumn, GridSelection } from "./types";
+import { GridColumn, GridSelection } from "../types";
 
 type TestRow = { id: string; name: string; value: string };
 

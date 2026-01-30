@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { CellPosition, GridColumn, GridSelection } from "./types";
+import { CellPosition, GridColumn, GridSelection } from "../types";
 
 type UseKeyboardNavigationOptions<TData extends Record<string, unknown>> = {
   activeCell: CellPosition | null;

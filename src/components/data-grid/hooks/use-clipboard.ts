@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { GridColumn, GridSelection } from "./types";
+import { GridColumn, GridSelection } from "../types";
 
 type UseClipboardOptions<TData extends Record<string, unknown>> = {
   selection: GridSelection | null;

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { CellPosition, SelectionState, GridSelection } from "./types";
+import { CellPosition, SelectionState, GridSelection } from "../types";
 
 type UseSelectionOptions = {
   rowCount: number;

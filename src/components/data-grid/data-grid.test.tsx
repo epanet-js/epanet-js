@@ -128,6 +128,33 @@ describe("DataGrid", () => {
         { value: 0, label: "" },
       ]);
     });
+
+    it("selects the new row when add button is clicked", async () => {
+      const user = setupUser();
+      const onSelectionChange = vi.fn();
+
+      render(
+        <DataGrid
+          data={defaultData}
+          columns={columns}
+          onChange={vi.fn()}
+          createRow={createRow}
+          addRowLabel="Add row"
+          onSelectionChange={onSelectionChange}
+        />,
+      );
+
+      // Click add row button (grid is not focused yet)
+      await user.click(screen.getByRole("button", { name: /add row/i }));
+
+      // Should select the new row (index 3), not the first row (index 0)
+      await waitFor(() => {
+        expect(onSelectionChange).toHaveBeenLastCalledWith({
+          min: { col: 1, row: 3 },
+          max: { col: 1, row: 3 },
+        });
+      });
+    });
   });
 
   describe("cell selection", () => {
@@ -340,9 +367,7 @@ describe("DataGrid", () => {
       });
     });
 
-    // Skipped: Complex interaction between edit mode focus, input state, and table re-render
-    // The core functionality is covered by FloatCell unit tests
-    it.skip("commits value on Enter", async () => {
+    it("commits value on Enter", async () => {
       const user = setupUser();
       const onChange = vi.fn();
 
