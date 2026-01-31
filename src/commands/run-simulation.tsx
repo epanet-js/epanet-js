@@ -92,8 +92,13 @@ export const useRunSimulation = () => {
         simulationIds = epsReader.simulationIds;
         const resultsReader = await epsReader.getResultsForTimestep(0);
         setSimulationResults(resultsReader);
-        updatedHydraulicModel = attachSimulation(hydraulicModel, resultsReader);
-        setHydraulicModel(updatedHydraulicModel);
+        if (!isSimulationLoose) {
+          updatedHydraulicModel = attachSimulation(
+            hydraulicModel,
+            resultsReader,
+          );
+          setHydraulicModel(updatedHydraulicModel);
+        }
       } else {
         setSimulationResults(null);
       }
