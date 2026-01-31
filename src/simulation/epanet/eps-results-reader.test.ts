@@ -46,7 +46,7 @@ describe("EPSResultsReader", () => {
       expect(reader.timestepCount).toBeGreaterThanOrEqual(1);
 
       const resultsReader = await reader.getResultsForTimestep(0);
-      const junction = resultsReader.getJunction(String(IDS.J1));
+      const junction = resultsReader.getJunction(IDS.J1);
 
       expect(junction).not.toBeNull();
       expect(junction?.type).toEqual("junction");
@@ -72,7 +72,7 @@ describe("EPSResultsReader", () => {
       await reader.initialize();
 
       const resultsReader = await reader.getResultsForTimestep(0);
-      const pipe = resultsReader.getPipe(String(IDS.P1));
+      const pipe = resultsReader.getPipe(IDS.P1);
 
       expect(pipe).not.toBeNull();
       expect(pipe?.type).toEqual("pipe");
@@ -105,7 +105,7 @@ describe("EPSResultsReader", () => {
       // Read each timestep
       for (let i = 0; i < 3; i++) {
         const resultsReader = await reader.getResultsForTimestep(i);
-        const junction = resultsReader.getJunction(String(IDS.J1));
+        const junction = resultsReader.getJunction(IDS.J1);
         expect(junction).not.toBeNull();
       }
     });
@@ -137,7 +137,7 @@ describe("EPSResultsReader", () => {
       await reader.initialize();
 
       const resultsReader = await reader.getResultsForTimestep(0);
-      const tank = resultsReader.getTank(String(IDS.T1));
+      const tank = resultsReader.getTank(IDS.T1);
 
       expect(tank).not.toBeNull();
       expect(tank?.type).toEqual("tank");
@@ -172,7 +172,7 @@ describe("EPSResultsReader", () => {
       await reader.initialize();
 
       const resultsReader = await reader.getResultsForTimestep(0);
-      const tank = resultsReader.getTank(String(IDS.T1));
+      const tank = resultsReader.getTank(IDS.T1);
 
       expect(tank).not.toBeNull();
       // Level at timestep 0 should be close to initial level
@@ -197,11 +197,12 @@ describe("EPSResultsReader", () => {
 
       const resultsReader = await reader.getResultsForTimestep(0);
 
-      expect(resultsReader.getJunction("nonexistent")).toBeNull();
-      expect(resultsReader.getPipe("nonexistent")).toBeNull();
-      expect(resultsReader.getValve("nonexistent")).toBeNull();
-      expect(resultsReader.getPump("nonexistent")).toBeNull();
-      expect(resultsReader.getTank("nonexistent")).toBeNull();
+      const nonExistentId = 999999;
+      expect(resultsReader.getJunction(nonExistentId)).toBeNull();
+      expect(resultsReader.getPipe(nonExistentId)).toBeNull();
+      expect(resultsReader.getValve(nonExistentId)).toBeNull();
+      expect(resultsReader.getPump(nonExistentId)).toBeNull();
+      expect(resultsReader.getTank(nonExistentId)).toBeNull();
     });
 
     it("returns null results reader when accessing timestep out of range", async () => {
@@ -221,10 +222,10 @@ describe("EPSResultsReader", () => {
       await reader.initialize();
 
       const negativeIndexReader = await reader.getResultsForTimestep(-1);
-      expect(negativeIndexReader.getJunction(String(IDS.J1))).toBeNull();
+      expect(negativeIndexReader.getJunction(IDS.J1)).toBeNull();
 
       const highIndexReader = await reader.getResultsForTimestep(100);
-      expect(highIndexReader.getPipe(String(IDS.P1))).toBeNull();
+      expect(highIndexReader.getPipe(IDS.P1)).toBeNull();
     });
 
     it("throws error when not initialized", async () => {
@@ -259,7 +260,7 @@ describe("EPSResultsReader", () => {
       await reader.initialize();
 
       const resultsReader = await reader.getResultsForTimestep(0);
-      const pipe = resultsReader.getPipe(String(IDS.P1));
+      const pipe = resultsReader.getPipe(IDS.P1);
 
       expect(pipe).not.toBeNull();
       // headloss = unitHeadloss * (length / 1000)
@@ -286,7 +287,7 @@ describe("EPSResultsReader", () => {
       await reader.initialize();
 
       const resultsReader = await reader.getResultsForTimestep(0);
-      const pump = resultsReader.getPump(String(IDS.PUMP1));
+      const pump = resultsReader.getPump(IDS.PUMP1);
 
       expect(pump).not.toBeNull();
       expect(pump?.type).toEqual("pump");
@@ -321,7 +322,7 @@ describe("EPSResultsReader", () => {
       await reader.initialize();
 
       const resultsReader = await reader.getResultsForTimestep(0);
-      const pipe = resultsReader.getPipe(String(IDS.P1));
+      const pipe = resultsReader.getPipe(IDS.P1);
 
       expect(pipe).not.toBeNull();
       // For 500m pipe: headloss = unitHeadloss * 0.5
@@ -352,7 +353,7 @@ describe("EPSResultsReader", () => {
       await reader.initialize();
 
       const resultsReader = await reader.getResultsForTimestep(0);
-      const pump = resultsReader.getPump(String(IDS.PUMP1));
+      const pump = resultsReader.getPump(IDS.PUMP1);
 
       expect(pump).not.toBeNull();
       expect(pump?.type).toEqual("pump");
@@ -385,7 +386,7 @@ describe("EPSResultsReader", () => {
       // Read pump status from each timestep
       for (let i = 0; i < reader.timestepCount; i++) {
         const resultsReader = await reader.getResultsForTimestep(i);
-        const pump = resultsReader.getPump(String(IDS.PUMP1));
+        const pump = resultsReader.getPump(IDS.PUMP1);
 
         expect(pump).not.toBeNull();
         expect(pump?.type).toEqual("pump");
@@ -414,7 +415,7 @@ describe("EPSResultsReader", () => {
       await reader.initialize();
 
       const resultsReader = await reader.getResultsForTimestep(0);
-      const valve = resultsReader.getValve(String(IDS.V1));
+      const valve = resultsReader.getValve(IDS.V1);
 
       expect(valve).not.toBeNull();
       expect(valve?.type).toEqual("valve");
@@ -444,7 +445,7 @@ describe("EPSResultsReader", () => {
       await reader.initialize();
 
       const resultsReader = await reader.getResultsForTimestep(0);
-      const valve = resultsReader.getValve(String(IDS.V1));
+      const valve = resultsReader.getValve(IDS.V1);
 
       expect(valve).not.toBeNull();
       expect(valve?.status).toEqual("closed");
@@ -470,8 +471,8 @@ describe("EPSResultsReader", () => {
 
       expect(reader.timestepCount).toEqual(0);
       const resultsReader = await reader.getResultsForTimestep(0);
-      expect(resultsReader.getJunction(String(IDS.J1))).toBeNull();
-      expect(resultsReader.getPipe(String(IDS.P1))).toBeNull();
+      expect(resultsReader.getJunction(IDS.J1)).toBeNull();
+      expect(resultsReader.getPipe(IDS.P1)).toBeNull();
     });
   });
 
@@ -542,7 +543,7 @@ describe("EPSResultsReader", () => {
 
         for (let t = 0; t < reader.timestepCount; t++) {
           const resultsReader = await reader.getResultsForTimestep(t);
-          const junction = resultsReader.getJunction(String(IDS.J1));
+          const junction = resultsReader.getJunction(IDS.J1);
 
           expect(pressureSeries!.values[t]).toBeCloseTo(junction!.pressure, 5);
           expect(headSeries!.values[t]).toBeCloseTo(junction!.head, 5);
@@ -656,7 +657,7 @@ describe("EPSResultsReader", () => {
 
         for (let t = 0; t < reader.timestepCount; t++) {
           const resultsReader = await reader.getResultsForTimestep(t);
-          const pipe = resultsReader.getPipe(String(IDS.P1));
+          const pipe = resultsReader.getPipe(IDS.P1);
 
           expect(flowSeries!.values[t]).toBeCloseTo(pipe!.flow, 5);
           expect(velocitySeries!.values[t]).toBeCloseTo(pipe!.velocity, 5);
@@ -780,7 +781,7 @@ describe("EPSResultsReader", () => {
 
         for (let t = 0; t < reader.timestepCount; t++) {
           const resultsReader = await reader.getResultsForTimestep(t);
-          const tank = resultsReader.getTank(String(IDS.T1));
+          const tank = resultsReader.getTank(IDS.T1);
 
           expect(volumeSeries!.values[t]).toBeCloseTo(tank!.volume);
         }
@@ -819,7 +820,7 @@ describe("EPSResultsReader", () => {
         // Level should match the tank's level from getResultsForTimestep
         for (let t = 0; t < reader.timestepCount; t++) {
           const resultsReader = await reader.getResultsForTimestep(t);
-          const tank = resultsReader.getTank(String(IDS.T1));
+          const tank = resultsReader.getTank(IDS.T1);
           expect(levelSeries!.values[t]).toBeCloseTo(tank!.level);
         }
       });

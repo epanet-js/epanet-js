@@ -712,8 +712,8 @@ class TimestepResultsReader implements ResultsReader {
     this.pumpStatus = pumpStatus;
   }
 
-  getValve(valveId: string): ValveSimulation | null {
-    const linkIndex = this.simulationIds.linkIdToIndex.get(valveId);
+  getValve(valveId: number): ValveSimulation | null {
+    const linkIndex = this.simulationIds.linkIdToIndex.get(String(valveId));
     if (linkIndex === undefined) return null;
 
     const linkData = this.getLinkData(linkIndex);
@@ -729,8 +729,8 @@ class TimestepResultsReader implements ResultsReader {
     };
   }
 
-  getPump(pumpId: string): PumpSimulation | null {
-    const linkIndex = this.simulationIds.linkIdToIndex.get(pumpId);
+  getPump(pumpId: number): PumpSimulation | null {
+    const linkIndex = this.simulationIds.linkIdToIndex.get(String(pumpId));
     if (linkIndex === undefined) return null;
 
     const linkData = this.getLinkData(linkIndex);
@@ -757,8 +757,8 @@ class TimestepResultsReader implements ResultsReader {
     return this.pumpStatus.statuses[pumpPosition];
   }
 
-  getJunction(junctionId: string): JunctionSimulation | null {
-    const nodeIndex = this.simulationIds.nodeIdToIndex.get(junctionId);
+  getJunction(junctionId: number): JunctionSimulation | null {
+    const nodeIndex = this.simulationIds.nodeIdToIndex.get(String(junctionId));
     if (nodeIndex === undefined) return null;
 
     const nodeData = this.getNodeData(nodeIndex);
@@ -771,8 +771,8 @@ class TimestepResultsReader implements ResultsReader {
     };
   }
 
-  getPipe(pipeId: string): PipeSimulation | null {
-    const linkIndex = this.simulationIds.linkIdToIndex.get(pipeId);
+  getPipe(pipeId: number): PipeSimulation | null {
+    const linkIndex = this.simulationIds.linkIdToIndex.get(String(pipeId));
     if (linkIndex === undefined) return null;
 
     const linkData = this.getLinkData(linkIndex);
@@ -791,8 +791,8 @@ class TimestepResultsReader implements ResultsReader {
     };
   }
 
-  getTank(tankId: string): TankSimulation | null {
-    const nodeIndex = this.simulationIds.nodeIdToIndex.get(tankId);
+  getTank(tankId: number): TankSimulation | null {
+    const nodeIndex = this.simulationIds.nodeIdToIndex.get(String(tankId));
     if (nodeIndex === undefined) return null;
 
     const nodeData = this.getNodeData(nodeIndex);
@@ -920,19 +920,19 @@ class TimestepResultsReader implements ResultsReader {
 }
 
 class NullResultsReader implements ResultsReader {
-  getValve(): ValveSimulation | null {
+  getValve(_valveId: number): ValveSimulation | null {
     return null;
   }
-  getPump(): PumpSimulation | null {
+  getPump(_pumpId: number): PumpSimulation | null {
     return null;
   }
-  getJunction(): JunctionSimulation | null {
+  getJunction(_junctionId: number): JunctionSimulation | null {
     return null;
   }
-  getPipe(): PipeSimulation | null {
+  getPipe(_pipeId: number): PipeSimulation | null {
     return null;
   }
-  getTank(): TankSimulation | null {
+  getTank(_tankId: number): TankSimulation | null {
     return null;
   }
 }

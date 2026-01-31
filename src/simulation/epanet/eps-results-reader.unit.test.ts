@@ -7,6 +7,11 @@ import {
   type SimulationIds,
 } from "./simulation-metadata";
 
+// IDs used in fixtures - these correspond to node/link indices
+const IDS = {
+  TANK: 3, // Tank is node N3 (index 2, but ID is 3)
+} as const;
+
 const FLOAT_SIZE = 4;
 const ID_LENGTH = 32;
 const NODE_RESULT_FLOATS = 4; // demand, head, pressure, quality
@@ -95,19 +100,19 @@ function createFixture(config: {
   // Copy prolog to results.out
   resultsOutView.set(new Uint8Array(metadata, 0, PROLOG_SIZE), 0);
 
-  // Write node IDs (after prolog)
+  // Write node IDs (after prolog) - use numeric strings to match interface
   const nodeIdsOffset = PROLOG_SIZE;
   for (let i = 0; i < nodeCount; i++) {
-    const id = `N${i + 1}`;
+    const id = String(i + 1);
     const encoder = new TextEncoder();
     const encoded = encoder.encode(id);
     resultsOutView.set(encoded, nodeIdsOffset + i * ID_LENGTH);
   }
 
-  // Write link IDs
+  // Write link IDs - use numeric strings to match interface
   const linkIdsOffset = nodeIdsOffset + nodeIdsSize;
   for (let i = 0; i < linkCount; i++) {
-    const id = `L${i + 1}`;
+    const id = String(i + 1);
     const encoder = new TextEncoder();
     const encoded = encoder.encode(id);
     resultsOutView.set(encoded, linkIdsOffset + i * ID_LENGTH);
@@ -172,11 +177,11 @@ function createFixture(config: {
     }
   }
 
-  // Create simulation IDs
+  // Create simulation IDs - use numeric strings to match interface
   const nodeIds: string[] = [];
   const nodeIdToIndex = new Map<string, number>();
   for (let i = 0; i < nodeCount; i++) {
-    const id = `N${i + 1}`;
+    const id = String(i + 1);
     nodeIds.push(id);
     nodeIdToIndex.set(id, i);
   }
@@ -184,7 +189,7 @@ function createFixture(config: {
   const linkIds: string[] = [];
   const linkIdToIndex = new Map<string, number>();
   for (let i = 0; i < linkCount; i++) {
-    const id = `L${i + 1}`;
+    const id = String(i + 1);
     linkIds.push(id);
     linkIdToIndex.set(id, i);
   }
@@ -243,7 +248,7 @@ describe("EPSResultsReader (unit tests)", () => {
 
       const resultsReader = await reader.getResultsForTimestep(0);
       // Tank is the last node (N3), which is at index 2
-      const tank = resultsReader.getTank("N3");
+      const tank = resultsReader.getTank(IDS.TANK);
 
       expect(tank).not.toBeNull();
       expect(tank?.level).toBeCloseTo(expectedLevel, 5);
@@ -286,7 +291,7 @@ describe("EPSResultsReader (unit tests)", () => {
 
       for (let t = 0; t < 3; t++) {
         const resultsReader = await reader.getResultsForTimestep(t);
-        const tank = resultsReader.getTank("N3");
+        const tank = resultsReader.getTank(IDS.TANK);
 
         expect(tank).not.toBeNull();
         expect(tank?.level).toBeCloseTo(levels[t], 5);
@@ -321,7 +326,7 @@ describe("EPSResultsReader (unit tests)", () => {
       await reader.initialize(fixture.metadata, fixture.simulationIds);
 
       const resultsReader = await reader.getResultsForTimestep(0);
-      const tank = resultsReader.getTank("N3");
+      const tank = resultsReader.getTank(IDS.TANK);
 
       expect(tank).not.toBeNull();
       expect(tank?.pressure).toBeCloseTo(pressureValue, 5);
@@ -355,7 +360,7 @@ describe("EPSResultsReader (unit tests)", () => {
       await reader.initialize(fixture.metadata, fixture.simulationIds);
 
       const resultsReader = await reader.getResultsForTimestep(0);
-      const tank = resultsReader.getTank("N3");
+      const tank = resultsReader.getTank(IDS.TANK);
 
       expect(tank).not.toBeNull();
       expect(tank?.pressure).toBeCloseTo(pressureInPsi, 5);

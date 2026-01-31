@@ -5,6 +5,7 @@ import { Junction, Pipe, Pump, Valve } from "./asset-types";
 describe("attach simulation", () => {
   const resultsReader: ResultsReader = {
     getPipe: () => ({
+      type: "pipe",
       flow: 20,
       velocity: 5,
       headloss: 10,
@@ -12,12 +13,14 @@ describe("attach simulation", () => {
       status: "open",
     }),
     getPump: () => ({
+      type: "pump",
       flow: 10,
       headloss: -50,
       status: "off",
       statusWarning: "cannot-deliver-flow",
     }),
     getValve: () => ({
+      type: "valve",
       flow: 10,
       headloss: 0.1,
       velocity: 9,
@@ -25,14 +28,15 @@ describe("attach simulation", () => {
       statusWarning: "cannot-deliver-pressure",
     }),
     getJunction: () => ({
+      type: "junction",
       pressure: 10,
       head: 8,
       demand: 15,
     }),
     getTank: () => ({
+      type: "tank",
       pressure: 10,
       head: 8,
-      elevation: 15,
       level: 12,
       volume: 10,
     }),

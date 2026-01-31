@@ -31,7 +31,6 @@ import { EphemeralDrawLink } from "src/map/mode-handlers/draw-link/ephemeral-lin
 import { EphemeralEditingStateAreaSelection } from "src/map/mode-handlers/area-selection/ephemeral-area-selection-state";
 import type { SimulationIds } from "src/simulation/epanet/simulation-metadata";
 import { stagingModelAtom } from "src/state/hydraulic-model";
-import { simulationSnapshotAtom } from "src/state/simulation";
 
 export {
   stagingModelAtom,
@@ -97,7 +96,6 @@ export const initialSimulationState: SimulationIdle = {
 };
 
 export const simulationAtom = atom<SimulationState>(initialSimulationState);
-
 
 /**
  * Core data
