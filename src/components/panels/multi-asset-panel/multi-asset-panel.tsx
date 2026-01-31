@@ -10,9 +10,11 @@ import { AssetTypeSections } from "./asset-type-sections";
 import { useAtom, useAtomValue } from "jotai";
 import {
   simulationAtom,
+  simulationResultsAtom,
   multiAssetPanelCollapseAtom,
   stagingModelAtom,
 } from "src/state/jotai";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { computeMultiAssetDataWithCustomerDemands } from "./data-with-customer-demands";
 
 export function MultiAssetPanel({
@@ -26,6 +28,8 @@ export function MultiAssetPanel({
 }) {
   const translate = useTranslate();
   const simulationState = useAtomValue(simulationAtom);
+  const simulationResults = useAtomValue(simulationResultsAtom);
+  const isSimulationLoose = useFeatureFlag("FLAG_SIMULATION_LOOSE");
   const hydraulicModel = useAtomValue(stagingModelAtom);
   const hasSimulation = simulationState.status !== "idle";
   const [collapseState, setCollapseState] = useAtom(
@@ -34,12 +38,20 @@ export function MultiAssetPanel({
 
   const { data: multiAssetData, counts: assetCounts } = useMemo(() => {
     const assets = selectedFeatures as Asset[];
+    const resultsReader = isSimulationLoose ? simulationResults : undefined;
     return computeMultiAssetDataWithCustomerDemands(
       assets,
       quantitiesMetadata,
       hydraulicModel,
+      resultsReader,
     );
-  }, [selectedFeatures, quantitiesMetadata, hydraulicModel]);
+  }, [
+    selectedFeatures,
+    quantitiesMetadata,
+    hydraulicModel,
+    isSimulationLoose,
+    simulationResults,
+  ]);
 
   return (
     <SectionList header={<Header selectedCount={selectedFeatures.length} />}>
