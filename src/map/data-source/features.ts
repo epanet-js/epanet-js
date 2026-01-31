@@ -11,6 +11,11 @@ import {
   QuantityProperty,
 } from "src/model-metadata/quantities-spec";
 import { JunctionQuantity } from "src/hydraulic-model/asset-types/junction";
+import type {
+  ResultsReader,
+  PipeSimulation,
+  JunctionSimulation,
+} from "src/simulation/results-reader";
 
 export const buildFeatureId = (assetId: AssetId) => assetId;
 
@@ -19,6 +24,7 @@ export const buildOptimizedAssetsSource = (
   symbology: SymbologySpec,
   quantities: Quantities,
   translateUnit: (unit: Unit) => string,
+  simulationResults?: ResultsReader | null,
 ): Feature[] => {
   const strippedFeatures = [];
   const keepProperties: string[] = ["type", "isActive"];
@@ -43,6 +49,7 @@ export const buildOptimizedAssetsSource = (
           symbology.link,
           quantities,
           translateUnit,
+          simulationResults,
         );
         break;
       case "junction":
@@ -52,6 +59,7 @@ export const buildOptimizedAssetsSource = (
           symbology.node,
           quantities,
           translateUnit,
+          simulationResults,
         );
         break;
       case "pump":
@@ -76,14 +84,16 @@ const appendPipeProps = (
   linkSymbology: LinkSymbology,
   quantities: Quantities,
   translateUnit: (unit: Unit) => string,
+  simulationResults?: ResultsReader | null,
 ) => {
-  appendPipeStatus(pipe, feature);
+  appendPipeStatus(pipe, feature, simulationResults);
   appendPipeSymbologyProps(
     pipe,
     feature,
     linkSymbology,
     quantities,
     translateUnit,
+    simulationResults,
   );
 };
 
@@ -93,6 +103,7 @@ const appendJunctionProps = (
   nodeSymbology: NodeSymbology,
   quantities: Quantities,
   translateUnit: (unit: Unit) => string,
+  simulationResults?: ResultsReader | null,
 ) => {
   appendJunctionSymbologyProps(
     junction,
@@ -100,6 +111,7 @@ const appendJunctionProps = (
     nodeSymbology,
     quantities,
     translateUnit,
+    simulationResults,
   );
 };
 
@@ -111,8 +123,16 @@ const appendValveProps = (valve: Valve, feature: Feature) => {
   appendValveStatus(valve, feature);
 };
 
-export const appendPipeStatus = (pipe: Pipe, feature: Feature) => {
-  feature.properties!.status = pipe.status ? pipe.status : pipe.initialStatus;
+export const appendPipeStatus = (
+  pipe: Pipe,
+  feature: Feature,
+  simulationResults?: ResultsReader | null,
+) => {
+  const pipeSimulation = simulationResults?.getPipe(pipe.id);
+  const status = simulationResults
+    ? (pipeSimulation?.status ?? null)
+    : pipe.status;
+  feature.properties!.status = status ? status : pipe.initialStatus;
 };
 
 export const appendPumpStatus = (pump: Pump, feature: Feature) => {
@@ -125,14 +145,23 @@ export const appendValveStatus = (valve: Valve, feature: Feature) => {
     : valve.initialStatus;
 };
 
-export const appendPipeArrowProps = (pipe: Pipe, feature: Feature) => {
-  const status = pipe.status ? pipe.status : pipe.initialStatus;
-  const isReverse = pipe.flow && pipe.flow < 0;
+export const appendPipeArrowProps = (
+  pipe: Pipe,
+  feature: Feature,
+  simulationResults?: ResultsReader | null,
+) => {
+  const pipeSimulation = simulationResults?.getPipe(pipe.id);
+  const status = simulationResults
+    ? (pipeSimulation?.status ?? null)
+    : pipe.status;
+  const flow = simulationResults ? (pipeSimulation?.flow ?? null) : pipe.flow;
+  const isReverse = flow && flow < 0;
   feature.properties!.length = convertTo(
     { value: pipe.length, unit: pipe.getUnit("length") },
     "m",
   );
-  feature.properties!.hasArrow = status === "open" && pipe.flow !== null;
+  feature.properties!.hasArrow =
+    (status ?? pipe.initialStatus) === "open" && flow !== null;
   feature.properties!.rotation = isReverse ? -180 : 0;
 };
 
@@ -142,12 +171,22 @@ const appendPipeSymbologyProps = (
   linkSymbology: LinkSymbology,
   quantities: Quantities,
   translateUnit: (unit: Unit) => string,
+  simulationResults?: ResultsReader | null,
 ) => {
   if (!linkSymbology.colorRule) return;
 
   const property = linkSymbology.colorRule.property;
 
-  const value = pipe[property as keyof Pipe] as number | null;
+  // When simulationResults provided, read from ResultsReader
+  let value: number | null;
+  if (simulationResults) {
+    const pipeSimulation = simulationResults.getPipe(pipe.id);
+    value = pipeSimulation
+      ? (pipeSimulation[property as keyof PipeSimulation] as number)
+      : null;
+  } else {
+    value = pipe[property as keyof Pipe] as number | null;
+  }
   const numericValue = value !== null ? value : 0;
 
   if (!!linkSymbology.labelRule) {
@@ -160,7 +199,13 @@ const appendPipeSymbologyProps = (
     feature.properties!.label = `${localizedNumber} ${unitText}`;
   }
   feature.properties!.color = colorFor(linkSymbology.colorRule, numericValue);
-  appendPipeArrowProps(pipe, feature);
+  appendPipeArrowProps(pipe, feature, simulationResults);
+};
+
+// Maps symbology property names to simulation property names
+const getJunctionSimProperty = (property: string): keyof JunctionSimulation => {
+  if (property === "actualDemand") return "demand";
+  return property as keyof JunctionSimulation;
 };
 
 const appendJunctionSymbologyProps = (
@@ -169,11 +214,23 @@ const appendJunctionSymbologyProps = (
   nodeSymbology: NodeSymbology,
   quantities: Quantities,
   translateUnit: (unit: Unit) => string,
+  simulationResults?: ResultsReader | null,
 ) => {
   if (!nodeSymbology.colorRule) return;
 
   const property = nodeSymbology.colorRule.property;
-  const value = junction[property as keyof Junction] as number | null;
+
+  // When simulationResults provided, read from ResultsReader
+  let value: number | null;
+  if (simulationResults) {
+    const junctionSimulation = simulationResults.getJunction(junction.id);
+    const simProperty = getJunctionSimProperty(property);
+    value = junctionSimulation
+      ? (junctionSimulation[simProperty] as number)
+      : null;
+  } else {
+    value = junction[property as keyof Junction] as number | null;
+  }
   const numericValue = value !== null ? value : 0;
 
   if (!!nodeSymbology.labelRule) {

@@ -16,10 +16,13 @@ import {
   momentLogAtom,
   selectionAtom,
   simulationAtom,
+  simulationResultsAtom,
   currentZoomAtom,
   customerPointsAtom,
   stagingModelAtom,
 } from "src/state/jotai";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import type { ResultsReader } from "src/simulation/results-reader";
 import { MapEngine } from "./map-engine";
 import {
   buildIconPointsSource,
@@ -213,6 +216,8 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const {
     modelMetadata: { quantities },
   } = useAtomValue(dataAtom);
+  const simulationResults = useAtomValue(simulationResultsAtom);
+  const isSimulationLoose = useFeatureFlag("FLAG_SIMULATION_LOOSE");
   const lastHiddenFeatures = useRef<Set<AssetId>>(new Set([]));
   const previousMapStateRef = useRef<MapState>(nullMapState);
   const customerPointsOverlayRef = useRef<CustomerPointsOverlay>([]);
@@ -220,6 +225,9 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const ephemeralDeckLayersRef = useRef<CustomerPointsOverlay>([]);
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
+
+  // When FLAG_SIMULATION_LOOSE is enabled, pass simulation results to feature builders
+  const resultsReader = isSimulationLoose ? simulationResults : undefined;
 
   const doUpdates = useCallback(() => {
     if (!map) return;
@@ -285,6 +293,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
             mapState.symbology,
             quantities,
             translateUnit,
+            resultsReader,
           );
           lastHiddenFeatures.current = new Set();
           setMapSyncMoment((prev) => {
@@ -301,6 +310,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
             mapState.symbology,
             quantities,
             translateUnit,
+            resultsReader,
           );
           lastHiddenFeatures.current = editedAssetIds;
         }
@@ -448,6 +458,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     translate,
     translateUnit,
     hydraulicModel,
+    resultsReader,
   ]);
 
   doUpdates();
@@ -536,12 +547,14 @@ const rebuildSources = withDebugInstrumentation(
     symbology: SymbologySpec,
     quantities: Quantities,
     translateUnit: (unit: Unit) => string,
+    simulationResults?: ResultsReader | null,
   ): Promise<void> => {
     const features = buildOptimizedAssetsSource(
       assets,
       symbology,
       quantities,
       translateUnit,
+      simulationResults,
     );
     await map.setSource(FeatureSources.MAIN, features);
     await map.setSource(FeatureSources.DELTA, []);
@@ -559,6 +572,7 @@ const updateDeltaSource = withDebugInstrumentation(
     symbology: SymbologySpec,
     quantities: Quantities,
     translateUnit: (unit: Unit) => string,
+    simulationResults?: ResultsReader | null,
   ): Promise<void> => {
     const editedAssets = filterAssets(assets, editedAssetIds);
     const features = buildOptimizedAssetsSource(
@@ -566,6 +580,7 @@ const updateDeltaSource = withDebugInstrumentation(
       symbology,
       quantities,
       translateUnit,
+      simulationResults,
     );
     await map.setSource(FeatureSources.DELTA, features);
   },
@@ -580,6 +595,7 @@ const syncSourcesWithEdits = async (
   symbology: SymbologySpec,
   quantities: Quantities,
   translateUnit: (unit: Unit) => string,
+  simulationResults?: ResultsReader | null,
 ): Promise<{ editedAssetIds: Set<AssetId> }> => {
   const editedSinceConsolidation = getAssetIdsInMoments(
     momentLog.getDeltas(mapSyncMoment),
@@ -592,6 +608,7 @@ const syncSourcesWithEdits = async (
     symbology,
     quantities,
     translateUnit,
+    simulationResults,
   );
 
   updateMainSourceVisibility(map, editedSinceConsolidation);
