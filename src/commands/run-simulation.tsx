@@ -1,7 +1,12 @@
 import { useAtomValue, useSetAtom } from "jotai";
 import { useCallback } from "react";
 import { buildInp } from "src/simulation/build-inp";
-import { dialogAtom, simulationAtom, stagingModelAtom } from "src/state/jotai";
+import {
+  dialogAtom,
+  simulationAtom,
+  simulationSnapshotAtom,
+  stagingModelAtom,
+} from "src/state/jotai";
 import {
   ProgressCallback,
   runSimulation as runSimulationWorker,
@@ -27,6 +32,7 @@ export const useRunSimulation = () => {
   const worktree = useAtomValue(worktreeAtom);
   const isScenariosOn = useFeatureFlag("FLAG_SCENARIOS");
   const persistence = usePersistenceWithSnapshots();
+  const setSimulationSnapshot = useSetAtom(simulationSnapshotAtom);
 
   const runSimulation = useCallback(
     async (options?: {
@@ -78,8 +84,11 @@ export const useRunSimulation = () => {
         await epsReader.initialize(metadata);
         simulationIds = epsReader.simulationIds;
         const resultsReader = await epsReader.getResultsForTimestep(0);
+        setSimulationSnapshot(resultsReader);
         updatedHydraulicModel = attachSimulation(hydraulicModel, resultsReader);
         setHydraulicModel(updatedHydraulicModel);
+      } else {
+        setSimulationSnapshot(null);
       }
 
       const simulationResult = {
@@ -114,6 +123,7 @@ export const useRunSimulation = () => {
       setDrawingMode,
       hydraulicModel,
       setSimulationState,
+      setSimulationSnapshot,
       setDialogState,
       setHydraulicModel,
       isScenariosOn,

@@ -1,6 +1,10 @@
 import { useAtomValue, useSetAtom } from "jotai";
 import { useCallback } from "react";
-import { simulationAtom, stagingModelAtom } from "src/state/jotai";
+import {
+  simulationAtom,
+  simulationSnapshotAtom,
+  stagingModelAtom,
+} from "src/state/jotai";
 import { attachSimulation } from "src/hydraulic-model";
 import { OPFSStorage } from "src/infra/storage/opfs-storage";
 import { EPSResultsReader } from "src/simulation/epanet/eps-results-reader";
@@ -25,6 +29,7 @@ export const useChangeTimestep = () => {
   const worktree = useAtomValue(worktreeAtom);
   const isScenariosOn = useFeatureFlag("FLAG_SCENARIOS");
   const persistence = usePersistenceWithSnapshots();
+  const setSimulationSnapshot = useSetAtom(simulationSnapshotAtom);
 
   const changeTimestep = useCallback(
     async (timestepIndex: number, source: ChangeTimestepSource) => {
@@ -54,6 +59,7 @@ export const useChangeTimestep = () => {
         const resultsReader =
           await epsReader.getResultsForTimestep(timestepIndex);
 
+        setSimulationSnapshot(resultsReader);
         setHydraulicModel((prev) => attachSimulation(prev, resultsReader));
 
         const updatedSimulation = {
@@ -76,6 +82,7 @@ export const useChangeTimestep = () => {
     [
       simulation,
       setHydraulicModel,
+      setSimulationSnapshot,
       setSimulationState,
       userTracking,
       isScenariosOn,
