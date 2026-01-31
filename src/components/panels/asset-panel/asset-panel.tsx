@@ -64,6 +64,12 @@ import { Curves } from "src/hydraulic-model/curves";
 import { useQuickGraph } from "./quick-graph";
 import { useAssetComparison } from "src/hooks/use-asset-comparison";
 import { DemandCategoriesEditor } from "./demand-categories-editor";
+import { useSimulation } from "src/hooks/use-simulation";
+import type {
+  PipeSimulation,
+  PumpSimulation,
+  ValveSimulation,
+} from "src/simulation/results-reader";
 
 type OnPropertyChange = (
   name: string,
@@ -73,25 +79,35 @@ type OnPropertyChange = (
 type OnStatusChange<T> = (newStatus: T, oldStatus: T) => void;
 type OnTypeChange<T> = (newType: T, oldType: T) => void;
 
-const pipeStatusLabel = (pipe: Pipe) => {
-  if (pipe.status === null) return "notAvailable";
-  return "pipe." + pipe.status;
+const pipeStatusLabel = (sim: Pick<PipeSimulation, "status"> | null) => {
+  if (!sim) return "notAvailable";
+  return "pipe." + sim.status;
 };
 
-const pumpStatusLabel = (pump: Pump) => {
-  if (pump.status === null) return "notAvailable";
-  if (pump.statusWarning) {
-    return `pump.${pump.status}.${pump.statusWarning}`;
+const pumpStatusLabel = (
+  sim: {
+    status: PumpSimulation["status"] | null;
+    statusWarning: PumpSimulation["statusWarning"];
+  } | null,
+) => {
+  if (!sim || sim.status === null) return "notAvailable";
+  if (sim.statusWarning) {
+    return `pump.${sim.status}.${sim.statusWarning}`;
   }
-  return "pump." + pump.status;
+  return "pump." + sim.status;
 };
 
-export const valveStatusLabel = (valve: Valve) => {
-  if (valve.status === null) return "notAvailable";
-  if (valve.statusWarning) {
-    return `valve.${valve.status}.${valve.statusWarning}`;
+export const valveStatusLabel = (
+  sim: {
+    status: ValveSimulation["status"] | null;
+    statusWarning: ValveSimulation["statusWarning"];
+  } | null,
+) => {
+  if (!sim || sim.status === null) return "notAvailable";
+  if (sim.statusWarning) {
+    return `valve.${sim.status}.${sim.statusWarning}`;
   }
-  return "valve." + valve.status;
+  return "valve." + sim.status;
 };
 
 export function AssetPanel({
@@ -394,8 +410,22 @@ const JunctionEditor = ({
   const translate = useTranslate();
   const { footer } = useQuickGraph(junction.id, "junction");
   const isEditJunctionDemandsOn = useFeatureFlag("FLAG_EDIT_JUNCTION_DEMANDS");
+  const isSimulationLoose = useFeatureFlag("FLAG_SIMULATION_LOOSE");
   const { getComparison, getConstantDemandComparison, isNew } =
     useAssetComparison(junction);
+  const simulation = useSimulation();
+  const junctionSimulation = simulation?.getJunction(junction.id);
+
+  // Simulation values: use atom when FLAG_SIMULATION_LOOSE is enabled, otherwise use asset
+  const simPressure = isSimulationLoose
+    ? (junctionSimulation?.pressure ?? null)
+    : junction.pressure;
+  const simHead = isSimulationLoose
+    ? (junctionSimulation?.head ?? null)
+    : junction.head;
+  const simDemand = isSimulationLoose
+    ? (junctionSimulation?.demand ?? null)
+    : junction.actualDemand;
 
   const customerPoints = useMemo(() => {
     return getActiveCustomerPoints(
@@ -526,21 +556,21 @@ const JunctionEditor = ({
       <Section title={translate("simulationResults")}>
         <QuantityRow
           name="pressure"
-          value={junction.pressure}
+          value={simPressure}
           unit={quantitiesMetadata.getUnit("pressure")}
           decimals={quantitiesMetadata.getDecimals("pressure")}
           readOnly={true}
         />
         <QuantityRow
           name="head"
-          value={junction.head}
+          value={simHead}
           unit={quantitiesMetadata.getUnit("head")}
           decimals={quantitiesMetadata.getDecimals("head")}
           readOnly={true}
         />
         <QuantityRow
           name="actualDemand"
-          value={junction.actualDemand}
+          value={simDemand}
           unit={quantitiesMetadata.getUnit("actualDemand")}
           decimals={quantitiesMetadata.getDecimals("actualDemand")}
           readOnly={true}
@@ -582,8 +612,26 @@ const PipeEditor = ({
   const translate = useTranslate();
   const { footer } = useQuickGraph(pipe.id, "pipe");
   const { getComparison, isNew } = useAssetComparison(pipe);
+  const isSimulationLoose = useFeatureFlag("FLAG_SIMULATION_LOOSE");
+  const simulation = useSimulation();
+  const pipeSimulation = simulation?.getPipe(pipe.id);
 
-  const simulationStatusText = translate(pipeStatusLabel(pipe));
+  // Simulation values: use atom when FLAG_SIMULATION_LOOSE is enabled, otherwise use asset
+  const simFlow = isSimulationLoose
+    ? (pipeSimulation?.flow ?? null)
+    : pipe.flow;
+  const simVelocity = isSimulationLoose
+    ? (pipeSimulation?.velocity ?? null)
+    : pipe.velocity;
+  const simUnitHeadloss = isSimulationLoose
+    ? (pipeSimulation?.unitHeadloss ?? null)
+    : pipe.unitHeadloss;
+  const simHeadloss = isSimulationLoose
+    ? (pipeSimulation?.headloss ?? null)
+    : pipe.headloss;
+  const simulationStatusText = isSimulationLoose
+    ? translate(pipeStatusLabel(pipeSimulation ?? null))
+    : translate(pipeStatusLabel(pipe.status ? { status: pipe.status } : null));
 
   const customerPoints = useMemo(() => {
     const connectedCustomerPoints =
@@ -727,28 +775,28 @@ const PipeEditor = ({
       <Section title={translate("simulationResults")}>
         <QuantityRow
           name="flow"
-          value={pipe.flow}
+          value={simFlow}
           unit={quantitiesMetadata.getUnit("flow")}
           decimals={quantitiesMetadata.getDecimals("flow")}
           readOnly={true}
         />
         <QuantityRow
           name="velocity"
-          value={pipe.velocity}
+          value={simVelocity}
           unit={quantitiesMetadata.getUnit("velocity")}
           decimals={quantitiesMetadata.getDecimals("velocity")}
           readOnly={true}
         />
         <QuantityRow
           name="unitHeadloss"
-          value={pipe.unitHeadloss}
+          value={simUnitHeadloss}
           unit={quantitiesMetadata.getUnit("unitHeadloss")}
           decimals={quantitiesMetadata.getDecimals("unitHeadloss")}
           readOnly={true}
         />
         <QuantityRow
           name="headlossShort"
-          value={pipe.headloss}
+          value={simHeadloss}
           unit={quantitiesMetadata.getUnit("headloss")}
           decimals={quantitiesMetadata.getDecimals("headloss")}
           readOnly={true}
@@ -835,6 +883,23 @@ const TankEditor = ({
   const translate = useTranslate();
   const { footer } = useQuickGraph(tank.id, "tank");
   const { getComparison, isNew } = useAssetComparison(tank);
+  const isSimulationLoose = useFeatureFlag("FLAG_SIMULATION_LOOSE");
+  const simulation = useSimulation();
+  const tankSimulation = simulation?.getTank(tank.id);
+
+  // Simulation values: use atom when FLAG_SIMULATION_LOOSE is enabled, otherwise use asset
+  const simPressure = isSimulationLoose
+    ? (tankSimulation?.pressure ?? null)
+    : tank.pressure;
+  const simHead = isSimulationLoose
+    ? (tankSimulation?.head ?? null)
+    : tank.head;
+  const simLevel = isSimulationLoose
+    ? (tankSimulation?.level ?? null)
+    : tank.level;
+  const simVolume = isSimulationLoose
+    ? (tankSimulation?.volume ?? null)
+    : tank.volume;
 
   return (
     <AssetEditorContent
@@ -928,28 +993,28 @@ const TankEditor = ({
       <Section title={translate("simulationResults")}>
         <QuantityRow
           name="pressure"
-          value={tank.pressure}
+          value={simPressure}
           unit={quantitiesMetadata.getUnit("pressure")}
           decimals={quantitiesMetadata.getDecimals("pressure")}
           readOnly={true}
         />
         <QuantityRow
           name="head"
-          value={tank.head}
+          value={simHead}
           unit={quantitiesMetadata.getUnit("head")}
           decimals={quantitiesMetadata.getDecimals("head")}
           readOnly={true}
         />
         <QuantityRow
           name="level"
-          value={tank.level}
+          value={simLevel}
           unit={quantitiesMetadata.getUnit("level")}
           decimals={quantitiesMetadata.getDecimals("level")}
           readOnly={true}
         />
         <QuantityRow
           name="volume"
-          value={tank.volume}
+          value={simVolume}
           unit={quantitiesMetadata.getUnit("volume")}
           decimals={quantitiesMetadata.getDecimals("volume")}
           readOnly={true}
@@ -989,8 +1054,23 @@ const ValveEditor = ({
   const translate = useTranslate();
   const { footer } = useQuickGraph(valve.id, "valve");
   const { getComparison, isNew } = useAssetComparison(valve);
+  const isSimulationLoose = useFeatureFlag("FLAG_SIMULATION_LOOSE");
+  const simulation = useSimulation();
+  const valveSimulation = simulation?.getValve(valve.id);
 
-  const statusText = translate(valveStatusLabel(valve));
+  // Simulation values: use atom when FLAG_SIMULATION_LOOSE is enabled, otherwise use asset
+  const simFlow = isSimulationLoose
+    ? (valveSimulation?.flow ?? null)
+    : valve.flow;
+  const simVelocity = isSimulationLoose
+    ? (valveSimulation?.velocity ?? null)
+    : valve.velocity;
+  const simHeadloss = isSimulationLoose
+    ? (valveSimulation?.headloss ?? null)
+    : valve.headloss;
+  const statusText = isSimulationLoose
+    ? translate(valveStatusLabel(valveSimulation ?? null))
+    : translate(valveStatusLabel(valve));
 
   const statusOptions = useMemo(() => {
     return [
@@ -1107,21 +1187,21 @@ const ValveEditor = ({
       <Section title={translate("simulationResults")}>
         <QuantityRow
           name="flow"
-          value={valve.flow}
+          value={simFlow}
           unit={quantitiesMetadata.getUnit("flow")}
           decimals={quantitiesMetadata.getDecimals("flow")}
           readOnly={true}
         />
         <QuantityRow
           name="velocity"
-          value={valve.velocity}
+          value={simVelocity}
           unit={quantitiesMetadata.getUnit("velocity")}
           decimals={quantitiesMetadata.getDecimals("velocity")}
           readOnly={true}
         />
         <QuantityRow
           name="headlossShort"
-          value={valve.headloss}
+          value={simHeadloss}
           unit={quantitiesMetadata.getUnit("headloss")}
           decimals={quantitiesMetadata.getDecimals("headloss")}
           readOnly={true}
@@ -1164,8 +1244,22 @@ const PumpEditor = ({
   const translate = useTranslate();
   const { footer } = useQuickGraph(pump.id, "pump");
   const { getComparison, getBaseCurve, isNew } = useAssetComparison(pump);
+  const isSimulationLoose = useFeatureFlag("FLAG_SIMULATION_LOOSE");
+  const simulation = useSimulation();
+  const pumpSimulation = simulation?.getPump(pump.id);
 
-  const statusText = translate(pumpStatusLabel(pump));
+  // Simulation values: use atom when FLAG_SIMULATION_LOOSE is enabled, otherwise use asset
+  const simFlow = isSimulationLoose
+    ? (pumpSimulation?.flow ?? null)
+    : pump.flow;
+  const simHead = isSimulationLoose
+    ? pumpSimulation
+      ? -pumpSimulation.headloss
+      : null
+    : pump.head;
+  const statusText = isSimulationLoose
+    ? translate(pumpStatusLabel(pumpSimulation ?? null))
+    : translate(pumpStatusLabel(pump));
 
   const statusOptions = useMemo(() => {
     return pumpStatuses.map((status) => ({
@@ -1237,14 +1331,14 @@ const PumpEditor = ({
       <Section title={translate("simulationResults")}>
         <QuantityRow
           name="flow"
-          value={pump.flow}
+          value={simFlow}
           unit={quantitiesMetadata.getUnit("flow")}
           decimals={quantitiesMetadata.getDecimals("flow")}
           readOnly={true}
         />
         <QuantityRow
           name="pumpHead"
-          value={pump.head}
+          value={simHead}
           unit={quantitiesMetadata.getUnit("headloss")}
           decimals={quantitiesMetadata.getDecimals("headloss")}
           readOnly={true}

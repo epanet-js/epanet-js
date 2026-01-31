@@ -1,5 +1,11 @@
 import { render, screen, waitFor, act } from "@testing-library/react";
-import { Store, dataAtom, nullData, stagingModelAtom } from "src/state/jotai";
+import {
+  Store,
+  dataAtom,
+  nullData,
+  stagingModelAtom,
+  simulationResultsAtom,
+} from "src/state/jotai";
 import { Provider as JotaiProvider, createStore } from "jotai";
 import { HydraulicModel, Pipe, Pump, Junction } from "src/hydraulic-model";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
@@ -9,8 +15,9 @@ import userEvent from "@testing-library/user-event";
 import { AssetId, getLink, getPipe } from "src/hydraulic-model/assets-map";
 import FeatureEditor from "../feature-editor";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Valve } from "src/hydraulic-model/asset-types";
+import { Valve, Tank } from "src/hydraulic-model/asset-types";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
+import type { ResultsReader } from "src/simulation/results-reader";
 
 describe("AssetPanel", () => {
   describe("with a pipe", () => {
@@ -1419,6 +1426,80 @@ describe("AssetPanel", () => {
     expectPropertyDisplayed("length (m)", "1,000");
   });
 
+  // Create a mock ResultsReader from asset simulation data
+  const createMockResultsReader = (
+    hydraulicModel: HydraulicModel,
+  ): ResultsReader => {
+    return {
+      getPipe: (id: number) => {
+        const asset = hydraulicModel.assets.get(id);
+        if (!asset || asset.type !== "pipe") return null;
+        const pipe = asset as Pipe;
+        if (pipe.flow === null) return null;
+        return {
+          type: "pipe",
+          flow: pipe.flow,
+          velocity: pipe.velocity ?? 0,
+          headloss: pipe.headloss ?? 0,
+          unitHeadloss: pipe.unitHeadloss ?? 0,
+          status: pipe.status ?? "open",
+        };
+      },
+      getJunction: (id: number) => {
+        const asset = hydraulicModel.assets.get(id);
+        if (!asset || asset.type !== "junction") return null;
+        const junction = asset as Junction;
+        if (junction.pressure === null) return null;
+        return {
+          type: "junction",
+          pressure: junction.pressure,
+          head: junction.head ?? 0,
+          demand: junction.actualDemand ?? 0,
+        };
+      },
+      getPump: (id: number) => {
+        const asset = hydraulicModel.assets.get(id);
+        if (!asset || asset.type !== "pump") return null;
+        const pump = asset as Pump;
+        if (pump.flow === null) return null;
+        return {
+          type: "pump",
+          flow: pump.flow,
+          headloss: pump.head ? -pump.head : 0,
+          status: pump.status ?? "on",
+          statusWarning: pump.statusWarning,
+        };
+      },
+      getValve: (id: number) => {
+        const asset = hydraulicModel.assets.get(id);
+        if (!asset || asset.type !== "valve") return null;
+        const valve = asset as Valve;
+        if (valve.flow === null) return null;
+        return {
+          type: "valve",
+          flow: valve.flow,
+          velocity: valve.velocity ?? 0,
+          headloss: valve.headloss ?? 0,
+          status: valve.status ?? "active",
+          statusWarning: valve.statusWarning,
+        };
+      },
+      getTank: (id: number) => {
+        const asset = hydraulicModel.assets.get(id);
+        if (!asset || asset.type !== "tank") return null;
+        const tank = asset as Tank;
+        if (tank.pressure === null) return null;
+        return {
+          type: "tank",
+          pressure: tank.pressure,
+          head: tank.head ?? 0,
+          level: tank.level ?? 0,
+          volume: tank.volume ?? 0,
+        };
+      },
+    };
+  };
+
   const setInitialState = ({
     store = createStore(),
     hydraulicModel = HydraulicModelBuilder.with().build(),
@@ -1433,6 +1514,8 @@ describe("AssetPanel", () => {
       ...nullData,
       selection: { type: "single", id: selectedAssetId, parts: [] },
     });
+    // Set simulation results from asset data for test compatibility
+    store.set(simulationResultsAtom, createMockResultsReader(hydraulicModel));
     return store;
   };
 
