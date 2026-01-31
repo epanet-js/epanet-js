@@ -42,7 +42,10 @@ export type MetaPair = [
 ];
 
 export interface IPersistence {
-  useHistoryControl(): (direction: "undo" | "redo") => void;
+  useHistoryControl(): (
+    direction: "undo" | "redo",
+    options?: { restoreSimulation?: boolean },
+  ) => Promise<void>;
 
   useTransact(): (moment: ModelMoment) => void;
   useTransactImport(): (

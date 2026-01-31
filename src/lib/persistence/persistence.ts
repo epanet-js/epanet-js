@@ -21,7 +21,14 @@ import {
   defaultSplits,
   pipeDrawingDefaultsAtom,
   stagingModelAtom,
+  simulationResultsAtom,
+  simulationCacheAtom,
 } from "src/state/jotai";
+import { buildSimulationKey } from "src/simulation/simulation-key";
+import { OPFSStorage } from "src/infra/storage/opfs-storage";
+import { EPSResultsReader } from "src/simulation/epanet/eps-results-reader";
+import { getAppId } from "src/infra/app-instance";
+import { captureError } from "src/infra/error-tracking";
 import { baseModelAtom } from "src/state/hydraulic-model";
 import { getFreshAt, trackMoment } from "./shared";
 import { sortAts } from "src/lib/parse-stored";
@@ -188,7 +195,10 @@ export class Persistence implements IPersistenceWithSnapshots {
   }
 
   useHistoryControl() {
-    return (direction: "undo" | "redo") => {
+    return async (
+      direction: "undo" | "redo",
+      options?: { restoreSimulation?: boolean },
+    ) => {
       const isUndo = direction === "undo";
       const momentLog = this.store.get(momentLogAtom).copy();
       const mapSyncMoment = this.store.get(mapSyncMomentAtom);
@@ -205,7 +215,48 @@ export class Persistence implements IPersistenceWithSnapshots {
       this.store.set(mapSyncMomentAtom, newMapSyncMoment);
       this.syncSnapshotMomentLog(momentLog, action.stateId);
       this.updateCacheAfterTransact();
+
+      if (options?.restoreSimulation) {
+        await this.restoreSimulationForVersion(action.stateId);
+      }
     };
+  }
+
+  private async restoreSimulationForVersion(
+    modelVersion: string,
+  ): Promise<void> {
+    const cache = this.store.get(simulationCacheAtom);
+    const cachedSimulation = cache.get(modelVersion);
+
+    if (!cachedSimulation) {
+      // Cache miss - keep current state (shows as outdated)
+      return;
+    }
+
+    // Load results reader BEFORE setting simulation state
+    // This ensures resultsReader is available when map rebuilds due to simulation change
+    const { metadata, simulationIds, currentTimestepIndex } = cachedSimulation;
+    if (metadata && simulationIds) {
+      try {
+        const appId = getAppId();
+        const storage = new OPFSStorage(
+          appId,
+          buildSimulationKey(modelVersion),
+        );
+        const epsReader = new EPSResultsReader(storage);
+        await epsReader.initialize(metadata, simulationIds);
+        const resultsReader = await epsReader.getResultsForTimestep(
+          currentTimestepIndex ?? 0,
+        );
+        this.store.set(simulationResultsAtom, resultsReader);
+      } catch (error) {
+        captureError(error as Error);
+        this.store.set(simulationResultsAtom, null);
+      }
+    }
+
+    // Set simulation state AFTER results are loaded
+    this.store.set(simulationAtom, cachedSimulation);
   }
 
   deleteSnapshotFromCache(snapshotId: string): void {
