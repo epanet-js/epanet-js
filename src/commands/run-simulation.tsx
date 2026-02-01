@@ -6,14 +6,12 @@ import {
   simulationAtom,
   simulationResultsAtom,
   stagingModelAtom,
-  simulationCacheAtom,
 } from "src/state/jotai";
 import {
   ProgressCallback,
   runSimulation as runSimulationWorker,
   EPSResultsReader,
 } from "src/simulation";
-import { buildSimulationKey } from "src/simulation/simulation-key";
 import { attachSimulation } from "src/hydraulic-model";
 import { useDrawingMode } from "./set-drawing-mode";
 import { Mode } from "src/state/mode";
@@ -36,7 +34,6 @@ export const useRunSimulation = () => {
   const isSimulationLoose = useFeatureFlag("FLAG_SIMULATION_LOOSE");
   const persistence = usePersistenceWithSnapshots();
   const setSimulationResults = useSetAtom(simulationResultsAtom);
-  const setSimulationCache = useSetAtom(simulationCacheAtom);
 
   const runSimulation = useCallback(
     async (options?: {
@@ -70,15 +67,12 @@ export const useRunSimulation = () => {
 
       const appId = getAppId();
       const scenarioKey = isScenariosOn ? worktree.activeSnapshotId : undefined;
-      const storageKey = isSimulationLoose
-        ? buildSimulationKey(hydraulicModel.version)
-        : scenarioKey;
       const { report, status, metadata } = await runSimulationWorker(
         inp,
         appId,
         reportProgress,
         {},
-        storageKey,
+        scenarioKey,
       );
 
       isCompleted = true;
@@ -86,7 +80,7 @@ export const useRunSimulation = () => {
       let updatedHydraulicModel = hydraulicModel;
       let simulationIds;
       if (status === "success" || status === "warning") {
-        const storage = new OPFSStorage(appId, storageKey);
+        const storage = new OPFSStorage(appId, scenarioKey);
         const epsReader = new EPSResultsReader(storage);
         await epsReader.initialize(metadata);
         simulationIds = epsReader.simulationIds;
@@ -113,14 +107,6 @@ export const useRunSimulation = () => {
       };
       setSimulationState(simulationResult);
       persistence.syncSnapshotSimulation(simulationResult);
-
-      if (isSimulationLoose && (status === "success" || status === "warning")) {
-        setSimulationCache((prev) => {
-          const next = new Map(prev);
-          next.set(updatedHydraulicModel.version, simulationResult);
-          return next;
-        });
-      }
       const end = performance.now();
       const duration = end - start;
 
@@ -144,7 +130,6 @@ export const useRunSimulation = () => {
       hydraulicModel,
       setSimulationState,
       setSimulationResults,
-      setSimulationCache,
       setDialogState,
       setHydraulicModel,
       isScenariosOn,

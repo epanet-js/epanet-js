@@ -8,7 +8,6 @@ import {
 import { attachSimulation } from "src/hydraulic-model";
 import { OPFSStorage } from "src/infra/storage/opfs-storage";
 import { EPSResultsReader } from "src/simulation/epanet/eps-results-reader";
-import { buildSimulationKey } from "src/simulation/simulation-key";
 import { getAppId } from "src/infra/app-instance";
 import { captureError } from "src/infra/error-tracking";
 import { useUserTracking } from "src/infra/user-tracking";
@@ -29,7 +28,6 @@ export const useChangeTimestep = () => {
   const userTracking = useUserTracking();
   const worktree = useAtomValue(worktreeAtom);
   const isScenariosOn = useFeatureFlag("FLAG_SCENARIOS");
-  const isSimulationLoose = useFeatureFlag("FLAG_SIMULATION_LOOSE");
   const persistence = usePersistenceWithSnapshots();
   const setSimulationResults = useSetAtom(simulationResultsAtom);
 
@@ -54,10 +52,7 @@ export const useChangeTimestep = () => {
         const scenarioKey = isScenariosOn
           ? worktree.activeSnapshotId
           : undefined;
-        const storageKey = isSimulationLoose
-          ? buildSimulationKey(simulation.modelVersion)
-          : scenarioKey;
-        const storage = new OPFSStorage(appId, storageKey);
+        const storage = new OPFSStorage(appId, scenarioKey);
         const epsReader = new EPSResultsReader(storage);
         await epsReader.initialize(metadata, simulationIds);
 
@@ -91,7 +86,6 @@ export const useChangeTimestep = () => {
       setSimulationState,
       userTracking,
       isScenariosOn,
-      isSimulationLoose,
       worktree.activeSnapshotId,
       persistence,
     ],
