@@ -10,7 +10,6 @@ import {
 } from "src/lib/persistence/moment";
 import { generateKeyBetween } from "fractional-indexing";
 import { worktreeAtom } from "src/state/scenarios";
-import type { Snapshot, Worktree } from "src/lib/worktree/types";
 import {
   type SimulationState,
   Data,
@@ -34,7 +33,6 @@ import {
   Demands,
   HydraulicModel,
   updateHydraulicModelAssets,
-  initializeHydraulicModel,
 } from "src/hydraulic-model";
 import { ModelMoment } from "src/hydraulic-model";
 import { Asset, LinkAsset } from "src/hydraulic-model";
@@ -240,39 +238,6 @@ export class MemPersistenceDeprecated implements IPersistence {
       ...hydraulicModel,
       version,
     });
-  }
-
-  applySnapshot(worktree: Worktree, snapshotId: string): void {
-    const snapshot = worktree.snapshots.get(snapshotId);
-    if (!snapshot) return;
-
-    const allDeltas: Moment[] = [];
-    let current: Snapshot | undefined = snapshot;
-
-    while (current) {
-      allDeltas.unshift(...current.deltas);
-      current = current.parentId
-        ? worktree.snapshots.get(current.parentId)
-        : undefined;
-    }
-
-    allDeltas.push(...snapshot.momentLog.getDeltas());
-
-    const ctx = this.store.get(dataAtom);
-    const currentHydraulicModel = this.store.get(stagingModelAtom);
-    const hydraulicModel = initializeHydraulicModel({
-      units: currentHydraulicModel.units,
-      defaults: ctx.modelMetadata.quantities.defaults,
-    });
-
-    for (const delta of allDeltas) {
-      this.applyMomentToModel(hydraulicModel, delta);
-    }
-
-    this.store.set(stagingModelAtom, hydraulicModel);
-
-    this.switchMomentLog(snapshot.momentLog);
-    this.setModelVersion(snapshot.version);
   }
 
   deleteSnapshotFromCache(_snapshotId: string): void {

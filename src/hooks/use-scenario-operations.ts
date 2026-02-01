@@ -1,16 +1,14 @@
 import { useSetAtom } from "jotai";
 import { useAtomCallback } from "jotai/utils";
 import { useCallback } from "react";
-import { usePersistenceWithSnapshots } from "src/lib/persistence";
+import { usePersistenceWithSnapshots, Persistence } from "src/lib/persistence";
 import { worktreeAtom } from "src/state/scenarios";
-import { initialSimulationState, simulationAtom } from "src/state/jotai";
 import { modeAtom, Mode } from "src/state/mode";
 import {
   createScenario,
   switchToSnapshot as switchToSnapshotFn,
   deleteScenario,
   renameScenario,
-  getSimulationForState,
 } from "src/lib/worktree";
 import type { Worktree } from "src/lib/worktree";
 
@@ -28,21 +26,20 @@ const DRAWING_MODES: Mode[] = [
 export const useScenarioOperations = () => {
   const persistence = usePersistenceWithSnapshots();
   const setWorktree = useSetAtom(worktreeAtom);
-  const setSimulation = useSetAtom(simulationAtom);
   const setMode = useSetAtom(modeAtom);
 
   const performSwitch = useCallback(
-    (worktree: Worktree, snapshotId: string) => {
+    async (worktree: Worktree, snapshotId: string) => {
       const result = switchToSnapshotFn(worktree, snapshotId);
 
       if (result.snapshot) {
-        persistence.applySnapshot(result.worktree, result.snapshot.id);
+        await (persistence as Persistence).applySnapshot(
+          result.worktree,
+          result.snapshot.id,
+        );
       }
 
       setWorktree(result.worktree);
-      setSimulation(
-        getSimulationForState(result.worktree, initialSimulationState),
-      );
 
       const targetSnapshot = result.worktree.snapshots.get(snapshotId);
       if (targetSnapshot?.status === "locked") {
@@ -56,14 +53,14 @@ export const useScenarioOperations = () => {
 
       return result;
     },
-    [persistence, setWorktree, setSimulation, setMode],
+    [persistence, setWorktree, setMode],
   );
 
   const switchToSnapshot = useAtomCallback(
     useCallback(
       (get, _set, snapshotId: string) => {
         const worktree = get(worktreeAtom);
-        performSwitch(worktree, snapshotId);
+        void performSwitch(worktree, snapshotId);
       },
       [performSwitch],
     ),
@@ -73,7 +70,7 @@ export const useScenarioOperations = () => {
     useCallback(
       (get) => {
         const worktree = get(worktreeAtom);
-        performSwitch(worktree, worktree.mainId);
+        void performSwitch(worktree, worktree.mainId);
       },
       [performSwitch],
     ),
@@ -81,7 +78,7 @@ export const useScenarioOperations = () => {
 
   const createNewScenario = useAtomCallback(
     useCallback(
-      (get) => {
+      async (get) => {
         const worktree = get(worktreeAtom);
         const created = createScenario(worktree);
         const result = switchToSnapshotFn(
@@ -90,39 +87,41 @@ export const useScenarioOperations = () => {
         );
 
         if (result.snapshot) {
-          persistence.applySnapshot(result.worktree, result.snapshot.id);
+          await (persistence as Persistence).applySnapshot(
+            result.worktree,
+            result.snapshot.id,
+          );
         }
 
         setWorktree(result.worktree);
-        setSimulation(initialSimulationState);
 
         return {
           scenarioId: created.scenario.id,
           scenarioName: created.scenario.name,
         };
       },
-      [persistence, setWorktree, setSimulation],
+      [persistence, setWorktree],
     ),
   );
 
   const deleteScenarioById = useAtomCallback(
     useCallback(
-      (get, _set, scenarioId: string) => {
+      async (get, _set, scenarioId: string) => {
         const worktree = get(worktreeAtom);
         const result = deleteScenario(worktree, scenarioId);
 
         persistence.deleteSnapshotFromCache(scenarioId);
 
         if (result.snapshot) {
-          persistence.applySnapshot(result.worktree, result.snapshot.id);
+          await (persistence as Persistence).applySnapshot(
+            result.worktree,
+            result.snapshot.id,
+          );
         }
 
         setWorktree(result.worktree);
-        setSimulation(
-          getSimulationForState(result.worktree, initialSimulationState),
-        );
       },
-      [persistence, setWorktree, setSimulation],
+      [persistence, setWorktree],
     ),
   );
 

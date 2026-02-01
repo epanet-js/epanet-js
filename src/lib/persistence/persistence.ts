@@ -13,6 +13,7 @@ import {
   momentLogAtom,
   nullData,
   simulationAtom,
+  simulationResultsAtom,
   initialSimulationState,
   modeAtom,
   ephemeralStateAtom,
@@ -37,6 +38,10 @@ import { nanoid } from "nanoid";
 import { ModelMetadata } from "src/model-metadata";
 import { MomentLog } from "./moment-log";
 import { Mode } from "src/state/mode";
+import { EPSResultsReader } from "src/simulation";
+import { OPFSStorage } from "src/infra/storage";
+import { getAppId } from "src/infra/app-instance";
+import { getSimulationForState } from "src/lib/worktree";
 
 import {
   linkSymbologyAtom,
@@ -271,18 +276,44 @@ export class Persistence implements IPersistenceWithSnapshots {
     });
   }
 
-  applySnapshot(worktree: Worktree, snapshotId: string): void {
+  private async loadSimulationResults(
+    simulation: SimulationState,
+    snapshotId: string,
+  ) {
+    if (
+      (simulation.status === "success" || simulation.status === "warning") &&
+      simulation.metadata
+    ) {
+      const appId = getAppId();
+      const storage = new OPFSStorage(appId, snapshotId);
+      const epsReader = new EPSResultsReader(storage);
+      await epsReader.initialize(simulation.metadata, simulation.simulationIds);
+      const timestepIndex = simulation.currentTimestepIndex ?? 0;
+      return epsReader.getResultsForTimestep(timestepIndex);
+    }
+    return null;
+  }
+
+  async applySnapshot(worktree: Worktree, snapshotId: string): Promise<void> {
     const snapshot = worktree.snapshots.get(snapshotId);
     if (!snapshot) return;
 
+    // 1. Prepare ALL values first (including async)
     const stagingModel = this.getOrBuildModel(worktree, snapshotId);
-    this.store.set(stagingModelAtom, stagingModel);
-
     const baseModel = this.getOrBuildModel(worktree, worktree.mainId);
-    this.store.set(baseModelAtom, baseModel);
+    const simulation = getSimulationForState(worktree, initialSimulationState);
+    const resultsReader = await this.loadSimulationResults(
+      simulation,
+      snapshotId,
+    );
 
+    // 2. Set everything at once - React batches these
+    this.store.set(stagingModelAtom, stagingModel);
+    this.store.set(baseModelAtom, baseModel);
     this.switchMomentLog(snapshot.momentLog);
     this.setModelVersion(snapshot.version);
+    this.store.set(simulationAtom, simulation);
+    this.store.set(simulationResultsAtom, resultsReader);
   }
 
   private getOrBuildModel(
