@@ -36,8 +36,8 @@ export const useCreateScenario = () => {
         return null;
       }
 
-      const proceedWithCreation = async () => {
-        const { scenarioId, scenarioName } = await createNewScenario();
+      const proceedWithCreation = () => {
+        const { scenarioId, scenarioName } = createNewScenario();
 
         userTracking.capture({
           name: "scenario.created",
@@ -63,8 +63,7 @@ export const useCreateScenario = () => {
           });
           return null;
         }
-        void proceedWithCreation();
-        return null;
+        return proceedWithCreation();
       };
 
       if (isFirstTimeEnabling) {
