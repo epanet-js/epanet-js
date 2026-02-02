@@ -1,4 +1,5 @@
 import { dialogAtom, fileInfoAtom, stagingModelAtom } from "src/state/jotai";
+import { baseModelAtom } from "src/state/hydraulic-model";
 import { ExportOptions } from "src/types/export";
 import { useAtomCallback } from "jotai/utils";
 import { useCallback } from "react";
@@ -47,7 +48,11 @@ export const useSaveInp = ({
           const { fileSave } = await getFsAccess();
           const fileInfo = get(fileInfoAtom);
 
-          const hydraulicModel = get(stagingModelAtom);
+          const worktree = get(worktreeAtom);
+          const hasScenarios = worktree.scenarios.length > 0;
+          const hydraulicModel = hasScenarios
+            ? get(baseModelAtom)
+            : get(stagingModelAtom);
           const buildOptions = {
             geolocation: true,
             madeBy: true,
