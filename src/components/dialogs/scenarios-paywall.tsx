@@ -52,15 +52,15 @@ export const ScenariosPaywallDialog = ({
             </p>
           </div>
 
-          <div className="flex flex-col gap-4">
-            <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-5">
+            <div className="flex flex-col gap-1">
               <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">
                 {translate("scenarios.paywall.nonCommercial.title")}
               </h3>
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 {translate("scenarios.paywall.nonCommercial.description")}
               </p>
-              <div onClick={handlePersonalCheckout}>
+              <div className="pt-2" onClick={handlePersonalCheckout}>
                 <CheckoutButton
                   plan="personal"
                   paymentType="yearly"
@@ -71,20 +71,22 @@ export const ScenariosPaywallDialog = ({
               </div>
             </div>
 
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-1">
               <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">
                 {translate("scenarios.paywall.commercial.title")}
               </h3>
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 {translate("scenarios.paywall.commercial.description")}
               </p>
-              <Button
-                variant="primary"
-                size="full-width"
-                onClick={handleChooseYourPlan}
-              >
-                {translate("scenarios.paywall.commercial.cta")}
-              </Button>
+              <div className="pt-2">
+                <Button
+                  variant="primary"
+                  size="full-width"
+                  onClick={handleChooseYourPlan}
+                >
+                  {translate("scenarios.paywall.commercial.cta")}
+                </Button>
+              </div>
             </div>
           </div>
         </div>
