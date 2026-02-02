@@ -4,7 +4,6 @@ import { DialogContainer, DialogHeader } from "../dialog";
 import { Button, Loading } from "../elements";
 import { CheckoutButton } from "../checkout-button";
 import { dialogAtom } from "src/state/dialog";
-import { scenariosPromoVideoUrl } from "src/global-config";
 import { ScenarioIcon } from "src/icons";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useTranslate } from "src/hooks/use-translate";
@@ -35,21 +34,10 @@ export const ScenariosPaywallDialog = ({
         titleIcon={ScenarioIcon}
       />
       <div className="grid grid-cols-1 md:grid-cols-[3fr_2fr] gap-8 py-4">
-        <div className="relative aspect-video bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden">
-          {isVideoLoading && (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <Loading />
-            </div>
-          )}
-          <iframe
-            src={scenariosPromoVideoUrl}
-            className="w-full h-full border-0"
-            onLoad={() => setIsVideoLoading(false)}
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-            title={translate("scenarios.paywall.title")}
-          />
-        </div>
+        <ScenariosPromoVideo
+          isLoading={isVideoLoading}
+          onLoad={() => setIsVideoLoading(false)}
+        />
 
         <div className="flex flex-col">
           <div className="space-y-3 pb-6">
@@ -102,5 +90,30 @@ export const ScenariosPaywallDialog = ({
         </div>
       </div>
     </DialogContainer>
+  );
+};
+
+const ScenariosPromoVideo = ({
+  isLoading,
+  onLoad,
+}: {
+  isLoading: boolean;
+  onLoad: () => void;
+}) => {
+  return (
+    <div className="relative aspect-square bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden">
+      {isLoading && (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <Loading />
+        </div>
+      )}
+      <iframe
+        src="https://player.mux.com/jtnaSrURps7KsyNWdOOt6CypFIcuqfvqT2cGe6wBep4?metadata-video-title=Scenario-paywall-demo&video-title=Scenario-paywall-demo&autoplay=muted&muted=true&loop=true"
+        className="w-full h-full border-0"
+        onLoad={onLoad}
+        allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
+        allowFullScreen
+      />
+    </div>
   );
 };
