@@ -4,7 +4,7 @@ import * as Tooltip from "@radix-ui/react-tooltip";
 import {
   AdvancedSettingsIcon,
   ChevronDownIcon,
-  ControlsIconAlt,
+  ControlsIcon,
   PatternsIcon,
 } from "src/icons";
 import { useTranslate } from "src/hooks/use-translate";
@@ -45,7 +45,7 @@ export const OperationalDataDropdown = () => {
               </StyledItem>
 
               <StyledItem onSelect={() => showControls({ source: "toolbar" })}>
-                <ControlsIconAlt />
+                <ControlsIcon />
                 {translate("controls.title")}
               </StyledItem>
             </DDContent>

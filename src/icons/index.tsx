@@ -63,7 +63,6 @@ import {
   Save,
   SaveAll,
   Settings,
-  SlidersHorizontal,
   SquareDashed,
   SquareStack,
   Star,
@@ -146,7 +145,6 @@ export const ActivateTopologyIcon = icon(Route);
 export const DeactivateTopologyIcon = icon(RouteOff);
 export const GlobeIcon = icon(Globe);
 export const SettingsIcon = icon(Settings);
-export const ControlsIcon = icon(SlidersHorizontal);
 export const UpgradeIcon = icon(Rocket);
 export const CircleIcon = icon(Circle);
 export const MenuIcon = icon(Menu);
@@ -192,7 +190,7 @@ export const MoreActionsIcon = icon(EllipsisVertical);
 export const ScenarioIcon = icon(GitBranch);
 export const AddScenarioIcon = icon(GitBranchPlus);
 export const MainModelIcon = icon(Lock);
-export const ControlsIconAlt = icon(FileCode);
+export const ControlsIcon = icon(FileCode);
 export const PatternsIcon = icon(ChartColumn);
 export const RenameIcon = icon(TextCursorInput);
 export const DuplicateIcon = icon(Copy);

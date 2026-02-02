@@ -1,7 +1,6 @@
 import { useTranslate } from "src/hooks/use-translate";
 import MenuAction from "../menu-action";
 import {
-  ControlsIcon,
   FileTextIcon,
   UndoIcon,
   RedoIcon,
@@ -40,10 +39,6 @@ import {
   showSimulationSettingsShortcut,
   useShowSimulationSettings,
 } from "src/commands/show-simulation-settings";
-import {
-  showControlsShortcut,
-  useShowControls,
-} from "src/commands/show-controls";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { useImportCustomerPoints } from "src/commands/import-customer-points";
 import { CreateNewDropdown } from "./create-new-dropdown";
@@ -59,7 +54,6 @@ import {
 } from "src/commands/toggle-side-panel";
 import { useRunSimulationPerformanceTest } from "src/commands/run-simulation-performance-test";
 import { isDebugOn } from "src/infra/debug-mode";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export const Toolbar = ({
   readonly = false,
@@ -74,10 +68,8 @@ export const Toolbar = ({
   const runSimulation = useRunSimulation();
   const runPerformanceTest = useRunSimulationPerformanceTest();
   const showSimulationSettings = useShowSimulationSettings();
-  const showControls = useShowControls();
   const showReport = useShowReport();
   const importCustomerPoints = useImportCustomerPoints();
-  const isPatternLibraryOn = useFeatureFlag("FLAG_PATTERN_LIBRARY");
 
   const { undo, redo } = useHistoryControl();
 
@@ -223,18 +215,8 @@ export const Toolbar = ({
           <FileTextIcon />
         </MenuAction>
         <Divider />
-        {isPatternLibraryOn ? (
-          <OperationalDataDropdown />
-        ) : (
-          <MenuAction
-            label={translate("controls.title")}
-            role="button"
-            onClick={() => showControls({ source: "toolbar" })}
-            readOnlyHotkey={showControlsShortcut}
-          >
-            <ControlsIcon />
-          </MenuAction>
-        )}
+        <OperationalDataDropdown />
+
         {isMdOrLarger && !shouldHideContextActions && (
           <>
             <ContextActions />
