@@ -323,7 +323,12 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           hasNewSelection ||
           (hasNewSimulation && mapState.simulation.status !== "running")
         ) {
-          await updateIconsSource(map, assets, mapState.selection);
+          await updateIconsSource(
+            map,
+            assets,
+            mapState.selection,
+            resultsReader,
+          );
         }
 
         if (
@@ -524,9 +529,18 @@ const toggleAnalysisLayers = withDebugInstrumentation(
 );
 
 const updateIconsSource = withDebugInstrumentation(
-  async (map: MapEngine, assets: AssetsMap, selection: Sel): Promise<void> => {
+  async (
+    map: MapEngine,
+    assets: AssetsMap,
+    selection: Sel,
+    simulationResults?: ResultsReader | null,
+  ): Promise<void> => {
     const selectionSet = new Set(USelection.toIds(selection));
-    const features = buildIconPointsSource(assets, selectionSet);
+    const features = buildIconPointsSource(
+      assets,
+      selectionSet,
+      simulationResults,
+    );
     await map.setSource("icons", features);
   },
   {

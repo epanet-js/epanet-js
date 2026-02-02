@@ -6,10 +6,12 @@ import calculateBearing from "@turf/bearing";
 import { Valve } from "src/hydraulic-model/asset-types";
 import { controlKinds } from "src/hydraulic-model/asset-types/valve";
 import { Tank } from "src/hydraulic-model/asset-types/tank";
+import type { ResultsReader } from "src/simulation/results-reader";
 
 export const buildIconPointsSource = (
   assets: AssetsMap,
   selectedAssets: Set<AssetId>,
+  simulationResults?: ResultsReader | null,
 ): Feature[] => {
   const strippedFeatures = [];
 
@@ -18,15 +20,27 @@ export const buildIconPointsSource = (
 
     switch (asset.type) {
       case "pump":
-        feature = buildPumpIcon(asset as Pump, selectedAssets);
+        feature = buildPumpIcon(
+          asset as Pump,
+          selectedAssets,
+          simulationResults,
+        );
         break;
       case "valve":
-        feature = buildValveIcon(asset as Valve, selectedAssets);
+        feature = buildValveIcon(
+          asset as Valve,
+          selectedAssets,
+          simulationResults,
+        );
         break;
       case "pipe":
         const pipe = asset as Pipe;
         if (pipe.initialStatus === "cv") {
-          feature = buildPipeCheckValveIcon(pipe, selectedAssets);
+          feature = buildPipeCheckValveIcon(
+            pipe,
+            selectedAssets,
+            simulationResults,
+          );
         }
         break;
       case "tank":
@@ -91,9 +105,17 @@ const buildNodeIcon = (
   };
 };
 
-const buildPumpIcon = (pump: Pump, selectedAssets: Set<AssetId>): Feature => {
+const buildPumpIcon = (
+  pump: Pump,
+  selectedAssets: Set<AssetId>,
+  simulationResults?: ResultsReader | null,
+): Feature => {
+  const pumpSimulation = simulationResults?.getPump(pump.id);
+  const status = simulationResults
+    ? (pumpSimulation?.status ?? null)
+    : pump.status;
   return buildDirectionalLinkIcon(pump, selectedAssets, (asset) => ({
-    status: asset.status ? asset.status : asset.initialStatus,
+    status: status ? status : asset.initialStatus,
     isActive: asset.isActive,
   }));
 };
@@ -101,10 +123,15 @@ const buildPumpIcon = (pump: Pump, selectedAssets: Set<AssetId>): Feature => {
 const buildValveIcon = (
   valve: Valve,
   selectedAssets: Set<AssetId>,
+  simulationResults?: ResultsReader | null,
 ): Feature => {
+  const valveSimulation = simulationResults?.getValve(valve.id);
+  const simStatus = simulationResults
+    ? (valveSimulation?.status ?? null)
+    : valve.status;
   const status = valve.isActive
-    ? valve.status
-      ? valve.status
+    ? simStatus
+      ? simStatus
       : valve.initialStatus
     : "disabled";
   return buildDirectionalLinkIcon(valve, selectedAssets, () => ({
@@ -117,9 +144,14 @@ const buildValveIcon = (
 const buildPipeCheckValveIcon = (
   pipe: Pipe,
   selectedAssets: Set<AssetId>,
+  simulationResults?: ResultsReader | null,
 ): Feature => {
+  const pipeSimulation = simulationResults?.getPipe(pipe.id);
+  const simStatus = simulationResults
+    ? (pipeSimulation?.status ?? null)
+    : pipe.status;
   const status = pipe.isActive
-    ? pipe.status === "closed"
+    ? simStatus === "closed"
       ? "closed"
       : "open"
     : "disabled";

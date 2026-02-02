@@ -85,10 +85,10 @@ const buildLinkSelectionFeature = (
       appendPipeArrowProps(asset as Pipe, feature, simulationResults);
       break;
     case "pump":
-      appendPumpStatus(asset as Pump, feature);
+      appendPumpStatus(asset as Pump, feature, simulationResults);
       break;
     case "valve":
-      appendValveStatus(asset as Valve, feature);
+      appendValveStatus(asset as Valve, feature, simulationResults);
       break;
     default:
       break;

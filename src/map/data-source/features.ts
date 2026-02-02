@@ -63,10 +63,10 @@ export const buildOptimizedAssetsSource = (
         );
         break;
       case "pump":
-        appendPumpProps(asset as Pump, feature);
+        appendPumpProps(asset as Pump, feature, simulationResults);
         break;
       case "valve":
-        appendValveProps(asset as Valve, feature);
+        appendValveProps(asset as Valve, feature, simulationResults);
         break;
       case "tank":
       case "reservoir":
@@ -115,12 +115,20 @@ const appendJunctionProps = (
   );
 };
 
-const appendPumpProps = (pump: Pump, feature: Feature) => {
-  appendPumpStatus(pump, feature);
+const appendPumpProps = (
+  pump: Pump,
+  feature: Feature,
+  simulationResults?: ResultsReader | null,
+) => {
+  appendPumpStatus(pump, feature, simulationResults);
 };
 
-const appendValveProps = (valve: Valve, feature: Feature) => {
-  appendValveStatus(valve, feature);
+const appendValveProps = (
+  valve: Valve,
+  feature: Feature,
+  simulationResults?: ResultsReader | null,
+) => {
+  appendValveStatus(valve, feature, simulationResults);
 };
 
 export const appendPipeStatus = (
@@ -135,14 +143,28 @@ export const appendPipeStatus = (
   feature.properties!.status = status ? status : pipe.initialStatus;
 };
 
-export const appendPumpStatus = (pump: Pump, feature: Feature) => {
-  feature.properties!.status = pump.status ? pump.status : pump.initialStatus;
+export const appendPumpStatus = (
+  pump: Pump,
+  feature: Feature,
+  simulationResults?: ResultsReader | null,
+) => {
+  const pumpSimulation = simulationResults?.getPump(pump.id);
+  const status = simulationResults
+    ? (pumpSimulation?.status ?? null)
+    : pump.status;
+  feature.properties!.status = status ? status : pump.initialStatus;
 };
 
-export const appendValveStatus = (valve: Valve, feature: Feature) => {
-  feature.properties!.status = valve.status
-    ? valve.status
-    : valve.initialStatus;
+export const appendValveStatus = (
+  valve: Valve,
+  feature: Feature,
+  simulationResults?: ResultsReader | null,
+) => {
+  const valveSimulation = simulationResults?.getValve(valve.id);
+  const status = simulationResults
+    ? (valveSimulation?.status ?? null)
+    : valve.status;
+  feature.properties!.status = status ? status : valve.initialStatus;
 };
 
 export const appendPipeArrowProps = (
