@@ -23,6 +23,7 @@ import {
   stagingModelAtom,
 } from "src/state/jotai";
 import { baseModelAtom } from "src/state/hydraulic-model";
+import { simulationResultsAtom } from "src/state/simulation";
 import { getFreshAt, trackMoment } from "./shared";
 import { sortAts } from "src/lib/parse-stored";
 import {
@@ -37,6 +38,7 @@ import { nanoid } from "nanoid";
 import { ModelMetadata } from "src/model-metadata";
 import { MomentLog } from "./moment-log";
 import { Mode } from "src/state/mode";
+import { getSimulationForState } from "src/lib/worktree";
 
 import {
   linkSymbologyAtom,
@@ -271,18 +273,49 @@ export class Persistence implements IPersistenceWithSnapshots {
     });
   }
 
-  applySnapshot(worktree: Worktree, snapshotId: string): void {
+  async applySnapshot(worktree: Worktree, snapshotId: string): Promise<void> {
     const snapshot = worktree.snapshots.get(snapshotId);
     if (!snapshot) return;
 
     const stagingModel = this.getOrBuildModel(worktree, snapshotId);
-    this.store.set(stagingModelAtom, stagingModel);
-
     const baseModel = this.getOrBuildModel(worktree, worktree.mainId);
-    this.store.set(baseModelAtom, baseModel);
+    const simulation = getSimulationForState(worktree, initialSimulationState);
+    const resultsReader = await this.loadSimulationResults(
+      simulation,
+      snapshotId,
+    );
 
+    this.store.set(stagingModelAtom, stagingModel);
+    this.store.set(baseModelAtom, baseModel);
     this.switchMomentLog(snapshot.momentLog);
     this.setModelVersion(snapshot.version);
+    this.store.set(simulationAtom, simulation);
+    this.store.set(simulationResultsAtom, resultsReader);
+  }
+
+  private async loadSimulationResults(
+    simulation: SimulationState,
+    snapshotId: string,
+  ) {
+    if (
+      (simulation.status === "success" || simulation.status === "warning") &&
+      simulation.metadata
+    ) {
+      const [{ OPFSStorage }, { EPSResultsReader }, { getAppId }] =
+        await Promise.all([
+          import("src/infra/storage"),
+          import("src/simulation"),
+          import("src/infra/app-instance"),
+        ]);
+
+      const appId = getAppId();
+      const storage = new OPFSStorage(appId, snapshotId);
+      const epsReader = new EPSResultsReader(storage);
+      await epsReader.initialize(simulation.metadata, simulation.simulationIds);
+      const timestepIndex = simulation.currentTimestepIndex ?? 0;
+      return epsReader.getResultsForTimestep(timestepIndex);
+    }
+    return null;
   }
 
   private getOrBuildModel(

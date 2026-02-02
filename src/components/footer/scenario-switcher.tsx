@@ -79,7 +79,7 @@ export const ScenarioSwitcher = () => {
   };
 
   const handleDeleteScenario = (scenarioId: string) => {
-    deleteScenarioById(scenarioId);
+    void deleteScenarioById(scenarioId);
   };
 
   const openDeleteConfirmation = (scenarioId: string, scenarioName: string) => {
