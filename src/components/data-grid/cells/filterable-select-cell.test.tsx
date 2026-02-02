@@ -88,7 +88,7 @@ describe("FilterableSelectCell", () => {
 
   const defaultProps = {
     value: 1,
-    isEditing: false,
+    editMode: false as const,
     onChange: vi.fn(),
     stopEditing: vi.fn(),
     startEditing: vi.fn(),
@@ -151,14 +151,14 @@ describe("FilterableSelectCell", () => {
       expect(startEditing).toHaveBeenCalled();
     });
 
-    it("opens when isEditing becomes true", async () => {
+    it("opens when editMode becomes truthy", async () => {
       const { rerender } = render(
-        <FilterableSelectCell {...defaultProps} isEditing={false} />,
+        <FilterableSelectCell {...defaultProps} editMode={false} />,
       );
 
       expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
 
-      rerender(<FilterableSelectCell {...defaultProps} isEditing={true} />);
+      rerender(<FilterableSelectCell {...defaultProps} editMode="full" />);
 
       await waitFor(() => {
         expect(screen.getByRole("listbox")).toBeInTheDocument();
@@ -183,9 +183,9 @@ describe("FilterableSelectCell", () => {
       const user = setupUser();
       // Render closed first to initialize activeIndex based on value
       const { rerender } = render(
-        <FilterableSelectCell {...defaultProps} isEditing={false} />,
+        <FilterableSelectCell {...defaultProps} editMode={false} />,
       );
-      rerender(<FilterableSelectCell {...defaultProps} isEditing={true} />);
+      rerender(<FilterableSelectCell {...defaultProps} editMode="full" />);
 
       await waitFor(() => {
         expect(screen.getByRole("listbox")).toBeInTheDocument();
@@ -201,9 +201,9 @@ describe("FilterableSelectCell", () => {
     it("navigates up with ArrowUp", async () => {
       const user = setupUser();
       const { rerender } = render(
-        <FilterableSelectCell {...defaultProps} isEditing={false} />,
+        <FilterableSelectCell {...defaultProps} editMode={false} />,
       );
-      rerender(<FilterableSelectCell {...defaultProps} isEditing={true} />);
+      rerender(<FilterableSelectCell {...defaultProps} editMode="full" />);
 
       await waitFor(() => {
         expect(screen.getByRole("listbox")).toBeInTheDocument();
@@ -219,10 +219,10 @@ describe("FilterableSelectCell", () => {
     it("ArrowUp from first item wraps to last item", async () => {
       const user = setupUser();
       const { rerender } = render(
-        <FilterableSelectCell {...defaultProps} value={0} isEditing={false} />,
+        <FilterableSelectCell {...defaultProps} value={0} editMode={false} />,
       );
       rerender(
-        <FilterableSelectCell {...defaultProps} value={0} isEditing={true} />,
+        <FilterableSelectCell {...defaultProps} value={0} editMode="full" />,
       );
 
       await waitFor(() => {
@@ -241,9 +241,9 @@ describe("FilterableSelectCell", () => {
     it("navigates to first item with Home", async () => {
       const user = setupUser();
       const { rerender } = render(
-        <FilterableSelectCell {...defaultProps} isEditing={false} />,
+        <FilterableSelectCell {...defaultProps} editMode={false} />,
       );
-      rerender(<FilterableSelectCell {...defaultProps} isEditing={true} />);
+      rerender(<FilterableSelectCell {...defaultProps} editMode="full" />);
 
       await waitFor(() => {
         expect(screen.getByRole("listbox")).toBeInTheDocument();
@@ -259,9 +259,9 @@ describe("FilterableSelectCell", () => {
     it("navigates to last item with End", async () => {
       const user = setupUser();
       const { rerender } = render(
-        <FilterableSelectCell {...defaultProps} isEditing={false} />,
+        <FilterableSelectCell {...defaultProps} editMode={false} />,
       );
-      rerender(<FilterableSelectCell {...defaultProps} isEditing={true} />);
+      rerender(<FilterableSelectCell {...defaultProps} editMode="full" />);
 
       await waitFor(() => {
         expect(screen.getByRole("listbox")).toBeInTheDocument();
@@ -285,14 +285,14 @@ describe("FilterableSelectCell", () => {
         <FilterableSelectCell
           {...defaultProps}
           onChange={onChange}
-          isEditing={false}
+          editMode={false}
         />,
       );
       rerender(
         <FilterableSelectCell
           {...defaultProps}
           onChange={onChange}
-          isEditing={true}
+          editMode="full"
         />,
       );
 
@@ -313,14 +313,14 @@ describe("FilterableSelectCell", () => {
         <FilterableSelectCell
           {...defaultProps}
           onChange={onChange}
-          isEditing={false}
+          editMode={false}
         />,
       );
       rerender(
         <FilterableSelectCell
           {...defaultProps}
           onChange={onChange}
-          isEditing={true}
+          editMode="full"
         />,
       );
 
@@ -340,14 +340,14 @@ describe("FilterableSelectCell", () => {
         <FilterableSelectCell
           {...defaultProps}
           stopEditing={stopEditing}
-          isEditing={false}
+          editMode={false}
         />,
       );
       rerender(
         <FilterableSelectCell
           {...defaultProps}
           stopEditing={stopEditing}
-          isEditing={true}
+          editMode="full"
         />,
       );
 
@@ -363,22 +363,19 @@ describe("FilterableSelectCell", () => {
     it("commits selection on Tab key", async () => {
       const user = setupUser();
       const onChange = vi.fn();
-      const stopEditing = vi.fn();
       // Render closed first to initialize activeIndex based on value (1 = Pattern A, index 1)
       const { rerender } = render(
         <FilterableSelectCell
           {...defaultProps}
           onChange={onChange}
-          stopEditing={stopEditing}
-          isEditing={false}
+          editMode={false}
         />,
       );
       rerender(
         <FilterableSelectCell
           {...defaultProps}
           onChange={onChange}
-          stopEditing={stopEditing}
-          isEditing={true}
+          editMode="full"
         />,
       );
 
@@ -390,7 +387,6 @@ describe("FilterableSelectCell", () => {
       await user.keyboard("{ArrowDown}{Tab}");
 
       expect(onChange).toHaveBeenCalledWith(2);
-      expect(stopEditing).toHaveBeenCalled();
     });
   });
 
@@ -402,7 +398,7 @@ describe("FilterableSelectCell", () => {
         <FilterableSelectCell
           {...defaultProps}
           stopEditing={stopEditing}
-          isEditing={true}
+          editMode="full"
         />,
       );
 
@@ -415,14 +411,14 @@ describe("FilterableSelectCell", () => {
       expect(stopEditing).toHaveBeenCalled();
     });
 
-    it("calls stopEditing on Tab (Tab also commits)", async () => {
+    it("commits on Tab (stopEditing handled by grid)", async () => {
       const user = setupUser();
-      const stopEditing = vi.fn();
+      const onChange = vi.fn();
       render(
         <FilterableSelectCell
           {...defaultProps}
-          stopEditing={stopEditing}
-          isEditing={true}
+          onChange={onChange}
+          editMode="full"
         />,
       );
 
@@ -432,7 +428,7 @@ describe("FilterableSelectCell", () => {
 
       await user.keyboard("{Tab}");
 
-      expect(stopEditing).toHaveBeenCalled();
+      expect(onChange).toHaveBeenCalledWith(1); // Current value is 1 (Pattern A)
     });
 
     it("clicking trigger while open calls stopEditing and does not call startEditing after close", async () => {
@@ -445,7 +441,7 @@ describe("FilterableSelectCell", () => {
           {...defaultProps}
           stopEditing={stopEditing}
           startEditing={startEditing}
-          isEditing={true}
+          editMode="full"
         />,
       );
 
@@ -463,13 +459,13 @@ describe("FilterableSelectCell", () => {
       stopEditing.mockClear();
       startEditing.mockClear();
 
-      // Simulate the grid responding by setting isEditing=false
+      // Simulate the grid responding by setting editMode=false
       rerender(
         <FilterableSelectCell
           {...defaultProps}
           stopEditing={stopEditing}
           startEditing={startEditing}
-          isEditing={false}
+          editMode={false}
         />,
       );
 
@@ -505,7 +501,7 @@ describe("FilterableSelectCell", () => {
     };
 
     it("shows search input when options >= minOptionsForSearch", async () => {
-      render(<FilterableSelectCell {...searchProps} isEditing={true} />);
+      render(<FilterableSelectCell {...searchProps} editMode="full" />);
 
       await waitFor(() => {
         expect(screen.getByRole("listbox")).toBeInTheDocument();
@@ -516,7 +512,7 @@ describe("FilterableSelectCell", () => {
 
     it("filters options based on search query", async () => {
       const user = setupUser();
-      render(<FilterableSelectCell {...searchProps} isEditing={true} />);
+      render(<FilterableSelectCell {...searchProps} editMode="full" />);
 
       await waitFor(() => {
         expect(screen.getByRole("listbox")).toBeInTheDocument();
@@ -534,7 +530,7 @@ describe("FilterableSelectCell", () => {
 
     it("highlights first match when typing in search", async () => {
       const user = setupUser();
-      render(<FilterableSelectCell {...searchProps} isEditing={true} />);
+      render(<FilterableSelectCell {...searchProps} editMode="full" />);
 
       await waitFor(() => {
         expect(screen.getByRole("listbox")).toBeInTheDocument();
@@ -553,7 +549,7 @@ describe("FilterableSelectCell", () => {
 
     it("shows all options when search is cleared", async () => {
       const user = setupUser();
-      render(<FilterableSelectCell {...searchProps} isEditing={true} />);
+      render(<FilterableSelectCell {...searchProps} editMode="full" />);
 
       await waitFor(() => {
         expect(screen.getByRole("listbox")).toBeInTheDocument();
@@ -577,9 +573,9 @@ describe("FilterableSelectCell", () => {
       const user = setupUser();
       // Render closed first to initialize state
       const { rerender } = render(
-        <FilterableSelectCell {...searchProps} isEditing={false} />,
+        <FilterableSelectCell {...searchProps} editMode={false} />,
       );
-      rerender(<FilterableSelectCell {...searchProps} isEditing={true} />);
+      rerender(<FilterableSelectCell {...searchProps} editMode="full" />);
 
       await waitFor(() => {
         expect(screen.getByRole("listbox")).toBeInTheDocument();
@@ -601,7 +597,7 @@ describe("FilterableSelectCell", () => {
 
     it("typing while navigating returns to search mode", async () => {
       const user = setupUser();
-      render(<FilterableSelectCell {...searchProps} isEditing={true} />);
+      render(<FilterableSelectCell {...searchProps} editMode="full" />);
 
       await waitFor(() => {
         expect(screen.getByRole("listbox")).toBeInTheDocument();
@@ -628,12 +624,12 @@ describe("FilterableSelectCell", () => {
       expect(document.activeElement).toBe(button);
     });
 
-    it("popover closes when isEditing becomes false", async () => {
+    it("popover closes when editMode becomes false", async () => {
       const { rerender } = render(
         <FilterableSelectCell
           {...defaultProps}
           isActive={true}
-          isEditing={true}
+          editMode="full"
         />,
       );
 
@@ -645,7 +641,7 @@ describe("FilterableSelectCell", () => {
         <FilterableSelectCell
           {...defaultProps}
           isActive={true}
-          isEditing={false}
+          editMode={false}
         />,
       );
 
@@ -677,7 +673,7 @@ describe("FilterableSelectCell", () => {
           options={manyOptions}
           minOptionsForSearch={8}
           startEditing={startEditing}
-          isEditing={false}
+          editMode={false}
         />,
       );
 
@@ -688,14 +684,14 @@ describe("FilterableSelectCell", () => {
       // Should have called startEditing
       expect(startEditing).toHaveBeenCalled();
 
-      // Simulate the grid setting isEditing=true
+      // Simulate the grid setting editMode="full"
       rerender(
         <FilterableSelectCell
           {...defaultProps}
           options={manyOptions}
           minOptionsForSearch={8}
           startEditing={startEditing}
-          isEditing={true}
+          editMode="full"
         />,
       );
 
@@ -716,7 +712,7 @@ describe("FilterableSelectCell", () => {
           {...defaultProps}
           value={null}
           startEditing={startEditing}
-          isEditing={false}
+          editMode={false}
           minOptionsForSearch={999} // Disable search
         />,
       );
@@ -728,13 +724,13 @@ describe("FilterableSelectCell", () => {
       // Should have called startEditing
       expect(startEditing).toHaveBeenCalled();
 
-      // Simulate the grid setting isEditing=true
+      // Simulate the grid setting editMode="full"
       rerender(
         <FilterableSelectCell
           {...defaultProps}
           value={null}
           startEditing={startEditing}
-          isEditing={true}
+          editMode="full"
           minOptionsForSearch={999}
         />,
       );
@@ -757,7 +753,7 @@ describe("FilterableSelectCell", () => {
         <FilterableSelectCell
           {...defaultProps}
           value={null}
-          isEditing={true}
+          editMode="full"
           minOptionsForSearch={999}
         />,
       );
@@ -780,7 +776,7 @@ describe("FilterableSelectCell", () => {
   describe("selected option indicator", () => {
     it("shows checkmark on currently selected option", async () => {
       render(
-        <FilterableSelectCell {...defaultProps} value={2} isEditing={true} />,
+        <FilterableSelectCell {...defaultProps} value={2} editMode="full" />,
       );
 
       await waitFor(() => {
@@ -798,10 +794,10 @@ describe("FilterableSelectCell", () => {
     it("highlights selected option when popover opens", async () => {
       // Render closed first to initialize activeIndex based on value
       const { rerender } = render(
-        <FilterableSelectCell {...defaultProps} value={2} isEditing={false} />,
+        <FilterableSelectCell {...defaultProps} value={2} editMode={false} />,
       );
       rerender(
-        <FilterableSelectCell {...defaultProps} value={2} isEditing={true} />,
+        <FilterableSelectCell {...defaultProps} value={2} editMode="full" />,
       );
 
       await waitFor(() => {

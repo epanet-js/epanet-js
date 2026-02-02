@@ -26,7 +26,7 @@ type FloatCellProps = CellProps<number | null> & {
 
 export function FloatCell({
   value,
-  isEditing,
+  editMode,
   onChange,
   stopEditing,
   nullValue = null,
@@ -35,12 +35,12 @@ export function FloatCell({
   const [editValue, setEditValue] = useState("");
 
   useEffect(() => {
-    if (isEditing) {
+    if (editMode) {
       setEditValue(formatLocaleNumber(value));
       inputRef.current?.focus();
       inputRef.current?.select();
     }
-  }, [isEditing, value]);
+  }, [editMode, value]);
 
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setEditValue(
@@ -58,10 +58,10 @@ export function FloatCell({
   }, [editValue, onChange, nullValue]);
 
   const handleBlur = useCallback(() => {
-    if (!isEditing) return;
+    if (!editMode) return;
     commit();
     stopEditing();
-  }, [isEditing, commit, stopEditing]);
+  }, [editMode, commit, stopEditing]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -71,12 +71,19 @@ export function FloatCell({
       } else if (e.key === "Escape") {
         e.preventDefault();
         stopEditing();
+      } else if (
+        editMode === "quick" &&
+        ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Tab"].includes(
+          e.key,
+        )
+      ) {
+        commit();
       }
     },
-    [commit, stopEditing],
+    [editMode, commit, stopEditing],
   );
 
-  if (isEditing) {
+  if (editMode) {
     return (
       <div className="w-full h-full flex items-center">
         <input

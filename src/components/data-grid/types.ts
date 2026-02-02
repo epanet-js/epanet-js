@@ -5,10 +5,12 @@ export type GridSelection = {
   max: CellPosition;
 };
 
+export type EditMode = false | "quick" | "full";
+
 export type SelectionState = {
   activeCell: CellPosition | null;
   anchor: CellPosition | null;
-  isEditing: boolean;
+  editMode: EditMode;
 };
 
 export type RowAction = {
@@ -23,11 +25,11 @@ export type CellProps<TValue = unknown> = {
   rowIndex: number;
   columnIndex: number;
   isActive: boolean;
-  isEditing: boolean;
+  editMode: EditMode;
   readOnly: boolean;
   onChange: (newValue: TValue) => void;
   stopEditing: () => void;
-  startEditing: () => void;
+  startEditing: (mode?: "quick" | "full") => void;
 };
 
 export type GridColumn = {

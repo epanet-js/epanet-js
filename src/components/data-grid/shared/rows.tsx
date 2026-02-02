@@ -3,6 +3,7 @@ import { Table } from "@tanstack/react-table";
 import {
   CellPosition,
   DataGridVariant,
+  EditMode,
   GridColumn,
   GridSelection,
   RowAction,
@@ -16,11 +17,11 @@ export type RowsRef = {
   handleKeyDown: (e: React.KeyboardEvent) => void;
 };
 
-type RowsProps<TData> = {
+export type RowsProps<TData> = {
   table: Table<TData>;
   columns: GridColumn[];
   selection: GridSelection | null;
-  isEditing: boolean;
+  editMode: EditMode;
   isCellSelected: (col: number, row: number) => boolean;
   isCellActive: (col: number, row: number) => boolean;
   onCellMouseDown: (col: number, row: number, e: React.MouseEvent) => void;
@@ -61,7 +62,7 @@ export const Rows = forwardRef(function Rows<TData>(
     table,
     columns,
     selection,
-    isEditing,
+    editMode,
     isCellSelected,
     isCellActive,
     onCellMouseDown,
@@ -101,7 +102,7 @@ export const Rows = forwardRef(function Rows<TData>(
   const handleKeyDown = useRowsNavigation({
     activeCell,
     colCount,
-    isEditing,
+    editMode,
     moveActiveCell,
     moveToRowStart,
     moveToRowEnd,
@@ -158,7 +159,7 @@ export const Rows = forwardRef(function Rows<TData>(
                   rowIndex={rowIndex}
                   isSelected={cellSelected}
                   isActive={isCellActive(colIndex, rowIndex)}
-                  isEditing={isEditing}
+                  editMode={editMode}
                   isInteractive={isInteractive}
                   readOnly={readOnly || !!column.disabled}
                   selectionEdge={

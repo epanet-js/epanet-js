@@ -17,7 +17,7 @@ describe("useSelection", () => {
 
       expect(result.current.activeCell).toBeNull();
       expect(result.current.selection).toBeNull();
-      expect(result.current.isEditing).toBe(false);
+      expect(result.current.editMode).toBe(false);
     });
   });
 
@@ -86,13 +86,13 @@ describe("useSelection", () => {
         result.current.startEditing();
       });
 
-      expect(result.current.isEditing).toBe(true);
+      expect(result.current.editMode).toBe("full");
 
       act(() => {
         result.current.setActiveCell({ col: 1, row: 1 });
       });
 
-      expect(result.current.isEditing).toBe(false);
+      expect(result.current.editMode).toBe(false);
     });
   });
 
@@ -180,19 +180,19 @@ describe("useSelection", () => {
     it("toggles editing state", () => {
       const { result } = renderHook(() => useSelection(defaultOptions));
 
-      expect(result.current.isEditing).toBe(false);
+      expect(result.current.editMode).toBe(false);
 
       act(() => {
         result.current.startEditing();
       });
 
-      expect(result.current.isEditing).toBe(true);
+      expect(result.current.editMode).toBe("full");
 
       act(() => {
         result.current.stopEditing();
       });
 
-      expect(result.current.isEditing).toBe(false);
+      expect(result.current.editMode).toBe(false);
     });
   });
 

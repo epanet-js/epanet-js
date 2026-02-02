@@ -15,7 +15,7 @@ export function useSelection({
   const [state, setState] = useState<SelectionState>({
     activeCell: null,
     anchor: null,
-    isEditing: false,
+    editMode: false,
   });
 
   const [isDragging, setIsDragging] = useState(false);
@@ -32,7 +32,7 @@ export function useSelection({
         const maxCol = colCount - 1;
 
         if (maxRow < 0 || maxCol < 0) {
-          return { activeCell: null, anchor: null, isEditing: false };
+          return { activeCell: null, anchor: null, editMode: false };
         }
 
         const clampedActiveCell = {
@@ -58,7 +58,7 @@ export function useSelection({
           return {
             activeCell: clampedActiveCell,
             anchor: clampedAnchor,
-            isEditing: prev.isEditing,
+            editMode: prev.editMode,
           };
         }
 
@@ -95,7 +95,7 @@ export function useSelection({
         const newState: SelectionState = {
           activeCell: cell,
           anchor: extend ? (prev.anchor ?? prev.activeCell) : null,
-          isEditing: isSameCell ? prev.isEditing : false,
+          editMode: isSameCell ? prev.editMode : false,
         };
         return newState;
       });
@@ -122,13 +122,13 @@ export function useSelection({
   const setSelection = useCallback(
     (newSelection: GridSelection | null) => {
       if (newSelection === null) {
-        setState({ activeCell: null, anchor: null, isEditing: false });
+        setState({ activeCell: null, anchor: null, editMode: false });
         onSelectionChange?.(null);
       } else {
         setState({
           activeCell: newSelection.max,
           anchor: newSelection.min,
-          isEditing: false,
+          editMode: false,
         });
         onSelectionChange?.(newSelection);
       }
@@ -137,16 +137,16 @@ export function useSelection({
   );
 
   const clearSelection = useCallback(() => {
-    setState({ activeCell: null, anchor: null, isEditing: false });
+    setState({ activeCell: null, anchor: null, editMode: false });
     onSelectionChange?.(null);
   }, [onSelectionChange]);
 
-  const startEditing = useCallback(() => {
-    setState((prev) => ({ ...prev, isEditing: true }));
+  const startEditing = useCallback((mode: "quick" | "full" = "full") => {
+    setState((prev) => ({ ...prev, editMode: mode }));
   }, []);
 
   const stopEditing = useCallback(() => {
-    setState((prev) => ({ ...prev, isEditing: false }));
+    setState((prev) => ({ ...prev, editMode: false }));
   }, []);
 
   const moveActiveCell = useCallback(
@@ -193,7 +193,7 @@ export function useSelection({
         return {
           activeCell: newCell,
           anchor: newAnchor,
-          isEditing: false,
+          editMode: false,
         };
       });
     },
@@ -224,7 +224,7 @@ export function useSelection({
         anchor: extend
           ? (state.anchor ?? { col: 0, row: state.activeCell?.row ?? rowIndex })
           : { col: 0, row: rowIndex },
-        isEditing: false,
+        editMode: false,
       });
       onSelectionChange?.(newSelection);
     },
@@ -241,7 +241,7 @@ export function useSelection({
       setState({
         activeCell: { col: colIndex, row: rowCount - 1 },
         anchor: { col: colIndex, row: 0 },
-        isEditing: false,
+        editMode: false,
       });
       onSelectionChange?.(newSelection);
     },
@@ -259,7 +259,7 @@ export function useSelection({
     setState({
       activeCell: { col: colCount - 1, row: rowCount - 1 },
       anchor: { col: 0, row: 0 },
-      isEditing: false,
+      editMode: false,
     });
     onSelectionChange?.(newSelection);
   }, [rowCount, colCount, onSelectionChange]);
@@ -290,7 +290,7 @@ export function useSelection({
         return {
           activeCell: newCell,
           anchor: newAnchor,
-          isEditing: false,
+          editMode: false,
         };
       });
     },
@@ -323,7 +323,7 @@ export function useSelection({
         return {
           activeCell: newCell,
           anchor: newAnchor,
-          isEditing: false,
+          editMode: false,
         };
       });
     },
@@ -337,7 +337,7 @@ export function useSelection({
           // If no active cell, just set to first cell
           const newCell = { col: 0, row: 0 };
           onSelectionChange?.({ min: newCell, max: newCell });
-          return { activeCell: newCell, anchor: null, isEditing: false };
+          return { activeCell: newCell, anchor: null, editMode: false };
         }
 
         const newCell = { col: 0, row: 0 };
@@ -361,7 +361,7 @@ export function useSelection({
         return {
           activeCell: newCell,
           anchor: newAnchor,
-          isEditing: false,
+          editMode: false,
         };
       });
     },
@@ -374,7 +374,7 @@ export function useSelection({
         if (!prev.activeCell && !extend) {
           const newCell = { col: colCount - 1, row: rowCount - 1 };
           onSelectionChange?.({ min: newCell, max: newCell });
-          return { activeCell: newCell, anchor: null, isEditing: false };
+          return { activeCell: newCell, anchor: null, editMode: false };
         }
 
         const newCell = { col: colCount - 1, row: rowCount - 1 };
@@ -398,7 +398,7 @@ export function useSelection({
         return {
           activeCell: newCell,
           anchor: newAnchor,
-          isEditing: false,
+          editMode: false,
         };
       });
     },
@@ -436,7 +436,7 @@ export function useSelection({
         return {
           activeCell: newCell,
           anchor: newAnchor,
-          isEditing: false,
+          editMode: false,
         };
       });
     },
@@ -472,7 +472,7 @@ export function useSelection({
   return {
     activeCell: state.activeCell,
     selection,
-    isEditing: state.isEditing,
+    editMode: state.editMode,
     isFullRowSelected,
     setActiveCell,
     setSelection,

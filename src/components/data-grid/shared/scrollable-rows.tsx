@@ -12,6 +12,7 @@ import clsx from "clsx";
 import {
   CellPosition,
   DataGridVariant,
+  EditMode,
   GridColumn,
   GridSelection,
   RowAction,
@@ -24,11 +25,11 @@ import { RowsRef } from "./rows";
 
 export const ROW_HEIGHT = 32; // h-8, needed for virtualizer estimateSize
 
-type ScrollableRowsProps<TData> = {
+export type ScrollableRowsProps<TData> = {
   table: Table<TData>;
   columns: GridColumn[];
   selection: GridSelection | null;
-  isEditing: boolean;
+  editMode: EditMode;
   isCellSelected: (col: number, row: number) => boolean;
   isCellActive: (col: number, row: number) => boolean;
   onCellMouseDown: (col: number, row: number, e: React.MouseEvent) => void;
@@ -70,7 +71,7 @@ export const ScrollableRows = forwardRef(function ScrollableRows<TData>(
     table,
     columns,
     selection,
-    isEditing,
+    editMode,
     isCellSelected,
     isCellActive,
     onCellMouseDown,
@@ -167,7 +168,7 @@ export const ScrollableRows = forwardRef(function ScrollableRows<TData>(
   const handleKeyDown = useRowsNavigation({
     activeCell,
     colCount,
-    isEditing,
+    editMode,
     moveActiveCell,
     moveToRowStart,
     moveToRowEnd,
@@ -298,7 +299,7 @@ export const ScrollableRows = forwardRef(function ScrollableRows<TData>(
                       rowIndex={rowIndex}
                       isSelected={cellSelected}
                       isActive={isCellActive(colIndex, rowIndex)}
-                      isEditing={isEditing}
+                      editMode={editMode}
                       isInteractive={isInteractive}
                       readOnly={readOnly || !!column.disabled}
                       selectionEdge={

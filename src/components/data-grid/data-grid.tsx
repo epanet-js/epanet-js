@@ -63,7 +63,7 @@ export const DataGrid = forwardRef(function DataGrid<
   const {
     activeCell,
     selection,
-    isEditing,
+    editMode,
     isFullRowSelected,
     setActiveCell,
     setSelection,
@@ -97,7 +97,7 @@ export const DataGrid = forwardRef(function DataGrid<
   const handleEditingKeyDown = useGridEditing({
     activeCell,
     selection,
-    isEditing,
+    editMode,
     isFullRowSelected,
     columns,
     data,
@@ -126,12 +126,12 @@ export const DataGrid = forwardRef(function DataGrid<
   const wasEditingRef = useRef(false);
   useEffect(
     function refocusWhenEditingStops() {
-      if (wasEditingRef.current && !isEditing) {
+      if (wasEditingRef.current && !editMode) {
         gridRef.current?.focus();
       }
-      wasEditingRef.current = isEditing;
+      wasEditingRef.current = !!editMode;
     },
-    [isEditing],
+    [editMode],
   );
 
   useEffect(
@@ -213,7 +213,7 @@ export const DataGrid = forwardRef(function DataGrid<
       if (readOnly) return;
       const column = columns[col] as GridColumn | undefined;
       if (!column?.disabled && !column?.disableKeys) {
-        startEditing();
+        startEditing("full");
       }
     },
     [columns, readOnly, startEditing],
@@ -263,7 +263,7 @@ export const DataGrid = forwardRef(function DataGrid<
     table,
     columns,
     selection,
-    isEditing,
+    editMode,
     isCellSelected,
     isCellActive,
     onCellMouseDown: handleCellMouseDown,

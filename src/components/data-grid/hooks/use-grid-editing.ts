@@ -1,10 +1,10 @@
 import { useCallback } from "react";
-import { CellPosition, GridColumn, GridSelection } from "../types";
+import { CellPosition, EditMode, GridColumn, GridSelection } from "../types";
 
 type UseGridEditingOptions<TData extends Record<string, unknown>> = {
   activeCell: CellPosition | null;
   selection: GridSelection | null;
-  isEditing: boolean;
+  editMode: EditMode;
   isFullRowSelected: boolean;
   columns: GridColumn[];
   data: TData[];
@@ -16,7 +16,7 @@ type UseGridEditingOptions<TData extends Record<string, unknown>> = {
     extend?: boolean,
   ) => void;
   setSelection: (selection: GridSelection | null) => void;
-  startEditing: () => void;
+  startEditing: (mode: "quick" | "full") => void;
   stopEditing: () => void;
   clearSelection: () => void;
   blurGrid: () => void;
@@ -25,7 +25,7 @@ type UseGridEditingOptions<TData extends Record<string, unknown>> = {
 export function useGridEditing<TData extends Record<string, unknown>>({
   activeCell,
   selection,
-  isEditing,
+  editMode,
   isFullRowSelected,
   columns,
   data,
@@ -58,7 +58,7 @@ export function useGridEditing<TData extends Record<string, unknown>>({
         (e.shiftKey && atLeftEdge) || (!e.shiftKey && atRightEdge);
 
       // Handle keys while editing
-      if (isEditing) {
+      if (editMode) {
         if (e.key === "Enter" && !e.shiftKey) {
           e.preventDefault();
           stopEditing();
@@ -81,7 +81,16 @@ export function useGridEditing<TData extends Record<string, unknown>>({
           e.stopPropagation();
           stopEditing();
           return;
+        } else if (
+          editMode === "quick" &&
+          ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)
+        ) {
+          // In quick mode, commit on arrow keys (navigation handled by use-rows-navigation)
+          e.preventDefault();
+          stopEditing();
+          return;
         }
+        // In full mode, arrow keys are handled by the input (cursor movement)
         // Let other keys pass through to the cell input
         return;
       }
@@ -93,7 +102,7 @@ export function useGridEditing<TData extends Record<string, unknown>>({
           if (activeCell && !readOnly) {
             const column = columns[activeCell.col];
             if (!column?.disabled && !column?.disableKeys) {
-              startEditing();
+              startEditing("full");
             }
           }
           break;
@@ -122,7 +131,7 @@ export function useGridEditing<TData extends Record<string, unknown>>({
           break;
 
         default:
-          // Character input starts editing
+          // Character input starts editing in quick mode
           if (
             activeCell &&
             !readOnly &&
@@ -133,14 +142,14 @@ export function useGridEditing<TData extends Record<string, unknown>>({
           ) {
             const column = columns[activeCell.col];
             if (!column?.disabled && !column?.disableKeys) {
-              startEditing();
+              startEditing("quick");
             }
           }
           break;
       }
     },
     [
-      isEditing,
+      editMode,
       activeCell,
       selection,
       columns,

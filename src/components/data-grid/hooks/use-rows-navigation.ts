@@ -1,10 +1,10 @@
 import { useCallback } from "react";
-import { CellPosition } from "../types";
+import { CellPosition, EditMode } from "../types";
 
 type UseRowsNavigationOptions = {
   activeCell: CellPosition | null;
   colCount: number;
-  isEditing: boolean;
+  editMode: EditMode;
   moveActiveCell: (
     direction: "up" | "down" | "left" | "right",
     extend?: boolean,
@@ -29,7 +29,7 @@ type UseRowsNavigationOptions = {
 export function useRowsNavigation({
   activeCell,
   colCount,
-  isEditing,
+  editMode,
   moveActiveCell,
   moveToRowStart,
   moveToRowEnd,
@@ -45,31 +45,37 @@ export function useRowsNavigation({
 }: UseRowsNavigationOptions) {
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
-      // Don't handle navigation while editing - let it bubble up
-      if (isEditing) return;
+      // In full edit mode, skip navigation - let arrow keys move cursor in input
+      if (editMode === "full") {
+        return;
+      }
 
       const isMod = e.ctrlKey || e.metaKey;
       const atLeftEdge = activeCell?.col === 0;
       const atRightEdge = activeCell?.col === colCount - 1;
 
+      // In quick edit mode, handle arrow keys but don't preventDefault
+      // This lets the event bubble to use-grid-editing for commit handling
+      const shouldPreventDefault = !editMode;
+
       switch (e.key) {
         case "ArrowUp":
-          e.preventDefault();
+          if (shouldPreventDefault) e.preventDefault();
           moveActiveCell("up", e.shiftKey);
           break;
 
         case "ArrowDown":
-          e.preventDefault();
+          if (shouldPreventDefault) e.preventDefault();
           moveActiveCell("down", e.shiftKey);
           break;
 
         case "ArrowLeft":
-          e.preventDefault();
+          if (shouldPreventDefault) e.preventDefault();
           moveActiveCell("left", e.shiftKey);
           break;
 
         case "ArrowRight":
-          e.preventDefault();
+          if (shouldPreventDefault) e.preventDefault();
           moveActiveCell("right", e.shiftKey);
           break;
 
@@ -140,7 +146,7 @@ export function useRowsNavigation({
       }
     },
     [
-      isEditing,
+      editMode,
       activeCell,
       colCount,
       moveActiveCell,

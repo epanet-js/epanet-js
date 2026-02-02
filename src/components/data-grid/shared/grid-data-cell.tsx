@@ -1,6 +1,6 @@
 import { Cell } from "@tanstack/react-table";
 import clsx from "clsx";
-import { DataGridVariant, GridColumn } from "../types";
+import { DataGridVariant, EditMode, GridColumn } from "../types";
 
 export type SelectionEdge = {
   top: boolean;
@@ -15,7 +15,7 @@ type GridDataCellProps<T> = {
   rowIndex: number;
   isSelected: boolean;
   isActive: boolean;
-  isEditing: boolean;
+  editMode: EditMode;
   isInteractive: boolean;
   readOnly: boolean;
   selectionEdge?: SelectionEdge;
@@ -36,7 +36,7 @@ export function GridDataCell<T>({
   rowIndex,
   isSelected,
   isActive,
-  isEditing,
+  editMode,
   isInteractive,
   readOnly,
   selectionEdge,
@@ -97,7 +97,7 @@ export function GridDataCell<T>({
           rowIndex={rowIndex}
           columnIndex={colIndex}
           isActive={isActive && isInteractive}
-          isEditing={isActive && isEditing}
+          editMode={isActive ? editMode : false}
           readOnly={readOnly}
           onChange={(newValue) => onChange?.(newValue)}
           stopEditing={onBlur}

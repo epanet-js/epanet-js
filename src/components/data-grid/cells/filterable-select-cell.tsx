@@ -85,13 +85,14 @@ export function FilterableSelectCell({
   stopEditing: onClose,
   startEditing: onOpen,
   isActive,
-  isEditing: isOpen,
+  editMode,
   readOnly,
   options,
   placeholder,
   minOptionsForSearch = 8,
 }: CellProps<string | number | null> &
   FilterableSelectCellProps<string | number>) {
+  const isOpen = !!editMode;
   const showSearch = options.length >= minOptionsForSearch;
   const buttonRef = useRef<HTMLButtonElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -136,11 +137,14 @@ export function FilterableSelectCell({
     [isOpen, showSearch, options, value],
   );
 
-  const closePopover = useCallback(() => {
+  const commit = useCallback(() => {
+    if (filteredOptions[activeIndex]) {
+      onChange(filteredOptions[activeIndex].value);
+    }
     onClose();
-  }, [onClose]);
+  }, [filteredOptions, activeIndex, onChange, onClose]);
 
-  const commit = useCallback(
+  const handleOptionClick = useCallback(
     (option: FilterableSelectOption<string | number>) => {
       onChange(option.value);
       onClose();
@@ -176,17 +180,12 @@ export function FilterableSelectCell({
         return;
       }
 
-      // Enter - commit highlighted item
       if (e.key === "Enter") {
         e.preventDefault();
-        e.stopPropagation();
-        if (filteredOptions[activeIndex]) {
-          commit(filteredOptions[activeIndex]);
-        }
+        commit();
         return;
       }
 
-      // Escape - go back to search mode or close
       if (e.key === "Escape") {
         e.preventDefault();
         e.stopPropagation();
@@ -196,24 +195,17 @@ export function FilterableSelectCell({
           searchInputRef.current?.focus();
           searchInputRef.current?.select();
         } else {
-          closePopover();
+          onClose();
         }
         return;
       }
 
-      // Tab - commit and close
       if (e.key === "Tab") {
         e.preventDefault();
-        e.stopPropagation();
-        if (filteredOptions[activeIndex]) {
-          commit(filteredOptions[activeIndex]);
-        } else {
-          closePopover();
-        }
+        commit();
         return;
       }
 
-      // Backspace/Delete - stop propagation to prevent grid from handling it
       if (showSearch && (e.key === "Backspace" || e.key === "Delete")) {
         e.stopPropagation();
         if (isNavigating) {
@@ -224,7 +216,6 @@ export function FilterableSelectCell({
         return;
       }
 
-      // Character keys - go to search mode or typeahead
       if (e.key.length === 1 && !e.ctrlKey && !e.metaKey) {
         if (showSearch) {
           setMode("search");
@@ -239,14 +230,7 @@ export function FilterableSelectCell({
         }
       }
     },
-    [
-      filteredOptions,
-      activeIndex,
-      isNavigating,
-      showSearch,
-      commit,
-      closePopover,
-    ],
+    [filteredOptions, isNavigating, showSearch, commit, onClose],
   );
 
   const handleTriggerKeyDown = useCallback(
@@ -282,7 +266,6 @@ export function FilterableSelectCell({
             setActiveIndex(matchIndex);
           }
         }
-
         onOpen();
       }
     },
@@ -343,22 +326,13 @@ export function FilterableSelectCell({
             align="start"
             className="bg-white min-w-[180px] border text-sm rounded-md shadow-md z-50 mt-1"
             onOpenAutoFocus={(e) => e.preventDefault()}
-            onCloseAutoFocus={(e) => {
-              e.preventDefault();
-              buttonRef.current?.focus();
-            }}
+            onCloseAutoFocus={(e) => e.preventDefault()}
             onPointerDownOutside={(e) => {
-              // Don't close if clicking the trigger button - let Radix's toggle handle it
               if (buttonRef.current?.contains(e.target as Node)) {
                 e.preventDefault(); // Prevent Radix from closing, so toggle works
                 return;
               }
-              // Commit highlighted option when clicking outside
-              if (filteredOptions[activeIndex]) {
-                commit(filteredOptions[activeIndex]);
-              } else {
-                onClose();
-              }
+              commit();
             }}
             onEscapeKeyDown={(e) => {
               // Prevent Radix from handling escape - we handle it in handlePopoverKeyDown
@@ -387,7 +361,7 @@ export function FilterableSelectCell({
                 options={filteredOptions}
                 activeIndex={activeIndex}
                 selected={value}
-                onSelect={commit}
+                onSelect={handleOptionClick}
               />
             </div>
           </Popover.Content>
