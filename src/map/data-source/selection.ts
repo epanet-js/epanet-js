@@ -10,11 +10,13 @@ import {
   appendValveStatus,
   appendPipeArrowProps,
 } from "./features";
+import type { ResultsReader } from "src/simulation/results-reader";
 
 export const buildSelectionSource = (
   assets: AssetsMap,
   selection: Sel,
   movedAssetIds: Set<AssetId> = new Set(),
+  simulationResults?: ResultsReader | null,
 ): Feature[] => {
   const selectedIds = USelection.toIds(selection);
   if (selectedIds.length === 0) {
@@ -38,7 +40,9 @@ export const buildSelectionSource = (
     const featureId = buildFeatureId(assetId);
 
     if (asset.isLink) {
-      features.push(buildLinkSelectionFeature(asset, featureId));
+      features.push(
+        buildLinkSelectionFeature(asset, featureId, simulationResults),
+      );
 
       const needsIcon =
         asset.type === "pump" ||
@@ -63,6 +67,7 @@ export const buildSelectionSource = (
 const buildLinkSelectionFeature = (
   asset: Asset,
   featureId: AssetId,
+  simulationResults?: ResultsReader | null,
 ): Feature => {
   const feature: Feature = {
     type: "Feature",
@@ -76,8 +81,8 @@ const buildLinkSelectionFeature = (
 
   switch (asset.type) {
     case "pipe":
-      appendPipeStatus(asset as Pipe, feature);
-      appendPipeArrowProps(asset as Pipe, feature);
+      appendPipeStatus(asset as Pipe, feature, simulationResults);
+      appendPipeArrowProps(asset as Pipe, feature, simulationResults);
       break;
     case "pump":
       appendPumpStatus(asset as Pump, feature);

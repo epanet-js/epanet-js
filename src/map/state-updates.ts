@@ -395,12 +395,18 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           );
         }
 
-        if (hasNewSelection || hasNewStyles || hasNewEditions) {
+        if (
+          hasNewSelection ||
+          hasNewStyles ||
+          hasNewEditions ||
+          (hasNewSimulation && mapState.simulation.status !== "running")
+        ) {
           await updateSelection(
             map,
             mapState.selection,
             assets,
             mapState.movedAssetIds,
+            resultsReader,
           );
 
           await hideSymbologyForSelectedJunctions(
@@ -661,8 +667,14 @@ const updateSelection = withDebugInstrumentation(
     selection: Sel,
     assets: AssetsMap,
     movedAssetIds: Set<AssetId>,
+    simulationResults?: ResultsReader | null,
   ): Promise<void> => {
-    const features = buildSelectionSource(assets, selection, movedAssetIds);
+    const features = buildSelectionSource(
+      assets,
+      selection,
+      movedAssetIds,
+      simulationResults,
+    );
 
     await map.setSource("selected-features", features);
   },
