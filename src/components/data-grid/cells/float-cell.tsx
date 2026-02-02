@@ -78,16 +78,18 @@ export function FloatCell({
 
   if (isEditing) {
     return (
-      <input
-        ref={inputRef}
-        type="text"
-        inputMode="decimal"
-        value={editValue}
-        onChange={handleChange}
-        onBlur={handleBlur}
-        onKeyDown={handleKeyDown}
-        className="w-full h-full px-2 text-sm tabular-nums outline-none border-none ring-0 focus:outline-none focus:ring-0 bg-transparent"
-      />
+      <div className="w-full h-full flex items-center">
+        <input
+          ref={inputRef}
+          type="text"
+          inputMode="decimal"
+          value={editValue}
+          onChange={handleChange}
+          onBlur={handleBlur}
+          onKeyDown={handleKeyDown}
+          className="w-full px-2 text-sm tabular-nums outline-none border-none ring-0 focus:outline-none focus:ring-0 bg-transparent"
+        />
+      </div>
     );
   }
 

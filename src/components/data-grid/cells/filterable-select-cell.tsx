@@ -353,7 +353,12 @@ export function FilterableSelectCell({
                 e.preventDefault(); // Prevent Radix from closing, so toggle works
                 return;
               }
-              onClose();
+              // Commit highlighted option when clicking outside
+              if (filteredOptions[activeIndex]) {
+                commit(filteredOptions[activeIndex]);
+              } else {
+                onClose();
+              }
             }}
             onEscapeKeyDown={(e) => {
               // Prevent Radix from handling escape - we handle it in handlePopoverKeyDown
@@ -382,7 +387,6 @@ export function FilterableSelectCell({
                 options={filteredOptions}
                 activeIndex={activeIndex}
                 selected={value}
-                onActiveIndexChange={setActiveIndex}
                 onSelect={commit}
               />
             </div>
@@ -397,7 +401,6 @@ type OptionsListProps = {
   options: FilterableSelectOption<string | number>[];
   activeIndex: number;
   selected: string | number | null;
-  onActiveIndexChange: (index: number) => void;
   onSelect: (option: FilterableSelectOption<string | number>) => void;
 };
 
@@ -405,7 +408,6 @@ const OptionsList: FunctionComponent<OptionsListProps> = ({
   options,
   activeIndex,
   selected,
-  onActiveIndexChange,
   onSelect,
 }) => {
   const listRef = useRef<HTMLUListElement | null>(null);
@@ -445,10 +447,8 @@ const OptionsList: FunctionComponent<OptionsListProps> = ({
         <Option
           key={option.value}
           option={option}
-          index={index}
           isActive={index === activeIndex}
           isSelected={option.value === selected}
-          onMouseEnter={onActiveIndexChange}
           onMouseDown={preventFocusOnListItem}
           onClick={onSelect}
         />
@@ -459,20 +459,16 @@ const OptionsList: FunctionComponent<OptionsListProps> = ({
 
 type OptionProps = {
   option: FilterableSelectOption<string | number>;
-  index: number;
   isActive: boolean;
   isSelected: boolean;
-  onMouseEnter: (index: number) => void;
   onMouseDown: (e: React.MouseEvent) => void;
   onClick: (option: FilterableSelectOption<string | number>) => void;
 };
 
 const Option: FunctionComponent<OptionProps> = ({
   option,
-  index,
   isActive,
   isSelected,
-  onMouseEnter,
   onMouseDown,
   onClick,
 }) => {
@@ -485,7 +481,6 @@ const Option: FunctionComponent<OptionProps> = ({
         isActive && "bg-purple-300/40",
         !isActive && "hover:bg-gray-100",
       )}
-      onMouseEnter={() => onMouseEnter(index)}
       onMouseDown={onMouseDown}
       onClick={() => onClick(option)}
     >
