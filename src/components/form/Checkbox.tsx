@@ -14,6 +14,7 @@ export const Checkbox = ({
             : "cursor-pointer bg-gray-50 focus:ring-purple-500"
         }
       `}
+      disabled={disabled}
       {...props}
     />
   );
