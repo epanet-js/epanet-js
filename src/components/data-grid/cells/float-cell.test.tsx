@@ -62,7 +62,7 @@ describe("FloatCell", () => {
       expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
     });
 
-    it("populates input with raw value (not formatted)", () => {
+    it("populates input with formatted value (not formatted)", () => {
       render(
         <FloatCell
           {...defaultProps}
@@ -73,7 +73,7 @@ describe("FloatCell", () => {
       );
 
       const input = screen.getByRole("textbox");
-      expect(input).toHaveValue("1234.5");
+      expect(input).toHaveValue("1,234.5");
     });
 
     it("populates input with empty string for null value", () => {

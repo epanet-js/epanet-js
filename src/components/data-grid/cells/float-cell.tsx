@@ -1,10 +1,24 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  formatNumericDisplay,
   normalizeNumericInput,
   parseNumericInput,
 } from "src/components/form/numeric-input-utils";
 import { CellProps, GridColumn } from "../types";
+
+function formatLocaleNumber(value: number | null | undefined): string {
+  if (value === null || value === undefined) return "";
+
+  const strValue = value.toString();
+  const decimalIndex = strValue.indexOf(".");
+  const decimalPlaces =
+    decimalIndex >= 0 ? strValue.length - decimalIndex - 1 : 0;
+
+  return new Intl.NumberFormat(undefined, {
+    minimumFractionDigits: decimalPlaces,
+    maximumFractionDigits: decimalPlaces,
+    useGrouping: true,
+  }).format(value);
+}
 
 type FloatCellProps = CellProps<number | null> & {
   nullValue?: number | null;
@@ -23,7 +37,7 @@ export function FloatCell({
 
   useEffect(() => {
     if (isEditing && focus) {
-      setEditValue(value?.toString() ?? "");
+      setEditValue(formatLocaleNumber(value));
       inputRef.current?.focus();
       inputRef.current?.select();
     }
@@ -79,19 +93,12 @@ export function FloatCell({
   }
 
   return (
-    <div className="w-full h-full flex items-center px-2 text-sm tabular-nums">
-      {formatNumericDisplay(value)}
+    <div className="w-full h-full flex items-center px-2 text-sm tabular-nums min-w-0">
+      <span className="truncate">{formatLocaleNumber(value)}</span>
     </div>
   );
 }
 
-/**
- * Creates a float (number) column.
- *
- * @example
- * floatColumn("price", { header: "Price", size: 100, deleteValue: 0 })
- * floatColumn("quantity", { header: "Qty", nullValue: 0 }) // empty input becomes 0
- */
 export function floatColumn(
   accessorKey: string,
   options: {
