@@ -277,26 +277,49 @@ export class Persistence implements IPersistenceWithSnapshots {
     const snapshot = worktree.snapshots.get(snapshotId);
     if (!snapshot) return;
 
+    const currentSimulation = this.store.get(simulationAtom);
+    const preserveTimestepIndex =
+      currentSimulation.status === "success" ||
+      currentSimulation.status === "warning"
+        ? currentSimulation.currentTimestepIndex
+        : undefined;
+
     const stagingModel = this.getOrBuildModel(worktree, snapshotId);
     const baseModel = this.getOrBuildModel(worktree, worktree.mainId);
     const simulation = getSimulationForState(worktree, initialSimulationState);
-    const resultsReader = await this.loadSimulationResults(
-      simulation,
-      snapshotId,
-    );
+    const { resultsReader, actualTimestepIndex } =
+      await this.loadSimulationResults(
+        simulation,
+        snapshotId,
+        preserveTimestepIndex,
+      );
+
+    const finalSimulation =
+      actualTimestepIndex !== undefined &&
+      (simulation.status === "success" || simulation.status === "warning")
+        ? { ...simulation, currentTimestepIndex: actualTimestepIndex }
+        : simulation;
 
     this.store.set(stagingModelAtom, stagingModel);
     this.store.set(baseModelAtom, baseModel);
     this.switchMomentLog(snapshot.momentLog);
     this.setModelVersion(snapshot.version);
-    this.store.set(simulationAtom, simulation);
+    this.store.set(simulationAtom, finalSimulation);
     this.store.set(simulationResultsAtom, resultsReader);
   }
 
   private async loadSimulationResults(
     simulation: SimulationState,
     snapshotId: string,
-  ) {
+    preserveTimestepIndex?: number,
+  ): Promise<{
+    resultsReader: Awaited<
+      ReturnType<
+        import("src/simulation").EPSResultsReader["getResultsForTimestep"]
+      >
+    > | null;
+    actualTimestepIndex?: number;
+  }> {
     if (
       (simulation.status === "success" || simulation.status === "warning") &&
       simulation.metadata
@@ -312,10 +335,22 @@ export class Persistence implements IPersistenceWithSnapshots {
       const storage = new OPFSStorage(appId, snapshotId);
       const epsReader = new EPSResultsReader(storage);
       await epsReader.initialize(simulation.metadata, simulation.simulationIds);
-      const timestepIndex = simulation.currentTimestepIndex ?? 0;
-      return epsReader.getResultsForTimestep(timestepIndex);
+
+      let timestepIndex: number;
+      if (preserveTimestepIndex !== undefined) {
+        timestepIndex = Math.min(
+          preserveTimestepIndex,
+          epsReader.timestepCount - 1,
+        );
+      } else {
+        timestepIndex = simulation.currentTimestepIndex ?? 0;
+      }
+
+      const resultsReader =
+        await epsReader.getResultsForTimestep(timestepIndex);
+      return { resultsReader, actualTimestepIndex: timestepIndex };
     }
-    return null;
+    return { resultsReader: null };
   }
 
   private getOrBuildModel(
