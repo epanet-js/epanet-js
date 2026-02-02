@@ -10,11 +10,9 @@ const defaultProps = {
   columnIndex: 0,
   isActive: false,
   isEditing: false,
-  isSelected: false,
   readOnly: false,
   onChange: vi.fn(),
   stopEditing: vi.fn(),
-  focus: false,
 };
 
 describe("FloatCell", () => {
@@ -50,41 +48,21 @@ describe("FloatCell", () => {
   });
 
   describe("edit mode", () => {
-    it("renders input when isEditing and focus are true", () => {
-      render(<FloatCell {...defaultProps} isEditing={true} focus={true} />);
+    it("renders input when isEditing is true", () => {
+      render(<FloatCell {...defaultProps} isEditing={true} />);
 
       expect(screen.getByRole("textbox")).toBeInTheDocument();
     });
 
-    it("does not render input when only isEditing is true", () => {
-      render(<FloatCell {...defaultProps} isEditing={true} focus={false} />);
-
-      expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
-    });
-
-    it("populates input with formatted value (not formatted)", () => {
-      render(
-        <FloatCell
-          {...defaultProps}
-          value={1234.5}
-          isEditing={true}
-          focus={true}
-        />,
-      );
+    it("populates input with formatted value", () => {
+      render(<FloatCell {...defaultProps} value={1234.5} isEditing={true} />);
 
       const input = screen.getByRole("textbox");
       expect(input).toHaveValue("1,234.5");
     });
 
     it("populates input with empty string for null value", () => {
-      render(
-        <FloatCell
-          {...defaultProps}
-          value={null}
-          isEditing={true}
-          focus={true}
-        />,
-      );
+      render(<FloatCell {...defaultProps} value={null} isEditing={true} />);
 
       const input = screen.getByRole("textbox");
       expect(input).toHaveValue("");
@@ -95,9 +73,7 @@ describe("FloatCell", () => {
     it("accepts numeric input", async () => {
       const user = setupUser();
 
-      render(
-        <FloatCell {...defaultProps} value={0} isEditing={true} focus={true} />,
-      );
+      render(<FloatCell {...defaultProps} value={0} isEditing={true} />);
 
       const input = screen.getByRole("textbox");
       await user.clear(input);
@@ -109,9 +85,7 @@ describe("FloatCell", () => {
     it("normalizes comma to be kept (comma is allowed)", async () => {
       const user = setupUser();
 
-      render(
-        <FloatCell {...defaultProps} value={0} isEditing={true} focus={true} />,
-      );
+      render(<FloatCell {...defaultProps} value={0} isEditing={true} />);
 
       const input = screen.getByRole("textbox");
       await user.clear(input);
@@ -124,9 +98,7 @@ describe("FloatCell", () => {
     it("accepts negative numbers", async () => {
       const user = setupUser();
 
-      render(
-        <FloatCell {...defaultProps} value={0} isEditing={true} focus={true} />,
-      );
+      render(<FloatCell {...defaultProps} value={0} isEditing={true} />);
 
       const input = screen.getByRole("textbox");
       await user.clear(input);
@@ -138,9 +110,7 @@ describe("FloatCell", () => {
     it("filters out letters", async () => {
       const user = setupUser();
 
-      render(
-        <FloatCell {...defaultProps} value={0} isEditing={true} focus={true} />,
-      );
+      render(<FloatCell {...defaultProps} value={0} isEditing={true} />);
 
       const input = screen.getByRole("textbox");
       await user.clear(input);
@@ -161,7 +131,6 @@ describe("FloatCell", () => {
           {...defaultProps}
           value={0}
           isEditing={true}
-          focus={true}
           onChange={onChange}
           stopEditing={stopEditing}
         />,
@@ -187,7 +156,6 @@ describe("FloatCell", () => {
             {...defaultProps}
             value={0}
             isEditing={true}
-            focus={true}
             onChange={onChange}
             stopEditing={stopEditing}
           />
@@ -213,7 +181,6 @@ describe("FloatCell", () => {
           {...defaultProps}
           value={0}
           isEditing={true}
-          focus={true}
           onChange={onChange}
           stopEditing={vi.fn()}
         />,
@@ -236,7 +203,6 @@ describe("FloatCell", () => {
           {...defaultProps}
           value={0}
           isEditing={true}
-          focus={true}
           onChange={onChange}
           stopEditing={vi.fn()}
         />,
@@ -261,7 +227,6 @@ describe("FloatCell", () => {
           {...defaultProps}
           value={5}
           isEditing={true}
-          focus={true}
           onChange={onChange}
           stopEditing={stopEditing}
         />,

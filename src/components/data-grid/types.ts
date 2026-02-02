@@ -24,11 +24,9 @@ export type CellProps<TValue = unknown> = {
   columnIndex: number;
   isActive: boolean;
   isEditing: boolean;
-  isSelected: boolean;
   readOnly: boolean;
   onChange: (newValue: TValue) => void;
   stopEditing: () => void;
-  focus: boolean;
 };
 
 export type GridColumn = {

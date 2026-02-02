@@ -91,11 +91,9 @@ describe("FilterableSelectCell", () => {
     isEditing: false,
     onChange: vi.fn(),
     stopEditing: vi.fn(),
-    focus: true,
     rowIndex: 0,
     columnIndex: 0,
     isActive: true,
-    isSelected: true,
     readOnly: false,
     options,
     placeholder: "Select...",
@@ -150,13 +148,14 @@ describe("FilterableSelectCell", () => {
       });
     });
 
-    it("opens on ArrowDown key", async () => {
-      const user = setupUser();
-      render(<FilterableSelectCell {...defaultProps} />);
+    it("opens when isEditing becomes true", async () => {
+      const { rerender } = render(
+        <FilterableSelectCell {...defaultProps} isEditing={false} />,
+      );
 
-      const button = screen.getByRole("button");
-      button.focus();
-      await user.keyboard("{ArrowDown}");
+      expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
+
+      rerender(<FilterableSelectCell {...defaultProps} isEditing={true} />);
 
       await waitFor(() => {
         expect(screen.getByRole("listbox")).toBeInTheDocument();
@@ -469,17 +468,17 @@ describe("FilterableSelectCell", () => {
   });
 
   describe("focus behavior", () => {
-    it("focuses button when focus prop is true", () => {
-      render(<FilterableSelectCell {...defaultProps} focus={true} />);
+    it("focuses button when isActive prop is true", () => {
+      render(<FilterableSelectCell {...defaultProps} isActive={true} />);
 
       const button = screen.getByRole("button");
       expect(document.activeElement).toBe(button);
     });
 
-    it("closes popover when focus becomes false", async () => {
+    it("closes popover when isActive becomes false", async () => {
       const user = setupUser();
       const { rerender } = render(
-        <FilterableSelectCell {...defaultProps} focus={true} />,
+        <FilterableSelectCell {...defaultProps} isActive={true} />,
       );
 
       await user.click(screen.getByRole("button"));
@@ -487,16 +486,16 @@ describe("FilterableSelectCell", () => {
         expect(screen.getByRole("listbox")).toBeInTheDocument();
       });
 
-      rerender(<FilterableSelectCell {...defaultProps} focus={false} />);
+      rerender(<FilterableSelectCell {...defaultProps} isActive={false} />);
 
       await waitFor(() => {
         expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
       });
     });
 
-    it("disables pointer events when focus is false", () => {
+    it("disables pointer events when isActive is false", () => {
       const { container } = render(
-        <FilterableSelectCell {...defaultProps} focus={false} />,
+        <FilterableSelectCell {...defaultProps} isActive={false} />,
       );
 
       const wrapper = container.firstChild as HTMLElement;

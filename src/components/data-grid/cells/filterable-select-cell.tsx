@@ -71,7 +71,8 @@ export function FilterableSelectCell({
   value,
   onChange,
   stopEditing,
-  focus,
+  isActive,
+  isEditing,
   readOnly,
   options,
   placeholder,
@@ -91,9 +92,11 @@ export function FilterableSelectCell({
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState<number>(-1);
   const [searchQuery, setSearchQuery] = useState("");
-  const [filteredOptions, setFilteredOptions] = useState<
-    FilterableSelectOption<string | number>[]
-  >(() => options);
+
+  const filteredOptions = useMemo(
+    () => filterOptions(options, searchQuery),
+    [options, searchQuery],
+  );
 
   const isNavigating = activeIndex >= 0;
 
@@ -102,10 +105,8 @@ export function FilterableSelectCell({
   }, []);
 
   useEffect(
-    function resetStateOnPopoverOpen() {
+    function resetStateOnPopoverVisibilityChange() {
       if (open) {
-        setSearchQuery("");
-        setFilteredOptions(options);
         setMode("search");
         requestAnimationFrame(() => {
           if (showSearch) {
@@ -114,9 +115,12 @@ export function FilterableSelectCell({
             listContainerRef.current?.focus();
           }
         });
+      } else {
+        // Reset when closing
+        setSearchQuery("");
       }
     },
-    [open, options, showSearch, setMode],
+    [open, showSearch, setMode],
   );
 
   const closePopover = useCallback(() => {
@@ -135,13 +139,10 @@ export function FilterableSelectCell({
 
   const handleSearchChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      const query = e.target.value;
-      setSearchQuery(query);
-      const filtered = filterOptions(options, query);
-      setFilteredOptions(filtered);
+      setSearchQuery(e.target.value);
       setMode("search");
     },
-    [options, setMode],
+    [setMode],
   );
 
   // Unified keyboard handler for the popover content
@@ -239,22 +240,57 @@ export function FilterableSelectCell({
     ],
   );
 
-  const handleButtonKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === "Enter" || e.key === " " || e.key === "ArrowDown") {
+  const handleTriggerKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      const EXCLUDED_KEYS = [
+        "ArrowUp",
+        "ArrowLeft",
+        "ArrowDown",
+        "Esc",
+        "Delete",
+        "Backspace",
+        "Tab",
+      ];
+
+      if (
+        EXCLUDED_KEYS.includes(e.key) ||
+        !e.ctrlKey ||
+        !e.metaKey ||
+        !e.altKey
+      )
+        return;
+
       e.preventDefault();
       setOpen(true);
-    }
-  }, []);
+
+      // Character keys - open popover and start filtering (if search is enabled)
+      if (showSearch) {
+        e.stopPropagation();
+        setSearchQuery(e.key);
+      }
+    },
+    [showSearch],
+  );
 
   useEffect(
-    function handleCellFocus() {
-      if (focus) {
+    function syncCellIsActive() {
+      if (isActive) {
         buttonRef.current?.focus();
       } else {
         setOpen(false);
       }
     },
-    [focus],
+    [isActive],
+  );
+
+  // Open popover when grid enters editing mode (e.g., second click on active cell)
+  useEffect(
+    function syncCellIsEditing() {
+      if (isEditing && !open) {
+        setOpen(true);
+      }
+    },
+    [isEditing, open],
   );
 
   if (readOnly) {
@@ -268,7 +304,7 @@ export function FilterableSelectCell({
   return (
     <div
       className="w-full h-full"
-      style={{ pointerEvents: focus ? "auto" : "none" }}
+      style={{ pointerEvents: isActive ? "auto" : "none" }}
     >
       <Popover.Root open={open} onOpenChange={setOpen}>
         <Popover.Trigger asChild>
@@ -276,7 +312,7 @@ export function FilterableSelectCell({
             ref={buttonRef}
             type="button"
             tabIndex={-1}
-            onKeyDown={handleButtonKeyDown}
+            onKeyDown={handleTriggerKeyDown}
             className="w-full h-full pl-2 flex items-center justify-between gap-1 text-sm text-gray-700 bg-transparent border-none outline-none text-left min-w-0"
           >
             <span
@@ -483,6 +519,5 @@ export function filterableSelectColumn<T extends string | number = string>(
       return match ? match.value : null;
     },
     deleteValue: options.deleteValue ?? null,
-    disableKeys: true,
   };
 }

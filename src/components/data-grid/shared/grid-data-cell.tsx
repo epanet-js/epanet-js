@@ -54,7 +54,13 @@ export function GridDataCell<T>({
       aria-selected={isSelected}
       className={clsx(
         "relative h-8 grow select-none border cursor-cell",
-        isActive ? "bg-white" : isSelected ? "bg-purple-300/10" : "bg-white",
+        isActive
+          ? "bg-white"
+          : isSelected
+            ? "bg-purple-300/10"
+            : readOnly
+              ? "bg-gray-50"
+              : "bg-white",
         { "z-[1]": selectionEdge },
         selectionEdge?.left
           ? "border-l-purple-500"
@@ -88,11 +94,9 @@ export function GridDataCell<T>({
           columnIndex={colIndex}
           isActive={isActive}
           isEditing={isActive && isEditing}
-          isSelected={isSelected}
           readOnly={readOnly}
           onChange={(newValue) => onChange?.(newValue)}
           stopEditing={onBlur}
-          focus={isActive}
         />
       ) : (
         <div className="w-full h-full flex items-center px-2 text-sm">

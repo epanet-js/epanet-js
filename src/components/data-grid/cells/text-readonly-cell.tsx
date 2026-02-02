@@ -4,14 +4,10 @@ type TextReadonlyCellProps = CellProps<string> & {
   className?: string;
 };
 
-export function TextReadonlyCell({
-  value,
-  isSelected,
-  className,
-}: TextReadonlyCellProps) {
+export function TextReadonlyCell({ value, className }: TextReadonlyCellProps) {
   return (
     <div
-      className={`w-full h-full flex items-center px-2 text-sm tabular-nums text-gray-500 ${isSelected ? "" : "bg-gray-50"} ${className ?? ""}`}
+      className={`w-full h-full flex items-center px-2 text-sm tabular-nums text-gray-500 ${className ?? ""}`}
     >
       {value}
     </div>

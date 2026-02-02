@@ -29,19 +29,18 @@ export function FloatCell({
   isEditing,
   onChange,
   stopEditing,
-  focus,
   nullValue = null,
 }: FloatCellProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [editValue, setEditValue] = useState("");
 
   useEffect(() => {
-    if (isEditing && focus) {
+    if (isEditing) {
       setEditValue(formatLocaleNumber(value));
       inputRef.current?.focus();
       inputRef.current?.select();
     }
-  }, [isEditing, focus, value]);
+  }, [isEditing, value]);
 
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setEditValue(
@@ -77,7 +76,7 @@ export function FloatCell({
     [commit, stopEditing],
   );
 
-  if (isEditing && focus) {
+  if (isEditing) {
     return (
       <input
         ref={inputRef}

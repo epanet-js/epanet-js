@@ -293,7 +293,7 @@ export const ScrollableRows = forwardRef(function ScrollableRows<TData>(
                       isSelected={cellSelected}
                       isActive={isCellActive(colIndex, rowIndex)}
                       isEditing={isEditing}
-                      readOnly={readOnly}
+                      readOnly={readOnly || !!column.disabled}
                       selectionEdge={
                         cellSelected && selection
                           ? {
