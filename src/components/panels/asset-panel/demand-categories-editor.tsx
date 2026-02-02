@@ -167,13 +167,13 @@ export const DemandCategoriesEditor = ({
     () => [
       floatColumn("baseDemand", {
         header: translate("demand"),
-        size: 79,
+        size: 60,
         deleteValue: 0,
         nullValue: 0,
       }),
       filterableSelectColumn("patternId", {
         header: translate("timePattern"),
-        size: 100,
+        size: 80,
         options: patternOptions,
         deleteValue: CONSTANT_PATTERN_ID,
       }),
@@ -185,20 +185,36 @@ export const DemandCategoriesEditor = ({
 
   const handleChange = useCallback(
     (newRows: DemandCategoryRow[]) => {
-      const nonZeroRows = newRows.filter((row) => row.baseDemand !== 0);
-      const newDemands =
-        newRows.length === 1
-          ? nonZeroRows.map((row) => fromRow(row))
-          : newRows.map((row) => fromRow(row));
+      const newDemands = newRows.map((row) => fromRow(row));
 
-      if (newDemands.length === 0 && demands.length === 0) {
-        setShowEmptyGrid(false);
+      const isSingleDefaultDemand =
+        newDemands.length === 1 &&
+        newDemands[0].baseDemand === 0 &&
+        newDemands[0].patternId === undefined;
+
+      if (isSingleDefaultDemand) {
+        setShowEmptyGrid(true);
+        if (demands.length !== 0) onDemandsChange([]);
+        return;
+      }
+
+      setShowEmptyGrid(false);
+
+      const areEqual =
+        newDemands.length === demands.length &&
+        newDemands.every(
+          (d, i) =>
+            d.baseDemand === demands[i].baseDemand &&
+            d.patternId === demands[i].patternId,
+        );
+
+      if (areEqual) {
         return;
       }
 
       onDemandsChange(newDemands);
     },
-    [onDemandsChange, demands.length],
+    [onDemandsChange, demands],
   );
 
   if (demands.length === 0 && !showEmptyGrid) {

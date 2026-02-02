@@ -82,6 +82,73 @@ describe("DemandCategoriesEditor", () => {
       expect(onDemandsChange).not.toHaveBeenCalled();
     });
 
+    it("persists changes when baseDemand is changed from default in empty grid", async () => {
+      const user = userEvent.setup();
+      const onDemandsChange = vi.fn();
+
+      render(
+        <DemandCategoriesEditor
+          demands={[]}
+          patterns={aPatterns()}
+          onDemandsChange={onDemandsChange}
+          readOnly={false}
+        />,
+      );
+
+      // Click add button to show empty grid
+      await user.click(
+        screen.getByRole("button", { name: /add direct demand/i }),
+      );
+
+      // Edit the base demand
+      const baseDemandCell = getBaseDemandCell(0);
+      await user.click(baseDemandCell);
+      await user.dblClick(baseDemandCell);
+
+      const input = within(baseDemandCell).getByRole("textbox");
+      await user.tripleClick(input);
+      await user.keyboard("50{Enter}");
+
+      expect(onDemandsChange).toHaveBeenCalledWith([{ baseDemand: 50 }]);
+    });
+
+    it("persists changes when pattern is changed from default in empty grid", async () => {
+      const PATTERN_ID = 1;
+      const user = userEvent.setup();
+      const onDemandsChange = vi.fn();
+
+      render(
+        <DemandCategoriesEditor
+          demands={[]}
+          patterns={aPatterns([PATTERN_ID, "Pattern1", [1, 2, 3]])}
+          onDemandsChange={onDemandsChange}
+          readOnly={false}
+        />,
+      );
+
+      // Click add button to show empty grid
+      await user.click(
+        screen.getByRole("button", { name: /add direct demand/i }),
+      );
+
+      // Change the pattern
+      const patternCell = getPatternCell(0);
+      await user.click(patternCell);
+
+      const dropdownButton = within(patternCell).getByRole("button");
+      await user.click(dropdownButton);
+
+      const pattern1Option = await screen.findByRole("option", {
+        name: "Pattern1",
+      });
+      await user.click(pattern1Option);
+
+      // Should persist because pattern changed (even though baseDemand is still 0)
+      expect(onDemandsChange).toHaveBeenCalledWith([
+        { baseDemand: 0, patternId: PATTERN_ID },
+      ]);
+    });
+
     it("renders nothing when no demands and readOnly is true", () => {
       const { container } = render(
         <DemandCategoriesEditor
