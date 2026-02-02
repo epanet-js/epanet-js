@@ -106,7 +106,7 @@ describe("DemandCategoriesEditor", () => {
       await user.dblClick(baseDemandCell);
 
       const input = within(baseDemandCell).getByRole("textbox");
-      await user.tripleClick(input);
+      await user.clear(input);
       await user.keyboard("50{Enter}");
 
       expect(onDemandsChange).toHaveBeenCalledWith([{ baseDemand: 50 }]);
@@ -131,12 +131,9 @@ describe("DemandCategoriesEditor", () => {
         screen.getByRole("button", { name: /add direct demand/i }),
       );
 
-      // Change the pattern
+      // Click pattern cell button - opens dropdown immediately
       const patternCell = getPatternCell(0);
-      await user.click(patternCell);
-
-      const dropdownButton = within(patternCell).getByRole("button");
-      await user.click(dropdownButton);
+      await user.click(within(patternCell).getByRole("button"));
 
       const pattern1Option = await screen.findByRole("option", {
         name: "Pattern1",
@@ -200,13 +197,9 @@ describe("DemandCategoriesEditor", () => {
         />,
       );
 
-      // Click the pattern cell to select it, then click the dropdown trigger button
+      // Click pattern cell button - opens dropdown immediately
       const patternCell = getPatternCell(0);
-      await user.click(patternCell);
-
-      // The FilterableSelectCell has a button that opens the dropdown
-      const dropdownButton = within(patternCell).getByRole("button");
-      await user.click(dropdownButton);
+      await user.click(within(patternCell).getByRole("button"));
 
       // Wait for dropdown to open and options to appear
       expect(
@@ -242,7 +235,7 @@ describe("DemandCategoriesEditor", () => {
 
       // Find the input, triple-click to select all, then type
       const input = within(baseDemandCell).getByRole("textbox");
-      await user.tripleClick(input);
+      await user.clear(input);
       await user.keyboard("200{Enter}");
 
       expect(onDemandsChange).toHaveBeenCalledWith([{ baseDemand: 200 }]);
@@ -264,13 +257,9 @@ describe("DemandCategoriesEditor", () => {
         />,
       );
 
-      // Click the pattern cell to select it, then click the dropdown trigger button
+      // Click pattern cell button - opens dropdown immediately
       const patternCell = getPatternCell(0);
-      await user.click(patternCell);
-
-      // The FilterableSelectCell has a button that opens the dropdown
-      const dropdownButton = within(patternCell).getByRole("button");
-      await user.click(dropdownButton);
+      await user.click(within(patternCell).getByRole("button"));
 
       // Wait for dropdown to open and select option
       const pattern1Option = await screen.findByRole("option", {
@@ -297,13 +286,9 @@ describe("DemandCategoriesEditor", () => {
         />,
       );
 
-      // Click the pattern cell to select it, then click the dropdown trigger button
+      // Click pattern cell button - opens dropdown immediately
       const patternCell = getPatternCell(0);
-      await user.click(patternCell);
-
-      // The FilterableSelectCell has a button that opens the dropdown
-      const dropdownButton = within(patternCell).getByRole("button");
-      await user.click(dropdownButton);
+      await user.click(within(patternCell).getByRole("button"));
 
       // Wait for dropdown to open and select CONSTANT
       const constantOption = await screen.findByRole("option", {
@@ -482,7 +467,7 @@ describe("DemandCategoriesEditor", () => {
 
       // Find the input, triple-click to select all, then type
       const input = within(baseDemandCell).getByRole("textbox");
-      await user.tripleClick(input);
+      await user.clear(input);
       await user.keyboard("0{Enter}");
 
       expect(onDemandsChange).toHaveBeenCalledWith([]);
@@ -508,7 +493,7 @@ describe("DemandCategoriesEditor", () => {
 
       // Find the input, triple-click to select all, then type
       const input = within(baseDemandCell).getByRole("textbox");
-      await user.tripleClick(input);
+      await user.clear(input);
       await user.keyboard("0{Enter}");
 
       expect(onDemandsChange).toHaveBeenCalledWith([

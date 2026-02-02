@@ -69,7 +69,7 @@ describe("CurvesAndPatternsDialog", () => {
         expect(screen.getByRole("textbox")).toBeInTheDocument();
       });
       const input = screen.getByRole("textbox");
-      await user.tripleClick(input);
+      await user.clear(input);
       await user.type(input, "2.0{Enter}");
 
       await waitFor(() => {
@@ -99,7 +99,7 @@ describe("CurvesAndPatternsDialog", () => {
         expect(screen.getByRole("textbox")).toBeInTheDocument();
       });
       const input = screen.getByRole("textbox");
-      await user.tripleClick(input);
+      await user.clear(input);
       await user.type(input, "2.0{Enter}");
 
       // Wait for save button to be enabled
@@ -156,7 +156,7 @@ describe("CurvesAndPatternsDialog", () => {
         expect(screen.getByRole("textbox")).toBeInTheDocument();
       });
       const input = screen.getByRole("textbox");
-      await user.tripleClick(input);
+      await user.clear(input);
       await user.type(input, "2.0{Enter}");
 
       // Wait for changes to be detected
@@ -195,7 +195,7 @@ describe("CurvesAndPatternsDialog", () => {
         expect(screen.getByRole("textbox")).toBeInTheDocument();
       });
       const input = screen.getByRole("textbox");
-      await user.tripleClick(input);
+      await user.clear(input);
       await user.type(input, "2.0{Enter}");
 
       // Wait for changes to be detected and click cancel
@@ -233,7 +233,7 @@ describe("CurvesAndPatternsDialog", () => {
         expect(screen.getByRole("textbox")).toBeInTheDocument();
       });
       const input = screen.getByRole("textbox");
-      await user.tripleClick(input);
+      await user.clear(input);
       await user.type(input, "2.0{Enter}");
 
       // Wait for changes and click cancel

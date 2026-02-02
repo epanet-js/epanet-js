@@ -37,6 +37,7 @@ type ScrollableRowsProps<TData> = {
   onGutterClick: (row: number, e: React.MouseEvent) => void;
   onCellChange: (rowIndex: number, columnId: string, value: unknown) => void;
   stopEditing: () => void;
+  startEditing: () => void;
   onEmptyAreaMouseDown: (e: React.MouseEvent) => void;
   gutterColumn: boolean;
   rowActions?: RowAction[];
@@ -78,6 +79,7 @@ export const ScrollableRows = forwardRef(function ScrollableRows<TData>(
     onGutterClick,
     onCellChange,
     stopEditing,
+    startEditing,
     onEmptyAreaMouseDown,
     gutterColumn,
     rowActions,
@@ -157,6 +159,10 @@ export const ScrollableRows = forwardRef(function ScrollableRows<TData>(
 
   const visibleRowCount = rowsHeight ? Math.floor(rowsHeight / ROW_HEIGHT) : 10;
   const colCount = columns.length;
+  const isInteractive =
+    selection !== null &&
+    selection.min.col === selection.max.col &&
+    selection.min.row === selection.max.row;
 
   const handleKeyDown = useRowsNavigation({
     activeCell,
@@ -293,6 +299,7 @@ export const ScrollableRows = forwardRef(function ScrollableRows<TData>(
                       isSelected={cellSelected}
                       isActive={isCellActive(colIndex, rowIndex)}
                       isEditing={isEditing}
+                      isInteractive={isInteractive}
                       readOnly={readOnly || !!column.disabled}
                       selectionEdge={
                         cellSelected && selection
@@ -310,6 +317,7 @@ export const ScrollableRows = forwardRef(function ScrollableRows<TData>(
                       onMouseEnter={() => onCellMouseEnter(colIndex, rowIndex)}
                       onDoubleClick={() => onCellDoubleClick(colIndex)}
                       onBlur={stopEditing}
+                      onStartEditing={startEditing}
                       onChange={
                         accessorKey
                           ? (value) =>

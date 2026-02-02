@@ -272,6 +272,7 @@ export const DataGrid = forwardRef(function DataGrid<
     onGutterClick: handleGutterClick,
     onCellChange: handleCellChange,
     stopEditing,
+    startEditing,
     gutterColumn,
     rowActions: readOnly ? undefined : rowActions,
     readOnly,

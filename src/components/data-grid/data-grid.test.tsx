@@ -395,10 +395,9 @@ describe("DataGrid", () => {
         expect(screen.getByRole("textbox")).toBeInTheDocument();
       });
 
-      // Type new value (input is auto-selected so typing replaces content)
+      // Clear and type new value
       const input = screen.getByRole("textbox");
-      // Use tripleClick to select all then type to replace
-      await user.tripleClick(input);
+      await user.clear(input);
       await user.type(input, "25{Enter}");
 
       await waitFor(() => {

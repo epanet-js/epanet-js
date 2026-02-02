@@ -44,6 +44,18 @@ function filterOptions(
   return options.filter((opt) => opt.label.toLowerCase().includes(lowerQuery));
 }
 
+function findMatchingIndex(
+  options: FilterableSelectOption<string | number>[],
+  query: string,
+): number {
+  const char = query.toLowerCase();
+  const matchIndex = options.findIndex((opt) =>
+    opt.label.toLowerCase().startsWith(char),
+  );
+
+  return matchIndex;
+}
+
 function calculateNextListIndex(
   key: string,
   prev: number,
@@ -70,9 +82,10 @@ function calculateNextListIndex(
 export function FilterableSelectCell({
   value,
   onChange,
-  stopEditing,
+  stopEditing: onClose,
+  startEditing: onOpen,
   isActive,
-  isEditing,
+  isEditing: isOpen,
   readOnly,
   options,
   placeholder,
@@ -89,25 +102,22 @@ export function FilterableSelectCell({
     [options, value],
   );
 
-  const [open, setOpen] = useState(false);
-  const [activeIndex, setActiveIndex] = useState<number>(-1);
+  const [activeIndex, setActiveIndex] = useState<number>(() =>
+    options.findIndex((opt) => opt.value === value),
+  );
   const [searchQuery, setSearchQuery] = useState("");
+  const [mode, setMode] = useState<"search" | "navigation">("search");
 
   const filteredOptions = useMemo(
     () => filterOptions(options, searchQuery),
     [options, searchQuery],
   );
 
-  const isNavigating = activeIndex >= 0;
-
-  const setMode = useCallback((mode: "search" | "selection") => {
-    setActiveIndex(mode === "search" ? -1 : 0);
-  }, []);
+  const isNavigating = mode === "navigation";
 
   useEffect(
     function resetStateOnPopoverVisibilityChange() {
-      if (open) {
-        setMode("search");
+      if (isOpen) {
         requestAnimationFrame(() => {
           if (showSearch) {
             searchInputRef.current?.focus();
@@ -118,49 +128,45 @@ export function FilterableSelectCell({
       } else {
         // Reset when closing
         setSearchQuery("");
+        const selectedIndex = options.findIndex((opt) => opt.value === value);
+        setActiveIndex(selectedIndex >= 0 ? selectedIndex : 0);
+        setMode("search");
       }
     },
-    [open, showSearch, setMode],
+    [isOpen, showSearch, options, value],
   );
 
   const closePopover = useCallback(() => {
-    setOpen(false);
-    stopEditing();
-  }, [stopEditing]);
+    onClose();
+  }, [onClose]);
 
   const commit = useCallback(
     (option: FilterableSelectOption<string | number>) => {
       onChange(option.value);
-      setOpen(false);
-      stopEditing();
+      onClose();
     },
-    [onChange, stopEditing],
+    [onChange, onClose],
   );
 
   const handleSearchChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       setSearchQuery(e.target.value);
+      setActiveIndex(0); // Highlight first match
       setMode("search");
     },
-    [setMode],
+    [],
   );
 
   // Unified keyboard handler for the popover content
   const handlePopoverKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
-      // Navigation keys - always handle
+      // Navigation keys - switch to navigation mode and move
       if (LIST_NAVIGATION_KEYS.includes(e.key)) {
         e.preventDefault();
         e.stopPropagation();
         if (filteredOptions.length > 0) {
+          setMode("navigation");
           setActiveIndex((prev) => {
-            // If starting from search mode, go to first or last item
-            if (prev === -1) {
-              if (e.key === "ArrowUp" || e.key === "End") {
-                return filteredOptions.length - 1;
-              }
-              return 0;
-            }
             return (
               calculateNextListIndex(e.key, prev, filteredOptions.length) ??
               prev
@@ -170,14 +176,12 @@ export function FilterableSelectCell({
         return;
       }
 
-      // Enter - commit if navigating, otherwise start navigation
+      // Enter - commit highlighted item
       if (e.key === "Enter") {
         e.preventDefault();
         e.stopPropagation();
-        if (isNavigating && filteredOptions[activeIndex]) {
+        if (filteredOptions[activeIndex]) {
           commit(filteredOptions[activeIndex]);
-        } else if (filteredOptions.length > 0) {
-          setActiveIndex(0);
         }
         return;
       }
@@ -197,11 +201,15 @@ export function FilterableSelectCell({
         return;
       }
 
-      // Tab - close without committing
+      // Tab - commit and close
       if (e.key === "Tab") {
         e.preventDefault();
         e.stopPropagation();
-        closePopover();
+        if (filteredOptions[activeIndex]) {
+          commit(filteredOptions[activeIndex]);
+        } else {
+          closePopover();
+        }
         return;
       }
 
@@ -216,17 +224,19 @@ export function FilterableSelectCell({
         return;
       }
 
-      // Character keys while navigating - go to search mode and type
-      if (
-        isNavigating &&
-        showSearch &&
-        e.key.length === 1 &&
-        !e.ctrlKey &&
-        !e.metaKey
-      ) {
-        setMode("search");
-        searchInputRef.current?.focus();
-        // Don't prevent default - let character be typed
+      // Character keys - go to search mode or typeahead
+      if (e.key.length === 1 && !e.ctrlKey && !e.metaKey) {
+        if (showSearch) {
+          setMode("search");
+          searchInputRef.current?.focus();
+          // Don't prevent default - let character be typed
+        } else {
+          e.preventDefault();
+          const matchIndex = findMatchingIndex(filteredOptions, e.key);
+          if (matchIndex >= 0) {
+            setActiveIndex(matchIndex);
+          }
+        }
       }
     },
     [
@@ -236,7 +246,6 @@ export function FilterableSelectCell({
       showSearch,
       commit,
       closePopover,
-      setMode,
     ],
   );
 
@@ -252,45 +261,41 @@ export function FilterableSelectCell({
         "Tab",
       ];
 
-      if (
-        EXCLUDED_KEYS.includes(e.key) ||
-        !e.ctrlKey ||
-        !e.metaKey ||
-        !e.altKey
-      )
+      // Skip navigation keys and modified keys (let grid handle them)
+      if (EXCLUDED_KEYS.includes(e.key) || e.ctrlKey || e.metaKey || e.altKey) {
         return;
+      }
 
-      e.preventDefault();
-      setOpen(true);
-
-      // Character keys - open popover and start filtering (if search is enabled)
-      if (showSearch) {
+      // Character keys - open popover
+      if (e.key.length === 1) {
+        e.preventDefault();
         e.stopPropagation();
-        setSearchQuery(e.key);
+        if (showSearch) {
+          setSearchQuery(e.key);
+        } else {
+          // Typeahead: find first option starting with the typed character
+          const char = e.key.toLowerCase();
+          const matchIndex = options.findIndex((opt) =>
+            opt.label.toLowerCase().startsWith(char),
+          );
+          if (matchIndex >= 0) {
+            setActiveIndex(matchIndex);
+          }
+        }
+
+        onOpen();
       }
     },
-    [showSearch],
+    [showSearch, onOpen, options],
   );
 
   useEffect(
     function syncCellIsActive() {
       if (isActive) {
         buttonRef.current?.focus();
-      } else {
-        setOpen(false);
       }
     },
     [isActive],
-  );
-
-  // Open popover when grid enters editing mode (e.g., second click on active cell)
-  useEffect(
-    function syncCellIsEditing() {
-      if (isEditing && !open) {
-        setOpen(true);
-      }
-    },
-    [isEditing, open],
   );
 
   if (readOnly) {
@@ -302,11 +307,17 @@ export function FilterableSelectCell({
   }
 
   return (
-    <div
-      className="w-full h-full"
-      style={{ pointerEvents: isActive ? "auto" : "none" }}
-    >
-      <Popover.Root open={open} onOpenChange={setOpen}>
+    <div className="w-full h-full">
+      <Popover.Root
+        open={isOpen}
+        onOpenChange={(newOpen) => {
+          if (newOpen) {
+            onOpen();
+          } else {
+            onClose();
+          }
+        }}
+      >
         <Popover.Trigger asChild>
           <button
             ref={buttonRef}
@@ -337,11 +348,12 @@ export function FilterableSelectCell({
               buttonRef.current?.focus();
             }}
             onPointerDownOutside={(e) => {
-              // Don't close if clicking the trigger button (it will toggle via Radix)
+              // Don't close if clicking the trigger button - let Radix's toggle handle it
               if (buttonRef.current?.contains(e.target as Node)) {
+                e.preventDefault(); // Prevent Radix from closing, so toggle works
                 return;
               }
-              setOpen(false);
+              onClose();
             }}
             onEscapeKeyDown={(e) => {
               // Prevent Radix from handling escape - we handle it in handlePopoverKeyDown

@@ -13,6 +13,7 @@ const defaultProps = {
   readOnly: false,
   onChange: vi.fn(),
   stopEditing: vi.fn(),
+  startEditing: vi.fn(),
 };
 
 describe("FloatCell", () => {

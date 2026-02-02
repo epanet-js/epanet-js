@@ -27,6 +27,7 @@ export type CellProps<TValue = unknown> = {
   readOnly: boolean;
   onChange: (newValue: TValue) => void;
   stopEditing: () => void;
+  startEditing: () => void;
 };
 
 export type GridColumn = {

@@ -91,6 +91,7 @@ describe("FilterableSelectCell", () => {
     isEditing: false,
     onChange: vi.fn(),
     stopEditing: vi.fn(),
+    startEditing: vi.fn(),
     rowIndex: 0,
     columnIndex: 0,
     isActive: true,
@@ -122,30 +123,32 @@ describe("FilterableSelectCell", () => {
   });
 
   describe("opening popover", () => {
-    it("opens on Enter key", async () => {
+    it("calls startEditing on Enter key", async () => {
       const user = setupUser();
-      render(<FilterableSelectCell {...defaultProps} />);
+      const startEditing = vi.fn();
+      render(
+        <FilterableSelectCell {...defaultProps} startEditing={startEditing} />,
+      );
 
       const button = screen.getByRole("button");
       button.focus();
       await user.keyboard("{Enter}");
 
-      await waitFor(() => {
-        expect(screen.getByRole("listbox")).toBeInTheDocument();
-      });
+      expect(startEditing).toHaveBeenCalled();
     });
 
-    it("opens on Space key", async () => {
+    it("calls startEditing on Space key", async () => {
       const user = setupUser();
-      render(<FilterableSelectCell {...defaultProps} />);
+      const startEditing = vi.fn();
+      render(
+        <FilterableSelectCell {...defaultProps} startEditing={startEditing} />,
+      );
 
       const button = screen.getByRole("button");
       button.focus();
       await user.keyboard(" ");
 
-      await waitFor(() => {
-        expect(screen.getByRole("listbox")).toBeInTheDocument();
-      });
+      expect(startEditing).toHaveBeenCalled();
     });
 
     it("opens when isEditing becomes true", async () => {
@@ -162,44 +165,71 @@ describe("FilterableSelectCell", () => {
       });
     });
 
-    it("opens on click", async () => {
+    it("calls startEditing on click", async () => {
       const user = setupUser();
-      render(<FilterableSelectCell {...defaultProps} />);
+      const startEditing = vi.fn();
+      render(
+        <FilterableSelectCell {...defaultProps} startEditing={startEditing} />,
+      );
 
       await user.click(screen.getByRole("button"));
 
-      await waitFor(() => {
-        expect(screen.getByRole("listbox")).toBeInTheDocument();
-      });
+      expect(startEditing).toHaveBeenCalled();
     });
   });
 
   describe("keyboard navigation", () => {
     it("navigates down with ArrowDown", async () => {
       const user = setupUser();
-      render(<FilterableSelectCell {...defaultProps} />);
+      // Render closed first to initialize activeIndex based on value
+      const { rerender } = render(
+        <FilterableSelectCell {...defaultProps} isEditing={false} />,
+      );
+      rerender(<FilterableSelectCell {...defaultProps} isEditing={true} />);
 
-      await user.click(screen.getByRole("button"));
       await waitFor(() => {
         expect(screen.getByRole("listbox")).toBeInTheDocument();
       });
 
+      // Current value is 1 (Pattern A, index 1), ArrowDown goes to index 2 (Pattern B)
       await user.keyboard("{ArrowDown}");
 
-      const options = screen.getAllByRole("option");
-      expect(options[0]).toHaveClass("bg-purple-300/40");
+      const optionElements = screen.getAllByRole("option");
+      expect(optionElements[2]).toHaveClass("bg-purple-300/40"); // Pattern B
     });
 
     it("navigates up with ArrowUp", async () => {
       const user = setupUser();
-      render(<FilterableSelectCell {...defaultProps} />);
+      const { rerender } = render(
+        <FilterableSelectCell {...defaultProps} isEditing={false} />,
+      );
+      rerender(<FilterableSelectCell {...defaultProps} isEditing={true} />);
 
-      await user.click(screen.getByRole("button"));
       await waitFor(() => {
         expect(screen.getByRole("listbox")).toBeInTheDocument();
       });
 
-      // ArrowUp from start goes to last item
+      // Current value is 1 (Pattern A, index 1), ArrowUp goes to index 0 (CONSTANT)
+      await user.keyboard("{ArrowUp}");
+
+      const optionElements = screen.getAllByRole("option");
+      expect(optionElements[0]).toHaveClass("bg-purple-300/40"); // CONSTANT
+    });
+
+    it("ArrowUp from first item wraps to last item", async () => {
+      const user = setupUser();
+      const { rerender } = render(
+        <FilterableSelectCell {...defaultProps} value={0} isEditing={false} />,
+      );
+      rerender(
+        <FilterableSelectCell {...defaultProps} value={0} isEditing={true} />,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByRole("listbox")).toBeInTheDocument();
+      });
+
+      // Current value is 0 (CONSTANT, index 0), ArrowUp wraps to last item
       await user.keyboard("{ArrowUp}");
 
       const optionElements = screen.getAllByRole("option");
@@ -210,9 +240,11 @@ describe("FilterableSelectCell", () => {
 
     it("navigates to first item with Home", async () => {
       const user = setupUser();
-      render(<FilterableSelectCell {...defaultProps} />);
+      const { rerender } = render(
+        <FilterableSelectCell {...defaultProps} isEditing={false} />,
+      );
+      rerender(<FilterableSelectCell {...defaultProps} isEditing={true} />);
 
-      await user.click(screen.getByRole("button"));
       await waitFor(() => {
         expect(screen.getByRole("listbox")).toBeInTheDocument();
       });
@@ -226,9 +258,11 @@ describe("FilterableSelectCell", () => {
 
     it("navigates to last item with End", async () => {
       const user = setupUser();
-      render(<FilterableSelectCell {...defaultProps} />);
+      const { rerender } = render(
+        <FilterableSelectCell {...defaultProps} isEditing={false} />,
+      );
+      rerender(<FilterableSelectCell {...defaultProps} isEditing={true} />);
 
-      await user.click(screen.getByRole("button"));
       await waitFor(() => {
         expect(screen.getByRole("listbox")).toBeInTheDocument();
       });
@@ -246,15 +280,28 @@ describe("FilterableSelectCell", () => {
     it("selects option on Enter when navigating", async () => {
       const user = setupUser();
       const onChange = vi.fn();
-      render(<FilterableSelectCell {...defaultProps} onChange={onChange} />);
+      // Render closed first to initialize activeIndex based on value (1 = Pattern A, index 1)
+      const { rerender } = render(
+        <FilterableSelectCell
+          {...defaultProps}
+          onChange={onChange}
+          isEditing={false}
+        />,
+      );
+      rerender(
+        <FilterableSelectCell
+          {...defaultProps}
+          onChange={onChange}
+          isEditing={true}
+        />,
+      );
 
-      await user.click(screen.getByRole("button"));
       await waitFor(() => {
         expect(screen.getByRole("listbox")).toBeInTheDocument();
       });
 
-      // Navigate to third option (Pattern B) and select
-      await user.keyboard("{ArrowDown}{ArrowDown}{ArrowDown}{Enter}");
+      // Starting at index 1 (Pattern A), ArrowDown goes to index 2 (Pattern B, value=2)
+      await user.keyboard("{ArrowDown}{Enter}");
 
       expect(onChange).toHaveBeenCalledWith(2);
     });
@@ -262,9 +309,21 @@ describe("FilterableSelectCell", () => {
     it("selects option on click", async () => {
       const user = setupUser();
       const onChange = vi.fn();
-      render(<FilterableSelectCell {...defaultProps} onChange={onChange} />);
+      const { rerender } = render(
+        <FilterableSelectCell
+          {...defaultProps}
+          onChange={onChange}
+          isEditing={false}
+        />,
+      );
+      rerender(
+        <FilterableSelectCell
+          {...defaultProps}
+          onChange={onChange}
+          isEditing={true}
+        />,
+      );
 
-      await user.click(screen.getByRole("button"));
       await waitFor(() => {
         expect(screen.getByRole("listbox")).toBeInTheDocument();
       });
@@ -277,11 +336,21 @@ describe("FilterableSelectCell", () => {
     it("calls stopEditing after selection", async () => {
       const user = setupUser();
       const stopEditing = vi.fn();
-      render(
-        <FilterableSelectCell {...defaultProps} stopEditing={stopEditing} />,
+      const { rerender } = render(
+        <FilterableSelectCell
+          {...defaultProps}
+          stopEditing={stopEditing}
+          isEditing={false}
+        />,
+      );
+      rerender(
+        <FilterableSelectCell
+          {...defaultProps}
+          stopEditing={stopEditing}
+          isEditing={true}
+        />,
       );
 
-      await user.click(screen.getByRole("button"));
       await waitFor(() => {
         expect(screen.getByRole("listbox")).toBeInTheDocument();
       });
@@ -290,58 +359,129 @@ describe("FilterableSelectCell", () => {
 
       expect(stopEditing).toHaveBeenCalled();
     });
+
+    it("commits selection on Tab key", async () => {
+      const user = setupUser();
+      const onChange = vi.fn();
+      const stopEditing = vi.fn();
+      // Render closed first to initialize activeIndex based on value (1 = Pattern A, index 1)
+      const { rerender } = render(
+        <FilterableSelectCell
+          {...defaultProps}
+          onChange={onChange}
+          stopEditing={stopEditing}
+          isEditing={false}
+        />,
+      );
+      rerender(
+        <FilterableSelectCell
+          {...defaultProps}
+          onChange={onChange}
+          stopEditing={stopEditing}
+          isEditing={true}
+        />,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByRole("listbox")).toBeInTheDocument();
+      });
+
+      // Starting at index 1 (Pattern A), ArrowDown goes to index 2 (Pattern B, value=2)
+      await user.keyboard("{ArrowDown}{Tab}");
+
+      expect(onChange).toHaveBeenCalledWith(2);
+      expect(stopEditing).toHaveBeenCalled();
+    });
   });
 
   describe("closing popover", () => {
-    it("closes on Escape", async () => {
+    it("calls stopEditing on Escape (no search)", async () => {
       const user = setupUser();
-      render(<FilterableSelectCell {...defaultProps} />);
+      const stopEditing = vi.fn();
+      render(
+        <FilterableSelectCell
+          {...defaultProps}
+          stopEditing={stopEditing}
+          isEditing={true}
+        />,
+      );
 
-      await user.click(screen.getByRole("button"));
       await waitFor(() => {
         expect(screen.getByRole("listbox")).toBeInTheDocument();
       });
 
       await user.keyboard("{Escape}");
 
-      await waitFor(() => {
-        expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
-      });
+      expect(stopEditing).toHaveBeenCalled();
     });
 
-    it("closes on Tab", async () => {
+    it("calls stopEditing on Tab (Tab also commits)", async () => {
       const user = setupUser();
-      render(<FilterableSelectCell {...defaultProps} />);
+      const stopEditing = vi.fn();
+      render(
+        <FilterableSelectCell
+          {...defaultProps}
+          stopEditing={stopEditing}
+          isEditing={true}
+        />,
+      );
 
-      await user.click(screen.getByRole("button"));
       await waitFor(() => {
         expect(screen.getByRole("listbox")).toBeInTheDocument();
       });
 
       await user.keyboard("{Tab}");
 
-      await waitFor(() => {
-        expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
-      });
+      expect(stopEditing).toHaveBeenCalled();
     });
 
-    it("calls stopEditing on close", async () => {
+    it("clicking trigger while open calls stopEditing and does not call startEditing after close", async () => {
       const user = setupUser();
       const stopEditing = vi.fn();
-      render(
-        <FilterableSelectCell {...defaultProps} stopEditing={stopEditing} />,
+      const startEditing = vi.fn();
+
+      const { rerender } = render(
+        <FilterableSelectCell
+          {...defaultProps}
+          stopEditing={stopEditing}
+          startEditing={startEditing}
+          isEditing={true}
+        />,
       );
 
-      await user.click(screen.getByRole("button"));
       await waitFor(() => {
         expect(screen.getByRole("listbox")).toBeInTheDocument();
       });
 
-      await user.keyboard("{Escape}");
+      // Click the trigger button while popover is open
+      await user.click(screen.getByRole("button"));
 
+      // Should call stopEditing exactly once
+      expect(stopEditing).toHaveBeenCalledTimes(1);
+
+      // Clear mocks to check what happens on rerender
+      stopEditing.mockClear();
+      startEditing.mockClear();
+
+      // Simulate the grid responding by setting isEditing=false
+      rerender(
+        <FilterableSelectCell
+          {...defaultProps}
+          stopEditing={stopEditing}
+          startEditing={startEditing}
+          isEditing={false}
+        />,
+      );
+
+      // Popover should be closed
       await waitFor(() => {
-        expect(stopEditing).toHaveBeenCalled();
+        expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
       });
+
+      // startEditing should NOT have been called after the rerender
+      expect(startEditing).not.toHaveBeenCalled();
+      // stopEditing should NOT have been called again
+      expect(stopEditing).not.toHaveBeenCalled();
     });
   });
 
@@ -365,10 +505,8 @@ describe("FilterableSelectCell", () => {
     };
 
     it("shows search input when options >= minOptionsForSearch", async () => {
-      const user = setupUser();
-      render(<FilterableSelectCell {...searchProps} />);
+      render(<FilterableSelectCell {...searchProps} isEditing={true} />);
 
-      await user.click(screen.getByRole("button"));
       await waitFor(() => {
         expect(screen.getByRole("listbox")).toBeInTheDocument();
       });
@@ -378,9 +516,8 @@ describe("FilterableSelectCell", () => {
 
     it("filters options based on search query", async () => {
       const user = setupUser();
-      render(<FilterableSelectCell {...searchProps} />);
+      render(<FilterableSelectCell {...searchProps} isEditing={true} />);
 
-      await user.click(screen.getByRole("button"));
       await waitFor(() => {
         expect(screen.getByRole("listbox")).toBeInTheDocument();
       });
@@ -395,11 +532,29 @@ describe("FilterableSelectCell", () => {
       });
     });
 
+    it("highlights first match when typing in search", async () => {
+      const user = setupUser();
+      render(<FilterableSelectCell {...searchProps} isEditing={true} />);
+
+      await waitFor(() => {
+        expect(screen.getByRole("listbox")).toBeInTheDocument();
+      });
+
+      const searchInput = screen.getByPlaceholderText("Search...");
+      await user.type(searchInput, "Pattern");
+
+      await waitFor(() => {
+        const optionElements = screen.getAllByRole("option");
+        // First match (Pattern A) should be highlighted
+        expect(optionElements[0]).toHaveClass("bg-purple-300/40");
+        expect(optionElements[0]).toHaveTextContent("Pattern A");
+      });
+    });
+
     it("shows all options when search is cleared", async () => {
       const user = setupUser();
-      render(<FilterableSelectCell {...searchProps} />);
+      render(<FilterableSelectCell {...searchProps} isEditing={true} />);
 
-      await user.click(screen.getByRole("button"));
       await waitFor(() => {
         expect(screen.getByRole("listbox")).toBeInTheDocument();
       });
@@ -420,36 +575,34 @@ describe("FilterableSelectCell", () => {
 
     it("Escape returns to search mode when navigating", async () => {
       const user = setupUser();
-      render(<FilterableSelectCell {...searchProps} />);
+      // Render closed first to initialize state
+      const { rerender } = render(
+        <FilterableSelectCell {...searchProps} isEditing={false} />,
+      );
+      rerender(<FilterableSelectCell {...searchProps} isEditing={true} />);
 
-      await user.click(screen.getByRole("button"));
       await waitFor(() => {
         expect(screen.getByRole("listbox")).toBeInTheDocument();
       });
 
-      // Start navigating
+      // Start navigating - starting at index 1 (value=1), ArrowDown goes to index 2
       await user.keyboard("{ArrowDown}");
 
-      // First option should be highlighted
+      // Index 2 option should be highlighted
       const optionElements = screen.getAllByRole("option");
-      expect(optionElements[0]).toHaveClass("bg-purple-300/40");
+      expect(optionElements[2]).toHaveClass("bg-purple-300/40");
 
       // Escape should return to search mode (not close)
       await user.keyboard("{Escape}");
 
-      // Popover should still be open
+      // Popover should still be open (stopEditing is mocked)
       expect(screen.getByRole("listbox")).toBeInTheDocument();
-
-      // No option should be highlighted
-      const optionsAfterEscape = screen.getAllByRole("option");
-      expect(optionsAfterEscape[0]).not.toHaveClass("bg-purple-300/40");
     });
 
     it("typing while navigating returns to search mode", async () => {
       const user = setupUser();
-      render(<FilterableSelectCell {...searchProps} />);
+      render(<FilterableSelectCell {...searchProps} isEditing={true} />);
 
-      await user.click(screen.getByRole("button"));
       await waitFor(() => {
         expect(screen.getByRole("listbox")).toBeInTheDocument();
       });
@@ -475,40 +628,161 @@ describe("FilterableSelectCell", () => {
       expect(document.activeElement).toBe(button);
     });
 
-    it("closes popover when isActive becomes false", async () => {
-      const user = setupUser();
+    it("popover closes when isEditing becomes false", async () => {
       const { rerender } = render(
-        <FilterableSelectCell {...defaultProps} isActive={true} />,
+        <FilterableSelectCell
+          {...defaultProps}
+          isActive={true}
+          isEditing={true}
+        />,
       );
 
-      await user.click(screen.getByRole("button"));
       await waitFor(() => {
         expect(screen.getByRole("listbox")).toBeInTheDocument();
       });
 
-      rerender(<FilterableSelectCell {...defaultProps} isActive={false} />);
+      rerender(
+        <FilterableSelectCell
+          {...defaultProps}
+          isActive={true}
+          isEditing={false}
+        />,
+      );
 
       await waitFor(() => {
         expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
       });
     });
+  });
 
-    it("disables pointer events when isActive is false", () => {
-      const { container } = render(
-        <FilterableSelectCell {...defaultProps} isActive={false} />,
+  describe("typeahead on trigger", () => {
+    it("opens popover and pre-fills search when typing on trigger (with search)", async () => {
+      const user = setupUser();
+      const startEditing = vi.fn();
+      const manyOptions = [
+        { value: 0, label: "CONSTANT" },
+        { value: 1, label: "Pattern A" },
+        { value: 2, label: "Pattern B" },
+        { value: 3, label: "Pattern C" },
+        { value: 4, label: "Pattern D" },
+        { value: 5, label: "Pattern E" },
+        { value: 6, label: "Pattern F" },
+        { value: 7, label: "Pattern G" },
+        { value: 8, label: "Another One" },
+      ];
+
+      const { rerender } = render(
+        <FilterableSelectCell
+          {...defaultProps}
+          options={manyOptions}
+          minOptionsForSearch={8}
+          startEditing={startEditing}
+          isEditing={false}
+        />,
       );
 
-      const wrapper = container.firstChild as HTMLElement;
-      expect(wrapper).toHaveStyle({ pointerEvents: "none" });
+      const button = screen.getByRole("button");
+      button.focus();
+      await user.keyboard("P");
+
+      // Should have called startEditing
+      expect(startEditing).toHaveBeenCalled();
+
+      // Simulate the grid setting isEditing=true
+      rerender(
+        <FilterableSelectCell
+          {...defaultProps}
+          options={manyOptions}
+          minOptionsForSearch={8}
+          startEditing={startEditing}
+          isEditing={true}
+        />,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByRole("listbox")).toBeInTheDocument();
+      });
+
+      // Search input should have the typed character
+      const searchInput = screen.getByPlaceholderText("Search...");
+      expect(searchInput).toHaveValue("P");
+    });
+
+    it("typeahead highlights matching option when search is disabled", async () => {
+      const user = setupUser();
+      const startEditing = vi.fn();
+      const { rerender } = render(
+        <FilterableSelectCell
+          {...defaultProps}
+          value={null}
+          startEditing={startEditing}
+          isEditing={false}
+          minOptionsForSearch={999} // Disable search
+        />,
+      );
+
+      const button = screen.getByRole("button");
+      button.focus();
+      await user.keyboard("P");
+
+      // Should have called startEditing
+      expect(startEditing).toHaveBeenCalled();
+
+      // Simulate the grid setting isEditing=true
+      rerender(
+        <FilterableSelectCell
+          {...defaultProps}
+          value={null}
+          startEditing={startEditing}
+          isEditing={true}
+          minOptionsForSearch={999}
+        />,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByRole("listbox")).toBeInTheDocument();
+      });
+
+      // Pattern A (first option starting with "P") should be highlighted
+      const optionElements = screen.getAllByRole("option");
+      const patternA = optionElements.find(
+        (el) => el.textContent === "Pattern A",
+      );
+      expect(patternA).toHaveClass("bg-purple-300/40");
+    });
+
+    it("typeahead in open popover (no search) highlights matching option", async () => {
+      const user = setupUser();
+      render(
+        <FilterableSelectCell
+          {...defaultProps}
+          value={null}
+          isEditing={true}
+          minOptionsForSearch={999}
+        />,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByRole("listbox")).toBeInTheDocument();
+      });
+
+      // Type "C" to match "CONSTANT"
+      await user.keyboard("C");
+
+      const optionElements = screen.getAllByRole("option");
+      const constant = optionElements.find(
+        (el) => el.textContent === "CONSTANT",
+      );
+      expect(constant).toHaveClass("bg-purple-300/40");
     });
   });
 
   describe("selected option indicator", () => {
     it("shows checkmark on currently selected option", async () => {
-      const user = setupUser();
-      render(<FilterableSelectCell {...defaultProps} value={2} />);
+      render(
+        <FilterableSelectCell {...defaultProps} value={2} isEditing={true} />,
+      );
 
-      await user.click(screen.getByRole("button"));
       await waitFor(() => {
         expect(screen.getByRole("listbox")).toBeInTheDocument();
       });
@@ -519,6 +793,27 @@ describe("FilterableSelectCell", () => {
         (el) => el.getAttribute("aria-selected") === "true",
       );
       expect(selectedOption).toHaveTextContent("Pattern B");
+    });
+
+    it("highlights selected option when popover opens", async () => {
+      // Render closed first to initialize activeIndex based on value
+      const { rerender } = render(
+        <FilterableSelectCell {...defaultProps} value={2} isEditing={false} />,
+      );
+      rerender(
+        <FilterableSelectCell {...defaultProps} value={2} isEditing={true} />,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByRole("listbox")).toBeInTheDocument();
+      });
+
+      // Pattern B (value=2, index=2) should be highlighted since it's the current value
+      const optionElements = screen.getAllByRole("option");
+      const patternB = optionElements.find(
+        (el) => el.textContent === "Pattern B",
+      );
+      expect(patternB).toHaveClass("bg-purple-300/40");
     });
   });
 

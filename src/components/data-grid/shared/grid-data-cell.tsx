@@ -16,6 +16,7 @@ type GridDataCellProps<T> = {
   isSelected: boolean;
   isActive: boolean;
   isEditing: boolean;
+  isInteractive: boolean;
   readOnly: boolean;
   selectionEdge?: SelectionEdge;
   onMouseDown: (e: React.MouseEvent) => void;
@@ -23,6 +24,7 @@ type GridDataCellProps<T> = {
   onDoubleClick: () => void;
   onChange?: (value: unknown) => void;
   onBlur: () => void;
+  onStartEditing: () => void;
   CellComponent: GridColumn["cellComponent"];
   variant: DataGridVariant;
   isLastRow: boolean;
@@ -35,12 +37,14 @@ export function GridDataCell<T>({
   isSelected,
   isActive,
   isEditing,
+  isInteractive,
   readOnly,
   selectionEdge,
   onMouseDown,
   onMouseEnter,
   onDoubleClick,
   onBlur,
+  onStartEditing,
   onChange,
   CellComponent,
   variant,
@@ -92,11 +96,12 @@ export function GridDataCell<T>({
           value={cell.getValue()}
           rowIndex={rowIndex}
           columnIndex={colIndex}
-          isActive={isActive}
+          isActive={isActive && isInteractive}
           isEditing={isActive && isEditing}
           readOnly={readOnly}
           onChange={(newValue) => onChange?.(newValue)}
           stopEditing={onBlur}
+          startEditing={onStartEditing}
         />
       ) : (
         <div className="w-full h-full flex items-center px-2 text-sm">

@@ -29,6 +29,7 @@ type RowsProps<TData> = {
   onGutterClick: (row: number, e: React.MouseEvent) => void;
   onCellChange: (rowIndex: number, columnId: string, value: unknown) => void;
   stopEditing: () => void;
+  startEditing: () => void;
   gutterColumn: boolean;
   rowActions?: RowAction[];
   readOnly: boolean;
@@ -69,6 +70,7 @@ export const Rows = forwardRef(function Rows<TData>(
     onGutterClick,
     onCellChange,
     stopEditing,
+    startEditing,
     gutterColumn,
     rowActions,
     readOnly,
@@ -91,6 +93,10 @@ export const Rows = forwardRef(function Rows<TData>(
   const rows = table.getRowModel().rows;
   const colCount = columns.length;
   const visibleRowCount = rows.length;
+  const isInteractive =
+    selection !== null &&
+    selection.min.col === selection.max.col &&
+    selection.min.row === selection.max.row;
 
   const handleKeyDown = useRowsNavigation({
     activeCell,
@@ -153,6 +159,7 @@ export const Rows = forwardRef(function Rows<TData>(
                   isSelected={cellSelected}
                   isActive={isCellActive(colIndex, rowIndex)}
                   isEditing={isEditing}
+                  isInteractive={isInteractive}
                   readOnly={readOnly || !!column.disabled}
                   selectionEdge={
                     cellSelected && selection
@@ -168,6 +175,7 @@ export const Rows = forwardRef(function Rows<TData>(
                   onMouseEnter={() => onCellMouseEnter(colIndex, rowIndex)}
                   onDoubleClick={() => onCellDoubleClick(colIndex)}
                   onBlur={stopEditing}
+                  onStartEditing={startEditing}
                   onChange={
                     accessorKey
                       ? (value) => onCellChange(rowIndex, accessorKey, value)

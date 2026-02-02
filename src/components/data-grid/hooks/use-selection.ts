@@ -88,10 +88,14 @@ export function useSelection({
   const setActiveCell = useCallback(
     (cell: CellPosition, extend = false) => {
       setState((prev) => {
+        const isSameCell =
+          prev.activeCell?.col === cell.col &&
+          prev.activeCell?.row === cell.row;
+
         const newState: SelectionState = {
           activeCell: cell,
           anchor: extend ? (prev.anchor ?? prev.activeCell) : null,
-          isEditing: false,
+          isEditing: isSameCell ? prev.isEditing : false,
         };
         return newState;
       });
