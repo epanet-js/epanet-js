@@ -246,6 +246,7 @@ export function AssetPanel({
 
   const handleDemandsChange = useCallback(
     (newDemands: JunctionDemand[]) => {
+      const oldDemands = (asset as Junction).demands;
       const moment = changeJunctionDemands(hydraulicModel, {
         junctionId: asset.id,
         demands: newDemands,
@@ -256,10 +257,10 @@ export function AssetPanel({
         type: asset.type,
         property: "demands",
         newValue: newDemands.length,
-        oldValue: null,
+        oldValue: oldDemands.length,
       });
     },
-    [asset.id, asset.type, hydraulicModel, transact, userTracking],
+    [asset, hydraulicModel, transact, userTracking],
   );
 
   const handleLabelChange = useCallback(
@@ -411,8 +412,12 @@ const JunctionEditor = ({
   const { footer } = useQuickGraph(junction.id, "junction");
   const isEditJunctionDemandsOn = useFeatureFlag("FLAG_EDIT_JUNCTION_DEMANDS");
   const isSimulationLoose = useFeatureFlag("FLAG_SIMULATION_LOOSE");
-  const { getComparison, getConstantDemandComparison, isNew } =
-    useAssetComparison(junction);
+  const {
+    getComparison,
+    getConstantDemandComparison,
+    getDirectDemandComparison,
+    isNew,
+  } = useAssetComparison(junction);
   const simulation = useSimulation();
   const junctionSimulation = simulation?.getJunction(junction.id);
 
@@ -457,6 +462,11 @@ const JunctionEditor = ({
     [junction.demands, hydraulicModel.demands.patterns],
   );
 
+  const demandComparison = getDirectDemandComparison(
+    averageDemand,
+    hydraulicModel.demands.patterns,
+  );
+
   return (
     <AssetEditorContent
       label={junction.label}
@@ -496,15 +506,14 @@ const JunctionEditor = ({
               onDemandsChange={onDemandsChange}
               readOnly={readonly}
             />
-            {averageDemand > 0 && (
-              <QuantityRow
-                name="directDemand"
-                value={averageDemand}
-                unit={quantitiesMetadata.getUnit("directDemand")}
-                decimals={quantitiesMetadata.getDecimals("directDemand")}
-                readOnly={true}
-              />
-            )}
+            <QuantityRow
+              name="directDemand"
+              value={averageDemand}
+              unit={quantitiesMetadata.getUnit("directDemand")}
+              decimals={quantitiesMetadata.getDecimals("directDemand")}
+              comparison={demandComparison}
+              readOnly={true}
+            />
           </div>
         ) : (
           <>

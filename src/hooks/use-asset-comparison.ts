@@ -3,9 +3,12 @@ import { useAtomValue } from "jotai";
 import { worktreeAtom } from "src/state/scenarios";
 import { baseModelAtom } from "src/state/hydraulic-model";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import type { Asset } from "src/hydraulic-model";
+import type { Asset, DemandPatterns } from "src/hydraulic-model";
 import type { CurveId, ICurve } from "src/hydraulic-model/curves";
-import type { JunctionDemand } from "src/hydraulic-model/demands";
+import {
+  calculateAverageDemand,
+  type JunctionDemand,
+} from "src/hydraulic-model/demands";
 
 export type PropertyComparison = {
   hasChanged: boolean;
@@ -49,6 +52,32 @@ export function useAssetComparison(asset: Asset | undefined) {
     return { hasChanged, baseValue };
   };
 
+  const getDirectDemandComparison = (
+    currentDirectDemand: number,
+    patterns: DemandPatterns,
+  ): PropertyComparison => {
+    if (!isInScenario || !baseAsset) {
+      return { hasChanged: false };
+    }
+
+    const baseDemands = (
+      baseAsset.feature.properties as Record<string, unknown>
+    ).demands as JunctionDemand[] | undefined;
+
+    const baseDirectDemand = calculateAverageDemand(
+      baseDemands || [],
+      patterns,
+    );
+
+    const hasChanged = baseDirectDemand !== currentDirectDemand;
+
+    return { hasChanged, baseValue: baseDirectDemand };
+
+    if (!baseDemands) {
+      return { hasChanged: false };
+    }
+  };
+
   const getConstantDemandComparison = (
     currentConstantDemand: number,
   ): PropertyComparison => {
@@ -78,6 +107,7 @@ export function useAssetComparison(asset: Asset | undefined) {
     getComparison,
     getBaseCurve,
     getConstantDemandComparison,
+    getDirectDemandComparison,
     isNew,
   };
 }
