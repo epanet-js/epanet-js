@@ -2,7 +2,12 @@ import { useAtomValue } from "jotai";
 import * as Popover from "@radix-ui/react-popover";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
-import { dataAtom, simulationAtom, stagingModelAtom } from "src/state/jotai";
+import {
+  dataAtom,
+  simulationAtom,
+  simulationResultsAtom,
+  stagingModelAtom,
+} from "src/state/jotai";
 import { Selector, SelectorLikeButton } from "../form/selector";
 import { useUserTracking } from "src/infra/user-tracking";
 import {
@@ -12,7 +17,11 @@ import {
   supportedNodeProperties,
 } from "src/map/symbology/symbology-types";
 import { useSymbologyState } from "src/state/symbology";
-import { defaultSymbologyBuilders } from "src/map/symbology/default-symbology-builders";
+import {
+  defaultSymbologyBuilders,
+  defaultSymbologyBuildersDeprecated,
+} from "src/map/symbology/default-symbology-builders";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { Checkbox } from "../form/Checkbox";
 import { ColorRampSelector } from "src/components/color-ramp-selector";
 import { RangeColorRuleEditor } from "../range-color-rule-editor";
@@ -78,6 +87,8 @@ const SymbologyEditor = ({
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
   const simulation = useAtomValue(simulationAtom);
+  const simulationResults = useAtomValue(simulationResultsAtom);
+  const isSimulationLoose = useFeatureFlag("FLAG_SIMULATION_LOOSE");
 
   const {
     linkSymbology,
@@ -108,20 +119,48 @@ const SymbologyEditor = ({
         return;
       }
 
-      switchNodeSymbologyTo(
-        property,
-        defaultSymbologyBuilders[property](hydraulicModel, quantities),
-      );
+      if (isSimulationLoose && simulationResults) {
+        switchNodeSymbologyTo(
+          property,
+          defaultSymbologyBuilders[property](
+            hydraulicModel,
+            quantities,
+            simulationResults,
+          ),
+        );
+      } else {
+        switchNodeSymbologyTo(
+          property,
+          defaultSymbologyBuildersDeprecated[property](
+            hydraulicModel,
+            quantities,
+          ),
+        );
+      }
     } else {
       if (property === "none") {
         switchLinkSymbologyTo(null, () => nullSymbologySpec.link);
         return;
       }
 
-      switchLinkSymbologyTo(
-        property,
-        defaultSymbologyBuilders[property](hydraulicModel, quantities),
-      );
+      if (isSimulationLoose && simulationResults) {
+        switchLinkSymbologyTo(
+          property,
+          defaultSymbologyBuilders[property](
+            hydraulicModel,
+            quantities,
+            simulationResults,
+          ),
+        );
+      } else {
+        switchLinkSymbologyTo(
+          property,
+          defaultSymbologyBuildersDeprecated[property](
+            hydraulicModel,
+            quantities,
+          ),
+        );
+      }
     }
   };
 

@@ -1497,6 +1497,12 @@ describe("AssetPanel", () => {
           volume: tank.volume ?? 0,
         };
       },
+      getAllPressures: () => [],
+      getAllHeads: () => [],
+      getAllDemands: () => [],
+      getAllFlows: () => [],
+      getAllVelocities: () => [],
+      getAllUnitHeadlosses: () => [],
     };
   };
 

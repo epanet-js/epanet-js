@@ -917,6 +917,66 @@ class TimestepResultsReader implements ResultsReader {
     }
     return -1;
   }
+
+  getAllPressures(): number[] {
+    const { nodeCount } = this.simulationMetadata;
+    const values: number[] = [];
+    for (let i = 0; i < nodeCount; i++) {
+      const nodeData = this.getNodeData(i);
+      values.push(nodeData.pressure);
+    }
+    return values;
+  }
+
+  getAllHeads(): number[] {
+    const { nodeCount } = this.simulationMetadata;
+    const values: number[] = [];
+    for (let i = 0; i < nodeCount; i++) {
+      const nodeData = this.getNodeData(i);
+      values.push(nodeData.head);
+    }
+    return values;
+  }
+
+  getAllDemands(): number[] {
+    const { nodeCount } = this.simulationMetadata;
+    const values: number[] = [];
+    for (let i = 0; i < nodeCount; i++) {
+      const nodeData = this.getNodeData(i);
+      values.push(nodeData.demand);
+    }
+    return values;
+  }
+
+  getAllFlows(): number[] {
+    const { linkCount } = this.simulationMetadata;
+    const values: number[] = [];
+    for (let i = 0; i < linkCount; i++) {
+      const linkData = this.getLinkData(i);
+      values.push(linkData.flow);
+    }
+    return values;
+  }
+
+  getAllVelocities(): number[] {
+    const { linkCount } = this.simulationMetadata;
+    const values: number[] = [];
+    for (let i = 0; i < linkCount; i++) {
+      const linkData = this.getLinkData(i);
+      values.push(linkData.velocity);
+    }
+    return values;
+  }
+
+  getAllUnitHeadlosses(): number[] {
+    const { linkCount } = this.simulationMetadata;
+    const values: number[] = [];
+    for (let i = 0; i < linkCount; i++) {
+      const linkData = this.getLinkData(i);
+      values.push(linkData.headloss);
+    }
+    return values;
+  }
 }
 
 class NullResultsReader implements ResultsReader {
@@ -934,5 +994,23 @@ class NullResultsReader implements ResultsReader {
   }
   getTank(_tankId: number): TankSimulation | null {
     return null;
+  }
+  getAllPressures(): number[] {
+    return [];
+  }
+  getAllHeads(): number[] {
+    return [];
+  }
+  getAllDemands(): number[] {
+    return [];
+  }
+  getAllFlows(): number[] {
+    return [];
+  }
+  getAllVelocities(): number[] {
+    return [];
+  }
+  getAllUnitHeadlosses(): number[] {
+    return [];
   }
 }

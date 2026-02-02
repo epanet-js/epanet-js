@@ -40,6 +40,12 @@ describe("attach simulation", () => {
       level: 12,
       volume: 10,
     }),
+    getAllPressures: () => [],
+    getAllHeads: () => [],
+    getAllDemands: () => [],
+    getAllFlows: () => [],
+    getAllVelocities: () => [],
+    getAllUnitHeadlosses: () => [],
   };
   it("sets the simulation for the assets", () => {
     const IDS = { J1: 1, P1: 2, PU1: 3, VALVE1: 4 };

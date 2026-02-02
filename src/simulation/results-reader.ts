@@ -45,4 +45,11 @@ export interface ResultsReader {
   getJunction: (junctionId: number) => JunctionSimulation | null;
   getPipe: (pipeId: number) => PipeSimulation | null;
   getTank: (tankId: number) => TankSimulation | null;
+
+  getAllPressures: () => number[];
+  getAllHeads: () => number[];
+  getAllDemands: () => number[];
+  getAllFlows: () => number[];
+  getAllVelocities: () => number[];
+  getAllUnitHeadlosses: () => number[];
 }
