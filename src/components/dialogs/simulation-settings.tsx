@@ -16,6 +16,9 @@ import { SettingsIcon } from "src/icons";
 import { Selector } from "../form/selector";
 import { changeDemandSettings } from "src/hydraulic-model/model-operations/change-demand-settings";
 import { changeEPSTiming } from "src/hydraulic-model/model-operations/change-eps-timing";
+import { formatSecondsToDisplay } from "../form/time-field";
+import { worktreeAtom } from "src/state/scenarios";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 type SimulationModeOption = "steadyState" | "eps";
 
@@ -102,6 +105,9 @@ export const SimulationSettingsDialog = () => {
 
 const SimulationSettingsForm = ({ onClose }: { onClose: () => void }) => {
   const translate = useTranslate();
+  const isScenariosOn = useFeatureFlag("FLAG_SCENARIOS");
+  const worktree = useAtomValue(worktreeAtom);
+  const hasScenarios = isScenariosOn && worktree.scenarios.length > 0;
 
   const { hasMissingValues, hasZeroValues } = useTimeSettingsValidation();
 
@@ -111,7 +117,7 @@ const SimulationSettingsForm = ({ onClose }: { onClose: () => void }) => {
     <Form>
       <div className="flex flex-wrap justify-between gap-2">
         <DemandSettings />
-        <TimesSettings />
+        <TimesSettings readonly={hasScenarios} />
       </div>
       <SimpleDialogActions
         onClose={onClose}
@@ -185,7 +191,7 @@ const DemandSettings = () => {
 
 const ONE_HOUR = 3600;
 
-const TimesSettings = () => {
+const TimesSettings = ({ readonly }: { readonly: boolean }) => {
   const translate = useTranslate();
   const hydraulicModel = useAtomValue(stagingModelAtom);
   const { values, setFieldValue } = useFormikContext<FormValues>();
@@ -246,6 +252,7 @@ const TimesSettings = () => {
             options={simulationModeOptions}
             selected={values.simulationMode}
             onChange={handleSimulationModeChange}
+            disabled={readonly}
             styleOptions={{
               border: true,
               textSize: "text-sm",
@@ -262,6 +269,7 @@ const TimesSettings = () => {
             label={translate("simulationSettings.totalDuration")}
             value={values.duration}
             disabled={!isEPS}
+            readonly={readonly}
             onChange={(newValue) => setFieldValue("duration", newValue)}
             hasError={fieldErrors.duration}
           />
@@ -275,6 +283,7 @@ const TimesSettings = () => {
             label={translate("simulationSettings.hydraulicTimestep")}
             value={values.hydraulicTimestep}
             disabled={!isEPS}
+            readonly={readonly}
             onChange={(newValue) =>
               setFieldValue("hydraulicTimestep", newValue)
             }
@@ -290,6 +299,7 @@ const TimesSettings = () => {
             label={translate("simulationSettings.reportingTimestep")}
             value={values.reportTimestep}
             disabled={!isEPS}
+            readonly={readonly}
             onChange={(newValue) => setFieldValue("reportTimestep", newValue)}
             hasError={fieldErrors.reportTimestep}
           />
@@ -303,6 +313,7 @@ const TimesSettings = () => {
             label={translate("simulationSettings.patternTimestep")}
             value={values.patternTimestep}
             disabled={!isEPS}
+            readonly={readonly}
             onChange={(newValue) => setFieldValue("patternTimestep", newValue)}
             hasError={fieldErrors.patternTimestep}
           />
@@ -372,16 +383,28 @@ const TimingInput = ({
   label,
   value,
   disabled,
+  readonly = false,
   onChange,
   hasError = false,
 }: {
   label: string;
   value: number | undefined;
   disabled: boolean;
+  readonly?: boolean;
   onChange: (value: number | undefined) => void;
   hasError?: boolean;
 }) => {
   const translate = useTranslate();
+
+  if (readonly) {
+    return (
+      <span className="block w-full p-2 text-xs text-gray-500 bg-gray-50 border border-gray-300 rounded-sm cursor-not-allowed dark:bg-gray-800 dark:border-gray-600 dark:text-gray-400">
+        {disabled
+          ? translate("simulationSettings.notAvailable")
+          : formatSecondsToDisplay(value) || "-"}
+      </span>
+    );
+  }
 
   if (disabled) {
     return (

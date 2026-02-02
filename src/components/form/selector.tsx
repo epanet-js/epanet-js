@@ -85,6 +85,7 @@ type SelectorPropsBase<T extends string | number> = {
   styleOptions?: StyleOptions;
   disableFocusOnClose?: boolean;
   onDropdownInteraction?: () => void;
+  disabled?: boolean;
 };
 
 type SelectorPropsNonNullable<T extends string | number> =
@@ -125,6 +126,7 @@ export function Selector<T extends string | number>({
   nullable = false,
   placeholder,
   onDropdownInteraction,
+  disabled = false,
 }: SelectorProps<T>) {
   const effectiveStyleOptions = useMemo(
     () => ({ ...defaultStyleOptions, ...styleOptions }),
@@ -148,8 +150,11 @@ export function Selector<T extends string | number>({
   };
 
   const triggerStyles = useMemo(() => {
-    return triggerStylesFor(styleOptions);
-  }, [styleOptions]);
+    return clsx(
+      triggerStylesFor(styleOptions),
+      disabled && "opacity-60 cursor-not-allowed bg-gray-50 dark:bg-gray-800",
+    );
+  }, [styleOptions, disabled]);
 
   const contentStyles = useMemo(() => {
     return `bg-white w-full border ${effectiveStyleOptions.textSize} rounded-md shadow-md z-50`;
@@ -178,6 +183,7 @@ export function Selector<T extends string | number>({
         open={isOpen}
         onOpenChange={handleOpenChange}
         onValueChange={handleValueChange}
+        disabled={disabled}
       >
         <Select.Trigger
           aria-label={ariaLabel}

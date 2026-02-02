@@ -122,7 +122,9 @@ export const TimeField = ({
   );
 };
 
-const formatSecondsToDisplay = (totalSeconds: number | undefined): string => {
+export const formatSecondsToDisplay = (
+  totalSeconds: number | undefined,
+): string => {
   if (totalSeconds === undefined) return "";
   const hours = Math.floor(totalSeconds / 3600);
   const minutes = Math.floor((totalSeconds % 3600) / 60);
