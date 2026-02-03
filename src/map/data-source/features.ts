@@ -11,10 +11,11 @@ import {
   QuantityProperty,
 } from "src/model-metadata/quantities-spec";
 import { JunctionQuantity } from "src/hydraulic-model/asset-types/junction";
-import type {
-  ResultsReader,
-  PipeSimulation,
-  JunctionSimulation,
+import {
+  isSimulationProperty,
+  type ResultsReader,
+  type PipeSimulation,
+  type JunctionSimulation,
 } from "src/simulation/results-reader";
 
 export const buildFeatureId = (assetId: AssetId) => assetId;
@@ -199,9 +200,9 @@ const appendPipeSymbologyProps = (
 
   const property = linkSymbology.colorRule.property;
 
-  // When simulationResults provided, read from ResultsReader
+  // Only read from simulation results if property is a simulation property
   let value: number | null;
-  if (simulationResults) {
+  if (simulationResults && isSimulationProperty(property)) {
     const pipeSimulation = simulationResults.getPipe(pipe.id);
     value = pipeSimulation
       ? (pipeSimulation[property as keyof PipeSimulation] as number)
@@ -242,9 +243,9 @@ const appendJunctionSymbologyProps = (
 
   const property = nodeSymbology.colorRule.property;
 
-  // When simulationResults provided, read from ResultsReader
+  // Only read from simulation results if property is a simulation property
   let value: number | null;
-  if (simulationResults) {
+  if (simulationResults && isSimulationProperty(property)) {
     const junctionSimulation = simulationResults.getJunction(junction.id);
     const simProperty = getJunctionSimProperty(property);
     value = junctionSimulation
