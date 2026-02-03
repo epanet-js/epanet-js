@@ -37,8 +37,7 @@ export function GridHeader<T>({
           role="columnheader"
           className={clsx(
             "relative flex items-center justify-center font-semibold text-sm shrink-0 cursor-pointer select-none h-8 text-gray-600 sticky left-0 z-10",
-            "border border-transparent",
-            { "w-10": variant === "spreadsheet", "w-8": variant === "rows" },
+            "border border-transparent w-8",
             {
               "bg-gray-100": variant === "spreadsheet",
               "bg-gray-50": variant === "rows",
@@ -46,7 +45,7 @@ export function GridHeader<T>({
           )}
           onClick={onSelectAll}
         >
-          <TableSelectAllIcon size="md" className="absolute bottom-1 right-1" />
+          <TableSelectAllIcon className="absolute bottom-1 right-1" />
         </div>
       )}
       {table.getHeaderGroups().map((headerGroup) =>

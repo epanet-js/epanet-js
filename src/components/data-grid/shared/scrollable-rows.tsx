@@ -138,8 +138,8 @@ export const ScrollableRows = forwardRef(function ScrollableRows<TData>(
         canScrollDown: el.scrollTop + el.clientHeight < el.scrollHeight - 1,
         canScrollLeft: el.scrollLeft > 0,
         canScrollRight: el.scrollLeft + el.clientWidth < el.scrollWidth - 1,
-        scrollbarWidth: el.offsetWidth - el.clientWidth,
-        scrollbarHeight: el.offsetHeight - el.clientHeight,
+        scrollbarWidth: el.offsetWidth - el.clientWidth - 2,
+        scrollbarHeight: el.offsetHeight - el.clientHeight - 2,
       });
     };
 
@@ -208,7 +208,7 @@ export const ScrollableRows = forwardRef(function ScrollableRows<TData>(
         container.scrollTop = rowBottom - container.clientHeight;
       }
 
-      const gutterWidth = gutterColumn ? 40 : 0;
+      const gutterWidth = gutterColumn ? 32 : 0;
       let colStart = gutterWidth;
       for (let i = 0; i < activeCell.col; i++) {
         colStart += columns[i]?.size ?? 100;
@@ -241,7 +241,7 @@ export const ScrollableRows = forwardRef(function ScrollableRows<TData>(
 
   const isReady = rowsHeight !== undefined;
 
-  const gutterWidth = gutterColumn ? (variant === "spreadsheet" ? 40 : 32) : 0;
+  const gutterWidth = gutterColumn ? 32 : 0;
   const actionsWidth = rowActions ? 32 : 0;
 
   return (
