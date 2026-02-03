@@ -10,7 +10,6 @@ export type EditMode = false | "quick" | "full";
 export type SelectionState = {
   activeCell: CellPosition | null;
   anchor: CellPosition | null;
-  editMode: EditMode;
 };
 
 export type RowAction = {

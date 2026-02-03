@@ -9,6 +9,7 @@ describe("useSelection", () => {
   const defaultOptions = {
     rowCount: 5,
     colCount: 3,
+    stopEditing: vi.fn(),
   };
 
   describe("initial state", () => {
@@ -17,7 +18,6 @@ describe("useSelection", () => {
 
       expect(result.current.activeCell).toBeNull();
       expect(result.current.selection).toBeNull();
-      expect(result.current.editMode).toBe(false);
     });
   });
 
@@ -78,21 +78,23 @@ describe("useSelection", () => {
       });
     });
 
-    it("stops editing when cell changes", () => {
-      const { result } = renderHook(() => useSelection(defaultOptions));
+    it("calls stopEditing when cell changes", () => {
+      const stopEditing = vi.fn();
+      const { result } = renderHook(() =>
+        useSelection({ ...defaultOptions, stopEditing }),
+      );
 
       act(() => {
         result.current.setActiveCell({ col: 0, row: 0 });
-        result.current.startEditing();
       });
 
-      expect(result.current.editMode).toBe("full");
+      stopEditing.mockClear();
 
       act(() => {
         result.current.setActiveCell({ col: 1, row: 1 });
       });
 
-      expect(result.current.editMode).toBe(false);
+      expect(stopEditing).toHaveBeenCalled();
     });
   });
 
@@ -127,26 +129,6 @@ describe("useSelection", () => {
       });
 
       expect(onSelectionChange).toHaveBeenLastCalledWith(null);
-    });
-  });
-
-  describe("startEditing / stopEditing", () => {
-    it("toggles editing state", () => {
-      const { result } = renderHook(() => useSelection(defaultOptions));
-
-      expect(result.current.editMode).toBe(false);
-
-      act(() => {
-        result.current.startEditing();
-      });
-
-      expect(result.current.editMode).toBe("full");
-
-      act(() => {
-        result.current.stopEditing();
-      });
-
-      expect(result.current.editMode).toBe(false);
     });
   });
 
@@ -482,7 +464,7 @@ describe("useSelection", () => {
 
     it("does nothing when rowCount is 0", () => {
       const { result } = renderHook(() =>
-        useSelection({ rowCount: 0, colCount: 3 }),
+        useSelection({ rowCount: 0, colCount: 3, stopEditing: vi.fn() }),
       );
 
       act(() => {
@@ -494,7 +476,7 @@ describe("useSelection", () => {
 
     it("does nothing when colCount is 0", () => {
       const { result } = renderHook(() =>
-        useSelection({ rowCount: 5, colCount: 0 }),
+        useSelection({ rowCount: 5, colCount: 0, stopEditing: vi.fn() }),
       );
 
       act(() => {
@@ -779,7 +761,8 @@ describe("useSelection", () => {
   describe("clamps selection when grid size decreases", () => {
     it("clamps active cell row when rowCount decreases", () => {
       const { result, rerender } = renderHook(
-        ({ rowCount, colCount }) => useSelection({ rowCount, colCount }),
+        ({ rowCount, colCount }) =>
+          useSelection({ rowCount, colCount, stopEditing: vi.fn() }),
         { initialProps: { rowCount: 10, colCount: 3 } },
       );
 
@@ -796,7 +779,8 @@ describe("useSelection", () => {
 
     it("clamps active cell col when colCount decreases", () => {
       const { result, rerender } = renderHook(
-        ({ rowCount, colCount }) => useSelection({ rowCount, colCount }),
+        ({ rowCount, colCount }) =>
+          useSelection({ rowCount, colCount, stopEditing: vi.fn() }),
         { initialProps: { rowCount: 5, colCount: 10 } },
       );
 
@@ -813,7 +797,8 @@ describe("useSelection", () => {
 
     it("clamps both anchor and active cell when selection spans deleted rows", () => {
       const { result, rerender } = renderHook(
-        ({ rowCount, colCount }) => useSelection({ rowCount, colCount }),
+        ({ rowCount, colCount }) =>
+          useSelection({ rowCount, colCount, stopEditing: vi.fn() }),
         { initialProps: { rowCount: 10, colCount: 3 } },
       );
 
@@ -839,7 +824,8 @@ describe("useSelection", () => {
 
     it("clears selection when all rows are removed", () => {
       const { result, rerender } = renderHook(
-        ({ rowCount, colCount }) => useSelection({ rowCount, colCount }),
+        ({ rowCount, colCount }) =>
+          useSelection({ rowCount, colCount, stopEditing: vi.fn() }),
         { initialProps: { rowCount: 5, colCount: 3 } },
       );
 
@@ -855,7 +841,8 @@ describe("useSelection", () => {
 
     it("does not change selection when grid size stays the same", () => {
       const { result, rerender } = renderHook(
-        ({ rowCount, colCount }) => useSelection({ rowCount, colCount }),
+        ({ rowCount, colCount }) =>
+          useSelection({ rowCount, colCount, stopEditing: vi.fn() }),
         { initialProps: { rowCount: 5, colCount: 3 } },
       );
 
@@ -870,7 +857,8 @@ describe("useSelection", () => {
 
     it("does not change selection when grid size increases", () => {
       const { result, rerender } = renderHook(
-        ({ rowCount, colCount }) => useSelection({ rowCount, colCount }),
+        ({ rowCount, colCount }) =>
+          useSelection({ rowCount, colCount, stopEditing: vi.fn() }),
         { initialProps: { rowCount: 5, colCount: 3 } },
       );
 
@@ -887,7 +875,7 @@ describe("useSelection", () => {
   describe("moveByPage", () => {
     it("moves down by page size", () => {
       const { result } = renderHook(() =>
-        useSelection({ rowCount: 100, colCount: 3 }),
+        useSelection({ rowCount: 100, colCount: 3, stopEditing: vi.fn() }),
       );
 
       act(() => {
@@ -903,7 +891,7 @@ describe("useSelection", () => {
 
     it("moves up by page size", () => {
       const { result } = renderHook(() =>
-        useSelection({ rowCount: 100, colCount: 3 }),
+        useSelection({ rowCount: 100, colCount: 3, stopEditing: vi.fn() }),
       );
 
       act(() => {
@@ -947,7 +935,7 @@ describe("useSelection", () => {
 
     it("extends selection when extend is true", () => {
       const { result } = renderHook(() =>
-        useSelection({ rowCount: 100, colCount: 3 }),
+        useSelection({ rowCount: 100, colCount: 3, stopEditing: vi.fn() }),
       );
 
       act(() => {
@@ -977,7 +965,12 @@ describe("useSelection", () => {
     it("calls onSelectionChange callback", () => {
       const onSelectionChange = vi.fn();
       const { result } = renderHook(() =>
-        useSelection({ rowCount: 100, colCount: 3, onSelectionChange }),
+        useSelection({
+          rowCount: 100,
+          colCount: 3,
+          stopEditing: vi.fn(),
+          onSelectionChange,
+        }),
       );
 
       act(() => {

@@ -4,18 +4,19 @@ import { CellPosition, SelectionState, GridSelection } from "../types";
 type UseSelectionOptions = {
   rowCount: number;
   colCount: number;
+  stopEditing: () => void;
   onSelectionChange?: (selection: GridSelection | null) => void;
 };
 
 export function useSelection({
   rowCount,
   colCount,
+  stopEditing,
   onSelectionChange,
 }: UseSelectionOptions) {
-  const [state, setState] = useState<SelectionState>({
+  const [selectionState, setSelectionState] = useState<SelectionState>({
     activeCell: null,
     anchor: null,
-    editMode: false,
   });
 
   const [isDragging, setIsDragging] = useState(false);
@@ -25,14 +26,15 @@ export function useSelection({
 
   useEffect(
     function clampSelectionWhenDataSizeChanges() {
-      setState((prev) => {
+      setSelectionState((prev) => {
         if (!prev.activeCell) return prev;
 
         const maxRow = rowCount - 1;
         const maxCol = colCount - 1;
 
         if (maxRow < 0 || maxCol < 0) {
-          return { activeCell: null, anchor: null, editMode: false };
+          stopEditing();
+          return { activeCell: null, anchor: null };
         }
 
         const clampedActiveCell = {
@@ -58,83 +60,129 @@ export function useSelection({
           return {
             activeCell: clampedActiveCell,
             anchor: clampedAnchor,
-            editMode: prev.editMode,
           };
         }
 
         return prev;
       });
     },
-    [rowCount, colCount],
+    [rowCount, colCount, stopEditing],
   );
 
   // Compute selection from active cell and anchor
   const selection = useMemo((): GridSelection | null => {
-    if (!state.activeCell) return null;
+    if (!selectionState.activeCell) return null;
 
-    const anchor = state.anchor ?? state.activeCell;
+    const anchor = selectionState.anchor ?? selectionState.activeCell;
     return {
       min: {
-        col: Math.min(state.activeCell.col, anchor.col),
-        row: Math.min(state.activeCell.row, anchor.row),
+        col: Math.min(selectionState.activeCell.col, anchor.col),
+        row: Math.min(selectionState.activeCell.row, anchor.row),
       },
       max: {
-        col: Math.max(state.activeCell.col, anchor.col),
-        row: Math.max(state.activeCell.row, anchor.row),
+        col: Math.max(selectionState.activeCell.col, anchor.col),
+        row: Math.max(selectionState.activeCell.row, anchor.row),
       },
     };
-  }, [state.activeCell, state.anchor]);
+  }, [selectionState.activeCell, selectionState.anchor]);
 
   const setActiveCell = useCallback(
     (cell: CellPosition, extend = false) => {
-      setState((prev) => {
+      setSelectionState((prev) => {
         const isSameCell =
           prev.activeCell?.col === cell.col &&
           prev.activeCell?.row === cell.row;
 
-        const newState: SelectionState = {
+        if (!isSameCell) {
+          stopEditing();
+        }
+
+        return {
           activeCell: cell,
           anchor: extend ? (prev.anchor ?? prev.activeCell) : null,
-          editMode: isSameCell ? prev.editMode : false,
         };
-        return newState;
       });
 
       // Compute selection for callback
       const newSelection: GridSelection =
-        extend && state.anchor
+        extend && selectionState.anchor
           ? {
               min: {
-                col: Math.min(cell.col, state.anchor.col),
-                row: Math.min(cell.row, state.anchor.row),
+                col: Math.min(cell.col, selectionState.anchor.col),
+                row: Math.min(cell.row, selectionState.anchor.row),
               },
               max: {
-                col: Math.max(cell.col, state.anchor.col),
-                row: Math.max(cell.row, state.anchor.row),
+                col: Math.max(cell.col, selectionState.anchor.col),
+                row: Math.max(cell.row, selectionState.anchor.row),
               },
             }
           : { min: cell, max: cell };
       onSelectionChange?.(newSelection);
     },
-    [onSelectionChange, state.anchor],
+    [onSelectionChange, selectionState.anchor, stopEditing],
   );
 
   const clearSelection = useCallback(() => {
-    setState({ activeCell: null, anchor: null, editMode: false });
+    setSelectionState({ activeCell: null, anchor: null });
+    stopEditing();
     onSelectionChange?.(null);
-  }, [onSelectionChange]);
+  }, [onSelectionChange, stopEditing]);
 
-  const startEditing = useCallback((mode: "quick" | "full" = "full") => {
-    setState((prev) => ({ ...prev, editMode: mode }));
-  }, []);
+  const selectCells = useCallback(
+    (options?: { colIndex?: number; rowIndex?: number; extend?: boolean }) => {
+      const { colIndex, rowIndex, extend = false } = options ?? {};
 
-  const stopEditing = useCallback(() => {
-    setState((prev) => ({ ...prev, editMode: false }));
-  }, []);
+      // Determine the target range based on provided indices
+      const targetMin: CellPosition = {
+        col: colIndex ?? 0,
+        row: rowIndex ?? 0,
+      };
+      const targetMax: CellPosition = {
+        col: colIndex ?? colCount - 1,
+        row: rowIndex ?? rowCount - 1,
+      };
+
+      // Early return if grid is empty
+      if (rowCount === 0 || colCount === 0) return;
+
+      let newSelection: GridSelection;
+      let newAnchor: CellPosition;
+      let newActiveCell: CellPosition;
+
+      if (extend && selectionState.anchor) {
+        // Extend from existing anchor
+        newAnchor = selectionState.anchor;
+        newActiveCell = targetMax;
+        newSelection = {
+          min: {
+            col: Math.min(targetMin.col, selectionState.anchor.col),
+            row: Math.min(targetMin.row, selectionState.anchor.row),
+          },
+          max: {
+            col: Math.max(targetMax.col, selectionState.anchor.col),
+            row: Math.max(targetMax.row, selectionState.anchor.row),
+          },
+        };
+      } else {
+        // Reset selection to target range
+        newAnchor = targetMin;
+        newActiveCell = targetMax;
+        newSelection = { min: targetMin, max: targetMax };
+      }
+
+      setSelectionState({
+        activeCell: newActiveCell,
+        anchor: newAnchor,
+      });
+      stopEditing();
+      onSelectionChange?.(newSelection);
+    },
+    [rowCount, colCount, onSelectionChange, selectionState.anchor, stopEditing],
+  );
 
   const moveActiveCell = useCallback(
     (direction: "up" | "down" | "left" | "right", extend = false) => {
-      setState((prev) => {
+      setSelectionState((prev) => {
         if (!prev.activeCell) return prev;
 
         let newCol = prev.activeCell.col;
@@ -176,68 +224,16 @@ export function useSelection({
         return {
           activeCell: newCell,
           anchor: newAnchor,
-          editMode: false,
         };
       });
+      stopEditing();
     },
-    [rowCount, colCount, onSelectionChange],
-  );
-
-  const selectCells = useCallback(
-    (options?: { colIndex?: number; rowIndex?: number; extend?: boolean }) => {
-      const { colIndex, rowIndex, extend = false } = options ?? {};
-
-      // Determine the target range based on provided indices
-      const targetMin: CellPosition = {
-        col: colIndex ?? 0,
-        row: rowIndex ?? 0,
-      };
-      const targetMax: CellPosition = {
-        col: colIndex ?? colCount - 1,
-        row: rowIndex ?? rowCount - 1,
-      };
-
-      // Early return if grid is empty
-      if (rowCount === 0 || colCount === 0) return;
-
-      let newSelection: GridSelection;
-      let newAnchor: CellPosition;
-      let newActiveCell: CellPosition;
-
-      if (extend && state.anchor) {
-        // Extend from existing anchor
-        newAnchor = state.anchor;
-        newActiveCell = targetMax;
-        newSelection = {
-          min: {
-            col: Math.min(targetMin.col, state.anchor.col),
-            row: Math.min(targetMin.row, state.anchor.row),
-          },
-          max: {
-            col: Math.max(targetMax.col, state.anchor.col),
-            row: Math.max(targetMax.row, state.anchor.row),
-          },
-        };
-      } else {
-        // Reset selection to target range
-        newAnchor = targetMin;
-        newActiveCell = targetMax;
-        newSelection = { min: targetMin, max: targetMax };
-      }
-
-      setState({
-        activeCell: newActiveCell,
-        anchor: newAnchor,
-        editMode: false,
-      });
-      onSelectionChange?.(newSelection);
-    },
-    [rowCount, colCount, onSelectionChange, state.anchor],
+    [rowCount, colCount, onSelectionChange, stopEditing],
   );
 
   const moveToRowStart = useCallback(
     (extend = false) => {
-      setState((prev) => {
+      setSelectionState((prev) => {
         if (!prev.activeCell) return prev;
 
         const newCell = { col: 0, row: prev.activeCell.row };
@@ -261,16 +257,16 @@ export function useSelection({
         return {
           activeCell: newCell,
           anchor: newAnchor,
-          editMode: false,
         };
       });
+      stopEditing();
     },
-    [onSelectionChange],
+    [onSelectionChange, stopEditing],
   );
 
   const moveToRowEnd = useCallback(
     (extend = false) => {
-      setState((prev) => {
+      setSelectionState((prev) => {
         if (!prev.activeCell) return prev;
 
         const newCell = { col: colCount - 1, row: prev.activeCell.row };
@@ -294,21 +290,21 @@ export function useSelection({
         return {
           activeCell: newCell,
           anchor: newAnchor,
-          editMode: false,
         };
       });
+      stopEditing();
     },
-    [colCount, onSelectionChange],
+    [colCount, onSelectionChange, stopEditing],
   );
 
   const moveToGridStart = useCallback(
     (extend = false) => {
-      setState((prev) => {
+      setSelectionState((prev) => {
         if (!prev.activeCell && !extend) {
           // If no active cell, just set to first cell
           const newCell = { col: 0, row: 0 };
           onSelectionChange?.({ min: newCell, max: newCell });
-          return { activeCell: newCell, anchor: null, editMode: false };
+          return { activeCell: newCell, anchor: null };
         }
 
         const newCell = { col: 0, row: 0 };
@@ -332,20 +328,20 @@ export function useSelection({
         return {
           activeCell: newCell,
           anchor: newAnchor,
-          editMode: false,
         };
       });
+      stopEditing();
     },
-    [onSelectionChange],
+    [onSelectionChange, stopEditing],
   );
 
   const moveToGridEnd = useCallback(
     (extend = false) => {
-      setState((prev) => {
+      setSelectionState((prev) => {
         if (!prev.activeCell && !extend) {
           const newCell = { col: colCount - 1, row: rowCount - 1 };
           onSelectionChange?.({ min: newCell, max: newCell });
-          return { activeCell: newCell, anchor: null, editMode: false };
+          return { activeCell: newCell, anchor: null };
         }
 
         const newCell = { col: colCount - 1, row: rowCount - 1 };
@@ -369,16 +365,16 @@ export function useSelection({
         return {
           activeCell: newCell,
           anchor: newAnchor,
-          editMode: false,
         };
       });
+      stopEditing();
     },
-    [rowCount, colCount, onSelectionChange],
+    [rowCount, colCount, onSelectionChange, stopEditing],
   );
 
   const moveByPage = useCallback(
     (direction: "up" | "down", pageSize: number, extend = false) => {
-      setState((prev) => {
+      setSelectionState((prev) => {
         if (!prev.activeCell) return prev;
 
         const delta = direction === "up" ? -pageSize : pageSize;
@@ -407,11 +403,11 @@ export function useSelection({
         return {
           activeCell: newCell,
           anchor: newAnchor,
-          editMode: false,
         };
       });
+      stopEditing();
     },
-    [rowCount, onSelectionChange],
+    [rowCount, onSelectionChange, stopEditing],
   );
 
   const isFullRowSelected = useMemo(() => {
@@ -434,21 +430,21 @@ export function useSelection({
 
   const isCellActive = useCallback(
     (col: number, row: number) => {
-      if (!state.activeCell) return false;
-      return state.activeCell.col === col && state.activeCell.row === row;
+      if (!selectionState.activeCell) return false;
+      return (
+        selectionState.activeCell.col === col &&
+        selectionState.activeCell.row === row
+      );
     },
-    [state.activeCell],
+    [selectionState.activeCell],
   );
 
   return {
-    activeCell: state.activeCell,
+    activeCell: selectionState.activeCell,
     selection,
-    editMode: state.editMode,
     isFullRowSelected,
     setActiveCell,
     clearSelection,
-    startEditing,
-    stopEditing,
     moveActiveCell,
     moveToRowStart,
     moveToRowEnd,

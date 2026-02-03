@@ -14,7 +14,12 @@ import {
   RowAction,
   GridSelection,
 } from "./types";
-import { useSelection, useGridEditing, useClipboard } from "./hooks";
+import {
+  useSelection,
+  useGridEditing,
+  useClipboard,
+  useEditMode,
+} from "./hooks";
 import {
   GridHeader,
   Rows,
@@ -60,15 +65,14 @@ export const DataGrid = forwardRef(function DataGrid<
 
   const colCount = columns.length;
 
+  const { editMode, startEditing, stopEditing } = useEditMode();
+
   const {
     activeCell,
     selection,
-    editMode,
     isFullRowSelected,
     setActiveCell,
     clearSelection,
-    startEditing,
-    stopEditing,
     moveActiveCell,
     moveToRowStart,
     moveToRowEnd,
@@ -84,6 +88,7 @@ export const DataGrid = forwardRef(function DataGrid<
   } = useSelection({
     rowCount: data.length,
     colCount: columns.length,
+    stopEditing,
     onSelectionChange,
   });
 
