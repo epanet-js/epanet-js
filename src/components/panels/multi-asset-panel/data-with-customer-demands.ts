@@ -194,15 +194,11 @@ const appendJunctionStats = (
     );
   }
 
-  // Simulation results - read from ResultsReader when available
+  // Simulation results - read from ResultsReader
   const junctionSim = simulationResults?.getJunction(junction.id);
-  const pressure = simulationResults
-    ? (junctionSim?.pressure ?? null)
-    : junction.pressure;
-  const head = simulationResults ? (junctionSim?.head ?? null) : junction.head;
-  const actualDemand = simulationResults
-    ? (junctionSim?.demand ?? null)
-    : junction.actualDemand;
+  const pressure = junctionSim?.pressure ?? null;
+  const head = junctionSim?.head ?? null;
+  const actualDemand = junctionSim?.demand ?? null;
 
   if (pressure !== null) {
     updateQuantityStats(statsMap, "pressure", pressure, quantitiesMetadata);
@@ -285,19 +281,13 @@ const appendPipeStats = (
     );
   }
 
-  // Simulation results - read from ResultsReader when available
+  // Simulation results - read from ResultsReader
   const pipeSim = simulationResults?.getPipe(pipe.id);
-  const flow = simulationResults ? (pipeSim?.flow ?? null) : pipe.flow;
-  const velocity = simulationResults
-    ? (pipeSim?.velocity ?? null)
-    : pipe.velocity;
-  const unitHeadloss = simulationResults
-    ? (pipeSim?.unitHeadloss ?? null)
-    : pipe.unitHeadloss;
-  const headloss = simulationResults
-    ? (pipeSim?.headloss ?? null)
-    : pipe.headloss;
-  const status = simulationResults ? (pipeSim?.status ?? null) : pipe.status;
+  const flow = pipeSim?.flow ?? null;
+  const velocity = pipeSim?.velocity ?? null;
+  const unitHeadloss = pipeSim?.unitHeadloss ?? null;
+  const headloss = pipeSim?.headloss ?? null;
+  const status = pipeSim?.status ?? null;
 
   if (flow !== null) {
     updateQuantityStats(statsMap, "flow", flow, quantitiesMetadata);
@@ -362,19 +352,13 @@ const appendPumpStats = (
     updateQuantityStats(statsMap, "speed", pump.speed, quantitiesMetadata);
   }
 
-  // Simulation results - read from ResultsReader when available
+  // Simulation results - read from ResultsReader
   const pumpSim = simulationResults?.getPump(pump.id);
-  const flow = simulationResults ? (pumpSim?.flow ?? null) : pump.flow;
-  // pump.head = -pumpSimulation.headloss
-  const head = simulationResults
-    ? pumpSim
-      ? -pumpSim.headloss
-      : null
-    : pump.head;
-  const status = simulationResults ? (pumpSim?.status ?? null) : pump.status;
-  const statusWarning = simulationResults
-    ? (pumpSim?.statusWarning ?? null)
-    : pump.statusWarning;
+  const flow = pumpSim?.flow ?? null;
+  // pump head = -pumpSimulation.headloss
+  const head = pumpSim ? -pumpSim.headloss : null;
+  const status = pumpSim?.status ?? null;
+  const statusWarning = pumpSim?.statusWarning ?? null;
 
   if (flow !== null) {
     updateQuantityStats(statsMap, "flow", flow, quantitiesMetadata);
@@ -430,16 +414,12 @@ const appendValveStats = (
     quantitiesMetadata,
   );
 
-  // Simulation results - read from ResultsReader when available
+  // Simulation results - read from ResultsReader
   const valveSim = simulationResults?.getValve(valve.id);
-  const flow = simulationResults ? (valveSim?.flow ?? null) : valve.flow;
-  const velocity = simulationResults
-    ? (valveSim?.velocity ?? null)
-    : valve.velocity;
-  const headloss = simulationResults
-    ? (valveSim?.headloss ?? null)
-    : valve.headloss;
-  const status = simulationResults ? (valveSim?.status ?? null) : valve.status;
+  const flow = valveSim?.flow ?? null;
+  const velocity = valveSim?.velocity ?? null;
+  const headloss = valveSim?.headloss ?? null;
+  const status = valveSim?.status ?? null;
 
   if (flow !== null) {
     updateQuantityStats(statsMap, "flow", flow, quantitiesMetadata);
@@ -537,14 +517,12 @@ const appendTankStats = (
     updateCategoryStats(statsMap, "canOverflow", tank.overflow ? "yes" : "no");
   }
 
-  // Simulation results - read from ResultsReader when available
+  // Simulation results - read from ResultsReader
   const tankSim = simulationResults?.getTank(tank.id);
-  const pressure = simulationResults
-    ? (tankSim?.pressure ?? null)
-    : tank.pressure;
-  const head = simulationResults ? (tankSim?.head ?? null) : tank.head;
-  const level = simulationResults ? (tankSim?.level ?? null) : tank.level;
-  const volume = simulationResults ? (tankSim?.volume ?? null) : tank.volume;
+  const pressure = tankSim?.pressure ?? null;
+  const head = tankSim?.head ?? null;
+  const level = tankSim?.level ?? null;
+  const volume = tankSim?.volume ?? null;
 
   if (pressure !== null) {
     updateQuantityStats(statsMap, "pressure", pressure, quantitiesMetadata);

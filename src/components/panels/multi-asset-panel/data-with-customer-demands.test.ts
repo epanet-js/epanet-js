@@ -3,6 +3,7 @@ import { computeMultiAssetDataWithCustomerDemands } from "./data-with-customer-d
 import { QuantityStats, CategoryStats, AssetPropertyStats } from "./data";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { presets, Quantities } from "src/model-metadata/quantities-spec";
+import { createMockResultsReader } from "src/__helpers__/state";
 
 describe("computeMultiAssetDataWithCustomerDemands", () => {
   const quantities = new Quantities(presets.LPS);
@@ -110,21 +111,22 @@ describe("computeMultiAssetDataWithCustomerDemands", () => {
   it("includes simulation results when available", () => {
     const IDS = { J1: 1, J2: 2 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aJunction(IDS.J1, {
-        elevation: 100,
-        simulation: { pressure: 50, head: 150, demand: 10 },
-      })
-      .aJunction(IDS.J2, {
-        elevation: 150,
-        simulation: { pressure: 60, head: 210, demand: 15 },
-      })
+      .aJunction(IDS.J1, { elevation: 100 })
+      .aJunction(IDS.J2, { elevation: 150 })
       .build();
+    const simulationResults = createMockResultsReader({
+      junctions: {
+        [IDS.J1]: { pressure: 50, head: 150, demand: 10 },
+        [IDS.J2]: { pressure: 60, head: 210, demand: 15 },
+      },
+    });
 
     const assets = Array.from(hydraulicModel.assets.values());
     const result = computeMultiAssetDataWithCustomerDemands(
       assets,
       quantities,
       hydraulicModel,
+      simulationResults,
     );
 
     const simulationStats = result.data.junction.simulationResults;
@@ -275,19 +277,22 @@ describe("computeMultiAssetDataWithCustomerDemands", () => {
   it("handles partial simulation results", () => {
     const IDS = { J1: 1, J2: 2, J3: 3 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aJunction(IDS.J1, {
-        elevation: 100,
-        simulation: { pressure: 50, head: 150, demand: 10 },
-      })
+      .aJunction(IDS.J1, { elevation: 100 })
       .aJunction(IDS.J2, { elevation: 150 })
       .aJunction(IDS.J3, { elevation: 200 })
       .build();
+    const simulationResults = createMockResultsReader({
+      junctions: {
+        [IDS.J1]: { pressure: 50, head: 150, demand: 10 },
+      },
+    });
 
     const assets = Array.from(hydraulicModel.assets.values());
     const result = computeMultiAssetDataWithCustomerDemands(
       assets,
       quantities,
       hydraulicModel,
+      simulationResults,
     );
 
     const simulationStats = result.data.junction.simulationResults;

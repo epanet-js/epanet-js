@@ -30,16 +30,7 @@ export const headlossFormulasFullNames = [
 ] as const;
 export type HeadlossFormula = (typeof headlossFormulas)[number];
 
-export type PipeSimulation = {
-  flow: number;
-  velocity: number;
-  headloss: number;
-  unitHeadloss: number;
-  status: "open" | "closed";
-};
-
 export class Pipe extends Link<PipeProperties> {
-  private simulation: PipeSimulation | null = null;
   private attachedCustomerPointIdsSet: Set<string> = new Set();
 
   get diameter() {
@@ -68,40 +59,6 @@ export class Pipe extends Link<PipeProperties> {
 
   get minorLoss() {
     return this.properties.minorLoss;
-  }
-
-  get flow() {
-    if (!this.simulation) return null;
-
-    return this.simulation.flow;
-  }
-
-  get velocity() {
-    if (!this.simulation) return null;
-
-    return this.simulation.velocity;
-  }
-
-  get headloss() {
-    if (!this.simulation) return null;
-
-    return this.simulation.headloss;
-  }
-
-  get unitHeadloss() {
-    if (!this.simulation) return null;
-
-    return this.simulation.unitHeadloss;
-  }
-
-  setSimulation(simulation: PipeSimulation | null) {
-    this.simulation = simulation;
-  }
-
-  get status() {
-    if (!this.simulation) return null;
-
-    return this.simulation.status;
   }
 
   getUnit(quantity: PipeQuantity): Unit {

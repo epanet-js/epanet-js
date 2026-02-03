@@ -16,7 +16,9 @@ import {
   simulationAtom,
   modeAtom,
   stagingModelAtom,
+  simulationResultsAtom,
 } from "src/state/jotai";
+import type { ResultsReader } from "src/simulation/results-reader";
 import { Mode } from "src/state/mode";
 import { Asset, HydraulicModel } from "src/hydraulic-model";
 import { ExportOptions } from "src/types/export";
@@ -47,6 +49,7 @@ export const setInitialState = ({
   linkSymbology = nullSymbologySpec.link,
   locale = "en",
   mode = Mode.NONE,
+  simulationResults = null,
 }: {
   store?: Store;
   hydraulicModel?: HydraulicModel;
@@ -59,6 +62,7 @@ export const setInitialState = ({
   linkSymbology?: LinkSymbology;
   locale?: Locale;
   mode?: Mode;
+  simulationResults?: ResultsReader | null;
 } = {}): Store => {
   store.set(stagingModelAtom, hydraulicModel);
   store.set(dataAtom, {
@@ -73,6 +77,9 @@ export const setInitialState = ({
   store.set(linkSymbologyAtom, linkSymbology);
   store.set(localeAtom, locale);
   store.set(modeAtom, { mode });
+  if (simulationResults) {
+    store.set(simulationResultsAtom, simulationResults);
+  }
 
   return store;
 };
@@ -206,3 +213,91 @@ export const aMultiSelection = ({
 };
 
 export const nullSelection: Sel = { type: "none" };
+
+export type SimulationData = {
+  pipes?: Record<
+    number,
+    { flow?: number; velocity?: number; status?: "open" | "closed" }
+  >;
+  junctions?: Record<
+    number,
+    { pressure?: number; head?: number; demand?: number }
+  >;
+  pumps?: Record<number, { status?: "on" | "off" }>;
+  valves?: Record<number, { status?: "active" | "open" | "closed" }>;
+  tanks?: Record<
+    number,
+    { pressure?: number; head?: number; level?: number; volume?: number }
+  >;
+};
+
+export const createMockResultsReader = (
+  data: SimulationData = {},
+): ResultsReader => ({
+  getPipe: (id) => {
+    const sim = data.pipes?.[id];
+    if (!sim) return null;
+    return {
+      type: "pipe",
+      flow: sim.flow ?? 0,
+      velocity: sim.velocity ?? 0,
+      headloss: 0,
+      unitHeadloss: 0,
+      status: sim.status ?? "open",
+    };
+  },
+  getJunction: (id) => {
+    const sim = data.junctions?.[id];
+    if (!sim) return null;
+    return {
+      type: "junction",
+      pressure: sim.pressure ?? 0,
+      head: sim.head ?? 0,
+      demand: sim.demand ?? 0,
+    };
+  },
+  getPump: (id) => {
+    const sim = data.pumps?.[id];
+    if (!sim) return null;
+    return {
+      type: "pump",
+      flow: 0,
+      headloss: 0,
+      status: sim.status ?? "on",
+      statusWarning: null,
+    };
+  },
+  getValve: (id) => {
+    const sim = data.valves?.[id];
+    if (!sim) return null;
+    return {
+      type: "valve",
+      flow: 0,
+      velocity: 0,
+      headloss: 0,
+      status: sim.status ?? "active",
+      statusWarning: null,
+    };
+  },
+  getTank: (id) => {
+    const sim = data.tanks?.[id];
+    if (!sim) return null;
+    return {
+      type: "tank",
+      pressure: sim.pressure ?? 0,
+      head: sim.head ?? 0,
+      level: sim.level ?? 0,
+      volume: sim.volume ?? 0,
+    };
+  },
+  getAllPressures: () =>
+    Object.values(data.junctions ?? {}).map((j) => j.pressure ?? 0),
+  getAllHeads: () =>
+    Object.values(data.junctions ?? {}).map((j) => j.head ?? 0),
+  getAllDemands: () =>
+    Object.values(data.junctions ?? {}).map((j) => j.demand ?? 0),
+  getAllFlows: () => Object.values(data.pipes ?? {}).map((p) => p.flow ?? 0),
+  getAllVelocities: () =>
+    Object.values(data.pipes ?? {}).map((p) => p.velocity ?? 0),
+  getAllUnitHeadlosses: () => [],
+});

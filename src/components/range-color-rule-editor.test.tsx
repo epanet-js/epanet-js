@@ -4,6 +4,7 @@ import {
   aNodeSymbology,
   aRangeColorRule,
   setInitialState,
+  createMockResultsReader,
 } from "src/__helpers__/state";
 import { screen, render, waitFor } from "@testing-library/react";
 import { Store } from "src/state/jotai";
@@ -97,9 +98,9 @@ describe("color range editor", () => {
     const IDS = { j1: 1, j2: 2, j3: 3 } as const;
     const user = userEvent.setup();
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aJunction(IDS.j1, { simulation: { pressure: 10 } })
-      .aJunction(IDS.j2, { simulation: { pressure: 15 } })
-      .aJunction(IDS.j3, { simulation: { pressure: 100 } })
+      .aJunction(IDS.j1)
+      .aJunction(IDS.j2)
+      .aJunction(IDS.j3)
       .build();
     const nodeSymbology = aNodeSymbology({
       colorRule: {
@@ -107,8 +108,19 @@ describe("color range editor", () => {
         colors: [red, green, blue],
       },
     });
+    const simulationResults = createMockResultsReader({
+      junctions: {
+        [IDS.j1]: { pressure: 10 },
+        [IDS.j2]: { pressure: 15 },
+        [IDS.j3]: { pressure: 100 },
+      },
+    });
 
-    const store = setInitialState({ hydraulicModel, nodeSymbology });
+    const store = setInitialState({
+      hydraulicModel,
+      nodeSymbology,
+      simulationResults,
+    });
 
     renderComponent({ store });
 
@@ -125,10 +137,10 @@ describe("color range editor", () => {
     const IDS = { j1: 1, j2: 2, j3: 3, j4: 4 } as const;
     const user = userEvent.setup();
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aJunction(IDS.j1, { simulation: { pressure: 10 } })
-      .aJunction(IDS.j2, { simulation: { pressure: 15 } })
-      .aJunction(IDS.j3, { simulation: { pressure: 20 } })
-      .aJunction(IDS.j4, { simulation: { pressure: 100 } })
+      .aJunction(IDS.j1)
+      .aJunction(IDS.j2)
+      .aJunction(IDS.j3)
+      .aJunction(IDS.j4)
       .build();
     const nodeSymbology = aNodeSymbology({
       colorRule: {
@@ -136,8 +148,20 @@ describe("color range editor", () => {
         colors: [red, green, blue],
       },
     });
+    const simulationResults = createMockResultsReader({
+      junctions: {
+        [IDS.j1]: { pressure: 10 },
+        [IDS.j2]: { pressure: 15 },
+        [IDS.j3]: { pressure: 20 },
+        [IDS.j4]: { pressure: 100 },
+      },
+    });
 
-    const store = setInitialState({ hydraulicModel, nodeSymbology });
+    const store = setInitialState({
+      hydraulicModel,
+      nodeSymbology,
+      simulationResults,
+    });
 
     renderComponent({ store });
 
@@ -154,10 +178,10 @@ describe("color range editor", () => {
     const IDS = { j1: 1, j2: 2, j3: 3, j4: 4 } as const;
     const user = userEvent.setup();
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aJunction(IDS.j1, { simulation: { pressure: 10 } })
-      .aJunction(IDS.j2, { simulation: { pressure: 15 } })
-      .aJunction(IDS.j3, { simulation: { pressure: 20 } })
-      .aJunction(IDS.j4, { simulation: { pressure: 100 } })
+      .aJunction(IDS.j1)
+      .aJunction(IDS.j2)
+      .aJunction(IDS.j3)
+      .aJunction(IDS.j4)
       .build();
     const nodeSymbology = aNodeSymbology({
       colorRule: {
@@ -167,8 +191,20 @@ describe("color range editor", () => {
         colors: [red, green, blue],
       },
     });
+    const simulationResults = createMockResultsReader({
+      junctions: {
+        [IDS.j1]: { pressure: 10 },
+        [IDS.j2]: { pressure: 15 },
+        [IDS.j3]: { pressure: 20 },
+        [IDS.j4]: { pressure: 100 },
+      },
+    });
 
-    const store = setInitialState({ hydraulicModel, nodeSymbology });
+    const store = setInitialState({
+      hydraulicModel,
+      nodeSymbology,
+      simulationResults,
+    });
 
     renderComponent({ store });
 
@@ -282,9 +318,9 @@ describe("color range editor", () => {
     const IDS = { j1: 1, j2: 2, j3: 3 } as const;
     const user = userEvent.setup();
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aJunction(IDS.j1, { simulation: { pressure: 10 } })
-      .aJunction(IDS.j2, { simulation: { pressure: 15 } })
-      .aJunction(IDS.j3, { simulation: { pressure: 100 } })
+      .aJunction(IDS.j1)
+      .aJunction(IDS.j2)
+      .aJunction(IDS.j3)
       .build();
     const nodeSymbology = aNodeSymbology({
       colorRule: {
@@ -293,7 +329,18 @@ describe("color range editor", () => {
         colors: [red, green, blue],
       },
     });
-    const store = setInitialState({ hydraulicModel, nodeSymbology });
+    const simulationResults = createMockResultsReader({
+      junctions: {
+        [IDS.j1]: { pressure: 10 },
+        [IDS.j2]: { pressure: 15 },
+        [IDS.j3]: { pressure: 100 },
+      },
+    });
+    const store = setInitialState({
+      hydraulicModel,
+      nodeSymbology,
+      simulationResults,
+    });
 
     renderComponent({ store });
 
@@ -408,10 +455,10 @@ describe("color range editor", () => {
   it("shows error when changing to number of classes without data ", async () => {
     const IDS = { p1: 1, p2: 2, p3: 3, p4: 4 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aPipe(IDS.p1, { simulation: { flow: 10 } })
-      .aPipe(IDS.p2, { simulation: { flow: 15 } })
-      .aPipe(IDS.p3, { simulation: { flow: 20 } })
-      .aPipe(IDS.p4, { simulation: { flow: 30 } })
+      .aPipe(IDS.p1)
+      .aPipe(IDS.p2)
+      .aPipe(IDS.p3)
+      .aPipe(IDS.p4)
       .build();
     const user = userEvent.setup();
     const linkSymbology = aLinkSymbology({
@@ -422,7 +469,19 @@ describe("color range editor", () => {
         colors: [red, green, blue],
       }),
     });
-    const store = setInitialState({ hydraulicModel, linkSymbology });
+    const simulationResults = createMockResultsReader({
+      pipes: {
+        [IDS.p1]: { flow: 10 },
+        [IDS.p2]: { flow: 15 },
+        [IDS.p3]: { flow: 20 },
+        [IDS.p4]: { flow: 30 },
+      },
+    });
+    const store = setInitialState({
+      hydraulicModel,
+      linkSymbology,
+      simulationResults,
+    });
 
     renderComponent({ store, geometryType: "link" });
 
@@ -441,12 +500,12 @@ describe("color range editor", () => {
   it("can also handle links with absolute values", async () => {
     const IDS = { p1: 1, p2: 2, p3: 3, p4: 4, p5: 5, p6: 6 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aPipe(IDS.p1, { simulation: { flow: 10 } })
-      .aPipe(IDS.p2, { simulation: { flow: 15 } })
-      .aPipe(IDS.p3, { simulation: { flow: -15 } })
-      .aPipe(IDS.p4, { simulation: { flow: 20 } })
-      .aPipe(IDS.p5, { simulation: { flow: 20 } })
-      .aPipe(IDS.p6, { simulation: { flow: 20 } })
+      .aPipe(IDS.p1)
+      .aPipe(IDS.p2)
+      .aPipe(IDS.p3)
+      .aPipe(IDS.p4)
+      .aPipe(IDS.p5)
+      .aPipe(IDS.p6)
       .build();
     const user = userEvent.setup();
     const linkSymbology = aLinkSymbology({
@@ -457,8 +516,22 @@ describe("color range editor", () => {
         absValues: true,
       }),
     });
+    const simulationResults = createMockResultsReader({
+      pipes: {
+        [IDS.p1]: { flow: 10 },
+        [IDS.p2]: { flow: 15 },
+        [IDS.p3]: { flow: -15 },
+        [IDS.p4]: { flow: 20 },
+        [IDS.p5]: { flow: 20 },
+        [IDS.p6]: { flow: 20 },
+      },
+    });
 
-    const store = setInitialState({ linkSymbology, hydraulicModel });
+    const store = setInitialState({
+      linkSymbology,
+      hydraulicModel,
+      simulationResults,
+    });
 
     renderComponent({ store, geometryType: "link" });
 
@@ -513,8 +586,8 @@ describe("color range editor", () => {
   it("preserves links settings for later", async () => {
     const IDS = { p1: 1, p2: 2 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aPipe(IDS.p1, { simulation: { flow: 10 } })
-      .aPipe(IDS.p2, { simulation: { flow: 15 } })
+      .aPipe(IDS.p1)
+      .aPipe(IDS.p2)
       .build();
     const user = userEvent.setup();
     const linkSymbology = aLinkSymbology({
@@ -523,8 +596,18 @@ describe("color range editor", () => {
         rampName: "Temps",
       }),
     });
+    const simulationResults = createMockResultsReader({
+      pipes: {
+        [IDS.p1]: { flow: 10 },
+        [IDS.p2]: { flow: 15 },
+      },
+    });
 
-    const store = setInitialState({ linkSymbology, hydraulicModel });
+    const store = setInitialState({
+      linkSymbology,
+      hydraulicModel,
+      simulationResults,
+    });
 
     renderComponent({ store, geometryType: "link" });
 

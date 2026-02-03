@@ -15,7 +15,7 @@ import userEvent from "@testing-library/user-event";
 import { AssetId, getLink, getPipe } from "src/hydraulic-model/assets-map";
 import FeatureEditor from "../feature-editor";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Valve, Tank } from "src/hydraulic-model/asset-types";
+import { Valve } from "src/hydraulic-model/asset-types";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import type { ResultsReader } from "src/simulation/results-reader";
 
@@ -63,20 +63,21 @@ describe("AssetPanel", () => {
 
     it("can show simulation results", () => {
       const IDS = { P1: 1 };
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aPipe(IDS.P1, {
-          simulation: {
-            flow: 20.1234,
-            velocity: 10.1234,
-            headloss: 0.234,
-            unitHeadloss: 0.1234,
-            status: "open",
-          },
-        })
-        .build();
+      const hydraulicModel = HydraulicModelBuilder.with().aPipe(IDS.P1).build();
       const store = setInitialState({
         hydraulicModel,
         selectedAssetId: IDS.P1,
+        simulationData: {
+          pipes: {
+            [IDS.P1]: {
+              flow: 20.1234,
+              velocity: 10.1234,
+              headloss: 0.234,
+              unitHeadloss: 0.1234,
+              status: "open",
+            },
+          },
+        },
       });
 
       renderComponent(store);
@@ -403,19 +404,22 @@ describe("AssetPanel", () => {
     it("can show simulation results", () => {
       const IDS = { v1: 1 };
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aValve(IDS.v1, {
-          simulation: {
-            flow: 20.1234,
-            velocity: 10.1234,
-            headloss: 98,
-            status: "open",
-            statusWarning: "cannot-deliver-pressure",
-          },
-        })
+        .aValve(IDS.v1)
         .build();
       const store = setInitialState({
         hydraulicModel,
         selectedAssetId: IDS.v1,
+        simulationData: {
+          valves: {
+            [IDS.v1]: {
+              flow: 20.1234,
+              velocity: 10.1234,
+              headloss: 98,
+              status: "open",
+              statusWarning: "cannot-deliver-pressure",
+            },
+          },
+        },
       });
 
       renderComponent(store);
@@ -548,11 +552,20 @@ describe("AssetPanel", () => {
     it("can show simulation results", () => {
       const IDS = { PU1: 1 };
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aPump(IDS.PU1, { simulation: { flow: 20.1234, headloss: -10.1234 } })
+        .aPump(IDS.PU1)
         .build();
       const store = setInitialState({
         hydraulicModel,
         selectedAssetId: IDS.PU1,
+        simulationData: {
+          pumps: {
+            [IDS.PU1]: {
+              flow: 20.1234,
+              headloss: -10.1234,
+              status: "on",
+            },
+          },
+        },
       });
 
       renderComponent(store);
@@ -631,12 +644,16 @@ describe("AssetPanel", () => {
         .aJunction(IDS.J1, {
           elevation: 10,
           demands: [{ baseDemand: 100 }],
-          simulation: { pressure: 20, head: 10, demand: 20 },
         })
         .build();
       const store = setInitialState({
         hydraulicModel,
         selectedAssetId: IDS.J1,
+        simulationData: {
+          junctions: {
+            [IDS.J1]: { pressure: 20, head: 10, demand: 20 },
+          },
+        },
       });
 
       renderComponent(store);
@@ -980,19 +997,20 @@ describe("AssetPanel", () => {
 
     it("can show simulation results", () => {
       const IDS = { T1: 1 };
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aTank(IDS.T1, {
-          simulation: {
-            pressure: 15.1234,
-            head: 125.5678,
-            level: 25.9876,
-            volume: 1500.4321,
-          },
-        })
-        .build();
+      const hydraulicModel = HydraulicModelBuilder.with().aTank(IDS.T1).build();
       const store = setInitialState({
         hydraulicModel,
         selectedAssetId: IDS.T1,
+        simulationData: {
+          tanks: {
+            [IDS.T1]: {
+              pressure: 15.1234,
+              head: 125.5678,
+              level: 25.9876,
+              volume: 1500.4321,
+            },
+          },
+        },
       });
 
       renderComponent(store);
@@ -1111,11 +1129,14 @@ describe("AssetPanel", () => {
   it("cannot change simulation results", () => {
     const IDS = { PIPE1: 1 };
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aPipe(IDS.PIPE1, { simulation: { flow: 10, status: "open" } })
+      .aPipe(IDS.PIPE1)
       .build();
     const store = setInitialState({
       hydraulicModel,
       selectedAssetId: IDS.PIPE1,
+      simulationData: {
+        pipes: { [IDS.PIPE1]: { flow: 10, status: "open" } },
+      },
     });
 
     renderComponent(store);
@@ -1426,75 +1447,104 @@ describe("AssetPanel", () => {
     expectPropertyDisplayed("length (m)", "1,000");
   });
 
-  // Create a mock ResultsReader from asset simulation data
+  type SimulationData = {
+    pipes?: Record<
+      number,
+      Partial<{
+        flow: number;
+        velocity: number;
+        headloss: number;
+        unitHeadloss: number;
+        status: "open" | "closed";
+      }>
+    >;
+    junctions?: Record<
+      number,
+      Partial<{ pressure: number; head: number; demand: number }>
+    >;
+    pumps?: Record<
+      number,
+      Partial<{
+        flow: number;
+        headloss: number;
+        status: "on" | "off";
+        statusWarning: "cannot-deliver-flow" | "cannot-deliver-head" | null;
+      }>
+    >;
+    valves?: Record<
+      number,
+      Partial<{
+        flow: number;
+        velocity: number;
+        headloss: number;
+        status: "active" | "open" | "closed";
+        statusWarning: "cannot-deliver-flow" | "cannot-deliver-pressure" | null;
+      }>
+    >;
+    tanks?: Record<
+      number,
+      Partial<{ pressure: number; head: number; level: number; volume: number }>
+    >;
+  };
+
   const createMockResultsReader = (
-    hydraulicModel: HydraulicModel,
+    data: SimulationData = {},
   ): ResultsReader => {
     return {
       getPipe: (id: number) => {
-        const asset = hydraulicModel.assets.get(id);
-        if (!asset || asset.type !== "pipe") return null;
-        const pipe = asset as Pipe;
-        if (pipe.flow === null) return null;
+        const sim = data.pipes?.[id];
+        if (!sim) return null;
         return {
           type: "pipe",
-          flow: pipe.flow,
-          velocity: pipe.velocity ?? 0,
-          headloss: pipe.headloss ?? 0,
-          unitHeadloss: pipe.unitHeadloss ?? 0,
-          status: pipe.status ?? "open",
+          flow: sim.flow ?? 0,
+          velocity: sim.velocity ?? 0,
+          headloss: sim.headloss ?? 0,
+          unitHeadloss: sim.unitHeadloss ?? 0,
+          status: sim.status ?? "open",
         };
       },
       getJunction: (id: number) => {
-        const asset = hydraulicModel.assets.get(id);
-        if (!asset || asset.type !== "junction") return null;
-        const junction = asset as Junction;
-        if (junction.pressure === null) return null;
+        const sim = data.junctions?.[id];
+        if (!sim) return null;
         return {
           type: "junction",
-          pressure: junction.pressure,
-          head: junction.head ?? 0,
-          demand: junction.actualDemand ?? 0,
+          pressure: sim.pressure ?? 0,
+          head: sim.head ?? 0,
+          demand: sim.demand ?? 0,
         };
       },
       getPump: (id: number) => {
-        const asset = hydraulicModel.assets.get(id);
-        if (!asset || asset.type !== "pump") return null;
-        const pump = asset as Pump;
-        if (pump.flow === null) return null;
+        const sim = data.pumps?.[id];
+        if (!sim) return null;
         return {
           type: "pump",
-          flow: pump.flow,
-          headloss: pump.head ? -pump.head : 0,
-          status: pump.status ?? "on",
-          statusWarning: pump.statusWarning,
+          flow: sim.flow ?? 0,
+          headloss: sim.headloss ?? 0,
+          status: sim.status ?? "on",
+          statusWarning: sim.statusWarning ?? null,
         };
       },
       getValve: (id: number) => {
-        const asset = hydraulicModel.assets.get(id);
-        if (!asset || asset.type !== "valve") return null;
-        const valve = asset as Valve;
-        if (valve.flow === null) return null;
+        const sim = data.valves?.[id];
+        if (!sim) return null;
         return {
           type: "valve",
-          flow: valve.flow,
-          velocity: valve.velocity ?? 0,
-          headloss: valve.headloss ?? 0,
-          status: valve.status ?? "active",
-          statusWarning: valve.statusWarning,
+          flow: sim.flow ?? 0,
+          velocity: sim.velocity ?? 0,
+          headloss: sim.headloss ?? 0,
+          status: sim.status ?? "active",
+          statusWarning: sim.statusWarning ?? null,
         };
       },
       getTank: (id: number) => {
-        const asset = hydraulicModel.assets.get(id);
-        if (!asset || asset.type !== "tank") return null;
-        const tank = asset as Tank;
-        if (tank.pressure === null) return null;
+        const sim = data.tanks?.[id];
+        if (!sim) return null;
         return {
           type: "tank",
-          pressure: tank.pressure,
-          head: tank.head ?? 0,
-          level: tank.level ?? 0,
-          volume: tank.volume ?? 0,
+          pressure: sim.pressure ?? 0,
+          head: sim.head ?? 0,
+          level: sim.level ?? 0,
+          volume: sim.volume ?? 0,
         };
       },
       getAllPressures: () => [],
@@ -1510,18 +1560,21 @@ describe("AssetPanel", () => {
     store = createStore(),
     hydraulicModel = HydraulicModelBuilder.with().build(),
     selectedAssetId,
+    simulationData,
   }: {
     store?: Store;
     hydraulicModel?: HydraulicModel;
     selectedAssetId: AssetId;
+    simulationData?: SimulationData;
   }): Store => {
     store.set(stagingModelAtom, hydraulicModel);
     store.set(dataAtom, {
       ...nullData,
       selection: { type: "single", id: selectedAssetId, parts: [] },
     });
-    // Set simulation results from asset data for test compatibility
-    store.set(simulationResultsAtom, createMockResultsReader(hydraulicModel));
+    if (simulationData) {
+      store.set(simulationResultsAtom, createMockResultsReader(simulationData));
+    }
     return store;
   };
 

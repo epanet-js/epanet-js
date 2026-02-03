@@ -20,8 +20,6 @@ export class Reservoir extends Node<ReservoirProperties> {
     );
   }
 
-  setSimulation() {}
-
   getUnit(key: ReservoirQuantity) {
     return this.units[key];
   }

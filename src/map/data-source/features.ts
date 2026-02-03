@@ -138,9 +138,7 @@ export const appendPipeStatus = (
   simulationResults?: ResultsReader | null,
 ) => {
   const pipeSimulation = simulationResults?.getPipe(pipe.id);
-  const status = simulationResults
-    ? (pipeSimulation?.status ?? null)
-    : pipe.status;
+  const status = pipeSimulation?.status ?? null;
   feature.properties!.status = status ? status : pipe.initialStatus;
 };
 
@@ -150,9 +148,7 @@ export const appendPumpStatus = (
   simulationResults?: ResultsReader | null,
 ) => {
   const pumpSimulation = simulationResults?.getPump(pump.id);
-  const status = simulationResults
-    ? (pumpSimulation?.status ?? null)
-    : pump.status;
+  const status = pumpSimulation?.status ?? null;
   feature.properties!.status = status ? status : pump.initialStatus;
 };
 
@@ -162,9 +158,7 @@ export const appendValveStatus = (
   simulationResults?: ResultsReader | null,
 ) => {
   const valveSimulation = simulationResults?.getValve(valve.id);
-  const status = simulationResults
-    ? (valveSimulation?.status ?? null)
-    : valve.status;
+  const status = valveSimulation?.status ?? null;
   feature.properties!.status = status ? status : valve.initialStatus;
 };
 
@@ -174,10 +168,8 @@ export const appendPipeArrowProps = (
   simulationResults?: ResultsReader | null,
 ) => {
   const pipeSimulation = simulationResults?.getPipe(pipe.id);
-  const status = simulationResults
-    ? (pipeSimulation?.status ?? null)
-    : pipe.status;
-  const flow = simulationResults ? (pipeSimulation?.flow ?? null) : pipe.flow;
+  const status = pipeSimulation?.status ?? null;
+  const flow = pipeSimulation?.flow ?? null;
   const isReverse = flow && flow < 0;
   feature.properties!.length = convertTo(
     { value: pipe.length, unit: pipe.getUnit("length") },

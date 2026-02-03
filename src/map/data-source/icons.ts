@@ -111,9 +111,7 @@ const buildPumpIcon = (
   simulationResults?: ResultsReader | null,
 ): Feature => {
   const pumpSimulation = simulationResults?.getPump(pump.id);
-  const status = simulationResults
-    ? (pumpSimulation?.status ?? null)
-    : pump.status;
+  const status = pumpSimulation?.status ?? null;
   return buildDirectionalLinkIcon(pump, selectedAssets, (asset) => ({
     status: status ? status : asset.initialStatus,
     isActive: asset.isActive,
@@ -126,9 +124,7 @@ const buildValveIcon = (
   simulationResults?: ResultsReader | null,
 ): Feature => {
   const valveSimulation = simulationResults?.getValve(valve.id);
-  const simStatus = simulationResults
-    ? (valveSimulation?.status ?? null)
-    : valve.status;
+  const simStatus = valveSimulation?.status ?? null;
   const status = valve.isActive
     ? simStatus
       ? simStatus
@@ -147,9 +143,7 @@ const buildPipeCheckValveIcon = (
   simulationResults?: ResultsReader | null,
 ): Feature => {
   const pipeSimulation = simulationResults?.getPipe(pipe.id);
-  const simStatus = simulationResults
-    ? (pipeSimulation?.status ?? null)
-    : pipe.status;
+  const simStatus = pipeSimulation?.status ?? null;
   const status = pipe.isActive
     ? simStatus === "closed"
       ? "closed"

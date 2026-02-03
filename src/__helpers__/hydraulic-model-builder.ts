@@ -27,11 +27,6 @@ import {
   ValveBuildData,
 } from "src/hydraulic-model/asset-builder";
 import {
-  PumpStatus,
-  PumpStatusWarning,
-} from "src/hydraulic-model/asset-types/pump";
-import { PipeSimulation } from "src/hydraulic-model/asset-types/pipe";
-import {
   ConsecutiveIdsGenerator,
   IdGenerator,
 } from "src/hydraulic-model/id-generator";
@@ -42,7 +37,6 @@ import {
   UnitsSpec,
   presets,
 } from "src/model-metadata/quantities-spec";
-import { ValveSimulation } from "src/hydraulic-model/asset-types/valve";
 import { Demands, createEmptyDemands } from "src/hydraulic-model/demands";
 import {
   AllocationRule,
@@ -194,27 +188,11 @@ export class HydraulicModelBuilder {
     return this;
   }
 
-  aJunction(
-    id: number,
-    data: Partial<
-      JunctionBuildData & {
-        simulation: Partial<{ pressure: number; head: number; demand: number }>;
-      }
-    > = {},
-  ) {
-    const { simulation, ...properties } = data;
+  aJunction(id: number, data: Partial<JunctionBuildData> = {}) {
     const junction = this.assetBuilder.buildJunction({
       id,
-      ...properties,
+      ...data,
     });
-    if (simulation) {
-      junction.setSimulation({
-        pressure: 2,
-        head: 4,
-        demand: 10,
-        ...simulation,
-      });
-    }
     this.assets.set(id, junction);
     this.idGenerator.addId(id);
     return this;
@@ -230,33 +208,11 @@ export class HydraulicModelBuilder {
     return this;
   }
 
-  aTank(
-    id: number,
-    data: Partial<
-      TankBuildData & {
-        simulation: Partial<{
-          pressure: number;
-          head: number;
-          level: number;
-          volume: number;
-        }>;
-      }
-    > = {},
-  ) {
-    const { simulation, ...properties } = data;
+  aTank(id: number, data: Partial<TankBuildData> = {}) {
     const tank = this.assetBuilder.buildTank({
       id,
-      ...properties,
+      ...data,
     });
-    if (simulation) {
-      tank.setSimulation({
-        pressure: 15,
-        head: 125,
-        level: 25,
-        volume: 1500,
-        ...simulation,
-      });
-    }
     this.assets.set(id, tank);
     this.idGenerator.addId(id);
     return this;
@@ -268,13 +224,10 @@ export class HydraulicModelBuilder {
       PipeBuildData & {
         startNodeId: number;
         endNodeId: number;
-      } & {
-        simulation: Partial<PipeSimulation>;
       }
     > = {},
   ) {
-    const { startNodeId, endNodeId, simulation, coordinates, ...properties } =
-      data;
+    const { startNodeId, endNodeId, coordinates, ...properties } = data;
     const startNode = this.getNodeOrCreate(startNodeId);
     const endNode = this.getNodeOrCreate(endNodeId);
 
@@ -285,16 +238,6 @@ export class HydraulicModelBuilder {
       ...properties,
     });
     this.assets.set(id, pipe);
-    if (simulation) {
-      pipe.setSimulation({
-        flow: 10,
-        velocity: 10,
-        headloss: 10,
-        unitHeadloss: 10,
-        status: "open",
-        ...simulation,
-      });
-    }
     this.idGenerator.addId(id);
     this.topology.addLink(id, startNode.id, endNode.id);
     return this;
@@ -306,17 +249,10 @@ export class HydraulicModelBuilder {
       PumpBuildData & {
         startNodeId: number;
         endNodeId: number;
-      } & {
-        simulation: Partial<{
-          flow: number;
-          headloss: number;
-          status: PumpStatus;
-          statusWarning: PumpStatusWarning;
-        }>;
       }
     > = {},
   ) {
-    const { startNodeId, endNodeId, simulation, ...properties } = data;
+    const { startNodeId, endNodeId, ...properties } = data;
     const startNode = this.getNodeOrCreate(startNodeId);
     const endNode = this.getNodeOrCreate(endNodeId);
 
@@ -326,15 +262,6 @@ export class HydraulicModelBuilder {
       id,
       ...properties,
     });
-    if (simulation) {
-      pump.setSimulation({
-        flow: 10,
-        headloss: 10,
-        status: "on",
-        statusWarning: null,
-        ...simulation,
-      });
-    }
     this.assets.set(id, pump);
     this.idGenerator.addId(id);
     this.topology.addLink(id, startNode.id, endNode.id);
@@ -347,12 +274,10 @@ export class HydraulicModelBuilder {
       ValveBuildData & {
         startNodeId: number;
         endNodeId: number;
-      } & {
-        simulation: Partial<ValveSimulation>;
       }
     > = {},
   ) {
-    const { startNodeId, endNodeId, simulation, ...properties } = data;
+    const { startNodeId, endNodeId, ...properties } = data;
     const startNode = this.getNodeOrCreate(startNodeId);
     const endNode = this.getNodeOrCreate(endNodeId);
 
@@ -362,16 +287,6 @@ export class HydraulicModelBuilder {
       id,
       ...properties,
     });
-    if (simulation) {
-      valve.setSimulation({
-        flow: 10,
-        headloss: 10,
-        velocity: 10,
-        status: "active",
-        statusWarning: null,
-        ...simulation,
-      });
-    }
     this.assets.set(id, valve);
     this.idGenerator.addId(id);
     this.topology.addLink(id, startNode.id, endNode.id);

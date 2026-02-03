@@ -14,15 +14,7 @@ export type JunctionProperties = {
 export const junctionQuantities = ["elevation", "pressure"] as const;
 export type JunctionQuantity = (typeof junctionQuantities)[number];
 
-export type JunctionSimulation = {
-  pressure: number;
-  head: number;
-  demand: number;
-};
-
 export class Junction extends Node<JunctionProperties> {
-  private simulation: JunctionSimulation | null = null;
-
   get constantDemand() {
     return this.properties.demands
       .filter((d) => !d.patternId)
@@ -35,28 +27,6 @@ export class Junction extends Node<JunctionProperties> {
 
   setDemands(demands: JunctionDemand[]) {
     this.properties.demands = demands;
-  }
-
-  get pressure() {
-    if (!this.simulation) return null;
-
-    return this.simulation.pressure;
-  }
-
-  get head() {
-    if (!this.simulation) return null;
-
-    return this.simulation.head;
-  }
-
-  get actualDemand() {
-    if (!this.simulation) return null;
-
-    return this.simulation.demand;
-  }
-
-  setSimulation(simulation: JunctionSimulation | null) {
-    this.simulation = simulation;
   }
 
   getUnit(key: JunctionQuantity) {

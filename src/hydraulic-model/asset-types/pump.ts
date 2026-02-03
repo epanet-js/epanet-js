@@ -28,22 +28,9 @@ export const pumpQuantities = [
 ];
 export type PumpQuantity = (typeof pumpQuantities)[number];
 
-export type PumpSimulation = {
-  flow: number;
-  headloss: number;
-  status: PumpStatus;
-  statusWarning: PumpStatusWarning | null;
-};
-
 export class Pump extends Link<PumpProperties> {
-  private simulation: PumpSimulation | null = null;
-
   getUnit(quantity: PumpQuantity): Unit {
     return this.units[quantity];
-  }
-
-  setSimulation(simulation: PumpSimulation | null) {
-    this.simulation = simulation;
   }
 
   get initialStatus() {
@@ -64,32 +51,6 @@ export class Pump extends Link<PumpProperties> {
 
   get curveId() {
     return this.properties.curveId;
-  }
-
-  get status() {
-    if (!this.simulation) return null;
-
-    return this.simulation.status;
-  }
-
-  get statusWarning() {
-    if (!this.simulation) return null;
-
-    return this.simulation.statusWarning;
-  }
-
-  get flow() {
-    if (!this.simulation) return null;
-
-    return this.simulation.flow;
-  }
-
-  get head() {
-    if (!this.simulation) return null;
-
-    const headloss = this.simulation.headloss;
-    if (headloss === null) return null;
-    return -headloss;
   }
 
   copy() {
