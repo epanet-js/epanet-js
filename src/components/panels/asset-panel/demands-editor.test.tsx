@@ -31,6 +31,12 @@ const getCell = (rowIndex: number, colIndex: number) => {
 const getBaseDemandCell = (rowIndex: number) => getCell(rowIndex, 0);
 const getPatternCell = (rowIndex: number) => getCell(rowIndex, 1);
 
+// Helper to get input value from a float cell (FloatCell now always renders an input)
+const getFloatCellValue = (cell: HTMLElement) => {
+  const input = within(cell).getByRole("textbox");
+  return (input as HTMLInputElement).value;
+};
+
 const getAddRowButton = () => {
   return screen.getByRole("button", { name: /add demand category/i });
 };
@@ -75,7 +81,7 @@ describe("DemandCategoriesEditor", () => {
       );
 
       // Grid should be shown with default row
-      expect(getBaseDemandCell(0)).toHaveTextContent("0");
+      expect(getFloatCellValue(getBaseDemandCell(0))).toBe("0");
       expect(getPatternCell(0)).toHaveTextContent("CONSTANT");
 
       // onDemandsChange should not be called until actual changes are made
@@ -175,9 +181,9 @@ describe("DemandCategoriesEditor", () => {
         />,
       );
 
-      expect(getBaseDemandCell(0)).toHaveTextContent("100");
+      expect(getFloatCellValue(getBaseDemandCell(0))).toBe("100");
       expect(getPatternCell(0)).toHaveTextContent("Pattern1");
-      expect(getBaseDemandCell(1)).toHaveTextContent("50");
+      expect(getFloatCellValue(getBaseDemandCell(1))).toBe("50");
       expect(getPatternCell(1)).toHaveTextContent("CONSTANT");
     });
 
@@ -579,7 +585,7 @@ describe("DemandCategoriesEditor", () => {
       );
 
       // Values should be displayed
-      expect(getBaseDemandCell(0)).toHaveTextContent("100");
+      expect(getFloatCellValue(getBaseDemandCell(0))).toBe("100");
       expect(getPatternCell(0)).toHaveTextContent("CONSTANT");
 
       // Click cell to select, then double-click should not enable editing
@@ -587,10 +593,9 @@ describe("DemandCategoriesEditor", () => {
       await user.click(baseDemandCell);
       await user.dblClick(baseDemandCell);
 
-      // Should not find any input (editing mode should not activate)
-      expect(
-        within(getBaseDemandCell(0)).queryByRole("textbox"),
-      ).not.toBeInTheDocument();
+      // Input should remain readonly (editing mode should not activate)
+      const input = within(getBaseDemandCell(0)).getByRole("textbox");
+      expect(input).toHaveAttribute("readonly");
 
       // onDemandsChange should not be called
       expect(onDemandsChange).not.toHaveBeenCalled();

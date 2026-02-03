@@ -1,4 +1,4 @@
-import { screen, waitFor } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { render } from "@testing-library/react";
 import { Provider as JotaiProvider } from "jotai";
@@ -66,9 +66,11 @@ describe("CurvesAndPatternsDialog", () => {
       const firstMultiplierCell = getMultiplierCell(0);
       await user.dblClick(firstMultiplierCell);
       await waitFor(() => {
-        expect(screen.getByRole("textbox")).toBeInTheDocument();
+        expect(
+          within(firstMultiplierCell).getByRole("textbox"),
+        ).not.toHaveAttribute("readonly");
       });
-      const input = screen.getByRole("textbox");
+      const input = within(firstMultiplierCell).getByRole("textbox");
       await user.clear(input);
       await user.type(input, "2.0{Enter}");
 
@@ -96,9 +98,11 @@ describe("CurvesAndPatternsDialog", () => {
       const firstMultiplierCell = getMultiplierCell(0);
       await user.dblClick(firstMultiplierCell);
       await waitFor(() => {
-        expect(screen.getByRole("textbox")).toBeInTheDocument();
+        expect(
+          within(firstMultiplierCell).getByRole("textbox"),
+        ).not.toHaveAttribute("readonly");
       });
-      const input = screen.getByRole("textbox");
+      const input = within(firstMultiplierCell).getByRole("textbox");
       await user.clear(input);
       await user.type(input, "2.0{Enter}");
 
@@ -153,9 +157,11 @@ describe("CurvesAndPatternsDialog", () => {
       const firstMultiplierCell = getMultiplierCell(0);
       await user.dblClick(firstMultiplierCell);
       await waitFor(() => {
-        expect(screen.getByRole("textbox")).toBeInTheDocument();
+        expect(
+          within(firstMultiplierCell).getByRole("textbox"),
+        ).not.toHaveAttribute("readonly");
       });
-      const input = screen.getByRole("textbox");
+      const input = within(firstMultiplierCell).getByRole("textbox");
       await user.clear(input);
       await user.type(input, "2.0{Enter}");
 
@@ -192,9 +198,11 @@ describe("CurvesAndPatternsDialog", () => {
       const firstMultiplierCell = getMultiplierCell(0);
       await user.dblClick(firstMultiplierCell);
       await waitFor(() => {
-        expect(screen.getByRole("textbox")).toBeInTheDocument();
+        expect(
+          within(firstMultiplierCell).getByRole("textbox"),
+        ).not.toHaveAttribute("readonly");
       });
-      const input = screen.getByRole("textbox");
+      const input = within(firstMultiplierCell).getByRole("textbox");
       await user.clear(input);
       await user.type(input, "2.0{Enter}");
 
@@ -230,9 +238,11 @@ describe("CurvesAndPatternsDialog", () => {
       const firstMultiplierCell = getMultiplierCell(0);
       await user.dblClick(firstMultiplierCell);
       await waitFor(() => {
-        expect(screen.getByRole("textbox")).toBeInTheDocument();
+        expect(
+          within(firstMultiplierCell).getByRole("textbox"),
+        ).not.toHaveAttribute("readonly");
       });
-      const input = screen.getByRole("textbox");
+      const input = within(firstMultiplierCell).getByRole("textbox");
       await user.clear(input);
       await user.type(input, "2.0{Enter}");
 

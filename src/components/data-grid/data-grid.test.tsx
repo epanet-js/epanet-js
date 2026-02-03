@@ -381,11 +381,12 @@ describe("DataGrid", () => {
       );
 
       // Double click on editable cell (value column)
-      const cell = screen.getByText("1");
+      const cell = screen.getByDisplayValue("1");
       await user.dblClick(cell);
 
       await waitFor(() => {
-        expect(screen.getByRole("textbox")).toBeInTheDocument();
+        // In edit mode, the input becomes editable (not readonly)
+        expect(screen.getByDisplayValue("1")).not.toHaveAttribute("readonly");
       });
     });
 
@@ -409,16 +410,18 @@ describe("DataGrid", () => {
       );
 
       // Double click to edit - find cell with value 10.5 (formatted as "10.5")
-      const cell = screen.getByText("10.5");
+      const cell = screen.getByDisplayValue("10.5");
       await user.dblClick(cell);
 
-      // Wait for input to appear
+      // Wait for edit mode (input becomes editable)
       await waitFor(() => {
-        expect(screen.getByRole("textbox")).toBeInTheDocument();
+        expect(screen.getByDisplayValue("10.5")).not.toHaveAttribute(
+          "readonly",
+        );
       });
 
       // Clear and type new value
-      const input = screen.getByRole("textbox");
+      const input = screen.getByDisplayValue("10.5");
       await user.clear(input);
       await user.type(input, "25{Enter}");
 
@@ -444,14 +447,14 @@ describe("DataGrid", () => {
       );
 
       // Double click to edit
-      const cell = screen.getByText("1");
+      const cell = screen.getByDisplayValue("1");
       await user.dblClick(cell);
 
-      // Wait for edit mode and type new value then escape
+      // Wait for edit mode (input becomes editable)
       await waitFor(() => {
-        expect(screen.getByRole("textbox")).toBeInTheDocument();
+        expect(screen.getByDisplayValue("1")).not.toHaveAttribute("readonly");
       });
-      const input = screen.getByRole("textbox");
+      const input = screen.getByDisplayValue("1");
       await user.clear(input);
       await user.type(input, "999");
       await user.keyboard("{Escape}");
@@ -704,8 +707,11 @@ describe("DataGrid", () => {
       // Press Enter
       await user.keyboard("{Enter}");
 
-      // Should not find any textbox (editing mode should not activate)
-      expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
+      // All float cell inputs should remain readonly (editing mode should not activate)
+      const inputs = screen.getAllByRole("textbox");
+      inputs.forEach((input) => {
+        expect(input).toHaveAttribute("readonly");
+      });
     });
 
     it("does not start editing when typing a character in readOnly mode", async () => {
@@ -728,8 +734,11 @@ describe("DataGrid", () => {
       // Type a character
       await user.keyboard("5");
 
-      // Should not find any textbox (editing mode should not activate)
-      expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
+      // All float cell inputs should remain readonly (editing mode should not activate)
+      const inputs = screen.getAllByRole("textbox");
+      inputs.forEach((input) => {
+        expect(input).toHaveAttribute("readonly");
+      });
     });
 
     it("can still select cells when readOnly is true", async () => {
