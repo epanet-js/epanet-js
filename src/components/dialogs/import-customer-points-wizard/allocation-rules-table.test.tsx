@@ -51,14 +51,11 @@ describe("AllocationRulesTable", () => {
         screen.queryByRole("button", { name: /Add Rule/i }),
       ).not.toBeInTheDocument();
 
-      const diameterFields = screen.getAllByLabelText(
-        "Value for: Max diameter",
-      );
-      const distanceFields = screen.getAllByLabelText(
-        "Value for: Max distance",
-      );
-      expect(diameterFields[0]).toHaveAttribute("readOnly");
-      expect(distanceFields[0]).toHaveAttribute("readOnly");
+      // When not editing, values are displayed as plain text (not input fields)
+      expect(screen.getByText("200")).toBeInTheDocument(); // maxDiameter from first rule
+      expect(screen.getByText("100")).toBeInTheDocument(); // maxDistance from first rule
+      expect(screen.getByText("300")).toBeInTheDocument(); // maxDiameter from second rule
+      expect(screen.getByText("150")).toBeInTheDocument(); // maxDistance from second rule
     });
 
     it("shows editable table when isEditing is true", () => {

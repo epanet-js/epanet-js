@@ -5,6 +5,7 @@ import {
 } from "src/hydraulic-model/customer-points";
 
 import { NumericField } from "src/components/form/numeric-field";
+import { TextField } from "src/components/panels/asset-panel/ui-components";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { useTranslate } from "src/hooks/use-translate";
@@ -134,38 +135,48 @@ export const AllocationRulesTable: React.FC<AllocationRulesTableProps> = ({
                   {index + 1}
                 </td>
                 <td className="px-4 py-3">
-                  <NumericField
-                    label={translate(
-                      "importCustomerPoints.wizard.allocationStep.table.maxDiameterLabel",
-                    )}
-                    displayValue={localizeDecimal(rule.maxDiameter)}
-                    onChangeValue={(value) =>
-                      handleRuleChange(index, "maxDiameter", value)
-                    }
-                    positiveOnly={true}
-                    readOnly={!isEditing}
-                    styleOptions={{
-                      padding: "sm",
-                      border: isEditing ? "sm" : "none",
-                    }}
-                  />
+                  {isEditing ? (
+                    <NumericField
+                      label={translate(
+                        "importCustomerPoints.wizard.allocationStep.table.maxDiameterLabel",
+                      )}
+                      displayValue={localizeDecimal(rule.maxDiameter)}
+                      onChangeValue={(value) =>
+                        handleRuleChange(index, "maxDiameter", value)
+                      }
+                      positiveOnly={true}
+                      styleOptions={{
+                        padding: "sm",
+                        border: "sm",
+                      }}
+                    />
+                  ) : (
+                    <TextField padding="sm">
+                      {localizeDecimal(rule.maxDiameter)}
+                    </TextField>
+                  )}
                 </td>
                 <td className="px-4 py-3">
-                  <NumericField
-                    label={translate(
-                      "importCustomerPoints.wizard.allocationStep.table.maxDistanceLabel",
-                    )}
-                    displayValue={localizeDecimal(rule.maxDistance)}
-                    onChangeValue={(value) =>
-                      handleRuleChange(index, "maxDistance", value)
-                    }
-                    positiveOnly={true}
-                    readOnly={!isEditing}
-                    styleOptions={{
-                      padding: "sm",
-                      border: isEditing ? "sm" : "none",
-                    }}
-                  />
+                  {isEditing ? (
+                    <NumericField
+                      label={translate(
+                        "importCustomerPoints.wizard.allocationStep.table.maxDistanceLabel",
+                      )}
+                      displayValue={localizeDecimal(rule.maxDistance)}
+                      onChangeValue={(value) =>
+                        handleRuleChange(index, "maxDistance", value)
+                      }
+                      positiveOnly={true}
+                      styleOptions={{
+                        padding: "sm",
+                        border: "sm",
+                      }}
+                    />
+                  ) : (
+                    <TextField padding="sm">
+                      {localizeDecimal(rule.maxDistance)}
+                    </TextField>
+                  )}
                 </td>
                 {!isEditing && (
                   <td className="px-4 py-3 text-sm text-gray-600">
