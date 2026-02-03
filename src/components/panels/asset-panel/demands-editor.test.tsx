@@ -503,6 +503,37 @@ describe("DemandCategoriesEditor", () => {
     });
   });
 
+  describe("click outside behavior", () => {
+    it("clears selection when clicking outside the editor", async () => {
+      const user = userEvent.setup();
+
+      render(
+        <div>
+          <DemandCategoriesEditor
+            demands={[{ baseDemand: 100 }]}
+            patterns={aPatterns()}
+            onDemandsChange={vi.fn()}
+            readOnly={false}
+          />
+          <button data-testid="outside-button">Outside</button>
+        </div>,
+      );
+
+      // Click cell to select it
+      const baseDemandCell = getBaseDemandCell(0);
+      await user.click(baseDemandCell);
+
+      // Cell should be selected (has focus ring or selection indicator)
+      expect(baseDemandCell).toHaveAttribute("aria-selected", "true");
+
+      // Click outside the editor
+      await user.click(screen.getByTestId("outside-button"));
+
+      // Selection should be cleared
+      expect(baseDemandCell).not.toHaveAttribute("aria-selected", "true");
+    });
+  });
+
   describe("read-only mode", () => {
     it("does not show add row button when readOnly is true", () => {
       render(

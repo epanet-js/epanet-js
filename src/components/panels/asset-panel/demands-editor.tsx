@@ -1,6 +1,7 @@
-import { useMemo, useCallback, useState } from "react";
+import { useMemo, useCallback, useState, useRef, useEffect } from "react";
 import {
   DataGrid,
+  DataGridRef,
   floatColumn,
   filterableSelectColumn,
   GridColumn,
@@ -70,6 +71,29 @@ export const DemandCategoriesEditor = ({
 }: Props) => {
   const translate = useTranslate();
   const [showEmptyGrid, setShowEmptyGrid] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const gridRef = useRef<DataGridRef>(null);
+
+  useEffect(function clearSelectionOnClickOutside() {
+    const handleMouseDown = (e: MouseEvent) => {
+      const target = e.target as Node;
+
+      if (containerRef.current?.contains(target)) {
+        return;
+      }
+
+      if (
+        (target as Element).closest?.("[data-radix-popper-content-wrapper]")
+      ) {
+        return;
+      }
+
+      gridRef.current?.setSelection(null);
+    };
+
+    document.addEventListener("mousedown", handleMouseDown);
+    return () => document.removeEventListener("mousedown", handleMouseDown);
+  }, []);
 
   const rowData = useMemo(() => {
     if (demands.length === 0 && showEmptyGrid) {
@@ -242,7 +266,7 @@ export const DemandCategoriesEditor = ({
   }
 
   return (
-    <div className="relative flex flex-col gap-2">
+    <div ref={containerRef} className="relative flex flex-col gap-2">
       {comparison?.hasChanged && (
         <div className="absolute -left-4 top-0 bottom-0 w-1 bg-purple-500 rounded-full" />
       )}
@@ -254,6 +278,7 @@ export const DemandCategoriesEditor = ({
       </label>
       <div className="border-l-2 border-gray-400 bg-gray-50 pr-2 pb-2">
         <DataGrid<DemandCategoryRow>
+          ref={gridRef}
           data={rowData}
           columns={columns}
           onChange={handleChange}
