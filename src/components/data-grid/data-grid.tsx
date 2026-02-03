@@ -190,11 +190,11 @@ export const DataGrid = forwardRef(function DataGrid<
     (col: number, row: number, e: React.MouseEvent) => {
       if (e.button !== 0) return;
       setActiveCell({ col, row }, e.shiftKey);
-      if (!e.shiftKey) {
+      if (!e.shiftKey && editMode !== "full") {
         startDrag();
       }
     },
-    [setActiveCell, startDrag],
+    [setActiveCell, startDrag, editMode],
   );
 
   const handleCellMouseEnter = useCallback(
