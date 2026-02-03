@@ -23,7 +23,11 @@ import {
 } from "src/map/symbology/range-color-rule";
 import { useTranslate } from "src/hooks/use-translate";
 import { useCallback, useMemo, useState } from "react";
-import { stagingModelAtom } from "src/state/jotai";
+import { simulationResultsAtom, stagingModelAtom } from "src/state/jotai";
+import {
+  getSortedSimulationValues,
+  isSimulationProperty,
+} from "src/simulation/results-reader";
 
 import { Selector } from "src/components/form/selector";
 import * as d3 from "d3-array";
@@ -52,6 +56,9 @@ export const RangeColorRuleEditor = ({
 
   const userTracking = useUserTracking();
 
+  const isSimulationLoose = useFeatureFlag("FLAG_SIMULATION_LOOSE");
+  const simulationResults = useAtomValue(simulationResultsAtom);
+
   const symbology = geometryType === "node" ? nodeSymbology : linkSymbology;
 
   const initialColorRule = symbology.colorRule
@@ -76,10 +83,27 @@ export const RangeColorRuleEditor = ({
   );
 
   const sortedData = useMemo(() => {
-    return getSortedValues(assets, initialColorRule.property, {
-      absValues: Boolean(initialColorRule.absValues),
-    });
-  }, [assets, initialColorRule.property, initialColorRule.absValues]);
+    const property = initialColorRule.property;
+    const absValues = Boolean(initialColorRule.absValues);
+
+    if (
+      isSimulationLoose &&
+      simulationResults &&
+      isSimulationProperty(property)
+    ) {
+      return getSortedSimulationValues(simulationResults, property, {
+        absValues,
+      });
+    }
+
+    return getSortedValues(assets, property, { absValues });
+  }, [
+    assets,
+    initialColorRule.property,
+    initialColorRule.absValues,
+    isSimulationLoose,
+    simulationResults,
+  ]);
 
   const [colorRule, setColorRule] = useState<RangeColorRule>(initialColorRule);
 

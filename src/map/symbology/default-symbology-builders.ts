@@ -4,7 +4,10 @@ import { initializeColorRule } from "./range-color-rule";
 import { NodeSymbology, LinkSymbology } from "./symbology-types";
 import { nullLabelRule } from "./labeling";
 import { getSortedValues } from "src/hydraulic-model/assets-map";
-import type { ResultsReader } from "src/simulation/results-reader";
+import {
+  getSortedSimulationValues,
+  type ResultsReader,
+} from "src/simulation/results-reader";
 
 type DefaultSymbologyBuildersDeprecated = {
   flow: (hydraulicModel: HydraulicModel) => () => LinkSymbology;
@@ -226,10 +229,9 @@ export const defaultSymbologyBuilders: DefaultSymbologyBuilders = {
       resultsReader: ResultsReader,
     ) =>
     (): LinkSymbology => {
-      const sortedData = resultsReader
-        .getAllFlows()
-        .map(Math.abs)
-        .sort((a, b) => a - b);
+      const sortedData = getSortedSimulationValues(resultsReader, "flow", {
+        absValues: true,
+      });
       const colorRule = initializeColorRule({
         property: "flow",
         unit: hydraulicModel.units.flow,
@@ -248,7 +250,7 @@ export const defaultSymbologyBuilders: DefaultSymbologyBuilders = {
       resultsReader: ResultsReader,
     ) =>
     (): LinkSymbology => {
-      const sortedData = resultsReader.getAllVelocities().sort((a, b) => a - b);
+      const sortedData = getSortedSimulationValues(resultsReader, "velocity");
       const colorRule = initializeColorRule({
         property: "velocity",
         unit: hydraulicModel.units.velocity,
@@ -267,9 +269,10 @@ export const defaultSymbologyBuilders: DefaultSymbologyBuilders = {
       resultsReader: ResultsReader,
     ) =>
     (): LinkSymbology => {
-      const sortedData = resultsReader
-        .getAllUnitHeadlosses()
-        .sort((a, b) => a - b);
+      const sortedData = getSortedSimulationValues(
+        resultsReader,
+        "unitHeadloss",
+      );
       const colorRule = initializeColorRule({
         property: "unitHeadloss",
         unit: hydraulicModel.units.unitHeadloss,
@@ -288,7 +291,7 @@ export const defaultSymbologyBuilders: DefaultSymbologyBuilders = {
       resultsReader: ResultsReader,
     ) =>
     (): NodeSymbology => {
-      const sortedData = resultsReader.getAllPressures().sort((a, b) => a - b);
+      const sortedData = getSortedSimulationValues(resultsReader, "pressure");
       const colorRule = initializeColorRule({
         property: "pressure",
         unit: hydraulicModel.units.pressure,
@@ -307,7 +310,10 @@ export const defaultSymbologyBuilders: DefaultSymbologyBuilders = {
       resultsReader: ResultsReader,
     ) =>
     (): NodeSymbology => {
-      const sortedData = resultsReader.getAllDemands().sort((a, b) => a - b);
+      const sortedData = getSortedSimulationValues(
+        resultsReader,
+        "actualDemand",
+      );
       const colorRule = initializeColorRule({
         property: "actualDemand",
         unit: hydraulicModel.units.actualDemand,
@@ -326,7 +332,7 @@ export const defaultSymbologyBuilders: DefaultSymbologyBuilders = {
       resultsReader: ResultsReader,
     ) =>
     (): NodeSymbology => {
-      const sortedData = resultsReader.getAllHeads().sort((a, b) => a - b);
+      const sortedData = getSortedSimulationValues(resultsReader, "head");
       const colorRule = initializeColorRule({
         property: "head",
         unit: hydraulicModel.units.head,

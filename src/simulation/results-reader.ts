@@ -53,3 +53,52 @@ export interface ResultsReader {
   getAllVelocities: () => number[];
   getAllUnitHeadlosses: () => number[];
 }
+
+export const simulationProperties = [
+  "flow",
+  "velocity",
+  "unitHeadloss",
+  "pressure",
+  "actualDemand",
+  "head",
+] as const;
+
+export type SimulationProperty = (typeof simulationProperties)[number];
+
+export const isSimulationProperty = (
+  property: string,
+): property is SimulationProperty => {
+  return simulationProperties.includes(property as SimulationProperty);
+};
+
+export const getSortedSimulationValues = (
+  resultsReader: ResultsReader,
+  property: SimulationProperty,
+  { absValues = false }: { absValues?: boolean } = {},
+): number[] => {
+  let values: number[];
+  switch (property) {
+    case "pressure":
+      values = resultsReader.getAllPressures();
+      break;
+    case "head":
+      values = resultsReader.getAllHeads();
+      break;
+    case "actualDemand":
+      values = resultsReader.getAllDemands();
+      break;
+    case "flow":
+      values = resultsReader.getAllFlows();
+      break;
+    case "velocity":
+      values = resultsReader.getAllVelocities();
+      break;
+    case "unitHeadloss":
+      values = resultsReader.getAllUnitHeadlosses();
+      break;
+  }
+  if (absValues) {
+    values = values.map(Math.abs);
+  }
+  return values.sort((a, b) => a - b);
+};
