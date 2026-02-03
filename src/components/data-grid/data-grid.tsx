@@ -19,6 +19,7 @@ import {
   useGridEditing,
   useClipboard,
   useEditMode,
+  useMouseSelection,
 } from "./hooks";
 import {
   GridHeader,
@@ -79,14 +80,16 @@ export const DataGrid = forwardRef(function DataGrid<
     moveToGridEnd,
     moveByPage,
     selectCells,
-    isDragging,
-    startDrag,
-    stopDrag,
   } = useSelection({
     rowCount: data.length,
     colCount: columns.length,
     stopEditing,
     onSelectionChange,
+  });
+
+  const { handleCellMouseDown, handleCellMouseEnter } = useMouseSelection({
+    editMode,
+    setActiveCell,
   });
 
   const blurGrid = useCallback(() => {
@@ -132,17 +135,6 @@ export const DataGrid = forwardRef(function DataGrid<
     [editMode],
   );
 
-  useEffect(
-    function stopDragOnMouseUp() {
-      if (!isDragging) return;
-
-      const handleMouseUp = () => stopDrag();
-      document.addEventListener("mouseup", handleMouseUp);
-      return () => document.removeEventListener("mouseup", handleMouseUp);
-    },
-    [isDragging, stopDrag],
-  );
-
   const { handleCopy, handlePaste } = useClipboard({
     selection,
     columns,
@@ -185,26 +177,6 @@ export const DataGrid = forwardRef(function DataGrid<
     onChange([...data, newRow]);
     focusRow(data.length);
   }, [createRow, data, onChange, focusRow]);
-
-  const handleCellMouseDown = useCallback(
-    (col: number, row: number, e: React.MouseEvent) => {
-      if (e.button !== 0) return;
-      setActiveCell({ col, row }, e.shiftKey);
-      if (!e.shiftKey && editMode !== "full") {
-        startDrag();
-      }
-    },
-    [setActiveCell, startDrag, editMode],
-  );
-
-  const handleCellMouseEnter = useCallback(
-    (col: number, row: number) => {
-      if (isDragging) {
-        setActiveCell({ col, row }, true);
-      }
-    },
-    [isDragging, setActiveCell],
-  );
 
   const handleCellDoubleClick = useCallback(
     (col: number) => {

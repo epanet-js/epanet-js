@@ -50,11 +50,6 @@ export function useSelection({
     anchor: null,
   });
 
-  const [isDragging, setIsDragging] = useState(false);
-
-  const startDrag = useCallback(() => setIsDragging(true), []);
-  const stopDrag = useCallback(() => setIsDragging(false), []);
-
   useEffect(
     function clampSelectionWhenDataSizeChanges() {
       setSelectionState((prev) => {
@@ -453,8 +448,5 @@ export function useSelection({
     moveToGridEnd,
     moveByPage,
     selectCells,
-    isDragging,
-    startDrag,
-    stopDrag,
   };
 }
