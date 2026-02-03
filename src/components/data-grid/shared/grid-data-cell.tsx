@@ -97,7 +97,7 @@ export function GridDataCell<T>({
           rowIndex={rowIndex}
           columnIndex={colIndex}
           isActive={isActive && isInteractive}
-          editMode={isActive ? editMode : false}
+          editMode={isActive && isInteractive ? editMode : false}
           readOnly={readOnly}
           onChange={(newValue) => onChange?.(newValue)}
           stopEditing={onBlur}

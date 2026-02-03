@@ -33,9 +33,11 @@ export function FloatCell({
 }: FloatCellProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [editValue, setEditValue] = useState("");
+  const shouldCommitOnBlurRef = useRef(false);
 
   useEffect(() => {
     if (editMode) {
+      shouldCommitOnBlurRef.current = true;
       setEditValue(formatLocaleNumber(value));
       inputRef.current?.focus();
       inputRef.current?.select();
@@ -58,10 +60,10 @@ export function FloatCell({
   }, [editValue, onChange, nullValue]);
 
   const handleBlur = useCallback(() => {
-    if (!editMode) return;
+    if (!shouldCommitOnBlurRef.current) return;
+    shouldCommitOnBlurRef.current = false;
     commit();
-    stopEditing();
-  }, [editMode, commit, stopEditing]);
+  }, [commit]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -70,6 +72,7 @@ export function FloatCell({
         commit();
       } else if (e.key === "Escape") {
         e.preventDefault();
+        shouldCommitOnBlurRef.current = false;
         stopEditing();
       } else if (
         editMode === "quick" &&
@@ -83,26 +86,21 @@ export function FloatCell({
     [editMode, commit, stopEditing],
   );
 
-  if (editMode) {
-    return (
-      <div className="w-full h-full flex items-center">
-        <input
-          ref={inputRef}
-          type="text"
-          inputMode="decimal"
-          value={editValue}
-          onChange={handleChange}
-          onBlur={handleBlur}
-          onKeyDown={handleKeyDown}
-          className="w-full px-2 text-sm tabular-nums outline-none border-none ring-0 focus:outline-none focus:ring-0 bg-transparent"
-        />
-      </div>
-    );
-  }
+  const formattedValue = formatLocaleNumber(value);
 
   return (
-    <div className="w-full h-full flex items-center px-2 text-sm tabular-nums min-w-0">
-      <span className="truncate">{formatLocaleNumber(value)}</span>
+    <div className="w-full h-full flex items-center">
+      <input
+        ref={inputRef}
+        type="text"
+        inputMode="decimal"
+        value={editMode ? editValue : formattedValue}
+        onChange={handleChange}
+        onBlur={handleBlur}
+        onKeyDown={handleKeyDown}
+        readOnly={!editMode}
+        className="w-full px-2 text-sm tabular-nums outline-none border-none ring-0 focus:outline-none focus:ring-0 bg-transparent truncate"
+      />
     </div>
   );
 }

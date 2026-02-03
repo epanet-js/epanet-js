@@ -26,25 +26,24 @@ describe("FloatCell", () => {
       render(<FloatCell {...defaultProps} value={1234.5} />);
 
       // Intl.NumberFormat formats with locale-specific separators
-      expect(screen.getByText(/1.*234.*5/)).toBeInTheDocument();
+      // Now renders as a readonly input
+      expect(screen.getByDisplayValue(/1.*234.*5/)).toBeInTheDocument();
     });
 
     it("renders empty string for null value", () => {
-      const { container } = render(
-        <FloatCell {...defaultProps} value={null} />,
-      );
+      render(<FloatCell {...defaultProps} value={null} />);
 
-      const div = container.querySelector(".tabular-nums");
-      expect(div?.textContent).toBe("");
+      const input = screen.getByRole("textbox");
+      expect(input).toHaveValue("");
     });
 
     it("renders empty string for undefined value", () => {
-      const { container } = render(
+      render(
         <FloatCell {...defaultProps} value={undefined as unknown as null} />,
       );
 
-      const div = container.querySelector(".tabular-nums");
-      expect(div?.textContent).toBe("");
+      const input = screen.getByRole("textbox");
+      expect(input).toHaveValue("");
     });
   });
 
@@ -170,7 +169,7 @@ describe("FloatCell", () => {
       await user.click(screen.getByRole("button", { name: "Other" }));
 
       expect(onChange).toHaveBeenCalledWith(3.14);
-      expect(stopEditing).toHaveBeenCalled();
+      // stopEditing is now handled by the parent (grid), not the cell's blur handler
     });
 
     it("parses numbers with period as decimal separator", async () => {

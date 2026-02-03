@@ -68,7 +68,7 @@ describe("DataGrid edit mode integration", () => {
       );
 
       // Click to select the value cell (column 1, row 0)
-      const valueCell = screen.getByText("10.5");
+      const valueCell = screen.getByDisplayValue("10.5");
       await user.click(valueCell);
 
       // Type a digit - should enter quick edit mode
@@ -76,11 +76,10 @@ describe("DataGrid edit mode integration", () => {
 
       // Should see input with the typed character
       await waitFor(() => {
-        const input = screen.getByRole("textbox");
-        expect(input).toBeInTheDocument();
         // In quick edit mode, input starts with formatted value and cursor at end
         // The "5" gets appended
-        expect(input).toHaveValue("10.55");
+        expect(valueCell).toHaveValue("10.55");
+        expect(valueCell).not.toHaveAttribute("readonly");
       });
     });
 
@@ -100,7 +99,7 @@ describe("DataGrid edit mode integration", () => {
       );
 
       // Click to select the value cell
-      const valueCell = screen.getByText("10.5");
+      const valueCell = screen.getByDisplayValue("10.5");
       await user.click(valueCell);
 
       // Type to enter quick edit, then arrow down
@@ -123,8 +122,8 @@ describe("DataGrid edit mode integration", () => {
         });
       });
 
-      // Input should be gone (edit mode exited)
-      expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
+      // Edit mode should be exited (input is readonly)
+      expect(valueCell).toHaveAttribute("readonly");
     });
 
     it("commits and navigates right on ArrowRight in quick edit mode", async () => {
@@ -143,7 +142,7 @@ describe("DataGrid edit mode integration", () => {
       );
 
       // Click to select the value cell
-      const valueCell = screen.getByText("10.5");
+      const valueCell = screen.getByDisplayValue("10.5");
       await user.click(valueCell);
 
       // Type to enter quick edit, then arrow right
@@ -179,7 +178,7 @@ describe("DataGrid edit mode integration", () => {
       );
 
       // Click to select the value cell
-      const valueCell = screen.getByText("10.5");
+      const valueCell = screen.getByDisplayValue("10.5");
       await user.click(valueCell);
 
       // Type to enter quick edit, then Tab
@@ -192,6 +191,45 @@ describe("DataGrid edit mode integration", () => {
           min: { col: 2, row: 0 },
           max: { col: 2, row: 0 },
         });
+      });
+    });
+
+    it("commits value when clicking on a different cell during quick edit", async () => {
+      const user = setupUser();
+      const onChange = vi.fn();
+
+      render(
+        <DataGrid
+          data={defaultData}
+          columns={columns}
+          onChange={onChange}
+          createRow={createRow}
+        />,
+      );
+
+      // Click to select the first value cell (now an input)
+      const valueCell = screen.getByDisplayValue("10.5");
+      await user.click(valueCell);
+
+      // Type to enter quick edit mode
+      await user.keyboard("99");
+
+      // Verify we're in edit mode with the updated value
+      await waitFor(() => {
+        expect(valueCell).toHaveValue("10.599");
+      });
+
+      // Click on a different cell (second row's value cell)
+      const otherValueCell = screen.getByDisplayValue("20.5");
+      await user.click(otherValueCell);
+
+      // Should have committed the value from the first cell
+      await waitFor(() => {
+        expect(onChange).toHaveBeenCalledWith(
+          expect.arrayContaining([
+            expect.objectContaining({ id: 1, value: 10.599 }),
+          ]),
+        );
       });
     });
   });
@@ -210,18 +248,16 @@ describe("DataGrid edit mode integration", () => {
       );
 
       // Click to select the value cell
-      const valueCell = screen.getByText("10.5");
+      const valueCell = screen.getByDisplayValue("10.5");
       await user.click(valueCell);
 
       // Press Enter to enter full edit mode
       await user.keyboard("{Enter}");
 
-      // Should see input
+      // Should be in edit mode (not readonly)
       await waitFor(() => {
-        const input = screen.getByRole("textbox");
-        expect(input).toBeInTheDocument();
-        // Full edit mode shows the formatted value
-        expect(input).toHaveValue("10.5");
+        expect(valueCell).not.toHaveAttribute("readonly");
+        expect(valueCell).toHaveValue("10.5");
       });
     });
 
@@ -240,7 +276,7 @@ describe("DataGrid edit mode integration", () => {
       );
 
       // Click to select the value cell
-      const valueCell = screen.getByText("10.5");
+      const valueCell = screen.getByDisplayValue("10.5");
       await user.click(valueCell);
 
       onSelectionChange.mockClear();
@@ -249,7 +285,7 @@ describe("DataGrid edit mode integration", () => {
       await user.keyboard("{Enter}");
 
       await waitFor(() => {
-        expect(screen.getByRole("textbox")).toBeInTheDocument();
+        expect(valueCell).not.toHaveAttribute("readonly");
       });
 
       // Arrow keys should NOT navigate (they move cursor in input)
@@ -259,7 +295,7 @@ describe("DataGrid edit mode integration", () => {
       expect(onSelectionChange).not.toHaveBeenCalled();
 
       // Should still be in edit mode
-      expect(screen.getByRole("textbox")).toBeInTheDocument();
+      expect(valueCell).not.toHaveAttribute("readonly");
     });
 
     it("Enter commits and moves down in full edit mode", async () => {
@@ -278,18 +314,17 @@ describe("DataGrid edit mode integration", () => {
       );
 
       // Click to select, Enter to edit
-      const valueCell = screen.getByText("10.5");
+      const valueCell = screen.getByDisplayValue("10.5");
       await user.click(valueCell);
       await user.keyboard("{Enter}");
 
       await waitFor(() => {
-        expect(screen.getByRole("textbox")).toBeInTheDocument();
+        expect(valueCell).not.toHaveAttribute("readonly");
       });
 
       // Clear and type new value, then Enter to commit
-      const input = screen.getByRole("textbox");
-      await user.clear(input);
-      await user.type(input, "99.9{Enter}");
+      await user.clear(valueCell);
+      await user.type(valueCell, "99.9{Enter}");
 
       // Should commit
       await waitFor(() => {
@@ -320,14 +355,13 @@ describe("DataGrid edit mode integration", () => {
       );
 
       // Double-click the value cell
-      const valueCell = screen.getByText("10.5");
+      const valueCell = screen.getByDisplayValue("10.5");
       await user.dblClick(valueCell);
 
       // Should enter full edit mode
       await waitFor(() => {
-        const input = screen.getByRole("textbox");
-        expect(input).toBeInTheDocument();
-        expect(input).toHaveValue("10.5");
+        expect(valueCell).not.toHaveAttribute("readonly");
+        expect(valueCell).toHaveValue("10.5");
       });
     });
   });
@@ -369,7 +403,7 @@ describe("DataGrid edit mode integration", () => {
       });
 
       // Now click on a float cell
-      const valueCell = screen.getByText("10.5");
+      const valueCell = screen.getByDisplayValue("10.5");
       await user.click(valueCell);
 
       // Type to enter quick edit mode
@@ -377,9 +411,8 @@ describe("DataGrid edit mode integration", () => {
 
       // Should enter quick edit and show input with the character
       await waitFor(() => {
-        const input = screen.getByRole("textbox");
-        expect(input).toBeInTheDocument();
-        expect(input).toHaveValue("10.57");
+        expect(valueCell).toHaveValue("10.57");
+        expect(valueCell).not.toHaveAttribute("readonly");
       });
     });
 
@@ -458,16 +491,16 @@ describe("DataGrid edit mode integration", () => {
       // Should have committed the selection
       expect(onChange).toHaveBeenCalled();
 
-      // Now navigate to float cell and try quick edit
-      await user.keyboard("{ArrowLeft}");
+      // Now click on a float cell and try quick edit
+      const valueCell = screen.getByDisplayValue("10.5");
+      await user.click(valueCell);
 
       // Type to enter quick edit
       await user.keyboard("8");
 
-      // Should be in quick edit mode
+      // Should be in quick edit mode (input not readonly)
       await waitFor(() => {
-        const input = screen.getByRole("textbox");
-        expect(input).toBeInTheDocument();
+        expect(valueCell).not.toHaveAttribute("readonly");
       });
     });
 
@@ -502,16 +535,16 @@ describe("DataGrid edit mode integration", () => {
         expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
       });
 
-      // Navigate to float cell
-      await user.keyboard("{ArrowLeft}");
+      // Click on a float cell
+      const valueCell = screen.getByDisplayValue("10.5");
+      await user.click(valueCell);
 
       // Type to enter quick edit
       await user.keyboard("9");
 
-      // Should be in quick edit mode
+      // Should be in quick edit mode (input not readonly)
       await waitFor(() => {
-        const input = screen.getByRole("textbox");
-        expect(input).toBeInTheDocument();
+        expect(valueCell).not.toHaveAttribute("readonly");
       });
     });
 
@@ -553,10 +586,10 @@ describe("DataGrid edit mode integration", () => {
       // Type to quick edit
       await user.keyboard("4");
 
-      // Should enter quick edit
+      // Should enter quick edit (input not readonly)
+      const valueCell = screen.getByDisplayValue(/10\.5/);
       await waitFor(() => {
-        const input = screen.getByRole("textbox");
-        expect(input).toBeInTheDocument();
+        expect(valueCell).not.toHaveAttribute("readonly");
       });
     });
   });
@@ -696,14 +729,14 @@ describe("DataGrid edit mode integration", () => {
       // Grid should have focus (or be able to receive keyboard input)
       expect(screen.getByRole("grid")).toBeInTheDocument();
 
-      // Type a character - if grid has focus, this should work for quick edit
-      // on the currently selected cell
-      await user.keyboard("{ArrowLeft}"); // Navigate to value cell
+      // Click on value cell and type to verify grid can receive input
+      const valueCell = screen.getByDisplayValue("10.5");
+      await user.click(valueCell);
       await user.keyboard("1");
 
       // Should be able to edit (grid received focus properly)
       await waitFor(() => {
-        expect(screen.getByRole("textbox")).toBeInTheDocument();
+        expect(valueCell).not.toHaveAttribute("readonly");
       });
     });
 
@@ -767,22 +800,22 @@ describe("DataGrid edit mode integration", () => {
       );
 
       // Click on value cell
-      const valueCell = screen.getByText("10.5");
+      const valueCell = screen.getByDisplayValue("10.5");
       await user.click(valueCell);
 
       // Enter quick edit by typing
       await user.keyboard("999");
 
       await waitFor(() => {
-        expect(screen.getByRole("textbox")).toBeInTheDocument();
+        expect(valueCell).not.toHaveAttribute("readonly");
       });
 
       // Press Escape to discard
       await user.keyboard("{Escape}");
 
-      // Edit mode should end
+      // Edit mode should end (input should be readonly again)
       await waitFor(() => {
-        expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
+        expect(valueCell).toHaveAttribute("readonly");
       });
 
       // onChange should not have been called (value not committed)
@@ -803,25 +836,24 @@ describe("DataGrid edit mode integration", () => {
       );
 
       // Click on value cell and Enter to full edit
-      const valueCell = screen.getByText("10.5");
+      const valueCell = screen.getByDisplayValue("10.5");
       await user.click(valueCell);
       await user.keyboard("{Enter}");
 
       await waitFor(() => {
-        expect(screen.getByRole("textbox")).toBeInTheDocument();
+        expect(valueCell).not.toHaveAttribute("readonly");
       });
 
       // Clear and type new value
-      const input = screen.getByRole("textbox");
-      await user.clear(input);
-      await user.type(input, "999");
+      await user.clear(valueCell);
+      await user.type(valueCell, "999");
 
       // Press Escape to discard
       await user.keyboard("{Escape}");
 
-      // Edit mode should end
+      // Edit mode should end (input should be readonly again)
       await waitFor(() => {
-        expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
+        expect(valueCell).toHaveAttribute("readonly");
       });
 
       // onChange should not have been called with the new value
