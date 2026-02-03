@@ -15,7 +15,11 @@ type UseGridEditingOptions<TData extends Record<string, unknown>> = {
     direction: "up" | "down" | "left" | "right",
     extend?: boolean,
   ) => void;
-  setSelection: (selection: GridSelection | null) => void;
+  selectCells: (options?: {
+    colIndex?: number;
+    rowIndex?: number;
+    extend?: boolean;
+  }) => void;
   startEditing: (mode: "quick" | "full") => void;
   stopEditing: () => void;
   clearSelection: () => void;
@@ -33,7 +37,7 @@ export function useGridEditing<TData extends Record<string, unknown>>({
   readOnly,
   colCount,
   moveActiveCell,
-  setSelection,
+  selectCells,
   startEditing,
   stopEditing,
   clearSelection,
@@ -116,7 +120,10 @@ export function useGridEditing<TData extends Record<string, unknown>>({
               selection.min.row !== selection.max.row;
 
             if (isMultiCell && activeCell) {
-              setSelection({ min: activeCell, max: activeCell });
+              selectCells({
+                colIndex: activeCell.col,
+                rowIndex: activeCell.row,
+              });
             } else {
               clearSelection();
               blurGrid();
@@ -156,7 +163,7 @@ export function useGridEditing<TData extends Record<string, unknown>>({
       colCount,
       readOnly,
       moveActiveCell,
-      setSelection,
+      selectCells,
       startEditing,
       stopEditing,
       clearSelection,

@@ -56,7 +56,12 @@ export type GridColumn = {
 
 export type DataGridRef = {
   setActiveCell: (cell: CellPosition) => void;
-  setSelection: (selection: GridSelection | null) => void;
+  selectCells: (options?: {
+    colIndex?: number;
+    rowIndex?: number;
+    extend?: boolean;
+  }) => void;
+  clearSelection: () => void;
   selection: GridSelection | null;
 };
 

@@ -18,9 +18,11 @@ type UseRowsNavigationOptions = {
     pageSize: number,
     extend?: boolean,
   ) => void;
-  selectRow: (rowIndex: number, extend?: boolean) => void;
-  selectColumn: (colIndex: number) => void;
-  selectAll: () => void;
+  selectCells: (options?: {
+    colIndex?: number;
+    rowIndex?: number;
+    extend?: boolean;
+  }) => void;
   clearSelection: () => void;
   blurGrid: () => void;
   visibleRowCount: number;
@@ -36,9 +38,7 @@ export function useRowsNavigation({
   moveToGridStart,
   moveToGridEnd,
   moveByPage,
-  selectRow,
-  selectColumn,
-  selectAll,
+  selectCells,
   clearSelection,
   blurGrid,
   visibleRowCount,
@@ -127,10 +127,10 @@ export function useRowsNavigation({
         case " ": // Space
           if (e.shiftKey && activeCell) {
             e.preventDefault();
-            selectRow(activeCell.row);
+            selectCells({ rowIndex: activeCell.row });
           } else if (isMod && activeCell) {
             e.preventDefault();
-            selectColumn(activeCell.col);
+            selectCells({ colIndex: activeCell.col });
           }
           break;
 
@@ -138,7 +138,7 @@ export function useRowsNavigation({
         case "A":
           if (isMod) {
             e.preventDefault();
-            selectAll();
+            selectCells();
           }
           break;
 
@@ -156,9 +156,7 @@ export function useRowsNavigation({
       moveToGridEnd,
       moveByPage,
       visibleRowCount,
-      selectRow,
-      selectColumn,
-      selectAll,
+      selectCells,
       clearSelection,
       blurGrid,
     ],

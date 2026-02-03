@@ -50,9 +50,11 @@ export type RowsProps<TData> = {
     pageSize: number,
     extend?: boolean,
   ) => void;
-  selectRow: (rowIndex: number, extend?: boolean) => void;
-  selectColumn: (colIndex: number) => void;
-  selectAll: () => void;
+  selectCells: (options?: {
+    colIndex?: number;
+    rowIndex?: number;
+    extend?: boolean;
+  }) => void;
   clearSelection: () => void;
   blurGrid: () => void;
 };
@@ -83,9 +85,7 @@ export const Rows = forwardRef(function Rows<TData>(
     moveToGridStart,
     moveToGridEnd,
     moveByPage,
-    selectRow,
-    selectColumn,
-    selectAll,
+    selectCells,
     clearSelection,
     blurGrid,
   }: RowsProps<TData>,
@@ -109,9 +109,7 @@ export const Rows = forwardRef(function Rows<TData>(
     moveToGridStart,
     moveToGridEnd,
     moveByPage,
-    selectRow,
-    selectColumn,
-    selectAll,
+    selectCells,
     clearSelection,
     blurGrid,
     visibleRowCount,

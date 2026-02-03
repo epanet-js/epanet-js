@@ -88,7 +88,7 @@ export const DemandCategoriesEditor = ({
         return;
       }
 
-      gridRef.current?.setSelection(null);
+      gridRef.current?.clearSelection();
     };
 
     document.addEventListener("mousedown", handleMouseDown);

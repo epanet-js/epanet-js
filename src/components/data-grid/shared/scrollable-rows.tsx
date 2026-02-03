@@ -59,9 +59,11 @@ export type ScrollableRowsProps<TData> = {
     pageSize: number,
     extend?: boolean,
   ) => void;
-  selectRow: (rowIndex: number, extend?: boolean) => void;
-  selectColumn: (colIndex: number) => void;
-  selectAll: () => void;
+  selectCells: (options?: {
+    colIndex?: number;
+    rowIndex?: number;
+    extend?: boolean;
+  }) => void;
   clearSelection: () => void;
   blurGrid: () => void;
 };
@@ -93,9 +95,7 @@ export const ScrollableRows = forwardRef(function ScrollableRows<TData>(
     moveToGridStart,
     moveToGridEnd,
     moveByPage,
-    selectRow,
-    selectColumn,
-    selectAll,
+    selectCells,
     clearSelection,
     blurGrid,
   }: ScrollableRowsProps<TData>,
@@ -175,9 +175,7 @@ export const ScrollableRows = forwardRef(function ScrollableRows<TData>(
     moveToGridStart,
     moveToGridEnd,
     moveByPage,
-    selectRow,
-    selectColumn,
-    selectAll,
+    selectCells,
     clearSelection,
     blurGrid,
     visibleRowCount,

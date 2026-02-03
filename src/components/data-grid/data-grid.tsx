@@ -66,7 +66,6 @@ export const DataGrid = forwardRef(function DataGrid<
     editMode,
     isFullRowSelected,
     setActiveCell,
-    setSelection,
     clearSelection,
     startEditing,
     stopEditing,
@@ -76,9 +75,7 @@ export const DataGrid = forwardRef(function DataGrid<
     moveToGridStart,
     moveToGridEnd,
     moveByPage,
-    selectRow,
-    selectColumn,
-    selectAll,
+    selectCells,
     isCellSelected,
     isCellActive,
     isDragging,
@@ -86,7 +83,7 @@ export const DataGrid = forwardRef(function DataGrid<
     stopDrag,
   } = useSelection({
     rowCount: data.length,
-    colCount,
+    colCount: columns.length,
     onSelectionChange,
   });
 
@@ -105,7 +102,7 @@ export const DataGrid = forwardRef(function DataGrid<
     readOnly,
     colCount,
     moveActiveCell,
-    setSelection,
+    selectCells,
     startEditing,
     stopEditing,
     clearSelection,
@@ -158,10 +155,11 @@ export const DataGrid = forwardRef(function DataGrid<
     ref,
     () => ({
       setActiveCell: (cell: CellPosition) => setActiveCell(cell),
-      setSelection,
+      selectCells,
+      clearSelection,
       selection,
     }),
-    [setActiveCell, setSelection, selection],
+    [setActiveCell, selectCells, clearSelection, selection],
   );
 
   const table = useReactTable({
@@ -221,9 +219,9 @@ export const DataGrid = forwardRef(function DataGrid<
 
   const handleGutterClick = useCallback(
     (row: number, e: React.MouseEvent) => {
-      selectRow(row, e.shiftKey);
+      selectCells({ rowIndex: row, extend: e.shiftKey });
     },
-    [selectRow],
+    [selectCells],
   );
 
   const handleCellChange = useCallback(
@@ -284,9 +282,7 @@ export const DataGrid = forwardRef(function DataGrid<
     moveToGridStart,
     moveToGridEnd,
     moveByPage,
-    selectRow,
-    selectColumn,
-    selectAll,
+    selectCells,
     clearSelection,
     blurGrid,
   };
@@ -315,8 +311,8 @@ export const DataGrid = forwardRef(function DataGrid<
           table={table}
           showGutterColumn={gutterColumn}
           showActionsColumn={!readOnly && !!rowActions}
-          onSelectColumn={selectColumn}
-          onSelectAll={selectAll}
+          onSelectColumn={(col) => selectCells({ colIndex: col })}
+          onSelectAll={() => selectCells()}
           variant={variant}
         />
 

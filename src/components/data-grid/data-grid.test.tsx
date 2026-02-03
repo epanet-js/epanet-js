@@ -208,7 +208,7 @@ describe("DataGrid", () => {
       });
     });
 
-    it("exposes setSelection method", async () => {
+    it("exposes selectCells method", async () => {
       const ref = createRef<DataGridRef>();
       const onSelectionChange = vi.fn();
 
@@ -223,16 +223,41 @@ describe("DataGrid", () => {
         />,
       );
 
-      ref.current?.setSelection({
-        min: { col: 0, row: 0 },
-        max: { col: 1, row: 2 },
-      });
+      ref.current?.selectCells({ colIndex: 0 });
 
       await waitFor(() => {
         expect(onSelectionChange).toHaveBeenCalledWith({
           min: { col: 0, row: 0 },
-          max: { col: 1, row: 2 },
+          max: { col: 0, row: 2 },
         });
+      });
+    });
+
+    it("exposes clearSelection method", async () => {
+      const ref = createRef<DataGridRef>();
+      const onSelectionChange = vi.fn();
+
+      render(
+        <DataGrid
+          ref={ref}
+          data={defaultData}
+          columns={columns}
+          onChange={vi.fn()}
+          createRow={createRow}
+          onSelectionChange={onSelectionChange}
+        />,
+      );
+
+      ref.current?.selectCells({ colIndex: 0 });
+      await waitFor(() => {
+        expect(onSelectionChange).toHaveBeenCalled();
+      });
+
+      onSelectionChange.mockClear();
+      ref.current?.clearSelection();
+
+      await waitFor(() => {
+        expect(onSelectionChange).toHaveBeenCalledWith(null);
       });
     });
 
@@ -249,15 +274,12 @@ describe("DataGrid", () => {
         />,
       );
 
-      ref.current?.setSelection({
-        min: { col: 0, row: 0 },
-        max: { col: 1, row: 1 },
-      });
+      ref.current?.selectCells({ rowIndex: 0 });
 
       await waitFor(() => {
         expect(ref.current?.selection).toEqual({
           min: { col: 0, row: 0 },
-          max: { col: 1, row: 1 },
+          max: { col: 1, row: 0 },
         });
       });
     });
@@ -545,18 +567,15 @@ describe("DataGrid", () => {
         />,
       );
 
-      // Set up multi-cell selection (2x2)
-      ref.current?.setSelection({
-        min: { col: 0, row: 0 },
-        max: { col: 1, row: 1 },
-      });
+      // Set up multi-cell selection (select all)
+      ref.current?.selectCells();
 
       await waitFor(() => {
         // Verify multiple cells are selected via aria-selected
         const selectedCells = container.querySelectorAll(
           '[role="gridcell"][aria-selected="true"]',
         );
-        expect(selectedCells.length).toBe(4);
+        expect(selectedCells.length).toBe(6); // 3 rows x 2 columns
       });
 
       // Focus the grid and press Escape
@@ -567,8 +586,8 @@ describe("DataGrid", () => {
       // Should reduce to single cell (the active cell at max position)
       await waitFor(() => {
         expect(onSelectionChange).toHaveBeenLastCalledWith({
-          min: { col: 1, row: 1 },
-          max: { col: 1, row: 1 },
+          min: { col: 1, row: 2 },
+          max: { col: 1, row: 2 },
         });
       });
 

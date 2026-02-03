@@ -38,7 +38,7 @@ export function PatternDetail({
         max: { col: 1, row: rowIndex },
       };
       setSelectedCells(newSelection);
-      tableRef.current?.setSelection(newSelection);
+      tableRef.current?.selectCells({ rowIndex });
     },
     [pattern.length],
   );
@@ -50,7 +50,7 @@ export function PatternDetail({
       const isInsideGraph = graphContainerRef.current?.contains(target);
       if (!isInsideTable && !isInsideGraph) {
         setSelectedCells(null);
-        tableRef.current?.setSelection(null);
+        tableRef.current?.clearSelection();
       }
     };
 

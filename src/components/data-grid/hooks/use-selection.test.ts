@@ -96,52 +96,6 @@ describe("useSelection", () => {
     });
   });
 
-  describe("setSelection", () => {
-    it("sets a multi-cell selection", () => {
-      const { result } = renderHook(() => useSelection(defaultOptions));
-
-      act(() => {
-        result.current.setSelection({
-          min: { col: 0, row: 0 },
-          max: { col: 2, row: 3 },
-        });
-      });
-
-      expect(result.current.selection).toEqual({
-        min: { col: 0, row: 0 },
-        max: { col: 2, row: 3 },
-      });
-    });
-
-    it("sets active cell to max of selection", () => {
-      const { result } = renderHook(() => useSelection(defaultOptions));
-
-      act(() => {
-        result.current.setSelection({
-          min: { col: 0, row: 0 },
-          max: { col: 2, row: 3 },
-        });
-      });
-
-      expect(result.current.activeCell).toEqual({ col: 2, row: 3 });
-    });
-
-    it("clears selection when set to null", () => {
-      const { result } = renderHook(() => useSelection(defaultOptions));
-
-      act(() => {
-        result.current.setActiveCell({ col: 0, row: 0 });
-      });
-
-      act(() => {
-        result.current.setSelection(null);
-      });
-
-      expect(result.current.activeCell).toBeNull();
-      expect(result.current.selection).toBeNull();
-    });
-  });
-
   describe("clearSelection", () => {
     it("clears active cell and selection", () => {
       const { result } = renderHook(() => useSelection(defaultOptions));
@@ -341,12 +295,12 @@ describe("useSelection", () => {
     });
   });
 
-  describe("selectRow", () => {
-    it("selects entire row", () => {
+  describe("select row", () => {
+    it("selects entire row when only rowIndex provided", () => {
       const { result } = renderHook(() => useSelection(defaultOptions));
 
       act(() => {
-        result.current.selectRow(1);
+        result.current.selectCells({ rowIndex: 1 });
       });
 
       expect(result.current.selection).toEqual({
@@ -359,11 +313,11 @@ describe("useSelection", () => {
       const { result } = renderHook(() => useSelection(defaultOptions));
 
       act(() => {
-        result.current.selectRow(0);
+        result.current.selectCells({ rowIndex: 0 });
       });
 
       act(() => {
-        result.current.selectRow(2, true);
+        result.current.selectCells({ rowIndex: 2, extend: true });
       });
 
       expect(result.current.selection).toEqual({
@@ -378,7 +332,7 @@ describe("useSelection", () => {
       const { result } = renderHook(() => useSelection(defaultOptions));
 
       act(() => {
-        result.current.selectRow(1);
+        result.current.selectCells({ rowIndex: 1 });
       });
 
       expect(result.current.isFullRowSelected).toBe(true);
@@ -406,25 +360,19 @@ describe("useSelection", () => {
       const { result } = renderHook(() => useSelection(defaultOptions));
 
       act(() => {
-        result.current.setSelection({
-          min: { col: 0, row: 0 },
-          max: { col: 2, row: 2 },
-        });
+        result.current.selectCells(); // select all
       });
 
       expect(result.current.isCellSelected(1, 1)).toBe(true);
       expect(result.current.isCellSelected(0, 0)).toBe(true);
-      expect(result.current.isCellSelected(2, 2)).toBe(true);
+      expect(result.current.isCellSelected(2, 4)).toBe(true);
     });
 
     it("returns false for cells outside selection", () => {
       const { result } = renderHook(() => useSelection(defaultOptions));
 
       act(() => {
-        result.current.setSelection({
-          min: { col: 0, row: 0 },
-          max: { col: 1, row: 1 },
-        });
+        result.current.selectCells({ rowIndex: 0 }); // select first row only
       });
 
       expect(result.current.isCellSelected(2, 2)).toBe(false);
@@ -467,12 +415,12 @@ describe("useSelection", () => {
     });
   });
 
-  describe("selectColumn", () => {
-    it("selects entire column", () => {
+  describe("select column", () => {
+    it("selects entire column when only colIndex provided", () => {
       const { result } = renderHook(() => useSelection(defaultOptions));
 
       act(() => {
-        result.current.selectColumn(1);
+        result.current.selectCells({ colIndex: 1 });
       });
 
       expect(result.current.selection).toEqual({
@@ -485,7 +433,7 @@ describe("useSelection", () => {
       const { result } = renderHook(() => useSelection(defaultOptions));
 
       act(() => {
-        result.current.selectColumn(1);
+        result.current.selectCells({ colIndex: 1 });
       });
 
       expect(result.current.activeCell).toEqual({ col: 1, row: 4 });
@@ -498,7 +446,7 @@ describe("useSelection", () => {
       );
 
       act(() => {
-        result.current.selectColumn(2);
+        result.current.selectCells({ colIndex: 2 });
       });
 
       expect(onSelectionChange).toHaveBeenCalledWith({
@@ -508,12 +456,12 @@ describe("useSelection", () => {
     });
   });
 
-  describe("selectAll", () => {
-    it("selects all cells", () => {
+  describe("select all", () => {
+    it("selects all cells when no indices provided", () => {
       const { result } = renderHook(() => useSelection(defaultOptions));
 
       act(() => {
-        result.current.selectAll();
+        result.current.selectCells();
       });
 
       expect(result.current.selection).toEqual({
@@ -526,7 +474,7 @@ describe("useSelection", () => {
       const { result } = renderHook(() => useSelection(defaultOptions));
 
       act(() => {
-        result.current.selectAll();
+        result.current.selectCells();
       });
 
       expect(result.current.activeCell).toEqual({ col: 2, row: 4 });
@@ -538,7 +486,7 @@ describe("useSelection", () => {
       );
 
       act(() => {
-        result.current.selectAll();
+        result.current.selectCells();
       });
 
       expect(result.current.selection).toBeNull();
@@ -550,7 +498,7 @@ describe("useSelection", () => {
       );
 
       act(() => {
-        result.current.selectAll();
+        result.current.selectCells();
       });
 
       expect(result.current.selection).toBeNull();
@@ -563,12 +511,27 @@ describe("useSelection", () => {
       );
 
       act(() => {
-        result.current.selectAll();
+        result.current.selectCells();
       });
 
       expect(onSelectionChange).toHaveBeenCalledWith({
         min: { col: 0, row: 0 },
         max: { col: 2, row: 4 },
+      });
+    });
+  });
+
+  describe("select single cell", () => {
+    it("selects single cell when both indices provided", () => {
+      const { result } = renderHook(() => useSelection(defaultOptions));
+
+      act(() => {
+        result.current.selectCells({ colIndex: 1, rowIndex: 2 });
+      });
+
+      expect(result.current.selection).toEqual({
+        min: { col: 1, row: 2 },
+        max: { col: 1, row: 2 },
       });
     });
   });
@@ -855,10 +818,10 @@ describe("useSelection", () => {
       );
 
       act(() => {
-        result.current.setSelection({
-          min: { col: 0, row: 5 },
-          max: { col: 2, row: 9 },
-        });
+        result.current.selectCells({ rowIndex: 5 });
+      });
+      act(() => {
+        result.current.selectCells({ rowIndex: 9, extend: true });
       });
 
       expect(result.current.selection).toEqual({

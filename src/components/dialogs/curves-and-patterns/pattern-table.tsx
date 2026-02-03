@@ -110,11 +110,7 @@ export const PatternTable = forwardRef<DataGridRef, PatternTableProps>(
     );
 
     const selectRow = useCallback((rowIndex: number) => {
-      const newSelection = {
-        min: { col: 0, row: rowIndex },
-        max: { col: 1, row: rowIndex },
-      };
-      gridRef.current?.setSelection(newSelection);
+      gridRef.current?.selectCells({ rowIndex });
     }, []);
 
     const handleInsertRowAbove = useCallback(
