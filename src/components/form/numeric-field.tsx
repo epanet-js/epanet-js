@@ -17,6 +17,7 @@ type StyleOptions = {
   ghostBorder?: boolean;
   variant?: "default" | "warning";
   disabled?: boolean;
+  readOnly?: boolean;
 };
 
 export const NumericField = ({
@@ -125,10 +126,15 @@ export const NumericField = ({
       ...styleOptions,
       variant: "warning",
       disabled,
+      readOnly,
     });
   }
   if (!hasError && inputRef.current) {
-    inputRef.current.className = styledInput({ ...styleOptions, disabled });
+    inputRef.current.className = styledInput({
+      ...styleOptions,
+      disabled,
+      readOnly,
+    });
   }
 
   return (
@@ -145,7 +151,11 @@ export const NumericField = ({
       value={inputValue}
       onFocus={handleFocus}
       tabIndex={tabIndex}
-      className={styledInput({ ...styleOptions, disabled })}
+      className={styledInput({
+        ...styleOptions,
+        disabled,
+        readOnly,
+      })}
     />
   );
 };
@@ -157,6 +167,7 @@ function styledInput({
   textSize = "sm",
   ghostBorder = false,
   disabled = false,
+  readOnly = false,
 }: StyleOptions = {}) {
   return clsx(
     disabled
@@ -176,18 +187,19 @@ function styledInput({
         ? "border-orange-500 dark:border-orange-700"
         : "border-gray-300 hover:border-gray-200",
     !ghostBorder && variant !== "warning" && "bg-white",
-    !disabled && {
-      "focus-visible:bg-purple-300/10 dark:focus-visible:bg-purple-700/40 dark:focus-visible:ring-purple-700 focus-visible:ring-purple-500":
-        variant === "default",
-      "focus-visible:bg-orange-300/10 dark:focus-visible:bg-orange-700/40 dark:focus-visible:ring-orange-700 focus-visible:ring-orange-500":
-        variant === "warning",
-    },
+    !disabled &&
+      !readOnly && {
+        "focus-visible:bg-purple-300/10 dark:focus-visible:bg-purple-700/40 dark:focus-visible:ring-purple-700 focus-visible:ring-purple-500":
+          variant === "default",
+        "focus-visible:bg-orange-300/10 dark:focus-visible:bg-orange-700/40 dark:focus-visible:ring-orange-700 focus-visible:ring-orange-500":
+          variant === "warning",
+      },
     {
       "text-xs": textSize === "xs",
       "text-sm": textSize === "sm",
       "text-md": textSize === "md",
     },
-
+    readOnly && "focus-visible:outline-none focus:ring-0",
     "rounded-sm block tabular-nums overflow-hidden whitespace-nowrap text-ellipsis focus-visible:ring-inset w-full",
   );
 }
