@@ -124,7 +124,11 @@ export const Rows = forwardRef(function Rows<TData>(
             {row.getVisibleCells().map((cell, colIndex) => {
               const column = columns[colIndex];
               const accessorKey = column.accessorKey;
-              const cellSelected = isCellSelected(selection, colIndex, rowIndex);
+              const cellSelected = isCellSelected(
+                selection,
+                colIndex,
+                rowIndex,
+              );
 
               return (
                 <GridDataCell
