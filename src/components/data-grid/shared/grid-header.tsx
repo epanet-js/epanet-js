@@ -1,5 +1,6 @@
 import { Table, flexRender } from "@tanstack/react-table";
 import clsx from "clsx";
+import { TableSelectAllIcon } from "src/icons";
 import { DataGridVariant } from "../types";
 
 type GridHeaderProps<T> = {
@@ -35,7 +36,7 @@ export function GridHeader<T>({
         <div
           role="columnheader"
           className={clsx(
-            "flex items-center justify-center font-semibold text-sm shrink-0 cursor-pointer select-none h-8 text-gray-600 sticky left-0 z-10",
+            "relative flex items-center justify-center font-semibold text-sm shrink-0 cursor-pointer select-none h-8 text-gray-600 sticky left-0 z-10",
             "border border-transparent",
             { "w-10": variant === "spreadsheet", "w-8": variant === "rows" },
             {
@@ -44,7 +45,9 @@ export function GridHeader<T>({
             },
           )}
           onClick={onSelectAll}
-        />
+        >
+          <TableSelectAllIcon size="md" className="absolute bottom-1 right-1" />
+        </div>
       )}
       {table.getHeaderGroups().map((headerGroup) =>
         headerGroup.headers.map((header, colIndex) => (
