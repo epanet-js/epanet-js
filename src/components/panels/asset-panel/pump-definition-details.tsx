@@ -233,7 +233,7 @@ const PumpDefinitionDetailsInner = ({
         readOnly={readonly}
         onChange={handleDefinitionTypeChange}
       />
-      <div className="bg-gray-50 p-2 py-1 -mr-2 border-l-2 border-gray-400 rounded-sm">
+      <div className="bg-gray-50 p-2 py-1 mt-1 -mr-2 border-l-2 border-gray-400 rounded-sm">
         {localDefinitionType === "power" && (
           <QuantityRow
             name="power"
