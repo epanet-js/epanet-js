@@ -56,7 +56,6 @@ export const RangeColorRuleEditor = ({
 
   const userTracking = useUserTracking();
 
-  const isSimulationLoose = useFeatureFlag("FLAG_SIMULATION_LOOSE");
   const simulationResults = useAtomValue(simulationResultsAtom);
 
   const symbology = geometryType === "node" ? nodeSymbology : linkSymbology;
@@ -86,11 +85,7 @@ export const RangeColorRuleEditor = ({
     const property = initialColorRule.property;
     const absValues = Boolean(initialColorRule.absValues);
 
-    if (
-      isSimulationLoose &&
-      simulationResults &&
-      isSimulationProperty(property)
-    ) {
+    if (simulationResults && isSimulationProperty(property)) {
       return getSortedSimulationValues(simulationResults, property, {
         absValues,
       });
@@ -101,7 +96,6 @@ export const RangeColorRuleEditor = ({
     assets,
     initialColorRule.property,
     initialColorRule.absValues,
-    isSimulationLoose,
     simulationResults,
   ]);
 

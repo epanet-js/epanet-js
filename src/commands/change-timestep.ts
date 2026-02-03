@@ -1,11 +1,6 @@
 import { useAtomValue, useSetAtom } from "jotai";
 import { useCallback } from "react";
-import {
-  simulationAtom,
-  simulationResultsAtom,
-  stagingModelAtom,
-} from "src/state/jotai";
-import { attachSimulation } from "src/hydraulic-model";
+import { simulationAtom, simulationResultsAtom } from "src/state/jotai";
 import { OPFSStorage } from "src/infra/storage/opfs-storage";
 import { EPSResultsReader } from "src/simulation/epanet/eps-results-reader";
 import { getAppId } from "src/infra/app-instance";
@@ -23,7 +18,6 @@ type ChangeTimestepSource = "shortcut" | "buttons" | "dropdown" | "quick-graph";
 
 export const useChangeTimestep = () => {
   const simulation = useAtomValue(simulationAtom);
-  const setHydraulicModel = useSetAtom(stagingModelAtom);
   const setSimulationState = useSetAtom(simulationAtom);
   const userTracking = useUserTracking();
   const worktree = useAtomValue(worktreeAtom);
@@ -60,7 +54,6 @@ export const useChangeTimestep = () => {
           await epsReader.getResultsForTimestep(timestepIndex);
 
         setSimulationResults(resultsReader);
-        setHydraulicModel((prev) => attachSimulation(prev, resultsReader));
 
         const updatedSimulation = {
           ...simulation,
@@ -81,7 +74,6 @@ export const useChangeTimestep = () => {
     },
     [
       simulation,
-      setHydraulicModel,
       setSimulationResults,
       setSimulationState,
       userTracking,

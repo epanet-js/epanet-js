@@ -411,7 +411,6 @@ const JunctionEditor = ({
   const translate = useTranslate();
   const { footer } = useQuickGraph(junction.id, "junction");
   const isEditJunctionDemandsOn = useFeatureFlag("FLAG_EDIT_JUNCTION_DEMANDS");
-  const isSimulationLoose = useFeatureFlag("FLAG_SIMULATION_LOOSE");
   const {
     getComparison,
     getConstantDemandComparison,
@@ -421,16 +420,9 @@ const JunctionEditor = ({
   const simulation = useSimulation();
   const junctionSimulation = simulation?.getJunction(junction.id);
 
-  // Simulation values: use atom when FLAG_SIMULATION_LOOSE is enabled, otherwise use asset
-  const simPressure = isSimulationLoose
-    ? (junctionSimulation?.pressure ?? null)
-    : junction.pressure;
-  const simHead = isSimulationLoose
-    ? (junctionSimulation?.head ?? null)
-    : junction.head;
-  const simDemand = isSimulationLoose
-    ? (junctionSimulation?.demand ?? null)
-    : junction.actualDemand;
+  const simPressure = junctionSimulation?.pressure ?? null;
+  const simHead = junctionSimulation?.head ?? null;
+  const simDemand = junctionSimulation?.demand ?? null;
 
   const customerPoints = useMemo(() => {
     return getActiveCustomerPoints(
@@ -603,26 +595,16 @@ const PipeEditor = ({
   const translate = useTranslate();
   const { footer } = useQuickGraph(pipe.id, "pipe");
   const { getComparison, isNew } = useAssetComparison(pipe);
-  const isSimulationLoose = useFeatureFlag("FLAG_SIMULATION_LOOSE");
   const simulation = useSimulation();
   const pipeSimulation = simulation?.getPipe(pipe.id);
 
-  // Simulation values: use atom when FLAG_SIMULATION_LOOSE is enabled, otherwise use asset
-  const simFlow = isSimulationLoose
-    ? (pipeSimulation?.flow ?? null)
-    : pipe.flow;
-  const simVelocity = isSimulationLoose
-    ? (pipeSimulation?.velocity ?? null)
-    : pipe.velocity;
-  const simUnitHeadloss = isSimulationLoose
-    ? (pipeSimulation?.unitHeadloss ?? null)
-    : pipe.unitHeadloss;
-  const simHeadloss = isSimulationLoose
-    ? (pipeSimulation?.headloss ?? null)
-    : pipe.headloss;
-  const simulationStatusText = isSimulationLoose
-    ? translate(pipeStatusLabel(pipeSimulation ?? null))
-    : translate(pipeStatusLabel(pipe.status ? { status: pipe.status } : null));
+  const simFlow = pipeSimulation?.flow ?? null;
+  const simVelocity = pipeSimulation?.velocity ?? null;
+  const simUnitHeadloss = pipeSimulation?.unitHeadloss ?? null;
+  const simHeadloss = pipeSimulation?.headloss ?? null;
+  const simulationStatusText = translate(
+    pipeStatusLabel(pipeSimulation ?? null),
+  );
 
   const customerPoints = useMemo(() => {
     const connectedCustomerPoints =
@@ -874,23 +856,13 @@ const TankEditor = ({
   const translate = useTranslate();
   const { footer } = useQuickGraph(tank.id, "tank");
   const { getComparison, isNew } = useAssetComparison(tank);
-  const isSimulationLoose = useFeatureFlag("FLAG_SIMULATION_LOOSE");
   const simulation = useSimulation();
   const tankSimulation = simulation?.getTank(tank.id);
 
-  // Simulation values: use atom when FLAG_SIMULATION_LOOSE is enabled, otherwise use asset
-  const simPressure = isSimulationLoose
-    ? (tankSimulation?.pressure ?? null)
-    : tank.pressure;
-  const simHead = isSimulationLoose
-    ? (tankSimulation?.head ?? null)
-    : tank.head;
-  const simLevel = isSimulationLoose
-    ? (tankSimulation?.level ?? null)
-    : tank.level;
-  const simVolume = isSimulationLoose
-    ? (tankSimulation?.volume ?? null)
-    : tank.volume;
+  const simPressure = tankSimulation?.pressure ?? null;
+  const simHead = tankSimulation?.head ?? null;
+  const simLevel = tankSimulation?.level ?? null;
+  const simVolume = tankSimulation?.volume ?? null;
 
   return (
     <AssetEditorContent
@@ -1045,23 +1017,13 @@ const ValveEditor = ({
   const translate = useTranslate();
   const { footer } = useQuickGraph(valve.id, "valve");
   const { getComparison, isNew } = useAssetComparison(valve);
-  const isSimulationLoose = useFeatureFlag("FLAG_SIMULATION_LOOSE");
   const simulation = useSimulation();
   const valveSimulation = simulation?.getValve(valve.id);
 
-  // Simulation values: use atom when FLAG_SIMULATION_LOOSE is enabled, otherwise use asset
-  const simFlow = isSimulationLoose
-    ? (valveSimulation?.flow ?? null)
-    : valve.flow;
-  const simVelocity = isSimulationLoose
-    ? (valveSimulation?.velocity ?? null)
-    : valve.velocity;
-  const simHeadloss = isSimulationLoose
-    ? (valveSimulation?.headloss ?? null)
-    : valve.headloss;
-  const statusText = isSimulationLoose
-    ? translate(valveStatusLabel(valveSimulation ?? null))
-    : translate(valveStatusLabel(valve));
+  const simFlow = valveSimulation?.flow ?? null;
+  const simVelocity = valveSimulation?.velocity ?? null;
+  const simHeadloss = valveSimulation?.headloss ?? null;
+  const statusText = translate(valveStatusLabel(valveSimulation ?? null));
 
   const statusOptions = useMemo(() => {
     return [
@@ -1235,22 +1197,12 @@ const PumpEditor = ({
   const translate = useTranslate();
   const { footer } = useQuickGraph(pump.id, "pump");
   const { getComparison, getBaseCurve, isNew } = useAssetComparison(pump);
-  const isSimulationLoose = useFeatureFlag("FLAG_SIMULATION_LOOSE");
   const simulation = useSimulation();
   const pumpSimulation = simulation?.getPump(pump.id);
 
-  // Simulation values: use atom when FLAG_SIMULATION_LOOSE is enabled, otherwise use asset
-  const simFlow = isSimulationLoose
-    ? (pumpSimulation?.flow ?? null)
-    : pump.flow;
-  const simHead = isSimulationLoose
-    ? pumpSimulation
-      ? -pumpSimulation.headloss
-      : null
-    : pump.head;
-  const statusText = isSimulationLoose
-    ? translate(pumpStatusLabel(pumpSimulation ?? null))
-    : translate(pumpStatusLabel(pump));
+  const simFlow = pumpSimulation?.flow ?? null;
+  const simHead = pumpSimulation ? -pumpSimulation.headloss : null;
+  const statusText = translate(pumpStatusLabel(pumpSimulation ?? null));
 
   const statusOptions = useMemo(() => {
     return pumpStatuses.map((status) => ({

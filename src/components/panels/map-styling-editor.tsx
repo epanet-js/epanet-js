@@ -17,11 +17,7 @@ import {
   supportedNodeProperties,
 } from "src/map/symbology/symbology-types";
 import { useSymbologyState } from "src/state/symbology";
-import {
-  defaultSymbologyBuilders,
-  defaultSymbologyBuildersDeprecated,
-} from "src/map/symbology/default-symbology-builders";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { defaultSymbologyBuilders } from "src/map/symbology/default-symbology-builders";
 import { Checkbox } from "../form/Checkbox";
 import { ColorRampSelector } from "src/components/color-ramp-selector";
 import { RangeColorRuleEditor } from "../range-color-rule-editor";
@@ -88,7 +84,6 @@ const SymbologyEditor = ({
   const translateUnit = useTranslateUnit();
   const simulation = useAtomValue(simulationAtom);
   const simulationResults = useAtomValue(simulationResultsAtom);
-  const isSimulationLoose = useFeatureFlag("FLAG_SIMULATION_LOOSE");
 
   const {
     linkSymbology,
@@ -113,27 +108,22 @@ const SymbologyEditor = ({
       subtype: property,
     });
 
+    const isSimulationProperty = simulationProperties.includes(property);
+    const canApplySymbology = !isSimulationProperty || simulationResults;
+
     if (geometryType === "node") {
       if (property === "none") {
         switchNodeSymbologyTo(null, () => nullSymbologySpec.node);
         return;
       }
 
-      if (isSimulationLoose && simulationResults) {
+      if (canApplySymbology) {
         switchNodeSymbologyTo(
           property,
           defaultSymbologyBuilders[property](
             hydraulicModel,
             quantities,
-            simulationResults,
-          ),
-        );
-      } else {
-        switchNodeSymbologyTo(
-          property,
-          defaultSymbologyBuildersDeprecated[property](
-            hydraulicModel,
-            quantities,
+            simulationResults!,
           ),
         );
       }
@@ -143,21 +133,13 @@ const SymbologyEditor = ({
         return;
       }
 
-      if (isSimulationLoose && simulationResults) {
+      if (canApplySymbology) {
         switchLinkSymbologyTo(
           property,
           defaultSymbologyBuilders[property](
             hydraulicModel,
             quantities,
-            simulationResults,
-          ),
-        );
-      } else {
-        switchLinkSymbologyTo(
-          property,
-          defaultSymbologyBuildersDeprecated[property](
-            hydraulicModel,
-            quantities,
+            simulationResults!,
           ),
         );
       }

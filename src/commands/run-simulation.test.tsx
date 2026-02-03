@@ -4,7 +4,7 @@ import {
   SimulationFinished,
   Store,
   simulationAtom,
-  stagingModelAtom,
+  simulationResultsAtom,
 } from "src/state/jotai";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { setInitialState } from "src/__helpers__/state";
@@ -13,7 +13,6 @@ import { useRunSimulation } from "./run-simulation";
 import { lib } from "src/lib/worker";
 import { Mock } from "vitest";
 import { runSimulation as workerRunSimulation } from "src/simulation/epanet/worker";
-import { Pipe } from "src/hydraulic-model";
 
 vi.mock("src/lib/worker", () => ({
   lib: {
@@ -48,10 +47,11 @@ describe("Run simulation", () => {
     });
 
     await waitFor(() => {
-      const updatedModel = store.get(stagingModelAtom);
-      const pipe = updatedModel.assets.get(IDS.p1) as Pipe;
-      expect(pipe.flow).not.toBeNull();
-      expect(pipe.flow).toBeGreaterThan(0);
+      const simulationResults = store.get(simulationResultsAtom);
+      expect(simulationResults).not.toBeNull();
+      const pipeSimulation = simulationResults?.getPipe(IDS.p1);
+      expect(pipeSimulation?.flow).not.toBeNull();
+      expect(pipeSimulation?.flow).toBeGreaterThan(0);
     });
   });
 

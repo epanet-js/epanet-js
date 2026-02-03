@@ -13,7 +13,6 @@ import {
   PanelLeftActiveIcon,
   PanelRightActiveIcon,
   PanelRightIcon,
-  TimerIcon,
 } from "src/icons";
 import Modes from "../modes";
 import { useAtomValue } from "jotai";
@@ -52,8 +51,6 @@ import {
   toggleSidePanelShortcut,
   useToggleSidePanel,
 } from "src/commands/toggle-side-panel";
-import { useRunSimulationPerformanceTest } from "src/commands/run-simulation-performance-test";
-import { isDebugOn } from "src/infra/debug-mode";
 
 export const Toolbar = ({
   readonly = false,
@@ -66,7 +63,6 @@ export const Toolbar = ({
   const saveInp = useSaveInp();
   const userTracking = useUserTracking();
   const runSimulation = useRunSimulation();
-  const runPerformanceTest = useRunSimulationPerformanceTest();
   const showSimulationSettings = useShowSimulationSettings();
   const showReport = useShowReport();
   const importCustomerPoints = useImportCustomerPoints();
@@ -183,18 +179,6 @@ export const Toolbar = ({
         >
           <RunSimulationIcon className="stroke-yellow-600" />
         </MenuAction>
-        {isDebugOn && (
-          <MenuAction
-            label="Performance Test"
-            role="button"
-            onClick={() => {
-              void runPerformanceTest();
-            }}
-            disabled={simulation.status === "idle"}
-          >
-            <TimerIcon />
-          </MenuAction>
-        )}
         <MenuAction
           label={translate("simulationSettings.title")}
           role="button"

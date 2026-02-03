@@ -12,7 +12,6 @@ import {
   runSimulation as runSimulationWorker,
   EPSResultsReader,
 } from "src/simulation";
-import { attachSimulation } from "src/hydraulic-model";
 import { useDrawingMode } from "./set-drawing-mode";
 import { Mode } from "src/state/mode";
 import { getAppId } from "src/infra/app-instance";
@@ -27,11 +26,9 @@ export const useRunSimulation = () => {
   const setSimulationState = useSetAtom(simulationAtom);
   const setDialogState = useSetAtom(dialogAtom);
   const hydraulicModel = useAtomValue(stagingModelAtom);
-  const setHydraulicModel = useSetAtom(stagingModelAtom);
   const setDrawingMode = useDrawingMode();
   const worktree = useAtomValue(worktreeAtom);
   const isScenariosOn = useFeatureFlag("FLAG_SCENARIOS");
-  const isSimulationLoose = useFeatureFlag("FLAG_SIMULATION_LOOSE");
   const persistence = usePersistenceWithSnapshots();
   const setSimulationResults = useSetAtom(simulationResultsAtom);
 
@@ -77,7 +74,6 @@ export const useRunSimulation = () => {
 
       isCompleted = true;
 
-      let updatedHydraulicModel = hydraulicModel;
       let simulationIds;
       if (status === "success" || status === "warning") {
         const storage = new OPFSStorage(appId, scenarioKey);
@@ -86,13 +82,6 @@ export const useRunSimulation = () => {
         simulationIds = epsReader.simulationIds;
         const resultsReader = await epsReader.getResultsForTimestep(0);
         setSimulationResults(resultsReader);
-        if (!isSimulationLoose) {
-          updatedHydraulicModel = attachSimulation(
-            hydraulicModel,
-            resultsReader,
-          );
-          setHydraulicModel(updatedHydraulicModel);
-        }
       } else {
         setSimulationResults(null);
       }
@@ -100,7 +89,7 @@ export const useRunSimulation = () => {
       const simulationResult = {
         status,
         report,
-        modelVersion: updatedHydraulicModel.version,
+        modelVersion: hydraulicModel.version,
         metadata,
         simulationIds,
         currentTimestepIndex: 0,
@@ -131,9 +120,7 @@ export const useRunSimulation = () => {
       setSimulationState,
       setSimulationResults,
       setDialogState,
-      setHydraulicModel,
       isScenariosOn,
-      isSimulationLoose,
       worktree.activeSnapshotId,
       persistence,
     ],

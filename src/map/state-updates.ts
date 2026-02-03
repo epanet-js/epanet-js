@@ -21,7 +21,6 @@ import {
   customerPointsAtom,
   stagingModelAtom,
 } from "src/state/jotai";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import type { ResultsReader } from "src/simulation/results-reader";
 import { MapEngine } from "./map-engine";
 import {
@@ -217,7 +216,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     modelMetadata: { quantities },
   } = useAtomValue(dataAtom);
   const simulationResults = useAtomValue(simulationResultsAtom);
-  const isSimulationLoose = useFeatureFlag("FLAG_SIMULATION_LOOSE");
   const lastHiddenFeatures = useRef<Set<AssetId>>(new Set([]));
   const previousMapStateRef = useRef<MapState>(nullMapState);
   const customerPointsOverlayRef = useRef<CustomerPointsOverlay>([]);
@@ -226,8 +224,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
 
-  // When FLAG_SIMULATION_LOOSE is enabled, pass simulation results to feature builders
-  const resultsReader = isSimulationLoose ? simulationResults : undefined;
+  const resultsReader = simulationResults;
 
   const doUpdates = useCallback(() => {
     if (!map) return;
