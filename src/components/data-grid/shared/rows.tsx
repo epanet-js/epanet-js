@@ -35,19 +35,8 @@ export type RowsProps<TData> = {
   variant: DataGridVariant;
   // Navigation props
   activeCell: CellPosition | null;
-  moveActiveCell: (
-    direction: "up" | "down" | "left" | "right",
-    extend?: boolean,
-  ) => void;
-  moveToRowStart: (extend?: boolean) => void;
-  moveToRowEnd: (extend?: boolean) => void;
-  moveToGridStart: (extend?: boolean) => void;
-  moveToGridEnd: (extend?: boolean) => void;
-  moveByPage: (
-    direction: "up" | "down",
-    pageSize: number,
-    extend?: boolean,
-  ) => void;
+  rowCount: number;
+  setActiveCell: (cell: CellPosition, extend?: boolean) => void;
   selectCells: (options?: {
     colIndex?: number;
     rowIndex?: number;
@@ -75,12 +64,8 @@ export const Rows = forwardRef(function Rows<TData>(
     readOnly,
     variant,
     activeCell,
-    moveActiveCell,
-    moveToRowStart,
-    moveToRowEnd,
-    moveToGridStart,
-    moveToGridEnd,
-    moveByPage,
+    rowCount,
+    setActiveCell,
     selectCells,
     clearSelection,
     blurGrid,
@@ -97,14 +82,10 @@ export const Rows = forwardRef(function Rows<TData>(
 
   const handleKeyDown = useRowsNavigation({
     activeCell,
+    rowCount,
     colCount,
     editMode,
-    moveActiveCell,
-    moveToRowStart,
-    moveToRowEnd,
-    moveToGridStart,
-    moveToGridEnd,
-    moveByPage,
+    setActiveCell,
     selectCells,
     clearSelection,
     blurGrid,

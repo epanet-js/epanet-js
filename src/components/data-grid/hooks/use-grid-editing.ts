@@ -10,11 +10,9 @@ type UseGridEditingOptions<TData extends Record<string, unknown>> = {
   data: TData[];
   onChange: (data: TData[]) => void;
   readOnly: boolean;
+  rowCount: number;
   colCount: number;
-  moveActiveCell: (
-    direction: "up" | "down" | "left" | "right",
-    extend?: boolean,
-  ) => void;
+  setActiveCell: (cell: CellPosition, extend?: boolean) => void;
   selectCells: (options?: {
     colIndex?: number;
     rowIndex?: number;
@@ -34,8 +32,9 @@ export function useGridEditing<TData extends Record<string, unknown>>({
   data,
   onChange,
   readOnly,
+  rowCount,
   colCount,
-  moveActiveCell,
+  setActiveCell,
   selectCells,
   startEditing,
   stopEditing,
@@ -65,7 +64,10 @@ export function useGridEditing<TData extends Record<string, unknown>>({
         if (e.key === "Enter" && !e.shiftKey) {
           e.preventDefault();
           stopEditing();
-          moveActiveCell("down");
+          if (activeCell) {
+            const newRow = Math.min(rowCount - 1, activeCell.row + 1);
+            setActiveCell({ col: activeCell.col, row: newRow });
+          }
           return;
         } else if (e.key === "Tab") {
           if (isTabOut) {
@@ -77,7 +79,12 @@ export function useGridEditing<TData extends Record<string, unknown>>({
 
           e.preventDefault();
           stopEditing();
-          moveActiveCell(e.shiftKey ? "left" : "right");
+          if (activeCell) {
+            const newCol = e.shiftKey
+              ? Math.max(0, activeCell.col - 1)
+              : Math.min(colCount - 1, activeCell.col + 1);
+            setActiveCell({ col: newCol, row: activeCell.row });
+          }
           return;
         } else if (e.key === "Escape") {
           e.preventDefault();
@@ -159,9 +166,10 @@ export function useGridEditing<TData extends Record<string, unknown>>({
       activeCell,
       selection,
       columns,
+      rowCount,
       colCount,
       readOnly,
-      moveActiveCell,
+      setActiveCell,
       selectCells,
       startEditing,
       stopEditing,

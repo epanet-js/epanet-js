@@ -3,21 +3,10 @@ import { CellPosition, EditMode } from "../types";
 
 type UseRowsNavigationOptions = {
   activeCell: CellPosition | null;
+  rowCount: number;
   colCount: number;
   editMode: EditMode;
-  moveActiveCell: (
-    direction: "up" | "down" | "left" | "right",
-    extend?: boolean,
-  ) => void;
-  moveToRowStart: (extend?: boolean) => void;
-  moveToRowEnd: (extend?: boolean) => void;
-  moveToGridStart: (extend?: boolean) => void;
-  moveToGridEnd: (extend?: boolean) => void;
-  moveByPage: (
-    direction: "up" | "down",
-    pageSize: number,
-    extend?: boolean,
-  ) => void;
+  setActiveCell: (cell: CellPosition, extend?: boolean) => void;
   selectCells: (options?: {
     colIndex?: number;
     rowIndex?: number;
@@ -30,14 +19,10 @@ type UseRowsNavigationOptions = {
 
 export function useRowsNavigation({
   activeCell,
+  rowCount,
   colCount,
   editMode,
-  moveActiveCell,
-  moveToRowStart,
-  moveToRowEnd,
-  moveToGridStart,
-  moveToGridEnd,
-  moveByPage,
+  setActiveCell,
   selectCells,
   clearSelection,
   blurGrid,
@@ -60,51 +45,79 @@ export function useRowsNavigation({
 
       switch (e.key) {
         case "ArrowUp":
-          if (shouldPreventDefault) e.preventDefault();
-          moveActiveCell("up", e.shiftKey);
+          if (activeCell) {
+            if (shouldPreventDefault) e.preventDefault();
+            const newRow = Math.max(0, activeCell.row - 1);
+            setActiveCell({ col: activeCell.col, row: newRow }, e.shiftKey);
+          }
           break;
 
         case "ArrowDown":
-          if (shouldPreventDefault) e.preventDefault();
-          moveActiveCell("down", e.shiftKey);
+          if (activeCell) {
+            if (shouldPreventDefault) e.preventDefault();
+            const newRow = Math.min(rowCount - 1, activeCell.row + 1);
+            setActiveCell({ col: activeCell.col, row: newRow }, e.shiftKey);
+          }
           break;
 
         case "ArrowLeft":
-          if (shouldPreventDefault) e.preventDefault();
-          moveActiveCell("left", e.shiftKey);
+          if (activeCell) {
+            if (shouldPreventDefault) e.preventDefault();
+            const newCol = Math.max(0, activeCell.col - 1);
+            setActiveCell({ col: newCol, row: activeCell.row }, e.shiftKey);
+          }
           break;
 
         case "ArrowRight":
-          if (shouldPreventDefault) e.preventDefault();
-          moveActiveCell("right", e.shiftKey);
+          if (activeCell) {
+            if (shouldPreventDefault) e.preventDefault();
+            const newCol = Math.min(colCount - 1, activeCell.col + 1);
+            setActiveCell({ col: newCol, row: activeCell.row }, e.shiftKey);
+          }
           break;
 
         case "Home":
           e.preventDefault();
           if (isMod) {
-            moveToGridStart(e.shiftKey);
-          } else {
-            moveToRowStart(e.shiftKey);
+            // Move to grid start
+            setActiveCell({ col: 0, row: 0 }, e.shiftKey);
+          } else if (activeCell) {
+            // Move to row start
+            setActiveCell({ col: 0, row: activeCell.row }, e.shiftKey);
           }
           break;
 
         case "End":
           e.preventDefault();
           if (isMod) {
-            moveToGridEnd(e.shiftKey);
-          } else {
-            moveToRowEnd(e.shiftKey);
+            // Move to grid end
+            setActiveCell({ col: colCount - 1, row: rowCount - 1 }, e.shiftKey);
+          } else if (activeCell) {
+            // Move to row end
+            setActiveCell(
+              { col: colCount - 1, row: activeCell.row },
+              e.shiftKey,
+            );
           }
           break;
 
         case "PageUp":
-          e.preventDefault();
-          moveByPage("up", visibleRowCount, e.shiftKey);
+          if (activeCell) {
+            e.preventDefault();
+            const newRow = Math.max(0, activeCell.row - visibleRowCount);
+            setActiveCell({ col: activeCell.col, row: newRow }, e.shiftKey);
+          }
           break;
 
         case "PageDown":
-          e.preventDefault();
-          moveByPage("down", visibleRowCount, e.shiftKey);
+          if (activeCell) {
+            e.preventDefault();
+            const newRow = Math.min(
+              rowCount - 1,
+              activeCell.row + visibleRowCount,
+            );
+            setActiveCell({ col: activeCell.col, row: newRow }, e.shiftKey);
+          }
           break;
 
         case "Tab": {
@@ -120,7 +133,10 @@ export function useRowsNavigation({
           }
 
           e.preventDefault();
-          moveActiveCell(e.shiftKey ? "left" : "right");
+          const newCol = e.shiftKey
+            ? Math.max(0, activeCell.col - 1)
+            : Math.min(colCount - 1, activeCell.col + 1);
+          setActiveCell({ col: newCol, row: activeCell.row });
           break;
         }
 
@@ -148,13 +164,9 @@ export function useRowsNavigation({
     [
       editMode,
       activeCell,
+      rowCount,
       colCount,
-      moveActiveCell,
-      moveToRowStart,
-      moveToRowEnd,
-      moveToGridStart,
-      moveToGridEnd,
-      moveByPage,
+      setActiveCell,
       visibleRowCount,
       selectCells,
       clearSelection,

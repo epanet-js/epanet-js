@@ -68,24 +68,13 @@ export const DataGrid = forwardRef(function DataGrid<
 
   const { editMode, startEditing, stopEditing } = useEditMode();
 
-  const {
-    activeCell,
-    selection,
-    setActiveCell,
-    clearSelection,
-    moveActiveCell,
-    moveToRowStart,
-    moveToRowEnd,
-    moveToGridStart,
-    moveToGridEnd,
-    moveByPage,
-    selectCells,
-  } = useSelection({
-    rowCount: data.length,
-    colCount: columns.length,
-    stopEditing,
-    onSelectionChange,
-  });
+  const { activeCell, selection, setActiveCell, clearSelection, selectCells } =
+    useSelection({
+      rowCount: data.length,
+      colCount: columns.length,
+      stopEditing,
+      onSelectionChange,
+    });
 
   const { handleCellMouseDown, handleCellMouseEnter } = useMouseSelection({
     editMode,
@@ -104,8 +93,9 @@ export const DataGrid = forwardRef(function DataGrid<
     data,
     onChange,
     readOnly,
+    rowCount: data.length,
     colCount,
-    moveActiveCell,
+    setActiveCell,
     selectCells,
     startEditing,
     stopEditing,
@@ -246,12 +236,8 @@ export const DataGrid = forwardRef(function DataGrid<
     readOnly,
     variant,
     activeCell,
-    moveActiveCell,
-    moveToRowStart,
-    moveToRowEnd,
-    moveToGridStart,
-    moveToGridEnd,
-    moveByPage,
+    rowCount: data.length,
+    setActiveCell,
     selectCells,
     clearSelection,
     blurGrid,
