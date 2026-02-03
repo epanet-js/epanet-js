@@ -1,11 +1,11 @@
 import { useCallback } from "react";
 import { CellPosition, EditMode, GridColumn, GridSelection } from "../types";
+import { isFullRowSelected } from "./use-selection";
 
 type UseGridEditingOptions<TData extends Record<string, unknown>> = {
   activeCell: CellPosition | null;
   selection: GridSelection | null;
   editMode: EditMode;
-  isFullRowSelected: boolean;
   columns: GridColumn[];
   data: TData[];
   onChange: (data: TData[]) => void;
@@ -30,7 +30,6 @@ export function useGridEditing<TData extends Record<string, unknown>>({
   activeCell,
   selection,
   editMode,
-  isFullRowSelected,
   columns,
   data,
   onChange,
@@ -46,13 +45,13 @@ export function useGridEditing<TData extends Record<string, unknown>>({
   const handleDelete = useCallback(() => {
     if (!selection || readOnly) return;
 
-    if (isFullRowSelected) {
+    if (isFullRowSelected(selection, colCount)) {
       onChange(deleteRows(data, selection));
       return;
     }
 
     onChange(clearCells(data, selection, columns));
-  }, [selection, readOnly, isFullRowSelected, data, columns, onChange]);
+  }, [selection, readOnly, colCount, data, columns, onChange]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {

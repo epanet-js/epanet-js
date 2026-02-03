@@ -1,6 +1,37 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { CellPosition, SelectionState, GridSelection } from "../types";
 
+export function isFullRowSelected(
+  selection: GridSelection | null,
+  colCount: number,
+): boolean {
+  if (!selection) return false;
+  return selection.min.col === 0 && selection.max.col === colCount - 1;
+}
+
+export function isCellSelected(
+  selection: GridSelection | null,
+  col: number,
+  row: number,
+): boolean {
+  if (!selection) return false;
+  return (
+    col >= selection.min.col &&
+    col <= selection.max.col &&
+    row >= selection.min.row &&
+    row <= selection.max.row
+  );
+}
+
+export function isCellActive(
+  activeCell: CellPosition | null,
+  col: number,
+  row: number,
+): boolean {
+  if (!activeCell) return false;
+  return activeCell.col === col && activeCell.row === row;
+}
+
 type UseSelectionOptions = {
   rowCount: number;
   colCount: number;
@@ -410,39 +441,9 @@ export function useSelection({
     [rowCount, onSelectionChange, stopEditing],
   );
 
-  const isFullRowSelected = useMemo(() => {
-    if (!selection) return false;
-    return selection.min.col === 0 && selection.max.col === colCount - 1;
-  }, [selection, colCount]);
-
-  const isCellSelected = useCallback(
-    (col: number, row: number) => {
-      if (!selection) return false;
-      return (
-        col >= selection.min.col &&
-        col <= selection.max.col &&
-        row >= selection.min.row &&
-        row <= selection.max.row
-      );
-    },
-    [selection],
-  );
-
-  const isCellActive = useCallback(
-    (col: number, row: number) => {
-      if (!selectionState.activeCell) return false;
-      return (
-        selectionState.activeCell.col === col &&
-        selectionState.activeCell.row === row
-      );
-    },
-    [selectionState.activeCell],
-  );
-
   return {
     activeCell: selectionState.activeCell,
     selection,
-    isFullRowSelected,
     setActiveCell,
     clearSelection,
     moveActiveCell,
@@ -452,8 +453,6 @@ export function useSelection({
     moveToGridEnd,
     moveByPage,
     selectCells,
-    isCellSelected,
-    isCellActive,
     isDragging,
     startDrag,
     stopDrag,

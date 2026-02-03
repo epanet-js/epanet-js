@@ -3,7 +3,12 @@
  */
 import { act } from "react";
 import { renderHook } from "@testing-library/react";
-import { useSelection } from "./use-selection";
+import {
+  useSelection,
+  isFullRowSelected,
+  isCellSelected,
+  isCellActive,
+} from "./use-selection";
 
 describe("useSelection", () => {
   const defaultOptions = {
@@ -317,7 +322,9 @@ describe("useSelection", () => {
         result.current.selectCells({ rowIndex: 1 });
       });
 
-      expect(result.current.isFullRowSelected).toBe(true);
+      expect(
+        isFullRowSelected(result.current.selection, defaultOptions.colCount),
+      ).toBe(true);
     });
 
     it("returns false when partial row is selected", () => {
@@ -327,13 +334,17 @@ describe("useSelection", () => {
         result.current.setActiveCell({ col: 1, row: 1 });
       });
 
-      expect(result.current.isFullRowSelected).toBe(false);
+      expect(
+        isFullRowSelected(result.current.selection, defaultOptions.colCount),
+      ).toBe(false);
     });
 
     it("returns false when no selection", () => {
       const { result } = renderHook(() => useSelection(defaultOptions));
 
-      expect(result.current.isFullRowSelected).toBe(false);
+      expect(
+        isFullRowSelected(result.current.selection, defaultOptions.colCount),
+      ).toBe(false);
     });
   });
 
@@ -345,9 +356,9 @@ describe("useSelection", () => {
         result.current.selectCells(); // select all
       });
 
-      expect(result.current.isCellSelected(1, 1)).toBe(true);
-      expect(result.current.isCellSelected(0, 0)).toBe(true);
-      expect(result.current.isCellSelected(2, 4)).toBe(true);
+      expect(isCellSelected(result.current.selection, 1, 1)).toBe(true);
+      expect(isCellSelected(result.current.selection, 0, 0)).toBe(true);
+      expect(isCellSelected(result.current.selection, 2, 4)).toBe(true);
     });
 
     it("returns false for cells outside selection", () => {
@@ -357,14 +368,14 @@ describe("useSelection", () => {
         result.current.selectCells({ rowIndex: 0 }); // select first row only
       });
 
-      expect(result.current.isCellSelected(2, 2)).toBe(false);
-      expect(result.current.isCellSelected(0, 3)).toBe(false);
+      expect(isCellSelected(result.current.selection, 2, 2)).toBe(false);
+      expect(isCellSelected(result.current.selection, 0, 3)).toBe(false);
     });
 
     it("returns false when no selection", () => {
       const { result } = renderHook(() => useSelection(defaultOptions));
 
-      expect(result.current.isCellSelected(0, 0)).toBe(false);
+      expect(isCellSelected(result.current.selection, 0, 0)).toBe(false);
     });
   });
 
@@ -376,7 +387,7 @@ describe("useSelection", () => {
         result.current.setActiveCell({ col: 1, row: 2 });
       });
 
-      expect(result.current.isCellActive(1, 2)).toBe(true);
+      expect(isCellActive(result.current.activeCell, 1, 2)).toBe(true);
     });
 
     it("returns false for non-active cells", () => {
@@ -386,14 +397,14 @@ describe("useSelection", () => {
         result.current.setActiveCell({ col: 1, row: 2 });
       });
 
-      expect(result.current.isCellActive(0, 0)).toBe(false);
-      expect(result.current.isCellActive(1, 1)).toBe(false);
+      expect(isCellActive(result.current.activeCell, 0, 0)).toBe(false);
+      expect(isCellActive(result.current.activeCell, 1, 1)).toBe(false);
     });
 
     it("returns false when no active cell", () => {
       const { result } = renderHook(() => useSelection(defaultOptions));
 
-      expect(result.current.isCellActive(0, 0)).toBe(false);
+      expect(isCellActive(result.current.activeCell, 0, 0)).toBe(false);
     });
   });
 

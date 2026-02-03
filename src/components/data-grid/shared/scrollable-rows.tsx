@@ -17,7 +17,7 @@ import {
   GridSelection,
   RowAction,
 } from "../types";
-import { useRowsNavigation } from "../hooks";
+import { useRowsNavigation, isCellSelected, isCellActive } from "../hooks";
 import { GridDataCell } from "./grid-data-cell";
 import { RowGutterCell } from "./row-gutter-cell";
 import { RowActionsCell } from "./row-actions-cell";
@@ -30,8 +30,6 @@ export type ScrollableRowsProps<TData> = {
   columns: GridColumn[];
   selection: GridSelection | null;
   editMode: EditMode;
-  isCellSelected: (col: number, row: number) => boolean;
-  isCellActive: (col: number, row: number) => boolean;
   onCellMouseDown: (col: number, row: number, e: React.MouseEvent) => void;
   onCellMouseEnter: (col: number, row: number) => void;
   onCellDoubleClick: (col: number) => void;
@@ -74,8 +72,6 @@ export const ScrollableRows = forwardRef(function ScrollableRows<TData>(
     columns,
     selection,
     editMode,
-    isCellSelected,
-    isCellActive,
     onCellMouseDown,
     onCellMouseEnter,
     onCellDoubleClick,
@@ -287,7 +283,11 @@ export const ScrollableRows = forwardRef(function ScrollableRows<TData>(
                 {row.getVisibleCells().map((cell, colIndex) => {
                   const column = columns[colIndex];
                   const accessorKey = column.accessorKey;
-                  const cellSelected = isCellSelected(colIndex, rowIndex);
+                  const cellSelected = isCellSelected(
+                    selection,
+                    colIndex,
+                    rowIndex,
+                  );
 
                   return (
                     <GridDataCell
@@ -296,7 +296,7 @@ export const ScrollableRows = forwardRef(function ScrollableRows<TData>(
                       colIndex={colIndex}
                       rowIndex={rowIndex}
                       isSelected={cellSelected}
-                      isActive={isCellActive(colIndex, rowIndex)}
+                      isActive={isCellActive(activeCell, colIndex, rowIndex)}
                       editMode={editMode}
                       isInteractive={isInteractive}
                       readOnly={readOnly || !!column.disabled}

@@ -70,7 +70,6 @@ export const DataGrid = forwardRef(function DataGrid<
   const {
     activeCell,
     selection,
-    isFullRowSelected,
     setActiveCell,
     clearSelection,
     moveActiveCell,
@@ -80,8 +79,6 @@ export const DataGrid = forwardRef(function DataGrid<
     moveToGridEnd,
     moveByPage,
     selectCells,
-    isCellSelected,
-    isCellActive,
     isDragging,
     startDrag,
     stopDrag,
@@ -100,7 +97,6 @@ export const DataGrid = forwardRef(function DataGrid<
     activeCell,
     selection,
     editMode,
-    isFullRowSelected,
     columns,
     data,
     onChange,
@@ -173,16 +169,15 @@ export const DataGrid = forwardRef(function DataGrid<
     getCoreRowModel: getCoreRowModel(),
   });
 
-  const firstEditableCol = columns.findIndex((col) => !col.disabled);
-
   const focusRow = useCallback(
     (rowIndex: number) => {
       if (columns.length === 0) return;
+      const firstEditableCol = columns.findIndex((col) => !col.disabled);
       const col = firstEditableCol !== -1 ? firstEditableCol : 0;
       gridRef.current?.focus();
       setActiveCell({ col, row: rowIndex });
     },
-    [columns.length, firstEditableCol, setActiveCell],
+    [columns, setActiveCell],
   );
 
   const handleAddRow = useCallback(() => {
@@ -267,8 +262,6 @@ export const DataGrid = forwardRef(function DataGrid<
     columns,
     selection,
     editMode,
-    isCellSelected,
-    isCellActive,
     onCellMouseDown: handleCellMouseDown,
     onCellMouseEnter: handleCellMouseEnter,
     onCellDoubleClick: handleCellDoubleClick,
