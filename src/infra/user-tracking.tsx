@@ -175,7 +175,8 @@ export type WelcomeOpened = {
     | "geocodeError"
     | "missingCoordinatesError"
     | "invalidFilesError"
-    | "toolbar";
+    | "toolbar"
+    | "networkRequired";
 };
 
 type ModelBuilderOpened = {

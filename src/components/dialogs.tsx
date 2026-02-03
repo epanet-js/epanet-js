@@ -143,6 +143,18 @@ const AlertScenariosNotSavedDialog = dynamic<{
   },
 );
 
+const AlertNetworkRequiredDialog = dynamic<{
+  onClose: () => void;
+}>(
+  () =>
+    import("src/components/dialogs/alert-network-required").then(
+      (r) => r.AlertNetworkRequiredDialog,
+    ),
+  {
+    loading: () => <Loading />,
+  },
+);
+
 const CheatsheetDialog = dynamic<Record<string, never>>(
   () =>
     import("src/components/dialogs/cheatsheet").then((r) => r.CheatsheetDialog),
@@ -405,6 +417,9 @@ export const Dialogs = memo(function Dialogs() {
     ))
     .with({ type: "alertScenariosNotSaved" }, ({ onContinue }) => (
       <AlertScenariosNotSavedDialog onContinue={onContinue} onClose={onClose} />
+    ))
+    .with({ type: "alertNetworkRequired" }, () => (
+      <AlertNetworkRequiredDialog onClose={onClose} />
     ))
     .with({ type: "earlyAccess" }, ({ onContinue, afterSignupDialog }) => (
       <EarlyAccessDialog

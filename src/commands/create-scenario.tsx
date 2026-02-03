@@ -36,6 +36,12 @@ export const useCreateScenario = () => {
         return null;
       }
 
+      const hasAssets = hydraulicModel.assets.size > 0;
+      if (isFirstTimeEnabling && !hasAssets) {
+        setDialog({ type: "alertNetworkRequired" });
+        return null;
+      }
+
       const proceedWithCreation = async () => {
         const { scenarioId, scenarioName } = await createNewScenario();
 

@@ -112,6 +112,10 @@ export type AlertScenariosNotSavedState = {
   onContinue: () => void;
 };
 
+export type AlertNetworkRequiredState = {
+  type: "alertNetworkRequired";
+};
+
 export type DialogState =
   | InvalidFilesErrorDialogState
   | {
@@ -142,6 +146,7 @@ export type DialogState =
   | ScenariosPaywallDialogState
   | FirstScenarioDialogState
   | AlertScenariosNotSavedState
+  | AlertNetworkRequiredState
   | null;
 
 export const dialogFromUrl = (): DialogState => {
