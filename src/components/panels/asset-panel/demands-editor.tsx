@@ -9,6 +9,10 @@ import { Button } from "src/components/elements";
 import { JunctionDemand, DemandPatterns, PatternId } from "src/hydraulic-model";
 import { useTranslate } from "src/hooks/use-translate";
 import { DeleteIcon, AddIcon } from "src/icons";
+import { PropertyComparison } from "src/hooks/use-asset-comparison";
+import { calculateAverageDemand } from "src/hydraulic-model/demands";
+import { Quantities } from "src/model-metadata/quantities-spec";
+import { QuantityRow } from "./ui-components";
 
 type DemandCategoryRow = {
   baseDemand: number | null;
@@ -19,6 +23,7 @@ type Props = {
   demands: JunctionDemand[];
   patterns: DemandPatterns;
   onDemandsChange: (newDemands: JunctionDemand[]) => void;
+  comparison?: PropertyComparison;
   readOnly?: boolean;
 };
 
@@ -60,6 +65,7 @@ export const DemandCategoriesEditor = ({
   demands,
   patterns,
   onDemandsChange,
+  comparison,
   readOnly = false,
 }: Props) => {
   const translate = useTranslate();
@@ -236,17 +242,79 @@ export const DemandCategoriesEditor = ({
   }
 
   return (
-    <div className="border-l-2 border-gray-400 bg-gray-50 pr-2 pb-2">
-      <DataGrid<DemandCategoryRow>
-        data={rowData}
-        columns={columns}
-        onChange={handleChange}
-        createRow={createRow}
-        rowActions={rowActions}
-        addRowLabel={translate("addDemandCategory")}
-        variant="rows"
-        gutterColumn
+    <div className="relative flex flex-col gap-2">
+      {comparison?.hasChanged && (
+        <div className="absolute -left-4 top-0 bottom-0 w-1 bg-purple-500 rounded-full" />
+      )}
+      <label
+        className="text-sm text-gray-500 w-full flex-shrink-0"
+        aria-label={`label: ${translate("demandCategories")}`}
+      >
+        {translate("demandCategories")}
+      </label>
+      <div className="border-l-2 border-gray-400 bg-gray-50 pr-2 pb-2">
+        <DataGrid<DemandCategoryRow>
+          data={rowData}
+          columns={columns}
+          onChange={handleChange}
+          createRow={createRow}
+          rowActions={rowActions}
+          addRowLabel={translate("addDemandCategory")}
+          variant="rows"
+          gutterColumn
+          readOnly={readOnly}
+        />
+      </div>
+    </div>
+  );
+};
+
+export const DemandsEditor = ({
+  demands,
+  patterns,
+  quantitiesMetadata,
+  name,
+  onChange,
+  demandComparator,
+  readOnly,
+}: {
+  demands: JunctionDemand[];
+  patterns: DemandPatterns;
+  quantitiesMetadata: Quantities;
+  name: string;
+  onChange: (demands: JunctionDemand[]) => void;
+  demandComparator: (
+    demands: number,
+    patterns: DemandPatterns,
+  ) => PropertyComparison;
+  readOnly: boolean;
+}) => {
+  const averageDemand = useMemo(
+    () => calculateAverageDemand(demands, patterns),
+    [demands, patterns],
+  );
+
+  const demandComparison = demandComparator(averageDemand, patterns);
+
+  return (
+    <div className="relative flex flex-col gap-2">
+      {demandComparison.hasChanged && (
+        <div className="absolute -left-4 top-0 bottom-0 w-1 bg-purple-500 rounded-full" />
+      )}
+      <DemandCategoriesEditor
+        demands={demands}
+        patterns={patterns}
+        onDemandsChange={onChange}
+        comparison={demandComparison}
         readOnly={readOnly}
+      />
+      <QuantityRow
+        name={name}
+        value={averageDemand}
+        unit={quantitiesMetadata.getUnit("directDemand")}
+        decimals={quantitiesMetadata.getDecimals("directDemand")}
+        comparison={demandComparison}
+        readOnly={true}
       />
     </div>
   );

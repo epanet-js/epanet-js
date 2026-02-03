@@ -63,13 +63,13 @@ import {
 import { Curves } from "src/hydraulic-model/curves";
 import { useQuickGraph } from "./quick-graph";
 import { useAssetComparison } from "src/hooks/use-asset-comparison";
-import { DemandCategoriesEditor } from "./demand-categories-editor";
 import { useSimulation } from "src/hooks/use-simulation";
 import type {
   PipeSimulation,
   PumpSimulation,
   ValveSimulation,
 } from "src/simulation/results-reader";
+import { DemandsEditor } from "./demands-editor";
 
 type OnPropertyChange = (
   name: string,
@@ -456,17 +456,6 @@ const JunctionEditor = ({
     [customerPoints, hydraulicModel.demands.patterns],
   );
 
-  const averageDemand = useMemo(
-    () =>
-      calculateAverageDemand(junction.demands, hydraulicModel.demands.patterns),
-    [junction.demands, hydraulicModel.demands.patterns],
-  );
-
-  const demandComparison = getDirectDemandComparison(
-    averageDemand,
-    hydraulicModel.demands.patterns,
-  );
-
   return (
     <AssetEditorContent
       label={junction.label}
@@ -499,22 +488,15 @@ const JunctionEditor = ({
       </Section>
       <Section title={translate("demands")}>
         {isEditJunctionDemandsOn ? (
-          <div className="flex flex-col gap-2">
-            <DemandCategoriesEditor
-              demands={junction.demands}
-              patterns={hydraulicModel.demands.patterns}
-              onDemandsChange={onDemandsChange}
-              readOnly={readonly}
-            />
-            <QuantityRow
-              name="directDemand"
-              value={averageDemand}
-              unit={quantitiesMetadata.getUnit("directDemand")}
-              decimals={quantitiesMetadata.getDecimals("directDemand")}
-              comparison={demandComparison}
-              readOnly={true}
-            />
-          </div>
+          <DemandsEditor
+            demands={junction.demands}
+            patterns={hydraulicModel.demands.patterns}
+            quantitiesMetadata={quantitiesMetadata}
+            name="directDemand"
+            onChange={onDemandsChange}
+            demandComparator={getDirectDemandComparison}
+            readOnly={readonly}
+          />
         ) : (
           <>
             <QuantityRow
