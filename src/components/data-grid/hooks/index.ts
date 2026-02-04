@@ -1,5 +1,6 @@
 export {
   useSelection,
+  isSingleCellSelection,
   isFullRowSelected,
   isCellSelected,
   isCellActive,

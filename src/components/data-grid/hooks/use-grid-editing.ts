@@ -12,7 +12,6 @@ type UseGridEditingOptions<TData extends Record<string, unknown>> = {
   readOnly: boolean;
   rowCount: number;
   colCount: number;
-  setActiveCell: (cell: CellPosition, extend?: boolean) => void;
   selectCells: (options?: {
     colIndex?: number;
     rowIndex?: number;
@@ -34,7 +33,6 @@ export function useGridEditing<TData extends Record<string, unknown>>({
   readOnly,
   rowCount,
   colCount,
-  setActiveCell,
   selectCells,
   startEditing,
   stopEditing,
@@ -66,7 +64,7 @@ export function useGridEditing<TData extends Record<string, unknown>>({
           stopEditing();
           if (activeCell) {
             const newRow = Math.min(rowCount - 1, activeCell.row + 1);
-            setActiveCell({ col: activeCell.col, row: newRow });
+            selectCells({ colIndex: activeCell.col, rowIndex: newRow });
           }
           return;
         } else if (e.key === "Tab") {
@@ -83,7 +81,7 @@ export function useGridEditing<TData extends Record<string, unknown>>({
             const newCol = e.shiftKey
               ? Math.max(0, activeCell.col - 1)
               : Math.min(colCount - 1, activeCell.col + 1);
-            setActiveCell({ col: newCol, row: activeCell.row });
+            selectCells({ colIndex: newCol, rowIndex: activeCell.row });
           }
           return;
         } else if (e.key === "Escape") {
@@ -169,7 +167,6 @@ export function useGridEditing<TData extends Record<string, unknown>>({
       rowCount,
       colCount,
       readOnly,
-      setActiveCell,
       selectCells,
       startEditing,
       stopEditing,

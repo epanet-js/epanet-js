@@ -65,17 +65,16 @@ export const DataGrid = forwardRef(function DataGrid<
 
   const { editMode, startEditing, stopEditing } = useEditMode();
 
-  const { activeCell, selection, setActiveCell, clearSelection, selectCells } =
-    useSelection({
-      rowCount: data.length,
-      colCount: columns.length,
-      stopEditing,
-      onSelectionChange,
-    });
+  const { activeCell, selection, clearSelection, selectCells } = useSelection({
+    rowCount: data.length,
+    colCount: columns.length,
+    stopEditing,
+    onSelectionChange,
+  });
 
   const { handleCellMouseDown, handleCellMouseEnter } = useMouseSelection({
     editMode,
-    setActiveCell,
+    selectCells,
   });
 
   const blurGrid = useCallback(() => {
@@ -92,7 +91,6 @@ export const DataGrid = forwardRef(function DataGrid<
     readOnly,
     rowCount: data.length,
     colCount: columns.length,
-    setActiveCell,
     selectCells,
     startEditing,
     stopEditing,
@@ -152,11 +150,11 @@ export const DataGrid = forwardRef(function DataGrid<
     (rowIndex: number) => {
       if (columns.length === 0) return;
       const firstEditableCol = columns.findIndex((col) => !col.disabled);
-      const col = firstEditableCol !== -1 ? firstEditableCol : 0;
+      const colIndex = firstEditableCol !== -1 ? firstEditableCol : 0;
       gridRef.current?.focus();
-      setActiveCell({ col, row: rowIndex });
+      selectCells({ colIndex, rowIndex });
     },
-    [columns, setActiveCell],
+    [columns, selectCells],
   );
 
   const handleAddRow = useCallback(() => {
@@ -219,6 +217,8 @@ export const DataGrid = forwardRef(function DataGrid<
   const rowsProps = {
     table,
     columns,
+    rowCount: data.length,
+    activeCell,
     selection,
     editMode,
     onCellMouseDown: handleCellMouseDown,
@@ -228,16 +228,13 @@ export const DataGrid = forwardRef(function DataGrid<
     onCellChange: handleCellChange,
     stopEditing,
     startEditing,
+    selectCells,
+    clearSelection,
+    blurGrid,
     gutterColumn,
     rowActions: readOnly ? undefined : rowActions,
     readOnly,
     variant,
-    activeCell,
-    rowCount: data.length,
-    setActiveCell,
-    selectCells,
-    clearSelection,
-    blurGrid,
   };
 
   return (

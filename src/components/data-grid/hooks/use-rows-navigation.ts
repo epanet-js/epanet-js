@@ -6,7 +6,6 @@ type UseRowsNavigationOptions = {
   rowCount: number;
   colCount: number;
   editMode: EditMode;
-  setActiveCell: (cell: CellPosition, extend?: boolean) => void;
   selectCells: (options?: {
     colIndex?: number;
     rowIndex?: number;
@@ -22,7 +21,6 @@ export function useRowsNavigation({
   rowCount,
   colCount,
   editMode,
-  setActiveCell,
   selectCells,
   clearSelection,
   blurGrid,
@@ -48,7 +46,11 @@ export function useRowsNavigation({
           if (activeCell) {
             if (shouldPreventDefault) e.preventDefault();
             const newRow = Math.max(0, activeCell.row - 1);
-            setActiveCell({ col: activeCell.col, row: newRow }, e.shiftKey);
+            selectCells({
+              colIndex: activeCell.col,
+              rowIndex: newRow,
+              extend: e.shiftKey,
+            });
           }
           break;
 
@@ -56,7 +58,11 @@ export function useRowsNavigation({
           if (activeCell) {
             if (shouldPreventDefault) e.preventDefault();
             const newRow = Math.min(rowCount - 1, activeCell.row + 1);
-            setActiveCell({ col: activeCell.col, row: newRow }, e.shiftKey);
+            selectCells({
+              colIndex: activeCell.col,
+              rowIndex: newRow,
+              extend: e.shiftKey,
+            });
           }
           break;
 
@@ -64,7 +70,11 @@ export function useRowsNavigation({
           if (activeCell) {
             if (shouldPreventDefault) e.preventDefault();
             const newCol = Math.max(0, activeCell.col - 1);
-            setActiveCell({ col: newCol, row: activeCell.row }, e.shiftKey);
+            selectCells({
+              colIndex: newCol,
+              rowIndex: activeCell.row,
+              extend: e.shiftKey,
+            });
           }
           break;
 
@@ -72,7 +82,11 @@ export function useRowsNavigation({
           if (activeCell) {
             if (shouldPreventDefault) e.preventDefault();
             const newCol = Math.min(colCount - 1, activeCell.col + 1);
-            setActiveCell({ col: newCol, row: activeCell.row }, e.shiftKey);
+            selectCells({
+              colIndex: newCol,
+              rowIndex: activeCell.row,
+              extend: e.shiftKey,
+            });
           }
           break;
 
@@ -80,10 +94,14 @@ export function useRowsNavigation({
           e.preventDefault();
           if (isMod) {
             // Move to grid start
-            setActiveCell({ col: 0, row: 0 }, e.shiftKey);
+            selectCells({ colIndex: 0, rowIndex: 0, extend: e.shiftKey });
           } else if (activeCell) {
             // Move to row start
-            setActiveCell({ col: 0, row: activeCell.row }, e.shiftKey);
+            selectCells({
+              colIndex: 0,
+              rowIndex: activeCell.row,
+              extend: e.shiftKey,
+            });
           }
           break;
 
@@ -91,13 +109,18 @@ export function useRowsNavigation({
           e.preventDefault();
           if (isMod) {
             // Move to grid end
-            setActiveCell({ col: colCount - 1, row: rowCount - 1 }, e.shiftKey);
+            selectCells({
+              colIndex: colCount - 1,
+              rowIndex: rowCount - 1,
+              extend: e.shiftKey,
+            });
           } else if (activeCell) {
             // Move to row end
-            setActiveCell(
-              { col: colCount - 1, row: activeCell.row },
-              e.shiftKey,
-            );
+            selectCells({
+              colIndex: colCount - 1,
+              rowIndex: activeCell.row,
+              extend: e.shiftKey,
+            });
           }
           break;
 
@@ -105,7 +128,11 @@ export function useRowsNavigation({
           if (activeCell) {
             e.preventDefault();
             const newRow = Math.max(0, activeCell.row - visibleRowCount);
-            setActiveCell({ col: activeCell.col, row: newRow }, e.shiftKey);
+            selectCells({
+              colIndex: activeCell.col,
+              rowIndex: newRow,
+              extend: e.shiftKey,
+            });
           }
           break;
 
@@ -116,7 +143,11 @@ export function useRowsNavigation({
               rowCount - 1,
               activeCell.row + visibleRowCount,
             );
-            setActiveCell({ col: activeCell.col, row: newRow }, e.shiftKey);
+            selectCells({
+              colIndex: activeCell.col,
+              rowIndex: newRow,
+              extend: e.shiftKey,
+            });
           }
           break;
 
@@ -136,7 +167,7 @@ export function useRowsNavigation({
           const newCol = e.shiftKey
             ? Math.max(0, activeCell.col - 1)
             : Math.min(colCount - 1, activeCell.col + 1);
-          setActiveCell({ col: newCol, row: activeCell.row });
+          selectCells({ colIndex: newCol, rowIndex: activeCell.row });
           break;
         }
 
@@ -166,7 +197,6 @@ export function useRowsNavigation({
       activeCell,
       rowCount,
       colCount,
-      setActiveCell,
       visibleRowCount,
       selectCells,
       clearSelection,

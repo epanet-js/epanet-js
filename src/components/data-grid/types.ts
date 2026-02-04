@@ -7,11 +7,6 @@ export type GridSelection = {
 
 export type EditMode = false | "quick" | "full";
 
-export type SelectionState = {
-  activeCell: CellPosition | null;
-  anchor: CellPosition | null;
-};
-
 export type RowAction = {
   label: string;
   icon: React.ReactNode;
@@ -61,10 +56,6 @@ export type DataGridRef = {
   }) => void;
   clearSelection: () => void;
   selection: GridSelection | null;
-};
-
-export type CellContext = {
-  setActiveCell: (cell: CellPosition) => void;
 };
 
 export type DataGridVariant = "spreadsheet" | "rows";

@@ -1,14 +1,18 @@
 import { useCallback, useEffect, useState } from "react";
-import { CellPosition, EditMode } from "../types";
+import { EditMode } from "../types";
 
 type UseMouseSelectionOptions = {
   editMode: EditMode;
-  setActiveCell: (cell: CellPosition, extend?: boolean) => void;
+  selectCells: (options?: {
+    colIndex?: number;
+    rowIndex?: number;
+    extend?: boolean;
+  }) => void;
 };
 
 export function useMouseSelection({
   editMode,
-  setActiveCell,
+  selectCells,
 }: UseMouseSelectionOptions) {
   const [isDragging, setIsDragging] = useState(false);
 
@@ -18,21 +22,21 @@ export function useMouseSelection({
   const handleCellMouseDown = useCallback(
     (col: number, row: number, e: React.MouseEvent) => {
       if (e.button !== 0) return;
-      setActiveCell({ col, row }, e.shiftKey);
+      selectCells({ colIndex: col, rowIndex: row, extend: e.shiftKey });
       if (!e.shiftKey && editMode !== "full") {
         startDrag();
       }
     },
-    [setActiveCell, startDrag, editMode],
+    [selectCells, startDrag, editMode],
   );
 
   const handleCellMouseEnter = useCallback(
     (col: number, row: number) => {
       if (isDragging) {
-        setActiveCell({ col, row }, true);
+        selectCells({ colIndex: col, rowIndex: row, extend: true });
       }
     },
-    [isDragging, setActiveCell],
+    [isDragging, selectCells],
   );
 
   useEffect(

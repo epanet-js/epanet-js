@@ -8,7 +8,12 @@ import {
   GridSelection,
   RowAction,
 } from "../types";
-import { useRowsNavigation, isCellSelected, isCellActive } from "../hooks";
+import {
+  useRowsNavigation,
+  isCellSelected,
+  isCellActive,
+  isSingleCellSelection,
+} from "../hooks";
 import { GridDataCell } from "./grid-data-cell";
 import { RowGutterCell } from "./row-gutter-cell";
 import { RowActionsCell } from "./row-actions-cell";
@@ -20,6 +25,8 @@ export type RowsRef = {
 export type RowsProps<TData> = {
   table: Table<TData>;
   columns: GridColumn[];
+  rowCount: number;
+  activeCell: CellPosition | null;
   selection: GridSelection | null;
   editMode: EditMode;
   onCellMouseDown: (col: number, row: number, e: React.MouseEvent) => void;
@@ -29,14 +36,6 @@ export type RowsProps<TData> = {
   onCellChange: (rowIndex: number, columnId: string, value: unknown) => void;
   stopEditing: () => void;
   startEditing: () => void;
-  gutterColumn: boolean;
-  rowActions?: RowAction[];
-  readOnly: boolean;
-  variant: DataGridVariant;
-  // Navigation props
-  activeCell: CellPosition | null;
-  rowCount: number;
-  setActiveCell: (cell: CellPosition, extend?: boolean) => void;
   selectCells: (options?: {
     colIndex?: number;
     rowIndex?: number;
@@ -44,12 +43,18 @@ export type RowsProps<TData> = {
   }) => void;
   clearSelection: () => void;
   blurGrid: () => void;
+  gutterColumn: boolean;
+  rowActions?: RowAction[];
+  readOnly: boolean;
+  variant: DataGridVariant;
 };
 
 export const Rows = forwardRef(function Rows<TData>(
   {
     table,
     columns,
+    rowCount,
+    activeCell,
     selection,
     editMode,
     onCellMouseDown,
@@ -59,33 +64,26 @@ export const Rows = forwardRef(function Rows<TData>(
     onCellChange,
     stopEditing,
     startEditing,
+    selectCells,
+    clearSelection,
+    blurGrid,
     gutterColumn,
     rowActions,
     readOnly,
     variant,
-    activeCell,
-    rowCount,
-    setActiveCell,
-    selectCells,
-    clearSelection,
-    blurGrid,
   }: RowsProps<TData>,
   ref: React.ForwardedRef<RowsRef>,
 ) {
   const rows = table.getRowModel().rows;
   const colCount = columns.length;
   const visibleRowCount = rows.length;
-  const isInteractive =
-    selection !== null &&
-    selection.min.col === selection.max.col &&
-    selection.min.row === selection.max.row;
+  const isInteractive = isSingleCellSelection(selection);
 
   const handleKeyDown = useRowsNavigation({
     activeCell,
     rowCount,
     colCount,
     editMode,
-    setActiveCell,
     selectCells,
     clearSelection,
     blurGrid,

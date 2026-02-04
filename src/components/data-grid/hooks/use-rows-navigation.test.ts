@@ -23,7 +23,6 @@ describe("useRowsNavigation", () => {
     rowCount: 5,
     colCount: 3,
     editMode: false as const,
-    setActiveCell: vi.fn(),
     selectCells: vi.fn(),
     clearSelection: vi.fn(),
     blurGrid: vi.fn(),
@@ -41,10 +40,11 @@ describe("useRowsNavigation", () => {
 
       result.current(event);
 
-      expect(defaultOptions.setActiveCell).toHaveBeenCalledWith(
-        { col: 1, row: 1 },
-        false,
-      );
+      expect(defaultOptions.selectCells).toHaveBeenCalledWith({
+        colIndex: 1,
+        rowIndex: 1,
+        extend: false,
+      });
       expect(event.preventDefault).toHaveBeenCalled();
     });
 
@@ -54,10 +54,11 @@ describe("useRowsNavigation", () => {
 
       result.current(event);
 
-      expect(defaultOptions.setActiveCell).toHaveBeenCalledWith(
-        { col: 1, row: 3 },
-        false,
-      );
+      expect(defaultOptions.selectCells).toHaveBeenCalledWith({
+        colIndex: 1,
+        rowIndex: 3,
+        extend: false,
+      });
     });
 
     it("moves left", () => {
@@ -66,10 +67,11 @@ describe("useRowsNavigation", () => {
 
       result.current(event);
 
-      expect(defaultOptions.setActiveCell).toHaveBeenCalledWith(
-        { col: 0, row: 2 },
-        false,
-      );
+      expect(defaultOptions.selectCells).toHaveBeenCalledWith({
+        colIndex: 0,
+        rowIndex: 2,
+        extend: false,
+      });
     });
 
     it("moves right", () => {
@@ -78,10 +80,11 @@ describe("useRowsNavigation", () => {
 
       result.current(event);
 
-      expect(defaultOptions.setActiveCell).toHaveBeenCalledWith(
-        { col: 2, row: 2 },
-        false,
-      );
+      expect(defaultOptions.selectCells).toHaveBeenCalledWith({
+        colIndex: 2,
+        rowIndex: 2,
+        extend: false,
+      });
     });
 
     it("does not move past top boundary", () => {
@@ -91,10 +94,11 @@ describe("useRowsNavigation", () => {
 
       result.current(event);
 
-      expect(options.setActiveCell).toHaveBeenCalledWith(
-        { col: 1, row: 0 },
-        false,
-      );
+      expect(defaultOptions.selectCells).toHaveBeenCalledWith({
+        colIndex: 1,
+        rowIndex: 0,
+        extend: false,
+      });
     });
 
     it("does not move past bottom boundary", () => {
@@ -104,10 +108,11 @@ describe("useRowsNavigation", () => {
 
       result.current(event);
 
-      expect(options.setActiveCell).toHaveBeenCalledWith(
-        { col: 1, row: 4 },
-        false,
-      );
+      expect(defaultOptions.selectCells).toHaveBeenCalledWith({
+        colIndex: 1,
+        rowIndex: 4,
+        extend: false,
+      });
     });
 
     it("does not move past left boundary", () => {
@@ -117,10 +122,11 @@ describe("useRowsNavigation", () => {
 
       result.current(event);
 
-      expect(options.setActiveCell).toHaveBeenCalledWith(
-        { col: 0, row: 2 },
-        false,
-      );
+      expect(defaultOptions.selectCells).toHaveBeenCalledWith({
+        colIndex: 0,
+        rowIndex: 2,
+        extend: false,
+      });
     });
 
     it("does not move past right boundary", () => {
@@ -130,10 +136,11 @@ describe("useRowsNavigation", () => {
 
       result.current(event);
 
-      expect(options.setActiveCell).toHaveBeenCalledWith(
-        { col: 2, row: 2 },
-        false,
-      );
+      expect(defaultOptions.selectCells).toHaveBeenCalledWith({
+        colIndex: 2,
+        rowIndex: 2,
+        extend: false,
+      });
     });
 
     it("extends selection with shift key", () => {
@@ -142,10 +149,11 @@ describe("useRowsNavigation", () => {
 
       result.current(event);
 
-      expect(defaultOptions.setActiveCell).toHaveBeenCalledWith(
-        { col: 1, row: 3 },
-        true,
-      );
+      expect(defaultOptions.selectCells).toHaveBeenCalledWith({
+        colIndex: 1,
+        rowIndex: 3,
+        extend: true,
+      });
     });
 
     it("does nothing if no active cell", () => {
@@ -155,7 +163,7 @@ describe("useRowsNavigation", () => {
 
       result.current(event);
 
-      expect(options.setActiveCell).not.toHaveBeenCalled();
+      expect(defaultOptions.selectCells).not.toHaveBeenCalled();
     });
   });
 
@@ -166,10 +174,11 @@ describe("useRowsNavigation", () => {
 
       result.current(event);
 
-      expect(defaultOptions.setActiveCell).toHaveBeenCalledWith(
-        { col: 0, row: 2 },
-        false,
-      );
+      expect(defaultOptions.selectCells).toHaveBeenCalledWith({
+        colIndex: 0,
+        rowIndex: 2,
+        extend: false,
+      });
       expect(event.preventDefault).toHaveBeenCalled();
     });
 
@@ -179,10 +188,11 @@ describe("useRowsNavigation", () => {
 
       result.current(event);
 
-      expect(defaultOptions.setActiveCell).toHaveBeenCalledWith(
-        { col: 0, row: 0 },
-        false,
-      );
+      expect(defaultOptions.selectCells).toHaveBeenCalledWith({
+        colIndex: 0,
+        rowIndex: 0,
+        extend: false,
+      });
     });
 
     it("moves to grid start with Meta (Mac)", () => {
@@ -191,10 +201,11 @@ describe("useRowsNavigation", () => {
 
       result.current(event);
 
-      expect(defaultOptions.setActiveCell).toHaveBeenCalledWith(
-        { col: 0, row: 0 },
-        false,
-      );
+      expect(defaultOptions.selectCells).toHaveBeenCalledWith({
+        colIndex: 0,
+        rowIndex: 0,
+        extend: false,
+      });
     });
 
     it("extends selection with shift", () => {
@@ -203,10 +214,11 @@ describe("useRowsNavigation", () => {
 
       result.current(event);
 
-      expect(defaultOptions.setActiveCell).toHaveBeenCalledWith(
-        { col: 0, row: 2 },
-        true,
-      );
+      expect(defaultOptions.selectCells).toHaveBeenCalledWith({
+        colIndex: 0,
+        rowIndex: 2,
+        extend: true,
+      });
     });
 
     it("does nothing if no active cell (without modifier)", () => {
@@ -216,7 +228,7 @@ describe("useRowsNavigation", () => {
 
       result.current(event);
 
-      expect(options.setActiveCell).not.toHaveBeenCalled();
+      expect(defaultOptions.selectCells).not.toHaveBeenCalled();
     });
 
     it("moves to grid start even without active cell when using Ctrl", () => {
@@ -226,10 +238,11 @@ describe("useRowsNavigation", () => {
 
       result.current(event);
 
-      expect(options.setActiveCell).toHaveBeenCalledWith(
-        { col: 0, row: 0 },
-        false,
-      );
+      expect(defaultOptions.selectCells).toHaveBeenCalledWith({
+        colIndex: 0,
+        rowIndex: 0,
+        extend: false,
+      });
     });
   });
 
@@ -240,10 +253,11 @@ describe("useRowsNavigation", () => {
 
       result.current(event);
 
-      expect(defaultOptions.setActiveCell).toHaveBeenCalledWith(
-        { col: 2, row: 2 },
-        false,
-      );
+      expect(defaultOptions.selectCells).toHaveBeenCalledWith({
+        colIndex: 2,
+        rowIndex: 2,
+        extend: false,
+      });
       expect(event.preventDefault).toHaveBeenCalled();
     });
 
@@ -253,10 +267,11 @@ describe("useRowsNavigation", () => {
 
       result.current(event);
 
-      expect(defaultOptions.setActiveCell).toHaveBeenCalledWith(
-        { col: 2, row: 4 },
-        false,
-      );
+      expect(defaultOptions.selectCells).toHaveBeenCalledWith({
+        colIndex: 2,
+        rowIndex: 4,
+        extend: false,
+      });
     });
 
     it("extends selection with shift", () => {
@@ -268,10 +283,11 @@ describe("useRowsNavigation", () => {
 
       result.current(event);
 
-      expect(defaultOptions.setActiveCell).toHaveBeenCalledWith(
-        { col: 2, row: 4 },
-        true,
-      );
+      expect(defaultOptions.selectCells).toHaveBeenCalledWith({
+        colIndex: 2,
+        rowIndex: 4,
+        extend: true,
+      });
     });
   });
 
@@ -288,10 +304,11 @@ describe("useRowsNavigation", () => {
 
       result.current(event);
 
-      expect(options.setActiveCell).toHaveBeenCalledWith(
-        { col: 1, row: 5 },
-        false,
-      );
+      expect(defaultOptions.selectCells).toHaveBeenCalledWith({
+        colIndex: 1,
+        rowIndex: 5,
+        extend: false,
+      });
     });
 
     it("moves down by visible row count", () => {
@@ -306,10 +323,11 @@ describe("useRowsNavigation", () => {
 
       result.current(event);
 
-      expect(options.setActiveCell).toHaveBeenCalledWith(
-        { col: 1, row: 15 },
-        false,
-      );
+      expect(defaultOptions.selectCells).toHaveBeenCalledWith({
+        colIndex: 1,
+        rowIndex: 15,
+        extend: false,
+      });
     });
 
     it("does not go below row 0", () => {
@@ -318,10 +336,11 @@ describe("useRowsNavigation", () => {
 
       result.current(event);
 
-      expect(defaultOptions.setActiveCell).toHaveBeenCalledWith(
-        { col: 1, row: 0 },
-        false,
-      );
+      expect(defaultOptions.selectCells).toHaveBeenCalledWith({
+        colIndex: 1,
+        rowIndex: 0,
+        extend: false,
+      });
     });
 
     it("does not go past last row", () => {
@@ -330,10 +349,11 @@ describe("useRowsNavigation", () => {
 
       result.current(event);
 
-      expect(defaultOptions.setActiveCell).toHaveBeenCalledWith(
-        { col: 1, row: 4 },
-        false,
-      );
+      expect(defaultOptions.selectCells).toHaveBeenCalledWith({
+        colIndex: 1,
+        rowIndex: 4,
+        extend: false,
+      });
     });
 
     it("extends selection with shift", () => {
@@ -342,10 +362,11 @@ describe("useRowsNavigation", () => {
 
       result.current(event);
 
-      expect(defaultOptions.setActiveCell).toHaveBeenCalledWith(
-        { col: 1, row: 4 },
-        true,
-      );
+      expect(defaultOptions.selectCells).toHaveBeenCalledWith({
+        colIndex: 1,
+        rowIndex: 4,
+        extend: true,
+      });
     });
   });
 
@@ -356,9 +377,9 @@ describe("useRowsNavigation", () => {
 
       result.current(event);
 
-      expect(defaultOptions.setActiveCell).toHaveBeenCalledWith({
-        col: 2,
-        row: 2,
+      expect(defaultOptions.selectCells).toHaveBeenCalledWith({
+        colIndex: 2,
+        rowIndex: 2,
       });
       expect(event.preventDefault).toHaveBeenCalled();
     });
@@ -369,9 +390,9 @@ describe("useRowsNavigation", () => {
 
       result.current(event);
 
-      expect(defaultOptions.setActiveCell).toHaveBeenCalledWith({
-        col: 0,
-        row: 2,
+      expect(defaultOptions.selectCells).toHaveBeenCalledWith({
+        colIndex: 0,
+        rowIndex: 2,
       });
     });
 
@@ -384,7 +405,7 @@ describe("useRowsNavigation", () => {
 
       expect(options.clearSelection).toHaveBeenCalled();
       expect(options.blurGrid).toHaveBeenCalled();
-      expect(options.setActiveCell).not.toHaveBeenCalled();
+      expect(defaultOptions.selectCells).not.toHaveBeenCalled();
       expect(event.preventDefault).not.toHaveBeenCalled();
     });
 
@@ -397,7 +418,7 @@ describe("useRowsNavigation", () => {
 
       expect(options.clearSelection).toHaveBeenCalled();
       expect(options.blurGrid).toHaveBeenCalled();
-      expect(options.setActiveCell).not.toHaveBeenCalled();
+      expect(defaultOptions.selectCells).not.toHaveBeenCalled();
     });
 
     it("does nothing if no active cell", () => {
@@ -407,7 +428,7 @@ describe("useRowsNavigation", () => {
 
       result.current(event);
 
-      expect(options.setActiveCell).not.toHaveBeenCalled();
+      expect(defaultOptions.selectCells).not.toHaveBeenCalled();
       expect(options.clearSelection).not.toHaveBeenCalled();
     });
   });
@@ -481,7 +502,7 @@ describe("useRowsNavigation", () => {
 
       result.current(event);
 
-      expect(options.setActiveCell).not.toHaveBeenCalled();
+      expect(defaultOptions.selectCells).not.toHaveBeenCalled();
       expect(event.preventDefault).not.toHaveBeenCalled();
     });
 
@@ -492,10 +513,11 @@ describe("useRowsNavigation", () => {
 
       result.current(event);
 
-      expect(options.setActiveCell).toHaveBeenCalledWith(
-        { col: 1, row: 3 },
-        false,
-      );
+      expect(defaultOptions.selectCells).toHaveBeenCalledWith({
+        colIndex: 1,
+        rowIndex: 3,
+        extend: false,
+      });
       expect(event.preventDefault).not.toHaveBeenCalled();
     });
   });

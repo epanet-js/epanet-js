@@ -17,7 +17,12 @@ import {
   GridSelection,
   RowAction,
 } from "../types";
-import { useRowsNavigation, isCellSelected, isCellActive } from "../hooks";
+import {
+  useRowsNavigation,
+  isCellSelected,
+  isCellActive,
+  isSingleCellSelection,
+} from "../hooks";
 import { GridDataCell } from "./grid-data-cell";
 import { RowGutterCell } from "./row-gutter-cell";
 import { RowActionsCell } from "./row-actions-cell";
@@ -28,6 +33,8 @@ export const ROW_HEIGHT = 32; // h-8, needed for virtualizer estimateSize
 export type ScrollableRowsProps<TData> = {
   table: Table<TData>;
   columns: GridColumn[];
+  rowCount: number;
+  activeCell: CellPosition | null;
   selection: GridSelection | null;
   editMode: EditMode;
   onCellMouseDown: (col: number, row: number, e: React.MouseEvent) => void;
@@ -35,17 +42,9 @@ export type ScrollableRowsProps<TData> = {
   onCellDoubleClick: (col: number) => void;
   onGutterClick: (row: number, e: React.MouseEvent) => void;
   onCellChange: (rowIndex: number, columnId: string, value: unknown) => void;
+  onEmptyAreaMouseDown: (e: React.MouseEvent) => void;
   stopEditing: () => void;
   startEditing: () => void;
-  onEmptyAreaMouseDown: (e: React.MouseEvent) => void;
-  gutterColumn: boolean;
-  rowActions?: RowAction[];
-  readOnly: boolean;
-  variant: DataGridVariant;
-  // Navigation props
-  activeCell: CellPosition | null;
-  rowCount: number;
-  setActiveCell: (cell: CellPosition, extend?: boolean) => void;
   selectCells: (options?: {
     colIndex?: number;
     rowIndex?: number;
@@ -53,32 +52,35 @@ export type ScrollableRowsProps<TData> = {
   }) => void;
   clearSelection: () => void;
   blurGrid: () => void;
+  gutterColumn: boolean;
+  rowActions?: RowAction[];
+  readOnly: boolean;
+  variant: DataGridVariant;
 };
 
 export const ScrollableRows = forwardRef(function ScrollableRows<TData>(
   {
     table,
     columns,
+    rowCount,
+    activeCell,
     selection,
     editMode,
     onCellMouseDown,
     onCellMouseEnter,
     onCellDoubleClick,
     onGutterClick,
+    onEmptyAreaMouseDown,
     onCellChange,
     stopEditing,
     startEditing,
-    onEmptyAreaMouseDown,
+    selectCells,
+    clearSelection,
+    blurGrid,
     gutterColumn,
     rowActions,
     readOnly,
     variant,
-    activeCell,
-    rowCount,
-    setActiveCell,
-    selectCells,
-    clearSelection,
-    blurGrid,
   }: ScrollableRowsProps<TData>,
   ref: React.ForwardedRef<RowsRef>,
 ) {
@@ -141,17 +143,13 @@ export const ScrollableRows = forwardRef(function ScrollableRows<TData>(
 
   const visibleRowCount = rowsHeight ? Math.floor(rowsHeight / ROW_HEIGHT) : 10;
   const colCount = columns.length;
-  const isInteractive =
-    selection !== null &&
-    selection.min.col === selection.max.col &&
-    selection.min.row === selection.max.row;
+  const isInteractive = isSingleCellSelection(selection);
 
   const handleKeyDown = useRowsNavigation({
     activeCell,
     rowCount,
     colCount,
     editMode,
-    setActiveCell,
     selectCells,
     clearSelection,
     blurGrid,
