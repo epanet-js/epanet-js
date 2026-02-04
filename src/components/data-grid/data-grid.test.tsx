@@ -183,31 +183,6 @@ describe("DataGrid", () => {
   });
 
   describe("ref methods", () => {
-    it("exposes setActiveCell method", async () => {
-      const ref = createRef<DataGridRef>();
-      const onSelectionChange = vi.fn();
-
-      render(
-        <DataGrid
-          ref={ref}
-          data={defaultData}
-          columns={columns}
-          onChange={vi.fn()}
-          createRow={createRow}
-          onSelectionChange={onSelectionChange}
-        />,
-      );
-
-      ref.current?.setActiveCell({ col: 1, row: 1 });
-
-      await waitFor(() => {
-        expect(onSelectionChange).toHaveBeenCalledWith({
-          min: { col: 1, row: 1 },
-          max: { col: 1, row: 1 },
-        });
-      });
-    });
-
     it("exposes selectCells method", async () => {
       const ref = createRef<DataGridRef>();
       const onSelectionChange = vi.fn();

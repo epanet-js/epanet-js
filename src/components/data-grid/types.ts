@@ -54,7 +54,6 @@ export type GridColumn = {
 };
 
 export type DataGridRef = {
-  setActiveCell: (cell: CellPosition) => void;
   selectCells: (options?: {
     colIndex?: number;
     rowIndex?: number;

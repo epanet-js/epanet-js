@@ -10,7 +10,6 @@ import {
   DataGridRef,
   DataGridVariant,
   GridColumn,
-  CellPosition,
   RowAction,
   GridSelection,
 } from "./types";
@@ -64,8 +63,6 @@ export const DataGrid = forwardRef(function DataGrid<
   const gridRef = useRef<HTMLDivElement>(null);
   const rowsRef = useRef<RowsRef>(null);
 
-  const colCount = columns.length;
-
   const { editMode, startEditing, stopEditing } = useEditMode();
 
   const { activeCell, selection, setActiveCell, clearSelection, selectCells } =
@@ -94,7 +91,7 @@ export const DataGrid = forwardRef(function DataGrid<
     onChange,
     readOnly,
     rowCount: data.length,
-    colCount,
+    colCount: columns.length,
     setActiveCell,
     selectCells,
     startEditing,
@@ -115,6 +112,7 @@ export const DataGrid = forwardRef(function DataGrid<
   );
 
   const wasEditingRef = useRef(false);
+
   useEffect(
     function refocusWhenEditingStops() {
       if (wasEditingRef.current && !editMode) {
@@ -137,12 +135,11 @@ export const DataGrid = forwardRef(function DataGrid<
   useImperativeHandle(
     ref,
     () => ({
-      setActiveCell: (cell: CellPosition) => setActiveCell(cell),
       selectCells,
       clearSelection,
       selection,
     }),
-    [setActiveCell, selectCells, clearSelection, selection],
+    [selectCells, clearSelection, selection],
   );
 
   const table = useReactTable({
@@ -249,7 +246,7 @@ export const DataGrid = forwardRef(function DataGrid<
         ref={gridRef}
         role="grid"
         aria-rowcount={data.length}
-        aria-colcount={colCount}
+        aria-colcount={columns.length}
         aria-multiselectable={true}
         tabIndex={0}
         onKeyDown={handleKeyDown}
