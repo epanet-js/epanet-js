@@ -103,7 +103,7 @@ const ScenariosPromoVideo = ({
   onLoad: () => void;
 }) => {
   return (
-    <div className="relative aspect-square bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden">
+    <div className="relative aspect-square bg-gray-100 dark:bg-gray-800 border border-gray-200 rounded-lg shadow-md overflow-hidden">
       {isLoading && (
         <div className="absolute inset-0 flex items-center justify-center">
           <Loading />
