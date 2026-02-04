@@ -15,14 +15,12 @@ export const junctionQuantities = ["elevation", "pressure"] as const;
 export type JunctionQuantity = (typeof junctionQuantities)[number];
 
 export class Junction extends Node<JunctionProperties> {
-  get constantDemand() {
-    return this.properties.demands
-      .filter((d) => !d.patternId)
-      .reduce((sum, d) => sum + d.baseDemand, 0);
-  }
-
   get demands(): JunctionDemand[] {
     return this.properties.demands;
+  }
+
+  getDirectDemand(patterns: DemandPatterns): number {
+    return calculateAverageDemand(this.demands, patterns);
   }
 
   setDemands(demands: JunctionDemand[]) {

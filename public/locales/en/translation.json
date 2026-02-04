@@ -45,7 +45,6 @@
   "demand": "Demand",
   "baseDemand": "Base demand",
   "directDemand": "Direct demand",
-  "constantDemand": "Constant demand",
   "demandCategories": "Demand categories",
   "timePattern": "Pattern",
   "constant": "constant",

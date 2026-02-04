@@ -248,7 +248,7 @@ describe.skip("importCustomerPoints", () => {
     const hydraulicModel = store.get(stagingModelAtom);
     const junction = hydraulicModel.assets.get(IDS.J1) as Junction;
 
-    expect(junction.constantDemand).toBe(30);
+    expect(junction.demands).toBe([{ baseDemand: 30 }]);
 
     const junctionCustomerPoints =
       hydraulicModel.customerPointsLookup.getCustomerPoints(IDS.J1);
@@ -326,7 +326,7 @@ describe.skip("importCustomerPoints", () => {
     const hydraulicModel = store.get(stagingModelAtom);
     const junction = hydraulicModel.assets.get(IDS.J1) as Junction;
 
-    expect(junction.constantDemand).toBe(0);
+    expect(junction.demands).toBe([]);
 
     const junctionCustomerPoints =
       hydraulicModel.customerPointsLookup.getCustomerPoints(IDS.J1);

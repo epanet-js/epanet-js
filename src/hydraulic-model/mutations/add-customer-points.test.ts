@@ -331,7 +331,7 @@ describe("addCustomerPoints", () => {
     const updatedModel = addCustomerPoints(hydraulicModel, customerPointsToAdd);
 
     const updatedJ1 = updatedModel.assets.get(IDS.J1) as Junction;
-    expect(updatedJ1.constantDemand).toBe(30);
+    expect(updatedJ1.demands).toEqual([{ baseDemand: 30 }]);
 
     const j1CustomerPoints =
       updatedModel.customerPointsLookup.getCustomerPoints(IDS.J1);
@@ -370,7 +370,7 @@ describe("addCustomerPoints", () => {
     );
 
     const updatedJ1 = updatedModel.assets.get(IDS.J1) as Junction;
-    expect(updatedJ1.constantDemand).toBe(0);
+    expect(updatedJ1.demands).toEqual([]);
 
     const j1CustomerPoints =
       updatedModel.customerPointsLookup.getCustomerPoints(IDS.J1);

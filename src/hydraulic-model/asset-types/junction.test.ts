@@ -20,7 +20,6 @@ describe("Junction", () => {
     const junction = buildJunction();
 
     expect(junction.elevation).toEqual(0);
-    expect(junction.constantDemand).toEqual(0);
     expect(junction.demands).toEqual([]);
     expect(junction.id).not.toBeUndefined();
   });
@@ -31,7 +30,6 @@ describe("Junction", () => {
       elevation: 100,
     });
 
-    expect(junction.constantDemand).toEqual(10);
     expect(junction.demands).toEqual([{ baseDemand: 10 }]);
     expect(junction.elevation).toEqual(100);
   });
@@ -39,13 +37,11 @@ describe("Junction", () => {
   it("can set demands", () => {
     const junction = buildJunction({ demands: [{ baseDemand: 50 }] });
 
-    expect(junction.constantDemand).toEqual(50);
-
     junction.setDemands([{ baseDemand: 25 }]);
-    expect(junction.constantDemand).toEqual(25);
+    expect(junction.getDirectDemand(new Map())).toEqual(25);
 
     junction.setDemands([]);
-    expect(junction.constantDemand).toEqual(0);
+    expect(junction.getDirectDemand(new Map())).toEqual(0);
   });
 
   it("supports demands array with multiple categories", () => {
@@ -73,35 +69,5 @@ describe("Junction", () => {
 
     expect(junction.demands[0].baseDemand).toBe(50);
     expect(copy.demands[0].baseDemand).toBe(100);
-  });
-
-  describe("constantDemand", () => {
-    it("returns 0 when demands is empty", () => {
-      const junction = buildJunction();
-      expect(junction.constantDemand).toEqual(0);
-    });
-
-    it("returns 0 when no constant demand exists", () => {
-      const junction = buildJunction({
-        demands: [
-          { baseDemand: 50, patternId: 1 },
-          { baseDemand: 30, patternId: 2 },
-        ],
-      });
-      expect(junction.constantDemand).toEqual(0);
-    });
-
-    it("returns sum of constant demands", () => {
-      const junction = buildJunction({
-        demands: [
-          { baseDemand: 20 },
-          { baseDemand: 50, patternId: 1 },
-          { baseDemand: 15 },
-          { baseDemand: 30, patternId: 2 },
-          { baseDemand: 10 },
-        ],
-      });
-      expect(junction.constantDemand).toEqual(45); // 20 + 15 + 10
-    });
   });
 });

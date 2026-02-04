@@ -22,7 +22,6 @@ import {
 } from "src/hydraulic-model/demands";
 import { Quantities } from "src/model-metadata/quantities-spec";
 import { useTranslate } from "src/hooks/use-translate";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { usePersistence } from "src/lib/persistence";
 import { useUserTracking } from "src/infra/user-tracking";
 import { stagingModelAtom } from "src/state/jotai";
@@ -53,7 +52,6 @@ import {
   TextRow,
   SwitchRow,
   ConnectedCustomersRow,
-  DemandCategoriesRow,
 } from "./ui-components";
 import { Section } from "src/components/form/fields";
 import {
@@ -222,27 +220,6 @@ export function AssetPanel({
     [asset.id, asset.type, hydraulicModel, transact, userTracking],
   );
 
-  const handleChangeJunctionDemand = useCallback(
-    (newValue: number, oldValue: number) => {
-      const junction = asset as Junction;
-      const patternDemands = junction.demands.filter((d) => d.patternId);
-      const newDemands = [{ baseDemand: newValue }, ...patternDemands];
-      const moment = changeJunctionDemands(hydraulicModel, {
-        junctionId: asset.id,
-        demands: newDemands,
-      });
-      transact(moment);
-      userTracking.capture({
-        name: "assetProperty.edited",
-        type: asset.type,
-        property: "constantDemand",
-        newValue,
-        oldValue,
-      });
-    },
-    [asset, hydraulicModel, transact, userTracking],
-  );
-
   const handleDemandsChange = useCallback(
     (newDemands: JunctionDemand[]) => {
       const oldDemands = (asset as Junction).demands;
@@ -308,7 +285,6 @@ export function AssetPanel({
           junction={asset as Junction}
           quantitiesMetadata={quantitiesMetadata}
           onPropertyChange={handlePropertyChange}
-          onConstantDemandChange={handleChangeJunctionDemand}
           onDemandsChange={handleDemandsChange}
           onLabelChange={handleLabelChange}
           hydraulicModel={hydraulicModel}
@@ -391,7 +367,6 @@ const JunctionEditor = ({
   junction,
   quantitiesMetadata,
   onPropertyChange,
-  onConstantDemandChange,
   onDemandsChange,
   onLabelChange,
   hydraulicModel,
@@ -400,7 +375,6 @@ const JunctionEditor = ({
   junction: Junction;
   quantitiesMetadata: Quantities;
   onPropertyChange: OnPropertyChange;
-  onConstantDemandChange: (newValue: number, oldValue: number) => void;
   onDemandsChange: (newDemands: JunctionDemand[]) => void;
   onLabelChange: (newLabel: string) => string | undefined;
   hydraulicModel: HydraulicModel;
@@ -408,13 +382,8 @@ const JunctionEditor = ({
 }) => {
   const translate = useTranslate();
   const { footer } = useQuickGraph(junction.id, "junction");
-  const isEditJunctionDemandsOn = useFeatureFlag("FLAG_EDIT_JUNCTION_DEMANDS");
-  const {
-    getComparison,
-    getConstantDemandComparison,
-    getDirectDemandComparison,
-    isNew,
-  } = useAssetComparison(junction);
+  const { getComparison, getDirectDemandComparison, isNew } =
+    useAssetComparison(junction);
   const simulation = useSimulation();
   const junctionSimulation = simulation?.getJunction(junction.id);
 
@@ -477,36 +446,15 @@ const JunctionEditor = ({
         />
       </Section>
       <Section title={translate("demands")}>
-        {isEditJunctionDemandsOn ? (
-          <DemandsEditor
-            demands={junction.demands}
-            patterns={hydraulicModel.demands.patterns}
-            quantitiesMetadata={quantitiesMetadata}
-            name="directDemand"
-            onChange={onDemandsChange}
-            demandComparator={getDirectDemandComparison}
-            readOnly={readonly}
-          />
-        ) : (
-          <>
-            <QuantityRow
-              name="constantDemand"
-              value={junction.constantDemand}
-              unit={quantitiesMetadata.getUnit("baseDemand")}
-              decimals={quantitiesMetadata.getDecimals("baseDemand")}
-              comparison={getConstantDemandComparison(junction.constantDemand)}
-              onChange={(_name, newValue, oldValue) =>
-                onConstantDemandChange(newValue, oldValue ?? 0)
-              }
-              readOnly={readonly}
-            />
-            <DemandCategoriesRow
-              demands={junction.demands}
-              patterns={hydraulicModel.demands.patterns}
-              unit={quantitiesMetadata.getUnit("baseDemand")}
-            />
-          </>
-        )}
+        <DemandsEditor
+          demands={junction.demands}
+          patterns={hydraulicModel.demands.patterns}
+          quantitiesMetadata={quantitiesMetadata}
+          name="directDemand"
+          onChange={onDemandsChange}
+          demandComparator={getDirectDemandComparison}
+          readOnly={readonly}
+        />
         {customerCount > 0 && (
           <>
             <QuantityRow

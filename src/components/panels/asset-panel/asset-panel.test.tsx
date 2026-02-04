@@ -7,7 +7,7 @@ import {
   simulationResultsAtom,
 } from "src/state/jotai";
 import { Provider as JotaiProvider, createStore } from "jotai";
-import { HydraulicModel, Pipe, Pump, Junction } from "src/hydraulic-model";
+import { HydraulicModel, Pipe, Pump } from "src/hydraulic-model";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { PersistenceContext } from "src/lib/persistence/context";
 import { Persistence } from "src/lib/persistence/persistence";
@@ -634,7 +634,7 @@ describe("AssetPanel", () => {
       expect(screen.getByDisplayValue("MY_JUNCTION")).toBeInTheDocument();
       expect(screen.getByText("Junction")).toBeInTheDocument();
       expectPropertyDisplayed("elevation (m)", "10");
-      expectPropertyDisplayed("constant demand (l/s)", "100");
+      expectTextPropertyDisplayed("direct demand (l/s)", "100");
       expect(screen.queryAllByText("Not available").length).toBeGreaterThan(0);
     });
 
@@ -706,7 +706,7 @@ describe("AssetPanel", () => {
 
       expect(screen.getByDisplayValue("MY_JUNCTION")).toBeInTheDocument();
       expect(screen.getByText("Junction")).toBeInTheDocument();
-      expectPropertyDisplayed("constant demand (l/s)", "50");
+      expectTextPropertyDisplayed("direct demand (l/s)", "50");
 
       expectTextPropertyDisplayed("customer demand (l/s)", "55");
 
@@ -790,7 +790,7 @@ describe("AssetPanel", () => {
 
       expect(screen.getByDisplayValue("MY_JUNCTION")).toBeInTheDocument();
       expect(screen.getByText("Junction")).toBeInTheDocument();
-      expectPropertyDisplayed("constant demand (l/s)", "100");
+      expectTextPropertyDisplayed("direct demand (l/s)", "100");
 
       expect(
         screen.queryByLabelText(/label: customer demand \(l\/s\)/i),
@@ -860,47 +860,6 @@ describe("AssetPanel", () => {
       expect(
         screen.queryByLabelText(/label: customer demand pattern/i),
       ).not.toBeInTheDocument();
-    });
-
-    it("updates constant demand while preserving pattern demands", async () => {
-      const IDS = { J1: 1, PAT1: 2, PAT2: 3 };
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction(IDS.J1, {
-          label: "MY_JUNCTION",
-          demands: [
-            { baseDemand: 10 },
-            { baseDemand: 50, patternId: IDS.PAT1 },
-            { baseDemand: 10 },
-            { baseDemand: 30, patternId: IDS.PAT2 },
-          ],
-        })
-        .aDemandPattern(IDS.PAT1, "pattern1", [0])
-        .aDemandPattern(IDS.PAT2, "pattern2", [1])
-        .build();
-      const store = setInitialState({
-        hydraulicModel,
-        selectedAssetId: IDS.J1,
-      });
-      const user = userEvent.setup();
-
-      renderComponent(store);
-
-      expectPropertyDisplayed("constant demand (l/s)", "20");
-
-      const field = screen.getByRole("textbox", {
-        name: /value for: constant demand/i,
-      });
-      await user.clear(field);
-      await user.type(field, "100");
-      await user.keyboard("{Enter}");
-
-      const updated = store.get(stagingModelAtom);
-      const junction = updated.assets.get(IDS.J1) as Junction;
-      expect(junction.demands).toEqual([
-        { baseDemand: 100 },
-        { baseDemand: 50, patternId: IDS.PAT1 },
-        { baseDemand: 30, patternId: IDS.PAT2 },
-      ]);
     });
   });
 
@@ -1415,7 +1374,7 @@ describe("AssetPanel", () => {
 
     renderComponent(store);
 
-    expectPropertyDisplayed("constant demand (l/s)", "100");
+    expectTextPropertyDisplayed("direct demand (l/s)", "100");
 
     act(() => {
       store.set(dataAtom, {
@@ -1424,7 +1383,7 @@ describe("AssetPanel", () => {
       });
     });
 
-    expectPropertyDisplayed("constant demand (l/s)", "200");
+    expectTextPropertyDisplayed("direct demand (l/s)", "200");
 
     act(() => {
       store.set(dataAtom, {
