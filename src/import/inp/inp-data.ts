@@ -46,6 +46,7 @@ export type ReservoirData = {
   id: string;
   baseHead: number;
   patternId?: string;
+  elevation?: number;
   isActive: boolean;
 };
 

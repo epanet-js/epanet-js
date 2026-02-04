@@ -79,6 +79,31 @@ describe("parse reservoirs", () => {
     expect(reservoir.coordinates).toEqual([20, 10]);
   });
 
+  it("extracts elevation from comment when present", () => {
+    const reservoirId = "r1";
+    const head = 100;
+    const elevation = 75.5;
+    const lat = 10;
+    const lng = 20;
+    const inp = `
+    [RESERVOIRS]
+    ${reservoirId}\t${head}\t;Elevation:${elevation}\t
+
+    [COORDINATES]
+    ${reservoirId}\t${lng}\t${lat}
+
+    `;
+
+    const { hydraulicModel } = parseInp(inp);
+
+    const reservoir = getByLabel(
+      hydraulicModel.assets,
+      reservoirId,
+    ) as Reservoir;
+    expect(reservoir.head).toEqual(head);
+    expect(reservoir.elevation).toEqual(elevation);
+  });
+
   const getByLabel = (assets: AssetsMap, label: string): Asset | undefined => {
     return [...assets.values()].find((a) => a.label === label);
   };

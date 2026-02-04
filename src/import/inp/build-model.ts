@@ -353,6 +353,7 @@ const addReservoir = (
     label: reservoirData.id,
     coordinates,
     head: calculateReservoirHead(reservoirData, inpData.patterns),
+    elevation: reservoirData.elevation,
     isActive: reservoirData.isActive,
   });
   hydraulicModel.assets.set(reservoir.id, reservoir);

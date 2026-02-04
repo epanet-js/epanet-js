@@ -118,10 +118,16 @@ export const parseReservoir: RowParser = ({
     issues.addReservoirPattern();
   }
 
+  const comment = readComment(trimmedRow);
+  const elevationMatch = comment.match(/Elevation:(-?\d+(?:\.\d+)?)/i);
+  const parsedElevation = elevationMatch ? parseFloat(elevationMatch[1]) : NaN;
+  const elevation = !isNaN(parsedElevation) ? parsedElevation : undefined;
+
   inpData.reservoirs.push({
     id,
     baseHead: parseFloat(baseHead),
     patternId,
+    elevation,
     isActive: !isCommented,
   });
   inpData.nodeIds.add(id);
