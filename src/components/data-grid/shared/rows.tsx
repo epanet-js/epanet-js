@@ -8,15 +8,8 @@ import {
   GridSelection,
   RowAction,
 } from "../types";
-import {
-  useRowsNavigation,
-  isCellSelected,
-  isCellActive,
-  isSingleCellSelection,
-} from "../hooks";
-import { GridDataCell } from "./grid-data-cell";
-import { RowGutterCell } from "./row-gutter-cell";
-import { RowActionsCell } from "./row-actions-cell";
+import { useRowsNavigation } from "../hooks";
+import { GridRow } from "./grid-row";
 
 export type RowsRef = {
   handleKeyDown: (e: React.KeyboardEvent) => void;
@@ -77,7 +70,6 @@ export const Rows = forwardRef(function Rows<TData>(
   const rows = table.getRowModel().rows;
   const colCount = columns.length;
   const visibleRowCount = rows.length;
-  const isInteractive = isSingleCellSelection(selection);
 
   const handleKeyDown = useRowsNavigation({
     activeCell,
@@ -110,68 +102,26 @@ export const Rows = forwardRef(function Rows<TData>(
             aria-rowindex={rowIndex + 2}
             className="flex w-full h-8"
           >
-            {gutterColumn && (
-              <RowGutterCell
-                rowIndex={rowIndex}
-                onClick={(e) => onGutterClick(rowIndex, e)}
-                variant={variant}
-                isLastRow={isLast}
-              />
-            )}
-
-            {row.getVisibleCells().map((cell, colIndex) => {
-              const column = columns[colIndex];
-              const accessorKey = column.accessorKey;
-              const cellSelected = isCellSelected(
-                selection,
-                colIndex,
-                rowIndex,
-              );
-
-              return (
-                <GridDataCell
-                  key={cell.id}
-                  cell={cell}
-                  colIndex={colIndex}
-                  rowIndex={rowIndex}
-                  isSelected={cellSelected}
-                  isActive={isCellActive(activeCell, colIndex, rowIndex)}
-                  editMode={editMode}
-                  isInteractive={isInteractive}
-                  readOnly={readOnly || !!column.disabled}
-                  selectionEdge={
-                    cellSelected && selection
-                      ? {
-                          top: rowIndex === selection.min.row,
-                          bottom: rowIndex === selection.max.row,
-                          left: colIndex === selection.min.col,
-                          right: colIndex === selection.max.col,
-                        }
-                      : undefined
-                  }
-                  onMouseDown={(e) => onCellMouseDown(colIndex, rowIndex, e)}
-                  onMouseEnter={() => onCellMouseEnter(colIndex, rowIndex)}
-                  onDoubleClick={() => onCellDoubleClick(colIndex)}
-                  onBlur={stopEditing}
-                  onStartEditing={startEditing}
-                  onChange={
-                    accessorKey
-                      ? (value) => onCellChange(rowIndex, accessorKey, value)
-                      : undefined
-                  }
-                  CellComponent={column.cellComponent}
-                  variant={variant}
-                  isLastRow={isLast}
-                />
-              );
-            })}
-
-            <RowActionsCell
-              rowActions={rowActions}
+            <GridRow
+              row={row}
               rowIndex={rowIndex}
+              columns={columns}
+              activeCell={activeCell}
+              selection={selection}
+              editMode={editMode}
+              onCellMouseDown={onCellMouseDown}
+              onCellMouseEnter={onCellMouseEnter}
+              onCellDoubleClick={onCellDoubleClick}
+              onGutterClick={onGutterClick}
+              onCellChange={onCellChange}
+              stopEditing={stopEditing}
+              startEditing={startEditing}
+              gutterColumn={gutterColumn}
+              gutterIsLastRow={isLast}
+              cellsIsLastRow={isLast}
+              rowActions={rowActions}
+              readOnly={readOnly}
               variant={variant}
-              isLastRow={isLast}
-              disabled={readOnly}
             />
           </div>
         );
