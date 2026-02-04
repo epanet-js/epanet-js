@@ -60,6 +60,7 @@ export const useSaveInp = ({
             customerDemands: true,
             customerPoints: true,
             inactiveAssets: true,
+            reservoirElevations: true,
           };
           const inp = buildInp(hydraulicModel, buildOptions);
           const inpBlob = new Blob([inp], { type: "text/plain" });

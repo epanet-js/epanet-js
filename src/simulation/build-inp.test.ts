@@ -11,6 +11,7 @@ describe("build inp", () => {
       })
       .aReservoir(IDS.R2, {
         head: 20,
+        elevation: 55,
       })
       .build();
 
@@ -19,6 +20,25 @@ describe("build inp", () => {
     expect(inp).toContain("[RESERVOIRS]");
     expect(inp).toContain("1\t10");
     expect(inp).toContain("2\t20");
+  });
+
+  it("adds reservoirs elevation with reservoirElevation option", () => {
+    const IDS = { R1: 1, R2: 2 };
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aReservoir(IDS.R1, {
+        head: 10,
+      })
+      .aReservoir(IDS.R2, {
+        head: 20,
+        elevation: 55,
+      })
+      .build();
+
+    const inp = buildInp(hydraulicModel, { reservoirElevations: true });
+
+    expect(inp).toContain("[RESERVOIRS]");
+    expect(inp).toContain("1\t10");
+    expect(inp).toContain("2\t20\t;Elevation:55");
   });
 
   it("adds junctions", () => {

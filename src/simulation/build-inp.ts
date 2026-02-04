@@ -205,6 +205,7 @@ type BuildOptions = {
   customerPoints?: boolean;
   inactiveAssets?: boolean;
   usedPatterns?: boolean;
+  reservoirElevations?: boolean;
 };
 
 export const buildInp = withDebugInstrumentation(
@@ -217,6 +218,7 @@ export const buildInp = withDebugInstrumentation(
       customerPoints: false,
       inactiveAssets: false,
       usedPatterns: false,
+      reservoirElevations: false,
     };
     const opts = { ...defaultOptions, ...options };
     const idMap = new EpanetIds({ strategy: opts.labelIds ? "label" : "id" });
@@ -276,6 +278,7 @@ export const buildInp = withDebugInstrumentation(
           idMap,
           opts.geolocation,
           opts.inactiveAssets,
+          opts.reservoirElevations,
           asset as Reservoir,
         );
       }
@@ -405,6 +408,7 @@ const appendReservoir = (
   idMap: EpanetIds,
   geolocation: boolean,
   inactiveAssets: boolean,
+  elevations: boolean,
   reservoir: Reservoir,
 ) => {
   if (!reservoir.isActive && !inactiveAssets) {
@@ -414,9 +418,13 @@ const appendReservoir = (
   const reservoirId = idMap.nodeId(reservoir);
   const commentPrefix = !reservoir.isActive ? ";" : "";
 
-  sections.reservoirs.push(
-    commentPrefix + [reservoirId, reservoir.head].join("\t"),
-  );
+  let reservoirLine = commentPrefix + [reservoirId, reservoir.head].join("\t");
+  if (elevations && reservoir.elevation) {
+    reservoirLine += `\t;Elevation:${reservoir.elevation}`;
+  }
+
+  sections.reservoirs.push(reservoirLine);
+
   if (geolocation) {
     appendNodeCoordinates(sections, idMap, reservoir, commentPrefix);
   }
