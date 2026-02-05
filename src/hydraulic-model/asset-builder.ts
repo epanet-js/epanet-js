@@ -38,7 +38,7 @@ export type PumpBuildData = {
   definitionType?: PumpDefintionType;
   power?: number;
   speed?: number;
-  curveId?: string;
+  curveId?: CurveId;
   isActive?: boolean;
 };
 
@@ -93,6 +93,7 @@ import {
   ValveStatus,
   ValveKind,
 } from "./asset-types/valve";
+import { CurveId } from "./curves";
 
 export type DefaultQuantities = {
   pipe: Partial<Record<PipeQuantity, number>>;
@@ -231,7 +232,7 @@ export class AssetBuilder {
         definitionType,
         power: this.getPumpValue("power", power),
         speed,
-        curveId: curveId || String(internalId),
+        curveId,
         isActive,
       },
       this.units,

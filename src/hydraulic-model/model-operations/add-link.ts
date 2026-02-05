@@ -1,5 +1,5 @@
 import { NodeAsset, LinkAsset, AssetId, Asset } from "../asset-types";
-import { ICurve } from "../curves";
+import { buildDefaultPumpCurve, ICurve } from "../curves";
 import { Pipe } from "../asset-types/pipe";
 import distance from "@turf/distance";
 import { ModelOperation } from "../model-operation";
@@ -61,6 +61,17 @@ export const addLink: ModelOperation<InputData> = (hydraulicModel, data) => {
     ),
   );
 
+  let putCurves: ICurve[] | undefined;
+  if (linkCopy.type === "pump") {
+    const curve = buildDefaultPumpCurve(
+      hydraulicModel.curves,
+      hydraulicModel.labelManager,
+      linkCopy.label,
+    );
+    linkCopy.setProperty("curveId", curve.id);
+    putCurves = [curve];
+  }
+
   const { putAssets, deleteAssets, putCustomerPoints } = handlePipeSplits({
     link: linkCopy,
     startNode: startNodeCopy,
@@ -69,11 +80,6 @@ export const addLink: ModelOperation<InputData> = (hydraulicModel, data) => {
     endPipeId,
     hydraulicModel,
   });
-
-  const putCurves: ICurve[] | undefined =
-    linkCopy.type === "pump"
-      ? [{ label: String(linkCopy.id), type: "pump", points: [{ x: 1, y: 1 }] }]
-      : undefined;
 
   return {
     note: `Add ${link.type}`,

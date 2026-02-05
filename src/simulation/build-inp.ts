@@ -205,6 +205,7 @@ type BuildOptions = {
   customerPoints?: boolean;
   inactiveAssets?: boolean;
   usedPatterns?: boolean;
+  usedCurves?: boolean;
   reservoirElevations?: boolean;
 };
 
@@ -218,6 +219,7 @@ export const buildInp = withDebugInstrumentation(
       customerPoints: false,
       inactiveAssets: false,
       usedPatterns: false,
+      usedCurves: false,
       reservoirElevations: false,
     };
     const opts = { ...defaultOptions, ...options };
@@ -265,7 +267,8 @@ export const buildInp = withDebugInstrumentation(
       rules: ["[RULES]"],
     };
 
-    const usedPatternIds = new Set<string>();
+    const usedCurveIds = new Set<number>();
+    const usedPatternIds = new Set<number>();
 
     for (const pattern of hydraulicModel.demands.patterns.values()) {
       idMap.registerPatternId(pattern); // Ensure pattern IDs are registered
@@ -325,6 +328,7 @@ export const buildInp = withDebugInstrumentation(
           hydraulicModel,
           opts.geolocation,
           opts.inactiveAssets,
+          usedCurveIds,
           asset as Pump,
         );
       }
@@ -362,6 +366,13 @@ export const buildInp = withDebugInstrumentation(
       usedPatternIds,
       idMap,
       opts.usedPatterns,
+    );
+
+    appendCurves(
+      sections,
+      hydraulicModel.curves,
+      usedCurveIds,
+      opts.usedCurves,
     );
 
     appendControls(sections, hydraulicModel.controls, idMap, hydraulicModel);
@@ -473,7 +484,7 @@ const appendJunction = (
   junction: Junction,
   customerPointsLookup: CustomerPointsLookup,
   assets: HydraulicModel["assets"],
-  usedPatternIds: Set<string>,
+  usedPatternIds: Set<number>,
 ) => {
   if (!junction.isActive && !inactiveAssets) {
     return;
@@ -496,7 +507,7 @@ const appendJunction = (
     sections.demands.push(commentPrefix + demandLine.join("\t"));
 
     if (demand.patternId) {
-      usedPatternIds.add(idMap.patternId(demand.patternId));
+      usedPatternIds.add(demand.patternId);
     }
   }
 
@@ -528,7 +539,7 @@ const appendJunction = (
       sections.demands.push(commentPrefix + demandLine.join("\t"));
 
       if (patternId) {
-        usedPatternIds.add(idMap.patternId(patternId));
+        usedPatternIds.add(patternId);
       }
     }
   }
@@ -578,6 +589,7 @@ const appendPump = (
   hydraulicModel: HydraulicModel,
   geolocation: boolean,
   inactiveAssets: boolean,
+  usedCurveIds: Set<number>,
   pump: Pump,
 ) => {
   if (!pump.isActive && !inactiveAssets) {
@@ -592,20 +604,19 @@ const appendPump = (
     pump.definitionType === "design-point" ||
     pump.definitionType === "standard"
   ) {
-    const curve = hydraulicModel.curvesDeprecated.get(pump.curveId!);
+    const curve = hydraulicModel.curves.get(pump.curveId!)!;
+    usedCurveIds.add(curve.id);
 
     sections.pumps.push(
       commentPrefix +
-        [linkId, startId, endId, `HEAD ${pump.id}`, `SPEED ${pump.speed}`].join(
-          "\t",
-        ),
+        [
+          linkId,
+          startId,
+          endId,
+          `HEAD ${curve.label}`,
+          `SPEED ${pump.speed}`,
+        ].join("\t"),
     );
-
-    for (const point of curve!.points) {
-      sections.curves.push(
-        commentPrefix + [pump.id, String(point.x), String(point.y)].join("\t"),
-      );
-    }
   } else {
     sections.pumps.push(
       commentPrefix +
@@ -766,10 +777,26 @@ const appendControls = (
   }
 };
 
+const appendCurves = (
+  sections: InpSections,
+  curves: HydraulicModel["curves"],
+  usedCurveIds: Set<number>,
+  usedCurvesOnly: boolean,
+) => {
+  for (const curve of curves.values()) {
+    if (usedCurvesOnly && !usedCurveIds.has(curve.id)) continue;
+    for (const point of curve.points) {
+      sections.curves.push(
+        [curve.label, String(point.x), String(point.y)].join("\t"),
+      );
+    }
+  }
+};
+
 const appendDemandPatterns = (
   sections: InpSections,
   patterns: DemandPatterns,
-  usedPatternIds: Set<string>,
+  usedPatternIds: Set<number>,
   idMap: EpanetIds,
   usedPatternsOnly: boolean,
 ) => {
@@ -778,7 +805,7 @@ const appendDemandPatterns = (
 
   for (const pattern of patterns.values()) {
     const mappedId = idMap.patternId(pattern.id);
-    if (usedPatternsOnly && !usedPatternIds.has(mappedId)) continue;
+    if (usedPatternsOnly && !usedPatternIds.has(pattern.id)) continue;
 
     const FACTORS_PER_LINE = 8;
     for (let i = 0; i < pattern.multipliers.length; i += FACTORS_PER_LINE) {
@@ -793,7 +820,7 @@ const appendCustomerPoint = (
   idMap: EpanetIds,
   hydraulicModel: HydraulicModel,
   customerPoint: CustomerPoint,
-  usedPatternIds: Set<string>,
+  usedPatternIds: Set<number>,
 ) => {
   const connection = customerPoint.connection;
   const [x, y] = customerPoint.coordinates;
@@ -834,9 +861,8 @@ const appendCustomerPoint = (
           "\t",
         ),
     );
-
-    if (mappedPatternId) {
-      usedPatternIds.add(mappedPatternId);
+    if (demand.patternId) {
+      usedPatternIds.add(demand.patternId);
     }
   }
 };

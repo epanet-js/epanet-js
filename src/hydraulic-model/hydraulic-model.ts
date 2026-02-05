@@ -12,7 +12,7 @@ import { CustomerPoints, initializeCustomerPoints } from "./customer-points";
 import { CustomerPointsLookup } from "./customer-points-lookup";
 import { AssetIndex } from "./asset-index";
 import { Asset } from "./asset-types";
-import { Curves, CurvesDeprecated } from "./curves";
+import { Curves } from "./curves";
 import { Controls, createEmptyControls } from "./controls";
 
 export type HydraulicModel = {
@@ -28,7 +28,6 @@ export type HydraulicModel = {
   headlossFormula: HeadlossFormula;
   labelManager: LabelManager;
   curves: Curves;
-  curvesDeprecated: CurvesDeprecated;
   epsTiming: EPSTiming;
   controls: Controls;
 };
@@ -73,7 +72,6 @@ export const initializeHydraulicModel = ({
     labelManager,
     headlossFormula,
     curves: new Map(),
-    curvesDeprecated: new Map(),
     epsTiming,
     controls,
   };

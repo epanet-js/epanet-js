@@ -75,7 +75,7 @@ export class Persistence implements IPersistenceWithSnapshots {
         putEPSTiming: hydraulicModel.epsTiming,
         putControls: hydraulicModel.controls,
         putCustomerPoints: [...hydraulicModel.customerPoints.values()],
-        putCurves: [...hydraulicModel.curvesDeprecated.values()],
+        putCurves: [...hydraulicModel.curves.values()],
       };
 
       trackMoment({ note: snapshotMoment.note!, putAssets: assets });
@@ -429,14 +429,14 @@ export class Persistence implements IPersistenceWithSnapshots {
 
     const updatedCurves =
       forwardMoment.putCurves && forwardMoment.putCurves.length > 0
-        ? new Map(hydraulicModel.curvesDeprecated)
-        : hydraulicModel.curvesDeprecated;
+        ? new Map(hydraulicModel.curves)
+        : hydraulicModel.curves;
 
     this.store.set(stagingModelAtom, {
       ...updatedHydraulicModel,
       version: stateId,
       customerPoints: updatedCustomerPoints,
-      curvesDeprecated: updatedCurves,
+      curves: updatedCurves,
     });
     this.store.set(dataAtom, {
       selection: ctx.selection,

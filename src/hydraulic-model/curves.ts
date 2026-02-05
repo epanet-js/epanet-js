@@ -1,18 +1,67 @@
-export type CurveLabel = string;
+import { LabelManager } from "./label-manager";
+
 export type CurveId = number;
+export type CurvePoint = { x: number; y: number };
 
 export interface ICurve {
-  id?: CurveId;
-  label: CurveLabel;
+  id: CurveId;
+  label: string;
   type: "pump";
-  points: { x: number; y: number }[];
+  points: CurvePoint[];
 }
 
-export type CurvesDeprecated = Map<CurveLabel, ICurve>;
 export type Curves = Map<CurveId, ICurve>;
 
-export const getPumpCurveType = (
-  curve: ICurve,
-): "design-point" | "standard" => {
-  return curve.points.length === 1 ? "design-point" : "standard";
+export type PumpCurveType = "design-point" | "standard";
+
+export const getPumpCurveType = (curve: ICurve): PumpCurveType => {
+  if (curve.points.length === 3) return "standard";
+
+  return "design-point";
+};
+
+export const isValidPumpCurve = (points: ICurve["points"]): boolean => {
+  if (points.length === 0) {
+    return false;
+  }
+
+  if (points.length === 1) {
+    return true;
+  }
+
+  const xAlwaysIncreases = points.every((point, index) => {
+    if (index === 0) return true;
+    return point.x > points[index - 1].x;
+  });
+
+  const yAlwaysDecreases = points.every((point, index) => {
+    if (index === 0) return true;
+    return point.y < points[index - 1].y;
+  });
+
+  return (
+    points.length === 3 &&
+    xAlwaysIncreases &&
+    yAlwaysDecreases &&
+    points[0].x === 0
+  );
+};
+
+export const buildDefaultPumpCurve = (
+  curves: Curves,
+  labelManager: LabelManager,
+  candidateLabel: string,
+): ICurve => {
+  const label = labelManager.isLabelAvailable(candidateLabel, "curve")
+    ? candidateLabel
+    : labelManager.generateNextLabel(candidateLabel);
+
+  const id = curves.size > 0 ? Math.max(...curves.keys()) + 1 : 1;
+
+  return {
+    id,
+    label,
+    type: "pump",
+    points: [{ x: 1, y: 1 }],
+  };
 };

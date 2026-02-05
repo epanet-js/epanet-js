@@ -1,20 +1,18 @@
 import { ModelOperation } from "../model-operation";
-import { CurveLabel, ICurve } from "../curves";
+import { ICurve } from "../curves";
 import { AssetId, Pump } from "../asset-types";
-
-type PumpCurvePoint = { flow: number; head: number };
 
 type PumpDefinitionData =
   | { type: "power"; power: number }
-  | { type: "design-point"; curveId: CurveLabel; points: PumpCurvePoint[] }
-  | { type: "standard"; curveId: CurveLabel; points: PumpCurvePoint[] };
+  | { type: "design-point"; curve: ICurve }
+  | { type: "standard"; curve: ICurve };
 
 type InputData = {
   pumpId: AssetId;
   data: PumpDefinitionData;
 };
 
-export const changePumpCurve: ModelOperation<InputData> = (
+export const changePumpDefinition: ModelOperation<InputData> = (
   { assets },
   { pumpId, data },
 ) => {
@@ -30,18 +28,12 @@ export const changePumpCurve: ModelOperation<InputData> = (
     return { note: "Change pump curve", putAssets: [updatedPump] };
   }
 
-  const curveId = data.curveId;
-  updatedPump.setProperty("curveId", curveId);
-
-  const updatedCurve: ICurve = {
-    label: curveId,
-    type: "pump",
-    points: data.points.map(({ flow, head }) => ({ x: flow, y: head })),
-  };
+  const { curve } = data;
+  updatedPump.setProperty("curveId", curve.id);
 
   return {
     note: "Change pump curve",
     putAssets: [updatedPump],
-    putCurves: [updatedCurve],
+    putCurves: [curve],
   };
 };

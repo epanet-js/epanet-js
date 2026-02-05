@@ -10,7 +10,7 @@ export { addLink } from "./add-link";
 export { replaceNode as replaceNode } from "./replace-node";
 export { replaceLink } from "./replace-link";
 export { mergeNodes } from "./merge-nodes";
-export { changePumpCurve } from "./change-pump-curve";
+export { changePumpDefinition } from "./change-pump-definition";
 export { changeJunctionDemands } from "./change-junction-demands";
 export { changeControls } from "./change-controls";
 export { changeDemandSettings } from "./change-demand-settings";

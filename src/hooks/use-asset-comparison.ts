@@ -3,7 +3,7 @@ import { useAtomValue } from "jotai";
 import { worktreeAtom } from "src/state/scenarios";
 import { baseModelAtom } from "src/state/hydraulic-model";
 import type { Asset, DemandPatterns } from "src/hydraulic-model";
-import type { CurveLabel, ICurve } from "src/hydraulic-model/curves";
+import type { CurveId, ICurve } from "src/hydraulic-model/curves";
 import {
   calculateAverageDemand,
   type JunctionDemand,
@@ -28,11 +28,9 @@ export function useAssetComparison(asset: Asset | undefined) {
 
   const isNew = isInScenario && asset !== undefined && baseAsset === undefined;
 
-  const getBaseCurve = (
-    curveId: CurveLabel | undefined,
-  ): ICurve | undefined => {
+  const getBaseCurve = (curveId: CurveId | undefined): ICurve | undefined => {
     if (!curveId || !isInScenario) return undefined;
-    return baseModel.curvesDeprecated.get(curveId);
+    return baseModel.curves.get(curveId);
   };
 
   const getComparison = (

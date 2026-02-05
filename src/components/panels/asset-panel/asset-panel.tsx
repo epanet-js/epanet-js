@@ -27,7 +27,7 @@ import { usePersistence } from "src/lib/persistence";
 import { useUserTracking } from "src/infra/user-tracking";
 import { stagingModelAtom } from "src/state/jotai";
 import {
-  changePumpCurve,
+  changePumpDefinition,
   changeProperty,
   changeJunctionDemands,
   changeLabel,
@@ -60,7 +60,6 @@ import {
   PumpDefinitionDetails,
   PumpDefinitionData,
 } from "./pump-definition-details";
-import { CurvesDeprecated } from "src/hydraulic-model/curves";
 import { useQuickGraph } from "./quick-graph";
 import { useAssetComparison } from "src/hooks/use-asset-comparison";
 import { useSimulation } from "src/hooks/use-simulation";
@@ -208,7 +207,7 @@ export function AssetPanel({
 
   const handleChangePumpDefinition = useCallback(
     (data: PumpDefinitionData) => {
-      const moment = changePumpCurve(hydraulicModel, {
+      const moment = changePumpDefinition(hydraulicModel, {
         pumpId: asset.id,
         data,
       });
@@ -338,7 +337,6 @@ export function AssetPanel({
       return (
         <PumpEditor
           pump={pump}
-          curves={hydraulicModel.curvesDeprecated}
           onPropertyChange={handlePropertyChange}
           onStatusChange={handleStatusChange}
           onActiveTopologyStatusChange={handleActiveTopologyStatusChange}
@@ -1175,7 +1173,6 @@ const PumpEditor = ({
   onDefinitionChange,
   onLabelChange,
   quantitiesMetadata,
-  curves,
   readonly = false,
 }: {
   pump: Pump;
@@ -1191,7 +1188,6 @@ const PumpEditor = ({
   onDefinitionChange: (data: PumpDefinitionData) => void;
   onLabelChange: (newLabel: string) => string | undefined;
   quantitiesMetadata: Quantities;
-  curves: CurvesDeprecated;
   readonly?: boolean;
 }) => {
   const translate = useTranslate();
@@ -1203,6 +1199,8 @@ const PumpEditor = ({
   const simFlow = pumpSimulation?.flow ?? null;
   const simHead = pumpSimulation ? -pumpSimulation.headloss : null;
   const statusText = translate(pumpStatusLabel(pumpSimulation ?? null));
+
+  const hydraulicModel = useAtomValue(stagingModelAtom);
 
   const statusOptions = useMemo(() => {
     return pumpStatuses.map((status) => ({
@@ -1246,7 +1244,8 @@ const PumpEditor = ({
       <Section title={translate("modelAttributes")}>
         <PumpDefinitionDetails
           pump={pump}
-          curves={curves}
+          curves={hydraulicModel.curves}
+          labelManager={hydraulicModel.labelManager}
           quantities={quantitiesMetadata}
           onChange={onDefinitionChange}
           readonly={readonly}

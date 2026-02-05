@@ -1,6 +1,6 @@
 import { Asset } from "./asset-types";
 
-export type LabelType = Asset["type"] | "pattern";
+export type LabelType = Asset["type"] | "pattern" | "curve";
 
 type LabelEntry = {
   id: number;
@@ -15,9 +15,10 @@ const labelPrefixes: Record<LabelType, string> = {
   pump: "PU",
   valve: "V",
   pattern: "PAT",
+  curve: "C",
 };
 
-type LabelGroup = "pattern" | "node" | "link";
+type LabelGroup = "pattern" | "curve" | "node" | "link";
 
 export interface LabelGenerator {
   generateFor: (type: Asset["type"], id: Asset["id"]) => string;
@@ -187,11 +188,9 @@ export class LabelManager implements LabelGenerator {
 const isNodeType = (t: LabelType) =>
   t === "junction" || t === "reservoir" || t === "tank";
 
-const isPatternType = (t: LabelType) => t === "pattern";
-
 const getLabelUniqueGroup = (type: LabelType): LabelGroup => {
-  if (isPatternType(type)) {
-    return "pattern";
+  if (type === "pattern" || type === "curve") {
+    return type;
   }
   return isNodeType(type) ? "node" : "link";
 };

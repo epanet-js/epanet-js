@@ -69,6 +69,11 @@ export type ValveData = {
   isActive: boolean;
 };
 
+export type CurveData = {
+  label: string;
+  points: { x: number; y: number }[];
+};
+
 export type PatternData = {
   label: string;
   multipliers: number[];
@@ -113,7 +118,7 @@ export type InpData = {
   customerDemands: ItemData<DemandData[]>;
   patterns: ItemData<PatternData>;
   status: ItemData<string>;
-  curves: ItemData<{ x: number; y: number }[]>;
+  curves: ItemData<CurveData>;
   options: {
     units: EpanetUnitSystem;
     headlossFormula: HeadlossFormula;

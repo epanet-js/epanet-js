@@ -211,10 +211,36 @@ describe("addLink", () => {
 
       expect(putCurves).toHaveLength(1);
       expect(putCurves![0]).toEqual({
-        label: String(link.id),
+        id: 1,
+        label: link.label,
         type: "pump",
         points: [{ x: 1, y: 1 }],
       });
+    });
+
+    it("sets curveId on the pump to match the created curve", () => {
+      const hydraulicModel = HydraulicModelBuilder.with().build();
+      const startNode = hydraulicModel.assetBuilder.buildJunction({
+        coordinates: [10, 10],
+      });
+      const endNode = hydraulicModel.assetBuilder.buildJunction({
+        coordinates: [30, 30],
+      });
+      const link = hydraulicModel.assetBuilder.buildPump({
+        coordinates: [
+          [10, 10],
+          [30, 30],
+        ],
+      });
+
+      const { putAssets, putCurves } = addLink(hydraulicModel, {
+        startNode,
+        endNode,
+        link,
+      });
+
+      const pump = putAssets!.find((a) => a.type === "pump") as Pump;
+      expect(pump.curveId).toEqual(putCurves![0].id);
     });
 
     it("does not create a curve when adding a pipe", () => {

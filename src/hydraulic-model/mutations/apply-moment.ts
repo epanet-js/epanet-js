@@ -157,8 +157,12 @@ const putCurve = (
   hydraulicModel: HydraulicModel,
   curve: ICurve,
 ): ICurve | undefined => {
-  const oldCurve = hydraulicModel.curvesDeprecated.get(curve.label);
-  hydraulicModel.curvesDeprecated.set(curve.label, curve);
+  const oldCurve = hydraulicModel.curves.get(curve.id);
+  if (oldCurve) {
+    hydraulicModel.labelManager.remove(oldCurve.label, "curve", oldCurve.id);
+  }
+  hydraulicModel.curves.set(curve.id, curve);
+  hydraulicModel.labelManager.register(curve.label, "curve", curve.id);
   return oldCurve;
 };
 

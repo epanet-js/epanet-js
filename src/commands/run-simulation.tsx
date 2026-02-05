@@ -41,6 +41,7 @@ export const useRunSimulation = () => {
       const inp = buildInp(hydraulicModel, {
         customerDemands: true,
         usedPatterns: true,
+        usedCurves: true,
       });
       const start = performance.now();
 

@@ -5,31 +5,32 @@ import {
   PumpDefinitionDetails,
 } from "./pump-definition-details";
 import { Quantities, presets } from "src/model-metadata/quantities-spec";
-import {
-  CurveLabel,
-  CurvesDeprecated,
-  ICurve,
-} from "src/hydraulic-model/curves";
+import { CurveId, Curves, ICurve } from "src/hydraulic-model/curves";
 import { buildPump } from "src/__helpers__/hydraulic-model-builder";
+import { LabelManager } from "src/hydraulic-model/label-manager";
 
 const quantities = new Quantities(presets.LPS);
 
 const aCurve = (
   points: { x: number; y: number }[],
-  id: CurveLabel = "curve1",
+  id: CurveId = 1,
+  label?: string,
 ): ICurve => ({
-  label: id,
+  id,
+  label: label || String(id),
   type: "pump",
   points,
 });
 
-const aCurvesMap = (curve?: ICurve): CurvesDeprecated => {
-  const map: CurvesDeprecated = new Map();
+const aCurvesMap = (curve?: ICurve): Curves => {
+  const map: Curves = new Map();
   if (curve) {
-    map.set(curve.label, curve);
+    map.set(curve.id, curve);
   }
   return map;
 };
+
+const aLabelManager = () => new LabelManager();
 
 const getFlowInput = (rowLabel: string) =>
   screen.getByRole("textbox", { name: new RegExp(`${rowLabel}-x`, "i") });
@@ -434,17 +435,19 @@ describe("PumpDefinitionDetails", () => {
       it("emits onChange with power value when pump has power set", async () => {
         const user = userEvent.setup();
         const onChange = vi.fn();
+        const curveId = 1;
         const pump = buildPump({
           definitionType: "design-point",
           power: 50,
-          curveId: "curve1",
+          curveId,
         });
-        const curve = aCurve([{ x: 50, y: 100 }]);
+        const curve = aCurve([{ x: 50, y: 100 }], curveId);
 
         render(
           <PumpDefinitionDetails
             pump={pump}
             curves={aCurvesMap(curve)}
+            labelManager={aLabelManager()}
             quantities={quantities}
             onChange={onChange}
           />,
@@ -462,17 +465,19 @@ describe("PumpDefinitionDetails", () => {
       it("emits onChange with power=0 when pump has no power set", async () => {
         const user = userEvent.setup();
         const onChange = vi.fn();
+        const curveId = 1;
         const pump = buildPump({
           definitionType: "design-point",
           power: 0,
-          curveId: "curve1",
+          curveId,
         });
-        const curve = aCurve([{ x: 50, y: 100 }]);
+        const curve = aCurve([{ x: 50, y: 100 }], curveId);
 
         render(
           <PumpDefinitionDetails
             pump={pump}
             curves={aCurvesMap(curve)}
+            labelManager={aLabelManager()}
             quantities={quantities}
             onChange={onChange}
           />,
@@ -492,16 +497,18 @@ describe("PumpDefinitionDetails", () => {
       it("emits onChange when changing from design-point to standard", async () => {
         const user = userEvent.setup();
         const onChange = vi.fn();
+        const curveId = 1;
         const pump = buildPump({
           definitionType: "design-point",
-          curveId: "curve1",
+          curveId,
         });
-        const curve = aCurve([{ x: 50, y: 100 }]);
+        const curve = aCurve([{ x: 50, y: 100 }], curveId);
 
         render(
           <PumpDefinitionDetails
             pump={pump}
             curves={aCurvesMap(curve)}
+            labelManager={aLabelManager()}
             quantities={quantities}
             onChange={onChange}
           />,
@@ -515,12 +522,16 @@ describe("PumpDefinitionDetails", () => {
 
         expect(onChange).toHaveBeenCalledWith({
           type: "standard",
-          curveId: "curve1",
-          points: [
-            { flow: 0, head: 133 },
-            { flow: 50, head: 100 },
-            { flow: 100, head: 0 },
-          ],
+          curve: {
+            type: "pump",
+            id: curve.id,
+            label: curve.label,
+            points: [
+              { x: 0, y: 133 },
+              { x: 50, y: 100 },
+              { x: 100, y: 0 },
+            ],
+          },
         });
 
         expect(getFlowSpan("Shutoff")).toHaveTextContent("0");
@@ -534,20 +545,25 @@ describe("PumpDefinitionDetails", () => {
       it("emits onChange when changing from standard to design-point", async () => {
         const user = userEvent.setup();
         const onChange = vi.fn();
+        const curveId = 1;
         const pump = buildPump({
           definitionType: "standard",
-          curveId: "curve1",
+          curveId,
         });
-        const curve = aCurve([
-          { x: 0, y: 150 },
-          { x: 50, y: 100 },
-          { x: 80, y: 10 },
-        ]);
+        const curve = aCurve(
+          [
+            { x: 0, y: 150 },
+            { x: 50, y: 100 },
+            { x: 80, y: 10 },
+          ],
+          curveId,
+        );
 
         render(
           <PumpDefinitionDetails
             pump={pump}
             curves={aCurvesMap(curve)}
+            labelManager={aLabelManager()}
             quantities={quantities}
             onChange={onChange}
           />,
@@ -559,8 +575,12 @@ describe("PumpDefinitionDetails", () => {
 
         expect(onChange).toHaveBeenCalledWith({
           type: "design-point",
-          curveId: "curve1",
-          points: [{ flow: 50, head: 100 }],
+          curve: {
+            id: curve.id,
+            label: curve.label,
+            type: "pump",
+            points: [{ x: 50, y: 100 }],
+          },
         });
 
         expect(getFlowSpan("Shutoff")).toHaveTextContent("0");
@@ -582,6 +602,7 @@ describe("PumpDefinitionDetails", () => {
           <PumpDefinitionDetails
             pump={pump}
             curves={aCurvesMap()}
+            labelManager={aLabelManager()}
             quantities={quantities}
             onChange={onChange}
           />,
@@ -591,7 +612,15 @@ describe("PumpDefinitionDetails", () => {
         await user.click(select);
         await user.click(screen.getByRole("option", { name: /design point/i }));
 
-        expect(onChange).not.toHaveBeenCalled();
+        expect(onChange).toHaveBeenCalledWith({
+          type: "design-point",
+          curve: {
+            id: 1,
+            label: pump.label,
+            type: "pump",
+            points: [{ x: 1, y: 1 }],
+          },
+        });
         expect(select).toHaveTextContent(/design point/i);
         expect(screen.getByRole("table")).toBeInTheDocument();
       });
@@ -605,6 +634,7 @@ describe("PumpDefinitionDetails", () => {
           <PumpDefinitionDetails
             pump={pump}
             curves={aCurvesMap()}
+            labelManager={aLabelManager()}
             quantities={quantities}
             onChange={onChange}
           />,
@@ -616,7 +646,19 @@ describe("PumpDefinitionDetails", () => {
           screen.getByRole("option", { name: /standard curve/i }),
         );
 
-        expect(onChange).not.toHaveBeenCalled();
+        expect(onChange).toHaveBeenCalledWith({
+          type: "standard",
+          curve: {
+            id: 1,
+            label: pump.label,
+            type: "pump",
+            points: [
+              { x: 0, y: 1.33 },
+              { x: 1, y: 1 },
+              { x: 2, y: 0 },
+            ],
+          },
+        });
         expect(select).toHaveTextContent(/standard curve/i);
         expect(screen.getByRole("table")).toBeInTheDocument();
       });
@@ -624,17 +666,19 @@ describe("PumpDefinitionDetails", () => {
       it("emits onChange when switching from power to design-point with 1-point curve", async () => {
         const user = userEvent.setup();
         const onChange = vi.fn();
+        const curveId = 1;
         const pump = buildPump({
           definitionType: "power",
           power: 50,
-          curveId: "curve1",
+          curveId,
         });
-        const curve = aCurve([{ x: 50, y: 100 }]);
+        const curve = aCurve([{ x: 50, y: 100 }], curveId);
 
         render(
           <PumpDefinitionDetails
             pump={pump}
             curves={aCurvesMap(curve)}
+            labelManager={aLabelManager()}
             quantities={quantities}
             onChange={onChange}
           />,
@@ -646,29 +690,38 @@ describe("PumpDefinitionDetails", () => {
 
         expect(onChange).toHaveBeenCalledWith({
           type: "design-point",
-          curveId: "curve1",
-          points: [{ flow: 50, head: 100 }],
+          curve: {
+            id: curve.id,
+            label: curve.label,
+            type: "pump",
+            points: [{ x: 50, y: 100 }],
+          },
         });
       });
 
       it("emits onChange when switching from power to design-point with 3-point curve", async () => {
         const user = userEvent.setup();
         const onChange = vi.fn();
+        const curveId = 1;
         const pump = buildPump({
           definitionType: "power",
           power: 50,
-          curveId: "curve1",
+          curveId,
         });
-        const curve = aCurve([
-          { x: 0, y: 150 },
-          { x: 50, y: 100 },
-          { x: 80, y: 10 },
-        ]);
+        const curve = aCurve(
+          [
+            { x: 0, y: 150 },
+            { x: 50, y: 100 },
+            { x: 80, y: 10 },
+          ],
+          curveId,
+        );
 
         render(
           <PumpDefinitionDetails
             pump={pump}
             curves={aCurvesMap(curve)}
+            labelManager={aLabelManager()}
             quantities={quantities}
             onChange={onChange}
           />,
@@ -680,29 +733,38 @@ describe("PumpDefinitionDetails", () => {
 
         expect(onChange).toHaveBeenCalledWith({
           type: "design-point",
-          curveId: "curve1",
-          points: [{ flow: 50, head: 100 }],
+          curve: {
+            id: curve.id,
+            label: curve.label,
+            type: "pump",
+            points: [{ x: 50, y: 100 }],
+          },
         });
       });
 
       it("emits onChange when switching from power to standard with 3-point curve", async () => {
         const user = userEvent.setup();
         const onChange = vi.fn();
+        const curveId = 1;
         const pump = buildPump({
           definitionType: "power",
           power: 50,
-          curveId: "curve1",
+          curveId,
         });
-        const curve = aCurve([
-          { x: 0, y: 150 },
-          { x: 50, y: 100 },
-          { x: 80, y: 10 },
-        ]);
+        const curve = aCurve(
+          [
+            { x: 0, y: 150 },
+            { x: 50, y: 100 },
+            { x: 80, y: 10 },
+          ],
+          curveId,
+        );
 
         render(
           <PumpDefinitionDetails
             pump={pump}
             curves={aCurvesMap(curve)}
+            labelManager={aLabelManager()}
             quantities={quantities}
             onChange={onChange}
           />,
@@ -716,29 +778,35 @@ describe("PumpDefinitionDetails", () => {
 
         expect(onChange).toHaveBeenCalledWith({
           type: "standard",
-          curveId: "curve1",
-          points: [
-            { flow: 0, head: 150 },
-            { flow: 50, head: 100 },
-            { flow: 80, head: 10 },
-          ],
+          curve: {
+            id: curve.id,
+            label: curve.label,
+            type: "pump",
+            points: [
+              { x: 0, y: 150 },
+              { x: 50, y: 100 },
+              { x: 80, y: 10 },
+            ],
+          },
         });
       });
 
       it("emits onChange when switching from power to standard with 1-point curve", async () => {
         const user = userEvent.setup();
         const onChange = vi.fn();
+        const curveId = 1;
         const pump = buildPump({
           definitionType: "power",
           power: 50,
-          curveId: "curve1",
+          curveId,
         });
-        const curve = aCurve([{ x: 50, y: 100 }]);
+        const curve = aCurve([{ x: 50, y: 100 }], curveId);
 
         render(
           <PumpDefinitionDetails
             pump={pump}
             curves={aCurvesMap(curve)}
+            labelManager={aLabelManager()}
             quantities={quantities}
             onChange={onChange}
           />,
@@ -752,12 +820,16 @@ describe("PumpDefinitionDetails", () => {
 
         expect(onChange).toHaveBeenCalledWith({
           type: "standard",
-          curveId: "curve1",
-          points: [
-            { flow: 0, head: 133 },
-            { flow: 50, head: 100 },
-            { flow: 100, head: 0 },
-          ],
+          curve: {
+            id: curve.id,
+            label: curve.label,
+            type: "pump",
+            points: [
+              { x: 0, y: 133 },
+              { x: 50, y: 100 },
+              { x: 100, y: 0 },
+            ],
+          },
         });
       });
     });
@@ -766,18 +838,20 @@ describe("PumpDefinitionDetails", () => {
   describe("external curve changes", () => {
     it("updates display when curve changes externally (e.g., undo)", () => {
       const onChange = vi.fn();
+      const curveId = 1;
       const pump = buildPump({
         definitionType: "design-point",
-        curveId: "curve1",
+        curveId,
       });
-      const curves: CurvesDeprecated = new Map();
-      const initialCurve = aCurve([{ x: 50, y: 100 }]);
-      curves.set("curve1", initialCurve);
+      const curves: Curves = new Map();
+      const initialCurve = aCurve([{ x: 50, y: 100 }], curveId);
+      curves.set(curveId, initialCurve);
 
       const { rerender } = render(
         <PumpDefinitionDetails
           pump={pump}
           curves={curves}
+          labelManager={aLabelManager()}
           quantities={quantities}
           onChange={onChange}
         />,
@@ -786,13 +860,14 @@ describe("PumpDefinitionDetails", () => {
       expect(getFlowInput("Design")).toHaveValue("50");
       expect(getHeadInput("Design")).toHaveValue("100");
 
-      const updatedCurve = aCurve([{ x: 75, y: 150 }]);
-      curves.set("curve1", updatedCurve);
+      const updatedCurve = aCurve([{ x: 75, y: 150 }], curveId);
+      curves.set(curveId, updatedCurve);
 
       rerender(
         <PumpDefinitionDetails
           pump={pump}
           curves={curves}
+          labelManager={aLabelManager()}
           quantities={quantities}
           onChange={onChange}
         />,
@@ -804,16 +879,18 @@ describe("PumpDefinitionDetails", () => {
 
     it("updates selector when pump.definitionType changes externally (e.g., undo)", () => {
       const onChange = vi.fn();
+      const curveId = 1;
       const pump = buildPump({
         definitionType: "design-point",
-        curveId: "curve1",
+        curveId,
       });
-      const curve = aCurve([{ x: 50, y: 100 }]);
+      const curve = aCurve([{ x: 50, y: 100 }], curveId);
 
       const { rerender } = render(
         <PumpDefinitionDetails
           pump={pump}
           curves={aCurvesMap(curve)}
+          labelManager={aLabelManager()}
           quantities={quantities}
           onChange={onChange}
         />,
@@ -832,6 +909,7 @@ describe("PumpDefinitionDetails", () => {
         <PumpDefinitionDetails
           pump={updatedPump}
           curves={aCurvesMap(curve)}
+          labelManager={aLabelManager()}
           quantities={quantities}
           onChange={onChange}
         />,

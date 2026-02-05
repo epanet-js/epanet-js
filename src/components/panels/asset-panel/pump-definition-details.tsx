@@ -2,8 +2,8 @@ import { useState, useCallback, useMemo } from "react";
 import { useTranslate } from "src/hooks/use-translate";
 import { NumericField } from "src/components/form/numeric-field";
 import {
-  CurveLabel,
-  CurvesDeprecated,
+  buildDefaultPumpCurve,
+  Curves,
   ICurve,
 } from "src/hydraulic-model/curves";
 import { Quantities } from "src/model-metadata/quantities-spec";
@@ -13,6 +13,7 @@ import { SelectRow, QuantityRow } from "./ui-components";
 import type { PropertyComparison } from "src/hooks/use-asset-comparison";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import { TContent } from "src/components/elements";
+import { LabelManager } from "src/hydraulic-model/label-manager";
 
 export interface PumpCurvePoint {
   flow: number;
@@ -21,8 +22,8 @@ export interface PumpCurvePoint {
 
 export type PumpDefinitionData =
   | { type: "power"; power: number }
-  | { type: "design-point"; curveId: CurveLabel; points: PumpCurvePoint[] }
-  | { type: "standard"; curveId: CurveLabel; points: PumpCurvePoint[] };
+  | { type: "design-point"; curve: ICurve }
+  | { type: "standard"; curve: ICurve };
 
 interface MaybePumpCurvePoint {
   flow?: number;
@@ -32,6 +33,7 @@ interface MaybePumpCurvePoint {
 export const PumpDefinitionDetails = ({
   pump,
   curves,
+  labelManager,
   quantities,
   readonly = false,
   onChange,
@@ -39,14 +41,20 @@ export const PumpDefinitionDetails = ({
   baseCurve,
 }: {
   pump: Pump;
-  curves: CurvesDeprecated;
+  curves: Curves;
+  labelManager: LabelManager;
   quantities: Quantities;
   readonly?: boolean;
   onChange: (newData: PumpDefinitionData) => void;
   getComparison?: (name: string, value: unknown) => PropertyComparison;
   baseCurve?: ICurve;
 }) => {
-  const curve = pump.curveId ? curves.get(pump.curveId) : undefined;
+  const curve = useMemo(() => {
+    const existingCurve = pump.curveId ? curves.get(pump.curveId) : undefined;
+    if (existingCurve) return existingCurve;
+    return buildDefaultPumpCurve(curves, labelManager, pump.label);
+  }, [curves, labelManager, pump.curveId, pump.label]);
+
   const componentKey = `${getCurveHash(curve)}|${pump.definitionType}`;
 
   return (
@@ -73,7 +81,7 @@ const PumpDefinitionDetailsInner = ({
   baseCurve,
 }: {
   pump: Pump;
-  curve: ICurve | undefined;
+  curve: ICurve;
   quantities: Quantities;
   readonly?: boolean;
   onChange: (newData: PumpDefinitionData) => void;
@@ -196,13 +204,20 @@ const PumpDefinitionDetailsInner = ({
         return;
       }
 
+      const points = validationResult.points.map(({ flow, head }) => ({
+        x: flow,
+        y: head,
+      }));
+
       onChange({
         type: newValue,
-        curveId: curve?.label || String(pump.id),
-        points: validationResult.points,
+        curve: {
+          ...curve,
+          points,
+        },
       });
     },
-    [pump.id, pump.power, curve, onChange],
+    [pump.power, curve, onChange],
   );
 
   const handlePowerChange = useCallback(
@@ -213,14 +228,17 @@ const PumpDefinitionDetailsInner = ({
   );
 
   const handleCurvePointsChange = useCallback(
-    (points: PumpCurvePoint[]) => {
+    (rawPoints: PumpCurvePoint[]) => {
       if (localDefinitionType === "power") {
         return;
       }
-      const curveId = pump.curveId || String(pump.id);
-      onChange({ type: localDefinitionType, curveId, points });
+      const points = rawPoints.map(({ flow, head }) => ({
+        x: flow,
+        y: head,
+      }));
+      onChange({ type: localDefinitionType, curve: { ...curve, points } });
     },
-    [onChange, pump, localDefinitionType],
+    [localDefinitionType, onChange, curve],
   );
 
   const purpleLine = definitionHasChanged ? (
@@ -685,10 +703,7 @@ const validateCurve = (
   };
 };
 
-const getCurveHash = (curve: ICurve | undefined): string => {
-  if (!curve || curve.points.length === 0) {
-    return "no-curve";
-  }
+const getCurveHash = (curve: ICurve): string => {
   return curve.points.map((p) => `${p.x},${p.y}`).join("|");
 };
 

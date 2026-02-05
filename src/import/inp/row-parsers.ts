@@ -240,10 +240,11 @@ export const parsePump: RowParser = ({
 
 export const parseCurve: RowParser = ({ trimmedRow, inpData }) => {
   const [curveId, x, y] = readValues(trimmedRow);
-  const curvePoints = inpData.curves.get(curveId) || [];
-
-  curvePoints.push({ x: parseFloat(x), y: parseFloat(y) });
-  inpData.curves.set(curveId, curvePoints);
+  const normalizedLabel = curveId.toUpperCase();
+  const existing = inpData.curves.get(normalizedLabel);
+  const points = existing?.points || [];
+  points.push({ x: parseFloat(x), y: parseFloat(y) });
+  inpData.curves.set(normalizedLabel, { label: curveId, points });
 };
 
 export const parseStatus: RowParser = ({ trimmedRow, inpData }) => {
