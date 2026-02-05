@@ -17,7 +17,8 @@ import { useScenarioOperations } from "src/hooks/use-scenario-operations";
 import { worktreeAtom, scenariosListAtom } from "src/state/scenarios";
 import { dialogAtom } from "src/state/jotai";
 import { useCreateScenario } from "src/commands/create-scenario";
-import { isMainBranch, getActiveBranch } from "src/lib/worktree";
+import { isMainBranch, getActiveBranch, getMainBranch } from "src/lib/worktree";
+import type { Branch, Worktree } from "src/lib/worktree";
 import {
   Button,
   DDContent,
@@ -26,6 +27,42 @@ import {
   StyledTooltipArrow,
   TContent,
 } from "../elements";
+
+const VersionDebugInfo = ({
+  branch,
+  worktree,
+}: {
+  branch: Branch;
+  worktree: Worktree;
+}) => {
+  const headVersion = worktree.versions.get(branch.headRevisionId);
+  const draftVersion = branch.draftVersionId
+    ? worktree.versions.get(branch.draftVersionId)
+    : null;
+
+  return (
+    <div className="text-xs text-gray-400 pl-6 font-mono space-y-0.5">
+      <div className="flex items-center gap-1">
+        <span className="text-green-500">✓</span>
+        <span>rev: {branch.headRevisionId.slice(0, 8)}</span>
+        {headVersion && (
+          <span className="text-gray-500">
+            ({headVersion.deltas.length} deltas)
+          </span>
+        )}
+      </div>
+      {draftVersion && (
+        <div className="flex items-center gap-1">
+          <span className="text-yellow-500">✎</span>
+          <span>draft: {branch.draftVersionId?.slice(0, 8)}</span>
+          <span className="text-gray-500">
+            ({draftVersion.deltas.length} deltas)
+          </span>
+        </div>
+      )}
+    </div>
+  );
+};
 
 export const ScenarioSwitcher = () => {
   const translate = useTranslate();
@@ -158,10 +195,21 @@ export const ScenarioSwitcher = () => {
             <DDContent align="start" side="top" className="min-w-64">
               <StyledItem onSelect={handleSelectMain}>
                 <div
-                  className={`flex items-center w-full gap-2 ${isMainActive ? "text-purple-600" : ""}`}
+                  className={`flex flex-col w-full ${isMainActive ? "text-purple-600" : ""}`}
                 >
-                  <MainModelIcon size="sm" />
-                  <div className="flex-1">{translate("scenarios.main")}</div>
+                  <div className="flex items-center gap-2">
+                    <MainModelIcon size="sm" />
+                    <div className="flex-1">{translate("scenarios.main")}</div>
+                  </div>
+                  {(() => {
+                    const mainBranch = getMainBranch(worktree);
+                    return mainBranch ? (
+                      <VersionDebugInfo
+                        branch={mainBranch}
+                        worktree={worktree}
+                      />
+                    ) : null;
+                  })()}
                 </div>
               </StyledItem>
 
@@ -172,46 +220,52 @@ export const ScenarioSwitcher = () => {
                   className="group/scenario"
                 >
                   <div
-                    className={`flex items-center w-full gap-2 ${activeBranchId === scenario.id ? "text-purple-600" : ""}`}
+                    className={`flex flex-col w-full ${activeBranchId === scenario.id ? "text-purple-600" : ""}`}
                   >
-                    <span
-                      className={`font-mono text-sm pl-1 ${activeBranchId === scenario.id ? "text-purple-400" : "text-gray-400"}`}
-                    >
-                      {index === scenariosList.length - 1 ? "└──" : "├──"}
-                    </span>
-                    <div className="flex-1">{scenario.name}</div>
-                    <DD.Root>
-                      <DD.Trigger asChild>
-                        <button
-                          className="opacity-0 group-hover/scenario:opacity-100 data-[state=open]:opacity-100 p-1 rounded hover:bg-gray-300 dark:hover:bg-gray-500 text-gray-500 dark:text-gray-400"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <MoreActionsIcon size="sm" />
-                        </button>
-                      </DD.Trigger>
-                      <DD.Portal>
-                        <DDContent side="right" align="start" sideOffset={4}>
-                          <StyledItem
-                            onSelect={() =>
-                              openRenameDialog(scenario.id, scenario.name)
-                            }
+                    <div className="flex items-center w-full gap-2">
+                      <span
+                        className={`font-mono text-sm pl-1 ${activeBranchId === scenario.id ? "text-purple-400" : "text-gray-400"}`}
+                      >
+                        {index === scenariosList.length - 1 ? "└──" : "├──"}
+                      </span>
+                      <div className="flex-1">{scenario.name}</div>
+                      <DD.Root>
+                        <DD.Trigger asChild>
+                          <button
+                            className="opacity-0 group-hover/scenario:opacity-100 data-[state=open]:opacity-100 p-1 rounded hover:bg-gray-300 dark:hover:bg-gray-500 text-gray-500 dark:text-gray-400"
+                            onClick={(e) => e.stopPropagation()}
                           >
-                            <RenameIcon size="sm" />
-                            <span>{translate("scenarios.rename")}</span>
-                          </StyledItem>
+                            <MoreActionsIcon size="sm" />
+                          </button>
+                        </DD.Trigger>
+                        <DD.Portal>
+                          <DDContent side="right" align="start" sideOffset={4}>
+                            <StyledItem
+                              onSelect={() =>
+                                openRenameDialog(scenario.id, scenario.name)
+                              }
+                            >
+                              <RenameIcon size="sm" />
+                              <span>{translate("scenarios.rename")}</span>
+                            </StyledItem>
 
-                          <StyledItem
-                            onSelect={() =>
-                              openDeleteConfirmation(scenario.id, scenario.name)
-                            }
-                            className="text-red-500 dark:text-red-300"
-                          >
-                            <DeleteIcon size="sm" />
-                            <span>{translate("scenarios.delete")}</span>
-                          </StyledItem>
-                        </DDContent>
-                      </DD.Portal>
-                    </DD.Root>
+                            <StyledItem
+                              onSelect={() =>
+                                openDeleteConfirmation(
+                                  scenario.id,
+                                  scenario.name,
+                                )
+                              }
+                              className="text-red-500 dark:text-red-300"
+                            >
+                              <DeleteIcon size="sm" />
+                              <span>{translate("scenarios.delete")}</span>
+                            </StyledItem>
+                          </DDContent>
+                        </DD.Portal>
+                      </DD.Root>
+                    </div>
+                    <VersionDebugInfo branch={scenario} worktree={worktree} />
                   </div>
                 </StyledItem>
               ))}
