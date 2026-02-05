@@ -274,7 +274,7 @@ describe("EPSResultsReader", () => {
         .aReservoir(IDS.R1, { head: 50 })
         .aJunction(IDS.J1, { demands: [{ baseDemand: 1 }], elevation: 0 })
         .aPump(IDS.PUMP1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
-        .aPumpCurve({ id: String(IDS.PUMP1), points: [{ x: 1, y: 1 }] })
+        .aPumpCurve({ label: String(IDS.PUMP1), points: [{ x: 1, y: 1 }] })
         .build();
       const inp = buildInp(hydraulicModel);
 
@@ -338,7 +338,7 @@ describe("EPSResultsReader", () => {
         .aReservoir(IDS.R1, { head: 50 })
         .aJunction(IDS.J1, { demands: [{ baseDemand: 3 }], elevation: 0 })
         .aPump(IDS.PUMP1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
-        .aPumpCurve({ id: String(IDS.PUMP1), points: [{ x: 1, y: 1 }] })
+        .aPumpCurve({ label: String(IDS.PUMP1), points: [{ x: 1, y: 1 }] })
         .eps({ duration: 3600, hydraulicTimestep: 3600 })
         .build();
       const inp = buildInp(hydraulicModel);
@@ -367,7 +367,7 @@ describe("EPSResultsReader", () => {
         .aReservoir(IDS.R1, { head: 50 })
         .aJunction(IDS.J1, { demands: [{ baseDemand: 10 }], elevation: 0 })
         .aPump(IDS.PUMP1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
-        .aPumpCurve({ id: String(IDS.PUMP1), points: [{ x: 20, y: 40 }] })
+        .aPumpCurve({ label: String(IDS.PUMP1), points: [{ x: 20, y: 40 }] })
         .eps({ duration: 7200, hydraulicTimestep: 3600 }) // 2 hours, 1 hour timestep
         .build();
       const inp = buildInp(hydraulicModel);
@@ -889,7 +889,7 @@ describe("EPSResultsReader", () => {
           .aReservoir(IDS.R1, { head: 50 })
           .aJunction(IDS.J1, { demands: [{ baseDemand: 10 }], elevation: 0 })
           .aPump(IDS.PUMP1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
-          .aPumpCurve({ id: String(IDS.PUMP1), points: [{ x: 20, y: 40 }] })
+          .aPumpCurve({ label: String(IDS.PUMP1), points: [{ x: 20, y: 40 }] })
           .eps({ duration: 7200, hydraulicTimestep: 3600 })
           .build();
         const inp = buildInp(hydraulicModel);
@@ -918,7 +918,7 @@ describe("EPSResultsReader", () => {
           .aReservoir(IDS.R1, { head: 50 })
           .aJunction(IDS.J1, { demands: [{ baseDemand: 10 }], elevation: 0 })
           .aPump(IDS.PUMP1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
-          .aPumpCurve({ id: String(IDS.PUMP1), points: [{ x: 20, y: 40 }] })
+          .aPumpCurve({ label: String(IDS.PUMP1), points: [{ x: 20, y: 40 }] })
           .eps({ duration: 7200, hydraulicTimestep: 3600 })
           .build();
         const inp = buildInp(hydraulicModel);

@@ -222,7 +222,7 @@ describe("build inp", () => {
         definitionType: "design-point",
         speed: 0.8,
       })
-      .aPumpCurve({ id: String(IDS.PUMP1), points: [{ x: 20, y: 40 }] })
+      .aPumpCurve({ label: String(IDS.PUMP1), points: [{ x: 20, y: 40 }] })
       .build();
 
     const inp = buildInp(hydraulicModel);
@@ -247,7 +247,7 @@ describe("build inp", () => {
         speed: 0.7,
         power: 100,
       })
-      .aPumpCurve({ id: String(IDS.PUMP1), points: [{ x: 20, y: 40 }] })
+      .aPumpCurve({ label: String(IDS.PUMP1), points: [{ x: 20, y: 40 }] })
       .build();
 
     const inp = buildInp(hydraulicModel);
@@ -1027,7 +1027,7 @@ describe("build inp", () => {
           definitionType: "design-point",
           isActive: false,
         })
-        .aPumpCurve({ id: String(IDS.PUMP1), points: [{ x: 100, y: 50 }] })
+        .aPumpCurve({ label: String(IDS.PUMP1), points: [{ x: 100, y: 50 }] })
         .build();
 
       const inp = buildInp(hydraulicModel, { inactiveAssets: true });

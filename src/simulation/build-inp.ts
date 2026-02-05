@@ -592,7 +592,7 @@ const appendPump = (
     pump.definitionType === "design-point" ||
     pump.definitionType === "standard"
   ) {
-    const curve = hydraulicModel.curves.get(pump.curveId!);
+    const curve = hydraulicModel.curvesDeprecated.get(pump.curveId!);
 
     sections.pumps.push(
       commentPrefix +

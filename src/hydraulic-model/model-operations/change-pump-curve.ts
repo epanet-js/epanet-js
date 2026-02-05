@@ -1,13 +1,13 @@
 import { ModelOperation } from "../model-operation";
-import { CurveId, ICurve } from "../curves";
+import { CurveLabel, ICurve } from "../curves";
 import { AssetId, Pump } from "../asset-types";
 
 type PumpCurvePoint = { flow: number; head: number };
 
 type PumpDefinitionData =
   | { type: "power"; power: number }
-  | { type: "design-point"; curveId: CurveId; points: PumpCurvePoint[] }
-  | { type: "standard"; curveId: CurveId; points: PumpCurvePoint[] };
+  | { type: "design-point"; curveId: CurveLabel; points: PumpCurvePoint[] }
+  | { type: "standard"; curveId: CurveLabel; points: PumpCurvePoint[] };
 
 type InputData = {
   pumpId: AssetId;
@@ -34,7 +34,7 @@ export const changePumpCurve: ModelOperation<InputData> = (
   updatedPump.setProperty("curveId", curveId);
 
   const updatedCurve: ICurve = {
-    id: curveId,
+    label: curveId,
     type: "pump",
     points: data.points.map(({ flow, head }) => ({ x: flow, y: head })),
   };

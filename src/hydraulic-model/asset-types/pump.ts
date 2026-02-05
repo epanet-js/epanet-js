@@ -1,4 +1,4 @@
-import { CurveId } from "../curves";
+import { CurveLabel } from "../curves";
 import { Link, LinkProperties } from "./link";
 import { Unit } from "src/quantity";
 
@@ -15,7 +15,7 @@ export type PumpProperties = {
   definitionType: PumpDefintionType;
   power: number;
   speed: number;
-  curveId?: CurveId;
+  curveId?: CurveLabel;
 } & LinkProperties;
 
 export const pumpQuantities = [

@@ -1,4 +1,8 @@
-import { CurveId, Curves, ICurve } from "src/hydraulic-model/curves";
+import {
+  CurveLabel,
+  CurvesDeprecated,
+  ICurve,
+} from "src/hydraulic-model/curves";
 
 import { ItemData, normalizeRef } from "./inp-data";
 import { IssuesAccumulator } from "./issues";
@@ -10,7 +14,7 @@ interface RawCurvePoint {
 }
 
 export class CurvesBuilder {
-  private typedCurves: Curves = new Map();
+  private typedCurves: CurvesDeprecated = new Map();
 
   constructor(
     private rawCurves: ItemData<RawCurvePoint[]>,
@@ -18,7 +22,7 @@ export class CurvesBuilder {
     private defaults: DefaultQuantities,
   ) {}
 
-  getPumpCurve(curveId: CurveId): ICurve {
+  getPumpCurve(curveId: CurveLabel): ICurve {
     const normalizedId = normalizeRef(curveId);
     const validCurve = this.typedCurves.get(normalizedId);
     if (validCurve) return validCurve;
@@ -28,7 +32,7 @@ export class CurvesBuilder {
 
     if (this.isValidPumpCurve(rawCurvePoints)) {
       const curve: ICurve = {
-        id: normalizedId,
+        label: normalizedId,
         type: "pump",
         points: rawCurvePoints,
       };
@@ -38,7 +42,7 @@ export class CurvesBuilder {
       const middleIndex = Math.floor(rawCurvePoints.length / 2);
       const designPoint = rawCurvePoints[middleIndex];
       const curve: ICurve = {
-        id: normalizedId,
+        label: normalizedId,
         type: "pump",
         points: [designPoint],
       };
@@ -68,7 +72,7 @@ export class CurvesBuilder {
     return isValidStandardCurve;
   }
 
-  getValidatedCurves(): Curves {
+  getValidatedCurves(): CurvesDeprecated {
     return this.typedCurves;
   }
 }

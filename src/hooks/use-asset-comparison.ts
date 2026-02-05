@@ -4,7 +4,7 @@ import { worktreeAtom } from "src/state/scenarios";
 import { baseModelAtom } from "src/state/hydraulic-model";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import type { Asset, DemandPatterns } from "src/hydraulic-model";
-import type { CurveId, ICurve } from "src/hydraulic-model/curves";
+import type { CurveLabel, ICurve } from "src/hydraulic-model/curves";
 import {
   calculateAverageDemand,
   type JunctionDemand,
@@ -31,9 +31,11 @@ export function useAssetComparison(asset: Asset | undefined) {
 
   const isNew = isInScenario && asset !== undefined && baseAsset === undefined;
 
-  const getBaseCurve = (curveId: CurveId | undefined): ICurve | undefined => {
+  const getBaseCurve = (
+    curveId: CurveLabel | undefined,
+  ): ICurve | undefined => {
     if (!curveId || !isInScenario) return undefined;
-    return baseModel.curves.get(curveId);
+    return baseModel.curvesDeprecated.get(curveId);
   };
 
   const getComparison = (

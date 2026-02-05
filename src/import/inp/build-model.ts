@@ -149,7 +149,7 @@ export const buildModel = (
     });
   }
 
-  hydraulicModel.curves = curvesBuilder.getValidatedCurves();
+  hydraulicModel.curvesDeprecated = curvesBuilder.getValidatedCurves();
 
   hydraulicModel.demands.patterns = options?.usedPatterns
     ? filterUsedPatterns(patternContext.patterns, patternContext.usedPatternIds)
@@ -427,7 +427,7 @@ const addPump = (
     const curve = curvesBuilder.getPumpCurve(pumpData.curveId);
     definitionProps = {
       definitionType: getPumpCurveType(curve),
-      curveId: curve.id,
+      curveId: curve.label,
     };
   }
 

@@ -344,7 +344,7 @@ export class MemPersistenceDeprecated implements IPersistence {
     }
 
     for (const curve of moment.putCurves || []) {
-      model.curves.set(curve.id, curve);
+      model.curvesDeprecated.set(curve.label, curve);
     }
 
     if (moment.putDemands) {
@@ -433,8 +433,8 @@ export class MemPersistenceDeprecated implements IPersistence {
 
     const updatedCurves =
       forwardMoment.putCurves && forwardMoment.putCurves.length > 0
-        ? new Map(hydraulicModel.curves)
-        : hydraulicModel.curves;
+        ? new Map(hydraulicModel.curvesDeprecated)
+        : hydraulicModel.curvesDeprecated;
 
     this.store.set(stagingModelAtom, {
       ...updatedHydraulicModel,
@@ -450,7 +450,7 @@ export class MemPersistenceDeprecated implements IPersistence {
         : hydraulicModel.controls,
       customerPoints: updatedCustomerPoints,
       customerPointsLookup: hydraulicModel.customerPointsLookup,
-      curves: updatedCurves,
+      curvesDeprecated: updatedCurves,
     });
     this.store.set(dataAtom, {
       selection: ctx.selection,
@@ -618,11 +618,11 @@ export class MemPersistenceDeprecated implements IPersistence {
     const reverseCurves: ICurve[] = [];
 
     for (const newCurve of curves) {
-      const oldCurve = hydraulicModel.curves.get(newCurve.id);
+      const oldCurve = hydraulicModel.curvesDeprecated.get(newCurve.label);
       if (oldCurve) {
         reverseCurves.push(oldCurve);
       }
-      hydraulicModel.curves.set(newCurve.id, newCurve);
+      hydraulicModel.curvesDeprecated.set(newCurve.label, newCurve);
     }
 
     if (reverseCurves.length > 0) {

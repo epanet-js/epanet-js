@@ -211,7 +211,7 @@ describe("addLink", () => {
 
       expect(putCurves).toHaveLength(1);
       expect(putCurves![0]).toEqual({
-        id: String(link.id),
+        label: String(link.id),
         type: "pump",
         points: [{ x: 1, y: 1 }],
       });

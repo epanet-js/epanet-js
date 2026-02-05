@@ -1,7 +1,11 @@
 import { useState, useCallback, useMemo } from "react";
 import { useTranslate } from "src/hooks/use-translate";
 import { NumericField } from "src/components/form/numeric-field";
-import { CurveId, Curves, ICurve } from "src/hydraulic-model/curves";
+import {
+  CurveLabel,
+  CurvesDeprecated,
+  ICurve,
+} from "src/hydraulic-model/curves";
 import { Quantities } from "src/model-metadata/quantities-spec";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { Pump, PumpDefintionType } from "src/hydraulic-model/asset-types/pump";
@@ -17,8 +21,8 @@ export interface PumpCurvePoint {
 
 export type PumpDefinitionData =
   | { type: "power"; power: number }
-  | { type: "design-point"; curveId: CurveId; points: PumpCurvePoint[] }
-  | { type: "standard"; curveId: CurveId; points: PumpCurvePoint[] };
+  | { type: "design-point"; curveId: CurveLabel; points: PumpCurvePoint[] }
+  | { type: "standard"; curveId: CurveLabel; points: PumpCurvePoint[] };
 
 interface MaybePumpCurvePoint {
   flow?: number;
@@ -35,7 +39,7 @@ export const PumpDefinitionDetails = ({
   baseCurve,
 }: {
   pump: Pump;
-  curves: Curves;
+  curves: CurvesDeprecated;
   quantities: Quantities;
   readonly?: boolean;
   onChange: (newData: PumpDefinitionData) => void;
@@ -194,7 +198,7 @@ const PumpDefinitionDetailsInner = ({
 
       onChange({
         type: newValue,
-        curveId: curve?.id || String(pump.id),
+        curveId: curve?.label || String(pump.id),
         points: validationResult.points,
       });
     },

@@ -72,7 +72,7 @@ export const addLink: ModelOperation<InputData> = (hydraulicModel, data) => {
 
   const putCurves: ICurve[] | undefined =
     linkCopy.type === "pump"
-      ? [{ id: String(linkCopy.id), type: "pump", points: [{ x: 1, y: 1 }] }]
+      ? [{ label: String(linkCopy.id), type: "pump", points: [{ x: 1, y: 1 }] }]
       : undefined;
 
   return {

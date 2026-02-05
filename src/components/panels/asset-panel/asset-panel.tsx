@@ -60,7 +60,7 @@ import {
   PumpDefinitionDetails,
   PumpDefinitionData,
 } from "./pump-definition-details";
-import { Curves } from "src/hydraulic-model/curves";
+import { CurvesDeprecated } from "src/hydraulic-model/curves";
 import { useQuickGraph } from "./quick-graph";
 import { useAssetComparison } from "src/hooks/use-asset-comparison";
 import { useSimulation } from "src/hooks/use-simulation";
@@ -338,7 +338,7 @@ export function AssetPanel({
       return (
         <PumpEditor
           pump={pump}
-          curves={hydraulicModel.curves}
+          curves={hydraulicModel.curvesDeprecated}
           onPropertyChange={handlePropertyChange}
           onStatusChange={handleStatusChange}
           onActiveTopologyStatusChange={handleActiveTopologyStatusChange}
@@ -1191,7 +1191,7 @@ const PumpEditor = ({
   onDefinitionChange: (data: PumpDefinitionData) => void;
   onLabelChange: (newLabel: string) => string | undefined;
   quantitiesMetadata: Quantities;
-  curves: Curves;
+  curves: CurvesDeprecated;
   readonly?: boolean;
 }) => {
   const translate = useTranslate();

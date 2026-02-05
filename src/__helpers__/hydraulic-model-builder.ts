@@ -44,7 +44,7 @@ import {
   CustomerPoints,
   initializeCustomerPoints,
 } from "src/hydraulic-model/customer-points";
-import { Curves, ICurve } from "src/hydraulic-model/curves";
+import { Curves, CurvesDeprecated, ICurve } from "src/hydraulic-model/curves";
 
 export const buildPipe = (
   data: PipeBuildData = {},
@@ -146,6 +146,7 @@ export class HydraulicModelBuilder {
   private customerPointsMap: CustomerPoints;
   private idGenerator: WritableIdGenerator;
   private curves: Curves;
+  private curvesDeprecated: CurvesDeprecated;
   private epsTiming: EPSTiming;
   private controlsValue: Controls;
 
@@ -174,6 +175,7 @@ export class HydraulicModelBuilder {
     this.demands = createEmptyDemands();
     this.headlossFormulaValue = "H-W";
     this.curves = new Map();
+    this.curvesDeprecated = new Map();
     this.epsTiming = {};
     this.controlsValue = createEmptyControls();
   }
@@ -373,7 +375,7 @@ export class HydraulicModelBuilder {
   }
 
   aPumpCurve(curve: Omit<ICurve, "type">) {
-    this.curves.set(curve.id, { ...curve, type: "pump" });
+    this.curvesDeprecated.set(curve.label, { ...curve, type: "pump" });
     return this;
   }
 
@@ -445,6 +447,7 @@ export class HydraulicModelBuilder {
       demands: this.demands,
       headlossFormula: this.headlossFormulaValue,
       curves: this.curves,
+      curvesDeprecated: this.curvesDeprecated,
       epsTiming: this.epsTiming,
       controls: this.controlsValue,
     };

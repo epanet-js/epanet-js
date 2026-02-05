@@ -5,24 +5,28 @@ import {
   PumpDefinitionDetails,
 } from "./pump-definition-details";
 import { Quantities, presets } from "src/model-metadata/quantities-spec";
-import { CurveId, Curves, ICurve } from "src/hydraulic-model/curves";
+import {
+  CurveLabel,
+  CurvesDeprecated,
+  ICurve,
+} from "src/hydraulic-model/curves";
 import { buildPump } from "src/__helpers__/hydraulic-model-builder";
 
 const quantities = new Quantities(presets.LPS);
 
 const aCurve = (
   points: { x: number; y: number }[],
-  id: CurveId = "curve1",
+  id: CurveLabel = "curve1",
 ): ICurve => ({
-  id,
+  label: id,
   type: "pump",
   points,
 });
 
-const aCurvesMap = (curve?: ICurve): Curves => {
-  const map: Curves = new Map();
+const aCurvesMap = (curve?: ICurve): CurvesDeprecated => {
+  const map: CurvesDeprecated = new Map();
   if (curve) {
-    map.set(curve.id, curve);
+    map.set(curve.label, curve);
   }
   return map;
 };
@@ -766,7 +770,7 @@ describe("PumpDefinitionDetails", () => {
         definitionType: "design-point",
         curveId: "curve1",
       });
-      const curves: Curves = new Map();
+      const curves: CurvesDeprecated = new Map();
       const initialCurve = aCurve([{ x: 50, y: 100 }]);
       curves.set("curve1", initialCurve);
 
