@@ -1,51 +1,73 @@
-import type { Worktree, Snapshot } from "./types";
+import type { Worktree, Branch, Version, Snapshot } from "./types";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { nanoid } from "nanoid";
+import { getMainBranch, getHeadVersion } from "./helpers";
 
 export const createScenario = (
   worktree: Worktree,
-): { scenario: Snapshot; worktree: Worktree } => {
-  const mainSnapshot = worktree.snapshots.get(worktree.mainId);
-  if (!mainSnapshot) {
-    throw new Error("Main snapshot not found");
+): { scenario: Branch; worktree: Worktree } => {
+  const mainBranch = getMainBranch(worktree);
+  if (!mainBranch) {
+    throw new Error("Main branch not found");
   }
 
-  const baseMoment = mainSnapshot.deltas[0];
+  const mainVersion = getHeadVersion(worktree, "main");
+  if (!mainVersion) {
+    throw new Error("Main branch has no head version");
+  }
+
+  const baseMoment = mainVersion.deltas[0];
   if (!baseMoment) {
     throw new Error("Cannot create scenario: no model imported yet");
   }
-  const newNumber = worktree.highestScenarioNumber + 1;
-  const newMomentLog = new MomentLog();
-  newMomentLog.setSnapshot(baseMoment, mainSnapshot.version);
 
-  const newScenario: Snapshot = {
-    id: nanoid(),
-    name: `Scenario #${newNumber}`,
-    parentId: worktree.mainId,
-    deltas: mainSnapshot.momentLog.getDeltas(),
-    version: mainSnapshot.version,
-    momentLog: newMomentLog,
-    simulation: null,
-    status: "open",
+  const newNumber = worktree.highestScenarioNumber + 1;
+  const newBranchId = nanoid();
+  const newVersionId = nanoid();
+
+  // Create a new MomentLog for this scenario, initialized with the main's state
+  const newSessionHistory = new MomentLog();
+  newSessionHistory.setSnapshot(baseMoment, mainVersion.id);
+
+  // The new scenario's snapshot shares the same hydraulicModel as main's snapshot
+  const newSnapshot: Snapshot = {
+    versionId: newVersionId,
+    hydraulicModel: mainVersion.snapshot.hydraulicModel,
   };
 
-  const updatedSnapshots = new Map(worktree.snapshots);
-  updatedSnapshots.set(newScenario.id, newScenario);
+  // Create the scenario's initial version, based on main's deltas
+  const newVersion: Version = {
+    id: newVersionId,
+    message: "",
+    deltas: mainBranch.sessionHistory.getDeltas(),
+    parentId: mainVersion.id,
+    status: "revision",
+    timestamp: Date.now(),
+    snapshot: newSnapshot,
+  };
 
-  const isFirstScenario = worktree.scenarios.length === 0;
-  if (isFirstScenario) {
-    updatedSnapshots.set(worktree.mainId, {
-      ...mainSnapshot,
-      status: "locked",
-    });
-  }
+  // Create the new branch
+  const newBranch: Branch = {
+    id: newBranchId,
+    name: `Scenario #${newNumber}`,
+    headRevisionId: newVersionId,
+    simulation: null,
+    sessionHistory: newSessionHistory,
+    draftVersionId: null,
+  };
+
+  const updatedBranches = new Map(worktree.branches);
+  updatedBranches.set(newBranchId, newBranch);
+
+  const updatedVersions = new Map(worktree.versions);
+  updatedVersions.set(newVersionId, newVersion);
 
   return {
-    scenario: newScenario,
+    scenario: newBranch,
     worktree: {
       ...worktree,
-      snapshots: updatedSnapshots,
-      scenarios: [...worktree.scenarios, newScenario.id],
+      branches: updatedBranches,
+      versions: updatedVersions,
       highestScenarioNumber: newNumber,
     },
   };

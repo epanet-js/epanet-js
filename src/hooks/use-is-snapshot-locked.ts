@@ -1,9 +1,14 @@
 import { useAtomValue } from "jotai";
 import { worktreeAtom } from "src/state/scenarios";
+import { isMainLocked, isMainBranch } from "src/lib/worktree";
 
 export const useIsSnapshotLocked = () => {
   const worktree = useAtomValue(worktreeAtom);
-  const activeSnapshot = worktree.snapshots.get(worktree.activeSnapshotId);
 
-  return activeSnapshot?.status === "locked";
+  // Main is locked if scenarios exist
+  if (isMainBranch(worktree.activeBranchId)) {
+    return isMainLocked(worktree);
+  }
+
+  return false;
 };

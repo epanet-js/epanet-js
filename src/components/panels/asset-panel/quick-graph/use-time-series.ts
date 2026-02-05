@@ -13,6 +13,7 @@ import type {
   QuickGraphPropertyByAssetType,
 } from "src/state/quick-graph";
 import { worktreeAtom } from "src/state/scenarios";
+import { isMainBranch } from "src/lib/worktree";
 
 interface UseTimeSeriesOptions<T extends QuickGraphAssetType> {
   assetId: number;
@@ -40,9 +41,9 @@ export function useTimeSeries<T extends QuickGraphAssetType>({
   });
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  const isInScenario = worktree.activeSnapshotId !== worktree.mainId;
-  const mainSnapshot = worktree.snapshots.get(worktree.mainId);
-  const mainSimulation = mainSnapshot?.simulation ?? null;
+  const isInScenario = !isMainBranch(worktree.activeBranchId);
+  const mainBranch = worktree.branches.get("main");
+  const mainSimulation = mainBranch?.simulation ?? null;
 
   const status = simulation.status;
   const metadata =
@@ -80,7 +81,7 @@ export function useTimeSeries<T extends QuickGraphAssetType>({
 
       try {
         const appId = getAppId();
-        const scenarioKey = worktree.activeSnapshotId;
+        const scenarioKey = worktree.activeBranchId;
         const storage = new OPFSStorage(appId, scenarioKey);
         const epsReader = new EPSResultsReader(storage);
         await epsReader.initialize(metadata, simulationIds);
@@ -155,7 +156,7 @@ export function useTimeSeries<T extends QuickGraphAssetType>({
     status,
     metadata,
     simulationIds,
-    worktree.activeSnapshotId,
+    worktree.activeBranchId,
     isInScenario,
     mainSimulation,
   ]);

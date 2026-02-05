@@ -1,10 +1,11 @@
 import type { Worktree } from "./types";
 import type { SimulationState } from "src/state/jotai";
+import { getActiveBranch } from "./helpers";
 
 export const getSimulationForState = (
-  state: Worktree,
+  worktree: Worktree,
   initialSimulationState: SimulationState,
 ): SimulationState => {
-  const activeSnapshot = state.snapshots.get(state.activeSnapshotId);
-  return activeSnapshot?.simulation ?? initialSimulationState;
+  const activeBranch = getActiveBranch(worktree);
+  return activeBranch?.simulation ?? initialSimulationState;
 };

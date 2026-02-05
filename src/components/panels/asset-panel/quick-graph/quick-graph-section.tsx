@@ -6,6 +6,7 @@ import { Selector } from "src/components/form/selector";
 import { useTranslate } from "src/hooks/use-translate";
 import { dataAtom, simulationAtom, stagingModelAtom } from "src/state/jotai";
 import { worktreeAtom } from "src/state/scenarios";
+import { isMainBranch, getActiveBranch } from "src/lib/worktree";
 import { getSimulationMetadata } from "src/simulation/epanet/simulation-metadata";
 import {
   assetPanelFooterAtom,
@@ -117,9 +118,9 @@ const QuickGraphSection = ({
   const hydraulicModel = useAtomValue(stagingModelAtom);
   const { changeTimestep } = useChangeTimestep();
 
-  const isInScenario = worktree.activeSnapshotId !== worktree.mainId;
-  const activeSnapshot = worktree.snapshots.get(worktree.activeSnapshotId);
-  const scenarioName = isInScenario ? (activeSnapshot?.name ?? null) : null;
+  const isInScenario = !isMainBranch(worktree.activeBranchId);
+  const activeBranch = getActiveBranch(worktree);
+  const scenarioName = isInScenario ? (activeBranch?.name ?? null) : null;
   const mainLabel = isInScenario ? translate("scenarios.main") : null;
 
   const selectedProperty = propertyByType[assetType];

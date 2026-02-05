@@ -4,7 +4,18 @@ import type { IPersistenceWithSnapshots } from "src/lib/persistence/ipersistence
 import { EMPTY_MOMENT, MomentInput, Moment } from "src/lib/persistence/moment";
 import { generateKeyBetween } from "fractional-indexing";
 import { worktreeAtom } from "src/state/scenarios";
-import type { Snapshot, Worktree } from "src/lib/worktree/types";
+import type {
+  Worktree,
+  Branch,
+  Version,
+  Snapshot,
+} from "src/lib/worktree/types";
+import {
+  getActiveBranch,
+  getBranch,
+  getHeadVersion,
+  getVersion,
+} from "src/lib/worktree/helpers";
 import {
   type SimulationState,
   Data,
@@ -49,6 +60,7 @@ import { nullSymbologySpec } from "src/map/symbology";
 import { mapSyncMomentAtom, MomentPointer } from "src/state/map";
 
 const MAX_CHANGES_BEFORE_MAP_SYNC = 500;
+const MAIN_BRANCH_ID = "main";
 
 export class Persistence implements IPersistenceWithSnapshots {
   private store: Store;
@@ -57,6 +69,7 @@ export class Persistence implements IPersistenceWithSnapshots {
   constructor(store: Store) {
     this.store = store;
   }
+
   useTransactImport() {
     return (
       hydraulicModel: HydraulicModel,
@@ -109,40 +122,53 @@ export class Persistence implements IPersistenceWithSnapshots {
       this.store.set(selectionAtom, { type: "none" });
       this.store.set(pipeDrawingDefaultsAtom, {});
 
-      this.resetWorktree(snapshotMoment, hydraulicModel.version, momentLog);
+      this.resetWorktree(snapshotMoment, hydraulicModel, momentLog);
     };
   }
 
   private resetWorktree(
     moment: Moment,
-    version: string,
+    hydraulicModel: HydraulicModel,
     momentLog: MomentLog,
   ): void {
-    const mainSnapshot: Snapshot = {
-      id: "main",
-      name: "Main",
-      parentId: null,
+    const versionId = nanoid();
+
+    const snapshot: Snapshot = {
+      versionId,
+      hydraulicModel,
+    };
+
+    const mainVersion: Version = {
+      id: versionId,
+      message: `Import`,
       deltas: [moment],
-      version,
-      momentLog,
+      parentId: null,
+      status: "revision",
+      timestamp: Date.now(),
+      snapshot,
+    };
+
+    const mainBranch: Branch = {
+      id: MAIN_BRANCH_ID,
+      name: "Main",
+      headRevisionId: versionId,
       simulation: initialSimulationState,
-      status: "open",
+      sessionHistory: momentLog,
+      draftVersionId: null,
     };
 
     const worktree: Worktree = {
-      activeSnapshotId: "main",
-      lastActiveSnapshotId: "main",
-      snapshots: new Map([["main", mainSnapshot]]),
-      mainId: "main",
-      scenarios: [],
+      activeBranchId: MAIN_BRANCH_ID,
+      lastActiveBranchId: MAIN_BRANCH_ID,
+      branches: new Map([[MAIN_BRANCH_ID, mainBranch]]),
+      versions: new Map([[versionId, mainVersion]]),
       highestScenarioNumber: 0,
     };
 
     this.store.set(worktreeAtom, worktree);
 
     this.modelCache.clear();
-    const importedModel = this.store.get(stagingModelAtom);
-    this.modelCache.set("main", importedModel);
+    this.modelCache.set(MAIN_BRANCH_ID, hydraulicModel);
   }
 
   useTransact() {
@@ -178,7 +204,7 @@ export class Persistence implements IPersistenceWithSnapshots {
 
       this.store.set(momentLogAtom, momentLog);
       this.store.set(mapSyncMomentAtom, newMapSyncMoment);
-      this.syncSnapshotMomentLog(momentLog, newStateId);
+      this.syncBranchSessionHistory(momentLog, newStateId);
       this.updateCacheAfterTransact();
     };
   }
@@ -186,7 +212,7 @@ export class Persistence implements IPersistenceWithSnapshots {
   private updateCacheAfterTransact(): void {
     const worktree = this.store.get(worktreeAtom);
     const updatedModel = this.store.get(stagingModelAtom);
-    this.modelCache.set(worktree.activeSnapshotId, updatedModel);
+    this.modelCache.set(worktree.activeBranchId, updatedModel);
   }
 
   useHistoryControl() {
@@ -205,13 +231,18 @@ export class Persistence implements IPersistenceWithSnapshots {
 
       this.store.set(momentLogAtom, momentLog);
       this.store.set(mapSyncMomentAtom, newMapSyncMoment);
-      this.syncSnapshotMomentLog(momentLog, action.stateId);
+      this.syncBranchSessionHistory(momentLog, action.stateId);
       this.updateCacheAfterTransact();
     };
   }
 
+  deleteBranchFromCache(branchId: string): void {
+    this.modelCache.delete(branchId);
+  }
+
+  // Keep old name for backwards compatibility
   deleteSnapshotFromCache(snapshotId: string): void {
-    this.modelCache.delete(snapshotId);
+    this.deleteBranchFromCache(snapshotId);
   }
 
   getMomentLog(): MomentLog {
@@ -222,33 +253,40 @@ export class Persistence implements IPersistenceWithSnapshots {
     return this.store.get(simulationAtom);
   }
 
-  private syncSnapshotMomentLog(momentLog: MomentLog, version: string): void {
+  private syncBranchSessionHistory(
+    sessionHistory: MomentLog,
+    _version: string,
+  ): void {
     const worktree = this.store.get(worktreeAtom);
-    const snapshot = worktree.snapshots.get(worktree.activeSnapshotId);
-    if (!snapshot) return;
+    const branch = getActiveBranch(worktree);
+    if (!branch) return;
 
-    const updatedSnapshots = new Map(worktree.snapshots);
-    updatedSnapshots.set(worktree.activeSnapshotId, {
-      ...snapshot,
-      momentLog,
-      version,
+    const updatedBranches = new Map(worktree.branches);
+    updatedBranches.set(worktree.activeBranchId, {
+      ...branch,
+      sessionHistory,
     });
 
-    this.store.set(worktreeAtom, { ...worktree, snapshots: updatedSnapshots });
+    this.store.set(worktreeAtom, { ...worktree, branches: updatedBranches });
   }
 
-  syncSnapshotSimulation(simulation: SimulationState): void {
+  syncBranchSimulation(simulation: SimulationState): void {
     const worktree = this.store.get(worktreeAtom);
-    const snapshot = worktree.snapshots.get(worktree.activeSnapshotId);
-    if (!snapshot) return;
+    const branch = getActiveBranch(worktree);
+    if (!branch) return;
 
-    const updatedSnapshots = new Map(worktree.snapshots);
-    updatedSnapshots.set(worktree.activeSnapshotId, {
-      ...snapshot,
+    const updatedBranches = new Map(worktree.branches);
+    updatedBranches.set(worktree.activeBranchId, {
+      ...branch,
       simulation,
     });
 
-    this.store.set(worktreeAtom, { ...worktree, snapshots: updatedSnapshots });
+    this.store.set(worktreeAtom, { ...worktree, branches: updatedBranches });
+  }
+
+  // Keep old name for backwards compatibility
+  syncSnapshotSimulation(simulation: SimulationState): void {
+    this.syncBranchSimulation(simulation);
   }
 
   private switchMomentLog(momentLog: MomentLog): void {
@@ -273,9 +311,12 @@ export class Persistence implements IPersistenceWithSnapshots {
     });
   }
 
-  async applySnapshot(worktree: Worktree, snapshotId: string): Promise<void> {
-    const snapshot = worktree.snapshots.get(snapshotId);
-    if (!snapshot) return;
+  async applyBranch(worktree: Worktree, branchId: string): Promise<void> {
+    const branch = getBranch(worktree, branchId);
+    if (!branch) return;
+
+    const version = getHeadVersion(worktree, branchId);
+    if (!version) return;
 
     const currentSimulation = this.store.get(simulationAtom);
     const preserveTimestepIndex =
@@ -284,13 +325,13 @@ export class Persistence implements IPersistenceWithSnapshots {
         ? currentSimulation.currentTimestepIndex
         : undefined;
 
-    const stagingModel = this.getOrBuildModel(worktree, snapshotId);
-    const baseModel = this.getOrBuildModel(worktree, worktree.mainId);
+    const stagingModel = this.getOrBuildModel(worktree, branchId);
+    const baseModel = this.getOrBuildModel(worktree, MAIN_BRANCH_ID);
     const simulation = getSimulationForState(worktree, initialSimulationState);
     const { resultsReader, actualTimestepIndex } =
       await this.loadSimulationResults(
         simulation,
-        snapshotId,
+        branchId,
         preserveTimestepIndex,
       );
 
@@ -302,15 +343,20 @@ export class Persistence implements IPersistenceWithSnapshots {
 
     this.store.set(stagingModelAtom, stagingModel);
     this.store.set(baseModelAtom, baseModel);
-    this.switchMomentLog(snapshot.momentLog);
-    this.setModelVersion(snapshot.version);
+    this.switchMomentLog(branch.sessionHistory);
+    this.setModelVersion(version.id);
     this.store.set(simulationAtom, finalSimulation);
     this.store.set(simulationResultsAtom, resultsReader);
   }
 
+  // Keep old name for backwards compatibility
+  async applySnapshot(worktree: Worktree, branchId: string): Promise<void> {
+    return this.applyBranch(worktree, branchId);
+  }
+
   private async loadSimulationResults(
     simulation: SimulationState,
-    snapshotId: string,
+    branchId: string,
     preserveTimestepIndex?: number,
   ): Promise<{
     resultsReader: Awaited<
@@ -332,7 +378,7 @@ export class Persistence implements IPersistenceWithSnapshots {
         ]);
 
       const appId = getAppId();
-      const storage = new OPFSStorage(appId, snapshotId);
+      const storage = new OPFSStorage(appId, branchId);
       const epsReader = new EPSResultsReader(storage);
       await epsReader.initialize(simulation.metadata, simulation.simulationIds);
 
@@ -355,39 +401,46 @@ export class Persistence implements IPersistenceWithSnapshots {
 
   private getOrBuildModel(
     worktree: Worktree,
-    snapshotId: string,
+    branchId: string,
   ): HydraulicModel {
-    const cached = this.modelCache.get(snapshotId);
+    const cached = this.modelCache.get(branchId);
     if (cached) {
       return cached;
     }
 
-    const model = this.buildModelFromDeltas(worktree, snapshotId);
-    this.modelCache.set(snapshotId, model);
+    const model = this.buildModelFromDeltas(worktree, branchId);
+    this.modelCache.set(branchId, model);
     return model;
   }
 
   private buildModelFromDeltas(
     worktree: Worktree,
-    snapshotId: string,
+    branchId: string,
   ): HydraulicModel {
-    const snapshot = worktree.snapshots.get(snapshotId);
-    if (!snapshot) {
-      throw new Error(`Snapshot ${snapshotId} not found`);
+    const branch = getBranch(worktree, branchId);
+    if (!branch) {
+      throw new Error(`Branch ${branchId} not found`);
     }
 
-    const allDeltas: Moment[] = [];
-    let current: Snapshot | undefined = snapshot;
+    const version = getHeadVersion(worktree, branchId);
+    if (!version) {
+      throw new Error(`Head version for branch ${branchId} not found`);
+    }
 
-    while (current) {
-      allDeltas.unshift(...current.deltas);
-      current = current.parentId
-        ? worktree.snapshots.get(current.parentId)
+    // Collect all deltas by walking up the version chain
+    const allDeltas: Moment[] = [];
+    let currentVersion: Version | undefined = version;
+
+    while (currentVersion) {
+      allDeltas.unshift(...currentVersion.deltas);
+      currentVersion = currentVersion.parentId
+        ? getVersion(worktree, currentVersion.parentId)
         : undefined;
     }
 
-    const momentLogDeltas = snapshot.momentLog.getDeltas();
-    allDeltas.push(...momentLogDeltas);
+    // Add session history deltas (uncommitted changes)
+    const sessionHistoryDeltas = branch.sessionHistory.getDeltas();
+    allDeltas.push(...sessionHistoryDeltas);
 
     const ctx = this.store.get(dataAtom);
     const currentHydraulicModel = this.store.get(stagingModelAtom);

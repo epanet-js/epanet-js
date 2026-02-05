@@ -1,76 +1,71 @@
-import type { Worktree, ScenarioOperationResult } from "./types";
+import type { Worktree, BranchOperationResult } from "./types";
+import { getBranch, isMainBranch, getScenarios } from "./helpers";
 
 export const deleteScenario = (
   worktree: Worktree,
   scenarioId: string,
-): ScenarioOperationResult => {
-  if (!worktree.scenarios.includes(scenarioId)) {
-    return { worktree, snapshot: null };
+): BranchOperationResult => {
+  // Can't delete main
+  if (isMainBranch(scenarioId)) {
+    return { worktree, branch: null };
   }
 
-  const scenarioToDelete = worktree.snapshots.get(scenarioId);
-  if (!scenarioToDelete) {
-    return { worktree, snapshot: null };
+  const branchToDelete = getBranch(worktree, scenarioId);
+  if (!branchToDelete) {
+    return { worktree, branch: null };
   }
 
-  const remainingScenarioIds = worktree.scenarios.filter(
-    (id) => id !== scenarioId,
-  );
-  const isDeletedActive = worktree.activeSnapshotId === scenarioId;
-  const isLastScenario = remainingScenarioIds.length === 0;
+  const updatedBranches = new Map(worktree.branches);
+  updatedBranches.delete(scenarioId);
 
-  const updatedSnapshots = new Map(worktree.snapshots);
-  updatedSnapshots.delete(scenarioId);
+  // Also delete associated versions
+  // For now, delete the branch's head version
+  // In the future, might need to handle version chains
+  const updatedVersions = new Map(worktree.versions);
+  updatedVersions.delete(branchToDelete.headRevisionId);
 
-  if (isLastScenario) {
-    const mainSnapshot = worktree.snapshots.get(worktree.mainId);
-    if (mainSnapshot) {
-      updatedSnapshots.set(worktree.mainId, {
-        ...mainSnapshot,
-        status: "open",
-      });
-    }
-    const unlockedMain = updatedSnapshots.get(worktree.mainId);
+  const remainingScenarios = getScenarios({
+    ...worktree,
+    branches: updatedBranches,
+  });
+  const isDeletedActive = worktree.activeBranchId === scenarioId;
+  const isLastScenario = remainingScenarios.length === 0;
 
-    return {
-      worktree: {
-        ...worktree,
-        snapshots: updatedSnapshots,
-        scenarios: [],
-        activeSnapshotId: worktree.mainId,
-        lastActiveSnapshotId: worktree.mainId,
-        highestScenarioNumber: 0,
-      },
-      snapshot: unlockedMain ?? null,
-    };
-  }
-
+  // If deleted the active branch, switch to another
   if (isDeletedActive) {
-    const nextScenarioId = remainingScenarioIds[0];
-    const nextScenario = updatedSnapshots.get(nextScenarioId);
+    const nextBranchId = isLastScenario
+      ? "main"
+      : (remainingScenarios[0]?.id ?? "main");
+    const nextBranch = updatedBranches.get(nextBranchId) ?? null;
 
     return {
       worktree: {
         ...worktree,
-        snapshots: updatedSnapshots,
-        scenarios: remainingScenarioIds,
-        activeSnapshotId: nextScenarioId,
-        lastActiveSnapshotId: nextScenarioId,
+        branches: updatedBranches,
+        versions: updatedVersions,
+        activeBranchId: nextBranchId,
+        lastActiveBranchId: nextBranchId,
+        highestScenarioNumber: isLastScenario
+          ? 0
+          : worktree.highestScenarioNumber,
       },
-      snapshot: nextScenario ?? null,
+      branch: nextBranch,
     };
   }
 
   return {
     worktree: {
       ...worktree,
-      snapshots: updatedSnapshots,
-      scenarios: remainingScenarioIds,
-      lastActiveSnapshotId:
-        worktree.lastActiveSnapshotId === scenarioId
-          ? worktree.mainId
-          : worktree.lastActiveSnapshotId,
+      branches: updatedBranches,
+      versions: updatedVersions,
+      lastActiveBranchId:
+        worktree.lastActiveBranchId === scenarioId
+          ? "main"
+          : worktree.lastActiveBranchId,
+      highestScenarioNumber: isLastScenario
+        ? 0
+        : worktree.highestScenarioNumber,
     },
-    snapshot: null,
+    branch: null,
   };
 };

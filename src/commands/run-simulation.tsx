@@ -61,7 +61,7 @@ export const useRunSimulation = () => {
       };
 
       const appId = getAppId();
-      const scenarioKey = worktree.activeSnapshotId;
+      const scenarioKey = worktree.activeBranchId;
       const { report, status, metadata } = await runSimulationWorker(
         inp,
         appId,
@@ -118,7 +118,7 @@ export const useRunSimulation = () => {
       setSimulationState,
       setSimulationResults,
       setDialogState,
-      worktree.activeSnapshotId,
+      worktree.activeBranchId,
       persistence,
     ],
   );

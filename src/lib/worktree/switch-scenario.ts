@@ -1,35 +1,36 @@
-import type { Worktree, ScenarioOperationResult } from "./types";
+import type { Worktree, BranchOperationResult } from "./types";
+import { getBranch } from "./helpers";
 
-export const switchToSnapshot = (
+export const switchToBranch = (
   worktree: Worktree,
-  targetSnapshotId: string,
-): ScenarioOperationResult => {
-  if (worktree.activeSnapshotId === targetSnapshotId) {
-    return { worktree, snapshot: null };
+  targetBranchId: string,
+): BranchOperationResult => {
+  if (worktree.activeBranchId === targetBranchId) {
+    return { worktree, branch: null };
   }
 
-  const targetSnapshot = worktree.snapshots.get(targetSnapshotId);
-  if (!targetSnapshot) {
-    throw new Error(`Snapshot ${targetSnapshotId} not found`);
+  const targetBranch = getBranch(worktree, targetBranchId);
+  if (!targetBranch) {
+    throw new Error(`Branch ${targetBranchId} not found`);
   }
 
   return {
     worktree: {
       ...worktree,
-      activeSnapshotId: targetSnapshotId,
-      lastActiveSnapshotId: worktree.activeSnapshotId,
+      activeBranchId: targetBranchId,
+      lastActiveBranchId: worktree.activeBranchId,
     },
-    snapshot: targetSnapshot,
+    branch: targetBranch,
   };
 };
 
 export const switchToScenario = (
   worktree: Worktree,
   scenarioId: string,
-): ScenarioOperationResult => {
-  return switchToSnapshot(worktree, scenarioId);
+): BranchOperationResult => {
+  return switchToBranch(worktree, scenarioId);
 };
 
-export const switchToMain = (worktree: Worktree): ScenarioOperationResult => {
-  return switchToSnapshot(worktree, worktree.mainId);
+export const switchToMain = (worktree: Worktree): BranchOperationResult => {
+  return switchToBranch(worktree, "main");
 };

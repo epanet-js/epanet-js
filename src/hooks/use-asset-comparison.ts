@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { useAtomValue } from "jotai";
 import { worktreeAtom } from "src/state/scenarios";
 import { baseModelAtom } from "src/state/hydraulic-model";
+import { isMainBranch } from "src/lib/worktree";
 import type { Asset, DemandPatterns } from "src/hydraulic-model";
 import type { CurveLabel, ICurve } from "src/hydraulic-model/curves";
 import {
@@ -17,7 +18,7 @@ export type PropertyComparison = {
 export function useAssetComparison(asset: Asset | undefined) {
   const worktree = useAtomValue(worktreeAtom);
   const baseModel = useAtomValue(baseModelAtom);
-  const isInScenario = worktree.activeSnapshotId !== worktree.mainId;
+  const isInScenario = !isMainBranch(worktree.activeBranchId);
 
   const baseAsset = useMemo(() => {
     if (!isInScenario || !asset) {

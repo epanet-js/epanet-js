@@ -1,25 +1,47 @@
 import { atom } from "jotai";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { initialSimulationState } from "src/state/jotai";
-import type { Worktree, Snapshot } from "src/lib/worktree/types";
+import { nullHydraulicModel } from "src/state/hydraulic-model";
+import type {
+  Worktree,
+  Branch,
+  Version,
+  Snapshot,
+} from "src/lib/worktree/types";
+import { getScenarios } from "src/lib/worktree/helpers";
 
-const emptyMainSnapshot: Snapshot = {
-  id: "main",
-  name: "Main",
-  parentId: null,
+const MAIN_BRANCH_ID = "main";
+const INITIAL_VERSION_ID = "main-v0";
+
+const initialSnapshot: Snapshot = {
+  versionId: INITIAL_VERSION_ID,
+  hydraulicModel: nullHydraulicModel,
+};
+
+const initialVersion: Version = {
+  id: INITIAL_VERSION_ID,
+  message: "",
   deltas: [],
-  version: "",
-  momentLog: new MomentLog(),
+  parentId: null,
+  status: "revision",
+  timestamp: Date.now(),
+  snapshot: initialSnapshot,
+};
+
+const initialMainBranch: Branch = {
+  id: MAIN_BRANCH_ID,
+  name: "Main",
+  headRevisionId: INITIAL_VERSION_ID,
   simulation: initialSimulationState,
-  status: "open",
+  sessionHistory: new MomentLog(),
+  draftVersionId: null,
 };
 
 export const initialWorktree: Worktree = {
-  activeSnapshotId: "main",
-  lastActiveSnapshotId: "main",
-  snapshots: new Map([["main", emptyMainSnapshot]]),
-  mainId: "main",
-  scenarios: [],
+  activeBranchId: MAIN_BRANCH_ID,
+  lastActiveBranchId: MAIN_BRANCH_ID,
+  branches: new Map([[MAIN_BRANCH_ID, initialMainBranch]]),
+  versions: new Map([[INITIAL_VERSION_ID, initialVersion]]),
   highestScenarioNumber: 0,
 };
 
@@ -27,9 +49,12 @@ export const worktreeAtom = atom<Worktree>(initialWorktree);
 
 export const scenariosListAtom = atom((get) => {
   const state = get(worktreeAtom);
-  return state.scenarios
-    .map((id) => state.snapshots.get(id))
-    .filter((s): s is Snapshot => s !== undefined);
+  return getScenarios(state);
 });
 
-export type { Worktree, Snapshot } from "src/lib/worktree/types";
+export type {
+  Worktree,
+  Snapshot,
+  Branch,
+  Version,
+} from "src/lib/worktree/types";

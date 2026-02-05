@@ -10,6 +10,7 @@ import { useAtomValue, useSetAtom } from "jotai";
 import { notifyPromiseState } from "src/components/notifications";
 import { useUserTracking } from "src/infra/user-tracking";
 import { worktreeAtom } from "src/state/scenarios";
+import { isMainLocked } from "src/lib/worktree";
 
 const getDefaultFsAccess = async () => {
   const { fileSave } = await import("browser-fs-access");
@@ -49,7 +50,7 @@ export const useSaveInp = ({
           const fileInfo = get(fileInfoAtom);
 
           const worktree = get(worktreeAtom);
-          const hasScenarios = worktree.scenarios.length > 0;
+          const hasScenarios = isMainLocked(worktree);
           const hydraulicModel = hasScenarios
             ? get(baseModelAtom)
             : get(stagingModelAtom);
@@ -105,7 +106,7 @@ export const useSaveInp = ({
   );
 
   const worktree = useAtomValue(worktreeAtom);
-  const hasScenarios = worktree.scenarios.length > 0;
+  const hasScenarios = isMainLocked(worktree);
 
   const saveAlerting = useCallback(
     ({ source, isSaveAs = false }: { source: string; isSaveAs?: boolean }) => {

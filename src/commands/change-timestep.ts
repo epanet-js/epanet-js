@@ -41,7 +41,7 @@ export const useChangeTimestep = () => {
 
       try {
         const appId = getAppId();
-        const scenarioKey = worktree.activeSnapshotId;
+        const scenarioKey = worktree.activeBranchId;
         const storage = new OPFSStorage(appId, scenarioKey);
         const epsReader = new EPSResultsReader(storage);
         await epsReader.initialize(metadata, simulationIds);
@@ -73,7 +73,7 @@ export const useChangeTimestep = () => {
       setSimulationResults,
       setSimulationState,
       userTracking,
-      worktree.activeSnapshotId,
+      worktree.activeBranchId,
       persistence,
     ],
   );

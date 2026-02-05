@@ -1,15 +1,16 @@
 import type { Worktree } from "./types";
+import { getBranch } from "./helpers";
 
 export const renameScenario = (
   worktree: Worktree,
   scenarioId: string,
   newName: string,
 ): Worktree => {
-  const snapshot = worktree.snapshots.get(scenarioId);
-  if (!snapshot) return worktree;
+  const branch = getBranch(worktree, scenarioId);
+  if (!branch) return worktree;
 
-  const updatedSnapshots = new Map(worktree.snapshots);
-  updatedSnapshots.set(scenarioId, { ...snapshot, name: newName });
+  const updatedBranches = new Map(worktree.branches);
+  updatedBranches.set(scenarioId, { ...branch, name: newName });
 
-  return { ...worktree, snapshots: updatedSnapshots };
+  return { ...worktree, branches: updatedBranches };
 };

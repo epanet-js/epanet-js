@@ -1,28 +1,50 @@
 import type { MomentLog } from "src/lib/persistence/moment-log";
 import type { Moment } from "src/lib/persistence/moment";
 import type { SimulationState } from "src/state/jotai";
+import { HydraulicModel } from "src/hydraulic-model";
+
+export type VersionId = string;
+export type BranchId = string;
 
 export type Snapshot = {
-  id: string;
-  name: string;
-  parentId: string | null;
-  deltas: Moment[];
-  version: string;
-  momentLog: MomentLog;
-  simulation: SimulationState | null;
-  status: "open" | "locked";
+  versionId: VersionId;
+  hydraulicModel: HydraulicModel;
 };
 
+type EphemeralBranchState = {
+  simulation: SimulationState | null;
+  sessionHistory: MomentLog;
+  draftVersionId: VersionId | null;
+};
+
+export type Branch = {
+  id: BranchId;
+  name: string;
+  headRevisionId: VersionId;
+} & EphemeralBranchState;
+
+export type EphemeralVersionState = {
+  snapshot: Snapshot;
+};
+
+export type Version = {
+  id: VersionId;
+  message: string;
+  deltas: Moment[];
+  parentId: VersionId | null;
+  status: "revision" | "draft";
+  timestamp: number;
+} & EphemeralVersionState;
+
 export interface Worktree {
-  activeSnapshotId: string;
-  lastActiveSnapshotId: string;
-  snapshots: Map<string, Snapshot>;
-  mainId: string;
-  scenarios: string[];
+  activeBranchId: BranchId;
+  lastActiveBranchId: BranchId;
+  branches: Map<BranchId, Branch>;
+  versions: Map<VersionId, Version>;
   highestScenarioNumber: number;
 }
 
-export interface ScenarioOperationResult {
+export interface BranchOperationResult {
   worktree: Worktree;
-  snapshot: Snapshot | null;
+  branch: Branch | null;
 }

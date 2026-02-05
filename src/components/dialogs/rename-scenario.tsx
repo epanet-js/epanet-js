@@ -19,6 +19,7 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { useTranslate } from "src/hooks/use-translate";
 import { InlineError } from "src/components/inline-error";
 import { worktreeAtom } from "src/state/scenarios";
+import { getScenarios } from "src/lib/worktree";
 
 export const RenameScenarioDialog = ({
   scenarioId,
@@ -51,11 +52,9 @@ export const RenameScenarioDialog = ({
         return translate("scenarios.renameDialog.errorReserved");
       }
 
-      const scenarios = worktree.scenarios
-        .map((id) => worktree.snapshots.get(id))
-        .filter(Boolean);
+      const scenarios = getScenarios(worktree);
       const isDuplicate = scenarios.some(
-        (s) => s!.id !== scenarioId && s!.name === trimmed,
+        (s) => s.id !== scenarioId && s.name === trimmed,
       );
 
       if (isDuplicate) {
@@ -64,7 +63,7 @@ export const RenameScenarioDialog = ({
 
       return null;
     },
-    [scenarioId, worktree.scenarios, worktree.snapshots, translate],
+    [scenarioId, worktree, translate],
   );
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {

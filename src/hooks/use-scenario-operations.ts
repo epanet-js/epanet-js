@@ -6,9 +6,10 @@ import { worktreeAtom } from "src/state/scenarios";
 import { modeAtom, Mode } from "src/state/mode";
 import {
   createScenario,
-  switchToSnapshot as switchToSnapshotFn,
+  switchToBranch,
   deleteScenario,
   renameScenario,
+  isMainLocked,
 } from "src/lib/worktree";
 import type { Worktree } from "src/lib/worktree";
 
@@ -29,20 +30,20 @@ export const useScenarioOperations = () => {
   const setMode = useSetAtom(modeAtom);
 
   const performSwitch = useCallback(
-    async (worktree: Worktree, snapshotId: string) => {
-      const result = switchToSnapshotFn(worktree, snapshotId);
+    async (worktree: Worktree, branchId: string) => {
+      const result = switchToBranch(worktree, branchId);
 
-      if (result.snapshot) {
-        await (persistence as Persistence).applySnapshot(
+      if (result.branch) {
+        await (persistence as Persistence).applyBranch(
           result.worktree,
-          result.snapshot.id,
+          result.branch.id,
         );
       }
 
       setWorktree(result.worktree);
 
-      const targetSnapshot = result.worktree.snapshots.get(snapshotId);
-      if (targetSnapshot?.status === "locked") {
+      // Disable drawing modes when switching to locked main
+      if (branchId === "main" && isMainLocked(result.worktree)) {
         setMode((modeState) => {
           if (DRAWING_MODES.includes(modeState.mode)) {
             return { mode: Mode.NONE };
@@ -58,9 +59,9 @@ export const useScenarioOperations = () => {
 
   const switchToSnapshot = useAtomCallback(
     useCallback(
-      (get, _set, snapshotId: string) => {
+      (get, _set, branchId: string) => {
         const worktree = get(worktreeAtom);
-        void performSwitch(worktree, snapshotId);
+        void performSwitch(worktree, branchId);
       },
       [performSwitch],
     ),
@@ -70,7 +71,7 @@ export const useScenarioOperations = () => {
     useCallback(
       (get) => {
         const worktree = get(worktreeAtom);
-        void performSwitch(worktree, worktree.mainId);
+        void performSwitch(worktree, "main");
       },
       [performSwitch],
     ),
@@ -81,15 +82,12 @@ export const useScenarioOperations = () => {
       async (get) => {
         const worktree = get(worktreeAtom);
         const created = createScenario(worktree);
-        const result = switchToSnapshotFn(
-          created.worktree,
-          created.scenario.id,
-        );
+        const result = switchToBranch(created.worktree, created.scenario.id);
 
-        if (result.snapshot) {
-          await (persistence as Persistence).applySnapshot(
+        if (result.branch) {
+          await (persistence as Persistence).applyBranch(
             result.worktree,
-            result.snapshot.id,
+            result.branch.id,
           );
         }
 
@@ -112,10 +110,10 @@ export const useScenarioOperations = () => {
 
         persistence.deleteSnapshotFromCache(scenarioId);
 
-        if (result.snapshot) {
-          await (persistence as Persistence).applySnapshot(
+        if (result.branch) {
+          await (persistence as Persistence).applyBranch(
             result.worktree,
-            result.snapshot.id,
+            result.branch.id,
           );
         }
 
