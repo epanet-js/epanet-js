@@ -8,7 +8,6 @@ import { captureError } from "src/infra/error-tracking";
 import { useUserTracking } from "src/infra/user-tracking";
 import { getSimulationMetadata } from "src/simulation/epanet/simulation-metadata";
 import { worktreeAtom } from "src/state/scenarios";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { usePersistenceWithSnapshots } from "src/lib/persistence";
 
 export const previousTimestepShortcut = "shift+left";
@@ -21,7 +20,6 @@ export const useChangeTimestep = () => {
   const setSimulationState = useSetAtom(simulationAtom);
   const userTracking = useUserTracking();
   const worktree = useAtomValue(worktreeAtom);
-  const isScenariosOn = useFeatureFlag("FLAG_SCENARIOS");
   const persistence = usePersistenceWithSnapshots();
   const setSimulationResults = useSetAtom(simulationResultsAtom);
 
@@ -43,9 +41,7 @@ export const useChangeTimestep = () => {
 
       try {
         const appId = getAppId();
-        const scenarioKey = isScenariosOn
-          ? worktree.activeSnapshotId
-          : undefined;
+        const scenarioKey = worktree.activeSnapshotId;
         const storage = new OPFSStorage(appId, scenarioKey);
         const epsReader = new EPSResultsReader(storage);
         await epsReader.initialize(metadata, simulationIds);
@@ -77,7 +73,6 @@ export const useChangeTimestep = () => {
       setSimulationResults,
       setSimulationState,
       userTracking,
-      isScenariosOn,
       worktree.activeSnapshotId,
       persistence,
     ],

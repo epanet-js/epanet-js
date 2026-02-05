@@ -13,7 +13,6 @@ import type {
   QuickGraphPropertyByAssetType,
 } from "src/state/quick-graph";
 import { worktreeAtom } from "src/state/scenarios";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 interface UseTimeSeriesOptions<T extends QuickGraphAssetType> {
   assetId: number;
@@ -34,7 +33,6 @@ export function useTimeSeries<T extends QuickGraphAssetType>({
 }: UseTimeSeriesOptions<T>): UseTimeSeriesResult {
   const simulation = useAtomValue(simulationAtom);
   const worktree = useAtomValue(worktreeAtom);
-  const isScenariosOn = useFeatureFlag("FLAG_SCENARIOS");
   const [data, setData] = useState<TimeSeries | null>(null);
   const [mainData, setMainData] = useState<TimeSeries | null>(null);
   const [isLoading, setIsLoading] = useState(() => {
@@ -42,8 +40,7 @@ export function useTimeSeries<T extends QuickGraphAssetType>({
   });
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  const isInScenario =
-    isScenariosOn && worktree.activeSnapshotId !== worktree.mainId;
+  const isInScenario = worktree.activeSnapshotId !== worktree.mainId;
   const mainSnapshot = worktree.snapshots.get(worktree.mainId);
   const mainSimulation = mainSnapshot?.simulation ?? null;
 
@@ -83,9 +80,7 @@ export function useTimeSeries<T extends QuickGraphAssetType>({
 
       try {
         const appId = getAppId();
-        const scenarioKey = isScenariosOn
-          ? worktree.activeSnapshotId
-          : undefined;
+        const scenarioKey = worktree.activeSnapshotId;
         const storage = new OPFSStorage(appId, scenarioKey);
         const epsReader = new EPSResultsReader(storage);
         await epsReader.initialize(metadata, simulationIds);
@@ -160,7 +155,6 @@ export function useTimeSeries<T extends QuickGraphAssetType>({
     status,
     metadata,
     simulationIds,
-    isScenariosOn,
     worktree.activeSnapshotId,
     isInScenario,
     mainSimulation,

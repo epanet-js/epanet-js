@@ -1,11 +1,9 @@
 import { useMemo, type ReactNode } from "react";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import type { Store } from "src/state/jotai";
 import {
   PersistenceContext,
   PersistenceWithSnapshotsContext,
 } from "src/lib/persistence/context";
-import { MemPersistenceDeprecated } from "src/lib/persistence/memory-deprecated";
 import { Persistence } from "src/lib/persistence/persistence";
 
 type Props = {
@@ -14,27 +12,11 @@ type Props = {
 };
 
 export function PersistenceProvider({ store, children }: Props) {
-  const isScenariosOn = useFeatureFlag("FLAG_SCENARIOS");
-
-  const deprecatedPersistence = useMemo(
-    () => new MemPersistenceDeprecated(store),
-    [store],
-  );
-
-  const newPersistence = useMemo(() => {
-    if (isScenariosOn) {
-      return new Persistence(store);
-    }
-    return null;
-  }, [store, isScenariosOn]);
-
-  const mainPersistence = newPersistence ?? deprecatedPersistence;
+  const persistence = useMemo(() => new Persistence(store), [store]);
 
   return (
-    <PersistenceContext.Provider value={mainPersistence}>
-      <PersistenceWithSnapshotsContext.Provider
-        value={newPersistence ?? deprecatedPersistence}
-      >
+    <PersistenceContext.Provider value={persistence}>
+      <PersistenceWithSnapshotsContext.Provider value={persistence}>
         {children}
       </PersistenceWithSnapshotsContext.Provider>
     </PersistenceContext.Provider>

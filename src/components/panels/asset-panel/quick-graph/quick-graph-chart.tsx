@@ -4,7 +4,6 @@ import type { EChartsOption } from "echarts";
 import { useTranslate } from "src/hooks/use-translate";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { colors } from "src/lib/constants";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 interface QuickGraphChartProps {
   values: number[];
@@ -34,7 +33,6 @@ function QuickGraphChartECharts({
   scenarioName,
 }: QuickGraphChartProps) {
   const translate = useTranslate();
-  const isScenariosOn = useFeatureFlag("FLAG_SCENARIOS");
 
   const showLegend = mainValues && mainValues.length > 0;
 
@@ -144,7 +142,7 @@ function QuickGraphChartECharts({
         const timeLabel = params[0]?.name ?? "";
         const lines = params.map((p: any) => {
           const value = localizeDecimal(p.value, { decimals });
-          const isComparingScenarios = isScenariosOn && mainValues !== null;
+          const isComparingScenarios = mainValues !== null;
           if (!isComparingScenarios) return value;
           const colorDot = `<span style="display:inline-block;width:8px;height:8px;background:${p.color};margin-right:4px;border-radius:50%;"></span>`;
           return `${colorDot}${p.seriesName ?? ""}: ${value}`;

@@ -17,7 +17,6 @@ import { Mode } from "src/state/mode";
 import { getAppId } from "src/infra/app-instance";
 import { OPFSStorage } from "src/infra/storage";
 import { worktreeAtom } from "src/state/scenarios";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { usePersistenceWithSnapshots } from "src/lib/persistence";
 
 export const runSimulationShortcut = "shift+enter";
@@ -28,7 +27,6 @@ export const useRunSimulation = () => {
   const hydraulicModel = useAtomValue(stagingModelAtom);
   const setDrawingMode = useDrawingMode();
   const worktree = useAtomValue(worktreeAtom);
-  const isScenariosOn = useFeatureFlag("FLAG_SCENARIOS");
   const persistence = usePersistenceWithSnapshots();
   const setSimulationResults = useSetAtom(simulationResultsAtom);
 
@@ -63,7 +61,7 @@ export const useRunSimulation = () => {
       };
 
       const appId = getAppId();
-      const scenarioKey = isScenariosOn ? worktree.activeSnapshotId : undefined;
+      const scenarioKey = worktree.activeSnapshotId;
       const { report, status, metadata } = await runSimulationWorker(
         inp,
         appId,
@@ -120,7 +118,6 @@ export const useRunSimulation = () => {
       setSimulationState,
       setSimulationResults,
       setDialogState,
-      isScenariosOn,
       worktree.activeSnapshotId,
       persistence,
     ],

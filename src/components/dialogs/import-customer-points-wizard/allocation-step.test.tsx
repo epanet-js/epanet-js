@@ -11,7 +11,7 @@ import { anAllocationRule } from "src/__helpers__/hydraulic-model-builder";
 import { ImportCustomerPointsWizard } from "./index";
 import { wizardStateAtom } from "./use-wizard-state";
 import { WizardState } from "./types";
-import { MemPersistenceDeprecated } from "src/lib/persistence/memory-deprecated";
+import { Persistence } from "src/lib/persistence/persistence";
 import { PersistenceContext } from "src/lib/persistence/context";
 import { vi } from "vitest";
 import { allocateCustomerPoints } from "src/hydraulic-model/model-operations/allocate-customer-points";
@@ -386,7 +386,7 @@ const waitForAllocations = () => {
 };
 
 const renderWizard = (store: Store) => {
-  const persistence = new MemPersistenceDeprecated(store);
+  const persistence = new Persistence(store);
   return render(
     <PersistenceContext.Provider value={persistence}>
       <JotaiProvider store={store}>

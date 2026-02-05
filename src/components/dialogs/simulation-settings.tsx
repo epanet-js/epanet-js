@@ -18,7 +18,6 @@ import { changeDemandSettings } from "src/hydraulic-model/model-operations/chang
 import { changeEPSTiming } from "src/hydraulic-model/model-operations/change-eps-timing";
 import { formatSecondsToDisplay } from "../form/time-field";
 import { worktreeAtom } from "src/state/scenarios";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 type SimulationModeOption = "steadyState" | "eps";
 
@@ -105,9 +104,8 @@ export const SimulationSettingsDialog = () => {
 
 const SimulationSettingsForm = ({ onClose }: { onClose: () => void }) => {
   const translate = useTranslate();
-  const isScenariosOn = useFeatureFlag("FLAG_SCENARIOS");
   const worktree = useAtomValue(worktreeAtom);
-  const hasScenarios = isScenariosOn && worktree.scenarios.length > 0;
+  const hasScenarios = worktree.scenarios.length > 0;
 
   const { hasMissingValues, hasZeroValues } = useTimeSettingsValidation();
 
