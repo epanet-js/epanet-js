@@ -267,7 +267,22 @@ export class Persistence implements IPersistenceWithSnapshots {
       sessionHistory,
     });
 
-    this.store.set(worktreeAtom, { ...worktree, branches: updatedBranches });
+    const updatedVersions = new Map(worktree.versions);
+    if (branch.draftVersionId) {
+      const draft = worktree.versions.get(branch.draftVersionId);
+      if (draft) {
+        updatedVersions.set(branch.draftVersionId, {
+          ...draft,
+          deltas: sessionHistory.getDeltas(),
+        });
+      }
+    }
+
+    this.store.set(worktreeAtom, {
+      ...worktree,
+      branches: updatedBranches,
+      versions: updatedVersions,
+    });
   }
 
   syncBranchSimulation(simulation: SimulationState): void {

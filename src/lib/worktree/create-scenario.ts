@@ -23,44 +23,40 @@ export const createScenario = (
 
   const newNumber = worktree.highestScenarioNumber + 1;
   const newBranchId = nanoid();
-  const newVersionId = nanoid();
+  const draftVersionId = nanoid();
 
-  // Create a new MomentLog for this scenario, initialized with the main's state
   const newSessionHistory = new MomentLog();
   newSessionHistory.setSnapshot(baseMoment, mainVersion.id);
 
-  // The new scenario's snapshot shares the same hydraulicModel as main's snapshot
-  const newSnapshot: Snapshot = {
-    versionId: newVersionId,
+  const draftSnapshot: Snapshot = {
+    versionId: draftVersionId,
     hydraulicModel: mainVersion.snapshot.hydraulicModel,
   };
 
-  // Create the scenario's initial version, based on main's deltas
-  const newVersion: Version = {
-    id: newVersionId,
+  const draftVersion: Version = {
+    id: draftVersionId,
     message: "",
-    deltas: mainBranch.sessionHistory.getDeltas(),
+    deltas: [],
     parentId: mainVersion.id,
-    status: "revision",
+    status: "draft",
     timestamp: Date.now(),
-    snapshot: newSnapshot,
+    snapshot: draftSnapshot,
   };
 
-  // Create the new branch
   const newBranch: Branch = {
     id: newBranchId,
     name: `Scenario #${newNumber}`,
-    headRevisionId: newVersionId,
+    headRevisionId: mainVersion.id,
     simulation: null,
     sessionHistory: newSessionHistory,
-    draftVersionId: null,
+    draftVersionId: draftVersionId,
   };
 
   const updatedBranches = new Map(worktree.branches);
   updatedBranches.set(newBranchId, newBranch);
 
   const updatedVersions = new Map(worktree.versions);
-  updatedVersions.set(newVersionId, newVersion);
+  updatedVersions.set(draftVersionId, draftVersion);
 
   return {
     scenario: newBranch,

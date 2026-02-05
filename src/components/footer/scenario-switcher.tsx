@@ -42,22 +42,23 @@ const VersionDebugInfo = ({
 
   return (
     <div className="text-xs text-gray-400 pl-6 font-mono space-y-0.5">
-      <div className="flex items-center gap-1">
-        <span className="text-green-500">✓</span>
-        <span>rev: {branch.headRevisionId.slice(0, 8)}</span>
-        {headVersion && (
-          <span className="text-gray-500">
-            ({headVersion.deltas.length} deltas)
-          </span>
-        )}
-      </div>
-      {draftVersion && (
+      {draftVersion ? (
         <div className="flex items-center gap-1">
           <span className="text-yellow-500">✎</span>
           <span>draft: {branch.draftVersionId?.slice(0, 8)}</span>
           <span className="text-gray-500">
             ({draftVersion.deltas.length} deltas)
           </span>
+        </div>
+      ) : (
+        <div className="flex items-center gap-1">
+          <span className="text-green-500">✓</span>
+          <span>rev: {branch.headRevisionId.slice(0, 8)}</span>
+          {headVersion && (
+            <span className="text-gray-500">
+              ({headVersion.deltas.length} deltas)
+            </span>
+          )}
         </div>
       )}
     </div>
