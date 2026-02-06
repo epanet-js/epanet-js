@@ -7,7 +7,6 @@ import {
   ArrowUpNarrowWide,
   Bell,
   ChartColumn,
-  ChartSpline,
   Check,
   ChevronDown,
   ChevronLeft,
@@ -193,7 +192,6 @@ export const AddScenarioIcon = icon(GitBranchPlus);
 export const MainModelIcon = icon(Lock);
 export const ControlsIcon = icon(FileCode);
 export const PatternsIcon = icon(ChartColumn);
-export const PumpCurvesIcon = icon(ChartSpline);
 export const RenameIcon = icon(TextCursorInput);
 export const DuplicateIcon = icon(Copy);
 
@@ -216,6 +214,7 @@ export { CustomUnsavedChangesIcon as UnsavedChangesIcon } from "./custom-icons/u
 export { CustomGithubIcon as GithubIcon } from "./custom-icons/github-icon";
 export { CustomPipeIcon as PipeIcon } from "./custom-icons/pipe-icon";
 export { CustomPumpIcon as PumpIcon } from "./custom-icons/pump-icon";
+export { CustomPumpCurvesIcon as PumpCurvesIcon } from "./custom-icons/pump-curves-icon";
 export { CustomTypeOffIcon as TypeOffIcon } from "./custom-icons/type-off-icon";
 export { CustomValveIcon as ValveIcon } from "./custom-icons/valve-icon";
 export { CustomPipesCrossingIcon as PipesCrossinIcon } from "./custom-icons/pipes-crossing-icon";
