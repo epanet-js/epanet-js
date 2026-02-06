@@ -116,6 +116,12 @@ export type AlertNetworkRequiredState = {
   type: "alertNetworkRequired";
 };
 
+export type PromoteVersionDialogState = {
+  type: "promoteVersion";
+  versionId: string;
+  onConfirm: (versionId: string, name: string) => void;
+};
+
 export type DialogState =
   | InvalidFilesErrorDialogState
   | {
@@ -147,6 +153,7 @@ export type DialogState =
   | FirstScenarioDialogState
   | AlertScenariosNotSavedState
   | AlertNetworkRequiredState
+  | PromoteVersionDialogState
   | null;
 
 export const dialogFromUrl = (): DialogState => {

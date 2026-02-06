@@ -301,6 +301,20 @@ const ScenariosPaywallDialog = dynamic<{
   },
 );
 
+const PromoteVersionDialog = dynamic<{
+  versionId: string;
+  onConfirm: (versionId: string, name: string) => void;
+  onClose: () => void;
+}>(
+  () =>
+    import("src/components/dialogs/promote-version").then(
+      (r) => r.PromoteVersionDialog,
+    ),
+  {
+    loading: () => <LoadingDialog />,
+  },
+);
+
 const FirstScenarioDialog = dynamic<{
   onConfirm: () => void;
   onClose: () => void;
@@ -469,6 +483,13 @@ export const Dialogs = memo(function Dialogs() {
         />
       ),
     )
+    .with({ type: "promoteVersion" }, ({ versionId, onConfirm }) => (
+      <PromoteVersionDialog
+        versionId={versionId}
+        onConfirm={onConfirm}
+        onClose={onClose}
+      />
+    ))
     .exhaustive();
 
   //DEPRECATED PATH! NEW DIALOGS SHOW USE DialogContainer COMPONENT

@@ -9,6 +9,7 @@ import {
   switchToBranch,
   deleteScenario,
   renameScenario,
+  promoteVersion,
 } from "src/lib/worktree";
 import type { Worktree } from "src/lib/worktree";
 import { stagingModelAtom } from "src/state/hydraulic-model";
@@ -136,6 +137,31 @@ export const useScenarioOperations = () => {
     ),
   );
 
+  const promoteVersionToNewBranch = useAtomCallback(
+    useCallback(
+      async (get, _set, versionId: string, name: string) => {
+        const worktree = get(worktreeAtom);
+        const promoted = promoteVersion(worktree, versionId, name);
+        const result = switchToBranch(promoted.worktree, promoted.branch.id);
+
+        if (result.branch) {
+          await (persistence as Persistence).applyBranch(
+            result.worktree,
+            result.branch.id,
+          );
+        }
+
+        setWorktree(result.worktree);
+
+        return {
+          scenarioId: promoted.branch.id,
+          scenarioName: promoted.branch.name,
+        };
+      },
+      [persistence, setWorktree],
+    ),
+  );
+
   const createRevisionOnActive = useAtomCallback(
     useCallback(
       (get) => {
@@ -161,5 +187,6 @@ export const useScenarioOperations = () => {
     deleteScenarioById,
     renameScenarioById,
     createRevisionOnActive,
+    promoteVersionToNewBranch,
   };
 };

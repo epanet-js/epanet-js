@@ -1,16 +1,18 @@
-import { useMemo } from "react";
-import { useAtomValue } from "jotai";
+import { useCallback, useMemo } from "react";
+import { useAtomValue, useSetAtom } from "jotai";
+import { dialogAtom } from "src/state/jotai";
 import { worktreeAtom } from "src/state/scenarios";
 import { getMainBranch, getBranch } from "src/lib/worktree";
 import type { Branch, Version, Worktree } from "src/lib/worktree";
 import { useScenarioOperations } from "src/hooks/use-scenario-operations";
-import { AddScenarioIcon, CommitIcon, MainModelIcon } from "src/icons";
+import { AddScenarioIcon, CommitIcon, MainModelIcon, PinIcon } from "src/icons";
 
 type BranchTree = {
   children: Map<string, string[]>;
   ownVersionIds: Map<string, Set<string>>;
   lockedRevisionIds: Set<string>;
   forkChildren: Map<string, string[]>; // versionId → child branchIds that fork from it
+  rootBranchIds: string[]; // independent branches displayed at same level as main
 };
 
 function computeBranchTree(worktree: Worktree): BranchTree {
@@ -19,11 +21,18 @@ function computeBranchTree(worktree: Worktree): BranchTree {
   const ownVersionIds = new Map<string, Set<string>>();
   const lockedRevisionIds = new Set<string>();
   const forkChildren = new Map<string, string[]>();
+  const rootBranchIds: string[] = [];
 
   // Claim main's versions first
   const mainBranch = getMainBranch(worktree);
   if (!mainBranch)
-    return { children, ownVersionIds, lockedRevisionIds, forkChildren };
+    return {
+      children,
+      ownVersionIds,
+      lockedRevisionIds,
+      forkChildren,
+      rootBranchIds,
+    };
 
   const mainOwn = new Set<string>();
   let id: string | null = mainBranch.draftVersionId;
@@ -37,7 +46,11 @@ function computeBranchTree(worktree: Worktree): BranchTree {
   ownVersionIds.set(mainBranch.id, mainOwn);
   children.set(mainBranch.id, []);
 
-  // Iteratively resolve scenario parent branches via version ownership
+  // Iteratively resolve all non-main branches.
+  // Each pass can resolve two kinds:
+  //   1. Child branches — chain hits an already-owned version
+  //   2. Independent branches — chain reaches parentId: null
+  // Claiming versions each pass lets the next pass find children of newly-resolved branches.
   let remaining = [...worktree.branches.values()].filter(
     (b) => b.id !== "main",
   );
@@ -64,6 +77,7 @@ function computeBranchTree(worktree: Worktree): BranchTree {
       }
 
       if (foundParent && currentId) {
+        // Child of an existing branch
         lockedRevisionIds.add(currentId);
         if (!forkChildren.has(currentId)) forkChildren.set(currentId, []);
         forkChildren.get(currentId)!.push(branch.id);
@@ -74,6 +88,15 @@ function computeBranchTree(worktree: Worktree): BranchTree {
         children.get(foundParent)!.push(branch.id);
         children.set(branch.id, []);
         changed = true;
+      } else if (!foundParent && currentId === null) {
+        // Independent branch — chain reached null without hitting any owner
+        for (const vid of own) {
+          versionOwner.set(vid, branch.id);
+        }
+        ownVersionIds.set(branch.id, own);
+        children.set(branch.id, []);
+        rootBranchIds.push(branch.id);
+        changed = true;
       } else {
         nextRemaining.push(branch);
       }
@@ -82,14 +105,20 @@ function computeBranchTree(worktree: Worktree): BranchTree {
     remaining = nextRemaining;
   }
 
-  // Orphaned branches → attach to main
+  // Truly orphaned branches (broken chain) → attach to main
   for (const branch of remaining) {
     ownVersionIds.set(branch.id, new Set());
     children.get(mainBranch.id)!.push(branch.id);
     children.set(branch.id, []);
   }
 
-  return { children, ownVersionIds, lockedRevisionIds, forkChildren };
+  return {
+    children,
+    ownVersionIds,
+    lockedRevisionIds,
+    forkChildren,
+    rootBranchIds,
+  };
 }
 
 function getVersionChain(
@@ -128,11 +157,13 @@ function VersionNode({
   isLocked,
   onBranch,
   onCommit,
+  onPromote,
 }: {
   version: Version;
   isLocked?: boolean;
   onBranch?: () => void;
   onCommit?: () => void;
+  onPromote?: () => void;
 }) {
   const statusIcon = version.status === "draft" ? "✎" : "✓";
   const iconColor =
@@ -166,6 +197,15 @@ function VersionNode({
             <AddScenarioIcon size="sm" />
           </button>
         )}
+        {onPromote && (
+          <button
+            onClick={onPromote}
+            className="text-gray-400 hover:text-orange-500 dark:hover:text-orange-400 transition-colors"
+            title="Pin — promote to independent branch"
+          >
+            <PinIcon size="sm" />
+          </button>
+        )}
       </div>
       <div className="pl-5 mt-0.5">
         <DeltaList version={version} />
@@ -182,6 +222,7 @@ function BranchNode({
   depth,
   onCreateRevision,
   onBranchFromVersion,
+  onPromoteVersion,
 }: {
   branchId: string;
   worktree: Worktree;
@@ -190,6 +231,7 @@ function BranchNode({
   depth: number;
   onCreateRevision: () => void;
   onBranchFromVersion: (versionId: string) => void;
+  onPromoteVersion: (versionId: string) => void;
 }) {
   const branch = getBranch(worktree, branchId);
   if (!branch) return null;
@@ -224,6 +266,7 @@ function BranchNode({
                 version={version}
                 isLocked={tree.lockedRevisionIds.has(version.id)}
                 onBranch={() => onBranchFromVersion(version.id)}
+                onPromote={() => onPromoteVersion(version.id)}
               />
             </div>
             {forkedChildren && forkedChildren.length > 0 && (
@@ -238,6 +281,7 @@ function BranchNode({
                     depth={depth + 1}
                     onCreateRevision={onCreateRevision}
                     onBranchFromVersion={onBranchFromVersion}
+                    onPromoteVersion={onPromoteVersion}
                   />
                 ))}
               </div>
@@ -271,8 +315,23 @@ function BranchNode({
 
 export function History() {
   const worktree = useAtomValue(worktreeAtom);
-  const { createRevisionOnActive, createScenarioFromVersion } =
-    useScenarioOperations();
+  const {
+    createRevisionOnActive,
+    createScenarioFromVersion,
+    promoteVersionToNewBranch,
+  } = useScenarioOperations();
+  const setDialog = useSetAtom(dialogAtom);
+
+  const openPromoteDialog = useCallback(
+    (versionId: string) => {
+      setDialog({
+        type: "promoteVersion",
+        versionId,
+        onConfirm: promoteVersionToNewBranch,
+      });
+    },
+    [setDialog, promoteVersionToNewBranch],
+  );
 
   const tree = useMemo(() => computeBranchTree(worktree), [worktree]);
 
@@ -289,7 +348,20 @@ export function History() {
           depth={0}
           onCreateRevision={createRevisionOnActive}
           onBranchFromVersion={createScenarioFromVersion}
+          onPromoteVersion={openPromoteDialog}
         />
+        {tree.rootBranchIds.map((rootId) => (
+          <BranchNode
+            key={rootId}
+            branchId={rootId}
+            worktree={worktree}
+            tree={tree}
+            depth={0}
+            onCreateRevision={createRevisionOnActive}
+            onBranchFromVersion={createScenarioFromVersion}
+            onPromoteVersion={openPromoteDialog}
+          />
+        ))}
       </div>
       <div className="px-3 py-2 text-xs text-gray-400 dark:text-gray-500 border-t border-gray-200 dark:border-gray-700 mt-auto">
         <div>Branches: {worktree.branches.size}</div>
