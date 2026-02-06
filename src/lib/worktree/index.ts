@@ -8,6 +8,7 @@ export type {
   BranchOperationResult,
 } from "./types";
 export { createScenario } from "./create-scenario";
+export { createRevision } from "./create-revision";
 export {
   switchToBranch,
   switchToScenario,

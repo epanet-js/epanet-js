@@ -6,12 +6,14 @@ import { worktreeAtom } from "src/state/scenarios";
 import { modeAtom, Mode } from "src/state/mode";
 import {
   createScenario,
+  createRevision,
   switchToBranch,
   deleteScenario,
   renameScenario,
   isMainLocked,
 } from "src/lib/worktree";
 import type { Worktree } from "src/lib/worktree";
+import { stagingModelAtom } from "src/state/hydraulic-model";
 
 const DRAWING_MODES: Mode[] = [
   Mode.DRAW_JUNCTION,
@@ -133,11 +135,29 @@ export const useScenarioOperations = () => {
     ),
   );
 
+  const createRevisionOnActive = useAtomCallback(
+    useCallback(
+      (get) => {
+        const worktree = get(worktreeAtom);
+        const hydraulicModel = get(stagingModelAtom);
+        const newWorktree = createRevision(
+          worktree,
+          worktree.activeBranchId,
+          hydraulicModel,
+          "",
+        );
+        (persistence as Persistence).applyRevision(newWorktree);
+      },
+      [persistence],
+    ),
+  );
+
   return {
     switchToSnapshot,
     switchToMain,
     createNewScenario,
     deleteScenarioById,
     renameScenarioById,
+    createRevisionOnActive,
   };
 };

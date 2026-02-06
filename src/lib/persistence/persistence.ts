@@ -417,6 +417,13 @@ export class Persistence implements IPersistenceWithSnapshots {
     });
   }
 
+  applyRevision(newWorktree: Worktree): void {
+    const branch = getActiveBranch(newWorktree);
+    if (!branch) return;
+    this.switchMomentLog(branch.sessionHistory);
+    this.store.set(worktreeAtom, newWorktree);
+  }
+
   getModelVersion(): string {
     const hydraulicModel = this.store.get(stagingModelAtom);
     return hydraulicModel.version;
