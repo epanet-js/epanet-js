@@ -1,7 +1,21 @@
 import { useAtomValue } from "jotai";
 import { worktreeAtom } from "src/state/scenarios";
 import { getMainBranch, getScenarios, isMainBranch } from "src/lib/worktree";
-import type { Branch, Worktree } from "src/lib/worktree";
+import type { Branch, Version, Worktree } from "src/lib/worktree";
+
+function DeltaList({ version }: { version: Version }) {
+  if (version.deltas.length === 0) return null;
+
+  return (
+    <div className="pl-4 space-y-0.5">
+      {version.deltas.map((delta, i) => (
+        <div key={i} className="text-xs text-gray-500 dark:text-gray-400">
+          {delta.note || "untitled"}
+        </div>
+      ))}
+    </div>
+  );
+}
 
 function VersionInfo({
   branch,
@@ -18,22 +32,22 @@ function VersionInfo({
   return (
     <div className="text-xs text-gray-400 font-mono space-y-0.5">
       {headVersion && (
-        <div className="flex items-center gap-1">
-          <span className="text-green-500">✓</span>
-          <span>rev: {branch.headRevisionId.slice(0, 8)}</span>
-          <span className="text-gray-500">
-            ({headVersion.deltas.length} deltas)
-          </span>
-        </div>
+        <>
+          <div className="flex items-center gap-1">
+            <span className="text-green-500">✓</span>
+            <span>rev: {branch.headRevisionId.slice(0, 8)}</span>
+          </div>
+          <DeltaList version={headVersion} />
+        </>
       )}
       {draftVersion && (
-        <div className="flex items-center gap-1">
-          <span className="text-yellow-500">✎</span>
-          <span>draft: {branch.draftVersionId?.slice(0, 8)}</span>
-          <span className="text-gray-500">
-            ({draftVersion.deltas.length} deltas)
-          </span>
-        </div>
+        <>
+          <div className="flex items-center gap-1">
+            <span className="text-yellow-500">✎</span>
+            <span>draft: {branch.draftVersionId?.slice(0, 8)}</span>
+          </div>
+          <DeltaList version={draftVersion} />
+        </>
       )}
     </div>
   );
