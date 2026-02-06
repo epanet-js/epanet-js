@@ -1,7 +1,7 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { buildInpWithAllCurves } from "./build-inp-with-all-curves";
 
-describe("build inp", () => {
+describe("build inp with pumps and curves", () => {
   it("adds pumps with a local curve", () => {
     const IDS = { NODE1: 1, NODE2: 2, PUMP1: 4 };
     const hydraulicModel = HydraulicModelBuilder.with()
@@ -217,6 +217,45 @@ describe("build inp", () => {
       // Pump curve definition
       expect(inp).toContain("PU1\t20\t40");
       expect(inp).toContain("PU1.1\t40\t60");
+    });
+
+    it("keeps curve ID when curve is used by multiple pumps", () => {
+      const IDS = { NODE1: 1, NODE2: 2, PUMP1: 4, PUMP2: 5, CURVE: 1 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.NODE1, { label: "J1" })
+        .aJunction(IDS.NODE2, { label: "J2" })
+        .aPump(IDS.PUMP1, {
+          startNodeId: IDS.NODE1,
+          endNodeId: IDS.NODE2,
+          label: "PU1",
+          initialStatus: "on",
+          definitionType: "curveId",
+          curveId: IDS.CURVE,
+          speed: 0.8,
+        })
+        .aPump(IDS.PUMP2, {
+          startNodeId: IDS.NODE1,
+          endNodeId: IDS.NODE2,
+          label: "PU2",
+          initialStatus: "on",
+          definitionType: "curveId",
+          curveId: IDS.CURVE,
+          speed: 0.8,
+        })
+        .aPumpCurve({
+          id: IDS.CURVE,
+          label: "CURVE",
+          points: [{ x: 40, y: 60 }],
+        })
+        .build();
+
+      const inp = buildInpWithAllCurves(hydraulicModel, { labelIds: true });
+
+      expect(inp).toContain("[PUMPS]");
+      expect(inp).toContain("PU1\tJ1\tJ2\tHEAD CURVE\tSPEED 0.8");
+      expect(inp).toContain("PU2\tJ1\tJ2\tHEAD CURVE\tSPEED 0.8");
+      // Pump curve definition
+      expect(inp).toContain("CURVE\t40\t60");
     });
   });
 });

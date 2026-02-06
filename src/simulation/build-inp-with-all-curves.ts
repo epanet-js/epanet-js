@@ -642,7 +642,13 @@ const appendPump = (
       break;
     case "curveId":
       const curve = hydraulicModel.curves.get(pump.curveId!)!;
-      const curveId = idMap.curveId(curve.label);
+      let curveId = curve.label;
+      if (usedCurveIds.has(curve.id)) {
+        curveId = usedCurveIds.get(curve.id)!;
+      } else {
+        curveId = idMap.curveId(curve.label);
+        usedCurveIds.set(curve.id, curveId);
+      }
       sections.pumps.push(
         commentPrefix +
           [
