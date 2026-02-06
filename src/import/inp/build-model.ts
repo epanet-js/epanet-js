@@ -30,11 +30,8 @@ import {
   IdGenerator,
 } from "src/hydraulic-model/id-generator";
 import {
-  CurveId,
   CurvePoint,
-  Curves,
   getPumpCurveType,
-  ICurve,
   isValidPumpCurve,
 } from "src/hydraulic-model/curves";
 import {
@@ -59,12 +56,7 @@ type BuildPatternContext = {
   labelManager: LabelManager;
 };
 
-type BuildCurveContext = {
-  curves: Curves;
-  usedCurveIds: Set<CurveId>;
-  idGenerator: IdGenerator;
-  labelManager: LabelManager;
-};
+type CurvesLookup = Map<string, CurvePoint[]>;
 
 export const buildModel = (
   inpData: InpData,
@@ -87,11 +79,7 @@ export const buildModel = (
     epsTiming: inpData.times,
   });
 
-  const curvesContext: BuildCurveContext = initializeBuildCurveContext(
-    hydraulicModel.labelManager,
-    inpData.curves,
-    issues,
-  );
+  const curvesLookup: CurvesLookup = buildCurvesLookup(inpData.curves, issues);
 
   const patternContext: BuildPatternContext = initializeBuildPatternContext(
     hydraulicModel.labelManager,
@@ -125,7 +113,7 @@ export const buildModel = (
   }
 
   for (const pumpData of inpData.pumps) {
-    addPump(hydraulicModel, pumpData, curvesContext, {
+    addPump(hydraulicModel, pumpData, curvesLookup, {
       inpData,
       issues,
       nodeIds,
@@ -164,8 +152,6 @@ export const buildModel = (
     });
   }
 
-  hydraulicModel.curves = curvesContext.curves;
-
   hydraulicModel.demands.patterns = options?.usedPatterns
     ? filterUsedPatterns(patternContext.patterns, patternContext.usedPatternIds)
     : patternContext.patterns;
@@ -175,69 +161,40 @@ export const buildModel = (
   return { hydraulicModel, modelMetadata: { quantities } };
 };
 
-const initializeBuildCurveContext = (
-  labelManager: LabelManager,
+const buildCurvesLookup = (
   rawCurves: ItemData<CurveData>,
   issues: IssuesAccumulator,
-): BuildCurveContext => {
-  const curveContext: BuildCurveContext = {
-    curves: new Map(),
-    usedCurveIds: new Set(),
-    labelManager: labelManager,
-    idGenerator: new ConsecutiveIdsGenerator(),
-  };
+): CurvesLookup => {
+  const curvesLookup: CurvesLookup = new Map();
 
-  for (const [, curveData] of rawCurves.entries()) {
-    addCurve(curveContext, curveData.label, curveData.points, issues);
+  for (const [normalizedId, curveData] of rawCurves.entries()) {
+    curvesLookup.set(normalizedId, buildCurvePoints(curveData.points, issues));
   }
 
-  return curveContext;
+  return curvesLookup;
 };
 
-const addCurve = (
-  curvesContext: BuildCurveContext,
-  label: string,
-  points: CurvePoint[],
-  issues: IssuesAccumulator,
-): ICurve => {
-  const { curves, idGenerator, labelManager } = curvesContext;
-  const curve = buildCurve(idGenerator, label, points, issues);
-
-  curves.set(curve.id, curve);
-  labelManager.register(curve.label, "curve", curve.id);
-
-  return curve;
-};
-
-const buildCurve = (
-  idGenerator: IdGenerator,
-  label: string,
+const buildCurvePoints = (
   rawPoints: CurvePoint[],
   issues: IssuesAccumulator,
-): ICurve => {
+): CurvePoint[] => {
   let points: CurvePoint[] = rawPoints;
-  if (!isValidPumpCurve(points)) {
+  if (!isValidPumpCurve(points) || getPumpCurveType(points) === "multi-point") {
     issues.addPumpCurve();
-    points = buildValidPumpCurve(rawPoints);
+    points = [inferedDesignPoint(rawPoints)];
   }
 
-  const id = idGenerator.newId();
-  return {
-    id,
-    label,
-    type: "pump",
-    points,
-  };
+  return points;
 };
 
-const buildValidPumpCurve = (rawPoints: CurvePoint[]): CurvePoint[] => {
+const inferedDesignPoint = (rawPoints: CurvePoint[]): CurvePoint => {
   if (rawPoints.length === 0) {
-    return [{ x: 1, y: 1 }];
+    return { x: 1, y: 1 };
   }
 
   const middleIndex = Math.floor(rawPoints.length / 2);
   const designPoint = rawPoints[middleIndex];
-  return [designPoint];
+  return designPoint;
 };
 
 const initializeBuildPatternContext = (
@@ -475,7 +432,7 @@ const addTank = (
 const addPump = (
   hydraulicModel: HydraulicModel,
   pumpData: PumpData,
-  curvesContext: BuildCurveContext,
+  curvesLookup: CurvesLookup,
   {
     inpData,
     issues,
@@ -496,7 +453,7 @@ const addPump = (
   let definitionProps: {
     definitionType: PumpBuildData["definitionType"];
     power?: number;
-    curveId?: number;
+    curve?: CurvePoint[];
   } = {
     definitionType: "power",
     power: 0,
@@ -510,24 +467,17 @@ const addPump = (
   }
 
   if (pumpData.curveId) {
-    const curveId = curvesContext.labelManager.getIdByLabel(
-      pumpData.curveId,
-      "curve",
-    );
-    if (curveId === undefined) {
-      issues.addPumpCurve();
-      const newCurve = addCurve(curvesContext, pumpData.curveId, [], issues);
+    const curveId = pumpData.curveId.toUpperCase();
+    if (curvesLookup.has(curveId)) {
       definitionProps = {
-        definitionType: getPumpCurveType(newCurve),
-        curveId: newCurve.id,
-        power: undefined,
+        definitionType: "curve",
+        curve: curvesLookup.get(curveId)!.map(({ ...p }) => ({ ...p })),
       };
     } else {
-      const curve = curvesContext.curves.get(curveId)!;
+      issues.addPumpCurve();
       definitionProps = {
-        definitionType: getPumpCurveType(curve),
-        curveId: curve.id,
-        power: undefined,
+        definitionType: "curve",
+        curve: [{ x: 1, y: 1 }],
       };
     }
   }

@@ -1,5 +1,4 @@
 import { NodeAsset, LinkAsset, AssetId, Asset } from "../asset-types";
-import { buildDefaultPumpCurve, ICurve } from "../curves";
 import { Pipe } from "../asset-types/pipe";
 import distance from "@turf/distance";
 import { ModelOperation } from "../model-operation";
@@ -61,15 +60,10 @@ export const addLink: ModelOperation<InputData> = (hydraulicModel, data) => {
     ),
   );
 
-  let putCurves: ICurve[] | undefined;
   if (linkCopy.type === "pump") {
-    const curve = buildDefaultPumpCurve(
-      hydraulicModel.curves,
-      hydraulicModel.labelManager,
-      linkCopy.label,
-    );
-    linkCopy.setProperty("curveId", curve.id);
-    putCurves = [curve];
+    (linkCopy.feature.properties as Record<string, unknown>).curve = [
+      { x: 1, y: 1 },
+    ];
   }
 
   const { putAssets, deleteAssets, putCustomerPoints } = handlePipeSplits({
@@ -84,7 +78,6 @@ export const addLink: ModelOperation<InputData> = (hydraulicModel, data) => {
   return {
     note: `Add ${link.type}`,
     deleteAssets: deleteAssets.length > 0 ? deleteAssets : undefined,
-    putCurves,
     ...removeOverlappingPipes({
       link: linkCopy,
       startNode: startNodeCopy,

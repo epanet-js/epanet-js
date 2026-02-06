@@ -1140,15 +1140,13 @@ const PumpEditor = ({
 }) => {
   const translate = useTranslate();
   const { footer } = useQuickGraph(pump.id, "pump");
-  const { getComparison, getBaseCurve, isNew } = useAssetComparison(pump);
+  const { getComparison, isNew } = useAssetComparison(pump);
   const simulation = useSimulation();
   const pumpSimulation = simulation?.getPump(pump.id);
 
   const simFlow = pumpSimulation?.flow ?? null;
   const simHead = pumpSimulation ? -pumpSimulation.headloss : null;
   const statusText = translate(pumpStatusLabel(pumpSimulation ?? null));
-
-  const hydraulicModel = useAtomValue(stagingModelAtom);
 
   const statusOptions = useMemo(() => {
     return pumpStatuses.map((status) => ({
@@ -1192,13 +1190,10 @@ const PumpEditor = ({
       <Section title={translate("modelAttributes")}>
         <PumpDefinitionDetails
           pump={pump}
-          curves={hydraulicModel.curves}
-          labelManager={hydraulicModel.labelManager}
           quantities={quantitiesMetadata}
           onChange={onDefinitionChange}
           readonly={readonly}
           getComparison={getComparison}
-          baseCurve={getBaseCurve(pump.curveId)}
         />
         <QuantityRow
           name="speed"

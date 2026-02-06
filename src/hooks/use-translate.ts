@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useLocale } from "src/hooks/use-locale";
 import "src/infra/i18n/i18next-config";
 
-type TranslateFn = {
+export type TranslateFn = {
   (key: string, count: number, ...variables: string[]): string;
   (key: string, ...variables: string[]): string;
 };

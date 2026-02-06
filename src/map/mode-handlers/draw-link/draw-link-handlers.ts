@@ -172,7 +172,8 @@ export function useDrawLinkHandlers({
       case "pump":
         return assetBuilder.buildPump({
           ...startProperties,
-          definitionType: "design-point",
+          definitionType: "curve",
+          curve: [{ x: 1, y: 1 }],
         });
       case "valve":
         return assetBuilder.buildValve(startProperties);

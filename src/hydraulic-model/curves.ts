@@ -12,15 +12,16 @@ export interface ICurve {
 
 export type Curves = Map<CurveId, ICurve>;
 
-export type PumpCurveType = "design-point" | "standard";
+export type PumpCurveType = "design-point" | "standard" | "multi-point";
 
-export const getPumpCurveType = (curve: ICurve): PumpCurveType => {
-  if (curve.points.length === 3) return "standard";
+export const getPumpCurveType = (points: CurvePoint[]): PumpCurveType => {
+  if (points.length === 1) return "design-point";
+  if (points.length === 3) return "standard";
 
-  return "design-point";
+  return "multi-point";
 };
 
-export const isValidPumpCurve = (points: ICurve["points"]): boolean => {
+export const isValidPumpCurve = (points: CurvePoint[]): boolean => {
   if (points.length === 0) {
     return false;
   }
@@ -39,12 +40,7 @@ export const isValidPumpCurve = (points: ICurve["points"]): boolean => {
     return point.y < points[index - 1].y;
   });
 
-  return (
-    points.length === 3 &&
-    xAlwaysIncreases &&
-    yAlwaysDecreases &&
-    points[0].x === 0
-  );
+  return xAlwaysIncreases && yAlwaysDecreases && points[0].x === 0;
 };
 
 export const buildDefaultPumpCurve = (

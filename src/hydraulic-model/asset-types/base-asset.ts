@@ -51,7 +51,7 @@ export class BaseAsset<T> {
     return this.feature.properties.isActive;
   }
 
-  setProperty(name: string, value: number | string | boolean) {
+  setProperty(name: string, value: NonNullable<unknown>) {
     this.feature.properties[name as keyof AssetProperties] = value as never;
   }
 

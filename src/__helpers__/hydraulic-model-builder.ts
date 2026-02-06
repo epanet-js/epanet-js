@@ -255,12 +255,8 @@ export class HydraulicModelBuilder {
     const { startNodeId, endNodeId, ...properties } = data;
     const startNode = this.getNodeOrCreate(startNodeId);
     const endNode = this.getNodeOrCreate(endNodeId);
-    const definitionType = properties.definitionType || "design-point";
-    const curveId =
-      properties.curveId ??
-      (definitionType === "design-point" || definitionType === "standard"
-        ? id
-        : undefined);
+    const definitionType = properties.definitionType || "curve";
+    const curve = properties.curve || [{ x: 1, y: 1 }];
 
     const pump = this.assetBuilder.buildPump({
       coordinates: [startNode.coordinates, endNode.coordinates],
@@ -268,7 +264,7 @@ export class HydraulicModelBuilder {
       id,
       ...properties,
       definitionType,
-      curveId,
+      curve,
     });
     this.assets.set(id, pump);
     this.idGenerator.addId(id);

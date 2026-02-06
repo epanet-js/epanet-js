@@ -472,10 +472,10 @@ describe("AssetPanel", () => {
           label: "MY_PUMP",
           connections: [IDS.j1, IDS.j2],
           initialStatus: "on",
-          definitionType: "design-point",
+          definitionType: "curve",
+          curve: [{ x: 20, y: 10 }],
           speed: 0.8,
         })
-        .aPumpCurve({ id: IDS.PU1, points: [{ x: 20, y: 10 }] })
         .build();
       const store = setInitialState({
         hydraulicModel,
@@ -525,10 +525,10 @@ describe("AssetPanel", () => {
           label: "MY_PUMP",
           connections: [IDS.j1, IDS.j2],
           initialStatus: "on",
-          definitionType: "design-point",
+          definitionType: "curve",
+          curve: [{ x: 20, y: 40 }],
           power: 100,
         })
-        .aPumpCurve({ id: IDS.PU1, points: [{ x: 20, y: 40 }] })
         .build();
       const store = setInitialState({
         hydraulicModel,

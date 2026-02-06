@@ -75,19 +75,11 @@ describe("parse pumps", () => {
 
     const { hydraulicModel } = parseInp(inp);
 
-    const curveId = hydraulicModel.labelManager.getIdByLabel(
-      curveLabel,
-      "curve",
-    )!;
-    const curve = hydraulicModel.curves.get(curveId);
-    expect(curve!.points.length).toEqual(1);
-    expect(curve!.points[0].x).toEqual(designFlow);
-    expect(curve!.points[0].y).toEqual(designHead);
-
     const pump = getByLabel(hydraulicModel.assets, pumpId) as Pump;
     expect(pump.initialStatus).toEqual("on");
-    expect(pump.definitionType).toEqual("design-point");
-    expect(pump.curveId).toEqual(curveId);
+    expect(pump.definitionType).toEqual("curve");
+    expect(pump.curve).toEqual([{ x: designFlow, y: designHead }]);
+    expect(hydraulicModel.curves.size).toBe(0);
   });
 
   it("parses a pump with 3-point curve as standard type", () => {
@@ -117,25 +109,15 @@ describe("parse pumps", () => {
 
     const { hydraulicModel } = parseInp(inp);
 
-    const curveId = hydraulicModel.labelManager.getIdByLabel(
-      curveLabel,
-      "curve",
-    )!;
-
     const pump = getByLabel(hydraulicModel.assets, pumpId) as Pump;
     expect(pump.initialStatus).toEqual("on");
-    expect(pump.definitionType).toEqual("standard");
-    expect(pump.curveId).toEqual(curveId);
-
-    expect(hydraulicModel.curves.has(curveId)).toBe(true);
-    const curve = hydraulicModel.curves.get(curveId);
-    expect(curve?.points).toHaveLength(3);
-    expect(curve!.points).toEqual([
+    expect(pump.definitionType).toEqual("curve");
+    expect(pump.curve).toEqual([
       { x: 0, y: 300 },
       { x: 100, y: 250 },
       { x: 200, y: 150 },
     ]);
-    expect(curve?.label).toEqual(curveLabel);
+    expect(hydraulicModel.curves.size).toBe(0);
   });
 
   it("can read status from section", () => {
@@ -308,71 +290,7 @@ describe("parse pumps", () => {
     expect(pump.speed).toEqual(0.8);
   });
 
-  it("can read multiple settings", () => {
-    const anyNumber = 10;
-    const inp = `
-    [JUNCTIONS]
-    j1\t${anyNumber}
-    j2\t${anyNumber}
-    j3\t${anyNumber}
-    j4\t${anyNumber}
-    j5\t${anyNumber}
-    j6\t${anyNumber}
-    [PUMPS]
-    pu1\tj1\tj2\tSPEED 0.8\tPOWER 10
-    pu2\tj2\tj3\tPOWER 22\tSPEED 0.4
-    pu3\tj3\tj4\tSPEED 20\tHEAD CU_1
-    pu4\tj4\tj5\tHEAD CU_1\tSPEED 0.2
-    pu5\tj5\tj6\tPATTERN PAT_1\tSPEED 0.2\tPOWER 10
-
-    [CURVES]
-    CU_1\t10\t20
-
-    [PATTERNS]
-    PAT_1 0.9
-
-    [COORDINATES]
-    j1\t${10}\t${20}
-    j2\t${10}\t${20}
-    j3\t${10}\t${20}
-    j4\t${10}\t${20}
-    j5\t${10}\t${20}
-    j6\t${10}\t${20}
-    `;
-
-    const { hydraulicModel } = parseInp(inp);
-
-    const curveId = hydraulicModel.labelManager.getIdByLabel("CU_1", "curve")!;
-    const pumpCurve = hydraulicModel.curves.get(curveId);
-    expect(pumpCurve!.points).toEqual([{ x: 10, y: 20 }]);
-
-    const pump1 = getByLabel(hydraulicModel.assets, "pu1") as Pump;
-    expect(pump1.speed).toEqual(0.8);
-    expect(pump1.definitionType).toEqual("power");
-    expect(pump1.power).toEqual(10);
-
-    const pump2 = getByLabel(hydraulicModel.assets, "pu2") as Pump;
-    expect(pump2.speed).toEqual(0.4);
-    expect(pump2.definitionType).toEqual("power");
-    expect(pump2.power).toEqual(22);
-
-    const pump3 = getByLabel(hydraulicModel.assets, "pu3") as Pump;
-    expect(pump3.speed).toEqual(20);
-    expect(pump3.definitionType).toEqual("design-point");
-    expect(pump3.curveId).toEqual(curveId);
-
-    const pump4 = getByLabel(hydraulicModel.assets, "pu4") as Pump;
-    expect(pump4.speed).toEqual(0.2);
-    expect(pump4.definitionType).toEqual("design-point");
-    expect(pump4.curveId).toEqual(curveId);
-
-    const pump5 = getByLabel(hydraulicModel.assets, "pu5") as Pump;
-    expect(pump5.speed).toEqual(0.9);
-    expect(pump5.definitionType).toEqual("power");
-    expect(pump5.power).toEqual(10);
-  });
-
-  it("is case insensitive", () => {
+  it("matches pump curve with different casing", () => {
     const anyNumber = 10;
     const inp = `
     [JUNCTIONS]
@@ -397,9 +315,7 @@ describe("parse pumps", () => {
 
     const { hydraulicModel } = parseInp(inp);
 
-    const curveId = hydraulicModel.labelManager.getIdByLabel("CU_1", "curve")!;
-    const pumpCurve = hydraulicModel.curves.get(curveId);
-    expect(pumpCurve!.points).toEqual([{ x: 10, y: 20 }]);
+    expect(hydraulicModel.curves.size).toBe(0);
 
     const pump1 = getByLabel(hydraulicModel.assets, "pu1") as Pump;
     expect(pump1.speed).toEqual(0.8);
@@ -407,9 +323,9 @@ describe("parse pumps", () => {
     expect(pump1.power).toEqual(10);
 
     const pump2 = getByLabel(hydraulicModel.assets, "pu2") as Pump;
-    expect(pump2.definitionType).toEqual("design-point");
+    expect(pump2.definitionType).toEqual("curve");
     expect(pump2.initialStatus).toEqual("off");
-    expect(pump2.curveId).toEqual(curveId);
+    expect(pump2.curve).toEqual([{ x: 10, y: 20 }]);
   });
 
   it("doesnt include issue when curve is a single point", () => {
@@ -486,17 +402,12 @@ describe("parse pumps", () => {
 
     const { hydraulicModel, issues } = parseInp(inp);
 
-    const curveId = hydraulicModel.labelManager.getIdByLabel(
-      curveLabel,
-      "curve",
-    )!;
-    const curve = hydraulicModel.curves.get(curveId);
-    expect(curve?.points).toEqual([{ x: 200, y: 300 }]);
     expect(issues?.hasPumpCurves).toBe(1);
+    expect(hydraulicModel.curves.size).toBe(0);
 
     const pump = getByLabel(hydraulicModel.assets, pumpId) as Pump;
-    expect(pump.definitionType).toEqual("design-point");
-    expect(pump.curveId).toEqual(curveId);
+    expect(pump.definitionType).toEqual("curve");
+    expect(pump.curve).toEqual([{ x: 200, y: 300 }]);
   });
 
   it("falls back to design-point mode when 3-point curve has invalid flow values", () => {
@@ -526,18 +437,12 @@ describe("parse pumps", () => {
 
     const { hydraulicModel, issues } = parseInp(inp);
 
-    const curveId = hydraulicModel.labelManager.getIdByLabel(
-      curveLabel,
-      "curve",
-    )!;
-    expect(curveId).toBeDefined();
-    const curve = hydraulicModel.curves.get(curveId);
-    expect(curve?.points).toEqual([{ x: 100, y: 250 }]);
+    expect(hydraulicModel.curves.size).toBe(0);
     expect(issues?.hasPumpCurves).toBe(1);
 
     const pump = getByLabel(hydraulicModel.assets, pumpId) as Pump;
-    expect(pump.definitionType).toEqual("design-point");
-    expect(pump.curveId).toEqual(curveId);
+    expect(pump.definitionType).toEqual("curve");
+    expect(pump.curve).toEqual([{ x: 100, y: 250 }]);
   });
 
   it("falls back to design-point mode when 3-point curve has non-ascending flow values", () => {
@@ -567,17 +472,39 @@ describe("parse pumps", () => {
 
     const { hydraulicModel, issues } = parseInp(inp);
 
-    const curveId = hydraulicModel.labelManager.getIdByLabel(
-      curveLabel,
-      "curve",
-    );
-    const curve = hydraulicModel.curves.get(curveId!);
-    expect(curve?.points).toEqual([{ x: 200, y: 250 }]);
+    expect(hydraulicModel.curves.size).toBe(0);
     expect(issues?.hasPumpCurves).toBe(1);
 
     const pump = getByLabel(hydraulicModel.assets, pumpId) as Pump;
-    expect(pump.definitionType).toEqual("design-point");
-    expect(pump.curveId).toEqual(curveId);
+    expect(pump.definitionType).toEqual("curve");
+    expect(pump.curve).toEqual([{ x: 200, y: 250 }]);
+  });
+
+  it("falls back to design-point mode when curve is missing", () => {
+    const reservoirId = "r1";
+    const junctionId = "j1";
+    const pumpId = "pu1";
+    const curveLabel = "cu1";
+    const anyNumber = 10;
+
+    const inp = `
+    [RESERVOIRS]
+    ${reservoirId}\t${anyNumber}
+    [JUNCTIONS]
+    ${junctionId}\t${anyNumber}
+    [PUMPS]
+    ${pumpId}\t${reservoirId}\t${junctionId}\tHEAD ${curveLabel}
+
+    [COORDINATES]
+    ${reservoirId}\t10\t20
+    ${junctionId}\t30\t40
+    `;
+
+    const { hydraulicModel } = parseInp(inp);
+
+    const pump = getByLabel(hydraulicModel.assets, pumpId) as Pump;
+    expect(pump.definitionType).toEqual("curve");
+    expect(pump.curve).toEqual([{ x: 1, y: 1 }]);
   });
 
   it("parses power-based pump correctly", () => {
@@ -607,122 +534,65 @@ describe("parse pumps", () => {
     expect(pump.power).toEqual(power);
   });
 
-  it("handles multiple pumps with different curve types", () => {
+  it("can read multiple settings", () => {
     const anyNumber = 10;
-
     const inp = `
     [JUNCTIONS]
     j1\t${anyNumber}
     j2\t${anyNumber}
     j3\t${anyNumber}
     j4\t${anyNumber}
-
+    j5\t${anyNumber}
+    j6\t${anyNumber}
     [PUMPS]
-    pu1\tj1\tj2\tPOWER 50
-    pu2\tj2\tj3\tHEAD cu1
-    pu3\tj3\tj4\tHEAD cu2
-
-    [COORDINATES]
-    j1\t10\t20
-    j2\t20\t20
-    j3\t30\t20
-    j4\t40\t20
+    pu1\tj1\tj2\tSPEED 0.8\tPOWER 10
+    pu2\tj2\tj3\tPOWER 22\tSPEED 0.4
+    pu3\tj3\tj4\tSPEED 20\tHEAD CU_1
+    pu4\tj4\tj5\tHEAD CU_1\tSPEED 0.2
+    pu5\tj5\tj6\tPATTERN PAT_1\tSPEED 0.2\tPOWER 10
 
     [CURVES]
-    cu1\t100\t200
-    cu2\t0\t300
-    cu2\t100\t250
-    cu2\t200\t150
+    CU_1\t10\t20
+
+    [PATTERNS]
+    PAT_1 0.9
+
+    [COORDINATES]
+    j1\t${10}\t${20}
+    j2\t${10}\t${20}
+    j3\t${10}\t${20}
+    j4\t${10}\t${20}
+    j5\t${10}\t${20}
+    j6\t${10}\t${20}
     `;
 
     const { hydraulicModel } = parseInp(inp);
 
-    const curve1Id = hydraulicModel.labelManager.getIdByLabel("CU1", "curve")!;
-    const curve2Id = hydraulicModel.labelManager.getIdByLabel("CU2", "curve")!;
+    expect(hydraulicModel.curves.size).toBe(0);
 
     const pump1 = getByLabel(hydraulicModel.assets, "pu1") as Pump;
+    expect(pump1.speed).toEqual(0.8);
     expect(pump1.definitionType).toEqual("power");
-    expect(pump1.power).toEqual(50);
+    expect(pump1.power).toEqual(10);
 
     const pump2 = getByLabel(hydraulicModel.assets, "pu2") as Pump;
-    expect(pump2.definitionType).toEqual("design-point");
-    expect(pump2.curveId).toEqual(curve1Id);
+    expect(pump2.speed).toEqual(0.4);
+    expect(pump2.definitionType).toEqual("power");
+    expect(pump2.power).toEqual(22);
 
     const pump3 = getByLabel(hydraulicModel.assets, "pu3") as Pump;
-    expect(pump3.definitionType).toEqual("standard");
-    expect(pump3.curveId).toEqual(curve2Id);
+    expect(pump3.speed).toEqual(20);
+    expect(pump3.definitionType).toEqual("curve");
+    expect(pump3.curve).toEqual([{ x: 10, y: 20 }]);
 
-    expect(hydraulicModel.curves.size).toEqual(2);
-    expect(hydraulicModel.curves.has(curve1Id)).toBe(true);
-    expect(hydraulicModel.curves.has(curve2Id)).toBe(true);
-  });
+    const pump4 = getByLabel(hydraulicModel.assets, "pu4") as Pump;
+    expect(pump4.speed).toEqual(0.2);
+    expect(pump4.definitionType).toEqual("curve");
+    expect(pump4.curve).toEqual([{ x: 10, y: 20 }]);
 
-  it("handles pump status and speed with standard curves", () => {
-    const reservoirId = "r1";
-    const junctionId = "j1";
-    const pumpId = "pu1";
-    const curveId = "cu1";
-    const anyNumber = 10;
-    const speed = 0.85;
-
-    const inp = `
-    [RESERVOIRS]
-    ${reservoirId}\t${anyNumber}
-    [JUNCTIONS]
-    ${junctionId}\t${anyNumber}
-    [PUMPS]
-    ${pumpId}\t${reservoirId}\t${junctionId}\tHEAD ${curveId}\tSPEED ${speed}
-
-    [COORDINATES]
-    ${reservoirId}\t10\t20
-    ${junctionId}\t30\t40
-
-    [CURVES]
-    ${curveId}\t0\t300
-    ${curveId}\t100\t250
-    ${curveId}\t200\t150
-    `;
-
-    const { hydraulicModel } = parseInp(inp);
-
-    const pump = getByLabel(hydraulicModel.assets, pumpId) as Pump;
-    expect(pump.definitionType).toEqual("standard");
-    expect(pump.speed).toEqual(speed);
-    expect(pump.initialStatus).toEqual("on");
-  });
-
-  it("falls back to design-point mode when curve is missing", () => {
-    const reservoirId = "r1";
-    const junctionId = "j1";
-    const pumpId = "pu1";
-    const curveLabel = "cu1";
-    const anyNumber = 10;
-
-    const inp = `
-    [RESERVOIRS]
-    ${reservoirId}\t${anyNumber}
-    [JUNCTIONS]
-    ${junctionId}\t${anyNumber}
-    [PUMPS]
-    ${pumpId}\t${reservoirId}\t${junctionId}\tHEAD ${curveLabel}
-
-    [COORDINATES]
-    ${reservoirId}\t10\t20
-    ${junctionId}\t30\t40
-    `;
-
-    const { hydraulicModel } = parseInp(inp);
-
-    const curveId = hydraulicModel.labelManager.getIdByLabel(
-      curveLabel,
-      "curve",
-    )!;
-    const curve = hydraulicModel.curves.get(curveId);
-    expect(curve?.points).toEqual([{ x: 1, y: 1 }]);
-    expect(curve?.label).toEqual(curveLabel);
-
-    const pump = getByLabel(hydraulicModel.assets, pumpId) as Pump;
-    expect(pump.definitionType).toEqual("design-point");
-    expect(pump.curveId).toEqual(curveId);
+    const pump5 = getByLabel(hydraulicModel.assets, "pu5") as Pump;
+    expect(pump5.speed).toEqual(0.9);
+    expect(pump5.definitionType).toEqual("power");
+    expect(pump5.power).toEqual(10);
   });
 });

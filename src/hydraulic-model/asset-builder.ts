@@ -37,8 +37,9 @@ export type PumpBuildData = {
   connections?: LinkConnections;
   definitionType?: PumpDefintionType;
   power?: number;
-  speed?: number;
+  curve?: CurvePoint[];
   curveId?: CurveId;
+  speed?: number;
   isActive?: boolean;
 };
 
@@ -93,7 +94,7 @@ import {
   ValveStatus,
   ValveKind,
 } from "./asset-types/valve";
-import { CurveId } from "./curves";
+import { CurveId, CurvePoint } from "./curves";
 
 export type DefaultQuantities = {
   pipe: Partial<Record<PipeQuantity, number>>;
@@ -210,8 +211,9 @@ export class AssetBuilder {
     ],
     initialStatus = "on",
     connections = nullConnections,
-    definitionType = "design-point",
+    definitionType = "curve",
     curveId,
+    curve,
     power,
     speed = 1,
     isActive = true,
@@ -233,6 +235,7 @@ export class AssetBuilder {
         power: this.getPumpValue("power", power),
         speed,
         curveId,
+        curve,
         isActive,
       },
       this.units,

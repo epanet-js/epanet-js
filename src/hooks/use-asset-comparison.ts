@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { useAtomValue } from "jotai";
+import isEqual from "lodash/isEqual";
 import { worktreeAtom } from "src/state/scenarios";
 import { baseModelAtom } from "src/state/hydraulic-model";
 import type { Asset, DemandPatterns } from "src/hydraulic-model";
@@ -44,7 +45,7 @@ export function useAssetComparison(asset: Asset | undefined) {
     const baseValue = (baseAsset.feature.properties as Record<string, unknown>)[
       propertyName
     ];
-    const hasChanged = baseValue !== currentValue;
+    const hasChanged = !isEqual(currentValue, baseValue);
 
     return { hasChanged, baseValue };
   };

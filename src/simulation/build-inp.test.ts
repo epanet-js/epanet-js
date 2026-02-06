@@ -218,18 +218,26 @@ describe("build inp", () => {
       .aPump(IDS.PUMP1, {
         startNodeId: IDS.NODE1,
         endNodeId: IDS.NODE2,
+        label: "P1",
         initialStatus: "on",
-        definitionType: "design-point",
+        definitionType: "curve",
+        curve: [
+          { x: 0, y: 60 },
+          { x: 20, y: 40 },
+          { x: 40, y: 0 },
+        ],
         speed: 0.8,
-        curveId: IDS.PUMP1,
       })
-      .aPumpCurve({ id: IDS.PUMP1, points: [{ x: 20, y: 40 }] })
       .build();
 
     const inp = buildInp(hydraulicModel);
 
     expect(inp).toContain("[PUMPS]");
-    expect(inp).toContain("4\t1\t2\tHEAD 4\tSPEED 0.8");
+    expect(inp).toContain("4\t1\t2\tHEAD P1\tSPEED 0.8");
+    // Pump curve definition
+    expect(inp).toContain("P1\t0\t60");
+    expect(inp).toContain("P1\t20\t40");
+    expect(inp).toContain("P1\t40\t0");
   });
 
   it("adds pumps with power definition", () => {
@@ -1020,123 +1028,17 @@ describe("build inp", () => {
         .aPump(IDS.PUMP1, {
           startNodeId: IDS.J1,
           endNodeId: IDS.J2,
-          definitionType: "design-point",
+          label: "P1",
+          definitionType: "curve",
+          curve: [{ x: 100, y: 50 }],
           isActive: false,
         })
-        .aPumpCurve({ id: IDS.PUMP1, points: [{ x: 100, y: 50 }] })
         .build();
 
       const inp = buildInp(hydraulicModel, { inactiveAssets: true });
 
-      expect(inp).toContain(";3\t1\t2\tHEAD 3\tSPEED 1");
+      expect(inp).toContain(";3\t1\t2\tHEAD P1\tSPEED 1");
       expect(inp).toContain(";3\tOpen");
-    });
-  });
-
-  describe("curves", () => {
-    it("includes all curves by default", () => {
-      const IDS = { J1: 1, J2: 2, PUMP1: 3, UNUSED_CURVE: 10 };
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction(IDS.J1, { elevation: 10 })
-        .aJunction(IDS.J2, { elevation: 20 })
-        .aPump(IDS.PUMP1, {
-          startNodeId: IDS.J1,
-          endNodeId: IDS.J2,
-          definitionType: "design-point",
-          curveId: IDS.PUMP1,
-        })
-        .aPumpCurve({ id: IDS.PUMP1, points: [{ x: 20, y: 40 }] })
-        .aPumpCurve({
-          id: IDS.UNUSED_CURVE,
-          label: "unused",
-          points: [{ x: 50, y: 100 }],
-        })
-        .build();
-
-      const inp = buildInp(hydraulicModel);
-
-      expect(inp).toContain("[CURVES]");
-      expect(inp).toContain("3\t20\t40");
-      expect(inp).toContain("unused\t50\t100");
-    });
-
-    it("includes only used curves when usedCurves is true", () => {
-      const IDS = { J1: 1, J2: 2, PUMP1: 3, UNUSED_CURVE: 10 };
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction(IDS.J1, { elevation: 10 })
-        .aJunction(IDS.J2, { elevation: 20 })
-        .aPump(IDS.PUMP1, {
-          startNodeId: IDS.J1,
-          endNodeId: IDS.J2,
-          definitionType: "design-point",
-          curveId: IDS.PUMP1,
-        })
-        .aPumpCurve({ id: IDS.PUMP1, points: [{ x: 20, y: 40 }] })
-        .aPumpCurve({
-          id: IDS.UNUSED_CURVE,
-          label: "unused",
-          points: [{ x: 50, y: 100 }],
-        })
-        .build();
-
-      const inp = buildInp(hydraulicModel, { usedCurves: true });
-
-      expect(inp).toContain("[CURVES]");
-      expect(inp).toContain("3\t20\t40");
-      expect(inp).not.toContain("unused");
-    });
-
-    it("writes multi-point curves", () => {
-      const IDS = { J1: 1, J2: 2, PUMP1: 3 };
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction(IDS.J1, { elevation: 10 })
-        .aJunction(IDS.J2, { elevation: 20 })
-        .aPump(IDS.PUMP1, {
-          startNodeId: IDS.J1,
-          endNodeId: IDS.J2,
-          definitionType: "standard",
-          curveId: IDS.PUMP1,
-        })
-        .aPumpCurve({
-          id: IDS.PUMP1,
-          points: [
-            { x: 0, y: 300 },
-            { x: 100, y: 200 },
-            { x: 200, y: 50 },
-          ],
-        })
-        .build();
-
-      const inp = buildInp(hydraulicModel);
-
-      expect(inp).toContain("[CURVES]");
-      expect(inp).toContain("3\t0\t300");
-      expect(inp).toContain("3\t100\t200");
-      expect(inp).toContain("3\t200\t50");
-    });
-
-    it("uses curve label in output", () => {
-      const IDS = { J1: 1, J2: 2, PUMP1: 3 };
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction(IDS.J1, { elevation: 10 })
-        .aJunction(IDS.J2, { elevation: 20 })
-        .aPump(IDS.PUMP1, {
-          startNodeId: IDS.J1,
-          endNodeId: IDS.J2,
-          definitionType: "design-point",
-          curveId: IDS.PUMP1,
-        })
-        .aPumpCurve({
-          id: IDS.PUMP1,
-          label: "MY_CURVE",
-          points: [{ x: 20, y: 40 }],
-        })
-        .build();
-
-      const inp = buildInp(hydraulicModel);
-
-      expect(inp).toContain("HEAD MY_CURVE");
-      expect(inp).toContain("MY_CURVE\t20\t40");
     });
   });
 

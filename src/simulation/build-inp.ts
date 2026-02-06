@@ -111,6 +111,7 @@ class EpanetIds {
   private nodeIds: Set<string>;
   private patternIds: Map<PatternId, string>;
   private patternLabels: Set<string>;
+  private curveLabels: Set<string>;
 
   constructor({ strategy }: { strategy: "id" | "label" }) {
     this.strategy = strategy;
@@ -119,6 +120,7 @@ class EpanetIds {
     this.assetIds = new Map();
     this.patternIds = new Map();
     this.patternLabels = new Set();
+    this.curveLabels = new Set();
   }
 
   linkId(link: LinkAsset) {
@@ -145,6 +147,12 @@ class EpanetIds {
         this.assetIds.set(node.id, id);
         return id;
     }
+  }
+
+  curveId(link: LinkAsset) {
+    const curveId = this.ensureUnique(this.curveLabels, link.label);
+    this.curveLabels.add(curveId);
+    return curveId;
   }
 
   registerPatternId(pattern: Pick<DemandPattern, "id" | "label">) {
@@ -600,22 +608,18 @@ const appendPump = (
   const [startId, endId] = getLinkConnectionIds(hydraulicModel, idMap, pump);
   const commentPrefix = !pump.isActive ? ";" : "";
 
-  if (
-    pump.definitionType === "design-point" ||
-    pump.definitionType === "standard"
-  ) {
-    const curve = hydraulicModel.curves.get(pump.curveId!)!;
-    usedCurveIds.add(curve.id);
-
+  if (pump.definitionType === "curve") {
+    const curveId = idMap.curveId(pump);
     sections.pumps.push(
       commentPrefix +
-        [
-          linkId,
-          startId,
-          endId,
-          `HEAD ${curve.label}`,
-          `SPEED ${pump.speed}`,
-        ].join("\t"),
+        [linkId, startId, endId, `HEAD ${curveId}`, `SPEED ${pump.speed}`].join(
+          "\t",
+        ),
+    );
+    pump.curve!.forEach((point) =>
+      sections.curves.push(
+        [curveId, String(point.x), String(point.y)].join("\t"),
+      ),
     );
   } else {
     sections.pumps.push(

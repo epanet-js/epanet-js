@@ -1,4 +1,4 @@
-import { CurveId } from "../curves";
+import { CurveId, CurvePoint } from "../curves";
 import { Link, LinkProperties } from "./link";
 import { Unit } from "src/quantity";
 
@@ -7,7 +7,7 @@ export type PumpStatus = (typeof pumpStatuses)[number];
 
 export type PumpStatusWarning = "cannot-deliver-flow" | "cannot-deliver-head";
 
-export type PumpDefintionType = "power" | "design-point" | "standard";
+export type PumpDefintionType = "power" | "curve" | "curveId";
 
 export type PumpProperties = {
   type: "pump";
@@ -16,6 +16,7 @@ export type PumpProperties = {
   power: number;
   speed: number;
   curveId?: CurveId;
+  curve?: CurvePoint[];
 } & LinkProperties;
 
 export const pumpQuantities = [
@@ -53,12 +54,17 @@ export class Pump extends Link<PumpProperties> {
     return this.properties.curveId;
   }
 
+  get curve() {
+    return this.properties.curve;
+  }
+
   copy() {
     return new Pump(
       this.id,
       [...this.coordinates],
       {
         ...this.properties,
+        curve: this.properties.curve?.map((p) => ({ ...p })),
       },
       this.units,
     );

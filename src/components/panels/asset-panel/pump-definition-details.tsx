@@ -1,10 +1,10 @@
 import { useState, useCallback, useMemo } from "react";
-import { useTranslate } from "src/hooks/use-translate";
+import { TranslateFn, useTranslate } from "src/hooks/use-translate";
 import { NumericField } from "src/components/form/numeric-field";
 import {
-  buildDefaultPumpCurve,
-  Curves,
-  ICurve,
+  CurvePoint,
+  getPumpCurveType,
+  PumpCurveType,
 } from "src/hydraulic-model/curves";
 import { Quantities } from "src/model-metadata/quantities-spec";
 import { localizeDecimal } from "src/infra/i18n/numbers";
@@ -13,7 +13,8 @@ import { SelectRow, QuantityRow } from "./ui-components";
 import type { PropertyComparison } from "src/hooks/use-asset-comparison";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import { TContent } from "src/components/elements";
-import { LabelManager } from "src/hydraulic-model/label-manager";
+
+export type PumpDefinitionMode = "power" | "design-point" | "standard";
 
 export interface PumpCurvePoint {
   flow: number;
@@ -22,38 +23,35 @@ export interface PumpCurvePoint {
 
 export type PumpDefinitionData =
   | { type: "power"; power: number }
-  | { type: "design-point"; curve: ICurve }
-  | { type: "standard"; curve: ICurve };
+  | { type: "curve"; curve: CurvePoint[] };
 
 interface MaybePumpCurvePoint {
   flow?: number;
   head?: number;
 }
 
+const OptionKey = {
+  power: "constantPower",
+  "design-point": "designPoint",
+  standard: "standardCurve",
+};
+
 export const PumpDefinitionDetails = ({
   pump,
-  curves,
-  labelManager,
   quantities,
   readonly = false,
   onChange,
   getComparison,
-  baseCurve,
 }: {
   pump: Pump;
-  curves: Curves;
-  labelManager: LabelManager;
   quantities: Quantities;
   readonly?: boolean;
   onChange: (newData: PumpDefinitionData) => void;
   getComparison?: (name: string, value: unknown) => PropertyComparison;
-  baseCurve?: ICurve;
 }) => {
   const curve = useMemo(() => {
-    const existingCurve = pump.curveId ? curves.get(pump.curveId) : undefined;
-    if (existingCurve) return existingCurve;
-    return buildDefaultPumpCurve(curves, labelManager, pump.label);
-  }, [curves, labelManager, pump.curveId, pump.label]);
+    return pump.curve || [{ x: 1, y: 1 }];
+  }, [pump.curve]);
 
   const componentKey = `${getCurveHash(curve)}|${pump.definitionType}`;
 
@@ -66,7 +64,6 @@ export const PumpDefinitionDetails = ({
       readonly={readonly}
       onChange={onChange}
       getComparison={getComparison}
-      baseCurve={baseCurve}
     />
   );
 };
@@ -78,117 +75,43 @@ const PumpDefinitionDetailsInner = ({
   readonly = false,
   onChange,
   getComparison,
-  baseCurve,
 }: {
   pump: Pump;
-  curve: ICurve;
+  curve: CurvePoint[];
   quantities: Quantities;
   readonly?: boolean;
   onChange: (newData: PumpDefinitionData) => void;
   getComparison?: (name: string, value: unknown) => PropertyComparison;
-  baseCurve?: ICurve;
 }) => {
   const translate = useTranslate();
 
   const [localDefinitionType, setLocalDefinitionType] =
-    useState<PumpDefintionType>(pump.definitionType);
-
-  const definitionTypeComparison = getComparison?.(
-    "definitionType",
-    pump.definitionType,
-  );
-  const definitionTypeHasChanged =
-    definitionTypeComparison?.hasChanged ?? false;
-  const baseDefinitionType = definitionTypeComparison?.baseValue as
-    | PumpDefintionType
-    | undefined;
-
-  const powerComparison = getComparison?.("power", pump.power);
-
-  const curveHasChanged = useMemo(() => {
-    if (localDefinitionType === "power" || !baseCurve || !curve) {
-      return false;
-    }
-    if (curve.points.length !== baseCurve.points.length) return true;
-    return curve.points.some(
-      (p, i) => p.x !== baseCurve.points[i].x || p.y !== baseCurve.points[i].y,
+    useState<PumpDefinitionMode>(() =>
+      inferDefinitionMode(pump.definitionType, curve),
     );
-  }, [localDefinitionType, baseCurve, curve]);
 
-  const powerHasChanged =
-    localDefinitionType === "power" && (powerComparison?.hasChanged ?? false);
-
-  const definitionHasChanged =
-    definitionTypeHasChanged || curveHasChanged || powerHasChanged;
-
-  const definitionOptions = useMemo(
+  const definitionModeOptions = useMemo(
     () =>
       [
         { label: translate("constantPower"), value: "power" },
         { label: translate("designPoint"), value: "design-point" },
         { label: translate("standardCurve"), value: "standard" },
-      ] as { label: string; value: PumpDefintionType }[],
+      ] as { label: string; value: PumpDefinitionMode }[],
     [translate],
   );
 
-  const baseDisplayText = useMemo(() => {
-    if (!definitionHasChanged) return undefined;
-
-    const lines: string[] = [];
-
-    if (baseDefinitionType) {
-      const typeLabel =
-        definitionOptions.find((o) => o.value === baseDefinitionType)?.label ??
-        baseDefinitionType;
-      lines.push(`${translate("pumpType")}: ${typeLabel}`);
-    }
-
-    if (baseDefinitionType === "power" && powerComparison?.baseValue != null) {
-      const powerUnit = quantities.getUnit("power");
-      lines.push(
-        `${translate("power")}: ${localizeDecimal(powerComparison.baseValue as number)} ${powerUnit}`,
-      );
-    } else if (baseDefinitionType === "design-point" && baseCurve) {
-      const flowUnit = quantities.getUnit("flow");
-      const headUnit = quantities.getUnit("head");
-      const designPoint = baseCurve.points[0];
-      if (designPoint) {
-        lines.push(
-          `${translate("designPointLabel")}: ${localizeDecimal(designPoint.x)} ${flowUnit}, ${localizeDecimal(designPoint.y)} ${headUnit}`,
-        );
-      }
-    } else if (baseDefinitionType === "standard" && baseCurve) {
-      const flowUnit = quantities.getUnit("flow");
-      const headUnit = quantities.getUnit("head");
-      const pointLabels = [
-        translate("shutoffPoint"),
-        translate("designPointLabel"),
-        translate("maxOperatingPoint"),
-      ];
-      baseCurve.points.forEach((p, i) => {
-        const label = pointLabels[i] ?? `Point ${i + 1}`;
-        lines.push(
-          `${label}: ${localizeDecimal(p.x)} ${flowUnit}, ${localizeDecimal(p.y)} ${headUnit}`,
-        );
-      });
-    }
-
-    return lines.join("\n");
-  }, [
-    definitionHasChanged,
-    baseDefinitionType,
-    definitionOptions,
-    powerComparison?.baseValue,
-    baseCurve,
+  const comparison = getDiffWithBaseModel({
+    pump,
     quantities,
+    getComparison,
     translate,
-  ]);
+  });
 
   const handleDefinitionTypeChange = useCallback(
     (
       _name: string,
-      newValue: PumpDefintionType,
-      oldValue: PumpDefintionType,
+      newValue: PumpDefinitionMode,
+      oldValue: PumpDefinitionMode,
     ) => {
       setLocalDefinitionType(newValue);
 
@@ -196,7 +119,8 @@ const PumpDefinitionDetailsInner = ({
         return onChange({ type: "power", power: pump.power });
       }
 
-      const curveType = oldValue !== "power" ? oldValue : inferCurveType(curve);
+      const curveType =
+        oldValue !== "power" ? oldValue : getPumpCurveType(curve);
       const currentPoints = initialPointsFromCurve(curve, curveType);
       const validationResult = validateCurve(currentPoints, newValue);
 
@@ -204,17 +128,12 @@ const PumpDefinitionDetailsInner = ({
         return;
       }
 
-      const points = validationResult.points.map(({ flow, head }) => ({
-        x: flow,
-        y: head,
-      }));
-
       onChange({
-        type: newValue,
-        curve: {
-          ...curve,
-          points,
-        },
+        type: "curve",
+        curve: validationResult.points.map(({ flow, head }) => ({
+          x: flow,
+          y: head,
+        })),
       });
     },
     [pump.power, curve, onChange],
@@ -232,16 +151,18 @@ const PumpDefinitionDetailsInner = ({
       if (localDefinitionType === "power") {
         return;
       }
-      const points = rawPoints.map(({ flow, head }) => ({
-        x: flow,
-        y: head,
-      }));
-      onChange({ type: localDefinitionType, curve: { ...curve, points } });
+      onChange({
+        type: "curve",
+        curve: rawPoints.map(({ flow, head }) => ({
+          x: flow,
+          y: head,
+        })),
+      });
     },
-    [localDefinitionType, onChange, curve],
+    [localDefinitionType, onChange],
   );
 
-  const purpleLine = definitionHasChanged ? (
+  const purpleLine = comparison?.hasChanged ? (
     <div className="absolute -left-4 top-0 bottom-0 w-1 bg-purple-500 rounded-full" />
   ) : null;
 
@@ -251,7 +172,7 @@ const PumpDefinitionDetailsInner = ({
       <SelectRow
         name="pumpType"
         selected={localDefinitionType}
-        options={definitionOptions}
+        options={definitionModeOptions}
         readOnly={readonly}
         onChange={handleDefinitionTypeChange}
       />
@@ -269,7 +190,7 @@ const PumpDefinitionDetailsInner = ({
         {localDefinitionType !== "power" && (
           <PumpCurveTable
             curve={curve}
-            definitionType={localDefinitionType}
+            curveType={localDefinitionType}
             quantities={quantities}
             onCurveChange={readonly ? undefined : handleCurvePointsChange}
           />
@@ -278,7 +199,7 @@ const PumpDefinitionDetailsInner = ({
     </div>
   );
 
-  if (definitionHasChanged && baseDisplayText) {
+  if (comparison.hasChanged && comparison.tooltipText) {
     return (
       <Tooltip.Root delayDuration={200}>
         <Tooltip.Trigger asChild>{sectionContent}</Tooltip.Trigger>
@@ -286,7 +207,7 @@ const PumpDefinitionDetailsInner = ({
           <TContent side="left" sideOffset={4}>
             <div className="whitespace-pre-line">
               {translate("scenarios.main")}:{"\n"}
-              {baseDisplayText}
+              {comparison.tooltipText}
             </div>
           </TContent>
         </Tooltip.Portal>
@@ -301,26 +222,26 @@ type OnCurveChange = (points: PumpCurvePoint[]) => void;
 
 export const PumpCurveTable = ({
   curve,
-  definitionType,
+  curveType,
   quantities,
   onCurveChange,
 }: {
-  curve?: ICurve;
-  definitionType: PumpDefintionType;
+  curve?: CurvePoint[];
+  curveType: PumpCurveType;
   quantities: Quantities;
   onCurveChange?: OnCurveChange;
 }) => {
   const translate = useTranslate();
 
   const [editingPoints, setEditingPoints] = useState<MaybePumpCurvePoint[]>(
-    () => initialPointsFromCurve(curve, definitionType),
+    () => initialPointsFromCurve(curve, curveType),
   );
 
   const flowDecimals = quantities.getDecimals("flow") ?? 2;
   const headDecimals = quantities.getDecimals("head") ?? 2;
 
-  const displayPoints = calculateCurvePoints(editingPoints, definitionType);
-  const validationResult = validateCurve(editingPoints, definitionType);
+  const displayPoints = calculateCurvePoints(editingPoints, curveType);
+  const validationResult = validateCurve(editingPoints, curveType);
 
   const pointLabels = [
     translate("shutoffPoint"),
@@ -339,16 +260,13 @@ export const PumpCurveTable = ({
           idx === displayIndex ? { ...point, [field]: value } : point,
         );
 
-        if (definitionType === "design-point") {
+        if (curveType === "design-point") {
           const designPoint = newPoints[1];
 
-          newPoints = calculateCurvePoints(
-            [{}, designPoint, {}],
-            definitionType,
-          );
+          newPoints = calculateCurvePoints([{}, designPoint, {}], curveType);
         }
 
-        const result = validateCurve(newPoints, definitionType);
+        const result = validateCurve(newPoints, curveType);
         if (onCurveChange && result.valid) {
           onCurveChange(result.points);
         }
@@ -356,7 +274,7 @@ export const PumpCurveTable = ({
         return newPoints;
       });
     },
-    [definitionType, onCurveChange, setEditingPoints],
+    [curveType, onCurveChange, setEditingPoints],
   );
 
   const getEditHandlers = (displayIndex: number) => {
@@ -364,7 +282,7 @@ export const PumpCurveTable = ({
       return { onChangeFlow: undefined, onChangeHead: undefined };
     }
 
-    if (definitionType === "design-point") {
+    if (curveType === "design-point") {
       if (displayIndex === 1) {
         return {
           onChangeFlow: (value: number | undefined) =>
@@ -556,29 +474,125 @@ const GridRow = ({
   );
 };
 
+interface DefinitionDiff {
+  hasChanged: boolean;
+  tooltipText?: string;
+}
+
+const getDiffWithBaseModel = ({
+  pump,
+  quantities,
+  getComparison,
+  translate,
+}: {
+  pump: Pump;
+  quantities: Quantities;
+  getComparison?: (name: string, value: unknown) => PropertyComparison;
+  translate: TranslateFn;
+}): DefinitionDiff => {
+  if (!getComparison) return { hasChanged: false };
+  const definitionTypeComparison = getComparison?.(
+    "definitionType",
+    pump.definitionType,
+  );
+  const powerComparison = getComparison?.("power", pump.power);
+  const curveComparison = getComparison?.("curve", pump.curve);
+  const definitionTypeHasChanged =
+    definitionTypeComparison?.hasChanged ?? false;
+  const curveHasChanged =
+    pump.definitionType === "curve" && (curveComparison?.hasChanged ?? false);
+  const powerHasChanged =
+    pump.definitionType === "power" && (powerComparison?.hasChanged ?? false);
+  const definitionHasChanged =
+    definitionTypeHasChanged || curveHasChanged || powerHasChanged;
+
+  if (!definitionHasChanged) {
+    return { hasChanged: false };
+  }
+
+  const baseDefinitionType = definitionTypeComparison?.baseValue as
+    | PumpDefintionType
+    | undefined;
+  const baseCurve = curveComparison?.baseValue as CurvePoint[] | undefined;
+  const baseMode =
+    baseDefinitionType && baseCurve
+      ? inferDefinitionMode(baseDefinitionType, baseCurve)
+      : undefined;
+
+  const lines: string[] = [];
+
+  if (baseMode) {
+    lines.push(`${translate("pumpType")}: ${translate(OptionKey[baseMode])}`);
+  }
+
+  if (
+    baseDefinitionType === "power" &&
+    powerComparison?.baseValue != undefined
+  ) {
+    const powerUnit = quantities.getUnit("power");
+    lines.push(
+      `${translate("power")}: ${localizeDecimal(powerComparison.baseValue as number)} ${powerUnit}`,
+    );
+  } else if (baseDefinitionType === "curve" && baseCurve) {
+    const flowUnit = quantities.getUnit("flow");
+    const headUnit = quantities.getUnit("head");
+    const pointLabels: string[] =
+      baseCurve.length === 1
+        ? [translate("designPointLabel")]
+        : baseCurve.length === 3
+          ? [
+              translate("shutoffPoint"),
+              translate("designPointLabel"),
+              translate("maxOperatingPoint"),
+            ]
+          : baseCurve.map((_, i) => `Point ${i + 1}`);
+    pointLabels.forEach((label, i) => {
+      lines.push(
+        `${label}: ${localizeDecimal(baseCurve[i].x)} ${flowUnit}, ${localizeDecimal(baseCurve[i].y)} ${headUnit}`,
+      );
+    });
+  }
+
+  return {
+    hasChanged: true,
+    tooltipText: lines.length > 0 ? lines.join("\n") : undefined,
+  };
+};
+
+const inferDefinitionMode = (
+  modelType: PumpDefintionType,
+  curve: CurvePoint[],
+): PumpDefinitionMode => {
+  if (modelType === "power") return "power";
+  const curveType = getPumpCurveType(curve);
+  if (curveType === "design-point" || curveType === "standard")
+    return curveType;
+  return "design-point";
+};
+
 const initialPointsFromCurve = (
-  curve: ICurve | undefined,
-  definitionType: PumpDefintionType,
+  curve: CurvePoint[] | undefined,
+  curveType: PumpCurveType,
 ): MaybePumpCurvePoint[] => {
-  if (!curve || curve.points.length === 0) {
+  if (!curve || curve.length === 0) {
     return [{ flow: 0 }, {}, {}];
   }
 
-  if (definitionType === "design-point") {
-    const middleIndex = Math.floor(curve.points.length / 2);
-    const designPoint = curve.points[middleIndex] ?? curve.points[0];
+  if (curveType === "design-point") {
+    const middleIndex = Math.floor(curve.length / 2);
+    const designPoint = curve[middleIndex] ?? curve[0];
     const designFlow = designPoint.x;
     const designHead = designPoint.y;
     return calculateCurvePoints(
       [{}, { flow: designFlow, head: designHead }, {}],
-      definitionType,
+      curveType,
     );
   }
 
   const points: MaybePumpCurvePoint[] = [];
   for (let i = 0; i < 3; i++) {
-    if (i < curve.points.length) {
-      const { x, y } = curve.points[i];
+    if (i < curve.length) {
+      const { x, y } = curve[i];
       points.push({ flow: x, head: y });
     } else {
       points.push({});
@@ -592,7 +606,7 @@ const initialPointsFromCurve = (
 
 const calculateCurvePoints = (
   editingPoints: MaybePumpCurvePoint[],
-  definitionType: PumpDefintionType,
+  definitionType: PumpCurveType,
 ): MaybePumpCurvePoint[] => {
   if (definitionType === "standard") {
     return editingPoints;
@@ -689,12 +703,12 @@ const validateStandardCurve = (
 
 const validateCurve = (
   points: MaybePumpCurvePoint[],
-  definitionType: PumpDefintionType,
+  curveType: PumpCurveType,
 ): ValidationResult => {
-  if (definitionType === "design-point") {
+  if (curveType === "design-point") {
     return validateDesignPointCurve(points);
   }
-  if (definitionType === "standard") {
+  if (curveType === "standard") {
     return validateStandardCurve(points);
   }
   return {
@@ -703,16 +717,6 @@ const validateCurve = (
   };
 };
 
-const getCurveHash = (curve: ICurve): string => {
-  return curve.points.map((p) => `${p.x},${p.y}`).join("|");
-};
-
-const inferCurveType = (curve: ICurve | undefined): PumpDefintionType => {
-  if (!curve || curve.points.length === 0) {
-    return "design-point";
-  }
-  if (curve.points.length === 1) {
-    return "design-point";
-  }
-  return "standard";
+const getCurveHash = (curve: CurvePoint[]): string => {
+  return curve.map((p) => `${p.x},${p.y}`).join("|");
 };
