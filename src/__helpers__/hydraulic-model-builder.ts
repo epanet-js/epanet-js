@@ -377,12 +377,15 @@ export class HydraulicModelBuilder {
   }
 
   aPumpCurve(
-    rawCurve: Omit<ICurve, "type" | "label" | "assetIds"> & { label?: string },
+    rawCurve: Omit<ICurve, "type" | "label" | "assetIds"> & {
+      label?: string;
+      assetIds?: Set<number>;
+    },
   ) {
     const curve: ICurve = {
       ...rawCurve,
       label: rawCurve.label || String(rawCurve.id),
-      assetIds: new Set(),
+      assetIds: rawCurve.assetIds || new Set(),
     };
     this.curves.set(curve.id, curve);
     this.labelManager.register(curve.label, "curve", curve.id);

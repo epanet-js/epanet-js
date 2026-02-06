@@ -10,6 +10,8 @@ import { useAtomValue, useSetAtom } from "jotai";
 import { notifyPromiseState } from "src/components/notifications";
 import { useUserTracking } from "src/infra/user-tracking";
 import { worktreeAtom } from "src/state/scenarios";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { buildInpWithAllCurves } from "src/simulation/build-inp-with-all-curves";
 
 const getDefaultFsAccess = async () => {
   const { fileSave } = await import("browser-fs-access");
@@ -30,6 +32,7 @@ export const useSaveInp = ({
   const setDialogState = useSetAtom(dialogAtom);
   const fileInfo = useAtomValue(fileInfoAtom);
   const userTracking = useUserTracking();
+  const isPumpCurvesEnabled = useFeatureFlag("FLAG_PUMP_CURVES");
 
   const saveInp = useAtomCallback(
     useCallback(
@@ -62,7 +65,10 @@ export const useSaveInp = ({
             inactiveAssets: true,
             reservoirElevations: true,
           };
-          const inp = buildInp(hydraulicModel, buildOptions);
+          const buildInpFn = isPumpCurvesEnabled
+            ? buildInpWithAllCurves
+            : buildInp;
+          const inp = buildInpFn(hydraulicModel, buildOptions);
           const inpBlob = new Blob([inp], { type: "text/plain" });
 
           const newHandle = await fileSave(
@@ -100,7 +106,7 @@ export const useSaveInp = ({
           return false;
         }
       },
-      [getFsAccess, userTracking, translate],
+      [userTracking, getFsAccess, isPumpCurvesEnabled, translate],
     ),
   );
 
