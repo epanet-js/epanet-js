@@ -715,7 +715,7 @@ type PatternsDiscarded = {
 
 type PumpLibraryOpened = {
   name: "pumpLibrary.opened";
-  source: string;
+  source: "toolbar" | "pump";
 };
 
 type PumpCurvesUpdated = {

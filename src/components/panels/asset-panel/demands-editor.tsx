@@ -308,10 +308,7 @@ export const DemandsEditor = ({
   quantitiesMetadata: Quantities;
   name: string;
   onChange: (demands: JunctionDemand[]) => void;
-  demandComparator: (
-    demands: number,
-    patterns: DemandPatterns,
-  ) => PropertyComparison;
+  demandComparator: (demands: number) => PropertyComparison;
   readOnly: boolean;
 }) => {
   const averageDemand = useMemo(
@@ -319,7 +316,7 @@ export const DemandsEditor = ({
     [demands, patterns],
   );
 
-  const demandComparison = demandComparator(averageDemand, patterns);
+  const demandComparison = demandComparator(averageDemand);
 
   return (
     <div className="relative flex flex-col gap-2">

@@ -1,4 +1,4 @@
-import { CurveId, CurvePoint } from "../curves";
+import { CurveId, CurvePoint, Curves, ICurve } from "../curves";
 import { Link, LinkProperties } from "./link";
 import { Unit } from "src/quantity";
 
@@ -57,6 +57,19 @@ export class Pump extends Link<PumpProperties> {
   get curve() {
     return this.properties.curve;
   }
+
+  getCurve = (curves: Curves): ICurve | CurvePoint[] | undefined => {
+    if (this.definitionType === "power") return undefined;
+    if (this.definitionType === "curve") return this.curve;
+    if (!this.curveId) return undefined;
+    const curve = curves.get(this.curveId);
+    return curve;
+  };
+
+  getCurvePoints = (curves: Curves): CurvePoint[] | undefined => {
+    const curve = this.getCurve(curves);
+    return curve ? ("id" in curve ? curve.points : curve) : undefined;
+  };
 
   copy() {
     return new Pump(

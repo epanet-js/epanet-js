@@ -18,7 +18,7 @@ import {
 } from "../elements";
 import { useShowControls } from "src/commands/show-controls";
 import { useShowCurvesAndPatterns } from "src/commands/show-curves-and-patterns";
-import { useShowPumpCurves } from "src/commands/show-pump-curves";
+import { useShowPumpLibrary } from "src/commands/show-pump-curves";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 const FLAG_PUMP_CURVES = "FLAG_PUMP_CURVES";
@@ -27,7 +27,7 @@ export const OperationalDataDropdown = () => {
   const translate = useTranslate();
   const showControls = useShowControls();
   const showCurvesAndPatterns = useShowCurvesAndPatterns();
-  const showPumpCurves = useShowPumpCurves();
+  const showPumpLibrary = useShowPumpLibrary();
   const isPumpCurvesEnabled = useFeatureFlag(FLAG_PUMP_CURVES);
 
   return (
@@ -53,7 +53,7 @@ export const OperationalDataDropdown = () => {
 
               {isPumpCurvesEnabled && (
                 <StyledItem
-                  onSelect={() => showPumpCurves({ source: "toolbar" })}
+                  onSelect={() => showPumpLibrary({ source: "toolbar" })}
                 >
                   <PumpCurvesIcon />
                   {translate("pumpLibrary")}

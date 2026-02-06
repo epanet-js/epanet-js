@@ -54,10 +54,7 @@ import {
   ConnectedCustomersRow,
 } from "./ui-components";
 import { Section } from "src/components/form/fields";
-import {
-  PumpDefinitionDetails,
-  PumpDefinitionData,
-} from "./pump-definition-details";
+import { PumpDefinitionDetails } from "./pump-definition-details";
 import { useQuickGraph } from "./quick-graph";
 import { useAssetComparison } from "src/hooks/use-asset-comparison";
 import { useSimulation } from "src/hooks/use-simulation";
@@ -67,6 +64,11 @@ import type {
   ValveSimulation,
 } from "src/simulation/results-reader";
 import { DemandsEditor } from "./demands-editor";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import {
+  PumpDefinitionData,
+  PumpDefinitionDetailsWithAllCurves,
+} from "./pump-definition-details-all-curves";
 
 type OnPropertyChange = (
   name: string,
@@ -313,6 +315,7 @@ export function AssetPanel({
       return (
         <PumpEditor
           pump={pump}
+          hydraulicModel={hydraulicModel}
           onPropertyChange={handlePropertyChange}
           onStatusChange={handleStatusChange}
           onActiveTopologyStatusChange={handleActiveTopologyStatusChange}
@@ -1113,6 +1116,7 @@ const ValveEditor = ({
 
 const PumpEditor = ({
   pump,
+  hydraulicModel,
   startNode,
   endNode,
   onStatusChange,
@@ -1124,6 +1128,7 @@ const PumpEditor = ({
   readonly = false,
 }: {
   pump: Pump;
+  hydraulicModel: HydraulicModel;
   startNode: NodeAsset | null;
   endNode: NodeAsset | null;
   onPropertyChange: OnPropertyChange;
@@ -1140,13 +1145,15 @@ const PumpEditor = ({
 }) => {
   const translate = useTranslate();
   const { footer } = useQuickGraph(pump.id, "pump");
-  const { getComparison, isNew } = useAssetComparison(pump);
+  const { getComparison, getPumpCurveComparison, isNew } =
+    useAssetComparison(pump);
   const simulation = useSimulation();
   const pumpSimulation = simulation?.getPump(pump.id);
 
   const simFlow = pumpSimulation?.flow ?? null;
   const simHead = pumpSimulation ? -pumpSimulation.headloss : null;
   const statusText = translate(pumpStatusLabel(pumpSimulation ?? null));
+  const isPumpCurvesEnabled = useFeatureFlag("FLAG_PUMP_CURVES");
 
   const statusOptions = useMemo(() => {
     return pumpStatuses.map((status) => ({
@@ -1188,13 +1195,25 @@ const PumpEditor = ({
         />
       </Section>
       <Section title={translate("modelAttributes")}>
-        <PumpDefinitionDetails
-          pump={pump}
-          quantities={quantitiesMetadata}
-          onChange={onDefinitionChange}
-          readonly={readonly}
-          getComparison={getComparison}
-        />
+        {isPumpCurvesEnabled ? (
+          <PumpDefinitionDetailsWithAllCurves
+            pump={pump}
+            curves={hydraulicModel.curves}
+            quantities={quantitiesMetadata}
+            onChange={onDefinitionChange}
+            readonly={readonly}
+            getComparison={getComparison}
+            getPumpCurveComparison={getPumpCurveComparison}
+          />
+        ) : (
+          <PumpDefinitionDetails
+            pump={pump}
+            quantities={quantitiesMetadata}
+            onChange={onDefinitionChange}
+            readonly={readonly}
+            getComparison={getComparison}
+          />
+        )}
         <QuantityRow
           name="speed"
           value={pump.speed}

@@ -3,17 +3,21 @@ import { useAtomValue } from "jotai";
 import isEqual from "lodash/isEqual";
 import { worktreeAtom } from "src/state/scenarios";
 import { baseModelAtom } from "src/state/hydraulic-model";
-import type { Asset, DemandPatterns } from "src/hydraulic-model";
-import type { CurveId, ICurve } from "src/hydraulic-model/curves";
+import type { Asset, Pump } from "src/hydraulic-model";
 import {
   calculateAverageDemand,
   type JunctionDemand,
 } from "src/hydraulic-model/demands";
+import { CurvePoint, ICurve } from "src/hydraulic-model/curves";
 
-export type PropertyComparison = {
+export type PropertyComparison<T = unknown> = {
   hasChanged: boolean;
-  baseValue?: unknown;
+  baseValue?: T;
 };
+
+export type PumpCurveComparison = PropertyComparison<
+  CurvePoint[] | undefined
+> & { curve?: Pick<ICurve, "id" | "label"> };
 
 export function useAssetComparison(asset: Asset | undefined) {
   const worktree = useAtomValue(worktreeAtom);
@@ -28,11 +32,6 @@ export function useAssetComparison(asset: Asset | undefined) {
   }, [isInScenario, asset, baseModel]);
 
   const isNew = isInScenario && asset !== undefined && baseAsset === undefined;
-
-  const getBaseCurve = (curveId: CurveId | undefined): ICurve | undefined => {
-    if (!curveId || !isInScenario) return undefined;
-    return baseModel.curves.get(curveId);
-  };
 
   const getComparison = (
     propertyName: string,
@@ -52,8 +51,7 @@ export function useAssetComparison(asset: Asset | undefined) {
 
   const getDirectDemandComparison = (
     currentDirectDemand: number,
-    patterns: DemandPatterns,
-  ): PropertyComparison => {
+  ): PropertyComparison<number> => {
     if (!isInScenario || !baseAsset) {
       return { hasChanged: false };
     }
@@ -64,48 +62,41 @@ export function useAssetComparison(asset: Asset | undefined) {
 
     const baseDirectDemand = calculateAverageDemand(
       baseDemands || [],
-      patterns,
+      baseModel.demands.patterns,
     );
 
     const hasChanged = baseDirectDemand !== currentDirectDemand;
 
     return { hasChanged, baseValue: baseDirectDemand };
-
-    if (!baseDemands) {
-      return { hasChanged: false };
-    }
   };
 
-  const getConstantDemandComparison = (
-    currentConstantDemand: number,
-  ): PropertyComparison => {
+  const getPumpCurveComparison = (
+    currentCurve: CurvePoint[] | undefined,
+  ): PumpCurveComparison => {
     if (!isInScenario || !baseAsset) {
       return { hasChanged: false };
     }
+    const baseCurve = (baseAsset as Pump).getCurve(baseModel.curves);
+    const baseCurvePoints = baseCurve
+      ? "id" in baseCurve
+        ? baseCurve.points
+        : baseCurve
+      : undefined;
 
-    const baseDemands = (
-      baseAsset.feature.properties as Record<string, unknown>
-    ).demands as JunctionDemand[] | undefined;
+    const hasChanged = !isEqual(currentCurve, baseCurvePoints);
 
-    if (!baseDemands) {
-      return { hasChanged: false };
-    }
-
-    const baseConstantDemand = baseDemands
-      .filter((d) => !d.patternId)
-      .reduce((sum, d) => sum + d.baseDemand, 0);
-
-    const hasChanged = baseConstantDemand !== currentConstantDemand;
-
-    return { hasChanged, baseValue: baseConstantDemand };
+    return {
+      hasChanged,
+      baseValue: baseCurvePoints,
+      curve: baseCurve && "id" in baseCurve ? baseCurve : undefined,
+    };
   };
 
   return {
     isInScenario,
     getComparison,
-    getBaseCurve,
-    getConstantDemandComparison,
     getDirectDemandComparison,
+    getPumpCurveComparison,
     isNew,
   };
 }

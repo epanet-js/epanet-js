@@ -10,7 +10,7 @@ import { NumericField } from "src/components/form/numeric-field";
 import { Checkbox } from "src/components/form/Checkbox";
 import { PipeStatus } from "src/hydraulic-model/asset-types/pipe";
 import { PumpStatus } from "src/hydraulic-model/asset-types/pump";
-import type { PumpDefinitionMode } from "./pump-definition-details";
+import type { PumpDefinitionMode } from "./pump-definition-details-all-curves";
 import { ValveKind, ValveStatus } from "src/hydraulic-model/asset-types/valve";
 import { PanelActions } from "./actions";
 import { InlineField, SectionList } from "src/components/form/fields";
@@ -263,31 +263,53 @@ export const QuantityRow = ({
   );
 };
 
-export const SelectRow = <
-  T extends
-    | PipeStatus
-    | ValveKind
-    | ValveStatus
-    | PumpDefinitionMode
-    | PumpStatus
-    | number,
->({
+type SelectRowValue =
+  | PipeStatus
+  | ValveKind
+  | ValveStatus
+  | PumpDefinitionMode
+  | PumpStatus
+  | number;
+
+type SelectRowPropsBase<T extends SelectRowValue> = {
+  name: string;
+  label?: string;
+  options: { label: string; description?: string; value: T }[];
+  comparison?: PropertyComparison;
+  readOnly?: boolean;
+};
+
+type SelectRowPropsNonNullable<T extends SelectRowValue> =
+  SelectRowPropsBase<T> & {
+    selected: T;
+    nullable?: false;
+    onChange?: (name: string, newValue: T, oldValue: T) => void;
+    placeholder?: undefined;
+  };
+
+type SelectRowPropsNullable<T extends SelectRowValue> =
+  SelectRowPropsBase<T> & {
+    selected: T | null;
+    nullable: true;
+    placeholder: string;
+    onChange?: (name: string, newValue: T | null, oldValue: T | null) => void;
+  };
+
+type SelectorRowProps<T extends SelectRowValue> =
+  | SelectRowPropsNullable<T>
+  | SelectRowPropsNonNullable<T>;
+
+export function SelectRow<T extends SelectRowValue>({
   name,
   label,
   selected,
   options,
   comparison,
-  readOnly = false,
+  readOnly,
+  nullable = false,
+  placeholder = undefined,
   onChange,
-}: {
-  name: string;
-  label?: string;
-  selected: T;
-  options: { label: string; description?: string; value: T }[];
-  comparison?: PropertyComparison;
-  readOnly?: boolean;
-  onChange?: (name: string, newValue: T, oldValue: T) => void;
-}) => {
+}: SelectorRowProps<T>) {
   const translate = useTranslate();
   const actualLabel = label || translate(name);
 
@@ -314,9 +336,11 @@ export const SelectRow = <
             ariaLabel={actualLabel}
             options={options}
             selected={selected}
+            nullable={nullable as true}
             onChange={(newValue, oldValue) =>
-              onChange?.(name, newValue, oldValue)
+              onChange?.(name, newValue as T, oldValue as T)
             }
+            placeholder={placeholder as string}
             disableFocusOnClose={true}
             styleOptions={{
               border: true,
@@ -328,7 +352,7 @@ export const SelectRow = <
       )}
     </InlineField>
   );
-};
+}
 
 export const SwitchRow = ({
   name,

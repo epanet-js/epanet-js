@@ -17,21 +17,29 @@ type StyleOptions = {
   paddingX?: number;
   paddingY?: number;
   disableHoverEffects?: boolean;
+  variant?: "default" | "warning";
 };
 export const triggerStylesFor = (styleOptions: StyleOptions) => {
   const effectiveStyleOptions = { ...defaultStyleOptions, ...styleOptions };
+  const isWarning = effectiveStyleOptions.variant === "warning";
   return clsx(
     "flex items-center gap-x-2 text-gray-700 w-full",
     !effectiveStyleOptions.disableHoverEffects &&
       "focus:justify-between hover:border hover:rounded-sm hover:border-gray-200 hover:justify-between min-w-[90px]",
     "border rounded-sm justify-between",
-    { "border-gray-300": effectiveStyleOptions.border },
-    { "border-transparent": !effectiveStyleOptions.border },
+    isWarning
+      ? "border-orange-500 dark:border-orange-700"
+      : {
+          "border-gray-300": effectiveStyleOptions.border,
+          "border-transparent": !effectiveStyleOptions.border,
+        },
     `px-${effectiveStyleOptions.paddingX} py-${effectiveStyleOptions.paddingY}`,
     effectiveStyleOptions.textSize,
     "pl-min-2",
     !effectiveStyleOptions.disableHoverEffects &&
-      "focus:ring-inset focus:ring-1 focus:ring-purple-500 focus:bg-purple-300/10",
+      (isWarning
+        ? "focus:ring-inset focus:ring-1 focus:ring-orange-500 dark:focus:ring-orange-700"
+        : "focus:ring-inset focus:ring-1 focus:ring-purple-500 focus:bg-purple-300/10"),
   );
 };
 
