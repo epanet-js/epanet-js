@@ -31,6 +31,7 @@ import {
   FileText,
   GitBranch,
   GitBranchPlus,
+  GitCommitVertical,
   Goal,
   Globe,
   Grid2X2,
@@ -189,6 +190,7 @@ export const PinOffIcon = icon(PinOff);
 export const MoreActionsIcon = icon(EllipsisVertical);
 export const ScenarioIcon = icon(GitBranch);
 export const AddScenarioIcon = icon(GitBranchPlus);
+export const CommitIcon = icon(GitCommitVertical);
 export const MainModelIcon = icon(Lock);
 export const ControlsIcon = icon(FileCode);
 export const PatternsIcon = icon(ChartColumn);

@@ -2,22 +2,32 @@ import type { Worktree, Branch, Version, Snapshot } from "./types";
 import type { Moment } from "src/lib/persistence/moment";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { nanoid } from "nanoid";
-import { getMainBranch, getHeadVersion } from "./helpers";
+import { getMainBranch, getHeadVersion, getVersion } from "./helpers";
 
 export const createScenario = (
   worktree: Worktree,
+  fromVersionId?: string,
 ): { scenario: Branch; worktree: Worktree } => {
-  const mainBranch = getMainBranch(worktree);
-  if (!mainBranch) {
-    throw new Error("Main branch not found");
+  const sourceVersion = fromVersionId
+    ? getVersion(worktree, fromVersionId)
+    : getHeadVersion(worktree, "main");
+
+  if (!sourceVersion) {
+    throw new Error(
+      fromVersionId
+        ? `Version ${fromVersionId} not found`
+        : "Main branch has no head version",
+    );
   }
 
-  const mainVersion = getHeadVersion(worktree, "main");
-  if (!mainVersion) {
-    throw new Error("Main branch has no head version");
+  if (!fromVersionId) {
+    const mainBranch = getMainBranch(worktree);
+    if (!mainBranch) {
+      throw new Error("Main branch not found");
+    }
   }
 
-  const model = mainVersion.snapshot.hydraulicModel;
+  const model = sourceVersion.snapshot.hydraulicModel;
   const snapshotMoment: Moment = {
     note: "Snapshot",
     putAssets: [...model.assets.values()],
@@ -39,14 +49,14 @@ export const createScenario = (
 
   const draftSnapshot: Snapshot = {
     versionId: draftVersionId,
-    hydraulicModel: mainVersion.snapshot.hydraulicModel,
+    hydraulicModel: sourceVersion.snapshot.hydraulicModel,
   };
 
   const draftVersion: Version = {
     id: draftVersionId,
     message: "",
     deltas: [],
-    parentId: mainVersion.id,
+    parentId: sourceVersion.id,
     status: "draft",
     timestamp: Date.now(),
     snapshot: draftSnapshot,
@@ -55,7 +65,7 @@ export const createScenario = (
   const newBranch: Branch = {
     id: newBranchId,
     name: `Scenario #${newNumber}`,
-    headRevisionId: mainVersion.id,
+    headRevisionId: sourceVersion.id,
     simulation: null,
     sessionHistory: newSessionHistory,
     draftVersionId: draftVersionId,

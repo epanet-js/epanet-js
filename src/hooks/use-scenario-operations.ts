@@ -135,6 +135,31 @@ export const useScenarioOperations = () => {
     ),
   );
 
+  const createScenarioFromVersion = useAtomCallback(
+    useCallback(
+      async (get, _set, versionId: string) => {
+        const worktree = get(worktreeAtom);
+        const created = createScenario(worktree, versionId);
+        const result = switchToBranch(created.worktree, created.scenario.id);
+
+        if (result.branch) {
+          await (persistence as Persistence).applyBranch(
+            result.worktree,
+            result.branch.id,
+          );
+        }
+
+        setWorktree(result.worktree);
+
+        return {
+          scenarioId: created.scenario.id,
+          scenarioName: created.scenario.name,
+        };
+      },
+      [persistence, setWorktree],
+    ),
+  );
+
   const createRevisionOnActive = useAtomCallback(
     useCallback(
       (get) => {
@@ -156,6 +181,7 @@ export const useScenarioOperations = () => {
     switchToSnapshot,
     switchToMain,
     createNewScenario,
+    createScenarioFromVersion,
     deleteScenarioById,
     renameScenarioById,
     createRevisionOnActive,

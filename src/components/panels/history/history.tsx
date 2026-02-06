@@ -1,32 +1,98 @@
+import { useMemo } from "react";
 import { useAtomValue } from "jotai";
 import { worktreeAtom } from "src/state/scenarios";
-import { getMainBranch, getScenarios } from "src/lib/worktree";
+import { getMainBranch, getBranch } from "src/lib/worktree";
 import type { Branch, Version, Worktree } from "src/lib/worktree";
 import { useScenarioOperations } from "src/hooks/use-scenario-operations";
+import { AddScenarioIcon, CommitIcon } from "src/icons";
 
-function getMainVersionIds(worktree: Worktree): Set<string> {
-  const ids = new Set<string>();
+type BranchTree = {
+  children: Map<string, string[]>;
+  ownVersionIds: Map<string, Set<string>>;
+};
+
+function computeBranchTree(worktree: Worktree): BranchTree {
+  const versionOwner = new Map<string, string>();
+  const children = new Map<string, string[]>();
+  const ownVersionIds = new Map<string, Set<string>>();
+
+  // Claim main's versions first
   const mainBranch = getMainBranch(worktree);
-  if (!mainBranch) return ids;
-  let currentId: string | null = mainBranch.draftVersionId;
-  while (currentId) {
-    ids.add(currentId);
-    const version = worktree.versions.get(currentId);
-    if (!version) break;
-    currentId = version.parentId;
+  if (!mainBranch) return { children, ownVersionIds };
+
+  const mainOwn = new Set<string>();
+  let id: string | null = mainBranch.draftVersionId;
+  while (id) {
+    versionOwner.set(id, mainBranch.id);
+    mainOwn.add(id);
+    const v = worktree.versions.get(id);
+    if (!v) break;
+    id = v.parentId;
   }
-  return ids;
+  ownVersionIds.set(mainBranch.id, mainOwn);
+  children.set(mainBranch.id, []);
+
+  // Iteratively resolve scenario parent branches via version ownership
+  let remaining = [...worktree.branches.values()].filter(
+    (b) => b.id !== "main",
+  );
+  let changed = true;
+  while (changed && remaining.length > 0) {
+    changed = false;
+    const nextRemaining: Branch[] = [];
+
+    for (const branch of remaining) {
+      const own = new Set<string>();
+      let currentId: string | null = branch.draftVersionId;
+      let foundParent: string | undefined;
+
+      while (currentId) {
+        const owner = versionOwner.get(currentId);
+        if (owner) {
+          foundParent = owner;
+          break;
+        }
+        own.add(currentId);
+        const v = worktree.versions.get(currentId);
+        if (!v) break;
+        currentId = v.parentId;
+      }
+
+      if (foundParent) {
+        for (const vid of own) {
+          versionOwner.set(vid, branch.id);
+        }
+        ownVersionIds.set(branch.id, own);
+        children.get(foundParent)!.push(branch.id);
+        children.set(branch.id, []);
+        changed = true;
+      } else {
+        nextRemaining.push(branch);
+      }
+    }
+
+    remaining = nextRemaining;
+  }
+
+  // Orphaned branches → attach to main
+  for (const branch of remaining) {
+    ownVersionIds.set(branch.id, new Set());
+    children.get(mainBranch.id)!.push(branch.id);
+    children.set(branch.id, []);
+  }
+
+  return { children, ownVersionIds };
 }
 
 function getVersionChain(
   worktree: Worktree,
   branch: Branch,
-  excludeIds?: Set<string>,
+  ownIds: Set<string>,
 ): Version[] {
   const versions: Version[] = [];
   let currentId = branch.draftVersionId;
   while (currentId) {
-    if (excludeIds?.has(currentId)) break;
+    if (!ownIds.has(currentId)) break;
     const version = worktree.versions.get(currentId);
     if (!version) break;
     versions.push(version);
@@ -51,52 +117,74 @@ function DeltaList({ version }: { version: Version }) {
 
 function VersionNode({
   version,
-  label,
-  action,
+  onBranch,
+  onCommit,
 }: {
   version: Version;
-  label: string;
-  action?: React.ReactNode;
+  onBranch?: () => void;
+  onCommit?: () => void;
 }) {
-  const icon = version.status === "draft" ? "✎" : "✓";
+  const statusIcon = version.status === "draft" ? "✎" : "✓";
   const iconColor =
     version.status === "draft" ? "text-yellow-500" : "text-green-500";
 
   return (
     <div className="py-1">
       <div className="flex items-center gap-1.5 font-mono text-xs text-gray-400">
-        <span className={iconColor}>{icon}</span>
+        <span className={iconColor}>{statusIcon}</span>
         <span>{version.id.slice(0, 8)}</span>
-        <span className="text-gray-300 dark:text-gray-600">·</span>
-        <span className="text-gray-700 dark:text-gray-300 font-sans font-medium">
-          {label}
-        </span>
+        {onCommit && (
+          <button
+            onClick={onCommit}
+            className="text-gray-400 hover:text-green-500 dark:hover:text-green-400 transition-colors"
+            title="Create revision"
+          >
+            <CommitIcon size="sm" />
+          </button>
+        )}
+        {onBranch && (
+          <button
+            onClick={onBranch}
+            className="text-gray-400 hover:text-purple-500 dark:hover:text-purple-400 transition-colors"
+            title="Create branch from this revision"
+          >
+            <AddScenarioIcon size="sm" />
+          </button>
+        )}
       </div>
       <div className="pl-5 mt-0.5">
         <DeltaList version={version} />
-        {action}
       </div>
     </div>
   );
 }
 
-function BranchSection({
-  branch,
+function BranchNode({
+  branchId,
   worktree,
-  excludeIds,
+  tree,
+  isLast,
+  depth,
   onCreateRevision,
+  onBranchFromVersion,
 }: {
-  branch: Branch;
+  branchId: string;
   worktree: Worktree;
-  excludeIds?: Set<string>;
-  onCreateRevision?: () => void;
+  tree: BranchTree;
+  isLast?: boolean;
+  depth: number;
+  onCreateRevision: () => void;
+  onBranchFromVersion: (versionId: string) => void;
 }) {
-  const versions = getVersionChain(worktree, branch, excludeIds);
-  const isActive = worktree.activeBranchId === branch.id;
+  const branch = getBranch(worktree, branchId);
+  if (!branch) return null;
 
-  let revisionCount = 0;
+  const ownIds = tree.ownVersionIds.get(branchId) ?? new Set<string>();
+  const versions = getVersionChain(worktree, branch, ownIds);
+  const childIds = tree.children.get(branchId) ?? [];
+  const isActive = worktree.activeBranchId === branchId;
 
-  return (
+  const content = (
     <div>
       <div className="flex items-center gap-1.5 py-1">
         <span className="text-xs text-gray-400">⎇</span>
@@ -113,81 +201,59 @@ function BranchSection({
         {versions.map((version) => {
           const isDraft = version.status === "draft";
           if (isDraft && version.deltas.length === 0) return null;
-          let label: string;
-          if (isDraft) {
-            label = "Draft";
-          } else {
-            revisionCount++;
-            label = version.message || `Revision ${revisionCount}`;
-          }
-          const showCreateRevision =
-            isDraft &&
-            isActive &&
-            version.deltas.length > 0 &&
-            onCreateRevision;
+          const isRevision = version.status === "revision";
+          const showCommit = isDraft && isActive && version.deltas.length > 0;
 
           return (
             <VersionNode
               key={version.id}
               version={version}
-              label={label}
-              action={
-                showCreateRevision ? (
-                  <button
-                    onClick={onCreateRevision}
-                    className="mt-1 text-[10px] px-1.5 py-0.5 rounded bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-800 transition-colors"
-                  >
-                    Create Revision
-                  </button>
-                ) : undefined
+              onBranch={
+                isRevision ? () => onBranchFromVersion(version.id) : undefined
               }
+              onCommit={showCommit ? onCreateRevision : undefined}
             />
           );
         })}
       </div>
+      {childIds.length > 0 && (
+        <div className="pl-3">
+          {childIds.map((childId, i) => (
+            <BranchNode
+              key={childId}
+              branchId={childId}
+              worktree={worktree}
+              tree={tree}
+              isLast={i === childIds.length - 1}
+              depth={depth + 1}
+              onCreateRevision={onCreateRevision}
+              onBranchFromVersion={onBranchFromVersion}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
-}
 
-function ScenarioBranch({
-  branch,
-  worktree,
-  isLast,
-  excludeIds,
-  onCreateRevision,
-}: {
-  branch: Branch;
-  worktree: Worktree;
-  isLast: boolean;
-  excludeIds: Set<string>;
-  onCreateRevision?: () => void;
-}) {
+  if (depth === 0) return content;
+
   const connector = isLast ? "└── " : "├── ";
-
   return (
     <div className="flex">
       <span className="font-mono text-xs text-gray-300 dark:text-gray-600 shrink-0 pt-1">
         {connector}
       </span>
-      <div className="flex-1 min-w-0">
-        <BranchSection
-          branch={branch}
-          worktree={worktree}
-          excludeIds={excludeIds}
-          onCreateRevision={onCreateRevision}
-        />
-      </div>
+      <div className="flex-1 min-w-0">{content}</div>
     </div>
   );
 }
 
 export function History() {
   const worktree = useAtomValue(worktreeAtom);
-  const mainBranch = getMainBranch(worktree);
-  const scenarios = getScenarios(worktree);
-  const { createRevisionOnActive } = useScenarioOperations();
+  const { createRevisionOnActive, createScenarioFromVersion } =
+    useScenarioOperations();
 
-  const mainVersionIds = getMainVersionIds(worktree);
+  const tree = useMemo(() => computeBranchTree(worktree), [worktree]);
 
   return (
     <div className="absolute inset-0 flex flex-col overflow-y-auto">
@@ -195,31 +261,14 @@ export function History() {
         Worktree
       </div>
       <div className="px-3 py-2 space-y-0.5">
-        {mainBranch && (
-          <BranchSection
-            branch={mainBranch}
-            worktree={worktree}
-            onCreateRevision={createRevisionOnActive}
-          />
-        )}
-        {scenarios.length > 0 && (
-          <div className="pl-3">
-            {scenarios.map((scenario, i) => (
-              <ScenarioBranch
-                key={scenario.id}
-                branch={scenario}
-                worktree={worktree}
-                isLast={i === scenarios.length - 1}
-                excludeIds={mainVersionIds}
-                onCreateRevision={
-                  worktree.activeBranchId === scenario.id
-                    ? createRevisionOnActive
-                    : undefined
-                }
-              />
-            ))}
-          </div>
-        )}
+        <BranchNode
+          branchId="main"
+          worktree={worktree}
+          tree={tree}
+          depth={0}
+          onCreateRevision={createRevisionOnActive}
+          onBranchFromVersion={createScenarioFromVersion}
+        />
       </div>
       <div className="px-3 py-2 text-xs text-gray-400 dark:text-gray-500 border-t border-gray-200 dark:border-gray-700 mt-auto">
         <div>Branches: {worktree.branches.size}</div>
