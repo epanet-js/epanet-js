@@ -212,7 +212,7 @@ export const CurvesAndPatternsDialog = () => {
               {translate("keepEditing")}
             </Button>
             <span className="text-sm text-gray-600 self-center">
-              {translate("curvesAndPatternsUnsavedWarning")}
+              {translate("discardUnsavedChangesWarning")}
             </span>
           </>
         ) : (

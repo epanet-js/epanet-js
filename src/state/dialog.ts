@@ -84,6 +84,10 @@ export type CurvesAndPatternsDialogState = {
   type: "curvesAndPatterns";
 };
 
+export type PumpCurvesDialogState = {
+  type: "pumpLibrary";
+};
+
 export type DeleteScenarioConfirmationDialogState = {
   type: "deleteScenarioConfirmation";
   scenarioId: string;
@@ -141,6 +145,7 @@ export type DialogState =
   | { type: "simulationSettings" }
   | { type: "controls" }
   | CurvesAndPatternsDialogState
+  | PumpCurvesDialogState
   | DeleteScenarioConfirmationDialogState
   | RenameScenarioDialogState
   | ScenariosPaywallDialogState

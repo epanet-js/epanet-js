@@ -145,6 +145,7 @@
   "export": "Export",
   "cancel": "Cancel",
   "close": "Close",
+  "discardUnsavedChangesWarning": "You have unsaved changes. Are you sure you want to discard them?",
   "failedToOpenModel": "Failed to open model",
   "failedToOpenModelDetail": "Make sure to provide a valid INP file.",
   "understood": "Understood",
@@ -815,5 +816,12 @@
   "duplicate": "Duplicate",
   "addTimestep": "Add timestep",
   "timestep": "Timestep",
-  "multiplier": "Multiplier"
+  "multiplier": "Multiplier",
+  "pumpLibrary": "Pump Library",
+  "addCurve": "Add curve",
+  "curveName": "Curve name",
+  "pumpCurvesEmptyTitle": "Pump curves are empty",
+  "pumpCurvesEmptyDescription": "Please create a new pump curve to get started.",
+  "pumpCurvesNoSelection": "Select a curve to view its details.",
+  "deleteCurveInUse": "Cannot delete a curve that is used by a pump"
 }

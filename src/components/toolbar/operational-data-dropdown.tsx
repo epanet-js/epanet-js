@@ -6,6 +6,7 @@ import {
   ChevronDownIcon,
   ControlsIcon,
   PatternsIcon,
+  PumpCurvesIcon,
 } from "src/icons";
 import { useTranslate } from "src/hooks/use-translate";
 import {
@@ -17,11 +18,17 @@ import {
 } from "../elements";
 import { useShowControls } from "src/commands/show-controls";
 import { useShowCurvesAndPatterns } from "src/commands/show-curves-and-patterns";
+import { useShowPumpCurves } from "src/commands/show-pump-curves";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+
+const FLAG_PUMP_CURVES = "FLAG_PUMP_CURVES";
 
 export const OperationalDataDropdown = () => {
   const translate = useTranslate();
   const showControls = useShowControls();
   const showCurvesAndPatterns = useShowCurvesAndPatterns();
+  const showPumpCurves = useShowPumpCurves();
+  const isPumpCurvesEnabled = useFeatureFlag(FLAG_PUMP_CURVES);
 
   return (
     <Tooltip.Root delayDuration={200}>
@@ -43,6 +50,15 @@ export const OperationalDataDropdown = () => {
                 <PatternsIcon />
                 {translate("curvesAndPatterns")}
               </StyledItem>
+
+              {isPumpCurvesEnabled && (
+                <StyledItem
+                  onSelect={() => showPumpCurves({ source: "toolbar" })}
+                >
+                  <PumpCurvesIcon />
+                  {translate("pumpLibrary")}
+                </StyledItem>
+              )}
 
               <StyledItem onSelect={() => showControls({ source: "toolbar" })}>
                 <ControlsIcon />

@@ -713,6 +713,34 @@ type PatternsDiscarded = {
   name: "patterns.discarded";
 };
 
+type PumpLibraryOpened = {
+  name: "pumpLibrary.opened";
+  source: string;
+};
+
+type PumpCurvesUpdated = {
+  name: "pumpCurves.updated";
+  count: number;
+};
+
+type PumpCurvesDiscarded = {
+  name: "pumpCurves.discarded";
+};
+
+type PumpCurveAdded = {
+  name: "pumpCurve.added";
+  source: "new" | "clone";
+};
+
+type PumpCurveDeleted = {
+  name: "pumpCurve.deleted";
+};
+
+type PumpCurveChanged = {
+  name: "pumpCurve.changed";
+  property: "label" | "points";
+};
+
 export type UserEvent =
   | AssetCreated
   | AssetRedrawed
@@ -904,7 +932,13 @@ export type UserEvent =
   | PatternDeleted
   | PatternLabelDuplicate
   | PatternsUpdated
-  | PatternsDiscarded;
+  | PatternsDiscarded
+  | PumpLibraryOpened
+  | PumpCurvesUpdated
+  | PumpCurvesDiscarded
+  | PumpCurveAdded
+  | PumpCurveDeleted
+  | PumpCurveChanged;
 
 const debugPostHog = {
   capture: (...data: any[]) => {

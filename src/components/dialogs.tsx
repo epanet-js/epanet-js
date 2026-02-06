@@ -259,6 +259,16 @@ const CurvesAndPatternsDialog = dynamic(
   },
 );
 
+const PumpCurvesDialog = dynamic(
+  () =>
+    import("src/components/dialogs/pump-curves").then(
+      (r) => r.PumpCurvesDialog,
+    ),
+  {
+    loading: () => <LoadingDialog />,
+  },
+);
+
 const DeleteScenarioConfirmationDialog = dynamic<{
   scenarioId: string;
   scenarioName: string;
@@ -392,6 +402,9 @@ export const Dialogs = memo(function Dialogs() {
   }
   if (dialog.type === "curvesAndPatterns") {
     return <CurvesAndPatternsDialog />;
+  }
+  if (dialog.type === "pumpLibrary") {
+    return <PumpCurvesDialog />;
   }
 
   if (dialog.type === "upgrade") {

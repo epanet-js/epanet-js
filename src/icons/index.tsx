@@ -7,6 +7,7 @@ import {
   ArrowUpNarrowWide,
   Bell,
   ChartColumn,
+  ChartSpline,
   Check,
   ChevronDown,
   ChevronLeft,
@@ -192,6 +193,7 @@ export const AddScenarioIcon = icon(GitBranchPlus);
 export const MainModelIcon = icon(Lock);
 export const ControlsIcon = icon(FileCode);
 export const PatternsIcon = icon(ChartColumn);
+export const PumpCurvesIcon = icon(ChartSpline);
 export const RenameIcon = icon(TextCursorInput);
 export const DuplicateIcon = icon(Copy);
 
