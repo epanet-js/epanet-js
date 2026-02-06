@@ -1,13 +1,13 @@
 import { useAtomValue } from "jotai";
 import { worktreeAtom } from "src/state/scenarios";
-import { getMainBranch, getScenarios, isMainBranch } from "src/lib/worktree";
+import { getMainBranch, getScenarios } from "src/lib/worktree";
 import type { Branch, Version, Worktree } from "src/lib/worktree";
 
 function DeltaList({ version }: { version: Version }) {
   if (version.deltas.length === 0) return null;
 
   return (
-    <div className="pl-4 space-y-0.5">
+    <div className="space-y-0.5">
       {version.deltas.map((delta, i) => (
         <div key={i} className="text-xs text-gray-500 dark:text-gray-400">
           {delta.note || "untitled"}
@@ -17,73 +17,77 @@ function DeltaList({ version }: { version: Version }) {
   );
 }
 
-function VersionInfo({
-  branch,
-  worktree,
-}: {
-  branch: Branch;
-  worktree: Worktree;
-}) {
-  const headVersion = worktree.versions.get(branch.headRevisionId);
-  const draftVersion = branch.draftVersionId
-    ? worktree.versions.get(branch.draftVersionId)
-    : null;
-  const showRevision =
-    headVersion && branch.headRevisionId !== branch.draftVersionId;
-
-  return (
-    <div className="text-xs text-gray-400 font-mono space-y-0.5">
-      {showRevision && (
-        <>
-          <div className="flex items-center gap-1">
-            <span className="text-green-500">✓</span>
-            <span>rev: {branch.headRevisionId.slice(0, 8)}</span>
-          </div>
-          <DeltaList version={headVersion} />
-        </>
-      )}
-      {draftVersion && (
-        <>
-          <div className="flex items-center gap-1">
-            <span className="text-yellow-500">✎</span>
-            <span>draft: {branch.draftVersionId?.slice(0, 8)}</span>
-          </div>
-          <DeltaList version={draftVersion} />
-        </>
-      )}
-    </div>
-  );
-}
-
-function BranchItem({
-  branch,
-  worktree,
+function VersionNode({
+  version,
+  label,
   isActive,
 }: {
-  branch: Branch;
-  worktree: Worktree;
+  version: Version;
+  label: string;
   isActive: boolean;
 }) {
-  const isMain = isMainBranch(branch.id);
+  const icon = version.status === "draft" ? "✎" : "✓";
+  const iconColor =
+    version.status === "draft" ? "text-yellow-500" : "text-green-500";
 
   return (
     <div
-      className={`px-3 py-2 border-b border-gray-100 dark:border-gray-700 ${isActive ? "bg-purple-50 dark:bg-purple-900/20" : ""}`}
+      className={`py-1.5 ${isActive ? "bg-purple-50 dark:bg-purple-900/20 rounded" : ""}`}
     >
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5 font-mono text-xs text-gray-400">
+        <span className={iconColor}>{icon}</span>
+        <span>{version.id.slice(0, 8)}</span>
+        <span className="text-gray-300 dark:text-gray-600">·</span>
         <span
-          className={`text-sm font-medium ${isActive ? "text-purple-600 dark:text-purple-400" : "text-gray-800 dark:text-gray-200"}`}
+          className={
+            isActive
+              ? "text-purple-600 dark:text-purple-400 font-sans font-medium"
+              : "text-gray-700 dark:text-gray-300 font-sans font-medium"
+          }
         >
-          {isMain ? "Main" : branch.name}
+          {label}
         </span>
         {isActive && (
-          <span className="text-xs bg-purple-100 dark:bg-purple-800 text-purple-600 dark:text-purple-300 px-1.5 py-0.5 rounded">
+          <span className="text-[10px] bg-purple-100 dark:bg-purple-800 text-purple-600 dark:text-purple-300 px-1 py-0.5 rounded">
             active
           </span>
         )}
       </div>
-      <div className="mt-1 pl-2">
-        <VersionInfo branch={branch} worktree={worktree} />
+      <div className="pl-5 mt-0.5">
+        <DeltaList version={version} />
+      </div>
+    </div>
+  );
+}
+
+function ScenarioBranch({
+  branch,
+  worktree,
+  isLast,
+}: {
+  branch: Branch;
+  worktree: Worktree;
+  isLast: boolean;
+}) {
+  const draftVersion = branch.draftVersionId
+    ? worktree.versions.get(branch.draftVersionId)
+    : null;
+  const isActive = worktree.activeBranchId === branch.id;
+  const connector = isLast ? "└── " : "├── ";
+
+  return (
+    <div className="flex">
+      <span className="font-mono text-xs text-gray-300 dark:text-gray-600 shrink-0 pt-1.5">
+        {connector}
+      </span>
+      <div className="flex-1 min-w-0">
+        {draftVersion && (
+          <VersionNode
+            version={draftVersion}
+            label={branch.name}
+            isActive={isActive}
+          />
+        )}
       </div>
     </div>
   );
@@ -94,33 +98,39 @@ export function History() {
   const mainBranch = getMainBranch(worktree);
   const scenarios = getScenarios(worktree);
 
+  const mainDraft = mainBranch?.draftVersionId
+    ? worktree.versions.get(mainBranch.draftVersionId)
+    : null;
+  const isMainActive = mainBranch
+    ? worktree.activeBranchId === mainBranch.id
+    : false;
+
   return (
     <div className="absolute inset-0 flex flex-col overflow-y-auto">
       <div className="px-3 py-2 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-200 dark:border-gray-700">
         Worktree
       </div>
-      {mainBranch && (
-        <BranchItem
-          branch={mainBranch}
-          worktree={worktree}
-          isActive={worktree.activeBranchId === mainBranch.id}
-        />
-      )}
-      {scenarios.length > 0 && (
-        <>
-          <div className="px-3 py-1.5 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-200 dark:border-gray-700">
-            Scenarios
+      <div className="px-3 py-2 space-y-0.5">
+        {mainBranch && mainDraft && (
+          <VersionNode
+            version={mainDraft}
+            label="Main"
+            isActive={isMainActive}
+          />
+        )}
+        {scenarios.length > 0 && (
+          <div className="pl-3">
+            {scenarios.map((scenario, i) => (
+              <ScenarioBranch
+                key={scenario.id}
+                branch={scenario}
+                worktree={worktree}
+                isLast={i === scenarios.length - 1}
+              />
+            ))}
           </div>
-          {scenarios.map((scenario) => (
-            <BranchItem
-              key={scenario.id}
-              branch={scenario}
-              worktree={worktree}
-              isActive={worktree.activeBranchId === scenario.id}
-            />
-          ))}
-        </>
-      )}
+        )}
+      </div>
       <div className="px-3 py-2 text-xs text-gray-400 dark:text-gray-500 border-t border-gray-200 dark:border-gray-700 mt-auto">
         <div>Branches: {worktree.branches.size}</div>
         <div>Versions: {worktree.versions.size}</div>

@@ -166,12 +166,15 @@ export class Persistence implements IPersistenceWithSnapshots {
       snapshot,
     };
 
+    const sessionHistory = new MomentLog();
+    sessionHistory.setBaseStateId(versionId);
+
     const mainBranch: Branch = {
       id: MAIN_BRANCH_ID,
       name: "Main",
       headRevisionId: versionId,
       simulation: initialSimulationState,
-      sessionHistory: new MomentLog(),
+      sessionHistory,
       draftVersionId: versionId,
     };
 
@@ -194,6 +197,9 @@ export class Persistence implements IPersistenceWithSnapshots {
     momentLog: MomentLog,
   ): void {
     const versionId = nanoid();
+
+    momentLog.setSnapshot(moment, versionId);
+    momentLog.setBaseStateId(versionId);
 
     const snapshot: Snapshot = { versionId, hydraulicModel };
 
@@ -313,34 +319,68 @@ export class Persistence implements IPersistenceWithSnapshots {
 
   private syncBranchSessionHistory(
     sessionHistory: MomentLog,
-    _version: string,
+    version: string,
   ): void {
     const worktree = this.store.get(worktreeAtom);
     const branch = getActiveBranch(worktree);
     if (!branch) return;
 
+    const oldDraftVersionId = branch.draftVersionId;
+    const returningToHead = branch.headRevisionId === version;
+
+    const snapshot = sessionHistory.getSnapshot();
+    const isBaseSnapshot =
+      snapshot !== null && snapshot.stateId === branch.headRevisionId;
+    const sessionDeltas = sessionHistory.getDeltas();
+    const deltas = isBaseSnapshot
+      ? [snapshot.moment, ...sessionDeltas]
+      : sessionDeltas;
+
+    const updatedVersions = new Map(worktree.versions);
+
+    if (returningToHead) {
+      const headVersion = worktree.versions.get(branch.headRevisionId);
+      if (headVersion) {
+        updatedVersions.set(branch.headRevisionId, {
+          ...headVersion,
+          deltas,
+        });
+      }
+      if (oldDraftVersionId && oldDraftVersionId !== branch.headRevisionId) {
+        updatedVersions.delete(oldDraftVersionId);
+      }
+    } else if (version !== oldDraftVersionId) {
+      if (oldDraftVersionId && oldDraftVersionId !== branch.headRevisionId) {
+        updatedVersions.delete(oldDraftVersionId);
+      }
+      const headVersion = worktree.versions.get(branch.headRevisionId);
+      updatedVersions.set(version, {
+        id: version,
+        message: "",
+        deltas,
+        parentId: isBaseSnapshot ? null : branch.headRevisionId,
+        status: "draft",
+        timestamp: Date.now(),
+        snapshot: {
+          versionId: version,
+          hydraulicModel:
+            headVersion?.snapshot.hydraulicModel ??
+            this.store.get(stagingModelAtom),
+        },
+      });
+    } else {
+      const draft = worktree.versions.get(version);
+      if (draft) {
+        updatedVersions.set(version, { ...draft, deltas });
+      }
+    }
+
     const updatedBranches = new Map(worktree.branches);
     updatedBranches.set(worktree.activeBranchId, {
       ...branch,
       sessionHistory,
+      draftVersionId: version,
     });
-
-    const updatedVersions = new Map(worktree.versions);
-    if (branch.draftVersionId) {
-      const draft = worktree.versions.get(branch.draftVersionId);
-      if (draft) {
-        const isOwnDraft = branch.headRevisionId === branch.draftVersionId;
-        const snapshot = isOwnDraft ? sessionHistory.getSnapshot() : null;
-        const sessionDeltas = sessionHistory.getDeltas();
-        const deltas = snapshot
-          ? [snapshot.moment, ...sessionDeltas]
-          : sessionDeltas;
-        updatedVersions.set(branch.draftVersionId, {
-          ...draft,
-          deltas,
-        });
-      }
-    }
 
     this.store.set(worktreeAtom, {
       ...worktree,

@@ -15,12 +15,18 @@ export class MomentLog {
   protected pointer: number;
   readonly id: string;
   protected snapshot: Snapshot | null;
+  protected baseStateId: string;
 
   constructor(id: string = nanoid()) {
     this.id = id;
     this.deltas = [];
     this.pointer = START_POINTER;
     this.snapshot = null;
+    this.baseStateId = initId;
+  }
+
+  setBaseStateId(stateId: string) {
+    this.baseStateId = stateId;
   }
 
   setSnapshot(moment: Moment, stateId: string) {
@@ -36,6 +42,7 @@ export class MomentLog {
     newInstance.deltas = this.deltas;
     newInstance.pointer = this.pointer;
     newInstance.snapshot = this.snapshot;
+    newInstance.baseStateId = this.baseStateId;
     return newInstance;
   }
 
@@ -75,7 +82,7 @@ export class MomentLog {
         ? this.deltas[this.pointer - 1].stateId
         : this.snapshot
           ? this.snapshot.stateId
-          : initId,
+          : this.baseStateId,
     };
   }
 

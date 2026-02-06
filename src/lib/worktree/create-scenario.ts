@@ -34,7 +34,8 @@ export const createScenario = (
   const draftVersionId = nanoid();
 
   const newSessionHistory = new MomentLog();
-  newSessionHistory.setSnapshot(snapshotMoment, mainVersion.id);
+  newSessionHistory.setSnapshot(snapshotMoment, draftVersionId);
+  newSessionHistory.setBaseStateId(draftVersionId);
 
   const draftSnapshot: Snapshot = {
     versionId: draftVersionId,
