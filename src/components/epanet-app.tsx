@@ -138,6 +138,7 @@ export function EpanetApp() {
       splitsAtom,
       {
         ...defaultSplits,
+        leftOpen: isMdOrLarger,
         rightOpen: isMdOrLarger,
       },
     ],

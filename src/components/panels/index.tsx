@@ -4,6 +4,8 @@ import {
   splitsAtom,
   TabOption,
   tabAtom,
+  LeftTabOption,
+  leftTabAtom,
   dialogAtom,
 } from "src/state/jotai";
 import { useAtom, useAtomValue } from "jotai";
@@ -14,6 +16,7 @@ import { DefaultErrorBoundary } from "src/components/elements";
 import { useTranslate } from "src/hooks/use-translate";
 import { MapStylingEditor } from "./map-styling-editor";
 import { NetworkReview } from "./network-review";
+import { History } from "./history/history";
 
 function Tab({
   onClick,
@@ -150,8 +153,54 @@ export const Panel = memo(function PanelInner() {
   );
 });
 
+const LeftActiveTab = memo(function LeftActiveTab({
+  activeTab,
+}: {
+  activeTab: LeftTabOption;
+}) {
+  switch (activeTab) {
+    case LeftTabOption.History:
+      return <History />;
+    case LeftTabOption.NetworkReview:
+      return <NetworkReview />;
+  }
+});
+
+const LeftTabList = memo(function LeftTabList({
+  setTab,
+  activeTab,
+}: {
+  activeTab: LeftTabOption;
+  setTab: React.Dispatch<React.SetStateAction<LeftTabOption>>;
+}) {
+  return (
+    <div
+      role="tablist"
+      style={{
+        gridTemplateColumns: `repeat(2, 1fr)`,
+      }}
+      className="flex-0 grid h-8 flex-none
+      sticky top-0 z-10
+      bg-white dark:bg-gray-800
+      divide-x divide-gray-200 dark:divide-black"
+    >
+      <Tab
+        onClick={() => setTab(LeftTabOption.History)}
+        active={activeTab === LeftTabOption.History}
+        label="History"
+      />
+      <Tab
+        onClick={() => setTab(LeftTabOption.NetworkReview)}
+        active={activeTab === LeftTabOption.NetworkReview}
+        label="Network Review"
+      />
+    </div>
+  );
+});
+
 export const LeftSidePanel = memo(function LeftSidePanelInner() {
   const splits = useAtomValue(splitsAtom);
+  const [activeTab, setTab] = useAtom(leftTabAtom);
   if (!splits.leftOpen) return null;
   return (
     <div
@@ -160,7 +209,12 @@ export const LeftSidePanel = memo(function LeftSidePanelInner() {
       }}
       className="bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-900 relative"
     >
-      <NetworkReview />
+      <div className="absolute inset-0 flex flex-col">
+        <LeftTabList activeTab={activeTab} setTab={setTab} />
+        <DefaultErrorBoundary>
+          <LeftActiveTab activeTab={activeTab} />
+        </DefaultErrorBoundary>
+      </div>
     </div>
   );
 });

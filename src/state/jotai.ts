@@ -202,7 +202,7 @@ export const defaultSplits: Splits = {
   bottom: "50%",
   rightOpen: true,
   right: 320,
-  leftOpen: false,
+  leftOpen: true,
   left: 300,
 };
 export const splitsAtom = atom<Splits>(defaultSplits);
@@ -439,6 +439,13 @@ export enum TabOption {
 }
 
 export const tabAtom = atom<TabOption>(TabOption.Asset);
+
+export enum LeftTabOption {
+  History = "History",
+  NetworkReview = "NetworkReview",
+}
+
+export const leftTabAtom = atom<LeftTabOption>(LeftTabOption.History);
 
 export type VirtualColumns = string[];
 export const virtualColumnsAtom = atom<VirtualColumns>([]);
