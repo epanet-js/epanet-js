@@ -17,7 +17,7 @@ export type PumpCurveType = "design-point" | "standard" | "multi-point";
 
 export const getPumpCurveType = (points: CurvePoint[]): PumpCurveType => {
   if (points.length === 1) return "design-point";
-  if (points.length === 3) return "standard";
+  if (points.length === 3 && points[0].x === 0) return "standard";
 
   return "multi-point";
 };
@@ -41,7 +41,7 @@ export const isValidPumpCurve = (points: CurvePoint[]): boolean => {
     return point.y < points[index - 1].y;
   });
 
-  return xAlwaysIncreases && yAlwaysDecreases && points[0].x === 0;
+  return xAlwaysIncreases && yAlwaysDecreases;
 };
 
 export const buildDefaultPumpCurve = (

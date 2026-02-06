@@ -89,7 +89,6 @@ export const buildModelWithAllCurves = (
   const curvesContext: CurvesContext = initializeCurvesContext(
     hydraulicModel.labelManager,
     inpData.curves,
-    issues,
   );
 
   const patternContext: BuildPatternContext = initializeBuildPatternContext(
@@ -177,7 +176,6 @@ export const buildModelWithAllCurves = (
 const initializeCurvesContext = (
   labelManager: LabelManager,
   rawCurves: ItemData<CurveData>,
-  issues: IssuesAccumulator,
 ): CurvesContext => {
   const curveContext: CurvesContext = {
     curves: new Map(),
@@ -186,7 +184,7 @@ const initializeCurvesContext = (
   };
 
   for (const [, curveData] of rawCurves.entries()) {
-    addCurve(curveContext, curveData.label, curveData.points, issues);
+    addCurve(curveContext, curveData.label, curveData.points);
   }
 
   return curveContext;
@@ -196,46 +194,21 @@ const addCurve = (
   curvesContext: CurvesContext,
   label: string,
   points: CurvePoint[],
-  issues: IssuesAccumulator,
-): ICurve => {
+): ICurve | undefined => {
   const { curves, idGenerator, labelManager } = curvesContext;
-  const curve = buildCurve(idGenerator, label, points, issues);
-
-  curves.set(curve.id, curve);
-  labelManager.register(curve.label, "curve", curve.id);
-
-  return curve;
-};
-
-const buildCurve = (
-  idGenerator: IdGenerator,
-  label: string,
-  rawPoints: CurvePoint[],
-  issues: IssuesAccumulator,
-): ICurve => {
-  let points: CurvePoint[] = rawPoints;
-  if (!isValidPumpCurve(rawPoints)) {
-    issues.addPumpCurve();
-    points = [inferedDesignPoint(rawPoints)];
-  }
+  if (!isValidPumpCurve(points)) return;
 
   const id = idGenerator.newId();
-  return {
+  const curve: ICurve = {
     id,
     label,
     points,
     assetIds: new Set(),
   };
-};
+  curves.set(curve.id, curve);
+  labelManager.register(curve.label, "curve", curve.id);
 
-const inferedDesignPoint = (rawPoints: CurvePoint[]): CurvePoint => {
-  if (rawPoints.length === 0) {
-    return { x: 1, y: 1 };
-  }
-
-  const middleIndex = Math.floor(rawPoints.length / 2);
-  const designPoint = rawPoints[middleIndex];
-  return designPoint;
+  return curve;
 };
 
 const initializeBuildPatternContext = (
