@@ -94,7 +94,7 @@ import {
   ValveStatus,
   ValveKind,
 } from "./asset-types/valve";
-import { CurveId, CurvePoint } from "./curves";
+import { CurveId, CurvePoint, defaultCurvePoints } from "./curves";
 
 export type DefaultQuantities = {
   pipe: Partial<Record<PipeQuantity, number>>;
@@ -235,7 +235,11 @@ export class AssetBuilder {
         power: this.getPumpValue("power", power),
         speed,
         curveId,
-        curve,
+        curve: curve
+          ? curve
+          : definitionType === "curve"
+            ? defaultCurvePoints()
+            : undefined,
         isActive,
       },
       this.units,
