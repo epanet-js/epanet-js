@@ -61,7 +61,7 @@ type SubmitProps = {
 export const CreateNew = ({ onClose }: { onClose: () => void }) => {
   const translate = useTranslate();
   const rep = usePersistence();
-  const transactImport = rep.useTransactImport();
+  const initializeBlank = rep.useInitializeBlank();
   const setFileInfo = useSetAtom(fileInfoAtom);
   const userTracking = useUserTracking();
   const map = useContext(MapContext);
@@ -81,7 +81,7 @@ export const CreateNew = ({ onClose }: { onClose: () => void }) => {
         defaults: quantities.defaults,
         headlossFormula,
       });
-      transactImport(hydraulicModel, modelMetadata, "Untitled");
+      initializeBlank(hydraulicModel, modelMetadata);
       userTracking.capture({
         name: "newModel.completed",
         units: unitsSpec,
@@ -91,7 +91,7 @@ export const CreateNew = ({ onClose }: { onClose: () => void }) => {
       setFileInfo(null);
       onClose();
     },
-    [transactImport, userTracking, setFileInfo, onClose],
+    [initializeBlank, userTracking, setFileInfo, onClose],
   );
 
   const handleCancel = useCallback(() => {

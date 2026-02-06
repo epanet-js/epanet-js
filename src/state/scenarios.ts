@@ -23,7 +23,7 @@ const initialVersion: Version = {
   message: "",
   deltas: [],
   parentId: null,
-  status: "revision",
+  status: "draft",
   timestamp: Date.now(),
   snapshot: initialSnapshot,
 };
@@ -34,7 +34,7 @@ const initialMainBranch: Branch = {
   headRevisionId: INITIAL_VERSION_ID,
   simulation: initialSimulationState,
   sessionHistory: new MomentLog(),
-  draftVersionId: null,
+  draftVersionId: INITIAL_VERSION_ID,
 };
 
 export const initialWorktree: Worktree = {

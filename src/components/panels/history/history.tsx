@@ -28,10 +28,12 @@ function VersionInfo({
   const draftVersion = branch.draftVersionId
     ? worktree.versions.get(branch.draftVersionId)
     : null;
+  const showRevision =
+    headVersion && branch.headRevisionId !== branch.draftVersionId;
 
   return (
     <div className="text-xs text-gray-400 font-mono space-y-0.5">
-      {headVersion && (
+      {showRevision && (
         <>
           <div className="flex items-center gap-1">
             <span className="text-green-500">✓</span>

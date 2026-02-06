@@ -1,4 +1,5 @@
 import type { Worktree, Branch, Version, Snapshot } from "./types";
+import type { Moment } from "src/lib/persistence/moment";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { nanoid } from "nanoid";
 import { getMainBranch, getHeadVersion } from "./helpers";
@@ -16,17 +17,24 @@ export const createScenario = (
     throw new Error("Main branch has no head version");
   }
 
-  const baseMoment = mainVersion.deltas[0];
-  if (!baseMoment) {
-    throw new Error("Cannot create scenario: no model imported yet");
-  }
+  const model = mainVersion.snapshot.hydraulicModel;
+  const snapshotMoment: Moment = {
+    note: "Snapshot",
+    putAssets: [...model.assets.values()],
+    deleteAssets: [],
+    putDemands: model.demands,
+    putEPSTiming: model.epsTiming,
+    putControls: model.controls,
+    putCustomerPoints: [...model.customerPoints.values()],
+    putCurves: [...model.curvesDeprecated.values()],
+  };
 
   const newNumber = worktree.highestScenarioNumber + 1;
   const newBranchId = nanoid();
   const draftVersionId = nanoid();
 
   const newSessionHistory = new MomentLog();
-  newSessionHistory.setSnapshot(baseMoment, mainVersion.id);
+  newSessionHistory.setSnapshot(snapshotMoment, mainVersion.id);
 
   const draftSnapshot: Snapshot = {
     versionId: draftVersionId,

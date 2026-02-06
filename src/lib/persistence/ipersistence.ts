@@ -49,6 +49,11 @@ export interface IPersistence {
     modelMetadata: ModelMetadata,
     name: string,
   ) => void;
+
+  useInitializeBlank(): (
+    hydraulicModel: HydraulicModel,
+    modelMetadata: ModelMetadata,
+  ) => void;
 }
 
 export interface IPersistenceWithSnapshots extends IPersistence {

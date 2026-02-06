@@ -126,6 +126,68 @@ export class Persistence implements IPersistenceWithSnapshots {
     };
   }
 
+  useInitializeBlank() {
+    return (hydraulicModel: HydraulicModel, modelMetadata: ModelMetadata) => {
+      this.store.set(splitsAtom, defaultSplits);
+      this.store.set(stagingModelAtom, hydraulicModel);
+      this.store.set(baseModelAtom, hydraulicModel);
+      this.store.set(dataAtom, {
+        ...nullData,
+        folderMap: new Map(),
+        modelMetadata,
+      });
+      this.store.set(momentLogAtom, new MomentLog());
+      this.store.set(mapSyncMomentAtom, { pointer: -1, version: 0 });
+      this.store.set(simulationAtom, initialSimulationState);
+      this.store.set(nodeSymbologyAtom, nullSymbologySpec.node);
+      this.store.set(linkSymbologyAtom, nullSymbologySpec.link);
+      this.store.set(savedSymbologiesAtom, new Map());
+      this.store.set(modeAtom, { mode: Mode.NONE });
+      this.store.set(ephemeralStateAtom, { type: "none" });
+      this.store.set(selectionAtom, { type: "none" });
+      this.store.set(pipeDrawingDefaultsAtom, {});
+
+      this.initializeWorktree(hydraulicModel);
+    };
+  }
+
+  initializeWorktree(hydraulicModel: HydraulicModel): void {
+    const versionId = nanoid();
+
+    const snapshot: Snapshot = { versionId, hydraulicModel };
+
+    const draftVersion: Version = {
+      id: versionId,
+      message: "",
+      deltas: [],
+      parentId: null,
+      status: "draft",
+      timestamp: Date.now(),
+      snapshot,
+    };
+
+    const mainBranch: Branch = {
+      id: MAIN_BRANCH_ID,
+      name: "Main",
+      headRevisionId: versionId,
+      simulation: initialSimulationState,
+      sessionHistory: new MomentLog(),
+      draftVersionId: versionId,
+    };
+
+    const worktree: Worktree = {
+      activeBranchId: MAIN_BRANCH_ID,
+      lastActiveBranchId: MAIN_BRANCH_ID,
+      branches: new Map([[MAIN_BRANCH_ID, mainBranch]]),
+      versions: new Map([[versionId, draftVersion]]),
+      highestScenarioNumber: 0,
+    };
+
+    this.store.set(worktreeAtom, worktree);
+    this.modelCache.clear();
+    this.modelCache.set(MAIN_BRANCH_ID, hydraulicModel);
+  }
+
   private resetWorktree(
     moment: Moment,
     hydraulicModel: HydraulicModel,
@@ -133,17 +195,14 @@ export class Persistence implements IPersistenceWithSnapshots {
   ): void {
     const versionId = nanoid();
 
-    const snapshot: Snapshot = {
-      versionId,
-      hydraulicModel,
-    };
+    const snapshot: Snapshot = { versionId, hydraulicModel };
 
-    const mainVersion: Version = {
+    const draftVersion: Version = {
       id: versionId,
-      message: `Import`,
+      message: "Import",
       deltas: [moment],
       parentId: null,
-      status: "revision",
+      status: "draft",
       timestamp: Date.now(),
       snapshot,
     };
@@ -154,19 +213,18 @@ export class Persistence implements IPersistenceWithSnapshots {
       headRevisionId: versionId,
       simulation: initialSimulationState,
       sessionHistory: momentLog,
-      draftVersionId: null,
+      draftVersionId: versionId,
     };
 
     const worktree: Worktree = {
       activeBranchId: MAIN_BRANCH_ID,
       lastActiveBranchId: MAIN_BRANCH_ID,
       branches: new Map([[MAIN_BRANCH_ID, mainBranch]]),
-      versions: new Map([[versionId, mainVersion]]),
+      versions: new Map([[versionId, draftVersion]]),
       highestScenarioNumber: 0,
     };
 
     this.store.set(worktreeAtom, worktree);
-
     this.modelCache.clear();
     this.modelCache.set(MAIN_BRANCH_ID, hydraulicModel);
   }
@@ -271,9 +329,15 @@ export class Persistence implements IPersistenceWithSnapshots {
     if (branch.draftVersionId) {
       const draft = worktree.versions.get(branch.draftVersionId);
       if (draft) {
+        const isOwnDraft = branch.headRevisionId === branch.draftVersionId;
+        const snapshot = isOwnDraft ? sessionHistory.getSnapshot() : null;
+        const sessionDeltas = sessionHistory.getDeltas();
+        const deltas = snapshot
+          ? [snapshot.moment, ...sessionDeltas]
+          : sessionDeltas;
         updatedVersions.set(branch.draftVersionId, {
           ...draft,
-          deltas: sessionHistory.getDeltas(),
+          deltas,
         });
       }
     }
@@ -437,14 +501,17 @@ export class Persistence implements IPersistenceWithSnapshots {
       throw new Error(`Branch ${branchId} not found`);
     }
 
-    const version = getHeadVersion(worktree, branchId);
-    if (!version) {
-      throw new Error(`Head version for branch ${branchId} not found`);
+    const draftVersion = branch.draftVersionId
+      ? getVersion(worktree, branch.draftVersionId)
+      : null;
+
+    const startVersion = draftVersion ?? getHeadVersion(worktree, branchId);
+    if (!startVersion) {
+      throw new Error(`No version found for branch ${branchId}`);
     }
 
-    // Collect all deltas by walking up the version chain
     const allDeltas: Moment[] = [];
-    let currentVersion: Version | undefined = version;
+    let currentVersion: Version | undefined = startVersion;
 
     while (currentVersion) {
       allDeltas.unshift(...currentVersion.deltas);
@@ -453,9 +520,10 @@ export class Persistence implements IPersistenceWithSnapshots {
         : undefined;
     }
 
-    // Add session history deltas (uncommitted changes)
-    const sessionHistoryDeltas = branch.sessionHistory.getDeltas();
-    allDeltas.push(...sessionHistoryDeltas);
+    if (!draftVersion) {
+      const sessionHistoryDeltas = branch.sessionHistory.getDeltas();
+      allDeltas.push(...sessionHistoryDeltas);
+    }
 
     const ctx = this.store.get(dataAtom);
     const currentHydraulicModel = this.store.get(stagingModelAtom);
