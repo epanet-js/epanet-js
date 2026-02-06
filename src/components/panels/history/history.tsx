@@ -4,21 +4,26 @@ import { worktreeAtom } from "src/state/scenarios";
 import { getMainBranch, getBranch } from "src/lib/worktree";
 import type { Branch, Version, Worktree } from "src/lib/worktree";
 import { useScenarioOperations } from "src/hooks/use-scenario-operations";
-import { AddScenarioIcon, CommitIcon } from "src/icons";
+import { AddScenarioIcon, CommitIcon, MainModelIcon } from "src/icons";
 
 type BranchTree = {
   children: Map<string, string[]>;
   ownVersionIds: Map<string, Set<string>>;
+  lockedRevisionIds: Set<string>;
+  forkChildren: Map<string, string[]>; // versionId → child branchIds that fork from it
 };
 
 function computeBranchTree(worktree: Worktree): BranchTree {
   const versionOwner = new Map<string, string>();
   const children = new Map<string, string[]>();
   const ownVersionIds = new Map<string, Set<string>>();
+  const lockedRevisionIds = new Set<string>();
+  const forkChildren = new Map<string, string[]>();
 
   // Claim main's versions first
   const mainBranch = getMainBranch(worktree);
-  if (!mainBranch) return { children, ownVersionIds };
+  if (!mainBranch)
+    return { children, ownVersionIds, lockedRevisionIds, forkChildren };
 
   const mainOwn = new Set<string>();
   let id: string | null = mainBranch.draftVersionId;
@@ -58,7 +63,10 @@ function computeBranchTree(worktree: Worktree): BranchTree {
         currentId = v.parentId;
       }
 
-      if (foundParent) {
+      if (foundParent && currentId) {
+        lockedRevisionIds.add(currentId);
+        if (!forkChildren.has(currentId)) forkChildren.set(currentId, []);
+        forkChildren.get(currentId)!.push(branch.id);
         for (const vid of own) {
           versionOwner.set(vid, branch.id);
         }
@@ -81,7 +89,7 @@ function computeBranchTree(worktree: Worktree): BranchTree {
     children.set(branch.id, []);
   }
 
-  return { children, ownVersionIds };
+  return { children, ownVersionIds, lockedRevisionIds, forkChildren };
 }
 
 function getVersionChain(
@@ -117,10 +125,12 @@ function DeltaList({ version }: { version: Version }) {
 
 function VersionNode({
   version,
+  isLocked,
   onBranch,
   onCommit,
 }: {
   version: Version;
+  isLocked?: boolean;
   onBranch?: () => void;
   onCommit?: () => void;
 }) {
@@ -133,6 +143,11 @@ function VersionNode({
       <div className="flex items-center gap-1.5 font-mono text-xs text-gray-400">
         <span className={iconColor}>{statusIcon}</span>
         <span>{version.id.slice(0, 8)}</span>
+        {isLocked && (
+          <span className="text-amber-500" title="Locked — has child branches">
+            <MainModelIcon size="sm" />
+          </span>
+        )}
         {onCommit && (
           <button
             onClick={onCommit}
@@ -181,7 +196,10 @@ function BranchNode({
 
   const ownIds = tree.ownVersionIds.get(branchId) ?? new Set<string>();
   const versions = getVersionChain(worktree, branch, ownIds);
-  const childIds = tree.children.get(branchId) ?? [];
+  const revisions = versions.filter((v) => v.status === "revision");
+  const draft = versions.find(
+    (v) => v.status === "draft" && v.deltas.length > 0,
+  );
   const isActive = worktree.activeBranchId === branchId;
 
   const content = (
@@ -197,39 +215,42 @@ function BranchNode({
           </span>
         )}
       </div>
-      <div className="pl-4">
-        {versions.map((version) => {
-          const isDraft = version.status === "draft";
-          if (isDraft && version.deltas.length === 0) return null;
-          const isRevision = version.status === "revision";
-          const showCommit = isDraft && isActive && version.deltas.length > 0;
-
-          return (
-            <VersionNode
-              key={version.id}
-              version={version}
-              onBranch={
-                isRevision ? () => onBranchFromVersion(version.id) : undefined
-              }
-              onCommit={showCommit ? onCreateRevision : undefined}
-            />
-          );
-        })}
-      </div>
-      {childIds.length > 0 && (
-        <div className="pl-3">
-          {childIds.map((childId, i) => (
-            <BranchNode
-              key={childId}
-              branchId={childId}
-              worktree={worktree}
-              tree={tree}
-              isLast={i === childIds.length - 1}
-              depth={depth + 1}
-              onCreateRevision={onCreateRevision}
-              onBranchFromVersion={onBranchFromVersion}
-            />
-          ))}
+      {revisions.map((version) => {
+        const forkedChildren = tree.forkChildren.get(version.id);
+        return (
+          <div key={version.id}>
+            <div className="pl-4">
+              <VersionNode
+                version={version}
+                isLocked={tree.lockedRevisionIds.has(version.id)}
+                onBranch={() => onBranchFromVersion(version.id)}
+              />
+            </div>
+            {forkedChildren && forkedChildren.length > 0 && (
+              <div className="pl-3">
+                {forkedChildren.map((childId, i) => (
+                  <BranchNode
+                    key={childId}
+                    branchId={childId}
+                    worktree={worktree}
+                    tree={tree}
+                    isLast={i === forkedChildren.length - 1}
+                    depth={depth + 1}
+                    onCreateRevision={onCreateRevision}
+                    onBranchFromVersion={onBranchFromVersion}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })}
+      {draft && (
+        <div className="pl-4">
+          <VersionNode
+            version={draft}
+            onCommit={isActive ? onCreateRevision : undefined}
+          />
         </div>
       )}
     </div>

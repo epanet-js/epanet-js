@@ -1,5 +1,4 @@
 import { dialogAtom, fileInfoAtom, stagingModelAtom } from "src/state/jotai";
-import { baseModelAtom } from "src/state/hydraulic-model";
 import { ExportOptions } from "src/types/export";
 import { useAtomCallback } from "jotai/utils";
 import { useCallback } from "react";
@@ -9,8 +8,6 @@ import type { fileSave as fileSaveType } from "browser-fs-access";
 import { useAtomValue, useSetAtom } from "jotai";
 import { notifyPromiseState } from "src/components/notifications";
 import { useUserTracking } from "src/infra/user-tracking";
-import { worktreeAtom } from "src/state/scenarios";
-import { isMainLocked } from "src/lib/worktree";
 
 const getDefaultFsAccess = async () => {
   const { fileSave } = await import("browser-fs-access");
@@ -49,11 +46,7 @@ export const useSaveInp = ({
           const { fileSave } = await getFsAccess();
           const fileInfo = get(fileInfoAtom);
 
-          const worktree = get(worktreeAtom);
-          const hasScenarios = isMainLocked(worktree);
-          const hydraulicModel = hasScenarios
-            ? get(baseModelAtom)
-            : get(stagingModelAtom);
+          const hydraulicModel = get(stagingModelAtom);
           const buildOptions = {
             geolocation: true,
             madeBy: true,
@@ -105,32 +98,18 @@ export const useSaveInp = ({
     ),
   );
 
-  const worktree = useAtomValue(worktreeAtom);
-  const hasScenarios = isMainLocked(worktree);
-
   const saveAlerting = useCallback(
     ({ source, isSaveAs = false }: { source: string; isSaveAs?: boolean }) => {
-      const proceedWithSave = () => {
-        if (fileInfo && !fileInfo.isMadeByApp) {
-          setDialogState({
-            type: "alertInpOutput",
-            onContinue: () => saveInp({ source, isSaveAs }),
-          });
-        } else {
-          return saveInp({ source, isSaveAs });
-        }
-      };
-
-      if (hasScenarios) {
+      if (fileInfo && !fileInfo.isMadeByApp) {
         setDialogState({
-          type: "alertScenariosNotSaved",
-          onContinue: proceedWithSave,
+          type: "alertInpOutput",
+          onContinue: () => saveInp({ source, isSaveAs }),
         });
       } else {
-        return proceedWithSave();
+        return saveInp({ source, isSaveAs });
       }
     },
-    [fileInfo, setDialogState, saveInp, hasScenarios],
+    [fileInfo, setDialogState, saveInp],
   );
 
   return saveAlerting;

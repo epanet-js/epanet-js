@@ -6,7 +6,6 @@ import {
   ChevronDownIcon,
   ScenarioIcon,
   AddScenarioIcon,
-  MainModelIcon,
   MoreActionsIcon,
   DeleteIcon,
   RenameIcon,
@@ -181,11 +180,7 @@ export const ScenarioSwitcher = () => {
             <DD.Trigger asChild>
               <Button variant="quiet" className="w-full justify-between">
                 <div className="flex items-center gap-1">
-                  {isMainActive ? (
-                    <MainModelIcon size="sm" />
-                  ) : (
-                    <ScenarioIcon size="sm" />
-                  )}
+                  <ScenarioIcon size="sm" />
                   <span className="truncate text-sm">{activeDisplayName}</span>
                 </div>
                 <ChevronDownIcon size="sm" />
@@ -199,7 +194,7 @@ export const ScenarioSwitcher = () => {
                   className={`flex flex-col w-full ${isMainActive ? "text-purple-600" : ""}`}
                 >
                   <div className="flex items-center gap-2">
-                    <MainModelIcon size="sm" />
+                    <ScenarioIcon size="sm" />
                     <div className="flex-1">{translate("scenarios.main")}</div>
                   </div>
                   {(() => {

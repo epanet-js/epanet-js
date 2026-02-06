@@ -17,8 +17,6 @@ import { Selector } from "../form/selector";
 import { changeDemandSettings } from "src/hydraulic-model/model-operations/change-demand-settings";
 import { changeEPSTiming } from "src/hydraulic-model/model-operations/change-eps-timing";
 import { formatSecondsToDisplay } from "../form/time-field";
-import { worktreeAtom } from "src/state/scenarios";
-import { isMainLocked } from "src/lib/worktree";
 
 type SimulationModeOption = "steadyState" | "eps";
 
@@ -105,9 +103,6 @@ export const SimulationSettingsDialog = () => {
 
 const SimulationSettingsForm = ({ onClose }: { onClose: () => void }) => {
   const translate = useTranslate();
-  const worktree = useAtomValue(worktreeAtom);
-  const hasScenarios = isMainLocked(worktree);
-
   const { hasMissingValues, hasZeroValues } = useTimeSettingsValidation();
 
   const hasValidationError = hasMissingValues || hasZeroValues;
@@ -116,7 +111,7 @@ const SimulationSettingsForm = ({ onClose }: { onClose: () => void }) => {
     <Form>
       <div className="flex flex-wrap justify-between gap-2">
         <DemandSettings />
-        <TimesSettings readonly={hasScenarios} />
+        <TimesSettings readonly={false} />
       </div>
       <SimpleDialogActions
         onClose={onClose}
