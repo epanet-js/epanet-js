@@ -3,7 +3,7 @@ import { ModelMoment, ReverseMoment } from "../model-operation";
 import { Asset, LinkAsset } from "../asset-types";
 import { AssetId } from "../assets-map";
 import { CustomerPoint } from "../customer-points";
-import { ICurve } from "../curves";
+import { Curves } from "../curves";
 import { Demands } from "../demands";
 
 type PutAssetResult = {
@@ -20,7 +20,6 @@ export const applyMomentToModel = (
     putAssets: [],
     deleteAssets: [],
     putCustomerPoints: [],
-    putCurves: [],
   };
 
   if (moment.putDemands) {
@@ -31,6 +30,9 @@ export const applyMomentToModel = (
   }
   if (moment.putControls) {
     reverseMoment.putControls = hydraulicModel.controls;
+  }
+  if (moment.putCurves) {
+    reverseMoment.putCurves = hydraulicModel.curves;
   }
 
   for (const id of moment.deleteAssets || []) {
@@ -56,13 +58,6 @@ export const applyMomentToModel = (
     }
   }
 
-  for (const curve of moment.putCurves || []) {
-    const oldCurve = putCurve(hydraulicModel, curve);
-    if (oldCurve) {
-      reverseMoment.putCurves.push(oldCurve);
-    }
-  }
-
   if (moment.putDemands) {
     putDemands(hydraulicModel, moment.putDemands);
   }
@@ -73,6 +68,10 @@ export const applyMomentToModel = (
 
   if (moment.putControls) {
     hydraulicModel.controls = moment.putControls;
+  }
+
+  if (moment.putCurves) {
+    putCurves(hydraulicModel, moment.putCurves);
   }
 
   return reverseMoment;
@@ -153,17 +152,14 @@ const putCustomerPoint = (
   return oldVersion;
 };
 
-const putCurve = (
-  hydraulicModel: HydraulicModel,
-  curve: ICurve,
-): ICurve | undefined => {
-  const oldCurve = hydraulicModel.curves.get(curve.id);
-  if (oldCurve) {
-    hydraulicModel.labelManager.remove(oldCurve.label, "curve", oldCurve.id);
+const putCurves = (hydraulicModel: HydraulicModel, curves: Curves): void => {
+  for (const curve of hydraulicModel.curves.values()) {
+    hydraulicModel.labelManager.remove(curve.label, "curve", curve.id);
   }
-  hydraulicModel.curves.set(curve.id, curve);
-  hydraulicModel.labelManager.register(curve.label, "curve", curve.id);
-  return oldCurve;
+  hydraulicModel.curves = curves;
+  for (const curve of curves.values()) {
+    hydraulicModel.labelManager.register(curve.label, "curve", curve.id);
+  }
 };
 
 const putDemands = (hydraulicModel: HydraulicModel, demands: Demands): void => {

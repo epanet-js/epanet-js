@@ -2,7 +2,7 @@ import { HydraulicModel } from "./hydraulic-model";
 import { AssetId, Asset } from "./asset-types";
 import { Demands } from "./demands";
 import { CustomerPoint } from "./customer-points";
-import { ICurve } from "./curves";
+import { Curves } from "./curves";
 import { EPSTiming } from "./eps-timing";
 import { Controls } from "./controls";
 
@@ -13,7 +13,7 @@ export type ModelMoment = {
   putDemands?: Demands;
   putEPSTiming?: EPSTiming;
   putCustomerPoints?: CustomerPoint[];
-  putCurves?: ICurve[];
+  putCurves?: Curves;
   putControls?: Controls;
 };
 
@@ -24,7 +24,7 @@ export type ReverseMoment = {
   putDemands?: Demands;
   putEPSTiming?: EPSTiming;
   putCustomerPoints: CustomerPoint[];
-  putCurves: ICurve[];
+  putCurves?: Curves;
   putControls?: Controls;
 };
 
