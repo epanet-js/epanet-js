@@ -397,6 +397,7 @@
   "flowVsHead": "Flow vs head",
   "designPointCurve": "1-point curve (design point)",
   "standardCurve": "3-point curve (standard curve)",
+  "multiPointCurve": "Multi-point curve",
   "curvePoint": "Point",
   "shutoffPoint": "Shutoff",
   "designPointLabel": "Design",

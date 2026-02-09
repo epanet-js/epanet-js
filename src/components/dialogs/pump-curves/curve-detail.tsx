@@ -1,8 +1,10 @@
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { CurveGraph } from "./curve-graph";
-import { CurvePoint } from "src/hydraulic-model/curves";
+import { CurvePoint, getPumpCurveType } from "src/hydraulic-model/curves";
 import { type GridSelection } from "src/components/data-grid";
 import { CurveTable, type CurveTableRef } from "./curve-table";
+import { useTranslate } from "src/hooks/use-translate";
+import { InlineField } from "src/components/form/fields";
 
 interface CurveDetailProps {
   points: CurvePoint[];
@@ -54,7 +56,20 @@ export function CurveDetail({
     return () => document.removeEventListener("click", handleDocumentClick);
   }, []);
 
+  const translate = useTranslate();
   const graphSelectedIndex = selectedCells ? selectedCells.min.row : null;
+
+  const curveTypeLabel = useMemo(() => {
+    const type = getPumpCurveType(points);
+    switch (type) {
+      case "design-point":
+        return translate("designPointCurve");
+      case "standard":
+        return translate("standardCurve");
+      case "multi-point":
+        return translate("multiPointCurve");
+    }
+  }, [points, translate]);
 
   const handleTableSelectionChange = useCallback(
     (selection: GridSelection | null) => {
@@ -64,11 +79,8 @@ export function CurveDetail({
   );
 
   return (
-    <div className="grid grid-cols-5 h-full gap-4">
-      <div
-        ref={tableContainerRef}
-        className="col-span-2 h-full overflow-hidden"
-      >
+    <div className="flex flex-col h-full gap-4">
+      <div ref={tableContainerRef} className="flex-1 min-h-0 overflow-hidden">
         <CurveTable
           ref={tableRef}
           points={points}
@@ -77,7 +89,10 @@ export function CurveDetail({
           readOnly={readOnly}
         />
       </div>
-      <div className="col-span-3 h-full p-2 pt-4 border border-gray-200 dark:border-gray-700">
+      <InlineField name={translate("pumpType")} layout="label-flex-none">
+        <span className="text-sm">{curveTypeLabel}</span>
+      </InlineField>
+      <div className="flex-1 min-h-0 p-2 pt-4 border border-gray-200 dark:border-gray-700">
         <div ref={graphContainerRef} className="h-full">
           <CurveGraph
             points={points}

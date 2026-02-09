@@ -164,7 +164,7 @@ export const PumpCurvesDialog = () => {
   }, [userTracking, closeDialog]);
 
   return (
-    <DialogContainer size="lg" height="lg" onClose={handleCancel}>
+    <DialogContainer size="md" height="lg" onClose={handleCancel}>
       <DialogHeader title={translate("pumpLibrary")} />
       <div className="flex-1 flex min-h-0 gap-4">
         <CurveSidebar
@@ -204,10 +204,19 @@ export const PumpCurvesDialog = () => {
           </Button>
         ) : showDiscardConfirm ? (
           <>
-            <Button type="button" variant="danger" onClick={handleDiscard}>
+            <Button
+              type="button"
+              variant="danger"
+              onClick={handleDiscard}
+              className="whitespace-nowrap"
+            >
               {translate("discardChanges")}
             </Button>
-            <Button type="button" onClick={() => setShowDiscardConfirm(false)}>
+            <Button
+              type="button"
+              onClick={() => setShowDiscardConfirm(false)}
+              className="whitespace-nowrap"
+            >
               {translate("keepEditing")}
             </Button>
             <span className="text-sm text-gray-600 self-center">
