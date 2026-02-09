@@ -32,7 +32,7 @@ interface MaybePumpCurvePoint {
 
 const OptionKey = {
   power: "constantPower",
-  "design-point": "designPoint",
+  "design-point": "designPointCurve",
   standard: "standardCurve",
 };
 
@@ -94,7 +94,7 @@ const PumpDefinitionDetailsInner = ({
     () =>
       [
         { label: translate("constantPower"), value: "power" },
-        { label: translate("designPoint"), value: "design-point" },
+        { label: translate("designPointCurve"), value: "design-point" },
         { label: translate("standardCurve"), value: "standard" },
       ] as { label: string; value: PumpDefinitionMode }[],
     [translate],

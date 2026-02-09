@@ -122,7 +122,7 @@ const PumpDefinitionDetailsInner = ({
     () =>
       [
         { label: translate("constantPower"), value: "power" },
-        { label: translate("designPoint"), value: "design-point" },
+        { label: translate("designPointCurve"), value: "design-point" },
         { label: translate("standardCurve"), value: "standard" },
         { label: translate("namedCurve"), value: "curveId" },
       ] as { label: string; value: PumpDefinitionMode }[],
