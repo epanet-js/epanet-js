@@ -164,14 +164,14 @@ export const useScenarioOperations = () => {
 
   const createRevisionOnActive = useAtomCallback(
     useCallback(
-      (get) => {
+      (get, _set, message: string) => {
         const worktree = get(worktreeAtom);
         const hydraulicModel = get(stagingModelAtom);
         const newWorktree = createRevision(
           worktree,
           worktree.activeBranchId,
           hydraulicModel,
-          "",
+          message,
         );
         (persistence as Persistence).applyRevision(newWorktree);
       },

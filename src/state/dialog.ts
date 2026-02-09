@@ -122,6 +122,11 @@ export type PromoteVersionDialogState = {
   onConfirm: (versionId: string, name: string) => void;
 };
 
+export type SaveRevisionDialogState = {
+  type: "saveRevision";
+  onConfirm: (message: string) => void;
+};
+
 export type DialogState =
   | InvalidFilesErrorDialogState
   | {
@@ -154,6 +159,7 @@ export type DialogState =
   | AlertScenariosNotSavedState
   | AlertNetworkRequiredState
   | PromoteVersionDialogState
+  | SaveRevisionDialogState
   | null;
 
 export const dialogFromUrl = (): DialogState => {

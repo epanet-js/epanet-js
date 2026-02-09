@@ -11,8 +11,8 @@ type BranchTree = {
   children: Map<string, string[]>;
   ownVersionIds: Map<string, Set<string>>;
   lockedRevisionIds: Set<string>;
-  forkChildren: Map<string, string[]>; // versionId → child branchIds that fork from it
-  rootBranchIds: string[]; // independent branches displayed at same level as main
+  forkChildren: Map<string, string[]>;
+  rootBranchIds: string[];
 };
 
 function computeBranchTree(worktree: Worktree): BranchTree {
@@ -23,7 +23,6 @@ function computeBranchTree(worktree: Worktree): BranchTree {
   const forkChildren = new Map<string, string[]>();
   const rootBranchIds: string[] = [];
 
-  // Claim main's versions first
   const mainBranch = getMainBranch(worktree);
   if (!mainBranch)
     return {
@@ -46,11 +45,6 @@ function computeBranchTree(worktree: Worktree): BranchTree {
   ownVersionIds.set(mainBranch.id, mainOwn);
   children.set(mainBranch.id, []);
 
-  // Iteratively resolve all non-main branches.
-  // Each pass can resolve two kinds:
-  //   1. Child branches — chain hits an already-owned version
-  //   2. Independent branches — chain reaches parentId: null
-  // Claiming versions each pass lets the next pass find children of newly-resolved branches.
   let remaining = [...worktree.branches.values()].filter(
     (b) => b.id !== "main",
   );
@@ -77,7 +71,6 @@ function computeBranchTree(worktree: Worktree): BranchTree {
       }
 
       if (foundParent && currentId) {
-        // Child of an existing branch
         lockedRevisionIds.add(currentId);
         if (!forkChildren.has(currentId)) forkChildren.set(currentId, []);
         forkChildren.get(currentId)!.push(branch.id);
@@ -89,7 +82,6 @@ function computeBranchTree(worktree: Worktree): BranchTree {
         children.set(branch.id, []);
         changed = true;
       } else if (!foundParent && currentId === null) {
-        // Independent branch — chain reached null without hitting any owner
         for (const vid of own) {
           versionOwner.set(vid, branch.id);
         }
@@ -105,7 +97,6 @@ function computeBranchTree(worktree: Worktree): BranchTree {
     remaining = nextRemaining;
   }
 
-  // Truly orphaned branches (broken chain) → attach to main
   for (const branch of remaining) {
     ownVersionIds.set(branch.id, new Set());
     children.get(mainBranch.id)!.push(branch.id);
@@ -165,15 +156,24 @@ function VersionNode({
   onCommit?: () => void;
   onPromote?: () => void;
 }) {
-  const statusIcon = version.status === "draft" ? "✎" : "✓";
-  const iconColor =
-    version.status === "draft" ? "text-yellow-500" : "text-green-500";
+  const isDraft = version.status === "draft";
+  const statusIcon = isDraft ? "✎" : "✓";
+  const iconColor = isDraft ? "text-yellow-500" : "text-green-500";
+  const label = isDraft ? "Draft" : version.message || version.id.slice(0, 8);
 
   return (
     <div className="py-1">
-      <div className="flex items-center gap-1.5 font-mono text-xs text-gray-400">
-        <span className={iconColor}>{statusIcon}</span>
-        <span>{version.id.slice(0, 8)}</span>
+      <div className="flex items-center gap-1.5 text-xs">
+        <span className={`font-mono ${iconColor}`}>{statusIcon}</span>
+        <span
+          className={
+            isDraft
+              ? "text-gray-400 italic"
+              : "text-gray-700 dark:text-gray-300"
+          }
+        >
+          {label}
+        </span>
         {isLocked && (
           <span className="text-amber-500" title="Locked — has child branches">
             <MainModelIcon size="sm" />
@@ -183,7 +183,7 @@ function VersionNode({
           <button
             onClick={onCommit}
             className="text-gray-400 hover:text-green-500 dark:hover:text-green-400 transition-colors"
-            title="Create revision"
+            title="Save changes"
           >
             <CommitIcon size="sm" />
           </button>
@@ -192,7 +192,7 @@ function VersionNode({
           <button
             onClick={onBranch}
             className="text-gray-400 hover:text-purple-500 dark:hover:text-purple-400 transition-colors"
-            title="Create branch from this revision"
+            title="Create scenario from this revision"
           >
             <AddScenarioIcon size="sm" />
           </button>
@@ -236,6 +236,7 @@ function BranchNode({
   const branch = getBranch(worktree, branchId);
   if (!branch) return null;
 
+  const isMain = branchId === "main";
   const ownIds = tree.ownVersionIds.get(branchId) ?? new Set<string>();
   const versions = getVersionChain(worktree, branch, ownIds);
   const revisions = versions.filter((v) => v.status === "revision");
@@ -265,7 +266,9 @@ function BranchNode({
               <VersionNode
                 version={version}
                 isLocked={tree.lockedRevisionIds.has(version.id)}
-                onBranch={() => onBranchFromVersion(version.id)}
+                onBranch={
+                  isMain ? () => onBranchFromVersion(version.id) : undefined
+                }
                 onPromote={() => onPromoteVersion(version.id)}
               />
             </div>
@@ -322,6 +325,13 @@ export function History() {
   } = useScenarioOperations();
   const setDialog = useSetAtom(dialogAtom);
 
+  const openSaveRevisionDialog = useCallback(() => {
+    setDialog({
+      type: "saveRevision",
+      onConfirm: createRevisionOnActive,
+    });
+  }, [setDialog, createRevisionOnActive]);
+
   const openPromoteDialog = useCallback(
     (versionId: string) => {
       setDialog({
@@ -338,7 +348,7 @@ export function History() {
   return (
     <div className="absolute inset-0 flex flex-col overflow-y-auto">
       <div className="px-3 py-2 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-200 dark:border-gray-700">
-        Worktree
+        History
       </div>
       <div className="px-3 py-2 space-y-0.5">
         <BranchNode
@@ -346,7 +356,7 @@ export function History() {
           worktree={worktree}
           tree={tree}
           depth={0}
-          onCreateRevision={createRevisionOnActive}
+          onCreateRevision={openSaveRevisionDialog}
           onBranchFromVersion={createScenarioFromVersion}
           onPromoteVersion={openPromoteDialog}
         />
@@ -357,7 +367,7 @@ export function History() {
             worktree={worktree}
             tree={tree}
             depth={0}
-            onCreateRevision={createRevisionOnActive}
+            onCreateRevision={openSaveRevisionDialog}
             onBranchFromVersion={createScenarioFromVersion}
             onPromoteVersion={openPromoteDialog}
           />

@@ -315,6 +315,19 @@ const PromoteVersionDialog = dynamic<{
   },
 );
 
+const SaveRevisionDialog = dynamic<{
+  onConfirm: (message: string) => void;
+  onClose: () => void;
+}>(
+  () =>
+    import("src/components/dialogs/save-revision").then(
+      (r) => r.SaveRevisionDialog,
+    ),
+  {
+    loading: () => <LoadingDialog />,
+  },
+);
+
 const FirstScenarioDialog = dynamic<{
   onConfirm: () => void;
   onClose: () => void;
@@ -489,6 +502,9 @@ export const Dialogs = memo(function Dialogs() {
         onConfirm={onConfirm}
         onClose={onClose}
       />
+    ))
+    .with({ type: "saveRevision" }, ({ onConfirm }) => (
+      <SaveRevisionDialog onConfirm={onConfirm} onClose={onClose} />
     ))
     .exhaustive();
 
