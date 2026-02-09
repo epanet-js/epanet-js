@@ -220,6 +220,8 @@ function BranchNode({
   tree,
   isLast,
   depth,
+  isBaseBranch,
+  onSwitchBranch,
   onCreateRevision,
   onBranchFromVersion,
   onPromoteVersion,
@@ -229,6 +231,8 @@ function BranchNode({
   tree: BranchTree;
   isLast?: boolean;
   depth: number;
+  isBaseBranch: boolean;
+  onSwitchBranch: (branchId: string) => void;
   onCreateRevision: () => void;
   onBranchFromVersion: (versionId: string) => void;
   onPromoteVersion: (versionId: string) => void;
@@ -236,7 +240,6 @@ function BranchNode({
   const branch = getBranch(worktree, branchId);
   if (!branch) return null;
 
-  const isMain = branchId === "main";
   const ownIds = tree.ownVersionIds.get(branchId) ?? new Set<string>();
   const versions = getVersionChain(worktree, branch, ownIds);
   const revisions = versions.filter((v) => v.status === "revision");
@@ -249,9 +252,17 @@ function BranchNode({
     <div>
       <div className="flex items-center gap-1.5 py-1">
         <span className="text-xs text-gray-400">⎇</span>
-        <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+        <button
+          onClick={isActive ? undefined : () => onSwitchBranch(branchId)}
+          disabled={isActive}
+          className={`text-xs font-medium ${
+            isActive
+              ? "text-gray-700 dark:text-gray-300 cursor-default"
+              : "text-gray-700 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 cursor-pointer"
+          }`}
+        >
           {branch.name}
-        </span>
+        </button>
         {isActive && (
           <span className="text-[10px] bg-purple-100 dark:bg-purple-800 text-purple-600 dark:text-purple-300 px-1 py-0.5 rounded">
             active
@@ -267,7 +278,7 @@ function BranchNode({
                 version={version}
                 isLocked={tree.lockedRevisionIds.has(version.id)}
                 onBranch={
-                  isMain && version.id === branch.headRevisionId
+                  isBaseBranch && version.id === branch.headRevisionId
                     ? () => onBranchFromVersion(version.id)
                     : undefined
                 }
@@ -284,6 +295,8 @@ function BranchNode({
                     tree={tree}
                     isLast={i === forkedChildren.length - 1}
                     depth={depth + 1}
+                    isBaseBranch={false}
+                    onSwitchBranch={onSwitchBranch}
                     onCreateRevision={onCreateRevision}
                     onBranchFromVersion={onBranchFromVersion}
                     onPromoteVersion={onPromoteVersion}
@@ -321,6 +334,7 @@ function BranchNode({
 export function History() {
   const worktree = useAtomValue(worktreeAtom);
   const {
+    switchToSnapshot,
     createRevisionOnActive,
     createScenarioFromVersion,
     promoteVersionToNewBranch,
@@ -358,6 +372,8 @@ export function History() {
           worktree={worktree}
           tree={tree}
           depth={0}
+          isBaseBranch
+          onSwitchBranch={switchToSnapshot}
           onCreateRevision={openSaveRevisionDialog}
           onBranchFromVersion={createScenarioFromVersion}
           onPromoteVersion={openPromoteDialog}
@@ -369,6 +385,8 @@ export function History() {
             worktree={worktree}
             tree={tree}
             depth={0}
+            isBaseBranch
+            onSwitchBranch={switchToSnapshot}
             onCreateRevision={openSaveRevisionDialog}
             onBranchFromVersion={createScenarioFromVersion}
             onPromoteVersion={openPromoteDialog}
