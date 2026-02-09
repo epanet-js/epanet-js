@@ -206,63 +206,19 @@ export function LineGraph({
 
   const onChartReady = useCallback((chart: EChartsInstance) => {
     const zr = chart.getZr();
+    let handledBySeriesClick = false;
 
-    zr.on("click", (params: { offsetX: number; offsetY: number }) => {
-      const pointInPixel = [params.offsetX, params.offsetY];
-      if (!chart.containPixel("grid", pointInPixel)) {
-        onPointClickRef.current?.(null);
+    chart.on("click", (params: { dataIndex: number }) => {
+      handledBySeriesClick = true;
+      onPointClickRef.current?.(params.dataIndex);
+    });
+
+    zr.on("click", () => {
+      if (handledBySeriesClick) {
+        handledBySeriesClick = false;
         return;
       }
-
-      // Find the closest point to the click
-      const pointInGrid = chart.convertFromPixel("grid", pointInPixel);
-      const clickX = pointInGrid[0];
-      const clickY = pointInGrid[1];
-
-      // Get the data from the chart option
-      // When smoothCurvePoints is present, clickable points are in series[1] (scatter).
-      // Otherwise, they're in series[0] (the only series).
-      const opt = chart.getOption() as EChartsOption;
-      const seriesArray = opt.series as {
-        data: { value: [number, number] }[];
-      }[];
-      const clickableSeriesIndex = seriesArray.length > 1 ? 1 : 0;
-      const seriesData = seriesArray[clickableSeriesIndex]?.data;
-
-      if (!seriesData || seriesData.length === 0) {
-        onPointClickRef.current?.(null);
-        return;
-      }
-
-      // Find closest point within a reasonable threshold
-      let closestIndex: number | null = null;
-      let minDistance = Infinity;
-
-      seriesData.forEach((item, index) => {
-        const [px, py] = item.value;
-        const distance = Math.sqrt(
-          Math.pow(clickX - px, 2) + Math.pow(clickY - py, 2),
-        );
-        if (distance < minDistance) {
-          minDistance = distance;
-          closestIndex = index;
-        }
-      });
-
-      // Only select if within a threshold (in data units)
-      const xRange =
-        (opt.xAxis as { max: number; min: number }).max -
-        (opt.xAxis as { max: number; min: number }).min;
-      const yRange =
-        (opt.yAxis as { max: number; min: number }).max -
-        (opt.yAxis as { max: number; min: number }).min;
-      const threshold = Math.max(xRange, yRange) * 0.1;
-
-      if (minDistance <= threshold) {
-        onPointClickRef.current?.(closestIndex);
-      } else {
-        onPointClickRef.current?.(null);
-      }
+      onPointClickRef.current?.(null);
     });
 
     zr.on("mousemove", (params: { offsetX: number; offsetY: number }) => {
