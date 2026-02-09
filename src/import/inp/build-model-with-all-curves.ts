@@ -25,6 +25,7 @@ import { PumpStatus } from "src/hydraulic-model/asset-types/pump";
 import { ValveStatus } from "src/hydraulic-model/asset-types/valve";
 import { ParseInpOptions } from "./parse-inp";
 import { AssetId } from "src/hydraulic-model/asset-types/base-asset";
+import { Pump } from "src/hydraulic-model/asset-types/pump";
 import {
   ConsecutiveIdsGenerator,
   IdGenerator,
@@ -37,6 +38,7 @@ import {
   defaultCurvePoints,
   ICurve,
   isValidPumpCurve,
+  getPumpCurveType,
 } from "src/hydraulic-model/curves";
 import {
   LabelResolver,
@@ -163,8 +165,9 @@ export const buildModelWithAllCurves = (
     });
   }
 
-  hydraulicModel.curves = getValidCurves(
-    curvesContext,
+  addCurves(
+    hydraulicModel,
+    curvesContext.curves,
     inpData.energyEfficiencyCurves,
     linkIds,
     issues,
@@ -842,33 +845,45 @@ const markCurveUsed = (
   curveAssetIds.add(assetId);
 };
 
-const getValidCurves = (
-  curvesContext: CurvesContext,
+const addCurves = (
+  hydraulicModel: HydraulicModel,
+  curves: Curves,
   energyEfficiencyCurves: ItemData<string>,
   linkIds: ItemData<AssetId>,
   issues: IssuesAccumulator,
-): Curves => {
+) => {
   for (const [pumpLabel, curveLabel] of energyEfficiencyCurves.entries()) {
     const pumpId = linkIds.get(pumpLabel);
-    const curveId = curvesContext.labelManager.getIdByLabel(
+    const curveId = hydraulicModel.labelManager.getIdByLabel(
       curveLabel,
       "curve",
     );
     if (pumpId !== undefined && curveId !== undefined) {
-      markCurveUsed(curvesContext.curves, curveId, pumpId, "efficiency");
+      markCurveUsed(curves, curveId, pumpId, "efficiency");
     }
   }
 
   const validCurves: Curves = new Map();
 
-  for (const curve of curvesContext.curves.values()) {
-    if (!curve.type) issues.addUnusedCurve();
+  for (const curve of curves.values()) {
     if (curve.type === "pump") {
-      validCurves.set(curve.id, curve);
-    } else {
-      curvesContext.labelManager.remove(curve.label, "curve", curve.id);
-    }
-  }
+      const curveType = getPumpCurveType(curve.points);
+      if (curveType === "multi-point" || curve.assetIds.size > 1) {
+        validCurves.set(curve.id, curve);
+        continue;
+      }
 
-  return validCurves;
+      const [pumpId] = curve.assetIds;
+      const pump = hydraulicModel.assets.get(pumpId) as Pump;
+      pump.setProperty("definitionType", "curve");
+      pump.feature.properties.curve = curve.points.map((p) => ({ ...p }));
+      delete pump.feature.properties.curveId;
+      hydraulicModel.labelManager.remove(curve.label, "curve", curve.id);
+      continue;
+    }
+
+    if (!curve.type) issues.addUnusedCurve();
+    hydraulicModel.labelManager.remove(curve.label, "curve", curve.id);
+  }
+  hydraulicModel.curves = validCurves;
 };

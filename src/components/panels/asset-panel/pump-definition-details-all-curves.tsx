@@ -579,7 +579,7 @@ const CurveIdSelector = ({
     if (newValue === 0) showPumpLibrary({ source: "pump" });
   };
 
-  return curveOptions.length > 1 ? (
+  return curveOptions[1].length > 1 ? (
     <SelectRow
       name="curveName"
       selected={selectedCurve}
