@@ -63,4 +63,4 @@ export const buildDefaultPumpCurve = (
   };
 };
 
-export const defaultCurvePoints = () => [{ x: 1, y: 1 }];
+export const defaultCurvePoints = (): CurvePoint[] => [{ x: 1, y: 1 }];

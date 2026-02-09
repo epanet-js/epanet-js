@@ -820,8 +820,10 @@
   "pumpLibrary": "Pump Library",
   "addCurve": "Add curve",
   "curveName": "Curve name",
-  "pumpCurvesEmptyTitle": "Pump curves are empty",
-  "pumpCurvesEmptyDescription": "Please create a new pump curve to get started.",
-  "pumpCurvesNoSelection": "Select a curve to view its details.",
+  "addPoint": "Add point",
+  "pumpLibraryEmptyTitle": "No pump curves",
+  "pumpLibraryEmptyDescription": "Add a pump curve to get started",
+  "pumpLibraryNoSelection": "Select a curve to edit",
+  "pumpLibraryUnsavedWarning": "You have unsaved changes to pump curves",
   "deleteCurveInUse": "Cannot delete a curve that is used by a pump"
 }
