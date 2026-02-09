@@ -14,18 +14,20 @@ export const promoteVersion = (
     throw new Error(`Version ${versionId} not found`);
   }
 
-  const model = sourceVersion.snapshot.hydraulicModel;
+  // Walk the full version chain to collect all deltas from root to source.
+  // This is necessary because after a rebase, the snapshot.hydraulicModel on
+  // the source version may be stale (it was captured before the rebase), but
+  // the deltas on each version in the chain are always correct.
+  const allDeltas: Moment[] = [];
+  let current: Version | undefined = sourceVersion;
+  while (current) {
+    allDeltas.unshift(...current.deltas);
+    current = current.parentId
+      ? worktree.versions.get(current.parentId)
+      : undefined;
+  }
 
-  const snapshotMoment: Moment = {
-    note: "Pinned",
-    putAssets: [...model.assets.values()],
-    deleteAssets: [],
-    putDemands: model.demands,
-    putEPSTiming: model.epsTiming,
-    putControls: model.controls,
-    putCustomerPoints: [...model.customerPoints.values()],
-    putCurves: [...model.curvesDeprecated.values()],
-  };
+  const model = sourceVersion.snapshot.hydraulicModel;
 
   const newBranchId = nanoid();
   const revisionId = nanoid();
@@ -39,7 +41,7 @@ export const promoteVersion = (
   const revision: Version = {
     id: revisionId,
     message: "Pinned",
-    deltas: [snapshotMoment],
+    deltas: allDeltas,
     parentId: null,
     status: "revision",
     timestamp: Date.now(),
@@ -62,7 +64,6 @@ export const promoteVersion = (
   };
 
   const newSessionHistory = new MomentLog();
-  newSessionHistory.setSnapshot(snapshotMoment, draftId);
   newSessionHistory.setBaseStateId(draftId);
 
   const newBranch: Branch = {
