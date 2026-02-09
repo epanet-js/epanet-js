@@ -23,7 +23,7 @@ describe("curve type inference", () => {
     expect(curve.type).toEqual("pump");
   });
 
-  it("sets type 'volume' for curves used by a tank volume curve", () => {
+  it("excludes volume curves from hydraulicModel", () => {
     const inp = `
     [TANKS]
     T1\t100\t15\t5\t25\t120\t0\tVC1
@@ -36,12 +36,13 @@ describe("curve type inference", () => {
 
     const { hydraulicModel } = parseInpWithAllCurves(inp);
 
-    const curveId = hydraulicModel.labelManager.getIdByLabel("VC1", "curve")!;
-    const curve = hydraulicModel.curves.get(curveId)!;
-    expect(curve.type).toEqual("volume");
+    expect(
+      hydraulicModel.labelManager.getIdByLabel("VC1", "curve"),
+    ).toBeUndefined();
+    expect(hydraulicModel.curves.size).toBe(0);
   });
 
-  it("sets type 'valve' for PCV valve characteristic curves", () => {
+  it("excludes valve curves from hydraulicModel", () => {
     const inp = `
     [JUNCTIONS]
     j1\t10
@@ -57,15 +58,13 @@ describe("curve type inference", () => {
 
     const { hydraulicModel } = parseInpWithAllCurves(inp);
 
-    const curveId = hydraulicModel.labelManager.getIdByLabel(
-      "PCV_CURVE",
-      "curve",
-    )!;
-    const curve = hydraulicModel.curves.get(curveId)!;
-    expect(curve.type).toEqual("valve");
+    expect(
+      hydraulicModel.labelManager.getIdByLabel("PCV_CURVE", "curve"),
+    ).toBeUndefined();
+    expect(hydraulicModel.curves.size).toBe(0);
   });
 
-  it("sets type 'headloss' for GPV headloss curves", () => {
+  it("excludes headloss curves from hydraulicModel", () => {
     const inp = `
     [JUNCTIONS]
     j1\t10
@@ -81,15 +80,13 @@ describe("curve type inference", () => {
 
     const { hydraulicModel } = parseInpWithAllCurves(inp);
 
-    const curveId = hydraulicModel.labelManager.getIdByLabel(
-      "HL_CURVE",
-      "curve",
-    )!;
-    const curve = hydraulicModel.curves.get(curveId)!;
-    expect(curve.type).toEqual("headloss");
+    expect(
+      hydraulicModel.labelManager.getIdByLabel("HL_CURVE", "curve"),
+    ).toBeUndefined();
+    expect(hydraulicModel.curves.size).toBe(0);
   });
 
-  it("sets type 'efficiency' for ENERGY pump efficiency curves", () => {
+  it("excludes efficiency curves from hydraulicModel", () => {
     const inp = `
     [JUNCTIONS]
     j1\t10
@@ -107,9 +104,10 @@ describe("curve type inference", () => {
 
     const { hydraulicModel } = parseInpWithAllCurves(inp);
 
-    const curveId = hydraulicModel.labelManager.getIdByLabel("EFF1", "curve")!;
-    const curve = hydraulicModel.curves.get(curveId)!;
-    expect(curve.type).toEqual("efficiency");
+    expect(
+      hydraulicModel.labelManager.getIdByLabel("EFF1", "curve"),
+    ).toBeUndefined();
+    expect(hydraulicModel.curves.size).toBe(0);
   });
 
   it("ignores numeric ENERGY efficiency values (not curves)", () => {
@@ -147,10 +145,42 @@ describe("curve type inference", () => {
     const { hydraulicModel, issues } = parseInpWithAllCurves(inp);
 
     const cu1Id = hydraulicModel.labelManager.getIdByLabel("cu1", "curve")!;
-    const cu2Id = hydraulicModel.labelManager.getIdByLabel("cu2", "curve")!;
     expect(hydraulicModel.curves.get(cu1Id)!.type).toEqual("pump");
-    expect(hydraulicModel.curves.get(cu2Id)!.type).toBeUndefined();
+    expect(
+      hydraulicModel.labelManager.getIdByLabel("cu2", "curve"),
+    ).toBeUndefined();
     expect(issues?.hasUnusedCurves).toBe(2);
+  });
+
+  it("only includes pump curves in hydraulicModel.curves", () => {
+    const inp = `
+    [JUNCTIONS]
+    j1\t10
+    j2\t10
+    [TANKS]
+    T1\t100\t15\t5\t25\t120\t0\tVC1
+    [PUMPS]
+    pu1\tj1\tj2\tHEAD cu1
+    [CURVES]
+    cu1\t100\t200
+    VC1\t0\t0
+    VC1\t10\t500
+    unused1\t50\t100
+    ${coords(["j1", "j2", "T1"])}
+    `;
+
+    const { hydraulicModel } = parseInpWithAllCurves(inp);
+
+    const cu1Id = hydraulicModel.labelManager.getIdByLabel("cu1", "curve")!;
+
+    expect(hydraulicModel.curves.get(cu1Id)).toBeDefined();
+    expect(
+      hydraulicModel.labelManager.getIdByLabel("VC1", "curve"),
+    ).toBeUndefined();
+    expect(
+      hydraulicModel.labelManager.getIdByLabel("unused1", "curve"),
+    ).toBeUndefined();
+    expect(hydraulicModel.curves.size).toBe(1);
   });
 
   it("does not report unused curves when all curves are used", () => {
@@ -185,12 +215,9 @@ describe("curve type inference", () => {
 
     const { hydraulicModel, issues } = parseInpWithAllCurves(inp);
 
-    const curveId = hydraulicModel.labelManager.getIdByLabel(
-      "bad_curve",
-      "curve",
-    )!;
-    const curve = hydraulicModel.curves.get(curveId)!;
-    expect(curve.type).toBeUndefined();
+    expect(
+      hydraulicModel.labelManager.getIdByLabel("bad_curve", "curve"),
+    ).toBeUndefined();
     expect(issues?.hasPumpCurves).toBe(1);
     expect(issues?.hasUnusedCurves).toBe(1);
   });

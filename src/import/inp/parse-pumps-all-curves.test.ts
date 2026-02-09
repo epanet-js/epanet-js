@@ -542,11 +542,8 @@ describe("parse pumps", () => {
       const curveId = hydraulicModel.labelManager.getIdByLabel(
         curveLabel,
         "curve",
-      )!;
-      expect(curveId).toBeDefined();
-      const curve = hydraulicModel.curves.get(curveId)!;
-      expect(curve.type).toBeUndefined();
-      expect(curve.assetIds.size).toBe(0);
+      );
+      expect(curveId).toBeUndefined();
       expect(issues?.hasUnusedCurves).toBe(1);
     });
   });

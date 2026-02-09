@@ -163,14 +163,12 @@ export const buildModelWithAllCurves = (
     });
   }
 
-  checkUnusedCurves(
+  hydraulicModel.curves = getValidCurves(
     curvesContext,
     inpData.energyEfficiencyCurves,
     linkIds,
     issues,
   );
-
-  hydraulicModel.curves = curvesContext.curves;
 
   hydraulicModel.demands.patterns = options?.usedPatterns
     ? filterUsedPatterns(patternContext.patterns, patternContext.usedPatternIds)
@@ -844,12 +842,12 @@ const markCurveUsed = (
   curveAssetIds.add(assetId);
 };
 
-const checkUnusedCurves = (
+const getValidCurves = (
   curvesContext: CurvesContext,
   energyEfficiencyCurves: ItemData<string>,
   linkIds: ItemData<AssetId>,
   issues: IssuesAccumulator,
-) => {
+): Curves => {
   for (const [pumpLabel, curveLabel] of energyEfficiencyCurves.entries()) {
     const pumpId = linkIds.get(pumpLabel);
     const curveId = curvesContext.labelManager.getIdByLabel(
@@ -861,7 +859,16 @@ const checkUnusedCurves = (
     }
   }
 
+  const validCurves: Curves = new Map();
+
   for (const curve of curvesContext.curves.values()) {
     if (!curve.type) issues.addUnusedCurve();
+    if (curve.type === "pump") {
+      validCurves.set(curve.id, curve);
+    } else {
+      curvesContext.labelManager.remove(curve.label, "curve", curve.id);
+    }
   }
+
+  return validCurves;
 };
