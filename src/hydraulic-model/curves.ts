@@ -4,9 +4,12 @@ import { LabelManager } from "./label-manager";
 export type CurveId = number;
 export type CurvePoint = { x: number; y: number };
 
+export type CurveType = "pump" | "efficiency" | "volume" | "valve" | "headloss";
+
 export interface ICurve {
   id: CurveId;
   label: string;
+  type?: CurveType;
   points: CurvePoint[];
   assetIds: Set<AssetId>;
 }

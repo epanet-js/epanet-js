@@ -32,6 +32,7 @@ import {
 import {
   CurveId,
   CurvePoint,
+  CurveType,
   Curves,
   defaultCurvePoints,
   ICurve,
@@ -115,7 +116,7 @@ export const buildModelWithAllCurves = (
   }
 
   for (const tankData of inpData.tanks) {
-    addTank(hydraulicModel, tankData, {
+    addTank(hydraulicModel, tankData, curvesContext, {
       inpData,
       issues,
       nodeIds,
@@ -132,7 +133,7 @@ export const buildModelWithAllCurves = (
   }
 
   for (const valveData of inpData.valves) {
-    addValve(hydraulicModel, valveData, {
+    addValve(hydraulicModel, valveData, curvesContext, {
       inpData,
       issues,
       nodeIds,
@@ -161,6 +162,13 @@ export const buildModelWithAllCurves = (
       customerPointIdGenerator,
     });
   }
+
+  checkUnusedCurves(
+    curvesContext,
+    inpData.energyEfficiencyCurves,
+    linkIds,
+    issues,
+  );
 
   hydraulicModel.curves = curvesContext.curves;
 
@@ -196,7 +204,7 @@ const addCurve = (
   points: CurvePoint[],
 ): ICurve | undefined => {
   const { curves, idGenerator, labelManager } = curvesContext;
-  if (!isValidPumpCurve(points)) return;
+  if (points.length === 0) return;
 
   const id = idGenerator.newId();
   const curve: ICurve = {
@@ -414,6 +422,7 @@ const addReservoir = (
 const addTank = (
   hydraulicModel: HydraulicModel,
   tankData: TankData,
+  curvesContext: CurvesContext,
   {
     inpData,
     issues,
@@ -441,6 +450,16 @@ const addTank = (
   });
   hydraulicModel.assets.set(tank.id, tank);
   nodeIds.set(tankData.id, tank.id);
+
+  if (tankData.volumeCurveId) {
+    const curveId = curvesContext.labelManager.getIdByLabel(
+      tankData.volumeCurveId,
+      "curve",
+    );
+    if (curveId !== undefined) {
+      markCurveUsed(curvesContext.curves, curveId, tank.id, "volume");
+    }
+  }
 };
 
 const addPump = (
@@ -494,10 +513,18 @@ const addPump = (
       };
     } else {
       const curve = curvesContext.curves.get(curveId)!;
-      definitionProps = {
-        definitionType: "curveId",
-        curveId: curve.id,
-      };
+      if (!isValidPumpCurve(curve.points)) {
+        issues.addPumpCurve();
+        definitionProps = {
+          definitionType: "curve",
+          curve: defaultCurvePoints(),
+        };
+      } else {
+        definitionProps = {
+          definitionType: "curveId",
+          curveId: curve.id,
+        };
+      }
     }
   }
 
@@ -533,12 +560,14 @@ const addPump = (
   hydraulicModel.assets.set(pump.id, pump);
   hydraulicModel.topology.addLink(pump.id, connections[0], connections[1]);
   linkIds.set(pumpData.id, pump.id);
-  if (pump.curveId) markCurveUsed(curvesContext.curves, pump.curveId, pump.id);
+  if (pump.curveId)
+    markCurveUsed(curvesContext.curves, pump.curveId, pump.id, "pump");
 };
 
 const addValve = (
   hydraulicModel: HydraulicModel,
   valveData: ValveData,
+  curvesContext: CurvesContext,
   {
     inpData,
     issues,
@@ -575,6 +604,26 @@ const addValve = (
   hydraulicModel.assets.set(valve.id, valve);
   hydraulicModel.topology.addLink(valve.id, connections[0], connections[1]);
   linkIds.set(valveData.id, valve.id);
+
+  if (valveData.curveId) {
+    const curveId = curvesContext.labelManager.getIdByLabel(
+      valveData.curveId,
+      "curve",
+    );
+    if (curveId !== undefined) {
+      markCurveUsed(curvesContext.curves, curveId, valve.id, "valve");
+    }
+  }
+
+  if (valveData.headlossCurveId) {
+    const curveId = curvesContext.labelManager.getIdByLabel(
+      valveData.headlossCurveId,
+      "curve",
+    );
+    if (curveId !== undefined) {
+      markCurveUsed(curvesContext.curves, curveId, valve.id, "headloss");
+    }
+  }
 };
 
 const addPipe = (
@@ -783,8 +832,36 @@ const addControls = (
   };
 };
 
-const markCurveUsed = (curves: Curves, curveId: CurveId, assetId: AssetId) => {
+const markCurveUsed = (
+  curves: Curves,
+  curveId: CurveId,
+  assetId: AssetId,
+  type: CurveType,
+) => {
   const curve = curves.get(curveId)!;
+  curve.type = type;
   const curveAssetIds = curve.assetIds ?? new Set();
   curveAssetIds.add(assetId);
+};
+
+const checkUnusedCurves = (
+  curvesContext: CurvesContext,
+  energyEfficiencyCurves: ItemData<string>,
+  linkIds: ItemData<AssetId>,
+  issues: IssuesAccumulator,
+) => {
+  for (const [pumpLabel, curveLabel] of energyEfficiencyCurves.entries()) {
+    const pumpId = linkIds.get(pumpLabel);
+    const curveId = curvesContext.labelManager.getIdByLabel(
+      curveLabel,
+      "curve",
+    );
+    if (pumpId !== undefined && curveId !== undefined) {
+      markCurveUsed(curvesContext.curves, curveId, pumpId, "efficiency");
+    }
+  }
+
+  for (const curve of curvesContext.curves.values()) {
+    if (!curve.type) issues.addUnusedCurve();
+  }
 };

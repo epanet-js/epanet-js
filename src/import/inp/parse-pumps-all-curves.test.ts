@@ -83,6 +83,7 @@ describe("parse pumps", () => {
     const curve = hydraulicModel.curves.get(curveId)!;
     expect(curve.label).toEqual(curveLabel);
     expect(curve.points).toEqual([{ x: designFlow, y: designHead }]);
+    expect(curve.type).toEqual("pump");
     expect(curve.assetIds.size).toBe(1);
 
     const pump = getByLabel(hydraulicModel.assets, pumpId) as Pump;
@@ -514,7 +515,7 @@ describe("parse pumps", () => {
       expect(pump.curveId).toEqual(curveId);
     });
 
-    it("ignores curves with non-ascending flow values", () => {
+    it("registers curves with non-ascending flow values but reports them as unused", () => {
       const reservoirId = "r1";
       const junctionId = "j1";
       const curveLabel = "cu1";
@@ -542,8 +543,11 @@ describe("parse pumps", () => {
         curveLabel,
         "curve",
       )!;
-      expect(curveId).not.toBeDefined();
-      expect(issues?.hasPumpCurves || 0).toBe(0);
+      expect(curveId).toBeDefined();
+      const curve = hydraulicModel.curves.get(curveId)!;
+      expect(curve.type).toBeUndefined();
+      expect(curve.assetIds.size).toBe(0);
+      expect(issues?.hasUnusedCurves).toBe(1);
     });
   });
 

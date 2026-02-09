@@ -293,6 +293,7 @@
   "pumpPatterns": "Pumps with time patterns ({{1}} pumps using constant speed)",
   "pumpCurves": "Pumps with multi-point curves ({{1}} pumps using middle point as one point curve)",
   "pcvCurves": "PCV valves with characteristic curves ({{1}} valves using setting value only)",
+  "unusedCurves": "{{1}} unidentified curves not imported",
   "waterQualitySimulation": "Unsupported water quality simulation:",
   "waterQualityAge": "Age of water",
   "waterQualityChemical": "Chemical analysis",
@@ -824,6 +825,5 @@
   "pumpLibraryEmptyTitle": "No pump curves",
   "pumpLibraryEmptyDescription": "Add a pump curve to get started",
   "pumpLibraryNoSelection": "Select a curve to edit",
-  "pumpLibraryUnsavedWarning": "You have unsaved changes to pump curves",
   "deleteCurveInUse": "Cannot delete a curve that is used by a pump"
 }

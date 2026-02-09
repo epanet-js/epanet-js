@@ -66,6 +66,8 @@ export type ValveData = {
   kind: ValveKind;
   setting: number;
   minorLoss: number;
+  curveId?: string;
+  headlossCurveId?: string;
   isActive: boolean;
 };
 
@@ -119,6 +121,7 @@ export type InpData = {
   patterns: ItemData<PatternData>;
   status: ItemData<string>;
   curves: ItemData<CurveData>;
+  energyEfficiencyCurves: ItemData<string>;
   options: {
     units: EpanetUnitSystem;
     headlossFormula: HeadlossFormula;
@@ -198,6 +201,7 @@ export const nullInpData = (): InpData => {
     patterns: new ItemData(),
     status: new ItemData(),
     curves: new ItemData(),
+    energyEfficiencyCurves: new ItemData(),
     options: { units: "GPM", headlossFormula: "H-W", demandMultiplier: 1 },
     times: {},
     controls: { simple: "", ruleBased: "" },

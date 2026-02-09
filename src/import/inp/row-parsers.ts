@@ -60,12 +60,28 @@ const defaultEnergySettings: Record<string, number> = {
   "DEMAND CHARGE": 0,
 };
 
-export const parseEnergy: RowParser = ({ sectionName, trimmedRow, issues }) => {
+export const parseEnergy: RowParser = ({
+  sectionName,
+  trimmedRow,
+  inpData,
+  issues,
+}) => {
+  const upperRow = trimmedRow.toUpperCase();
+
+  if (upperRow.startsWith("PUMP")) {
+    const [, pumpId, keyword, value] = readValues(trimmedRow);
+    if (keyword?.toUpperCase() === "EFFICIENCY" && value) {
+      inpData.energyEfficiencyCurves.set(pumpId, value);
+    } else {
+      issues.addUsedSection(sectionName);
+    }
+    return;
+  }
+
   const setting = readSetting(trimmedRow, defaultEnergySettings);
   if (setting && setting.value !== setting.defaultValue) {
     issues.addUsedSection(sectionName);
   } else if (!setting) {
-    // Unsupported Energy settings
     issues.addUsedSection(sectionName);
   }
 };
@@ -170,12 +186,17 @@ export const parseValve: RowParser = ({
   ] = readValues(trimmedRow);
 
   let kind = type.toLowerCase();
+  let headlossCurveId: string | undefined;
+  let valveCurveId: string | undefined;
+
   if (kind === "gpv") {
     issues.addGPVUsed();
+    headlossCurveId = setting;
     kind = "tcv";
   }
 
   if (kind === "pcv" && curveId) {
+    valveCurveId = curveId;
     issues.addPCVCurve();
   }
 
@@ -187,6 +208,8 @@ export const parseValve: RowParser = ({
     kind: kind as ValveKind,
     setting: parseFloat(setting),
     minorLoss: parseFloat(minorLoss),
+    curveId: valveCurveId,
+    headlossCurveId,
     isActive: !isCommented,
   });
 };
@@ -250,29 +273,6 @@ export const parseCurve: RowParser = ({ trimmedRow, inpData }) => {
 export const parseStatus: RowParser = ({ trimmedRow, inpData }) => {
   const [linkId, value] = readValues(trimmedRow);
   inpData.status.set(linkId, value.toUpperCase());
-};
-
-export const parseTankPartially: RowParser = ({
-  sectionName,
-  trimmedRow,
-  isCommented,
-  inpData,
-  issues,
-}) => {
-  issues.addUsedSection(sectionName);
-  const [id, elevation, initialLevel] = readValues(trimmedRow);
-  inpData.tanks.push({
-    id,
-    elevation: parseFloat(elevation),
-    initialLevel: parseFloat(initialLevel),
-    minLevel: 0,
-    maxLevel: 100,
-    diameter: 50,
-    minVolume: 0,
-    isActive: !isCommented,
-  });
-
-  inpData.nodeIds.add(id);
 };
 
 export const parseTank: RowParser = ({
