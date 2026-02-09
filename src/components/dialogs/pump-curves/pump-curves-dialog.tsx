@@ -38,7 +38,7 @@ export const PumpCurvesDialog = () => {
     createLabelManagerFromCurves(editedCurves),
   );
 
-  const hasCurves = editedCurves.size > 0;
+  const hasCurves = [...editedCurves.values()].some((c) => c.type === "pump");
 
   const getCurvePoints = useCallback(
     (curveId: CurveId): CurvePoint[] => editedCurves.get(curveId)?.points ?? [],

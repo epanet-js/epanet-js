@@ -59,7 +59,10 @@ export const CurveSidebar = ({
   const clearActionState = () => setActionState(undefined);
 
   const isCreating = actionState?.action === "creating";
-  const curveIds = useMemo(() => Array.from(curves.keys()), [curves]);
+  const pumpCurves = useMemo(
+    () => [...curves.values()].filter((c) => c.type === "pump"),
+    [curves],
+  );
 
   useEffect(
     function autoScrollToSelectedItem() {
@@ -83,7 +86,7 @@ export const CurveSidebar = ({
         "End",
       ];
       if (!validKeys.includes(e.key)) return;
-      if (curveIds.length === 0) return;
+      if (pumpCurves.length === 0) return;
 
       e.preventDefault();
       e.stopPropagation();
@@ -91,7 +94,7 @@ export const CurveSidebar = ({
       if (actionState) return;
 
       const selectedIndex = selectedCurveId
-        ? curveIds.indexOf(selectedCurveId)
+        ? pumpCurves.findIndex((c) => c.id === selectedCurveId)
         : -1;
 
       const itemHeight = 32;
@@ -102,14 +105,14 @@ export const CurveSidebar = ({
       switch (e.key) {
         case "ArrowDown":
           nextIndex =
-            selectedIndex < curveIds.length - 1 ? selectedIndex + 1 : 0;
+            selectedIndex < pumpCurves.length - 1 ? selectedIndex + 1 : 0;
           break;
         case "ArrowUp":
           nextIndex =
-            selectedIndex > 0 ? selectedIndex - 1 : curveIds.length - 1;
+            selectedIndex > 0 ? selectedIndex - 1 : pumpCurves.length - 1;
           break;
         case "PageDown":
-          nextIndex = Math.min(selectedIndex + pageSize, curveIds.length - 1);
+          nextIndex = Math.min(selectedIndex + pageSize, pumpCurves.length - 1);
           break;
         case "PageUp":
           nextIndex = Math.max(selectedIndex - pageSize, 0);
@@ -118,21 +121,21 @@ export const CurveSidebar = ({
           nextIndex = 0;
           break;
         case "End":
-          nextIndex = curveIds.length - 1;
+          nextIndex = pumpCurves.length - 1;
           break;
         default:
           return;
       }
 
-      const nextCurveId = curveIds[nextIndex];
-      onSelectCurve(nextCurveId);
+      const nextCurve = pumpCurves[nextIndex];
+      onSelectCurve(nextCurve.id);
 
       const item = listRef.current?.querySelector(
-        `[data-curve-id="${nextCurveId}"]`,
+        `[data-curve-id="${nextCurve.id}"]`,
       );
       item?.scrollIntoView({ block: "nearest" });
     },
-    [actionState, curveIds, selectedCurveId, onSelectCurve],
+    [actionState, pumpCurves, selectedCurveId, onSelectCurve],
   );
 
   const handleCurveLabelChange = (name: string): boolean => {
@@ -172,7 +175,7 @@ export const CurveSidebar = ({
         onKeyDown={handleKeyDown}
         tabIndex={0}
       >
-        {[...curves.values()].map((curve) => (
+        {pumpCurves.map((curve) => (
           <CurveSidebarItem
             key={curve.id}
             curve={curve}

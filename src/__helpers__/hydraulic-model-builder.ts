@@ -44,7 +44,7 @@ import {
   CustomerPoints,
   initializeCustomerPoints,
 } from "src/hydraulic-model/customer-points";
-import { Curves, ICurve } from "src/hydraulic-model/curves";
+import { Curves, CurveType, ICurve } from "src/hydraulic-model/curves";
 
 export const buildPipe = (
   data: PipeBuildData = {},
@@ -378,6 +378,15 @@ export class HydraulicModelBuilder {
 
   aPumpCurve(
     rawCurve: Omit<ICurve, "type" | "label" | "assetIds"> & {
+      label?: string;
+      assetIds?: Set<number>;
+    },
+  ) {
+    return this.aCurve({ ...rawCurve, type: "pump" });
+  }
+
+  aCurve(
+    rawCurve: Omit<ICurve, "label" | "assetIds"> & {
       label?: string;
       assetIds?: Set<number>;
     },

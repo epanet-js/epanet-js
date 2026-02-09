@@ -61,6 +61,7 @@ export const buildDefaultPumpCurve = (
   return {
     id,
     label,
+    type: "pump",
     points: defaultCurvePoints(),
     assetIds: new Set(),
   };
