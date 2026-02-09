@@ -410,41 +410,6 @@ describe("parse pumps", () => {
     expect(pump.curve).toEqual([{ x: 200, y: 300 }]);
   });
 
-  it("falls back to design-point mode when 3-point curve has invalid flow values", () => {
-    const reservoirId = "r1";
-    const junctionId = "j1";
-    const pumpId = "pu1";
-    const curveLabel = "cu1";
-    const anyNumber = 10;
-
-    const inp = `
-    [RESERVOIRS]
-    ${reservoirId}\t${anyNumber}
-    [JUNCTIONS]
-    ${junctionId}\t${anyNumber}
-    [PUMPS]
-    ${pumpId}\t${reservoirId}\t${junctionId}\tHEAD ${curveLabel}
-
-    [COORDINATES]
-    ${reservoirId}\t10\t20
-    ${junctionId}\t30\t40
-
-    [CURVES]
-    ${curveLabel}\t50\t300
-    ${curveLabel}\t100\t250
-    ${curveLabel}\t200\t150
-    `;
-
-    const { hydraulicModel, issues } = parseInp(inp);
-
-    expect(hydraulicModel.curves.size).toBe(0);
-    expect(issues?.hasPumpCurves).toBe(1);
-
-    const pump = getByLabel(hydraulicModel.assets, pumpId) as Pump;
-    expect(pump.definitionType).toEqual("curve");
-    expect(pump.curve).toEqual([{ x: 100, y: 250 }]);
-  });
-
   it("falls back to design-point mode when 3-point curve has non-ascending flow values", () => {
     const reservoirId = "r1";
     const junctionId = "j1";

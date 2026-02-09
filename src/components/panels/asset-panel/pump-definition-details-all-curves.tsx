@@ -333,11 +333,8 @@ export const PumpCurveTable = ({
     }
 
     return {
-      onChangeFlow:
-        displayIndex === 0
-          ? undefined // Shutoff flow is always 0
-          : (value: number | undefined) =>
-              handlePointChange(displayIndex, "flow", value),
+      onChangeFlow: (value: number | undefined) =>
+        handlePointChange(displayIndex, "flow", value),
       onChangeHead: (value: number | undefined) =>
         handlePointChange(displayIndex, "head", value),
     };
@@ -744,8 +741,6 @@ const initialPointsFromCurve = (
     }
   }
 
-  points[0] = { ...points[0], flow: 0 };
-
   return points;
 };
 
@@ -810,6 +805,7 @@ const validateStandardCurve = (
   const [shutoff, design, maxOp] = points;
 
   if (
+    shutoff?.flow === undefined ||
     shutoff?.head === undefined ||
     design?.flow === undefined ||
     design?.head === undefined ||
@@ -822,7 +818,7 @@ const validateStandardCurve = (
     };
   }
 
-  if (design.flow <= 0 || maxOp.flow <= design.flow) {
+  if (shutoff.flow >= design.flow || design.flow >= maxOp.flow) {
     return {
       valid: false,
       error: "curveValidation.flowAscendingOrder",
@@ -839,7 +835,7 @@ const validateStandardCurve = (
   return {
     valid: true,
     points: [
-      { flow: 0, head: shutoff.head },
+      { flow: shutoff.flow, head: shutoff.head },
       { flow: design.flow, head: design.head },
       { flow: maxOp.flow, head: maxOp.head },
     ],
