@@ -13,6 +13,7 @@ export interface StyledPointValue {
 
 interface LineGraphProps {
   points: StyledPointValue[];
+  smoothCurvePoints?: StyledPointValue[];
   onPointClick?: (index: number | null) => void;
   xAxisLabel?: string;
   yAxisLabel?: string;
@@ -20,6 +21,7 @@ interface LineGraphProps {
 
 export function LineGraph({
   points,
+  smoothCurvePoints,
   onPointClick,
   xAxisLabel,
   yAxisLabel,
@@ -31,7 +33,9 @@ export function LineGraph({
   onPointClickRef.current = onPointClick;
 
   const xAxis: EChartsOption["xAxis"] = useMemo(() => {
-    const xValues = points.map((p) => p.x);
+    const xValues = smoothCurvePoints
+      ? [...points.map((p) => p.x), ...smoothCurvePoints.map((p) => p.x)]
+      : points.map((p) => p.x);
     const { min, max, interval } = calculateInterval(xValues);
     return {
       type: "value",
@@ -58,10 +62,12 @@ export function LineGraph({
         formatter: (value: number) => localizeDecimal(value, { decimals: 2 }),
       },
     };
-  }, [points, xAxisLabel]);
+  }, [points, smoothCurvePoints, xAxisLabel]);
 
   const yAxis: EChartsOption["yAxis"] = useMemo(() => {
-    const yValues = points.map((p) => p.y);
+    const yValues = smoothCurvePoints
+      ? [...points.map((p) => p.y), ...smoothCurvePoints.map((p) => p.y)]
+      : points.map((p) => p.y);
     const { min, max, interval } = calculateInterval(yValues);
     return {
       type: "value",
@@ -87,9 +93,45 @@ export function LineGraph({
         formatter: (value: number) => localizeDecimal(value, { decimals: 2 }),
       },
     };
-  }, [points, yAxisLabel]);
+  }, [points, smoothCurvePoints, yAxisLabel]);
 
   const series: EChartsOption["series"] = useMemo(() => {
+    if (smoothCurvePoints && smoothCurvePoints.length > 0) {
+      const curveData = smoothCurvePoints.map((p) => ({
+        value: [p.x, p.y],
+      }));
+      const controlData = points.map((p) => ({
+        value: [p.x, p.y],
+        itemStyle: p.itemStyle ?? { color: colors.purple500 },
+      }));
+
+      return [
+        {
+          type: "line",
+          data: curveData,
+          showSymbol: false,
+          lineStyle: {
+            color: colors.purple500,
+            width: 2,
+          },
+          emphasis: { disabled: true },
+          tooltip: { show: false },
+        },
+        {
+          type: "scatter",
+          data: controlData,
+          symbol: "circle",
+          symbolSize: 8,
+          emphasis: {
+            itemStyle: {
+              color: colors.fuchsia500,
+            },
+          },
+          z: 10,
+        },
+      ];
+    }
+
     const data = points.map((p) => ({
       value: [p.x, p.y],
       itemStyle: p.itemStyle ?? { color: colors.purple500 },
@@ -113,7 +155,7 @@ export function LineGraph({
         },
       },
     ];
-  }, [points]);
+  }, [points, smoothCurvePoints]);
 
   const option: EChartsOption = useMemo(
     () => ({
@@ -178,10 +220,14 @@ export function LineGraph({
       const clickY = pointInGrid[1];
 
       // Get the data from the chart option
+      // When smoothCurvePoints is present, clickable points are in series[1] (scatter).
+      // Otherwise, they're in series[0] (the only series).
       const opt = chart.getOption() as EChartsOption;
-      const seriesData = (
-        opt.series as { data: { value: [number, number] }[] }[]
-      )?.[0]?.data;
+      const seriesArray = opt.series as {
+        data: { value: [number, number] }[];
+      }[];
+      const clickableSeriesIndex = seriesArray.length > 1 ? 1 : 0;
+      const seriesData = seriesArray[clickableSeriesIndex]?.data;
 
       if (!seriesData || seriesData.length === 0) {
         onPointClickRef.current?.(null);
