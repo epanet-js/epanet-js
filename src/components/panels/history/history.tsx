@@ -267,7 +267,9 @@ function BranchNode({
                 version={version}
                 isLocked={tree.lockedRevisionIds.has(version.id)}
                 onBranch={
-                  isMain ? () => onBranchFromVersion(version.id) : undefined
+                  isMain && version.id === branch.headRevisionId
+                    ? () => onBranchFromVersion(version.id)
+                    : undefined
                 }
                 onPromote={() => onPromoteVersion(version.id)}
               />

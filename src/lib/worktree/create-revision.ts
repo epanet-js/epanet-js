@@ -3,17 +3,25 @@ import { MomentLog } from "src/lib/persistence/moment-log";
 import { nanoid } from "nanoid";
 import { getBranch, getVersion } from "./helpers";
 import { HydraulicModel } from "src/hydraulic-model";
+import { rebaseChildBranches } from "./rebase-branches";
+
+export type CreateRevisionResult = {
+  worktree: Worktree;
+  rebasedBranchIds: string[];
+};
 
 export const createRevision = (
   worktree: Worktree,
   branchId: string,
   hydraulicModel: HydraulicModel,
   message: string,
-): Worktree => {
+): CreateRevisionResult => {
   const branch = getBranch(worktree, branchId);
   if (!branch || !branch.draftVersionId) {
     throw new Error("No draft to commit");
   }
+
+  const oldHeadRevisionId = branch.headRevisionId;
 
   const draft = getVersion(worktree, branch.draftVersionId);
   if (!draft) {
@@ -67,9 +75,16 @@ export const createRevision = (
   const updatedBranches = new Map(worktree.branches);
   updatedBranches.set(branchId, updatedBranch);
 
-  return {
+  const committed: Worktree = {
     ...worktree,
     branches: updatedBranches,
     versions: updatedVersions,
   };
+
+  return rebaseChildBranches(
+    committed,
+    branchId,
+    oldHeadRevisionId,
+    revision.id,
+  );
 };

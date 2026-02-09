@@ -9,6 +9,8 @@ export type {
 } from "./types";
 export { createScenario } from "./create-scenario";
 export { createRevision } from "./create-revision";
+export type { CreateRevisionResult } from "./create-revision";
+export { rebaseChildBranches } from "./rebase-branches";
 export { promoteVersion } from "./promote-branch";
 export {
   switchToBranch,

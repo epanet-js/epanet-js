@@ -167,12 +167,15 @@ export const useScenarioOperations = () => {
       (get, _set, message: string) => {
         const worktree = get(worktreeAtom);
         const hydraulicModel = get(stagingModelAtom);
-        const newWorktree = createRevision(
+        const { worktree: newWorktree, rebasedBranchIds } = createRevision(
           worktree,
           worktree.activeBranchId,
           hydraulicModel,
           message,
         );
+        for (const id of rebasedBranchIds) {
+          persistence.deleteSnapshotFromCache(id);
+        }
         (persistence as Persistence).applyRevision(newWorktree);
       },
       [persistence],
