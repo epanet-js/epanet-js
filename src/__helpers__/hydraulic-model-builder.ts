@@ -44,7 +44,7 @@ import {
   CustomerPoints,
   initializeCustomerPoints,
 } from "src/hydraulic-model/customer-points";
-import { Curves, CurveType, ICurve } from "src/hydraulic-model/curves";
+import { Curves, ICurve } from "src/hydraulic-model/curves";
 
 export const buildPipe = (
   data: PipeBuildData = {},
