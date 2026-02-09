@@ -110,11 +110,10 @@ const ScenariosPromoVideo = ({
         </div>
       )}
       <iframe
-        src="https://player.mux.com/jtnaSrURps7KsyNWdOOt6CypFIcuqfvqT2cGe6wBep4?metadata-video-title=Scenario-paywall-demo&video-title=Scenario-paywall-demo&autoplay=muted&muted=true&loop=true"
+        src="https://player.mux.com/YkQOSA28B3T501yCf01i7n6q9A9d02XG00YEJsi200rHQIaQ?autoplay=true&muted=true&loop=true"
         className="w-full h-full border-0"
         onLoad={onLoad}
         allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
-        allowFullScreen
       />
     </div>
   );
