@@ -5,7 +5,7 @@ import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { Unit, convertTo } from "src/quantity";
 import { localizeDecimal } from "src/infra/i18n/numbers";
-import { Selector } from "src/components/form/selector";
+import { Selector, SelectorOption } from "src/components/form/selector";
 import { NumericField } from "src/components/form/numeric-field";
 import { Checkbox } from "src/components/form/Checkbox";
 import { PipeStatus } from "src/hydraulic-model/asset-types/pipe";
@@ -274,7 +274,8 @@ type SelectRowValue =
 type SelectRowPropsBase<T extends SelectRowValue> = {
   name: string;
   label?: string;
-  options: { label: string; description?: string; value: T }[];
+  options: SelectorOption<T>[] | SelectorOption<T>[][];
+  listClassName?: string;
   comparison?: PropertyComparison;
   readOnly?: boolean;
 };
@@ -304,6 +305,7 @@ export function SelectRow<T extends SelectRowValue>({
   label,
   selected,
   options,
+  listClassName,
   comparison,
   readOnly,
   nullable = false,
@@ -313,13 +315,15 @@ export function SelectRow<T extends SelectRowValue>({
   const translate = useTranslate();
   const actualLabel = label || translate(name);
 
+  const flatOptions = options.flat();
+
   const baseDisplayValue =
     comparison?.hasChanged && comparison.baseValue != null
-      ? (options.find((o) => o.value === comparison.baseValue)?.label ??
+      ? (flatOptions.find((o) => o.value === comparison.baseValue)?.label ??
         String(comparison.baseValue))
       : undefined;
 
-  const selectedOption = options.find((o) => o.value === selected);
+  const selectedOption = flatOptions.find((o) => o.value === selected);
 
   return (
     <InlineField
@@ -341,6 +345,7 @@ export function SelectRow<T extends SelectRowValue>({
               onChange?.(name, newValue as T, oldValue as T)
             }
             placeholder={placeholder as string}
+            listClassName={listClassName}
             disableFocusOnClose={true}
             styleOptions={{
               border: true,

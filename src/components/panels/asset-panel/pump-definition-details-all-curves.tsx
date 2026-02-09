@@ -20,6 +20,7 @@ import * as Tooltip from "@radix-ui/react-tooltip";
 import { Button, TContent } from "src/components/elements";
 import { useShowPumpLibrary } from "src/commands/show-pump-curves";
 import { InlineField } from "src/components/form/fields";
+import { SelectorOption } from "src/components/form/selector";
 
 export type PumpDefinitionMode =
   | "power"
@@ -123,7 +124,7 @@ const PumpDefinitionDetailsInner = ({
         { label: translate("constantPower"), value: "power" },
         { label: translate("designPoint"), value: "design-point" },
         { label: translate("standardCurve"), value: "standard" },
-        { label: translate("pumpLibrary"), value: "curveId" },
+        { label: translate("namedCurve"), value: "curveId" },
       ] as { label: string; value: PumpDefinitionMode }[],
     [translate],
   );
@@ -558,20 +559,18 @@ const CurveIdSelector = ({
   const selectedCurve = curveId === undefined ? null : curveId;
 
   const curveOptions = useMemo(() => {
-    const curveOptions: { label: string; value: CurveId }[] = [];
-    curveOptions.push({ label: translate("pumpLibrary"), value: 0 });
+    const pumpLibraryGroup: SelectorOption<CurveId>[] = [
+      { label: translate("openPumpLibrary"), value: 0 },
+    ];
 
+    const curveGroup: SelectorOption<CurveId>[] = [];
     for (const [, curve] of curves) {
-      const curveType = getPumpCurveType(curve.points);
-      if (
-        curveType === "multi-point" ||
-        curve.assetIds.size > 1 ||
-        curve.assetIds.size === 0
-      ) {
-        curveOptions.push({ label: curve.label, value: curve.id });
+      if (curve.type === "pump") {
+        curveGroup.push({ label: curve.label, value: curve.id });
       }
     }
-    return curveOptions;
+
+    return [pumpLibraryGroup, curveGroup];
   }, [curves, translate]);
 
   const handleChange = (_: string, newValue: number | null) => {
@@ -582,21 +581,22 @@ const CurveIdSelector = ({
 
   return curveOptions.length > 1 ? (
     <SelectRow
-      name="curveId"
+      name="curveName"
       selected={selectedCurve}
       nullable={true}
       options={curveOptions}
+      listClassName="first:italic"
       placeholder={`${translate("select")}...`}
       readOnly={readOnly}
       onChange={handleChange}
     />
   ) : (
-    <InlineField name={"curveId"} labelSize="md">
+    <InlineField name={translate("curveName")} labelSize="md">
       <Button
         onClick={() => showPumpLibrary({ source: "pump" })}
         className="w-full h8"
       >
-        {translate("pumpLibrary")}
+        {translate("openPumpLibrary")}
       </Button>
     </InlineField>
   );

@@ -79,18 +79,36 @@ export const SelectorLikeButton = React.forwardRef<
   },
 );
 
-type SelectorOption<T extends string | number> = {
+export type SelectorOption<T extends string | number> = {
   label: string;
   description?: string;
   value: T;
   disabled?: boolean;
 };
 
+type SelectorOptionsInput<T extends string | number> =
+  | SelectorOption<T>[]
+  | SelectorOption<T>[][];
+
+const isGrouped = <T extends string | number>(
+  options: SelectorOptionsInput<T>,
+): options is SelectorOption<T>[][] =>
+  options.length > 0 && Array.isArray(options[0]);
+
+const normalizeGroups = <T extends string | number>(
+  options: SelectorOptionsInput<T>,
+): SelectorOption<T>[][] => (isGrouped(options) ? options : [options]);
+
+const flattenOptions = <T extends string | number>(
+  options: SelectorOptionsInput<T>,
+): SelectorOption<T>[] => (isGrouped(options) ? options.flat() : options);
+
 type SelectorPropsBase<T extends string | number> = {
-  options: SelectorOption<T>[];
+  options: SelectorOptionsInput<T>;
   ariaLabel?: string;
   tabIndex?: number;
   styleOptions?: StyleOptions;
+  listClassName?: string;
   disableFocusOnClose?: boolean;
   onDropdownInteraction?: () => void;
   disabled?: boolean;
@@ -131,11 +149,15 @@ export function Selector<T extends string | number>({
   tabIndex = 1,
   disableFocusOnClose = false,
   styleOptions = {},
+  listClassName,
   nullable = false,
   placeholder,
   onDropdownInteraction,
   disabled = false,
 }: SelectorProps<T>) {
+  const allOptions = useMemo(() => flattenOptions(options), [options]);
+  const optionGroups = useMemo(() => normalizeGroups(options), [options]);
+
   const effectiveStyleOptions = useMemo(
     () => ({ ...defaultStyleOptions, ...styleOptions }),
     [styleOptions],
@@ -144,7 +166,7 @@ export function Selector<T extends string | number>({
 
   const handleOpenChange = (open: boolean) => {
     onDropdownInteraction?.();
-    if (open && options.length <= 1) {
+    if (open && allOptions.length <= 1) {
       return;
     }
     setOpen(open);
@@ -175,7 +197,7 @@ export function Selector<T extends string | number>({
         selected,
       );
     } else {
-      const typedValue = options.find((o) => String(o.value) === newValue)
+      const typedValue = allOptions.find((o) => String(o.value) === newValue)
         ?.value as T;
       (onChange as (selected: T, oldValue: T) => void)(
         typedValue,
@@ -213,26 +235,34 @@ export function Selector<T extends string | number>({
             className={contentStyles}
           >
             <Select.Viewport className="p-1">
-              {options.map((option, i) => (
-                <Select.Item
-                  key={i}
-                  value={String(option.value)}
-                  disabled={option.disabled}
-                  className={clsx([
-                    "flex items-center justify-between gap-4 px-2 py-2 focus:bg-purple-300/40",
-                    {
-                      "cursor-pointer": !option.disabled,
-                      "text-gray-400": !!option.disabled,
-                    },
-                  ])}
-                >
-                  <Select.ItemText>
-                    {option.description ? option.description : option.label}
-                  </Select.ItemText>
-                  <Select.ItemIndicator className="ml-auto">
-                    <CheckIcon className="text-purple-700" />
-                  </Select.ItemIndicator>
-                </Select.Item>
+              {optionGroups.map((group, groupIndex) => (
+                <Select.Group key={groupIndex}>
+                  {groupIndex > 0 && (
+                    <Select.Separator className="h-px bg-gray-200 my-1" />
+                  )}
+                  {group.map((option) => (
+                    <Select.Item
+                      key={String(option.value)}
+                      value={String(option.value)}
+                      disabled={option.disabled}
+                      className={clsx([
+                        "flex items-center justify-between gap-4 px-2 py-2 focus:bg-purple-300/40",
+                        {
+                          "cursor-pointer": !option.disabled,
+                          "text-gray-400": !!option.disabled,
+                        },
+                        listClassName,
+                      ])}
+                    >
+                      <Select.ItemText>
+                        {option.description ? option.description : option.label}
+                      </Select.ItemText>
+                      <Select.ItemIndicator className="ml-auto">
+                        <CheckIcon className="text-purple-700" />
+                      </Select.ItemIndicator>
+                    </Select.Item>
+                  ))}
+                </Select.Group>
               ))}
             </Select.Viewport>
           </Select.Content>
