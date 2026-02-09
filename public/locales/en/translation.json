@@ -777,8 +777,8 @@
     },
     "paywall": {
       "title": "Upgrade to access scenarios",
-      "description1": "With scenarios, you can explore \"what-if\" changes without duplicating your model.",
-      "description2": "Create alternative versions of your network to test ideas and compare results against your baseline to see exactly what changed.",
+      "description1": "Scenarios let you explore \"what-if\" changes without duplicating your model.",
+      "description2": "Create alternative versions of your network and compare results against your baseline.",
       "description3": "Scenarios are available on paid plans.",
       "nonCommercial": {
         "title": "Non-commercial use",
