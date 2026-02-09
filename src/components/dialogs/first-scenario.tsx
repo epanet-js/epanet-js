@@ -7,6 +7,7 @@ import {
 import { Button } from "../elements";
 import { Checkbox } from "../form/Checkbox";
 import { useTranslate } from "src/hooks/use-translate";
+import { Trans } from "react-i18next";
 import { useUserTracking } from "src/infra/user-tracking";
 import { userSettingsAtom } from "src/state/user-settings";
 import { AddScenarioIcon } from "src/icons";
@@ -55,8 +56,18 @@ export const FirstScenarioDialog = ({
         <div>
           <p>{translate("scenarios.firstScenario.pleaseNote")}</p>
           <ul className="list-disc pl-5 mt-2 space-y-1">
-            <li>{translate("scenarios.firstScenario.bullet1")}</li>
-            <li>{translate("scenarios.firstScenario.bullet2")}</li>
+            <li>
+              <Trans
+                i18nKey="scenarios.firstScenario.bullet1"
+                components={{ bold: <strong /> }}
+              />
+            </li>
+            <li>
+              <Trans
+                i18nKey="scenarios.firstScenario.bullet2"
+                components={{ bold: <strong /> }}
+              />
+            </li>
             <li>{translate("scenarios.firstScenario.bullet3")}</li>
           </ul>
         </div>

@@ -795,8 +795,8 @@
       "title": "Create scenario",
       "earlyAccess": "This feature is early access and still under active development, so some functionality is limited in this first version.",
       "pleaseNote": "Please note:",
-      "bullet1": "The main model becomes read-only while scenarios exist.",
-      "bullet2": "Scenarios cannot be saved yet and are temporary.",
+      "bullet1": "The main model becomes <bold>read-only</bold> while scenarios exist.",
+      "bullet2": "Scenarios <bold>cannot be saved</bold> yet and are temporary.",
       "bullet3": "You can delete your scenarios at any time to unlock the main model.",
       "dontShowAgain": "Don't show this again",
       "createButton": "Create scenario"
