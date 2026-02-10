@@ -5,7 +5,8 @@ import type {
   SelSingleCustomerPoint,
 } from "src/state/jotai";
 import type { FolderMap, IFolder, IWrappedFeature } from "src/types";
-import type { HydraulicModel } from "src/hydraulic-model";
+import type { HydraulicModel, AssetsMap } from "src/hydraulic-model";
+import type { CustomerPoints } from "src/hydraulic-model/customer-points";
 import { toggle } from "src/lib/utils";
 import { EMPTY_ARRAY } from "src/lib/constants";
 import { getFoldersInTree } from "src/lib/folder";
@@ -256,6 +257,25 @@ export const USelection = {
       type: "singleCustomerPoint",
       id,
     };
+  },
+  clearInvalidIds(
+    selection: Sel,
+    assets: AssetsMap,
+    customerPoints: CustomerPoints,
+  ): Sel {
+    switch (selection.type) {
+      case "single":
+        return assets.has(selection.id) ? selection : SELECTION_NONE;
+      case "multi":
+        return selection.ids.every((id) => assets.has(id))
+          ? selection
+          : SELECTION_NONE;
+      case "singleCustomerPoint":
+        return customerPoints.has(selection.id) ? selection : SELECTION_NONE;
+      case "none":
+      case "folder":
+        return selection;
+    }
   },
 };
 

@@ -47,6 +47,7 @@ import {
 } from "src/state/symbology";
 import { nullSymbologySpec } from "src/map/symbology";
 import { mapSyncMomentAtom, MomentPointer } from "src/state/map";
+import { USelection } from "src/selection";
 
 const MAX_CHANGES_BEFORE_MAP_SYNC = 500;
 
@@ -306,6 +307,16 @@ export class Persistence implements IPersistenceWithSnapshots {
     this.setModelVersion(snapshot.version);
     this.store.set(simulationAtom, finalSimulation);
     this.store.set(simulationResultsAtom, resultsReader);
+
+    const selection = this.store.get(selectionAtom);
+    const validatedSelection = USelection.clearInvalidIds(
+      selection,
+      stagingModel.assets,
+      stagingModel.customerPoints,
+    );
+    if (validatedSelection !== selection) {
+      this.store.set(selectionAtom, validatedSelection);
+    }
   }
 
   private async loadSimulationResults(
