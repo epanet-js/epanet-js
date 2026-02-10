@@ -20,6 +20,7 @@ export function RowActionsCell({
   return rowActions ? (
     <div
       role="gridcell"
+      onFocus={(e) => e.stopPropagation()}
       className={clsx(
         "sticky right-0 shrink-0 w-8 h-8 bg-white z-10",
         "border border-transparent",
