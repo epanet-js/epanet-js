@@ -15,7 +15,7 @@ import {
   isValidPumpCurve,
 } from "src/hydraulic-model/curves";
 import { PumpCurvesIcon } from "src/icons";
-import { stagingModelAtom } from "src/state/jotai";
+import { dataAtom, stagingModelAtom } from "src/state/jotai";
 import { usePersistence } from "src/lib/persistence";
 import { changeCurves } from "src/hydraulic-model/model-operations/change-curves";
 import { notify } from "src/components/notifications";
@@ -28,6 +28,9 @@ export const PumpCurvesDialog = () => {
   const translate = useTranslate();
   const { closeDialog } = useDialogState();
   const hydraulicModel = useAtomValue(stagingModelAtom);
+  const { modelMetadata } = useAtomValue(dataAtom);
+  const flowUnit = modelMetadata.quantities.getUnit("flow");
+  const headUnit = modelMetadata.quantities.getUnit("head");
   const userTracking = useUserTracking();
   const isSnapshotLocked = useIsSnapshotLocked();
   const [selectedCurveId, setSelectedCurveId] = useState<CurveId | null>(null);
@@ -221,6 +224,8 @@ export const PumpCurvesDialog = () => {
                 handleCurveChange(selectedCurveId, { points })
               }
               readOnly={isSnapshotLocked}
+              flowUnit={flowUnit}
+              headUnit={headUnit}
             />
           ) : hasCurves ? (
             <div className="flex-1 flex items-center justify-center p-2 border border-gray-200 dark:border-gray-700">

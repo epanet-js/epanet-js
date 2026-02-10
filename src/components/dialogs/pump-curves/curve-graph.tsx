@@ -6,7 +6,9 @@ import {
 } from "src/hydraulic-model/pump-curve-fitting";
 import { LineGraph, StyledPointValue } from "src/components/graphs/line-graph";
 import { useTranslate } from "src/hooks/use-translate";
+import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { colors } from "src/lib/constants";
+import { Unit } from "src/quantity";
 
 interface CurveGraphProps {
   points: CurvePoint[];
@@ -14,6 +16,8 @@ interface CurveGraphProps {
   onPointClick?: (index: number | null) => void;
   isValid?: boolean;
   errorIndices?: Set<number>;
+  flowUnit: Unit;
+  headUnit: Unit;
 }
 
 export function CurveGraph({
@@ -22,8 +26,11 @@ export function CurveGraph({
   onPointClick,
   isValid = true,
   errorIndices,
+  flowUnit,
+  headUnit,
 }: CurveGraphProps) {
   const translate = useTranslate();
+  const translateUnit = useTranslateUnit();
   const curveType = getPumpCurveType(points);
 
   const styledPoints: StyledPointValue[] = useMemo(() => {
@@ -81,8 +88,16 @@ export function CurveGraph({
       points={styledPoints}
       smoothCurvePoints={smoothCurvePoints}
       onPointClick={onPointClick}
-      xAxisLabel={translate("flow")}
-      yAxisLabel={translate("head")}
+      xAxisLabel={
+        flowUnit
+          ? `${translate("flow")} (${translateUnit(flowUnit)})`
+          : translate("flow")
+      }
+      yAxisLabel={
+        headUnit
+          ? `${translate("head")} (${translateUnit(headUnit)})`
+          : translate("head")
+      }
     />
   );
 }

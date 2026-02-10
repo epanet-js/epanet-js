@@ -14,7 +14,9 @@ import {
 } from "src/components/data-grid";
 import { CurvePoint } from "src/hydraulic-model/curves";
 import { useTranslate } from "src/hooks/use-translate";
+import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { DeleteIcon, AddIcon } from "src/icons";
+import { Unit } from "src/quantity";
 
 type CurveRow = {
   flow: number;
@@ -27,6 +29,8 @@ type CurveTableProps = {
   onSelectionChange?: (selection: GridSelection | null) => void;
   readOnly?: boolean;
   errorCells?: Set<string>;
+  flowUnit: Unit;
+  headUnit: Unit;
 };
 
 export type CurveTableRef = DataGridRef;
@@ -53,10 +57,19 @@ const fromRows = (rows: CurveRow[]): CurvePoint[] => {
 
 export const CurveTable = forwardRef<DataGridRef, CurveTableProps>(
   function CurveTable(
-    { points, onChange, onSelectionChange, readOnly = false, errorCells },
+    {
+      points,
+      onChange,
+      onSelectionChange,
+      readOnly = false,
+      errorCells,
+      flowUnit,
+      headUnit,
+    },
     ref,
   ) {
     const translate = useTranslate();
+    const translateUnit = useTranslateUnit();
     const gridRef = useRef<DataGridRef>(null);
     const containerRef = useRef<HTMLDivElement>(null);
 
@@ -138,23 +151,28 @@ export const CurveTable = forwardRef<DataGridRef, CurveTableProps>(
       ],
     );
 
-    const columns = useMemo(
-      () => [
+    const columns = useMemo(() => {
+      const flowHeader = flowUnit
+        ? `${translate("flow")} (${translateUnit(flowUnit)})`
+        : translate("flow");
+      const headHeader = headUnit
+        ? `${translate("head")} (${translateUnit(headUnit)})`
+        : translate("head");
+      return [
         floatColumn("flow", {
-          header: translate("flow"),
+          header: flowHeader,
           size: 82,
           deleteValue: DEFAULT_FLOW,
           nullValue: 0,
         }),
         floatColumn("head", {
-          header: translate("head"),
+          header: headHeader,
           size: 82,
           deleteValue: DEFAULT_HEAD,
           nullValue: 0,
         }),
-      ],
-      [translate],
-    );
+      ];
+    }, [flowUnit, headUnit, translate, translateUnit]);
 
     const createRow = useCallback(
       (): CurveRow => ({

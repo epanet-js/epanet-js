@@ -11,17 +11,22 @@ import { useTranslate } from "src/hooks/use-translate";
 import { InlineField } from "src/components/form/fields";
 import { NotificationBanner } from "src/components/notifications";
 import { TriangleAlert } from "lucide-react";
+import { Unit } from "src/quantity";
 
 interface CurveDetailProps {
   points: CurvePoint[];
   onChange: (points: CurvePoint[]) => void;
   readOnly?: boolean;
+  flowUnit: Unit;
+  headUnit: Unit;
 }
 
 export function CurveDetail({
   points,
   onChange,
   readOnly = false,
+  flowUnit,
+  headUnit,
 }: CurveDetailProps) {
   const [selectedCells, setSelectedCells] = useState<GridSelection | null>(
     null,
@@ -126,6 +131,8 @@ export function CurveDetail({
           onSelectionChange={handleTableSelectionChange}
           readOnly={readOnly}
           errorCells={errorCells}
+          flowUnit={flowUnit}
+          headUnit={headUnit}
         />
       </div>
       <InlineField name={translate("pumpType")} layout="label-flex-none">
@@ -141,6 +148,8 @@ export function CurveDetail({
             onPointClick={handleGraphClick}
             isValid={isValid}
             errorIndices={errorIndices}
+            flowUnit={flowUnit}
+            headUnit={headUnit}
           />
         </div>
       </div>
