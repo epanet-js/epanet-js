@@ -9,6 +9,8 @@ export interface StyledPointValue {
   x: number;
   y: number;
   itemStyle?: { color: string };
+  symbol?: string;
+  symbolSize?: number;
 }
 
 interface LineGraphProps {
@@ -96,65 +98,43 @@ export function LineGraph({
   }, [points, smoothCurvePoints, yAxisLabel]);
 
   const series: EChartsOption["series"] = useMemo(() => {
-    if (smoothCurvePoints && smoothCurvePoints.length > 0) {
-      const curveData = smoothCurvePoints.map((p) => ({
-        value: [p.x, p.y],
-      }));
-      const controlData = points.map((p) => ({
-        value: [p.x, p.y],
-        itemStyle: p.itemStyle ?? { color: colors.purple500 },
-      }));
-
-      return [
-        {
-          type: "line",
-          data: curveData,
-          showSymbol: false,
-          lineStyle: {
-            color: colors.purple500,
-            width: 2,
-          },
-          emphasis: { disabled: true },
-          tooltip: { show: false },
-        },
-        {
-          type: "scatter",
-          data: controlData,
-          symbol: "circle",
-          symbolSize: 8,
-          emphasis: {
-            itemStyle: {
-              color: colors.fuchsia500,
-            },
-          },
-          z: 10,
-        },
-      ];
-    }
-
-    const data = points.map((p) => ({
+    const scatterData = points.map((p) => ({
       value: [p.x, p.y],
       itemStyle: p.itemStyle ?? { color: colors.purple500 },
+      symbol: p.symbol,
+      symbolSize: p.symbolSize,
     }));
 
-    return [
-      {
+    const result: EChartsOption["series"] = [];
+
+    if (smoothCurvePoints && smoothCurvePoints.length > 0) {
+      result.push({
         type: "line",
-        data,
-        showSymbol: true,
-        symbol: "circle",
-        symbolSize: 8,
+        data: smoothCurvePoints.map((p) => ({ value: [p.x, p.y] })),
+        showSymbol: false,
         lineStyle: {
           color: colors.purple500,
           width: 2,
         },
-        emphasis: {
-          itemStyle: {
-            color: colors.fuchsia500,
-          },
+        emphasis: { disabled: true },
+        tooltip: { show: false },
+      });
+    }
+
+    result.push({
+      type: "scatter",
+      data: scatterData,
+      symbol: "circle",
+      symbolSize: 8,
+      emphasis: {
+        itemStyle: {
+          color: colors.fuchsia500,
         },
       },
-    ];
+      z: 10,
+    });
+
+    return result;
   }, [points, smoothCurvePoints]);
 
   const option: EChartsOption = useMemo(
@@ -208,7 +188,8 @@ export function LineGraph({
     const zr = chart.getZr();
     let handledBySeriesClick = false;
 
-    chart.on("click", (params: { dataIndex: number }) => {
+    chart.on("click", (params: { dataIndex: number; seriesType?: string }) => {
+      if (params.seriesType !== "scatter") return;
       handledBySeriesClick = true;
       onPointClickRef.current?.(params.dataIndex);
     });

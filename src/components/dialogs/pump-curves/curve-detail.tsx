@@ -76,6 +76,14 @@ export function CurveDetail({
     return set;
   }, [errors]);
 
+  const errorIndices = useMemo(() => {
+    const set = new Set<number>();
+    for (const e of errors) {
+      set.add(e.index);
+    }
+    return set;
+  }, [errors]);
+
   const curveType = getPumpCurveType(points);
 
   const warningMessage = useMemo(() => {
@@ -132,6 +140,7 @@ export function CurveDetail({
             selectedPointIndex={graphSelectedIndex}
             onPointClick={handleGraphClick}
             isValid={isValid}
+            errorIndices={errorIndices}
           />
         </div>
       </div>
