@@ -270,6 +270,11 @@ const PersonalPlan = ({ paymentType }: { paymentType: PaymentType }) => {
             title={translate("everythingAnd", "Free")}
             items={[
               {
+                feature: translate("scenariosItem"),
+                Icon: CheckIcon,
+                iconColor: "text-green-500",
+              },
+              {
                 feature: translate("professionalSupport"),
                 Icon: CloseIcon,
                 iconColor: "text-red-500",
@@ -286,11 +291,6 @@ const PersonalPlan = ({ paymentType }: { paymentType: PaymentType }) => {
             title={`${translate("comingSoon")}:`}
             textColor="text-gray-500"
             items={[
-              {
-                feature: translate("scenariosItem"),
-                Icon: CheckIcon,
-                iconColor: "text-gray-400",
-              },
               {
                 feature: translate("cloudStorage"),
                 Icon: CheckIcon,
@@ -400,6 +400,11 @@ const ProPlan = ({ paymentType }: { paymentType: PaymentType }) => {
             title={translate("everythingAnd", "Free")}
             items={[
               {
+                feature: translate("scenariosItem"),
+                Icon: CheckIcon,
+                iconColor: "text-green-500",
+              },
+              {
                 feature: translate("professionalSupport"),
                 Icon: CheckIcon,
                 iconColor: "text-green-500",
@@ -416,11 +421,6 @@ const ProPlan = ({ paymentType }: { paymentType: PaymentType }) => {
             title={`${translate("comingSoon")}:`}
             textColor="text-gray-500"
             items={[
-              {
-                feature: translate("scenariosItem"),
-                Icon: CheckIcon,
-                iconColor: "text-gray-400",
-              },
               {
                 feature: translate("cloudStorage"),
                 Icon: CheckIcon,
