@@ -1,12 +1,32 @@
-import { useState } from "react";
 import { useSetAtom } from "jotai";
 import { DialogContainer, DialogHeader } from "../dialog";
-import { Button, Loading } from "../elements";
+import { Button } from "../elements";
 import { CheckoutButton } from "../checkout-button";
+import { VideoPlayer } from "../video-player";
 import { dialogAtom } from "src/state/dialog";
 import { ScenarioIcon } from "src/icons";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useTranslate } from "src/hooks/use-translate";
+import type { Caption } from "../video-player";
+
+const SCENARIOS_VIDEO_SRC =
+  "https://stream.mux.com/RVxWPZgcfKowXmi00iovKx1sffG100gu21BpD2U6Mjv98.m3u8";
+
+const SCENARIOS_VIDEO_CAPTIONS: Caption[] = [
+  {
+    start: 0.283,
+    end: 3.283,
+    text: "Ask \u201Cwhat-if\u201D questions with scenarios",
+  },
+  { start: 4.933, end: 10.616, text: "Modify asset parameters" },
+  { start: 12.066, end: 17.0, text: "Draw new elements" },
+  { start: 19.933, end: 25.4, text: "Compare results" },
+  {
+    start: 26.133,
+    end: 30.883,
+    text: "Keep changes isolated to the scenario",
+  },
+];
 
 export const ScenariosPaywallDialog = ({
   onClose: _onClose,
@@ -16,7 +36,6 @@ export const ScenariosPaywallDialog = ({
   const setDialog = useSetAtom(dialogAtom);
   const userTracking = useUserTracking();
   const translate = useTranslate();
-  const [isVideoLoading, setIsVideoLoading] = useState(true);
 
   const handleChooseYourPlan = () => {
     userTracking.capture({ name: "scenariosPaywall.clickedChoosePlan" });
@@ -34,10 +53,16 @@ export const ScenariosPaywallDialog = ({
         titleIcon={ScenarioIcon}
       />
       <div className="grid grid-cols-1 md:grid-cols-[3fr_2fr] gap-8 py-4">
-        <ScenariosPromoVideo
-          isLoading={isVideoLoading}
-          onLoad={() => setIsVideoLoading(false)}
-        />
+        <div className="relative aspect-square bg-gray-100 dark:bg-gray-800 border border-gray-200 rounded-lg shadow-md overflow-hidden">
+          <VideoPlayer
+            src={SCENARIOS_VIDEO_SRC}
+            captions={SCENARIOS_VIDEO_CAPTIONS}
+            autoPlay
+            muted
+            loop
+            playsInline
+          />
+        </div>
 
         <div className="flex flex-col">
           <div className="space-y-3 pb-6">
@@ -92,29 +117,5 @@ export const ScenariosPaywallDialog = ({
         </div>
       </div>
     </DialogContainer>
-  );
-};
-
-const ScenariosPromoVideo = ({
-  isLoading,
-  onLoad,
-}: {
-  isLoading: boolean;
-  onLoad: () => void;
-}) => {
-  return (
-    <div className="relative aspect-square bg-gray-100 dark:bg-gray-800 border border-gray-200 rounded-lg shadow-md overflow-hidden">
-      {isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center">
-          <Loading />
-        </div>
-      )}
-      <iframe
-        src="https://player.mux.com/YkQOSA28B3T501yCf01i7n6q9A9d02XG00YEJsi200rHQIaQ?autoplay=true&muted=true&loop=true"
-        className="w-full h-full border-0"
-        onLoad={onLoad}
-        allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
-      />
-    </div>
   );
 };
