@@ -36,18 +36,7 @@ export const PumpCurvesDialog = () => {
   );
   const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
   const [showSaveWarning, setShowSaveWarning] = useState(false);
-  const [lastValidCurves, setLastValidCurves] = useState<
-    Map<CurveId, CurvePoint[]>
-  >(() => {
-    const map = new Map<CurveId, CurvePoint[]>();
-    for (const [id, curve] of hydraulicModel.curves) {
-      map.set(
-        id,
-        curve.points.map((p) => ({ ...p })),
-      );
-    }
-    return map;
-  });
+  const originalCurvesRef = useRef(hydraulicModel.curves);
   const labelManagerRef = useRef<LabelManager>(
     createLabelManagerFromCurves(editedCurves),
   );
@@ -79,17 +68,6 @@ export const PumpCurvesDialog = () => {
         return next;
       });
 
-      if (updates.points && isValidPumpCurve(updates.points)) {
-        setLastValidCurves((prev) => {
-          const next = new Map(prev);
-          next.set(
-            curveId,
-            updates.points!.map((p) => ({ ...p })),
-          );
-          return next;
-        });
-      }
-
       const property = "label" in updates ? "label" : "points";
       userTracking.capture({ name: "pumpCurve.changed", property });
     },
@@ -110,14 +88,6 @@ export const PumpCurvesDialog = () => {
         return next;
       });
       labelManagerRef.current.register(newCurve.label, "curve", newCurve.id);
-      setLastValidCurves((prev) => {
-        const next = new Map(prev);
-        next.set(
-          newCurve.id,
-          points.map((p) => ({ ...p })),
-        );
-        return next;
-      });
 
       userTracking.capture({ name: "pumpCurve.added", source });
       return newCurve.id;
@@ -139,11 +109,6 @@ export const PumpCurvesDialog = () => {
       }
 
       setEditedCurves((prev) => {
-        const next = new Map(prev);
-        next.delete(curveId);
-        return next;
-      });
-      setLastValidCurves((prev) => {
         const next = new Map(prev);
         next.delete(curveId);
         return next;
@@ -191,9 +156,9 @@ export const PumpCurvesDialog = () => {
     const curvesToSave = new Map(editedCurves);
     for (const id of invalidCurveIds) {
       const curve = curvesToSave.get(id);
-      const lastValid = lastValidCurves.get(id);
-      if (curve && lastValid) {
-        curvesToSave.set(id, { ...curve, points: lastValid });
+      const original = originalCurvesRef.current.get(id);
+      if (curve && original) {
+        curvesToSave.set(id, { ...curve, points: original.points });
       }
     }
 
@@ -214,7 +179,6 @@ export const PumpCurvesDialog = () => {
     hydraulicModel,
     editedCurves,
     invalidCurveIds,
-    lastValidCurves,
     transact,
     closeDialog,
     userTracking,

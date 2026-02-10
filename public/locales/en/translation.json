@@ -835,5 +835,5 @@
   "pumpLibraryNoSelection": "Select a curve to edit",
   "deleteCurveInUse": "Cannot delete a curve that is used by a pump",
   "invalidCurve": "Invalid curve",
-  "saveInvalidCurvesWarning": "Some curves have invalid values. They will be saved as their last valid version."
+  "saveInvalidCurvesWarning": "Changes to invalid curves will be discarded."
 }
