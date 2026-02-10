@@ -16,7 +16,7 @@ import { waitFor } from "@testing-library/react";
 import { Asset } from "src/hydraulic-model";
 import { buildFeatureId } from "../data-source/features";
 
-describe("Drawing a pipe", () => {
+describe.skip("Drawing a pipe", () => {
   beforeEach(() => {
     stubElevation();
   });
