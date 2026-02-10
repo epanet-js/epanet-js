@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useSetAtom } from "jotai";
 import { DialogContainer, DialogHeader } from "../dialog";
 import { Button } from "../elements";
@@ -7,26 +8,17 @@ import { dialogAtom } from "src/state/dialog";
 import { ScenarioIcon } from "src/icons";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useTranslate } from "src/hooks/use-translate";
-import type { Caption } from "../video-player";
 
 const SCENARIOS_VIDEO_SRC =
   "https://stream.mux.com/RVxWPZgcfKowXmi00iovKx1sffG100gu21BpD2U6Mjv98.m3u8";
 
-const SCENARIOS_VIDEO_CAPTIONS: Caption[] = [
-  {
-    start: 0.283,
-    end: 3.283,
-    text: "Ask \u201Cwhat-if\u201D questions with scenarios",
-  },
-  { start: 4.933, end: 10.616, text: "Modify asset parameters" },
-  { start: 12.066, end: 17.0, text: "Draw new elements" },
-  { start: 19.933, end: 25.4, text: "Compare results" },
-  {
-    start: 26.133,
-    end: 30.883,
-    text: "Keep changes isolated to the scenario",
-  },
-];
+const SCENARIOS_CAPTION_TIMINGS = [
+  { start: 0.283, end: 3.283, key: "scenarios.paywall.captions.1" },
+  { start: 4.933, end: 10.616, key: "scenarios.paywall.captions.2" },
+  { start: 12.066, end: 17.0, key: "scenarios.paywall.captions.3" },
+  { start: 19.933, end: 25.4, key: "scenarios.paywall.captions.4" },
+  { start: 26.133, end: 30.883, key: "scenarios.paywall.captions.5" },
+] as const;
 
 export const ScenariosPaywallDialog = ({
   onClose: _onClose,
@@ -36,6 +28,14 @@ export const ScenariosPaywallDialog = ({
   const setDialog = useSetAtom(dialogAtom);
   const userTracking = useUserTracking();
   const translate = useTranslate();
+  const captions = useMemo(
+    () =>
+      SCENARIOS_CAPTION_TIMINGS.map(({ key, ...timing }) => ({
+        ...timing,
+        text: translate(key),
+      })),
+    [translate],
+  );
 
   const handleChooseYourPlan = () => {
     userTracking.capture({ name: "scenariosPaywall.clickedChoosePlan" });
@@ -56,7 +56,7 @@ export const ScenariosPaywallDialog = ({
         <div className="relative aspect-square bg-gray-100 dark:bg-gray-800 border border-gray-200 rounded-lg shadow-md overflow-hidden">
           <VideoPlayer
             src={SCENARIOS_VIDEO_SRC}
-            captions={SCENARIOS_VIDEO_CAPTIONS}
+            captions={captions}
             autoPlay
             muted
             loop

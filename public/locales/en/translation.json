@@ -789,6 +789,13 @@
         "title": "Commercial use",
         "description": "For use by consultants and utilities in real projects.",
         "cta": "Choose plan"
+      },
+      "captions": {
+        "1": "Ask \u201Cwhat-if\u201D questions with scenarios",
+        "2": "Modify asset parameters",
+        "3": "Draw new elements",
+        "4": "Compare results",
+        "5": "Keep changes isolated to the scenario"
       }
     },
     "firstScenario": {
