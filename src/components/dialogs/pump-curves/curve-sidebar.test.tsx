@@ -42,6 +42,7 @@ describe("CurveSidebar", () => {
         onAddCurve={vi.fn()}
         onChangeCurve={vi.fn()}
         onDeleteCurve={vi.fn()}
+        invalidCurveIds={new Set()}
       />,
     );
 
@@ -67,6 +68,7 @@ describe("CurveSidebar", () => {
         onAddCurve={vi.fn()}
         onChangeCurve={vi.fn()}
         onDeleteCurve={vi.fn()}
+        invalidCurveIds={new Set()}
       />,
     );
 

@@ -32,6 +32,7 @@ export type GridRowProps<TData> = {
   rowActions?: RowAction[];
   readOnly: boolean;
   variant: DataGridVariant;
+  cellHasWarning?: (rowIndex: number, columnId: string) => boolean;
 };
 
 export function GridRow<TData>({
@@ -54,6 +55,7 @@ export function GridRow<TData>({
   rowActions,
   readOnly,
   variant,
+  cellHasWarning,
 }: GridRowProps<TData>) {
   return (
     <>
@@ -108,6 +110,11 @@ export function GridRow<TData>({
             CellComponent={column.cellComponent}
             variant={variant}
             isLastRow={cellsIsLastRow}
+            hasWarning={
+              accessorKey
+                ? (cellHasWarning?.(rowIndex, accessorKey) ?? false)
+                : false
+            }
           />
         );
       })}

@@ -28,6 +28,7 @@ type GridDataCellProps<T> = {
   CellComponent: GridColumn["cellComponent"];
   variant: DataGridVariant;
   isLastRow: boolean;
+  hasWarning?: boolean;
 };
 
 export function GridDataCell<T>({
@@ -49,6 +50,7 @@ export function GridDataCell<T>({
   CellComponent,
   variant,
   isLastRow,
+  hasWarning,
 }: GridDataCellProps<T>) {
   return (
     <div
@@ -58,13 +60,15 @@ export function GridDataCell<T>({
       aria-selected={isSelected}
       className={clsx(
         "relative h-8 grow select-none border cursor-cell",
-        isActive
-          ? "bg-white"
-          : isSelected
-            ? "bg-purple-300/10"
-            : readOnly
-              ? "bg-gray-50"
-              : "bg-white",
+        hasWarning
+          ? "bg-orange-50"
+          : isActive
+            ? "bg-white"
+            : isSelected
+              ? "bg-purple-300/10"
+              : readOnly
+                ? "bg-gray-50"
+                : "bg-white",
         { "z-[1]": selectionEdge },
         selectionEdge?.left
           ? "border-l-purple-500"

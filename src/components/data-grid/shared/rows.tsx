@@ -40,6 +40,7 @@ export type RowsProps<TData> = {
   rowActions?: RowAction[];
   readOnly: boolean;
   variant: DataGridVariant;
+  cellHasWarning?: (rowIndex: number, columnId: string) => boolean;
 };
 
 export const Rows = forwardRef(function Rows<TData>(
@@ -64,6 +65,7 @@ export const Rows = forwardRef(function Rows<TData>(
     rowActions,
     readOnly,
     variant,
+    cellHasWarning,
   }: RowsProps<TData>,
   ref: React.ForwardedRef<RowsRef>,
 ) {
@@ -122,6 +124,7 @@ export const Rows = forwardRef(function Rows<TData>(
               rowActions={rowActions}
               readOnly={readOnly}
               variant={variant}
+              cellHasWarning={cellHasWarning}
             />
           </div>
         );

@@ -14,6 +14,7 @@ import {
   DuplicateIcon,
   MoreActionsIcon,
   RenameIcon,
+  WarningIcon,
 } from "src/icons";
 import { Button, DDContent, StyledItem } from "src/components/elements";
 import { EditableTextFieldWithConfirmation } from "src/components/form/editable-text-field-with-confirmation";
@@ -28,6 +29,7 @@ type CurveSidebarProps = {
   curves: Curves;
   selectedCurveId: CurveId | null;
   labelManager: LabelManager;
+  invalidCurveIds: Set<CurveId>;
   onSelectCurve: (curveId: CurveId) => void;
   onAddCurve: (
     label: string,
@@ -43,6 +45,7 @@ export const CurveSidebar = ({
   curves,
   selectedCurveId,
   labelManager,
+  invalidCurveIds,
   onSelectCurve,
   onAddCurve,
   onChangeCurve,
@@ -180,6 +183,7 @@ export const CurveSidebar = ({
             key={curve.id}
             curve={curve}
             isSelected={curve.id === selectedCurveId}
+            isInvalid={invalidCurveIds.has(curve.id)}
             onSelect={() => onSelectCurve(curve.id)}
             actionState={actionState}
             onCancel={clearActionState}
@@ -225,6 +229,7 @@ export const CurveSidebar = ({
 type CurveSidebarItemProps = {
   curve: ICurve;
   isSelected: boolean;
+  isInvalid: boolean;
   onSelect: () => void;
   actionState: ActionState | undefined;
   onCancel: () => void;
@@ -238,6 +243,7 @@ type CurveSidebarItemProps = {
 const CurveSidebarItem = ({
   curve,
   isSelected,
+  isInvalid,
   onSelect,
   actionState,
   onCancel,
@@ -282,6 +288,11 @@ const CurveSidebarItem = ({
           onClick={onSelect}
           className="flex-1 justify-start truncate hover:bg-transparent dark:hover:bg-transparent focus-visible:!ring-0 focus-visible:!ring-offset-0"
         >
+          {isInvalid && (
+            <span className="text-orange-500 flex-shrink-0">
+              <WarningIcon size="sm" />
+            </span>
+          )}
           {curve.label}
         </Button>
         {!readOnly && (

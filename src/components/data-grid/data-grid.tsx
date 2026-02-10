@@ -40,6 +40,7 @@ type DataGridProps<TData extends Record<string, unknown>> = {
   gutterColumn?: boolean;
   onSelectionChange?: (selection: GridSelection | null) => void;
   variant?: DataGridVariant;
+  cellHasWarning?: (rowIndex: number, columnId: string) => boolean;
 };
 
 export const DataGrid = forwardRef(function DataGrid<
@@ -57,6 +58,7 @@ export const DataGrid = forwardRef(function DataGrid<
     gutterColumn = false,
     onSelectionChange,
     variant = "spreadsheet",
+    cellHasWarning,
   }: DataGridProps<TData>,
   ref: React.ForwardedRef<DataGridRef>,
 ) {
@@ -235,6 +237,7 @@ export const DataGrid = forwardRef(function DataGrid<
     rowActions: readOnly ? undefined : rowActions,
     readOnly,
     variant,
+    cellHasWarning,
   };
 
   return (

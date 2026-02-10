@@ -12,12 +12,14 @@ interface CurveGraphProps {
   points: CurvePoint[];
   selectedPointIndex?: number | null;
   onPointClick?: (index: number | null) => void;
+  isValid?: boolean;
 }
 
 export function CurveGraph({
   points,
   selectedPointIndex,
   onPointClick,
+  isValid = true,
 }: CurveGraphProps) {
   const translate = useTranslate();
   const curveType = getPumpCurveType(points);
@@ -46,10 +48,12 @@ export function CurveGraph({
   }, [points, selectedPointIndex, curveType]);
 
   const smoothCurvePoints: StyledPointValue[] | undefined = useMemo(() => {
+    if (!isValid) return undefined;
+    const curveType = getPumpCurveType(points);
     const smooth = generateSmoothPumpCurvePoints(points, curveType);
     if (!smooth) return undefined;
     return smooth.map((p) => ({ x: p.x, y: p.y }));
-  }, [points, curveType]);
+  }, [points, isValid]);
 
   return (
     <LineGraph

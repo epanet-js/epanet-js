@@ -49,6 +49,7 @@ export type ScrollableRowsProps<TData> = {
   rowActions?: RowAction[];
   readOnly: boolean;
   variant: DataGridVariant;
+  cellHasWarning?: (rowIndex: number, columnId: string) => boolean;
 };
 
 export const ScrollableRows = forwardRef(function ScrollableRows<TData>(
@@ -74,6 +75,7 @@ export const ScrollableRows = forwardRef(function ScrollableRows<TData>(
     rowActions,
     readOnly,
     variant,
+    cellHasWarning,
   }: ScrollableRowsProps<TData>,
   ref: React.ForwardedRef<RowsRef>,
 ) {
@@ -262,6 +264,7 @@ export const ScrollableRows = forwardRef(function ScrollableRows<TData>(
                   rowActions={rowActions}
                   readOnly={readOnly}
                   variant={variant}
+                  cellHasWarning={cellHasWarning}
                 />
               </div>
             );

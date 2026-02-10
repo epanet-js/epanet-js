@@ -1,6 +1,10 @@
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { CurveGraph } from "./curve-graph";
-import { CurvePoint, getPumpCurveType } from "src/hydraulic-model/curves";
+import {
+  CurvePoint,
+  getPumpCurveType,
+  getPumpCurveErrors,
+} from "src/hydraulic-model/curves";
 import { type GridSelection } from "src/components/data-grid";
 import { CurveTable, type CurveTableRef } from "./curve-table";
 import { useTranslate } from "src/hooks/use-translate";
@@ -59,6 +63,17 @@ export function CurveDetail({
   const translate = useTranslate();
   const graphSelectedIndex = selectedCells ? selectedCells.min.row : null;
 
+  const errors = useMemo(() => getPumpCurveErrors(points), [points]);
+  const isValid = errors.length === 0;
+
+  const errorCells = useMemo(() => {
+    const set = new Set<string>();
+    for (const e of errors) {
+      set.add(`${e.index}:${e.value}`);
+    }
+    return set;
+  }, [errors]);
+
   const curveType = getPumpCurveType(points);
 
   const handleTableSelectionChange = useCallback(
@@ -77,10 +92,17 @@ export function CurveDetail({
           onChange={onChange}
           onSelectionChange={handleTableSelectionChange}
           readOnly={readOnly}
+          errorCells={errorCells}
         />
       </div>
       <InlineField name={translate("pumpType")} layout="label-flex-none">
-        <span className="text-sm">{translate(curveType)}</span>
+        {isValid ? (
+          <span className="text-sm">{translate(curveType)}</span>
+        ) : (
+          <span className="text-sm text-red-700 dark:text-red-300">
+            {translate("invalidCurve")}
+          </span>
+        )}
       </InlineField>
       <div className="flex-1 min-h-0 p-2 pt-4 border border-gray-200 dark:border-gray-700">
         <div ref={graphContainerRef} className="h-full">
@@ -88,6 +110,7 @@ export function CurveDetail({
             points={points}
             selectedPointIndex={graphSelectedIndex}
             onPointClick={handleGraphClick}
+            isValid={isValid}
           />
         </div>
       </div>

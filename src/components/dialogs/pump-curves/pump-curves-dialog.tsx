@@ -12,6 +12,7 @@ import {
   CurveId,
   CurvePoint,
   buildDefaultPumpCurve,
+  isValidPumpCurve,
 } from "src/hydraulic-model/curves";
 import { PumpCurvesIcon } from "src/icons";
 import { stagingModelAtom } from "src/state/jotai";
@@ -34,6 +35,19 @@ export const PumpCurvesDialog = () => {
     deepCloneCurves(hydraulicModel.curves),
   );
   const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
+  const [showSaveWarning, setShowSaveWarning] = useState(false);
+  const [lastValidCurves, setLastValidCurves] = useState<
+    Map<CurveId, CurvePoint[]>
+  >(() => {
+    const map = new Map<CurveId, CurvePoint[]>();
+    for (const [id, curve] of hydraulicModel.curves) {
+      map.set(
+        id,
+        curve.points.map((p) => ({ ...p })),
+      );
+    }
+    return map;
+  });
   const labelManagerRef = useRef<LabelManager>(
     createLabelManagerFromCurves(editedCurves),
   );
@@ -64,6 +78,18 @@ export const PumpCurvesDialog = () => {
         next.set(curveId, { ...existing, ...updates });
         return next;
       });
+
+      if (updates.points && isValidPumpCurve(updates.points)) {
+        setLastValidCurves((prev) => {
+          const next = new Map(prev);
+          next.set(
+            curveId,
+            updates.points!.map((p) => ({ ...p })),
+          );
+          return next;
+        });
+      }
+
       const property = "label" in updates ? "label" : "points";
       userTracking.capture({ name: "pumpCurve.changed", property });
     },
@@ -84,6 +110,15 @@ export const PumpCurvesDialog = () => {
         return next;
       });
       labelManagerRef.current.register(newCurve.label, "curve", newCurve.id);
+      setLastValidCurves((prev) => {
+        const next = new Map(prev);
+        next.set(
+          newCurve.id,
+          points.map((p) => ({ ...p })),
+        );
+        return next;
+      });
+
       userTracking.capture({ name: "pumpCurve.added", source });
       return newCurve.id;
     },
@@ -108,6 +143,11 @@ export const PumpCurvesDialog = () => {
         next.delete(curveId);
         return next;
       });
+      setLastValidCurves((prev) => {
+        const next = new Map(prev);
+        next.delete(curveId);
+        return next;
+      });
       labelManagerRef.current.remove(curve.label, "curve", curveId);
       if (selectedCurveId === curveId) {
         setSelectedCurveId(null);
@@ -125,32 +165,63 @@ export const PumpCurvesDialog = () => {
     [hydraulicModel.curves, editedCurves],
   );
 
+  const invalidCurveIds = useMemo(() => {
+    const ids = new Set<CurveId>();
+    for (const [id, curve] of editedCurves) {
+      if (curve.type === "pump" && !isValidPumpCurve(curve.points)) {
+        ids.add(id);
+      }
+    }
+    return ids;
+  }, [editedCurves]);
+
+  const hasInvalidCurves = invalidCurveIds.size > 0;
+
   const handleSave = useCallback(() => {
     if (!hasChanges) {
       closeDialog();
       return;
     }
 
+    if (hasInvalidCurves && !showSaveWarning) {
+      setShowSaveWarning(true);
+      return;
+    }
+
+    const curvesToSave = new Map(editedCurves);
+    for (const id of invalidCurveIds) {
+      const curve = curvesToSave.get(id);
+      const lastValid = lastValidCurves.get(id);
+      if (curve && lastValid) {
+        curvesToSave.set(id, { ...curve, points: lastValid });
+      }
+    }
+
     const moment = changeCurves(hydraulicModel, {
-      curves: editedCurves,
+      curves: curvesToSave,
     });
     transact(moment);
     userTracking.capture({
       name: "pumpCurves.updated",
-      count: editedCurves.size,
+      count: curvesToSave.size,
     });
 
     closeDialog();
   }, [
     hasChanges,
+    hasInvalidCurves,
+    showSaveWarning,
     hydraulicModel,
     editedCurves,
+    invalidCurveIds,
+    lastValidCurves,
     transact,
     closeDialog,
     userTracking,
   ]);
 
   const handleCancel = useCallback(() => {
+    setShowSaveWarning(false);
     if (hasChanges) {
       setShowDiscardConfirm(true);
       return;
@@ -171,6 +242,7 @@ export const PumpCurvesDialog = () => {
           curves={editedCurves}
           selectedCurveId={selectedCurveId}
           labelManager={labelManagerRef.current}
+          invalidCurveIds={invalidCurveIds}
           onSelectCurve={setSelectedCurveId}
           onAddCurve={handleAddCurve}
           onChangeCurve={handleCurveChange}
@@ -202,6 +274,27 @@ export const PumpCurvesDialog = () => {
           <Button type="button" onClick={closeDialog}>
             {translate("close")}
           </Button>
+        ) : showSaveWarning ? (
+          <>
+            <Button
+              type="button"
+              variant="danger"
+              onClick={handleSave}
+              className="whitespace-nowrap"
+            >
+              {translate("save")}
+            </Button>
+            <Button
+              type="button"
+              onClick={() => setShowSaveWarning(false)}
+              className="whitespace-nowrap"
+            >
+              {translate("keepEditing")}
+            </Button>
+            <span className="text-sm text-gray-600 self-center">
+              {translate("saveInvalidCurvesWarning")}
+            </span>
+          </>
         ) : showDiscardConfirm ? (
           <>
             <Button

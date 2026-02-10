@@ -833,5 +833,7 @@
   "pumpLibraryEmptyTitle": "No pump curves",
   "pumpLibraryEmptyDescription": "Add a pump curve to get started",
   "pumpLibraryNoSelection": "Select a curve to edit",
-  "deleteCurveInUse": "Cannot delete a curve that is used by a pump"
+  "deleteCurveInUse": "Cannot delete a curve that is used by a pump",
+  "invalidCurve": "Invalid curve",
+  "saveInvalidCurvesWarning": "Some curves have invalid values. They will be saved as their last valid version."
 }

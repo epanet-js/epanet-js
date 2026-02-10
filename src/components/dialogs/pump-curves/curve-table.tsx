@@ -26,6 +26,7 @@ type CurveTableProps = {
   onChange: (points: CurvePoint[]) => void;
   onSelectionChange?: (selection: GridSelection | null) => void;
   readOnly?: boolean;
+  errorCells?: Set<string>;
 };
 
 export type CurveTableRef = DataGridRef;
@@ -52,7 +53,7 @@ const fromRows = (rows: CurveRow[]): CurvePoint[] => {
 
 export const CurveTable = forwardRef<DataGridRef, CurveTableProps>(
   function CurveTable(
-    { points, onChange, onSelectionChange, readOnly = false },
+    { points, onChange, onSelectionChange, readOnly = false, errorCells },
     ref,
   ) {
     const translate = useTranslate();
@@ -81,7 +82,8 @@ export const CurveTable = forwardRef<DataGridRef, CurveTableProps>(
 
     const handleInsertRowAbove = useCallback(
       (rowIndex: number) => {
-        const newRow: CurveRow = { flow: DEFAULT_FLOW, head: DEFAULT_HEAD };
+        const sourceRow = rowData[rowIndex];
+        const newRow: CurveRow = { ...sourceRow };
         const newRows = [
           ...rowData.slice(0, rowIndex),
           newRow,
@@ -95,7 +97,8 @@ export const CurveTable = forwardRef<DataGridRef, CurveTableProps>(
 
     const handleInsertRowBelow = useCallback(
       (rowIndex: number) => {
-        const newRow: CurveRow = { flow: DEFAULT_FLOW, head: DEFAULT_HEAD };
+        const sourceRow = rowData[rowIndex];
+        const newRow: CurveRow = { ...sourceRow };
         const newRows = [
           ...rowData.slice(0, rowIndex + 1),
           newRow,
@@ -161,6 +164,13 @@ export const CurveTable = forwardRef<DataGridRef, CurveTableProps>(
       [],
     );
 
+    const cellHasWarning = useCallback(
+      (rowIndex: number, columnId: string) => {
+        return errorCells?.has(`${rowIndex}:${columnId}`) ?? false;
+      },
+      [errorCells],
+    );
+
     const handleChange = useCallback(
       (newRows: CurveRow[]) => {
         if (newRows.length === 0) {
@@ -186,6 +196,7 @@ export const CurveTable = forwardRef<DataGridRef, CurveTableProps>(
           onSelectionChange={onSelectionChange}
           variant="spreadsheet"
           readOnly={readOnly}
+          cellHasWarning={cellHasWarning}
         />
       </div>
     );
