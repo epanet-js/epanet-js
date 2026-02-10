@@ -806,7 +806,8 @@
       "bullet2": "Scenarios <bold>cannot be saved</bold> yet and are temporary.",
       "bullet3": "You can delete your scenarios at any time to unlock the main model.",
       "dontShowAgain": "Don't show this again",
-      "createButton": "Create scenario"
+      "createButton": "Create scenario",
+      "demoTrialNote": "You can try this feature for free because you are using a demo network."
     }
   },
   "curvesAndPatterns": "Patterns",

@@ -1,4 +1,4 @@
-import { useAtom } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import {
   DialogContainer,
   DialogHeader,
@@ -10,8 +10,10 @@ import { useTranslate } from "src/hooks/use-translate";
 import { Trans } from "react-i18next";
 import { useUserTracking } from "src/infra/user-tracking";
 import { userSettingsAtom } from "src/state/user-settings";
+import { fileInfoAtom } from "src/state/jotai";
 import { AddScenarioIcon } from "src/icons";
 import { EarlyAccessBadge } from "../early-access-badge";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export const FirstScenarioDialog = ({
   onConfirm,
@@ -23,6 +25,9 @@ export const FirstScenarioDialog = ({
   const translate = useTranslate();
   const [userSettings, setUserSettings] = useAtom(userSettingsAtom);
   const userTracking = useUserTracking();
+  const isDemoTrialOn = useFeatureFlag("FLAG_DEMO_TRIAL");
+  const fileInfo = useAtomValue(fileInfoAtom);
+  const showDemoTrialNote = isDemoTrialOn && fileInfo?.isDemoNetwork;
 
   const handleCreate = () => {
     onConfirm();
@@ -52,6 +57,12 @@ export const FirstScenarioDialog = ({
 
       <div className="space-y-4 text-sm text-gray-700 dark:text-gray-300">
         <p>{translate("scenarios.firstScenario.earlyAccess")}</p>
+
+        {showDemoTrialNote && (
+          <p className="text-sm text-gray-500 italic">
+            {translate("scenarios.firstScenario.demoTrialNote")}
+          </p>
+        )}
 
         <div>
           <p>{translate("scenarios.firstScenario.pleaseNote")}</p>
