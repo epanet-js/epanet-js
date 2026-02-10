@@ -62,7 +62,6 @@ const SELECTION_LAYERS: LayerId[] = [
   "selected-pipes",
   "selected-pump-lines",
   "selected-valve-lines",
-  "selected-pipe-arrows",
   "selected-junctions",
   "selected-icons-halo",
   "selected-icons",
@@ -418,7 +417,11 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           );
         }
 
-        if (hasNewSymbology && !hasNewStyles) {
+        if (
+          (hasNewSymbology && !hasNewStyles) ||
+          hasNewSelection ||
+          hasNewEditions
+        ) {
           toggleAnalysisLayers(map, mapState.symbology);
         }
 
@@ -497,7 +500,11 @@ const buildBaseStyleAndSetOnMap = withDebugInstrumentation(
 
 const toggleAnalysisLayers = withDebugInstrumentation(
   (map: MapEngine, symbology: SymbologySpec) => {
-    if (!symbology.link.colorRule) {
+    const arrowProperties = ["flow", "velocity", "unitHeadloss"];
+    const showArrows =
+      symbology.link.colorRule &&
+      arrowProperties.includes(symbology.link.colorRule.property);
+    if (!showArrows) {
       map.hideLayers([
         "main-features-pipe-arrows",
         "delta-features-pipe-arrows",
