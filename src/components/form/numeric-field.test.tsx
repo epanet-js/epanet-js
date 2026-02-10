@@ -83,4 +83,61 @@ describe("NumericField", () => {
       expect(input).toHaveValue("");
     });
   });
+
+  describe("non-numeric input rejection", () => {
+    it("ignores non-numeric characters typed into a field with a value", async () => {
+      const user = userEvent.setup();
+
+      render(<NumericField label="test" displayValue="42" isNullable={true} />);
+
+      const input = screen.getByRole("textbox", { name: /value for: test/i });
+      await user.click(input);
+      await user.type(input, "abc");
+
+      expect(input).toHaveValue("42");
+    });
+
+    it("does not clear the field when selecting all and typing a letter", async () => {
+      const user = userEvent.setup();
+
+      render(<NumericField label="test" displayValue="42" isNullable={true} />);
+
+      const input = screen.getByRole("textbox", { name: /value for: test/i });
+      await user.click(input);
+      await user.clear(input);
+      await user.type(input, "123");
+      // Select all and type a non-numeric character
+      await user.tripleClick(input);
+      await user.type(input, "x");
+
+      expect(input).toHaveValue("123");
+    });
+
+    it("still allows clearing the field with backspace", async () => {
+      const user = userEvent.setup();
+
+      render(<NumericField label="test" displayValue="5" isNullable={true} />);
+
+      const input = screen.getByRole("textbox", { name: /value for: test/i });
+      await user.click(input);
+      await user.clear(input);
+
+      expect(input).toHaveValue("");
+    });
+
+    it("allows typing valid numbers after rejecting invalid input", async () => {
+      const user = userEvent.setup();
+
+      render(<NumericField label="test" displayValue="10" isNullable={true} />);
+
+      const input = screen.getByRole("textbox", { name: /value for: test/i });
+      await user.click(input);
+      await user.type(input, "abc");
+      expect(input).toHaveValue("10");
+
+      await user.clear(input);
+      await user.type(input, "99");
+      expect(input).toHaveValue("99");
+    });
+  });
 });

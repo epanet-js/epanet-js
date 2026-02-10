@@ -111,9 +111,12 @@ export const NumericField = ({
   };
 
   const handleInputChange: ChangeEventHandler<HTMLInputElement> = (e) => {
-    const newInputValue = normalizeNumericInput(e.target.value, {
+    const rawValue = e.target.value;
+    const newInputValue = normalizeNumericInput(rawValue, {
       positiveOnly,
     });
+    if (newInputValue === inputValue) return;
+    if (rawValue.length > 0 && newInputValue.length === 0) return;
     setInputValue(newInputValue);
     const numericValue = parseLocaleNumber(newInputValue);
     setError(isNaN(numericValue) || (!isNullable && numericValue === 0));

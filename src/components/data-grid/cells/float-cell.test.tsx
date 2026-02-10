@@ -118,6 +118,57 @@ describe("FloatCell", () => {
 
       expect(input).toHaveValue("1234");
     });
+
+    it("does not clear value when typing only non-numeric characters", async () => {
+      const user = setupUser();
+
+      render(<FloatCell {...defaultProps} value={42} editMode="full" />);
+
+      const input = screen.getByRole("textbox");
+      await user.clear(input);
+      await user.type(input, "123");
+      // Select all and type a non-numeric character
+      await user.tripleClick(input);
+      await user.type(input, "x");
+
+      expect(input).toHaveValue("123");
+    });
+
+    it("ignores non-numeric characters appended to existing value", async () => {
+      const user = setupUser();
+
+      render(<FloatCell {...defaultProps} value={5} editMode="full" />);
+
+      const input = screen.getByRole("textbox");
+      await user.type(input, "abc");
+
+      expect(input).toHaveValue("5");
+    });
+
+    it("still allows clearing the field", async () => {
+      const user = setupUser();
+
+      render(<FloatCell {...defaultProps} value={42} editMode="full" />);
+
+      const input = screen.getByRole("textbox");
+      await user.clear(input);
+
+      expect(input).toHaveValue("");
+    });
+
+    it("allows typing valid numbers after rejecting invalid input", async () => {
+      const user = setupUser();
+
+      render(<FloatCell {...defaultProps} value={10} editMode="full" />);
+
+      const input = screen.getByRole("textbox");
+      await user.type(input, "xyz");
+      expect(input).toHaveValue("10");
+
+      await user.clear(input);
+      await user.type(input, "99");
+      expect(input).toHaveValue("99");
+    });
   });
 
   describe("value commit", () => {

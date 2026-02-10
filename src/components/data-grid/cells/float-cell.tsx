@@ -44,11 +44,18 @@ export function FloatCell({
     }
   }, [editMode, value]);
 
-  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setEditValue(
-      normalizeNumericInput(e.target.value, { allowExponentSign: true }),
-    );
-  }, []);
+  const handleChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const rawValue = e.target.value;
+      const newValue = normalizeNumericInput(rawValue, {
+        allowExponentSign: true,
+      });
+      if (newValue === editValue) return;
+      if (rawValue.length > 0 && newValue.length === 0) return;
+      setEditValue(newValue);
+    },
+    [editValue],
+  );
 
   const commit = useCallback(() => {
     const parsed = parseNumericInput(editValue);
