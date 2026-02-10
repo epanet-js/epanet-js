@@ -90,6 +90,7 @@ export const useSaveInp = ({
               handle: newHandle,
               options: exportOptions,
               isMadeByApp: true,
+              isDemoNetwork: fileInfo?.isDemoNetwork ?? false,
             });
           }
         };

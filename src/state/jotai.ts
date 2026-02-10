@@ -51,6 +51,7 @@ export type FileInfo = {
   modelVersion: string;
   handle?: FileSystemHandle | FileSystemFileHandle;
   isMadeByApp: boolean;
+  isDemoNetwork: boolean;
   options: ExportOptions;
 };
 

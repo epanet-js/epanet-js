@@ -45,6 +45,7 @@ describe("save inp", () => {
       handle: newHandle,
       options: { type: "inp", folderId: "" },
       isMadeByApp: true,
+      isDemoNetwork: false,
     });
 
     expect(screen.getByText(/saved/i)).toBeInTheDocument();

@@ -110,6 +110,7 @@ export const aFileInfo = (data: Partial<FileInfo> | null) => {
     name: "NAME",
     handle: undefined,
     isMadeByApp: true,
+    isDemoNetwork: false,
     options: { type: "inp", folderId: "" } as ExportOptions,
   };
   return { ...defaults, ...data };

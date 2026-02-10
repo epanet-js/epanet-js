@@ -21,6 +21,7 @@ import { OPFSStorage } from "src/infra/storage";
 import { getAppId } from "src/infra/app-instance";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { parseInpWithAllCurves } from "src/import/inp/parse-inp-with-all-curves";
+import { isDemoNetwork } from "src/demo/demo-networks";
 
 export const inpExtension = ".inp";
 
@@ -65,6 +66,7 @@ export const useImportInp = () => {
       try {
         const arrayBuffer = await file.arrayBuffer();
         const content = new TextDecoder().decode(arrayBuffer);
+        const isDemo = isDemoNetwork(content);
         const parseOptions = {
           customerPoints: true,
           inactiveAssets: true,
@@ -108,6 +110,7 @@ export const useImportInp = () => {
           handle: isMadeByApp ? file.handle : undefined,
           modelVersion: hydraulicModel.version,
           isMadeByApp,
+          isDemoNetwork: isDemo,
           options: { type: "inp", folderId: "" },
         });
         if (!issues) {
