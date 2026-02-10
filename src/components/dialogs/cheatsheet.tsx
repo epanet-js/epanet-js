@@ -40,7 +40,6 @@ type ShortcutSection = {
 export function CheatsheetDialog() {
   const translate = useTranslate();
   const isMac = useFeatureFlag("FLAG_MAC");
-  const isScenariosOn = useFeatureFlag("FLAG_SCENARIOS");
 
   const BINDINGS: ShortcutSection[] = [
     {
@@ -102,27 +101,23 @@ export function CheatsheetDialog() {
         },
       ],
     },
-    ...(isScenariosOn
-      ? [
-          {
-            group: "keyboardShortcuts.scenarios",
-            shortcuts: [
-              {
-                binding: createScenarioShortcut,
-                description: "createScenario",
-              },
-              {
-                binding: toggleSnapshotShortcut,
-                description: "toggleSnapshot",
-              },
-              {
-                binding: goToMainShortcut,
-                description: "goToMain",
-              },
-            ],
-          },
-        ]
-      : []),
+    {
+      group: "keyboardShortcuts.scenarios",
+      shortcuts: [
+        {
+          binding: createScenarioShortcut,
+          description: "createScenario",
+        },
+        {
+          binding: toggleSnapshotShortcut,
+          description: "toggleSnapshot",
+        },
+        {
+          binding: goToMainShortcut,
+          description: "goToMain",
+        },
+      ],
+    },
     {
       group: "keyboardShortcuts.editingSelection",
       shortcuts: [

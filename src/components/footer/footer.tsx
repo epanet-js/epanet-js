@@ -1,6 +1,5 @@
 import { useAtomValue } from "jotai";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useTranslate } from "src/hooks/use-translate";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import {
@@ -27,7 +26,6 @@ export const Footer = () => {
   const translate = useTranslate();
   const { modelMetadata } = useAtomValue(dataAtom);
   const hydraulicModel = useAtomValue(stagingModelAtom);
-  const isScenariosOn = useFeatureFlag("FLAG_SCENARIOS");
   const isLgOrLarger = useBreakpoint("lg");
   const isSmOrLarger = useBreakpoint("sm");
 
@@ -44,12 +42,8 @@ export const Footer = () => {
           </div>
         )}
         <div className="border-r-2 border-gray-100 h-10"></div>
-        {isScenariosOn && (
-          <>
-            <ScenarioSwitcher />
-            <div className="border-r-2 border-gray-150 h-10"></div>
-          </>
-        )}
+        <ScenarioSwitcher />
+        <div className="border-r-2 border-gray-150 h-10"></div>
         {isLgOrLarger && (
           <>
             <span className="px-4 py-2">
