@@ -102,12 +102,12 @@ describe("generateSmoothPumpCurvePoints", () => {
       { x: 100, y: 90 },
       { x: 150, y: 60 },
     ];
-    expect(generateSmoothPumpCurvePoints(points, "multi-point")).toBeNull();
+    expect(generateSmoothPumpCurvePoints(points, "multiPointCurve")).toBeNull();
   });
 
   it("generates 25 smooth points for a valid 1-point (design-point) curve", () => {
     const points = [{ x: 500, y: 100 }];
-    const result = generateSmoothPumpCurvePoints(points, "design-point");
+    const result = generateSmoothPumpCurvePoints(points, "designPointCurve");
 
     expect(result).not.toBeNull();
     expect(result).toHaveLength(25);
@@ -136,7 +136,7 @@ describe("generateSmoothPumpCurvePoints", () => {
       { x: 100, y: 100 },
       { x: 200, y: 40 },
     ];
-    const result = generateSmoothPumpCurvePoints(points, "standard");
+    const result = generateSmoothPumpCurvePoints(points, "standardCurve");
 
     expect(result).not.toBeNull();
     expect(result).toHaveLength(25);
@@ -150,13 +150,13 @@ describe("generateSmoothPumpCurvePoints", () => {
   });
 
   it("returns null for an empty points array", () => {
-    expect(generateSmoothPumpCurvePoints([], "design-point")).toBeNull();
+    expect(generateSmoothPumpCurvePoints([], "designPointCurve")).toBeNull();
   });
 
   it("returns null when curve fitting fails for invalid design-point input", () => {
     // Zero head means synthesized shutoff = 0, which fails fitting
     expect(
-      generateSmoothPumpCurvePoints([{ x: 100, y: 0 }], "design-point"),
+      generateSmoothPumpCurvePoints([{ x: 100, y: 0 }], "designPointCurve"),
     ).toBeNull();
   });
 
@@ -166,6 +166,6 @@ describe("generateSmoothPumpCurvePoints", () => {
       { x: 100, y: 60 },
       { x: 200, y: 70 },
     ];
-    expect(generateSmoothPumpCurvePoints(points, "standard")).toBeNull();
+    expect(generateSmoothPumpCurvePoints(points, "standardCurve")).toBeNull();
   });
 });

@@ -868,7 +868,7 @@ const addCurves = (
   for (const curve of curves.values()) {
     if (curve.type === "pump") {
       const curveType = getPumpCurveType(curve.points);
-      if (curveType === "multi-point" || curve.assetIds.size > 1) {
+      if (curveType === "multiPointCurve" || curve.assetIds.size > 1) {
         validCurves.set(curve.id, curve);
         continue;
       }

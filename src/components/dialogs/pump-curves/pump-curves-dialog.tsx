@@ -197,7 +197,7 @@ export const PumpCurvesDialog = () => {
           )}
         </div>
       </div>
-      <div className="pt-6 flex flex-row-reverse gap-x-3">
+      <div className="mt-6 flex flex-row-reverse gap-x-3 items-end h-8">
         {isSnapshotLocked ? (
           <Button type="button" onClick={closeDialog}>
             {translate("close")}

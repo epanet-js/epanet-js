@@ -14,7 +14,7 @@ import type { PropertyComparison } from "src/hooks/use-asset-comparison";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import { TContent } from "src/components/elements";
 
-export type PumpDefinitionMode = "power" | "design-point" | "standard";
+export type PumpDefinitionMode = "power" | "designPointCurve" | "standardCurve";
 
 export interface PumpCurvePoint {
   flow: number;
@@ -32,8 +32,8 @@ interface MaybePumpCurvePoint {
 
 const OptionKey = {
   power: "constantPower",
-  "design-point": "designPointCurve",
-  standard: "standardCurve",
+  designPointCurve: "designPointCurve",
+  standardCurve: "standardCurve",
 };
 
 export const PumpDefinitionDetails = ({
@@ -94,8 +94,8 @@ const PumpDefinitionDetailsInner = ({
     () =>
       [
         { label: translate("constantPower"), value: "power" },
-        { label: translate("designPointCurve"), value: "design-point" },
-        { label: translate("standardCurve"), value: "standard" },
+        { label: translate("designPointCurve"), value: "designPointCurve" },
+        { label: translate("standardCurve"), value: "standardCurve" },
       ] as { label: string; value: PumpDefinitionMode }[],
     [translate],
   );
@@ -260,7 +260,7 @@ export const PumpCurveTable = ({
           idx === displayIndex ? { ...point, [field]: value } : point,
         );
 
-        if (curveType === "design-point") {
+        if (curveType === "designPointCurve") {
           const designPoint = newPoints[1];
 
           newPoints = calculateCurvePoints([{}, designPoint, {}], curveType);
@@ -282,7 +282,7 @@ export const PumpCurveTable = ({
       return { onChangeFlow: undefined, onChangeHead: undefined };
     }
 
-    if (curveType === "design-point") {
+    if (curveType === "designPointCurve") {
       if (displayIndex === 1) {
         return {
           onChangeFlow: (value: number | undefined) =>
@@ -565,9 +565,9 @@ const inferDefinitionMode = (
 ): PumpDefinitionMode => {
   if (modelType === "power") return "power";
   const curveType = getPumpCurveType(curve);
-  if (curveType === "design-point" || curveType === "standard")
+  if (curveType === "designPointCurve" || curveType === "standardCurve")
     return curveType;
-  return "design-point";
+  return "designPointCurve";
 };
 
 const initialPointsFromCurve = (
@@ -578,7 +578,7 @@ const initialPointsFromCurve = (
     return [{ flow: 0 }, {}, {}];
   }
 
-  if (curveType === "design-point") {
+  if (curveType === "designPointCurve") {
     const middleIndex = Math.floor(curve.length / 2);
     const designPoint = curve[middleIndex] ?? curve[0];
     const designFlow = designPoint.x;
@@ -608,11 +608,11 @@ const calculateCurvePoints = (
   editingPoints: MaybePumpCurvePoint[],
   definitionType: PumpCurveType,
 ): MaybePumpCurvePoint[] => {
-  if (definitionType === "standard") {
+  if (definitionType === "standardCurve") {
     return editingPoints;
   }
 
-  if (definitionType === "design-point") {
+  if (definitionType === "designPointCurve") {
     const { flow: designFlow, head: designHead } = editingPoints[1];
 
     return [
@@ -705,10 +705,10 @@ const validateCurve = (
   points: MaybePumpCurvePoint[],
   curveType: PumpCurveType,
 ): ValidationResult => {
-  if (curveType === "design-point") {
+  if (curveType === "designPointCurve") {
     return validateDesignPointCurve(points);
   }
-  if (curveType === "standard") {
+  if (curveType === "standardCurve") {
     return validateStandardCurve(points);
   }
   return {

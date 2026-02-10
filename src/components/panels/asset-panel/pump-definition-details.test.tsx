@@ -39,7 +39,7 @@ describe("PumpCurveTable", () => {
     it("shows 3 rows with shutoff flow=0 when no curve provided", () => {
       render(
         <PumpCurveTable
-          curveType="standard"
+          curveType="standardCurve"
           quantities={quantities}
           onCurveChange={vi.fn()}
         />,
@@ -63,7 +63,7 @@ describe("PumpCurveTable", () => {
       render(
         <PumpCurveTable
           curve={curve}
-          curveType="standard"
+          curveType="standardCurve"
           quantities={quantities}
           onCurveChange={vi.fn()}
         />,
@@ -83,7 +83,7 @@ describe("PumpCurveTable", () => {
       render(
         <PumpCurveTable
           curve={curve}
-          curveType="design-point"
+          curveType="designPointCurve"
           quantities={quantities}
           onCurveChange={vi.fn()}
         />,
@@ -107,7 +107,7 @@ describe("PumpCurveTable", () => {
       render(
         <PumpCurveTable
           curve={curve}
-          curveType="design-point"
+          curveType="designPointCurve"
           quantities={quantities}
           onCurveChange={vi.fn()}
         />,
@@ -125,7 +125,7 @@ describe("PumpCurveTable", () => {
       render(
         <PumpCurveTable
           curve={curve}
-          curveType="design-point"
+          curveType="designPointCurve"
           quantities={quantities}
           onCurveChange={vi.fn()}
         />,
@@ -146,7 +146,7 @@ describe("PumpCurveTable", () => {
       render(
         <PumpCurveTable
           curve={curve}
-          curveType="design-point"
+          curveType="designPointCurve"
           quantities={quantities}
           onCurveChange={vi.fn()}
         />,
@@ -164,7 +164,7 @@ describe("PumpCurveTable", () => {
     it("shows warning styling when design point is incomplete", () => {
       render(
         <PumpCurveTable
-          curveType="design-point"
+          curveType="designPointCurve"
           quantities={quantities}
           onCurveChange={vi.fn()}
         />,
@@ -180,7 +180,7 @@ describe("PumpCurveTable", () => {
 
       render(
         <PumpCurveTable
-          curveType="design-point"
+          curveType="designPointCurve"
           quantities={quantities}
           onCurveChange={onCurveChange}
         />,
@@ -211,7 +211,7 @@ describe("PumpCurveTable", () => {
       render(
         <PumpCurveTable
           curve={curve}
-          curveType="standard"
+          curveType="standardCurve"
           quantities={quantities}
           onCurveChange={vi.fn()}
         />,
@@ -231,7 +231,7 @@ describe("PumpCurveTable", () => {
       render(
         <PumpCurveTable
           curve={curve}
-          curveType="standard"
+          curveType="standardCurve"
           quantities={quantities}
           onCurveChange={vi.fn()}
         />,
@@ -248,7 +248,7 @@ describe("PumpCurveTable", () => {
     it("shows warning styling when points are missing", () => {
       render(
         <PumpCurveTable
-          curveType="standard"
+          curveType="standardCurve"
           quantities={quantities}
           onCurveChange={vi.fn()}
         />,
@@ -272,7 +272,7 @@ describe("PumpCurveTable", () => {
       render(
         <PumpCurveTable
           curve={curve}
-          curveType="standard"
+          curveType="standardCurve"
           quantities={quantities}
           onCurveChange={vi.fn()}
         />,
@@ -299,7 +299,7 @@ describe("PumpCurveTable", () => {
       render(
         <PumpCurveTable
           curve={curve}
-          curveType="standard"
+          curveType="standardCurve"
           quantities={quantities}
           onCurveChange={onCurveChange}
         />,
@@ -331,7 +331,7 @@ describe("PumpCurveTable", () => {
       render(
         <PumpCurveTable
           curve={curve}
-          curveType="standard"
+          curveType="standardCurve"
           quantities={quantities}
           onCurveChange={vi.fn()}
         />,
@@ -353,7 +353,7 @@ describe("PumpCurveTable", () => {
       render(
         <PumpCurveTable
           curve={curve}
-          curveType="design-point"
+          curveType="designPointCurve"
           quantities={quantities}
           onCurveChange={vi.fn()}
         />,
@@ -379,7 +379,7 @@ describe("PumpCurveTable", () => {
       render(
         <PumpCurveTable
           curve={curve}
-          curveType="standard"
+          curveType="standardCurve"
           quantities={quantities}
         />,
       );
@@ -395,7 +395,9 @@ describe("PumpCurveTable", () => {
     });
 
     it("does not show warning styling in read-only mode when curve is invalid", () => {
-      render(<PumpCurveTable curveType="standard" quantities={quantities} />);
+      render(
+        <PumpCurveTable curveType="standardCurve" quantities={quantities} />,
+      );
 
       expect(getHeadSpan("Shutoff")).not.toHaveClass("border-orange-500");
       expect(getFlowSpan("Design")).not.toHaveClass("border-orange-500");

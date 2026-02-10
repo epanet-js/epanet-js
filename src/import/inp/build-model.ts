@@ -179,7 +179,10 @@ const buildCurvePoints = (
   issues: IssuesAccumulator,
 ): CurvePoint[] => {
   let points: CurvePoint[] = rawPoints;
-  if (!isValidPumpCurve(points) || getPumpCurveType(points) === "multi-point") {
+  if (
+    !isValidPumpCurve(points) ||
+    getPumpCurveType(points) === "multiPointCurve"
+  ) {
     issues.addPumpCurve();
     points = [inferedDesignPoint(rawPoints)];
   }

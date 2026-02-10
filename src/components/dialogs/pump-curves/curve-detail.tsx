@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect, useMemo } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { CurveGraph } from "./curve-graph";
 import { CurvePoint, getPumpCurveType } from "src/hydraulic-model/curves";
 import { type GridSelection } from "src/components/data-grid";
@@ -59,17 +59,7 @@ export function CurveDetail({
   const translate = useTranslate();
   const graphSelectedIndex = selectedCells ? selectedCells.min.row : null;
 
-  const curveTypeLabel = useMemo(() => {
-    const type = getPumpCurveType(points);
-    switch (type) {
-      case "design-point":
-        return translate("designPointCurve");
-      case "standard":
-        return translate("standardCurve");
-      case "multi-point":
-        return translate("multiPointCurve");
-    }
-  }, [points, translate]);
+  const curveType = getPumpCurveType(points);
 
   const handleTableSelectionChange = useCallback(
     (selection: GridSelection | null) => {
@@ -90,7 +80,7 @@ export function CurveDetail({
         />
       </div>
       <InlineField name={translate("pumpType")} layout="label-flex-none">
-        <span className="text-sm">{curveTypeLabel}</span>
+        <span className="text-sm">{translate(curveType)}</span>
       </InlineField>
       <div className="flex-1 min-h-0 p-2 pt-4 border border-gray-200 dark:border-gray-700">
         <div ref={graphContainerRef} className="h-full">

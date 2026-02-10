@@ -11,7 +11,7 @@ import {
 import { Quantities } from "src/model-metadata/quantities-spec";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { Pump, PumpDefintionType } from "src/hydraulic-model/asset-types/pump";
-import { SelectRow, QuantityRow } from "./ui-components";
+import { SelectRow, QuantityRow, TextField } from "./ui-components";
 import type {
   PropertyComparison,
   PumpCurveComparison,
@@ -24,8 +24,8 @@ import { SelectorOption } from "src/components/form/selector";
 
 export type PumpDefinitionMode =
   | "power"
-  | "design-point"
-  | "standard"
+  | "designPointCurve"
+  | "standardCurve"
   | "curveId";
 
 export interface PumpCurvePoint {
@@ -65,7 +65,7 @@ export const PumpDefinitionDetailsWithAllCurves = ({
   const curve = useMemo(() => {
     if (pump.definitionType === "curveId" && pump.curveId) {
       const curve = curves.get(pump.curveId)!;
-      if (getPumpCurveType(curve.points) !== "multi-point") {
+      if (getPumpCurveType(curve.points) !== "multiPointCurve") {
         return curve.points;
       }
     }
@@ -122,8 +122,8 @@ const PumpDefinitionDetailsInner = ({
     () =>
       [
         { label: translate("constantPower"), value: "power" },
-        { label: translate("designPointCurve"), value: "design-point" },
-        { label: translate("standardCurve"), value: "standard" },
+        { label: translate("designPointCurve"), value: "designPointCurve" },
+        { label: translate("standardCurve"), value: "standardCurve" },
         { label: translate("namedCurve"), value: "curveId" },
       ] as { label: string; value: PumpDefinitionMode }[],
     [translate],
@@ -158,7 +158,10 @@ const PumpDefinitionDetailsInner = ({
       const curveType =
         oldValue !== "power" && oldValue !== "curveId"
           ? oldValue
-          : (getPumpCurveType(curve) as Exclude<PumpCurveType, "multi-point">);
+          : (getPumpCurveType(curve) as Exclude<
+              PumpCurveType,
+              "multiPointCurve"
+            >);
       const currentPoints = initialPointsFromCurve(curve, curveType);
       const validationResult = validateCurve(currentPoints, newValue);
 
@@ -298,7 +301,7 @@ export const PumpCurveTable = ({
           idx === displayIndex ? { ...point, [field]: value } : point,
         );
 
-        if (curveType === "design-point") {
+        if (curveType === "designPointCurve") {
           const designPoint = newPoints[1];
 
           newPoints = calculateCurvePoints([{}, designPoint, {}], curveType);
@@ -320,7 +323,7 @@ export const PumpCurveTable = ({
       return { onChangeFlow: undefined, onChangeHead: undefined };
     }
 
-    if (curveType === "design-point") {
+    if (curveType === "designPointCurve") {
       if (displayIndex === 1) {
         return {
           onChangeFlow: (value: number | undefined) =>
@@ -554,6 +557,8 @@ const CurveIdSelector = ({
   const showPumpLibrary = useShowPumpLibrary();
 
   const selectedCurve = curveId === undefined ? null : curveId;
+  const curve = selectedCurve ? curves.get(selectedCurve) : undefined;
+  const curveType = curve ? getPumpCurveType(curve.points) : undefined;
 
   const curveOptions = useMemo(() => {
     const pumpLibraryGroup: SelectorOption<CurveId>[] = [
@@ -576,17 +581,24 @@ const CurveIdSelector = ({
     if (newValue === 0) showPumpLibrary({ source: "pump" });
   };
 
-  return curveOptions[1].length > 1 ? (
-    <SelectRow
-      name="curveName"
-      selected={selectedCurve}
-      nullable={true}
-      options={curveOptions}
-      listClassName="first:italic"
-      placeholder={`${translate("select")}...`}
-      readOnly={readOnly}
-      onChange={handleChange}
-    />
+  return curveOptions[1].length > 0 ? (
+    <div className="flex flex-col gap-2">
+      <SelectRow
+        name="curveName"
+        selected={selectedCurve}
+        nullable={true}
+        options={curveOptions}
+        listClassName="first:italic"
+        placeholder={`${translate("select")}...`}
+        readOnly={readOnly}
+        onChange={handleChange}
+      />
+      {curveType && (
+        <InlineField name={translate("pumpType")} labelSize="md">
+          <TextField padding="md">{translate(curveType)}</TextField>
+        </InlineField>
+      )}
+    </div>
   ) : (
     <InlineField name={translate("curveName")} labelSize="md">
       <Button
@@ -698,18 +710,14 @@ const inferDefinitionMode = (
   curve: CurvePoint[],
 ): PumpDefinitionMode => {
   if (modelType === "power") return "power";
-  const curveType = getPumpCurveType(curve) as Exclude<
-    PumpCurveType,
-    "multi-point"
-  >;
-  if (modelType === "curveId" && isDefaultCurve(curve)) {
+  if (modelType === "curveId") {
     return "curveId";
   }
+  const curveType = getPumpCurveType(curve) as Exclude<
+    PumpCurveType,
+    "multiPointCurve"
+  >;
   return curveType;
-};
-
-const isDefaultCurve = (points: CurvePoint[]) => {
-  return points.length === 1 && points[0].x === 1 && points[0].y === 1;
 };
 
 const initialPointsFromCurve = (
@@ -720,7 +728,7 @@ const initialPointsFromCurve = (
     return [{ flow: 0 }, {}, {}];
   }
 
-  if (curveType === "design-point") {
+  if (curveType === "designPointCurve") {
     const middleIndex = Math.floor(curve.length / 2);
     const designPoint = curve[middleIndex] ?? curve[0];
     const designFlow = designPoint.x;
@@ -748,11 +756,11 @@ const calculateCurvePoints = (
   editingPoints: MaybePumpCurvePoint[],
   definitionType: PumpCurveType,
 ): MaybePumpCurvePoint[] => {
-  if (definitionType === "standard") {
+  if (definitionType === "standardCurve") {
     return editingPoints;
   }
 
-  if (definitionType === "design-point") {
+  if (definitionType === "designPointCurve") {
     const { flow: designFlow, head: designHead } = editingPoints[1];
 
     return [
@@ -846,10 +854,10 @@ const validateCurve = (
   points: MaybePumpCurvePoint[],
   curveType: PumpCurveType,
 ): ValidationResult => {
-  if (curveType === "design-point") {
+  if (curveType === "designPointCurve") {
     return validateDesignPointCurve(points);
   }
-  if (curveType === "standard") {
+  if (curveType === "standardCurve") {
     return validateStandardCurve(points);
   }
   return {

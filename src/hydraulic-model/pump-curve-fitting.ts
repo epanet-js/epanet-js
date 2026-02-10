@@ -79,10 +79,12 @@ export function generateSmoothPumpCurvePoints(
   points: CurvePoint[],
   curveType: PumpCurveType,
 ): CurvePoint[] | null {
-  if (curveType === "multi-point" || points.length === 0) return null;
+  if (curveType === "multiPointCurve" || points.length === 0) return null;
 
   const threePoints =
-    curveType === "design-point" ? synthesizeThreePoints(points[0]) : points;
+    curveType === "designPointCurve"
+      ? synthesizeThreePoints(points[0])
+      : points;
 
   const coefficients = fitPumpCurve(threePoints);
   if (!coefficients) return null;
