@@ -2,7 +2,12 @@ import { useCallback } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { useScenarioOperations } from "src/hooks/use-scenario-operations";
 import { scenariosListAtom } from "src/state/scenarios";
-import { dialogAtom, simulationAtom, stagingModelAtom } from "src/state/jotai";
+import {
+  dialogAtom,
+  fileInfoAtom,
+  simulationAtom,
+  stagingModelAtom,
+} from "src/state/jotai";
 import { useAuth } from "src/auth";
 import { limits } from "src/user-plan";
 import { useUserTracking } from "src/infra/user-tracking";
@@ -11,6 +16,7 @@ import { notify } from "src/components/notifications";
 import { SuccessIcon } from "src/icons";
 import { useRunSimulation } from "./run-simulation";
 import { userSettingsAtom } from "src/state/user-settings";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export const createScenarioShortcut = "alt+y";
 
@@ -25,12 +31,19 @@ export const useCreateScenario = () => {
   const hydraulicModel = useAtomValue(stagingModelAtom);
   const runSimulation = useRunSimulation();
   const userSettings = useAtomValue(userSettingsAtom);
+  const isDemoTrialOn = useFeatureFlag("FLAG_DEMO_TRIAL");
+  const fileInfo = useAtomValue(fileInfoAtom);
 
   return useCallback(
     ({ source: _source }: { source: string }) => {
       const isFirstTimeEnabling = scenariosList.length === 0;
+      const shouldBypassPaywall = isDemoTrialOn && fileInfo?.isDemoNetwork;
 
-      if (isFirstTimeEnabling && !limits.canUseScenarios(user.plan)) {
+      if (
+        isFirstTimeEnabling &&
+        !limits.canUseScenarios(user.plan) &&
+        !shouldBypassPaywall
+      ) {
         setDialog({ type: "scenariosPaywall" });
         userTracking.capture({ name: "scenariosPaywall.triggered" });
         return null;
@@ -105,6 +118,8 @@ export const useCreateScenario = () => {
       hydraulicModel,
       runSimulation,
       userSettings,
+      isDemoTrialOn,
+      fileInfo,
     ],
   );
 };
