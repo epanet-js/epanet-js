@@ -11,6 +11,7 @@ export interface StyledPointValue {
   itemStyle?: { color: string };
   symbol?: string;
   symbolSize?: number;
+  lineStyle?: { color: string };
 }
 
 interface LineGraphProps {
@@ -108,17 +109,19 @@ export function LineGraph({
     const result: EChartsOption["series"] = [];
 
     if (smoothCurvePoints && smoothCurvePoints.length > 0) {
-      result.push({
-        type: "line",
-        data: smoothCurvePoints.map((p) => ({ value: [p.x, p.y] })),
-        showSymbol: false,
-        lineStyle: {
-          color: colors.purple500,
-          width: 2,
-        },
-        emphasis: { disabled: true },
-        tooltip: { show: false },
-      });
+      for (const segment of splitLineSegments(smoothCurvePoints)) {
+        result.push({
+          type: "line",
+          data: segment.points.map((p) => ({ value: [p.x, p.y] })),
+          showSymbol: false,
+          lineStyle: {
+            color: segment.color,
+            width: 2,
+          },
+          emphasis: { disabled: true },
+          tooltip: { show: false },
+        });
+      }
     }
 
     result.push({
@@ -260,4 +263,32 @@ const calculateInterval = (
   const max = Math.ceil(maxVal / niceInterval) * niceInterval;
 
   return { min, max, interval: niceInterval };
+};
+
+const splitLineSegments = (
+  points: StyledPointValue[],
+): { points: StyledPointValue[]; color: string }[] => {
+  if (points.length < 2) return [];
+
+  const segments: { points: StyledPointValue[]; color: string }[] = [];
+  let currentColor = points[0].lineStyle?.color ?? colors.purple500;
+  let currentPoints = [points[0]];
+
+  for (let i = 1; i < points.length; i++) {
+    const segmentColor = points[i].lineStyle?.color ?? colors.purple500;
+    if (segmentColor !== currentColor) {
+      currentPoints.push(points[i]);
+      segments.push({ points: currentPoints, color: currentColor });
+      currentColor = segmentColor;
+      currentPoints = [points[i]];
+    } else {
+      currentPoints.push(points[i]);
+    }
+  }
+
+  if (currentPoints.length >= 2) {
+    segments.push({ points: currentPoints, color: currentColor });
+  }
+
+  return segments;
 };

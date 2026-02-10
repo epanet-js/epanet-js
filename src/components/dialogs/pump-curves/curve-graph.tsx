@@ -33,10 +33,10 @@ export function CurveGraph({
       return {
         x: p.x,
         y: p.y,
-        itemStyle: isSelected
-          ? { color: colors.fuchsia500 }
-          : isError
-            ? { color: colors.orange500 }
+        itemStyle: isError
+          ? { color: colors.orange500 }
+          : isSelected
+            ? { color: colors.fuchsia500 }
             : undefined,
         symbol: isError ? "triangle" : undefined,
         symbolSize: isError ? 10 : undefined,
@@ -59,13 +59,21 @@ export function CurveGraph({
   }, [points, selectedPointIndex, curveType, errorIndices]);
 
   const smoothCurvePoints: StyledPointValue[] | undefined = useMemo(() => {
+    if (curveType === "multiPointCurve") {
+      return points.map((p, i) => ({
+        x: p.x,
+        y: p.y,
+        lineStyle:
+          i < points.length - 1 &&
+          (points[i + 1].x <= points[i].x || points[i + 1].y >= points[i].y)
+            ? { color: "transparent" }
+            : undefined,
+      }));
+    }
     if (!isValid) return undefined;
     const smooth = generateSmoothPumpCurvePoints(points, curveType);
-    if (smooth) return smooth.map((p) => ({ x: p.x, y: p.y }));
-    if (curveType === "multiPointCurve") {
-      return points.map((p) => ({ x: p.x, y: p.y }));
-    }
-    return undefined;
+    if (!smooth) return undefined;
+    return smooth.map((p) => ({ x: p.x, y: p.y }));
   }, [points, isValid, curveType]);
 
   return (
