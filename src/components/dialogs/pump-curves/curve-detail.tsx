@@ -9,6 +9,8 @@ import { type GridSelection } from "src/components/data-grid";
 import { CurveTable, type CurveTableRef } from "./curve-table";
 import { useTranslate } from "src/hooks/use-translate";
 import { InlineField } from "src/components/form/fields";
+import { NotificationBanner } from "src/components/notifications";
+import { TriangleAlert } from "lucide-react";
 
 interface CurveDetailProps {
   points: CurvePoint[];
@@ -76,6 +78,17 @@ export function CurveDetail({
 
   const curveType = getPumpCurveType(points);
 
+  const warningMessage = useMemo(() => {
+    if (errors.length === 0) return null;
+    const hasFlowError = errors.some((e) => e.value === "flow");
+    const hasHeadError = errors.some((e) => e.value === "head");
+    if (hasFlowError && hasHeadError) {
+      return `${translate("curveValidation.flowAscendingOrder")} ${translate("curveValidation.headDescendingOrder")}`;
+    }
+    if (hasFlowError) return translate("curveValidation.flowAscendingOrder");
+    return translate("curveValidation.headDescendingOrder");
+  }, [errors, translate]);
+
   const handleTableSelectionChange = useCallback(
     (selection: GridSelection | null) => {
       setSelectedCells(selection);
@@ -84,8 +97,20 @@ export function CurveDetail({
   );
 
   return (
-    <div className="flex flex-col h-full gap-4">
-      <div ref={tableContainerRef} className="flex-1 min-h-0 overflow-hidden">
+    <div className="flex flex-col h-full">
+      {warningMessage && (
+        <NotificationBanner
+          variant="warning"
+          title={translate("invalidCurve")}
+          description={warningMessage}
+          Icon={TriangleAlert}
+          className="mb-2"
+        />
+      )}
+      <div
+        ref={tableContainerRef}
+        className="flex-1 min-h-0 overflow-hidden mb-4"
+      >
         <CurveTable
           ref={tableRef}
           points={points}
@@ -96,15 +121,11 @@ export function CurveDetail({
         />
       </div>
       <InlineField name={translate("pumpType")} layout="label-flex-none">
-        {isValid ? (
-          <span className="text-sm">{translate(curveType)}</span>
-        ) : (
-          <span className="text-sm text-red-700 dark:text-red-300">
-            {translate("invalidCurve")}
-          </span>
-        )}
+        <span className="text-sm">
+          {isValid ? translate(curveType) : translate("invalidCurve")}
+        </span>
       </InlineField>
-      <div className="flex-1 min-h-0 p-2 pt-4 border border-gray-200 dark:border-gray-700">
+      <div className="flex-1 min-h-0 p-2 pt-4 border border-gray-200 dark:border-gray-700 mt-[.25rem]">
         <div ref={graphContainerRef} className="h-full">
           <CurveGraph
             points={points}
