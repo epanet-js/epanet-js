@@ -8,13 +8,11 @@ import { truncate } from "src/lib/utils";
 import * as Popover from "@radix-ui/react-popover";
 import { StyledPopoverArrow, StyledPopoverContent } from "./elements";
 import { UnsavedChangesIcon, FileIcon } from "src/icons";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export function FileInfo() {
   const fileInfo = useAtomValue(fileInfoAtom);
   const hasUnsavedChanges = useAtomValue(hasUnsavedChangesAtom);
   const [state] = useAtom(fileInfoMachineAtom);
-  const isDemoTrialOn = useFeatureFlag("FLAG_DEMO_TRIAL");
 
   if (!fileInfo) return <div></div>;
 
@@ -31,7 +29,7 @@ export function FileInfo() {
           {truncate(fileInfo.name, 50)}{" "}
         </div>
         {hasUnsavedChanges ? <UnsavedChangesIcon /> : ""}
-        {isDemoTrialOn && fileInfo.isDemoNetwork && (
+        {fileInfo.isDemoNetwork && (
           <span className="px-2 py-0.5 text-[10px] font-semibold uppercase bg-orange-100 text-orange-700 rounded-full">
             Demo
           </span>

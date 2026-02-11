@@ -16,8 +16,6 @@ import { notify } from "src/components/notifications";
 import { SuccessIcon } from "src/icons";
 import { useRunSimulation } from "./run-simulation";
 import { userSettingsAtom } from "src/state/user-settings";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
-
 export const createScenarioShortcut = "alt+y";
 
 export const useCreateScenario = () => {
@@ -31,13 +29,12 @@ export const useCreateScenario = () => {
   const hydraulicModel = useAtomValue(stagingModelAtom);
   const runSimulation = useRunSimulation();
   const userSettings = useAtomValue(userSettingsAtom);
-  const isDemoTrialOn = useFeatureFlag("FLAG_DEMO_TRIAL");
   const isDemoNetwork = useAtomValue(isDemoNetworkAtom);
 
   return useCallback(
     ({ source: _source }: { source: string }) => {
       const isFirstTimeEnabling = scenariosList.length === 0;
-      const shouldBypassPaywall = isDemoTrialOn && isDemoNetwork;
+      const shouldBypassPaywall = isDemoNetwork;
 
       if (
         isFirstTimeEnabling &&
@@ -119,7 +116,6 @@ export const useCreateScenario = () => {
       hydraulicModel,
       runSimulation,
       userSettings,
-      isDemoTrialOn,
       isDemoNetwork,
     ],
   );
