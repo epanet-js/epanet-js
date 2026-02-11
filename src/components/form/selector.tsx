@@ -23,7 +23,7 @@ export const triggerStylesFor = (styleOptions: StyleOptions) => {
   const effectiveStyleOptions = { ...defaultStyleOptions, ...styleOptions };
   const isWarning = effectiveStyleOptions.variant === "warning";
   return clsx(
-    "flex items-center gap-x-2 text-gray-700 w-full",
+    "flex items-center gap-x-2 text-gray-700 bg-white dark:bg-gray-900 w-full",
     !effectiveStyleOptions.disableHoverEffects &&
       "focus:justify-between hover:border hover:rounded-sm hover:border-gray-200 hover:justify-between min-w-[90px]",
     "border rounded-sm justify-between",
