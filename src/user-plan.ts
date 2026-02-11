@@ -8,6 +8,13 @@ export const isTrialActive = (user: {
   return new Date(user.trialEndsAt) > new Date();
 };
 
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
+export const getTrialDaysRemaining = (trialEndsAt: string): number => {
+  const diff = new Date(trialEndsAt).getTime() - new Date().getTime();
+  return Math.floor(diff / MS_PER_DAY);
+};
+
 export const canUpgrade = (plan: Plan) => {
   return plan === "free";
 };

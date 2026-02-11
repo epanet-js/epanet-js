@@ -1,4 +1,6 @@
-import React, { memo, useRef, useState } from "react";
+import React, { memo, useMemo, useRef, useState } from "react";
+import type { User } from "src/auth-types";
+import type { TranslateFn } from "src/hooks/use-translate";
 import { FileInfo } from "src/components/file-info";
 import * as DD from "@radix-ui/react-dropdown-menu";
 import {
@@ -21,7 +23,8 @@ import { SignInButton, SignUpButton } from "./auth-buttons";
 import { useShowWelcome } from "src/commands/show-welcome";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useShowShortcuts } from "src/commands/show-shortcuts";
-import { canUpgrade } from "src/user-plan";
+import { canUpgrade, getTrialDaysRemaining } from "src/user-plan";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { PlanBadge } from "./plan-badge";
 import { useSetAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog";
@@ -62,6 +65,7 @@ export const MenuBarPlay = memo(function MenuBar() {
   const showWelcome = useShowWelcome();
   const isMdOrLarger = useBreakpoint("md");
   const isSmOrLarger = useBreakpoint("sm");
+  const isActivateTrialOn = useFeatureFlag("FLAG_ACTIVATE_TRIAL");
 
   return (
     <div className="flex justify-between h-12 pr-2 text-black dark:text-white">
@@ -97,21 +101,18 @@ export const MenuBarPlay = memo(function MenuBar() {
         )}
         <SignedIn>
           <div className="relative flex items-center px-2 gap-x-2">
-            {canUpgrade(user.plan) && (
-              <Button
-                variant="primary"
-                onClick={() => {
-                  userTracking.capture({
-                    name: "upgradeButton.clicked",
-                    source: "menu",
-                  });
-                  setDialogState({ type: "upgrade" });
-                }}
-              >
-                <UpgradeIcon />
-                {translate("upgrade")}
-              </Button>
-            )}
+            <TrialOrUpgradeButton
+              user={user}
+              isActivateTrialOn={isActivateTrialOn}
+              translate={translate}
+              onUpgrade={() => {
+                userTracking.capture({
+                  name: "upgradeButton.clicked",
+                  source: "menu",
+                });
+                setDialogState({ type: "upgrade" });
+              }}
+            />
             {isMdOrLarger && (
               <>
                 <PlanBadge plan={user.plan} />
@@ -242,6 +243,7 @@ export const SideMenu = () => {
   const setDialogState = useSetAtom(dialogAtom);
   const showWelcome = useShowWelcome();
   const { user } = useAuth();
+  const isActivateTrialOn = useFeatureFlag("FLAG_ACTIVATE_TRIAL");
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
@@ -341,25 +343,22 @@ export const SideMenu = () => {
                 <li>
                   <UserButton />
                 </li>
-                {canUpgrade(user.plan) && (
-                  <li className="py-4">
-                    <Button
-                      variant="primary"
-                      size="full-width"
-                      onClick={() => {
-                        userTracking.capture({
-                          name: "upgradeButton.clicked",
-                          source: "menu",
-                        });
-                        setIsOpen(false);
-                        setDialogState({ type: "upgrade" });
-                      }}
-                    >
-                      <UpgradeIcon />
-                      {translate("upgrade")}
-                    </Button>
-                  </li>
-                )}
+                <li className="py-4">
+                  <TrialOrUpgradeButton
+                    user={user}
+                    isActivateTrialOn={isActivateTrialOn}
+                    translate={translate}
+                    size="full-width"
+                    onUpgrade={() => {
+                      userTracking.capture({
+                        name: "upgradeButton.clicked",
+                        source: "menu",
+                      });
+                      setIsOpen(false);
+                      setDialogState({ type: "upgrade" });
+                    }}
+                  />
+                </li>
               </ul>
             </SignedIn>
             <SignedOut>
@@ -391,5 +390,51 @@ export const SideMenu = () => {
         </div>
       </div>
     </div>
+  );
+};
+
+const TrialOrUpgradeButton = ({
+  user,
+  isActivateTrialOn,
+  translate,
+  size,
+  onUpgrade,
+}: {
+  user: User;
+  isActivateTrialOn: boolean;
+  translate: TranslateFn;
+  size?: "full-width";
+  onUpgrade: () => void;
+}) => {
+  const trial = useMemo(() => {
+    if (!isActivateTrialOn || !user.hasUsedTrial) return null;
+    if (!user.trialEndsAt) return null;
+
+    const days = getTrialDaysRemaining(user.trialEndsAt);
+    const isUrgent = days <= 0;
+    const label =
+      days < 0 ? translate("trial.expired") : translate("trial.status", days);
+    return { label, isUrgent };
+  }, [isActivateTrialOn, user.hasUsedTrial, user.trialEndsAt, translate]);
+
+  if (trial) {
+    const colorClass = trial.isUrgent
+      ? "text-orange-600 dark:text-orange-400"
+      : "text-purple-600 dark:text-purple-400";
+
+    return (
+      <Button variant="quiet" size={size} onClick={onUpgrade}>
+        <span className={`${colorClass} font-medium`}>{trial.label}</span>
+      </Button>
+    );
+  }
+
+  if (!canUpgrade(user.plan)) return null;
+
+  return (
+    <Button variant="primary" size={size} onClick={onUpgrade}>
+      <UpgradeIcon />
+      {translate("upgrade")}
+    </Button>
   );
 };
