@@ -314,9 +314,7 @@ export class Persistence implements IPersistenceWithSnapshots {
       stagingModel.assets,
       stagingModel.customerPoints,
     );
-    if (validatedSelection !== selection) {
-      this.store.set(selectionAtom, validatedSelection);
-    }
+    this.store.set(selectionAtom, { ...validatedSelection });
   }
 
   private async loadSimulationResults(
