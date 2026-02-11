@@ -101,4 +101,14 @@ export const buildDefaultPumpCurve = (
   };
 };
 
+export const isEmptyPoint = (p: CurvePoint): boolean => p.x === 0 && p.y === 0;
+
+export const stripTrailingEmptyPoints = (
+  points: CurvePoint[],
+): CurvePoint[] => {
+  let last = points.length - 1;
+  while (last > 0 && isEmptyPoint(points[last])) last--;
+  return points.slice(0, last + 1);
+};
+
 export const defaultCurvePoints = (): CurvePoint[] => [{ x: 1, y: 1 }];

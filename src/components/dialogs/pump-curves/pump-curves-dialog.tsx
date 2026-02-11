@@ -13,6 +13,7 @@ import {
   CurvePoint,
   buildDefaultPumpCurve,
   isValidPumpCurve,
+  stripTrailingEmptyPoints,
 } from "src/hydraulic-model/curves";
 import { PumpCurvesIcon } from "src/icons";
 import { dataAtom, stagingModelAtom } from "src/state/jotai";
@@ -132,15 +133,26 @@ export const PumpCurvesDialog = () => {
     [hydraulicModel.curves, editedCurves],
   );
 
+  const cleanedCurves = useMemo(() => {
+    const cleaned: Curves = new Map();
+    for (const [id, curve] of editedCurves) {
+      cleaned.set(id, {
+        ...curve,
+        points: stripTrailingEmptyPoints(curve.points),
+      });
+    }
+    return cleaned;
+  }, [editedCurves]);
+
   const invalidCurveIds = useMemo(() => {
     const ids = new Set<CurveId>();
-    for (const [id, curve] of editedCurves) {
+    for (const [id, curve] of cleanedCurves) {
       if (curve.type === "pump" && !isValidPumpCurve(curve.points)) {
         ids.add(id);
       }
     }
     return ids;
-  }, [editedCurves]);
+  }, [cleanedCurves]);
 
   const hasInvalidCurves = invalidCurveIds.size > 0;
 
@@ -156,12 +168,12 @@ export const PumpCurvesDialog = () => {
     }
 
     const moment = changeCurves(hydraulicModel, {
-      curves: editedCurves,
+      curves: cleanedCurves,
     });
     transact(moment);
     userTracking.capture({
       name: "pumpCurves.updated",
-      count: editedCurves.size,
+      count: cleanedCurves.size,
     });
 
     closeDialog();
@@ -170,7 +182,7 @@ export const PumpCurvesDialog = () => {
     hasInvalidCurves,
     showSaveWarning,
     hydraulicModel,
-    editedCurves,
+    cleanedCurves,
     transact,
     closeDialog,
     userTracking,

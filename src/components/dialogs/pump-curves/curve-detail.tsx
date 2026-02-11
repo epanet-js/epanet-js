@@ -4,6 +4,7 @@ import {
   CurvePoint,
   PumpCurveType,
   getPumpCurveErrors,
+  stripTrailingEmptyPoints,
 } from "src/hydraulic-model/curves";
 import {
   fitPumpCurve,
@@ -40,13 +41,18 @@ export function CurveDetail({
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const graphContainerRef = useRef<HTMLDivElement>(null);
 
+  const meaningfulPoints = useMemo(
+    () => stripTrailingEmptyPoints(points),
+    [points],
+  );
+
   const handleGraphClick = useCallback(
     (pointIndex: number | null) => {
       if (pointIndex === null) {
         setSelectedCells(null);
         return;
       }
-      const rowIndex = pointIndex % points.length;
+      const rowIndex = pointIndex % meaningfulPoints.length;
       const newSelection = {
         min: { col: 0, row: rowIndex },
         max: { col: 1, row: rowIndex },
@@ -54,7 +60,7 @@ export function CurveDetail({
       setSelectedCells(newSelection);
       tableRef.current?.selectCells({ rowIndex });
     },
-    [points.length],
+    [meaningfulPoints.length],
   );
 
   useEffect(() => {
@@ -73,9 +79,17 @@ export function CurveDetail({
   }, []);
 
   const translate = useTranslate();
-  const graphSelectedIndex = selectedCells ? selectedCells.min.row : null;
 
-  const errors = useMemo(() => getPumpCurveErrors(points), [points]);
+  const graphSelectedIndex = useMemo(() => {
+    if (!selectedCells) return null;
+    const row = selectedCells.min.row;
+    return row < meaningfulPoints.length ? row : null;
+  }, [selectedCells, meaningfulPoints.length]);
+
+  const errors = useMemo(
+    () => getPumpCurveErrors(meaningfulPoints),
+    [meaningfulPoints],
+  );
   const isValid = errors.length === 0;
 
   const errorCells = useMemo(() => {
@@ -95,16 +109,16 @@ export function CurveDetail({
   }, [errors]);
 
   const { curveType, smoothCurvePoints } = useMemo(() => {
-    if (points.length === 1) {
+    if (meaningfulPoints.length === 1) {
       const curveType: PumpCurveType = "designPointCurve";
       if (!isValid)
         return { curveType, smoothCurvePoints: null as CurvePoint[] | null };
-      const smooth = generateSmoothPumpCurvePoints(points, curveType);
+      const smooth = generateSmoothPumpCurvePoints(meaningfulPoints, curveType);
       return { curveType, smoothCurvePoints: smooth };
     }
 
-    if (points.length === 3) {
-      const coefficients = fitPumpCurve(points);
+    if (meaningfulPoints.length === 3) {
+      const coefficients = fitPumpCurve(meaningfulPoints);
       if (coefficients) {
         const curveType: PumpCurveType = "standardCurve";
         if (!isValid)
@@ -118,7 +132,7 @@ export function CurveDetail({
       curveType: "multiPointCurve" as PumpCurveType,
       smoothCurvePoints: null as CurvePoint[] | null,
     };
-  }, [points, isValid]);
+  }, [meaningfulPoints, isValid]);
 
   const warningMessage = useMemo(() => {
     if (errors.length === 0) return null;
@@ -178,7 +192,7 @@ export function CurveDetail({
       <div className="flex-1 min-h-0 p-2 pt-4 border border-gray-200 dark:border-gray-700">
         <div ref={graphContainerRef} className="h-full">
           <CurveGraph
-            points={points}
+            points={meaningfulPoints}
             curveType={curveType}
             fittedPoints={smoothCurvePoints}
             selectedPointIndex={graphSelectedIndex}
