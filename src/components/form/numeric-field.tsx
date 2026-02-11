@@ -27,6 +27,7 @@ export const NumericField = ({
   readOnly = false,
   disabled = false,
   isNullable = true,
+  placeholder,
   styleOptions = {},
   tabIndex = 1,
 }: {
@@ -37,6 +38,7 @@ export const NumericField = ({
   positiveOnly?: boolean;
   readOnly?: boolean;
   disabled?: boolean;
+  placeholder?: string;
   styleOptions?: Partial<StyleOptions>;
   tabIndex?: number;
 }) => {
@@ -143,6 +145,7 @@ export const NumericField = ({
       aria-label={`Value for: ${label}`}
       readOnly={readOnly}
       disabled={disabled}
+      placeholder={placeholder}
       onBlur={handleBlur}
       ref={inputRef}
       value={inputValue}
@@ -191,6 +194,6 @@ function styledInput({
       "text-md": textSize === "md",
     },
 
-    "rounded-sm block tabular-nums overflow-hidden whitespace-nowrap text-ellipsis focus-visible:ring-inset w-full",
+    "rounded-sm block tabular-nums overflow-hidden whitespace-nowrap text-ellipsis focus-visible:ring-inset w-full placeholder:italic placeholder:text-gray-400",
   );
 }

@@ -81,6 +81,14 @@ type AssetPropertyEdited = {
   oldValue: number | string | null;
 };
 
+type AssetPropertyBatchEdited = {
+  name: "assetProperty.batchEdited";
+  type: Asset["type"];
+  property: string;
+  newValue: number | string | null;
+  count: number;
+};
+
 type AssetStatusEdited = {
   name: "assetStatus.edited";
   type: Asset["type"];
@@ -753,6 +761,7 @@ export type UserEvent =
   | AssetSelected
   | AssetDeselected
   | AssetPropertyEdited
+  | AssetPropertyBatchEdited
   | AssetStatusEdited
   | AssetDefinitionTypeEdited
   | PumpCurveEdited

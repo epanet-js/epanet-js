@@ -95,7 +95,7 @@ export function MultiValueRow({
   );
 }
 
-const QuantityStatsBaseFields = ({
+export const QuantityStatsBaseFields = ({
   quantityStats,
 }: {
   quantityStats: QuantityStats;
@@ -142,7 +142,7 @@ const QuantityStatsBaseFields = ({
 type SortColumn = "value" | "count";
 type SortDirection = "asc" | "desc";
 
-const SortableValuesList = ({
+export const SortableValuesList = ({
   values,
   decimals,
   type,
@@ -259,7 +259,7 @@ const SortableValuesList = ({
   );
 };
 
-const formatValue = (
+export const formatValue = (
   value: JsonValue | undefined,
   translate: (key: string) => string,
   decimals?: number,

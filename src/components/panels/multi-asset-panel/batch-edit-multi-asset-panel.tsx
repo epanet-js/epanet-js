@@ -1,0 +1,227 @@
+import { useMemo, useCallback } from "react";
+import { useTranslate } from "src/hooks/use-translate";
+import { pluralize } from "src/lib/utils";
+import { IWrappedFeature } from "src/types";
+import { Quantities } from "src/model-metadata/quantities-spec";
+import { CollapsibleSection, SectionList } from "src/components/form/fields";
+import { MultiAssetActions } from "./actions";
+import { Asset } from "src/hydraulic-model";
+import { BatchEditAssetTypeSections } from "./batch-edit-asset-type-sections";
+import { useAtom, useAtomValue } from "jotai";
+import {
+  simulationAtom,
+  simulationResultsAtom,
+  multiAssetPanelCollapseAtom,
+  stagingModelAtom,
+} from "src/state/jotai";
+import { computeMultiAssetData } from "./data";
+import { usePersistence } from "src/lib/persistence";
+import { useUserTracking } from "src/infra/user-tracking";
+import { changeProperty } from "src/hydraulic-model/model-operations";
+
+export function BatchEditMultiAssetPanel({
+  selectedFeatures,
+  quantitiesMetadata,
+  readonly = false,
+}: {
+  selectedFeatures: IWrappedFeature[];
+  quantitiesMetadata: Quantities;
+  readonly?: boolean;
+}) {
+  const translate = useTranslate();
+  const simulationState = useAtomValue(simulationAtom);
+  const simulationResults = useAtomValue(simulationResultsAtom);
+  const hydraulicModel = useAtomValue(stagingModelAtom);
+  const hasSimulation = simulationState.status !== "idle";
+  const [collapseState, setCollapseState] = useAtom(
+    multiAssetPanelCollapseAtom,
+  );
+  const rep = usePersistence();
+  const transact = rep.useTransact();
+  const userTracking = useUserTracking();
+
+  const { data: multiAssetData, counts: assetCounts } = useMemo(() => {
+    const assets = selectedFeatures as Asset[];
+    return computeMultiAssetData(
+      assets,
+      quantitiesMetadata,
+      hydraulicModel,
+      simulationResults,
+    );
+  }, [selectedFeatures, quantitiesMetadata, hydraulicModel, simulationResults]);
+
+  const assetIdsByType = useMemo(() => {
+    const map: Record<Asset["type"], Asset["id"][]> = {
+      junction: [],
+      pipe: [],
+      pump: [],
+      valve: [],
+      reservoir: [],
+      tank: [],
+    };
+    for (const feature of selectedFeatures) {
+      const asset = feature as Asset;
+      map[asset.type].push(asset.id);
+    }
+    return map;
+  }, [selectedFeatures]);
+
+  const handleBatchPropertyChange = useCallback(
+    (
+      assetType: Asset["type"],
+      modelProperty: string,
+      value: number | string | boolean,
+    ) => {
+      const assetIds = assetIdsByType[assetType];
+      const moment = changeProperty(hydraulicModel, {
+        assetIds,
+        property: modelProperty,
+        value: value as never,
+      });
+      transact(moment);
+      userTracking.capture({
+        name: "assetProperty.batchEdited",
+        type: assetType,
+        property: modelProperty,
+        newValue: typeof value === "boolean" ? Number(value) : value,
+        count: assetIds.length,
+      });
+    },
+    [hydraulicModel, assetIdsByType, transact, userTracking],
+  );
+
+  return (
+    <SectionList header={<Header selectedCount={selectedFeatures.length} />}>
+      {assetCounts.junction > 0 && (
+        <CollapsibleSection
+          title={`${translate("junction")} (${assetCounts.junction})`}
+          open={collapseState.junction}
+          onOpenChange={(open) =>
+            setCollapseState((prev) => ({ ...prev, junction: open }))
+          }
+        >
+          <BatchEditAssetTypeSections
+            sections={multiAssetData.junction}
+            assetType="junction"
+            hasSimulation={hasSimulation}
+            onPropertyChange={(p, v) =>
+              handleBatchPropertyChange("junction", p, v)
+            }
+            readonly={readonly}
+          />
+        </CollapsibleSection>
+      )}
+
+      {assetCounts.pipe > 0 && (
+        <CollapsibleSection
+          title={`${translate("pipe")} (${assetCounts.pipe})`}
+          open={collapseState.pipe}
+          onOpenChange={(open) =>
+            setCollapseState((prev) => ({ ...prev, pipe: open }))
+          }
+        >
+          <BatchEditAssetTypeSections
+            sections={multiAssetData.pipe}
+            assetType="pipe"
+            hasSimulation={hasSimulation}
+            onPropertyChange={(p, v) => handleBatchPropertyChange("pipe", p, v)}
+            readonly={readonly}
+          />
+        </CollapsibleSection>
+      )}
+
+      {assetCounts.pump > 0 && (
+        <CollapsibleSection
+          title={`${translate("pump")} (${assetCounts.pump})`}
+          open={collapseState.pump}
+          onOpenChange={(open) =>
+            setCollapseState((prev) => ({ ...prev, pump: open }))
+          }
+        >
+          <BatchEditAssetTypeSections
+            sections={multiAssetData.pump}
+            assetType="pump"
+            hasSimulation={hasSimulation}
+            onPropertyChange={(p, v) => handleBatchPropertyChange("pump", p, v)}
+            readonly={readonly}
+          />
+        </CollapsibleSection>
+      )}
+
+      {assetCounts.valve > 0 && (
+        <CollapsibleSection
+          title={`${translate("valve")} (${assetCounts.valve})`}
+          open={collapseState.valve}
+          onOpenChange={(open) =>
+            setCollapseState((prev) => ({ ...prev, valve: open }))
+          }
+        >
+          <BatchEditAssetTypeSections
+            sections={multiAssetData.valve}
+            assetType="valve"
+            hasSimulation={hasSimulation}
+            onPropertyChange={(p, v) =>
+              handleBatchPropertyChange("valve", p, v)
+            }
+            readonly={readonly}
+          />
+        </CollapsibleSection>
+      )}
+
+      {assetCounts.reservoir > 0 && (
+        <CollapsibleSection
+          title={`${translate("reservoir")} (${assetCounts.reservoir})`}
+          open={collapseState.reservoir}
+          onOpenChange={(open) =>
+            setCollapseState((prev) => ({ ...prev, reservoir: open }))
+          }
+        >
+          <BatchEditAssetTypeSections
+            sections={multiAssetData.reservoir}
+            assetType="reservoir"
+            onPropertyChange={(p, v) =>
+              handleBatchPropertyChange("reservoir", p, v)
+            }
+            readonly={readonly}
+          />
+        </CollapsibleSection>
+      )}
+
+      {assetCounts.tank > 0 && (
+        <CollapsibleSection
+          title={`${translate("tank")} (${assetCounts.tank})`}
+          open={collapseState.tank}
+          onOpenChange={(open) =>
+            setCollapseState((prev) => ({ ...prev, tank: open }))
+          }
+        >
+          <BatchEditAssetTypeSections
+            sections={multiAssetData.tank}
+            assetType="tank"
+            hasSimulation={hasSimulation}
+            onPropertyChange={(p, v) => handleBatchPropertyChange("tank", p, v)}
+            readonly={readonly}
+          />
+        </CollapsibleSection>
+      )}
+    </SectionList>
+  );
+}
+
+const Header = ({ selectedCount }: { selectedCount: number }) => {
+  const translate = useTranslate();
+
+  return (
+    <div className="px-4 pt-4 pb-3">
+      <div className="flex items-start justify-between">
+        <span className="font-semibold">
+          {translate("selection")} (
+          <span className="text-nowrap">
+            {pluralize(translate, "asset", selectedCount)})
+          </span>
+        </span>
+        <MultiAssetActions />
+      </div>
+    </div>
+  );
+};
