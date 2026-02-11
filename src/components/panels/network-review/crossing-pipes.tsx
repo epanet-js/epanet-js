@@ -249,6 +249,10 @@ const useCheckCrossingPipes = () => {
       startLoading();
       await deferToAllowRender();
 
+      if (signal?.aborted) {
+        return;
+      }
+
       try {
         const result = await findCrossingPipes(
           hydraulicModel,

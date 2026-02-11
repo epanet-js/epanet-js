@@ -227,6 +227,8 @@ const useCheckOrphanAssets = () => {
       startLoading();
       await deferToAllowRender();
 
+      if (signal?.aborted) return;
+
       try {
         const result = await findOrphanAssets(hydraulicModel, signal);
 

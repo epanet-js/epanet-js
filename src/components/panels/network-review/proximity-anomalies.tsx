@@ -243,6 +243,8 @@ const useCheckProximityAnomalies = () => {
       startLoading();
       await deferToAllowRender();
 
+      if (signal?.aborted) return;
+
       try {
         const result = await findProximityAnomalies(
           hydraulicModel,
