@@ -149,19 +149,7 @@ export function CurveDetail({
 
   return (
     <div className="flex flex-col h-full">
-      {warningMessage && (
-        <NotificationBanner
-          variant="warning"
-          title={translate("invalidCurve")}
-          description={warningMessage}
-          Icon={TriangleAlert}
-          className="mb-2"
-        />
-      )}
-      <div
-        ref={tableContainerRef}
-        className="flex-1 min-h-0 overflow-hidden mb-4"
-      >
+      <div ref={tableContainerRef} className="h-[45%] min-h-0 overflow-hidden">
         <CurveTable
           ref={tableRef}
           points={points}
@@ -173,10 +161,21 @@ export function CurveDetail({
           headUnit={headUnit}
         />
       </div>
-      <InlineField name={translate("pumpType")} layout="label-flex-none">
-        <span className="text-sm">{translate(curveType)}</span>
-      </InlineField>
-      <div className="flex-1 min-h-0 p-2 pt-4 border border-gray-200 dark:border-gray-700 mt-[.25rem]">
+      {warningMessage && (
+        <NotificationBanner
+          variant="warning"
+          title={translate("invalidCurve")}
+          description={warningMessage}
+          Icon={TriangleAlert}
+          className="mt-2"
+        />
+      )}
+      <div className="mt-4 mb-[.25rem] w-full">
+        <InlineField name={translate("pumpType")} layout="label-flex-none">
+          <span className="text-sm">{translate(curveType)}</span>
+        </InlineField>
+      </div>
+      <div className="flex-1 min-h-0 p-2 pt-4 border border-gray-200 dark:border-gray-700">
         <div ref={graphContainerRef} className="h-full">
           <CurveGraph
             points={points}
