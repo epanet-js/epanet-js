@@ -1,7 +1,10 @@
 export type Plan = "free" | "pro" | "personal" | "education";
 
-export const isTrialActive = (user: { trialEndsAt: string | null }) => {
-  if (!user.trialEndsAt) return false;
+export const isTrialActive = (user: {
+  hasUsedTrial: boolean;
+  trialEndsAt: string | null;
+}) => {
+  if (!user.hasUsedTrial || !user.trialEndsAt) return false;
   return new Date(user.trialEndsAt) > new Date();
 };
 
