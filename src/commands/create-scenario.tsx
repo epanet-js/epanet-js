@@ -62,6 +62,7 @@ export const useCreateScenario = () => {
           name: "scenario.created",
           scenarioId,
           scenarioName,
+          isDemoNetwork: fileInfo?.isDemoNetwork ?? false,
         });
 
         notify({

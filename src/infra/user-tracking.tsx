@@ -652,6 +652,7 @@ type ScenarioCreated = {
   name: "scenario.created";
   scenarioId: string;
   scenarioName: string;
+  isDemoNetwork: boolean;
 };
 
 type ScenarioSwitched = {
