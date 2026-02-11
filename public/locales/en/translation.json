@@ -807,7 +807,7 @@
       "bullet3": "You can delete your scenarios at any time to unlock the main model.",
       "dontShowAgain": "Don't show this again",
       "createButton": "Create scenario",
-      "demoTrialNote": "You can try this feature for free because you are using a demo network."
+      "bullet4": "Scenarios are a <bold>paid feature</bold> — you can explore them freely using our demo models."
     }
   },
   "curvesAndPatterns": "Patterns",
