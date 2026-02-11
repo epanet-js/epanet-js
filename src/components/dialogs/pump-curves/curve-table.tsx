@@ -215,6 +215,7 @@ export const CurveTable = forwardRef<DataGridRef, CurveTableProps>(
           variant="spreadsheet"
           readOnly={readOnly}
           cellHasWarning={cellHasWarning}
+          autoAddNewRows
         />
       </div>
     );

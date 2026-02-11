@@ -76,6 +76,7 @@ export function FloatCell({
     (e: React.KeyboardEvent) => {
       if (e.key === "Enter") {
         e.preventDefault();
+        shouldCommitOnBlurRef.current = false;
         commit();
       } else if (e.key === "Escape") {
         e.preventDefault();

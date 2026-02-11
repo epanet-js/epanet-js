@@ -41,6 +41,7 @@ type DataGridProps<TData extends Record<string, unknown>> = {
   onSelectionChange?: (selection: GridSelection | null) => void;
   variant?: DataGridVariant;
   cellHasWarning?: (rowIndex: number, columnId: string) => boolean;
+  autoAddNewRows?: boolean;
 };
 
 export const DataGrid = forwardRef(function DataGrid<
@@ -59,11 +60,14 @@ export const DataGrid = forwardRef(function DataGrid<
     onSelectionChange,
     variant = "spreadsheet",
     cellHasWarning,
+    autoAddNewRows = false,
   }: DataGridProps<TData>,
   ref: React.ForwardedRef<DataGridRef>,
 ) {
   const gridRef = useRef<HTMLDivElement>(null);
   const rowsRef = useRef<RowsRef>(null);
+  const dataRef = useRef(data);
+  dataRef.current = data;
 
   const { editMode, startEditing, stopEditing } = useEditMode();
 
@@ -83,6 +87,24 @@ export const DataGrid = forwardRef(function DataGrid<
     gridRef.current?.blur();
   }, []);
 
+  const focusRow = useCallback(
+    (rowIndex: number) => {
+      if (columns.length === 0) return;
+      const firstEditableCol = columns.findIndex((col) => !col.disabled);
+      const colIndex = firstEditableCol !== -1 ? firstEditableCol : 0;
+      gridRef.current?.focus();
+      selectCells({ colIndex, rowIndex });
+    },
+    [columns, selectCells],
+  );
+
+  const handleAddRow = useCallback(() => {
+    const currentData = dataRef.current;
+    const newRow = createRow();
+    onChange([...currentData, newRow]);
+    focusRow(currentData.length);
+  }, [createRow, onChange, focusRow]);
+
   const handleEditingKeyDown = useGridEditing({
     activeCell,
     selection,
@@ -98,6 +120,7 @@ export const DataGrid = forwardRef(function DataGrid<
     stopEditing,
     clearSelection,
     blurGrid,
+    onAddRow: autoAddNewRows ? handleAddRow : undefined,
   });
 
   const handleKeyDown = useCallback(
@@ -148,23 +171,6 @@ export const DataGrid = forwardRef(function DataGrid<
     getCoreRowModel: getCoreRowModel(),
   });
 
-  const focusRow = useCallback(
-    (rowIndex: number) => {
-      if (columns.length === 0) return;
-      const firstEditableCol = columns.findIndex((col) => !col.disabled);
-      const colIndex = firstEditableCol !== -1 ? firstEditableCol : 0;
-      gridRef.current?.focus();
-      selectCells({ colIndex, rowIndex });
-    },
-    [columns, selectCells],
-  );
-
-  const handleAddRow = useCallback(() => {
-    const newRow = createRow();
-    onChange([...data, newRow]);
-    focusRow(data.length);
-  }, [createRow, data, onChange, focusRow]);
-
   const handleCellDoubleClick = useCallback(
     (col: number) => {
       if (readOnly) return;
@@ -185,15 +191,16 @@ export const DataGrid = forwardRef(function DataGrid<
 
   const handleCellChange = useCallback(
     (rowIndex: number, columnId: string, value: unknown) => {
-      const newData = data.map((row, idx) => {
+      const newData = dataRef.current.map((row, idx) => {
         if (idx === rowIndex) {
           return { ...row, [columnId]: value };
         }
         return row;
       });
+      dataRef.current = newData;
       onChange(newData);
     },
-    [data, onChange],
+    [onChange],
   );
 
   const handleFocus = useCallback(() => {

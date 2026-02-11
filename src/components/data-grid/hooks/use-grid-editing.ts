@@ -21,6 +21,7 @@ type UseGridEditingOptions<TData extends Record<string, unknown>> = {
   stopEditing: () => void;
   clearSelection: () => void;
   blurGrid: () => void;
+  onAddRow?: () => void;
 };
 
 export function useGridEditing<TData extends Record<string, unknown>>({
@@ -38,6 +39,7 @@ export function useGridEditing<TData extends Record<string, unknown>>({
   stopEditing,
   clearSelection,
   blurGrid,
+  onAddRow,
 }: UseGridEditingOptions<TData>) {
   const handleDelete = useCallback(() => {
     if (!selection || readOnly) return;
@@ -63,8 +65,12 @@ export function useGridEditing<TData extends Record<string, unknown>>({
           e.preventDefault();
           stopEditing();
           if (activeCell) {
-            const newRow = Math.min(rowCount - 1, activeCell.row + 1);
-            selectCells({ colIndex: activeCell.col, rowIndex: newRow });
+            if (activeCell.row === rowCount - 1 && onAddRow) {
+              onAddRow();
+            } else {
+              const newRow = Math.min(rowCount - 1, activeCell.row + 1);
+              selectCells({ colIndex: activeCell.col, rowIndex: newRow });
+            }
           }
           return;
         } else if (e.key === "Tab") {
@@ -173,6 +179,7 @@ export function useGridEditing<TData extends Record<string, unknown>>({
       clearSelection,
       blurGrid,
       handleDelete,
+      onAddRow,
     ],
   );
 

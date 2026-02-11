@@ -817,4 +817,116 @@ describe("DataGrid", () => {
       expect(onChange).not.toHaveBeenCalled();
     });
   });
+
+  describe("autoAddNewRows", () => {
+    it("adds a new row when pressing Enter on the last row while editing", async () => {
+      const user = setupUser();
+      const onChange = vi.fn();
+      const testData: TestRow[] = [{ value: 10, label: "Row 1" }];
+
+      render(
+        <DataGrid
+          data={testData}
+          columns={columns}
+          onChange={onChange}
+          createRow={createRow}
+          autoAddNewRows
+        />,
+      );
+
+      const cell = screen.getByDisplayValue("10");
+      await user.dblClick(cell);
+
+      await waitFor(() => {
+        expect(screen.getByDisplayValue("10")).not.toHaveAttribute("readonly");
+      });
+
+      const input = screen.getByDisplayValue("10");
+      await user.clear(input);
+      await user.type(input, "25{Enter}");
+
+      await waitFor(() => {
+        expect(onChange).toHaveBeenLastCalledWith([
+          { value: 25, label: "Row 1" },
+          { value: 0, label: "" },
+        ]);
+      });
+    });
+
+    it("does not add a row when pressing Enter on a non-last row", async () => {
+      const user = setupUser();
+      const onChange = vi.fn();
+
+      render(
+        <DataGrid
+          data={defaultData}
+          columns={columns}
+          onChange={onChange}
+          createRow={createRow}
+          autoAddNewRows
+        />,
+      );
+
+      const cell = screen.getByDisplayValue("1");
+      await user.dblClick(cell);
+
+      await waitFor(() => {
+        expect(screen.getByDisplayValue("1")).not.toHaveAttribute("readonly");
+      });
+
+      const input = screen.getByDisplayValue("1");
+      await user.clear(input);
+      await user.type(input, "25{Enter}");
+
+      await waitFor(() => {
+        expect(onChange).toHaveBeenCalledWith([
+          { value: 25, label: "Row 1" },
+          { value: 0.8, label: "Row 2" },
+          { value: 0.6, label: "Row 3" },
+        ]);
+      });
+
+      // Should never have been called with a 4-element array
+      const hasExtraRow = onChange.mock.calls.some(
+        (call: TestRow[][]) => call[0].length > 3,
+      );
+      expect(hasExtraRow).toBe(false);
+    });
+
+    it("does not add a row when autoAddNewRows is not set", async () => {
+      const user = setupUser();
+      const onChange = vi.fn();
+      const testData: TestRow[] = [{ value: 10, label: "Row 1" }];
+
+      render(
+        <DataGrid
+          data={testData}
+          columns={columns}
+          onChange={onChange}
+          createRow={createRow}
+        />,
+      );
+
+      const cell = screen.getByDisplayValue("10");
+      await user.dblClick(cell);
+
+      await waitFor(() => {
+        expect(screen.getByDisplayValue("10")).not.toHaveAttribute("readonly");
+      });
+
+      const input = screen.getByDisplayValue("10");
+      await user.clear(input);
+      await user.type(input, "25{Enter}");
+
+      await waitFor(() => {
+        expect(onChange).toHaveBeenCalledWith([{ value: 25, label: "Row 1" }]);
+      });
+
+      // Should never have been called with a 2-element array
+      const hasExtraRow = onChange.mock.calls.some(
+        (call: TestRow[][]) => call[0].length > 1,
+      );
+      expect(hasExtraRow).toBe(false);
+    });
+  });
 });
