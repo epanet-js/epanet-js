@@ -1,11 +1,15 @@
 import { describe, it, expect } from "vitest";
-import { computeMultiAssetDataWithCustomerDemands } from "./data-with-customer-demands";
-import { QuantityStats, CategoryStats, AssetPropertyStats } from "./data";
+import {
+  computeMultiAssetData,
+  QuantityStats,
+  CategoryStats,
+  AssetPropertyStats,
+} from "./data";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { presets, Quantities } from "src/model-metadata/quantities-spec";
 import { createMockResultsReader } from "src/__helpers__/state";
 
-describe("computeMultiAssetDataWithCustomerDemands", () => {
+describe("computeMultiAssetData", () => {
   const quantities = new Quantities(presets.LPS);
 
   const findQuantityStat = (
@@ -37,11 +41,7 @@ describe("computeMultiAssetDataWithCustomerDemands", () => {
       .build();
 
     const assets = Array.from(hydraulicModel.assets.values());
-    const result = computeMultiAssetDataWithCustomerDemands(
-      assets,
-      quantities,
-      hydraulicModel,
-    );
+    const result = computeMultiAssetData(assets, quantities, hydraulicModel);
 
     expect(result.data.junction).toBeDefined();
     expect(result.data.pipe).toBeDefined();
@@ -63,11 +63,7 @@ describe("computeMultiAssetDataWithCustomerDemands", () => {
       .build();
 
     const assets = Array.from(hydraulicModel.assets.values());
-    const result = computeMultiAssetDataWithCustomerDemands(
-      assets,
-      quantities,
-      hydraulicModel,
-    );
+    const result = computeMultiAssetData(assets, quantities, hydraulicModel);
 
     const junctionData = result.data.junction;
     expect(junctionData.modelAttributes).toBeDefined();
@@ -98,11 +94,7 @@ describe("computeMultiAssetDataWithCustomerDemands", () => {
       .build();
 
     const assets = Array.from(hydraulicModel.assets.values());
-    const result = computeMultiAssetDataWithCustomerDemands(
-      assets,
-      quantities,
-      hydraulicModel,
-    );
+    const result = computeMultiAssetData(assets, quantities, hydraulicModel);
 
     const simulationStats = result.data.junction.simulationResults;
     expect(simulationStats).toHaveLength(0);
@@ -122,7 +114,7 @@ describe("computeMultiAssetDataWithCustomerDemands", () => {
     });
 
     const assets = Array.from(hydraulicModel.assets.values());
-    const result = computeMultiAssetDataWithCustomerDemands(
+    const result = computeMultiAssetData(
       assets,
       quantities,
       hydraulicModel,
@@ -160,11 +152,7 @@ describe("computeMultiAssetDataWithCustomerDemands", () => {
       .build();
 
     const assets = Array.from(hydraulicModel.assets.values());
-    const result = computeMultiAssetDataWithCustomerDemands(
-      assets,
-      quantities,
-      hydraulicModel,
-    );
+    const result = computeMultiAssetData(assets, quantities, hydraulicModel);
 
     const pipeData = result.data.pipe;
     expect(pipeData.modelAttributes).toBeDefined();
@@ -200,11 +188,7 @@ describe("computeMultiAssetDataWithCustomerDemands", () => {
       .build();
 
     const assets = Array.from(hydraulicModel.assets.values());
-    const result = computeMultiAssetDataWithCustomerDemands(
-      assets,
-      quantities,
-      hydraulicModel,
-    );
+    const result = computeMultiAssetData(assets, quantities, hydraulicModel);
 
     const statusStat = findCategoryStat(
       result.data.pipe.modelAttributes,
@@ -216,11 +200,7 @@ describe("computeMultiAssetDataWithCustomerDemands", () => {
 
   it("handles empty asset arrays", () => {
     const hydraulicModel = HydraulicModelBuilder.empty();
-    const result = computeMultiAssetDataWithCustomerDemands(
-      [],
-      quantities,
-      hydraulicModel,
-    );
+    const result = computeMultiAssetData([], quantities, hydraulicModel);
 
     expect(result.data.junction.modelAttributes).toEqual([]);
     expect(result.data.junction.demands).toEqual([]);
@@ -236,11 +216,7 @@ describe("computeMultiAssetDataWithCustomerDemands", () => {
       .build();
 
     const assets = Array.from(hydraulicModel.assets.values());
-    const result = computeMultiAssetDataWithCustomerDemands(
-      assets,
-      quantities,
-      hydraulicModel,
-    );
+    const result = computeMultiAssetData(assets, quantities, hydraulicModel);
 
     expect(result.data.junction.modelAttributes.length).toBeGreaterThan(0);
     expect(result.data.reservoir.modelAttributes.length).toBeGreaterThan(0);
@@ -261,11 +237,7 @@ describe("computeMultiAssetDataWithCustomerDemands", () => {
       .build();
 
     const assets = Array.from(hydraulicModel.assets.values());
-    const result = computeMultiAssetDataWithCustomerDemands(
-      assets,
-      quantities,
-      hydraulicModel,
-    );
+    const result = computeMultiAssetData(assets, quantities, hydraulicModel);
 
     const pumpData = result.data.pump;
     expect(pumpData.modelAttributes).toBeDefined();
@@ -288,7 +260,7 @@ describe("computeMultiAssetDataWithCustomerDemands", () => {
     });
 
     const assets = Array.from(hydraulicModel.assets.values());
-    const result = computeMultiAssetDataWithCustomerDemands(
+    const result = computeMultiAssetData(
       assets,
       quantities,
       hydraulicModel,
@@ -317,11 +289,7 @@ describe("computeMultiAssetDataWithCustomerDemands", () => {
       .build();
 
     const assets = Array.from(hydraulicModel.assets.values());
-    const result = computeMultiAssetDataWithCustomerDemands(
-      assets,
-      quantities,
-      hydraulicModel,
-    );
+    const result = computeMultiAssetData(assets, quantities, hydraulicModel);
 
     const valveData = result.data.valve;
     const typeStat = findCategoryStat(valveData.modelAttributes, "valveType");
@@ -341,11 +309,7 @@ describe("computeMultiAssetDataWithCustomerDemands", () => {
       .build();
 
     const assets = Array.from(hydraulicModel.assets.values());
-    const result = computeMultiAssetDataWithCustomerDemands(
-      assets,
-      quantities,
-      hydraulicModel,
-    );
+    const result = computeMultiAssetData(assets, quantities, hydraulicModel);
 
     const tankData = result.data.tank;
     expect(tankData.modelAttributes.length).toBeGreaterThan(0);
@@ -366,11 +330,7 @@ describe("computeMultiAssetDataWithCustomerDemands", () => {
       .build();
 
     const assets = Array.from(hydraulicModel.assets.values());
-    const result = computeMultiAssetDataWithCustomerDemands(
-      assets,
-      quantities,
-      hydraulicModel,
-    );
+    const result = computeMultiAssetData(assets, quantities, hydraulicModel);
 
     const reservoirData = result.data.reservoir;
     expect(reservoirData.modelAttributes.length).toBeGreaterThan(0);
@@ -398,11 +358,7 @@ describe("computeMultiAssetDataWithCustomerDemands", () => {
       .build();
 
     const assets = Array.from(hydraulicModel.assets.values());
-    const result = computeMultiAssetDataWithCustomerDemands(
-      assets,
-      quantities,
-      hydraulicModel,
-    );
+    const result = computeMultiAssetData(assets, quantities, hydraulicModel);
 
     const isEnabledStat = findCategoryStat(
       result.data.pipe.activeTopology,
@@ -425,11 +381,7 @@ describe("computeMultiAssetDataWithCustomerDemands", () => {
         .build();
 
       const assets = Array.from(hydraulicModel.assets.values());
-      const result = computeMultiAssetDataWithCustomerDemands(
-        assets,
-        quantities,
-        hydraulicModel,
-      );
+      const result = computeMultiAssetData(assets, quantities, hydraulicModel);
 
       const demandStat = findQuantityStat(
         result.data.junction.demands,
@@ -452,11 +404,7 @@ describe("computeMultiAssetDataWithCustomerDemands", () => {
         .build();
 
       const assets = Array.from(hydraulicModel.assets.values());
-      const result = computeMultiAssetDataWithCustomerDemands(
-        assets,
-        quantities,
-        hydraulicModel,
-      );
+      const result = computeMultiAssetData(assets, quantities, hydraulicModel);
 
       const demandStat = findQuantityStat(
         result.data.junction.demands,
@@ -478,11 +426,7 @@ describe("computeMultiAssetDataWithCustomerDemands", () => {
         .build();
 
       const assets = Array.from(hydraulicModel.assets.values());
-      const result = computeMultiAssetDataWithCustomerDemands(
-        assets,
-        quantities,
-        hydraulicModel,
-      );
+      const result = computeMultiAssetData(assets, quantities, hydraulicModel);
 
       const demandStat = findQuantityStat(
         result.data.junction.demands,
@@ -506,11 +450,7 @@ describe("computeMultiAssetDataWithCustomerDemands", () => {
         .build();
 
       const assets = Array.from(hydraulicModel.assets.values());
-      const result = computeMultiAssetDataWithCustomerDemands(
-        assets,
-        quantities,
-        hydraulicModel,
-      );
+      const result = computeMultiAssetData(assets, quantities, hydraulicModel);
 
       const demandStat = findQuantityStat(
         result.data.junction.demands,
@@ -527,11 +467,7 @@ describe("computeMultiAssetDataWithCustomerDemands", () => {
         .build();
 
       const assets = Array.from(hydraulicModel.assets.values());
-      const result = computeMultiAssetDataWithCustomerDemands(
-        assets,
-        quantities,
-        hydraulicModel,
-      );
+      const result = computeMultiAssetData(assets, quantities, hydraulicModel);
 
       const demandStat = findQuantityStat(
         result.data.junction.demands,
@@ -550,11 +486,7 @@ describe("computeMultiAssetDataWithCustomerDemands", () => {
         .build();
 
       const assets = Array.from(hydraulicModel.assets.values());
-      const result = computeMultiAssetDataWithCustomerDemands(
-        assets,
-        quantities,
-        hydraulicModel,
-      );
+      const result = computeMultiAssetData(assets, quantities, hydraulicModel);
 
       const demandStat = findQuantityStat(
         result.data.junction.demands,
@@ -577,11 +509,7 @@ describe("computeMultiAssetDataWithCustomerDemands", () => {
         .build();
 
       const assets = Array.from(hydraulicModel.assets.values());
-      const result = computeMultiAssetDataWithCustomerDemands(
-        assets,
-        quantities,
-        hydraulicModel,
-      );
+      const result = computeMultiAssetData(assets, quantities, hydraulicModel);
 
       const demandStat = findQuantityStat(
         result.data.junction.demands,
@@ -602,11 +530,7 @@ describe("computeMultiAssetDataWithCustomerDemands", () => {
         .build();
 
       const assets = Array.from(hydraulicModel.assets.values());
-      const result = computeMultiAssetDataWithCustomerDemands(
-        assets,
-        quantities,
-        hydraulicModel,
-      );
+      const result = computeMultiAssetData(assets, quantities, hydraulicModel);
 
       const demandStat = findQuantityStat(
         result.data.junction.demands,
@@ -627,11 +551,7 @@ describe("computeMultiAssetDataWithCustomerDemands", () => {
         .build();
 
       const assets = Array.from(hydraulicModel.assets.values());
-      const result = computeMultiAssetDataWithCustomerDemands(
-        assets,
-        quantities,
-        hydraulicModel,
-      );
+      const result = computeMultiAssetData(assets, quantities, hydraulicModel);
 
       const demandStat = findQuantityStat(
         result.data.junction.demands,
@@ -659,7 +579,7 @@ describe("computeMultiAssetDataWithCustomerDemands", () => {
       const junctions = Array.from(hydraulicModel.assets.values()).filter(
         (a) => a.type === "junction",
       );
-      const result = computeMultiAssetDataWithCustomerDemands(
+      const result = computeMultiAssetData(
         junctions,
         quantities,
         hydraulicModel,
@@ -691,7 +611,7 @@ describe("computeMultiAssetDataWithCustomerDemands", () => {
       const junctions = Array.from(hydraulicModel.assets.values()).filter(
         (a) => a.type === "junction",
       );
-      const result = computeMultiAssetDataWithCustomerDemands(
+      const result = computeMultiAssetData(
         junctions,
         quantities,
         hydraulicModel,
@@ -725,7 +645,7 @@ describe("computeMultiAssetDataWithCustomerDemands", () => {
       const junctions = Array.from(hydraulicModel.assets.values()).filter(
         (a) => a.type === "junction",
       );
-      const result = computeMultiAssetDataWithCustomerDemands(
+      const result = computeMultiAssetData(
         junctions,
         quantities,
         hydraulicModel,
@@ -760,7 +680,7 @@ describe("computeMultiAssetDataWithCustomerDemands", () => {
       const junctions = Array.from(hydraulicModel.assets.values()).filter(
         (a) => a.type === "junction",
       );
-      const result = computeMultiAssetDataWithCustomerDemands(
+      const result = computeMultiAssetData(
         junctions,
         quantities,
         hydraulicModel,
@@ -791,11 +711,7 @@ describe("computeMultiAssetDataWithCustomerDemands", () => {
       const pipes = Array.from(hydraulicModel.assets.values()).filter(
         (a) => a.type === "pipe",
       );
-      const result = computeMultiAssetDataWithCustomerDemands(
-        pipes,
-        quantities,
-        hydraulicModel,
-      );
+      const result = computeMultiAssetData(pipes, quantities, hydraulicModel);
 
       const customerDemandStat = findQuantityStat(
         result.data.pipe.demands,
@@ -820,7 +736,7 @@ describe("computeMultiAssetDataWithCustomerDemands", () => {
       const junctions = Array.from(hydraulicModel.assets.values()).filter(
         (a) => a.type === "junction",
       );
-      const result = computeMultiAssetDataWithCustomerDemands(
+      const result = computeMultiAssetData(
         junctions,
         quantities,
         hydraulicModel,
@@ -849,7 +765,7 @@ describe("computeMultiAssetDataWithCustomerDemands", () => {
       const junctions = Array.from(hydraulicModel.assets.values()).filter(
         (a) => a.type === "junction",
       );
-      const result = computeMultiAssetDataWithCustomerDemands(
+      const result = computeMultiAssetData(
         junctions,
         quantities,
         hydraulicModel,
@@ -878,11 +794,7 @@ describe("computeMultiAssetDataWithCustomerDemands", () => {
         .build();
 
       const assets = Array.from(hydraulicModel.assets.values());
-      const result = computeMultiAssetDataWithCustomerDemands(
-        assets,
-        quantities,
-        hydraulicModel,
-      );
+      const result = computeMultiAssetData(assets, quantities, hydraulicModel);
 
       const diameterStat = findQuantityStat(
         result.data.pipe.modelAttributes,

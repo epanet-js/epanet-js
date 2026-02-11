@@ -12,16 +12,13 @@ import {
   SortAscendingIcon,
   SortDescendingIcon,
 } from "src/icons";
-import {
-  PropertyStats,
-  QuantityStatsDeprecated,
-} from "../asset-property-stats";
+import { AssetPropertyStats, QuantityStats } from "./data";
 import { pluralize } from "src/lib/utils";
 import { JsonValue } from "type-fest";
 
 type MultiValueRowProps = {
   name: string;
-  propertyStats: PropertyStats;
+  propertyStats: AssetPropertyStats;
   unit?: Unit;
   decimals?: number;
 };
@@ -81,10 +78,7 @@ export function MultiValueRow({
             <StyledPopoverContent onKeyDown={handleContentKeyDown} align="end">
               <StyledPopoverArrow />
               {propertyStats.type === "quantity" && (
-                <QuantityStatsDeprecatedFields
-                  quantityStats={propertyStats}
-                  decimals={decimals}
-                />
+                <QuantityStatsBaseFields quantityStats={propertyStats} />
               )}
               <SortableValuesList
                 values={propertyStats.values}
@@ -101,13 +95,12 @@ export function MultiValueRow({
   );
 }
 
-const QuantityStatsDeprecatedFields = ({
+const QuantityStatsBaseFields = ({
   quantityStats,
-  decimals,
 }: {
-  quantityStats: QuantityStatsDeprecated;
-  decimals?: number;
+  quantityStats: QuantityStats;
 }) => {
+  const decimals = quantityStats.decimals;
   const translate = useTranslate();
   const [tabIndex, setTabIndex] = useState(-1);
   const handleFocus = () => {

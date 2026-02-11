@@ -14,7 +14,7 @@ import {
   multiAssetPanelCollapseAtom,
   stagingModelAtom,
 } from "src/state/jotai";
-import { computeMultiAssetDataWithCustomerDemands } from "./data-with-customer-demands";
+import { computeMultiAssetData } from "./data";
 
 export function MultiAssetPanel({
   selectedFeatures,
@@ -36,7 +36,7 @@ export function MultiAssetPanel({
 
   const { data: multiAssetData, counts: assetCounts } = useMemo(() => {
     const assets = selectedFeatures as Asset[];
-    return computeMultiAssetDataWithCustomerDemands(
+    return computeMultiAssetData(
       assets,
       quantitiesMetadata,
       hydraulicModel,
