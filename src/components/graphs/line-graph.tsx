@@ -16,7 +16,7 @@ export interface StyledPointValue {
 
 interface LineGraphProps {
   points: StyledPointValue[];
-  smoothCurvePoints?: StyledPointValue[];
+  linePoints?: StyledPointValue[];
   onPointClick?: (index: number | null) => void;
   xAxisLabel?: string;
   yAxisLabel?: string;
@@ -24,7 +24,7 @@ interface LineGraphProps {
 
 export function LineGraph({
   points,
-  smoothCurvePoints,
+  linePoints,
   onPointClick,
   xAxisLabel,
   yAxisLabel,
@@ -36,8 +36,8 @@ export function LineGraph({
   onPointClickRef.current = onPointClick;
 
   const xAxis: EChartsOption["xAxis"] = useMemo(() => {
-    const xValues = smoothCurvePoints
-      ? [...points.map((p) => p.x), ...smoothCurvePoints.map((p) => p.x)]
+    const xValues = linePoints
+      ? [...points.map((p) => p.x), ...linePoints.map((p) => p.x)]
       : points.map((p) => p.x);
     const { min, max, interval } = calculateInterval(xValues);
     return {
@@ -65,11 +65,11 @@ export function LineGraph({
         formatter: (value: number) => localizeDecimal(value, { decimals: 2 }),
       },
     };
-  }, [points, smoothCurvePoints, xAxisLabel]);
+  }, [points, linePoints, xAxisLabel]);
 
   const yAxis: EChartsOption["yAxis"] = useMemo(() => {
-    const yValues = smoothCurvePoints
-      ? [...points.map((p) => p.y), ...smoothCurvePoints.map((p) => p.y)]
+    const yValues = linePoints
+      ? [...points.map((p) => p.y), ...linePoints.map((p) => p.y)]
       : points.map((p) => p.y);
     const { min, max, interval } = calculateInterval(yValues);
     return {
@@ -96,7 +96,7 @@ export function LineGraph({
         formatter: (value: number) => localizeDecimal(value, { decimals: 2 }),
       },
     };
-  }, [points, smoothCurvePoints, yAxisLabel]);
+  }, [points, linePoints, yAxisLabel]);
 
   const series: EChartsOption["series"] = useMemo(() => {
     const scatterData = points.map((p) => ({
@@ -108,8 +108,8 @@ export function LineGraph({
 
     const result: EChartsOption["series"] = [];
 
-    if (smoothCurvePoints && smoothCurvePoints.length > 0) {
-      for (const segment of splitLineSegments(smoothCurvePoints)) {
+    if (linePoints && linePoints.length > 0) {
+      for (const segment of splitLineSegments(linePoints)) {
         result.push({
           type: "line",
           data: segment.points.map((p) => ({ value: [p.x, p.y] })),
@@ -138,7 +138,7 @@ export function LineGraph({
     });
 
     return result;
-  }, [points, smoothCurvePoints]);
+  }, [points, linePoints]);
 
   const option: EChartsOption = useMemo(
     () => ({

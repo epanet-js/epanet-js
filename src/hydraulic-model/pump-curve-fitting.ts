@@ -4,7 +4,7 @@ const TINY = 1e-6;
 const MAX_ITER = 5;
 const CONV_TOL = 0.01;
 
-interface PumpCurveCoefficients {
+export interface PumpCurveCoefficients {
   a: number;
   b: number;
   c: number;
@@ -75,20 +75,9 @@ export function fitPumpCurve(
   return { a, b: Math.max(0, bFinal), c };
 }
 
-export function generateSmoothPumpCurvePoints(
-  points: CurvePoint[],
-  curveType: PumpCurveType,
+export function generateSmoothPointsFromCoefficients(
+  coefficients: PumpCurveCoefficients,
 ): CurvePoint[] | null {
-  if (curveType === "multiPointCurve" || points.length === 0) return null;
-
-  const threePoints =
-    curveType === "designPointCurve"
-      ? synthesizeThreePoints(points[0])
-      : points;
-
-  const coefficients = fitPumpCurve(threePoints);
-  if (!coefficients) return null;
-
   const { a, b, c } = coefficients;
 
   const qMax = Math.pow(a / b, 1 / c);
@@ -104,4 +93,21 @@ export function generateSmoothPumpCurvePoints(
   }
 
   return smoothPoints;
+}
+
+export function generateSmoothPumpCurvePoints(
+  points: CurvePoint[],
+  curveType: PumpCurveType,
+): CurvePoint[] | null {
+  if (curveType === "multiPointCurve" || points.length === 0) return null;
+
+  const threePoints =
+    curveType === "designPointCurve"
+      ? synthesizeThreePoints(points[0])
+      : points;
+
+  const coefficients = fitPumpCurve(threePoints);
+  if (!coefficients) return null;
+
+  return generateSmoothPointsFromCoefficients(coefficients);
 }

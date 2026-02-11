@@ -2,9 +2,14 @@ import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { CurveGraph } from "./curve-graph";
 import {
   CurvePoint,
-  getPumpCurveType,
+  PumpCurveType,
   getPumpCurveErrors,
 } from "src/hydraulic-model/curves";
+import {
+  fitPumpCurve,
+  generateSmoothPointsFromCoefficients,
+  generateSmoothPumpCurvePoints,
+} from "src/hydraulic-model/pump-curve-fitting";
 import { type GridSelection } from "src/components/data-grid";
 import { CurveTable, type CurveTableRef } from "./curve-table";
 import { useTranslate } from "src/hooks/use-translate";
@@ -89,7 +94,31 @@ export function CurveDetail({
     return set;
   }, [errors]);
 
-  const curveType = getPumpCurveType(points);
+  const { curveType, smoothCurvePoints } = useMemo(() => {
+    if (points.length === 1) {
+      const curveType: PumpCurveType = "designPointCurve";
+      if (!isValid)
+        return { curveType, smoothCurvePoints: null as CurvePoint[] | null };
+      const smooth = generateSmoothPumpCurvePoints(points, curveType);
+      return { curveType, smoothCurvePoints: smooth };
+    }
+
+    if (points.length === 3) {
+      const coefficients = fitPumpCurve(points);
+      if (coefficients) {
+        const curveType: PumpCurveType = "standardCurve";
+        if (!isValid)
+          return { curveType, smoothCurvePoints: null as CurvePoint[] | null };
+        const smooth = generateSmoothPointsFromCoefficients(coefficients);
+        return { curveType, smoothCurvePoints: smooth };
+      }
+    }
+
+    return {
+      curveType: "multiPointCurve" as PumpCurveType,
+      smoothCurvePoints: null as CurvePoint[] | null,
+    };
+  }, [points, isValid]);
 
   const warningMessage = useMemo(() => {
     if (errors.length === 0) return null;
@@ -144,9 +173,10 @@ export function CurveDetail({
         <div ref={graphContainerRef} className="h-full">
           <CurveGraph
             points={points}
+            curveType={curveType}
+            fittedPoints={smoothCurvePoints}
             selectedPointIndex={graphSelectedIndex}
             onPointClick={handleGraphClick}
-            isValid={isValid}
             errorIndices={errorIndices}
             flowUnit={flowUnit}
             headUnit={headUnit}

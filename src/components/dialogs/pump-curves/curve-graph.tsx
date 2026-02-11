@@ -1,9 +1,6 @@
 import { useMemo } from "react";
-import { CurvePoint, getPumpCurveType } from "src/hydraulic-model/curves";
-import {
-  generateSmoothPumpCurvePoints,
-  synthesizeThreePoints,
-} from "src/hydraulic-model/pump-curve-fitting";
+import { CurvePoint, PumpCurveType } from "src/hydraulic-model/curves";
+import { synthesizeThreePoints } from "src/hydraulic-model/pump-curve-fitting";
 import { LineGraph, StyledPointValue } from "src/components/graphs/line-graph";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
@@ -12,9 +9,10 @@ import { Unit } from "src/quantity";
 
 interface CurveGraphProps {
   points: CurvePoint[];
+  curveType: PumpCurveType;
+  fittedPoints: CurvePoint[] | null;
   selectedPointIndex?: number | null;
   onPointClick?: (index: number | null) => void;
-  isValid?: boolean;
   errorIndices?: Set<number>;
   flowUnit: Unit;
   headUnit: Unit;
@@ -22,16 +20,16 @@ interface CurveGraphProps {
 
 export function CurveGraph({
   points,
+  curveType,
+  fittedPoints,
   selectedPointIndex,
   onPointClick,
-  isValid = true,
   errorIndices,
   flowUnit,
   headUnit,
 }: CurveGraphProps) {
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
-  const curveType = getPumpCurveType(points);
 
   const styledPoints: StyledPointValue[] = useMemo(() => {
     const originalPoints: StyledPointValue[] = points.map((p, i) => {
@@ -65,7 +63,7 @@ export function CurveGraph({
     ];
   }, [points, selectedPointIndex, curveType, errorIndices]);
 
-  const smoothCurvePoints: StyledPointValue[] | undefined = useMemo(() => {
+  const linePoints: StyledPointValue[] | undefined = useMemo(() => {
     if (curveType === "multiPointCurve") {
       return points.map((p, i) => ({
         x: p.x,
@@ -77,16 +75,14 @@ export function CurveGraph({
             : undefined,
       }));
     }
-    if (!isValid) return undefined;
-    const smooth = generateSmoothPumpCurvePoints(points, curveType);
-    if (!smooth) return undefined;
-    return smooth.map((p) => ({ x: p.x, y: p.y }));
-  }, [points, isValid, curveType]);
+    if (!fittedPoints) return undefined;
+    return fittedPoints.map((p) => ({ x: p.x, y: p.y }));
+  }, [points, fittedPoints, curveType]);
 
   return (
     <LineGraph
       points={styledPoints}
-      smoothCurvePoints={smoothCurvePoints}
+      linePoints={linePoints}
       onPointClick={onPointClick}
       xAxisLabel={
         flowUnit
