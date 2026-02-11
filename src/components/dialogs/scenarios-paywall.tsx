@@ -1,16 +1,19 @@
 import { useMemo } from "react";
-import { useSetAtom } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import { DialogContainer, DialogHeader } from "../dialog";
 import { Button } from "../elements";
 import { CheckoutButton } from "../checkout-button";
 import { VideoPlayer } from "../video-player";
 import { useActivateTrial } from "src/hooks/use-activate-trial";
-import { dialogAtom } from "src/state/dialog";
-import { ScenarioIcon } from "src/icons";
+import { useScenarioOperations } from "src/hooks/use-scenario-operations";
+import { dialogAtom, isDemoNetworkAtom } from "src/state/jotai";
+import { userSettingsAtom } from "src/state/user-settings";
+import { RefreshIcon, ScenarioIcon, SuccessIcon } from "src/icons";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useTranslate } from "src/hooks/use-translate";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useAuth } from "src/auth";
+import { notify } from "src/components/notifications";
 
 const SCENARIOS_VIDEO_SRC =
   "https://stream.mux.com/RVxWPZgcfKowXmi00iovKx1sffG100gu21BpD2U6Mjv98.m3u8";
@@ -54,13 +57,49 @@ export const ScenariosPaywallDialog = ({
   };
 
   const { activateTrial, isLoading: isTrialLoading } = useActivateTrial();
+  const { createNewScenario } = useScenarioOperations();
+  const userSettings = useAtomValue(userSettingsAtom);
+  const isDemoNetwork = useAtomValue(isDemoNetworkAtom);
 
-  const handleStartTrial = () => {
+  const proceedWithCreation = async () => {
+    const { scenarioId, scenarioName } = await createNewScenario();
+    userTracking.capture({
+      name: "scenario.created",
+      scenarioId,
+      scenarioName,
+      isDemoNetwork,
+    });
+    notify({
+      variant: "success",
+      title: translate("scenarios.created"),
+      Icon: SuccessIcon,
+      duration: 3000,
+    });
+  };
+
+  const handleStartTrial = async () => {
     userTracking.capture({
       name: "trial.activated",
       source: "scenariosPaywall",
     });
-    void activateTrial();
+    await activateTrial();
+
+    notify({
+      variant: "success",
+      title: "Your Pro trial is now active!",
+      Icon: SuccessIcon,
+      duration: 3000,
+    });
+
+    if (userSettings.showFirstScenarioDialog) {
+      setDialog({
+        type: "firstScenario",
+        onConfirm: proceedWithCreation,
+      });
+    } else {
+      setDialog(null);
+      void proceedWithCreation();
+    }
   };
 
   return (
@@ -108,10 +147,14 @@ export const ScenariosPaywallDialog = ({
                   <Button
                     variant="primary"
                     size="full-width"
-                    onClick={handleStartTrial}
+                    onClick={() => void handleStartTrial()}
                     disabled={isTrialLoading}
                   >
-                    Start Free Trial
+                    {isTrialLoading ? (
+                      <RefreshIcon className="animate-spin" />
+                    ) : (
+                      "Start Free Trial"
+                    )}
                   </Button>
                 </div>
               </div>

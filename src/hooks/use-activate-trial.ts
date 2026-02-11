@@ -19,7 +19,7 @@ export const useActivateTrial = () => {
         throw new Error(`Trial activation failed: ${response.statusText}`);
       }
 
-      window.location.reload();
+      setLoading(false);
     } catch (error) {
       setLoading(false);
       captureError(error as Error);

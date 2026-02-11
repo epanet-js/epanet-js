@@ -9,7 +9,7 @@ import {
   stagingModelAtom,
 } from "src/state/jotai";
 import { useAuth } from "src/auth";
-import { limits } from "src/user-plan";
+import { isTrialActive, limits } from "src/user-plan";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useTranslate } from "src/hooks/use-translate";
 import { notify } from "src/components/notifications";
@@ -34,7 +34,7 @@ export const useCreateScenario = () => {
   return useCallback(
     ({ source: _source }: { source: string }) => {
       const isFirstTimeEnabling = scenariosList.length === 0;
-      const shouldBypassPaywall = isDemoNetwork;
+      const shouldBypassPaywall = isDemoNetwork || isTrialActive(user);
 
       if (
         isFirstTimeEnabling &&
