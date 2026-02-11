@@ -10,6 +10,7 @@ import {
 } from "src/state/jotai";
 import { useAuth } from "src/auth";
 import { isTrialActive, limits } from "src/user-plan";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useTranslate } from "src/hooks/use-translate";
 import { notify } from "src/components/notifications";
@@ -23,6 +24,7 @@ export const useCreateScenario = () => {
   const scenariosList = useAtomValue(scenariosListAtom);
   const setDialog = useSetAtom(dialogAtom);
   const { user } = useAuth();
+  const isActivateTrialOn = useFeatureFlag("FLAG_ACTIVATE_TRIAL");
   const userTracking = useUserTracking();
   const translate = useTranslate();
   const simulation = useAtomValue(simulationAtom);
@@ -34,7 +36,8 @@ export const useCreateScenario = () => {
   return useCallback(
     ({ source: _source }: { source: string }) => {
       const isFirstTimeEnabling = scenariosList.length === 0;
-      const shouldBypassPaywall = isDemoNetwork || isTrialActive(user);
+      const shouldBypassPaywall =
+        isDemoNetwork || (isActivateTrialOn && isTrialActive(user));
 
       if (
         isFirstTimeEnabling &&
@@ -110,6 +113,7 @@ export const useCreateScenario = () => {
       scenariosList,
       setDialog,
       user,
+      isActivateTrialOn,
       userTracking,
       translate,
       simulation,
