@@ -23,7 +23,7 @@ export type PumpCurveType =
 
 export const getPumpCurveType = (points: CurvePoint[]): PumpCurveType => {
   if (points.length === 1) return "designPointCurve";
-  if (points.length === 3) return "standardCurve";
+  if (points.length === 3 && points[0].x === 0) return "standardCurve";
 
   return "multiPointCurve";
 };
