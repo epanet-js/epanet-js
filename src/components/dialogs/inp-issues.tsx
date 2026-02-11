@@ -457,7 +457,10 @@ const IssuesSummary = ({ issues }: { issues: ParserIssues }) => {
               </div>
             </div>
           )}
-          {(issues.hasPumpPatterns || issues.hasPumpCurves) && (
+          {(issues.hasPumpPatterns ||
+            issues.hasPumpCurves ||
+            issues.hasInvalidPumpCurves ||
+            issues.hasUndefinedPumpCurve) && (
             <div>
               <p>{translate("ignoredValuesDetected", "[PUMPS]")}:</p>
               <div className="flex flex-col gap-y-1 items-start">
@@ -471,6 +474,24 @@ const IssuesSummary = ({ issues }: { issues: ParserIssues }) => {
                   <RoadmapLink href={roadmapUrls.pumpCurves}>
                     - {translate("pumpCurves", String(issues.hasPumpCurves))}
                   </RoadmapLink>
+                )}
+                {issues.hasInvalidPumpCurves && (
+                  <span>
+                    -{" "}
+                    {translate(
+                      "invalidPumpCurves",
+                      String(issues.hasInvalidPumpCurves),
+                    )}
+                  </span>
+                )}
+                {issues.hasUndefinedPumpCurve && (
+                  <span>
+                    -{" "}
+                    {translate(
+                      "undefinedPumpCurves",
+                      String(issues.hasUndefinedPumpCurve),
+                    )}
+                  </span>
                 )}
               </div>
             </div>

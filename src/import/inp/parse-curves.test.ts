@@ -210,7 +210,7 @@ describe("curve type inference", () => {
     expect(issues?.hasUnusedCurves).toBeUndefined();
   });
 
-  it("falls back to default when pump references an invalid curve", () => {
+  it("keeps invalid curve as library reference when pump references it", () => {
     const inp = `
     [JUNCTIONS]
     j1\t10
@@ -227,8 +227,8 @@ describe("curve type inference", () => {
 
     expect(
       hydraulicModel.labelManager.getIdByLabel("bad_curve", "curve"),
-    ).toBeUndefined();
-    expect(issues?.hasPumpCurves).toBe(1);
-    expect(issues?.hasUnusedCurves).toBe(1);
+    ).toBeDefined();
+    expect(issues?.hasInvalidPumpCurves).toBe(1);
+    expect(issues?.hasUnusedCurves).toBeUndefined();
   });
 });

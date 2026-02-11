@@ -39,7 +39,6 @@ export const PumpCurvesDialog = () => {
   );
   const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
   const [showSaveWarning, setShowSaveWarning] = useState(false);
-  const originalCurvesRef = useRef(hydraulicModel.curves);
   const labelManagerRef = useRef<LabelManager>(
     createLabelManagerFromCurves(editedCurves),
   );
@@ -156,22 +155,13 @@ export const PumpCurvesDialog = () => {
       return;
     }
 
-    const curvesToSave = new Map(editedCurves);
-    for (const id of invalidCurveIds) {
-      const curve = curvesToSave.get(id);
-      const original = originalCurvesRef.current.get(id);
-      if (curve && original) {
-        curvesToSave.set(id, { ...curve, points: original.points });
-      }
-    }
-
     const moment = changeCurves(hydraulicModel, {
-      curves: curvesToSave,
+      curves: editedCurves,
     });
     transact(moment);
     userTracking.capture({
       name: "pumpCurves.updated",
-      count: curvesToSave.size,
+      count: editedCurves.size,
     });
 
     closeDialog();
@@ -181,7 +171,6 @@ export const PumpCurvesDialog = () => {
     showSaveWarning,
     hydraulicModel,
     editedCurves,
-    invalidCurveIds,
     transact,
     closeDialog,
     userTracking,

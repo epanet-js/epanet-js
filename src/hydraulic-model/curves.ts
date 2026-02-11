@@ -22,38 +22,39 @@ export type PumpCurveType =
   | "multiPointCurve";
 
 export const getPumpCurveType = (points: CurvePoint[]): PumpCurveType => {
-  if (points.length === 1) return "designPointCurve";
-  if (points.length === 3 && points[0].x === 0) return "standardCurve";
+  if (points.length === 1 && points[0].x !== 0 && points[0].y !== 0)
+    return "designPointCurve";
+  if (points.length === 3 && points[0].x === 0 && hasValidOrdering(points))
+    return "standardCurve";
 
   return "multiPointCurve";
 };
 
+const hasValidOrdering = (points: CurvePoint[]): boolean => {
+  for (let i = 1; i < points.length; i++) {
+    if (points[i].x <= points[i - 1].x) return false;
+    if (points[i].y >= points[i - 1].y) return false;
+  }
+  return true;
+};
+
 export const isValidPumpCurve = (points: CurvePoint[]): boolean => {
-  if (points.length === 0) {
-    return false;
-  }
-
-  if (points.length === 1) {
-    return true;
-  }
-
-  const xAlwaysIncreases = points.every((point, index) => {
-    if (index === 0) return true;
-    return point.x > points[index - 1].x;
-  });
-
-  const yAlwaysDecreases = points.every((point, index) => {
-    if (index === 0) return true;
-    return point.y < points[index - 1].y;
-  });
-
-  return xAlwaysIncreases && yAlwaysDecreases;
+  if (points.length === 0) return false;
+  if (points.length === 1) return points[0].x !== 0 && points[0].y !== 0;
+  return hasValidOrdering(points);
 };
 
 export type CurveErrorPoint = { index: number; value: "flow" | "head" };
 
 export const getPumpCurveErrors = (points: CurvePoint[]): CurveErrorPoint[] => {
-  if (points.length <= 1) return [];
+  if (points.length === 0) return [];
+
+  if (points.length === 1) {
+    const errors: CurveErrorPoint[] = [];
+    if (points[0].x === 0) errors.push({ index: 0, value: "flow" });
+    if (points[0].y === 0) errors.push({ index: 0, value: "head" });
+    return errors;
+  }
 
   const errors: CurveErrorPoint[] = [];
   const seen = new Set<string>();

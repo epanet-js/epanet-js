@@ -158,10 +158,10 @@ const PumpDefinitionDetailsInner = ({
       const curveType =
         oldValue !== "power" && oldValue !== "curveId"
           ? oldValue
-          : (getPumpCurveType(curve) as Exclude<
-              PumpCurveType,
-              "multiPointCurve"
-            >);
+          : (() => {
+              const ct = getPumpCurveType(curve);
+              return ct === "multiPointCurve" ? "designPointCurve" : ct;
+            })();
       const currentPoints = initialPointsFromCurve(curve, curveType);
       const validationResult = validateCurve(currentPoints, newValue);
 
@@ -716,10 +716,8 @@ const inferDefinitionMode = (
   if (modelType === "curveId") {
     return "curveId";
   }
-  const curveType = getPumpCurveType(curve) as Exclude<
-    PumpCurveType,
-    "multiPointCurve"
-  >;
+  const curveType = getPumpCurveType(curve);
+  if (curveType === "multiPointCurve") return "curveId";
   return curveType;
 };
 

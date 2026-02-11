@@ -507,7 +507,7 @@ const addPump = (
       "curve",
     );
     if (curveId === undefined) {
-      issues.addPumpCurve();
+      issues.addUndefinedPumpCurve();
       definitionProps = {
         definitionType: "curve",
         curve: defaultCurvePoints(),
@@ -515,17 +515,12 @@ const addPump = (
     } else {
       const curve = curvesContext.curves.get(curveId)!;
       if (!isValidPumpCurve(curve.points)) {
-        issues.addPumpCurve();
-        definitionProps = {
-          definitionType: "curve",
-          curve: defaultCurvePoints(),
-        };
-      } else {
-        definitionProps = {
-          definitionType: "curveId",
-          curveId: curve.id,
-        };
+        issues.addInvalidPumpCurve();
       }
+      definitionProps = {
+        definitionType: "curveId",
+        curveId: curve.id,
+      };
     }
   }
 

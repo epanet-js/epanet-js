@@ -456,7 +456,7 @@ describe("parse pumps", () => {
       expect(curve.assetIds.has(pump.id)).toBe(true);
     });
 
-    it.skip("falls back to design-point mode when curve is invalid (2 points)", () => {
+    it("keeps invalid curve as library reference (2 points with non-descending head)", () => {
       const reservoirId = "r1";
       const junctionId = "j1";
       const pumpId = "pu1";
@@ -487,12 +487,43 @@ describe("parse pumps", () => {
         "curve",
       )!;
       const curve = hydraulicModel.curves.get(curveId)!;
-      expect(curve.points).toEqual([{ x: 200, y: 300 }]);
-      expect(issues?.hasPumpCurves).toBe(1);
+      expect(curve.points).toEqual([
+        { x: 100, y: 200 },
+        { x: 200, y: 300 },
+      ]);
+      expect(issues?.hasInvalidPumpCurves).toBe(1);
 
       const pump = getByLabel(hydraulicModel.assets, pumpId) as Pump;
       expect(pump.definitionType).toEqual("curveId");
       expect(pump.curveId).toEqual(curveId);
+    });
+
+    it("reports undefined curve when pump references non-existent curve", () => {
+      const reservoirId = "r1";
+      const junctionId = "j1";
+      const pumpId = "pu1";
+      const anyNumber = 10;
+
+      const inp = `
+      [RESERVOIRS]
+      ${reservoirId}\t${anyNumber}
+      [JUNCTIONS]
+      ${junctionId}\t${anyNumber}
+      [PUMPS]
+      ${pumpId}\t${reservoirId}\t${junctionId}\tHEAD missing_curve
+
+      [COORDINATES]
+      ${reservoirId}\t10\t20
+      ${junctionId}\t30\t40
+      `;
+
+      const { hydraulicModel, issues } = parseInpWithAllCurves(inp);
+
+      expect(issues?.hasUndefinedPumpCurve).toBe(1);
+
+      const pump = getByLabel(hydraulicModel.assets, pumpId) as Pump;
+      expect(pump.definitionType).toEqual("curve");
+      expect(pump.curve).toEqual([{ x: 1, y: 1 }]);
     });
 
     it("registers curves with non-ascending flow values but reports them as unused", () => {

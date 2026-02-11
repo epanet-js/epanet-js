@@ -248,6 +248,8 @@ export type ImportInpCompleted = {
     | "hasTankCurves"
     | "hasPumpPatterns"
     | "hasPumpCurves"
+    | "hasInvalidPumpCurves"
+    | "hasUndefinedPumpCurve"
     | "hasPCVCurves"
     | "hasUnusedCurves"
     | "hasControls"

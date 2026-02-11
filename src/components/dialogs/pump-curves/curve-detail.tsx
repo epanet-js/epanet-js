@@ -124,12 +124,21 @@ export function CurveDetail({
     if (errors.length === 0) return null;
     const hasFlowError = errors.some((e) => e.value === "flow");
     const hasHeadError = errors.some((e) => e.value === "head");
+
+    if (points.length === 1) {
+      if (hasFlowError && hasHeadError) {
+        return `${translate("curveValidation.flowMustBeNonZero")} ${translate("curveValidation.headMustBeNonZero")}`;
+      }
+      if (hasFlowError) return translate("curveValidation.flowMustBeNonZero");
+      return translate("curveValidation.headMustBeNonZero");
+    }
+
     if (hasFlowError && hasHeadError) {
       return `${translate("curveValidation.flowAscendingOrder")} ${translate("curveValidation.headDescendingOrder")}`;
     }
     if (hasFlowError) return translate("curveValidation.flowAscendingOrder");
     return translate("curveValidation.headDescendingOrder");
-  }, [errors, translate]);
+  }, [errors, points.length, translate]);
 
   const handleTableSelectionChange = useCallback(
     (selection: GridSelection | null) => {
@@ -165,9 +174,7 @@ export function CurveDetail({
         />
       </div>
       <InlineField name={translate("pumpType")} layout="label-flex-none">
-        <span className="text-sm">
-          {isValid ? translate(curveType) : translate("invalidCurve")}
-        </span>
+        <span className="text-sm">{translate(curveType)}</span>
       </InlineField>
       <div className="flex-1 min-h-0 p-2 pt-4 border border-gray-200 dark:border-gray-700 mt-[.25rem]">
         <div ref={graphContainerRef} className="h-full">

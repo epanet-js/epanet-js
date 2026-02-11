@@ -290,6 +290,8 @@
   "tankCurves": "Tanks with volume curves ({{1}} tanks using fixed diameter)",
   "pumpPatterns": "Pumps with time patterns ({{1}} pumps using constant speed)",
   "pumpCurves": "Pumps with multi-point curves ({{1}} pumps using middle point as one point curve)",
+  "invalidPumpCurves": "Pumps with invalid curve definitions ({{1}} pumps)",
+  "undefinedPumpCurves": "Pumps referencing undefined curves ({{1}} pumps)",
   "pcvCurves": "PCV valves with characteristic curves ({{1}} valves using setting value only)",
   "unusedCurves": "{{1}} unidentified curves not imported",
   "waterQualitySimulation": "Unsupported water quality simulation:",
@@ -403,7 +405,9 @@
   "curveValidation": {
     "missingValues": "Please fill in all the values.",
     "flowAscendingOrder": "Flow values must be in ascending order.",
-    "headDescendingOrder": "Head values must be in descending order."
+    "headDescendingOrder": "Head values must be in descending order.",
+    "flowMustBeNonZero": "Flow value must not be zero.",
+    "headMustBeNonZero": "Head value must not be zero."
   },
   "speed": "Speed",
   "pipeStatus": "Pipe status",
@@ -836,5 +840,5 @@
   "pumpLibraryNoSelection": "Select a curve to edit",
   "deleteCurveInUse": "Cannot delete a curve that is used by a pump",
   "invalidCurve": "Invalid curve",
-  "saveInvalidCurvesWarning": "Changes to invalid curves will be discarded."
+  "saveInvalidCurvesWarning": "Some curves have validation warnings."
 }
