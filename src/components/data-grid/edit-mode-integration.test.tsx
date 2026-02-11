@@ -76,9 +76,8 @@ describe("DataGrid edit mode integration", () => {
 
       // Should see input with the typed character
       await waitFor(() => {
-        // In quick edit mode, input starts with formatted value and cursor at end
-        // The "5" gets appended
-        expect(valueCell).toHaveValue("10.55");
+        // In quick edit mode, input is replaced by the new typed in value
+        expect(valueCell).toHaveValue("5");
         expect(valueCell).not.toHaveAttribute("readonly");
       });
     });
@@ -108,9 +107,7 @@ describe("DataGrid edit mode integration", () => {
       // Should commit the value
       await waitFor(() => {
         expect(onChange).toHaveBeenCalledWith(
-          expect.arrayContaining([
-            expect.objectContaining({ value: 10.599 }), // 10.5 + "99" typed
-          ]),
+          expect.arrayContaining([expect.objectContaining({ value: 99 })]),
         );
       });
 
@@ -216,7 +213,7 @@ describe("DataGrid edit mode integration", () => {
 
       // Verify we're in edit mode with the updated value
       await waitFor(() => {
-        expect(valueCell).toHaveValue("10.599");
+        expect(valueCell).toHaveValue("99");
       });
 
       // Click on a different cell (second row's value cell)
@@ -227,7 +224,7 @@ describe("DataGrid edit mode integration", () => {
       await waitFor(() => {
         expect(onChange).toHaveBeenCalledWith(
           expect.arrayContaining([
-            expect.objectContaining({ id: 1, value: 10.599 }),
+            expect.objectContaining({ id: 1, value: 99 }),
           ]),
         );
       });
@@ -411,7 +408,7 @@ describe("DataGrid edit mode integration", () => {
 
       // Should enter quick edit and show input with the character
       await waitFor(() => {
-        expect(valueCell).toHaveValue("10.57");
+        expect(valueCell).toHaveValue("7");
         expect(valueCell).not.toHaveAttribute("readonly");
       });
     });
@@ -587,7 +584,7 @@ describe("DataGrid edit mode integration", () => {
       await user.keyboard("4");
 
       // Should enter quick edit (input not readonly)
-      const valueCell = screen.getByDisplayValue(/10\.5/);
+      const valueCell = screen.getByDisplayValue(/4/);
       await waitFor(() => {
         expect(valueCell).not.toHaveAttribute("readonly");
       });
