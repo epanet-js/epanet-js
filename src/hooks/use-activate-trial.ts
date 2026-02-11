@@ -2,6 +2,7 @@ import { atom, useAtom } from "jotai";
 import { notify } from "src/components/notifications";
 import { captureError } from "src/infra/error-tracking";
 import { useTranslate } from "src/hooks/use-translate";
+import { useAuth } from "src/auth";
 import { ErrorIcon } from "src/icons";
 
 const activateTrialLoadingAtom = atom<boolean>(false);
@@ -9,6 +10,7 @@ const activateTrialLoadingAtom = atom<boolean>(false);
 export const useActivateTrial = () => {
   const translate = useTranslate();
   const [isLoading, setLoading] = useAtom(activateTrialLoadingAtom);
+  const { reload } = useAuth();
 
   const activateTrial = async () => {
     setLoading(true);
@@ -19,6 +21,7 @@ export const useActivateTrial = () => {
         throw new Error(`Trial activation failed: ${response.statusText}`);
       }
 
+      await reload();
       setLoading(false);
     } catch (error) {
       setLoading(false);

@@ -73,7 +73,11 @@ const useAuthWithClerk: UseAuthHook = () => {
       }
     : nullUser;
 
-  return { isSignedIn, isLoaded, userId, user, signOut };
+  const reload = useCallback(async () => {
+    await clerkUser?.reload();
+  }, [clerkUser]);
+
+  return { isSignedIn, isLoaded, userId, user, signOut, reload };
 };
 
 const useAuthWithTimeout: UseAuthHook = () => {
@@ -123,6 +127,7 @@ const useAuthNull: UseAuthHook = () => {
     userId: undefined,
     user: nullUser,
     signOut: () => {},
+    reload: async () => {},
   };
 };
 

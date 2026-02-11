@@ -48,5 +48,12 @@ export const AuthMockProvider = ({
 export const useAuthMock: UseAuthHook = () => {
   const { isSignedIn, user, signOut, isLoaded } = useContext(AuthMockContext);
 
-  return { isSignedIn, user, userId: user.id, signOut, isLoaded };
+  return {
+    isSignedIn,
+    user,
+    userId: user.id,
+    signOut,
+    isLoaded,
+    reload: async () => {},
+  };
 };

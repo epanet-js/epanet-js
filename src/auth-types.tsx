@@ -33,4 +33,5 @@ export type UseAuthHook = () => {
   userId: string | null | undefined;
   user: User;
   signOut: ({ redirectUrl }: { redirectUrl?: string }) => void;
+  reload: () => Promise<void>;
 };
