@@ -1,9 +1,9 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import {
   normalizeNumericInput,
   parseNumericInput,
 } from "src/components/form/numeric-input-utils";
-import { CellProps, GridColumn } from "../types";
+import { CellProps, EditMode, GridColumn } from "../types";
 
 function formatLocaleNumber(value: number | null | undefined): string {
   if (value === null || value === undefined) return "";
@@ -34,15 +34,25 @@ export function FloatCell({
   const inputRef = useRef<HTMLInputElement>(null);
   const [editValue, setEditValue] = useState("");
   const shouldCommitOnBlurRef = useRef(false);
+  const [prevEditMode, setPrevEditMode] = useState<EditMode>(false);
 
-  useEffect(() => {
+  // Set editValue synchronously during render so the DOM has the correct
+  // value before useLayoutEffect runs focus/select.
+  if (editMode && editMode !== prevEditMode) {
+    setPrevEditMode(editMode);
+    setEditValue(formatLocaleNumber(value));
+    shouldCommitOnBlurRef.current = true;
+  }
+  if (!editMode && prevEditMode) {
+    setPrevEditMode(false);
+  }
+
+  useLayoutEffect(() => {
     if (editMode) {
-      shouldCommitOnBlurRef.current = true;
-      setEditValue(formatLocaleNumber(value));
       inputRef.current?.focus();
       inputRef.current?.select();
     }
-  }, [editMode, value]);
+  }, [editMode]);
 
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
