@@ -7,6 +7,9 @@ export type User = {
   firstName?: string;
   lastName?: string;
   plan: Plan;
+  trialActivatedAt: string | null;
+  trialEndsAt: string | null;
+  hasUsedTrial: boolean;
   getLocale?: () => Locale | undefined;
   setLocale?: (locale: Locale) => Promise<void>;
 };
@@ -17,6 +20,9 @@ export const nullUser: User = {
   firstName: undefined,
   lastName: undefined,
   plan: "free",
+  trialActivatedAt: null,
+  trialEndsAt: null,
+  hasUsedTrial: false,
   getLocale: undefined,
   setLocale: undefined,
 };

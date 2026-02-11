@@ -51,6 +51,11 @@ const useAuthWithClerk: UseAuthHook = () => {
         firstName: clerkUser.firstName || undefined,
         lastName: clerkUser.lastName || undefined,
         plan: (clerkUser.publicMetadata?.userPlan || "free") as Plan,
+        trialActivatedAt:
+          (clerkUser.publicMetadata?.trialActivatedAt as string) ?? null,
+        trialEndsAt: (clerkUser.publicMetadata?.trialEndsAt as string) ?? null,
+        hasUsedTrial:
+          (clerkUser.publicMetadata?.hasUsedTrial as boolean) ?? false,
         getLocale: () => {
           const savedLocale = clerkUser.unsafeMetadata?.locale as Locale;
           return savedLocale && allSupportedLanguages.includes(savedLocale)

@@ -1,5 +1,10 @@
 export type Plan = "free" | "pro" | "personal" | "education";
 
+export const isTrialActive = (user: { trialEndsAt: string | null }) => {
+  if (!user.trialEndsAt) return false;
+  return new Date(user.trialEndsAt) > new Date();
+};
+
 export const canUpgrade = (plan: Plan) => {
   return plan === "free";
 };

@@ -8,6 +8,8 @@ import { dialogAtom } from "src/state/dialog";
 import { ScenarioIcon } from "src/icons";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useTranslate } from "src/hooks/use-translate";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { useAuth } from "src/auth";
 
 const SCENARIOS_VIDEO_SRC =
   "https://stream.mux.com/RVxWPZgcfKowXmi00iovKx1sffG100gu21BpD2U6Mjv98.m3u8";
@@ -28,6 +30,10 @@ export const ScenariosPaywallDialog = ({
   const setDialog = useSetAtom(dialogAtom);
   const userTracking = useUserTracking();
   const translate = useTranslate();
+  const { user } = useAuth();
+  const isActivateTrialOn = useFeatureFlag("FLAG_ACTIVATE_TRIAL");
+  const showTrialButton =
+    isActivateTrialOn && !user.hasUsedTrial && user.plan === "free";
   const captions = useMemo(
     () =>
       SCENARIOS_CAPTION_TIMINGS.map(({ key, ...timing }) => ({
@@ -44,6 +50,10 @@ export const ScenariosPaywallDialog = ({
 
   const handlePersonalCheckout = () => {
     userTracking.capture({ name: "scenariosPaywall.clickedPersonal" });
+  };
+
+  const handleStartTrial = () => {
+    userTracking.capture({ name: "scenariosPaywall.clickedStartTrial" });
   };
 
   return (
@@ -78,41 +88,64 @@ export const ScenariosPaywallDialog = ({
           </div>
 
           <div className="flex flex-col gap-5">
-            <div className="flex flex-col gap-1">
-              <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                {translate("scenarios.paywall.nonCommercial.title")}
-              </h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                {translate("scenarios.paywall.nonCommercial.description")}
-              </p>
-              <div className="pt-2" onClick={handlePersonalCheckout}>
-                <CheckoutButton
-                  plan="personal"
-                  paymentType="yearly"
-                  variant="default"
-                >
-                  {translate("scenarios.paywall.nonCommercial.cta")}
-                </CheckoutButton>
+            {showTrialButton ? (
+              <div className="flex flex-col gap-1">
+                <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  Start your 14-day Pro trial
+                </h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Try all Pro features free for 14 days. No credit card
+                  required.
+                </p>
+                <div className="pt-2">
+                  <Button
+                    variant="primary"
+                    size="full-width"
+                    onClick={handleStartTrial}
+                  >
+                    Start Free Trial
+                  </Button>
+                </div>
               </div>
-            </div>
+            ) : (
+              <>
+                <div className="flex flex-col gap-1">
+                  <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                    {translate("scenarios.paywall.nonCommercial.title")}
+                  </h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    {translate("scenarios.paywall.nonCommercial.description")}
+                  </p>
+                  <div className="pt-2" onClick={handlePersonalCheckout}>
+                    <CheckoutButton
+                      plan="personal"
+                      paymentType="yearly"
+                      variant="default"
+                    >
+                      {translate("scenarios.paywall.nonCommercial.cta")}
+                    </CheckoutButton>
+                  </div>
+                </div>
 
-            <div className="flex flex-col gap-1">
-              <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                {translate("scenarios.paywall.commercial.title")}
-              </h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                {translate("scenarios.paywall.commercial.description")}
-              </p>
-              <div className="pt-2">
-                <Button
-                  variant="primary"
-                  size="full-width"
-                  onClick={handleChooseYourPlan}
-                >
-                  {translate("scenarios.paywall.commercial.cta")}
-                </Button>
-              </div>
-            </div>
+                <div className="flex flex-col gap-1">
+                  <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                    {translate("scenarios.paywall.commercial.title")}
+                  </h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    {translate("scenarios.paywall.commercial.description")}
+                  </p>
+                  <div className="pt-2">
+                    <Button
+                      variant="primary"
+                      size="full-width"
+                      onClick={handleChooseYourPlan}
+                    >
+                      {translate("scenarios.paywall.commercial.cta")}
+                    </Button>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
