@@ -368,6 +368,9 @@ export const lastSearchResultAtom = atom<QItemAddable | null>(null);
  * File info
  */
 export const fileInfoAtom = atom<FileInfo | null>(null);
+export const isDemoNetworkAtom = atom(
+  (get) => get(fileInfoAtom)?.isDemoNetwork ?? false,
+);
 
 const fileInfoMachine = createMachine({
   predictableActionArguments: true,

@@ -1,4 +1,9 @@
-import { dialogAtom, fileInfoAtom, stagingModelAtom } from "src/state/jotai";
+import {
+  dialogAtom,
+  fileInfoAtom,
+  isDemoNetworkAtom,
+  stagingModelAtom,
+} from "src/state/jotai";
 import { baseModelAtom } from "src/state/hydraulic-model";
 import { ExportOptions } from "src/types/export";
 import { useAtomCallback } from "jotai/utils";
@@ -90,7 +95,7 @@ export const useSaveInp = ({
               handle: newHandle,
               options: exportOptions,
               isMadeByApp: true,
-              isDemoNetwork: fileInfo?.isDemoNetwork ?? false,
+              isDemoNetwork: get(isDemoNetworkAtom),
             });
           }
         };

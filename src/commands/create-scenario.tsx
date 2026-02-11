@@ -4,7 +4,7 @@ import { useScenarioOperations } from "src/hooks/use-scenario-operations";
 import { scenariosListAtom } from "src/state/scenarios";
 import {
   dialogAtom,
-  fileInfoAtom,
+  isDemoNetworkAtom,
   simulationAtom,
   stagingModelAtom,
 } from "src/state/jotai";
@@ -32,12 +32,12 @@ export const useCreateScenario = () => {
   const runSimulation = useRunSimulation();
   const userSettings = useAtomValue(userSettingsAtom);
   const isDemoTrialOn = useFeatureFlag("FLAG_DEMO_TRIAL");
-  const fileInfo = useAtomValue(fileInfoAtom);
+  const isDemoNetwork = useAtomValue(isDemoNetworkAtom);
 
   return useCallback(
     ({ source: _source }: { source: string }) => {
       const isFirstTimeEnabling = scenariosList.length === 0;
-      const shouldBypassPaywall = isDemoTrialOn && fileInfo?.isDemoNetwork;
+      const shouldBypassPaywall = isDemoTrialOn && isDemoNetwork;
 
       if (
         isFirstTimeEnabling &&
@@ -62,7 +62,7 @@ export const useCreateScenario = () => {
           name: "scenario.created",
           scenarioId,
           scenarioName,
-          isDemoNetwork: fileInfo?.isDemoNetwork ?? false,
+          isDemoNetwork,
         });
 
         notify({
@@ -120,7 +120,7 @@ export const useCreateScenario = () => {
       runSimulation,
       userSettings,
       isDemoTrialOn,
-      fileInfo,
+      isDemoNetwork,
     ],
   );
 };
