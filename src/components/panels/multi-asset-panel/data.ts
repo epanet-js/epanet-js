@@ -11,6 +11,7 @@ import {
   HydraulicModel,
 } from "src/hydraulic-model";
 import { Valve } from "src/hydraulic-model/asset-types";
+import { getPumpCurveType } from "src/hydraulic-model/curves";
 import { CustomerPointsLookup } from "src/hydraulic-model/customer-points-lookup";
 import {
   CustomerPoint,
@@ -381,7 +382,15 @@ const appendPumpStats = (
   simulationResults?: ResultsReader | null,
 ) => {
   updateCategoryStats(statsMap, "isEnabled", pump.isActive ? "yes" : "no");
-  updateCategoryStats(statsMap, "pumpType", pump.definitionType);
+
+  let pumpType: string = pump.definitionType;
+  if (pump.definitionType === "curve" && pump.curve) {
+    const curveType = getPumpCurveType(pump.curve);
+    if (curveType === "designPointCurve" || curveType === "standardCurve") {
+      pumpType = curveType;
+    }
+  }
+  updateCategoryStats(statsMap, "pumpType", pumpType);
   updateCategoryStats(statsMap, "initialStatus", "pump." + pump.initialStatus);
 
   if (pump.speed !== null) {
