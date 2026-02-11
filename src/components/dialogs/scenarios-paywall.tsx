@@ -4,6 +4,7 @@ import { DialogContainer, DialogHeader } from "../dialog";
 import { Button } from "../elements";
 import { CheckoutButton } from "../checkout-button";
 import { VideoPlayer } from "../video-player";
+import { useActivateTrial } from "src/hooks/use-activate-trial";
 import { dialogAtom } from "src/state/dialog";
 import { ScenarioIcon } from "src/icons";
 import { useUserTracking } from "src/infra/user-tracking";
@@ -52,8 +53,14 @@ export const ScenariosPaywallDialog = ({
     userTracking.capture({ name: "scenariosPaywall.clickedPersonal" });
   };
 
+  const { activateTrial, isLoading: isTrialLoading } = useActivateTrial();
+
   const handleStartTrial = () => {
-    userTracking.capture({ name: "scenariosPaywall.clickedStartTrial" });
+    userTracking.capture({
+      name: "trial.activated",
+      source: "scenariosPaywall",
+    });
+    void activateTrial();
   };
 
   return (
@@ -102,6 +109,7 @@ export const ScenariosPaywallDialog = ({
                     variant="primary"
                     size="full-width"
                     onClick={handleStartTrial}
+                    disabled={isTrialLoading}
                   >
                     Start Free Trial
                   </Button>

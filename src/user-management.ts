@@ -52,6 +52,24 @@ export const upgradeUser = async (
   });
 };
 
+const TRIAL_DURATION_DAYS = 14;
+
+export const activateTrial = async (userId: string) => {
+  const now = new Date();
+  const trialEndsAt = new Date(
+    now.getTime() + TRIAL_DURATION_DAYS * 24 * 60 * 60 * 1000,
+  );
+
+  const clerk = await client();
+  return clerk.users.updateUserMetadata(userId, {
+    publicMetadata: {
+      trialActivatedAt: now.toISOString(),
+      trialEndsAt: trialEndsAt.toISOString(),
+      hasUsedTrial: true,
+    },
+  });
+};
+
 const getEmail = (user: User): string => {
   return user?.emailAddresses[0].emailAddress;
 };
