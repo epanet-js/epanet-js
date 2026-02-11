@@ -42,26 +42,8 @@ export const NotificationBanner = ({
         />
       )}
       <div className="flex flex-col flex-grow space-y-1">
-        <span
-          className={clsx("text-sm font-semibold", {
-            "text-green-700": variant === "success",
-            "text-orange-700": variant === "warning",
-            "text-red-700": variant === "error",
-          })}
-        >
-          {title}
-        </span>
-        {description && (
-          <span
-            className={clsx("text-sm", {
-              "text-green-600": variant === "success",
-              "text-orange-600": variant === "warning",
-              "text-red-600": variant === "error",
-            })}
-          >
-            {description}
-          </span>
-        )}
+        <span className="text-sm font-semibold">{title}</span>
+        {description && <span className="text-sm">{description}</span>}
       </div>
     </div>
   );
@@ -157,7 +139,10 @@ export const notify = ({
           title={title}
           description={description}
           Icon={Icon}
-          className="shadow-md border rounded-lg"
+          className={clsx(
+            "shadow-md border rounded-lg",
+            dismissable && "pr-10",
+          )}
         />
         {dismissable && (
           <button
