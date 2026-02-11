@@ -1,5 +1,5 @@
 import { ModelOperation } from "../model-operation";
-import { CurveId, CurvePoint } from "../curves";
+import { CurveId, CurvePoint, Curves } from "../curves";
 import { AssetId, Pump } from "../asset-types";
 
 type PumpDefinitionData =
@@ -13,7 +13,7 @@ type InputData = {
 };
 
 export const changePumpDefinition: ModelOperation<InputData> = (
-  { assets },
+  { assets, curves },
   { pumpId, data },
 ) => {
   const pump = assets.get(pumpId) as Pump;
@@ -25,14 +25,53 @@ export const changePumpDefinition: ModelOperation<InputData> = (
 
   if (data.type === "power") {
     updatedPump.setProperty("power", data.power);
-    return { note: "Change pump curve", putAssets: [updatedPump] };
-  }
-
-  if (data.type === "curve") {
+    delete updatedPump.feature.properties.curveId;
+  } else if (data.type === "curve") {
     updatedPump.feature.properties.curve = data.curve.map((p) => ({ ...p }));
-    return { note: "Change pump curve", putAssets: [updatedPump] };
+    delete updatedPump.feature.properties.curveId;
+  } else {
+    updatedPump.setProperty("curveId", data.curveId);
   }
 
-  updatedPump.setProperty("curveId", data.curveId);
-  return { note: "Change pump curve", putAssets: [updatedPump] };
+  const oldCurveId =
+    pump.definitionType === "curveId" ? pump.curveId : undefined;
+  const newCurveId = data.type === "curveId" ? data.curveId : undefined;
+  const putCurves = updateCurveAssetIds(curves, pumpId, oldCurveId, newCurveId);
+
+  return {
+    note: "Change pump curve",
+    putAssets: [updatedPump],
+    ...(putCurves && { putCurves }),
+  };
+};
+
+const updateCurveAssetIds = (
+  curves: Curves,
+  pumpId: AssetId,
+  oldCurveId: CurveId | undefined,
+  newCurveId: CurveId | undefined,
+): Curves | undefined => {
+  if (oldCurveId === newCurveId) return undefined;
+
+  const updated = new Map(curves);
+
+  if (oldCurveId !== undefined) {
+    const oldCurve = updated.get(oldCurveId);
+    if (oldCurve) {
+      const assetIds = new Set(oldCurve.assetIds);
+      assetIds.delete(pumpId);
+      updated.set(oldCurveId, { ...oldCurve, assetIds });
+    }
+  }
+
+  if (newCurveId !== undefined) {
+    const newCurve = updated.get(newCurveId);
+    if (newCurve) {
+      const assetIds = new Set(newCurve.assetIds);
+      assetIds.add(pumpId);
+      updated.set(newCurveId, { ...newCurve, assetIds });
+    }
+  }
+
+  return updated;
 };

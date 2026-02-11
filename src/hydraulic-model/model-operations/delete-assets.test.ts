@@ -248,4 +248,111 @@ describe("deleteAssets", () => {
       expect(assetsActiveTopologyState[IDS.J3]).toBe(false);
     });
   });
+
+  describe("curve assetIds", () => {
+    it("removes pump from curve assetIds when deleting a pump with curveId", () => {
+      const IDS = { J1: 1, J2: 2, PUMP: 3, CURVE: 100 } as const;
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aNode(IDS.J1)
+        .aNode(IDS.J2)
+        .aPumpCurve({
+          id: IDS.CURVE,
+          points: [{ x: 1, y: 1 }],
+          assetIds: new Set([IDS.PUMP]),
+        })
+        .aPump(IDS.PUMP, {
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
+          definitionType: "curveId",
+          curveId: IDS.CURVE,
+        })
+        .build();
+
+      const { putCurves } = deleteAssets(hydraulicModel, {
+        assetIds: [IDS.PUMP],
+      });
+
+      expect(putCurves).toBeDefined();
+      expect(putCurves!.get(IDS.CURVE)!.assetIds.has(IDS.PUMP)).toBe(false);
+    });
+
+    it("preserves other pumps in curve assetIds when deleting one pump", () => {
+      const IDS = {
+        J1: 1,
+        J2: 2,
+        J3: 3,
+        J4: 4,
+        PUMP1: 5,
+        PUMP2: 6,
+        CURVE: 100,
+      } as const;
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aNode(IDS.J1)
+        .aNode(IDS.J2)
+        .aNode(IDS.J3)
+        .aNode(IDS.J4)
+        .aPumpCurve({
+          id: IDS.CURVE,
+          points: [{ x: 1, y: 1 }],
+          assetIds: new Set([IDS.PUMP1, IDS.PUMP2]),
+        })
+        .aPump(IDS.PUMP1, {
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
+          definitionType: "curveId",
+          curveId: IDS.CURVE,
+        })
+        .aPump(IDS.PUMP2, {
+          startNodeId: IDS.J3,
+          endNodeId: IDS.J4,
+          definitionType: "curveId",
+          curveId: IDS.CURVE,
+        })
+        .build();
+
+      const { putCurves } = deleteAssets(hydraulicModel, {
+        assetIds: [IDS.PUMP1],
+      });
+
+      expect(putCurves).toBeDefined();
+      const assetIds = putCurves!.get(IDS.CURVE)!.assetIds;
+      expect(assetIds.has(IDS.PUMP1)).toBe(false);
+      expect(assetIds.has(IDS.PUMP2)).toBe(true);
+    });
+
+    it("does not return putCurves when deleting a pump without curveId", () => {
+      const IDS = { J1: 1, J2: 2, PUMP: 3 } as const;
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aNode(IDS.J1)
+        .aNode(IDS.J2)
+        .aPump(IDS.PUMP, {
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
+          definitionType: "power",
+          power: 50,
+        })
+        .build();
+
+      const { putCurves } = deleteAssets(hydraulicModel, {
+        assetIds: [IDS.PUMP],
+      });
+
+      expect(putCurves).toBeUndefined();
+    });
+
+    it("does not return putCurves when deleting non-pump assets", () => {
+      const IDS = { J1: 1, J2: 2, P1: 3 } as const;
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aNode(IDS.J1)
+        .aNode(IDS.J2)
+        .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
+        .build();
+
+      const { putCurves } = deleteAssets(hydraulicModel, {
+        assetIds: [IDS.P1],
+      });
+
+      expect(putCurves).toBeUndefined();
+    });
+  });
 });

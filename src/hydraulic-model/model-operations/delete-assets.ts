@@ -1,4 +1,12 @@
-import { AssetId, Asset, Pipe, NodeAsset, LinkAsset } from "../asset-types";
+import {
+  AssetId,
+  Asset,
+  Pipe,
+  Pump,
+  NodeAsset,
+  LinkAsset,
+} from "../asset-types";
+import { Curves } from "../curves";
 import { ModelOperation } from "../model-operation";
 import { CustomerPoint } from "../customer-points";
 import { CustomerPointsLookup } from "../customer-points-lookup";
@@ -43,6 +51,11 @@ export const deleteAssets: ModelOperation<InputData> = (
   });
 
   const boundaryNodes = reevaluateBoundaryNodes(hydraulicModel, affectedIds);
+  const putCurves = removePumpsFromCurveAssetIds(
+    hydraulicModel.curves,
+    assets,
+    affectedIds,
+  );
 
   return {
     note: "Delete assets",
@@ -52,6 +65,7 @@ export const deleteAssets: ModelOperation<InputData> = (
       shouldUpdateCustomerPoints && disconnectedCustomerPoints.size > 0
         ? Array.from(disconnectedCustomerPoints.values())
         : undefined,
+    ...(putCurves && { putCurves }),
   };
 };
 
@@ -110,4 +124,30 @@ const reevaluateBoundaryNodes = (
   }
 
   return boundaryNodes;
+};
+
+const removePumpsFromCurveAssetIds = (
+  curves: Curves,
+  assets: Map<AssetId, Asset>,
+  deletedIds: Set<AssetId>,
+): Curves | undefined => {
+  let updated: Curves | undefined;
+
+  for (const id of deletedIds) {
+    const asset = assets.get(id);
+    if (!asset || asset.type !== "pump") continue;
+    const pump = asset as Pump;
+    if (pump.definitionType !== "curveId" || pump.curveId === undefined)
+      continue;
+
+    if (!updated) updated = new Map(curves);
+    const curve = updated.get(pump.curveId);
+    if (curve) {
+      const assetIds = new Set(curve.assetIds);
+      assetIds.delete(id);
+      updated.set(pump.curveId, { ...curve, assetIds });
+    }
+  }
+
+  return updated;
 };

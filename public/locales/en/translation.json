@@ -830,7 +830,7 @@
   "timestep": "Timestep",
   "multiplier": "Multiplier",
   "pumpLibrary": "Pump Library",
-  "openPumpLibrary": "Open pump library...",
+  "openPumpLibrary": "Open library...",
   "addCurve": "Add curve",
   "curveName": "Curve name",
   "namedCurve": "Library curve",
