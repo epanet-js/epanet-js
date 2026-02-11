@@ -108,7 +108,7 @@ export const ScenarioSwitcher = () => {
 
   if (!hasScenarios) {
     return (
-      <div className="w-44 flex items-center">
+      <div className="min-w-44 flex items-center">
         <Tooltip.Root delayDuration={200}>
           <Tooltip.Trigger asChild>
             <button
