@@ -166,7 +166,7 @@ function styledInput({
 }: StyleOptions = {}) {
   return clsx(
     disabled
-      ? "text-gray-400 dark:text-gray-500 cursor-not-allowed"
+      ? "text-gray-400 dark:text-gray-500 cursor-not-allowed bg-gray-100 dark:bg-gray-800"
       : "text-gray-700 dark:text-gray-100",
     {
       "p-1": padding === "sm",
@@ -181,7 +181,7 @@ function styledInput({
       : variant === "warning"
         ? "border-orange-500 dark:border-orange-700"
         : "border-gray-300 hover:border-gray-200",
-    !ghostBorder && variant !== "warning" && "bg-white",
+    !disabled && !ghostBorder && variant !== "warning" && "bg-white",
     !disabled && {
       "focus-visible:bg-purple-300/10 dark:focus-visible:bg-purple-700/40 dark:focus-visible:ring-purple-700 focus-visible:ring-purple-500":
         variant === "default",

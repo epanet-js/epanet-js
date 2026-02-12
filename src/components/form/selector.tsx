@@ -19,12 +19,19 @@ type StyleOptions = {
   disableHoverEffects?: boolean;
   variant?: "default" | "warning";
 };
-export const triggerStylesFor = (styleOptions: StyleOptions) => {
+export const triggerStylesFor = (
+  styleOptions: StyleOptions,
+  { disabled = false } = {},
+) => {
   const effectiveStyleOptions = { ...defaultStyleOptions, ...styleOptions };
   const isWarning = effectiveStyleOptions.variant === "warning";
   return clsx(
-    "flex items-center gap-x-2 text-gray-700 bg-white dark:bg-gray-900 w-full",
-    !effectiveStyleOptions.disableHoverEffects &&
+    "flex items-center gap-x-2 w-full",
+    disabled
+      ? "text-gray-400 dark:text-gray-500 cursor-not-allowed bg-gray-100 dark:bg-gray-800"
+      : "text-gray-700 bg-white dark:bg-gray-900",
+    !disabled &&
+      !effectiveStyleOptions.disableHoverEffects &&
       "focus:justify-between hover:border hover:rounded-sm hover:border-gray-200 hover:justify-between min-w-[90px]",
     "border rounded-sm justify-between",
     isWarning
@@ -36,7 +43,8 @@ export const triggerStylesFor = (styleOptions: StyleOptions) => {
     `px-${effectiveStyleOptions.paddingX} py-${effectiveStyleOptions.paddingY}`,
     effectiveStyleOptions.textSize,
     "pl-min-2",
-    !effectiveStyleOptions.disableHoverEffects &&
+    !disabled &&
+      !effectiveStyleOptions.disableHoverEffects &&
       (isWarning
         ? "focus:ring-inset focus:ring-1 focus:ring-orange-500 dark:focus:ring-orange-700"
         : "focus:ring-inset focus:ring-1 focus:ring-purple-500 focus:bg-purple-300/10"),
@@ -180,10 +188,7 @@ export function Selector<T extends string | number>({
   };
 
   const triggerStyles = useMemo(() => {
-    return clsx(
-      triggerStylesFor(styleOptions),
-      disabled && "opacity-60 cursor-not-allowed bg-gray-50 dark:bg-gray-800",
-    );
+    return triggerStylesFor(styleOptions, { disabled });
   }, [styleOptions, disabled]);
 
   const contentStyles = useMemo(() => {
@@ -220,7 +225,12 @@ export function Selector<T extends string | number>({
           tabIndex={tabIndex}
           className={triggerStyles}
         >
-          <div className="text-nowrap overflow-hidden text-ellipsis">
+          <div
+            className={clsx(
+              "text-nowrap overflow-hidden text-ellipsis w-full text-left",
+              selected == null && nullable && "italic text-gray-400",
+            )}
+          >
             <Select.Value placeholder={nullable ? placeholder : undefined} />
           </div>
           <Select.Icon className="px-1">

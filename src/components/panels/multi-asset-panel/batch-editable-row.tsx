@@ -11,6 +11,7 @@ import { MultipleValuesIcon } from "src/icons";
 import { AssetPropertyStats, QuantityStats } from "./data";
 import { QuantityStatsBaseFields, SortableValuesList } from "./multi-value-row";
 import { BatchEditPropertyConfig } from "./batch-edit-property-config";
+import { pluralize } from "src/lib/utils";
 
 type BatchEditableRowProps = {
   propertyStats: AssetPropertyStats;
@@ -67,6 +68,7 @@ const StatsPopoverButton = ({
   propertyStats: AssetPropertyStats;
   label: string;
 }) => {
+  const translate = useTranslate();
   const [isOpen, setIsOpen] = useState(false);
 
   const handleContentKeyDown: KeyboardEventHandler<HTMLDivElement> = (
@@ -82,6 +84,7 @@ const StatsPopoverButton = ({
     <P.Root open={isOpen} onOpenChange={setIsOpen}>
       <P.Trigger
         aria-label={`Stats for: ${label}`}
+        title={pluralize(translate, "value", propertyStats.values.size)}
         className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-sm text-gray-500 hover:text-gray-700 hover:bg-gray-200 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-700"
       >
         <MultipleValuesIcon />
@@ -138,11 +141,11 @@ const EditableField = ({
       <NumericField
         label={label}
         displayValue={displayValue}
-        placeholder={isMixed ? translate("mixed") : undefined}
+        placeholder={translate("mixedValues")}
         positiveOnly={config.positiveOnly}
         isNullable={config.isNullable}
         disabled={readonly}
-        styleOptions={{ ghostBorder: true }}
+        styleOptions={{}}
         onChangeValue={(newValue) => {
           onPropertyChange(config.modelProperty, newValue);
         }}
@@ -169,7 +172,7 @@ const EditableField = ({
           selected={currentValue}
           options={options}
           nullable={true}
-          placeholder={translate("mixed")}
+          placeholder={translate("mixedValues")}
           ariaLabel={label}
           onChange={(newValue) => {
             if (newValue !== null) {
@@ -209,7 +212,7 @@ const EditableField = ({
         selected={currentValue}
         options={booleanOptions}
         nullable={true}
-        placeholder={translate("mixed")}
+        placeholder={translate("mixedValues")}
         ariaLabel={label}
         onChange={(newValue) => {
           if (newValue !== null) {
