@@ -459,7 +459,6 @@ const IssuesSummary = ({ issues }: { issues: ParserIssues }) => {
           )}
           {(issues.hasPumpPatterns ||
             issues.hasPumpCurves ||
-            issues.hasInvalidPumpCurves ||
             issues.hasUndefinedPumpCurve) && (
             <div>
               <p>{translate("ignoredValuesDetected", "[PUMPS]")}:</p>
@@ -474,15 +473,6 @@ const IssuesSummary = ({ issues }: { issues: ParserIssues }) => {
                   <RoadmapLink href={roadmapUrls.pumpCurves}>
                     - {translate("pumpCurves", String(issues.hasPumpCurves))}
                   </RoadmapLink>
-                )}
-                {issues.hasInvalidPumpCurves && (
-                  <span>
-                    -{" "}
-                    {translate(
-                      "invalidPumpCurves",
-                      String(issues.hasInvalidPumpCurves),
-                    )}
-                  </span>
                 )}
                 {issues.hasUndefinedPumpCurve && (
                   <span>
