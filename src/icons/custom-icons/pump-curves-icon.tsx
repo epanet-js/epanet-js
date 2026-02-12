@@ -14,12 +14,14 @@ export const CustomPumpCurvesIcon = React.forwardRef<
       fill="none"
       stroke="currentColor"
       strokeWidth={2}
+      strokeLinejoin="miter"
+      strokeMiterlimit={10}
       width={size}
       height={size}
       {...props}
     >
-      <path d="M3,3l0,16c0,1.097 0.903,2 2,2l16,0" />
-      <path d="M7,5c7.775,0.066 9.634,1.868 12.5,7.5" />
+      <path d="M3 3v16c0 1.097.903 2 2 2h16" />
+      <path d="M7 7.5c7.464.062 9.248 1.743 12 7" />
     </svg>
   );
 });
