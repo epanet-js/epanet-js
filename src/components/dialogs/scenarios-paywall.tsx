@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { DialogContainer, DialogHeader } from "../dialog";
 import { Button } from "../elements";
@@ -8,12 +8,22 @@ import { useActivateTrial } from "src/hooks/use-activate-trial";
 import { useScenarioOperations } from "src/hooks/use-scenario-operations";
 import { dialogAtom, isDemoNetworkAtom } from "src/state/jotai";
 import { userSettingsAtom } from "src/state/user-settings";
-import { RefreshIcon, ScenarioIcon, SuccessIcon } from "src/icons";
+import {
+  DisconnectIcon,
+  RefreshIcon,
+  ScenarioIcon,
+  SuccessIcon,
+} from "src/icons";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useTranslate } from "src/hooks/use-translate";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useAuth } from "src/auth";
 import { notify } from "src/components/notifications";
+import { useImportInp } from "src/commands/import-inp";
+import { useUnsavedChangesCheck } from "src/commands/check-unsaved-changes";
+import { captureError } from "src/infra/error-tracking";
+
+const DEMO_NETWORK_URL = "/example-models/01-uk-style.inp";
 
 const SCENARIOS_VIDEO_SRC =
   "https://stream.mux.com/RVxWPZgcfKowXmi00iovKx1sffG100gu21BpD2U6Mjv98.m3u8";
@@ -60,6 +70,9 @@ export const ScenariosPaywallDialog = ({
   const { createNewScenario } = useScenarioOperations();
   const userSettings = useAtomValue(userSettingsAtom);
   const isDemoNetwork = useAtomValue(isDemoNetworkAtom);
+  const importInp = useImportInp();
+  const checkUnsavedChanges = useUnsavedChangesCheck();
+  const [isDemoLoading, setIsDemoLoading] = useState(false);
 
   const proceedWithCreation = async () => {
     const { scenarioId, scenarioName } = await createNewScenario();
@@ -99,6 +112,41 @@ export const ScenariosPaywallDialog = ({
     } else {
       setDialog(null);
       void proceedWithCreation();
+    }
+  };
+
+  const handleTryDemo = async () => {
+    userTracking.capture({ name: "scenariosPaywall.clickedTryDemo" });
+    setIsDemoLoading(true);
+
+    try {
+      const response = await fetch(DEMO_NETWORK_URL);
+      if (!response.ok) throw new Error("Failed to download demo network");
+
+      const name = DEMO_NETWORK_URL.split("/").pop()!;
+      const file = new File([await response.blob()], name);
+
+      checkUnsavedChanges(async () => {
+        await importInp([file]);
+
+        if (userSettings.showFirstScenarioDialog) {
+          setDialog({
+            type: "firstScenario",
+            onConfirm: proceedWithCreation,
+          });
+        } else {
+          void proceedWithCreation();
+        }
+      });
+    } catch (error) {
+      captureError(error as Error);
+      setIsDemoLoading(false);
+      notify({
+        variant: "error",
+        title: "Could not load demo network",
+        Icon: DisconnectIcon,
+        size: "md",
+      });
     }
   };
 
@@ -148,7 +196,7 @@ export const ScenariosPaywallDialog = ({
                     variant="primary"
                     size="full-width"
                     onClick={() => void handleStartTrial()}
-                    disabled={isTrialLoading}
+                    disabled={isTrialLoading || isDemoLoading}
                   >
                     {isTrialLoading ? (
                       <RefreshIcon className="animate-spin" />
@@ -157,6 +205,24 @@ export const ScenariosPaywallDialog = ({
                     )}
                   </Button>
                 </div>
+                <div className="flex items-center gap-2 pt-2">
+                  <div className="flex-1 border-t border-gray-200 dark:border-gray-700" />
+                  <span className="text-xs text-gray-400 dark:text-gray-500">
+                    or
+                  </span>
+                  <div className="flex-1 border-t border-gray-200 dark:border-gray-700" />
+                </div>
+                <button
+                  className="text-sm text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 hover:underline disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={() => void handleTryDemo()}
+                  disabled={isTrialLoading || isDemoLoading}
+                >
+                  {isDemoLoading ? (
+                    <RefreshIcon className="animate-spin w-4 h-4 mx-auto" />
+                  ) : (
+                    "Try with a demo network"
+                  )}
+                </button>
               </div>
             ) : (
               <>

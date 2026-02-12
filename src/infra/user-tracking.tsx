@@ -938,6 +938,7 @@ export type UserEvent =
   | { name: "scenariosPaywall.triggered" }
   | { name: "scenariosPaywall.clickedChoosePlan" }
   | { name: "scenariosPaywall.clickedPersonal" }
+  | { name: "scenariosPaywall.clickedTryDemo" }
   | { name: "trial.activated"; source: string }
   | { name: "firstScenario.dialogEnabled" }
   | { name: "firstScenario.dialogHidden" }
