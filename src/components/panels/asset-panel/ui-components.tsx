@@ -276,6 +276,7 @@ type SelectRowPropsBase<T extends SelectRowValue> = {
   label?: string;
   options: SelectorOption<T>[] | SelectorOption<T>[][];
   listClassName?: string;
+  stickyFirstGroup?: boolean;
   comparison?: PropertyComparison;
   readOnly?: boolean;
 };
@@ -306,6 +307,7 @@ export function SelectRow<T extends SelectRowValue>({
   selected,
   options,
   listClassName,
+  stickyFirstGroup,
   comparison,
   readOnly,
   nullable = false,
@@ -346,6 +348,7 @@ export function SelectRow<T extends SelectRowValue>({
             }
             placeholder={placeholder as string}
             listClassName={listClassName}
+            stickyFirstGroup={stickyFirstGroup}
             disableFocusOnClose={true}
             styleOptions={{
               border: true,
