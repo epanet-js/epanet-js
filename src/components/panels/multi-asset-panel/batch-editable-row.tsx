@@ -159,12 +159,23 @@ const EditableField = ({
       ? null
       : firstKey.replace(config.statsPrefix, "");
 
-    const options: SelectorOption<string>[] = config.values.map((v) => ({
-      label: config.useUppercaseLabel
-        ? v.toUpperCase()
-        : translate(config.statsPrefix + v),
-      value: v,
-    }));
+    const options: SelectorOption<string>[] = readonly
+      ? currentValue != null
+        ? [
+            {
+              label: config.useUppercaseLabel
+                ? currentValue.toUpperCase()
+                : translate(config.statsPrefix + currentValue),
+              value: currentValue,
+            },
+          ]
+        : []
+      : config.values.map((v) => ({
+          label: config.useUppercaseLabel
+            ? v.toUpperCase()
+            : translate(config.statsPrefix + v),
+          value: v,
+        }));
 
     if (isMixed) {
       return (
@@ -198,13 +209,17 @@ const EditableField = ({
   }
 
   // Boolean field (e.g. canOverflow)
-  const booleanOptions: SelectorOption<string>[] = [
-    { label: translate("yes"), value: "yes" },
-    { label: translate("no"), value: "no" },
-  ];
-
   const firstKey = propertyStats.values.keys().next().value as string;
   const currentValue = isMixed ? null : firstKey;
+
+  const booleanOptions: SelectorOption<string>[] = readonly
+    ? currentValue != null
+      ? [{ label: translate(currentValue), value: currentValue }]
+      : []
+    : [
+        { label: translate("yes"), value: "yes" },
+        { label: translate("no"), value: "no" },
+      ];
 
   if (isMixed) {
     return (

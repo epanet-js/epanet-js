@@ -28,7 +28,7 @@ export const triggerStylesFor = (
   return clsx(
     "flex items-center gap-x-2 w-full",
     disabled
-      ? "text-gray-400 dark:text-gray-500 cursor-not-allowed bg-gray-100 dark:bg-gray-800"
+      ? "text-gray-500 dark:text-gray-500 cursor-not-allowed bg-gray-100 dark:bg-gray-800"
       : "text-gray-700 bg-white dark:bg-gray-900",
     !disabled &&
       !effectiveStyleOptions.disableHoverEffects &&
@@ -230,7 +230,7 @@ export function Selector<T extends string | number>({
           <div
             className={clsx(
               "text-nowrap overflow-hidden text-ellipsis w-full text-left",
-              selected == null && nullable && "italic text-gray-400",
+              selected == null && nullable && "italic text-gray-500",
             )}
           >
             <Select.Value placeholder={nullable ? placeholder : undefined} />

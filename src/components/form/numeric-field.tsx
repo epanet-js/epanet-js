@@ -166,7 +166,7 @@ function styledInput({
 }: StyleOptions = {}) {
   return clsx(
     disabled
-      ? "text-gray-400 dark:text-gray-500 cursor-not-allowed bg-gray-100 dark:bg-gray-800"
+      ? "text-gray-500 dark:text-gray-500 cursor-not-allowed bg-gray-100 dark:bg-gray-800"
       : "text-gray-700 dark:text-gray-100",
     {
       "p-1": padding === "sm",
@@ -194,6 +194,6 @@ function styledInput({
       "text-md": textSize === "md",
     },
 
-    "rounded-sm block tabular-nums overflow-hidden whitespace-nowrap text-ellipsis focus-visible:ring-inset w-full placeholder:italic placeholder:text-gray-400",
+    "rounded-sm block tabular-nums overflow-hidden whitespace-nowrap text-ellipsis focus-visible:ring-inset w-full placeholder:italic placeholder:text-gray-500",
   );
 }

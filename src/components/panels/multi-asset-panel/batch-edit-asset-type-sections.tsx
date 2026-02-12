@@ -1,6 +1,6 @@
 import { useTranslate } from "src/hooks/use-translate";
 import { Section, SectionList } from "src/components/form/fields";
-import { MultiValueRow } from "./multi-value-row";
+import { ReadOnlyMultiValueRow } from "./readonly-multi-value-row";
 import { BatchEditableRow } from "./batch-editable-row";
 import { AssetPropertySections } from "./data";
 import { BATCH_EDITABLE_PROPERTIES } from "./batch-edit-property-config";
@@ -68,7 +68,7 @@ export function BatchEditAssetTypeSections({
               }
 
               return (
-                <MultiValueRow
+                <ReadOnlyMultiValueRow
                   key={stat.property}
                   name={stat.property}
                   propertyStats={stat}
