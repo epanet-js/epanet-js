@@ -1,5 +1,6 @@
 import { atomWithReset } from "jotai/utils";
 import { ParserIssues } from "src/import/inp";
+import { CurveId } from "src/hydraulic-model/curves";
 
 export type InvalidFilesErrorDialogState = {
   type: "invalidFilesError";
@@ -86,6 +87,7 @@ export type CurvesAndPatternsDialogState = {
 
 export type PumpCurvesDialogState = {
   type: "pumpLibrary";
+  initialCurveId?: CurveId;
 };
 
 export type DeleteScenarioConfirmationDialogState = {

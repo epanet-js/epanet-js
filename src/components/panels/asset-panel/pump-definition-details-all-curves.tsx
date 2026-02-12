@@ -581,7 +581,7 @@ const CurveIdSelector = ({
   const handleChange = (_: string, newValue: number | null) => {
     if (newValue === null) return;
     if (newValue) onChange({ type: "curveId", curveId: newValue });
-    if (newValue === 0) showPumpLibrary({ source: "pump" });
+    if (newValue === 0) showPumpLibrary({ source: "pump", curveId });
   };
 
   return curveOptions[1].length > 0 ? (

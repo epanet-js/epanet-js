@@ -25,7 +25,11 @@ import { LabelManager } from "src/hydraulic-model/label-manager";
 
 type CurveUpdate = Partial<Pick<ICurve, "label" | "points">>;
 
-export const PumpCurvesDialog = () => {
+export const PumpCurvesDialog = ({
+  initialCurveId,
+}: {
+  initialCurveId?: CurveId;
+}) => {
   const translate = useTranslate();
   const { closeDialog } = useDialogState();
   const hydraulicModel = useAtomValue(stagingModelAtom);
@@ -34,7 +38,9 @@ export const PumpCurvesDialog = () => {
   const headUnit = modelMetadata.quantities.getUnit("head");
   const userTracking = useUserTracking();
   const isSnapshotLocked = useIsSnapshotLocked();
-  const [selectedCurveId, setSelectedCurveId] = useState<CurveId | null>(null);
+  const [selectedCurveId, setSelectedCurveId] = useState<CurveId | null>(
+    initialCurveId ?? null,
+  );
   const [editedCurves, setEditedCurves] = useState<Curves>(() =>
     deepCloneCurves(hydraulicModel.curves),
   );

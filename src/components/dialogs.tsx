@@ -259,7 +259,9 @@ const CurvesAndPatternsDialog = dynamic(
   },
 );
 
-const PumpCurvesDialog = dynamic(
+const PumpCurvesDialog = dynamic<{
+  initialCurveId?: number;
+}>(
   () =>
     import("src/components/dialogs/pump-curves").then(
       (r) => r.PumpCurvesDialog,
@@ -404,7 +406,7 @@ export const Dialogs = memo(function Dialogs() {
     return <CurvesAndPatternsDialog />;
   }
   if (dialog.type === "pumpLibrary") {
-    return <PumpCurvesDialog />;
+    return <PumpCurvesDialog initialCurveId={dialog.initialCurveId} />;
   }
 
   if (dialog.type === "upgrade") {
