@@ -16,8 +16,6 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { SimulationSettingsDialog } from "./dialogs/simulation-settings";
 import { LoadingDialog } from "./dialog";
 import { WelcomeDialog } from "./dialogs/welcome";
-import { WelcomeDialogDeprecated } from "./dialogs/welcomeDeprecated";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 const UpgradeDialog = dynamic<{
   onClose: () => void;
@@ -341,7 +339,6 @@ const FirstScenarioDialog = dynamic<{
 export const Dialogs = memo(function Dialogs() {
   const [dialog, setDialogState] = useAtom(dialogAtom);
   const userTracking = useUserTracking();
-  const hasWelcomeFlag = useFeatureFlag("FLAG_WELCOME");
 
   const onClose = useCallback(() => {
     setDialogState(null);
@@ -404,7 +401,7 @@ export const Dialogs = memo(function Dialogs() {
     return <UnexpectedErrorDialog modal={dialog} onClose={onClose} />;
   }
   if (dialog.type === "welcome") {
-    return hasWelcomeFlag ? <WelcomeDialog /> : <WelcomeDialogDeprecated />;
+    return <WelcomeDialog />;
   }
   if (dialog.type === "loading") {
     return <LoadingDialog />;
