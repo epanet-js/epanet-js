@@ -168,63 +168,68 @@ export const ScenariosPaywallDialog = ({
         </div>
 
         <div className="flex flex-col">
-          <div className="space-y-3 pb-6">
-            <p className="text-sm text-gray-700 dark:text-gray-300">
-              {translate("scenarios.paywall.description1")}
-            </p>
-            <p className="text-sm text-gray-700 dark:text-gray-300">
-              {translate("scenarios.paywall.description2")}
-            </p>
-            <p className="text-sm text-gray-700 dark:text-gray-300">
-              {translate("scenarios.paywall.description3")}
-            </p>
-          </div>
-
-          <div className="flex flex-col gap-5">
-            {showTrialButton ? (
-              <div className="flex flex-col gap-1">
-                <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                  Start your 14-day Pro trial
-                </h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Try all Pro features free for 14 days. No credit card
-                  required.
+          {showTrialButton ? (
+            <>
+              <div className="space-y-3 pb-6">
+                <p className="text-sm text-gray-700 dark:text-gray-300">
+                  {translate("scenarios.paywall.description1")}
                 </p>
-                <div className="pt-2">
-                  <Button
-                    variant="primary"
-                    size="full-width"
-                    onClick={() => void handleStartTrial()}
-                    disabled={isTrialLoading || isDemoLoading}
-                  >
-                    {isTrialLoading ? (
-                      <RefreshIcon className="animate-spin" />
-                    ) : (
-                      "Start Free Trial"
-                    )}
-                  </Button>
-                </div>
-                <div className="flex items-center gap-2 pt-2">
+                <p className="text-sm text-gray-700 dark:text-gray-300">
+                  {translate("scenarios.paywall.description2")}
+                </p>
+                <p className="text-sm text-gray-700 dark:text-gray-300">
+                  Scenarios are a paid feature. Activate your free trial to get
+                  full access for 14 days—no credit card required.
+                </p>
+              </div>
+              <div className="flex flex-col gap-3">
+                <Button
+                  variant="primary"
+                  size="full-width"
+                  onClick={() => void handleStartTrial()}
+                  disabled={isTrialLoading || isDemoLoading}
+                >
+                  {isTrialLoading ? (
+                    <RefreshIcon className="animate-spin" />
+                  ) : (
+                    "Activate free trial"
+                  )}
+                </Button>
+                <div className="flex items-center gap-2">
                   <div className="flex-1 border-t border-gray-200 dark:border-gray-700" />
                   <span className="text-xs text-gray-400 dark:text-gray-500">
                     or
                   </span>
                   <div className="flex-1 border-t border-gray-200 dark:border-gray-700" />
                 </div>
-                <button
-                  className="text-sm text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 hover:underline disabled:opacity-50 disabled:cursor-not-allowed"
+                <Button
+                  variant="default"
+                  size="full-width"
                   onClick={() => void handleTryDemo()}
                   disabled={isTrialLoading || isDemoLoading}
                 >
                   {isDemoLoading ? (
-                    <RefreshIcon className="animate-spin w-4 h-4 mx-auto" />
+                    <RefreshIcon className="animate-spin" />
                   ) : (
                     "Try with a demo network"
                   )}
-                </button>
+                </Button>
               </div>
-            ) : (
-              <>
+            </>
+          ) : (
+            <>
+              <div className="space-y-3 pb-6">
+                <p className="text-sm text-gray-700 dark:text-gray-300">
+                  {translate("scenarios.paywall.description1")}
+                </p>
+                <p className="text-sm text-gray-700 dark:text-gray-300">
+                  {translate("scenarios.paywall.description2")}
+                </p>
+                <p className="text-sm text-gray-700 dark:text-gray-300">
+                  {translate("scenarios.paywall.description3")}
+                </p>
+              </div>
+              <div className="flex flex-col gap-5">
                 <div className="flex flex-col gap-1">
                   <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">
                     {translate("scenarios.paywall.nonCommercial.title")}
@@ -260,9 +265,9 @@ export const ScenariosPaywallDialog = ({
                     </Button>
                   </div>
                 </div>
-              </>
-            )}
-          </div>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </DialogContainer>
