@@ -232,6 +232,7 @@ export const WelcomeDialog = () => {
                   {translate("foundersPartnerDescription")}{" "}
                   <a
                     href="https://help.epanetjs.com/Founding-Partner-program-2f6e18c9f0f680d8be27c05c0b5844bb"
+                    target="_blank"
                     className="underline text-violet-500"
                     onClick={() => {
                       userTracking.capture({
