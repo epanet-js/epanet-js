@@ -607,7 +607,7 @@ const CurveIdSelector = ({
     <InlineField name={translate("pumpName")} labelSize="md">
       <Button
         onClick={() => showPumpLibrary({ source: "pump" })}
-        className="w-full h8"
+        className="w-full py-2"
       >
         {translate("openPumpLibrary")}
       </Button>

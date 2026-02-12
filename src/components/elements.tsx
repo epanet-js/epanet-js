@@ -745,13 +745,13 @@ export function sharedOutline(
       [`border border-purple-500`]: variant === "primary",
       [`border border-blue-500`]: variant === "blue",
       [`border
-    border-gray-200               dark:border-gray-500
+    border-gray-300               dark:border-gray-500
     shadow-sm
   `]: variant === "default",
 
       [`
     focus-visible:border-gray-200   dark:focus-visible:border-gray-300
-    hover:border-gray-300   dark:hover:border-gray-300
+    hover:border-gray-200   dark:hover:border-gray-300
     `]: variant === "default" && !disabled,
 
       [`border
@@ -784,7 +784,10 @@ const sharedBackground = (variant: B3Variant, disabled = false): ClassValue => {
         !disabled && `hover:bg-blue-700 dark:hover:bg-blue-500 hover:shadow`,
       ];
     case "default":
-      return !disabled && `hover:bg-gray-100 dark:hover:bg-gray-800`;
+      return [
+        `bg-white dark:bg-gray-900`,
+        !disabled && `hover:bg-gray-100 dark:hover:bg-gray-800`,
+      ];
     case "quiet":
       return !disabled && `hover:bg-gray-200 dark:hover:bg-gray-700`;
     case "ultra-quiet":
