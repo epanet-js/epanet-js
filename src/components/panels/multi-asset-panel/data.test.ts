@@ -3,6 +3,7 @@ import {
   computeMultiAssetData,
   QuantityStats,
   CategoryStats,
+  BooleanStats,
   AssetPropertyStats,
 } from "./data";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
@@ -30,6 +31,16 @@ describe("computeMultiAssetData", () => {
     expect(stat).toBeDefined();
     expect(stat?.type).toBe("category");
     return stat as CategoryStats;
+  };
+
+  const findBooleanStat = (
+    stats: AssetPropertyStats[],
+    property: string,
+  ): BooleanStats => {
+    const stat = stats.find((s) => s.property === property);
+    expect(stat).toBeDefined();
+    expect(stat?.type).toBe("boolean");
+    return stat as BooleanStats;
   };
 
   it("groups assets by type", () => {
@@ -360,7 +371,7 @@ describe("computeMultiAssetData", () => {
     const assets = Array.from(hydraulicModel.assets.values());
     const result = computeMultiAssetData(assets, quantities, hydraulicModel);
 
-    const isEnabledStat = findCategoryStat(
+    const isEnabledStat = findBooleanStat(
       result.data.pipe.activeTopology,
       "isEnabled",
     );

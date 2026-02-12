@@ -42,13 +42,19 @@ export type CategoryStats = {
   values: Map<string, number>;
 };
 
+export type BooleanStats = {
+  type: "boolean";
+  property: string;
+  values: Map<string, number>;
+};
+
 type Section =
   | "activeTopology"
   | "modelAttributes"
   | "simulationResults"
   | "demands";
 
-export type AssetPropertyStats = QuantityStats | CategoryStats;
+export type AssetPropertyStats = QuantityStats | CategoryStats | BooleanStats;
 
 export type AssetPropertySections = {
   [section in Section]: AssetPropertyStats[];
@@ -176,7 +182,7 @@ const appendJunctionStats = (
   demands: Demands,
   simulationResults?: ResultsReader | null,
 ) => {
-  updateCategoryStats(statsMap, "isEnabled", junction.isActive ? "yes" : "no");
+  updateBooleanStats(statsMap, "isEnabled", junction.isActive);
   updateQuantityStats(
     statsMap,
     "elevation",
@@ -280,7 +286,7 @@ const appendPipeStats = (
   demands: Demands,
   simulationResults?: ResultsReader | null,
 ) => {
-  updateCategoryStats(statsMap, "isEnabled", pipe.isActive ? "yes" : "no");
+  updateBooleanStats(statsMap, "isEnabled", pipe.isActive);
   updateCategoryStats(statsMap, "initialStatus", "pipe." + pipe.initialStatus);
   updateQuantityStats(statsMap, "diameter", pipe.diameter, quantitiesMetadata);
   updateQuantityStats(statsMap, "length", pipe.length, quantitiesMetadata);
@@ -381,7 +387,7 @@ const appendPumpStats = (
   quantitiesMetadata: Quantities,
   simulationResults?: ResultsReader | null,
 ) => {
-  updateCategoryStats(statsMap, "isEnabled", pump.isActive ? "yes" : "no");
+  updateBooleanStats(statsMap, "isEnabled", pump.isActive);
 
   let pumpType: string = pump.definitionType;
   if (pump.definitionType === "curve" && pump.curve) {
@@ -427,6 +433,7 @@ const buildPumpSections = (
     modelAttributes: getStatsForProperties(statsMap, [
       "pumpType",
       "initialStatus",
+      "speed",
     ]),
     demands: [],
     simulationResults: getStatsForProperties(statsMap, [
@@ -443,7 +450,7 @@ const appendValveStats = (
   quantitiesMetadata: Quantities,
   simulationResults?: ResultsReader | null,
 ) => {
-  updateCategoryStats(statsMap, "isEnabled", valve.isActive ? "yes" : "no");
+  updateBooleanStats(statsMap, "isEnabled", valve.isActive);
   updateCategoryStats(statsMap, "valveType", `valve.${valve.kind}`);
   updateCategoryStats(
     statsMap,
@@ -508,7 +515,7 @@ const appendReservoirStats = (
   reservoir: Reservoir,
   quantitiesMetadata: Quantities,
 ) => {
-  updateCategoryStats(statsMap, "isEnabled", reservoir.isActive ? "yes" : "no");
+  updateBooleanStats(statsMap, "isEnabled", reservoir.isActive);
   updateQuantityStats(
     statsMap,
     "elevation",
@@ -535,7 +542,7 @@ const appendTankStats = (
   quantitiesMetadata: Quantities,
   simulationResults?: ResultsReader | null,
 ) => {
-  updateCategoryStats(statsMap, "isEnabled", tank.isActive ? "yes" : "no");
+  updateBooleanStats(statsMap, "isEnabled", tank.isActive);
   updateQuantityStats(
     statsMap,
     "elevation",
@@ -559,7 +566,7 @@ const appendTankStats = (
   );
 
   if (tank.overflow !== undefined) {
-    updateCategoryStats(statsMap, "canOverflow", tank.overflow ? "yes" : "no");
+    updateBooleanStats(statsMap, "canOverflow", tank.overflow);
   }
 
   // Simulation results - read from ResultsReader
@@ -699,6 +706,24 @@ const updateCategoryStats = (
 
   const stats = statsMap.get(property) as CategoryStats;
   stats.values.set(value, (stats.values.get(value) || 0) + 1);
+};
+
+const updateBooleanStats = (
+  statsMap: Map<string, AssetPropertyStats>,
+  property: string,
+  value: boolean,
+) => {
+  if (!statsMap.has(property)) {
+    statsMap.set(property, {
+      type: "boolean",
+      property,
+      values: new Map(),
+    });
+  }
+
+  const label = value ? "yes" : "no";
+  const stats = statsMap.get(property) as BooleanStats;
+  stats.values.set(label, (stats.values.get(label) || 0) + 1);
 };
 
 const getStatsForProperties = (

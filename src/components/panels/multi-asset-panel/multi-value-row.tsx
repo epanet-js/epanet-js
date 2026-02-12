@@ -149,7 +149,7 @@ export const SortableValuesList = ({
 }: {
   values: Map<JsonValue, number>;
   decimals?: number;
-  type: "quantity" | "category";
+  type: "quantity" | "category" | "boolean";
 }) => {
   const translate = useTranslate();
 
@@ -166,7 +166,7 @@ export const SortableValuesList = ({
     } else {
       setSortColumn(column);
       const defaultDirection =
-        column === "value" && type === "category" ? "asc" : "desc";
+        column === "value" && type !== "quantity" ? "asc" : "desc";
       setSortDirection(defaultDirection);
     }
   };

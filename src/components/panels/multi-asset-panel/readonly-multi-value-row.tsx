@@ -7,6 +7,7 @@ import { TextField } from "../asset-panel/ui-components";
 import * as P from "@radix-ui/react-popover";
 import { StyledPopoverArrow, StyledPopoverContent } from "../../elements";
 import { MultipleValuesIcon } from "src/icons";
+import { TriStateCheckbox } from "src/components/form/Checkbox";
 import { AssetPropertyStats } from "./data";
 import {
   QuantityStatsBaseFields,
@@ -37,6 +38,9 @@ export function ReadOnlyMultiValueRow({
     : translate(name);
 
   const hasMultipleValues = propertyStats.values.size > 1;
+
+  const isBooleanField = propertyStats.type === "boolean";
+
   const firstValue = propertyStats.values.keys().next().value;
 
   const displayValue = hasMultipleValues
@@ -60,6 +64,24 @@ export function ReadOnlyMultiValueRow({
       event.stopPropagation();
     }
   };
+
+  if (isBooleanField) {
+    const isChecked = !hasMultipleValues && firstValue === "yes";
+
+    return (
+      <InlineField name={label} labelSize="md">
+        <div className="p-2 flex items-center h-[38px]">
+          <TriStateCheckbox
+            checked={isChecked}
+            indeterminate={hasMultipleValues}
+            disabled
+            ariaLabel={label}
+            onChange={() => {}}
+          />
+        </div>
+      </InlineField>
+    );
+  }
 
   return (
     <InlineField name={label} labelSize="md">

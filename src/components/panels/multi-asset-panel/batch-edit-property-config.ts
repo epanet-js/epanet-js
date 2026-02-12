@@ -35,7 +35,6 @@ export const BATCH_EDITABLE_PROPERTIES: Partial<
   Record<Asset["type"], Record<string, BatchEditPropertyConfig>>
 > = {
   junction: {
-    isEnabled: { fieldType: "boolean", modelProperty: "isActive" },
     elevation: { fieldType: "quantity", modelProperty: "elevation" },
   },
   pipe: {
@@ -77,6 +76,7 @@ export const BATCH_EDITABLE_PROPERTIES: Partial<
       statsPrefix: "pump.",
       values: pumpStatuses,
     },
+    speed: { fieldType: "quantity", modelProperty: "speed" },
   },
   valve: {
     isEnabled: { fieldType: "boolean", modelProperty: "isActive" },
@@ -106,12 +106,10 @@ export const BATCH_EDITABLE_PROPERTIES: Partial<
     },
   },
   reservoir: {
-    isEnabled: { fieldType: "boolean", modelProperty: "isActive" },
     elevation: { fieldType: "quantity", modelProperty: "elevation" },
     head: { fieldType: "quantity", modelProperty: "head" },
   },
   tank: {
-    isEnabled: { fieldType: "boolean", modelProperty: "isActive" },
     elevation: { fieldType: "quantity", modelProperty: "elevation" },
     initialLevel: {
       fieldType: "quantity",
