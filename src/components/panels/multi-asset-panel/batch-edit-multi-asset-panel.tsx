@@ -18,6 +18,8 @@ import { computeMultiAssetData } from "./data";
 import { usePersistence } from "src/lib/persistence";
 import { useUserTracking } from "src/infra/user-tracking";
 import { changeProperty } from "src/hydraulic-model/model-operations";
+import { activateAssets } from "src/hydraulic-model/model-operations/activate-assets";
+import { deactivateAssets } from "src/hydraulic-model/model-operations/deactivate-assets";
 
 export function BatchEditMultiAssetPanel({
   selectedFeatures,
@@ -73,11 +75,16 @@ export function BatchEditMultiAssetPanel({
       value: number | string | boolean,
     ) => {
       const assetIds = assetIdsByType[assetType];
-      const moment = changeProperty(hydraulicModel, {
-        assetIds,
-        property: modelProperty,
-        value: value as never,
-      });
+      const moment =
+        modelProperty === "isActive"
+          ? value
+            ? activateAssets(hydraulicModel, { assetIds })
+            : deactivateAssets(hydraulicModel, { assetIds })
+          : changeProperty(hydraulicModel, {
+              assetIds,
+              property: modelProperty,
+              value: value as never,
+            });
       transact(moment);
       userTracking.capture({
         name: "assetProperty.batchEdited",

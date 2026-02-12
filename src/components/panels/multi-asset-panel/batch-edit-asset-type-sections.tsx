@@ -51,7 +51,8 @@ export function BatchEditAssetTypeSections({
           >
             {stats.map((stat) => {
               const config =
-                sectionKey === "modelAttributes"
+                sectionKey === "modelAttributes" ||
+                sectionKey === "activeTopology"
                   ? editableProperties[stat.property]
                   : undefined;
 
