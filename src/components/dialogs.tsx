@@ -313,6 +313,16 @@ const ScenariosPaywallDialog = dynamic<{
   },
 );
 
+const ActivatingTrialDialog = dynamic(
+  () =>
+    import("src/components/dialogs/activating-trial").then(
+      (r) => r.ActivatingTrialDialog,
+    ),
+  {
+    loading: () => <LoadingDialog />,
+  },
+);
+
 const FirstScenarioDialog = dynamic<{
   onConfirm: () => void;
   onClose: () => void;
@@ -415,6 +425,10 @@ export const Dialogs = memo(function Dialogs() {
 
   if (dialog.type === "scenariosPaywall") {
     return <ScenariosPaywallDialog onClose={onClose} />;
+  }
+
+  if (dialog.type === "activatingTrial") {
+    return <ActivatingTrialDialog />;
   }
 
   if (dialog.type === "firstScenario") {

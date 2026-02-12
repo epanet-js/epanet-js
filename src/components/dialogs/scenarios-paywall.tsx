@@ -17,7 +17,8 @@ import {
 import { useUserTracking } from "src/infra/user-tracking";
 import { useTranslate } from "src/hooks/use-translate";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { useAuth } from "src/auth";
+import { useAuth, ClerkSignInButton } from "src/auth";
+import { buildAfterSignupUrl } from "src/hooks/use-early-access";
 import { notify } from "src/components/notifications";
 import { useImportInp } from "src/commands/import-inp";
 import { useUnsavedChangesCheck } from "src/commands/check-unsaved-changes";
@@ -43,7 +44,7 @@ export const ScenariosPaywallDialog = ({
   const setDialog = useSetAtom(dialogAtom);
   const userTracking = useUserTracking();
   const translate = useTranslate();
-  const { user } = useAuth();
+  const { user, isSignedIn } = useAuth();
   const isActivateTrialOn = useFeatureFlag("FLAG_ACTIVATE_TRIAL");
   const showTrialButton =
     isActivateTrialOn && !user.hasUsedTrial && user.plan === "free";
@@ -183,18 +184,35 @@ export const ScenariosPaywallDialog = ({
                 </p>
               </div>
               <div className="flex flex-col gap-3">
-                <Button
-                  variant="primary"
-                  size="full-width"
-                  onClick={() => void handleStartTrial()}
-                  disabled={isTrialLoading || isDemoLoading}
-                >
-                  {isTrialLoading ? (
-                    <RefreshIcon className="animate-spin" />
-                  ) : (
-                    "Activate free trial"
-                  )}
-                </Button>
+                {isSignedIn ? (
+                  <Button
+                    variant="primary"
+                    size="full-width"
+                    onClick={() => void handleStartTrial()}
+                    disabled={isTrialLoading || isDemoLoading}
+                  >
+                    {isTrialLoading ? (
+                      <RefreshIcon className="animate-spin" />
+                    ) : (
+                      "Activate free trial"
+                    )}
+                  </Button>
+                ) : (
+                  <ClerkSignInButton
+                    forceRedirectUrl={buildAfterSignupUrl("activatingTrial")}
+                    signUpForceRedirectUrl={buildAfterSignupUrl(
+                      "activatingTrial",
+                    )}
+                  >
+                    <Button
+                      variant="primary"
+                      size="full-width"
+                      disabled={isDemoLoading}
+                    >
+                      Activate free trial
+                    </Button>
+                  </ClerkSignInButton>
+                )}
                 <div className="flex items-center gap-2">
                   <div className="flex-1 border-t border-gray-200 dark:border-gray-700" />
                   <span className="text-xs text-gray-400 dark:text-gray-500">
