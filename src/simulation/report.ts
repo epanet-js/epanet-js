@@ -26,7 +26,7 @@ const assetReferenceRegExp =
 
 const skipRegexp = [/Error 213/, /Error 211/];
 
-const idRegExps = [
+const sectionRowRegExps = [
   valvesSectionRowRegExp,
   pipesSectionRowRegExp,
   pumpsSectionRowRegExp,
@@ -34,6 +34,9 @@ const idRegExps = [
   errorMessageRegExp,
   assetReferenceRegExp,
 ];
+
+const errorLineRegExp = /^\s*Error \d{3}:/;
+const errorLineRegExps = [errorMessageRegExp, assetReferenceRegExp];
 
 export const processReportWithSlots = (
   report: string,
@@ -51,7 +54,11 @@ export const processReportWithSlots = (
     const assetSlots: AssetId[] = [];
     let slotIndex = 0;
 
-    for (const regexp of idRegExps) {
+    const regExps = errorLineRegExp.test(row)
+      ? errorLineRegExps
+      : sectionRowRegExps;
+
+    for (const regexp of regExps) {
       processedText = processedText.replace(regexp, (match, ...capturedIds) => {
         let result = match;
         let offsetAdjustment = 0;

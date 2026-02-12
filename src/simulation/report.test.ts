@@ -215,6 +215,24 @@ Node 19 and Pipe 56`;
     });
   });
 
+  it("does not replace error code with asset link when error text contains pump section keywords", () => {
+    const IDS = { PU1: 91, P91: 227 } as const;
+    const assets = HydraulicModelBuilder.with()
+      .aPump(IDS.PU1, { label: "PU1" })
+      .aPipe(IDS.P91, { label: "P91" })
+      .build().assets;
+
+    const report = ` Error 227: invalid head curve for Pump 91`;
+
+    const { processedReport } = processReportWithSlots(report, assets);
+
+    expect(processedReport).toHaveLength(1);
+    expect(processedReport[0]).toEqual({
+      text: " Error 227: invalid head curve for Pump {{0}}",
+      assetSlots: [IDS.PU1],
+    });
+  });
+
   it("handles error messages with missing tank node correctly", () => {
     const assets = HydraulicModelBuilder.with().build().assets;
 
