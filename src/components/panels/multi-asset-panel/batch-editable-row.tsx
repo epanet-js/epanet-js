@@ -5,6 +5,7 @@ import { localizeDecimal } from "src/infra/i18n/numbers";
 import { InlineField } from "src/components/form/fields";
 import { NumericField } from "src/components/form/numeric-field";
 import { Selector, SelectorOption } from "src/components/form/selector";
+import { TriStateCheckbox } from "src/components/form/Checkbox";
 import * as P from "@radix-ui/react-popover";
 import { StyledPopoverArrow, StyledPopoverContent } from "../../elements";
 import { MultipleValuesIcon } from "src/icons";
@@ -210,44 +211,19 @@ const EditableField = ({
 
   // Boolean field (e.g. canOverflow)
   const firstKey = propertyStats.values.keys().next().value as string;
-  const currentValue = isMixed ? null : firstKey;
-
-  const booleanOptions: SelectorOption<string>[] = readonly
-    ? currentValue != null
-      ? [{ label: translate(currentValue), value: currentValue }]
-      : []
-    : [
-        { label: translate("yes"), value: "yes" },
-        { label: translate("no"), value: "no" },
-      ];
-
-  if (isMixed) {
-    return (
-      <Selector<string>
-        selected={currentValue}
-        options={booleanOptions}
-        nullable={true}
-        placeholder={translate("mixedValues")}
-        ariaLabel={label}
-        onChange={(newValue) => {
-          if (newValue !== null) {
-            onPropertyChange(config.modelProperty, newValue === "yes");
-          }
-        }}
-        disabled={readonly}
-      />
-    );
-  }
+  const isChecked = !isMixed && firstKey === "yes";
 
   return (
-    <Selector<string>
-      selected={currentValue!}
-      options={booleanOptions}
-      ariaLabel={label}
-      onChange={(newValue) => {
-        onPropertyChange(config.modelProperty, newValue === "yes");
-      }}
-      disabled={readonly}
-    />
+    <div className="p-2 flex items-center h-[38px]">
+      <TriStateCheckbox
+        checked={isChecked}
+        indeterminate={isMixed}
+        disabled={readonly}
+        ariaLabel={label}
+        onChange={(newChecked) => {
+          onPropertyChange(config.modelProperty, newChecked);
+        }}
+      />
+    </div>
   );
 };
