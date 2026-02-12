@@ -377,6 +377,11 @@ type RepoVisited = {
   source: "welcome" | "menu";
 };
 
+type FoundersPartnerLinkVisited = {
+  name: "foundersPartner.visited";
+  link: "optimatics" | "foundersPartners";
+};
+
 type SignInStarted = {
   name: "signIn.started";
   source: "menu";
@@ -806,6 +811,7 @@ export type UserEvent =
   | RoadmapVisited
   | UtilitiesVisited
   | RepoVisited
+  | FoundersPartnerLinkVisited
   | SignUpStarted
   | SignInStarted
   | LogOutCompleted

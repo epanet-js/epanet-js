@@ -212,7 +212,16 @@ export const WelcomeDialog = () => {
                 <h3 className="text-gray-600 font-bold">
                   {translate("foundersPartnerTitle")}
                 </h3>
-                <a href="https://optimatics.com/" target="_blank">
+                <a
+                  href="https://optimatics.com/"
+                  target="_blank"
+                  onClick={() => {
+                    userTracking.capture({
+                      name: "foundersPartner.visited",
+                      link: "optimatics",
+                    });
+                  }}
+                >
                   <img
                     src={optimaticsLogoUrl.src}
                     className="block m-auto h-16"
@@ -224,6 +233,12 @@ export const WelcomeDialog = () => {
                   <a
                     href="https://help.epanetjs.com/Founding-Partner-program-2f6e18c9f0f680d8be27c05c0b5844bb"
                     className="underline text-violet-500"
+                    onClick={() => {
+                      userTracking.capture({
+                        name: "foundersPartner.visited",
+                        link: "foundersPartners",
+                      });
+                    }}
                   >
                     {translate("foundersPartnerLearnMore")}
                   </a>
