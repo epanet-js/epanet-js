@@ -29,7 +29,7 @@ import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { Message } from "../message";
 import { DemoNetworkCard } from "../demo-network-card";
 import { DRUMCHAPEL, WATERDOWN } from "src/demo/demo-networks";
-import foundersLogoUrl from "src/assets/images/logos/optimatics-logo-black.webp";
+import optimaticsLogoUrl from "src/assets/images/logos/optimatics-logo-black.webp";
 
 type DemoModel = {
   name: string;
@@ -212,11 +212,13 @@ export const WelcomeDialog = () => {
                 <h3 className="text-gray-600 font-bold">
                   {translate("foundersPartnerTitle")}
                 </h3>
-                <img
-                  src={foundersLogoUrl.src}
-                  className="block m-auto h-16"
-                  height="64"
-                />
+                <a href="https://optimatics.com/" target="_blank">
+                  <img
+                    src={optimaticsLogoUrl.src}
+                    className="block m-auto h-16"
+                    height="64"
+                  />
+                </a>
                 <p className="text-gray-600">
                   {translate("foundersPartnerDescription")}{" "}
                   <a
