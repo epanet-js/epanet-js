@@ -28,6 +28,7 @@ import { DialogCloseX, DialogContainer } from "../dialog";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { Message } from "../message";
 import { DemoNetworkCard } from "../demo-network-card";
+import { DRUMCHAPEL, WATERDOWN } from "src/demo/demo-networks";
 
 type DemoModel = {
   name: string;
@@ -39,16 +40,16 @@ const getDemoModels = (
   translate: ReturnType<typeof useTranslate>,
 ): DemoModel[] => [
   {
-    name: "Drumchapel",
+    name: DRUMCHAPEL.name,
     description: translate("demoUKStyleDescription"),
-    url: "/example-models/01-uk-style.inp",
-    thumbnailUrl: "/example-models/01-uk-style.png",
+    url: DRUMCHAPEL.url,
+    thumbnailUrl: DRUMCHAPEL.thumbnailUrl,
   },
   {
-    name: "Waterdown",
+    name: WATERDOWN.name,
     description: translate("demoUSStyleDescription"),
-    url: "/example-models/02-us-style.inp",
-    thumbnailUrl: "/example-models/02-us-style.png",
+    url: WATERDOWN.url,
+    thumbnailUrl: WATERDOWN.thumbnailUrl,
   },
 ];
 

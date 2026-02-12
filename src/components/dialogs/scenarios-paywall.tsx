@@ -22,8 +22,7 @@ import { notify } from "src/components/notifications";
 import { useImportInp } from "src/commands/import-inp";
 import { useUnsavedChangesCheck } from "src/commands/check-unsaved-changes";
 import { captureError } from "src/infra/error-tracking";
-
-const DEMO_NETWORK_URL = "/example-models/01-uk-style.inp";
+import { DRUMCHAPEL } from "src/demo/demo-networks";
 
 const SCENARIOS_VIDEO_SRC =
   "https://stream.mux.com/RVxWPZgcfKowXmi00iovKx1sffG100gu21BpD2U6Mjv98.m3u8";
@@ -120,10 +119,10 @@ export const ScenariosPaywallDialog = ({
     setIsDemoLoading(true);
 
     try {
-      const response = await fetch(DEMO_NETWORK_URL);
+      const response = await fetch(DRUMCHAPEL.url);
       if (!response.ok) throw new Error("Failed to download demo network");
 
-      const name = DEMO_NETWORK_URL.split("/").pop()!;
+      const name = DRUMCHAPEL.url.split("/").pop()!;
       const file = new File([await response.blob()], name);
 
       checkUnsavedChanges(async () => {

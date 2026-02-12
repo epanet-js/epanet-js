@@ -1,6 +1,7 @@
 import { useOpenInpFromUrl } from "src/commands/open-inp-from-url";
 import { useTranslate } from "src/hooks/use-translate";
 import { useUserTracking } from "src/infra/user-tracking";
+import { DRUMCHAPEL, WATERDOWN } from "src/demo/demo-networks";
 import Image from "next/image";
 
 type DemoModel = {
@@ -14,16 +15,16 @@ export const DemoNetworksList = () => {
   const translate = useTranslate();
   const demoModels: DemoModel[] = [
     {
-      name: "Drumchapel",
+      name: DRUMCHAPEL.name,
       description: translate("demoUKStyleDescription"),
-      url: "/example-models/01-uk-style.inp",
-      thumbnailUrl: "/example-models/01-uk-style.png",
+      url: DRUMCHAPEL.url,
+      thumbnailUrl: DRUMCHAPEL.thumbnailUrl,
     },
     {
-      name: "Waterdown",
+      name: WATERDOWN.name,
       description: translate("demoUSStyleDescription"),
-      url: "/example-models/02-us-style.inp",
-      thumbnailUrl: "/example-models/02-us-style.png",
+      url: WATERDOWN.url,
+      thumbnailUrl: WATERDOWN.thumbnailUrl,
     },
   ];
 
