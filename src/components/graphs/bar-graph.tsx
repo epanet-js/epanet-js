@@ -38,7 +38,7 @@ export function BarGraph({ values, labels, onBarClick }: BarGraphProps) {
       axisLabel: {
         show: true,
         color: colors.gray500,
-        fontSize: 11,
+        fontSize: 12,
         interval: calculateLabelInterval(labels.length),
       },
     }),
@@ -93,7 +93,7 @@ export function BarGraph({ values, labels, onBarClick }: BarGraphProps) {
         borderColor: colors.gray300,
         textStyle: {
           color: colors.gray700,
-          fontSize: 12,
+          fontSize: 14,
         },
         formatter: (params: unknown) => {
           if (!Array.isArray(params) || params.length === 0) return "";
@@ -186,7 +186,7 @@ const buildYAxis = (values: number[]): EChartsOption["yAxis"] => {
     axisTick: { show: true, lineStyle: { color: colors.gray300 } },
     axisLabel: {
       color: colors.gray500,
-      fontSize: 11,
+      fontSize: 12,
       formatter: (value: number) => localizeDecimal(value, { decimals: 2 }),
     },
   };

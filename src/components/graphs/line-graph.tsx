@@ -50,7 +50,7 @@ export function LineGraph({
       nameGap: 24,
       nameTextStyle: {
         color: colors.gray500,
-        fontSize: 11,
+        fontSize: 14,
       },
       axisLine: { show: true, lineStyle: { color: colors.gray300 } },
       axisTick: { show: true, lineStyle: { color: colors.gray300 } },
@@ -61,7 +61,7 @@ export function LineGraph({
       axisLabel: {
         show: true,
         color: colors.gray500,
-        fontSize: 11,
+        fontSize: 12,
         formatter: (value: number) => localizeDecimal(value, { decimals: 2 }),
       },
     };
@@ -82,7 +82,7 @@ export function LineGraph({
       nameGap: 40,
       nameTextStyle: {
         color: colors.gray500,
-        fontSize: 11,
+        fontSize: 14,
       },
       splitLine: {
         show: true,
@@ -92,7 +92,7 @@ export function LineGraph({
       axisTick: { show: true, lineStyle: { color: colors.gray300 } },
       axisLabel: {
         color: colors.gray500,
-        fontSize: 11,
+        fontSize: 12,
         formatter: (value: number) => localizeDecimal(value, { decimals: 2 }),
       },
     };
@@ -159,7 +159,7 @@ export function LineGraph({
         borderColor: colors.gray300,
         textStyle: {
           color: colors.gray700,
-          fontSize: 12,
+          fontSize: 14,
         },
         formatter: (params: unknown) => {
           const p = params as { value: [number, number] };

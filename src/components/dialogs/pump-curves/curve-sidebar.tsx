@@ -205,7 +205,7 @@ export const CurveSidebar = ({
           <CurveLabelInput
             label="New curve name"
             value=""
-            placeholder={translate("curveName")}
+            placeholder={translate("pumpName")}
             onCommit={handleCurveLabelChange}
             onCancel={clearActionState}
           />
@@ -309,7 +309,7 @@ const CurveSidebarItem = ({
         <CurveLabelInput
           label="Clone curve name"
           value={curve.label}
-          placeholder={translate("curveName")}
+          placeholder={translate("pumpName")}
           onCommit={onCurveLabelChange}
           onCancel={onCancel}
           forceValidation

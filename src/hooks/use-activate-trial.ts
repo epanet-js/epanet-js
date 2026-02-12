@@ -12,7 +12,7 @@ export const useActivateTrial = () => {
   const [isLoading, setLoading] = useAtom(activateTrialLoadingAtom);
   const { reload } = useAuth();
 
-  const activateTrial = async () => {
+  const activateTrial = async (): Promise<boolean> => {
     setLoading(true);
     try {
       const response = await fetch("/api/activate-trial", { method: "POST" });
@@ -23,6 +23,7 @@ export const useActivateTrial = () => {
 
       await reload();
       setLoading(false);
+      return true;
     } catch (error) {
       setLoading(false);
       captureError(error as Error);
@@ -32,6 +33,7 @@ export const useActivateTrial = () => {
         description: translate("tryAgainOrSupport"),
         Icon: ErrorIcon,
       });
+      return false;
     }
   };
 

@@ -122,6 +122,10 @@ export type AlertNetworkRequiredState = {
   type: "alertNetworkRequired";
 };
 
+export type ActivatingTrialDialogState = {
+  type: "activatingTrial";
+};
+
 export type DialogState =
   | InvalidFilesErrorDialogState
   | {
@@ -154,6 +158,7 @@ export type DialogState =
   | FirstScenarioDialogState
   | AlertScenariosNotSavedState
   | AlertNetworkRequiredState
+  | ActivatingTrialDialogState
   | null;
 
 export const dialogFromUrl = (): DialogState => {

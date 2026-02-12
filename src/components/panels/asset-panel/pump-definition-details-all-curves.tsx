@@ -587,11 +587,12 @@ const CurveIdSelector = ({
   return curveOptions[1].length > 0 ? (
     <div className="flex flex-col gap-2">
       <SelectRow
-        name="curveName"
+        name="pumpName"
         selected={selectedCurve}
         nullable={true}
         options={curveOptions}
         listClassName="first:italic"
+        stickyFirstGroup
         placeholder={`${translate("select")}...`}
         readOnly={readOnly}
         onChange={handleChange}
@@ -603,7 +604,7 @@ const CurveIdSelector = ({
       )}
     </div>
   ) : (
-    <InlineField name={translate("curveName")} labelSize="md">
+    <InlineField name={translate("pumpName")} labelSize="md">
       <Button
         onClick={() => showPumpLibrary({ source: "pump" })}
         className="w-full h8"

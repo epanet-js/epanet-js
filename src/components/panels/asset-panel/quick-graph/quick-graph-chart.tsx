@@ -110,7 +110,7 @@ function QuickGraphChartECharts({
       itemWidth: 16,
       itemHeight: 8,
       textStyle: {
-        fontSize: 10,
+        fontSize: 12,
         color: colors.gray600,
       },
     };
@@ -135,7 +135,7 @@ function QuickGraphChartECharts({
       borderColor: colors.gray300,
       textStyle: {
         color: colors.gray700,
-        fontSize: 12,
+        fontSize: 14,
       },
       formatter: (params: any) => {
         if (!Array.isArray(params) || params.length === 0) return "";
