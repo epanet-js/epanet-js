@@ -54,7 +54,7 @@ export const DemoNetworkCard = ({
   };
   return (
     <div
-      className="flex flex-col max-w-[250px] items-center gap-x-2 bg-w smhite shadow-md  rounded-lg border cursor-pointer hover:bg-gray-400 hover:bg-opacity-10"
+      className="flex flex-col max-w-[250px] items-center gap-x-2 bg-white shadow-md rounded-lg border cursor-pointer hover:bg-gray-400 hover:bg-opacity-10"
       onClick={handleOpenDemoModel}
     >
       <div className="flex-shrink-0">
@@ -64,7 +64,7 @@ export const DemoNetworkCard = ({
           width={247}
           height={200}
           quality={90}
-          className="rounded-md object-cover"
+          className="rounded-tl-md rounded-tr-md object-cover"
         />
       </div>
       <div className="flex flex-col p-3">
