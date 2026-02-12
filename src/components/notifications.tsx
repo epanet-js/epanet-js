@@ -2,11 +2,11 @@ import clsx from "clsx";
 import { CloseIcon } from "src/icons";
 import toast, { Toaster } from "react-hot-toast";
 
-type NotificationVariant = "success" | "warning" | "error";
+type NotificationVariant = "success" | "warning" | "error" | "default";
 
 type NotificationBannerProps = {
   variant: NotificationVariant;
-  title: string;
+  title?: string;
   description?: string;
   Icon?: React.ElementType;
   className?: string;
@@ -27,6 +27,7 @@ export const NotificationBanner = ({
           "bg-green-50 border-green-200": variant === "success",
           "bg-orange-50 border-orange-200": variant === "warning",
           "bg-red-50 border-red-200": variant === "error",
+          "bg-white borcer-gray-400": variant === "default",
         },
         className,
       )}
@@ -42,7 +43,7 @@ export const NotificationBanner = ({
         />
       )}
       <div className="flex flex-col flex-grow space-y-1">
-        <span className="text-sm font-semibold">{title}</span>
+        {title && <span className="text-sm font-semibold">{title}</span>}
         {description && <span className="text-sm">{description}</span>}
       </div>
     </div>
@@ -98,7 +99,7 @@ export const notifyPromiseState = (
 };
 
 export const notify = ({
-  variant,
+  variant = "default",
   title,
   description,
   Icon,
@@ -108,7 +109,7 @@ export const notify = ({
   dismissable = true,
   size = "auto",
 }: {
-  variant: "success" | "warning" | "error";
+  variant?: NotificationVariant;
   title: string;
   description?: string;
   Icon?: React.ElementType;
@@ -147,7 +148,7 @@ export const notify = ({
         {dismissable && (
           <button
             onClick={() => toast.remove(t.id)}
-            className="absolute top-3 right-3 p-1 rounded-md inline-flex items-center justify-center text-gray-400 hover:text-gray-500 hover:cursor-pointer focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500"
+            className="absolute top-3 right-3 p-1 rounded-md inline-flex items-center justify-center text-gray-700 hover:text-gray-500 hover:cursor-pointer focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500"
           >
             <span className="sr-only">Dismiss</span>
             <CloseIcon />
