@@ -597,7 +597,7 @@ const CurveIdSelector = ({
         onChange={handleChange}
       />
       {curveType && (
-        <InlineField name={translate("pumpType")} labelSize="md">
+        <InlineField name={translate("curveType")} labelSize="md">
           <TextField padding="md">{translate(curveType)}</TextField>
         </InlineField>
       )}

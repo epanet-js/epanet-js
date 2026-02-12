@@ -185,7 +185,7 @@ export function CurveDetail({
         />
       )}
       <div className="mt-4 mb-[.25rem] w-full">
-        <InlineField name={translate("pumpType")} layout="label-flex-none">
+        <InlineField name={translate("curveType")} layout="label-flex-none">
           <span className="text-sm">{translate(curveType)}</span>
         </InlineField>
       </div>
