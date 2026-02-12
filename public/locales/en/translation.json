@@ -837,7 +837,7 @@
   "pumpLibrary": "Pump Library",
   "openPumpLibrary": "Open library...",
   "addCurve": "Add curve",
-  "curveName": "Pump name",
+  "pumpName": "Pump name",
   "curveType": "Curve type",
   "namedCurve": "Library pump",
   "addPoint": "Add point",
