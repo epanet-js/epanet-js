@@ -22,10 +22,6 @@ export const languageConfig: Array<{
   { code: "ja", name: "日本語 (JP)", experimental: true },
 ];
 
-export const stableLanguages: Locale[] = languageConfig
-  .filter((lang) => !lang.experimental)
-  .map((lang) => lang.code);
-
 export const allSupportedLanguages: Locale[] = languageConfig.map(
   (lang) => lang.code,
 );
@@ -44,7 +40,7 @@ export const getLocale = (): Locale => {
   } catch {}
 
   const language = navigator.language;
-  const code = stableLanguages.find(
+  const code = allSupportedLanguages.find(
     (code) => language === code || language.startsWith(`${code}-`),
   );
   return code || "en";

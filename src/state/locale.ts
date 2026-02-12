@@ -1,9 +1,5 @@
 import { atomWithStorage } from "jotai/utils";
-import {
-  Locale,
-  allSupportedLanguages,
-  stableLanguages,
-} from "src/infra/i18n/locale";
+import { Locale, allSupportedLanguages } from "src/infra/i18n/locale";
 
 const getInitialLocale = (): Locale => {
   if (typeof window === "undefined") return "en";
@@ -19,7 +15,7 @@ const getInitialLocale = (): Locale => {
   } catch {}
 
   const language = navigator.language;
-  const code = stableLanguages.find(
+  const code = allSupportedLanguages.find(
     (code) => language === code || language.startsWith(`${code}-`),
   );
 
