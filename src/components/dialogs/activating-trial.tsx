@@ -5,11 +5,13 @@ import { useAuth } from "src/auth";
 import { isTrialActive } from "src/user-plan";
 import { notify } from "src/components/notifications";
 import { RefreshIcon, SuccessIcon } from "src/icons";
+import { useTranslate } from "src/hooks/use-translate";
 
 export const ActivatingTrialDialog = () => {
   const { activateTrial } = useActivateTrial();
   const { user } = useAuth();
   const { closeDialog } = useDialogState();
+  const translate = useTranslate();
   const activatedRef = useRef(false);
 
   if (!activatedRef.current) {
@@ -22,7 +24,7 @@ export const ActivatingTrialDialog = () => {
         if (success) {
           notify({
             variant: "success",
-            title: "Your Pro trial is now active!",
+            title: translate("trial.activated"),
             Icon: SuccessIcon,
             duration: 3000,
           });
@@ -37,7 +39,7 @@ export const ActivatingTrialDialog = () => {
       <div className="flex flex-col items-center gap-3 py-4">
         <RefreshIcon className="animate-spin w-6 h-6 text-gray-500" />
         <p className="text-sm text-gray-700 dark:text-gray-300">
-          Activating free trial
+          {translate("trial.activating")}
         </p>
       </div>
     </DialogContainer>

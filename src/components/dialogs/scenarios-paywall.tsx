@@ -99,7 +99,7 @@ export const ScenariosPaywallDialog = ({
 
     notify({
       variant: "success",
-      title: "Your Pro trial is now active!",
+      title: translate("trial.activated"),
       Icon: SuccessIcon,
       duration: 3000,
     });
@@ -179,8 +179,7 @@ export const ScenariosPaywallDialog = ({
                   {translate("scenarios.paywall.description2")}
                 </p>
                 <p className="text-sm text-gray-700 dark:text-gray-300">
-                  Scenarios are a paid feature. Activate your free trial to get
-                  full access for 14 days—no credit card required.
+                  {translate("trial.paywallDescription")}
                 </p>
               </div>
               <div className="flex flex-col gap-3">
@@ -194,7 +193,7 @@ export const ScenariosPaywallDialog = ({
                     {isTrialLoading ? (
                       <RefreshIcon className="animate-spin" />
                     ) : (
-                      "Activate free trial"
+                      translate("trial.activateFree")
                     )}
                   </Button>
                 ) : (
@@ -209,7 +208,7 @@ export const ScenariosPaywallDialog = ({
                       size="full-width"
                       disabled={isDemoLoading}
                     >
-                      Activate free trial
+                      {translate("trial.activateFree")}
                     </Button>
                   </ClerkSignInButton>
                 )}
@@ -229,7 +228,7 @@ export const ScenariosPaywallDialog = ({
                   {isDemoLoading ? (
                     <RefreshIcon className="animate-spin" />
                   ) : (
-                    "Try with a demo network"
+                    translate("trial.tryWithDemo")
                   )}
                 </Button>
               </div>
