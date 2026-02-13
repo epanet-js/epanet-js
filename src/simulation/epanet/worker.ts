@@ -47,6 +47,7 @@ export const runSimulation = async (
 
   ws.writeFile("net.inp", inp);
 
+  let timestepCount = 0;
   try {
     model.open("net.inp", "report.rpt", "results.out");
 
@@ -55,8 +56,8 @@ export const runSimulation = async (
 
     model.openH();
     model.initH(InitHydOption.SaveAndInit);
-
     do {
+      timestepCount++;
       const currentTime = model.runH();
       missingDataAccumulator.appendTimestepData(model);
       onProgress?.({ currentTime, totalDuration });
@@ -82,16 +83,34 @@ export const runSimulation = async (
       metadata,
     };
   } catch (error) {
-    model.close();
-    const report = ws.readFile("report.rpt");
+    try {
+      model.close();
+    } catch {
+      // WASM memory may be corrupted, ignore cleanup errors
+    }
+
+    let report = "";
+    try {
+      report = ws.readFile("report.rpt");
+    } catch {
+      // Report file may not be readable if WASM memory is corrupted
+    }
+
     const errorMessage = (error as Error).message;
+    const isWasmMemoryError =
+      error instanceof WebAssembly.RuntimeError ||
+      errorMessage.includes("memory access out of bounds");
     const isEpanetError = /EPANET Error|^Error \d+/.test(errorMessage);
+
+    const displayMessage = isWasmMemoryError
+      ? `The simulation ran out of memory at timestep ${timestepCount}. The network may be too large for the current engine. (${errorMessage})`
+      : errorMessage;
 
     return {
       status: "failure",
-      report: report.length > 0 ? curateReport(report) : errorMessage,
+      report: report.length > 0 ? curateReport(report) : displayMessage,
       metadata: new ArrayBuffer(PROLOG_SIZE + EPILOG_SIZE),
-      jsError: isEpanetError ? undefined : errorMessage,
+      jsError: isEpanetError ? undefined : displayMessage,
     };
   }
 };
