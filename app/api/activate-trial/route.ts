@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { activateTrial } from "src/user-management";
 import { logger } from "src/infra/server-logger";
+import {
+  buildTrialActivatedMessage,
+  sendWithoutCrashing,
+} from "src/infra/slack";
 
 export async function POST() {
   const { userId } = await auth();
@@ -34,6 +38,19 @@ export async function POST() {
 
   logger.info(`Activating trial for user ${userId}`);
   await activateTrial(userId);
+
+  const trialEndsAt = new Date(
+    Date.now() + 14 * 24 * 60 * 60 * 1000,
+  ).toLocaleDateString();
+
+  const email = user.emailAddresses[0]?.emailAddress || "";
+  const message = buildTrialActivatedMessage(
+    email,
+    user.firstName || "",
+    user.lastName || "",
+    trialEndsAt,
+  );
+  await sendWithoutCrashing(message);
 
   return NextResponse.json({ success: true });
 }

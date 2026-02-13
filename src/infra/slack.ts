@@ -70,6 +70,44 @@ export const buildUserCreatedMessage = (
   });
 };
 
+export const buildTrialActivatedMessage = (
+  email: string,
+  firstName: string,
+  lastName: string,
+  trialEndsAt: string,
+) => {
+  return JSON.stringify({
+    text: ":rocket: New Trial Activated!",
+    attachments: [
+      {
+        title: "Trial Details",
+        fields: [
+          {
+            title: "Email",
+            value: email,
+            short: true,
+          },
+          {
+            title: "Trial Ends At",
+            value: trialEndsAt,
+            short: true,
+          },
+          {
+            title: "First Name",
+            value: firstName,
+            short: true,
+          },
+          {
+            title: "Last Name",
+            value: lastName,
+            short: true,
+          },
+        ],
+      },
+    ],
+  });
+};
+
 export const buildUserUpgradedMessage = (
   email: string,
   plan: string,
