@@ -14,7 +14,6 @@ import {
   SortableValuesList,
   formatValue,
 } from "./multi-value-row";
-import { pluralize } from "src/lib/utils";
 
 type ReadOnlyMultiValueRowProps = {
   name: string;
@@ -70,15 +69,56 @@ export function ReadOnlyMultiValueRow({
 
     return (
       <InlineField name={label} labelSize="md">
-        <div className="p-2 flex items-center h-[38px]">
-          <TriStateCheckbox
-            checked={isChecked}
-            indeterminate={hasMultipleValues}
-            disabled
-            ariaLabel={label}
-            onChange={() => {}}
-          />
-        </div>
+        {hasMultipleValues ? (
+          <P.Root open={isOpen} onOpenChange={setIsOpen}>
+            <P.Trigger
+              aria-label={`Values for: ${label}`}
+              onKeyDown={handleTriggerKeyDown}
+              className="w-full text-left rounded-sm text-gray-500 hover:text-gray-700 hover:bg-gray-200 focus-visible:ring-inset focus-visible:ring-1 focus-visible:ring-purple-500 aria-expanded:ring-1 aria-expanded:ring-purple-500 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-600"
+            >
+              <div className="flex items-center gap-1">
+                <div className="flex-shrink-0 w-7 h-7 flex items-center justify-center">
+                  <MultipleValuesIcon />
+                </div>
+                <div className="p-2 flex items-center h-[38px]">
+                  <TriStateCheckbox
+                    checked={false}
+                    indeterminate
+                    disabled
+                    ariaLabel={label}
+                    onChange={() => {}}
+                  />
+                </div>
+              </div>
+            </P.Trigger>
+            <P.Portal>
+              <StyledPopoverContent
+                onKeyDown={handleContentKeyDown}
+                align="end"
+              >
+                <StyledPopoverArrow />
+                <SortableValuesList
+                  values={propertyStats.values}
+                  decimals={undefined}
+                  type={propertyStats.type}
+                />
+              </StyledPopoverContent>
+            </P.Portal>
+          </P.Root>
+        ) : (
+          <div className="flex items-center gap-1">
+            <div className="flex-shrink-0 w-7" />
+            <div className="p-2 flex items-center h-[38px]">
+              <TriStateCheckbox
+                checked={isChecked}
+                indeterminate={false}
+                disabled
+                ariaLabel={label}
+                onChange={() => {}}
+              />
+            </div>
+          </div>
+        )}
       </InlineField>
     );
   }
@@ -90,10 +130,19 @@ export function ReadOnlyMultiValueRow({
           <P.Trigger
             aria-label={`Values for: ${label}`}
             onKeyDown={handleTriggerKeyDown}
-            className="text-left text-sm p-2 text-gray-700 bg-gray-100 border border-gray-300 rounded-sm hover:bg-gray-200 focus-visible:ring-inset focus-visible:ring-1 focus-visible:ring-purple-500 aria-expanded:ring-1 aria-expanded:ring-purple-500 w-full flex items-center gap-x-2 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:hover:bg-gray-600 tabular-nums"
+            className="w-full text-left rounded-sm text-gray-500 hover:text-gray-700 hover:bg-gray-200 focus-visible:ring-inset focus-visible:ring-1 focus-visible:ring-purple-500 aria-expanded:ring-1 aria-expanded:ring-purple-500 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-600"
           >
-            <MultipleValuesIcon />
-            {pluralize(translate, "value", propertyStats.values.size)}
+            <div className="flex items-center gap-1">
+              <div className="flex-shrink-0 w-7 h-7 flex items-center justify-center">
+                <MultipleValuesIcon />
+              </div>
+              <div className="flex-1 min-w-0">
+                <TextField padding="md" className="italic">
+                  {propertyStats.values.size}{" "}
+                  {translate("values").toLowerCase()}
+                </TextField>
+              </div>
+            </div>
           </P.Trigger>
           <P.Portal>
             <StyledPopoverContent onKeyDown={handleContentKeyDown} align="end">

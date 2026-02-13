@@ -7,18 +7,11 @@ import { NumericField } from "src/components/form/numeric-field";
 import { Selector, SelectorOption } from "src/components/form/selector";
 import { TriStateCheckbox } from "src/components/form/Checkbox";
 import * as P from "@radix-ui/react-popover";
-import * as Tooltip from "@radix-ui/react-tooltip";
-import {
-  StyledPopoverArrow,
-  StyledPopoverContent,
-  TContent,
-  StyledTooltipArrow,
-} from "../../elements";
+import { StyledPopoverArrow, StyledPopoverContent } from "../../elements";
 import { MultipleValuesIcon } from "src/icons";
 import { AssetPropertyStats, QuantityStats } from "./data";
 import { QuantityStatsBaseFields, SortableValuesList } from "./multi-value-row";
 import { BatchEditPropertyConfig } from "./batch-edit-property-config";
-import { pluralize } from "src/lib/utils";
 
 type BatchEditableRowProps = {
   propertyStats: AssetPropertyStats;
@@ -75,7 +68,6 @@ const StatsPopoverButton = ({
   propertyStats: AssetPropertyStats;
   label: string;
 }) => {
-  const translate = useTranslate();
   const [isOpen, setIsOpen] = useState(false);
 
   const handleContentKeyDown: KeyboardEventHandler<HTMLDivElement> = (
@@ -88,39 +80,31 @@ const StatsPopoverButton = ({
   };
 
   return (
-    <Tooltip.Root delayDuration={200}>
-      <P.Root open={isOpen} onOpenChange={setIsOpen}>
-        <Tooltip.Trigger asChild>
-          <P.Trigger
-            aria-label={`Stats for: ${label}`}
-            className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-sm text-gray-500 hover:text-gray-700 hover:bg-gray-200 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-700"
-          >
-            <MultipleValuesIcon />
-          </P.Trigger>
-        </Tooltip.Trigger>
-        <P.Portal>
-          <StyledPopoverContent onKeyDown={handleContentKeyDown} align="end">
-            <StyledPopoverArrow />
-            {propertyStats.type === "quantity" && (
-              <QuantityStatsBaseFields quantityStats={propertyStats} />
-            )}
-            <SortableValuesList
-              values={propertyStats.values}
-              decimals={
-                propertyStats.type === "quantity"
-                  ? propertyStats.decimals
-                  : undefined
-              }
-              type={propertyStats.type}
-            />
-          </StyledPopoverContent>
-        </P.Portal>
-      </P.Root>
-      <TContent side="left">
-        <StyledTooltipArrow />
-        {pluralize(translate, "value", propertyStats.values.size)}
-      </TContent>
-    </Tooltip.Root>
+    <P.Root open={isOpen} onOpenChange={setIsOpen}>
+      <P.Trigger
+        aria-label={`Stats for: ${label}`}
+        className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-sm text-gray-500 hover:text-gray-700 hover:bg-gray-200 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-700"
+      >
+        <MultipleValuesIcon />
+      </P.Trigger>
+      <P.Portal>
+        <StyledPopoverContent onKeyDown={handleContentKeyDown} align="end">
+          <StyledPopoverArrow />
+          {propertyStats.type === "quantity" && (
+            <QuantityStatsBaseFields quantityStats={propertyStats} />
+          )}
+          <SortableValuesList
+            values={propertyStats.values}
+            decimals={
+              propertyStats.type === "quantity"
+                ? propertyStats.decimals
+                : undefined
+            }
+            type={propertyStats.type}
+          />
+        </StyledPopoverContent>
+      </P.Portal>
+    </P.Root>
   );
 };
 
@@ -144,6 +128,8 @@ const EditableField = ({
 }) => {
   const translate = useTranslate();
 
+  const mixedPlaceholder = `${propertyStats.values.size} ${translate("values").toLowerCase()}`;
+
   if (config.fieldType === "quantity") {
     const stats = propertyStats as QuantityStats;
     const firstValue = stats.values.keys().next().value as number;
@@ -155,7 +141,7 @@ const EditableField = ({
       <NumericField
         label={label}
         displayValue={displayValue}
-        placeholder={translate("mixedValues")}
+        placeholder={mixedPlaceholder}
         positiveOnly={config.positiveOnly}
         isNullable={config.isNullable}
         disabled={readonly}
@@ -197,7 +183,7 @@ const EditableField = ({
           selected={currentValue}
           options={options}
           nullable={true}
-          placeholder={translate("mixedValues")}
+          placeholder={mixedPlaceholder}
           ariaLabel={label}
           onChange={(newValue) => {
             if (newValue !== null) {
