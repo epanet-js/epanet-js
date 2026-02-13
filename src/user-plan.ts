@@ -12,7 +12,9 @@ const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 export const getTrialDaysRemaining = (trialEndsAt: string): number => {
   const diff = new Date(trialEndsAt).getTime() - new Date().getTime();
-  return Math.floor(diff / MS_PER_DAY);
+  if (diff <= 0) return Math.floor(diff / MS_PER_DAY);
+  if (diff < MS_PER_DAY) return 0;
+  return Math.ceil(diff / MS_PER_DAY);
 };
 
 export const canUpgrade = (plan: Plan) => {

@@ -31,16 +31,23 @@ describe("getTrialDaysRemaining", () => {
     expect(remaining(endsAt)).toBe(1);
   });
 
-  it("returns 1 when between 1 and 2 days remain", () => {
+  it("returns 2 when between 1 and 2 days remain", () => {
     const endsAt = new Date(
       now.getTime() + MS_PER_DAY + 12 * MS_PER_HOUR,
     ).toISOString();
-    expect(remaining(endsAt)).toBe(1);
+    expect(remaining(endsAt)).toBe(2);
   });
 
   it("returns 13 when 13 full days remain", () => {
     const endsAt = new Date(now.getTime() + 13 * MS_PER_DAY).toISOString();
     expect(remaining(endsAt)).toBe(13);
+  });
+
+  it("returns 14 when just under 14 days remain", () => {
+    const endsAt = new Date(
+      now.getTime() + 14 * MS_PER_DAY - MS_PER_HOUR,
+    ).toISOString();
+    expect(remaining(endsAt)).toBe(14);
   });
 
   it("returns negative when trial has expired", () => {
