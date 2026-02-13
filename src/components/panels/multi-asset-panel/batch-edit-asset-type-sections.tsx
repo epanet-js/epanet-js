@@ -56,13 +56,14 @@ export function BatchEditAssetTypeSections({
                   ? editableProperties[stat.property]
                   : undefined;
 
-              if (config && !readonly) {
+              if (config) {
                 return (
                   <BatchEditableRow
                     key={stat.property}
                     propertyStats={stat}
                     config={config}
                     onPropertyChange={onPropertyChange}
+                    readonly={readonly}
                   />
                 );
               }
