@@ -1,5 +1,5 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
-import { buildInpWithAllCurves } from "./build-inp-with-all-curves";
+import { buildInp } from "./build-inp";
 
 describe("build inp with pumps and curves", () => {
   it("adds pumps with a local curve", () => {
@@ -22,7 +22,7 @@ describe("build inp with pumps and curves", () => {
       })
       .build();
 
-    const inp = buildInpWithAllCurves(hydraulicModel, { labelIds: true });
+    const inp = buildInp(hydraulicModel, { labelIds: true });
 
     expect(inp).toContain("[PUMPS]");
     expect(inp).toContain("PU1\tJ1\tJ2\tHEAD PU1\tSPEED 0.8");
@@ -47,7 +47,7 @@ describe("build inp with pumps and curves", () => {
       })
       .build();
 
-    const inp = buildInpWithAllCurves(hydraulicModel);
+    const inp = buildInp(hydraulicModel);
 
     expect(inp).toContain("[PUMPS]");
     expect(inp).toContain("4\t1\t2\tPOWER 100\tSPEED 0.7");
@@ -94,7 +94,7 @@ describe("build inp with pumps and curves", () => {
       })
       .build();
 
-    const inp = buildInpWithAllCurves(hydraulicModel);
+    const inp = buildInp(hydraulicModel);
 
     expect(inp).toContain("[PUMPS]");
     expect(inp).toContain("5\t1\t2\tPOWER 10\tSPEED 0.7");
@@ -136,7 +136,7 @@ describe("build inp with pumps and curves", () => {
         })
         .build();
 
-      const inp = buildInpWithAllCurves(hydraulicModel);
+      const inp = buildInp(hydraulicModel);
 
       expect(inp).toContain("[CURVES]");
       expect(inp).toContain("design.point\t20\t40");
@@ -172,7 +172,7 @@ describe("build inp with pumps and curves", () => {
         })
         .build();
 
-      const inp = buildInpWithAllCurves(hydraulicModel, { usedCurves: true });
+      const inp = buildInp(hydraulicModel, { usedCurves: true });
 
       expect(inp).toContain("[CURVES]");
       expect(inp).toContain("used\t20\t40");
@@ -209,7 +209,7 @@ describe("build inp with pumps and curves", () => {
         })
         .build();
 
-      const inp = buildInpWithAllCurves(hydraulicModel, { labelIds: true });
+      const inp = buildInp(hydraulicModel, { labelIds: true });
 
       expect(inp).toContain("[PUMPS]");
       expect(inp).toContain("PU1\tJ1\tJ2\tHEAD PU1\tSPEED 0.8");
@@ -249,7 +249,7 @@ describe("build inp with pumps and curves", () => {
         })
         .build();
 
-      const inp = buildInpWithAllCurves(hydraulicModel, { labelIds: true });
+      const inp = buildInp(hydraulicModel, { labelIds: true });
 
       expect(inp).toContain("[PUMPS]");
       expect(inp).toContain("PU1\tJ1\tJ2\tHEAD CURVE\tSPEED 0.8");

@@ -54,7 +54,6 @@ import {
   ConnectedCustomersRow,
 } from "./ui-components";
 import { Section } from "src/components/form/fields";
-import { PumpDefinitionDetails } from "./pump-definition-details";
 import { useQuickGraph } from "./quick-graph";
 import { useAssetComparison } from "src/hooks/use-asset-comparison";
 import { useSimulation } from "src/hooks/use-simulation";
@@ -64,11 +63,10 @@ import type {
   ValveSimulation,
 } from "src/simulation/results-reader";
 import { DemandsEditor } from "./demands-editor";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   PumpDefinitionData,
-  PumpDefinitionDetailsWithAllCurves,
-} from "./pump-definition-details-all-curves";
+  PumpDefinitionDetails,
+} from "./pump-definition-details";
 
 type OnPropertyChange = (
   name: string,
@@ -1153,7 +1151,6 @@ const PumpEditor = ({
   const simFlow = pumpSimulation?.flow ?? null;
   const simHead = pumpSimulation ? -pumpSimulation.headloss : null;
   const statusText = translate(pumpStatusLabel(pumpSimulation ?? null));
-  const isPumpCurvesEnabled = useFeatureFlag("FLAG_PUMP_CURVES");
 
   const statusOptions = useMemo(() => {
     return pumpStatuses.map((status) => ({
@@ -1195,25 +1192,16 @@ const PumpEditor = ({
         />
       </Section>
       <Section title={translate("modelAttributes")}>
-        {isPumpCurvesEnabled ? (
-          <PumpDefinitionDetailsWithAllCurves
-            pump={pump}
-            curves={hydraulicModel.curves}
-            quantities={quantitiesMetadata}
-            onChange={onDefinitionChange}
-            readonly={readonly}
-            getComparison={getComparison}
-            getPumpCurveComparison={getPumpCurveComparison}
-          />
-        ) : (
-          <PumpDefinitionDetails
-            pump={pump}
-            quantities={quantitiesMetadata}
-            onChange={onDefinitionChange}
-            readonly={readonly}
-            getComparison={getComparison}
-          />
-        )}
+        <PumpDefinitionDetails
+          pump={pump}
+          curves={hydraulicModel.curves}
+          quantities={quantitiesMetadata}
+          onChange={onDefinitionChange}
+          readonly={readonly}
+          getComparison={getComparison}
+          getPumpCurveComparison={getPumpCurveComparison}
+        />
+
         <QuantityRow
           name="speed"
           value={pump.speed}

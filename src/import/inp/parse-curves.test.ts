@@ -1,5 +1,5 @@
 import { Pump } from "src/hydraulic-model";
-import { parseInpWithAllCurves } from "./parse-inp-with-all-curves";
+import { parseInp } from "./parse-inp";
 import { getByLabel } from "src/__helpers__/asset-queries";
 
 const coords = (ids: string[]) =>
@@ -19,7 +19,7 @@ describe("curve type inference", () => {
     ${coords(["j1", "j2"])}
     `;
 
-    const { hydraulicModel } = parseInpWithAllCurves(inp);
+    const { hydraulicModel } = parseInp(inp);
 
     expect(hydraulicModel.curves.size).toBe(1);
     const curveId = hydraulicModel.labelManager.getIdByLabel("cu1", "curve")!;
@@ -38,7 +38,7 @@ describe("curve type inference", () => {
     ${coords(["T1"])}
     `;
 
-    const { hydraulicModel, issues } = parseInpWithAllCurves(inp);
+    const { hydraulicModel, issues } = parseInp(inp);
 
     expect(
       hydraulicModel.labelManager.getIdByLabel("VC1", "curve"),
@@ -61,7 +61,7 @@ describe("curve type inference", () => {
     ${coords(["j1", "j2"])}
     `;
 
-    const { hydraulicModel, issues } = parseInpWithAllCurves(inp);
+    const { hydraulicModel, issues } = parseInp(inp);
 
     expect(
       hydraulicModel.labelManager.getIdByLabel("PCV_CURVE", "curve"),
@@ -84,7 +84,7 @@ describe("curve type inference", () => {
     ${coords(["j1", "j2"])}
     `;
 
-    const { hydraulicModel, issues } = parseInpWithAllCurves(inp);
+    const { hydraulicModel, issues } = parseInp(inp);
 
     expect(
       hydraulicModel.labelManager.getIdByLabel("HL_CURVE", "curve"),
@@ -109,7 +109,7 @@ describe("curve type inference", () => {
     ${coords(["j1", "j2"])}
     `;
 
-    const { hydraulicModel, issues } = parseInpWithAllCurves(inp);
+    const { hydraulicModel, issues } = parseInp(inp);
 
     expect(
       hydraulicModel.labelManager.getIdByLabel("EFF1", "curve"),
@@ -130,7 +130,7 @@ describe("curve type inference", () => {
     ${coords(["j1", "j2"])}
     `;
 
-    const { hydraulicModel } = parseInpWithAllCurves(inp);
+    const { hydraulicModel } = parseInp(inp);
 
     expect(hydraulicModel.curves.size).toBe(0);
   });
@@ -150,7 +150,7 @@ describe("curve type inference", () => {
     ${coords(["j1", "j2"])}
     `;
 
-    const { hydraulicModel, issues } = parseInpWithAllCurves(inp);
+    const { hydraulicModel, issues } = parseInp(inp);
 
     expect(hydraulicModel.curves.size).toBe(0);
     const pump = getByLabel(hydraulicModel.assets, "pu1") as Pump;
@@ -179,7 +179,7 @@ describe("curve type inference", () => {
     ${coords(["j1", "j2", "T1"])}
     `;
 
-    const { hydraulicModel } = parseInpWithAllCurves(inp);
+    const { hydraulicModel } = parseInp(inp);
 
     expect(hydraulicModel.curves.size).toBe(0);
     const pump = getByLabel(hydraulicModel.assets, "pu1") as Pump;
@@ -205,7 +205,7 @@ describe("curve type inference", () => {
     ${coords(["j1", "j2"])}
     `;
 
-    const { issues } = parseInpWithAllCurves(inp);
+    const { issues } = parseInp(inp);
 
     expect(issues?.hasUnusedCurves).toBeUndefined();
   });
@@ -223,7 +223,7 @@ describe("curve type inference", () => {
     ${coords(["j1", "j2"])}
     `;
 
-    const { hydraulicModel, issues } = parseInpWithAllCurves(inp);
+    const { hydraulicModel, issues } = parseInp(inp);
 
     expect(
       hydraulicModel.labelManager.getIdByLabel("bad_curve", "curve"),

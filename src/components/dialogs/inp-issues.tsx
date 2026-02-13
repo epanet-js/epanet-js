@@ -33,8 +33,6 @@ const roadmapUrls = {
     "https://roadmap.epanetjs.com/element-properties/p/define-reservoir-patterns",
   tankCurves:
     "https://roadmap.epanetjs.com/element-properties/p/define-tank-curves",
-  pumpCurves:
-    "https://roadmap.epanetjs.com/element-properties/p/define-pump-curves",
   pcv: "https://roadmap.epanetjs.com/network-elements/p/pcv-positional-control-valve",
 } as const;
 
@@ -457,9 +455,7 @@ const IssuesSummary = ({ issues }: { issues: ParserIssues }) => {
               </div>
             </div>
           )}
-          {(issues.hasPumpPatterns ||
-            issues.hasPumpCurves ||
-            issues.hasUndefinedPumpCurve) && (
+          {(issues.hasPumpPatterns || issues.hasUndefinedPumpCurve) && (
             <div>
               <p>{translate("ignoredValuesDetected", "[PUMPS]")}:</p>
               <div className="flex flex-col gap-y-1 items-start">
@@ -467,11 +463,6 @@ const IssuesSummary = ({ issues }: { issues: ParserIssues }) => {
                   <RoadmapLink href={roadmapUrls.patterns}>
                     -{" "}
                     {translate("pumpPatterns", String(issues.hasPumpPatterns))}
-                  </RoadmapLink>
-                )}
-                {issues.hasPumpCurves && (
-                  <RoadmapLink href={roadmapUrls.pumpCurves}>
-                    - {translate("pumpCurves", String(issues.hasPumpCurves))}
                   </RoadmapLink>
                 )}
                 {issues.hasUndefinedPumpCurve && (

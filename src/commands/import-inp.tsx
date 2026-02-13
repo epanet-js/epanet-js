@@ -19,8 +19,6 @@ import { notify } from "src/components/notifications";
 import { WarningIcon } from "src/icons";
 import { OPFSStorage } from "src/infra/storage";
 import { getAppId } from "src/infra/app-instance";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { parseInpWithAllCurves } from "src/import/inp/parse-inp-with-all-curves";
 import { isDemoNetwork } from "src/demo/demo-networks";
 
 export const inpExtension = ".inp";
@@ -33,7 +31,6 @@ export const useImportInp = () => {
   const rep = usePersistence();
   const transactImport = rep.useTransactImport();
   const userTracking = useUserTracking();
-  const isPumpCurvesEnabled = useFeatureFlag("FLAG_PUMP_CURVES");
 
   const importInp = useCallback(
     async (files: FileWithHandle[]) => {
@@ -71,11 +68,8 @@ export const useImportInp = () => {
           customerPoints: true,
           inactiveAssets: true,
         };
-        const parseInpFn = isPumpCurvesEnabled
-          ? parseInpWithAllCurves
-          : parseInp;
         const { hydraulicModel, modelMetadata, issues, isMadeByApp, stats } =
-          parseInpFn(content, parseOptions);
+          parseInp(content, parseOptions);
         userTracking.capture(
           buildCompleteEvent(hydraulicModel, modelMetadata, issues, stats),
         );
@@ -128,7 +122,6 @@ export const useImportInp = () => {
       setDialogState,
       userTracking,
       translate,
-      isPumpCurvesEnabled,
       transactImport,
       setFileInfo,
       map?.map,

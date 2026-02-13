@@ -25,14 +25,20 @@ import { PumpStatus } from "src/hydraulic-model/asset-types/pump";
 import { ValveStatus } from "src/hydraulic-model/asset-types/valve";
 import { ParseInpOptions } from "./parse-inp";
 import { AssetId } from "src/hydraulic-model/asset-types/base-asset";
+import { Pump } from "src/hydraulic-model/asset-types/pump";
 import {
   ConsecutiveIdsGenerator,
   IdGenerator,
 } from "src/hydraulic-model/id-generator";
 import {
+  CurveId,
   CurvePoint,
-  getPumpCurveType,
+  CurveType,
+  Curves,
+  defaultCurvePoints,
+  ICurve,
   isValidPumpCurve,
+  getPumpCurveType,
 } from "src/hydraulic-model/curves";
 import {
   LabelResolver,
@@ -56,7 +62,11 @@ type BuildPatternContext = {
   labelManager: LabelManager;
 };
 
-type CurvesLookup = Map<string, CurvePoint[]>;
+type CurvesContext = {
+  curves: Curves;
+  idGenerator: IdGenerator;
+  labelManager: LabelManager;
+};
 
 export const buildModel = (
   inpData: InpData,
@@ -79,7 +89,10 @@ export const buildModel = (
     epsTiming: inpData.times,
   });
 
-  const curvesLookup: CurvesLookup = buildCurvesLookup(inpData.curves, issues);
+  const curvesContext: CurvesContext = initializeCurvesContext(
+    hydraulicModel.labelManager,
+    inpData.curves,
+  );
 
   const patternContext: BuildPatternContext = initializeBuildPatternContext(
     hydraulicModel.labelManager,
@@ -105,7 +118,7 @@ export const buildModel = (
   }
 
   for (const tankData of inpData.tanks) {
-    addTank(hydraulicModel, tankData, {
+    addTank(hydraulicModel, tankData, curvesContext, {
       inpData,
       issues,
       nodeIds,
@@ -113,7 +126,7 @@ export const buildModel = (
   }
 
   for (const pumpData of inpData.pumps) {
-    addPump(hydraulicModel, pumpData, curvesLookup, {
+    addPump(hydraulicModel, pumpData, curvesContext, {
       inpData,
       issues,
       nodeIds,
@@ -122,7 +135,7 @@ export const buildModel = (
   }
 
   for (const valveData of inpData.valves) {
-    addValve(hydraulicModel, valveData, {
+    addValve(hydraulicModel, valveData, curvesContext, {
       inpData,
       issues,
       nodeIds,
@@ -152,6 +165,14 @@ export const buildModel = (
     });
   }
 
+  addCurves(
+    hydraulicModel,
+    curvesContext.curves,
+    inpData.energyEfficiencyCurves,
+    linkIds,
+    issues,
+  );
+
   hydraulicModel.demands.patterns = options?.usedPatterns
     ? filterUsedPatterns(patternContext.patterns, patternContext.usedPatternIds)
     : patternContext.patterns;
@@ -161,43 +182,42 @@ export const buildModel = (
   return { hydraulicModel, modelMetadata: { quantities } };
 };
 
-const buildCurvesLookup = (
+const initializeCurvesContext = (
+  labelManager: LabelManager,
   rawCurves: ItemData<CurveData>,
-  issues: IssuesAccumulator,
-): CurvesLookup => {
-  const curvesLookup: CurvesLookup = new Map();
+): CurvesContext => {
+  const curveContext: CurvesContext = {
+    curves: new Map(),
+    labelManager: labelManager,
+    idGenerator: new ConsecutiveIdsGenerator(),
+  };
 
-  for (const [normalizedId, curveData] of rawCurves.entries()) {
-    curvesLookup.set(normalizedId, buildCurvePoints(curveData.points, issues));
+  for (const [, curveData] of rawCurves.entries()) {
+    addCurve(curveContext, curveData.label, curveData.points);
   }
 
-  return curvesLookup;
+  return curveContext;
 };
 
-const buildCurvePoints = (
-  rawPoints: CurvePoint[],
-  issues: IssuesAccumulator,
-): CurvePoint[] => {
-  let points: CurvePoint[] = rawPoints;
-  if (
-    !isValidPumpCurve(points) ||
-    getPumpCurveType(points) === "multiPointCurve"
-  ) {
-    issues.addPumpCurve();
-    points = [inferedDesignPoint(rawPoints)];
-  }
+const addCurve = (
+  curvesContext: CurvesContext,
+  label: string,
+  points: CurvePoint[],
+): ICurve | undefined => {
+  const { curves, idGenerator, labelManager } = curvesContext;
+  if (points.length === 0) return;
 
-  return points;
-};
+  const id = idGenerator.newId();
+  const curve: ICurve = {
+    id,
+    label,
+    points,
+    assetIds: new Set(),
+  };
+  curves.set(curve.id, curve);
+  labelManager.register(curve.label, "curve", curve.id);
 
-const inferedDesignPoint = (rawPoints: CurvePoint[]): CurvePoint => {
-  if (rawPoints.length === 0) {
-    return { x: 1, y: 1 };
-  }
-
-  const middleIndex = Math.floor(rawPoints.length / 2);
-  const designPoint = rawPoints[middleIndex];
-  return designPoint;
+  return curve;
 };
 
 const initializeBuildPatternContext = (
@@ -403,6 +423,7 @@ const addReservoir = (
 const addTank = (
   hydraulicModel: HydraulicModel,
   tankData: TankData,
+  curvesContext: CurvesContext,
   {
     inpData,
     issues,
@@ -430,12 +451,22 @@ const addTank = (
   });
   hydraulicModel.assets.set(tank.id, tank);
   nodeIds.set(tankData.id, tank.id);
+
+  if (tankData.volumeCurveId) {
+    const curveId = curvesContext.labelManager.getIdByLabel(
+      tankData.volumeCurveId,
+      "curve",
+    );
+    if (curveId !== undefined) {
+      markCurveUsed(curvesContext.curves, curveId, tank.id, "volume");
+    }
+  }
 };
 
 const addPump = (
   hydraulicModel: HydraulicModel,
   pumpData: PumpData,
-  curvesLookup: CurvesLookup,
+  curvesContext: CurvesContext,
   {
     inpData,
     issues,
@@ -457,6 +488,7 @@ const addPump = (
     definitionType: PumpBuildData["definitionType"];
     power?: number;
     curve?: CurvePoint[];
+    curveId?: number;
   } = {
     definitionType: "power",
     power: 0,
@@ -470,17 +502,24 @@ const addPump = (
   }
 
   if (pumpData.curveId) {
-    const curveId = pumpData.curveId.toUpperCase();
-    if (curvesLookup.has(curveId)) {
+    const curveId = curvesContext.labelManager.getIdByLabel(
+      pumpData.curveId,
+      "curve",
+    );
+    if (curveId === undefined) {
+      issues.addUndefinedPumpCurve();
       definitionProps = {
         definitionType: "curve",
-        curve: curvesLookup.get(curveId)!.map(({ ...p }) => ({ ...p })),
+        curve: defaultCurvePoints(),
       };
     } else {
-      issues.addPumpCurve();
+      const curve = curvesContext.curves.get(curveId)!;
+      if (!isValidPumpCurve(curve.points)) {
+        issues.addInvalidPumpCurve();
+      }
       definitionProps = {
-        definitionType: "curve",
-        curve: [{ x: 1, y: 1 }],
+        definitionType: "curveId",
+        curveId: curve.id,
       };
     }
   }
@@ -517,11 +556,14 @@ const addPump = (
   hydraulicModel.assets.set(pump.id, pump);
   hydraulicModel.topology.addLink(pump.id, connections[0], connections[1]);
   linkIds.set(pumpData.id, pump.id);
+  if (pump.curveId)
+    markCurveUsed(curvesContext.curves, pump.curveId, pump.id, "pump");
 };
 
 const addValve = (
   hydraulicModel: HydraulicModel,
   valveData: ValveData,
+  curvesContext: CurvesContext,
   {
     inpData,
     issues,
@@ -558,6 +600,26 @@ const addValve = (
   hydraulicModel.assets.set(valve.id, valve);
   hydraulicModel.topology.addLink(valve.id, connections[0], connections[1]);
   linkIds.set(valveData.id, valve.id);
+
+  if (valveData.curveId) {
+    const curveId = curvesContext.labelManager.getIdByLabel(
+      valveData.curveId,
+      "curve",
+    );
+    if (curveId !== undefined) {
+      markCurveUsed(curvesContext.curves, curveId, valve.id, "valve");
+    }
+  }
+
+  if (valveData.headlossCurveId) {
+    const curveId = curvesContext.labelManager.getIdByLabel(
+      valveData.headlossCurveId,
+      "curve",
+    );
+    if (curveId !== undefined) {
+      markCurveUsed(curvesContext.curves, curveId, valve.id, "headloss");
+    }
+  }
 };
 
 const addPipe = (
@@ -764,4 +826,59 @@ const addControls = (
     simple: parseSimpleControlsFromText(rawControls.simple, resolveLabel),
     rules: parseRulesFromText(rawControls.ruleBased, resolveLabel),
   };
+};
+
+const markCurveUsed = (
+  curves: Curves,
+  curveId: CurveId,
+  assetId: AssetId,
+  type: CurveType,
+) => {
+  const curve = curves.get(curveId)!;
+  curve.type = type;
+  const curveAssetIds = curve.assetIds ?? new Set();
+  curveAssetIds.add(assetId);
+};
+
+const addCurves = (
+  hydraulicModel: HydraulicModel,
+  curves: Curves,
+  energyEfficiencyCurves: ItemData<string>,
+  linkIds: ItemData<AssetId>,
+  issues: IssuesAccumulator,
+) => {
+  for (const [pumpLabel, curveLabel] of energyEfficiencyCurves.entries()) {
+    const pumpId = linkIds.get(pumpLabel);
+    const curveId = hydraulicModel.labelManager.getIdByLabel(
+      curveLabel,
+      "curve",
+    );
+    if (pumpId !== undefined && curveId !== undefined) {
+      markCurveUsed(curves, curveId, pumpId, "efficiency");
+    }
+  }
+
+  const validCurves: Curves = new Map();
+
+  for (const curve of curves.values()) {
+    if (curve.type === "pump") {
+      const curveType = getPumpCurveType(curve.points);
+      if (curveType === "multiPointCurve" || curve.assetIds.size > 1) {
+        validCurves.set(curve.id, curve);
+        continue;
+      }
+
+      const [pumpId] = curve.assetIds;
+      const pump = hydraulicModel.assets.get(pumpId) as Pump;
+      pump.setProperty("definitionType", "curve");
+      pump.feature.properties.curve = curve.points.map((p) => ({ ...p }));
+      delete pump.feature.properties.curveId;
+      hydraulicModel.labelManager.remove(curve.label, "curve", curve.id);
+      continue;
+    }
+
+    if (!curve.type) issues.addUnusedCurve();
+    hydraulicModel.labelManager.remove(curve.label, "curve", curve.id);
+  }
+  hydraulicModel.curves = validCurves;
 };

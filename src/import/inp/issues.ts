@@ -15,7 +15,6 @@ export type ParserIssues = {
   hasReservoirPatterns?: number;
   hasTankCurves?: number;
   hasPumpPatterns?: number;
-  hasPumpCurves?: number;
   hasInvalidPumpCurves?: number;
   hasUndefinedPumpCurve?: number;
   hasPCVCurves?: number;
@@ -91,10 +90,6 @@ export class IssuesAccumulator {
 
   addPumpPattern() {
     this.issues.hasPumpPatterns = (this.issues.hasPumpPatterns || 0) + 1;
-  }
-
-  addPumpCurve() {
-    this.issues.hasPumpCurves = (this.issues.hasPumpCurves || 0) + 1;
   }
 
   addInvalidPumpCurve() {

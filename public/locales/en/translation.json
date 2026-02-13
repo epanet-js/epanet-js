@@ -293,7 +293,6 @@
   "reservoirPatterns": "Reservoirs with time patterns ({{1}} reservoirs using first pattern value only)",
   "tankCurves": "Tanks with volume curves ({{1}} tanks using fixed diameter)",
   "pumpPatterns": "Pumps with time patterns ({{1}} pumps using constant speed)",
-  "pumpCurves": "Pumps with multi-point curves ({{1}} pumps using middle point as one point curve)",
   "invalidPumpCurves": "Pumps with invalid curve definitions ({{1}} pumps)",
   "undefinedPumpCurves": "Pumps referencing undefined curves ({{1}} pumps)",
   "pcvCurves": "PCV valves with characteristic curves ({{1}} valves using setting value only)",

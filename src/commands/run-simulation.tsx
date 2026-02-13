@@ -18,8 +18,6 @@ import { getAppId } from "src/infra/app-instance";
 import { OPFSStorage } from "src/infra/storage";
 import { worktreeAtom } from "src/state/scenarios";
 import { usePersistenceWithSnapshots } from "src/lib/persistence";
-import { buildInpWithAllCurves } from "src/simulation/build-inp-with-all-curves";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export const runSimulationShortcut = "shift+enter";
 
@@ -31,7 +29,6 @@ export const useRunSimulation = () => {
   const worktree = useAtomValue(worktreeAtom);
   const persistence = usePersistenceWithSnapshots();
   const setSimulationResults = useSetAtom(simulationResultsAtom);
-  const isPumpCurvesEnabled = useFeatureFlag("FLAG_PUMP_CURVES");
 
   const runSimulation = useCallback(
     async (options?: {
@@ -41,8 +38,7 @@ export const useRunSimulation = () => {
     }) => {
       setDrawingMode(Mode.NONE);
       setSimulationState((prev) => ({ ...prev, status: "running" }));
-      const buildInpFn = isPumpCurvesEnabled ? buildInpWithAllCurves : buildInp;
-      const inp = buildInpFn(hydraulicModel, {
+      const inp = buildInp(hydraulicModel, {
         customerDemands: true,
         usedPatterns: true,
         usedCurves: true,
@@ -120,7 +116,6 @@ export const useRunSimulation = () => {
     [
       setDrawingMode,
       setSimulationState,
-      isPumpCurvesEnabled,
       hydraulicModel,
       setDialogState,
       worktree.activeSnapshotId,

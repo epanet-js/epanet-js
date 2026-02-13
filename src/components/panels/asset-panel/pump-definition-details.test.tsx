@@ -6,8 +6,10 @@ import {
 } from "./pump-definition-details";
 import { Quantities, presets } from "src/model-metadata/quantities-spec";
 import { buildPump } from "src/__helpers__/hydraulic-model-builder";
+import type { Curves } from "src/hydraulic-model/curves";
 
 const quantities = new Quantities(presets.LPS);
+const curves: Curves = new Map();
 
 const getFlowInput = (rowLabel: string) =>
   screen.getByRole("textbox", { name: new RegExp(`${rowLabel}-x`, "i") });
@@ -421,6 +423,7 @@ describe("PumpDefinitionDetails", () => {
         render(
           <PumpDefinitionDetails
             pump={pump}
+            curves={curves}
             quantities={quantities}
             onChange={onChange}
           />,
@@ -447,6 +450,7 @@ describe("PumpDefinitionDetails", () => {
         render(
           <PumpDefinitionDetails
             pump={pump}
+            curves={curves}
             quantities={quantities}
             onChange={onChange}
           />,
@@ -474,6 +478,7 @@ describe("PumpDefinitionDetails", () => {
         render(
           <PumpDefinitionDetails
             pump={pump}
+            curves={curves}
             quantities={quantities}
             onChange={onChange}
           />,
@@ -517,6 +522,7 @@ describe("PumpDefinitionDetails", () => {
         render(
           <PumpDefinitionDetails
             pump={pump}
+            curves={curves}
             quantities={quantities}
             onChange={onChange}
           />,
@@ -540,6 +546,79 @@ describe("PumpDefinitionDetails", () => {
       });
     });
 
+    describe("changing to curveId type", () => {
+      it("does not emit onChange when pump has no curveId", async () => {
+        const user = userEvent.setup();
+        const onChange = vi.fn();
+        const pump = buildPump({
+          definitionType: "curve",
+          curve: [{ x: 50, y: 100 }],
+        });
+
+        render(
+          <PumpDefinitionDetails
+            pump={pump}
+            curves={curves}
+            quantities={quantities}
+            onChange={onChange}
+          />,
+        );
+
+        const select = screen.getByRole("combobox", { name: /pump type/i });
+        await user.click(select);
+        await user.click(screen.getByRole("option", { name: /library pump/i }));
+
+        expect(onChange).not.toHaveBeenCalled();
+      });
+
+      it("emits onChange when selecting a curve from the selector", async () => {
+        const user = userEvent.setup();
+        const onChange = vi.fn();
+        const curvesWithPump: Curves = new Map([
+          [
+            1,
+            {
+              id: 1,
+              label: "Pump1",
+              type: "pump",
+              points: [{ x: 50, y: 100 }],
+              assetIds: new Set(),
+            },
+          ],
+        ]);
+        const pump = buildPump({
+          definitionType: "curve",
+          curve: [{ x: 50, y: 100 }],
+        });
+
+        render(
+          <PumpDefinitionDetails
+            pump={pump}
+            curves={curvesWithPump}
+            quantities={quantities}
+            onChange={onChange}
+          />,
+        );
+
+        const typeSelect = screen.getByRole("combobox", { name: /pump type/i });
+        await user.click(typeSelect);
+        await user.click(screen.getByRole("option", { name: /library pump/i }));
+
+        expect(onChange).not.toHaveBeenCalled();
+
+        const curveSelect = screen.getByRole("combobox", {
+          name: /pump name/i,
+        });
+        await user.click(curveSelect);
+        await user.click(screen.getByRole("option", { name: /Pump1/i }));
+
+        expect(onChange).toHaveBeenCalledWith({
+          type: "curveId",
+          curveId: 1,
+        });
+      });
+    });
+
     describe("changing from power type", () => {
       it("shows design-point in selector and table even when curve is invalid", async () => {
         const user = userEvent.setup();
@@ -549,6 +628,7 @@ describe("PumpDefinitionDetails", () => {
         render(
           <PumpDefinitionDetails
             pump={pump}
+            curves={curves}
             quantities={quantities}
             onChange={onChange}
           />,
@@ -574,6 +654,7 @@ describe("PumpDefinitionDetails", () => {
         render(
           <PumpDefinitionDetails
             pump={pump}
+            curves={curves}
             quantities={quantities}
             onChange={onChange}
           />,
@@ -596,134 +677,6 @@ describe("PumpDefinitionDetails", () => {
         expect(select).toHaveTextContent(/standard curve/i);
         expect(screen.getByRole("table")).toBeInTheDocument();
       });
-
-      it("emits onChange when switching from power to design-point with 1-point curve", async () => {
-        const user = userEvent.setup();
-        const onChange = vi.fn();
-        const pump = buildPump({
-          definitionType: "power",
-          power: 50,
-          curve: [{ x: 50, y: 100 }],
-        });
-
-        render(
-          <PumpDefinitionDetails
-            pump={pump}
-            quantities={quantities}
-            onChange={onChange}
-          />,
-        );
-
-        const select = screen.getByRole("combobox", { name: /pump type/i });
-        await user.click(select);
-        await user.click(screen.getByRole("option", { name: /design point/i }));
-
-        expect(onChange).toHaveBeenCalledWith({
-          type: "curve",
-          curve: [{ x: 50, y: 100 }],
-        });
-      });
-
-      it("emits onChange when switching from power to design-point with 3-point curve", async () => {
-        const user = userEvent.setup();
-        const onChange = vi.fn();
-        const pump = buildPump({
-          definitionType: "power",
-          power: 50,
-          curve: [
-            { x: 0, y: 150 },
-            { x: 50, y: 100 },
-            { x: 80, y: 10 },
-          ],
-        });
-
-        render(
-          <PumpDefinitionDetails
-            pump={pump}
-            quantities={quantities}
-            onChange={onChange}
-          />,
-        );
-
-        const select = screen.getByRole("combobox", { name: /pump type/i });
-        await user.click(select);
-        await user.click(screen.getByRole("option", { name: /design point/i }));
-
-        expect(onChange).toHaveBeenCalledWith({
-          type: "curve",
-          curve: [{ x: 50, y: 100 }],
-        });
-      });
-
-      it("emits onChange when switching from power to standard with 3-point curve", async () => {
-        const user = userEvent.setup();
-        const onChange = vi.fn();
-        const pump = buildPump({
-          definitionType: "power",
-          power: 50,
-          curve: [
-            { x: 0, y: 150 },
-            { x: 50, y: 100 },
-            { x: 80, y: 10 },
-          ],
-        });
-
-        render(
-          <PumpDefinitionDetails
-            pump={pump}
-            quantities={quantities}
-            onChange={onChange}
-          />,
-        );
-
-        const select = screen.getByRole("combobox", { name: /pump type/i });
-        await user.click(select);
-        await user.click(
-          screen.getByRole("option", { name: /standard curve/i }),
-        );
-
-        expect(onChange).toHaveBeenCalledWith({
-          type: "curve",
-          curve: [
-            { x: 0, y: 150 },
-            { x: 50, y: 100 },
-            { x: 80, y: 10 },
-          ],
-        });
-      });
-
-      it("emits onChange when switching from power to standard with 1-point curve", async () => {
-        const user = userEvent.setup();
-        const onChange = vi.fn();
-        const pump = buildPump({
-          definitionType: "power",
-          power: 50,
-          curve: [{ x: 50, y: 100 }],
-        });
-
-        render(
-          <PumpDefinitionDetails
-            pump={pump}
-            quantities={quantities}
-            onChange={onChange}
-          />,
-        );
-
-        const select = screen.getByRole("combobox", { name: /pump type/i });
-        await user.click(select);
-        await user.click(
-          screen.getByRole("option", { name: /standard curve/i }),
-        );
-
-        expect(onChange).toHaveBeenCalledWith({
-          type: "curve",
-          curve: [
-            { x: 0, y: 133 },
-            { x: 50, y: 100 },
-            { x: 100, y: 0 },
-          ],
-        });
-      });
     });
   });
 
@@ -738,6 +691,7 @@ describe("PumpDefinitionDetails", () => {
       const { rerender } = render(
         <PumpDefinitionDetails
           pump={pump}
+          curves={curves}
           quantities={quantities}
           onChange={onChange}
         />,
@@ -752,6 +706,7 @@ describe("PumpDefinitionDetails", () => {
       rerender(
         <PumpDefinitionDetails
           pump={pumpCopy}
+          curves={curves}
           quantities={quantities}
           onChange={onChange}
         />,
@@ -771,6 +726,7 @@ describe("PumpDefinitionDetails", () => {
       const { rerender } = render(
         <PumpDefinitionDetails
           pump={pump}
+          curves={curves}
           quantities={quantities}
           onChange={onChange}
         />,
@@ -787,6 +743,7 @@ describe("PumpDefinitionDetails", () => {
       rerender(
         <PumpDefinitionDetails
           pump={updatedPump}
+          curves={curves}
           quantities={quantities}
           onChange={onChange}
         />,

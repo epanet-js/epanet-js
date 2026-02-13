@@ -149,8 +149,8 @@ class EpanetIds {
     }
   }
 
-  curveId(link: LinkAsset) {
-    const curveId = this.ensureUnique(this.curveLabels, link.label);
+  curveId(candidate: string) {
+    const curveId = this.ensureUnique(this.curveLabels, candidate);
     this.curveLabels.add(curveId);
     return curveId;
   }
@@ -275,7 +275,7 @@ export const buildInp = withDebugInstrumentation(
       rules: ["[RULES]"],
     };
 
-    const usedCurveIds = new Set<number>();
+    const usedCurveIds = new Map<number, string>();
     const usedPatternIds = new Set<number>();
 
     for (const pattern of hydraulicModel.demands.patterns.values()) {
@@ -380,6 +380,7 @@ export const buildInp = withDebugInstrumentation(
       sections,
       hydraulicModel.curves,
       usedCurveIds,
+      idMap,
       opts.usedCurves,
     );
 
@@ -597,7 +598,7 @@ const appendPump = (
   hydraulicModel: HydraulicModel,
   geolocation: boolean,
   inactiveAssets: boolean,
-  usedCurveIds: Set<number>,
+  usedCurveIds: Map<number, string>,
   pump: Pump,
 ) => {
   if (!pump.isActive && !inactiveAssets) {
@@ -608,30 +609,57 @@ const appendPump = (
   const [startId, endId] = getLinkConnectionIds(hydraulicModel, idMap, pump);
   const commentPrefix = !pump.isActive ? ";" : "";
 
-  if (pump.definitionType === "curve") {
-    const curveId = idMap.curveId(pump);
-    sections.pumps.push(
-      commentPrefix +
-        [linkId, startId, endId, `HEAD ${curveId}`, `SPEED ${pump.speed}`].join(
-          "\t",
+  switch (pump.definitionType) {
+    case "power":
+      sections.pumps.push(
+        commentPrefix +
+          [
+            linkId,
+            startId,
+            endId,
+            `POWER ${pump.power}`,
+            `SPEED ${pump.speed}`,
+          ].join("\t"),
+      );
+      break;
+    case "curve":
+      const localCurveId = idMap.curveId(pump.label);
+      sections.pumps.push(
+        commentPrefix +
+          [
+            linkId,
+            startId,
+            endId,
+            `HEAD ${localCurveId}`,
+            `SPEED ${pump.speed}`,
+          ].join("\t"),
+      );
+      pump.curve!.forEach((point) =>
+        sections.curves.push(
+          [localCurveId, String(point.x), String(point.y)].join("\t"),
         ),
-    );
-    pump.curve!.forEach((point) =>
-      sections.curves.push(
-        [curveId, String(point.x), String(point.y)].join("\t"),
-      ),
-    );
-  } else {
-    sections.pumps.push(
-      commentPrefix +
-        [
-          linkId,
-          startId,
-          endId,
-          `POWER ${pump.power}`,
-          `SPEED ${pump.speed}`,
-        ].join("\t"),
-    );
+      );
+      break;
+    case "curveId":
+      const curve = hydraulicModel.curves.get(pump.curveId!)!;
+      let curveId = curve.label;
+      if (usedCurveIds.has(curve.id)) {
+        curveId = usedCurveIds.get(curve.id)!;
+      } else {
+        curveId = idMap.curveId(curve.label);
+        usedCurveIds.set(curve.id, curveId);
+      }
+      sections.pumps.push(
+        commentPrefix +
+          [
+            linkId,
+            startId,
+            endId,
+            `HEAD ${curveId}`,
+            `SPEED ${pump.speed}`,
+          ].join("\t"),
+      );
+      usedCurveIds.set(curve.id, curveId);
   }
 
   sections.status.push(
@@ -784,14 +812,16 @@ const appendControls = (
 const appendCurves = (
   sections: InpSections,
   curves: HydraulicModel["curves"],
-  usedCurveIds: Set<number>,
+  usedCurveIds: Map<number, string>,
+  idMap: EpanetIds,
   usedCurvesOnly: boolean,
 ) => {
   for (const curve of curves.values()) {
     if (usedCurvesOnly && !usedCurveIds.has(curve.id)) continue;
+    const curveId = usedCurveIds.get(curve.id) ?? idMap.curveId(curve.label);
     for (const point of curve.points) {
       sections.curves.push(
-        [curve.label, String(point.x), String(point.y)].join("\t"),
+        [curveId, String(point.x), String(point.y)].join("\t"),
       );
     }
   }
