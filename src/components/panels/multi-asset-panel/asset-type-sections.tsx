@@ -2,15 +2,18 @@ import { useTranslate } from "src/hooks/use-translate";
 import { Section, SectionList } from "src/components/form/fields";
 import { MultiValueRow } from "./multi-value-row";
 import { AssetPropertySections } from "./data";
+import { AssetId } from "src/hydraulic-model";
 
 type SectionProps = {
   sections: AssetPropertySections;
   hasSimulation?: boolean;
+  onSelectAssets?: (assetIds: AssetId[], property: string) => void;
 };
 
 export function AssetTypeSections({
   sections,
   hasSimulation = false,
+  onSelectAssets,
 }: SectionProps) {
   const translate = useTranslate();
 
@@ -43,6 +46,7 @@ export function AssetTypeSections({
                 propertyStats={stat}
                 unit={stat.type === "quantity" ? stat.unit : undefined}
                 decimals={stat.type === "quantity" ? stat.decimals : undefined}
+                onSelectAssets={onSelectAssets}
               />
             ))}
           </Section>

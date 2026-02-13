@@ -14,6 +14,7 @@ import {
 } from "src/icons";
 import { AssetPropertyStats, QuantityStats } from "./data";
 import { pluralize } from "src/lib/utils";
+import { AssetId } from "src/hydraulic-model";
 import { JsonValue } from "type-fest";
 
 type MultiValueRowProps = {
@@ -21,6 +22,7 @@ type MultiValueRowProps = {
   propertyStats: AssetPropertyStats;
   unit?: Unit;
   decimals?: number;
+  onSelectAssets?: (assetIds: AssetId[], property: string) => void;
 };
 
 export function MultiValueRow({
@@ -28,6 +30,7 @@ export function MultiValueRow({
   propertyStats,
   unit,
   decimals,
+  onSelectAssets,
 }: MultiValueRowProps) {
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
@@ -84,6 +87,11 @@ export function MultiValueRow({
                 values={propertyStats.values}
                 decimals={decimals}
                 type={propertyStats.type}
+                onSelectAssets={
+                  onSelectAssets
+                    ? (ids) => onSelectAssets(ids, propertyStats.property)
+                    : undefined
+                }
               />
             </StyledPopoverContent>
           </P.Portal>
@@ -146,10 +154,12 @@ export const SortableValuesList = ({
   values,
   decimals,
   type,
+  onSelectAssets,
 }: {
-  values: Map<JsonValue, number>;
+  values: Map<JsonValue, AssetId[]>;
   decimals?: number;
   type: "quantity" | "category" | "boolean";
+  onSelectAssets?: (assetIds: AssetId[]) => void;
 }) => {
   const translate = useTranslate();
 
@@ -172,7 +182,7 @@ export const SortableValuesList = ({
   };
 
   const valueEntries = Array.from(values.entries()).sort(
-    ([a, countA], [b, countB]) => {
+    ([a, idsA], [b, idsB]) => {
       const multiplier = sortDirection === "asc" ? 1 : -1;
       if (sortColumn === "value") {
         if (type === "quantity") {
@@ -181,10 +191,12 @@ export const SortableValuesList = ({
           return String(a).localeCompare(String(b)) * multiplier;
         }
       } else {
-        return (countA - countB) * multiplier;
+        return (idsA.length - idsB.length) * multiplier;
       }
     },
   );
+
+  const isClickable = !!onSelectAssets;
 
   const SortIndicator = ({ column }: { column: SortColumn }) => {
     const isActive = sortColumn === column;
@@ -231,11 +243,12 @@ export const SortableValuesList = ({
       </div>
       <div className="max-h-32 overflow-y-auto" role="rowgroup">
         <div className="w-full">
-          {valueEntries.map(([value, count], index) => (
+          {valueEntries.map(([value, assetIds], index) => (
             <div
               key={index}
-              className="py-2 px-2 flex items-center hover:bg-gray-200 dark:hover:bg-gray-700 gap-x-2 even:bg-gray-100"
+              className={`py-2 px-2 flex items-center hover:bg-gray-200 dark:hover:bg-gray-700 gap-x-2 even:bg-gray-100 ${isClickable ? "cursor-pointer" : ""}`}
               role="row"
+              onClick={isClickable ? () => onSelectAssets(assetIds) : undefined}
             >
               <div
                 title={formatValue(value, translate, decimals)}
@@ -249,7 +262,7 @@ export const SortableValuesList = ({
                 title={translate("assets")}
                 role="cell"
               >
-                ({localizeDecimal(count)})
+                ({localizeDecimal(assetIds.length)})
               </div>
             </div>
           ))}

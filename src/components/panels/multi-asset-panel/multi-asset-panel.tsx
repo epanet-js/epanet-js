@@ -1,11 +1,11 @@
-import { useMemo } from "react";
+import { useMemo, useCallback } from "react";
 import { useTranslate } from "src/hooks/use-translate";
 import { pluralize } from "src/lib/utils";
 import { IWrappedFeature } from "src/types";
 import { Quantities } from "src/model-metadata/quantities-spec";
 import { CollapsibleSection, SectionList } from "src/components/form/fields";
 import { MultiAssetActions } from "./actions";
-import { Asset } from "src/hydraulic-model";
+import { Asset, AssetId } from "src/hydraulic-model";
 import { AssetTypeSections } from "./asset-type-sections";
 import { SelectOnlyButton } from "./select-only-button";
 import { useAtom, useAtomValue } from "jotai";
@@ -14,9 +14,12 @@ import {
   simulationResultsAtom,
   multiAssetPanelCollapseAtom,
   stagingModelAtom,
+  selectionAtom,
 } from "src/state/jotai";
 import { computeMultiAssetData } from "./data";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { useSelection } from "src/selection/use-selection";
+import { useUserTracking } from "src/infra/user-tracking";
 
 export function MultiAssetPanel({
   selectedFeatures,
@@ -67,6 +70,27 @@ export function MultiAssetPanel({
     isNarrowSelectionEnabled &&
     Object.values(assetCounts).filter((c) => c > 0).length > 1;
 
+  const selection = useAtomValue(selectionAtom);
+  const { selectAssets } = useSelection(selection);
+  const userTracking = useUserTracking();
+
+  const handleSelectAssets = useCallback(
+    (assetIds: AssetId[], property: string, assetType: Asset["type"]) => {
+      userTracking.capture({
+        name: "selection.narrowedToPropertyValue",
+        type: assetType,
+        property,
+        count: assetIds.length,
+      });
+      selectAssets(assetIds);
+    },
+    [selectAssets, userTracking],
+  );
+
+  const onSelectAssets = isNarrowSelectionEnabled
+    ? handleSelectAssets
+    : undefined;
+
   return (
     <SectionList header={<Header selectedCount={selectedFeatures.length} />}>
       {assetCounts.junction > 0 && (
@@ -88,6 +112,9 @@ export function MultiAssetPanel({
           <AssetTypeSections
             sections={multiAssetData.junction}
             hasSimulation={hasSimulation}
+            onSelectAssets={
+              onSelectAssets && ((ids, p) => onSelectAssets(ids, p, "junction"))
+            }
           />
         </CollapsibleSection>
       )}
@@ -111,6 +138,9 @@ export function MultiAssetPanel({
           <AssetTypeSections
             sections={multiAssetData.pipe}
             hasSimulation={hasSimulation}
+            onSelectAssets={
+              onSelectAssets && ((ids, p) => onSelectAssets(ids, p, "pipe"))
+            }
           />
         </CollapsibleSection>
       )}
@@ -134,6 +164,9 @@ export function MultiAssetPanel({
           <AssetTypeSections
             sections={multiAssetData.pump}
             hasSimulation={hasSimulation}
+            onSelectAssets={
+              onSelectAssets && ((ids, p) => onSelectAssets(ids, p, "pump"))
+            }
           />
         </CollapsibleSection>
       )}
@@ -157,6 +190,9 @@ export function MultiAssetPanel({
           <AssetTypeSections
             sections={multiAssetData.valve}
             hasSimulation={hasSimulation}
+            onSelectAssets={
+              onSelectAssets && ((ids, p) => onSelectAssets(ids, p, "valve"))
+            }
           />
         </CollapsibleSection>
       )}
@@ -177,7 +213,13 @@ export function MultiAssetPanel({
             ) : undefined
           }
         >
-          <AssetTypeSections sections={multiAssetData.reservoir} />
+          <AssetTypeSections
+            sections={multiAssetData.reservoir}
+            onSelectAssets={
+              onSelectAssets &&
+              ((ids, p) => onSelectAssets(ids, p, "reservoir"))
+            }
+          />
         </CollapsibleSection>
       )}
 
@@ -200,6 +242,9 @@ export function MultiAssetPanel({
           <AssetTypeSections
             sections={multiAssetData.tank}
             hasSimulation={hasSimulation}
+            onSelectAssets={
+              onSelectAssets && ((ids, p) => onSelectAssets(ids, p, "tank"))
+            }
           />
         </CollapsibleSection>
       )}

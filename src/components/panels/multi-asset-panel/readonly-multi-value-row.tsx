@@ -14,12 +14,14 @@ import {
   SortableValuesList,
   formatValue,
 } from "./multi-value-row";
+import { AssetId } from "src/hydraulic-model";
 
 type ReadOnlyMultiValueRowProps = {
   name: string;
   propertyStats: AssetPropertyStats;
   unit?: Unit;
   decimals?: number;
+  onSelectAssets?: (assetIds: AssetId[], property: string) => void;
 };
 
 export function ReadOnlyMultiValueRow({
@@ -27,6 +29,7 @@ export function ReadOnlyMultiValueRow({
   propertyStats,
   unit,
   decimals,
+  onSelectAssets,
 }: ReadOnlyMultiValueRowProps) {
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
@@ -50,6 +53,11 @@ export function ReadOnlyMultiValueRow({
               propertyStats={propertyStats}
               label={label}
               decimals={undefined}
+              onSelectAssets={
+                onSelectAssets
+                  ? (ids) => onSelectAssets(ids, propertyStats.property)
+                  : undefined
+              }
             />
           ) : (
             <div className="flex-shrink-0 w-7" />
@@ -105,10 +113,12 @@ const StatsPopoverButton = ({
   propertyStats,
   label,
   decimals,
+  onSelectAssets,
 }: {
   propertyStats: AssetPropertyStats;
   label: string;
   decimals?: number;
+  onSelectAssets?: (assetIds: AssetId[]) => void;
 }) => {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -139,6 +149,9 @@ const StatsPopoverButton = ({
             values={propertyStats.values}
             decimals={decimals}
             type={propertyStats.type}
+            onSelectAssets={
+              onSelectAssets ? (ids) => onSelectAssets(ids) : undefined
+            }
           />
         </StyledPopoverContent>
       </P.Portal>

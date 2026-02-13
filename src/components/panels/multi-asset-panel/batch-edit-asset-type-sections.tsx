@@ -4,7 +4,7 @@ import { ReadOnlyMultiValueRow } from "./readonly-multi-value-row";
 import { BatchEditableRow } from "./batch-editable-row";
 import { AssetPropertySections } from "./data";
 import { BATCH_EDITABLE_PROPERTIES } from "./batch-edit-property-config";
-import { Asset } from "src/hydraulic-model";
+import { Asset, AssetId } from "src/hydraulic-model";
 
 type SectionProps = {
   sections: AssetPropertySections;
@@ -15,6 +15,7 @@ type SectionProps = {
     value: number | string | boolean,
   ) => void;
   readonly?: boolean;
+  onSelectAssets?: (assetIds: AssetId[], property: string) => void;
 };
 
 export function BatchEditAssetTypeSections({
@@ -23,6 +24,7 @@ export function BatchEditAssetTypeSections({
   hasSimulation = false,
   onPropertyChange,
   readonly = false,
+  onSelectAssets,
 }: SectionProps) {
   const translate = useTranslate();
   const editableProperties = BATCH_EDITABLE_PROPERTIES[assetType] ?? {};
@@ -64,6 +66,7 @@ export function BatchEditAssetTypeSections({
                     config={config}
                     onPropertyChange={onPropertyChange}
                     readonly={readonly}
+                    onSelectAssets={onSelectAssets}
                   />
                 );
               }
@@ -77,6 +80,7 @@ export function BatchEditAssetTypeSections({
                   decimals={
                     stat.type === "quantity" ? stat.decimals : undefined
                   }
+                  onSelectAssets={onSelectAssets}
                 />
               );
             })}

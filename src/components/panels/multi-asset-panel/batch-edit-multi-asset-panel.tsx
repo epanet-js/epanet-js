@@ -5,7 +5,7 @@ import { IWrappedFeature } from "src/types";
 import { Quantities } from "src/model-metadata/quantities-spec";
 import { CollapsibleSection, SectionList } from "src/components/form/fields";
 import { MultiAssetActions } from "./actions";
-import { Asset } from "src/hydraulic-model";
+import { Asset, AssetId } from "src/hydraulic-model";
 import { BatchEditAssetTypeSections } from "./batch-edit-asset-type-sections";
 import { SelectOnlyButton } from "./select-only-button";
 import { useAtom, useAtomValue } from "jotai";
@@ -14,6 +14,7 @@ import {
   simulationResultsAtom,
   multiAssetPanelCollapseAtom,
   stagingModelAtom,
+  selectionAtom,
 } from "src/state/jotai";
 import { computeMultiAssetData } from "./data";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
@@ -22,6 +23,7 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { changeProperty } from "src/hydraulic-model/model-operations";
 import { activateAssets } from "src/hydraulic-model/model-operations/activate-assets";
 import { deactivateAssets } from "src/hydraulic-model/model-operations/deactivate-assets";
+import { useSelection } from "src/selection/use-selection";
 
 export function BatchEditMultiAssetPanel({
   selectedFeatures,
@@ -104,6 +106,26 @@ export function BatchEditMultiAssetPanel({
     [hydraulicModel, assetIdsByType, transact, userTracking],
   );
 
+  const selection = useAtomValue(selectionAtom);
+  const { selectAssets } = useSelection(selection);
+
+  const handleSelectAssets = useCallback(
+    (assetIds: AssetId[], property: string, assetType: Asset["type"]) => {
+      userTracking.capture({
+        name: "selection.narrowedToPropertyValue",
+        type: assetType,
+        property,
+        count: assetIds.length,
+      });
+      selectAssets(assetIds);
+    },
+    [selectAssets, userTracking],
+  );
+
+  const onSelectAssets = isNarrowSelectionEnabled
+    ? handleSelectAssets
+    : undefined;
+
   return (
     <SectionList header={<Header selectedCount={selectedFeatures.length} />}>
       {assetCounts.junction > 0 && (
@@ -130,6 +152,9 @@ export function BatchEditMultiAssetPanel({
               handleBatchPropertyChange("junction", p, v)
             }
             readonly={readonly}
+            onSelectAssets={
+              onSelectAssets && ((ids, p) => onSelectAssets(ids, p, "junction"))
+            }
           />
         </CollapsibleSection>
       )}
@@ -156,6 +181,9 @@ export function BatchEditMultiAssetPanel({
             hasSimulation={hasSimulation}
             onPropertyChange={(p, v) => handleBatchPropertyChange("pipe", p, v)}
             readonly={readonly}
+            onSelectAssets={
+              onSelectAssets && ((ids, p) => onSelectAssets(ids, p, "pipe"))
+            }
           />
         </CollapsibleSection>
       )}
@@ -182,6 +210,9 @@ export function BatchEditMultiAssetPanel({
             hasSimulation={hasSimulation}
             onPropertyChange={(p, v) => handleBatchPropertyChange("pump", p, v)}
             readonly={readonly}
+            onSelectAssets={
+              onSelectAssets && ((ids, p) => onSelectAssets(ids, p, "pump"))
+            }
           />
         </CollapsibleSection>
       )}
@@ -210,6 +241,9 @@ export function BatchEditMultiAssetPanel({
               handleBatchPropertyChange("valve", p, v)
             }
             readonly={readonly}
+            onSelectAssets={
+              onSelectAssets && ((ids, p) => onSelectAssets(ids, p, "valve"))
+            }
           />
         </CollapsibleSection>
       )}
@@ -237,6 +271,10 @@ export function BatchEditMultiAssetPanel({
               handleBatchPropertyChange("reservoir", p, v)
             }
             readonly={readonly}
+            onSelectAssets={
+              onSelectAssets &&
+              ((ids, p) => onSelectAssets(ids, p, "reservoir"))
+            }
           />
         </CollapsibleSection>
       )}
@@ -263,6 +301,9 @@ export function BatchEditMultiAssetPanel({
             hasSimulation={hasSimulation}
             onPropertyChange={(p, v) => handleBatchPropertyChange("tank", p, v)}
             readonly={readonly}
+            onSelectAssets={
+              onSelectAssets && ((ids, p) => onSelectAssets(ids, p, "tank"))
+            }
           />
         </CollapsibleSection>
       )}

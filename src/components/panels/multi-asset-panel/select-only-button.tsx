@@ -24,7 +24,7 @@ export function SelectOnlyButton({
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     userTracking.capture({
-      name: "selection.narrowedToType",
+      name: "selection.narrowedToAssetType",
       type: assetType,
       count: assetIds.length,
     });

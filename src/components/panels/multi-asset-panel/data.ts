@@ -3,6 +3,7 @@ import { Quantities } from "src/model-metadata/quantities-spec";
 import type { ResultsReader } from "src/simulation/results-reader";
 import {
   Asset,
+  AssetId,
   Junction,
   Pipe,
   Pump,
@@ -30,7 +31,7 @@ export type QuantityStats = {
   max: number;
   min: number;
   mean: number;
-  values: Map<number, number>;
+  values: Map<number, AssetId[]>;
   times: number;
   decimals: number;
   unit: Unit;
@@ -39,13 +40,13 @@ export type QuantityStats = {
 export type CategoryStats = {
   type: "category";
   property: string;
-  values: Map<string, number>;
+  values: Map<string, AssetId[]>;
 };
 
 export type BooleanStats = {
   type: "boolean";
   property: string;
-  values: Map<string, number>;
+  values: Map<string, AssetId[]>;
 };
 
 type Section =
@@ -182,12 +183,14 @@ const appendJunctionStats = (
   demands: Demands,
   simulationResults?: ResultsReader | null,
 ) => {
-  updateBooleanStats(statsMap, "isEnabled", junction.isActive);
+  const id = junction.id;
+  updateBooleanStats(statsMap, "isEnabled", junction.isActive, id);
   updateQuantityStats(
     statsMap,
     "elevation",
     junction.elevation,
     quantitiesMetadata,
+    id,
   );
 
   const averageDemand = calculateAverageDemand(
@@ -199,6 +202,7 @@ const appendJunctionStats = (
     "directDemand",
     averageDemand,
     quantitiesMetadata,
+    id,
   );
 
   const customerPoints = getActiveCustomerPoints(
@@ -218,12 +222,14 @@ const appendJunctionStats = (
       "customerDemand",
       totalCustomerDemand,
       quantitiesMetadata,
+      id,
     );
 
     updateCustomerCountStats(
       statsMap,
       "connectedCustomers",
       customerPoints.length,
+      id,
     );
   }
 
@@ -234,10 +240,10 @@ const appendJunctionStats = (
   const actualDemand = junctionSim?.demand ?? null;
 
   if (pressure !== null) {
-    updateQuantityStats(statsMap, "pressure", pressure, quantitiesMetadata);
+    updateQuantityStats(statsMap, "pressure", pressure, quantitiesMetadata, id);
   }
   if (head !== null) {
-    updateQuantityStats(statsMap, "head", head, quantitiesMetadata);
+    updateQuantityStats(statsMap, "head", head, quantitiesMetadata, id);
   }
   if (actualDemand !== null) {
     updateQuantityStats(
@@ -245,6 +251,7 @@ const appendJunctionStats = (
       "actualDemand",
       actualDemand,
       quantitiesMetadata,
+      id,
     );
   }
 };
@@ -286,21 +293,35 @@ const appendPipeStats = (
   demands: Demands,
   simulationResults?: ResultsReader | null,
 ) => {
-  updateBooleanStats(statsMap, "isEnabled", pipe.isActive);
-  updateCategoryStats(statsMap, "initialStatus", "pipe." + pipe.initialStatus);
-  updateQuantityStats(statsMap, "diameter", pipe.diameter, quantitiesMetadata);
-  updateQuantityStats(statsMap, "length", pipe.length, quantitiesMetadata);
+  const id = pipe.id;
+  updateBooleanStats(statsMap, "isEnabled", pipe.isActive, id);
+  updateCategoryStats(
+    statsMap,
+    "initialStatus",
+    "pipe." + pipe.initialStatus,
+    id,
+  );
+  updateQuantityStats(
+    statsMap,
+    "diameter",
+    pipe.diameter,
+    quantitiesMetadata,
+    id,
+  );
+  updateQuantityStats(statsMap, "length", pipe.length, quantitiesMetadata, id);
   updateQuantityStats(
     statsMap,
     "roughness",
     pipe.roughness,
     quantitiesMetadata,
+    id,
   );
   updateQuantityStats(
     statsMap,
     "minorLoss",
     pipe.minorLoss,
     quantitiesMetadata,
+    id,
   );
 
   const customerPoints = customerPointsLookup.getCustomerPoints(pipe.id);
@@ -315,12 +336,14 @@ const appendPipeStats = (
       "customerDemand",
       totalCustomerDemand,
       quantitiesMetadata,
+      id,
     );
 
     updateCustomerCountStats(
       statsMap,
       "connectedCustomers",
       customerPoints.size,
+      id,
     );
   }
 
@@ -333,10 +356,10 @@ const appendPipeStats = (
   const status = pipeSim?.status ?? null;
 
   if (flow !== null) {
-    updateQuantityStats(statsMap, "flow", flow, quantitiesMetadata);
+    updateQuantityStats(statsMap, "flow", flow, quantitiesMetadata, id);
   }
   if (velocity !== null) {
-    updateQuantityStats(statsMap, "velocity", velocity, quantitiesMetadata);
+    updateQuantityStats(statsMap, "velocity", velocity, quantitiesMetadata, id);
   }
   if (unitHeadloss !== null) {
     updateQuantityStats(
@@ -344,14 +367,15 @@ const appendPipeStats = (
       "unitHeadloss",
       unitHeadloss,
       quantitiesMetadata,
+      id,
     );
   }
   if (headloss !== null) {
-    updateQuantityStats(statsMap, "headloss", headloss, quantitiesMetadata);
+    updateQuantityStats(statsMap, "headloss", headloss, quantitiesMetadata, id);
   }
   if (status !== null) {
     const statusLabel = "pipe." + status;
-    updateCategoryStats(statsMap, "pipeStatus", statusLabel);
+    updateCategoryStats(statsMap, "pipeStatus", statusLabel, id);
   }
 };
 
@@ -387,7 +411,8 @@ const appendPumpStats = (
   quantitiesMetadata: Quantities,
   simulationResults?: ResultsReader | null,
 ) => {
-  updateBooleanStats(statsMap, "isEnabled", pump.isActive);
+  const id = pump.id;
+  updateBooleanStats(statsMap, "isEnabled", pump.isActive, id);
 
   let pumpType: string = pump.definitionType;
   if (pump.definitionType === "curve" && pump.curve) {
@@ -396,11 +421,16 @@ const appendPumpStats = (
       pumpType = curveType;
     }
   }
-  updateCategoryStats(statsMap, "pumpType", pumpType);
-  updateCategoryStats(statsMap, "initialStatus", "pump." + pump.initialStatus);
+  updateCategoryStats(statsMap, "pumpType", pumpType, id);
+  updateCategoryStats(
+    statsMap,
+    "initialStatus",
+    "pump." + pump.initialStatus,
+    id,
+  );
 
   if (pump.speed !== null) {
-    updateQuantityStats(statsMap, "speed", pump.speed, quantitiesMetadata);
+    updateQuantityStats(statsMap, "speed", pump.speed, quantitiesMetadata, id);
   }
 
   // Simulation results - read from ResultsReader
@@ -412,16 +442,16 @@ const appendPumpStats = (
   const statusWarning = pumpSim?.statusWarning ?? null;
 
   if (flow !== null) {
-    updateQuantityStats(statsMap, "flow", flow, quantitiesMetadata);
+    updateQuantityStats(statsMap, "flow", flow, quantitiesMetadata, id);
   }
   if (head !== null) {
-    updateQuantityStats(statsMap, "pumpHead", head, quantitiesMetadata);
+    updateQuantityStats(statsMap, "pumpHead", head, quantitiesMetadata, id);
   }
   if (status !== null) {
     const statusLabel = statusWarning
       ? `pump.${status}.${statusWarning}`
       : "pump." + status;
-    updateCategoryStats(statsMap, "pumpStatus", statusLabel);
+    updateCategoryStats(statsMap, "pumpStatus", statusLabel, id);
   }
 };
 
@@ -450,20 +480,35 @@ const appendValveStats = (
   quantitiesMetadata: Quantities,
   simulationResults?: ResultsReader | null,
 ) => {
-  updateBooleanStats(statsMap, "isEnabled", valve.isActive);
-  updateCategoryStats(statsMap, "valveType", `valve.${valve.kind}`);
+  const id = valve.id;
+  updateBooleanStats(statsMap, "isEnabled", valve.isActive, id);
+  updateCategoryStats(statsMap, "valveType", `valve.${valve.kind}`, id);
   updateCategoryStats(
     statsMap,
     "initialStatus",
     "valve." + valve.initialStatus,
+    id,
   );
-  updateQuantityStats(statsMap, "setting", valve.setting, quantitiesMetadata);
-  updateQuantityStats(statsMap, "diameter", valve.diameter, quantitiesMetadata);
+  updateQuantityStats(
+    statsMap,
+    "setting",
+    valve.setting,
+    quantitiesMetadata,
+    id,
+  );
+  updateQuantityStats(
+    statsMap,
+    "diameter",
+    valve.diameter,
+    quantitiesMetadata,
+    id,
+  );
   updateQuantityStats(
     statsMap,
     "minorLoss",
     valve.minorLoss,
     quantitiesMetadata,
+    id,
   );
 
   // Simulation results - read from ResultsReader
@@ -474,17 +519,17 @@ const appendValveStats = (
   const status = valveSim?.status ?? null;
 
   if (flow !== null) {
-    updateQuantityStats(statsMap, "flow", flow, quantitiesMetadata);
+    updateQuantityStats(statsMap, "flow", flow, quantitiesMetadata, id);
   }
   if (velocity !== null) {
-    updateQuantityStats(statsMap, "velocity", velocity, quantitiesMetadata);
+    updateQuantityStats(statsMap, "velocity", velocity, quantitiesMetadata, id);
   }
   if (headloss !== null) {
-    updateQuantityStats(statsMap, "headloss", headloss, quantitiesMetadata);
+    updateQuantityStats(statsMap, "headloss", headloss, quantitiesMetadata, id);
   }
   if (status !== null) {
     const statusLabel = `valve.${status}`;
-    updateCategoryStats(statsMap, "valveStatus", statusLabel);
+    updateCategoryStats(statsMap, "valveStatus", statusLabel, id);
   }
 };
 
@@ -515,14 +560,16 @@ const appendReservoirStats = (
   reservoir: Reservoir,
   quantitiesMetadata: Quantities,
 ) => {
-  updateBooleanStats(statsMap, "isEnabled", reservoir.isActive);
+  const id = reservoir.id;
+  updateBooleanStats(statsMap, "isEnabled", reservoir.isActive, id);
   updateQuantityStats(
     statsMap,
     "elevation",
     reservoir.elevation,
     quantitiesMetadata,
+    id,
   );
-  updateQuantityStats(statsMap, "head", reservoir.head, quantitiesMetadata);
+  updateQuantityStats(statsMap, "head", reservoir.head, quantitiesMetadata, id);
 };
 
 const buildReservoirSections = (
@@ -542,31 +589,53 @@ const appendTankStats = (
   quantitiesMetadata: Quantities,
   simulationResults?: ResultsReader | null,
 ) => {
-  updateBooleanStats(statsMap, "isEnabled", tank.isActive);
+  const id = tank.id;
+  updateBooleanStats(statsMap, "isEnabled", tank.isActive, id);
   updateQuantityStats(
     statsMap,
     "elevation",
     tank.elevation,
     quantitiesMetadata,
+    id,
   );
   updateQuantityStats(
     statsMap,
     "initialLevel",
     tank.initialLevel,
     quantitiesMetadata,
+    id,
   );
-  updateQuantityStats(statsMap, "minLevel", tank.minLevel, quantitiesMetadata);
-  updateQuantityStats(statsMap, "maxLevel", tank.maxLevel, quantitiesMetadata);
-  updateQuantityStats(statsMap, "diameter", tank.diameter, quantitiesMetadata);
+  updateQuantityStats(
+    statsMap,
+    "minLevel",
+    tank.minLevel,
+    quantitiesMetadata,
+    id,
+  );
+  updateQuantityStats(
+    statsMap,
+    "maxLevel",
+    tank.maxLevel,
+    quantitiesMetadata,
+    id,
+  );
+  updateQuantityStats(
+    statsMap,
+    "diameter",
+    tank.diameter,
+    quantitiesMetadata,
+    id,
+  );
   updateQuantityStats(
     statsMap,
     "minVolume",
     tank.minVolume,
     quantitiesMetadata,
+    id,
   );
 
   if (tank.overflow !== undefined) {
-    updateBooleanStats(statsMap, "canOverflow", tank.overflow);
+    updateBooleanStats(statsMap, "canOverflow", tank.overflow, id);
   }
 
   // Simulation results - read from ResultsReader
@@ -577,16 +646,16 @@ const appendTankStats = (
   const volume = tankSim?.volume ?? null;
 
   if (pressure !== null) {
-    updateQuantityStats(statsMap, "pressure", pressure, quantitiesMetadata);
+    updateQuantityStats(statsMap, "pressure", pressure, quantitiesMetadata, id);
   }
   if (head !== null) {
-    updateQuantityStats(statsMap, "head", head, quantitiesMetadata);
+    updateQuantityStats(statsMap, "head", head, quantitiesMetadata, id);
   }
   if (level !== null) {
-    updateQuantityStats(statsMap, "level", level, quantitiesMetadata);
+    updateQuantityStats(statsMap, "level", level, quantitiesMetadata, id);
   }
   if (volume !== null) {
-    updateQuantityStats(statsMap, "volume", volume, quantitiesMetadata);
+    updateQuantityStats(statsMap, "volume", volume, quantitiesMetadata, id);
   }
 };
 
@@ -619,6 +688,7 @@ const updateQuantityStats = (
   property: string,
   value: number | null,
   quantitiesMetadata: Quantities,
+  assetId: AssetId,
 ) => {
   if (value === null) return;
 
@@ -652,7 +722,9 @@ const updateQuantityStats = (
 
   stats.sum += roundedValue;
   stats.times += 1;
-  stats.values.set(roundedValue, (stats.values.get(roundedValue) || 0) + 1);
+  const ids = stats.values.get(roundedValue) || [];
+  ids.push(assetId);
+  stats.values.set(roundedValue, ids);
 
   const mean = stats.sum / stats.times;
   stats.mean = roundToDecimal(mean, stats.decimals);
@@ -662,6 +734,7 @@ const updateCustomerCountStats = (
   statsMap: Map<string, AssetPropertyStats>,
   property: string,
   value: number,
+  assetId: AssetId,
 ) => {
   if (!statsMap.has(property)) {
     statsMap.set(property, {
@@ -685,7 +758,9 @@ const updateCustomerCountStats = (
 
   stats.sum += value;
   stats.times += 1;
-  stats.values.set(value, (stats.values.get(value) || 0) + 1);
+  const ids = stats.values.get(value) || [];
+  ids.push(assetId);
+  stats.values.set(value, ids);
 
   const mean = stats.sum / stats.times;
   stats.mean = roundToDecimal(mean, 0);
@@ -695,6 +770,7 @@ const updateCategoryStats = (
   statsMap: Map<string, AssetPropertyStats>,
   property: string,
   value: string,
+  assetId: AssetId,
 ) => {
   if (!statsMap.has(property)) {
     statsMap.set(property, {
@@ -705,13 +781,16 @@ const updateCategoryStats = (
   }
 
   const stats = statsMap.get(property) as CategoryStats;
-  stats.values.set(value, (stats.values.get(value) || 0) + 1);
+  const ids = stats.values.get(value) || [];
+  ids.push(assetId);
+  stats.values.set(value, ids);
 };
 
 const updateBooleanStats = (
   statsMap: Map<string, AssetPropertyStats>,
   property: string,
   value: boolean,
+  assetId: AssetId,
 ) => {
   if (!statsMap.has(property)) {
     statsMap.set(property, {
@@ -723,7 +802,9 @@ const updateBooleanStats = (
 
   const label = value ? "yes" : "no";
   const stats = statsMap.get(property) as BooleanStats;
-  stats.values.set(label, (stats.values.get(label) || 0) + 1);
+  const ids = stats.values.get(label) || [];
+  ids.push(assetId);
+  stats.values.set(label, ids);
 };
 
 const getStatsForProperties = (

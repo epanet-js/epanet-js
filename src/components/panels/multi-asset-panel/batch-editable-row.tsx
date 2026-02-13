@@ -12,6 +12,7 @@ import { MultipleValuesIcon } from "src/icons";
 import { AssetPropertyStats, QuantityStats } from "./data";
 import { QuantityStatsBaseFields, SortableValuesList } from "./multi-value-row";
 import { BatchEditPropertyConfig } from "./batch-edit-property-config";
+import { AssetId } from "src/hydraulic-model";
 
 type BatchEditableRowProps = {
   propertyStats: AssetPropertyStats;
@@ -21,6 +22,7 @@ type BatchEditableRowProps = {
     value: number | string | boolean,
   ) => void;
   readonly?: boolean;
+  onSelectAssets?: (assetIds: AssetId[], property: string) => void;
 };
 
 export function BatchEditableRow({
@@ -28,6 +30,7 @@ export function BatchEditableRow({
   config,
   onPropertyChange,
   readonly = false,
+  onSelectAssets,
 }: BatchEditableRowProps) {
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
@@ -42,7 +45,11 @@ export function BatchEditableRow({
     <InlineField name={label} labelSize="md">
       <div className="flex items-center gap-1">
         {isMixed ? (
-          <StatsPopoverButton propertyStats={propertyStats} label={label} />
+          <StatsPopoverButton
+            propertyStats={propertyStats}
+            label={label}
+            onSelectAssets={onSelectAssets}
+          />
         ) : (
           <div className="flex-shrink-0 w-7" />
         )}
@@ -64,9 +71,11 @@ export function BatchEditableRow({
 const StatsPopoverButton = ({
   propertyStats,
   label,
+  onSelectAssets,
 }: {
   propertyStats: AssetPropertyStats;
   label: string;
+  onSelectAssets?: (assetIds: AssetId[], property: string) => void;
 }) => {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -101,6 +110,11 @@ const StatsPopoverButton = ({
                 : undefined
             }
             type={propertyStats.type}
+            onSelectAssets={
+              onSelectAssets
+                ? (ids) => onSelectAssets(ids, propertyStats.property)
+                : undefined
+            }
           />
         </StyledPopoverContent>
       </P.Portal>

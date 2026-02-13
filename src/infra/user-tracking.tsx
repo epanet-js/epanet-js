@@ -127,9 +127,16 @@ type MultiSelectUpdated = {
     | "single_remove";
 };
 
-type SelectionNarrowedToType = {
-  name: "selection.narrowedToType";
+type SelectionNarrowedToAssetType = {
+  name: "selection.narrowedToAssetType";
   type: Asset["type"];
+  count: number;
+};
+
+type SelectionNarrowedToPropertyValue = {
+  name: "selection.narrowedToPropertyValue";
+  type: Asset["type"];
+  property: string;
   count: number;
 };
 
@@ -799,7 +806,8 @@ export type UserEvent =
   | OperationRedone
   | DrawingModeEnabled
   | MultiSelectUpdated
-  | SelectionNarrowedToType
+  | SelectionNarrowedToAssetType
+  | SelectionNarrowedToPropertyValue
   | FullSelectionEnabled
   | SelectionCleared
   | InpIssuesSeen

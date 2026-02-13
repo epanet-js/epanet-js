@@ -205,8 +205,8 @@ describe("computeMultiAssetData", () => {
       result.data.pipe.modelAttributes,
       "initialStatus",
     );
-    expect(statusStat.values.get("pipe.open")).toBe(2);
-    expect(statusStat.values.get("pipe.closed")).toBe(1);
+    expect(statusStat.values.get("pipe.open")).toHaveLength(2);
+    expect(statusStat.values.get("pipe.closed")).toHaveLength(1);
   });
 
   it("handles empty asset arrays", () => {
@@ -254,7 +254,7 @@ describe("computeMultiAssetData", () => {
     expect(pumpData.modelAttributes).toBeDefined();
 
     const typeStat = findCategoryStat(pumpData.modelAttributes, "pumpType");
-    expect(typeStat.values.get("power")).toBe(1);
+    expect(typeStat.values.get("power")).toHaveLength(1);
   });
 
   it("handles partial simulation results", () => {
@@ -304,7 +304,7 @@ describe("computeMultiAssetData", () => {
 
     const valveData = result.data.valve;
     const typeStat = findCategoryStat(valveData.modelAttributes, "valveType");
-    expect(typeStat.values.get("valve.prv")).toBe(1);
+    expect(typeStat.values.get("valve.prv")).toHaveLength(1);
   });
 
   it("computes tank stats with sections", () => {
@@ -375,8 +375,8 @@ describe("computeMultiAssetData", () => {
       result.data.pipe.activeTopology,
       "isEnabled",
     );
-    expect(isEnabledStat.values.get("yes")).toBe(2);
-    expect(isEnabledStat.values.get("no")).toBe(1);
+    expect(isEnabledStat.values.get("yes")).toHaveLength(2);
+    expect(isEnabledStat.values.get("no")).toHaveLength(1);
   });
 
   describe("average demand calculation", () => {
