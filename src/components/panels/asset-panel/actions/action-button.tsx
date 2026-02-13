@@ -1,4 +1,5 @@
 import * as Tooltip from "@radix-ui/react-tooltip";
+import clsx from "clsx";
 import {
   Button,
   TContent,
@@ -40,7 +41,7 @@ export function ActionButton({ action }: { action: Action }) {
           variant={selected ? "quiet/mode" : variant}
           aria-expanded={selected ? "true" : "false"}
           disabled={disabled}
-          className={disabled ? "cursor-not-allowed" : ""}
+          className={clsx("h-8", disabled ? "cursor-not-allowed" : "")}
         >
           {icon}
         </Button>

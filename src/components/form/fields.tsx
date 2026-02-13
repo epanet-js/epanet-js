@@ -281,13 +281,11 @@ export const CollapsibleSection = ({
           >
             <span>{title}</span>
             <div className="flex-1 border-b border-gray-200 mx-3 mb-1" />
-            {open ? <ChevronDownIcon /> : <ChevronRightIcon />}
-          </C.Trigger>
-          {action && (
-            <div className={clsx("h-8 w-8 -mt-2", { "mb-1": open })}>
-              {action}
+            {action && <div className="h-8 w-8 -my-1">{action}</div>}
+            <div className="ml-1">
+              {open ? <ChevronDownIcon /> : <ChevronRightIcon />}
             </div>
-          )}
+          </C.Trigger>
         </div>
         <C.Content className="flex flex-col gap-1">{children}</C.Content>
       </div>

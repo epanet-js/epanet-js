@@ -276,7 +276,7 @@ const Header = ({ selectedCount }: { selectedCount: number }) => {
   return (
     <div className="px-4 pt-4 pb-3">
       <div className="flex items-start justify-between">
-        <span className="font-semibold">
+        <span className="font-semibold mt-1">
           {translate("selection")} (
           <span className="text-nowrap">
             {pluralize(translate, "asset", selectedCount)})
