@@ -248,6 +248,7 @@ export const CollapsibleSection = ({
   onOpenChange,
   className,
   children,
+  action,
 }: {
   title: string;
   variant?: "primary" | "secondary";
@@ -256,6 +257,7 @@ export const CollapsibleSection = ({
   onOpenChange?: (open: boolean) => void;
   className?: string;
   children: React.ReactNode;
+  action?: React.ReactNode;
 }) => {
   const [uncontrolledOpen, setUncontrolledOpen] = useState(defaultOpen);
 
@@ -266,20 +268,27 @@ export const CollapsibleSection = ({
   return (
     <C.Root open={open} onOpenChange={handleOpenChange}>
       <div className={clsx("flex flex-col", className)}>
-        <C.Trigger
-          className={clsx(
-            "flex items-center text-sm font-semibold cursor-pointer hover:text-gray-700 dark:hover:text-gray-100",
-            "p-2 -mx-2 -mt-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800",
-            {
-              "text-gray-500": variant === "secondary",
-              "mb-1": open,
-            },
+        <div className="flex items-center gap-1">
+          <C.Trigger
+            className={clsx(
+              "flex-1 flex items-center text-sm font-semibold cursor-pointer hover:text-gray-700 dark:hover:text-gray-100",
+              "p-2 -mx-2 -mt-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800",
+              {
+                "text-gray-500": variant === "secondary",
+                "mb-1": open,
+              },
+            )}
+          >
+            <span>{title}</span>
+            <div className="flex-1 border-b border-gray-200 mx-3 mb-1" />
+            {open ? <ChevronDownIcon /> : <ChevronRightIcon />}
+          </C.Trigger>
+          {action && (
+            <div className={clsx("h-8 w-8 -mt-2", { "mb-1": open })}>
+              {action}
+            </div>
           )}
-        >
-          <span>{title}</span>
-          <div className="flex-1 border-b border-gray-200 mx-3 mb-1" />
-          {open ? <ChevronDownIcon /> : <ChevronRightIcon />}
-        </C.Trigger>
+        </div>
         <C.Content className="flex flex-col gap-1">{children}</C.Content>
       </div>
     </C.Root>

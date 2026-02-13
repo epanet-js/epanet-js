@@ -7,6 +7,7 @@ import { CollapsibleSection, SectionList } from "src/components/form/fields";
 import { MultiAssetActions } from "./actions";
 import { Asset } from "src/hydraulic-model";
 import { AssetTypeSections } from "./asset-type-sections";
+import { SelectOnlyButton } from "./select-only-button";
 import { useAtom, useAtomValue } from "jotai";
 import {
   simulationAtom,
@@ -15,6 +16,7 @@ import {
   stagingModelAtom,
 } from "src/state/jotai";
 import { computeMultiAssetData } from "./data";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export function MultiAssetPanel({
   selectedFeatures,
@@ -44,6 +46,27 @@ export function MultiAssetPanel({
     );
   }, [selectedFeatures, quantitiesMetadata, hydraulicModel, simulationResults]);
 
+  const assetIdsByType = useMemo(() => {
+    const map: Record<Asset["type"], Asset["id"][]> = {
+      junction: [],
+      pipe: [],
+      pump: [],
+      valve: [],
+      reservoir: [],
+      tank: [],
+    };
+    for (const feature of selectedFeatures) {
+      const asset = feature as Asset;
+      map[asset.type].push(asset.id);
+    }
+    return map;
+  }, [selectedFeatures]);
+
+  const isNarrowSelectionEnabled = useFeatureFlag("FLAG_NARROW_SELECTION");
+  const showSelectOnly =
+    isNarrowSelectionEnabled &&
+    Object.values(assetCounts).filter((c) => c > 0).length > 1;
+
   return (
     <SectionList header={<Header selectedCount={selectedFeatures.length} />}>
       {assetCounts.junction > 0 && (
@@ -52,6 +75,14 @@ export function MultiAssetPanel({
           open={collapseState.junction}
           onOpenChange={(open) =>
             setCollapseState((prev) => ({ ...prev, junction: open }))
+          }
+          action={
+            showSelectOnly ? (
+              <SelectOnlyButton
+                assetType="junction"
+                assetIds={assetIdsByType.junction}
+              />
+            ) : undefined
           }
         >
           <AssetTypeSections
@@ -68,6 +99,14 @@ export function MultiAssetPanel({
           onOpenChange={(open) =>
             setCollapseState((prev) => ({ ...prev, pipe: open }))
           }
+          action={
+            showSelectOnly ? (
+              <SelectOnlyButton
+                assetType="pipe"
+                assetIds={assetIdsByType.pipe}
+              />
+            ) : undefined
+          }
         >
           <AssetTypeSections
             sections={multiAssetData.pipe}
@@ -82,6 +121,14 @@ export function MultiAssetPanel({
           open={collapseState.pump}
           onOpenChange={(open) =>
             setCollapseState((prev) => ({ ...prev, pump: open }))
+          }
+          action={
+            showSelectOnly ? (
+              <SelectOnlyButton
+                assetType="pump"
+                assetIds={assetIdsByType.pump}
+              />
+            ) : undefined
           }
         >
           <AssetTypeSections
@@ -98,6 +145,14 @@ export function MultiAssetPanel({
           onOpenChange={(open) =>
             setCollapseState((prev) => ({ ...prev, valve: open }))
           }
+          action={
+            showSelectOnly ? (
+              <SelectOnlyButton
+                assetType="valve"
+                assetIds={assetIdsByType.valve}
+              />
+            ) : undefined
+          }
         >
           <AssetTypeSections
             sections={multiAssetData.valve}
@@ -113,6 +168,14 @@ export function MultiAssetPanel({
           onOpenChange={(open) =>
             setCollapseState((prev) => ({ ...prev, reservoir: open }))
           }
+          action={
+            showSelectOnly ? (
+              <SelectOnlyButton
+                assetType="reservoir"
+                assetIds={assetIdsByType.reservoir}
+              />
+            ) : undefined
+          }
         >
           <AssetTypeSections sections={multiAssetData.reservoir} />
         </CollapsibleSection>
@@ -124,6 +187,14 @@ export function MultiAssetPanel({
           open={collapseState.tank}
           onOpenChange={(open) =>
             setCollapseState((prev) => ({ ...prev, tank: open }))
+          }
+          action={
+            showSelectOnly ? (
+              <SelectOnlyButton
+                assetType="tank"
+                assetIds={assetIdsByType.tank}
+              />
+            ) : undefined
           }
         >
           <AssetTypeSections

@@ -127,6 +127,12 @@ type MultiSelectUpdated = {
     | "single_remove";
 };
 
+type SelectionNarrowedToType = {
+  name: "selection.narrowedToType";
+  type: Asset["type"];
+  count: number;
+};
+
 type FullSelectionEnabled = {
   name: "fullSelection.enabled";
   source: "shortcut";
@@ -793,6 +799,7 @@ export type UserEvent =
   | OperationRedone
   | DrawingModeEnabled
   | MultiSelectUpdated
+  | SelectionNarrowedToType
   | FullSelectionEnabled
   | SelectionCleared
   | InpIssuesSeen

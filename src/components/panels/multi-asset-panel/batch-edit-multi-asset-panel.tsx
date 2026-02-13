@@ -7,6 +7,7 @@ import { CollapsibleSection, SectionList } from "src/components/form/fields";
 import { MultiAssetActions } from "./actions";
 import { Asset } from "src/hydraulic-model";
 import { BatchEditAssetTypeSections } from "./batch-edit-asset-type-sections";
+import { SelectOnlyButton } from "./select-only-button";
 import { useAtom, useAtomValue } from "jotai";
 import {
   simulationAtom,
@@ -15,6 +16,7 @@ import {
   stagingModelAtom,
 } from "src/state/jotai";
 import { computeMultiAssetData } from "./data";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { usePersistence } from "src/lib/persistence";
 import { useUserTracking } from "src/infra/user-tracking";
 import { changeProperty } from "src/hydraulic-model/model-operations";
@@ -68,6 +70,11 @@ export function BatchEditMultiAssetPanel({
     return map;
   }, [selectedFeatures]);
 
+  const isNarrowSelectionEnabled = useFeatureFlag("FLAG_NARROW_SELECTION");
+  const showSelectOnly =
+    isNarrowSelectionEnabled &&
+    Object.values(assetCounts).filter((c) => c > 0).length > 1;
+
   const handleBatchPropertyChange = useCallback(
     (
       assetType: Asset["type"],
@@ -106,6 +113,14 @@ export function BatchEditMultiAssetPanel({
           onOpenChange={(open) =>
             setCollapseState((prev) => ({ ...prev, junction: open }))
           }
+          action={
+            showSelectOnly ? (
+              <SelectOnlyButton
+                assetType="junction"
+                assetIds={assetIdsByType.junction}
+              />
+            ) : undefined
+          }
         >
           <BatchEditAssetTypeSections
             sections={multiAssetData.junction}
@@ -126,6 +141,14 @@ export function BatchEditMultiAssetPanel({
           onOpenChange={(open) =>
             setCollapseState((prev) => ({ ...prev, pipe: open }))
           }
+          action={
+            showSelectOnly ? (
+              <SelectOnlyButton
+                assetType="pipe"
+                assetIds={assetIdsByType.pipe}
+              />
+            ) : undefined
+          }
         >
           <BatchEditAssetTypeSections
             sections={multiAssetData.pipe}
@@ -144,6 +167,14 @@ export function BatchEditMultiAssetPanel({
           onOpenChange={(open) =>
             setCollapseState((prev) => ({ ...prev, pump: open }))
           }
+          action={
+            showSelectOnly ? (
+              <SelectOnlyButton
+                assetType="pump"
+                assetIds={assetIdsByType.pump}
+              />
+            ) : undefined
+          }
         >
           <BatchEditAssetTypeSections
             sections={multiAssetData.pump}
@@ -161,6 +192,14 @@ export function BatchEditMultiAssetPanel({
           open={collapseState.valve}
           onOpenChange={(open) =>
             setCollapseState((prev) => ({ ...prev, valve: open }))
+          }
+          action={
+            showSelectOnly ? (
+              <SelectOnlyButton
+                assetType="valve"
+                assetIds={assetIdsByType.valve}
+              />
+            ) : undefined
           }
         >
           <BatchEditAssetTypeSections
@@ -182,6 +221,14 @@ export function BatchEditMultiAssetPanel({
           onOpenChange={(open) =>
             setCollapseState((prev) => ({ ...prev, reservoir: open }))
           }
+          action={
+            showSelectOnly ? (
+              <SelectOnlyButton
+                assetType="reservoir"
+                assetIds={assetIdsByType.reservoir}
+              />
+            ) : undefined
+          }
         >
           <BatchEditAssetTypeSections
             sections={multiAssetData.reservoir}
@@ -200,6 +247,14 @@ export function BatchEditMultiAssetPanel({
           open={collapseState.tank}
           onOpenChange={(open) =>
             setCollapseState((prev) => ({ ...prev, tank: open }))
+          }
+          action={
+            showSelectOnly ? (
+              <SelectOnlyButton
+                assetType="tank"
+                assetIds={assetIdsByType.tank}
+              />
+            ) : undefined
           }
         >
           <BatchEditAssetTypeSections
