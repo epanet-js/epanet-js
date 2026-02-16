@@ -334,6 +334,45 @@ body.dark .mapboxgl-ctrl-attrib-button {
   background: radial-gradient(farthest-side at 50% 100%, rgba(0, 0, 0, 0.3), transparent);
 }
 
+/* DataGrid scroll shadows — uses named scroll timelines so shadows
+   (positioned as siblings outside the scroll container) can reference
+   the scroll container's progress. */
+.datagrid-scroll-container {
+  timeline-scope: --datagrid-y, --datagrid-x;
+}
+
+.datagrid-scroll-area {
+  scroll-timeline: --datagrid-y block, --datagrid-x inline;
+}
+
+.datagrid-scroll-shadow {
+  opacity: 0;
+  animation-name: scroll-shadow-appear;
+  animation-fill-mode: both;
+  animation-timing-function: linear;
+}
+
+.datagrid-scroll-shadow[data-position="top"],
+.datagrid-scroll-shadow[data-position="bottom"] {
+  animation-timeline: --datagrid-y;
+}
+
+.datagrid-scroll-shadow[data-position="left"],
+.datagrid-scroll-shadow[data-position="right"] {
+  animation-timeline: --datagrid-x;
+}
+
+.datagrid-scroll-shadow[data-position="top"],
+.datagrid-scroll-shadow[data-position="left"] {
+  animation-range: 0px 40px;
+}
+
+.datagrid-scroll-shadow[data-position="bottom"],
+.datagrid-scroll-shadow[data-position="right"] {
+  animation-direction: reverse;
+  animation-range: calc(100% - 40px) 100%;
+}
+
 .group-1:hover .group-1-hover\:opacity-100 {
   opacity: 100;
 }

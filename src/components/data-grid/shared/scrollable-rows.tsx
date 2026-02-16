@@ -8,7 +8,6 @@ import {
 } from "react";
 import { Table } from "@tanstack/react-table";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import clsx from "clsx";
 import {
   CellPosition,
   DataGridVariant,
@@ -83,10 +82,8 @@ export const ScrollableRows = forwardRef(function ScrollableRows<TData>(
   const scrollRef = useRef<HTMLDivElement>(null);
   const [rowsHeight, setRowsHeight] = useState<number | undefined>(undefined);
   const [scrollState, setScrollState] = useState<ScrollState>({
-    canScrollUp: false,
-    canScrollDown: false,
-    canScrollLeft: false,
-    canScrollRight: false,
+    hasVerticalScroll: false,
+    hasHorizontalScroll: false,
     scrollbarWidth: 0,
     scrollbarHeight: 0,
   });
@@ -108,32 +105,22 @@ export const ScrollableRows = forwardRef(function ScrollableRows<TData>(
   }, []);
 
   useEffect(function trackScrollState() {
-    const updateScrollState = () => {
-      const el = scrollRef.current;
-      if (!el) return;
+    const el = scrollRef.current;
+    if (!el) return;
+
+    const update = () => {
       setScrollState({
-        canScrollUp: el.scrollTop > 0,
-        canScrollDown: el.scrollTop + el.clientHeight < el.scrollHeight - 1,
-        canScrollLeft: el.scrollLeft > 0,
-        canScrollRight: el.scrollLeft + el.clientWidth < el.scrollWidth - 1,
+        hasVerticalScroll: el.scrollHeight > el.clientHeight,
+        hasHorizontalScroll: el.scrollWidth > el.clientWidth,
         scrollbarWidth: el.offsetWidth - el.clientWidth - 2,
         scrollbarHeight: el.offsetHeight - el.clientHeight - 2,
       });
     };
 
-    const el = scrollRef.current;
-    if (!el) return;
-
-    updateScrollState();
-    el.addEventListener("scroll", updateScrollState);
-
-    const resizeObserver = new ResizeObserver(updateScrollState);
+    update();
+    const resizeObserver = new ResizeObserver(update);
     resizeObserver.observe(el);
-
-    return () => {
-      el.removeEventListener("scroll", updateScrollState);
-      resizeObserver.disconnect();
-    };
+    return () => resizeObserver.disconnect();
   }, []);
 
   const visibleRowCount = rowsHeight ? Math.floor(rowsHeight / ROW_HEIGHT) : 10;
@@ -203,8 +190,7 @@ export const ScrollableRows = forwardRef(function ScrollableRows<TData>(
 
   const virtualRows = rowVirtualizer.getVirtualItems();
   const totalSize = rowVirtualizer.getTotalSize();
-  const hasVerticalScroll =
-    scrollState.canScrollUp || scrollState.canScrollDown;
+  const hasVerticalScroll = scrollState.hasVerticalScroll;
 
   const isReady = rowsHeight !== undefined;
 
@@ -214,15 +200,13 @@ export const ScrollableRows = forwardRef(function ScrollableRows<TData>(
   return (
     <div
       ref={containerRef}
-      className="flex-1 min-h-0"
+      className="flex-1 min-h-0 datagrid-scroll-container"
       style={{ visibility: isReady ? "visible" : "hidden" }}
     >
       <div
         ref={scrollRef}
         onMouseDown={onEmptyAreaMouseDown}
-        className={clsx(
-          "outline-none overflow-auto flex-1 border border-gray-200 h-full",
-        )}
+        className="outline-none overflow-auto flex-1 border border-gray-200 h-full datagrid-scroll-area"
       >
         <div
           style={{
@@ -272,34 +256,38 @@ export const ScrollableRows = forwardRef(function ScrollableRows<TData>(
         </div>
       </div>
 
-      <ScrollShadow
-        position="top"
-        visible={scrollState.canScrollUp}
-        topOffset={ROW_HEIGHT}
-        startEdge={gutterWidth}
-        endEdge={actionsWidth + scrollState.scrollbarWidth}
-      />
-      <ScrollShadow
-        position="bottom"
-        visible={scrollState.canScrollDown}
-        offset={scrollState.scrollbarHeight}
-        startEdge={gutterWidth}
-        endEdge={actionsWidth + scrollState.scrollbarWidth}
-      />
-      <ScrollShadow
-        position="left"
-        visible={scrollState.canScrollLeft}
-        topOffset={ROW_HEIGHT}
-        offset={gutterWidth}
-        endEdge={scrollState.scrollbarHeight}
-      />
-      <ScrollShadow
-        position="right"
-        visible={scrollState.canScrollRight}
-        topOffset={ROW_HEIGHT}
-        offset={actionsWidth + scrollState.scrollbarWidth}
-        endEdge={scrollState.scrollbarHeight}
-      />
+      {hasVerticalScroll && (
+        <>
+          <ScrollShadow
+            position="top"
+            topOffset={ROW_HEIGHT}
+            startEdge={gutterWidth}
+            endEdge={actionsWidth + scrollState.scrollbarWidth}
+          />
+          <ScrollShadow
+            position="bottom"
+            offset={scrollState.scrollbarHeight}
+            startEdge={gutterWidth}
+            endEdge={actionsWidth + scrollState.scrollbarWidth}
+          />
+        </>
+      )}
+      {scrollState.hasHorizontalScroll && (
+        <>
+          <ScrollShadow
+            position="left"
+            topOffset={ROW_HEIGHT}
+            offset={gutterWidth}
+            endEdge={scrollState.scrollbarHeight}
+          />
+          <ScrollShadow
+            position="right"
+            topOffset={ROW_HEIGHT}
+            offset={actionsWidth + scrollState.scrollbarWidth}
+            endEdge={scrollState.scrollbarHeight}
+          />
+        </>
+      )}
     </div>
   );
 }) as <TData>(
@@ -309,36 +297,31 @@ export const ScrollableRows = forwardRef(function ScrollableRows<TData>(
 // --- Scroll state and shadows ---
 
 type ScrollState = {
-  canScrollUp: boolean;
-  canScrollDown: boolean;
-  canScrollLeft: boolean;
-  canScrollRight: boolean;
+  hasVerticalScroll: boolean;
+  hasHorizontalScroll: boolean;
   scrollbarWidth: number;
   scrollbarHeight: number;
 };
 
 function ScrollShadow({
   position,
-  visible,
   offset = 0,
   topOffset = 0,
   startEdge = 0,
   endEdge = 0,
 }: {
   position: "top" | "bottom" | "left" | "right";
-  visible: boolean;
   offset?: number;
   topOffset?: number;
   startEdge?: number;
   endEdge?: number;
 }) {
-  if (!visible) return null;
-
   const isHorizontal = position === "top" || position === "bottom";
 
   return (
     <div
-      className="absolute pointer-events-none z-20"
+      className="absolute pointer-events-none z-20 datagrid-scroll-shadow"
+      data-position={position}
       style={{
         background: gradients[position],
         ...(isHorizontal
