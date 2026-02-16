@@ -1,7 +1,6 @@
 import { useState, KeyboardEventHandler } from "react";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
-import { Unit } from "src/quantity";
 import { InlineField } from "src/components/form/fields";
 import { TextField } from "../asset-panel/ui-components";
 import * as P from "@radix-ui/react-popover";
@@ -17,26 +16,21 @@ import {
 import { AssetId } from "src/hydraulic-model";
 
 type ReadOnlyMultiValueRowProps = {
-  name: string;
   propertyStats: AssetPropertyStats;
-  unit?: Unit;
-  decimals?: number;
   onSelectAssets?: (assetIds: AssetId[], property: string) => void;
 };
 
 export function ReadOnlyMultiValueRow({
-  name,
   propertyStats,
-  unit,
-  decimals,
   onSelectAssets,
 }: ReadOnlyMultiValueRowProps) {
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
 
-  const label = unit
-    ? `${translate(name)} (${translateUnit(unit)})`
-    : translate(name);
+  const label =
+    propertyStats.type === "quantity" && propertyStats.unit
+      ? `${translate(propertyStats.property)} (${translateUnit(propertyStats.unit)})`
+      : translate(propertyStats.property);
 
   const hasMultipleValues = propertyStats.values.size > 1;
   const isBooleanField = propertyStats.type === "boolean";
@@ -75,6 +69,9 @@ export function ReadOnlyMultiValueRow({
       </InlineField>
     );
   }
+
+  const decimals =
+    propertyStats.type === "quantity" ? propertyStats.decimals : undefined;
 
   const displayValue = hasMultipleValues
     ? null

@@ -18,13 +18,17 @@ import {
 } from "src/state/jotai";
 import { computeMultiAssetData } from "./data";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { useSelection } from "src/selection/use-selection";
+import { usePersistence } from "src/lib/persistence";
 import { useUserTracking } from "src/infra/user-tracking";
+import { changeProperty } from "src/hydraulic-model/model-operations";
+import { activateAssets } from "src/hydraulic-model/model-operations/activate-assets";
+import { deactivateAssets } from "src/hydraulic-model/model-operations/deactivate-assets";
+import { useSelection } from "src/selection/use-selection";
 
 export function MultiAssetPanel({
   selectedFeatures,
   quantitiesMetadata,
-  readonly: _readonly = false,
+  readonly = false,
 }: {
   selectedFeatures: IWrappedFeature[];
   quantitiesMetadata: Quantities;
@@ -38,6 +42,9 @@ export function MultiAssetPanel({
   const [collapseState, setCollapseState] = useAtom(
     multiAssetPanelCollapseAtom,
   );
+  const rep = usePersistence();
+  const transact = rep.useTransact();
+  const userTracking = useUserTracking();
 
   const { data: multiAssetData, counts: assetCounts } = useMemo(() => {
     const assets = selectedFeatures as Asset[];
@@ -70,9 +77,37 @@ export function MultiAssetPanel({
     isNarrowSelectionEnabled &&
     Object.values(assetCounts).filter((c) => c > 0).length > 1;
 
+  const handleBatchPropertyChange = useCallback(
+    (
+      assetType: Asset["type"],
+      modelProperty: string,
+      value: number | string | boolean,
+    ) => {
+      const assetIds = assetIdsByType[assetType];
+      const moment =
+        modelProperty === "isActive"
+          ? value
+            ? activateAssets(hydraulicModel, { assetIds })
+            : deactivateAssets(hydraulicModel, { assetIds })
+          : changeProperty(hydraulicModel, {
+              assetIds,
+              property: modelProperty,
+              value: value as never,
+            });
+      transact(moment);
+      userTracking.capture({
+        name: "assetProperty.batchEdited",
+        type: assetType,
+        property: modelProperty,
+        newValue: typeof value === "boolean" ? Number(value) : value,
+        count: assetIds.length,
+      });
+    },
+    [hydraulicModel, assetIdsByType, transact, userTracking],
+  );
+
   const selection = useAtomValue(selectionAtom);
   const { selectAssets } = useSelection(selection);
-  const userTracking = useUserTracking();
 
   const handleSelectAssets = useCallback(
     (assetIds: AssetId[], property: string, assetType: Asset["type"]) => {
@@ -111,7 +146,12 @@ export function MultiAssetPanel({
         >
           <AssetTypeSections
             sections={multiAssetData.junction}
+            assetType="junction"
             hasSimulation={hasSimulation}
+            onPropertyChange={(p, v) =>
+              handleBatchPropertyChange("junction", p, v)
+            }
+            readonly={readonly}
             onSelectAssets={
               onSelectAssets && ((ids, p) => onSelectAssets(ids, p, "junction"))
             }
@@ -137,7 +177,10 @@ export function MultiAssetPanel({
         >
           <AssetTypeSections
             sections={multiAssetData.pipe}
+            assetType="pipe"
             hasSimulation={hasSimulation}
+            onPropertyChange={(p, v) => handleBatchPropertyChange("pipe", p, v)}
+            readonly={readonly}
             onSelectAssets={
               onSelectAssets && ((ids, p) => onSelectAssets(ids, p, "pipe"))
             }
@@ -163,7 +206,10 @@ export function MultiAssetPanel({
         >
           <AssetTypeSections
             sections={multiAssetData.pump}
+            assetType="pump"
             hasSimulation={hasSimulation}
+            onPropertyChange={(p, v) => handleBatchPropertyChange("pump", p, v)}
+            readonly={readonly}
             onSelectAssets={
               onSelectAssets && ((ids, p) => onSelectAssets(ids, p, "pump"))
             }
@@ -189,7 +235,12 @@ export function MultiAssetPanel({
         >
           <AssetTypeSections
             sections={multiAssetData.valve}
+            assetType="valve"
             hasSimulation={hasSimulation}
+            onPropertyChange={(p, v) =>
+              handleBatchPropertyChange("valve", p, v)
+            }
+            readonly={readonly}
             onSelectAssets={
               onSelectAssets && ((ids, p) => onSelectAssets(ids, p, "valve"))
             }
@@ -215,6 +266,11 @@ export function MultiAssetPanel({
         >
           <AssetTypeSections
             sections={multiAssetData.reservoir}
+            assetType="reservoir"
+            onPropertyChange={(p, v) =>
+              handleBatchPropertyChange("reservoir", p, v)
+            }
+            readonly={readonly}
             onSelectAssets={
               onSelectAssets &&
               ((ids, p) => onSelectAssets(ids, p, "reservoir"))
@@ -241,7 +297,10 @@ export function MultiAssetPanel({
         >
           <AssetTypeSections
             sections={multiAssetData.tank}
+            assetType="tank"
             hasSimulation={hasSimulation}
+            onPropertyChange={(p, v) => handleBatchPropertyChange("tank", p, v)}
+            readonly={readonly}
             onSelectAssets={
               onSelectAssets && ((ids, p) => onSelectAssets(ids, p, "tank"))
             }
