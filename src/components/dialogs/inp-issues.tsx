@@ -356,7 +356,7 @@ const IssuesSummary = ({ issues }: { issues: ParserIssues }) => {
               <div className="flex flex-col gap-y-1 items-start">
                 {issues.unsupportedSections &&
                   Array.from(issues.unsupportedSections).map((sectionName) => (
-                    <span key={sectionName}>- [{sectionName}]</span>
+                    <span key={sectionName}>- {sectionName}</span>
                   ))}
               </div>
             </div>

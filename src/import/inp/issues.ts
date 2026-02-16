@@ -33,7 +33,7 @@ export class IssuesAccumulator {
     if (!this.issues.unsupportedSections)
       this.issues.unsupportedSections = new Set<string>();
 
-    this.issues.unsupportedSections.add(sectionName.replace(/[[\]]/g, ""));
+    this.issues.unsupportedSections.add(sectionName);
   }
 
   addGPVUsed() {
