@@ -222,7 +222,7 @@ export const ScenariosPaywallDialog = ({
                 <div className="flex items-center gap-2">
                   <div className="flex-1 border-t border-gray-200 dark:border-gray-700" />
                   <span className="text-xs text-gray-400 dark:text-gray-500">
-                    or
+                    {translate("scenarios.paywall.or")}
                   </span>
                   <div className="flex-1 border-t border-gray-200 dark:border-gray-700" />
                 </div>
@@ -316,7 +316,7 @@ export const ScenariosPaywallDialog = ({
                 <div className="flex items-center gap-2">
                   <div className="flex-1 border-t border-gray-200 dark:border-gray-700" />
                   <span className="text-xs text-gray-400 dark:text-gray-500">
-                    or
+                    {translate("scenarios.paywall.or")}
                   </span>
                   <div className="flex-1 border-t border-gray-200 dark:border-gray-700" />
                 </div>

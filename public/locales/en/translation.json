@@ -804,6 +804,7 @@
       "description3": "Scenarios are available on paid plans.",
       "description3Demo": "Try scenarios for free with a demo network, or explore our paid plans.",
       "explorePlans": "Explore plans",
+      "or": "or",
       "nonCommercial": {
         "title": "Non-commercial use",
         "description": "For learning, exploring the app, or supporting the project.",
