@@ -74,6 +74,7 @@ const getAssetIdsInMoments = (moments: Moment[]): Set<AssetId> => {
       assetIds.add(assetId);
     });
     moment.putAssets.forEach((asset) => assetIds.add(asset.id));
+    moment.patchAssetsAttributes.forEach((patch) => assetIds.add(patch.id));
   });
   return assetIds;
 };

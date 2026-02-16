@@ -15,14 +15,18 @@ describe("activateAssets", () => {
       })
       .build();
 
-    const { putAssets } = activateAssets(hydraulicModel, {
+    const { patchAssetsAttributes } = activateAssets(hydraulicModel, {
       assetIds: [IDS.P1],
     });
 
-    expect(putAssets).toHaveLength(3);
-    const assetIds = putAssets!.map((a) => a.id).sort();
-    expect(assetIds).toEqual([IDS.J1, IDS.J2, IDS.P1]);
-    expect(putAssets!.every((a) => a.isActive)).toBe(true);
+    expect(patchAssetsAttributes).toHaveLength(3);
+    const patchIds = patchAssetsAttributes!.map((p) => p.id).sort();
+    expect(patchIds).toEqual([IDS.J1, IDS.J2, IDS.P1]);
+    expect(
+      patchAssetsAttributes!.every(
+        (p) => (p.properties as { isActive: boolean }).isActive === true,
+      ),
+    ).toBe(true);
   });
 
   it("skips assets that are already active", () => {
@@ -36,11 +40,11 @@ describe("activateAssets", () => {
       })
       .build();
 
-    const { putAssets } = activateAssets(hydraulicModel, {
+    const { patchAssetsAttributes } = activateAssets(hydraulicModel, {
       assetIds: [IDS.P1],
     });
 
-    expect(putAssets).toHaveLength(0);
+    expect(patchAssetsAttributes).toHaveLength(0);
   });
 
   it("handles multiple links with shared nodes", () => {
@@ -61,14 +65,13 @@ describe("activateAssets", () => {
       })
       .build();
 
-    const { putAssets } = activateAssets(hydraulicModel, {
+    const { patchAssetsAttributes } = activateAssets(hydraulicModel, {
       assetIds: [IDS.P1, IDS.P2],
     });
 
-    expect(putAssets).toHaveLength(5);
-    const assetIds = putAssets!.map((a) => a.id).sort();
-    expect(assetIds).toEqual([IDS.J1, IDS.J2, IDS.J3, IDS.P1, IDS.P2]);
-    expect(putAssets!.every((a) => a.isActive)).toBe(true);
+    expect(patchAssetsAttributes).toHaveLength(5);
+    const patchIds = patchAssetsAttributes!.map((p) => p.id).sort();
+    expect(patchIds).toEqual([IDS.J1, IDS.J2, IDS.J3, IDS.P1, IDS.P2]);
   });
 
   it("silently ignores node IDs in input", () => {
@@ -83,13 +86,13 @@ describe("activateAssets", () => {
       })
       .build();
 
-    const { putAssets } = activateAssets(hydraulicModel, {
+    const { patchAssetsAttributes } = activateAssets(hydraulicModel, {
       assetIds: [IDS.J1, IDS.P1],
     });
 
-    expect(putAssets).toHaveLength(3);
-    const assetIds = putAssets!.map((a) => a.id).sort();
-    expect(assetIds).toEqual([IDS.J1, IDS.J2, IDS.P1]);
+    expect(patchAssetsAttributes).toHaveLength(3);
+    const patchIds = patchAssetsAttributes!.map((p) => p.id).sort();
+    expect(patchIds).toEqual([IDS.J1, IDS.J2, IDS.P1]);
   });
 
   it("activates only one node when already active", () => {
@@ -104,16 +107,16 @@ describe("activateAssets", () => {
       })
       .build();
 
-    const { putAssets } = activateAssets(hydraulicModel, {
+    const { patchAssetsAttributes } = activateAssets(hydraulicModel, {
       assetIds: [IDS.P1],
     });
 
-    expect(putAssets).toHaveLength(2);
-    const assetIds = putAssets!.map((a) => a.id).sort();
-    expect(assetIds).toEqual([IDS.J2, IDS.P1]);
+    expect(patchAssetsAttributes).toHaveLength(2);
+    const patchIds = patchAssetsAttributes!.map((p) => p.id).sort();
+    expect(patchIds).toEqual([IDS.J2, IDS.P1]);
   });
 
-  it("returns empty putAssets for empty input", () => {
+  it("returns empty patchAssetsAttributes for empty input", () => {
     const IDS = { J1: 1, J2: 2, P1: 3 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction(IDS.J1)
@@ -124,11 +127,11 @@ describe("activateAssets", () => {
       })
       .build();
 
-    const { putAssets } = activateAssets(hydraulicModel, {
+    const { patchAssetsAttributes } = activateAssets(hydraulicModel, {
       assetIds: [],
     });
 
-    expect(putAssets).toHaveLength(0);
+    expect(patchAssetsAttributes).toHaveLength(0);
   });
 
   it("throws error for invalid asset ID", () => {

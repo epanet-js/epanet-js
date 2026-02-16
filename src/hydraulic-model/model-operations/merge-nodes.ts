@@ -101,7 +101,7 @@ const createMergedNode = (
     const loserJunction = loserNode as Junction;
 
     const mergedDemands = [...winnerJunction.demands, ...loserJunction.demands];
-    winnerJunction.setDemands(mergedDemands);
+    winnerJunction.setProperty("demands", mergedDemands);
   }
 
   return winnerNodeCopy;

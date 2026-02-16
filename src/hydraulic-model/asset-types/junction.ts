@@ -23,10 +23,6 @@ export class Junction extends Node<JunctionProperties> {
     return calculateAverageDemand(this.demands, patterns);
   }
 
-  setDemands(demands: JunctionDemand[]) {
-    this.properties.demands = demands;
-  }
-
   getUnit(key: JunctionQuantity) {
     return this.units[key];
   }

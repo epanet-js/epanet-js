@@ -37,10 +37,10 @@ describe("Junction", () => {
   it("can set demands", () => {
     const junction = buildJunction({ demands: [{ baseDemand: 50 }] });
 
-    junction.setDemands([{ baseDemand: 25 }]);
+    junction.setProperty("demands", [{ baseDemand: 25 }]);
     expect(junction.getDirectDemand(new Map())).toEqual(25);
 
-    junction.setDemands([]);
+    junction.setProperty("demands", []);
     expect(junction.getDirectDemand(new Map())).toEqual(0);
   });
 
@@ -65,7 +65,7 @@ describe("Junction", () => {
     });
 
     const copy = junction.copy();
-    copy.setDemands([{ baseDemand: 100 }]);
+    copy.setProperty("demands", [{ baseDemand: 100 }]);
 
     expect(junction.demands[0].baseDemand).toBe(50);
     expect(copy.demands[0].baseDemand).toBe(100);

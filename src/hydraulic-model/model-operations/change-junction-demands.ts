@@ -1,6 +1,6 @@
 import { AssetId } from "../asset-types";
-import { Junction } from "../asset-types/junction";
 import { JunctionDemand } from "../demands";
+import type { AssetPatch } from "../model-operation";
 import { ModelOperation } from "../model-operation";
 
 type InputData = {
@@ -18,11 +18,14 @@ export const changeJunctionDemands: ModelOperation<InputData> = (
     throw new Error(`Asset ${junctionId} is not a junction`);
   }
 
-  const updatedJunction = (junction as Junction).copy();
-  updatedJunction.setDemands(demands);
-
   return {
     note: "Change junction demands",
-    putAssets: [updatedJunction],
+    patchAssetsAttributes: [
+      {
+        id: junctionId,
+        type: "junction",
+        properties: { demands },
+      } as AssetPatch,
+    ],
   };
 };

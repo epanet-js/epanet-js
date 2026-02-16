@@ -14,14 +14,18 @@ describe("deactivateAssets", () => {
       })
       .build();
 
-    const { putAssets } = deactivateAssets(hydraulicModel, {
+    const { patchAssetsAttributes } = deactivateAssets(hydraulicModel, {
       assetIds: [IDS.P1],
     });
 
-    expect(putAssets).toHaveLength(3);
-    const assetIds = putAssets!.map((a) => a.id).sort();
-    expect(assetIds).toEqual([IDS.J1, IDS.J2, IDS.P1]);
-    expect(putAssets!.every((a) => !a.isActive)).toBe(true);
+    expect(patchAssetsAttributes).toHaveLength(3);
+    const patchIds = patchAssetsAttributes!.map((p) => p.id).sort();
+    expect(patchIds).toEqual([IDS.J1, IDS.J2, IDS.P1]);
+    expect(
+      patchAssetsAttributes!.every(
+        (p) => (p.properties as { isActive: boolean }).isActive === false,
+      ),
+    ).toBe(true);
   });
 
   it("deactivates link and orphaned node", () => {
@@ -40,14 +44,18 @@ describe("deactivateAssets", () => {
       })
       .build();
 
-    const { putAssets } = deactivateAssets(hydraulicModel, {
+    const { patchAssetsAttributes } = deactivateAssets(hydraulicModel, {
       assetIds: [IDS.P2],
     });
 
-    expect(putAssets).toHaveLength(2);
-    const assetIds = putAssets!.map((a) => a.id).sort();
-    expect(assetIds).toEqual([IDS.J3, IDS.P2]);
-    expect(putAssets!.every((a) => !a.isActive)).toBe(true);
+    expect(patchAssetsAttributes).toHaveLength(2);
+    const patchIds = patchAssetsAttributes!.map((p) => p.id).sort();
+    expect(patchIds).toEqual([IDS.J3, IDS.P2]);
+    expect(
+      patchAssetsAttributes!.every(
+        (p) => (p.properties as { isActive: boolean }).isActive === false,
+      ),
+    ).toBe(true);
   });
 
   it("node with multiple active links: deactivating one link does not deactivate node", () => {
@@ -66,13 +74,13 @@ describe("deactivateAssets", () => {
       })
       .build();
 
-    const { putAssets } = deactivateAssets(hydraulicModel, {
+    const { patchAssetsAttributes } = deactivateAssets(hydraulicModel, {
       assetIds: [IDS.P1],
     });
 
-    expect(putAssets).toHaveLength(2);
-    const assetIds = putAssets!.map((a) => a.id).sort();
-    expect(assetIds).toEqual([IDS.J1, IDS.P1]);
+    expect(patchAssetsAttributes).toHaveLength(2);
+    const patchIds = patchAssetsAttributes!.map((p) => p.id).sort();
+    expect(patchIds).toEqual([IDS.J1, IDS.P1]);
   });
 
   it("node with multiple active links: deactivating all links deactivates node", () => {
@@ -91,14 +99,18 @@ describe("deactivateAssets", () => {
       })
       .build();
 
-    const { putAssets } = deactivateAssets(hydraulicModel, {
+    const { patchAssetsAttributes } = deactivateAssets(hydraulicModel, {
       assetIds: [IDS.P1, IDS.P2],
     });
 
-    expect(putAssets).toHaveLength(5);
-    const assetIds = putAssets!.map((a) => a.id).sort();
-    expect(assetIds).toEqual([IDS.J1, IDS.J2, IDS.J3, IDS.P1, IDS.P2]);
-    expect(putAssets!.every((a) => !a.isActive)).toBe(true);
+    expect(patchAssetsAttributes).toHaveLength(5);
+    const patchIds = patchAssetsAttributes!.map((p) => p.id).sort();
+    expect(patchIds).toEqual([IDS.J1, IDS.J2, IDS.J3, IDS.P1, IDS.P2]);
+    expect(
+      patchAssetsAttributes!.every(
+        (p) => (p.properties as { isActive: boolean }).isActive === false,
+      ),
+    ).toBe(true);
   });
 
   it("silently ignores node IDs in input", () => {
@@ -112,13 +124,13 @@ describe("deactivateAssets", () => {
       })
       .build();
 
-    const { putAssets } = deactivateAssets(hydraulicModel, {
+    const { patchAssetsAttributes } = deactivateAssets(hydraulicModel, {
       assetIds: [IDS.J1, IDS.P1],
     });
 
-    expect(putAssets).toHaveLength(3);
-    const assetIds = putAssets!.map((a) => a.id).sort();
-    expect(assetIds).toEqual([IDS.J1, IDS.J2, IDS.P1]);
+    expect(patchAssetsAttributes).toHaveLength(3);
+    const patchIds = patchAssetsAttributes!.map((p) => p.id).sort();
+    expect(patchIds).toEqual([IDS.J1, IDS.J2, IDS.P1]);
   });
 
   it("skips assets that are already inactive", () => {
@@ -133,11 +145,11 @@ describe("deactivateAssets", () => {
       })
       .build();
 
-    const { putAssets } = deactivateAssets(hydraulicModel, {
+    const { patchAssetsAttributes } = deactivateAssets(hydraulicModel, {
       assetIds: [IDS.P1],
     });
 
-    expect(putAssets).toHaveLength(0);
+    expect(patchAssetsAttributes).toHaveLength(0);
   });
 
   it("complex network: properly identifies all orphaned nodes", () => {
@@ -161,16 +173,18 @@ describe("deactivateAssets", () => {
       })
       .build();
 
-    const { putAssets } = deactivateAssets(hydraulicModel, {
+    const { patchAssetsAttributes } = deactivateAssets(hydraulicModel, {
       assetIds: [IDS.P2],
     });
 
-    expect(putAssets).toHaveLength(1);
-    expect(putAssets![0].id).toBe(IDS.P2);
-    expect(putAssets![0].isActive).toBe(false);
+    expect(patchAssetsAttributes).toHaveLength(1);
+    expect(patchAssetsAttributes![0].id).toBe(IDS.P2);
+    expect(
+      (patchAssetsAttributes![0].properties as { isActive: boolean }).isActive,
+    ).toBe(false);
   });
 
-  it("returns empty putAssets for empty input", () => {
+  it("returns empty patchAssetsAttributes for empty input", () => {
     const IDS = { J1: 1, J2: 2, P1: 3 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction(IDS.J1)
@@ -181,11 +195,11 @@ describe("deactivateAssets", () => {
       })
       .build();
 
-    const { putAssets } = deactivateAssets(hydraulicModel, {
+    const { patchAssetsAttributes } = deactivateAssets(hydraulicModel, {
       assetIds: [],
     });
 
-    expect(putAssets).toHaveLength(0);
+    expect(patchAssetsAttributes).toHaveLength(0);
   });
 
   it("throws error for invalid asset ID", () => {
@@ -215,13 +229,13 @@ describe("deactivateAssets", () => {
       })
       .build();
 
-    const { putAssets } = deactivateAssets(hydraulicModel, {
+    const { patchAssetsAttributes } = deactivateAssets(hydraulicModel, {
       assetIds: [IDS.P1],
     });
 
-    expect(putAssets).toHaveLength(3);
-    const assetIds = putAssets!.map((a) => a.id).sort();
-    expect(assetIds).toEqual([IDS.J1, IDS.J2, IDS.P1]);
+    expect(patchAssetsAttributes).toHaveLength(3);
+    const patchIds = patchAssetsAttributes!.map((p) => p.id).sort();
+    expect(patchIds).toEqual([IDS.J1, IDS.J2, IDS.P1]);
   });
 
   it("deactivates shared node when all connected links are deactivated together", () => {
@@ -240,13 +254,13 @@ describe("deactivateAssets", () => {
       })
       .build();
 
-    const { putAssets } = deactivateAssets(hydraulicModel, {
+    const { patchAssetsAttributes } = deactivateAssets(hydraulicModel, {
       assetIds: [IDS.P1, IDS.P2],
     });
 
-    expect(putAssets).toHaveLength(5);
-    const assetIds = putAssets!.map((a) => a.id).sort();
-    expect(assetIds).toEqual([IDS.J1, IDS.J2, IDS.J3, IDS.P1, IDS.P2]);
+    expect(patchAssetsAttributes).toHaveLength(5);
+    const patchIds = patchAssetsAttributes!.map((p) => p.id).sort();
+    expect(patchIds).toEqual([IDS.J1, IDS.J2, IDS.J3, IDS.P1, IDS.P2]);
   });
 
   it("handles inconsistent state by deactivating orphaned nodes even when given inactive link IDs", () => {
@@ -261,12 +275,12 @@ describe("deactivateAssets", () => {
       })
       .build();
 
-    const { putAssets } = deactivateAssets(hydraulicModel, {
+    const { patchAssetsAttributes } = deactivateAssets(hydraulicModel, {
       assetIds: [IDS.P1],
     });
 
-    expect(putAssets).toHaveLength(2);
-    const assetIds = putAssets!.map((a) => a.id).sort();
-    expect(assetIds).toEqual([IDS.J1, IDS.J2]);
+    expect(patchAssetsAttributes).toHaveLength(2);
+    const patchIds = patchAssetsAttributes!.map((p) => p.id).sort();
+    expect(patchIds).toEqual([IDS.J1, IDS.J2]);
   });
 });

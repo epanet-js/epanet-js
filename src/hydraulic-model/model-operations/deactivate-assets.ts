@@ -1,5 +1,6 @@
-import { Asset, AssetId } from "../asset-types";
+import { AssetId } from "../asset-types";
 import { AssetsMap } from "../assets-map";
+import type { AssetPatch } from "../model-operation";
 import { ModelOperation } from "../model-operation";
 import { TopologyQueries } from "../topology/types";
 
@@ -11,7 +12,7 @@ export const deactivateAssets: ModelOperation<InputData> = (
   { assets, topology },
   { assetIds },
 ) => {
-  const updatedAssets: Asset[] = [];
+  const patches: AssetPatch[] = [];
   const linksToDeactivate = new Set<AssetId>();
   const nodesToCheck = new Set<AssetId>();
 
@@ -27,7 +28,11 @@ export const deactivateAssets: ModelOperation<InputData> = (
 
     if (asset.isActive) {
       linksToDeactivate.add(assetId);
-      updatedAssets.push(deactivateAsset(asset));
+      patches.push({
+        id: assetId,
+        type: asset.type,
+        properties: { isActive: false },
+      } as AssetPatch);
     }
 
     if (startNode?.isActive) nodesToCheck.add(startNodeId);
@@ -44,17 +49,15 @@ export const deactivateAssets: ModelOperation<InputData> = (
 
     if (!hasActiveLink) {
       const node = assets.get(nodeId)!;
-      updatedAssets.push(deactivateAsset(node));
+      patches.push({
+        id: nodeId,
+        type: node.type,
+        properties: { isActive: false },
+      } as AssetPatch);
     }
   }
 
-  return { note: "Deactivate assets", putAssets: updatedAssets };
-};
-
-const deactivateAsset = (asset: Asset): Asset => {
-  const updated = asset.copy();
-  updated.setProperty("isActive", false);
-  return updated;
+  return { note: "Deactivate assets", patchAssetsAttributes: patches };
 };
 
 function hasActiveLinkConnected(

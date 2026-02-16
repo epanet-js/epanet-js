@@ -218,8 +218,14 @@ const putDemands = (hydraulicModel: HydraulicModel, demands: Demands): void => {
 const assertNoPutPatchOverlap = (moment: ModelMoment): void => {
   const putAssets = moment.putAssets;
   const patchAssets = moment.patchAssetsAttributes;
-  if (putAssets?.length && patchAssets?.length)
-    throw new Error(
-      `Moment "${moment.note}" has both putAssets and patchAssetsAttributes`,
-    );
+  if (!putAssets?.length || !patchAssets?.length) return;
+
+  const putIds = new Set(putAssets.map((a) => a.id));
+  for (const patch of patchAssets) {
+    if (putIds.has(patch.id)) {
+      throw new Error(
+        `Moment "${moment.note}" has both putAssets and patchAssetsAttributes for asset ${patch.id}`,
+      );
+    }
+  }
 };

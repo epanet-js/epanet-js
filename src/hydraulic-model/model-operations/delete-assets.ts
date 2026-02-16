@@ -7,6 +7,7 @@ import {
   LinkAsset,
 } from "../asset-types";
 import { Curves } from "../curves";
+import type { AssetPatch } from "../model-operation";
 import { ModelOperation } from "../model-operation";
 import { CustomerPoint } from "../customer-points";
 import { CustomerPointsLookup } from "../customer-points-lookup";
@@ -50,7 +51,7 @@ export const deleteAssets: ModelOperation<InputData> = (
     });
   });
 
-  const boundaryNodes = reevaluateBoundaryNodes(hydraulicModel, affectedIds);
+  const boundaryPatches = reevaluateBoundaryNodes(hydraulicModel, affectedIds);
   const putCurves = removePumpsFromCurveAssetIds(
     hydraulicModel.curves,
     assets,
@@ -60,7 +61,8 @@ export const deleteAssets: ModelOperation<InputData> = (
   return {
     note: "Delete assets",
     deleteAssets: Array.from(affectedIds),
-    putAssets: boundaryNodes.length > 0 ? boundaryNodes : undefined,
+    patchAssetsAttributes:
+      boundaryPatches.length > 0 ? boundaryPatches : undefined,
     putCustomerPoints:
       shouldUpdateCustomerPoints && disconnectedCustomerPoints.size > 0
         ? Array.from(disconnectedCustomerPoints.values())
@@ -91,10 +93,10 @@ const addCustomerPointsToDisconnect = (
 const reevaluateBoundaryNodes = (
   hydraulicModel: HydraulicModel,
   deletedAssetIds: Set<AssetId>,
-): NodeAsset[] => {
+): AssetPatch[] => {
   const { topology, assets } = hydraulicModel;
   const boundaryNodeIds = new Set<AssetId>();
-  const boundaryNodes: NodeAsset[] = [];
+  const patches: AssetPatch[] = [];
 
   for (const assetId of deletedAssetIds) {
     const link = assets.get(assetId) as LinkAsset | undefined;
@@ -117,13 +119,15 @@ const reevaluateBoundaryNodes = (
     );
 
     if (inferredState !== node.isActive) {
-      const nodeCopy = node.copy() as NodeAsset;
-      nodeCopy.setProperty("isActive", inferredState);
-      boundaryNodes.push(nodeCopy);
+      patches.push({
+        id: nodeId,
+        type: node.type,
+        properties: { isActive: inferredState },
+      } as AssetPatch);
     }
   }
 
-  return boundaryNodes;
+  return patches;
 };
 
 const removePumpsFromCurveAssetIds = (

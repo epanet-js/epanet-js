@@ -77,7 +77,7 @@ const removeJunctionDemands = (
 
   if (!modifiedJunctions.has(junctionId)) {
     const junctionCopy = originalJunction.copy();
-    junctionCopy.setDemands([]);
+    junctionCopy.setProperty("demands", []);
     updatedAssets.set(junctionId, junctionCopy);
     modifiedJunctions.add(junctionId);
   }

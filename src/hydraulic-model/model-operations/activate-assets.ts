@@ -1,4 +1,5 @@
-import { Asset, AssetId } from "../asset-types";
+import { AssetId } from "../asset-types";
+import type { AssetPatch } from "../model-operation";
 import { ModelOperation } from "../model-operation";
 
 type InputData = {
@@ -9,7 +10,20 @@ export const activateAssets: ModelOperation<InputData> = (
   { assets, topology },
   { assetIds },
 ) => {
-  const updatedAssets: Map<AssetId, Asset> = new Map();
+  const seen = new Set<AssetId>();
+  const patches: AssetPatch[] = [];
+
+  const addPatch = (id: AssetId) => {
+    if (seen.has(id)) return;
+    const asset = assets.get(id);
+    if (!asset || asset.isActive) return;
+    seen.add(id);
+    patches.push({
+      id,
+      type: asset.type,
+      properties: { isActive: true },
+    } as AssetPatch);
+  };
 
   for (const assetId of assetIds) {
     const asset = assets.get(assetId);
@@ -17,29 +31,12 @@ export const activateAssets: ModelOperation<InputData> = (
 
     if (!asset.isLink) continue;
 
-    if (!asset.isActive) {
-      updatedAssets.set(assetId, activateAsset(asset));
-    }
+    addPatch(assetId);
 
     const [startNodeId, endNodeId] = topology.getNodes(assetId);
-
-    const startNode = assets.get(startNodeId);
-    if (!!startNode && !startNode?.isActive)
-      updatedAssets.set(startNodeId, activateAsset(startNode));
-
-    const endNode = assets.get(endNodeId);
-    if (!!endNode && !endNode?.isActive)
-      updatedAssets.set(endNodeId, activateAsset(endNode));
+    addPatch(startNodeId);
+    addPatch(endNodeId);
   }
 
-  return {
-    note: "Activate assets",
-    putAssets: Array.from(updatedAssets.values()),
-  };
-};
-
-const activateAsset = (asset: Asset): Asset => {
-  const updated = asset.copy();
-  updated.setProperty("isActive", true);
-  return updated;
+  return { note: "Activate assets", patchAssetsAttributes: patches };
 };

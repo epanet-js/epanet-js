@@ -1,4 +1,5 @@
 import { AssetId } from "../asset-types";
+import type { AssetPatch } from "../model-operation";
 import { ModelOperation } from "../model-operation";
 
 type InputData = {
@@ -13,8 +14,14 @@ export const changeLabel: ModelOperation<InputData> = (
   const asset = assets.get(assetId);
   if (!asset) throw new Error(`Invalid asset id ${assetId}`);
 
-  const updatedAsset = asset.copy();
-  updatedAsset.setProperty("label", newLabel);
-
-  return { note: "Change asset label", putAssets: [updatedAsset] };
+  return {
+    note: "Change asset label",
+    patchAssetsAttributes: [
+      {
+        id: assetId,
+        type: asset.type,
+        properties: { label: newLabel },
+      } as AssetPatch,
+    ],
+  };
 };

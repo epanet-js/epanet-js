@@ -1,7 +1,8 @@
-import { Asset, AssetId } from "../asset-types";
+import { AssetId } from "../asset-types";
 import { PumpDefintionType, PumpStatus } from "../asset-types/pump";
 import { PipeStatus } from "../asset-types/pipe";
 import { ValveStatus, ValveKind } from "../asset-types/valve";
+import type { AssetPatch } from "../model-operation";
 import { ModelOperation } from "../model-operation";
 
 type InputData = {
@@ -22,20 +23,22 @@ export const changeProperty: ModelOperation<InputData> = (
   { assetIds, property, value },
 ) => {
   if (property === "isActive") {
-    return { note: "Change asset property", putAssets: [] };
+    return { note: "Change asset property" };
   }
 
-  const updatedAssets: Asset[] = [];
+  const patches: AssetPatch[] = [];
   for (const assetId of assetIds) {
     const asset = assets.get(assetId);
     if (!asset) throw new Error(`Invalid asset id ${assetId}`);
 
     if (!asset.hasProperty(property)) continue;
 
-    const updatedAsset = asset.copy();
-    updatedAsset.setProperty(property, value);
-    updatedAssets.push(updatedAsset);
+    patches.push({
+      id: assetId,
+      type: asset.type,
+      properties: { [property]: value },
+    } as AssetPatch);
   }
 
-  return { note: "Change asset property", putAssets: updatedAssets };
+  return { note: "Change asset property", patchAssetsAttributes: patches };
 };
