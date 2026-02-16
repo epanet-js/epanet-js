@@ -1,10 +1,12 @@
 import { HydraulicModel } from "../hydraulic-model";
 import { ModelMoment, ReverseMoment } from "../model-operation";
+import type { AssetPatch } from "../model-operation";
 import { Asset, LinkAsset } from "../asset-types";
 import { AssetId } from "../assets-map";
 import { CustomerPoint } from "../customer-points";
 import { Curves } from "../curves";
 import { Demands } from "../demands";
+import { isDebugOn } from "src/infra/debug-mode";
 
 type PutAssetResult = {
   oldAsset: Asset | undefined;
@@ -15,10 +17,15 @@ export const applyMomentToModel = (
   hydraulicModel: HydraulicModel,
   moment: ModelMoment,
 ): ReverseMoment => {
+  if (isDebugOn) {
+    assertNoPutPatchOverlap(moment);
+  }
+
   const reverseMoment: ReverseMoment = {
     note: `Reverse: ${moment.note}`,
     putAssets: [],
     deleteAssets: [],
+    patchAssetsAttributes: [],
     putCustomerPoints: [],
   };
 
@@ -48,6 +55,13 @@ export const applyMomentToModel = (
       reverseMoment.putAssets.push(result.oldAsset);
     } else {
       reverseMoment.deleteAssets.push(asset.id);
+    }
+  }
+
+  for (const patch of moment.patchAssetsAttributes || []) {
+    const reversePatch = patchAssetAttributes(hydraulicModel, patch);
+    if (reversePatch) {
+      reverseMoment.patchAssetsAttributes.push(reversePatch);
     }
   }
 
@@ -162,6 +176,35 @@ const putCurves = (hydraulicModel: HydraulicModel, curves: Curves): void => {
   }
 };
 
+const patchAssetAttributes = (
+  hydraulicModel: HydraulicModel,
+  patch: AssetPatch,
+): AssetPatch | undefined => {
+  const asset = hydraulicModel.assets.get(patch.id);
+  if (!asset) return undefined;
+
+  const reverseProperties: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(patch.properties)) {
+    reverseProperties[key] = asset.getProperty(key);
+    asset.setProperty(key, value as NonNullable<unknown>);
+  }
+
+  if ("label" in patch.properties) {
+    hydraulicModel.labelManager.remove(
+      reverseProperties.label as string,
+      asset.type,
+      asset.id,
+    );
+    hydraulicModel.labelManager.register(asset.label, asset.type, asset.id);
+  }
+
+  return {
+    id: patch.id,
+    type: patch.type,
+    properties: reverseProperties,
+  } as AssetPatch;
+};
+
 const putDemands = (hydraulicModel: HydraulicModel, demands: Demands): void => {
   for (const pattern of hydraulicModel.demands.patterns.values()) {
     hydraulicModel.labelManager.remove(pattern.label, "pattern", pattern.id);
@@ -170,4 +213,13 @@ const putDemands = (hydraulicModel: HydraulicModel, demands: Demands): void => {
   for (const pattern of demands.patterns.values()) {
     hydraulicModel.labelManager.register(pattern.label, "pattern", pattern.id);
   }
+};
+
+const assertNoPutPatchOverlap = (moment: ModelMoment): void => {
+  const putAssets = moment.putAssets;
+  const patchAssets = moment.patchAssetsAttributes;
+  if (putAssets?.length && patchAssets?.length)
+    throw new Error(
+      `Moment "${moment.note}" has both putAssets and patchAssetsAttributes`,
+    );
 };

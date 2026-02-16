@@ -4,11 +4,26 @@ import { Junction } from "./junction";
 import { Reservoir } from "./reservoir";
 import { Valve } from "./valve";
 import { Tank } from "./tank";
+import type { PipeProperties } from "./pipe";
+import type { JunctionProperties } from "./junction";
+import type { ReservoirProperties } from "./reservoir";
+import type { PumpProperties } from "./pump";
+import type { ValveProperties } from "./valve";
+import type { TankProperties } from "./tank";
 
 export type Asset = Pipe | Junction | Reservoir | Pump | Valve | Tank;
 export type AssetStatus = PipeStatus | PumpStatus;
 export type NodeAsset = Junction | Reservoir | Tank;
 export type LinkAsset = Pipe | Pump | Valve;
+
+export type AssetPropertiesMap = {
+  pipe: PipeProperties;
+  junction: JunctionProperties;
+  reservoir: ReservoirProperties;
+  pump: PumpProperties;
+  valve: ValveProperties;
+  tank: TankProperties;
+};
 
 export { Pipe, Junction, Reservoir, Pump, Valve, Tank };
 export type { AssetId } from "./base-asset";

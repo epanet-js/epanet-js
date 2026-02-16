@@ -17,10 +17,12 @@ export type {
   ModelOperation,
   ModelMoment,
   ReverseMoment,
+  AssetPatch,
 } from "./model-operation";
 export { BaseAsset } from "./asset-types";
 export type {
   AssetStatus,
+  AssetPropertiesMap,
   PipeProperties,
   NodeAsset,
   LinkAsset,

@@ -72,6 +72,7 @@ export class Persistence implements IPersistenceWithSnapshots {
         note: `Import ${name}`,
         putAssets: assets,
         deleteAssets: [],
+        patchAssetsAttributes: [],
         putDemands: hydraulicModel.demands,
         putEPSTiming: hydraulicModel.epsTiming,
         putControls: hydraulicModel.controls,
@@ -159,6 +160,7 @@ export class Persistence implements IPersistenceWithSnapshots {
         note: moment.note,
         deleteAssets: moment.deleteAssets || [],
         putAssets: moment.putAssets || [],
+        patchAssetsAttributes: moment.patchAssetsAttributes || [],
         putDemands: moment.putDemands,
         putEPSTiming: moment.putEPSTiming,
         putControls: moment.putControls,
@@ -501,7 +503,10 @@ export class Persistence implements IPersistenceWithSnapshots {
     const deltasSinceLastSync = momentLog.getDeltas(lastSyncPointer);
     const editedAssetsCount = deltasSinceLastSync.reduce(
       (count, moment) =>
-        count + moment.deleteAssets.length + moment.putAssets.length,
+        count +
+        moment.deleteAssets.length +
+        moment.putAssets.length +
+        moment.patchAssetsAttributes.length,
       0,
     );
     return editedAssetsCount > MAX_CHANGES_BEFORE_MAP_SYNC;

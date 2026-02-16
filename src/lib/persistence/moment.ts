@@ -3,6 +3,7 @@ import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import { Curves } from "src/hydraulic-model/curves";
 import { EPSTiming } from "src/hydraulic-model/eps-timing";
 import { Controls } from "src/hydraulic-model/controls";
+import type { AssetPatch } from "src/hydraulic-model/model-operation";
 import type { IWrappedFeature, IWrappedFeatureInput } from "src/types";
 
 /**
@@ -15,6 +16,7 @@ export interface Moment {
   note?: string;
   putAssets: IWrappedFeature[];
   deleteAssets: IWrappedFeature["id"][];
+  patchAssetsAttributes: AssetPatch[];
   putDemands?: Demands;
   putEPSTiming?: EPSTiming;
   putControls?: Controls;
@@ -30,12 +32,13 @@ export interface MomentInput {
   note?: string;
   track?: string | [string, Properties];
   putAssets: IWrappedFeatureInput[];
+  deleteAssets: IWrappedFeature["id"][];
+  patchAssetsAttributes: AssetPatch[];
   putDemands?: Demands;
   putEPSTiming?: EPSTiming;
   putControls?: Controls;
   putCustomerPoints?: CustomerPoint[];
   putCurves?: Curves;
-  deleteAssets: IWrappedFeature["id"][];
   skipMomentLog?: boolean;
 }
 
@@ -47,10 +50,12 @@ export function fMoment(note?: string): Moment {
     note,
     putAssets: [],
     deleteAssets: [],
+    patchAssetsAttributes: [],
   };
 }
 
 export const EMPTY_MOMENT: Moment = {
   putAssets: [],
   deleteAssets: [],
+  patchAssetsAttributes: [],
 };
