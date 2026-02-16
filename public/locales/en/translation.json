@@ -802,6 +802,8 @@
       "description1": "Scenarios let you explore \"what-if\" changes without duplicating your model.",
       "description2": "Create alternative versions of your network and compare results against your baseline.",
       "description3": "Scenarios are available on paid plans.",
+      "description3Demo": "Try scenarios for free with a demo network, or explore our paid plans.",
+      "explorePlans": "Explore plans",
       "nonCommercial": {
         "title": "Non-commercial use",
         "description": "For learning, exploring the app, or supporting the project.",

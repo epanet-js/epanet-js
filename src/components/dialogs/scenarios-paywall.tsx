@@ -9,6 +9,7 @@ import { useScenarioOperations } from "src/hooks/use-scenario-operations";
 import { dialogAtom, isDemoNetworkAtom } from "src/state/jotai";
 import { userSettingsAtom } from "src/state/user-settings";
 import {
+  ChevronLeftIcon,
   DisconnectIcon,
   RefreshIcon,
   ScenarioIcon,
@@ -66,6 +67,11 @@ export const ScenariosPaywallDialog = ({
     userTracking.capture({ name: "scenariosPaywall.clickedPersonal" });
   };
 
+  const handleExplorePlans = () => {
+    userTracking.capture({ name: "scenariosPaywall.clickedExplorePlans" });
+    setShowPlans(true);
+  };
+
   const { activateTrial, isLoading: isTrialLoading } = useActivateTrial();
   const { createNewScenario } = useScenarioOperations();
   const userSettings = useAtomValue(userSettingsAtom);
@@ -73,6 +79,7 @@ export const ScenariosPaywallDialog = ({
   const importInp = useImportInp();
   const checkUnsavedChanges = useUnsavedChangesCheck();
   const [isDemoLoading, setIsDemoLoading] = useState(false);
+  const [showPlans, setShowPlans] = useState(false);
 
   const proceedWithCreation = async () => {
     const { scenarioId, scenarioName } = await createNewScenario();
@@ -233,19 +240,15 @@ export const ScenariosPaywallDialog = ({
                 </Button>
               </div>
             </>
-          ) : (
+          ) : showPlans ? (
             <>
-              <div className="space-y-3 pb-6">
-                <p className="text-sm text-gray-700 dark:text-gray-300">
-                  {translate("scenarios.paywall.description1")}
-                </p>
-                <p className="text-sm text-gray-700 dark:text-gray-300">
-                  {translate("scenarios.paywall.description2")}
-                </p>
-                <p className="text-sm text-gray-700 dark:text-gray-300">
-                  {translate("scenarios.paywall.description3")}
-                </p>
-              </div>
+              <button
+                className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 pb-2"
+                onClick={() => setShowPlans(false)}
+              >
+                <ChevronLeftIcon className="w-4 h-4" />
+                {translate("back")}
+              </button>
               <div className="flex flex-col gap-5">
                 <div className="flex flex-col gap-1">
                   <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">
@@ -282,6 +285,49 @@ export const ScenariosPaywallDialog = ({
                     </Button>
                   </div>
                 </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="space-y-3 pb-6">
+                <p className="text-sm text-gray-700 dark:text-gray-300">
+                  {translate("scenarios.paywall.description1")}
+                </p>
+                <p className="text-sm text-gray-700 dark:text-gray-300">
+                  {translate("scenarios.paywall.description2")}
+                </p>
+                <p className="text-sm text-gray-700 dark:text-gray-300">
+                  {translate("scenarios.paywall.description3Demo")}
+                </p>
+              </div>
+              <div className="flex flex-col gap-3">
+                <Button
+                  variant="default"
+                  size="full-width"
+                  onClick={() => void handleTryDemo()}
+                  disabled={isDemoLoading}
+                >
+                  {isDemoLoading ? (
+                    <RefreshIcon className="animate-spin" />
+                  ) : (
+                    translate("trial.tryWithDemo")
+                  )}
+                </Button>
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 border-t border-gray-200 dark:border-gray-700" />
+                  <span className="text-xs text-gray-400 dark:text-gray-500">
+                    or
+                  </span>
+                  <div className="flex-1 border-t border-gray-200 dark:border-gray-700" />
+                </div>
+                <Button
+                  variant="primary"
+                  size="full-width"
+                  onClick={handleExplorePlans}
+                  disabled={isDemoLoading}
+                >
+                  {translate("scenarios.paywall.explorePlans")}
+                </Button>
               </div>
             </>
           )}
