@@ -68,13 +68,78 @@ export const useImportInp = () => {
           customerPoints: true,
           inactiveAssets: true,
         };
+
+        const completeImport = async (result: {
+          hydraulicModel: HydraulicModel;
+          modelMetadata: ModelMetadata;
+          issues: ParserIssues | null;
+          isMadeByApp: boolean;
+        }) => {
+          const { hydraulicModel, modelMetadata, issues, isMadeByApp } = result;
+
+          const storage = new OPFSStorage(getAppId());
+          await storage.clear();
+
+          transactImport(hydraulicModel, modelMetadata, file.name);
+
+          const features: FeatureCollection = {
+            type: "FeatureCollection",
+            features: [...hydraulicModel.assets.values()].map((a) => a.feature),
+          };
+          const nextExtent = getExtent(features);
+          nextExtent.map((importedExtent) => {
+            map?.map.fitBounds(importedExtent as LngLatBoundsLike, {
+              padding: 100,
+              duration: 0,
+            });
+          });
+          setFileInfo({
+            name: file.name,
+            handle: isMadeByApp ? file.handle : undefined,
+            modelVersion: hydraulicModel.version,
+            isMadeByApp,
+            isDemoNetwork: isDemo,
+            options: { type: "inp", folderId: "" },
+          });
+          if (!issues) {
+            setDialogState(null);
+            return;
+          }
+
+          setDialogState({ type: "inpIssues", issues });
+        };
+
         const { hydraulicModel, modelMetadata, issues, isMadeByApp, stats } =
           parseInp(content, parseOptions);
         userTracking.capture(
           buildCompleteEvent(hydraulicModel, modelMetadata, issues, stats),
         );
         if (issues && (issues.invalidVertices || issues.invalidCoordinates)) {
-          setDialogState({ type: "inpGeocodingNotSupported" });
+          const onImportNonProjected = async () => {
+            setDialogState({ type: "loading" });
+            try {
+              const result = parseInp(content, {
+                ...parseOptions,
+                nonProjected: true,
+              });
+              userTracking.capture(
+                buildCompleteEvent(
+                  result.hydraulicModel,
+                  result.modelMetadata,
+                  result.issues,
+                  result.stats,
+                ),
+              );
+              await completeImport(result);
+            } catch (error) {
+              captureError(error as Error);
+              setDialogState({ type: "invalidFilesError" });
+            }
+          };
+          setDialogState({
+            type: "inpGeocodingNotSupported",
+            onImportNonProjected,
+          });
           return;
         }
 
@@ -83,36 +148,12 @@ export const useImportInp = () => {
           return;
         }
 
-        const storage = new OPFSStorage(getAppId());
-        await storage.clear();
-
-        transactImport(hydraulicModel, modelMetadata, file.name);
-
-        const features: FeatureCollection = {
-          type: "FeatureCollection",
-          features: [...hydraulicModel.assets.values()].map((a) => a.feature),
-        };
-        const nextExtent = getExtent(features);
-        nextExtent.map((importedExtent) => {
-          map?.map.fitBounds(importedExtent as LngLatBoundsLike, {
-            padding: 100,
-            duration: 0,
-          });
-        });
-        setFileInfo({
-          name: file.name,
-          handle: isMadeByApp ? file.handle : undefined,
-          modelVersion: hydraulicModel.version,
+        await completeImport({
+          hydraulicModel,
+          modelMetadata,
+          issues,
           isMadeByApp,
-          isDemoNetwork: isDemo,
-          options: { type: "inp", folderId: "" },
         });
-        if (!issues) {
-          setDialogState(null);
-          return;
-        }
-
-        setDialogState({ type: "inpIssues", issues });
       } catch (error) {
         captureError(error as Error);
         setDialogState({ type: "invalidFilesError" });

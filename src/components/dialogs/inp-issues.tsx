@@ -13,6 +13,7 @@ import { newsletterUrl, projectionConverterUrl } from "src/global-config";
 import { ParserIssues } from "src/import/inp";
 import { useShowWelcome } from "src/commands/show-welcome";
 import { useUserTracking } from "src/infra/user-tracking";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 import {
   ChevronDownIcon,
@@ -38,12 +39,15 @@ const roadmapUrls = {
 
 export const GeocodingNotSupportedDialog = ({
   onClose: _onClose,
+  onImportNonProjected,
 }: {
   onClose: () => void;
+  onImportNonProjected?: () => void;
 }) => {
   const translate = useTranslate();
   const showWelcome = useShowWelcome();
   const userTracking = useUserTracking();
+  const isUnprojectedEnabled = useFeatureFlag("FLAG_UNPROJECTED");
 
   const goToWelcome = () => {
     showWelcome({ source: "geocodeError" });
@@ -91,6 +95,15 @@ export const GeocodingNotSupportedDialog = ({
         >
           {translate("reprojectNetwork")}
         </Button>
+        {isUnprojectedEnabled && onImportNonProjected && (
+          <Button
+            type="button"
+            variant="default"
+            onClick={onImportNonProjected}
+          >
+            {translate("importAsUnprojected")}
+          </Button>
+        )}
         <Button type="button" variant="default" onClick={goToWelcome}>
           {translate("seeDemoNetworks")}
         </Button>

@@ -152,6 +152,7 @@
   "failedToOpenModelDetail": "Make sure to provide a valid INP file.",
   "understood": "Understood",
   "reprojectNetwork": "Reproject network",
+  "importAsUnprojected": "Import as unprojected",
   "error": "Error",
   "save": "Save",
   "saveAndContinue": "Save and continue",

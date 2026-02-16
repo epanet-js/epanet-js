@@ -30,6 +30,7 @@ export type WelcomeDialogState = {
 
 export type GeocodingNotSupportedDialogState = {
   type: "inpGeocodingNotSupported";
+  onImportNonProjected?: () => void;
 };
 
 export type MissingCoordinatesDialogState = {

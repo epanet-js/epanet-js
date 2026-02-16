@@ -738,4 +738,50 @@ describe("Parse inp with", () => {
       expect(issues?.hasPCVCurves).toBe(2);
     });
   });
+
+  describe("non-projected import", () => {
+    it("imports non-projected coordinates centered near origin", () => {
+      const inp = `
+      [JUNCTIONS]
+      J1  100
+      J2  200
+
+      [PIPES]
+      P1  J1  J2  1000  100  100  0  Open
+
+      [COORDINATES]
+      J1  500000  200000
+      J2  501000  201000
+      `;
+
+      const withoutFlag = parseInp(inp);
+      expect(withoutFlag.issues?.invalidCoordinates).toBeDefined();
+
+      const result = parseInp(inp, { nonProjected: true });
+      expect(result.issues?.invalidCoordinates).toBeUndefined();
+      expect(result.hydraulicModel.assets.size).toBe(3);
+
+      const j1 = getByLabel(result.hydraulicModel.assets, "J1") as Junction;
+      expect(j1).toBeDefined();
+      expect(Math.abs(j1.coordinates[0])).toBeLessThan(1);
+      expect(Math.abs(j1.coordinates[1])).toBeLessThan(1);
+    });
+
+    it("preserves other issues when using nonProjected", () => {
+      const inp = `
+      [JUNCTIONS]
+      J1  100
+
+      [COORDINATES]
+      J1  500000  200000
+
+      [MIXING]
+      ANYTHING
+      `;
+
+      const result = parseInp(inp, { nonProjected: true });
+      expect(result.issues?.invalidCoordinates).toBeUndefined();
+      expect(result.issues?.unsupportedSections).toBeDefined();
+    });
+  });
 });

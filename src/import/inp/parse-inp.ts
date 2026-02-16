@@ -5,11 +5,13 @@ import { buildModel } from "./build-model";
 import { HydraulicModel } from "src/hydraulic-model";
 import { checksum } from "src/infra/checksum";
 import { InpStats } from "./inp-data";
+import { transformNonProjectedCoordinates } from "./non-projected-transform";
 
 export type ParseInpOptions = {
   customerPoints?: boolean;
   inactiveAssets?: boolean;
   usedPatterns?: boolean;
+  nonProjected?: boolean;
 };
 
 export const parseInp = (
@@ -32,6 +34,11 @@ export const parseInp = (
   };
 
   const { inpData, stats } = readInpData(inp, issues, safeOptions);
+
+  if (options?.nonProjected) {
+    transformNonProjectedCoordinates(inpData);
+  }
+
   const { hydraulicModel, modelMetadata } = buildModel(
     inpData,
     issues,

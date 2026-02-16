@@ -52,6 +52,7 @@ const InpIssuesDialog = dynamic<{
 
 const GeocodingNotSupportedDialog = dynamic<{
   onClose: () => void;
+  onImportNonProjected?: () => void;
 }>(
   () =>
     import("src/components/dialogs/inp-issues").then(
@@ -470,8 +471,11 @@ export const Dialogs = memo(function Dialogs() {
     .with({ type: "inpIssues" }, ({ issues }) => (
       <InpIssuesDialog issues={issues} onClose={onClose} />
     ))
-    .with({ type: "inpGeocodingNotSupported" }, () => (
-      <GeocodingNotSupportedDialog onClose={onClose} />
+    .with({ type: "inpGeocodingNotSupported" }, ({ onImportNonProjected }) => (
+      <GeocodingNotSupportedDialog
+        onClose={onClose}
+        onImportNonProjected={onImportNonProjected}
+      />
     ))
     .with({ type: "inpMissingCoordinates" }, ({ issues }) => (
       <MissingCoordinatesDialog issues={issues} onClose={onClose} />
