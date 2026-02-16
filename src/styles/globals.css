@@ -279,35 +279,59 @@ body.dark .mapboxgl-ctrl-attrib-button {
   @apply bg-gray-100 dark:bg-gray-500;
 }
 
-/* CSS-only scroll shadows using background-attachment: local */
-.scroll-shadows {
-  background:
-    /* Top shadow cover - moves with content to hide shadow at top */
-    linear-gradient(to bottom, white 30%, transparent) center top,
-    /* Bottom shadow cover - moves with content to hide shadow at bottom */
-    linear-gradient(to top, white 30%, transparent) center bottom,
-    /* Top shadow - stays fixed */
-    radial-gradient(farthest-side at 50% 0, rgba(0, 0, 0, 0.12), transparent) center top,
-    /* Bottom shadow - stays fixed */
-    radial-gradient(farthest-side at 50% 100%, rgba(0, 0, 0, 0.12), transparent) center bottom;
-  background-repeat: no-repeat;
-  background-size: 100% 40px, 100% 40px, 100% 10px, 100% 10px;
-  background-attachment: local, local, scroll, scroll;
+/* Scroll shadows using sticky pseudo-elements + scroll-driven animations.
+   Unlike background-attachment: local, these overlay on top of content,
+   so they remain visible even when children have opaque backgrounds. */
+@keyframes scroll-shadow-appear {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
-.dark .scroll-shadows {
-  background:
-    /* Top shadow cover - dark mode uses gray-950 (#030712) */
-    linear-gradient(to bottom, #030712 30%, transparent) center top,
-    /* Bottom shadow cover */
-    linear-gradient(to top, #030712 30%, transparent) center bottom,
-    /* Top shadow - slightly lighter for dark mode */
-    radial-gradient(farthest-side at 50% 0, rgba(0, 0, 0, 0.3), transparent) center top,
-    /* Bottom shadow */
-    radial-gradient(farthest-side at 50% 100%, rgba(0, 0, 0, 0.3), transparent) center bottom;
-  background-repeat: no-repeat;
-  background-size: 100% 40px, 100% 40px, 100% 10px, 100% 10px;
-  background-attachment: local, local, scroll, scroll;
+.scroll-shadows::before,
+.scroll-shadows::after {
+  content: "";
+  display: block;
+  position: sticky;
+  width: calc(100% + 2 * var(--scroll-shadow-inset, 0px));
+  margin-inline: calc(-1 * var(--scroll-shadow-inset, 0px));
+  height: 10px;
+  z-index: 10;
+  pointer-events: none;
+  opacity: 0;
+  animation-timeline: scroll(nearest block);
+  animation-fill-mode: both;
+  animation-timing-function: linear;
+}
+
+.scroll-shadows::before {
+  top: 0;
+  margin-top: calc(-1 * var(--scroll-shadow-inset, 0px));
+  margin-bottom: calc(var(--scroll-shadow-inset, 0px) - 10px);
+  background: radial-gradient(farthest-side at 50% 0, rgba(0, 0, 0, 0.12), transparent);
+  animation-name: scroll-shadow-appear;
+  animation-range: 0px 40px;
+}
+
+.scroll-shadows::after {
+  bottom: 0;
+  margin-top: calc(var(--scroll-shadow-inset, 0px) - 10px);
+  margin-bottom: calc(-1 * var(--scroll-shadow-inset, 0px));
+  background: radial-gradient(farthest-side at 50% 100%, rgba(0, 0, 0, 0.12), transparent);
+  animation-name: scroll-shadow-appear;
+  animation-direction: reverse;
+  animation-range: calc(100% - 40px) 100%;
+}
+
+.dark .scroll-shadows::before {
+  background: radial-gradient(farthest-side at 50% 0, rgba(0, 0, 0, 0.3), transparent);
+}
+
+.dark .scroll-shadows::after {
+  background: radial-gradient(farthest-side at 50% 100%, rgba(0, 0, 0, 0.3), transparent);
 }
 
 .group-1:hover .group-1-hover\:opacity-100 {

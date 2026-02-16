@@ -275,40 +275,42 @@ export function Selector<T extends string | number>({
                 <Select.Separator className="h-px bg-gray-200 mt-1" />
               </Select.Group>
             )}
-            <Select.Viewport className="p-1 max-h-60 overflow-y-auto scroll-shadows">
-              {(stickyFirstGroup ? optionGroups.slice(1) : optionGroups).map(
-                (group, groupIndex) => (
-                  <Select.Group key={groupIndex}>
-                    {groupIndex > 0 && (
-                      <Select.Separator className="h-px bg-gray-200 my-1" />
-                    )}
-                    {group.map((option) => (
-                      <Select.Item
-                        key={String(option.value)}
-                        value={String(option.value)}
-                        disabled={option.disabled}
-                        className={clsx([
-                          "flex items-center justify-between gap-4 px-2 py-2 focus:bg-purple-300/40",
-                          {
-                            "cursor-pointer": !option.disabled,
-                            "text-gray-400": !!option.disabled,
-                          },
-                          listClassName,
-                        ])}
-                      >
-                        <Select.ItemText>
-                          {option.description
-                            ? option.description
-                            : option.label}
-                        </Select.ItemText>
-                        <Select.ItemIndicator className="ml-auto">
-                          <CheckIcon className="text-purple-700" />
-                        </Select.ItemIndicator>
-                      </Select.Item>
-                    ))}
-                  </Select.Group>
-                ),
-              )}
+            <Select.Viewport className="max-h-60 overflow-y-auto scroll-shadows">
+              <div className="p-1">
+                {(stickyFirstGroup ? optionGroups.slice(1) : optionGroups).map(
+                  (group, groupIndex) => (
+                    <Select.Group key={groupIndex}>
+                      {groupIndex > 0 && (
+                        <Select.Separator className="h-px bg-gray-200 my-1" />
+                      )}
+                      {group.map((option) => (
+                        <Select.Item
+                          key={String(option.value)}
+                          value={String(option.value)}
+                          disabled={option.disabled}
+                          className={clsx([
+                            "flex items-center justify-between gap-4 px-2 py-2 focus:bg-purple-300/40",
+                            {
+                              "cursor-pointer": !option.disabled,
+                              "text-gray-400": !!option.disabled,
+                            },
+                            listClassName,
+                          ])}
+                        >
+                          <Select.ItemText>
+                            {option.description
+                              ? option.description
+                              : option.label}
+                          </Select.ItemText>
+                          <Select.ItemIndicator className="ml-auto">
+                            <CheckIcon className="text-purple-700" />
+                          </Select.ItemIndicator>
+                        </Select.Item>
+                      ))}
+                    </Select.Group>
+                  ),
+                )}
+              </div>
             </Select.Viewport>
           </Select.Content>
         </Select.Portal>
