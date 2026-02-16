@@ -20,6 +20,7 @@ import {
   splitsAtom,
   defaultSplits,
   pipeDrawingDefaultsAtom,
+  autoElevationsAtom,
   stagingModelAtom,
 } from "src/state/jotai";
 import { baseModelAtom } from "src/state/hydraulic-model";
@@ -63,6 +64,7 @@ export class Persistence implements IPersistenceWithSnapshots {
       hydraulicModel: HydraulicModel,
       modelMetadata: ModelMetadata,
       name: string,
+      options?: { autoElevations?: boolean },
     ) => {
       const momentLog = new MomentLog();
 
@@ -110,6 +112,7 @@ export class Persistence implements IPersistenceWithSnapshots {
       this.store.set(ephemeralStateAtom, { type: "none" });
       this.store.set(selectionAtom, { type: "none" });
       this.store.set(pipeDrawingDefaultsAtom, {});
+      this.store.set(autoElevationsAtom, options?.autoElevations ?? true);
 
       this.resetWorktree(snapshotMoment, hydraulicModel.version, momentLog);
     };

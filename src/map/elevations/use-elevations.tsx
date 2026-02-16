@@ -8,6 +8,7 @@ import {
 import { notify } from "src/components/notifications";
 import { useTranslate } from "src/hooks/use-translate";
 import { offlineAtom } from "src/state/offline";
+import { autoElevationsAtom } from "src/state/jotai";
 import { useCallback } from "react";
 import { useAtomValue } from "jotai";
 import { UnavailableIcon } from "src/icons";
@@ -15,17 +16,20 @@ import { UnavailableIcon } from "src/icons";
 export const useElevations = (unit: Unit) => {
   const translate = useTranslate();
   const isOffline = useAtomValue(offlineAtom);
+  const autoElevations = useAtomValue(autoElevationsAtom);
   const prefetchTile = useCallback(
     (lngLat: LngLat) => {
-      if (isOffline) return;
+      if (!autoElevations || isOffline) return;
 
       void prefetchElevationsTile(lngLat);
     },
-    [isOffline],
+    [autoElevations, isOffline],
   );
 
   const fetchElevation = useCallback(
     async (lngLat: LngLat) => {
+      if (!autoElevations) return fallbackElevation;
+
       if (isOffline) {
         notifyOfflineElevation(translate);
         return fallbackElevation;
@@ -48,7 +52,7 @@ export const useElevations = (unit: Unit) => {
       }
       return elevation;
     },
-    [isOffline, unit, translate],
+    [autoElevations, isOffline, unit, translate],
   );
 
   return { fetchElevation, prefetchTile };

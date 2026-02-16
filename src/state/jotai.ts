@@ -497,3 +497,5 @@ export const pipeDrawingDefaultsAtom = atom<{
   diameter?: number;
   roughness?: number;
 }>({});
+
+export const autoElevationsAtom = atom<boolean>(true);

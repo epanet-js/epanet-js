@@ -7,6 +7,7 @@ import {
   dataAtom,
   simulationAtom,
   stagingModelAtom,
+  autoElevationsAtom,
 } from "src/state/jotai";
 import * as Popover from "@radix-ui/react-popover";
 import { Button, StyledPopoverArrow, StyledPopoverContent } from "../elements";
@@ -83,6 +84,7 @@ const CollapsedPopover = ({
   demandMultiplier: number;
 }) => {
   const translate = useTranslate();
+  const autoElevations = useAtomValue(autoElevationsAtom);
   const isLgOrLarger = useBreakpoint("lg");
   const isSmOrLarger = useBreakpoint("sm");
   return (
@@ -99,7 +101,9 @@ const CollapsedPopover = ({
             <span className="text-gray-700">{translate("on")}</span>
 
             <span>{translate("autoElevations")}</span>
-            <span className="text-gray-700">{translate("on")}</span>
+            <span className="text-gray-700">
+              {translate(autoElevations ? "on" : "off")}
+            </span>
 
             {!isLgOrLarger && (
               <>

@@ -69,18 +69,21 @@ export const useImportInp = () => {
           inactiveAssets: true,
         };
 
-        const completeImport = async (result: {
-          hydraulicModel: HydraulicModel;
-          modelMetadata: ModelMetadata;
-          issues: ParserIssues | null;
-          isMadeByApp: boolean;
-        }) => {
+        const completeImport = async (
+          result: {
+            hydraulicModel: HydraulicModel;
+            modelMetadata: ModelMetadata;
+            issues: ParserIssues | null;
+            isMadeByApp: boolean;
+          },
+          options?: { autoElevations?: boolean },
+        ) => {
           const { hydraulicModel, modelMetadata, issues, isMadeByApp } = result;
 
           const storage = new OPFSStorage(getAppId());
           await storage.clear();
 
-          transactImport(hydraulicModel, modelMetadata, file.name);
+          transactImport(hydraulicModel, modelMetadata, file.name, options);
 
           const features: FeatureCollection = {
             type: "FeatureCollection",
@@ -130,7 +133,7 @@ export const useImportInp = () => {
                   result.stats,
                 ),
               );
-              await completeImport(result);
+              await completeImport(result, { autoElevations: false });
             } catch (error) {
               captureError(error as Error);
               setDialogState({ type: "invalidFilesError" });

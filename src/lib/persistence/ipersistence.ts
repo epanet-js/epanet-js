@@ -48,6 +48,7 @@ export interface IPersistence {
     hydraulicModel: HydraulicModel,
     modelMetadata: ModelMetadata,
     name: string,
+    options?: { autoElevations?: boolean },
   ) => void;
 }
 
