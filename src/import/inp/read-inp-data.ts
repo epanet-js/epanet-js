@@ -64,6 +64,7 @@ const buildSectionParserDefinitions = (): SectionParserDefinition[] => [
   { names: ["DEMANDS", "DEMAND"], parser: parseDemand },
   { names: ["EMITTERS"], parser: parseEmitter },
   { names: ["TAGS"], parser: unsupported },
+  { names: ["LEAKAGE"], parser: unsupported },
 ];
 
 const buildSectionParsers = (): SectionParsers => {

@@ -148,6 +148,21 @@ const buildCompleteEvent = (
       } as const;
       return [typeMap[issues.waterQualityType]];
     }
+    if (key === "unsupportedSections" && issues?.unsupportedSections) {
+      return [...issues.unsupportedSections].map(
+        (sectionName) => `unsupportedSection-${sectionName}` as const,
+      );
+    }
+    if (key === "nonDefaultOptions" && issues?.nonDefaultOptions) {
+      return [...issues.nonDefaultOptions.keys()].map(
+        (optionName) => `nonDefaultOption-${optionName}` as const,
+      );
+    }
+    if (key === "nonDefaultTimes" && issues?.nonDefaultTimes) {
+      return [...issues.nonDefaultTimes.keys()].map(
+        (timeName) => `nonDefaultTime-${timeName}` as const,
+      );
+    }
     return [key];
   });
 

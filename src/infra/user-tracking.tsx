@@ -258,12 +258,12 @@ export type ImportInpCompleted = {
   headlossFormula: HeadlossFormula;
   units: EpanetUnitSystem;
   issues: (
-    | "unsupportedSections"
+    | `unsupportedSection-${string}`
     | "nodesMissingCoordinates"
     | "invalidVertices"
     | "invalidCoordinates"
-    | "nonDefaultOptions"
-    | "nonDefaultTimes"
+    | `nonDefaultOption-${string}`
+    | `nonDefaultTime-${string}`
     | "unbalancedDiff"
     | "hasReservoirPatterns"
     | "hasTankCurves"
