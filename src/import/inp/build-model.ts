@@ -729,6 +729,8 @@ const getLinkProperties = (
   nodeIds: ItemData<AssetId>,
   linkData: { id: string; startNodeDirtyId: string; endNodeDirtyId: string },
 ) => {
+  if (!linkData.startNodeDirtyId || !linkData.endNodeDirtyId) return null;
+
   const startCoordinates = getNodeCoordinates(
     inpData,
     linkData.startNodeDirtyId,
