@@ -207,10 +207,15 @@ const patchAssetAttributes = (
   if (!asset) return undefined;
 
   const reverseProperties: Record<string, unknown> = {};
-  for (const [key, value] of Object.entries(patch.properties)) {
+  for (const [key] of Object.entries(patch.properties)) {
     reverseProperties[key] = asset.getProperty(key);
-    asset.setProperty(key, value as NonNullable<unknown>);
   }
+
+  const updatedAsset = asset.copy();
+  for (const [key, value] of Object.entries(patch.properties)) {
+    updatedAsset.setProperty(key, value as NonNullable<unknown>);
+  }
+  hydraulicModel.assets.set(patch.id, updatedAsset);
 
   if ("label" in patch.properties) {
     hydraulicModel.labelManager.remove(
@@ -218,7 +223,11 @@ const patchAssetAttributes = (
       asset.type,
       asset.id,
     );
-    hydraulicModel.labelManager.register(asset.label, asset.type, asset.id);
+    hydraulicModel.labelManager.register(
+      updatedAsset.label,
+      updatedAsset.type,
+      updatedAsset.id,
+    );
   }
 
   return {
