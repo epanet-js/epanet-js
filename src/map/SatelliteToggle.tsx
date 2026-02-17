@@ -4,7 +4,7 @@ import clsx from "clsx";
 import { useToggleSatellite } from "src/commands/toggle-satellite";
 import { useUserTracking } from "src/infra/user-tracking";
 import { basemaps } from "src/map/basemaps";
-import { layerConfigAtom } from "src/state/jotai";
+import { isUnprojectedAtom, layerConfigAtom } from "src/state/jotai";
 import { offlineAtom } from "src/state/offline";
 
 export const SatelliteToggle = () => {
@@ -12,6 +12,7 @@ export const SatelliteToggle = () => {
   const layerConfigs = useAtomValue(layerConfigAtom);
   const userTracking = useUserTracking();
   const isOffline = useAtomValue(offlineAtom);
+  const isUnprojected = useAtomValue(isUnprojectedAtom);
 
   const buttonThumbnailClass = useMemo(() => {
     if (isOffline || layerConfigs.size !== 1) return null;
@@ -27,7 +28,7 @@ export const SatelliteToggle = () => {
     return null;
   }, [layerConfigs, isOffline]);
 
-  if (!buttonThumbnailClass) return null;
+  if (isUnprojected || !buttonThumbnailClass) return null;
 
   return (
     <div
