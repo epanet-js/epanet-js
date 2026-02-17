@@ -2,9 +2,9 @@ import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { DemandCategoriesEditor } from "./demands-editor";
 import {
+  DemandAssignment,
   DemandPattern,
   DemandPatterns,
-  JunctionDemand,
   PatternId,
   PatternMultipliers,
 } from "src/hydraulic-model/demands";
@@ -167,7 +167,7 @@ describe("DemandCategoriesEditor", () => {
 
     it("displays existing demands", () => {
       const PATTERN_ID = 1;
-      const demands: JunctionDemand[] = [
+      const demands: DemandAssignment[] = [
         { baseDemand: 100, patternId: PATTERN_ID },
         { baseDemand: 50 },
       ];

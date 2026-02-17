@@ -5,14 +5,14 @@ import { LinkConnections, nullConnections } from "./asset-types/link";
 import { Position } from "geojson";
 import { Reservoir, ReservoirQuantity } from "./asset-types/reservoir";
 import { Tank, TankQuantity } from "./asset-types/tank";
-import { JunctionDemand } from "./demands";
+import { DemandAssignment } from "./demands";
 
 export type JunctionBuildData = {
   id?: AssetId;
   label?: string;
   coordinates?: Position;
   elevation?: number;
-  demands?: JunctionDemand[];
+  demands?: DemandAssignment[];
   isActive?: boolean;
 };
 

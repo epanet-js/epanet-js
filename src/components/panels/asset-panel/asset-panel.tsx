@@ -16,8 +16,8 @@ import {
 } from "src/hydraulic-model/customer-points";
 import { Valve } from "src/hydraulic-model/asset-types";
 import {
+  DemandAssignment,
   DemandPatterns,
-  JunctionDemand,
   calculateAverageDemand,
 } from "src/hydraulic-model/demands";
 import { Quantities } from "src/model-metadata/quantities-spec";
@@ -221,7 +221,7 @@ export function AssetPanel({
   );
 
   const handleDemandsChange = useCallback(
-    (newDemands: JunctionDemand[]) => {
+    (newDemands: DemandAssignment[]) => {
       const oldDemands = (asset as Junction).demands;
       const moment = changeJunctionDemands(hydraulicModel, {
         junctionId: asset.id,
@@ -376,7 +376,7 @@ const JunctionEditor = ({
   junction: Junction;
   quantitiesMetadata: Quantities;
   onPropertyChange: OnPropertyChange;
-  onDemandsChange: (newDemands: JunctionDemand[]) => void;
+  onDemandsChange: (newDemands: DemandAssignment[]) => void;
   onLabelChange: (newLabel: string) => string | undefined;
   hydraulicModel: HydraulicModel;
   readonly?: boolean;

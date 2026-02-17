@@ -1,7 +1,7 @@
 import {
   HydraulicModel,
   initializeHydraulicModel,
-  JunctionDemand,
+  DemandAssignment,
 } from "src/hydraulic-model";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import {
@@ -48,6 +48,7 @@ import {
 } from "src/hydraulic-model/controls";
 import { LabelManager } from "src/hydraulic-model/label-manager";
 import {
+  createEmptyDemands,
   DemandPattern,
   DemandPatterns,
   PatternId,
@@ -85,8 +86,8 @@ export const buildModel = (
     defaults: quantities.defaults,
     headlossFormula: inpData.options.headlossFormula,
     demands: {
+      ...createEmptyDemands(),
       multiplier: inpData.options.demandMultiplier,
-      patterns: new Map(),
     },
     epsTiming: inpData.times,
     projection,
@@ -309,7 +310,7 @@ const buildDemand = (
   patternContext: BuildPatternContext,
   baseDemand: number,
   patternLabel: string | undefined,
-): JunctionDemand => {
+): DemandAssignment => {
   const { fallbackPatternId, labelManager, usedPatternIds } = patternContext;
 
   if (patternLabel) {
@@ -370,7 +371,7 @@ const addJunction = (
 
   const junctionDemands = inpData.demands.get(junctionData.id) || [];
 
-  const demands: JunctionDemand[] =
+  const demands: DemandAssignment[] =
     junctionDemands.length > 0
       ? junctionDemands
           .filter((d) => d.baseDemand)

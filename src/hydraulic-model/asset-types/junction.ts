@@ -1,21 +1,21 @@
 import { Node, NodeProperties } from "./node";
 import { CustomerPointsLookup } from "../customer-points-lookup";
 import {
-  JunctionDemand,
   DemandPatterns,
   calculateAverageDemand,
+  DemandAssignment,
 } from "../demands";
 
 export type JunctionProperties = {
   type: "junction";
-  demands: JunctionDemand[];
+  demands: DemandAssignment[];
 } & NodeProperties;
 
 export const junctionQuantities = ["elevation", "pressure"] as const;
 export type JunctionQuantity = (typeof junctionQuantities)[number];
 
 export class Junction extends Node<JunctionProperties> {
-  get demands(): JunctionDemand[] {
+  get demands(): DemandAssignment[] {
     return this.properties.demands;
   }
 

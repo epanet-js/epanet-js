@@ -8,7 +8,6 @@ import {
   Topology,
   AssetBuilder,
   JunctionBuildData,
-  JunctionDemand,
   PipeBuildData,
   ReservoirBuildData,
   NodeAsset,
@@ -17,6 +16,9 @@ import {
   EPSTiming,
   Controls,
   createEmptyControls,
+  createEmptyDemands,
+  DemandAssignment,
+  Demands,
 } from "src/hydraulic-model";
 import { SimpleControl, RuleBasedControl } from "src/hydraulic-model/controls";
 import { AssetIndex } from "src/hydraulic-model/asset-index";
@@ -37,7 +39,6 @@ import {
   UnitsSpec,
   presets,
 } from "src/model-metadata/quantities-spec";
-import { Demands, createEmptyDemands } from "src/hydraulic-model/demands";
 import {
   AllocationRule,
   CustomerPoint,
@@ -101,7 +102,7 @@ export const buildReservoir = (data: ReservoirBuildData = {}) => {
 export const buildCustomerPoint = (
   id: number,
   options: {
-    demands?: JunctionDemand[];
+    demands?: DemandAssignment[];
     coordinates?: Position;
     junctionId?: number;
     label?: string;
@@ -312,10 +313,7 @@ export class HydraulicModelBuilder {
   }
 
   demandMultiplier(multiplier: number) {
-    this.demands = {
-      multiplier,
-      patterns: this.demands.patterns,
-    };
+    this.demands.multiplier = multiplier;
     return this;
   }
 
@@ -333,7 +331,7 @@ export class HydraulicModelBuilder {
   aCustomerPoint(
     id: number,
     options: {
-      demands?: JunctionDemand[];
+      demands?: DemandAssignment[];
       coordinates?: Position;
       label?: string;
       connection?: {

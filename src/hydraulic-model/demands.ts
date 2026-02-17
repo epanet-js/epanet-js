@@ -1,3 +1,6 @@
+import { AssetId } from "./asset-types";
+import { CustomerPointId } from "./customer-points";
+
 export type PatternMultipliers = number[];
 
 export type PatternId = number;
@@ -10,7 +13,7 @@ export type DemandPattern = {
 
 export type DemandPatterns = Map<PatternId, DemandPattern>;
 
-export type JunctionDemand = {
+export type DemandAssignment = {
   baseDemand: number;
   patternId?: PatternId;
 };
@@ -18,11 +21,19 @@ export type JunctionDemand = {
 export type Demands = {
   multiplier: number;
   patterns: DemandPatterns;
+  assignments: {
+    junctions: Map<AssetId, DemandAssignment[]>;
+    customerPoints: Map<CustomerPointId, DemandAssignment[]>;
+  };
 };
 
 export const createEmptyDemands = (): Demands => ({
   multiplier: 1,
   patterns: new Map(),
+  assignments: {
+    junctions: new Map(),
+    customerPoints: new Map(),
+  },
 });
 
 export const getNextPatternId = (
@@ -37,7 +48,7 @@ export const getNextPatternId = (
 };
 
 export const calculateAverageDemand = (
-  demands: JunctionDemand[],
+  demands: DemandAssignment[],
   patterns: DemandPatterns,
 ): number => {
   return demands.reduce((total, demand) => {

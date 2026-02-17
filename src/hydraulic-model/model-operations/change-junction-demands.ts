@@ -1,11 +1,11 @@
 import { AssetId } from "../asset-types";
-import { JunctionDemand } from "../demands";
+import { DemandAssignment } from "../demands";
 import type { AssetPatch } from "../model-operation";
 import { ModelOperation } from "../model-operation";
 
 type InputData = {
   junctionId: AssetId;
-  demands: JunctionDemand[];
+  demands: DemandAssignment[];
 };
 
 export const changeJunctionDemands: ModelOperation<InputData> = (

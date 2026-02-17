@@ -7,11 +7,14 @@ import {
   GridColumn,
 } from "src/components/data-grid";
 import { Button } from "src/components/elements";
-import { JunctionDemand, DemandPatterns, PatternId } from "src/hydraulic-model";
+import { DemandPatterns, PatternId } from "src/hydraulic-model";
 import { useTranslate } from "src/hooks/use-translate";
 import { DeleteIcon, AddIcon } from "src/icons";
 import { PropertyComparison } from "src/hooks/use-asset-comparison";
-import { calculateAverageDemand } from "src/hydraulic-model/demands";
+import {
+  calculateAverageDemand,
+  DemandAssignment,
+} from "src/hydraulic-model/demands";
 import { Quantities } from "src/model-metadata/quantities-spec";
 import { QuantityRow } from "./ui-components";
 
@@ -21,9 +24,9 @@ type DemandCategoryRow = {
 };
 
 type Props = {
-  demands: JunctionDemand[];
+  demands: DemandAssignment[];
   patterns: DemandPatterns;
-  onDemandsChange: (newDemands: JunctionDemand[]) => void;
+  onDemandsChange: (newDemands: DemandAssignment[]) => void;
   comparison?: PropertyComparison;
   readOnly?: boolean;
 };
@@ -31,7 +34,7 @@ type Props = {
 const CONSTANT_PATTERN_ID = 0;
 
 const toRow = (
-  demand: JunctionDemand,
+  demand: DemandAssignment,
   patterns: DemandPatterns,
 ): DemandCategoryRow => {
   if (demand.patternId) {
@@ -49,7 +52,7 @@ const toRow = (
   };
 };
 
-const fromRow = (row: DemandCategoryRow): JunctionDemand => {
+const fromRow = (row: DemandCategoryRow): DemandAssignment => {
   return {
     baseDemand: row.baseDemand ?? 0,
     patternId:
@@ -303,11 +306,11 @@ export const DemandsEditor = ({
   demandComparator,
   readOnly,
 }: {
-  demands: JunctionDemand[];
+  demands: DemandAssignment[];
   patterns: DemandPatterns;
   quantitiesMetadata: Quantities;
   name: string;
-  onChange: (demands: JunctionDemand[]) => void;
+  onChange: (demands: DemandAssignment[]) => void;
   demandComparator: (demands: number) => PropertyComparison;
   readOnly: boolean;
 }) => {

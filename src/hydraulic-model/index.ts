@@ -45,7 +45,8 @@ export type {
   PatternId,
   DemandPatterns,
   Demands,
-  JunctionDemand,
+  DemandAssignment,
 } from "./demands";
+export { createEmptyDemands } from "./demands";
 export type { IdGenerator } from "./id-generator";
 export { applyMomentToModel } from "./mutations/apply-moment";
