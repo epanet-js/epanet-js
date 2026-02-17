@@ -19,6 +19,7 @@ import {
   simulationResultsAtom,
   currentZoomAtom,
   customerPointsAtom,
+  isUnprojectedAtom,
   stagingModelAtom,
 } from "src/state/jotai";
 import type { ResultsReader } from "src/simulation/results-reader";
@@ -124,7 +125,8 @@ const nullMapState: MapState = {
 } as const;
 
 const stylesConfigAtom = atom<StylesConfig>((get) => {
-  const layerConfigs = get(layerConfigAtom);
+  const isUnprojected = get(isUnprojectedAtom);
+  const layerConfigs = isUnprojected ? new Map() : get(layerConfigAtom);
   const { symbology, label } = get(memoryMetaAtom);
 
   return {

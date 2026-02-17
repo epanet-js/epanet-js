@@ -36,6 +36,7 @@ export {
   stagingModelAtom,
   assetsAtom,
   customerPointsAtom,
+  isUnprojectedAtom,
   nullHydraulicModel,
 } from "src/state/hydraulic-model";
 

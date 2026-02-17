@@ -21,3 +21,7 @@ export const assetsAtom = focusAtom(stagingModelAtom, (optic) =>
 export const customerPointsAtom = focusAtom(stagingModelAtom, (optic) =>
   optic.prop("customerPoints"),
 );
+
+export const isUnprojectedAtom = atom((get) => {
+  return get(stagingModelAtom).projection === null;
+});
