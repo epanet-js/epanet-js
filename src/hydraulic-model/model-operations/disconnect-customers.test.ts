@@ -19,10 +19,10 @@ describe("disconnectCustomers", () => {
         ],
       })
       .aCustomerPoint(IDS.CP1, {
-        demands: [{ baseDemand: 25 }],
         coordinates: [2, 1],
         connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
       })
+      .aCustomerPointDemand(IDS.CP1, [{ baseDemand: 25 }])
       .build();
 
     const { putCustomerPoints } = disconnectCustomers(hydraulicModel, {
@@ -34,7 +34,6 @@ describe("disconnectCustomers", () => {
 
     const disconnectedCP = putCustomerPoints![0];
     expect(disconnectedCP.id).toBe(IDS.CP1);
-    expect(disconnectedCP.baseDemand).toBe(25);
     expect(disconnectedCP.coordinates).toEqual([2, 1]);
     expect(disconnectedCP.connection).toBeNull();
   });
@@ -53,15 +52,15 @@ describe("disconnectCustomers", () => {
         ],
       })
       .aCustomerPoint(IDS.CP1, {
-        demands: [{ baseDemand: 25 }],
         coordinates: [2, 1],
         connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
       })
+      .aCustomerPointDemand(IDS.CP1, [{ baseDemand: 25 }])
       .aCustomerPoint(IDS.CP2, {
-        demands: [{ baseDemand: 50 }],
         coordinates: [8, 1],
         connection: { pipeId: IDS.P1, junctionId: IDS.J2 },
       })
+      .aCustomerPointDemand(IDS.CP2, [{ baseDemand: 50 }])
       .build();
 
     const { putCustomerPoints } = disconnectCustomers(hydraulicModel, {
@@ -76,15 +75,12 @@ describe("disconnectCustomers", () => {
 
     expect(disconnectedCP1.connection).toBeNull();
     expect(disconnectedCP2.connection).toBeNull();
-    expect(disconnectedCP1.baseDemand).toBe(25);
-    expect(disconnectedCP2.baseDemand).toBe(50);
   });
 
   it("handles already disconnected customer points", () => {
     const IDS = { J1: 1, CP1: 2 } as const;
     const disconnectedCP = buildCustomerPoint(IDS.CP1, {
       coordinates: [2, 1],
-      demands: [{ baseDemand: 25 }],
     });
 
     const hydraulicModel = HydraulicModelBuilder.with()
@@ -92,6 +88,9 @@ describe("disconnectCustomers", () => {
       .build();
 
     hydraulicModel.customerPoints.set(IDS.CP1, disconnectedCP);
+    hydraulicModel.demands.assignments.customerPoints.set(IDS.CP1, [
+      { baseDemand: 25 },
+    ]);
 
     const { putCustomerPoints } = disconnectCustomers(hydraulicModel, {
       customerPointIds: [IDS.CP1],
@@ -122,7 +121,6 @@ describe("disconnectCustomers", () => {
     const IDS = { J1: 1, CP1: 2 } as const;
     const originalCP = buildCustomerPoint(IDS.CP1, {
       coordinates: [2, 1],
-      demands: [{ baseDemand: 25 }],
     });
     originalCP.connect({
       pipeId: IDS.J1,
@@ -144,7 +142,6 @@ describe("disconnectCustomers", () => {
 
     expect(disconnectedCP).not.toBe(originalCP);
     expect(disconnectedCP.id).toBe(originalCP.id);
-    expect(disconnectedCP.baseDemand).toBe(originalCP.baseDemand);
     expect(disconnectedCP.coordinates).toEqual(originalCP.coordinates);
     expect(disconnectedCP.connection).toBeNull();
     expect(originalCP.connection).not.toBeNull();
@@ -154,7 +151,6 @@ describe("disconnectCustomers", () => {
     const IDS = { J1: 1, CP1: 2, CP2: 3 } as const;
     const connectedCP = buildCustomerPoint(IDS.CP1, {
       coordinates: [2, 1],
-      demands: [{ baseDemand: 25 }],
     });
     connectedCP.connect({
       pipeId: IDS.J1,
@@ -164,7 +160,6 @@ describe("disconnectCustomers", () => {
 
     const disconnectedCP = buildCustomerPoint(IDS.CP2, {
       coordinates: [8, 1],
-      demands: [{ baseDemand: 50 }],
     });
 
     const hydraulicModel = HydraulicModelBuilder.with()
@@ -189,7 +184,6 @@ describe("disconnectCustomers", () => {
     const IDS = { J1: 1, CP1: 2 } as const;
     const cp = buildCustomerPoint(IDS.CP1, {
       coordinates: [0, 0],
-      demands: [{ baseDemand: 10 }],
     });
 
     const hydraulicModel = HydraulicModelBuilder.with()
@@ -209,7 +203,6 @@ describe("disconnectCustomers", () => {
     const IDS = { J1: 1, CP1: 2 } as const;
     const cp = buildCustomerPoint(IDS.CP1, {
       coordinates: [2, 1],
-      demands: [{ baseDemand: 25 }],
     });
     cp.connect({
       pipeId: IDS.J1,

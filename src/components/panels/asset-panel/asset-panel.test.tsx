@@ -102,23 +102,23 @@ describe("AssetPanel", () => {
           .aCustomerPoint(IDS.CP1, {
             label: "CP1",
             coordinates: [1, 2],
-            demands: [{ baseDemand: 25 }],
             connection: {
               pipeId: IDS.P1,
               junctionId: IDS.J1,
               snapPoint: [1, 2],
             },
           })
+          .aCustomerPointDemand(IDS.CP1, [{ baseDemand: 25 }])
           .aCustomerPoint(IDS.CP2, {
             label: "CP2",
             coordinates: [3, 4],
-            demands: [{ baseDemand: 30 }],
             connection: {
               pipeId: IDS.P1,
               junctionId: IDS.J1,
               snapPoint: [3, 4],
             },
           })
+          .aCustomerPointDemand(IDS.CP2, [{ baseDemand: 30 }])
           .build();
 
         const store = setInitialState({
@@ -153,23 +153,23 @@ describe("AssetPanel", () => {
           .aCustomerPoint(IDS.CP1, {
             label: "CP1",
             coordinates: [1, 2],
-            demands: [{ baseDemand: 25 }],
             connection: {
               pipeId: IDS.P1,
               junctionId: IDS.J1,
               snapPoint: [1, 2],
             },
           })
+          .aCustomerPointDemand(IDS.CP1, [{ baseDemand: 25 }])
           .aCustomerPoint(IDS.CP2, {
             label: "CP2",
             coordinates: [3, 4],
-            demands: [{ baseDemand: 30 }],
             connection: {
               pipeId: IDS.P1,
               junctionId: IDS.J1,
               snapPoint: [3, 4],
             },
           })
+          .aCustomerPointDemand(IDS.CP2, [{ baseDemand: 30 }])
           .build();
 
         const store = setInitialState({
@@ -235,13 +235,15 @@ describe("AssetPanel", () => {
           .aCustomerPoint(IDS.CP1, {
             label: "CP1",
             coordinates: [1, 2],
-            demands: [{ baseDemand: 25, patternId: IDS.PAT1 }],
             connection: {
               pipeId: IDS.P1,
               junctionId: IDS.J1,
               snapPoint: [1, 2],
             },
           })
+          .aCustomerPointDemand(IDS.CP1, [
+            { baseDemand: 25, patternId: IDS.PAT1 },
+          ])
           .build();
 
         const store = setInitialState({
@@ -267,13 +269,13 @@ describe("AssetPanel", () => {
           .aCustomerPoint(IDS.CP1, {
             label: "CP1",
             coordinates: [1, 2],
-            demands: [{ baseDemand: 25 }],
             connection: {
               pipeId: IDS.P1,
               junctionId: IDS.J1,
               snapPoint: [1, 2],
             },
           })
+          .aCustomerPointDemand(IDS.CP1, [{ baseDemand: 25 }])
           .build();
 
         const store = setInitialState({
@@ -678,23 +680,23 @@ describe("AssetPanel", () => {
         .aCustomerPoint(IDS.CP1, {
           label: "CP1",
           coordinates: [1, 2],
-          demands: [{ baseDemand: 25 }],
           connection: {
             pipeId: IDS.P1,
             junctionId: IDS.J1,
             snapPoint: [1, 2],
           },
         })
+        .aCustomerPointDemand(IDS.CP1, [{ baseDemand: 25 }])
         .aCustomerPoint(IDS.CP2, {
           label: "CP2",
           coordinates: [3, 4],
-          demands: [{ baseDemand: 30 }],
           connection: {
             pipeId: IDS.P1,
             junctionId: IDS.J1,
             snapPoint: [3, 4],
           },
         })
+        .aCustomerPointDemand(IDS.CP2, [{ baseDemand: 30 }])
         .build();
 
       const store = setInitialState({
@@ -732,23 +734,23 @@ describe("AssetPanel", () => {
         .aCustomerPoint(IDS.CP1, {
           label: "CP1",
           coordinates: [1, 2],
-          demands: [{ baseDemand: 25 }],
           connection: {
             pipeId: IDS.P1,
             junctionId: IDS.J1,
             snapPoint: [1, 2],
           },
         })
+        .aCustomerPointDemand(IDS.CP1, [{ baseDemand: 25 }])
         .aCustomerPoint(IDS.CP2, {
           label: "CP2",
           coordinates: [3, 4],
-          demands: [{ baseDemand: 30 }],
           connection: {
             pipeId: IDS.P1,
             junctionId: IDS.J1,
             snapPoint: [3, 4],
           },
         })
+        .aCustomerPointDemand(IDS.CP2, [{ baseDemand: 30 }])
         .build();
 
       const store = setInitialState({
@@ -810,13 +812,15 @@ describe("AssetPanel", () => {
         .aCustomerPoint(IDS.CP1, {
           label: "CP1",
           coordinates: [1, 2],
-          demands: [{ baseDemand: 25, patternId: IDS.PAT1 }],
           connection: {
             pipeId: IDS.P1,
             junctionId: IDS.J1,
             snapPoint: [1, 2],
           },
         })
+        .aCustomerPointDemand(IDS.CP1, [
+          { baseDemand: 25, patternId: IDS.PAT1 },
+        ])
         .build();
 
       const store = setInitialState({
@@ -841,13 +845,13 @@ describe("AssetPanel", () => {
         .aCustomerPoint(IDS.CP1, {
           label: "CP1",
           coordinates: [1, 2],
-          demands: [{ baseDemand: 25 }],
           connection: {
             pipeId: IDS.P1,
             junctionId: IDS.J1,
             snapPoint: [1, 2],
           },
         })
+        .aCustomerPointDemand(IDS.CP1, [{ baseDemand: 25 }])
         .build();
 
       const store = setInitialState({

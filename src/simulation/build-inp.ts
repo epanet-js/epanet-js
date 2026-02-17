@@ -27,6 +27,7 @@ import {
   AssignedDemands,
   Pattern,
   Patterns,
+  getCustomerPointDemands,
   getJunctionDemands,
 } from "src/hydraulic-model";
 
@@ -537,7 +538,7 @@ const appendJunction = (
 
     const demandsByPattern = new Map<number | undefined, number>();
     for (const cp of customerPoints) {
-      for (const demand of cp.demands) {
+      for (const demand of getCustomerPointDemands(demandAssignments, cp.id)) {
         if (demand.baseDemand === 0) continue;
         const currentTotal = demandsByPattern.get(demand.patternId) ?? 0;
         demandsByPattern.set(
@@ -893,7 +894,11 @@ const appendCustomerPoint = (
     );
   }
 
-  for (const demand of customerPoint.demands) {
+  const demands = getCustomerPointDemands(
+    hydraulicModel.demands.assignments,
+    customerPoint.id,
+  );
+  for (const demand of demands) {
     const mappedPatternId = demand.patternId
       ? idMap.patternId(demand.patternId)
       : undefined;

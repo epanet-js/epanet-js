@@ -482,9 +482,9 @@ describe("build inp", () => {
           ],
         })
         .aCustomerPoint(IDS.CP1, {
-          demands: [{ baseDemand: 25 }],
           connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
         })
+        .aCustomerPointDemand(IDS.CP1, [{ baseDemand: 25 }])
         .build();
 
       const inp = buildInp(hydraulicModel, {
@@ -519,17 +519,23 @@ describe("build inp", () => {
           ],
         })
         .aCustomerPoint(IDS.CP1, {
-          demands: [{ baseDemand: 10, patternId: IDS.PAT1 }],
           connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
         })
+        .aCustomerPointDemand(IDS.CP1, [
+          { baseDemand: 10, patternId: IDS.PAT1 },
+        ])
         .aCustomerPoint(IDS.CP2, {
-          demands: [{ baseDemand: 15, patternId: IDS.PAT1 }],
           connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
         })
+        .aCustomerPointDemand(IDS.CP2, [
+          { baseDemand: 15, patternId: IDS.PAT1 },
+        ])
         .aCustomerPoint(IDS.CP3, {
-          demands: [{ baseDemand: 20, patternId: IDS.PAT2 }],
           connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
         })
+        .aCustomerPointDemand(IDS.CP3, [
+          { baseDemand: 20, patternId: IDS.PAT2 },
+        ])
         .aDemandPattern(IDS.PAT1, "residential", [1, 1.2, 0.8])
         .aDemandPattern(IDS.PAT2, "commercial", [0.5, 1.5, 1.0])
         .build();
@@ -564,9 +570,11 @@ describe("build inp", () => {
           ],
         })
         .aCustomerPoint(IDS.CP1, {
-          demands: [{ baseDemand: 25, patternId: IDS.PAT1 }],
           connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
         })
+        .aCustomerPointDemand(IDS.CP1, [
+          { baseDemand: 25, patternId: IDS.PAT1 },
+        ])
         .aDemandPattern(IDS.PAT1, "residential", [1, 1.2, 0.8])
         .build();
 
@@ -595,13 +603,13 @@ describe("build inp", () => {
           ],
         })
         .aCustomerPoint(IDS.CP1, {
-          demands: [{ baseDemand: 25 }],
           connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
         })
+        .aCustomerPointDemand(IDS.CP1, [{ baseDemand: 25 }])
         .aCustomerPoint(IDS.CP2, {
-          demands: [{ baseDemand: 30 }],
           connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
         })
+        .aCustomerPointDemand(IDS.CP2, [{ baseDemand: 30 }])
         .build();
 
       const inp = buildInp(hydraulicModel, {
@@ -628,9 +636,9 @@ describe("build inp", () => {
           ],
         })
         .aCustomerPoint(IDS.CP1, {
-          demands: [{ baseDemand: 25 }],
           connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
         })
+        .aCustomerPointDemand(IDS.CP1, [{ baseDemand: 25 }])
         .build();
 
       const inp = buildInp(hydraulicModel, {
@@ -656,9 +664,9 @@ describe("build inp", () => {
           ],
         })
         .aCustomerPoint(IDS.CP1, {
-          demands: [{ baseDemand: 0 }],
           connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
         })
+        .aCustomerPointDemand(IDS.CP1, [{ baseDemand: 0 }])
         .build();
 
       const inp = buildInp(hydraulicModel, {
@@ -685,10 +693,12 @@ describe("build inp", () => {
           ],
         })
         .aCustomerPoint(IDS.CP1, {
-          demands: [{ baseDemand: 25, patternId: IDS.PAT1 }],
           coordinates: [1, 1],
           connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
         })
+        .aCustomerPointDemand(IDS.CP1, [
+          { baseDemand: 25, patternId: IDS.PAT1 },
+        ])
         .aDemandPattern(IDS.PAT1, "daily_pattern", [0.8, 1.0, 1.2, 1.0])
         .aDemandPattern(IDS.PAT2, "unused_pattern", [0.5, 1.5, 1.0])
         .build();
@@ -716,10 +726,12 @@ describe("build inp", () => {
           ],
         })
         .aCustomerPoint(IDS.CP1, {
-          demands: [{ baseDemand: 25, patternId: IDS.PAT1 }],
           coordinates: [1, 1],
           connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
         })
+        .aCustomerPointDemand(IDS.CP1, [
+          { baseDemand: 25, patternId: IDS.PAT1 },
+        ])
         .aDemandPattern(IDS.PAT1, "daily_pattern", [0.8, 1.0, 1.2, 1.0])
         .aDemandPattern(IDS.PAT2, "unused_pattern", [0.5, 1.5, 1.0])
         .build();
@@ -748,13 +760,13 @@ describe("build inp", () => {
           endNodeId: IDS.J2,
         })
         .aCustomerPoint(IDS.CP1, {
-          demands: [
-            { baseDemand: 10, patternId: IDS.PAT1 },
-            { baseDemand: 5, patternId: IDS.PAT2 },
-          ],
           coordinates: [1.5, 2.5],
           connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
         })
+        .aCustomerPointDemand(IDS.CP1, [
+          { baseDemand: 10, patternId: IDS.PAT1 },
+          { baseDemand: 5, patternId: IDS.PAT2 },
+        ])
         .aDemandPattern(IDS.PAT1, "pat1", [1, 2])
         .aDemandPattern(IDS.PAT2, "pat2", [0.5, 1.5])
         .build();

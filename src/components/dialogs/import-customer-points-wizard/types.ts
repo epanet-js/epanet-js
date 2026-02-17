@@ -2,7 +2,9 @@ import { Feature } from "geojson";
 import {
   AllocationRule,
   CustomerPoint,
+  CustomerPointId,
 } from "src/hydraulic-model/customer-points";
+import { Demand } from "src/hydraulic-model/demands";
 import { CustomerPointsParserIssues } from "src/import/customer-points/parse-customer-points-issues";
 import { AllocationResult } from "src/hydraulic-model/model-operations/allocate-customer-points";
 import { Unit } from "src/quantity";
@@ -11,6 +13,7 @@ export type WizardStep = 1 | 2 | 3 | 4;
 
 export type ParsedDataSummary = {
   validCustomerPoints: CustomerPoint[];
+  customerPointDemands: Map<CustomerPointId, Demand[]>;
   issues: CustomerPointsParserIssues | null;
   totalCount: number;
   demandImportUnit: Unit;

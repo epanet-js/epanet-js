@@ -704,7 +704,6 @@ const addCustomerPoint = (
 
   const customerPoint = CustomerPoint.build(id, customerPointData.coordinates, {
     label: customerPointData.label,
-    demands,
   });
 
   if (
@@ -725,6 +724,7 @@ const addCustomerPoint = (
   }
 
   hydraulicModel.customerPoints.set(id, customerPoint);
+  hydraulicModel.demands.assignments.customerPoints.set(id, demands);
 };
 
 const getLinkProperties = (

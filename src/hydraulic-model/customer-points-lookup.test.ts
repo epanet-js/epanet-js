@@ -9,13 +9,11 @@ describe("CustomerPointsLookup", () => {
 
     const cp1 = CustomerPoint.build(IDS.CP1, [0, 0], {
       label: "cp1",
-      demands: [{ baseDemand: 10 }],
     });
     cp1.connect({ pipeId: IDS.P1, snapPoint: [1, 1], junctionId: IDS.J1 });
 
     const cp2 = CustomerPoint.build(IDS.CP2, [0, 0], {
       label: "cp2",
-      demands: [{ baseDemand: 20 }],
     });
     cp2.connect({ pipeId: IDS.P1, snapPoint: [2, 2], junctionId: IDS.J2 });
 
@@ -33,13 +31,11 @@ describe("CustomerPointsLookup", () => {
 
     const cp1 = CustomerPoint.build(IDS.CP1, [0, 0], {
       label: "cp1",
-      demands: [{ baseDemand: 10 }],
     });
     cp1.connect({ pipeId: IDS.P1, snapPoint: [1, 1], junctionId: IDS.J1 });
 
     const cp2 = CustomerPoint.build(IDS.CP2, [0, 0], {
       label: "cp2",
-      demands: [{ baseDemand: 20 }],
     });
     cp2.connect({ pipeId: IDS.P1, snapPoint: [2, 2], junctionId: IDS.J1 });
 
@@ -58,13 +54,11 @@ describe("CustomerPointsLookup", () => {
 
     const cp1 = CustomerPoint.build(IDS.CP1, [0, 0], {
       label: "cp1",
-      demands: [{ baseDemand: 10 }],
     });
     cp1.connect({ pipeId: IDS.P1, snapPoint: [1, 1], junctionId: IDS.J1 });
 
     const cp2 = CustomerPoint.build(IDS.CP2, [0, 0], {
       label: "cp2",
-      demands: [{ baseDemand: 20 }],
     });
     cp2.connect({ pipeId: IDS.P2, snapPoint: [2, 2], junctionId: IDS.J2 });
 
@@ -81,13 +75,11 @@ describe("CustomerPointsLookup", () => {
 
     const cp1 = CustomerPoint.build(IDS.CP1, [0, 0], {
       label: "cp1",
-      demands: [{ baseDemand: 10 }],
     });
     cp1.connect({ pipeId: IDS.P1, snapPoint: [1, 1], junctionId: IDS.J1 });
 
     const cp2 = CustomerPoint.build(IDS.CP2, [0, 0], {
       label: "cp2",
-      demands: [{ baseDemand: 20 }],
     });
     cp2.connect({ pipeId: IDS.P1, snapPoint: [2, 2], junctionId: IDS.J1 });
 
@@ -104,7 +96,6 @@ describe("CustomerPointsLookup", () => {
 
     const cp1 = CustomerPoint.build(IDS.CP1, [0, 0], {
       label: "cp1",
-      demands: [{ baseDemand: 10 }],
     });
 
     lookup.addConnection(cp1);
@@ -119,7 +110,6 @@ describe("CustomerPointsLookup", () => {
 
     const cp1 = CustomerPoint.build(IDS.CP1, [0, 0], {
       label: "cp1",
-      demands: [{ baseDemand: 10 }],
     });
     cp1.connect({ pipeId: IDS.P1, snapPoint: [1, 1], junctionId: IDS.J1 });
 
@@ -138,7 +128,6 @@ describe("CustomerPointsLookup", () => {
 
     const cp1 = CustomerPoint.build(IDS.CP1, [0, 0], {
       label: "cp1",
-      demands: [{ baseDemand: 10 }],
     });
     cp1.connect({ pipeId: IDS.P1, snapPoint: [1, 1], junctionId: IDS.J1 });
 

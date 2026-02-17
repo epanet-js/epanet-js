@@ -340,12 +340,10 @@ describe("prepareWorkerData", () => {
           .aJunction(IDS.J1, { coordinates: [0, 0] })
           .aCustomerPoint(IDS.CP1, {
             coordinates: [5, 10],
-            demands: [{ baseDemand: 1.5 }],
           })
           .aJunction(IDS.J2, { coordinates: [10, 0] })
           .aCustomerPoint(IDS.CP2, {
             coordinates: [15, 20],
-            demands: [{ baseDemand: 2.0 }],
           })
           .aPipe(IDS.P1, {
             startNodeId: IDS.J1,
@@ -403,22 +401,18 @@ describe("prepareWorkerData", () => {
           .aJunction(IDS.J1, { coordinates: [0, 0] })
           .aCustomerPoint(IDS.CP1, {
             coordinates: [5, 10],
-            demands: [{ baseDemand: 1.5 }],
           })
           .aJunction(IDS.J2, { coordinates: [10, 0] })
           .aCustomerPoint(IDS.CP2, {
             coordinates: [15, 20],
-            demands: [{ baseDemand: 2.0 }],
           })
           .aJunction(IDS.J3, { coordinates: [20, 0] })
           .aCustomerPoint(IDS.CP3, {
             coordinates: [25, 30],
-            demands: [{ baseDemand: 3.0 }],
           })
           .aJunction(IDS.J4, { coordinates: [30, 0] })
           .aCustomerPoint(IDS.CP4, {
             coordinates: [35, 40],
-            demands: [{ baseDemand: 4.0 }],
           })
           .aPipe(IDS.P1, {
             startNodeId: IDS.J1,

@@ -571,9 +571,11 @@ describe("computeMultiAssetData", () => {
         .aJunction(IDS.J2)
         .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
         .aCustomerPoint(IDS.CP1, {
-          demands: [{ baseDemand: 100, patternId: IDS.PAT1 }],
           connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
         })
+        .aCustomerPointDemand(IDS.CP1, [
+          { baseDemand: 100, patternId: IDS.PAT1 },
+        ])
         .build();
 
       const junctions = Array.from(hydraulicModel.assets.values()).filter(
@@ -603,9 +605,11 @@ describe("computeMultiAssetData", () => {
         .aJunction(IDS.J2)
         .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
         .aCustomerPoint(IDS.CP1, {
-          demands: [{ baseDemand: 100, patternId: IDS.PAT1 }],
           connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
         })
+        .aCustomerPointDemand(IDS.CP1, [
+          { baseDemand: 100, patternId: IDS.PAT1 },
+        ])
         .build();
 
       const junctions = Array.from(hydraulicModel.assets.values()).filter(
@@ -634,12 +638,12 @@ describe("computeMultiAssetData", () => {
         .aJunction(IDS.J2)
         .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
         .aCustomerPoint(IDS.CP1, {
-          demands: [
-            { baseDemand: 10 }, // constant -> 10
-            { baseDemand: 20, patternId: IDS.PAT1 }, // 20 * 2.0 = 40
-          ],
           connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
         })
+        .aCustomerPointDemand(IDS.CP1, [
+          { baseDemand: 10 }, // constant -> 10
+          { baseDemand: 20, patternId: IDS.PAT1 }, // 20 * 2.0 = 40
+        ])
         .build();
 
       const junctions = Array.from(hydraulicModel.assets.values()).filter(
@@ -668,13 +672,15 @@ describe("computeMultiAssetData", () => {
         .aJunction(IDS.J2)
         .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
         .aCustomerPoint(IDS.CP1, {
-          demands: [{ baseDemand: 30, patternId: IDS.PAT1 }],
           connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
         })
+        .aCustomerPointDemand(IDS.CP1, [
+          { baseDemand: 30, patternId: IDS.PAT1 },
+        ])
         .aCustomerPoint(IDS.CP2, {
-          demands: [{ baseDemand: 20 }], // constant
           connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
         })
+        .aCustomerPointDemand(IDS.CP2, [{ baseDemand: 20 }])
         .build();
 
       const junctions = Array.from(hydraulicModel.assets.values()).filter(
@@ -703,9 +709,11 @@ describe("computeMultiAssetData", () => {
         .aJunction(IDS.J2)
         .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
         .aCustomerPoint(IDS.CP1, {
-          demands: [{ baseDemand: 80, patternId: IDS.PAT1 }],
           connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
         })
+        .aCustomerPointDemand(IDS.CP1, [
+          { baseDemand: 80, patternId: IDS.PAT1 },
+        ])
         .build();
 
       const pipes = Array.from(hydraulicModel.assets.values()).filter(
@@ -728,9 +736,9 @@ describe("computeMultiAssetData", () => {
         .aJunction(IDS.J2)
         .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
         .aCustomerPoint(IDS.CP1, {
-          demands: [{ baseDemand: 50, patternId: 404 }],
           connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
         })
+        .aCustomerPointDemand(IDS.CP1, [{ baseDemand: 50, patternId: 404 }])
         .build();
 
       const junctions = Array.from(hydraulicModel.assets.values()).filter(
@@ -757,9 +765,9 @@ describe("computeMultiAssetData", () => {
         .aJunction(IDS.J2)
         .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
         .aCustomerPoint(IDS.CP1, {
-          demands: [{ baseDemand: 25 }],
           connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
         })
+        .aCustomerPointDemand(IDS.CP1, [{ baseDemand: 25 }])
         .build();
 
       const junctions = Array.from(hydraulicModel.assets.values()).filter(

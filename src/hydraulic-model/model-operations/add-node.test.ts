@@ -230,7 +230,6 @@ describe("addNode", () => {
 
       const customerPoint = buildCustomerPoint(IDS.CP1, {
         coordinates: [3, 1],
-        demands: [{ baseDemand: 75 }],
       });
 
       customerPoint.connect({
@@ -257,7 +256,6 @@ describe("addNode", () => {
 
       expect(reconnectedCP.connection?.pipeId).toBe(pipe1.id);
       expect(reconnectedCP.connection?.junctionId).toBe(newJunction.id);
-      expect(reconnectedCP.baseDemand).toBe(75);
     });
 
     it("inherits isActive from pipe being split when pipe is active", () => {

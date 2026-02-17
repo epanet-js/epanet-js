@@ -18,7 +18,12 @@ import clsx from "clsx";
 import * as P from "@radix-ui/react-popover";
 import { StyledPopoverArrow, StyledPopoverContent } from "../../elements";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
-import { Patterns, calculateAverageDemand } from "src/hydraulic-model";
+import {
+  Patterns,
+  calculateAverageDemand,
+  getCustomerPointDemands,
+  AssignedDemands,
+} from "src/hydraulic-model";
 import { useSetAtom, useAtom } from "jotai";
 import { ephemeralStateAtom } from "src/state/jotai";
 import { assetPanelFooterAtom } from "src/state/quick-graph";
@@ -416,12 +421,14 @@ export const ConnectedCustomersRow = ({
   customerPoints,
   aggregateUnit,
   customerUnit,
+  assignedDemands,
   patterns,
 }: {
   customerCount: number;
   customerPoints: CustomerPoint[];
   aggregateUnit: Unit;
   customerUnit: Unit;
+  assignedDemands: AssignedDemands;
   patterns: Patterns;
 }) => {
   const translate = useTranslate();
@@ -473,6 +480,7 @@ export const ConnectedCustomersRow = ({
               customerPoints={customerPoints}
               aggregateUnit={aggregateUnit}
               customerUnit={customerUnit}
+              assignedDemands={assignedDemands}
               patterns={patterns}
               onClose={handleClose}
             />
@@ -489,12 +497,14 @@ const CustomerPointsPopover = ({
   customerPoints,
   aggregateUnit,
   customerUnit,
+  assignedDemands,
   patterns,
   onClose,
 }: {
   customerPoints: CustomerPoint[];
   aggregateUnit: Unit;
   customerUnit: Unit;
+  assignedDemands: AssignedDemands;
   patterns: Patterns;
   onClose: () => void;
 }) => {
@@ -565,7 +575,7 @@ const CustomerPointsPopover = ({
           {rowVirtualizer.getVirtualItems().map((virtualRow) => {
             const customerPoint = customerPoints[virtualRow.index];
             const demand = calculateAverageDemand(
-              customerPoint.demands,
+              getCustomerPointDemands(assignedDemands, customerPoint.id),
               patterns,
             );
 

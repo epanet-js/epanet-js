@@ -4,10 +4,12 @@ import {
 } from "src/hydraulic-model/hydraulic-model";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import { CustomerPointsLookup } from "src/hydraulic-model/customer-points-lookup";
+import { Demand } from "src/hydraulic-model/demands";
 
 type AddCustomerPointsOptions = {
   preserveJunctionDemands?: boolean;
   overrideExisting?: boolean;
+  customerPointDemands?: Map<number, Demand[]>;
 };
 
 export const addCustomerPoints = (
@@ -47,29 +49,43 @@ export const addCustomerPoints = (
     updatedAssets,
   );
 
-  const updatedJunctionAssignments =
+  const updatedJunctionDemands =
     junctionsToClearDemands.size > 0
       ? new Map(hydraulicModel.demands.assignments.junctions)
       : hydraulicModel.demands.assignments.junctions;
 
   for (const junctionId of junctionsToClearDemands) {
-    updatedJunctionAssignments.delete(junctionId);
+    updatedJunctionDemands.delete(junctionId);
   }
+
+  const updatedCustomerDemands = overrideExisting
+    ? new Map<number, Demand[]>()
+    : new Map(hydraulicModel.demands.assignments.customerPoints);
+
+  if (options.customerPointDemands) {
+    for (const [cpId, demands] of options.customerPointDemands) {
+      updatedCustomerDemands.set(cpId, demands);
+    }
+  }
+
+  const demandsChanged =
+    junctionsToClearDemands.size > 0 ||
+    (options.customerPointDemands && options.customerPointDemands.size > 0) ||
+    overrideExisting;
 
   return {
     ...updatedHydraulicModel,
     version: hydraulicModel.version,
     customerPoints: updatedCustomerPoints,
     customerPointsLookup: updatedLookup,
-    demands:
-      junctionsToClearDemands.size > 0
-        ? {
-            ...hydraulicModel.demands,
-            assignments: {
-              ...hydraulicModel.demands.assignments,
-              junctions: updatedJunctionAssignments,
-            },
-          }
-        : hydraulicModel.demands,
+    demands: demandsChanged
+      ? {
+          ...hydraulicModel.demands,
+          assignments: {
+            junctions: updatedJunctionDemands,
+            customerPoints: updatedCustomerDemands,
+          },
+        }
+      : hydraulicModel.demands,
   };
 };

@@ -17,10 +17,10 @@ describe("deleteAssets", () => {
         ],
       })
       .aCustomerPoint(IDS.CP1, {
-        demands: [{ baseDemand: 25 }],
         coordinates: [2, 1],
         connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
       })
+      .aCustomerPointDemand(IDS.CP1, [{ baseDemand: 25 }])
       .build();
 
     const { deleteAssets: deletedAssetIds, putCustomerPoints } = deleteAssets(
@@ -37,7 +37,6 @@ describe("deleteAssets", () => {
 
     const disconnectedCP = putCustomerPoints![0];
     expect(disconnectedCP.id).toBe(IDS.CP1);
-    expect(disconnectedCP.baseDemand).toBe(25);
     expect(disconnectedCP.coordinates).toEqual([2, 1]);
     expect(disconnectedCP.connection).toBeNull();
   });
@@ -56,10 +55,10 @@ describe("deleteAssets", () => {
         ],
       })
       .aCustomerPoint(IDS.CP1, {
-        demands: [{ baseDemand: 25 }],
         coordinates: [2, 1],
         connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
       })
+      .aCustomerPointDemand(IDS.CP1, [{ baseDemand: 25 }])
       .build();
 
     const { deleteAssets: deletedAssetIds, putCustomerPoints } = deleteAssets(
@@ -94,10 +93,10 @@ describe("deleteAssets", () => {
         ],
       })
       .aCustomerPoint(IDS.CP1, {
-        demands: [{ baseDemand: 25 }],
         coordinates: [2, 1],
         connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
       })
+      .aCustomerPointDemand(IDS.CP1, [{ baseDemand: 25 }])
       .build();
 
     const { deleteAssets: deletedAssetIds, putCustomerPoints } = deleteAssets(

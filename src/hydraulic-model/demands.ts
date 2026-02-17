@@ -61,12 +61,18 @@ export const calculateAverageDemand = (
 export const getTotalCustomerDemand = (
   junctionId: AssetId,
   customerPointsLookup: CustomerPointsLookup,
+  assignments: AssignedDemands,
   patterns: Patterns,
 ): number => {
   const connectedCustomerPoints =
     customerPointsLookup.getCustomerPoints(junctionId);
   return Array.from(connectedCustomerPoints).reduce(
-    (sum, cp) => sum + calculateAverageDemand(cp.demands, patterns),
+    (sum, cp) =>
+      sum +
+      calculateAverageDemand(
+        getCustomerPointDemands(assignments, cp.id),
+        patterns,
+      ),
     0,
   );
 };

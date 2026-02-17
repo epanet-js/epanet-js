@@ -3,6 +3,8 @@ import { Store } from "src/state/jotai";
 import { wizardStateAtom } from "../use-wizard-state";
 import { WizardState, ParsedDataSummary } from "../types";
 import { buildCustomerPoint } from "src/__helpers__/hydraulic-model-builder";
+import { Demand } from "src/hydraulic-model/demands";
+import { CustomerPointId } from "src/hydraulic-model/customer-points";
 
 export const setWizardState = (
   store: Store,
@@ -37,17 +39,20 @@ export const setWizardState = (
 
 export const createValidParsedDataSummary = (): ParsedDataSummary => {
   const IDS = { CP1: 1, CP2: 2 };
+  const customerPointDemands = new Map<CustomerPointId, Demand[]>([
+    [IDS.CP1, [{ baseDemand: 25.5 }]],
+    [IDS.CP2, [{ baseDemand: 50.0 }]],
+  ]);
   return {
     validCustomerPoints: [
       buildCustomerPoint(IDS.CP1, {
         coordinates: [0.001, 0.001],
-        demands: [{ baseDemand: 25.5 }],
       }),
       buildCustomerPoint(IDS.CP2, {
         coordinates: [0.002, 0.002],
-        demands: [{ baseDemand: 50.0 }],
       }),
     ],
+    customerPointDemands,
     issues: null,
     totalCount: 2,
     demandImportUnit: "l/d",
@@ -56,17 +61,20 @@ export const createValidParsedDataSummary = (): ParsedDataSummary => {
 
 export const createParsedDataSummaryWithIssues = (): ParsedDataSummary => {
   const IDS = { CP1: 1, CP2: 2 };
+  const customerPointDemands = new Map<CustomerPointId, Demand[]>([
+    [IDS.CP1, [{ baseDemand: 25.5 }]],
+    [IDS.CP2, [{ baseDemand: 50.0 }]],
+  ]);
   return {
     validCustomerPoints: [
       buildCustomerPoint(IDS.CP1, {
         coordinates: [0.001, 0.001],
-        demands: [{ baseDemand: 25.5 }],
       }),
       buildCustomerPoint(IDS.CP2, {
         coordinates: [0.002, 0.002],
-        demands: [{ baseDemand: 50.0 }],
       }),
     ],
+    customerPointDemands,
     issues: {
       skippedNonPointFeatures: [
         {
@@ -106,13 +114,16 @@ export const createParsedDataSummaryWithIssues = (): ParsedDataSummary => {
 export const createParsedDataSummaryWithInvalidDemands =
   (): ParsedDataSummary => {
     const IDS = { CP1: 1 };
+    const customerPointDemands = new Map<CustomerPointId, Demand[]>([
+      [IDS.CP1, [{ baseDemand: 25.5 }]],
+    ]);
     return {
       validCustomerPoints: [
         buildCustomerPoint(IDS.CP1, {
           coordinates: [0.001, 0.001],
-          demands: [{ baseDemand: 25.5 }],
         }),
       ],
+      customerPointDemands,
       issues: {
         skippedInvalidDemands: [
           {

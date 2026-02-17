@@ -29,14 +29,12 @@ describe("allocateCustomerPoints", () => {
         IDS.CP1,
         buildCustomerPoint(IDS.CP1, {
           coordinates: [-95.4084, 29.7019],
-          demands: [{ baseDemand: 50 }],
         }),
       ],
       [
         IDS.CP2,
         buildCustomerPoint(IDS.CP2, {
           coordinates: [-95.4082, 29.7018],
-          demands: [{ baseDemand: 30 }],
         }),
       ],
     ]);
@@ -385,7 +383,6 @@ describe("allocateCustomerPoints", () => {
 
     const originalCustomerPoint = buildCustomerPoint(IDS.CP1, {
       coordinates: [-95.4084, 29.7019],
-      demands: [{ baseDemand: 50 }],
     });
     const customerPoints: CustomerPoints = new Map([
       [IDS.CP1, originalCustomerPoint],
@@ -401,7 +398,6 @@ describe("allocateCustomerPoints", () => {
     });
 
     expect(originalCustomerPoint.connection).toBeNull();
-    expect(originalCustomerPoint.baseDemand).toBe(50);
   });
 
   it("excludes tanks and reservoirs from junction assignment", async () => {
@@ -497,7 +493,6 @@ describe("allocateCustomerPoints", () => {
 
     const originalCustomerPoint = buildCustomerPoint(IDS.CP1, {
       coordinates: [-95.4084, 29.7019],
-      demands: [{ baseDemand: 50 }],
     });
     const customerPoints: CustomerPoints = new Map([
       [IDS.CP1, originalCustomerPoint],
@@ -515,7 +510,6 @@ describe("allocateCustomerPoints", () => {
     const allocatedCP1 = result.allocatedCustomerPoints.get(IDS.CP1);
     expect(allocatedCP1).not.toBe(originalCustomerPoint);
     expect(allocatedCP1?.id).toBe(originalCustomerPoint.id);
-    expect(allocatedCP1?.baseDemand).toBe(originalCustomerPoint.baseDemand);
   });
 
   it("creates independent copies for disconnected customer points", async () => {
@@ -536,7 +530,6 @@ describe("allocateCustomerPoints", () => {
 
     const originalCustomerPoint = buildCustomerPoint(IDS.CP1, {
       coordinates: [-95.4084, 29.7019],
-      demands: [{ baseDemand: 50 }],
     });
     const customerPoints: CustomerPoints = new Map([
       [IDS.CP1, originalCustomerPoint],
@@ -557,7 +550,6 @@ describe("allocateCustomerPoints", () => {
     const disconnectedCP1 = result.disconnectedCustomerPoints.get(IDS.CP1);
     expect(disconnectedCP1).not.toBe(originalCustomerPoint);
     expect(disconnectedCP1?.id).toBe(originalCustomerPoint.id);
-    expect(disconnectedCP1?.baseDemand).toBe(originalCustomerPoint.baseDemand);
     expect(disconnectedCP1?.connection).toBeNull();
     expect(originalCustomerPoint.connection).toBeNull();
   });

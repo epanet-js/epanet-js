@@ -76,6 +76,7 @@ export const AllocationStep: React.FC<{
         {
           preserveJunctionDemands: keepDemands,
           overrideExisting: true,
+          customerPointDemands: parsedDataSummary?.customerPointDemands,
         },
       );
 
@@ -111,6 +112,7 @@ export const AllocationStep: React.FC<{
     allocationResult,
     data.modelMetadata,
     hydraulicModel,
+    parsedDataSummary?.customerPointDemands,
     keepDemands,
     onFinish,
     setProcessing,

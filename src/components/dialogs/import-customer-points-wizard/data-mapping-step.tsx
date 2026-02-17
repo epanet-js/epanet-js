@@ -12,8 +12,10 @@ import {
 } from "src/import/customer-points/parse-customer-points-issues";
 import {
   CustomerPoint,
+  CustomerPointId,
   MAX_CUSTOMER_POINT_LABEL_LENGTH,
 } from "src/hydraulic-model/customer-points";
+import { Demand } from "src/hydraulic-model/demands";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import {
   WizardState,
@@ -84,6 +86,7 @@ export const DataMappingStep: React.FC<{
         try {
           const issues = new CustomerPointsIssuesAccumulator();
           const validCustomerPoints: CustomerPoint[] = [];
+          const customerPointDemands = new Map<CustomerPointId, Demand[]>();
           let totalCount = 0;
 
           const demandImportUnit = modelMetadata.quantities.getUnit(
@@ -97,7 +100,7 @@ export const DataMappingStep: React.FC<{
             features: inputData.features,
           });
 
-          for (const customerPoint of parseCustomerPoints(
+          for (const parsed of parseCustomerPoints(
             fileContent,
             issues,
             demandImportUnit,
@@ -108,13 +111,15 @@ export const DataMappingStep: React.FC<{
             patternId,
           )) {
             totalCount++;
-            if (customerPoint) {
-              validCustomerPoints.push(customerPoint);
+            if (parsed) {
+              validCustomerPoints.push(parsed.customerPoint);
+              customerPointDemands.set(parsed.customerPoint.id, parsed.demands);
             }
           }
 
           const parsedDataSummary: ParsedDataSummary = {
             validCustomerPoints,
+            customerPointDemands,
             issues: issues.buildResult(),
             totalCount,
             demandImportUnit,
@@ -460,7 +465,7 @@ type CustomerPointsTableProps = {
 const CustomerPointsTable: React.FC<CustomerPointsTableProps> = ({
   customerPoints,
   maxPreviewRows,
-  parsedDataSummary: _,
+  parsedDataSummary,
   wizardState,
 }) => {
   const translate = useTranslate();
@@ -535,7 +540,13 @@ const CustomerPointsTable: React.FC<CustomerPointsTableProps> = ({
                 <td className="px-3 py-2 border-b">
                   {localizeDecimal(
                     convertTo(
-                      { value: point.baseDemand, unit: customerDemandUnit },
+                      {
+                        value:
+                          parsedDataSummary.customerPointDemands.get(
+                            point.id,
+                          )?.[0]?.baseDemand ?? 0,
+                        unit: customerDemandUnit,
+                      },
                       customerDemandPerDayUnit,
                     ),
                   )}

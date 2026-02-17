@@ -16,9 +16,11 @@ import {
 } from "src/hydraulic-model/customer-points";
 import { Valve } from "src/hydraulic-model/asset-types";
 import {
+  AssignedDemands,
   Demand,
   Patterns,
   calculateAverageDemand,
+  getCustomerPointDemands,
   getJunctionDemands,
 } from "src/hydraulic-model";
 import { Quantities } from "src/model-metadata/quantities-spec";
@@ -408,15 +410,30 @@ const JunctionEditor = ({
     return customerPoints.reduce(
       (sum, cp) =>
         sum +
-        calculateAverageDemand(cp.demands, hydraulicModel.demands.patterns),
+        calculateAverageDemand(
+          getCustomerPointDemands(hydraulicModel.demands.assignments, cp.id),
+          hydraulicModel.demands.patterns,
+        ),
       0,
     );
-  }, [customerPoints, hydraulicModel.demands.patterns]);
+  }, [
+    customerPoints,
+    hydraulicModel.demands.assignments,
+    hydraulicModel.demands.patterns,
+  ]);
 
   const customerDemandPattern = useMemo(
     () =>
-      getCustomerPointsPattern(customerPoints, hydraulicModel.demands.patterns),
-    [customerPoints, hydraulicModel.demands.patterns],
+      getCustomerPointsPattern(
+        customerPoints,
+        hydraulicModel.demands.assignments,
+        hydraulicModel.demands.patterns,
+      ),
+    [
+      customerPoints,
+      hydraulicModel.demands.assignments,
+      hydraulicModel.demands.patterns,
+    ],
   );
 
   return (
@@ -484,6 +501,7 @@ const JunctionEditor = ({
               customerPoints={customerPoints}
               aggregateUnit={quantitiesMetadata.getUnit("customerDemand")}
               customerUnit={quantitiesMetadata.getUnit("customerDemandPerDay")}
+              assignedDemands={hydraulicModel.demands.assignments}
               patterns={hydraulicModel.demands.patterns}
             />
           </>
@@ -570,15 +588,30 @@ const PipeEditor = ({
     return customerPoints.reduce(
       (sum, cp) =>
         sum +
-        calculateAverageDemand(cp.demands, hydraulicModel.demands.patterns),
+        calculateAverageDemand(
+          getCustomerPointDemands(hydraulicModel.demands.assignments, cp.id),
+          hydraulicModel.demands.patterns,
+        ),
       0,
     );
-  }, [customerPoints, hydraulicModel.demands.patterns]);
+  }, [
+    customerPoints,
+    hydraulicModel.demands.assignments,
+    hydraulicModel.demands.patterns,
+  ]);
 
   const customerDemandPattern = useMemo(
     () =>
-      getCustomerPointsPattern(customerPoints, hydraulicModel.demands.patterns),
-    [customerPoints, hydraulicModel.demands.patterns],
+      getCustomerPointsPattern(
+        customerPoints,
+        hydraulicModel.demands.assignments,
+        hydraulicModel.demands.patterns,
+      ),
+    [
+      customerPoints,
+      hydraulicModel.demands.assignments,
+      hydraulicModel.demands.patterns,
+    ],
   );
 
   const pipeStatusOptions = useMemo(() => {
@@ -694,6 +727,7 @@ const PipeEditor = ({
             customerPoints={customerPoints}
             aggregateUnit={quantitiesMetadata.getUnit("customerDemand")}
             customerUnit={quantitiesMetadata.getUnit("customerDemandPerDay")}
+            assignedDemands={hydraulicModel.demands.assignments}
             patterns={hydraulicModel.demands.patterns}
           />
         </Section>
@@ -1249,14 +1283,20 @@ const PumpEditor = ({
 
 function getCustomerPointsPattern(
   customerPoints: CustomerPoint[],
+  assignments: AssignedDemands,
   patterns: Patterns,
 ) {
   if (!customerPoints.length) return;
   const firstCustomerPointWithDemand = customerPoints.find(
-    (customerPoint) => customerPoint.demands?.[0],
+    (customerPoint) =>
+      getCustomerPointDemands(assignments, customerPoint.id).length > 0,
   );
   if (!firstCustomerPointWithDemand) return;
-  const patternId = firstCustomerPointWithDemand.demands[0].patternId;
+  const demands = getCustomerPointDemands(
+    assignments,
+    firstCustomerPointWithDemand.id,
+  );
+  const patternId = demands[0]?.patternId;
   if (!patternId) return;
   const pattern = patterns.get(patternId);
   if (!pattern) return;

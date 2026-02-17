@@ -712,7 +712,6 @@ describe("replaceLink", () => {
 
       const customerPoint = CustomerPoint.build(IDS.CP1, [5, 1], {
         label: "CP1",
-        demands: [{ baseDemand: 10 }],
       });
       customerPoint.connect({
         pipeId: IDS.P1,

@@ -492,9 +492,8 @@ describe("CurvesAndPatternsDialog", () => {
       const store = setInitialState({
         hydraulicModel: HydraulicModelBuilder.with()
           .aDemandPattern(100, "UsedPattern", [1.0, 0.8])
-          .aCustomerPoint(1, {
-            demands: [{ baseDemand: 5, patternId: 100 }],
-          })
+          .aCustomerPoint(1)
+          .aCustomerPointDemand(1, [{ baseDemand: 5, patternId: 100 }])
           .build(),
       });
 

@@ -3,6 +3,7 @@ import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { Store, stagingModelAtom } from "src/state/jotai";
 import { Junction } from "src/hydraulic-model/asset-types/junction";
 import {
+  getCustomerPointDemands,
   getJunctionDemands,
   getTotalCustomerDemand,
 } from "src/hydraulic-model/demands";
@@ -97,11 +98,19 @@ describe.skip("importCustomerPoints", () => {
 
     expect(customerPoint1).toBeDefined();
     expect(customerPoint1?.coordinates).toEqual([0.0003, 0.0003]);
-    expect(customerPoint1?.baseDemand).toBeCloseTo(0.000295, 6);
+    const cp1Demands = getCustomerPointDemands(
+      hydraulicModel.demands.assignments,
+      IDS.CP1,
+    );
+    expect(cp1Demands[0]?.baseDemand).toBeCloseTo(0.000295, 6);
 
     expect(customerPoint2).toBeDefined();
     expect(customerPoint2?.coordinates).toEqual([0.0007, 0.0007]);
-    expect(customerPoint2?.baseDemand).toBeCloseTo(0.00174, 5);
+    const cp2Demands = getCustomerPointDemands(
+      hydraulicModel.demands.assignments,
+      IDS.CP2,
+    );
+    expect(cp2Demands[0]?.baseDemand).toBeCloseTo(0.00174, 5);
   });
 
   it("assigns IDs starting from 1 for empty model", async () => {
@@ -263,6 +272,7 @@ describe.skip("importCustomerPoints", () => {
       getTotalCustomerDemand(
         junction.id,
         hydraulicModel.customerPointsLookup,
+        hydraulicModel.demands.assignments,
         hydraulicModel.demands.patterns,
       ),
     ).toBeCloseTo(0.000231, 6);
@@ -344,6 +354,7 @@ describe.skip("importCustomerPoints", () => {
       getTotalCustomerDemand(
         junction.id,
         hydraulicModel.customerPointsLookup,
+        hydraulicModel.demands.assignments,
         hydraulicModel.demands.patterns,
       ),
     ).toBeCloseTo(0.000289, 6);
@@ -416,8 +427,8 @@ describe.skip("importCustomerPoints", () => {
           .aJunction(IDS.J1, { coordinates: [0, 0] })
           .aCustomerPoint(IDS.EXISTING, {
             coordinates: [5, 5],
-            demands: [{ baseDemand: 100 }],
           })
+          .aCustomerPointDemand(IDS.EXISTING, [{ baseDemand: 100 }])
           .build(),
       });
 

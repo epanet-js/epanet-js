@@ -452,7 +452,6 @@ describe("addLink", () => {
 
       const customerPoint = buildCustomerPoint(IDS.CP1, {
         coordinates: [3, 1],
-        demands: [{ baseDemand: 85 }],
       });
 
       customerPoint.connect({
@@ -494,7 +493,6 @@ describe("addLink", () => {
       ) as Pipe[];
 
       expect(reconnectedCP.connection?.pipeId).toBe(splitPipes[0].id);
-      expect(reconnectedCP.baseDemand).toBe(85);
       expect(reconnectedCP.coordinates).toEqual([3, 1]);
     });
 
@@ -520,7 +518,6 @@ describe("addLink", () => {
 
       const customerPoint = buildCustomerPoint(IDS.CP1, {
         coordinates: [7, 1],
-        demands: [{ baseDemand: 90 }],
       });
 
       customerPoint.connect({
@@ -558,7 +555,6 @@ describe("addLink", () => {
 
       const reconnectedCP = putCustomerPoints![0];
 
-      expect(reconnectedCP.baseDemand).toBe(90);
       expect(reconnectedCP.coordinates).toEqual([7, 1]);
       expect(reconnectedCP.connection?.snapPoint).toEqual([7, 0]);
     });
@@ -599,11 +595,9 @@ describe("addLink", () => {
 
       const customerPoint1 = buildCustomerPoint(IDS.CP1, {
         coordinates: [3, 1],
-        demands: [{ baseDemand: 60 }],
       });
       const customerPoint2 = buildCustomerPoint(IDS.CP2, {
         coordinates: [7, 11],
-        demands: [{ baseDemand: 80 }],
       });
 
       customerPoint1.connect({
@@ -650,8 +644,6 @@ describe("addLink", () => {
       const cp1Reconnected = putCustomerPoints!.find((cp) => cp.id === IDS.CP1);
       const cp2Reconnected = putCustomerPoints!.find((cp) => cp.id === IDS.CP2);
 
-      expect(cp1Reconnected?.baseDemand).toBe(60);
-      expect(cp2Reconnected?.baseDemand).toBe(80);
       expect(cp1Reconnected?.coordinates).toEqual([3, 1]);
       expect(cp2Reconnected?.coordinates).toEqual([7, 11]);
     });
@@ -965,19 +957,16 @@ describe("addLink", () => {
 
       const cp1 = buildCustomerPoint(IDS.CP1, {
         coordinates: [5, 1],
-        demands: [{ baseDemand: 50 }],
       });
       cp1.connect({ pipeId: IDS.P1, snapPoint: [5, 0], junctionId: IDS.J1 });
 
       const cp2 = buildCustomerPoint(IDS.CP2, {
         coordinates: [25, 1],
-        demands: [{ baseDemand: 60 }],
       });
       cp2.connect({ pipeId: IDS.P1, snapPoint: [25, 0], junctionId: IDS.J2 });
 
       const cp3 = buildCustomerPoint(IDS.CP3, {
         coordinates: [15, 1],
-        demands: [{ baseDemand: 10 }],
       });
       cp3.connect({ pipeId: IDS.P1, snapPoint: [15, 0], junctionId: IDS.J2 });
 
@@ -1048,7 +1037,6 @@ describe("addLink", () => {
 
       const cp1 = buildCustomerPoint(IDS.CP1, {
         coordinates: [15, 1],
-        demands: [{ baseDemand: 50 }],
       });
       cp1.connect({ pipeId: IDS.P1, snapPoint: [15, 0], junctionId: IDS.J1 });
 
