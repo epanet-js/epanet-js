@@ -409,6 +409,7 @@ export class Persistence implements IPersistenceWithSnapshots {
       units: currentHydraulicModel.units,
       defaults: ctx.modelMetadata.quantities.defaults,
       idGenerator: currentHydraulicModel.assetBuilder.idGenerator,
+      projection: currentHydraulicModel.projection,
     });
 
     for (const delta of allDeltas) {

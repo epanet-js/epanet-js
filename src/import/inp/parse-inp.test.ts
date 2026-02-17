@@ -757,7 +757,7 @@ describe("Parse inp with", () => {
       const withoutFlag = parseInp(inp);
       expect(withoutFlag.issues?.invalidCoordinates).toBeDefined();
 
-      const result = parseInp(inp, { nonProjected: true });
+      const result = parseInp(inp, { projection: null });
       expect(result.issues?.invalidCoordinates).toBeUndefined();
       expect(result.hydraulicModel.assets.size).toBe(3);
 
@@ -767,7 +767,7 @@ describe("Parse inp with", () => {
       expect(Math.abs(j1.coordinates[1])).toBeLessThan(1);
     });
 
-    it("preserves other issues when using nonProjected", () => {
+    it("preserves other issues when using projection null", () => {
       const inp = `
       [JUNCTIONS]
       J1  100
@@ -779,9 +779,35 @@ describe("Parse inp with", () => {
       ANYTHING
       `;
 
-      const result = parseInp(inp, { nonProjected: true });
+      const result = parseInp(inp, { projection: null });
       expect(result.issues?.invalidCoordinates).toBeUndefined();
       expect(result.issues?.unsupportedSections).toBeDefined();
+    });
+
+    it("sets projection to null for non-projected import", () => {
+      const inp = `
+      [JUNCTIONS]
+      J1  100
+
+      [COORDINATES]
+      J1  500000  200000
+      `;
+
+      const result = parseInp(inp, { projection: null });
+      expect(result.hydraulicModel.projection).toBeNull();
+    });
+
+    it("sets projection to wgs84 for standard import", () => {
+      const inp = `
+      [JUNCTIONS]
+      J1  100
+
+      [COORDINATES]
+      J1  10  20
+      `;
+
+      const result = parseInp(inp);
+      expect(result.hydraulicModel.projection).toBe("wgs84");
     });
   });
 });

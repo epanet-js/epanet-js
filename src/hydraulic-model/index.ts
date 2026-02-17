@@ -1,4 +1,5 @@
 export type { HydraulicModel } from "./hydraulic-model";
+export type { Projection } from "./projection";
 export {
   initializeHydraulicModel,
   updateHydraulicModelAssets,

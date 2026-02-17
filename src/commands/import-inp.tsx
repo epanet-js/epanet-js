@@ -123,7 +123,7 @@ export const useImportInp = () => {
             try {
               const result = parseInp(content, {
                 ...parseOptions,
-                nonProjected: true,
+                projection: null,
               });
               userTracking.capture(
                 buildCompleteEvent(

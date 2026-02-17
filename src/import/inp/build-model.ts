@@ -24,6 +24,7 @@ import { Position } from "geojson";
 import { PumpStatus } from "src/hydraulic-model/asset-types/pump";
 import { ValveStatus } from "src/hydraulic-model/asset-types/valve";
 import { ParseInpOptions } from "./parse-inp";
+import { Projection } from "src/hydraulic-model/projection";
 import { AssetId } from "src/hydraulic-model/asset-types/base-asset";
 import { Pump } from "src/hydraulic-model/asset-types/pump";
 import {
@@ -72,6 +73,7 @@ export const buildModel = (
   inpData: InpData,
   issues: IssuesAccumulator,
   options?: ParseInpOptions,
+  projection: Projection = "wgs84",
 ): { hydraulicModel: HydraulicModel; modelMetadata: ModelMetadata } => {
   const spec = presets[inpData.options.units];
   const quantities = new Quantities(spec);
@@ -87,6 +89,7 @@ export const buildModel = (
       patterns: new Map(),
     },
     epsTiming: inpData.times,
+    projection,
   });
 
   const curvesContext: CurvesContext = initializeCurvesContext(

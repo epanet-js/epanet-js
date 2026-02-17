@@ -471,6 +471,7 @@ export class HydraulicModelBuilder {
       curves: this.curves,
       epsTiming: this.epsTiming,
       controls: this.controlsValue,
+      projection: "wgs84",
     };
   }
 
