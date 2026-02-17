@@ -3,7 +3,8 @@ export type DataSource =
   | "delta-features"
   | "icons"
   | "selected-features"
-  | "ephemeral";
+  | "ephemeral"
+  | "grid";
 
 export const FeatureSources = {
   MAIN: "main-features" as const,

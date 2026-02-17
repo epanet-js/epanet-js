@@ -31,6 +31,7 @@ import {
   buildSelectionSource,
   FeatureSources,
 } from "./data-source";
+import { buildGridSource } from "./data-source/grid";
 import { ISymbology, LayerConfigMap, SYMBOLIZATION_NONE } from "src/types";
 import { buildBaseStyle, makeLayers } from "./build-style";
 import { LayerId } from "./layers";
@@ -298,6 +299,12 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           setMapSyncMoment((prev) => {
             return { pointer: momentLog.getPointer(), version: prev.version };
           });
+        }
+
+        if (hasNewImport || hasNewStyles) {
+          const gridFeatures =
+            hydraulicModel.projection === null ? buildGridSource(assets) : [];
+          await map.setSource("grid", gridFeatures);
         }
 
         if (hasNewEditions && !hasSyncMomentChanged) {

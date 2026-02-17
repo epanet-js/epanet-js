@@ -65,6 +65,7 @@ export function defineEmptySources(style: Style) {
   style.sources["icons"] = emptyGeoJSONSource;
   style.sources["selected-features"] = emptyGeoJSONSource;
   style.sources["ephemeral"] = emptyGeoJSONSource;
+  style.sources["grid"] = emptyGeoJSONSource;
 }
 
 import type { PreviewProperty } from "src/state/jotai";
@@ -87,6 +88,7 @@ import {
   ephemeralSelectionFillLayer,
   ephemeralSelectionOutlineLayer,
 } from "src/map/layers/ephemeral-state";
+import { gridLayer } from "src/map/layers/grid";
 import {
   selectedPipesLayer,
   selectedPumpLinesLayer,
@@ -158,6 +160,7 @@ export function makeLayers({
   previewProperty: PreviewProperty;
 }): mapboxgl.AnyLayer[] {
   return [
+    gridLayer(),
     ephemeralHaloLayer({ source: "ephemeral" }),
     pipesLayer({
       source: "main-features",
