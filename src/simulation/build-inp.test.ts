@@ -46,12 +46,12 @@ describe("build inp", () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction(IDS.J1, {
         elevation: 10,
-        demands: [{ baseDemand: 1 }],
       })
+      .aJunctionDemand(IDS.J1, [{ baseDemand: 1 }])
       .aJunction(IDS.J2, {
         elevation: 20,
-        demands: [{ baseDemand: 2 }],
       })
+      .aJunctionDemand(IDS.J2, [{ baseDemand: 2 }])
       .build();
 
     const inp = buildInp(hydraulicModel);
@@ -70,12 +70,12 @@ describe("build inp", () => {
       const hydraulicModel = HydraulicModelBuilder.with()
         .aJunction(IDS.J1, {
           elevation: 10,
-          demands: [
-            { baseDemand: 5 },
-            { baseDemand: 10, patternId: IDS.PAT1 },
-            { baseDemand: 15, patternId: IDS.PAT2 },
-          ],
         })
+        .aJunctionDemand(IDS.J1, [
+          { baseDemand: 5 },
+          { baseDemand: 10, patternId: IDS.PAT1 },
+          { baseDemand: 15, patternId: IDS.PAT2 },
+        ])
         .aDemandPattern(IDS.PAT1, "residential", [0.8, 1.2, 1.0])
         .aDemandPattern(IDS.PAT2, "commercial", [1.0, 1.5, 0.5])
         .build();
@@ -96,8 +96,8 @@ describe("build inp", () => {
       const hydraulicModel = HydraulicModelBuilder.with()
         .aJunction(IDS.J1, {
           elevation: 10,
-          demands: [{ baseDemand: 25 }],
         })
+        .aJunctionDemand(IDS.J1, [{ baseDemand: 25 }])
         .build();
 
       const inp = buildInp(hydraulicModel);
@@ -111,8 +111,8 @@ describe("build inp", () => {
       const hydraulicModel = HydraulicModelBuilder.with()
         .aJunction(IDS.J1, {
           elevation: 10,
-          demands: [{ baseDemand: 30, patternId: IDS.PAT1 }],
         })
+        .aJunctionDemand(IDS.J1, [{ baseDemand: 30, patternId: IDS.PAT1 }])
         .aDemandPattern(IDS.PAT1, "daily", [0.5, 1.0, 1.5])
         .build();
 
@@ -471,7 +471,8 @@ describe("build inp", () => {
     it("includes customer demands without pattern when no pattern assigned", () => {
       const IDS = { J1: 1, P1: 2, CP1: 3 };
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction(IDS.J1, { elevation: 10, demands: [{ baseDemand: 50 }] })
+        .aJunction(IDS.J1, { elevation: 10 })
+        .aJunctionDemand(IDS.J1, [{ baseDemand: 50 }])
         .aPipe(IDS.P1, {
           startNodeId: IDS.J1,
           endNodeId: IDS.J1,
@@ -507,7 +508,8 @@ describe("build inp", () => {
         PAT2: 101,
       };
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction(IDS.J1, { elevation: 10, demands: [{ baseDemand: 50 }] })
+        .aJunction(IDS.J1, { elevation: 10 })
+        .aJunctionDemand(IDS.J1, [{ baseDemand: 50 }])
         .aPipe(IDS.P1, {
           startNodeId: IDS.J1,
           endNodeId: IDS.J1,
@@ -551,7 +553,8 @@ describe("build inp", () => {
     it("marks customer demands with epanetjs_customers comment for re-import", () => {
       const IDS = { J1: 1, P1: 2, CP1: 3, PAT1: 100 };
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction(IDS.J1, { elevation: 10, demands: [{ baseDemand: 50 }] })
+        .aJunction(IDS.J1, { elevation: 10 })
+        .aJunctionDemand(IDS.J1, [{ baseDemand: 50 }])
         .aPipe(IDS.P1, {
           startNodeId: IDS.J1,
           endNodeId: IDS.J1,
@@ -581,7 +584,8 @@ describe("build inp", () => {
     it("handles multiple customer points on same junction without patterns", () => {
       const IDS = { J1: 1, P1: 2, CP1: 3, CP2: 4 };
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction(IDS.J1, { elevation: 10, demands: [{ baseDemand: 50 }] })
+        .aJunction(IDS.J1, { elevation: 10 })
+        .aJunctionDemand(IDS.J1, [{ baseDemand: 50 }])
         .aPipe(IDS.P1, {
           startNodeId: IDS.J1,
           endNodeId: IDS.J1,
@@ -613,7 +617,8 @@ describe("build inp", () => {
     it("does not include customer demands when disabled", () => {
       const IDS = { J1: 1, P1: 2, CP1: 3 };
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction(IDS.J1, { elevation: 10, demands: [{ baseDemand: 50 }] })
+        .aJunction(IDS.J1, { elevation: 10 })
+        .aJunctionDemand(IDS.J1, [{ baseDemand: 50 }])
         .aPipe(IDS.P1, {
           startNodeId: IDS.J1,
           endNodeId: IDS.J1,
@@ -640,7 +645,8 @@ describe("build inp", () => {
     it("skips customer demands when they are zero", () => {
       const IDS = { J1: 1, P1: 2, CP1: 3 };
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction(IDS.J1, { elevation: 10, demands: [{ baseDemand: 50 }] })
+        .aJunction(IDS.J1, { elevation: 10 })
+        .aJunctionDemand(IDS.J1, [{ baseDemand: 50 }])
         .aPipe(IDS.P1, {
           startNodeId: IDS.J1,
           endNodeId: IDS.J1,
@@ -1003,14 +1009,14 @@ describe("build inp", () => {
       const hydraulicModel = HydraulicModelBuilder.with()
         .aJunction(IDS.J1, {
           elevation: 10,
-          demands: [{ baseDemand: 50 }],
           isActive: true,
         })
+        .aJunctionDemand(IDS.J1, [{ baseDemand: 50 }])
         .aJunction(IDS.J2, {
           elevation: 20,
-          demands: [{ baseDemand: 75 }],
           isActive: false,
         })
+        .aJunctionDemand(IDS.J2, [{ baseDemand: 75 }])
         .build();
 
       const inp = buildInp(hydraulicModel, { inactiveAssets: true });
@@ -1046,7 +1052,8 @@ describe("build inp", () => {
     it("uses 'constant' as default pattern label", () => {
       const IDS = { J1: 1 };
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction(IDS.J1, { elevation: 10, demands: [{ baseDemand: 50 }] })
+        .aJunction(IDS.J1, { elevation: 10 })
+        .aJunctionDemand(IDS.J1, [{ baseDemand: 50 }])
         .build();
 
       const inp = buildInp(hydraulicModel);
@@ -1060,8 +1067,8 @@ describe("build inp", () => {
       const hydraulicModel = HydraulicModelBuilder.with()
         .aJunction(IDS.J1, {
           elevation: 10,
-          demands: [{ baseDemand: 50, patternId: IDS.PAT1 }],
         })
+        .aJunctionDemand(IDS.J1, [{ baseDemand: 50, patternId: IDS.PAT1 }])
         .aDemandPattern(IDS.PAT1, "constant", [1.2, 0.8, 1.0])
         .build();
 
@@ -1081,12 +1088,12 @@ describe("build inp", () => {
       const hydraulicModel = HydraulicModelBuilder.with()
         .aJunction(IDS.J1, {
           elevation: 10,
-          demands: [{ baseDemand: 50, patternId: IDS.PAT1 }],
         })
+        .aJunctionDemand(IDS.J1, [{ baseDemand: 50, patternId: IDS.PAT1 }])
         .aJunction(IDS.J2, {
           elevation: 20,
-          demands: [{ baseDemand: 30 }], // constant demand, no pattern
         })
+        .aJunctionDemand(IDS.J2, [{ baseDemand: 30 }]) // constant demand, no pattern
         .aDemandPattern(IDS.PAT1, "residential", [0.8, 1.2, 1.0])
         .aDemandPattern(IDS.PAT2, "commercial", [1.0, 1.5, 0.5])
         .aDemandPattern(IDS.PAT3, "industrial", [0.5, 1.0, 1.5])
@@ -1108,12 +1115,12 @@ describe("build inp", () => {
       const hydraulicModel = HydraulicModelBuilder.with()
         .aJunction(IDS.J1, {
           elevation: 10,
-          demands: [{ baseDemand: 50, patternId: IDS.PAT1 }],
         })
+        .aJunctionDemand(IDS.J1, [{ baseDemand: 50, patternId: IDS.PAT1 }])
         .aJunction(IDS.J2, {
           elevation: 20,
-          demands: [{ baseDemand: 30 }], // constant demand, no pattern
         })
+        .aJunctionDemand(IDS.J2, [{ baseDemand: 30 }]) // constant demand, no pattern
         .aDemandPattern(IDS.PAT1, "residential", [0.8, 1.2, 1.0])
         .aDemandPattern(IDS.PAT2, "commercial", [1.0, 1.5, 0.5])
         .aDemandPattern(IDS.PAT3, "industrial", [0.5, 1.0, 1.5])
@@ -1135,8 +1142,8 @@ describe("build inp", () => {
       const hydraulicModel = HydraulicModelBuilder.with()
         .aJunction(IDS.J1, {
           elevation: 10,
-          demands: [{ baseDemand: 0, patternId: IDS.PAT1 }],
         })
+        .aJunctionDemand(IDS.J1, [{ baseDemand: 0, patternId: IDS.PAT1 }])
         .aDemandPattern(IDS.PAT1, "residential", [0.8, 1.2, 1.0])
         .build();
 
@@ -1151,12 +1158,12 @@ describe("build inp", () => {
       const hydraulicModel = HydraulicModelBuilder.with()
         .aJunction(IDS.J1, {
           elevation: 10,
-          demands: [{ baseDemand: 25, patternId: IDS.PAT1 }],
         })
+        .aJunctionDemand(IDS.J1, [{ baseDemand: 25, patternId: IDS.PAT1 }])
         .aJunction(IDS.J2, {
           elevation: 20,
-          demands: [{ baseDemand: 50, patternId: IDS.PAT1 }],
         })
+        .aJunctionDemand(IDS.J2, [{ baseDemand: 50, patternId: IDS.PAT1 }])
         .aDemandPattern(IDS.PAT1, "residential", [0.8, 1.2, 1.0])
         .build();
 
@@ -1176,8 +1183,8 @@ describe("build inp", () => {
       const hydraulicModel = HydraulicModelBuilder.with()
         .aJunction(IDS.J1, {
           elevation: 10,
-          demands: [{ baseDemand: 100, patternId: IDS.PAT1 }],
         })
+        .aJunctionDemand(IDS.J1, [{ baseDemand: 100, patternId: IDS.PAT1 }])
         .aDemandPattern(IDS.PAT1, "hourly", hourlyPattern)
         .build();
 

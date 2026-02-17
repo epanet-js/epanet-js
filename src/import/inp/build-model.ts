@@ -390,10 +390,10 @@ const addJunction = (
     label: junctionData.id,
     coordinates,
     elevation: junctionData.elevation,
-    demands,
     isActive: junctionData.isActive,
   });
   hydraulicModel.assets.set(junction.id, junction);
+  hydraulicModel.demands.assignments.junctions.set(junction.id, demands);
   nodeIds.set(junctionData.id, junction.id);
 };
 

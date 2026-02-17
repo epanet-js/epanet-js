@@ -35,13 +35,13 @@ describe("build inp export ", () => {
       .aJunction(IDS.J1, {
         label: "J_1",
         elevation: 10,
-        demands: [{ baseDemand: 1 }],
       })
+      .aJunctionDemand(IDS.J1, [{ baseDemand: 1 }])
       .aJunction(IDS.J2, {
         label: "J_2",
         elevation: 20,
-        demands: [{ baseDemand: 2 }],
       })
+      .aJunctionDemand(IDS.J2, [{ baseDemand: 2 }])
       .build();
 
     const inp = buildInp(

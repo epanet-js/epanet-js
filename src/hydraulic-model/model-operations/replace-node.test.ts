@@ -119,8 +119,8 @@ describe("replaceNode", () => {
       .aJunction(IDS.J1, {
         coordinates: [1, 1],
         elevation: 10,
-        demands: [{ baseDemand: 50 }],
       })
+      .aJunctionDemand(IDS.J1, [{ baseDemand: 50 }])
       .build();
 
     const moment = replaceNode(model, {

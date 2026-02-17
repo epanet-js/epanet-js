@@ -1,8 +1,7 @@
 import { AssetId, LinkAsset, NodeAsset } from "../asset-types";
-import { ModelOperation } from "../model-operation";
+import { DemandAssignment, ModelOperation } from "../model-operation";
 import { CustomerPoints } from "../customer-points";
 import { Pipe } from "../asset-types/pipe";
-import { Junction } from "../asset-types/junction";
 import { HydraulicModel } from "../hydraulic-model";
 import { AssetsMap } from "../assets-map";
 import { Topology } from "../topology";
@@ -10,6 +9,7 @@ import { CustomerPointsLookup } from "../customer-points-lookup";
 import { updateLinkConnections } from "../mutations/update-link-connections";
 import { isNodeAsset } from "../asset-types/type-guards";
 import { reassignCustomerPoints } from "../mutations/reassign-customer-points";
+import { getJunctionDemands } from "../demands";
 
 type InputData = {
   sourceNodeId: AssetId;
@@ -60,11 +60,24 @@ export const mergeNodes: ModelOperation<InputData> = (
     : true;
   mergedNode.setProperty("isActive", shouldBeActive);
 
+  let demandAssignments: DemandAssignment[] | undefined;
+  if (winnerNode.type === "junction" && loserNode.type === "junction") {
+    const { assignments } = hydraulicModel.demands;
+    const winnerDemands = getJunctionDemands(assignments, winnerNode.id);
+    const loserDemands = getJunctionDemands(assignments, loserNode.id);
+    const mergedDemands = [...winnerDemands, ...loserDemands];
+    demandAssignments = [
+      { junctionId: winnerNode.id, demands: mergedDemands },
+      { junctionId: loserNode.id, demands: [] },
+    ];
+  }
+
   return buildMergeResult(
     mergedNode,
     loserNode,
     updatedLinks,
     updatedCustomerPoints,
+    demandAssignments,
   );
 };
 
@@ -89,20 +102,12 @@ const validateAndGetNodes = (
 
 const createMergedNode = (
   winnerNode: NodeAsset,
-  loserNode: NodeAsset,
+  _loserNode: NodeAsset,
   targetNode: NodeAsset,
 ): NodeAsset => {
   const winnerNodeCopy = winnerNode.copy();
   winnerNodeCopy.setCoordinates(targetNode.coordinates);
   winnerNodeCopy.setElevation(targetNode.elevation);
-
-  if (winnerNode.type === "junction" && loserNode.type === "junction") {
-    const winnerJunction = winnerNodeCopy as Junction;
-    const loserJunction = loserNode as Junction;
-
-    const mergedDemands = [...winnerJunction.demands, ...loserJunction.demands];
-    winnerJunction.setProperty("demands", mergedDemands);
-  }
 
   return winnerNodeCopy;
 };
@@ -253,6 +258,7 @@ const buildMergeResult = (
   loserNode: NodeAsset,
   updatedLinks: LinkAsset[],
   updatedCustomerPoints: CustomerPoints,
+  demandAssignments?: DemandAssignment[],
 ) => {
   return {
     note: `Merge ${loserNode.type} into ${winnerNode.type}`,
@@ -262,5 +268,8 @@ const buildMergeResult = (
       updatedCustomerPoints.size > 0
         ? [...updatedCustomerPoints.values()]
         : undefined,
+    putDemands: demandAssignments
+      ? { assignments: demandAssignments }
+      : undefined,
   };
 };

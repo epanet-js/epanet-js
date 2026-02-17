@@ -63,14 +63,10 @@ describe("computeMultiAssetData", () => {
   it("computes junction stats with sections", () => {
     const IDS = { J1: 1, J2: 2 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aJunction(IDS.J1, {
-        elevation: 100,
-        demands: [{ baseDemand: 10 }],
-      })
-      .aJunction(IDS.J2, {
-        elevation: 150,
-        demands: [{ baseDemand: 20 }],
-      })
+      .aJunction(IDS.J1, { elevation: 100 })
+      .aJunctionDemand(IDS.J1, [{ baseDemand: 10 }])
+      .aJunction(IDS.J2, { elevation: 150 })
+      .aJunctionDemand(IDS.J2, [{ baseDemand: 20 }])
       .build();
 
     const assets = Array.from(hydraulicModel.assets.values());
@@ -383,12 +379,10 @@ describe("computeMultiAssetData", () => {
     it("calculates average demand for junction with only constant demands", () => {
       const IDS = { J1: 1, J2: 2 } as const;
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction(IDS.J1, {
-          demands: [{ baseDemand: 10 }, { baseDemand: 20 }],
-        })
-        .aJunction(IDS.J2, {
-          demands: [{ baseDemand: 30 }],
-        })
+        .aJunction(IDS.J1)
+        .aJunctionDemand(IDS.J1, [{ baseDemand: 10 }, { baseDemand: 20 }])
+        .aJunction(IDS.J2)
+        .aJunctionDemand(IDS.J2, [{ baseDemand: 30 }])
         .build();
 
       const assets = Array.from(hydraulicModel.assets.values());
@@ -409,9 +403,8 @@ describe("computeMultiAssetData", () => {
       // Pattern with multipliers [0.5, 1.0, 1.5] -> average = 1.0
       const hydraulicModel = HydraulicModelBuilder.with()
         .aDemandPattern(IDS.PAT1, "pattern1", [0.5, 1.0, 1.5])
-        .aJunction(IDS.J1, {
-          demands: [{ baseDemand: 100, patternId: IDS.PAT1 }],
-        })
+        .aJunction(IDS.J1)
+        .aJunctionDemand(IDS.J1, [{ baseDemand: 100, patternId: IDS.PAT1 }])
         .build();
 
       const assets = Array.from(hydraulicModel.assets.values());
@@ -431,9 +424,8 @@ describe("computeMultiAssetData", () => {
       // Pattern with multipliers [0.5, 0.5, 2.0] -> average = 1.0
       const hydraulicModel = HydraulicModelBuilder.with()
         .aDemandPattern(IDS.PAT1, "pattern1", [0.5, 0.5, 2.0])
-        .aJunction(IDS.J1, {
-          demands: [{ baseDemand: 60, patternId: IDS.PAT1 }],
-        })
+        .aJunction(IDS.J1)
+        .aJunctionDemand(IDS.J1, [{ baseDemand: 60, patternId: IDS.PAT1 }])
         .build();
 
       const assets = Array.from(hydraulicModel.assets.values());
@@ -452,12 +444,11 @@ describe("computeMultiAssetData", () => {
       // Pattern with multipliers [2.0, 2.0] -> average = 2.0
       const hydraulicModel = HydraulicModelBuilder.with()
         .aDemandPattern(IDS.PAT1, "pattern1", [2.0, 2.0])
-        .aJunction(IDS.J1, {
-          demands: [
-            { baseDemand: 10 }, // constant -> 10
-            { baseDemand: 20, patternId: IDS.PAT1 }, // 20 * 2.0 = 40
-          ],
-        })
+        .aJunction(IDS.J1)
+        .aJunctionDemand(IDS.J1, [
+          { baseDemand: 10 }, // constant -> 10
+          { baseDemand: 20, patternId: IDS.PAT1 }, // 20 * 2.0 = 40
+        ])
         .build();
 
       const assets = Array.from(hydraulicModel.assets.values());
@@ -474,7 +465,7 @@ describe("computeMultiAssetData", () => {
     it("handles empty demands array", () => {
       const IDS = { J1: 1 } as const;
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction(IDS.J1, { demands: [] })
+        .aJunction(IDS.J1)
         .build();
 
       const assets = Array.from(hydraulicModel.assets.values());
@@ -491,9 +482,8 @@ describe("computeMultiAssetData", () => {
     it("treats missing pattern as constant (multiplier = 1)", () => {
       const IDS = { J1: 1 } as const;
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction(IDS.J1, {
-          demands: [{ baseDemand: 50, patternId: 404 }],
-        })
+        .aJunction(IDS.J1)
+        .aJunctionDemand(IDS.J1, [{ baseDemand: 50, patternId: 404 }])
         .build();
 
       const assets = Array.from(hydraulicModel.assets.values());
@@ -512,11 +502,12 @@ describe("computeMultiAssetData", () => {
       // Pattern [0.5, 1.5] -> average = 1.0
       const hydraulicModel = HydraulicModelBuilder.with()
         .aDemandPattern(IDS.PAT1, "pattern1", [0.5, 1.5])
-        .aJunction(IDS.J1, { demands: [{ baseDemand: 10 }] }) // avg = 10
-        .aJunction(IDS.J2, { demands: [{ baseDemand: 20 }] }) // avg = 20
-        .aJunction(IDS.J3, {
-          demands: [{ baseDemand: 30, patternId: IDS.PAT1 }],
-        }) // avg = 30 * 1.0 = 30
+        .aJunction(IDS.J1)
+        .aJunctionDemand(IDS.J1, [{ baseDemand: 10 }]) // avg = 10
+        .aJunction(IDS.J2)
+        .aJunctionDemand(IDS.J2, [{ baseDemand: 20 }]) // avg = 20
+        .aJunction(IDS.J3)
+        .aJunctionDemand(IDS.J3, [{ baseDemand: 30, patternId: IDS.PAT1 }]) // avg = 30 * 1.0 = 30
         .build();
 
       const assets = Array.from(hydraulicModel.assets.values());
@@ -535,9 +526,8 @@ describe("computeMultiAssetData", () => {
       const IDS = { J1: 1 } as const;
       const hydraulicModel = HydraulicModelBuilder.with()
         .demandMultiplier(2.0)
-        .aJunction(IDS.J1, {
-          demands: [{ baseDemand: 50 }],
-        })
+        .aJunction(IDS.J1)
+        .aJunctionDemand(IDS.J1, [{ baseDemand: 50 }])
         .build();
 
       const assets = Array.from(hydraulicModel.assets.values());
@@ -556,9 +546,8 @@ describe("computeMultiAssetData", () => {
       const hydraulicModel = HydraulicModelBuilder.with()
         .demandMultiplier(3.0)
         .aDemandPattern(IDS.PAT1, "pattern1", [0.5, 1.5])
-        .aJunction(IDS.J1, {
-          demands: [{ baseDemand: 20, patternId: IDS.PAT1 }],
-        })
+        .aJunction(IDS.J1)
+        .aJunctionDemand(IDS.J1, [{ baseDemand: 20, patternId: IDS.PAT1 }])
         .build();
 
       const assets = Array.from(hydraulicModel.assets.values());

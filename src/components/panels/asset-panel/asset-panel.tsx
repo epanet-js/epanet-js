@@ -19,6 +19,7 @@ import {
   Demand,
   DemandPatterns,
   calculateAverageDemand,
+  getJunctionDemands,
 } from "src/hydraulic-model/demands";
 import { Quantities } from "src/model-metadata/quantities-spec";
 import { useTranslate } from "src/hooks/use-translate";
@@ -28,7 +29,7 @@ import { stagingModelAtom } from "src/state/jotai";
 import {
   changePumpDefinition,
   changeProperty,
-  changeJunctionDemands,
+  changeDemandAssignment,
   changeLabel,
 } from "src/hydraulic-model/model-operations";
 import { activateAssets } from "src/hydraulic-model/model-operations/activate-assets";
@@ -222,11 +223,13 @@ export function AssetPanel({
 
   const handleDemandsChange = useCallback(
     (newDemands: Demand[]) => {
-      const oldDemands = (asset as Junction).demands;
-      const moment = changeJunctionDemands(hydraulicModel, {
-        junctionId: asset.id,
-        demands: newDemands,
-      });
+      const oldDemands = getJunctionDemands(
+        hydraulicModel.demands.assignments,
+        asset.id,
+      );
+      const moment = changeDemandAssignment(hydraulicModel, [
+        { junctionId: asset.id, demands: newDemands },
+      ]);
       transact(moment);
       userTracking.capture({
         name: "assetProperty.edited",
@@ -448,7 +451,10 @@ const JunctionEditor = ({
       </Section>
       <Section title={translate("demands")}>
         <DemandsEditor
-          demands={junction.demands}
+          demands={getJunctionDemands(
+            hydraulicModel.demands.assignments,
+            junction.id,
+          )}
           patterns={hydraulicModel.demands.patterns}
           quantitiesMetadata={quantitiesMetadata}
           name="directDemand"

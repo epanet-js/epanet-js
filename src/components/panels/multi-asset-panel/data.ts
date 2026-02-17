@@ -22,6 +22,7 @@ import {
   DemandPatterns,
   Demands,
   calculateAverageDemand,
+  getJunctionDemands,
 } from "src/hydraulic-model/demands";
 
 export type QuantityStats = {
@@ -194,7 +195,7 @@ const appendJunctionStats = (
   );
 
   const averageDemand = calculateAverageDemand(
-    junction.demands,
+    getJunctionDemands(demands.assignments, junction.id),
     demands.patterns,
   );
   updateQuantityStats(

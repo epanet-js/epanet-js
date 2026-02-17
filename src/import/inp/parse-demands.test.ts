@@ -19,10 +19,12 @@ describe("parse junctions demands", () => {
 
     const { hydraulicModel } = parseInp(inp);
     const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
+    const demands =
+      hydraulicModel.demands.assignments.junctions.get(junction.id) ?? [];
 
-    expect(junction.demands).toHaveLength(1);
-    expect(junction.demands[0].baseDemand).toBe(50);
-    expect(junction.demands[0].patternId).toBe(1);
+    expect(demands).toHaveLength(1);
+    expect(demands[0].baseDemand).toBe(50);
+    expect(demands[0].patternId).toBe(1);
 
     expect(hydraulicModel.demands.patterns.size).toBe(1);
     const pattern = hydraulicModel.demands.patterns.get(1);
@@ -50,10 +52,12 @@ describe("parse junctions demands", () => {
 
     const { hydraulicModel } = parseInp(inp);
     const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
+    const demands =
+      hydraulicModel.demands.assignments.junctions.get(junction.id) ?? [];
 
-    expect(junction.demands).toHaveLength(1);
-    expect(junction.demands[0].baseDemand).toBe(50);
-    expect(junction.demands[0].patternId).toBe(1);
+    expect(demands).toHaveLength(1);
+    expect(demands[0].baseDemand).toBe(50);
+    expect(demands[0].patternId).toBe(1);
 
     expect(hydraulicModel.demands.patterns.size).toBe(1);
     const pattern = hydraulicModel.demands.patterns.get(1);
@@ -160,12 +164,14 @@ describe("parse junctions demands", () => {
 
     const { hydraulicModel } = parseInp(inp);
     const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
+    const demands =
+      hydraulicModel.demands.assignments.junctions.get(junction.id) ?? [];
 
-    expect(junction.demands).toHaveLength(2);
-    expect(junction.demands[0].baseDemand).toBe(50);
-    expect(junction.demands[0].patternId).toBe(2);
-    expect(junction.demands[1].baseDemand).toBe(30);
-    expect(junction.demands[1].patternId).toBe(3);
+    expect(demands).toHaveLength(2);
+    expect(demands[0].baseDemand).toBe(50);
+    expect(demands[0].patternId).toBe(2);
+    expect(demands[1].baseDemand).toBe(30);
+    expect(demands[1].patternId).toBe(3);
 
     // All patterns are stored, including unused pattern1
     expect(hydraulicModel.demands.patterns.size).toBe(3);
@@ -194,10 +200,12 @@ describe("parse junctions demands", () => {
 
     const { hydraulicModel } = parseInp(inp);
     const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
+    const demands =
+      hydraulicModel.demands.assignments.junctions.get(junction.id) ?? [];
 
-    expect(junction.demands).toHaveLength(1);
-    expect(junction.demands[0].baseDemand).toBe(100);
-    expect(junction.demands[0].patternId).toBe(2);
+    expect(demands).toHaveLength(1);
+    expect(demands[0].baseDemand).toBe(100);
+    expect(demands[0].patternId).toBe(2);
 
     // Both patterns are stored even though pattern1 is not used
     expect(hydraulicModel.demands.patterns.size).toBe(2);
@@ -221,10 +229,12 @@ describe("parse junctions demands", () => {
 
     const { hydraulicModel } = parseInp(inp);
     const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
+    const demands =
+      hydraulicModel.demands.assignments.junctions.get(junction.id) ?? [];
 
-    expect(junction.demands).toHaveLength(1);
-    expect(junction.demands[0].baseDemand).toBe(50);
-    expect(junction.demands[0].patternId).toBeUndefined();
+    expect(demands).toHaveLength(1);
+    expect(demands[0].baseDemand).toBe(50);
+    expect(demands[0].patternId).toBeUndefined();
     expect(hydraulicModel.demands.patterns.size).toBe(0);
   });
 
@@ -244,10 +254,12 @@ describe("parse junctions demands", () => {
 
     const { hydraulicModel } = parseInp(inp);
     const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
+    const demands =
+      hydraulicModel.demands.assignments.junctions.get(junction.id) ?? [];
 
-    expect(junction.demands).toHaveLength(1);
-    expect(junction.demands[0].baseDemand).toBe(75);
-    expect(junction.demands[0].patternId).toBeUndefined();
+    expect(demands).toHaveLength(1);
+    expect(demands[0].baseDemand).toBe(75);
+    expect(demands[0].patternId).toBeUndefined();
     expect(hydraulicModel.demands.patterns.size).toBe(0);
   });
 
@@ -264,8 +276,10 @@ describe("parse junctions demands", () => {
 
     const { hydraulicModel } = parseInp(inp);
     const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
+    const demands =
+      hydraulicModel.demands.assignments.junctions.get(junction.id) ?? [];
 
-    expect(junction.demands).toHaveLength(0);
+    expect(demands).toHaveLength(0);
     expect(hydraulicModel.demands.patterns.size).toBe(0);
   });
 
@@ -286,9 +300,11 @@ describe("parse junctions demands", () => {
 
       const { hydraulicModel } = parseInp(inp);
       const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
+      const demands =
+        hydraulicModel.demands.assignments.junctions.get(junction.id) ?? [];
 
-      expect(junction.demands).toHaveLength(1);
-      expect(junction.demands[0].patternId).toBe(1);
+      expect(demands).toHaveLength(1);
+      expect(demands[0].patternId).toBe(1);
 
       expect(hydraulicModel.demands.patterns.size).toBe(1);
       expect(hydraulicModel.demands.patterns.get(1)?.label).toBe("1");
@@ -313,10 +329,12 @@ describe("parse junctions demands", () => {
 
       const { hydraulicModel } = parseInp(inp);
       const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
+      const demands =
+        hydraulicModel.demands.assignments.junctions.get(junction.id) ?? [];
 
-      expect(junction.demands).toHaveLength(1);
-      expect(junction.demands[0].baseDemand).toBe(50);
-      expect(junction.demands[0].patternId).toBeUndefined();
+      expect(demands).toHaveLength(1);
+      expect(demands[0].baseDemand).toBe(50);
+      expect(demands[0].patternId).toBeUndefined();
       // Pattern is still stored even if not used by this junction
       expect(hydraulicModel.demands.patterns.size).toBe(1);
       expect(hydraulicModel.demands.patterns.get(1)?.label).toBe(
@@ -343,9 +361,11 @@ describe("parse junctions demands", () => {
 
       const { hydraulicModel } = parseInp(inp);
       const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
+      const demands =
+        hydraulicModel.demands.assignments.junctions.get(junction.id) ?? [];
 
-      expect(junction.demands).toHaveLength(1);
-      expect(junction.demands[0].patternId).toBe(1);
+      expect(demands).toHaveLength(1);
+      expect(demands[0].patternId).toBe(1);
 
       expect(hydraulicModel.demands.patterns.size).toBe(1);
       const pattern = hydraulicModel.demands.patterns.get(1);
@@ -376,10 +396,12 @@ describe("parse junctions demands", () => {
 
       const { hydraulicModel } = parseInp(inp);
       const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
+      const demands =
+        hydraulicModel.demands.assignments.junctions.get(junction.id) ?? [];
 
-      expect(junction.demands).toHaveLength(1);
-      expect(junction.demands[0].baseDemand).toBe(75);
-      expect(junction.demands[0].patternId).toBe(1);
+      expect(demands).toHaveLength(1);
+      expect(demands[0].baseDemand).toBe(75);
+      expect(demands[0].patternId).toBe(1);
 
       expect(hydraulicModel.demands.patterns.size).toBe(1);
       const pattern = hydraulicModel.demands.patterns.get(1);
@@ -407,9 +429,11 @@ describe("parse junctions demands", () => {
 
       const { hydraulicModel } = parseInp(inp);
       const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
+      const demands =
+        hydraulicModel.demands.assignments.junctions.get(junction.id) ?? [];
 
-      expect(junction.demands).toHaveLength(1);
-      expect(junction.demands[0].patternId).toBe(1);
+      expect(demands).toHaveLength(1);
+      expect(demands[0].patternId).toBe(1);
 
       expect(hydraulicModel.demands.patterns.size).toBe(1);
       const pattern = hydraulicModel.demands.patterns.get(1);
@@ -437,9 +461,11 @@ describe("parse junctions demands", () => {
 
       const { hydraulicModel } = parseInp(inp);
       const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
+      const demands =
+        hydraulicModel.demands.assignments.junctions.get(junction.id) ?? [];
 
-      expect(junction.demands).toHaveLength(1);
-      expect(junction.demands[0].patternId).toBeUndefined();
+      expect(demands).toHaveLength(1);
+      expect(demands[0].patternId).toBeUndefined();
       // Pattern is still stored even if not used
       expect(hydraulicModel.demands.patterns.size).toBe(1);
       expect(hydraulicModel.demands.patterns.get(1)?.label).toBe(
@@ -466,9 +492,11 @@ describe("parse junctions demands", () => {
 
       const { hydraulicModel } = parseInp(inp);
       const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
+      const demands =
+        hydraulicModel.demands.assignments.junctions.get(junction.id) ?? [];
 
-      expect(junction.demands).toHaveLength(1);
-      expect(junction.demands[0].patternId).toBeUndefined();
+      expect(demands).toHaveLength(1);
+      expect(demands[0].patternId).toBeUndefined();
       expect(hydraulicModel.demands.patterns.size).toBe(0);
     });
 
@@ -494,10 +522,12 @@ describe("parse junctions demands", () => {
 
       const { hydraulicModel } = parseInp(inp);
       const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
+      const demands =
+        hydraulicModel.demands.assignments.junctions.get(junction.id) ?? [];
 
-      expect(junction.demands).toHaveLength(1);
-      expect(junction.demands[0].baseDemand).toBe(75);
-      expect(junction.demands[0].patternId).toBeUndefined();
+      expect(demands).toHaveLength(1);
+      expect(demands[0].baseDemand).toBe(75);
+      expect(demands[0].patternId).toBeUndefined();
       // Pattern is still stored even if not used
       expect(hydraulicModel.demands.patterns.size).toBe(1);
       expect(hydraulicModel.demands.patterns.get(1)?.label).toBe(
@@ -524,10 +554,12 @@ describe("parse junctions demands", () => {
 
       const { hydraulicModel } = parseInp(inp);
       const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
+      const demands =
+        hydraulicModel.demands.assignments.junctions.get(junction.id) ?? [];
 
-      expect(junction.demands).toHaveLength(1);
-      expect(junction.demands[0].baseDemand).toBe(50);
-      expect(junction.demands[0].patternId).toBeUndefined();
+      expect(demands).toHaveLength(1);
+      expect(demands[0].baseDemand).toBe(50);
+      expect(demands[0].patternId).toBeUndefined();
       expect(hydraulicModel.demands.patterns.size).toBe(0);
     });
   });
@@ -564,8 +596,10 @@ describe("parse junctions demands", () => {
 
       const { hydraulicModel } = parseInp(inp);
       const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
+      const demands =
+        hydraulicModel.demands.assignments.junctions.get(junction.id) ?? [];
 
-      expect(junction.demands).toEqual([{ baseDemand: 50 }]);
+      expect(demands).toEqual([{ baseDemand: 50 }]);
       expect(hydraulicModel.demands.patterns.size).toBe(0);
     });
 
@@ -588,10 +622,12 @@ describe("parse junctions demands", () => {
 
       const { hydraulicModel } = parseInp(inp);
       const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
+      const demands =
+        hydraulicModel.demands.assignments.junctions.get(junction.id) ?? [];
 
-      expect(junction.demands).toHaveLength(1);
-      expect(junction.demands[0].baseDemand).toBe(50);
-      expect(junction.demands[0].patternId).toBe(1);
+      expect(demands).toHaveLength(1);
+      expect(demands[0].baseDemand).toBe(50);
+      expect(demands[0].patternId).toBe(1);
 
       // Both patterns are stored even though residential is not used
       expect(hydraulicModel.demands.patterns.size).toBe(2);
@@ -618,12 +654,14 @@ describe("parse junctions demands", () => {
 
       const { hydraulicModel } = parseInp(inp);
       const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
+      const demands =
+        hydraulicModel.demands.assignments.junctions.get(junction.id) ?? [];
 
-      expect(junction.demands).toHaveLength(2);
-      expect(junction.demands[0].baseDemand).toBe(50);
-      expect(junction.demands[0].patternId).toBe(1);
-      expect(junction.demands[1].baseDemand).toBe(25);
-      expect(junction.demands[1].patternId).toBe(2);
+      expect(demands).toHaveLength(2);
+      expect(demands[0].baseDemand).toBe(50);
+      expect(demands[0].patternId).toBe(1);
+      expect(demands[1].baseDemand).toBe(25);
+      expect(demands[1].patternId).toBe(2);
 
       expect(hydraulicModel.demands.patterns.size).toBe(2);
       const pattern1 = hydraulicModel.demands.patterns.get(1);

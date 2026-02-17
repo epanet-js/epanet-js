@@ -199,6 +199,11 @@ export class HydraulicModelBuilder {
     return this;
   }
 
+  aJunctionDemand(id: number, demands: Demand[]) {
+    this.demands.assignments.junctions.set(id, demands);
+    return this;
+  }
+
   aReservoir(id: number, properties: Partial<ReservoirBuildData> = {}) {
     const reservoir = this.assetBuilder.buildReservoir({
       id,

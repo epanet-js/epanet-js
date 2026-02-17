@@ -1,5 +1,6 @@
 import { AssetId } from "./asset-types";
 import { CustomerPointId } from "./customer-points";
+import { CustomerPointsLookup } from "./customer-points-lookup";
 
 export type PatternMultipliers = number[];
 
@@ -49,6 +50,16 @@ export const getNextPatternId = (
   return nextId;
 };
 
+export const getJunctionDemands = (
+  assignments: AssignedDemands,
+  junctionId: AssetId,
+): Demand[] => assignments.junctions.get(junctionId) || [];
+
+export const getCustomerPointDemands = (
+  assignments: AssignedDemands,
+  customerPointId: CustomerPointId,
+): Demand[] => assignments.customerPoints.get(customerPointId) || [];
+
 export const calculateAverageDemand = (
   demands: Demand[],
   patterns: DemandPatterns,
@@ -67,4 +78,17 @@ export const calculateAverageDemand = (
 
     return total + demand.baseDemand;
   }, 0);
+};
+
+export const getTotalCustomerDemand = (
+  junctionId: AssetId,
+  customerPointsLookup: CustomerPointsLookup,
+  patterns: DemandPatterns,
+): number => {
+  const connectedCustomerPoints =
+    customerPointsLookup.getCustomerPoints(junctionId);
+  return Array.from(connectedCustomerPoints).reduce(
+    (sum, cp) => sum + calculateAverageDemand(cp.demands, patterns),
+    0,
+  );
 };

@@ -30,7 +30,10 @@ describe("Parse inp with", () => {
       String(IDS.J1),
     ) as Junction;
     expect(junction.elevation).toEqual(elevation);
-    expect(junction.demands[0].baseDemand).toEqual(demand);
+    expect(
+      hydraulicModel.demands.assignments.junctions.get(junction.id)![0]
+        .baseDemand,
+    ).toEqual(demand);
     expect(junction.coordinates).toEqual([20, 10]);
   });
 
@@ -68,7 +71,10 @@ describe("Parse inp with", () => {
       String(IDS.J1),
     ) as Junction;
     expect(junction.elevation).toEqual(elevation);
-    expect(junction.demands[0].baseDemand).toEqual(demand);
+    expect(
+      hydraulicModel.demands.assignments.junctions.get(junction.id)![0]
+        .baseDemand,
+    ).toEqual(demand);
     expect(junction.coordinates).toEqual([20, 10]);
 
     const otherJunction = getByLabel(
@@ -76,7 +82,10 @@ describe("Parse inp with", () => {
       String(IDS.J2),
     ) as Junction;
     expect(otherJunction.elevation).toEqual(otherElevation);
-    expect(otherJunction.demands[0].baseDemand).toEqual(otherDemand);
+    expect(
+      hydraulicModel.demands.assignments.junctions.get(otherJunction.id)![0]
+        .baseDemand,
+    ).toEqual(otherDemand);
     expect(otherJunction.coordinates).toEqual([40, 30]);
   });
 
@@ -492,7 +501,10 @@ describe("Parse inp with", () => {
     ) as Junction;
     expect(junction).toBeDefined();
     expect(junction.elevation).toEqual(100);
-    expect(junction.demands[0].baseDemand).toEqual(0.5);
+    expect(
+      hydraulicModel.demands.assignments.junctions.get(junction.id)![0]
+        .baseDemand,
+    ).toEqual(0.5);
 
     const pipe = getByLabel(hydraulicModel.assets, String(IDS.P1)) as Pipe;
     expect(pipe).toBeDefined();
@@ -539,7 +551,10 @@ describe("Parse inp with", () => {
     ) as Junction;
     expect(junction).toBeDefined();
     expect(junction.elevation).toEqual(100);
-    expect(junction.demands[0].baseDemand).toEqual(0.5);
+    expect(
+      hydraulicModel.demands.assignments.junctions.get(junction.id)![0]
+        .baseDemand,
+    ).toEqual(0.5);
 
     const reservoir = getByLabel(
       hydraulicModel.assets,

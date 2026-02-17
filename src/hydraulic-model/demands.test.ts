@@ -1,5 +1,12 @@
 import { describe, it, expect } from "vitest";
-import { getNextPatternId, DemandPatterns } from "./demands";
+import {
+  getNextPatternId,
+  DemandPatterns,
+  AssignedDemands,
+  Demand,
+  getJunctionDemands,
+  calculateAverageDemand,
+} from "./demands";
 
 const createPatterns = (
   entries: Array<{ id: number; label: string; multipliers: number[] }>,
@@ -66,5 +73,76 @@ describe("getNextPatternId", () => {
       ]);
       expect(getNextPatternId(patterns, 5)).toBe(6);
     });
+  });
+});
+
+describe("getJunctionDemands", () => {
+  it("returns empty demands when junction has no assignments", () => {
+    const assignments: AssignedDemands = {
+      junctions: new Map(),
+      customerPoints: new Map(),
+    };
+
+    expect(getJunctionDemands(assignments, 1)).toEqual([]);
+  });
+
+  it("can store and retrieve demands for a junction", () => {
+    const demands: Demand[] = [{ baseDemand: 10 }];
+    const assignments: AssignedDemands = {
+      junctions: new Map([[1, demands]]),
+      customerPoints: new Map(),
+    };
+
+    expect(getJunctionDemands(assignments, 1)).toEqual([{ baseDemand: 10 }]);
+  });
+
+  it("supports demands array with multiple categories", () => {
+    const demands: Demand[] = [
+      { baseDemand: 50, patternId: 1 },
+      { baseDemand: 30, patternId: 2 },
+    ];
+    const assignments: AssignedDemands = {
+      junctions: new Map([[1, demands]]),
+      customerPoints: new Map(),
+    };
+
+    const result = getJunctionDemands(assignments, 1);
+    expect(result).toHaveLength(2);
+    expect(result[0].baseDemand).toBe(50);
+    expect(result[0].patternId).toBe(1);
+    expect(result[1].baseDemand).toBe(30);
+    expect(result[1].patternId).toBe(2);
+  });
+
+  it("demand assignments for different junctions are independent", () => {
+    const assignments: AssignedDemands = {
+      junctions: new Map([
+        [1, [{ baseDemand: 50, patternId: 1 }]],
+        [2, [{ baseDemand: 100 }]],
+      ]),
+      customerPoints: new Map(),
+    };
+
+    const demandsForJunction1 = getJunctionDemands(assignments, 1);
+    const demandsForJunction2 = getJunctionDemands(assignments, 2);
+
+    expect(demandsForJunction1[0].baseDemand).toBe(50);
+    expect(demandsForJunction2[0].baseDemand).toBe(100);
+  });
+});
+
+describe("calculateAverageDemand", () => {
+  it("calculates average demand without patterns", () => {
+    const demands: Demand[] = [{ baseDemand: 25 }];
+    const patterns = new Map();
+
+    expect(calculateAverageDemand(demands, patterns)).toEqual(25);
+  });
+
+  it("calculates average demand of zero for empty demands", () => {
+    const demands: Demand[] = [];
+    const patterns = new Map();
+
+    expect(calculateAverageDemand(demands, patterns)).toEqual(0);
   });
 });

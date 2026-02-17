@@ -17,7 +17,6 @@ import { PatternsIcon } from "src/icons";
 import { stagingModelAtom } from "src/state/jotai";
 import { usePersistence } from "src/lib/persistence";
 import { HydraulicModel } from "src/hydraulic-model/hydraulic-model";
-import { Junction } from "src/hydraulic-model/asset-types/junction";
 import { notify } from "src/components/notifications";
 import { useUserTracking } from "src/infra/user-tracking";
 import { changeDemandPatterns } from "src/hydraulic-model/model-operations";
@@ -285,13 +284,10 @@ const isPatternInUse = (
   }
 
   // Check junctions
-  for (const asset of hydraulicModel.assets.values()) {
-    if (asset.type === "junction") {
-      const junction = asset as Junction;
-      for (const demand of junction.demands) {
-        if (demand.patternId === patternId) {
-          return true;
-        }
+  for (const demands of hydraulicModel.demands.assignments.junctions.values()) {
+    for (const demand of demands) {
+      if (demand.patternId === patternId) {
+        return true;
       }
     }
   }

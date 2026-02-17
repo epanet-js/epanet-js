@@ -1,10 +1,8 @@
 import {
   HydraulicModel,
-  AssetsMap,
   updateHydraulicModelAssets,
 } from "src/hydraulic-model/hydraulic-model";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
-import { Junction } from "src/hydraulic-model/asset-types/junction";
 import { CustomerPointsLookup } from "src/hydraulic-model/customer-points-lookup";
 
 type AddCustomerPointsOptions = {
@@ -26,7 +24,7 @@ export const addCustomerPoints = (
     ? new CustomerPointsLookup()
     : hydraulicModel.customerPointsLookup.copy();
 
-  const modifiedJunctions = new Set<number>();
+  const junctionsToClearDemands = new Set<number>();
 
   for (const customerPoint of customerPointsToAdd) {
     updatedCustomerPoints.set(customerPoint.id, customerPoint);
@@ -40,12 +38,7 @@ export const addCustomerPoints = (
     }
 
     if (!preserveJunctionDemands) {
-      removeJunctionDemands(
-        customerPoint,
-        hydraulicModel,
-        updatedAssets,
-        modifiedJunctions,
-      );
+      junctionsToClearDemands.add(customerPoint.connection.junctionId);
     }
   }
 
@@ -54,31 +47,29 @@ export const addCustomerPoints = (
     updatedAssets,
   );
 
+  const updatedJunctionAssignments =
+    junctionsToClearDemands.size > 0
+      ? new Map(hydraulicModel.demands.assignments.junctions)
+      : hydraulicModel.demands.assignments.junctions;
+
+  for (const junctionId of junctionsToClearDemands) {
+    updatedJunctionAssignments.delete(junctionId);
+  }
+
   return {
     ...updatedHydraulicModel,
     version: hydraulicModel.version,
     customerPoints: updatedCustomerPoints,
     customerPointsLookup: updatedLookup,
+    demands:
+      junctionsToClearDemands.size > 0
+        ? {
+            ...hydraulicModel.demands,
+            assignments: {
+              ...hydraulicModel.demands.assignments,
+              junctions: updatedJunctionAssignments,
+            },
+          }
+        : hydraulicModel.demands,
   };
-};
-
-const removeJunctionDemands = (
-  customerPoint: CustomerPoint,
-  hydraulicModel: HydraulicModel,
-  updatedAssets: AssetsMap,
-  modifiedJunctions: Set<number>,
-): void => {
-  const junctionId = customerPoint.connection!.junctionId;
-  const originalJunction = hydraulicModel.assets.get(junctionId) as Junction;
-
-  if (!originalJunction) {
-    return;
-  }
-
-  if (!modifiedJunctions.has(junctionId)) {
-    const junctionCopy = originalJunction.copy();
-    junctionCopy.setProperty("demands", []);
-    updatedAssets.set(junctionId, junctionCopy);
-    modifiedJunctions.add(junctionId);
-  }
 };

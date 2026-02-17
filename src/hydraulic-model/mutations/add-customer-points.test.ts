@@ -4,7 +4,6 @@ import {
   HydraulicModelBuilder,
   buildCustomerPoint,
 } from "src/__helpers__/hydraulic-model-builder";
-import { Junction } from "src/hydraulic-model/asset-types/junction";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
 
 describe("addCustomerPoints", () => {
@@ -312,7 +311,8 @@ describe("addCustomerPoints", () => {
   it("preserves junction base demands by default", () => {
     const IDS = { J1: 1, CP1: 2 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aJunction(IDS.J1, { coordinates: [0, 0], demands: [{ baseDemand: 30 }] })
+      .aJunction(IDS.J1, { coordinates: [0, 0] })
+      .aJunctionDemand(IDS.J1, [{ baseDemand: 30 }])
       .build();
 
     const customerPointsToAdd: CustomerPoint[] = [];
@@ -330,8 +330,9 @@ describe("addCustomerPoints", () => {
 
     const updatedModel = addCustomerPoints(hydraulicModel, customerPointsToAdd);
 
-    const updatedJ1 = updatedModel.assets.get(IDS.J1) as Junction;
-    expect(updatedJ1.demands).toEqual([{ baseDemand: 30 }]);
+    expect(updatedModel.demands.assignments.junctions.get(IDS.J1)).toEqual([
+      { baseDemand: 30 },
+    ]);
 
     const j1CustomerPoints =
       updatedModel.customerPointsLookup.getCustomerPoints(IDS.J1);
@@ -345,7 +346,8 @@ describe("addCustomerPoints", () => {
   it("resets junction base demands to 0 when preserveJunctionDemands is false", () => {
     const IDS = { J1: 1, CP1: 2 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aJunction(IDS.J1, { coordinates: [0, 0], demands: [{ baseDemand: 60 }] })
+      .aJunction(IDS.J1, { coordinates: [0, 0] })
+      .aJunctionDemand(IDS.J1, [{ baseDemand: 60 }])
       .build();
 
     const customerPointsToAdd: CustomerPoint[] = [];
@@ -369,8 +371,7 @@ describe("addCustomerPoints", () => {
       },
     );
 
-    const updatedJ1 = updatedModel.assets.get(IDS.J1) as Junction;
-    expect(updatedJ1.demands).toEqual([]);
+    expect(updatedModel.demands.assignments.junctions.has(IDS.J1)).toBe(false);
 
     const j1CustomerPoints =
       updatedModel.customerPointsLookup.getCustomerPoints(IDS.J1);

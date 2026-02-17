@@ -20,54 +20,6 @@ describe("Junction", () => {
     const junction = buildJunction();
 
     expect(junction.elevation).toEqual(0);
-    expect(junction.demands).toEqual([]);
     expect(junction.id).not.toBeUndefined();
-  });
-
-  it("can assign demands via builder", () => {
-    const junction = buildJunction({
-      demands: [{ baseDemand: 10 }],
-      elevation: 100,
-    });
-
-    expect(junction.demands).toEqual([{ baseDemand: 10 }]);
-    expect(junction.elevation).toEqual(100);
-  });
-
-  it("can set demands", () => {
-    const junction = buildJunction({ demands: [{ baseDemand: 50 }] });
-
-    junction.setProperty("demands", [{ baseDemand: 25 }]);
-    expect(junction.getDirectDemand(new Map())).toEqual(25);
-
-    junction.setProperty("demands", []);
-    expect(junction.getDirectDemand(new Map())).toEqual(0);
-  });
-
-  it("supports demands array with multiple categories", () => {
-    const junction = buildJunction({
-      demands: [
-        { baseDemand: 50, patternId: 1 },
-        { baseDemand: 30, patternId: 2 },
-      ],
-    });
-
-    expect(junction.demands).toHaveLength(2);
-    expect(junction.demands[0].baseDemand).toBe(50);
-    expect(junction.demands[0].patternId).toBe(1);
-    expect(junction.demands[1].baseDemand).toBe(30);
-    expect(junction.demands[1].patternId).toBe(2);
-  });
-
-  it("copy creates independent demands array", () => {
-    const junction = buildJunction({
-      demands: [{ baseDemand: 50, patternId: 1 }],
-    });
-
-    const copy = junction.copy();
-    copy.setProperty("demands", [{ baseDemand: 100 }]);
-
-    expect(junction.demands[0].baseDemand).toBe(50);
-    expect(copy.demands[0].baseDemand).toBe(100);
   });
 });

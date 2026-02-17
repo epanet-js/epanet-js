@@ -23,7 +23,12 @@ import {
   formatRuleBasedControl,
   IdResolver,
 } from "src/hydraulic-model/controls";
-import { DemandPattern, DemandPatterns } from "src/hydraulic-model/demands";
+import {
+  AssignedDemands,
+  DemandPattern,
+  DemandPatterns,
+  getJunctionDemands,
+} from "src/hydraulic-model/demands";
 
 type SimulationPipeStatus = "Open" | "Closed" | "CV";
 type SimulationPumpStatus = "Open" | "Closed";
@@ -314,6 +319,7 @@ export const buildInp = withDebugInstrumentation(
           asset as Junction,
           hydraulicModel.customerPointsLookup,
           hydraulicModel.assets,
+          hydraulicModel.demands.assignments,
           usedPatternIds,
         );
       }
@@ -493,6 +499,7 @@ const appendJunction = (
   junction: Junction,
   customerPointsLookup: CustomerPointsLookup,
   assets: HydraulicModel["assets"],
+  demandAssignments: AssignedDemands,
   usedPatternIds: Set<number>,
 ) => {
   if (!junction.isActive && !inactiveAssets) {
@@ -506,7 +513,8 @@ const appendJunction = (
     commentPrefix + [junctionId, junction.elevation].join("\t"),
   );
 
-  for (const demand of junction.demands) {
+  const junctionDemands = getJunctionDemands(demandAssignments, junction.id);
+  for (const demand of junctionDemands) {
     if (demand.baseDemand === 0) continue;
 
     const demandLine = demand.patternId

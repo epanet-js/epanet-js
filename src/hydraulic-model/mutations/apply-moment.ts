@@ -51,9 +51,18 @@ export const applyMomentToModel = (
   }
 
   for (const id of moment.deleteAssets || []) {
+    const deletedDemands = hydraulicModel.demands.assignments.junctions.get(id);
     const deleted = deleteAsset(hydraulicModel, id);
     if (deleted) {
       reverseMoment.putAssets.push(deleted);
+      if (deletedDemands && deletedDemands.length > 0) {
+        if (!reverseMoment.putDemands) {
+          reverseMoment.putDemands = {};
+        }
+        const assignments = reverseMoment.putDemands.assignments ?? [];
+        assignments.push({ junctionId: id, demands: deletedDemands });
+        reverseMoment.putDemands.assignments = assignments;
+      }
     }
   }
 
@@ -121,6 +130,7 @@ const deleteAsset = (
   hydraulicModel.topology.removeNode(id);
   hydraulicModel.topology.removeLink(id);
   hydraulicModel.labelManager.remove(asset.label, asset.type, asset.id);
+  hydraulicModel.demands.assignments.junctions.delete(id);
 
   return asset;
 };
@@ -250,12 +260,28 @@ const putDemandAssignments = (
         customerPointId: demandAssignement.customerPointId,
         demands: customerDemands || [],
       });
+      if (demandAssignement.demands.length === 0) {
+        customerPointAssignments.delete(demandAssignement.customerPointId);
+      } else {
+        customerPointAssignments.set(
+          demandAssignement.customerPointId,
+          demandAssignement.demands,
+        );
+      }
     } else {
       const demands = junctionAssignements.get(demandAssignement.junctionId);
       reverseAssignments.push({
         junctionId: demandAssignement.junctionId,
         demands: demands || [],
       });
+      if (demandAssignement.demands.length === 0) {
+        junctionAssignements.delete(demandAssignement.junctionId);
+      } else {
+        junctionAssignements.set(
+          demandAssignement.junctionId,
+          demandAssignement.demands,
+        );
+      }
     }
   });
   return reverseAssignments;

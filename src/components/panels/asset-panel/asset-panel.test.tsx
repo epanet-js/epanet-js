@@ -621,8 +621,8 @@ describe("AssetPanel", () => {
         .aJunction(IDS.J1, {
           label: "MY_JUNCTION",
           elevation: 10,
-          demands: [{ baseDemand: 100 }],
         })
+        .aJunctionDemand(IDS.J1, [{ baseDemand: 100 }])
         .build();
       const store = setInitialState({
         hydraulicModel,
@@ -643,8 +643,8 @@ describe("AssetPanel", () => {
       const hydraulicModel = HydraulicModelBuilder.with()
         .aJunction(IDS.J1, {
           elevation: 10,
-          demands: [{ baseDemand: 100 }],
         })
+        .aJunctionDemand(IDS.J1, [{ baseDemand: 100 }])
         .build();
       const store = setInitialState({
         hydraulicModel,
@@ -668,8 +668,8 @@ describe("AssetPanel", () => {
       const hydraulicModel = HydraulicModelBuilder.with()
         .aJunction(IDS.J1, {
           label: "MY_JUNCTION",
-          demands: [{ baseDemand: 50 }],
         })
+        .aJunctionDemand(IDS.J1, [{ baseDemand: 50 }])
         .aJunction(IDS.J2, { coordinates: [10, 0] })
         .aPipe(IDS.P1, {
           startNodeId: IDS.J1,
@@ -722,8 +722,8 @@ describe("AssetPanel", () => {
       const hydraulicModel = HydraulicModelBuilder.with()
         .aJunction(IDS.J1, {
           label: "MY_JUNCTION",
-          demands: [{ baseDemand: 50 }],
         })
+        .aJunctionDemand(IDS.J1, [{ baseDemand: 50 }])
         .aJunction(IDS.J2, { coordinates: [10, 0] })
         .aPipe(IDS.P1, {
           startNodeId: IDS.J1,
@@ -778,8 +778,8 @@ describe("AssetPanel", () => {
       const hydraulicModel = HydraulicModelBuilder.with()
         .aJunction(IDS.J1, {
           label: "MY_JUNCTION",
-          demands: [{ baseDemand: 100 }],
         })
+        .aJunctionDemand(IDS.J1, [{ baseDemand: 100 }])
         .build();
       const store = setInitialState({
         hydraulicModel,
@@ -1345,12 +1345,12 @@ describe("AssetPanel", () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction(IDS.J1, {
         label: "Junction_1",
-        demands: [{ baseDemand: 100 }],
       })
+      .aJunctionDemand(IDS.J1, [{ baseDemand: 100 }])
       .aJunction(IDS.J2, {
         label: "Junction_2",
-        demands: [{ baseDemand: 200 }],
       })
+      .aJunctionDemand(IDS.J2, [{ baseDemand: 200 }])
       .aPipe(IDS.P1, {
         label: "Pipe_1",
         diameter: 150,

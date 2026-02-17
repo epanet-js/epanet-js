@@ -2,6 +2,10 @@ import { render, screen, waitFor } from "@testing-library/react";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { Store, stagingModelAtom } from "src/state/jotai";
 import { Junction } from "src/hydraulic-model/asset-types/junction";
+import {
+  getJunctionDemands,
+  getTotalCustomerDemand,
+} from "src/hydraulic-model/demands";
 import userEvent from "@testing-library/user-event";
 import { aTestFile } from "src/__helpers__/file";
 import { setInitialState } from "src/__helpers__/state";
@@ -185,12 +189,12 @@ describe.skip("importCustomerPoints", () => {
       hydraulicModel: HydraulicModelBuilder.with()
         .aJunction(IDS.J1, {
           coordinates: [0, 0],
-          demands: [{ baseDemand: 30 }],
         })
+        .aJunctionDemand(IDS.J1, [{ baseDemand: 30 }])
         .aJunction(IDS.J2, {
           coordinates: [0.001, 0.001],
-          demands: [{ baseDemand: 45 }],
         })
+        .aJunctionDemand(IDS.J2, [{ baseDemand: 45 }])
         .aPipe(IDS.P1, {
           startNodeId: IDS.J1,
           endNodeId: IDS.J2,
@@ -248,13 +252,16 @@ describe.skip("importCustomerPoints", () => {
     const hydraulicModel = store.get(stagingModelAtom);
     const junction = hydraulicModel.assets.get(IDS.J1) as Junction;
 
-    expect(junction.demands).toBe([{ baseDemand: 30 }]);
+    expect(
+      getJunctionDemands(hydraulicModel.demands.assignments, junction.id),
+    ).toBe([{ baseDemand: 30 }]);
 
     const junctionCustomerPoints =
       hydraulicModel.customerPointsLookup.getCustomerPoints(IDS.J1);
     expect(junctionCustomerPoints?.size).toBe(1);
     expect(
-      junction.getTotalCustomerDemand(
+      getTotalCustomerDemand(
+        junction.id,
         hydraulicModel.customerPointsLookup,
         hydraulicModel.demands.patterns,
       ),
@@ -267,12 +274,12 @@ describe.skip("importCustomerPoints", () => {
       hydraulicModel: HydraulicModelBuilder.with()
         .aJunction(IDS.J1, {
           coordinates: [0, 0],
-          demands: [{ baseDemand: 40 }],
         })
+        .aJunctionDemand(IDS.J1, [{ baseDemand: 40 }])
         .aJunction(IDS.J2, {
           coordinates: [0.001, 0.001],
-          demands: [{ baseDemand: 60 }],
         })
+        .aJunctionDemand(IDS.J2, [{ baseDemand: 60 }])
         .aPipe(IDS.P1, {
           startNodeId: IDS.J1,
           endNodeId: IDS.J2,
@@ -326,13 +333,16 @@ describe.skip("importCustomerPoints", () => {
     const hydraulicModel = store.get(stagingModelAtom);
     const junction = hydraulicModel.assets.get(IDS.J1) as Junction;
 
-    expect(junction.demands).toBe([]);
+    expect(
+      getJunctionDemands(hydraulicModel.demands.assignments, junction.id),
+    ).toBe([]);
 
     const junctionCustomerPoints =
       hydraulicModel.customerPointsLookup.getCustomerPoints(IDS.J1);
     expect(junctionCustomerPoints?.size).toBe(1);
     expect(
-      junction.getTotalCustomerDemand(
+      getTotalCustomerDemand(
+        junction.id,
         hydraulicModel.customerPointsLookup,
         hydraulicModel.demands.patterns,
       ),
