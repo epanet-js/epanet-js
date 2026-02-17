@@ -3,10 +3,10 @@ import * as DD from "@radix-ui/react-dropdown-menu";
 import { useTranslate } from "src/hooks/use-translate";
 import {
   PatternMultipliers,
-  DemandPatterns,
-  DemandPattern,
+  Patterns,
+  Pattern,
   PatternId,
-} from "src/hydraulic-model/demands";
+} from "src/hydraulic-model";
 import {
   AddIcon,
   CloseIcon,
@@ -22,10 +22,10 @@ import { useUserTracking } from "src/infra/user-tracking";
 type ActionState =
   | { action: "creating" }
   | { action: "renaming"; patternId: PatternId }
-  | { action: "cloning"; sourcePattern: DemandPattern };
+  | { action: "cloning"; sourcePattern: Pattern };
 
 type PatternSidebarProps = {
-  patterns: DemandPatterns;
+  patterns: Patterns;
   selectedPatternId: PatternId | null;
   minPatternSteps: number;
   onSelectPattern: (patternId: PatternId) => void;
@@ -230,13 +230,13 @@ export const PatternSidebar = ({
 };
 
 type PatternSidebarItemProps = {
-  pattern: DemandPattern;
+  pattern: Pattern;
   isSelected: boolean;
   onSelect: () => void;
   actionState: ActionState | undefined;
   onCancel: () => void;
   onStartRename: (patternId: PatternId) => void;
-  onStartClone: (pattern: DemandPattern) => void;
+  onStartClone: (pattern: Pattern) => void;
   onDelete: () => void;
   onPatternLabelChange: (name: string) => boolean;
   readOnly?: boolean;

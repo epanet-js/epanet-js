@@ -1,18 +1,7 @@
 import { AssetId } from "./asset-types";
 import { CustomerPointId } from "./customer-points";
 import { CustomerPointsLookup } from "./customer-points-lookup";
-
-export type PatternMultipliers = number[];
-
-export type PatternId = number;
-
-export type DemandPattern = {
-  id: PatternId;
-  label: string;
-  multipliers: number[];
-};
-
-export type DemandPatterns = Map<PatternId, DemandPattern>;
+import { PatternId, Patterns } from "./patterns";
 
 export type Demand = {
   baseDemand: number;
@@ -26,7 +15,7 @@ export type AssignedDemands = {
 
 export type Demands = {
   multiplier: number;
-  patterns: DemandPatterns;
+  patterns: Patterns;
   assignments: AssignedDemands;
 };
 
@@ -38,17 +27,6 @@ export const createEmptyDemands = (): Demands => ({
     customerPoints: new Map(),
   },
 });
-
-export const getNextPatternId = (
-  patterns: DemandPatterns,
-  startId?: number,
-): PatternId => {
-  let nextId = Math.max(startId ?? patterns.size, 1);
-  while (patterns.has(nextId)) {
-    nextId += 1;
-  }
-  return nextId;
-};
 
 export const getJunctionDemands = (
   assignments: AssignedDemands,
@@ -62,7 +40,7 @@ export const getCustomerPointDemands = (
 
 export const calculateAverageDemand = (
   demands: Demand[],
-  patterns: DemandPatterns,
+  patterns: Patterns,
 ): number => {
   return demands.reduce((total, demand) => {
     if (demand.patternId) {
@@ -83,7 +61,7 @@ export const calculateAverageDemand = (
 export const getTotalCustomerDemand = (
   junctionId: AssetId,
   customerPointsLookup: CustomerPointsLookup,
-  patterns: DemandPatterns,
+  patterns: Patterns,
 ): number => {
   const connectedCustomerPoints =
     customerPointsLookup.getCustomerPoints(junctionId);

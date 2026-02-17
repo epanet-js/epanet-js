@@ -15,6 +15,7 @@ import { Asset } from "./asset-types";
 import { Curves } from "./curves";
 import { Controls, createEmptyControls } from "./controls";
 import { Projection } from "./projection";
+import { Patterns } from "./patterns";
 
 export type HydraulicModel = {
   version: string;
@@ -29,6 +30,7 @@ export type HydraulicModel = {
   headlossFormula: HeadlossFormula;
   labelManager: LabelManager;
   curves: Curves;
+  patterns: Patterns;
   epsTiming: EPSTiming;
   controls: Controls;
   projection: Projection;
@@ -76,6 +78,7 @@ export const initializeHydraulicModel = ({
     labelManager,
     headlossFormula,
     curves: new Map(),
+    patterns: new Map(),
     epsTiming,
     controls,
     projection,

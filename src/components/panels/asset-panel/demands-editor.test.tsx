@@ -3,16 +3,16 @@ import userEvent from "@testing-library/user-event";
 import { DemandCategoriesEditor } from "./demands-editor";
 import {
   Demand,
-  DemandPattern,
-  DemandPatterns,
+  Pattern,
+  Patterns,
   PatternId,
   PatternMultipliers,
-} from "src/hydraulic-model/demands";
+} from "src/hydraulic-model";
 
 const aPatterns = (
   ...patterns: [PatternId, string, PatternMultipliers][]
-): Map<PatternId, DemandPattern> => {
-  const demandPatterns: DemandPatterns = new Map();
+): Map<PatternId, Pattern> => {
+  const demandPatterns: Patterns = new Map();
   (patterns || []).forEach(([id, label, multipliers]) => {
     demandPatterns.set(id, { id, label, multipliers });
   });

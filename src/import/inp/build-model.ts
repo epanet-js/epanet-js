@@ -49,15 +49,15 @@ import {
 import { LabelManager } from "src/hydraulic-model/label-manager";
 import {
   createEmptyDemands,
-  DemandPattern,
-  DemandPatterns,
+  Pattern,
+  Patterns,
   PatternId,
   PatternMultipliers,
-} from "src/hydraulic-model/demands";
+} from "src/hydraulic-model";
 import { PumpBuildData } from "src/hydraulic-model/asset-builder";
 
 type BuildPatternContext = {
-  patterns: DemandPatterns;
+  patterns: Patterns;
   fallbackPatternId?: PatternId;
   usedPatternIds: Set<PatternId>;
   idGenerator: IdGenerator;
@@ -265,7 +265,7 @@ const buildPattern = (
   idGenerator: IdGenerator,
   label: string,
   factors: PatternMultipliers,
-): DemandPattern | undefined => {
+): Pattern | undefined => {
   if (factors.length === 0) return undefined;
   if (isConstantPattern(factors)) return undefined;
 
@@ -281,7 +281,7 @@ const addPattern = (
   patternsContext: BuildPatternContext,
   label: string,
   factors: PatternMultipliers,
-): DemandPattern | undefined => {
+): Pattern | undefined => {
   const { patterns, idGenerator, labelManager } = patternsContext;
   const pattern = buildPattern(idGenerator, label, factors);
   if (!pattern) return undefined;
@@ -293,7 +293,7 @@ const addPattern = (
 };
 
 const determineFallbackPatternId = (
-  patterns: DemandPatterns,
+  patterns: Patterns,
   labelManager: LabelManager,
   defaultPatternLabel?: string,
 ): PatternId | undefined => {
@@ -336,10 +336,10 @@ const buildDemand = (
 };
 
 const filterUsedPatterns = (
-  patterns: DemandPatterns,
+  patterns: Patterns,
   usedPatternIds: Set<PatternId>,
-): DemandPatterns => {
-  const used: DemandPatterns = new Map();
+): Patterns => {
+  const used: Patterns = new Map();
   for (const id of usedPatternIds) {
     const pattern = patterns.get(id);
     if (pattern) used.set(id, pattern);

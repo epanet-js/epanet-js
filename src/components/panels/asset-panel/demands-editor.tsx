@@ -7,7 +7,7 @@ import {
   GridColumn,
 } from "src/components/data-grid";
 import { Button } from "src/components/elements";
-import { DemandPatterns, PatternId } from "src/hydraulic-model";
+import { Patterns, PatternId } from "src/hydraulic-model";
 import { useTranslate } from "src/hooks/use-translate";
 import { DeleteIcon, AddIcon } from "src/icons";
 import { PropertyComparison } from "src/hooks/use-asset-comparison";
@@ -22,7 +22,7 @@ type DemandCategoryRow = {
 
 type Props = {
   demands: Demand[];
-  patterns: DemandPatterns;
+  patterns: Patterns;
   onDemandsChange: (newDemands: Demand[]) => void;
   comparison?: PropertyComparison;
   readOnly?: boolean;
@@ -30,7 +30,7 @@ type Props = {
 
 const CONSTANT_PATTERN_ID = 0;
 
-const toRow = (demand: Demand, patterns: DemandPatterns): DemandCategoryRow => {
+const toRow = (demand: Demand, patterns: Patterns): DemandCategoryRow => {
   if (demand.patternId) {
     const pattern = patterns.get(demand.patternId);
     if (pattern) {
@@ -301,7 +301,7 @@ export const DemandsEditor = ({
   readOnly,
 }: {
   demands: Demand[];
-  patterns: DemandPatterns;
+  patterns: Patterns;
   quantitiesMetadata: Quantities;
   name: string;
   onChange: (demands: Demand[]) => void;

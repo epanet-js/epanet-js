@@ -17,10 +17,10 @@ import {
 import { Valve } from "src/hydraulic-model/asset-types";
 import {
   Demand,
-  DemandPatterns,
+  Patterns,
   calculateAverageDemand,
   getJunctionDemands,
-} from "src/hydraulic-model/demands";
+} from "src/hydraulic-model";
 import { Quantities } from "src/model-metadata/quantities-spec";
 import { useTranslate } from "src/hooks/use-translate";
 import { usePersistence } from "src/lib/persistence";
@@ -1249,7 +1249,7 @@ const PumpEditor = ({
 
 function getCustomerPointsPattern(
   customerPoints: CustomerPoint[],
-  patterns: DemandPatterns,
+  patterns: Patterns,
 ) {
   if (!customerPoints.length) return;
   const firstCustomerPointWithDemand = customerPoints.find(

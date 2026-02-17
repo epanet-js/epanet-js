@@ -18,10 +18,7 @@ import clsx from "clsx";
 import * as P from "@radix-ui/react-popover";
 import { StyledPopoverArrow, StyledPopoverContent } from "../../elements";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
-import {
-  DemandPatterns,
-  calculateAverageDemand,
-} from "src/hydraulic-model/demands";
+import { Patterns, calculateAverageDemand } from "src/hydraulic-model";
 import { useSetAtom, useAtom } from "jotai";
 import { ephemeralStateAtom } from "src/state/jotai";
 import { assetPanelFooterAtom } from "src/state/quick-graph";
@@ -425,7 +422,7 @@ export const ConnectedCustomersRow = ({
   customerPoints: CustomerPoint[];
   aggregateUnit: Unit;
   customerUnit: Unit;
-  patterns: DemandPatterns;
+  patterns: Patterns;
 }) => {
   const translate = useTranslate();
   const [isOpen, setIsOpen] = useState(false);
@@ -498,7 +495,7 @@ const CustomerPointsPopover = ({
   customerPoints: CustomerPoint[];
   aggregateUnit: Unit;
   customerUnit: Unit;
-  patterns: DemandPatterns;
+  patterns: Patterns;
   onClose: () => void;
 }) => {
   const parentRef = useRef<HTMLDivElement | null>(null);

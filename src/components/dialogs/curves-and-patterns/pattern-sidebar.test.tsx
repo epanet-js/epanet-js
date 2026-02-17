@@ -2,7 +2,7 @@ import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { render } from "@testing-library/react";
 import { PatternSidebar } from "./pattern-sidebar";
-import { DemandPatterns } from "src/hydraulic-model/demands";
+import { Patterns } from "src/hydraulic-model";
 
 const setupUser = () => userEvent.setup();
 
@@ -13,7 +13,7 @@ const createMockOnAddPattern = () => {
 
 const createPatterns = (
   entries: Array<{ id: number; label: string; multipliers: number[] }>,
-): DemandPatterns => {
+): Patterns => {
   return new Map(entries.map((e) => [e.id, e]));
 };
 

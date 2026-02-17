@@ -25,10 +25,10 @@ import {
 } from "src/hydraulic-model/controls";
 import {
   AssignedDemands,
-  DemandPattern,
-  DemandPatterns,
+  Pattern,
+  Patterns,
   getJunctionDemands,
-} from "src/hydraulic-model/demands";
+} from "src/hydraulic-model";
 
 type SimulationPipeStatus = "Open" | "Closed" | "CV";
 type SimulationPumpStatus = "Open" | "Closed";
@@ -160,7 +160,7 @@ class EpanetIds {
     return curveId;
   }
 
-  registerPatternId(pattern: Pick<DemandPattern, "id" | "label">) {
+  registerPatternId(pattern: Pick<Pattern, "id" | "label">) {
     if (this.patternIds.has(pattern.id))
       return this.patternIds.get(pattern.id)!;
     const label = this.ensureUnique(this.patternLabels, pattern.label);
@@ -837,7 +837,7 @@ const appendCurves = (
 
 const appendDemandPatterns = (
   sections: InpSections,
-  patterns: DemandPatterns,
+  patterns: Patterns,
   usedPatternIds: Set<number>,
   idMap: EpanetIds,
   usedPatternsOnly: boolean,

@@ -43,10 +43,17 @@ export type { EPSTiming } from "./eps-timing";
 export type {
   PatternMultipliers,
   PatternId,
-  DemandPatterns,
-  Demands,
-  Demand,
+  Pattern,
+  Patterns,
+} from "./patterns";
+export { getNextPatternId } from "./patterns";
+export type { Demands, Demand, AssignedDemands } from "./demands";
+export {
+  createEmptyDemands,
+  getJunctionDemands,
+  getCustomerPointDemands,
+  calculateAverageDemand,
+  getTotalCustomerDemand,
 } from "./demands";
-export { createEmptyDemands } from "./demands";
 export type { IdGenerator } from "./id-generator";
 export { applyMomentToModel } from "./mutations/apply-moment";

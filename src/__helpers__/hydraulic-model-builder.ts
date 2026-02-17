@@ -472,6 +472,7 @@ export class HydraulicModelBuilder {
       demands: this.demands,
       headlossFormula: this.headlossFormulaValue,
       curves: this.curves,
+      patterns: new Map(),
       epsTiming: this.epsTiming,
       controls: this.controlsValue,
       projection: "wgs84",

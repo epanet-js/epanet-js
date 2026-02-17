@@ -5,7 +5,7 @@ import { Asset, LinkAsset } from "../asset-types";
 import { AssetId } from "../assets-map";
 import { CustomerPoint } from "../customer-points";
 import { Curves } from "../curves";
-import { DemandPatterns } from "../demands";
+import { Patterns } from "../patterns";
 import { isDebugOn } from "src/infra/debug-mode";
 
 type PutAssetResult = {
@@ -239,7 +239,7 @@ const patchAssetAttributes = (
 
 const putDemandPatterns = (
   hydraulicModel: HydraulicModel,
-  patterns: DemandPatterns,
+  patterns: Patterns,
 ): void => {
   for (const pattern of hydraulicModel.demands.patterns.values()) {
     hydraulicModel.labelManager.remove(pattern.label, "pattern", pattern.id);

@@ -13,7 +13,7 @@ import {
   type GridSelection,
   type RowAction,
 } from "src/components/data-grid";
-import { PatternMultipliers } from "src/hydraulic-model/demands";
+import { PatternMultipliers } from "src/hydraulic-model";
 import { useTranslate } from "src/hooks/use-translate";
 import { DeleteIcon, AddIcon } from "src/icons";
 

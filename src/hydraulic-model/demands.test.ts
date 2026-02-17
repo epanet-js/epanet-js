@@ -1,23 +1,22 @@
 import { describe, it, expect } from "vitest";
 import {
-  getNextPatternId,
-  DemandPatterns,
   AssignedDemands,
   Demand,
   getJunctionDemands,
   calculateAverageDemand,
 } from "./demands";
+import { getNextPatternId, Patterns } from "./patterns";
 
 const createPatterns = (
   entries: Array<{ id: number; label: string; multipliers: number[] }>,
-): DemandPatterns => {
+): Patterns => {
   return new Map(entries.map((e) => [e.id, e]));
 };
 
 describe("getNextPatternId", () => {
   describe("without startId", () => {
     it("returns 1 for empty patterns", () => {
-      const patterns: DemandPatterns = new Map();
+      const patterns: Patterns = new Map();
       expect(getNextPatternId(patterns)).toBe(1);
     });
 
@@ -57,12 +56,12 @@ describe("getNextPatternId", () => {
     });
 
     it("returns startId when patterns is empty", () => {
-      const patterns: DemandPatterns = new Map();
+      const patterns: Patterns = new Map();
       expect(getNextPatternId(patterns, 10)).toBe(10);
     });
 
     it("returns 1 when startId is 0", () => {
-      const patterns: DemandPatterns = new Map();
+      const patterns: Patterns = new Map();
       expect(getNextPatternId(patterns, 0)).toBe(1);
     });
 

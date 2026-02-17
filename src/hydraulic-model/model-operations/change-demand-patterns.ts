@@ -1,7 +1,7 @@
-import { DemandPatterns } from "../demands";
+import { Patterns } from "../patterns";
 import { ModelOperation } from "../model-operation";
 
-type InputData = DemandPatterns;
+type InputData = Patterns;
 
 export const changeDemandPatterns: ModelOperation<InputData> = (
   _model,

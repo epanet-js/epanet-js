@@ -3,13 +3,13 @@ import { createStore } from "jotai";
 import { Persistence } from "./persistence";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { setInitialState } from "src/__helpers__/state";
-import { DemandPatterns } from "src/hydraulic-model/demands";
+import { Patterns } from "src/hydraulic-model";
 import { stagingModelAtom } from "src/state/jotai";
 
 const makeDemandPatterns = (
   patterns: { id: number; label: string; multipliers?: number[] }[],
-): DemandPatterns => {
-  const builtPatterns: DemandPatterns = new Map();
+): Patterns => {
+  const builtPatterns: Patterns = new Map();
   for (const p of patterns) {
     builtPatterns.set(p.id, {
       id: p.id,

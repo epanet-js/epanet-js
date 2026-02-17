@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { BarGraph, type StyledBarValue } from "src/components/graphs/bar-graph";
-import { PatternMultipliers } from "src/hydraulic-model/demands";
+import { PatternMultipliers } from "src/hydraulic-model";
 import { colors } from "src/lib/constants";
 
 const VALUE_COLOR = colors.purple500;

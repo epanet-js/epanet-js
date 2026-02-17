@@ -8,11 +8,11 @@ import { PatternDetail } from "./pattern-detail";
 import { useIsSnapshotLocked } from "src/hooks/use-is-snapshot-locked";
 import {
   PatternMultipliers,
-  DemandPatterns,
-  DemandPattern,
+  Patterns,
+  Pattern,
   PatternId,
   getNextPatternId,
-} from "src/hydraulic-model/demands";
+} from "src/hydraulic-model";
 import { PatternsIcon } from "src/icons";
 import { stagingModelAtom } from "src/state/jotai";
 import { usePersistence } from "src/lib/persistence";
@@ -21,7 +21,7 @@ import { notify } from "src/components/notifications";
 import { useUserTracking } from "src/infra/user-tracking";
 import { changeDemandPatterns } from "src/hydraulic-model/model-operations";
 
-type PatternUpdate = Partial<Pick<DemandPattern, "label" | "multipliers">>;
+type PatternUpdate = Partial<Pick<Pattern, "label" | "multipliers">>;
 
 export const CurvesAndPatternsDialog = () => {
   const translate = useTranslate();
@@ -32,7 +32,7 @@ export const CurvesAndPatternsDialog = () => {
   const [selectedPatternId, setSelectedPatternId] = useState<PatternId | null>(
     null,
   );
-  const [editedPatterns, setEditedPatterns] = useState<DemandPatterns>(
+  const [editedPatterns, setEditedPatterns] = useState<Patterns>(
     () => new Map(hydraulicModel.demands.patterns),
   );
   const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
@@ -295,10 +295,7 @@ const isPatternInUse = (
   return false;
 };
 
-const arePatternsEqual = (
-  original: DemandPatterns,
-  edited: DemandPatterns,
-): boolean => {
+const arePatternsEqual = (original: Patterns, edited: Patterns): boolean => {
   if (original.size !== edited.size) return false;
   for (const [id, originalPattern] of original) {
     const editedPattern = edited.get(id);

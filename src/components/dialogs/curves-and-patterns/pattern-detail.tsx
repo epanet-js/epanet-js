@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { PatternGraph } from "./pattern-graph";
-import { PatternMultipliers } from "src/hydraulic-model/demands";
+import { PatternMultipliers } from "src/hydraulic-model";
 import { type GridSelection } from "src/components/data-grid";
 import { PatternTable, type PatternTableRef } from "./pattern-table";
 

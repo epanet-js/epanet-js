@@ -19,11 +19,11 @@ import {
   getActiveCustomerPoints,
 } from "src/hydraulic-model/customer-points";
 import {
-  DemandPatterns,
+  Patterns,
   Demands,
   calculateAverageDemand,
   getJunctionDemands,
-} from "src/hydraulic-model/demands";
+} from "src/hydraulic-model";
 
 export type QuantityStats = {
   type: "quantity";
@@ -259,7 +259,7 @@ const appendJunctionStats = (
 
 const calculateCustomerPointsDemand = (
   customerPoints: CustomerPoint[],
-  patterns: DemandPatterns,
+  patterns: Patterns,
 ): number => {
   return customerPoints.reduce(
     (sum, cp) => sum + calculateAverageDemand(cp.demands, patterns),
