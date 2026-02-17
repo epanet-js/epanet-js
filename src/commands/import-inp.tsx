@@ -20,6 +20,7 @@ import { WarningIcon } from "src/icons";
 import { OPFSStorage } from "src/infra/storage";
 import { getAppId } from "src/infra/app-instance";
 import { isDemoNetwork } from "src/demo/demo-networks";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export const inpExtension = ".inp";
 
@@ -31,6 +32,7 @@ export const useImportInp = () => {
   const rep = usePersistence();
   const transactImport = rep.useTransactImport();
   const userTracking = useUserTracking();
+  const isUnprojectedEnabled = useFeatureFlag("FLAG_UNPROJECTED");
 
   const importInp = useCallback(
     async (files: FileWithHandle[]) => {
@@ -139,10 +141,17 @@ export const useImportInp = () => {
               setDialogState({ type: "invalidFilesError" });
             }
           };
-          setDialogState({
-            type: "inpGeocodingNotSupported",
-            onImportNonProjected,
-          });
+          if (isUnprojectedEnabled) {
+            setDialogState({
+              type: "inpProjectionChoice",
+              onImportNonProjected,
+            });
+          } else {
+            setDialogState({
+              type: "inpGeocodingNotSupported",
+              onImportNonProjected,
+            });
+          }
           return;
         }
 
@@ -165,6 +174,7 @@ export const useImportInp = () => {
     [
       setDialogState,
       userTracking,
+      isUnprojectedEnabled,
       translate,
       transactImport,
       setFileInfo,

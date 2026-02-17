@@ -33,6 +33,11 @@ export type GeocodingNotSupportedDialogState = {
   onImportNonProjected?: () => void;
 };
 
+export type InpProjectionChoiceDialogState = {
+  type: "inpProjectionChoice";
+  onImportNonProjected: () => void;
+};
+
 export type MissingCoordinatesDialogState = {
   type: "inpMissingCoordinates";
   issues: ParserIssues;
@@ -141,6 +146,7 @@ export type DialogState =
   | { type: "loading" }
   | AlertInpOutputState
   | GeocodingNotSupportedDialogState
+  | InpProjectionChoiceDialogState
   | MissingCoordinatesDialogState
   | UpgradeDialogState
   | ImportCustomerPointsWizardState

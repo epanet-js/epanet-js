@@ -45,6 +45,7 @@ import {
   Link2Off,
   Lock,
   MapIcon,
+  MapPinned,
   Menu,
   MousePointer2,
   MousePointerClick,
@@ -115,6 +116,7 @@ const icon = (Icon: LucideIcon): React.FC<IconProps> => {
 
 export const HelpIcon = icon(CircleQuestionMark);
 export const RoadmapIcon = icon(MapIcon);
+export const MapPinnedIcon = icon(MapPinned);
 export const UtilitiesIcon = icon(ToolCase);
 export const InfoIcon = icon(Info);
 export const SuccessIcon = icon(CircleCheck);

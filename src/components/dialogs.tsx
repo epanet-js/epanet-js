@@ -63,6 +63,18 @@ const GeocodingNotSupportedDialog = dynamic<{
   },
 );
 
+const InpProjectionChoiceDialog = dynamic<{
+  onImportNonProjected: () => void;
+}>(
+  () =>
+    import("src/components/dialogs/inp-projection-choice").then(
+      (r) => r.InpProjectionChoiceDialog,
+    ),
+  {
+    loading: () => <Loading />,
+  },
+);
+
 const MissingCoordinatesDialog = dynamic<{
   issues: ParserIssues;
   onClose: () => void;
@@ -363,6 +375,9 @@ export const Dialogs = memo(function Dialogs() {
       if (dialog.type === "inpGeocodingNotSupported") {
         userTracking.capture({ name: "geocodingNotSupported.seen" });
       }
+      if (dialog.type === "inpProjectionChoice") {
+        userTracking.capture({ name: "inpProjectionChoice.seen" });
+      }
       if (dialog.type === "inpIssues") {
         userTracking.capture({ name: "inpIssues.seen" });
       }
@@ -435,6 +450,14 @@ export const Dialogs = memo(function Dialogs() {
   if (dialog.type === "firstScenario") {
     return (
       <FirstScenarioDialog onConfirm={dialog.onConfirm} onClose={onClose} />
+    );
+  }
+
+  if (dialog.type === "inpProjectionChoice") {
+    return (
+      <InpProjectionChoiceDialog
+        onImportNonProjected={dialog.onImportNonProjected}
+      />
     );
   }
 

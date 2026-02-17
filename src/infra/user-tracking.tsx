@@ -339,6 +339,15 @@ type CoordinatesIssuesExpanded = {
 type GeocodingNotSupportedSeen = {
   name: "geocodingNotSupported.seen";
 };
+type InpProjectionChoiceSeen = {
+  name: "inpProjectionChoice.seen";
+};
+type InpProjectionChoiceProjected = {
+  name: "inpProjectionChoice.projected";
+};
+type InpProjectionChoiceNonProjected = {
+  name: "inpProjectionChoice.nonProjected";
+};
 type MissingCoordinatesSeen = {
   name: "missingCoordinates.seen";
 };
@@ -815,6 +824,9 @@ export type UserEvent =
   | CoordinatesIssuesExpanded
   | MissingCoordinatesSeen
   | GeocodingNotSupportedSeen
+  | InpProjectionChoiceSeen
+  | InpProjectionChoiceProjected
+  | InpProjectionChoiceNonProjected
   | SimulationSummarySeen
   | ShortcutsOpened
   | PropertyAggregateOpened
