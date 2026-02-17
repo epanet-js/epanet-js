@@ -1,7 +1,7 @@
 import {
   HydraulicModel,
   initializeHydraulicModel,
-  DemandAssignment,
+  Demand,
 } from "src/hydraulic-model";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import {
@@ -310,7 +310,7 @@ const buildDemand = (
   patternContext: BuildPatternContext,
   baseDemand: number,
   patternLabel: string | undefined,
-): DemandAssignment => {
+): Demand => {
   const { fallbackPatternId, labelManager, usedPatternIds } = patternContext;
 
   if (patternLabel) {
@@ -371,7 +371,7 @@ const addJunction = (
 
   const junctionDemands = inpData.demands.get(junctionData.id) || [];
 
-  const demands: DemandAssignment[] =
+  const demands: Demand[] =
     junctionDemands.length > 0
       ? junctionDemands
           .filter((d) => d.baseDemand)

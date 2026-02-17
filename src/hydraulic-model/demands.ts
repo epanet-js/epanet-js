@@ -13,18 +13,20 @@ export type DemandPattern = {
 
 export type DemandPatterns = Map<PatternId, DemandPattern>;
 
-export type DemandAssignment = {
+export type Demand = {
   baseDemand: number;
   patternId?: PatternId;
+};
+
+export type AssignedDemands = {
+  junctions: Map<AssetId, Demand[]>;
+  customerPoints: Map<CustomerPointId, Demand[]>;
 };
 
 export type Demands = {
   multiplier: number;
   patterns: DemandPatterns;
-  assignments: {
-    junctions: Map<AssetId, DemandAssignment[]>;
-    customerPoints: Map<CustomerPointId, DemandAssignment[]>;
-  };
+  assignments: AssignedDemands;
 };
 
 export const createEmptyDemands = (): Demands => ({
@@ -48,7 +50,7 @@ export const getNextPatternId = (
 };
 
 export const calculateAverageDemand = (
-  demands: DemandAssignment[],
+  demands: Demand[],
   patterns: DemandPatterns,
 ): number => {
   return demands.reduce((total, demand) => {

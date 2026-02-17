@@ -6,7 +6,7 @@ import { baseModelAtom } from "src/state/hydraulic-model";
 import type { Asset, Pump } from "src/hydraulic-model";
 import {
   calculateAverageDemand,
-  type DemandAssignment,
+  type Demand,
 } from "src/hydraulic-model/demands";
 import { CurvePoint, ICurve } from "src/hydraulic-model/curves";
 
@@ -58,7 +58,7 @@ export function useAssetComparison(asset: Asset | undefined) {
 
     const baseDemands = (
       baseAsset.feature.properties as Record<string, unknown>
-    ).demands as DemandAssignment[] | undefined;
+    ).demands as Demand[] | undefined;
 
     const baseDirectDemand = calculateAverageDemand(
       baseDemands || [],

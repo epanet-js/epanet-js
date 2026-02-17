@@ -1,8 +1,8 @@
 import { HydraulicModel } from "./hydraulic-model";
 import { Asset } from "./asset-types";
 import type { AssetPropertiesMap } from "./asset-types";
-import { Demands } from "./demands";
-import { CustomerPoint } from "./customer-points";
+import { AssignedDemands, Demand, Demands } from "./demands";
+import { CustomerPoint, CustomerPointId } from "./customer-points";
 import { Curves } from "./curves";
 import { EPSTiming } from "./eps-timing";
 import { Controls } from "./controls";
@@ -18,12 +18,44 @@ export type AssetPatch = {
   };
 }[keyof AssetPropertiesMap];
 
+export type JunctionDemandAssignment = {
+  junctionId: AssetId;
+  demands: Demand[];
+};
+export type CustomerDemandAssignment = {
+  customerPointId: CustomerPointId;
+  demands: Demand[];
+};
+
+export type DemandAssignment =
+  | JunctionDemandAssignment
+  | CustomerDemandAssignment;
+
+export type DemandSettingsChange = Partial<
+  Pick<Demands, "multiplier" | "patterns"> & {
+    assignments: DemandAssignment[];
+  }
+>;
+
+export const toDemandAssignments = (
+  assignedDemands: AssignedDemands,
+): DemandAssignment[] => {
+  const result: DemandAssignment[] = [];
+  for (const [junctionId, demands] of assignedDemands.junctions) {
+    result.push({ junctionId, demands });
+  }
+  for (const [customerPointId, demands] of assignedDemands.customerPoints) {
+    result.push({ customerPointId, demands });
+  }
+  return result;
+};
+
 export type ModelMoment = {
   note: string;
   deleteAssets?: AssetId[];
   putAssets?: Asset[];
   patchAssetsAttributes?: AssetPatch[];
-  putDemands?: Demands;
+  putDemands?: DemandSettingsChange;
   putEPSTiming?: EPSTiming;
   putCustomerPoints?: CustomerPoint[];
   putCurves?: Curves;
@@ -35,7 +67,7 @@ export type ReverseMoment = {
   deleteAssets: AssetId[];
   putAssets: Asset[];
   patchAssetsAttributes: AssetPatch[];
-  putDemands?: Demands;
+  putDemands?: DemandSettingsChange;
   putEPSTiming?: EPSTiming;
   putCustomerPoints: CustomerPoint[];
   putCurves?: Curves;

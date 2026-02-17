@@ -49,6 +49,7 @@ import {
 import { nullSymbologySpec } from "src/map/symbology";
 import { mapSyncMomentAtom, MomentPointer } from "src/state/map";
 import { USelection } from "src/selection";
+import { toDemandAssignments } from "src/hydraulic-model/model-operation";
 
 const MAX_CHANGES_BEFORE_MAP_SYNC = 500;
 
@@ -75,7 +76,11 @@ export class Persistence implements IPersistenceWithSnapshots {
         putAssets: assets,
         deleteAssets: [],
         patchAssetsAttributes: [],
-        putDemands: hydraulicModel.demands,
+        putDemands: {
+          multiplier: hydraulicModel.demands.multiplier,
+          patterns: hydraulicModel.demands.patterns,
+          assignments: toDemandAssignments(hydraulicModel.demands.assignments),
+        },
         putEPSTiming: hydraulicModel.epsTiming,
         putControls: hydraulicModel.controls,
         putCustomerPoints: [...hydraulicModel.customerPoints.values()],

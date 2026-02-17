@@ -3,7 +3,7 @@ import { Position } from "geojson";
 import { roundCoordinates } from "src/lib/geometry";
 import { AssetId } from "./asset-types/base-asset";
 import { CustomerPointsLookup } from "./customer-points-lookup";
-import { DemandAssignment } from "./demands";
+import { Demand } from "./demands";
 
 export const MAX_CUSTOMER_POINT_LABEL_LENGTH = 50;
 
@@ -38,7 +38,7 @@ export class CustomerPoint {
   public readonly id: CustomerPointId;
   public readonly label: string;
   public readonly coordinates: Position;
-  private properties: { demands: DemandAssignment[] };
+  private properties: { demands: Demand[] };
   private connectionData: CustomerPointConnection | null = null;
 
   constructor(
@@ -46,7 +46,7 @@ export class CustomerPoint {
     coordinates: Position,
     properties: {
       label: string;
-      demands: DemandAssignment[];
+      demands: Demand[];
     },
   ) {
     this.id = id;
@@ -62,7 +62,7 @@ export class CustomerPoint {
     coordinates: Position,
     properties: {
       label: string;
-      demands: DemandAssignment[];
+      demands: Demand[];
     },
   ): CustomerPoint {
     return new CustomerPoint(id, roundCoordinates(coordinates), properties);
@@ -72,7 +72,7 @@ export class CustomerPoint {
     return this.demands?.[0]?.baseDemand ?? 0;
   }
 
-  get demands(): DemandAssignment[] {
+  get demands(): Demand[] {
     return this.properties.demands;
   }
 

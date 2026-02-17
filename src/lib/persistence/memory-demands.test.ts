@@ -3,21 +3,21 @@ import { createStore } from "jotai";
 import { Persistence } from "./persistence";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { setInitialState } from "src/__helpers__/state";
-import { Demands, createEmptyDemands } from "src/hydraulic-model/demands";
+import { DemandPatterns } from "src/hydraulic-model/demands";
 import { stagingModelAtom } from "src/state/jotai";
 
-const makeDemands = (
+const makeDemandPatterns = (
   patterns: { id: number; label: string; multipliers?: number[] }[],
-): Demands => {
-  const demands = createEmptyDemands();
+): DemandPatterns => {
+  const builtPatterns: DemandPatterns = new Map();
   for (const p of patterns) {
-    demands.patterns.set(p.id, {
+    builtPatterns.set(p.id, {
       id: p.id,
       label: p.label,
       multipliers: p.multipliers ?? [1],
     });
   }
-  return demands;
+  return builtPatterns;
 };
 
 describe("Persistence putDemands", () => {
@@ -47,13 +47,13 @@ describe("Persistence putDemands", () => {
     const persistence = new Persistence(store);
     const transact = persistence.useTransact();
 
-    const newDemands = makeDemands([
+    const patterns = makeDemandPatterns([
       { id: 1, label: "MyPattern", multipliers: [1, 2, 3] },
     ]);
 
     transact({
       note: "add demands",
-      putDemands: newDemands,
+      putDemands: { patterns },
     });
 
     const hydraulicModel = store.get(stagingModelAtom);
@@ -69,11 +69,11 @@ describe("Persistence putDemands", () => {
     const persistence = new Persistence(store);
     const transact = persistence.useTransact();
 
-    const newDemands = makeDemands([{ id: 1, label: "RenamedPattern" }]);
+    const patterns = makeDemandPatterns([{ id: 1, label: "RenamedPattern" }]);
 
     transact({
       note: "rename pattern",
-      putDemands: newDemands,
+      putDemands: { patterns },
     });
 
     const hydraulicModel = store.get(stagingModelAtom);
@@ -91,11 +91,11 @@ describe("Persistence putDemands", () => {
     const persistence = new Persistence(store);
     const transact = persistence.useTransact();
 
-    const newDemands = makeDemands([{ id: 1, label: "KeepThis" }]);
+    const patterns = makeDemandPatterns([{ id: 1, label: "KeepThis" }]);
 
     transact({
       note: "remove pattern",
-      putDemands: newDemands,
+      putDemands: { patterns },
     });
 
     const hydraulicModel = store.get(stagingModelAtom);
@@ -115,10 +115,10 @@ describe("Persistence putDemands undo/redo", () => {
     const transact = persistence.useTransact();
     const historyControl = persistence.useHistoryControl();
 
-    const newDemands = makeDemands([
+    const patterns = makeDemandPatterns([
       { id: 1, label: "PAT1", multipliers: [9, 9, 9] },
     ]);
-    transact({ note: "change multipliers", putDemands: newDemands });
+    transact({ note: "change multipliers", putDemands: { patterns } });
 
     // Verify change was applied
     let hydraulicModel = store.get(stagingModelAtom);
@@ -146,10 +146,10 @@ describe("Persistence putDemands undo/redo", () => {
     const transact = persistence.useTransact();
     const historyControl = persistence.useHistoryControl();
 
-    const newDemands = makeDemands([
+    const patterns = makeDemandPatterns([
       { id: 1, label: "PAT1", multipliers: [9, 9, 9] },
     ]);
-    transact({ note: "change multipliers", putDemands: newDemands });
+    transact({ note: "change multipliers", putDemands: { patterns } });
 
     // Undo then redo
     historyControl("undo");
@@ -174,8 +174,8 @@ describe("Persistence putDemands undo/redo", () => {
     const historyControl = persistence.useHistoryControl();
 
     // Remove PAT2
-    const newDemands = makeDemands([{ id: 1, label: "PAT1" }]);
-    transact({ note: "remove pattern", putDemands: newDemands });
+    const patterns = makeDemandPatterns([{ id: 1, label: "PAT1" }]);
+    transact({ note: "remove pattern", putDemands: { patterns } });
 
     // Verify PAT2 is removed
     let hydraulicModel = store.get(stagingModelAtom);
@@ -203,8 +203,8 @@ describe("Persistence putDemands undo/redo", () => {
     const historyControl = persistence.useHistoryControl();
 
     // Rename pattern
-    const newDemands = makeDemands([{ id: 1, label: "NewName" }]);
-    transact({ note: "rename pattern", putDemands: newDemands });
+    const patterns = makeDemandPatterns([{ id: 1, label: "NewName" }]);
+    transact({ note: "rename pattern", putDemands: { patterns } });
 
     // Verify rename
     let hydraulicModel = store.get(stagingModelAtom);
@@ -231,10 +231,10 @@ describe("Persistence putDemands undo/redo", () => {
     const historyControl = persistence.useHistoryControl();
 
     // Add a new pattern
-    const newDemands = makeDemands([
+    const patterns = makeDemandPatterns([
       { id: 1, label: "NewPattern", multipliers: [1, 2] },
     ]);
-    transact({ note: "add pattern", putDemands: newDemands });
+    transact({ note: "add pattern", putDemands: { patterns } });
 
     // Verify pattern was added
     let hydraulicModel = store.get(stagingModelAtom);

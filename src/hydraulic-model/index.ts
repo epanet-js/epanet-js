@@ -45,7 +45,7 @@ export type {
   PatternId,
   DemandPatterns,
   Demands,
-  DemandAssignment,
+  Demand,
 } from "./demands";
 export { createEmptyDemands } from "./demands";
 export type { IdGenerator } from "./id-generator";

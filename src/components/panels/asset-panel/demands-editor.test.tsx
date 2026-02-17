@@ -2,7 +2,7 @@ import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { DemandCategoriesEditor } from "./demands-editor";
 import {
-  DemandAssignment,
+  Demand,
   DemandPattern,
   DemandPatterns,
   PatternId,
@@ -167,7 +167,7 @@ describe("DemandCategoriesEditor", () => {
 
     it("displays existing demands", () => {
       const PATTERN_ID = 1;
-      const demands: DemandAssignment[] = [
+      const demands: Demand[] = [
         { baseDemand: 100, patternId: PATTERN_ID },
         { baseDemand: 50 },
       ];

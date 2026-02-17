@@ -14,4 +14,6 @@ export { changePumpDefinition } from "./change-pump-definition";
 export { changeJunctionDemands } from "./change-junction-demands";
 export { changeControls } from "./change-controls";
 export { changeCurves } from "./change-curves";
-export { changeDemandSettings } from "./change-demand-settings";
+export { changeDemandMultiplier } from "./change-demand-multiplier";
+export { changeDemandPatterns } from "./change-demand-patterns";
+export { changeDemandAssignment } from "./change-demand-assignment";

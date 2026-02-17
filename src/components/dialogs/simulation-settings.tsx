@@ -14,10 +14,10 @@ import { Section } from "../form/fields";
 import { useUserTracking } from "src/infra/user-tracking";
 import { SettingsIcon } from "src/icons";
 import { Selector } from "../form/selector";
-import { changeDemandSettings } from "src/hydraulic-model/model-operations/change-demand-settings";
 import { changeEPSTiming } from "src/hydraulic-model/model-operations/change-eps-timing";
 import { formatSecondsToDisplay } from "../form/time-field";
 import { worktreeAtom } from "src/state/scenarios";
+import { changeDemandMultiplier } from "src/hydraulic-model/model-operations";
 
 type SimulationModeOption = "steadyState" | "eps";
 
@@ -49,9 +49,10 @@ export const SimulationSettingsDialog = () => {
           oldValue: hydraulicModel.demands.multiplier,
         });
 
-        const demandMoment = changeDemandSettings(hydraulicModel, {
-          demandMultiplier: values.demandMultiplier,
-        });
+        const demandMoment = changeDemandMultiplier(
+          hydraulicModel,
+          values.demandMultiplier,
+        );
         transact(demandMoment);
       }
 

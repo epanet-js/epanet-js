@@ -16,11 +16,11 @@ import {
 import { PatternsIcon } from "src/icons";
 import { stagingModelAtom } from "src/state/jotai";
 import { usePersistence } from "src/lib/persistence";
-import { changeDemandSettings } from "src/hydraulic-model/model-operations/change-demand-settings";
 import { HydraulicModel } from "src/hydraulic-model/hydraulic-model";
 import { Junction } from "src/hydraulic-model/asset-types/junction";
 import { notify } from "src/components/notifications";
 import { useUserTracking } from "src/infra/user-tracking";
+import { changeDemandPatterns } from "src/hydraulic-model/model-operations";
 
 type PatternUpdate = Partial<Pick<DemandPattern, "label" | "multipliers">>;
 
@@ -130,9 +130,7 @@ export const CurvesAndPatternsDialog = () => {
       return;
     }
 
-    const moment = changeDemandSettings(hydraulicModel, {
-      patterns: editedPatterns,
-    });
+    const moment = changeDemandPatterns(hydraulicModel, editedPatterns);
     transact(moment);
     userTracking.capture({
       name: "patterns.updated",

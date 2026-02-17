@@ -1,11 +1,11 @@
 import { HydraulicModel } from "../hydraulic-model";
 import { ModelMoment, ReverseMoment } from "../model-operation";
-import type { AssetPatch } from "../model-operation";
+import type { AssetPatch, DemandAssignment } from "../model-operation";
 import { Asset, LinkAsset } from "../asset-types";
 import { AssetId } from "../assets-map";
 import { CustomerPoint } from "../customer-points";
 import { Curves } from "../curves";
-import { Demands } from "../demands";
+import { DemandPatterns } from "../demands";
 import { isDebugOn } from "src/infra/debug-mode";
 
 type PutAssetResult = {
@@ -30,7 +30,15 @@ export const applyMomentToModel = (
   };
 
   if (moment.putDemands) {
-    reverseMoment.putDemands = hydraulicModel.demands;
+    const reverseAssignements = putDemandAssignments(
+      hydraulicModel,
+      moment.putDemands.assignments || [],
+    );
+    reverseMoment.putDemands = {
+      multiplier: hydraulicModel.demands.multiplier,
+      patterns: hydraulicModel.demands.patterns,
+      assignments: reverseAssignements,
+    };
   }
   if (moment.putEPSTiming) {
     reverseMoment.putEPSTiming = hydraulicModel.epsTiming;
@@ -73,7 +81,12 @@ export const applyMomentToModel = (
   }
 
   if (moment.putDemands) {
-    putDemands(hydraulicModel, moment.putDemands);
+    if (moment.putDemands.multiplier !== undefined) {
+      hydraulicModel.demands.multiplier = moment.putDemands.multiplier;
+    }
+    if (moment.putDemands.patterns) {
+      putDemandPatterns(hydraulicModel, moment.putDemands.patterns);
+    }
   }
 
   if (moment.putEPSTiming) {
@@ -205,14 +218,47 @@ const patchAssetAttributes = (
   } as AssetPatch;
 };
 
-const putDemands = (hydraulicModel: HydraulicModel, demands: Demands): void => {
+const putDemandPatterns = (
+  hydraulicModel: HydraulicModel,
+  patterns: DemandPatterns,
+): void => {
   for (const pattern of hydraulicModel.demands.patterns.values()) {
     hydraulicModel.labelManager.remove(pattern.label, "pattern", pattern.id);
   }
-  hydraulicModel.demands = demands;
-  for (const pattern of demands.patterns.values()) {
+  hydraulicModel.demands.patterns = patterns;
+  for (const pattern of patterns.values()) {
     hydraulicModel.labelManager.register(pattern.label, "pattern", pattern.id);
   }
+};
+
+const putDemandAssignments = (
+  hydraulicModel: HydraulicModel,
+  assignments: DemandAssignment[],
+): DemandAssignment[] => {
+  const {
+    junctions: junctionAssignements,
+    customerPoints: customerPointAssignments,
+  } = hydraulicModel.demands.assignments;
+
+  const reverseAssignments: DemandAssignment[] = [];
+  assignments.forEach((demandAssignement) => {
+    if ("customerPointId" in demandAssignement) {
+      const customerDemands = customerPointAssignments.get(
+        demandAssignement.customerPointId,
+      );
+      reverseAssignments.push({
+        customerPointId: demandAssignement.customerPointId,
+        demands: customerDemands || [],
+      });
+    } else {
+      const demands = junctionAssignements.get(demandAssignement.junctionId);
+      reverseAssignments.push({
+        junctionId: demandAssignement.junctionId,
+        demands: demands || [],
+      });
+    }
+  });
+  return reverseAssignments;
 };
 
 const assertNoPutPatchOverlap = (moment: ModelMoment): void => {

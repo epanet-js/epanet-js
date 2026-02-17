@@ -11,10 +11,7 @@ import { DemandPatterns, PatternId } from "src/hydraulic-model";
 import { useTranslate } from "src/hooks/use-translate";
 import { DeleteIcon, AddIcon } from "src/icons";
 import { PropertyComparison } from "src/hooks/use-asset-comparison";
-import {
-  calculateAverageDemand,
-  DemandAssignment,
-} from "src/hydraulic-model/demands";
+import { calculateAverageDemand, Demand } from "src/hydraulic-model/demands";
 import { Quantities } from "src/model-metadata/quantities-spec";
 import { QuantityRow } from "./ui-components";
 
@@ -24,19 +21,16 @@ type DemandCategoryRow = {
 };
 
 type Props = {
-  demands: DemandAssignment[];
+  demands: Demand[];
   patterns: DemandPatterns;
-  onDemandsChange: (newDemands: DemandAssignment[]) => void;
+  onDemandsChange: (newDemands: Demand[]) => void;
   comparison?: PropertyComparison;
   readOnly?: boolean;
 };
 
 const CONSTANT_PATTERN_ID = 0;
 
-const toRow = (
-  demand: DemandAssignment,
-  patterns: DemandPatterns,
-): DemandCategoryRow => {
+const toRow = (demand: Demand, patterns: DemandPatterns): DemandCategoryRow => {
   if (demand.patternId) {
     const pattern = patterns.get(demand.patternId);
     if (pattern) {
@@ -52,7 +46,7 @@ const toRow = (
   };
 };
 
-const fromRow = (row: DemandCategoryRow): DemandAssignment => {
+const fromRow = (row: DemandCategoryRow): Demand => {
   return {
     baseDemand: row.baseDemand ?? 0,
     patternId:
@@ -306,11 +300,11 @@ export const DemandsEditor = ({
   demandComparator,
   readOnly,
 }: {
-  demands: DemandAssignment[];
+  demands: Demand[];
   patterns: DemandPatterns;
   quantitiesMetadata: Quantities;
   name: string;
-  onChange: (demands: DemandAssignment[]) => void;
+  onChange: (demands: Demand[]) => void;
   demandComparator: (demands: number) => PropertyComparison;
   readOnly: boolean;
 }) => {

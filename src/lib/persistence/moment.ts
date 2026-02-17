@@ -1,9 +1,11 @@
-import { Demands } from "src/hydraulic-model/demands";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import { Curves } from "src/hydraulic-model/curves";
 import { EPSTiming } from "src/hydraulic-model/eps-timing";
 import { Controls } from "src/hydraulic-model/controls";
-import type { AssetPatch } from "src/hydraulic-model/model-operation";
+import type {
+  AssetPatch,
+  DemandSettingsChange,
+} from "src/hydraulic-model/model-operation";
 import type { IWrappedFeature, IWrappedFeatureInput } from "src/types";
 
 /**
@@ -17,7 +19,7 @@ export interface Moment {
   putAssets: IWrappedFeature[];
   deleteAssets: IWrappedFeature["id"][];
   patchAssetsAttributes: AssetPatch[];
-  putDemands?: Demands;
+  putDemands?: DemandSettingsChange;
   putEPSTiming?: EPSTiming;
   putControls?: Controls;
   putCustomerPoints?: CustomerPoint[];
@@ -34,7 +36,7 @@ export interface MomentInput {
   putAssets: IWrappedFeatureInput[];
   deleteAssets: IWrappedFeature["id"][];
   patchAssetsAttributes: AssetPatch[];
-  putDemands?: Demands;
+  putDemands?: DemandSettingsChange;
   putEPSTiming?: EPSTiming;
   putControls?: Controls;
   putCustomerPoints?: CustomerPoint[];
