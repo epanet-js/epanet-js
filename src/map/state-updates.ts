@@ -31,6 +31,7 @@ import {
   buildSelectionSource,
   FeatureSources,
 } from "./data-source";
+import mapboxgl from "mapbox-gl";
 import { DynamicGrid } from "./dynamic-grid";
 import { ISymbology, LayerConfigMap, SYMBOLIZATION_NONE } from "src/types";
 import { buildBaseStyle, makeLayers } from "./build-style";
@@ -225,6 +226,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const selectionDeckLayersRef = useRef<CustomerPointsOverlay>([]);
   const ephemeralDeckLayersRef = useRef<CustomerPointsOverlay>([]);
   const dynamicGridRef = useRef<DynamicGrid | null>(null);
+  const scaleControlRef = useRef<mapboxgl.ScaleControl | null>(null);
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
 
@@ -307,11 +309,19 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           if (isUnprojected && !dynamicGridRef.current) {
             dynamicGridRef.current = new DynamicGrid(map.map);
             dynamicGridRef.current.attach();
+            scaleControlRef.current = new mapboxgl.ScaleControl({
+              unit: "metric",
+            });
+            map.map.addControl(scaleControlRef.current, "bottom-left");
           } else if (isUnprojected && dynamicGridRef.current) {
             dynamicGridRef.current.forceUpdate();
           } else if (!isUnprojected && dynamicGridRef.current) {
             dynamicGridRef.current.detach();
             dynamicGridRef.current = null;
+            if (scaleControlRef.current) {
+              map.map.removeControl(scaleControlRef.current);
+              scaleControlRef.current = null;
+            }
           }
         }
 
