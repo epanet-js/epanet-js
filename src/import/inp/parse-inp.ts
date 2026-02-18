@@ -39,7 +39,7 @@ export const parseInp = (
   const projection: Projection =
     options?.projection !== undefined ? options.projection : "wgs84";
 
-  if (projection === null) {
+  if (projection === "xy-grid") {
     transformNonProjectedCoordinates(inpData);
   }
 

@@ -127,7 +127,7 @@ export const useImportInp = () => {
             try {
               const result = parseInpFn(content, {
                 ...parseOptions,
-                projection: null,
+                projection: "xy-grid",
               });
               userTracking.capture(
                 buildCompleteEvent(

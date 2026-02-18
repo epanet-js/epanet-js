@@ -23,5 +23,5 @@ export const customerPointsAtom = focusAtom(stagingModelAtom, (optic) =>
 );
 
 export const isUnprojectedAtom = atom((get) => {
-  return get(stagingModelAtom).projection === null;
+  return get(stagingModelAtom).projection === "xy-grid";
 });

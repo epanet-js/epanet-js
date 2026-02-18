@@ -305,7 +305,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         }
 
         if (hasNewImport || hasNewStyles) {
-          const isUnprojected = hydraulicModel.projection === null;
+          const isUnprojected = hydraulicModel.projection === "xy-grid";
           if (isUnprojected && !dynamicGridRef.current) {
             dynamicGridRef.current = new DynamicGrid(map.map);
             dynamicGridRef.current.attach();

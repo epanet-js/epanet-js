@@ -767,7 +767,7 @@ describe("Parse inp with", () => {
       const withoutFlag = parseInp(inp);
       expect(withoutFlag.issues?.invalidCoordinates).toBeDefined();
 
-      const result = parseInp(inp, { projection: null });
+      const result = parseInp(inp, { projection: "xy-grid" });
       expect(result.issues?.invalidCoordinates).toBeUndefined();
       expect(result.hydraulicModel.assets.size).toBe(3);
 
@@ -777,7 +777,7 @@ describe("Parse inp with", () => {
       expect(Math.abs(j1.coordinates[1])).toBeLessThan(1);
     });
 
-    it("preserves other issues when using projection null", () => {
+    it("preserves other issues when using xy-grid projection", () => {
       const inp = `
       [JUNCTIONS]
       J1  100
@@ -789,12 +789,12 @@ describe("Parse inp with", () => {
       ANYTHING
       `;
 
-      const result = parseInp(inp, { projection: null });
+      const result = parseInp(inp, { projection: "xy-grid" });
       expect(result.issues?.invalidCoordinates).toBeUndefined();
       expect(result.issues?.unsupportedSections).toBeDefined();
     });
 
-    it("sets projection to null for non-projected import", () => {
+    it("sets projection to xy-grid for non-projected import", () => {
       const inp = `
       [JUNCTIONS]
       J1  100
@@ -803,8 +803,8 @@ describe("Parse inp with", () => {
       J1  500000  200000
       `;
 
-      const result = parseInp(inp, { projection: null });
-      expect(result.hydraulicModel.projection).toBeNull();
+      const result = parseInp(inp, { projection: "xy-grid" });
+      expect(result.hydraulicModel.projection).toBe("xy-grid");
     });
 
     it("sets projection to wgs84 for standard import", () => {

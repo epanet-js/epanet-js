@@ -1,1 +1,1 @@
-export type Projection = "wgs84" | null;
+export type Projection = "wgs84" | "xy-grid";
