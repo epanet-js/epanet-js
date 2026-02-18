@@ -2,7 +2,6 @@ import { useSetAtom } from "jotai";
 import { dialogAtom } from "src/state/jotai";
 import { DialogContainer, DialogHeader } from "../dialog";
 import { useUserTracking } from "src/infra/user-tracking";
-import { MapPinnedIcon } from "src/icons";
 import { useTranslate } from "src/hooks/use-translate";
 
 const NonProjectedIllustration = () => (
@@ -218,10 +217,7 @@ export const InpProjectionChoiceDialog = ({
 
   return (
     <DialogContainer size="sm">
-      <DialogHeader
-        title={translate("inpProjectionChoice.title")}
-        titleIcon={MapPinnedIcon}
-      />
+      <DialogHeader title={translate("inpProjectionChoice.title")} />
       <p className="text-sm text-gray-700 dark:text-gray-300 pb-4">
         {translate("inpProjectionChoice.description")}
       </p>
