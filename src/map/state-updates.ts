@@ -31,7 +31,7 @@ import {
   buildSelectionSource,
   FeatureSources,
 } from "./data-source";
-import { buildGridSource } from "./data-source/grid";
+import { DynamicGrid } from "./dynamic-grid";
 import { ISymbology, LayerConfigMap, SYMBOLIZATION_NONE } from "src/types";
 import { buildBaseStyle, makeLayers } from "./build-style";
 import { LayerId } from "./layers";
@@ -224,6 +224,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const customerPointsOverlayRef = useRef<CustomerPointsOverlay>([]);
   const selectionDeckLayersRef = useRef<CustomerPointsOverlay>([]);
   const ephemeralDeckLayersRef = useRef<CustomerPointsOverlay>([]);
+  const dynamicGridRef = useRef<DynamicGrid | null>(null);
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
 
@@ -302,9 +303,16 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         }
 
         if (hasNewImport || hasNewStyles) {
-          const gridFeatures =
-            hydraulicModel.projection === null ? buildGridSource(assets) : [];
-          await map.setSource("grid", gridFeatures);
+          const isUnprojected = hydraulicModel.projection === null;
+          if (isUnprojected && !dynamicGridRef.current) {
+            dynamicGridRef.current = new DynamicGrid(map.map);
+            dynamicGridRef.current.attach();
+          } else if (isUnprojected && dynamicGridRef.current) {
+            dynamicGridRef.current.forceUpdate();
+          } else if (!isUnprojected && dynamicGridRef.current) {
+            dynamicGridRef.current.detach();
+            dynamicGridRef.current = null;
+          }
         }
 
         if (hasNewEditions && !hasSyncMomentChanged) {

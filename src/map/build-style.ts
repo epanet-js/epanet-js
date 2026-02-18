@@ -88,7 +88,7 @@ import {
   ephemeralSelectionFillLayer,
   ephemeralSelectionOutlineLayer,
 } from "src/map/layers/ephemeral-state";
-import { gridLayer } from "src/map/layers/grid";
+import { gridMinorLayer, gridMajorLayer } from "src/map/layers/grid";
 import {
   selectedPipesLayer,
   selectedPumpLinesLayer,
@@ -160,7 +160,8 @@ export function makeLayers({
   previewProperty: PreviewProperty;
 }): mapboxgl.AnyLayer[] {
   return [
-    gridLayer(),
+    gridMinorLayer(),
+    gridMajorLayer(),
     ephemeralHaloLayer({ source: "ephemeral" }),
     pipesLayer({
       source: "main-features",
