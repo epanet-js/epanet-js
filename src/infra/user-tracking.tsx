@@ -272,6 +272,7 @@ export type ImportInpCompleted = {
     | "hasUndefinedPumpCurve"
     | "hasPCVCurves"
     | "hasUnusedCurves"
+    | "hasUnusedPatterns"
     | "hasWaterAge"
     | "hasWaterChemical"
     | "hasWaterTrace"

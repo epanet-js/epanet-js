@@ -54,6 +54,19 @@ export const unsupported: RowParser = ({ sectionName, issues }) => {
   issues.addUsedSection(sectionName);
 };
 
+export const parseSource: RowParser = ({
+  sectionName,
+  trimmedRow,
+  inpData,
+  issues,
+}) => {
+  issues.addUsedSection(sectionName);
+  const [, , , patternId] = readValues(trimmedRow);
+  if (patternId) {
+    inpData.sourcePatterns.add(patternId);
+  }
+};
+
 const defaultEnergySettings: Record<string, number> = {
   "GLOBAL EFFICIENCY": 75,
   "GLOBAL PRICE": 0,
@@ -72,9 +85,19 @@ export const parseEnergy: RowParser = ({
     const [, pumpId, keyword, value] = readValues(trimmedRow);
     if (keyword?.toUpperCase() === "EFFICIENCY" && value) {
       inpData.energyEfficiencyCurves.set(pumpId, value);
-    } else {
-      issues.addUsedSection(sectionName);
+    } else if (keyword?.toUpperCase() === "PATTERN" && value) {
+      inpData.energyPatterns.add(value);
     }
+    issues.addUsedSection(sectionName);
+    return;
+  }
+
+  if (upperRow.startsWith("GLOBAL PATTERN")) {
+    const patternId = upperRow.replace(/^GLOBAL\s+PATTERN\s+/i, "").trim();
+    if (patternId) {
+      inpData.energyPatterns.add(readValues(trimmedRow)[2]);
+    }
+    issues.addUsedSection(sectionName);
     return;
   }
 

@@ -487,6 +487,20 @@ const IssuesSummary = ({ issues }: { issues: ParserIssues }) => {
               </div>
             </div>
           )}
+          {issues.hasUnusedPatterns && (
+            <div>
+              <p>{translate("ignoredValuesDetected", "[PATTERNS]")}:</p>
+              <div className="flex flex-col gap-y-1 items-start">
+                <span>
+                  -{" "}
+                  {translate(
+                    "unusedPatterns",
+                    String(issues.hasUnusedPatterns),
+                  )}
+                </span>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

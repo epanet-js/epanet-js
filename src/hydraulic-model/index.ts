@@ -44,6 +44,7 @@ export type { EPSTiming } from "./eps-timing";
 export type {
   PatternMultipliers,
   PatternId,
+  PatternType,
   Pattern,
   Patterns,
 } from "./patterns";

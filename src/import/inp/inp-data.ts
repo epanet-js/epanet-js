@@ -122,6 +122,8 @@ export type InpData = {
   status: ItemData<string>;
   curves: ItemData<CurveData>;
   energyEfficiencyCurves: ItemData<string>;
+  sourcePatterns: Set<string>;
+  energyPatterns: Set<string>;
   options: {
     units: EpanetUnitSystem;
     headlossFormula: HeadlossFormula;
@@ -202,6 +204,8 @@ export const nullInpData = (): InpData => {
     status: new ItemData(),
     curves: new ItemData(),
     energyEfficiencyCurves: new ItemData(),
+    sourcePatterns: new Set(),
+    energyPatterns: new Set(),
     options: { units: "GPM", headlossFormula: "H-W", demandMultiplier: 1 },
     times: {},
     controls: { simple: "", ruleBased: "" },

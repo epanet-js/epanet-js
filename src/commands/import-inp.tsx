@@ -4,7 +4,7 @@ import { dialogAtom, fileInfoAtom } from "src/state/jotai";
 import { captureError } from "src/infra/error-tracking";
 import { FileWithHandle } from "browser-fs-access";
 import { useTranslate } from "src/hooks/use-translate";
-import { ParserIssues, parseInp } from "src/import/inp";
+import { ParserIssues, parseInp, parseInpWithPatterns } from "src/import/inp";
 import { usePersistence } from "src/lib/persistence";
 import { FeatureCollection } from "geojson";
 import { getExtent } from "src/lib/geometry";
@@ -33,6 +33,7 @@ export const useImportInp = () => {
   const transactImport = rep.useTransactImport();
   const userTracking = useUserTracking();
   const isUnprojectedEnabled = useFeatureFlag("FLAG_UNPROJECTED");
+  const isMorePatternsOn = useFeatureFlag("FLAG_MORE_PATTERNS");
 
   const importInp = useCallback(
     async (files: FileWithHandle[]) => {
@@ -114,8 +115,9 @@ export const useImportInp = () => {
           setDialogState({ type: "inpIssues", issues });
         };
 
+        const parseInpFn = isMorePatternsOn ? parseInpWithPatterns : parseInp;
         const { hydraulicModel, modelMetadata, issues, isMadeByApp, stats } =
-          parseInp(content, parseOptions);
+          parseInpFn(content, parseOptions);
         userTracking.capture(
           buildCompleteEvent(hydraulicModel, modelMetadata, issues, stats),
         );
@@ -123,7 +125,7 @@ export const useImportInp = () => {
           const onImportNonProjected = async () => {
             setDialogState({ type: "loading" });
             try {
-              const result = parseInp(content, {
+              const result = parseInpFn(content, {
                 ...parseOptions,
                 projection: null,
               });
@@ -175,6 +177,7 @@ export const useImportInp = () => {
       setDialogState,
       userTracking,
       isUnprojectedEnabled,
+      isMorePatternsOn,
       translate,
       transactImport,
       setFileInfo,

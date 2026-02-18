@@ -2,9 +2,17 @@ export type PatternMultipliers = number[];
 
 export type PatternId = number;
 
+export type PatternType =
+  | "demand"
+  | "reservoirHead"
+  | "pumpSpeed"
+  | "qualitySourceStrength"
+  | "energyPrice";
+
 export type Pattern = {
   id: PatternId;
   label: string;
+  type?: PatternType;
   multipliers: number[];
 };
 

@@ -24,6 +24,7 @@ import {
   parseEnergy,
   parseEmitter,
   parseReaction,
+  parseSource,
 } from "./row-parsers";
 import { MAX_CUSTOMER_POINT_LABEL_LENGTH } from "src/hydraulic-model/customer-points";
 
@@ -49,7 +50,7 @@ const buildSectionParserDefinitions = (): SectionParserDefinition[] => [
   { names: ["COORDINATES", "COORDINATE"], parser: parsePosition },
   { names: ["RESERVOIRS", "RESERVOIR"], parser: parseReservoir },
   { names: ["ENERGY"], parser: parseEnergy },
-  { names: ["SOURCES"], parser: unsupported },
+  { names: ["SOURCES"], parser: parseSource },
   { names: ["REPORT"], parser: ignore },
   { names: ["VERTICES", "VERTEX"], parser: parseVertex },
   { names: ["TANKS", "TANK"], parser: parseTank },
