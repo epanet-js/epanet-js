@@ -61,7 +61,7 @@ describe("parse pattern types", () => {
     expect(pattern?.type).toBe("demand");
   });
 
-  it("only keeps demand patterns in hydraulicModel.patterns", () => {
+  it("excludes unused patterns from hydraulicModel.patterns", () => {
     const inp = `
     [JUNCTIONS]
     J1    100    50    usedPattern
@@ -145,5 +145,86 @@ describe("parse pattern types", () => {
 
     const { issues } = parseInpWithPatterns(inp);
     expect(issues?.hasUnusedPatterns).toBeUndefined();
+  });
+
+  it("sets type 'reservoirHead' on pattern used by reservoir", () => {
+    const inp = `
+    [JUNCTIONS]
+    J1    100
+
+    [RESERVOIRS]
+    R1    100    resPat
+
+    [PATTERNS]
+    resPat    1.4    1.2    1.9
+
+    [COORDINATES]
+    J1    0    0
+    R1    2    2
+
+    [END]
+    `;
+
+    const { hydraulicModel } = parseInpWithPatterns(inp);
+    const pattern = [...hydraulicModel.patterns.values()].find(
+      (p) => p.label === "resPat",
+    );
+    expect(pattern?.type).toBe("reservoirHead");
+  });
+
+  it("sets type 'pumpSpeed' on pattern used by pump", () => {
+    const inp = `
+    [JUNCTIONS]
+    J1    100
+    J2    100
+
+    [PUMPS]
+    PMP1    J1    J2    HEAD    curve1    PATTERN    pumpPat
+
+    [CURVES]
+    curve1    100    50
+
+    [PATTERNS]
+    pumpPat    1.5    1.2
+
+    [COORDINATES]
+    J1    0    0
+    J2    1    1
+
+    [END]
+    `;
+
+    const { hydraulicModel } = parseInpWithPatterns(inp);
+    const pattern = [...hydraulicModel.patterns.values()].find(
+      (p) => p.label === "pumpPat",
+    );
+    expect(pattern?.type).toBe("pumpSpeed");
+  });
+
+  it("excludes unsupported patterns (qualitySourceStrength, energyPrice) from the model", () => {
+    const inp = `
+    [JUNCTIONS]
+    J1    100
+    J2    100
+
+    [SOURCES]
+    J1    CONCEN    1.0    srcPat
+
+    [ENERGY]
+    Global Pattern    ePat
+
+    [PATTERNS]
+    srcPat    0.5    1.5
+    ePat    0.8    1.2
+
+    [COORDINATES]
+    J1    0    0
+    J2    1    1
+
+    [END]
+    `;
+
+    const { hydraulicModel } = parseInpWithPatterns(inp);
+    expect(hydraulicModel.patterns.size).toBe(0);
   });
 });

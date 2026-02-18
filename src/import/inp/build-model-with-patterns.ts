@@ -932,7 +932,11 @@ const addPatterns = (
 
   const supportedPatterns: Patterns = new Map();
   for (const pattern of patterns.values()) {
-    if (pattern.type === "demand") {
+    if (
+      pattern.type === "demand" ||
+      pattern.type === "reservoirHead" ||
+      pattern.type === "pumpSpeed"
+    ) {
       supportedPatterns.set(pattern.id, pattern);
     }
     if (!pattern.type) {

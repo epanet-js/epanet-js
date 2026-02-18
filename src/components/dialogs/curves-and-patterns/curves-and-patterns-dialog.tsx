@@ -4,13 +4,16 @@ import { DialogContainer, DialogHeader, useDialogState } from "../../dialog";
 import { useTranslate } from "src/hooks/use-translate";
 import { Button } from "src/components/elements";
 import { PatternSidebar } from "./pattern-sidebar";
+import { GroupedPatternSidebar } from "./grouped-pattern-sidebar";
 import { PatternDetail } from "./pattern-detail";
 import { useIsSnapshotLocked } from "src/hooks/use-is-snapshot-locked";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   PatternMultipliers,
   Patterns,
   Pattern,
   PatternId,
+  PatternType,
   getNextPatternId,
 } from "src/hydraulic-model";
 import { PatternsIcon } from "src/icons";
@@ -29,6 +32,7 @@ export const CurvesAndPatternsDialog = () => {
   const hydraulicModel = useAtomValue(stagingModelAtom);
   const userTracking = useUserTracking();
   const isSnapshotLocked = useIsSnapshotLocked();
+  const isMorePatternsOn = useFeatureFlag("FLAG_MORE_PATTERNS");
   const [selectedPatternId, setSelectedPatternId] = useState<PatternId | null>(
     null,
   );
@@ -79,11 +83,12 @@ export const CurvesAndPatternsDialog = () => {
       label: string,
       multipliers: PatternMultipliers,
       source: "new" | "clone",
+      type: PatternType = "demand",
     ): PatternId => {
       const id = nextPatternIdRef.current;
       setEditedPatterns((prev) => {
         const patterns = new Map(prev);
-        patterns.set(id, { id, label, multipliers });
+        patterns.set(id, { id, label, multipliers, type });
         return patterns;
       });
       userTracking.capture({ name: "pattern.added", source });
@@ -163,16 +168,29 @@ export const CurvesAndPatternsDialog = () => {
     <DialogContainer size="lg" height="lg" onClose={handleCancel}>
       <DialogHeader title={translate("curvesAndPatterns")} />
       <div className="flex-1 flex min-h-0 gap-4">
-        <PatternSidebar
-          patterns={editedPatterns}
-          selectedPatternId={selectedPatternId}
-          minPatternSteps={minPatternSteps}
-          onSelectPattern={setSelectedPatternId}
-          onAddPattern={handleAddPattern}
-          onChangePattern={handlePatternChange}
-          onDeletePattern={handleDeletePattern}
-          readOnly={isSnapshotLocked}
-        />
+        {isMorePatternsOn ? (
+          <GroupedPatternSidebar
+            patterns={editedPatterns}
+            selectedPatternId={selectedPatternId}
+            minPatternSteps={minPatternSteps}
+            onSelectPattern={setSelectedPatternId}
+            onAddPattern={handleAddPattern}
+            onChangePattern={handlePatternChange}
+            onDeletePattern={handleDeletePattern}
+            readOnly={isSnapshotLocked}
+          />
+        ) : (
+          <PatternSidebar
+            patterns={editedPatterns}
+            selectedPatternId={selectedPatternId}
+            minPatternSteps={minPatternSteps}
+            onSelectPattern={setSelectedPatternId}
+            onAddPattern={handleAddPattern}
+            onChangePattern={handlePatternChange}
+            onDeletePattern={handleDeletePattern}
+            readOnly={isSnapshotLocked}
+          />
+        )}
         <div className="flex-1 flex flex-col min-h-0 w-full">
           {selectedPatternId ? (
             <PatternDetail
@@ -301,6 +319,7 @@ const arePatternsEqual = (original: Patterns, edited: Patterns): boolean => {
     const editedPattern = edited.get(id);
     if (!editedPattern) return false;
     if (originalPattern.label !== editedPattern.label) return false;
+    if (originalPattern.type !== editedPattern.type) return false;
     if (originalPattern.multipliers.length !== editedPattern.multipliers.length)
       return false;
     if (

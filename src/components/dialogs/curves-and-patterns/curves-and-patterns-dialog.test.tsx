@@ -343,6 +343,7 @@ describe("CurvesAndPatternsDialog", () => {
       expect(newPattern).toEqual({
         id: newPatternId,
         label: "NEWPATTERN",
+        type: "demand",
         multipliers: [1],
       });
     });
