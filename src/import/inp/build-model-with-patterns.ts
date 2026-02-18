@@ -407,6 +407,7 @@ const addReservoir = (
   const coordinates = getNodeCoordinates(inpData, reservoirData.id, issues);
   if (!coordinates) return;
 
+  let headPatternId: PatternId | undefined;
   if (reservoirData.patternId) {
     const patternId = patternContext.labelManager.getIdByLabel(
       reservoirData.patternId,
@@ -414,14 +415,16 @@ const addReservoir = (
     );
     if (patternId !== undefined) {
       markPatternUsed(patternContext.patterns, patternId, "reservoirHead");
+      headPatternId = patternId;
     }
   }
 
   const reservoir = hydraulicModel.assetBuilder.buildReservoir({
     label: reservoirData.id,
     coordinates,
-    head: calculateReservoirHead(reservoirData, inpData.patterns),
+    head: reservoirData.baseHead,
     elevation: reservoirData.elevation,
+    headPatternId,
     isActive: reservoirData.isActive,
   });
   hydraulicModel.assets.set(reservoir.id, reservoir);
@@ -818,18 +821,6 @@ const getPattern = (
   patternId: string | undefined,
 ): number[] => {
   return patterns.get(patternId || defaultPatternId)?.multipliers || [1];
-};
-
-const calculateReservoirHead = (
-  reservoir: { id: string; baseHead: number; patternId?: string },
-  patterns: InpData["patterns"],
-): number => {
-  let head = reservoir.baseHead;
-  if (reservoir.patternId) {
-    const pattern = getPattern(patterns, reservoir.patternId);
-    head = reservoir.baseHead * pattern[0];
-  }
-  return head;
 };
 
 const addControls = (

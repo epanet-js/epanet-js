@@ -1,8 +1,10 @@
+import { PatternId } from "../patterns";
 import { Node, NodeProperties } from "./node";
 
 export type ReservoirProperties = {
   type: "reservoir";
   head: number;
+  headPatternId?: PatternId;
 } & NodeProperties;
 
 export const reservoirQuantities = ["elevation", "head"] as const;
@@ -28,7 +30,7 @@ export class Reservoir extends Node<ReservoirProperties> {
     return this.properties.head;
   }
 
-  setHead(value: number) {
-    this.properties.head = value;
+  get headPatternId() {
+    return this.properties.headPatternId;
   }
 }

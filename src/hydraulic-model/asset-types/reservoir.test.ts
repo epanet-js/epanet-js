@@ -1,6 +1,21 @@
 import { buildReservoir } from "../../__helpers__/hydraulic-model-builder";
 
 describe("Reservoir", () => {
+  it("stores the headPatternId", () => {
+    const reservoir = buildReservoir({
+      head: 100,
+      headPatternId: 42,
+    });
+    expect(reservoir.headPatternId).toEqual(42);
+  });
+
+  it("leaves headPatternId undefined when not provided", () => {
+    const reservoir = buildReservoir({
+      head: 100,
+    });
+    expect(reservoir.headPatternId).toBeUndefined();
+  });
+
   it("assigns a head relative to the elevation", () => {
     const reservoir = buildReservoir({
       elevation: 10,
@@ -30,13 +45,5 @@ describe("Reservoir", () => {
       head: 0,
     });
     expect(withCustomNullHead.head).toEqual(0);
-  });
-
-  it("can set the head", () => {
-    const reservoir = buildReservoir();
-
-    reservoir.setHead(100);
-
-    expect(reservoir.head).toEqual(100);
   });
 });

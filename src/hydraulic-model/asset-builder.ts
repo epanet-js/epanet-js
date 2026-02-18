@@ -61,6 +61,7 @@ export type ReservoirBuildData = {
   head?: number;
   relativeHead?: number;
   elevation?: number;
+  headPatternId?: PatternId;
   isActive?: boolean;
 };
 
@@ -93,6 +94,7 @@ import {
   ValveKind,
 } from "./asset-types/valve";
 import { CurveId, CurvePoint, defaultCurvePoints } from "./curves";
+import { PatternId } from "./patterns";
 
 export type DefaultQuantities = {
   pipe: Partial<Record<PipeQuantity, number>>;
@@ -275,6 +277,7 @@ export class AssetBuilder {
     elevation,
     head,
     relativeHead,
+    headPatternId,
     isActive = true,
   }: ReservoirBuildData = {}) {
     const internalId = id ?? this._idGenerator.newId();
@@ -300,6 +303,7 @@ export class AssetBuilder {
             ? label
             : this.labelGenerator.generateFor("reservoir", internalId),
         head: headValue,
+        headPatternId,
         elevation: elevationValue,
         isActive,
       },

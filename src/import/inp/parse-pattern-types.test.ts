@@ -106,6 +106,30 @@ describe("parse pattern types", () => {
     expect(issues?.hasUnusedPatterns).toBe(1);
   });
 
+  it("sets headPatternId on reservoir when pattern is used", () => {
+    const inp = `
+    [RESERVOIRS]
+    R1    100    resPat
+
+    [PATTERNS]
+    resPat    1.4    1.2    1.9
+
+    [COORDINATES]
+    R1    0    0
+
+    [END]
+    `;
+
+    const { hydraulicModel } = parseInpWithPatterns(inp);
+    const reservoir = [...hydraulicModel.assets.values()].find(
+      (a) => a.type === "reservoir",
+    ) as import("src/hydraulic-model/asset-types/reservoir").Reservoir;
+    expect(reservoir).toBeDefined();
+    expect(reservoir.headPatternId).toBeDefined();
+    const pattern = hydraulicModel.patterns.get(reservoir.headPatternId!);
+    expect(pattern?.type).toBe("reservoirHead");
+  });
+
   it("does not report non-demand patterns as unused", () => {
     const inp = `
     [JUNCTIONS]
