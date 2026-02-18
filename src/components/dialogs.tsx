@@ -71,7 +71,7 @@ const InpProjectionChoiceDialog = dynamic<{
       (r) => r.InpProjectionChoiceDialog,
     ),
   {
-    loading: () => <Loading />,
+    loading: () => <LoadingDialog />,
   },
 );
 
