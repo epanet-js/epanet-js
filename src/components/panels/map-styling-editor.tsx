@@ -55,7 +55,7 @@ export const MapStylingEditor = () => {
           geometryType="link"
           properties={supportedLinkProperties}
         />
-        <CustomerPointsSection />
+        {!isUnprojected && <CustomerPointsSection />}
         {!isUnprojected && (
           <Section title={translate("layers")} button={<AddLayer />}>
             <LayersEditor />
