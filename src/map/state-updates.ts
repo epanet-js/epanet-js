@@ -309,19 +309,25 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           if (isUnprojected && !dynamicGridRef.current) {
             dynamicGridRef.current = new DynamicGrid(map.map);
             dynamicGridRef.current.attach();
-            scaleControlRef.current = new mapboxgl.ScaleControl({
-              unit: "metric",
-            });
-            map.map.addControl(scaleControlRef.current, "bottom-left");
           } else if (isUnprojected && dynamicGridRef.current) {
             dynamicGridRef.current.forceUpdate();
           } else if (!isUnprojected && dynamicGridRef.current) {
             dynamicGridRef.current.detach();
             dynamicGridRef.current = null;
+          }
+          if (isUnprojected) {
+            const scaleUnit =
+              quantities.getUnit("length") === "ft" ? "imperial" : "metric";
             if (scaleControlRef.current) {
               map.map.removeControl(scaleControlRef.current);
-              scaleControlRef.current = null;
             }
+            scaleControlRef.current = new mapboxgl.ScaleControl({
+              unit: scaleUnit,
+            });
+            map.map.addControl(scaleControlRef.current, "bottom-left");
+          } else if (scaleControlRef.current) {
+            map.map.removeControl(scaleControlRef.current);
+            scaleControlRef.current = null;
           }
         }
 
