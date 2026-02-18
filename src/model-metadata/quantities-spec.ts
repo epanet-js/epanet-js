@@ -123,8 +123,6 @@ const metricSpec: AssetQuantitiesSpec = {
       minVolume: 0,
     },
     pump: {
-      designHead: 1,
-      designFlow: 1,
       power: 20,
     },
     valve: { diameter: 300 },
@@ -183,8 +181,6 @@ const usCustomarySpec: AssetQuantitiesSpec = {
       minVolume: 0,
     },
     pump: {
-      designHead: 1,
-      designFlow: 1,
       power: 20,
     },
     valve: { diameter: 12 },

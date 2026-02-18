@@ -19,14 +19,7 @@ export type PumpProperties = {
   curve?: CurvePoint[];
 } & LinkProperties;
 
-export const pumpQuantities = [
-  "flow",
-  "head",
-  "designFlow",
-  "designHead",
-  "power",
-  "speed",
-];
+export const pumpQuantities = ["flow", "head", "power", "speed"];
 export type PumpQuantity = (typeof pumpQuantities)[number];
 
 export class Pump extends Link<PumpProperties> {
