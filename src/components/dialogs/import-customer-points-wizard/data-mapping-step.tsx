@@ -40,7 +40,7 @@ export const DataMappingStep: React.FC<{
   const userTracking = useUserTracking();
   const { modelMetadata } = useAtomValue(dataAtom);
   const hydraulicModel = useAtomValue(stagingModelAtom);
-  const patterns = hydraulicModel.demands.patterns;
+  const patterns = hydraulicModel.patterns;
 
   const {
     parsedDataSummary,

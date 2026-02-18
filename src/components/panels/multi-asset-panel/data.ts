@@ -111,6 +111,7 @@ export const computeMultiAssetData = (
           hydraulicModel.customerPointsLookup,
           hydraulicModel.assets,
           hydraulicModel.demands,
+          hydraulicModel.patterns,
           simulationResults,
         );
         break;
@@ -122,6 +123,7 @@ export const computeMultiAssetData = (
           quantitiesMetadata,
           hydraulicModel.customerPointsLookup,
           hydraulicModel.demands,
+          hydraulicModel.patterns,
           simulationResults,
         );
         break;
@@ -183,6 +185,7 @@ const appendJunctionStats = (
   customerPointsLookup: CustomerPointsLookup,
   assets: HydraulicModel["assets"],
   demands: Demands,
+  patterns: Patterns,
   simulationResults?: ResultsReader | null,
 ) => {
   const id = junction.id;
@@ -197,7 +200,7 @@ const appendJunctionStats = (
 
   const averageDemand = calculateAverageDemand(
     getJunctionDemands(demands, junction.id),
-    demands.patterns,
+    patterns,
   );
   updateQuantityStats(
     statsMap,
@@ -217,7 +220,7 @@ const appendJunctionStats = (
     const totalCustomerDemand = calculateCustomerPointsDemand(
       customerPoints,
       demands,
-      demands.patterns,
+      patterns,
     );
 
     updateQuantityStats(
@@ -297,6 +300,7 @@ const appendPipeStats = (
   quantitiesMetadata: Quantities,
   customerPointsLookup: CustomerPointsLookup,
   demands: Demands,
+  patterns: Patterns,
   simulationResults?: ResultsReader | null,
 ) => {
   const id = pipe.id;
@@ -335,7 +339,7 @@ const appendPipeStats = (
     const totalCustomerDemand = calculateCustomerPointsDemand(
       Array.from(customerPoints),
       demands,
-      demands.patterns,
+      patterns,
     );
 
     updateQuantityStats(

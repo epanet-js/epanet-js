@@ -308,8 +308,8 @@ J1	1	2
     expect(cp1Demands[0].baseDemand).toBe(25);
     expect(cp1Demands[0].patternId).toBe(1);
 
-    expect(hydraulicModel.demands.patterns.size).toBe(1);
-    expect(hydraulicModel.demands.patterns.get(1)?.label).toBe("residential");
+    expect(hydraulicModel.patterns.size).toBe(1);
+    expect(hydraulicModel.patterns.get(1)?.label).toBe("residential");
   });
 
   it("parses multiple demands per customer point", () => {
@@ -354,9 +354,9 @@ J1	1	2
     expect(cp1Demands[1].baseDemand).toBe(15);
     expect(cp1Demands[1].patternId).toBe(2);
 
-    expect(hydraulicModel.demands.patterns.size).toBe(2);
-    expect(hydraulicModel.demands.patterns.get(1)?.label).toBe("residential");
-    expect(hydraulicModel.demands.patterns.get(2)?.label).toBe("commercial");
+    expect(hydraulicModel.patterns.size).toBe(2);
+    expect(hydraulicModel.patterns.get(1)?.label).toBe("residential");
+    expect(hydraulicModel.patterns.get(2)?.label).toBe("commercial");
   });
 
   it("parses customer demands without pattern", () => {
@@ -472,9 +472,9 @@ J1	1	2
     expect(cp2Demands[0].baseDemand).toBe(15);
     expect(cp2Demands[0].patternId).toBe(2);
 
-    expect(hydraulicModel.demands.patterns.size).toBe(2);
-    expect(hydraulicModel.demands.patterns.get(1)?.label).toBe("residential");
-    expect(hydraulicModel.demands.patterns.get(2)?.label).toBe("commercial");
+    expect(hydraulicModel.patterns.size).toBe(2);
+    expect(hydraulicModel.patterns.get(1)?.label).toBe("residential");
+    expect(hydraulicModel.patterns.get(2)?.label).toBe("commercial");
   });
 
   it("ignores CUSTOMERS_DEMANDS section when customerPoints option is false", () => {

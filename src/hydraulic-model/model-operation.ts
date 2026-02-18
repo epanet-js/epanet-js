@@ -7,6 +7,7 @@ import { Curves } from "./curves";
 import { EPSTiming } from "./eps-timing";
 import { Controls } from "./controls";
 import type { AssetId } from "./assets-map";
+import { Patterns } from "./patterns";
 
 type NonPatchableKeys = "type" | "connections";
 
@@ -31,11 +32,10 @@ export type DemandAssignment =
   | JunctionDemandAssignment
   | CustomerDemandAssignment;
 
-export type DemandSettingsChange = Partial<
-  Pick<Demands, "multiplier" | "patterns"> & {
-    assignments: DemandAssignment[];
-  }
->;
+export type DemandSettingsChange = {
+  multiplier?: number;
+  assignments?: DemandAssignment[];
+};
 
 export const toDemandAssignments = (demands: Demands): DemandAssignment[] => {
   const result: DemandAssignment[] = [];
@@ -48,28 +48,28 @@ export const toDemandAssignments = (demands: Demands): DemandAssignment[] => {
   return result;
 };
 
-export type ModelMoment = {
+export type OptionalMomentFields = {
+  putDemands?: DemandSettingsChange;
+  putEPSTiming?: EPSTiming;
+  putControls?: Controls;
+  putCustomerPoints?: CustomerPoint[];
+  putCurves?: Curves;
+  putPatterns?: Patterns;
+};
+
+export type ModelMoment = OptionalMomentFields & {
   note: string;
   deleteAssets?: AssetId[];
   putAssets?: Asset[];
   patchAssetsAttributes?: AssetPatch[];
-  putDemands?: DemandSettingsChange;
-  putEPSTiming?: EPSTiming;
-  putCustomerPoints?: CustomerPoint[];
-  putCurves?: Curves;
-  putControls?: Controls;
 };
 
-export type ReverseMoment = {
+export type ReverseMoment = OptionalMomentFields & {
   note: string;
   deleteAssets: AssetId[];
   putAssets: Asset[];
   patchAssetsAttributes: AssetPatch[];
-  putDemands?: DemandSettingsChange;
-  putEPSTiming?: EPSTiming;
   putCustomerPoints: CustomerPoint[];
-  putCurves?: Curves;
-  putControls?: Controls;
 };
 
 export type ModelOperation<T> = (model: HydraulicModel, data: T) => ModelMoment;

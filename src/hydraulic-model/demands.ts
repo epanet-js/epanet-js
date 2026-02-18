@@ -13,14 +13,12 @@ export type CustomerAssignedDemands = Map<CustomerPointId, Demand[]>;
 
 export type Demands = {
   multiplier: number;
-  patterns: Patterns;
   junctions: JunctionAssignedDemands;
   customerPoints: CustomerAssignedDemands;
 };
 
 export const createEmptyDemands = (): Demands => ({
   multiplier: 1,
-  patterns: new Map(),
   junctions: new Map(),
   customerPoints: new Map(),
 });

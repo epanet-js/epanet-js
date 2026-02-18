@@ -16,6 +16,7 @@ export type { AssetId } from "./assets-map";
 export { filterAssets, getNode, AssetsMap } from "./assets-map";
 export type {
   ModelOperation,
+  OptionalMomentFields,
   ModelMoment,
   ReverseMoment,
   AssetPatch,

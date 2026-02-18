@@ -16,7 +16,7 @@ describe("parse pattern types", () => {
     `;
 
     const { hydraulicModel } = parseInpWithPatterns(inp);
-    const pattern = hydraulicModel.demands.patterns.get(1);
+    const pattern = hydraulicModel.patterns.get(1);
     expect(pattern?.type).toBe("demand");
   });
 
@@ -35,7 +35,7 @@ describe("parse pattern types", () => {
     `;
 
     const { hydraulicModel } = parseInpWithPatterns(inp);
-    const pattern = hydraulicModel.demands.patterns.get(1);
+    const pattern = hydraulicModel.patterns.get(1);
     expect(pattern?.type).toBe("demand");
   });
 
@@ -57,11 +57,11 @@ describe("parse pattern types", () => {
     `;
 
     const { hydraulicModel } = parseInpWithPatterns(inp);
-    const pattern = hydraulicModel.demands.patterns.get(1);
+    const pattern = hydraulicModel.patterns.get(1);
     expect(pattern?.type).toBe("demand");
   });
 
-  it("only keeps demand patterns in hydraulicModel.demands.patterns", () => {
+  it("only keeps demand patterns in hydraulicModel.patterns", () => {
     const inp = `
     [JUNCTIONS]
     J1    100    50    usedPattern
@@ -80,8 +80,8 @@ describe("parse pattern types", () => {
 
     const { hydraulicModel } = parseInpWithPatterns(inp);
 
-    expect(hydraulicModel.demands.patterns.size).toBe(1);
-    const demandPattern = hydraulicModel.demands.patterns.get(1);
+    expect(hydraulicModel.patterns.size).toBe(1);
+    const demandPattern = hydraulicModel.patterns.get(1);
     expect(demandPattern?.type).toBe("demand");
   });
 

@@ -19,7 +19,7 @@ import { usePersistence } from "src/lib/persistence";
 import { HydraulicModel } from "src/hydraulic-model/hydraulic-model";
 import { notify } from "src/components/notifications";
 import { useUserTracking } from "src/infra/user-tracking";
-import { changeDemandPatterns } from "src/hydraulic-model/model-operations";
+import { changePatterns } from "src/hydraulic-model/model-operations";
 
 type PatternUpdate = Partial<Pick<Pattern, "label" | "multipliers">>;
 
@@ -33,7 +33,7 @@ export const CurvesAndPatternsDialog = () => {
     null,
   );
   const [editedPatterns, setEditedPatterns] = useState<Patterns>(
-    () => new Map(hydraulicModel.demands.patterns),
+    () => new Map(hydraulicModel.patterns),
   );
   const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
   const nextPatternIdRef = useRef<PatternId>(
@@ -119,8 +119,8 @@ export const CurvesAndPatternsDialog = () => {
   const transact = rep.useTransact();
 
   const hasChanges = useMemo(
-    () => !arePatternsEqual(hydraulicModel.demands.patterns, editedPatterns),
-    [hydraulicModel.demands.patterns, editedPatterns],
+    () => !arePatternsEqual(hydraulicModel.patterns, editedPatterns),
+    [hydraulicModel.patterns, editedPatterns],
   );
 
   const handleSave = useCallback(() => {
@@ -129,7 +129,7 @@ export const CurvesAndPatternsDialog = () => {
       return;
     }
 
-    const moment = changeDemandPatterns(hydraulicModel, editedPatterns);
+    const moment = changePatterns(hydraulicModel, editedPatterns);
     transact(moment);
     userTracking.capture({
       name: "patterns.updated",

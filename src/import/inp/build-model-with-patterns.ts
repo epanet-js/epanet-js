@@ -940,7 +940,7 @@ const addPatterns = (
     }
   }
 
-  hydraulicModel.demands.patterns = supportedPatterns;
+  hydraulicModel.patterns = supportedPatterns;
 };
 
 const markPatternUsed = (

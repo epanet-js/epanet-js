@@ -284,7 +284,7 @@ export const buildInp = withDebugInstrumentation(
     const usedCurveIds = new Map<number, string>();
     const usedPatternIds = new Set<number>();
 
-    for (const pattern of hydraulicModel.demands.patterns.values()) {
+    for (const pattern of hydraulicModel.patterns.values()) {
       idMap.registerPatternId(pattern); // Ensure pattern IDs are registered
     }
 
@@ -375,9 +375,9 @@ export const buildInp = withDebugInstrumentation(
     const includeCustomerPoints =
       opts.customerPoints && hydraulicModel.customerPoints.size > 0;
 
-    appendDemandPatterns(
+    appendPatterns(
       sections,
-      hydraulicModel.demands.patterns,
+      hydraulicModel.patterns,
       usedPatternIds,
       idMap,
       opts.usedPatterns,
@@ -836,7 +836,7 @@ const appendCurves = (
   }
 };
 
-const appendDemandPatterns = (
+const appendPatterns = (
   sections: InpSections,
   patterns: Patterns,
   usedPatternIds: Set<number>,

@@ -14,5 +14,5 @@ export { changePumpDefinition } from "./change-pump-definition";
 export { changeControls } from "./change-controls";
 export { changeCurves } from "./change-curves";
 export { changeDemandMultiplier } from "./change-demand-multiplier";
-export { changeDemandPatterns } from "./change-demand-patterns";
+export { changePatterns } from "./change-patterns";
 export { changeDemandAssignment } from "./change-demand-assignment";

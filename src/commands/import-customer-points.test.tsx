@@ -267,7 +267,7 @@ describe.skip("importCustomerPoints", () => {
         junction.id,
         hydraulicModel.customerPointsLookup,
         hydraulicModel.demands,
-        hydraulicModel.demands.patterns,
+        hydraulicModel.patterns,
       ),
     ).toBeCloseTo(0.000231, 6);
   });
@@ -347,7 +347,7 @@ describe.skip("importCustomerPoints", () => {
         junction.id,
         hydraulicModel.customerPointsLookup,
         hydraulicModel.demands,
-        hydraulicModel.demands.patterns,
+        hydraulicModel.patterns,
       ),
     ).toBeCloseTo(0.000289, 6);
   });

@@ -177,7 +177,7 @@ export const buildModel = (
     issues,
   );
 
-  hydraulicModel.demands.patterns = options?.usedPatterns
+  hydraulicModel.patterns = options?.usedPatterns
     ? filterUsedPatterns(patternContext.patterns, patternContext.usedPatternIds)
     : patternContext.patterns;
 

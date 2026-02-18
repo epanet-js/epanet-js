@@ -60,7 +60,7 @@ export function useAssetComparison(asset: Asset | undefined) {
 
     const baseDirectDemand = calculateAverageDemand(
       baseDemands,
-      baseModel.demands.patterns,
+      baseModel.patterns,
     );
 
     const hasChanged = baseDirectDemand !== currentDirectDemand;

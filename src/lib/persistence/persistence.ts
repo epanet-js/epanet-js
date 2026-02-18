@@ -1,7 +1,7 @@
 import type { IWrappedFeatureInput } from "src/types";
 import once from "lodash/once";
 import type { IPersistenceWithSnapshots } from "src/lib/persistence/ipersistence";
-import { EMPTY_MOMENT, MomentInput, Moment } from "src/lib/persistence/moment";
+import { MomentInput, Moment } from "src/lib/persistence/moment";
 import { generateKeyBetween } from "fractional-indexing";
 import { worktreeAtom } from "src/state/scenarios";
 import type { Snapshot, Worktree } from "src/lib/worktree/types";
@@ -78,13 +78,13 @@ export class Persistence implements IPersistenceWithSnapshots {
         patchAssetsAttributes: [],
         putDemands: {
           multiplier: hydraulicModel.demands.multiplier,
-          patterns: hydraulicModel.demands.patterns,
           assignments: toDemandAssignments(hydraulicModel.demands),
         },
         putEPSTiming: hydraulicModel.epsTiming,
         putControls: hydraulicModel.controls,
         putCustomerPoints: [...hydraulicModel.customerPoints.values()],
         putCurves: hydraulicModel.curves,
+        putPatterns: hydraulicModel.patterns,
       };
 
       trackMoment({ note: snapshotMoment.note!, putAssets: assets });
@@ -163,17 +163,19 @@ export class Persistence implements IPersistenceWithSnapshots {
       const isTruncatingHistory = momentLog.nextRedo() !== null;
 
       trackMoment(moment);
-      const forwardMoment = {
-        ...EMPTY_MOMENT,
-        note: moment.note,
-        deleteAssets: moment.deleteAssets || [],
-        putAssets: moment.putAssets || [],
-        patchAssetsAttributes: moment.patchAssetsAttributes || [],
-        putDemands: moment.putDemands,
-        putEPSTiming: moment.putEPSTiming,
-        putControls: moment.putControls,
-        putCustomerPoints: moment.putCustomerPoints,
-        putCurves: moment.putCurves,
+      const {
+        note,
+        deleteAssets,
+        putAssets,
+        patchAssetsAttributes,
+        ...optionalFields
+      } = moment;
+      const forwardMoment: Moment = {
+        note,
+        deleteAssets: deleteAssets || [],
+        putAssets: putAssets || [],
+        patchAssetsAttributes: patchAssetsAttributes || [],
+        ...optionalFields,
       };
       const newStateId = nanoid();
 

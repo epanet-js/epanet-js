@@ -1,10 +1,6 @@
-import { CustomerPoint } from "src/hydraulic-model/customer-points";
-import { Curves } from "src/hydraulic-model/curves";
-import { EPSTiming } from "src/hydraulic-model/eps-timing";
-import { Controls } from "src/hydraulic-model/controls";
 import type {
   AssetPatch,
-  DemandSettingsChange,
+  OptionalMomentFields,
 } from "src/hydraulic-model/model-operation";
 import type { IWrappedFeature, IWrappedFeatureInput } from "src/types";
 
@@ -14,33 +10,23 @@ import type { IWrappedFeature, IWrappedFeatureInput } from "src/types";
  * but in whether it's in the undo or redo side
  * of a MomentLog.
  */
-export interface Moment {
+export interface Moment extends OptionalMomentFields {
   note?: string;
   putAssets: IWrappedFeature[];
   deleteAssets: IWrappedFeature["id"][];
   patchAssetsAttributes: AssetPatch[];
-  putDemands?: DemandSettingsChange;
-  putEPSTiming?: EPSTiming;
-  putControls?: Controls;
-  putCustomerPoints?: CustomerPoint[];
-  putCurves?: Curves;
 }
 
 // This was previously posthog properties,
 // is now just an unknown.
 type Properties = any;
 
-export interface MomentInput {
+export interface MomentInput extends OptionalMomentFields {
   note?: string;
   track?: string | [string, Properties];
   putAssets: IWrappedFeatureInput[];
   deleteAssets: IWrappedFeature["id"][];
   patchAssetsAttributes: AssetPatch[];
-  putDemands?: DemandSettingsChange;
-  putEPSTiming?: EPSTiming;
-  putControls?: Controls;
-  putCustomerPoints?: CustomerPoint[];
-  putCurves?: Curves;
   skipMomentLog?: boolean;
 }
 

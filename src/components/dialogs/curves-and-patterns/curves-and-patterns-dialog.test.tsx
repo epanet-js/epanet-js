@@ -116,7 +116,7 @@ describe("CurvesAndPatternsDialog", () => {
 
       // Verify the model was updated
       const hydraulicModel = store.get(stagingModelAtom);
-      const updatedPattern = hydraulicModel.demands.patterns.get(100);
+      const updatedPattern = hydraulicModel.patterns.get(100);
       expect(updatedPattern?.multipliers[0]).toBe(2.0);
     });
   });
@@ -266,7 +266,7 @@ describe("CurvesAndPatternsDialog", () => {
 
       // Model should not have been updated
       const hydraulicModel = store.get(stagingModelAtom);
-      const pattern = hydraulicModel.demands.patterns.get(100);
+      const pattern = hydraulicModel.patterns.get(100);
       expect(pattern?.multipliers[0]).toBe(1.0);
     });
   });
@@ -339,7 +339,7 @@ describe("CurvesAndPatternsDialog", () => {
         "newpattern",
         "pattern",
       )!;
-      const newPattern = hydraulicModel.demands.patterns.get(newPatternId);
+      const newPattern = hydraulicModel.patterns.get(newPatternId);
       expect(newPattern).toEqual({
         id: newPatternId,
         label: "NEWPATTERN",
@@ -376,7 +376,7 @@ describe("CurvesAndPatternsDialog", () => {
 
       // Verify the model has all three patterns with unique IDs
       const hydraulicModel = store.get(stagingModelAtom);
-      const patterns = hydraulicModel.demands.patterns;
+      const patterns = hydraulicModel.patterns;
 
       expect(patterns.size).toBe(3);
 
@@ -458,8 +458,8 @@ describe("CurvesAndPatternsDialog", () => {
 
       // Verify the model was updated
       const hydraulicModel = store.get(stagingModelAtom);
-      expect(hydraulicModel.demands.patterns.has(100)).toBe(false);
-      expect(hydraulicModel.demands.patterns.has(200)).toBe(true);
+      expect(hydraulicModel.patterns.has(100)).toBe(false);
+      expect(hydraulicModel.patterns.has(200)).toBe(true);
     });
 
     it("blocks deletion of a pattern used by a junction", async () => {

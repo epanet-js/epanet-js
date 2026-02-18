@@ -19,6 +19,8 @@ import {
   createEmptyDemands,
   Demand,
   Demands,
+  Patterns,
+  PatternType,
 } from "src/hydraulic-model";
 import { SimpleControl, RuleBasedControl } from "src/hydraulic-model/controls";
 import { AssetIndex } from "src/hydraulic-model/asset-index";
@@ -144,6 +146,7 @@ export class HydraulicModelBuilder {
   private customerPointsMap: CustomerPoints;
   private idGenerator: WritableIdGenerator;
   private curves: Curves;
+  private patterns: Patterns;
   private epsTiming: EPSTiming;
   private controlsValue: Controls;
 
@@ -172,6 +175,7 @@ export class HydraulicModelBuilder {
     this.demands = createEmptyDemands();
     this.headlossFormulaValue = "H-W";
     this.curves = new Map();
+    this.patterns = new Map();
     this.epsTiming = {};
     this.controlsValue = createEmptyControls();
   }
@@ -320,9 +324,19 @@ export class HydraulicModelBuilder {
   }
 
   aDemandPattern(patternId: number, patternLabel: string, factors: number[]) {
-    this.demands.patterns.set(patternId, {
+    return this.aPattern(patternId, patternLabel, factors, "demand");
+  }
+
+  aPattern(
+    patternId: number,
+    patternLabel: string,
+    factors: number[],
+    type?: PatternType,
+  ) {
+    this.patterns.set(patternId, {
       id: patternId,
       label: patternLabel,
+      type,
       multipliers: factors.length ? factors : [1],
     });
     this.labelManager.register(patternLabel, "pattern", patternId);
@@ -473,7 +487,7 @@ export class HydraulicModelBuilder {
       demands: this.demands,
       headlossFormula: this.headlossFormulaValue,
       curves: this.curves,
-      patterns: new Map(),
+      patterns: this.patterns,
       epsTiming: this.epsTiming,
       controls: this.controlsValue,
       projection: "wgs84",

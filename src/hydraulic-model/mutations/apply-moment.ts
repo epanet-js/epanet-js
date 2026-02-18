@@ -37,7 +37,6 @@ export const applyMomentToModel = (
     );
     reverseMoment.putDemands = {
       multiplier: hydraulicModel.demands.multiplier,
-      patterns: hydraulicModel.demands.patterns,
       assignments: reverseAssignements,
     };
   }
@@ -49,6 +48,9 @@ export const applyMomentToModel = (
   }
   if (moment.putCurves) {
     reverseMoment.putCurves = hydraulicModel.curves;
+  }
+  if (moment.putPatterns) {
+    reverseMoment.putPatterns = hydraulicModel.patterns;
   }
 
   for (const id of moment.deleteAssets || []) {
@@ -88,9 +90,6 @@ export const applyMomentToModel = (
         multiplier: moment.putDemands.multiplier,
       };
     }
-    if (moment.putDemands.patterns) {
-      putDemandPatterns(hydraulicModel, moment.putDemands.patterns);
-    }
   }
 
   if (moment.putEPSTiming) {
@@ -103,6 +102,10 @@ export const applyMomentToModel = (
 
   if (moment.putCurves) {
     putCurves(hydraulicModel, moment.putCurves);
+  }
+
+  if (moment.putPatterns) {
+    putPatterns(hydraulicModel, moment.putPatterns);
   }
 
   return reverseMoment;
@@ -231,17 +234,14 @@ const patchAssetAttributes = (
   } as AssetPatch;
 };
 
-const putDemandPatterns = (
+const putPatterns = (
   hydraulicModel: HydraulicModel,
   patterns: Patterns,
 ): void => {
-  for (const pattern of hydraulicModel.demands.patterns.values()) {
+  for (const pattern of hydraulicModel.patterns.values()) {
     hydraulicModel.labelManager.remove(pattern.label, "pattern", pattern.id);
   }
-  hydraulicModel.demands = {
-    ...hydraulicModel.demands,
-    patterns,
-  };
+  hydraulicModel.patterns = patterns;
   for (const pattern of patterns.values()) {
     hydraulicModel.labelManager.register(pattern.label, "pattern", pattern.id);
   }

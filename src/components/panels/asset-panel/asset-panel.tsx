@@ -407,20 +407,20 @@ const JunctionEditor = ({
         sum +
         calculateAverageDemand(
           getCustomerPointDemands(hydraulicModel.demands, cp.id),
-          hydraulicModel.demands.patterns,
+          hydraulicModel.patterns,
         ),
       0,
     );
-  }, [customerPoints, hydraulicModel.demands]);
+  }, [customerPoints, hydraulicModel.demands, hydraulicModel.patterns]);
 
   const customerDemandPattern = useMemo(
     () =>
       getCustomerPointsPattern(
         customerPoints,
         hydraulicModel.demands,
-        hydraulicModel.demands.patterns,
+        hydraulicModel.patterns,
       ),
-    [customerPoints, hydraulicModel.demands],
+    [customerPoints, hydraulicModel.demands, hydraulicModel.patterns],
   );
 
   return (
@@ -456,7 +456,7 @@ const JunctionEditor = ({
       <Section title={translate("demands")}>
         <DemandsEditor
           demands={getJunctionDemands(hydraulicModel.demands, junction.id)}
-          patterns={hydraulicModel.demands.patterns}
+          patterns={hydraulicModel.patterns}
           quantitiesMetadata={quantitiesMetadata}
           name="directDemand"
           onChange={onDemandsChange}
@@ -486,7 +486,7 @@ const JunctionEditor = ({
               aggregateUnit={quantitiesMetadata.getUnit("customerDemand")}
               customerUnit={quantitiesMetadata.getUnit("customerDemandPerDay")}
               demands={hydraulicModel.demands}
-              patterns={hydraulicModel.demands.patterns}
+              patterns={hydraulicModel.patterns}
             />
           </>
         )}
@@ -574,20 +574,20 @@ const PipeEditor = ({
         sum +
         calculateAverageDemand(
           getCustomerPointDemands(hydraulicModel.demands, cp.id),
-          hydraulicModel.demands.patterns,
+          hydraulicModel.patterns,
         ),
       0,
     );
-  }, [customerPoints, hydraulicModel.demands]);
+  }, [customerPoints, hydraulicModel.demands, hydraulicModel.patterns]);
 
   const customerDemandPattern = useMemo(
     () =>
       getCustomerPointsPattern(
         customerPoints,
         hydraulicModel.demands,
-        hydraulicModel.demands.patterns,
+        hydraulicModel.patterns,
       ),
-    [customerPoints, hydraulicModel.demands],
+    [customerPoints, hydraulicModel.demands, hydraulicModel.patterns],
   );
 
   const pipeStatusOptions = useMemo(() => {
@@ -704,7 +704,7 @@ const PipeEditor = ({
             aggregateUnit={quantitiesMetadata.getUnit("customerDemand")}
             customerUnit={quantitiesMetadata.getUnit("customerDemandPerDay")}
             demands={hydraulicModel.demands}
-            patterns={hydraulicModel.demands.patterns}
+            patterns={hydraulicModel.patterns}
           />
         </Section>
       )}
