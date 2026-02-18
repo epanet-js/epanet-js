@@ -74,8 +74,8 @@ describe("calculateInterval", () => {
     it("includes all data points within min/max", () => {
       const values = [3.7, 8.2, 5.1, 6.9, 4.3];
       const result = calculateInterval(1, values);
-      expect(result.min).toBeCloseTo(4);
-      expect(result.max).toBeCloseTo(7);
+      expect(result.min).toBeCloseTo(3);
+      expect(result.max).toBeCloseTo(9);
       expect(result.interval).toBeCloseTo(1);
     });
 
@@ -142,8 +142,8 @@ describe("calculateInterval", () => {
     it("handles velocity values (small numbers)", () => {
       const values = [0.52, 0.78, 0.65, 0.91, 0.43];
       const result = calculateInterval(2, values);
-      expect(result.min).toBeCloseTo(0.5);
-      expect(result.max).toBeCloseTo(0.8);
+      expect(result.min).toBeCloseTo(0.4);
+      expect(result.max).toBeCloseTo(1.0);
       expect(result.interval).toBeCloseTo(0.1);
     });
 

@@ -357,7 +357,10 @@ export const calculateInterval = (
         : prev;
     });
 
-    niceInterval = Math.round(niceFactor * magnitude * factor) / factor;
+    niceInterval = Math.max(
+      Math.round(niceFactor * magnitude * factor) / factor,
+      minPrecision,
+    );
   }
   if (niceInterval > minPrecision) {
     const min = Math.floor(minVal / niceInterval) * niceInterval;
@@ -369,17 +372,20 @@ export const calculateInterval = (
     (targetIntervalsCount - 1) * minPrecision - Math.abs(maxVal - minVal);
   const halfOffset = offset / 2;
 
+  let min: number;
+  let max: number;
   if (minVal >= 0 && minVal < halfOffset) {
     const maxOffset = offset - minVal;
-    return {
-      min: 0,
-      max: Math.floor((maxVal + maxOffset) / minPrecision) * minPrecision,
-      interval: minPrecision,
-    };
+    min = 0;
+    max = Math.floor((maxVal + maxOffset) / minPrecision) * minPrecision;
+  } else {
+    min = Math.ceil((minVal - halfOffset) / minPrecision) * minPrecision;
+    max = Math.floor((maxVal + halfOffset) / minPrecision) * minPrecision;
   }
-  return {
-    min: Math.ceil((minVal - halfOffset) / minPrecision) * minPrecision,
-    max: Math.floor((maxVal + halfOffset) / minPrecision) * minPrecision,
-    interval: minPrecision,
-  };
+
+  // Ensure computed range contains all data points
+  while (min > minVal) min -= minPrecision;
+  while (max < maxVal) max += minPrecision;
+
+  return { min, max, interval: minPrecision };
 };
