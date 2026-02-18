@@ -3,6 +3,7 @@ import { dialogAtom } from "src/state/jotai";
 import { DialogContainer, DialogHeader } from "../dialog";
 import { useUserTracking } from "src/infra/user-tracking";
 import { MapPinnedIcon } from "src/icons";
+import { useTranslate } from "src/hooks/use-translate";
 
 const NonProjectedIllustration = () => (
   <svg
@@ -200,6 +201,7 @@ export const InpProjectionChoiceDialog = ({
 }) => {
   const setDialogState = useSetAtom(dialogAtom);
   const userTracking = useUserTracking();
+  const translate = useTranslate();
 
   const handleProjected = () => {
     userTracking.capture({ name: "inpProjectionChoice.projected" });
@@ -217,12 +219,11 @@ export const InpProjectionChoiceDialog = ({
   return (
     <DialogContainer size="sm">
       <DialogHeader
-        title="Is this network projected?"
+        title={translate("inpProjectionChoice.title")}
         titleIcon={MapPinnedIcon}
       />
       <p className="text-sm text-gray-700 dark:text-gray-300 pb-4">
-        We couldn&apos;t detect a coordinate system for this network. Please
-        specify how the coordinates should be handled:
+        {translate("inpProjectionChoice.description")}
       </p>
 
       <div className="grid grid-cols-2 gap-3 pb-2">
@@ -235,10 +236,10 @@ export const InpProjectionChoiceDialog = ({
             <NonProjectedIllustration />
           </div>
           <div className="font-medium text-gray-900 dark:text-gray-100">
-            Non-Projected (XY)
+            {translate("inpProjectionChoice.nonProjectedTitle")}
           </div>
           <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-            The coordinates are simple X and Y values for a standalone diagram.
+            {translate("inpProjectionChoice.nonProjectedDescription")}
           </div>
         </button>
 
@@ -251,10 +252,10 @@ export const InpProjectionChoiceDialog = ({
             <ProjectedIllustration />
           </div>
           <div className="font-medium text-gray-900 dark:text-gray-100">
-            Projected
+            {translate("inpProjectionChoice.projectedTitle")}
           </div>
           <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-            The coordinates align with a specific map zone.
+            {translate("inpProjectionChoice.projectedDescription")}
           </div>
         </button>
       </div>

@@ -153,6 +153,14 @@
   "understood": "Understood",
   "reprojectNetwork": "Reproject network",
   "importAsUnprojected": "Import as unprojected",
+  "inpProjectionChoice": {
+    "title": "Set your network's location",
+    "description": "To provide basemaps and automatic elevations, we need to know if your coordinates represent real-world locations or a simple X-Y grid.",
+    "nonProjectedTitle": "Simple X-Y Grid",
+    "nonProjectedDescription": "Your network is a standalone sketch and is not tied to a physical location.",
+    "projectedTitle": "Map-based",
+    "projectedDescription": "Your network matches real-world geography."
+  },
   "error": "Error",
   "save": "Save",
   "saveAndContinue": "Save and continue",
