@@ -29,7 +29,7 @@ type PatternSidebarProps = {
     type?: PatternType,
   ) => PatternId;
   onChangePattern: (patternId: PatternId, updates: { label: string }) => void;
-  onDeletePattern: (patternId: PatternId) => void;
+  onDeletePattern: (patternId: PatternId, patternType: PatternType) => void;
   readOnly?: boolean;
 };
 
@@ -193,7 +193,7 @@ export const PatternSidebar = ({
                 sourcePattern: pattern as TypedPattern,
               })
             }
-            onDelete={() => onDeletePattern(pattern.id)}
+            onDelete={() => onDeletePattern(pattern.id, "demand")}
             onPatternLabelChange={handlePatternLabelChange}
             readOnly={readOnly}
           />

@@ -43,7 +43,7 @@ type GroupedPatternSidebarProps = {
     type: PatternType,
   ) => PatternId;
   onChangePattern: (patternId: PatternId, updates: { label: string }) => void;
-  onDeletePattern: (patternId: PatternId) => void;
+  onDeletePattern: (patternId: PatternId, patternType: PatternType) => void;
   readOnly?: boolean;
 };
 
@@ -351,7 +351,7 @@ type PatternSectionProps = {
   onStartCreate: () => void;
   onStartRename: (patternId: PatternId) => void;
   onStartClone: (pattern: TypedPattern) => void;
-  onDelete: (patternId: PatternId) => void;
+  onDelete: (patternId: PatternId, patternType: PatternType) => void;
   onPatternLabelChange: (name: string) => boolean;
   onCancelAction: () => void;
   readOnly: boolean;
@@ -423,7 +423,7 @@ const PatternSection = ({
               onCancel={onCancelAction}
               onStartRename={onStartRename}
               onStartClone={onStartClone}
-              onDelete={() => onDelete(pattern.id)}
+              onDelete={() => onDelete(pattern.id, pattern.type)}
               onPatternLabelChange={onPatternLabelChange}
               readOnly={readOnly}
             />
