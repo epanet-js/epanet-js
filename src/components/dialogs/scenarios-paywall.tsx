@@ -1,12 +1,18 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
+import { useAtomCallback } from "jotai/utils";
 import { DialogContainer, DialogHeader } from "../dialog";
 import { Button } from "../elements";
 import { CheckoutButton } from "../checkout-button";
 import { VideoPlayer } from "../video-player";
 import { useActivateTrial } from "src/hooks/use-activate-trial";
 import { useScenarioOperations } from "src/hooks/use-scenario-operations";
-import { dialogAtom, isDemoNetworkAtom } from "src/state/jotai";
+import {
+  dialogAtom,
+  isDemoNetworkAtom,
+  simulationAtom,
+  stagingModelAtom,
+} from "src/state/jotai";
 import { userSettingsAtom } from "src/state/user-settings";
 import {
   ChevronLeftIcon,
@@ -25,6 +31,7 @@ import { useImportInp } from "src/commands/import-inp";
 import { useUnsavedChangesCheck } from "src/commands/check-unsaved-changes";
 import { captureError } from "src/infra/error-tracking";
 import { DRUMCHAPEL } from "src/demo/demo-networks";
+import { useRunSimulation } from "src/commands/run-simulation";
 
 const SCENARIOS_VIDEO_SRC =
   "https://stream.mux.com/RVxWPZgcfKowXmi00iovKx1sffG100gu21BpD2U6Mjv98.m3u8";
@@ -80,8 +87,9 @@ export const ScenariosPaywallDialog = ({
   const checkUnsavedChanges = useUnsavedChangesCheck();
   const [isDemoLoading, setIsDemoLoading] = useState(false);
   const [showPlans, setShowPlans] = useState(false);
+  const runSimulation = useRunSimulation();
 
-  const proceedWithCreation = async () => {
+  const proceedWithCreation = useCallback(async () => {
     const { scenarioId, scenarioName } = await createNewScenario();
     userTracking.capture({
       name: "scenario.created",
@@ -95,7 +103,40 @@ export const ScenariosPaywallDialog = ({
       Icon: SuccessIcon,
       duration: 3000,
     });
-  };
+  }, [createNewScenario, userTracking, isDemoNetwork, translate]);
+
+  const showDialogOrProceed = useCallback(() => {
+    if (userSettings.showFirstScenarioDialog) {
+      setDialog({ type: "firstScenario", onConfirm: proceedWithCreation });
+      return;
+    }
+    void proceedWithCreation();
+  }, [userSettings.showFirstScenarioDialog, setDialog, proceedWithCreation]);
+
+  const runSimulationThenProceed = useAtomCallback(
+    useCallback(
+      (get) => {
+        const simulation = get(simulationAtom);
+        const hydraulicModel = get(stagingModelAtom);
+
+        const isSimulationUpToDate =
+          simulation.status !== "idle" &&
+          simulation.status !== "running" &&
+          simulation.modelVersion === hydraulicModel.version;
+
+        if (!isSimulationUpToDate) {
+          void runSimulation({
+            onContinue: showDialogOrProceed,
+            onIgnore: showDialogOrProceed,
+            ignoreLabel: translate("scenarios.ignoreAndCreate"),
+          });
+          return;
+        }
+        showDialogOrProceed();
+      },
+      [runSimulation, showDialogOrProceed, translate],
+    ),
+  );
 
   const handleStartTrial = async () => {
     userTracking.capture({
@@ -111,15 +152,7 @@ export const ScenariosPaywallDialog = ({
       duration: 3000,
     });
 
-    if (userSettings.showFirstScenarioDialog) {
-      setDialog({
-        type: "firstScenario",
-        onConfirm: proceedWithCreation,
-      });
-    } else {
-      setDialog(null);
-      void proceedWithCreation();
-    }
+    runSimulationThenProceed();
   };
 
   const handleTryDemo = async () => {
@@ -135,15 +168,7 @@ export const ScenariosPaywallDialog = ({
 
       checkUnsavedChanges(async () => {
         await importInp([file]);
-
-        if (userSettings.showFirstScenarioDialog) {
-          setDialog({
-            type: "firstScenario",
-            onConfirm: proceedWithCreation,
-          });
-        } else {
-          void proceedWithCreation();
-        }
+        runSimulationThenProceed();
       });
     } catch (error) {
       captureError(error as Error);
