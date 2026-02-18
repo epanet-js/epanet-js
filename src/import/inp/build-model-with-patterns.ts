@@ -552,16 +552,15 @@ const addPump = (
     }
   }
 
+  let speedPatternId: PatternId | undefined;
   if (pumpData.patternId) {
-    const pattern = getPattern(inpData.patterns, pumpData.patternId);
-    speed = pattern[0];
-
     const patternId = patternContext.labelManager.getIdByLabel(
       pumpData.patternId,
       "pattern",
     );
     if (patternId !== undefined) {
       markPatternUsed(patternContext.patterns, patternId, "pumpSpeed");
+      speedPatternId = patternId;
     }
   }
 
@@ -571,6 +570,7 @@ const addPump = (
     ...definitionProps,
     initialStatus,
     speed,
+    speedPatternId,
     coordinates,
     isActive: pumpData.isActive,
   });
@@ -813,15 +813,6 @@ const isWgs84 = (coordinates: Position) =>
   coordinates[0] <= 180 &&
   coordinates[1] >= -90 &&
   coordinates[1] <= 90;
-
-const defaultPatternId = "1";
-
-const getPattern = (
-  patterns: InpData["patterns"],
-  patternId: string | undefined,
-): number[] => {
-  return patterns.get(patternId || defaultPatternId)?.multipliers || [1];
-};
 
 const addControls = (
   hydraulicModel: HydraulicModel,
