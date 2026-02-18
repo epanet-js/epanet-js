@@ -8,12 +8,18 @@ export const useShowCurvesAndPatterns = () => {
   const userTracking = useUserTracking();
 
   const showCurvesAndPatterns = useCallback(
-    ({ source }: { source: "toolbar" | "shortcut" }) => {
+    ({
+      source,
+      initialPatternId,
+    }: {
+      source: "toolbar" | "shortcut" | "reservoir";
+      initialPatternId?: number;
+    }) => {
       userTracking.capture({
         name: "curvesAndPatterns.opened",
         source,
       });
-      setDialogState({ type: "curvesAndPatterns" });
+      setDialogState({ type: "curvesAndPatterns", initialPatternId });
     },
     [setDialogState, userTracking],
   );

@@ -89,6 +89,7 @@ export type SimulationProgressDialogState = {
 
 export type CurvesAndPatternsDialogState = {
   type: "curvesAndPatterns";
+  initialPatternId?: number;
 };
 
 export type PumpCurvesDialogState = {

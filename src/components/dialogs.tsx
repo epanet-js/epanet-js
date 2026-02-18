@@ -262,7 +262,9 @@ const ControlsDialog = dynamic(
   },
 );
 
-const CurvesAndPatternsDialog = dynamic(
+const CurvesAndPatternsDialog = dynamic<{
+  initialPatternId?: number;
+}>(
   () =>
     import("src/components/dialogs/curves-and-patterns").then(
       (r) => r.CurvesAndPatternsDialog,
@@ -429,7 +431,9 @@ export const Dialogs = memo(function Dialogs() {
     return <ControlsDialog />;
   }
   if (dialog.type === "curvesAndPatterns") {
-    return <CurvesAndPatternsDialog />;
+    return (
+      <CurvesAndPatternsDialog initialPatternId={dialog.initialPatternId} />
+    );
   }
   if (dialog.type === "pumpLibrary") {
     return <PumpCurvesDialog initialCurveId={dialog.initialCurveId} />;

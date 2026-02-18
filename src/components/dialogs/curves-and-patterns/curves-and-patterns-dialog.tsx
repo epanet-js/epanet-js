@@ -28,7 +28,11 @@ import { changePatterns } from "src/hydraulic-model/model-operations";
 
 type PatternUpdate = Partial<Pick<Pattern, "label" | "multipliers">>;
 
-export const CurvesAndPatternsDialog = () => {
+export const CurvesAndPatternsDialog = ({
+  initialPatternId,
+}: {
+  initialPatternId?: PatternId;
+}) => {
   const translate = useTranslate();
   const { closeDialog } = useDialogState();
   const hydraulicModel = useAtomValue(stagingModelAtom);
@@ -36,7 +40,7 @@ export const CurvesAndPatternsDialog = () => {
   const isSnapshotLocked = useIsSnapshotLocked();
   const isMorePatternsOn = useFeatureFlag("FLAG_MORE_PATTERNS");
   const [selectedPatternId, setSelectedPatternId] = useState<PatternId | null>(
-    null,
+    initialPatternId ?? null,
   );
   const [editedPatterns, setEditedPatterns] = useState<Patterns>(
     () => new Map(hydraulicModel.patterns),
