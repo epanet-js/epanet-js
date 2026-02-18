@@ -110,8 +110,10 @@ export const DemandCategoriesEditor = ({
         label: translate("constant").toUpperCase(),
       },
     ];
-    for (const [patternId, { label }] of patterns.entries()) {
-      options.push({ value: patternId, label });
+    for (const [patternId, { label, type }] of patterns.entries()) {
+      if (type === "demand" || type === undefined) {
+        options.push({ value: patternId, label });
+      }
     }
     return options;
   }, [patterns, translate]);
