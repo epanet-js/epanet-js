@@ -14,7 +14,7 @@ import { AssetIndex } from "./asset-index";
 import { Asset } from "./asset-types";
 import { Curves } from "./curves";
 import { Controls, createEmptyControls } from "./controls";
-import { Projection } from "./projection";
+import { Projection } from "src/projections";
 import { Patterns } from "./patterns";
 
 export type HydraulicModel = {
@@ -33,7 +33,7 @@ export type HydraulicModel = {
   patterns: Patterns;
   epsTiming: EPSTiming;
   controls: Controls;
-  projection: Projection;
+  sourceProjection: Projection;
 };
 
 export { AssetsMap };
@@ -45,7 +45,7 @@ export const initializeHydraulicModel = ({
   demands = createEmptyDemands(),
   epsTiming = {},
   controls = createEmptyControls(),
-  projection = "wgs84" as Projection,
+  sourceProjection = "wgs84" as Projection,
   idGenerator,
 }: {
   units: UnitsSpec;
@@ -54,7 +54,7 @@ export const initializeHydraulicModel = ({
   demands?: Demands;
   epsTiming?: EPSTiming;
   controls?: Controls;
-  projection?: Projection;
+  sourceProjection?: Projection;
   idGenerator?: IdGenerator;
 }): HydraulicModel => {
   const labelManager = new LabelManager();
@@ -81,7 +81,7 @@ export const initializeHydraulicModel = ({
     patterns: new Map(),
     epsTiming,
     controls,
-    projection,
+    sourceProjection,
   };
 };
 

@@ -490,7 +490,7 @@ export class HydraulicModelBuilder {
       patterns: this.patterns,
       epsTiming: this.epsTiming,
       controls: this.controlsValue,
-      projection: "wgs84",
+      sourceProjection: "wgs84",
     };
   }
 

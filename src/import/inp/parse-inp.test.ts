@@ -767,7 +767,7 @@ describe("Parse inp with", () => {
       const withoutFlag = parseInp(inp);
       expect(withoutFlag.issues?.invalidCoordinates).toBeDefined();
 
-      const result = parseInp(inp, { projection: "xy-grid" });
+      const result = parseInp(inp, { sourceProjection: "xy-grid" });
       expect(result.issues?.invalidCoordinates).toBeUndefined();
       expect(result.hydraulicModel.assets.size).toBe(3);
 
@@ -789,7 +789,7 @@ describe("Parse inp with", () => {
       ANYTHING
       `;
 
-      const result = parseInp(inp, { projection: "xy-grid" });
+      const result = parseInp(inp, { sourceProjection: "xy-grid" });
       expect(result.issues?.invalidCoordinates).toBeUndefined();
       expect(result.issues?.unsupportedSections).toBeDefined();
     });
@@ -803,8 +803,8 @@ describe("Parse inp with", () => {
       J1  500000  200000
       `;
 
-      const result = parseInp(inp, { projection: "xy-grid" });
-      expect(result.hydraulicModel.projection).toBe("xy-grid");
+      const result = parseInp(inp, { sourceProjection: "xy-grid" });
+      expect(result.hydraulicModel.sourceProjection).toBe("xy-grid");
     });
 
     it("sets projection to wgs84 for standard import", () => {
@@ -817,7 +817,7 @@ describe("Parse inp with", () => {
       `;
 
       const result = parseInp(inp);
-      expect(result.hydraulicModel.projection).toBe("wgs84");
+      expect(result.hydraulicModel.sourceProjection).toBe("wgs84");
     });
   });
 });

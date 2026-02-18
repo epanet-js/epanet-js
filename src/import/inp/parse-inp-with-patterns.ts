@@ -6,13 +6,13 @@ import { HydraulicModel } from "src/hydraulic-model";
 import { checksum } from "src/infra/checksum";
 import { InpStats } from "./inp-data";
 import { transformNonProjectedCoordinates } from "./non-projected-transform";
-import { Projection } from "src/hydraulic-model/projection";
+import { Projection } from "src/projections";
 
 export type ParseInpOptions = {
   customerPoints?: boolean;
   inactiveAssets?: boolean;
   usedPatterns?: boolean;
-  projection?: Projection;
+  sourceProjection?: Projection;
 };
 
 export const parseInpWithPatterns = (
@@ -36,10 +36,12 @@ export const parseInpWithPatterns = (
 
   const { inpData, stats } = readInpData(inp, issues, safeOptions);
 
-  const projection: Projection =
-    options?.projection !== undefined ? options.projection : "wgs84";
+  const sourceProjection: Projection =
+    options?.sourceProjection !== undefined
+      ? options.sourceProjection
+      : "wgs84";
 
-  if (projection === null) {
+  if (sourceProjection === "xy-grid") {
     transformNonProjectedCoordinates(inpData);
   }
 
@@ -47,7 +49,7 @@ export const parseInpWithPatterns = (
     inpData,
     issues,
     safeOptions,
-    projection,
+    sourceProjection,
   );
   return {
     isMadeByApp,

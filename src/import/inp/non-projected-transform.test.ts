@@ -1,7 +1,6 @@
 import { nullInpData } from "./inp-data";
 import { transformNonProjectedCoordinates } from "./non-projected-transform";
-
-const METERS_PER_DEGREE = 111_320;
+import { METERS_PER_DEGREE } from "src/projections";
 
 describe("transformNonProjectedCoordinates", () => {
   it("centers coordinates at the origin", () => {
