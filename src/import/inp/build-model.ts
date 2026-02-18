@@ -393,7 +393,7 @@ const addJunction = (
     isActive: junctionData.isActive,
   });
   hydraulicModel.assets.set(junction.id, junction);
-  hydraulicModel.demands.assignments.junctions.set(junction.id, demands);
+  hydraulicModel.demands.junctions.set(junction.id, demands);
   nodeIds.set(junctionData.id, junction.id);
 };
 
@@ -724,7 +724,7 @@ const addCustomerPoint = (
   }
 
   hydraulicModel.customerPoints.set(id, customerPoint);
-  hydraulicModel.demands.assignments.customerPoints.set(id, demands);
+  hydraulicModel.demands.customerPoints.set(id, demands);
 };
 
 const getLinkProperties = (

@@ -98,18 +98,12 @@ describe.skip("importCustomerPoints", () => {
 
     expect(customerPoint1).toBeDefined();
     expect(customerPoint1?.coordinates).toEqual([0.0003, 0.0003]);
-    const cp1Demands = getCustomerPointDemands(
-      hydraulicModel.demands.assignments,
-      IDS.CP1,
-    );
+    const cp1Demands = getCustomerPointDemands(hydraulicModel.demands, IDS.CP1);
     expect(cp1Demands[0]?.baseDemand).toBeCloseTo(0.000295, 6);
 
     expect(customerPoint2).toBeDefined();
     expect(customerPoint2?.coordinates).toEqual([0.0007, 0.0007]);
-    const cp2Demands = getCustomerPointDemands(
-      hydraulicModel.demands.assignments,
-      IDS.CP2,
-    );
+    const cp2Demands = getCustomerPointDemands(hydraulicModel.demands, IDS.CP2);
     expect(cp2Demands[0]?.baseDemand).toBeCloseTo(0.00174, 5);
   });
 
@@ -261,9 +255,9 @@ describe.skip("importCustomerPoints", () => {
     const hydraulicModel = store.get(stagingModelAtom);
     const junction = hydraulicModel.assets.get(IDS.J1) as Junction;
 
-    expect(
-      getJunctionDemands(hydraulicModel.demands.assignments, junction.id),
-    ).toBe([{ baseDemand: 30 }]);
+    expect(getJunctionDemands(hydraulicModel.demands, junction.id)).toBe([
+      { baseDemand: 30 },
+    ]);
 
     const junctionCustomerPoints =
       hydraulicModel.customerPointsLookup.getCustomerPoints(IDS.J1);
@@ -272,7 +266,7 @@ describe.skip("importCustomerPoints", () => {
       getTotalCustomerDemand(
         junction.id,
         hydraulicModel.customerPointsLookup,
-        hydraulicModel.demands.assignments,
+        hydraulicModel.demands,
         hydraulicModel.demands.patterns,
       ),
     ).toBeCloseTo(0.000231, 6);
@@ -343,9 +337,7 @@ describe.skip("importCustomerPoints", () => {
     const hydraulicModel = store.get(stagingModelAtom);
     const junction = hydraulicModel.assets.get(IDS.J1) as Junction;
 
-    expect(
-      getJunctionDemands(hydraulicModel.demands.assignments, junction.id),
-    ).toBe([]);
+    expect(getJunctionDemands(hydraulicModel.demands, junction.id)).toBe([]);
 
     const junctionCustomerPoints =
       hydraulicModel.customerPointsLookup.getCustomerPoints(IDS.J1);
@@ -354,7 +346,7 @@ describe.skip("importCustomerPoints", () => {
       getTotalCustomerDemand(
         junction.id,
         hydraulicModel.customerPointsLookup,
-        hydraulicModel.demands.assignments,
+        hydraulicModel.demands,
         hydraulicModel.demands.patterns,
       ),
     ).toBeCloseTo(0.000289, 6);

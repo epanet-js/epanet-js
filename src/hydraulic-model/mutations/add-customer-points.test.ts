@@ -269,8 +269,7 @@ describe("addCustomerPoints", () => {
     const totalDemand = j1CustomerPointsArray.reduce(
       (sum, cp) =>
         sum +
-        (updatedModel.demands.assignments.customerPoints.get(cp.id)?.[0]
-          ?.baseDemand ?? 0),
+        (updatedModel.demands.customerPoints.get(cp.id)?.[0]?.baseDemand ?? 0),
       0,
     );
     expect(totalDemand).toBe(55);
@@ -386,7 +385,7 @@ describe("addCustomerPoints", () => {
       },
     );
 
-    expect(updatedModel.demands.assignments.junctions.get(IDS.J1)).toEqual([
+    expect(updatedModel.demands.junctions.get(IDS.J1)).toEqual([
       { baseDemand: 30 },
     ]);
 
@@ -395,8 +394,7 @@ describe("addCustomerPoints", () => {
     const totalCustomerDemand = Array.from(j1CustomerPoints).reduce(
       (sum, cp) =>
         sum +
-        (updatedModel.demands.assignments.customerPoints.get(cp.id)?.[0]
-          ?.baseDemand ?? 0),
+        (updatedModel.demands.customerPoints.get(cp.id)?.[0]?.baseDemand ?? 0),
       0,
     );
     expect(totalCustomerDemand).toBe(25);
@@ -432,15 +430,14 @@ describe("addCustomerPoints", () => {
       },
     );
 
-    expect(updatedModel.demands.assignments.junctions.has(IDS.J1)).toBe(false);
+    expect(updatedModel.demands.junctions.has(IDS.J1)).toBe(false);
 
     const j1CustomerPoints =
       updatedModel.customerPointsLookup.getCustomerPoints(IDS.J1);
     const totalCustomerDemand = Array.from(j1CustomerPoints).reduce(
       (sum, cp) =>
         sum +
-        (updatedModel.demands.assignments.customerPoints.get(cp.id)?.[0]
-          ?.baseDemand ?? 0),
+        (updatedModel.demands.customerPoints.get(cp.id)?.[0]?.baseDemand ?? 0),
       0,
     );
     expect(totalCustomerDemand).toBe(35);

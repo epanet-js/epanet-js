@@ -1,7 +1,7 @@
 import { HydraulicModel } from "./hydraulic-model";
 import { Asset } from "./asset-types";
 import type { AssetPropertiesMap } from "./asset-types";
-import { AssignedDemands, Demand, Demands } from "./demands";
+import { Demand, Demands } from "./demands";
 import { CustomerPoint, CustomerPointId } from "./customer-points";
 import { Curves } from "./curves";
 import { EPSTiming } from "./eps-timing";
@@ -37,15 +37,13 @@ export type DemandSettingsChange = Partial<
   }
 >;
 
-export const toDemandAssignments = (
-  assignedDemands: AssignedDemands,
-): DemandAssignment[] => {
+export const toDemandAssignments = (demands: Demands): DemandAssignment[] => {
   const result: DemandAssignment[] = [];
-  for (const [junctionId, demands] of assignedDemands.junctions) {
-    result.push({ junctionId, demands });
+  for (const [junctionId, junctionDemands] of demands.junctions) {
+    result.push({ junctionId, demands: junctionDemands });
   }
-  for (const [customerPointId, demands] of assignedDemands.customerPoints) {
-    result.push({ customerPointId, demands });
+  for (const [customerPointId, customerDemands] of demands.customerPoints) {
+    result.push({ customerPointId, demands: customerDemands });
   }
   return result;
 };

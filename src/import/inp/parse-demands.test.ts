@@ -19,8 +19,7 @@ describe("parse junctions demands", () => {
 
     const { hydraulicModel } = parseInp(inp);
     const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
-    const demands =
-      hydraulicModel.demands.assignments.junctions.get(junction.id) ?? [];
+    const demands = hydraulicModel.demands.junctions.get(junction.id) ?? [];
 
     expect(demands).toHaveLength(1);
     expect(demands[0].baseDemand).toBe(50);
@@ -52,8 +51,7 @@ describe("parse junctions demands", () => {
 
     const { hydraulicModel } = parseInp(inp);
     const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
-    const demands =
-      hydraulicModel.demands.assignments.junctions.get(junction.id) ?? [];
+    const demands = hydraulicModel.demands.junctions.get(junction.id) ?? [];
 
     expect(demands).toHaveLength(1);
     expect(demands[0].baseDemand).toBe(50);
@@ -164,8 +162,7 @@ describe("parse junctions demands", () => {
 
     const { hydraulicModel } = parseInp(inp);
     const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
-    const demands =
-      hydraulicModel.demands.assignments.junctions.get(junction.id) ?? [];
+    const demands = hydraulicModel.demands.junctions.get(junction.id) ?? [];
 
     expect(demands).toHaveLength(2);
     expect(demands[0].baseDemand).toBe(50);
@@ -200,8 +197,7 @@ describe("parse junctions demands", () => {
 
     const { hydraulicModel } = parseInp(inp);
     const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
-    const demands =
-      hydraulicModel.demands.assignments.junctions.get(junction.id) ?? [];
+    const demands = hydraulicModel.demands.junctions.get(junction.id) ?? [];
 
     expect(demands).toHaveLength(1);
     expect(demands[0].baseDemand).toBe(100);
@@ -229,8 +225,7 @@ describe("parse junctions demands", () => {
 
     const { hydraulicModel } = parseInp(inp);
     const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
-    const demands =
-      hydraulicModel.demands.assignments.junctions.get(junction.id) ?? [];
+    const demands = hydraulicModel.demands.junctions.get(junction.id) ?? [];
 
     expect(demands).toHaveLength(1);
     expect(demands[0].baseDemand).toBe(50);
@@ -254,8 +249,7 @@ describe("parse junctions demands", () => {
 
     const { hydraulicModel } = parseInp(inp);
     const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
-    const demands =
-      hydraulicModel.demands.assignments.junctions.get(junction.id) ?? [];
+    const demands = hydraulicModel.demands.junctions.get(junction.id) ?? [];
 
     expect(demands).toHaveLength(1);
     expect(demands[0].baseDemand).toBe(75);
@@ -276,8 +270,7 @@ describe("parse junctions demands", () => {
 
     const { hydraulicModel } = parseInp(inp);
     const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
-    const demands =
-      hydraulicModel.demands.assignments.junctions.get(junction.id) ?? [];
+    const demands = hydraulicModel.demands.junctions.get(junction.id) ?? [];
 
     expect(demands).toHaveLength(0);
     expect(hydraulicModel.demands.patterns.size).toBe(0);
@@ -300,8 +293,7 @@ describe("parse junctions demands", () => {
 
       const { hydraulicModel } = parseInp(inp);
       const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
-      const demands =
-        hydraulicModel.demands.assignments.junctions.get(junction.id) ?? [];
+      const demands = hydraulicModel.demands.junctions.get(junction.id) ?? [];
 
       expect(demands).toHaveLength(1);
       expect(demands[0].patternId).toBe(1);
@@ -329,8 +321,7 @@ describe("parse junctions demands", () => {
 
       const { hydraulicModel } = parseInp(inp);
       const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
-      const demands =
-        hydraulicModel.demands.assignments.junctions.get(junction.id) ?? [];
+      const demands = hydraulicModel.demands.junctions.get(junction.id) ?? [];
 
       expect(demands).toHaveLength(1);
       expect(demands[0].baseDemand).toBe(50);
@@ -361,8 +352,7 @@ describe("parse junctions demands", () => {
 
       const { hydraulicModel } = parseInp(inp);
       const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
-      const demands =
-        hydraulicModel.demands.assignments.junctions.get(junction.id) ?? [];
+      const demands = hydraulicModel.demands.junctions.get(junction.id) ?? [];
 
       expect(demands).toHaveLength(1);
       expect(demands[0].patternId).toBe(1);
@@ -396,8 +386,7 @@ describe("parse junctions demands", () => {
 
       const { hydraulicModel } = parseInp(inp);
       const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
-      const demands =
-        hydraulicModel.demands.assignments.junctions.get(junction.id) ?? [];
+      const demands = hydraulicModel.demands.junctions.get(junction.id) ?? [];
 
       expect(demands).toHaveLength(1);
       expect(demands[0].baseDemand).toBe(75);
@@ -429,8 +418,7 @@ describe("parse junctions demands", () => {
 
       const { hydraulicModel } = parseInp(inp);
       const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
-      const demands =
-        hydraulicModel.demands.assignments.junctions.get(junction.id) ?? [];
+      const demands = hydraulicModel.demands.junctions.get(junction.id) ?? [];
 
       expect(demands).toHaveLength(1);
       expect(demands[0].patternId).toBe(1);
@@ -461,8 +449,7 @@ describe("parse junctions demands", () => {
 
       const { hydraulicModel } = parseInp(inp);
       const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
-      const demands =
-        hydraulicModel.demands.assignments.junctions.get(junction.id) ?? [];
+      const demands = hydraulicModel.demands.junctions.get(junction.id) ?? [];
 
       expect(demands).toHaveLength(1);
       expect(demands[0].patternId).toBeUndefined();
@@ -492,8 +479,7 @@ describe("parse junctions demands", () => {
 
       const { hydraulicModel } = parseInp(inp);
       const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
-      const demands =
-        hydraulicModel.demands.assignments.junctions.get(junction.id) ?? [];
+      const demands = hydraulicModel.demands.junctions.get(junction.id) ?? [];
 
       expect(demands).toHaveLength(1);
       expect(demands[0].patternId).toBeUndefined();
@@ -522,8 +508,7 @@ describe("parse junctions demands", () => {
 
       const { hydraulicModel } = parseInp(inp);
       const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
-      const demands =
-        hydraulicModel.demands.assignments.junctions.get(junction.id) ?? [];
+      const demands = hydraulicModel.demands.junctions.get(junction.id) ?? [];
 
       expect(demands).toHaveLength(1);
       expect(demands[0].baseDemand).toBe(75);
@@ -554,8 +539,7 @@ describe("parse junctions demands", () => {
 
       const { hydraulicModel } = parseInp(inp);
       const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
-      const demands =
-        hydraulicModel.demands.assignments.junctions.get(junction.id) ?? [];
+      const demands = hydraulicModel.demands.junctions.get(junction.id) ?? [];
 
       expect(demands).toHaveLength(1);
       expect(demands[0].baseDemand).toBe(50);
@@ -596,8 +580,7 @@ describe("parse junctions demands", () => {
 
       const { hydraulicModel } = parseInp(inp);
       const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
-      const demands =
-        hydraulicModel.demands.assignments.junctions.get(junction.id) ?? [];
+      const demands = hydraulicModel.demands.junctions.get(junction.id) ?? [];
 
       expect(demands).toEqual([{ baseDemand: 50 }]);
       expect(hydraulicModel.demands.patterns.size).toBe(0);
@@ -622,8 +605,7 @@ describe("parse junctions demands", () => {
 
       const { hydraulicModel } = parseInp(inp);
       const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
-      const demands =
-        hydraulicModel.demands.assignments.junctions.get(junction.id) ?? [];
+      const demands = hydraulicModel.demands.junctions.get(junction.id) ?? [];
 
       expect(demands).toHaveLength(1);
       expect(demands[0].baseDemand).toBe(50);
@@ -654,8 +636,7 @@ describe("parse junctions demands", () => {
 
       const { hydraulicModel } = parseInp(inp);
       const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
-      const demands =
-        hydraulicModel.demands.assignments.junctions.get(junction.id) ?? [];
+      const demands = hydraulicModel.demands.junctions.get(junction.id) ?? [];
 
       expect(demands).toHaveLength(2);
       expect(demands[0].baseDemand).toBe(50);

@@ -197,7 +197,7 @@ export class HydraulicModelBuilder {
   }
 
   aJunctionDemand(id: number, demands: Demand[]) {
-    this.demands.assignments.junctions.set(id, demands);
+    this.demands.junctions.set(id, demands);
     return this;
   }
 
@@ -376,7 +376,7 @@ export class HydraulicModelBuilder {
   }
 
   aCustomerPointDemand(id: number, demands: Demand[]) {
-    this.demands.assignments.customerPoints.set(id, demands);
+    this.demands.customerPoints.set(id, demands);
     return this;
   }
 

@@ -56,10 +56,7 @@ export function useAssetComparison(asset: Asset | undefined) {
       return { hasChanged: false };
     }
 
-    const baseDemands = getJunctionDemands(
-      baseModel.demands.assignments,
-      asset.id,
-    );
+    const baseDemands = getJunctionDemands(baseModel.demands, asset.id);
 
     const baseDirectDemand = calculateAverageDemand(
       baseDemands,

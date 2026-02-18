@@ -250,6 +250,57 @@ describe("deleteAssets", () => {
     });
   });
 
+  describe("demand cleanup", () => {
+    it("clears demands for deleted junctions", () => {
+      const IDS = { J1: 1, J2: 2, P1: 3 } as const;
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, { coordinates: [0, 0] })
+        .aJunctionDemand(IDS.J1, [{ baseDemand: 50 }, { baseDemand: 30 }])
+        .aJunction(IDS.J2, { coordinates: [10, 0] })
+        .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
+        .build();
+
+      const { putDemands } = deleteAssets(hydraulicModel, {
+        assetIds: [IDS.J1],
+      });
+
+      expect(putDemands).toEqual({
+        assignments: [{ junctionId: IDS.J1, demands: [] }],
+      });
+    });
+
+    it("does not include putDemands when deleted junction has no demands", () => {
+      const IDS = { J1: 1, J2: 2, P1: 3 } as const;
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, { coordinates: [0, 0] })
+        .aJunction(IDS.J2, { coordinates: [10, 0] })
+        .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
+        .build();
+
+      const { putDemands } = deleteAssets(hydraulicModel, {
+        assetIds: [IDS.J1],
+      });
+
+      expect(putDemands).toBeUndefined();
+    });
+
+    it("does not include putDemands when deleting non-junction assets", () => {
+      const IDS = { J1: 1, J2: 2, P1: 3 } as const;
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, { coordinates: [0, 0] })
+        .aJunctionDemand(IDS.J1, [{ baseDemand: 50 }])
+        .aJunction(IDS.J2, { coordinates: [10, 0] })
+        .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
+        .build();
+
+      const { putDemands } = deleteAssets(hydraulicModel, {
+        assetIds: [IDS.P1],
+      });
+
+      expect(putDemands).toBeUndefined();
+    });
+  });
+
   describe("curve assetIds", () => {
     it("removes pump from curve assetIds when deleting a pump with curveId", () => {
       const IDS = { J1: 1, J2: 2, PUMP: 3, CURVE: 100 } as const;

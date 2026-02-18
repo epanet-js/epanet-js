@@ -7,6 +7,7 @@ import { CustomerPoint } from "../customer-points";
 import { Curves } from "../curves";
 import { Patterns } from "../patterns";
 import { isDebugOn } from "src/infra/debug-mode";
+import { CustomerAssignedDemands, JunctionAssignedDemands } from "../demands";
 
 type PutAssetResult = {
   oldAsset: Asset | undefined;
@@ -51,18 +52,9 @@ export const applyMomentToModel = (
   }
 
   for (const id of moment.deleteAssets || []) {
-    const deletedDemands = hydraulicModel.demands.assignments.junctions.get(id);
     const deleted = deleteAsset(hydraulicModel, id);
     if (deleted) {
       reverseMoment.putAssets.push(deleted);
-      if (deletedDemands && deletedDemands.length > 0) {
-        if (!reverseMoment.putDemands) {
-          reverseMoment.putDemands = {};
-        }
-        const assignments = reverseMoment.putDemands.assignments ?? [];
-        assignments.push({ junctionId: id, demands: deletedDemands });
-        reverseMoment.putDemands.assignments = assignments;
-      }
     }
   }
 
@@ -91,7 +83,10 @@ export const applyMomentToModel = (
 
   if (moment.putDemands) {
     if (moment.putDemands.multiplier !== undefined) {
-      hydraulicModel.demands.multiplier = moment.putDemands.multiplier;
+      hydraulicModel.demands = {
+        ...hydraulicModel.demands,
+        multiplier: moment.putDemands.multiplier,
+      };
     }
     if (moment.putDemands.patterns) {
       putDemandPatterns(hydraulicModel, moment.putDemands.patterns);
@@ -130,7 +125,6 @@ const deleteAsset = (
   hydraulicModel.topology.removeNode(id);
   hydraulicModel.topology.removeLink(id);
   hydraulicModel.labelManager.remove(asset.label, asset.type, asset.id);
-  hydraulicModel.demands.assignments.junctions.delete(id);
 
   return asset;
 };
@@ -244,7 +238,10 @@ const putDemandPatterns = (
   for (const pattern of hydraulicModel.demands.patterns.values()) {
     hydraulicModel.labelManager.remove(pattern.label, "pattern", pattern.id);
   }
-  hydraulicModel.demands.patterns = patterns;
+  hydraulicModel.demands = {
+    ...hydraulicModel.demands,
+    patterns,
+  };
   for (const pattern of patterns.values()) {
     hydraulicModel.labelManager.register(pattern.label, "pattern", pattern.id);
   }
@@ -254,15 +251,20 @@ const putDemandAssignments = (
   hydraulicModel: HydraulicModel,
   assignments: DemandAssignment[],
 ): DemandAssignment[] => {
-  const {
-    junctions: junctionAssignements,
-    customerPoints: customerPointAssignments,
-  } = hydraulicModel.demands.assignments;
+  if (!assignments.length) return [];
+  const { junctions: junctionsDemands, customerPoints: customersDemands } =
+    hydraulicModel.demands;
+
+  let updatedJunctionsDemands: JunctionAssignedDemands | undefined = undefined;
+  let updatedCustomerPointsDemands: CustomerAssignedDemands | undefined =
+    undefined;
 
   const reverseAssignments: DemandAssignment[] = [];
   assignments.forEach((demandAssignement) => {
     if ("customerPointId" in demandAssignement) {
-      const customerDemands = customerPointAssignments.get(
+      if (!updatedCustomerPointsDemands)
+        updatedCustomerPointsDemands = new Map(customersDemands);
+      const customerDemands = customersDemands.get(
         demandAssignement.customerPointId,
       );
       reverseAssignments.push({
@@ -270,29 +272,36 @@ const putDemandAssignments = (
         demands: customerDemands || [],
       });
       if (demandAssignement.demands.length === 0) {
-        customerPointAssignments.delete(demandAssignement.customerPointId);
+        updatedCustomerPointsDemands.delete(demandAssignement.customerPointId);
       } else {
-        customerPointAssignments.set(
+        updatedCustomerPointsDemands.set(
           demandAssignement.customerPointId,
           demandAssignement.demands,
         );
       }
     } else {
-      const demands = junctionAssignements.get(demandAssignement.junctionId);
+      if (!updatedJunctionsDemands)
+        updatedJunctionsDemands = new Map(junctionsDemands);
+      const demands = junctionsDemands.get(demandAssignement.junctionId);
       reverseAssignments.push({
         junctionId: demandAssignement.junctionId,
         demands: demands || [],
       });
       if (demandAssignement.demands.length === 0) {
-        junctionAssignements.delete(demandAssignement.junctionId);
+        updatedJunctionsDemands.delete(demandAssignement.junctionId);
       } else {
-        junctionAssignements.set(
+        updatedJunctionsDemands.set(
           demandAssignement.junctionId,
           demandAssignement.demands,
         );
       }
     }
   });
+  hydraulicModel.demands = {
+    ...hydraulicModel.demands,
+    junctions: updatedJunctionsDemands || junctionsDemands,
+    customerPoints: updatedCustomerPointsDemands || customersDemands,
+  };
   return reverseAssignments;
 };
 

@@ -31,8 +31,7 @@ describe("Parse inp with", () => {
     ) as Junction;
     expect(junction.elevation).toEqual(elevation);
     expect(
-      hydraulicModel.demands.assignments.junctions.get(junction.id)![0]
-        .baseDemand,
+      hydraulicModel.demands.junctions.get(junction.id)![0].baseDemand,
     ).toEqual(demand);
     expect(junction.coordinates).toEqual([20, 10]);
   });
@@ -72,8 +71,7 @@ describe("Parse inp with", () => {
     ) as Junction;
     expect(junction.elevation).toEqual(elevation);
     expect(
-      hydraulicModel.demands.assignments.junctions.get(junction.id)![0]
-        .baseDemand,
+      hydraulicModel.demands.junctions.get(junction.id)![0].baseDemand,
     ).toEqual(demand);
     expect(junction.coordinates).toEqual([20, 10]);
 
@@ -83,8 +81,7 @@ describe("Parse inp with", () => {
     ) as Junction;
     expect(otherJunction.elevation).toEqual(otherElevation);
     expect(
-      hydraulicModel.demands.assignments.junctions.get(otherJunction.id)![0]
-        .baseDemand,
+      hydraulicModel.demands.junctions.get(otherJunction.id)![0].baseDemand,
     ).toEqual(otherDemand);
     expect(otherJunction.coordinates).toEqual([40, 30]);
   });
@@ -502,8 +499,7 @@ describe("Parse inp with", () => {
     expect(junction).toBeDefined();
     expect(junction.elevation).toEqual(100);
     expect(
-      hydraulicModel.demands.assignments.junctions.get(junction.id)![0]
-        .baseDemand,
+      hydraulicModel.demands.junctions.get(junction.id)![0].baseDemand,
     ).toEqual(0.5);
 
     const pipe = getByLabel(hydraulicModel.assets, String(IDS.P1)) as Pipe;
@@ -552,8 +548,7 @@ describe("Parse inp with", () => {
     expect(junction).toBeDefined();
     expect(junction.elevation).toEqual(100);
     expect(
-      hydraulicModel.demands.assignments.junctions.get(junction.id)![0]
-        .baseDemand,
+      hydraulicModel.demands.junctions.get(junction.id)![0].baseDemand,
     ).toEqual(0.5);
 
     const reservoir = getByLabel(

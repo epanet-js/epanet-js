@@ -20,7 +20,6 @@ import {
 } from "src/hydraulic-model/customer-points";
 import {
   Patterns,
-  AssignedDemands,
   Demands,
   calculateAverageDemand,
   getCustomerPointDemands,
@@ -197,7 +196,7 @@ const appendJunctionStats = (
   );
 
   const averageDemand = calculateAverageDemand(
-    getJunctionDemands(demands.assignments, junction.id),
+    getJunctionDemands(demands, junction.id),
     demands.patterns,
   );
   updateQuantityStats(
@@ -217,7 +216,7 @@ const appendJunctionStats = (
   if (customerPoints.length > 0) {
     const totalCustomerDemand = calculateCustomerPointsDemand(
       customerPoints,
-      demands.assignments,
+      demands,
       demands.patterns,
     );
 
@@ -262,16 +261,13 @@ const appendJunctionStats = (
 
 const calculateCustomerPointsDemand = (
   customerPoints: CustomerPoint[],
-  assignments: AssignedDemands,
+  demands: Demands,
   patterns: Patterns,
 ): number => {
   return customerPoints.reduce(
     (sum, cp) =>
       sum +
-      calculateAverageDemand(
-        getCustomerPointDemands(assignments, cp.id),
-        patterns,
-      ),
+      calculateAverageDemand(getCustomerPointDemands(demands, cp.id), patterns),
     0,
   );
 };
@@ -338,7 +334,7 @@ const appendPipeStats = (
   if (customerPoints.size > 0) {
     const totalCustomerDemand = calculateCustomerPointsDemand(
       Array.from(customerPoints),
-      demands.assignments,
+      demands,
       demands.patterns,
     );
 

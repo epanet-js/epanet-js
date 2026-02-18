@@ -9,6 +9,7 @@ import {
   Tank,
   EPSTiming,
   PatternId,
+  Demands,
 } from "src/hydraulic-model";
 import {
   CustomerPoint,
@@ -24,7 +25,6 @@ import {
   IdResolver,
 } from "src/hydraulic-model/controls";
 import {
-  AssignedDemands,
   Pattern,
   Patterns,
   getCustomerPointDemands,
@@ -320,7 +320,7 @@ export const buildInp = withDebugInstrumentation(
           asset as Junction,
           hydraulicModel.customerPointsLookup,
           hydraulicModel.assets,
-          hydraulicModel.demands.assignments,
+          hydraulicModel.demands,
           usedPatternIds,
         );
       }
@@ -500,7 +500,7 @@ const appendJunction = (
   junction: Junction,
   customerPointsLookup: CustomerPointsLookup,
   assets: HydraulicModel["assets"],
-  demandAssignments: AssignedDemands,
+  demands: Demands,
   usedPatternIds: Set<number>,
 ) => {
   if (!junction.isActive && !inactiveAssets) {
@@ -514,7 +514,7 @@ const appendJunction = (
     commentPrefix + [junctionId, junction.elevation].join("\t"),
   );
 
-  const junctionDemands = getJunctionDemands(demandAssignments, junction.id);
+  const junctionDemands = getJunctionDemands(demands, junction.id);
   for (const demand of junctionDemands) {
     if (demand.baseDemand === 0) continue;
 
@@ -538,7 +538,7 @@ const appendJunction = (
 
     const demandsByPattern = new Map<number | undefined, number>();
     for (const cp of customerPoints) {
-      for (const demand of getCustomerPointDemands(demandAssignments, cp.id)) {
+      for (const demand of getCustomerPointDemands(demands, cp.id)) {
         if (demand.baseDemand === 0) continue;
         const currentTotal = demandsByPattern.get(demand.patternId) ?? 0;
         demandsByPattern.set(
@@ -895,7 +895,7 @@ const appendCustomerPoint = (
   }
 
   const demands = getCustomerPointDemands(
-    hydraulicModel.demands.assignments,
+    hydraulicModel.demands,
     customerPoint.id,
   );
   for (const demand of demands) {

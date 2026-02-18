@@ -22,7 +22,7 @@ import {
   Patterns,
   calculateAverageDemand,
   getCustomerPointDemands,
-  AssignedDemands,
+  Demands,
 } from "src/hydraulic-model";
 import { useSetAtom, useAtom } from "jotai";
 import { ephemeralStateAtom } from "src/state/jotai";
@@ -421,14 +421,14 @@ export const ConnectedCustomersRow = ({
   customerPoints,
   aggregateUnit,
   customerUnit,
-  assignedDemands,
+  demands,
   patterns,
 }: {
   customerCount: number;
   customerPoints: CustomerPoint[];
   aggregateUnit: Unit;
   customerUnit: Unit;
-  assignedDemands: AssignedDemands;
+  demands: Demands;
   patterns: Patterns;
 }) => {
   const translate = useTranslate();
@@ -480,7 +480,7 @@ export const ConnectedCustomersRow = ({
               customerPoints={customerPoints}
               aggregateUnit={aggregateUnit}
               customerUnit={customerUnit}
-              assignedDemands={assignedDemands}
+              demands={demands}
               patterns={patterns}
               onClose={handleClose}
             />
@@ -497,14 +497,14 @@ const CustomerPointsPopover = ({
   customerPoints,
   aggregateUnit,
   customerUnit,
-  assignedDemands,
+  demands,
   patterns,
   onClose,
 }: {
   customerPoints: CustomerPoint[];
   aggregateUnit: Unit;
   customerUnit: Unit;
-  assignedDemands: AssignedDemands;
+  demands: Demands;
   patterns: Patterns;
   onClose: () => void;
 }) => {
@@ -575,7 +575,7 @@ const CustomerPointsPopover = ({
           {rowVirtualizer.getVirtualItems().map((virtualRow) => {
             const customerPoint = customerPoints[virtualRow.index];
             const demand = calculateAverageDemand(
-              getCustomerPointDemands(assignedDemands, customerPoint.id),
+              getCustomerPointDemands(demands, customerPoint.id),
               patterns,
             );
 

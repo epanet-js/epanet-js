@@ -3,7 +3,6 @@ import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { applyMomentToModel } from "./apply-moment";
 import { Pipe, Junction } from "../asset-types";
 import { ModelMoment } from "../model-operation";
-import { getJunctionDemands } from "../demands";
 
 describe("applyMomentToModel with patchAssetsAttributes", () => {
   it("patches a single property on an asset", () => {
@@ -283,37 +282,5 @@ describe("applyMomentToModel with patchAssetsAttributes", () => {
     });
     expect((model.assets.get(IDS.J1) as Junction).elevation).toBe(10);
     expect((model.assets.get(IDS.J2) as Junction).elevation).toBe(20);
-  });
-
-  it("restores demand assignments when undoing a junction delete", () => {
-    const IDS = { J1: 1, J2: 2, P1: 3 } as const;
-    const model = HydraulicModelBuilder.with()
-      .aJunction(IDS.J1)
-      .aJunctionDemand(IDS.J1, [
-        { baseDemand: 50 },
-        { baseDemand: 30, patternId: 1 },
-      ])
-      .aJunction(IDS.J2)
-      .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
-      .build();
-
-    const moment: ModelMoment = {
-      note: "Delete junction",
-      deleteAssets: [IDS.J1],
-    };
-
-    const reverse = applyMomentToModel(model, moment);
-
-    expect(model.assets.has(IDS.J1)).toBe(false);
-    expect(getJunctionDemands(model.demands.assignments, IDS.J1)).toEqual([]);
-
-    // Undo the delete
-    applyMomentToModel(model, reverse);
-
-    expect(model.assets.has(IDS.J1)).toBe(true);
-    expect(getJunctionDemands(model.demands.assignments, IDS.J1)).toEqual([
-      { baseDemand: 50 },
-      { baseDemand: 30, patternId: 1 },
-    ]);
   });
 });

@@ -272,7 +272,7 @@ const isPatternInUse = (
   patternId: PatternId,
 ): boolean => {
   // Check customer points — all CPs share the same pattern, so only check the first one with demands
-  for (const demands of hydraulicModel.demands.assignments.customerPoints.values()) {
+  for (const demands of hydraulicModel.demands.customerPoints.values()) {
     if (demands.length > 0) {
       for (const demand of demands) {
         if (demand.patternId === patternId) {
@@ -284,7 +284,7 @@ const isPatternInUse = (
   }
 
   // Check junctions
-  for (const demands of hydraulicModel.demands.assignments.junctions.values()) {
+  for (const demands of hydraulicModel.demands.junctions.values()) {
     for (const demand of demands) {
       if (demand.patternId === patternId) {
         return true;

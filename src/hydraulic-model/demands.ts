@@ -8,35 +8,32 @@ export type Demand = {
   patternId?: PatternId;
 };
 
-export type AssignedDemands = {
-  junctions: Map<AssetId, Demand[]>;
-  customerPoints: Map<CustomerPointId, Demand[]>;
-};
+export type JunctionAssignedDemands = Map<AssetId, Demand[]>;
+export type CustomerAssignedDemands = Map<CustomerPointId, Demand[]>;
 
 export type Demands = {
   multiplier: number;
   patterns: Patterns;
-  assignments: AssignedDemands;
+  junctions: JunctionAssignedDemands;
+  customerPoints: CustomerAssignedDemands;
 };
 
 export const createEmptyDemands = (): Demands => ({
   multiplier: 1,
   patterns: new Map(),
-  assignments: {
-    junctions: new Map(),
-    customerPoints: new Map(),
-  },
+  junctions: new Map(),
+  customerPoints: new Map(),
 });
 
 export const getJunctionDemands = (
-  assignments: AssignedDemands,
+  demands: Demands,
   junctionId: AssetId,
-): Demand[] => assignments.junctions.get(junctionId) || [];
+): Demand[] => demands.junctions.get(junctionId) || [];
 
 export const getCustomerPointDemands = (
-  assignments: AssignedDemands,
+  demands: Demands,
   customerPointId: CustomerPointId,
-): Demand[] => assignments.customerPoints.get(customerPointId) || [];
+): Demand[] => demands.customerPoints.get(customerPointId) || [];
 
 export const calculateAverageDemand = (
   demands: Demand[],
@@ -61,7 +58,7 @@ export const calculateAverageDemand = (
 export const getTotalCustomerDemand = (
   junctionId: AssetId,
   customerPointsLookup: CustomerPointsLookup,
-  assignments: AssignedDemands,
+  demands: Demands,
   patterns: Patterns,
 ): number => {
   const connectedCustomerPoints =
@@ -69,10 +66,7 @@ export const getTotalCustomerDemand = (
   return Array.from(connectedCustomerPoints).reduce(
     (sum, cp) =>
       sum +
-      calculateAverageDemand(
-        getCustomerPointDemands(assignments, cp.id),
-        patterns,
-      ),
+      calculateAverageDemand(getCustomerPointDemands(demands, cp.id), patterns),
     0,
   );
 };

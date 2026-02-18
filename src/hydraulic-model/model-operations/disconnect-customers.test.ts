@@ -88,9 +88,7 @@ describe("disconnectCustomers", () => {
       .build();
 
     hydraulicModel.customerPoints.set(IDS.CP1, disconnectedCP);
-    hydraulicModel.demands.assignments.customerPoints.set(IDS.CP1, [
-      { baseDemand: 25 },
-    ]);
+    hydraulicModel.demands.customerPoints.set(IDS.CP1, [{ baseDemand: 25 }]);
 
     const { putCustomerPoints } = disconnectCustomers(hydraulicModel, {
       customerPointIds: [IDS.CP1],

@@ -62,14 +62,27 @@ export const mergeNodes: ModelOperation<InputData> = (
 
   let demandAssignments: DemandAssignment[] | undefined;
   if (winnerNode.type === "junction" && loserNode.type === "junction") {
-    const { assignments } = hydraulicModel.demands;
-    const winnerDemands = getJunctionDemands(assignments, winnerNode.id);
-    const loserDemands = getJunctionDemands(assignments, loserNode.id);
+    const winnerDemands = getJunctionDemands(
+      hydraulicModel.demands,
+      winnerNode.id,
+    );
+    const loserDemands = getJunctionDemands(
+      hydraulicModel.demands,
+      loserNode.id,
+    );
     const mergedDemands = [...winnerDemands, ...loserDemands];
     demandAssignments = [
       { junctionId: winnerNode.id, demands: mergedDemands },
       { junctionId: loserNode.id, demands: [] },
     ];
+  } else if (loserNode.type === "junction") {
+    const loserDemands = getJunctionDemands(
+      hydraulicModel.demands,
+      loserNode.id,
+    );
+    if (loserDemands.length > 0) {
+      demandAssignments = [{ junctionId: loserNode.id, demands: [] }];
+    }
   }
 
   return buildMergeResult(

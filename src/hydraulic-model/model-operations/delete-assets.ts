@@ -7,12 +7,17 @@ import {
   LinkAsset,
 } from "../asset-types";
 import { Curves } from "../curves";
-import type { AssetPatch } from "../model-operation";
+import type {
+  AssetPatch,
+  DemandAssignment,
+  DemandSettingsChange,
+} from "../model-operation";
 import { ModelOperation } from "../model-operation";
 import { CustomerPoint } from "../customer-points";
 import { CustomerPointsLookup } from "../customer-points-lookup";
 import { HydraulicModel } from "../hydraulic-model";
 import { inferNodeIsActive } from "../utilities/active-topology";
+import { Demands, getJunctionDemands } from "../demands";
 
 type InputData = {
   assetIds: readonly AssetId[];
@@ -58,6 +63,12 @@ export const deleteAssets: ModelOperation<InputData> = (
     affectedIds,
   );
 
+  const putDemands = removeDemandsFromDeletedJunctions(
+    hydraulicModel.demands,
+    assets,
+    affectedIds,
+  );
+
   return {
     note: "Delete assets",
     deleteAssets: Array.from(affectedIds),
@@ -68,6 +79,7 @@ export const deleteAssets: ModelOperation<InputData> = (
         ? Array.from(disconnectedCustomerPoints.values())
         : undefined,
     ...(putCurves && { putCurves }),
+    ...(putDemands && { putDemands }),
   };
 };
 
@@ -154,4 +166,24 @@ const removePumpsFromCurveAssetIds = (
   }
 
   return updated;
+};
+
+const removeDemandsFromDeletedJunctions = (
+  demands: Demands,
+  assets: Map<AssetId, Asset>,
+  deletedIds: Set<AssetId>,
+): DemandSettingsChange | undefined => {
+  let updated: DemandAssignment[] | undefined;
+
+  for (const id of deletedIds) {
+    const asset = assets.get(id);
+    if (!asset || asset.type !== "junction") continue;
+    const demand = getJunctionDemands(demands, id);
+    if (!demand.length) continue;
+
+    if (!updated) updated = [];
+    updated.push({ junctionId: id, demands: [] });
+  }
+
+  return updated ? { assignments: updated } : undefined;
 };

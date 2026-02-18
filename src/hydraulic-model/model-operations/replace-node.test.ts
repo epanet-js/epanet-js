@@ -239,4 +239,53 @@ describe("replaceNode", () => {
     const newNode = moment.putAssets![0] as NodeAsset;
     expect(newNode.isActive).toBe(false);
   });
+
+  it("clears junction demands when replacing junction with tank", () => {
+    const IDS = { J1: 1, J2: 2, P1: 3 } as const;
+    const model = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1, { coordinates: [0, 0], elevation: 10 })
+      .aJunctionDemand(IDS.J1, [{ baseDemand: 50 }, { baseDemand: 30 }])
+      .aJunction(IDS.J2, { coordinates: [10, 0] })
+      .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
+      .build();
+
+    const moment = replaceNode(model, {
+      oldNodeId: IDS.J1,
+      newNodeType: "tank",
+    });
+
+    expect(moment.putDemands).toEqual({
+      assignments: [{ junctionId: IDS.J1, demands: [] }],
+    });
+  });
+
+  it("does not include putDemands when replacing junction with no demands", () => {
+    const IDS = { J1: 1 } as const;
+    const model = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1, { coordinates: [0, 0] })
+      .build();
+
+    const moment = replaceNode(model, {
+      oldNodeId: IDS.J1,
+      newNodeType: "reservoir",
+    });
+
+    expect(moment.putDemands).toBeUndefined();
+  });
+
+  it("does not include putDemands when replacing non-junction types", () => {
+    const IDS = { T1: 1, J1: 2, P1: 3 } as const;
+    const model = HydraulicModelBuilder.with()
+      .aTank(IDS.T1, { coordinates: [0, 0], elevation: 25 })
+      .aJunction(IDS.J1, { coordinates: [10, 0] })
+      .aPipe(IDS.P1, { startNodeId: IDS.T1, endNodeId: IDS.J1 })
+      .build();
+
+    const moment = replaceNode(model, {
+      oldNodeId: IDS.T1,
+      newNodeType: "reservoir",
+    });
+
+    expect(moment.putDemands).toBeUndefined();
+  });
 });

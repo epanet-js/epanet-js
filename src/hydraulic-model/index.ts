@@ -33,6 +33,7 @@ export type {
   Pipe,
   Pump,
   Tank,
+  Valve,
 } from "./asset-types";
 export { Topology } from "./topology";
 
@@ -47,7 +48,7 @@ export type {
   Patterns,
 } from "./patterns";
 export { getNextPatternId } from "./patterns";
-export type { Demands, Demand, AssignedDemands } from "./demands";
+export type { Demands, Demand } from "./demands";
 export {
   createEmptyDemands,
   getJunctionDemands,

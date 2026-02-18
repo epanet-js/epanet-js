@@ -51,8 +51,8 @@ export const addCustomerPoints = (
 
   const updatedJunctionDemands =
     junctionsToClearDemands.size > 0
-      ? new Map(hydraulicModel.demands.assignments.junctions)
-      : hydraulicModel.demands.assignments.junctions;
+      ? new Map(hydraulicModel.demands.junctions)
+      : hydraulicModel.demands.junctions;
 
   for (const junctionId of junctionsToClearDemands) {
     updatedJunctionDemands.delete(junctionId);
@@ -60,7 +60,7 @@ export const addCustomerPoints = (
 
   const updatedCustomerDemands = overrideExisting
     ? new Map<number, Demand[]>()
-    : new Map(hydraulicModel.demands.assignments.customerPoints);
+    : new Map(hydraulicModel.demands.customerPoints);
 
   if (options.customerPointDemands) {
     for (const [cpId, demands] of options.customerPointDemands) {
@@ -81,10 +81,8 @@ export const addCustomerPoints = (
     demands: demandsChanged
       ? {
           ...hydraulicModel.demands,
-          assignments: {
-            junctions: updatedJunctionDemands,
-            customerPoints: updatedCustomerDemands,
-          },
+          junctions: updatedJunctionDemands,
+          customerPoints: updatedCustomerDemands,
         }
       : hydraulicModel.demands,
   };
