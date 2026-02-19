@@ -5,17 +5,18 @@ import {
   valveStatuses,
   valveKinds,
 } from "src/hydraulic-model/asset-types/valve";
+import type { ChangeableProperty } from "src/hydraulic-model/model-operations/change-property";
 
 type QuantityConfig = {
   fieldType: "quantity";
-  modelProperty: string;
+  modelProperty: ChangeableProperty;
   positiveOnly?: boolean;
   isNullable?: boolean;
 };
 
 type CategoryConfig = {
   fieldType: "category";
-  modelProperty: string;
+  modelProperty: ChangeableProperty;
   statsPrefix: string;
   values: readonly string[];
   useUppercaseLabel?: boolean;
@@ -23,7 +24,7 @@ type CategoryConfig = {
 
 type BooleanConfig = {
   fieldType: "boolean";
-  modelProperty: string;
+  modelProperty: ChangeableProperty;
 };
 
 export type BatchEditPropertyConfig =

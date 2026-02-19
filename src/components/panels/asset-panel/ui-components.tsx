@@ -196,7 +196,7 @@ export const TextRow = ({
   );
 };
 
-export const QuantityRow = ({
+export const QuantityRow = <P extends string>({
   name,
   value,
   unit,
@@ -207,7 +207,7 @@ export const QuantityRow = ({
   comparison,
   onChange,
 }: {
-  name: string;
+  name: P;
   value: number | null;
   unit: Unit;
   positiveOnly?: boolean;
@@ -215,7 +215,7 @@ export const QuantityRow = ({
   readOnly?: boolean;
   decimals?: number;
   comparison?: PropertyComparison;
-  onChange?: (name: string, newValue: number, oldValue: number | null) => void;
+  onChange?: (name: P, newValue: number, oldValue: number | null) => void;
 }) => {
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
@@ -277,8 +277,8 @@ type SelectRowValue =
   | PumpStatus
   | number;
 
-type SelectRowPropsBase<T extends SelectRowValue> = {
-  name: string;
+type SelectRowPropsBase<P extends string, T extends SelectRowValue> = {
+  name: P;
   label?: string;
   options: SelectorOption<T>[] | SelectorOption<T>[][];
   listClassName?: string;
@@ -287,27 +287,31 @@ type SelectRowPropsBase<T extends SelectRowValue> = {
   readOnly?: boolean;
 };
 
-type SelectRowPropsNonNullable<T extends SelectRowValue> =
-  SelectRowPropsBase<T> & {
-    selected: T;
-    nullable?: false;
-    onChange?: (name: string, newValue: T, oldValue: T) => void;
-    placeholder?: undefined;
-  };
+type SelectRowPropsNonNullable<
+  P extends string,
+  T extends SelectRowValue,
+> = SelectRowPropsBase<P, T> & {
+  selected: T;
+  nullable?: false;
+  onChange?: (name: P, newValue: T, oldValue: T) => void;
+  placeholder?: undefined;
+};
 
-type SelectRowPropsNullable<T extends SelectRowValue> =
-  SelectRowPropsBase<T> & {
-    selected: T | null;
-    nullable: true;
-    placeholder: string;
-    onChange?: (name: string, newValue: T | null, oldValue: T | null) => void;
-  };
+type SelectRowPropsNullable<
+  P extends string,
+  T extends SelectRowValue,
+> = SelectRowPropsBase<P, T> & {
+  selected: T | null;
+  nullable: true;
+  placeholder: string;
+  onChange?: (name: P, newValue: T | null, oldValue: T | null) => void;
+};
 
-type SelectorRowProps<T extends SelectRowValue> =
-  | SelectRowPropsNullable<T>
-  | SelectRowPropsNonNullable<T>;
+type SelectorRowProps<P extends string, T extends SelectRowValue> =
+  | SelectRowPropsNullable<P, T>
+  | SelectRowPropsNonNullable<P, T>;
 
-export function SelectRow<T extends SelectRowValue>({
+export function SelectRow<P extends string, T extends SelectRowValue>({
   name,
   label,
   selected,
@@ -319,7 +323,7 @@ export function SelectRow<T extends SelectRowValue>({
   nullable = false,
   placeholder = undefined,
   onChange,
-}: SelectorRowProps<T>) {
+}: SelectorRowProps<P, T>) {
   const translate = useTranslate();
   const actualLabel = label || translate(name);
 
@@ -368,7 +372,7 @@ export function SelectRow<T extends SelectRowValue>({
   );
 }
 
-export const SwitchRow = ({
+export const SwitchRow = <P extends string>({
   name,
   label,
   enabled,
@@ -376,12 +380,12 @@ export const SwitchRow = ({
   readOnly = false,
   onChange,
 }: {
-  name: string;
+  name: P;
   label?: string;
   enabled: boolean;
   comparison?: PropertyComparison;
   readOnly?: boolean;
-  onChange?: (property: string, newValue: boolean, oldValue: boolean) => void;
+  onChange?: (property: P, newValue: boolean, oldValue: boolean) => void;
 }) => {
   const translate = useTranslate();
   const actualLabel = label || translate(name);

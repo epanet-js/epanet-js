@@ -32,6 +32,10 @@ import {
   changeDemandAssignment,
   changeLabel,
 } from "src/hydraulic-model/model-operations";
+import type {
+  ChangeableProperty,
+  ChangeablePropertyValue,
+} from "src/hydraulic-model/model-operations/change-property";
 import { activateAssets } from "src/hydraulic-model/model-operations/activate-assets";
 import { deactivateAssets } from "src/hydraulic-model/model-operations/deactivate-assets";
 import { getLinkNodes } from "src/hydraulic-model/assets-map";
@@ -69,10 +73,10 @@ import {
   PumpDefinitionDetails,
 } from "./pump-definition-details";
 
-type OnPropertyChange = (
-  name: string,
-  value: number | boolean,
-  oldValue: number | boolean | null,
+type OnPropertyChange = <P extends ChangeableProperty>(
+  name: P,
+  value: ChangeablePropertyValue<P>,
+  oldValue: ChangeablePropertyValue<P> | null,
 ) => void;
 type OnStatusChange<T> = (newStatus: T, oldStatus: T) => void;
 type OnTypeChange<T> = (newType: T, oldType: T) => void;
@@ -123,12 +127,8 @@ export function AssetPanel({
   const userTracking = useUserTracking();
   const translate = useTranslate();
 
-  const handlePropertyChange = useCallback(
-    (
-      property: string,
-      value: number | boolean,
-      oldValue: number | boolean | null,
-    ) => {
+  const handlePropertyChange: OnPropertyChange = useCallback(
+    (property, value, oldValue) => {
       const moment = changeProperty(hydraulicModel, {
         assetIds: [asset.id],
         property,
@@ -139,8 +139,12 @@ export function AssetPanel({
         name: "assetProperty.edited",
         type: asset.type,
         property,
-        newValue: typeof value === "boolean" ? Number(value) : value,
-        oldValue: typeof oldValue === "boolean" ? Number(oldValue) : oldValue,
+        newValue:
+          typeof value === "boolean" ? Number(value) : (value as number),
+        oldValue:
+          typeof oldValue === "boolean"
+            ? Number(oldValue)
+            : (oldValue as number | null),
       });
     },
     [hydraulicModel, asset.id, asset.type, transact, userTracking],

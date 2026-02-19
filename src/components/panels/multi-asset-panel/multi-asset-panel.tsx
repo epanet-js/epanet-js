@@ -21,6 +21,7 @@ import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { usePersistence } from "src/lib/persistence";
 import { useUserTracking } from "src/infra/user-tracking";
 import { changeProperty } from "src/hydraulic-model/model-operations";
+import type { ChangeableProperty } from "src/hydraulic-model/model-operations/change-property";
 import { activateAssets } from "src/hydraulic-model/model-operations/activate-assets";
 import { deactivateAssets } from "src/hydraulic-model/model-operations/deactivate-assets";
 import { useSelection } from "src/selection/use-selection";
@@ -80,7 +81,7 @@ export function MultiAssetPanel({
   const handleBatchPropertyChange = useCallback(
     (
       assetType: Asset["type"],
-      modelProperty: string,
+      modelProperty: ChangeableProperty,
       value: number | string | boolean,
     ) => {
       const assetIds = assetIdsByType[assetType];
@@ -92,7 +93,7 @@ export function MultiAssetPanel({
           : changeProperty(hydraulicModel, {
               assetIds,
               property: modelProperty,
-              value: value as never,
+              value,
             });
       transact(moment);
       userTracking.capture({

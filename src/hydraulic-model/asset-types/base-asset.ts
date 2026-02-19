@@ -51,7 +51,7 @@ export class BaseAsset<T> {
     return this.feature.properties.isActive;
   }
 
-  setProperty(name: string, value: NonNullable<unknown>) {
+  setProperty(name: string, value: unknown) {
     this.feature.properties[name as keyof AssetProperties] = value as never;
   }
 
@@ -64,7 +64,7 @@ export class BaseAsset<T> {
   }
 
   hasProperty(name: string): boolean {
-    return this.feature.properties[name as keyof AssetProperties] !== undefined;
+    return name in this.feature.properties;
   }
 
   protected get properties() {

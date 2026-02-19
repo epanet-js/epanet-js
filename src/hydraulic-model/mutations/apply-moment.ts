@@ -210,7 +210,7 @@ const patchAssetAttributes = (
 
   const updatedAsset = asset.copy();
   for (const [key, value] of Object.entries(patch.properties)) {
-    updatedAsset.setProperty(key, value as NonNullable<unknown>);
+    updatedAsset.setProperty(key, value);
   }
   hydraulicModel.assets.set(patch.id, updatedAsset);
 

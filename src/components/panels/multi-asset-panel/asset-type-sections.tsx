@@ -5,13 +5,14 @@ import { MultiValueRow } from "./multi-value-row";
 import { AssetPropertySections } from "./data";
 import { BATCH_EDITABLE_PROPERTIES } from "./batch-edit-property-config";
 import { Asset, AssetId } from "src/hydraulic-model";
+import type { ChangeableProperty } from "src/hydraulic-model/model-operations/change-property";
 
 type SectionProps = {
   sections: AssetPropertySections;
   assetType: Asset["type"];
   hasSimulation?: boolean;
   onPropertyChange: (
-    modelProperty: string,
+    modelProperty: ChangeableProperty,
     value: number | string | boolean,
   ) => void;
   readonly?: boolean;

@@ -17,12 +17,13 @@ import { AssetPropertyStats, QuantityStats } from "./data";
 import { BatchEditPropertyConfig } from "./batch-edit-property-config";
 import { AssetId } from "src/hydraulic-model";
 import { JsonValue } from "type-fest";
+import type { ChangeableProperty } from "src/hydraulic-model/model-operations/change-property";
 
 type MultiValueRowProps = {
   propertyStats: AssetPropertyStats;
   config: BatchEditPropertyConfig;
   onPropertyChange: (
-    modelProperty: string,
+    modelProperty: ChangeableProperty,
     value: number | string | boolean,
   ) => void;
   readonly?: boolean;
@@ -138,7 +139,7 @@ const EditableField = ({
   config: BatchEditPropertyConfig;
   isMixed: boolean;
   onPropertyChange: (
-    modelProperty: string,
+    modelProperty: ChangeableProperty,
     value: number | string | boolean,
   ) => void;
   label: string;
