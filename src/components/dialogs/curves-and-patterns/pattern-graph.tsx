@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { BarGraph, type StyledBarValue } from "src/components/graphs/bar-graph";
-import { PatternMultipliers } from "src/hydraulic-model";
+import { PatternMultipliers, PatternType } from "src/hydraulic-model";
 import { colors } from "src/lib/constants";
 
 const VALUE_COLOR = colors.purple500;
@@ -10,6 +10,7 @@ const SELECTED_VALUE_COLOR = colors.fuchsia500;
 
 interface PatternGraphProps {
   pattern: PatternMultipliers;
+  patternType?: PatternType;
   intervalSeconds: number;
   totalDurationSeconds: number;
   highlightedBarIndices?: number[];
@@ -18,6 +19,7 @@ interface PatternGraphProps {
 
 export function PatternGraph({
   pattern,
+  patternType,
   intervalSeconds,
   totalDurationSeconds,
   highlightedBarIndices,
@@ -32,7 +34,16 @@ export function PatternGraph({
     );
   }, [pattern, intervalSeconds, totalDurationSeconds, highlightedBarIndices]);
 
-  return <BarGraph values={values} labels={labels} onBarClick={onBarClick} />;
+  const startYAxisAtZero = patternType !== "reservoirHead";
+
+  return (
+    <BarGraph
+      values={values}
+      labels={labels}
+      startYAxisAtZero={startYAxisAtZero}
+      onBarClick={onBarClick}
+    />
+  );
 }
 
 export function buildPatternData(

@@ -201,6 +201,7 @@ export const CurvesAndPatternsDialog = ({
           {selectedPatternId ? (
             <PatternDetail
               pattern={getPatternMultipliers(selectedPatternId)}
+              patternType={editedPatterns.get(selectedPatternId)?.type}
               patternTimestepSeconds={patternTimestepSeconds}
               totalDurationSeconds={totalDurationSeconds}
               onChange={(multipliers) =>

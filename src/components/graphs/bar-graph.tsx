@@ -15,10 +15,16 @@ export type BarValue = number | StyledBarValue;
 interface BarGraphProps {
   values: BarValue[];
   labels: string[];
+  startYAxisAtZero?: boolean;
   onBarClick?: (index: number | null) => void;
 }
 
-export function BarGraph({ values, labels, onBarClick }: BarGraphProps) {
+export function BarGraph({
+  values,
+  labels,
+  startYAxisAtZero = true,
+  onBarClick,
+}: BarGraphProps) {
   const translate = useTranslate();
   const chartRef = useRef<ReactECharts>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -49,8 +55,8 @@ export function BarGraph({ values, labels, onBarClick }: BarGraphProps) {
     const numericValues = values.map((v) =>
       typeof v === "number" ? v : v.value,
     );
-    return buildYAxis(numericValues);
-  }, [values]);
+    return buildYAxis(numericValues, startYAxisAtZero);
+  }, [values, startYAxisAtZero]);
 
   const series: EChartsOption["series"] = useMemo(() => {
     return [
@@ -171,8 +177,11 @@ const calculateLabelInterval = (count: number): number => {
   return Math.floor(count / 8);
 };
 
-const buildYAxis = (values: number[]): EChartsOption["yAxis"] => {
-  const { min, max, interval } = calculateInterval(values);
+const buildYAxis = (
+  values: number[],
+  startAtZero: boolean,
+): EChartsOption["yAxis"] => {
+  const { min, max, interval } = calculateInterval(values, startAtZero);
   return {
     type: "value",
     min,
@@ -192,19 +201,50 @@ const buildYAxis = (values: number[]): EChartsOption["yAxis"] => {
   };
 };
 
-const calculateInterval = (
+export const calculateInterval = (
   values: number[],
+  startAtZero: boolean,
   targetIntervalsCount = 5,
 ): { min: number; max: number; interval: number } => {
   if (values.length === 0) return { min: 0, max: 1, interval: 0.2 };
 
   const decimals = 2;
   const factor = Math.pow(10, decimals);
-  const minVal = Math.floor(Math.min(...values, 0) * factor) / factor;
-  const maxVal = Math.ceil(Math.max(...values, 1) * factor) / factor;
+  const minPrecision = Math.pow(10, -decimals + 1);
+
+  const rawMin = Math.min(...values);
+  const rawMax = Math.max(...values);
+
+  let minVal: number;
+  let maxVal: number;
+
+  if (startAtZero) {
+    minVal = Math.floor(Math.min(rawMin, 0) * factor) / factor;
+    maxVal = Math.ceil(Math.max(rawMax, 1) * factor) / factor;
+  } else {
+    // Add 30% padding around the data range so variations are visible
+    const dataRange = rawMax - rawMin;
+    const padding = Math.max(dataRange * 0.3, minPrecision);
+    minVal = Math.floor((rawMin - padding) * factor) / factor;
+    maxVal = Math.ceil((rawMax + padding) * factor) / factor;
+  }
+
   const range = maxVal - minVal;
 
-  if (range === 0) return { min: 0, max: 1, interval: 0.2 };
+  if (range <= 0) {
+    // All values identical — create a range around the value
+    const center = rawMin;
+    const halfSpan = Math.max(Math.abs(center) * 0.3, minPrecision * 2);
+    const fallbackMin =
+      Math.floor((center - halfSpan) / minPrecision) * minPrecision;
+    const fallbackMax =
+      Math.ceil((center + halfSpan) / minPrecision) * minPrecision;
+    return {
+      min: fallbackMin,
+      max: fallbackMax,
+      interval: minPrecision,
+    };
+  }
 
   const roughInterval = range / (targetIntervalsCount - 1);
   const magnitude = Math.pow(10, Math.floor(Math.log10(roughInterval)));
@@ -216,9 +256,16 @@ const calculateInterval = (
       : prev,
   );
 
-  const niceInterval = Math.round(niceFactor * magnitude * factor) / factor;
-  const min = Math.floor(minVal / niceInterval) * niceInterval;
-  const max = Math.ceil(maxVal / niceInterval) * niceInterval;
+  const niceInterval = Math.max(
+    Math.round(niceFactor * magnitude * factor) / factor,
+    minPrecision,
+  );
+  let min = Math.floor(minVal / niceInterval) * niceInterval;
+  let max = Math.ceil(maxVal / niceInterval) * niceInterval;
+
+  // Ensure computed range contains all data points
+  while (min > rawMin) min -= niceInterval;
+  while (max < rawMax) max += niceInterval;
 
   return { min, max, interval: niceInterval };
 };

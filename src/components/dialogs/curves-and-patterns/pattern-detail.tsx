@@ -1,11 +1,12 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { PatternGraph } from "./pattern-graph";
-import { PatternMultipliers } from "src/hydraulic-model";
+import { PatternMultipliers, PatternType } from "src/hydraulic-model";
 import { type GridSelection } from "src/components/data-grid";
 import { PatternTable, type PatternTableRef } from "./pattern-table";
 
 interface PatternDetailProps {
   pattern: PatternMultipliers;
+  patternType?: PatternType;
   patternTimestepSeconds: number;
   totalDurationSeconds: number;
   onChange: (pattern: PatternMultipliers) => void;
@@ -14,6 +15,7 @@ interface PatternDetailProps {
 
 export function PatternDetail({
   pattern,
+  patternType,
   patternTimestepSeconds,
   totalDurationSeconds,
   onChange,
@@ -91,6 +93,7 @@ export function PatternDetail({
         <div ref={graphContainerRef} className="h-full">
           <PatternGraph
             pattern={pattern}
+            patternType={patternType}
             intervalSeconds={patternTimestepSeconds}
             totalDurationSeconds={totalDurationSeconds}
             highlightedBarIndices={graphSelectedIndexes}
