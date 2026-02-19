@@ -1229,7 +1229,9 @@ const PumpEditor = ({
   quantitiesMetadata: Quantities;
   readonly?: boolean;
 }) => {
+  const isMorePatternsOn = useFeatureFlag("FLAG_MORE_PATTERNS");
   const translate = useTranslate();
+  const showCurvesAndPatterns = useShowCurvesAndPatterns();
   const { footer } = useQuickGraph(pump.id, "pump");
   const { getComparison, getPumpCurveComparison, isNew } =
     useAssetComparison(pump);
@@ -1246,6 +1248,49 @@ const PumpEditor = ({
       value: status,
     }));
   }, [translate]);
+
+  const speedPatternOptions = useMemo(() => {
+    const libraryGroup: SelectorOption<PatternId>[] = [
+      { label: translate("openPatternsLibrary"), value: -1 },
+    ];
+
+    const patternGroup: SelectorOption<PatternId>[] = [];
+    for (const [, pattern] of hydraulicModel.patterns) {
+      if (pattern.type === "pumpSpeed") {
+        patternGroup.push({ label: pattern.label, value: pattern.id });
+      }
+    }
+    const constantGroup: SelectorOption<PatternId>[] = patternGroup.length
+      ? [
+          {
+            label: translate("constant"),
+            value: CONSTANT_PATTERN_ID,
+          },
+        ]
+      : [];
+
+    return [libraryGroup, [...constantGroup, ...patternGroup]];
+  }, [hydraulicModel.patterns, translate]);
+
+  const selectedSpeedPatternId = pump.speedPatternId ?? null;
+
+  const handleSpeedPatternChange = useCallback(
+    (_: string, newValue: number | null, oldValue: number | null) => {
+      if (newValue === oldValue) return;
+      if (newValue === null) return;
+      if (newValue === -1) {
+        showCurvesAndPatterns({
+          source: "pump",
+          initialPatternId: pump.speedPatternId,
+        });
+        return;
+      }
+      const patternId = newValue === CONSTANT_PATTERN_ID ? undefined : newValue;
+      if (!patternId && !oldValue) return;
+      onPropertyChange("speedPatternId", patternId, pump.speedPatternId);
+    },
+    [onPropertyChange, pump.speedPatternId, showCurvesAndPatterns],
+  );
 
   const handleStatusChange = (
     name: string,
@@ -1290,15 +1335,45 @@ const PumpEditor = ({
           getPumpCurveComparison={getPumpCurveComparison}
         />
 
-        <QuantityRow
-          name="speed"
-          value={pump.speed}
-          unit={quantitiesMetadata.getUnit("speed")}
-          decimals={quantitiesMetadata.getDecimals("speed")}
-          comparison={getComparison("speed", pump.speed)}
-          onChange={onPropertyChange}
-          readOnly={readonly}
-        />
+        {isMorePatternsOn ? (
+          <>
+            <SelectRow
+              name="speedPattern"
+              selected={selectedSpeedPatternId}
+              options={speedPatternOptions}
+              listClassName="first:italic"
+              stickyFirstGroup
+              nullable={true}
+              placeholder={translate("constant")}
+              comparison={getComparison("speedPatternId", pump.speedPatternId)}
+              onChange={handleSpeedPatternChange}
+              readOnly={readonly}
+            />
+            {!pump.speedPatternId && (
+              <div className="bg-gray-50 p-2 py-1 mt-1 -mr-2 border-l-2 border-gray-400 rounded-sm">
+                <QuantityRow
+                  name="speed"
+                  value={pump.speed}
+                  unit={quantitiesMetadata.getUnit("speed")}
+                  decimals={quantitiesMetadata.getDecimals("speed")}
+                  comparison={getComparison("speed", pump.speed)}
+                  onChange={onPropertyChange}
+                  readOnly={readonly}
+                />
+              </div>
+            )}
+          </>
+        ) : (
+          <QuantityRow
+            name="speed"
+            value={pump.speed}
+            unit={quantitiesMetadata.getUnit("speed")}
+            decimals={quantitiesMetadata.getDecimals("speed")}
+            comparison={getComparison("speed", pump.speed)}
+            onChange={onPropertyChange}
+            readOnly={readonly}
+          />
+        )}
         <SelectRow
           name="initialStatus"
           selected={pump.initialStatus}

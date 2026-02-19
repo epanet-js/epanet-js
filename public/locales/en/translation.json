@@ -866,6 +866,7 @@
   "openPumpLibrary": "Open library...",
   "openPatternsLibrary": "Open library...",
   "headPattern": "Head pattern",
+  "speedPattern": "Speed pattern",
   "addCurve": "Add curve",
   "pumpName": "Pump name",
   "curveType": "Curve type",

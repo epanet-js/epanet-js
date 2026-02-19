@@ -12,7 +12,7 @@ export const useShowCurvesAndPatterns = () => {
       source,
       initialPatternId,
     }: {
-      source: "toolbar" | "shortcut" | "reservoir";
+      source: "toolbar" | "shortcut" | "reservoir" | "pump";
       initialPatternId?: number;
     }) => {
       userTracking.capture({
