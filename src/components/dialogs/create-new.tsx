@@ -7,6 +7,8 @@ import {
   Quantities,
   presets,
 } from "src/model-metadata/quantities-spec";
+import { ModelMetadata } from "src/model-metadata";
+import { createProjectionMapper } from "src/projections";
 import {
   HeadlossFormula,
   headlossFormulas,
@@ -75,7 +77,10 @@ export const CreateNew = ({ onClose }: { onClose: () => void }) => {
   const handleSubmit = useCallback(
     ({ unitsSpec, headlossFormula, location }: SubmitProps) => {
       const quantities = new Quantities(presets[unitsSpec]);
-      const modelMetadata = { quantities };
+      const modelMetadata: ModelMetadata = {
+        quantities,
+        projectionMapper: createProjectionMapper({ type: "wgs84" }),
+      };
       const hydraulicModel = initializeHydraulicModel({
         units: quantities.units,
         defaults: quantities.defaults,

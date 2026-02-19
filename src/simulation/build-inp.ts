@@ -18,7 +18,7 @@ import {
 import { CustomerPointsLookup } from "src/hydraulic-model/customer-points-lookup";
 import { Valve, AssetId } from "src/hydraulic-model/asset-types";
 import { checksum } from "src/infra/checksum";
-import { inverseTransformPoint } from "src/projections";
+import { ProjectionMapper } from "src/projections";
 import { Position } from "geojson";
 import { withDebugInstrumentation } from "src/infra/with-instrumentation";
 import {
@@ -223,11 +223,12 @@ type BuildOptions = {
   usedPatterns?: boolean;
   usedCurves?: boolean;
   reservoirElevations?: boolean;
+  projectionMapper?: ProjectionMapper;
 };
 
 export const buildInp = withDebugInstrumentation(
   (hydraulicModel: HydraulicModel, options: BuildOptions = {}): string => {
-    const defaultOptions: Required<BuildOptions> = {
+    const opts = {
       geolocation: false,
       madeBy: false,
       labelIds: false,
@@ -237,17 +238,14 @@ export const buildInp = withDebugInstrumentation(
       usedPatterns: false,
       usedCurves: false,
       reservoirElevations: false,
+      ...options,
     };
-    const opts = { ...defaultOptions, ...options };
     const idMap = new EpanetIds({ strategy: opts.labelIds ? "label" : "id" });
     const units = chooseUnitSystem(hydraulicModel.units);
     const headlossFormula = hydraulicModel.headlossFormula;
 
     const transformCoord: (p: Position) => Position =
-      hydraulicModel.sourceProjection === "xy-grid" &&
-      hydraulicModel.projectionCentroid
-        ? (p) => inverseTransformPoint(p, hydraulicModel.projectionCentroid!)
-        : (p) => p;
+      opts.projectionMapper?.toSource ?? ((p: Position) => p);
     const sections: InpSections = {
       junctions: ["[JUNCTIONS]", ";Id\tElevation"],
       reservoirs: ["[RESERVOIRS]", ";Id\tHead\tPattern"],
@@ -279,9 +277,7 @@ export const buildInp = withDebugInstrumentation(
       ],
       backdrop: [
         "[BACKDROP]",
-        hydraulicModel.sourceProjection === "xy-grid"
-          ? "Units\tNONE"
-          : "Units\tDEGREES",
+        `Units\t${opts.projectionMapper?.backdropUnits ?? "DEGREES"}`,
       ],
       coordinates: ["[COORDINATES]", ";Node\tX-coord\tY-coord"],
       vertices: ["[VERTICES]", ";link\tX-coord\tY-coord"],

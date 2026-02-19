@@ -219,6 +219,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const {
     modelMetadata: { quantities },
   } = useAtomValue(dataAtom);
+  const isUnprojected = useAtomValue(isUnprojectedAtom);
   const simulationResults = useAtomValue(simulationResultsAtom);
   const lastHiddenFeatures = useRef<Set<AssetId>>(new Set([]));
   const previousMapStateRef = useRef<MapState>(nullMapState);
@@ -305,7 +306,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         }
 
         if (hasNewImport || hasNewStyles) {
-          const isUnprojected = hydraulicModel.sourceProjection === "xy-grid";
           if (isUnprojected && !dynamicGridRef.current) {
             dynamicGridRef.current = new DynamicGrid(map.map);
             dynamicGridRef.current.attach();
@@ -504,6 +504,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     translateUnit,
     hydraulicModel,
     resultsReader,
+    isUnprojected,
   ]);
 
   doUpdates();

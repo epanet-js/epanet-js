@@ -25,6 +25,7 @@ import { EphemeralMoveAssets } from "src/map/mode-handlers/none/move-state";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { Quantities, presets } from "src/model-metadata/quantities-spec";
 import { ModelMetadata } from "src/model-metadata";
+import { createProjectionMapper } from "src/projections";
 import { EphemeralDrawNode } from "src/map/mode-handlers/draw-node/ephemeral-draw-node-state";
 import { DEFAULT_ZOOM } from "src/map/map-engine";
 import { EphemeralDrawLink } from "src/map/mode-handlers/draw-link/ephemeral-link-state";
@@ -36,7 +37,6 @@ export {
   stagingModelAtom,
   assetsAtom,
   customerPointsAtom,
-  isUnprojectedAtom,
   nullHydraulicModel,
 } from "src/state/hydraulic-model";
 
@@ -109,7 +109,10 @@ export interface Data {
 }
 
 const quantities = new Quantities(presets.LPS);
-const modelMetadata = { quantities };
+const modelMetadata: ModelMetadata = {
+  quantities,
+  projectionMapper: createProjectionMapper({ type: "wgs84" }),
+};
 export const nullData: Data = {
   folderMap: new Map(),
   selection: {
@@ -118,6 +121,10 @@ export const nullData: Data = {
   modelMetadata,
 };
 export const dataAtom = atom<Data>(nullData);
+
+export const isUnprojectedAtom = atom((get) => {
+  return get(dataAtom).modelMetadata.projectionMapper.projection === "xy-grid";
+});
 
 export const layerConfigAtom = atom<LayerConfigMap>(new Map());
 

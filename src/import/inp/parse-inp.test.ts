@@ -804,7 +804,7 @@ describe("Parse inp with", () => {
       `;
 
       const result = parseInp(inp, { sourceProjection: "xy-grid" });
-      expect(result.hydraulicModel.sourceProjection).toBe("xy-grid");
+      expect(result.modelMetadata.projectionMapper.projection).toBe("xy-grid");
     });
 
     it("sets projection to wgs84 for standard import", () => {
@@ -817,7 +817,7 @@ describe("Parse inp with", () => {
       `;
 
       const result = parseInp(inp);
-      expect(result.hydraulicModel.sourceProjection).toBe("wgs84");
+      expect(result.modelMetadata.projectionMapper.projection).toBe("wgs84");
     });
   });
 });

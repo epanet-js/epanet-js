@@ -490,8 +490,6 @@ export class HydraulicModelBuilder {
       patterns: this.patterns,
       epsTiming: this.epsTiming,
       controls: this.controlsValue,
-      sourceProjection: "wgs84",
-      projectionCentroid: undefined,
     };
   }
 

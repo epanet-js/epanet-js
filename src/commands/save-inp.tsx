@@ -1,4 +1,5 @@
 import {
+  dataAtom,
   dialogAtom,
   fileInfoAtom,
   isDemoNetworkAtom,
@@ -58,6 +59,7 @@ export const useSaveInp = ({
           const hydraulicModel = hasScenarios
             ? get(baseModelAtom)
             : get(stagingModelAtom);
+          const { modelMetadata } = get(dataAtom);
           const buildOptions = {
             geolocation: true,
             madeBy: true,
@@ -66,6 +68,7 @@ export const useSaveInp = ({
             customerPoints: true,
             inactiveAssets: true,
             reservoirElevations: true,
+            projectionMapper: modelMetadata.projectionMapper,
           };
           const inp = buildInp(hydraulicModel, buildOptions);
           const inpBlob = new Blob([inp], { type: "text/plain" });

@@ -14,9 +14,7 @@ import { AssetIndex } from "./asset-index";
 import { Asset } from "./asset-types";
 import { Curves } from "./curves";
 import { Controls, createEmptyControls } from "./controls";
-import { Projection } from "src/projections";
 import { Patterns } from "./patterns";
-import { Position } from "geojson";
 
 export type HydraulicModel = {
   version: string;
@@ -34,8 +32,6 @@ export type HydraulicModel = {
   patterns: Patterns;
   epsTiming: EPSTiming;
   controls: Controls;
-  sourceProjection: Projection;
-  projectionCentroid?: Position;
 };
 
 export { AssetsMap };
@@ -47,8 +43,6 @@ export const initializeHydraulicModel = ({
   demands = createEmptyDemands(),
   epsTiming = {},
   controls = createEmptyControls(),
-  sourceProjection = "wgs84" as Projection,
-  projectionCentroid,
   idGenerator,
 }: {
   units: UnitsSpec;
@@ -57,8 +51,6 @@ export const initializeHydraulicModel = ({
   demands?: Demands;
   epsTiming?: EPSTiming;
   controls?: Controls;
-  sourceProjection?: Projection;
-  projectionCentroid?: Position;
   idGenerator?: IdGenerator;
 }): HydraulicModel => {
   const labelManager = new LabelManager();
@@ -85,8 +77,6 @@ export const initializeHydraulicModel = ({
     patterns: new Map(),
     epsTiming,
     controls,
-    sourceProjection,
-    projectionCentroid,
   };
 };
 
