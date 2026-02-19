@@ -82,7 +82,7 @@ describe("DemandCategoriesEditor", () => {
 
       // Grid should be shown with default row
       expect(getFloatCellValue(getBaseDemandCell(0))).toBe("0");
-      expect(getPatternCell(0)).toHaveTextContent("CONSTANT");
+      expect(getPatternCell(0)).toHaveTextContent("Constant");
 
       // onDemandsChange should not be called until actual changes are made
       expect(onDemandsChange).not.toHaveBeenCalled();
@@ -184,7 +184,7 @@ describe("DemandCategoriesEditor", () => {
       expect(getFloatCellValue(getBaseDemandCell(0))).toBe("100");
       expect(getPatternCell(0)).toHaveTextContent("Pattern1");
       expect(getFloatCellValue(getBaseDemandCell(1))).toBe("50");
-      expect(getPatternCell(1)).toHaveTextContent("CONSTANT");
+      expect(getPatternCell(1)).toHaveTextContent("Constant");
     });
 
     it("shows all available patterns in the dropdown", async () => {
@@ -586,7 +586,7 @@ describe("DemandCategoriesEditor", () => {
 
       // Values should be displayed
       expect(getFloatCellValue(getBaseDemandCell(0))).toBe("100");
-      expect(getPatternCell(0)).toHaveTextContent("CONSTANT");
+      expect(getPatternCell(0)).toHaveTextContent("Constant");
 
       // Click cell to select, then double-click should not enable editing
       const baseDemandCell = getBaseDemandCell(0);

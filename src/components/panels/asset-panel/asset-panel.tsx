@@ -72,6 +72,10 @@ import {
   PumpDefinitionData,
   PumpDefinitionDetails,
 } from "./pump-definition-details";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { useShowCurvesAndPatterns } from "src/commands/show-curves-and-patterns";
+import { SelectorOption } from "src/components/form/selector";
+import { PatternId } from "src/hydraulic-model/patterns";
 
 type OnPropertyChange = <P extends ChangeableProperty>(
   name: P,
@@ -151,7 +155,7 @@ export function AssetPanel({
   );
 
   const handleActiveTopologyStatusChange = useCallback(
-    (property: string, newValue: boolean, oldValue: boolean) => {
+    (_property: string, newValue: boolean, oldValue: boolean) => {
       const moment = newValue
         ? activateAssets(hydraulicModel, { assetIds: [asset.id] })
         : deactivateAssets(hydraulicModel, { assetIds: [asset.id] });
@@ -348,6 +352,7 @@ export function AssetPanel({
     case "reservoir":
       return (
         <ReservoirEditor
+          hydraulicModel={hydraulicModel}
           reservoir={asset as Reservoir}
           quantitiesMetadata={quantitiesMetadata}
           onPropertyChange={handlePropertyChange}
@@ -747,22 +752,71 @@ const PipeEditor = ({
   );
 };
 
+const CONSTANT_PATTERN_ID = 0;
+
 const ReservoirEditor = ({
+  hydraulicModel,
   reservoir,
   quantitiesMetadata,
   onPropertyChange,
   onLabelChange,
   readonly = false,
 }: {
+  hydraulicModel: HydraulicModel;
   reservoir: Reservoir;
   quantitiesMetadata: Quantities;
   onPropertyChange: OnPropertyChange;
   onLabelChange: (newLabel: string) => string | undefined;
   readonly?: boolean;
 }) => {
+  const isMorePatternsOn = useFeatureFlag("FLAG_MORE_PATTERNS");
   const translate = useTranslate();
+  const showCurvesAndPatterns = useShowCurvesAndPatterns();
   const { footer } = useQuickGraph(reservoir.id, "reservoir");
   const { getComparison, isNew } = useAssetComparison(reservoir);
+
+  const headPatternOptions = useMemo(() => {
+    const libraryGroup: SelectorOption<PatternId>[] = [
+      { label: translate("openPatternsLibrary"), value: -1 },
+    ];
+
+    const patternGroup: SelectorOption<PatternId>[] = [];
+    for (const [, pattern] of hydraulicModel.patterns) {
+      if (pattern.type === "reservoirHead") {
+        patternGroup.push({ label: pattern.label, value: pattern.id });
+      }
+    }
+    const constantGroup: SelectorOption<PatternId>[] = patternGroup.length
+      ? [
+          {
+            label: translate("constant"),
+            value: CONSTANT_PATTERN_ID,
+          },
+        ]
+      : [];
+
+    return [libraryGroup, [...constantGroup, ...patternGroup]];
+  }, [hydraulicModel.patterns, translate]);
+
+  const selectedPatternId = reservoir.headPatternId ?? null;
+
+  const handleHeadPatternChange = useCallback(
+    (_: string, newValue: number | null, oldValue: number | null) => {
+      if (newValue === oldValue) return;
+      if (newValue === null) return;
+      if (newValue === -1) {
+        showCurvesAndPatterns({
+          source: "reservoir",
+          initialPatternId: reservoir.headPatternId,
+        });
+        return;
+      }
+      const patternId = newValue === CONSTANT_PATTERN_ID ? undefined : newValue;
+      if (!patternId && !oldValue) return;
+      onPropertyChange("headPatternId", patternId, reservoir.headPatternId);
+    },
+    [onPropertyChange, reservoir.headPatternId, showCurvesAndPatterns],
+  );
 
   return (
     <AssetEditorContent
@@ -802,6 +856,20 @@ const ReservoirEditor = ({
           onChange={onPropertyChange}
           readOnly={readonly}
         />
+        {isMorePatternsOn && (
+          <SelectRow
+            name="headPattern"
+            selected={selectedPatternId}
+            options={headPatternOptions}
+            listClassName="first:italic"
+            stickyFirstGroup
+            nullable={true}
+            placeholder={translate("constant")}
+            comparison={getComparison("headPatternId", reservoir.headPatternId)}
+            onChange={handleHeadPatternChange}
+            readOnly={readonly}
+          />
+        )}
       </Section>
     </AssetEditorContent>
   );

@@ -107,7 +107,7 @@ export const DemandCategoriesEditor = ({
     const options: { value: number; label: string }[] = [
       {
         value: CONSTANT_PATTERN_ID,
-        label: translate("constant").toUpperCase(),
+        label: translate("constant"),
       },
     ];
     for (const [patternId, { label, type }] of patterns.entries()) {

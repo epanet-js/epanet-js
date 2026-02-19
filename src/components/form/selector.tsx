@@ -176,7 +176,8 @@ export function Selector<T extends string | number>({
 
   const handleOpenChange = (open: boolean) => {
     onDropdownInteraction?.();
-    if (open && allOptions.length <= 1) {
+    const minOptions = stickyFirstGroup ? 1 : 2;
+    if (open && allOptions.length < minOptions) {
       return;
     }
     setOpen(open);
@@ -272,7 +273,9 @@ export function Selector<T extends string | number>({
                     </Select.ItemIndicator>
                   </Select.Item>
                 ))}
-                <Select.Separator className="h-px bg-gray-200 mt-1" />
+                {optionGroups.slice(1).some((g) => g.length > 0) && (
+                  <Select.Separator className="h-px bg-gray-200 mt-1" />
+                )}
               </Select.Group>
             )}
             <Select.Viewport className="max-h-60 overflow-y-auto scroll-shadows">
