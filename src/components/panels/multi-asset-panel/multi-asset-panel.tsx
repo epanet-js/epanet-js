@@ -17,7 +17,6 @@ import {
   selectionAtom,
 } from "src/state/jotai";
 import { computeMultiAssetData } from "./data";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { usePersistence } from "src/lib/persistence";
 import { useUserTracking } from "src/infra/user-tracking";
 import { changeProperty } from "src/hydraulic-model/model-operations";
@@ -73,9 +72,7 @@ export function MultiAssetPanel({
     return map;
   }, [selectedFeatures]);
 
-  const isNarrowSelectionEnabled = useFeatureFlag("FLAG_NARROW_SELECTION");
   const showSelectOnly =
-    isNarrowSelectionEnabled &&
     Object.values(assetCounts).filter((c) => c > 0).length > 1;
 
   const handleBatchPropertyChange = useCallback(
@@ -123,10 +120,6 @@ export function MultiAssetPanel({
     [selectAssets, userTracking],
   );
 
-  const onSelectAssets = isNarrowSelectionEnabled
-    ? handleSelectAssets
-    : undefined;
-
   return (
     <SectionList header={<Header selectedCount={selectedFeatures.length} />}>
       {assetCounts.junction > 0 && (
@@ -153,9 +146,7 @@ export function MultiAssetPanel({
               handleBatchPropertyChange("junction", p, v)
             }
             readonly={readonly}
-            onSelectAssets={
-              onSelectAssets && ((ids, p) => onSelectAssets(ids, p, "junction"))
-            }
+            onSelectAssets={(ids, p) => handleSelectAssets(ids, p, "junction")}
           />
         </CollapsibleSection>
       )}
@@ -182,9 +173,7 @@ export function MultiAssetPanel({
             hasSimulation={hasSimulation}
             onPropertyChange={(p, v) => handleBatchPropertyChange("pipe", p, v)}
             readonly={readonly}
-            onSelectAssets={
-              onSelectAssets && ((ids, p) => onSelectAssets(ids, p, "pipe"))
-            }
+            onSelectAssets={(ids, p) => handleSelectAssets(ids, p, "pipe")}
           />
         </CollapsibleSection>
       )}
@@ -211,9 +200,7 @@ export function MultiAssetPanel({
             hasSimulation={hasSimulation}
             onPropertyChange={(p, v) => handleBatchPropertyChange("pump", p, v)}
             readonly={readonly}
-            onSelectAssets={
-              onSelectAssets && ((ids, p) => onSelectAssets(ids, p, "pump"))
-            }
+            onSelectAssets={(ids, p) => handleSelectAssets(ids, p, "pump")}
           />
         </CollapsibleSection>
       )}
@@ -242,9 +229,7 @@ export function MultiAssetPanel({
               handleBatchPropertyChange("valve", p, v)
             }
             readonly={readonly}
-            onSelectAssets={
-              onSelectAssets && ((ids, p) => onSelectAssets(ids, p, "valve"))
-            }
+            onSelectAssets={(ids, p) => handleSelectAssets(ids, p, "valve")}
           />
         </CollapsibleSection>
       )}
@@ -272,10 +257,7 @@ export function MultiAssetPanel({
               handleBatchPropertyChange("reservoir", p, v)
             }
             readonly={readonly}
-            onSelectAssets={
-              onSelectAssets &&
-              ((ids, p) => onSelectAssets(ids, p, "reservoir"))
-            }
+            onSelectAssets={(ids, p) => handleSelectAssets(ids, p, "reservoir")}
           />
         </CollapsibleSection>
       )}
@@ -302,9 +284,7 @@ export function MultiAssetPanel({
             hasSimulation={hasSimulation}
             onPropertyChange={(p, v) => handleBatchPropertyChange("tank", p, v)}
             readonly={readonly}
-            onSelectAssets={
-              onSelectAssets && ((ids, p) => onSelectAssets(ids, p, "tank"))
-            }
+            onSelectAssets={(ids, p) => handleSelectAssets(ids, p, "tank")}
           />
         </CollapsibleSection>
       )}
