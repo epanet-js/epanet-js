@@ -4,9 +4,13 @@ import { readInpData } from "./read-inp-data";
 import { buildModel } from "./build-model";
 import { HydraulicModel } from "src/hydraulic-model";
 import { checksum } from "src/infra/checksum";
-import { InpStats } from "./inp-data";
-import { transformNonProjectedCoordinates } from "./non-projected-transform";
-import { Projection, createProjectionMapper } from "src/projections";
+import { InpData, InpStats } from "./inp-data";
+import { Position } from "geojson";
+import {
+  Projection,
+  ProjectionMapper,
+  buildProjectionMapper,
+} from "src/projections";
 
 export type ParseInpOptions = {
   customerPoints?: boolean;
@@ -41,18 +45,7 @@ export const parseInp = (
       ? options.sourceProjection
       : "wgs84";
 
-  const projectionCentroid =
-    sourceProjection === "xy-grid"
-      ? (transformNonProjectedCoordinates(inpData) ?? undefined)
-      : undefined;
-
-  const projectionMapper =
-    sourceProjection === "xy-grid" && projectionCentroid
-      ? createProjectionMapper({
-          type: "xy-grid",
-          centroid: projectionCentroid,
-        })
-      : createProjectionMapper({ type: "wgs84" });
+  const projectionMapper = projectCoordinates(inpData, sourceProjection);
 
   const { hydraulicModel, modelMetadata } = buildModel(
     inpData,
@@ -69,6 +62,36 @@ export const parseInp = (
     issues: issues.buildResult(),
     stats,
   };
+};
+
+const projectCoordinates = (
+  inpData: InpData,
+  sourceProjection: Projection,
+): ProjectionMapper => {
+  if (sourceProjection === "wgs84") {
+    return buildProjectionMapper("wgs84", () => []);
+  }
+
+  const getAllPoints = () => {
+    const points: Position[] = [];
+    for (const [, p] of inpData.coordinates.entries()) points.push(p);
+    for (const [, verts] of inpData.vertices.entries()) points.push(...verts);
+    return points;
+  };
+
+  const projectionMapper = buildProjectionMapper(
+    sourceProjection,
+    getAllPoints,
+  );
+
+  for (const [id, p] of inpData.coordinates.entries()) {
+    inpData.coordinates.set(id, projectionMapper.toWgs84(p));
+  }
+  for (const [id, verts] of inpData.vertices.entries()) {
+    inpData.vertices.set(id, verts.map(projectionMapper.toWgs84));
+  }
+
+  return projectionMapper;
 };
 
 const checksumRegexp = /\[([0-9A-Fa-f]{8})\]/;

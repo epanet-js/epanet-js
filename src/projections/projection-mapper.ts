@@ -1,6 +1,10 @@
 import { Position } from "geojson";
 import { Projection, ProjectionConfig } from "./projection";
-import { transformPoint, inverseTransformPoint } from "./xy-grid-transform";
+import {
+  transformPoint,
+  inverseTransformPoint,
+  computeCentroid,
+} from "./xy-grid-transform";
 
 export type ProjectionMapper = {
   projection: Projection;
@@ -29,5 +33,23 @@ export const createProjectionMapper = (
         toSource: (p) => inverseTransformPoint(p, config.centroid),
         backdropUnits: "NONE",
       };
+  }
+};
+
+export const buildProjectionMapper = (
+  projection: Projection,
+  allPoints: () => Position[],
+): ProjectionMapper => {
+  switch (projection) {
+    case "wgs84":
+      return createProjectionMapper({ type: "wgs84" });
+    case "xy-grid": {
+      const centroid = computeCentroid(allPoints());
+      return createProjectionMapper({ type: "xy-grid", centroid });
+    }
+    default: {
+      const unsupported: never = projection;
+      throw new Error(`Unsupported projection: ${String(unsupported)}`);
+    }
   }
 };
