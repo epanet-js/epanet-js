@@ -1209,6 +1209,125 @@ describe("build inp", () => {
     });
   });
 
+  describe("reservoir head patterns", () => {
+    it("includes head pattern ID in reservoir line", () => {
+      const IDS = { R1: 1, PAT1: 100 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aReservoir(IDS.R1, {
+          head: 150,
+          headPatternId: IDS.PAT1,
+        })
+        .aPattern(IDS.PAT1, "head_pat", [1.0, 1.2, 0.8], "reservoirHead")
+        .build();
+
+      const inp = buildInp(hydraulicModel);
+
+      expect(inp).toContain("[RESERVOIRS]");
+      expect(inp).toContain("1\t150\thead_pat");
+      expect(inp).toContain("[PATTERNS]");
+      expect(inp).toContain("head_pat\t1\t1.2\t0.8");
+    });
+
+    it("omits pattern column when no head pattern is assigned", () => {
+      const IDS = { R1: 1 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aReservoir(IDS.R1, { head: 100 })
+        .build();
+
+      const inp = buildInp(hydraulicModel);
+
+      expect(inp).toContain("1\t100");
+      expect(inp).not.toContain("1\t100\t");
+    });
+
+    it("marks head pattern as used when usedPatterns is true", () => {
+      const IDS = { R1: 1, PAT1: 100, PAT2: 101 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aReservoir(IDS.R1, {
+          head: 150,
+          headPatternId: IDS.PAT1,
+        })
+        .aPattern(IDS.PAT1, "head_pat", [1.0, 1.2, 0.8], "reservoirHead")
+        .aPattern(IDS.PAT2, "unused_pat", [0.5, 1.5], "reservoirHead")
+        .build();
+
+      const inp = buildInp(hydraulicModel, { usedPatterns: true });
+
+      expect(inp).toContain("head_pat\t1\t1.2\t0.8");
+      expect(inp).not.toContain("unused_pat");
+    });
+  });
+
+  describe("pump speed patterns", () => {
+    it("includes PATTERN keyword in pump line", () => {
+      const IDS = { N1: 1, N2: 2, PUMP1: 3, PAT1: 100 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aNode(IDS.N1)
+        .aNode(IDS.N2)
+        .aPump(IDS.PUMP1, {
+          startNodeId: IDS.N1,
+          endNodeId: IDS.N2,
+          definitionType: "power",
+          power: 50,
+          speed: 1.0,
+          speedPatternId: IDS.PAT1,
+        })
+        .aPattern(IDS.PAT1, "speed_pat", [1.0, 0.8, 1.2], "pumpSpeed")
+        .build();
+
+      const inp = buildInp(hydraulicModel);
+
+      expect(inp).toContain("[PUMPS]");
+      expect(inp).toContain("PATTERN speed_pat");
+      expect(inp).toContain("[PATTERNS]");
+      expect(inp).toContain("speed_pat\t1\t0.8\t1.2");
+    });
+
+    it("omits PATTERN keyword when no speed pattern is assigned", () => {
+      const IDS = { N1: 1, N2: 2, PUMP1: 3 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aNode(IDS.N1)
+        .aNode(IDS.N2)
+        .aPump(IDS.PUMP1, {
+          startNodeId: IDS.N1,
+          endNodeId: IDS.N2,
+          definitionType: "power",
+          power: 50,
+          speed: 1.0,
+        })
+        .build();
+
+      const inp = buildInp(hydraulicModel);
+
+      expect(inp).toContain("[PUMPS]");
+      expect(inp).toContain("3\t1\t2\tPOWER 50\tSPEED 1");
+      expect(inp).not.toContain("3\t1\t2\tPOWER 50\tSPEED 1\tPATTERN");
+    });
+
+    it("marks speed pattern as used when usedPatterns is true", () => {
+      const IDS = { N1: 1, N2: 2, PUMP1: 3, PAT1: 100, PAT2: 101 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aNode(IDS.N1)
+        .aNode(IDS.N2)
+        .aPump(IDS.PUMP1, {
+          startNodeId: IDS.N1,
+          endNodeId: IDS.N2,
+          definitionType: "power",
+          power: 50,
+          speed: 1.0,
+          speedPatternId: IDS.PAT1,
+        })
+        .aPattern(IDS.PAT1, "speed_pat", [1.0, 0.8, 1.2], "pumpSpeed")
+        .aPattern(IDS.PAT2, "unused_pat", [0.5, 1.5], "pumpSpeed")
+        .build();
+
+      const inp = buildInp(hydraulicModel, { usedPatterns: true });
+
+      expect(inp).toContain("speed_pat\t1\t0.8\t1.2");
+      expect(inp).not.toContain("unused_pat");
+    });
+  });
+
   describe("controls section", () => {
     it("does not include CONTROLS section when controls.simple is empty", () => {
       const hydraulicModel = HydraulicModelBuilder.with().build();

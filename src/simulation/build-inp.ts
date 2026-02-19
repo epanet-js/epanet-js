@@ -306,6 +306,7 @@ export const buildInp = withDebugInstrumentation(
           opts.inactiveAssets,
           opts.reservoirElevations,
           asset as Reservoir,
+          usedPatternIds,
           transformCoord,
         );
       }
@@ -357,6 +358,7 @@ export const buildInp = withDebugInstrumentation(
           opts.geolocation,
           opts.inactiveAssets,
           usedCurveIds,
+          usedPatternIds,
           asset as Pump,
           transformCoord,
         );
@@ -457,6 +459,7 @@ const appendReservoir = (
   inactiveAssets: boolean,
   elevations: boolean,
   reservoir: Reservoir,
+  usedPatternIds: Set<number>,
   transformCoord: (p: Position) => Position,
 ) => {
   if (!reservoir.isActive && !inactiveAssets) {
@@ -466,7 +469,12 @@ const appendReservoir = (
   const reservoirId = idMap.nodeId(reservoir);
   const commentPrefix = !reservoir.isActive ? ";" : "";
 
-  let reservoirLine = commentPrefix + [reservoirId, reservoir.head].join("\t");
+  const columns: (string | number)[] = [reservoirId, reservoir.head];
+  if (reservoir.headPatternId) {
+    columns.push(idMap.patternId(reservoir.headPatternId));
+    usedPatternIds.add(reservoir.headPatternId);
+  }
+  let reservoirLine = commentPrefix + columns.join("\t");
   if (elevations && reservoir.elevation) {
     reservoirLine += `\t;Elevation:${reservoir.elevation}`;
   }
@@ -644,6 +652,7 @@ const appendPump = (
   geolocation: boolean,
   inactiveAssets: boolean,
   usedCurveIds: Map<number, string>,
+  usedPatternIds: Set<number>,
   pump: Pump,
   transformCoord: (p: Position) => Position,
 ) => {
@@ -655,6 +664,12 @@ const appendPump = (
   const [startId, endId] = getLinkConnectionIds(hydraulicModel, idMap, pump);
   const commentPrefix = !pump.isActive ? ";" : "";
 
+  const speedPatternParts: string[] = [];
+  if (pump.speedPatternId) {
+    speedPatternParts.push(`PATTERN ${idMap.patternId(pump.speedPatternId)}`);
+    usedPatternIds.add(pump.speedPatternId);
+  }
+
   switch (pump.definitionType) {
     case "power":
       sections.pumps.push(
@@ -665,6 +680,7 @@ const appendPump = (
             endId,
             `POWER ${pump.power}`,
             `SPEED ${pump.speed}`,
+            ...speedPatternParts,
           ].join("\t"),
       );
       break;
@@ -678,6 +694,7 @@ const appendPump = (
             endId,
             `HEAD ${localCurveId}`,
             `SPEED ${pump.speed}`,
+            ...speedPatternParts,
           ].join("\t"),
       );
       pump.curve!.forEach((point) =>
@@ -703,6 +720,7 @@ const appendPump = (
             endId,
             `HEAD ${curveId}`,
             `SPEED ${pump.speed}`,
+            ...speedPatternParts,
           ].join("\t"),
       );
       usedCurveIds.set(curve.id, curveId);
