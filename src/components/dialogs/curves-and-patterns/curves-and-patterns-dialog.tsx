@@ -109,8 +109,11 @@ export const CurvesAndPatternsDialog = ({
   );
 
   const handleDeletePattern = useCallback(
-    (patternId: PatternId, patternType: PatternType) => {
-      if (isPatternInUse(hydraulicModel, patternId, patternType)) {
+    (patternId: PatternId, patternType?: PatternType) => {
+      if (
+        patternType &&
+        isPatternInUse(hydraulicModel, patternId, patternType)
+      ) {
         notify({
           variant: "error",
           title: translate("deletePatternInUse"),

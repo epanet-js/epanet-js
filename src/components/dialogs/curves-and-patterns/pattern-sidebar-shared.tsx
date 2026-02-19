@@ -3,6 +3,7 @@ import * as DD from "@radix-ui/react-dropdown-menu";
 import { useTranslate } from "src/hooks/use-translate";
 import { Pattern, PatternId, PatternType } from "src/hydraulic-model";
 import {
+  ChevronRightIcon,
   CloseIcon,
   DuplicateIcon,
   MoreActionsIcon,
@@ -164,6 +165,7 @@ export type UncategorizedPatternSidebarItemProps = {
   isSelected: boolean;
   onSelect: () => void;
   onCategorize: (patternId: PatternId, type: SectionType) => void;
+  onDelete: () => void;
   readOnly?: boolean;
 };
 
@@ -172,6 +174,7 @@ export const UncategorizedPatternSidebarItem = ({
   isSelected,
   onSelect,
   onCategorize,
+  onDelete,
   readOnly = false,
 }: UncategorizedPatternSidebarItemProps) => {
   return (
@@ -196,6 +199,7 @@ export const UncategorizedPatternSidebarItem = ({
           isSelected={isSelected}
           onOpen={onSelect}
           onCategorize={(type) => onCategorize(pattern.id, type)}
+          onDelete={onDelete}
         />
       )}
     </li>
@@ -268,12 +272,14 @@ type CategorizeActionsMenuProps = {
   isSelected: boolean;
   onOpen: () => void;
   onCategorize: (type: SectionType) => void;
+  onDelete: () => void;
 };
 
 const CategorizeActionsMenu = ({
   isSelected,
   onOpen,
   onCategorize,
+  onDelete,
 }: CategorizeActionsMenuProps) => {
   const translate = useTranslate();
 
@@ -304,13 +310,20 @@ const CategorizeActionsMenu = ({
         <DD.Portal>
           <DDContent align="start" side="bottom" className="z-50">
             <StyledItem onSelect={() => onCategorize("demand")}>
+              <ChevronRightIcon size="sm" />
               {translate("setAsDemand")}
             </StyledItem>
             <StyledItem onSelect={() => onCategorize("reservoirHead")}>
+              <ChevronRightIcon size="sm" />
               {translate("setAsReservoirHead")}
             </StyledItem>
             <StyledItem onSelect={() => onCategorize("pumpSpeed")}>
+              <ChevronRightIcon size="sm" />
               {translate("setAsPumpSpeed")}
+            </StyledItem>
+            <StyledItem variant="destructive" onSelect={onDelete}>
+              <CloseIcon size="sm" />
+              {translate("delete")}
             </StyledItem>
           </DDContent>
         </DD.Portal>

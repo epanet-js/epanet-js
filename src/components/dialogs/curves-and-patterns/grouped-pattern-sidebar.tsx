@@ -50,7 +50,7 @@ type GroupedPatternSidebarProps = {
     patternId: PatternId,
     updates: { label?: string; type?: PatternType },
   ) => void;
-  onDeletePattern: (patternId: PatternId, patternType: PatternType) => void;
+  onDeletePattern: (patternId: PatternId, patternType?: PatternType) => void;
   readOnly?: boolean;
 };
 
@@ -369,6 +369,7 @@ export const GroupedPatternSidebar = ({
               onSelectPattern(patternId);
             }}
             onCategorize={handleCategorize}
+            onDelete={onDeletePattern}
             readOnly={readOnly}
           />
         )}
@@ -491,6 +492,7 @@ type UncategorizedPatternSectionProps = {
   selectedPatternId: PatternId | null;
   onSelectPattern: (patternId: PatternId) => void;
   onCategorize: (patternId: PatternId, type: SectionType) => void;
+  onDelete: (patternId: PatternId) => void;
   readOnly: boolean;
 };
 
@@ -502,6 +504,7 @@ const UncategorizedPatternSection = ({
   selectedPatternId,
   onSelectPattern,
   onCategorize,
+  onDelete,
   readOnly,
 }: UncategorizedPatternSectionProps) => {
   const translate = useTranslate();
@@ -539,6 +542,7 @@ const UncategorizedPatternSection = ({
               isSelected={pattern.id === selectedPatternId}
               onSelect={() => onSelectPattern(pattern.id)}
               onCategorize={onCategorize}
+              onDelete={() => onDelete(pattern.id)}
               readOnly={readOnly}
             />
           ))}
