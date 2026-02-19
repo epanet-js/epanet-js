@@ -184,7 +184,6 @@ export const buildModelWithPatterns = (
     patternContext.patterns,
     inpData.sourcePatterns,
     inpData.energyPatterns,
-    issues,
   );
 
   addControls(hydraulicModel, inpData.controls, nodeIds, linkIds);
@@ -890,7 +889,6 @@ const addPatterns = (
   patterns: Patterns,
   sourceStrengthPatterns: Set<string>,
   energyPricePatterns: Set<string>,
-  issues: IssuesAccumulator,
 ) => {
   for (const label of sourceStrengthPatterns) {
     const patternId = hydraulicModel.labelManager.getIdByLabel(
@@ -917,12 +915,10 @@ const addPatterns = (
     if (
       pattern.type === "demand" ||
       pattern.type === "reservoirHead" ||
-      pattern.type === "pumpSpeed"
+      pattern.type === "pumpSpeed" ||
+      !pattern.type
     ) {
       supportedPatterns.set(pattern.id, pattern);
-    }
-    if (!pattern.type) {
-      issues.addUnusedPattern();
     }
   }
 

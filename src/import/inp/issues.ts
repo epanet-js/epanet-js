@@ -19,7 +19,6 @@ export type ParserIssues = {
   hasUndefinedPumpCurve?: number;
   hasPCVCurves?: number;
   hasUnusedCurves?: number;
-  hasUnusedPatterns?: number;
   waterQualityType?: WaterQualityType;
 };
 
@@ -109,10 +108,6 @@ export class IssuesAccumulator {
 
   addUnusedCurve() {
     this.issues.hasUnusedCurves = (this.issues.hasUnusedCurves || 0) + 1;
-  }
-
-  addUnusedPattern() {
-    this.issues.hasUnusedPatterns = (this.issues.hasUnusedPatterns || 0) + 1;
   }
 
   addWaterQualityType(type: WaterQualityType) {

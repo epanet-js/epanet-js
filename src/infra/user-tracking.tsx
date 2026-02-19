@@ -272,7 +272,6 @@ export type ImportInpCompleted = {
     | "hasUndefinedPumpCurve"
     | "hasPCVCurves"
     | "hasUnusedCurves"
-    | "hasUnusedPatterns"
     | "hasWaterAge"
     | "hasWaterChemical"
     | "hasWaterTrace"
@@ -725,7 +724,7 @@ type ScenarioCycled = {
 
 type PatternChanged = {
   name: "pattern.changed";
-  property: "label" | "multipliers";
+  property: "label" | "multipliers" | "type";
 };
 
 type PatternAdded = {

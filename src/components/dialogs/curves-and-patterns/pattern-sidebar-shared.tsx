@@ -159,6 +159,49 @@ export const PatternLabelInput = ({
   );
 };
 
+export type UncategorizedPatternSidebarItemProps = {
+  pattern: Pattern;
+  isSelected: boolean;
+  onSelect: () => void;
+  onCategorize: (patternId: PatternId, type: SectionType) => void;
+  readOnly?: boolean;
+};
+
+export const UncategorizedPatternSidebarItem = ({
+  pattern,
+  isSelected,
+  onSelect,
+  onCategorize,
+  readOnly = false,
+}: UncategorizedPatternSidebarItemProps) => {
+  return (
+    <li
+      data-pattern-id={pattern.id}
+      className={`group flex items-center justify-between text-sm cursor-pointer h-8 ${
+        isSelected
+          ? "bg-gray-200 dark:hover:bg-gray-700"
+          : "hover:bg-gray-100 dark:hover:bg-gray-800"
+      }`}
+    >
+      <Button
+        variant="quiet/list"
+        size="sm"
+        onClick={onSelect}
+        className="flex-1 justify-start truncate hover:bg-transparent dark:hover:bg-transparent focus-visible:!ring-0 focus-visible:!ring-offset-0"
+      >
+        {pattern.label}
+      </Button>
+      {!readOnly && (
+        <CategorizeActionsMenu
+          isSelected={isSelected}
+          onOpen={onSelect}
+          onCategorize={(type) => onCategorize(pattern.id, type)}
+        />
+      )}
+    </li>
+  );
+};
+
 type PatternActionsMenuProps = {
   isSelected: boolean;
   onOpen: () => void;
@@ -213,6 +256,61 @@ const PatternActionsMenu = ({
             <StyledItem variant="destructive" onSelect={onDelete}>
               <CloseIcon size="sm" />
               {translate("delete")}
+            </StyledItem>
+          </DDContent>
+        </DD.Portal>
+      </DD.Root>
+    </div>
+  );
+};
+
+type CategorizeActionsMenuProps = {
+  isSelected: boolean;
+  onOpen: () => void;
+  onCategorize: (type: SectionType) => void;
+};
+
+const CategorizeActionsMenu = ({
+  isSelected,
+  onOpen,
+  onCategorize,
+}: CategorizeActionsMenuProps) => {
+  const translate = useTranslate();
+
+  const handleOpenChange = (open: boolean) => {
+    if (open) onOpen();
+  };
+
+  return (
+    <div
+      onClick={(e) => e.stopPropagation()}
+      className="self-stretch flex pr-1"
+    >
+      <DD.Root modal={false} onOpenChange={handleOpenChange}>
+        <DD.Trigger asChild>
+          <Button
+            variant="quiet"
+            size="xs"
+            aria-label="Actions"
+            className={`h-6 w-6 self-center ${
+              isSelected
+                ? "hover:bg-white/30 dark:hover:bg-white/10"
+                : "invisible group-hover:visible hover:bg-gray-200 dark:hover:bg-gray-700"
+            }`}
+          >
+            <MoreActionsIcon size="sm" />
+          </Button>
+        </DD.Trigger>
+        <DD.Portal>
+          <DDContent align="start" side="bottom" className="z-50">
+            <StyledItem onSelect={() => onCategorize("demand")}>
+              {translate("setAsDemand")}
+            </StyledItem>
+            <StyledItem onSelect={() => onCategorize("reservoirHead")}>
+              {translate("setAsReservoirHead")}
+            </StyledItem>
+            <StyledItem onSelect={() => onCategorize("pumpSpeed")}>
+              {translate("setAsPumpSpeed")}
             </StyledItem>
           </DDContent>
         </DD.Portal>

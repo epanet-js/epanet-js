@@ -9,6 +9,7 @@ import {
 import { Button } from "src/components/elements";
 import { Patterns, PatternId } from "src/hydraulic-model";
 import { useTranslate } from "src/hooks/use-translate";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { DeleteIcon, AddIcon } from "src/icons";
 import { PropertyComparison } from "src/hooks/use-asset-comparison";
 import { calculateAverageDemand, Demand } from "src/hydraulic-model/demands";
@@ -67,6 +68,7 @@ export const DemandCategoriesEditor = ({
   readOnly = false,
 }: Props) => {
   const translate = useTranslate();
+  const isMorePatternsOn = useFeatureFlag("FLAG_MORE_PATTERNS");
   const [showEmptyGrid, setShowEmptyGrid] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<DataGridRef>(null);
@@ -111,12 +113,12 @@ export const DemandCategoriesEditor = ({
       },
     ];
     for (const [patternId, { label, type }] of patterns.entries()) {
-      if (type === "demand" || type === undefined) {
+      if (type === "demand" || (!isMorePatternsOn && type === undefined)) {
         options.push({ value: patternId, label });
       }
     }
     return options;
-  }, [patterns, translate]);
+  }, [patterns, translate, isMorePatternsOn]);
 
   const handleDeleteRow = useCallback(
     (rowIndex: number) => {

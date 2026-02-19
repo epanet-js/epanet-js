@@ -26,7 +26,7 @@ import { notify } from "src/components/notifications";
 import { useUserTracking } from "src/infra/user-tracking";
 import { changePatterns } from "src/hydraulic-model/model-operations";
 
-type PatternUpdate = Partial<Pick<Pattern, "label" | "multipliers">>;
+type PatternUpdate = Partial<Pick<Pattern, "label" | "multipliers" | "type">>;
 
 export const CurvesAndPatternsDialog = ({
   initialPatternId,
@@ -78,7 +78,12 @@ export const CurvesAndPatternsDialog = ({
         next.set(patternId, { ...existing, ...updates });
         return next;
       });
-      const property = "label" in updates ? "label" : "multipliers";
+      const property =
+        "label" in updates
+          ? "label"
+          : "type" in updates
+            ? "type"
+            : "multipliers";
       userTracking.capture({ name: "pattern.changed", property });
     },
     [userTracking],

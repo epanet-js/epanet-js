@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import * as C from "@radix-ui/react-collapsible";
 import { useTranslate } from "src/hooks/use-translate";
 import {
+  Pattern,
   PatternMultipliers,
   Patterns,
   PatternId,
@@ -17,10 +18,13 @@ import {
   PatternLabelInput,
   SectionType,
   TypedPattern,
+  UncategorizedPatternSidebarItem,
 } from "./pattern-sidebar-shared";
 
+type SidebarSectionType = SectionType | "uncategorized";
+
 type NavItem =
-  | { kind: "section"; sectionType: SectionType }
+  | { kind: "section"; sectionType: SidebarSectionType }
   | { kind: "pattern"; patternId: PatternId };
 
 const SECTION_TYPES: SectionType[] = ["demand", "reservoirHead", "pumpSpeed"];
@@ -42,7 +46,10 @@ type GroupedPatternSidebarProps = {
     source: "new" | "clone",
     type: PatternType,
   ) => PatternId;
-  onChangePattern: (patternId: PatternId, updates: { label: string }) => void;
+  onChangePattern: (
+    patternId: PatternId,
+    updates: { label?: string; type?: PatternType },
+  ) => void;
   onDeletePattern: (patternId: PatternId, patternType: PatternType) => void;
   readOnly?: boolean;
 };
@@ -64,15 +71,15 @@ export const GroupedPatternSidebar = ({
   const [actionState, setActionState] = useState<ActionState | undefined>(
     undefined,
   );
-  const [focusedSection, setFocusedSection] = useState<SectionType | null>(
-    null,
-  );
+  const [focusedSection, setFocusedSection] =
+    useState<SidebarSectionType | null>(null);
   const [openSections, setOpenSections] = useState<
-    Record<SectionType, boolean>
+    Record<SidebarSectionType, boolean>
   >({
     demand: true,
     reservoirHead: true,
     pumpSpeed: true,
+    uncategorized: true,
   });
 
   const clearActionState = () => {
@@ -93,15 +100,16 @@ export const GroupedPatternSidebar = ({
       reservoirHead: [],
       pumpSpeed: [],
     };
+    const uncategorized: Pattern[] = [];
     for (const pattern of patterns.values()) {
       const type = pattern.type as SectionType | undefined;
       if (type && type in groups) {
         groups[type].push(pattern as TypedPattern);
       } else {
-        groups.demand.push({ ...pattern, type: "demand" });
+        uncategorized.push(pattern);
       }
     }
-    return groups;
+    return { ...groups, uncategorized };
   }, [patterns]);
 
   const navItems = useMemo(() => {
@@ -110,6 +118,14 @@ export const GroupedPatternSidebar = ({
       items.push({ kind: "section", sectionType });
       if (openSections[sectionType]) {
         for (const p of groupedPatterns[sectionType]) {
+          items.push({ kind: "pattern", patternId: p.id });
+        }
+      }
+    }
+    if (groupedPatterns.uncategorized.length > 0) {
+      items.push({ kind: "section", sectionType: "uncategorized" });
+      if (openSections.uncategorized) {
+        for (const p of groupedPatterns.uncategorized) {
           items.push({ kind: "pattern", patternId: p.id });
         }
       }
@@ -128,7 +144,7 @@ export const GroupedPatternSidebar = ({
     [selectedPatternId, patterns],
   );
 
-  const toggleSection = useCallback((sectionType: SectionType) => {
+  const toggleSection = useCallback((sectionType: SidebarSectionType) => {
     setOpenSections((prev) => ({
       ...prev,
       [sectionType]: !prev[sectionType],
@@ -186,8 +202,9 @@ export const GroupedPatternSidebar = ({
       if (e.key === "Escape" && selectedPatternId) {
         e.preventDefault();
         e.stopPropagation();
-        const pattern = patterns.get(selectedPatternId) as TypedPattern;
-        const sectionType = pattern.type as SectionType;
+        const pattern = patterns.get(selectedPatternId);
+        const sectionType: SidebarSectionType =
+          (pattern?.type as SectionType) ?? "uncategorized";
         navigateToItem({ kind: "section", sectionType });
         return;
       }
@@ -287,6 +304,14 @@ export const GroupedPatternSidebar = ({
   const creatingInSection =
     actionState?.action === "creating" ? actionState.patternType : undefined;
 
+  const handleCategorize = useCallback(
+    (patternId: PatternId, type: SectionType) => {
+      onChangePattern(patternId, { type });
+      userTracking.capture({ name: "pattern.changed", property: "type" });
+    },
+    [onChangePattern, userTracking],
+  );
+
   return (
     <div className="w-56 flex-shrink-0 flex flex-col gap-2">
       <div
@@ -332,6 +357,21 @@ export const GroupedPatternSidebar = ({
             readOnly={readOnly}
           />
         ))}
+        {groupedPatterns.uncategorized.length > 0 && (
+          <UncategorizedPatternSection
+            isOpen={openSections.uncategorized}
+            isFocused={focusedSection === "uncategorized"}
+            onToggle={() => toggleSection("uncategorized")}
+            patterns={groupedPatterns.uncategorized}
+            selectedPatternId={selectedPatternId}
+            onSelectPattern={(patternId) => {
+              setFocusedSection(null);
+              onSelectPattern(patternId);
+            }}
+            onCategorize={handleCategorize}
+            readOnly={readOnly}
+          />
+        )}
       </div>
     </div>
   );
@@ -437,6 +477,71 @@ const PatternSection = ({
               onCancel={onCancelAction}
             />
           )}
+        </ul>
+      </C.Content>
+    </C.Root>
+  );
+};
+
+type UncategorizedPatternSectionProps = {
+  isOpen: boolean;
+  isFocused: boolean;
+  onToggle: () => void;
+  patterns: Pattern[];
+  selectedPatternId: PatternId | null;
+  onSelectPattern: (patternId: PatternId) => void;
+  onCategorize: (patternId: PatternId, type: SectionType) => void;
+  readOnly: boolean;
+};
+
+const UncategorizedPatternSection = ({
+  isOpen,
+  isFocused,
+  onToggle,
+  patterns,
+  selectedPatternId,
+  onSelectPattern,
+  onCategorize,
+  readOnly,
+}: UncategorizedPatternSectionProps) => {
+  const translate = useTranslate();
+
+  return (
+    <C.Root open={isOpen} onOpenChange={onToggle}>
+      <div
+        data-section-type="uncategorized"
+        className={`group/section flex items-center justify-between h-8 px-1 ${
+          isFocused
+            ? "bg-gray-200 dark:bg-gray-700"
+            : "hover:bg-gray-100 dark:hover:bg-gray-800"
+        }`}
+      >
+        <C.Trigger asChild>
+          <button className="flex-1 min-w-0 flex items-center gap-1 text-sm font-medium text-gray-500 dark:text-gray-400">
+            {isOpen ? (
+              <ChevronDownIcon size="sm" />
+            ) : (
+              <ChevronRightIcon size="sm" />
+            )}
+            <span className="truncate">
+              {translate("uncategorizedPatterns")}
+            </span>
+            <span className="shrink-0">({patterns.length})</span>
+          </button>
+        </C.Trigger>
+      </div>
+      <C.Content>
+        <ul className="pl-4">
+          {patterns.map((pattern) => (
+            <UncategorizedPatternSidebarItem
+              key={pattern.id}
+              pattern={pattern}
+              isSelected={pattern.id === selectedPatternId}
+              onSelect={() => onSelectPattern(pattern.id)}
+              onCategorize={onCategorize}
+              readOnly={readOnly}
+            />
+          ))}
         </ul>
       </C.Content>
     </C.Root>

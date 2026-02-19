@@ -61,7 +61,7 @@ describe("parse pattern types", () => {
     expect(pattern?.type).toBe("demand");
   });
 
-  it("excludes unused patterns from hydraulicModel.patterns", () => {
+  it("keeps unused patterns in the model without type", () => {
     const inp = `
     [JUNCTIONS]
     J1    100    50    usedPattern
@@ -79,31 +79,10 @@ describe("parse pattern types", () => {
     `;
 
     const { hydraulicModel } = parseInpWithPatterns(inp);
-
-    expect(hydraulicModel.patterns.size).toBe(1);
-    const demandPattern = hydraulicModel.patterns.get(1);
-    expect(demandPattern?.type).toBe("demand");
-  });
-
-  it("reports unused patterns in issues", () => {
-    const inp = `
-    [JUNCTIONS]
-    J1    100    50    usedPattern
-    J2    100    0
-
-    [PATTERNS]
-    usedPattern    1.0    1.2
-    unusedPattern    2.0    2.5
-
-    [COORDINATES]
-    J1    0    0
-    J2    1    1
-
-    [END]
-    `;
-
-    const { issues } = parseInpWithPatterns(inp);
-    expect(issues?.hasUnusedPatterns).toBe(1);
+    const patterns = [...hydraulicModel.patterns.values()];
+    const unused = patterns.find((p) => p.label === "unusedPattern");
+    expect(unused).toBeDefined();
+    expect(unused?.type).toBeUndefined();
   });
 
   it("sets headPatternId on reservoir when pattern is used", () => {
@@ -128,47 +107,6 @@ describe("parse pattern types", () => {
     expect(reservoir.headPatternId).toBeDefined();
     const pattern = hydraulicModel.patterns.get(reservoir.headPatternId!);
     expect(pattern?.type).toBe("reservoirHead");
-  });
-
-  it("does not report non-demand patterns as unused", () => {
-    const inp = `
-    [JUNCTIONS]
-    J1    100
-    J2    100
-
-    [RESERVOIRS]
-    R1    100    resPat
-
-    [PUMPS]
-    PMP1    J1    J2    HEAD    curve1    PATTERN    pumpPat
-
-    [CURVES]
-    curve1    100    50
-
-    [SOURCES]
-    J1    CONCEN    1.0    srcPat
-
-    [ENERGY]
-    Global Pattern    ePat
-    Pump    PMP1    Pattern    pumpEPat
-
-    [PATTERNS]
-    resPat    1.4    1.2    1.9
-    pumpPat    1.5    1.2
-    srcPat    0.5    1.5
-    ePat    0.8    1.2
-    pumpEPat    0.9    1.1
-
-    [COORDINATES]
-    J1    0    0
-    J2    1    1
-    R1    2    2
-
-    [END]
-    `;
-
-    const { issues } = parseInpWithPatterns(inp);
-    expect(issues?.hasUnusedPatterns).toBeUndefined();
   });
 
   it("sets type 'reservoirHead' on pattern used by reservoir", () => {
