@@ -403,7 +403,7 @@ const PatternSection = ({
           <Button
             variant="quiet"
             size="xs"
-            aria-label={`Add ${title}`}
+            aria-label={`Add ${title} pattern`}
             onClick={onStartCreate}
             className="h-6 w-6 hover:bg-gray-200 dark:hover:bg-gray-700"
           >

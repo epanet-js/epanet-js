@@ -39,14 +39,14 @@ describe("GroupedPatternSidebar", () => {
     it("renders three section headings", () => {
       render(<GroupedPatternSidebar {...defaultProps} patterns={new Map()} />);
 
-      expect(getSectionHeader("Demand patterns")).toBeInTheDocument();
-      expect(getSectionHeader("Reservoir head patterns")).toBeInTheDocument();
-      expect(getSectionHeader("Pump speed patterns")).toBeInTheDocument();
+      expect(getSectionHeader("Demand")).toBeInTheDocument();
+      expect(getSectionHeader("Reservoir head")).toBeInTheDocument();
+      expect(getSectionHeader("Pump speed")).toBeInTheDocument();
     });
 
     it("groups patterns by type into correct sections", () => {
       const patterns = createPatterns([
-        { id: 1, label: "DemandP", multipliers: [1.0], type: "demand" },
+        { id: 1, label: "aDemand", multipliers: [1.0], type: "demand" },
         {
           id: 2,
           label: "ReservoirP",
@@ -59,7 +59,7 @@ describe("GroupedPatternSidebar", () => {
       render(<GroupedPatternSidebar {...defaultProps} patterns={patterns} />);
 
       expect(
-        screen.getByRole("button", { name: "DemandP" }),
+        screen.getByRole("button", { name: "aDemand" }),
       ).toBeInTheDocument();
       expect(
         screen.getByRole("button", { name: "ReservoirP" }),
@@ -82,9 +82,9 @@ describe("GroupedPatternSidebar", () => {
     it("renders empty sections with just headers", () => {
       render(<GroupedPatternSidebar {...defaultProps} patterns={new Map()} />);
 
-      expect(getSectionHeader("Demand patterns")).toBeInTheDocument();
-      expect(getSectionHeader("Reservoir head patterns")).toBeInTheDocument();
-      expect(getSectionHeader("Pump speed patterns")).toBeInTheDocument();
+      expect(getSectionHeader("Demand")).toBeInTheDocument();
+      expect(getSectionHeader("Reservoir head")).toBeInTheDocument();
+      expect(getSectionHeader("Pump speed")).toBeInTheDocument();
     });
   });
 
@@ -92,20 +92,20 @@ describe("GroupedPatternSidebar", () => {
     it("hides patterns when section is collapsed", async () => {
       const user = setupUser();
       const patterns = createPatterns([
-        { id: 1, label: "DemandP", multipliers: [1.0], type: "demand" },
+        { id: 1, label: "aDemand", multipliers: [1.0], type: "demand" },
       ]);
 
       render(<GroupedPatternSidebar {...defaultProps} patterns={patterns} />);
 
       expect(
-        screen.getByRole("button", { name: "DemandP" }),
+        screen.getByRole("button", { name: "aDemand" }),
       ).toBeInTheDocument();
 
-      await user.click(getSectionHeader("Demand patterns"));
+      await user.click(getSectionHeader("Demand"));
 
       await waitFor(() => {
         expect(
-          screen.queryByRole("button", { name: "DemandP" }),
+          screen.queryByRole("button", { name: "aDemand" }),
         ).not.toBeInTheDocument();
       });
     });
@@ -113,24 +113,24 @@ describe("GroupedPatternSidebar", () => {
     it("shows patterns again when section is expanded", async () => {
       const user = setupUser();
       const patterns = createPatterns([
-        { id: 1, label: "DemandP", multipliers: [1.0], type: "demand" },
+        { id: 1, label: "aDemand", multipliers: [1.0], type: "demand" },
       ]);
 
       render(<GroupedPatternSidebar {...defaultProps} patterns={patterns} />);
 
       // Collapse
-      await user.click(getSectionHeader("Demand patterns"));
+      await user.click(getSectionHeader("Demand"));
       await waitFor(() => {
         expect(
-          screen.queryByRole("button", { name: "DemandP" }),
+          screen.queryByRole("button", { name: "aDemand" }),
         ).not.toBeInTheDocument();
       });
 
       // Expand
-      await user.click(getSectionHeader("Demand patterns"));
+      await user.click(getSectionHeader("Demand"));
       await waitFor(() => {
         expect(
-          screen.getByRole("button", { name: "DemandP" }),
+          screen.getByRole("button", { name: "aDemand" }),
         ).toBeInTheDocument();
       });
     });
@@ -141,15 +141,15 @@ describe("GroupedPatternSidebar", () => {
       render(<GroupedPatternSidebar {...defaultProps} patterns={new Map()} />);
 
       expect(
-        screen.getByRole("button", { name: /^add demand patterns$/i }),
+        screen.getByRole("button", { name: /^add demand/i }),
       ).toBeInTheDocument();
       expect(
         screen.getByRole("button", {
-          name: /^add reservoir head patterns$/i,
+          name: /^add reservoir head/i,
         }),
       ).toBeInTheDocument();
       expect(
-        screen.getByRole("button", { name: /^add pump speed patterns$/i }),
+        screen.getByRole("button", { name: /^add pump speed/i }),
       ).toBeInTheDocument();
     });
 
@@ -163,7 +163,7 @@ describe("GroupedPatternSidebar", () => {
       );
 
       expect(
-        screen.queryByRole("button", { name: /^add demand patterns$/i }),
+        screen.queryByRole("button", { name: /^add demand/i }),
       ).not.toBeInTheDocument();
       expect(
         screen.queryByRole("button", {
@@ -171,7 +171,7 @@ describe("GroupedPatternSidebar", () => {
         }),
       ).not.toBeInTheDocument();
       expect(
-        screen.queryByRole("button", { name: /^add pump speed patterns$/i }),
+        screen.queryByRole("button", { name: /^add pump speed/i }),
       ).not.toBeInTheDocument();
     });
 
@@ -187,9 +187,7 @@ describe("GroupedPatternSidebar", () => {
         />,
       );
 
-      await user.click(
-        screen.getByRole("button", { name: /^add demand patterns$/i }),
-      );
+      await user.click(screen.getByRole("button", { name: /^add demand/i }));
       const input = screen.getByRole("textbox");
       await user.type(input, "NewDemand");
       await user.keyboard("{Enter}");
@@ -216,7 +214,7 @@ describe("GroupedPatternSidebar", () => {
 
       await user.click(
         screen.getByRole("button", {
-          name: /^add reservoir head patterns$/i,
+          name: /^add reservoir head/i,
         }),
       );
       const input = screen.getByRole("textbox");
@@ -244,7 +242,7 @@ describe("GroupedPatternSidebar", () => {
       );
 
       await user.click(
-        screen.getByRole("button", { name: /^add pump speed patterns$/i }),
+        screen.getByRole("button", { name: /^add pump speed/i }),
       );
       const input = screen.getByRole("textbox");
       await user.type(input, "NewPump");
@@ -316,7 +314,7 @@ describe("GroupedPatternSidebar", () => {
 
       // Try to create a pump pattern with the same name as an existing demand pattern
       await user.click(
-        screen.getByRole("button", { name: /^add pump speed patterns$/i }),
+        screen.getByRole("button", { name: /^add pump speed/i }),
       );
       const input = screen.getByRole("textbox");
       await user.type(input, "SHARED_NAME");
@@ -331,7 +329,7 @@ describe("GroupedPatternSidebar", () => {
       const user = setupUser();
       const onSelectPattern = vi.fn();
       const patterns = createPatterns([
-        { id: 1, label: "DemandP", multipliers: [1.0], type: "demand" },
+        { id: 1, label: "aDemand", multipliers: [1.0], type: "demand" },
       ]);
 
       render(
@@ -342,7 +340,7 @@ describe("GroupedPatternSidebar", () => {
         />,
       );
 
-      await user.click(screen.getByRole("button", { name: "DemandP" }));
+      await user.click(screen.getByRole("button", { name: "aDemand" }));
       expect(onSelectPattern).toHaveBeenCalledWith(1);
     });
   });
@@ -352,7 +350,7 @@ describe("GroupedPatternSidebar", () => {
       const user = setupUser();
       const onSelectPattern = vi.fn();
       const patterns = createPatterns([
-        { id: 1, label: "DemandP", multipliers: [1.0], type: "demand" },
+        { id: 1, label: "aDemand", multipliers: [1.0], type: "demand" },
         {
           id: 2,
           label: "ReservoirP",
@@ -371,11 +369,11 @@ describe("GroupedPatternSidebar", () => {
       );
 
       const container = screen
-        .getByRole("button", { name: "DemandP" })
+        .getByRole("button", { name: "aDemand" })
         .closest("[tabindex]") as HTMLElement;
       container.focus();
 
-      // ArrowDown from DemandP lands on the Reservoir section header, clearing selection
+      // ArrowDown from aDemand lands on the Reservoir section header, clearing selection
       await user.keyboard("{ArrowDown}");
       expect(onSelectPattern).toHaveBeenCalledWith(null);
 
@@ -431,7 +429,7 @@ describe("GroupedPatternSidebar", () => {
       const user = setupUser();
       const onSelectPattern = vi.fn();
       const patterns = createPatterns([
-        { id: 1, label: "DemandP", multipliers: [1.0], type: "demand" },
+        { id: 1, label: "aDemand", multipliers: [1.0], type: "demand" },
         {
           id: 2,
           label: "ReservoirP",
@@ -451,14 +449,14 @@ describe("GroupedPatternSidebar", () => {
       );
 
       // Collapse reservoir section
-      await user.click(getSectionHeader("Reservoir head patterns"));
+      await user.click(getSectionHeader("Reservoir head"));
 
       const container = screen
-        .getByRole("button", { name: "DemandP" })
+        .getByRole("button", { name: "aDemand" })
         .closest("[tabindex]") as HTMLElement;
       container.focus();
 
-      // ArrowDown from DemandP -> Reservoir header -> Pump header -> PumpP
+      // ArrowDown from aDemand -> Reservoir header -> Pump header -> PumpP
       await user.keyboard("{ArrowDown}{ArrowDown}{ArrowDown}");
       expect(onSelectPattern).toHaveBeenCalledWith(3);
     });
