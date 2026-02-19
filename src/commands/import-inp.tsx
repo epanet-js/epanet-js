@@ -162,12 +162,17 @@ export const useImportInp = () => {
           return;
         }
 
-        await completeImport({
-          hydraulicModel,
-          modelMetadata,
-          issues,
-          isMadeByApp,
-        });
+        const autoElevations =
+          modelMetadata.projectionMapper.projection !== "xy-grid";
+        await completeImport(
+          {
+            hydraulicModel,
+            modelMetadata,
+            issues,
+            isMadeByApp,
+          },
+          { autoElevations },
+        );
       } catch (error) {
         captureError(error as Error);
         setDialogState({ type: "invalidFilesError" });
