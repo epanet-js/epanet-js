@@ -226,32 +226,36 @@ export const InpProjectionChoiceDialog = ({
         <button
           type="button"
           onClick={handleNonProjected}
-          className="text-left cursor-pointer rounded-md p-3 border-2 border-gray-200 bg-white hover:border-purple-500 hover:bg-purple-50 dark:bg-transparent dark:border-gray-700 dark:hover:border-purple-500 dark:hover:bg-purple-950 transition-colors"
+          className="text-left cursor-pointer rounded-lg border border-gray-200 bg-white hover:border-purple-500 hover:bg-purple-50 dark:bg-transparent dark:border-gray-700 dark:hover:border-purple-500 dark:hover:bg-purple-950 transition-colors overflow-hidden"
         >
-          <div className="w-full rounded mb-2 overflow-hidden">
+          <div className="w-full border-b border-gray-200">
             <NonProjectedIllustration />
           </div>
-          <div className="font-medium text-gray-900 dark:text-gray-100">
-            {translate("inpProjectionChoice.nonProjectedTitle")}
-          </div>
-          <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-            {translate("inpProjectionChoice.nonProjectedDescription")}
+          <div className="p-3">
+            <p className="font-bold text-gray-900 dark:text-gray-100">
+              {translate("inpProjectionChoice.nonProjectedTitle")}
+            </p>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              {translate("inpProjectionChoice.nonProjectedDescription")}
+            </p>
           </div>
         </button>
 
         <button
           type="button"
           onClick={handleProjected}
-          className="text-left cursor-pointer rounded-md p-3 border-2 border-gray-200 bg-white hover:border-purple-500 hover:bg-purple-50 dark:bg-transparent dark:border-gray-700 dark:hover:border-purple-500 dark:hover:bg-purple-950 transition-colors"
+          className="text-left cursor-pointer rounded-lg border border-gray-200 bg-white hover:border-purple-500 hover:bg-purple-50 dark:bg-transparent dark:border-gray-700 dark:hover:border-purple-500 dark:hover:bg-purple-950 transition-colors overflow-hidden"
         >
-          <div className="w-full rounded mb-2 overflow-hidden">
+          <div className="w-full border-b border-gray-200">
             <ProjectedIllustration />
           </div>
-          <div className="font-medium text-gray-900 dark:text-gray-100">
-            {translate("inpProjectionChoice.projectedTitle")}
-          </div>
-          <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-            {translate("inpProjectionChoice.projectedDescription")}
+          <div className="p-3">
+            <p className="font-bold text-gray-900 dark:text-gray-100">
+              {translate("inpProjectionChoice.projectedTitle")}
+            </p>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              {translate("inpProjectionChoice.projectedDescription")}
+            </p>
           </div>
         </button>
       </div>
