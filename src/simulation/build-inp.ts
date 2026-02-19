@@ -439,6 +439,10 @@ export const buildInp = withDebugInstrumentation(
       .join("\n\n");
 
     if (opts.madeBy) {
+      const projection = opts.projectionMapper?.projection;
+      if (projection && projection !== "wgs84") {
+        content = `;PROJECTION ${projection}\n` + content;
+      }
       content = `;MADE BY EPANET-JS [${checksum(content)}]\n` + content;
     }
     return content;

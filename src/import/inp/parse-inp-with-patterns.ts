@@ -30,20 +30,18 @@ export const parseInpWithPatterns = (
   stats: InpStats;
 } => {
   const issues = new IssuesAccumulator();
-  const isMadeByApp = validateChecksum(inp);
+  const header = parseHeader(inp);
 
   const safeOptions: ParseInpOptions = {
     ...options,
-    customerPoints: isMadeByApp ? options?.customerPoints : false,
-    inactiveAssets: isMadeByApp ? options?.inactiveAssets : false,
+    customerPoints: header.isMadeByApp ? options?.customerPoints : false,
+    inactiveAssets: header.isMadeByApp ? options?.inactiveAssets : false,
   };
 
   const { inpData, stats } = readInpData(inp, issues, safeOptions);
 
   const sourceProjection: Projection =
-    options?.sourceProjection !== undefined
-      ? options.sourceProjection
-      : "wgs84";
+    header.sourceProjection ?? options?.sourceProjection ?? "wgs84";
 
   const projectionMapper = projectCoordinates(inpData, sourceProjection);
 
@@ -53,7 +51,7 @@ export const parseInpWithPatterns = (
     safeOptions,
   );
   return {
-    isMadeByApp,
+    isMadeByApp: header.isMadeByApp,
     hydraulicModel,
     modelMetadata: {
       ...modelMetadata,
@@ -89,19 +87,35 @@ const projectCoordinates = (
   return projectionMapper;
 };
 
+type Header = { isMadeByApp: boolean; sourceProjection?: Projection };
+
 const checksumRegexp = /\[([0-9A-Fa-f]{8})\]/;
-const validateChecksum = (inp: string): boolean => {
+const projectionRegexp = /^;PROJECTION\s+(\S+)/;
+
+const parseHeader = (inp: string): Header => {
   const newLineIndex = inp.indexOf("\n");
-  if (newLineIndex === -1) return false;
+  if (newLineIndex === -1) return { isMadeByApp: false };
 
   const checksumRow = inp.substring(0, newLineIndex);
-  if (!checksumRow.includes(";MADE BY EPANET-JS")) return false;
+  if (!checksumRow.includes(";MADE BY EPANET-JS"))
+    return { isMadeByApp: false };
 
   const match = checksumRow.match(checksumRegexp);
-  if (!match) return false;
+  if (!match) return { isMadeByApp: false };
 
   const inputChecksum = match[1];
+  const rest = inp.substring(newLineIndex + 1);
+  const computedChecksum = checksum(rest);
+  if (inputChecksum !== computedChecksum) return { isMadeByApp: false };
 
-  const computedChecksum = checksum(inp.substring(newLineIndex + 1));
-  return inputChecksum === computedChecksum;
+  const secondLineEnd = rest.indexOf("\n");
+  if (secondLineEnd === -1) return { isMadeByApp: true };
+
+  const secondLine = rest.substring(0, secondLineEnd);
+  const projectionMatch = secondLine.match(projectionRegexp);
+  const sourceProjection = projectionMatch
+    ? (projectionMatch[1] as Projection)
+    : undefined;
+
+  return { isMadeByApp: true, sourceProjection };
 };
