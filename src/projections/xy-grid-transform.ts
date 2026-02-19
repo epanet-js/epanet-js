@@ -19,3 +19,11 @@ export const transformPoint = (
   Math.max(-180, Math.min(180, (point[0] - centroid[0]) / METERS_PER_DEGREE)),
   Math.max(-90, Math.min(90, (point[1] - centroid[1]) / METERS_PER_DEGREE)),
 ];
+
+export const inverseTransformPoint = (
+  wgs84Point: Position,
+  centroid: Position,
+): Position => [
+  wgs84Point[0] * METERS_PER_DEGREE + centroid[0],
+  wgs84Point[1] * METERS_PER_DEGREE + centroid[1],
+];

@@ -2,10 +2,12 @@ import { Position } from "geojson";
 import { InpData, ItemData } from "./inp-data";
 import { computeCentroid, transformPoint } from "src/projections";
 
-export const transformNonProjectedCoordinates = (inpData: InpData): void => {
+export const transformNonProjectedCoordinates = (
+  inpData: InpData,
+): Position | null => {
   const allPoints = collectAllPoints(inpData.coordinates, inpData.vertices);
 
-  if (allPoints.length === 0) return;
+  if (allPoints.length === 0) return null;
 
   const centroid = computeCentroid(allPoints);
 
@@ -19,6 +21,8 @@ export const transformNonProjectedCoordinates = (inpData: InpData): void => {
       positions.map((p) => transformPoint(p, centroid)),
     );
   }
+
+  return centroid;
 };
 
 const collectAllPoints = (

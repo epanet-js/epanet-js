@@ -75,6 +75,7 @@ export const buildModelWithPatterns = (
   issues: IssuesAccumulator,
   options?: ParseInpOptions,
   sourceProjection: Projection = "wgs84",
+  projectionCentroid?: Position,
 ): { hydraulicModel: HydraulicModel; modelMetadata: ModelMetadata } => {
   const spec = presets[inpData.options.units];
   const quantities = new Quantities(spec);
@@ -91,6 +92,7 @@ export const buildModelWithPatterns = (
     },
     epsTiming: inpData.times,
     sourceProjection,
+    projectionCentroid,
   });
 
   const curvesContext: CurvesContext = initializeCurvesContext(

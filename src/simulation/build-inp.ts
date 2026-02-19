@@ -18,6 +18,8 @@ import {
 import { CustomerPointsLookup } from "src/hydraulic-model/customer-points-lookup";
 import { Valve, AssetId } from "src/hydraulic-model/asset-types";
 import { checksum } from "src/infra/checksum";
+import { inverseTransformPoint } from "src/projections";
+import { Position } from "geojson";
 import { withDebugInstrumentation } from "src/infra/with-instrumentation";
 import {
   formatSimpleControl,
@@ -240,6 +242,12 @@ export const buildInp = withDebugInstrumentation(
     const idMap = new EpanetIds({ strategy: opts.labelIds ? "label" : "id" });
     const units = chooseUnitSystem(hydraulicModel.units);
     const headlossFormula = hydraulicModel.headlossFormula;
+
+    const transformCoord: (p: Position) => Position =
+      hydraulicModel.sourceProjection === "xy-grid" &&
+      hydraulicModel.projectionCentroid
+        ? (p) => inverseTransformPoint(p, hydraulicModel.projectionCentroid!)
+        : (p) => p;
     const sections: InpSections = {
       junctions: ["[JUNCTIONS]", ";Id\tElevation"],
       reservoirs: ["[RESERVOIRS]", ";Id\tHead\tPattern"],
@@ -269,7 +277,12 @@ export const buildInp = withDebugInstrumentation(
         `Demand Multiplier\t${hydraulicModel.demands.multiplier}`,
         `Pattern\t${idMap.registerPatternId({ id: defaultConstantPatternId, label: "constant" })}`,
       ],
-      backdrop: ["[BACKDROP]", "Units\tDEGREES"],
+      backdrop: [
+        "[BACKDROP]",
+        hydraulicModel.sourceProjection === "xy-grid"
+          ? "Units\tNONE"
+          : "Units\tDEGREES",
+      ],
       coordinates: ["[COORDINATES]", ";Node\tX-coord\tY-coord"],
       vertices: ["[VERTICES]", ";link\tX-coord\tY-coord"],
       customers: [
@@ -297,6 +310,7 @@ export const buildInp = withDebugInstrumentation(
           opts.inactiveAssets,
           opts.reservoirElevations,
           asset as Reservoir,
+          transformCoord,
         );
       }
 
@@ -307,6 +321,7 @@ export const buildInp = withDebugInstrumentation(
           opts.geolocation,
           opts.inactiveAssets,
           asset as Tank,
+          transformCoord,
         );
       }
 
@@ -322,6 +337,7 @@ export const buildInp = withDebugInstrumentation(
           hydraulicModel.assets,
           hydraulicModel.demands,
           usedPatternIds,
+          transformCoord,
         );
       }
 
@@ -333,6 +349,7 @@ export const buildInp = withDebugInstrumentation(
           opts.geolocation,
           opts.inactiveAssets,
           asset as Pipe,
+          transformCoord,
         );
       }
 
@@ -345,6 +362,7 @@ export const buildInp = withDebugInstrumentation(
           opts.inactiveAssets,
           usedCurveIds,
           asset as Pump,
+          transformCoord,
         );
       }
 
@@ -356,6 +374,7 @@ export const buildInp = withDebugInstrumentation(
           opts.geolocation,
           opts.inactiveAssets,
           asset as Valve,
+          transformCoord,
         );
       }
     }
@@ -368,6 +387,7 @@ export const buildInp = withDebugInstrumentation(
           hydraulicModel,
           customerPoint,
           usedPatternIds,
+          transformCoord,
         );
       }
     }
@@ -437,6 +457,7 @@ const appendReservoir = (
   inactiveAssets: boolean,
   elevations: boolean,
   reservoir: Reservoir,
+  transformCoord: (p: Position) => Position,
 ) => {
   if (!reservoir.isActive && !inactiveAssets) {
     return;
@@ -453,7 +474,13 @@ const appendReservoir = (
   sections.reservoirs.push(reservoirLine);
 
   if (geolocation) {
-    appendNodeCoordinates(sections, idMap, reservoir, commentPrefix);
+    appendNodeCoordinates(
+      sections,
+      idMap,
+      reservoir,
+      transformCoord,
+      commentPrefix,
+    );
   }
 };
 
@@ -463,6 +490,7 @@ const appendTank = (
   geolocation: boolean,
   inactiveAssets: boolean,
   tank: Tank,
+  transformCoord: (p: Position) => Position,
 ) => {
   if (!tank.isActive && !inactiveAssets) {
     return;
@@ -487,7 +515,7 @@ const appendTank = (
       ].join("\t"),
   );
   if (geolocation) {
-    appendNodeCoordinates(sections, idMap, tank, commentPrefix);
+    appendNodeCoordinates(sections, idMap, tank, transformCoord, commentPrefix);
   }
 };
 
@@ -502,6 +530,7 @@ const appendJunction = (
   assets: HydraulicModel["assets"],
   demands: Demands,
   usedPatternIds: Set<number>,
+  transformCoord: (p: Position) => Position,
 ) => {
   if (!junction.isActive && !inactiveAssets) {
     return;
@@ -563,7 +592,13 @@ const appendJunction = (
   }
 
   if (geolocation) {
-    appendNodeCoordinates(sections, idMap, junction, commentPrefix);
+    appendNodeCoordinates(
+      sections,
+      idMap,
+      junction,
+      transformCoord,
+      commentPrefix,
+    );
   }
 };
 
@@ -574,6 +609,7 @@ const appendPipe = (
   geolocation: boolean,
   inactiveAssets: boolean,
   pipe: Pipe,
+  transformCoord: (p: Position) => Position,
 ) => {
   if (!pipe.isActive && !inactiveAssets) {
     return;
@@ -597,7 +633,7 @@ const appendPipe = (
       ].join("\t"),
   );
   if (geolocation) {
-    appendLinkVertices(sections, idMap, pipe, commentPrefix);
+    appendLinkVertices(sections, idMap, pipe, transformCoord, commentPrefix);
   }
 };
 
@@ -609,6 +645,7 @@ const appendPump = (
   inactiveAssets: boolean,
   usedCurveIds: Map<number, string>,
   pump: Pump,
+  transformCoord: (p: Position) => Position,
 ) => {
   if (!pump.isActive && !inactiveAssets) {
     return;
@@ -675,7 +712,7 @@ const appendPump = (
     commentPrefix + [linkId, pumpStatusFor(pump)].join("\t"),
   );
   if (geolocation) {
-    appendLinkVertices(sections, idMap, pump, commentPrefix);
+    appendLinkVertices(sections, idMap, pump, transformCoord, commentPrefix);
   }
 };
 
@@ -686,6 +723,7 @@ const appendValve = (
   geolocation: boolean,
   inactiveAssets: boolean,
   valve: Valve,
+  transformCoord: (p: Position) => Position,
 ) => {
   if (!valve.isActive && !inactiveAssets) {
     return;
@@ -712,7 +750,7 @@ const appendValve = (
   }
 
   if (geolocation) {
-    appendLinkVertices(sections, idMap, valve, commentPrefix);
+    appendLinkVertices(sections, idMap, valve, transformCoord, commentPrefix);
   }
 };
 
@@ -737,10 +775,12 @@ const appendNodeCoordinates = (
   sections: InpSections,
   idMap: EpanetIds,
   node: NodeAsset,
+  transformCoord: (p: Position) => Position,
   commentPrefix = "",
 ) => {
+  const coords = transformCoord(node.coordinates);
   sections.coordinates.push(
-    commentPrefix + [idMap.nodeId(node), ...node.coordinates].join("\t"),
+    commentPrefix + [idMap.nodeId(node), ...coords].join("\t"),
   );
 };
 
@@ -748,11 +788,13 @@ const appendLinkVertices = (
   sections: InpSections,
   idMap: EpanetIds,
   link: LinkAsset,
+  transformCoord: (p: Position) => Position,
   commentPrefix = "",
 ) => {
   for (const vertex of link.intermediateVertices) {
+    const coords = transformCoord(vertex);
     sections.vertices.push(
-      commentPrefix + [idMap.linkId(link), ...vertex].join("\t"),
+      commentPrefix + [idMap.linkId(link), ...coords].join("\t"),
     );
   }
 };
@@ -864,12 +906,13 @@ const appendCustomerPoint = (
   hydraulicModel: HydraulicModel,
   customerPoint: CustomerPoint,
   usedPatternIds: Set<number>,
+  transformCoord: (p: Position) => Position,
 ) => {
   const connection = customerPoint.connection;
-  const [x, y] = customerPoint.coordinates;
+  const [x, y] = transformCoord(customerPoint.coordinates);
 
   if (connection) {
-    const [snapX, snapY] = connection.snapPoint;
+    const [snapX, snapY] = transformCoord(connection.snapPoint);
 
     const junction = hydraulicModel.assets.get(
       connection.junctionId,

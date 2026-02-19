@@ -7,6 +7,7 @@ import { checksum } from "src/infra/checksum";
 import { InpStats } from "./inp-data";
 import { transformNonProjectedCoordinates } from "./non-projected-transform";
 import { Projection } from "src/projections";
+import { Position } from "geojson";
 
 export type ParseInpOptions = {
   customerPoints?: boolean;
@@ -41,8 +42,9 @@ export const parseInpWithPatterns = (
       ? options.sourceProjection
       : "wgs84";
 
+  let projectionCentroid: Position | undefined;
   if (sourceProjection === "xy-grid") {
-    transformNonProjectedCoordinates(inpData);
+    projectionCentroid = transformNonProjectedCoordinates(inpData) ?? undefined;
   }
 
   const { hydraulicModel, modelMetadata } = buildModelWithPatterns(
@@ -50,6 +52,7 @@ export const parseInpWithPatterns = (
     issues,
     safeOptions,
     sourceProjection,
+    projectionCentroid,
   );
   return {
     isMadeByApp,

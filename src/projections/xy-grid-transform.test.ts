@@ -1,6 +1,7 @@
 import {
   computeCentroid,
   transformPoint,
+  inverseTransformPoint,
   METERS_PER_DEGREE,
 } from "./xy-grid-transform";
 
@@ -33,6 +34,17 @@ describe("xy-grid-transform", () => {
       const result = transformPoint([999_999_999, 999_999_999], centroid);
       expect(result[0]).toBe(180);
       expect(result[1]).toBe(90);
+    });
+  });
+
+  describe("inverseTransformPoint", () => {
+    it("round-trips with transformPoint", () => {
+      const centroid: [number, number] = [500_000, 200_000];
+      const original: [number, number] = [501_000, 201_000];
+      const wgs84 = transformPoint(original, centroid);
+      const restored = inverseTransformPoint(wgs84, centroid);
+      expect(restored[0]).toBeCloseTo(original[0], 2);
+      expect(restored[1]).toBeCloseTo(original[1], 2);
     });
   });
 });
