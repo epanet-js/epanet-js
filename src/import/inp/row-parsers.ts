@@ -151,14 +151,9 @@ export const parseReaction: RowParser = ({
 export const parseReservoir: RowParser = ({
   trimmedRow,
   inpData,
-  issues,
   isCommented,
 }) => {
   const [id, baseHead, patternId] = readValues(trimmedRow);
-
-  if (patternId) {
-    issues.addReservoirPattern();
-  }
 
   const comment = readComment(trimmedRow);
   const elevationMatch = comment.match(/Elevation:(-?\d+(?:\.\d+)?)/i);
@@ -240,12 +235,7 @@ export const parseValve: RowParser = ({
   });
 };
 
-export const parsePump: RowParser = ({
-  trimmedRow,
-  inpData,
-  issues,
-  isCommented,
-}) => {
+export const parsePump: RowParser = ({ trimmedRow, inpData, isCommented }) => {
   const [id, startNodeDirtyId, endNodeDirtyId, ...settingFields] =
     readValues(trimmedRow);
 
@@ -271,7 +261,6 @@ export const parsePump: RowParser = ({
 
     if (key === "PATTERN") {
       patternId = value;
-      issues.addPumpPattern();
     }
   }
 

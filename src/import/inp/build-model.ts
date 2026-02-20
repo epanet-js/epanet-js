@@ -415,6 +415,10 @@ const addReservoir = (
   const coordinates = getNodeCoordinates(inpData, reservoirData.id, issues);
   if (!coordinates) return;
 
+  if (reservoirData.patternId) {
+    issues.addReservoirPattern();
+  }
+
   const reservoir = hydraulicModel.assetBuilder.buildReservoir({
     label: reservoirData.id,
     coordinates,
@@ -546,6 +550,7 @@ const addPump = (
   }
 
   if (pumpData.patternId) {
+    issues.addPumpPattern();
     const pattern = getPattern(inpData.patterns, pumpData.patternId);
     speed = pattern[0];
   }
