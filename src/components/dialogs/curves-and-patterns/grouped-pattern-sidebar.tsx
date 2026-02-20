@@ -87,12 +87,21 @@ export const GroupedPatternSidebar = ({
     requestAnimationFrame(() => listRef.current?.focus());
   };
 
-  useEffect(() => {
-    labelManager.current = new LabelManager();
-    for (const pattern of patterns.values()) {
-      labelManager.current.register(pattern.label, "pattern", pattern.id);
-    }
-  }, [patterns]);
+  const handleScroll = useCallback(() => {
+    listRef.current?.dispatchEvent(
+      new PointerEvent("pointerdown", { bubbles: true }),
+    );
+  }, []);
+
+  useEffect(
+    function initializeLocalLabelManager() {
+      labelManager.current = new LabelManager();
+      for (const pattern of patterns.values()) {
+        labelManager.current.register(pattern.label, "pattern", pattern.id);
+      }
+    },
+    [patterns],
+  );
 
   const groupedPatterns = useMemo(() => {
     const groups: Record<SectionType, TypedPattern[]> = {
@@ -287,16 +296,23 @@ export const GroupedPatternSidebar = ({
 
     if (actionState.action === "renaming") {
       onChangePattern(actionState.patternId, { label: trimmedName });
-    } else {
-      const isCloning = actionState.action === "cloning";
-      const multipliers = isCloning
-        ? [...actionState.sourcePattern.multipliers]
-        : Array(minPatternSteps).fill(1);
-      const source = isCloning ? "clone" : "new";
-      const type = isCloning
-        ? actionState.sourcePattern.type
-        : actionState.patternType;
-      const newId = onAddPattern(trimmedName, multipliers, source, type);
+    } else if (actionState.action === "cloning") {
+      const multipliers = [...actionState.sourcePattern.multipliers];
+      const newId = onAddPattern(
+        trimmedName,
+        multipliers,
+        "clone",
+        actionState.sourcePattern.type,
+      );
+      onSelectPattern(newId);
+    } else if (actionState.action === "creating") {
+      const multipliers = Array(minPatternSteps).fill(1) as number[];
+      const newId = onAddPattern(
+        trimmedName,
+        multipliers,
+        "new",
+        actionState.patternType,
+      );
       onSelectPattern(newId);
     }
 
@@ -321,6 +337,7 @@ export const GroupedPatternSidebar = ({
         ref={listRef}
         className="flex-1 overflow-y-auto outline-none placemark-scrollbar scroll-shadows border border-gray-200 dark:border-gray-700 rounded"
         onKeyDown={handleKeyDown}
+        onScroll={handleScroll}
         tabIndex={0}
         {...(selectedPatternId != null && {
           "data-capture-escape-key": true,
@@ -354,7 +371,10 @@ export const GroupedPatternSidebar = ({
                 sourcePattern: sourcePattern,
               })
             }
-            onDelete={onDeletePattern}
+            onDelete={(patternId, patternType) => {
+              onSelectPattern(null);
+              onDeletePattern(patternId, patternType);
+            }}
             onPatternLabelChange={handlePatternLabelChange}
             onCancelAction={clearActionState}
             readOnly={readOnly}
@@ -372,7 +392,11 @@ export const GroupedPatternSidebar = ({
               onSelectPattern(patternId);
             }}
             onCategorize={handleCategorize}
-            onDelete={onDeletePattern}
+            onDelete={(patternId) => {
+              clearActionState();
+              onSelectPattern(null);
+              onDeletePattern(patternId);
+            }}
             readOnly={readOnly}
           />
         )}
@@ -467,7 +491,10 @@ const PatternSection = ({
               onCancel={onCancelAction}
               onStartRename={onStartRename}
               onStartClone={onStartClone}
-              onDelete={() => onDelete(pattern.id, pattern.type)}
+              onDelete={() => {
+                onCancelAction();
+                onDelete(pattern.id, pattern.type);
+              }}
               onPatternLabelChange={onPatternLabelChange}
               readOnly={readOnly}
             />

@@ -184,15 +184,17 @@ export const PatternSidebar = ({
             onSelect={() => onSelectPattern(pattern.id)}
             actionState={actionState}
             onCancel={clearActionState}
-            onStartRename={() =>
-              setActionState({ action: "renaming", patternId: pattern.id })
-            }
-            onStartClone={() =>
+            onStartRename={() => {
+              onSelectPattern(pattern.id);
+              setActionState({ action: "renaming", patternId: pattern.id });
+            }}
+            onStartClone={() => {
+              onSelectPattern(pattern.id);
               setActionState({
                 action: "cloning",
                 sourcePattern: pattern as TypedPattern,
-              })
-            }
+              });
+            }}
             onDelete={() => onDeletePattern(pattern.id, "demand")}
             onPatternLabelChange={handlePatternLabelChange}
             readOnly={readOnly}

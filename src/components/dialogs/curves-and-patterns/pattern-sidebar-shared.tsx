@@ -50,6 +50,7 @@ export const PatternSidebarItem = ({
   readOnly = false,
 }: PatternSidebarItemProps) => {
   const translate = useTranslate();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const isRenaming =
     actionState?.action === "renaming" && actionState.patternId === pattern.id;
@@ -74,8 +75,10 @@ export const PatternSidebarItem = ({
         data-pattern-id={pattern.id}
         className={`group flex items-center justify-between text-sm cursor-pointer h-8 ${
           isSelected
-            ? "bg-gray-200 dark:hover:bg-gray-700"
-            : "hover:bg-gray-100 dark:hover:bg-gray-800"
+            ? "bg-purple-300/40"
+            : isMenuOpen
+              ? "bg-gray-100 dark:bg-gray-800"
+              : "hover:bg-gray-100 dark:hover:bg-gray-800"
         }`}
       >
         <Button
@@ -89,10 +92,10 @@ export const PatternSidebarItem = ({
         {!readOnly && (
           <PatternActionsMenu
             isSelected={isSelected}
-            onOpen={onSelect}
             onRename={() => onStartRename(pattern.id)}
             onDuplicate={() => onStartClone(pattern)}
             onDelete={onDelete}
+            onOpenChange={setIsMenuOpen}
           />
         )}
       </li>
@@ -177,13 +180,16 @@ export const UncategorizedPatternSidebarItem = ({
   onDelete,
   readOnly = false,
 }: UncategorizedPatternSidebarItemProps) => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   return (
     <li
       data-pattern-id={pattern.id}
       className={`group flex items-center justify-between text-sm cursor-pointer h-8 ${
         isSelected
-          ? "bg-gray-200 dark:hover:bg-gray-700"
-          : "hover:bg-gray-100 dark:hover:bg-gray-800"
+          ? "bg-purple-300/40"
+          : isMenuOpen
+            ? "bg-gray-100 dark:bg-gray-800"
+            : "hover:bg-gray-100 dark:hover:bg-gray-800"
       }`}
     >
       <Button
@@ -197,9 +203,9 @@ export const UncategorizedPatternSidebarItem = ({
       {!readOnly && (
         <CategorizeActionsMenu
           isSelected={isSelected}
-          onOpen={onSelect}
           onCategorize={(type) => onCategorize(pattern.id, type)}
           onDelete={onDelete}
+          onOpenChange={setIsMenuOpen}
         />
       )}
     </li>
@@ -208,23 +214,25 @@ export const UncategorizedPatternSidebarItem = ({
 
 type PatternActionsMenuProps = {
   isSelected: boolean;
-  onOpen: () => void;
   onRename: () => void;
   onDuplicate: () => void;
   onDelete: () => void;
+  onOpenChange: (open: boolean) => void;
 };
 
 const PatternActionsMenu = ({
   isSelected,
-  onOpen,
   onRename,
   onDuplicate,
   onDelete,
+  onOpenChange,
 }: PatternActionsMenuProps) => {
   const translate = useTranslate();
+  const [isOpen, setIsOpen] = useState(false);
 
   const handleOpenChange = (open: boolean) => {
-    if (open) onOpen();
+    setIsOpen(open);
+    onOpenChange(open);
   };
 
   return (
@@ -241,7 +249,9 @@ const PatternActionsMenu = ({
             className={`h-6 w-6 self-center ${
               isSelected
                 ? "hover:bg-white/30 dark:hover:bg-white/10"
-                : "invisible group-hover:visible hover:bg-gray-200 dark:hover:bg-gray-700"
+                : isOpen
+                  ? "hover:bg-gray-200 dark:hover:bg-gray-700"
+                  : "invisible group-hover:visible hover:bg-gray-200 dark:hover:bg-gray-700"
             }`}
           >
             <MoreActionsIcon size="sm" />
@@ -270,21 +280,23 @@ const PatternActionsMenu = ({
 
 type CategorizeActionsMenuProps = {
   isSelected: boolean;
-  onOpen: () => void;
   onCategorize: (type: SectionType) => void;
   onDelete: () => void;
+  onOpenChange: (open: boolean) => void;
 };
 
 const CategorizeActionsMenu = ({
   isSelected,
-  onOpen,
   onCategorize,
   onDelete,
+  onOpenChange,
 }: CategorizeActionsMenuProps) => {
   const translate = useTranslate();
+  const [isOpen, setIsOpen] = useState(false);
 
   const handleOpenChange = (open: boolean) => {
-    if (open) onOpen();
+    setIsOpen(open);
+    onOpenChange(open);
   };
 
   return (
@@ -301,7 +313,9 @@ const CategorizeActionsMenu = ({
             className={`h-6 w-6 self-center ${
               isSelected
                 ? "hover:bg-white/30 dark:hover:bg-white/10"
-                : "invisible group-hover:visible hover:bg-gray-200 dark:hover:bg-gray-700"
+                : isOpen
+                  ? "hover:bg-gray-200 dark:hover:bg-gray-700"
+                  : "invisible group-hover:visible hover:bg-gray-200 dark:hover:bg-gray-700"
             }`}
           >
             <MoreActionsIcon size="sm" />
