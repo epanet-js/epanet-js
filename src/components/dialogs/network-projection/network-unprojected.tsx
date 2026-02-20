@@ -15,17 +15,22 @@ const NetworkUnprojectedIllustration = (
     viewBox="0 0 288 160"
     {...props}
   >
-    <rect width="100%" height="100%" style={{ fill: "#fafafa" }} />
+    <path
+      d="M0 0h288v160H0z"
+      style={{
+        fill: "#f5f5f5",
+      }}
+    />
     <path
       d="M0 32h288M0 64h288M0 96h288M0 128h288M256 0v160M224 0v160M192 0v160M160 0v160M128 0v160M96 0v160M64 0v160M32 0v160"
       style={{
         fill: "none",
-        stroke: "#d4d4d4",
+        stroke: "#e5e5e5",
         strokeWidth: 1,
       }}
     />
     <path
-      d="M240 144v-34.015L176 80H80V48M176 80v30M176 80v30M80 80l-31 30"
+      d="M240 144v-34.015L176 80H80v-91M176 80v30M176 80v30M80 80l-31 30"
       style={{
         fill: "none",
         stroke: "#312e81",
@@ -35,16 +40,6 @@ const NetworkUnprojectedIllustration = (
     <circle
       cx={49}
       cy={110}
-      r={4}
-      style={{
-        fill: "#c7d2fe",
-        stroke: "#98abeb",
-        strokeWidth: 2,
-      }}
-    />
-    <circle
-      cx={80}
-      cy={48}
       r={4}
       style={{
         fill: "#c7d2fe",
