@@ -14,6 +14,7 @@ import { clickableLayers } from "src/map/layers/layer";
 import { notify } from "src/components/notifications";
 import { Asset, LinkAsset, Pipe, Valve } from "src/hydraulic-model/asset-types";
 import { Topology } from "src/hydraulic-model/topology";
+import { runTrace } from "src/lib/trace";
 
 const TRACE_MODE_MAP = {
   [Mode.BOUNDARY_TRACE_SELECT]: "boundary",
@@ -35,7 +36,7 @@ export function useTraceSelectHandlers({
   const resultsReader = useAtomValue(simulationResultsAtom);
   const setMode = useSetAtom(modeAtom);
   const setCursor = useSetAtom(cursorStyleAtom);
-  const { selectAsset, clearSelection } = useSelection(selection);
+  const { selectAsset, selectAssets, clearSelection } = useSelection(selection);
 
   const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -44,7 +45,9 @@ export function useTraceSelectHandlers({
     abortControllerRef.current = null;
   };
 
-  const handleClick = (e: mapboxgl.MapMouseEvent | mapboxgl.MapTouchEvent) => {
+  const handleClick = async (
+    e: mapboxgl.MapMouseEvent | mapboxgl.MapTouchEvent,
+  ) => {
     e.preventDefault();
     abortPending();
 
@@ -89,32 +92,32 @@ export function useTraceSelectHandlers({
 
     selectAsset(clickedAsset.id);
 
-    // const abortController = new AbortController();
-    // abortControllerRef.current = abortController;
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
 
-    // try {
-    //   const assetIds = await runTrace(
-    //     hydraulicModel,
-    //     resultsReader,
-    //     {
-    //       mode: traceMode,
-    //       startNodeIds,
-    //       startLinkIds,
-    //     },
-    //     abortController.signal,
-    //   );
+    try {
+      const assetIds = await runTrace(
+        hydraulicModel,
+        resultsReader,
+        {
+          mode: traceMode,
+          startNodeIds,
+          startLinkIds,
+        },
+        abortController.signal,
+      );
 
-    //   if (abortController.signal.aborted) return;
+      if (abortController.signal.aborted) return;
 
-    //   if (assetIds.length > 0) {
-    //     selectAssets(assetIds);
-    //   } else {
-    //     selectAsset(clickedAsset.id);
-    //   }
-    // } catch (err) {
-    //   if (err instanceof DOMException && err.name === "AbortError") return;
-    //   throw err;
-    // }
+      if (assetIds.length > 0) {
+        selectAssets(assetIds);
+      } else {
+        selectAsset(clickedAsset.id);
+      }
+    } catch (err) {
+      if (err instanceof DOMException && err.name === "AbortError") return;
+      throw err;
+    }
   };
 
   const handleMove = throttle(
