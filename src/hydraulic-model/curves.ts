@@ -1,4 +1,3 @@
-import { AssetId } from "./asset-types";
 import { LabelManager } from "./label-manager";
 
 export type CurveId = number;
@@ -11,7 +10,6 @@ export interface ICurve {
   label: string;
   type?: CurveType;
   points: CurvePoint[];
-  assetIds: Set<AssetId>;
 }
 
 export type Curves = Map<CurveId, ICurve>;
@@ -97,7 +95,6 @@ export const buildDefaultPumpCurve = (
     label,
     type: "pump",
     points: defaultCurvePoints(),
-    assetIds: new Set(),
   };
 };
 

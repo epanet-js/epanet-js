@@ -12,7 +12,6 @@ const buildCurve = (
   label,
   type,
   points: [{ x: 1, y: 1 }],
-  assetIds: new Set(),
 });
 
 const buildLabelManager = (curves: Curves): LabelManager => {

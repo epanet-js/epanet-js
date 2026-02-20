@@ -15,6 +15,8 @@ import {
   isValidPumpCurve,
   stripTrailingEmptyPoints,
 } from "src/hydraulic-model/curves";
+import { HydraulicModel } from "src/hydraulic-model";
+import { Pump } from "src/hydraulic-model/asset-types/pump";
 import { PumpCurvesIcon } from "src/icons";
 import { dataAtom, stagingModelAtom } from "src/state/jotai";
 import { usePersistence } from "src/lib/persistence";
@@ -109,7 +111,7 @@ export const PumpCurvesDialog = ({
       const curve = editedCurves.get(curveId);
       if (!curve) return;
 
-      if (curve.assetIds.size > 0) {
+      if (isCurveInUse(hydraulicModel, curveId)) {
         notify({
           variant: "error",
           title: translate("deleteCurveInUse"),
@@ -128,7 +130,7 @@ export const PumpCurvesDialog = ({
       }
       userTracking.capture({ name: "pumpCurve.deleted" });
     },
-    [editedCurves, selectedCurveId, translate, userTracking],
+    [hydraulicModel, editedCurves, selectedCurveId, translate, userTracking],
   );
 
   const rep = usePersistence();
@@ -353,7 +355,6 @@ const deepCloneCurves = (curves: Curves): Curves => {
     cloned.set(id, {
       ...curve,
       points: curve.points.map((p) => ({ ...p })),
-      assetIds: new Set(curve.assetIds),
     });
   }
   return cloned;
@@ -365,6 +366,18 @@ const createLabelManagerFromCurves = (curves: Curves): LabelManager => {
     lm.register(curve.label, "curve", curve.id);
   }
   return lm;
+};
+
+const isCurveInUse = (
+  hydraulicModel: HydraulicModel,
+  curveId: CurveId,
+): boolean => {
+  for (const asset of hydraulicModel.assets.values()) {
+    if (asset instanceof Pump && asset.curveId === curveId) {
+      return true;
+    }
+  }
+  return false;
 };
 
 const areCurvesEqual = (original: Curves, edited: Curves): boolean => {

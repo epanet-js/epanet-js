@@ -380,19 +380,16 @@ describe("parse pumps", () => {
       const curve = hydraulicModel.curves.get(curveId)!;
       expect(curve.label).toEqual("CU_1");
       expect(curve.points).toEqual([{ x: 10, y: 20 }]);
-      expect(curve.assetIds.size).toBe(2);
 
       const pump1 = getByLabel(hydraulicModel.assets, "pu1") as Pump;
       expect(pump1.speed).toEqual(20);
       expect(pump1.definitionType).toEqual("curveId");
       expect(pump1.curveId).toEqual(curveId);
-      expect(curve.assetIds.has(pump1.id)).toBe(true);
 
       const pump2 = getByLabel(hydraulicModel.assets, "pu2") as Pump;
       expect(pump2.speed).toEqual(0.2);
       expect(pump2.definitionType).toEqual("curveId");
       expect(pump2.curveId).toEqual(curveId);
-      expect(curve.assetIds.has(pump2.id)).toBe(true);
     });
 
     it("3-point curve", () => {
@@ -475,12 +472,10 @@ describe("parse pumps", () => {
         { x: 200, y: 150 },
         { x: 300, y: 50 },
       ]);
-      expect(curve.assetIds.size).toBe(1);
       const pump = getByLabel(hydraulicModel.assets, pumpId) as Pump;
       expect(pump.initialStatus).toEqual("on");
       expect(pump.definitionType).toEqual("curveId");
       expect(pump.curveId).toEqual(curveId);
-      expect(curve.assetIds.has(pump.id)).toBe(true);
     });
 
     it("keeps invalid curve as library reference (2 points with non-descending head)", () => {

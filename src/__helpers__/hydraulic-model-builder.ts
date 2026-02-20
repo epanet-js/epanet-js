@@ -412,7 +412,6 @@ export class HydraulicModelBuilder {
     const curve: ICurve = {
       ...rawCurve,
       label: rawCurve.label || String(rawCurve.id),
-      assetIds: rawCurve.assetIds || new Set(),
     };
     this.curves.set(curve.id, curve);
     this.labelManager.register(curve.label, "curve", curve.id);
