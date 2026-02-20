@@ -61,6 +61,7 @@ type PatternsContext = {
   fallbackPatternId?: PatternId;
   idGenerator: IdGenerator;
   labelManager: LabelManager;
+  duplicates: Map<PatternId, Map<PatternType, PatternId>>;
 };
 
 type CurvesContext = {
@@ -68,6 +69,7 @@ type CurvesContext = {
   pumpCurves: Map<CurveId, AssetId[]>;
   idGenerator: IdGenerator;
   labelManager: LabelManager;
+  duplicates: Map<CurveId, Map<CurveType, CurveId>>;
 };
 
 export const buildModelWithPatterns = (
@@ -174,8 +176,7 @@ export const buildModelWithPatterns = (
 
   addCurves(
     hydraulicModel,
-    curvesContext.curves,
-    curvesContext.pumpCurves,
+    curvesContext,
     inpData.energyEfficiencyCurves,
     linkIds,
     issues,
@@ -184,7 +185,7 @@ export const buildModelWithPatterns = (
 
   addPatterns(
     hydraulicModel,
-    patternContext.patterns,
+    patternContext,
     inpData.sourcePatterns,
     inpData.energyPatterns,
     inpData.patterns,
@@ -204,6 +205,7 @@ const initializeCurvesContext = (
     pumpCurves: new Map(),
     labelManager: labelManager,
     idGenerator: new ConsecutiveIdsGenerator(),
+    duplicates: new Map(),
   };
 
   for (const [, curveData] of rawCurves.entries()) {
@@ -242,6 +244,7 @@ const initializeBuildPatternContext = (
     patterns: new Map(),
     labelManager: labelManager,
     idGenerator: new ConsecutiveIdsGenerator(),
+    duplicates: new Map(),
   };
 
   for (const [, patternData] of rawPatterns.entries()) {
@@ -319,24 +322,28 @@ const buildDemand = (
   baseDemand: number,
   patternLabel: string | undefined,
 ): Demand => {
-  const { fallbackPatternId, labelManager, patterns } = patternContext;
+  const { fallbackPatternId, labelManager } = patternContext;
 
   if (patternLabel) {
     const patternId = labelManager.getIdByLabel(patternLabel, "pattern");
     if (patternId !== undefined) {
-      markPatternUsed(patterns, patternId, "demand");
+      const effectiveId = markPatternUsed(patternContext, patternId, "demand");
       return {
         baseDemand,
-        patternId,
+        patternId: effectiveId,
       };
     }
   }
 
   if (fallbackPatternId !== undefined) {
-    markPatternUsed(patterns, fallbackPatternId, "demand");
+    const effectiveId = markPatternUsed(
+      patternContext,
+      fallbackPatternId,
+      "demand",
+    );
     return {
       baseDemand,
-      patternId: fallbackPatternId,
+      patternId: effectiveId,
     };
   }
 
@@ -417,8 +424,11 @@ const addReservoir = (
       "pattern",
     );
     if (patternId !== undefined) {
-      markPatternUsed(patternContext.patterns, patternId, "reservoirHead");
-      headPatternId = patternId;
+      headPatternId = markPatternUsed(
+        patternContext,
+        patternId,
+        "reservoirHead",
+      );
     }
   }
 
@@ -472,7 +482,7 @@ const addTank = (
       "curve",
     );
     if (curveId !== undefined) {
-      markCurveUsed(curvesContext.curves, curveId, "volume");
+      markCurveUsed(curvesContext, curveId, "volume");
     }
   }
 };
@@ -529,13 +539,14 @@ const addPump = (
         curve: defaultCurvePoints(),
       };
     } else {
-      const curve = curvesContext.curves.get(curveId)!;
+      const effectiveCurveId = markCurveUsed(curvesContext, curveId, "pump");
+      const curve = curvesContext.curves.get(effectiveCurveId)!;
       if (!isValidPumpCurve(curve.points)) {
         issues.addInvalidPumpCurve();
       }
       definitionProps = {
         definitionType: "curveId",
-        curveId: curve.id,
+        curveId: effectiveCurveId,
       };
     }
   }
@@ -562,8 +573,7 @@ const addPump = (
       "pattern",
     );
     if (patternId !== undefined) {
-      markPatternUsed(patternContext.patterns, patternId, "pumpSpeed");
-      speedPatternId = patternId;
+      speedPatternId = markPatternUsed(patternContext, patternId, "pumpSpeed");
     }
   }
 
@@ -585,7 +595,6 @@ const addPump = (
       curvesContext.pumpCurves.set(pump.curveId, []);
     }
     curvesContext.pumpCurves.get(pump.curveId)!.push(pump.id);
-    markCurveUsed(curvesContext.curves, pump.curveId, "pump");
   }
 };
 
@@ -636,7 +645,7 @@ const addValve = (
       "curve",
     );
     if (curveId !== undefined) {
-      markCurveUsed(curvesContext.curves, curveId, "valve");
+      markCurveUsed(curvesContext, curveId, "valve");
     }
   }
 
@@ -646,7 +655,7 @@ const addValve = (
       "curve",
     );
     if (curveId !== undefined) {
-      markCurveUsed(curvesContext.curves, curveId, "headloss");
+      markCurveUsed(curvesContext, curveId, "headloss");
     }
   }
 };
@@ -838,22 +847,56 @@ const addControls = (
   };
 };
 
-const markCurveUsed = (curves: Curves, curveId: CurveId, type: CurveType) => {
-  const curve = curves.get(curveId)!;
-  if (!curve.type || type === "pump") {
+const markCurveUsed = (
+  context: CurvesContext,
+  curveId: CurveId,
+  type: CurveType,
+): CurveId => {
+  const curve = context.curves.get(curveId)!;
+
+  if (!curve.type) {
     curve.type = type;
+    return curveId;
   }
+
+  if (curve.type === type) {
+    return curveId;
+  }
+
+  let typeDuplicates = context.duplicates.get(curveId);
+  if (typeDuplicates?.has(type)) {
+    return typeDuplicates.get(type)!;
+  }
+
+  const newLabel = context.labelManager.generateNextLabel(curve.label);
+  const duplicate = addCurve(
+    context,
+    newLabel,
+    curve.points.map((p) => ({ ...p })),
+  );
+  if (!duplicate) return curveId;
+
+  duplicate.type = type;
+
+  if (!typeDuplicates) {
+    typeDuplicates = new Map();
+    context.duplicates.set(curveId, typeDuplicates);
+  }
+  typeDuplicates.set(type, duplicate.id);
+
+  return duplicate.id;
 };
 
 const addCurves = (
   hydraulicModel: HydraulicModel,
-  curves: Curves,
-  pumpCurves: Map<CurveId, AssetId[]>,
+  curvesContext: CurvesContext,
   energyEfficiencyCurves: ItemData<string>,
   linkIds: ItemData<AssetId>,
   issues: IssuesAccumulator,
   rawCurves: ItemData<CurveData>,
 ) => {
+  const { curves, pumpCurves } = curvesContext;
+
   for (const [pumpLabel, curveLabel] of energyEfficiencyCurves.entries()) {
     const pumpId = linkIds.get(pumpLabel);
     const curveId = hydraulicModel.labelManager.getIdByLabel(
@@ -861,7 +904,7 @@ const addCurves = (
       "curve",
     );
     if (pumpId !== undefined && curveId !== undefined) {
-      markCurveUsed(curves, curveId, "efficiency");
+      markCurveUsed(curvesContext, curveId, "efficiency");
     }
   }
 
@@ -872,14 +915,13 @@ const addCurves = (
     }
   }
 
-  const validCurves: Curves = new Map();
+  const inlinedCurveIds: CurveId[] = [];
 
   for (const curve of curves.values()) {
     if (curve.type === "pump") {
       const curveType = getPumpCurveType(curve.points);
       const curvePumps = pumpCurves.get(curve.id) || [];
       if (curveType === "multiPointCurve" || curvePumps.length !== 1) {
-        validCurves.set(curve.id, curve);
         continue;
       }
 
@@ -888,30 +930,38 @@ const addCurves = (
       pump.setProperty("definitionType", "curve");
       pump.feature.properties.curve = curve.points.map((p) => ({ ...p }));
       delete pump.feature.properties.curveId;
-      hydraulicModel.labelManager.remove(curve.label, "curve", curve.id);
+      inlinedCurveIds.push(curve.id);
       continue;
     }
 
     if (!curve.type) issues.addUnusedCurve();
-    hydraulicModel.labelManager.remove(curve.label, "curve", curve.id);
   }
-  hydraulicModel.curves = validCurves;
+
+  for (const id of inlinedCurveIds) {
+    const curve = curves.get(id)!;
+    hydraulicModel.labelManager.remove(curve.label, "curve", curve.id);
+    curves.delete(id);
+  }
+
+  hydraulicModel.curves = curves;
 };
 
 const addPatterns = (
   hydraulicModel: HydraulicModel,
-  patterns: Patterns,
+  patternContext: PatternsContext,
   sourceStrengthPatterns: Set<string>,
   energyPricePatterns: Set<string>,
   rawPatterns: ItemData<PatternData>,
 ) => {
+  const { patterns } = patternContext;
+
   for (const label of sourceStrengthPatterns) {
     const patternId = hydraulicModel.labelManager.getIdByLabel(
       label,
       "pattern",
     );
     if (patternId !== undefined) {
-      markPatternUsed(patterns, patternId, "qualitySourceStrength");
+      markPatternUsed(patternContext, patternId, "qualitySourceStrength");
     }
   }
 
@@ -921,7 +971,7 @@ const addPatterns = (
       "pattern",
     );
     if (patternId !== undefined) {
-      markPatternUsed(patterns, patternId, "energyPrice");
+      markPatternUsed(patternContext, patternId, "energyPrice");
     }
   }
 
@@ -932,26 +982,41 @@ const addPatterns = (
     }
   }
 
-  const supportedPatterns: Patterns = new Map();
-  for (const pattern of patterns.values()) {
-    if (
-      pattern.type === "demand" ||
-      pattern.type === "reservoirHead" ||
-      pattern.type === "pumpSpeed" ||
-      !pattern.type
-    ) {
-      supportedPatterns.set(pattern.id, pattern);
-    }
-  }
-
-  hydraulicModel.patterns = supportedPatterns;
+  hydraulicModel.patterns = patterns;
 };
 
 const markPatternUsed = (
-  patterns: Patterns,
+  context: PatternsContext,
   patternId: PatternId,
   type: PatternType,
-) => {
-  const pattern = patterns.get(patternId)!;
-  if (!pattern.type) pattern.type = type;
+): PatternId => {
+  const pattern = context.patterns.get(patternId)!;
+
+  if (!pattern.type) {
+    pattern.type = type;
+    return patternId;
+  }
+
+  if (pattern.type === type) {
+    return patternId;
+  }
+
+  let typeDuplicates = context.duplicates.get(patternId);
+  if (typeDuplicates?.has(type)) {
+    return typeDuplicates.get(type)!;
+  }
+
+  const newLabel = context.labelManager.generateNextLabel(pattern.label);
+  const duplicate = addPattern(context, newLabel, [...pattern.multipliers]);
+  if (!duplicate) return patternId;
+
+  duplicate.type = type;
+
+  if (!typeDuplicates) {
+    typeDuplicates = new Map();
+    context.duplicates.set(patternId, typeDuplicates);
+  }
+  typeDuplicates.set(type, duplicate.id);
+
+  return duplicate.id;
 };

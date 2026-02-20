@@ -203,8 +203,11 @@ export const GroupedPatternSidebar = ({
         e.preventDefault();
         e.stopPropagation();
         const pattern = patterns.get(selectedPatternId);
+        const type = pattern?.type;
         const sectionType: SidebarSectionType =
-          (pattern?.type as SectionType) ?? "uncategorized";
+          type === "demand" || type === "reservoirHead" || type === "pumpSpeed"
+            ? type
+            : "uncategorized";
         navigateToItem({ kind: "section", sectionType });
         return;
       }
