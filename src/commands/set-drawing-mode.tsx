@@ -9,6 +9,9 @@ const SELECTION_MODES = [
   Mode.SELECT_RECTANGULAR,
   Mode.SELECT_POLYGONAL,
   Mode.SELECT_FREEHAND,
+  Mode.BOUNDARY_TRACE_SELECT,
+  Mode.UPSTREAM_TRACE_SELECT,
+  Mode.DOWNSTREAM_TRACE_SELECT,
 ] as const;
 
 const isSelectionMode = (mode: Mode): boolean =>
@@ -27,6 +30,9 @@ export const drawingModeShorcuts: { [key in Mode]: string } = {
   [Mode.DRAW_VALVE]: "7",
   [Mode.CONNECT_CUSTOMER_POINTS]: "",
   [Mode.REDRAW_LINK]: "",
+  [Mode.BOUNDARY_TRACE_SELECT]: "",
+  [Mode.UPSTREAM_TRACE_SELECT]: "",
+  [Mode.DOWNSTREAM_TRACE_SELECT]: "",
 };
 
 export const useDrawingMode = () => {
