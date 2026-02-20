@@ -11,6 +11,7 @@ import { KeyboardIcon } from "src/icons";
 import { toggleNetworkReviewShortcut } from "src/commands/toggle-network-review";
 import { toggleSidePanelShortcut } from "src/commands/toggle-side-panel";
 import { selectionModeShortcut } from "src/commands/set-area-selection-mode";
+import { traceSelectModeShortcut } from "src/commands/set-trace-select-mode";
 import { changeActiveTopologyShortcut } from "src/commands/change-selected-assets-active-topology-status";
 import {
   previousTimestepShortcut,
@@ -40,6 +41,7 @@ type ShortcutSection = {
 export function CheatsheetDialog() {
   const translate = useTranslate();
   const isMac = useFeatureFlag("FLAG_MAC");
+  const isTraceSelectEnabled = useFeatureFlag("FLAG_TRACE_SELECT");
 
   const BINDINGS: ShortcutSection[] = [
     {
@@ -125,6 +127,14 @@ export function CheatsheetDialog() {
           binding: selectionModeShortcut,
           description: "areaSelection.tool",
         },
+        ...(isTraceSelectEnabled
+          ? [
+              {
+                binding: traceSelectModeShortcut,
+                description: "traceSelection.tool",
+              },
+            ]
+          : []),
         { binding: "Command+a", description: "selectAll" },
         {
           binding: changeActiveTopologyShortcut,

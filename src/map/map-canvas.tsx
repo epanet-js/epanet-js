@@ -376,7 +376,13 @@ export const MapCanvas = memo(function MapCanvas({
 
     if (cursor === "move") return "cursor-move";
 
-    if (mode.mode !== Mode.NONE) return "cursor-crosshair";
+    if (
+      mode.mode !== Mode.NONE &&
+      mode.mode !== Mode.BOUNDARY_TRACE_SELECT &&
+      mode.mode !== Mode.UPSTREAM_TRACE_SELECT &&
+      mode.mode !== Mode.DOWNSTREAM_TRACE_SELECT
+    )
+      return "cursor-crosshair";
 
     if (cursor === "pointer") return "placemark-cursor-pointer";
 

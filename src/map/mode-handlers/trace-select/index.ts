@@ -13,6 +13,7 @@ import { searchNearbyRenderedFeatures } from "src/map/search";
 import { clickableLayers } from "src/map/layers/layer";
 import { notify } from "src/components/notifications";
 import { Asset, LinkAsset, Pipe, Valve } from "src/hydraulic-model/asset-types";
+import { Topology } from "src/hydraulic-model/topology";
 
 const TRACE_MODE_MAP = {
   [Mode.BOUNDARY_TRACE_SELECT]: "boundary",
@@ -50,6 +51,10 @@ export function useTraceSelectHandlers({
     const clickedAsset = getClickedAsset(e);
     if (!clickedAsset) {
       clearSelection();
+      return;
+    }
+
+    if (isForbiddenTarget(clickedAsset, traceMode, hydraulicModel.topology)) {
       return;
     }
 
@@ -125,7 +130,21 @@ export function useTraceSelectHandlers({
       const visibleFeatures = features.filter(
         (f) => !f.state || !f.state.hidden,
       );
-      setCursor(visibleFeatures.length > 0 ? "pointer" : "");
+
+      if (visibleFeatures.length === 0) {
+        setCursor("");
+        return;
+      }
+
+      const hoveredAsset = getClickedAsset(e);
+      if (
+        hoveredAsset &&
+        isForbiddenTarget(hoveredAsset, traceMode, hydraulicModel.topology)
+      ) {
+        setCursor("not-allowed");
+      } else {
+        setCursor("pointer");
+      }
     },
     16,
     { trailing: false },
@@ -142,6 +161,25 @@ export function useTraceSelectHandlers({
       setMode({ mode: Mode.NONE });
     },
   };
+}
+
+type TraceMode = (typeof TRACE_MODE_MAP)[TraceModeKey];
+
+function isForbiddenTarget(
+  asset: Asset,
+  traceMode: TraceMode,
+  topology: Topology,
+): boolean {
+  switch (traceMode) {
+    case "boundary":
+      return isBoundaryAsset(asset);
+    case "upstream":
+      return asset.type === "reservoir" || asset.type === "tank";
+    case "downstream":
+      return (
+        asset.type === "junction" && topology.getLinks(asset.id).length <= 1
+      );
+  }
 }
 
 function isBoundaryAsset(asset: Asset): boolean {

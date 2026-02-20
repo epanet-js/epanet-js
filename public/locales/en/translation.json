@@ -773,6 +773,12 @@
     "drawingFreehandEndHint": "Click to finish",
     "operationHint": "Hold {{1}} to add or {{2}} to remove from a selection"
   },
+  "traceSelection": {
+    "tool": "Trace select",
+    "boundary": "Boundary trace",
+    "upstream": "Upstream trace",
+    "downstream": "Downstream trace"
+  },
   "activeTopology": "Active Topology",
   "isEnabled": "Enabled",
   "activateAssets": "Enable",
