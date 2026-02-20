@@ -289,9 +289,7 @@ describe("comment-based curve type fallback", () => {
     `;
 
     const { hydraulicModel, issues } = parseInpWithPatterns(inp);
-    expect(hydraulicModel.curves.size).toBe(1);
-    const curve = [...hydraulicModel.curves.values()][0];
-    expect(curve.type).toBeUndefined();
+    expect(hydraulicModel.curves.size).toBe(0);
     expect(issues?.hasUnusedCurves).toBe(1);
   });
 
@@ -338,104 +336,7 @@ describe("comment-based curve type fallback", () => {
     ).toBeDefined();
     expect(
       hydraulicModel.labelManager.getIdByLabel("cu2", "curve"),
-    ).toBeDefined();
-    const cu2Id = hydraulicModel.labelManager.getIdByLabel("cu2", "curve")!;
-    expect(hydraulicModel.curves.get(cu2Id)!.type).toBeUndefined();
+    ).toBeUndefined();
     expect(issues?.hasUnusedCurves).toBe(1);
-  });
-});
-
-describe("curve duplication for multi-type usage", () => {
-  it("duplicates curve used for all usage types", () => {
-    const inp = `
-    [JUNCTIONS]
-    j1    10
-    j2    10
-
-    [TANKS]
-    T1    100    15    5    25    120    0    sharedCurve
-
-    [PUMPS]
-    pu1    j1    j2    HEAD    sharedCurve
-
-    [VALVES]
-    v1    j1    j2    100    GPV    sharedCurve    0
-
-    [ENERGY]
-    PUMP    pu1    EFFICIENCY    sharedCurve
-
-    [CURVES]
-    sharedCurve    50    200
-    sharedCurve    200    0
-
-    ${coords(["j1", "j2", "T1"])}
-    [END]
-    `;
-
-    const { hydraulicModel } = parseInpWithPatterns(inp);
-    const curves = [...hydraulicModel.curves.values()];
-
-    const pumpCurve = curves.find((c) => c.type === "pump");
-    const volumeCurve = curves.find((c) => c.type === "volume");
-    const headlossCurve = curves.find((c) => c.type === "headloss");
-    const efficiencyCurve = curves.find((c) => c.type === "efficiency");
-
-    // four distinct curves, all with the same points
-    expect(curves).toHaveLength(4);
-    const ids = new Set(curves.map((c) => c.id));
-    expect(ids.size).toBe(4);
-    for (const curve of curves) {
-      expect(curve.points).toEqual([
-        { x: 50, y: 200 },
-        { x: 200, y: 0 },
-      ]);
-    }
-
-    // each type is assigned correctly
-    expect(pumpCurve).toBeDefined();
-    expect(volumeCurve).toBeDefined();
-    expect(headlossCurve).toBeDefined();
-    expect(efficiencyCurve).toBeDefined();
-
-    // original keeps label, duplicates get suffixed labels
-    expect(volumeCurve!.label).toBe("sharedCurve");
-    const duplicateLabels = new Set(
-      [pumpCurve, headlossCurve, efficiencyCurve].map((c) => c!.label),
-    );
-    expect(duplicateLabels.size).toBe(3);
-    for (const label of duplicateLabels) {
-      expect(label).toMatch(/^sharedCurve_\d+$/);
-    }
-  });
-
-  it("does not duplicate when same curve is used by multiple assets for the same type", () => {
-    const inp = `
-    [JUNCTIONS]
-    j1    10
-    j2    10
-    j3    10
-
-    [PUMPS]
-    pu1    j1    j2    HEAD    sharedCurve
-    pu2    j2    j3    HEAD    sharedCurve
-
-    [CURVES]
-    sharedCurve    50    200
-    sharedCurve    200    0
-
-    ${coords(["j1", "j2", "j3"])}
-    [END]
-    `;
-
-    const { hydraulicModel } = parseInpWithPatterns(inp);
-    const curves = [...hydraulicModel.curves.values()];
-
-    // single curve, shared between two pumps
-    expect(curves).toHaveLength(1);
-
-    const pumps = [...hydraulicModel.assets.values()].filter(
-      (a) => a.type === "pump",
-    ) as Pump[];
-    expect(pumps[0].curveId).toBe(pumps[1].curveId);
   });
 });
