@@ -65,7 +65,7 @@ type PatternsContext = {
 
 type CurvesContext = {
   curves: Curves;
-  pumpCurves: Map<number, number[]>;
+  pumpCurves: Map<CurveId, AssetId[]>;
   idGenerator: IdGenerator;
   labelManager: LabelManager;
 };
@@ -179,6 +179,7 @@ export const buildModelWithPatterns = (
     inpData.energyEfficiencyCurves,
     linkIds,
     issues,
+    inpData.curves,
   );
 
   addPatterns(
@@ -186,6 +187,7 @@ export const buildModelWithPatterns = (
     patternContext.patterns,
     inpData.sourcePatterns,
     inpData.energyPatterns,
+    inpData.patterns,
   );
 
   addControls(hydraulicModel, inpData.controls, nodeIds, linkIds);
@@ -846,10 +848,11 @@ const markCurveUsed = (curves: Curves, curveId: CurveId, type: CurveType) => {
 const addCurves = (
   hydraulicModel: HydraulicModel,
   curves: Curves,
-  pumpCurves: Map<number, number[]>,
+  pumpCurves: Map<CurveId, AssetId[]>,
   energyEfficiencyCurves: ItemData<string>,
   linkIds: ItemData<AssetId>,
   issues: IssuesAccumulator,
+  rawCurves: ItemData<CurveData>,
 ) => {
   for (const [pumpLabel, curveLabel] of energyEfficiencyCurves.entries()) {
     const pumpId = linkIds.get(pumpLabel);
@@ -862,13 +865,20 @@ const addCurves = (
     }
   }
 
+  for (const curve of curves.values()) {
+    if (!curve.type) {
+      const raw = rawCurves.get(curve.label);
+      if (raw?.fallbackType) curve.type = raw.fallbackType;
+    }
+  }
+
   const validCurves: Curves = new Map();
 
   for (const curve of curves.values()) {
     if (curve.type === "pump") {
       const curveType = getPumpCurveType(curve.points);
       const curvePumps = pumpCurves.get(curve.id) || [];
-      if (curveType === "multiPointCurve" || curvePumps.length > 1) {
+      if (curveType === "multiPointCurve" || curvePumps.length !== 1) {
         validCurves.set(curve.id, curve);
         continue;
       }
@@ -893,6 +903,7 @@ const addPatterns = (
   patterns: Patterns,
   sourceStrengthPatterns: Set<string>,
   energyPricePatterns: Set<string>,
+  rawPatterns: ItemData<PatternData>,
 ) => {
   for (const label of sourceStrengthPatterns) {
     const patternId = hydraulicModel.labelManager.getIdByLabel(
@@ -911,6 +922,13 @@ const addPatterns = (
     );
     if (patternId !== undefined) {
       markPatternUsed(patterns, patternId, "energyPrice");
+    }
+  }
+
+  for (const pattern of patterns.values()) {
+    if (!pattern.type) {
+      const raw = rawPatterns.get(pattern.label);
+      if (raw?.fallbackType) pattern.type = raw.fallbackType;
     }
   }
 
@@ -934,8 +952,6 @@ const markPatternUsed = (
   patternId: PatternId,
   type: PatternType,
 ) => {
-  const pattern = patterns.get(patternId);
-  if (pattern && !pattern.type) {
-    pattern.type = type;
-  }
+  const pattern = patterns.get(patternId)!;
+  if (!pattern.type) pattern.type = type;
 };

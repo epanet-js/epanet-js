@@ -190,3 +190,144 @@ describe("parse pattern types", () => {
     expect(hydraulicModel.patterns.size).toBe(0);
   });
 });
+
+describe("comment-based pattern type fallback", () => {
+  it("assigns demand type from comment for unused pattern", () => {
+    const inp = `
+    [JUNCTIONS]
+    J1\t100
+
+    [PATTERNS]
+    ;DEMAND:
+    pat1\t1.0\t1.2\t0.8
+
+    [COORDINATES]
+    J1\t0\t0
+
+    [END]
+    `;
+
+    const { hydraulicModel } = parseInpWithPatterns(inp);
+    const pattern = [...hydraulicModel.patterns.values()].find(
+      (p) => p.label === "pat1",
+    );
+    expect(pattern).toBeDefined();
+    expect(pattern!.type).toBe("demand");
+  });
+
+  it("assigns reservoirHead type from comment", () => {
+    const inp = `
+    [JUNCTIONS]
+    J1\t100
+
+    [PATTERNS]
+    ;RESERVOIR:
+    pat1\t1.4\t1.2\t1.9
+
+    [COORDINATES]
+    J1\t0\t0
+
+    [END]
+    `;
+
+    const { hydraulicModel } = parseInpWithPatterns(inp);
+    const pattern = [...hydraulicModel.patterns.values()].find(
+      (p) => p.label === "pat1",
+    );
+    expect(pattern).toBeDefined();
+    expect(pattern!.type).toBe("reservoirHead");
+  });
+
+  it("assigns pumpSpeed type from comment", () => {
+    const inp = `
+    [JUNCTIONS]
+    J1\t100
+
+    [PATTERNS]
+    ;SPEED:
+    pat1\t1.5\t1.2
+
+    [COORDINATES]
+    J1\t0\t0
+
+    [END]
+    `;
+
+    const { hydraulicModel } = parseInpWithPatterns(inp);
+    const pattern = [...hydraulicModel.patterns.values()].find(
+      (p) => p.label === "pat1",
+    );
+    expect(pattern).toBeDefined();
+    expect(pattern!.type).toBe("pumpSpeed");
+  });
+
+  it("does not count pattern as unused when type from comment", () => {
+    const inp = `
+    [JUNCTIONS]
+    J1\t100
+
+    [PATTERNS]
+    ;DEMAND:
+    pat1\t1.0\t1.2\t0.8
+
+    [COORDINATES]
+    J1\t0\t0
+
+    [END]
+    `;
+
+    const { hydraulicModel } = parseInpWithPatterns(inp);
+    const pattern = [...hydraulicModel.patterns.values()].find(
+      (p) => p.label === "pat1",
+    );
+    expect(pattern).toBeDefined();
+    expect(pattern!.type).toBe("demand");
+  });
+
+  it("usage-based type takes priority over comment", () => {
+    const inp = `
+    [JUNCTIONS]
+    J1\t100\t50\tpat1
+
+    [PATTERNS]
+    ;SPEED:
+    pat1\t1.0\t1.2\t0.8
+
+    [COORDINATES]
+    J1\t0\t0
+
+    [END]
+    `;
+
+    const { hydraulicModel } = parseInpWithPatterns(inp);
+    const pattern = [...hydraulicModel.patterns.values()].find(
+      (p) => p.label === "pat1",
+    );
+    expect(pattern!.type).toBe("demand");
+  });
+
+  it("preserves comment-based type when inactiveAssets is enabled", () => {
+    const inp = `
+    [JUNCTIONS]
+    J1\t100
+
+    [PATTERNS]
+    ;DEMAND:
+    pat1\t1.0\t1.2\t0.8
+
+    [COORDINATES]
+    J1\t0\t0
+
+    [END]
+    `;
+
+    const { hydraulicModel } = parseInpWithPatterns(inp, {
+      inactiveAssets: true,
+    });
+    const pattern = [...hydraulicModel.patterns.values()].find(
+      (p) => p.label === "pat1",
+    );
+    expect(pattern).toBeDefined();
+    expect(pattern!.type).toBe("demand");
+  });
+});

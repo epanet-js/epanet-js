@@ -7,6 +7,8 @@ import {
 import { InpData, TankData } from "./inp-data";
 import { IssuesAccumulator } from "./issues";
 import { HeadlossFormula } from "src/hydraulic-model";
+import { CurveType } from "src/hydraulic-model/curves";
+import { PatternType } from "src/hydraulic-model/patterns";
 import { ValveKind } from "src/hydraulic-model/asset-types/valve";
 import { PipeStatus } from "src/hydraulic-model/asset-types/pipe";
 import { ParseInpOptions } from "./parse-inp";
@@ -18,6 +20,7 @@ export type RowParser = (params: {
   inpData: InpData;
   issues: IssuesAccumulator;
   options?: ParseInpOptions;
+  previousComment?: string;
 }) => void;
 
 export const commentIdentifier = ";";
@@ -284,13 +287,20 @@ export const parsePump: RowParser = ({
   });
 };
 
-export const parseCurve: RowParser = ({ trimmedRow, inpData }) => {
+export const parseCurve: RowParser = ({
+  trimmedRow,
+  inpData,
+  previousComment,
+}) => {
   const [curveId, x, y] = readValues(trimmedRow);
   const normalizedLabel = curveId.toUpperCase();
   const existing = inpData.curves.get(normalizedLabel);
   const points = existing?.points || [];
   points.push({ x: parseFloat(x), y: parseFloat(y) });
-  inpData.curves.set(normalizedLabel, { label: curveId, points });
+  const fallbackType = existing
+    ? existing.fallbackType
+    : detectCurveTypeFromComment(previousComment);
+  inpData.curves.set(normalizedLabel, { label: curveId, points, fallbackType });
 };
 
 export const parseStatus: RowParser = ({ trimmedRow, inpData }) => {
@@ -399,13 +409,24 @@ export const parsePosition: RowParser = ({ trimmedRow, inpData }) => {
   inpData.coordinates.set(nodeId, [parseFloat(lng), parseFloat(lat)]);
 };
 
-export const parsePattern: RowParser = ({ trimmedRow, inpData }) => {
+export const parsePattern: RowParser = ({
+  trimmedRow,
+  inpData,
+  previousComment,
+}) => {
   const [patternId, ...values] = readValues(trimmedRow);
   const normalizedLabel = patternId.toUpperCase();
   const existing = inpData.patterns.get(normalizedLabel);
   const multipliers = existing?.multipliers || [];
   multipliers.push(...values.map((v) => parseFloat(v)));
-  inpData.patterns.set(normalizedLabel, { label: patternId, multipliers });
+  const fallbackType = existing
+    ? existing.fallbackType
+    : detectPatternTypeFromComment(previousComment);
+  inpData.patterns.set(normalizedLabel, {
+    label: patternId,
+    multipliers,
+    fallbackType,
+  });
 };
 
 export const parseVertex: RowParser = ({ trimmedRow, inpData }) => {
@@ -660,4 +681,44 @@ export const parseRule: RowParser = ({ trimmedRow, inpData }) => {
   } else {
     inpData.controls.ruleBased = trimmedRow;
   }
+};
+
+const CURVE_KEYWORDS: Record<string, CurveType> = {
+  PUMP: "pump",
+  EFFICIENCY: "efficiency",
+  VOLUME: "volume",
+  HEADLOSS: "headloss",
+  VALVE: "valve",
+};
+
+const PATTERN_KEYWORDS: Record<string, PatternType> = {
+  DEMAND: "demand",
+  RESERVOIR: "reservoirHead",
+  SPEED: "pumpSpeed",
+};
+
+const countKeywordMatches = <T>(
+  comment: string,
+  keywords: Record<string, T>,
+): T | undefined => {
+  const words = comment
+    .toUpperCase()
+    .split(/[^A-Z]+/)
+    .filter(Boolean);
+  const matches = words.filter((w) => w in keywords);
+  return matches.length === 1 ? keywords[matches[0]] : undefined;
+};
+
+const detectCurveTypeFromComment = (
+  comment: string | undefined,
+): CurveType | undefined => {
+  if (!comment) return undefined;
+  return countKeywordMatches(comment, CURVE_KEYWORDS);
+};
+
+const detectPatternTypeFromComment = (
+  comment: string | undefined,
+): PatternType | undefined => {
+  if (!comment) return undefined;
+  return countKeywordMatches(comment, PATTERN_KEYWORDS);
 };

@@ -4,6 +4,8 @@ import {
   PipeStatus,
 } from "src/hydraulic-model/asset-types/pipe";
 import { ValveKind } from "src/hydraulic-model/asset-types/valve";
+import { CurveType } from "src/hydraulic-model/curves";
+import { PatternType } from "src/hydraulic-model/patterns";
 import { EpanetUnitSystem } from "src/simulation/build-inp";
 
 export type PipeData = {
@@ -74,11 +76,13 @@ export type ValveData = {
 export type CurveData = {
   label: string;
   points: { x: number; y: number }[];
+  fallbackType?: CurveType;
 };
 
 export type PatternData = {
   label: string;
   multipliers: number[];
+  fallbackType?: PatternType;
 };
 
 export type DemandData = {

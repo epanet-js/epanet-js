@@ -88,6 +88,7 @@ export const readInpData = (
 ): { inpData: InpData; stats: InpStats } => {
   const rows = inp.split("\n");
   let section: string | null = null;
+  let lastComment: string | null = null;
   const inpData = nullInpData();
   const sectionParsers = buildSectionParsers();
   const counts = new Map<string, number>();
@@ -113,7 +114,9 @@ export const readInpData = (
       issues,
       options,
       isCommented: startsWithComment,
+      previousComment: lastComment ?? undefined,
     });
+    lastComment = null;
   }
 
   for (const row of rows) {
@@ -144,11 +147,13 @@ export const readInpData = (
       }
 
       if (options?.inactiveAssets === true) parseRow(trimmedRow);
+      lastComment = trimmedRow;
       continue;
     }
 
     if (isEnd(trimmedRow)) {
       section = null;
+      lastComment = null;
       continue;
     }
 
@@ -159,6 +164,7 @@ export const readInpData = (
     );
     if (newSectionName) {
       section = newSectionName;
+      lastComment = null;
       continue;
     }
     parseRow(trimmedRow);

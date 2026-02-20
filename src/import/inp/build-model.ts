@@ -873,7 +873,7 @@ const addCurves = (
     if (curve.type === "pump") {
       const curveType = getPumpCurveType(curve.points);
       const curvePumps = pumpCurves.get(curve.id) || [];
-      if (curveType === "multiPointCurve" || curvePumps.length > 1) {
+      if (curveType === "multiPointCurve" || curvePumps.length !== 1) {
         validCurves.set(curve.id, curve);
         continue;
       }

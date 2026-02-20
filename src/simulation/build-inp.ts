@@ -697,6 +697,7 @@ const appendPump = (
             ...speedPatternParts,
           ].join("\t"),
       );
+      sections.curves.push(";PUMP:");
       pump.curve!.forEach((point) =>
         sections.curves.push(
           [localCurveId, String(point.x), String(point.y)].join("\t"),
@@ -878,6 +879,14 @@ const appendControls = (
   }
 };
 
+const CURVE_TYPE_TO_KEYWORD: Record<string, string> = {
+  pump: "PUMP",
+  efficiency: "EFFICIENCY",
+  volume: "VOLUME",
+  headloss: "HEADLOSS",
+  valve: "VALVE",
+};
+
 const appendCurves = (
   sections: InpSections,
   curves: HydraulicModel["curves"],
@@ -888,12 +897,20 @@ const appendCurves = (
   for (const curve of curves.values()) {
     if (usedCurvesOnly && !usedCurveIds.has(curve.id)) continue;
     const curveId = usedCurveIds.get(curve.id) ?? idMap.curveId(curve.label);
+    const keyword = curve.type ? CURVE_TYPE_TO_KEYWORD[curve.type] : undefined;
+    if (keyword) sections.curves.push(`;${keyword}:`);
     for (const point of curve.points) {
       sections.curves.push(
         [curveId, String(point.x), String(point.y)].join("\t"),
       );
     }
   }
+};
+
+const PATTERN_TYPE_TO_KEYWORD: Record<string, string> = {
+  demand: "DEMAND",
+  reservoirHead: "RESERVOIR",
+  pumpSpeed: "SPEED",
 };
 
 const appendPatterns = (
@@ -909,6 +926,11 @@ const appendPatterns = (
   for (const pattern of patterns.values()) {
     const mappedId = idMap.patternId(pattern.id);
     if (usedPatternsOnly && !usedPatternIds.has(pattern.id)) continue;
+
+    const keyword = pattern.type
+      ? PATTERN_TYPE_TO_KEYWORD[pattern.type]
+      : undefined;
+    if (keyword) sections.patterns.push(`;${keyword}:`);
 
     const FACTORS_PER_LINE = 8;
     for (let i = 0; i < pattern.multipliers.length; i += FACTORS_PER_LINE) {

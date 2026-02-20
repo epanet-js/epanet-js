@@ -1,5 +1,6 @@
 import { Pump } from "src/hydraulic-model";
 import { parseInp } from "./parse-inp";
+import { parseInpWithPatterns } from "./parse-inp-with-patterns";
 import { getByLabel } from "src/__helpers__/asset-queries";
 
 const coords = (ids: string[]) =>
@@ -230,5 +231,112 @@ describe("curve type inference", () => {
     ).toBeDefined();
     expect(issues?.hasInvalidPumpCurves).toBe(1);
     expect(issues?.hasUnusedCurves).toBeUndefined();
+  });
+});
+
+describe("comment-based curve type fallback", () => {
+  it("assigns pump type from comment for unused curve", () => {
+    const inp = `
+    [JUNCTIONS]
+    j1\t10
+    j2\t10
+    [CURVES]
+    ;PUMP:
+    cu1\t0\t200
+    cu1\t100\t150
+    cu1\t200\t0
+    ${coords(["j1", "j2"])}
+    [END]
+    `;
+
+    const { hydraulicModel } = parseInpWithPatterns(inp);
+    const curveId = hydraulicModel.labelManager.getIdByLabel("cu1", "curve");
+    expect(curveId).toBeDefined();
+    const curve = hydraulicModel.curves.get(curveId!);
+    expect(curve).toBeDefined();
+    expect(curve!.type).toBe("pump");
+  });
+
+  it("does not count curve as unused when type from comment", () => {
+    const inp = `
+    [JUNCTIONS]
+    j1\t10
+    j2\t10
+    [CURVES]
+    ;PUMP:
+    cu1\t0\t200
+    cu1\t100\t150
+    cu1\t200\t0
+    ${coords(["j1", "j2"])}
+    [END]
+    `;
+
+    const { issues } = parseInpWithPatterns(inp);
+    expect(issues?.hasUnusedCurves).toBeUndefined();
+  });
+
+  it("ignores comment with multiple keywords", () => {
+    const inp = `
+    [JUNCTIONS]
+    j1\t10
+    j2\t10
+    [CURVES]
+    ;PUMP: Valve curve
+    cu1\t0\t200
+    cu1\t100\t0
+    ${coords(["j1", "j2"])}
+    [END]
+    `;
+
+    const { hydraulicModel, issues } = parseInpWithPatterns(inp);
+    expect(hydraulicModel.curves.size).toBe(0);
+    expect(issues?.hasUnusedCurves).toBe(1);
+  });
+
+  it("usage-based type takes priority over comment", () => {
+    const inp = `
+    [JUNCTIONS]
+    j1\t10
+    j2\t10
+    [PUMPS]
+    pu1\tj1\tj2\tHEAD cu1
+    [CURVES]
+    ;EFFICIENCY:
+    cu1\t100\t200
+    cu1\t200\t0
+    ${coords(["j1", "j2"])}
+    [END]
+    `;
+
+    const { hydraulicModel } = parseInpWithPatterns(inp);
+    const curveId = hydraulicModel.labelManager.getIdByLabel("cu1", "curve");
+    expect(curveId).toBeDefined();
+    const curve = hydraulicModel.curves.get(curveId!);
+    expect(curve!.type).toBe("pump");
+  });
+
+  it("only applies comment to the curve that follows it", () => {
+    const inp = `
+    [JUNCTIONS]
+    j1\t10
+    j2\t10
+    [CURVES]
+    ;PUMP:
+    cu1\t0\t200
+    cu1\t100\t150
+    cu1\t200\t0
+    cu2\t50\t100
+    ${coords(["j1", "j2"])}
+    [END]
+    `;
+
+    const { hydraulicModel, issues } = parseInpWithPatterns(inp);
+    expect(
+      hydraulicModel.labelManager.getIdByLabel("cu1", "curve"),
+    ).toBeDefined();
+    expect(
+      hydraulicModel.labelManager.getIdByLabel("cu2", "curve"),
+    ).toBeUndefined();
+    expect(issues?.hasUnusedCurves).toBe(1);
   });
 });
