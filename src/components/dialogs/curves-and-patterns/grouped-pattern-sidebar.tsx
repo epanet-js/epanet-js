@@ -36,6 +36,7 @@ const SECTION_TRANSLATION_KEYS: Record<SectionType, string> = {
 };
 
 type GroupedPatternSidebarProps = {
+  width: number;
   patterns: Patterns;
   selectedPatternId: PatternId | null;
   minPatternSteps: number;
@@ -55,6 +56,7 @@ type GroupedPatternSidebarProps = {
 };
 
 export const GroupedPatternSidebar = ({
+  width,
   patterns,
   selectedPatternId,
   minPatternSteps,
@@ -332,7 +334,7 @@ export const GroupedPatternSidebar = ({
   );
 
   return (
-    <div className="w-56 flex-shrink-0 flex flex-col gap-2">
+    <div className="flex-shrink-0 flex flex-col gap-2" style={{ width }}>
       <div
         ref={listRef}
         className="flex-1 overflow-y-auto outline-none placemark-scrollbar scroll-shadows border border-gray-200 dark:border-gray-700 rounded"

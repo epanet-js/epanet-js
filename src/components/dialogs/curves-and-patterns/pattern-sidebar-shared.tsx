@@ -73,7 +73,7 @@ export const PatternSidebarItem = ({
     <>
       <li
         data-pattern-id={pattern.id}
-        className={`group flex items-center justify-between text-sm cursor-pointer h-8 ${
+        className={`group flex items-center justify-between text-sm cursor-pointer h-8 min-w-0 ${
           isSelected
             ? "bg-purple-300/40"
             : isMenuOpen
@@ -85,9 +85,9 @@ export const PatternSidebarItem = ({
           variant="quiet/list"
           size="sm"
           onClick={onSelect}
-          className="flex-1 justify-start truncate hover:bg-transparent dark:hover:bg-transparent focus-visible:!ring-0 focus-visible:!ring-offset-0"
+          className="flex-1 min-w-0 justify-start hover:bg-transparent dark:hover:bg-transparent focus-visible:!ring-0 focus-visible:!ring-offset-0"
         >
-          {pattern.label}
+          <span className="truncate">{pattern.label}</span>
         </Button>
         {!readOnly && (
           <PatternActionsMenu
@@ -184,7 +184,7 @@ export const UncategorizedPatternSidebarItem = ({
   return (
     <li
       data-pattern-id={pattern.id}
-      className={`group flex items-center justify-between text-sm cursor-pointer h-8 ${
+      className={`group flex items-center justify-between text-sm cursor-pointer h-8 min-w-0 ${
         isSelected
           ? "bg-purple-300/40"
           : isMenuOpen
@@ -196,9 +196,9 @@ export const UncategorizedPatternSidebarItem = ({
         variant="quiet/list"
         size="sm"
         onClick={onSelect}
-        className="flex-1 justify-start truncate hover:bg-transparent dark:hover:bg-transparent focus-visible:!ring-0 focus-visible:!ring-offset-0"
+        className="flex-1 min-w-0 justify-start hover:bg-transparent dark:hover:bg-transparent focus-visible:!ring-0 focus-visible:!ring-offset-0"
       >
-        {pattern.label}
+        <span className="truncate">{pattern.label}</span>
       </Button>
       {!readOnly && (
         <CategorizeActionsMenu

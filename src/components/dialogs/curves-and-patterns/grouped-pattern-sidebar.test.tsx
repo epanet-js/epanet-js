@@ -23,6 +23,7 @@ const createPatterns = (
 };
 
 const defaultProps = {
+  width: 224,
   selectedPatternId: null,
   minPatternSteps: 1,
   onSelectPattern: vi.fn(),

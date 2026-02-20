@@ -25,6 +25,7 @@ import { Pump } from "src/hydraulic-model/asset-types/pump";
 import { notify } from "src/components/notifications";
 import { useUserTracking } from "src/infra/user-tracking";
 import { changePatterns } from "src/hydraulic-model/model-operations";
+import { PatternSidebarResizer } from "./pattern-sidebar-resizer";
 
 type PatternUpdate = Partial<Pick<Pattern, "label" | "multipliers" | "type">>;
 
@@ -45,6 +46,7 @@ export const CurvesAndPatternsDialog = ({
   const [editedPatterns, setEditedPatterns] = useState<Patterns>(
     () => new Map(hydraulicModel.patterns),
   );
+  const [sidebarWidth, setSidebarWidth] = useState(224);
   const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
   const nextPatternIdRef = useRef<PatternId>(
     getNextPatternId(editedPatterns, editedPatterns.size),
@@ -181,18 +183,25 @@ export const CurvesAndPatternsDialog = ({
   return (
     <DialogContainer size="lg" height="lg" onClose={handleCancel}>
       <DialogHeader title={translate("curvesAndPatterns")} />
-      <div className="flex-1 flex min-h-0 gap-4">
+      <div className="flex-1 flex min-h-0">
         {isMorePatternsOn ? (
-          <GroupedPatternSidebar
-            patterns={editedPatterns}
-            selectedPatternId={selectedPatternId}
-            minPatternSteps={minPatternSteps}
-            onSelectPattern={setSelectedPatternId}
-            onAddPattern={handleAddPattern}
-            onChangePattern={handlePatternChange}
-            onDeletePattern={handleDeletePattern}
-            readOnly={isSnapshotLocked}
-          />
+          <div className="flex-shrink-0 flex">
+            <GroupedPatternSidebar
+              width={sidebarWidth}
+              patterns={editedPatterns}
+              selectedPatternId={selectedPatternId}
+              minPatternSteps={minPatternSteps}
+              onSelectPattern={setSelectedPatternId}
+              onAddPattern={handleAddPattern}
+              onChangePattern={handlePatternChange}
+              onDeletePattern={handleDeletePattern}
+              readOnly={isSnapshotLocked}
+            />
+            <PatternSidebarResizer
+              width={sidebarWidth}
+              onWidthChange={setSidebarWidth}
+            />
+          </div>
         ) : (
           <PatternSidebar
             patterns={editedPatterns}
@@ -205,7 +214,7 @@ export const CurvesAndPatternsDialog = ({
             readOnly={isSnapshotLocked}
           />
         )}
-        <div className="flex-1 flex flex-col min-h-0 w-full">
+        <div className="flex-1 flex flex-col min-h-0 w-full ml-1">
           {selectedPatternId ? (
             <PatternDetail
               pattern={getPatternMultipliers(selectedPatternId)}
