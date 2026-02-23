@@ -14,7 +14,15 @@ function getEmptyStyle() {
     sprite: "mapbox://sprites/mapbox/streets-v8",
     glyphs: "mapbox://fonts/mapbox/{fontstack}/{range}.pbf",
     sources: {},
-    layers: [],
+    layers: [
+      {
+        id: "background",
+        type: "background",
+        paint: {
+          "background-color": "#F5F5F5",
+        },
+      },
+    ],
   };
   return style;
 }
