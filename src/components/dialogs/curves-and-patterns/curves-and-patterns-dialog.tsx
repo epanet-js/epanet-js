@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useRef } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { useAtomValue } from "jotai";
 import { DialogContainer, DialogHeader, useDialogState } from "../../dialog";
 import { useTranslate } from "src/hooks/use-translate";
@@ -64,6 +64,28 @@ export const CurvesAndPatternsDialog = ({
     totalDurationSeconds > 0
       ? Math.ceil(totalDurationSeconds / patternTimestepSeconds)
       : 1;
+
+  useEffect(
+    function trackUncategorizedPatterns() {
+      if (!isMorePatternsOn) return;
+      const uncategorizedCount = [...hydraulicModel.patterns.values()].filter(
+        (p) => {
+          const type = p.type;
+          return (
+            type !== "demand" &&
+            type !== "reservoirHead" &&
+            type !== "pumpSpeed"
+          );
+        },
+      ).length;
+      if (uncategorizedCount === 0) return;
+      userTracking.capture({
+        name: "patterns.uncategorized",
+        count: uncategorizedCount,
+      });
+    },
+    [hydraulicModel.patterns, isMorePatternsOn, userTracking],
+  );
 
   const getPatternMultipliers = useCallback(
     (patternId: PatternId): PatternMultipliers =>

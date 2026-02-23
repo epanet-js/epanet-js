@@ -749,6 +749,11 @@ type PatternsDiscarded = {
   name: "patterns.discarded";
 };
 
+type PatternsUncategorized = {
+  name: "patterns.uncategorized";
+  count: number;
+};
+
 type PumpLibraryOpened = {
   name: "pumpLibrary.opened";
   source: "toolbar" | "pump";
@@ -979,6 +984,7 @@ export type UserEvent =
   | PatternLabelDuplicate
   | PatternsUpdated
   | PatternsDiscarded
+  | PatternsUncategorized
   | PumpLibraryOpened
   | PumpCurvesUpdated
   | PumpCurvesDiscarded
