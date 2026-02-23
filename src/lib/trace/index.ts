@@ -1,9 +1,15 @@
-export { type TraceMode, type EncodedTraceResult } from "./types";
-export { type TraceBuffers } from "./trace-buffers";
-export { encodeTraceBuffers, type EncodedTrace } from "./encode-trace-buffers";
-export { boundaryTrace, type BoundaryTraceStart } from "./boundary-trace";
-export { upstreamTrace, type UpstreamTraceStart } from "./upstream-trace";
-export { downstreamTrace, type DownstreamTraceStart } from "./downstream-trace";
-export { decodeTraceResult } from "./decode-trace-result";
+export {
+  type TraceMode,
+  type TraceStatusQueries,
+  type TraceStart,
+  type TraceResult,
+} from "./types";
+export { type TraceStatusBuffers } from "./trace-buffers";
+export { TraceStatusView } from "./trace-buffers";
+export { TraceStatus } from "./trace-status";
+export { encodeTraceData, type TraceRunData } from "./encode-trace-buffers";
+export { boundaryTrace } from "./boundary-trace";
+export { upstreamTrace } from "./upstream-trace";
+export { downstreamTrace } from "./downstream-trace";
 export { runTrace, type TraceInput } from "./run-trace";
-export { type TraceStartIndices, type TraceWorkerAPI } from "./worker-api";
+export { type TraceWorkerAPI } from "./worker-api";

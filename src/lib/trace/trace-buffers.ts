@@ -1,58 +1,37 @@
 import {
   BinaryData,
-  BufferWithIndex,
   DataSize,
   FixedSizeBufferView,
-  VariableSizeBufferView,
   decodeType,
 } from "src/lib/buffers";
+import { AssetId } from "src/hydraulic-model/asset-types";
+import { AssetIndexView } from "src/hydraulic-model/asset-index";
 import {
-  decodeLinkConnections,
-  decodeIdsList,
-  EncodedSize,
-} from "src/lib/network-review/hydraulic-model-buffers";
+  TraceStatusQueries,
+  FlowDirection,
+  FlowDirectionValue,
+  LinkTraversalValue,
+  NodeTraversal,
+  NodeTraversalValue,
+} from "./types";
 
-export interface TraceBuffers {
-  topology: {
-    nodeConnections: BufferWithIndex;
-    linkConnections: BinaryData;
-  };
+export interface TraceStatusBuffers {
   linkTraversal: BinaryData;
   nodeTraversal: BinaryData;
-  flowDirections: BinaryData | null;
+  flowDirections: BinaryData;
 }
 
-export class TraceBuffersView {
-  private _nodeConnectionsView?: VariableSizeBufferView<number[]>;
-  private _linkConnectionsView?: FixedSizeBufferView<[number, number]>;
+export class TraceStatusView implements TraceStatusQueries {
   private _linkTraversalView?: FixedSizeBufferView<number>;
   private _nodeTraversalView?: FixedSizeBufferView<number>;
-  private _flowDirectionsView?: Uint8Array | null;
+  private _flowDirectionsView?: Uint8Array;
 
-  constructor(private buffers: TraceBuffers) {}
+  constructor(
+    private buffers: TraceStatusBuffers,
+    private assetIndex: AssetIndexView,
+  ) {}
 
-  get nodeConnections(): VariableSizeBufferView<number[]> {
-    if (!this._nodeConnectionsView) {
-      this._nodeConnectionsView = new VariableSizeBufferView(
-        this.buffers.topology.nodeConnections,
-        decodeIdsList,
-      );
-    }
-    return this._nodeConnectionsView;
-  }
-
-  get linkConnections(): FixedSizeBufferView<[number, number]> {
-    if (!this._linkConnectionsView) {
-      this._linkConnectionsView = new FixedSizeBufferView(
-        this.buffers.topology.linkConnections,
-        EncodedSize.id * 2,
-        decodeLinkConnections,
-      );
-    }
-    return this._linkConnectionsView;
-  }
-
-  get linkTraversal(): FixedSizeBufferView<number> {
+  private get linkTraversalView(): FixedSizeBufferView<number> {
     if (!this._linkTraversalView) {
       this._linkTraversalView = new FixedSizeBufferView(
         this.buffers.linkTraversal,
@@ -63,7 +42,7 @@ export class TraceBuffersView {
     return this._linkTraversalView;
   }
 
-  get nodeTraversal(): FixedSizeBufferView<number> {
+  private get nodeTraversalView(): FixedSizeBufferView<number> {
     if (!this._nodeTraversalView) {
       this._nodeTraversalView = new FixedSizeBufferView(
         this.buffers.nodeTraversal,
@@ -74,12 +53,28 @@ export class TraceBuffersView {
     return this._nodeTraversalView;
   }
 
-  get flowDirections(): Uint8Array | null {
-    if (this._flowDirectionsView === undefined) {
-      this._flowDirectionsView = this.buffers.flowDirections
-        ? new Uint8Array(this.buffers.flowDirections)
-        : null;
+  private get flowDirectionsArray(): Uint8Array {
+    if (!this._flowDirectionsView) {
+      this._flowDirectionsView = new Uint8Array(this.buffers.flowDirections);
     }
     return this._flowDirectionsView;
+  }
+
+  getNodeTraversal(nodeId: AssetId): NodeTraversalValue {
+    const idx = this.assetIndex.getNodeIndex(nodeId);
+    if (idx === null) return NodeTraversal.FREE;
+    return this.nodeTraversalView.getById(idx) as NodeTraversalValue;
+  }
+
+  getLinkTraversal(linkId: AssetId): LinkTraversalValue {
+    const idx = this.assetIndex.getLinkIndex(linkId);
+    if (idx === null) return 0 as LinkTraversalValue;
+    return this.linkTraversalView.getById(idx) as LinkTraversalValue;
+  }
+
+  getFlowDirection(linkId: AssetId): FlowDirectionValue {
+    const idx = this.assetIndex.getLinkIndex(linkId);
+    if (idx === null) return FlowDirection.NONE;
+    return this.flowDirectionsArray[idx] as FlowDirectionValue;
   }
 }

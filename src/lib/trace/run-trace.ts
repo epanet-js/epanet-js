@@ -4,12 +4,13 @@ import { AssetId } from "src/hydraulic-model/asset-types";
 import { HydraulicModel } from "src/hydraulic-model/hydraulic-model";
 import { ResultsReader } from "src/simulation/results-reader";
 import { canUseWorker } from "src/infra/worker";
-import { encodeTraceBuffers } from "./encode-trace-buffers";
-import { decodeTraceResult } from "./decode-trace-result";
-import { TraceBuffers } from "./trace-buffers";
-import { TraceMode, EncodedTraceResult } from "./types";
-import { workerAPI as localWorkerAPI } from "./worker-api";
-import type { TraceWorkerAPI, TraceStartIndices } from "./worker-api";
+import { encodeTraceData } from "./encode-trace-buffers";
+import { TraceStatus } from "./trace-status";
+import { TraceMode, TraceStart, TraceResult } from "./types";
+import { boundaryTrace } from "./boundary-trace";
+import { upstreamTrace } from "./upstream-trace";
+import { downstreamTrace } from "./downstream-trace";
+import type { TraceWorkerAPI } from "./worker-api";
 
 export interface TraceInput {
   mode: TraceMode;
@@ -27,51 +28,52 @@ export const runTrace = async (
     throw new DOMException("Operation cancelled", "AbortError");
   }
 
-  const { buffers, nodeIdsLookup, linkIdsLookup } = encodeTraceBuffers(
-    hydraulicModel,
-    input.mode === "boundary" ? null : resultsReader,
-    "array",
-  );
+  const effectiveResultsReader =
+    input.mode === "boundary" ? null : resultsReader;
 
-  // Map asset IDs to buffer indices
-  const nodeIdToIdx = new Map<number, number>();
-  nodeIdsLookup.forEach((id, idx) => nodeIdToIdx.set(id, idx));
-  const linkIdToIdx = new Map<number, number>();
-  linkIdsLookup.forEach((id, idx) => linkIdToIdx.set(id, idx));
+  const result = canUseWorker()
+    ? await runWithWorker(hydraulicModel, effectiveResultsReader, input, signal)
+    : runSync(hydraulicModel, effectiveResultsReader, input);
 
-  const startIndices: TraceStartIndices = {
-    nodeIndices: input.startNodeIds
-      .map((id) => nodeIdToIdx.get(id))
-      .filter((idx): idx is number => idx !== undefined),
-    linkIndices: input.startLinkIds
-      .map((id) => linkIdToIdx.get(id))
-      .filter((idx): idx is number => idx !== undefined),
-  };
-
-  const encodedResult = canUseWorker()
-    ? await runWithWorker(input.mode, startIndices, buffers, signal)
-    : runSync(input.mode, startIndices, buffers);
-
-  return decodeTraceResult(encodedResult, nodeIdsLookup, linkIdsLookup);
+  return [...result.nodeIds, ...result.linkIds];
 };
 
 function runSync(
-  mode: TraceMode,
-  start: TraceStartIndices,
-  buffers: TraceBuffers,
-): EncodedTraceResult {
-  return localWorkerAPI.runTrace(mode, start, buffers);
+  model: HydraulicModel,
+  resultsReader: ResultsReader | null,
+  input: TraceInput,
+): TraceResult {
+  const status = new TraceStatus(model.assets, resultsReader);
+  const start: TraceStart = {
+    nodeIds: input.startNodeIds,
+    linkIds: input.startLinkIds,
+  };
+
+  switch (input.mode) {
+    case "boundary":
+      return boundaryTrace(start, model.topology, status);
+    case "upstream":
+      return upstreamTrace(start, model.topology, status);
+    case "downstream":
+      return downstreamTrace(start, model.topology, status);
+  }
 }
 
 const runWithWorker = async (
-  mode: TraceMode,
-  start: TraceStartIndices,
-  buffers: TraceBuffers,
+  model: HydraulicModel,
+  resultsReader: ResultsReader | null,
+  input: TraceInput,
   signal?: AbortSignal,
-): Promise<EncodedTraceResult> => {
+): Promise<TraceResult> => {
   if (signal?.aborted) {
     throw new DOMException("Operation cancelled", "AbortError");
   }
+
+  const data = encodeTraceData(model, resultsReader, "array");
+  const start: TraceStart = {
+    nodeIds: input.startNodeIds,
+    linkIds: input.startLinkIds,
+  };
 
   const worker = new Worker(new URL("./worker.ts", import.meta.url), {
     type: "module",
@@ -83,7 +85,7 @@ const runWithWorker = async (
   signal?.addEventListener("abort", abortHandler);
 
   try {
-    return await workerAPI.runTrace(mode, start, buffers);
+    return await workerAPI.runTrace(input.mode, start, data);
   } finally {
     signal?.removeEventListener("abort", abortHandler);
     worker.terminate();

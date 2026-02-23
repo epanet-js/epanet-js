@@ -1,67 +1,69 @@
-import { TraceBuffers, TraceBuffersView } from "./trace-buffers";
-import { EncodedTraceResult, LinkTraversal, NodeTraversal } from "./types";
-
-export interface BoundaryTraceStart {
-  nodeIndices: number[];
-  linkIndices: number[];
-}
+import { AssetId } from "src/hydraulic-model/asset-types";
+import { TopologyQueries } from "src/hydraulic-model/topology/types";
+import {
+  TraceStatusQueries,
+  TraceStart,
+  TraceResult,
+  LinkTraversal,
+  NodeTraversal,
+} from "./types";
 
 export function boundaryTrace(
-  start: BoundaryTraceStart,
-  buffers: TraceBuffers,
-): EncodedTraceResult {
-  const views = new TraceBuffersView(buffers);
-  const visitedNodes = new Set<number>();
-  const visitedLinks = new Set<number>();
-  const resultNodes: number[] = [];
-  const resultLinks: number[] = [];
+  start: TraceStart,
+  topology: TopologyQueries,
+  status: TraceStatusQueries,
+): TraceResult {
+  const visitedNodes = new Set<AssetId>();
+  const visitedLinks = new Set<AssetId>();
+  const resultNodes: AssetId[] = [];
+  const resultLinks: AssetId[] = [];
 
   // Include any pre-selected links (when starting from a link click)
-  for (const linkIdx of start.linkIndices) {
-    visitedLinks.add(linkIdx);
-    resultLinks.push(linkIdx);
+  for (const linkId of start.linkIds) {
+    visitedLinks.add(linkId);
+    resultLinks.push(linkId);
   }
 
-  const stack = [...start.nodeIndices];
+  const stack = [...start.nodeIds];
 
   while (stack.length > 0) {
-    const nodeIdx = stack.pop()!;
+    const nodeId = stack.pop()!;
 
-    if (visitedNodes.has(nodeIdx)) continue;
+    if (visitedNodes.has(nodeId)) continue;
 
     // Boundary nodes stop the trace and are excluded from the result
-    const nodeTraversal = views.nodeTraversal.getById(nodeIdx);
+    const nodeTraversal = status.getNodeTraversal(nodeId);
     if (nodeTraversal === NodeTraversal.BOUNDARY) continue;
 
-    visitedNodes.add(nodeIdx);
-    resultNodes.push(nodeIdx);
+    visitedNodes.add(nodeId);
+    resultNodes.push(nodeId);
 
-    const connectedLinks = views.nodeConnections.getById(nodeIdx);
-    for (const linkIdx of connectedLinks) {
-      if (visitedLinks.has(linkIdx)) continue;
+    const connectedLinks = topology.getLinks(nodeId);
+    for (const linkId of connectedLinks) {
+      if (visitedLinks.has(linkId)) continue;
 
-      const linkTraversalValue = views.linkTraversal.getById(linkIdx);
+      const linkTraversalValue = status.getLinkTraversal(linkId);
 
       // Boundary links stop the trace and are excluded from the result
       if (linkTraversalValue === LinkTraversal.BOUNDARY) continue;
 
       // One-way (CV pipe): can only traverse from start node to end node
       if (linkTraversalValue === LinkTraversal.ONE_WAY) {
-        const [startNode] = views.linkConnections.getById(linkIdx);
-        if (nodeIdx !== startNode) continue;
+        const [startNode] = topology.getNodes(linkId);
+        if (nodeId !== startNode) continue;
       }
 
-      visitedLinks.add(linkIdx);
-      resultLinks.push(linkIdx);
+      visitedLinks.add(linkId);
+      resultLinks.push(linkId);
 
-      const [startNode, endNode] = views.linkConnections.getById(linkIdx);
-      const neighborIdx = startNode === nodeIdx ? endNode : startNode;
+      const [startNode, endNode] = topology.getNodes(linkId);
+      const neighborId = startNode === nodeId ? endNode : startNode;
 
-      if (!visitedNodes.has(neighborIdx)) {
-        stack.push(neighborIdx);
+      if (!visitedNodes.has(neighborId)) {
+        stack.push(neighborId);
       }
     }
   }
 
-  return { nodeIndices: resultNodes, linkIndices: resultLinks };
+  return { nodeIds: resultNodes, linkIds: resultLinks };
 }

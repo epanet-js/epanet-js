@@ -1,3 +1,5 @@
+import { AssetId } from "src/hydraulic-model/asset-types";
+
 export type TraceMode = "boundary" | "upstream" | "downstream";
 
 export const FLOW_TOLERANCE = 0.001;
@@ -42,8 +44,8 @@ export type NodeTraversalValue =
  */
 export const FlowDirection = {
   NONE: 0,
-  POSITIVE: 1,
-  NEGATIVE: 2,
+  DOWNSTREAM: 1,
+  UPSTREAM: 2,
 } as const;
 
 export type FlowDirectionValue =
@@ -52,4 +54,20 @@ export type FlowDirectionValue =
 export type EncodedTraceResult = {
   nodeIndices: number[];
   linkIndices: number[];
+};
+
+export interface TraceStatusQueries {
+  getNodeTraversal(nodeId: AssetId): NodeTraversalValue;
+  getLinkTraversal(linkId: AssetId): LinkTraversalValue;
+  getFlowDirection(linkId: AssetId): FlowDirectionValue;
+}
+
+export type TraceStart = {
+  nodeIds: AssetId[];
+  linkIds: AssetId[];
+};
+
+export type TraceResult = {
+  nodeIds: AssetId[];
+  linkIds: AssetId[];
 };

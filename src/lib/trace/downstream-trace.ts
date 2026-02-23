@@ -1,68 +1,73 @@
-import { TraceBuffers, TraceBuffersView } from "./trace-buffers";
-import { EncodedTraceResult, FlowDirection } from "./types";
-
-export interface DownstreamTraceStart {
-  nodeIndices: number[];
-  linkIndices: number[];
-}
+import { AssetId } from "src/hydraulic-model/asset-types";
+import { TopologyQueries } from "src/hydraulic-model/topology/types";
+import {
+  TraceStatusQueries,
+  TraceStart,
+  TraceResult,
+  FlowDirection,
+} from "./types";
 
 export function downstreamTrace(
-  start: DownstreamTraceStart,
-  buffers: TraceBuffers,
-): EncodedTraceResult {
-  const views = new TraceBuffersView(buffers);
-  const flowDirections = views.flowDirections;
-  if (!flowDirections) {
-    return { nodeIndices: [], linkIndices: [] };
+  start: TraceStart,
+  topology: TopologyQueries,
+  status: TraceStatusQueries,
+): TraceResult {
+  const visitedNodes = new Set<AssetId>();
+  const visitedLinks = new Set<AssetId>();
+  const resultNodes: AssetId[] = [];
+  const resultLinks: AssetId[] = [];
+
+  const stack = [...start.nodeIds];
+
+  // When starting from a link, determine the downstream node from flow direction
+  for (const linkId of start.linkIds) {
+    visitedLinks.add(linkId);
+    resultLinks.push(linkId);
+
+    const [startNode, endNode] = topology.getNodes(linkId);
+    const direction = status.getFlowDirection(linkId);
+
+    if (direction === FlowDirection.DOWNSTREAM) {
+      stack.push(endNode);
+    } else if (direction === FlowDirection.UPSTREAM) {
+      stack.push(startNode);
+    }
   }
-
-  const visitedNodes = new Set<number>();
-  const visitedLinks = new Set<number>();
-  const resultNodes: number[] = [];
-  const resultLinks: number[] = [];
-
-  // Include any pre-selected links (when starting from a link click)
-  for (const linkIdx of start.linkIndices) {
-    visitedLinks.add(linkIdx);
-    resultLinks.push(linkIdx);
-  }
-
-  const stack = [...start.nodeIndices];
 
   while (stack.length > 0) {
-    const nodeIdx = stack.pop()!;
+    const nodeId = stack.pop()!;
 
-    if (visitedNodes.has(nodeIdx)) continue;
-    visitedNodes.add(nodeIdx);
-    resultNodes.push(nodeIdx);
+    if (visitedNodes.has(nodeId)) continue;
+    visitedNodes.add(nodeId);
+    resultNodes.push(nodeId);
 
-    const connectedLinks = views.nodeConnections.getById(nodeIdx);
-    for (const linkIdx of connectedLinks) {
-      if (visitedLinks.has(linkIdx)) continue;
+    const connectedLinks = topology.getLinks(nodeId);
+    for (const linkId of connectedLinks) {
+      if (visitedLinks.has(linkId)) continue;
 
-      const [startNode, endNode] = views.linkConnections.getById(linkIdx);
-      const direction = flowDirections[linkIdx];
+      const [startNode, endNode] = topology.getNodes(linkId);
+      const direction = status.getFlowDirection(linkId);
 
       if (direction === FlowDirection.NONE) continue;
 
       // Determine if water EXITS this node through this link.
       // POSITIVE = start→end. NEGATIVE = end→start.
       const waterExitsNode =
-        (nodeIdx === startNode && direction === FlowDirection.POSITIVE) ||
-        (nodeIdx === endNode && direction === FlowDirection.NEGATIVE);
+        (nodeId === startNode && direction === FlowDirection.DOWNSTREAM) ||
+        (nodeId === endNode && direction === FlowDirection.UPSTREAM);
 
       if (!waterExitsNode) continue;
 
-      visitedLinks.add(linkIdx);
-      resultLinks.push(linkIdx);
+      visitedLinks.add(linkId);
+      resultLinks.push(linkId);
 
       // Follow downstream to the neighbor node where water goes
-      const neighborIdx = startNode === nodeIdx ? endNode : startNode;
-      if (!visitedNodes.has(neighborIdx)) {
-        stack.push(neighborIdx);
+      const neighborId = startNode === nodeId ? endNode : startNode;
+      if (!visitedNodes.has(neighborId)) {
+        stack.push(neighborId);
       }
     }
   }
 
-  return { nodeIndices: resultNodes, linkIndices: resultLinks };
+  return { nodeIds: resultNodes, linkIds: resultLinks };
 }
