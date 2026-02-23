@@ -361,9 +361,10 @@ export const GroupedPatternSidebar = ({
               setFocusedSection(null);
               onSelectPattern(patternId);
             }}
-            onStartCreate={() =>
-              setActionState({ action: "creating", patternType: sectionType })
-            }
+            onStartCreate={() => {
+              setActionState({ action: "creating", patternType: sectionType });
+              setOpenSections((prev) => ({ ...prev, [sectionType]: true }));
+            }}
             onStartRename={(patternId) =>
               setActionState({ action: "renaming", patternId })
             }
