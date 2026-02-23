@@ -774,10 +774,16 @@
     "operationHint": "Hold {{1}} to add or {{2}} to remove from a selection"
   },
   "traceSelection": {
-    "tool": "Trace select",
+    "tool": "Selection trace",
     "boundary": "Boundary trace",
     "upstream": "Upstream trace",
-    "downstream": "Downstream trace"
+    "downstream": "Downstream trace",
+    "boundaryHint": "Click on an asset to find its boundary zone.",
+    "boundarySecondaryHint": "Reservoirs, tanks, pumps, closed valves, and closed pipes act as boundaries.",
+    "upstreamHint": "Click on an asset to trace upstream supply.",
+    "downstreamHint": "Click on an asset to trace downstream supply.",
+    "simulationRequired": "Simulation required",
+    "simulationRequiredHint": "Run a simulation first to enable flow-based tracing."
   },
   "activeTopology": "Active Topology",
   "isEnabled": "Enabled",

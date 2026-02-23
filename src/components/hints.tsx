@@ -374,6 +374,31 @@ export function Hints() {
         />
       );
     }
+    case Mode.BOUNDARY_TRACE_SELECT: {
+      return (
+        <Hint
+          hintId={"TRACE_BOUNDARY"}
+          text={translate("traceSelection.boundaryHint")}
+          secondaryText={translate("traceSelection.boundarySecondaryHint")}
+        />
+      );
+    }
+    case Mode.UPSTREAM_TRACE_SELECT: {
+      return (
+        <Hint
+          hintId={"TRACE_UPSTREAM"}
+          text={translate("traceSelection.upstreamHint")}
+        />
+      );
+    }
+    case Mode.DOWNSTREAM_TRACE_SELECT: {
+      return (
+        <Hint
+          hintId={"TRACE_DOWNSTREAM"}
+          text={translate("traceSelection.downstreamHint")}
+        />
+      );
+    }
     default:
       return null;
   }

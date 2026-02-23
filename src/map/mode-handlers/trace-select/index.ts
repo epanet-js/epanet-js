@@ -13,8 +13,8 @@ import { searchNearbyRenderedFeatures } from "src/map/search";
 import { clickableLayers } from "src/map/layers/layer";
 import { notify } from "src/components/notifications";
 import { Asset, LinkAsset, Pipe, Valve } from "src/hydraulic-model/asset-types";
-import { Topology } from "src/hydraulic-model/topology";
 import { runTrace } from "src/lib/trace";
+import { useTranslate } from "src/hooks/use-translate";
 
 const TRACE_MODE_MAP = {
   [Mode.BOUNDARY_TRACE_SELECT]: "boundary",
@@ -37,6 +37,7 @@ export function useTraceSelectHandlers({
   const setMode = useSetAtom(modeAtom);
   const setCursor = useSetAtom(cursorStyleAtom);
   const { selectAsset, selectAssets, clearSelection } = useSelection(selection);
+  const translate = useTranslate();
 
   const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -57,7 +58,7 @@ export function useTraceSelectHandlers({
       return;
     }
 
-    if (isForbiddenTarget(clickedAsset, traceMode, hydraulicModel.topology)) {
+    if (isForbiddenTarget(clickedAsset, traceMode)) {
       return;
     }
 
@@ -65,15 +66,9 @@ export function useTraceSelectHandlers({
     if (traceMode !== "boundary" && !resultsReader) {
       notify({
         variant: "warning",
-        title: "Simulation required",
-        description: `Run a simulation first to use ${traceMode} trace.`,
+        title: translate("traceSelection.simulationRequired"),
+        description: translate("traceSelection.simulationRequiredHint"),
       });
-      selectAsset(clickedAsset.id);
-      return;
-    }
-
-    // If clicked asset is a boundary type, just select it (no trace)
-    if (isBoundaryAsset(clickedAsset)) {
       selectAsset(clickedAsset.id);
       return;
     }
@@ -140,10 +135,7 @@ export function useTraceSelectHandlers({
       }
 
       const hoveredAsset = getClickedAsset(e);
-      if (
-        hoveredAsset &&
-        isForbiddenTarget(hoveredAsset, traceMode, hydraulicModel.topology)
-      ) {
+      if (hoveredAsset && isForbiddenTarget(hoveredAsset, traceMode)) {
         setCursor("not-allowed");
       } else {
         setCursor("pointer");
@@ -168,21 +160,9 @@ export function useTraceSelectHandlers({
 
 type TraceMode = (typeof TRACE_MODE_MAP)[TraceModeKey];
 
-function isForbiddenTarget(
-  asset: Asset,
-  traceMode: TraceMode,
-  topology: Topology,
-): boolean {
-  switch (traceMode) {
-    case "boundary":
-      return isBoundaryAsset(asset);
-    case "upstream":
-      return asset.type === "reservoir" || asset.type === "tank";
-    case "downstream":
-      return (
-        asset.type === "junction" && topology.getLinks(asset.id).length <= 1
-      );
-  }
+function isForbiddenTarget(asset: Asset, traceMode: TraceMode): boolean {
+  if (traceMode === "boundary") return isBoundaryAsset(asset);
+  return false;
 }
 
 function isBoundaryAsset(asset: Asset): boolean {
