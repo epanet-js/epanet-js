@@ -70,7 +70,7 @@ const allFlowUnits = (unit: Unit) => ({
   baseDemand: unit,
   directDemand: unit,
   actualDemand: unit,
-  emitterCoefficient: unit,
+  emitterCoefficient: null as Unit,
 });
 
 const allLevelUnits = (unit: Unit) => ({
