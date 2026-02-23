@@ -39,6 +39,11 @@ export const BATCH_EDITABLE_PROPERTIES: Partial<
 > = {
   junction: {
     elevation: { fieldType: "quantity", modelProperty: "elevation" },
+    emitterCoefficient: {
+      fieldType: "quantity",
+      modelProperty: "emitterCoefficient",
+      positiveOnly: true,
+    },
   },
   pipe: {
     isEnabled: { fieldType: "boolean", modelProperty: "isActive" },

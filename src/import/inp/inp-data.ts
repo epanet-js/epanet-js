@@ -122,6 +122,7 @@ export type InpData = {
   vertices: ItemData<Position[]>;
   demands: ItemData<DemandData[]>;
   customerDemands: ItemData<DemandData[]>;
+  emitters: ItemData<number>;
   patterns: ItemData<PatternData>;
   status: ItemData<string>;
   curves: ItemData<CurveData>;
@@ -204,6 +205,7 @@ export const nullInpData = (): InpData => {
     vertices: new ItemData(),
     demands: new ItemData(),
     customerDemands: new ItemData(),
+    emitters: new ItemData(),
     patterns: new ItemData(),
     status: new ItemData(),
     curves: new ItemData(),

@@ -34,6 +34,7 @@ export const useImportInp = () => {
   const userTracking = useUserTracking();
   const isUnprojectedEnabled = useFeatureFlag("FLAG_UNPROJECTED");
   const isMorePatternsOn = useFeatureFlag("FLAG_MORE_PATTERNS");
+  const isEmittersOn = useFeatureFlag("FLAG_EMITTERS");
 
   const importInp = useCallback(
     async (files: FileWithHandle[]) => {
@@ -70,6 +71,7 @@ export const useImportInp = () => {
         const parseOptions = {
           customerPoints: true,
           inactiveAssets: true,
+          emitters: isEmittersOn,
         };
 
         const completeImport = async (
@@ -183,6 +185,7 @@ export const useImportInp = () => {
       userTracking,
       isUnprojectedEnabled,
       isMorePatternsOn,
+      isEmittersOn,
       translate,
       transactImport,
       setFileInfo,

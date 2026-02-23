@@ -11,6 +11,7 @@ export type JunctionBuildData = {
   label?: string;
   coordinates?: Position;
   elevation?: number;
+  emitterCoefficient?: number;
   isActive?: boolean;
 };
 
@@ -254,6 +255,7 @@ export class AssetBuilder {
     label,
     coordinates = [0, 0],
     elevation,
+    emitterCoefficient,
     isActive = true,
   }: JunctionBuildData = {}) {
     const internalId = id ?? this._idGenerator.newId();
@@ -267,6 +269,7 @@ export class AssetBuilder {
             ? label
             : this.labelGenerator.generateFor("junction", internalId),
         elevation: this.getJunctionValue("elevation", elevation),
+        emitterCoefficient: emitterCoefficient ?? 0,
         isActive,
       },
       this.units,

@@ -198,6 +198,7 @@ type InpSections = {
   pumps: string[];
   valves: string[];
   demands: string[];
+  emitters: string[];
   times: string[];
   report: string[];
   status: string[];
@@ -223,6 +224,7 @@ type BuildOptions = {
   usedPatterns?: boolean;
   usedCurves?: boolean;
   reservoirElevations?: boolean;
+  emitters?: boolean;
   projectionMapper?: ProjectionMapper;
 };
 
@@ -238,6 +240,7 @@ export const buildInp = withDebugInstrumentation(
       usedPatterns: false,
       usedCurves: false,
       reservoirElevations: false,
+      emitters: false,
       ...options,
     };
     const idMap = new EpanetIds({ strategy: opts.labelIds ? "label" : "id" });
@@ -260,6 +263,7 @@ export const buildInp = withDebugInstrumentation(
       pumps: ["[PUMPS]", ";Id\tStart\tEnd\tProperties"],
       valves: ["[VALVES]", ";Id\tStart\tEnd\tDiameter\tSetting\tMinorLoss"],
       demands: ["[DEMANDS]", ";Id\tDemand\tPattern\tCategory"],
+      emitters: ["[EMITTERS]", ";Junction\tCoefficient"],
       times: buildTimesSection(hydraulicModel.epsTiming),
       report: ["[REPORT]", "Status\tFULL", "Summary\tNo", "Page\t0"],
       status: ["[STATUS]", ";Id\tStatus"],
@@ -329,6 +333,7 @@ export const buildInp = withDebugInstrumentation(
           opts.geolocation,
           opts.customerDemands,
           opts.inactiveAssets,
+          opts.emitters,
           asset as Junction,
           hydraulicModel.customerPointsLookup,
           hydraulicModel.assets,
@@ -413,6 +418,7 @@ export const buildInp = withDebugInstrumentation(
 
     const hasControls = sections.controls.length > 1;
     const hasRules = sections.rules.length > 1;
+    const hasEmitters = sections.emitters.length > 2;
 
     let content = [
       sections.junctions.join("\n"),
@@ -422,6 +428,7 @@ export const buildInp = withDebugInstrumentation(
       sections.pumps.join("\n"),
       sections.valves.join("\n"),
       sections.demands.join("\n"),
+      hasEmitters && sections.emitters.join("\n"),
       sections.status.join("\n"),
       sections.curves.join("\n"),
       sections.patterns.join("\n"),
@@ -533,6 +540,7 @@ const appendJunction = (
   geolocation: boolean,
   customerDemands: boolean,
   inactiveAssets: boolean,
+  emitters: boolean,
   junction: Junction,
   customerPointsLookup: CustomerPointsLookup,
   assets: HydraulicModel["assets"],
@@ -597,6 +605,12 @@ const appendJunction = (
         usedPatternIds.add(patternId);
       }
     }
+  }
+
+  if (emitters && junction.emitterCoefficient > 0) {
+    sections.emitters.push(
+      commentPrefix + [junctionId, junction.emitterCoefficient].join("\t"),
+    );
   }
 
   if (geolocation) {

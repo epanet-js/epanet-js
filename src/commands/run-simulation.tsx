@@ -19,6 +19,7 @@ import { getAppId } from "src/infra/app-instance";
 import { OPFSStorage } from "src/infra/storage";
 import { worktreeAtom } from "src/state/scenarios";
 import { usePersistenceWithSnapshots } from "src/lib/persistence";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export const runSimulationShortcut = "shift+enter";
 
@@ -28,6 +29,7 @@ export const useRunSimulation = () => {
   const setDrawingMode = useDrawingMode();
   const persistence = usePersistenceWithSnapshots();
   const setSimulationResults = useSetAtom(simulationResultsAtom);
+  const isEmittersOn = useFeatureFlag("FLAG_EMITTERS");
 
   const runSimulation = useAtomCallback(
     useCallback(
@@ -49,6 +51,7 @@ export const useRunSimulation = () => {
           customerDemands: true,
           usedPatterns: true,
           usedCurves: true,
+          emitters: isEmittersOn,
         });
         const start = performance.now();
 
@@ -126,6 +129,7 @@ export const useRunSimulation = () => {
         setDialogState,
         persistence,
         setSimulationResults,
+        isEmittersOn,
       ],
     ),
   );

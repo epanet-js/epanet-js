@@ -388,10 +388,13 @@ const addJunction = (
           ]
         : [];
 
+  const emitterCoefficient = inpData.emitters.get(junctionData.id);
+
   const junction = hydraulicModel.assetBuilder.buildJunction({
     label: junctionData.id,
     coordinates,
     elevation: junctionData.elevation,
+    emitterCoefficient,
     isActive: junctionData.isActive,
   });
   hydraulicModel.assets.set(junction.id, junction);

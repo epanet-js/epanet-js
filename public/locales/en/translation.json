@@ -59,6 +59,7 @@
   "customerPoint": "Customer point",
   "actualDemand": "Actual demand",
   "elevation": "Elevation",
+  "emitterCoefficient": "Emitter coeff.",
   "roughness": "Roughness",
   "minorLoss": "Loss coeff.",
   "property": "Property",

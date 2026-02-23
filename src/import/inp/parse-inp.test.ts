@@ -620,7 +620,7 @@ describe("Parse inp with", () => {
       expect(issues?.unsupportedSections?.has("[EMITTERS]")).toBeFalsy();
     });
 
-    it("reports [EMITTERS] section with non-zero values", () => {
+    it("reports [EMITTERS] section as unsupported when emitters option is disabled", () => {
       const inp = `
       [EMITTERS]
       J1  0.5
@@ -629,6 +629,29 @@ describe("Parse inp with", () => {
       const { issues } = parseInp(inp);
 
       expect(issues?.unsupportedSections?.has("[EMITTERS]")).toBe(true);
+    });
+
+    it("parses [EMITTERS] section when emitters option is enabled", () => {
+      const inp = `
+      [JUNCTIONS]
+      J1  100
+      J2  200
+
+      [COORDINATES]
+      J1  10  20
+      J2  30  40
+
+      [EMITTERS]
+      J1  0.5
+      `;
+
+      const { hydraulicModel, issues } = parseInp(inp, { emitters: true });
+      const j1 = getByLabel(hydraulicModel.assets, "J1") as Junction;
+      const j2 = getByLabel(hydraulicModel.assets, "J2") as Junction;
+
+      expect(j1.emitterCoefficient).toBe(0.5);
+      expect(j2.emitterCoefficient).toBe(0);
+      expect(issues?.unsupportedSections?.has("[EMITTERS]")).toBeFalsy();
     });
 
     it("ignores [REACTIONS] section with default values", () => {

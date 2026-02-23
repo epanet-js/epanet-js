@@ -23,6 +23,7 @@ export type QuantityProperty =
   | "actualDemand"
   | "customerDemand"
   | "customerDemandPerDay"
+  | "emitterCoefficient"
   | "pressure"
   | "headloss"
   | "unitHeadloss"
@@ -69,6 +70,7 @@ const allFlowUnits = (unit: Unit) => ({
   baseDemand: unit,
   directDemand: unit,
   actualDemand: unit,
+  emitterCoefficient: unit,
 });
 
 const allLevelUnits = (unit: Unit) => ({
