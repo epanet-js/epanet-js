@@ -885,6 +885,8 @@
   "headPattern": "Head pattern",
   "initialSpeed": "Initial speed",
   "variableSpeed": "Variable speed",
+  "speedPattern": "Pattern",
+  "patternBased": "Pattern based",
   "addCurve": "Add curve",
   "pumpName": "Pump name",
   "curveType": "Curve type",

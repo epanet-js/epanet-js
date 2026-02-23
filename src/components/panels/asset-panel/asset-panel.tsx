@@ -1,4 +1,4 @@
-import { useMemo, useCallback } from "react";
+import { useMemo, useCallback, useState } from "react";
 import { useAtomValue } from "jotai";
 import {
   Asset,
@@ -320,6 +320,7 @@ export function AssetPanel({
       const pump = asset as Pump;
       return (
         <PumpEditor
+          key={pump.speedPatternId}
           pump={pump}
           hydraulicModel={hydraulicModel}
           onPropertyChange={handlePropertyChange}
@@ -1265,6 +1266,38 @@ const PumpEditor = ({
     }));
   }, [translate]);
 
+  const VARIABLE_SPEED_NONE = 0;
+  const VARIABLE_SPEED_PATTERN_BASED = 1;
+
+  const variableSpeedOptions = useMemo(
+    () => [
+      [{ label: translate("none"), value: VARIABLE_SPEED_NONE }],
+      [
+        {
+          label: translate("patternBased"),
+          value: VARIABLE_SPEED_PATTERN_BASED,
+        },
+      ],
+    ],
+    [translate],
+  );
+
+  const [selectedVariableSpeed, setSelectedVariableSpeed] = useState<
+    number | null
+  >(pump.speedPatternId ? VARIABLE_SPEED_PATTERN_BASED : null);
+
+  const handleVariableSpeedChange = useCallback(
+    (_: string, newValue: number | null, oldValue: number | null) => {
+      if (newValue === oldValue) return;
+      const resolved = newValue === VARIABLE_SPEED_NONE ? null : newValue;
+      setSelectedVariableSpeed(resolved);
+      if (resolved === null && pump.speedPatternId) {
+        onPropertyChange("speedPatternId", undefined, pump.speedPatternId);
+      }
+    },
+    [onPropertyChange, pump.speedPatternId],
+  );
+
   const speedPatternOptions = useMemo(() => {
     const libraryGroup: SelectorOption<PatternId>[] = [
       { label: translate("openPatternsLibrary"), value: -1 },
@@ -1276,16 +1309,15 @@ const PumpEditor = ({
         patternGroup.push({ label: pattern.label, value: pattern.id });
       }
     }
-    const emptyGroup: SelectorOption<PatternId>[] = patternGroup.length
-      ? [
-          {
-            label: translate("none"),
-            value: NO_PATTERN_ID,
-          },
-        ]
-      : [];
+    if (!patternGroup.length) {
+      return [libraryGroup, []];
+    }
 
-    return [libraryGroup, [...emptyGroup, ...patternGroup]];
+    const constantGroup: SelectorOption<PatternId>[] = [
+      { label: translate("constant"), value: NO_PATTERN_ID },
+    ];
+
+    return [libraryGroup, [...constantGroup, ...patternGroup]];
   }, [hydraulicModel.patterns, translate]);
 
   const selectedSpeedPatternId = pump.speedPatternId ?? null;
@@ -1293,7 +1325,6 @@ const PumpEditor = ({
   const handleSpeedPatternChange = useCallback(
     (_: string, newValue: number | null, oldValue: number | null) => {
       if (newValue === oldValue) return;
-      if (newValue === null) return;
       if (newValue === -1) {
         showCurvesAndPatterns({
           source: "pump",
@@ -1301,9 +1332,13 @@ const PumpEditor = ({
         });
         return;
       }
-      const patternId = newValue === NO_PATTERN_ID ? undefined : newValue;
-      if (!patternId && !oldValue) return;
-      onPropertyChange("speedPatternId", patternId, pump.speedPatternId);
+      if (newValue === null || newValue === NO_PATTERN_ID) {
+        if (pump.speedPatternId) {
+          onPropertyChange("speedPatternId", undefined, pump.speedPatternId);
+        }
+        return;
+      }
+      onPropertyChange("speedPatternId", newValue, pump.speedPatternId);
     },
     [onPropertyChange, pump.speedPatternId, showCurvesAndPatterns],
   );
@@ -1383,18 +1418,38 @@ const PumpEditor = ({
           readOnly={readonly}
         />
         {isMorePatternsOn && (
-          <SelectRow
-            name="variableSpeed"
-            selected={selectedSpeedPatternId}
-            options={speedPatternOptions}
-            listClassName="first:italic"
-            stickyFirstGroup
-            nullable={true}
-            placeholder={translate("none")}
-            comparison={getComparison("speedPatternId", pump.speedPatternId)}
-            onChange={handleSpeedPatternChange}
-            readOnly={readonly}
-          />
+          <>
+            <SelectRow
+              name="variableSpeed"
+              selected={selectedVariableSpeed}
+              options={variableSpeedOptions}
+              listClassName="first:italic"
+              nullable={true}
+              placeholder={translate("none")}
+              comparison={getComparison("speedPatternId", pump.speedPatternId)}
+              onChange={handleVariableSpeedChange}
+              readOnly={readonly}
+            />
+            {selectedVariableSpeed === VARIABLE_SPEED_PATTERN_BASED && (
+              <div className="bg-gray-50 p-2 py-1 mt-1 -mr-2 border-l-2 border-gray-400 rounded-sm">
+                <SelectRow
+                  name="speedPattern"
+                  selected={selectedSpeedPatternId}
+                  options={speedPatternOptions}
+                  listClassName="first:italic"
+                  stickyFirstGroup
+                  nullable={true}
+                  placeholder={translate("constant")}
+                  comparison={getComparison(
+                    "speedPatternId",
+                    pump.speedPatternId,
+                  )}
+                  onChange={handleSpeedPatternChange}
+                  readOnly={readonly}
+                />
+              </div>
+            )}
+          </>
         )}
       </Section>
       <Section title={translate("simulationResults")}>
