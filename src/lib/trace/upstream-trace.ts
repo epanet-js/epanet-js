@@ -1,7 +1,7 @@
 import { AssetId } from "src/hydraulic-model/asset-types";
 import { TopologyQueries } from "src/hydraulic-model/topology/types";
 import {
-  TraceStatusQueries,
+  FlowDirectionQueries,
   TraceStart,
   TraceResult,
   FlowDirection,
@@ -10,7 +10,7 @@ import {
 export function upstreamTrace(
   start: TraceStart,
   topology: TopologyQueries,
-  status: TraceStatusQueries,
+  status: FlowDirectionQueries,
 ): TraceResult {
   const visitedNodes = new Set<AssetId>();
   const visitedLinks = new Set<AssetId>();

@@ -1,75 +1,58 @@
-import {
-  BinaryData,
-  DataSize,
-  FixedSizeBufferView,
-  decodeType,
-} from "src/lib/buffers";
+import { BinaryData } from "src/lib/buffers";
 import { AssetId } from "src/hydraulic-model/asset-types";
 import { AssetIndexView } from "src/hydraulic-model/asset-index";
 import {
-  TraceStatusQueries,
+  FlowDirectionQueries,
   FlowDirection,
   FlowDirectionValue,
-  LinkTraversalValue,
-  NodeTraversal,
-  NodeTraversalValue,
+  AllowedFlowDirectionQueries,
+  AllowedFlowDirection,
+  AllowedFlowDirectionValue,
 } from "./types";
 
-export interface TraceStatusBuffers {
-  linkTraversal: BinaryData;
-  nodeTraversal: BinaryData;
-  flowDirections: BinaryData;
+export interface AllowedFlowDirectionBuffers {
+  allowedFlowDirections: BinaryData;
 }
 
-export class TraceStatusView implements TraceStatusQueries {
-  private _linkTraversalView?: FixedSizeBufferView<number>;
-  private _nodeTraversalView?: FixedSizeBufferView<number>;
-  private _flowDirectionsView?: Uint8Array;
+export class AllowedFlowDirectionView implements AllowedFlowDirectionQueries {
+  private _view?: Uint8Array;
 
   constructor(
-    private buffers: TraceStatusBuffers,
+    private buffers: AllowedFlowDirectionBuffers,
     private assetIndex: AssetIndexView,
   ) {}
 
-  private get linkTraversalView(): FixedSizeBufferView<number> {
-    if (!this._linkTraversalView) {
-      this._linkTraversalView = new FixedSizeBufferView(
-        this.buffers.linkTraversal,
-        DataSize.type,
-        decodeType,
-      );
+  private get array(): Uint8Array {
+    if (!this._view) {
+      this._view = new Uint8Array(this.buffers.allowedFlowDirections);
     }
-    return this._linkTraversalView;
+    return this._view;
   }
 
-  private get nodeTraversalView(): FixedSizeBufferView<number> {
-    if (!this._nodeTraversalView) {
-      this._nodeTraversalView = new FixedSizeBufferView(
-        this.buffers.nodeTraversal,
-        DataSize.type,
-        decodeType,
-      );
-    }
-    return this._nodeTraversalView;
+  getAllowedFlowDirection(linkId: AssetId): AllowedFlowDirectionValue {
+    const idx = this.assetIndex.getLinkIndex(linkId);
+    if (idx === null) return AllowedFlowDirection.NONE;
+    return this.array[idx] as AllowedFlowDirectionValue;
   }
+}
+
+export interface FlowDirectionBuffers {
+  flowDirections: BinaryData;
+}
+
+export class FlowDirectionView implements FlowDirectionQueries {
+  private _flowDirectionsView?: Uint8Array;
+
+  constructor(
+    private buffers: FlowDirectionBuffers,
+    private assetIndex: AssetIndexView,
+  ) {}
 
   private get flowDirectionsArray(): Uint8Array {
     if (!this._flowDirectionsView) {
       this._flowDirectionsView = new Uint8Array(this.buffers.flowDirections);
     }
     return this._flowDirectionsView;
-  }
-
-  getNodeTraversal(nodeId: AssetId): NodeTraversalValue {
-    const idx = this.assetIndex.getNodeIndex(nodeId);
-    if (idx === null) return NodeTraversal.FREE;
-    return this.nodeTraversalView.getById(idx) as NodeTraversalValue;
-  }
-
-  getLinkTraversal(linkId: AssetId): LinkTraversalValue {
-    const idx = this.assetIndex.getLinkIndex(linkId);
-    if (idx === null) return 0 as LinkTraversalValue;
-    return this.linkTraversalView.getById(idx) as LinkTraversalValue;
   }
 
   getFlowDirection(linkId: AssetId): FlowDirectionValue {

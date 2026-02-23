@@ -1,12 +1,6 @@
 import { HydraulicModel } from "src/hydraulic-model";
 import { ResultsReader } from "src/simulation/results-reader";
-import {
-  BufferType,
-  DataSize,
-  FixedSizeBufferBuilder,
-  createBuffer,
-  encodeType,
-} from "src/lib/buffers";
+import { BufferType, createBuffer } from "src/lib/buffers";
 import {
   AssetIndexEncoder,
   AssetIndexBuffers,
@@ -14,14 +8,22 @@ import {
 } from "src/hydraulic-model/asset-index";
 import { TopologyEncoder } from "src/hydraulic-model/topology/topologyEncoder";
 import { TopologyBuffers } from "src/hydraulic-model/topology/types";
-import { TraceStatusBuffers } from "./trace-buffers";
-import { TraceStatus } from "./trace-status";
-import type { TraceStatusQueries } from "./types";
+import {
+  FlowDirectionBuffers,
+  AllowedFlowDirectionBuffers,
+} from "./trace-buffers";
+import { FlowDirection } from "./flow-direction";
+import { AllowedFlowDirection } from "./allowed-flow-direction";
+import type {
+  FlowDirectionQueries,
+  AllowedFlowDirectionQueries,
+} from "./types";
 
 export type TraceRunData = {
   topologyBuffers: TopologyBuffers;
   assetIndexBuffers: AssetIndexBuffers;
-  traceStatusBuffers: TraceStatusBuffers;
+  flowDirectionBuffers: FlowDirectionBuffers;
+  allowedFlowDirectionBuffers: AllowedFlowDirectionBuffers;
 };
 
 export function encodeTraceData(
@@ -35,42 +37,59 @@ export function encodeTraceData(
     model.assetIndex,
     bufferType,
   );
-  const status = new TraceStatus(model.assets, resultsReader);
-  const traceStatusEncoder = new TraceStatusEncoder(
+  const flowDirectionStatus = new FlowDirection(model.assets, resultsReader);
+  const flowDirectionEncoder = new FlowDirectionEncoder(
     model.assetIndex,
-    status,
+    flowDirectionStatus,
+    bufferType,
+  );
+  const allowedFlowDirectionStatus = new AllowedFlowDirection(
+    model.assets,
+    resultsReader,
+  );
+  const allowedFlowDirectionEncoder = new AllowedFlowDirectionEncoder(
+    model.assetIndex,
+    allowedFlowDirectionStatus,
     bufferType,
   );
 
   return {
     topologyBuffers: topologyEncoder.encode(),
     assetIndexBuffers: assetIndexEncoder.encode(),
-    traceStatusBuffers: traceStatusEncoder.encode(),
+    flowDirectionBuffers: flowDirectionEncoder.encode(),
+    allowedFlowDirectionBuffers: allowedFlowDirectionEncoder.encode(),
   };
 }
 
-class TraceStatusEncoder {
+class AllowedFlowDirectionEncoder {
   constructor(
     private assetIndex: AssetIndexQueries,
-    private status: TraceStatusQueries,
+    private status: AllowedFlowDirectionQueries,
     private bufferType: BufferType,
   ) {}
 
-  encode(): TraceStatusBuffers {
-    const linkTraversal = new FixedSizeBufferBuilder<number>(
-      DataSize.type,
-      this.assetIndex.linkCount,
-      this.bufferType,
-      encodeType,
-    );
+  encode(): AllowedFlowDirectionBuffers {
+    const buffer = createBuffer(this.assetIndex.linkCount, this.bufferType);
+    const view = new Uint8Array(buffer);
 
-    const nodeTraversal = new FixedSizeBufferBuilder<number>(
-      DataSize.type,
-      this.assetIndex.nodeCount,
-      this.bufferType,
-      encodeType,
-    );
+    let linkIdx = 0;
+    for (const [linkId] of this.assetIndex.iterateLinks()) {
+      view[linkIdx] = this.status.getAllowedFlowDirection(linkId);
+      linkIdx++;
+    }
 
+    return { allowedFlowDirections: buffer };
+  }
+}
+
+class FlowDirectionEncoder {
+  constructor(
+    private assetIndex: AssetIndexQueries,
+    private status: FlowDirectionQueries,
+    private bufferType: BufferType,
+  ) {}
+
+  encode(): FlowDirectionBuffers {
     const flowDirectionsBuffer = createBuffer(
       this.assetIndex.linkCount,
       this.bufferType,
@@ -83,17 +102,7 @@ class TraceStatusEncoder {
       linkIdx++;
     }
 
-    for (const [linkId] of this.assetIndex.iterateLinks()) {
-      linkTraversal.add(this.status.getLinkTraversal(linkId));
-    }
-
-    for (const [nodeId] of this.assetIndex.iterateNodes()) {
-      nodeTraversal.add(this.status.getNodeTraversal(nodeId));
-    }
-
     return {
-      linkTraversal: linkTraversal.finalize(),
-      nodeTraversal: nodeTraversal.finalize(),
       flowDirections: flowDirectionsBuffer,
     };
   }

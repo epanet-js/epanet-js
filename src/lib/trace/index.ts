@@ -1,12 +1,17 @@
 export {
   type TraceMode,
-  type TraceStatusQueries,
+  type FlowDirectionQueries,
+  type AllowedFlowDirectionQueries,
   type TraceStart,
   type TraceResult,
 } from "./types";
-export { type TraceStatusBuffers } from "./trace-buffers";
-export { TraceStatusView } from "./trace-buffers";
-export { TraceStatus } from "./trace-status";
+export {
+  type FlowDirectionBuffers,
+  type AllowedFlowDirectionBuffers,
+} from "./trace-buffers";
+export { FlowDirectionView, AllowedFlowDirectionView } from "./trace-buffers";
+export { FlowDirection } from "./flow-direction";
+export { AllowedFlowDirection } from "./allowed-flow-direction";
 export { encodeTraceData, type TraceRunData } from "./encode-trace-buffers";
 export { boundaryTrace } from "./boundary-trace";
 export { upstreamTrace } from "./upstream-trace";

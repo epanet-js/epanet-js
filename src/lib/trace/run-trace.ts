@@ -5,7 +5,8 @@ import { HydraulicModel } from "src/hydraulic-model/hydraulic-model";
 import { ResultsReader } from "src/simulation/results-reader";
 import { canUseWorker } from "src/infra/worker";
 import { encodeTraceData } from "./encode-trace-buffers";
-import { TraceStatus } from "./trace-status";
+import { FlowDirection } from "./flow-direction";
+import { AllowedFlowDirection } from "./allowed-flow-direction";
 import { TraceMode, TraceStart, TraceResult } from "./types";
 import { boundaryTrace } from "./boundary-trace";
 import { upstreamTrace } from "./upstream-trace";
@@ -43,7 +44,11 @@ function runSync(
   resultsReader: ResultsReader | null,
   input: TraceInput,
 ): TraceResult {
-  const status = new TraceStatus(model.assets, resultsReader);
+  const status = new FlowDirection(model.assets, resultsReader);
+  const allowedFlowDirection = new AllowedFlowDirection(
+    model.assets,
+    resultsReader,
+  );
   const start: TraceStart = {
     nodeIds: input.startNodeIds,
     linkIds: input.startLinkIds,
@@ -51,7 +56,12 @@ function runSync(
 
   switch (input.mode) {
     case "boundary":
-      return boundaryTrace(start, model.topology, status);
+      return boundaryTrace(
+        start,
+        model.topology,
+        model.assetIndex,
+        allowedFlowDirection,
+      );
     case "upstream":
       return upstreamTrace(start, model.topology, status);
     case "downstream":

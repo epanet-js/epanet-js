@@ -1,17 +1,18 @@
 import { AssetId } from "src/hydraulic-model/asset-types";
+import { AssetIndexQueries } from "src/hydraulic-model/asset-index";
 import { TopologyQueries } from "src/hydraulic-model/topology/types";
 import {
-  TraceStatusQueries,
+  AllowedFlowDirectionQueries,
   TraceStart,
   TraceResult,
-  LinkTraversal,
-  NodeTraversal,
+  AllowedFlowDirection,
 } from "./types";
 
 export function boundaryTrace(
   start: TraceStart,
   topology: TopologyQueries,
-  status: TraceStatusQueries,
+  assetIndex: AssetIndexQueries,
+  status: AllowedFlowDirectionQueries,
 ): TraceResult {
   const visitedNodes = new Set<AssetId>();
   const visitedLinks = new Set<AssetId>();
@@ -31,9 +32,9 @@ export function boundaryTrace(
 
     if (visitedNodes.has(nodeId)) continue;
 
-    // Boundary nodes stop the trace and are excluded from the result
-    const nodeTraversal = status.getNodeTraversal(nodeId);
-    if (nodeTraversal === NodeTraversal.BOUNDARY) continue;
+    // Boundary nodes (tanks, reservoirs) stop the trace
+    const nodeType = assetIndex.getNodeType(nodeId);
+    if (nodeType === "tank" || nodeType === "reservoir") continue;
 
     visitedNodes.add(nodeId);
     resultNodes.push(nodeId);
@@ -42,13 +43,17 @@ export function boundaryTrace(
     for (const linkId of connectedLinks) {
       if (visitedLinks.has(linkId)) continue;
 
-      const linkTraversalValue = status.getLinkTraversal(linkId);
+      const direction = status.getAllowedFlowDirection(linkId);
+      if (direction === AllowedFlowDirection.NONE) continue;
 
-      // Boundary links stop the trace and are excluded from the result
-      if (linkTraversalValue === LinkTraversal.BOUNDARY) continue;
+      // Block pumps and directional valves (non-TCV)
+      const linkType = assetIndex.getLinkType(linkId);
+      if (linkType === "pump") continue;
+      if (linkType === "valve" && direction !== AllowedFlowDirection.BOTH)
+        continue;
 
-      // One-way (CV pipe): can only traverse from start node to end node
-      if (linkTraversalValue === LinkTraversal.ONE_WAY) {
+      // DOWNSTREAM (CV pipe): can only traverse from start node
+      if (direction === AllowedFlowDirection.DOWNSTREAM) {
         const [startNode] = topology.getNodes(linkId);
         if (nodeId !== startNode) continue;
       }
