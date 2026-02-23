@@ -32,6 +32,8 @@ export type BatchEditPropertyConfig =
   | CategoryConfig
   | BooleanConfig;
 
+export type EditableProperties = Record<string, BatchEditPropertyConfig>;
+
 export const BATCH_EDITABLE_PROPERTIES: Partial<
   Record<Asset["type"], Record<string, BatchEditPropertyConfig>>
 > = {
@@ -140,4 +142,8 @@ export const BATCH_EDITABLE_PROPERTIES: Partial<
     },
     canOverflow: { fieldType: "boolean", modelProperty: "overflow" },
   },
+};
+
+export const RESERVOIR_EDITABLE_WITH_PATTERNS: EditableProperties = {
+  elevation: { fieldType: "quantity", modelProperty: "elevation" },
 };

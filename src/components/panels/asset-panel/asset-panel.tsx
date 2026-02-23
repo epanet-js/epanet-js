@@ -752,7 +752,7 @@ const PipeEditor = ({
   );
 };
 
-const CONSTANT_PATTERN_ID = 0;
+const NO_PATTERN_ID = 0;
 
 const ReservoirEditor = ({
   hydraulicModel,
@@ -790,7 +790,7 @@ const ReservoirEditor = ({
       ? [
           {
             label: translate("constant"),
-            value: CONSTANT_PATTERN_ID,
+            value: NO_PATTERN_ID,
           },
         ]
       : [];
@@ -811,7 +811,7 @@ const ReservoirEditor = ({
         });
         return;
       }
-      const patternId = newValue === CONSTANT_PATTERN_ID ? undefined : newValue;
+      const patternId = newValue === NO_PATTERN_ID ? undefined : newValue;
       if (!patternId && !oldValue) return;
       onPropertyChange("headPatternId", patternId, reservoir.headPatternId);
     },
@@ -1260,16 +1260,16 @@ const PumpEditor = ({
         patternGroup.push({ label: pattern.label, value: pattern.id });
       }
     }
-    const constantGroup: SelectorOption<PatternId>[] = patternGroup.length
+    const emptyGroup: SelectorOption<PatternId>[] = patternGroup.length
       ? [
           {
-            label: translate("constant"),
-            value: CONSTANT_PATTERN_ID,
+            label: translate("none"),
+            value: NO_PATTERN_ID,
           },
         ]
       : [];
 
-    return [libraryGroup, [...constantGroup, ...patternGroup]];
+    return [libraryGroup, [...emptyGroup, ...patternGroup]];
   }, [hydraulicModel.patterns, translate]);
 
   const selectedSpeedPatternId = pump.speedPatternId ?? null;
@@ -1285,7 +1285,7 @@ const PumpEditor = ({
         });
         return;
       }
-      const patternId = newValue === CONSTANT_PATTERN_ID ? undefined : newValue;
+      const patternId = newValue === NO_PATTERN_ID ? undefined : newValue;
       if (!patternId && !oldValue) return;
       onPropertyChange("speedPatternId", patternId, pump.speedPatternId);
     },
@@ -1336,33 +1336,17 @@ const PumpEditor = ({
         />
 
         {isMorePatternsOn ? (
-          <>
-            <SelectRow
-              name="speedPattern"
-              selected={selectedSpeedPatternId}
-              options={speedPatternOptions}
-              listClassName="first:italic"
-              stickyFirstGroup
-              nullable={true}
-              placeholder={translate("constant")}
-              comparison={getComparison("speedPatternId", pump.speedPatternId)}
-              onChange={handleSpeedPatternChange}
-              readOnly={readonly}
-            />
-            {!pump.speedPatternId && (
-              <div className="bg-gray-50 p-2 py-1 mt-1 -mr-2 border-l-2 border-gray-400 rounded-sm">
-                <QuantityRow
-                  name="speed"
-                  value={pump.speed}
-                  unit={quantitiesMetadata.getUnit("speed")}
-                  decimals={quantitiesMetadata.getDecimals("speed")}
-                  comparison={getComparison("speed", pump.speed)}
-                  onChange={onPropertyChange}
-                  readOnly={readonly}
-                />
-              </div>
-            )}
-          </>
+          <QuantityRow
+            name="initialSpeed"
+            value={pump.speed}
+            unit={quantitiesMetadata.getUnit("speed")}
+            decimals={quantitiesMetadata.getDecimals("speed")}
+            comparison={getComparison("speed", pump.speed)}
+            onChange={(_, newValue, oldValue) =>
+              onPropertyChange("speed", newValue, oldValue)
+            }
+            readOnly={readonly}
+          />
         ) : (
           <QuantityRow
             name="speed"
@@ -1382,6 +1366,20 @@ const PumpEditor = ({
           onChange={handleStatusChange}
           readOnly={readonly}
         />
+        {isMorePatternsOn && (
+          <SelectRow
+            name="variableSpeed"
+            selected={selectedSpeedPatternId}
+            options={speedPatternOptions}
+            listClassName="first:italic"
+            stickyFirstGroup
+            nullable={true}
+            placeholder={translate("none")}
+            comparison={getComparison("speedPatternId", pump.speedPatternId)}
+            onChange={handleSpeedPatternChange}
+            readOnly={readonly}
+          />
+        )}
       </Section>
       <Section title={translate("simulationResults")}>
         <QuantityRow

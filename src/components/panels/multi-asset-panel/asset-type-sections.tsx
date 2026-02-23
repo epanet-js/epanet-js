@@ -3,13 +3,13 @@ import { Section, SectionList } from "src/components/form/fields";
 import { ReadOnlyMultiValueRow } from "./readonly-multi-value-row";
 import { MultiValueRow } from "./multi-value-row";
 import { AssetPropertySections } from "./data";
-import { BATCH_EDITABLE_PROPERTIES } from "./batch-edit-property-config";
-import { Asset, AssetId } from "src/hydraulic-model";
+import type { EditableProperties } from "./batch-edit-property-config";
+import { AssetId } from "src/hydraulic-model";
 import type { ChangeableProperty } from "src/hydraulic-model/model-operations/change-property";
 
 type SectionProps = {
   sections: AssetPropertySections;
-  assetType: Asset["type"];
+  editableProperties: EditableProperties;
   hasSimulation?: boolean;
   onPropertyChange: (
     modelProperty: ChangeableProperty,
@@ -21,14 +21,13 @@ type SectionProps = {
 
 export function AssetTypeSections({
   sections,
-  assetType,
+  editableProperties,
   hasSimulation = false,
   onPropertyChange,
   readonly = false,
   onSelectAssets,
 }: SectionProps) {
   const translate = useTranslate();
-  const editableProperties = BATCH_EDITABLE_PROPERTIES[assetType] ?? {};
 
   const sectionKeys: Array<keyof AssetPropertySections> = [
     "activeTopology",

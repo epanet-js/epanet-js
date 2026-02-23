@@ -1,7 +1,7 @@
 import { Pipe, PipeStatus } from "./pipe";
 import { Pump, PumpStatus } from "./pump";
 import { Junction } from "./junction";
-import { Reservoir } from "./reservoir";
+import { Reservoir, calculateAverageHead } from "./reservoir";
 import { Valve } from "./valve";
 import { Tank } from "./tank";
 import type { PipeProperties } from "./pipe";
@@ -25,7 +25,7 @@ export type AssetPropertiesMap = {
   tank: TankProperties;
 };
 
-export { Pipe, Junction, Reservoir, Pump, Valve, Tank };
+export { Pipe, Junction, Reservoir, Pump, Valve, Tank, calculateAverageHead };
 export type { AssetId } from "./base-asset";
 export { BaseAsset } from "./base-asset";
 export type { PipeProperties } from "./pipe";

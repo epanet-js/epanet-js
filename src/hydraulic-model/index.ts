@@ -36,6 +36,7 @@ export type {
   Tank,
   Valve,
 } from "./asset-types";
+export { calculateAverageHead } from "./asset-types";
 export { Topology } from "./topology";
 
 export type { HeadlossFormula } from "./asset-types/pipe";
