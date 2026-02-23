@@ -329,11 +329,12 @@ export function SelectRow<P extends string, T extends SelectRowValue>({
 
   const flatOptions = options.flat();
 
-  const baseDisplayValue =
-    comparison?.hasChanged && comparison.baseValue != null
+  const baseDisplayValue = comparison?.hasChanged
+    ? comparison.baseValue != null
       ? (flatOptions.find((o) => o.value === comparison.baseValue)?.label ??
         String(comparison.baseValue))
-      : undefined;
+      : `(${translate("empty").toLocaleLowerCase()})`
+    : undefined;
 
   const selectedOption = flatOptions.find((o) => o.value === selected);
 

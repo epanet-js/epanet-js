@@ -3,11 +3,12 @@ import { useAtomValue } from "jotai";
 import isEqual from "lodash/isEqual";
 import { worktreeAtom } from "src/state/scenarios";
 import { baseModelAtom } from "src/state/hydraulic-model";
-import type { Asset, Pump } from "src/hydraulic-model";
+import type { Asset, Pump, Reservoir } from "src/hydraulic-model";
 import {
   calculateAverageDemand,
   getJunctionDemands,
 } from "src/hydraulic-model/demands";
+import { calculateAverageHead } from "src/hydraulic-model/asset-types";
 import { CurvePoint, ICurve } from "src/hydraulic-model/curves";
 
 export type PropertyComparison<T = unknown> = {
@@ -68,6 +69,23 @@ export function useAssetComparison(asset: Asset | undefined) {
     return { hasChanged, baseValue: baseDirectDemand };
   };
 
+  const getAverageHeadComparison = (
+    currentAverageHead: number,
+  ): PropertyComparison<number> => {
+    if (!isInScenario || !baseAsset || !asset) {
+      return { hasChanged: false };
+    }
+
+    const baseAverageHead = calculateAverageHead(
+      baseAsset as Reservoir,
+      baseModel.patterns,
+    );
+
+    const hasChanged = baseAverageHead !== currentAverageHead;
+
+    return { hasChanged, baseValue: baseAverageHead };
+  };
+
   const getPumpCurveComparison = (
     currentCurve: CurvePoint[] | undefined,
   ): PumpCurveComparison => {
@@ -94,6 +112,7 @@ export function useAssetComparison(asset: Asset | undefined) {
     isInScenario,
     getComparison,
     getDirectDemandComparison,
+    getAverageHeadComparison,
     getPumpCurveComparison,
     isNew,
   };

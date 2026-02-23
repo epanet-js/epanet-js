@@ -14,6 +14,7 @@ import {
   Demand,
   Patterns,
   calculateAverageDemand,
+  calculateAverageHead,
   getCustomerPointDemands,
   getJunctionDemands,
 } from "src/hydraulic-model";
@@ -59,8 +60,16 @@ import {
   ConnectedCustomersRow,
 } from "./ui-components";
 import { Section } from "src/components/form/fields";
+import { localizeDecimal } from "src/infra/i18n/numbers";
+import { useTranslateUnit } from "src/hooks/use-translate-unit";
+import * as Tooltip from "@radix-ui/react-tooltip";
+import { TContent } from "src/components/elements";
 import { useQuickGraph } from "./quick-graph";
-import { useAssetComparison } from "src/hooks/use-asset-comparison";
+import {
+  useAssetComparison,
+  type PropertyComparison,
+} from "src/hooks/use-asset-comparison";
+import { Unit } from "src/quantity";
 import { useSimulation } from "src/hooks/use-simulation";
 import type {
   PipeSimulation,
@@ -790,7 +799,8 @@ const ReservoirEditor = ({
   const translate = useTranslate();
   const showCurvesAndPatterns = useShowCurvesAndPatterns();
   const { footer } = useQuickGraph(reservoir.id, "reservoir");
-  const { getComparison, isNew } = useAssetComparison(reservoir);
+  const { getComparison, getAverageHeadComparison, isNew } =
+    useAssetComparison(reservoir);
 
   const headPatternOptions = useMemo(() => {
     const libraryGroup: SelectorOption<PatternId>[] = [
@@ -816,6 +826,11 @@ const ReservoirEditor = ({
   }, [hydraulicModel.patterns, translate]);
 
   const selectedPatternId = reservoir.headPatternId ?? null;
+
+  const averageHead = useMemo(
+    () => calculateAverageHead(reservoir, hydraulicModel.patterns),
+    [reservoir, hydraulicModel.patterns],
+  );
 
   const handleHeadPatternChange = useCallback(
     (_: string, newValue: number | null, oldValue: number | null) => {
@@ -874,18 +889,31 @@ const ReservoirEditor = ({
           readOnly={readonly}
         />
         {isMorePatternsOn && (
-          <SelectRow
-            name="headPattern"
-            selected={selectedPatternId}
-            options={headPatternOptions}
-            listClassName="first:italic"
-            stickyFirstGroup
-            nullable={true}
-            placeholder={translate("constant")}
-            comparison={getComparison("headPatternId", reservoir.headPatternId)}
-            onChange={handleHeadPatternChange}
-            readOnly={readonly}
-          />
+          <>
+            <SelectRow
+              name="headPattern"
+              selected={selectedPatternId}
+              options={headPatternOptions}
+              listClassName="first:italic"
+              stickyFirstGroup
+              nullable={true}
+              placeholder={translate("constant")}
+              comparison={getComparison(
+                "headPatternId",
+                reservoir.headPatternId,
+              )}
+              onChange={handleHeadPatternChange}
+              readOnly={readonly}
+            />
+            {!!selectedPatternId && (
+              <AverageHeadField
+                averageHead={averageHead}
+                comparison={getAverageHeadComparison(averageHead)}
+                unit={quantitiesMetadata.getUnit("head")}
+                decimals={quantitiesMetadata.getDecimals("head")}
+              />
+            )}
+          </>
         )}
       </Section>
     </AssetEditorContent>
@@ -1471,6 +1499,53 @@ const PumpEditor = ({
       </Section>
     </AssetEditorContent>
   );
+};
+
+const AverageHeadField = ({
+  averageHead,
+  comparison,
+  unit,
+  decimals,
+}: {
+  averageHead: number;
+  comparison: PropertyComparison<number>;
+  unit: Unit;
+  decimals?: number;
+}) => {
+  const translate = useTranslate();
+  const translateUnit = useTranslateUnit();
+
+  const nestedContent = (
+    <div className="bg-gray-50 p-2 py-1 mt-1 -mr-2 border-l-2 border-gray-400 rounded-sm relative">
+      {comparison.hasChanged && (
+        <div className="absolute -left-4 top-0 bottom-0 w-1 bg-purple-500 rounded-full" />
+      )}
+      <QuantityRow
+        name="headAverage"
+        value={averageHead}
+        unit={unit}
+        decimals={decimals}
+        readOnly={true}
+      />
+    </div>
+  );
+
+  if (comparison.hasChanged && comparison.baseValue != null) {
+    return (
+      <Tooltip.Root delayDuration={200}>
+        <Tooltip.Trigger asChild>{nestedContent}</Tooltip.Trigger>
+        <Tooltip.Portal>
+          <TContent side="left" sideOffset={4}>
+            {translate("scenarios.main")}:{" "}
+            {localizeDecimal(comparison.baseValue, { decimals })}{" "}
+            {translateUnit(unit)}
+          </TContent>
+        </Tooltip.Portal>
+      </Tooltip.Root>
+    );
+  }
+
+  return nestedContent;
 };
 
 function getCustomerPointsPattern(
