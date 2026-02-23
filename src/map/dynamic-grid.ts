@@ -2,6 +2,9 @@ import type mapboxgl from "mapbox-gl";
 import type { Feature, FeatureCollection } from "geojson";
 
 const METERS_PER_DEGREE = 111_319;
+const FEET_PER_DEGREE = 365_221;
+
+type LengthUnit = "ft" | "m";
 const DENSITY_TARGET = 30;
 const TRANSITION_OFFSET = 0.65;
 const BUFFER_FACTOR = 1.0;
@@ -24,6 +27,7 @@ type GeneratedBounds = {
 
 export class DynamicGrid {
   private map: mapboxgl.Map;
+  private unitsPerDegree: number;
   private generatedBounds: GeneratedBounds | null = null;
   private generatedStep = 0;
   private lastMinorOpacity = -1;
@@ -31,8 +35,19 @@ export class DynamicGrid {
   private rAfPending = false;
   private moveHandler: (() => void) | null = null;
 
-  constructor(map: mapboxgl.Map) {
+  constructor(map: mapboxgl.Map, lengthUnit: LengthUnit) {
     this.map = map;
+    this.unitsPerDegree =
+      lengthUnit === "ft" ? FEET_PER_DEGREE : METERS_PER_DEGREE;
+  }
+
+  setLengthUnit(lengthUnit: LengthUnit) {
+    const newUnitsPerDegree =
+      lengthUnit === "ft" ? FEET_PER_DEGREE : METERS_PER_DEGREE;
+    if (newUnitsPerDegree !== this.unitsPerDegree) {
+      this.unitsPerDegree = newUnitsPerDegree;
+      this.forceUpdate();
+    }
   }
 
   attach() {
@@ -67,9 +82,12 @@ export class DynamicGrid {
   }
 
   private updateFrame() {
-    const { bounds, stepMeters, fraction } = calcGridParams(this.map);
+    const { bounds, stepUnits, fraction } = calcGridParams(
+      this.map,
+      this.unitsPerDegree,
+    );
     const stepChanged =
-      this.generatedStep !== 0 && stepMeters !== this.generatedStep;
+      this.generatedStep !== 0 && stepUnits !== this.generatedStep;
 
     if (stepChanged) {
       this.map.setPaintProperty(
@@ -82,8 +100,8 @@ export class DynamicGrid {
       this.lastMinorWidth = WIDTH_MINOR_MIN;
     }
 
-    if (this.shouldRegenerate(stepMeters, bounds)) {
-      this.regenerateGrid(bounds, stepMeters);
+    if (this.shouldRegenerate(stepUnits, bounds)) {
+      this.regenerateGrid(bounds, stepUnits);
     }
 
     if (!stepChanged) {
@@ -104,10 +122,10 @@ export class DynamicGrid {
   }
 
   private shouldRegenerate(
-    stepMeters: number,
+    stepUnits: number,
     bounds: mapboxgl.LngLatBounds,
   ): boolean {
-    if (!this.generatedBounds || stepMeters !== this.generatedStep) return true;
+    if (!this.generatedBounds || stepUnits !== this.generatedStep) return true;
 
     const lngMargin =
       Math.abs(bounds.getEast() - bounds.getWest()) * REGEN_THRESHOLD;
@@ -122,8 +140,8 @@ export class DynamicGrid {
     );
   }
 
-  private regenerateGrid(bounds: mapboxgl.LngLatBounds, stepMeters: number) {
-    const stepDeg = stepMeters / METERS_PER_DEGREE;
+  private regenerateGrid(bounds: mapboxgl.LngLatBounds, stepUnits: number) {
+    const stepDeg = stepUnits / this.unitsPerDegree;
 
     const lngSpan = bounds.getEast() - bounds.getWest();
     const latSpan = bounds.getNorth() - bounds.getSouth();
@@ -137,7 +155,7 @@ export class DynamicGrid {
     const north = Math.min(85.051, bounds.getNorth() + latSpan * BUFFER_FACTOR);
 
     this.generatedBounds = { west, east, south, north };
-    this.generatedStep = stepMeters;
+    this.generatedStep = stepUnits;
 
     const startLng = Math.floor(west / stepDeg);
     const endLng = Math.ceil(east / stepDeg);
@@ -201,18 +219,18 @@ export class DynamicGrid {
   }
 }
 
-function calcGridParams(map: mapboxgl.Map) {
+function calcGridParams(map: mapboxgl.Map, unitsPerDegree: number) {
   const bounds = map.getBounds();
   const lngSpan = Math.abs(bounds.getEast() - bounds.getWest());
-  const viewWidthMeters = lngSpan * METERS_PER_DEGREE;
-  const idealStep = viewWidthMeters / DENSITY_TARGET;
+  const viewWidth = lngSpan * unitsPerDegree;
+  const idealStep = viewWidth / DENSITY_TARGET;
 
   const exponent = Math.log10(idealStep);
   const snappedExp = Math.floor(exponent + TRANSITION_OFFSET);
-  const stepMeters = Math.pow(10, snappedExp);
+  const stepUnits = Math.pow(10, snappedExp);
 
   const bandTop = snappedExp + (1 - TRANSITION_OFFSET);
   const fraction = Math.max(0, Math.min(1, bandTop - exponent));
 
-  return { bounds, stepMeters, fraction };
+  return { bounds, stepUnits, fraction };
 }

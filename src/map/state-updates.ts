@@ -306,18 +306,19 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         }
 
         if (hasNewImport || hasNewStyles) {
+          const lengthUnit = quantities.getUnit("length") === "ft" ? "ft" : "m";
           if (isUnprojected && !dynamicGridRef.current) {
-            dynamicGridRef.current = new DynamicGrid(map.map);
+            dynamicGridRef.current = new DynamicGrid(map.map, lengthUnit);
             dynamicGridRef.current.attach();
           } else if (isUnprojected && dynamicGridRef.current) {
+            dynamicGridRef.current.setLengthUnit(lengthUnit);
             dynamicGridRef.current.forceUpdate();
           } else if (!isUnprojected && dynamicGridRef.current) {
             dynamicGridRef.current.detach();
             dynamicGridRef.current = null;
           }
           if (isUnprojected) {
-            const scaleUnit =
-              quantities.getUnit("length") === "ft" ? "imperial" : "metric";
+            const scaleUnit = lengthUnit === "ft" ? "imperial" : "metric";
             if (scaleControlRef.current) {
               map.map.removeControl(scaleControlRef.current);
             }
