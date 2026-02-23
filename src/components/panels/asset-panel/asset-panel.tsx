@@ -329,7 +329,6 @@ export function AssetPanel({
       const pump = asset as Pump;
       return (
         <PumpEditor
-          key={pump.speedPatternId}
           pump={pump}
           hydraulicModel={hydraulicModel}
           onPropertyChange={handlePropertyChange}
@@ -1459,7 +1458,13 @@ const PumpEditor = ({
               readOnly={readonly}
             />
             {selectedVariableSpeed === VARIABLE_SPEED_PATTERN_BASED && (
-              <div className="bg-gray-50 p-2 py-1 mt-1 -mr-2 border-l-2 border-gray-400 rounded-sm">
+              <NestedComparisonField
+                comparison={getComparison(
+                  "speedPatternId",
+                  pump.speedPatternId,
+                )}
+                options={speedPatternOptions.flat()}
+              >
                 <SelectRow
                   name="speedPattern"
                   selected={selectedSpeedPatternId}
@@ -1468,14 +1473,10 @@ const PumpEditor = ({
                   stickyFirstGroup
                   nullable={true}
                   placeholder={translate("constant")}
-                  comparison={getComparison(
-                    "speedPatternId",
-                    pump.speedPatternId,
-                  )}
                   onChange={handleSpeedPatternChange}
                   readOnly={readonly}
                 />
-              </div>
+              </NestedComparisonField>
             )}
           </>
         )}
@@ -1512,14 +1513,18 @@ const AverageHeadField = ({
   unit: Unit;
   decimals?: number;
 }) => {
-  const translate = useTranslate();
   const translateUnit = useTranslateUnit();
 
-  const nestedContent = (
-    <div className="bg-gray-50 p-2 py-1 mt-1 -mr-2 border-l-2 border-gray-400 rounded-sm relative">
-      {comparison.hasChanged && (
-        <div className="absolute -left-4 top-0 bottom-0 w-1 bg-purple-500 rounded-full" />
-      )}
+  const baseDisplayValue =
+    comparison.baseValue != null
+      ? `${localizeDecimal(comparison.baseValue, { decimals })} ${translateUnit(unit)}`
+      : undefined;
+
+  return (
+    <NestedComparisonField
+      comparison={comparison}
+      baseDisplayValue={baseDisplayValue}
+    >
       <QuantityRow
         name="headAverage"
         value={averageHead}
@@ -1527,18 +1532,48 @@ const AverageHeadField = ({
         decimals={decimals}
         readOnly={true}
       />
+    </NestedComparisonField>
+  );
+};
+
+const NestedComparisonField = ({
+  comparison,
+  baseDisplayValue,
+  options,
+  children,
+}: {
+  comparison: PropertyComparison;
+  baseDisplayValue?: string;
+  options?: SelectorOption<number>[];
+  children: React.ReactNode;
+}) => {
+  const translate = useTranslate();
+
+  const resolvedBaseDisplayValue =
+    baseDisplayValue ??
+    (comparison.hasChanged && comparison.baseValue != null && options
+      ? (options.find((o) => o.value === comparison.baseValue)?.label ??
+        String(comparison.baseValue))
+      : comparison.hasChanged && comparison.baseValue == null
+        ? translate("empty")
+        : undefined);
+
+  const nestedContent = (
+    <div className="bg-gray-50 p-2 py-1 mt-1 -mr-2 border-l-2 border-gray-400 rounded-sm relative">
+      {comparison.hasChanged && (
+        <div className="absolute -left-4 top-0 bottom-0 w-1 bg-purple-500 rounded-full" />
+      )}
+      {children}
     </div>
   );
 
-  if (comparison.hasChanged && comparison.baseValue != null) {
+  if (comparison.hasChanged && resolvedBaseDisplayValue) {
     return (
       <Tooltip.Root delayDuration={200}>
         <Tooltip.Trigger asChild>{nestedContent}</Tooltip.Trigger>
         <Tooltip.Portal>
           <TContent side="left" sideOffset={4}>
-            {translate("scenarios.main")}:{" "}
-            {localizeDecimal(comparison.baseValue, { decimals })}{" "}
-            {translateUnit(unit)}
+            {translate("scenarios.main")}: {resolvedBaseDisplayValue}
           </TContent>
         </Tooltip.Portal>
       </Tooltip.Root>
