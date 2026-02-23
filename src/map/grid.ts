@@ -25,7 +25,7 @@ type GeneratedBounds = {
   north: number;
 };
 
-export class DynamicGrid {
+export class Grid {
   private map: mapboxgl.Map;
   private unitsPerDegree: number;
   private generatedBounds: GeneratedBounds | null = null;

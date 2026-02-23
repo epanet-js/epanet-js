@@ -1,5 +1,5 @@
 import { atom, useAtomValue, useSetAtom } from "jotai";
-import { useCallback, useRef } from "react";
+import { type MutableRefObject, useCallback, useRef } from "react";
 import { Unit } from "src/quantity";
 import { Moment } from "src/lib/persistence/moment";
 import {
@@ -32,7 +32,7 @@ import {
   FeatureSources,
 } from "./data-source";
 import mapboxgl from "mapbox-gl";
-import { DynamicGrid } from "./dynamic-grid";
+import { Grid } from "./grid";
 import { ISymbology, LayerConfigMap, SYMBOLIZATION_NONE } from "src/types";
 import { buildBaseStyle, makeLayers } from "./build-style";
 import { LayerId } from "./layers";
@@ -226,7 +226,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const customerPointsOverlayRef = useRef<CustomerPointsOverlay>([]);
   const selectionDeckLayersRef = useRef<CustomerPointsOverlay>([]);
   const ephemeralDeckLayersRef = useRef<CustomerPointsOverlay>([]);
-  const dynamicGridRef = useRef<DynamicGrid | null>(null);
+  const gridRef = useRef<Grid | null>(null);
   const scaleControlRef = useRef<mapboxgl.ScaleControl | null>(null);
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
@@ -306,30 +306,13 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         }
 
         if (hasNewImport || hasNewStyles) {
-          const lengthUnit = quantities.getUnit("length") === "ft" ? "ft" : "m";
-          if (isUnprojected && !dynamicGridRef.current) {
-            dynamicGridRef.current = new DynamicGrid(map.map, lengthUnit);
-            dynamicGridRef.current.attach();
-          } else if (isUnprojected && dynamicGridRef.current) {
-            dynamicGridRef.current.setLengthUnit(lengthUnit);
-            dynamicGridRef.current.forceUpdate();
-          } else if (!isUnprojected && dynamicGridRef.current) {
-            dynamicGridRef.current.detach();
-            dynamicGridRef.current = null;
-          }
-          if (isUnprojected) {
-            const scaleUnit = lengthUnit === "ft" ? "imperial" : "metric";
-            if (scaleControlRef.current) {
-              map.map.removeControl(scaleControlRef.current);
-            }
-            scaleControlRef.current = new mapboxgl.ScaleControl({
-              unit: scaleUnit,
-            });
-            map.map.addControl(scaleControlRef.current, "bottom-left");
-          } else if (scaleControlRef.current) {
-            map.map.removeControl(scaleControlRef.current);
-            scaleControlRef.current = null;
-          }
+          updateGrid({
+            map,
+            isUnprojected,
+            lengthUnit: quantities.getUnit("length") === "ft" ? "ft" : "m",
+            gridRef,
+            scaleControlRef,
+          });
         }
 
         if (hasNewEditions && !hasSyncMomentChanged) {
@@ -855,3 +838,41 @@ const buildSelectionOverlayForCustomerPoints = (
   }
   return [];
 };
+
+function updateGrid({
+  map,
+  isUnprojected,
+  lengthUnit,
+  gridRef,
+  scaleControlRef,
+}: {
+  map: MapEngine;
+  isUnprojected: boolean;
+  lengthUnit: "ft" | "m";
+  gridRef: MutableRefObject<Grid | null>;
+  scaleControlRef: MutableRefObject<mapboxgl.ScaleControl | null>;
+}) {
+  if (isUnprojected && !gridRef.current) {
+    gridRef.current = new Grid(map.map, lengthUnit);
+    gridRef.current.attach();
+  } else if (isUnprojected && gridRef.current) {
+    gridRef.current.setLengthUnit(lengthUnit);
+    gridRef.current.forceUpdate();
+  } else if (!isUnprojected && gridRef.current) {
+    gridRef.current.detach();
+    gridRef.current = null;
+  }
+  if (isUnprojected) {
+    const scaleUnit = lengthUnit === "ft" ? "imperial" : "metric";
+    if (scaleControlRef.current) {
+      map.map.removeControl(scaleControlRef.current);
+    }
+    scaleControlRef.current = new mapboxgl.ScaleControl({
+      unit: scaleUnit,
+    });
+    map.map.addControl(scaleControlRef.current, "bottom-left");
+  } else if (scaleControlRef.current) {
+    map.map.removeControl(scaleControlRef.current);
+    scaleControlRef.current = null;
+  }
+}
