@@ -38,8 +38,10 @@ const roadmapUrls = {
 
 export const GeocodingNotSupportedDialog = ({
   onClose: _onClose,
+  onImportNonProjected,
 }: {
   onClose: () => void;
+  onImportNonProjected?: () => void;
 }) => {
   const translate = useTranslate();
   const showWelcome = useShowWelcome();
@@ -91,9 +93,19 @@ export const GeocodingNotSupportedDialog = ({
         >
           {translate("reprojectNetwork")}
         </Button>
-        <Button type="button" variant="default" onClick={goToWelcome}>
-          {translate("seeDemoNetworks")}
-        </Button>
+        {onImportNonProjected ? (
+          <Button
+            type="button"
+            variant="default"
+            onClick={onImportNonProjected}
+          >
+            {translate("loadInXYGrid")}
+          </Button>
+        ) : (
+          <Button type="button" variant="default" onClick={goToWelcome}>
+            {translate("seeDemoNetworks")}
+          </Button>
+        )}
       </SimpleDialogButtons>
     </>
   );

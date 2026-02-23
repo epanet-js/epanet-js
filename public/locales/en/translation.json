@@ -154,6 +154,7 @@
   "failedToOpenModelDetail": "Make sure to provide a valid INP file.",
   "understood": "Understood",
   "reprojectNetwork": "Reproject network",
+  "loadInXYGrid": "Load in X-Y grid",
   "importAsUnprojected": "Import as unprojected",
   "inpProjectionChoice": {
     "title": "Set your network's location",
