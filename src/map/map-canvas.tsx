@@ -374,6 +374,9 @@ export const MapCanvas = memo(function MapCanvas({
     if (cursor === "crosshair-add") return "cursor-crosshair-add";
     if (cursor === "crosshair-subtract") return "cursor-crosshair-subtract";
 
+    if (cursor === "pointer-add") return "cursor-pointer-add";
+    if (cursor === "pointer-subtract") return "cursor-pointer-subtract";
+
     if (cursor === "move") return "cursor-move";
 
     if (

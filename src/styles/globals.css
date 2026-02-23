@@ -49,6 +49,8 @@ details > summary {
   --cursor-crosshair: url('/cursors/cursor-crosshair.svg') 10 10, crosshair;
   --cursor-crosshair-add: url('/cursors/cursor-crosshair-add.svg') 10 10, crosshair;
   --cursor-crosshair-subtract: url('/cursors/cursor-crosshair-subtract.svg') 10 10, crosshair;
+  --cursor-pointer-add: url('/cursors/cursor-pointer-add.svg') 8 1, pointer;
+  --cursor-pointer-subtract: url('/cursors/cursor-pointer-subtract.svg') 8 1, pointer;
   --cursor-grab: url('/cursors/cursor-grab.svg') 10 1, grab;
   --cursor-grabbing: url('/cursors/cursor-grabbing.svg') 10 10, grab;
   --cursor-resize-ns: url('/cursors/cursor-resize-ns.svg') 15 15, ns-resize;
@@ -134,6 +136,14 @@ body:has(.ff-cursor-family) .cursor-move .mapboxgl-canvas-container {
 
 .cursor-crosshair-subtract .mapboxgl-canvas-container {
   cursor: var(--cursor-crosshair-subtract) !important;
+}
+
+.cursor-pointer-add .mapboxgl-canvas-container {
+  cursor: var(--cursor-pointer-add) !important;
+}
+
+.cursor-pointer-subtract .mapboxgl-canvas-container {
+  cursor: var(--cursor-pointer-subtract) !important;
 }
 
 .placemark-cursor-replace .mapboxgl-canvas-container {

@@ -15,6 +15,7 @@ import { notify } from "src/components/notifications";
 import { Asset, Pipe, Valve } from "src/hydraulic-model/asset-types";
 import { runTrace } from "src/lib/trace";
 import { useTranslate } from "src/hooks/use-translate";
+import { useKeyboardState } from "src/keyboard/use-keyboard-state";
 
 const TRACE_MODE_MAP = {
   [Mode.BOUNDARY_TRACE_SELECT]: "boundary",
@@ -36,8 +37,15 @@ export function useTraceSelectHandlers({
   const resultsReader = useAtomValue(simulationResultsAtom);
   const setMode = useSetAtom(modeAtom);
   const setCursor = useSetAtom(cursorStyleAtom);
-  const { selectAsset, selectAssets, clearSelection } = useSelection(selection);
+  const {
+    selectAsset,
+    selectAssets,
+    clearSelection,
+    extendSelection,
+    removeFromSelection,
+  } = useSelection(selection);
   const translate = useTranslate();
+  const { isShiftHeld, isAltHeld } = useKeyboardState();
 
   const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -46,15 +54,30 @@ export function useTraceSelectHandlers({
     abortControllerRef.current = null;
   };
 
+  const identifyOperation = (): "add" | "subtract" | undefined => {
+    if (isAltHeld()) return "subtract";
+    if (isShiftHeld()) return "add";
+    return undefined;
+  };
+
+  const getPointerCursor = () => {
+    const operation = identifyOperation();
+    if (operation === "add") return "pointer-add";
+    if (operation === "subtract") return "pointer-subtract";
+    return "pointer";
+  };
+
   const handleClick = async (
     e: mapboxgl.MapMouseEvent | mapboxgl.MapTouchEvent,
   ) => {
     e.preventDefault();
     abortPending();
 
+    const operation = identifyOperation();
+
     const clickedAsset = getClickedAsset(e);
     if (!clickedAsset) {
-      clearSelection();
+      if (!operation) clearSelection();
       return;
     }
 
@@ -83,7 +106,10 @@ export function useTraceSelectHandlers({
       startNodeIds.push(clickedAsset.id);
     }
 
-    selectAsset(clickedAsset.id);
+    // Only show intermediate selection when replacing (not appending/subtracting)
+    if (!operation) {
+      selectAsset(clickedAsset.id);
+    }
 
     const abortController = new AbortController();
     abortControllerRef.current = abortController;
@@ -102,10 +128,14 @@ export function useTraceSelectHandlers({
 
       if (abortController.signal.aborted) return;
 
-      if (assetIds.length > 0) {
-        selectAssets(assetIds);
+      const idsToApply = assetIds.length > 0 ? assetIds : [clickedAsset.id];
+
+      if (operation === "add") {
+        extendSelection(idsToApply);
+      } else if (operation === "subtract") {
+        removeFromSelection(idsToApply);
       } else {
-        selectAsset(clickedAsset.id);
+        selectAssets(idsToApply);
       }
     } catch (err) {
       if (err instanceof DOMException && err.name === "AbortError") return;
@@ -136,7 +166,7 @@ export function useTraceSelectHandlers({
       if (hoveredAsset && isForbiddenTarget(hoveredAsset, traceMode)) {
         setCursor("not-allowed");
       } else {
-        setCursor("pointer");
+        setCursor(getPointerCursor());
       }
     },
     16,
@@ -149,6 +179,8 @@ export function useTraceSelectHandlers({
     down: noop,
     up: noop,
     double: noop,
+    keydown: () => setCursor(getPointerCursor()),
+    keyup: () => setCursor(getPointerCursor()),
     exit: () => {
       abortPending();
       setMode({ mode: Mode.NONE });
