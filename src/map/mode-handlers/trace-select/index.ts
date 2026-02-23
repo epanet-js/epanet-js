@@ -12,7 +12,7 @@ import { useClickedAsset } from "../utils";
 import { searchNearbyRenderedFeatures } from "src/map/search";
 import { clickableLayers } from "src/map/layers/layer";
 import { notify } from "src/components/notifications";
-import { Asset, LinkAsset, Pipe, Valve } from "src/hydraulic-model/asset-types";
+import { Asset, Pipe, Valve } from "src/hydraulic-model/asset-types";
 import { runTrace } from "src/lib/trace";
 import { useTranslate } from "src/hooks/use-translate";
 
@@ -79,8 +79,6 @@ export function useTraceSelectHandlers({
 
     if (clickedAsset.isLink) {
       startLinkIds.push(clickedAsset.id);
-      const [startNode, endNode] = (clickedAsset as LinkAsset).connections;
-      startNodeIds.push(startNode, endNode);
     } else {
       startNodeIds.push(clickedAsset.id);
     }

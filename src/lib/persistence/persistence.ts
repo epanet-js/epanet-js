@@ -110,6 +110,7 @@ export class Persistence implements IPersistenceWithSnapshots {
       this.store.set(momentLogAtom, momentLog);
       this.store.set(mapSyncMomentAtom, { pointer: -1, version: 0 });
       this.store.set(simulationAtom, initialSimulationState);
+      this.store.set(simulationResultsAtom, null);
       this.store.set(nodeSymbologyAtom, nullSymbologySpec.node);
       this.store.set(linkSymbologyAtom, nullSymbologySpec.link);
       this.store.set(savedSymbologiesAtom, new Map());

@@ -19,13 +19,16 @@ export function boundaryTrace(
   const resultNodes: AssetId[] = [];
   const resultLinks: AssetId[] = [];
 
-  // Include any pre-selected links (when starting from a link click)
+  const stack = [...start.nodeIds];
+
+  // When starting from a link, mark it visited and seed both connected nodes
   for (const linkId of start.linkIds) {
     visitedLinks.add(linkId);
     resultLinks.push(linkId);
-  }
 
-  const stack = [...start.nodeIds];
+    const [startNode, endNode] = topology.getNodes(linkId);
+    stack.push(startNode, endNode);
+  }
 
   while (stack.length > 0) {
     const nodeId = stack.pop()!;
