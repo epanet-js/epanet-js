@@ -3,11 +3,9 @@ import { useAtomValue } from "jotai";
 import { DialogContainer, DialogHeader, useDialogState } from "../../dialog";
 import { useTranslate } from "src/hooks/use-translate";
 import { Button } from "src/components/elements";
-import { PatternSidebar } from "./pattern-sidebar";
 import { GroupedPatternSidebar } from "./grouped-pattern-sidebar";
 import { PatternDetail } from "./pattern-detail";
 import { useIsSnapshotLocked } from "src/hooks/use-is-snapshot-locked";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   PatternMultipliers,
   Patterns,
@@ -39,7 +37,6 @@ export const CurvesAndPatternsDialog = ({
   const hydraulicModel = useAtomValue(stagingModelAtom);
   const userTracking = useUserTracking();
   const isSnapshotLocked = useIsSnapshotLocked();
-  const isMorePatternsOn = useFeatureFlag("FLAG_MORE_PATTERNS");
   const [selectedPatternId, setSelectedPatternId] = useState<PatternId | null>(
     initialPatternId ?? null,
   );
@@ -67,7 +64,6 @@ export const CurvesAndPatternsDialog = ({
 
   useEffect(
     function trackUncategorizedPatterns() {
-      if (!isMorePatternsOn) return;
       const uncategorizedCount = [...hydraulicModel.patterns.values()].filter(
         (p) => {
           const type = p.type;
@@ -84,7 +80,7 @@ export const CurvesAndPatternsDialog = ({
         count: uncategorizedCount,
       });
     },
-    [hydraulicModel.patterns, isMorePatternsOn, userTracking],
+    [hydraulicModel.patterns, userTracking],
   );
 
   const getPatternMultipliers = useCallback(
@@ -206,26 +202,9 @@ export const CurvesAndPatternsDialog = ({
     <DialogContainer size="lg" height="lg" onClose={handleCancel}>
       <DialogHeader title={translate("curvesAndPatterns")} />
       <div className="flex-1 flex min-h-0">
-        {isMorePatternsOn ? (
-          <div className="flex-shrink-0 flex">
-            <GroupedPatternSidebar
-              width={sidebarWidth}
-              patterns={editedPatterns}
-              selectedPatternId={selectedPatternId}
-              minPatternSteps={minPatternSteps}
-              onSelectPattern={setSelectedPatternId}
-              onAddPattern={handleAddPattern}
-              onChangePattern={handlePatternChange}
-              onDeletePattern={handleDeletePattern}
-              readOnly={isSnapshotLocked}
-            />
-            <PatternSidebarResizer
-              width={sidebarWidth}
-              onWidthChange={setSidebarWidth}
-            />
-          </div>
-        ) : (
-          <PatternSidebar
+        <div className="flex-shrink-0 flex">
+          <GroupedPatternSidebar
+            width={sidebarWidth}
             patterns={editedPatterns}
             selectedPatternId={selectedPatternId}
             minPatternSteps={minPatternSteps}
@@ -235,7 +214,11 @@ export const CurvesAndPatternsDialog = ({
             onDeletePattern={handleDeletePattern}
             readOnly={isSnapshotLocked}
           />
-        )}
+          <PatternSidebarResizer
+            width={sidebarWidth}
+            onWidthChange={setSidebarWidth}
+          />
+        </div>
         <div className="flex-1 flex flex-col min-h-0 w-full ml-1">
           {selectedPatternId ? (
             <PatternDetail
