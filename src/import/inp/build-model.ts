@@ -37,8 +37,8 @@ import {
   Curves,
   defaultCurvePoints,
   ICurve,
-  isValidPumpCurve,
-  getPumpCurveType,
+  isValidCurve,
+  getCurvePointsType,
 } from "src/hydraulic-model/curves";
 import {
   LabelResolver,
@@ -526,7 +526,7 @@ const addPump = (
       };
     } else {
       const curve = curvesContext.curves.get(curveId)!;
-      if (!isValidPumpCurve(curve.points)) {
+      if (!isValidCurve(curve.points)) {
         issues.addInvalidPumpCurve();
       }
       definitionProps = {
@@ -871,7 +871,7 @@ const addCurves = (
 
   for (const curve of curves.values()) {
     if (curve.type === "pump") {
-      const curveType = getPumpCurveType(curve.points);
+      const curveType = getCurvePointsType(curve.points);
       const curvePumps = pumpCurves.get(curve.id) || [];
       if (curveType === "multiPointCurve" || curvePumps.length !== 1) {
         validCurves.set(curve.id, curve);

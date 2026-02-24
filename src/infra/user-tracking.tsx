@@ -754,32 +754,37 @@ type PatternsUncategorized = {
   count: number;
 };
 
-type PumpLibraryOpened = {
-  name: "pumpLibrary.opened";
+type CurvesLibraryOpened = {
+  name: "curvesLibrary.opened";
   source: "toolbar" | "pump";
 };
 
-type PumpCurvesUpdated = {
-  name: "pumpCurves.updated";
+type CurvesUpdated = {
+  name: "curves.updated";
   count: number;
 };
 
-type PumpCurvesDiscarded = {
-  name: "pumpCurves.discarded";
+type CurvesDiscarded = {
+  name: "curves.discarded";
 };
 
-type PumpCurveAdded = {
-  name: "pumpCurve.added";
+type CurveAdded = {
+  name: "curve.added";
   source: "new" | "clone";
 };
 
-type PumpCurveDeleted = {
-  name: "pumpCurve.deleted";
+type CurveDeleted = {
+  name: "curve.deleted";
 };
 
-type PumpCurveChanged = {
-  name: "pumpCurve.changed";
+type CurveChanged = {
+  name: "curve.changed";
   property: "label" | "points";
+};
+
+type CurvesUncategorized = {
+  name: "curves.uncategorized";
+  count: number;
 };
 
 export type UserEvent =
@@ -942,7 +947,7 @@ export type UserEvent =
     }
   | { name: "simulationSettings.opened"; source: string }
   | { name: "controls.opened"; source: string }
-  | { name: "curvesAndPatterns.opened"; source: string }
+  | { name: "patternsLibrary.opened"; source: string }
   | { name: "assetControls.opened"; source: string }
   | {
       name: "simulationSetting.changed";
@@ -985,12 +990,13 @@ export type UserEvent =
   | PatternsUpdated
   | PatternsDiscarded
   | PatternsUncategorized
-  | PumpLibraryOpened
-  | PumpCurvesUpdated
-  | PumpCurvesDiscarded
-  | PumpCurveAdded
-  | PumpCurveDeleted
-  | PumpCurveChanged;
+  | CurvesLibraryOpened
+  | CurvesUpdated
+  | CurvesDiscarded
+  | CurveAdded
+  | CurveDeleted
+  | CurveChanged
+  | CurvesUncategorized;
 
 const debugPostHog = {
   capture: (...data: any[]) => {

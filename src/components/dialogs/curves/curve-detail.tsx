@@ -2,15 +2,15 @@ import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { CurveGraph } from "./curve-graph";
 import {
   CurvePoint,
-  PumpCurveType,
+  CurvePointsType,
   getPumpCurveErrors,
   stripTrailingEmptyPoints,
 } from "src/hydraulic-model/curves";
 import {
-  fitPumpCurve,
+  fitCurve,
   generateSmoothPointsFromCoefficients,
-  generateSmoothPumpCurvePoints,
-} from "src/hydraulic-model/pump-curve-fitting";
+  generateSmoothCurvePoints,
+} from "src/hydraulic-model/curve-fitting";
 import { type GridSelection } from "src/components/data-grid";
 import { CurveTable, type CurveTableRef } from "./curve-table";
 import { useTranslate } from "src/hooks/use-translate";
@@ -110,17 +110,17 @@ export function CurveDetail({
 
   const { curveType, smoothCurvePoints } = useMemo(() => {
     if (meaningfulPoints.length === 1) {
-      const curveType: PumpCurveType = "designPointCurve";
+      const curveType: CurvePointsType = "designPointCurve";
       if (!isValid)
         return { curveType, smoothCurvePoints: null as CurvePoint[] | null };
-      const smooth = generateSmoothPumpCurvePoints(meaningfulPoints, curveType);
+      const smooth = generateSmoothCurvePoints(meaningfulPoints, curveType);
       return { curveType, smoothCurvePoints: smooth };
     }
 
     if (meaningfulPoints.length === 3) {
-      const coefficients = fitPumpCurve(meaningfulPoints);
+      const coefficients = fitCurve(meaningfulPoints);
       if (coefficients) {
-        const curveType: PumpCurveType = "standardCurve";
+        const curveType: CurvePointsType = "standardCurve";
         if (!isValid)
           return { curveType, smoothCurvePoints: null as CurvePoint[] | null };
         const smooth = generateSmoothPointsFromCoefficients(coefficients);
@@ -129,7 +129,7 @@ export function CurveDetail({
     }
 
     return {
-      curveType: "multiPointCurve" as PumpCurveType,
+      curveType: "multiPointCurve" as CurvePointsType,
       smoothCurvePoints: null as CurvePoint[] | null,
     };
   }, [meaningfulPoints, isValid]);

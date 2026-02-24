@@ -87,13 +87,13 @@ export type SimulationProgressDialogState = {
   totalDuration: number;
 };
 
-export type PatternsDialog = {
-  type: "patterns";
+export type PatternsLibraryDialog = {
+  type: "patternsLibrary";
   initialPatternId?: number;
 };
 
-export type PumpCurvesDialogState = {
-  type: "pumpLibrary";
+export type CurvesLibraryDialogState = {
+  type: "curvesLibrary";
   initialCurveId?: CurveId;
 };
 
@@ -158,8 +158,8 @@ export type DialogState =
   | SimulationProgressDialogState
   | { type: "simulationSettings" }
   | { type: "controls" }
-  | PatternsDialog
-  | PumpCurvesDialogState
+  | PatternsLibraryDialog
+  | CurvesLibraryDialogState
   | DeleteScenarioConfirmationDialogState
   | RenameScenarioDialogState
   | ScenariosPaywallDialogState

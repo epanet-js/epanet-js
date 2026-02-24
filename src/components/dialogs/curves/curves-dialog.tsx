@@ -12,7 +12,7 @@ import {
   CurveId,
   CurvePoint,
   buildDefaultPumpCurve,
-  isValidPumpCurve,
+  isValidCurve,
   stripTrailingEmptyPoints,
 } from "src/hydraulic-model/curves";
 import { HydraulicModel } from "src/hydraulic-model";
@@ -27,7 +27,7 @@ import { LabelManager } from "src/hydraulic-model/label-manager";
 
 type CurveUpdate = Partial<Pick<ICurve, "label" | "points">>;
 
-export const PumpCurvesDialog = ({
+export const CurvesDialog = ({
   initialCurveId,
 }: {
   initialCurveId?: CurveId;
@@ -80,7 +80,7 @@ export const PumpCurvesDialog = ({
       });
 
       const property = "label" in updates ? "label" : "points";
-      userTracking.capture({ name: "pumpCurve.changed", property });
+      userTracking.capture({ name: "curve.changed", property });
     },
     [userTracking],
   );
@@ -100,7 +100,7 @@ export const PumpCurvesDialog = ({
       });
       labelManagerRef.current.register(newCurve.label, "curve", newCurve.id);
 
-      userTracking.capture({ name: "pumpCurve.added", source });
+      userTracking.capture({ name: "curve.added", source });
       return newCurve.id;
     },
     [editedCurves, userTracking],
@@ -128,7 +128,7 @@ export const PumpCurvesDialog = ({
       if (selectedCurveId === curveId) {
         setSelectedCurveId(null);
       }
-      userTracking.capture({ name: "pumpCurve.deleted" });
+      userTracking.capture({ name: "curve.deleted" });
     },
     [hydraulicModel, editedCurves, selectedCurveId, translate, userTracking],
   );
@@ -155,7 +155,7 @@ export const PumpCurvesDialog = ({
   const invalidCurveIds = useMemo(() => {
     const ids = new Set<CurveId>();
     for (const [id, curve] of cleanedCurves) {
-      if (curve.type === "pump" && !isValidPumpCurve(curve.points)) {
+      if (curve.type === "pump" && !isValidCurve(curve.points)) {
         ids.add(id);
       }
     }
@@ -180,7 +180,7 @@ export const PumpCurvesDialog = ({
     });
     transact(moment);
     userTracking.capture({
-      name: "pumpCurves.updated",
+      name: "curves.updated",
       count: cleanedCurves.size,
     });
 
@@ -206,7 +206,7 @@ export const PumpCurvesDialog = ({
   }, [hasChanges, closeDialog]);
 
   const handleDiscard = useCallback(() => {
-    userTracking.capture({ name: "pumpCurves.discarded" });
+    userTracking.capture({ name: "curves.discarded" });
     closeDialog();
   }, [userTracking, closeDialog]);
 

@@ -1,10 +1,10 @@
-import { CurvePoint, PumpCurveType } from "./curves";
+import { CurvePoint, CurvePointsType } from "./curves";
 
 const TINY = 1e-6;
 const MAX_ITER = 5;
 const CONV_TOL = 0.01;
 
-export interface PumpCurveCoefficients {
+export interface CurveCoefficients {
   a: number;
   b: number;
   c: number;
@@ -19,9 +19,7 @@ export function synthesizeThreePoints(designPoint: CurvePoint): CurvePoint[] {
   ];
 }
 
-export function fitPumpCurve(
-  threePoints: CurvePoint[],
-): PumpCurveCoefficients | null {
+export function fitCurve(threePoints: CurvePoint[]): CurveCoefficients | null {
   if (threePoints.length < 3) return null;
 
   const q0 = threePoints[0].x;
@@ -76,7 +74,7 @@ export function fitPumpCurve(
 }
 
 export function generateSmoothPointsFromCoefficients(
-  coefficients: PumpCurveCoefficients,
+  coefficients: CurveCoefficients,
 ): CurvePoint[] | null {
   const { a, b, c } = coefficients;
 
@@ -95,9 +93,9 @@ export function generateSmoothPointsFromCoefficients(
   return smoothPoints;
 }
 
-export function generateSmoothPumpCurvePoints(
+export function generateSmoothCurvePoints(
   points: CurvePoint[],
-  curveType: PumpCurveType,
+  curveType: CurvePointsType,
 ): CurvePoint[] | null {
   if (curveType === "multiPointCurve" || points.length === 0) return null;
 
@@ -106,7 +104,7 @@ export function generateSmoothPumpCurvePoints(
       ? synthesizeThreePoints(points[0])
       : points;
 
-  const coefficients = fitPumpCurve(threePoints);
+  const coefficients = fitCurve(threePoints);
   if (!coefficients) return null;
 
   return generateSmoothPointsFromCoefficients(coefficients);

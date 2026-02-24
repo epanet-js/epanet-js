@@ -271,17 +271,11 @@ const PatternsDialog = dynamic<{
   },
 );
 
-const PumpCurvesDialog = dynamic<{
+const CurvesDialog = dynamic<{
   initialCurveId?: number;
-}>(
-  () =>
-    import("src/components/dialogs/pump-curves").then(
-      (r) => r.PumpCurvesDialog,
-    ),
-  {
-    loading: () => <LoadingDialog />,
-  },
-);
+}>(() => import("src/components/dialogs/curves").then((r) => r.CurvesDialog), {
+  loading: () => <LoadingDialog />,
+});
 
 const DeleteScenarioConfirmationDialog = dynamic<{
   scenarioId: string;
@@ -427,11 +421,11 @@ export const Dialogs = memo(function Dialogs() {
   if (dialog.type === "controls") {
     return <ControlsDialog />;
   }
-  if (dialog.type === "patterns") {
+  if (dialog.type === "patternsLibrary") {
     return <PatternsDialog initialPatternId={dialog.initialPatternId} />;
   }
-  if (dialog.type === "pumpLibrary") {
-    return <PumpCurvesDialog initialCurveId={dialog.initialCurveId} />;
+  if (dialog.type === "curvesLibrary") {
+    return <CurvesDialog initialCurveId={dialog.initialCurveId} />;
   }
 
   if (dialog.type === "upgrade") {

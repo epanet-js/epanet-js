@@ -1,29 +1,28 @@
 import { useSetAtom } from "jotai";
 import { useCallback } from "react";
-import { CurveId } from "src/hydraulic-model/curves";
 import { useUserTracking } from "src/infra/user-tracking";
 import { dialogAtom } from "src/state/dialog";
 
-export const useShowPumpLibrary = () => {
+export const useShowPatternsLibrary = () => {
   const setDialogState = useSetAtom(dialogAtom);
   const userTracking = useUserTracking();
 
-  const showPumpCurves = useCallback(
+  const showPatternsLibrary = useCallback(
     ({
       source,
-      curveId,
+      initialPatternId,
     }: {
-      source: "toolbar" | "pump";
-      curveId?: CurveId;
+      source: "toolbar" | "shortcut" | "reservoir" | "pump";
+      initialPatternId?: number;
     }) => {
       userTracking.capture({
-        name: "pumpLibrary.opened",
+        name: "patternsLibrary.opened",
         source,
       });
-      setDialogState({ type: "pumpLibrary", initialCurveId: curveId });
+      setDialogState({ type: "patternsLibrary", initialPatternId });
     },
     [setDialogState, userTracking],
   );
 
-  return showPumpCurves;
+  return showPatternsLibrary;
 };

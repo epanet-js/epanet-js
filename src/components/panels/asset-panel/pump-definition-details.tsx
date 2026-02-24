@@ -5,8 +5,8 @@ import {
   CurveId,
   CurvePoint,
   Curves,
-  getPumpCurveType,
-  PumpCurveType,
+  getCurvePointsType,
+  CurvePointsType,
 } from "src/hydraulic-model/curves";
 import { Quantities } from "src/model-metadata/quantities-spec";
 import { localizeDecimal } from "src/infra/i18n/numbers";
@@ -18,7 +18,7 @@ import type {
 } from "src/hooks/use-asset-comparison";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import { Button, TContent } from "src/components/elements";
-import { useShowPumpLibrary } from "src/commands/show-pump-curves";
+import { useShowCurvesLibrary } from "src/commands/show-curves-library";
 import { InlineField } from "src/components/form/fields";
 import { SelectorOption } from "src/components/form/selector";
 
@@ -65,7 +65,7 @@ export const PumpDefinitionDetails = ({
   const curve = useMemo(() => {
     if (pump.definitionType === "curveId" && pump.curveId) {
       const curve = curves.get(pump.curveId)!;
-      if (getPumpCurveType(curve.points) !== "multiPointCurve") {
+      if (getCurvePointsType(curve.points) !== "multiPointCurve") {
         return curve.points;
       }
     }
@@ -159,7 +159,7 @@ const PumpDefinitionDetailsInner = ({
         oldValue !== "power" && oldValue !== "curveId"
           ? oldValue
           : (() => {
-              const ct = getPumpCurveType(curve);
+              const ct = getCurvePointsType(curve);
               return ct === "multiPointCurve" ? "designPointCurve" : ct;
             })();
       const currentPoints = initialPointsFromCurve(curve, curveType);
@@ -268,7 +268,7 @@ export const PumpCurveTable = ({
   onCurveChange,
 }: {
   curve?: CurvePoint[];
-  curveType: PumpCurveType;
+  curveType: CurvePointsType;
   quantities: Quantities;
   onCurveChange?: OnCurveChange;
 }) => {
@@ -557,11 +557,11 @@ const CurveIdSelector = ({
   readOnly: boolean;
 }) => {
   const translate = useTranslate();
-  const showPumpLibrary = useShowPumpLibrary();
+  const showCurvesLibrary = useShowCurvesLibrary();
 
   const selectedCurve = curveId === undefined ? null : curveId;
   const curve = selectedCurve ? curves.get(selectedCurve) : undefined;
-  const curveType = curve ? getPumpCurveType(curve.points) : undefined;
+  const curveType = curve ? getCurvePointsType(curve.points) : undefined;
 
   const curveOptions = useMemo(() => {
     const pumpLibraryGroup: SelectorOption<CurveId>[] = [
@@ -581,7 +581,7 @@ const CurveIdSelector = ({
   const handleChange = (_: string, newValue: number | null) => {
     if (newValue === null) return;
     if (newValue) onChange({ type: "curveId", curveId: newValue });
-    if (newValue === 0) showPumpLibrary({ source: "pump", curveId });
+    if (newValue === 0) showCurvesLibrary({ source: "pump", curveId });
   };
 
   return curveOptions[1].length > 0 ? (
@@ -606,7 +606,7 @@ const CurveIdSelector = ({
   ) : (
     <InlineField name={translate("pumpName")} labelSize="md">
       <Button
-        onClick={() => showPumpLibrary({ source: "pump" })}
+        onClick={() => showCurvesLibrary({ source: "pump" })}
         className="w-full py-2"
       >
         {translate("openPumpLibrary")}
@@ -717,14 +717,14 @@ const inferDefinitionMode = (
   if (modelType === "curveId") {
     return "curveId";
   }
-  const curveType = getPumpCurveType(curve);
+  const curveType = getCurvePointsType(curve);
   if (curveType === "multiPointCurve") return "curveId";
   return curveType;
 };
 
 const initialPointsFromCurve = (
   curve: CurvePoint[] | undefined,
-  curveType: PumpCurveType,
+  curveType: CurvePointsType,
 ): MaybePumpCurvePoint[] => {
   if (!curve || curve.length === 0) {
     return [{ flow: 0 }, {}, {}];
@@ -758,7 +758,7 @@ const initialPointsFromCurve = (
 
 const calculateCurvePoints = (
   editingPoints: MaybePumpCurvePoint[],
-  definitionType: PumpCurveType,
+  definitionType: CurvePointsType,
 ): MaybePumpCurvePoint[] => {
   if (definitionType === "standardCurve") {
     return editingPoints;
@@ -855,7 +855,7 @@ const validateStandardCurve = (
 
 const validateCurve = (
   points: MaybePumpCurvePoint[],
-  curveType: PumpCurveType,
+  curveType: CurvePointsType,
 ): ValidationResult => {
   if (curveType === "designPointCurve") {
     return validateDesignPointCurve(points);

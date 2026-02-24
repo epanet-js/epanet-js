@@ -14,12 +14,12 @@ export interface ICurve {
 
 export type Curves = Map<CurveId, ICurve>;
 
-export type PumpCurveType =
+export type CurvePointsType =
   | "designPointCurve"
   | "standardCurve"
   | "multiPointCurve";
 
-export const getPumpCurveType = (points: CurvePoint[]): PumpCurveType => {
+export const getCurvePointsType = (points: CurvePoint[]): CurvePointsType => {
   if (points.length === 1 && points[0].x !== 0 && points[0].y !== 0)
     return "designPointCurve";
   if (points.length === 3 && points[0].x === 0 && hasValidOrdering(points))
@@ -36,7 +36,7 @@ const hasValidOrdering = (points: CurvePoint[]): boolean => {
   return true;
 };
 
-export const isValidPumpCurve = (points: CurvePoint[]): boolean => {
+export const isValidCurve = (points: CurvePoint[]): boolean => {
   if (points.length === 0) return false;
   if (points.length === 1) return points[0].x !== 0 && points[0].y !== 0;
   return hasValidOrdering(points);
@@ -84,6 +84,15 @@ export const buildDefaultPumpCurve = (
   labelManager: LabelManager,
   candidateLabel: string,
 ): ICurve => {
+  return buildDefaultCurve(curves, labelManager, candidateLabel, "pump");
+};
+
+export const buildDefaultCurve = (
+  curves: Curves,
+  labelManager: LabelManager,
+  candidateLabel: string,
+  type: CurveType,
+): ICurve => {
   const label = labelManager.isLabelAvailable(candidateLabel, "curve")
     ? candidateLabel
     : labelManager.generateNextLabel(candidateLabel);
@@ -93,7 +102,7 @@ export const buildDefaultPumpCurve = (
   return {
     id,
     label,
-    type: "pump",
+    type,
     points: defaultCurvePoints(),
   };
 };

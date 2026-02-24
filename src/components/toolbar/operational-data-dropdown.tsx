@@ -17,14 +17,14 @@ import {
   StyledTooltipArrow,
 } from "../elements";
 import { useShowControls } from "src/commands/show-controls";
-import { useShowPatterns } from "src/commands/show-patterns";
-import { useShowPumpLibrary } from "src/commands/show-pump-curves";
+import { useShowPatternsLibrary } from "src/commands/show-patterns-library";
+import { useShowCurvesLibrary } from "src/commands/show-curves-library";
 
 export const OperationalDataDropdown = () => {
   const translate = useTranslate();
   const showControls = useShowControls();
-  const showPatterns = useShowPatterns();
-  const showPumpLibrary = useShowPumpLibrary();
+  const showPatternsLibrary = useShowPatternsLibrary();
+  const showCurvesLibrary = useShowCurvesLibrary();
 
   return (
     <Tooltip.Root delayDuration={200}>
@@ -40,13 +40,15 @@ export const OperationalDataDropdown = () => {
           </Tooltip.Trigger>
           <DD.Portal>
             <DDContent align="start" side="bottom">
-              <StyledItem onSelect={() => showPatterns({ source: "toolbar" })}>
+              <StyledItem
+                onSelect={() => showPatternsLibrary({ source: "toolbar" })}
+              >
                 <PatternsIcon />
                 {translate("patterns.title")}
               </StyledItem>
 
               <StyledItem
-                onSelect={() => showPumpLibrary({ source: "toolbar" })}
+                onSelect={() => showCurvesLibrary({ source: "toolbar" })}
               >
                 <PumpCurvesIcon />
                 {translate("pumpLibrary")}

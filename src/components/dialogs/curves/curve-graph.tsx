@@ -1,6 +1,6 @@
 import { useMemo } from "react";
-import { CurvePoint, PumpCurveType } from "src/hydraulic-model/curves";
-import { synthesizeThreePoints } from "src/hydraulic-model/pump-curve-fitting";
+import { CurvePoint, CurvePointsType } from "src/hydraulic-model/curves";
+import { synthesizeThreePoints } from "src/hydraulic-model/curve-fitting";
 import { LineGraph, StyledPointValue } from "src/components/graphs/line-graph";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
@@ -9,7 +9,7 @@ import { Unit } from "src/quantity";
 
 interface CurveGraphProps {
   points: CurvePoint[];
-  curveType: PumpCurveType;
+  curveType: CurvePointsType;
   fittedPoints: CurvePoint[] | null;
   selectedPointIndex?: number | null;
   onPointClick?: (index: number | null) => void;

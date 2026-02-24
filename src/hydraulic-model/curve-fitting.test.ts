@@ -1,8 +1,8 @@
 import {
-  fitPumpCurve,
+  fitCurve,
   synthesizeThreePoints,
-  generateSmoothPumpCurvePoints,
-} from "./pump-curve-fitting";
+  generateSmoothCurvePoints,
+} from "./curve-fitting";
 
 describe("synthesizeThreePoints", () => {
   it("generates shutoff, design, and max flow points from a design point", () => {
@@ -15,7 +15,7 @@ describe("synthesizeThreePoints", () => {
   });
 });
 
-describe("fitPumpCurve", () => {
+describe("fitCurve", () => {
   it("computes correct coefficients for a 3-point curve with q0=0", () => {
     const points = [
       { x: 0, y: 120 },
@@ -23,7 +23,7 @@ describe("fitPumpCurve", () => {
       { x: 200, y: 40 },
     ];
 
-    const result = fitPumpCurve(points);
+    const result = fitCurve(points);
 
     expect(result).not.toBeNull();
     expect(result!.a).toBeCloseTo(120, 1);
@@ -37,7 +37,7 @@ describe("fitPumpCurve", () => {
 
   it("computes correct coefficients for synthesized 1-point curve", () => {
     const threePoints = synthesizeThreePoints({ x: 150, y: 75 });
-    const result = fitPumpCurve(threePoints);
+    const result = fitCurve(threePoints);
 
     expect(result).not.toBeNull();
     expect(result!.a).toBeCloseTo(75 * 1.33334, 1);
@@ -53,7 +53,7 @@ describe("fitPumpCurve", () => {
       { x: 100, y: 60 },
       { x: 200, y: 70 },
     ];
-    expect(fitPumpCurve(points)).toBeNull();
+    expect(fitCurve(points)).toBeNull();
   });
 
   it("returns null when flows do not increase", () => {
@@ -62,7 +62,7 @@ describe("fitPumpCurve", () => {
       { x: 100, y: 80 },
       { x: 50, y: 60 },
     ];
-    expect(fitPumpCurve(points)).toBeNull();
+    expect(fitCurve(points)).toBeNull();
   });
 
   it("returns null for a flat curve (h0 == h1)", () => {
@@ -71,7 +71,7 @@ describe("fitPumpCurve", () => {
       { x: 500, y: 100 },
       { x: 1000, y: 50 },
     ];
-    expect(fitPumpCurve(points)).toBeNull();
+    expect(fitCurve(points)).toBeNull();
   });
 
   it("returns null when shutoff head is zero", () => {
@@ -80,13 +80,13 @@ describe("fitPumpCurve", () => {
       { x: 100, y: -10 },
       { x: 200, y: -20 },
     ];
-    expect(fitPumpCurve(points)).toBeNull();
+    expect(fitCurve(points)).toBeNull();
   });
 
   it("returns null for fewer than 3 points", () => {
-    expect(fitPumpCurve([{ x: 0, y: 100 }])).toBeNull();
+    expect(fitCurve([{ x: 0, y: 100 }])).toBeNull();
     expect(
-      fitPumpCurve([
+      fitCurve([
         { x: 0, y: 100 },
         { x: 50, y: 80 },
       ]),
@@ -94,7 +94,7 @@ describe("fitPumpCurve", () => {
   });
 });
 
-describe("generateSmoothPumpCurvePoints", () => {
+describe("generateSmoothCurvePoints", () => {
   it("returns null for multi-point curves", () => {
     const points = [
       { x: 0, y: 120 },
@@ -102,12 +102,12 @@ describe("generateSmoothPumpCurvePoints", () => {
       { x: 100, y: 90 },
       { x: 150, y: 60 },
     ];
-    expect(generateSmoothPumpCurvePoints(points, "multiPointCurve")).toBeNull();
+    expect(generateSmoothCurvePoints(points, "multiPointCurve")).toBeNull();
   });
 
   it("generates 25 smooth points for a valid 1-point (design-point) curve", () => {
     const points = [{ x: 500, y: 100 }];
-    const result = generateSmoothPumpCurvePoints(points, "designPointCurve");
+    const result = generateSmoothCurvePoints(points, "designPointCurve");
 
     expect(result).not.toBeNull();
     expect(result).toHaveLength(25);
@@ -136,7 +136,7 @@ describe("generateSmoothPumpCurvePoints", () => {
       { x: 100, y: 100 },
       { x: 200, y: 40 },
     ];
-    const result = generateSmoothPumpCurvePoints(points, "standardCurve");
+    const result = generateSmoothCurvePoints(points, "standardCurve");
 
     expect(result).not.toBeNull();
     expect(result).toHaveLength(25);
@@ -150,13 +150,13 @@ describe("generateSmoothPumpCurvePoints", () => {
   });
 
   it("returns null for an empty points array", () => {
-    expect(generateSmoothPumpCurvePoints([], "designPointCurve")).toBeNull();
+    expect(generateSmoothCurvePoints([], "designPointCurve")).toBeNull();
   });
 
   it("returns null when curve fitting fails for invalid design-point input", () => {
     // Zero head means synthesized shutoff = 0, which fails fitting
     expect(
-      generateSmoothPumpCurvePoints([{ x: 100, y: 0 }], "designPointCurve"),
+      generateSmoothCurvePoints([{ x: 100, y: 0 }], "designPointCurve"),
     ).toBeNull();
   });
 
@@ -166,6 +166,6 @@ describe("generateSmoothPumpCurvePoints", () => {
       { x: 100, y: 60 },
       { x: 200, y: 70 },
     ];
-    expect(generateSmoothPumpCurvePoints(points, "standardCurve")).toBeNull();
+    expect(generateSmoothCurvePoints(points, "standardCurve")).toBeNull();
   });
 });
