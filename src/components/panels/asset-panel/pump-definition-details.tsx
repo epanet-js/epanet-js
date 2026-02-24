@@ -565,7 +565,7 @@ const CurveIdSelector = ({
 
   const curveOptions = useMemo(() => {
     const pumpLibraryGroup: SelectorOption<CurveId>[] = [
-      { label: translate("openPumpLibrary"), value: 0 },
+      { label: translate("openCurvesLibrary"), value: 0 },
     ];
 
     const curveGroup: SelectorOption<CurveId>[] = [];
@@ -609,7 +609,7 @@ const CurveIdSelector = ({
         onClick={() => showCurvesLibrary({ source: "pump" })}
         className="w-full py-2"
       >
-        {translate("openPumpLibrary")}
+        {translate("openCurvesLibrary")}
       </Button>
     </InlineField>
   );

@@ -23,7 +23,7 @@ import { Pump } from "src/hydraulic-model/asset-types/pump";
 import { notify } from "src/components/notifications";
 import { useUserTracking } from "src/infra/user-tracking";
 import { changePatterns } from "src/hydraulic-model/model-operations";
-import { PatternSidebarResizer } from "./pattern-sidebar-resizer";
+import { VerticalResizer } from "../vertical-resizer";
 
 type PatternUpdate = Partial<Pick<Pattern, "label" | "multipliers" | "type">>;
 
@@ -214,7 +214,7 @@ export const PatternsDialog = ({
             onDeletePattern={handleDeletePattern}
             readOnly={isSnapshotLocked}
           />
-          <PatternSidebarResizer
+          <VerticalResizer
             width={sidebarWidth}
             onWidthChange={setSidebarWidth}
           />

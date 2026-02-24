@@ -5,19 +5,21 @@ import { useTranslate } from "src/hooks/use-translate";
 import { Button } from "src/components/elements";
 import { CurveSidebar } from "./curve-sidebar";
 import { CurveDetail } from "./curve-detail";
+import { VerticalResizer } from "../vertical-resizer";
 import { useIsSnapshotLocked } from "src/hooks/use-is-snapshot-locked";
 import {
   Curves,
   ICurve,
   CurveId,
   CurvePoint,
-  buildDefaultPumpCurve,
+  CurveType,
+  buildDefaultCurve,
   isValidCurve,
   stripTrailingEmptyPoints,
 } from "src/hydraulic-model/curves";
 import { HydraulicModel } from "src/hydraulic-model";
 import { Pump } from "src/hydraulic-model/asset-types/pump";
-import { PumpCurvesIcon } from "src/icons";
+import { CurvesIcon } from "src/icons";
 import { dataAtom, stagingModelAtom } from "src/state/jotai";
 import { usePersistence } from "src/lib/persistence";
 import { changeCurves } from "src/hydraulic-model/model-operations/change-curves";
@@ -25,7 +27,7 @@ import { notify } from "src/components/notifications";
 import { useUserTracking } from "src/infra/user-tracking";
 import { LabelManager } from "src/hydraulic-model/label-manager";
 
-type CurveUpdate = Partial<Pick<ICurve, "label" | "points">>;
+type CurveUpdate = Partial<Pick<ICurve, "label" | "points" | "type">>;
 
 export const CurvesDialog = ({
   initialCurveId,
@@ -46,13 +48,14 @@ export const CurvesDialog = ({
   const [editedCurves, setEditedCurves] = useState<Curves>(() =>
     deepCloneCurves(hydraulicModel.curves),
   );
+  const [sidebarWidth, setSidebarWidth] = useState(224);
   const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
   const [showSaveWarning, setShowSaveWarning] = useState(false);
   const labelManagerRef = useRef<LabelManager>(
     createLabelManagerFromCurves(editedCurves),
   );
 
-  const hasCurves = [...editedCurves.values()].some((c) => c.type === "pump");
+  const hasCurves = editedCurves.size > 0;
 
   const getCurvePoints = useCallback(
     (curveId: CurveId): CurvePoint[] => editedCurves.get(curveId)?.points ?? [],
@@ -79,18 +82,25 @@ export const CurvesDialog = ({
         return next;
       });
 
-      const property = "label" in updates ? "label" : "points";
+      const property =
+        "label" in updates ? "label" : "type" in updates ? "type" : "points";
       userTracking.capture({ name: "curve.changed", property });
     },
     [userTracking],
   );
 
   const handleAddCurve = useCallback(
-    (label: string, points: CurvePoint[], source: "new" | "clone"): CurveId => {
-      const newCurve = buildDefaultPumpCurve(
+    (
+      label: string,
+      points: CurvePoint[],
+      source: "new" | "clone",
+      type: CurveType,
+    ): CurveId => {
+      const newCurve = buildDefaultCurve(
         editedCurves,
         labelManagerRef.current,
         label,
+        type,
       );
       newCurve.points = points;
       setEditedCurves((prev) => {
@@ -114,7 +124,7 @@ export const CurvesDialog = ({
       if (isCurveInUse(hydraulicModel, curveId)) {
         notify({
           variant: "error",
-          title: translate("deleteCurveInUse"),
+          title: translate("curves.deleteCurveInUse"),
         });
         return;
       }
@@ -212,19 +222,26 @@ export const CurvesDialog = ({
 
   return (
     <DialogContainer size="md" height="lg" onClose={handleCancel}>
-      <DialogHeader title={translate("pumpLibrary")} />
-      <div className="flex-1 flex min-h-0 gap-4">
-        <CurveSidebar
-          curves={editedCurves}
-          selectedCurveId={selectedCurveId}
-          labelManager={labelManagerRef.current}
-          invalidCurveIds={invalidCurveIds}
-          onSelectCurve={setSelectedCurveId}
-          onAddCurve={handleAddCurve}
-          onChangeCurve={handleCurveChange}
-          onDeleteCurve={handleDeleteCurve}
-          readOnly={isSnapshotLocked}
-        />
+      <DialogHeader title={translate("curves.title")} />
+      <div className="flex-1 flex min-h-0">
+        <div className="flex-shrink-0 flex">
+          <CurveSidebar
+            width={sidebarWidth}
+            curves={editedCurves}
+            selectedCurveId={selectedCurveId}
+            labelManager={labelManagerRef.current}
+            invalidCurveIds={invalidCurveIds}
+            onSelectCurve={setSelectedCurveId}
+            onAddCurve={handleAddCurve}
+            onChangeCurve={handleCurveChange}
+            onDeleteCurve={handleDeleteCurve}
+            readOnly={isSnapshotLocked}
+          />
+          <VerticalResizer
+            width={sidebarWidth}
+            onWidthChange={setSidebarWidth}
+          />
+        </div>
         <div className="flex-1 flex flex-col min-h-0 w-full">
           {selectedCurveId ? (
             <CurveDetail
@@ -270,7 +287,7 @@ export const CurvesDialog = ({
               {translate("keepEditing")}
             </Button>
             <span className="text-sm text-gray-600 self-center">
-              {translate("saveInvalidCurvesWarning")}
+              {translate("curves.saveInvalid")}
             </span>
           </>
         ) : showDiscardConfirm ? (
@@ -320,10 +337,10 @@ const NoSelectionState = () => {
   return (
     <div className="flex flex-col items-center justify-center px-4">
       <div className="text-gray-400">
-        <PumpCurvesIcon size={96} />
+        <CurvesIcon size={96} />
       </div>
       <p className="text-sm text-gray-600 text-center max-w-64 py-4">
-        {translate("pumpLibraryNoSelection")}
+        {translate("curves.noSelection")}
       </p>
     </div>
   );
@@ -335,14 +352,14 @@ const EmptyState = ({ readOnly }: { readOnly: boolean }) => {
   return (
     <div className="flex flex-col items-center justify-center px-4">
       <div className="text-gray-400">
-        <PumpCurvesIcon size={96} />
+        <CurvesIcon size={96} />
       </div>
       <p className="text-sm font-semibold py-4 text-gray-600">
-        {translate("pumpLibraryEmptyTitle")}
+        {translate("curves.emptyTitle")}
       </p>
       {!readOnly && (
         <p className="text-sm text-gray-600 text-center max-w-64">
-          {translate("pumpLibraryEmptyDescription")}
+          {translate("curves.emptyDescription")}
         </p>
       )}
     </div>
@@ -386,6 +403,7 @@ const areCurvesEqual = (original: Curves, edited: Curves): boolean => {
     const editedCurve = edited.get(id);
     if (!editedCurve) return false;
     if (originalCurve.label !== editedCurve.label) return false;
+    if (originalCurve.type !== editedCurve.type) return false;
     if (originalCurve.points.length !== editedCurve.points.length) return false;
     if (
       !originalCurve.points.every(

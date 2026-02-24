@@ -23,7 +23,7 @@ const buildLabelManager = (curves: Curves): LabelManager => {
 };
 
 describe("CurveSidebar", () => {
-  it("only displays curves of type pump", () => {
+  it("displays pump curves under Pump section and non-pump curves under Uncategorized", () => {
     const curves: Curves = new Map([
       [1, buildCurve(1, "PumpCurve1", "pump")],
       [2, buildCurve(2, "VolumeCurve", "volume")],
@@ -34,6 +34,7 @@ describe("CurveSidebar", () => {
 
     render(
       <CurveSidebar
+        width={224}
         curves={curves}
         selectedCurveId={null}
         labelManager={buildLabelManager(curves)}
@@ -47,19 +48,17 @@ describe("CurveSidebar", () => {
 
     expect(screen.getByText("PumpCurve1")).toBeInTheDocument();
     expect(screen.getByText("PumpCurve2")).toBeInTheDocument();
-    expect(screen.queryByText("VolumeCurve")).not.toBeInTheDocument();
-    expect(screen.queryByText("HeadlossCurve")).not.toBeInTheDocument();
-    expect(screen.queryByText("ValveCurve")).not.toBeInTheDocument();
+    expect(screen.getByText("VolumeCurve")).toBeInTheDocument();
+    expect(screen.getByText("HeadlossCurve")).toBeInTheDocument();
+    expect(screen.getByText("ValveCurve")).toBeInTheDocument();
   });
 
-  it("shows no items when there are no pump curves", () => {
-    const curves: Curves = new Map([
-      [1, buildCurve(1, "VolumeCurve", "volume")],
-      [2, buildCurve(2, "HeadlossCurve", "headloss")],
-    ]);
+  it("does not show Uncategorized section when there are no non-pump curves", () => {
+    const curves: Curves = new Map([[1, buildCurve(1, "PumpCurve1", "pump")]]);
 
     render(
       <CurveSidebar
+        width={224}
         curves={curves}
         selectedCurveId={null}
         labelManager={buildLabelManager(curves)}
@@ -71,9 +70,30 @@ describe("CurveSidebar", () => {
       />,
     );
 
-    expect(screen.queryByText("VolumeCurve")).not.toBeInTheDocument();
-    expect(screen.queryByText("HeadlossCurve")).not.toBeInTheDocument();
-    const list = screen.getByRole("list");
-    expect(list.querySelectorAll("li")).toHaveLength(0);
+    expect(screen.getByText("PumpCurve1")).toBeInTheDocument();
+    expect(screen.queryByText("Uncategorized")).not.toBeInTheDocument();
+  });
+
+  it("shows Uncategorized section when non-pump curves exist", () => {
+    const curves: Curves = new Map([
+      [1, buildCurve(1, "VolumeCurve", "volume")],
+    ]);
+
+    render(
+      <CurveSidebar
+        width={224}
+        curves={curves}
+        selectedCurveId={null}
+        labelManager={buildLabelManager(curves)}
+        onSelectCurve={vi.fn()}
+        onAddCurve={vi.fn()}
+        onChangeCurve={vi.fn()}
+        onDeleteCurve={vi.fn()}
+        invalidCurveIds={new Set()}
+      />,
+    );
+
+    expect(screen.getByText("VolumeCurve")).toBeInTheDocument();
+    expect(screen.getByText("Uncategorized")).toBeInTheDocument();
   });
 });

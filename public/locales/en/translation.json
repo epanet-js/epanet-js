@@ -5,6 +5,7 @@
     "supportedFormats": "Supported formats: {{1}}",
     "selectedFile": "Selected: {{1}}"
   },
+  "operationalData": "Operational data",
   "select": "Select",
   "selection": "Selection",
   "junction": "Junction",
@@ -882,7 +883,7 @@
     "emptyTitle": "Curves are empty",
     "emptyDescription": "Add a curve to get started.",
     "noSelection": "Select a curve to edit.",
-    "deleteCurveInUse": "Cannot delete a curve that is used by a pump",
+    "deleteCurveInUse": "Cannot delete a curve that is in use",
     "invalidCurve": "Invalid curve",
     "pumpCurves": "Pump head",
     "efficiencyCurves": "Pump efficiency",
@@ -894,15 +895,15 @@
     "setAsEfficiency": "Set as Pump efficiency",
     "setAsVolume": "Set as Tank volume",
     "setAsValve": "Set as Valve",
-    "setAsHeadloss": "Set as Headloss"
+    "setAsHeadloss": "Set as Headloss",
+    "saveInvalid": "Some curves have validation warnings."
   },
   "rename": "Rename",
   "duplicate": "Duplicate",
   "addTimestep": "Add timestep",
   "timestep": "Timestep",
   "multiplier": "Multiplier",
-  "pumpLibrary": "Pump Library",
-  "openPumpLibrary": "Open library...",
+  "openCurvesLibrary": "Open library...",
   "openPatternsLibrary": "Open library...",
   "headPattern": "Head pattern",
   "headAverage": "Head (average)",
@@ -911,15 +912,8 @@
   "speedPattern": "Pattern",
   "patternBased": "Pattern based",
   "multipliersDiffer": "Multipliers differ",
-  "addCurve": "Add curve",
   "pumpName": "Pump name",
   "curveType": "Curve type",
   "namedCurve": "Library pump",
-  "addPoint": "Add point",
-  "pumpLibraryEmptyTitle": "No pump curves",
-  "pumpLibraryEmptyDescription": "Add a pump curve to get started",
-  "pumpLibraryNoSelection": "Select a curve to edit",
-  "deleteCurveInUse": "Cannot delete a curve that is used by a pump",
-  "invalidCurve": "Invalid curve",
-  "saveInvalidCurvesWarning": "Some curves have validation warnings."
+  "addPoint": "Add point"
 }

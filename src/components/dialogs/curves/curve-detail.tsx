@@ -178,7 +178,7 @@ export function CurveDetail({
       {warningMessage && (
         <NotificationBanner
           variant="warning"
-          title={translate("invalidCurve")}
+          title={translate("curves.invalidCurve")}
           description={warningMessage}
           Icon={TriangleAlert}
           className="mt-2"

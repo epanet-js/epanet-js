@@ -779,7 +779,7 @@ type CurveDeleted = {
 
 type CurveChanged = {
   name: "curve.changed";
-  property: "label" | "points";
+  property: "label" | "points" | "type";
 };
 
 type CurvesUncategorized = {

@@ -4,7 +4,7 @@ import { useMove } from "@react-aria/interactions";
 const MIN_WIDTH = 150;
 const MAX_WIDTH = 400;
 
-export const PatternSidebarResizer = ({
+export const VerticalResizer = ({
   width,
   onWidthChange,
 }: {

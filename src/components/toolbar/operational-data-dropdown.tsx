@@ -6,7 +6,7 @@ import {
   ChevronDownIcon,
   ControlsIcon,
   PatternsIcon,
-  PumpCurvesIcon,
+  CurvesIcon,
 } from "src/icons";
 import { useTranslate } from "src/hooks/use-translate";
 import {
@@ -50,8 +50,8 @@ export const OperationalDataDropdown = () => {
               <StyledItem
                 onSelect={() => showCurvesLibrary({ source: "toolbar" })}
               >
-                <PumpCurvesIcon />
-                {translate("pumpLibrary")}
+                <CurvesIcon />
+                {translate("curves.title")}
               </StyledItem>
 
               <StyledItem onSelect={() => showControls({ source: "toolbar" })}>

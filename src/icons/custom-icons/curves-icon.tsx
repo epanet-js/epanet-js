@@ -1,7 +1,7 @@
 import * as React from "react";
 import { CustomIconProps, getPixels } from "../index";
 
-export const CustomPumpCurvesIcon = React.forwardRef<
+export const CustomCurvesIcon = React.forwardRef<
   SVGSVGElement,
   CustomIconProps
 >(({ size: rawSize = "md", ...props }, ref) => {
@@ -26,4 +26,4 @@ export const CustomPumpCurvesIcon = React.forwardRef<
   );
 });
 
-CustomPumpCurvesIcon.displayName = "CustomPumpCurvesIcon";
+CustomCurvesIcon.displayName = "CustomPumpCurvesIcon";
