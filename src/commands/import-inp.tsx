@@ -32,7 +32,6 @@ export const useImportInp = () => {
   const rep = usePersistence();
   const transactImport = rep.useTransactImport();
   const userTracking = useUserTracking();
-  const isUnprojectedEnabled = useFeatureFlag("FLAG_UNPROJECTED");
   const isEmittersOn = useFeatureFlag("FLAG_EMITTERS");
 
   const importInp = useCallback(
@@ -143,17 +142,10 @@ export const useImportInp = () => {
               setDialogState({ type: "invalidFilesError" });
             }
           };
-          if (isUnprojectedEnabled) {
-            setDialogState({
-              type: "inpProjectionChoice",
-              onImportNonProjected,
-            });
-          } else {
-            setDialogState({
-              type: "inpGeocodingNotSupported",
-              onImportNonProjected,
-            });
-          }
+          setDialogState({
+            type: "inpProjectionChoice",
+            onImportNonProjected,
+          });
           return;
         }
 
@@ -181,7 +173,6 @@ export const useImportInp = () => {
     [
       setDialogState,
       userTracking,
-      isUnprojectedEnabled,
       isEmittersOn,
       translate,
       transactImport,

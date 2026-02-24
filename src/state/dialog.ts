@@ -30,7 +30,7 @@ export type WelcomeDialogState = {
 
 export type GeocodingNotSupportedDialogState = {
   type: "inpGeocodingNotSupported";
-  onImportNonProjected?: () => void;
+  onImportNonProjected: () => void;
 };
 
 export type InpProjectionChoiceDialogState = {

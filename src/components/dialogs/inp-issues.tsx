@@ -41,15 +41,10 @@ export const GeocodingNotSupportedDialog = ({
   onImportNonProjected,
 }: {
   onClose: () => void;
-  onImportNonProjected?: () => void;
+  onImportNonProjected: () => void;
 }) => {
   const translate = useTranslate();
-  const showWelcome = useShowWelcome();
   const userTracking = useUserTracking();
-
-  const goToWelcome = () => {
-    showWelcome({ source: "geocodeError" });
-  };
 
   const handleReprojectNetwork = () => {
     userTracking.capture({
@@ -93,19 +88,9 @@ export const GeocodingNotSupportedDialog = ({
         >
           {translate("reprojectNetwork")}
         </Button>
-        {onImportNonProjected ? (
-          <Button
-            type="button"
-            variant="default"
-            onClick={onImportNonProjected}
-          >
-            {translate("loadInXYGrid")}
-          </Button>
-        ) : (
-          <Button type="button" variant="default" onClick={goToWelcome}>
-            {translate("seeDemoNetworks")}
-          </Button>
-        )}
+        <Button type="button" variant="default" onClick={onImportNonProjected}>
+          {translate("loadInXYGrid")}
+        </Button>
       </SimpleDialogButtons>
     </>
   );

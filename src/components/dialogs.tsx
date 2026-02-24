@@ -52,7 +52,7 @@ const InpIssuesDialog = dynamic<{
 
 const GeocodingNotSupportedDialog = dynamic<{
   onClose: () => void;
-  onImportNonProjected?: () => void;
+  onImportNonProjected: () => void;
 }>(
   () =>
     import("src/components/dialogs/inp-issues").then(
