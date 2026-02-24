@@ -789,7 +789,6 @@ const ReservoirEditor = ({
   const translate = useTranslate();
   const { footer } = useQuickGraph(reservoir.id, "reservoir");
   const { getComparison, isNew } = useAssetComparison(reservoir);
-  const isMorePatternsOn = useFeatureFlag("FLAG_MORE_PATTERNS");
 
   return (
     <AssetEditorContent
@@ -820,25 +819,13 @@ const ReservoirEditor = ({
           onChange={onPropertyChange}
           readOnly={readonly}
         />
-        {isMorePatternsOn ? (
-          <ReservoirHeadField
-            reservoir={reservoir}
-            patterns={hydraulicModel.patterns}
-            onPropertyChange={onPropertyChange}
-            quantitiesMetadata={quantitiesMetadata}
-            readOnly={readonly}
-          />
-        ) : (
-          <QuantityRow
-            name="head"
-            value={reservoir.head}
-            unit={quantitiesMetadata.getUnit("head")}
-            decimals={quantitiesMetadata.getDecimals("head")}
-            comparison={getComparison("head", reservoir.head)}
-            onChange={onPropertyChange}
-            readOnly={readonly}
-          />
-        )}
+        <ReservoirHeadField
+          reservoir={reservoir}
+          patterns={hydraulicModel.patterns}
+          onPropertyChange={onPropertyChange}
+          quantitiesMetadata={quantitiesMetadata}
+          readOnly={readonly}
+        />
       </Section>
     </AssetEditorContent>
   );
@@ -1198,7 +1185,6 @@ const PumpEditor = ({
   quantitiesMetadata: Quantities;
   readonly?: boolean;
 }) => {
-  const isMorePatternsOn = useFeatureFlag("FLAG_MORE_PATTERNS");
   const translate = useTranslate();
   const { footer } = useQuickGraph(pump.id, "pump");
   const { getComparison, getPumpCurveComparison, isNew } =
@@ -1260,29 +1246,17 @@ const PumpEditor = ({
           getPumpCurveComparison={getPumpCurveComparison}
         />
 
-        {isMorePatternsOn ? (
-          <QuantityRow
-            name="initialSpeed"
-            value={pump.speed}
-            unit={quantitiesMetadata.getUnit("speed")}
-            decimals={quantitiesMetadata.getDecimals("speed")}
-            comparison={getComparison("speed", pump.speed)}
-            onChange={(_, newValue, oldValue) =>
-              onPropertyChange("speed", newValue, oldValue)
-            }
-            readOnly={readonly}
-          />
-        ) : (
-          <QuantityRow
-            name="speed"
-            value={pump.speed}
-            unit={quantitiesMetadata.getUnit("speed")}
-            decimals={quantitiesMetadata.getDecimals("speed")}
-            comparison={getComparison("speed", pump.speed)}
-            onChange={onPropertyChange}
-            readOnly={readonly}
-          />
-        )}
+        <QuantityRow
+          name="initialSpeed"
+          value={pump.speed}
+          unit={quantitiesMetadata.getUnit("speed")}
+          decimals={quantitiesMetadata.getDecimals("speed")}
+          comparison={getComparison("speed", pump.speed)}
+          onChange={(_, newValue, oldValue) =>
+            onPropertyChange("speed", newValue, oldValue)
+          }
+          readOnly={readonly}
+        />
         <SelectRow
           name="initialStatus"
           selected={pump.initialStatus}
@@ -1291,14 +1265,12 @@ const PumpEditor = ({
           onChange={handleStatusChange}
           readOnly={readonly}
         />
-        {isMorePatternsOn && (
-          <VariableSpeedField
-            pump={pump}
-            patterns={hydraulicModel.patterns}
-            onPropertyChange={onPropertyChange}
-            readOnly={readonly}
-          />
-        )}
+        <VariableSpeedField
+          pump={pump}
+          patterns={hydraulicModel.patterns}
+          onPropertyChange={onPropertyChange}
+          readOnly={readonly}
+        />
       </Section>
       <Section title={translate("simulationResults")}>
         <QuantityRow

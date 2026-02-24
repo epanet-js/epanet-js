@@ -152,6 +152,7 @@ export const computeMultiAssetData = (
           statsMaps.reservoir,
           asset as Reservoir,
           quantitiesMetadata,
+          hydraulicModel.patterns,
         );
         break;
       case "tank":
@@ -441,10 +442,6 @@ const appendPumpStats = (
     id,
   );
 
-  if (pump.speed !== null) {
-    updateQuantityStats(statsMap, "speed", pump.speed, quantitiesMetadata, id);
-  }
-
   // Simulation results - read from ResultsReader
   const pumpSim = simulationResults?.getPump(pump.id);
   const flow = pumpSim?.flow ?? null;
@@ -475,7 +472,6 @@ const buildPumpSections = (
     modelAttributes: getStatsForProperties(statsMap, [
       "pumpType",
       "initialStatus",
-      "speed",
     ]),
     demands: [],
     simulationResults: getStatsForProperties(statsMap, [
@@ -571,6 +567,7 @@ const appendReservoirStats = (
   statsMap: Map<string, AssetPropertyStats>,
   reservoir: Reservoir,
   quantitiesMetadata: Quantities,
+  patterns: Patterns,
 ) => {
   const id = reservoir.id;
   updateBooleanStats(statsMap, "isEnabled", reservoir.isActive, id);
@@ -581,7 +578,9 @@ const appendReservoirStats = (
     quantitiesMetadata,
     id,
   );
-  updateQuantityStats(statsMap, "head", reservoir.head, quantitiesMetadata, id);
+
+  const averageHead = calculateAverageHead(reservoir, patterns);
+  updateQuantityStats(statsMap, "head", averageHead, quantitiesMetadata, id);
 };
 
 const buildReservoirSections = (
@@ -833,193 +832,6 @@ const getStatsForProperties = (
   }
 
   return result;
-};
-
-const appendPumpStatsWithPatterns = (
-  statsMap: Map<string, AssetPropertyStats>,
-  pump: Pump,
-  quantitiesMetadata: Quantities,
-  simulationResults?: ResultsReader | null,
-) => {
-  const id = pump.id;
-  updateBooleanStats(statsMap, "isEnabled", pump.isActive, id);
-
-  let pumpType: string = pump.definitionType;
-  if (pump.definitionType === "curve" && pump.curve) {
-    const curveType = getPumpCurveType(pump.curve);
-    if (curveType === "designPointCurve" || curveType === "standardCurve") {
-      pumpType = curveType;
-    }
-  }
-  updateCategoryStats(statsMap, "pumpType", pumpType, id);
-  updateCategoryStats(
-    statsMap,
-    "initialStatus",
-    "pump." + pump.initialStatus,
-    id,
-  );
-
-  // Simulation results - read from ResultsReader
-  const pumpSim = simulationResults?.getPump(pump.id);
-  const flow = pumpSim?.flow ?? null;
-  // pump head = -pumpSimulation.headloss
-  const head = pumpSim ? -pumpSim.headloss : null;
-  const status = pumpSim?.status ?? null;
-  const statusWarning = pumpSim?.statusWarning ?? null;
-
-  if (flow !== null) {
-    updateQuantityStats(statsMap, "flow", flow, quantitiesMetadata, id);
-  }
-  if (head !== null) {
-    updateQuantityStats(statsMap, "pumpHead", head, quantitiesMetadata, id);
-  }
-  if (status !== null) {
-    const statusLabel = statusWarning
-      ? `pump.${status}.${statusWarning}`
-      : "pump." + status;
-    updateCategoryStats(statsMap, "pumpStatus", statusLabel, id);
-  }
-};
-
-const buildPumpSectionsWithPatterns = (
-  statsMap: Map<string, AssetPropertyStats>,
-): AssetPropertySections => {
-  return {
-    activeTopology: getStatsForProperties(statsMap, ["isEnabled"]),
-    modelAttributes: getStatsForProperties(statsMap, [
-      "pumpType",
-      "initialStatus",
-    ]),
-    demands: [],
-    simulationResults: getStatsForProperties(statsMap, [
-      "flow",
-      "pumpHead",
-      "pumpStatus",
-    ]),
-  };
-};
-
-const appendReservoirStatsWithPatterns = (
-  statsMap: Map<string, AssetPropertyStats>,
-  reservoir: Reservoir,
-  quantitiesMetadata: Quantities,
-  patterns: Patterns,
-) => {
-  const id = reservoir.id;
-  updateBooleanStats(statsMap, "isEnabled", reservoir.isActive, id);
-  updateQuantityStats(
-    statsMap,
-    "elevation",
-    reservoir.elevation,
-    quantitiesMetadata,
-    id,
-  );
-
-  const averageHead = calculateAverageHead(reservoir, patterns);
-  updateQuantityStats(statsMap, "head", averageHead, quantitiesMetadata, id);
-};
-
-export const computeMultiAssetDataWithPatterns = (
-  assets: Asset[],
-  quantitiesMetadata: Quantities,
-  hydraulicModel: HydraulicModel,
-  simulationResults?: ResultsReader | null,
-): ComputedMultiAssetData => {
-  const counts: AssetCounts = {
-    junction: 0,
-    pipe: 0,
-    pump: 0,
-    valve: 0,
-    reservoir: 0,
-    tank: 0,
-  };
-
-  const statsMaps = {
-    junction: new Map<string, AssetPropertyStats>(),
-    pipe: new Map<string, AssetPropertyStats>(),
-    pump: new Map<string, AssetPropertyStats>(),
-    valve: new Map<string, AssetPropertyStats>(),
-    reservoir: new Map<string, AssetPropertyStats>(),
-    tank: new Map<string, AssetPropertyStats>(),
-  };
-
-  for (const asset of assets) {
-    switch (asset.type) {
-      case "junction":
-        counts.junction++;
-        appendJunctionStats(
-          statsMaps.junction,
-          asset as Junction,
-          quantitiesMetadata,
-          hydraulicModel.customerPointsLookup,
-          hydraulicModel.assets,
-          hydraulicModel.demands,
-          hydraulicModel.patterns,
-          simulationResults,
-        );
-        break;
-      case "pipe":
-        counts.pipe++;
-        appendPipeStats(
-          statsMaps.pipe,
-          asset as Pipe,
-          quantitiesMetadata,
-          hydraulicModel.customerPointsLookup,
-          hydraulicModel.demands,
-          hydraulicModel.patterns,
-          simulationResults,
-        );
-        break;
-      case "pump":
-        counts.pump++;
-        appendPumpStatsWithPatterns(
-          statsMaps.pump,
-          asset as Pump,
-          quantitiesMetadata,
-          simulationResults,
-        );
-        break;
-      case "valve":
-        counts.valve++;
-        appendValveStats(
-          statsMaps.valve,
-          asset as Valve,
-          quantitiesMetadata,
-          simulationResults,
-        );
-        break;
-      case "reservoir":
-        counts.reservoir++;
-        appendReservoirStatsWithPatterns(
-          statsMaps.reservoir,
-          asset as Reservoir,
-          quantitiesMetadata,
-          hydraulicModel.patterns,
-        );
-        break;
-      case "tank":
-        counts.tank++;
-        appendTankStats(
-          statsMaps.tank,
-          asset as Tank,
-          quantitiesMetadata,
-          simulationResults,
-        );
-        break;
-    }
-  }
-
-  return {
-    data: {
-      junction: buildJunctionSections(statsMaps.junction),
-      pipe: buildPipeSections(statsMaps.pipe),
-      pump: buildPumpSectionsWithPatterns(statsMaps.pump),
-      valve: buildValveSections(statsMaps.valve),
-      reservoir: buildReservoirSections(statsMaps.reservoir),
-      tank: buildTankSections(statsMaps.tank),
-    },
-    counts,
-  };
 };
 
 const roundToDecimal = (value: number, decimals: number): number => {

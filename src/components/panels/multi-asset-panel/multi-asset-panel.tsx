@@ -16,15 +16,8 @@ import {
   stagingModelAtom,
   selectionAtom,
 } from "src/state/jotai";
-import {
-  computeMultiAssetData,
-  computeMultiAssetDataWithPatterns,
-} from "./data";
-import {
-  BATCH_EDITABLE_PROPERTIES,
-  RESERVOIR_EDITABLE_WITH_PATTERNS,
-} from "./batch-edit-property-config";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { computeMultiAssetData } from "./data";
+import { BATCH_EDITABLE_PROPERTIES } from "./batch-edit-property-config";
 import { usePersistence } from "src/lib/persistence";
 import { useUserTracking } from "src/infra/user-tracking";
 import { changeProperty } from "src/hydraulic-model/model-operations";
@@ -50,30 +43,19 @@ export function MultiAssetPanel({
   const [collapseState, setCollapseState] = useAtom(
     multiAssetPanelCollapseAtom,
   );
-  const isMorePatternsOn = useFeatureFlag("FLAG_MORE_PATTERNS");
   const rep = usePersistence();
   const transact = rep.useTransact();
   const userTracking = useUserTracking();
 
-  const compute = isMorePatternsOn
-    ? computeMultiAssetDataWithPatterns
-    : computeMultiAssetData;
-
   const { data: multiAssetData, counts: assetCounts } = useMemo(() => {
     const assets = selectedFeatures as Asset[];
-    return compute(
+    return computeMultiAssetData(
       assets,
       quantitiesMetadata,
       hydraulicModel,
       simulationResults,
     );
-  }, [
-    selectedFeatures,
-    quantitiesMetadata,
-    hydraulicModel,
-    simulationResults,
-    compute,
-  ]);
+  }, [selectedFeatures, quantitiesMetadata, hydraulicModel, simulationResults]);
 
   const assetIdsByType = useMemo(() => {
     const map: Record<Asset["type"], Asset["id"][]> = {
@@ -271,11 +253,7 @@ export function MultiAssetPanel({
         >
           <AssetTypeSections
             sections={multiAssetData.reservoir}
-            editableProperties={
-              isMorePatternsOn
-                ? RESERVOIR_EDITABLE_WITH_PATTERNS
-                : BATCH_EDITABLE_PROPERTIES.reservoir!
-            }
+            editableProperties={BATCH_EDITABLE_PROPERTIES.reservoir!}
             onPropertyChange={(p, v) =>
               handleBatchPropertyChange("reservoir", p, v)
             }

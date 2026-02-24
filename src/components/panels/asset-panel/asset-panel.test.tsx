@@ -488,7 +488,7 @@ describe("AssetPanel", () => {
 
       expect(screen.getByDisplayValue("MY_PUMP")).toBeInTheDocument();
       expect(screen.getByText("Pump")).toBeInTheDocument();
-      expectPropertyDisplayed("speed", "0.8");
+      expectPropertyDisplayed("initial speed", "0.8");
     });
 
     it("shows properties for power defintion", () => {

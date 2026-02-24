@@ -115,7 +115,6 @@ export const BATCH_EDITABLE_PROPERTIES: Partial<
   },
   reservoir: {
     elevation: { fieldType: "quantity", modelProperty: "elevation" },
-    head: { fieldType: "quantity", modelProperty: "head" },
   },
   tank: {
     elevation: { fieldType: "quantity", modelProperty: "elevation" },
@@ -147,8 +146,4 @@ export const BATCH_EDITABLE_PROPERTIES: Partial<
     },
     canOverflow: { fieldType: "boolean", modelProperty: "overflow" },
   },
-};
-
-export const RESERVOIR_EDITABLE_WITH_PATTERNS: EditableProperties = {
-  elevation: { fieldType: "quantity", modelProperty: "elevation" },
 };

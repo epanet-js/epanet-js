@@ -14,7 +14,7 @@ const aPatterns = (
 ): Map<PatternId, Pattern> => {
   const demandPatterns: Patterns = new Map();
   (patterns || []).forEach(([id, label, multipliers]) => {
-    demandPatterns.set(id, { id, label, multipliers });
+    demandPatterns.set(id, { id, label, multipliers, type: "demand" });
   });
   return demandPatterns;
 };
