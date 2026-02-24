@@ -8,14 +8,14 @@ import { stubUserTracking } from "src/__helpers__/user-tracking";
 import { Persistence } from "src/lib/persistence/persistence";
 import { PersistenceContext } from "src/lib/persistence/context";
 import { Store, stagingModelAtom } from "src/state/jotai";
-import { CurvesAndPatternsDialog } from "./curves-and-patterns-dialog";
+import { PatternsDialog } from "./patterns-dialog";
 
 const renderDialog = (store: Store) => {
   const persistence = new Persistence(store);
   return render(
     <PersistenceContext.Provider value={persistence}>
       <JotaiProvider store={store}>
-        <CurvesAndPatternsDialog />
+        <PatternsDialog />
       </JotaiProvider>
     </PersistenceContext.Provider>,
   );
@@ -31,7 +31,7 @@ const getMultiplierCell = (rowIndex: number) => {
   return gridCells[rowIndex * 2 + 1];
 };
 
-describe("CurvesAndPatternsDialog", () => {
+describe("PatternsDialog", () => {
   beforeEach(() => {
     stubUserTracking();
   });
@@ -293,7 +293,9 @@ describe("CurvesAndPatternsDialog", () => {
       renderDialog(store);
 
       // Click add pattern button
-      await user.click(screen.getByRole("button", { name: /add pattern/i }));
+      await user.click(
+        screen.getByRole("button", { name: /add demand pattern/i }),
+      );
 
       // Type the pattern name and confirm
       const nameInput = screen.getByRole("textbox");
@@ -320,7 +322,9 @@ describe("CurvesAndPatternsDialog", () => {
       renderDialog(store);
 
       // Add a new pattern
-      await user.click(screen.getByRole("button", { name: /add pattern/i }));
+      await user.click(
+        screen.getByRole("button", { name: /add demand pattern/i }),
+      );
       const nameInput = screen.getByRole("textbox");
       await user.type(nameInput, "NEWPATTERN");
       await user.keyboard("{Enter}");
@@ -360,7 +364,9 @@ describe("CurvesAndPatternsDialog", () => {
       renderDialog(store);
 
       // Add a new pattern
-      await user.click(screen.getByRole("button", { name: /add pattern/i }));
+      await user.click(
+        screen.getByRole("button", { name: /add demand pattern/i }),
+      );
       const nameInput = screen.getByRole("textbox");
       await user.type(nameInput, "NEWPATTERN");
       await user.keyboard("{Enter}");

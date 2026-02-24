@@ -30,9 +30,9 @@ type NavItem =
 const SECTION_TYPES: SectionType[] = ["demand", "reservoirHead", "pumpSpeed"];
 
 const SECTION_TRANSLATION_KEYS: Record<SectionType, string> = {
-  demand: "demandPatterns",
-  reservoirHead: "reservoirHeadPatterns",
-  pumpSpeed: "pumpSpeedPatterns",
+  demand: "patterns.demandPatterns",
+  reservoirHead: "patterns.reservoirHeadPatterns",
+  pumpSpeed: "patterns.pumpSpeedPatterns",
 };
 
 type GroupedPatternSidebarProps = {
@@ -474,7 +474,10 @@ const PatternSection = ({
           <Button
             variant="quiet"
             size="xs"
-            aria-label={`Add ${title} pattern`}
+            aria-label={translate(
+              "patterns.addPattern",
+              title.toLocaleLowerCase(),
+            )}
             onClick={onStartCreate}
             className="h-6 w-6 hover:bg-gray-200 dark:hover:bg-gray-700"
           >
@@ -506,7 +509,7 @@ const PatternSection = ({
             <PatternLabelInput
               label="New pattern name"
               value=""
-              placeholder={translate("patternName")}
+              placeholder={translate("patterns.patternName")}
               onCommit={onPatternLabelChange}
               onCancel={onCancelAction}
             />
@@ -560,7 +563,7 @@ const UncategorizedPatternSection = ({
               <ChevronRightIcon size="sm" />
             )}
             <span className="truncate">
-              {translate("uncategorizedPatterns")}
+              {translate("patterns.uncategorizedPatterns")}
             </span>
             <span className="shrink-0">({patterns.length})</span>
           </button>

@@ -3,11 +3,11 @@ import { useCallback } from "react";
 import { useUserTracking } from "src/infra/user-tracking";
 import { dialogAtom } from "src/state/dialog";
 
-export const useShowCurvesAndPatterns = () => {
+export const useShowPatterns = () => {
   const setDialogState = useSetAtom(dialogAtom);
   const userTracking = useUserTracking();
 
-  const showCurvesAndPatterns = useCallback(
+  const showPatterns = useCallback(
     ({
       source,
       initialPatternId,
@@ -19,10 +19,10 @@ export const useShowCurvesAndPatterns = () => {
         name: "curvesAndPatterns.opened",
         source,
       });
-      setDialogState({ type: "curvesAndPatterns", initialPatternId });
+      setDialogState({ type: "patterns", initialPatternId });
     },
     [setDialogState, userTracking],
   );
 
-  return showCurvesAndPatterns;
+  return showPatterns;
 };

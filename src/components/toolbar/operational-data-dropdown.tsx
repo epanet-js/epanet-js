@@ -17,13 +17,13 @@ import {
   StyledTooltipArrow,
 } from "../elements";
 import { useShowControls } from "src/commands/show-controls";
-import { useShowCurvesAndPatterns } from "src/commands/show-curves-and-patterns";
+import { useShowPatterns } from "src/commands/show-patterns";
 import { useShowPumpLibrary } from "src/commands/show-pump-curves";
 
 export const OperationalDataDropdown = () => {
   const translate = useTranslate();
   const showControls = useShowControls();
-  const showCurvesAndPatterns = useShowCurvesAndPatterns();
+  const showPatterns = useShowPatterns();
   const showPumpLibrary = useShowPumpLibrary();
 
   return (
@@ -40,11 +40,9 @@ export const OperationalDataDropdown = () => {
           </Tooltip.Trigger>
           <DD.Portal>
             <DDContent align="start" side="bottom">
-              <StyledItem
-                onSelect={() => showCurvesAndPatterns({ source: "toolbar" })}
-              >
+              <StyledItem onSelect={() => showPatterns({ source: "toolbar" })}>
                 <PatternsIcon />
-                {translate("curvesAndPatterns")}
+                {translate("patterns.title")}
               </StyledItem>
 
               <StyledItem

@@ -103,7 +103,7 @@ export const PatternSidebarItem = ({
         <PatternLabelInput
           label="Clone pattern name"
           value={pattern.label}
-          placeholder={translate("patternName")}
+          placeholder={translate("patterns.patternName")}
           onCommit={onPatternLabelChange}
           onCancel={onCancel}
           forceValidation
@@ -325,15 +325,15 @@ const CategorizeActionsMenu = ({
           <DDContent align="start" side="bottom" className="z-50">
             <StyledItem onSelect={() => onCategorize("demand")}>
               <ChevronRightIcon size="sm" />
-              {translate("setAsDemand")}
+              {translate("patterns.setAsDemand")}
             </StyledItem>
             <StyledItem onSelect={() => onCategorize("reservoirHead")}>
               <ChevronRightIcon size="sm" />
-              {translate("setAsReservoirHead")}
+              {translate("patterns.setAsReservoirHead")}
             </StyledItem>
             <StyledItem onSelect={() => onCategorize("pumpSpeed")}>
               <ChevronRightIcon size="sm" />
-              {translate("setAsPumpSpeed")}
+              {translate("patterns.setAsPumpSpeed")}
             </StyledItem>
             <StyledItem variant="destructive" onSelect={onDelete}>
               <CloseIcon size="sm" />

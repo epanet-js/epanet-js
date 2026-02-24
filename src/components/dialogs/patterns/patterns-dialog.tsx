@@ -27,7 +27,7 @@ import { PatternSidebarResizer } from "./pattern-sidebar-resizer";
 
 type PatternUpdate = Partial<Pick<Pattern, "label" | "multipliers" | "type">>;
 
-export const CurvesAndPatternsDialog = ({
+export const PatternsDialog = ({
   initialPatternId,
 }: {
   initialPatternId?: PatternId;
@@ -136,7 +136,7 @@ export const CurvesAndPatternsDialog = ({
       ) {
         notify({
           variant: "error",
-          title: translate("deletePatternInUse"),
+          title: translate("patterns.deletePatternInUse"),
         });
         return;
       }
@@ -200,7 +200,7 @@ export const CurvesAndPatternsDialog = ({
 
   return (
     <DialogContainer size="lg" height="lg" onClose={handleCancel}>
-      <DialogHeader title={translate("curvesAndPatterns")} />
+      <DialogHeader title={translate("patterns.title")} />
       <div className="flex-1 flex min-h-0">
         <div className="flex-shrink-0 flex">
           <GroupedPatternSidebar
@@ -288,7 +288,7 @@ const NoSelectionState = () => {
         <PatternsIcon size={96} />
       </div>
       <p className="text-sm text-gray-600 text-center max-w-64 py-4">
-        {translate("curvesAndPatternsNoSelection")}
+        {translate("patterns.noSelection")}
       </p>
     </div>
   );
@@ -303,11 +303,11 @@ const EmptyState = ({ readOnly }: { readOnly: boolean }) => {
         <PatternsIcon size={96} />
       </div>
       <p className="text-sm font-semibold py-4 text-gray-600">
-        {translate("curvesAndPatternsEmptyTitle")}
+        {translate("patterns.emptyTitle")}
       </p>
       {!readOnly && (
         <p className="text-sm text-gray-600 text-center max-w-64">
-          {translate("curvesAndPatternsEmptyDescription")}
+          {translate("patterns.emptyDescription")}
         </p>
       )}
     </div>

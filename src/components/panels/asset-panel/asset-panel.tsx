@@ -76,7 +76,7 @@ import {
   PumpDefinitionDetails,
 } from "./pump-definition-details";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { useShowCurvesAndPatterns } from "src/commands/show-curves-and-patterns";
+import { useShowPatterns } from "src/commands/show-patterns";
 import { SelectorOption } from "src/components/form/selector";
 import { PatternId } from "src/hydraulic-model/patterns";
 
@@ -1309,7 +1309,7 @@ const VariableSpeedField = ({
   readOnly?: boolean;
 }) => {
   const translate = useTranslate();
-  const showCurvesAndPatterns = useShowCurvesAndPatterns();
+  const showPatterns = useShowPatterns();
   const { getPatternComparison } = useAssetComparison(pump);
 
   const comparison = getPatternComparison(
@@ -1382,7 +1382,7 @@ const VariableSpeedField = ({
     (_: string, newValue: number | null, oldValue: number | null) => {
       if (newValue === oldValue) return;
       if (newValue === -1) {
-        showCurvesAndPatterns({
+        showPatterns({
           source: "pump",
           initialPatternId: pump.speedPatternId,
         });
@@ -1396,7 +1396,7 @@ const VariableSpeedField = ({
       }
       onPropertyChange("speedPatternId", newValue, pump.speedPatternId);
     },
-    [onPropertyChange, pump.speedPatternId, showCurvesAndPatterns],
+    [onPropertyChange, pump.speedPatternId, showPatterns],
   );
 
   const baseDisplayValue = useMemo(() => {
@@ -1466,7 +1466,7 @@ const ReservoirHeadField = ({
   quantitiesMetadata: Quantities;
   readOnly?: boolean;
 }) => {
-  const showCurvesAndPatterns = useShowCurvesAndPatterns();
+  const showPatterns = useShowPatterns();
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
   const { getComparison, getPatternComparison } = useAssetComparison(reservoir);
@@ -1504,7 +1504,7 @@ const ReservoirHeadField = ({
       if (newValue === oldValue) return;
       if (newValue === null) return;
       if (newValue === -1) {
-        showCurvesAndPatterns({
+        showPatterns({
           source: "reservoir",
           initialPatternId: reservoir.headPatternId,
         });
@@ -1514,7 +1514,7 @@ const ReservoirHeadField = ({
       if (!patternId && !oldValue) return;
       onPropertyChange("headPatternId", patternId, reservoir.headPatternId);
     },
-    [onPropertyChange, reservoir.headPatternId, showCurvesAndPatterns],
+    [onPropertyChange, reservoir.headPatternId, showPatterns],
   );
 
   const headComparison = getComparison("head", reservoir.head);
