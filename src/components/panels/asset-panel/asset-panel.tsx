@@ -75,7 +75,6 @@ import {
   PumpDefinitionData,
   PumpDefinitionDetails,
 } from "./pump-definition-details";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useShowPatterns } from "src/commands/show-patterns";
 import { SelectorOption } from "src/components/form/selector";
 import { PatternId } from "src/hydraulic-model/patterns";
