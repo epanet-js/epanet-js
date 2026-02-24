@@ -7,6 +7,57 @@ import { FooterResizer, useBigScreen } from "src/components/resizer";
 import { TContent } from "src/components/elements";
 import { useTranslate } from "src/hooks/use-translate";
 
+const ComparisonTooltip = ({
+  hasChanged,
+  baseDisplayValue,
+  children,
+}: {
+  hasChanged: boolean;
+  baseDisplayValue?: React.ReactNode;
+  children: React.ReactNode;
+}) => {
+  const translate = useTranslate();
+
+  if (hasChanged && baseDisplayValue !== undefined) {
+    return (
+      <Tooltip.Root delayDuration={200}>
+        <Tooltip.Trigger asChild>{children}</Tooltip.Trigger>
+        <Tooltip.Portal>
+          <TContent side="left" sideOffset={4}>
+            {translate("scenarios.main")}: {baseDisplayValue}
+          </TContent>
+        </Tooltip.Portal>
+      </Tooltip.Root>
+    );
+  }
+
+  return children;
+};
+
+export const BlockComparisonField = ({
+  hasChanged,
+  baseDisplayValue,
+  children,
+}: {
+  hasChanged: boolean;
+  baseDisplayValue?: React.ReactNode;
+  children: React.ReactNode;
+}) => {
+  return (
+    <ComparisonTooltip
+      hasChanged={hasChanged}
+      baseDisplayValue={baseDisplayValue}
+    >
+      <div className="relative">
+        {hasChanged && (
+          <div className="absolute -left-4 top-0 bottom-0 w-1 bg-purple-500 rounded-full" />
+        )}
+        {children}
+      </div>
+    </ComparisonTooltip>
+  );
+};
+
 export const FieldList = ({ children }: { children: React.ReactNode }) => {
   return <div className="flex flex-col gap-y-1">{children}</div>;
 };
@@ -25,11 +76,9 @@ export const InlineField = ({
   labelSize?: "sm" | "md";
   align?: "start" | "center";
   hasChanged?: boolean;
-  baseDisplayValue?: string;
+  baseDisplayValue?: React.ReactNode;
   children: React.ReactNode;
 }) => {
-  const translate = useTranslate();
-
   const labelClasses = clsx("text-sm text-gray-500", {
     "max-w-[67px] w-full flex-shrink-0":
       layout === "fixed-label" && labelSize === "sm",
@@ -45,50 +94,23 @@ export const InlineField = ({
 
   const spacingClass = labelSize === "md" ? "gap-1" : "space-x-4";
 
-  const labelElement = (
-    <label className={labelClasses} aria-label={`label: ${name}`}>
-      {name}
-    </label>
-  );
-
-  const purpleLine = hasChanged ? (
-    <div className="absolute -left-4 top-0 bottom-0 w-1 bg-purple-500 rounded-full" />
-  ) : null;
-
-  const triggerContent = (
-    <>
-      {purpleLine}
-      {labelElement}
-    </>
-  );
-
-  const wrappedLabel =
-    hasChanged && baseDisplayValue !== undefined ? (
-      <Tooltip.Root delayDuration={200}>
-        <Tooltip.Trigger asChild>
-          <div className="flex items-center">{triggerContent}</div>
-        </Tooltip.Trigger>
-        <Tooltip.Portal>
-          <TContent side="left" sideOffset={4}>
-            {translate("scenarios.main")}: {baseDisplayValue}
-          </TContent>
-        </Tooltip.Portal>
-      </Tooltip.Root>
-    ) : (
-      triggerContent
-    );
-
   return (
-    <div
-      className={clsx("flex relative", spacingClass, {
-        "items-start": align === "start",
-        "items-center": align === "center",
-      })}
+    <BlockComparisonField
+      hasChanged={hasChanged}
+      baseDisplayValue={baseDisplayValue}
     >
-      {wrappedLabel}
-
-      <div className={inputWrapperClasses}>{children}</div>
-    </div>
+      <div
+        className={clsx("flex", spacingClass, {
+          "items-start": align === "start",
+          "items-center": align === "center",
+        })}
+      >
+        <label className={labelClasses} aria-label={`label: ${name}`}>
+          {name}
+        </label>
+        <div className={inputWrapperClasses}>{children}</div>
+      </div>
+    </BlockComparisonField>
   );
 };
 

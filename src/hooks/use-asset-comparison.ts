@@ -3,12 +3,12 @@ import { useAtomValue } from "jotai";
 import isEqual from "lodash/isEqual";
 import { worktreeAtom } from "src/state/scenarios";
 import { baseModelAtom } from "src/state/hydraulic-model";
-import type { Asset, Pump, Reservoir } from "src/hydraulic-model";
+import type { Asset, Patterns, Pump } from "src/hydraulic-model";
+import type { Pattern, PatternId } from "src/hydraulic-model/patterns";
 import {
   calculateAverageDemand,
   getJunctionDemands,
 } from "src/hydraulic-model/demands";
-import { calculateAverageHead } from "src/hydraulic-model/asset-types";
 import { CurvePoint, ICurve } from "src/hydraulic-model/curves";
 
 export type PropertyComparison<T = unknown> = {
@@ -34,17 +34,15 @@ export function useAssetComparison(asset: Asset | undefined) {
 
   const isNew = isInScenario && asset !== undefined && baseAsset === undefined;
 
-  const getComparison = (
+  const getComparison = <T>(
     propertyName: string,
-    currentValue: unknown,
-  ): PropertyComparison => {
+    currentValue: T,
+  ): PropertyComparison<T> => {
     if (!isInScenario || !baseAsset) {
       return { hasChanged: false };
     }
 
-    const baseValue = (baseAsset.feature.properties as Record<string, unknown>)[
-      propertyName
-    ];
+    const baseValue = baseAsset.getProperty(propertyName) as T;
     const hasChanged = !isEqual(currentValue, baseValue);
 
     return { hasChanged, baseValue };
@@ -69,21 +67,39 @@ export function useAssetComparison(asset: Asset | undefined) {
     return { hasChanged, baseValue: baseDirectDemand };
   };
 
-  const getAverageHeadComparison = (
-    currentAverageHead: number,
-  ): PropertyComparison<number> => {
-    if (!isInScenario || !baseAsset || !asset) {
+  const getPatternComparison = (
+    propertyName: string,
+    currentPatternId: PatternId | undefined,
+    currentPatterns: Patterns,
+  ): PropertyComparison<Pattern> => {
+    if (!isInScenario || !baseAsset) {
       return { hasChanged: false };
     }
 
-    const baseAverageHead = calculateAverageHead(
-      baseAsset as Reservoir,
-      baseModel.patterns,
-    );
+    const basePatternId = baseAsset.getProperty(propertyName) as
+      | PatternId
+      | undefined;
 
-    const hasChanged = baseAverageHead !== currentAverageHead;
+    const basePattern = basePatternId
+      ? baseModel.patterns.get(basePatternId)
+      : undefined;
 
-    return { hasChanged, baseValue: baseAverageHead };
+    if (basePatternId !== currentPatternId) {
+      return { hasChanged: true, baseValue: basePattern };
+    }
+
+    if (currentPatternId != null) {
+      const currentPattern = currentPatterns.get(currentPatternId);
+      if (
+        basePattern &&
+        currentPattern &&
+        !isEqual(basePattern.multipliers, currentPattern.multipliers)
+      ) {
+        return { hasChanged: true, baseValue: basePattern };
+      }
+    }
+
+    return { hasChanged: false };
   };
 
   const getPumpCurveComparison = (
@@ -111,8 +127,8 @@ export function useAssetComparison(asset: Asset | undefined) {
   return {
     isInScenario,
     getComparison,
+    getPatternComparison,
     getDirectDemandComparison,
-    getAverageHeadComparison,
     getPumpCurveComparison,
     isNew,
   };

@@ -59,17 +59,11 @@ import {
   SwitchRow,
   ConnectedCustomersRow,
 } from "./ui-components";
-import { Section } from "src/components/form/fields";
+import { BlockComparisonField, Section } from "src/components/form/fields";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
-import * as Tooltip from "@radix-ui/react-tooltip";
-import { TContent } from "src/components/elements";
 import { useQuickGraph } from "./quick-graph";
-import {
-  useAssetComparison,
-  type PropertyComparison,
-} from "src/hooks/use-asset-comparison";
-import { Unit } from "src/quantity";
+import { useAssetComparison } from "src/hooks/use-asset-comparison";
 import { useSimulation } from "src/hooks/use-simulation";
 import type {
   PipeSimulation,
@@ -777,8 +771,6 @@ const PipeEditor = ({
   );
 };
 
-const NO_PATTERN_ID = 0;
-
 const ReservoirEditor = ({
   hydraulicModel,
   reservoir,
@@ -794,60 +786,10 @@ const ReservoirEditor = ({
   onLabelChange: (newLabel: string) => string | undefined;
   readonly?: boolean;
 }) => {
-  const isMorePatternsOn = useFeatureFlag("FLAG_MORE_PATTERNS");
   const translate = useTranslate();
-  const showCurvesAndPatterns = useShowCurvesAndPatterns();
   const { footer } = useQuickGraph(reservoir.id, "reservoir");
-  const { getComparison, getAverageHeadComparison, isNew } =
-    useAssetComparison(reservoir);
-
-  const headPatternOptions = useMemo(() => {
-    const libraryGroup: SelectorOption<PatternId>[] = [
-      { label: translate("openPatternsLibrary"), value: -1 },
-    ];
-
-    const patternGroup: SelectorOption<PatternId>[] = [];
-    for (const [, pattern] of hydraulicModel.patterns) {
-      if (pattern.type === "reservoirHead") {
-        patternGroup.push({ label: pattern.label, value: pattern.id });
-      }
-    }
-    const constantGroup: SelectorOption<PatternId>[] = patternGroup.length
-      ? [
-          {
-            label: translate("constant"),
-            value: NO_PATTERN_ID,
-          },
-        ]
-      : [];
-
-    return [libraryGroup, [...constantGroup, ...patternGroup]];
-  }, [hydraulicModel.patterns, translate]);
-
-  const selectedPatternId = reservoir.headPatternId ?? null;
-
-  const averageHead = useMemo(
-    () => calculateAverageHead(reservoir, hydraulicModel.patterns),
-    [reservoir, hydraulicModel.patterns],
-  );
-
-  const handleHeadPatternChange = useCallback(
-    (_: string, newValue: number | null, oldValue: number | null) => {
-      if (newValue === oldValue) return;
-      if (newValue === null) return;
-      if (newValue === -1) {
-        showCurvesAndPatterns({
-          source: "reservoir",
-          initialPatternId: reservoir.headPatternId,
-        });
-        return;
-      }
-      const patternId = newValue === NO_PATTERN_ID ? undefined : newValue;
-      if (!patternId && !oldValue) return;
-      onPropertyChange("headPatternId", patternId, reservoir.headPatternId);
-    },
-    [onPropertyChange, reservoir.headPatternId, showCurvesAndPatterns],
-  );
+  const { getComparison, isNew } = useAssetComparison(reservoir);
+  const isMorePatternsOn = useFeatureFlag("FLAG_MORE_PATTERNS");
 
   return (
     <AssetEditorContent
@@ -878,41 +820,24 @@ const ReservoirEditor = ({
           onChange={onPropertyChange}
           readOnly={readonly}
         />
-        <QuantityRow
-          name="head"
-          value={reservoir.head}
-          unit={quantitiesMetadata.getUnit("head")}
-          decimals={quantitiesMetadata.getDecimals("head")}
-          comparison={getComparison("head", reservoir.head)}
-          onChange={onPropertyChange}
-          readOnly={readonly}
-        />
-        {isMorePatternsOn && (
-          <>
-            <SelectRow
-              name="headPattern"
-              selected={selectedPatternId}
-              options={headPatternOptions}
-              listClassName="first:italic"
-              stickyFirstGroup
-              nullable={true}
-              placeholder={translate("constant")}
-              comparison={getComparison(
-                "headPatternId",
-                reservoir.headPatternId,
-              )}
-              onChange={handleHeadPatternChange}
-              readOnly={readonly}
-            />
-            {!!selectedPatternId && (
-              <AverageHeadField
-                averageHead={averageHead}
-                comparison={getAverageHeadComparison(averageHead)}
-                unit={quantitiesMetadata.getUnit("head")}
-                decimals={quantitiesMetadata.getDecimals("head")}
-              />
-            )}
-          </>
+        {isMorePatternsOn ? (
+          <ReservoirHeadField
+            reservoir={reservoir}
+            patterns={hydraulicModel.patterns}
+            onPropertyChange={onPropertyChange}
+            quantitiesMetadata={quantitiesMetadata}
+            readOnly={readonly}
+          />
+        ) : (
+          <QuantityRow
+            name="head"
+            value={reservoir.head}
+            unit={quantitiesMetadata.getUnit("head")}
+            decimals={quantitiesMetadata.getDecimals("head")}
+            comparison={getComparison("head", reservoir.head)}
+            onChange={onPropertyChange}
+            readOnly={readonly}
+          />
         )}
       </Section>
     </AssetEditorContent>
@@ -1275,7 +1200,6 @@ const PumpEditor = ({
 }) => {
   const isMorePatternsOn = useFeatureFlag("FLAG_MORE_PATTERNS");
   const translate = useTranslate();
-  const showCurvesAndPatterns = useShowCurvesAndPatterns();
   const { footer } = useQuickGraph(pump.id, "pump");
   const { getComparison, getPumpCurveComparison, isNew } =
     useAssetComparison(pump);
@@ -1292,83 +1216,6 @@ const PumpEditor = ({
       value: status,
     }));
   }, [translate]);
-
-  const VARIABLE_SPEED_NONE = 0;
-  const VARIABLE_SPEED_PATTERN_BASED = 1;
-
-  const variableSpeedOptions = useMemo(
-    () => [
-      [{ label: translate("none"), value: VARIABLE_SPEED_NONE }],
-      [
-        {
-          label: translate("patternBased"),
-          value: VARIABLE_SPEED_PATTERN_BASED,
-        },
-      ],
-    ],
-    [translate],
-  );
-
-  const [selectedVariableSpeed, setSelectedVariableSpeed] = useState<
-    number | null
-  >(pump.speedPatternId ? VARIABLE_SPEED_PATTERN_BASED : null);
-
-  const handleVariableSpeedChange = useCallback(
-    (_: string, newValue: number | null, oldValue: number | null) => {
-      if (newValue === oldValue) return;
-      const resolved = newValue === VARIABLE_SPEED_NONE ? null : newValue;
-      setSelectedVariableSpeed(resolved);
-      if (resolved === null && pump.speedPatternId) {
-        onPropertyChange("speedPatternId", undefined, pump.speedPatternId);
-      }
-    },
-    [onPropertyChange, pump.speedPatternId],
-  );
-
-  const speedPatternOptions = useMemo(() => {
-    const libraryGroup: SelectorOption<PatternId>[] = [
-      { label: translate("openPatternsLibrary"), value: -1 },
-    ];
-
-    const patternGroup: SelectorOption<PatternId>[] = [];
-    for (const [, pattern] of hydraulicModel.patterns) {
-      if (pattern.type === "pumpSpeed") {
-        patternGroup.push({ label: pattern.label, value: pattern.id });
-      }
-    }
-    if (!patternGroup.length) {
-      return [libraryGroup, []];
-    }
-
-    const constantGroup: SelectorOption<PatternId>[] = [
-      { label: translate("constant"), value: NO_PATTERN_ID },
-    ];
-
-    return [libraryGroup, [...constantGroup, ...patternGroup]];
-  }, [hydraulicModel.patterns, translate]);
-
-  const selectedSpeedPatternId = pump.speedPatternId ?? null;
-
-  const handleSpeedPatternChange = useCallback(
-    (_: string, newValue: number | null, oldValue: number | null) => {
-      if (newValue === oldValue) return;
-      if (newValue === -1) {
-        showCurvesAndPatterns({
-          source: "pump",
-          initialPatternId: pump.speedPatternId,
-        });
-        return;
-      }
-      if (newValue === null || newValue === NO_PATTERN_ID) {
-        if (pump.speedPatternId) {
-          onPropertyChange("speedPatternId", undefined, pump.speedPatternId);
-        }
-        return;
-      }
-      onPropertyChange("speedPatternId", newValue, pump.speedPatternId);
-    },
-    [onPropertyChange, pump.speedPatternId, showCurvesAndPatterns],
-  );
 
   const handleStatusChange = (
     name: string,
@@ -1445,40 +1292,12 @@ const PumpEditor = ({
           readOnly={readonly}
         />
         {isMorePatternsOn && (
-          <>
-            <SelectRow
-              name="variableSpeed"
-              selected={selectedVariableSpeed}
-              options={variableSpeedOptions}
-              listClassName="first:italic"
-              nullable={true}
-              placeholder={translate("none")}
-              comparison={getComparison("speedPatternId", pump.speedPatternId)}
-              onChange={handleVariableSpeedChange}
-              readOnly={readonly}
-            />
-            {selectedVariableSpeed === VARIABLE_SPEED_PATTERN_BASED && (
-              <NestedComparisonField
-                comparison={getComparison(
-                  "speedPatternId",
-                  pump.speedPatternId,
-                )}
-                options={speedPatternOptions.flat()}
-              >
-                <SelectRow
-                  name="speedPattern"
-                  selected={selectedSpeedPatternId}
-                  options={speedPatternOptions}
-                  listClassName="first:italic"
-                  stickyFirstGroup
-                  nullable={true}
-                  placeholder={translate("constant")}
-                  onChange={handleSpeedPatternChange}
-                  readOnly={readonly}
-                />
-              </NestedComparisonField>
-            )}
-          </>
+          <VariableSpeedField
+            pump={pump}
+            patterns={hydraulicModel.patterns}
+            onPropertyChange={onPropertyChange}
+            readOnly={readonly}
+          />
         )}
       </Section>
       <Section title={translate("simulationResults")}>
@@ -1502,85 +1321,336 @@ const PumpEditor = ({
   );
 };
 
-const AverageHeadField = ({
-  averageHead,
-  comparison,
-  unit,
-  decimals,
+const NO_PATTERN_ID = 0;
+const VARIABLE_SPEED_NONE = 0;
+const VARIABLE_SPEED_PATTERN_BASED = 1;
+
+const VariableSpeedField = ({
+  pump,
+  patterns,
+  onPropertyChange,
+  readOnly = false,
 }: {
-  averageHead: number;
-  comparison: PropertyComparison<number>;
-  unit: Unit;
-  decimals?: number;
-}) => {
-  const translateUnit = useTranslateUnit();
-
-  const baseDisplayValue =
-    comparison.baseValue != null
-      ? `${localizeDecimal(comparison.baseValue, { decimals })} ${translateUnit(unit)}`
-      : undefined;
-
-  return (
-    <NestedComparisonField
-      comparison={comparison}
-      baseDisplayValue={baseDisplayValue}
-    >
-      <QuantityRow
-        name="headAverage"
-        value={averageHead}
-        unit={unit}
-        decimals={decimals}
-        readOnly={true}
-      />
-    </NestedComparisonField>
-  );
-};
-
-const NestedComparisonField = ({
-  comparison,
-  baseDisplayValue,
-  options,
-  children,
-}: {
-  comparison: PropertyComparison;
-  baseDisplayValue?: string;
-  options?: SelectorOption<number>[];
-  children: React.ReactNode;
+  pump: Pump;
+  patterns: Patterns;
+  onPropertyChange: OnPropertyChange;
+  readOnly?: boolean;
 }) => {
   const translate = useTranslate();
+  const showCurvesAndPatterns = useShowCurvesAndPatterns();
+  const { getPatternComparison } = useAssetComparison(pump);
 
-  const resolvedBaseDisplayValue =
-    baseDisplayValue ??
-    (comparison.hasChanged && comparison.baseValue != null && options
-      ? (options.find((o) => o.value === comparison.baseValue)?.label ??
-        String(comparison.baseValue))
-      : comparison.hasChanged && comparison.baseValue == null
-        ? translate("empty")
-        : undefined);
-
-  const nestedContent = (
-    <div className="bg-gray-50 p-2 py-1 mt-1 -mr-2 border-l-2 border-gray-400 rounded-sm relative">
-      {comparison.hasChanged && (
-        <div className="absolute -left-4 top-0 bottom-0 w-1 bg-purple-500 rounded-full" />
-      )}
-      {children}
-    </div>
+  const comparison = getPatternComparison(
+    "speedPatternId",
+    pump.speedPatternId,
+    patterns,
   );
 
-  if (comparison.hasChanged && resolvedBaseDisplayValue) {
-    return (
-      <Tooltip.Root delayDuration={200}>
-        <Tooltip.Trigger asChild>{nestedContent}</Tooltip.Trigger>
-        <Tooltip.Portal>
-          <TContent side="left" sideOffset={4}>
-            {translate("scenarios.main")}: {resolvedBaseDisplayValue}
-          </TContent>
-        </Tooltip.Portal>
-      </Tooltip.Root>
+  const variableSpeedOptions = useMemo(
+    () => [
+      [{ label: translate("none"), value: VARIABLE_SPEED_NONE }],
+      [
+        {
+          label: translate("patternBased"),
+          value: VARIABLE_SPEED_PATTERN_BASED,
+        },
+      ],
+    ],
+    [translate],
+  );
+
+  const [selectedVariableSpeed, setSelectedVariableSpeed] = useState<
+    number | null
+  >(pump.speedPatternId ? VARIABLE_SPEED_PATTERN_BASED : null);
+  const [prevSpeedPatternId, setPrevSpeedPatternId] = useState(
+    pump.speedPatternId,
+  );
+  if (pump.speedPatternId !== prevSpeedPatternId) {
+    setPrevSpeedPatternId(pump.speedPatternId);
+    setSelectedVariableSpeed(
+      pump.speedPatternId ? VARIABLE_SPEED_PATTERN_BASED : null,
     );
   }
 
-  return nestedContent;
+  const handleVariableSpeedChange = useCallback(
+    (_: string, newValue: number | null, oldValue: number | null) => {
+      if (newValue === oldValue) return;
+      const resolved = newValue === VARIABLE_SPEED_NONE ? null : newValue;
+      setSelectedVariableSpeed(resolved);
+      if (resolved === null && pump.speedPatternId) {
+        onPropertyChange("speedPatternId", undefined, pump.speedPatternId);
+      }
+    },
+    [onPropertyChange, pump.speedPatternId],
+  );
+
+  const speedPatternOptions = useMemo(() => {
+    const libraryGroup: SelectorOption<PatternId>[] = [
+      { label: translate("openPatternsLibrary"), value: -1 },
+    ];
+
+    const patternGroup: SelectorOption<PatternId>[] = [];
+    for (const [, pattern] of patterns) {
+      if (pattern.type === "pumpSpeed") {
+        patternGroup.push({ label: pattern.label, value: pattern.id });
+      }
+    }
+    if (!patternGroup.length) {
+      return [libraryGroup, []];
+    }
+
+    const constantGroup: SelectorOption<PatternId>[] = [
+      { label: translate("constant"), value: NO_PATTERN_ID },
+    ];
+
+    return [libraryGroup, [...constantGroup, ...patternGroup]];
+  }, [patterns, translate]);
+
+  const handleSpeedPatternChange = useCallback(
+    (_: string, newValue: number | null, oldValue: number | null) => {
+      if (newValue === oldValue) return;
+      if (newValue === -1) {
+        showCurvesAndPatterns({
+          source: "pump",
+          initialPatternId: pump.speedPatternId,
+        });
+        return;
+      }
+      if (newValue === null || newValue === NO_PATTERN_ID) {
+        if (pump.speedPatternId) {
+          onPropertyChange("speedPatternId", undefined, pump.speedPatternId);
+        }
+        return;
+      }
+      onPropertyChange("speedPatternId", newValue, pump.speedPatternId);
+    },
+    [onPropertyChange, pump.speedPatternId, showCurvesAndPatterns],
+  );
+
+  const baseDisplayValue = useMemo(() => {
+    if (!comparison.hasChanged) return undefined;
+    const basePattern = comparison.baseValue;
+    const baseHadPattern = basePattern != null;
+    const baseSpeed = baseHadPattern
+      ? translate("patternBased")
+      : translate("none");
+    const multipliersDiffer =
+      baseHadPattern && basePattern.id === pump.speedPatternId;
+
+    return (
+      <div className="whitespace-pre-line">
+        {baseSpeed}
+        {baseHadPattern &&
+          `\n${translate("speedPattern")}: ${basePattern.label}`}
+        {multipliersDiffer && `\n${translate("multipliersDiffer")}`}
+      </div>
+    );
+  }, [comparison, pump.speedPatternId, translate]);
+
+  return (
+    <BlockComparisonField
+      hasChanged={comparison.hasChanged}
+      baseDisplayValue={baseDisplayValue}
+    >
+      <SelectRow
+        name="variableSpeed"
+        selected={selectedVariableSpeed}
+        options={variableSpeedOptions}
+        listClassName="first:italic"
+        nullable={true}
+        placeholder={translate("none")}
+        onChange={handleVariableSpeedChange}
+        readOnly={readOnly}
+      />
+      {selectedVariableSpeed === VARIABLE_SPEED_PATTERN_BASED && (
+        <div className="bg-gray-50 p-2 py-1 mt-1 -mr-2 border-l-2 border-gray-400 rounded-sm">
+          <SelectRow
+            name="speedPattern"
+            selected={pump.speedPatternId ?? null}
+            options={speedPatternOptions}
+            listClassName="first:italic"
+            stickyFirstGroup
+            nullable={true}
+            placeholder={translate("constant")}
+            onChange={handleSpeedPatternChange}
+            readOnly={readOnly}
+          />
+        </div>
+      )}
+    </BlockComparisonField>
+  );
+};
+
+const ReservoirHeadField = ({
+  reservoir,
+  patterns,
+  onPropertyChange,
+  quantitiesMetadata,
+  readOnly = false,
+}: {
+  reservoir: Reservoir;
+  patterns: Patterns;
+  onPropertyChange: OnPropertyChange;
+  quantitiesMetadata: Quantities;
+  readOnly?: boolean;
+}) => {
+  const showCurvesAndPatterns = useShowCurvesAndPatterns();
+  const translate = useTranslate();
+  const translateUnit = useTranslateUnit();
+  const { getComparison, getPatternComparison } = useAssetComparison(reservoir);
+
+  const headPatternOptions = useMemo(() => {
+    const libraryGroup: SelectorOption<PatternId>[] = [
+      { label: translate("openPatternsLibrary"), value: -1 },
+    ];
+
+    const patternGroup: SelectorOption<PatternId>[] = [];
+    for (const [, pattern] of patterns) {
+      if (pattern.type === "reservoirHead") {
+        patternGroup.push({ label: pattern.label, value: pattern.id });
+      }
+    }
+    const constantGroup: SelectorOption<PatternId>[] = patternGroup.length
+      ? [
+          {
+            label: translate("constant"),
+            value: NO_PATTERN_ID,
+          },
+        ]
+      : [];
+
+    return [libraryGroup, [...constantGroup, ...patternGroup]];
+  }, [patterns, translate]);
+
+  const averageHead = useMemo(
+    () => calculateAverageHead(reservoir, patterns),
+    [reservoir, patterns],
+  );
+
+  const handleHeadPatternChange = useCallback(
+    (_: string, newValue: number | null, oldValue: number | null) => {
+      if (newValue === oldValue) return;
+      if (newValue === null) return;
+      if (newValue === -1) {
+        showCurvesAndPatterns({
+          source: "reservoir",
+          initialPatternId: reservoir.headPatternId,
+        });
+        return;
+      }
+      const patternId = newValue === NO_PATTERN_ID ? undefined : newValue;
+      if (!patternId && !oldValue) return;
+      onPropertyChange("headPatternId", patternId, reservoir.headPatternId);
+    },
+    [onPropertyChange, reservoir.headPatternId, showCurvesAndPatterns],
+  );
+
+  const headComparison = getComparison("head", reservoir.head);
+  const patternComparison = getPatternComparison(
+    "headPatternId",
+    reservoir.headPatternId,
+    patterns,
+  );
+  const hasChanged = headComparison.hasChanged || patternComparison.hasChanged;
+
+  const headUnit = quantitiesMetadata.getUnit("head");
+  const headDecimals = quantitiesMetadata.getDecimals("head");
+
+  const baseDisplayValue = useMemo(() => {
+    if (!hasChanged) return undefined;
+
+    const baseHead = headComparison.hasChanged
+      ? (headComparison.baseValue as number)
+      : reservoir.head;
+
+    const baseMultipliers = patternComparison.hasChanged
+      ? patternComparison.baseValue?.multipliers
+      : reservoir.headPatternId
+        ? patterns.get(reservoir.headPatternId)?.multipliers
+        : undefined;
+
+    const avgMultiplier =
+      baseMultipliers && baseMultipliers.length > 0
+        ? baseMultipliers.reduce((sum, m) => sum + m, 0) /
+          baseMultipliers.length
+        : 1;
+
+    const baseAverageHead = baseHead * avgMultiplier;
+    const unitLabel = translateUnit(headUnit);
+    const formattedAvgHead = localizeDecimal(baseAverageHead, {
+      decimals: headDecimals,
+    });
+
+    const basePattern = patternComparison.baseValue;
+    const multipliersDiffer =
+      patternComparison.hasChanged &&
+      basePattern != null &&
+      basePattern.id === reservoir.headPatternId;
+
+    return (
+      <div className="whitespace-pre-line">
+        {`${translate("headAverage")} (${unitLabel}): ${formattedAvgHead}`}
+        {headComparison.hasChanged &&
+          `\n${translate("head")} (${unitLabel}): ${localizeDecimal(baseHead, { decimals: headDecimals })}`}
+        {patternComparison.hasChanged && basePattern
+          ? `\n${translate("headPattern")}: ${basePattern.label}`
+          : `\n${translate("headPattern")}: ${translate("constant")}`}
+        {multipliersDiffer && `\n${translate("multipliersDiffer")}`}
+      </div>
+    );
+  }, [
+    hasChanged,
+    headComparison,
+    patternComparison,
+    patterns,
+    reservoir.head,
+    reservoir.headPatternId,
+    headDecimals,
+    headUnit,
+    translate,
+    translateUnit,
+  ]);
+
+  const selectedPatternId = reservoir.headPatternId ?? null;
+
+  return (
+    <BlockComparisonField
+      hasChanged={hasChanged}
+      baseDisplayValue={baseDisplayValue}
+    >
+      <div className="flex flex-col gap-1">
+        <QuantityRow
+          name="head"
+          value={reservoir.head}
+          unit={headUnit}
+          decimals={headDecimals}
+          onChange={onPropertyChange}
+          readOnly={readOnly}
+        />
+
+        <SelectRow
+          name="headPattern"
+          selected={selectedPatternId}
+          options={headPatternOptions}
+          listClassName="first:italic"
+          stickyFirstGroup
+          nullable={true}
+          placeholder={translate("constant")}
+          onChange={handleHeadPatternChange}
+          readOnly={readOnly}
+        />
+        {!!selectedPatternId && (
+          <QuantityRow
+            name="headAverage"
+            value={averageHead}
+            unit={headUnit}
+            decimals={headDecimals}
+            readOnly={true}
+          />
+        )}
+      </div>
+    </BlockComparisonField>
+  );
 };
 
 function getCustomerPointsPattern(

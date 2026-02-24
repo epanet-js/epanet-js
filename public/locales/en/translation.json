@@ -890,6 +890,7 @@
   "variableSpeed": "Variable speed",
   "speedPattern": "Pattern",
   "patternBased": "Pattern based",
+  "multipliersDiffer": "Multipliers differ",
   "addCurve": "Add curve",
   "pumpName": "Pump name",
   "curveType": "Curve type",
