@@ -69,6 +69,7 @@ type CurvesContext = {
   pumpCurves: Map<CurveId, AssetId[]>;
   idGenerator: IdGenerator;
   labelManager: LabelManager;
+  duplicates: Map<CurveId, Map<CurveType, CurveId>>;
 };
 
 export const buildModel = (
@@ -202,6 +203,7 @@ const initializeCurvesContext = (
     pumpCurves: new Map(),
     labelManager: labelManager,
     idGenerator: new ConsecutiveIdsGenerator(),
+    duplicates: new Map(),
   };
 
   for (const [, curveData] of rawCurves.entries()) {
@@ -469,7 +471,7 @@ const addTank = (
       "curve",
     );
     if (curveId !== undefined) {
-      markCurveUsed(curvesContext.curves, curveId, "volume");
+      markCurveUsed(curvesContext, curveId, "volume");
     }
   }
 };
@@ -529,9 +531,11 @@ const addPump = (
       if (!isValidCurve(curve.points)) {
         issues.addInvalidPumpCurve();
       }
+      const effectiveCurveId = markCurveUsed(curvesContext, curve.id, "pump");
+
       definitionProps = {
         definitionType: "curveId",
-        curveId: curve.id,
+        curveId: effectiveCurveId,
       };
     }
   }
@@ -580,7 +584,6 @@ const addPump = (
       curvesContext.pumpCurves.set(pump.curveId, []);
     }
     curvesContext.pumpCurves.get(pump.curveId)!.push(pump.id);
-    markCurveUsed(curvesContext.curves, pump.curveId, "pump");
   }
 };
 
@@ -631,7 +634,7 @@ const addValve = (
       "curve",
     );
     if (curveId !== undefined) {
-      markCurveUsed(curvesContext.curves, curveId, "valve");
+      markCurveUsed(curvesContext, curveId, "valve");
     }
   }
 
@@ -641,7 +644,7 @@ const addValve = (
       "curve",
     );
     if (curveId !== undefined) {
-      markCurveUsed(curvesContext.curves, curveId, "headloss");
+      markCurveUsed(curvesContext, curveId, "headloss");
     }
   }
 };
@@ -832,11 +835,44 @@ const addControls = (
   };
 };
 
-const markCurveUsed = (curves: Curves, curveId: CurveId, type: CurveType) => {
-  const curve = curves.get(curveId)!;
-  if (!curve.type || type === "pump") {
+const markCurveUsed = (
+  context: CurvesContext,
+  curveId: CurveId,
+  type: CurveType,
+): CurveId => {
+  const curve = context.curves.get(curveId)!;
+
+  if (!curve.type) {
     curve.type = type;
+    return curveId;
   }
+
+  if (curve.type === type) {
+    return curveId;
+  }
+
+  let typeDuplicates = context.duplicates.get(curveId);
+  if (typeDuplicates?.has(type)) {
+    return typeDuplicates.get(type)!;
+  }
+
+  const newLabel = context.labelManager.generateNextLabel(curve.label);
+  const duplicate = addCurve(
+    context,
+    newLabel,
+    curve.points.map((p) => ({ ...p })),
+  );
+  if (!duplicate) return curveId;
+
+  duplicate.type = type;
+
+  if (!typeDuplicates) {
+    typeDuplicates = new Map();
+    context.duplicates.set(curveId, typeDuplicates);
+  }
+  typeDuplicates.set(type, duplicate.id);
+
+  return duplicate.id;
 };
 
 const addCurves = (
@@ -856,7 +892,7 @@ const addCurves = (
       "curve",
     );
     if (pumpId !== undefined && curveId !== undefined) {
-      markCurveUsed(curvesContext.curves, curveId, "efficiency");
+      markCurveUsed(curvesContext, curveId, "efficiency");
     }
   }
 

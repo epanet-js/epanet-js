@@ -339,3 +339,95 @@ describe("comment-based curve type fallback", () => {
     expect(issues?.hasUnusedCurves).toBe(1);
   });
 });
+
+describe("curve duplication for multi-type usage", () => {
+  it("duplicates curve used as both volume and pump", () => {
+    const inp = `
+    [JUNCTIONS]
+    j1\t10
+    j2\t10
+    [TANKS]
+    T1\t100\t15\t5\t25\t120\t0\tshared
+    [PUMPS]
+    pu1\tj1\tj2\tHEAD shared
+    [CURVES]
+    shared\t0\t200
+    shared\t100\t0
+    ${coords(["j1", "j2", "T1"])}
+    `;
+
+    const { hydraulicModel, issues } = parseInp(inp);
+    const curves = [...hydraulicModel.curves.values()];
+
+    // The pump curve is a duplicate with a suffixed label
+    expect(curves).toHaveLength(1);
+    expect(curves[0].type).toBe("pump");
+    expect(curves[0].label).toMatch(/^shared_\d+$/);
+    expect(curves[0].points).toEqual([
+      { x: 0, y: 200 },
+      { x: 100, y: 0 },
+    ]);
+
+    // The pump references the duplicate curve
+    const pump = getByLabel(hydraulicModel.assets, "pu1") as Pump;
+    expect(pump.curveId).toBe(curves[0].id);
+
+    expect(issues?.hasUnusedCurves).toBeUndefined();
+  });
+
+  it("duplicates curve used as both pump and efficiency", () => {
+    const inp = `
+    [JUNCTIONS]
+    j1\t10
+    j2\t10
+    [PUMPS]
+    pu1\tj1\tj2\tHEAD shared
+    [ENERGY]
+    PUMP\tpu1\tEFFICIENCY\tshared
+    [CURVES]
+    shared\t0\t200
+    shared\t100\t0
+    ${coords(["j1", "j2"])}
+    `;
+
+    const { hydraulicModel, issues } = parseInp(inp);
+    const curves = [...hydraulicModel.curves.values()];
+
+    // Pump curve stays with original label
+    expect(curves).toHaveLength(1);
+    expect(curves[0].type).toBe("pump");
+    expect(curves[0].label).toBe("shared");
+
+    // Efficiency duplicate is properly typed (not reported as unused)
+    expect(issues?.hasUnusedCurves).toBeUndefined();
+  });
+
+  it("does not duplicate when same curve is used by multiple pumps for the same type", () => {
+    const inp = `
+    [JUNCTIONS]
+    j1\t10
+    j2\t10
+    j3\t10
+    [PUMPS]
+    pu1\tj1\tj2\tHEAD shared
+    pu2\tj2\tj3\tHEAD shared
+    [CURVES]
+    shared\t0\t200
+    shared\t100\t0
+    ${coords(["j1", "j2", "j3"])}
+    `;
+
+    const { hydraulicModel } = parseInp(inp);
+    const curves = [...hydraulicModel.curves.values()];
+
+    // Only one curve, shared by both pumps
+    expect(curves).toHaveLength(1);
+    expect(curves[0].type).toBe("pump");
+    expect(curves[0].label).toBe("shared");
+
+    // Both pumps reference the same curve
+    const pu1 = getByLabel(hydraulicModel.assets, "pu1") as Pump;
+    const pu2 = getByLabel(hydraulicModel.assets, "pu2") as Pump;
+    expect(pu1.curveId).toBe(pu2.curveId);
+  });
+});
