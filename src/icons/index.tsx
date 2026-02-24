@@ -2,10 +2,8 @@ import {
   LucideProps,
   LucideIcon,
   ArrowDownWideNarrow,
-  ArrowDownToDot,
   ArrowDownUp,
   ArrowRight,
-  ArrowUpFromDot,
   ArrowUpNarrowWide,
   Bell,
   ChartColumn,
@@ -65,7 +63,6 @@ import {
   RouteOff,
   Save,
   SaveAll,
-  Scan,
   Settings,
   SquareDashed,
   SquareStack,
@@ -199,9 +196,6 @@ export const ControlsIcon = icon(FileCode);
 export const PatternsIcon = icon(ChartColumn);
 export const RenameIcon = icon(TextCursorInput);
 export const DuplicateIcon = icon(Copy);
-export const BoundaryTraceIcon = icon(Scan);
-export const UpstreamTraceIcon = icon(ArrowUpFromDot);
-export const DownstreamTraceIcon = icon(ArrowDownToDot);
 
 export const ReverseIcon: React.FC<IconProps> = ({
   size: rawSize = "md",
@@ -234,3 +228,6 @@ export { CustomActiveTopologyEnableIcon as ActiveTopologyEnableIcon } from "./cu
 export { CustomActiveTopologyDisableIcon as ActiveTopologyDisableIcon } from "./custom-icons/active-topology-disable";
 export { CustomOperationalDataIcon as AdvancedSettingsIcon } from "./custom-icons/operational-data";
 export { CustomTableSelectAllIcon as TableSelectAllIcon } from "./custom-icons/table-select-all-icon";
+export { CustomUpstreamTraceIcon as UpstreamTraceIcon } from "./custom-icons/trace-upstream-icon";
+export { CustomDownstreamTraceIcon as DownstreamTraceIcon } from "./custom-icons/trace-downstream-icon";
+export { CustomBoundaryTraceIcon as BoundaryTraceIcon } from "./custom-icons/trace-boundary-icon";
