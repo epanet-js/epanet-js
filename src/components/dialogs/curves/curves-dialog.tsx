@@ -13,10 +13,12 @@ import {
   CurveId,
   CurvePoint,
   CurveType,
+  CurveErrorPoint,
   buildDefaultCurve,
-  isValidCurve,
   stripTrailingEmptyPoints,
+  getPumpCurveErrors,
 } from "src/hydraulic-model/curves";
+import { QuantityProperty } from "src/model-metadata/quantities-spec";
 import { HydraulicModel } from "src/hydraulic-model";
 import { Pump } from "src/hydraulic-model/asset-types/pump";
 import { CurvesIcon } from "src/icons";
@@ -26,6 +28,66 @@ import { changeCurves } from "src/hydraulic-model/model-operations/change-curves
 import { notify } from "src/components/notifications";
 import { useUserTracking } from "src/infra/user-tracking";
 import { LabelManager } from "src/hydraulic-model/label-manager";
+
+export interface CurveTypeConfig {
+  xLabel: string;
+  yLabel: string;
+  xQuantity?: QuantityProperty;
+  yQuantity?: QuantityProperty;
+  getErrors: (points: CurvePoint[]) => CurveErrorPoint[];
+}
+
+const getGenericCurveErrors = (points: CurvePoint[]): CurveErrorPoint[] => {
+  if (points.length === 0) return [];
+
+  if (points.length === 1) {
+    const errors: CurveErrorPoint[] = [];
+    if (points[0].x === 0) errors.push({ index: 0, value: "x" });
+    if (points[0].y === 0) errors.push({ index: 0, value: "y" });
+    return errors;
+  }
+
+  const errors: CurveErrorPoint[] = [];
+  const seen = new Set<string>();
+  const add = (index: number) => {
+    const key = `${index}:x`;
+    if (!seen.has(key)) {
+      seen.add(key);
+      errors.push({ index, value: "x" });
+    }
+  };
+
+  for (let i = 1; i < points.length; i++) {
+    if (points[i].x <= points[i - 1].x) {
+      add(i - 1);
+      add(i);
+    }
+  }
+  return errors;
+};
+
+const pumpCurveConfig: CurveTypeConfig = {
+  xLabel: "flow",
+  yLabel: "head",
+  xQuantity: "flow",
+  yQuantity: "head",
+  getErrors: getPumpCurveErrors,
+};
+
+const defaultCurveConfig: CurveTypeConfig = {
+  xLabel: "x",
+  yLabel: "y",
+  getErrors: getGenericCurveErrors,
+};
+
+export const getCurveTypeConfig = (type?: CurveType): CurveTypeConfig => {
+  switch (type) {
+    case "pump":
+      return pumpCurveConfig;
+    default:
+      return defaultCurveConfig;
+  }
+};
 
 type CurveUpdate = Partial<Pick<ICurve, "label" | "points" | "type">>;
 
@@ -38,8 +100,6 @@ export const CurvesDialog = ({
   const { closeDialog } = useDialogState();
   const hydraulicModel = useAtomValue(stagingModelAtom);
   const { modelMetadata } = useAtomValue(dataAtom);
-  const flowUnit = modelMetadata.quantities.getUnit("flow");
-  const headUnit = modelMetadata.quantities.getUnit("head");
   const userTracking = useUserTracking();
   const isSnapshotLocked = useIsSnapshotLocked();
   const [selectedCurveId, setSelectedCurveId] = useState<CurveId | null>(
@@ -165,7 +225,8 @@ export const CurvesDialog = ({
   const invalidCurveIds = useMemo(() => {
     const ids = new Set<CurveId>();
     for (const [id, curve] of cleanedCurves) {
-      if (curve.type === "pump" && !isValidCurve(curve.points)) {
+      const config = getCurveTypeConfig(curve.type);
+      if (config.getErrors(curve.points).length > 0) {
         ids.add(id);
       }
     }
@@ -244,15 +305,31 @@ export const CurvesDialog = ({
         </div>
         <div className="flex-1 flex flex-col min-h-0 w-full">
           {selectedCurveId ? (
-            <CurveDetail
-              points={getCurvePoints(selectedCurveId)}
-              onChange={(points) =>
-                handleCurveChange(selectedCurveId, { points })
-              }
-              readOnly={isSnapshotLocked}
-              flowUnit={flowUnit}
-              headUnit={headUnit}
-            />
+            (() => {
+              const curveConfig = getCurveTypeConfig(
+                editedCurves.get(selectedCurveId)?.type,
+              );
+              return (
+                <CurveDetail
+                  points={getCurvePoints(selectedCurveId)}
+                  onChange={(points) =>
+                    handleCurveChange(selectedCurveId, { points })
+                  }
+                  readOnly={isSnapshotLocked}
+                  curveConfig={curveConfig}
+                  xUnit={
+                    curveConfig.xQuantity
+                      ? modelMetadata.quantities.getUnit(curveConfig.xQuantity)
+                      : undefined
+                  }
+                  yUnit={
+                    curveConfig.yQuantity
+                      ? modelMetadata.quantities.getUnit(curveConfig.yQuantity)
+                      : undefined
+                  }
+                />
+              );
+            })()
           ) : hasCurves ? (
             <div className="flex-1 flex items-center justify-center p-2 border border-gray-200 dark:border-gray-700">
               <NoSelectionState />

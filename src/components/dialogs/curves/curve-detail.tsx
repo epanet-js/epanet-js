@@ -3,7 +3,6 @@ import { CurveGraph } from "./curve-graph";
 import {
   CurvePoint,
   CurvePointsType,
-  getPumpCurveErrors,
   stripTrailingEmptyPoints,
 } from "src/hydraulic-model/curves";
 import {
@@ -14,25 +13,29 @@ import {
 import { type GridSelection } from "src/components/data-grid";
 import { CurveTable, type CurveTableRef } from "./curve-table";
 import { useTranslate } from "src/hooks/use-translate";
+import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { InlineField } from "src/components/form/fields";
 import { NotificationBanner } from "src/components/notifications";
 import { TriangleAlert } from "lucide-react";
 import { Unit } from "src/quantity";
+import { CurveTypeConfig } from "./curves-dialog";
 
 interface CurveDetailProps {
   points: CurvePoint[];
   onChange: (points: CurvePoint[]) => void;
   readOnly?: boolean;
-  flowUnit: Unit;
-  headUnit: Unit;
+  curveConfig: CurveTypeConfig;
+  xUnit?: Unit;
+  yUnit?: Unit;
 }
 
 export function CurveDetail({
   points,
   onChange,
   readOnly = false,
-  flowUnit,
-  headUnit,
+  curveConfig,
+  xUnit,
+  yUnit,
 }: CurveDetailProps) {
   const [selectedCells, setSelectedCells] = useState<GridSelection | null>(
     null,
@@ -79,6 +82,17 @@ export function CurveDetail({
   }, []);
 
   const translate = useTranslate();
+  const translateUnit = useTranslateUnit();
+
+  const xHeader = useMemo(() => {
+    const label = translate(curveConfig.xLabel);
+    return xUnit ? `${label} (${translateUnit(xUnit)})` : label;
+  }, [curveConfig.xLabel, xUnit, translate, translateUnit]);
+
+  const yHeader = useMemo(() => {
+    const label = translate(curveConfig.yLabel);
+    return yUnit ? `${label} (${translateUnit(yUnit)})` : label;
+  }, [curveConfig.yLabel, yUnit, translate, translateUnit]);
 
   const graphSelectedIndex = useMemo(() => {
     if (!selectedCells) return null;
@@ -87,8 +101,8 @@ export function CurveDetail({
   }, [selectedCells, meaningfulPoints.length]);
 
   const errors = useMemo(
-    () => getPumpCurveErrors(meaningfulPoints),
-    [meaningfulPoints],
+    () => curveConfig.getErrors(meaningfulPoints),
+    [curveConfig, meaningfulPoints],
   );
   const isValid = errors.length === 0;
 
@@ -136,23 +150,27 @@ export function CurveDetail({
 
   const warningMessage = useMemo(() => {
     if (errors.length === 0) return null;
-    const hasFlowError = errors.some((e) => e.value === "flow");
-    const hasHeadError = errors.some((e) => e.value === "head");
+    const hasXError = errors.some((e) => e.value === "x");
+    const hasYError = errors.some((e) => e.value === "y");
+    const xLabel = translate(curveConfig.xLabel);
+    const yLabel = translate(curveConfig.yLabel);
 
     if (points.length === 1) {
-      if (hasFlowError && hasHeadError) {
-        return `${translate("curveValidation.flowMustBeNonZero")} ${translate("curveValidation.headMustBeNonZero")}`;
-      }
-      if (hasFlowError) return translate("curveValidation.flowMustBeNonZero");
-      return translate("curveValidation.headMustBeNonZero");
+      const parts: string[] = [];
+      if (hasXError)
+        parts.push(translate("curveValidation.valueMustBeNonZero", xLabel));
+      if (hasYError)
+        parts.push(translate("curveValidation.valueMustBeNonZero", yLabel));
+      return parts.join(" ");
     }
 
-    if (hasFlowError && hasHeadError) {
-      return `${translate("curveValidation.flowAscendingOrder")} ${translate("curveValidation.headDescendingOrder")}`;
-    }
-    if (hasFlowError) return translate("curveValidation.flowAscendingOrder");
-    return translate("curveValidation.headDescendingOrder");
-  }, [errors, points.length, translate]);
+    const parts: string[] = [];
+    if (hasXError)
+      parts.push(translate("curveValidation.valueAscendingOrder", xLabel));
+    if (hasYError)
+      parts.push(translate("curveValidation.valueDescendingOrder", yLabel));
+    return parts.join(" ");
+  }, [errors, points.length, translate, curveConfig]);
 
   const handleTableSelectionChange = useCallback(
     (selection: GridSelection | null) => {
@@ -171,8 +189,8 @@ export function CurveDetail({
           onSelectionChange={handleTableSelectionChange}
           readOnly={readOnly}
           errorCells={errorCells}
-          flowUnit={flowUnit}
-          headUnit={headUnit}
+          xHeader={xHeader}
+          yHeader={yHeader}
         />
       </div>
       {warningMessage && (
@@ -198,8 +216,8 @@ export function CurveDetail({
             selectedPointIndex={graphSelectedIndex}
             onPointClick={handleGraphClick}
             errorIndices={errorIndices}
-            flowUnit={flowUnit}
-            headUnit={headUnit}
+            xAxisLabel={xHeader}
+            yAxisLabel={yHeader}
           />
         </div>
       </div>

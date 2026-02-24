@@ -2,10 +2,7 @@ import { useMemo } from "react";
 import { CurvePoint, CurvePointsType } from "src/hydraulic-model/curves";
 import { synthesizeThreePoints } from "src/hydraulic-model/curve-fitting";
 import { LineGraph, StyledPointValue } from "src/components/graphs/line-graph";
-import { useTranslate } from "src/hooks/use-translate";
-import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { colors } from "src/lib/constants";
-import { Unit } from "src/quantity";
 
 interface CurveGraphProps {
   points: CurvePoint[];
@@ -14,8 +11,8 @@ interface CurveGraphProps {
   selectedPointIndex?: number | null;
   onPointClick?: (index: number | null) => void;
   errorIndices?: Set<number>;
-  flowUnit: Unit;
-  headUnit: Unit;
+  xAxisLabel?: string;
+  yAxisLabel?: string;
 }
 
 export function CurveGraph({
@@ -25,12 +22,9 @@ export function CurveGraph({
   selectedPointIndex,
   onPointClick,
   errorIndices,
-  flowUnit,
-  headUnit,
+  xAxisLabel,
+  yAxisLabel,
 }: CurveGraphProps) {
-  const translate = useTranslate();
-  const translateUnit = useTranslateUnit();
-
   const styledPoints: StyledPointValue[] = useMemo(() => {
     const originalPoints: StyledPointValue[] = points.map((p, i) => {
       const isError = errorIndices?.has(i);
@@ -70,30 +64,23 @@ export function CurveGraph({
         y: p.y,
         lineStyle:
           i < points.length - 1 &&
-          (points[i + 1].x <= points[i].x || points[i + 1].y >= points[i].y)
+          errorIndices?.has(i) &&
+          errorIndices?.has(i + 1)
             ? { color: "transparent" }
             : undefined,
       }));
     }
     if (!fittedPoints) return undefined;
     return fittedPoints.map((p) => ({ x: p.x, y: p.y }));
-  }, [points, fittedPoints, curveType]);
+  }, [points, fittedPoints, curveType, errorIndices]);
 
   return (
     <LineGraph
       points={styledPoints}
       linePoints={linePoints}
       onPointClick={onPointClick}
-      xAxisLabel={
-        flowUnit
-          ? `${translate("flow")} (${translateUnit(flowUnit)})`
-          : translate("flow")
-      }
-      yAxisLabel={
-        headUnit
-          ? `${translate("head")} (${translateUnit(headUnit)})`
-          : translate("head")
-      }
+      xAxisLabel={xAxisLabel}
+      yAxisLabel={yAxisLabel}
     />
   );
 }

@@ -7,6 +7,7 @@ import {
   Curves,
   getCurvePointsType,
   CurvePointsType,
+  getPumpCurveErrors,
 } from "src/hydraulic-model/curves";
 import { Quantities } from "src/model-metadata/quantities-spec";
 import { localizeDecimal } from "src/infra/i18n/numbers";
@@ -163,18 +164,15 @@ const PumpDefinitionDetailsInner = ({
               return ct === "multiPointCurve" ? "designPointCurve" : ct;
             })();
       const currentPoints = initialPointsFromCurve(curve, curveType);
-      const validationResult = validateCurve(currentPoints, newValue);
+      const validPoints = extractValidPoints(currentPoints, newValue);
 
-      if (!validationResult.valid) {
+      if (!validPoints || getPumpCurveErrors(validPoints).length > 0) {
         return;
       }
 
       onChange({
         type: "curve",
-        curve: validationResult.points.map(({ flow, head }) => ({
-          x: flow,
-          y: head,
-        })),
+        curve: validPoints,
       });
     },
     [curve, onChange, pump.power, pump.curveId],
@@ -282,7 +280,18 @@ export const PumpCurveTable = ({
   const headDecimals = quantities.getDecimals("head") ?? 2;
 
   const displayPoints = calculateCurvePoints(editingPoints, curveType);
-  const validationResult = validateCurve(editingPoints, curveType);
+
+  const validatedPoints = useMemo(
+    () => extractValidPoints(displayPoints, curveType),
+    [displayPoints, curveType],
+  );
+
+  const pumpErrors = useMemo(
+    () => (validatedPoints ? getPumpCurveErrors(validatedPoints) : []),
+    [validatedPoints],
+  );
+
+  const hasMissingValues = validatedPoints === null;
 
   const pointLabels = [
     translate("shutoffPoint"),
@@ -307,9 +316,12 @@ export const PumpCurveTable = ({
           newPoints = calculateCurvePoints([{}, designPoint, {}], curveType);
         }
 
-        const result = validateCurve(newPoints, curveType);
-        if (onCurveChange && result.valid) {
-          onCurveChange(result.points);
+        const validPoints = extractValidPoints(newPoints, curveType);
+        if (validPoints && onCurveChange) {
+          const errors = getPumpCurveErrors(validPoints);
+          if (errors.length === 0) {
+            onCurveChange(validPoints.map((p) => ({ flow: p.x, head: p.y })));
+          }
         }
 
         return newPoints;
@@ -346,24 +358,25 @@ export const PumpCurveTable = ({
     };
   };
 
-  const getErrorStates = (
-    displayIndex: number,
-    validationResult: ValidationResult,
-  ) => {
+  const getErrorStates = (displayIndex: number) => {
     const point = displayPoints[displayIndex];
     const { onChangeFlow, onChangeHead } = getEditHandlers(displayIndex);
 
+    const flowMissing = onChangeFlow !== undefined && point.flow === undefined;
+    const headMissing = onChangeHead !== undefined && point.head === undefined;
+
+    const errorIndex =
+      curveType === "designPointCurve" ? displayIndex - 1 : displayIndex;
+    const hasFlowError =
+      onChangeFlow !== undefined &&
+      pumpErrors.some((e) => e.index === errorIndex && e.value === "x");
+    const hasHeadError =
+      onChangeHead !== undefined &&
+      pumpErrors.some((e) => e.index === errorIndex && e.value === "y");
+
     return {
-      flowHasError:
-        onChangeFlow !== undefined &&
-        (point.flow === undefined ||
-          (!validationResult.valid &&
-            validationResult.error === "curveValidation.flowAscendingOrder")),
-      headHasError:
-        onChangeHead !== undefined &&
-        (point.head === undefined ||
-          (!validationResult.valid &&
-            validationResult.error === "curveValidation.headDescendingOrder")),
+      flowHasError: flowMissing || hasFlowError,
+      headHasError: headMissing || hasHeadError,
     };
   };
 
@@ -376,10 +389,7 @@ export const PumpCurveTable = ({
         <GridHeader quantities={quantities} />
         {displayPoints.map((point, index) => {
           const { onChangeFlow, onChangeHead } = getEditHandlers(index);
-          const { flowHasError, headHasError } = getErrorStates(
-            index,
-            validationResult,
-          );
+          const { flowHasError, headHasError } = getErrorStates(index);
           return (
             <GridRow
               key={pointLabels[index]}
@@ -402,9 +412,13 @@ export const PumpCurveTable = ({
           );
         })}
       </div>
-      {!validationResult.valid && (
+      {(hasMissingValues || pumpErrors.length > 0) && (
         <p className="text-sm font-semibold text-orange-800">
-          {translate(validationResult.error)}
+          <PumpCurveWarning
+            hasMissingValues={hasMissingValues}
+            pumpErrors={pumpErrors}
+            curveType={curveType}
+          />
         </p>
       )}
     </>
@@ -783,90 +797,59 @@ const calculateCurvePoints = (
   return editingPoints;
 };
 
-type ValidationErrorKey =
-  | "curveValidation.missingValues"
-  | "curveValidation.flowAscendingOrder"
-  | "curveValidation.headDescendingOrder";
-
-type ValidationResult =
-  | { valid: true; points: PumpCurvePoint[] }
-  | { valid: false; error: ValidationErrorKey };
-
-const validateDesignPointCurve = (
-  points: MaybePumpCurvePoint[],
-): ValidationResult => {
-  const designPoint = points[1];
-  if (designPoint.flow === undefined || designPoint.head === undefined) {
-    return {
-      valid: false,
-      error: "curveValidation.missingValues",
-    };
-  }
-  return { valid: true, points: [designPoint as PumpCurvePoint] };
-};
-
-const validateStandardCurve = (
-  points: MaybePumpCurvePoint[],
-): ValidationResult => {
-  if (points.length !== 3) {
-    return {
-      valid: false,
-      error: "curveValidation.missingValues",
-    };
-  }
-  const [shutoff, design, maxOp] = points;
-
-  if (
-    shutoff?.head === undefined ||
-    design?.flow === undefined ||
-    design?.head === undefined ||
-    maxOp?.flow === undefined ||
-    maxOp?.head === undefined
-  ) {
-    return {
-      valid: false,
-      error: "curveValidation.missingValues",
-    };
-  }
-
-  if (design.flow <= 0 || maxOp.flow <= design.flow) {
-    return {
-      valid: false,
-      error: "curveValidation.flowAscendingOrder",
-    };
-  }
-
-  if (shutoff.head <= design.head || design.head < maxOp.head) {
-    return {
-      valid: false,
-      error: "curveValidation.headDescendingOrder",
-    };
-  }
-
-  return {
-    valid: true,
-    points: [
-      { flow: 0, head: shutoff.head },
-      { flow: design.flow, head: design.head },
-      { flow: maxOp.flow, head: maxOp.head },
-    ],
-  };
-};
-
-const validateCurve = (
-  points: MaybePumpCurvePoint[],
-  curveType: CurvePointsType,
-): ValidationResult => {
+const extractValidPoints = (
+  displayPoints: MaybePumpCurvePoint[],
+  curveType: CurvePointsType | PumpDefinitionMode,
+): CurvePoint[] | null => {
   if (curveType === "designPointCurve") {
-    return validateDesignPointCurve(points);
+    const dp = displayPoints[1];
+    if (dp.flow === undefined || dp.head === undefined) return null;
+    return [{ x: dp.flow, y: dp.head }];
   }
-  if (curveType === "standardCurve") {
-    return validateStandardCurve(points);
+
+  const points: CurvePoint[] = [];
+  for (const p of displayPoints) {
+    if (p.flow === undefined || p.head === undefined) return null;
+    points.push({ x: p.flow, y: p.head });
   }
-  return {
-    valid: false,
-    error: "curveValidation.missingValues",
-  };
+  return points;
+};
+
+const PumpCurveWarning = ({
+  hasMissingValues,
+  pumpErrors,
+  curveType,
+}: {
+  hasMissingValues: boolean;
+  pumpErrors: { index: number; value: "x" | "y" }[];
+  curveType: CurvePointsType;
+}) => {
+  const translate = useTranslate();
+
+  if (hasMissingValues) {
+    return <>{translate("curveValidation.missingValues")}</>;
+  }
+
+  const hasXError = pumpErrors.some((e) => e.value === "x");
+  const hasYError = pumpErrors.some((e) => e.value === "y");
+  const flowLabel = translate("flow");
+  const headLabel = translate("head");
+
+  if (curveType === "designPointCurve") {
+    const parts: string[] = [];
+    if (hasXError)
+      parts.push(translate("curveValidation.valueMustBeNonZero", flowLabel));
+    if (hasYError)
+      parts.push(translate("curveValidation.valueMustBeNonZero", headLabel));
+    return <>{parts.join(" ")}</>;
+  }
+
+  const parts: string[] = [];
+  if (hasXError)
+    parts.push(translate("curveValidation.valueAscendingOrder", flowLabel));
+  if (hasYError)
+    parts.push(translate("curveValidation.valueDescendingOrder", headLabel));
+  return <>{parts.join(" ")}</>;
 };
 
 const getCurveHash = (curve: CurvePoint[]): string => {

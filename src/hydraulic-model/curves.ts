@@ -42,22 +42,22 @@ export const isValidCurve = (points: CurvePoint[]): boolean => {
   return hasValidOrdering(points);
 };
 
-export type CurveErrorPoint = { index: number; value: "flow" | "head" };
+export type CurveErrorPoint = { index: number; value: "x" | "y" };
 
 export const getPumpCurveErrors = (points: CurvePoint[]): CurveErrorPoint[] => {
   if (points.length === 0) return [];
 
   if (points.length === 1) {
     const errors: CurveErrorPoint[] = [];
-    if (points[0].x === 0) errors.push({ index: 0, value: "flow" });
-    if (points[0].y === 0) errors.push({ index: 0, value: "head" });
+    if (points[0].x === 0) errors.push({ index: 0, value: "x" });
+    if (points[0].y === 0) errors.push({ index: 0, value: "y" });
     return errors;
   }
 
   const errors: CurveErrorPoint[] = [];
   const seen = new Set<string>();
 
-  const add = (index: number, value: "flow" | "head") => {
+  const add = (index: number, value: "x" | "y") => {
     const key = `${index}:${value}`;
     if (!seen.has(key)) {
       seen.add(key);
@@ -67,12 +67,12 @@ export const getPumpCurveErrors = (points: CurvePoint[]): CurveErrorPoint[] => {
 
   for (let i = 1; i < points.length; i++) {
     if (points[i].x <= points[i - 1].x) {
-      add(i - 1, "flow");
-      add(i, "flow");
+      add(i - 1, "x");
+      add(i, "x");
     }
     if (points[i].y >= points[i - 1].y) {
-      add(i - 1, "head");
-      add(i, "head");
+      add(i - 1, "y");
+      add(i, "y");
     }
   }
 

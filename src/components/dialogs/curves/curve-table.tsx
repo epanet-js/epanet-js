@@ -14,13 +14,11 @@ import {
 } from "src/components/data-grid";
 import { CurvePoint } from "src/hydraulic-model/curves";
 import { useTranslate } from "src/hooks/use-translate";
-import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { DeleteIcon, AddIcon } from "src/icons";
-import { Unit } from "src/quantity";
 
 type CurveRow = {
-  flow: number;
-  head: number;
+  x: number;
+  y: number;
 };
 
 type CurveTableProps = {
@@ -29,29 +27,22 @@ type CurveTableProps = {
   onSelectionChange?: (selection: GridSelection | null) => void;
   readOnly?: boolean;
   errorCells?: Set<string>;
-  flowUnit: Unit;
-  headUnit: Unit;
+  xHeader: string;
+  yHeader: string;
 };
 
 export type CurveTableRef = DataGridRef;
 
-const DEFAULT_FLOW = 0;
-const DEFAULT_HEAD = 0;
+const DEFAULT_X = 0;
+const DEFAULT_Y = 0;
 
 const toRows = (points: CurvePoint[]): CurveRow[] => {
   if (points.length === 0) {
-    return [{ flow: DEFAULT_FLOW, head: DEFAULT_HEAD }];
+    return [{ x: DEFAULT_X, y: DEFAULT_Y }];
   }
   return points.map((point) => ({
-    flow: point.x,
-    head: point.y,
-  }));
-};
-
-const fromRows = (rows: CurveRow[]): CurvePoint[] => {
-  return rows.map((row) => ({
-    x: row.flow,
-    y: row.head,
+    x: point.x,
+    y: point.y,
   }));
 };
 
@@ -63,13 +54,12 @@ export const CurveTable = forwardRef<DataGridRef, CurveTableProps>(
       onSelectionChange,
       readOnly = false,
       errorCells,
-      flowUnit,
-      headUnit,
+      xHeader,
+      yHeader,
     },
     ref,
   ) {
     const translate = useTranslate();
-    const translateUnit = useTranslateUnit();
     const gridRef = useRef<DataGridRef>(null);
     const containerRef = useRef<HTMLDivElement>(null);
 
@@ -80,10 +70,10 @@ export const CurveTable = forwardRef<DataGridRef, CurveTableProps>(
     const handleDeleteRow = useCallback(
       (rowIndex: number) => {
         if (rowData.length === 1) {
-          onChange([{ x: DEFAULT_FLOW, y: DEFAULT_HEAD }]);
+          onChange([{ x: DEFAULT_X, y: DEFAULT_Y }]);
         } else {
           const newRows = rowData.filter((_, i) => i !== rowIndex);
-          onChange(fromRows(newRows));
+          onChange(newRows);
         }
       },
       [rowData, onChange],
@@ -102,7 +92,7 @@ export const CurveTable = forwardRef<DataGridRef, CurveTableProps>(
           newRow,
           ...rowData.slice(rowIndex),
         ];
-        onChange(fromRows(newRows));
+        onChange(newRows);
         selectRow(rowIndex);
       },
       [rowData, onChange, selectRow],
@@ -117,7 +107,7 @@ export const CurveTable = forwardRef<DataGridRef, CurveTableProps>(
           newRow,
           ...rowData.slice(rowIndex + 1),
         ];
-        onChange(fromRows(newRows));
+        onChange(newRows);
         selectRow(rowIndex + 1);
       },
       [rowData, onChange, selectRow],
@@ -151,33 +141,28 @@ export const CurveTable = forwardRef<DataGridRef, CurveTableProps>(
       ],
     );
 
-    const columns = useMemo(() => {
-      const flowHeader = flowUnit
-        ? `${translate("flow")} (${translateUnit(flowUnit)})`
-        : translate("flow");
-      const headHeader = headUnit
-        ? `${translate("head")} (${translateUnit(headUnit)})`
-        : translate("head");
-      return [
-        floatColumn("flow", {
-          header: flowHeader,
+    const columns = useMemo(
+      () => [
+        floatColumn("x", {
+          header: xHeader,
           size: 82,
-          deleteValue: DEFAULT_FLOW,
+          deleteValue: DEFAULT_X,
           nullValue: 0,
         }),
-        floatColumn("head", {
-          header: headHeader,
+        floatColumn("y", {
+          header: yHeader,
           size: 82,
-          deleteValue: DEFAULT_HEAD,
+          deleteValue: DEFAULT_Y,
           nullValue: 0,
         }),
-      ];
-    }, [flowUnit, headUnit, translate, translateUnit]);
+      ],
+      [xHeader, yHeader],
+    );
 
     const createRow = useCallback(
       (): CurveRow => ({
-        flow: DEFAULT_FLOW,
-        head: DEFAULT_HEAD,
+        x: DEFAULT_X,
+        y: DEFAULT_Y,
       }),
       [],
     );
@@ -192,9 +177,9 @@ export const CurveTable = forwardRef<DataGridRef, CurveTableProps>(
     const handleChange = useCallback(
       (newRows: CurveRow[]) => {
         if (newRows.length === 0) {
-          onChange([{ x: DEFAULT_FLOW, y: DEFAULT_HEAD }]);
+          onChange([{ x: DEFAULT_X, y: DEFAULT_Y }]);
         } else {
-          onChange(fromRows(newRows));
+          onChange(newRows);
         }
       },
       [onChange],

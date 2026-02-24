@@ -123,6 +123,8 @@
   "pressures": "Pressures",
   "level": "Level",
   "volume": "Volume",
+  "x": "X",
+  "y": "Y",
   "flow": "Flow",
   "flows": "Flows",
   "velocity": "Velocity",
@@ -434,10 +436,9 @@
   "maxOperatingPoint": "Max Operating",
   "curveValidation": {
     "missingValues": "Please fill in all the values.",
-    "flowAscendingOrder": "Flow values must be in ascending order.",
-    "headDescendingOrder": "Head values must be in descending order.",
-    "flowMustBeNonZero": "Flow value must not be zero.",
-    "headMustBeNonZero": "Head value must not be zero."
+    "valueMustBeNonZero": "{{1}} value must not be zero.",
+    "valueAscendingOrder": "{{1}} values must be in ascending order.",
+    "valueDescendingOrder": "{{1}} values must be in descending order."
   },
   "speed": "Speed",
   "pipeStatus": "Pipe status",
