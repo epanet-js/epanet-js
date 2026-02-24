@@ -16,8 +16,6 @@ import { useAtomValue, useSetAtom } from "jotai";
 import { notifyPromiseState } from "src/components/notifications";
 import { useUserTracking } from "src/infra/user-tracking";
 import { worktreeAtom } from "src/state/scenarios";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
-
 const getDefaultFsAccess = async () => {
   const { fileSave } = await import("browser-fs-access");
   return { fileSave };
@@ -37,7 +35,6 @@ export const useSaveInp = ({
   const setDialogState = useSetAtom(dialogAtom);
   const fileInfo = useAtomValue(fileInfoAtom);
   const userTracking = useUserTracking();
-  const isEmittersOn = useFeatureFlag("FLAG_EMITTERS");
 
   const saveInp = useAtomCallback(
     useCallback(
@@ -70,7 +67,6 @@ export const useSaveInp = ({
             customerPoints: true,
             inactiveAssets: true,
             reservoirElevations: true,
-            emitters: isEmittersOn,
             projectionMapper: modelMetadata.projectionMapper,
           };
           const inp = buildInp(hydraulicModel, buildOptions);
@@ -112,7 +108,7 @@ export const useSaveInp = ({
           return false;
         }
       },
-      [userTracking, getFsAccess, translate, isEmittersOn],
+      [userTracking, getFsAccess, translate],
     ),
   );
 

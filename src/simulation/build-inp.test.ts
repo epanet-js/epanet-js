@@ -1508,29 +1508,18 @@ THEN LINK {{1}} STATUS IS OPEN`,
   });
 
   describe("emitters", () => {
-    it("writes [EMITTERS] section when emitters option is enabled", () => {
+    it("writes [EMITTERS] section when junctions have emitter coefficients", () => {
       const IDS = { J1: 1, J2: 2 };
       const hydraulicModel = HydraulicModelBuilder.with()
         .aJunction(IDS.J1, { emitterCoefficient: 0.5 })
         .aJunction(IDS.J2, { emitterCoefficient: 1.2 })
         .build();
 
-      const inp = buildInp(hydraulicModel, { emitters: true });
+      const inp = buildInp(hydraulicModel);
 
       expect(inp).toContain("[EMITTERS]");
       expect(inp).toContain("1\t0.5");
       expect(inp).toContain("2\t1.2");
-    });
-
-    it("omits [EMITTERS] section when emitters option is disabled", () => {
-      const IDS = { J1: 1 };
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction(IDS.J1, { emitterCoefficient: 0.5 })
-        .build();
-
-      const inp = buildInp(hydraulicModel);
-
-      expect(inp).not.toContain("[EMITTERS]");
     });
 
     it("omits [EMITTERS] section when no junctions have emitter coefficients", () => {
@@ -1539,7 +1528,7 @@ THEN LINK {{1}} STATUS IS OPEN`,
         .aJunction(IDS.J1, { elevation: 10 })
         .build();
 
-      const inp = buildInp(hydraulicModel, { emitters: true });
+      const inp = buildInp(hydraulicModel);
 
       expect(inp).not.toContain("[EMITTERS]");
     });
@@ -1551,7 +1540,7 @@ THEN LINK {{1}} STATUS IS OPEN`,
         .aJunction(IDS.J2, { emitterCoefficient: 0 })
         .build();
 
-      const inp = buildInp(hydraulicModel, { emitters: true });
+      const inp = buildInp(hydraulicModel);
       const emittersSection = inp.split("[EMITTERS]")[1]?.split("[")[0] ?? "";
 
       expect(inp).toContain("[EMITTERS]");

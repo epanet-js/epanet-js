@@ -224,7 +224,6 @@ type BuildOptions = {
   usedPatterns?: boolean;
   usedCurves?: boolean;
   reservoirElevations?: boolean;
-  emitters?: boolean;
   projectionMapper?: ProjectionMapper;
 };
 
@@ -240,7 +239,6 @@ export const buildInp = withDebugInstrumentation(
       usedPatterns: false,
       usedCurves: false,
       reservoirElevations: false,
-      emitters: false,
       ...options,
     };
     const idMap = new EpanetIds({ strategy: opts.labelIds ? "label" : "id" });
@@ -333,7 +331,6 @@ export const buildInp = withDebugInstrumentation(
           opts.geolocation,
           opts.customerDemands,
           opts.inactiveAssets,
-          opts.emitters,
           asset as Junction,
           hydraulicModel.customerPointsLookup,
           hydraulicModel.assets,
@@ -540,7 +537,6 @@ const appendJunction = (
   geolocation: boolean,
   customerDemands: boolean,
   inactiveAssets: boolean,
-  emitters: boolean,
   junction: Junction,
   customerPointsLookup: CustomerPointsLookup,
   assets: HydraulicModel["assets"],
@@ -607,7 +603,7 @@ const appendJunction = (
     }
   }
 
-  if (emitters && junction.emitterCoefficient > 0) {
+  if (junction.emitterCoefficient > 0) {
     sections.emitters.push(
       commentPrefix + [junctionId, junction.emitterCoefficient].join("\t"),
     );

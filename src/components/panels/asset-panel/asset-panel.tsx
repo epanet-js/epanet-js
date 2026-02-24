@@ -393,7 +393,6 @@ const JunctionEditor = ({
   hydraulicModel: HydraulicModel;
   readonly?: boolean;
 }) => {
-  const isEmittersOn = useFeatureFlag("FLAG_EMITTERS");
   const translate = useTranslate();
   const { footer } = useQuickGraph(junction.id, "junction");
   const { getComparison, getDirectDemandComparison, isNew } =
@@ -465,21 +464,19 @@ const JunctionEditor = ({
           onChange={onPropertyChange}
           readOnly={readonly}
         />
-        {isEmittersOn && (
-          <QuantityRow
-            name="emitterCoefficient"
-            value={junction.emitterCoefficient}
-            unit={quantitiesMetadata.getUnit("emitterCoefficient")}
-            decimals={quantitiesMetadata.getDecimals("emitterCoefficient")}
-            comparison={getComparison(
-              "emitterCoefficient",
-              junction.emitterCoefficient,
-            )}
-            onChange={onPropertyChange}
-            positiveOnly={true}
-            readOnly={readonly}
-          />
-        )}
+        <QuantityRow
+          name="emitterCoefficient"
+          value={junction.emitterCoefficient}
+          unit={quantitiesMetadata.getUnit("emitterCoefficient")}
+          decimals={quantitiesMetadata.getDecimals("emitterCoefficient")}
+          comparison={getComparison(
+            "emitterCoefficient",
+            junction.emitterCoefficient,
+          )}
+          onChange={onPropertyChange}
+          positiveOnly={true}
+          readOnly={readonly}
+        />
       </Section>
       <Section title={translate("demands")}>
         <DemandsEditor

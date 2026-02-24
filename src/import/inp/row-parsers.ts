@@ -112,21 +112,11 @@ export const parseEnergy: RowParser = ({
   }
 };
 
-export const parseEmitter: RowParser = ({
-  sectionName,
-  trimmedRow,
-  inpData,
-  issues,
-  options,
-}) => {
+export const parseEmitter: RowParser = ({ trimmedRow, inpData }) => {
   const [id, coefficient] = readValues(trimmedRow);
   const value = parseFloat(coefficient);
   if (!isNaN(value) && value !== 0) {
-    if (options?.emitters) {
-      inpData.emitters.set(id, value);
-    } else {
-      issues.addUsedSection(sectionName);
-    }
+    inpData.emitters.set(id, value);
   }
 };
 

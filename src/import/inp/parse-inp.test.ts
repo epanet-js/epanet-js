@@ -620,18 +620,7 @@ describe("Parse inp with", () => {
       expect(issues?.unsupportedSections?.has("[EMITTERS]")).toBeFalsy();
     });
 
-    it("reports [EMITTERS] section as unsupported when emitters option is disabled", () => {
-      const inp = `
-      [EMITTERS]
-      J1  0.5
-      `;
-
-      const { issues } = parseInp(inp);
-
-      expect(issues?.unsupportedSections?.has("[EMITTERS]")).toBe(true);
-    });
-
-    it("parses [EMITTERS] section when emitters option is enabled", () => {
+    it("parses [EMITTERS] section", () => {
       const inp = `
       [JUNCTIONS]
       J1  100
@@ -645,7 +634,7 @@ describe("Parse inp with", () => {
       J1  0.5
       `;
 
-      const { hydraulicModel, issues } = parseInp(inp, { emitters: true });
+      const { hydraulicModel, issues } = parseInp(inp);
       const j1 = getByLabel(hydraulicModel.assets, "J1") as Junction;
       const j2 = getByLabel(hydraulicModel.assets, "J2") as Junction;
 
