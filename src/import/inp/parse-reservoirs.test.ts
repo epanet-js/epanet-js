@@ -39,7 +39,7 @@ describe("parse reservoirs", () => {
     ${reservoirId}\t${baseHead}\t${patternId}
 
     [PATTERNS]
-    P_1\t14\t12\t19
+    p_1\t14\t12\t19
 
     [COORDINATES]
     ${reservoirId}\t${lng}\t${lat}
@@ -52,31 +52,15 @@ describe("parse reservoirs", () => {
       hydraulicModel.assets,
       reservoirId,
     ) as Reservoir;
-    expect(reservoir.head).toEqual(1400);
+    expect(reservoir.head).toEqual(100);
     expect(reservoir.coordinates).toEqual([20, 10]);
-  });
 
-  it("tolerates references with different case", () => {
-    const baseHead = 100;
-    const lat = 10;
-    const lng = 20;
-    const inp = `
-    [RESERVOIRS]
-    r1\t${baseHead}\tp_1
-
-    [PATTERNS]
-    P_1\t14\t12\t19
-
-    [COORDINATES]
-    R1\t${lng}\t${lat}
-
-    `;
-
-    const { hydraulicModel } = parseInp(inp);
-
-    const reservoir = getByLabel(hydraulicModel.assets, "r1") as Reservoir;
-    expect(reservoir.head).toEqual(1400);
-    expect(reservoir.coordinates).toEqual([20, 10]);
+    const headPatternId = hydraulicModel.labelManager.getIdByLabel(
+      patternId,
+      "pattern",
+    );
+    expect(headPatternId).toBeDefined();
+    expect(reservoir.headPatternId).toEqual(headPatternId);
   });
 
   it("extracts elevation from comment when present", () => {

@@ -89,30 +89,6 @@ describe("parse junctions demands", () => {
     expect(hydraulicModel.patterns.get(3)?.label).toBe("otherUnusedPattern");
   });
 
-  it("stores only used patterns when usedPatterns option is true", () => {
-    const inp = `
-    [JUNCTIONS]
-    J1    100    50    pattern1
-    J2    100    0    unusedPattern
-
-    [PATTERNS]
-    pattern1    1.0    1.2
-    unusedPattern    2.0    2.5
-    otherUnusedPattern 0.5    1.5
-
-    [COORDINATES]
-    J1    0    0
-    J2    1    1
-
-    [END]
-    `;
-
-    const { hydraulicModel } = parseInp(inp, { usedPatterns: true });
-
-    expect(hydraulicModel.patterns.size).toBe(1);
-    expect(hydraulicModel.patterns.get(1)?.label).toBe("pattern1");
-  });
-
   it("parses multi-line patterns", () => {
     const inp = `
     [JUNCTIONS]

@@ -1,4 +1,4 @@
-import { parseInpWithPatterns } from "./parse-inp-with-patterns";
+import { parseInp } from "./parse-inp";
 
 describe("parse pattern types", () => {
   it("sets type 'demand' on pattern used by junction demand", () => {
@@ -15,7 +15,7 @@ describe("parse pattern types", () => {
     [END]
     `;
 
-    const { hydraulicModel } = parseInpWithPatterns(inp);
+    const { hydraulicModel } = parseInp(inp);
     const pattern = hydraulicModel.patterns.get(1);
     expect(pattern?.type).toBe("demand");
   });
@@ -34,7 +34,7 @@ describe("parse pattern types", () => {
     [END]
     `;
 
-    const { hydraulicModel } = parseInpWithPatterns(inp);
+    const { hydraulicModel } = parseInp(inp);
     const pattern = hydraulicModel.patterns.get(1);
     expect(pattern?.type).toBe("demand");
   });
@@ -56,7 +56,7 @@ describe("parse pattern types", () => {
     [END]
     `;
 
-    const { hydraulicModel } = parseInpWithPatterns(inp);
+    const { hydraulicModel } = parseInp(inp);
     const pattern = hydraulicModel.patterns.get(1);
     expect(pattern?.type).toBe("demand");
   });
@@ -78,7 +78,7 @@ describe("parse pattern types", () => {
     [END]
     `;
 
-    const { hydraulicModel } = parseInpWithPatterns(inp);
+    const { hydraulicModel } = parseInp(inp);
     const patterns = [...hydraulicModel.patterns.values()];
     const unused = patterns.find((p) => p.label === "unusedPattern");
     expect(unused).toBeDefined();
@@ -99,7 +99,7 @@ describe("parse pattern types", () => {
     [END]
     `;
 
-    const { hydraulicModel } = parseInpWithPatterns(inp);
+    const { hydraulicModel } = parseInp(inp);
     const reservoir = [...hydraulicModel.assets.values()].find(
       (a) => a.type === "reservoir",
     ) as import("src/hydraulic-model/asset-types/reservoir").Reservoir;
@@ -127,7 +127,7 @@ describe("parse pattern types", () => {
     [END]
     `;
 
-    const { hydraulicModel } = parseInpWithPatterns(inp);
+    const { hydraulicModel } = parseInp(inp);
     const pattern = [...hydraulicModel.patterns.values()].find(
       (p) => p.label === "resPat",
     );
@@ -156,7 +156,7 @@ describe("parse pattern types", () => {
     [END]
     `;
 
-    const { hydraulicModel } = parseInpWithPatterns(inp);
+    const { hydraulicModel } = parseInp(inp);
     const pattern = [...hydraulicModel.patterns.values()].find(
       (p) => p.label === "pumpPat",
     );
@@ -182,7 +182,7 @@ describe("parse pattern types", () => {
     [END]
     `;
 
-    const { hydraulicModel } = parseInpWithPatterns(inp);
+    const { hydraulicModel } = parseInp(inp);
     const pattern = [...hydraulicModel.patterns.values()].find(
       (p) => p.label === "srcPat",
     );
@@ -208,7 +208,7 @@ describe("parse pattern types", () => {
     [END]
     `;
 
-    const { hydraulicModel } = parseInpWithPatterns(inp);
+    const { hydraulicModel } = parseInp(inp);
     const pattern = [...hydraulicModel.patterns.values()].find(
       (p) => p.label === "ePat",
     );
@@ -232,7 +232,7 @@ describe("comment-based pattern type fallback", () => {
     [END]
     `;
 
-    const { hydraulicModel } = parseInpWithPatterns(inp);
+    const { hydraulicModel } = parseInp(inp);
     const pattern = [...hydraulicModel.patterns.values()].find(
       (p) => p.label === "pat1",
     );
@@ -255,7 +255,7 @@ describe("comment-based pattern type fallback", () => {
     [END]
     `;
 
-    const { hydraulicModel } = parseInpWithPatterns(inp);
+    const { hydraulicModel } = parseInp(inp);
     const pattern = [...hydraulicModel.patterns.values()].find(
       (p) => p.label === "pat1",
     );
@@ -278,7 +278,7 @@ describe("comment-based pattern type fallback", () => {
     [END]
     `;
 
-    const { hydraulicModel } = parseInpWithPatterns(inp);
+    const { hydraulicModel } = parseInp(inp);
     const pattern = [...hydraulicModel.patterns.values()].find(
       (p) => p.label === "pat1",
     );
@@ -301,7 +301,7 @@ describe("comment-based pattern type fallback", () => {
     [END]
     `;
 
-    const { hydraulicModel } = parseInpWithPatterns(inp);
+    const { hydraulicModel } = parseInp(inp);
     const pattern = [...hydraulicModel.patterns.values()].find(
       (p) => p.label === "pat1",
     );
@@ -324,7 +324,7 @@ describe("comment-based pattern type fallback", () => {
     [END]
     `;
 
-    const { hydraulicModel } = parseInpWithPatterns(inp);
+    const { hydraulicModel } = parseInp(inp);
     const pattern = [...hydraulicModel.patterns.values()].find(
       (p) => p.label === "pat1",
     );
@@ -346,7 +346,7 @@ describe("comment-based pattern type fallback", () => {
     [END]
     `;
 
-    const { hydraulicModel } = parseInpWithPatterns(inp, {
+    const { hydraulicModel } = parseInp(inp, {
       inactiveAssets: true,
     });
     const pattern = [...hydraulicModel.patterns.values()].find(
@@ -390,7 +390,7 @@ describe("pattern duplication for multi-type usage", () => {
     [END]
     `;
 
-    const { hydraulicModel } = parseInpWithPatterns(inp);
+    const { hydraulicModel } = parseInp(inp);
     const patterns = [...hydraulicModel.patterns.values()];
 
     const demandPattern = patterns.find((p) => p.type === "demand");
@@ -465,7 +465,7 @@ describe("pattern duplication for multi-type usage", () => {
     [END]
     `;
 
-    const { hydraulicModel } = parseInpWithPatterns(inp);
+    const { hydraulicModel } = parseInp(inp);
     const patterns = [...hydraulicModel.patterns.values()];
 
     // one demand + one pumpSpeed, no extra duplicates

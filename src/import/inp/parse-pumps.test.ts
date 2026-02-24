@@ -1,6 +1,5 @@
 import { Junction, Pump, Reservoir } from "src/hydraulic-model";
 import { parseInp } from "./parse-inp";
-import { parseInpWithPatterns } from "./parse-inp-with-patterns";
 import { getByLabel } from "src/__helpers__/asset-queries";
 
 describe("parse pumps", () => {
@@ -250,7 +249,7 @@ describe("parse pumps", () => {
 
     const pump = getByLabel(hydraulicModel.assets, pumpId) as Pump;
     expect(pump.initialStatus).toEqual("on");
-    expect(pump.speed).toEqual(0.2);
+    expect(pump.speed).toEqual(1);
   });
 
   it("sets speedPatternId when using a pattern", () => {
@@ -271,7 +270,7 @@ describe("parse pumps", () => {
     j2\t10\t20
     `;
 
-    const { hydraulicModel } = parseInpWithPatterns(inp);
+    const { hydraulicModel } = parseInp(inp);
 
     const pump = getByLabel(hydraulicModel.assets, pumpId) as Pump;
     expect(pump.speedPatternId).toBeDefined();

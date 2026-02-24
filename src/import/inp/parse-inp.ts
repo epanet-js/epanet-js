@@ -15,7 +15,6 @@ import {
 export type ParseInpOptions = {
   customerPoints?: boolean;
   inactiveAssets?: boolean;
-  usedPatterns?: boolean;
   emitters?: boolean;
   sourceProjection?: Projection;
 };

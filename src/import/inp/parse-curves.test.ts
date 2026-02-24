@@ -1,6 +1,5 @@
 import { Pump } from "src/hydraulic-model";
 import { parseInp } from "./parse-inp";
-import { parseInpWithPatterns } from "./parse-inp-with-patterns";
 import { getByLabel } from "src/__helpers__/asset-queries";
 
 const coords = (ids: string[]) =>
@@ -249,7 +248,7 @@ describe("comment-based curve type fallback", () => {
     [END]
     `;
 
-    const { hydraulicModel } = parseInpWithPatterns(inp);
+    const { hydraulicModel } = parseInp(inp);
     const curveId = hydraulicModel.labelManager.getIdByLabel("cu1", "curve");
     expect(curveId).toBeDefined();
     const curve = hydraulicModel.curves.get(curveId!);
@@ -271,7 +270,7 @@ describe("comment-based curve type fallback", () => {
     [END]
     `;
 
-    const { issues } = parseInpWithPatterns(inp);
+    const { issues } = parseInp(inp);
     expect(issues?.hasUnusedCurves).toBeUndefined();
   });
 
@@ -288,7 +287,7 @@ describe("comment-based curve type fallback", () => {
     [END]
     `;
 
-    const { hydraulicModel, issues } = parseInpWithPatterns(inp);
+    const { hydraulicModel, issues } = parseInp(inp);
     expect(hydraulicModel.curves.size).toBe(0);
     expect(issues?.hasUnusedCurves).toBe(1);
   });
@@ -308,7 +307,7 @@ describe("comment-based curve type fallback", () => {
     [END]
     `;
 
-    const { hydraulicModel } = parseInpWithPatterns(inp);
+    const { hydraulicModel } = parseInp(inp);
     const curveId = hydraulicModel.labelManager.getIdByLabel("cu1", "curve");
     expect(curveId).toBeDefined();
     const curve = hydraulicModel.curves.get(curveId!);
@@ -330,7 +329,7 @@ describe("comment-based curve type fallback", () => {
     [END]
     `;
 
-    const { hydraulicModel, issues } = parseInpWithPatterns(inp);
+    const { hydraulicModel, issues } = parseInp(inp);
     expect(
       hydraulicModel.labelManager.getIdByLabel("cu1", "curve"),
     ).toBeDefined();
