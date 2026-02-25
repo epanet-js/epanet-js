@@ -1,9 +1,13 @@
 import { useCallback, useMemo } from "react";
 import { useAtomValue } from "jotai";
+import { Maybe } from "purify-ts/Maybe";
 import { dataAtom, selectionAtom, stagingModelAtom } from "src/state/jotai";
 import { useCustomerPointActions } from "src/components/context-actions/customer-point-actions";
 import { ActionButton } from "src/components/panels/asset-panel/actions/action-button";
 import { Section } from "src/components/form/fields";
+import { useZoomTo } from "src/hooks/use-zoom-to";
+import { ZoomToIcon } from "src/icons";
+import { BBox } from "src/types";
 import {
   TextRow,
   QuantityRow,
@@ -25,6 +29,7 @@ export function CustomerPointPanel() {
   const translate = useTranslate();
   const rep = usePersistence();
   const transact = rep.useTransact();
+  const zoomTo = useZoomTo();
   const {
     modelMetadata: { quantities },
   } = useAtomValue(dataAtom);
@@ -105,6 +110,19 @@ export function CustomerPointPanel() {
             {customerPoint.label}
           </span>
           <div className="flex gap-1 h-8 shrink-0">
+            <ActionButton
+              action={{
+                icon: <ZoomToIcon />,
+                applicable: true,
+                label: translate("zoomTo"),
+                onSelect: function doZoomTo() {
+                  const [lng, lat] = customerPoint.coordinates;
+                  return Promise.resolve(
+                    zoomTo(Maybe.of([lng, lat, lng, lat] as BBox)),
+                  );
+                },
+              }}
+            />
             {actions
               .filter((action) => action.applicable)
               .map((action, i) => (
