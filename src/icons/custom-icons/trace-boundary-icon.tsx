@@ -19,18 +19,12 @@ export const CustomBoundaryTraceIcon = React.forwardRef<
       fill="none"
       {...props}
     >
-      <g id="boundary">
-        <g>
-          <circle cx={19} cy={19} r={2} />
-          <circle cx={19} cy={5} r={2} />
-          <circle cx={5} cy={19} r={2} />
-          <circle cx={5} cy={5} r={2} />
-        </g>
-        <path d="M5,7l0,10" />
-        <path d="M19,7l0,10" />
-        <path d="M17,19l-10,0" />
-        <path d="M17,5l-10,0" />
-      </g>
+      <path d="M16,20l0,-16" />
+      <path d="M21,16l-5,5l-5,-5" />
+      <path d="M11,8l5,-5l5,5" />
+      <circle cx="5" cy="19" r="2" />
+      <path d="M5,7l0,10" />
+      <circle cx="5" cy="5" r="2" />
     </svg>
   );
 });

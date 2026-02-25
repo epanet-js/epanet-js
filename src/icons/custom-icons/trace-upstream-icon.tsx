@@ -19,13 +19,11 @@ export const CustomUpstreamTraceIcon = React.forwardRef<
       fill="none"
       {...props}
     >
-      <circle cx={19} cy={19} r={2} />
-      <circle cx={5} cy={19} r={2} />
+      <path d="M16,20l0,-16" />
+      <path d="M11,8l5,-5l5,5" />
+      <circle cx="5" cy="19" r="2" />
       <path d="M5,7l0,10" />
-      <path d="M17,19l-10,0" />
-      <circle cx={5} cy={5} r={2} />
-      <path d="M16,13l-0,-10" />
-      <path d="M20,9l-4,4l-4,-4" />
+      <circle cx="5" cy="5" r="2" />
     </svg>
   );
 });
