@@ -8,18 +8,35 @@ import {
   PatternId,
   PatternType,
 } from "src/hydraulic-model";
-import { AddIcon, ChevronDownIcon, ChevronRightIcon } from "src/icons";
+import {
+  AddIcon,
+  ChevronDownIcon,
+  ChevronRightIcon,
+  CloseIcon,
+  DuplicateIcon,
+  RenameIcon,
+} from "src/icons";
 import { Button } from "src/components/elements";
 import { LabelManager } from "src/hydraulic-model/label-manager";
 import { useUserTracking } from "src/infra/user-tracking";
 import {
-  ActionState,
-  PatternSidebarItem,
-  SectionType,
-  TypedPattern,
-  UncategorizedPatternSidebarItem,
-} from "./pattern-sidebar-shared";
-import { ItemInput } from "src/components/list/item-input";
+  EditableListItem,
+  ItemAction,
+  ItemInput,
+  ListItem,
+} from "src/components/list";
+
+type SectionType = Extract<
+  PatternType,
+  "demand" | "reservoirHead" | "pumpSpeed"
+>;
+
+type TypedPattern = Pattern & { type: SectionType };
+
+type ActionState =
+  | { action: "creating"; patternType: PatternType }
+  | { action: "renaming"; patternId: PatternId }
+  | { action: "cloning"; sourcePattern: TypedPattern };
 
 type SidebarSectionType = SectionType | "uncategorized";
 
@@ -35,7 +52,7 @@ const SECTION_TRANSLATION_KEYS: Record<SectionType, string> = {
   pumpSpeed: "patterns.pumpSpeedPatterns",
 };
 
-type GroupedPatternSidebarProps = {
+type PatternSidebarProps = {
   width: number;
   patterns: Patterns;
   selectedPatternId: PatternId | null;
@@ -55,7 +72,7 @@ type GroupedPatternSidebarProps = {
   readOnly?: boolean;
 };
 
-export const GroupedPatternSidebar = ({
+export const PatternSidebar = ({
   width,
   patterns,
   selectedPatternId,
@@ -65,7 +82,7 @@ export const GroupedPatternSidebar = ({
   onChangePattern,
   onDeletePattern,
   readOnly = false,
-}: GroupedPatternSidebarProps) => {
+}: PatternSidebarProps) => {
   const translate = useTranslate();
   const userTracking = useUserTracking();
   const labelManager = useRef(new LabelManager());
@@ -585,5 +602,150 @@ const UncategorizedPatternSection = ({
         </ul>
       </C.Content>
     </C.Root>
+  );
+};
+
+const PatternSidebarItem = ({
+  pattern,
+  isSelected,
+  onSelect,
+  actionState,
+  onCancel,
+  onStartRename,
+  onStartClone,
+  onDelete,
+  onPatternLabelChange,
+  readOnly = false,
+}: {
+  pattern: TypedPattern;
+  isSelected: boolean;
+  onSelect: () => void;
+  actionState: ActionState | undefined;
+  onCancel: () => void;
+  onStartRename: (patternId: PatternId) => void;
+  onStartClone: (pattern: TypedPattern) => void;
+  onDelete: () => void;
+  onPatternLabelChange: (name: string) => boolean;
+  readOnly?: boolean;
+}) => {
+  const translate = useTranslate();
+
+  const actions: ItemAction[] = [
+    {
+      action: "rename",
+      label: translate("rename"),
+      icon: <RenameIcon size="sm" />,
+    },
+    {
+      action: "duplicate",
+      label: translate("duplicate"),
+      icon: <CloseIcon size="sm" />,
+    },
+    {
+      action: "delete",
+      label: translate("delete"),
+      icon: <DuplicateIcon size="sm" />,
+      variant: "destructive",
+    },
+  ];
+
+  const handleAction = (action: string) => {
+    switch (action) {
+      case "rename":
+        return onStartRename(pattern.id);
+      case "duplicate":
+        return onStartClone(pattern);
+      case "delete":
+        return onDelete();
+    }
+  };
+
+  const isRenaming =
+    actionState?.action === "renaming" && actionState.patternId === pattern.id;
+  const isCloning =
+    actionState?.action === "cloning" &&
+    actionState.sourcePattern.id === pattern.id;
+
+  const editMode = isRenaming ? "inline" : isCloning ? "below" : null;
+
+  return (
+    <EditableListItem
+      item={pattern}
+      isSelected={isSelected}
+      onSelect={onSelect}
+      actions={actions}
+      onAction={handleAction}
+      editLabelMode={editMode}
+      onLabelChange={onPatternLabelChange}
+      placeholder={translate("patterns.patternName")}
+      onCancel={onCancel}
+      readOnly={readOnly}
+    />
+  );
+};
+
+const UncategorizedPatternSidebarItem = ({
+  pattern,
+  isSelected,
+  onSelect,
+  onCategorize,
+  onDelete,
+  readOnly = false,
+}: {
+  pattern: Pattern;
+  isSelected: boolean;
+  onSelect: () => void;
+  onCategorize: (patternId: PatternId, type: SectionType) => void;
+  onDelete: () => void;
+  readOnly?: boolean;
+}) => {
+  const translate = useTranslate();
+
+  const actions: ItemAction[] = [
+    {
+      action: "setAsDemand",
+      label: translate("patterns.setAsDemand"),
+      icon: <ChevronRightIcon size="sm" />,
+    },
+    {
+      action: "setAsReservoirHead",
+      label: translate("patterns.setAsReservoirHead"),
+      icon: <ChevronRightIcon size="sm" />,
+    },
+    {
+      action: "setAsPumpSpeed",
+      label: translate("patterns.setAsPumpSpeed"),
+      icon: <ChevronRightIcon size="sm" />,
+    },
+    {
+      action: "delete",
+      label: translate("delete"),
+      icon: <DuplicateIcon size="sm" />,
+      variant: "destructive",
+    },
+  ];
+
+  const handleAction = (action: string) => {
+    switch (action) {
+      case "setAsDemand":
+        return onCategorize(pattern.id, "demand");
+      case "setAsReservoirHead":
+        return onCategorize(pattern.id, "reservoirHead");
+      case "setAsPumpSpeed":
+        return onCategorize(pattern.id, "pumpSpeed");
+      case "delete":
+        return onDelete();
+    }
+  };
+
+  return (
+    <ListItem
+      item={pattern}
+      isSelected={isSelected}
+      onSelect={onSelect}
+      actions={actions}
+      onAction={handleAction}
+      readOnly={readOnly}
+    />
   );
 };

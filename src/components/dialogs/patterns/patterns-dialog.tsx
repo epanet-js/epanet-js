@@ -3,7 +3,7 @@ import { useAtomValue } from "jotai";
 import { DialogContainer, DialogHeader, useDialogState } from "../../dialog";
 import { useTranslate } from "src/hooks/use-translate";
 import { Button } from "src/components/elements";
-import { GroupedPatternSidebar } from "./grouped-pattern-sidebar";
+import { PatternSidebar } from "./pattern-sidebar";
 import { PatternDetail } from "./pattern-detail";
 import { useIsSnapshotLocked } from "src/hooks/use-is-snapshot-locked";
 import {
@@ -203,7 +203,7 @@ export const PatternsDialog = ({
       <DialogHeader title={translate("patterns.title")} />
       <div className="flex-1 flex min-h-0">
         <div className="flex-shrink-0 flex">
-          <GroupedPatternSidebar
+          <PatternSidebar
             width={sidebarWidth}
             patterns={editedPatterns}
             selectedPatternId={selectedPatternId}

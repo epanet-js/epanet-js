@@ -1,7 +1,7 @@
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { render } from "@testing-library/react";
-import { GroupedPatternSidebar } from "./grouped-pattern-sidebar";
+import { PatternSidebar } from "./pattern-sidebar";
 import { Patterns, PatternType } from "src/hydraulic-model";
 
 const setupUser = () => userEvent.setup();
@@ -35,10 +35,10 @@ const defaultProps = {
 const getSectionHeader = (name: string) =>
   screen.getByRole("button", { name: new RegExp(`^${name}`) });
 
-describe("GroupedPatternSidebar", () => {
+describe("PatternSidebar", () => {
   describe("rendering sections", () => {
     it("renders three section headings", () => {
-      render(<GroupedPatternSidebar {...defaultProps} patterns={new Map()} />);
+      render(<PatternSidebar {...defaultProps} patterns={new Map()} />);
 
       expect(getSectionHeader("Demand")).toBeInTheDocument();
       expect(getSectionHeader("Reservoir head")).toBeInTheDocument();
@@ -57,7 +57,7 @@ describe("GroupedPatternSidebar", () => {
         { id: 3, label: "PumpP", multipliers: [1.0], type: "pumpSpeed" },
       ]);
 
-      render(<GroupedPatternSidebar {...defaultProps} patterns={patterns} />);
+      render(<PatternSidebar {...defaultProps} patterns={patterns} />);
 
       expect(
         screen.getByRole("button", { name: "aDemand" }),
@@ -73,7 +73,7 @@ describe("GroupedPatternSidebar", () => {
         { id: 1, label: "UntypedP", multipliers: [1.0] },
       ]);
 
-      render(<GroupedPatternSidebar {...defaultProps} patterns={patterns} />);
+      render(<PatternSidebar {...defaultProps} patterns={patterns} />);
 
       expect(
         screen.getByRole("button", { name: "UntypedP" }),
@@ -81,7 +81,7 @@ describe("GroupedPatternSidebar", () => {
     });
 
     it("renders empty sections with just headers", () => {
-      render(<GroupedPatternSidebar {...defaultProps} patterns={new Map()} />);
+      render(<PatternSidebar {...defaultProps} patterns={new Map()} />);
 
       expect(getSectionHeader("Demand")).toBeInTheDocument();
       expect(getSectionHeader("Reservoir head")).toBeInTheDocument();
@@ -96,7 +96,7 @@ describe("GroupedPatternSidebar", () => {
         { id: 1, label: "aDemand", multipliers: [1.0], type: "demand" },
       ]);
 
-      render(<GroupedPatternSidebar {...defaultProps} patterns={patterns} />);
+      render(<PatternSidebar {...defaultProps} patterns={patterns} />);
 
       expect(
         screen.getByRole("button", { name: "aDemand" }),
@@ -117,7 +117,7 @@ describe("GroupedPatternSidebar", () => {
         { id: 1, label: "aDemand", multipliers: [1.0], type: "demand" },
       ]);
 
-      render(<GroupedPatternSidebar {...defaultProps} patterns={patterns} />);
+      render(<PatternSidebar {...defaultProps} patterns={patterns} />);
 
       // Collapse
       await user.click(getSectionHeader("Demand"));
@@ -139,7 +139,7 @@ describe("GroupedPatternSidebar", () => {
 
   describe("adding patterns", () => {
     it("shows add button for each section", () => {
-      render(<GroupedPatternSidebar {...defaultProps} patterns={new Map()} />);
+      render(<PatternSidebar {...defaultProps} patterns={new Map()} />);
 
       expect(
         screen.getByRole("button", { name: /^add demand/i }),
@@ -156,11 +156,7 @@ describe("GroupedPatternSidebar", () => {
 
     it("hides add buttons when readOnly", () => {
       render(
-        <GroupedPatternSidebar
-          {...defaultProps}
-          patterns={new Map()}
-          readOnly
-        />,
+        <PatternSidebar {...defaultProps} patterns={new Map()} readOnly />,
       );
 
       expect(
@@ -181,7 +177,7 @@ describe("GroupedPatternSidebar", () => {
       const onAddPattern = createMockOnAddPattern();
 
       render(
-        <GroupedPatternSidebar
+        <PatternSidebar
           {...defaultProps}
           patterns={new Map()}
           onAddPattern={onAddPattern}
@@ -206,7 +202,7 @@ describe("GroupedPatternSidebar", () => {
       const onAddPattern = createMockOnAddPattern();
 
       render(
-        <GroupedPatternSidebar
+        <PatternSidebar
           {...defaultProps}
           patterns={new Map()}
           onAddPattern={onAddPattern}
@@ -235,7 +231,7 @@ describe("GroupedPatternSidebar", () => {
       const onAddPattern = createMockOnAddPattern();
 
       render(
-        <GroupedPatternSidebar
+        <PatternSidebar
           {...defaultProps}
           patterns={new Map()}
           onAddPattern={onAddPattern}
@@ -272,7 +268,7 @@ describe("GroupedPatternSidebar", () => {
       ]);
 
       render(
-        <GroupedPatternSidebar
+        <PatternSidebar
           {...defaultProps}
           patterns={patterns}
           selectedPatternId={1}
@@ -306,7 +302,7 @@ describe("GroupedPatternSidebar", () => {
       ]);
 
       render(
-        <GroupedPatternSidebar
+        <PatternSidebar
           {...defaultProps}
           patterns={patterns}
           onAddPattern={onAddPattern}
@@ -334,7 +330,7 @@ describe("GroupedPatternSidebar", () => {
       ]);
 
       render(
-        <GroupedPatternSidebar
+        <PatternSidebar
           {...defaultProps}
           patterns={patterns}
           onSelectPattern={onSelectPattern}
@@ -361,7 +357,7 @@ describe("GroupedPatternSidebar", () => {
       ]);
 
       render(
-        <GroupedPatternSidebar
+        <PatternSidebar
           {...defaultProps}
           patterns={patterns}
           selectedPatternId={1}
@@ -394,7 +390,7 @@ describe("GroupedPatternSidebar", () => {
         },
       ]);
 
-      render(<GroupedPatternSidebar {...defaultProps} patterns={patterns} />);
+      render(<PatternSidebar {...defaultProps} patterns={patterns} />);
 
       const container = screen
         .getByRole("button", { name: "ReservoirP" })
@@ -441,7 +437,7 @@ describe("GroupedPatternSidebar", () => {
       ]);
 
       render(
-        <GroupedPatternSidebar
+        <PatternSidebar
           {...defaultProps}
           patterns={patterns}
           selectedPatternId={1}
