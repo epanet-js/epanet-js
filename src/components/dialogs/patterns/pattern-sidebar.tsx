@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
-import * as C from "@radix-ui/react-collapsible";
 import { useTranslate } from "src/hooks/use-translate";
 import {
   Pattern,
@@ -10,16 +9,15 @@ import {
 } from "src/hydraulic-model";
 import {
   AddIcon,
-  ChevronDownIcon,
   ChevronRightIcon,
   CloseIcon,
   DuplicateIcon,
   RenameIcon,
 } from "src/icons";
-import { Button } from "src/components/elements";
 import { LabelManager } from "src/hydraulic-model/label-manager";
 import { useUserTracking } from "src/infra/user-tracking";
 import {
+  CollapsibleListSection,
   EditableListItem,
   ItemAction,
   ItemInput,
@@ -165,7 +163,7 @@ export const PatternSidebar = ({
     function autoScrollToSelectedItem() {
       if (!selectedPatternId) return;
       const item = listRef.current?.querySelector(
-        `[data-pattern-id="${selectedPatternId}"]`,
+        `[data-item-id="${selectedPatternId}"]`,
       );
       item?.scrollIntoView({ block: "nearest" });
     },
@@ -208,7 +206,7 @@ export const PatternSidebar = ({
         setFocusedSection(null);
         onSelectPattern(item.patternId);
         const el = listRef.current?.querySelector(
-          `[data-pattern-id="${item.patternId}"]`,
+          `[data-item-id="${item.patternId}"]`,
         );
         el?.scrollIntoView({ block: "nearest" });
       }
@@ -467,73 +465,47 @@ const PatternSection = ({
   const translate = useTranslate();
 
   return (
-    <C.Root open={isOpen} onOpenChange={onToggle}>
-      <div
-        data-section-type={sectionType}
-        className={`group/section flex items-center justify-between h-8 px-1 ${
-          isFocused
-            ? "bg-gray-200 dark:bg-gray-700"
-            : "hover:bg-gray-100 dark:hover:bg-gray-800"
-        }`}
-      >
-        <C.Trigger asChild>
-          <button className="flex-1 min-w-0 flex items-center gap-1 text-sm font-medium text-gray-500 dark:text-gray-400">
-            {isOpen ? (
-              <ChevronDownIcon size="sm" />
-            ) : (
-              <ChevronRightIcon size="sm" />
-            )}
-            <span className="truncate">{title}</span>
-            <span className="shrink-0">({patterns.length})</span>
-          </button>
-        </C.Trigger>
-        {!readOnly && (
-          <Button
-            variant="quiet"
-            size="xs"
-            aria-label={translate(
-              "patterns.addPattern",
-              title.toLocaleLowerCase(),
-            )}
-            onClick={onStartCreate}
-            className="h-6 w-6 hover:bg-gray-200 dark:hover:bg-gray-700"
-          >
-            <AddIcon />
-          </Button>
-        )}
-      </div>
-      <C.Content>
-        <ul className="pl-4">
-          {patterns.map((pattern) => (
-            <PatternSidebarItem
-              key={pattern.id}
-              pattern={pattern}
-              isSelected={pattern.id === selectedPatternId}
-              onSelect={() => onSelectPattern(pattern.id)}
-              actionState={actionState}
-              onCancel={onCancelAction}
-              onStartRename={onStartRename}
-              onStartClone={onStartClone}
-              onDelete={() => {
-                onCancelAction();
-                onDelete(pattern.id, pattern.type);
-              }}
-              onPatternLabelChange={onPatternLabelChange}
-              readOnly={readOnly}
-            />
-          ))}
-          {isCreating && (
-            <ItemInput
-              label="New pattern name"
-              value=""
-              placeholder={translate("patterns.patternName")}
-              onCommit={onPatternLabelChange}
-              onCancel={onCancelAction}
-            />
-          )}
-        </ul>
-      </C.Content>
-    </C.Root>
+    <CollapsibleListSection
+      sectionType={sectionType}
+      title={title}
+      isOpen={isOpen}
+      isFocused={isFocused}
+      onToggle={onToggle}
+      action={{
+        icon: <AddIcon />,
+        label: translate("patterns.addPattern", title.toLocaleLowerCase()),
+      }}
+      onAction={onStartCreate}
+      readOnly={readOnly}
+    >
+      {patterns.map((pattern) => (
+        <PatternSidebarItem
+          key={pattern.id}
+          pattern={pattern}
+          isSelected={pattern.id === selectedPatternId}
+          onSelect={() => onSelectPattern(pattern.id)}
+          actionState={actionState}
+          onCancel={onCancelAction}
+          onStartRename={onStartRename}
+          onStartClone={onStartClone}
+          onDelete={() => {
+            onCancelAction();
+            onDelete(pattern.id, pattern.type);
+          }}
+          onPatternLabelChange={onPatternLabelChange}
+          readOnly={readOnly}
+        />
+      ))}
+      {isCreating && (
+        <ItemInput
+          label="New pattern name"
+          value=""
+          placeholder={translate("patterns.patternName")}
+          onCommit={onPatternLabelChange}
+          onCancel={onCancelAction}
+        />
+      )}
+    </CollapsibleListSection>
   );
 };
 
@@ -563,45 +535,25 @@ const UncategorizedPatternSection = ({
   const translate = useTranslate();
 
   return (
-    <C.Root open={isOpen} onOpenChange={onToggle}>
-      <div
-        data-section-type="uncategorized"
-        className={`group/section flex items-center justify-between h-8 px-1 ${
-          isFocused
-            ? "bg-gray-200 dark:bg-gray-700"
-            : "hover:bg-gray-100 dark:hover:bg-gray-800"
-        }`}
-      >
-        <C.Trigger asChild>
-          <button className="flex-1 min-w-0 flex items-center gap-1 text-sm font-medium text-gray-500 dark:text-gray-400">
-            {isOpen ? (
-              <ChevronDownIcon size="sm" />
-            ) : (
-              <ChevronRightIcon size="sm" />
-            )}
-            <span className="truncate">
-              {translate("patterns.uncategorizedPatterns")}
-            </span>
-            <span className="shrink-0">({patterns.length})</span>
-          </button>
-        </C.Trigger>
-      </div>
-      <C.Content>
-        <ul className="pl-4">
-          {patterns.map((pattern) => (
-            <UncategorizedPatternSidebarItem
-              key={pattern.id}
-              pattern={pattern}
-              isSelected={pattern.id === selectedPatternId}
-              onSelect={() => onSelectPattern(pattern.id)}
-              onCategorize={onCategorize}
-              onDelete={() => onDelete(pattern.id)}
-              readOnly={readOnly}
-            />
-          ))}
-        </ul>
-      </C.Content>
-    </C.Root>
+    <CollapsibleListSection
+      sectionType="uncategorized"
+      title={translate("patterns.uncategorizedPatterns")}
+      isOpen={isOpen}
+      isFocused={isFocused}
+      onToggle={onToggle}
+    >
+      {patterns.map((pattern) => (
+        <UncategorizedPatternSidebarItem
+          key={pattern.id}
+          pattern={pattern}
+          isSelected={pattern.id === selectedPatternId}
+          onSelect={() => onSelectPattern(pattern.id)}
+          onCategorize={onCategorize}
+          onDelete={() => onDelete(pattern.id)}
+          readOnly={readOnly}
+        />
+      ))}
+    </CollapsibleListSection>
   );
 };
 

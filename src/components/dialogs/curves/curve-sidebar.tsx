@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
-import * as C from "@radix-ui/react-collapsible";
 import { useTranslate } from "src/hooks/use-translate";
 import {
   Curves,
@@ -11,20 +10,19 @@ import {
 } from "src/hydraulic-model/curves";
 import {
   AddIcon,
-  ChevronDownIcon,
   ChevronRightIcon,
   CloseIcon,
   DuplicateIcon,
   RenameIcon,
   WarningIcon,
 } from "src/icons";
-import { Button } from "src/components/elements";
 import { LabelManager } from "src/hydraulic-model/label-manager";
 import {
   ListItem,
   ItemAction,
   ItemInput,
   EditableListItem,
+  CollapsibleListSection,
 } from "src/components/list";
 
 type CurveSectionType = "pump";
@@ -135,7 +133,7 @@ export const CurveSidebar = ({
     function autoScrollToSelectedItem() {
       if (!selectedCurveId) return;
       const item = listRef.current?.querySelector(
-        `[data-curve-id="${selectedCurveId}"]`,
+        `[data-item-id="${selectedCurveId}"]`,
       );
       item?.scrollIntoView({ block: "nearest" });
     },
@@ -177,7 +175,7 @@ export const CurveSidebar = ({
         setFocusedSection(null);
         onSelectCurve(item.curveId);
         const el = listRef.current?.querySelector(
-          `[data-curve-id="${item.curveId}"]`,
+          `[data-item-id="${item.curveId}"]`,
         );
         el?.scrollIntoView({ block: "nearest" });
       }
@@ -380,8 +378,6 @@ export const CurveSidebar = ({
   );
 };
 
-// --- Pump Section ---
-
 type CurveSectionProps = {
   title: string;
   isOpen: boolean;
@@ -424,75 +420,51 @@ const CurveSection = ({
   const translate = useTranslate();
 
   return (
-    <C.Root open={isOpen} onOpenChange={onToggle}>
-      <div
-        data-section-type="pump"
-        className={`group/section flex items-center justify-between h-8 px-1 ${
-          isFocused
-            ? "bg-gray-200 dark:bg-gray-700"
-            : "hover:bg-gray-100 dark:hover:bg-gray-800"
-        }`}
-      >
-        <C.Trigger asChild>
-          <button className="flex-1 min-w-0 flex items-center gap-1 text-sm font-medium text-gray-500 dark:text-gray-400">
-            {isOpen ? (
-              <ChevronDownIcon size="sm" />
-            ) : (
-              <ChevronRightIcon size="sm" />
-            )}
-            <span className="truncate">{title}</span>
-            <span className="shrink-0">({curves.length})</span>
-          </button>
-        </C.Trigger>
-        {!readOnly && (
-          <Button
-            variant="quiet"
-            size="xs"
-            aria-label={translate("curves.addCurve", title.toLocaleLowerCase())}
-            onClick={onStartCreate}
-            className="h-6 w-6 hover:bg-gray-200 dark:hover:bg-gray-700"
-          >
-            <AddIcon />
-          </Button>
-        )}
-      </div>
-      <C.Content>
-        <ul className="pl-4">
-          {curves.map((curve) => (
-            <CurveSidebarItem
-              key={curve.id}
-              curve={curve}
-              isSelected={curve.id === selectedCurveId}
-              isInvalid={invalidCurveIds.has(curve.id)}
-              onSelect={() => onSelectCurve(curve.id)}
-              actionState={actionState}
-              onCancel={onCancelAction}
-              onStartRename={onStartRename}
-              onStartClone={onStartClone}
-              onDelete={() => {
-                onCancelAction();
-                onDelete(curve.id);
-              }}
-              onCurveLabelChange={onCurveLabelChange}
-              readOnly={readOnly}
-            />
-          ))}
-          {isCreating && (
-            <ItemInput
-              label="New curve name"
-              value=""
-              placeholder={translate("curves.curveName")}
-              onCommit={onCurveLabelChange}
-              onCancel={onCancelAction}
-            />
-          )}
-        </ul>
-      </C.Content>
-    </C.Root>
+    <CollapsibleListSection
+      sectionType="pump"
+      title={title}
+      count={curves.length}
+      isOpen={isOpen}
+      onToggle={onToggle}
+      isFocused={isFocused}
+      action={{
+        icon: <AddIcon />,
+        label: translate("curves.addCurve", title.toLocaleLowerCase()),
+      }}
+      onAction={onStartCreate}
+      readOnly={readOnly}
+    >
+      {curves.map((curve) => (
+        <CurveSidebarItem
+          key={curve.id}
+          curve={curve}
+          isSelected={curve.id === selectedCurveId}
+          isInvalid={invalidCurveIds.has(curve.id)}
+          onSelect={() => onSelectCurve(curve.id)}
+          actionState={actionState}
+          onCancel={onCancelAction}
+          onStartRename={onStartRename}
+          onStartClone={onStartClone}
+          onDelete={() => {
+            onCancelAction();
+            onDelete(curve.id);
+          }}
+          onCurveLabelChange={onCurveLabelChange}
+          readOnly={readOnly}
+        />
+      ))}
+      {isCreating && (
+        <ItemInput
+          label="New curve name"
+          value=""
+          placeholder={translate("curves.curveName")}
+          onCommit={onCurveLabelChange}
+          onCancel={onCancelAction}
+        />
+      )}
+    </CollapsibleListSection>
   );
 };
-
-// --- Uncategorized Section ---
 
 type UncategorizedCurveSectionProps = {
   isOpen: boolean;
@@ -520,49 +492,28 @@ const UncategorizedCurveSection = ({
   const translate = useTranslate();
 
   return (
-    <C.Root open={isOpen} onOpenChange={onToggle}>
-      <div
-        data-section-type="uncategorized"
-        className={`group/section flex items-center justify-between h-8 px-1 ${
-          isFocused
-            ? "bg-gray-200 dark:bg-gray-700"
-            : "hover:bg-gray-100 dark:hover:bg-gray-800"
-        }`}
-      >
-        <C.Trigger asChild>
-          <button className="flex-1 min-w-0 flex items-center gap-1 text-sm font-medium text-gray-500 dark:text-gray-400">
-            {isOpen ? (
-              <ChevronDownIcon size="sm" />
-            ) : (
-              <ChevronRightIcon size="sm" />
-            )}
-            <span className="truncate">
-              {translate("curves.uncategorizedCurves")}
-            </span>
-            <span className="shrink-0">({curves.length})</span>
-          </button>
-        </C.Trigger>
-      </div>
-      <C.Content>
-        <ul className="pl-4">
-          {curves.map((curve) => (
-            <UncategorizedCurveSidebarItem
-              key={curve.id}
-              curve={curve}
-              isSelected={curve.id === selectedCurveId}
-              onSelect={() => onSelectCurve(curve.id)}
-              onCategorize={onCategorize}
-              onDelete={() => onDelete(curve.id)}
-              readOnly={readOnly}
-            />
-          ))}
-        </ul>
-      </C.Content>
-    </C.Root>
+    <CollapsibleListSection
+      sectionType="uncategorized"
+      title={translate("curves.uncategorizedCurves")}
+      count={curves.length}
+      isOpen={isOpen}
+      onToggle={onToggle}
+      isFocused={isFocused}
+    >
+      {curves.map((curve) => (
+        <UncategorizedCurveSidebarItem
+          key={curve.id}
+          curve={curve}
+          isSelected={curve.id === selectedCurveId}
+          onSelect={() => onSelectCurve(curve.id)}
+          onCategorize={onCategorize}
+          onDelete={() => onDelete(curve.id)}
+          readOnly={readOnly}
+        />
+      ))}
+    </CollapsibleListSection>
   );
 };
-
-// --- Sidebar Items ---
 
 type CurveSidebarItemProps = {
   curve: TypedCurve;
