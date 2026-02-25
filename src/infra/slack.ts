@@ -108,6 +108,51 @@ export const buildTrialActivatedMessage = (
   });
 };
 
+export const buildTrialExpiredMessage = (
+  email: string,
+  firstName: string,
+  lastName: string,
+  trialActivatedAt: string,
+  trialEndsAt: string,
+) => {
+  return JSON.stringify({
+    text: ":hourglass: Trial Expired",
+    attachments: [
+      {
+        title: "Trial Period Ended",
+        color: "warning",
+        fields: [
+          {
+            title: "Email",
+            value: email,
+            short: true,
+          },
+          {
+            title: "First Name",
+            value: firstName,
+            short: true,
+          },
+          {
+            title: "Last Name",
+            value: lastName,
+            short: true,
+          },
+          {
+            title: "Activated At",
+            value: trialActivatedAt,
+            short: true,
+          },
+          {
+            title: "Expired At",
+            value: trialEndsAt,
+            short: true,
+          },
+        ],
+      },
+    ],
+  });
+};
+
 export const buildUserUpgradedMessage = (
   email: string,
   plan: string,

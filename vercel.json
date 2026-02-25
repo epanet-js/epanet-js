@@ -1,5 +1,6 @@
 {
   "crons": [
-   { "path": "/api/users-backup", "schedule": "0 0 * * *" }
+   { "path": "/api/users-backup", "schedule": "0 0 * * *" },
+   { "path": "/api/expired-trials", "schedule": "30 0 * * *" }
   ]
 }

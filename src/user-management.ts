@@ -70,6 +70,47 @@ export const activateTrial = async (userId: string) => {
   });
 };
 
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
+export const getRecentlyExpiredTrials = async () => {
+  const now = Date.now();
+  const oneDayAgo = now - MS_PER_DAY;
+
+  const users = await fetchAllUsers();
+  return users.filter((user) => {
+    const hasUsedTrial = user.publicMetadata?.hasUsedTrial === true;
+    const trialEndsAt = user.publicMetadata?.trialEndsAt as string | undefined;
+    const plan = user.publicMetadata?.userPlan || "free";
+
+    if (!hasUsedTrial || !trialEndsAt || plan !== "free") return false;
+
+    const expiryTime = new Date(trialEndsAt).getTime();
+    return expiryTime > oneDayAgo && expiryTime <= now;
+  });
+};
+
+const fetchAllUsers = async () => {
+  const clerk = await client();
+  const result = [];
+  let offset = 0;
+  const limit = 100;
+
+  while (true) {
+    const { data } = await clerk.users.getUserList({
+      orderBy: "+created_at",
+      limit,
+      offset,
+    });
+
+    result.push(...data);
+    if (data.length < limit) break;
+
+    offset += limit;
+  }
+
+  return result;
+};
+
 const getEmail = (user: User): string => {
   return user?.emailAddresses[0].emailAddress;
 };
