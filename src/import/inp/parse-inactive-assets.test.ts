@@ -314,6 +314,55 @@ J5    90    10
     expect(j5?.feature.properties.isActive).toBe(true);
   });
 
+  it("does not parse curve type comments as curve data", () => {
+    const inp = `
+    [JUNCTIONS]
+    J1    100    0
+    J2    200    0
+
+    [PUMPS]
+    PU1    J1    J2    HEAD C1    SPEED 1
+
+    [CURVES]
+    ;PUMP:
+    C1    0    100
+    C1    500    80
+    C1    1000    50
+
+    [COORDINATES]
+    J1    10    20
+    J2    30    40
+    `;
+
+    const { issues } = parseInp(createAppMadeInp(inp), {
+      inactiveAssets: true,
+    });
+
+    expect(issues?.hasUnusedCurves).toBeUndefined();
+  });
+
+  it("does not parse pattern type comments as pattern data", () => {
+    const inp = `
+    [JUNCTIONS]
+    J1    100    50    pat1
+
+    [PATTERNS]
+    ;DEMAND:
+    pat1    1.0    1.2    0.8
+
+    [COORDINATES]
+    J1    0    0
+    `;
+
+    const { hydraulicModel } = parseInp(createAppMadeInp(inp), {
+      inactiveAssets: true,
+    });
+
+    const patterns = [...hydraulicModel.patterns.values()];
+    expect(patterns).toHaveLength(1);
+    expect(patterns[0].label).toBe("pat1");
+  });
+
   it("ignores header comment lines in sections", () => {
     const inp = `
     [JUNCTIONS]

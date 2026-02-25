@@ -724,15 +724,14 @@ const appendPump = (
         usedCurveIds.set(curve.id, curveId);
       }
       sections.pumps.push(
-        commentPrefix +
-          [
-            linkId,
-            startId,
-            endId,
-            `HEAD ${curveId}`,
-            `SPEED ${pump.speed}`,
-            ...speedPatternParts,
-          ].join("\t"),
+        [
+          linkId,
+          startId,
+          endId,
+          `HEAD ${curveId}`,
+          `SPEED ${pump.speed}`,
+          ...speedPatternParts,
+        ].join("\t"),
       );
       usedCurveIds.set(curve.id, curveId);
   }

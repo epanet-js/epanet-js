@@ -68,6 +68,32 @@ const buildSectionParserDefinitions = (): SectionParserDefinition[] => [
   { names: ["LEAKAGE"], parser: unsupported },
 ];
 
+// Sections where commented-out rows represent inactive assets or references to them.
+// Excludes shared data sections like CURVES and PATTERNS whose comments are type
+// indicators (e.g. ;PUMP:), not inactive asset data.
+const INACTIVE_ASSET_SECTIONS = new Set([
+  "[JUNCTIONS]",
+  "[JUNCTION]",
+  "[RESERVOIRS]",
+  "[RESERVOIR]",
+  "[TANKS]",
+  "[TANK]",
+  "[PIPES]",
+  "[PIPE]",
+  "[PUMPS]",
+  "[PUMP]",
+  "[VALVES]",
+  "[VALVE]",
+  "[COORDINATES]",
+  "[COORDINATE]",
+  "[VERTICES]",
+  "[VERTEX]",
+  "[STATUS]",
+  "[DEMANDS]",
+  "[DEMAND]",
+  "[EMITTERS]",
+]);
+
 const buildSectionParsers = (): SectionParsers => {
   const definitions = buildSectionParserDefinitions();
   const result: SectionParsers = {};
@@ -146,7 +172,12 @@ export const readInpData = (
         continue;
       }
 
-      if (options?.inactiveAssets === true) parseRow(trimmedRow);
+      if (
+        options?.inactiveAssets === true &&
+        section &&
+        INACTIVE_ASSET_SECTIONS.has(section)
+      )
+        parseRow(trimmedRow);
       lastComment = trimmedRow;
       continue;
     }
