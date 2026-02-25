@@ -546,38 +546,6 @@ describe("parse pumps", () => {
       expect(pump.definitionType).toEqual("curve");
       expect(pump.curve).toEqual([{ x: 1, y: 1 }]);
     });
-
-    it("registers curves with non-ascending flow values but reports them as unused", () => {
-      const reservoirId = "r1";
-      const junctionId = "j1";
-      const curveLabel = "cu1";
-      const anyNumber = 10;
-
-      const inp = `
-        [RESERVOIRS]
-        ${reservoirId}\t${anyNumber}
-        [JUNCTIONS]
-        ${junctionId}\t${anyNumber}
-
-        [COORDINATES]
-        ${reservoirId}\t10\t20
-        ${junctionId}\t30\t40
-
-        [CURVES]
-        ${curveLabel}\t0\t300
-        ${curveLabel}\t200\t250
-        ${curveLabel}\t100\t150
-        `;
-
-      const { hydraulicModel, issues } = parseInp(inp);
-
-      const curveId = hydraulicModel.labelManager.getIdByLabel(
-        curveLabel,
-        "curve",
-      );
-      expect(curveId).toBeUndefined();
-      expect(issues?.hasUnusedCurves).toBe(1);
-    });
   });
 
   it("handles pump status and speed with standard curves", () => {

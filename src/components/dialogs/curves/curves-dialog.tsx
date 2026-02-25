@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useRef } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { useAtomValue } from "jotai";
 import { DialogContainer, DialogHeader, useDialogState } from "../../dialog";
 import { useTranslate } from "src/hooks/use-translate";
@@ -116,6 +116,20 @@ export const CurvesDialog = ({
   );
 
   const hasCurves = editedCurves.size > 0;
+
+  useEffect(
+    function trackUncategorizedCurves() {
+      const uncategorizedCount = [...hydraulicModel.curves.values()].filter(
+        (c) => c.type !== "pump",
+      ).length;
+      if (uncategorizedCount === 0) return;
+      userTracking.capture({
+        name: "curves.uncategorized",
+        count: uncategorizedCount,
+      });
+    },
+    [hydraulicModel.curves, userTracking],
+  );
 
   const getCurvePoints = useCallback(
     (curveId: CurveId): CurvePoint[] => editedCurves.get(curveId)?.points ?? [],
@@ -306,16 +320,16 @@ export const CurvesDialog = ({
         <div className="flex-1 flex flex-col min-h-0 w-full">
           {selectedCurveId ? (
             (() => {
-              const curveConfig = getCurveTypeConfig(
-                editedCurves.get(selectedCurveId)?.type,
-              );
+              const curveType = editedCurves.get(selectedCurveId)?.type;
+              const curveConfig = getCurveTypeConfig(curveType);
+              const isUncategorized = curveType !== "pump";
               return (
                 <CurveDetail
                   points={getCurvePoints(selectedCurveId)}
                   onChange={(points) =>
                     handleCurveChange(selectedCurveId, { points })
                   }
-                  readOnly={isSnapshotLocked}
+                  readOnly={isSnapshotLocked || isUncategorized}
                   curveConfig={curveConfig}
                   xUnit={
                     curveConfig.xQuantity

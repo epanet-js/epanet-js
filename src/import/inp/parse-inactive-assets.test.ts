@@ -320,9 +320,6 @@ J5    90    10
     J1    100    0
     J2    200    0
 
-    [PUMPS]
-    PU1    J1    J2    HEAD C1    SPEED 1
-
     [CURVES]
     ;PUMP:
     C1    0    100
@@ -334,11 +331,13 @@ J5    90    10
     J2    30    40
     `;
 
-    const { issues } = parseInp(createAppMadeInp(inp), {
+    const { hydraulicModel } = parseInp(createAppMadeInp(inp), {
       inactiveAssets: true,
     });
 
-    expect(issues?.hasUnusedCurves).toBeUndefined();
+    const curves = [...hydraulicModel.curves.values()];
+    expect(curves).toHaveLength(1);
+    expect(curves[0].label).toBe("C1");
   });
 
   it("does not parse pattern type comments as pattern data", () => {

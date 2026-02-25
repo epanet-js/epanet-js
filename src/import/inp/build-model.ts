@@ -923,8 +923,7 @@ const addCurves = (
       continue;
     }
 
-    if (!curve.type) issues.addUnusedCurve();
-    hydraulicModel.labelManager.remove(curve.label, "curve", curve.id);
+    validCurves.set(curve.id, curve);
   }
   hydraulicModel.curves = validCurves;
 };

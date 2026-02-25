@@ -27,10 +27,6 @@ const roadmapUrls = {
   waterQuality:
     "https://roadmap.epanetjs.com/simulation-engine/p/standard-water-quality-analysis",
   gpv: "https://roadmap.epanetjs.com/network-elements/p/gpv-general-purpose-valve",
-  patterns:
-    "https://roadmap.epanetjs.com/data-libraries/p/manage-time-series-patterns",
-  reservoirPatterns:
-    "https://roadmap.epanetjs.com/element-properties/p/define-reservoir-patterns",
   tankCurves:
     "https://roadmap.epanetjs.com/element-properties/p/define-tank-curves",
   pcv: "https://roadmap.epanetjs.com/network-elements/p/pcv-positional-control-valve",
@@ -428,20 +424,6 @@ const IssuesSummary = ({ issues }: { issues: ParserIssues }) => {
               </div>
             </div>
           )}
-          {issues.hasReservoirPatterns && (
-            <div>
-              <p>{translate("ignoredValuesDetected", "[RESERVOIRS]")}:</p>
-              <div className="flex flex-col gap-y-1 items-start">
-                <RoadmapLink href={roadmapUrls.reservoirPatterns}>
-                  -{" "}
-                  {translate(
-                    "reservoirPatterns",
-                    String(issues.hasReservoirPatterns),
-                  )}
-                </RoadmapLink>
-              </div>
-            </div>
-          )}
           {issues.hasTankCurves && (
             <div>
               <p>{translate("ignoredValuesDetected", "[TANKS]")}:</p>
@@ -452,34 +434,16 @@ const IssuesSummary = ({ issues }: { issues: ParserIssues }) => {
               </div>
             </div>
           )}
-          {(issues.hasPumpPatterns || issues.hasUndefinedPumpCurve) && (
+          {issues.hasUndefinedPumpCurve && (
             <div>
               <p>{translate("ignoredValuesDetected", "[PUMPS]")}:</p>
               <div className="flex flex-col gap-y-1 items-start">
-                {issues.hasPumpPatterns && (
-                  <RoadmapLink href={roadmapUrls.patterns}>
-                    -{" "}
-                    {translate("pumpPatterns", String(issues.hasPumpPatterns))}
-                  </RoadmapLink>
-                )}
-                {issues.hasUndefinedPumpCurve && (
-                  <span>
-                    -{" "}
-                    {translate(
-                      "undefinedPumpCurves",
-                      String(issues.hasUndefinedPumpCurve),
-                    )}
-                  </span>
-                )}
-              </div>
-            </div>
-          )}
-          {issues.hasUnusedCurves && (
-            <div>
-              <p>{translate("ignoredValuesDetected", "[CURVES]")}:</p>
-              <div className="flex flex-col gap-y-1 items-start">
                 <span>
-                  - {translate("unusedCurves", String(issues.hasUnusedCurves))}
+                  -{" "}
+                  {translate(
+                    "undefinedPumpCurves",
+                    String(issues.hasUndefinedPumpCurve),
+                  )}
                 </span>
               </div>
             </div>

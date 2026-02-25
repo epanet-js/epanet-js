@@ -8,6 +8,7 @@ import {
   getCurvePointsType,
   CurvePointsType,
   getPumpCurveErrors,
+  CurveErrorPoint,
 } from "src/hydraulic-model/curves";
 import { Quantities } from "src/model-metadata/quantities-spec";
 import { localizeDecimal } from "src/infra/i18n/numbers";
@@ -821,7 +822,7 @@ const PumpCurveWarning = ({
   curveType,
 }: {
   hasMissingValues: boolean;
-  pumpErrors: { index: number; value: "x" | "y" }[];
+  pumpErrors: CurveErrorPoint[];
   curveType: CurvePointsType;
 }) => {
   const translate = useTranslate();
