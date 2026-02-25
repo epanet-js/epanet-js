@@ -1,5 +1,6 @@
 import { useCallback, useState, useMemo } from "react";
 import { DialogContainer, DialogHeader, useDialogState } from "../../dialog";
+import { Button } from "src/components/elements";
 import { SettingsIcon } from "src/icons";
 import { SimulationSettingsSidebar } from "./simulation-settings-sidebar";
 import { SimulationSettingsContent } from "./simulation-settings-content";
@@ -27,6 +28,11 @@ export const SimulationSettingsNewDialog = () => {
     [],
   );
 
+  const handleSave = useCallback(() => {
+    // TODO: persist values to model
+    closeDialog();
+  }, [closeDialog]);
+
   return (
     <DialogContainer size="md" height="lg" onClose={closeDialog}>
       <DialogHeader title="Simulation Settings" titleIcon={SettingsIcon} />
@@ -42,6 +48,14 @@ export const SimulationSettingsNewDialog = () => {
             onChange={handleChange}
           />
         </div>
+      </div>
+      <div className="flex items-center justify-end gap-3 pt-6">
+        <Button type="button" variant="default" onClick={closeDialog}>
+          Cancel
+        </Button>
+        <Button type="button" variant="primary" onClick={handleSave}>
+          Save settings
+        </Button>
       </div>
     </DialogContainer>
   );
