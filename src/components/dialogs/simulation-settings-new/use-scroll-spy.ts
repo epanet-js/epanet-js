@@ -1,8 +1,7 @@
 import { useRef, useState, useCallback } from "react";
 
 const SCROLL_PADDING = 16;
-// Activate the next section when half the gap between sections has been scrolled past
-const ACTIVATION_OFFSET = 40;
+const ACTIVATION_OFFSET = 100;
 
 export const useScrollSpy = (sectionIds: string[]) => {
   const [activeSection, setActiveSection] = useState<string>(
