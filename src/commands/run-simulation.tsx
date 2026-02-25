@@ -13,8 +13,6 @@ import {
   runSimulation as runSimulationWorker,
   EPSResultsReader,
 } from "src/simulation";
-import { useDrawingMode } from "./set-drawing-mode";
-import { Mode } from "src/state/mode";
 import { getAppId } from "src/infra/app-instance";
 import { OPFSStorage } from "src/infra/storage";
 import { worktreeAtom } from "src/state/scenarios";
@@ -24,7 +22,6 @@ export const runSimulationShortcut = "shift+enter";
 export const useRunSimulation = () => {
   const setSimulationState = useSetAtom(simulationAtom);
   const setDialogState = useSetAtom(dialogAtom);
-  const setDrawingMode = useDrawingMode();
   const persistence = usePersistenceWithSnapshots();
   const setSimulationResults = useSetAtom(simulationResultsAtom);
 
@@ -42,7 +39,6 @@ export const useRunSimulation = () => {
         const hydraulicModel = get(stagingModelAtom);
         const worktree = get(worktreeAtom);
 
-        setDrawingMode(Mode.NONE);
         setSimulationState((prev) => ({ ...prev, status: "running" }));
         const inp = buildInp(hydraulicModel, {
           customerDemands: true,
@@ -119,13 +115,7 @@ export const useRunSimulation = () => {
           ignoreLabel: options?.ignoreLabel,
         });
       },
-      [
-        setDrawingMode,
-        setSimulationState,
-        setDialogState,
-        persistence,
-        setSimulationResults,
-      ],
+      [setSimulationState, setDialogState, persistence, setSimulationResults],
     ),
   );
 
