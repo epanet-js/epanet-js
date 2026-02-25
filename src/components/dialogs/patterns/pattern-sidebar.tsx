@@ -22,7 +22,9 @@ import {
   ItemAction,
   ItemInput,
   ListItem,
+  NavigableList,
 } from "src/components/list";
+import type { NavItem } from "src/components/list";
 
 type SectionType = Extract<
   PatternType,
@@ -37,10 +39,6 @@ type ActionState =
   | { action: "cloning"; sourcePattern: TypedPattern };
 
 type SidebarSectionType = SectionType | "uncategorized";
-
-type NavItem =
-  | { kind: "section"; sectionType: SidebarSectionType }
-  | { kind: "pattern"; patternId: PatternId };
 
 const SECTION_TYPES: SectionType[] = ["demand", "reservoirHead", "pumpSpeed"];
 
@@ -104,12 +102,6 @@ export const PatternSidebar = ({
     requestAnimationFrame(() => listRef.current?.focus());
   };
 
-  const handleScroll = useCallback(() => {
-    listRef.current?.dispatchEvent(
-      new PointerEvent("pointerdown", { bubbles: true }),
-    );
-  }, []);
-
   useEffect(
     function initializeLocalLabelManager() {
       labelManager.current = new LabelManager();
@@ -120,44 +112,37 @@ export const PatternSidebar = ({
     [patterns],
   );
 
-  const groupedPatterns = useMemo(() => {
+  const { groupedPatterns, navItems, sectionStatus } = useMemo(() => {
     const groups: Record<SectionType, TypedPattern[]> = {
       demand: [],
       reservoirHead: [],
       pumpSpeed: [],
     };
     const uncategorized: Pattern[] = [];
+    const items: NavItem<SidebarSectionType>[] = [];
     for (const pattern of patterns.values()) {
       const type = pattern.type as SectionType | undefined;
       if (type && type in groups) {
         groups[type].push(pattern as TypedPattern);
+        items.push({ id: pattern.id, section: type });
       } else {
         uncategorized.push(pattern);
+        items.push({ id: pattern.id, section: "uncategorized" });
       }
     }
-    return { ...groups, uncategorized };
-  }, [patterns]);
-
-  const navItems = useMemo(() => {
-    const items: NavItem[] = [];
+    const status: Record<string, boolean> = {};
     for (const sectionType of SECTION_TYPES) {
-      items.push({ kind: "section", sectionType });
-      if (openSections[sectionType]) {
-        for (const p of groupedPatterns[sectionType]) {
-          items.push({ kind: "pattern", patternId: p.id });
-        }
-      }
+      status[sectionType] = openSections[sectionType];
     }
-    if (groupedPatterns.uncategorized.length > 0) {
-      items.push({ kind: "section", sectionType: "uncategorized" });
-      if (openSections.uncategorized) {
-        for (const p of groupedPatterns.uncategorized) {
-          items.push({ kind: "pattern", patternId: p.id });
-        }
-      }
+    if (uncategorized.length > 0) {
+      status.uncategorized = openSections.uncategorized;
     }
-    return items;
-  }, [openSections, groupedPatterns]);
+    return {
+      groupedPatterns: { ...groups, uncategorized },
+      navItems: items,
+      sectionStatus: status,
+    };
+  }, [patterns, openSections]);
 
   useEffect(
     function autoScrollToSelectedItem() {
@@ -177,123 +162,34 @@ export const PatternSidebar = ({
     }));
   }, []);
 
-  const currentNavIndex = useMemo(() => {
+  const focusedItem = useMemo((): NavItem<SidebarSectionType> | undefined => {
     if (focusedSection) {
-      return navItems.findIndex(
-        (item) =>
-          item.kind === "section" && item.sectionType === focusedSection,
-      );
+      return { section: focusedSection };
     }
-    if (selectedPatternId) {
-      return navItems.findIndex(
-        (item) =>
-          item.kind === "pattern" && item.patternId === selectedPatternId,
-      );
+    if (selectedPatternId !== null) {
+      for (const sectionType of SECTION_TYPES) {
+        if (
+          groupedPatterns[sectionType].some((p) => p.id === selectedPatternId)
+        ) {
+          return { id: selectedPatternId, section: sectionType };
+        }
+      }
+      return { id: selectedPatternId, section: "uncategorized" };
     }
-    return -1;
-  }, [focusedSection, selectedPatternId, navItems]);
+    return undefined;
+  }, [focusedSection, selectedPatternId, groupedPatterns]);
 
-  const navigateToItem = useCallback(
-    (item: NavItem) => {
-      if (item.kind === "section") {
-        setFocusedSection(item.sectionType);
-        onSelectPattern(null);
-        const el = listRef.current?.querySelector(
-          `[data-section-type="${item.sectionType}"]`,
-        );
-        el?.scrollIntoView({ block: "nearest" });
-      } else {
+  const handleSelectItem = useCallback(
+    (item: NavItem<SidebarSectionType>) => {
+      if (item.id != null) {
         setFocusedSection(null);
-        onSelectPattern(item.patternId);
-        const el = listRef.current?.querySelector(
-          `[data-item-id="${item.patternId}"]`,
-        );
-        el?.scrollIntoView({ block: "nearest" });
+        onSelectPattern(item.id);
+      } else {
+        setFocusedSection(item.section);
+        onSelectPattern(null);
       }
     },
     [onSelectPattern],
-  );
-
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLDivElement>) => {
-      if (actionState) return;
-
-      if (e.key === "Enter" && focusedSection) {
-        e.preventDefault();
-        e.stopPropagation();
-        toggleSection(focusedSection);
-        return;
-      }
-
-      if (e.key === "Escape" && selectedPatternId) {
-        e.preventDefault();
-        e.stopPropagation();
-        const pattern = patterns.get(selectedPatternId);
-        const type = pattern?.type;
-        const sectionType: SidebarSectionType =
-          type === "demand" || type === "reservoirHead" || type === "pumpSpeed"
-            ? type
-            : "uncategorized";
-        navigateToItem({ kind: "section", sectionType });
-        return;
-      }
-
-      const validKeys = [
-        "ArrowUp",
-        "ArrowDown",
-        "PageUp",
-        "PageDown",
-        "Home",
-        "End",
-      ];
-      if (!validKeys.includes(e.key)) return;
-      if (navItems.length === 0) return;
-
-      e.preventDefault();
-      e.stopPropagation();
-
-      const itemHeight = 32; // h-8
-      const containerHeight = listRef.current?.clientHeight ?? itemHeight;
-      const pageSize = Math.max(1, Math.floor(containerHeight / itemHeight));
-
-      let nextIndex: number;
-      switch (e.key) {
-        case "ArrowDown":
-          nextIndex =
-            currentNavIndex < navItems.length - 1 ? currentNavIndex + 1 : 0;
-          break;
-        case "ArrowUp":
-          nextIndex =
-            currentNavIndex > 0 ? currentNavIndex - 1 : navItems.length - 1;
-          break;
-        case "PageDown":
-          nextIndex = Math.min(currentNavIndex + pageSize, navItems.length - 1);
-          break;
-        case "PageUp":
-          nextIndex = Math.max(currentNavIndex - pageSize, 0);
-          break;
-        case "Home":
-          nextIndex = 0;
-          break;
-        case "End":
-          nextIndex = navItems.length - 1;
-          break;
-        default:
-          return;
-      }
-
-      navigateToItem(navItems[nextIndex]);
-    },
-    [
-      actionState,
-      focusedSection,
-      selectedPatternId,
-      patterns,
-      navItems,
-      currentNavIndex,
-      toggleSection,
-      navigateToItem,
-    ],
   );
 
   const handlePatternLabelChange = (name: string): boolean => {
@@ -350,15 +246,14 @@ export const PatternSidebar = ({
 
   return (
     <div className="flex-shrink-0 flex flex-col gap-2" style={{ width }}>
-      <div
+      <NavigableList
         ref={listRef}
-        className="flex-1 overflow-y-auto outline-none placemark-scrollbar scroll-shadows border border-gray-200 dark:border-gray-700 rounded"
-        onKeyDown={handleKeyDown}
-        onScroll={handleScroll}
-        tabIndex={0}
-        {...(selectedPatternId != null && {
-          "data-capture-escape-key": true,
-        })}
+        navItems={navItems}
+        focusedItem={focusedItem}
+        onSelectItem={handleSelectItem}
+        sectionStatus={sectionStatus}
+        onToggleSection={toggleSection}
+        isNavBlocked={!!actionState}
       >
         {SECTION_TYPES.map((sectionType) => (
           <PatternSection
@@ -418,7 +313,7 @@ export const PatternSidebar = ({
             readOnly={readOnly}
           />
         )}
-      </div>
+      </NavigableList>
     </div>
   );
 };

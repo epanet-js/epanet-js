@@ -23,7 +23,9 @@ import {
   ItemInput,
   EditableListItem,
   CollapsibleListSection,
+  NavigableList,
 } from "src/components/list";
+import type { NavItem } from "src/components/list";
 
 type CurveSectionType = "pump";
 type SidebarSectionType = CurveSectionType | "uncategorized";
@@ -34,10 +36,6 @@ type ActionState =
   | { action: "creating"; curveType: CurveType }
   | { action: "renaming"; curveId: CurveId }
   | { action: "cloning"; sourceCurve: TypedCurve };
-
-type NavItem =
-  | { kind: "section"; sectionType: SidebarSectionType }
-  | { kind: "curve"; curveId: CurveId };
 
 type CurveSidebarProps = {
   width: number;
@@ -91,43 +89,29 @@ export const CurveSidebar = ({
     requestAnimationFrame(() => listRef.current?.focus());
   };
 
-  const handleScroll = useCallback(() => {
-    listRef.current?.dispatchEvent(
-      new PointerEvent("pointerdown", { bubbles: true }),
-    );
-  }, []);
-
-  const groupedCurves = useMemo(() => {
+  const { groupedCurves, navItems, sectionStatus } = useMemo(() => {
     const pump: TypedCurve[] = [];
     const uncategorized: ICurve[] = [];
+    const items: NavItem<SidebarSectionType>[] = [];
     for (const curve of curves.values()) {
       if (curve.type === "pump") {
         pump.push(curve as TypedCurve);
+        items.push({ id: curve.id, section: "pump" });
       } else {
         uncategorized.push(curve);
+        items.push({ id: curve.id, section: "uncategorized" });
       }
     }
-    return { pump, uncategorized };
-  }, [curves]);
-
-  const navItems = useMemo(() => {
-    const items: NavItem[] = [];
-    items.push({ kind: "section", sectionType: "pump" });
-    if (openSections.pump) {
-      for (const c of groupedCurves.pump) {
-        items.push({ kind: "curve", curveId: c.id });
-      }
+    const status: Record<string, boolean> = { pump: openSections.pump };
+    if (uncategorized.length > 0) {
+      status.uncategorized = openSections.uncategorized;
     }
-    if (groupedCurves.uncategorized.length > 0) {
-      items.push({ kind: "section", sectionType: "uncategorized" });
-      if (openSections.uncategorized) {
-        for (const c of groupedCurves.uncategorized) {
-          items.push({ kind: "curve", curveId: c.id });
-        }
-      }
-    }
-    return items;
-  }, [openSections, groupedCurves]);
+    return {
+      groupedCurves: { pump, uncategorized },
+      navItems: items,
+      sectionStatus: status,
+    };
+  }, [curves, openSections]);
 
   useEffect(
     function autoScrollToSelectedItem() {
@@ -147,119 +131,32 @@ export const CurveSidebar = ({
     }));
   }, []);
 
-  const currentNavIndex = useMemo(() => {
+  const focusedItem = useMemo((): NavItem<SidebarSectionType> | undefined => {
     if (focusedSection) {
-      return navItems.findIndex(
-        (item) =>
-          item.kind === "section" && item.sectionType === focusedSection,
-      );
+      return { section: focusedSection };
     }
-    if (selectedCurveId) {
-      return navItems.findIndex(
-        (item) => item.kind === "curve" && item.curveId === selectedCurveId,
-      );
+    if (selectedCurveId !== null) {
+      const section: SidebarSectionType = groupedCurves.pump.some(
+        (c) => c.id === selectedCurveId,
+      )
+        ? "pump"
+        : "uncategorized";
+      return { id: selectedCurveId, section };
     }
-    return -1;
-  }, [focusedSection, selectedCurveId, navItems]);
+    return undefined;
+  }, [focusedSection, selectedCurveId, groupedCurves]);
 
-  const navigateToItem = useCallback(
-    (item: NavItem) => {
-      if (item.kind === "section") {
-        setFocusedSection(item.sectionType);
-        onSelectCurve(null);
-        const el = listRef.current?.querySelector(
-          `[data-section-type="${item.sectionType}"]`,
-        );
-        el?.scrollIntoView({ block: "nearest" });
-      } else {
+  const handleSelectItem = useCallback(
+    (item: NavItem<SidebarSectionType>) => {
+      if (item.id != null) {
         setFocusedSection(null);
-        onSelectCurve(item.curveId);
-        const el = listRef.current?.querySelector(
-          `[data-item-id="${item.curveId}"]`,
-        );
-        el?.scrollIntoView({ block: "nearest" });
+        onSelectCurve(item.id);
+      } else {
+        setFocusedSection(item.section);
+        onSelectCurve(null);
       }
     },
     [onSelectCurve],
-  );
-
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLDivElement>) => {
-      if (actionState) return;
-
-      if (e.key === "Enter" && focusedSection) {
-        e.preventDefault();
-        e.stopPropagation();
-        toggleSection(focusedSection);
-        return;
-      }
-
-      if (e.key === "Escape" && selectedCurveId) {
-        e.preventDefault();
-        e.stopPropagation();
-        const curve = curves.get(selectedCurveId);
-        const sectionType: SidebarSectionType =
-          curve?.type === "pump" ? "pump" : "uncategorized";
-        navigateToItem({ kind: "section", sectionType });
-        return;
-      }
-
-      const validKeys = [
-        "ArrowUp",
-        "ArrowDown",
-        "PageUp",
-        "PageDown",
-        "Home",
-        "End",
-      ];
-      if (!validKeys.includes(e.key)) return;
-      if (navItems.length === 0) return;
-
-      e.preventDefault();
-      e.stopPropagation();
-
-      const itemHeight = 32;
-      const containerHeight = listRef.current?.clientHeight ?? itemHeight;
-      const pageSize = Math.max(1, Math.floor(containerHeight / itemHeight));
-
-      let nextIndex: number;
-      switch (e.key) {
-        case "ArrowDown":
-          nextIndex =
-            currentNavIndex < navItems.length - 1 ? currentNavIndex + 1 : 0;
-          break;
-        case "ArrowUp":
-          nextIndex =
-            currentNavIndex > 0 ? currentNavIndex - 1 : navItems.length - 1;
-          break;
-        case "PageDown":
-          nextIndex = Math.min(currentNavIndex + pageSize, navItems.length - 1);
-          break;
-        case "PageUp":
-          nextIndex = Math.max(currentNavIndex - pageSize, 0);
-          break;
-        case "Home":
-          nextIndex = 0;
-          break;
-        case "End":
-          nextIndex = navItems.length - 1;
-          break;
-        default:
-          return;
-      }
-
-      navigateToItem(navItems[nextIndex]);
-    },
-    [
-      actionState,
-      focusedSection,
-      selectedCurveId,
-      curves,
-      navItems,
-      currentNavIndex,
-      toggleSection,
-      navigateToItem,
-    ],
   );
 
   const handleCurveLabelChange = (name: string): boolean => {
@@ -311,15 +208,14 @@ export const CurveSidebar = ({
 
   return (
     <div className="flex-shrink-0 flex flex-col gap-2" style={{ width }}>
-      <div
+      <NavigableList
         ref={listRef}
-        className="flex-1 overflow-y-auto outline-none placemark-scrollbar scroll-shadows border border-gray-200 dark:border-gray-700 rounded"
-        onKeyDown={handleKeyDown}
-        onScroll={handleScroll}
-        tabIndex={0}
-        {...(selectedCurveId != null && {
-          "data-capture-escape-key": true,
-        })}
+        navItems={navItems}
+        focusedItem={focusedItem}
+        onSelectItem={handleSelectItem}
+        sectionStatus={sectionStatus}
+        onToggleSection={toggleSection}
+        isNavBlocked={!!actionState}
       >
         <CurveSection
           title={translate("curves.pumpCurves")}
@@ -373,7 +269,7 @@ export const CurveSidebar = ({
             readOnly={readOnly}
           />
         )}
-      </div>
+      </NavigableList>
     </div>
   );
 };
