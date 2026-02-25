@@ -37,8 +37,21 @@ export async function GET(request: NextRequest) {
     await sendWithoutCrashing(message);
   }
 
+  await pingHeartbeat();
+
   return NextResponse.json({
     status: "success",
     expiredTrials: expiredTrials.length,
   });
 }
+
+const pingHeartbeat = async () => {
+  const url = process.env.TRIAL_HEARTBEAT_URL;
+  if (!url) return;
+
+  try {
+    await fetch(url);
+  } catch (error) {
+    logger.error(`Heartbeat ping failed: ${(error as Error).message}`);
+  }
+};
