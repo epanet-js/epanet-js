@@ -26,8 +26,9 @@ import {
   NavigableList,
 } from "src/components/list";
 import type { NavItem } from "src/components/list";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
-type CurveSectionType = "volume" | "valve" | "headloss";
+type CurveSectionType = "pump" | "efficiency";
 type SidebarSectionType = CurveSectionType | "uncategorized";
 
 type TypedCurve = ICurve & { type: CurveSectionType };
@@ -37,7 +38,7 @@ type ActionState =
   | { action: "renaming"; curveId: CurveId }
   | { action: "cloning"; sourceCurve: TypedCurve };
 
-type CurveSidebarProps = {
+type PumpLibrarySidebarProps = {
   width: number;
   curves: Curves;
   selectedCurveId: CurveId | null;
@@ -58,7 +59,7 @@ type CurveSidebarProps = {
   readOnly?: boolean;
 };
 
-export const CurveSidebar = ({
+export const PumpLibrarySidebar = ({
   width,
   curves,
   selectedCurveId,
@@ -69,8 +70,9 @@ export const CurveSidebar = ({
   onChangeCurve,
   onDeleteCurve,
   readOnly = false,
-}: CurveSidebarProps) => {
+}: PumpLibrarySidebarProps) => {
   const translate = useTranslate();
+  const isAllCurvesEnabled = useFeatureFlag("FLAG_ALL_CURVES");
   const listRef = useRef<HTMLDivElement>(null);
   const [actionState, setActionState] = useState<ActionState | undefined>(
     undefined,
@@ -80,9 +82,8 @@ export const CurveSidebar = ({
   const [openSections, setOpenSections] = useState<
     Record<SidebarSectionType, boolean>
   >({
-    volume: true,
-    valve: true,
-    headloss: true,
+    pump: true,
+    efficiency: true,
     uncategorized: false,
   });
 
@@ -92,36 +93,31 @@ export const CurveSidebar = ({
   };
 
   const { groupedCurves, navItems, sectionStatus } = useMemo(() => {
-    const volume: TypedCurve[] = [];
-    const valve: TypedCurve[] = [];
-    const headloss: TypedCurve[] = [];
+    const pump: TypedCurve[] = [];
+    const efficiency: TypedCurve[] = [];
     const uncategorized: ICurve[] = [];
     const items: NavItem<SidebarSectionType>[] = [];
     for (const curve of curves.values()) {
-      if (curve.type === "volume") {
-        volume.push(curve as TypedCurve);
-        items.push({ id: curve.id, section: "volume" });
-      } else if (curve.type === "valve") {
-        valve.push(curve as TypedCurve);
-        items.push({ id: curve.id, section: "valve" });
-      } else if (curve.type === "headloss") {
-        headloss.push(curve as TypedCurve);
-        items.push({ id: curve.id, section: "headloss" });
+      if (curve.type === "pump") {
+        pump.push(curve as TypedCurve);
+        items.push({ id: curve.id, section: "pump" });
+      } else if (curve.type === "efficiency") {
+        efficiency.push(curve as TypedCurve);
+        items.push({ id: curve.id, section: "efficiency" });
       } else if (!curve.type) {
         uncategorized.push(curve);
         items.push({ id: curve.id, section: "uncategorized" });
       }
     }
     const status: Record<string, boolean> = {
-      volume: openSections.volume,
-      valve: openSections.valve,
-      headloss: openSections.headloss,
+      pump: openSections.pump,
+      efficiency: openSections.efficiency,
     };
     if (uncategorized.length > 0) {
       status.uncategorized = openSections.uncategorized;
     }
     return {
-      groupedCurves: { volume, valve, headloss, uncategorized },
+      groupedCurves: { pump, efficiency, uncategorized },
       navItems: items,
       sectionStatus: status,
     };
@@ -150,15 +146,13 @@ export const CurveSidebar = ({
       return { section: focusedSection };
     }
     if (selectedCurveId !== null) {
-      const section: SidebarSectionType = groupedCurves.volume.some(
+      const section: SidebarSectionType = groupedCurves.pump.some(
         (c) => c.id === selectedCurveId,
       )
-        ? "volume"
-        : groupedCurves.valve.some((c) => c.id === selectedCurveId)
-          ? "valve"
-          : groupedCurves.headloss.some((c) => c.id === selectedCurveId)
-            ? "headloss"
-            : "uncategorized";
+        ? "pump"
+        : groupedCurves.efficiency.some((c) => c.id === selectedCurveId)
+          ? "efficiency"
+          : "uncategorized";
       return { id: selectedCurveId, section };
     }
     return undefined;
@@ -224,28 +218,6 @@ export const CurveSidebar = ({
     [onChangeCurve],
   );
 
-  const sectionConfigs: {
-    type: CurveSectionType;
-    titleKey: string;
-    curves: TypedCurve[];
-  }[] = [
-    {
-      type: "volume",
-      titleKey: "curves.volumeCurves",
-      curves: groupedCurves.volume,
-    },
-    {
-      type: "valve",
-      titleKey: "curves.valveCurves",
-      curves: groupedCurves.valve,
-    },
-    {
-      type: "headloss",
-      titleKey: "curves.headlossCurves",
-      curves: groupedCurves.headloss,
-    },
-  ];
-
   return (
     <div className="flex-shrink-0 flex flex-col gap-2" style={{ width }}>
       <NavigableList
@@ -257,26 +229,58 @@ export const CurveSidebar = ({
         onToggleSection={toggleSection}
         isNavBlocked={!!actionState}
       >
-        {sectionConfigs.map(({ type, titleKey, curves: sectionCurves }) => (
+        <CurveSection
+          sectionType="pump"
+          title={translate("curves.pumpCurves")}
+          isOpen={openSections.pump}
+          isFocused={focusedSection === "pump"}
+          onToggle={() => toggleSection("pump")}
+          curves={groupedCurves.pump}
+          selectedCurveId={selectedCurveId}
+          invalidCurveIds={invalidCurveIds}
+          actionState={actionState}
+          isCreating={creatingInSection === "pump"}
+          onSelectCurve={(curveId) => {
+            setFocusedSection(null);
+            onSelectCurve(curveId);
+          }}
+          onStartCreate={() => {
+            setActionState({ action: "creating", curveType: "pump" });
+            setOpenSections((prev) => ({ ...prev, pump: true }));
+          }}
+          onStartRename={(curveId) =>
+            setActionState({ action: "renaming", curveId })
+          }
+          onStartClone={(sourceCurve) =>
+            setActionState({ action: "cloning", sourceCurve })
+          }
+          onDelete={(curveId) => {
+            onSelectCurve(null);
+            onDeleteCurve(curveId);
+          }}
+          onCurveLabelChange={handleCurveLabelChange}
+          onCancelAction={clearActionState}
+          readOnly={readOnly}
+        />
+        {isAllCurvesEnabled && (
           <CurveSection
-            key={type}
-            sectionType={type}
-            title={translate(titleKey)}
-            isOpen={openSections[type]}
-            isFocused={focusedSection === type}
-            onToggle={() => toggleSection(type)}
-            curves={sectionCurves}
+            sectionType="efficiency"
+            title={translate("curves.efficiencyCurves")}
+            isOpen={openSections.efficiency}
+            isFocused={focusedSection === "efficiency"}
+            onToggle={() => toggleSection("efficiency")}
+            curves={groupedCurves.efficiency}
             selectedCurveId={selectedCurveId}
             invalidCurveIds={invalidCurveIds}
             actionState={actionState}
-            isCreating={creatingInSection === type}
+            isCreating={creatingInSection === "efficiency"}
             onSelectCurve={(curveId) => {
               setFocusedSection(null);
               onSelectCurve(curveId);
             }}
             onStartCreate={() => {
-              setActionState({ action: "creating", curveType: type });
-              setOpenSections((prev) => ({ ...prev, [type]: true }));
+              setActionState({ action: "creating", curveType: "efficiency" });
+              setOpenSections((prev) => ({ ...prev, efficiency: true }));
             }}
             onStartRename={(curveId) =>
               setActionState({ action: "renaming", curveId })
@@ -292,7 +296,7 @@ export const CurveSidebar = ({
             onCancelAction={clearActionState}
             readOnly={readOnly}
           />
-        ))}
+        )}
         {groupedCurves.uncategorized.length > 0 && (
           <UncategorizedCurveSection
             isOpen={openSections.uncategorized}
@@ -565,23 +569,23 @@ const UncategorizedCurveSidebarItem = ({
   readOnly = false,
 }: UncategorizedCurveSidebarItemProps) => {
   const translate = useTranslate();
+  const isAllCurvesEnabled = useFeatureFlag("FLAG_ALL_CURVES");
 
   const actions: ItemAction[] = [
     {
-      action: "categorizeVolume",
-      label: translate("curves.setAsVolume"),
+      action: "categorizePump",
+      label: translate("curves.setAsPump"),
       icon: <ChevronRightIcon size="sm" />,
     },
-    {
-      action: "categorizeValve",
-      label: translate("curves.setAsValve"),
-      icon: <ChevronRightIcon size="sm" />,
-    },
-    {
-      action: "categorizeHeadloss",
-      label: translate("curves.setAsHeadloss"),
-      icon: <ChevronRightIcon size="sm" />,
-    },
+    ...(isAllCurvesEnabled
+      ? [
+          {
+            action: "categorizeEfficiency",
+            label: translate("curves.setAsEfficiency"),
+            icon: <ChevronRightIcon size="sm" />,
+          },
+        ]
+      : []),
     {
       action: "delete",
       label: translate("delete"),
@@ -592,12 +596,10 @@ const UncategorizedCurveSidebarItem = ({
 
   const handleAction = (action: string) => {
     switch (action) {
-      case "categorizeVolume":
-        return onCategorize(curve.id, "volume");
-      case "categorizeValve":
-        return onCategorize(curve.id, "valve");
-      case "categorizeHeadloss":
-        return onCategorize(curve.id, "headloss");
+      case "categorizePump":
+        return onCategorize(curve.id, "pump");
+      case "categorizeEfficiency":
+        return onCategorize(curve.id, "efficiency");
       case "delete":
         return onDelete();
     }

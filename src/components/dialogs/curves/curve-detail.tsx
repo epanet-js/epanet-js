@@ -18,7 +18,7 @@ import { InlineField } from "src/components/form/fields";
 import { NotificationBanner } from "src/components/notifications";
 import { TriangleAlert } from "lucide-react";
 import { Unit } from "src/quantity";
-import { CurveTypeConfig } from "./curves-dialog";
+import { CurveTypeConfig } from "./curve-utils";
 
 interface CurveDetailProps {
   points: CurvePoint[];

@@ -1,7 +1,8 @@
 import { render, screen } from "@testing-library/react";
-import { CurveSidebar } from "./curve-sidebar";
+import { PumpLibrarySidebar } from "./pump-library-sidebar";
 import { Curves, ICurve } from "src/hydraulic-model/curves";
 import { LabelManager } from "src/hydraulic-model/label-manager";
+import { stubFeatureOn } from "src/__helpers__/feature-flags";
 
 const buildCurve = (
   id: number,
@@ -22,16 +23,18 @@ const buildLabelManager = (curves: Curves): LabelManager => {
   return lm;
 };
 
-describe("CurveSidebar (Curve Library)", () => {
-  it("displays volume, valve, and headloss curves in their sections", () => {
+describe("PumpLibrarySidebar", () => {
+  beforeEach(() => stubFeatureOn("FLAG_ALL_CURVES"));
+
+  it("displays pump and efficiency curves in their sections", () => {
     const curves: Curves = new Map([
-      [1, buildCurve(1, "VolumeCurve", "volume")],
-      [2, buildCurve(2, "ValveCurve", "valve")],
-      [3, buildCurve(3, "HeadlossCurve", "headloss")],
+      [1, buildCurve(1, "PumpCurve1", "pump")],
+      [2, buildCurve(2, "EffCurve", "efficiency")],
+      [3, buildCurve(3, "PumpCurve2", "pump")],
     ]);
 
     render(
-      <CurveSidebar
+      <PumpLibrarySidebar
         width={224}
         curves={curves}
         selectedCurveId={null}
@@ -44,20 +47,21 @@ describe("CurveSidebar (Curve Library)", () => {
       />,
     );
 
-    expect(screen.getByText("VolumeCurve")).toBeInTheDocument();
-    expect(screen.getByText("ValveCurve")).toBeInTheDocument();
-    expect(screen.getByText("HeadlossCurve")).toBeInTheDocument();
+    expect(screen.getByText("PumpCurve1")).toBeInTheDocument();
+    expect(screen.getByText("PumpCurve2")).toBeInTheDocument();
+    expect(screen.getByText("EffCurve")).toBeInTheDocument();
   });
 
-  it("does not display pump or efficiency curves", () => {
+  it("does not display volume, valve, or headloss curves", () => {
     const curves: Curves = new Map([
-      [1, buildCurve(1, "VolumeCurve", "volume")],
-      [2, buildCurve(2, "PumpCurve", "pump")],
-      [3, buildCurve(3, "EffCurve", "efficiency")],
+      [1, buildCurve(1, "PumpCurve1", "pump")],
+      [2, buildCurve(2, "VolumeCurve", "volume")],
+      [3, buildCurve(3, "HeadlossCurve", "headloss")],
+      [4, buildCurve(4, "ValveCurve", "valve")],
     ]);
 
     render(
-      <CurveSidebar
+      <PumpLibrarySidebar
         width={224}
         curves={curves}
         selectedCurveId={null}
@@ -70,18 +74,17 @@ describe("CurveSidebar (Curve Library)", () => {
       />,
     );
 
-    expect(screen.getByText("VolumeCurve")).toBeInTheDocument();
-    expect(screen.queryByText("PumpCurve")).not.toBeInTheDocument();
-    expect(screen.queryByText("EffCurve")).not.toBeInTheDocument();
+    expect(screen.getByText("PumpCurve1")).toBeInTheDocument();
+    expect(screen.queryByText("VolumeCurve")).not.toBeInTheDocument();
+    expect(screen.queryByText("HeadlossCurve")).not.toBeInTheDocument();
+    expect(screen.queryByText("ValveCurve")).not.toBeInTheDocument();
   });
 
   it("does not show Uncategorized section when there are no untyped curves", () => {
-    const curves: Curves = new Map([
-      [1, buildCurve(1, "VolumeCurve", "volume")],
-    ]);
+    const curves: Curves = new Map([[1, buildCurve(1, "PumpCurve1", "pump")]]);
 
     render(
-      <CurveSidebar
+      <PumpLibrarySidebar
         width={224}
         curves={curves}
         selectedCurveId={null}
@@ -94,7 +97,7 @@ describe("CurveSidebar (Curve Library)", () => {
       />,
     );
 
-    expect(screen.getByText("VolumeCurve")).toBeInTheDocument();
+    expect(screen.getByText("PumpCurve1")).toBeInTheDocument();
     expect(screen.queryByText("Uncategorized")).not.toBeInTheDocument();
   });
 
@@ -104,7 +107,7 @@ describe("CurveSidebar (Curve Library)", () => {
     ]);
 
     render(
-      <CurveSidebar
+      <PumpLibrarySidebar
         width={224}
         curves={curves}
         selectedCurveId={null}

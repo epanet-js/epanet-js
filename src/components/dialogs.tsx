@@ -282,11 +282,27 @@ const PatternsDialog = dynamic<{
   },
 );
 
-const CurvesDialog = dynamic<{
+const PumpLibraryDialog = dynamic<{
   initialCurveId?: number;
-}>(() => import("src/components/dialogs/curves").then((r) => r.CurvesDialog), {
-  loading: () => <LoadingDialog />,
-});
+}>(
+  () =>
+    import("src/components/dialogs/pump-library").then(
+      (r) => r.PumpLibraryDialog,
+    ),
+  {
+    loading: () => <LoadingDialog />,
+  },
+);
+
+const CurveLibraryDialog = dynamic<{
+  initialCurveId?: number;
+}>(
+  () =>
+    import("src/components/dialogs/curves").then((r) => r.CurveLibraryDialog),
+  {
+    loading: () => <LoadingDialog />,
+  },
+);
 
 const DeleteScenarioConfirmationDialog = dynamic<{
   scenarioId: string;
@@ -440,8 +456,11 @@ export const Dialogs = memo(function Dialogs() {
   if (dialog.type === "patternsLibrary") {
     return <PatternsDialog initialPatternId={dialog.initialPatternId} />;
   }
-  if (dialog.type === "curvesLibrary") {
-    return <CurvesDialog initialCurveId={dialog.initialCurveId} />;
+  if (dialog.type === "pumpLibrary") {
+    return <PumpLibraryDialog initialCurveId={dialog.initialCurveId} />;
+  }
+  if (dialog.type === "curveLibrary") {
+    return <CurveLibraryDialog initialCurveId={dialog.initialCurveId} />;
   }
 
   if (dialog.type === "upgrade") {

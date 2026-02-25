@@ -3,8 +3,8 @@ import { useAtomValue } from "jotai";
 import { DialogContainer, DialogHeader, useDialogState } from "../../dialog";
 import { useTranslate } from "src/hooks/use-translate";
 import { Button } from "src/components/elements";
-import { CurveSidebar } from "./curve-sidebar";
-import { CurveDetail } from "./curve-detail";
+import { PumpLibrarySidebar } from "./pump-library-sidebar";
+import { CurveDetail } from "../curves/curve-detail";
 import { VerticalResizer } from "../vertical-resizer";
 import { useIsSnapshotLocked } from "src/hooks/use-is-snapshot-locked";
 import {
@@ -16,7 +16,7 @@ import {
   buildDefaultCurve,
   stripTrailingEmptyPoints,
 } from "src/hydraulic-model/curves";
-import { CurveLibraryIcon } from "src/icons";
+import { PumpLibraryIcon } from "src/icons";
 import { dataAtom, stagingModelAtom } from "src/state/jotai";
 import { usePersistence } from "src/lib/persistence";
 import { changeCurves } from "src/hydraulic-model/model-operations/change-curves";
@@ -29,17 +29,11 @@ import {
   createLabelManagerFromCurves,
   isCurveInUse,
   areCurvesEqual,
-} from "./curve-utils";
+} from "../curves/curve-utils";
 
 type CurveUpdate = Partial<Pick<ICurve, "label" | "points" | "type">>;
 
-const CURVE_LIBRARY_TYPES: Set<CurveType> = new Set([
-  "volume",
-  "valve",
-  "headloss",
-]);
-
-export const CurveLibraryDialog = ({
+export const PumpLibraryDialog = ({
   initialCurveId,
 }: {
   initialCurveId?: CurveId;
@@ -68,7 +62,7 @@ export const CurveLibraryDialog = ({
   useEffect(
     function trackUncategorizedCurves() {
       const uncategorizedCount = [...hydraulicModel.curves.values()].filter(
-        (c) => !c.type,
+        (c) => c.type !== "pump" && c.type !== "efficiency",
       ).length;
       if (uncategorizedCount === 0) return;
       userTracking.capture({
@@ -245,10 +239,10 @@ export const CurveLibraryDialog = ({
 
   return (
     <DialogContainer size="md" height="lg" onClose={handleCancel}>
-      <DialogHeader title={translate("curves.title")} />
+      <DialogHeader title={translate("pumpLibrary")} />
       <div className="flex-1 flex min-h-0">
         <div className="flex-shrink-0 flex">
-          <CurveSidebar
+          <PumpLibrarySidebar
             width={sidebarWidth}
             curves={editedCurves}
             selectedCurveId={selectedCurveId}
@@ -271,7 +265,7 @@ export const CurveLibraryDialog = ({
               const curveType = editedCurves.get(selectedCurveId)?.type;
               const curveConfig = getCurveTypeConfig(curveType);
               const isUncategorized =
-                !curveType || !CURVE_LIBRARY_TYPES.has(curveType);
+                curveType !== "pump" && curveType !== "efficiency";
               return (
                 <CurveDetail
                   points={getCurvePoints(selectedCurveId)}
@@ -377,7 +371,7 @@ const NoSelectionState = () => {
   return (
     <div className="flex flex-col items-center justify-center px-4">
       <div className="text-gray-400">
-        <CurveLibraryIcon size={96} />
+        <PumpLibraryIcon size={96} />
       </div>
       <p className="text-sm text-gray-600 text-center max-w-64 py-4">
         {translate("curves.noSelection")}
@@ -392,7 +386,7 @@ const EmptyState = ({ readOnly }: { readOnly: boolean }) => {
   return (
     <div className="flex flex-col items-center justify-center px-4">
       <div className="text-gray-400">
-        <CurveLibraryIcon size={96} />
+        <PumpLibraryIcon size={96} />
       </div>
       <p className="text-sm font-semibold py-4 text-gray-600">
         {translate("curves.emptyTitle")}

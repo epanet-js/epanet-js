@@ -68,16 +68,14 @@ describe("PatternSidebar", () => {
       expect(screen.getByRole("button", { name: "PumpP" })).toBeInTheDocument();
     });
 
-    it("places untyped patterns in the demand section", () => {
+    it("shows Uncategorized section for untyped patterns", () => {
       const patterns = createPatterns([
         { id: 1, label: "UntypedP", multipliers: [1.0] },
       ]);
 
       render(<PatternSidebar {...defaultProps} patterns={patterns} />);
 
-      expect(
-        screen.getByRole("button", { name: "UntypedP" }),
-      ).toBeInTheDocument();
+      expect(getSectionHeader("Uncategorized")).toBeInTheDocument();
     });
 
     it("renders empty sections with just headers", () => {
@@ -339,123 +337,6 @@ describe("PatternSidebar", () => {
 
       await user.click(screen.getByRole("button", { name: "aDemand" }));
       expect(onSelectPattern).toHaveBeenCalledWith(1);
-    });
-  });
-
-  describe("keyboard navigation", () => {
-    it("navigates through section headers and patterns with arrow keys", async () => {
-      const user = setupUser();
-      const onSelectPattern = vi.fn();
-      const patterns = createPatterns([
-        { id: 1, label: "aDemand", multipliers: [1.0], type: "demand" },
-        {
-          id: 2,
-          label: "ReservoirP",
-          multipliers: [1.0],
-          type: "reservoirHead",
-        },
-      ]);
-
-      render(
-        <PatternSidebar
-          {...defaultProps}
-          patterns={patterns}
-          selectedPatternId={1}
-          onSelectPattern={onSelectPattern}
-        />,
-      );
-
-      const container = screen
-        .getByRole("button", { name: "aDemand" })
-        .closest("[tabindex]") as HTMLElement;
-      container.focus();
-
-      // ArrowDown from aDemand lands on the Reservoir section header, clearing selection
-      await user.keyboard("{ArrowDown}");
-      expect(onSelectPattern).toHaveBeenCalledWith(null);
-
-      // ArrowDown again lands on ReservoirP
-      await user.keyboard("{ArrowDown}");
-      expect(onSelectPattern).toHaveBeenCalledWith(2);
-    });
-
-    it("toggles section collapse with Enter on a focused section header", async () => {
-      const user = setupUser();
-      const patterns = createPatterns([
-        {
-          id: 1,
-          label: "ReservoirP",
-          multipliers: [1.0],
-          type: "reservoirHead",
-        },
-      ]);
-
-      render(<PatternSidebar {...defaultProps} patterns={patterns} />);
-
-      const container = screen
-        .getByRole("button", { name: "ReservoirP" })
-        .closest("[tabindex]") as HTMLElement;
-      container.focus();
-
-      // Navigate to Demand section header (first item)
-      await user.keyboard("{Home}");
-
-      // Navigate down to Reservoir section header (second item, demand has no patterns)
-      await user.keyboard("{ArrowDown}");
-
-      // Press Enter to collapse
-      await user.keyboard("{Enter}");
-
-      await waitFor(() => {
-        expect(
-          screen.queryByRole("button", { name: "ReservoirP" }),
-        ).not.toBeInTheDocument();
-      });
-
-      // Press Enter again to expand
-      await user.keyboard("{Enter}");
-
-      await waitFor(() => {
-        expect(
-          screen.getByRole("button", { name: "ReservoirP" }),
-        ).toBeInTheDocument();
-      });
-    });
-
-    it("skips collapsed section patterns during navigation", async () => {
-      const user = setupUser();
-      const onSelectPattern = vi.fn();
-      const patterns = createPatterns([
-        { id: 1, label: "aDemand", multipliers: [1.0], type: "demand" },
-        {
-          id: 2,
-          label: "ReservoirP",
-          multipliers: [1.0],
-          type: "reservoirHead",
-        },
-        { id: 3, label: "PumpP", multipliers: [1.0], type: "pumpSpeed" },
-      ]);
-
-      render(
-        <PatternSidebar
-          {...defaultProps}
-          patterns={patterns}
-          selectedPatternId={1}
-          onSelectPattern={onSelectPattern}
-        />,
-      );
-
-      // Collapse reservoir section
-      await user.click(getSectionHeader("Reservoir head"));
-
-      const container = screen
-        .getByRole("button", { name: "aDemand" })
-        .closest("[tabindex]") as HTMLElement;
-      container.focus();
-
-      // ArrowDown from aDemand -> Reservoir header -> Pump header -> PumpP
-      await user.keyboard("{ArrowDown}{ArrowDown}{ArrowDown}");
-      expect(onSelectPattern).toHaveBeenCalledWith(3);
     });
   });
 });

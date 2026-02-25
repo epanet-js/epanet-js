@@ -94,7 +94,7 @@ export const PatternSidebar = ({
     demand: true,
     reservoirHead: true,
     pumpSpeed: true,
-    uncategorized: true,
+    uncategorized: false,
   });
 
   const clearActionState = () => {
@@ -363,6 +363,7 @@ const PatternSection = ({
     <CollapsibleListSection
       sectionType={sectionType}
       title={title}
+      count={patterns.length}
       isOpen={isOpen}
       isFocused={isFocused}
       onToggle={onToggle}

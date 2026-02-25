@@ -751,9 +751,14 @@ type PatternsUncategorized = {
   count: number;
 };
 
-type CurvesLibraryOpened = {
-  name: "curvesLibrary.opened";
+type PumpLibraryOpened = {
+  name: "pumpLibrary.opened";
   source: "toolbar" | "pump";
+};
+
+type CurveLibraryOpened = {
+  name: "curveLibrary.opened";
+  source: "toolbar";
 };
 
 type CurvesUpdated = {
@@ -763,6 +768,11 @@ type CurvesUpdated = {
 
 type CurvesDiscarded = {
   name: "curves.discarded";
+};
+
+type CurvesUncategorized = {
+  name: "curves.uncategorized";
+  count: number;
 };
 
 type CurveAdded = {
@@ -777,11 +787,6 @@ type CurveDeleted = {
 type CurveChanged = {
   name: "curve.changed";
   property: "label" | "points" | "type";
-};
-
-type CurvesUncategorized = {
-  name: "curves.uncategorized";
-  count: number;
 };
 
 export type UserEvent =
@@ -987,13 +992,14 @@ export type UserEvent =
   | PatternsUpdated
   | PatternsDiscarded
   | PatternsUncategorized
-  | CurvesLibraryOpened
+  | PumpLibraryOpened
+  | CurveLibraryOpened
   | CurvesUpdated
   | CurvesDiscarded
+  | CurvesUncategorized
   | CurveAdded
   | CurveDeleted
-  | CurveChanged
-  | CurvesUncategorized;
+  | CurveChanged;
 
 const debugPostHog = {
   capture: (...data: any[]) => {

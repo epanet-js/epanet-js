@@ -8,14 +8,14 @@ import { stubUserTracking } from "src/__helpers__/user-tracking";
 import { Persistence } from "src/lib/persistence/persistence";
 import { PersistenceContext } from "src/lib/persistence/context";
 import { Store, stagingModelAtom } from "src/state/jotai";
-import { CurvesDialog } from "./curves-dialog";
+import { PumpLibraryDialog } from "./pump-library-dialog";
 
 const renderDialog = (store: Store) => {
   const persistence = new Persistence(store);
   return render(
     <PersistenceContext.Provider value={persistence}>
       <JotaiProvider store={store}>
-        <CurvesDialog />
+        <PumpLibraryDialog />
       </JotaiProvider>
     </PersistenceContext.Provider>,
   );
@@ -46,7 +46,7 @@ const editCell = async (
   await user.type(input, `${value}{Enter}`);
 };
 
-describe("CurvesDialog — trailing empty rows", () => {
+describe("PumpLibraryDialog — trailing empty rows", () => {
   beforeEach(() => {
     stubUserTracking();
   });

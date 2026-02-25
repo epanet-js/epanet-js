@@ -1,1 +1,1 @@
-export { CurvesDialog } from "./curves-dialog";
+export { CurveLibraryDialog } from "./curves-dialog";

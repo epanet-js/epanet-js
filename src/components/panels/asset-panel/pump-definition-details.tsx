@@ -20,7 +20,7 @@ import type {
 } from "src/hooks/use-asset-comparison";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import { Button, TContent } from "src/components/elements";
-import { useShowCurvesLibrary } from "src/commands/show-curves-library";
+import { useShowPumpLibrary } from "src/commands/show-pump-library";
 import { InlineField } from "src/components/form/fields";
 import { SelectorOption } from "src/components/form/selector";
 
@@ -572,7 +572,7 @@ const CurveIdSelector = ({
   readOnly: boolean;
 }) => {
   const translate = useTranslate();
-  const showCurvesLibrary = useShowCurvesLibrary();
+  const showPumpLibrary = useShowPumpLibrary();
 
   const selectedCurve = curveId === undefined ? null : curveId;
   const curve = selectedCurve ? curves.get(selectedCurve) : undefined;
@@ -580,7 +580,7 @@ const CurveIdSelector = ({
 
   const curveOptions = useMemo(() => {
     const pumpLibraryGroup: SelectorOption<CurveId>[] = [
-      { label: translate("openCurvesLibrary"), value: 0 },
+      { label: translate("openPumpLibrary"), value: 0 },
     ];
 
     const curveGroup: SelectorOption<CurveId>[] = [];
@@ -596,7 +596,7 @@ const CurveIdSelector = ({
   const handleChange = (_: string, newValue: number | null) => {
     if (newValue === null) return;
     if (newValue) onChange({ type: "curveId", curveId: newValue });
-    if (newValue === 0) showCurvesLibrary({ source: "pump", curveId });
+    if (newValue === 0) showPumpLibrary({ source: "pump", curveId });
   };
 
   return curveOptions[1].length > 0 ? (
@@ -621,10 +621,10 @@ const CurveIdSelector = ({
   ) : (
     <InlineField name={translate("pumpName")} labelSize="md">
       <Button
-        onClick={() => showCurvesLibrary({ source: "pump" })}
+        onClick={() => showPumpLibrary({ source: "pump" })}
         className="w-full py-2"
       >
-        {translate("openCurvesLibrary")}
+        {translate("openPumpLibrary")}
       </Button>
     </InlineField>
   );

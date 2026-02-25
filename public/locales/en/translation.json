@@ -135,6 +135,8 @@
   "empty": "Empty",
   "type": "Type",
   "delete": "Delete",
+  "rename": "Rename",
+  "duplicate": "Duplicate",
   "insertRowAbove": "Insert row above",
   "insertRowBelow": "Insert row below",
   "addDemandCategory": "Add demand category",
@@ -896,11 +898,12 @@
     "setAsHeadloss": "Set as Headloss",
     "saveInvalid": "Some curves have validation warnings."
   },
-  "rename": "Rename",
-  "duplicate": "Duplicate",
+  "pumpLibrary": "Pump Library",
   "addTimestep": "Add timestep",
   "timestep": "Timestep",
   "multiplier": "Multiplier",
+  "addPoint": "Add point",
+  "openPumpLibrary": "Open library...",
   "openCurvesLibrary": "Open library...",
   "openPatternsLibrary": "Open library...",
   "headPattern": "Head pattern",
@@ -912,6 +915,5 @@
   "multipliersDiffer": "Multipliers differ",
   "pumpName": "Pump name",
   "curveType": "Curve type",
-  "namedCurve": "Library pump",
-  "addPoint": "Add point"
+  "namedCurve": "Library pump"
 }
