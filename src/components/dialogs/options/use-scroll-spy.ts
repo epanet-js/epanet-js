@@ -1,23 +1,18 @@
 import { useRef, useState, useCallback } from "react";
 
+const SCROLL_PADDING = 16;
+
 export const useScrollSpy = (sectionIds: string[]) => {
   const [activeSection, setActiveSection] = useState<string>(
     sectionIds[0] ?? "",
   );
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const ratiosRef = useRef(new Map<string, number>());
   const isLockedRef = useRef(false);
-  const observerRef = useRef<IntersectionObserver | null>(null);
   const scrollHandlerRef = useRef<(() => void) | null>(null);
 
-  // Callback ref: sets up the IntersectionObserver the moment the DOM node mounts
+  // Callback ref: sets up the scroll listener the moment the DOM node mounts
   const scrollContainerRef = useCallback(
     (node: HTMLDivElement | null) => {
-      // Cleanup previous observer and scroll listener
-      if (observerRef.current) {
-        observerRef.current.disconnect();
-        observerRef.current = null;
-      }
       if (containerRef.current && scrollHandlerRef.current) {
         containerRef.current.removeEventListener(
           "scroll",
@@ -29,8 +24,6 @@ export const useScrollSpy = (sectionIds: string[]) => {
       containerRef.current = node;
       if (!node) return;
 
-      ratiosRef.current.clear();
-
       const updateActive = () => {
         if (isLockedRef.current) return;
 
@@ -41,43 +34,22 @@ export const useScrollSpy = (sectionIds: string[]) => {
           return;
         }
 
-        // Most visible: pick the section with the highest intersection ratio
-        let bestId = sectionIds[0] ?? "";
-        let bestRatio = -1;
+        // Top-threshold: the last section whose top has passed the padding offset
+        const containerTop = node.getBoundingClientRect().top;
+        let active = sectionIds[0] ?? "";
         for (const id of sectionIds) {
-          const ratio = ratiosRef.current.get(id) ?? 0;
-          if (ratio > bestRatio) {
-            bestRatio = ratio;
-            bestId = id;
+          const el = node.querySelector(`[data-section-id="${id}"]`);
+          if (!el) continue;
+          if (
+            el.getBoundingClientRect().top - containerTop <=
+            SCROLL_PADDING + 1
+          ) {
+            active = id;
           }
         }
-        setActiveSection(bestId);
+        setActiveSection(active);
       };
 
-      const observer = new IntersectionObserver(
-        (entries) => {
-          for (const entry of entries) {
-            const id = (entry.target as HTMLElement).dataset.sectionId;
-            if (id) {
-              ratiosRef.current.set(id, entry.intersectionRatio);
-            }
-          }
-          updateActive();
-        },
-        {
-          root: node,
-          threshold: [0, 0.25, 0.5, 0.75, 1.0],
-        },
-      );
-
-      for (const id of sectionIds) {
-        const el = node.querySelector(`[data-section-id="${id}"]`);
-        if (el) observer.observe(el);
-      }
-
-      observerRef.current = observer;
-
-      // Lightweight scroll listener for bottom-out detection
       const onScroll = () => updateActive();
       node.addEventListener("scroll", onScroll, { passive: true });
       scrollHandlerRef.current = onScroll;
@@ -103,9 +75,12 @@ export const useScrollSpy = (sectionIds: string[]) => {
 
     const targetRect = target.getBoundingClientRect();
     const containerRect = container.getBoundingClientRect();
-    const padding = 16;
     container.scrollTo({
-      top: container.scrollTop + targetRect.top - containerRect.top - padding,
+      top:
+        container.scrollTop +
+        targetRect.top -
+        containerRect.top -
+        SCROLL_PADDING,
       behavior: "smooth",
     });
 

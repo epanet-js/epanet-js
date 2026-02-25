@@ -33,7 +33,7 @@ export const OptionsContent = forwardRef<HTMLDivElement, Props>(
         ref={measureRef}
         className="flex-1 min-h-0 overflow-y-auto placemark-scrollbar scroll-shadows pl-4"
       >
-        <div className="flex flex-col gap-8 py-2">
+        <div className="flex flex-col gap-20 py-2">
           {optionCategories.map((category) => (
             <div
               key={category.id}
