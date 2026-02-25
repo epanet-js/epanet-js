@@ -2,7 +2,7 @@ import { useState } from "react";
 import { EditableTextFieldWithConfirmation } from "../form/editable-text-field-with-confirmation";
 
 type ItemInputProps = {
-  label: string;
+  label?: string;
   value: string;
   placeholder?: string;
   onCommit: (name: string) => boolean;
@@ -32,7 +32,7 @@ export const ItemInput = ({
       data-capture-escape-key
     >
       <EditableTextFieldWithConfirmation
-        label={label}
+        label={label || value}
         value={value}
         onChangeValue={handleChangeValue}
         onReset={onCancel}

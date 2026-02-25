@@ -6,7 +6,7 @@ import {
   DuplicateIcon,
   RenameIcon,
 } from "src/icons";
-import { ItemAction, ItemInput, ListItem } from "src/components/list";
+import { EditableListItem, ItemAction, ListItem } from "src/components/list";
 
 export type SectionType = Extract<
   PatternType,
@@ -83,38 +83,21 @@ export const PatternSidebarItem = ({
     actionState?.action === "cloning" &&
     actionState.sourcePattern.id === pattern.id;
 
-  if (isRenaming) {
-    return (
-      <ItemInput
-        label="Rename pattern"
-        value={pattern.label}
-        onCommit={onPatternLabelChange}
-        onCancel={onCancel}
-      />
-    );
-  }
+  const editMode = isRenaming ? "inline" : isCloning ? "below" : null;
 
   return (
-    <>
-      <ListItem
-        id={pattern.id}
-        label={pattern.label}
-        isSelected={isSelected}
-        onSelect={onSelect}
-        actions={readOnly ? undefined : actions}
-        onAction={readOnly ? undefined : handleAction}
-      />
-      {isCloning && (
-        <ItemInput
-          label="Clone pattern name"
-          value={pattern.label}
-          placeholder={translate("patterns.patternName")}
-          onCommit={onPatternLabelChange}
-          onCancel={onCancel}
-          forceValidation
-        />
-      )}
-    </>
+    <EditableListItem
+      item={pattern}
+      isSelected={isSelected}
+      onSelect={onSelect}
+      actions={actions}
+      onAction={handleAction}
+      editLabelMode={editMode}
+      onLabelChange={onPatternLabelChange}
+      placeholder={translate("patterns.patternName")}
+      onCancel={onCancel}
+      readOnly={readOnly}
+    />
   );
 };
 
@@ -176,12 +159,12 @@ export const UncategorizedPatternSidebarItem = ({
 
   return (
     <ListItem
-      id={pattern.id}
-      label={pattern.label}
+      item={pattern}
       isSelected={isSelected}
       onSelect={onSelect}
-      actions={readOnly ? undefined : actions}
-      onAction={readOnly ? undefined : handleAction}
+      actions={actions}
+      onAction={handleAction}
+      readOnly={readOnly}
     />
   );
 };

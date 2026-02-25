@@ -20,7 +20,12 @@ import {
 } from "src/icons";
 import { Button } from "src/components/elements";
 import { LabelManager } from "src/hydraulic-model/label-manager";
-import { ListItem, ItemAction, ItemInput } from "src/components/list";
+import {
+  ListItem,
+  ItemAction,
+  ItemInput,
+  EditableListItem,
+} from "src/components/list";
 
 type CurveSectionType = "pump";
 type SidebarSectionType = CurveSectionType | "uncategorized";
@@ -624,16 +629,7 @@ const CurveSidebarItem = ({
     actionState?.action === "cloning" &&
     actionState.sourceCurve.id === curve.id;
 
-  if (isRenaming) {
-    return (
-      <ItemInput
-        label="Rename curve"
-        value={curve.label}
-        onCommit={onCurveLabelChange}
-        onCancel={onCancel}
-      />
-    );
-  }
+  const editMode = isRenaming ? "inline" : isCloning ? "below" : null;
 
   const warningIcon = isInvalid ? (
     <span className="text-orange-500 flex-shrink-0">
@@ -642,27 +638,19 @@ const CurveSidebarItem = ({
   ) : null;
 
   return (
-    <>
-      <ListItem
-        id={curve.id}
-        label={curve.label}
-        isSelected={isSelected}
-        onSelect={onSelect}
-        icon={warningIcon}
-        actions={readOnly ? undefined : actions}
-        onAction={readOnly ? undefined : handleAction}
-      />
-      {isCloning && (
-        <ItemInput
-          label="Clone curve name"
-          value={curve.label}
-          placeholder={translate("curves.curveName")}
-          onCommit={onCurveLabelChange}
-          onCancel={onCancel}
-          forceValidation
-        />
-      )}
-    </>
+    <EditableListItem
+      item={curve}
+      isSelected={isSelected}
+      onSelect={onSelect}
+      icon={warningIcon}
+      actions={actions}
+      onAction={handleAction}
+      readOnly={readOnly}
+      editLabelMode={editMode}
+      onLabelChange={onCurveLabelChange}
+      onCancel={onCancel}
+      placeholder={translate("curves.curveName")}
+    />
   );
 };
 
@@ -710,12 +698,12 @@ const UncategorizedCurveSidebarItem = ({
 
   return (
     <ListItem
-      id={curve.id}
-      label={curve.label}
+      item={curve}
       isSelected={isSelected}
       onSelect={onSelect}
-      actions={readOnly ? undefined : actions}
+      actions={actions}
       onAction={handleAction}
+      readOnly={readOnly}
     />
   );
 };
