@@ -3,7 +3,7 @@ import * as DD from "@radix-ui/react-dropdown-menu";
 import { B3Variant, Button, DDContent, StyledItem } from "../elements";
 import { MoreActionsIcon } from "src/icons";
 
-export type IAction = {
+export type ItemAction = {
   action: string;
   label: string;
   variant?: B3Variant;
@@ -16,7 +16,7 @@ export const ItemActions = ({
   onAction,
   onOpenChange,
 }: {
-  actions: IAction[];
+  actions: ItemAction[];
   isSelected: boolean;
   onAction: (name: string) => void;
   onOpenChange: (open: boolean) => void;

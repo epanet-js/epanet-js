@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useTranslate } from "src/hooks/use-translate";
 import { Pattern, PatternId, PatternType } from "src/hydraulic-model";
 import {
@@ -7,9 +6,7 @@ import {
   DuplicateIcon,
   RenameIcon,
 } from "src/icons";
-import { Button } from "src/components/elements";
-import { ItemInput } from "src/components/list/item-input";
-import { IAction, ItemActions } from "src/components/list/item-actions";
+import { ItemAction, ItemInput, ListItem } from "src/components/list";
 
 export type SectionType = Extract<
   PatternType,
@@ -49,7 +46,36 @@ export const PatternSidebarItem = ({
   readOnly = false,
 }: PatternSidebarItemProps) => {
   const translate = useTranslate();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const actions: ItemAction[] = [
+    {
+      action: "rename",
+      label: translate("rename"),
+      icon: <RenameIcon size="sm" />,
+    },
+    {
+      action: "duplicate",
+      label: translate("duplicate"),
+      icon: <CloseIcon size="sm" />,
+    },
+    {
+      action: "delete",
+      label: translate("delete"),
+      icon: <DuplicateIcon size="sm" />,
+      variant: "destructive",
+    },
+  ];
+
+  const handleAction = (action: string) => {
+    switch (action) {
+      case "rename":
+        return onStartRename(pattern.id);
+      case "duplicate":
+        return onStartClone(pattern);
+      case "delete":
+        return onDelete();
+    }
+  };
 
   const isRenaming =
     actionState?.action === "renaming" && actionState.patternId === pattern.id;
@@ -70,34 +96,14 @@ export const PatternSidebarItem = ({
 
   return (
     <>
-      <li
-        data-pattern-id={pattern.id}
-        className={`group flex items-center justify-between text-sm cursor-pointer h-8 min-w-0 ${
-          isSelected
-            ? "bg-purple-300/40"
-            : isMenuOpen
-              ? "bg-gray-100 dark:bg-gray-800"
-              : "hover:bg-gray-100 dark:hover:bg-gray-800"
-        }`}
-      >
-        <Button
-          variant="quiet/list"
-          size="sm"
-          onClick={onSelect}
-          className="flex-1 min-w-0 justify-start hover:bg-transparent dark:hover:bg-transparent focus-visible:!ring-0 focus-visible:!ring-offset-0"
-        >
-          <span className="truncate">{pattern.label}</span>
-        </Button>
-        {!readOnly && (
-          <PatternActionsMenu
-            isSelected={isSelected}
-            onRename={() => onStartRename(pattern.id)}
-            onDuplicate={() => onStartClone(pattern)}
-            onDelete={onDelete}
-            onOpenChange={setIsMenuOpen}
-          />
-        )}
-      </li>
+      <ListItem
+        id={pattern.id}
+        label={pattern.label}
+        isSelected={isSelected}
+        onSelect={onSelect}
+        actions={readOnly ? undefined : actions}
+        onAction={readOnly ? undefined : handleAction}
+      />
       {isCloning && (
         <ItemInput
           label="Clone pattern name"
@@ -129,111 +135,9 @@ export const UncategorizedPatternSidebarItem = ({
   onDelete,
   readOnly = false,
 }: UncategorizedPatternSidebarItemProps) => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  return (
-    <li
-      data-pattern-id={pattern.id}
-      className={`group flex items-center justify-between text-sm cursor-pointer h-8 min-w-0 ${
-        isSelected
-          ? "bg-purple-300/40"
-          : isMenuOpen
-            ? "bg-gray-100 dark:bg-gray-800"
-            : "hover:bg-gray-100 dark:hover:bg-gray-800"
-      }`}
-    >
-      <Button
-        variant="quiet/list"
-        size="sm"
-        onClick={onSelect}
-        className="flex-1 min-w-0 justify-start hover:bg-transparent dark:hover:bg-transparent focus-visible:!ring-0 focus-visible:!ring-offset-0"
-      >
-        <span className="truncate">{pattern.label}</span>
-      </Button>
-      {!readOnly && (
-        <CategorizeActionsMenu
-          isSelected={isSelected}
-          onCategorize={(type) => onCategorize(pattern.id, type)}
-          onDelete={onDelete}
-          onOpenChange={setIsMenuOpen}
-        />
-      )}
-    </li>
-  );
-};
-
-type PatternActionsMenuProps = {
-  isSelected: boolean;
-  onRename: () => void;
-  onDuplicate: () => void;
-  onDelete: () => void;
-  onOpenChange: (open: boolean) => void;
-};
-
-const PatternActionsMenu = ({
-  isSelected,
-  onRename,
-  onDuplicate,
-  onDelete,
-  onOpenChange,
-}: PatternActionsMenuProps) => {
   const translate = useTranslate();
 
-  const actions: IAction[] = [
-    {
-      action: "rename",
-      label: translate("rename"),
-      icon: <RenameIcon size="sm" />,
-    },
-    {
-      action: "duplicate",
-      label: translate("duplicate"),
-      icon: <CloseIcon size="sm" />,
-    },
-    {
-      action: "delete",
-      label: translate("delete"),
-      icon: <DuplicateIcon size="sm" />,
-      variant: "destructive",
-    },
-  ];
-
-  const handleOnAction = (action: string) => {
-    switch (action) {
-      case "rename":
-        return onRename();
-      case "duplicate":
-        return onDuplicate();
-      case "delete":
-        return onDelete();
-    }
-  };
-
-  return (
-    <ItemActions
-      actions={actions}
-      onAction={handleOnAction}
-      isSelected={isSelected}
-      onOpenChange={onOpenChange}
-    />
-  );
-};
-
-type CategorizeActionsMenuProps = {
-  isSelected: boolean;
-  onCategorize: (type: SectionType) => void;
-  onDelete: () => void;
-  onOpenChange: (open: boolean) => void;
-};
-
-const CategorizeActionsMenu = ({
-  isSelected,
-  onCategorize,
-  onDelete,
-  onOpenChange,
-}: CategorizeActionsMenuProps) => {
-  const translate = useTranslate();
-
-  const actions: IAction[] = [
+  const actions: ItemAction[] = [
     {
       action: "setAsDemand",
       label: translate("patterns.setAsDemand"),
@@ -257,25 +161,27 @@ const CategorizeActionsMenu = ({
     },
   ];
 
-  const handleOnAction = (action: string) => {
+  const handleAction = (action: string) => {
     switch (action) {
       case "setAsDemand":
-        return onCategorize("demand");
+        return onCategorize(pattern.id, "demand");
       case "setAsReservoirHead":
-        return onCategorize("reservoirHead");
+        return onCategorize(pattern.id, "reservoirHead");
       case "setAsPumpSpeed":
-        return onCategorize("pumpSpeed");
+        return onCategorize(pattern.id, "pumpSpeed");
       case "delete":
         return onDelete();
     }
   };
 
   return (
-    <ItemActions
-      actions={actions}
-      onAction={handleOnAction}
+    <ListItem
+      id={pattern.id}
+      label={pattern.label}
       isSelected={isSelected}
-      onOpenChange={onOpenChange}
+      onSelect={onSelect}
+      actions={readOnly ? undefined : actions}
+      onAction={readOnly ? undefined : handleAction}
     />
   );
 };

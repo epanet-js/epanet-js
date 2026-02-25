@@ -20,8 +20,7 @@ import {
 } from "src/icons";
 import { Button } from "src/components/elements";
 import { LabelManager } from "src/hydraulic-model/label-manager";
-import { ItemInput } from "src/components/list/item-input";
-import { IAction, ItemActions } from "src/components/list/item-actions";
+import { ListItem, ItemAction, ItemInput } from "src/components/list";
 
 type CurveSectionType = "pump";
 type SidebarSectionType = CurveSectionType | "uncategorized";
@@ -588,7 +587,36 @@ const CurveSidebarItem = ({
   readOnly = false,
 }: CurveSidebarItemProps) => {
   const translate = useTranslate();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const actions: ItemAction[] = [
+    {
+      action: "rename",
+      label: translate("rename"),
+      icon: <RenameIcon size="sm" />,
+    },
+    {
+      action: "duplicate",
+      label: translate("duplicate"),
+      icon: <CloseIcon size="sm" />,
+    },
+    {
+      action: "delete",
+      label: translate("delete"),
+      icon: <DuplicateIcon size="sm" />,
+      variant: "destructive",
+    },
+  ];
+
+  const handleAction = (action: string) => {
+    switch (action) {
+      case "rename":
+        return onStartRename(curve.id);
+      case "duplicate":
+        return onStartClone(curve);
+      case "delete":
+        return onDelete();
+    }
+  };
 
   const isRenaming =
     actionState?.action === "renaming" && actionState.curveId === curve.id;
@@ -607,41 +635,23 @@ const CurveSidebarItem = ({
     );
   }
 
+  const warningIcon = isInvalid ? (
+    <span className="text-orange-500 flex-shrink-0">
+      <WarningIcon size="sm" />
+    </span>
+  ) : null;
+
   return (
     <>
-      <li
-        data-curve-id={curve.id}
-        className={`group flex items-center justify-between text-sm cursor-pointer h-8 min-w-0 ${
-          isSelected
-            ? "bg-gray-200 dark:hover:bg-gray-700"
-            : isMenuOpen
-              ? "bg-gray-100 dark:bg-gray-800"
-              : "hover:bg-gray-100 dark:hover:bg-gray-800"
-        }`}
-      >
-        <Button
-          variant="quiet/list"
-          size="sm"
-          onClick={onSelect}
-          className="flex-1 min-w-0 justify-start hover:bg-transparent dark:hover:bg-transparent focus-visible:!ring-0 focus-visible:!ring-offset-0"
-        >
-          {isInvalid && (
-            <span className="text-orange-500 flex-shrink-0">
-              <WarningIcon size="sm" />
-            </span>
-          )}
-          <span className="truncate">{curve.label}</span>
-        </Button>
-        {!readOnly && (
-          <CurveActionsMenu
-            isSelected={isSelected}
-            onRename={() => onStartRename(curve.id)}
-            onDuplicate={() => onStartClone(curve)}
-            onDelete={onDelete}
-            onOpenChange={setIsMenuOpen}
-          />
-        )}
-      </li>
+      <ListItem
+        id={curve.id}
+        label={curve.label}
+        isSelected={isSelected}
+        onSelect={onSelect}
+        icon={warningIcon}
+        actions={readOnly ? undefined : actions}
+        onAction={readOnly ? undefined : handleAction}
+      />
       {isCloning && (
         <ItemInput
           label="Clone curve name"
@@ -673,114 +683,9 @@ const UncategorizedCurveSidebarItem = ({
   onDelete,
   readOnly = false,
 }: UncategorizedCurveSidebarItemProps) => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-  return (
-    <li
-      data-curve-id={curve.id}
-      className={`group flex items-center justify-between text-sm cursor-pointer h-8 min-w-0 ${
-        isSelected
-          ? "bg-gray-200 dark:hover:bg-gray-700"
-          : isMenuOpen
-            ? "bg-gray-100 dark:bg-gray-800"
-            : "hover:bg-gray-100 dark:hover:bg-gray-800"
-      }`}
-    >
-      <Button
-        variant="quiet/list"
-        size="sm"
-        onClick={onSelect}
-        className="flex-1 min-w-0 justify-start hover:bg-transparent dark:hover:bg-transparent focus-visible:!ring-0 focus-visible:!ring-offset-0"
-      >
-        <span className="truncate">{curve.label}</span>
-      </Button>
-      {!readOnly && (
-        <CategorizeActionsMenu
-          isSelected={isSelected}
-          onCategorize={() => onCategorize(curve.id)}
-          onDelete={onDelete}
-          onOpenChange={setIsMenuOpen}
-        />
-      )}
-    </li>
-  );
-};
-
-// --- Action Menus ---
-
-type CurveActionsMenuProps = {
-  isSelected: boolean;
-  onRename: () => void;
-  onDuplicate: () => void;
-  onDelete: () => void;
-  onOpenChange: (open: boolean) => void;
-};
-
-const CurveActionsMenu = ({
-  isSelected,
-  onRename,
-  onDuplicate,
-  onDelete,
-  onOpenChange,
-}: CurveActionsMenuProps) => {
   const translate = useTranslate();
 
-  const actions: IAction[] = [
-    {
-      action: "rename",
-      label: translate("rename"),
-      icon: <RenameIcon size="sm" />,
-    },
-    {
-      action: "duplicate",
-      label: translate("duplicate"),
-      icon: <CloseIcon size="sm" />,
-    },
-    {
-      action: "delete",
-      label: translate("delete"),
-      icon: <DuplicateIcon size="sm" />,
-      variant: "destructive",
-    },
-  ];
-
-  const handleOnAction = (action: string) => {
-    switch (action) {
-      case "rename":
-        return onRename();
-      case "duplicate":
-        return onDuplicate();
-      case "delete":
-        return onDelete();
-    }
-  };
-
-  return (
-    <ItemActions
-      actions={actions}
-      onAction={handleOnAction}
-      isSelected={isSelected}
-      onOpenChange={onOpenChange}
-    />
-  );
-};
-
-type CategorizeActionsMenuProps = {
-  isSelected: boolean;
-  onCategorize: () => void;
-  onDelete: () => void;
-  onOpenChange: (open: boolean) => void;
-};
-
-const CategorizeActionsMenu = ({
-  isSelected,
-  onCategorize,
-  onDelete,
-  onOpenChange,
-}: CategorizeActionsMenuProps) => {
-  const translate = useTranslate();
-
-  const actions: IAction[] = [
+  const actions: ItemAction[] = [
     {
       action: "categorizePump",
       label: translate("curves.setAsPump"),
@@ -794,21 +699,23 @@ const CategorizeActionsMenu = ({
     },
   ];
 
-  const handleOnAction = (action: string) => {
+  const handleAction = (action: string) => {
     switch (action) {
       case "categorizePump":
-        return onCategorize();
+        return onCategorize(curve.id);
       case "delete":
         return onDelete();
     }
   };
 
   return (
-    <ItemActions
-      actions={actions}
-      onAction={handleOnAction}
+    <ListItem
+      id={curve.id}
+      label={curve.label}
       isSelected={isSelected}
-      onOpenChange={onOpenChange}
+      onSelect={onSelect}
+      actions={readOnly ? undefined : actions}
+      onAction={handleAction}
     />
   );
 };
