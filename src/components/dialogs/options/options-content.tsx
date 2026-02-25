@@ -52,6 +52,25 @@ export const OptionsContent = forwardRef<HTMLDivElement, Props>(
                     onChange={onChange}
                   />
                 ))}
+                {category.subcategories?.map((sub) => (
+                  <div
+                    key={sub.id}
+                    data-section-id={sub.id}
+                    className="flex flex-col gap-4"
+                  >
+                    <div className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mt-2">
+                      {sub.label}
+                    </div>
+                    {sub.options.map((option) => (
+                      <OptionRow
+                        key={option.id}
+                        option={option}
+                        value={values[option.id]}
+                        onChange={onChange}
+                      />
+                    ))}
+                  </div>
+                ))}
               </div>
             </div>
           ))}

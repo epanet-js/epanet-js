@@ -4,12 +4,12 @@ import { SettingsIcon } from "src/icons";
 import { OptionsSidebar } from "./options-sidebar";
 import { OptionsContent } from "./options-content";
 import { useScrollSpy } from "./use-scroll-spy";
-import { optionCategories, buildDefaultValues } from "./options-data";
+import { buildSectionIds, buildDefaultValues } from "./options-data";
 
 export const OptionsDialog = () => {
   const { closeDialog } = useDialogState();
 
-  const sectionIds = useMemo(() => optionCategories.map((c) => c.id), []);
+  const sectionIds = useMemo(buildSectionIds, []);
 
   const { activeSection, scrollToSection, scrollContainerRef } =
     useScrollSpy(sectionIds);

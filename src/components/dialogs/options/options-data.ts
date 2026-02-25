@@ -9,10 +9,17 @@ export type OptionDefinition = {
   options?: { label: string; value: string }[];
 };
 
+export type OptionSubcategory = {
+  id: string;
+  label: string;
+  options: OptionDefinition[];
+};
+
 export type OptionCategory = {
   id: string;
   label: string;
   options: OptionDefinition[];
+  subcategories?: OptionSubcategory[];
 };
 
 export const optionCategories: OptionCategory[] = [
@@ -89,73 +96,86 @@ export const optionCategories: OptionCategory[] = [
   {
     id: "hydraulics-solver",
     label: "Solver",
-    options: [
+    options: [],
+    subcategories: [
       {
-        id: "TRIALS",
-        label: "Trials",
-        description:
-          "Maximum number of trials used to solve network hydraulics at each hydraulic time step.",
-        type: "number",
-        defaultValue: 40,
-      },
-      {
-        id: "ACCURACY",
-        label: "Accuracy",
-        description:
-          "Convergence criterion: trials end when the sum of all flow changes divided by total flow in all links is less than this value.",
-        type: "number",
-        defaultValue: 0.001,
-      },
-      {
-        id: "FLOWCHANGE",
-        label: "Flow Change",
-        description:
-          "Convergence criterion requiring the largest absolute flow change between solutions be less than this value (in flow units). 0 means not used.",
-        type: "number",
-        defaultValue: 0,
-      },
-      {
-        id: "HEADERROR",
-        label: "Head Error",
-        description:
-          "Convergence criterion requiring head loss compared to the difference in nodal heads across each link be less than this value. 0 means not used.",
-        type: "number",
-        defaultValue: 0,
-      },
-      {
-        id: "CHECKFREQ",
-        label: "Check Frequency",
-        description:
-          "Number of solution trials between status checks on pumps, check valves, flow control valves and pipes connected to tanks.",
-        type: "number",
-        defaultValue: 2,
-      },
-      {
-        id: "MAXCHECK",
-        label: "Max Check",
-        description:
-          "Number of solution trials after which periodic status checks are discontinued. Status is then checked only at convergence.",
-        type: "number",
-        defaultValue: 10,
-      },
-      {
-        id: "DAMPLIMIT",
-        label: "Damp Limit",
-        description:
-          "Accuracy value at which solution damping and status checks on PRVs and PSVs begin. Damping limits flow changes to 60%. 0 means no damping.",
-        type: "number",
-        defaultValue: 0,
-      },
-      {
-        id: "UNBALANCED",
-        label: "Unbalanced",
-        description:
-          "What happens if a hydraulic solution cannot be reached within the prescribed number of trials.",
-        type: "select",
-        defaultValue: "STOP",
+        id: "solver-convergence",
+        label: "Convergence",
         options: [
-          { label: "Stop", value: "STOP" },
-          { label: "Continue", value: "CONTINUE" },
+          {
+            id: "TRIALS",
+            label: "Trials",
+            description:
+              "Maximum number of trials used to solve network hydraulics at each hydraulic time step.",
+            type: "number",
+            defaultValue: 40,
+          },
+          {
+            id: "ACCURACY",
+            label: "Accuracy",
+            description:
+              "Convergence criterion: trials end when the sum of all flow changes divided by total flow in all links is less than this value.",
+            type: "number",
+            defaultValue: 0.001,
+          },
+          {
+            id: "FLOWCHANGE",
+            label: "Flow Change",
+            description:
+              "Convergence criterion requiring the largest absolute flow change between solutions be less than this value (in flow units). 0 means not used.",
+            type: "number",
+            defaultValue: 0,
+          },
+          {
+            id: "HEADERROR",
+            label: "Head Error",
+            description:
+              "Convergence criterion requiring head loss compared to the difference in nodal heads across each link be less than this value. 0 means not used.",
+            type: "number",
+            defaultValue: 0,
+          },
+        ],
+      },
+      {
+        id: "solver-status-checks",
+        label: "Status Checks",
+        options: [
+          {
+            id: "CHECKFREQ",
+            label: "Check Frequency",
+            description:
+              "Number of solution trials between status checks on pumps, check valves, flow control valves and pipes connected to tanks.",
+            type: "number",
+            defaultValue: 2,
+          },
+          {
+            id: "MAXCHECK",
+            label: "Max Check",
+            description:
+              "Number of solution trials after which periodic status checks are discontinued. Status is then checked only at convergence.",
+            type: "number",
+            defaultValue: 10,
+          },
+          {
+            id: "DAMPLIMIT",
+            label: "Damp Limit",
+            description:
+              "Accuracy value at which solution damping and status checks on PRVs and PSVs begin. Damping limits flow changes to 60%. 0 means no damping.",
+            type: "number",
+            defaultValue: 0,
+          },
+          {
+            id: "UNBALANCED",
+            label: "Unbalanced",
+            description:
+              "What happens if a hydraulic solution cannot be reached within the prescribed number of trials.",
+            type: "select",
+            defaultValue: "STOP",
+            options: [
+              { label: "Stop", value: "STOP" },
+              { label: "Continue", value: "CONTINUE" },
+            ],
+          },
         ],
       },
     ],
@@ -177,30 +197,6 @@ export const optionCategories: OptionCategory[] = [
         ],
       },
       {
-        id: "MINIMUM_PRESSURE",
-        label: "Minimum Pressure",
-        description:
-          "Pressure below which no demand can be delivered under a pressure driven analysis. No effect on DDA.",
-        type: "number",
-        defaultValue: 0,
-      },
-      {
-        id: "REQUIRED_PRESSURE",
-        label: "Required Pressure",
-        description:
-          "Pressure required to supply a node's full demand under a pressure driven analysis. Must be at least 0.1 above minimum pressure. No effect on DDA.",
-        type: "number",
-        defaultValue: 0.1,
-      },
-      {
-        id: "PRESSURE_EXPONENT",
-        label: "Pressure Exponent",
-        description:
-          "Power to which pressure is raised when computing demand under pressure driven analysis. No effect on DDA.",
-        type: "number",
-        defaultValue: 0.5,
-      },
-      {
         id: "PATTERN",
         label: "Default Pattern",
         description:
@@ -216,24 +212,62 @@ export const optionCategories: OptionCategory[] = [
         type: "number",
         defaultValue: 1.0,
       },
+    ],
+    subcategories: [
       {
-        id: "EMITTER_EXPONENT",
-        label: "Emitter Exponent",
-        description:
-          "Power to which pressure at a junction is raised when computing flow from an emitter.",
-        type: "number",
-        defaultValue: 0.5,
+        id: "demands-pressure-driven",
+        label: "Pressure Driven",
+        options: [
+          {
+            id: "MINIMUM_PRESSURE",
+            label: "Minimum Pressure",
+            description:
+              "Pressure below which no demand can be delivered under a pressure driven analysis. No effect on DDA.",
+            type: "number",
+            defaultValue: 0,
+          },
+          {
+            id: "REQUIRED_PRESSURE",
+            label: "Required Pressure",
+            description:
+              "Pressure required to supply a node's full demand under a pressure driven analysis. Must be at least 0.1 above minimum pressure. No effect on DDA.",
+            type: "number",
+            defaultValue: 0.1,
+          },
+          {
+            id: "PRESSURE_EXPONENT",
+            label: "Pressure Exponent",
+            description:
+              "Power to which pressure is raised when computing demand under pressure driven analysis. No effect on DDA.",
+            type: "number",
+            defaultValue: 0.5,
+          },
+        ],
       },
       {
-        id: "EMITTER_BACKFLOW",
-        label: "Emitter Backflow",
-        description:
-          "Whether backflow through an emitter (flow into the network) is allowed.",
-        type: "select",
-        defaultValue: "YES",
+        id: "demands-emitters",
+        label: "Emitters",
         options: [
-          { label: "Yes", value: "YES" },
-          { label: "No", value: "NO" },
+          {
+            id: "EMITTER_EXPONENT",
+            label: "Emitter Exponent",
+            description:
+              "Power to which pressure at a junction is raised when computing flow from an emitter.",
+            type: "number",
+            defaultValue: 0.5,
+          },
+          {
+            id: "EMITTER_BACKFLOW",
+            label: "Emitter Backflow",
+            description:
+              "Whether backflow through an emitter (flow into the network) is allowed.",
+            type: "select",
+            defaultValue: "YES",
+            options: [
+              { label: "Yes", value: "YES" },
+              { label: "No", value: "NO" },
+            ],
+          },
         ],
       },
     ],
@@ -303,11 +337,27 @@ export const optionCategories: OptionCategory[] = [
   },
 ];
 
+export const buildSectionIds = (): string[] => {
+  const ids: string[] = [];
+  for (const category of optionCategories) {
+    ids.push(category.id);
+    for (const sub of category.subcategories ?? []) {
+      ids.push(sub.id);
+    }
+  }
+  return ids;
+};
+
 export const buildDefaultValues = (): Record<string, string | number> => {
   const defaults: Record<string, string | number> = {};
   for (const category of optionCategories) {
     for (const option of category.options) {
       defaults[option.id] = option.defaultValue;
+    }
+    for (const sub of category.subcategories ?? []) {
+      for (const option of sub.options) {
+        defaults[option.id] = option.defaultValue;
+      }
     }
   }
   return defaults;
