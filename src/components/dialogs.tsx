@@ -16,6 +16,14 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { SimulationSettingsDialog } from "./dialogs/simulation-settings";
 import { LoadingDialog } from "./dialog";
 import { WelcomeDialog } from "./dialogs/welcome";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+
+const OptionsDialog = dynamic(
+  () => import("src/components/dialogs/options").then((r) => r.OptionsDialog),
+  {
+    loading: () => <LoadingDialog />,
+  },
+);
 
 const UpgradeDialog = dynamic<{
   onClose: () => void;
@@ -345,6 +353,7 @@ const FirstScenarioDialog = dynamic<{
 export const Dialogs = memo(function Dialogs() {
   const [dialog, setDialogState] = useAtom(dialogAtom);
   const userTracking = useUserTracking();
+  const isOptionsOn = useFeatureFlag("FLAG_OPTIONS");
 
   const onClose = useCallback(() => {
     setDialogState(null);
@@ -395,7 +404,7 @@ export const Dialogs = memo(function Dialogs() {
     return <SimulationReportDialog />;
   }
   if (dialog.type === "simulationSettings") {
-    return <SimulationSettingsDialog />;
+    return isOptionsOn ? <OptionsDialog /> : <SimulationSettingsDialog />;
   }
   if (dialog.type === "simulationSummary") {
     return <SimulationSummaryDialog modal={dialog} onClose={onClose} />;
