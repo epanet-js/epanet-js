@@ -1,16 +1,19 @@
 import clsx from "clsx";
-import { optionCategories } from "./options-data";
+import { simulationSettingsCategories } from "./simulation-settings-data";
 
 type Props = {
   activeSection: string;
   onSelectSection: (sectionId: string) => void;
 };
 
-export const OptionsSidebar = ({ activeSection, onSelectSection }: Props) => {
+export const SimulationSettingsSidebar = ({
+  activeSection,
+  onSelectSection,
+}: Props) => {
   return (
     <nav className="w-44 flex-shrink-0 border-r border-gray-200 dark:border-gray-700 pr-3 overflow-y-auto">
       <ul className="flex flex-col gap-0.5">
-        {optionCategories.map((category) => (
+        {simulationSettingsCategories.map((category) => (
           <li key={category.id} className="flex flex-col gap-0.5">
             <button
               type="button"

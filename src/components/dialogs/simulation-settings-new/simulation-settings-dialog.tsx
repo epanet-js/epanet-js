@@ -1,12 +1,15 @@
 import { useCallback, useState, useMemo } from "react";
 import { DialogContainer, DialogHeader, useDialogState } from "../../dialog";
 import { SettingsIcon } from "src/icons";
-import { OptionsSidebar } from "./options-sidebar";
-import { OptionsContent } from "./options-content";
+import { SimulationSettingsSidebar } from "./simulation-settings-sidebar";
+import { SimulationSettingsContent } from "./simulation-settings-content";
 import { useScrollSpy } from "./use-scroll-spy";
-import { buildSectionIds, buildDefaultValues } from "./options-data";
+import {
+  buildSectionIds,
+  buildDefaultValues,
+} from "./simulation-settings-data";
 
-export const OptionsDialog = () => {
+export const SimulationSettingsNewDialog = () => {
   const { closeDialog } = useDialogState();
 
   const sectionIds = useMemo(buildSectionIds, []);
@@ -26,14 +29,14 @@ export const OptionsDialog = () => {
 
   return (
     <DialogContainer size="md" height="lg" onClose={closeDialog}>
-      <DialogHeader title="Options" titleIcon={SettingsIcon} />
+      <DialogHeader title="Simulation Settings" titleIcon={SettingsIcon} />
       <div className="flex-1 flex min-h-0">
-        <OptionsSidebar
+        <SimulationSettingsSidebar
           activeSection={activeSection}
           onSelectSection={scrollToSection}
         />
         <div className="flex-1 flex flex-col min-h-0">
-          <OptionsContent
+          <SimulationSettingsContent
             ref={scrollContainerRef}
             values={values}
             onChange={handleChange}

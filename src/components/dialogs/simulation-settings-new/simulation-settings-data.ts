@@ -1,4 +1,4 @@
-export type OptionType = "number" | "select" | "text";
+export type OptionType = "number" | "select" | "text" | "time";
 
 export type OptionDefinition = {
   id: string;
@@ -22,7 +22,7 @@ export type OptionCategory = {
   subcategories?: OptionSubcategory[];
 };
 
-export const optionCategories: OptionCategory[] = [
+export const simulationSettingsCategories: OptionCategory[] = [
   {
     id: "hydraulics-general",
     label: "Hydraulics",
@@ -273,6 +273,56 @@ export const optionCategories: OptionCategory[] = [
     ],
   },
   {
+    id: "times",
+    label: "Times",
+    options: [
+      {
+        id: "SIMULATION_MODE",
+        label: "Simulation Mode",
+        description:
+          "Steady State performs a single snapshot analysis. Extended Period Simulation (EPS) runs a time-varying analysis over the specified duration.",
+        type: "select",
+        defaultValue: "EPS",
+        options: [
+          { label: "Steady State", value: "STEADY_STATE" },
+          { label: "Extended Period (EPS)", value: "EPS" },
+        ],
+      },
+      {
+        id: "DURATION",
+        label: "Total Duration",
+        description:
+          "Total length of the simulation. Expressed as hours:minutes (e.g. 24:00 for 24 hours).",
+        type: "time",
+        defaultValue: 86400,
+      },
+      {
+        id: "HYDRAULIC_TIMESTEP",
+        label: "Hydraulic Timestep",
+        description:
+          "Time interval between hydraulic computations. Shorter intervals increase accuracy but also computation time.",
+        type: "time",
+        defaultValue: 3600,
+      },
+      {
+        id: "REPORT_TIMESTEP",
+        label: "Reporting Timestep",
+        description:
+          "Time interval between output reporting periods. Must be a multiple of the hydraulic timestep.",
+        type: "time",
+        defaultValue: 3600,
+      },
+      {
+        id: "PATTERN_TIMESTEP",
+        label: "Pattern Timestep",
+        description:
+          "Time interval used in time patterns. Defines how often pattern factors change during the simulation.",
+        type: "time",
+        defaultValue: 3600,
+      },
+    ],
+  },
+  {
     id: "water-quality",
     label: "Water Quality",
     options: [
@@ -339,7 +389,7 @@ export const optionCategories: OptionCategory[] = [
 
 export const buildSectionIds = (): string[] => {
   const ids: string[] = [];
-  for (const category of optionCategories) {
+  for (const category of simulationSettingsCategories) {
     ids.push(category.id);
     for (const sub of category.subcategories ?? []) {
       ids.push(sub.id);
@@ -350,7 +400,7 @@ export const buildSectionIds = (): string[] => {
 
 export const buildDefaultValues = (): Record<string, string | number> => {
   const defaults: Record<string, string | number> = {};
-  for (const category of optionCategories) {
+  for (const category of simulationSettingsCategories) {
     for (const option of category.options) {
       defaults[option.id] = option.defaultValue;
     }

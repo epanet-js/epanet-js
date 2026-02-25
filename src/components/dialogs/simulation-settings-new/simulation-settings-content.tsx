@@ -1,15 +1,19 @@
 import { forwardRef, useCallback } from "react";
 import { NumericField } from "src/components/form/numeric-field";
 import { Selector, type SelectorOption } from "src/components/form/selector";
-import { optionCategories, type OptionDefinition } from "./options-data";
+import { TimeField } from "src/components/form/time-field";
+import {
+  simulationSettingsCategories,
+  type OptionDefinition,
+} from "./simulation-settings-data";
 
 type Props = {
   values: Record<string, string | number>;
   onChange: (optionId: string, value: string | number) => void;
 };
 
-export const OptionsContent = forwardRef<HTMLDivElement, Props>(
-  function OptionsContent({ values, onChange }, ref) {
+export const SimulationSettingsContent = forwardRef<HTMLDivElement, Props>(
+  function SimulationSettingsContent({ values, onChange }, ref) {
     const measureRef = useCallback(
       (node: HTMLDivElement | null) => {
         if (typeof ref === "function") {
@@ -34,7 +38,7 @@ export const OptionsContent = forwardRef<HTMLDivElement, Props>(
         className="flex-1 min-h-0 overflow-y-auto placemark-scrollbar scroll-shadows pl-4"
       >
         <div className="flex flex-col gap-20 py-2">
-          {optionCategories.map((category) => (
+          {simulationSettingsCategories.map((category) => (
             <div
               key={category.id}
               data-section-id={category.id}
@@ -147,6 +151,16 @@ const OptionInput = ({
         styleOptions={{
           textSize: "sm",
         }}
+      />
+    );
+  }
+
+  if (option.type === "time") {
+    return (
+      <TimeField
+        label={option.label}
+        value={typeof value === "number" ? value : undefined}
+        onChangeValue={(newValue) => onChange(option.id, newValue ?? 0)}
       />
     );
   }

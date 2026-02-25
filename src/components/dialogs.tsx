@@ -18,8 +18,11 @@ import { LoadingDialog } from "./dialog";
 import { WelcomeDialog } from "./dialogs/welcome";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
-const OptionsDialog = dynamic(
-  () => import("src/components/dialogs/options").then((r) => r.OptionsDialog),
+const SimulationSettingsNewDialog = dynamic(
+  () =>
+    import("src/components/dialogs/simulation-settings-new").then(
+      (r) => r.SimulationSettingsNewDialog,
+    ),
   {
     loading: () => <LoadingDialog />,
   },
@@ -404,7 +407,11 @@ export const Dialogs = memo(function Dialogs() {
     return <SimulationReportDialog />;
   }
   if (dialog.type === "simulationSettings") {
-    return isOptionsOn ? <OptionsDialog /> : <SimulationSettingsDialog />;
+    return isOptionsOn ? (
+      <SimulationSettingsNewDialog />
+    ) : (
+      <SimulationSettingsDialog />
+    );
   }
   if (dialog.type === "simulationSummary") {
     return <SimulationSummaryDialog modal={dialog} onClose={onClose} />;
