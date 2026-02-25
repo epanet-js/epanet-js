@@ -1,6 +1,8 @@
 import { useRef, useState, useCallback } from "react";
 
 const SCROLL_PADDING = 16;
+// Activate the next section when half the gap between sections has been scrolled past
+const ACTIVATION_OFFSET = 40;
 
 export const useScrollSpy = (sectionIds: string[]) => {
   const [activeSection, setActiveSection] = useState<string>(
@@ -34,17 +36,18 @@ export const useScrollSpy = (sectionIds: string[]) => {
           return;
         }
 
-        // Top-threshold: the last section whose top has passed the padding offset
+        // Top-threshold: the last section whose top has entered the activation zone.
+        // The first section stays active until the next one crosses; all others
+        // activate when their top is within ACTIVATION_OFFSET of the container top,
+        // i.e. once half the inter-section gap has been scrolled past.
         const containerTop = node.getBoundingClientRect().top;
         let active = sectionIds[0] ?? "";
-        for (const id of sectionIds) {
-          const el = node.querySelector(`[data-section-id="${id}"]`);
+        for (let i = 0; i < sectionIds.length; i++) {
+          const el = node.querySelector(`[data-section-id="${sectionIds[i]}"]`);
           if (!el) continue;
-          if (
-            el.getBoundingClientRect().top - containerTop <=
-            SCROLL_PADDING + 1
-          ) {
-            active = id;
+          const offset = i === 0 ? SCROLL_PADDING : ACTIVATION_OFFSET;
+          if (el.getBoundingClientRect().top - containerTop <= offset + 1) {
+            active = sectionIds[i];
           }
         }
         setActiveSection(active);
