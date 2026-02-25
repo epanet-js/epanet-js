@@ -15,11 +15,11 @@ import { useUserTracking } from "src/infra/user-tracking";
 import {
   ActionState,
   PatternSidebarItem,
-  PatternLabelInput,
   SectionType,
   TypedPattern,
   UncategorizedPatternSidebarItem,
 } from "./pattern-sidebar-shared";
+import { ItemInput } from "src/components/list/item-input";
 
 type SidebarSectionType = SectionType | "uncategorized";
 
@@ -506,7 +506,7 @@ const PatternSection = ({
             />
           ))}
           {isCreating && (
-            <PatternLabelInput
+            <ItemInput
               label="New pattern name"
               value=""
               placeholder={translate("patterns.patternName")}

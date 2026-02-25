@@ -1,16 +1,15 @@
 import { useState } from "react";
-import * as DD from "@radix-ui/react-dropdown-menu";
 import { useTranslate } from "src/hooks/use-translate";
 import { Pattern, PatternId, PatternType } from "src/hydraulic-model";
 import {
   ChevronRightIcon,
   CloseIcon,
   DuplicateIcon,
-  MoreActionsIcon,
   RenameIcon,
 } from "src/icons";
-import { Button, DDContent, StyledItem } from "src/components/elements";
-import { EditableTextFieldWithConfirmation } from "src/components/form/editable-text-field-with-confirmation";
+import { Button } from "src/components/elements";
+import { ItemInput } from "src/components/list/item-input";
+import { IAction, ItemActions } from "src/components/list/item-actions";
 
 export type SectionType = Extract<
   PatternType,
@@ -60,7 +59,7 @@ export const PatternSidebarItem = ({
 
   if (isRenaming) {
     return (
-      <PatternLabelInput
+      <ItemInput
         label="Rename pattern"
         value={pattern.label}
         onCommit={onPatternLabelChange}
@@ -100,7 +99,7 @@ export const PatternSidebarItem = ({
         )}
       </li>
       {isCloning && (
-        <PatternLabelInput
+        <ItemInput
           label="Clone pattern name"
           value={pattern.label}
           placeholder={translate("patterns.patternName")}
@@ -110,56 +109,6 @@ export const PatternSidebarItem = ({
         />
       )}
     </>
-  );
-};
-
-type PatternLabelInputProps = {
-  label: string;
-  value: string;
-  placeholder?: string;
-  onCommit: (name: string) => boolean;
-  onCancel: () => void;
-  forceValidation?: boolean;
-};
-
-export const PatternLabelInput = ({
-  label,
-  value,
-  placeholder,
-  onCommit,
-  onCancel,
-  forceValidation,
-}: PatternLabelInputProps) => {
-  const [hasError, setHasError] = useState(false);
-
-  const handleChangeValue = (newValue: string): boolean => {
-    const hasValidationError = onCommit(newValue);
-    setHasError(hasValidationError);
-    return hasValidationError;
-  };
-
-  return (
-    <li
-      className="flex items-center text-sm bg-white dark:bg-gray-700 px-1 h-8"
-      data-capture-escape-key
-    >
-      <EditableTextFieldWithConfirmation
-        label={label}
-        value={value}
-        onChangeValue={handleChangeValue}
-        onReset={onCancel}
-        hasError={hasError}
-        allowedChars={/(?![\s;])[\x00-\xFF]/}
-        maxByteLength={31}
-        styleOptions={{
-          padding: "sm",
-          textSize: "sm",
-        }}
-        placeholder={placeholder}
-        autoFocus
-        forceValidation={forceValidation}
-      />
-    </li>
   );
 };
 
@@ -228,53 +177,44 @@ const PatternActionsMenu = ({
   onOpenChange,
 }: PatternActionsMenuProps) => {
   const translate = useTranslate();
-  const [isOpen, setIsOpen] = useState(false);
 
-  const handleOpenChange = (open: boolean) => {
-    setIsOpen(open);
-    onOpenChange(open);
+  const actions: IAction[] = [
+    {
+      action: "rename",
+      label: translate("rename"),
+      icon: <RenameIcon size="sm" />,
+    },
+    {
+      action: "duplicate",
+      label: translate("duplicate"),
+      icon: <CloseIcon size="sm" />,
+    },
+    {
+      action: "delete",
+      label: translate("delete"),
+      icon: <DuplicateIcon size="sm" />,
+      variant: "destructive",
+    },
+  ];
+
+  const handleOnAction = (action: string) => {
+    switch (action) {
+      case "rename":
+        return onRename();
+      case "duplicate":
+        return onDuplicate();
+      case "delete":
+        return onDelete();
+    }
   };
 
   return (
-    <div
-      onClick={(e) => e.stopPropagation()}
-      className="self-stretch flex pr-1"
-    >
-      <DD.Root modal={false} onOpenChange={handleOpenChange}>
-        <DD.Trigger asChild>
-          <Button
-            variant="quiet"
-            size="xs"
-            aria-label="Actions"
-            className={`h-6 w-6 self-center ${
-              isSelected
-                ? "hover:bg-white/30 dark:hover:bg-white/10"
-                : isOpen
-                  ? "hover:bg-gray-200 dark:hover:bg-gray-700"
-                  : "invisible group-hover:visible hover:bg-gray-200 dark:hover:bg-gray-700"
-            }`}
-          >
-            <MoreActionsIcon size="sm" />
-          </Button>
-        </DD.Trigger>
-        <DD.Portal>
-          <DDContent align="start" side="bottom" className="z-50">
-            <StyledItem onSelect={onRename}>
-              <RenameIcon size="sm" />
-              {translate("rename")}
-            </StyledItem>
-            <StyledItem onSelect={onDuplicate}>
-              <DuplicateIcon size="sm" />
-              {translate("duplicate")}
-            </StyledItem>
-            <StyledItem variant="destructive" onSelect={onDelete}>
-              <CloseIcon size="sm" />
-              {translate("delete")}
-            </StyledItem>
-          </DDContent>
-        </DD.Portal>
-      </DD.Root>
-    </div>
+    <ItemActions
+      actions={actions}
+      onAction={handleOnAction}
+      isSelected={isSelected}
+      onOpenChange={onOpenChange}
+    />
   );
 };
 
@@ -292,56 +232,50 @@ const CategorizeActionsMenu = ({
   onOpenChange,
 }: CategorizeActionsMenuProps) => {
   const translate = useTranslate();
-  const [isOpen, setIsOpen] = useState(false);
 
-  const handleOpenChange = (open: boolean) => {
-    setIsOpen(open);
-    onOpenChange(open);
+  const actions: IAction[] = [
+    {
+      action: "setAsDemand",
+      label: translate("patterns.setAsDemand"),
+      icon: <ChevronRightIcon size="sm" />,
+    },
+    {
+      action: "setAsReservoirHead",
+      label: translate("patterns.setAsReservoirHead"),
+      icon: <ChevronRightIcon size="sm" />,
+    },
+    {
+      action: "setAsPumpSpeed",
+      label: translate("patterns.setAsPumpSpeed"),
+      icon: <ChevronRightIcon size="sm" />,
+    },
+    {
+      action: "delete",
+      label: translate("delete"),
+      icon: <DuplicateIcon size="sm" />,
+      variant: "destructive",
+    },
+  ];
+
+  const handleOnAction = (action: string) => {
+    switch (action) {
+      case "setAsDemand":
+        return onCategorize("demand");
+      case "setAsReservoirHead":
+        return onCategorize("reservoirHead");
+      case "setAsPumpSpeed":
+        return onCategorize("pumpSpeed");
+      case "delete":
+        return onDelete();
+    }
   };
 
   return (
-    <div
-      onClick={(e) => e.stopPropagation()}
-      className="self-stretch flex pr-1"
-    >
-      <DD.Root modal={false} onOpenChange={handleOpenChange}>
-        <DD.Trigger asChild>
-          <Button
-            variant="quiet"
-            size="xs"
-            aria-label="Actions"
-            className={`h-6 w-6 self-center ${
-              isSelected
-                ? "hover:bg-white/30 dark:hover:bg-white/10"
-                : isOpen
-                  ? "hover:bg-gray-200 dark:hover:bg-gray-700"
-                  : "invisible group-hover:visible hover:bg-gray-200 dark:hover:bg-gray-700"
-            }`}
-          >
-            <MoreActionsIcon size="sm" />
-          </Button>
-        </DD.Trigger>
-        <DD.Portal>
-          <DDContent align="start" side="bottom" className="z-50">
-            <StyledItem onSelect={() => onCategorize("demand")}>
-              <ChevronRightIcon size="sm" />
-              {translate("patterns.setAsDemand")}
-            </StyledItem>
-            <StyledItem onSelect={() => onCategorize("reservoirHead")}>
-              <ChevronRightIcon size="sm" />
-              {translate("patterns.setAsReservoirHead")}
-            </StyledItem>
-            <StyledItem onSelect={() => onCategorize("pumpSpeed")}>
-              <ChevronRightIcon size="sm" />
-              {translate("patterns.setAsPumpSpeed")}
-            </StyledItem>
-            <StyledItem variant="destructive" onSelect={onDelete}>
-              <CloseIcon size="sm" />
-              {translate("delete")}
-            </StyledItem>
-          </DDContent>
-        </DD.Portal>
-      </DD.Root>
-    </div>
+    <ItemActions
+      actions={actions}
+      onAction={handleOnAction}
+      isSelected={isSelected}
+      onOpenChange={onOpenChange}
+    />
   );
 };
