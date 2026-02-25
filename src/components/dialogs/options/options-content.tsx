@@ -40,7 +40,7 @@ export const OptionsContent = forwardRef<HTMLDivElement, Props>(
               data-section-id={category.id}
               className="last:min-h-[calc(var(--scroll-height)-1rem)]"
             >
-              <h3 className="text-sm font-semibold text-gray-900 dark:text-white pb-3 border-b border-gray-200 dark:border-gray-700 mb-3">
+              <h3 className="text-base font-semibold text-gray-900 dark:text-white pb-3 mb-3">
                 {category.label}
               </h3>
               <div className="flex flex-col gap-4">
@@ -58,7 +58,7 @@ export const OptionsContent = forwardRef<HTMLDivElement, Props>(
                     data-section-id={sub.id}
                     className="flex flex-col gap-4"
                   >
-                    <div className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mt-2">
+                    <div className="text-sm font-semibold text-gray-900 dark:text-white mt-2">
                       {sub.label}
                     </div>
                     {sub.options.map((option) => (
@@ -91,8 +91,9 @@ const OptionRow = ({
 }) => {
   return (
     <div className="flex flex-col gap-1">
-      <div className="text-sm text-gray-900 dark:text-gray-100">
+      <div className="flex items-center gap-3 text-sm text-gray-900 dark:text-gray-100">
         {option.label}
+        <span className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
       </div>
       <div className="text-xs text-gray-500 dark:text-gray-400">
         {option.description}
