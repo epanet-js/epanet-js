@@ -2,7 +2,6 @@ import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { useAtomValue } from "jotai";
 import { DialogContainer, DialogHeader, useDialogState } from "../../dialog";
 import { useTranslate } from "src/hooks/use-translate";
-import { Button } from "src/components/elements";
 import { PumpLibrarySidebar } from "./pump-library-sidebar";
 import { CurveDetail } from "../curves/curve-detail";
 import { VerticalResizer } from "../vertical-resizer";
@@ -15,6 +14,8 @@ import {
   CurveType,
   buildDefaultCurve,
   stripTrailingEmptyPoints,
+  deepCloneCurves,
+  differentCurvesCount,
 } from "src/hydraulic-model/curves";
 import { PumpLibraryIcon } from "src/icons";
 import { dataAtom, stagingModelAtom } from "src/state/jotai";
@@ -23,13 +24,9 @@ import { changeCurves } from "src/hydraulic-model/model-operations/change-curves
 import { notify } from "src/components/notifications";
 import { useUserTracking } from "src/infra/user-tracking";
 import { LabelManager } from "src/hydraulic-model/label-manager";
-import {
-  getCurveTypeConfig,
-  deepCloneCurves,
-  createLabelManagerFromCurves,
-  isCurveInUse,
-  areCurvesEqual,
-} from "../curves/curve-utils";
+import { getCurveTypeConfig } from "../curves/curve-type-config";
+import { DialogActions, useDialogActions } from "../curves/curves-dialog";
+import { HydraulicModel, Pump } from "src/hydraulic-model";
 
 type CurveUpdate = Partial<Pick<ICurve, "label" | "points" | "type">>;
 
@@ -51,10 +48,8 @@ export const PumpLibraryDialog = ({
     deepCloneCurves(hydraulicModel.curves),
   );
   const [sidebarWidth, setSidebarWidth] = useState(224);
-  const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
-  const [showSaveWarning, setShowSaveWarning] = useState(false);
   const labelManagerRef = useRef<LabelManager>(
-    createLabelManagerFromCurves(editedCurves),
+    createLabelManager(editedCurves),
   );
 
   const hasCurves = editedCurves.size > 0;
@@ -137,7 +132,7 @@ export const PumpLibraryDialog = ({
       const curve = editedCurves.get(curveId);
       if (!curve) return;
 
-      if (isCurveInUse(hydraulicModel, curveId)) {
+      if (curve.type === "pump" && isPumpCurveInUse(hydraulicModel, curveId)) {
         notify({
           variant: "error",
           title: translate("curves.deleteCurveInUse"),
@@ -162,11 +157,6 @@ export const PumpLibraryDialog = ({
   const rep = usePersistence();
   const transact = rep.useTransact();
 
-  const hasChanges = useMemo(
-    () => !areCurvesEqual(hydraulicModel.curves, editedCurves),
-    [hydraulicModel.curves, editedCurves],
-  );
-
   const cleanedCurves = useMemo(() => {
     const cleaned: Curves = new Map();
     for (const [id, curve] of editedCurves) {
@@ -177,6 +167,11 @@ export const PumpLibraryDialog = ({
     }
     return cleaned;
   }, [editedCurves]);
+
+  const unsavedChanges = useMemo(
+    () => differentCurvesCount(hydraulicModel.curves, cleanedCurves),
+    [hydraulicModel.curves, cleanedCurves],
+  );
 
   const invalidCurveIds = useMemo(() => {
     const ids = new Set<CurveId>();
@@ -189,19 +184,7 @@ export const PumpLibraryDialog = ({
     return ids;
   }, [cleanedCurves]);
 
-  const hasInvalidCurves = invalidCurveIds.size > 0;
-
-  const handleSave = useCallback(() => {
-    if (!hasChanges) {
-      closeDialog();
-      return;
-    }
-
-    if (hasInvalidCurves && !showSaveWarning) {
-      setShowSaveWarning(true);
-      return;
-    }
-
+  const saveChanges = useCallback(() => {
     const moment = changeCurves(hydraulicModel, {
       curves: cleanedCurves,
     });
@@ -209,36 +192,28 @@ export const PumpLibraryDialog = ({
     userTracking.capture({
       name: "curves.updated",
       count: cleanedCurves.size,
+      errors: invalidCurveIds.size,
     });
 
     closeDialog();
   }, [
-    hasChanges,
-    hasInvalidCurves,
-    showSaveWarning,
     hydraulicModel,
     cleanedCurves,
     transact,
-    closeDialog,
     userTracking,
+    invalidCurveIds.size,
+    closeDialog,
   ]);
 
-  const handleCancel = useCallback(() => {
-    setShowSaveWarning(false);
-    if (hasChanges) {
-      setShowDiscardConfirm(true);
-      return;
-    }
-    closeDialog();
-  }, [hasChanges, closeDialog]);
-
-  const handleDiscard = useCallback(() => {
-    userTracking.capture({ name: "curves.discarded" });
-    closeDialog();
-  }, [userTracking, closeDialog]);
+  const { handleClose, ...actionHandlers } = useDialogActions(
+    unsavedChanges,
+    invalidCurveIds.size,
+    closeDialog,
+    saveChanges,
+  );
 
   return (
-    <DialogContainer size="md" height="lg" onClose={handleCancel}>
+    <DialogContainer size="md" height="lg" onClose={handleClose}>
       <DialogHeader title={translate("pumpLibrary")} />
       <div className="flex-1 flex min-h-0">
         <div className="flex-shrink-0 flex">
@@ -299,67 +274,12 @@ export const PumpLibraryDialog = ({
         </div>
       </div>
       <div className="mt-6 flex flex-row-reverse gap-x-3 items-end h-8">
-        {isSnapshotLocked ? (
-          <Button type="button" onClick={closeDialog}>
-            {translate("close")}
-          </Button>
-        ) : showSaveWarning ? (
-          <>
-            <Button
-              type="button"
-              variant="danger"
-              onClick={handleSave}
-              className="whitespace-nowrap"
-            >
-              {translate("save")}
-            </Button>
-            <Button
-              type="button"
-              onClick={() => setShowSaveWarning(false)}
-              className="whitespace-nowrap"
-            >
-              {translate("keepEditing")}
-            </Button>
-            <span className="text-sm text-gray-600 self-center">
-              {translate("curves.saveInvalid")}
-            </span>
-          </>
-        ) : showDiscardConfirm ? (
-          <>
-            <Button
-              type="button"
-              variant="danger"
-              onClick={handleDiscard}
-              className="whitespace-nowrap"
-            >
-              {translate("discardChanges")}
-            </Button>
-            <Button
-              type="button"
-              onClick={() => setShowDiscardConfirm(false)}
-              className="whitespace-nowrap"
-            >
-              {translate("keepEditing")}
-            </Button>
-            <span className="text-sm text-gray-600 self-center">
-              {translate("discardUnsavedChangesWarning")}
-            </span>
-          </>
-        ) : (
-          <>
-            <Button
-              type="button"
-              variant="primary"
-              onClick={handleSave}
-              disabled={!hasChanges}
-            >
-              {translate("save")}
-            </Button>
-            <Button type="button" onClick={handleCancel}>
-              {translate("cancel")}
-            </Button>
-          </>
-        )}
+        <DialogActions
+          handleClose={handleClose}
+          readOnly={isSnapshotLocked}
+          hasUnsavedChanges={!!unsavedChanges}
+          {...actionHandlers}
+        />
       </div>
     </DialogContainer>
   );
@@ -398,4 +318,24 @@ const EmptyState = ({ readOnly }: { readOnly: boolean }) => {
       )}
     </div>
   );
+};
+
+const createLabelManager = (curves: Curves): LabelManager => {
+  const lm = new LabelManager();
+  for (const curve of curves.values()) {
+    lm.register(curve.label, "curve", curve.id);
+  }
+  return lm;
+};
+
+const isPumpCurveInUse = (
+  hydraulicModel: HydraulicModel,
+  curveId: CurveId,
+): boolean => {
+  for (const asset of hydraulicModel.assets.values()) {
+    if (asset.type === "pump" && (asset as Pump).curveId === curveId) {
+      return true;
+    }
+  }
+  return false;
 };
