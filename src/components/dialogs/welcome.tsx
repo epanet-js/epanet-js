@@ -94,13 +94,14 @@ export const WelcomeDialog = () => {
               <div className="sm:hidden">
                 <SmallDeviceWarning />
               </div>
-              <div className="h-full flex items-start flex-col gap-2">
+              <div className="h-full flex flex-col gap-2">
                 {isMdOrLarger && (
                   <Button
                     variant="quiet"
                     onClick={() => {
                       void createNew({ source: "welcome" });
                     }}
+                    style={{ width: "100%" }}
                   >
                     <FileIcon />
                     {translate("startBlankProject")}
@@ -111,6 +112,7 @@ export const WelcomeDialog = () => {
                   onClick={() => {
                     void openInpFromFs({ source: "welcome" });
                   }}
+                  style={{ width: "100%" }}
                 >
                   <FileSpreadsheetIcon />
                   {translate("openProject")}
@@ -120,6 +122,7 @@ export const WelcomeDialog = () => {
                   onClick={() => {
                     openModelBuilder({ source: "welcome" });
                   }}
+                  style={{ width: "100%" }}
                 >
                   <GlobeIcon />
                   {translate("importFromGIS")}
@@ -136,29 +139,29 @@ export const WelcomeDialog = () => {
                         source: "welcome",
                       });
                     }}
+                    style={{ width: "100%" }}
                   >
-                    <Button variant="quiet">
+                    <Button variant="quiet" style={{ width: "100%" }}>
                       <HelpIcon />
                       {translate("helpCenter")}
                     </Button>
                   </a>
-                  <p className="text-sm">
-                    <a
-                      href={quickStartTutorialUrl}
-                      target="_blank"
-                      onClick={() => {
-                        userTracking.capture({
-                          name: "quickStart.visited",
-                          source: "welcome",
-                        });
-                      }}
-                    >
-                      <Button variant="primary">
-                        <ArrowRightIcon />
-                        {translate("quickStartTutorial")}
-                      </Button>
-                    </a>
-                  </p>
+                  <a
+                    href={quickStartTutorialUrl}
+                    target="_blank"
+                    onClick={() => {
+                      userTracking.capture({
+                        name: "quickStart.visited",
+                        source: "welcome",
+                      });
+                    }}
+                    style={{ width: "100%" }}
+                  >
+                    <Button variant="primary" style={{ width: "100%" }}>
+                      <ArrowRightIcon />
+                      {translate("quickStartTutorial")}
+                    </Button>
+                  </a>
                 </div>
 
                 <div className="flex flex-col gap-2 mt-auto text-xs">
