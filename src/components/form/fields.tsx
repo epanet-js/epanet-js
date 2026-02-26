@@ -4,7 +4,7 @@ import * as C from "@radix-ui/react-collapsible";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import { ChevronDownIcon, ChevronRightIcon } from "src/icons";
 import { FooterResizer, useBigScreen } from "src/components/resizer";
-import { TContent } from "src/components/elements";
+import { TContent, StyledTooltipArrow } from "src/components/elements";
 import { useTranslate } from "src/hooks/use-translate";
 
 const ComparisonTooltip = ({
@@ -23,7 +23,8 @@ const ComparisonTooltip = ({
       <Tooltip.Root delayDuration={200}>
         <Tooltip.Trigger asChild>{children}</Tooltip.Trigger>
         <Tooltip.Portal>
-          <TContent side="left" sideOffset={4}>
+          <TContent side="left" sideOffset={15}>
+            <StyledTooltipArrow />
             {translate("scenarios.main")}: {baseDisplayValue}
           </TContent>
         </Tooltip.Portal>
