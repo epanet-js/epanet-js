@@ -394,8 +394,13 @@ const JunctionEditor = ({
 }) => {
   const translate = useTranslate();
   const { footer } = useQuickGraph(junction.id, "junction");
-  const { getComparison, getDirectDemandComparison, isNew } =
-    useAssetComparison(junction);
+  const {
+    getComparison,
+    getDirectDemandComparison,
+    getCustomerDemandComparison,
+    getCustomerCountComparison,
+    isNew,
+  } = useAssetComparison(junction);
   const simulation = useSimulation();
   const junctionSimulation = simulation?.getJunction(junction.id);
 
@@ -487,13 +492,15 @@ const JunctionEditor = ({
           demandComparator={getDirectDemandComparison}
           readOnly={readonly}
         />
-        {customerCount > 0 && (
+        {(customerCount > 0 ||
+          getCustomerCountComparison(customerCount).hasChanged) && (
           <>
             <QuantityRow
               name="customerDemand"
               value={totalDemand}
               unit={quantitiesMetadata.getUnit("baseDemand")}
               decimals={quantitiesMetadata.getDecimals("baseDemand")}
+              comparison={getCustomerDemandComparison(totalDemand)}
               readOnly={true}
             />
             {!!customerDemandPattern && (
@@ -511,6 +518,7 @@ const JunctionEditor = ({
               customerUnit={quantitiesMetadata.getUnit("customerDemandPerDay")}
               demands={hydraulicModel.demands}
               patterns={hydraulicModel.patterns}
+              comparison={getCustomerCountComparison(customerCount)}
             />
           </>
         )}

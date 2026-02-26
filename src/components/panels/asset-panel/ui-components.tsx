@@ -428,6 +428,7 @@ export const ConnectedCustomersRow = ({
   customerUnit,
   demands,
   patterns,
+  comparison,
 }: {
   customerCount: number;
   customerPoints: CustomerPoint[];
@@ -435,6 +436,7 @@ export const ConnectedCustomersRow = ({
   customerUnit: Unit;
   demands: Demands;
   patterns: Patterns;
+  comparison?: PropertyComparison<number>;
 }) => {
   const translate = useTranslate();
   const [isOpen, setIsOpen] = useState(false);
@@ -454,8 +456,18 @@ export const ConnectedCustomersRow = ({
     }
   };
 
+  const baseDisplayValue =
+    comparison?.hasChanged && comparison.baseValue != null
+      ? String(comparison.baseValue)
+      : undefined;
+
   return (
-    <InlineField name={translate("connectedCustomers")} labelSize="md">
+    <InlineField
+      name={translate("connectedCustomers")}
+      labelSize="md"
+      hasChanged={comparison?.hasChanged}
+      baseDisplayValue={baseDisplayValue}
+    >
       <P.Root
         open={isOpen}
         onOpenChange={(open) => {

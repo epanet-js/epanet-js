@@ -7,8 +7,10 @@ import type { Asset, Patterns, Pump } from "src/hydraulic-model";
 import type { Pattern, PatternId } from "src/hydraulic-model/patterns";
 import {
   calculateAverageDemand,
+  getCustomerPointDemands,
   getJunctionDemands,
 } from "src/hydraulic-model/demands";
+import { getActiveCustomerPoints } from "src/hydraulic-model/customer-points";
 import { CurvePoint, ICurve } from "src/hydraulic-model/curves";
 
 export type PropertyComparison<T = unknown> = {
@@ -124,11 +126,63 @@ export function useAssetComparison(asset: Asset | undefined) {
     };
   };
 
+  const getCustomerDemandComparison = (
+    currentTotalDemand: number,
+  ): PropertyComparison<number> => {
+    if (!isInScenario || !baseAsset || !asset) {
+      return { hasChanged: false };
+    }
+
+    const baseCustomerPoints = getActiveCustomerPoints(
+      baseModel.customerPointsLookup,
+      baseModel.assets,
+      asset.id,
+    );
+
+    const baseTotalDemand = baseCustomerPoints.reduce(
+      (sum, cp) =>
+        sum +
+        calculateAverageDemand(
+          getCustomerPointDemands(baseModel.demands, cp.id),
+          baseModel.patterns,
+        ),
+      0,
+    );
+
+    return {
+      hasChanged: baseTotalDemand !== currentTotalDemand,
+      baseValue: baseTotalDemand,
+    };
+  };
+
+  const getCustomerCountComparison = (
+    currentCount: number,
+  ): PropertyComparison<number> => {
+    if (!isInScenario || !baseAsset || !asset) {
+      return { hasChanged: false };
+    }
+
+    const baseCustomerPoints = getActiveCustomerPoints(
+      baseModel.customerPointsLookup,
+      baseModel.assets,
+      asset.id,
+    );
+
+    const baseCount = baseCustomerPoints.length;
+
+    return {
+      hasChanged: baseCount !== currentCount,
+      baseValue: baseCount,
+    };
+  };
+
   return {
     isInScenario,
     getComparison,
     getPatternComparison,
     getDirectDemandComparison,
+    getCustomerDemandComparison,
+    getCustomerCountComparison,
     getPumpCurveComparison,
     isNew,
   };
