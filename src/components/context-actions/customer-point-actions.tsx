@@ -14,7 +14,9 @@ import {
   connectCustomersShortcut,
   disconnectCustomersShortcut,
 } from "src/commands/customer-point-actions";
-import { ConnectIcon, DisconnectIcon } from "src/icons";
+import { ConnectIcon, DisconnectIcon, DeleteIcon } from "src/icons";
+import { useDeleteSelection } from "src/commands/delete-selection";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export function useCustomerPointActions(
   customerPoint: CustomerPoint | undefined,
@@ -23,6 +25,8 @@ export function useCustomerPointActions(
   const translate = useTranslate();
   const connectCustomerPoints = useConnectCustomerPoints();
   const disconnectCustomerPoints = useDisconnectCustomerPoints();
+  const deleteSelection = useDeleteSelection();
+  const isDeleteCustomerOn = useFeatureFlag("FLAG_DELETE_CUSTOMER");
 
   const isReconnecting = customerPoint?.connection !== null;
 
@@ -60,7 +64,23 @@ export function useCustomerPointActions(
     shortcut: disconnectCustomersShortcut,
   };
 
-  return [connectAction, disconnectAction];
+  const onDelete = useCallback(() => {
+    if (!customerPoint) return Promise.resolve();
+
+    const eventSource = source === "context-item" ? "context-menu" : "toolbar";
+    deleteSelection({ source: eventSource });
+    return Promise.resolve();
+  }, [customerPoint, deleteSelection, source]);
+
+  const deleteAction: Action = {
+    label: translate("delete"),
+    applicable: isDeleteCustomerOn,
+    variant: "danger-quiet",
+    icon: <DeleteIcon />,
+    onSelect: onDelete,
+  };
+
+  return [connectAction, disconnectAction, deleteAction];
 }
 
 export function CustomerPointActions({ as }: { as: ActionProps["as"] }) {
