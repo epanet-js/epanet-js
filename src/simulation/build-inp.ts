@@ -32,11 +32,12 @@ import {
   getCustomerPointDemands,
   getJunctionDemands,
 } from "src/hydraulic-model";
+import { CurveId, ICurve } from "src/hydraulic-model/curves";
 
 type SimulationPipeStatus = "Open" | "Closed" | "CV";
 type SimulationPumpStatus = "Open" | "Closed";
 type SimulationValveStatus = "Open" | "Closed";
-type EpanetValveType = "TCV" | "PRV" | "PSV" | "PBV" | "FCV";
+type EpanetValveType = "TCV" | "PRV" | "PSV" | "PBV" | "FCV" | "GPV" | "PCV";
 
 export type EpanetUnitSystem =
   | "LPS"
@@ -119,6 +120,7 @@ class EpanetIds {
   private nodeIds: Set<string>;
   private patternIds: Map<PatternId, string>;
   private patternLabels: Set<string>;
+  private curveIds: Map<CurveId, string>;
   private curveLabels: Set<string>;
 
   constructor({ strategy }: { strategy: "id" | "label" }) {
@@ -128,6 +130,7 @@ class EpanetIds {
     this.assetIds = new Map();
     this.patternIds = new Map();
     this.patternLabels = new Set();
+    this.curveIds = new Map();
     this.curveLabels = new Set();
   }
 
@@ -157,10 +160,22 @@ class EpanetIds {
     }
   }
 
-  curveId(candidate: string) {
-    const curveId = this.ensureUnique(this.curveLabels, candidate);
-    this.curveLabels.add(curveId);
-    return curveId;
+  registerCurveId(curve: Pick<ICurve, "id" | "label">) {
+    if (this.curveIds.has(curve.id)) return this.curveIds.get(curve.id);
+    const label = this.ensureUnique(this.curveLabels, curve.label);
+    this.curveLabels.add(label);
+    this.curveIds.set(curve.id, label);
+    return label;
+  }
+
+  curveId(curveId: CurveId): string {
+    return this.curveIds.get(curveId) ?? "*";
+  }
+
+  localCurveId(candidate: string) {
+    const label = this.ensureUnique(this.curveLabels, candidate);
+    this.curveLabels.add(label);
+    return label;
   }
 
   registerPatternId(pattern: Pick<Pattern, "id" | "label">) {
@@ -173,7 +188,7 @@ class EpanetIds {
   }
 
   patternId(patternId: PatternId): string {
-    return this.patternIds.get(patternId) ?? String(patternId);
+    return this.patternIds.get(patternId) ?? "*";
   }
 
   private ensureUnique(
@@ -292,11 +307,15 @@ export const buildInp = withDebugInstrumentation(
       rules: ["[RULES]"],
     };
 
-    const usedCurveIds = new Map<number, string>();
+    const usedCurveIds = new Set<number>();
     const usedPatternIds = new Set<number>();
 
     for (const pattern of hydraulicModel.patterns.values()) {
       idMap.registerPatternId(pattern); // Ensure pattern IDs are registered
+    }
+
+    for (const curve of hydraulicModel.curves.values()) {
+      idMap.registerCurveId(curve); // Ensure curve IDs are registered
     }
 
     for (const asset of hydraulicModel.assets.values()) {
@@ -319,6 +338,7 @@ export const buildInp = withDebugInstrumentation(
           idMap,
           opts.geolocation,
           opts.inactiveAssets,
+          usedCurveIds,
           asset as Tank,
           transformCoord,
         );
@@ -373,6 +393,7 @@ export const buildInp = withDebugInstrumentation(
           hydraulicModel,
           opts.geolocation,
           opts.inactiveAssets,
+          usedCurveIds,
           asset as Valve,
           transformCoord,
         );
@@ -501,6 +522,7 @@ const appendTank = (
   idMap: EpanetIds,
   geolocation: boolean,
   inactiveAssets: boolean,
+  usedCurveIds: Set<number>,
   tank: Tank,
   transformCoord: (p: Position) => Position,
 ) => {
@@ -509,7 +531,6 @@ const appendTank = (
   }
 
   const tankId = idMap.nodeId(tank);
-  const nullCurveId = "*";
   const commentPrefix = !tank.isActive ? ";" : "";
 
   sections.tanks.push(
@@ -522,13 +543,14 @@ const appendTank = (
         tank.maxLevel,
         tank.diameter,
         tank.minVolume,
-        nullCurveId,
+        tank.volumeCurveId ? idMap.curveId(tank.volumeCurveId) : "*",
         tank.overflow ? "YES" : "NO",
       ].join("\t"),
   );
   if (geolocation) {
     appendNodeCoordinates(sections, idMap, tank, transformCoord, commentPrefix);
   }
+  if (tank.volumeCurveId) usedCurveIds.add(tank.volumeCurveId);
 };
 
 const appendJunction = (
@@ -661,7 +683,7 @@ const appendPump = (
   hydraulicModel: HydraulicModel,
   geolocation: boolean,
   inactiveAssets: boolean,
-  usedCurveIds: Map<number, string>,
+  usedCurveIds: Set<number>,
   usedPatternIds: Set<number>,
   pump: Pump,
   transformCoord: (p: Position) => Position,
@@ -695,7 +717,7 @@ const appendPump = (
       );
       break;
     case "curve":
-      const localCurveId = idMap.curveId(pump.label);
+      const localCurveId = idMap.localCurveId(pump.label);
       sections.pumps.push(
         commentPrefix +
           [
@@ -715,14 +737,8 @@ const appendPump = (
       );
       break;
     case "curveId":
-      const curve = hydraulicModel.curves.get(pump.curveId!)!;
-      let curveId = curve.label;
-      if (usedCurveIds.has(curve.id)) {
-        curveId = usedCurveIds.get(curve.id)!;
-      } else {
-        curveId = idMap.curveId(curve.label);
-        usedCurveIds.set(curve.id, curveId);
-      }
+      const curveId = pump.curveId ? idMap.curveId(pump.curveId) : "";
+
       sections.pumps.push(
         [
           linkId,
@@ -733,7 +749,7 @@ const appendPump = (
           ...speedPatternParts,
         ].join("\t"),
       );
-      usedCurveIds.set(curve.id, curveId);
+      if (pump.curveId) usedCurveIds.add(pump.curveId);
   }
 
   sections.status.push(
@@ -750,6 +766,7 @@ const appendValve = (
   hydraulicModel: HydraulicModel,
   geolocation: boolean,
   inactiveAssets: boolean,
+  usedCurveIds: Set<number>,
   valve: Valve,
   transformCoord: (p: Position) => Position,
 ) => {
@@ -759,18 +776,22 @@ const appendValve = (
 
   const linkId = idMap.linkId(valve);
   const commentPrefix = !valve.isActive ? ";" : "";
+  const valveCurveId = valve.curveId ? idMap.curveId(valve.curveId) : "*";
 
-  sections.valves.push(
-    commentPrefix +
-      [
-        linkId,
-        ...getLinkConnectionIds(hydraulicModel, idMap, valve),
-        String(valve.diameter),
-        kindFor(valve),
-        String(valve.setting),
-        String(valve.minorLoss),
-      ].join("\t"),
-  );
+  const valveData = [
+    linkId,
+    ...getLinkConnectionIds(hydraulicModel, idMap, valve),
+    String(valve.diameter),
+    kindFor(valve),
+    valve.kind === "gpv" ? valveCurveId : String(valve.setting),
+    String(valve.minorLoss),
+  ];
+  if (valve.kind === "pcv") {
+    valveData.push(valveCurveId);
+  }
+  if (valve.curveId) usedCurveIds.add(valve.curveId);
+
+  sections.valves.push(commentPrefix + valveData.join("\t"));
 
   if (valve.initialStatus !== "active") {
     const fixedStatus = valveFixedStatusFor(valve);
@@ -899,13 +920,13 @@ const CURVE_TYPE_TO_KEYWORD: Record<string, string> = {
 const appendCurves = (
   sections: InpSections,
   curves: HydraulicModel["curves"],
-  usedCurveIds: Map<number, string>,
+  usedCurveIds: Set<number>,
   idMap: EpanetIds,
   usedCurvesOnly: boolean,
 ) => {
   for (const curve of curves.values()) {
     if (usedCurvesOnly && !usedCurveIds.has(curve.id)) continue;
-    const curveId = usedCurveIds.get(curve.id) ?? idMap.curveId(curve.label);
+    const curveId = idMap.registerCurveId(curve);
     const keyword = curve.type ? CURVE_TYPE_TO_KEYWORD[curve.type] : undefined;
     if (keyword) sections.curves.push(`;${keyword}:`);
     for (const point of curve.points) {

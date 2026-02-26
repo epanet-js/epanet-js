@@ -16,6 +16,7 @@ export type ParseInpOptions = {
   customerPoints?: boolean;
   inactiveAssets?: boolean;
   sourceProjection?: Projection;
+  allCurves?: boolean;
 };
 
 export const parseInp = (

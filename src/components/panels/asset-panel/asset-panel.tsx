@@ -50,7 +50,9 @@ import {
   ValveKind,
   ValveStatus,
   valveKinds,
+  selectableValveKinds,
 } from "src/hydraulic-model/asset-types/valve";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   AssetEditorContent,
   QuantityRow,
@@ -1009,6 +1011,7 @@ const ValveEditor = ({
   onLabelChange: (newLabel: string) => string | undefined;
   readonly?: boolean;
 }) => {
+  const allCurves = useFeatureFlag("FLAG_ALL_CURVES");
   const translate = useTranslate();
   const { footer } = useQuickGraph(valve.id, "valve");
   const { getComparison, isNew } = useAssetComparison(valve);
@@ -1029,14 +1032,24 @@ const ValveEditor = ({
   }, [translate]);
 
   const kindOptions = useMemo(() => {
-    return valveKinds.map((kind) => {
-      return {
-        label: kind.toUpperCase(),
-        description: translate(`valve.${kind}.detailed`),
-        value: kind,
-      };
-    });
-  }, [translate]);
+    const kinds = allCurves ? valveKinds : selectableValveKinds;
+    const options: { label: string; description: string; value: ValveKind }[] =
+      kinds.map((kind) => {
+        return {
+          label: kind.toUpperCase(),
+          description: translate(`valve.${kind}.detailed`),
+          value: kind,
+        };
+      });
+    if (!kinds.includes(valve.kind as any)) {
+      options.push({
+        label: valve.kind.toUpperCase(),
+        description: translate(`valve.${valve.kind}.detailed`),
+        value: valve.kind,
+      });
+    }
+    return options;
+  }, [translate, valve.kind, allCurves]);
 
   const handleKindChange = (
     name: string,

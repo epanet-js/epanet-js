@@ -212,11 +212,11 @@ describe("build inp with pumps and curves", () => {
       const inp = buildInp(hydraulicModel, { labelIds: true });
 
       expect(inp).toContain("[PUMPS]");
-      expect(inp).toContain("PU1\tJ1\tJ2\tHEAD PU1\tSPEED 0.8");
-      expect(inp).toContain("PU2\tJ1\tJ2\tHEAD PU1.1\tSPEED 0.8");
+      expect(inp).toContain("PU1\tJ1\tJ2\tHEAD PU1.1\tSPEED 0.8");
+      expect(inp).toContain("PU2\tJ1\tJ2\tHEAD PU1\tSPEED 0.8");
       // Pump curve definition
-      expect(inp).toContain("PU1\t20\t40");
-      expect(inp).toContain("PU1.1\t40\t60");
+      expect(inp).toContain("PU1.1\t20\t40");
+      expect(inp).toContain("PU1\t40\t60");
     });
 
     it("keeps curve ID when curve is used by multiple pumps", () => {

@@ -1,3 +1,4 @@
+import { CurveId } from "../curves";
 import { Link, LinkProperties } from "./link";
 import { Unit } from "src/quantity";
 
@@ -7,7 +8,22 @@ export type ValveStatusWarning =
   | "cannot-deliver-flow"
   | "cannot-deliver-pressure";
 
-export const valveKinds = ["prv", "psv", "fcv", "pbv", "tcv"] as const;
+export const valveKinds = [
+  "prv",
+  "psv",
+  "fcv",
+  "pbv",
+  "tcv",
+  "gpv",
+  "pcv",
+] as const;
+export const selectableValveKinds = [
+  "prv",
+  "psv",
+  "fcv",
+  "pbv",
+  "tcv",
+] as const;
 export const controlKinds = ["prv", "psv", "fcv", "pbv"];
 export type ValveKind = (typeof valveKinds)[number];
 
@@ -18,6 +34,7 @@ export type ValveProperties = {
   kind: ValveKind;
   setting: number;
   initialStatus: ValveStatus;
+  curveId?: CurveId;
 } & LinkProperties;
 
 export const valveQuantities = ["diameter", "minorLoss", "setting"];
@@ -46,6 +63,10 @@ export class Valve extends Link<ValveProperties> {
 
   get initialStatus() {
     return this.properties.initialStatus;
+  }
+
+  get curveId() {
+    return this.properties.curveId;
   }
 
   copy() {

@@ -125,8 +125,10 @@ export const buildModel = (
     });
   }
 
+  const allCurves = options?.allCurves ?? false;
+
   for (const tankData of inpData.tanks) {
-    addTank(hydraulicModel, tankData, curvesContext, {
+    addTank(hydraulicModel, tankData, curvesContext, allCurves, {
       inpData,
       issues,
       nodeIds,
@@ -143,7 +145,7 @@ export const buildModel = (
   }
 
   for (const valveData of inpData.valves) {
-    addValve(hydraulicModel, valveData, curvesContext, {
+    addValve(hydraulicModel, valveData, curvesContext, allCurves, {
       inpData,
       issues,
       nodeIds,
@@ -437,6 +439,7 @@ const addTank = (
   hydraulicModel: HydraulicModel,
   tankData: TankData,
   curvesContext: CurvesContext,
+  allCurves: boolean,
   {
     inpData,
     issues,
@@ -450,6 +453,18 @@ const addTank = (
   const coordinates = getNodeCoordinates(inpData, tankData.id, issues);
   if (!coordinates) return;
 
+  let volumeCurveId: CurveId | undefined = undefined;
+  if (tankData.volumeCurveId) {
+    const curveId = curvesContext.labelManager.getIdByLabel(
+      tankData.volumeCurveId,
+      "curve",
+    );
+    if (curveId !== undefined) {
+      if (allCurves) volumeCurveId = curveId;
+      markCurveUsed(curvesContext, curveId, "volume");
+    }
+  }
+
   const tank = hydraulicModel.assetBuilder.buildTank({
     label: tankData.id,
     coordinates,
@@ -460,20 +475,11 @@ const addTank = (
     diameter: tankData.diameter,
     minVolume: tankData.minVolume,
     overflow: tankData.overflow ?? false,
+    volumeCurveId,
     isActive: tankData.isActive,
   });
   hydraulicModel.assets.set(tank.id, tank);
   nodeIds.set(tankData.id, tank.id);
-
-  if (tankData.volumeCurveId) {
-    const curveId = curvesContext.labelManager.getIdByLabel(
-      tankData.volumeCurveId,
-      "curve",
-    );
-    if (curveId !== undefined) {
-      markCurveUsed(curvesContext, curveId, "volume");
-    }
-  }
 };
 
 const addPump = (
@@ -591,6 +597,7 @@ const addValve = (
   hydraulicModel: HydraulicModel,
   valveData: ValveData,
   curvesContext: CurvesContext,
+  allCurves: boolean,
   {
     inpData,
     issues,
@@ -613,40 +620,36 @@ const addValve = (
     initialStatus = statusValue === "CLOSED" ? "closed" : "open";
   }
 
-  const valve = hydraulicModel.assetBuilder.buildValve({
-    label: valveData.id,
-    diameter: valveData.diameter,
-    minorLoss: valveData.minorLoss,
-    kind: valveData.kind,
-    setting: valveData.setting,
-    initialStatus,
-    connections,
-    coordinates,
-    isActive: valveData.isActive,
-  });
-  hydraulicModel.assets.set(valve.id, valve);
-  hydraulicModel.topology.addLink(valve.id, connections[0], connections[1]);
-  linkIds.set(valveData.id, valve.id);
-
+  let resolvedCurveId: CurveId | undefined;
   if (valveData.curveId) {
     const curveId = curvesContext.labelManager.getIdByLabel(
       valveData.curveId,
       "curve",
     );
     if (curveId !== undefined) {
-      markCurveUsed(curvesContext, curveId, "valve");
+      if (allCurves) resolvedCurveId = curveId;
+      const curveType = valveData.kind === "pcv" ? "valve" : "headloss";
+      markCurveUsed(curvesContext, curveId, curveType);
     }
   }
+  const valveKind =
+    allCurves || valveData.kind !== "gpv" ? valveData.kind : "tcv";
 
-  if (valveData.headlossCurveId) {
-    const curveId = curvesContext.labelManager.getIdByLabel(
-      valveData.headlossCurveId,
-      "curve",
-    );
-    if (curveId !== undefined) {
-      markCurveUsed(curvesContext, curveId, "headloss");
-    }
-  }
+  const valve = hydraulicModel.assetBuilder.buildValve({
+    label: valveData.id,
+    diameter: valveData.diameter,
+    minorLoss: valveData.minorLoss,
+    kind: valveKind,
+    setting: valveKind === "gpv" ? undefined : valveData.setting,
+    initialStatus,
+    connections,
+    coordinates,
+    isActive: valveData.isActive,
+    curveId: resolvedCurveId,
+  });
+  hydraulicModel.assets.set(valve.id, valve);
+  hydraulicModel.topology.addLink(valve.id, connections[0], connections[1]);
+  linkIds.set(valveData.id, valve.id);
 };
 
 const addPipe = (

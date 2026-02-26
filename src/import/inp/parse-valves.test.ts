@@ -148,4 +148,106 @@ describe("parse valves", () => {
     const v1 = getByLabel(hydraulicModel.assets, "v1") as Valve;
     expect(v1.kind).toEqual("tcv");
   });
+
+  it("keeps GPV kind and stores curveId when allCurves is true", () => {
+    const inp = `
+    [JUNCTIONS]
+    j1\t10
+    j2\t10
+
+    [VALVES]
+    v1\tj1\tj2\t100\tGPV\tHL_CURVE\t0
+
+    [CURVES]
+    HL_CURVE\t0\t0
+    HL_CURVE\t100\t10
+
+    [COORDINATES]
+    j1\t10\t20
+    j2\t30\t40
+    `;
+
+    const { issues, hydraulicModel } = parseInp(inp, { allCurves: true });
+
+    const v1 = getByLabel(hydraulicModel.assets, "v1") as Valve;
+    expect(v1.kind).toEqual("gpv");
+    expect(v1.curveId).toBeDefined();
+    expect(issues?.gpvValves).toBeFalsy();
+  });
+
+  it("converts GPV to TCV and does not store curveId when allCurves is false", () => {
+    const inp = `
+    [JUNCTIONS]
+    j1\t10
+    j2\t10
+
+    [VALVES]
+    v1\tj1\tj2\t100\tGPV\tHL_CURVE\t0
+
+    [CURVES]
+    HL_CURVE\t0\t0
+    HL_CURVE\t100\t10
+
+    [COORDINATES]
+    j1\t10\t20
+    j2\t30\t40
+    `;
+
+    const { hydraulicModel } = parseInp(inp);
+
+    const v1 = getByLabel(hydraulicModel.assets, "v1") as Valve;
+    expect(v1.kind).toEqual("tcv");
+    expect(v1.curveId).toBeUndefined();
+  });
+
+  it("stores curveId on PCV valve when allCurves is true", () => {
+    const inp = `
+    [JUNCTIONS]
+    j1\t10
+    j2\t10
+
+    [VALVES]
+    v1\tj1\tj2\t100\tPCV\t50\t0\tPCV_CURVE
+
+    [CURVES]
+    PCV_CURVE\t0\t0
+    PCV_CURVE\t50\t60
+
+    [COORDINATES]
+    j1\t10\t20
+    j2\t30\t40
+    `;
+
+    const { issues, hydraulicModel } = parseInp(inp, { allCurves: true });
+
+    const v1 = getByLabel(hydraulicModel.assets, "v1") as Valve;
+    expect(v1.kind).toEqual("pcv");
+    expect(v1.curveId).toBeDefined();
+    expect(issues?.hasPCVCurves).toBeFalsy();
+  });
+
+  it("does not store curveId on PCV valve when allCurves is false", () => {
+    const inp = `
+    [JUNCTIONS]
+    j1\t10
+    j2\t10
+
+    [VALVES]
+    v1\tj1\tj2\t100\tPCV\t50\t0\tPCV_CURVE
+
+    [CURVES]
+    PCV_CURVE\t0\t0
+    PCV_CURVE\t50\t60
+
+    [COORDINATES]
+    j1\t10\t20
+    j2\t30\t40
+    `;
+
+    const { issues, hydraulicModel } = parseInp(inp);
+
+    const v1 = getByLabel(hydraulicModel.assets, "v1") as Valve;
+    expect(v1.curveId).toBeUndefined();
+    expect(issues?.hasPCVCurves).toBe(1);
+  });
 });

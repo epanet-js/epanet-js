@@ -1,3 +1,4 @@
+import { CurveId } from "../curves";
 import { Node, NodeProperties } from "./node";
 
 export type TankProperties = {
@@ -8,6 +9,7 @@ export type TankProperties = {
   minVolume: number;
   diameter: number;
   overflow: boolean;
+  volumeCurveId?: CurveId;
 } & NodeProperties;
 
 export const tankQuantities = [
@@ -62,5 +64,9 @@ export class Tank extends Node<TankProperties> {
 
   get overflow() {
     return this.properties.overflow;
+  }
+
+  get volumeCurveId() {
+    return this.properties.volumeCurveId;
   }
 }

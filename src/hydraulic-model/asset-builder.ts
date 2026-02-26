@@ -54,6 +54,7 @@ export type ValveBuildData = {
   setting?: number;
   initialStatus?: ValveStatus;
   isActive?: boolean;
+  curveId?: CurveId;
 };
 
 export type ReservoirBuildData = {
@@ -79,6 +80,7 @@ export type TankBuildData = {
   diameter?: number;
   overflow?: boolean;
   isActive?: boolean;
+  volumeCurveId?: CurveId;
 };
 
 import { UnitsSpec } from "src/model-metadata/quantities-spec";
@@ -180,6 +182,7 @@ export class AssetBuilder {
     setting,
     initialStatus = "active",
     isActive = true,
+    curveId,
   }: ValveBuildData = {}) {
     const internalId = id ?? this._idGenerator.newId();
     return new Valve(
@@ -199,6 +202,7 @@ export class AssetBuilder {
         setting: this.getValveSetting(kind, setting),
         initialStatus,
         isActive,
+        curveId,
       },
       this.units,
     );
@@ -329,6 +333,7 @@ export class AssetBuilder {
     diameter,
     overflow,
     isActive = true,
+    volumeCurveId,
   }: TankBuildData = {}) {
     const internalId = id ?? this._idGenerator.newId();
     return new Tank(
@@ -346,6 +351,7 @@ export class AssetBuilder {
         maxLevel: this.getTankValue("maxLevel", maxLevel),
         minVolume: this.getTankValue("minVolume", minVolume),
         diameter: this.getTankValue("diameter", diameter),
+        volumeCurveId,
         overflow: overflow ?? false,
         isActive,
       },

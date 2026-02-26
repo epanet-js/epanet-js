@@ -69,7 +69,6 @@ export type ValveData = {
   setting: number;
   minorLoss: number;
   curveId?: string;
-  headlossCurveId?: string;
   isActive: boolean;
 };
 

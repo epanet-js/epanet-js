@@ -80,6 +80,64 @@ describe("parse tanks", () => {
     expect(issues?.hasTankCurves).toBe(1);
   });
 
+  it("stores volumeCurveId on tank when allCurves is true", () => {
+    const inp = `
+    [TANKS]
+    T1    100     15       5       25     120   0       VC1
+
+    [CURVES]
+    VC1\t0\t0
+    VC1\t10\t500
+
+    [COORDINATES]
+    T1\t10\t20
+    `;
+
+    const { hydraulicModel } = parseInp(inp, { allCurves: true });
+
+    const tank = getByLabel(hydraulicModel.assets, "T1") as Tank;
+    expect(tank.volumeCurveId).toBeDefined();
+    const curve = hydraulicModel.curves.get(tank.volumeCurveId!)!;
+    expect(curve.type).toBe("volume");
+  });
+
+  it("does not store volumeCurveId on tank when allCurves is false", () => {
+    const inp = `
+    [TANKS]
+    T1    100     15       5       25     120   0       VC1
+
+    [CURVES]
+    VC1\t0\t0
+    VC1\t10\t500
+
+    [COORDINATES]
+    T1\t10\t20
+    `;
+
+    const { hydraulicModel } = parseInp(inp);
+
+    const tank = getByLabel(hydraulicModel.assets, "T1") as Tank;
+    expect(tank.volumeCurveId).toBeUndefined();
+  });
+
+  it("does not report tank curve issue when allCurves is true", () => {
+    const inp = `
+    [TANKS]
+    T1    100     15       5       25     120   0       VC1
+
+    [CURVES]
+    VC1\t0\t0
+    VC1\t10\t500
+
+    [COORDINATES]
+    T1\t10\t20
+    `;
+
+    const { issues } = parseInp(inp, { allCurves: true });
+
+    expect(issues?.hasTankCurves).toBeFalsy();
+  });
+
   it("does not register CURVES section when tank uses asterisk placeholder", () => {
     const lat = 10;
     const lng = -10;
