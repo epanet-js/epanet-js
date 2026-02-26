@@ -54,6 +54,7 @@ import {
   buildCustomerPointsHighlightOverlay,
   buildCustomerPointsSelectionOverlay,
   buildConnectCustomerPointsPreviewOverlay,
+  buildMovingCustomerPointOverlay,
   updateCustomerPointsOverlayVisibility,
 } from "./overlays/customer-points";
 import { CustomerPoints } from "src/hydraulic-model/customer-points";
@@ -345,16 +346,33 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           );
         }
 
+        const movingCustomerPointId =
+          mapState.ephemeralState.type === "moveCustomerPoint"
+            ? mapState.ephemeralState.customerPoint.id
+            : null;
+        const prevMovingCustomerPointId =
+          previousMapState.ephemeralState.type === "moveCustomerPoint"
+            ? previousMapState.ephemeralState.customerPoint.id
+            : null;
+        const customerPointExclusionChanged =
+          movingCustomerPointId !== prevMovingCustomerPointId;
+
         if (
           hasNewImport ||
           hasNewEditions ||
           hasNewStyles ||
-          hasNewCustomerPoints
+          hasNewCustomerPoints ||
+          customerPointExclusionChanged
         ) {
+          const excludedCustomerPointIds = movingCustomerPointId
+            ? new Set([movingCustomerPointId])
+            : undefined;
+
           customerPointsOverlayRef.current = buildCustomerPointsOverlay(
             hydraulicModel.customerPoints,
             assets,
             mapState.currentZoom,
+            excludedCustomerPointIds,
           );
         }
 
@@ -390,7 +408,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           );
         }
 
-        if (hasNewSelection) {
+        if (hasNewSelection || hasNewCustomerPoints) {
           selectionDeckLayersRef.current =
             buildSelectionOverlayForCustomerPoints(
               mapState.selection,
@@ -460,11 +478,17 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           const isCustomerPointsVisible =
             mapState.symbology.customerPoints.visible;
 
+          const shouldHideSelectionDuringMove =
+            mapState.ephemeralState.type === "moveCustomerPoint" &&
+            mapState.ephemeralState.moveActivated;
+
           const combinedOverlay = [
             ...(shouldHideCustomerPointsOverlay || !isCustomerPointsVisible
               ? []
               : customerPointsOverlayRef.current),
-            ...selectionDeckLayersRef.current,
+            ...(shouldHideSelectionDuringMove
+              ? []
+              : selectionDeckLayersRef.current),
             ...ephemeralDeckLayersRef.current,
           ];
           map.setOverlay(combinedOverlay);
@@ -783,6 +807,8 @@ const getMovedAssets = (
         : noMoved;
     case "drawNode":
       return noMoved;
+    case "moveCustomerPoint":
+      return noMoved;
     case "customerPointsHighlight":
       return noMoved;
     case "connectCustomerPoints":
@@ -810,6 +836,8 @@ const buildCustomerPointsEphemeralOverlay = (
       zoom,
       "highlight",
     );
+  } else if (ephemeralState.type === "moveCustomerPoint") {
+    return buildMovingCustomerPointOverlay(ephemeralState, zoom);
   }
   return [];
 };

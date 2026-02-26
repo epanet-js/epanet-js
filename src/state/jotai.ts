@@ -344,6 +344,14 @@ export interface EphemeralDragState {
 export type CursorValue = React.CSSProperties["cursor"];
 export const cursorStyleAtom = atom<CursorValue>("default");
 
+export type EphemeralMoveCustomerPoint = {
+  type: "moveCustomerPoint";
+  customerPoint: CustomerPoint;
+  movedCoordinates: Position;
+  startPoint?: { x: number; y: number };
+  moveActivated: boolean;
+};
+
 export type EphemeralCustomerPointsHighlight = {
   type: "customerPointsHighlight";
   customerPoints: CustomerPoint[];
@@ -361,6 +369,7 @@ export type EphemeralEditingState =
   | EphemeralDrawLink
   | EphemeralDrawNode
   | EphemeralMoveAssets
+  | EphemeralMoveCustomerPoint
   | EphemeralCustomerPointsHighlight
   | EphemeralConnectCustomerPoints
   | EphemeralEditingStateAreaSelection

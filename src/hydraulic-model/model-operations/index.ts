@@ -17,3 +17,4 @@ export { changeDemandMultiplier } from "./change-demand-multiplier";
 export { changePatterns } from "./change-patterns";
 export { changeDemandAssignment } from "./change-demand-assignment";
 export { removeCustomerPoints } from "./remove-customer-points";
+export { moveCustomerPoint } from "./move-customer-point";

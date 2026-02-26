@@ -9,15 +9,21 @@ import { searchNearbyRenderedFeatures } from "src/map/search";
 import { clickableLayers } from "src/map/layers/layer";
 
 import { getNode } from "src/hydraulic-model";
-import { moveNode, mergeNodes } from "src/hydraulic-model/model-operations";
+import {
+  moveNode,
+  mergeNodes,
+  moveCustomerPoint,
+} from "src/hydraulic-model/model-operations";
 import { nodesShareLink } from "src/hydraulic-model/topology";
 import { useMoveState } from "./move-state";
+import { useCustomerPointMoveState } from "./customer-point-move-state";
 import noop from "lodash/noop";
 import { useElevations } from "src/map/elevations/use-elevations";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import { useSnapping } from "../hooks/use-snapping";
 import throttle from "lodash/throttle";
 import { useClickedAsset } from "../utils";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 const stateUpdateTime = 16;
 
@@ -73,6 +79,15 @@ export function useNoneHandlers({
   );
   const transact = rep.useTransact();
   const { findSnappingCandidate } = useSnapping(map, hydraulicModel.assets);
+  const isMoveCustomerOn = useFeatureFlag("FLAG_MOVE_CUSTOMER");
+  const {
+    setStartPoint: setCustomerPointStartPoint,
+    startPoint: customerPointStartPoint,
+    updateMove: updateCustomerPointMove,
+    resetMove: resetCustomerPointMove,
+    isMovingCustomerPoint,
+    moveActivated: customerPointMoveActivated,
+  } = useCustomerPointMoveState();
 
   const fastMovePointer = (point: mapboxgl.Point) => {
     if (!map) return;
@@ -130,28 +145,69 @@ export function useNoneHandlers({
   const handlers: Handlers = {
     double: noop,
     down: (e) => {
-      if (selection.type !== "single") {
-        return skipMove(e);
-      }
+      if (selection.type === "single") {
+        const [assetId] = getSelectionIds();
+        const clickedAsset = getClickedAsset(e);
+        if (!clickedAsset || clickedAsset.id !== assetId) {
+          return;
+        }
 
-      const [assetId] = getSelectionIds();
-      const clickedAsset = getClickedAsset(e);
-      if (!clickedAsset || clickedAsset.id !== assetId) {
+        e.preventDefault();
+        const node = getNode(hydraulicModel.assets, assetId);
+        if (!node) return;
+
+        setStartPoint(e.point);
+        if (!readonly) {
+          setCursor("move");
+        }
         return;
       }
 
-      e.preventDefault();
-      const node = getNode(hydraulicModel.assets, assetId);
-      if (!node) return;
+      if (isMoveCustomerOn && selection.type === "singleCustomerPoint") {
+        const clickedCustomerPoint = getClickedCustomerPoint(e);
+        if (!clickedCustomerPoint || clickedCustomerPoint.id !== selection.id) {
+          return;
+        }
 
-      setStartPoint(e.point);
-      if (!readonly) {
-        setCursor("move");
+        e.preventDefault();
+        setCustomerPointStartPoint(clickedCustomerPoint, e.point);
+        if (!readonly) {
+          setCursor("move");
+        }
+        return;
       }
+
+      return skipMove(e);
     },
     move: throttle(
       (e: mapboxgl.MapMouseEvent | mapboxgl.MapTouchEvent) => {
         e.preventDefault();
+
+        if (isMovingCustomerPoint) {
+          if (readonly) {
+            setCursor("not-allowed");
+            return;
+          }
+
+          const newCoordinates = getMapCoord(e);
+
+          if (!customerPointMoveActivated) {
+            const significant =
+              customerPointStartPoint &&
+              isMovementSignificant(
+                e.point,
+                customerPointStartPoint as mapboxgl.Point,
+              );
+            if (!significant) {
+              return;
+            }
+          }
+
+          setCursor("move");
+          updateCustomerPointMove(newCoordinates);
+          return;
+        }
+
         if (selection.type !== "single" || !isMoving || isCommitting) {
           return skipMove(e);
         }
@@ -238,10 +294,28 @@ export function useNoneHandlers({
     up: (e) => {
       if (readonly) {
         resetMove();
+        resetCustomerPointMove();
         return;
       }
 
       e.preventDefault();
+
+      if (isMovingCustomerPoint) {
+        if (
+          customerPointMoveActivated &&
+          selection.type === "singleCustomerPoint"
+        ) {
+          const newCoordinates = getMapCoord(e);
+          const moment = moveCustomerPoint(hydraulicModel, {
+            customerPointId: selection.id,
+            newCoordinates,
+          });
+          transact(moment);
+        }
+        resetCustomerPointMove();
+        return;
+      }
+
       if (selection.type !== "single" || !isMoving) {
         return skipMove(e);
       }
@@ -354,8 +428,11 @@ export function useNoneHandlers({
     exit() {
       if (isMoving) {
         resetMove();
+      } else if (isMovingCustomerPoint) {
+        resetCustomerPointMove();
       } else {
         resetMove();
+        resetCustomerPointMove();
         clearSelection();
       }
     },

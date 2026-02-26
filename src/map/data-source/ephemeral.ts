@@ -32,6 +32,10 @@ export const buildEphemeralStateSource = (
     return buildConnectCustomerPointsSourceData(ephemeralState, assets);
   }
 
+  if (ephemeralState.type === "moveCustomerPoint") {
+    return [];
+  }
+
   if (ephemeralState.type === "areaSelect") {
     return buildAreaSelectionSourceData(ephemeralState);
   }

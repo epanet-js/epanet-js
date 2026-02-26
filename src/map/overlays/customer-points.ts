@@ -9,6 +9,7 @@ import { colors } from "src/lib/constants";
 import { Position } from "src/types";
 import { AssetsMap } from "src/hydraulic-model";
 import { Pipe } from "src/hydraulic-model/asset-types/pipe";
+import { EphemeralMoveCustomerPoint } from "src/state/jotai";
 
 interface ConnectionLineData {
   sourcePosition: [number, number];
@@ -336,4 +337,82 @@ export const buildConnectCustomerPointsPreviewOverlay = (
   });
 
   return [previewConnectionLinesLayer, highlightCustomerPointsLayer];
+};
+
+export const buildMovingCustomerPointOverlay = (
+  ephemeralState: EphemeralMoveCustomerPoint,
+  zoom: number,
+): CustomerPointsOverlay => {
+  const isVisible = shouldShowOvelay(zoom);
+  const layers: CustomerPointsOverlay = [];
+
+  const snapPosition = ephemeralState.customerPoint.snapPosition;
+  if (snapPosition) {
+    const connectionLineData: ConnectionLineData[] = [
+      {
+        sourcePosition: ephemeralState.movedCoordinates as [number, number],
+        targetPosition: snapPosition as [number, number],
+        customerPointId: ephemeralState.customerPoint.id,
+      },
+    ];
+
+    layers.push(
+      new LineLayer({
+        id: "moving-customer-connection-line-layer",
+        beforeId: "main-features-pipes",
+        data: connectionLineData,
+        getSourcePosition: (d: ConnectionLineData) => d.sourcePosition,
+        getTargetPosition: (d: ConnectionLineData) => d.targetPosition,
+        widthUnits: "meters",
+        getWidth: 0.8,
+        widthMinPixels: 0,
+        widthMaxPixels: 2,
+        getColor: connectionLineColor,
+        antialiasing: true,
+        visible: isVisible,
+      }),
+    );
+  }
+
+  layers.push(
+    new ScatterplotLayer({
+      id: "moving-customer-point-halo-layer",
+      beforeId: "ephemeral-junction-highlight",
+      data: [{ coordinates: ephemeralState.movedCoordinates }],
+      getPosition: (d: { coordinates: Position }) =>
+        d.coordinates as [number, number],
+      radiusUnits: "meters",
+      getRadius: 3,
+      radiusMinPixels: 0,
+      radiusMaxPixels: 6,
+      getFillColor: selectionHaloFillColor,
+      antialiasing: true,
+      visible: isVisible,
+    }),
+  );
+
+  layers.push(
+    new ScatterplotLayer({
+      id: "moving-customer-point-layer",
+      beforeId: "ephemeral-junction-highlight",
+      data: [{ coordinates: ephemeralState.movedCoordinates }],
+      getPosition: (d: { coordinates: Position }) =>
+        d.coordinates as [number, number],
+      radiusUnits: "meters",
+      getRadius: 1.5,
+      radiusMinPixels: 0,
+      radiusMaxPixels: 4,
+      getFillColor: selectionFillColor,
+      stroked: true,
+      getLineColor: selectionHaloFillColor,
+      getLineWidth: 1,
+      lineWidthUnits: "pixels",
+      lineWidthMinPixels: 1,
+      lineWidthMaxPixels: 2,
+      antialiasing: true,
+      visible: isVisible,
+    }),
+  );
+
+  return layers;
 };
