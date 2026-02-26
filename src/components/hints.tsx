@@ -15,6 +15,7 @@ import { localizeKeybinding } from "src/infra/i18n";
 import { useTranslate } from "src/hooks/use-translate";
 import { symbologyAtom } from "src/state/symbology";
 import { useIsSnapshotLocked } from "src/hooks/use-is-snapshot-locked";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { PropsWithChildren } from "react";
 
 export const tipLike = `
@@ -96,6 +97,7 @@ export function Hints() {
   const ephemeralState = useAtomValue(ephemeralStateAtom);
   const show = useBreakpoint("lg");
   const isSnapshotLocked = useIsSnapshotLocked();
+  const isMoveCustomerOn = useFeatureFlag("FLAG_MOVE_CUSTOMER");
 
   if (!show || !!dialogState) {
     return null;
@@ -155,6 +157,18 @@ export function Hints() {
             />
           );
         }
+      }
+      if (
+        isMoveCustomerOn &&
+        selection.type === "singleCustomerPoint" &&
+        !isSnapshotLocked
+      ) {
+        return (
+          <Hint
+            hintId={"DRAG_CUSTOMER_POINT"}
+            text={translate("onboardingMoveCustomerPoint")}
+          />
+        );
       }
       break;
     }
