@@ -221,16 +221,22 @@ const QuickGraphSection = ({
         {pinButton}
       </div>
       <div className="w-max pb-2">
-        <Selector
-          options={propertyOptions}
-          selected={selectedProperty}
-          onChange={handlePropertyChange}
-          styleOptions={{
-            border: true,
-            textSize: "text-sm",
-            paddingY: 1,
-          }}
-        />
+        {propertyOptions.length > 1 ? (
+          <Selector
+            options={propertyOptions}
+            selected={selectedProperty}
+            onChange={handlePropertyChange}
+            styleOptions={{
+              border: true,
+              textSize: "text-sm",
+              paddingY: 1,
+            }}
+          />
+        ) : (
+          <span className="text-sm text-gray-700 py-1">
+            {propertyOptions[0]?.label}
+          </span>
+        )}
       </div>
 
       <div className="relative flex-1 min-h-[120px]">
