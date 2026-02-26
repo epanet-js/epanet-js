@@ -8,7 +8,7 @@ import {
   nullSelection,
   setInitialState,
 } from "src/__helpers__/state";
-import { useDeleteSelectedAssets } from "./delete-selected-assets";
+import { useDeleteSelection } from "./delete-selection";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
 
@@ -81,7 +81,7 @@ describe("delete selected", () => {
   };
 
   const TestableComponent = () => {
-    const deleteAssets = useDeleteSelectedAssets();
+    const deleteAssets = useDeleteSelection();
 
     return (
       <button

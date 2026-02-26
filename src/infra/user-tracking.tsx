@@ -612,6 +612,12 @@ type CustomerPointsDisconnected = {
   source: string;
 };
 
+type CustomerPointsRemoved = {
+  name: "customerPointActions.removed";
+  count: number;
+  source: string;
+};
+
 type CustomerPointsConnectedCompleted = {
   name: "customerPoints.connected";
   count: number;
@@ -884,6 +890,7 @@ export type UserEvent =
   | CustomerPointsConnectStarted
   | CustomerPointsReconnectStarted
   | CustomerPointsDisconnected
+  | CustomerPointsRemoved
   | CustomerPointsConnectedCompleted
   | SimulationReportAssetClicked
   | ModelBuilderOpened

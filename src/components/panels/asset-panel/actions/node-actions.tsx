@@ -2,7 +2,7 @@ import { useCallback } from "react";
 import { useAtomValue } from "jotai";
 import { useTranslate } from "src/hooks/use-translate";
 import { useZoomTo } from "src/hooks/use-zoom-to";
-import { useDeleteSelectedAssets } from "src/commands/delete-selected-assets";
+import { useDeleteSelection } from "src/commands/delete-selection";
 import { DeleteIcon, ZoomToIcon } from "src/icons";
 import { selectedFeaturesAtom } from "src/state/jotai";
 import { ActionButton, Action } from "./action-button";
@@ -10,13 +10,13 @@ import { ActionButton, Action } from "./action-button";
 export function useNodeActions(readonly = false): Action[] {
   const translate = useTranslate();
   const zoomTo = useZoomTo();
-  const deleteSelectedAssets = useDeleteSelectedAssets();
+  const deleteSelection = useDeleteSelection();
   const selectedWrappedFeatures = useAtomValue(selectedFeaturesAtom);
 
   const onDelete = useCallback(() => {
-    deleteSelectedAssets({ source: "toolbar" });
+    deleteSelection({ source: "toolbar" });
     return Promise.resolve();
-  }, [deleteSelectedAssets]);
+  }, [deleteSelection]);
 
   const deleteAssetsAction = {
     label: translate("delete"),

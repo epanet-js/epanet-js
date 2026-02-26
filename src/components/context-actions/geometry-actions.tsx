@@ -8,7 +8,7 @@ import { useCallback } from "react";
 import { useZoomTo } from "src/hooks/use-zoom-to";
 import { IWrappedFeature } from "src/types";
 import { useTranslate } from "src/hooks/use-translate";
-import { useDeleteSelectedAssets } from "src/commands/delete-selected-assets";
+import { useDeleteSelection } from "src/commands/delete-selection";
 import {
   useChangeSelectedAssetsActiveTopologyStatus,
   changeActiveTopologyShortcut,
@@ -32,7 +32,7 @@ export function useActions(
 ): Action[] {
   const translate = useTranslate();
   const zoomTo = useZoomTo();
-  const deleteSelectedAssets = useDeleteSelectedAssets();
+  const deleteSelection = useDeleteSelection();
   const {
     changeSelectedAssetsActiveTopologyStatus: activateDeactivateAction,
     allActive,
@@ -43,9 +43,9 @@ export function useActions(
 
   const onDelete = useCallback(() => {
     const eventSource = source === "context-item" ? "context-menu" : "toolbar";
-    deleteSelectedAssets({ source: eventSource });
+    deleteSelection({ source: eventSource });
     return Promise.resolve();
-  }, [deleteSelectedAssets, source]);
+  }, [deleteSelection, source]);
 
   const deleteAssetsAction = {
     label: translate("delete"),

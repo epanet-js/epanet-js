@@ -3,7 +3,7 @@ import { ModelMoment, ReverseMoment } from "../model-operation";
 import type { AssetPatch, DemandAssignment } from "../model-operation";
 import { Asset, LinkAsset } from "../asset-types";
 import { AssetId } from "../assets-map";
-import { CustomerPoint } from "../customer-points";
+import { CustomerPoint, CustomerPointId } from "../customer-points";
 import { Curves } from "../curves";
 import { Patterns } from "../patterns";
 import { isDebugOn } from "src/infra/debug-mode";
@@ -80,6 +80,18 @@ export const applyMomentToModel = (
     const oldCp = putCustomerPoint(hydraulicModel, cp);
     if (oldCp) {
       reverseMoment.putCustomerPoints.push(oldCp);
+    } else {
+      if (!reverseMoment.deleteCustomerPoints) {
+        reverseMoment.deleteCustomerPoints = [];
+      }
+      reverseMoment.deleteCustomerPoints.push(cp.id);
+    }
+  }
+
+  for (const cpId of moment.deleteCustomerPoints || []) {
+    const deletedCp = deleteCustomerPoint(hydraulicModel, cpId);
+    if (deletedCp) {
+      reverseMoment.putCustomerPoints.push(deletedCp);
     }
   }
 
@@ -184,6 +196,19 @@ const putCustomerPoint = (
   hydraulicModel.customerPoints.set(customerPoint.id, customerPoint);
 
   return oldVersion;
+};
+
+const deleteCustomerPoint = (
+  hydraulicModel: HydraulicModel,
+  id: CustomerPointId,
+): CustomerPoint | undefined => {
+  const cp = hydraulicModel.customerPoints.get(id);
+  if (!cp) return undefined;
+
+  hydraulicModel.customerPointsLookup.removeConnection(cp);
+  hydraulicModel.customerPoints.delete(id);
+
+  return cp;
 };
 
 const putCurves = (hydraulicModel: HydraulicModel, curves: Curves): void => {

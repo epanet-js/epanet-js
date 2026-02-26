@@ -2,7 +2,7 @@ import { useCallback } from "react";
 import { useAtomValue } from "jotai";
 import { useTranslate } from "src/hooks/use-translate";
 import { useZoomTo } from "src/hooks/use-zoom-to";
-import { useDeleteSelectedAssets } from "src/commands/delete-selected-assets";
+import { useDeleteSelection } from "src/commands/delete-selection";
 import {
   useChangeSelectedAssetsActiveTopologyStatus,
   changeActiveTopologyShortcut,
@@ -20,15 +20,15 @@ import { useIsSnapshotLocked } from "src/hooks/use-is-snapshot-locked";
 export function useMultiAssetActions(readonly = false): Action[] {
   const translate = useTranslate();
   const zoomTo = useZoomTo();
-  const deleteSelectedAssets = useDeleteSelectedAssets();
+  const deleteSelection = useDeleteSelection();
   const { changeSelectedAssetsActiveTopologyStatus, allActive } =
     useChangeSelectedAssetsActiveTopologyStatus();
   const selectedWrappedFeatures = useAtomValue(selectedFeaturesAtom);
 
   const onDelete = useCallback(() => {
-    deleteSelectedAssets({ source: "toolbar" });
+    deleteSelection({ source: "toolbar" });
     return Promise.resolve();
-  }, [deleteSelectedAssets]);
+  }, [deleteSelection]);
 
   const onChangeActiveTopology = useCallback(() => {
     changeSelectedAssetsActiveTopologyStatus({ source: "toolbar" });

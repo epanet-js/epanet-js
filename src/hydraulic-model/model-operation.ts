@@ -53,6 +53,7 @@ export type OptionalMomentFields = {
   putEPSTiming?: EPSTiming;
   putControls?: Controls;
   putCustomerPoints?: CustomerPoint[];
+  deleteCustomerPoints?: CustomerPointId[];
   putCurves?: Curves;
   putPatterns?: Patterns;
 };

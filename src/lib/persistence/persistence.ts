@@ -445,7 +445,8 @@ export class Persistence implements IPersistenceWithSnapshots {
     const updatedHydraulicModel = updateHydraulicModelAssets(hydraulicModel);
 
     const updatedCustomerPoints =
-      (forwardMoment.putCustomerPoints || []).length > 0
+      (forwardMoment.putCustomerPoints || []).length > 0 ||
+      (forwardMoment.deleteCustomerPoints || []).length > 0
         ? new Map(hydraulicModel.customerPoints)
         : hydraulicModel.customerPoints;
 

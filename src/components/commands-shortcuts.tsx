@@ -30,8 +30,8 @@ import {
 } from "src/commands/show-shortcuts";
 import {
   deleteSelectedShortcuts,
-  useDeleteSelectedAssets,
-} from "src/commands/delete-selected-assets";
+  useDeleteSelection,
+} from "src/commands/delete-selection";
 import { selectAllShortcut, useSelectAll } from "src/commands/select-all";
 import {
   openInpFromFsShortcut,
@@ -112,7 +112,7 @@ export const CommandShortcuts = () => {
   const { undo, redo } = useHistoryControl();
   const userTracking = useUserTracking();
   const setDrawingMode = useDrawingMode();
-  const deleteSelectedAssets = useDeleteSelectedAssets();
+  const deleteSelection = useDeleteSelection();
   const selectAll = useSelectAll();
   const toggleSatellite = useToggleSatellite();
   const showSimulationSettings = useShowSimulationSettings();
@@ -277,9 +277,9 @@ export const CommandShortcuts = () => {
       if (isSnapshotLocked) return;
 
       e.preventDefault();
-      void deleteSelectedAssets({ source: "shortcut" });
+      void deleteSelection({ source: "shortcut" });
     },
-    [deleteSelectedAssets, isSnapshotLocked],
+    [deleteSelection, isSnapshotLocked],
     "DELETE",
   );
 

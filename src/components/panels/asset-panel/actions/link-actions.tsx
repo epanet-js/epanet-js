@@ -2,7 +2,7 @@ import { useCallback } from "react";
 import { useAtomValue } from "jotai";
 import { useTranslate } from "src/hooks/use-translate";
 import { useZoomTo } from "src/hooks/use-zoom-to";
-import { useDeleteSelectedAssets } from "src/commands/delete-selected-assets";
+import { useDeleteSelection } from "src/commands/delete-selection";
 import { useSetRedrawMode } from "src/commands/set-redraw-mode";
 import { useReverseLink } from "src/commands/reverse-link";
 import {
@@ -23,7 +23,7 @@ import {
 export function useLinkActions(readonly = false): Action[] {
   const translate = useTranslate();
   const zoomTo = useZoomTo();
-  const deleteSelectedAssets = useDeleteSelectedAssets();
+  const deleteSelection = useDeleteSelection();
   const { mode: currentMode } = useAtomValue(modeAtom);
   const setRedrawMode = useSetRedrawMode();
   const reverseLinkAction = useReverseLink();
@@ -32,9 +32,9 @@ export function useLinkActions(readonly = false): Action[] {
     useChangeSelectedAssetsActiveTopologyStatus();
 
   const onDelete = useCallback(() => {
-    deleteSelectedAssets({ source: "toolbar" });
+    deleteSelection({ source: "toolbar" });
     return Promise.resolve();
-  }, [deleteSelectedAssets]);
+  }, [deleteSelection]);
 
   const deleteAssetsAction = {
     label: translate("delete"),
