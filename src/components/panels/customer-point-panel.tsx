@@ -130,7 +130,9 @@ export function CustomerPointPanel() {
               ))}
           </div>
         </div>
-        <span className="text-sm text-gray-500 pl-1">Customer</span>
+        <span className="text-sm text-gray-500 pl-1">
+          {translate("customer")}
+        </span>
       </div>
       <div className="flex flex-col gap-3 p-4">
         {connection && (
