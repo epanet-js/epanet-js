@@ -133,10 +133,12 @@ export function CustomerPointPanel() {
         <span className="text-sm text-gray-500 pl-1">Customer</span>
       </div>
       <div className="flex flex-col gap-3 p-4">
-        <Section title={translate("connections")}>
-          <TextRow name="pipe" value={pipe ? pipe.label : ""} />
-          <TextRow name="junction" value={junction ? junction.label : ""} />
-        </Section>
+        {connection && (
+          <Section title={translate("connections")}>
+            <TextRow name="pipe" value={pipe ? pipe.label : ""} />
+            <TextRow name="junction" value={junction ? junction.label : ""} />
+          </Section>
+        )}
         <Section title={translate("demands")}>
           <DemandCategoriesEditor
             demands={demandsInPerDay}
