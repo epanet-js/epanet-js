@@ -27,7 +27,7 @@ export const useDeleteSelection = () => {
   const rep = usePersistence();
   const transact = rep.useTransact();
   const userTracking = useUserTracking();
-  const isDeleteCustomerOn = useFeatureFlag("FLAG_DELETE_CUSTOMER");
+  const isDeleteCustomerOn = useFeatureFlag("FLAG_EDIT_CUSTOMER");
 
   const clearSelection = useCallback(() => {
     setSelection(USelection.none());

@@ -26,7 +26,7 @@ export function useCustomerPointActions(
   const connectCustomerPoints = useConnectCustomerPoints();
   const disconnectCustomerPoints = useDisconnectCustomerPoints();
   const deleteSelection = useDeleteSelection();
-  const isDeleteCustomerOn = useFeatureFlag("FLAG_DELETE_CUSTOMER");
+  const isDeleteCustomerOn = useFeatureFlag("FLAG_EDIT_CUSTOMER");
 
   const isReconnecting = customerPoint?.connection !== null;
 
