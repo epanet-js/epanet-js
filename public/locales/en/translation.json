@@ -922,5 +922,14 @@
   "curveType": "Curve type",
   "namedCurve": "Library pump",
   "valveCurve": "Curve",
-  "headlossCurve": "Curve"
+  "headlossCurve": "Curve",
+  "dialog": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "close": "Close",
+    "discardChanges": "Discard changes",
+    "keepEditing": "Keep editing",
+    "discardWithunsavedChangesHint": "You have unsaved changes. Are you sure you want to discard them?",
+    "saveWithWarningsHint": "There are some validation warnings."
+  }
 }
