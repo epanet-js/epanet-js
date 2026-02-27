@@ -30,6 +30,9 @@ export type Unit =
   | "acft/d"
   | "kW"
   | "hp"
+  | "Kv/Kvo"
+  | "Cv/Cvo"
+  | "%"
   | null;
 
 export type Quantity = {
