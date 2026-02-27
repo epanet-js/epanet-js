@@ -23,7 +23,6 @@ import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import { useSnapping } from "../hooks/use-snapping";
 import throttle from "lodash/throttle";
 import { useClickedAsset } from "../utils";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 const stateUpdateTime = 16;
 
@@ -79,7 +78,6 @@ export function useNoneHandlers({
   );
   const transact = rep.useTransact();
   const { findSnappingCandidate } = useSnapping(map, hydraulicModel.assets);
-  const isMoveCustomerOn = useFeatureFlag("FLAG_MOVE_CUSTOMER");
   const {
     setStartPoint: setCustomerPointStartPoint,
     startPoint: customerPointStartPoint,
@@ -163,7 +161,7 @@ export function useNoneHandlers({
         return;
       }
 
-      if (isMoveCustomerOn && selection.type === "singleCustomerPoint") {
+      if (selection.type === "singleCustomerPoint") {
         const clickedCustomerPoint = getClickedCustomerPoint(e);
         if (!clickedCustomerPoint || clickedCustomerPoint.id !== selection.id) {
           return;
