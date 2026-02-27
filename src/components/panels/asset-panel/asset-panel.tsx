@@ -583,7 +583,12 @@ const PipeEditor = ({
 }) => {
   const translate = useTranslate();
   const { footer } = useQuickGraph(pipe.id, "pipe");
-  const { getComparison, isNew } = useAssetComparison(pipe);
+  const {
+    getComparison,
+    isNew,
+    getCustomerDemandComparison,
+    getCustomerCountComparison,
+  } = useAssetComparison(pipe);
   const simulation = useSimulation();
   const pipeSimulation = simulation?.getPipe(pipe.id);
 
@@ -715,13 +720,15 @@ const PipeEditor = ({
           readOnly={readonly}
         />
       </Section>
-      {customerCount > 0 && (
+      {(customerCount > 0 ||
+        getCustomerCountComparison(customerCount).hasChanged) && (
         <Section title={translate("demands")}>
           <QuantityRow
             name="customerDemand"
             value={totalDemand}
             unit={quantitiesMetadata.getUnit("baseDemand")}
             decimals={quantitiesMetadata.getDecimals("baseDemand")}
+            comparison={getCustomerDemandComparison(totalDemand)}
             readOnly={true}
           />
           {!!customerDemandPattern && (
@@ -739,6 +746,7 @@ const PipeEditor = ({
             customerUnit={quantitiesMetadata.getUnit("customerDemandPerDay")}
             demands={hydraulicModel.demands}
             patterns={hydraulicModel.patterns}
+            comparison={getCustomerCountComparison(customerCount)}
           />
         </Section>
       )}
