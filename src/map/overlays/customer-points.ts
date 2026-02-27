@@ -33,6 +33,13 @@ const disabledStrokeColor = hexToArray(colors.gray400);
 const disabledConnectionLineColor = hexToArray(colors.gray300);
 
 const highlightFillColor = hexToArray(colors.cyan500);
+const previewLineColor = hexToArray(colors.indigo500);
+const previewHaloColor = hexToArray(colors.indigo300, 0.8) as [
+  number,
+  number,
+  number,
+  number,
+];
 const haloFillColor = hexToArray(colors.cyan300, 0.8) as [
   number,
   number,
@@ -291,9 +298,9 @@ export const buildConnectCustomerPointsPreviewOverlay = (
   const isVisible = shouldShowOvelay(zoom);
 
   const isQuietMode = mode === "quiet";
-  const lineColor = isQuietMode ? connectionLineColor : highlightFillColor;
-  const pointFillColor = isQuietMode ? fillColor : highlightFillColor;
-  const pointStrokeColor = isQuietMode ? strokeColor : haloFillColor;
+  const lineColor = isQuietMode ? connectionLineColor : previewLineColor;
+  const pointFillColor = isQuietMode ? fillColor : previewLineColor;
+  const pointStrokeColor = isQuietMode ? strokeColor : previewHaloColor;
   const pointRadius = isQuietMode ? 1.5 : 2;
   const pointMaxRadius = isQuietMode ? 4 : 5;
 
