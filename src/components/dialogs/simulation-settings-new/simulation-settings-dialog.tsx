@@ -1,14 +1,11 @@
-import { useCallback, useState, useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { DialogContainer, DialogHeader, useDialogState } from "../../dialog";
 import { Button } from "src/components/elements";
 import { SettingsIcon } from "src/icons";
 import { SimulationSettingsSidebar } from "./simulation-settings-sidebar";
 import { SimulationSettingsContent } from "./simulation-settings-content";
 import { useScrollSpy } from "./use-scroll-spy";
-import {
-  buildSectionIds,
-  buildDefaultValues,
-} from "./simulation-settings-data";
+import { buildSectionIds } from "./simulation-settings-data";
 
 export const SimulationSettingsNewDialog = () => {
   const { closeDialog } = useDialogState();
@@ -17,16 +14,6 @@ export const SimulationSettingsNewDialog = () => {
 
   const { activeSection, scrollToSection, scrollContainerRef } =
     useScrollSpy(sectionIds);
-
-  const [values, setValues] =
-    useState<Record<string, string | number>>(buildDefaultValues);
-
-  const handleChange = useCallback(
-    (optionId: string, value: string | number) => {
-      setValues((prev) => ({ ...prev, [optionId]: value }));
-    },
-    [],
-  );
 
   const handleSave = useCallback(() => {
     // TODO: persist values to model
@@ -42,11 +29,7 @@ export const SimulationSettingsNewDialog = () => {
           onSelectSection={scrollToSection}
         />
         <div className="flex-1 flex flex-col min-h-0">
-          <SimulationSettingsContent
-            ref={scrollContainerRef}
-            values={values}
-            onChange={handleChange}
-          />
+          <SimulationSettingsContent ref={scrollContainerRef} />
         </div>
       </div>
       <div className="flex items-center justify-end gap-3 pt-6">
