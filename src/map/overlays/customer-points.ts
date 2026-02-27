@@ -40,6 +40,12 @@ const previewHaloColor = hexToArray(colors.indigo300, 0.8) as [
   number,
   number,
 ];
+const oldConnectionLineColor = hexToArray(colors.indigo500, 0.4) as [
+  number,
+  number,
+  number,
+  number,
+];
 const haloFillColor = hexToArray(colors.cyan300, 0.8) as [
   number,
   number,
@@ -278,26 +284,52 @@ export const buildConnectCustomerPointsPreviewOverlay = (
   zoom: number,
   mode: "highlight" | "quiet" = "highlight",
 ): CustomerPointsOverlay => {
-  if (customerPoints.length === 0 || snapPoints.length === 0) {
+  if (customerPoints.length === 0) {
     return [];
   }
 
+  const isVisible = shouldShowOvelay(zoom);
+  const isQuietMode = mode === "quiet";
+
+  const oldConnectionLines: ConnectionLineData[] = [];
+  for (const customerPoint of customerPoints) {
+    if (customerPoint.snapPosition) {
+      oldConnectionLines.push({
+        sourcePosition: customerPoint.coordinates as [number, number],
+        targetPosition: customerPoint.snapPosition as [number, number],
+        customerPointId: customerPoint.id,
+      });
+    }
+  }
+
+  const oldConnectionLinesLayer = new LineLayer({
+    id: "customer-connect-old-lines-layer",
+    beforeId: "main-features-pipes",
+    data: oldConnectionLines,
+    getSourcePosition: (d: ConnectionLineData) => d.sourcePosition,
+    getTargetPosition: (d: ConnectionLineData) => d.targetPosition,
+    widthUnits: "meters",
+    getWidth: 0.8,
+    widthMinPixels: 0,
+    widthMaxPixels: 2,
+    getColor: oldConnectionLineColor,
+    antialiasing: true,
+    visible: isVisible,
+  });
+
+  if (snapPoints.length === 0) {
+    return [oldConnectionLinesLayer];
+  }
+
   const connectionLines: ConnectionLineData[] = [];
-
   for (let i = 0; i < customerPoints.length && i < snapPoints.length; i++) {
-    const customerPoint = customerPoints[i];
-    const snapPoint = snapPoints[i];
-
     connectionLines.push({
-      sourcePosition: customerPoint.coordinates as [number, number],
-      targetPosition: snapPoint as [number, number],
-      customerPointId: customerPoint.id,
+      sourcePosition: customerPoints[i].coordinates as [number, number],
+      targetPosition: snapPoints[i] as [number, number],
+      customerPointId: customerPoints[i].id,
     });
   }
 
-  const isVisible = shouldShowOvelay(zoom);
-
-  const isQuietMode = mode === "quiet";
   const lineColor = isQuietMode ? connectionLineColor : previewLineColor;
   const pointFillColor = isQuietMode ? fillColor : previewLineColor;
   const pointStrokeColor = isQuietMode ? strokeColor : previewHaloColor;
@@ -343,7 +375,11 @@ export const buildConnectCustomerPointsPreviewOverlay = (
     visible: isVisible,
   });
 
-  return [previewConnectionLinesLayer, highlightCustomerPointsLayer];
+  return [
+    oldConnectionLinesLayer,
+    previewConnectionLinesLayer,
+    highlightCustomerPointsLayer,
+  ];
 };
 
 export const buildMovingCustomerPointOverlay = (
