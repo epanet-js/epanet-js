@@ -25,7 +25,7 @@ import {
   CollapsibleListSection,
   NavigableList,
 } from "src/components/list";
-import type { NavItem } from "src/components/list";
+import type { NavItem, NavigableListHandle } from "src/components/list";
 
 type CurveSectionType = "volume" | "valve" | "headloss";
 type SidebarSectionType = CurveSectionType | "uncategorized";
@@ -41,6 +41,7 @@ type CurveSidebarProps = {
   width: number;
   curves: Curves;
   selectedCurveId: CurveId | null;
+  initialSection?: CurveSectionType;
   labelManager: LabelManager;
   invalidCurveIds: Set<CurveId>;
   onSelectCurve: (curveId: CurveId | null) => void;
@@ -62,6 +63,7 @@ export const CurveSidebar = ({
   width,
   curves,
   selectedCurveId,
+  initialSection,
   labelManager,
   invalidCurveIds,
   onSelectCurve,
@@ -71,27 +73,21 @@ export const CurveSidebar = ({
   readOnly = false,
 }: CurveSidebarProps) => {
   const translate = useTranslate();
-  const listRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<NavigableListHandle>(null);
   const [actionState, setActionState] = useState<ActionState | undefined>(
     undefined,
   );
   const [focusedSection, setFocusedSection] =
-    useState<SidebarSectionType | null>(null);
-  const [openSections, setOpenSections] = useState<
-    Record<SidebarSectionType, boolean>
-  >({
-    volume: true,
-    valve: true,
-    headloss: true,
-    uncategorized: false,
-  });
+    useState<SidebarSectionType | null>(
+      initialSection && !selectedCurveId ? initialSection : null,
+    );
 
   const clearActionState = () => {
     setActionState(undefined);
     requestAnimationFrame(() => listRef.current?.focus());
   };
 
-  const { groupedCurves, navItems, sectionStatus } = useMemo(() => {
+  const { groupedCurves, navItems } = useMemo(() => {
     const volume: TypedCurve[] = [];
     const valve: TypedCurve[] = [];
     const headloss: TypedCurve[] = [];
@@ -112,20 +108,11 @@ export const CurveSidebar = ({
         items.push({ id: curve.id, section: "uncategorized" });
       }
     }
-    const status: Record<string, boolean> = {
-      volume: openSections.volume,
-      valve: openSections.valve,
-      headloss: openSections.headloss,
-    };
-    if (uncategorized.length > 0) {
-      status.uncategorized = openSections.uncategorized;
-    }
     return {
       groupedCurves: { volume, valve, headloss, uncategorized },
       navItems: items,
-      sectionStatus: status,
     };
-  }, [curves, openSections]);
+  }, [curves]);
 
   useEffect(
     function autoScrollToSelectedItem() {
@@ -137,13 +124,6 @@ export const CurveSidebar = ({
     },
     [selectedCurveId, curves],
   );
-
-  const toggleSection = useCallback((sectionType: SidebarSectionType) => {
-    setOpenSections((prev) => ({
-      ...prev,
-      [sectionType]: !prev[sectionType],
-    }));
-  }, []);
 
   const focusedItem = useMemo((): NavItem<SidebarSectionType> | undefined => {
     if (focusedSection) {
@@ -253,8 +233,6 @@ export const CurveSidebar = ({
         navItems={navItems}
         focusedItem={focusedItem}
         onSelectItem={handleSelectItem}
-        sectionStatus={sectionStatus}
-        onToggleSection={toggleSection}
         isNavBlocked={!!actionState}
       >
         {sectionConfigs.map(({ type, titleKey, curves: sectionCurves }) => (
@@ -262,9 +240,7 @@ export const CurveSidebar = ({
             key={type}
             sectionType={type}
             title={translate(titleKey)}
-            isOpen={openSections[type]}
             isFocused={focusedSection === type}
-            onToggle={() => toggleSection(type)}
             curves={sectionCurves}
             selectedCurveId={selectedCurveId}
             invalidCurveIds={invalidCurveIds}
@@ -276,7 +252,7 @@ export const CurveSidebar = ({
             }}
             onStartCreate={() => {
               setActionState({ action: "creating", curveType: type });
-              setOpenSections((prev) => ({ ...prev, [type]: true }));
+              listRef.current?.openSection(type);
             }}
             onStartRename={(curveId) =>
               setActionState({ action: "renaming", curveId })
@@ -295,9 +271,7 @@ export const CurveSidebar = ({
         ))}
         {groupedCurves.uncategorized.length > 0 && (
           <UncategorizedCurveSection
-            isOpen={openSections.uncategorized}
             isFocused={focusedSection === "uncategorized"}
-            onToggle={() => toggleSection("uncategorized")}
             curves={groupedCurves.uncategorized}
             selectedCurveId={selectedCurveId}
             onSelectCurve={(curveId) => {
@@ -321,9 +295,7 @@ export const CurveSidebar = ({
 type CurveSectionProps = {
   sectionType: CurveSectionType;
   title: string;
-  isOpen: boolean;
   isFocused: boolean;
-  onToggle: () => void;
   curves: TypedCurve[];
   selectedCurveId: CurveId | null;
   invalidCurveIds: Set<CurveId>;
@@ -342,9 +314,7 @@ type CurveSectionProps = {
 const CurveSection = ({
   sectionType,
   title,
-  isOpen,
   isFocused,
-  onToggle,
   curves,
   selectedCurveId,
   invalidCurveIds,
@@ -366,8 +336,6 @@ const CurveSection = ({
       sectionType={sectionType}
       title={title}
       count={curves.length}
-      isOpen={isOpen}
-      onToggle={onToggle}
       isFocused={isFocused}
       action={{
         icon: <AddIcon />,
@@ -409,9 +377,7 @@ const CurveSection = ({
 };
 
 type UncategorizedCurveSectionProps = {
-  isOpen: boolean;
   isFocused: boolean;
-  onToggle: () => void;
   curves: ICurve[];
   selectedCurveId: CurveId | null;
   onSelectCurve: (curveId: CurveId) => void;
@@ -421,9 +387,7 @@ type UncategorizedCurveSectionProps = {
 };
 
 const UncategorizedCurveSection = ({
-  isOpen,
   isFocused,
-  onToggle,
   curves,
   selectedCurveId,
   onSelectCurve,
@@ -438,8 +402,6 @@ const UncategorizedCurveSection = ({
       sectionType="uncategorized"
       title={translate("curves.uncategorizedCurves")}
       count={curves.length}
-      isOpen={isOpen}
-      onToggle={onToggle}
       isFocused={isFocused}
     >
       {curves.map((curve) => (

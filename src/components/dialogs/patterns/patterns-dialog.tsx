@@ -29,8 +29,10 @@ type PatternUpdate = Partial<Pick<Pattern, "label" | "multipliers" | "type">>;
 
 export const PatternsDialog = ({
   initialPatternId,
+  initialSection,
 }: {
   initialPatternId?: PatternId;
+  initialSection?: "demand" | "reservoirHead" | "pumpSpeed";
 }) => {
   const translate = useTranslate();
   const { closeDialog } = useDialogState();
@@ -207,6 +209,7 @@ export const PatternsDialog = ({
             width={sidebarWidth}
             patterns={editedPatterns}
             selectedPatternId={selectedPatternId}
+            initialSection={initialSection}
             minPatternSteps={minPatternSteps}
             onSelectPattern={setSelectedPatternId}
             onAddPattern={handleAddPattern}

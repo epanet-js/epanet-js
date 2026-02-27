@@ -24,7 +24,7 @@ import {
   ListItem,
   NavigableList,
 } from "src/components/list";
-import type { NavItem } from "src/components/list";
+import type { NavItem, NavigableListHandle } from "src/components/list";
 
 type SectionType = Extract<
   PatternType,
@@ -52,6 +52,7 @@ type PatternSidebarProps = {
   width: number;
   patterns: Patterns;
   selectedPatternId: PatternId | null;
+  initialSection?: SectionType;
   minPatternSteps: number;
   onSelectPattern: (patternId: PatternId | null) => void;
   onAddPattern: (
@@ -72,6 +73,7 @@ export const PatternSidebar = ({
   width,
   patterns,
   selectedPatternId,
+  initialSection,
   minPatternSteps,
   onSelectPattern,
   onAddPattern,
@@ -82,20 +84,14 @@ export const PatternSidebar = ({
   const translate = useTranslate();
   const userTracking = useUserTracking();
   const labelManager = useRef(new LabelManager());
-  const listRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<NavigableListHandle>(null);
   const [actionState, setActionState] = useState<ActionState | undefined>(
     undefined,
   );
   const [focusedSection, setFocusedSection] =
-    useState<SidebarSectionType | null>(null);
-  const [openSections, setOpenSections] = useState<
-    Record<SidebarSectionType, boolean>
-  >({
-    demand: true,
-    reservoirHead: true,
-    pumpSpeed: true,
-    uncategorized: false,
-  });
+    useState<SidebarSectionType | null>(
+      initialSection && !selectedPatternId ? initialSection : null,
+    );
 
   const clearActionState = () => {
     setActionState(undefined);
@@ -112,7 +108,7 @@ export const PatternSidebar = ({
     [patterns],
   );
 
-  const { groupedPatterns, navItems, sectionStatus } = useMemo(() => {
+  const { groupedPatterns, navItems } = useMemo(() => {
     const groups: Record<SectionType, TypedPattern[]> = {
       demand: [],
       reservoirHead: [],
@@ -130,19 +126,11 @@ export const PatternSidebar = ({
         items.push({ id: pattern.id, section: "uncategorized" });
       }
     }
-    const status: Record<string, boolean> = {};
-    for (const sectionType of SECTION_TYPES) {
-      status[sectionType] = openSections[sectionType];
-    }
-    if (uncategorized.length > 0) {
-      status.uncategorized = openSections.uncategorized;
-    }
     return {
       groupedPatterns: { ...groups, uncategorized },
       navItems: items,
-      sectionStatus: status,
     };
-  }, [patterns, openSections]);
+  }, [patterns]);
 
   useEffect(
     function autoScrollToSelectedItem() {
@@ -154,13 +142,6 @@ export const PatternSidebar = ({
     },
     [selectedPatternId, patterns],
   );
-
-  const toggleSection = useCallback((sectionType: SidebarSectionType) => {
-    setOpenSections((prev) => ({
-      ...prev,
-      [sectionType]: !prev[sectionType],
-    }));
-  }, []);
 
   const focusedItem = useMemo((): NavItem<SidebarSectionType> | undefined => {
     if (focusedSection) {
@@ -251,8 +232,6 @@ export const PatternSidebar = ({
         navItems={navItems}
         focusedItem={focusedItem}
         onSelectItem={handleSelectItem}
-        sectionStatus={sectionStatus}
-        onToggleSection={toggleSection}
         isNavBlocked={!!actionState}
       >
         {SECTION_TYPES.map((sectionType) => (
@@ -260,9 +239,7 @@ export const PatternSidebar = ({
             key={sectionType}
             sectionType={sectionType}
             title={translate(SECTION_TRANSLATION_KEYS[sectionType])}
-            isOpen={openSections[sectionType]}
             isFocused={focusedSection === sectionType}
-            onToggle={() => toggleSection(sectionType)}
             patterns={groupedPatterns[sectionType]}
             selectedPatternId={selectedPatternId}
             actionState={actionState}
@@ -273,7 +250,7 @@ export const PatternSidebar = ({
             }}
             onStartCreate={() => {
               setActionState({ action: "creating", patternType: sectionType });
-              setOpenSections((prev) => ({ ...prev, [sectionType]: true }));
+              listRef.current?.openSection(sectionType);
             }}
             onStartRename={(patternId) =>
               setActionState({ action: "renaming", patternId })
@@ -295,9 +272,7 @@ export const PatternSidebar = ({
         ))}
         {groupedPatterns.uncategorized.length > 0 && (
           <UncategorizedPatternSection
-            isOpen={openSections.uncategorized}
             isFocused={focusedSection === "uncategorized"}
-            onToggle={() => toggleSection("uncategorized")}
             patterns={groupedPatterns.uncategorized}
             selectedPatternId={selectedPatternId}
             onSelectPattern={(patternId) => {
@@ -321,9 +296,7 @@ export const PatternSidebar = ({
 type PatternSectionProps = {
   sectionType: SectionType;
   title: string;
-  isOpen: boolean;
   isFocused: boolean;
-  onToggle: () => void;
   patterns: TypedPattern[];
   selectedPatternId: PatternId | null;
   actionState: ActionState | undefined;
@@ -341,9 +314,7 @@ type PatternSectionProps = {
 const PatternSection = ({
   sectionType,
   title,
-  isOpen,
   isFocused,
-  onToggle,
   patterns,
   selectedPatternId,
   actionState,
@@ -364,9 +335,7 @@ const PatternSection = ({
       sectionType={sectionType}
       title={title}
       count={patterns.length}
-      isOpen={isOpen}
       isFocused={isFocused}
-      onToggle={onToggle}
       action={{
         icon: <AddIcon />,
         label: translate("patterns.addPattern", title.toLocaleLowerCase()),
@@ -406,9 +375,7 @@ const PatternSection = ({
 };
 
 type UncategorizedPatternSectionProps = {
-  isOpen: boolean;
   isFocused: boolean;
-  onToggle: () => void;
   patterns: Pattern[];
   selectedPatternId: PatternId | null;
   onSelectPattern: (patternId: PatternId) => void;
@@ -418,9 +385,7 @@ type UncategorizedPatternSectionProps = {
 };
 
 const UncategorizedPatternSection = ({
-  isOpen,
   isFocused,
-  onToggle,
   patterns,
   selectedPatternId,
   onSelectPattern,
@@ -434,9 +399,7 @@ const UncategorizedPatternSection = ({
     <CollapsibleListSection
       sectionType="uncategorized"
       title={translate("patterns.uncategorizedPatterns")}
-      isOpen={isOpen}
       isFocused={isFocused}
-      onToggle={onToggle}
     >
       {patterns.map((pattern) => (
         <UncategorizedPatternSidebarItem

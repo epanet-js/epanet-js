@@ -1432,6 +1432,7 @@ const VariableSpeedField = ({
         showPatternsLibrary({
           source: "pump",
           initialPatternId: pump.speedPatternId,
+          initialSection: "pumpSpeed",
         });
         return;
       }
@@ -1554,6 +1555,7 @@ const ReservoirHeadField = ({
         showPatternsLibrary({
           source: "reservoir",
           initialPatternId: reservoir.headPatternId,
+          initialSection: "reservoirHead",
         });
         return;
       }
@@ -1706,7 +1708,11 @@ const ValveCurveField = ({
   ) => {
     if (newValue === null) return;
     if (newValue === 0) {
-      showCurveLibrary({ source: "valve", curveId: valve.curveId });
+      showCurveLibrary({
+        source: "valve",
+        curveId: valve.curveId,
+        initialSection: valve.kind === "gpv" ? "headloss" : "valve",
+      });
       return;
     }
     onChange("curveId", newValue, oldValue || undefined);
@@ -1727,7 +1733,12 @@ const ValveCurveField = ({
   ) : (
     <InlineField name={translate("curveId")} labelSize="md">
       <Button
-        onClick={() => showCurveLibrary({ source: "valve" })}
+        onClick={() =>
+          showCurveLibrary({
+            source: "valve",
+            initialSection: valve.kind === "gpv" ? "headloss" : "valve",
+          })
+        }
         className="w-full py-2"
       >
         {translate("openCurvesLibrary")}

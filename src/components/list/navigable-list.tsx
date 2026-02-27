@@ -1,19 +1,33 @@
 import {
+  createContext,
   useCallback,
   useMemo,
   useRef,
+  useState,
   forwardRef,
   useImperativeHandle,
+  useContext,
 } from "react";
 
 export type NavItem<S extends string = string> = { id?: number; section: S };
+
+export type NavigableListHandle = {
+  openSection: (section: string) => void;
+  focus: () => void;
+  querySelector: (selector: string) => Element | null;
+};
+
+export const NavigableListContext = createContext<{
+  sectionStatus: Record<string, boolean>;
+  toggleSection: (section: string) => void;
+} | null>(null);
+
+export const useNavigableListContext = () => useContext(NavigableListContext);
 
 type NavigableListProps<S extends string> = {
   navItems: NavItem<S>[];
   focusedItem?: NavItem<S>;
   onSelectItem: (item: NavItem<S>) => void;
-  sectionStatus: Record<string, boolean>;
-  onToggleSection: (section: S) => void;
   isNavBlocked?: boolean;
   children: React.ReactNode;
 };
@@ -23,15 +37,83 @@ function NavigableListInner<S extends string>(
     navItems,
     focusedItem,
     onSelectItem,
-    sectionStatus,
-    onToggleSection,
     isNavBlocked,
     children,
   }: NavigableListProps<S>,
-  ref: React.ForwardedRef<HTMLDivElement>,
+  ref: React.ForwardedRef<NavigableListHandle>,
 ) {
   const listRef = useRef<HTMLDivElement>(null);
-  useImperativeHandle(ref, () => listRef.current as HTMLDivElement);
+
+  const sections = useMemo(() => {
+    const seen = new Set<string>();
+    const result: string[] = [];
+    for (const item of navItems) {
+      if (!seen.has(item.section)) {
+        seen.add(item.section);
+        result.push(item.section);
+      }
+    }
+    return result;
+  }, [navItems]);
+
+  const [sectionStatus, setSectionStatus] = useState<Record<string, boolean>>(
+    () => {
+      const status: Record<string, boolean> = {};
+      for (const section of sections) {
+        if (focusedItem?.section) {
+          status[section] = section === focusedItem.section;
+        } else {
+          status[section] = section !== "uncategorized";
+        }
+      }
+      return status;
+    },
+  );
+
+  // Keep sectionStatus in sync when sections appear/disappear
+  const prevSectionsRef = useRef(sections);
+  if (prevSectionsRef.current !== sections) {
+    const prevSet = new Set(prevSectionsRef.current);
+    const newSections = sections.filter((s) => !prevSet.has(s));
+    if (newSections.length > 0) {
+      const updated = { ...sectionStatus };
+      for (const section of newSections) {
+        updated[section] = section !== "uncategorized";
+      }
+      setSectionStatus(updated);
+    }
+    prevSectionsRef.current = sections;
+  }
+
+  const toggleSection = useCallback((section: string) => {
+    setSectionStatus((prev) => ({
+      ...prev,
+      [section]: !prev[section],
+    }));
+  }, []);
+
+  const openSection = useCallback((section: string) => {
+    setSectionStatus((prev) => ({
+      ...prev,
+      [section]: true,
+    }));
+  }, []);
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      openSection,
+      focus: () => listRef.current?.focus(),
+      querySelector: (selector: string) =>
+        listRef.current?.querySelector(selector) ?? null,
+    }),
+    [openSection],
+  );
+
+  const contextValue = useMemo(
+    () => ({ sectionStatus, toggleSection }),
+    [sectionStatus, toggleSection],
+  );
 
   const handleScroll = useCallback(() => {
     listRef.current?.dispatchEvent(
@@ -87,7 +169,7 @@ function NavigableListInner<S extends string>(
       if (e.key === "Enter" && focusedItem && focusedItem.id == null) {
         e.preventDefault();
         e.stopPropagation();
-        onToggleSection(focusedItem.section);
+        toggleSection(focusedItem.section);
         return;
       }
 
@@ -154,29 +236,31 @@ function NavigableListInner<S extends string>(
       focusedItem,
       fullNavItems,
       navigateToItem,
-      onToggleSection,
+      toggleSection,
       currentNavIndex,
     ],
   );
 
   return (
-    <div
-      ref={listRef}
-      className="flex-1 overflow-y-auto outline-none placemark-scrollbar scroll-shadows border border-gray-200 dark:border-gray-700 rounded"
-      onKeyDown={handleKeyDown}
-      onScroll={handleScroll}
-      tabIndex={0}
-      {...(focusedItem?.id && {
-        "data-capture-escape-key": true,
-      })}
-    >
-      {children}
-    </div>
+    <NavigableListContext.Provider value={contextValue}>
+      <div
+        ref={listRef}
+        className="flex-1 overflow-y-auto outline-none placemark-scrollbar scroll-shadows border border-gray-200 dark:border-gray-700 rounded"
+        onKeyDown={handleKeyDown}
+        onScroll={handleScroll}
+        tabIndex={0}
+        {...(focusedItem?.id && {
+          "data-capture-escape-key": true,
+        })}
+      >
+        {children}
+      </div>
+    </NavigableListContext.Provider>
   );
 }
 
 export const NavigableList = forwardRef(NavigableListInner) as <
   S extends string = string,
 >(
-  props: NavigableListProps<S> & React.RefAttributes<HTMLDivElement>,
+  props: NavigableListProps<S> & React.RefAttributes<NavigableListHandle>,
 ) => React.ReactElement | null;

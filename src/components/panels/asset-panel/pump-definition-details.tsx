@@ -596,7 +596,8 @@ const CurveIdSelector = ({
   const handleChange = (_: string, newValue: number | null) => {
     if (newValue === null) return;
     if (newValue) onChange({ type: "curveId", curveId: newValue });
-    if (newValue === 0) showPumpLibrary({ source: "pump", curveId });
+    if (newValue === 0)
+      showPumpLibrary({ source: "pump", curveId, initialSection: "pump" });
   };
 
   return curveOptions[1].length > 0 ? (
@@ -621,7 +622,9 @@ const CurveIdSelector = ({
   ) : (
     <InlineField name={translate("pumpName")} labelSize="md">
       <Button
-        onClick={() => showPumpLibrary({ source: "pump" })}
+        onClick={() =>
+          showPumpLibrary({ source: "pump", initialSection: "pump" })
+        }
         className="w-full py-2"
       >
         {translate("openPumpLibrary")}

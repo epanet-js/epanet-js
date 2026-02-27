@@ -32,8 +32,10 @@ type CurveUpdate = Partial<Pick<ICurve, "label" | "points" | "type">>;
 
 export const PumpLibraryDialog = ({
   initialCurveId,
+  initialSection,
 }: {
   initialCurveId?: CurveId;
+  initialSection?: "pump" | "efficiency";
 }) => {
   const translate = useTranslate();
   const { closeDialog } = useDialogState();
@@ -221,6 +223,7 @@ export const PumpLibraryDialog = ({
             width={sidebarWidth}
             curves={editedCurves}
             selectedCurveId={selectedCurveId}
+            initialSection={initialSection}
             labelManager={labelManagerRef.current}
             invalidCurveIds={invalidCurveIds}
             onSelectCurve={setSelectedCurveId}

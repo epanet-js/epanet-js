@@ -38,8 +38,10 @@ const CURVE_LIBRARY_TYPES: Set<CurveType> = new Set([
 
 export const CurveLibraryDialog = ({
   initialCurveId,
+  initialSection,
 }: {
   initialCurveId?: CurveId;
+  initialSection?: "volume" | "valve" | "headloss";
 }) => {
   const translate = useTranslate();
   const { closeDialog } = useDialogState();
@@ -227,6 +229,7 @@ export const CurveLibraryDialog = ({
             width={sidebarWidth}
             curves={editedCurves}
             selectedCurveId={selectedCurveId}
+            initialSection={initialSection}
             labelManager={labelManagerRef.current}
             invalidCurveIds={invalidCurveIds}
             onSelectCurve={setSelectedCurveId}

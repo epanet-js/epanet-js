@@ -2,14 +2,15 @@ import * as C from "@radix-ui/react-collapsible";
 
 import { ChevronDownIcon, ChevronRightIcon } from "src/icons";
 import { Button } from "../elements";
+import { useNavigableListContext } from "./navigable-list";
 
 type CollapsibleListSectionProps = {
   title: string;
   count?: number;
   sectionType: string;
-  isOpen: boolean;
+  isOpen?: boolean;
   isFocused: boolean;
-  onToggle: () => void;
+  onToggle?: () => void;
   children: React.ReactNode;
   action?: { label: string; icon: React.ReactNode };
   onAction?: () => void;
@@ -20,14 +21,18 @@ export const CollapsibleListSection = ({
   title,
   count,
   sectionType,
-  isOpen,
+  isOpen: isOpenProp,
   isFocused,
-  onToggle,
+  onToggle: onToggleProp,
   action,
   onAction,
   children,
   readOnly = false,
 }: CollapsibleListSectionProps) => {
+  const ctx = useNavigableListContext();
+  const isOpen = isOpenProp ?? ctx?.sectionStatus[sectionType] ?? true;
+  const onToggle = onToggleProp ?? (() => ctx?.toggleSection(sectionType));
+
   return (
     <C.Root open={isOpen} onOpenChange={onToggle}>
       <div

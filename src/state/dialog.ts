@@ -90,16 +90,19 @@ export type SimulationProgressDialogState = {
 export type PatternsLibraryDialog = {
   type: "patternsLibrary";
   initialPatternId?: number;
+  initialSection?: "demand" | "reservoirHead" | "pumpSpeed";
 };
 
 export type PumpLibraryDialogState = {
   type: "pumpLibrary";
   initialCurveId?: CurveId;
+  initialSection?: "pump" | "efficiency";
 };
 
 export type CurveLibraryDialogState = {
   type: "curveLibrary";
   initialCurveId?: CurveId;
+  initialSection?: "volume" | "valve" | "headloss";
 };
 
 export type DeleteScenarioConfirmationDialogState = {

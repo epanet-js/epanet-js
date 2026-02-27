@@ -12,15 +12,21 @@ export const useShowCurveLibrary = () => {
     ({
       source,
       curveId,
+      initialSection,
     }: {
       source: "toolbar" | "valve";
       curveId?: CurveId;
+      initialSection?: "volume" | "valve" | "headloss";
     }) => {
       userTracking.capture({
         name: "curveLibrary.opened",
         source,
       });
-      setDialogState({ type: "curveLibrary", initialCurveId: curveId });
+      setDialogState({
+        type: "curveLibrary",
+        initialCurveId: curveId,
+        initialSection,
+      });
     },
     [setDialogState, userTracking],
   );

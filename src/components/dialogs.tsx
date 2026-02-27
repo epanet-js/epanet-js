@@ -275,6 +275,7 @@ const ControlsDialog = dynamic(
 
 const PatternsDialog = dynamic<{
   initialPatternId?: number;
+  initialSection?: "demand" | "reservoirHead" | "pumpSpeed";
 }>(
   () => import("src/components/dialogs/patterns").then((r) => r.PatternsDialog),
   {
@@ -284,6 +285,7 @@ const PatternsDialog = dynamic<{
 
 const PumpLibraryDialog = dynamic<{
   initialCurveId?: number;
+  initialSection?: "pump" | "efficiency";
 }>(
   () =>
     import("src/components/dialogs/pump-library").then(
@@ -296,6 +298,7 @@ const PumpLibraryDialog = dynamic<{
 
 const CurveLibraryDialog = dynamic<{
   initialCurveId?: number;
+  initialSection?: "volume" | "valve" | "headloss";
 }>(
   () =>
     import("src/components/dialogs/curves").then((r) => r.CurveLibraryDialog),
@@ -454,13 +457,28 @@ export const Dialogs = memo(function Dialogs() {
     return <ControlsDialog />;
   }
   if (dialog.type === "patternsLibrary") {
-    return <PatternsDialog initialPatternId={dialog.initialPatternId} />;
+    return (
+      <PatternsDialog
+        initialPatternId={dialog.initialPatternId}
+        initialSection={dialog.initialSection}
+      />
+    );
   }
   if (dialog.type === "pumpLibrary") {
-    return <PumpLibraryDialog initialCurveId={dialog.initialCurveId} />;
+    return (
+      <PumpLibraryDialog
+        initialCurveId={dialog.initialCurveId}
+        initialSection={dialog.initialSection}
+      />
+    );
   }
   if (dialog.type === "curveLibrary") {
-    return <CurveLibraryDialog initialCurveId={dialog.initialCurveId} />;
+    return (
+      <CurveLibraryDialog
+        initialCurveId={dialog.initialCurveId}
+        initialSection={dialog.initialSection}
+      />
+    );
   }
 
   if (dialog.type === "upgrade") {

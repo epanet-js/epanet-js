@@ -12,15 +12,21 @@ export const useShowPumpLibrary = () => {
     ({
       source,
       curveId,
+      initialSection,
     }: {
       source: "toolbar" | "pump";
       curveId?: CurveId;
+      initialSection?: "pump" | "efficiency";
     }) => {
       userTracking.capture({
         name: "pumpLibrary.opened",
         source,
       });
-      setDialogState({ type: "pumpLibrary", initialCurveId: curveId });
+      setDialogState({
+        type: "pumpLibrary",
+        initialCurveId: curveId,
+        initialSection,
+      });
     },
     [setDialogState, userTracking],
   );

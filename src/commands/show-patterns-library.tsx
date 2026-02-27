@@ -11,15 +11,21 @@ export const useShowPatternsLibrary = () => {
     ({
       source,
       initialPatternId,
+      initialSection,
     }: {
       source: "toolbar" | "shortcut" | "reservoir" | "pump";
       initialPatternId?: number;
+      initialSection?: "demand" | "reservoirHead" | "pumpSpeed";
     }) => {
       userTracking.capture({
         name: "patternsLibrary.opened",
         source,
       });
-      setDialogState({ type: "patternsLibrary", initialPatternId });
+      setDialogState({
+        type: "patternsLibrary",
+        initialPatternId,
+        initialSection,
+      });
     },
     [setDialogState, userTracking],
   );

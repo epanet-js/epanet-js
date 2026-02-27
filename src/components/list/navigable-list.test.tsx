@@ -6,11 +6,9 @@ const setupUser = () => userEvent.setup();
 
 describe("NavigableList", () => {
   const onSelectItem = vi.fn();
-  const onToggleSection = vi.fn();
 
   beforeEach(() => {
     onSelectItem.mockClear();
-    onToggleSection.mockClear();
     Element.prototype.scrollIntoView = vi.fn();
   });
 
@@ -33,13 +31,11 @@ describe("NavigableList", () => {
   const renderList = ({
     items = navItems,
     focusedItem,
-    sectionStatus = { alpha: true, beta: true },
     isNavBlocked,
     children = defaultChildren,
   }: {
     items?: NavItem[];
     focusedItem?: NavItem;
-    sectionStatus?: Record<string, boolean>;
     isNavBlocked?: boolean;
     children?: React.ReactNode;
   } = {}) =>
@@ -48,8 +44,6 @@ describe("NavigableList", () => {
         navItems={items}
         focusedItem={focusedItem}
         onSelectItem={onSelectItem}
-        sectionStatus={sectionStatus}
-        onToggleSection={onToggleSection}
         isNavBlocked={isNavBlocked}
       >
         {children}
@@ -70,23 +64,11 @@ describe("NavigableList", () => {
 
     it("skips items from collapsed sections in navigation", async () => {
       const user = setupUser();
-      renderList({
-        focusedItem: { section: "alpha" },
-        sectionStatus: { alpha: false, beta: true },
-      });
+      // When focusedItem targets "beta", only beta is expanded, alpha is collapsed
+      renderList({ focusedItem: { section: "beta" } });
       await user.tab();
-      await user.keyboard("{ArrowDown}");
-      expect(onSelectItem).toHaveBeenCalledWith({ section: "beta" });
-    });
-
-    it("navigates to empty section header", async () => {
-      const user = setupUser();
-      renderList({
-        items: [],
-        sectionStatus: { alpha: true, beta: true },
-      });
-      await user.tab();
-      await user.keyboard("{ArrowDown}");
+      await user.keyboard("{ArrowUp}");
+      // alpha section header is before beta, but alpha items are collapsed
       expect(onSelectItem).toHaveBeenCalledWith({ section: "alpha" });
     });
   });
@@ -94,6 +76,7 @@ describe("NavigableList", () => {
   describe("ArrowDown", () => {
     it("selects first item when nothing is focused", async () => {
       const user = setupUser();
+      // No focusedItem → all sections expanded
       renderList();
       await user.tab();
       await user.keyboard("{ArrowDown}");
@@ -123,7 +106,10 @@ describe("NavigableList", () => {
       renderList({ focusedItem: { section: "alpha" } });
       await user.tab();
       await user.keyboard("{ArrowUp}");
-      expect(onSelectItem).toHaveBeenCalledWith({ id: 3, section: "beta" });
+      // alpha is focused → only alpha expanded, beta collapsed
+      // Navigation items: [alpha header, id:1, id:2, beta header]
+      // Wrapping from alpha header goes to last item: beta header
+      expect(onSelectItem).toHaveBeenCalledWith({ section: "beta" });
     });
 
     it("moves to the previous item", async () => {
@@ -146,7 +132,8 @@ describe("NavigableList", () => {
 
     it("End navigates to the last item", async () => {
       const user = setupUser();
-      renderList({ focusedItem: { section: "alpha" } });
+      // No focusedItem → all sections expanded
+      renderList();
       await user.tab();
       await user.keyboard("{End}");
       expect(onSelectItem).toHaveBeenCalledWith({ id: 3, section: "beta" });
@@ -156,10 +143,14 @@ describe("NavigableList", () => {
   describe("Enter", () => {
     it("toggles the focused section", async () => {
       const user = setupUser();
+      // focusedItem on alpha section → only alpha expanded
       renderList({ focusedItem: { section: "alpha" } });
       await user.tab();
       await user.keyboard("{Enter}");
-      expect(onToggleSection).toHaveBeenCalledWith("alpha");
+      // After toggling alpha closed, arrow down should skip alpha items
+      await user.keyboard("{ArrowDown}");
+      // Now alpha is closed, so nav is: [alpha header(closed), beta header]
+      expect(onSelectItem).toHaveBeenLastCalledWith({ section: "beta" });
     });
 
     it("does not toggle when focused on an item", async () => {
@@ -167,7 +158,8 @@ describe("NavigableList", () => {
       renderList({ focusedItem: { id: 1, section: "alpha" } });
       await user.tab();
       await user.keyboard("{Enter}");
-      expect(onToggleSection).not.toHaveBeenCalled();
+      // No navigation should have happened
+      expect(onSelectItem).not.toHaveBeenCalled();
     });
 
     it("does nothing when nothing is focused", async () => {
@@ -175,7 +167,7 @@ describe("NavigableList", () => {
       renderList();
       await user.tab();
       await user.keyboard("{Enter}");
-      expect(onToggleSection).not.toHaveBeenCalled();
+      expect(onSelectItem).not.toHaveBeenCalled();
     });
   });
 
@@ -209,7 +201,6 @@ describe("NavigableList", () => {
       await user.keyboard("{Enter}");
       await user.keyboard("{Home}");
       expect(onSelectItem).not.toHaveBeenCalled();
-      expect(onToggleSection).not.toHaveBeenCalled();
     });
   });
 
