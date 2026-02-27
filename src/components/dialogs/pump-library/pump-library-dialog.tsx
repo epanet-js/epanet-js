@@ -241,7 +241,6 @@ export const PumpLibraryDialog = ({
           {selectedCurveId ? (
             (() => {
               const curveType = editedCurves.get(selectedCurveId)?.type;
-              const curveConfig = getCurveTypeConfig(curveType);
               const isUncategorized =
                 curveType !== "pump" && curveType !== "efficiency";
               return (
@@ -251,17 +250,8 @@ export const PumpLibraryDialog = ({
                     handleCurveChange(selectedCurveId, { points })
                   }
                   readOnly={isSnapshotLocked || isUncategorized}
-                  curveConfig={curveConfig}
-                  xUnit={
-                    curveConfig.xQuantity
-                      ? modelMetadata.quantities.getUnit(curveConfig.xQuantity)
-                      : undefined
-                  }
-                  yUnit={
-                    curveConfig.yQuantity
-                      ? modelMetadata.quantities.getUnit(curveConfig.yQuantity)
-                      : undefined
-                  }
+                  curveType={curveType}
+                  quantities={modelMetadata.quantities}
                 />
               );
             })()

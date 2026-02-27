@@ -12,9 +12,16 @@ import {
   type GridSelection,
   type RowAction,
 } from "src/components/data-grid";
-import { CurvePoint } from "src/hydraulic-model/curves";
+import {
+  CurvePoint,
+  CurveType,
+  stripTrailingEmptyPoints,
+} from "src/hydraulic-model/curves";
 import { useTranslate } from "src/hooks/use-translate";
+import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { DeleteIcon, AddIcon } from "src/icons";
+import { getCurveTypeConfig } from "./curve-type-config";
+import { Quantities } from "src/model-metadata/quantities-spec";
 
 type CurveRow = {
   x: number;
@@ -26,9 +33,8 @@ type CurveTableProps = {
   onChange: (points: CurvePoint[]) => void;
   onSelectionChange?: (selection: GridSelection | null) => void;
   readOnly?: boolean;
-  errorCells?: Set<string>;
-  xHeader: string;
-  yHeader: string;
+  curveType?: CurveType;
+  quantities: Quantities;
 };
 
 export type CurveTableRef = DataGridRef;
@@ -53,17 +59,56 @@ export const CurveTable = forwardRef<DataGridRef, CurveTableProps>(
       onChange,
       onSelectionChange,
       readOnly = false,
-      errorCells,
-      xHeader,
-      yHeader,
+      curveType,
+      quantities,
     },
     ref,
   ) {
     const translate = useTranslate();
+    const translateUnit = useTranslateUnit();
     const gridRef = useRef<DataGridRef>(null);
-    const containerRef = useRef<HTMLDivElement>(null);
 
     useImperativeHandle(ref, () => gridRef.current!, []);
+
+    const curveConfig = getCurveTypeConfig(curveType);
+
+    const xHeader = useMemo(() => {
+      const label = translate(curveConfig.xLabel);
+      const unit = curveConfig.xQuantity
+        ? quantities.getUnit(curveConfig.xQuantity)
+        : undefined;
+      return unit ? `${label} (${translateUnit(unit)})` : label;
+    }, [
+      curveConfig.xLabel,
+      curveConfig.xQuantity,
+      quantities,
+      translate,
+      translateUnit,
+    ]);
+
+    const yHeader = useMemo(() => {
+      const label = translate(curveConfig.yLabel);
+      const unit = curveConfig.yQuantity
+        ? quantities.getUnit(curveConfig.yQuantity)
+        : undefined;
+      return unit ? `${label} (${translateUnit(unit)})` : label;
+    }, [
+      curveConfig.yLabel,
+      curveConfig.yQuantity,
+      quantities,
+      translate,
+      translateUnit,
+    ]);
+
+    const errorCells = useMemo(() => {
+      const meaningful = stripTrailingEmptyPoints(points);
+      const errors = curveConfig.getErrors(meaningful);
+      const set = new Set<string>();
+      for (const e of errors) {
+        set.add(`${e.index}:${e.value}`);
+      }
+      return set;
+    }, [points, curveConfig]);
 
     const rowData = useMemo(() => toRows(points), [points]);
 
@@ -169,7 +214,7 @@ export const CurveTable = forwardRef<DataGridRef, CurveTableProps>(
 
     const cellHasWarning = useCallback(
       (rowIndex: number, columnId: string) => {
-        return errorCells?.has(`${rowIndex}:${columnId}`) ?? false;
+        return errorCells.has(`${rowIndex}:${columnId}`);
       },
       [errorCells],
     );
@@ -186,23 +231,21 @@ export const CurveTable = forwardRef<DataGridRef, CurveTableProps>(
     );
 
     return (
-      <div ref={containerRef} className="h-full">
-        <DataGrid<CurveRow>
-          ref={gridRef}
-          data={rowData}
-          columns={columns}
-          onChange={handleChange}
-          createRow={createRow}
-          rowActions={rowActions}
-          addRowLabel={translate("addPoint")}
-          gutterColumn
-          onSelectionChange={onSelectionChange}
-          variant="spreadsheet"
-          readOnly={readOnly}
-          cellHasWarning={cellHasWarning}
-          autoAddNewRows
-        />
-      </div>
+      <DataGrid<CurveRow>
+        ref={gridRef}
+        data={rowData}
+        columns={columns}
+        onChange={handleChange}
+        createRow={createRow}
+        rowActions={rowActions}
+        addRowLabel={translate("addPoint")}
+        gutterColumn
+        onSelectionChange={onSelectionChange}
+        variant="spreadsheet"
+        readOnly={readOnly}
+        cellHasWarning={cellHasWarning}
+        autoAddNewRows
+      />
     );
   },
 );

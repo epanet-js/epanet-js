@@ -2,40 +2,28 @@ import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { CurveGraph } from "./curve-graph";
 import {
   CurvePoint,
-  CurvePointsType,
+  CurveType,
   stripTrailingEmptyPoints,
 } from "src/hydraulic-model/curves";
-import {
-  fitCurve,
-  generateSmoothPointsFromCoefficients,
-  generateSmoothCurvePoints,
-} from "src/hydraulic-model/curve-fitting";
 import { type GridSelection } from "src/components/data-grid";
 import { CurveTable, type CurveTableRef } from "./curve-table";
-import { useTranslate } from "src/hooks/use-translate";
-import { useTranslateUnit } from "src/hooks/use-translate-unit";
-import { InlineField } from "src/components/form/fields";
-import { NotificationBanner } from "src/components/notifications";
-import { TriangleAlert } from "lucide-react";
-import { Unit } from "src/quantity";
-import { CurveTypeConfig } from "./curve-type-config";
+import { CurveErrorBanner } from "./curve-error-banner";
+import { Quantities } from "src/model-metadata/quantities-spec";
 
 interface CurveDetailProps {
   points: CurvePoint[];
   onChange: (points: CurvePoint[]) => void;
   readOnly?: boolean;
-  curveConfig: CurveTypeConfig;
-  xUnit?: Unit;
-  yUnit?: Unit;
+  curveType?: CurveType;
+  quantities: Quantities;
 }
 
 export function CurveDetail({
   points,
   onChange,
   readOnly = false,
-  curveConfig,
-  xUnit,
-  yUnit,
+  curveType,
+  quantities,
 }: CurveDetailProps) {
   const [selectedCells, setSelectedCells] = useState<GridSelection | null>(
     null,
@@ -81,96 +69,11 @@ export function CurveDetail({
     return () => document.removeEventListener("click", handleDocumentClick);
   }, []);
 
-  const translate = useTranslate();
-  const translateUnit = useTranslateUnit();
-
-  const xHeader = useMemo(() => {
-    const label = translate(curveConfig.xLabel);
-    return xUnit ? `${label} (${translateUnit(xUnit)})` : label;
-  }, [curveConfig.xLabel, xUnit, translate, translateUnit]);
-
-  const yHeader = useMemo(() => {
-    const label = translate(curveConfig.yLabel);
-    return yUnit ? `${label} (${translateUnit(yUnit)})` : label;
-  }, [curveConfig.yLabel, yUnit, translate, translateUnit]);
-
   const graphSelectedIndex = useMemo(() => {
     if (!selectedCells) return null;
     const row = selectedCells.min.row;
     return row < meaningfulPoints.length ? row : null;
   }, [selectedCells, meaningfulPoints.length]);
-
-  const errors = useMemo(
-    () => curveConfig.getErrors(meaningfulPoints),
-    [curveConfig, meaningfulPoints],
-  );
-  const isValid = errors.length === 0;
-
-  const errorCells = useMemo(() => {
-    const set = new Set<string>();
-    for (const e of errors) {
-      set.add(`${e.index}:${e.value}`);
-    }
-    return set;
-  }, [errors]);
-
-  const errorIndices = useMemo(() => {
-    const set = new Set<number>();
-    for (const e of errors) {
-      set.add(e.index);
-    }
-    return set;
-  }, [errors]);
-
-  const { curveType, smoothCurvePoints } = useMemo(() => {
-    if (meaningfulPoints.length === 1) {
-      const curveType: CurvePointsType = "designPointCurve";
-      if (!isValid)
-        return { curveType, smoothCurvePoints: null as CurvePoint[] | null };
-      const smooth = generateSmoothCurvePoints(meaningfulPoints, curveType);
-      return { curveType, smoothCurvePoints: smooth };
-    }
-
-    if (meaningfulPoints.length === 3) {
-      const coefficients = fitCurve(meaningfulPoints);
-      if (coefficients) {
-        const curveType: CurvePointsType = "standardCurve";
-        if (!isValid)
-          return { curveType, smoothCurvePoints: null as CurvePoint[] | null };
-        const smooth = generateSmoothPointsFromCoefficients(coefficients);
-        return { curveType, smoothCurvePoints: smooth };
-      }
-    }
-
-    return {
-      curveType: "multiPointCurve" as CurvePointsType,
-      smoothCurvePoints: null as CurvePoint[] | null,
-    };
-  }, [meaningfulPoints, isValid]);
-
-  const warningMessage = useMemo(() => {
-    if (errors.length === 0) return null;
-    const hasXError = errors.some((e) => e.value === "x");
-    const hasYError = errors.some((e) => e.value === "y");
-    const xLabel = translate(curveConfig.xLabel);
-    const yLabel = translate(curveConfig.yLabel);
-
-    if (points.length === 1) {
-      const parts: string[] = [];
-      if (hasXError)
-        parts.push(translate("curveValidation.valueMustBeNonZero", xLabel));
-      if (hasYError)
-        parts.push(translate("curveValidation.valueMustBeNonZero", yLabel));
-      return parts.join(" ");
-    }
-
-    const parts: string[] = [];
-    if (hasXError)
-      parts.push(translate("curveValidation.valueAscendingOrder", xLabel));
-    if (hasYError)
-      parts.push(translate("curveValidation.valueDescendingOrder", yLabel));
-    return parts.join(" ");
-  }, [errors, points.length, translate, curveConfig]);
 
   const handleTableSelectionChange = useCallback(
     (selection: GridSelection | null) => {
@@ -188,38 +91,20 @@ export function CurveDetail({
           onChange={onChange}
           onSelectionChange={handleTableSelectionChange}
           readOnly={readOnly}
-          errorCells={errorCells}
-          xHeader={xHeader}
-          yHeader={yHeader}
+          curveType={curveType}
+          quantities={quantities}
         />
       </div>
-      {warningMessage && (
-        <NotificationBanner
-          variant="warning"
-          title={translate("curves.invalidCurve")}
-          description={warningMessage}
-          Icon={TriangleAlert}
-          className="mt-2"
+      <CurveErrorBanner points={meaningfulPoints} curveType={curveType} />
+      <div className="flex flex-col flex-1 min-h-0 mt-4">
+        <CurveGraph
+          ref={graphContainerRef}
+          points={meaningfulPoints}
+          curveType={curveType}
+          quantities={quantities}
+          selectedPointIndex={graphSelectedIndex}
+          onPointClick={handleGraphClick}
         />
-      )}
-      <div className="mt-4 mb-[.25rem] w-full">
-        <InlineField name={translate("curveType")} layout="label-flex-none">
-          <span className="text-sm">{translate(curveType)}</span>
-        </InlineField>
-      </div>
-      <div className="flex-1 min-h-0 p-2 pt-4 border border-gray-200 dark:border-gray-700">
-        <div ref={graphContainerRef} className="h-full">
-          <CurveGraph
-            points={meaningfulPoints}
-            curveType={curveType}
-            fittedPoints={smoothCurvePoints}
-            selectedPointIndex={graphSelectedIndex}
-            onPointClick={handleGraphClick}
-            errorIndices={errorIndices}
-            xAxisLabel={xHeader}
-            yAxisLabel={yHeader}
-          />
-        </div>
       </div>
     </div>
   );

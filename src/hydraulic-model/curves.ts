@@ -110,6 +110,90 @@ export const getPumpCurveErrors = (points: CurvePoint[]): CurveErrorPoint[] => {
   return errors;
 };
 
+/** Volume curves: X strictly increasing, Y strictly increasing.
+ *  Required because EPANET's tankgrade() swaps X/Y for inverse lookup. */
+export const getVolumeCurveErrors = (
+  points: CurvePoint[],
+): CurveErrorPoint[] => {
+  if (points.length === 0) return [];
+
+  if (points.length === 1) {
+    const errors: CurveErrorPoint[] = [];
+    if (points[0].x === 0) errors.push({ index: 0, value: "x" });
+    if (points[0].y === 0) errors.push({ index: 0, value: "y" });
+    return errors;
+  }
+
+  const errors: CurveErrorPoint[] = [];
+  const seen = new Set<string>();
+
+  const add = (index: number, value: "x" | "y") => {
+    const key = `${index}:${value}`;
+    if (!seen.has(key)) {
+      seen.add(key);
+      errors.push({ index, value });
+    }
+  };
+
+  for (let i = 1; i < points.length; i++) {
+    if (points[i].x <= points[i - 1].x) {
+      add(i - 1, "x");
+      add(i, "x");
+    }
+    if (points[i].y <= points[i - 1].y) {
+      add(i - 1, "y");
+      add(i, "y");
+    }
+  }
+
+  return errors;
+};
+
+/** Headloss curves (GPV): X strictly increasing, Y non-decreasing.
+ *  EPANET's gpvcoeff() clamps negative slopes to TINY. */
+export const getHeadlossCurveErrors = (
+  points: CurvePoint[],
+): CurveErrorPoint[] => {
+  if (points.length === 0) return [];
+
+  if (points.length === 1) {
+    const errors: CurveErrorPoint[] = [];
+    if (points[0].x === 0) errors.push({ index: 0, value: "x" });
+    if (points[0].y === 0) errors.push({ index: 0, value: "y" });
+    return errors;
+  }
+
+  const errors: CurveErrorPoint[] = [];
+  const seen = new Set<string>();
+
+  const add = (index: number, value: "x" | "y") => {
+    const key = `${index}:${value}`;
+    if (!seen.has(key)) {
+      seen.add(key);
+      errors.push({ index, value });
+    }
+  };
+
+  for (let i = 1; i < points.length; i++) {
+    if (points[i].x <= points[i - 1].x) {
+      add(i - 1, "x");
+      add(i, "x");
+    }
+    if (points[i].y < points[i - 1].y) {
+      add(i - 1, "y");
+      add(i, "y");
+    }
+  }
+
+  return errors;
+};
+
+/** Valve curves (PCV): X strictly increasing, Y strictly increasing. */
+export const getValveCurveErrors = getVolumeCurveErrors;
+
+/** Efficiency curves: X strictly increasing (Y unconstrained — bell-shaped). */
+export const getEfficiencyCurveErrors = getGenericCurveErrors;
+
 export const buildDefaultPumpCurve = (
   curves: Curves,
   labelManager: LabelManager,

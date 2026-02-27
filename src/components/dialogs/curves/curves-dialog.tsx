@@ -247,7 +247,6 @@ export const CurveLibraryDialog = ({
           {selectedCurveId ? (
             (() => {
               const curveType = editedCurves.get(selectedCurveId)?.type;
-              const curveConfig = getCurveTypeConfig(curveType);
               const isUncategorized =
                 !curveType || !CURVE_LIBRARY_TYPES.has(curveType);
               return (
@@ -257,17 +256,8 @@ export const CurveLibraryDialog = ({
                     handleCurveChange(selectedCurveId, { points })
                   }
                   readOnly={isSnapshotLocked || isUncategorized}
-                  curveConfig={curveConfig}
-                  xUnit={
-                    curveConfig.xQuantity
-                      ? modelMetadata.quantities.getUnit(curveConfig.xQuantity)
-                      : undefined
-                  }
-                  yUnit={
-                    curveConfig.yQuantity
-                      ? modelMetadata.quantities.getUnit(curveConfig.yQuantity)
-                      : undefined
-                  }
+                  curveType={curveType}
+                  quantities={modelMetadata.quantities}
                 />
               );
             })()
