@@ -37,6 +37,14 @@ type ActionState =
   | { action: "renaming"; curveId: CurveId }
   | { action: "cloning"; sourceCurve: TypedCurve };
 
+const SECTION_TYPES: CurveSectionType[] = ["volume", "valve", "headloss"];
+
+const SECTION_TRANSLATION_KEYS: Record<CurveSectionType, string> = {
+  volume: "curves.volumeCurves",
+  valve: "curves.valveCurves",
+  headloss: "curves.headlossCurves",
+};
+
 type CurveSidebarProps = {
   width: number;
   curves: Curves;
@@ -82,37 +90,49 @@ export const CurveSidebar = ({
       initialSection && !selectedCurveId ? initialSection : null,
     );
 
-  const clearActionState = () => {
-    setActionState(undefined);
-    requestAnimationFrame(() => listRef.current?.focus());
-  };
-
   const { groupedCurves, navItems } = useMemo(() => {
-    const volume: TypedCurve[] = [];
-    const valve: TypedCurve[] = [];
-    const headloss: TypedCurve[] = [];
+    const groups: Record<CurveSectionType, TypedCurve[]> = {
+      volume: [],
+      valve: [],
+      headloss: [],
+    };
     const uncategorized: ICurve[] = [];
     const items: NavItem<SidebarSectionType>[] = [];
     for (const curve of curves.values()) {
-      if (curve.type === "volume") {
-        volume.push(curve as TypedCurve);
-        items.push({ id: curve.id, section: "volume" });
-      } else if (curve.type === "valve") {
-        valve.push(curve as TypedCurve);
-        items.push({ id: curve.id, section: "valve" });
-      } else if (curve.type === "headloss") {
-        headloss.push(curve as TypedCurve);
-        items.push({ id: curve.id, section: "headloss" });
+      const type = curve.type as CurveSectionType | undefined;
+      if (type && type in groups) {
+        groups[type].push(curve as TypedCurve);
+        items.push({ id: curve.id, section: type });
       } else if (!curve.type) {
         uncategorized.push(curve);
         items.push({ id: curve.id, section: "uncategorized" });
       }
     }
     return {
-      groupedCurves: { volume, valve, headloss, uncategorized },
+      groupedCurves: { ...groups, uncategorized },
       navItems: items,
     };
   }, [curves]);
+
+  const focusedItem = useMemo((): NavItem<SidebarSectionType> | undefined => {
+    if (selectedCurveId) {
+      const curve = curves.get(selectedCurveId);
+      const section =
+        curve?.type && SECTION_TYPES.includes(curve.type as CurveSectionType)
+          ? (curve.type as SidebarSectionType)
+          : "uncategorized";
+      return { id: selectedCurveId, section };
+    }
+    if (focusedSection) {
+      return { section: focusedSection };
+    }
+    return undefined;
+  }, [focusedSection, selectedCurveId, curves]);
+
+  const clearActionState = () => {
+    setActionState(undefined);
+    requestAnimationFrame(() => listRef.current?.focus());
+  };
 
   useEffect(
     function autoScrollToSelectedItem() {
@@ -124,25 +144,6 @@ export const CurveSidebar = ({
     },
     [selectedCurveId, curves],
   );
-
-  const focusedItem = useMemo((): NavItem<SidebarSectionType> | undefined => {
-    if (focusedSection) {
-      return { section: focusedSection };
-    }
-    if (selectedCurveId !== null) {
-      const section: SidebarSectionType = groupedCurves.volume.some(
-        (c) => c.id === selectedCurveId,
-      )
-        ? "volume"
-        : groupedCurves.valve.some((c) => c.id === selectedCurveId)
-          ? "valve"
-          : groupedCurves.headloss.some((c) => c.id === selectedCurveId)
-            ? "headloss"
-            : "uncategorized";
-      return { id: selectedCurveId, section };
-    }
-    return undefined;
-  }, [focusedSection, selectedCurveId, groupedCurves]);
 
   const handleSelectItem = useCallback(
     (item: NavItem<SidebarSectionType>) => {
@@ -194,9 +195,6 @@ export const CurveSidebar = ({
     return false;
   };
 
-  const creatingInSection =
-    actionState?.action === "creating" ? actionState.curveType : undefined;
-
   const handleCategorize = useCallback(
     (curveId: CurveId, type: CurveSectionType) => {
       onChangeCurve(curveId, { type });
@@ -204,251 +202,42 @@ export const CurveSidebar = ({
     [onChangeCurve],
   );
 
-  const sectionConfigs: {
-    type: CurveSectionType;
-    titleKey: string;
-    curves: TypedCurve[];
-  }[] = [
-    {
-      type: "volume",
-      titleKey: "curves.volumeCurves",
-      curves: groupedCurves.volume,
-    },
-    {
-      type: "valve",
-      titleKey: "curves.valveCurves",
-      curves: groupedCurves.valve,
-    },
-    {
-      type: "headloss",
-      titleKey: "curves.headlossCurves",
-      curves: groupedCurves.headloss,
-    },
-  ];
+  const handleNew = (sectionType: string) => {
+    setActionState({
+      action: "creating",
+      curveType: sectionType as CurveSectionType,
+    });
+    listRef.current?.openSection(sectionType);
+  };
 
-  return (
-    <div className="flex-shrink-0 flex flex-col gap-2" style={{ width }}>
-      <NavigableList
-        ref={listRef}
-        navItems={navItems}
-        focusedItem={focusedItem}
-        onSelectItem={handleSelectItem}
-        isNavBlocked={!!actionState}
-      >
-        {sectionConfigs.map(({ type, titleKey, curves: sectionCurves }) => (
-          <CurveSection
-            key={type}
-            sectionType={type}
-            title={translate(titleKey)}
-            isFocused={focusedSection === type}
-            curves={sectionCurves}
-            selectedCurveId={selectedCurveId}
-            invalidCurveIds={invalidCurveIds}
-            actionState={actionState}
-            isCreating={creatingInSection === type}
-            onSelectCurve={(curveId) => {
-              setFocusedSection(null);
-              onSelectCurve(curveId);
-            }}
-            onStartCreate={() => {
-              setActionState({ action: "creating", curveType: type });
-              listRef.current?.openSection(type);
-            }}
-            onStartRename={(curveId) =>
-              setActionState({ action: "renaming", curveId })
-            }
-            onStartClone={(sourceCurve) =>
-              setActionState({ action: "cloning", sourceCurve })
-            }
-            onDelete={(curveId) => {
-              onSelectCurve(null);
-              onDeleteCurve(curveId);
-            }}
-            onCurveLabelChange={handleCurveLabelChange}
-            onCancelAction={clearActionState}
-            readOnly={readOnly}
-          />
-        ))}
-        {groupedCurves.uncategorized.length > 0 && (
-          <UncategorizedCurveSection
-            isFocused={focusedSection === "uncategorized"}
-            curves={groupedCurves.uncategorized}
-            selectedCurveId={selectedCurveId}
-            onSelectCurve={(curveId) => {
-              setFocusedSection(null);
-              onSelectCurve(curveId);
-            }}
-            onCategorize={handleCategorize}
-            onDelete={(curveId) => {
-              clearActionState();
-              onSelectCurve(null);
-              onDeleteCurve(curveId);
-            }}
-            readOnly={readOnly}
-          />
-        )}
-      </NavigableList>
-    </div>
-  );
-};
+  const handleAction = (action: string, curve: ICurve) => {
+    switch (action) {
+      case "rename":
+        return setActionState({
+          action: "renaming",
+          curveId: curve.id,
+        });
+      case "duplicate":
+        return setActionState({
+          action: "cloning",
+          sourceCurve: curve as TypedCurve,
+        });
+      case "categorizeVolume":
+        return handleCategorize(curve.id, "volume");
+      case "categorizeValve":
+        return handleCategorize(curve.id, "valve");
+      case "categorizeHeadloss":
+        return handleCategorize(curve.id, "headloss");
+      case "delete": {
+        clearActionState();
+        onSelectCurve(null);
+        onDeleteCurve(curve.id);
+        return;
+      }
+    }
+  };
 
-type CurveSectionProps = {
-  sectionType: CurveSectionType;
-  title: string;
-  isFocused: boolean;
-  curves: TypedCurve[];
-  selectedCurveId: CurveId | null;
-  invalidCurveIds: Set<CurveId>;
-  actionState: ActionState | undefined;
-  isCreating: boolean;
-  onSelectCurve: (curveId: CurveId) => void;
-  onStartCreate: () => void;
-  onStartRename: (curveId: CurveId) => void;
-  onStartClone: (sourceCurve: TypedCurve) => void;
-  onDelete: (curveId: CurveId) => void;
-  onCurveLabelChange: (name: string) => boolean;
-  onCancelAction: () => void;
-  readOnly: boolean;
-};
-
-const CurveSection = ({
-  sectionType,
-  title,
-  isFocused,
-  curves,
-  selectedCurveId,
-  invalidCurveIds,
-  actionState,
-  isCreating,
-  onSelectCurve,
-  onStartCreate,
-  onStartRename,
-  onStartClone,
-  onDelete,
-  onCurveLabelChange,
-  onCancelAction,
-  readOnly,
-}: CurveSectionProps) => {
-  const translate = useTranslate();
-
-  return (
-    <CollapsibleListSection
-      sectionType={sectionType}
-      title={title}
-      count={curves.length}
-      isFocused={isFocused}
-      action={{
-        icon: <AddIcon />,
-        label: translate("curves.addCurve", title.toLocaleLowerCase()),
-      }}
-      onAction={onStartCreate}
-      readOnly={readOnly}
-    >
-      {curves.map((curve) => (
-        <CurveSidebarItem
-          key={curve.id}
-          curve={curve}
-          isSelected={curve.id === selectedCurveId}
-          isInvalid={invalidCurveIds.has(curve.id)}
-          onSelect={() => onSelectCurve(curve.id)}
-          actionState={actionState}
-          onCancel={onCancelAction}
-          onStartRename={onStartRename}
-          onStartClone={onStartClone}
-          onDelete={() => {
-            onCancelAction();
-            onDelete(curve.id);
-          }}
-          onCurveLabelChange={onCurveLabelChange}
-          readOnly={readOnly}
-        />
-      ))}
-      {isCreating && (
-        <ItemInput
-          label="New curve name"
-          value=""
-          placeholder={translate("curves.curveName")}
-          onCommit={onCurveLabelChange}
-          onCancel={onCancelAction}
-        />
-      )}
-    </CollapsibleListSection>
-  );
-};
-
-type UncategorizedCurveSectionProps = {
-  isFocused: boolean;
-  curves: ICurve[];
-  selectedCurveId: CurveId | null;
-  onSelectCurve: (curveId: CurveId) => void;
-  onCategorize: (curveId: CurveId, type: CurveSectionType) => void;
-  onDelete: (curveId: CurveId) => void;
-  readOnly: boolean;
-};
-
-const UncategorizedCurveSection = ({
-  isFocused,
-  curves,
-  selectedCurveId,
-  onSelectCurve,
-  onCategorize,
-  onDelete,
-  readOnly,
-}: UncategorizedCurveSectionProps) => {
-  const translate = useTranslate();
-
-  return (
-    <CollapsibleListSection
-      sectionType="uncategorized"
-      title={translate("curves.uncategorizedCurves")}
-      count={curves.length}
-      isFocused={isFocused}
-    >
-      {curves.map((curve) => (
-        <UncategorizedCurveSidebarItem
-          key={curve.id}
-          curve={curve}
-          isSelected={curve.id === selectedCurveId}
-          onSelect={() => onSelectCurve(curve.id)}
-          onCategorize={onCategorize}
-          onDelete={() => onDelete(curve.id)}
-          readOnly={readOnly}
-        />
-      ))}
-    </CollapsibleListSection>
-  );
-};
-
-type CurveSidebarItemProps = {
-  curve: TypedCurve;
-  isSelected: boolean;
-  isInvalid: boolean;
-  onSelect: () => void;
-  actionState: ActionState | undefined;
-  onCancel: () => void;
-  onStartRename: (curveId: CurveId) => void;
-  onStartClone: (curve: TypedCurve) => void;
-  onDelete: () => void;
-  onCurveLabelChange: (name: string) => boolean;
-  readOnly?: boolean;
-};
-
-const CurveSidebarItem = ({
-  curve,
-  isSelected,
-  isInvalid,
-  onSelect,
-  actionState,
-  onCancel,
-  onStartRename,
-  onStartClone,
-  onDelete,
-  onCurveLabelChange,
-  readOnly = false,
-}: CurveSidebarItemProps) => {
-  const translate = useTranslate();
-
-  const actions: ItemAction[] = [
+  const itemActions: ItemAction[] = [
     {
       action: "rename",
       label: translate("rename"),
@@ -467,68 +256,7 @@ const CurveSidebarItem = ({
     },
   ];
 
-  const handleAction = (action: string) => {
-    switch (action) {
-      case "rename":
-        return onStartRename(curve.id);
-      case "duplicate":
-        return onStartClone(curve);
-      case "delete":
-        return onDelete();
-    }
-  };
-
-  const isRenaming =
-    actionState?.action === "renaming" && actionState.curveId === curve.id;
-  const isCloning =
-    actionState?.action === "cloning" &&
-    actionState.sourceCurve.id === curve.id;
-
-  const editMode = isRenaming ? "inline" : isCloning ? "below" : null;
-
-  const warningIcon = isInvalid ? (
-    <span className="text-orange-500 flex-shrink-0">
-      <WarningIcon size="sm" />
-    </span>
-  ) : null;
-
-  return (
-    <EditableListItem
-      item={curve}
-      isSelected={isSelected}
-      onSelect={onSelect}
-      icon={warningIcon}
-      actions={actions}
-      onAction={handleAction}
-      readOnly={readOnly}
-      editLabelMode={editMode}
-      onLabelChange={onCurveLabelChange}
-      onCancel={onCancel}
-      placeholder={translate("curves.curveName")}
-    />
-  );
-};
-
-type UncategorizedCurveSidebarItemProps = {
-  curve: ICurve;
-  isSelected: boolean;
-  onSelect: () => void;
-  onCategorize: (curveId: CurveId, type: CurveSectionType) => void;
-  onDelete: () => void;
-  readOnly?: boolean;
-};
-
-const UncategorizedCurveSidebarItem = ({
-  curve,
-  isSelected,
-  onSelect,
-  onCategorize,
-  onDelete,
-  readOnly = false,
-}: UncategorizedCurveSidebarItemProps) => {
-  const translate = useTranslate();
-
-  const actions: ItemAction[] = [
+  const uncategorizedItemActions: ItemAction[] = [
     {
       action: "categorizeVolume",
       label: translate("curves.setAsVolume"),
@@ -552,27 +280,114 @@ const UncategorizedCurveSidebarItem = ({
     },
   ];
 
-  const handleAction = (action: string) => {
-    switch (action) {
-      case "categorizeVolume":
-        return onCategorize(curve.id, "volume");
-      case "categorizeValve":
-        return onCategorize(curve.id, "valve");
-      case "categorizeHeadloss":
-        return onCategorize(curve.id, "headloss");
-      case "delete":
-        return onDelete();
-    }
-  };
-
   return (
-    <ListItem
-      item={curve}
-      isSelected={isSelected}
-      onSelect={onSelect}
-      actions={actions}
-      onAction={handleAction}
-      readOnly={readOnly}
-    />
+    <div className="flex-shrink-0 flex flex-col gap-2" style={{ width }}>
+      <NavigableList
+        ref={listRef}
+        navItems={navItems}
+        focusedItem={focusedItem}
+        onSelectItem={handleSelectItem}
+        isNavBlocked={!!actionState}
+      >
+        {SECTION_TYPES.map((sectionType) => {
+          const title = translate(SECTION_TRANSLATION_KEYS[sectionType]);
+          return (
+            <CollapsibleListSection
+              key={sectionType}
+              sectionType={sectionType}
+              title={title}
+              count={groupedCurves[sectionType].length}
+              isFocused={focusedSection === sectionType}
+              action={{
+                icon: <AddIcon />,
+                label: translate("curves.addCurve", title.toLocaleLowerCase()),
+              }}
+              onAction={handleNew}
+              readOnly={readOnly}
+            >
+              {groupedCurves[sectionType].map((curve) => {
+                return (
+                  <EditableListItem
+                    key={curve.id}
+                    item={curve}
+                    isSelected={curve.id === selectedCurveId}
+                    icon={invalidCurveIds.has(curve.id) && <InvalidCurveIcon />}
+                    onSelect={() =>
+                      handleSelectItem({ id: curve.id, section: sectionType })
+                    }
+                    actions={itemActions}
+                    onAction={handleAction}
+                    editLabelMode={getEditMode(actionState, curve.id)}
+                    onLabelChange={handleCurveLabelChange}
+                    placeholder={translate("curves.curveName")}
+                    onCancel={clearActionState}
+                    readOnly={readOnly}
+                  />
+                );
+              })}
+              {isCreatingInSection(actionState, sectionType) && (
+                <ItemInput
+                  label="New curve name"
+                  value=""
+                  placeholder={translate("curves.curveName")}
+                  onCommit={handleCurveLabelChange}
+                  onCancel={clearActionState}
+                />
+              )}
+            </CollapsibleListSection>
+          );
+        })}
+        {groupedCurves.uncategorized.length > 0 && (
+          <CollapsibleListSection
+            sectionType="uncategorized"
+            title={translate("curves.uncategorizedCurves")}
+            count={groupedCurves.uncategorized.length}
+            isFocused={focusedSection === "uncategorized"}
+          >
+            {groupedCurves.uncategorized.map((curve) => {
+              return (
+                <ListItem
+                  key={curve.id}
+                  item={curve}
+                  isSelected={curve.id === selectedCurveId}
+                  onSelect={() =>
+                    handleSelectItem({ id: curve.id, section: "uncategorized" })
+                  }
+                  actions={uncategorizedItemActions}
+                  onAction={handleAction}
+                  readOnly={readOnly}
+                />
+              );
+            })}
+          </CollapsibleListSection>
+        )}
+      </NavigableList>
+    </div>
   );
 };
+
+const getEditMode = (actionState: ActionState | undefined, id: CurveId) => {
+  const isRenaming =
+    actionState?.action === "renaming" && actionState.curveId === id;
+  if (isRenaming) return "inline";
+
+  const isCloning =
+    actionState?.action === "cloning" && actionState.sourceCurve.id === id;
+  if (isCloning) return "below";
+
+  return null;
+};
+
+const isCreatingInSection = (
+  actionState: ActionState | undefined,
+  curveType: CurveType,
+) => {
+  if (actionState?.action !== "creating") return false;
+  return actionState.curveType === curveType;
+};
+
+const InvalidCurveIcon = () => (
+  <span className="text-orange-500 flex-shrink-0">
+    <WarningIcon size="sm" />
+  </span>
+);

@@ -13,7 +13,7 @@ type CollapsibleListSectionProps = {
   onToggle?: () => void;
   children: React.ReactNode;
   action?: { label: string; icon: React.ReactNode };
-  onAction?: () => void;
+  onAction?: (sectionType: string) => void;
   readOnly?: boolean;
 };
 
@@ -59,7 +59,7 @@ export const CollapsibleListSection = ({
             variant="quiet"
             size="xs"
             aria-label={action.label}
-            onClick={onAction}
+            onClick={() => onAction(sectionType)}
             className="h-6 w-6 hover:bg-gray-200 dark:hover:bg-gray-700"
           >
             {action.icon}
