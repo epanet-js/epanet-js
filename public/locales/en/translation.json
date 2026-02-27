@@ -909,8 +909,8 @@
   "multiplier": "Multiplier",
   "addPoint": "Add point",
   "openPumpLibrary": "Open library...",
-  "openCurvesLibrary": "Open library...",
-  "openPatternsLibrary": "Open library...",
+  "openCurvesLibrary": "Open curves...",
+  "openPatternsLibrary": "Open patterns...",
   "headPattern": "Head pattern",
   "headAverage": "Head (average)",
   "initialSpeed": "Initial speed",
@@ -920,5 +920,7 @@
   "multipliersDiffer": "Multipliers differ",
   "pumpName": "Pump name",
   "curveType": "Curve type",
-  "namedCurve": "Library pump"
+  "namedCurve": "Library pump",
+  "valveCurve": "Curve",
+  "headlossCurve": "Curve"
 }

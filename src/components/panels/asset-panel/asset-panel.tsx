@@ -61,7 +61,11 @@ import {
   SwitchRow,
   ConnectedCustomersRow,
 } from "./ui-components";
-import { BlockComparisonField, Section } from "src/components/form/fields";
+import {
+  BlockComparisonField,
+  InlineField,
+  Section,
+} from "src/components/form/fields";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { useQuickGraph } from "./quick-graph";
@@ -80,6 +84,9 @@ import {
 import { useShowPatternsLibrary } from "src/commands/show-patterns-library";
 import { SelectorOption } from "src/components/form/selector";
 import { PatternId } from "src/hydraulic-model/patterns";
+import { CurveId, Curves } from "src/hydraulic-model/curves";
+import { useShowCurveLibrary } from "src/commands/show-curve-library";
+import { Button } from "src/components/elements";
 
 type OnPropertyChange = <P extends ChangeableProperty>(
   name: P,
@@ -341,6 +348,7 @@ export function AssetPanel({
       const valve = asset as Valve;
       return (
         <ValveEditor
+          hydraulicModel={hydraulicModel}
           valve={valve}
           onPropertyChange={handlePropertyChange}
           quantitiesMetadata={quantitiesMetadata}
@@ -993,6 +1001,7 @@ const TankEditor = ({
 };
 
 const ValveEditor = ({
+  hydraulicModel,
   valve,
   startNode,
   endNode,
@@ -1004,6 +1013,7 @@ const ValveEditor = ({
   onLabelChange,
   readonly = false,
 }: {
+  hydraulicModel: HydraulicModel;
   valve: Valve;
   startNode: NodeAsset | null;
   endNode: NodeAsset | null;
@@ -1030,6 +1040,8 @@ const ValveEditor = ({
   const simVelocity = valveSimulation?.velocity ?? null;
   const simHeadloss = valveSimulation?.headloss ?? null;
   const statusText = translate(valveStatusLabel(valveSimulation ?? null));
+  const showCurveSelector =
+    allCurves && (valve.kind === "gpv" || valve.kind === "pcv");
 
   const statusOptions = useMemo(() => {
     return [
@@ -1116,14 +1128,24 @@ const ValveEditor = ({
           onChange={handleKindChange}
           readOnly={readonly}
         />
-        <QuantityRow
-          name="setting"
-          value={valve.setting}
-          unit={getSettingUnit()}
-          comparison={getComparison("setting", valve.setting)}
-          onChange={onPropertyChange}
-          readOnly={readonly}
-        />
+        {valve.kind !== "gpv" && (
+          <QuantityRow
+            name="setting"
+            value={valve.setting}
+            unit={getSettingUnit()}
+            comparison={getComparison("setting", valve.setting)}
+            onChange={onPropertyChange}
+            readOnly={readonly}
+          />
+        )}
+        {showCurveSelector && (
+          <ValveCurveField
+            valve={valve}
+            curves={hydraulicModel.curves}
+            onChange={onPropertyChange}
+            readOnly={readonly}
+          />
+        )}
         <SelectRow
           name="initialStatus"
           selected={valve.initialStatus}
@@ -1647,6 +1669,70 @@ const ReservoirHeadField = ({
         )}
       </div>
     </BlockComparisonField>
+  );
+};
+
+const ValveCurveField = ({
+  valve,
+  curves,
+  onChange,
+  readOnly = false,
+}: {
+  valve: Valve;
+  curves: Curves;
+  onChange: OnPropertyChange;
+  readOnly?: boolean;
+}) => {
+  const translate = useTranslate();
+  const showCurveLibrary = useShowCurveLibrary();
+
+  const curveOptions = useMemo(() => {
+    const libraryGroup: SelectorOption<CurveId>[] = [
+      { label: translate("openCurvesLibrary"), value: 0 },
+    ];
+    const curveGroup: SelectorOption<CurveId>[] = [];
+    const curveType = valve.kind === "gpv" ? "headloss" : "valve";
+    for (const curve of curves.values()) {
+      if (curve.type !== curveType) continue;
+      curveGroup.push({ value: curve.id, label: curve.label });
+    }
+    return [libraryGroup, curveGroup];
+  }, [valve.kind, curves, translate]);
+
+  const handleOnChange = (
+    _name: string,
+    newValue: CurveId | null,
+    oldValue: CurveId | null,
+  ) => {
+    if (newValue === null) return;
+    if (newValue === 0) {
+      showCurveLibrary({ source: "valve", curveId: valve.curveId });
+      return;
+    }
+    onChange("curveId", newValue, oldValue || undefined);
+  };
+
+  return curveOptions[1].length > 0 ? (
+    <SelectRow
+      name={valve.kind === "gpv" ? "headlossCurve" : "valveCurve"}
+      selected={valve.curveId ?? null}
+      options={curveOptions}
+      listClassName="first:italic"
+      stickyFirstGroup
+      nullable={true}
+      placeholder={`${translate("select")}...`}
+      onChange={handleOnChange}
+      readOnly={readOnly}
+    />
+  ) : (
+    <InlineField name={translate("curveId")} labelSize="md">
+      <Button
+        onClick={() => showCurveLibrary({ source: "valve" })}
+        className="w-full py-2"
+      >
+        {translate("openCurvesLibrary")}
+      </Button>
+    </InlineField>
   );
 };
 

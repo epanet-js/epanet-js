@@ -9,7 +9,13 @@ export const useShowCurveLibrary = () => {
   const userTracking = useUserTracking();
 
   const showCurveLibrary = useCallback(
-    ({ source, curveId }: { source: "toolbar"; curveId?: CurveId }) => {
+    ({
+      source,
+      curveId,
+    }: {
+      source: "toolbar" | "valve";
+      curveId?: CurveId;
+    }) => {
       userTracking.capture({
         name: "curveLibrary.opened",
         source,
