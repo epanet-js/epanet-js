@@ -10,6 +10,7 @@ import { usePersistence } from "src/lib/persistence";
 import { useUserTracking } from "src/infra/user-tracking";
 import { captureError } from "src/infra/error-tracking";
 import { useKeyboardState } from "src/keyboard/use-keyboard-state";
+import throttle from "lodash/throttle";
 
 export function useConnectCustomerPointsHandlers({
   hydraulicModel,
@@ -47,30 +48,34 @@ export function useConnectCustomerPointsHandlers({
     }
   }, [mode.mode, customerPoints.length, initializeConnectState]);
 
-  const move = (e: mapboxgl.MapMouseEvent | mapboxgl.MapTouchEvent) => {
-    if (customerPoints.length === 0) return;
+  const move = throttle(
+    (e: mapboxgl.MapMouseEvent | mapboxgl.MapTouchEvent) => {
+      if (customerPoints.length === 0) return;
 
-    const mouseCoord = getMapCoord(e);
-    const nearestPipe = findNearestPipe(e.point, mouseCoord);
+      const mouseCoord = getMapCoord(e);
+      const nearestPipe = findNearestPipe(e.point, mouseCoord);
 
-    if (nearestPipe) {
-      const strategy = isShiftHeld() ? "cursor" : "nearest-to-point";
-      const snapPoints = calculateSnapPoints(
-        customerPoints,
-        nearestPipe.pipeId,
-        strategy,
-        mouseCoord,
-      );
-      setConnectState({
-        customerPoints,
-        targetPipeId: nearestPipe.pipeId,
-        snapPoints,
-        strategy,
-      });
-    } else {
-      setConnectStateWithoutTarget();
-    }
-  };
+      if (nearestPipe) {
+        const strategy = isShiftHeld() ? "cursor" : "nearest-to-point";
+        const snapPoints = calculateSnapPoints(
+          customerPoints,
+          nearestPipe.pipeId,
+          strategy,
+          mouseCoord,
+        );
+        setConnectState({
+          customerPoints,
+          targetPipeId: nearestPipe.pipeId,
+          snapPoints,
+          strategy,
+        });
+      } else {
+        setConnectStateWithoutTarget();
+      }
+    },
+    16,
+    { trailing: false },
+  );
 
   const click = (_e: mapboxgl.MapMouseEvent | mapboxgl.MapTouchEvent) => {
     if (
