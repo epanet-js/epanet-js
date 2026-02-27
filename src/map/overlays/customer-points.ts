@@ -34,12 +34,6 @@ const disabledConnectionLineColor = hexToArray(colors.gray300);
 
 const highlightFillColor = hexToArray(colors.cyan500);
 const previewLineColor = hexToArray(colors.indigo500);
-const previewHaloColor = hexToArray(colors.indigo300, 0.8) as [
-  number,
-  number,
-  number,
-  number,
-];
 const oldConnectionLineColor = hexToArray(colors.indigo500, 0.4) as [
   number,
   number,
@@ -331,10 +325,6 @@ export const buildConnectCustomerPointsPreviewOverlay = (
   }
 
   const lineColor = isQuietMode ? connectionLineColor : previewLineColor;
-  const pointFillColor = isQuietMode ? fillColor : previewLineColor;
-  const pointStrokeColor = isQuietMode ? strokeColor : previewHaloColor;
-  const pointRadius = isQuietMode ? 1.5 : 2;
-  const pointMaxRadius = isQuietMode ? 4 : 5;
 
   const previewConnectionLinesLayer = new PathLayer({
     id: "customer-connect-preview-lines-layer",
@@ -353,33 +343,7 @@ export const buildConnectCustomerPointsPreviewOverlay = (
     visible: isVisible,
   });
 
-  const highlightCustomerPointsLayer = new ScatterplotLayer({
-    id: "customer-connect-preview-points-layer",
-    beforeId: "ephemeral-junction-highlight",
-    data: customerPoints,
-    getPosition: (d: CustomerPoint) => d.coordinates as [number, number],
-
-    radiusUnits: "meters",
-    getRadius: pointRadius,
-    radiusMinPixels: 1,
-    radiusMaxPixels: pointMaxRadius,
-
-    getFillColor: pointFillColor,
-    stroked: true,
-    getLineColor: pointStrokeColor,
-    getLineWidth: 1,
-    lineWidthUnits: "pixels",
-    lineWidthMinPixels: 1,
-    lineWidthMaxPixels: 2,
-    antialiasing: true,
-    visible: isVisible,
-  });
-
-  return [
-    oldConnectionLinesLayer,
-    previewConnectionLinesLayer,
-    highlightCustomerPointsLayer,
-  ];
+  return [oldConnectionLinesLayer, previewConnectionLinesLayer];
 };
 
 export const buildMovingCustomerPointOverlay = (
