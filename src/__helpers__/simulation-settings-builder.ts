@@ -1,22 +1,23 @@
 import { nanoid } from "nanoid";
-import type {
-  EPSTiming,
-  SimulationSettings,
+import {
+  defaultTiming,
+  type Timing,
+  type SimulationSettings,
 } from "src/simulation/simulation-settings";
 
 export class SimulationSettingsBuilder {
-  private epsTiming: EPSTiming = {};
+  private timingValue: Timing = defaultTiming;
 
   static with() {
     return new SimulationSettingsBuilder();
   }
 
-  eps(epsTiming: EPSTiming) {
-    this.epsTiming = epsTiming;
+  timing(timing: Partial<Timing>) {
+    this.timingValue = { ...defaultTiming, ...timing };
     return this;
   }
 
   build(): SimulationSettings {
-    return { version: nanoid(), epsTiming: this.epsTiming };
+    return { version: nanoid(), timing: this.timingValue };
   }
 }

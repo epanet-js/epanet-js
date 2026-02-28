@@ -23,10 +23,10 @@ describe("parse EPS timing", () => {
     `;
 
     const {
-      simulationSettings: { epsTiming },
+      simulationSettings: { timing },
     } = parseInp(inp);
 
-    expect(epsTiming.duration).toEqual(24 * 3600);
+    expect(timing.duration).toEqual(24 * 3600);
   });
 
   it("parses DURATION in HH:MM:SS format", () => {
@@ -36,10 +36,10 @@ describe("parse EPS timing", () => {
     `;
 
     const {
-      simulationSettings: { epsTiming },
+      simulationSettings: { timing },
     } = parseInp(inp);
 
-    expect(epsTiming.duration).toEqual(1 * 3600 + 30 * 60);
+    expect(timing.duration).toEqual(1 * 3600 + 30 * 60);
   });
 
   it("parses DURATION with HOURS unit", () => {
@@ -49,10 +49,10 @@ describe("parse EPS timing", () => {
     `;
 
     const {
-      simulationSettings: { epsTiming },
+      simulationSettings: { timing },
     } = parseInp(inp);
 
-    expect(epsTiming.duration).toEqual(48 * 3600);
+    expect(timing.duration).toEqual(48 * 3600);
   });
 
   it("parses DURATION with numeric value (assumes hours)", () => {
@@ -62,10 +62,10 @@ describe("parse EPS timing", () => {
     `;
 
     const {
-      simulationSettings: { epsTiming },
+      simulationSettings: { timing },
     } = parseInp(inp);
 
-    expect(epsTiming.duration).toEqual(12 * 3600);
+    expect(timing.duration).toEqual(12 * 3600);
   });
 
   it("parses HYDRAULIC TIMESTEP", () => {
@@ -75,10 +75,10 @@ describe("parse EPS timing", () => {
     `;
 
     const {
-      simulationSettings: { epsTiming },
+      simulationSettings: { timing },
     } = parseInp(inp);
 
-    expect(epsTiming.hydraulicTimestep).toEqual(3600);
+    expect(timing.hydraulicTimestep).toEqual(3600);
   });
 
   it("parses REPORT TIMESTEP", () => {
@@ -88,10 +88,10 @@ describe("parse EPS timing", () => {
     `;
 
     const {
-      simulationSettings: { epsTiming },
+      simulationSettings: { timing },
     } = parseInp(inp);
 
-    expect(epsTiming.reportTimestep).toEqual(30 * 60);
+    expect(timing.reportTimestep).toEqual(30 * 60);
   });
 
   it("parses PATTERN TIMESTEP", () => {
@@ -101,10 +101,10 @@ describe("parse EPS timing", () => {
     `;
 
     const {
-      simulationSettings: { epsTiming },
+      simulationSettings: { timing },
     } = parseInp(inp);
 
-    expect(epsTiming.patternTimestep).toEqual(3600);
+    expect(timing.patternTimestep).toEqual(3600);
   });
 
   it("parses all time settings together", () => {
@@ -117,24 +117,24 @@ describe("parse EPS timing", () => {
     `;
 
     const {
-      simulationSettings: { epsTiming },
+      simulationSettings: { timing },
     } = parseInp(inp);
 
-    expect(epsTiming.duration).toEqual(24 * 3600);
-    expect(epsTiming.hydraulicTimestep).toEqual(3600);
-    expect(epsTiming.reportTimestep).toEqual(3600);
-    expect(epsTiming.patternTimestep).toEqual(3600);
+    expect(timing.duration).toEqual(24 * 3600);
+    expect(timing.hydraulicTimestep).toEqual(3600);
+    expect(timing.reportTimestep).toEqual(3600);
+    expect(timing.patternTimestep).toEqual(3600);
   });
 
   it("leaves time settings undefined when not specified", () => {
     const {
-      simulationSettings: { epsTiming },
+      simulationSettings: { timing },
     } = parseInp(baseInp);
 
-    expect(epsTiming.duration).toBeUndefined();
-    expect(epsTiming.hydraulicTimestep).toBeUndefined();
-    expect(epsTiming.reportTimestep).toBeUndefined();
-    expect(epsTiming.patternTimestep).toBeUndefined();
+    expect(timing.duration).toEqual(0);
+    expect(timing.hydraulicTimestep).toEqual(3600);
+    expect(timing.reportTimestep).toEqual(3600);
+    expect(timing.patternTimestep).toEqual(3600);
   });
 
   it("warns for PATTERN START with non-zero value", () => {

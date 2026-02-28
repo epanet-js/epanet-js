@@ -97,7 +97,7 @@ describe("EPSResultsReader", () => {
         .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
         .build();
       const simulationSettings = SimulationSettingsBuilder.with()
-        .eps({ duration: 7200, hydraulicTimestep: 3600 }) // 2 hours, 1 hour timestep
+        .timing({ duration: 7200, hydraulicTimestep: 3600 }) // 2 hours, 1 hour timestep
         .build();
       const inp = buildInp(hydraulicModel, { simulationSettings });
 
@@ -138,7 +138,7 @@ describe("EPSResultsReader", () => {
         .aPipe(IDS.P2, { startNodeId: IDS.T1, endNodeId: IDS.J1 })
         .build();
       const simulationSettings = SimulationSettingsBuilder.with()
-        .eps({ duration: 3600, hydraulicTimestep: 3600 })
+        .timing({ duration: 3600, hydraulicTimestep: 3600 })
         .build();
       const inp = buildInp(hydraulicModel, { simulationSettings });
 
@@ -176,7 +176,7 @@ describe("EPSResultsReader", () => {
         .aPipe(IDS.P2, { startNodeId: IDS.T1, endNodeId: IDS.J1 })
         .build();
       const simulationSettings = SimulationSettingsBuilder.with()
-        .eps({ duration: 3600, hydraulicTimestep: 3600 })
+        .timing({ duration: 3600, hydraulicTimestep: 3600 })
         .build();
       const inp = buildInp(hydraulicModel, { simulationSettings });
 
@@ -372,7 +372,7 @@ describe("EPSResultsReader", () => {
         .aPumpCurve({ id: IDS.PUMP1, points: [{ x: 1, y: 1 }] })
         .build();
       const simulationSettings = SimulationSettingsBuilder.with()
-        .eps({ duration: 3600, hydraulicTimestep: 3600 })
+        .timing({ duration: 3600, hydraulicTimestep: 3600 })
         .build();
       const inp = buildInp(hydraulicModel, { simulationSettings });
 
@@ -407,7 +407,7 @@ describe("EPSResultsReader", () => {
         })
         .build();
       const simulationSettings = SimulationSettingsBuilder.with()
-        .eps({ duration: 7200, hydraulicTimestep: 3600 }) // 2 hours, 1 hour timestep
+        .timing({ duration: 7200, hydraulicTimestep: 3600 }) // 2 hours, 1 hour timestep
         .build();
       const inp = buildInp(hydraulicModel, { simulationSettings });
 
@@ -535,7 +535,7 @@ describe("EPSResultsReader", () => {
           .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
           .build();
         const simulationSettings = SimulationSettingsBuilder.with()
-          .eps({ duration: 7200, hydraulicTimestep: 3600 })
+          .timing({ duration: 7200, hydraulicTimestep: 3600 })
           .build();
         const inp = buildInp(hydraulicModel, { simulationSettings });
 
@@ -568,7 +568,7 @@ describe("EPSResultsReader", () => {
           .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
           .build();
         const simulationSettings = SimulationSettingsBuilder.with()
-          .eps({ duration: 7200, hydraulicTimestep: 3600 })
+          .timing({ duration: 7200, hydraulicTimestep: 3600 })
           .build();
         const inp = buildInp(hydraulicModel, { simulationSettings });
 
@@ -673,7 +673,7 @@ describe("EPSResultsReader", () => {
           .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
           .build();
         const simulationSettings = SimulationSettingsBuilder.with()
-          .eps({ duration: 7200, hydraulicTimestep: 3600 })
+          .timing({ duration: 7200, hydraulicTimestep: 3600 })
           .build();
         const inp = buildInp(hydraulicModel, { simulationSettings });
 
@@ -702,7 +702,7 @@ describe("EPSResultsReader", () => {
           .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
           .build();
         const simulationSettings = SimulationSettingsBuilder.with()
-          .eps({ duration: 7200, hydraulicTimestep: 3600 })
+          .timing({ duration: 7200, hydraulicTimestep: 3600 })
           .build();
         const inp = buildInp(hydraulicModel, { simulationSettings });
 
@@ -801,7 +801,7 @@ describe("EPSResultsReader", () => {
           .aPipe(IDS.P2, { startNodeId: IDS.T1, endNodeId: IDS.J1 })
           .build();
         const simulationSettings = SimulationSettingsBuilder.with()
-          .eps({ duration: 7200, hydraulicTimestep: 3600 })
+          .timing({ duration: 7200, hydraulicTimestep: 3600 })
           .build();
         const inp = buildInp(hydraulicModel, { simulationSettings });
 
@@ -838,7 +838,7 @@ describe("EPSResultsReader", () => {
           .aPipe(IDS.P2, { startNodeId: IDS.T1, endNodeId: IDS.J1 })
           .build();
         const simulationSettings = SimulationSettingsBuilder.with()
-          .eps({ duration: 7200, hydraulicTimestep: 3600 })
+          .timing({ duration: 7200, hydraulicTimestep: 3600 })
           .build();
         const inp = buildInp(hydraulicModel, { simulationSettings });
 
@@ -880,7 +880,7 @@ describe("EPSResultsReader", () => {
           .aPipe(IDS.P2, { startNodeId: IDS.T1, endNodeId: IDS.J1 })
           .build();
         const simulationSettings = SimulationSettingsBuilder.with()
-          .eps({ duration: 7200, hydraulicTimestep: 3600 })
+          .timing({ duration: 7200, hydraulicTimestep: 3600 })
           .build();
         const inp = buildInp(hydraulicModel, { simulationSettings });
 
@@ -976,7 +976,7 @@ describe("EPSResultsReader", () => {
           .aPumpCurve({ id: IDS.PUMP1, points: [{ x: 20, y: 40 }] })
           .build();
         const simulationSettings = SimulationSettingsBuilder.with()
-          .eps({ duration: 7200, hydraulicTimestep: 3600 })
+          .timing({ duration: 7200, hydraulicTimestep: 3600 })
           .build();
         const inp = buildInp(hydraulicModel, { simulationSettings });
 
@@ -1008,7 +1008,7 @@ describe("EPSResultsReader", () => {
           .aPumpCurve({ id: IDS.PUMP1, points: [{ x: 20, y: 40 }] })
           .build();
         const simulationSettings = SimulationSettingsBuilder.with()
-          .eps({ duration: 7200, hydraulicTimestep: 3600 })
+          .timing({ duration: 7200, hydraulicTimestep: 3600 })
           .build();
         const inp = buildInp(hydraulicModel, { simulationSettings });
 
@@ -1044,7 +1044,7 @@ describe("EPSResultsReader", () => {
           })
           .build();
         const simulationSettings = SimulationSettingsBuilder.with()
-          .eps({ duration: 7200, hydraulicTimestep: 3600 })
+          .timing({ duration: 7200, hydraulicTimestep: 3600 })
           .build();
         const inp = buildInp(hydraulicModel, { simulationSettings });
 
@@ -1115,7 +1115,11 @@ describe("EPSResultsReader", () => {
         .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
         .build();
       const simulationSettings = SimulationSettingsBuilder.with()
-        .eps({ duration: 7200, hydraulicTimestep: 1800, reportTimestep: 900 })
+        .timing({
+          duration: 7200,
+          hydraulicTimestep: 1800,
+          reportTimestep: 900,
+        })
         .build();
       const inp = buildInp(hydraulicModel, { simulationSettings });
 

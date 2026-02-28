@@ -55,10 +55,10 @@ export const PatternsDialog = ({
     nextPatternIdRef.current,
   );
 
-  const { epsTiming } = useAtomValue(simulationSettingsAtom);
+  const { timing } = useAtomValue(simulationSettingsAtom);
   const hasPatterns = editedPatterns.size > 0;
-  const patternTimestepSeconds = epsTiming.patternTimestep ?? 3600;
-  const totalDurationSeconds = epsTiming.duration ?? 0;
+  const patternTimestepSeconds = timing.patternTimestep;
+  const totalDurationSeconds = timing.duration;
   const minPatternSteps =
     totalDurationSeconds > 0
       ? Math.ceil(totalDurationSeconds / patternTimestepSeconds)

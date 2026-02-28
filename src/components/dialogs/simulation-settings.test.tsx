@@ -32,7 +32,7 @@ describe("SimulationSettingsDialog", () => {
       const store = setInitialState({
         hydraulicModel: HydraulicModelBuilder.with().build(),
         simulationSettings: SimulationSettingsBuilder.with()
-          .eps({
+          .timing({
             duration: undefined,
             hydraulicTimestep: undefined,
             reportTimestep: undefined,
@@ -61,7 +61,7 @@ describe("SimulationSettingsDialog", () => {
       const store = setInitialState({
         hydraulicModel: HydraulicModelBuilder.with().build(),
         simulationSettings: SimulationSettingsBuilder.with()
-          .eps({
+          .timing({
             duration: 0,
             hydraulicTimestep: 0,
             reportTimestep: 0,
@@ -90,7 +90,7 @@ describe("SimulationSettingsDialog", () => {
       const store = setInitialState({
         hydraulicModel: HydraulicModelBuilder.with().build(),
         simulationSettings: SimulationSettingsBuilder.with()
-          .eps({
+          .timing({
             duration: 43200, // 12 hours
             hydraulicTimestep: 7200, // 2 hours
             reportTimestep: 1800, // 30 minutes
@@ -119,7 +119,7 @@ describe("SimulationSettingsDialog", () => {
       const store = setInitialState({
         hydraulicModel: HydraulicModelBuilder.with().build(),
         simulationSettings: SimulationSettingsBuilder.with()
-          .eps({
+          .timing({
             duration: 43200, // 12 hours
             hydraulicTimestep: 7200, // 2 hours
             reportTimestep: 1800, // 30 minutes
@@ -176,7 +176,7 @@ describe("SimulationSettingsDialog", () => {
       const store = setInitialState({
         hydraulicModel: HydraulicModelBuilder.with().build(),
         simulationSettings: SimulationSettingsBuilder.with()
-          .eps({
+          .timing({
             duration: 86400,
             hydraulicTimestep: 3600,
             reportTimestep: 3600,
@@ -208,7 +208,7 @@ describe("SimulationSettingsDialog", () => {
       const store = setInitialState({
         hydraulicModel: HydraulicModelBuilder.with().build(),
         simulationSettings: SimulationSettingsBuilder.with()
-          .eps({
+          .timing({
             duration: 86400,
             hydraulicTimestep: 3600,
             reportTimestep: 3600,
@@ -236,7 +236,7 @@ describe("SimulationSettingsDialog", () => {
       const store = setInitialState({
         hydraulicModel: HydraulicModelBuilder.with().build(),
         simulationSettings: SimulationSettingsBuilder.with()
-          .eps({
+          .timing({
             duration: 86400,
             hydraulicTimestep: 3600,
             reportTimestep: 3600,
@@ -265,7 +265,7 @@ describe("SimulationSettingsDialog", () => {
       const store = setInitialState({
         hydraulicModel: HydraulicModelBuilder.with().build(),
         simulationSettings: SimulationSettingsBuilder.with()
-          .eps({
+          .timing({
             duration: 86400,
             hydraulicTimestep: 3600,
             reportTimestep: 3600,

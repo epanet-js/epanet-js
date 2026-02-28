@@ -53,7 +53,7 @@ describe("EPS simulation", () => {
       .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
       .build();
     const simulationSettings = SimulationSettingsBuilder.with()
-      .eps({ duration: 7200, hydraulicTimestep: 3600 }) // 2 hours, 1 hour timestep
+      .timing({ duration: 7200, hydraulicTimestep: 3600 }) // 2 hours, 1 hour timestep
       .build();
     const inp = buildInp(hydraulicModel, { simulationSettings });
 
@@ -135,7 +135,7 @@ describe("EPS simulation", () => {
       .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
       .build();
     const simulationSettings = SimulationSettingsBuilder.with()
-      .eps({ duration: 7200, hydraulicTimestep: 3600 }) // 2 hours, 1 hour timestep
+      .timing({ duration: 7200, hydraulicTimestep: 3600 }) // 2 hours, 1 hour timestep
       .build();
     const inp = buildInp(hydraulicModel, { simulationSettings });
 

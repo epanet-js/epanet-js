@@ -836,7 +836,7 @@ describe("build inp", () => {
 
       const inp = buildInp(hydraulicModel, {
         simulationSettings: SimulationSettingsBuilder.with()
-          .eps({ duration: 86400 })
+          .timing({ duration: 86400 })
           .build(), // 24 hours
       });
 
@@ -849,7 +849,7 @@ describe("build inp", () => {
 
       const inp = buildInp(hydraulicModel, {
         simulationSettings: SimulationSettingsBuilder.with()
-          .eps({ duration: 86400, hydraulicTimestep: 3600 }) // 1 hour timestep
+          .timing({ duration: 86400, hydraulicTimestep: 3600 }) // 1 hour timestep
           .build(),
       });
 
@@ -863,7 +863,7 @@ describe("build inp", () => {
 
       const inp = buildInp(hydraulicModel, {
         simulationSettings: SimulationSettingsBuilder.with()
-          .eps({ duration: 86400, reportTimestep: 7200 }) // 2 hour timestep
+          .timing({ duration: 86400, reportTimestep: 7200 }) // 2 hour timestep
           .build(),
       });
 
@@ -876,7 +876,7 @@ describe("build inp", () => {
 
       const inp = buildInp(hydraulicModel, {
         simulationSettings: SimulationSettingsBuilder.with()
-          .eps({ duration: 86400, patternTimestep: 10800 }) // 3 hour timestep
+          .timing({ duration: 86400, patternTimestep: 10800 }) // 3 hour timestep
           .build(),
       });
 
@@ -889,7 +889,7 @@ describe("build inp", () => {
 
       const inp = buildInp(hydraulicModel, {
         simulationSettings: SimulationSettingsBuilder.with()
-          .eps({ duration: 5400 })
+          .timing({ duration: 5400 })
           .build(), // 1 hour 30 minutes
       });
 
@@ -901,7 +901,7 @@ describe("build inp", () => {
 
       const inp = buildInp(hydraulicModel, {
         simulationSettings: SimulationSettingsBuilder.with()
-          .eps({ duration: 3723 })
+          .timing({ duration: 3723 })
           .build(), // 1 hour 2 minutes 3 seconds
       });
 
@@ -913,7 +913,7 @@ describe("build inp", () => {
 
       const inp = buildInp(hydraulicModel, {
         simulationSettings: SimulationSettingsBuilder.with()
-          .eps({ duration: 172800 }) // 48 hours
+          .timing({ duration: 172800 }) // 48 hours
           .build(),
       });
 
@@ -926,7 +926,7 @@ describe("build inp", () => {
 
       const inp = buildInp(hydraulicModel, {
         simulationSettings: SimulationSettingsBuilder.with()
-          .eps({
+          .timing({
             duration: 86400, // 24 hours
             hydraulicTimestep: 3600, // 1 hour
             reportTimestep: 7200, // 2 hours

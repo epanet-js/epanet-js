@@ -11,7 +11,7 @@ import {
   Demands,
 } from "src/hydraulic-model";
 import type {
-  EPSTiming,
+  Timing,
   SimulationSettings,
 } from "src/simulation/simulation-settings";
 import {
@@ -73,27 +73,20 @@ const formatSecondsToTime = (seconds: number): string => {
   return `${hours}`;
 };
 
-const buildTimesSection = (epsTiming: EPSTiming): string[] => {
+const buildTimesSection = (timing: Timing): string[] => {
   const section = ["[TIMES]"];
 
-  const duration = epsTiming.duration ?? 0;
-  section.push(`Duration\t${formatSecondsToTime(duration)}`);
+  section.push(`Duration\t${formatSecondsToTime(timing.duration)}`);
 
-  if (epsTiming.hydraulicTimestep !== undefined) {
+  if (timing.duration > 0) {
     section.push(
-      `Hydraulic Timestep\t${formatSecondsToTime(epsTiming.hydraulicTimestep)}`,
+      `Hydraulic Timestep\t${formatSecondsToTime(timing.hydraulicTimestep)}`,
     );
-  }
-
-  if (epsTiming.reportTimestep !== undefined) {
     section.push(
-      `Report Timestep\t${formatSecondsToTime(epsTiming.reportTimestep)}`,
+      `Report Timestep\t${formatSecondsToTime(timing.reportTimestep)}`,
     );
-  }
-
-  if (epsTiming.patternTimestep !== undefined) {
     section.push(
-      `Pattern Timestep\t${formatSecondsToTime(epsTiming.patternTimestep)}`,
+      `Pattern Timestep\t${formatSecondsToTime(timing.patternTimestep)}`,
     );
   }
 
@@ -281,7 +274,7 @@ export const buildInp = withDebugInstrumentation(
       valves: ["[VALVES]", ";Id\tStart\tEnd\tDiameter\tSetting\tMinorLoss"],
       demands: ["[DEMANDS]", ";Id\tDemand\tPattern\tCategory"],
       emitters: ["[EMITTERS]", ";Junction\tCoefficient"],
-      times: buildTimesSection(opts.simulationSettings.epsTiming),
+      times: buildTimesSection(opts.simulationSettings.timing),
       report: ["[REPORT]", "Status\tFULL", "Summary\tNo", "Page\t0"],
       status: ["[STATUS]", ";Id\tStatus"],
       curves: ["[CURVES]", ";Id\tX\tY"],
