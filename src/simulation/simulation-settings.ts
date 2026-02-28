@@ -1,5 +1,11 @@
 import { nanoid } from "nanoid";
-import { EPSTiming } from "src/hydraulic-model/eps-timing";
+
+export type EPSTiming = {
+  duration?: number;
+  hydraulicTimestep?: number;
+  reportTimestep?: number;
+  patternTimestep?: number;
+};
 
 export type SimulationSettings = {
   version: string;

@@ -14,6 +14,7 @@ import {
   momentLogAtom,
   nullData,
   simulationAtom,
+  simulationSettingsAtom,
   modeAtom,
   stagingModelAtom,
   simulationResultsAtom,
@@ -25,6 +26,7 @@ import { ExportOptions } from "src/types/export";
 import { ILayerConfig, LayerConfigMap } from "src/types";
 import { nanoid } from "nanoid";
 import { LinkSymbology, NodeSymbology } from "src/map/symbology";
+import type { SimulationSettings } from "src/simulation/simulation-settings";
 import {
   RangeColorRule,
   nullRangeColorRule,
@@ -50,6 +52,7 @@ export const setInitialState = ({
   locale = "en",
   mode = Mode.NONE,
   simulationResults = null,
+  simulationSettings,
 }: {
   store?: Store;
   hydraulicModel?: HydraulicModel;
@@ -63,6 +66,7 @@ export const setInitialState = ({
   locale?: Locale;
   mode?: Mode;
   simulationResults?: ResultsReader | null;
+  simulationSettings?: SimulationSettings;
 } = {}): Store => {
   store.set(stagingModelAtom, hydraulicModel);
   store.set(dataAtom, {
@@ -79,6 +83,9 @@ export const setInitialState = ({
   store.set(modeAtom, { mode });
   if (simulationResults) {
     store.set(simulationResultsAtom, simulationResults);
+  }
+  if (simulationSettings) {
+    store.set(simulationSettingsAtom, simulationSettings);
   }
 
   return store;

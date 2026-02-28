@@ -1,4 +1,5 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { SimulationSettingsBuilder } from "src/__helpers__/simulation-settings-builder";
 import { lib } from "src/lib/worker";
 import { buildInp } from "../build-inp";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
@@ -46,15 +47,15 @@ describe("EPS simulation", () => {
 
   it("returns metadata with multiple timesteps for EPS duration", async () => {
     const IDS = { R1: 1, J1: 2, P1: 3 } as const;
-    const builder = HydraulicModelBuilder.with()
+    const hydraulicModel = HydraulicModelBuilder.with()
       .aReservoir(IDS.R1)
       .aJunction(IDS.J1)
       .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
-      .eps({ duration: 7200, hydraulicTimestep: 3600 }); // 2 hours, 1 hour timestep
-    const hydraulicModel = builder.build();
-    const inp = buildInp(hydraulicModel, {
-      simulationSettings: builder.getSimulationSettings(),
-    });
+      .build();
+    const simulationSettings = SimulationSettingsBuilder.with()
+      .eps({ duration: 7200, hydraulicTimestep: 3600 }) // 2 hours, 1 hour timestep
+      .build();
+    const inp = buildInp(hydraulicModel, { simulationSettings });
 
     const { status, metadata } = await runSimulation(inp, "test-app-id");
     const simulationMetadata = new SimulationMetadata(metadata);
@@ -128,15 +129,15 @@ describe("EPS simulation", () => {
 
   it("calls progress callback during simulation", async () => {
     const IDS = { R1: 1, J1: 2, P1: 3 } as const;
-    const builder = HydraulicModelBuilder.with()
+    const hydraulicModel = HydraulicModelBuilder.with()
       .aReservoir(IDS.R1)
       .aJunction(IDS.J1)
       .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
-      .eps({ duration: 7200, hydraulicTimestep: 3600 }); // 2 hours, 1 hour timestep
-    const hydraulicModel = builder.build();
-    const inp = buildInp(hydraulicModel, {
-      simulationSettings: builder.getSimulationSettings(),
-    });
+      .build();
+    const simulationSettings = SimulationSettingsBuilder.with()
+      .eps({ duration: 7200, hydraulicTimestep: 3600 }) // 2 hours, 1 hour timestep
+      .build();
+    const inp = buildInp(hydraulicModel, { simulationSettings });
 
     const progressUpdates: SimulationProgress[] = [];
     const onProgress = (progress: SimulationProgress) => {

@@ -21,8 +21,6 @@ import {
   Patterns,
   PatternType,
 } from "src/hydraulic-model";
-import type { EPSTiming } from "src/hydraulic-model/eps-timing";
-import type { SimulationSettings } from "src/simulation/simulation-settings";
 import { SimpleControl, RuleBasedControl } from "src/hydraulic-model/controls";
 import { AssetIndex } from "src/hydraulic-model/asset-index";
 import { CustomerPointsLookup } from "src/hydraulic-model/customer-points-lookup";
@@ -148,7 +146,6 @@ export class HydraulicModelBuilder {
   private idGenerator: WritableIdGenerator;
   private curves: Curves;
   private patterns: Patterns;
-  private epsTiming: EPSTiming;
   private controlsValue: Controls;
 
   static with(quantitiesSpec: AssetQuantitiesSpec = presets.LPS) {
@@ -177,7 +174,6 @@ export class HydraulicModelBuilder {
     this.headlossFormulaValue = "H-W";
     this.curves = new Map();
     this.patterns = new Map();
-    this.epsTiming = {};
     this.controlsValue = createEmptyControls();
   }
 
@@ -417,15 +413,6 @@ export class HydraulicModelBuilder {
     this.curves.set(curve.id, curve);
     this.labelManager.register(curve.label, "curve", curve.id);
     return this;
-  }
-
-  eps(epsTiming: EPSTiming) {
-    this.epsTiming = epsTiming;
-    return this;
-  }
-
-  getSimulationSettings(): SimulationSettings {
-    return { version: nanoid(), epsTiming: this.epsTiming };
   }
 
   aSimpleControl(data: {

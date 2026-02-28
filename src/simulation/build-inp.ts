@@ -10,8 +10,10 @@ import {
   PatternId,
   Demands,
 } from "src/hydraulic-model";
-import type { EPSTiming } from "src/hydraulic-model/eps-timing";
-import type { SimulationSettings } from "src/simulation/simulation-settings";
+import type {
+  EPSTiming,
+  SimulationSettings,
+} from "src/simulation/simulation-settings";
 import {
   CustomerPoint,
   getActiveCustomerPoints,
