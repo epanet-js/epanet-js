@@ -7,10 +7,11 @@ import {
   Reservoir,
   Pump,
   Tank,
-  EPSTiming,
   PatternId,
   Demands,
 } from "src/hydraulic-model";
+import type { EPSTiming } from "src/hydraulic-model/eps-timing";
+import type { SimulationSettings } from "src/simulation/simulation-settings";
 import {
   CustomerPoint,
   getActiveCustomerPoints,
@@ -230,6 +231,7 @@ type InpSections = {
 };
 
 type BuildOptions = {
+  simulationSettings: SimulationSettings;
   geolocation?: boolean;
   madeBy?: boolean;
   labelIds?: boolean;
@@ -243,7 +245,7 @@ type BuildOptions = {
 };
 
 export const buildInp = withDebugInstrumentation(
-  (hydraulicModel: HydraulicModel, options: BuildOptions = {}): string => {
+  (hydraulicModel: HydraulicModel, options: BuildOptions): string => {
     const opts = {
       geolocation: false,
       madeBy: false,
@@ -277,7 +279,7 @@ export const buildInp = withDebugInstrumentation(
       valves: ["[VALVES]", ";Id\tStart\tEnd\tDiameter\tSetting\tMinorLoss"],
       demands: ["[DEMANDS]", ";Id\tDemand\tPattern\tCategory"],
       emitters: ["[EMITTERS]", ";Junction\tCoefficient"],
-      times: buildTimesSection(hydraulicModel.epsTiming),
+      times: buildTimesSection(opts.simulationSettings.epsTiming),
       report: ["[REPORT]", "Status\tFULL", "Summary\tNo", "Page\t0"],
       status: ["[STATUS]", ";Id\tStatus"],
       curves: ["[CURVES]", ";Id\tX\tY"],

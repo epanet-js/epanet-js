@@ -6,6 +6,7 @@ import {
   dialogAtom,
   simulationAtom,
   simulationResultsAtom,
+  simulationSettingsAtom,
   stagingModelAtom,
 } from "src/state/jotai";
 import {
@@ -37,6 +38,7 @@ export const useRunSimulation = () => {
         },
       ) => {
         const hydraulicModel = get(stagingModelAtom);
+        const simulationSettings = get(simulationSettingsAtom);
         const worktree = get(worktreeAtom);
 
         setSimulationState((prev) => ({ ...prev, status: "running" }));
@@ -44,6 +46,7 @@ export const useRunSimulation = () => {
           customerDemands: true,
           usedPatterns: true,
           usedCurves: true,
+          simulationSettings,
         });
         const start = performance.now();
 

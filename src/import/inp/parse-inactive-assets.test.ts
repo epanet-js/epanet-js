@@ -1,5 +1,6 @@
 import { parseInp } from "./parse-inp";
 import { buildInp } from "src/simulation/build-inp";
+import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { Asset, AssetsMap } from "src/hydraulic-model";
 import { checksum } from "src/infra/checksum";
@@ -215,6 +216,7 @@ describe("parse inactive assets", () => {
 
     // Generate INP with inactive assets as comments
     const inp = buildInp(hydraulicModel, {
+      simulationSettings: defaultSimulationSettings,
       inactiveAssets: true,
       geolocation: true,
     });
@@ -273,7 +275,9 @@ describe("parse inactive assets", () => {
     const hydraulicModel = builder.build();
 
     // Generate INP with inactive assets excluded (default)
-    const inp = buildInp(hydraulicModel);
+    const inp = buildInp(hydraulicModel, {
+      simulationSettings: defaultSimulationSettings,
+    });
 
     expect(inp).not.toMatch(/^4\t/m); // J3 should not appear
     expect(inp).toMatch(/^1\t/m); // J1 should appear

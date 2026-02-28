@@ -1,6 +1,10 @@
 import { useCallback, useContext } from "react";
 import { useSetAtom } from "jotai";
-import { dialogAtom, fileInfoAtom } from "src/state/jotai";
+import {
+  dialogAtom,
+  fileInfoAtom,
+  simulationSettingsAtom,
+} from "src/state/jotai";
 import { captureError } from "src/infra/error-tracking";
 import { FileWithHandle } from "browser-fs-access";
 import { useTranslate } from "src/hooks/use-translate";
@@ -14,6 +18,7 @@ import { ImportInpCompleted, useUserTracking } from "src/infra/user-tracking";
 import { InpStats } from "src/import/inp/inp-data";
 import { ModelMetadata } from "src/model-metadata";
 import { HydraulicModel } from "src/hydraulic-model";
+import type { SimulationSettings } from "src/simulation/simulation-settings";
 import { EpanetUnitSystem } from "src/simulation/build-inp";
 import { notify } from "src/components/notifications";
 import { WarningIcon } from "src/icons";
@@ -29,6 +34,7 @@ export const useImportInp = () => {
   const setDialogState = useSetAtom(dialogAtom);
   const map = useContext(MapContext);
   const setFileInfo = useSetAtom(fileInfoAtom);
+  const setSimulationSettings = useSetAtom(simulationSettingsAtom);
   const rep = usePersistence();
   const transactImport = rep.useTransactImport();
   const userTracking = useUserTracking();
@@ -77,17 +83,25 @@ export const useImportInp = () => {
           result: {
             hydraulicModel: HydraulicModel;
             modelMetadata: ModelMetadata;
+            simulationSettings: SimulationSettings;
             issues: ParserIssues | null;
             isMadeByApp: boolean;
           },
           options?: { autoElevations?: boolean },
         ) => {
-          const { hydraulicModel, modelMetadata, issues, isMadeByApp } = result;
+          const {
+            hydraulicModel,
+            modelMetadata,
+            simulationSettings,
+            issues,
+            isMadeByApp,
+          } = result;
 
           const storage = new OPFSStorage(getAppId());
           await storage.clear();
 
           transactImport(hydraulicModel, modelMetadata, file.name, options);
+          setSimulationSettings(simulationSettings);
 
           const features: FeatureCollection = {
             type: "FeatureCollection",
@@ -116,8 +130,14 @@ export const useImportInp = () => {
           setDialogState({ type: "inpIssues", issues });
         };
 
-        const { hydraulicModel, modelMetadata, issues, isMadeByApp, stats } =
-          parseInp(content, parseOptions);
+        const {
+          hydraulicModel,
+          modelMetadata,
+          simulationSettings,
+          issues,
+          isMadeByApp,
+          stats,
+        } = parseInp(content, parseOptions);
         userTracking.capture(
           buildCompleteEvent(hydraulicModel, modelMetadata, issues, stats),
         );
@@ -161,6 +181,7 @@ export const useImportInp = () => {
           {
             hydraulicModel,
             modelMetadata,
+            simulationSettings,
             issues,
             isMadeByApp,
           },
@@ -177,6 +198,7 @@ export const useImportInp = () => {
       translate,
       transactImport,
       setFileInfo,
+      setSimulationSettings,
       map?.map,
       allCurves,
     ],

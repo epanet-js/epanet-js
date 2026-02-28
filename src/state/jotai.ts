@@ -41,6 +41,7 @@ export {
 } from "src/state/hydraulic-model";
 
 export { simulationResultsAtom } from "src/state/simulation";
+export { simulationSettingsAtom } from "src/state/simulation-settings";
 
 export type Store = ReturnType<typeof createStore>;
 

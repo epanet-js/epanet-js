@@ -93,7 +93,6 @@ export const buildModel = (
       ...createEmptyDemands(),
       multiplier: inpData.options.demandMultiplier,
     },
-    epsTiming: inpData.times,
   });
 
   const curvesContext: CurvesContext = initializeCurvesContext(

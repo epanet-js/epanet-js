@@ -15,7 +15,7 @@ import {
   getNextPatternId,
 } from "src/hydraulic-model";
 import { PatternsIcon } from "src/icons";
-import { stagingModelAtom } from "src/state/jotai";
+import { stagingModelAtom, simulationSettingsAtom } from "src/state/jotai";
 import { usePersistence } from "src/lib/persistence";
 import { HydraulicModel } from "src/hydraulic-model/hydraulic-model";
 import { Reservoir } from "src/hydraulic-model/asset-types/reservoir";
@@ -55,10 +55,10 @@ export const PatternsDialog = ({
     nextPatternIdRef.current,
   );
 
+  const { epsTiming } = useAtomValue(simulationSettingsAtom);
   const hasPatterns = editedPatterns.size > 0;
-  const patternTimestepSeconds =
-    hydraulicModel.epsTiming.patternTimestep ?? 3600;
-  const totalDurationSeconds = hydraulicModel.epsTiming.duration ?? 0;
+  const patternTimestepSeconds = epsTiming.patternTimestep ?? 3600;
+  const totalDurationSeconds = epsTiming.duration ?? 0;
   const minPatternSteps =
     totalDurationSeconds > 0
       ? Math.ceil(totalDurationSeconds / patternTimestepSeconds)

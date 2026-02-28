@@ -80,7 +80,6 @@ export class Persistence implements IPersistenceWithSnapshots {
           multiplier: hydraulicModel.demands.multiplier,
           assignments: toDemandAssignments(hydraulicModel.demands),
         },
-        putEPSTiming: hydraulicModel.epsTiming,
         putControls: hydraulicModel.controls,
         putCustomerPoints: [...hydraulicModel.customerPoints.values()],
         putCurves: hydraulicModel.curves,

@@ -13,7 +13,6 @@ import {
   NodeAsset,
   AssetId,
   HeadlossFormula,
-  EPSTiming,
   Controls,
   createEmptyControls,
   createEmptyDemands,
@@ -22,6 +21,7 @@ import {
   Patterns,
   PatternType,
 } from "src/hydraulic-model";
+import type { EPSTiming } from "src/hydraulic-model/eps-timing";
 import { SimpleControl, RuleBasedControl } from "src/hydraulic-model/controls";
 import { AssetIndex } from "src/hydraulic-model/asset-index";
 import { CustomerPointsLookup } from "src/hydraulic-model/customer-points-lookup";
@@ -423,6 +423,10 @@ export class HydraulicModelBuilder {
     return this;
   }
 
+  getEpsTiming(): EPSTiming {
+    return this.epsTiming;
+  }
+
   aSimpleControl(data: {
     template: string;
     assetReferences: { assetId: AssetId; isActionTarget?: boolean }[];
@@ -487,7 +491,6 @@ export class HydraulicModelBuilder {
       headlossFormula: this.headlossFormulaValue,
       curves: this.curves,
       patterns: this.patterns,
-      epsTiming: this.epsTiming,
       controls: this.controlsValue,
     };
   }

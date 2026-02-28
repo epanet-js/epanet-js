@@ -4,7 +4,6 @@ import type { AssetPropertiesMap } from "./asset-types";
 import { Demand, Demands } from "./demands";
 import { CustomerPoint, CustomerPointId } from "./customer-points";
 import { Curves } from "./curves";
-import { EPSTiming } from "./eps-timing";
 import { Controls } from "./controls";
 import type { AssetId } from "./assets-map";
 import { Patterns } from "./patterns";
@@ -50,7 +49,6 @@ export const toDemandAssignments = (demands: Demands): DemandAssignment[] => {
 
 export type OptionalMomentFields = {
   putDemands?: DemandSettingsChange;
-  putEPSTiming?: EPSTiming;
   putControls?: Controls;
   putCustomerPoints?: CustomerPoint[];
   deleteCustomerPoints?: CustomerPointId[];

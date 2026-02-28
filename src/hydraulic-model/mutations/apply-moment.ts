@@ -40,9 +40,6 @@ export const applyMomentToModel = (
       assignments: reverseAssignements,
     };
   }
-  if (moment.putEPSTiming) {
-    reverseMoment.putEPSTiming = hydraulicModel.epsTiming;
-  }
   if (moment.putControls) {
     reverseMoment.putControls = hydraulicModel.controls;
   }
@@ -102,10 +99,6 @@ export const applyMomentToModel = (
         multiplier: moment.putDemands.multiplier,
       };
     }
-  }
-
-  if (moment.putEPSTiming) {
-    hydraulicModel.epsTiming = moment.putEPSTiming;
   }
 
   if (moment.putControls) {

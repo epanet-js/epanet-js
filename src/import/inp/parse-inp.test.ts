@@ -2,6 +2,7 @@ import { Junction, Pipe, Reservoir } from "src/hydraulic-model";
 import { parseInp } from "./parse-inp";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { buildInp } from "src/simulation/build-inp";
+import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { getByLabel } from "src/__helpers__/asset-queries";
 import { Valve } from "src/hydraulic-model/asset-types";
 
@@ -407,6 +408,7 @@ describe("Parse inp with", () => {
       .aJunction(IDS.J1, { coordinates: [10, 1] })
       .build();
     let inp = buildInp(hydraulicModel, {
+      simulationSettings: defaultSimulationSettings,
       madeBy: true,
     });
 

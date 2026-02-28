@@ -3,6 +3,7 @@ import { IssuesAccumulator, ParserIssues } from "./issues";
 import { readInpData } from "./read-inp-data";
 import { buildModel } from "./build-model";
 import { HydraulicModel } from "src/hydraulic-model";
+import type { SimulationSettings } from "src/simulation/simulation-settings";
 import { checksum } from "src/infra/checksum";
 import { InpData, InpStats } from "./inp-data";
 import { Position } from "geojson";
@@ -26,6 +27,7 @@ export const parseInp = (
   isMadeByApp: boolean;
   hydraulicModel: HydraulicModel;
   modelMetadata: ModelMetadata;
+  simulationSettings: SimulationSettings;
   issues: ParserIssues | null;
   stats: InpStats;
 } => {
@@ -57,6 +59,7 @@ export const parseInp = (
       ...modelMetadata,
       projectionMapper,
     },
+    simulationSettings: { epsTiming: inpData.times },
     issues: issues.buildResult(),
     stats,
   };

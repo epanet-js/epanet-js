@@ -3,6 +3,7 @@ import {
   dialogAtom,
   fileInfoAtom,
   isDemoNetworkAtom,
+  simulationSettingsAtom,
   stagingModelAtom,
 } from "src/state/jotai";
 import { baseModelAtom } from "src/state/hydraulic-model";
@@ -59,6 +60,7 @@ export const useSaveInp = ({
             ? get(baseModelAtom)
             : get(stagingModelAtom);
           const { modelMetadata } = get(dataAtom);
+          const simulationSettings = get(simulationSettingsAtom);
           const buildOptions = {
             geolocation: true,
             madeBy: true,
@@ -68,6 +70,7 @@ export const useSaveInp = ({
             inactiveAssets: true,
             reservoirElevations: true,
             projectionMapper: modelMetadata.projectionMapper,
+            simulationSettings,
           };
           const inp = buildInp(hydraulicModel, buildOptions);
           const inpBlob = new Blob([inp], { type: "text/plain" });
