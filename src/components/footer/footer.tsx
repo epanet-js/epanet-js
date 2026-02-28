@@ -6,6 +6,7 @@ import {
   SimulationState,
   dataAtom,
   simulationAtom,
+  simulationSettingsAtom,
   stagingModelAtom,
   autoElevationsAtom,
 } from "src/state/jotai";
@@ -130,9 +131,18 @@ const CollapsedPopover = ({
   );
 };
 
+const isOutdated = (
+  simulation: { modelVersion: string; settingsVersion: string },
+  hydraulicModel: HydraulicModel,
+  settingsVersion: string,
+) =>
+  hydraulicModel.version !== simulation.modelVersion ||
+  settingsVersion !== simulation.settingsVersion;
+
 const buildSimulationStatusStyles = (
   simulation: SimulationState,
   hydraulicModel: HydraulicModel,
+  settingsVersion: string,
   translate: (key: string, ...variables: string[]) => string,
 ) => {
   switch (simulation.status) {
@@ -149,7 +159,7 @@ const buildSimulationStatusStyles = (
         text: translate("simulationRunning"),
       };
     case "success":
-      if (hydraulicModel.version !== simulation.modelVersion) {
+      if (isOutdated(simulation, hydraulicModel, settingsVersion)) {
         return {
           Icon: OutdatedSimulationIcon,
           colorClass: "text-orange-500",
@@ -163,7 +173,7 @@ const buildSimulationStatusStyles = (
         text: translate("simulationSuccess"),
       };
     case "failure":
-      if (hydraulicModel.version !== simulation.modelVersion) {
+      if (isOutdated(simulation, hydraulicModel, settingsVersion)) {
         return {
           Icon: OutdatedSimulationIcon,
           colorClass: "text-orange-500",
@@ -177,7 +187,7 @@ const buildSimulationStatusStyles = (
         text: translate("simulationFailure"),
       };
     case "warning":
-      if (hydraulicModel.version !== simulation.modelVersion) {
+      if (isOutdated(simulation, hydraulicModel, settingsVersion)) {
         return {
           Icon: OutdatedSimulationIcon,
           colorClass: "text-orange-500",
@@ -197,10 +207,12 @@ export const SimulationStatusText = () => {
   const translate = useTranslate();
   const simulation = useAtomValue(simulationAtom);
   const hydraulicModel = useAtomValue(stagingModelAtom);
+  const simulationSettings = useAtomValue(simulationSettingsAtom);
 
   const { Icon, colorClass, text } = buildSimulationStatusStyles(
     simulation,
     hydraulicModel,
+    simulationSettings.version,
     translate,
   );
 

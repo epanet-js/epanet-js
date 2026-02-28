@@ -81,6 +81,7 @@ export type SimulationFinished = {
   status: "success" | "failure" | "warning";
   report: string;
   modelVersion: string;
+  settingsVersion: string;
   metadata?: ArrayBuffer;
   simulationIds?: SimulationIds;
   currentTimestepIndex?: number;

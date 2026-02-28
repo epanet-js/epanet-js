@@ -94,6 +94,7 @@ export const useRunSimulation = () => {
           status,
           report,
           modelVersion: hydraulicModel.version,
+          settingsVersion: simulationSettings.version,
           metadata,
           simulationIds,
           currentTimestepIndex: 0,

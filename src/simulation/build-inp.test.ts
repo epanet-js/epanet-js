@@ -834,7 +834,7 @@ describe("build inp", () => {
       const hydraulicModel = HydraulicModelBuilder.with().build();
 
       const inp = buildInp(hydraulicModel, {
-        simulationSettings: { epsTiming: { duration: 86400 } }, // 24 hours
+        simulationSettings: { version: "test", epsTiming: { duration: 86400 } }, // 24 hours
       });
 
       expect(inp).toContain("[TIMES]");
@@ -846,6 +846,7 @@ describe("build inp", () => {
 
       const inp = buildInp(hydraulicModel, {
         simulationSettings: {
+          version: "test",
           epsTiming: { duration: 86400, hydraulicTimestep: 3600 }, // 1 hour timestep
         },
       });
@@ -860,6 +861,7 @@ describe("build inp", () => {
 
       const inp = buildInp(hydraulicModel, {
         simulationSettings: {
+          version: "test",
           epsTiming: { duration: 86400, reportTimestep: 7200 }, // 2 hour timestep
         },
       });
@@ -873,6 +875,7 @@ describe("build inp", () => {
 
       const inp = buildInp(hydraulicModel, {
         simulationSettings: {
+          version: "test",
           epsTiming: { duration: 86400, patternTimestep: 10800 }, // 3 hour timestep
         },
       });
@@ -885,7 +888,7 @@ describe("build inp", () => {
       const hydraulicModel = HydraulicModelBuilder.with().build();
 
       const inp = buildInp(hydraulicModel, {
-        simulationSettings: { epsTiming: { duration: 5400 } }, // 1 hour 30 minutes
+        simulationSettings: { version: "test", epsTiming: { duration: 5400 } }, // 1 hour 30 minutes
       });
 
       expect(inp).toContain("Duration\t1:30");
@@ -895,7 +898,7 @@ describe("build inp", () => {
       const hydraulicModel = HydraulicModelBuilder.with().build();
 
       const inp = buildInp(hydraulicModel, {
-        simulationSettings: { epsTiming: { duration: 3723 } }, // 1 hour 2 minutes 3 seconds
+        simulationSettings: { version: "test", epsTiming: { duration: 3723 } }, // 1 hour 2 minutes 3 seconds
       });
 
       expect(inp).toContain("Duration\t1:02:03");
@@ -905,7 +908,10 @@ describe("build inp", () => {
       const hydraulicModel = HydraulicModelBuilder.with().build();
 
       const inp = buildInp(hydraulicModel, {
-        simulationSettings: { epsTiming: { duration: 172800 } }, // 48 hours
+        simulationSettings: {
+          version: "test",
+          epsTiming: { duration: 172800 },
+        }, // 48 hours
       });
 
       expect(inp).toContain("Duration\t48");
@@ -917,6 +923,7 @@ describe("build inp", () => {
 
       const inp = buildInp(hydraulicModel, {
         simulationSettings: {
+          version: "test",
           epsTiming: {
             duration: 86400, // 24 hours
             hydraulicTimestep: 3600, // 1 hour

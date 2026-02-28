@@ -1,4 +1,5 @@
 import { useAtomValue, useSetAtom } from "jotai";
+import { nanoid } from "nanoid";
 import { useCallback } from "react";
 
 import { DialogContainer, DialogHeader, useDialogState } from "../dialog";
@@ -69,6 +70,7 @@ export const SimulationSettingsDialog = () => {
 
       if (hasTimingChanges) {
         setSimulationSettings({
+          version: nanoid(),
           epsTiming: {
             duration: newDuration,
             hydraulicTimestep: values.hydraulicTimestep,

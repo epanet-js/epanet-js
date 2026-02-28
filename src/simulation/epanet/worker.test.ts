@@ -53,7 +53,7 @@ describe("EPS simulation", () => {
       .eps({ duration: 7200, hydraulicTimestep: 3600 }); // 2 hours, 1 hour timestep
     const hydraulicModel = builder.build();
     const inp = buildInp(hydraulicModel, {
-      simulationSettings: { epsTiming: builder.getEpsTiming() },
+      simulationSettings: builder.getSimulationSettings(),
     });
 
     const { status, metadata } = await runSimulation(inp, "test-app-id");
@@ -135,7 +135,7 @@ describe("EPS simulation", () => {
       .eps({ duration: 7200, hydraulicTimestep: 3600 }); // 2 hours, 1 hour timestep
     const hydraulicModel = builder.build();
     const inp = buildInp(hydraulicModel, {
-      simulationSettings: { epsTiming: builder.getEpsTiming() },
+      simulationSettings: builder.getSimulationSettings(),
     });
 
     const progressUpdates: SimulationProgress[] = [];

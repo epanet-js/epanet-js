@@ -22,6 +22,7 @@ import {
   PatternType,
 } from "src/hydraulic-model";
 import type { EPSTiming } from "src/hydraulic-model/eps-timing";
+import type { SimulationSettings } from "src/simulation/simulation-settings";
 import { SimpleControl, RuleBasedControl } from "src/hydraulic-model/controls";
 import { AssetIndex } from "src/hydraulic-model/asset-index";
 import { CustomerPointsLookup } from "src/hydraulic-model/customer-points-lookup";
@@ -423,8 +424,8 @@ export class HydraulicModelBuilder {
     return this;
   }
 
-  getEpsTiming(): EPSTiming {
-    return this.epsTiming;
+  getSimulationSettings(): SimulationSettings {
+    return { version: nanoid(), epsTiming: this.epsTiming };
   }
 
   aSimpleControl(data: {

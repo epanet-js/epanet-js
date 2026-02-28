@@ -3,6 +3,7 @@ import { IssuesAccumulator, ParserIssues } from "./issues";
 import { readInpData } from "./read-inp-data";
 import { buildModel } from "./build-model";
 import { HydraulicModel } from "src/hydraulic-model";
+import { nanoid } from "nanoid";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
 import { checksum } from "src/infra/checksum";
 import { InpData, InpStats } from "./inp-data";
@@ -59,7 +60,7 @@ export const parseInp = (
       ...modelMetadata,
       projectionMapper,
     },
-    simulationSettings: { epsTiming: inpData.times },
+    simulationSettings: { version: nanoid(), epsTiming: inpData.times },
     issues: issues.buildResult(),
     stats,
   };

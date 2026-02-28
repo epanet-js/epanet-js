@@ -265,6 +265,7 @@ describe("useChangeTimestep", () => {
       status: "success",
       report: "REPORT",
       modelVersion: "1",
+      settingsVersion: "",
       metadata: createMetadataBuffer(timestepCount),
       simulationIds: {
         nodeIds: [],

@@ -97,7 +97,7 @@ describe("EPSResultsReader", () => {
         .eps({ duration: 7200, hydraulicTimestep: 3600 }); // 2 hours, 1 hour timestep
       const hydraulicModel = builder.build();
       const inp = buildInp(hydraulicModel, {
-        simulationSettings: { epsTiming: builder.getEpsTiming() },
+        simulationSettings: builder.getSimulationSettings(),
       });
 
       const testAppId = "test-multi-timestep";
@@ -138,7 +138,7 @@ describe("EPSResultsReader", () => {
         .eps({ duration: 3600, hydraulicTimestep: 3600 });
       const hydraulicModel = builder.build();
       const inp = buildInp(hydraulicModel, {
-        simulationSettings: { epsTiming: builder.getEpsTiming() },
+        simulationSettings: builder.getSimulationSettings(),
       });
 
       const testAppId = "test-tank-reader";
@@ -176,7 +176,7 @@ describe("EPSResultsReader", () => {
         .eps({ duration: 3600, hydraulicTimestep: 3600 });
       const hydraulicModel = builder.build();
       const inp = buildInp(hydraulicModel, {
-        simulationSettings: { epsTiming: builder.getEpsTiming() },
+        simulationSettings: builder.getSimulationSettings(),
       });
 
       const testAppId = "test-tank-level-reader";
@@ -372,7 +372,7 @@ describe("EPSResultsReader", () => {
         .eps({ duration: 3600, hydraulicTimestep: 3600 });
       const hydraulicModel = builder.build();
       const inp = buildInp(hydraulicModel, {
-        simulationSettings: { epsTiming: builder.getEpsTiming() },
+        simulationSettings: builder.getSimulationSettings(),
       });
 
       const testAppId = "test-pump-xflow";
@@ -407,7 +407,7 @@ describe("EPSResultsReader", () => {
         .eps({ duration: 7200, hydraulicTimestep: 3600 }); // 2 hours, 1 hour timestep
       const hydraulicModel = builder.build();
       const inp = buildInp(hydraulicModel, {
-        simulationSettings: { epsTiming: builder.getEpsTiming() },
+        simulationSettings: builder.getSimulationSettings(),
       });
 
       const testAppId = "test-pump-multi-timestep";
@@ -535,7 +535,7 @@ describe("EPSResultsReader", () => {
           .eps({ duration: 7200, hydraulicTimestep: 3600 });
         const hydraulicModel = builder.build();
         const inp = buildInp(hydraulicModel, {
-          simulationSettings: { epsTiming: builder.getEpsTiming() },
+          simulationSettings: builder.getSimulationSettings(),
         });
 
         const testAppId = "test-junction-time-series";
@@ -568,7 +568,7 @@ describe("EPSResultsReader", () => {
           .eps({ duration: 7200, hydraulicTimestep: 3600 });
         const hydraulicModel = builder.build();
         const inp = buildInp(hydraulicModel, {
-          simulationSettings: { epsTiming: builder.getEpsTiming() },
+          simulationSettings: builder.getSimulationSettings(),
         });
 
         const testAppId = "test-junction-series-values";
@@ -673,7 +673,7 @@ describe("EPSResultsReader", () => {
           .eps({ duration: 7200, hydraulicTimestep: 3600 });
         const hydraulicModel = builder.build();
         const inp = buildInp(hydraulicModel, {
-          simulationSettings: { epsTiming: builder.getEpsTiming() },
+          simulationSettings: builder.getSimulationSettings(),
         });
 
         const testAppId = "test-pipe-time-series";
@@ -702,7 +702,7 @@ describe("EPSResultsReader", () => {
           .eps({ duration: 7200, hydraulicTimestep: 3600 });
         const hydraulicModel = builder.build();
         const inp = buildInp(hydraulicModel, {
-          simulationSettings: { epsTiming: builder.getEpsTiming() },
+          simulationSettings: builder.getSimulationSettings(),
         });
 
         const testAppId = "test-pipe-series-values";
@@ -801,7 +801,7 @@ describe("EPSResultsReader", () => {
           .eps({ duration: 7200, hydraulicTimestep: 3600 });
         const hydraulicModel = builder.build();
         const inp = buildInp(hydraulicModel, {
-          simulationSettings: { epsTiming: builder.getEpsTiming() },
+          simulationSettings: builder.getSimulationSettings(),
         });
 
         const testAppId = "test-tank-volume-series";
@@ -838,7 +838,7 @@ describe("EPSResultsReader", () => {
           .eps({ duration: 7200, hydraulicTimestep: 3600 });
         const hydraulicModel = builder.build();
         const inp = buildInp(hydraulicModel, {
-          simulationSettings: { epsTiming: builder.getEpsTiming() },
+          simulationSettings: builder.getSimulationSettings(),
         });
 
         const testAppId = "test-tank-volume-values";
@@ -880,7 +880,7 @@ describe("EPSResultsReader", () => {
           .eps({ duration: 7200, hydraulicTimestep: 3600 });
         const hydraulicModel = builder.build();
         const inp = buildInp(hydraulicModel, {
-          simulationSettings: { epsTiming: builder.getEpsTiming() },
+          simulationSettings: builder.getSimulationSettings(),
         });
 
         const testAppId = "test-tank-level-series";
@@ -976,7 +976,7 @@ describe("EPSResultsReader", () => {
           .eps({ duration: 7200, hydraulicTimestep: 3600 });
         const hydraulicModel = builder.build();
         const inp = buildInp(hydraulicModel, {
-          simulationSettings: { epsTiming: builder.getEpsTiming() },
+          simulationSettings: builder.getSimulationSettings(),
         });
 
         const testAppId = "test-pump-flow-series";
@@ -1008,7 +1008,7 @@ describe("EPSResultsReader", () => {
           .eps({ duration: 7200, hydraulicTimestep: 3600 });
         const hydraulicModel = builder.build();
         const inp = buildInp(hydraulicModel, {
-          simulationSettings: { epsTiming: builder.getEpsTiming() },
+          simulationSettings: builder.getSimulationSettings(),
         });
 
         const testAppId = "test-pump-status-series";
@@ -1044,7 +1044,7 @@ describe("EPSResultsReader", () => {
           .eps({ duration: 7200, hydraulicTimestep: 3600 });
         const hydraulicModel = builder.build();
         const inp = buildInp(hydraulicModel, {
-          simulationSettings: { epsTiming: builder.getEpsTiming() },
+          simulationSettings: builder.getSimulationSettings(),
         });
 
         const testAppId = "test-valve-flow-series";
@@ -1115,7 +1115,7 @@ describe("EPSResultsReader", () => {
         .eps({ duration: 7200, hydraulicTimestep: 1800, reportTimestep: 900 });
       const hydraulicModel = builder.build();
       const inp = buildInp(hydraulicModel, {
-        simulationSettings: { epsTiming: builder.getEpsTiming() },
+        simulationSettings: builder.getSimulationSettings(),
       });
 
       const testAppId = "test-reporting-timestep";

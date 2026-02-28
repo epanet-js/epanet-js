@@ -124,6 +124,7 @@ export const aSimulationSuccess = ({
     status: "success",
     report,
     modelVersion,
+    settingsVersion: "",
   };
 };
 
@@ -135,6 +136,7 @@ export const aSimulationFailure = ({
     status: "failure",
     report,
     modelVersion,
+    settingsVersion: "",
   };
 };
 
