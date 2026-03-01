@@ -4,6 +4,7 @@ import { useAtomValue } from "jotai";
 
 import { useTranslate } from "src/hooks/use-translate";
 import { TimeField } from "src/components/form/time-field";
+import { NumericField } from "src/components/form/numeric-field";
 import { Selector } from "src/components/form/selector";
 import { simulationSettingsAtom } from "src/state/jotai";
 
@@ -191,7 +192,46 @@ export const TimesSection = ({ readonly }: { readonly: boolean }) => {
   );
 };
 
-const SettingsRow = ({
+export const DemandsSection = () => {
+  const translate = useTranslate();
+  const { values, setFieldValue } = useFormikContext<FormValues>();
+
+  return (
+    <div>
+      <h3 className="text-base font-semibold text-gray-900 dark:text-white pb-3 mb-3">
+        {translate("simulationSettings.demands")}
+      </h3>
+
+      <div className="flex flex-col gap-4">
+        <div
+          data-section-id="demands-calculation"
+          className="text-sm font-semibold text-gray-900 dark:text-white mt-2"
+        >
+          {translate("simulationSettings.demandsCalculation")}
+        </div>
+
+        <SettingsRow
+          label={translate("simulationSettings.globalDemandMultiplier")}
+          description={translate(
+            "simulationSettings.globalDemandMultiplierDesc",
+          )}
+        >
+          <div className="w-24">
+            <NumericField
+              label={translate("simulationSettings.globalDemandMultiplier")}
+              displayValue={String(values.globalDemandMultiplier)}
+              onChangeValue={(v) => setFieldValue("globalDemandMultiplier", v)}
+              isNullable={false}
+              styleOptions={{ textSize: "xs" }}
+            />
+          </div>
+        </SettingsRow>
+      </div>
+    </div>
+  );
+};
+
+export const SettingsRow = ({
   label,
   description,
   children,

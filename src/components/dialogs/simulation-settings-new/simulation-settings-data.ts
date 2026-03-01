@@ -1,9 +1,15 @@
 import { nanoid } from "nanoid";
 import { type SimulationSettings } from "src/simulation/simulation-settings";
 
+export type OptionSubcategory = {
+  id: string;
+  label: string;
+};
+
 export type OptionCategory = {
   id: string;
   label: string;
+  subcategories?: OptionSubcategory[];
 };
 
 export const simulationSettingsCategories: OptionCategory[] = [
@@ -11,10 +17,18 @@ export const simulationSettingsCategories: OptionCategory[] = [
     id: "times",
     label: "Times",
   },
+  {
+    id: "demands",
+    label: "Demands",
+    subcategories: [{ id: "demands-calculation", label: "Calculation" }],
+  },
 ];
 
 export const buildSectionIds = (): string[] => {
-  return simulationSettingsCategories.map((category) => category.id);
+  return simulationSettingsCategories.flatMap((category) => [
+    category.id,
+    ...(category.subcategories?.map((sub) => sub.id) ?? []),
+  ]);
 };
 
 export type SimulationModeOption = "steadyState" | "eps";
@@ -27,6 +41,7 @@ export type FormValues = {
   patternTimestep: number | undefined;
   qualityTimestep: number | undefined;
   ruleTimestep: number | undefined;
+  globalDemandMultiplier: number;
 };
 
 export const buildInitialValues = (
@@ -41,6 +56,7 @@ export const buildInitialValues = (
     patternTimestep: timing.patternTimestep,
     qualityTimestep: timing.qualityTimestep,
     ruleTimestep: timing.ruleTimestep,
+    globalDemandMultiplier: settings.globalDemandMultiplier,
   };
 };
 
@@ -57,7 +73,8 @@ export const hasChanges = (
     values.reportTimestep !== timing.reportTimestep ||
     values.patternTimestep !== timing.patternTimestep ||
     values.qualityTimestep !== timing.qualityTimestep ||
-    values.ruleTimestep !== timing.ruleTimestep
+    values.ruleTimestep !== timing.ruleTimestep ||
+    values.globalDemandMultiplier !== settings.globalDemandMultiplier
   );
 };
 
@@ -68,7 +85,7 @@ export const buildUpdatedSettings = (
   const { timing } = settings;
   return {
     version: nanoid(),
-    globalDemandMultiplier: settings.globalDemandMultiplier,
+    globalDemandMultiplier: values.globalDemandMultiplier,
     timing: {
       duration:
         values.simulationMode === "steadyState" ? 0 : (values.duration ?? 0),

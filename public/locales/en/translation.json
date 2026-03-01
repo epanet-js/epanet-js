@@ -508,7 +508,11 @@
     "epsMissingValues": "Please fill in all values.",
     "epsZeroValues": "Values must be greater than zero.",
     "fieldRequired": "This field is required",
-    "fieldMustBePositive": "Must be greater than zero"
+    "fieldMustBePositive": "Must be greater than zero",
+    "demands": "Demands",
+    "demandsCalculation": "Calculation",
+    "globalDemandMultiplier": "Global demand multiplier",
+    "globalDemandMultiplierDesc": "Adjust the values of baseline demands for all junctions and all demand categories. For example, a value of 2 doubles all baseline demands, while a value of 0.5 would halve them."
   },
   "controls": {
     "title": "Controls",

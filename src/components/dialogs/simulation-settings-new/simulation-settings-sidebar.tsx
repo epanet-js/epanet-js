@@ -6,6 +6,14 @@ type Props = {
   onSelectSection: (sectionId: string) => void;
 };
 
+const isActiveCategory = (
+  activeSection: string,
+  categoryId: string,
+  subcategoryIds: string[],
+): boolean => {
+  return activeSection === categoryId || subcategoryIds.includes(activeSection);
+};
+
 export const SimulationSettingsSidebar = ({
   activeSection,
   onSelectSection,
@@ -13,22 +21,52 @@ export const SimulationSettingsSidebar = ({
   return (
     <nav className="w-44 flex-shrink-0 border-r border-gray-200 dark:border-gray-700 pr-3 overflow-y-auto">
       <ul className="flex flex-col gap-0.5">
-        {simulationSettingsCategories.map((category) => (
-          <li key={category.id}>
-            <button
-              type="button"
-              onClick={() => onSelectSection(category.id)}
-              className={clsx(
-                "w-full text-left px-3 py-1.5 rounded text-sm transition-colors",
-                activeSection === category.id
-                  ? "bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-200 font-medium"
-                  : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800",
+        {simulationSettingsCategories.map((category) => {
+          const subcategoryIds =
+            category.subcategories?.map((sub) => sub.id) ?? [];
+          const isCategoryActive = isActiveCategory(
+            activeSection,
+            category.id,
+            subcategoryIds,
+          );
+
+          return (
+            <li key={category.id}>
+              <button
+                type="button"
+                onClick={() => onSelectSection(category.id)}
+                className={clsx(
+                  "w-full text-left px-3 py-1.5 rounded text-sm transition-colors",
+                  isCategoryActive && !subcategoryIds.includes(activeSection)
+                    ? "bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-200 font-medium"
+                    : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800",
+                )}
+              >
+                {category.label}
+              </button>
+              {category.subcategories && (
+                <ul className="flex flex-col gap-0.5 mt-0.5">
+                  {category.subcategories.map((sub) => (
+                    <li key={sub.id}>
+                      <button
+                        type="button"
+                        onClick={() => onSelectSection(sub.id)}
+                        className={clsx(
+                          "w-full text-left pl-6 pr-3 py-1.5 rounded text-sm transition-colors",
+                          activeSection === sub.id
+                            ? "bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-200 font-medium"
+                            : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800",
+                        )}
+                      >
+                        {sub.label}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
               )}
-            >
-              {category.label}
-            </button>
-          </li>
-        ))}
+            </li>
+          );
+        })}
       </ul>
     </nav>
   );
