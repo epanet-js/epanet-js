@@ -1,58 +1,287 @@
 import { forwardRef, useCallback } from "react";
-import { simulationSettingsCategories } from "./simulation-settings-data";
+import { useFormikContext } from "formik";
+import { useAtomValue } from "jotai";
 
-export const SimulationSettingsContent = forwardRef<HTMLDivElement>(
-  function SimulationSettingsContent(_props, ref) {
-    const measureRef = useCallback(
-      (node: HTMLDivElement | null) => {
-        if (typeof ref === "function") {
-          ref(node);
-        } else if (ref) {
-          ref.current = node;
-        }
-        if (!node) return;
-        const updateHeight = () => {
-          node.style.setProperty("--scroll-height", `${node.clientHeight}px`);
-        };
-        updateHeight();
-        const observer = new ResizeObserver(updateHeight);
-        observer.observe(node);
-      },
-      [ref],
-    );
+import { useTranslate } from "src/hooks/use-translate";
+import {
+  TimeField,
+  formatSecondsToDisplay,
+} from "src/components/form/time-field";
+import { Selector } from "src/components/form/selector";
+import { simulationSettingsAtom } from "src/state/jotai";
 
-    return (
-      <div
-        ref={measureRef}
-        className="flex-1 min-h-0 overflow-y-auto placemark-scrollbar scroll-shadows pl-4"
-      >
-        <div className="flex flex-col gap-20 py-2">
-          {simulationSettingsCategories.map((category) => (
-            <div
-              key={category.id}
-              data-section-id={category.id}
-              className="last:min-h-[calc(var(--scroll-height)-1rem)]"
-            >
-              <h3 className="text-base font-semibold text-gray-900 dark:text-white pb-3 mb-3">
-                {category.label}
-              </h3>
-              <div className="flex flex-col gap-4">
-                {category.subcategories?.map((sub) => (
-                  <div
-                    key={sub.id}
-                    data-section-id={sub.id}
-                    className="flex flex-col gap-4"
-                  >
-                    <div className="text-sm font-semibold text-gray-900 dark:text-white mt-2">
-                      {sub.label}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
+import type {
+  FormValues,
+  SimulationModeOption,
+} from "./simulation-settings-dialog";
+
+const ONE_HOUR = 3600;
+
+export const SimulationSettingsContent = forwardRef<
+  HTMLDivElement,
+  { readonly: boolean }
+>(function SimulationSettingsContent({ readonly }, ref) {
+  const measureRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      if (typeof ref === "function") {
+        ref(node);
+      } else if (ref) {
+        ref.current = node;
+      }
+      if (!node) return;
+      const updateHeight = () => {
+        node.style.setProperty("--scroll-height", `${node.clientHeight}px`);
+      };
+      updateHeight();
+      const observer = new ResizeObserver(updateHeight);
+      observer.observe(node);
+    },
+    [ref],
+  );
+
+  return (
+    <div
+      ref={measureRef}
+      className="flex-1 min-h-0 overflow-y-auto placemark-scrollbar scroll-shadows pl-4"
+    >
+      <div className="flex flex-col gap-20 py-2">
+        <div
+          data-section-id="times"
+          className="last:min-h-[calc(var(--scroll-height)-1rem)]"
+        >
+          <TimesSection readonly={readonly} />
         </div>
       </div>
-    );
-  },
+    </div>
+  );
+});
+
+const TimesSection = ({ readonly }: { readonly: boolean }) => {
+  const translate = useTranslate();
+  const { timing } = useAtomValue(simulationSettingsAtom);
+  const { values, setFieldValue } = useFormikContext<FormValues>();
+  const { fieldErrors } = useTimeSettingsValidation();
+
+  const isEPS = values.simulationMode === "eps";
+
+  const simulationModeOptions: {
+    label: string;
+    value: SimulationModeOption;
+  }[] = [
+    {
+      label: translate("simulationSettings.steadyState"),
+      value: "steadyState",
+    },
+    {
+      label: translate("simulationSettings.epsExtended"),
+      value: "eps",
+    },
+  ];
+
+  const handleSimulationModeChange = (newValue: SimulationModeOption) => {
+    void setFieldValue("simulationMode", newValue);
+    if (newValue === "eps") {
+      if (!values.duration)
+        void setFieldValue("duration", timing.duration || 24 * ONE_HOUR);
+      if (!values.hydraulicTimestep)
+        void setFieldValue(
+          "hydraulicTimestep",
+          timing.hydraulicTimestep || ONE_HOUR,
+        );
+      if (!values.reportTimestep)
+        void setFieldValue("reportTimestep", timing.reportTimestep || ONE_HOUR);
+      if (!values.patternTimestep)
+        void setFieldValue(
+          "patternTimestep",
+          timing.patternTimestep || ONE_HOUR,
+        );
+    }
+  };
+
+  return (
+    <div>
+      <h3 className="text-base font-semibold text-gray-900 dark:text-white pb-3 mb-3">
+        {translate("simulationSettings.times")}
+      </h3>
+
+      <div className="flex flex-col gap-4">
+        <SettingsRow label={translate("simulationSettings.timeAnalysisMode")}>
+          <div className="w-56">
+            <Selector
+              ariaLabel={translate("simulationSettings.timeAnalysisMode")}
+              options={simulationModeOptions}
+              selected={values.simulationMode}
+              onChange={handleSimulationModeChange}
+              disabled={readonly}
+              styleOptions={{
+                border: true,
+                textSize: "text-sm",
+                paddingY: 2,
+              }}
+            />
+          </div>
+        </SettingsRow>
+
+        <TimingField
+          label={translate("simulationSettings.totalDuration")}
+          description={translate("simulationSettings.totalDurationDesc")}
+          value={values.duration}
+          disabled={!isEPS}
+          readonly={readonly}
+          onChange={(v) => setFieldValue("duration", v)}
+          error={fieldErrors.duration}
+        />
+
+        <TimingField
+          label={translate("simulationSettings.hydraulicTimestep")}
+          description={translate("simulationSettings.hydraulicTimestepDesc")}
+          value={values.hydraulicTimestep}
+          disabled={!isEPS}
+          readonly={readonly}
+          onChange={(v) => setFieldValue("hydraulicTimestep", v)}
+          error={fieldErrors.hydraulicTimestep}
+        />
+
+        <TimingField
+          label={translate("simulationSettings.reportingTimestep")}
+          description={translate("simulationSettings.reportingTimestepDesc")}
+          value={values.reportTimestep}
+          disabled={!isEPS}
+          readonly={readonly}
+          onChange={(v) => setFieldValue("reportTimestep", v)}
+          error={fieldErrors.reportTimestep}
+        />
+
+        <TimingField
+          label={translate("simulationSettings.patternTimestep")}
+          description={translate("simulationSettings.patternTimestepDesc")}
+          value={values.patternTimestep}
+          disabled={!isEPS}
+          readonly={readonly}
+          onChange={(v) => setFieldValue("patternTimestep", v)}
+          error={fieldErrors.patternTimestep}
+        />
+      </div>
+    </div>
+  );
+};
+
+const SettingsRow = ({
+  label,
+  description,
+  children,
+}: {
+  label: string;
+  description?: string;
+  children: React.ReactNode;
+}) => (
+  <div className="flex flex-col gap-1">
+    <span className="text-sm text-gray-700 dark:text-gray-200">{label}</span>
+    {description && (
+      <span className="text-xs text-gray-400 dark:text-gray-500">
+        {description}
+      </span>
+    )}
+    {children}
+  </div>
 );
+
+type FieldError = "required" | "positive" | null;
+
+const TimingField = ({
+  label,
+  description,
+  value,
+  disabled,
+  readonly,
+  onChange,
+  error = null,
+}: {
+  label: string;
+  description: string;
+  value: number | undefined;
+  disabled: boolean;
+  readonly: boolean;
+  onChange: (value: number | undefined) => void;
+  error?: FieldError;
+}) => {
+  const translate = useTranslate();
+
+  const input = (() => {
+    if (readonly) {
+      return (
+        <span className="block w-full p-2 text-xs text-gray-500 bg-gray-50 border border-gray-300 rounded-sm cursor-not-allowed dark:bg-gray-800 dark:border-gray-600 dark:text-gray-400">
+          {disabled
+            ? translate("simulationSettings.notAvailable")
+            : formatSecondsToDisplay(value) || "-"}
+        </span>
+      );
+    }
+
+    if (disabled) {
+      return (
+        <span className="block w-full p-2 text-xs text-gray-500 bg-gray-50 border border-gray-300 rounded-sm dark:bg-gray-800 dark:border-gray-600 dark:text-gray-400">
+          {translate("simulationSettings.notAvailable")}
+        </span>
+      );
+    }
+
+    return (
+      <TimeField
+        label={label}
+        value={value}
+        onChangeValue={onChange}
+        hasError={error !== null}
+      />
+    );
+  })();
+
+  const errorMessage =
+    error === "required"
+      ? translate("simulationSettings.fieldRequired")
+      : error === "positive"
+        ? translate("simulationSettings.fieldMustBePositive")
+        : null;
+
+  return (
+    <SettingsRow label={label} description={description}>
+      <div className="flex items-center gap-2">
+        <div className="w-24">{input}</div>
+        {errorMessage && (
+          <span className="text-xs font-semibold text-orange-800">
+            {errorMessage}
+          </span>
+        )}
+      </div>
+    </SettingsRow>
+  );
+};
+
+const getFieldError = (
+  isEPS: boolean,
+  value: number | undefined,
+): "required" | "positive" | null => {
+  if (!isEPS) return null;
+  if (value === undefined) return "required";
+  if (value === 0) return "positive";
+  return null;
+};
+
+export const useTimeSettingsValidation = () => {
+  const { values } = useFormikContext<FormValues>();
+
+  const isEPS = values.simulationMode === "eps";
+
+  const fieldErrors = {
+    duration: getFieldError(isEPS, values.duration),
+    hydraulicTimestep: getFieldError(isEPS, values.hydraulicTimestep),
+    reportTimestep: getFieldError(isEPS, values.reportTimestep),
+    patternTimestep: getFieldError(isEPS, values.patternTimestep),
+  };
+
+  const hasValidationError = Object.values(fieldErrors).some(
+    (error) => error !== null,
+  );
+
+  return { hasValidationError, fieldErrors };
+};

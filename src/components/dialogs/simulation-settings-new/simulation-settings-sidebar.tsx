@@ -14,7 +14,7 @@ export const SimulationSettingsSidebar = ({
     <nav className="w-44 flex-shrink-0 border-r border-gray-200 dark:border-gray-700 pr-3 overflow-y-auto">
       <ul className="flex flex-col gap-0.5">
         {simulationSettingsCategories.map((category) => (
-          <li key={category.id} className="flex flex-col gap-0.5">
+          <li key={category.id}>
             <button
               type="button"
               onClick={() => onSelectSection(category.id)}
@@ -27,21 +27,6 @@ export const SimulationSettingsSidebar = ({
             >
               {category.label}
             </button>
-            {category.subcategories?.map((sub) => (
-              <button
-                key={sub.id}
-                type="button"
-                onClick={() => onSelectSection(sub.id)}
-                className={clsx(
-                  "w-full text-left pl-6 pr-3 py-1 rounded text-xs transition-colors",
-                  activeSection === sub.id
-                    ? "bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-200 font-medium"
-                    : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800",
-                )}
-              >
-                {sub.label}
-              </button>
-            ))}
           </li>
         ))}
       </ul>
