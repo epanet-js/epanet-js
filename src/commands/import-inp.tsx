@@ -1,10 +1,6 @@
 import { useCallback, useContext } from "react";
 import { useSetAtom } from "jotai";
-import {
-  dialogAtom,
-  fileInfoAtom,
-  simulationSettingsAtom,
-} from "src/state/jotai";
+import { dialogAtom, fileInfoAtom } from "src/state/jotai";
 import { captureError } from "src/infra/error-tracking";
 import { FileWithHandle } from "browser-fs-access";
 import { useTranslate } from "src/hooks/use-translate";
@@ -34,7 +30,6 @@ export const useImportInp = () => {
   const setDialogState = useSetAtom(dialogAtom);
   const map = useContext(MapContext);
   const setFileInfo = useSetAtom(fileInfoAtom);
-  const setSimulationSettings = useSetAtom(simulationSettingsAtom);
   const rep = usePersistence();
   const transactImport = rep.useTransactImport();
   const userTracking = useUserTracking();
@@ -100,8 +95,13 @@ export const useImportInp = () => {
           const storage = new OPFSStorage(getAppId());
           await storage.clear();
 
-          transactImport(hydraulicModel, modelMetadata, file.name, options);
-          setSimulationSettings(simulationSettings);
+          transactImport(
+            hydraulicModel,
+            modelMetadata,
+            file.name,
+            simulationSettings,
+            options,
+          );
 
           const features: FeatureCollection = {
             type: "FeatureCollection",
@@ -198,7 +198,6 @@ export const useImportInp = () => {
       translate,
       transactImport,
       setFileInfo,
-      setSimulationSettings,
       map?.map,
       allCurves,
     ],

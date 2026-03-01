@@ -3,6 +3,7 @@ import { Promisable } from "type-fest";
 import { z } from "zod";
 import { HydraulicModel, ModelMoment } from "src/hydraulic-model";
 import { ModelMetadata } from "src/model-metadata";
+import type { SimulationSettings } from "src/simulation/simulation-settings";
 import type { SimulationState } from "src/state/jotai";
 import type { MomentLog } from "src/lib/persistence/moment-log";
 
@@ -48,6 +49,7 @@ export interface IPersistence {
     hydraulicModel: HydraulicModel,
     modelMetadata: ModelMetadata,
     name: string,
+    simulationSettings: SimulationSettings,
     options?: { autoElevations?: boolean },
   ) => void;
 }

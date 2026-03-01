@@ -13,7 +13,6 @@ export { mergeNodes } from "./merge-nodes";
 export { changePumpDefinition } from "./change-pump-definition";
 export { changeControls } from "./change-controls";
 export { changeCurves } from "./change-curves";
-export { changeDemandMultiplier } from "./change-demand-multiplier";
 export { changePatterns } from "./change-patterns";
 export { changeDemandAssignment } from "./change-demand-assignment";
 export { removeCustomerPoints } from "./remove-customer-points";

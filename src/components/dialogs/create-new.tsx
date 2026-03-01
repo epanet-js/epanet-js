@@ -15,6 +15,7 @@ import {
   initializeHydraulicModel,
 } from "src/hydraulic-model";
 import { usePersistence } from "src/lib/persistence";
+import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { useTranslate } from "src/hooks/use-translate";
 import { Selector } from "../form/selector";
 import {
@@ -86,7 +87,12 @@ export const CreateNew = ({ onClose }: { onClose: () => void }) => {
         defaults: quantities.defaults,
         headlossFormula,
       });
-      transactImport(hydraulicModel, modelMetadata, "Untitled");
+      transactImport(
+        hydraulicModel,
+        modelMetadata,
+        "Untitled",
+        defaultSimulationSettings,
+      );
       userTracking.capture({
         name: "newModel.completed",
         units: unitsSpec,

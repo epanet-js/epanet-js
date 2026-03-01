@@ -3,6 +3,7 @@ import { useAtomCallback } from "jotai/utils";
 import { useCallback } from "react";
 import { usePersistenceWithSnapshots, Persistence } from "src/lib/persistence";
 import { worktreeAtom } from "src/state/scenarios";
+import { simulationSettingsAtom } from "src/state/simulation-settings";
 import { modeAtom, Mode } from "src/state/mode";
 import {
   createScenario,
@@ -11,6 +12,7 @@ import {
   renameScenario,
 } from "src/lib/worktree";
 import type { Worktree } from "src/lib/worktree";
+import type { SimulationSettings } from "src/simulation/simulation-settings";
 
 const DRAWING_MODES: Mode[] = [
   Mode.DRAW_JUNCTION,
@@ -22,6 +24,21 @@ const DRAWING_MODES: Mode[] = [
   Mode.CONNECT_CUSTOMER_POINTS,
   Mode.REDRAW_LINK,
 ];
+
+const saveSettingsToOutgoingSnapshot = (
+  worktree: Worktree,
+  currentSettings: SimulationSettings,
+): Worktree => {
+  const currentSnapshot = worktree.snapshots.get(worktree.activeSnapshotId);
+  if (!currentSnapshot) return worktree;
+
+  const updatedSnapshots = new Map(worktree.snapshots);
+  updatedSnapshots.set(worktree.activeSnapshotId, {
+    ...currentSnapshot,
+    simulationSettings: currentSettings,
+  });
+  return { ...worktree, snapshots: updatedSnapshots };
+};
 
 export const useScenarioOperations = () => {
   const persistence = usePersistenceWithSnapshots();
@@ -60,7 +77,12 @@ export const useScenarioOperations = () => {
     useCallback(
       (get, _set, snapshotId: string) => {
         const worktree = get(worktreeAtom);
-        void performSwitch(worktree, snapshotId);
+        const currentSettings = get(simulationSettingsAtom);
+        const updated = saveSettingsToOutgoingSnapshot(
+          worktree,
+          currentSettings,
+        );
+        void performSwitch(updated, snapshotId);
       },
       [performSwitch],
     ),
@@ -70,7 +92,12 @@ export const useScenarioOperations = () => {
     useCallback(
       (get) => {
         const worktree = get(worktreeAtom);
-        void performSwitch(worktree, worktree.mainId);
+        const currentSettings = get(simulationSettingsAtom);
+        const updated = saveSettingsToOutgoingSnapshot(
+          worktree,
+          currentSettings,
+        );
+        void performSwitch(updated, updated.mainId);
       },
       [performSwitch],
     ),
@@ -80,7 +107,12 @@ export const useScenarioOperations = () => {
     useCallback(
       async (get) => {
         const worktree = get(worktreeAtom);
-        const created = createScenario(worktree);
+        const currentSettings = get(simulationSettingsAtom);
+        const updated = saveSettingsToOutgoingSnapshot(
+          worktree,
+          currentSettings,
+        );
+        const created = createScenario(updated, currentSettings);
         const result = switchToSnapshotFn(
           created.worktree,
           created.scenario.id,
@@ -108,7 +140,12 @@ export const useScenarioOperations = () => {
     useCallback(
       async (get, _set, scenarioId: string) => {
         const worktree = get(worktreeAtom);
-        const result = deleteScenario(worktree, scenarioId);
+        const currentSettings = get(simulationSettingsAtom);
+        const updated = saveSettingsToOutgoingSnapshot(
+          worktree,
+          currentSettings,
+        );
+        const result = deleteScenario(updated, scenarioId);
 
         persistence.deleteSnapshotFromCache(scenarioId);
 

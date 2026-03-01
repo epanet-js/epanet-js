@@ -28,6 +28,7 @@ export const Footer = () => {
   const translate = useTranslate();
   const { modelMetadata } = useAtomValue(dataAtom);
   const hydraulicModel = useAtomValue(stagingModelAtom);
+  const simulationSettings = useAtomValue(simulationSettingsAtom);
   const isLgOrLarger = useBreakpoint("lg");
   const isSmOrLarger = useBreakpoint("sm");
 
@@ -38,7 +39,7 @@ export const Footer = () => {
           <div className="px-2">
             <CollapsedPopover
               unitsSpecName={modelMetadata.quantities.specName}
-              demandMultiplier={hydraulicModel.demands.multiplier}
+              demandMultiplier={simulationSettings.demands.globalMultiplier}
               headlossFormula={hydraulicModel.headlossFormula}
             />
           </div>
@@ -62,7 +63,7 @@ export const Footer = () => {
           <>
             <span className="px-4 py-2">
               {translate("demandMultiplier")}:{" "}
-              {localizeDecimal(hydraulicModel.demands.multiplier)}
+              {localizeDecimal(simulationSettings.demands.globalMultiplier)}
             </span>
             <div className="border-r-2 border-gray-150 h-10"></div>
           </>

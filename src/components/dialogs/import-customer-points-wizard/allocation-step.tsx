@@ -15,6 +15,7 @@ import { useTranslate } from "src/hooks/use-translate";
 import { useUserTracking } from "src/infra/user-tracking";
 import { notify } from "src/components/notifications";
 import { usePersistence } from "src/lib/persistence";
+import { simulationSettingsAtom } from "src/state/simulation-settings";
 import { Button } from "src/components/elements";
 import { SuccessIcon, WarningIcon } from "src/icons";
 
@@ -30,6 +31,7 @@ export const AllocationStep: React.FC<{
   const [tempRules, setTempRules] = useState<AllocationRule[]>([]);
   const data = useAtomValue(dataAtom);
   const hydraulicModel = useAtomValue(stagingModelAtom);
+  const simulationSettings = useAtomValue(simulationSettingsAtom);
   const translate = useTranslate();
   const userTracking = useUserTracking();
   const rep = usePersistence();
@@ -86,6 +88,7 @@ export const AllocationStep: React.FC<{
         updatedHydraulicModel,
         data.modelMetadata,
         "customerpoints",
+        simulationSettings,
       );
 
       userTracking.capture({
@@ -112,6 +115,7 @@ export const AllocationStep: React.FC<{
     allocationResult,
     data.modelMetadata,
     hydraulicModel,
+    simulationSettings,
     parsedDataSummary?.customerPointDemands,
     keepDemands,
     onFinish,

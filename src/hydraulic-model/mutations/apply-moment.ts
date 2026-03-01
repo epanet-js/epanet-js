@@ -36,7 +36,6 @@ export const applyMomentToModel = (
       moment.putDemands.assignments || [],
     );
     reverseMoment.putDemands = {
-      multiplier: hydraulicModel.demands.multiplier,
       assignments: reverseAssignements,
     };
   }
@@ -89,15 +88,6 @@ export const applyMomentToModel = (
     const deletedCp = deleteCustomerPoint(hydraulicModel, cpId);
     if (deletedCp) {
       reverseMoment.putCustomerPoints.push(deletedCp);
-    }
-  }
-
-  if (moment.putDemands) {
-    if (moment.putDemands.multiplier !== undefined) {
-      hydraulicModel.demands = {
-        ...hydraulicModel.demands,
-        multiplier: moment.putDemands.multiplier,
-      };
     }
   }
 

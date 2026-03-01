@@ -1,10 +1,12 @@
 import type { Worktree, Snapshot } from "./types";
+import type { SimulationSettings } from "src/simulation/simulation-settings";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { EMPTY_MOMENT } from "src/lib/persistence/moment";
 import { nanoid } from "nanoid";
 
 export const createScenario = (
   worktree: Worktree,
+  simulationSettings: SimulationSettings,
 ): { scenario: Snapshot; worktree: Worktree } => {
   const mainSnapshot = worktree.snapshots.get(worktree.mainId);
   if (!mainSnapshot) {
@@ -24,6 +26,7 @@ export const createScenario = (
     version: mainSnapshot.version,
     momentLog: newMomentLog,
     simulation: null,
+    simulationSettings,
     status: "open",
   };
 

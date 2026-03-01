@@ -1,6 +1,7 @@
 import { atom } from "jotai";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { initialSimulationState } from "src/state/jotai";
+import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import type { Worktree, Snapshot } from "src/lib/worktree/types";
 
 const emptyMainSnapshot: Snapshot = {
@@ -11,6 +12,7 @@ const emptyMainSnapshot: Snapshot = {
   version: "",
   momentLog: new MomentLog(),
   simulation: initialSimulationState,
+  simulationSettings: defaultSimulationSettings,
   status: "open",
 };
 

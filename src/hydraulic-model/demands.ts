@@ -12,13 +12,11 @@ export type JunctionAssignedDemands = Map<AssetId, Demand[]>;
 export type CustomerAssignedDemands = Map<CustomerPointId, Demand[]>;
 
 export type Demands = {
-  multiplier: number;
   junctions: JunctionAssignedDemands;
   customerPoints: CustomerAssignedDemands;
 };
 
 export const createEmptyDemands = (): Demands => ({
-  multiplier: 1,
   junctions: new Map(),
   customerPoints: new Map(),
 });

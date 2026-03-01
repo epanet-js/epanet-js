@@ -343,12 +343,14 @@ describe("build inp", () => {
   });
 
   it("includes simulation settings", () => {
-    const hydraulicModel = HydraulicModelBuilder.with()
-      .demandMultiplier(10)
+    const hydraulicModel = HydraulicModelBuilder.with().build();
+
+    const simulationSettings = SimulationSettingsBuilder.with()
+      .demands({ globalMultiplier: 10 })
       .build();
 
     const inp = buildInp(hydraulicModel, {
-      simulationSettings: defaultSimulationSettings,
+      simulationSettings,
     });
 
     expect(inp).toContain("[TIMES]");

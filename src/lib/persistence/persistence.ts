@@ -50,6 +50,8 @@ import { nullSymbologySpec } from "src/map/symbology";
 import { mapSyncMomentAtom, MomentPointer } from "src/state/map";
 import { USelection } from "src/selection";
 import { toDemandAssignments } from "src/hydraulic-model/model-operation";
+import type { SimulationSettings } from "src/simulation/simulation-settings";
+import { simulationSettingsAtom } from "src/state/simulation-settings";
 
 const MAX_CHANGES_BEFORE_MAP_SYNC = 500;
 
@@ -65,6 +67,7 @@ export class Persistence implements IPersistenceWithSnapshots {
       hydraulicModel: HydraulicModel,
       modelMetadata: ModelMetadata,
       name: string,
+      simulationSettings: SimulationSettings,
       options?: { autoElevations?: boolean },
     ) => {
       const momentLog = new MomentLog();
@@ -77,7 +80,6 @@ export class Persistence implements IPersistenceWithSnapshots {
         deleteAssets: [],
         patchAssetsAttributes: [],
         putDemands: {
-          multiplier: hydraulicModel.demands.multiplier,
           assignments: toDemandAssignments(hydraulicModel.demands),
         },
         putControls: hydraulicModel.controls,
@@ -118,8 +120,14 @@ export class Persistence implements IPersistenceWithSnapshots {
       this.store.set(selectionAtom, { type: "none" });
       this.store.set(pipeDrawingDefaultsAtom, {});
       this.store.set(autoElevationsAtom, options?.autoElevations ?? true);
+      this.store.set(simulationSettingsAtom, simulationSettings);
 
-      this.resetWorktree(snapshotMoment, hydraulicModel.version, momentLog);
+      this.resetWorktree(
+        snapshotMoment,
+        hydraulicModel.version,
+        momentLog,
+        simulationSettings,
+      );
     };
   }
 
@@ -127,6 +135,7 @@ export class Persistence implements IPersistenceWithSnapshots {
     moment: Moment,
     version: string,
     momentLog: MomentLog,
+    simulationSettings: SimulationSettings,
   ): void {
     const mainSnapshot: Snapshot = {
       id: "main",
@@ -136,6 +145,7 @@ export class Persistence implements IPersistenceWithSnapshots {
       version,
       momentLog,
       simulation: initialSimulationState,
+      simulationSettings,
       status: "open",
     };
 
@@ -319,6 +329,7 @@ export class Persistence implements IPersistenceWithSnapshots {
     this.setModelVersion(snapshot.version);
     this.store.set(simulationAtom, finalSimulation);
     this.store.set(simulationResultsAtom, resultsReader);
+    this.store.set(simulationSettingsAtom, snapshot.simulationSettings);
 
     const selection = this.store.get(selectionAtom);
     const validatedSelection = USelection.clearInvalidIds(

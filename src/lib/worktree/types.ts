@@ -1,6 +1,7 @@
 import type { MomentLog } from "src/lib/persistence/moment-log";
 import type { Moment } from "src/lib/persistence/moment";
 import type { SimulationState } from "src/state/jotai";
+import type { SimulationSettings } from "src/simulation/simulation-settings";
 
 export type Snapshot = {
   id: string;
@@ -10,6 +11,7 @@ export type Snapshot = {
   version: string;
   momentLog: MomentLog;
   simulation: SimulationState | null;
+  simulationSettings: SimulationSettings;
   status: "open" | "locked";
 };
 

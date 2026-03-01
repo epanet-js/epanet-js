@@ -296,7 +296,7 @@ export const buildInp = withDebugInstrumentation(
         `Accuracy\t${defaultAccuracy}`,
         `Units\t${units}`,
         `Headloss\t${headlossFormula}`,
-        `Demand Multiplier\t${hydraulicModel.demands.multiplier}`,
+        `Demand Multiplier\t${opts.simulationSettings.demands.globalMultiplier}`,
         `Pattern\t${idMap.registerPatternId({ id: defaultConstantPatternId, label: "constant" })}`,
       ],
       backdrop: [

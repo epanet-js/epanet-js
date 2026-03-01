@@ -89,10 +89,7 @@ export const buildModel = (
     units: quantities.units,
     defaults: quantities.defaults,
     headlossFormula: inpData.options.headlossFormula,
-    demands: {
-      ...createEmptyDemands(),
-      multiplier: inpData.options.demandMultiplier,
-    },
+    demands: createEmptyDemands(),
   });
 
   const curvesContext: CurvesContext = initializeCurvesContext(

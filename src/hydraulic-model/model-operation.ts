@@ -32,7 +32,6 @@ export type DemandAssignment =
   | CustomerDemandAssignment;
 
 export type DemandSettingsChange = {
-  multiplier?: number;
   assignments?: DemandAssignment[];
 };
 

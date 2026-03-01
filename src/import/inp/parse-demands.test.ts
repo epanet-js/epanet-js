@@ -523,9 +523,9 @@ describe("parse junctions demands", () => {
       Demand Multiplier\t20
       `;
 
-      const { hydraulicModel } = parseInp(inp);
+      const { simulationSettings } = parseInp(inp);
 
-      expect(hydraulicModel.demands.multiplier).toEqual(20);
+      expect(simulationSettings.demands.globalMultiplier).toEqual(20);
     });
   });
 

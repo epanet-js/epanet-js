@@ -16,12 +16,22 @@ export const defaultTiming: Timing = {
   patternTimestep: 3600,
 };
 
+export type DemandSettings = {
+  globalMultiplier: number;
+};
+
+export const defaultDemandSettings: DemandSettings = {
+  globalMultiplier: 1,
+};
+
 export type SimulationSettings = {
   version: string;
   timing: Timing;
+  demands: DemandSettings;
 };
 
 export const defaultSimulationSettings: SimulationSettings = {
   version: nanoid(),
   timing: defaultTiming,
+  demands: defaultDemandSettings,
 };

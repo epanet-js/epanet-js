@@ -7,17 +7,15 @@ import { useTranslate } from "src/hooks/use-translate";
 import { Form, Formik, useFormikContext } from "formik";
 import { NumericField } from "../form/numeric-field";
 import { TimeField } from "../form/time-field";
-import { stagingModelAtom, simulationSettingsAtom } from "src/state/jotai";
+import { simulationSettingsAtom } from "src/state/jotai";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { SimpleDialogActions } from "src/components/dialog";
-import { usePersistence } from "src/lib/persistence";
 import { Section } from "../form/fields";
 import { useUserTracking } from "src/infra/user-tracking";
 import { SettingsIcon } from "src/icons";
 import { Selector } from "../form/selector";
 import { formatSecondsToDisplay } from "../form/time-field";
 import { worktreeAtom } from "src/state/scenarios";
-import { changeDemandMultiplier } from "src/hydraulic-model/model-operations";
 
 type SimulationModeOption = "steadyState" | "eps";
 
@@ -34,30 +32,21 @@ export const SimulationSettingsDialog = () => {
   const translate = useTranslate();
   const { closeDialog } = useDialogState();
 
-  const hydraulicModel = useAtomValue(stagingModelAtom);
   const simulationSettings = useAtomValue(simulationSettingsAtom);
   const setSimulationSettings = useSetAtom(simulationSettingsAtom);
-  const rep = usePersistence();
-  const transact = rep.useTransact();
   const userTracking = useUserTracking();
 
-  const { timing } = simulationSettings;
+  const { timing, demands } = simulationSettings;
 
   const handleSubmit = useCallback(
     (values: FormValues) => {
-      if (values.demandMultiplier !== hydraulicModel.demands.multiplier) {
+      if (values.demandMultiplier !== demands.globalMultiplier) {
         userTracking.capture({
           name: "simulationSetting.changed",
           settingName: "demandMultiplier",
           newValue: values.demandMultiplier,
-          oldValue: hydraulicModel.demands.multiplier,
+          oldValue: demands.globalMultiplier,
         });
-
-        const demandMoment = changeDemandMultiplier(
-          hydraulicModel,
-          values.demandMultiplier,
-        );
-        transact(demandMoment);
       }
 
       const newDuration =
@@ -67,8 +56,10 @@ export const SimulationSettingsDialog = () => {
         values.hydraulicTimestep !== timing.hydraulicTimestep ||
         values.reportTimestep !== timing.reportTimestep ||
         values.patternTimestep !== timing.patternTimestep;
+      const hasDemandChanges =
+        values.demandMultiplier !== demands.globalMultiplier;
 
-      if (hasTimingChanges) {
+      if (hasTimingChanges || hasDemandChanges) {
         setSimulationSettings({
           version: nanoid(),
           timing: {
@@ -80,23 +71,19 @@ export const SimulationSettingsDialog = () => {
             qualityTimestep: timing.qualityTimestep,
             ruleTimestep: timing.ruleTimestep,
           },
+          demands: {
+            globalMultiplier: values.demandMultiplier,
+          },
         });
       }
 
       closeDialog();
     },
-    [
-      hydraulicModel,
-      transact,
-      closeDialog,
-      userTracking,
-      timing,
-      setSimulationSettings,
-    ],
+    [closeDialog, userTracking, timing, demands, setSimulationSettings],
   );
 
   const initialValues: FormValues = {
-    demandMultiplier: hydraulicModel.demands.multiplier,
+    demandMultiplier: demands.globalMultiplier,
     simulationMode: timing.duration > 0 ? "eps" : "steadyState",
     duration: timing.duration,
     hydraulicTimestep: timing.hydraulicTimestep,

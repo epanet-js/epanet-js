@@ -525,7 +525,6 @@ describe("computeMultiAssetData", () => {
     it("ignores global demand multiplier to average demand", () => {
       const IDS = { J1: 1 } as const;
       const hydraulicModel = HydraulicModelBuilder.with()
-        .demandMultiplier(2.0)
         .aJunction(IDS.J1)
         .aJunctionDemand(IDS.J1, [{ baseDemand: 50 }])
         .build();
@@ -544,7 +543,6 @@ describe("computeMultiAssetData", () => {
       const IDS = { J1: 1, PAT1: 2 } as const;
       // Pattern [0.5, 1.5] -> average = 1.0
       const hydraulicModel = HydraulicModelBuilder.with()
-        .demandMultiplier(3.0)
         .aDemandPattern(IDS.PAT1, "pattern1", [0.5, 1.5])
         .aJunction(IDS.J1)
         .aJunctionDemand(IDS.J1, [{ baseDemand: 20, patternId: IDS.PAT1 }])
