@@ -19,8 +19,8 @@ const ONE_HOUR = 3600;
 
 export const SimulationSettingsContent = forwardRef<
   HTMLDivElement,
-  { readonly: boolean }
->(function SimulationSettingsContent({ readonly }, ref) {
+  { children: React.ReactNode }
+>(function SimulationSettingsContent({ children }, ref) {
   const measureRef = useCallback(
     (node: HTMLDivElement | null) => {
       if (typeof ref === "function") {
@@ -44,19 +44,27 @@ export const SimulationSettingsContent = forwardRef<
       ref={measureRef}
       className="flex-1 min-h-0 overflow-y-auto placemark-scrollbar scroll-shadows pl-4"
     >
-      <div className="flex flex-col gap-20 py-2">
-        <div
-          data-section-id="times"
-          className="last:min-h-[calc(var(--scroll-height)-1rem)]"
-        >
-          <TimesSection readonly={readonly} />
-        </div>
-      </div>
+      <div className="flex flex-col gap-20 py-2">{children}</div>
     </div>
   );
 });
 
-const TimesSection = ({ readonly }: { readonly: boolean }) => {
+export const SettingsSection = ({
+  sectionId,
+  children,
+}: {
+  sectionId: string;
+  children: React.ReactNode;
+}) => (
+  <div
+    data-section-id={sectionId}
+    className="last:min-h-[calc(var(--scroll-height)-1rem)]"
+  >
+    {children}
+  </div>
+);
+
+export const TimesSection = ({ readonly }: { readonly: boolean }) => {
   const translate = useTranslate();
   const { timing } = useAtomValue(simulationSettingsAtom);
   const { values, setFieldValue } = useFormikContext<FormValues>();

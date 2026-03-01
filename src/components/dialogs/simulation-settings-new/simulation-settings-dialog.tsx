@@ -1,6 +1,5 @@
 import { useCallback, useMemo } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
-import { nanoid } from "nanoid";
 import { Form, Formik } from "formik";
 
 import { DialogContainer, DialogHeader, useDialogState } from "../../dialog";
@@ -11,20 +10,23 @@ import { worktreeAtom } from "src/state/scenarios";
 import { SimulationSettingsSidebar } from "./simulation-settings-sidebar";
 import {
   SimulationSettingsContent,
+  SettingsSection,
+  TimesSection,
   useTimeSettingsValidation,
 } from "./simulation-settings-content";
 import { useScrollSpy } from "./use-scroll-spy";
-import { buildSectionIds } from "./simulation-settings-data";
+import {
+  buildSectionIds,
+  buildInitialValues,
+  hasChanges,
+  buildUpdatedSettings,
+} from "./simulation-settings-data";
+import type { FormValues } from "./simulation-settings-data";
 
-export type SimulationModeOption = "steadyState" | "eps";
-
-export type FormValues = {
-  simulationMode: SimulationModeOption;
-  duration: number | undefined;
-  hydraulicTimestep: number | undefined;
-  reportTimestep: number | undefined;
-  patternTimestep: number | undefined;
-};
+export type {
+  FormValues,
+  SimulationModeOption,
+} from "./simulation-settings-data";
 
 export const SimulationSettingsNewDialog = () => {
   const { closeDialog } = useDialogState();
@@ -33,47 +35,21 @@ export const SimulationSettingsNewDialog = () => {
   const worktree = useAtomValue(worktreeAtom);
   const hasScenarios = worktree.scenarios.length > 0;
 
-  const { timing } = simulationSettings;
-
   const sectionIds = useMemo(buildSectionIds, []);
 
   const { activeSection, scrollToSection, scrollContainerRef } =
     useScrollSpy(sectionIds);
 
-  const initialValues: FormValues = {
-    simulationMode: timing.duration > 0 ? "eps" : "steadyState",
-    duration: timing.duration,
-    hydraulicTimestep: timing.hydraulicTimestep,
-    reportTimestep: timing.reportTimestep,
-    patternTimestep: timing.patternTimestep,
-  };
+  const initialValues = buildInitialValues(simulationSettings);
 
   const handleSubmit = useCallback(
     (values: FormValues) => {
-      const newDuration =
-        values.simulationMode === "steadyState" ? 0 : values.duration;
-      const hasTimingChanges =
-        newDuration !== timing.duration ||
-        values.hydraulicTimestep !== timing.hydraulicTimestep ||
-        values.reportTimestep !== timing.reportTimestep ||
-        values.patternTimestep !== timing.patternTimestep;
-
-      if (hasTimingChanges) {
-        setSimulationSettings({
-          version: nanoid(),
-          timing: {
-            duration: newDuration ?? 0,
-            hydraulicTimestep:
-              values.hydraulicTimestep ?? timing.hydraulicTimestep,
-            reportTimestep: values.reportTimestep ?? timing.reportTimestep,
-            patternTimestep: values.patternTimestep ?? timing.patternTimestep,
-          },
-        });
+      if (hasChanges(values, simulationSettings)) {
+        setSimulationSettings(buildUpdatedSettings(values, simulationSettings));
       }
-
       closeDialog();
     },
-    [timing, setSimulationSettings, closeDialog],
+    [simulationSettings, setSimulationSettings, closeDialog],
   );
 
   return (
@@ -115,10 +91,11 @@ const SimulationSettingsForm = ({
           onSelectSection={scrollToSection}
         />
         <div className="flex-1 flex flex-col min-h-0">
-          <SimulationSettingsContent
-            ref={scrollContainerRef}
-            readonly={readonly}
-          />
+          <SimulationSettingsContent ref={scrollContainerRef}>
+            <SettingsSection sectionId="times">
+              <TimesSection readonly={readonly} />
+            </SettingsSection>
+          </SimulationSettingsContent>
         </div>
       </div>
       <div className="flex items-center justify-end gap-3 pt-6">
