@@ -5,7 +5,6 @@ import { Form, Formik } from "formik";
 import { DialogContainer, DialogHeader, useDialogState } from "../../dialog";
 import { Button } from "src/components/elements";
 import { simulationSettingsAtom } from "src/state/jotai";
-import { worktreeAtom } from "src/state/scenarios";
 
 import { SimulationSettingsSidebar } from "./simulation-settings-sidebar";
 import {
@@ -33,8 +32,6 @@ export const SimulationSettingsNewDialog = () => {
   const { closeDialog } = useDialogState();
   const simulationSettings = useAtomValue(simulationSettingsAtom);
   const setSimulationSettings = useSetAtom(simulationSettingsAtom);
-  const worktree = useAtomValue(worktreeAtom);
-  const hasScenarios = worktree.scenarios.length > 0;
 
   const sectionIds = useMemo(buildSectionIds, []);
 
@@ -61,7 +58,6 @@ export const SimulationSettingsNewDialog = () => {
           activeSection={activeSection}
           scrollToSection={scrollToSection}
           scrollContainerRef={scrollContainerRef}
-          readonly={hasScenarios}
           onClose={closeDialog}
         />
       </Formik>
@@ -73,13 +69,11 @@ const SimulationSettingsForm = ({
   activeSection,
   scrollToSection,
   scrollContainerRef,
-  readonly,
   onClose,
 }: {
   activeSection: string;
   scrollToSection: (sectionId: string) => void;
   scrollContainerRef: (node: HTMLDivElement | null) => void;
-  readonly: boolean;
   onClose: () => void;
 }) => {
   const { hasValidationError } = useTimeSettingsValidation();
@@ -94,7 +88,7 @@ const SimulationSettingsForm = ({
         <div className="flex-1 flex flex-col min-h-0">
           <SimulationSettingsContent ref={scrollContainerRef}>
             <SettingsSection sectionId="times">
-              <TimesSection readonly={readonly} />
+              <TimesSection />
             </SettingsSection>
             <SettingsSection sectionId="demands">
               <DemandsSection />

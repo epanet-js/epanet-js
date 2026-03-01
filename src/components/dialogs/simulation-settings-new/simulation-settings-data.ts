@@ -1,5 +1,8 @@
 import { nanoid } from "nanoid";
-import { type SimulationSettings } from "src/simulation/simulation-settings";
+import {
+  type SimulationSettings,
+  type DemandModel,
+} from "src/simulation/simulation-settings";
 
 export type OptionSubcategory = {
   id: string;
@@ -42,6 +45,10 @@ export type FormValues = {
   qualityTimestep: number | undefined;
   ruleTimestep: number | undefined;
   globalDemandMultiplier: number;
+  demandModel: DemandModel;
+  minimumPressure: number;
+  requiredPressure: number;
+  pressureExponent: number;
 };
 
 export const buildInitialValues = (
@@ -57,6 +64,10 @@ export const buildInitialValues = (
     qualityTimestep: timing.qualityTimestep,
     ruleTimestep: timing.ruleTimestep,
     globalDemandMultiplier: settings.globalDemandMultiplier,
+    demandModel: settings.demandModel,
+    minimumPressure: settings.minimumPressure,
+    requiredPressure: settings.requiredPressure,
+    pressureExponent: settings.pressureExponent,
   };
 };
 
@@ -74,7 +85,11 @@ export const hasChanges = (
     values.patternTimestep !== timing.patternTimestep ||
     values.qualityTimestep !== timing.qualityTimestep ||
     values.ruleTimestep !== timing.ruleTimestep ||
-    values.globalDemandMultiplier !== settings.globalDemandMultiplier
+    values.globalDemandMultiplier !== settings.globalDemandMultiplier ||
+    values.demandModel !== settings.demandModel ||
+    values.minimumPressure !== settings.minimumPressure ||
+    values.requiredPressure !== settings.requiredPressure ||
+    values.pressureExponent !== settings.pressureExponent
   );
 };
 
@@ -86,6 +101,10 @@ export const buildUpdatedSettings = (
   return {
     version: nanoid(),
     globalDemandMultiplier: values.globalDemandMultiplier,
+    demandModel: values.demandModel,
+    minimumPressure: values.minimumPressure,
+    requiredPressure: values.requiredPressure,
+    pressureExponent: values.pressureExponent,
     timing: {
       duration:
         values.simulationMode === "steadyState" ? 0 : (values.duration ?? 0),

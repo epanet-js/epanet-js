@@ -297,6 +297,14 @@ export const buildInp = withDebugInstrumentation(
         `Units\t${units}`,
         `Headloss\t${headlossFormula}`,
         `Demand Multiplier\t${opts.simulationSettings.globalDemandMultiplier}`,
+        `Demand Model\t${opts.simulationSettings.demandModel}`,
+        ...(opts.simulationSettings.demandModel === "PDA"
+          ? [
+              `Minimum Pressure\t${opts.simulationSettings.minimumPressure}`,
+              `Required Pressure\t${opts.simulationSettings.requiredPressure}`,
+              `Pressure Exponent\t${opts.simulationSettings.pressureExponent}`,
+            ]
+          : []),
         `Pattern\t${idMap.registerPatternId({ id: defaultConstantPatternId, label: "constant" })}`,
       ],
       backdrop: [

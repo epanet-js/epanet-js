@@ -61,6 +61,7 @@ export const SimulationSettingsDialog = () => {
 
       if (hasTimingChanges || hasDemandChanges) {
         setSimulationSettings({
+          ...simulationSettings,
           version: nanoid(),
           timing: {
             duration: newDuration ?? 0,
@@ -83,6 +84,7 @@ export const SimulationSettingsDialog = () => {
       timing,
       globalDemandMultiplier,
       setSimulationSettings,
+      simulationSettings,
     ],
   );
 

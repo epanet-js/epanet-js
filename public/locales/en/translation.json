@@ -512,7 +512,17 @@
     "demands": "Demands",
     "demandsCalculation": "Calculation",
     "globalDemandMultiplier": "Global demand multiplier",
-    "globalDemandMultiplierDesc": "Adjust the values of baseline demands for all junctions and all demand categories. For example, a value of 2 doubles all baseline demands, while a value of 0.5 would halve them."
+    "globalDemandMultiplierDesc": "Adjust the values of baseline demands for all junctions and all demand categories. For example, a value of 2 doubles all baseline demands, while a value of 0.5 would halve them.",
+    "demandModel": "Demand model",
+    "demandModelDesc": "Specifies whether a demand driven analysis (DDA) or a pressure driven analysis (PDA) should be made. Under DDA full nodal demands are always met even if negative pressures result. PDA assumes that demand varies between 0 and its full value as a power function of nodal pressure.",
+    "demandModelDDA": "DDA - Demand Driven Analysis",
+    "demandModelPDA": "PDA - Pressure Driven Analysis",
+    "minimumPressure": "Minimum pressure",
+    "minimumPressureDesc": "The pressure below which no demand can be delivered under a pressure driven analysis.",
+    "requiredPressure": "Required pressure",
+    "requiredPressureDesc": "The pressure required to supply a node's full demand under a pressure driven analysis. It must be at least 0.1 pressure units higher than the minimum pressure.",
+    "pressureExponent": "Pressure exponent",
+    "pressureExponentDesc": "The power to which pressure is raised when computing the demand delivered to a node under a pressure driven analysis."
   },
   "controls": {
     "title": "Controls",

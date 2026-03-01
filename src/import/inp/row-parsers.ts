@@ -35,6 +35,10 @@ const epanetDefaultOptions = {
   TRIALS: 40,
   PATTERN: "1",
   "DEMAND MULTIPLIER": 1.0,
+  "DEMAND MODEL": "DDA",
+  "MINIMUM PRESSURE": 0,
+  "REQUIRED PRESSURE": 0.1,
+  "PRESSURE EXPONENT": 0.5,
   "EMITTER EXPONENT": 0.5,
   QUALITY: "NONE",
   DIFFUSIVITY: 1.0,
@@ -583,6 +587,26 @@ export const parseOption: RowParser = ({
 
   if (name === "DEMAND MULTIPLIER") {
     inpData.options.demandMultiplier = value as number;
+    return;
+  }
+
+  if (name === "DEMAND MODEL") {
+    inpData.options.demandModel = value as "DDA" | "PDA";
+    return;
+  }
+
+  if (name === "MINIMUM PRESSURE") {
+    inpData.options.minimumPressure = value as number;
+    return;
+  }
+
+  if (name === "REQUIRED PRESSURE") {
+    inpData.options.requiredPressure = value as number;
+    return;
+  }
+
+  if (name === "PRESSURE EXPONENT") {
+    inpData.options.pressureExponent = value as number;
     return;
   }
 

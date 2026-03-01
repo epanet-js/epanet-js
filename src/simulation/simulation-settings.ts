@@ -1,5 +1,7 @@
 import { nanoid } from "nanoid";
 
+export type DemandModel = "DDA" | "PDA";
+
 export type Timing = {
   duration: number;
   hydraulicTimestep: number;
@@ -20,10 +22,18 @@ export type SimulationSettings = {
   version: string;
   timing: Timing;
   globalDemandMultiplier: number;
+  demandModel: DemandModel;
+  minimumPressure: number;
+  requiredPressure: number;
+  pressureExponent: number;
 };
 
 export const defaultSimulationSettings: SimulationSettings = {
   version: nanoid(),
   timing: defaultTiming,
   globalDemandMultiplier: 1,
+  demandModel: "DDA",
+  minimumPressure: 0,
+  requiredPressure: 0.1,
+  pressureExponent: 0.5,
 };

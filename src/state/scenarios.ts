@@ -34,4 +34,8 @@ export const scenariosListAtom = atom((get) => {
     .filter((s): s is Snapshot => s !== undefined);
 });
 
+export const hasScenariosAtom = atom((get) => {
+  return get(worktreeAtom).scenarios.length > 0;
+});
+
 export type { Worktree, Snapshot } from "src/lib/worktree/types";

@@ -133,6 +133,10 @@ export type InpData = {
     headlossFormula: HeadlossFormula;
     demandMultiplier: number;
     defaultPattern?: string;
+    demandModel?: "DDA" | "PDA";
+    minimumPressure?: number;
+    requiredPressure?: number;
+    pressureExponent?: number;
   };
   times: {
     duration?: number;

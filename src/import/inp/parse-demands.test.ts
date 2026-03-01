@@ -529,6 +529,104 @@ describe("parse junctions demands", () => {
     });
   });
 
+  describe("demand model options", () => {
+    it("parses demand model PDA", () => {
+      const inp = `
+      [OPTIONS]
+      Demand Model\tPDA
+      `;
+
+      const { simulationSettings } = parseInp(inp);
+
+      expect(simulationSettings.demandModel).toEqual("PDA");
+    });
+
+    it("parses demand model DDA", () => {
+      const inp = `
+      [OPTIONS]
+      Demand Model\tDDA
+      `;
+
+      const { simulationSettings } = parseInp(inp);
+
+      expect(simulationSettings.demandModel).toEqual("DDA");
+    });
+
+    it("defaults to DDA when not specified", () => {
+      const inp = `
+      [OPTIONS]
+      Units\tLPS
+      `;
+
+      const { simulationSettings } = parseInp(inp);
+
+      expect(simulationSettings.demandModel).toEqual("DDA");
+    });
+
+    it("parses minimum pressure", () => {
+      const inp = `
+      [OPTIONS]
+      Minimum Pressure\t5
+      `;
+
+      const { simulationSettings } = parseInp(inp);
+
+      expect(simulationSettings.minimumPressure).toEqual(5);
+    });
+
+    it("parses required pressure", () => {
+      const inp = `
+      [OPTIONS]
+      Required Pressure\t20
+      `;
+
+      const { simulationSettings } = parseInp(inp);
+
+      expect(simulationSettings.requiredPressure).toEqual(20);
+    });
+
+    it("parses pressure exponent", () => {
+      const inp = `
+      [OPTIONS]
+      Pressure Exponent\t0.8
+      `;
+
+      const { simulationSettings } = parseInp(inp);
+
+      expect(simulationSettings.pressureExponent).toEqual(0.8);
+    });
+
+    it("uses default values when pressure options not specified", () => {
+      const inp = `
+      [OPTIONS]
+      Units\tLPS
+      `;
+
+      const { simulationSettings } = parseInp(inp);
+
+      expect(simulationSettings.minimumPressure).toEqual(0);
+      expect(simulationSettings.requiredPressure).toEqual(0.1);
+      expect(simulationSettings.pressureExponent).toEqual(0.5);
+    });
+
+    it("does not report demand model options as non-default", () => {
+      const inp = `
+      [OPTIONS]
+      Demand Model\tPDA
+      Minimum Pressure\t5
+      Required Pressure\t20
+      Pressure Exponent\t0.8
+      `;
+
+      const { issues } = parseInp(inp);
+
+      expect(issues?.nonDefaultOptions?.has("DEMAND MODEL")).toBeFalsy();
+      expect(issues?.nonDefaultOptions?.has("MINIMUM PRESSURE")).toBeFalsy();
+      expect(issues?.nonDefaultOptions?.has("REQUIRED PRESSURE")).toBeFalsy();
+      expect(issues?.nonDefaultOptions?.has("PRESSURE EXPONENT")).toBeFalsy();
+    });
+  });
+
   describe("epanetjs_customers pattern", () => {
     it("ignores demands with epanetjs_customers pattern", () => {
       const inp = `

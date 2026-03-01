@@ -371,6 +371,39 @@ describe("build inp", () => {
     expect(inp.split("\n").at(-1)).toEqual("[END]");
   });
 
+  it("includes demand model DDA without pressure fields", () => {
+    const hydraulicModel = HydraulicModelBuilder.with().build();
+
+    const simulationSettings = SimulationSettingsBuilder.with()
+      .demandModel("DDA")
+      .build();
+
+    const inp = buildInp(hydraulicModel, { simulationSettings });
+
+    expect(inp).toContain("Demand Model\tDDA");
+    expect(inp).not.toContain("Minimum Pressure");
+    expect(inp).not.toContain("Required Pressure");
+    expect(inp).not.toContain("Pressure Exponent");
+  });
+
+  it("includes demand model PDA with pressure fields", () => {
+    const hydraulicModel = HydraulicModelBuilder.with().build();
+
+    const simulationSettings = SimulationSettingsBuilder.with()
+      .demandModel("PDA")
+      .minimumPressure(5)
+      .requiredPressure(20)
+      .pressureExponent(0.8)
+      .build();
+
+    const inp = buildInp(hydraulicModel, { simulationSettings });
+
+    expect(inp).toContain("Demand Model\tPDA");
+    expect(inp).toContain("Minimum Pressure\t5");
+    expect(inp).toContain("Required Pressure\t20");
+    expect(inp).toContain("Pressure Exponent\t0.8");
+  });
+
   it("includes visualization settings for epanet", () => {
     const hydraulicModel = HydraulicModelBuilder.with().build();
 

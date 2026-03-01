@@ -4,7 +4,10 @@ import { readInpData } from "./read-inp-data";
 import { buildModel } from "./build-model";
 import { HydraulicModel } from "src/hydraulic-model";
 import { nanoid } from "nanoid";
-import { defaultTiming } from "src/simulation/simulation-settings";
+import {
+  defaultTiming,
+  defaultSimulationSettings,
+} from "src/simulation/simulation-settings";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
 import { checksum } from "src/infra/checksum";
 import { InpData, InpStats } from "./inp-data";
@@ -65,6 +68,17 @@ export const parseInp = (
       version: nanoid(),
       timing: { ...defaultTiming, ...inpData.times },
       globalDemandMultiplier: inpData.options.demandMultiplier,
+      demandModel:
+        inpData.options.demandModel ?? defaultSimulationSettings.demandModel,
+      minimumPressure:
+        inpData.options.minimumPressure ??
+        defaultSimulationSettings.minimumPressure,
+      requiredPressure:
+        inpData.options.requiredPressure ??
+        defaultSimulationSettings.requiredPressure,
+      pressureExponent:
+        inpData.options.pressureExponent ??
+        defaultSimulationSettings.pressureExponent,
     },
     issues: issues.buildResult(),
     stats,

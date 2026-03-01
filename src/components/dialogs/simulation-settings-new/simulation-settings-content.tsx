@@ -7,7 +7,9 @@ import { TimeField } from "src/components/form/time-field";
 import { NumericField } from "src/components/form/numeric-field";
 import { Selector } from "src/components/form/selector";
 import { simulationSettingsAtom } from "src/state/jotai";
+import { hasScenariosAtom } from "src/state/scenarios";
 
+import type { DemandModel } from "src/simulation/simulation-settings";
 import type {
   FormValues,
   SimulationModeOption,
@@ -62,8 +64,9 @@ export const SettingsSection = ({
   </div>
 );
 
-export const TimesSection = ({ readonly }: { readonly: boolean }) => {
+export const TimesSection = () => {
   const translate = useTranslate();
+  const readonly = useAtomValue(hasScenariosAtom);
   const { timing } = useAtomValue(simulationSettingsAtom);
   const { values, setFieldValue } = useFormikContext<FormValues>();
   const { fieldErrors } = useTimeSettingsValidation();
@@ -194,7 +197,21 @@ export const TimesSection = ({ readonly }: { readonly: boolean }) => {
 
 export const DemandsSection = () => {
   const translate = useTranslate();
+  const readonly = useAtomValue(hasScenariosAtom);
   const { values, setFieldValue } = useFormikContext<FormValues>();
+
+  const isPDA = values.demandModel === "PDA";
+
+  const demandModelOptions: { label: string; value: DemandModel }[] = [
+    {
+      label: translate("simulationSettings.demandModelDDA"),
+      value: "DDA",
+    },
+    {
+      label: translate("simulationSettings.demandModelPDA"),
+      value: "PDA",
+    },
+  ];
 
   return (
     <div>
@@ -222,6 +239,74 @@ export const DemandsSection = () => {
               displayValue={String(values.globalDemandMultiplier)}
               onChangeValue={(v) => setFieldValue("globalDemandMultiplier", v)}
               isNullable={false}
+              styleOptions={{ textSize: "xs" }}
+            />
+          </div>
+        </SettingsRow>
+
+        <SettingsRow
+          label={translate("simulationSettings.demandModel")}
+          description={translate("simulationSettings.demandModelDesc")}
+        >
+          <div className="w-56">
+            <Selector
+              ariaLabel={translate("simulationSettings.demandModel")}
+              options={demandModelOptions}
+              selected={values.demandModel}
+              onChange={(v) => setFieldValue("demandModel", v)}
+              disabled={readonly}
+              styleOptions={{
+                border: true,
+                textSize: "text-sm",
+                paddingY: 2,
+              }}
+            />
+          </div>
+        </SettingsRow>
+
+        <SettingsRow
+          label={translate("simulationSettings.minimumPressure")}
+          description={translate("simulationSettings.minimumPressureDesc")}
+        >
+          <div className="w-24">
+            <NumericField
+              label={translate("simulationSettings.minimumPressure")}
+              displayValue={String(values.minimumPressure)}
+              onChangeValue={(v) => setFieldValue("minimumPressure", v)}
+              isNullable={false}
+              disabled={!isPDA || readonly}
+              styleOptions={{ textSize: "xs" }}
+            />
+          </div>
+        </SettingsRow>
+
+        <SettingsRow
+          label={translate("simulationSettings.requiredPressure")}
+          description={translate("simulationSettings.requiredPressureDesc")}
+        >
+          <div className="w-24">
+            <NumericField
+              label={translate("simulationSettings.requiredPressure")}
+              displayValue={String(values.requiredPressure)}
+              onChangeValue={(v) => setFieldValue("requiredPressure", v)}
+              isNullable={false}
+              disabled={!isPDA || readonly}
+              styleOptions={{ textSize: "xs" }}
+            />
+          </div>
+        </SettingsRow>
+
+        <SettingsRow
+          label={translate("simulationSettings.pressureExponent")}
+          description={translate("simulationSettings.pressureExponentDesc")}
+        >
+          <div className="w-24">
+            <NumericField
+              label={translate("simulationSettings.pressureExponent")}
+              displayValue={String(values.pressureExponent)}
+              onChangeValue={(v) => setFieldValue("pressureExponent", v)}
+              isNullable={false}
+              disabled={!isPDA || readonly}
               styleOptions={{ textSize: "xs" }}
             />
           </div>
