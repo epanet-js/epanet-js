@@ -1,5 +1,8 @@
 import { nanoid } from "nanoid";
-import type { SimulationSettings } from "src/simulation/simulation-settings";
+import {
+  defaultSimulationSettings,
+  type SimulationSettings,
+} from "src/simulation/simulation-settings";
 
 export type OptionCategory = {
   id: string;
@@ -68,6 +71,7 @@ export const buildUpdatedSettings = (
   const { timing } = settings;
   return {
     version: nanoid(),
+    demands: { ...defaultSimulationSettings.demands },
     timing: {
       duration:
         values.simulationMode === "steadyState" ? 0 : (values.duration ?? 0),
