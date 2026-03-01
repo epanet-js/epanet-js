@@ -311,6 +311,29 @@ export const DemandsSection = () => {
             />
           </div>
         </SettingsRow>
+
+        <div
+          data-section-id="demands-emitters"
+          className="text-sm font-semibold text-gray-900 dark:text-white mt-6"
+        >
+          {translate("simulationSettings.demandsEmitters")}
+        </div>
+
+        <SettingsRow
+          label={translate("simulationSettings.emitterExponent")}
+          description={translate("simulationSettings.emitterExponentDesc")}
+        >
+          <div className="w-24">
+            <NumericField
+              label={translate("simulationSettings.emitterExponent")}
+              displayValue={String(values.emitterExponent)}
+              onChangeValue={(v) => setFieldValue("emitterExponent", v)}
+              isNullable={false}
+              disabled={readonly}
+              styleOptions={{ textSize: "xs" }}
+            />
+          </div>
+        </SettingsRow>
       </div>
     </div>
   );

@@ -23,7 +23,10 @@ export const simulationSettingsCategories: OptionCategory[] = [
   {
     id: "demands",
     label: "Demands",
-    subcategories: [{ id: "demands-calculation", label: "Calculation" }],
+    subcategories: [
+      { id: "demands-calculation", label: "Calculation" },
+      { id: "demands-emitters", label: "Emitters" },
+    ],
   },
 ];
 
@@ -49,6 +52,7 @@ export type FormValues = {
   minimumPressure: number;
   requiredPressure: number;
   pressureExponent: number;
+  emitterExponent: number;
 };
 
 export const buildInitialValues = (
@@ -68,6 +72,7 @@ export const buildInitialValues = (
     minimumPressure: settings.minimumPressure,
     requiredPressure: settings.requiredPressure,
     pressureExponent: settings.pressureExponent,
+    emitterExponent: settings.emitterExponent,
   };
 };
 
@@ -89,7 +94,8 @@ export const hasChanges = (
     values.demandModel !== settings.demandModel ||
     values.minimumPressure !== settings.minimumPressure ||
     values.requiredPressure !== settings.requiredPressure ||
-    values.pressureExponent !== settings.pressureExponent
+    values.pressureExponent !== settings.pressureExponent ||
+    values.emitterExponent !== settings.emitterExponent
   );
 };
 
@@ -105,6 +111,7 @@ export const buildUpdatedSettings = (
     minimumPressure: values.minimumPressure,
     requiredPressure: values.requiredPressure,
     pressureExponent: values.pressureExponent,
+    emitterExponent: values.emitterExponent,
     timing: {
       duration:
         values.simulationMode === "steadyState" ? 0 : (values.duration ?? 0),

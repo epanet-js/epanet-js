@@ -627,6 +627,52 @@ describe("parse junctions demands", () => {
     });
   });
 
+  describe("emitter options", () => {
+    it("parses emitter exponent", () => {
+      const inp = `
+      [OPTIONS]
+      Emitter Exponent\t0.7
+      `;
+
+      const { simulationSettings } = parseInp(inp);
+
+      expect(simulationSettings.emitterExponent).toEqual(0.7);
+    });
+
+    it("uses default emitter exponent when not specified", () => {
+      const inp = `
+      [OPTIONS]
+      Units\tLPS
+      `;
+
+      const { simulationSettings } = parseInp(inp);
+
+      expect(simulationSettings.emitterExponent).toEqual(0.5);
+    });
+
+    it("does not report emitter exponent as non-default", () => {
+      const inp = `
+      [OPTIONS]
+      Emitter Exponent\t0.7
+      `;
+
+      const { issues } = parseInp(inp);
+
+      expect(issues?.nonDefaultOptions?.has("EMITTER EXPONENT")).toBeFalsy();
+    });
+
+    it("silently ignores emitter backflow", () => {
+      const inp = `
+      [OPTIONS]
+      Emitter Backflow\tNO
+      `;
+
+      const { issues } = parseInp(inp);
+
+      expect(issues?.nonDefaultOptions?.has("EMITTER BACKFLOW")).toBeFalsy();
+    });
+  });
+
   describe("epanetjs_customers pattern", () => {
     it("ignores demands with epanetjs_customers pattern", () => {
       const inp = `

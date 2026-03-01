@@ -40,6 +40,7 @@ const epanetDefaultOptions = {
   "REQUIRED PRESSURE": 0.1,
   "PRESSURE EXPONENT": 0.5,
   "EMITTER EXPONENT": 0.5,
+  "EMITTER BACKFLOW": "YES",
   QUALITY: "NONE",
   DIFFUSIVITY: 1.0,
   TOLERANCE: 0.01,
@@ -607,6 +608,15 @@ export const parseOption: RowParser = ({
 
   if (name === "PRESSURE EXPONENT") {
     inpData.options.pressureExponent = value as number;
+    return;
+  }
+
+  if (name === "EMITTER EXPONENT") {
+    inpData.options.emitterExponent = value as number;
+    return;
+  }
+
+  if (name === "EMITTER BACKFLOW") {
     return;
   }
 

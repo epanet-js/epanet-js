@@ -137,6 +137,7 @@ export type InpData = {
     minimumPressure?: number;
     requiredPressure?: number;
     pressureExponent?: number;
+    emitterExponent?: number;
   };
   times: {
     duration?: number;

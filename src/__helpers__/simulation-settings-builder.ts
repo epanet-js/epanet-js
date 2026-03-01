@@ -18,6 +18,8 @@ export class SimulationSettingsBuilder {
     defaultSimulationSettings.requiredPressure;
   private pressureExponentValue: number =
     defaultSimulationSettings.pressureExponent;
+  private emitterExponentValue: number =
+    defaultSimulationSettings.emitterExponent;
 
   static with() {
     return new SimulationSettingsBuilder();
@@ -53,6 +55,11 @@ export class SimulationSettingsBuilder {
     return this;
   }
 
+  emitterExponent(value: number) {
+    this.emitterExponentValue = value;
+    return this;
+  }
+
   build(): SimulationSettings {
     return {
       version: nanoid(),
@@ -62,6 +69,7 @@ export class SimulationSettingsBuilder {
       minimumPressure: this.minimumPressureValue,
       requiredPressure: this.requiredPressureValue,
       pressureExponent: this.pressureExponentValue,
+      emitterExponent: this.emitterExponentValue,
     };
   }
 }

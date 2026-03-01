@@ -79,6 +79,9 @@ export const parseInp = (
       pressureExponent:
         inpData.options.pressureExponent ??
         defaultSimulationSettings.pressureExponent,
+      emitterExponent:
+        inpData.options.emitterExponent ??
+        defaultSimulationSettings.emitterExponent,
     },
     issues: issues.buildResult(),
     stats,

@@ -26,6 +26,7 @@ export type SimulationSettings = {
   minimumPressure: number;
   requiredPressure: number;
   pressureExponent: number;
+  emitterExponent: number;
 };
 
 export const defaultSimulationSettings: SimulationSettings = {
@@ -36,4 +37,5 @@ export const defaultSimulationSettings: SimulationSettings = {
   minimumPressure: 0,
   requiredPressure: 0.1,
   pressureExponent: 0.5,
+  emitterExponent: 0.5,
 };

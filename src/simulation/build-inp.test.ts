@@ -404,6 +404,18 @@ describe("build inp", () => {
     expect(inp).toContain("Pressure Exponent\t0.8");
   });
 
+  it("includes emitter exponent in output", () => {
+    const hydraulicModel = HydraulicModelBuilder.with().build();
+
+    const simulationSettings = SimulationSettingsBuilder.with()
+      .emitterExponent(0.7)
+      .build();
+
+    const inp = buildInp(hydraulicModel, { simulationSettings });
+
+    expect(inp).toContain("Emitter Exponent\t0.7");
+  });
+
   it("includes visualization settings for epanet", () => {
     const hydraulicModel = HydraulicModelBuilder.with().build();
 

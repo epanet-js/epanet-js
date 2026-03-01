@@ -305,6 +305,7 @@ export const buildInp = withDebugInstrumentation(
               `Pressure Exponent\t${opts.simulationSettings.pressureExponent}`,
             ]
           : []),
+        `Emitter Exponent\t${opts.simulationSettings.emitterExponent}`,
         `Pattern\t${idMap.registerPatternId({ id: defaultConstantPatternId, label: "constant" })}`,
       ],
       backdrop: [
