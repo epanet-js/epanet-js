@@ -525,7 +525,7 @@ describe("parse junctions demands", () => {
 
       const { simulationSettings } = parseInp(inp);
 
-      expect(simulationSettings.demands.globalMultiplier).toEqual(20);
+      expect(simulationSettings.globalDemandMultiplier).toEqual(20);
     });
   });
 

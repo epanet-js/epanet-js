@@ -39,7 +39,7 @@ export const Footer = () => {
           <div className="px-2">
             <CollapsedPopover
               unitsSpecName={modelMetadata.quantities.specName}
-              demandMultiplier={simulationSettings.demands.globalMultiplier}
+              demandMultiplier={simulationSettings.globalDemandMultiplier}
               headlossFormula={hydraulicModel.headlossFormula}
             />
           </div>
@@ -63,7 +63,7 @@ export const Footer = () => {
           <>
             <span className="px-4 py-2">
               {translate("demandMultiplier")}:{" "}
-              {localizeDecimal(simulationSettings.demands.globalMultiplier)}
+              {localizeDecimal(simulationSettings.globalDemandMultiplier)}
             </span>
             <div className="border-r-2 border-gray-150 h-10"></div>
           </>

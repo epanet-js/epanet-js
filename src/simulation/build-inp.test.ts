@@ -346,7 +346,7 @@ describe("build inp", () => {
     const hydraulicModel = HydraulicModelBuilder.with().build();
 
     const simulationSettings = SimulationSettingsBuilder.with()
-      .demands({ globalMultiplier: 10 })
+      .globalDemandMultiplier(10)
       .build();
 
     const inp = buildInp(hydraulicModel, {

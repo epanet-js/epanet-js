@@ -36,16 +36,16 @@ export const SimulationSettingsDialog = () => {
   const setSimulationSettings = useSetAtom(simulationSettingsAtom);
   const userTracking = useUserTracking();
 
-  const { timing, demands } = simulationSettings;
+  const { timing, globalDemandMultiplier } = simulationSettings;
 
   const handleSubmit = useCallback(
     (values: FormValues) => {
-      if (values.demandMultiplier !== demands.globalMultiplier) {
+      if (values.demandMultiplier !== globalDemandMultiplier) {
         userTracking.capture({
           name: "simulationSetting.changed",
           settingName: "demandMultiplier",
           newValue: values.demandMultiplier,
-          oldValue: demands.globalMultiplier,
+          oldValue: globalDemandMultiplier,
         });
       }
 
@@ -57,7 +57,7 @@ export const SimulationSettingsDialog = () => {
         values.reportTimestep !== timing.reportTimestep ||
         values.patternTimestep !== timing.patternTimestep;
       const hasDemandChanges =
-        values.demandMultiplier !== demands.globalMultiplier;
+        values.demandMultiplier !== globalDemandMultiplier;
 
       if (hasTimingChanges || hasDemandChanges) {
         setSimulationSettings({
@@ -71,19 +71,23 @@ export const SimulationSettingsDialog = () => {
             qualityTimestep: timing.qualityTimestep,
             ruleTimestep: timing.ruleTimestep,
           },
-          demands: {
-            globalMultiplier: values.demandMultiplier,
-          },
+          globalDemandMultiplier: values.demandMultiplier,
         });
       }
 
       closeDialog();
     },
-    [closeDialog, userTracking, timing, demands, setSimulationSettings],
+    [
+      closeDialog,
+      userTracking,
+      timing,
+      globalDemandMultiplier,
+      setSimulationSettings,
+    ],
   );
 
   const initialValues: FormValues = {
-    demandMultiplier: demands.globalMultiplier,
+    demandMultiplier: globalDemandMultiplier,
     simulationMode: timing.duration > 0 ? "eps" : "steadyState",
     duration: timing.duration,
     hydraulicTimestep: timing.hydraulicTimestep,

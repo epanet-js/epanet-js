@@ -1,15 +1,15 @@
 import { nanoid } from "nanoid";
 import {
   defaultTiming,
-  defaultDemandSettings,
+  defaultSimulationSettings,
   type Timing,
-  type DemandSettings,
   type SimulationSettings,
 } from "src/simulation/simulation-settings";
 
 export class SimulationSettingsBuilder {
   private timingValue: Timing = defaultTiming;
-  private demandsValue: DemandSettings = defaultDemandSettings;
+  private globalDemandMultiplierValue: number =
+    defaultSimulationSettings.globalDemandMultiplier;
 
   static with() {
     return new SimulationSettingsBuilder();
@@ -20,8 +20,8 @@ export class SimulationSettingsBuilder {
     return this;
   }
 
-  demands(demands: Partial<DemandSettings>) {
-    this.demandsValue = { ...defaultDemandSettings, ...demands };
+  globalDemandMultiplier(value: number) {
+    this.globalDemandMultiplierValue = value;
     return this;
   }
 
@@ -29,7 +29,7 @@ export class SimulationSettingsBuilder {
     return {
       version: nanoid(),
       timing: this.timingValue,
-      demands: this.demandsValue,
+      globalDemandMultiplier: this.globalDemandMultiplierValue,
     };
   }
 }
