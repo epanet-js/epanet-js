@@ -3,10 +3,7 @@ import { useFormikContext } from "formik";
 import { useAtomValue } from "jotai";
 
 import { useTranslate } from "src/hooks/use-translate";
-import {
-  TimeField,
-  formatSecondsToDisplay,
-} from "src/components/form/time-field";
+import { TimeField } from "src/components/form/time-field";
 import { Selector } from "src/components/form/selector";
 import { simulationSettingsAtom } from "src/state/jotai";
 
@@ -200,49 +197,20 @@ const TimingField = ({
   label,
   description,
   value,
-  disabled,
-  readonly,
+  disabled = false,
+  readonly = false,
   onChange,
   error = null,
 }: {
   label: string;
   description: string;
   value: number | undefined;
-  disabled: boolean;
-  readonly: boolean;
+  disabled?: boolean;
+  readonly?: boolean;
   onChange: (value: number | undefined) => void;
   error?: FieldError;
 }) => {
   const translate = useTranslate();
-
-  const input = (() => {
-    if (readonly) {
-      return (
-        <span className="block w-full p-2 text-xs text-gray-500 bg-gray-50 border border-gray-300 rounded-sm cursor-not-allowed dark:bg-gray-800 dark:border-gray-600 dark:text-gray-400">
-          {disabled
-            ? translate("simulationSettings.notAvailable")
-            : formatSecondsToDisplay(value) || "-"}
-        </span>
-      );
-    }
-
-    if (disabled) {
-      return (
-        <span className="block w-full p-2 text-xs text-gray-500 bg-gray-50 border border-gray-300 rounded-sm dark:bg-gray-800 dark:border-gray-600 dark:text-gray-400">
-          {translate("simulationSettings.notAvailable")}
-        </span>
-      );
-    }
-
-    return (
-      <TimeField
-        label={label}
-        value={value}
-        onChangeValue={onChange}
-        hasError={error !== null}
-      />
-    );
-  })();
 
   const errorMessage =
     error === "required"
@@ -254,7 +222,16 @@ const TimingField = ({
   return (
     <SettingsRow label={label} description={description}>
       <div className="flex items-center gap-2">
-        <div className="w-24">{input}</div>
+        <div className="w-24">
+          <TimeField
+            label={label}
+            value={value}
+            onChangeValue={onChange}
+            hasError={error !== null}
+            disabled={disabled}
+            readonly={readonly}
+          />
+        </div>
         {errorMessage && (
           <span className="text-xs font-semibold text-orange-800">
             {errorMessage}

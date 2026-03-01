@@ -15,6 +15,8 @@ export const TimeField = ({
   isNullable = true,
   tabIndex = 1,
   hasError: externalError = false,
+  disabled = false,
+  readonly = false,
 }: {
   label: string;
   value: number | undefined;
@@ -22,6 +24,8 @@ export const TimeField = ({
   isNullable?: boolean;
   tabIndex?: number;
   hasError?: boolean;
+  disabled?: boolean;
+  readonly?: boolean;
 }) => {
   const displayValue = formatSecondsToDisplay(value);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -97,6 +101,22 @@ export const TimeField = ({
     setError(seconds === undefined && newInputValue.trim() !== "");
     setDirty(true);
   };
+
+  if (disabled || readonly) {
+    return (
+      <span
+        className={clsx(
+          "block w-full p-2 text-xs border rounded-sm",
+          "text-gray-500 bg-gray-50 border-gray-300",
+          "dark:bg-gray-800 dark:border-gray-600 dark:text-gray-400",
+          readonly && "cursor-not-allowed",
+        )}
+        aria-label={`Value for: ${label}`}
+      >
+        {disabled ? "N/A" : formatSecondsToDisplay(value) || "-"}
+      </span>
+    );
+  }
 
   if (hasError && inputRef.current) {
     inputRef.current.className = styledInput({ variant: "warning" });
