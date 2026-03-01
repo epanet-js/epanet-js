@@ -5,6 +5,8 @@ export type Timing = {
   hydraulicTimestep: number;
   reportTimestep: number;
   patternTimestep: number;
+  qualityTimestep?: number;
+  ruleTimestep?: number;
 };
 
 export const defaultTiming: Timing = {

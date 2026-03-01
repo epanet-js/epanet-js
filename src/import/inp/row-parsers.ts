@@ -424,16 +424,13 @@ const defaultTimeSettings = {
   "HYDRAULIC TIMESTEP": "0",
   "REPORT TIMESTEP": "0",
   "PATTERN TIMESTEP": "0",
+  "QUALITY TIMESTEP": "0",
+  "RULE TIMESTEP": "0",
   "PATTERN START": "0",
   "REPORT START": "0",
   "START CLOCKTIME": "0",
   STATISTIC: "NONE",
 };
-
-const timeSettingsCoveredByOtherWarnings = [
-  "QUALITY TIMESTEP",
-  "RULE TIMESTEP",
-];
 
 const parseTimeToSeconds = (timeStr: string): number => {
   const trimmed = timeStr.trim().toUpperCase();
@@ -504,14 +501,6 @@ export const parseTimeSetting: RowParser = ({
   inpData,
   issues,
 }) => {
-  const upperRow = trimmedRow.toUpperCase();
-
-  for (const covered of timeSettingsCoveredByOtherWarnings) {
-    if (upperRow.startsWith(covered)) {
-      return;
-    }
-  }
-
   const setting = readSetting(trimmedRow, defaultTimeSettings);
   if (!setting) return;
 
@@ -532,6 +521,12 @@ export const parseTimeSetting: RowParser = ({
   }
   if (name === "PATTERN TIMESTEP") {
     inpData.times.patternTimestep = parseTimeToSeconds(value);
+  }
+  if (name === "QUALITY TIMESTEP") {
+    inpData.times.qualityTimestep = parseTimeToSeconds(value);
+  }
+  if (name === "RULE TIMESTEP") {
+    inpData.times.ruleTimestep = parseTimeToSeconds(value);
   }
   if (name === "PATTERN START") {
     inpData.times.patternStart = parseTimeToSeconds(value);

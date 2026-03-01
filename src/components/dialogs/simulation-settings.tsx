@@ -77,6 +77,8 @@ export const SimulationSettingsDialog = () => {
               values.hydraulicTimestep ?? timing.hydraulicTimestep,
             reportTimestep: values.reportTimestep ?? timing.reportTimestep,
             patternTimestep: values.patternTimestep ?? timing.patternTimestep,
+            qualityTimestep: timing.qualityTimestep,
+            ruleTimestep: timing.ruleTimestep,
           },
         });
       }

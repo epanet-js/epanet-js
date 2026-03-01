@@ -25,6 +25,8 @@ export type FormValues = {
   hydraulicTimestep: number | undefined;
   reportTimestep: number | undefined;
   patternTimestep: number | undefined;
+  qualityTimestep: number | undefined;
+  ruleTimestep: number | undefined;
 };
 
 export const buildInitialValues = (
@@ -37,6 +39,8 @@ export const buildInitialValues = (
     hydraulicTimestep: timing.hydraulicTimestep,
     reportTimestep: timing.reportTimestep,
     patternTimestep: timing.patternTimestep,
+    qualityTimestep: timing.qualityTimestep,
+    ruleTimestep: timing.ruleTimestep,
   };
 };
 
@@ -51,7 +55,9 @@ export const hasChanges = (
     newDuration !== timing.duration ||
     values.hydraulicTimestep !== timing.hydraulicTimestep ||
     values.reportTimestep !== timing.reportTimestep ||
-    values.patternTimestep !== timing.patternTimestep
+    values.patternTimestep !== timing.patternTimestep ||
+    values.qualityTimestep !== timing.qualityTimestep ||
+    values.ruleTimestep !== timing.ruleTimestep
   );
 };
 
@@ -68,6 +74,8 @@ export const buildUpdatedSettings = (
       hydraulicTimestep: values.hydraulicTimestep ?? timing.hydraulicTimestep,
       reportTimestep: values.reportTimestep ?? timing.reportTimestep,
       patternTimestep: values.patternTimestep ?? timing.patternTimestep,
+      qualityTimestep: values.qualityTimestep ?? timing.qualityTimestep,
+      ruleTimestep: values.ruleTimestep ?? timing.ruleTimestep,
     },
   };
 };

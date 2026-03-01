@@ -166,6 +166,26 @@ export const TimesSection = ({ readonly }: { readonly: boolean }) => {
           onChange={(v) => setFieldValue("patternTimestep", v)}
           error={fieldErrors.patternTimestep}
         />
+
+        <TimingField
+          label={translate("simulationSettings.qualityTimestep")}
+          description={translate("simulationSettings.qualityTimestepDesc")}
+          value={values.qualityTimestep}
+          disabled={!isEPS}
+          readonly={readonly}
+          onChange={(v) => setFieldValue("qualityTimestep", v)}
+          error={fieldErrors.qualityTimestep}
+        />
+
+        <TimingField
+          label={translate("simulationSettings.ruleTimestep")}
+          description={translate("simulationSettings.ruleTimestepDesc")}
+          value={values.ruleTimestep}
+          disabled={!isEPS}
+          readonly={readonly}
+          onChange={(v) => setFieldValue("ruleTimestep", v)}
+          error={fieldErrors.ruleTimestep}
+        />
       </div>
     </div>
   );
@@ -245,9 +265,18 @@ const TimingField = ({
 const getFieldError = (
   isEPS: boolean,
   value: number | undefined,
-): "required" | "positive" | null => {
+): FieldError => {
   if (!isEPS) return null;
   if (value === undefined) return "required";
+  if (value === 0) return "positive";
+  return null;
+};
+
+const getOptionalFieldError = (
+  isEPS: boolean,
+  value: number | undefined,
+): FieldError => {
+  if (!isEPS) return null;
   if (value === 0) return "positive";
   return null;
 };
@@ -262,6 +291,8 @@ export const useTimeSettingsValidation = () => {
     hydraulicTimestep: getFieldError(isEPS, values.hydraulicTimestep),
     reportTimestep: getFieldError(isEPS, values.reportTimestep),
     patternTimestep: getFieldError(isEPS, values.patternTimestep),
+    qualityTimestep: getOptionalFieldError(isEPS, values.qualityTimestep),
+    ruleTimestep: getOptionalFieldError(isEPS, values.ruleTimestep),
   };
 
   const hasValidationError = Object.values(fieldErrors).some(

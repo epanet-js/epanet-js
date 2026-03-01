@@ -139,6 +139,8 @@ export type InpData = {
     hydraulicTimestep?: number;
     reportTimestep?: number;
     patternTimestep?: number;
+    qualityTimestep?: number;
+    ruleTimestep?: number;
     patternStart?: number;
     reportStart?: number;
     startClocktime?: number;

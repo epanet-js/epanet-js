@@ -88,6 +88,16 @@ const buildTimesSection = (timing: Timing): string[] => {
     section.push(
       `Pattern Timestep\t${formatSecondsToTime(timing.patternTimestep)}`,
     );
+    if (timing.qualityTimestep) {
+      section.push(
+        `Quality Timestep\t${formatSecondsToTime(timing.qualityTimestep)}`,
+      );
+    }
+    if (timing.ruleTimestep) {
+      section.push(
+        `Rule Timestep\t${formatSecondsToTime(timing.ruleTimestep)}`,
+      );
+    }
   }
 
   return section;
