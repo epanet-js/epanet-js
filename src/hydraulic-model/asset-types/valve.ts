@@ -24,7 +24,7 @@ export const selectableValveKinds = [
   "pbv",
   "tcv",
 ] as const;
-export const controlKinds = ["prv", "psv", "fcv", "pbv"];
+export const controlKinds = ["prv", "psv", "fcv", "pbv", "pcv"];
 export type ValveKind = (typeof valveKinds)[number];
 
 export type ValveProperties = {
