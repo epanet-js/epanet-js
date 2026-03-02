@@ -7,6 +7,7 @@ import {
   dialogAtom,
   bottomSidebarOpenAtom,
   bottomSidebarMaximizedAtom,
+  LeftPanelId,
 } from "src/state/jotai";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { CloseIcon, Maximize2Icon, Minimize2Icon } from "src/icons";
@@ -17,6 +18,10 @@ import { DefaultErrorBoundary } from "src/components/elements";
 import { useTranslate } from "src/hooks/use-translate";
 import { MapStylingEditor } from "./map-styling-editor";
 import { NetworkReview } from "./network-review";
+import { ActivityBar } from "src/components/activity-bar";
+import { SelectionListPanel } from "./selection-list";
+import { ThemesPanel } from "./themes";
+import { ScenariosPanel } from "./scenarios";
 
 function Tab({
   onClick,
@@ -103,10 +108,8 @@ export const SidePanel = memo(function SidePanelInner() {
   if (!splits.rightOpen) return null;
   return (
     <div
-      style={{
-        width: splits.right,
-      }}
-      className="bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-900 relative"
+      style={{ width: splits.right }}
+      className="absolute right-0 top-0 bottom-0 z-10 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-900"
     >
       <Panel />
     </div>
@@ -153,17 +156,39 @@ export const Panel = memo(function PanelInner() {
   );
 });
 
+const LeftPanelContent = memo(function LeftPanelContentInner({
+  activePanel,
+}: {
+  activePanel: LeftPanelId;
+}) {
+  switch (activePanel) {
+    case "networkReview":
+      return <NetworkReview />;
+    case "selection":
+      return <SelectionListPanel />;
+    case "themes":
+      return <ThemesPanel />;
+    case "scenarios":
+      return <ScenariosPanel />;
+  }
+});
+
 export const LeftSidePanel = memo(function LeftSidePanelInner() {
   const splits = useAtomValue(splitsAtom);
-  if (!splits.leftOpen) return null;
+
   return (
-    <div
-      style={{
-        width: splits.left,
-      }}
-      className="bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-900 relative"
-    >
-      <NetworkReview />
+    <div className="absolute left-0 top-0 bottom-0 z-10 flex bg-white dark:bg-gray-800">
+      <ActivityBar />
+      {splits.leftOpen && (
+        <div
+          style={{ width: splits.left }}
+          className="flex-none relative border-r border-gray-200 dark:border-gray-900"
+        >
+          <DefaultErrorBoundary>
+            <LeftPanelContent activePanel={splits.activeLeftPanel} />
+          </DefaultErrorBoundary>
+        </div>
+      )}
     </div>
   );
 });

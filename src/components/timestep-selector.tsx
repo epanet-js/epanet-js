@@ -1,7 +1,7 @@
 import { useAtomValue } from "jotai";
 import clsx from "clsx";
 import { ChevronLeftIcon, ChevronRightIcon } from "src/icons";
-import { simulationAtom } from "src/state/jotai";
+import { simulationAtom, splitsAtom } from "src/state/jotai";
 import { Selector } from "./form/selector";
 import { useMemo } from "react";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
@@ -10,6 +10,7 @@ import { getSimulationMetadata } from "src/simulation/epanet/simulation-metadata
 
 export const TimestepSelector = () => {
   const simulation = useAtomValue(simulationAtom);
+  const splits = useAtomValue(splitsAtom);
   const { changeTimestep } = useChangeTimestep();
   const isSmOrLarger = useBreakpoint("sm");
 
@@ -24,12 +25,15 @@ export const TimestepSelector = () => {
 
   if (timestepCount <= 1) return null;
 
+  const rightOffset = splits.rightOpen ? splits.right + 12 : 12;
+
   return (
     <TimestepSelectorUI
       currentTimestepIndex={currentTimestepIndex}
       timestepCount={timestepCount}
       reportTimestep={reportingTimeStep}
       onChangeTimestep={changeTimestep}
+      rightOffset={rightOffset}
     />
   );
 };
@@ -41,6 +45,7 @@ type TimestepSelectorUIProps = {
   timestepCount: number;
   reportTimestep: number;
   onChangeTimestep: (index: number, source: ChangeTimestepSource) => void;
+  rightOffset?: number;
 };
 
 export const TimestepSelectorUI = ({
@@ -48,6 +53,7 @@ export const TimestepSelectorUI = ({
   timestepCount,
   reportTimestep,
   onChangeTimestep,
+  rightOffset = 12,
 }: TimestepSelectorUIProps) => {
   const canGoPrevious = currentTimestepIndex > 0;
   const canGoNext = currentTimestepIndex < timestepCount - 1;
@@ -60,7 +66,10 @@ export const TimestepSelectorUI = ({
   }, [timestepCount, reportTimestep]);
 
   return (
-    <div className="absolute top-3 right-3 flex items-center gap-1 p-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-black rounded-sm shadow-sm">
+    <div
+      className="absolute top-3 flex items-center gap-1 p-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-black rounded-sm shadow-sm"
+      style={{ right: rightOffset }}
+    >
       <button
         onClick={() => onChangeTimestep(currentTimestepIndex - 1, "buttons")}
         disabled={!canGoPrevious}

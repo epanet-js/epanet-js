@@ -40,10 +40,11 @@ function HintWrapper({
   return (
     <div
       className={clsx(
-        "absolute max-w-[600px] top-2 left-3 text-sm flex gap-x-2  dark:text-white rounded-md",
+        "absolute max-w-[600px] top-2 text-sm flex gap-x-2  dark:text-white rounded-md",
         "p-2 items-start",
         tipLike,
       )}
+      style={{ left: "calc(var(--sidebar-left, 44px) + 12px)" }}
     >
       <div className="my-0.5">
         <InfoIcon />

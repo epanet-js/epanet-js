@@ -19,7 +19,10 @@ export const Legends = () => {
   if (!isSmOrLarger) return null;
 
   return (
-    <div className="space-y-1 absolute top-10 left-3 w-48">
+    <div
+      className="space-y-1 absolute top-10 w-48"
+      style={{ left: "calc(var(--sidebar-left, 44px) + 12px)" }}
+    >
       {!!nodeSymbology.colorRule && (
         <Legend symbology={nodeSymbology.colorRule} />
       )}

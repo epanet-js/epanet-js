@@ -11,6 +11,8 @@
   .mapboxgl-ctrl-bottom-right {
     min-height: 160px !important;
     display: block !important;
+    right: var(--sidebar-right, 0) !important;
+    bottom: 40px !important;
   }
   .mapboxgl-ctrl-attrib {
     font-size: 12px !important;

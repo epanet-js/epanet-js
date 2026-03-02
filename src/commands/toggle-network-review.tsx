@@ -1,7 +1,7 @@
 import { useSetAtom } from "jotai";
 import { useCallback } from "react";
 import { useUserTracking } from "src/infra/user-tracking";
-import { defaultSplits, splitsAtom } from "src/state/jotai";
+import { splitsAtom } from "src/state/jotai";
 
 export const toggleNetworkReviewShortcut = "ctrl+b";
 
@@ -25,7 +25,7 @@ export const useToggleNetworkReview = () => {
             source,
           });
         }
-        return { ...splits, leftOpen: isShown, left: defaultSplits.left };
+        return { ...splits, leftOpen: isShown };
       });
     },
     [setPanelSplits, userTracking],
