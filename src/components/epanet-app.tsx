@@ -124,6 +124,7 @@ export function EpanetApp() {
 
   const layout: ResolvedLayout = isSmOrLarger ? "HORIZONTAL" : "VERTICAL";
 
+  const splits = useAtomValue(splitsAtom);
   const bottomSidebarOpen = useAtomValue(bottomSidebarOpenAtom);
   const bottomSidebarMaximized = useAtomValue(bottomSidebarMaximizedAtom);
 
@@ -187,6 +188,20 @@ export function EpanetApp() {
           {layout === "HORIZONTAL" && <LeftSidePanel />}
           <div
             className="flex flex-col flex-auto relative"
+            style={
+              {
+                "--sidebar-left": splits.leftOpen
+                  ? `${44 + splits.left}px`
+                  : "44px",
+                "--sidebar-right": splits.rightOpen
+                  ? `${splits.right}px`
+                  : "0px",
+                "--bottom-sidebar-height":
+                  bottomSidebarOpen && !bottomSidebarMaximized
+                    ? "min(33dvh, 400px)"
+                    : "0px",
+              } as React.CSSProperties
+            }
             data-sidebar={
               layout === "HORIZONTAL" && bottomSidebarOpen
                 ? bottomSidebarMaximized
@@ -252,7 +267,6 @@ function DraggableMap({
   const { setNodeRef, transform } = useDraggable({
     id: "map",
   });
-  const splits = useAtomValue(splitsAtom);
 
   useMapResize(containerRef.current, layout);
 
@@ -270,18 +284,14 @@ function DraggableMap({
         containerRef.current = elem;
       }}
       style={
-        {
-          ...(layout === "FLOATING"
-            ? {
-                resize: "both",
-                transform: CSS.Transform.toString(transform),
-                top: persistentTransform.y,
-                left: persistentTransform.x,
-              }
-            : {}),
-          "--sidebar-right": splits.rightOpen ? `${splits.right}px` : "0px",
-          "--sidebar-left": splits.leftOpen ? `${44 + splits.left}px` : "44px",
-        } as React.CSSProperties
+        layout === "FLOATING"
+          ? {
+              resize: "both",
+              transform: CSS.Transform.toString(transform),
+              top: persistentTransform.y,
+              left: persistentTransform.x,
+            }
+          : undefined
       }
     >
       <div className="flex-auto relative">

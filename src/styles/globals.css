@@ -12,7 +12,11 @@
     min-height: 160px !important;
     display: block !important;
     right: var(--sidebar-right, 0) !important;
-    bottom: 40px !important;
+    bottom: 0 !important;
+  }
+
+  .mapboxgl-ctrl-bottom-left {
+    left: var(--sidebar-left, 44px) !important;
   }
   .mapboxgl-ctrl-attrib {
     font-size: 12px !important;
@@ -43,6 +47,11 @@
   [data-sidebar="maximized"] .mapboxgl-ctrl-bottom-left {
     display: none !important;
   }
+}
+
+html,
+body {
+  overscroll-behavior: none;
 }
 
 body {

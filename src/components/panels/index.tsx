@@ -203,12 +203,16 @@ export const HorizontalBottomSidebar = memo(function HorizontalBottomSidebar() {
   return (
     <div
       className={clsx(
-        "absolute left-0 right-0 bottom-0",
+        "absolute bottom-0 overflow-auto overscroll-none",
         "bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-900",
         maximized ? "top-0" : "h-[33dvh] max-h-[400px]",
       )}
+      style={{
+        left: "var(--sidebar-left, 0px)",
+        right: "var(--sidebar-right, 0px)",
+      }}
     >
-      <div className="absolute top-1 right-1 flex items-center gap-0.5">
+      <div className="sticky top-0 flex justify-end items-center gap-0.5 bg-white dark:bg-gray-800 p-1 border-b border-gray-200 dark:border-gray-900 z-10">
         <button
           aria-label={maximized ? "minimize-2" : "maximize-2"}
           onClick={() => setMaximized((v) => !v)}
@@ -227,6 +231,7 @@ export const HorizontalBottomSidebar = memo(function HorizontalBottomSidebar() {
           <CloseIcon />
         </button>
       </div>
+      <div className="bottom-sidebar-content"></div>
     </div>
   );
 });
