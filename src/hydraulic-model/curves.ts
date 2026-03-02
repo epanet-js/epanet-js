@@ -259,6 +259,19 @@ export const isCurveEqual = (a: ICurve, b?: ICurve): boolean => {
   return true;
 };
 
+export const getCurveBounds = (
+  curves: Curves,
+  curveId: CurveId | undefined,
+) => {
+  if (curveId == null) return null;
+  const curve = curves.get(curveId);
+  if (!curve || curve.points.length === 0) return null;
+  return {
+    min: curve.points[0].x,
+    max: curve.points[curve.points.length - 1].x,
+  };
+};
+
 export const differentCurvesCount = (a: Curves, b: Curves): number => {
   const visitedIds: Set<CurveId> = new Set();
   let count = 0;

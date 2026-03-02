@@ -1,6 +1,8 @@
 import { CurveId } from "../curves";
 import { Node, NodeProperties } from "./node";
 
+export type TankShape = "circular" | "curveDefined";
+
 export type TankProperties = {
   type: "tank";
   initialLevel: number;

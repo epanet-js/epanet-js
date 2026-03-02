@@ -18,6 +18,7 @@ import {
   getCustomerPointDemands,
   getJunctionDemands,
 } from "src/hydraulic-model";
+import type { TankShape } from "src/hydraulic-model/asset-types/tank";
 import {
   CustomerPoint,
   getActiveCustomerPoints,
@@ -29,10 +30,12 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { stagingModelAtom } from "src/state/jotai";
 import {
   changePumpDefinition,
+  changeTankDefinition,
   changeProperty,
   changeDemandAssignment,
   changeLabel,
 } from "src/hydraulic-model/model-operations";
+import type { TankDefinitionData } from "src/hydraulic-model/model-operations/change-tank-definition";
 import type {
   ChangeableProperty,
   ChangeablePropertyValue,
@@ -85,7 +88,7 @@ import {
 import { useShowPatternsLibrary } from "src/commands/show-patterns-library";
 import { SelectorOption } from "src/components/form/selector";
 import { PatternId } from "src/hydraulic-model/patterns";
-import { CurveId, Curves } from "src/hydraulic-model/curves";
+import { CurveId, Curves, getCurveBounds } from "src/hydraulic-model/curves";
 import { useShowCurveLibrary } from "src/commands/show-curve-library";
 import { Button } from "src/components/elements";
 
@@ -241,6 +244,23 @@ export function AssetPanel({
     [asset.id, asset.type, hydraulicModel, transact, userTracking],
   );
 
+  const handleChangeTankDefinition = useCallback(
+    (data: TankDefinitionData) => {
+      const moment = changeTankDefinition(hydraulicModel, {
+        tankId: asset.id,
+        data,
+      });
+      transact(moment);
+      userTracking.capture({
+        name: "assetDefinitionType.edited",
+        type: asset.type,
+        property: "definitionType",
+        newType: "curveDefined",
+      });
+    },
+    [asset.id, asset.type, hydraulicModel, transact, userTracking],
+  );
+
   const handleDemandsChange = useCallback(
     (newDemands: Demand[]) => {
       const oldDemands = getJunctionDemands(hydraulicModel.demands, asset.id);
@@ -377,8 +397,10 @@ export function AssetPanel({
       return (
         <TankEditor
           tank={asset as Tank}
+          hydraulicModel={hydraulicModel}
           quantitiesMetadata={quantitiesMetadata}
           onPropertyChange={handlePropertyChange}
+          onDefinitionChange={handleChangeTankDefinition}
           onLabelChange={handleLabelChange}
           readonly={readonly}
         />
@@ -877,17 +899,22 @@ const ReservoirEditor = ({
 
 const TankEditor = ({
   tank,
+  hydraulicModel,
   quantitiesMetadata,
   onPropertyChange,
+  onDefinitionChange,
   onLabelChange,
   readonly = false,
 }: {
   tank: Tank;
+  hydraulicModel: HydraulicModel;
   quantitiesMetadata: Quantities;
   onPropertyChange: OnPropertyChange;
+  onDefinitionChange: (data: TankDefinitionData) => void;
   onLabelChange: (newLabel: string) => string | undefined;
   readonly?: boolean;
 }) => {
+  const allCurves = useFeatureFlag("FLAG_ALL_CURVES");
   const translate = useTranslate();
   const { footer } = useQuickGraph(tank.id, "tank");
   const { getComparison, isNew } = useAssetComparison(tank);
@@ -938,47 +965,61 @@ const TankEditor = ({
           positiveOnly={true}
           readOnly={readonly}
         />
-        <QuantityRow
-          name="minLevel"
-          value={tank.minLevel}
-          unit={quantitiesMetadata.getUnit("minLevel")}
-          decimals={quantitiesMetadata.getDecimals("minLevel")}
-          comparison={getComparison("minLevel", tank.minLevel)}
-          onChange={onPropertyChange}
-          positiveOnly={true}
-          readOnly={readonly}
-        />
-        <QuantityRow
-          name="maxLevel"
-          value={tank.maxLevel}
-          unit={quantitiesMetadata.getUnit("maxLevel")}
-          decimals={quantitiesMetadata.getDecimals("maxLevel")}
-          comparison={getComparison("maxLevel", tank.maxLevel)}
-          onChange={onPropertyChange}
-          positiveOnly={true}
-          readOnly={readonly}
-        />
-        <QuantityRow
-          name="diameter"
-          value={tank.diameter}
-          unit={quantitiesMetadata.getUnit("tankDiameter")}
-          decimals={quantitiesMetadata.getDecimals("diameter")}
-          comparison={getComparison("diameter", tank.diameter)}
-          onChange={onPropertyChange}
-          positiveOnly={true}
-          isNullable={false}
-          readOnly={readonly}
-        />
-        <QuantityRow
-          name="minVolume"
-          value={tank.minVolume}
-          unit={quantitiesMetadata.getUnit("minVolume")}
-          decimals={quantitiesMetadata.getDecimals("minVolume")}
-          comparison={getComparison("minVolume", tank.minVolume)}
-          onChange={onPropertyChange}
-          positiveOnly={true}
-          readOnly={readonly}
-        />
+        {allCurves ? (
+          <TankDefinitionField
+            tank={tank}
+            curves={hydraulicModel.curves}
+            quantitiesMetadata={quantitiesMetadata}
+            getComparison={getComparison}
+            onPropertyChange={onPropertyChange}
+            onDefinitionChange={onDefinitionChange}
+            readOnly={readonly}
+          />
+        ) : (
+          <>
+            <QuantityRow
+              name="minLevel"
+              value={tank.minLevel}
+              unit={quantitiesMetadata.getUnit("minLevel")}
+              decimals={quantitiesMetadata.getDecimals("minLevel")}
+              comparison={getComparison("minLevel", tank.minLevel)}
+              onChange={onPropertyChange}
+              positiveOnly={true}
+              readOnly={readonly}
+            />
+            <QuantityRow
+              name="maxLevel"
+              value={tank.maxLevel}
+              unit={quantitiesMetadata.getUnit("maxLevel")}
+              decimals={quantitiesMetadata.getDecimals("maxLevel")}
+              comparison={getComparison("maxLevel", tank.maxLevel)}
+              onChange={onPropertyChange}
+              positiveOnly={true}
+              readOnly={readonly}
+            />
+            <QuantityRow
+              name="diameter"
+              value={tank.diameter}
+              unit={quantitiesMetadata.getUnit("tankDiameter")}
+              decimals={quantitiesMetadata.getDecimals("diameter")}
+              comparison={getComparison("diameter", tank.diameter)}
+              onChange={onPropertyChange}
+              positiveOnly={true}
+              isNullable={false}
+              readOnly={readonly}
+            />
+            <QuantityRow
+              name="minVolume"
+              value={tank.minVolume}
+              unit={quantitiesMetadata.getUnit("minVolume")}
+              decimals={quantitiesMetadata.getDecimals("minVolume")}
+              comparison={getComparison("minVolume", tank.minVolume)}
+              onChange={onPropertyChange}
+              positiveOnly={true}
+              readOnly={readonly}
+            />
+          </>
+        )}
         <SwitchRow
           name="overflow"
           label={translate("canOverflow")}
@@ -1019,6 +1060,192 @@ const TankEditor = ({
         />
       </Section>
     </AssetEditorContent>
+  );
+};
+
+const TankDefinitionField = ({
+  tank,
+  curves,
+  quantitiesMetadata,
+  getComparison,
+  onPropertyChange,
+  onDefinitionChange,
+  readOnly = false,
+}: {
+  tank: Tank;
+  curves: Curves;
+  quantitiesMetadata: Quantities;
+  getComparison: (
+    name: string,
+    value: unknown,
+  ) => { hasChanged: boolean; baseValue?: unknown };
+  onPropertyChange: OnPropertyChange;
+  onDefinitionChange: (data: TankDefinitionData) => void;
+  readOnly?: boolean;
+}) => {
+  const translate = useTranslate();
+  const showCurveLibrary = useShowCurveLibrary();
+
+  const [shape, setShape] = useState<TankShape>(
+    tank.volumeCurveId != null ? "curveDefined" : "circular",
+  );
+
+  const shapeOptions = useMemo(
+    () =>
+      [
+        { label: translate("circular"), value: "circular" },
+        { label: translate("curveDefined"), value: "curveDefined" },
+      ] as { label: string; value: TankShape }[],
+    [translate],
+  );
+
+  const levelDecimals = quantitiesMetadata.getDecimals("minLevel");
+
+  const curvePoints =
+    shape === "curveDefined" && tank.volumeCurveId
+      ? curves.get(tank.volumeCurveId)?.points
+      : undefined;
+  const minLevelPlaceholder =
+    curvePoints && curvePoints.length > 0
+      ? localizeDecimal(curvePoints[0].x, { decimals: levelDecimals })
+      : undefined;
+  const maxLevelPlaceholder =
+    curvePoints && curvePoints.length > 0
+      ? localizeDecimal(curvePoints[curvePoints.length - 1].x, {
+          decimals: levelDecimals,
+        })
+      : undefined;
+
+  const curveOptions = useMemo(() => {
+    const libraryGroup: SelectorOption<CurveId>[] = [
+      { label: translate("openCurvesLibrary"), value: 0 },
+    ];
+    const curveGroup: SelectorOption<CurveId>[] = [];
+    for (const curve of curves.values()) {
+      if (curve.type !== "volume") continue;
+      curveGroup.push({ value: curve.id, label: curve.label });
+    }
+    return [libraryGroup, curveGroup];
+  }, [curves, translate]);
+
+  const handleShapeChange = useCallback(
+    (_name: string, newValue: TankShape) => {
+      setShape(newValue);
+      if (newValue === "circular") {
+        onPropertyChange("volumeCurveId", undefined, tank.volumeCurveId);
+      }
+      // For curveDefined, we wait until a curve is selected
+    },
+    [onPropertyChange, tank.volumeCurveId],
+  );
+
+  const handleCurveChange = useCallback(
+    (_name: string, newValue: CurveId | null) => {
+      if (newValue === null) return;
+      if (newValue === 0) {
+        showCurveLibrary({
+          source: "tank",
+          curveId: tank.volumeCurveId,
+          initialSection: "volume",
+        });
+        return;
+      }
+      const bounds = getCurveBounds(curves, newValue);
+      if (!bounds) return;
+      onDefinitionChange({
+        volumeCurveId: newValue,
+        minLevel: bounds.min,
+        maxLevel: bounds.max,
+      });
+    },
+    [curves, onDefinitionChange, showCurveLibrary, tank.volumeCurveId],
+  );
+
+  return (
+    <>
+      <SelectRow
+        name="tankShape"
+        selected={shape}
+        options={shapeOptions}
+        readOnly={readOnly}
+        onChange={handleShapeChange}
+      />
+      <NestedSection>
+        {shape === "circular" ? (
+          <>
+            <QuantityRow
+              name="diameter"
+              value={tank.diameter}
+              unit={quantitiesMetadata.getUnit("tankDiameter")}
+              decimals={quantitiesMetadata.getDecimals("diameter")}
+              comparison={getComparison("diameter", tank.diameter)}
+              onChange={onPropertyChange}
+              positiveOnly={true}
+              isNullable={false}
+              readOnly={readOnly}
+            />
+            <QuantityRow
+              name="minVolume"
+              value={tank.minVolume}
+              unit={quantitiesMetadata.getUnit("minVolume")}
+              decimals={quantitiesMetadata.getDecimals("minVolume")}
+              comparison={getComparison("minVolume", tank.minVolume)}
+              onChange={onPropertyChange}
+              positiveOnly={true}
+              readOnly={readOnly}
+            />
+          </>
+        ) : curveOptions[1].length > 0 ? (
+          <SelectRow
+            name="volumeCurve"
+            selected={tank.volumeCurveId ?? null}
+            options={curveOptions}
+            listClassName="first:italic"
+            stickyFirstGroup
+            nullable={true}
+            placeholder={`${translate("select")}...`}
+            onChange={handleCurveChange}
+            readOnly={readOnly}
+          />
+        ) : (
+          <InlineField name={translate("volumeCurve")} labelSize="md">
+            <Button
+              onClick={() =>
+                showCurveLibrary({
+                  source: "tank",
+                  initialSection: "volume",
+                })
+              }
+              className="w-full py-2"
+            >
+              {translate("openCurvesLibrary")}
+            </Button>
+          </InlineField>
+        )}
+        <QuantityRow
+          name="minLevel"
+          value={tank.minLevel}
+          unit={quantitiesMetadata.getUnit("minLevel")}
+          decimals={levelDecimals}
+          comparison={getComparison("minLevel", tank.minLevel)}
+          onChange={onPropertyChange}
+          positiveOnly={true}
+          placeholder={minLevelPlaceholder}
+          readOnly={readOnly}
+        />
+        <QuantityRow
+          name="maxLevel"
+          value={tank.maxLevel}
+          unit={quantitiesMetadata.getUnit("maxLevel")}
+          decimals={quantitiesMetadata.getDecimals("maxLevel")}
+          comparison={getComparison("maxLevel", tank.maxLevel)}
+          onChange={onPropertyChange}
+          positiveOnly={true}
+          placeholder={maxLevelPlaceholder}
+          readOnly={readOnly}
+        />
+      </NestedSection>
+    </>
   );
 };
 

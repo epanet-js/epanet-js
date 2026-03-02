@@ -764,7 +764,7 @@ type PumpLibraryOpened = {
 
 type CurveLibraryOpened = {
   name: "curveLibrary.opened";
-  source: "toolbar" | "valve";
+  source: "toolbar" | "valve" | "tank";
 };
 
 type CurvesUpdated = {

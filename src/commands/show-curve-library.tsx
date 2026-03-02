@@ -14,7 +14,7 @@ export const useShowCurveLibrary = () => {
       curveId,
       initialSection,
     }: {
-      source: "toolbar" | "valve";
+      source: "toolbar" | "valve" | "tank";
       curveId?: CurveId;
       initialSection?: "volume" | "valve" | "headloss";
     }) => {

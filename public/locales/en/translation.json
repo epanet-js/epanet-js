@@ -948,6 +948,10 @@
   "namedCurve": "Library pump",
   "valveCurve": "Curve",
   "headlossCurve": "Curve",
+  "volumeCurve": "Volume curve",
+  "tankShape": "Shape",
+  "circular": "Circular",
+  "curveDefined": "Curve defined",
   "dialog": {
     "save": "Save",
     "cancel": "Cancel",

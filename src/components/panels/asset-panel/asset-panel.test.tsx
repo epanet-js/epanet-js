@@ -18,6 +18,7 @@ import FeatureEditor from "../feature-editor";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Valve } from "src/hydraulic-model/asset-types";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
+import { stubFeatureOn } from "src/__helpers__/feature-flags";
 
 describe("AssetPanel", () => {
   describe("with a pipe", () => {
@@ -982,6 +983,181 @@ describe("AssetPanel", () => {
       expectTextPropertyDisplayed("head (m)", "125.568");
       expectTextPropertyDisplayed("level (m)", "25.988");
       expectTextPropertyDisplayed("volume (m³)", "1,500.432");
+    });
+
+    describe("with FLAG_ALL_CURVES enabled", () => {
+      beforeEach(() => {
+        stubFeatureOn("FLAG_ALL_CURVES");
+      });
+
+      it("shows shape selector defaulting to circular", () => {
+        const IDS = { T1: 1 };
+        const hydraulicModel = HydraulicModelBuilder.with()
+          .aTank(IDS.T1, {
+            label: "TANK1",
+            diameter: 300,
+            minLevel: 5,
+            maxLevel: 100,
+            minVolume: 10,
+          })
+          .build();
+        const store = setInitialState({
+          hydraulicModel,
+          selectedAssetId: IDS.T1,
+        });
+
+        renderComponent(store);
+
+        expect(
+          screen.getByRole("combobox", { name: /shape/i }),
+        ).toHaveTextContent("Circular");
+        expectPropertyDisplayed("diameter (m)", "300");
+        expectPropertyDisplayed("min volume (m³)", "10");
+        expectPropertyDisplayed("min level (m)", "5");
+        expectPropertyDisplayed("max level (m)", "100");
+      });
+
+      it("shows shape selector defaulting to curve-defined when tank has volume curve", () => {
+        const IDS = { T1: 1 };
+        const hydraulicModel = HydraulicModelBuilder.with()
+          .aCurve({
+            id: 10,
+            label: "VC1",
+            type: "volume",
+            points: [
+              { x: 0, y: 0 },
+              { x: 20, y: 5000 },
+            ],
+          })
+          .aTank(IDS.T1, {
+            label: "TANK1",
+            volumeCurveId: 10,
+            minLevel: 2,
+            maxLevel: 18,
+          })
+          .build();
+        const store = setInitialState({
+          hydraulicModel,
+          selectedAssetId: IDS.T1,
+        });
+
+        renderComponent(store);
+
+        expect(
+          screen.getByRole("combobox", { name: /shape/i }),
+        ).toHaveTextContent("Curve defined");
+        expect(
+          screen.queryByRole("textbox", {
+            name: /value for: diameter/i,
+          }),
+        ).not.toBeInTheDocument();
+        expect(
+          screen.queryByRole("textbox", {
+            name: /value for: min volume/i,
+          }),
+        ).not.toBeInTheDocument();
+        expect(
+          screen.getByRole("combobox", { name: /volume curve/i }),
+        ).toHaveTextContent("VC1");
+      });
+
+      it("switches to curve-defined and submits when curve is selected", async () => {
+        const user = userEvent.setup();
+        const IDS = { T1: 1 };
+        const hydraulicModel = HydraulicModelBuilder.with()
+          .aCurve({
+            id: 10,
+            label: "VC1",
+            type: "volume",
+            points: [
+              { x: 0, y: 0 },
+              { x: 25, y: 8000 },
+            ],
+          })
+          .aTank(IDS.T1, {
+            label: "TANK1",
+            diameter: 300,
+            minLevel: 5,
+            maxLevel: 100,
+          })
+          .build();
+        const store = setInitialState({
+          hydraulicModel,
+          selectedAssetId: IDS.T1,
+        });
+
+        renderComponent(store);
+
+        // Switch to curve-defined
+        const shapeSelector = screen.getByRole("combobox", {
+          name: /shape/i,
+        });
+        await user.click(shapeSelector);
+        await user.click(
+          screen.getByRole("option", { name: /curve defined/i }),
+        );
+
+        // Select a volume curve
+        const curveSelector = screen.getByRole("combobox", {
+          name: /volume curve/i,
+        });
+        await user.click(curveSelector);
+        await user.click(screen.getByRole("option", { name: /VC1/i }));
+
+        // Should default min/max level from curve bounds
+        await waitFor(() => {
+          expectPropertyDisplayed("min level (m)", "0");
+          expectPropertyDisplayed("max level (m)", "25");
+        });
+      });
+
+      it("switches back to circular and clears volume curve", async () => {
+        const user = userEvent.setup();
+        const IDS = { T1: 1 };
+        const hydraulicModel = HydraulicModelBuilder.with()
+          .aCurve({
+            id: 10,
+            label: "VC1",
+            type: "volume",
+            points: [
+              { x: 0, y: 0 },
+              { x: 20, y: 5000 },
+            ],
+          })
+          .aTank(IDS.T1, {
+            label: "TANK1",
+            volumeCurveId: 10,
+            diameter: 300,
+            minLevel: 2,
+            maxLevel: 18,
+          })
+          .build();
+        const store = setInitialState({
+          hydraulicModel,
+          selectedAssetId: IDS.T1,
+        });
+
+        renderComponent(store);
+
+        expect(
+          screen.getByRole("combobox", { name: /shape/i }),
+        ).toHaveTextContent("Curve defined");
+
+        // Switch back to circular
+        const shapeSelector = screen.getByRole("combobox", {
+          name: /shape/i,
+        });
+        await user.click(shapeSelector);
+        await user.click(screen.getByRole("option", { name: /circular/i }));
+
+        // Should show diameter and minVolume again
+        await waitFor(() => {
+          expectPropertyDisplayed("diameter (m)", "300");
+        });
+        expect(
+          screen.queryByRole("combobox", { name: /volume curve/i }),
+        ).not.toBeInTheDocument();
+      });
     });
   });
 
