@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useState } from "react";
 import {
   showPanelBottomAtom,
   splitsAtom,
@@ -177,7 +177,7 @@ export const LeftSidePanel = memo(function LeftSidePanelInner() {
   const splits = useAtomValue(splitsAtom);
 
   return (
-    <div className="absolute left-0 top-0 bottom-0 z-10 flex bg-white dark:bg-gray-800">
+    <div className={clsx("absolute left-0 top-0 bottom-0 z-10 flex bg-white dark:bg-gray-800", !splits.leftOpen && "border-r border-gray-200 dark:border-gray-900")}>
       <ActivityBar />
       {splits.leftOpen && (
         <div
@@ -193,10 +193,30 @@ export const LeftSidePanel = memo(function LeftSidePanelInner() {
   );
 });
 
+type BottomSidebarTab = "pipes" | "junctions" | "tanks";
+
+const BOTTOM_SIDEBAR_TABS: { id: BottomSidebarTab; label: string }[] = [
+  { id: "pipes", label: "DT pipes" },
+  { id: "junctions", label: "DT junctions" },
+  { id: "tanks", label: "DT tanks" },
+];
+
+function BottomSidebarContent({ tab }: { tab: BottomSidebarTab }) {
+  switch (tab) {
+    case "pipes":
+      return <div className="p-4 text-sm text-gray-500">DT pipes content</div>;
+    case "junctions":
+      return <div className="p-4 text-sm text-gray-500">DT junctions content</div>;
+    case "tanks":
+      return <div className="p-4 text-sm text-gray-500">DT tanks content</div>;
+  }
+}
+
 export const HorizontalBottomSidebar = memo(function HorizontalBottomSidebar() {
   const open = useAtomValue(bottomSidebarOpenAtom);
   const [maximized, setMaximized] = useAtom(bottomSidebarMaximizedAtom);
   const setOpen = useSetAtom(bottomSidebarOpenAtom);
+  const [activeTab, setActiveTab] = useState<BottomSidebarTab>("pipes");
 
   if (!open) return null;
 
@@ -212,26 +232,48 @@ export const HorizontalBottomSidebar = memo(function HorizontalBottomSidebar() {
         right: "var(--sidebar-right, 0px)",
       }}
     >
-      <div className="sticky top-0 flex justify-end items-center gap-0.5 bg-white dark:bg-gray-800 p-1 border-b border-gray-200 dark:border-gray-900 z-10">
-        <button
-          aria-label={maximized ? "minimize-2" : "maximize-2"}
-          onClick={() => setMaximized((v) => !v)}
-          className="p-1 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200"
-        >
-          {maximized ? <Minimize2Icon /> : <Maximize2Icon />}
-        </button>
-        <button
-          aria-label="close"
-          onClick={() => {
-            setMaximized(false);
-            setOpen(false);
-          }}
-          className="p-1 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200"
-        >
-          <CloseIcon />
-        </button>
+      <header className="bottom-sidebar-header sticky top-0 flex items-center bg-white dark:bg-gray-800 border-b border-l border-gray-200 dark:border-gray-900 z-10">
+        <div role="tablist" className="flex flex-1">
+          {BOTTOM_SIDEBAR_TABS.map(({ id, label }) => (
+            <button
+              key={id}
+              role="tab"
+              aria-selected={activeTab === id}
+              onClick={() => setActiveTab(id)}
+              className={clsx(
+                "px-3 py-1.5 border-b-2 text-sm focus:outline-none",
+                activeTab === id
+                  ? "text-black dark:text-white border-purple-500 dark:border-white"
+                  : "text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-gray-200",
+              )}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <div className="flex items-center gap-0.5 p-1">
+          <button
+            aria-label={maximized ? "minimize-2" : "maximize-2"}
+            onClick={() => setMaximized((v) => !v)}
+            className="p-1 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200"
+          >
+            {maximized ? <Minimize2Icon /> : <Maximize2Icon />}
+          </button>
+          <button
+            aria-label="close"
+            onClick={() => {
+              setMaximized(false);
+              setOpen(false);
+            }}
+            className="p-1 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200"
+          >
+            <CloseIcon />
+          </button>
+        </div>
+      </header>
+      <div className="bottom-sidebar-content">
+        <BottomSidebarContent tab={activeTab} />
       </div>
-      <div className="bottom-sidebar-content"></div>
     </div>
   );
 });
