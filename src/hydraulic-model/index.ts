@@ -49,7 +49,11 @@ export type {
   Pattern,
   Patterns,
 } from "./patterns";
-export { getNextPatternId } from "./patterns";
+export {
+  getNextPatternId,
+  deepClonePatterns,
+  differentPatternsCount,
+} from "./patterns";
 export type { Demands, Demand } from "./demands";
 export {
   createEmptyDemands,

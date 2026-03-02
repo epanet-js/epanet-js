@@ -12,6 +12,8 @@ import {
   PatternId,
   PatternType,
   getNextPatternId,
+  deepClonePatterns,
+  differentPatternsCount,
 } from "src/hydraulic-model";
 import { PatternsIcon } from "src/icons";
 import { stagingModelAtom, simulationSettingsAtom } from "src/state/jotai";
@@ -41,8 +43,8 @@ export const PatternsDialog = ({
   const [selectedPatternId, setSelectedPatternId] = useState<PatternId | null>(
     initialPatternId ?? null,
   );
-  const [editedPatterns, setEditedPatterns] = useState<Patterns>(
-    () => new Map(hydraulicModel.patterns),
+  const [editedPatterns, setEditedPatterns] = useState<Patterns>(() =>
+    deepClonePatterns(hydraulicModel.patterns),
   );
   const [sidebarWidth, setSidebarWidth] = useState(224);
   const dialogActions = useRef<DialogActionsHandle>(null);
@@ -317,31 +319,4 @@ const isPatternInUse = (
   }
 
   return false;
-};
-
-const isPatternEqual = (a: Pattern, b?: Pattern): boolean => {
-  if (!b) return false;
-  if (a.label !== b.label) return false;
-  if (a.type !== b.type) return false;
-  if (a.multipliers.length !== b.multipliers.length) return false;
-  return a.multipliers.every((val, idx) => val === b.multipliers[idx]);
-};
-
-const differentPatternsCount = (a: Patterns, b: Patterns): number => {
-  const visitedIds = new Set<PatternId>();
-  let count = 0;
-
-  for (const [id, aPattern] of a) {
-    visitedIds.add(id);
-    if (!isPatternEqual(aPattern, b.get(id))) {
-      count += 1;
-    }
-  }
-  for (const [id, bPattern] of b) {
-    if (visitedIds.has(id)) continue;
-    if (!isPatternEqual(bPattern, a.get(id))) {
-      count += 1;
-    }
-  }
-  return count;
 };
