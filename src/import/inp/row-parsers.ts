@@ -519,13 +519,16 @@ export const parseTimeSetting: RowParser = ({
     inpData.times.duration = parseTimeToSeconds(value);
   }
   if (name === "HYDRAULIC TIMESTEP") {
-    inpData.times.hydraulicTimestep = parseTimeToSeconds(value);
+    const seconds = parseTimeToSeconds(value);
+    if (seconds > 0) inpData.times.hydraulicTimestep = seconds;
   }
   if (name === "REPORT TIMESTEP") {
-    inpData.times.reportTimestep = parseTimeToSeconds(value);
+    const seconds = parseTimeToSeconds(value);
+    if (seconds > 0) inpData.times.reportTimestep = seconds;
   }
   if (name === "PATTERN TIMESTEP") {
-    inpData.times.patternTimestep = parseTimeToSeconds(value);
+    const seconds = parseTimeToSeconds(value);
+    if (seconds > 0) inpData.times.patternTimestep = seconds;
   }
   if (name === "QUALITY TIMESTEP") {
     inpData.times.qualityTimestep = parseTimeToSeconds(value);

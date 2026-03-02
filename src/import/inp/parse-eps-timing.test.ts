@@ -214,6 +214,24 @@ describe("parse EPS timing", () => {
     expect(issues?.nonDefaultTimes?.has("QUALITY TIMESTEP")).toBeFalsy();
   });
 
+  it("falls back to default when timesteps are zero", () => {
+    const inp = `${baseInp}
+    [TIMES]
+    DURATION\t24:00
+    HYDRAULIC TIMESTEP\t0:00
+    REPORT TIMESTEP\t0
+    PATTERN TIMESTEP\t0:00
+    `;
+
+    const {
+      simulationSettings: { timing },
+    } = parseInp(inp);
+
+    expect(timing.hydraulicTimestep).toEqual(3600);
+    expect(timing.reportTimestep).toEqual(3600);
+    expect(timing.patternTimestep).toEqual(3600);
+  });
+
   it("warns for STATISTIC with non-NONE value", () => {
     const inp = `${baseInp}
     [TIMES]
