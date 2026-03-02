@@ -38,6 +38,7 @@ export type QuantityProperty =
   | "level"
   | "volume"
   | "tankDiameter"
+  | "tankArea"
   | "valveFlowCoeffRatio"
   | "efficiency";
 
@@ -103,6 +104,7 @@ const metricSpec: AssetQuantitiesSpec = {
     level: "m",
     volume: "m^3",
     tankDiameter: "m",
+    tankArea: "m^2",
     valveFlowCoeffRatio: "Kv/Kvo",
     efficiency: "%",
     customerDemand: "l/s",
@@ -161,6 +163,7 @@ const usCustomarySpec: AssetQuantitiesSpec = {
     level: "ft",
     volume: "ft^3",
     tankDiameter: "ft",
+    tankArea: "ft^2",
     valveFlowCoeffRatio: "Cv/Cvo",
     efficiency: "%",
     customerDemand: "gal/min",

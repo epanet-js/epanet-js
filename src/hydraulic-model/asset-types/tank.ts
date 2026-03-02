@@ -1,7 +1,5 @@
-import { CurveId } from "../curves";
+import { CurveId, Curves } from "../curves";
 import { Node, NodeProperties } from "./node";
-
-export type TankShape = "circular" | "curveDefined";
 
 export type TankProperties = {
   type: "tank";
@@ -71,4 +69,62 @@ export class Tank extends Node<TankProperties> {
   get volumeCurveId() {
     return this.properties.volumeCurveId;
   }
+
+  get area() {
+    return tankAreaFromDiameter(this.diameter);
+  }
+
+  get maxVolume() {
+    return tankVolumeFor(
+      this.diameter,
+      this.maxLevel,
+      this.minVolume,
+      this.minLevel,
+    );
+  }
 }
+
+export const getTankCurveVolumeRange = (
+  volumeCurveId: CurveId | undefined,
+  curves: Curves,
+): { min: number; max: number } | undefined => {
+  if (!volumeCurveId) return;
+  const curve = curves.get(volumeCurveId);
+  if (!curve || curve.points.length === 0) return;
+  return {
+    min: curve.points[0].y,
+    max: curve.points[curve.points.length - 1].y,
+  };
+};
+
+export const tankVolumeFor = (
+  diameter: number,
+  maxLevel: number,
+  minVolume: number = 0,
+  minLevel: number = 0,
+): number => {
+  const area = tankAreaFromDiameter(diameter);
+  const vMin = minVolume > 0 ? minVolume : area * minLevel;
+  return vMin + area * (maxLevel - minLevel);
+};
+
+export const tankDiameterFor = (
+  maxVolume: number,
+  maxLevel: number,
+  minVolume: number = 0,
+  minLevel: number = 0,
+): number => {
+  const area =
+    minVolume > 0
+      ? (maxVolume - minVolume) / (maxLevel - minLevel)
+      : maxVolume / maxLevel;
+  return tankDiameterFromArea(area);
+};
+
+export const tankAreaFromDiameter = (diameter: number): number => {
+  return Math.PI * (diameter / 2) ** 2;
+};
+
+export const tankDiameterFromArea = (area: number): number => {
+  return 2 * Math.sqrt(area / Math.PI);
+};

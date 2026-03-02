@@ -11,7 +11,12 @@ import {
   getJunctionDemands,
 } from "src/hydraulic-model/demands";
 import { getActiveCustomerPoints } from "src/hydraulic-model/customer-points";
-import { CurvePoint, ICurve } from "src/hydraulic-model/curves";
+import {
+  CurveId,
+  CurvePoint,
+  Curves,
+  ICurve,
+} from "src/hydraulic-model/curves";
 
 export type PropertyComparison<T = unknown> = {
   hasChanged: boolean;
@@ -104,6 +109,41 @@ export function useAssetComparison(asset: Asset | undefined) {
     return { hasChanged: false };
   };
 
+  const getCurveComparison = (
+    propertyName: string,
+    currentCurveId: CurveId | undefined,
+    currentCurves: Curves,
+  ): PropertyComparison<ICurve> => {
+    if (!isInScenario || !baseAsset) {
+      return { hasChanged: false };
+    }
+
+    const baseCurveId = baseAsset.getProperty(propertyName) as
+      | CurveId
+      | undefined;
+
+    const baseCurve = baseCurveId
+      ? baseModel.curves.get(baseCurveId)
+      : undefined;
+
+    if (baseCurveId !== currentCurveId) {
+      return { hasChanged: true, baseValue: baseCurve };
+    }
+
+    if (currentCurveId != null) {
+      const currentCurve = currentCurves.get(currentCurveId);
+      if (
+        baseCurve &&
+        currentCurve &&
+        !isEqual(baseCurve.points, currentCurve.points)
+      ) {
+        return { hasChanged: true, baseValue: baseCurve };
+      }
+    }
+
+    return { hasChanged: false };
+  };
+
   const getPumpCurveComparison = (
     currentCurve: CurvePoint[] | undefined,
   ): PumpCurveComparison => {
@@ -183,6 +223,7 @@ export function useAssetComparison(asset: Asset | undefined) {
     getDirectDemandComparison,
     getCustomerDemandComparison,
     getCustomerCountComparison,
+    getCurveComparison,
     getPumpCurveComparison,
     isNew,
   };

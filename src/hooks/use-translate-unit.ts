@@ -35,6 +35,8 @@ const UNITS_MAP: Record<Exclude<Unit, null>, string> = {
   "Kv/Kvo": "Kv/Kvo",
   "Cv/Cvo": "Cv/Cvo",
   "%": "%",
+  "m^2": "m²",
+  "ft^2": "ft²",
 };
 
 export const useTranslateUnit = () => {

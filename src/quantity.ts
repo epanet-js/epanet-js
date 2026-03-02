@@ -33,6 +33,8 @@ export type Unit =
   | "Kv/Kvo"
   | "Cv/Cvo"
   | "%"
+  | "m^2"
+  | "ft^2"
   | null;
 
 export type Quantity = {

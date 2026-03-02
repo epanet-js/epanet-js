@@ -1009,8 +1009,8 @@ describe("AssetPanel", () => {
         renderComponent(store);
 
         expect(
-          screen.getByRole("combobox", { name: /shape/i }),
-        ).toHaveTextContent("Circular");
+          screen.getByRole("combobox", { name: /definition/i }),
+        ).toHaveTextContent("Diameter based");
         expectPropertyDisplayed("diameter (m)", "300");
         expectPropertyDisplayed("min volume (m³)", "10");
         expectPropertyDisplayed("min level (m)", "5");
@@ -1044,8 +1044,8 @@ describe("AssetPanel", () => {
         renderComponent(store);
 
         expect(
-          screen.getByRole("combobox", { name: /shape/i }),
-        ).toHaveTextContent("Curve defined");
+          screen.getByRole("combobox", { name: /definition/i }),
+        ).toHaveTextContent("Curve based");
         expect(
           screen.queryByRole("textbox", {
             name: /value for: diameter/i,
@@ -1090,12 +1090,10 @@ describe("AssetPanel", () => {
 
         // Switch to curve-defined
         const shapeSelector = screen.getByRole("combobox", {
-          name: /shape/i,
+          name: /definition/i,
         });
         await user.click(shapeSelector);
-        await user.click(
-          screen.getByRole("option", { name: /curve defined/i }),
-        );
+        await user.click(screen.getByRole("option", { name: /curve based/i }));
 
         // Select a volume curve
         const curveSelector = screen.getByRole("combobox", {
@@ -1104,10 +1102,13 @@ describe("AssetPanel", () => {
         await user.click(curveSelector);
         await user.click(screen.getByRole("option", { name: /VC1/i }));
 
-        // Should default min/max level from curve bounds
+        // Should apply curve bounds (read-only)
         await waitFor(() => {
-          expectPropertyDisplayed("min level (m)", "0");
-          expectPropertyDisplayed("max level (m)", "25");
+          expect(
+            screen.getByRole("combobox", { name: /volume curve/i }),
+          ).toHaveTextContent("VC1");
+          expect(screen.getByText("25")).toBeInTheDocument();
+          expect(screen.getByText("8,000")).toBeInTheDocument();
         });
       });
 
@@ -1140,15 +1141,17 @@ describe("AssetPanel", () => {
         renderComponent(store);
 
         expect(
-          screen.getByRole("combobox", { name: /shape/i }),
-        ).toHaveTextContent("Curve defined");
+          screen.getByRole("combobox", { name: /definition/i }),
+        ).toHaveTextContent("Curve based");
 
         // Switch back to circular
         const shapeSelector = screen.getByRole("combobox", {
-          name: /shape/i,
+          name: /definition/i,
         });
         await user.click(shapeSelector);
-        await user.click(screen.getByRole("option", { name: /circular/i }));
+        await user.click(
+          screen.getByRole("option", { name: /diameter based/i }),
+        );
 
         // Should show diameter and minVolume again
         await waitFor(() => {

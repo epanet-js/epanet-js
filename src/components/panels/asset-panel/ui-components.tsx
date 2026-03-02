@@ -12,7 +12,6 @@ import { PipeStatus } from "src/hydraulic-model/asset-types/pipe";
 import { PumpStatus } from "src/hydraulic-model/asset-types/pump";
 import type { PumpDefinitionMode } from "./pump-definition-details";
 import { ValveKind, ValveStatus } from "src/hydraulic-model/asset-types/valve";
-import type { TankShape } from "src/hydraulic-model/asset-types/tank";
 import { PanelActions } from "./actions";
 import {
   InlineField,
@@ -285,13 +284,19 @@ export const NestedSection = ({ children }: { children: React.ReactNode }) => (
   </NestedSectionContext.Provider>
 );
 
+export type TankDefinitionMode =
+  | "diameterBased"
+  | "areaBased"
+  | "volumeBased"
+  | "curveBased";
+
 type SelectRowValue =
   | PipeStatus
   | ValveKind
   | ValveStatus
   | PumpDefinitionMode
   | PumpStatus
-  | TankShape
+  | TankDefinitionMode
   | number;
 
 type SelectRowPropsBase<P extends string, T extends SelectRowValue> = {
