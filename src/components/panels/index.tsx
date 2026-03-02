@@ -177,7 +177,12 @@ export const LeftSidePanel = memo(function LeftSidePanelInner() {
   const splits = useAtomValue(splitsAtom);
 
   return (
-    <div className={clsx("absolute left-0 top-0 bottom-0 z-10 flex bg-white dark:bg-gray-800", !splits.leftOpen && "border-r border-gray-200 dark:border-gray-900")}>
+    <div
+      className={clsx(
+        "absolute left-0 top-0 bottom-0 z-10 flex bg-white dark:bg-gray-800",
+        !splits.leftOpen && "border-r border-gray-200 dark:border-gray-900",
+      )}
+    >
       <ActivityBar />
       {splits.leftOpen && (
         <div
@@ -206,7 +211,9 @@ function BottomSidebarContent({ tab }: { tab: BottomSidebarTab }) {
     case "pipes":
       return <div className="p-4 text-sm text-gray-500">DT pipes content</div>;
     case "junctions":
-      return <div className="p-4 text-sm text-gray-500">DT junctions content</div>;
+      return (
+        <div className="p-4 text-sm text-gray-500">DT junctions content</div>
+      );
     case "tanks":
       return <div className="p-4 text-sm text-gray-500">DT tanks content</div>;
   }
@@ -224,15 +231,16 @@ export const HorizontalBottomSidebar = memo(function HorizontalBottomSidebar() {
     <div
       className={clsx(
         "absolute bottom-0 overflow-auto overscroll-none",
-        "bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-900",
-        maximized ? "top-0" : "h-[33dvh] max-h-[400px]",
+        "border-l border-gray-200",
+        "bg-white dark:bg-gray-800 dark:border-gray-900",
+        maximized ? "top-0" : "border-t h-[33dvh] max-h-[400px]",
       )}
       style={{
         left: "var(--sidebar-left, 0px)",
         right: "var(--sidebar-right, 0px)",
       }}
     >
-      <header className="bottom-sidebar-header sticky top-0 flex items-center bg-white dark:bg-gray-800 border-b border-l border-gray-200 dark:border-gray-900 z-10">
+      <header className="bottom-sidebar-header flex items-stretch h-8 flex-none sticky top-0 z-10 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-black">
         <div role="tablist" className="flex flex-1">
           {BOTTOM_SIDEBAR_TABS.map(({ id, label }) => (
             <button
@@ -241,17 +249,17 @@ export const HorizontalBottomSidebar = memo(function HorizontalBottomSidebar() {
               aria-selected={activeTab === id}
               onClick={() => setActiveTab(id)}
               className={clsx(
-                "px-3 py-1.5 border-b-2 text-sm focus:outline-none",
+                "px-3 text-sm focus:outline-none h-full flex items-center border-b-2",
                 activeTab === id
-                  ? "text-black dark:text-white border-purple-500 dark:border-white"
-                  : "text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-gray-200",
+                  ? "border-purple-500 text-gray-900 dark:text-white"
+                  : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200",
               )}
             >
               {label}
             </button>
           ))}
         </div>
-        <div className="flex items-center gap-0.5 p-1">
+        <div className="flex items-center gap-0.5 px-1">
           <button
             aria-label={maximized ? "minimize-2" : "maximize-2"}
             onClick={() => setMaximized((v) => !v)}
