@@ -811,6 +811,10 @@ const ReservoirEditor = ({
   const translate = useTranslate();
   const { footer } = useQuickGraph(reservoir.id, "reservoir");
   const { getComparison, isNew } = useAssetComparison(reservoir);
+  const simulation = useSimulation();
+  const reservoirSimulation = simulation?.getReservoir(reservoir.id);
+
+  const simHead = reservoirSimulation?.head ?? null;
 
   return (
     <AssetEditorContent
@@ -847,6 +851,15 @@ const ReservoirEditor = ({
           onPropertyChange={onPropertyChange}
           quantitiesMetadata={quantitiesMetadata}
           readOnly={readonly}
+        />
+      </Section>
+      <Section title={translate("simulationResults")}>
+        <QuantityRow
+          name="head"
+          value={simHead}
+          unit={quantitiesMetadata.getUnit("head")}
+          decimals={quantitiesMetadata.getDecimals("head")}
+          readOnly={true}
         />
       </Section>
     </AssetEditorContent>

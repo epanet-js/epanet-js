@@ -5,6 +5,7 @@ import {
   PumpSimulation,
   JunctionSimulation,
   TankSimulation,
+  ReservoirSimulation,
 } from "../results-reader";
 import { IPrivateAppStorage } from "src/infra/storage/private-app-storage";
 import { RESULTS_OUT_KEY, TANK_VOLUMES_KEY, PUMP_STATUS_KEY } from "./worker";
@@ -820,6 +821,18 @@ class TimestepResultsReader implements ResultsReader {
     };
   }
 
+  getReservoir(reservoirId: number): ReservoirSimulation | null {
+    const nodeIndex = this.simulationIds.nodeIdToIndex.get(String(reservoirId));
+    if (nodeIndex === undefined) return null;
+
+    const nodeData = this.getNodeData(nodeIndex);
+
+    return {
+      type: "reservoir",
+      head: nodeData.head,
+    };
+  }
+
   private getNodeData(nodeIndex: number): {
     demand: number;
     head: number;
@@ -993,6 +1006,9 @@ class NullResultsReader implements ResultsReader {
     return null;
   }
   getTank(_tankId: number): TankSimulation | null {
+    return null;
+  }
+  getReservoir(_reservoirId: number): ReservoirSimulation | null {
     return null;
   }
   getAllPressures(): number[] {

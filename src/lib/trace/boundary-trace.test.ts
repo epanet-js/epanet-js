@@ -1,52 +1,7 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
-import { ResultsReader } from "src/simulation/results-reader";
+import { createMockResultsReader } from "src/__helpers__/state";
 import { boundaryTrace } from "./boundary-trace";
 import { AllowedFlowDirection } from "./allowed-flow-direction";
-
-function mockResultsReader(flows: Record<number, number>): ResultsReader {
-  return {
-    getPipe: (id) =>
-      id in flows
-        ? {
-            type: "pipe",
-            flow: flows[id],
-            velocity: 0,
-            headloss: 0,
-            unitHeadloss: 0,
-            status: "open",
-          }
-        : null,
-    getValve: (id) =>
-      id in flows
-        ? {
-            type: "valve",
-            flow: flows[id],
-            velocity: 0,
-            headloss: 0,
-            status: "active",
-            statusWarning: null,
-          }
-        : null,
-    getPump: (id) =>
-      id in flows
-        ? {
-            type: "pump",
-            flow: flows[id],
-            headloss: 0,
-            status: "on",
-            statusWarning: null,
-          }
-        : null,
-    getJunction: () => null,
-    getTank: () => null,
-    getAllPressures: () => [],
-    getAllHeads: () => [],
-    getAllDemands: () => [],
-    getAllFlows: () => [],
-    getAllVelocities: () => [],
-    getAllUnitHeadlosses: () => [],
-  };
-}
 
 describe("boundaryTrace", () => {
   it("traces through open pipes and junctions", () => {
@@ -303,7 +258,9 @@ describe("boundaryTrace", () => {
       .build();
 
     // Simulation says P2 is open with flow, overriding initialStatus "closed"
-    const reader = mockResultsReader({ [IDS.P1]: 5, [IDS.P2]: 3 });
+    const reader = createMockResultsReader({
+      pipes: { [IDS.P1]: { flow: 5 }, [IDS.P2]: { flow: 3 } },
+    });
 
     const traversal = new AllowedFlowDirection(model.assets, reader);
     const result = boundaryTrace(
@@ -328,8 +285,8 @@ describe("boundaryTrace", () => {
       .build();
 
     // Simulation says P2 is closed, even though initialStatus is "open"
-    const reader = mockResultsReader({});
-    reader.getPipe = (id) => {
+    const reader = createMockResultsReader({});
+    reader.getPipe = (id: number) => {
       if (id === IDS.P2)
         return {
           type: "pipe",
@@ -377,8 +334,10 @@ describe("boundaryTrace", () => {
       .build();
 
     // Simulation says TCV is active with flow, overriding initialStatus "closed"
-    const reader = mockResultsReader({ [IDS.P1]: 5 });
-    reader.getValve = (id) => {
+    const reader = createMockResultsReader({
+      pipes: { [IDS.P1]: { flow: 5 } },
+    });
+    reader.getValve = (id: number) => {
       if (id === IDS.TCV)
         return {
           type: "valve",

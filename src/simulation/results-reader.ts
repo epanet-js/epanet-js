@@ -39,12 +39,18 @@ export type TankSimulation = {
   volume: number;
 };
 
+export type ReservoirSimulation = {
+  type: "reservoir";
+  head: number;
+};
+
 export interface ResultsReader {
   getValve: (valveId: number) => ValveSimulation | null;
   getPump: (pumpId: number) => PumpSimulation | null;
   getJunction: (junctionId: number) => JunctionSimulation | null;
   getPipe: (pipeId: number) => PipeSimulation | null;
   getTank: (tankId: number) => TankSimulation | null;
+  getReservoir: (reservoirId: number) => ReservoirSimulation | null;
 
   getAllPressures: () => number[];
   getAllHeads: () => number[];

@@ -9,6 +9,7 @@ import {
 import { Provider as JotaiProvider, createStore } from "jotai";
 import { HydraulicModel, Pipe, Pump } from "src/hydraulic-model";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { createMockResultsReader, SimulationData } from "src/__helpers__/state";
 import { PersistenceContext } from "src/lib/persistence/context";
 import { Persistence } from "src/lib/persistence/persistence";
 import userEvent from "@testing-library/user-event";
@@ -17,7 +18,6 @@ import FeatureEditor from "../feature-editor";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Valve } from "src/hydraulic-model/asset-types";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
-import type { ResultsReader } from "src/simulation/results-reader";
 
 describe("AssetPanel", () => {
   describe("with a pipe", () => {
@@ -887,7 +887,7 @@ describe("AssetPanel", () => {
       expect(screen.getByDisplayValue("MY_RESERVOIR")).toBeInTheDocument();
       expect(screen.getByText("Reservoir")).toBeInTheDocument();
       expectPropertyDisplayed("elevation (m)", "10");
-      expectPropertyDisplayed("head (m)", "100");
+      expectPropertyDisplayed("Head (m)", "100");
     });
   });
 
@@ -1410,115 +1410,6 @@ describe("AssetPanel", () => {
     expectPropertyDisplayed("length (m)", "1,000");
   });
 
-  type SimulationData = {
-    pipes?: Record<
-      number,
-      Partial<{
-        flow: number;
-        velocity: number;
-        headloss: number;
-        unitHeadloss: number;
-        status: "open" | "closed";
-      }>
-    >;
-    junctions?: Record<
-      number,
-      Partial<{ pressure: number; head: number; demand: number }>
-    >;
-    pumps?: Record<
-      number,
-      Partial<{
-        flow: number;
-        headloss: number;
-        status: "on" | "off";
-        statusWarning: "cannot-deliver-flow" | "cannot-deliver-head" | null;
-      }>
-    >;
-    valves?: Record<
-      number,
-      Partial<{
-        flow: number;
-        velocity: number;
-        headloss: number;
-        status: "active" | "open" | "closed";
-        statusWarning: "cannot-deliver-flow" | "cannot-deliver-pressure" | null;
-      }>
-    >;
-    tanks?: Record<
-      number,
-      Partial<{ pressure: number; head: number; level: number; volume: number }>
-    >;
-  };
-
-  const createMockResultsReader = (
-    data: SimulationData = {},
-  ): ResultsReader => {
-    return {
-      getPipe: (id: number) => {
-        const sim = data.pipes?.[id];
-        if (!sim) return null;
-        return {
-          type: "pipe",
-          flow: sim.flow ?? 0,
-          velocity: sim.velocity ?? 0,
-          headloss: sim.headloss ?? 0,
-          unitHeadloss: sim.unitHeadloss ?? 0,
-          status: sim.status ?? "open",
-        };
-      },
-      getJunction: (id: number) => {
-        const sim = data.junctions?.[id];
-        if (!sim) return null;
-        return {
-          type: "junction",
-          pressure: sim.pressure ?? 0,
-          head: sim.head ?? 0,
-          demand: sim.demand ?? 0,
-        };
-      },
-      getPump: (id: number) => {
-        const sim = data.pumps?.[id];
-        if (!sim) return null;
-        return {
-          type: "pump",
-          flow: sim.flow ?? 0,
-          headloss: sim.headloss ?? 0,
-          status: sim.status ?? "on",
-          statusWarning: sim.statusWarning ?? null,
-        };
-      },
-      getValve: (id: number) => {
-        const sim = data.valves?.[id];
-        if (!sim) return null;
-        return {
-          type: "valve",
-          flow: sim.flow ?? 0,
-          velocity: sim.velocity ?? 0,
-          headloss: sim.headloss ?? 0,
-          status: sim.status ?? "active",
-          statusWarning: sim.statusWarning ?? null,
-        };
-      },
-      getTank: (id: number) => {
-        const sim = data.tanks?.[id];
-        if (!sim) return null;
-        return {
-          type: "tank",
-          pressure: sim.pressure ?? 0,
-          head: sim.head ?? 0,
-          level: sim.level ?? 0,
-          volume: sim.volume ?? 0,
-        };
-      },
-      getAllPressures: () => [],
-      getAllHeads: () => [],
-      getAllDemands: () => [],
-      getAllFlows: () => [],
-      getAllVelocities: () => [],
-      getAllUnitHeadlosses: () => [],
-    };
-  };
-
   const setInitialState = ({
     store = createStore(),
     hydraulicModel = HydraulicModelBuilder.with().build(),
@@ -1572,8 +1463,8 @@ describe("AssetPanel", () => {
   const expectPropertyDisplayed = (name: string, value: string) => {
     const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     expect(
-      screen.getByLabelText(new RegExp(`label: ${escapedName}`, "i")),
-    ).toBeInTheDocument();
+      screen.getAllByLabelText(new RegExp(`label: ${escapedName}`, "i")).length,
+    ).toBeGreaterThan(0);
     expect(
       screen.getByRole("textbox", {
         name: new RegExp(`value for: ${escapedName}`, "i"),

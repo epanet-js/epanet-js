@@ -2,48 +2,7 @@ import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { buildIconPointsSource } from "./icons";
 import { AssetId } from "src/hydraulic-model";
 import { Point } from "geojson";
-import type { ResultsReader } from "src/simulation/results-reader";
-
-const createMockResultsReader = (
-  data: {
-    pipes?: Record<number, { status?: "open" | "closed" }>;
-    valves?: Record<number, { status?: "active" | "open" | "closed" }>;
-  } = {},
-): ResultsReader => ({
-  getPipe: (id) => {
-    const sim = data.pipes?.[id];
-    if (!sim) return null;
-    return {
-      type: "pipe",
-      flow: 0,
-      velocity: 0,
-      headloss: 0,
-      unitHeadloss: 0,
-      status: sim.status ?? "open",
-    };
-  },
-  getValve: (id) => {
-    const sim = data.valves?.[id];
-    if (!sim) return null;
-    return {
-      type: "valve",
-      flow: 0,
-      velocity: 0,
-      headloss: 0,
-      status: sim.status ?? "active",
-      statusWarning: null,
-    };
-  },
-  getPump: () => null,
-  getJunction: () => null,
-  getTank: () => null,
-  getAllPressures: () => [],
-  getAllHeads: () => [],
-  getAllDemands: () => [],
-  getAllFlows: () => [],
-  getAllVelocities: () => [],
-  getAllUnitHeadlosses: () => [],
-});
+import { createMockResultsReader } from "src/__helpers__/state";
 
 describe("build icons source", () => {
   describe("for pumps", () => {

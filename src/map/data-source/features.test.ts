@@ -8,63 +8,7 @@ import {
   aRangeColorRule,
 } from "src/__helpers__/state";
 import { getColors } from "src/map/symbology/range-color-rule";
-import type { ResultsReader } from "src/simulation/results-reader";
-
-const createMockResultsReader = (
-  data: {
-    pipes?: Record<
-      number,
-      { flow?: number; velocity?: number; status?: "open" | "closed" }
-    >;
-    junctions?: Record<
-      number,
-      { pressure?: number; head?: number; demand?: number }
-    >;
-    pumps?: Record<number, { status?: "on" | "off" }>;
-  } = {},
-): ResultsReader => ({
-  getPipe: (id) => {
-    const sim = data.pipes?.[id];
-    if (!sim) return null;
-    return {
-      type: "pipe",
-      flow: sim.flow ?? 0,
-      velocity: sim.velocity ?? 0,
-      headloss: 0,
-      unitHeadloss: 0,
-      status: sim.status ?? "open",
-    };
-  },
-  getJunction: (id) => {
-    const sim = data.junctions?.[id];
-    if (!sim) return null;
-    return {
-      type: "junction",
-      pressure: sim.pressure ?? 0,
-      head: sim.head ?? 0,
-      demand: sim.demand ?? 0,
-    };
-  },
-  getPump: (id) => {
-    const sim = data.pumps?.[id];
-    if (!sim) return null;
-    return {
-      type: "pump",
-      flow: 0,
-      headloss: 0,
-      status: sim.status ?? "on",
-      statusWarning: null,
-    };
-  },
-  getValve: () => null,
-  getTank: () => null,
-  getAllPressures: () => [],
-  getAllHeads: () => [],
-  getAllDemands: () => [],
-  getAllFlows: () => [],
-  getAllVelocities: () => [],
-  getAllUnitHeadlosses: () => [],
-});
+import { createMockResultsReader } from "src/__helpers__/state";
 
 describe("build optimized source", () => {
   const defaultQuantities = new Quantities(presets.LPS);

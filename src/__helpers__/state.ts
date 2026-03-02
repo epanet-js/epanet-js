@@ -227,18 +227,42 @@ export const nullSelection: Sel = { type: "none" };
 export type SimulationData = {
   pipes?: Record<
     number,
-    { flow?: number; velocity?: number; status?: "open" | "closed" }
+    Partial<{
+      flow: number;
+      velocity: number;
+      headloss: number;
+      unitHeadloss: number;
+      status: "open" | "closed";
+    }>
   >;
   junctions?: Record<
     number,
-    { pressure?: number; head?: number; demand?: number }
+    Partial<{ pressure: number; head: number; demand: number }>
   >;
-  pumps?: Record<number, { status?: "on" | "off" }>;
-  valves?: Record<number, { status?: "active" | "open" | "closed" }>;
+  pumps?: Record<
+    number,
+    Partial<{
+      flow: number;
+      headloss: number;
+      status: "on" | "off";
+      statusWarning: "cannot-deliver-flow" | "cannot-deliver-head" | null;
+    }>
+  >;
+  valves?: Record<
+    number,
+    Partial<{
+      flow: number;
+      velocity: number;
+      headloss: number;
+      status: "active" | "open" | "closed";
+      statusWarning: "cannot-deliver-flow" | "cannot-deliver-pressure" | null;
+    }>
+  >;
   tanks?: Record<
     number,
-    { pressure?: number; head?: number; level?: number; volume?: number }
+    Partial<{ pressure: number; head: number; level: number; volume: number }>
   >;
+  reservoirs?: Record<number, Partial<{ head: number }>>;
 };
 
 export const createMockResultsReader = (
@@ -251,8 +275,8 @@ export const createMockResultsReader = (
       type: "pipe",
       flow: sim.flow ?? 0,
       velocity: sim.velocity ?? 0,
-      headloss: 0,
-      unitHeadloss: 0,
+      headloss: sim.headloss ?? 0,
+      unitHeadloss: sim.unitHeadloss ?? 0,
       status: sim.status ?? "open",
     };
   },
@@ -271,10 +295,10 @@ export const createMockResultsReader = (
     if (!sim) return null;
     return {
       type: "pump",
-      flow: 0,
-      headloss: 0,
+      flow: sim.flow ?? 0,
+      headloss: sim.headloss ?? 0,
       status: sim.status ?? "on",
-      statusWarning: null,
+      statusWarning: sim.statusWarning ?? null,
     };
   },
   getValve: (id) => {
@@ -282,11 +306,11 @@ export const createMockResultsReader = (
     if (!sim) return null;
     return {
       type: "valve",
-      flow: 0,
-      velocity: 0,
-      headloss: 0,
+      flow: sim.flow ?? 0,
+      velocity: sim.velocity ?? 0,
+      headloss: sim.headloss ?? 0,
       status: sim.status ?? "active",
-      statusWarning: null,
+      statusWarning: sim.statusWarning ?? null,
     };
   },
   getTank: (id) => {
@@ -298,6 +322,14 @@ export const createMockResultsReader = (
       head: sim.head ?? 0,
       level: sim.level ?? 0,
       volume: sim.volume ?? 0,
+    };
+  },
+  getReservoir: (id) => {
+    const sim = data.reservoirs?.[id];
+    if (!sim) return null;
+    return {
+      type: "reservoir",
+      head: sim.head ?? 0,
     };
   },
   getAllPressures: () =>

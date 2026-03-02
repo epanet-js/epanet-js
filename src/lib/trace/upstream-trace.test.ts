@@ -1,52 +1,7 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
-import { ResultsReader } from "src/simulation/results-reader";
+import { createMockResultsReader } from "src/__helpers__/state";
 import { upstreamTrace } from "./upstream-trace";
 import { FlowDirection } from "./flow-direction";
-
-function mockResultsReader(flows: Record<number, number>): ResultsReader {
-  return {
-    getPipe: (id) =>
-      id in flows
-        ? {
-            type: "pipe",
-            flow: flows[id],
-            velocity: 0,
-            headloss: 0,
-            unitHeadloss: 0,
-            status: "open",
-          }
-        : null,
-    getValve: (id) =>
-      id in flows
-        ? {
-            type: "valve",
-            flow: flows[id],
-            velocity: 0,
-            headloss: 0,
-            status: "active",
-            statusWarning: null,
-          }
-        : null,
-    getPump: (id) =>
-      id in flows
-        ? {
-            type: "pump",
-            flow: flows[id],
-            headloss: 0,
-            status: "on",
-            statusWarning: null,
-          }
-        : null,
-    getJunction: () => null,
-    getTank: () => null,
-    getAllPressures: () => [],
-    getAllHeads: () => [],
-    getAllDemands: () => [],
-    getAllFlows: () => [],
-    getAllVelocities: () => [],
-    getAllUnitHeadlosses: () => [],
-  };
-}
 
 describe("upstreamTrace", () => {
   it("uses assumed flow direction when no simulation is available", () => {
@@ -83,7 +38,9 @@ describe("upstreamTrace", () => {
       .aPipe(IDS.P2, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
       .build();
 
-    const reader = mockResultsReader({ [IDS.P1]: 5, [IDS.P2]: 3 });
+    const reader = createMockResultsReader({
+      pipes: { [IDS.P1]: { flow: 5 }, [IDS.P2]: { flow: 3 } },
+    });
     const status = new FlowDirection(model.assets, reader);
     const result = upstreamTrace(
       { nodeIds: [IDS.J2], linkIds: [] },
@@ -107,7 +64,9 @@ describe("upstreamTrace", () => {
       .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
       .build();
 
-    const reader = mockResultsReader({ [IDS.P1]: -5 });
+    const reader = createMockResultsReader({
+      pipes: { [IDS.P1]: { flow: -5 } },
+    });
     const status = new FlowDirection(model.assets, reader);
     const result = upstreamTrace(
       { nodeIds: [IDS.J1], linkIds: [] },
@@ -129,7 +88,9 @@ describe("upstreamTrace", () => {
       .aPipe(IDS.P2, { startNodeId: IDS.J2, endNodeId: IDS.J3 })
       .build();
 
-    const reader = mockResultsReader({ [IDS.P1]: 5, [IDS.P2]: 0 });
+    const reader = createMockResultsReader({
+      pipes: { [IDS.P1]: { flow: 5 }, [IDS.P2]: { flow: 0 } },
+    });
     const status = new FlowDirection(model.assets, reader);
     const result = upstreamTrace(
       { nodeIds: [IDS.J3], linkIds: [] },
@@ -155,7 +116,9 @@ describe("upstreamTrace", () => {
       .aPipe(IDS.P2, { startNodeId: IDS.J2, endNodeId: IDS.J3 })
       .build();
 
-    const reader = mockResultsReader({ [IDS.P1]: 3, [IDS.P2]: 2 });
+    const reader = createMockResultsReader({
+      pipes: { [IDS.P1]: { flow: 3 }, [IDS.P2]: { flow: 2 } },
+    });
     const status = new FlowDirection(model.assets, reader);
     const result = upstreamTrace(
       { nodeIds: [IDS.J3], linkIds: [] },
@@ -192,10 +155,12 @@ describe("upstreamTrace", () => {
       .aPipe(IDS.P3, { startNodeId: IDS.J2, endNodeId: IDS.J3 })
       .build();
 
-    const reader = mockResultsReader({
-      [IDS.P1]: 5,
-      [IDS.P2]: 3,
-      [IDS.P3]: 2,
+    const reader = createMockResultsReader({
+      pipes: {
+        [IDS.P1]: { flow: 5 },
+        [IDS.P2]: { flow: 3 },
+        [IDS.P3]: { flow: 2 },
+      },
     });
     const status = new FlowDirection(model.assets, reader);
     const result = upstreamTrace(
