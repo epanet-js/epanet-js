@@ -160,7 +160,7 @@ function LayerFormHeader({
       {isEditing ? (
         <P.Close asChild>
           <E.Button type="button" size="xs">
-            {translate("cancel")}
+            {translate("dialog.cancel")}
           </E.Button>
         </P.Close>
       ) : (

@@ -46,13 +46,13 @@ export const UnsavedChangesDialog = ({
         </Button>
         <Button
           type="submit"
-          aria-label={translate("discardChanges")}
+          aria-label={translate("dialog.discardChanges")}
           onClick={handleDiscardChanges}
         >
-          {translate("discardChanges")}
+          {translate("dialog.discardChanges")}
         </Button>
         <Button type="submit" onClick={onClose}>
-          {translate("cancel")}
+          {translate("dialog.cancel")}
         </Button>
       </DialogButtons>
     </>

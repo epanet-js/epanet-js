@@ -126,7 +126,7 @@ const ControlsForm = ({
       </div>
       <SimpleDialogActions
         onClose={onClose}
-        action={readOnly ? undefined : translate("save")}
+        action={readOnly ? undefined : translate("dialog.save")}
       />
     </Form>
   );

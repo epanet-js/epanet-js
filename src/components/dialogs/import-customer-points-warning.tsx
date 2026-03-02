@@ -53,10 +53,10 @@ export const ImportCustomerPointsWarningDialog = ({
         </Button>
         <Button
           variant="default"
-          aria-label={translate("cancel")}
+          aria-label={translate("dialog.cancel")}
           onClick={handleCancel}
         >
-          {translate("cancel")}
+          {translate("dialog.cancel")}
         </Button>
       </DialogButtons>
     </>

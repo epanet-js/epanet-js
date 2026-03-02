@@ -1,8 +1,7 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { useAtomValue } from "jotai";
-import { DialogContainer, DialogHeader, useDialogState } from "../../dialog";
+import { DialogContainer, DialogHeader } from "../../dialog";
 import { useTranslate } from "src/hooks/use-translate";
-import { Button } from "src/components/elements";
 import { CurveSidebar } from "./curve-sidebar";
 import { CurveDetail } from "./curve-detail";
 import { VerticalResizer } from "../vertical-resizer";
@@ -27,6 +26,7 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { LabelManager } from "src/hydraulic-model/label-manager";
 import { getCurveTypeConfig } from "./curve-type-config";
 import { HydraulicModel } from "src/hydraulic-model";
+import { DialogActions, DialogActionsHandle } from "../dialog-actions-row";
 
 type CurveUpdate = Partial<Pick<ICurve, "label" | "points" | "type">>;
 
@@ -44,7 +44,6 @@ export const CurveLibraryDialog = ({
   initialSection?: "volume" | "valve" | "headloss";
 }) => {
   const translate = useTranslate();
-  const { closeDialog } = useDialogState();
   const hydraulicModel = useAtomValue(stagingModelAtom);
   const { modelMetadata } = useAtomValue(dataAtom);
   const userTracking = useUserTracking();
@@ -59,6 +58,7 @@ export const CurveLibraryDialog = ({
   const labelManagerRef = useRef<LabelManager>(
     createLabelManager(editedCurves),
   );
+  const dialogActions = useRef<DialogActionsHandle>(null);
 
   const hasCurves = editedCurves.size > 0;
 
@@ -192,36 +192,34 @@ export const CurveLibraryDialog = ({
     return ids;
   }, [cleanedCurves]);
 
-  const saveChanges = useCallback(() => {
-    const moment = changeCurves(hydraulicModel, {
-      curves: cleanedCurves,
-    });
-    transact(moment);
-    userTracking.capture({
-      name: "curves.updated",
-      count: cleanedCurves.size,
-      errors: invalidCurveIds.size,
-    });
+  const handleSave = useCallback(
+    (hasWarnings: boolean) => {
+      const moment = changeCurves(hydraulicModel, {
+        curves: cleanedCurves,
+      });
+      transact(moment);
+      userTracking.capture({
+        name: "curves.updated",
+        count: cleanedCurves.size,
+        withWarnings: hasWarnings,
+      });
+    },
+    [hydraulicModel, cleanedCurves, transact, userTracking],
+  );
 
-    closeDialog();
-  }, [
-    hydraulicModel,
-    cleanedCurves,
-    transact,
-    userTracking,
-    invalidCurveIds.size,
-    closeDialog,
-  ]);
-
-  const { handleClose, ...actionHandlers } = useDialogActions(
-    unsavedChanges,
-    invalidCurveIds.size,
-    closeDialog,
-    saveChanges,
+  const handleClose = useCallback(
+    (hasUnsavedChanges: boolean) => {
+      if (hasUnsavedChanges) userTracking.capture({ name: "curves.discarded" });
+    },
+    [userTracking],
   );
 
   return (
-    <DialogContainer size="md" height="lg" onClose={handleClose}>
+    <DialogContainer
+      size="md"
+      height="lg"
+      onClose={() => dialogActions.current?.closeDialog()}
+    >
       <DialogHeader title={translate("curves.title")} />
       <div className="flex-1 flex min-h-0">
         <div className="flex-shrink-0 flex">
@@ -272,14 +270,14 @@ export const CurveLibraryDialog = ({
           )}
         </div>
       </div>
-      <div className="mt-6 flex flex-row-reverse gap-x-3 items-end h-8">
-        <DialogActions
-          handleClose={handleClose}
-          readOnly={isSnapshotLocked}
-          hasUnsavedChanges={!!unsavedChanges}
-          {...actionHandlers}
-        />
-      </div>
+      <DialogActions
+        ref={dialogActions}
+        onSave={handleSave}
+        onClose={handleClose}
+        readOnly={isSnapshotLocked}
+        hasChanges={!!unsavedChanges}
+        hasWarnings={invalidCurveIds.size > 0}
+      />
     </DialogContainer>
   );
 };
@@ -317,148 +315,6 @@ const EmptyState = ({ readOnly }: { readOnly: boolean }) => {
       )}
     </div>
   );
-};
-
-export const DialogActions = ({
-  handleClose,
-  handleSave,
-  handleKeepEditing,
-  showDiscardConfirm,
-  showSaveWarning,
-  hasUnsavedChanges,
-  readOnly = false,
-}: {
-  handleClose: () => void;
-  handleSave: () => void;
-  handleKeepEditing: () => void;
-  showDiscardConfirm: boolean;
-  showSaveWarning: boolean;
-  hasUnsavedChanges: boolean;
-  readOnly?: boolean;
-}) => {
-  const translate = useTranslate();
-
-  if (readOnly)
-    return (
-      <Button type="button" onClick={handleClose}>
-        {translate("close")}
-      </Button>
-    );
-
-  if (showDiscardConfirm)
-    return (
-      <>
-        <Button
-          type="button"
-          variant="danger"
-          onClick={handleClose}
-          className="whitespace-nowrap"
-        >
-          {translate("discardChanges")}
-        </Button>
-        <Button
-          type="button"
-          onClick={handleKeepEditing}
-          className="whitespace-nowrap"
-        >
-          {translate("keepEditing")}
-        </Button>
-        <span className="text-sm text-gray-600 self-center">
-          {translate("discardUnsavedChangesWarning")}
-        </span>
-      </>
-    );
-
-  if (showSaveWarning)
-    return (
-      <>
-        <Button
-          type="button"
-          variant="danger"
-          onClick={handleSave}
-          className="whitespace-nowrap"
-        >
-          {translate("save")}
-        </Button>
-        <Button
-          type="button"
-          onClick={handleKeepEditing}
-          className="whitespace-nowrap"
-        >
-          {translate("keepEditing")}
-        </Button>
-        <span className="text-sm text-gray-600 self-center">
-          {translate("curves.saveInvalid")}
-        </span>
-      </>
-    );
-
-  return (
-    <>
-      <Button
-        type="button"
-        variant="primary"
-        onClick={handleSave}
-        disabled={!hasUnsavedChanges}
-      >
-        {translate("save")}
-      </Button>
-      <Button type="button" onClick={handleClose}>
-        {translate("cancel")}
-      </Button>
-    </>
-  );
-};
-
-export const useDialogActions = (
-  unsavedChanges: number,
-  errors: number,
-  onClose: () => void,
-  onSave: () => void,
-) => {
-  const userTracking = useUserTracking();
-
-  const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
-  const [showSaveWarning, setShowSaveWarning] = useState(false);
-
-  const handleSave = useCallback(() => {
-    if (!unsavedChanges) return onClose();
-    userTracking.capture({
-      name: "curves.updated",
-      count: unsavedChanges,
-      errors,
-    });
-    onSave();
-  }, [userTracking, unsavedChanges, errors, onSave, onClose]);
-
-  const handleDiscard = useCallback(() => {
-    userTracking.capture({ name: "curves.discarded" });
-    onClose();
-  }, [userTracking, onClose]);
-
-  const handleAttemptSave = useCallback(() => {
-    if (!errors || showSaveWarning) return handleSave();
-    setShowSaveWarning(true);
-  }, [errors, handleSave, showSaveWarning]);
-
-  const handleAttemptClose = useCallback(() => {
-    if (!unsavedChanges) return onClose();
-    if (showDiscardConfirm) return handleDiscard();
-    setShowDiscardConfirm(true);
-  }, [unsavedChanges, onClose, showDiscardConfirm, handleDiscard]);
-
-  const handleKeepEditing = useCallback(() => {
-    setShowDiscardConfirm(false);
-    setShowSaveWarning(false);
-  }, [setShowDiscardConfirm, setShowSaveWarning]);
-
-  return {
-    handleSave: handleAttemptSave,
-    handleClose: handleAttemptClose,
-    handleKeepEditing,
-    showDiscardConfirm,
-    showSaveWarning,
-  };
 };
 
 const createLabelManager = (curves: Curves): LabelManager => {

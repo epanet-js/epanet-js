@@ -770,7 +770,7 @@ type CurveLibraryOpened = {
 type CurvesUpdated = {
   name: "curves.updated";
   count: number;
-  errors: number;
+  withWarnings: boolean;
 };
 
 type CurvesDiscarded = {

@@ -206,7 +206,7 @@ export const AckDialogAction = ({
       )}
     >
       <Button autoFocus={true} type="button" onClick={onAck}>
-        {label ? label : translate("cancel")}
+        {label ? label : translate("dialog.cancel")}
       </Button>
     </div>
   );
@@ -291,7 +291,7 @@ export function SimpleDialogActions({
       ) : null}
       {onClose ? (
         <Button type="button" onClick={onClose}>
-          {translate(action || secondary ? "cancel" : "close")}
+          {translate(action || secondary ? "dialog.cancel" : "dialog.close")}
         </Button>
       ) : null}
       <RefreshIcon

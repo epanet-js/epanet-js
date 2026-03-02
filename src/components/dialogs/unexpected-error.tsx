@@ -40,7 +40,7 @@ export const UnexpectedErrorDialog = ({
             secondary={
               onRetry
                 ? {
-                    action: translate("cancel"),
+                    action: translate("dialog.cancel"),
                     onClick: onClose,
                   }
                 : undefined

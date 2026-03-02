@@ -1,8 +1,7 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { useAtomValue } from "jotai";
-import { DialogContainer, DialogHeader, useDialogState } from "../../dialog";
+import { DialogContainer, DialogHeader } from "../../dialog";
 import { useTranslate } from "src/hooks/use-translate";
-import { Button } from "src/components/elements";
 import { PatternSidebar } from "./pattern-sidebar";
 import { PatternDetail } from "./pattern-detail";
 import { useIsSnapshotLocked } from "src/hooks/use-is-snapshot-locked";
@@ -24,6 +23,7 @@ import { notify } from "src/components/notifications";
 import { useUserTracking } from "src/infra/user-tracking";
 import { changePatterns } from "src/hydraulic-model/model-operations";
 import { VerticalResizer } from "../vertical-resizer";
+import { DialogActions, DialogActionsHandle } from "../dialog-actions-row";
 
 type PatternUpdate = Partial<Pick<Pattern, "label" | "multipliers" | "type">>;
 
@@ -35,7 +35,6 @@ export const PatternsDialog = ({
   initialSection?: "demand" | "reservoirHead" | "pumpSpeed";
 }) => {
   const translate = useTranslate();
-  const { closeDialog } = useDialogState();
   const hydraulicModel = useAtomValue(stagingModelAtom);
   const userTracking = useUserTracking();
   const isSnapshotLocked = useIsSnapshotLocked();
@@ -46,7 +45,7 @@ export const PatternsDialog = ({
     () => new Map(hydraulicModel.patterns),
   );
   const [sidebarWidth, setSidebarWidth] = useState(224);
-  const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
+  const dialogActions = useRef<DialogActionsHandle>(null);
   const nextPatternIdRef = useRef<PatternId>(
     getNextPatternId(editedPatterns, editedPatterns.size),
   );
@@ -159,49 +158,34 @@ export const PatternsDialog = ({
   const rep = usePersistence();
   const transact = rep.useTransact();
 
-  const hasChanges = useMemo(
-    () => !arePatternsEqual(hydraulicModel.patterns, editedPatterns),
+  const unsavedChanges = useMemo(
+    () => differentPatternsCount(hydraulicModel.patterns, editedPatterns),
     [hydraulicModel.patterns, editedPatterns],
   );
 
   const handleSave = useCallback(() => {
-    if (!hasChanges) {
-      closeDialog();
-      return;
-    }
-
     const moment = changePatterns(hydraulicModel, editedPatterns);
     transact(moment);
     userTracking.capture({
       name: "patterns.updated",
-      count: editedPatterns.size,
+      count: unsavedChanges,
     });
+  }, [hydraulicModel, editedPatterns, transact, userTracking, unsavedChanges]);
 
-    closeDialog();
-  }, [
-    hasChanges,
-    hydraulicModel,
-    editedPatterns,
-    transact,
-    closeDialog,
-    userTracking,
-  ]);
-
-  const handleCancel = useCallback(() => {
-    if (hasChanges) {
-      setShowDiscardConfirm(true);
-      return;
-    }
-    closeDialog();
-  }, [hasChanges, closeDialog]);
-
-  const handleDiscard = useCallback(() => {
-    userTracking.capture({ name: "patterns.discarded" });
-    closeDialog();
-  }, [userTracking, closeDialog]);
+  const handleClose = useCallback(
+    (hasUnsavedChanges: boolean) => {
+      if (hasUnsavedChanges)
+        userTracking.capture({ name: "patterns.discarded" });
+    },
+    [userTracking],
+  );
 
   return (
-    <DialogContainer size="lg" height="lg" onClose={handleCancel}>
+    <DialogContainer
+      size="lg"
+      height="lg"
+      onClose={() => dialogActions.current?.closeDialog()}
+    >
       <DialogHeader title={translate("patterns.title")} />
       <div className="flex-1 flex min-h-0">
         <div className="flex-shrink-0 flex">
@@ -245,39 +229,13 @@ export const PatternsDialog = ({
           )}
         </div>
       </div>
-      <div className="pt-6 flex flex-row-reverse gap-x-3">
-        {isSnapshotLocked ? (
-          <Button type="button" onClick={closeDialog}>
-            {translate("close")}
-          </Button>
-        ) : showDiscardConfirm ? (
-          <>
-            <Button type="button" variant="danger" onClick={handleDiscard}>
-              {translate("discardChanges")}
-            </Button>
-            <Button type="button" onClick={() => setShowDiscardConfirm(false)}>
-              {translate("keepEditing")}
-            </Button>
-            <span className="text-sm text-gray-600 self-center">
-              {translate("discardUnsavedChangesWarning")}
-            </span>
-          </>
-        ) : (
-          <>
-            <Button
-              type="button"
-              variant="primary"
-              onClick={handleSave}
-              disabled={!hasChanges}
-            >
-              {translate("save")}
-            </Button>
-            <Button type="button" onClick={handleCancel}>
-              {translate("cancel")}
-            </Button>
-          </>
-        )}
-      </div>
+      <DialogActions
+        ref={dialogActions}
+        onSave={handleSave}
+        onClose={handleClose}
+        readOnly={isSnapshotLocked}
+        hasChanges={!!unsavedChanges}
+      />
     </DialogContainer>
   );
 };
@@ -361,21 +319,29 @@ const isPatternInUse = (
   return false;
 };
 
-const arePatternsEqual = (original: Patterns, edited: Patterns): boolean => {
-  if (original.size !== edited.size) return false;
-  for (const [id, originalPattern] of original) {
-    const editedPattern = edited.get(id);
-    if (!editedPattern) return false;
-    if (originalPattern.label !== editedPattern.label) return false;
-    if (originalPattern.type !== editedPattern.type) return false;
-    if (originalPattern.multipliers.length !== editedPattern.multipliers.length)
-      return false;
-    if (
-      !originalPattern.multipliers.every(
-        (val, idx) => val === editedPattern.multipliers[idx],
-      )
-    )
-      return false;
+const isPatternEqual = (a: Pattern, b?: Pattern): boolean => {
+  if (!b) return false;
+  if (a.label !== b.label) return false;
+  if (a.type !== b.type) return false;
+  if (a.multipliers.length !== b.multipliers.length) return false;
+  return a.multipliers.every((val, idx) => val === b.multipliers[idx]);
+};
+
+const differentPatternsCount = (a: Patterns, b: Patterns): number => {
+  const visitedIds = new Set<PatternId>();
+  let count = 0;
+
+  for (const [id, aPattern] of a) {
+    visitedIds.add(id);
+    if (!isPatternEqual(aPattern, b.get(id))) {
+      count += 1;
+    }
   }
-  return true;
+  for (const [id, bPattern] of b) {
+    if (visitedIds.has(id)) continue;
+    if (!isPatternEqual(bPattern, a.get(id))) {
+      count += 1;
+    }
+  }
+  return count;
 };

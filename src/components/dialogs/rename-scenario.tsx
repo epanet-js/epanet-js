@@ -149,10 +149,10 @@ export const RenameScenarioDialog = ({
           onClick={() => handleSubmit()}
           disabled={!!error}
         >
-          {translate("save")}
+          {translate("dialog.save")}
         </Button>
         <Button type="button" variant="default" onClick={onClose}>
-          {translate("cancel")}
+          {translate("dialog.cancel")}
         </Button>
       </DialogButtons>
     </DialogContainer>

@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { useAtomValue } from "jotai";
-import { DialogContainer, DialogHeader, useDialogState } from "../../dialog";
+import { DialogContainer, DialogHeader } from "../../dialog";
 import { useTranslate } from "src/hooks/use-translate";
 import { PumpLibrarySidebar } from "./pump-library-sidebar";
 import { CurveDetail } from "../curves/curve-detail";
@@ -25,7 +25,7 @@ import { notify } from "src/components/notifications";
 import { useUserTracking } from "src/infra/user-tracking";
 import { LabelManager } from "src/hydraulic-model/label-manager";
 import { getCurveTypeConfig } from "../curves/curve-type-config";
-import { DialogActions, useDialogActions } from "../curves/curves-dialog";
+import { DialogActions, DialogActionsHandle } from "../dialog-actions-row";
 import { HydraulicModel, Pump } from "src/hydraulic-model";
 
 type CurveUpdate = Partial<Pick<ICurve, "label" | "points" | "type">>;
@@ -38,7 +38,6 @@ export const PumpLibraryDialog = ({
   initialSection?: "pump" | "efficiency";
 }) => {
   const translate = useTranslate();
-  const { closeDialog } = useDialogState();
   const hydraulicModel = useAtomValue(stagingModelAtom);
   const { modelMetadata } = useAtomValue(dataAtom);
   const userTracking = useUserTracking();
@@ -53,6 +52,7 @@ export const PumpLibraryDialog = ({
   const labelManagerRef = useRef<LabelManager>(
     createLabelManager(editedCurves),
   );
+  const dialogActions = useRef<DialogActionsHandle>(null);
 
   const hasCurves = editedCurves.size > 0;
 
@@ -186,36 +186,34 @@ export const PumpLibraryDialog = ({
     return ids;
   }, [cleanedCurves]);
 
-  const saveChanges = useCallback(() => {
-    const moment = changeCurves(hydraulicModel, {
-      curves: cleanedCurves,
-    });
-    transact(moment);
-    userTracking.capture({
-      name: "curves.updated",
-      count: cleanedCurves.size,
-      errors: invalidCurveIds.size,
-    });
+  const handleSave = useCallback(
+    (hasWarnings: boolean) => {
+      const moment = changeCurves(hydraulicModel, {
+        curves: cleanedCurves,
+      });
+      transact(moment);
+      userTracking.capture({
+        name: "curves.updated",
+        count: cleanedCurves.size,
+        withWarnings: hasWarnings,
+      });
+    },
+    [hydraulicModel, cleanedCurves, transact, userTracking],
+  );
 
-    closeDialog();
-  }, [
-    hydraulicModel,
-    cleanedCurves,
-    transact,
-    userTracking,
-    invalidCurveIds.size,
-    closeDialog,
-  ]);
-
-  const { handleClose, ...actionHandlers } = useDialogActions(
-    unsavedChanges,
-    invalidCurveIds.size,
-    closeDialog,
-    saveChanges,
+  const handleClose = useCallback(
+    (hasUnsavedChanges: boolean) => {
+      if (hasUnsavedChanges) userTracking.capture({ name: "curves.discarded" });
+    },
+    [userTracking],
   );
 
   return (
-    <DialogContainer size="md" height="lg" onClose={handleClose}>
+    <DialogContainer
+      size="md"
+      height="lg"
+      onClose={() => dialogActions.current?.closeDialog()}
+    >
       <DialogHeader title={translate("pumpLibrary")} />
       <div className="flex-1 flex min-h-0">
         <div className="flex-shrink-0 flex">
@@ -266,14 +264,14 @@ export const PumpLibraryDialog = ({
           )}
         </div>
       </div>
-      <div className="mt-6 flex flex-row-reverse gap-x-3 items-end h-8">
-        <DialogActions
-          handleClose={handleClose}
-          readOnly={isSnapshotLocked}
-          hasUnsavedChanges={!!unsavedChanges}
-          {...actionHandlers}
-        />
-      </div>
+      <DialogActions
+        ref={dialogActions}
+        onSave={handleSave}
+        onClose={handleClose}
+        readOnly={isSnapshotLocked}
+        hasChanges={!!unsavedChanges}
+        hasWarnings={invalidCurveIds.size > 0}
+      />
     </DialogContainer>
   );
 };

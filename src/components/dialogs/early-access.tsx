@@ -40,7 +40,7 @@ export const EarlyAccessDialog = ({
           {isAuthEnabled ? (
             <div className="flex gap-3 justify-end pt-4">
               <Button variant="default" onClick={closeDialog}>
-                {translate("cancel")}
+                {translate("dialog.cancel")}
               </Button>
               <ClerkSignInButton
                 signUpForceRedirectUrl={redirectUrl}
@@ -62,7 +62,7 @@ export const EarlyAccessDialog = ({
           ) : (
             <SimpleDialogActions
               secondary={{
-                action: translate("cancel"),
+                action: translate("dialog.cancel"),
                 onClick: closeDialog,
               }}
             />

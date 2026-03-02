@@ -94,7 +94,7 @@ export const FirstScenarioDialog = ({
           {translate("scenarios.firstScenario.createButton")}
         </Button>
         <Button variant="default" onClick={onClose}>
-          {translate("cancel")}
+          {translate("dialog.cancel")}
         </Button>
       </DialogButtons>
     </DialogContainer>
