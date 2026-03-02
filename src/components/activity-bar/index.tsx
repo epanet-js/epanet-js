@@ -39,7 +39,7 @@ export const ActivityBar = memo(function ActivityBarInner() {
   return (
     <div
       style={{ width: ACTIVITY_BAR_WIDTH }}
-      className="flex-none flex flex-col bg-gray-100 dark:bg-gray-900 border-r border-gray-200 dark:border-black"
+      className="flex-none flex flex-col bg-gray-100 dark:bg-gray-900"
     >
       {PANELS.map((panel) => {
         const isActive = splits.leftOpen && splits.activeLeftPanel === panel.id;
