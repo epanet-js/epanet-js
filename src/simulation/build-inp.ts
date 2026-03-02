@@ -792,7 +792,7 @@ const appendValve = (
 
   const linkId = idMap.linkId(valve);
   const commentPrefix = !valve.isActive ? ";" : "";
-  const valveCurveId = valve.curveId ? idMap.curveId(valve.curveId) : "*";
+  const valveCurveId = valve.curveId ? idMap.curveId(valve.curveId) : "";
 
   const valveData = [
     linkId,

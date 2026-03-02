@@ -5,6 +5,7 @@ import {
   buildFcvSvg,
   buildGpvSvg,
   buildPbvSvg,
+  buildPcvSvg,
   buildPrvSvg,
   buildPsvSvg,
   buildPumpSvg,
@@ -44,6 +45,10 @@ export type IconId =
   | "valve-pbv-open"
   | "valve-pbv-closed"
   | "valve-pbv-disabled"
+  | "valve-pcv-active"
+  | "valve-pcv-open"
+  | "valve-pcv-closed"
+  | "valve-pcv-disabled"
   | "pipe-cv-open"
   | "pipe-cv-closed"
   | "pipe-cv-disabled"
@@ -284,6 +289,42 @@ const buildIconUrls = (): IconUrl[] => {
       id: "valve-pbv-disabled",
       url: urlFor(
         buildPbvSvg({
+          triangleColor: colors.gray500,
+          fillColor: colors.gray300,
+        }),
+      ),
+    },
+    {
+      id: "valve-pcv-active",
+      url: urlFor(
+        buildPcvSvg({
+          triangleColor: colors.green800,
+          fillColor: colors.green300,
+        }),
+      ),
+    },
+    {
+      id: "valve-pcv-open",
+      url: urlFor(
+        buildPcvSvg({
+          triangleColor: colors.gray700,
+          fillColor: colors.gray300,
+        }),
+      ),
+    },
+    {
+      id: "valve-pcv-closed",
+      url: urlFor(
+        buildPcvSvg({
+          triangleColor: colors.red700,
+          fillColor: colors.red300,
+        }),
+      ),
+    },
+    {
+      id: "valve-pcv-disabled",
+      url: urlFor(
+        buildPcvSvg({
           triangleColor: colors.gray500,
           fillColor: colors.gray300,
         }),
