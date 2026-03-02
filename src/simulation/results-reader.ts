@@ -41,6 +41,7 @@ export type TankSimulation = {
 
 export type ReservoirSimulation = {
   type: "reservoir";
+  pressure: number;
   head: number;
 };
 

@@ -262,7 +262,7 @@ export type SimulationData = {
     number,
     Partial<{ pressure: number; head: number; level: number; volume: number }>
   >;
-  reservoirs?: Record<number, Partial<{ head: number }>>;
+  reservoirs?: Record<number, Partial<{ pressure: number; head: number }>>;
 };
 
 export const createMockResultsReader = (
@@ -329,6 +329,7 @@ export const createMockResultsReader = (
     if (!sim) return null;
     return {
       type: "reservoir",
+      pressure: sim.pressure ?? 0,
       head: sim.head ?? 0,
     };
   },

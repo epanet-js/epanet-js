@@ -43,7 +43,7 @@ function pressureToLevel(
 
 export type JunctionProperty = "demand" | "head" | "pressure" | "quality";
 export type TankProperty = "head" | "pressure" | "level" | "volume";
-export type ReservoirProperty = "head";
+export type ReservoirProperty = "head" | "pressure";
 export type PipeProperty = "flow" | "velocity" | "headloss" | "status";
 export type PumpProperty = "flow" | "headloss" | "status";
 export type ValveProperty =
@@ -829,6 +829,7 @@ class TimestepResultsReader implements ResultsReader {
 
     return {
       type: "reservoir",
+      pressure: nodeData.pressure,
       head: nodeData.head,
     };
   }

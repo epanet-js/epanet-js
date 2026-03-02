@@ -58,7 +58,10 @@ const QUICK_GRAPH_PROPERTIES: {
     { value: "pressure", labelKey: "pressure", quantityKey: "pressure" },
     { value: "head", labelKey: "head", quantityKey: "head" },
   ],
-  reservoir: [{ value: "head", labelKey: "head", quantityKey: "head" }],
+  reservoir: [
+    { value: "pressure", labelKey: "pressure", quantityKey: "pressure" },
+    { value: "head", labelKey: "head", quantityKey: "head" },
+  ],
 };
 
 export const useShowQuickGraph = () => {

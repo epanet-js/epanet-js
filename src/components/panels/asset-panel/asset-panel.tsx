@@ -814,6 +814,7 @@ const ReservoirEditor = ({
   const simulation = useSimulation();
   const reservoirSimulation = simulation?.getReservoir(reservoir.id);
 
+  const simPressure = reservoirSimulation?.pressure ?? null;
   const simHead = reservoirSimulation?.head ?? null;
 
   return (
@@ -854,6 +855,13 @@ const ReservoirEditor = ({
         />
       </Section>
       <Section title={translate("simulationResults")}>
+        <QuantityRow
+          name="pressure"
+          value={simPressure}
+          unit={quantitiesMetadata.getUnit("pressure")}
+          decimals={quantitiesMetadata.getDecimals("pressure")}
+          readOnly={true}
+        />
         <QuantityRow
           name="head"
           value={simHead}
