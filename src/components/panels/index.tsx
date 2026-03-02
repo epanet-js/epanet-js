@@ -5,6 +5,7 @@ import {
   TabOption,
   tabAtom,
   dialogAtom,
+  LeftPanelId,
 } from "src/state/jotai";
 import { useAtom, useAtomValue } from "jotai";
 import clsx from "clsx";
@@ -14,6 +15,10 @@ import { DefaultErrorBoundary } from "src/components/elements";
 import { useTranslate } from "src/hooks/use-translate";
 import { MapStylingEditor } from "./map-styling-editor";
 import { NetworkReview } from "./network-review";
+import { ActivityBar, ACTIVITY_BAR_WIDTH } from "src/components/activity-bar";
+import { SelectionListPanel } from "./selection-list";
+import { ThemesPanel } from "./themes";
+import { ScenariosPanel } from "./scenarios";
 
 function Tab({
   onClick,
@@ -150,17 +155,45 @@ export const Panel = memo(function PanelInner() {
   );
 });
 
+const LeftPanelContent = memo(function LeftPanelContentInner({
+  activePanel,
+}: {
+  activePanel: LeftPanelId;
+}) {
+  switch (activePanel) {
+    case "networkReview":
+      return <NetworkReview />;
+    case "selection":
+      return <SelectionListPanel />;
+    case "themes":
+      return <ThemesPanel />;
+    case "scenarios":
+      return <ScenariosPanel />;
+  }
+});
+
 export const LeftSidePanel = memo(function LeftSidePanelInner() {
   const splits = useAtomValue(splitsAtom);
-  if (!splits.leftOpen) return null;
+  const totalWidth = splits.leftOpen
+    ? ACTIVITY_BAR_WIDTH + splits.left
+    : ACTIVITY_BAR_WIDTH;
+
   return (
     <div
-      style={{
-        width: splits.left,
-      }}
-      className="bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-900 relative"
+      style={{ width: totalWidth }}
+      className="flex flex-none bg-white dark:bg-gray-800"
     >
-      <NetworkReview />
+      <ActivityBar />
+      {splits.leftOpen && (
+        <div
+          style={{ width: splits.left }}
+          className="flex-none relative border-r border-gray-200 dark:border-gray-900"
+        >
+          <DefaultErrorBoundary>
+            <LeftPanelContent activePanel={splits.activeLeftPanel} />
+          </DefaultErrorBoundary>
+        </div>
+      )}
     </div>
   );
 });

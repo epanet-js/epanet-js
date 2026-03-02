@@ -197,6 +197,12 @@ export const MIN_SPLITS = {
 } as const;
 export const MAX_SPLIT = 640;
 
+export type LeftPanelId =
+  | "networkReview"
+  | "selection"
+  | "themes"
+  | "scenarios";
+
 export interface Splits {
   layout: PanelLayout;
   bottom: number | string;
@@ -204,6 +210,7 @@ export interface Splits {
   right: number;
   leftOpen: boolean;
   left: number;
+  activeLeftPanel: LeftPanelId;
 }
 
 export type PanelLayout = "AUTO" | "FLOATING" | "VERTICAL";
@@ -215,6 +222,7 @@ export const defaultSplits: Splits = {
   right: 320,
   leftOpen: false,
   left: 300,
+  activeLeftPanel: "networkReview",
 };
 export const splitsAtom = atom<Splits>(defaultSplits);
 

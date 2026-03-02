@@ -192,7 +192,6 @@ export function EpanetApp() {
           {layout === "HORIZONTAL" && (
             <>
               <SidePanel />
-              <Resizer side="left" isToggleAllowed={false} />
               <Resizer side="right" isToggleAllowed={false} />
             </>
           )}
