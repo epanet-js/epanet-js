@@ -69,6 +69,10 @@ import {
   useToggleSidePanel,
 } from "src/commands/toggle-side-panel";
 import {
+  toggleBottomSidebarShortcut,
+  useToggleBottomSidebar,
+} from "src/commands/toggle-bottom-sidebar";
+import {
   useCycleSelectionMode,
   selectionModeShortcut,
 } from "src/commands/set-area-selection-mode";
@@ -123,6 +127,7 @@ export const CommandShortcuts = () => {
   const simulation = useAtomValue(simulationAtom);
   const toggleNetworkReview = useToggleNetworkReview();
   const toggleSidePanel = useToggleSidePanel();
+  const toggleBottomSidebar = useToggleBottomSidebar();
   const cycleSelectionMode = useCycleSelectionMode();
   const isTraceSelectEnabled = useFeatureFlag("FLAG_TRACE_SELECT");
   const cycleTraceSelectMode = useCycleTraceSelectMode();
@@ -389,6 +394,16 @@ export const CommandShortcuts = () => {
     },
     [toggleSidePanel],
     "Toggle side panel",
+  );
+
+  useHotkeys(
+    toggleBottomSidebarShortcut,
+    (e) => {
+      e.preventDefault();
+      toggleBottomSidebar();
+    },
+    [toggleBottomSidebar],
+    "Toggle bottom sidebar",
   );
 
   useHotkeys(

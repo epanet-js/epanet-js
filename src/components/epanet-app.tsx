@@ -15,11 +15,22 @@ import React, {
   useState,
 } from "react";
 import { Resizer, useWindowResizeSplits } from "src/components/resizer";
-import { BottomPanel, LeftSidePanel, SidePanel } from "src/components/panels";
+import {
+  BottomPanel,
+  HorizontalBottomSidebar,
+  LeftSidePanel,
+  SidePanel,
+} from "src/components/panels";
 import { MapContext } from "src/map";
 import Notifications from "src/components/notifications";
-import { atom, useAtom } from "jotai";
-import { defaultSplits, dialogAtom, splitsAtom } from "src/state/jotai";
+import { atom, useAtom, useAtomValue } from "jotai";
+import {
+  defaultSplits,
+  dialogAtom,
+  splitsAtom,
+  bottomSidebarOpenAtom,
+  bottomSidebarMaximizedAtom,
+} from "src/state/jotai";
 import clsx from "clsx";
 import {
   DndContext,
@@ -113,6 +124,9 @@ export function EpanetApp() {
 
   const layout: ResolvedLayout = isSmOrLarger ? "HORIZONTAL" : "VERTICAL";
 
+  const bottomSidebarOpen = useAtomValue(bottomSidebarOpenAtom);
+  const bottomSidebarMaximized = useAtomValue(bottomSidebarMaximizedAtom);
+
   const sensor = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -171,24 +185,36 @@ export function EpanetApp() {
           )}
         >
           {layout === "HORIZONTAL" && <LeftSidePanel />}
-          <DndContext
-            sensors={sensor}
-            modifiers={[restrictToWindowEdges]}
-            onDragEnd={(end) => {
-              setPersistentTransform((transform) => {
-                return {
-                  x: transform.x + end.delta.x,
-                  y: transform.y + end.delta.y,
-                };
-              });
-            }}
+          <div
+            className="flex flex-col flex-auto relative"
+            data-sidebar={
+              layout === "HORIZONTAL" && bottomSidebarOpen
+                ? bottomSidebarMaximized
+                  ? "maximized"
+                  : "open"
+                : undefined
+            }
           >
-            <DraggableMap
-              persistentTransform={persistentTransform}
-              setMap={setMap}
-              layout={layout}
-            />
-          </DndContext>
+            <DndContext
+              sensors={sensor}
+              modifiers={[restrictToWindowEdges]}
+              onDragEnd={(end) => {
+                setPersistentTransform((transform) => {
+                  return {
+                    x: transform.x + end.delta.x,
+                    y: transform.y + end.delta.y,
+                  };
+                });
+              }}
+            >
+              <DraggableMap
+                persistentTransform={persistentTransform}
+                setMap={setMap}
+                layout={layout}
+              />
+            </DndContext>
+            {layout === "HORIZONTAL" && <HorizontalBottomSidebar />}
+          </div>
           {layout === "HORIZONTAL" && (
             <>
               <SidePanel />

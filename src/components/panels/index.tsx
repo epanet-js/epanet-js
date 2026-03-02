@@ -5,8 +5,11 @@ import {
   TabOption,
   tabAtom,
   dialogAtom,
+  bottomSidebarOpenAtom,
+  bottomSidebarMaximizedAtom,
 } from "src/state/jotai";
-import { useAtom, useAtomValue } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { CloseIcon, Maximize2Icon, Minimize2Icon } from "src/icons";
 import clsx from "clsx";
 
 import FeatureEditor from "src/components/panels/feature-editor";
@@ -161,6 +164,44 @@ export const LeftSidePanel = memo(function LeftSidePanelInner() {
       className="bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-900 relative"
     >
       <NetworkReview />
+    </div>
+  );
+});
+
+export const HorizontalBottomSidebar = memo(function HorizontalBottomSidebar() {
+  const open = useAtomValue(bottomSidebarOpenAtom);
+  const [maximized, setMaximized] = useAtom(bottomSidebarMaximizedAtom);
+  const setOpen = useSetAtom(bottomSidebarOpenAtom);
+
+  if (!open) return null;
+
+  return (
+    <div
+      className={clsx(
+        "absolute left-0 right-0 bottom-0",
+        "bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-900",
+        maximized ? "top-0" : "h-[33dvh] max-h-[400px]",
+      )}
+    >
+      <div className="absolute top-1 right-1 flex items-center gap-0.5">
+        <button
+          aria-label={maximized ? "minimize-2" : "maximize-2"}
+          onClick={() => setMaximized((v) => !v)}
+          className="p-1 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200"
+        >
+          {maximized ? <Minimize2Icon /> : <Maximize2Icon />}
+        </button>
+        <button
+          aria-label="close"
+          onClick={() => {
+            setMaximized(false);
+            setOpen(false);
+          }}
+          className="p-1 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200"
+        >
+          <CloseIcon />
+        </button>
+      </div>
     </div>
   );
 });

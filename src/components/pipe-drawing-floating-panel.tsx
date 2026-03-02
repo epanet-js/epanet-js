@@ -1,5 +1,7 @@
 import { useAtom, useAtomValue } from "jotai";
 import {
+  bottomSidebarMaximizedAtom,
+  bottomSidebarOpenAtom,
   dataAtom,
   pipeDrawingDefaultsAtom,
   Mode,
@@ -27,7 +29,10 @@ export const PipeDrawingFloatingPanel = () => {
   const lastDiameterChange = useRef<number>(0);
   const lastRoughnessChange = useRef<number>(0);
 
-  if (currentMode !== Mode.DRAW_PIPE) {
+  const bottomSidebarOpen = useAtomValue(bottomSidebarOpenAtom);
+  const bottomSidebarMaximized = useAtomValue(bottomSidebarMaximizedAtom);
+
+  if (currentMode !== Mode.DRAW_PIPE || bottomSidebarMaximized) {
     return null;
   }
 
@@ -83,6 +88,11 @@ export const PipeDrawingFloatingPanel = () => {
                  border border-gray-200 dark:border-gray-700
                  hidden md:flex flex-col lg:flex-row gap-x-6 gap-y-1
                  "
+      style={
+        bottomSidebarOpen
+          ? { bottom: "calc(min(33dvh, 400px) + 0.5rem)" }
+          : undefined
+      }
     >
       <div className="flex gap-x-2 items-center">
         <label className="flex-grow text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">

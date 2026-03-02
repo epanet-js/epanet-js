@@ -29,6 +29,18 @@
   .mapboxgl-canvas {
     cursor: inherit !important;
   }
+
+  /* Shift controls above the open bottom sidebar */
+  [data-sidebar="open"] .mapboxgl-ctrl-bottom-right,
+  [data-sidebar="open"] .mapboxgl-ctrl-bottom-left {
+    bottom: min(33dvh, 400px) !important;
+  }
+
+  /* Hide controls when the bottom sidebar is fully maximized */
+  [data-sidebar="maximized"] .mapboxgl-ctrl-bottom-right,
+  [data-sidebar="maximized"] .mapboxgl-ctrl-bottom-left {
+    display: none !important;
+  }
 }
 
 body {

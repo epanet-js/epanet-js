@@ -220,6 +220,9 @@ export const splitsAtom = atom<Splits>(defaultSplits);
 
 export const showPanelBottomAtom = atom<boolean>(true);
 
+export const bottomSidebarOpenAtom = atom<boolean>(false);
+export const bottomSidebarMaximizedAtom = atom<boolean>(false);
+
 export const currentZoomAtom = atom<number>(DEFAULT_ZOOM);
 
 // ----------------------------------------------------------------------------

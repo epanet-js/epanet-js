@@ -50,8 +50,11 @@ import {
   Menu,
   MousePointer2,
   MousePointerClick,
+  PanelBottom,
   PanelLeft,
   PanelRight,
+  Maximize2,
+  Minimize2,
   PencilLine,
   Pin,
   PinOff,
@@ -164,8 +167,11 @@ export const CustomerPointIcon = icon(House);
 export const ImportCustomerPointsIcon = icon(HousePlus);
 export const UnavailableIcon = icon(CircleSlash2);
 export const MultipleAssetsIcon = icon(SquareStack);
+export const PanelBottomIcon = icon(PanelBottom);
 export const PanelLeftIcon = icon(PanelLeft);
 export const PanelRightIcon = icon(PanelRight);
+export const Maximize2Icon = icon(Maximize2);
+export const Minimize2Icon = icon(Minimize2);
 export const MultipleValuesIcon = icon(SquareStack);
 export const JunctionIcon = icon(Circle);
 export const ReservoirIcon = icon(Triangle);
@@ -223,6 +229,7 @@ export { CustomTypeOffIcon as TypeOffIcon } from "./custom-icons/type-off-icon";
 export { CustomValveIcon as ValveIcon } from "./custom-icons/valve-icon";
 export { CustomPipesCrossingIcon as PipesCrossinIcon } from "./custom-icons/pipes-crossing-icon";
 export { CustomProximityCheckIcon as ProximityCheckIcon } from "./custom-icons/proximity-check-icon";
+export { CustomPanelBottomActive as PanelBottomActiveIcon } from "./custom-icons/panel-bottom-active";
 export { CustomPanelLeftActive as PanelLeftActiveIcon } from "./custom-icons/panel-left-active";
 export { CustomPanelRightActive as PanelRightActiveIcon } from "./custom-icons/panel-right-active";
 export { CustomPolygonalSelection as PolygonalSelectionIcon } from "./custom-icons/polygonal-selection";

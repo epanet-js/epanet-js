@@ -3,6 +3,7 @@ import { useBreakpoint } from "src/hooks/use-breakpoint";
 import clsx from "clsx";
 import { useAtom, useAtomValue } from "jotai";
 import {
+  bottomSidebarMaximizedAtom,
   dialogAtom,
   ephemeralStateAtom,
   hideHintsAtom,
@@ -96,8 +97,9 @@ export function Hints() {
   const ephemeralState = useAtomValue(ephemeralStateAtom);
   const show = useBreakpoint("lg");
   const isSnapshotLocked = useIsSnapshotLocked();
+  const bottomSidebarMaximized = useAtomValue(bottomSidebarMaximizedAtom);
 
-  if (!show || !!dialogState) {
+  if (!show || !!dialogState || bottomSidebarMaximized) {
     return null;
   }
 

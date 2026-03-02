@@ -9,18 +9,21 @@ import {
   SaveAllIcon,
   RunSimulationIcon,
   ImportCustomerPointsIcon,
+  PanelBottomIcon,
+  PanelBottomActiveIcon,
   PanelLeftIcon,
   PanelLeftActiveIcon,
   PanelRightActiveIcon,
   PanelRightIcon,
 } from "src/icons";
 import Modes from "../modes";
-import { useAtomValue } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import {
   simulationAtom,
   selectedFeaturesAtom,
   selectionAtom,
   splitsAtom,
+  bottomSidebarOpenAtom,
 } from "src/state/jotai";
 import {
   saveAsShortcut,
@@ -52,6 +55,7 @@ import {
   toggleSidePanelShortcut,
   useToggleSidePanel,
 } from "src/commands/toggle-side-panel";
+import { toggleBottomSidebarShortcut } from "src/commands/toggle-bottom-sidebar";
 
 export const Toolbar = ({
   readonly = false,
@@ -228,6 +232,9 @@ const LayoutActions = () => {
   const { leftOpen, rightOpen } = useAtomValue(splitsAtom);
   const toggleNetworkReview = useToggleNetworkReview();
   const toggleSidePanel = useToggleSidePanel();
+  const [bottomSidebarOpen, setBottomSidebarOpen] = useAtom(
+    bottomSidebarOpenAtom,
+  );
 
   const leftPanelIcon = leftOpen ? <PanelLeftActiveIcon /> : <PanelLeftIcon />;
 
@@ -235,6 +242,12 @@ const LayoutActions = () => {
     <PanelRightActiveIcon />
   ) : (
     <PanelRightIcon />
+  );
+
+  const bottomSidebarIcon = bottomSidebarOpen ? (
+    <PanelBottomActiveIcon />
+  ) : (
+    <PanelBottomIcon />
   );
 
   return (
@@ -258,6 +271,16 @@ const LayoutActions = () => {
         readOnlyHotkey={toggleSidePanelShortcut}
       >
         {rightPanelIcon}
+      </MenuAction>
+      <MenuAction
+        label={translate("toggleBottomSidebar")}
+        role="button"
+        onClick={() => {
+          setBottomSidebarOpen((v) => !v);
+        }}
+        readOnlyHotkey={toggleBottomSidebarShortcut}
+      >
+        {bottomSidebarIcon}
       </MenuAction>
     </>
   );
