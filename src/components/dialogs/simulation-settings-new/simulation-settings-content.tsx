@@ -114,24 +114,15 @@ export const TimesSection = () => {
       </h3>
 
       <div className="flex flex-col gap-4">
-        <SettingsRow label={translate("simulationSettings.timeAnalysisMode")}>
-          <div className="w-56">
-            <Selector
-              ariaLabel={translate("simulationSettings.timeAnalysisMode")}
-              options={simulationModeOptions}
-              selected={values.simulationMode}
-              onChange={handleSimulationModeChange}
-              disabled={readonly}
-              styleOptions={{
-                border: true,
-                textSize: "text-sm",
-                paddingY: 2,
-              }}
-            />
-          </div>
-        </SettingsRow>
+        <SelectorSetting
+          label={translate("simulationSettings.timeAnalysisMode")}
+          options={simulationModeOptions}
+          selected={values.simulationMode}
+          onChange={handleSimulationModeChange}
+          disabled={readonly}
+        />
 
-        <TimingField
+        <TimeSetting
           label={translate("simulationSettings.totalDuration")}
           description={translate("simulationSettings.totalDurationDesc")}
           value={values.duration}
@@ -141,7 +132,7 @@ export const TimesSection = () => {
           error={fieldErrors.duration}
         />
 
-        <TimingField
+        <TimeSetting
           label={translate("simulationSettings.hydraulicTimestep")}
           description={translate("simulationSettings.hydraulicTimestepDesc")}
           value={values.hydraulicTimestep}
@@ -151,7 +142,7 @@ export const TimesSection = () => {
           error={fieldErrors.hydraulicTimestep}
         />
 
-        <TimingField
+        <TimeSetting
           label={translate("simulationSettings.reportingTimestep")}
           description={translate("simulationSettings.reportingTimestepDesc")}
           value={values.reportTimestep}
@@ -161,7 +152,7 @@ export const TimesSection = () => {
           error={fieldErrors.reportTimestep}
         />
 
-        <TimingField
+        <TimeSetting
           label={translate("simulationSettings.patternTimestep")}
           description={translate("simulationSettings.patternTimestepDesc")}
           value={values.patternTimestep}
@@ -171,7 +162,7 @@ export const TimesSection = () => {
           error={fieldErrors.patternTimestep}
         />
 
-        <TimingField
+        <TimeSetting
           label={translate("simulationSettings.qualityTimestep")}
           description={translate("simulationSettings.qualityTimestepDesc")}
           value={values.qualityTimestep}
@@ -181,7 +172,7 @@ export const TimesSection = () => {
           error={fieldErrors.qualityTimestep}
         />
 
-        <TimingField
+        <TimeSetting
           label={translate("simulationSettings.ruleTimestep")}
           description={translate("simulationSettings.ruleTimestepDesc")}
           value={values.ruleTimestep}
@@ -227,90 +218,47 @@ export const DemandsSection = () => {
           {translate("simulationSettings.demandsCalculation")}
         </div>
 
-        <SettingsRow
+        <ValueSetting
           label={translate("simulationSettings.globalDemandMultiplier")}
           description={translate(
             "simulationSettings.globalDemandMultiplierDesc",
           )}
-        >
-          <div className="w-24">
-            <NumericField
-              label={translate("simulationSettings.globalDemandMultiplier")}
-              displayValue={String(values.globalDemandMultiplier)}
-              onChangeValue={(v) => setFieldValue("globalDemandMultiplier", v)}
-              isNullable={false}
-              styleOptions={{ textSize: "xs" }}
-            />
-          </div>
-        </SettingsRow>
+          value={values.globalDemandMultiplier}
+          onChange={(v) => setFieldValue("globalDemandMultiplier", v)}
+        />
 
-        <SettingsRow
+        <SelectorSetting
           label={translate("simulationSettings.demandModel")}
           description={translate("simulationSettings.demandModelDesc")}
-        >
-          <div className="w-56">
-            <Selector
-              ariaLabel={translate("simulationSettings.demandModel")}
-              options={demandModelOptions}
-              selected={values.demandModel}
-              onChange={(v) => setFieldValue("demandModel", v)}
-              disabled={readonly}
-              styleOptions={{
-                border: true,
-                textSize: "text-sm",
-                paddingY: 2,
-              }}
-            />
-          </div>
-        </SettingsRow>
+          options={demandModelOptions}
+          selected={values.demandModel}
+          onChange={(v) => setFieldValue("demandModel", v)}
+          disabled={readonly}
+        />
 
-        <SettingsRow
+        <ValueSetting
           label={translate("simulationSettings.minimumPressure")}
           description={translate("simulationSettings.minimumPressureDesc")}
-        >
-          <div className="w-24">
-            <NumericField
-              label={translate("simulationSettings.minimumPressure")}
-              displayValue={String(values.minimumPressure)}
-              onChangeValue={(v) => setFieldValue("minimumPressure", v)}
-              isNullable={false}
-              disabled={!isPDA || readonly}
-              styleOptions={{ textSize: "xs" }}
-            />
-          </div>
-        </SettingsRow>
+          value={values.minimumPressure}
+          onChange={(v) => setFieldValue("minimumPressure", v)}
+          disabled={!isPDA || readonly}
+        />
 
-        <SettingsRow
+        <ValueSetting
           label={translate("simulationSettings.requiredPressure")}
           description={translate("simulationSettings.requiredPressureDesc")}
-        >
-          <div className="w-24">
-            <NumericField
-              label={translate("simulationSettings.requiredPressure")}
-              displayValue={String(values.requiredPressure)}
-              onChangeValue={(v) => setFieldValue("requiredPressure", v)}
-              isNullable={false}
-              disabled={!isPDA || readonly}
-              styleOptions={{ textSize: "xs" }}
-            />
-          </div>
-        </SettingsRow>
+          value={values.requiredPressure}
+          onChange={(v) => setFieldValue("requiredPressure", v)}
+          disabled={!isPDA || readonly}
+        />
 
-        <SettingsRow
+        <ValueSetting
           label={translate("simulationSettings.pressureExponent")}
           description={translate("simulationSettings.pressureExponentDesc")}
-        >
-          <div className="w-24">
-            <NumericField
-              label={translate("simulationSettings.pressureExponent")}
-              displayValue={String(values.pressureExponent)}
-              onChangeValue={(v) => setFieldValue("pressureExponent", v)}
-              isNullable={false}
-              disabled={!isPDA || readonly}
-              styleOptions={{ textSize: "xs" }}
-            />
-          </div>
-        </SettingsRow>
+          value={values.pressureExponent}
+          onChange={(v) => setFieldValue("pressureExponent", v)}
+          disabled={!isPDA || readonly}
+        />
 
         <div
           data-section-id="demands-emitters"
@@ -319,21 +267,13 @@ export const DemandsSection = () => {
           {translate("simulationSettings.demandsEmitters")}
         </div>
 
-        <SettingsRow
+        <ValueSetting
           label={translate("simulationSettings.emitterExponent")}
           description={translate("simulationSettings.emitterExponentDesc")}
-        >
-          <div className="w-24">
-            <NumericField
-              label={translate("simulationSettings.emitterExponent")}
-              displayValue={String(values.emitterExponent)}
-              onChangeValue={(v) => setFieldValue("emitterExponent", v)}
-              isNullable={false}
-              disabled={readonly}
-              styleOptions={{ textSize: "xs" }}
-            />
-          </div>
-        </SettingsRow>
+          value={values.emitterExponent}
+          onChange={(v) => setFieldValue("emitterExponent", v)}
+          disabled={readonly}
+        />
       </div>
     </div>
   );
@@ -361,7 +301,7 @@ export const SettingsRow = ({
 
 type FieldError = "required" | "positive" | null;
 
-const TimingField = ({
+const TimeSetting = ({
   label,
   description,
   value,
@@ -409,6 +349,62 @@ const TimingField = ({
     </SettingsRow>
   );
 };
+
+const ValueSetting = ({
+  label,
+  description,
+  value,
+  disabled = false,
+  onChange,
+}: {
+  label: string;
+  description: string;
+  value: number;
+  disabled?: boolean;
+  onChange: (value: number) => void;
+}) => (
+  <SettingsRow label={label} description={description}>
+    <div className="w-24">
+      <NumericField
+        label={label}
+        displayValue={String(value)}
+        onChangeValue={onChange}
+        isNullable={false}
+        disabled={disabled}
+        styleOptions={{ textSize: "xs" }}
+      />
+    </div>
+  </SettingsRow>
+);
+
+const SelectorSetting = <T extends string>({
+  label,
+  description,
+  options,
+  selected,
+  disabled = false,
+  onChange,
+}: {
+  label: string;
+  description?: string;
+  options: { label: string; value: T }[];
+  selected: T;
+  disabled?: boolean;
+  onChange: (value: T) => void;
+}) => (
+  <SettingsRow label={label} description={description}>
+    <div className="w-56">
+      <Selector
+        ariaLabel={label}
+        options={options}
+        selected={selected}
+        onChange={onChange}
+        disabled={disabled}
+        styleOptions={{ border: true, textSize: "text-sm", paddingY: 2 }}
+      />
+    </div>
+  </SettingsRow>
+);
 
 const getFieldError = (
   isEPS: boolean,
