@@ -15,7 +15,7 @@ import { DefaultErrorBoundary } from "src/components/elements";
 import { useTranslate } from "src/hooks/use-translate";
 import { MapStylingEditor } from "./map-styling-editor";
 import { NetworkReview } from "./network-review";
-import { ActivityBar, ACTIVITY_BAR_WIDTH } from "src/components/activity-bar";
+import { ActivityBar } from "src/components/activity-bar";
 import { SelectionListPanel } from "./selection-list";
 import { ThemesPanel } from "./themes";
 import { ScenariosPanel } from "./scenarios";
@@ -105,10 +105,8 @@ export const SidePanel = memo(function SidePanelInner() {
   if (!splits.rightOpen) return null;
   return (
     <div
-      style={{
-        width: splits.right,
-      }}
-      className="bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-900 relative"
+      style={{ width: splits.right }}
+      className="absolute right-0 top-0 bottom-0 z-10 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-900"
     >
       <Panel />
     </div>
@@ -174,15 +172,9 @@ const LeftPanelContent = memo(function LeftPanelContentInner({
 
 export const LeftSidePanel = memo(function LeftSidePanelInner() {
   const splits = useAtomValue(splitsAtom);
-  const totalWidth = splits.leftOpen
-    ? ACTIVITY_BAR_WIDTH + splits.left
-    : ACTIVITY_BAR_WIDTH;
 
   return (
-    <div
-      style={{ width: totalWidth }}
-      className="flex flex-none bg-white dark:bg-gray-800"
-    >
+    <div className="absolute left-0 top-0 bottom-0 z-10 flex bg-white dark:bg-gray-800">
       <ActivityBar />
       {splits.leftOpen && (
         <div

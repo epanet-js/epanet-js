@@ -18,7 +18,7 @@ import { Resizer, useWindowResizeSplits } from "src/components/resizer";
 import { BottomPanel, LeftSidePanel, SidePanel } from "src/components/panels";
 import { MapContext } from "src/map";
 import Notifications from "src/components/notifications";
-import { atom, useAtom } from "jotai";
+import { atom, useAtom, useAtomValue } from "jotai";
 import { defaultSplits, dialogAtom, splitsAtom } from "src/state/jotai";
 import clsx from "clsx";
 import {
@@ -226,6 +226,7 @@ function DraggableMap({
   const { setNodeRef, transform } = useDraggable({
     id: "map",
   });
+  const splits = useAtomValue(splitsAtom);
 
   useMapResize(containerRef.current, layout);
 
@@ -234,21 +235,27 @@ function DraggableMap({
       className={clsx(
         layout === "FLOATING"
           ? "overflow-hidden absolute w-64 h-64 flex z-50 rounded border border-gray-500 shadow-lg"
-          : "relative flex-auto flex flex-col",
+          : layout === "HORIZONTAL"
+            ? "absolute inset-0 isolate flex flex-col"
+            : "relative flex-auto flex flex-col",
       )}
       ref={(elem) => {
         setNodeRef(elem);
         containerRef.current = elem;
       }}
       style={
-        layout === "FLOATING"
-          ? {
-              resize: "both",
-              transform: CSS.Transform.toString(transform),
-              top: persistentTransform.y,
-              left: persistentTransform.x,
-            }
-          : {}
+        {
+          ...(layout === "FLOATING"
+            ? {
+                resize: "both",
+                transform: CSS.Transform.toString(transform),
+                top: persistentTransform.y,
+                left: persistentTransform.x,
+              }
+            : {}),
+          "--sidebar-right": splits.rightOpen ? `${splits.right}px` : "0px",
+          "--sidebar-left": splits.leftOpen ? `${44 + splits.left}px` : "44px",
+        } as React.CSSProperties
       }
     >
       <div className="flex-auto relative">

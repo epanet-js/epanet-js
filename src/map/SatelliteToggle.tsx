@@ -33,10 +33,11 @@ export const SatelliteToggle = () => {
   return (
     <div
       className={clsx(
-        "absolute bottom-[2rem] left-3 w-16 h-16 sm:w-16 sm:h-16",
+        "absolute bottom-[2rem] w-16 h-16 sm:w-16 sm:h-16",
         "bg-white rounded border-white border-2 shadow-md cursor-pointer",
         buttonThumbnailClass,
       )}
+      style={{ left: "calc(var(--sidebar-left, 44px) + 12px)" }}
       onClick={() => {
         userTracking.capture({
           name: "satelliteView.toggled",
