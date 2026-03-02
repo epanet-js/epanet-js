@@ -60,6 +60,7 @@ import {
   TextRow,
   SwitchRow,
   ConnectedCustomersRow,
+  NestedSection,
 } from "./ui-components";
 import {
   BlockComparisonField,
@@ -1504,7 +1505,7 @@ const VariableSpeedField = ({
         readOnly={readOnly}
       />
       {selectedVariableSpeed === VARIABLE_SPEED_PATTERN_BASED && (
-        <div className="bg-gray-50 p-2 py-1 mt-1 -mr-2 border-l-2 border-gray-400 rounded-sm">
+        <NestedSection>
           <SelectRow
             name="speedPattern"
             selected={pump.speedPatternId ?? null}
@@ -1516,7 +1517,7 @@ const VariableSpeedField = ({
             onChange={handleSpeedPatternChange}
             readOnly={readOnly}
           />
-        </div>
+        </NestedSection>
       )}
     </BlockComparisonField>
   );

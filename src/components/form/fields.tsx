@@ -1,11 +1,13 @@
 import clsx from "clsx";
-import { useState } from "react";
+import { createContext, useContext, useState } from "react";
 import * as C from "@radix-ui/react-collapsible";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import { ChevronDownIcon, ChevronRightIcon } from "src/icons";
 import { FooterResizer, useBigScreen } from "src/components/resizer";
 import { TContent, StyledTooltipArrow } from "src/components/elements";
 import { useTranslate } from "src/hooks/use-translate";
+
+export const NestedSectionContext = createContext(false);
 
 const ComparisonTooltip = ({
   hasChanged,
@@ -44,6 +46,8 @@ export const BlockComparisonField = ({
   baseDisplayValue?: React.ReactNode;
   children: React.ReactNode;
 }) => {
+  const isNested = useContext(NestedSectionContext);
+
   return (
     <ComparisonTooltip
       hasChanged={hasChanged}
@@ -51,7 +55,12 @@ export const BlockComparisonField = ({
     >
       <div className="relative">
         {hasChanged && (
-          <div className="absolute -left-4 top-0 bottom-0 w-1 bg-purple-500 rounded-full" />
+          <div
+            className={clsx(
+              "absolute top-0 bottom-0 w-1 bg-purple-500 rounded-full",
+              isNested ? "-left-[26px]" : "-left-4",
+            )}
+          />
         )}
         {children}
       </div>

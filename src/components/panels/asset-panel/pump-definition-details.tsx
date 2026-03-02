@@ -13,7 +13,12 @@ import {
 import { Quantities } from "src/model-metadata/quantities-spec";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { Pump, PumpDefintionType } from "src/hydraulic-model/asset-types/pump";
-import { SelectRow, QuantityRow, TextField } from "./ui-components";
+import {
+  SelectRow,
+  QuantityRow,
+  TextField,
+  NestedSection,
+} from "./ui-components";
 import type {
   PropertyComparison,
   PumpCurveComparison,
@@ -209,7 +214,7 @@ const PumpDefinitionDetailsInner = ({
         readOnly={readonly}
         onChange={handleDefinitionTypeChange}
       />
-      <div className="bg-gray-50 p-2 py-1 mt-1 -mr-2 border-l-2 border-gray-400 rounded-sm">
+      <NestedSection>
         {localDefinitionType === "power" && (
           <PowerDefinition
             power={pump.power}
@@ -235,7 +240,7 @@ const PumpDefinitionDetailsInner = ({
               onCurveChange={readonly ? undefined : handleCurvePointsChange}
             />
           )}
-      </div>
+      </NestedSection>
     </div>
   );
 

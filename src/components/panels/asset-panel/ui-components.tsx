@@ -12,8 +12,13 @@ import { PipeStatus } from "src/hydraulic-model/asset-types/pipe";
 import { PumpStatus } from "src/hydraulic-model/asset-types/pump";
 import type { PumpDefinitionMode } from "./pump-definition-details";
 import { ValveKind, ValveStatus } from "src/hydraulic-model/asset-types/valve";
+import type { TankShape } from "src/hydraulic-model/asset-types/tank";
 import { PanelActions } from "./actions";
-import { InlineField, SectionList } from "src/components/form/fields";
+import {
+  InlineField,
+  NestedSectionContext,
+  SectionList,
+} from "src/components/form/fields";
 import clsx from "clsx";
 import * as P from "@radix-ui/react-popover";
 import { StyledPopoverArrow, StyledPopoverContent } from "../../elements";
@@ -204,6 +209,7 @@ export const QuantityRow = <P extends string>({
   positiveOnly = false,
   readOnly = false,
   isNullable = true,
+  placeholder,
   comparison,
   onChange,
 }: {
@@ -214,6 +220,7 @@ export const QuantityRow = <P extends string>({
   isNullable?: boolean;
   readOnly?: boolean;
   decimals?: number;
+  placeholder?: string;
   comparison?: PropertyComparison;
   onChange?: (name: P, newValue: number, oldValue: number | null) => void;
 }) => {
@@ -257,6 +264,7 @@ export const QuantityRow = <P extends string>({
           isNullable={isNullable}
           readOnly={readOnly}
           displayValue={displayValue}
+          placeholder={placeholder}
           onChangeValue={handleChange}
           styleOptions={{
             padding: "md",
@@ -269,12 +277,21 @@ export const QuantityRow = <P extends string>({
   );
 };
 
+export const NestedSection = ({ children }: { children: React.ReactNode }) => (
+  <NestedSectionContext.Provider value={true}>
+    <div className="bg-gray-50 p-2 py-1 mt-1 -mr-2 border-l-2 border-gray-400 rounded-sm flex flex-col gap-1">
+      {children}
+    </div>
+  </NestedSectionContext.Provider>
+);
+
 type SelectRowValue =
   | PipeStatus
   | ValveKind
   | ValveStatus
   | PumpDefinitionMode
   | PumpStatus
+  | TankShape
   | number;
 
 type SelectRowPropsBase<P extends string, T extends SelectRowValue> = {
