@@ -53,7 +53,7 @@ export const ActivityBar = memo(function ActivityBarInner() {
                 aria-pressed={isActive}
                 className={clsx(
                   "flex items-center justify-center w-full focus:outline-none",
-                  "border-l-2 transition-colors",
+                  "border-l-4 pr-1 transition-colors",
                   isActive
                     ? "border-purple-600 text-black dark:text-white bg-white dark:bg-gray-800"
                     : "border-transparent text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-800",
