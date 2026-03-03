@@ -12,7 +12,7 @@ import {
   HydraulicModel,
 } from "src/hydraulic-model";
 import { Valve } from "src/hydraulic-model/asset-types";
-import { getCurvePointsType } from "src/hydraulic-model/curves";
+import { Curves, getCurvePointsType } from "src/hydraulic-model/curves";
 import { CustomerPointsLookup } from "src/hydraulic-model/customer-points-lookup";
 import {
   CustomerPoint,
@@ -26,6 +26,7 @@ import {
   getCustomerPointDemands,
   getJunctionDemands,
 } from "src/hydraulic-model";
+import { tankMaxVolume } from "src/hydraulic-model/asset-types/tank";
 
 export type QuantityStats = {
   type: "quantity";
@@ -46,6 +47,12 @@ export type CategoryStats = {
   values: Map<string, AssetId[]>;
 };
 
+export type LiteralCategoryStats = {
+  type: "literalCategory";
+  property: string;
+  values: Map<string, AssetId[]>;
+};
+
 export type BooleanStats = {
   type: "boolean";
   property: string;
@@ -58,7 +65,11 @@ type Section =
   | "simulationResults"
   | "demands";
 
-export type AssetPropertyStats = QuantityStats | CategoryStats | BooleanStats;
+export type AssetPropertyStats =
+  | QuantityStats
+  | CategoryStats
+  | BooleanStats
+  | LiteralCategoryStats;
 
 export type AssetPropertySections = {
   [section in Section]: AssetPropertyStats[];
@@ -161,6 +172,7 @@ export const computeMultiAssetData = (
           statsMaps.tank,
           asset as Tank,
           quantitiesMetadata,
+          hydraulicModel.curves,
           simulationResults,
         );
         break;
@@ -598,6 +610,7 @@ const appendTankStats = (
   statsMap: Map<string, AssetPropertyStats>,
   tank: Tank,
   quantitiesMetadata: Quantities,
+  curves: Curves,
   simulationResults?: ResultsReader | null,
 ) => {
   const id = tank.id;
@@ -616,31 +629,43 @@ const appendTankStats = (
     quantitiesMetadata,
     id,
   );
+  if (!tank.volumeCurveId) {
+    updateQuantityStats(
+      statsMap,
+      "minLevel",
+      tank.minLevel,
+      quantitiesMetadata,
+      id,
+    );
+    updateQuantityStats(
+      statsMap,
+      "maxLevel",
+      tank.maxLevel,
+      quantitiesMetadata,
+      id,
+    );
+    updateQuantityStats(
+      statsMap,
+      "diameter",
+      tank.diameter,
+      quantitiesMetadata,
+      id,
+    );
+    updateQuantityStats(
+      statsMap,
+      "minVolume",
+      tank.minVolume,
+      quantitiesMetadata,
+      id,
+    );
+  } else {
+    const curve = curves.get(tank.volumeCurveId);
+    if (curve) updateLinkStats(statsMap, "volumeCurve", curve.label, id);
+  }
   updateQuantityStats(
     statsMap,
-    "minLevel",
-    tank.minLevel,
-    quantitiesMetadata,
-    id,
-  );
-  updateQuantityStats(
-    statsMap,
-    "maxLevel",
-    tank.maxLevel,
-    quantitiesMetadata,
-    id,
-  );
-  updateQuantityStats(
-    statsMap,
-    "diameter",
-    tank.diameter,
-    quantitiesMetadata,
-    id,
-  );
-  updateQuantityStats(
-    statsMap,
-    "minVolume",
-    tank.minVolume,
+    "maxVolume",
+    tankMaxVolume(tank, curves),
     quantitiesMetadata,
     id,
   );
@@ -678,6 +703,8 @@ const buildTankSections = (
     modelAttributes: getStatsForProperties(statsMap, [
       "elevation",
       "initialLevel",
+      "maxVolume",
+      "volumeCurve",
       "minLevel",
       "maxLevel",
       "diameter",
@@ -795,6 +822,26 @@ const updateCategoryStats = (
   const ids = stats.values.get(value) || [];
   ids.push(assetId);
   stats.values.set(value, ids);
+};
+
+const updateLinkStats = (
+  statsMap: Map<string, AssetPropertyStats>,
+  property: string,
+  linkLabel: string,
+  assetId: AssetId,
+) => {
+  if (!statsMap.has(property)) {
+    statsMap.set(property, {
+      type: "literalCategory",
+      property,
+      values: new Map(),
+    });
+  }
+
+  const stats = statsMap.get(property) as LiteralCategoryStats;
+  const ids = stats.values.get(linkLabel) || [];
+  ids.push(assetId);
+  stats.values.set(linkLabel, ids);
 };
 
 const updateBooleanStats = (

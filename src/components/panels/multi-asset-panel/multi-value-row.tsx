@@ -301,7 +301,7 @@ export const SortableValuesList = ({
 }: {
   values: Map<JsonValue, AssetId[]>;
   decimals?: number;
-  type: "quantity" | "category" | "boolean";
+  type: "quantity" | "category" | "boolean" | "literalCategory";
   onSelectAssets?: (assetIds: AssetId[]) => void;
 }) => {
   const translate = useTranslate();
@@ -394,11 +394,11 @@ export const SortableValuesList = ({
               onClick={isClickable ? () => onSelectAssets(assetIds) : undefined}
             >
               <div
-                title={formatValue(value, translate, decimals)}
+                title={formatValue(value, translate, decimals, type)}
                 className="flex-auto font-mono text-xs truncate"
                 role="cell"
               >
-                {formatValue(value, translate, decimals)}
+                {formatValue(value, translate, decimals, type)}
               </div>
               <div
                 className="text-xs font-mono"
@@ -419,6 +419,7 @@ export const formatValue = (
   value: JsonValue | undefined,
   translate: (key: string) => string,
   decimals?: number,
+  type?: string,
 ): string => {
   if (value === undefined) return "";
   if (typeof value === "number") {
@@ -426,6 +427,8 @@ export const formatValue = (
   }
   if (typeof value === "object") return JSON.stringify(value);
   if (typeof value === "boolean") return String(value);
+
+  if (type === "link") return value;
 
   return translate(value);
 };

@@ -135,3 +135,10 @@ export const tankVolumeCurveRange = (curve: ICurve) => ({
   minVolume: curve.points[0].y,
   maxVolume: curve.points[curve.points.length - 1].y,
 });
+
+export const tankMaxVolume = (tank: Tank, curves: Curves) => {
+  if (tank.volumeCurveId && curves.has(tank.volumeCurveId)) {
+    return tankVolumeCurveRange(curves.get(tank.volumeCurveId)!).maxVolume;
+  }
+  return tank.maxVolume;
+};
