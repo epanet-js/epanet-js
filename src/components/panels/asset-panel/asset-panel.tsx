@@ -78,7 +78,10 @@ import {
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { useQuickGraph } from "./quick-graph";
-import { useAssetComparison } from "src/hooks/use-asset-comparison";
+import {
+  useAssetComparison,
+  type PropertyComparison,
+} from "src/hooks/use-asset-comparison";
 import { useSimulation } from "src/hooks/use-simulation";
 import type {
   PipeSimulation,
@@ -91,7 +94,12 @@ import { NumericTable } from "src/components/form/numeric-table";
 import { useShowPatternsLibrary } from "src/commands/show-patterns-library";
 import { SelectorOption } from "src/components/form/selector";
 import { PatternId } from "src/hydraulic-model/patterns";
-import { CurveId, Curves, getCurveBounds } from "src/hydraulic-model/curves";
+import {
+  CurveId,
+  Curves,
+  ICurve,
+  getCurveBounds,
+} from "src/hydraulic-model/curves";
 import { useShowCurveLibrary } from "src/commands/show-curve-library";
 import { Button } from "src/components/elements";
 
@@ -1588,7 +1596,8 @@ const ValveEditor = ({
   const allCurves = useFeatureFlag("FLAG_ALL_CURVES");
   const translate = useTranslate();
   const { footer } = useQuickGraph(valve.id, "valve");
-  const { getComparison, isNew } = useAssetComparison(valve);
+  const { getComparison, getCurveComparison, isNew } =
+    useAssetComparison(valve);
   const simulation = useSimulation();
   const valveSimulation = simulation?.getValve(valve.id);
 
@@ -1698,6 +1707,7 @@ const ValveEditor = ({
           <ValveCurveField
             valve={valve}
             curves={hydraulicModel.curves}
+            getCurveComparison={getCurveComparison}
             onChange={onPropertyChange}
             readOnly={readonly}
           />
@@ -2233,16 +2243,44 @@ const ReservoirHeadField = ({
 const ValveCurveField = ({
   valve,
   curves,
+  getCurveComparison,
   onChange,
   readOnly = false,
 }: {
   valve: Valve;
   curves: Curves;
+  getCurveComparison: (
+    propertyName: string,
+    currentCurveId: CurveId | undefined,
+    currentCurves: Curves,
+  ) => PropertyComparison<ICurve>;
   onChange: OnPropertyChange;
   readOnly?: boolean;
 }) => {
   const translate = useTranslate();
   const showCurveLibrary = useShowCurveLibrary();
+
+  const curveComparison = getCurveComparison("curveId", valve.curveId, curves);
+
+  const baseDisplayValue = useMemo(() => {
+    if (!curveComparison.hasChanged) return undefined;
+    const baseCurve = curveComparison.baseValue;
+    const curveName = translate(
+      valve.kind === "gpv" ? "headlossCurve" : "valveCurve",
+    );
+    const lines: string[] = [];
+
+    if (baseCurve) {
+      lines.push(`${curveName}: ${baseCurve.label}`);
+      if (baseCurve.id === valve.curveId) {
+        lines.push(translate("curvePointsDiffer"));
+      }
+    } else {
+      lines.push(`${curveName}: (${translate("none").toLocaleLowerCase()})`);
+    }
+
+    return <div className="whitespace-pre-line">{lines.join("\n")}</div>;
+  }, [curveComparison, valve.curveId, valve.kind, translate]);
 
   const curveOptions = useMemo(() => {
     const libraryGroup: SelectorOption<CurveId>[] = [
@@ -2274,32 +2312,44 @@ const ValveCurveField = ({
     onChange("curveId", newValue, oldValue || undefined);
   };
 
-  return curveOptions[1].length > 0 ? (
-    <SelectRow
-      name={valve.kind === "gpv" ? "headlossCurve" : "valveCurve"}
-      selected={valve.curveId ?? null}
-      options={curveOptions}
-      listClassName="first:italic"
-      stickyFirstGroup
-      nullable={true}
-      placeholder={`${translate("select")}...`}
-      onChange={handleOnChange}
-      readOnly={readOnly}
-    />
-  ) : (
-    <InlineField name={translate("curveId")} labelSize="md">
-      <Button
-        onClick={() =>
-          showCurveLibrary({
-            source: "valve",
-            initialSection: valve.kind === "gpv" ? "headloss" : "valve",
-          })
-        }
-        className="w-full py-2"
-      >
-        {translate("openCurvesLibrary")}
-      </Button>
-    </InlineField>
+  return (
+    <BlockComparisonField
+      hasChanged={curveComparison.hasChanged}
+      baseDisplayValue={baseDisplayValue}
+    >
+      {curveOptions[1].length > 0 ? (
+        <SelectRow
+          name={valve.kind === "gpv" ? "headlossCurve" : "valveCurve"}
+          selected={valve.curveId ?? null}
+          options={curveOptions}
+          listClassName="first:italic"
+          stickyFirstGroup
+          nullable={true}
+          placeholder={`${translate("select")}...`}
+          onChange={handleOnChange}
+          readOnly={readOnly}
+        />
+      ) : (
+        <InlineField
+          name={translate(
+            valve.kind === "gpv" ? "headlossCurve" : "valveCurve",
+          )}
+          labelSize="md"
+        >
+          <Button
+            onClick={() =>
+              showCurveLibrary({
+                source: "valve",
+                initialSection: valve.kind === "gpv" ? "headloss" : "valve",
+              })
+            }
+            className="w-full py-2"
+          >
+            {translate("openCurvesLibrary")}
+          </Button>
+        </InlineField>
+      )}
+    </BlockComparisonField>
   );
 };
 
