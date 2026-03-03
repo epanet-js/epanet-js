@@ -14,6 +14,7 @@ import type {
   Timing,
   SimulationSettings,
 } from "src/simulation/simulation-settings";
+import { defaultHydraulicsValues } from "src/simulation/simulation-settings";
 import {
   CustomerPoint,
   getActiveCustomerPoints,
@@ -57,6 +58,17 @@ export type EpanetUnitSystem =
 export const defaultAccuracy = 0.001;
 export const defaultUnbalanced = "CONTINUE 10";
 export const defaultCustomersPatternId = "epanetjs_customers";
+
+const buildUnbalancedValue = (
+  settings: SimulationSettings,
+): string | undefined => {
+  if (settings.unbalancedMode === undefined) return undefined;
+  if (settings.unbalancedMode === "STOP") return "STOP";
+  if (settings.unbalancedExtraTrials && settings.unbalancedExtraTrials > 0) {
+    return `CONTINUE ${settings.unbalancedExtraTrials}`;
+  }
+  return "CONTINUE";
+};
 const defaultConstantPatternId = 0;
 
 const formatSecondsToTime = (seconds: number): string => {
@@ -292,8 +304,8 @@ export const buildInp = withDebugInstrumentation(
       options: [
         "[OPTIONS]",
         "Quality\tNONE",
-        `Unbalanced\t${defaultUnbalanced}`,
-        `Accuracy\t${defaultAccuracy}`,
+        `Unbalanced\t${buildUnbalancedValue(opts.simulationSettings) ?? defaultUnbalanced}`,
+        `Accuracy\t${opts.simulationSettings.accuracy ?? defaultAccuracy}`,
         `Units\t${units}`,
         `Headloss\t${headlossFormula}`,
         `Demand Multiplier\t${opts.simulationSettings.globalDemandMultiplier}`,
@@ -306,6 +318,39 @@ export const buildInp = withDebugInstrumentation(
             ]
           : []),
         `Emitter Exponent\t${opts.simulationSettings.emitterExponent}`,
+        ...(opts.simulationSettings.trials !== undefined
+          ? [`Trials\t${opts.simulationSettings.trials}`]
+          : []),
+        ...(opts.simulationSettings.headError !== undefined &&
+        opts.simulationSettings.headError !== defaultHydraulicsValues.headError
+          ? [`Headerror\t${opts.simulationSettings.headError}`]
+          : []),
+        ...(opts.simulationSettings.flowChange !== undefined &&
+        opts.simulationSettings.flowChange !==
+          defaultHydraulicsValues.flowChange
+          ? [`Flowchange\t${opts.simulationSettings.flowChange}`]
+          : []),
+        ...(opts.simulationSettings.checkFreq !== undefined &&
+        opts.simulationSettings.checkFreq !== defaultHydraulicsValues.checkFreq
+          ? [`Checkfreq\t${opts.simulationSettings.checkFreq}`]
+          : []),
+        ...(opts.simulationSettings.maxCheck !== undefined &&
+        opts.simulationSettings.maxCheck !== defaultHydraulicsValues.maxCheck
+          ? [`Maxcheck\t${opts.simulationSettings.maxCheck}`]
+          : []),
+        ...(opts.simulationSettings.dampLimit !== undefined &&
+        opts.simulationSettings.dampLimit !== defaultHydraulicsValues.dampLimit
+          ? [`Damplimit\t${opts.simulationSettings.dampLimit}`]
+          : []),
+        ...(opts.simulationSettings.viscosity !== undefined &&
+        opts.simulationSettings.viscosity !== defaultHydraulicsValues.viscosity
+          ? [`Viscosity\t${opts.simulationSettings.viscosity}`]
+          : []),
+        ...(opts.simulationSettings.specificGravity !== undefined &&
+        opts.simulationSettings.specificGravity !==
+          defaultHydraulicsValues.specificGravity
+          ? [`Specific Gravity\t${opts.simulationSettings.specificGravity}`]
+          : []),
         `Pattern\t${idMap.registerPatternId({ id: defaultConstantPatternId, label: "constant" })}`,
       ],
       backdrop: [

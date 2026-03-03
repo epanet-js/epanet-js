@@ -2,6 +2,8 @@ import { nanoid } from "nanoid";
 import {
   type SimulationSettings,
   type DemandModel,
+  type UnbalancedMode,
+  defaultHydraulicsValues,
 } from "src/simulation/simulation-settings";
 
 export type OptionSubcategory = {
@@ -26,6 +28,15 @@ export const simulationSettingsCategories: OptionCategory[] = [
     subcategories: [
       { id: "demands-calculation", label: "Calculation" },
       { id: "demands-emitters", label: "Emitters" },
+    ],
+  },
+  {
+    id: "hydraulics",
+    label: "Hydraulics",
+    subcategories: [
+      { id: "hydraulics-convergence", label: "Convergence" },
+      { id: "hydraulics-solver", label: "Solver controls" },
+      { id: "hydraulics-fluid", label: "Fluid properties" },
     ],
   },
 ];
@@ -53,6 +64,17 @@ export type FormValues = {
   requiredPressure: number;
   pressureExponent: number;
   emitterExponent: number;
+  trials: number;
+  accuracy: number;
+  unbalancedMode: UnbalancedMode;
+  unbalancedExtraTrials: number;
+  headError: number;
+  flowChange: number;
+  checkFreq: number;
+  maxCheck: number;
+  dampLimit: number;
+  viscosity: number;
+  specificGravity: number;
 };
 
 export const buildInitialValues = (
@@ -73,6 +95,21 @@ export const buildInitialValues = (
     requiredPressure: settings.requiredPressure,
     pressureExponent: settings.pressureExponent,
     emitterExponent: settings.emitterExponent,
+    trials: settings.trials ?? defaultHydraulicsValues.trials,
+    accuracy: settings.accuracy ?? defaultHydraulicsValues.accuracy,
+    unbalancedMode:
+      settings.unbalancedMode ?? defaultHydraulicsValues.unbalancedMode,
+    unbalancedExtraTrials:
+      settings.unbalancedExtraTrials ??
+      defaultHydraulicsValues.unbalancedExtraTrials,
+    headError: settings.headError ?? defaultHydraulicsValues.headError,
+    flowChange: settings.flowChange ?? defaultHydraulicsValues.flowChange,
+    checkFreq: settings.checkFreq ?? defaultHydraulicsValues.checkFreq,
+    maxCheck: settings.maxCheck ?? defaultHydraulicsValues.maxCheck,
+    dampLimit: settings.dampLimit ?? defaultHydraulicsValues.dampLimit,
+    viscosity: settings.viscosity ?? defaultHydraulicsValues.viscosity,
+    specificGravity:
+      settings.specificGravity ?? defaultHydraulicsValues.specificGravity,
   };
 };
 
@@ -95,7 +132,29 @@ export const hasChanges = (
     values.minimumPressure !== settings.minimumPressure ||
     values.requiredPressure !== settings.requiredPressure ||
     values.pressureExponent !== settings.pressureExponent ||
-    values.emitterExponent !== settings.emitterExponent
+    values.emitterExponent !== settings.emitterExponent ||
+    values.trials !== (settings.trials ?? defaultHydraulicsValues.trials) ||
+    values.accuracy !==
+      (settings.accuracy ?? defaultHydraulicsValues.accuracy) ||
+    values.unbalancedMode !==
+      (settings.unbalancedMode ?? defaultHydraulicsValues.unbalancedMode) ||
+    values.unbalancedExtraTrials !==
+      (settings.unbalancedExtraTrials ??
+        defaultHydraulicsValues.unbalancedExtraTrials) ||
+    values.headError !==
+      (settings.headError ?? defaultHydraulicsValues.headError) ||
+    values.flowChange !==
+      (settings.flowChange ?? defaultHydraulicsValues.flowChange) ||
+    values.checkFreq !==
+      (settings.checkFreq ?? defaultHydraulicsValues.checkFreq) ||
+    values.maxCheck !==
+      (settings.maxCheck ?? defaultHydraulicsValues.maxCheck) ||
+    values.dampLimit !==
+      (settings.dampLimit ?? defaultHydraulicsValues.dampLimit) ||
+    values.viscosity !==
+      (settings.viscosity ?? defaultHydraulicsValues.viscosity) ||
+    values.specificGravity !==
+      (settings.specificGravity ?? defaultHydraulicsValues.specificGravity)
   );
 };
 
@@ -112,6 +171,17 @@ export const buildUpdatedSettings = (
     requiredPressure: values.requiredPressure,
     pressureExponent: values.pressureExponent,
     emitterExponent: values.emitterExponent,
+    trials: values.trials,
+    accuracy: values.accuracy,
+    unbalancedMode: values.unbalancedMode,
+    unbalancedExtraTrials: values.unbalancedExtraTrials,
+    headError: values.headError,
+    flowChange: values.flowChange,
+    checkFreq: values.checkFreq,
+    maxCheck: values.maxCheck,
+    dampLimit: values.dampLimit,
+    viscosity: values.viscosity,
+    specificGravity: values.specificGravity,
     timing: {
       duration:
         values.simulationMode === "steadyState" ? 0 : (values.duration ?? 0),

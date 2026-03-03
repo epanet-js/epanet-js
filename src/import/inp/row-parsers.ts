@@ -48,6 +48,8 @@ const epanetDefaultOptions = {
   CHECKFREQ: 2,
   MAXCHECK: 10,
   DAMPLIMIT: 0,
+  HEADERROR: 0,
+  FLOWCHANGE: 0,
 };
 
 const defaultOptions = {
@@ -567,6 +569,7 @@ export const parseOption: RowParser = ({
   trimmedRow,
   inpData,
   issues,
+  options,
 }): void => {
   const option = readSetting(trimmedRow, defaultOptions);
   if (!option) return;
@@ -583,8 +586,20 @@ export const parseOption: RowParser = ({
   }
 
   if (name === "UNBALANCED") {
-    if (value !== defaultValue) {
-      issues.hasUnbalancedDiff(value as string, defaultValue as string);
+    if (options?.hydraulicsOptions) {
+      const strValue = typeof value === "string" ? value : String(value);
+      const parts = strValue.trim().split(/\s+/);
+      const mode = parts[0] as "STOP" | "CONTINUE";
+      inpData.options.unbalancedMode = mode;
+      if (mode === "CONTINUE" && parts.length > 1) {
+        inpData.options.unbalancedExtraTrials = parseInt(parts[1], 10);
+      } else if (mode === "CONTINUE") {
+        inpData.options.unbalancedExtraTrials = 0;
+      }
+    } else {
+      if (value !== defaultValue) {
+        issues.hasUnbalancedDiff(value as string, defaultValue as string);
+      }
     }
     return;
   }
@@ -641,6 +656,45 @@ export const parseOption: RowParser = ({
       issues.addWaterQualityType("CHEMICAL");
     }
     return;
+  }
+
+  if (options?.hydraulicsOptions) {
+    if (name === "TRIALS") {
+      inpData.options.trials = value as number;
+      return;
+    }
+    if (name === "ACCURACY") {
+      inpData.options.accuracy = value as number;
+      return;
+    }
+    if (name === "HEADERROR") {
+      inpData.options.headError = value as number;
+      return;
+    }
+    if (name === "FLOWCHANGE") {
+      inpData.options.flowChange = value as number;
+      return;
+    }
+    if (name === "CHECKFREQ") {
+      inpData.options.checkFreq = value as number;
+      return;
+    }
+    if (name === "MAXCHECK") {
+      inpData.options.maxCheck = value as number;
+      return;
+    }
+    if (name === "DAMPLIMIT") {
+      inpData.options.dampLimit = value as number;
+      return;
+    }
+    if (name === "VISCOSITY") {
+      inpData.options.viscosity = value as number;
+      return;
+    }
+    if (name === "SPECIFIC GRAVITY") {
+      inpData.options.specificGravity = value as number;
+      return;
+    }
   }
 
   if (defaultValue !== value) {

@@ -23,6 +23,7 @@ export type ParseInpOptions = {
   inactiveAssets?: boolean;
   sourceProjection?: Projection;
   allCurves?: boolean;
+  hydraulicsOptions?: boolean;
 };
 
 export const parseInp = (
@@ -82,6 +83,39 @@ export const parseInp = (
       emitterExponent:
         inpData.options.emitterExponent ??
         defaultSimulationSettings.emitterExponent,
+      ...(inpData.options.trials !== undefined && {
+        trials: inpData.options.trials,
+      }),
+      ...(inpData.options.accuracy !== undefined && {
+        accuracy: inpData.options.accuracy,
+      }),
+      ...(inpData.options.unbalancedMode !== undefined && {
+        unbalancedMode: inpData.options.unbalancedMode,
+      }),
+      ...(inpData.options.unbalancedExtraTrials !== undefined && {
+        unbalancedExtraTrials: inpData.options.unbalancedExtraTrials,
+      }),
+      ...(inpData.options.headError !== undefined && {
+        headError: inpData.options.headError,
+      }),
+      ...(inpData.options.flowChange !== undefined && {
+        flowChange: inpData.options.flowChange,
+      }),
+      ...(inpData.options.checkFreq !== undefined && {
+        checkFreq: inpData.options.checkFreq,
+      }),
+      ...(inpData.options.maxCheck !== undefined && {
+        maxCheck: inpData.options.maxCheck,
+      }),
+      ...(inpData.options.dampLimit !== undefined && {
+        dampLimit: inpData.options.dampLimit,
+      }),
+      ...(inpData.options.viscosity !== undefined && {
+        viscosity: inpData.options.viscosity,
+      }),
+      ...(inpData.options.specificGravity !== undefined && {
+        specificGravity: inpData.options.specificGravity,
+      }),
     },
     issues: issues.buildResult(),
     stats,

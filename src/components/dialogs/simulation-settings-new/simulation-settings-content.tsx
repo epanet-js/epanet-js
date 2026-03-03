@@ -9,7 +9,10 @@ import { Selector } from "src/components/form/selector";
 import { simulationSettingsAtom } from "src/state/jotai";
 import { hasScenariosAtom } from "src/state/scenarios";
 
-import type { DemandModel } from "src/simulation/simulation-settings";
+import type {
+  DemandModel,
+  UnbalancedMode,
+} from "src/simulation/simulation-settings";
 import type {
   FormValues,
   SimulationModeOption,
@@ -272,6 +275,147 @@ export const DemandsSection = () => {
           description={translate("simulationSettings.emitterExponentDesc")}
           value={values.emitterExponent}
           onChange={(v) => setFieldValue("emitterExponent", v)}
+          disabled={readonly}
+        />
+      </div>
+    </div>
+  );
+};
+
+export const HydraulicsSection = () => {
+  const translate = useTranslate();
+  const readonly = useAtomValue(hasScenariosAtom);
+  const { values, setFieldValue } = useFormikContext<FormValues>();
+
+  const isStop = values.unbalancedMode === "STOP";
+
+  const unbalancedModeOptions: { label: string; value: UnbalancedMode }[] = [
+    {
+      label: translate("simulationSettings.unbalancedStop"),
+      value: "STOP",
+    },
+    {
+      label: translate("simulationSettings.unbalancedContinue"),
+      value: "CONTINUE",
+    },
+  ];
+
+  return (
+    <div>
+      <h3 className="text-base font-semibold text-gray-900 dark:text-white pb-3 mb-3">
+        {translate("simulationSettings.hydraulics")}
+      </h3>
+
+      <div className="flex flex-col gap-4">
+        <div
+          data-section-id="hydraulics-convergence"
+          className="text-sm font-semibold text-gray-900 dark:text-white mt-2"
+        >
+          {translate("simulationSettings.hydraulicsConvergence")}
+        </div>
+
+        <ValueSetting
+          label={translate("simulationSettings.trials")}
+          description={translate("simulationSettings.trialsDesc")}
+          value={values.trials}
+          onChange={(v) => setFieldValue("trials", v)}
+          disabled={readonly}
+        />
+
+        <ValueSetting
+          label={translate("simulationSettings.accuracy")}
+          description={translate("simulationSettings.accuracyDesc")}
+          value={values.accuracy}
+          onChange={(v) => setFieldValue("accuracy", v)}
+          disabled={readonly}
+        />
+
+        <SelectorSetting
+          label={translate("simulationSettings.unbalancedMode")}
+          description={translate("simulationSettings.unbalancedModeDesc")}
+          options={unbalancedModeOptions}
+          selected={values.unbalancedMode}
+          onChange={(v) => setFieldValue("unbalancedMode", v)}
+          disabled={readonly}
+        />
+
+        <ValueSetting
+          label={translate("simulationSettings.unbalancedExtraTrials")}
+          description={translate(
+            "simulationSettings.unbalancedExtraTrialsDesc",
+          )}
+          value={values.unbalancedExtraTrials}
+          onChange={(v) => setFieldValue("unbalancedExtraTrials", v)}
+          disabled={isStop || readonly}
+        />
+
+        <ValueSetting
+          label={translate("simulationSettings.headError")}
+          description={translate("simulationSettings.headErrorDesc")}
+          value={values.headError}
+          onChange={(v) => setFieldValue("headError", v)}
+          disabled={readonly}
+        />
+
+        <ValueSetting
+          label={translate("simulationSettings.flowChange")}
+          description={translate("simulationSettings.flowChangeDesc")}
+          value={values.flowChange}
+          onChange={(v) => setFieldValue("flowChange", v)}
+          disabled={readonly}
+        />
+
+        <div
+          data-section-id="hydraulics-solver"
+          className="text-sm font-semibold text-gray-900 dark:text-white mt-6"
+        >
+          {translate("simulationSettings.hydraulicsSolver")}
+        </div>
+
+        <ValueSetting
+          label={translate("simulationSettings.checkFreq")}
+          description={translate("simulationSettings.checkFreqDesc")}
+          value={values.checkFreq}
+          onChange={(v) => setFieldValue("checkFreq", v)}
+          disabled={readonly}
+        />
+
+        <ValueSetting
+          label={translate("simulationSettings.maxCheck")}
+          description={translate("simulationSettings.maxCheckDesc")}
+          value={values.maxCheck}
+          onChange={(v) => setFieldValue("maxCheck", v)}
+          disabled={readonly}
+        />
+
+        <ValueSetting
+          label={translate("simulationSettings.dampLimit")}
+          description={translate("simulationSettings.dampLimitDesc")}
+          value={values.dampLimit}
+          onChange={(v) => setFieldValue("dampLimit", v)}
+          disabled={readonly}
+        />
+
+        <div
+          data-section-id="hydraulics-fluid"
+          className="text-sm font-semibold text-gray-900 dark:text-white mt-6"
+        >
+          {translate("simulationSettings.hydraulicsFluid")}
+        </div>
+
+        <ValueSetting
+          label={translate("simulationSettings.viscosity")}
+          description={translate("simulationSettings.viscosityDesc")}
+          value={values.viscosity}
+          onChange={(v) => setFieldValue("viscosity", v)}
+          disabled={readonly}
+        />
+
+        <ValueSetting
+          label={translate("simulationSettings.specificGravity")}
+          description={translate("simulationSettings.specificGravityDesc")}
+          value={values.specificGravity}
+          onChange={(v) => setFieldValue("specificGravity", v)}
           disabled={readonly}
         />
       </div>

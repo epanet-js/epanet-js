@@ -138,6 +138,17 @@ export type InpData = {
     requiredPressure?: number;
     pressureExponent?: number;
     emitterExponent?: number;
+    trials?: number;
+    accuracy?: number;
+    unbalancedMode?: "STOP" | "CONTINUE";
+    unbalancedExtraTrials?: number;
+    headError?: number;
+    flowChange?: number;
+    checkFreq?: number;
+    maxCheck?: number;
+    dampLimit?: number;
+    viscosity?: number;
+    specificGravity?: number;
   };
   times: {
     duration?: number;
