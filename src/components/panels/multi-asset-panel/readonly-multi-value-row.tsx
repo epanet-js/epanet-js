@@ -85,6 +85,11 @@ export function ReadOnlyMultiValueRow({
             propertyStats={propertyStats}
             label={label}
             decimals={decimals}
+            onSelectAssets={
+              onSelectAssets
+                ? (ids) => onSelectAssets(ids, propertyStats.property)
+                : undefined
+            }
           />
         ) : (
           <div className="flex-shrink-0 w-7" />
