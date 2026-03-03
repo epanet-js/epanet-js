@@ -23,6 +23,7 @@ import type {
   PropertyComparison,
   PumpCurveComparison,
 } from "src/hooks/use-asset-comparison";
+import type { PropertyChange } from "src/hydraulic-model/model-operations/change-property";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import { Button, TContent } from "src/components/elements";
 import { useShowPumpLibrary } from "src/commands/show-pump-library";
@@ -39,11 +40,6 @@ export interface PumpCurvePoint {
   flow: number;
   head: number;
 }
-
-export type PumpDefinitionData =
-  | { type: "power"; power: number }
-  | { type: "curve"; curve: CurvePoint[] }
-  | { type: "curveId"; curveId: CurveId };
 
 interface MaybePumpCurvePoint {
   flow?: number;
@@ -63,7 +59,7 @@ export const PumpDefinitionDetails = ({
   quantities: Quantities;
   curves: Curves;
   readonly?: boolean;
-  onChange: (newData: PumpDefinitionData) => void;
+  onChange: (changes: PropertyChange[]) => void;
   getComparison?: (name: string, value: unknown) => PropertyComparison;
   getPumpCurveComparison?: (
     value: CurvePoint[] | undefined,
@@ -112,7 +108,7 @@ const PumpDefinitionDetailsInner = ({
   curves: Curves;
   quantities: Quantities;
   readonly?: boolean;
-  onChange: (newData: PumpDefinitionData) => void;
+  onChange: (changes: PropertyChange[]) => void;
   getComparison?: (name: string, value: unknown) => PropertyComparison;
   getPumpCurveComparison?: (
     value: CurvePoint[] | undefined,
@@ -154,11 +150,19 @@ const PumpDefinitionDetailsInner = ({
       setLocalDefinitionType(newValue);
 
       if (newValue === "power") {
-        return onChange({ type: "power", power: pump.power });
+        return onChange([
+          { property: "definitionType", value: "power" },
+          { property: "power", value: pump.power },
+          { property: "curveId", value: undefined },
+        ]);
       }
 
       if (newValue === "curveId") {
-        if (pump.curveId) onChange({ type: "curveId", curveId: pump.curveId });
+        if (pump.curveId)
+          onChange([
+            { property: "definitionType", value: "curveId" },
+            { property: "curveId", value: pump.curveId },
+          ]);
         return;
       }
 
@@ -176,10 +180,11 @@ const PumpDefinitionDetailsInner = ({
         return;
       }
 
-      onChange({
-        type: "curve",
-        curve: validPoints,
-      });
+      onChange([
+        { property: "definitionType", value: "curve" },
+        { property: "curve", value: validPoints },
+        { property: "curveId", value: undefined },
+      ]);
     },
     [curve, onChange, pump.power, pump.curveId],
   );
@@ -189,13 +194,15 @@ const PumpDefinitionDetailsInner = ({
       if (localDefinitionType === "power") {
         return;
       }
-      onChange({
-        type: "curve",
-        curve: rawPoints.map(({ flow, head }) => ({
-          x: flow,
-          y: head,
-        })),
-      });
+      onChange([
+        {
+          property: "curve",
+          value: rawPoints.map(({ flow, head }) => ({
+            x: flow,
+            y: head,
+          })),
+        },
+      ]);
     },
     [localDefinitionType, onChange],
   );
@@ -543,12 +550,12 @@ const PowerDefinition = ({
 }: {
   power: number;
   quantities: Quantities;
-  onChange: (change: { type: "power"; power: number }) => void;
+  onChange: (changes: PropertyChange[]) => void;
   readOnly: boolean;
 }) => {
   const handlePowerChange = useCallback(
     (_name: string, newValue: number, _oldValue: number | null) => {
-      onChange({ type: "power", power: newValue });
+      onChange([{ property: "power", value: newValue }]);
     },
     [onChange],
   );
@@ -573,7 +580,7 @@ const CurveIdSelector = ({
 }: {
   curveId?: CurveId;
   curves: Curves;
-  onChange: (change: { type: "curveId"; curveId: CurveId }) => void;
+  onChange: (changes: PropertyChange[]) => void;
   readOnly: boolean;
 }) => {
   const translate = useTranslate();
@@ -600,9 +607,17 @@ const CurveIdSelector = ({
 
   const handleChange = (_: string, newValue: number | null) => {
     if (newValue === null) return;
-    if (newValue) onChange({ type: "curveId", curveId: newValue });
     if (newValue === 0)
-      showPumpLibrary({ source: "pump", curveId, initialSection: "pump" });
+      return showPumpLibrary({
+        source: "pump",
+        curveId,
+        initialSection: "pump",
+      });
+
+    onChange([
+      { property: "definitionType", value: "curveId" },
+      { property: "curveId", value: newValue },
+    ]);
   };
 
   return curveOptions[1].length > 0 ? (

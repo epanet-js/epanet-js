@@ -34,7 +34,6 @@ import { usePersistence } from "src/lib/persistence";
 import { useUserTracking } from "src/infra/user-tracking";
 import { stagingModelAtom } from "src/state/jotai";
 import {
-  changePumpDefinition,
   changeProperty,
   changeProperties,
   changeDemandAssignment,
@@ -87,10 +86,7 @@ import type {
   ValveSimulation,
 } from "src/simulation/results-reader";
 import { DemandsEditor } from "./demands-editor";
-import {
-  PumpDefinitionData,
-  PumpDefinitionDetails,
-} from "./pump-definition-details";
+import { PumpDefinitionDetails } from "./pump-definition-details";
 import { useShowPatternsLibrary } from "src/commands/show-patterns-library";
 import { SelectorOption } from "src/components/form/selector";
 import { PatternId } from "src/hydraulic-model/patterns";
@@ -233,23 +229,6 @@ export function AssetPanel({
     [hydraulicModel, asset.id, asset.type, transact, userTracking],
   );
 
-  const handleChangePumpDefinition = useCallback(
-    (data: PumpDefinitionData) => {
-      const moment = changePumpDefinition(hydraulicModel, {
-        pumpId: asset.id,
-        data,
-      });
-      transact(moment);
-      userTracking.capture({
-        name: "assetDefinitionType.edited",
-        type: asset.type,
-        property: "definitionType",
-        newType: data.type,
-      });
-    },
-    [asset.id, asset.type, hydraulicModel, transact, userTracking],
-  );
-
   const handleBatchPropertyChange = useCallback(
     (changes: PropertyChange[]) => {
       const moment = changeProperties(hydraulicModel, {
@@ -362,7 +341,7 @@ export function AssetPanel({
           onPropertyChange={handlePropertyChange}
           onStatusChange={handleStatusChange}
           onActiveTopologyStatusChange={handleActiveTopologyStatusChange}
-          onDefinitionChange={handleChangePumpDefinition}
+          onBatchPropertyChange={handleBatchPropertyChange}
           onLabelChange={handleLabelChange}
           quantitiesMetadata={quantitiesMetadata}
           {...getLinkNodes(hydraulicModel.assets, pump)}
@@ -1521,7 +1500,7 @@ const TankDefinitionField = ({
                   />
                   <QuantityRow
                     name="minVolume"
-                    value={volumeRange.min}
+                    value={tank.minLevel}
                     unit={quantitiesMetadata.getUnit("minVolume")}
                     decimals={quantitiesMetadata.getDecimals("minVolume")}
                     readOnly={true}
@@ -1754,7 +1733,7 @@ const PumpEditor = ({
   onStatusChange,
   onPropertyChange,
   onActiveTopologyStatusChange,
-  onDefinitionChange,
+  onBatchPropertyChange,
   onLabelChange,
   quantitiesMetadata,
   readonly = false,
@@ -1770,7 +1749,7 @@ const PumpEditor = ({
     newValue: boolean,
     oldValue: boolean,
   ) => void;
-  onDefinitionChange: (data: PumpDefinitionData) => void;
+  onBatchPropertyChange: (changes: PropertyChange[]) => void;
   onLabelChange: (newLabel: string) => string | undefined;
   quantitiesMetadata: Quantities;
   readonly?: boolean;
@@ -1830,7 +1809,7 @@ const PumpEditor = ({
           pump={pump}
           curves={hydraulicModel.curves}
           quantities={quantitiesMetadata}
-          onChange={onDefinitionChange}
+          onChange={onBatchPropertyChange}
           readonly={readonly}
           getComparison={getComparison}
           getPumpCurveComparison={getPumpCurveComparison}

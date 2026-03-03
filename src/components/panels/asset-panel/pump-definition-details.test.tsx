@@ -435,7 +435,11 @@ describe("PumpDefinitionDetails", () => {
           screen.getByRole("option", { name: /constant power/i }),
         );
 
-        expect(onChange).toHaveBeenCalledWith({ type: "power", power: 50 });
+        expect(onChange).toHaveBeenCalledWith([
+          { property: "definitionType", value: "power" },
+          { property: "power", value: 50 },
+          { property: "curveId", value: undefined },
+        ]);
       });
 
       it("emits onChange with power=0 when pump has no power set", async () => {
@@ -462,7 +466,11 @@ describe("PumpDefinitionDetails", () => {
           screen.getByRole("option", { name: /constant power/i }),
         );
 
-        expect(onChange).toHaveBeenCalledWith({ type: "power", power: 0 });
+        expect(onChange).toHaveBeenCalledWith([
+          { property: "definitionType", value: "power" },
+          { property: "power", value: 0 },
+          { property: "curveId", value: undefined },
+        ]);
       });
     });
 
@@ -490,14 +498,18 @@ describe("PumpDefinitionDetails", () => {
           screen.getByRole("option", { name: /standard curve/i }),
         );
 
-        expect(onChange).toHaveBeenCalledWith({
-          type: "curve",
-          curve: [
-            { x: 0, y: 133 },
-            { x: 50, y: 100 },
-            { x: 100, y: 0 },
-          ],
-        });
+        expect(onChange).toHaveBeenCalledWith([
+          { property: "definitionType", value: "curve" },
+          {
+            property: "curve",
+            value: [
+              { x: 0, y: 133 },
+              { x: 50, y: 100 },
+              { x: 100, y: 0 },
+            ],
+          },
+          { property: "curveId", value: undefined },
+        ]);
 
         expect(getFlowSpan("Shutoff")).toHaveTextContent("0");
         expect(getHeadInput("Shutoff")).toHaveValue("133");
@@ -532,10 +544,14 @@ describe("PumpDefinitionDetails", () => {
         await user.click(select);
         await user.click(screen.getByRole("option", { name: /design point/i }));
 
-        expect(onChange).toHaveBeenCalledWith({
-          type: "curve",
-          curve: [{ x: 50, y: 100 }],
-        });
+        expect(onChange).toHaveBeenCalledWith([
+          { property: "definitionType", value: "curve" },
+          {
+            property: "curve",
+            value: [{ x: 50, y: 100 }],
+          },
+          { property: "curveId", value: undefined },
+        ]);
 
         expect(getFlowSpan("Shutoff")).toHaveTextContent("0");
         expect(getHeadSpan("Shutoff")).toHaveTextContent("133");
@@ -612,10 +628,10 @@ describe("PumpDefinitionDetails", () => {
         await user.click(curveSelect);
         await user.click(screen.getByRole("option", { name: /Pump1/i }));
 
-        expect(onChange).toHaveBeenCalledWith({
-          type: "curveId",
-          curveId: 1,
-        });
+        expect(onChange).toHaveBeenCalledWith([
+          { property: "definitionType", value: "curveId" },
+          { property: "curveId", value: 1 },
+        ]);
       });
     });
 
@@ -638,10 +654,11 @@ describe("PumpDefinitionDetails", () => {
         await user.click(select);
         await user.click(screen.getByRole("option", { name: /design point/i }));
 
-        expect(onChange).toHaveBeenCalledWith({
-          type: "curve",
-          curve: [{ x: 1, y: 1 }],
-        });
+        expect(onChange).toHaveBeenCalledWith([
+          { property: "definitionType", value: "curve" },
+          { property: "curve", value: [{ x: 1, y: 1 }] },
+          { property: "curveId", value: undefined },
+        ]);
         expect(select).toHaveTextContent(/design point/i);
         expect(screen.getByRole("table")).toBeInTheDocument();
       });
@@ -666,14 +683,18 @@ describe("PumpDefinitionDetails", () => {
           screen.getByRole("option", { name: /standard curve/i }),
         );
 
-        expect(onChange).toHaveBeenCalledWith({
-          type: "curve",
-          curve: [
-            { x: 0, y: 1.33 },
-            { x: 1, y: 1 },
-            { x: 2, y: 0 },
-          ],
-        });
+        expect(onChange).toHaveBeenCalledWith([
+          { property: "definitionType", value: "curve" },
+          {
+            property: "curve",
+            value: [
+              { x: 0, y: 1.33 },
+              { x: 1, y: 1 },
+              { x: 2, y: 0 },
+            ],
+          },
+          { property: "curveId", value: undefined },
+        ]);
         expect(select).toHaveTextContent(/standard curve/i);
         expect(screen.getByRole("table")).toBeInTheDocument();
       });
