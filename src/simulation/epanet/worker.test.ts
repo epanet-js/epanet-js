@@ -91,11 +91,12 @@ describe("EPS simulation", () => {
   });
 
   it("returns failure status with zero metadata on error", async () => {
-    const IDS = { R1: 1, R2: 2, P1: 3 } as const;
+    const IDS = { R1: 1, J1: 2, P1: 3, J2: 4 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
       .aReservoir(IDS.R1)
-      .aReservoir(IDS.R2)
-      .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.R2 })
+      .aJunction(IDS.J1)
+      .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
+      .aJunction(IDS.J2) // Disconnected junction causes error
       .build();
     const inp = buildInp(hydraulicModel, {
       simulationSettings: defaultSimulationSettings,
@@ -123,7 +124,7 @@ describe("EPS simulation", () => {
     const { status, report } = await runSimulation(inp, "test-multi-error");
 
     expect(status).toEqual("failure");
-    expect(report).toContain("Error 200");
+    expect(report).toContain("Error 234");
     expect(report).toContain("4"); // Reference to disconnected node
   });
 

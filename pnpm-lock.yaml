@@ -333,8 +333,8 @@ importers:
         specifier: ^2.0.3
         version: 2.0.3
       epanet-js:
-        specifier: 0.8.0-alpha.7
-        version: 0.8.0-alpha.7
+        specifier: 0.9.0-alpha.1
+        version: 0.9.0-alpha.1
       eslint-plugin-prettier:
         specifier: ^5.2.1
         version: 5.2.1(eslint-config-prettier@9.1.0(eslint@8.57.0))(eslint@8.57.0)(prettier@3.3.3)
@@ -1358,8 +1358,8 @@ packages:
   '@math.gl/web-mercator@4.1.0':
     resolution: {integrity: sha512-HZo3vO5GCMkXJThxRJ5/QYUYRr3XumfT8CzNNCwoJfinxy5NtKUd7dusNTXn7yJ40UoB8FMIwkVwNlqaiRZZAw==}
 
-  '@model-create/epanet-engine@0.8.0-alpha.7':
-    resolution: {integrity: sha512-+okso1jbQJhf+fDsQhk8jKb4RtqXEfszAtjrTwCUQTDlVxB2BLOhIecw4+FjXJwBxy1IVIYvIRBovsf+LldGGg==}
+  '@model-create/epanet-engine@0.9.0-alpha.1':
+    resolution: {integrity: sha512-xqet3rFTex0/kKTmsxvG9PSfE/g3Z4U7xvM8n+dfdYNyshwNBpCEaHBVufshJZZPwF6hcBjGLqwMkFuVey7ybA==}
 
   '@msgpack/msgpack@2.8.0':
     resolution: {integrity: sha512-h9u4u/jiIRKbq25PM+zymTyW6bhTzELvOoUd+AvYriWOAKpLGnIamaET3pnHYoI5iYphAHBI4ayx0MehR+VVPQ==}
@@ -4272,8 +4272,8 @@ packages:
     resolution: {integrity: sha512-51lek8h5btjXhXUDW//Pno7HPydM1WQzltOb1/ONRKdwB2QkfAURnN4Qn0cJ5LzGvX2Km1ReR2O3K3Bqq9sBMg==}
     engines: {node: '>=10'}
 
-  epanet-js@0.8.0-alpha.7:
-    resolution: {integrity: sha512-xi/gbgpLI8KNF7wi+gReGdZnGboE1qtcjoQqC13C7pPAhZBMjH2k9FhTWfV/hJgxHiIVRQxLbk3s/1xEVA80tw==}
+  epanet-js@0.9.0-alpha.1:
+    resolution: {integrity: sha512-1VUyMoYRTL1nvwk9C/49Aza9AjHw9UHVEwwdegsrydr5i4J80Y3OZPhM0u1lZVU8UxfEWC4B/kBRnwtun9PQUg==}
 
   es-abstract@1.23.3:
     resolution: {integrity: sha512-e+HfNH61Bj1X9/jLc5v1owaLYuHdeHHSQlkhCBiTK8rBvKaULl/beGMxwrMXjpYrv4pz22BlY570vVePA2ho4A==}
@@ -8337,7 +8337,7 @@ snapshots:
     dependencies:
       '@math.gl/core': 4.1.0
 
-  '@model-create/epanet-engine@0.8.0-alpha.7': {}
+  '@model-create/epanet-engine@0.9.0-alpha.1': {}
 
   '@msgpack/msgpack@2.8.0': {}
 
@@ -11571,9 +11571,9 @@ snapshots:
 
   envsafe@2.0.3: {}
 
-  epanet-js@0.8.0-alpha.7:
+  epanet-js@0.9.0-alpha.1:
     dependencies:
-      '@model-create/epanet-engine': 0.8.0-alpha.7
+      '@model-create/epanet-engine': 0.9.0-alpha.1
 
   es-abstract@1.23.3:
     dependencies:
