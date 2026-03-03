@@ -1,6 +1,7 @@
 import { forwardRef, useCallback } from "react";
 import { useFormikContext } from "formik";
 import { useAtomValue } from "jotai";
+import clsx from "clsx";
 
 import { useTranslate } from "src/hooks/use-translate";
 import { TimeField } from "src/components/form/time-field";
@@ -751,7 +752,13 @@ const TextSetting = ({
   onChange: (value: string) => void;
 }) => (
   <SettingsRow label={label} description={description}>
-    <div className="w-56">
+    <div
+      className={clsx(
+        "w-56",
+        disabled &&
+          "[&>input]:border-gray-300 [&>input]:bg-gray-100 [&>input]:dark:bg-gray-800",
+      )}
+    >
       <EditableTextField
         label={label}
         value={value}
