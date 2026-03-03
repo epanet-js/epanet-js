@@ -40,8 +40,8 @@ export class SimulationSettingsBuilder {
     defaultSimulationSettings.qualityChemicalName;
   private qualityMassUnitValue: QualityMassUnit =
     defaultSimulationSettings.qualityMassUnit;
-  private qualityTraceNodeValue: string =
-    defaultSimulationSettings.qualityTraceNode;
+  private qualityTraceNodeIdValue: number | null =
+    defaultSimulationSettings.qualityTraceNodeId;
   private toleranceValue: number = defaultSimulationSettings.tolerance;
   private diffusivityValue: number = defaultSimulationSettings.diffusivity;
   private reactionBulkOrderValue: number =
@@ -168,8 +168,8 @@ export class SimulationSettingsBuilder {
     return this;
   }
 
-  qualityTraceNode(value: string) {
-    this.qualityTraceNodeValue = value;
+  qualityTraceNodeId(value: number | null) {
+    this.qualityTraceNodeIdValue = value;
     return this;
   }
 
@@ -262,7 +262,7 @@ export class SimulationSettingsBuilder {
       qualitySimulationType: this.qualitySimulationTypeValue,
       qualityChemicalName: this.qualityChemicalNameValue,
       qualityMassUnit: this.qualityMassUnitValue,
-      qualityTraceNode: this.qualityTraceNodeValue,
+      qualityTraceNodeId: this.qualityTraceNodeIdValue,
       tolerance: this.toleranceValue,
       diffusivity: this.diffusivityValue,
       reactionBulkOrder: this.reactionBulkOrderValue,

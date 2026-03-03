@@ -73,13 +73,20 @@ const buildUnbalancedValue = (
   return "CONTINUE";
 };
 
-const buildQualityValue = (settings: SimulationSettings): string => {
+const buildQualityValue = (
+  settings: SimulationSettings,
+  hydraulicModel: HydraulicModel,
+  idMap: EpanetIds,
+): string => {
   const type = settings.qualitySimulationType;
   if (type === "NONE") return "NONE";
   if (type === "AGE") return "AGE";
   if (type === "TRACE") {
-    const node = settings.qualityTraceNode;
-    return node ? `TRACE ${node}` : "TRACE";
+    const nodeId = settings.qualityTraceNodeId;
+    if (nodeId === null) return "TRACE";
+    const node = hydraulicModel.assets.get(nodeId);
+    if (!node || !node.isNode) return "TRACE";
+    return `TRACE ${idMap.nodeId(node as NodeAsset)}`;
   }
   // CHEMICAL
   const name = settings.qualityChemicalName;
@@ -343,7 +350,7 @@ export const buildInp = withDebugInstrumentation(
       patterns: ["[PATTERNS]", ";Id\tMultiplier"],
       options: [
         "[OPTIONS]",
-        `Quality\t${buildQualityValue(opts.simulationSettings)}`,
+        `Quality\t${buildQualityValue(opts.simulationSettings, hydraulicModel, idMap)}`,
         `Unbalanced\t${buildUnbalancedValue(opts.simulationSettings) ?? defaultUnbalanced}`,
         `Accuracy\t${opts.simulationSettings.accuracy ?? defaultAccuracy}`,
         `Units\t${units}`,

@@ -2,7 +2,7 @@ import { ModelMetadata } from "src/model-metadata";
 import { IssuesAccumulator, ParserIssues } from "./issues";
 import { readInpData } from "./read-inp-data";
 import { buildModel } from "./build-model";
-import { HydraulicModel } from "src/hydraulic-model";
+import { HydraulicModel, AssetsMap } from "src/hydraulic-model";
 import { nanoid } from "nanoid";
 import {
   defaultTiming,
@@ -126,9 +126,10 @@ export const parseInp = (
       qualityMassUnit:
         inpData.options.qualityMassUnit ??
         defaultWaterQualityValues.qualityMassUnit,
-      qualityTraceNode:
-        inpData.options.qualityTraceNode ??
-        defaultWaterQualityValues.qualityTraceNode,
+      qualityTraceNodeId: resolveTraceNodeId(
+        inpData.options.qualityTraceNode,
+        hydraulicModel.assets,
+      ),
       tolerance:
         inpData.options.tolerance ?? defaultWaterQualityValues.tolerance,
       diffusivity:
@@ -221,4 +222,15 @@ const parseHeader = (inp: string): Header => {
     : undefined;
 
   return { isMadeByApp: true, sourceProjection };
+};
+
+const resolveTraceNodeId = (
+  label: string | undefined,
+  assets: AssetsMap,
+): number | null => {
+  if (!label) return null;
+  for (const asset of assets.values()) {
+    if (asset.isNode && asset.label === label) return asset.id;
+  }
+  return null;
 };

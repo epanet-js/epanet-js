@@ -9,6 +9,7 @@ import { NumericField } from "src/components/form/numeric-field";
 import { Selector } from "src/components/form/selector";
 import { simulationSettingsAtom } from "src/state/jotai";
 import { hasScenariosAtom } from "src/state/scenarios";
+import { assetsAtom } from "src/state/hydraulic-model";
 
 import type {
   DemandModel,
@@ -430,11 +431,16 @@ export const HydraulicsSection = () => {
 export const WaterQualitySection = () => {
   const translate = useTranslate();
   const readonly = useAtomValue(hasScenariosAtom);
+  const assets = useAtomValue(assetsAtom);
   const { values, setFieldValue } = useFormikContext<FormValues>();
-
   const isNone = values.qualitySimulationType === "NONE";
   const isChemical = values.qualitySimulationType === "CHEMICAL";
   const isTrace = values.qualitySimulationType === "TRACE";
+
+  const traceNodeLabel =
+    values.qualityTraceNodeId !== null
+      ? (assets.get(values.qualityTraceNodeId)?.label ?? "")
+      : "";
 
   const qualityTypeOptions: {
     label: string;
@@ -510,9 +516,19 @@ export const WaterQualitySection = () => {
         <TextSetting
           label={translate("simulationSettings.qualityTraceNode")}
           description={translate("simulationSettings.qualityTraceNodeDesc")}
-          value={values.qualityTraceNode}
-          onChange={(v) => {
-            void setFieldValue("qualityTraceNode", v);
+          value={traceNodeLabel}
+          onChange={(label) => {
+            if (!label) {
+              void setFieldValue("qualityTraceNodeId", null);
+              return;
+            }
+            for (const asset of assets.values()) {
+              if (asset.isNode && asset.label === label) {
+                void setFieldValue("qualityTraceNodeId", asset.id);
+                return;
+              }
+            }
+            void setFieldValue("qualityTraceNodeId", null);
           }}
           disabled={!isTrace || readonly}
         />

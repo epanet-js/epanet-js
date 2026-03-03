@@ -44,7 +44,7 @@ export type SimulationSettings = {
   qualitySimulationType: QualitySimulationType;
   qualityChemicalName: string;
   qualityMassUnit: QualityMassUnit;
-  qualityTraceNode: string;
+  qualityTraceNodeId: number | null;
   tolerance: number;
   diffusivity: number;
   reactionBulkOrder: number;
@@ -74,7 +74,7 @@ export const defaultWaterQualityValues = {
   qualitySimulationType: "NONE" as QualitySimulationType,
   qualityChemicalName: "",
   qualityMassUnit: "mg/L" as QualityMassUnit,
-  qualityTraceNode: "",
+  qualityTraceNodeId: null,
   tolerance: 0.01,
   diffusivity: 1.0,
   reactionBulkOrder: 1,

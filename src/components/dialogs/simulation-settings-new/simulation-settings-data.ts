@@ -89,7 +89,7 @@ export type FormValues = {
   qualitySimulationType: QualitySimulationType;
   qualityChemicalName: string;
   qualityMassUnit: QualityMassUnit;
-  qualityTraceNode: string;
+  qualityTraceNodeId: number | null;
   tolerance: number;
   diffusivity: number;
   reactionBulkOrder: number;
@@ -137,7 +137,7 @@ export const buildInitialValues = (
     qualitySimulationType: settings.qualitySimulationType,
     qualityChemicalName: settings.qualityChemicalName,
     qualityMassUnit: settings.qualityMassUnit,
-    qualityTraceNode: settings.qualityTraceNode,
+    qualityTraceNodeId: settings.qualityTraceNodeId,
     tolerance: settings.tolerance,
     diffusivity: settings.diffusivity,
     reactionBulkOrder: settings.reactionBulkOrder,
@@ -195,7 +195,7 @@ export const hasChanges = (
     values.qualitySimulationType !== settings.qualitySimulationType ||
     values.qualityChemicalName !== settings.qualityChemicalName ||
     values.qualityMassUnit !== settings.qualityMassUnit ||
-    values.qualityTraceNode !== settings.qualityTraceNode ||
+    values.qualityTraceNodeId !== settings.qualityTraceNodeId ||
     values.tolerance !== settings.tolerance ||
     values.diffusivity !== settings.diffusivity ||
     values.reactionBulkOrder !== settings.reactionBulkOrder ||
@@ -236,7 +236,7 @@ export const buildUpdatedSettings = (
     qualitySimulationType: values.qualitySimulationType,
     qualityChemicalName: values.qualityChemicalName,
     qualityMassUnit: values.qualityMassUnit,
-    qualityTraceNode: values.qualityTraceNode,
+    qualityTraceNodeId: values.qualityTraceNodeId,
     tolerance: values.tolerance,
     diffusivity: values.diffusivity,
     reactionBulkOrder: values.reactionBulkOrder,

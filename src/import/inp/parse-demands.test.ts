@@ -830,14 +830,36 @@ describe("parse junctions demands", () => {
 
     it("parses QUALITY TRACE with node ID when extraOptions enabled", () => {
       const inp = `
+      [JUNCTIONS]
+      Tank23\t100
+      [COORDINATES]
+      Tank23\t0\t0
       [OPTIONS]
       Quality\tTRACE Tank23
+      `;
+
+      const { simulationSettings, hydraulicModel } = parseInp(inp, {
+        extraOptions: true,
+      });
+
+      expect(simulationSettings.qualitySimulationType).toEqual("TRACE");
+      expect(simulationSettings.qualityTraceNodeId).toBeGreaterThan(0);
+      const asset = hydraulicModel.assets.get(
+        simulationSettings.qualityTraceNodeId!,
+      );
+      expect(asset?.label).toEqual("Tank23");
+    });
+
+    it("parses QUALITY TRACE with unknown node as null", () => {
+      const inp = `
+      [OPTIONS]
+      Quality\tTRACE UnknownNode
       `;
 
       const { simulationSettings } = parseInp(inp, { extraOptions: true });
 
       expect(simulationSettings.qualitySimulationType).toEqual("TRACE");
-      expect(simulationSettings.qualityTraceNode).toEqual("Tank23");
+      expect(simulationSettings.qualityTraceNodeId).toBeNull();
     });
 
     it("parses QUALITY CHEMICAL with name and units when extraOptions enabled", () => {

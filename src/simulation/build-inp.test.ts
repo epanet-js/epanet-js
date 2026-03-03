@@ -416,6 +416,54 @@ describe("build inp", () => {
     expect(inp).toContain("Emitter Exponent\t0.7");
   });
 
+  it("exports TRACE with valid AssetId as node label", () => {
+    const TANK_ID = 1;
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aTank(TANK_ID, { label: "Tank23" })
+      .build();
+
+    const simulationSettings = SimulationSettingsBuilder.with()
+      .qualitySimulationType("TRACE")
+      .qualityTraceNodeId(TANK_ID)
+      .build();
+
+    const inp = buildInp(hydraulicModel, { simulationSettings });
+
+    expect(inp).toContain("Quality\tTRACE 1");
+  });
+
+  it("exports TRACE with valid AssetId using label when labelIds enabled", () => {
+    const TANK_ID = 1;
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aTank(TANK_ID, { label: "Tank23" })
+      .build();
+
+    const simulationSettings = SimulationSettingsBuilder.with()
+      .qualitySimulationType("TRACE")
+      .qualityTraceNodeId(TANK_ID)
+      .build();
+
+    const inp = buildInp(hydraulicModel, {
+      simulationSettings,
+      labelIds: true,
+    });
+
+    expect(inp).toContain("Quality\tTRACE Tank23");
+  });
+
+  it("exports TRACE without node when AssetId is null", () => {
+    const hydraulicModel = HydraulicModelBuilder.with().build();
+
+    const simulationSettings = SimulationSettingsBuilder.with()
+      .qualitySimulationType("TRACE")
+      .qualityTraceNodeId(null)
+      .build();
+
+    const inp = buildInp(hydraulicModel, { simulationSettings });
+
+    expect(inp).toContain("Quality\tTRACE");
+  });
+
   it("includes visualization settings for epanet", () => {
     const hydraulicModel = HydraulicModelBuilder.with().build();
 
