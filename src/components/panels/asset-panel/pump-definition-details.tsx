@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo } from "react";
 import { TranslateFn, useTranslate } from "src/hooks/use-translate";
-import { NumericField } from "src/components/form/numeric-field";
+import { NumericTable, type Cell } from "src/components/form/numeric-table";
 import {
   CurveId,
   CurvePoint,
@@ -24,10 +24,9 @@ import type {
   PumpCurveComparison,
 } from "src/hooks/use-asset-comparison";
 import type { PropertyChange } from "src/hydraulic-model/model-operations/change-property";
-import * as Tooltip from "@radix-ui/react-tooltip";
-import { Button, TContent } from "src/components/elements";
+import { Button } from "src/components/elements";
 import { useShowPumpLibrary } from "src/commands/show-pump-library";
-import { InlineField } from "src/components/form/fields";
+import { BlockComparisonField, InlineField } from "src/components/form/fields";
 import { SelectorOption } from "src/components/form/selector";
 
 export type PumpDefinitionMode =
@@ -207,13 +206,15 @@ const PumpDefinitionDetailsInner = ({
     [localDefinitionType, onChange],
   );
 
-  const purpleLine = comparison?.hasChanged ? (
-    <div className="absolute -left-4 top-0 bottom-0 w-1 bg-purple-500 rounded-full" />
-  ) : null;
-
-  const sectionContent = (
-    <div className="relative">
-      {purpleLine}
+  return (
+    <BlockComparisonField
+      hasChanged={comparison.hasChanged}
+      baseDisplayValue={
+        comparison.tooltipText ? (
+          <div className="whitespace-pre-line">{comparison.tooltipText}</div>
+        ) : undefined
+      }
+    >
       <SelectRow
         name="pumpType"
         selected={localDefinitionType}
@@ -248,26 +249,8 @@ const PumpDefinitionDetailsInner = ({
             />
           )}
       </NestedSection>
-    </div>
+    </BlockComparisonField>
   );
-
-  if (comparison.hasChanged && comparison.tooltipText) {
-    return (
-      <Tooltip.Root delayDuration={200}>
-        <Tooltip.Trigger asChild>{sectionContent}</Tooltip.Trigger>
-        <Tooltip.Portal>
-          <TContent side="left" sideOffset={4}>
-            <div className="whitespace-pre-line">
-              {translate("scenarios.main")}:{"\n"}
-              {comparison.tooltipText}
-            </div>
-          </TContent>
-        </Tooltip.Portal>
-      </Tooltip.Root>
-    );
-  }
-
-  return sectionContent;
 };
 
 type OnCurveChange = (points: PumpCurvePoint[]) => void;
@@ -343,88 +326,68 @@ export const PumpCurveTable = ({
     [curveType, onCurveChange, setEditingPoints],
   );
 
-  const getEditHandlers = (displayIndex: number) => {
-    if (!onCurveChange) {
-      return { onChangeFlow: undefined, onChangeHead: undefined };
-    }
-
-    if (curveType === "designPointCurve") {
-      if (displayIndex === 1) {
-        return {
-          onChangeFlow: (value: number | undefined) =>
-            handlePointChange(displayIndex, "flow", value),
-          onChangeHead: (value: number | undefined) =>
-            handlePointChange(displayIndex, "head", value),
-        };
-      }
-      return { onChangeFlow: undefined, onChangeHead: undefined };
-    }
-
-    return {
-      onChangeFlow:
-        displayIndex === 0
-          ? undefined // Shutoff flow is always 0
-          : (value: number | undefined) =>
-              handlePointChange(displayIndex, "flow", value),
-      onChangeHead: (value: number | undefined) =>
-        handlePointChange(displayIndex, "head", value),
-    };
+  const isEditable = (index: number, field: "flow" | "head"): boolean => {
+    if (!onCurveChange) return false;
+    if (curveType === "designPointCurve") return index === 1;
+    if (field === "flow" && index === 0) return false; // Shutoff flow is always 0
+    return true;
   };
 
-  const getErrorStates = (displayIndex: number) => {
-    const point = displayPoints[displayIndex];
-    const { onChangeFlow, onChangeHead } = getEditHandlers(displayIndex);
-
-    const flowMissing = onChangeFlow !== undefined && point.flow === undefined;
-    const headMissing = onChangeHead !== undefined && point.head === undefined;
-
-    const errorIndex =
-      curveType === "designPointCurve" ? displayIndex - 1 : displayIndex;
-    const hasFlowError =
-      onChangeFlow !== undefined &&
-      pumpErrors.some((e) => e.index === errorIndex && e.value === "x");
-    const hasHeadError =
-      onChangeHead !== undefined &&
-      pumpErrors.some((e) => e.index === errorIndex && e.value === "y");
-
-    return {
-      flowHasError: flowMissing || hasFlowError,
-      headHasError: headMissing || hasHeadError,
-    };
+  const hasError = (index: number, field: "flow" | "head"): boolean => {
+    if (!isEditable(index, field)) return false;
+    const point = displayPoints[index];
+    if (
+      field === "flow" ? point.flow === undefined : point.head === undefined
+    ) {
+      return true;
+    }
+    const errorIndex = curveType === "designPointCurve" ? index - 1 : index;
+    return pumpErrors.some(
+      (e) =>
+        e.index === errorIndex && e.value === (field === "flow" ? "x" : "y"),
+    );
   };
+
+  const flowUnit = quantities.getUnit("flow");
+  const headUnit = quantities.getUnit("head");
+
+  const cells: Array<[Cell, Cell]> = displayPoints.map((point, index) => [
+    {
+      label: `${pointLabels[index]}-x`,
+      value: point.flow ?? null,
+      readOnly: !isEditable(index, "flow"),
+      positiveOnly: true,
+      isNullable: true,
+      decimals: flowDecimals,
+      hasError: hasError(index, "flow"),
+      handler: (newValue: number, isEmpty: boolean) =>
+        handlePointChange(index, "flow", isEmpty ? undefined : newValue),
+    },
+    {
+      label: `${pointLabels[index]}-y`,
+      value: point.head ?? null,
+      readOnly: !isEditable(index, "head"),
+      positiveOnly: true,
+      isNullable: true,
+      decimals: headDecimals,
+      hasError: hasError(index, "head"),
+      handler: (newValue: number, isEmpty: boolean) =>
+        handlePointChange(index, "head", isEmpty ? undefined : newValue),
+    },
+  ]);
 
   return (
     <>
-      <div
-        role="table"
-        className="w-full grid grid-cols-[auto_1fr_1fr] items-center"
-      >
-        <GridHeader quantities={quantities} />
-        {displayPoints.map((point, index) => {
-          const { onChangeFlow, onChangeHead } = getEditHandlers(index);
-          const { flowHasError, headHasError } = getErrorStates(index);
-          return (
-            <GridRow
-              key={pointLabels[index]}
-              label={pointLabels[index]}
-              displayFlow={
-                point.flow !== undefined
-                  ? localizeDecimal(point.flow, { decimals: flowDecimals })
-                  : ""
-              }
-              displayHead={
-                point.head !== undefined
-                  ? localizeDecimal(point.head, { decimals: headDecimals })
-                  : ""
-              }
-              onChangeFlow={onChangeFlow}
-              onChangeHead={onChangeHead}
-              flowHasError={flowHasError}
-              headHasError={headHasError}
-            />
-          );
-        })}
-      </div>
+      <NumericTable
+        labels={{
+          horizontal: [
+            `${translate("flow")} (${flowUnit})`,
+            `${translate("head")} (${headUnit})`,
+          ],
+          vertical: pointLabels,
+        }}
+        cells={cells}
+      />
       {(hasMissingValues || pumpErrors.length > 0) && (
         <p className="text-sm font-semibold text-orange-800">
           <PumpCurveWarning
@@ -434,110 +397,6 @@ export const PumpCurveTable = ({
           />
         </p>
       )}
-    </>
-  );
-};
-
-const GridHeader = ({ quantities }: { quantities: Quantities }) => {
-  const translate = useTranslate();
-  const flowUnit = quantities.getUnit("flow");
-  const headUnit = quantities.getUnit("head");
-
-  return (
-    <>
-      <div role="columnheader"></div>
-
-      <div
-        role="columnheader"
-        className="pl-2 py-1 text-sm font-semibold text-gray-500 truncate"
-      >
-        <span>{translate("flow")}</span>
-        <span className="ml-1">({flowUnit})</span>
-      </div>
-      <div
-        role="columnheader"
-        className="pl-2 py-1 text-sm font-semibold text-gray-500 truncate"
-      >
-        <span>{translate("head")}</span>
-        <span className="ml-1">({headUnit})</span>
-      </div>
-    </>
-  );
-};
-
-const GridRow = ({
-  label,
-  displayFlow,
-  displayHead,
-  onChangeFlow,
-  onChangeHead,
-  flowHasError,
-  headHasError,
-}: {
-  label: string;
-  displayFlow: string;
-  displayHead: string;
-  onChangeFlow?: (newValue: number | undefined) => void;
-  onChangeHead?: (newValue: number | undefined) => void;
-  flowHasError?: boolean;
-  headHasError?: boolean;
-}) => {
-  const handleFlowChange = onChangeFlow
-    ? (value: number, isEmpty: boolean) =>
-        onChangeFlow(isEmpty ? undefined : value)
-    : undefined;
-  const handleHeadChange = onChangeHead
-    ? (value: number, isEmpty: boolean) =>
-        onChangeHead(isEmpty ? undefined : value)
-    : undefined;
-
-  return (
-    <>
-      <div role="cell" className="pt-2 text-sm text-gray-500">
-        {label}
-      </div>
-
-      <div role="cell" className="pl-2 pt-2">
-        {onChangeFlow ? (
-          <NumericField
-            label={`${label}-x`}
-            positiveOnly={true}
-            isNullable={true}
-            displayValue={displayFlow}
-            onChangeValue={handleFlowChange}
-            styleOptions={{
-              padding: "sm",
-              textSize: "sm",
-              variant: flowHasError ? "warning" : "default",
-            }}
-          />
-        ) : (
-          <span className="block p-1 text-sm text-gray-700 dark:text-gray-100 tabular-nums border border-transparent">
-            {displayFlow}
-          </span>
-        )}
-      </div>
-
-      <div role="cell" className="pl-2 pt-2">
-        {onChangeHead ? (
-          <NumericField
-            label={`${label}-y`}
-            positiveOnly={true}
-            isNullable={true}
-            displayValue={displayHead}
-            onChangeValue={handleHeadChange}
-            styleOptions={{
-              padding: "sm",
-              textSize: "sm",
-              variant: headHasError ? "warning" : "default",
-            }}
-          />
-        ) : (
-          <span className="block p-1 text-sm text-gray-700 dark:text-gray-100 tabular-nums border border-transparent">
-            {displayHead}
-          </span>
-        )}
-      </div>
     </>
   );
 };
