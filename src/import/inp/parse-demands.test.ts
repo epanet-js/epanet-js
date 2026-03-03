@@ -804,4 +804,179 @@ describe("parse junctions demands", () => {
       expect(pattern2?.label).toBe("residential");
     });
   });
+
+  describe("water quality options", () => {
+    it("parses QUALITY NONE when extraOptions enabled", () => {
+      const inp = `
+      [OPTIONS]
+      Quality\tNONE
+      `;
+
+      const { simulationSettings } = parseInp(inp, { extraOptions: true });
+
+      expect(simulationSettings.qualitySimulationType).toEqual("NONE");
+    });
+
+    it("parses QUALITY AGE when extraOptions enabled", () => {
+      const inp = `
+      [OPTIONS]
+      Quality\tAGE
+      `;
+
+      const { simulationSettings } = parseInp(inp, { extraOptions: true });
+
+      expect(simulationSettings.qualitySimulationType).toEqual("AGE");
+    });
+
+    it("parses QUALITY TRACE with node ID when extraOptions enabled", () => {
+      const inp = `
+      [OPTIONS]
+      Quality\tTRACE Tank23
+      `;
+
+      const { simulationSettings } = parseInp(inp, { extraOptions: true });
+
+      expect(simulationSettings.qualitySimulationType).toEqual("TRACE");
+      expect(simulationSettings.qualityTraceNode).toEqual("Tank23");
+    });
+
+    it("parses QUALITY CHEMICAL with name and units when extraOptions enabled", () => {
+      const inp = `
+      [OPTIONS]
+      Quality\tChlorine mg/L
+      `;
+
+      const { simulationSettings } = parseInp(inp, { extraOptions: true });
+
+      expect(simulationSettings.qualitySimulationType).toEqual("CHEMICAL");
+      expect(simulationSettings.qualityChemicalName).toEqual("Chlorine");
+      expect(simulationSettings.qualityMassUnit).toEqual("mg/L");
+    });
+
+    it("parses QUALITY CHEMICAL with ug/L unit", () => {
+      const inp = `
+      [OPTIONS]
+      Quality\tFluoride ug/L
+      `;
+
+      const { simulationSettings } = parseInp(inp, { extraOptions: true });
+
+      expect(simulationSettings.qualitySimulationType).toEqual("CHEMICAL");
+      expect(simulationSettings.qualityChemicalName).toEqual("Fluoride");
+      expect(simulationSettings.qualityMassUnit).toEqual("ug/L");
+    });
+
+    it("reports water quality type as issue when extraOptions not enabled", () => {
+      const inp = `
+      [OPTIONS]
+      Quality\tAGE
+      `;
+
+      const { issues } = parseInp(inp);
+
+      expect(issues?.waterQualityType).toEqual("AGE");
+    });
+
+    it("parses TOLERANCE when extraOptions enabled", () => {
+      const inp = `
+      [OPTIONS]
+      Tolerance\t0.05
+      `;
+
+      const { simulationSettings } = parseInp(inp, { extraOptions: true });
+
+      expect(simulationSettings.tolerance).toEqual(0.05);
+    });
+
+    it("reports TOLERANCE as non-default when extraOptions not enabled", () => {
+      const inp = `
+      [OPTIONS]
+      Tolerance\t0.05
+      `;
+
+      const { issues } = parseInp(inp);
+
+      expect(issues?.nonDefaultOptions?.has("TOLERANCE")).toBe(true);
+    });
+
+    it("parses DIFFUSIVITY when extraOptions enabled", () => {
+      const inp = `
+      [OPTIONS]
+      Diffusivity\t2.0
+      `;
+
+      const { simulationSettings } = parseInp(inp, { extraOptions: true });
+
+      expect(simulationSettings.diffusivity).toEqual(2.0);
+    });
+
+    it("reports DIFFUSIVITY as non-default when extraOptions not enabled", () => {
+      const inp = `
+      [OPTIONS]
+      Diffusivity\t2.0
+      `;
+
+      const { issues } = parseInp(inp);
+
+      expect(issues?.nonDefaultOptions?.has("DIFFUSIVITY")).toBe(true);
+    });
+  });
+
+  describe("reaction options", () => {
+    it("parses reaction settings when extraOptions enabled", () => {
+      const inp = `
+      [REACTIONS]
+      Order Bulk\t2
+      Order Wall\t0
+      Order Tank\t1
+      Global Bulk\t-0.5
+      Global Wall\t-1.0
+      Limiting Potential\t0.5
+      Roughness Correlation\t0.1
+      `;
+
+      const { simulationSettings } = parseInp(inp, { extraOptions: true });
+
+      expect(simulationSettings.reactionBulkOrder).toEqual(2);
+      expect(simulationSettings.reactionWallOrder).toEqual(0);
+      expect(simulationSettings.reactionTankOrder).toEqual(1);
+      expect(simulationSettings.reactionGlobalBulk).toEqual(-0.5);
+      expect(simulationSettings.reactionGlobalWall).toEqual(-1.0);
+      expect(simulationSettings.reactionLimitingPotential).toEqual(0.5);
+      expect(simulationSettings.reactionRoughnessCorrelation).toEqual(0.1);
+    });
+
+    it("does not report reactions as unsupported when extraOptions enabled", () => {
+      const inp = `
+      [REACTIONS]
+      Global Bulk\t-0.5
+      `;
+
+      const { issues } = parseInp(inp, { extraOptions: true });
+
+      expect(issues?.unsupportedSections?.has("[REACTIONS]")).toBeFalsy();
+    });
+
+    it("still reports pipe-specific reactions as unsupported when extraOptions enabled", () => {
+      const inp = `
+      [REACTIONS]
+      Bulk  P1  0.5
+      `;
+
+      const { issues } = parseInp(inp, { extraOptions: true });
+
+      expect(issues?.unsupportedSections?.has("[REACTIONS]")).toBe(true);
+    });
+
+    it("reports reactions as unsupported when extraOptions not enabled", () => {
+      const inp = `
+      [REACTIONS]
+      Global Bulk\t-0.5
+      `;
+
+      const { issues } = parseInp(inp);
+
+      expect(issues?.unsupportedSections?.has("[REACTIONS]")).toBe(true);
+    });
+  });
 });

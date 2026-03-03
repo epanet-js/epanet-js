@@ -149,6 +149,21 @@ export type InpData = {
     dampLimit?: number;
     viscosity?: number;
     specificGravity?: number;
+    qualitySimulationType?: "NONE" | "CHEMICAL" | "AGE" | "TRACE";
+    qualityChemicalName?: string;
+    qualityMassUnit?: "mg/L" | "ug/L";
+    qualityTraceNode?: string;
+    tolerance?: number;
+    diffusivity?: number;
+  };
+  reactions: {
+    bulkOrder?: number;
+    wallOrder?: number;
+    tankOrder?: number;
+    globalBulk?: number;
+    globalWall?: number;
+    limitingPotential?: number;
+    roughnessCorrelation?: number;
   };
   times: {
     duration?: number;
@@ -230,6 +245,7 @@ export const nullInpData = (): InpData => {
     sourcePatterns: new Set(),
     energyPatterns: new Set(),
     options: { units: "GPM", headlossFormula: "H-W", demandMultiplier: 1 },
+    reactions: {},
     times: {},
     controls: { simple: "", ruleBased: "" },
     nodeIds: new NodeIds(),

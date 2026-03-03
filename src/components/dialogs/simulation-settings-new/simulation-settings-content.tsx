@@ -12,7 +12,10 @@ import { hasScenariosAtom } from "src/state/scenarios";
 import type {
   DemandModel,
   UnbalancedMode,
+  QualitySimulationType,
+  QualityMassUnit,
 } from "src/simulation/simulation-settings";
+import { EditableTextField } from "src/components/form/editable-text-field";
 import type {
   FormValues,
   SimulationModeOption,
@@ -423,6 +426,190 @@ export const HydraulicsSection = () => {
   );
 };
 
+export const WaterQualitySection = () => {
+  const translate = useTranslate();
+  const readonly = useAtomValue(hasScenariosAtom);
+  const { values, setFieldValue } = useFormikContext<FormValues>();
+
+  const isNone = values.qualitySimulationType === "NONE";
+  const isChemical = values.qualitySimulationType === "CHEMICAL";
+  const isTrace = values.qualitySimulationType === "TRACE";
+
+  const qualityTypeOptions: {
+    label: string;
+    value: QualitySimulationType;
+  }[] = [
+    {
+      label: translate("simulationSettings.qualityNone"),
+      value: "NONE",
+    },
+    {
+      label: translate("simulationSettings.qualityChemical"),
+      value: "CHEMICAL",
+    },
+    {
+      label: translate("simulationSettings.qualityAge"),
+      value: "AGE",
+    },
+    {
+      label: translate("simulationSettings.qualityTrace"),
+      value: "TRACE",
+    },
+  ];
+
+  const massUnitOptions: { label: string; value: QualityMassUnit }[] = [
+    { label: "mg/L", value: "mg/L" },
+    { label: "ug/L", value: "ug/L" },
+  ];
+
+  return (
+    <div>
+      <h3 className="text-base font-semibold text-gray-900 dark:text-white pb-3 mb-3">
+        {translate("simulationSettings.waterQuality")}
+      </h3>
+
+      <div className="flex flex-col gap-4">
+        <div
+          data-section-id="waterQuality-analysis"
+          className="text-sm font-semibold text-gray-900 dark:text-white mt-2"
+        >
+          {translate("simulationSettings.waterQualityAnalysis")}
+        </div>
+
+        <SelectorSetting
+          label={translate("simulationSettings.qualitySimulationType")}
+          description={translate(
+            "simulationSettings.qualitySimulationTypeDesc",
+          )}
+          options={qualityTypeOptions}
+          selected={values.qualitySimulationType}
+          onChange={(v) => setFieldValue("qualitySimulationType", v)}
+          disabled={readonly}
+        />
+
+        <TextSetting
+          label={translate("simulationSettings.qualityChemicalName")}
+          description={translate("simulationSettings.qualityChemicalNameDesc")}
+          value={values.qualityChemicalName}
+          onChange={(v) => {
+            void setFieldValue("qualityChemicalName", v);
+          }}
+          disabled={!isChemical || readonly}
+        />
+
+        <SelectorSetting
+          label={translate("simulationSettings.qualityMassUnit")}
+          description={translate("simulationSettings.qualityMassUnitDesc")}
+          options={massUnitOptions}
+          selected={values.qualityMassUnit}
+          onChange={(v) => setFieldValue("qualityMassUnit", v)}
+          disabled={!isChemical || readonly}
+        />
+
+        <TextSetting
+          label={translate("simulationSettings.qualityTraceNode")}
+          description={translate("simulationSettings.qualityTraceNodeDesc")}
+          value={values.qualityTraceNode}
+          onChange={(v) => {
+            void setFieldValue("qualityTraceNode", v);
+          }}
+          disabled={!isTrace || readonly}
+        />
+
+        <ValueSetting
+          label={translate("simulationSettings.tolerance")}
+          description={translate("simulationSettings.toleranceDesc")}
+          value={values.tolerance}
+          onChange={(v) => setFieldValue("tolerance", v)}
+          disabled={isNone || readonly}
+        />
+
+        <div
+          data-section-id="waterQuality-reactions"
+          className="text-sm font-semibold text-gray-900 dark:text-white mt-6"
+        >
+          {translate("simulationSettings.waterQualityReactions")}
+        </div>
+
+        <ValueSetting
+          label={translate("simulationSettings.reactionBulkOrder")}
+          description={translate("simulationSettings.reactionBulkOrderDesc")}
+          value={values.reactionBulkOrder}
+          onChange={(v) => setFieldValue("reactionBulkOrder", v)}
+          disabled={!isChemical || readonly}
+        />
+
+        <ValueSetting
+          label={translate("simulationSettings.reactionWallOrder")}
+          description={translate("simulationSettings.reactionWallOrderDesc")}
+          value={values.reactionWallOrder}
+          onChange={(v) => setFieldValue("reactionWallOrder", v)}
+          disabled={!isChemical || readonly}
+        />
+
+        <ValueSetting
+          label={translate("simulationSettings.reactionTankOrder")}
+          description={translate("simulationSettings.reactionTankOrderDesc")}
+          value={values.reactionTankOrder}
+          onChange={(v) => setFieldValue("reactionTankOrder", v)}
+          disabled={!isChemical || readonly}
+        />
+
+        <ValueSetting
+          label={translate("simulationSettings.reactionGlobalBulk")}
+          description={translate("simulationSettings.reactionGlobalBulkDesc")}
+          value={values.reactionGlobalBulk}
+          onChange={(v) => setFieldValue("reactionGlobalBulk", v)}
+          disabled={!isChemical || readonly}
+        />
+
+        <ValueSetting
+          label={translate("simulationSettings.reactionGlobalWall")}
+          description={translate("simulationSettings.reactionGlobalWallDesc")}
+          value={values.reactionGlobalWall}
+          onChange={(v) => setFieldValue("reactionGlobalWall", v)}
+          disabled={!isChemical || readonly}
+        />
+
+        <div
+          data-section-id="waterQuality-wall"
+          className="text-sm font-semibold text-gray-900 dark:text-white mt-6"
+        >
+          {translate("simulationSettings.waterQualityWall")}
+        </div>
+
+        <ValueSetting
+          label={translate("simulationSettings.reactionLimitingPotential")}
+          description={translate(
+            "simulationSettings.reactionLimitingPotentialDesc",
+          )}
+          value={values.reactionLimitingPotential}
+          onChange={(v) => setFieldValue("reactionLimitingPotential", v)}
+          disabled={!isChemical || readonly}
+        />
+
+        <ValueSetting
+          label={translate("simulationSettings.reactionRoughnessCorrelation")}
+          description={translate(
+            "simulationSettings.reactionRoughnessCorrelationDesc",
+          )}
+          value={values.reactionRoughnessCorrelation}
+          onChange={(v) => setFieldValue("reactionRoughnessCorrelation", v)}
+          disabled={!isChemical || readonly}
+        />
+
+        <ValueSetting
+          label={translate("simulationSettings.diffusivity")}
+          description={translate("simulationSettings.diffusivityDesc")}
+          value={values.diffusivity}
+          onChange={(v) => setFieldValue("diffusivity", v)}
+          disabled={!isChemical || readonly}
+        />
+      </div>
+    </div>
+  );
+};
+
 export const SettingsRow = ({
   label,
   description,
@@ -545,6 +732,35 @@ const SelectorSetting = <T extends string>({
         onChange={onChange}
         disabled={disabled}
         styleOptions={{ border: true, textSize: "text-sm", paddingY: 2 }}
+      />
+    </div>
+  </SettingsRow>
+);
+
+const TextSetting = ({
+  label,
+  description,
+  value,
+  disabled = false,
+  onChange,
+}: {
+  label: string;
+  description: string;
+  value: string;
+  disabled?: boolean;
+  onChange: (value: string) => void;
+}) => (
+  <SettingsRow label={label} description={description}>
+    <div className="w-56">
+      <EditableTextField
+        label={label}
+        value={value}
+        onChangeValue={(v) => {
+          onChange(v);
+          return false;
+        }}
+        disabled={disabled}
+        styleOptions={{ textSize: "xs", border: "sm" }}
       />
     </div>
   </SettingsRow>

@@ -140,13 +140,54 @@ const defaultReactionSettings: Record<string, number> = {
 export const parseReaction: RowParser = ({
   sectionName,
   trimmedRow,
+  inpData,
   issues,
+  options,
 }) => {
   const setting = readSetting(trimmedRow, defaultReactionSettings);
+
+  if (options?.extraOptions) {
+    if (setting) {
+      const { name, value } = setting;
+      if (name === "ORDER BULK") {
+        inpData.reactions.bulkOrder = value as number;
+        return;
+      }
+      if (name === "ORDER WALL") {
+        inpData.reactions.wallOrder = value as number;
+        return;
+      }
+      if (name === "ORDER TANK") {
+        inpData.reactions.tankOrder = value as number;
+        return;
+      }
+      if (name === "GLOBAL BULK") {
+        inpData.reactions.globalBulk = value as number;
+        return;
+      }
+      if (name === "GLOBAL WALL") {
+        inpData.reactions.globalWall = value as number;
+        return;
+      }
+      if (name === "LIMITING POTENTIAL") {
+        inpData.reactions.limitingPotential = value as number;
+        return;
+      }
+      if (name === "ROUGHNESS CORRELATION") {
+        inpData.reactions.roughnessCorrelation = value as number;
+        return;
+      }
+    }
+    // Pipe-specific reactions (BULK/WALL pipeID, TANK tankID) still unsupported
+    if (!setting) {
+      issues.addUsedSection(sectionName);
+    }
+    return;
+  }
+
   if (setting && setting.value !== setting.defaultValue) {
     issues.addUsedSection(sectionName);
   } else if (!setting) {
-    // Unsupported Reaction settings
     issues.addUsedSection(sectionName);
   }
 };
@@ -659,14 +700,41 @@ export const parseOption: RowParser = ({
   if (name === "QUALITY") {
     const upperValue =
       typeof value === "string" ? value.toUpperCase() : String(value);
-    if (upperValue.startsWith("NONE")) return;
 
-    if (upperValue.startsWith("AGE")) {
-      issues.addWaterQualityType("AGE");
-    } else if (upperValue.startsWith("TRACE")) {
-      issues.addWaterQualityType("TRACE");
+    if (options?.extraOptions) {
+      if (upperValue.startsWith("NONE")) {
+        inpData.options.qualitySimulationType = "NONE";
+      } else if (upperValue.startsWith("AGE")) {
+        inpData.options.qualitySimulationType = "AGE";
+      } else if (upperValue.startsWith("TRACE")) {
+        inpData.options.qualitySimulationType = "TRACE";
+        const rawValue = trimmedRow
+          .split(commentIdentifier)[0]
+          .replace(/^\s*QUALITY\s+TRACE\s+/i, "")
+          .trim();
+        if (rawValue) inpData.options.qualityTraceNode = rawValue;
+      } else {
+        inpData.options.qualitySimulationType = "CHEMICAL";
+        const rawValue = trimmedRow
+          .split(commentIdentifier)[0]
+          .replace(/^\s*QUALITY\s+/i, "")
+          .trim();
+        const parts = rawValue.split(/\s+/);
+        if (parts[0]) inpData.options.qualityChemicalName = parts[0];
+        if (parts[1]) {
+          const unit = parts[1].toLowerCase();
+          inpData.options.qualityMassUnit = unit === "ug/l" ? "ug/L" : "mg/L";
+        }
+      }
     } else {
-      issues.addWaterQualityType("CHEMICAL");
+      if (upperValue.startsWith("NONE")) return;
+      if (upperValue.startsWith("AGE")) {
+        issues.addWaterQualityType("AGE");
+      } else if (upperValue.startsWith("TRACE")) {
+        issues.addWaterQualityType("TRACE");
+      } else {
+        issues.addWaterQualityType("CHEMICAL");
+      }
     }
     return;
   }
@@ -706,6 +774,14 @@ export const parseOption: RowParser = ({
     }
     if (name === "SPECIFIC GRAVITY") {
       inpData.options.specificGravity = value as number;
+      return;
+    }
+    if (name === "TOLERANCE") {
+      inpData.options.tolerance = value as number;
+      return;
+    }
+    if (name === "DIFFUSIVITY") {
+      inpData.options.diffusivity = value as number;
       return;
     }
   }

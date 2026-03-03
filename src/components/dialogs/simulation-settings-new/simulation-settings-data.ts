@@ -3,6 +3,8 @@ import {
   type SimulationSettings,
   type DemandModel,
   type UnbalancedMode,
+  type QualitySimulationType,
+  type QualityMassUnit,
   defaultHydraulicsValues,
 } from "src/simulation/simulation-settings";
 
@@ -37,6 +39,15 @@ export const simulationSettingsCategories: OptionCategory[] = [
       { id: "hydraulics-convergence", label: "Convergence" },
       { id: "hydraulics-solver", label: "Solver controls" },
       { id: "hydraulics-fluid", label: "Fluid properties" },
+    ],
+  },
+  {
+    id: "waterQuality",
+    label: "Water quality",
+    subcategories: [
+      { id: "waterQuality-analysis", label: "Analysis" },
+      { id: "waterQuality-reactions", label: "Reaction constants" },
+      { id: "waterQuality-wall", label: "Wall interaction" },
     ],
   },
 ];
@@ -75,6 +86,19 @@ export type FormValues = {
   dampLimit: number;
   viscosity: number;
   specificGravity: number;
+  qualitySimulationType: QualitySimulationType;
+  qualityChemicalName: string;
+  qualityMassUnit: QualityMassUnit;
+  qualityTraceNode: string;
+  tolerance: number;
+  diffusivity: number;
+  reactionBulkOrder: number;
+  reactionWallOrder: number;
+  reactionTankOrder: number;
+  reactionGlobalBulk: number;
+  reactionGlobalWall: number;
+  reactionLimitingPotential: number;
+  reactionRoughnessCorrelation: number;
 };
 
 export const buildInitialValues = (
@@ -110,6 +134,19 @@ export const buildInitialValues = (
     viscosity: settings.viscosity ?? defaultHydraulicsValues.viscosity,
     specificGravity:
       settings.specificGravity ?? defaultHydraulicsValues.specificGravity,
+    qualitySimulationType: settings.qualitySimulationType,
+    qualityChemicalName: settings.qualityChemicalName,
+    qualityMassUnit: settings.qualityMassUnit,
+    qualityTraceNode: settings.qualityTraceNode,
+    tolerance: settings.tolerance,
+    diffusivity: settings.diffusivity,
+    reactionBulkOrder: settings.reactionBulkOrder,
+    reactionWallOrder: settings.reactionWallOrder,
+    reactionTankOrder: settings.reactionTankOrder,
+    reactionGlobalBulk: settings.reactionGlobalBulk,
+    reactionGlobalWall: settings.reactionGlobalWall,
+    reactionLimitingPotential: settings.reactionLimitingPotential,
+    reactionRoughnessCorrelation: settings.reactionRoughnessCorrelation,
   };
 };
 
@@ -154,7 +191,21 @@ export const hasChanges = (
     values.viscosity !==
       (settings.viscosity ?? defaultHydraulicsValues.viscosity) ||
     values.specificGravity !==
-      (settings.specificGravity ?? defaultHydraulicsValues.specificGravity)
+      (settings.specificGravity ?? defaultHydraulicsValues.specificGravity) ||
+    values.qualitySimulationType !== settings.qualitySimulationType ||
+    values.qualityChemicalName !== settings.qualityChemicalName ||
+    values.qualityMassUnit !== settings.qualityMassUnit ||
+    values.qualityTraceNode !== settings.qualityTraceNode ||
+    values.tolerance !== settings.tolerance ||
+    values.diffusivity !== settings.diffusivity ||
+    values.reactionBulkOrder !== settings.reactionBulkOrder ||
+    values.reactionWallOrder !== settings.reactionWallOrder ||
+    values.reactionTankOrder !== settings.reactionTankOrder ||
+    values.reactionGlobalBulk !== settings.reactionGlobalBulk ||
+    values.reactionGlobalWall !== settings.reactionGlobalWall ||
+    values.reactionLimitingPotential !== settings.reactionLimitingPotential ||
+    values.reactionRoughnessCorrelation !==
+      settings.reactionRoughnessCorrelation
   );
 };
 
@@ -182,6 +233,19 @@ export const buildUpdatedSettings = (
     dampLimit: values.dampLimit,
     viscosity: values.viscosity,
     specificGravity: values.specificGravity,
+    qualitySimulationType: values.qualitySimulationType,
+    qualityChemicalName: values.qualityChemicalName,
+    qualityMassUnit: values.qualityMassUnit,
+    qualityTraceNode: values.qualityTraceNode,
+    tolerance: values.tolerance,
+    diffusivity: values.diffusivity,
+    reactionBulkOrder: values.reactionBulkOrder,
+    reactionWallOrder: values.reactionWallOrder,
+    reactionTankOrder: values.reactionTankOrder,
+    reactionGlobalBulk: values.reactionGlobalBulk,
+    reactionGlobalWall: values.reactionGlobalWall,
+    reactionLimitingPotential: values.reactionLimitingPotential,
+    reactionRoughnessCorrelation: values.reactionRoughnessCorrelation,
     timing: {
       duration:
         values.simulationMode === "steadyState" ? 0 : (values.duration ?? 0),

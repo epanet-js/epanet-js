@@ -6,6 +6,8 @@ import {
   type SimulationSettings,
   type DemandModel,
   type UnbalancedMode,
+  type QualitySimulationType,
+  type QualityMassUnit,
 } from "src/simulation/simulation-settings";
 
 export class SimulationSettingsBuilder {
@@ -32,6 +34,30 @@ export class SimulationSettingsBuilder {
   private dampLimitValue?: number;
   private viscosityValue?: number;
   private specificGravityValue?: number;
+  private qualitySimulationTypeValue: QualitySimulationType =
+    defaultSimulationSettings.qualitySimulationType;
+  private qualityChemicalNameValue: string =
+    defaultSimulationSettings.qualityChemicalName;
+  private qualityMassUnitValue: QualityMassUnit =
+    defaultSimulationSettings.qualityMassUnit;
+  private qualityTraceNodeValue: string =
+    defaultSimulationSettings.qualityTraceNode;
+  private toleranceValue: number = defaultSimulationSettings.tolerance;
+  private diffusivityValue: number = defaultSimulationSettings.diffusivity;
+  private reactionBulkOrderValue: number =
+    defaultSimulationSettings.reactionBulkOrder;
+  private reactionWallOrderValue: number =
+    defaultSimulationSettings.reactionWallOrder;
+  private reactionTankOrderValue: number =
+    defaultSimulationSettings.reactionTankOrder;
+  private reactionGlobalBulkValue: number =
+    defaultSimulationSettings.reactionGlobalBulk;
+  private reactionGlobalWallValue: number =
+    defaultSimulationSettings.reactionGlobalWall;
+  private reactionLimitingPotentialValue: number =
+    defaultSimulationSettings.reactionLimitingPotential;
+  private reactionRoughnessCorrelationValue: number =
+    defaultSimulationSettings.reactionRoughnessCorrelation;
 
   static with() {
     return new SimulationSettingsBuilder();
@@ -127,6 +153,71 @@ export class SimulationSettingsBuilder {
     return this;
   }
 
+  qualitySimulationType(value: QualitySimulationType) {
+    this.qualitySimulationTypeValue = value;
+    return this;
+  }
+
+  qualityChemicalName(value: string) {
+    this.qualityChemicalNameValue = value;
+    return this;
+  }
+
+  qualityMassUnit(value: QualityMassUnit) {
+    this.qualityMassUnitValue = value;
+    return this;
+  }
+
+  qualityTraceNode(value: string) {
+    this.qualityTraceNodeValue = value;
+    return this;
+  }
+
+  tolerance(value: number) {
+    this.toleranceValue = value;
+    return this;
+  }
+
+  diffusivity(value: number) {
+    this.diffusivityValue = value;
+    return this;
+  }
+
+  reactionBulkOrder(value: number) {
+    this.reactionBulkOrderValue = value;
+    return this;
+  }
+
+  reactionWallOrder(value: number) {
+    this.reactionWallOrderValue = value;
+    return this;
+  }
+
+  reactionTankOrder(value: number) {
+    this.reactionTankOrderValue = value;
+    return this;
+  }
+
+  reactionGlobalBulk(value: number) {
+    this.reactionGlobalBulkValue = value;
+    return this;
+  }
+
+  reactionGlobalWall(value: number) {
+    this.reactionGlobalWallValue = value;
+    return this;
+  }
+
+  reactionLimitingPotential(value: number) {
+    this.reactionLimitingPotentialValue = value;
+    return this;
+  }
+
+  reactionRoughnessCorrelation(value: number) {
+    this.reactionRoughnessCorrelationValue = value;
+    return this;
+  }
+
   build(): SimulationSettings {
     return {
       version: nanoid(),
@@ -168,6 +259,19 @@ export class SimulationSettingsBuilder {
       ...(this.specificGravityValue !== undefined && {
         specificGravity: this.specificGravityValue,
       }),
+      qualitySimulationType: this.qualitySimulationTypeValue,
+      qualityChemicalName: this.qualityChemicalNameValue,
+      qualityMassUnit: this.qualityMassUnitValue,
+      qualityTraceNode: this.qualityTraceNodeValue,
+      tolerance: this.toleranceValue,
+      diffusivity: this.diffusivityValue,
+      reactionBulkOrder: this.reactionBulkOrderValue,
+      reactionWallOrder: this.reactionWallOrderValue,
+      reactionTankOrder: this.reactionTankOrderValue,
+      reactionGlobalBulk: this.reactionGlobalBulkValue,
+      reactionGlobalWall: this.reactionGlobalWallValue,
+      reactionLimitingPotential: this.reactionLimitingPotentialValue,
+      reactionRoughnessCorrelation: this.reactionRoughnessCorrelationValue,
     };
   }
 }

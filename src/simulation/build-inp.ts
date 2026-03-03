@@ -14,7 +14,10 @@ import type {
   Timing,
   SimulationSettings,
 } from "src/simulation/simulation-settings";
-import { defaultHydraulicsValues } from "src/simulation/simulation-settings";
+import {
+  defaultHydraulicsValues,
+  defaultWaterQualityValues,
+} from "src/simulation/simulation-settings";
 import {
   CustomerPoint,
   getActiveCustomerPoints,
@@ -69,6 +72,42 @@ const buildUnbalancedValue = (
   }
   return "CONTINUE";
 };
+
+const buildQualityValue = (settings: SimulationSettings): string => {
+  const type = settings.qualitySimulationType;
+  if (type === "NONE") return "NONE";
+  if (type === "AGE") return "AGE";
+  if (type === "TRACE") {
+    const node = settings.qualityTraceNode;
+    return node ? `TRACE ${node}` : "TRACE";
+  }
+  // CHEMICAL
+  const name = settings.qualityChemicalName;
+  return name ? `${name} ${settings.qualityMassUnit}` : "CHEMICAL";
+};
+
+const buildReactionsSection = (settings: SimulationSettings): string[] => {
+  const dq = defaultWaterQualityValues;
+  const lines: string[] = ["[REACTIONS]"];
+  if (settings.reactionBulkOrder !== dq.reactionBulkOrder)
+    lines.push(`Order Bulk\t${settings.reactionBulkOrder}`);
+  if (settings.reactionWallOrder !== dq.reactionWallOrder)
+    lines.push(`Order Wall\t${settings.reactionWallOrder}`);
+  if (settings.reactionTankOrder !== dq.reactionTankOrder)
+    lines.push(`Order Tank\t${settings.reactionTankOrder}`);
+  if (settings.reactionGlobalBulk !== dq.reactionGlobalBulk)
+    lines.push(`Global Bulk\t${settings.reactionGlobalBulk}`);
+  if (settings.reactionGlobalWall !== dq.reactionGlobalWall)
+    lines.push(`Global Wall\t${settings.reactionGlobalWall}`);
+  if (settings.reactionLimitingPotential !== dq.reactionLimitingPotential)
+    lines.push(`Limiting Potential\t${settings.reactionLimitingPotential}`);
+  if (settings.reactionRoughnessCorrelation !== dq.reactionRoughnessCorrelation)
+    lines.push(
+      `Roughness Correlation\t${settings.reactionRoughnessCorrelation}`,
+    );
+  return lines;
+};
+
 const defaultConstantPatternId = 0;
 
 const formatSecondsToTime = (seconds: number): string => {
@@ -243,6 +282,7 @@ type InpSections = {
   vertices: string[];
   customers: string[];
   customersDemands: string[];
+  reactions: string[];
   controls: string[];
   rules: string[];
 };
@@ -303,7 +343,7 @@ export const buildInp = withDebugInstrumentation(
       patterns: ["[PATTERNS]", ";Id\tMultiplier"],
       options: [
         "[OPTIONS]",
-        "Quality\tNONE",
+        `Quality\t${buildQualityValue(opts.simulationSettings)}`,
         `Unbalanced\t${buildUnbalancedValue(opts.simulationSettings) ?? defaultUnbalanced}`,
         `Accuracy\t${opts.simulationSettings.accuracy ?? defaultAccuracy}`,
         `Units\t${units}`,
@@ -351,6 +391,14 @@ export const buildInp = withDebugInstrumentation(
           defaultHydraulicsValues.specificGravity
           ? [`Specific Gravity\t${opts.simulationSettings.specificGravity}`]
           : []),
+        ...(opts.simulationSettings.tolerance !==
+        defaultWaterQualityValues.tolerance
+          ? [`Tolerance\t${opts.simulationSettings.tolerance}`]
+          : []),
+        ...(opts.simulationSettings.diffusivity !==
+        defaultWaterQualityValues.diffusivity
+          ? [`Diffusivity\t${opts.simulationSettings.diffusivity}`]
+          : []),
         `Pattern\t${idMap.registerPatternId({ id: defaultConstantPatternId, label: "constant" })}`,
       ],
       backdrop: [
@@ -364,6 +412,7 @@ export const buildInp = withDebugInstrumentation(
         ";Id\tX-coord\tY-coord\tBaseDemand\tPipeId\tJunctionId\tSnapX\tSnapY",
       ],
       customersDemands: [";[CUSTOMERS_DEMANDS]", ";Id\tBaseDemand\tPatternId"],
+      reactions: buildReactionsSection(opts.simulationSettings),
       controls: ["[CONTROLS]"],
       rules: ["[RULES]"],
     };
@@ -498,6 +547,7 @@ export const buildInp = withDebugInstrumentation(
     const hasControls = sections.controls.length > 1;
     const hasRules = sections.rules.length > 1;
     const hasEmitters = sections.emitters.length > 2;
+    const hasReactions = sections.reactions.length > 1;
 
     let content = [
       sections.junctions.join("\n"),
@@ -514,6 +564,7 @@ export const buildInp = withDebugInstrumentation(
       sections.times.join("\n"),
       sections.report.join("\n"),
       sections.options.join("\n"),
+      hasReactions && sections.reactions.join("\n"),
       opts.geolocation && sections.backdrop.join("\n"),
       opts.geolocation && sections.coordinates.join("\n"),
       opts.geolocation && sections.vertices.join("\n"),

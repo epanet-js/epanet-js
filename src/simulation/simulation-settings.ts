@@ -2,6 +2,8 @@ import { nanoid } from "nanoid";
 
 export type DemandModel = "DDA" | "PDA";
 export type UnbalancedMode = "STOP" | "CONTINUE";
+export type QualitySimulationType = "NONE" | "CHEMICAL" | "AGE" | "TRACE";
+export type QualityMassUnit = "mg/L" | "ug/L";
 
 export type Timing = {
   duration: number;
@@ -39,17 +41,19 @@ export type SimulationSettings = {
   dampLimit?: number;
   viscosity?: number;
   specificGravity?: number;
-};
-
-export const defaultSimulationSettings: SimulationSettings = {
-  version: nanoid(),
-  timing: defaultTiming,
-  globalDemandMultiplier: 1,
-  demandModel: "DDA",
-  minimumPressure: 0,
-  requiredPressure: 0.1,
-  pressureExponent: 0.5,
-  emitterExponent: 0.5,
+  qualitySimulationType: QualitySimulationType;
+  qualityChemicalName: string;
+  qualityMassUnit: QualityMassUnit;
+  qualityTraceNode: string;
+  tolerance: number;
+  diffusivity: number;
+  reactionBulkOrder: number;
+  reactionWallOrder: number;
+  reactionTankOrder: number;
+  reactionGlobalBulk: number;
+  reactionGlobalWall: number;
+  reactionLimitingPotential: number;
+  reactionRoughnessCorrelation: number;
 };
 
 export const defaultHydraulicsValues = {
@@ -64,4 +68,32 @@ export const defaultHydraulicsValues = {
   dampLimit: 0,
   viscosity: 1.0,
   specificGravity: 1.0,
+};
+
+export const defaultWaterQualityValues = {
+  qualitySimulationType: "NONE" as QualitySimulationType,
+  qualityChemicalName: "",
+  qualityMassUnit: "mg/L" as QualityMassUnit,
+  qualityTraceNode: "",
+  tolerance: 0.01,
+  diffusivity: 1.0,
+  reactionBulkOrder: 1,
+  reactionWallOrder: 1,
+  reactionTankOrder: 1,
+  reactionGlobalBulk: 0,
+  reactionGlobalWall: 0,
+  reactionLimitingPotential: 0,
+  reactionRoughnessCorrelation: 0,
+};
+
+export const defaultSimulationSettings: SimulationSettings = {
+  version: nanoid(),
+  timing: defaultTiming,
+  globalDemandMultiplier: 1,
+  demandModel: "DDA",
+  minimumPressure: 0,
+  requiredPressure: 0.1,
+  pressureExponent: 0.5,
+  emitterExponent: 0.5,
+  ...defaultWaterQualityValues,
 };

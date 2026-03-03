@@ -7,6 +7,7 @@ import { nanoid } from "nanoid";
 import {
   defaultTiming,
   defaultSimulationSettings,
+  defaultWaterQualityValues,
 } from "src/simulation/simulation-settings";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
 import { checksum } from "src/infra/checksum";
@@ -116,6 +117,43 @@ export const parseInp = (
       ...(inpData.options.specificGravity !== undefined && {
         specificGravity: inpData.options.specificGravity,
       }),
+      qualitySimulationType:
+        inpData.options.qualitySimulationType ??
+        defaultWaterQualityValues.qualitySimulationType,
+      qualityChemicalName:
+        inpData.options.qualityChemicalName ??
+        defaultWaterQualityValues.qualityChemicalName,
+      qualityMassUnit:
+        inpData.options.qualityMassUnit ??
+        defaultWaterQualityValues.qualityMassUnit,
+      qualityTraceNode:
+        inpData.options.qualityTraceNode ??
+        defaultWaterQualityValues.qualityTraceNode,
+      tolerance:
+        inpData.options.tolerance ?? defaultWaterQualityValues.tolerance,
+      diffusivity:
+        inpData.options.diffusivity ?? defaultWaterQualityValues.diffusivity,
+      reactionBulkOrder:
+        inpData.reactions.bulkOrder ??
+        defaultWaterQualityValues.reactionBulkOrder,
+      reactionWallOrder:
+        inpData.reactions.wallOrder ??
+        defaultWaterQualityValues.reactionWallOrder,
+      reactionTankOrder:
+        inpData.reactions.tankOrder ??
+        defaultWaterQualityValues.reactionTankOrder,
+      reactionGlobalBulk:
+        inpData.reactions.globalBulk ??
+        defaultWaterQualityValues.reactionGlobalBulk,
+      reactionGlobalWall:
+        inpData.reactions.globalWall ??
+        defaultWaterQualityValues.reactionGlobalWall,
+      reactionLimitingPotential:
+        inpData.reactions.limitingPotential ??
+        defaultWaterQualityValues.reactionLimitingPotential,
+      reactionRoughnessCorrelation:
+        inpData.reactions.roughnessCorrelation ??
+        defaultWaterQualityValues.reactionRoughnessCorrelation,
     },
     issues: issues.buildResult(),
     stats,
