@@ -222,7 +222,7 @@ const PumpDefinitionDetailsInner = ({
         readOnly={readonly}
         onChange={handleDefinitionTypeChange}
       />
-      <NestedSection>
+      <NestedSection className="pb-2">
         {localDefinitionType === "power" && (
           <PowerDefinition
             power={pump.power}

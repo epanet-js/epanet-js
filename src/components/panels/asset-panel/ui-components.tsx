@@ -276,9 +276,17 @@ export const QuantityRow = <P extends string>({
   );
 };
 
-export const NestedSection = ({ children }: { children: React.ReactNode }) => (
+export const NestedSection = ({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) => (
   <NestedSectionContext.Provider value={true}>
-    <div className="bg-gray-50 p-2 py-1 mt-1 -mr-2 border-l-2 border-gray-400 rounded-sm flex flex-col gap-1">
+    <div
+      className={`bg-gray-50 p-2 py-1 mt-1 -mr-2 border-l-2 border-gray-400 rounded-sm flex flex-col gap-1 ${className ?? ""}`.trim()}
+    >
       {children}
     </div>
   </NestedSectionContext.Provider>

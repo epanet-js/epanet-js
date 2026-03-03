@@ -1099,7 +1099,7 @@ const TankDefinitionField = ({
       `${translate("level")} (${levelUnit})`,
       `${translate("volume")} (${volumeUnit})`,
     ] as [string, string],
-    vertical: [translate("min"), translate("max")],
+    vertical: [translate("max"), translate("min")],
   };
 
   const definitionDiff = useMemo(() => {
@@ -1326,7 +1326,7 @@ const TankDefinitionField = ({
         readOnly={readOnly}
         onChange={handleDefinitionModeChange}
       />
-      <NestedSection>
+      <NestedSection className="pb-2">
         {definitionMode === "diameterBased" && (
           <>
             <QuantityRow
@@ -1345,6 +1345,23 @@ const TankDefinitionField = ({
               cells={[
                 [
                   {
+                    label: translate("maxLevel"),
+                    value: tank.maxLevel,
+                    positiveOnly: true,
+                    decimals: levelDecimals,
+                    readOnly,
+                    handler: (v) =>
+                      onPropertyChange("maxLevel", v, tank.maxLevel),
+                  },
+                  {
+                    label: translate("maxVolume"),
+                    value: tank.maxVolume,
+                    readOnly: true,
+                    decimals: volumeDecimals,
+                  },
+                ],
+                [
+                  {
                     label: translate("minLevel"),
                     value: tank.minLevel,
                     positiveOnly: true,
@@ -1361,23 +1378,6 @@ const TankDefinitionField = ({
                     readOnly,
                     handler: (v) =>
                       onPropertyChange("minVolume", v, tank.minVolume),
-                  },
-                ],
-                [
-                  {
-                    label: translate("maxLevel"),
-                    value: tank.maxLevel,
-                    positiveOnly: true,
-                    decimals: levelDecimals,
-                    readOnly,
-                    handler: (v) =>
-                      onPropertyChange("maxLevel", v, tank.maxLevel),
-                  },
-                  {
-                    label: translate("maxVolume"),
-                    value: tank.maxVolume,
-                    readOnly: true,
-                    decimals: volumeDecimals,
                   },
                 ],
               ]}
@@ -1401,6 +1401,23 @@ const TankDefinitionField = ({
               cells={[
                 [
                   {
+                    label: translate("maxLevel"),
+                    value: tank.maxLevel,
+                    positiveOnly: true,
+                    decimals: levelDecimals,
+                    readOnly,
+                    handler: (v) =>
+                      onPropertyChange("maxLevel", v, tank.maxLevel),
+                  },
+                  {
+                    label: translate("maxVolume"),
+                    value: tank.maxVolume,
+                    readOnly: true,
+                    decimals: volumeDecimals,
+                  },
+                ],
+                [
+                  {
                     label: translate("minLevel"),
                     value: tank.minLevel,
                     positiveOnly: true,
@@ -1419,23 +1436,6 @@ const TankDefinitionField = ({
                       onPropertyChange("minVolume", v, tank.minVolume),
                   },
                 ],
-                [
-                  {
-                    label: translate("maxLevel"),
-                    value: tank.maxLevel,
-                    positiveOnly: true,
-                    decimals: levelDecimals,
-                    readOnly,
-                    handler: (v) =>
-                      onPropertyChange("maxLevel", v, tank.maxLevel),
-                  },
-                  {
-                    label: translate("maxVolume"),
-                    value: tank.maxVolume,
-                    readOnly: true,
-                    decimals: volumeDecimals,
-                  },
-                ],
               ]}
             />
           </>
@@ -1444,24 +1444,6 @@ const TankDefinitionField = ({
           <NumericTable
             labels={tableLabels}
             cells={[
-              [
-                {
-                  label: translate("minLevel"),
-                  value: tank.minLevel,
-                  positiveOnly: true,
-                  decimals: levelDecimals,
-                  readOnly,
-                  handler: (v) => handleMinLevelChange("minLevel", v),
-                },
-                {
-                  label: translate("minVolume"),
-                  value: tank.minVolume,
-                  positiveOnly: true,
-                  decimals: volumeDecimals,
-                  readOnly,
-                  handler: (v) => handleMinVolumeChange("minVolume", v),
-                },
-              ],
               [
                 {
                   label: translate("maxLevel"),
@@ -1478,6 +1460,24 @@ const TankDefinitionField = ({
                   decimals: volumeDecimals,
                   readOnly,
                   handler: (v) => handleMaxVolumeChange("maxVolume", v),
+                },
+              ],
+              [
+                {
+                  label: translate("minLevel"),
+                  value: tank.minLevel,
+                  positiveOnly: true,
+                  decimals: levelDecimals,
+                  readOnly,
+                  handler: (v) => handleMinLevelChange("minLevel", v),
+                },
+                {
+                  label: translate("minVolume"),
+                  value: tank.minVolume,
+                  positiveOnly: true,
+                  decimals: volumeDecimals,
+                  readOnly,
+                  handler: (v) => handleMinVolumeChange("minVolume", v),
                 },
               ],
             ]}
@@ -1526,20 +1526,6 @@ const TankDefinitionField = ({
                     cells={[
                       [
                         {
-                          label: translate("minLevel"),
-                          value: minLevel,
-                          readOnly: true,
-                          decimals: levelDecimals,
-                        },
-                        {
-                          label: translate("minVolume"),
-                          value: minVolume,
-                          readOnly: true,
-                          decimals: volumeDecimals,
-                        },
-                      ],
-                      [
-                        {
                           label: translate("maxLevel"),
                           value: maxLevel,
                           readOnly: true,
@@ -1548,6 +1534,20 @@ const TankDefinitionField = ({
                         {
                           label: translate("maxVolume"),
                           value: maxVolume,
+                          readOnly: true,
+                          decimals: volumeDecimals,
+                        },
+                      ],
+                      [
+                        {
+                          label: translate("minLevel"),
+                          value: minLevel,
+                          readOnly: true,
+                          decimals: levelDecimals,
+                        },
+                        {
+                          label: translate("minVolume"),
+                          value: minVolume,
                           readOnly: true,
                           decimals: volumeDecimals,
                         },
