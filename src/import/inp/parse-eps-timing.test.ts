@@ -203,7 +203,18 @@ describe("parse EPS timing", () => {
     expect(issues?.nonDefaultTimes?.has("START CLOCKTIME")).toBe(true);
   });
 
-  it("does not warn for QUALITY TIMESTEP", () => {
+  it("does not warn for QUALITY TIMESTEP when extraOptions is enabled", () => {
+    const inp = `${baseInp}
+    [TIMES]
+    QUALITY TIMESTEP\t0:05
+    `;
+
+    const { issues } = parseInp(inp, { extraOptions: true });
+
+    expect(issues?.nonDefaultTimes?.has("QUALITY TIMESTEP")).toBeFalsy();
+  });
+
+  it("warns for QUALITY TIMESTEP when extraOptions is not enabled", () => {
     const inp = `${baseInp}
     [TIMES]
     QUALITY TIMESTEP\t0:05
@@ -211,7 +222,7 @@ describe("parse EPS timing", () => {
 
     const { issues } = parseInp(inp);
 
-    expect(issues?.nonDefaultTimes?.has("QUALITY TIMESTEP")).toBeFalsy();
+    expect(issues?.nonDefaultTimes?.has("QUALITY TIMESTEP")).toBe(true);
   });
 
   it("falls back to default when timesteps are zero", () => {

@@ -35,7 +35,7 @@ export const useImportInp = () => {
   const userTracking = useUserTracking();
 
   const allCurves = useFeatureFlag("FLAG_ALL_CURVES");
-  const hydraulicsOptions = useFeatureFlag("FLAG_OPTIONS");
+  const extraOptions = useFeatureFlag("FLAG_OPTIONS");
 
   const importInp = useCallback(
     async (files: FileWithHandle[]) => {
@@ -73,7 +73,7 @@ export const useImportInp = () => {
           customerPoints: true,
           inactiveAssets: true,
           allCurves,
-          hydraulicsOptions,
+          extraOptions,
         };
 
         const completeImport = async (
@@ -202,7 +202,7 @@ export const useImportInp = () => {
       setFileInfo,
       map?.map,
       allCurves,
-      hydraulicsOptions,
+      extraOptions,
     ],
   );
 

@@ -507,6 +507,7 @@ export const parseTimeSetting: RowParser = ({
   trimmedRow,
   inpData,
   issues,
+  options,
 }) => {
   const setting = readSetting(trimmedRow, defaultTimeSettings);
   if (!setting) return;
@@ -533,10 +534,20 @@ export const parseTimeSetting: RowParser = ({
     if (seconds > 0) inpData.times.patternTimestep = seconds;
   }
   if (name === "QUALITY TIMESTEP") {
-    inpData.times.qualityTimestep = parseTimeToSeconds(value);
+    if (options?.extraOptions) {
+      inpData.times.qualityTimestep = parseTimeToSeconds(value);
+    } else {
+      const seconds = parseTimeToSeconds(value);
+      if (seconds !== 0) issues.addUsedTimeSetting(name, defaultValue);
+    }
   }
   if (name === "RULE TIMESTEP") {
-    inpData.times.ruleTimestep = parseTimeToSeconds(value);
+    if (options?.extraOptions) {
+      inpData.times.ruleTimestep = parseTimeToSeconds(value);
+    } else {
+      const seconds = parseTimeToSeconds(value);
+      if (seconds !== 0) issues.addUsedTimeSetting(name, defaultValue);
+    }
   }
   if (name === "PATTERN START") {
     inpData.times.patternStart = parseTimeToSeconds(value);
@@ -586,7 +597,7 @@ export const parseOption: RowParser = ({
   }
 
   if (name === "UNBALANCED") {
-    if (options?.hydraulicsOptions) {
+    if (options?.extraOptions) {
       const strValue = typeof value === "string" ? value : String(value);
       const parts = strValue.trim().split(/\s+/);
       const mode = parts[0] as "STOP" | "CONTINUE";
@@ -609,33 +620,35 @@ export const parseOption: RowParser = ({
     return;
   }
 
-  if (name === "DEMAND MODEL") {
-    inpData.options.demandModel = value as "DDA" | "PDA";
-    return;
-  }
+  if (options?.extraOptions) {
+    if (name === "DEMAND MODEL") {
+      inpData.options.demandModel = value as "DDA" | "PDA";
+      return;
+    }
 
-  if (name === "MINIMUM PRESSURE") {
-    inpData.options.minimumPressure = value as number;
-    return;
-  }
+    if (name === "MINIMUM PRESSURE") {
+      inpData.options.minimumPressure = value as number;
+      return;
+    }
 
-  if (name === "REQUIRED PRESSURE") {
-    inpData.options.requiredPressure = value as number;
-    return;
-  }
+    if (name === "REQUIRED PRESSURE") {
+      inpData.options.requiredPressure = value as number;
+      return;
+    }
 
-  if (name === "PRESSURE EXPONENT") {
-    inpData.options.pressureExponent = value as number;
-    return;
-  }
+    if (name === "PRESSURE EXPONENT") {
+      inpData.options.pressureExponent = value as number;
+      return;
+    }
 
-  if (name === "EMITTER EXPONENT") {
-    inpData.options.emitterExponent = value as number;
-    return;
-  }
+    if (name === "EMITTER EXPONENT") {
+      inpData.options.emitterExponent = value as number;
+      return;
+    }
 
-  if (name === "EMITTER BACKFLOW") {
-    return;
+    if (name === "EMITTER BACKFLOW") {
+      return;
+    }
   }
 
   if (name === "PATTERN") {
@@ -658,7 +671,7 @@ export const parseOption: RowParser = ({
     return;
   }
 
-  if (options?.hydraulicsOptions) {
+  if (options?.extraOptions) {
     if (name === "TRIALS") {
       inpData.options.trials = value as number;
       return;

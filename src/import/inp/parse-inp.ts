@@ -23,7 +23,7 @@ export type ParseInpOptions = {
   inactiveAssets?: boolean;
   sourceProjection?: Projection;
   allCurves?: boolean;
-  hydraulicsOptions?: boolean;
+  extraOptions?: boolean;
 };
 
 export const parseInp = (

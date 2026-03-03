@@ -536,7 +536,7 @@ describe("parse junctions demands", () => {
       Demand Model\tPDA
       `;
 
-      const { simulationSettings } = parseInp(inp);
+      const { simulationSettings } = parseInp(inp, { extraOptions: true });
 
       expect(simulationSettings.demandModel).toEqual("PDA");
     });
@@ -547,7 +547,7 @@ describe("parse junctions demands", () => {
       Demand Model\tDDA
       `;
 
-      const { simulationSettings } = parseInp(inp);
+      const { simulationSettings } = parseInp(inp, { extraOptions: true });
 
       expect(simulationSettings.demandModel).toEqual("DDA");
     });
@@ -569,7 +569,7 @@ describe("parse junctions demands", () => {
       Minimum Pressure\t5
       `;
 
-      const { simulationSettings } = parseInp(inp);
+      const { simulationSettings } = parseInp(inp, { extraOptions: true });
 
       expect(simulationSettings.minimumPressure).toEqual(5);
     });
@@ -580,7 +580,7 @@ describe("parse junctions demands", () => {
       Required Pressure\t20
       `;
 
-      const { simulationSettings } = parseInp(inp);
+      const { simulationSettings } = parseInp(inp, { extraOptions: true });
 
       expect(simulationSettings.requiredPressure).toEqual(20);
     });
@@ -591,7 +591,7 @@ describe("parse junctions demands", () => {
       Pressure Exponent\t0.8
       `;
 
-      const { simulationSettings } = parseInp(inp);
+      const { simulationSettings } = parseInp(inp, { extraOptions: true });
 
       expect(simulationSettings.pressureExponent).toEqual(0.8);
     });
@@ -609,7 +609,24 @@ describe("parse junctions demands", () => {
       expect(simulationSettings.pressureExponent).toEqual(0.5);
     });
 
-    it("does not report demand model options as non-default", () => {
+    it("does not report demand model options as non-default when extraOptions enabled", () => {
+      const inp = `
+      [OPTIONS]
+      Demand Model\tPDA
+      Minimum Pressure\t5
+      Required Pressure\t20
+      Pressure Exponent\t0.8
+      `;
+
+      const { issues } = parseInp(inp, { extraOptions: true });
+
+      expect(issues?.nonDefaultOptions?.has("DEMAND MODEL")).toBeFalsy();
+      expect(issues?.nonDefaultOptions?.has("MINIMUM PRESSURE")).toBeFalsy();
+      expect(issues?.nonDefaultOptions?.has("REQUIRED PRESSURE")).toBeFalsy();
+      expect(issues?.nonDefaultOptions?.has("PRESSURE EXPONENT")).toBeFalsy();
+    });
+
+    it("reports demand model options as non-default when extraOptions not enabled", () => {
       const inp = `
       [OPTIONS]
       Demand Model\tPDA
@@ -620,10 +637,10 @@ describe("parse junctions demands", () => {
 
       const { issues } = parseInp(inp);
 
-      expect(issues?.nonDefaultOptions?.has("DEMAND MODEL")).toBeFalsy();
-      expect(issues?.nonDefaultOptions?.has("MINIMUM PRESSURE")).toBeFalsy();
-      expect(issues?.nonDefaultOptions?.has("REQUIRED PRESSURE")).toBeFalsy();
-      expect(issues?.nonDefaultOptions?.has("PRESSURE EXPONENT")).toBeFalsy();
+      expect(issues?.nonDefaultOptions?.has("DEMAND MODEL")).toBe(true);
+      expect(issues?.nonDefaultOptions?.has("MINIMUM PRESSURE")).toBe(true);
+      expect(issues?.nonDefaultOptions?.has("REQUIRED PRESSURE")).toBe(true);
+      expect(issues?.nonDefaultOptions?.has("PRESSURE EXPONENT")).toBe(true);
     });
   });
 
@@ -634,7 +651,7 @@ describe("parse junctions demands", () => {
       Emitter Exponent\t0.7
       `;
 
-      const { simulationSettings } = parseInp(inp);
+      const { simulationSettings } = parseInp(inp, { extraOptions: true });
 
       expect(simulationSettings.emitterExponent).toEqual(0.7);
     });
@@ -650,7 +667,18 @@ describe("parse junctions demands", () => {
       expect(simulationSettings.emitterExponent).toEqual(0.5);
     });
 
-    it("does not report emitter exponent as non-default", () => {
+    it("does not report emitter exponent as non-default when extraOptions enabled", () => {
+      const inp = `
+      [OPTIONS]
+      Emitter Exponent\t0.7
+      `;
+
+      const { issues } = parseInp(inp, { extraOptions: true });
+
+      expect(issues?.nonDefaultOptions?.has("EMITTER EXPONENT")).toBeFalsy();
+    });
+
+    it("reports emitter exponent as non-default when extraOptions not enabled", () => {
       const inp = `
       [OPTIONS]
       Emitter Exponent\t0.7
@@ -658,10 +686,21 @@ describe("parse junctions demands", () => {
 
       const { issues } = parseInp(inp);
 
-      expect(issues?.nonDefaultOptions?.has("EMITTER EXPONENT")).toBeFalsy();
+      expect(issues?.nonDefaultOptions?.has("EMITTER EXPONENT")).toBe(true);
     });
 
-    it("silently ignores emitter backflow", () => {
+    it("silently ignores emitter backflow when extraOptions enabled", () => {
+      const inp = `
+      [OPTIONS]
+      Emitter Backflow\tNO
+      `;
+
+      const { issues } = parseInp(inp, { extraOptions: true });
+
+      expect(issues?.nonDefaultOptions?.has("EMITTER BACKFLOW")).toBeFalsy();
+    });
+
+    it("reports emitter backflow as non-default when extraOptions not enabled", () => {
       const inp = `
       [OPTIONS]
       Emitter Backflow\tNO
@@ -669,7 +708,7 @@ describe("parse junctions demands", () => {
 
       const { issues } = parseInp(inp);
 
-      expect(issues?.nonDefaultOptions?.has("EMITTER BACKFLOW")).toBeFalsy();
+      expect(issues?.nonDefaultOptions?.has("EMITTER BACKFLOW")).toBe(true);
     });
   });
 
