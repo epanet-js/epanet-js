@@ -1,4 +1,4 @@
-import { CurveId, Curves } from "../curves";
+import { CurveId, Curves, ICurve } from "../curves";
 import { Node, NodeProperties } from "./node";
 
 export type TankProperties = {
@@ -128,3 +128,10 @@ export const tankAreaFromDiameter = (diameter: number): number => {
 export const tankDiameterFromArea = (area: number): number => {
   return 2 * Math.sqrt(area / Math.PI);
 };
+
+export const tankVolumeCurveRange = (curve: ICurve) => ({
+  minLevel: curve.points[0].x,
+  maxLevel: curve.points[curve.points.length - 1].x,
+  minVolume: curve.points[0].y,
+  maxVolume: curve.points[curve.points.length - 1].y,
+});

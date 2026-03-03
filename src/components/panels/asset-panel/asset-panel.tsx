@@ -19,9 +19,9 @@ import {
   getJunctionDemands,
 } from "src/hydraulic-model";
 import {
-  getTankCurveVolumeRange,
   tankDiameterFor,
   tankDiameterFromArea,
+  tankVolumeCurveRange,
   tankVolumeFor,
 } from "src/hydraulic-model/asset-types/tank";
 import {
@@ -1115,61 +1115,64 @@ const TankDefinitionField = ({
     if (!hasChanged) return { hasChanged: false } as const;
 
     const baseCurveId = curveComp.hasChanged
-      ? (getComparison("volumeCurveId", tank.volumeCurveId)
-          .baseValue as CurveId)
+      ? curveComp.baseValue?.id
       : tank.volumeCurveId;
     const baseIsCircular = baseCurveId == null;
 
+    const diameterUnit = translateUnit(
+      quantitiesMetadata.getUnit("tankDiameter"),
+    );
+    const volumeUnit = translateUnit(quantitiesMetadata.getUnit("minVolume"));
+    const levelUnit = translateUnit(quantitiesMetadata.getUnit("minLevel"));
+
     const lines: string[] = [];
-    lines.push(
-      `${translate("tankDefinition")}: ${translate(baseIsCircular ? "diameterBased" : "curveBased")}`,
-    );
-
-    const diameterUnit = quantitiesMetadata.getUnit("tankDiameter");
-    const volumeUnit = quantitiesMetadata.getUnit("minVolume");
-    const levelUnit = quantitiesMetadata.getUnit("minLevel");
-    const baseDiameter = diameterComp.baseValue ?? tank.diameter;
-    const baseMinVolume = minVolumeComp.baseValue ?? tank.minVolume;
-    const baseMinLevel = minLevelComp.baseValue ?? tank.minLevel;
-    const baseMaxLevel = maxLevelComp.baseValue ?? tank.maxLevel;
-
     if (baseIsCircular) {
-      lines.push(
-        `${translate("diameter")}: ${localizeDecimal(baseDiameter)} ${diameterUnit}`,
-      );
-      lines.push(
-        `${translate("minVolume")}: ${localizeDecimal(baseMinVolume)} ${volumeUnit}`,
-      );
-    } else {
-      const baseCurve = curveComp.baseValue;
-      if (baseCurve) {
-        lines.push(`${translate("volumeCurve")}: ${baseCurve.label}`);
-      }
-    }
-
-    lines.push(
-      `${translate("minLevel")}: ${localizeDecimal(baseMinLevel)} ${levelUnit}`,
-    );
-    lines.push(
-      `${translate("maxLevel")}: ${localizeDecimal(baseMaxLevel)} ${levelUnit}`,
-    );
-
-    const volumeDecimals = quantitiesMetadata.getDecimals("minVolume");
-    if (baseIsCircular) {
-      const maxVolume = tankVolumeFor(
+      const baseDiameter = diameterComp.baseValue ?? tank.diameter;
+      const baseMinVolume = minVolumeComp.baseValue ?? tank.minVolume;
+      const baseMinLevel = minLevelComp.baseValue ?? tank.minLevel;
+      const baseMaxLevel = maxLevelComp.baseValue ?? tank.maxLevel;
+      const baseMaxVolume = tankVolumeFor(
         baseDiameter,
         baseMaxLevel,
         baseMinVolume,
         baseMinLevel,
       );
       lines.push(
-        `${translate("maxVolume")}: ${localizeDecimal(maxVolume, { decimals: volumeDecimals })} ${volumeUnit}`,
+        `${translate("diameter")}: ${localizeDecimal(baseDiameter)} ${diameterUnit}`,
+      );
+      lines.push(
+        `${translate("minLevel")}: ${localizeDecimal(baseMinLevel)} ${levelUnit}`,
+      );
+      lines.push(
+        `${translate("maxLevel")}: ${localizeDecimal(baseMaxLevel)} ${levelUnit}`,
+      );
+      lines.push(
+        `${translate("minVolume")}: ${localizeDecimal(baseMinVolume)} ${volumeUnit}`,
+      );
+      lines.push(
+        `${translate("maxVolume")}: ${localizeDecimal(baseMaxVolume)} ${volumeUnit}`,
       );
     } else {
-      const volumeRange = getTankCurveVolumeRange(baseCurveId, curves);
-      if (volumeRange) {
+      const baseCurve = curveComp.baseValue;
+      if (baseCurve) {
+        const {
+          minLevel: baseMinLevel,
+          maxLevel: baseMaxLevel,
+          minVolume: baseMinVolume,
+          maxVolume: baseMaxVolume,
+        } = tankVolumeCurveRange(baseCurve);
+        lines.push(`${translate("volumeCurve")}: ${baseCurve.label}`);
         lines.push(
-          `${translate("maxVolume")}: ${localizeDecimal(volumeRange.max, { decimals: volumeDecimals })} ${volumeUnit}`,
+          `${translate("minLevel")}: ${localizeDecimal(baseMinLevel)} ${levelUnit}`,
+        );
+        lines.push(
+          `${translate("maxLevel")}: ${localizeDecimal(baseMaxLevel)} ${levelUnit}`,
+        );
+        lines.push(
+          `${translate("minVolume")}: ${localizeDecimal(baseMinVolume)} ${volumeUnit}`,
+        );
+        lines.push(
+          `${translate("maxVolume")}: ${localizeDecimal(baseMaxVolume)} ${volumeUnit}`,
         );
       }
     }
@@ -1177,9 +1180,14 @@ const TankDefinitionField = ({
     return { hasChanged: true, tooltipText: lines.join("\n") } as const;
   }, [
     getComparison,
+    tank.diameter,
+    tank.minVolume,
+    tank.minLevel,
+    tank.maxLevel,
+    tank.volumeCurveId,
     getCurveComparison,
-    tank,
     curves,
+    translateUnit,
     quantitiesMetadata,
     translate,
   ]);
@@ -1323,6 +1331,7 @@ const TankDefinitionField = ({
               isNullable={false}
               readOnly={readOnly}
             />
+            <hr className="border-gray-200 dark:border-gray-600 my-1" />
             <NumericTable
               labels={tableLabels}
               cells={[
@@ -1378,6 +1387,7 @@ const TankDefinitionField = ({
               positiveOnly={true}
               readOnly={readOnly}
             />
+            <hr className="border-gray-200 dark:border-gray-600 my-1" />
             <NumericTable
               labels={tableLabels}
               cells={[
@@ -1495,45 +1505,49 @@ const TankDefinitionField = ({
               </InlineField>
             )}
             {(() => {
-              const volumeRange = getTankCurveVolumeRange(
-                tank.volumeCurveId,
-                curves,
+              if (!tank.volumeCurveId) return null;
+              const curve = curves.get(tank.volumeCurveId);
+              if (!curve) return null;
+              const { minLevel, maxLevel, minVolume, maxVolume } =
+                tankVolumeCurveRange(curve);
+              return (
+                <>
+                  <hr className="border-gray-200 dark:border-gray-600 my-1" />
+                  <NumericTable
+                    labels={tableLabels}
+                    cells={[
+                      [
+                        {
+                          label: translate("minLevel"),
+                          value: minLevel,
+                          readOnly: true,
+                          decimals: levelDecimals,
+                        },
+                        {
+                          label: translate("minVolume"),
+                          value: minVolume,
+                          readOnly: true,
+                          decimals: volumeDecimals,
+                        },
+                      ],
+                      [
+                        {
+                          label: translate("maxLevel"),
+                          value: maxLevel,
+                          readOnly: true,
+                          decimals: levelDecimals,
+                        },
+                        {
+                          label: translate("maxVolume"),
+                          value: maxVolume,
+                          readOnly: true,
+                          decimals: volumeDecimals,
+                        },
+                      ],
+                    ]}
+                  />
+                </>
               );
-              return volumeRange ? (
-                <NumericTable
-                  labels={tableLabels}
-                  cells={[
-                    [
-                      {
-                        label: translate("minLevel"),
-                        value: tank.minLevel,
-                        readOnly: true,
-                        decimals: levelDecimals,
-                      },
-                      {
-                        label: translate("minVolume"),
-                        value: volumeRange.min,
-                        readOnly: true,
-                        decimals: volumeDecimals,
-                      },
-                    ],
-                    [
-                      {
-                        label: translate("maxLevel"),
-                        value: tank.maxLevel,
-                        readOnly: true,
-                        decimals: levelDecimals,
-                      },
-                      {
-                        label: translate("maxVolume"),
-                        value: volumeRange.max,
-                        readOnly: true,
-                        decimals: volumeDecimals,
-                      },
-                    ],
-                  ]}
-                />
-              ) : null;
             })()}
           </>
         )}
