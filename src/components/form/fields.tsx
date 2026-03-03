@@ -89,10 +89,17 @@ export const InlineField = ({
   baseDisplayValue?: React.ReactNode;
   children: React.ReactNode;
 }) => {
+  const isNested = useContext(NestedSectionContext);
+
   const labelClasses = clsx("text-sm text-gray-500", {
+    "max-w-[57px] w-full flex-shrink-0":
+      layout === "fixed-label" && labelSize === "sm" && isNested,
     "max-w-[67px] w-full flex-shrink-0":
-      layout === "fixed-label" && labelSize === "sm",
-    "w-[120px] flex-shrink-0": layout === "fixed-label" && labelSize === "md",
+      layout === "fixed-label" && labelSize === "sm" && !isNested,
+    "w-[110px] flex-shrink-0":
+      layout === "fixed-label" && labelSize === "md" && isNested,
+    "w-[120px] flex-shrink-0":
+      layout === "fixed-label" && labelSize === "md" && !isNested,
     "w-1/2": layout === "half-split",
     "flex-none": layout === "label-flex-none",
   });
