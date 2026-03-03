@@ -6,7 +6,6 @@ import { IWrappedFeature } from "src/types";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useDrawingMode } from "src/commands/set-drawing-mode";
 import { useTranslate } from "src/hooks/use-translate";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { SelectionTool } from "./toolbar/selection-tool";
 import { TraceTool } from "./toolbar/trace-tool";
 
@@ -64,7 +63,6 @@ export default memo(function Modes({
   const setDrawingMode = useDrawingMode();
   const userTracking = useUserTracking();
   const translate = useTranslate();
-  const isTraceSelectEnabled = useFeatureFlag("FLAG_TRACE_SELECT");
   const drawingModes = MODE_OPTIONS;
 
   return (
@@ -89,7 +87,7 @@ export default memo(function Modes({
         </MenuAction>
       )}
       <SelectionTool />
-      {isTraceSelectEnabled && <TraceTool />}
+      <TraceTool />
       {drawingModes.map(({ mode, hotkey, Icon }) => {
         const modeInfo = MODE_INFO[mode];
 

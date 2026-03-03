@@ -41,7 +41,6 @@ type ShortcutSection = {
 export function CheatsheetDialog() {
   const translate = useTranslate();
   const isMac = useFeatureFlag("FLAG_MAC");
-  const isTraceSelectEnabled = useFeatureFlag("FLAG_TRACE_SELECT");
 
   const BINDINGS: ShortcutSection[] = [
     {
@@ -127,14 +126,10 @@ export function CheatsheetDialog() {
           binding: selectionModeShortcut,
           description: "areaSelection.tool",
         },
-        ...(isTraceSelectEnabled
-          ? [
-              {
-                binding: traceSelectModeShortcut,
-                description: "traceSelection.tool",
-              },
-            ]
-          : []),
+        {
+          binding: traceSelectModeShortcut,
+          description: "traceSelection.tool",
+        },
         { binding: "Command+a", description: "selectAll" },
         {
           binding: changeActiveTopologyShortcut,

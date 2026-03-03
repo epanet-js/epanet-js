@@ -43,7 +43,6 @@ import {
 } from "src/commands/toggle-satellite";
 import { useAtomValue } from "jotai";
 import { simulationAtom } from "src/state/jotai";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useIsSnapshotLocked } from "src/hooks/use-is-snapshot-locked";
 import {
   showSimulationSettingsShortcut,
@@ -124,7 +123,6 @@ export const CommandShortcuts = () => {
   const toggleNetworkReview = useToggleNetworkReview();
   const toggleSidePanel = useToggleSidePanel();
   const cycleSelectionMode = useCycleSelectionMode();
-  const isTraceSelectEnabled = useFeatureFlag("FLAG_TRACE_SELECT");
   const cycleTraceSelectMode = useCycleTraceSelectMode();
   const { changeSelectedAssetsActiveTopologyStatus } =
     useChangeSelectedAssetsActiveTopologyStatus();
@@ -419,7 +417,6 @@ export const CommandShortcuts = () => {
     },
     [cycleTraceSelectMode],
     "Set trace select mode",
-    !isTraceSelectEnabled,
   );
 
   useHotkeys(
