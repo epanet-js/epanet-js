@@ -87,6 +87,7 @@ import type {
 } from "src/simulation/results-reader";
 import { DemandsEditor } from "./demands-editor";
 import { PumpDefinitionDetails } from "./pump-definition-details";
+import { NumericTable } from "src/components/form/numeric-table";
 import { useShowPatternsLibrary } from "src/commands/show-patterns-library";
 import { SelectorOption } from "src/components/form/selector";
 import { PatternId } from "src/hydraulic-model/patterns";
@@ -1062,6 +1063,7 @@ const TankDefinitionField = ({
   readOnly?: boolean;
 }) => {
   const translate = useTranslate();
+  const translateUnit = useTranslateUnit();
   const showCurveLibrary = useShowCurveLibrary();
   const { getComparison, getCurveComparison } = useAssetComparison(tank);
 
@@ -1069,7 +1071,7 @@ const TankDefinitionField = ({
     tank.volumeCurveId != null ? "curveBased" : "diameterBased",
   );
 
-  const shapeOptions = useMemo(
+  const definitionOptions = useMemo(
     () =>
       [
         { label: translate("diameterBased"), value: "diameterBased" },
@@ -1081,6 +1083,16 @@ const TankDefinitionField = ({
   );
 
   const levelDecimals = quantitiesMetadata.getDecimals("minLevel");
+  const volumeDecimals = quantitiesMetadata.getDecimals("minVolume");
+  const levelUnit = translateUnit(quantitiesMetadata.getUnit("minLevel"));
+  const volumeUnit = translateUnit(quantitiesMetadata.getUnit("minVolume"));
+  const tableLabels = {
+    horizontal: [
+      `${translate("level")} (${levelUnit})`,
+      `${translate("volume")} (${volumeUnit})`,
+    ] as [string, string],
+    vertical: [translate("min"), translate("max")],
+  };
 
   const definitionDiff = useMemo(() => {
     const diameterComp = getComparison("diameter", tank.diameter);
@@ -1294,7 +1306,7 @@ const TankDefinitionField = ({
       <SelectRow
         name="tankDefinition"
         selected={definitionMode}
-        options={shapeOptions}
+        options={definitionOptions}
         readOnly={readOnly}
         onChange={handleDefinitionModeChange}
       />
@@ -1311,39 +1323,47 @@ const TankDefinitionField = ({
               isNullable={false}
               readOnly={readOnly}
             />
-            <QuantityRow
-              name="maxLevel"
-              value={tank.maxLevel}
-              unit={quantitiesMetadata.getUnit("maxLevel")}
-              decimals={quantitiesMetadata.getDecimals("maxLevel")}
-              onChange={onPropertyChange}
-              positiveOnly={true}
-              readOnly={readOnly}
-            />
-            <QuantityRow
-              name="minLevel"
-              value={tank.minLevel}
-              unit={quantitiesMetadata.getUnit("minLevel")}
-              decimals={levelDecimals}
-              onChange={onPropertyChange}
-              positiveOnly={true}
-              readOnly={readOnly}
-            />
-            <QuantityRow
-              name="minVolume"
-              value={tank.minVolume}
-              unit={quantitiesMetadata.getUnit("minVolume")}
-              decimals={quantitiesMetadata.getDecimals("minVolume")}
-              onChange={onPropertyChange}
-              positiveOnly={true}
-              readOnly={readOnly}
-            />
-            <QuantityRow
-              name="maxVolume"
-              value={tank.maxVolume}
-              unit={quantitiesMetadata.getUnit("minVolume")}
-              decimals={quantitiesMetadata.getDecimals("minVolume")}
-              readOnly={true}
+            <NumericTable
+              labels={tableLabels}
+              cells={[
+                [
+                  {
+                    label: translate("minLevel"),
+                    value: tank.minLevel,
+                    positiveOnly: true,
+                    decimals: levelDecimals,
+                    readOnly,
+                    handler: (v) =>
+                      onPropertyChange("minLevel", v, tank.minLevel),
+                  },
+                  {
+                    label: translate("minVolume"),
+                    value: tank.minVolume,
+                    positiveOnly: true,
+                    decimals: volumeDecimals,
+                    readOnly,
+                    handler: (v) =>
+                      onPropertyChange("minVolume", v, tank.minVolume),
+                  },
+                ],
+                [
+                  {
+                    label: translate("maxLevel"),
+                    value: tank.maxLevel,
+                    positiveOnly: true,
+                    decimals: levelDecimals,
+                    readOnly,
+                    handler: (v) =>
+                      onPropertyChange("maxLevel", v, tank.maxLevel),
+                  },
+                  {
+                    label: translate("maxVolume"),
+                    value: tank.maxVolume,
+                    readOnly: true,
+                    decimals: volumeDecimals,
+                  },
+                ],
+              ]}
             />
           </>
         )}
@@ -1358,95 +1378,92 @@ const TankDefinitionField = ({
               positiveOnly={true}
               readOnly={readOnly}
             />
-            <QuantityRow
-              name="diameter"
-              value={tank.diameter}
-              unit={quantitiesMetadata.getUnit("tankDiameter")}
-              decimals={quantitiesMetadata.getDecimals("diameter")}
-              readOnly={true}
-            />
-            <QuantityRow
-              name="maxLevel"
-              value={tank.maxLevel}
-              unit={quantitiesMetadata.getUnit("maxLevel")}
-              decimals={quantitiesMetadata.getDecimals("maxLevel")}
-              onChange={onPropertyChange}
-              positiveOnly={true}
-              readOnly={readOnly}
-            />
-            <QuantityRow
-              name="minLevel"
-              value={tank.minLevel}
-              unit={quantitiesMetadata.getUnit("minLevel")}
-              decimals={levelDecimals}
-              onChange={onPropertyChange}
-              positiveOnly={true}
-              readOnly={readOnly}
-            />
-            <QuantityRow
-              name="minVolume"
-              value={tank.minVolume}
-              unit={quantitiesMetadata.getUnit("minVolume")}
-              decimals={quantitiesMetadata.getDecimals("minVolume")}
-              onChange={onPropertyChange}
-              positiveOnly={true}
-              readOnly={readOnly}
-            />
-            <QuantityRow
-              name="maxVolume"
-              value={tank.maxVolume}
-              unit={quantitiesMetadata.getUnit("minVolume")}
-              decimals={quantitiesMetadata.getDecimals("minVolume")}
-              readOnly={true}
+            <NumericTable
+              labels={tableLabels}
+              cells={[
+                [
+                  {
+                    label: translate("minLevel"),
+                    value: tank.minLevel,
+                    positiveOnly: true,
+                    decimals: levelDecimals,
+                    readOnly,
+                    handler: (v) =>
+                      onPropertyChange("minLevel", v, tank.minLevel),
+                  },
+                  {
+                    label: translate("minVolume"),
+                    value: tank.minVolume,
+                    positiveOnly: true,
+                    decimals: volumeDecimals,
+                    readOnly,
+                    handler: (v) =>
+                      onPropertyChange("minVolume", v, tank.minVolume),
+                  },
+                ],
+                [
+                  {
+                    label: translate("maxLevel"),
+                    value: tank.maxLevel,
+                    positiveOnly: true,
+                    decimals: levelDecimals,
+                    readOnly,
+                    handler: (v) =>
+                      onPropertyChange("maxLevel", v, tank.maxLevel),
+                  },
+                  {
+                    label: translate("maxVolume"),
+                    value: tank.maxVolume,
+                    readOnly: true,
+                    decimals: volumeDecimals,
+                  },
+                ],
+              ]}
             />
           </>
         )}
         {definitionMode === "volumeBased" && (
-          <>
-            <QuantityRow
-              name="maxVolume"
-              value={tank.maxVolume}
-              unit={quantitiesMetadata.getUnit("minVolume")}
-              decimals={quantitiesMetadata.getDecimals("minVolume")}
-              onChange={handleMaxVolumeChange}
-              positiveOnly={true}
-              readOnly={readOnly}
-            />
-            <QuantityRow
-              name="maxLevel"
-              value={tank.maxLevel}
-              unit={quantitiesMetadata.getUnit("maxLevel")}
-              decimals={quantitiesMetadata.getDecimals("maxLevel")}
-              onChange={handleMaxLevelChange}
-              positiveOnly={true}
-              readOnly={readOnly}
-            />
-            <QuantityRow
-              name="minLevel"
-              value={tank.minLevel}
-              unit={quantitiesMetadata.getUnit("minLevel")}
-              decimals={levelDecimals}
-              onChange={handleMinLevelChange}
-              positiveOnly={true}
-              readOnly={readOnly}
-            />
-            <QuantityRow
-              name="minVolume"
-              value={tank.minVolume}
-              unit={quantitiesMetadata.getUnit("minVolume")}
-              decimals={quantitiesMetadata.getDecimals("minVolume")}
-              onChange={handleMinVolumeChange}
-              positiveOnly={true}
-              readOnly={readOnly}
-            />
-            <QuantityRow
-              name="diameter"
-              value={tank.diameter}
-              unit={quantitiesMetadata.getUnit("tankDiameter")}
-              decimals={quantitiesMetadata.getDecimals("diameter")}
-              readOnly={true}
-            />
-          </>
+          <NumericTable
+            labels={tableLabels}
+            cells={[
+              [
+                {
+                  label: translate("minLevel"),
+                  value: tank.minLevel,
+                  positiveOnly: true,
+                  decimals: levelDecimals,
+                  readOnly,
+                  handler: (v) => handleMinLevelChange("minLevel", v),
+                },
+                {
+                  label: translate("minVolume"),
+                  value: tank.minVolume,
+                  positiveOnly: true,
+                  decimals: volumeDecimals,
+                  readOnly,
+                  handler: (v) => handleMinVolumeChange("minVolume", v),
+                },
+              ],
+              [
+                {
+                  label: translate("maxLevel"),
+                  value: tank.maxLevel,
+                  positiveOnly: true,
+                  decimals: levelDecimals,
+                  readOnly,
+                  handler: (v) => handleMaxLevelChange("maxLevel", v),
+                },
+                {
+                  label: translate("maxVolume"),
+                  value: tank.maxVolume,
+                  positiveOnly: true,
+                  decimals: volumeDecimals,
+                  readOnly,
+                  handler: (v) => handleMaxVolumeChange("maxVolume", v),
+                },
+              ],
+            ]}
+          />
         )}
         {definitionMode === "curveBased" && (
           <>
@@ -1483,36 +1500,39 @@ const TankDefinitionField = ({
                 curves,
               );
               return volumeRange ? (
-                <>
-                  <QuantityRow
-                    name="minLevel"
-                    value={tank.minLevel}
-                    unit={quantitiesMetadata.getUnit("minLevel")}
-                    decimals={levelDecimals}
-                    readOnly={true}
-                  />
-                  <QuantityRow
-                    name="maxLevel"
-                    value={tank.maxLevel}
-                    unit={quantitiesMetadata.getUnit("maxLevel")}
-                    decimals={quantitiesMetadata.getDecimals("maxLevel")}
-                    readOnly={true}
-                  />
-                  <QuantityRow
-                    name="minVolume"
-                    value={tank.minLevel}
-                    unit={quantitiesMetadata.getUnit("minVolume")}
-                    decimals={quantitiesMetadata.getDecimals("minVolume")}
-                    readOnly={true}
-                  />
-                  <QuantityRow
-                    name="maxVolume"
-                    value={volumeRange.max}
-                    unit={quantitiesMetadata.getUnit("minVolume")}
-                    decimals={quantitiesMetadata.getDecimals("minVolume")}
-                    readOnly={true}
-                  />
-                </>
+                <NumericTable
+                  labels={tableLabels}
+                  cells={[
+                    [
+                      {
+                        label: translate("minLevel"),
+                        value: tank.minLevel,
+                        readOnly: true,
+                        decimals: levelDecimals,
+                      },
+                      {
+                        label: translate("minVolume"),
+                        value: volumeRange.min,
+                        readOnly: true,
+                        decimals: volumeDecimals,
+                      },
+                    ],
+                    [
+                      {
+                        label: translate("maxLevel"),
+                        value: tank.maxLevel,
+                        readOnly: true,
+                        decimals: levelDecimals,
+                      },
+                      {
+                        label: translate("maxVolume"),
+                        value: volumeRange.max,
+                        readOnly: true,
+                        decimals: volumeDecimals,
+                      },
+                    ],
+                  ]}
+                />
               ) : null;
             })()}
           </>
