@@ -18,6 +18,7 @@ import { BatchEditPropertyConfig } from "./batch-edit-property-config";
 import { AssetId } from "src/hydraulic-model";
 import { JsonValue } from "type-fest";
 import type { ChangeableProperty } from "src/hydraulic-model/model-operations/change-property";
+import clsx from "clsx";
 
 type MultiValueRowProps = {
   propertyStats: AssetPropertyStats;
@@ -386,29 +387,37 @@ export const SortableValuesList = ({
       </div>
       <div className="max-h-32 overflow-y-auto" role="rowgroup">
         <div className="w-full">
-          {valueEntries.map(([value, assetIds], index) => (
-            <div
-              key={index}
-              className={`py-2 px-2 flex items-center hover:bg-gray-200 dark:hover:bg-gray-700 gap-x-2 even:bg-gray-100 ${isClickable ? "cursor-pointer" : ""}`}
-              role="row"
-              onClick={isClickable ? () => onSelectAssets(assetIds) : undefined}
-            >
+          {valueEntries.map(([value, assetIds], index) => {
+            const label = formatValue(value, translate, decimals, type);
+            return (
               <div
-                title={formatValue(value, translate, decimals, type)}
-                className="flex-auto font-mono text-xs truncate"
-                role="cell"
+                key={index}
+                className={`py-2 px-2 flex items-center hover:bg-gray-200 dark:hover:bg-gray-700 gap-x-2 even:bg-gray-100 ${isClickable ? "cursor-pointer" : ""}`}
+                role="row"
+                onClick={
+                  isClickable ? () => onSelectAssets(assetIds) : undefined
+                }
               >
-                {formatValue(value, translate, decimals, type)}
+                <div
+                  title={label || translate("empty")}
+                  className={clsx(
+                    "flex-auto font-mono text-xs truncate",
+                    !label && "italic text-gray-600",
+                  )}
+                  role="cell"
+                >
+                  {label || translate("empty")}
+                </div>
+                <div
+                  className="text-xs font-mono"
+                  title={translate("assets")}
+                  role="cell"
+                >
+                  ({localizeDecimal(assetIds.length)})
+                </div>
               </div>
-              <div
-                className="text-xs font-mono"
-                title={translate("assets")}
-                role="cell"
-              >
-                ({localizeDecimal(assetIds.length)})
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>

@@ -6,6 +6,7 @@ import { Quantities } from "src/model-metadata/quantities-spec";
 import { CollapsibleSection, SectionList } from "src/components/form/fields";
 import { MultiAssetActions } from "./actions";
 import { Asset, AssetId } from "src/hydraulic-model";
+import { Tank } from "src/hydraulic-model/asset-types/tank";
 import { AssetTypeSections } from "./asset-type-sections";
 import { SelectOnlyButton } from "./select-only-button";
 import { useAtom, useAtomValue } from "jotai";
@@ -72,6 +73,17 @@ export function MultiAssetPanel({
     }
     return map;
   }, [selectedFeatures]);
+
+  const tankEditableProperties = useMemo(() => {
+    const hasCurveTanks = assetIdsByType.tank.some((id) => {
+      const tank = hydraulicModel.assets.get(id) as Tank;
+      return !!tank.volumeCurveId;
+    });
+    if (!hasCurveTanks) return BATCH_EDITABLE_PROPERTIES.tank!;
+    const { minLevel, maxLevel, diameter, minVolume, ...rest } =
+      BATCH_EDITABLE_PROPERTIES.tank!;
+    return rest;
+  }, [assetIdsByType.tank, hydraulicModel]);
 
   const showSelectOnly =
     Object.values(assetCounts).filter((c) => c > 0).length > 1;
@@ -281,7 +293,7 @@ export function MultiAssetPanel({
         >
           <AssetTypeSections
             sections={multiAssetData.tank}
-            editableProperties={BATCH_EDITABLE_PROPERTIES.tank!}
+            editableProperties={tankEditableProperties}
             hasSimulation={hasSimulation}
             onPropertyChange={(p, v) => handleBatchPropertyChange("tank", p, v)}
             readonly={readonly}

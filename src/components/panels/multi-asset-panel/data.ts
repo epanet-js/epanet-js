@@ -26,7 +26,7 @@ import {
   getCustomerPointDemands,
   getJunctionDemands,
 } from "src/hydraulic-model";
-import { tankMaxVolume } from "src/hydraulic-model/asset-types/tank";
+import { tankVolumeCurveRange } from "src/hydraulic-model/asset-types/tank";
 
 export type QuantityStats = {
   type: "quantity";
@@ -658,17 +658,49 @@ const appendTankStats = (
       quantitiesMetadata,
       id,
     );
+    updateQuantityStats(
+      statsMap,
+      "maxVolume",
+      tank.maxVolume,
+      quantitiesMetadata,
+      id,
+    );
+    updateLinkStats(statsMap, "volumeCurve", "", id);
   } else {
     const curve = curves.get(tank.volumeCurveId);
-    if (curve) updateLinkStats(statsMap, "volumeCurve", curve.label, id);
+    if (curve) {
+      updateLinkStats(statsMap, "volumeCurve", curve.label, id);
+      const range = tankVolumeCurveRange(curve);
+      updateQuantityStats(
+        statsMap,
+        "minLevel",
+        range.minLevel,
+        quantitiesMetadata,
+        id,
+      );
+      updateQuantityStats(
+        statsMap,
+        "maxLevel",
+        range.maxLevel,
+        quantitiesMetadata,
+        id,
+      );
+      updateQuantityStats(
+        statsMap,
+        "minVolume",
+        range.minVolume,
+        quantitiesMetadata,
+        id,
+      );
+      updateQuantityStats(
+        statsMap,
+        "maxVolume",
+        range.maxVolume,
+        quantitiesMetadata,
+        id,
+      );
+    }
   }
-  updateQuantityStats(
-    statsMap,
-    "maxVolume",
-    tankMaxVolume(tank, curves),
-    quantitiesMetadata,
-    id,
-  );
 
   if (tank.overflow !== undefined) {
     updateBooleanStats(statsMap, "canOverflow", tank.overflow, id);
@@ -698,6 +730,14 @@ const appendTankStats = (
 const buildTankSections = (
   statsMap: Map<string, AssetPropertyStats>,
 ): AssetPropertySections => {
+  // Remove volumeCurve row if no tanks actually have curves
+  const curveStats = statsMap.get("volumeCurve") as
+    | LiteralCategoryStats
+    | undefined;
+  if (curveStats && curveStats.values.size === 1 && curveStats.values.has("")) {
+    statsMap.delete("volumeCurve");
+  }
+
   return {
     activeTopology: getStatsForProperties(statsMap, ["isEnabled"]),
     modelAttributes: getStatsForProperties(statsMap, [
