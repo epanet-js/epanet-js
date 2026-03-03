@@ -209,7 +209,6 @@ const BOTTOM_SIDEBAR_TABS: { id: BottomSidebarTab; label: string }[] = [
 function BottomSidebarContent({ tab }: { tab: BottomSidebarTab }) {
   switch (tab) {
     case "pipes":
-      return <div className="p-4 text-sm text-gray-500">DT pipes content</div>;
     case "junctions":
       return (
         <div className="p-4 text-sm text-gray-500">DT junctions content</div>
@@ -230,7 +229,7 @@ export const HorizontalBottomSidebar = memo(function HorizontalBottomSidebar() {
   return (
     <div
       className={clsx(
-        "absolute bottom-0 overflow-auto overscroll-none",
+        "absolute bottom-0 flex flex-col",
         "border-l border-gray-200",
         "bg-white dark:bg-gray-800 dark:border-gray-900",
         maximized ? "top-0" : "border-t h-[33dvh] max-h-[400px]",
@@ -240,7 +239,7 @@ export const HorizontalBottomSidebar = memo(function HorizontalBottomSidebar() {
         right: "var(--sidebar-right, 0px)",
       }}
     >
-      <header className="bottom-sidebar-header flex items-stretch h-8 flex-none sticky top-0 z-10 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-black">
+      <header className="bottom-sidebar-header flex items-stretch h-8 flex-none bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-black">
         <div role="tablist" className="flex flex-1">
           {BOTTOM_SIDEBAR_TABS.map(({ id, label }) => (
             <button
@@ -249,7 +248,7 @@ export const HorizontalBottomSidebar = memo(function HorizontalBottomSidebar() {
               aria-selected={activeTab === id}
               onClick={() => setActiveTab(id)}
               className={clsx(
-                "px-3 text-sm focus:outline-none h-full flex items-center border-b-2",
+                "px-3 text-sm focus:outline-none h-full flex items-center border-b-2 text-nowrap",
                 activeTab === id
                   ? "border-purple-500 text-gray-900 dark:text-white"
                   : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200",
@@ -279,7 +278,7 @@ export const HorizontalBottomSidebar = memo(function HorizontalBottomSidebar() {
           </button>
         </div>
       </header>
-      <div className="bottom-sidebar-content">
+      <div className="bottom-sidebar-content flex-auto overflow-auto overscroll-none">
         <BottomSidebarContent tab={activeTab} />
       </div>
     </div>
