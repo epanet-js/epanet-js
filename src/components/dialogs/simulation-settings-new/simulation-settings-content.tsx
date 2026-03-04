@@ -1,4 +1,4 @@
-import { forwardRef, useCallback } from "react";
+import { forwardRef, useCallback, useMemo } from "react";
 import { useFormikContext } from "formik";
 import { useAtomValue } from "jotai";
 import clsx from "clsx";
@@ -6,7 +6,7 @@ import clsx from "clsx";
 import { useTranslate } from "src/hooks/use-translate";
 import { TimeField } from "src/components/form/time-field";
 import { NumericField } from "src/components/form/numeric-field";
-import { Selector } from "src/components/form/selector";
+import { Selector, SelectorOption } from "src/components/form/selector";
 import { simulationSettingsAtom } from "src/state/jotai";
 import { hasScenariosAtom } from "src/state/scenarios";
 import {
@@ -700,15 +700,33 @@ export const EnergySection = () => {
   const patterns = useAtomValue(patternsAtom);
   const { values, setFieldValue } = useFormikContext<FormValues>();
 
-  const patternLabel =
-    values.energyGlobalPatternId !== null
-      ? (patterns.get(values.energyGlobalPatternId)?.label ?? "")
-      : "";
-
   const reportEnergyOptions: { label: string; value: "YES" | "NO" }[] = [
     { label: translate("simulationSettings.reportEnergyYes"), value: "YES" },
     { label: translate("simulationSettings.reportEnergyNo"), value: "NO" },
   ];
+
+  const EMPTY_PATTERN_ID = 0;
+
+  const energyPricePatternOptions = useMemo(() => {
+    const patternGroup: SelectorOption<number>[] = [];
+    for (const [, pattern] of patterns) {
+      if (pattern.type === "energyPrice") {
+        patternGroup.push({ label: pattern.label, value: pattern.id });
+      }
+    }
+
+    const noneGroup: SelectorOption<number>[] = [
+      {
+        label:
+          patternGroup.length === 0
+            ? translate("simulationSettings.noPatternsYet")
+            : translate("none"),
+        value: EMPTY_PATTERN_ID,
+      },
+    ];
+
+    return patternGroup.length ? [...noneGroup, ...patternGroup] : [];
+  }, [patterns, translate]);
 
   return (
     <div>
@@ -744,24 +762,25 @@ export const EnergySection = () => {
           disabled={readonly}
         />
 
-        <TextSetting
+        <SelectorSetting
           label={translate("simulationSettings.energyGlobalPattern")}
           description={translate("simulationSettings.energyGlobalPatternDesc")}
-          value={patternLabel}
-          onChange={(label) => {
-            if (!label) {
-              void setFieldValue("energyGlobalPatternId", null);
-              return;
-            }
-            for (const pattern of patterns.values()) {
-              if (pattern.label === label) {
-                void setFieldValue("energyGlobalPatternId", pattern.id);
-                return;
-              }
-            }
-            void setFieldValue("energyGlobalPatternId", null);
-          }}
-          disabled={readonly}
+          options={energyPricePatternOptions}
+          selected={values.energyGlobalPatternId}
+          nullable
+          placeholder={
+            energyPricePatternOptions.length === 0
+              ? translate("simulationSettings.noPatternsYet")
+              : translate("none")
+          }
+          listClassName="first:italic"
+          onChange={(v) =>
+            setFieldValue(
+              "energyGlobalPatternId",
+              v === EMPTY_PATTERN_ID ? null : v,
+            )
+          }
+          disabled={readonly || energyPricePatternOptions.length === 0}
         />
 
         <ValueSetting
@@ -874,29 +893,59 @@ const ValueSetting = ({
   </SettingsRow>
 );
 
-const SelectorSetting = <T extends string>({
+type SelectorSettingPropsBase<T extends string | number> = {
+  label: string;
+  description?: string;
+  options: SelectorOption<T>[] | SelectorOption<T>[][];
+  listClassName?: string;
+  disabled?: boolean;
+  stickyFirstGroup?: boolean;
+};
+
+type SelectorSettingPropsNonNullable<T extends string | number> =
+  SelectorSettingPropsBase<T> & {
+    selected: T;
+    nullable?: false;
+    placeholder?: never;
+    onChange: (value: T) => void;
+  };
+
+type SelectorSettingPropsNullable<T extends string | number> =
+  SelectorSettingPropsBase<T> & {
+    selected: T | null;
+    nullable: true;
+    placeholder: string;
+    onChange: (value: T | null) => void;
+  };
+
+type SelectorSettingProps<T extends string | number> =
+  | SelectorSettingPropsNonNullable<T>
+  | SelectorSettingPropsNullable<T>;
+
+const SelectorSetting = <T extends string | number>({
   label,
   description,
   options,
   selected,
+  nullable = false,
+  placeholder,
   disabled = false,
+  stickyFirstGroup,
+  listClassName,
   onChange,
-}: {
-  label: string;
-  description?: string;
-  options: { label: string; value: T }[];
-  selected: T;
-  disabled?: boolean;
-  onChange: (value: T) => void;
-}) => (
+}: SelectorSettingProps<T>) => (
   <SettingsRow label={label} description={description}>
     <div className="w-56">
       <Selector
         ariaLabel={label}
         options={options}
         selected={selected}
-        onChange={onChange}
+        onChange={(v: T | null) => (onChange as (value: T | null) => void)(v)}
         disabled={disabled}
+        nullable={nullable as true}
+        placeholder={placeholder as string}
+        stickyFirstGroup={stickyFirstGroup}
+        listClassName={listClassName}
         styleOptions={{ border: true, textSize: "text-sm", paddingY: 2 }}
       />
     </div>

@@ -595,6 +595,7 @@
     "energyGlobalPriceDesc": "The default energy cost per kilowatt-hour ($/kWh) used across the entire simulation. This value is multiplied by the calculated energy consumption of each pump to determine the total operating cost.",
     "energyGlobalPattern": "Global energy price pattern",
     "energyGlobalPatternDesc": "The ID of a time pattern that describes how the energy price varies throughout the day (e.g., for \"Time-of-Use\" billing). If left blank, the Global Price remains constant.",
+    "noPatternsYet": "No patterns yet",
     "energyDemandCharge": "Demand charge",
     "energyDemandChargeDesc": "An additional charge based on the maximum power (kW) consumed by the network during the simulation period. This represents the \"peak demand\" fee often charged by electric utilities.",
     "general": "General",
