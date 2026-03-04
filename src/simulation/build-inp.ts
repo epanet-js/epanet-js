@@ -17,6 +17,7 @@ import type {
 import {
   defaultHydraulicsValues,
   defaultWaterQualityValues,
+  defaultEnergyValues,
 } from "src/simulation/simulation-settings";
 import {
   CustomerPoint,
@@ -112,6 +113,25 @@ const buildReactionsSection = (settings: SimulationSettings): string[] => {
     lines.push(
       `Roughness Correlation\t${settings.reactionRoughnessCorrelation}`,
     );
+  return lines;
+};
+
+const buildEnergySection = (
+  settings: SimulationSettings,
+  hydraulicModel: HydraulicModel,
+): string[] => {
+  const de = defaultEnergyValues;
+  const lines: string[] = ["[ENERGY]"];
+  if (settings.energyGlobalEfficiency !== de.energyGlobalEfficiency)
+    lines.push(`Global Effic\t${settings.energyGlobalEfficiency}`);
+  if (settings.energyGlobalPrice !== de.energyGlobalPrice)
+    lines.push(`Global Price\t${settings.energyGlobalPrice}`);
+  if (settings.energyGlobalPatternId !== null) {
+    const pattern = hydraulicModel.patterns.get(settings.energyGlobalPatternId);
+    if (pattern) lines.push(`Global Pattern\t${pattern.label}`);
+  }
+  if (settings.energyDemandCharge !== de.energyDemandCharge)
+    lines.push(`Demand Charge\t${settings.energyDemandCharge}`);
   return lines;
 };
 
@@ -290,6 +310,7 @@ type InpSections = {
   customers: string[];
   customersDemands: string[];
   reactions: string[];
+  energy: string[];
   controls: string[];
   rules: string[];
 };
@@ -344,7 +365,13 @@ export const buildInp = withDebugInstrumentation(
       demands: ["[DEMANDS]", ";Id\tDemand\tPattern\tCategory"],
       emitters: ["[EMITTERS]", ";Junction\tCoefficient"],
       times: buildTimesSection(opts.simulationSettings.timing),
-      report: ["[REPORT]", "Status\tFULL", "Summary\tNo", "Page\t0"],
+      report: [
+        "[REPORT]",
+        "Status\tFULL",
+        "Summary\tNo",
+        "Page\t0",
+        ...(opts.simulationSettings.reportEnergy ? ["Energy\tYES"] : []),
+      ],
       status: ["[STATUS]", ";Id\tStatus"],
       curves: ["[CURVES]", ";Id\tX\tY"],
       patterns: ["[PATTERNS]", ";Id\tMultiplier"],
@@ -420,6 +447,7 @@ export const buildInp = withDebugInstrumentation(
       ],
       customersDemands: [";[CUSTOMERS_DEMANDS]", ";Id\tBaseDemand\tPatternId"],
       reactions: buildReactionsSection(opts.simulationSettings),
+      energy: buildEnergySection(opts.simulationSettings, hydraulicModel),
       controls: ["[CONTROLS]"],
       rules: ["[RULES]"],
     };
@@ -555,6 +583,7 @@ export const buildInp = withDebugInstrumentation(
     const hasRules = sections.rules.length > 1;
     const hasEmitters = sections.emitters.length > 2;
     const hasReactions = sections.reactions.length > 1;
+    const hasEnergy = sections.energy.length > 1;
 
     let content = [
       sections.junctions.join("\n"),
@@ -572,6 +601,7 @@ export const buildInp = withDebugInstrumentation(
       sections.report.join("\n"),
       sections.options.join("\n"),
       hasReactions && sections.reactions.join("\n"),
+      hasEnergy && sections.energy.join("\n"),
       opts.geolocation && sections.backdrop.join("\n"),
       opts.geolocation && sections.coordinates.join("\n"),
       opts.geolocation && sections.vertices.join("\n"),

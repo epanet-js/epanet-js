@@ -3,11 +3,13 @@ import { IssuesAccumulator, ParserIssues } from "./issues";
 import { readInpData } from "./read-inp-data";
 import { buildModel } from "./build-model";
 import { HydraulicModel, AssetsMap } from "src/hydraulic-model";
+import type { Patterns } from "src/hydraulic-model/patterns";
 import { nanoid } from "nanoid";
 import {
   defaultTiming,
   defaultSimulationSettings,
   defaultWaterQualityValues,
+  defaultEnergyValues,
 } from "src/simulation/simulation-settings";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
 import { checksum } from "src/infra/checksum";
@@ -155,6 +157,18 @@ export const parseInp = (
       reactionRoughnessCorrelation:
         inpData.reactions.roughnessCorrelation ??
         defaultWaterQualityValues.reactionRoughnessCorrelation,
+      reportEnergy: inpData.report.energy ?? defaultEnergyValues.reportEnergy,
+      energyGlobalEfficiency:
+        inpData.energy.globalEfficiency ??
+        defaultEnergyValues.energyGlobalEfficiency,
+      energyGlobalPrice:
+        inpData.energy.globalPrice ?? defaultEnergyValues.energyGlobalPrice,
+      energyGlobalPatternId: resolveEnergyPatternId(
+        inpData.energy.globalPattern,
+        hydraulicModel.patterns,
+      ),
+      energyDemandCharge:
+        inpData.energy.demandCharge ?? defaultEnergyValues.energyDemandCharge,
     },
     issues: issues.buildResult(),
     stats,
@@ -231,6 +245,17 @@ const resolveTraceNodeId = (
   if (!label) return null;
   for (const asset of assets.values()) {
     if (asset.isNode && asset.label === label) return asset.id;
+  }
+  return null;
+};
+
+const resolveEnergyPatternId = (
+  label: string | undefined,
+  patterns: Patterns,
+): number | null => {
+  if (!label) return null;
+  for (const pattern of patterns.values()) {
+    if (pattern.label === label) return pattern.id;
   }
   return null;
 };

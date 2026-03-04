@@ -60,6 +60,15 @@ const defaultOptions = {
 };
 
 export const ignore: RowParser = () => {};
+
+export const parseReport: RowParser = ({ trimmedRow, inpData, options }) => {
+  if (!options?.extraOptions) return;
+  const upperRow = trimmedRow.toUpperCase();
+  if (upperRow.startsWith("ENERGY")) {
+    const value = upperRow.replace(/^ENERGY\s+/, "").trim();
+    inpData.report.energy = value === "YES";
+  }
+};
 export const unsupported: RowParser = ({ sectionName, issues }) => {
   issues.addUsedSection(sectionName);
 };
@@ -79,6 +88,7 @@ export const parseSource: RowParser = ({
 
 const defaultEnergySettings: Record<string, number> = {
   "GLOBAL EFFICIENCY": 75,
+  "GLOBAL EFFIC": 75,
   "GLOBAL PRICE": 0,
   "DEMAND CHARGE": 0,
 };
@@ -88,6 +98,7 @@ export const parseEnergy: RowParser = ({
   trimmedRow,
   inpData,
   issues,
+  options,
 }) => {
   const upperRow = trimmedRow.toUpperCase();
 
@@ -98,16 +109,46 @@ export const parseEnergy: RowParser = ({
     } else if (keyword?.toUpperCase() === "PATTERN" && value) {
       inpData.energyPatterns.add(value);
     }
-    issues.addUsedSection(sectionName);
+    if (!options?.extraOptions) {
+      issues.addUsedSection(sectionName);
+    }
     return;
   }
 
   if (upperRow.startsWith("GLOBAL PATTERN")) {
-    const patternId = upperRow.replace(/^GLOBAL\s+PATTERN\s+/i, "").trim();
-    if (patternId) {
+    const patternLabel = trimmedRow.replace(/^GLOBAL\s+PATTERN\s+/i, "").trim();
+    if (patternLabel) {
       inpData.energyPatterns.add(readValues(trimmedRow)[2]);
+      if (options?.extraOptions) {
+        inpData.energy.globalPattern = patternLabel;
+      }
     }
-    issues.addUsedSection(sectionName);
+    if (!options?.extraOptions) {
+      issues.addUsedSection(sectionName);
+    }
+    return;
+  }
+
+  if (options?.extraOptions) {
+    const setting = readSetting(trimmedRow, defaultEnergySettings);
+    if (setting) {
+      const { name, value } = setting;
+      if (name === "GLOBAL EFFICIENCY" || name === "GLOBAL EFFIC") {
+        inpData.energy.globalEfficiency = value as number;
+        return;
+      }
+      if (name === "GLOBAL PRICE") {
+        inpData.energy.globalPrice = value as number;
+        return;
+      }
+      if (name === "DEMAND CHARGE") {
+        inpData.energy.demandCharge = value as number;
+        return;
+      }
+    }
+    if (!setting) {
+      issues.addUsedSection(sectionName);
+    }
     return;
   }
 

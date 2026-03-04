@@ -583,7 +583,20 @@
     "reactionLimitingPotential": "Limiting potential",
     "reactionLimitingPotentialDesc": "Defines a concentration limit for reactions. When set, reaction rates become proportional to the difference between the current concentration and this value, rather than the total concentration.",
     "reactionRoughnessCorrelation": "Roughness correlation",
-    "reactionRoughnessCorrelationDesc": "A factor used to adjust the Global Wall Coefficient based on individual pipe roughness. Set to zero to ignore the effect of roughness on reaction rates."
+    "reactionRoughnessCorrelationDesc": "A factor used to adjust the Global Wall Coefficient based on individual pipe roughness. Set to zero to ignore the effect of roughness on reaction rates.",
+    "energy": "Energy",
+    "reportEnergy": "Report energy usage",
+    "reportEnergyDesc": "Include a summary of energy usage and cost for each pump in the simulation report.",
+    "reportEnergyYes": "Yes",
+    "reportEnergyNo": "No",
+    "energyGlobalEfficiency": "Global pump efficiency",
+    "energyGlobalEfficiencyDesc": "The default energy efficiency (%) for all pumps in the network. This value is used to calculate the power consumed by the pump based on its flow and head. You can override this for individual pumps if they have specific manufacturer-provided efficiency curves.",
+    "energyGlobalPrice": "Global energy price",
+    "energyGlobalPriceDesc": "The default energy cost per kilowatt-hour ($/kWh) used across the entire simulation. This value is multiplied by the calculated energy consumption of each pump to determine the total operating cost.",
+    "energyGlobalPattern": "Global energy price pattern",
+    "energyGlobalPatternDesc": "The ID of a time pattern that describes how the energy price varies throughout the day (e.g., for \"Time-of-Use\" billing). If left blank, the Global Price remains constant.",
+    "energyDemandCharge": "Demand charge",
+    "energyDemandChargeDesc": "An additional charge based on the maximum power (kW) consumed by the network during the simulation period. This represents the \"peak demand\" fee often charged by electric utilities."
   },
   "controls": {
     "title": "Controls",

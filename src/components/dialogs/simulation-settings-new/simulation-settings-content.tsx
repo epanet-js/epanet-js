@@ -9,7 +9,7 @@ import { NumericField } from "src/components/form/numeric-field";
 import { Selector } from "src/components/form/selector";
 import { simulationSettingsAtom } from "src/state/jotai";
 import { hasScenariosAtom } from "src/state/scenarios";
-import { assetsAtom } from "src/state/hydraulic-model";
+import { assetsAtom, patternsAtom } from "src/state/hydraulic-model";
 
 import type {
   DemandModel,
@@ -621,6 +621,88 @@ export const WaterQualitySection = () => {
           value={values.diffusivity}
           onChange={(v) => setFieldValue("diffusivity", v)}
           disabled={!isChemical || readonly}
+        />
+      </div>
+    </div>
+  );
+};
+
+export const EnergySection = () => {
+  const translate = useTranslate();
+  const readonly = useAtomValue(hasScenariosAtom);
+  const patterns = useAtomValue(patternsAtom);
+  const { values, setFieldValue } = useFormikContext<FormValues>();
+
+  const patternLabel =
+    values.energyGlobalPatternId !== null
+      ? (patterns.get(values.energyGlobalPatternId)?.label ?? "")
+      : "";
+
+  const reportEnergyOptions: { label: string; value: "YES" | "NO" }[] = [
+    { label: translate("simulationSettings.reportEnergyYes"), value: "YES" },
+    { label: translate("simulationSettings.reportEnergyNo"), value: "NO" },
+  ];
+
+  return (
+    <div>
+      <h3 className="text-base font-semibold text-gray-900 dark:text-white pb-3 mb-3">
+        {translate("simulationSettings.energy")}
+      </h3>
+
+      <div className="flex flex-col gap-4">
+        <SelectorSetting
+          label={translate("simulationSettings.reportEnergy")}
+          description={translate("simulationSettings.reportEnergyDesc")}
+          options={reportEnergyOptions}
+          selected={values.reportEnergy ? "YES" : "NO"}
+          onChange={(v) => setFieldValue("reportEnergy", v === "YES")}
+          disabled={readonly}
+        />
+
+        <ValueSetting
+          label={translate("simulationSettings.energyGlobalEfficiency")}
+          description={translate(
+            "simulationSettings.energyGlobalEfficiencyDesc",
+          )}
+          value={values.energyGlobalEfficiency}
+          onChange={(v) => setFieldValue("energyGlobalEfficiency", v)}
+          disabled={readonly}
+        />
+
+        <ValueSetting
+          label={translate("simulationSettings.energyGlobalPrice")}
+          description={translate("simulationSettings.energyGlobalPriceDesc")}
+          value={values.energyGlobalPrice}
+          onChange={(v) => setFieldValue("energyGlobalPrice", v)}
+          disabled={readonly}
+        />
+
+        <TextSetting
+          label={translate("simulationSettings.energyGlobalPattern")}
+          description={translate("simulationSettings.energyGlobalPatternDesc")}
+          value={patternLabel}
+          onChange={(label) => {
+            if (!label) {
+              void setFieldValue("energyGlobalPatternId", null);
+              return;
+            }
+            for (const pattern of patterns.values()) {
+              if (pattern.label === label) {
+                void setFieldValue("energyGlobalPatternId", pattern.id);
+                return;
+              }
+            }
+            void setFieldValue("energyGlobalPatternId", null);
+          }}
+          disabled={readonly}
+        />
+
+        <ValueSetting
+          label={translate("simulationSettings.energyDemandCharge")}
+          description={translate("simulationSettings.energyDemandChargeDesc")}
+          value={values.energyDemandCharge}
+          onChange={(v) => setFieldValue("energyDemandCharge", v)}
+          disabled={readonly}
         />
       </div>
     </div>

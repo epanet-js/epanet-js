@@ -165,6 +165,12 @@ export type InpData = {
     limitingPotential?: number;
     roughnessCorrelation?: number;
   };
+  energy: {
+    globalEfficiency?: number;
+    globalPrice?: number;
+    globalPattern?: string;
+    demandCharge?: number;
+  };
   times: {
     duration?: number;
     hydraulicTimestep?: number;
@@ -176,6 +182,9 @@ export type InpData = {
     reportStart?: number;
     startClocktime?: number;
     statistic?: string;
+  };
+  report: {
+    energy?: boolean;
   };
   controls: {
     simple: string;
@@ -246,7 +255,9 @@ export const nullInpData = (): InpData => {
     energyPatterns: new Set(),
     options: { units: "GPM", headlossFormula: "H-W", demandMultiplier: 1 },
     reactions: {},
+    energy: {},
     times: {},
+    report: {},
     controls: { simple: "", ruleBased: "" },
     nodeIds: new NodeIds(),
   };

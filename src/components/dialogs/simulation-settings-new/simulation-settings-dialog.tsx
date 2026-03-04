@@ -14,6 +14,7 @@ import {
   DemandsSection,
   HydraulicsSection,
   WaterQualitySection,
+  EnergySection,
   useTimeSettingsValidation,
 } from "./simulation-settings-content";
 import { useScrollSpy } from "./use-scroll-spy";
@@ -100,6 +101,9 @@ const SimulationSettingsForm = ({
             </SettingsSection>
             <SettingsSection sectionId="waterQuality">
               <WaterQualitySection />
+            </SettingsSection>
+            <SettingsSection sectionId="energy">
+              <EnergySection />
             </SettingsSection>
           </SimulationSettingsContent>
         </div>

@@ -58,6 +58,15 @@ export class SimulationSettingsBuilder {
     defaultSimulationSettings.reactionLimitingPotential;
   private reactionRoughnessCorrelationValue: number =
     defaultSimulationSettings.reactionRoughnessCorrelation;
+  private reportEnergyValue: boolean = defaultSimulationSettings.reportEnergy;
+  private energyGlobalEfficiencyValue: number =
+    defaultSimulationSettings.energyGlobalEfficiency;
+  private energyGlobalPriceValue: number =
+    defaultSimulationSettings.energyGlobalPrice;
+  private energyGlobalPatternIdValue: number | null =
+    defaultSimulationSettings.energyGlobalPatternId;
+  private energyDemandChargeValue: number =
+    defaultSimulationSettings.energyDemandCharge;
 
   static with() {
     return new SimulationSettingsBuilder();
@@ -218,6 +227,31 @@ export class SimulationSettingsBuilder {
     return this;
   }
 
+  reportEnergy(value: boolean) {
+    this.reportEnergyValue = value;
+    return this;
+  }
+
+  energyGlobalEfficiency(value: number) {
+    this.energyGlobalEfficiencyValue = value;
+    return this;
+  }
+
+  energyGlobalPrice(value: number) {
+    this.energyGlobalPriceValue = value;
+    return this;
+  }
+
+  energyGlobalPatternId(value: number | null) {
+    this.energyGlobalPatternIdValue = value;
+    return this;
+  }
+
+  energyDemandCharge(value: number) {
+    this.energyDemandChargeValue = value;
+    return this;
+  }
+
   build(): SimulationSettings {
     return {
       version: nanoid(),
@@ -272,6 +306,11 @@ export class SimulationSettingsBuilder {
       reactionGlobalWall: this.reactionGlobalWallValue,
       reactionLimitingPotential: this.reactionLimitingPotentialValue,
       reactionRoughnessCorrelation: this.reactionRoughnessCorrelationValue,
+      reportEnergy: this.reportEnergyValue,
+      energyGlobalEfficiency: this.energyGlobalEfficiencyValue,
+      energyGlobalPrice: this.energyGlobalPriceValue,
+      energyGlobalPatternId: this.energyGlobalPatternIdValue,
+      energyDemandCharge: this.energyDemandChargeValue,
     };
   }
 }

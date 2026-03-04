@@ -1,4 +1,5 @@
 import { nanoid } from "nanoid";
+import type { PatternId } from "src/hydraulic-model/patterns";
 
 export type DemandModel = "DDA" | "PDA";
 export type UnbalancedMode = "STOP" | "CONTINUE";
@@ -54,6 +55,11 @@ export type SimulationSettings = {
   reactionGlobalWall: number;
   reactionLimitingPotential: number;
   reactionRoughnessCorrelation: number;
+  reportEnergy: boolean;
+  energyGlobalEfficiency: number;
+  energyGlobalPrice: number;
+  energyGlobalPatternId: PatternId | null;
+  energyDemandCharge: number;
 };
 
 export const defaultHydraulicsValues = {
@@ -86,6 +92,14 @@ export const defaultWaterQualityValues = {
   reactionRoughnessCorrelation: 0,
 };
 
+export const defaultEnergyValues = {
+  reportEnergy: false,
+  energyGlobalEfficiency: 75,
+  energyGlobalPrice: 0,
+  energyGlobalPatternId: null as PatternId | null,
+  energyDemandCharge: 0,
+};
+
 export const defaultSimulationSettings: SimulationSettings = {
   version: nanoid(),
   timing: defaultTiming,
@@ -96,4 +110,5 @@ export const defaultSimulationSettings: SimulationSettings = {
   pressureExponent: 0.5,
   emitterExponent: 0.5,
   ...defaultWaterQualityValues,
+  ...defaultEnergyValues,
 };

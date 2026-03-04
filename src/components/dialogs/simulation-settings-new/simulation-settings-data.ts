@@ -7,6 +7,7 @@ import {
   type QualityMassUnit,
   defaultHydraulicsValues,
 } from "src/simulation/simulation-settings";
+import type { PatternId } from "src/hydraulic-model/patterns";
 
 export type OptionSubcategory = {
   id: string;
@@ -49,6 +50,10 @@ export const simulationSettingsCategories: OptionCategory[] = [
       { id: "waterQuality-reactions", label: "Reaction constants" },
       { id: "waterQuality-wall", label: "Wall interaction" },
     ],
+  },
+  {
+    id: "energy",
+    label: "Energy",
   },
 ];
 
@@ -99,6 +104,11 @@ export type FormValues = {
   reactionGlobalWall: number;
   reactionLimitingPotential: number;
   reactionRoughnessCorrelation: number;
+  reportEnergy: boolean;
+  energyGlobalEfficiency: number;
+  energyGlobalPrice: number;
+  energyGlobalPatternId: PatternId | null;
+  energyDemandCharge: number;
 };
 
 export const buildInitialValues = (
@@ -147,6 +157,11 @@ export const buildInitialValues = (
     reactionGlobalWall: settings.reactionGlobalWall,
     reactionLimitingPotential: settings.reactionLimitingPotential,
     reactionRoughnessCorrelation: settings.reactionRoughnessCorrelation,
+    reportEnergy: settings.reportEnergy,
+    energyGlobalEfficiency: settings.energyGlobalEfficiency,
+    energyGlobalPrice: settings.energyGlobalPrice,
+    energyGlobalPatternId: settings.energyGlobalPatternId,
+    energyDemandCharge: settings.energyDemandCharge,
   };
 };
 
@@ -205,7 +220,12 @@ export const hasChanges = (
     values.reactionGlobalWall !== settings.reactionGlobalWall ||
     values.reactionLimitingPotential !== settings.reactionLimitingPotential ||
     values.reactionRoughnessCorrelation !==
-      settings.reactionRoughnessCorrelation
+      settings.reactionRoughnessCorrelation ||
+    values.reportEnergy !== settings.reportEnergy ||
+    values.energyGlobalEfficiency !== settings.energyGlobalEfficiency ||
+    values.energyGlobalPrice !== settings.energyGlobalPrice ||
+    values.energyGlobalPatternId !== settings.energyGlobalPatternId ||
+    values.energyDemandCharge !== settings.energyDemandCharge
   );
 };
 
@@ -246,6 +266,11 @@ export const buildUpdatedSettings = (
     reactionGlobalWall: values.reactionGlobalWall,
     reactionLimitingPotential: values.reactionLimitingPotential,
     reactionRoughnessCorrelation: values.reactionRoughnessCorrelation,
+    reportEnergy: values.reportEnergy,
+    energyGlobalEfficiency: values.energyGlobalEfficiency,
+    energyGlobalPrice: values.energyGlobalPrice,
+    energyGlobalPatternId: values.energyGlobalPatternId,
+    energyDemandCharge: values.energyDemandCharge,
     timing: {
       duration:
         values.simulationMode === "steadyState" ? 0 : (values.duration ?? 0),

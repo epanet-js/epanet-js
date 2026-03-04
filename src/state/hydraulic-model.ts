@@ -18,6 +18,10 @@ export const assetsAtom = focusAtom(stagingModelAtom, (optic) =>
   optic.prop("assets"),
 );
 
+export const patternsAtom = focusAtom(stagingModelAtom, (optic) =>
+  optic.prop("patterns"),
+);
+
 export const customerPointsAtom = focusAtom(stagingModelAtom, (optic) =>
   optic.prop("customerPoints"),
 );
