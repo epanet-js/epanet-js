@@ -18,7 +18,7 @@ import FeatureEditor from "../feature-editor";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Valve } from "src/hydraulic-model/asset-types";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
+import { stubFeatureOff, stubFeatureOn } from "src/__helpers__/feature-flags";
 
 describe("AssetPanel", () => {
   describe("with a pipe", () => {
@@ -431,6 +431,140 @@ describe("AssetPanel", () => {
       expectTextPropertyDisplayed("velocity (m/s)", "10.123");
       expectTextPropertyDisplayed("headloss (m)", "98");
       expectTextPropertyDisplayed("status", "Open - Cannot deliver pressure");
+    });
+
+    describe("with FLAG_ALL_CURVES enabled", () => {
+      beforeEach(() => {
+        stubFeatureOn("FLAG_ALL_CURVES");
+      });
+
+      afterEach(() => {
+        stubFeatureOff("FLAG_ALL_CURVES");
+      });
+
+      it("shows the selected headloss curve for a GPV valve", () => {
+        const IDS = { V1: 1 };
+        const hydraulicModel = HydraulicModelBuilder.with()
+          .aCurve({
+            id: 10,
+            type: "headloss",
+            label: "HL_CURVE",
+            points: [
+              { x: 0, y: 0 },
+              { x: 100, y: 10 },
+            ],
+          })
+          .aValve(IDS.V1, { kind: "gpv", curveId: 10 })
+          .build();
+        const store = setInitialState({
+          hydraulicModel,
+          selectedAssetId: IDS.V1,
+        });
+
+        renderComponent(store);
+
+        expect(
+          screen.getByRole("combobox", { name: /headloss curve/i }),
+        ).toHaveTextContent("HL_CURVE");
+      });
+
+      it("does not select a valve-type curve for a GPV valve", () => {
+        const IDS = { V1: 1 };
+        const hydraulicModel = HydraulicModelBuilder.with()
+          .aCurve({
+            id: 10,
+            type: "valve",
+            label: "VALVE_CURVE",
+            points: [
+              { x: 0, y: 0 },
+              { x: 100, y: 100 },
+            ],
+          })
+          .aCurve({
+            id: 11,
+            type: "headloss",
+            label: "HL_OTHER",
+            points: [
+              { x: 0, y: 0 },
+              { x: 50, y: 5 },
+            ],
+          })
+          .aValve(IDS.V1, { kind: "gpv", curveId: 10 })
+          .build();
+        const store = setInitialState({
+          hydraulicModel,
+          selectedAssetId: IDS.V1,
+        });
+
+        renderComponent(store);
+
+        const combobox = screen.getByRole("combobox", {
+          name: /headloss curve/i,
+        });
+        expect(combobox).not.toHaveTextContent("VALVE_CURVE");
+        expect(combobox).not.toHaveTextContent("HL_OTHER");
+      });
+
+      it("does not select a headloss curve for a PCV valve", () => {
+        const IDS = { V1: 1 };
+        const hydraulicModel = HydraulicModelBuilder.with()
+          .aCurve({
+            id: 10,
+            type: "headloss",
+            label: "HL_CURVE",
+            points: [
+              { x: 0, y: 0 },
+              { x: 100, y: 10 },
+            ],
+          })
+          .aCurve({
+            id: 11,
+            type: "valve",
+            label: "VALVE_OTHER",
+            points: [
+              { x: 0, y: 0 },
+              { x: 100, y: 100 },
+            ],
+          })
+          .aValve(IDS.V1, { kind: "pcv", curveId: 10 })
+          .build();
+        const store = setInitialState({
+          hydraulicModel,
+          selectedAssetId: IDS.V1,
+        });
+
+        renderComponent(store);
+
+        const combobox = screen.getByRole("combobox", { name: /curve/i });
+        expect(combobox).not.toHaveTextContent("HL_CURVE");
+        expect(combobox).not.toHaveTextContent("VALVE_OTHER");
+      });
+
+      it("shows the selected valve curve for a PCV valve", () => {
+        const IDS = { V1: 1 };
+        const hydraulicModel = HydraulicModelBuilder.with()
+          .aCurve({
+            id: 10,
+            type: "valve",
+            label: "PCV_CURVE",
+            points: [
+              { x: 0, y: 0 },
+              { x: 100, y: 100 },
+            ],
+          })
+          .aValve(IDS.V1, { kind: "pcv", curveId: 10 })
+          .build();
+        const store = setInitialState({
+          hydraulicModel,
+          selectedAssetId: IDS.V1,
+        });
+
+        renderComponent(store);
+
+        expect(
+          screen.getByRole("combobox", { name: /curve/i }),
+        ).toHaveTextContent("PCV_CURVE");
+      });
     });
   });
 

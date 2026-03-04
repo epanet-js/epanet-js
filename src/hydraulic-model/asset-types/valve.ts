@@ -80,3 +80,11 @@ export class Valve extends Link<ValveProperties> {
     );
   }
 }
+
+export const valveCurveTypeFrom = (
+  valveKind: ValveKind,
+): "headloss" | "valve" | undefined => {
+  if (valveKind === "gpv") return "headloss";
+  if (valveKind === "pcv") return "valve";
+  return;
+};

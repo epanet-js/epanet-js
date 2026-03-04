@@ -58,6 +58,7 @@ import {
   ValveStatus,
   valveKinds,
   selectableValveKinds,
+  valveCurveTypeFrom,
 } from "src/hydraulic-model/asset-types/valve";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
@@ -1490,7 +1491,7 @@ const TankDefinitionField = ({
                 name="volumeCurve"
                 selected={tank.volumeCurveId ?? null}
                 options={curveOptions}
-                listClassName="first:italic"
+                stickyGroupClassName="first:italic"
                 stickyFirstGroup
                 nullable={true}
                 placeholder={`${translate("select")}...`}
@@ -2054,7 +2055,7 @@ const VariableSpeedField = ({
             name="speedPattern"
             selected={pump.speedPatternId ?? null}
             options={speedPatternOptions}
-            listClassName="first:italic"
+            stickyGroupClassName="first:italic"
             stickyFirstGroup
             nullable={true}
             placeholder={translate("constant")}
@@ -2282,17 +2283,29 @@ const ValveCurveField = ({
     return <div className="whitespace-pre-line">{lines.join("\n")}</div>;
   }, [curveComparison, valve.curveId, valve.kind, translate]);
 
+  const selectedCurveId = useMemo(() => {
+    if (!valve.curveId) return null;
+    const curve = curves.get(valve.curveId);
+    const expectedCurveType = valveCurveTypeFrom(valve.kind);
+    if (!curve || curve.type !== expectedCurveType) return null;
+    return valve.curveId;
+  }, [valve.curveId, valve.kind, curves]);
+
   const curveOptions = useMemo(() => {
     const libraryGroup: SelectorOption<CurveId>[] = [
-      { label: translate("openCurvesLibrary"), value: 0 },
+      { label: translate("openCurvesLibrary"), value: -1 },
     ];
     const curveGroup: SelectorOption<CurveId>[] = [];
-    const curveType = valve.kind === "gpv" ? "headloss" : "valve";
+    const expectedCurveType = valveCurveTypeFrom(valve.kind);
+    const canBeEmpty = valve.kind === "pcv";
     for (const curve of curves.values()) {
-      if (curve.type !== curveType) continue;
+      if (curve.type !== expectedCurveType) continue;
       curveGroup.push({ value: curve.id, label: curve.label });
     }
-    return [libraryGroup, curveGroup];
+    const emptyGroup = canBeEmpty
+      ? [{ value: 0, label: translate("none") }]
+      : [];
+    return [libraryGroup, [...emptyGroup, ...curveGroup]];
   }, [valve.kind, curves, translate]);
 
   const handleOnChange = (
@@ -2301,16 +2314,22 @@ const ValveCurveField = ({
     oldValue: CurveId | null,
   ) => {
     if (newValue === null) return;
-    if (newValue === 0) {
+    if (newValue === -1) {
       showCurveLibrary({
         source: "valve",
         curveId: valve.curveId,
-        initialSection: valve.kind === "gpv" ? "headloss" : "valve",
+        initialSection: valveCurveTypeFrom(valve.kind),
       });
       return;
     }
-    onChange("curveId", newValue, oldValue || undefined);
+    onChange(
+      "curveId",
+      newValue === 0 ? undefined : newValue,
+      oldValue || undefined,
+    );
   };
+
+  const canBeEmpty = valve.kind === "pcv";
 
   return (
     <BlockComparisonField
@@ -2320,12 +2339,15 @@ const ValveCurveField = ({
       {curveOptions[1].length > 0 ? (
         <SelectRow
           name={valve.kind === "gpv" ? "headlossCurve" : "valveCurve"}
-          selected={valve.curveId ?? null}
+          selected={selectedCurveId}
           options={curveOptions}
-          listClassName="first:italic"
+          listClassName={canBeEmpty ? "first:italic" : ""}
+          stickyGroupClassName="italic"
           stickyFirstGroup
           nullable={true}
-          placeholder={`${translate("select")}...`}
+          placeholder={
+            canBeEmpty ? translate("none") : `${translate("select")}...`
+          }
           onChange={handleOnChange}
           readOnly={readOnly}
         />
@@ -2340,7 +2362,7 @@ const ValveCurveField = ({
             onClick={() =>
               showCurveLibrary({
                 source: "valve",
-                initialSection: valve.kind === "gpv" ? "headloss" : "valve",
+                initialSection: valveCurveTypeFrom(valve.kind),
               })
             }
             className="w-full py-2"

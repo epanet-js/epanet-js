@@ -486,7 +486,7 @@ const CurveIdSelector = ({
         selected={selectedCurve}
         nullable={true}
         options={curveOptions}
-        listClassName="first:italic"
+        stickyGroupClassName="first:italic"
         stickyFirstGroup
         placeholder={`${translate("select")}...`}
         readOnly={readOnly}

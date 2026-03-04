@@ -6,7 +6,10 @@ import { HydraulicModel, ModelMoment } from "src/hydraulic-model";
 export function trackMoment(moment: ModelMoment) {
   if (isDebugOn) {
     // eslint-disable-next-line no-console
-    console.log("TRANSACT", JSON.stringify(moment));
+    console.log(
+      "TRANSACT",
+      JSON.stringify(moment, (_, v) => (v === undefined ? "__undefined__" : v)),
+    );
   }
 }
 

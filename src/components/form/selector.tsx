@@ -117,6 +117,7 @@ type SelectorPropsBase<T extends string | number> = {
   tabIndex?: number;
   styleOptions?: StyleOptions;
   listClassName?: string;
+  stickyGroupClassName?: string;
   disableFocusOnClose?: boolean;
   onDropdownInteraction?: () => void;
   disabled?: boolean;
@@ -159,6 +160,7 @@ export function Selector<T extends string | number>({
   disableFocusOnClose = false,
   styleOptions = {},
   listClassName,
+  stickyGroupClassName,
   nullable = false,
   placeholder,
   onDropdownInteraction,
@@ -262,7 +264,7 @@ export function Selector<T extends string | number>({
                         "cursor-pointer": !option.disabled,
                         "text-gray-400": !!option.disabled,
                       },
-                      listClassName,
+                      stickyGroupClassName ?? listClassName,
                     ])}
                   >
                     <Select.ItemText>
