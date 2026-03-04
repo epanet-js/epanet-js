@@ -15,6 +15,7 @@ import {
   dialogAtom,
   bottomSidebarOpenAtom,
   bottomSidebarMaximizedAtom,
+  bottomSidebarActiveTabAtom,
   LeftPanelId,
   stagingModelAtom,
   simulationResultsAtom,
@@ -23,7 +24,7 @@ import {
 import type { Junction } from "src/hydraulic-model/asset-types/junction";
 import type { Link } from "src/hydraulic-model/asset-types/link";
 import { MapContext } from "src/map";
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import {
   CloseIcon,
   Maximize2Icon,
@@ -1129,29 +1130,40 @@ function AssetsTable() {
 type BottomTab = "assets" | "warnings" | "errors";
 
 export const HorizontalBottomSidebar = memo(function HorizontalBottomSidebar() {
-  const open = useAtomValue(bottomSidebarOpenAtom);
+  const [open, setOpen] = useAtom(bottomSidebarOpenAtom);
   const [maximized, setMaximized] = useAtom(bottomSidebarMaximizedAtom);
-  const setOpen = useSetAtom(bottomSidebarOpenAtom);
+  const [activeTab, setActiveTab] = useAtom(bottomSidebarActiveTabAtom);
   const hydraulicModel = useAtomValue(stagingModelAtom);
   const assetCount = hydraulicModel.assets.size;
-  const [activeTab, setActiveTab] = useState<BottomTab>("assets");
 
-  if (!open) return null;
+  const handleTabClick = (id: BottomTab) => {
+    if (activeTab === id && open) {
+      setOpen(false);
+    } else {
+      setActiveTab(id);
+      setOpen(true);
+    }
+  };
 
   return (
     <div
       className={clsx(
         "absolute bottom-0 flex flex-col",
-        "border-l border-gray-200",
-        "bg-white dark:bg-gray-800 dark:border-gray-900",
-        maximized ? "top-0" : "border-t h-[33dvh] max-h-[400px]",
+        "border-l border-t border-gray-200 dark:border-gray-900",
+        "bg-white dark:bg-gray-800",
+        open && (maximized ? "top-0" : "h-[33dvh] max-h-[400px]"),
       )}
       style={{
         left: "var(--sidebar-left, 0px)",
         right: "var(--sidebar-right, 0px)",
       }}
     >
-      <header className="bottom-sidebar-header flex items-stretch h-8 flex-none bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-black">
+      <header
+        className={clsx(
+          "bottom-sidebar-header flex items-stretch h-8 flex-none bg-white dark:bg-gray-800",
+          open && "border-b border-gray-200 dark:border-black",
+        )}
+      >
         <div role="tablist" className="flex flex-1">
           {(
             [
@@ -1163,11 +1175,11 @@ export const HorizontalBottomSidebar = memo(function HorizontalBottomSidebar() {
             <button
               key={id}
               role="tab"
-              aria-selected={activeTab === id}
-              onClick={() => setActiveTab(id)}
+              aria-selected={open && activeTab === id}
+              onClick={() => handleTabClick(id)}
               className={clsx(
                 "px-3 text-sm focus:outline-none h-full flex items-center border-b-2 text-nowrap",
-                activeTab === id
+                open && activeTab === id
                   ? "border-purple-500 text-gray-900 dark:text-white"
                   : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200",
               )}
@@ -1179,39 +1191,33 @@ export const HorizontalBottomSidebar = memo(function HorizontalBottomSidebar() {
             </button>
           ))}
         </div>
-        <div className="flex items-center gap-0.5 px-1">
-          <button
-            aria-label={maximized ? "minimize-2" : "maximize-2"}
-            onClick={() => setMaximized((v) => !v)}
-            className="p-1 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200"
-          >
-            {maximized ? <Minimize2Icon /> : <Maximize2Icon />}
-          </button>
-          <button
-            aria-label="close"
-            onClick={() => {
-              setMaximized(false);
-              setOpen(false);
-            }}
-            className="p-1 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200"
-          >
-            <CloseIcon />
-          </button>
-        </div>
+        {open && (
+          <div className="flex items-center gap-0.5 px-1">
+            <button
+              aria-label={maximized ? "minimize-2" : "maximize-2"}
+              onClick={() => setMaximized((v) => !v)}
+              className="p-1 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200"
+            >
+              {maximized ? <Minimize2Icon /> : <Maximize2Icon />}
+            </button>
+          </div>
+        )}
       </header>
-      <div className="bottom-sidebar-content flex-auto overflow-auto overscroll-none">
-        {activeTab === "assets" && <AssetsTable />}
-        {activeTab === "warnings" && (
-          <div className="p-4 text-sm text-gray-400 dark:text-gray-500">
-            No warnings
-          </div>
-        )}
-        {activeTab === "errors" && (
-          <div className="p-4 text-sm text-gray-400 dark:text-gray-500">
-            No errors
-          </div>
-        )}
-      </div>
+      {open && (
+        <div className="bottom-sidebar-content flex-auto overflow-auto overscroll-none">
+          {activeTab === "assets" && <AssetsTable />}
+          {activeTab === "warnings" && (
+            <div className="p-4 text-sm text-gray-400 dark:text-gray-500">
+              No warnings
+            </div>
+          )}
+          {activeTab === "errors" && (
+            <div className="p-4 text-sm text-gray-400 dark:text-gray-500">
+              No errors
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 });

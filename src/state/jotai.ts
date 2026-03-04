@@ -230,6 +230,7 @@ export const showPanelBottomAtom = atom<boolean>(true);
 
 export const bottomSidebarOpenAtom = atom<boolean>(false);
 export const bottomSidebarMaximizedAtom = atom<boolean>(false);
+export const bottomSidebarActiveTabAtom = atom<string>("assets");
 
 export const currentZoomAtom = atom<number>(DEFAULT_ZOOM);
 
