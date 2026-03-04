@@ -8,6 +8,7 @@ import {
   type UnbalancedMode,
   type QualitySimulationType,
   type QualityMassUnit,
+  type StatusReport,
 } from "src/simulation/simulation-settings";
 
 export class SimulationSettingsBuilder {
@@ -67,6 +68,8 @@ export class SimulationSettingsBuilder {
     defaultSimulationSettings.energyGlobalPatternId;
   private energyDemandChargeValue: number =
     defaultSimulationSettings.energyDemandCharge;
+  private statusReportValue: StatusReport =
+    defaultSimulationSettings.statusReport;
 
   static with() {
     return new SimulationSettingsBuilder();
@@ -311,6 +314,7 @@ export class SimulationSettingsBuilder {
       energyGlobalPrice: this.energyGlobalPriceValue,
       energyGlobalPatternId: this.energyGlobalPatternIdValue,
       energyDemandCharge: this.energyDemandChargeValue,
+      statusReport: this.statusReportValue,
     };
   }
 }

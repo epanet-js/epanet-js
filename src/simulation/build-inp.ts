@@ -181,7 +181,9 @@ const buildTimesSection = (timing: Timing): string[] => {
   return section;
 };
 
-const chooseUnitSystem = (units: HydraulicModel["units"]): EpanetUnitSystem => {
+export const chooseUnitSystem = (
+  units: HydraulicModel["units"],
+): EpanetUnitSystem => {
   const flowUnit = units.flow;
   if (flowUnit === "l/s") return "LPS";
   if (flowUnit === "gal/min") return "GPM";
@@ -367,7 +369,7 @@ export const buildInp = withDebugInstrumentation(
       times: buildTimesSection(opts.simulationSettings.timing),
       report: [
         "[REPORT]",
-        "Status\tFULL",
+        `Status\t${opts.simulationSettings.statusReport}`,
         "Summary\tNo",
         "Page\t0",
         ...(opts.simulationSettings.reportEnergy ? ["Energy\tYES"] : []),

@@ -68,6 +68,12 @@ export const parseReport: RowParser = ({ trimmedRow, inpData, options }) => {
     const value = upperRow.replace(/^ENERGY\s+/, "").trim();
     inpData.report.energy = value === "YES";
   }
+  if (upperRow.startsWith("STATUS")) {
+    const value = upperRow.replace(/^STATUS\s+/, "").trim();
+    if (value === "YES" || value === "NO" || value === "FULL") {
+      inpData.report.statusReport = value;
+    }
+  }
 };
 export const unsupported: RowParser = ({ sectionName, issues }) => {
   issues.addUsedSection(sectionName);

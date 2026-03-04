@@ -5,6 +5,7 @@ export type DemandModel = "DDA" | "PDA";
 export type UnbalancedMode = "STOP" | "CONTINUE";
 export type QualitySimulationType = "NONE" | "CHEMICAL" | "AGE" | "TRACE";
 export type QualityMassUnit = "mg/L" | "ug/L";
+export type StatusReport = "YES" | "NO" | "FULL";
 
 export type Timing = {
   duration: number;
@@ -60,6 +61,7 @@ export type SimulationSettings = {
   energyGlobalPrice: number;
   energyGlobalPatternId: PatternId | null;
   energyDemandCharge: number;
+  statusReport: StatusReport;
 };
 
 export const defaultHydraulicsValues = {
@@ -100,6 +102,10 @@ export const defaultEnergyValues = {
   energyDemandCharge: 0,
 };
 
+export const defaultReportValues = {
+  statusReport: "FULL" as StatusReport,
+};
+
 export const defaultSimulationSettings: SimulationSettings = {
   version: nanoid(),
   timing: defaultTiming,
@@ -111,4 +117,5 @@ export const defaultSimulationSettings: SimulationSettings = {
   emitterExponent: 0.5,
   ...defaultWaterQualityValues,
   ...defaultEnergyValues,
+  ...defaultReportValues,
 };

@@ -185,6 +185,7 @@ export type InpData = {
   };
   report: {
     energy?: boolean;
+    statusReport?: "YES" | "NO" | "FULL";
   };
   controls: {
     simple: string;

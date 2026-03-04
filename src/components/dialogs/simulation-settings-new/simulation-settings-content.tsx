@@ -9,14 +9,24 @@ import { NumericField } from "src/components/form/numeric-field";
 import { Selector } from "src/components/form/selector";
 import { simulationSettingsAtom } from "src/state/jotai";
 import { hasScenariosAtom } from "src/state/scenarios";
-import { assetsAtom, patternsAtom } from "src/state/hydraulic-model";
+import {
+  assetsAtom,
+  patternsAtom,
+  stagingModelAtom,
+} from "src/state/hydraulic-model";
 
 import type {
   DemandModel,
   UnbalancedMode,
   QualitySimulationType,
   QualityMassUnit,
+  StatusReport,
 } from "src/simulation/simulation-settings";
+import { chooseUnitSystem } from "src/simulation/build-inp";
+import {
+  headlossFormulas,
+  headlossFormulasFullNames,
+} from "src/hydraulic-model/asset-types/pipe";
 import { EditableTextField } from "src/components/form/editable-text-field";
 import type {
   FormValues,
@@ -71,6 +81,63 @@ export const SettingsSection = ({
     {children}
   </div>
 );
+
+export const GeneralSection = () => {
+  const translate = useTranslate();
+  const readonly = useAtomValue(hasScenariosAtom);
+  const hydraulicModel = useAtomValue(stagingModelAtom);
+  const { values, setFieldValue } = useFormikContext<FormValues>();
+
+  const flowUnitsDisplay = chooseUnitSystem(hydraulicModel.units);
+  const headlossIndex = headlossFormulas.indexOf(
+    hydraulicModel.headlossFormula,
+  );
+  const headlossDisplay =
+    headlossIndex >= 0
+      ? headlossFormulasFullNames[headlossIndex]
+      : hydraulicModel.headlossFormula;
+
+  const statusReportOptions: { label: string; value: StatusReport }[] = [
+    { label: translate("simulationSettings.statusReportYes"), value: "YES" },
+    { label: translate("simulationSettings.statusReportNo"), value: "NO" },
+    { label: translate("simulationSettings.statusReportFull"), value: "FULL" },
+  ];
+
+  return (
+    <div>
+      <h3 className="text-base font-semibold text-gray-900 dark:text-white pb-3 mb-3">
+        {translate("simulationSettings.general")}
+      </h3>
+
+      <div className="flex flex-col gap-4">
+        <TextSetting
+          label={translate("simulationSettings.flowUnits")}
+          description={translate("simulationSettings.flowUnitsDesc")}
+          value={flowUnitsDisplay}
+          onChange={() => {}}
+          disabled
+        />
+
+        <TextSetting
+          label={translate("simulationSettings.headlossFormula")}
+          description={translate("simulationSettings.headlossFormulaDesc")}
+          value={headlossDisplay}
+          onChange={() => {}}
+          disabled
+        />
+
+        <SelectorSetting
+          label={translate("simulationSettings.statusReport")}
+          description={translate("simulationSettings.statusReportDesc")}
+          options={statusReportOptions}
+          selected={values.statusReport}
+          onChange={(v) => setFieldValue("statusReport", v)}
+          disabled={readonly}
+        />
+      </div>
+    </div>
+  );
+};
 
 export const TimesSection = () => {
   const translate = useTranslate();

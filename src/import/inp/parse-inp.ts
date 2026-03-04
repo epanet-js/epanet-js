@@ -10,6 +10,7 @@ import {
   defaultSimulationSettings,
   defaultWaterQualityValues,
   defaultEnergyValues,
+  defaultReportValues,
 } from "src/simulation/simulation-settings";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
 import { checksum } from "src/infra/checksum";
@@ -169,6 +170,8 @@ export const parseInp = (
       ),
       energyDemandCharge:
         inpData.energy.demandCharge ?? defaultEnergyValues.energyDemandCharge,
+      statusReport:
+        inpData.report.statusReport ?? defaultReportValues.statusReport,
     },
     issues: issues.buildResult(),
     stats,

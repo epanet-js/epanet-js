@@ -5,6 +5,7 @@ import {
   type UnbalancedMode,
   type QualitySimulationType,
   type QualityMassUnit,
+  type StatusReport,
   defaultHydraulicsValues,
 } from "src/simulation/simulation-settings";
 import type { PatternId } from "src/hydraulic-model/patterns";
@@ -21,6 +22,10 @@ export type OptionCategory = {
 };
 
 export const simulationSettingsCategories: OptionCategory[] = [
+  {
+    id: "general",
+    label: "General",
+  },
   {
     id: "times",
     label: "Times",
@@ -109,6 +114,7 @@ export type FormValues = {
   energyGlobalPrice: number;
   energyGlobalPatternId: PatternId | null;
   energyDemandCharge: number;
+  statusReport: StatusReport;
 };
 
 export const buildInitialValues = (
@@ -162,6 +168,7 @@ export const buildInitialValues = (
     energyGlobalPrice: settings.energyGlobalPrice,
     energyGlobalPatternId: settings.energyGlobalPatternId,
     energyDemandCharge: settings.energyDemandCharge,
+    statusReport: settings.statusReport,
   };
 };
 
@@ -225,7 +232,8 @@ export const hasChanges = (
     values.energyGlobalEfficiency !== settings.energyGlobalEfficiency ||
     values.energyGlobalPrice !== settings.energyGlobalPrice ||
     values.energyGlobalPatternId !== settings.energyGlobalPatternId ||
-    values.energyDemandCharge !== settings.energyDemandCharge
+    values.energyDemandCharge !== settings.energyDemandCharge ||
+    values.statusReport !== settings.statusReport
   );
 };
 
@@ -271,6 +279,7 @@ export const buildUpdatedSettings = (
     energyGlobalPrice: values.energyGlobalPrice,
     energyGlobalPatternId: values.energyGlobalPatternId,
     energyDemandCharge: values.energyDemandCharge,
+    statusReport: values.statusReport,
     timing: {
       duration:
         values.simulationMode === "steadyState" ? 0 : (values.duration ?? 0),

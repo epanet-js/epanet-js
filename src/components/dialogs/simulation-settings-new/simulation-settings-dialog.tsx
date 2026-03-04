@@ -10,6 +10,7 @@ import { SimulationSettingsSidebar } from "./simulation-settings-sidebar";
 import {
   SimulationSettingsContent,
   SettingsSection,
+  GeneralSection,
   TimesSection,
   DemandsSection,
   HydraulicsSection,
@@ -90,6 +91,9 @@ const SimulationSettingsForm = ({
         />
         <div className="flex-1 flex flex-col min-h-0">
           <SimulationSettingsContent ref={scrollContainerRef}>
+            <SettingsSection sectionId="general">
+              <GeneralSection />
+            </SettingsSection>
             <SettingsSection sectionId="times">
               <TimesSection />
             </SettingsSection>

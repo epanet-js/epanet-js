@@ -596,7 +596,19 @@
     "energyGlobalPattern": "Global energy price pattern",
     "energyGlobalPatternDesc": "The ID of a time pattern that describes how the energy price varies throughout the day (e.g., for \"Time-of-Use\" billing). If left blank, the Global Price remains constant.",
     "energyDemandCharge": "Demand charge",
-    "energyDemandChargeDesc": "An additional charge based on the maximum power (kW) consumed by the network during the simulation period. This represents the \"peak demand\" fee often charged by electric utilities."
+    "energyDemandChargeDesc": "An additional charge based on the maximum power (kW) consumed by the network during the simulation period. This represents the \"peak demand\" fee often charged by electric utilities.",
+    "general": "General",
+    "flowUnits": "Flow units",
+    "flowUnitsDesc": "Sets the units in which flow rates are expressed.",
+    "pressureUnits": "Pressure units",
+    "pressureUnitsDesc": "Sets the units in which pressure is expressed.",
+    "headlossFormula": "Headloss formula",
+    "headlossFormulaDesc": "Selects a formula to use for computing head loss for flow through a pipe.",
+    "statusReport": "Status report",
+    "statusReportDesc": "Determines whether a hydraulic status report should be generated. If Yes is selected the report will identify all network components that change status during each time step of the simulation. If Full is selected, then the status report will also include information from each trial of each hydraulic analysis.",
+    "statusReportYes": "Yes",
+    "statusReportNo": "No",
+    "statusReportFull": "Full"
   },
   "controls": {
     "title": "Controls",
