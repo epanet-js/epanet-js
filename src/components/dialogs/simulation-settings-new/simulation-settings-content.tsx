@@ -4,6 +4,7 @@ import { useAtomValue } from "jotai";
 import clsx from "clsx";
 
 import { useTranslate } from "src/hooks/use-translate";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { TimeField } from "src/components/form/time-field";
 import { NumericField } from "src/components/form/numeric-field";
 import { Selector, SelectorOption } from "src/components/form/selector";
@@ -58,10 +59,7 @@ export const SimulationSettingsContent = forwardRef<
   );
 
   return (
-    <div
-      ref={measureRef}
-      className="flex-1 min-h-0 overflow-y-auto placemark-scrollbar scroll-shadows pl-4"
-    >
+    <div ref={measureRef} className="flex-1 min-h-0 overflow-auto pl-4">
       <div className="flex flex-col gap-20 py-2">{children}</div>
     </div>
   );
@@ -497,7 +495,8 @@ export const HydraulicsSection = () => {
 
 export const WaterQualitySection = () => {
   const translate = useTranslate();
-  const readonly = useAtomValue(hasScenariosAtom);
+  const isWaterQualityOn = useFeatureFlag("FLAG_WATER_QUALITY");
+  const readonly = useAtomValue(hasScenariosAtom) || !isWaterQualityOn;
   const assets = useAtomValue(assetsAtom);
   const { values, setFieldValue } = useFormikContext<FormValues>();
   const isNone = values.qualitySimulationType === "NONE";
@@ -696,7 +695,8 @@ export const WaterQualitySection = () => {
 
 export const EnergySection = () => {
   const translate = useTranslate();
-  const readonly = useAtomValue(hasScenariosAtom);
+  const isEnergyOn = useFeatureFlag("FLAG_ENERGY");
+  const readonly = useAtomValue(hasScenariosAtom) || !isEnergyOn;
   const patterns = useAtomValue(patternsAtom);
   const { values, setFieldValue } = useFormikContext<FormValues>();
 
