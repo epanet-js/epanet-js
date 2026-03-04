@@ -34,7 +34,7 @@ export const PatternsDialog = ({
   initialSection,
 }: {
   initialPatternId?: PatternId;
-  initialSection?: "demand" | "reservoirHead" | "pumpSpeed";
+  initialSection?: PatternType;
 }) => {
   const translate = useTranslate();
   const hydraulicModel = useAtomValue(stagingModelAtom);
@@ -56,7 +56,9 @@ export const PatternsDialog = ({
     nextPatternIdRef.current,
   );
 
-  const { timing } = useAtomValue(simulationSettingsAtom);
+  const { timing, energyGlobalPatternId } = useAtomValue(
+    simulationSettingsAtom,
+  );
   const hasPatterns = editedPatterns.size > 0;
   const patternTimestepSeconds = timing.patternTimestep;
   const totalDurationSeconds = timing.duration;
@@ -68,14 +70,7 @@ export const PatternsDialog = ({
   useEffect(
     function trackUncategorizedPatterns() {
       const uncategorizedCount = [...hydraulicModel.patterns.values()].filter(
-        (p) => {
-          const type = p.type;
-          return (
-            type !== "demand" &&
-            type !== "reservoirHead" &&
-            type !== "pumpSpeed"
-          );
-        },
+        (p) => !p.type,
       ).length;
       if (uncategorizedCount === 0) return;
       userTracking.capture({
@@ -135,7 +130,12 @@ export const PatternsDialog = ({
     (patternId: PatternId, patternType?: PatternType) => {
       if (
         patternType &&
-        isPatternInUse(hydraulicModel, patternId, patternType)
+        isPatternInUse(
+          hydraulicModel,
+          patternId,
+          patternType,
+          energyGlobalPatternId,
+        )
       ) {
         notify({
           variant: "error",
@@ -154,7 +154,13 @@ export const PatternsDialog = ({
       }
       userTracking.capture({ name: "pattern.deleted" });
     },
-    [hydraulicModel, selectedPatternId, translate, userTracking],
+    [
+      hydraulicModel,
+      selectedPatternId,
+      translate,
+      userTracking,
+      energyGlobalPatternId,
+    ],
   );
 
   const rep = usePersistence();
@@ -281,6 +287,7 @@ const isPatternInUse = (
   hydraulicModel: HydraulicModel,
   patternId: PatternId,
   patternType: PatternType,
+  energyGlobalPatternId?: PatternId | null,
 ): boolean => {
   switch (patternType) {
     case "demand":
@@ -312,6 +319,11 @@ const isPatternInUse = (
         if (asset instanceof Pump && asset.speedPatternId === patternId) {
           return true;
         }
+      }
+      break;
+    case "energyPrice":
+      if (energyGlobalPatternId === patternId) {
+        return true;
       }
       break;
     default:

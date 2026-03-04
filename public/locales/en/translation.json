@@ -986,10 +986,14 @@
     "demandPatterns": "Demand",
     "reservoirHeadPatterns": "Reservoir head",
     "pumpSpeedPatterns": "Pump speed",
+    "qualitySourceStrengthPatterns": "Quality source strength",
+    "energyPricePatterns": "Energy price",
     "uncategorizedPatterns": "Uncategorized",
     "setAsDemand": "Set as Demand",
     "setAsReservoirHead": "Set as Reservoir head",
-    "setAsPumpSpeed": "Set as Pump speed"
+    "setAsPumpSpeed": "Set as Pump speed",
+    "setAsQualitySourceStrength": "Set as Quality source strength",
+    "setAsEnergyPrice": "Set as Energy price"
   },
   "curves":{
     "title": "Curves",

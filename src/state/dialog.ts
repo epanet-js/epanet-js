@@ -90,7 +90,12 @@ export type SimulationProgressDialogState = {
 export type PatternsLibraryDialog = {
   type: "patternsLibrary";
   initialPatternId?: number;
-  initialSection?: "demand" | "reservoirHead" | "pumpSpeed";
+  initialSection?:
+    | "demand"
+    | "reservoirHead"
+    | "pumpSpeed"
+    | "qualitySourceStrength"
+    | "energyPrice";
 };
 
 export type PumpLibraryDialogState = {

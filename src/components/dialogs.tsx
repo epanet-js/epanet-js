@@ -275,7 +275,12 @@ const ControlsDialog = dynamic(
 
 const PatternsDialog = dynamic<{
   initialPatternId?: number;
-  initialSection?: "demand" | "reservoirHead" | "pumpSpeed";
+  initialSection?:
+    | "demand"
+    | "reservoirHead"
+    | "pumpSpeed"
+    | "qualitySourceStrength"
+    | "energyPrice";
 }>(
   () => import("src/components/dialogs/patterns").then((r) => r.PatternsDialog),
   {

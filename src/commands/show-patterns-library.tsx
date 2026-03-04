@@ -15,7 +15,12 @@ export const useShowPatternsLibrary = () => {
     }: {
       source: "toolbar" | "shortcut" | "reservoir" | "pump";
       initialPatternId?: number;
-      initialSection?: "demand" | "reservoirHead" | "pumpSpeed";
+      initialSection?:
+        | "demand"
+        | "reservoirHead"
+        | "pumpSpeed"
+        | "qualitySourceStrength"
+        | "energyPrice";
     }) => {
       userTracking.capture({
         name: "patternsLibrary.opened",

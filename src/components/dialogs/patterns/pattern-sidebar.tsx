@@ -16,6 +16,7 @@ import {
 } from "src/icons";
 import { LabelManager } from "src/hydraulic-model/label-manager";
 import { useUserTracking } from "src/infra/user-tracking";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   CollapsibleListSection,
   EditableListItem,
@@ -26,33 +27,36 @@ import {
 } from "src/components/list";
 import type { NavItem, NavigableListHandle } from "src/components/list";
 
-type SectionType = Extract<
-  PatternType,
-  "demand" | "reservoirHead" | "pumpSpeed"
->;
-
-type TypedPattern = Pattern & { type: SectionType };
+type TypedPattern = Pattern & { type: PatternType };
 
 type ActionState =
   | { action: "creating"; patternType: PatternType }
   | { action: "renaming"; patternId: PatternId }
   | { action: "cloning"; sourcePattern: TypedPattern };
 
-type SidebarSectionType = SectionType | "uncategorized";
+type SectionType = PatternType | "uncategorized";
 
-const SECTION_TYPES: SectionType[] = ["demand", "reservoirHead", "pumpSpeed"];
+const SECTION_TYPES: PatternType[] = [
+  "demand",
+  "reservoirHead",
+  "pumpSpeed",
+  "qualitySourceStrength",
+  "energyPrice",
+];
 
-const SECTION_TRANSLATION_KEYS: Record<SectionType, string> = {
+const SECTION_TRANSLATION_KEYS: Record<PatternType, string> = {
   demand: "patterns.demandPatterns",
   reservoirHead: "patterns.reservoirHeadPatterns",
   pumpSpeed: "patterns.pumpSpeedPatterns",
+  qualitySourceStrength: "patterns.qualitySourceStrengthPatterns",
+  energyPrice: "patterns.energyPricePatterns",
 };
 
 type PatternSidebarProps = {
   width: number;
   patterns: Patterns;
   selectedPatternId: PatternId | null;
-  initialSection?: SectionType;
+  initialSection?: PatternType;
   minPatternSteps: number;
   onSelectPattern: (patternId: PatternId | null) => void;
   onAddPattern: (
@@ -82,16 +86,16 @@ export const PatternSidebar = ({
   readOnly = false,
 }: PatternSidebarProps) => {
   const translate = useTranslate();
+  const showExtraOptions = useFeatureFlag("FLAG_OPTIONS");
   const userTracking = useUserTracking();
   const labelManager = useRef(new LabelManager());
   const listRef = useRef<NavigableListHandle>(null);
   const [actionState, setActionState] = useState<ActionState | undefined>(
     undefined,
   );
-  const [focusedSection, setFocusedSection] =
-    useState<SidebarSectionType | null>(
-      initialSection && !selectedPatternId ? initialSection : null,
-    );
+  const [focusedSection, setFocusedSection] = useState<SectionType | null>(
+    initialSection && !selectedPatternId ? initialSection : null,
+  );
 
   useEffect(
     function initializeLocalLabelManager() {
@@ -103,16 +107,24 @@ export const PatternSidebar = ({
     [patterns],
   );
 
+  const sectionTypes = useMemo(
+    () =>
+      showExtraOptions
+        ? SECTION_TYPES
+        : SECTION_TYPES.filter(
+            (t) => t !== "energyPrice" && t !== "qualitySourceStrength",
+          ),
+    [showExtraOptions],
+  );
+
   const { groupedPatterns, navItems } = useMemo(() => {
-    const groups: Record<SectionType, TypedPattern[]> = {
-      demand: [],
-      reservoirHead: [],
-      pumpSpeed: [],
-    };
+    const groups = Object.fromEntries(
+      sectionTypes.map((t) => [t, [] as TypedPattern[]]),
+    ) as Record<PatternType, TypedPattern[]>;
     const uncategorized: Pattern[] = [];
-    const items: NavItem<SidebarSectionType>[] = [];
+    const items: NavItem<SectionType>[] = [];
     for (const pattern of patterns.values()) {
-      const type = pattern.type as SectionType | undefined;
+      const type = pattern.type as PatternType | undefined;
       if (type && type in groups) {
         groups[type].push(pattern as TypedPattern);
         items.push({ id: pattern.id, section: type });
@@ -125,14 +137,14 @@ export const PatternSidebar = ({
       groupedPatterns: { ...groups, uncategorized },
       navItems: items,
     };
-  }, [patterns]);
+  }, [patterns, sectionTypes]);
 
-  const focusedItem = useMemo((): NavItem<SidebarSectionType> | undefined => {
+  const focusedItem = useMemo((): NavItem<SectionType> | undefined => {
     if (selectedPatternId) {
       const pattern = patterns.get(selectedPatternId);
       const section =
-        pattern?.type && SECTION_TYPES.includes(pattern.type as SectionType)
-          ? (pattern.type as SidebarSectionType)
+        pattern?.type && sectionTypes.includes(pattern.type as PatternType)
+          ? (pattern.type as SectionType)
           : "uncategorized";
       return { id: selectedPatternId, section };
     }
@@ -140,7 +152,7 @@ export const PatternSidebar = ({
       return { section: focusedSection };
     }
     return undefined;
-  }, [focusedSection, selectedPatternId, patterns]);
+  }, [focusedSection, selectedPatternId, patterns, sectionTypes]);
 
   const clearActionState = () => {
     setActionState(undefined);
@@ -159,7 +171,7 @@ export const PatternSidebar = ({
   );
 
   const handleSelectItem = useCallback(
-    (item: NavItem<SidebarSectionType>) => {
+    (item: NavItem<SectionType>) => {
       if (item.id != null) {
         setFocusedSection(null);
         onSelectPattern(item.id);
@@ -213,7 +225,7 @@ export const PatternSidebar = ({
   };
 
   const handleCategorize = useCallback(
-    (patternId: PatternId, type: SectionType) => {
+    (patternId: PatternId, type: PatternType) => {
       onChangePattern(patternId, { type });
       userTracking.capture({ name: "pattern.changed", property: "type" });
     },
@@ -223,7 +235,7 @@ export const PatternSidebar = ({
   const handleNew = (sectionType: string) => {
     setActionState({
       action: "creating",
-      patternType: sectionType as SectionType,
+      patternType: sectionType as PatternType,
     });
     listRef.current?.openSection(sectionType);
   };
@@ -246,6 +258,10 @@ export const PatternSidebar = ({
         return handleCategorize(pattern.id, "reservoirHead");
       case "setAsPumpSpeed":
         return handleCategorize(pattern.id, "pumpSpeed");
+      case "setAsQualitySourceStrength":
+        return handleCategorize(pattern.id, "qualitySourceStrength");
+      case "setAsEnergyPrice":
+        return handleCategorize(pattern.id, "energyPrice");
       case "delete": {
         clearActionState();
         onSelectPattern(null);
@@ -290,11 +306,25 @@ export const PatternSidebar = ({
       label: translate("patterns.setAsPumpSpeed"),
       icon: <ChevronRightIcon size="sm" />,
     },
+    ...(showExtraOptions
+      ? [
+          {
+            action: "setAsQualitySourceStrength",
+            label: translate("patterns.setAsQualitySourceStrength"),
+            icon: <ChevronRightIcon size="sm" />,
+          },
+          {
+            action: "setAsEnergyPrice",
+            label: translate("patterns.setAsEnergyPrice"),
+            icon: <ChevronRightIcon size="sm" />,
+          },
+        ]
+      : []),
     {
       action: "delete",
       label: translate("delete"),
       icon: <DuplicateIcon size="sm" />,
-      variant: "destructive",
+      variant: "destructive" as const,
     },
   ];
 
@@ -307,7 +337,7 @@ export const PatternSidebar = ({
         onSelectItem={handleSelectItem}
         isNavBlocked={!!actionState}
       >
-        {SECTION_TYPES.map((sectionType) => {
+        {sectionTypes.map((sectionType) => {
           const title = translate(SECTION_TRANSLATION_KEYS[sectionType]);
           return (
             <CollapsibleListSection
