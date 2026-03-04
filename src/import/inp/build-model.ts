@@ -526,7 +526,7 @@ const addPump = (
       issues.addUndefinedPumpCurve();
       definitionProps = {
         definitionType: "curve",
-        curve: defaultCurvePoints(),
+        curve: defaultCurvePoints("pump"),
       };
     } else {
       const curve = curvesContext.curves.get(curveId)!;

@@ -246,7 +246,7 @@ export class AssetBuilder {
         curve: curve
           ? curve
           : definitionType === "curve"
-            ? defaultCurvePoints()
+            ? defaultCurvePoints("pump")
             : undefined,
         isActive,
       },
