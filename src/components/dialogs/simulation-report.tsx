@@ -9,7 +9,7 @@ import {
   dialogAtom,
   stagingModelAtom,
 } from "src/state/jotai";
-import { FileTextIcon } from "src/icons";
+
 import { useSelection } from "src/selection/use-selection";
 import { AssetId } from "src/hydraulic-model";
 import { useZoomTo } from "src/hooks/use-zoom-to";
@@ -115,14 +115,13 @@ export const SimulationReportDialog = () => {
   }, [simulation, hydraulicModel.assets]);
 
   return (
-    <DialogContainer size="lg" fillMode="auto">
-      <DialogHeader
-        title={translate("simulationReport")}
-        titleIcon={FileTextIcon}
-      />
+    <DialogContainer size="lg" height="lg" fillMode="auto">
+      <div className="h-full flex flex-col">
+        <DialogHeader title={translate("simulationReport")} />
 
-      <div className="p-4 overflow-auto border rounded-sm text-sm bg-gray-100 text-gray-700 font-mono leading-loose">
-        {processedReport.map(renderRowWithSlots)}
+        <div className="flex-1 min-h-0 p-4 overflow-auto border rounded-sm text-sm bg-gray-100 text-gray-700 font-mono leading-loose">
+          {processedReport.map(renderRowWithSlots)}
+        </div>
       </div>
     </DialogContainer>
   );
