@@ -4,6 +4,7 @@ import {
   QuantityStats,
   CategoryStats,
   BooleanStats,
+  LiteralCategoryStats,
   AssetPropertyStats,
 } from "./data";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
@@ -41,6 +42,16 @@ describe("computeMultiAssetData", () => {
     expect(stat).toBeDefined();
     expect(stat?.type).toBe("boolean");
     return stat as BooleanStats;
+  };
+
+  const findLiteralCategoryStat = (
+    stats: AssetPropertyStats[],
+    property: string,
+  ): LiteralCategoryStats => {
+    const stat = stats.find((s) => s.property === property);
+    expect(stat).toBeDefined();
+    expect(stat?.type).toBe("literalCategory");
+    return stat as LiteralCategoryStats;
   };
 
   it("groups assets by type", () => {
@@ -253,6 +264,177 @@ describe("computeMultiAssetData", () => {
     expect(typeStat.values.get("power")).toHaveLength(1);
   });
 
+  it("maps curveId to namedCurve in pumpType", () => {
+    const IDS = { J1: 1, J2: 2, PU1: 3, PU2: 4, C1: 5 } as const;
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1)
+      .aJunction(IDS.J2)
+      .aPumpCurve({
+        id: IDS.C1,
+        label: "Curve A",
+        points: [
+          { x: 0, y: 40 },
+          { x: 100, y: 30 },
+          { x: 200, y: 10 },
+          { x: 250, y: 0 },
+        ],
+      })
+      .aPump(IDS.PU1, {
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
+        definitionType: "power",
+        power: 50,
+      })
+      .aPump(IDS.PU2, {
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
+        definitionType: "curveId",
+        curveId: IDS.C1,
+      })
+      .build();
+
+    const assets = Array.from(hydraulicModel.assets.values());
+    const result = computeMultiAssetData(assets, quantities, hydraulicModel);
+
+    const typeStat = findCategoryStat(
+      result.data.pump.modelAttributes,
+      "pumpType",
+    );
+    expect(typeStat.values.size).toBe(2);
+    expect(typeStat.values.has("power")).toBe(true);
+    expect(typeStat.values.has("namedCurve")).toBe(true);
+  });
+
+  it("classifies standard curve pumps in pumpType", () => {
+    const IDS = { J1: 1, J2: 2, PU1: 3 } as const;
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1)
+      .aJunction(IDS.J2)
+      .aPump(IDS.PU1, {
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
+        definitionType: "curve",
+        curve: [
+          { x: 0, y: 40 },
+          { x: 150, y: 30 },
+          { x: 300, y: 0 },
+        ],
+      })
+      .build();
+
+    const assets = Array.from(hydraulicModel.assets.values());
+    const result = computeMultiAssetData(assets, quantities, hydraulicModel);
+
+    const typeStat = findCategoryStat(
+      result.data.pump.modelAttributes,
+      "pumpType",
+    );
+    expect(typeStat.values.has("standardCurve")).toBe(true);
+  });
+
+  it("shows curve label in pumpName for named curve pumps", () => {
+    const IDS = { J1: 1, J2: 2, PU1: 3, C1: 4 } as const;
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1)
+      .aJunction(IDS.J2)
+      .aPumpCurve({
+        id: IDS.C1,
+        label: "Main Pump Curve",
+        points: [
+          { x: 0, y: 40 },
+          { x: 100, y: 30 },
+          { x: 200, y: 10 },
+          { x: 250, y: 0 },
+        ],
+      })
+      .aPump(IDS.PU1, {
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
+        definitionType: "curveId",
+        curveId: IDS.C1,
+      })
+      .build();
+
+    const assets = Array.from(hydraulicModel.assets.values());
+    const result = computeMultiAssetData(assets, quantities, hydraulicModel);
+
+    const curveStat = findLiteralCategoryStat(
+      result.data.pump.modelAttributes,
+      "pumpName",
+    );
+    expect(curveStat.values.size).toBe(1);
+    expect(curveStat.values.has("Main Pump Curve")).toBe(true);
+  });
+
+  it("hides pumpName when no pumps use named curves", () => {
+    const IDS = { J1: 1, J2: 2, PU1: 3 } as const;
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1)
+      .aJunction(IDS.J2)
+      .aPump(IDS.PU1, {
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
+        definitionType: "power",
+        power: 50,
+      })
+      .build();
+
+    const assets = Array.from(hydraulicModel.assets.values());
+    const result = computeMultiAssetData(assets, quantities, hydraulicModel);
+
+    const nameStat = result.data.pump.modelAttributes.find(
+      (s) => s.property === "pumpName",
+    );
+    expect(nameStat).toBeUndefined();
+  });
+
+  it("groups pumps by curve label and empty in pumpName stats", () => {
+    const IDS = { J1: 1, J2: 2, PU1: 3, PU2: 4, PU3: 5, C1: 6 } as const;
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1)
+      .aJunction(IDS.J2)
+      .aPumpCurve({
+        id: IDS.C1,
+        label: "Shared Curve",
+        points: [
+          { x: 0, y: 40 },
+          { x: 100, y: 30 },
+          { x: 200, y: 10 },
+          { x: 250, y: 0 },
+        ],
+      })
+      .aPump(IDS.PU1, {
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
+        definitionType: "curveId",
+        curveId: IDS.C1,
+      })
+      .aPump(IDS.PU2, {
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
+        definitionType: "curveId",
+        curveId: IDS.C1,
+      })
+      .aPump(IDS.PU3, {
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
+        definitionType: "power",
+        power: 75,
+      })
+      .build();
+
+    const assets = Array.from(hydraulicModel.assets.values());
+    const result = computeMultiAssetData(assets, quantities, hydraulicModel);
+
+    const curveStat = findLiteralCategoryStat(
+      result.data.pump.modelAttributes,
+      "pumpName",
+    );
+    expect(curveStat.values.size).toBe(2);
+    expect(curveStat.values.get("Shared Curve")).toHaveLength(2);
+    expect(curveStat.values.get("")).toHaveLength(1);
+  });
+
   it("handles partial simulation results", () => {
     const IDS = { J1: 1, J2: 2, J3: 3 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
@@ -327,6 +509,27 @@ describe("computeMultiAssetData", () => {
     );
     expect(elevationStat.min).toBe(100);
     expect(elevationStat.unit).toBe("m");
+  });
+
+  it("hides volumeCurve when no tanks use curve-based definitions", () => {
+    const IDS = { T1: 1 } as const;
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aTank(IDS.T1, {
+        elevation: 100,
+        initialLevel: 10,
+        minLevel: 0,
+        maxLevel: 20,
+        diameter: 10,
+      })
+      .build();
+
+    const assets = Array.from(hydraulicModel.assets.values());
+    const result = computeMultiAssetData(assets, quantities, hydraulicModel);
+
+    const curveStat = result.data.tank.modelAttributes.find(
+      (s) => s.property === "volumeCurve",
+    );
+    expect(curveStat).toBeUndefined();
   });
 
   it("computes reservoir stats", () => {

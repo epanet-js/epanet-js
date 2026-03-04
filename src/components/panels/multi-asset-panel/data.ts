@@ -145,6 +145,7 @@ export const computeMultiAssetData = (
           statsMaps.pump,
           asset as Pump,
           quantitiesMetadata,
+          hydraulicModel.curves,
           simulationResults,
         );
         break;
@@ -434,6 +435,7 @@ const appendPumpStats = (
   statsMap: Map<string, AssetPropertyStats>,
   pump: Pump,
   quantitiesMetadata: Quantities,
+  curves: Curves,
   simulationResults?: ResultsReader | null,
 ) => {
   const id = pump.id;
@@ -446,7 +448,16 @@ const appendPumpStats = (
       pumpType = curveType;
     }
   }
+  if (pump.definitionType === "curveId") pumpType = "namedCurve";
   updateCategoryStats(statsMap, "pumpType", pumpType, id);
+
+  if (pump.definitionType === "curveId" && pump.curveId) {
+    const curve = curves.get(pump.curveId);
+    updateLinkStats(statsMap, "pumpName", curve?.label ?? "", id);
+  } else {
+    updateLinkStats(statsMap, "pumpName", "", id);
+  }
+
   updateCategoryStats(
     statsMap,
     "initialStatus",
@@ -479,10 +490,19 @@ const appendPumpStats = (
 const buildPumpSections = (
   statsMap: Map<string, AssetPropertyStats>,
 ): AssetPropertySections => {
+  // Remove volumeCurve row if no tanks actually have curves
+  const curveStats = statsMap.get("pumpName") as
+    | LiteralCategoryStats
+    | undefined;
+  if (curveStats && curveStats.values.size === 1 && curveStats.values.has("")) {
+    statsMap.delete("pumpName");
+  }
+
   return {
     activeTopology: getStatsForProperties(statsMap, ["isEnabled"]),
     modelAttributes: getStatsForProperties(statsMap, [
       "pumpType",
+      "pumpName",
       "initialStatus",
     ]),
     demands: [],
