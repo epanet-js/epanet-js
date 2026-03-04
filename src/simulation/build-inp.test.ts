@@ -1777,4 +1777,26 @@ THEN LINK {{1}} STATUS IS OPEN`,
       expect(emittersSection).not.toContain("2\t");
     });
   });
+
+  describe("energy section", () => {
+    it("includes global pattern in energy and patterns sections with usedPatterns", () => {
+      const IDS = { J1: 1, PAT1: 100, PAT2: 101 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, { elevation: 10 })
+        .aPattern(IDS.PAT1, "Pricing", [0.5, 1.0, 1.5])
+        .aPattern(IDS.PAT2, "unused_pat", [1.0, 2.0])
+        .build();
+
+      const inp = buildInp(hydraulicModel, {
+        simulationSettings: SimulationSettingsBuilder.with()
+          .energyGlobalPatternId(IDS.PAT1)
+          .build(),
+        usedPatterns: true,
+      });
+
+      expect(inp).toContain("Global Pattern\tPricing");
+      expect(inp).toContain("Pricing\t0.5\t1\t1.5");
+      expect(inp).not.toContain("unused_pat");
+    });
+  });
 });

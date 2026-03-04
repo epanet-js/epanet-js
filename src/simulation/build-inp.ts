@@ -118,7 +118,7 @@ const buildReactionsSection = (settings: SimulationSettings): string[] => {
 
 const buildEnergySection = (
   settings: SimulationSettings,
-  hydraulicModel: HydraulicModel,
+  idMap: EpanetIds,
 ): string[] => {
   const de = defaultEnergyValues;
   const lines: string[] = ["[ENERGY]"];
@@ -127,8 +127,9 @@ const buildEnergySection = (
   if (settings.energyGlobalPrice !== de.energyGlobalPrice)
     lines.push(`Global Price\t${settings.energyGlobalPrice}`);
   if (settings.energyGlobalPatternId !== null) {
-    const pattern = hydraulicModel.patterns.get(settings.energyGlobalPatternId);
-    if (pattern) lines.push(`Global Pattern\t${pattern.label}`);
+    lines.push(
+      `Global Pattern\t${idMap.patternId(settings.energyGlobalPatternId)}`,
+    );
   }
   if (settings.energyDemandCharge !== de.energyDemandCharge)
     lines.push(`Demand Charge\t${settings.energyDemandCharge}`);
@@ -351,6 +352,20 @@ export const buildInp = withDebugInstrumentation(
 
     const transformCoord: (p: Position) => Position =
       opts.projectionMapper?.toSource ?? ((p: Position) => p);
+
+    idMap.registerPatternId({
+      id: defaultConstantPatternId,
+      label: "constant",
+    });
+
+    for (const pattern of hydraulicModel.patterns.values()) {
+      idMap.registerPatternId(pattern);
+    }
+
+    for (const curve of hydraulicModel.curves.values()) {
+      idMap.registerCurveId(curve);
+    }
+
     const sections: InpSections = {
       junctions: ["[JUNCTIONS]", ";Id\tElevation"],
       reservoirs: ["[RESERVOIRS]", ";Id\tHead\tPattern"],
@@ -449,7 +464,7 @@ export const buildInp = withDebugInstrumentation(
       ],
       customersDemands: [";[CUSTOMERS_DEMANDS]", ";Id\tBaseDemand\tPatternId"],
       reactions: buildReactionsSection(opts.simulationSettings),
-      energy: buildEnergySection(opts.simulationSettings, hydraulicModel),
+      energy: buildEnergySection(opts.simulationSettings, idMap),
       controls: ["[CONTROLS]"],
       rules: ["[RULES]"],
     };
@@ -457,12 +472,8 @@ export const buildInp = withDebugInstrumentation(
     const usedCurveIds = new Set<number>();
     const usedPatternIds = new Set<number>();
 
-    for (const pattern of hydraulicModel.patterns.values()) {
-      idMap.registerPatternId(pattern); // Ensure pattern IDs are registered
-    }
-
-    for (const curve of hydraulicModel.curves.values()) {
-      idMap.registerCurveId(curve); // Ensure curve IDs are registered
+    if (opts.simulationSettings.energyGlobalPatternId !== null) {
+      usedPatternIds.add(opts.simulationSettings.energyGlobalPatternId);
     }
 
     for (const asset of hydraulicModel.assets.values()) {
