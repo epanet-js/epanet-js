@@ -335,6 +335,9 @@ importers:
       epanet-js:
         specifier: 0.8.0-alpha.7
         version: 0.8.0-alpha.7
+      epsg-index:
+        specifier: ^2.0.0
+        version: 2.0.0
       eslint-plugin-prettier:
         specifier: ^5.2.1
         version: 5.2.1(eslint-config-prettier@9.1.0(eslint@8.57.0))(eslint@8.57.0)(prettier@3.3.3)
@@ -4274,6 +4277,10 @@ packages:
 
   epanet-js@0.8.0-alpha.7:
     resolution: {integrity: sha512-xi/gbgpLI8KNF7wi+gReGdZnGboE1qtcjoQqC13C7pPAhZBMjH2k9FhTWfV/hJgxHiIVRQxLbk3s/1xEVA80tw==}
+
+  epsg-index@2.0.0:
+    resolution: {integrity: sha512-JFRqtXMmxEO/BWbXZuLNJuWS44vbwDPQkfycnISnfm/I8/OLlAqwbYRImgAV9ulr63p/hyW2YIFT9jizHeDzvQ==}
+    engines: {node: '>=18'}
 
   es-abstract@1.23.3:
     resolution: {integrity: sha512-e+HfNH61Bj1X9/jLc5v1owaLYuHdeHHSQlkhCBiTK8rBvKaULl/beGMxwrMXjpYrv4pz22BlY570vVePA2ho4A==}
@@ -11574,6 +11581,8 @@ snapshots:
   epanet-js@0.8.0-alpha.7:
     dependencies:
       '@model-create/epanet-engine': 0.8.0-alpha.7
+
+  epsg-index@2.0.0: {}
 
   es-abstract@1.23.3:
     dependencies:

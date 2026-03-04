@@ -168,6 +168,7 @@ export const useImportInp = () => {
           setDialogState({
             type: "inpProjectionChoice",
             onImportNonProjected,
+            initialFile: file,
           });
           return;
         }

@@ -36,6 +36,7 @@ export type GeocodingNotSupportedDialogState = {
 export type InpProjectionChoiceDialogState = {
   type: "inpProjectionChoice";
   onImportNonProjected: () => void;
+  initialFile?: File;
 };
 
 export type MissingCoordinatesDialogState = {
@@ -141,6 +142,12 @@ export type ActivatingTrialDialogState = {
   type: "activatingTrial";
 };
 
+export type ProjectionConverterDialogState = {
+  type: "projectionConverter";
+  onImportNonProjected: () => void;
+  initialFile?: File;
+};
+
 export type DialogState =
   | InvalidFilesErrorDialogState
   | {
@@ -176,6 +183,7 @@ export type DialogState =
   | AlertScenariosNotSavedState
   | AlertNetworkRequiredState
   | ActivatingTrialDialogState
+  | ProjectionConverterDialogState
   | null;
 
 export const dialogFromUrl = (): DialogState => {

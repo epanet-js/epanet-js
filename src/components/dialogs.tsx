@@ -76,6 +76,7 @@ const GeocodingNotSupportedDialog = dynamic<{
 
 const InpProjectionChoiceDialog = dynamic<{
   onImportNonProjected: () => void;
+  initialFile?: File;
 }>(
   () =>
     import("src/components/dialogs/inp-projection-choice").then(
@@ -372,6 +373,20 @@ const FirstScenarioDialog = dynamic<{
   },
 );
 
+const ProjectionConverterDialog = dynamic<{
+  onImportNonProjected: () => void;
+  initialFile?: File;
+  onClose: () => void;
+}>(
+  () =>
+    import("src/components/dialogs/projection-converter").then(
+      (r) => r.ProjectionConverterDialog,
+    ),
+  {
+    loading: () => <LoadingDialog />,
+  },
+);
+
 export const Dialogs = memo(function Dialogs() {
   const [dialog, setDialogState] = useAtom(dialogAtom);
   const userTracking = useUserTracking();
@@ -503,6 +518,17 @@ export const Dialogs = memo(function Dialogs() {
     return (
       <InpProjectionChoiceDialog
         onImportNonProjected={dialog.onImportNonProjected}
+        initialFile={dialog.initialFile}
+      />
+    );
+  }
+
+  if (dialog.type === "projectionConverter") {
+    return (
+      <ProjectionConverterDialog
+        onImportNonProjected={dialog.onImportNonProjected}
+        initialFile={dialog.initialFile}
+        onClose={onClose}
       />
     );
   }

@@ -135,6 +135,7 @@
     "email-addresses": "^5.0.0",
     "envsafe": "^2.0.3",
     "epanet-js": "0.8.0-alpha.7",
+    "epsg-index": "^2.0.0",
     "eslint-plugin-prettier": "^5.2.1",
     "fast-json-patch": "^3.1.1",
     "fflate": "^0.8.2",

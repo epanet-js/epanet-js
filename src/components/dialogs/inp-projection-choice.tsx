@@ -8,8 +8,10 @@ import NetworkProjectedIllustration from "./network-projection/network-projected
 
 export const InpProjectionChoiceDialog = ({
   onImportNonProjected,
+  initialFile,
 }: {
   onImportNonProjected: () => void;
+  initialFile?: File;
 }) => {
   const setDialogState = useSetAtom(dialogAtom);
   const userTracking = useUserTracking();
@@ -18,8 +20,9 @@ export const InpProjectionChoiceDialog = ({
   const handleProjected = () => {
     userTracking.capture({ name: "inpProjectionChoice.projected" });
     setDialogState({
-      type: "inpGeocodingNotSupported",
+      type: "projectionConverter",
       onImportNonProjected,
+      initialFile,
     });
   };
 
