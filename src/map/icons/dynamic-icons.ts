@@ -291,43 +291,6 @@ export const buildPbvSvg = ({
 `;
 };
 
-export const buildPcvSvg = ({
-  width = 64,
-  height = 64,
-  borderColor = "none",
-  fillColor = "white",
-  triangleColor = "black",
-}: {
-  width?: number;
-  height?: number;
-  borderColor?: string;
-  triangleColor?: string;
-  fillColor?: string;
-} = {}) => {
-  return `
-<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 815.5 815.5" version="1.1">
-  <g transform="rotate(-90,407.75,390)" style="stroke-width:62.4">
-    <rect
-      x="31.2"
-      y="31.2"
-      width="717.6"
-      height="717.6"
-      ry="171.86"
-      style="fill:${fillColor};stroke:${borderColor};stroke-width:35.5;stroke-linecap:round;stroke-linejoin:round"
-    />
-    <path
-      d="M390.38,388.66L592.8,206.83v362.57z"
-      style="fill:${fillColor};stroke:${triangleColor};stroke-width:35.5;stroke-linecap:butt;stroke-linejoin:round"
-    />
-    <path
-      d="M386.44,390L184.02,571.83V209.26z"
-      style="fill:${fillColor};stroke:${triangleColor};stroke-width:35.5;stroke-linecap:butt;stroke-linejoin:round"
-    />
-  </g>
-</svg>
-`;
-};
-
 export const buildTankSvg = ({
   width = 64,
   height = 64,

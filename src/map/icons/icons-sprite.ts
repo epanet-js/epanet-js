@@ -5,7 +5,6 @@ import {
   buildFcvSvg,
   buildGpvSvg,
   buildPbvSvg,
-  buildPcvSvg,
   buildPrvSvg,
   buildPsvSvg,
   buildPumpSvg,
@@ -337,7 +336,7 @@ const buildIconUrls = (): IconUrl[] => {
     {
       id: "valve-pcv-active",
       url: urlFor(
-        buildPcvSvg({
+        buildGpvSvg({
           triangleColor: colors.green800,
           fillColor: colors.green300,
         }),
@@ -346,7 +345,7 @@ const buildIconUrls = (): IconUrl[] => {
     {
       id: "valve-pcv-open",
       url: urlFor(
-        buildPcvSvg({
+        buildGpvSvg({
           triangleColor: colors.gray700,
           fillColor: colors.gray300,
         }),
@@ -355,7 +354,7 @@ const buildIconUrls = (): IconUrl[] => {
     {
       id: "valve-pcv-closed",
       url: urlFor(
-        buildPcvSvg({
+        buildGpvSvg({
           triangleColor: colors.red700,
           fillColor: colors.red300,
         }),
@@ -364,7 +363,7 @@ const buildIconUrls = (): IconUrl[] => {
     {
       id: "valve-pcv-disabled",
       url: urlFor(
-        buildPcvSvg({
+        buildGpvSvg({
           triangleColor: colors.gray500,
           fillColor: colors.gray300,
         }),

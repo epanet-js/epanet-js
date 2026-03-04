@@ -110,7 +110,6 @@ type OnPropertyChange = <P extends ChangeableProperty>(
   oldValue: ChangeablePropertyValue<P> | null,
 ) => void;
 type OnStatusChange<T> = (newStatus: T, oldStatus: T) => void;
-type OnTypeChange<T> = (newType: T, oldType: T) => void;
 
 const pipeStatusLabel = (sim: Pick<PipeSimulation, "status"> | null) => {
   if (!sim) return "notAvailable";
@@ -193,25 +192,6 @@ export function AssetPanel({
         property: "isActive",
         newValue: Number(newValue),
         oldValue: Number(oldValue),
-      });
-    },
-    [hydraulicModel, asset.id, asset.type, transact, userTracking],
-  );
-
-  const handleValveKindChange = useCallback(
-    (newType: ValveKind, oldType: ValveKind) => {
-      const moment = changeProperty(hydraulicModel, {
-        assetIds: [asset.id],
-        property: "kind",
-        value: newType,
-      });
-      transact(moment);
-      userTracking.capture({
-        name: "assetDefinitionType.edited",
-        type: asset.type,
-        property: "kind",
-        newType: newType,
-        oldType: oldType,
       });
     },
     [hydraulicModel, asset.id, asset.type, transact, userTracking],
@@ -366,9 +346,9 @@ export function AssetPanel({
           hydraulicModel={hydraulicModel}
           valve={valve}
           onPropertyChange={handlePropertyChange}
+          onBatchPropertyChange={handleBatchPropertyChange}
           quantitiesMetadata={quantitiesMetadata}
           onStatusChange={handleStatusChange}
-          onTypeChange={handleValveKindChange}
           onActiveTopologyStatusChange={handleActiveTopologyStatusChange}
           onLabelChange={handleLabelChange}
           {...getLinkNodes(hydraulicModel.assets, valve)}
@@ -1572,8 +1552,8 @@ const ValveEditor = ({
   endNode,
   quantitiesMetadata,
   onPropertyChange,
+  onBatchPropertyChange,
   onStatusChange,
-  onTypeChange,
   onActiveTopologyStatusChange,
   onLabelChange,
   readonly = false,
@@ -1585,7 +1565,7 @@ const ValveEditor = ({
   quantitiesMetadata: Quantities;
   onStatusChange: OnStatusChange<ValveStatus>;
   onPropertyChange: OnPropertyChange;
-  onTypeChange: OnTypeChange<ValveKind>;
+  onBatchPropertyChange: (changes: PropertyChange[]) => void;
   onActiveTopologyStatusChange: (
     property: string,
     newValue: boolean,
@@ -1638,11 +1618,15 @@ const ValveEditor = ({
   }, [translate, valve.kind, allCurves]);
 
   const handleKindChange = (
-    name: string,
+    _name: string,
     newValue: ValveKind,
     oldValue: ValveKind,
   ) => {
-    onTypeChange(newValue, oldValue);
+    const changes: PropertyChange[] = [{ property: "kind", value: newValue }];
+    if (valveCurveTypeFrom(newValue) !== valveCurveTypeFrom(oldValue)) {
+      changes.push({ property: "curveId", value: undefined });
+    }
+    onBatchPropertyChange(changes);
   };
 
   const handleStatusChange = (
