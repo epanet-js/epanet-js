@@ -2,7 +2,6 @@ import { useState, useMemo } from "react";
 // eslint-disable-next-line no-restricted-imports
 import proj4 from "proj4";
 import { useProjections, type Projection } from "src/hooks/use-projections";
-// @ts-expect-error — epsg-index has no TypeScript declarations
 import epsgIndex from "epsg-index/all.json";
 import type { RawCoordinate } from "./use-converter";
 import type { MapBounds } from "./projection-map";
