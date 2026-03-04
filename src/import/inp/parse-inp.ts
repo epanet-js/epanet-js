@@ -3,7 +3,6 @@ import { IssuesAccumulator, ParserIssues } from "./issues";
 import { readInpData } from "./read-inp-data";
 import { buildModel } from "./build-model";
 import { HydraulicModel, AssetsMap } from "src/hydraulic-model";
-import type { Patterns } from "src/hydraulic-model/patterns";
 import { nanoid } from "nanoid";
 import {
   defaultTiming,
@@ -166,7 +165,7 @@ export const parseInp = (
         inpData.energy.globalPrice ?? defaultEnergyValues.energyGlobalPrice,
       energyGlobalPatternId: resolveEnergyPatternId(
         inpData.energy.globalPattern,
-        hydraulicModel.patterns,
+        hydraulicModel,
       ),
       energyDemandCharge:
         inpData.energy.demandCharge ?? defaultEnergyValues.energyDemandCharge,
@@ -254,11 +253,8 @@ const resolveTraceNodeId = (
 
 const resolveEnergyPatternId = (
   label: string | undefined,
-  patterns: Patterns,
+  hydraulicModel: HydraulicModel,
 ): number | null => {
   if (!label) return null;
-  for (const pattern of patterns.values()) {
-    if (pattern.label === label) return pattern.id;
-  }
-  return null;
+  return hydraulicModel.labelManager.getIdByLabel(label, "pattern") ?? null;
 };

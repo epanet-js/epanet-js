@@ -900,6 +900,7 @@ const PATTERN_KEYWORDS: Record<string, PatternType> = {
   DEMAND: "demand",
   RESERVOIR: "reservoirHead",
   SPEED: "pumpSpeed",
+  ENERGY_PRICE: "energyPrice",
 };
 
 const countKeywordMatches = <T>(

@@ -1103,6 +1103,7 @@ const PATTERN_TYPE_TO_KEYWORD: Record<string, string> = {
   demand: "DEMAND",
   reservoirHead: "RESERVOIR",
   pumpSpeed: "SPEED",
+  energyPrice: "ENERGY_PRICE",
 };
 
 const appendPatterns = (

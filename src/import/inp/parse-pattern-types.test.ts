@@ -214,6 +214,34 @@ describe("parse pattern types", () => {
     );
     expect(pattern?.type).toBe("energyPrice");
   });
+
+  it("resolves energyGlobalPatternId from energy global pattern", () => {
+    const inp = `
+    [JUNCTIONS]
+    J1    100
+
+    [ENERGY]
+    Global Pattern    Pricing
+
+    [PATTERNS]
+    Pricing    0.5    1.0    1.5
+
+    [COORDINATES]
+    J1    0    0
+
+    [END]
+    `;
+
+    const { hydraulicModel, simulationSettings } = parseInp(inp, {
+      extraOptions: true,
+    });
+    const pattern = [...hydraulicModel.patterns.values()].find(
+      (p) => p.label === "Pricing",
+    );
+    expect(pattern).toBeDefined();
+    expect(pattern?.type).toBe("energyPrice");
+    expect(simulationSettings.energyGlobalPatternId).toBe(pattern?.id);
+  });
 });
 
 describe("comment-based pattern type fallback", () => {
