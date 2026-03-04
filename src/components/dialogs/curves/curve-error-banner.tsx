@@ -14,6 +14,18 @@ export function CurveErrorBanner({ points, curveType }: CurveErrorBannerProps) {
   const curveConfig = getCurveTypeConfig(curveType);
   const errors = curveConfig.getErrors(points);
 
+  if (points.length === 1 && curveType !== "pump") {
+    return (
+      <NotificationBanner
+        variant="warning"
+        title={translate("curves.invalidCurve")}
+        description={translate("curveValidation.needsMorePoints")}
+        Icon={TriangleAlert}
+        className="mt-2"
+      />
+    );
+  }
+
   if (errors.length === 0) return null;
 
   const hasXError = errors.some((e) => e.value === "x");

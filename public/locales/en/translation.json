@@ -109,6 +109,8 @@
   "canOverflow": "Can overflow",
   "head": "Head",
   "pumpType": "Pump type",
+  "pumpDefinition": "Definition",
+  "pumpCurve": "Pump curve",
   "pumpHead": "Pump head",
   "simulate": "Simulate",
   "simulation": "Simulation",
@@ -438,7 +440,8 @@
     "missingValues": "Please fill in all the values.",
     "valueMustBeNonZero": "{{1}} value must not be zero.",
     "valueAscendingOrder": "{{1}} values must be in ascending order.",
-    "valueDescendingOrder": "{{1}} values must be in descending order."
+    "valueDescendingOrder": "{{1}} values must be in descending order.",
+    "needsMorePoints": "The curve requires more than one point."
   },
   "speed": "Speed",
   "pipeStatus": "Pipe status",

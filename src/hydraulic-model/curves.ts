@@ -48,13 +48,11 @@ export const getGenericCurveErrors = (
   points: CurvePoint[],
 ): CurveErrorPoint[] => {
   if (points.length === 0) return [];
-
-  if (points.length === 1) {
-    const errors: CurveErrorPoint[] = [];
-    if (points[0].x === 0) errors.push({ index: 0, value: "x" });
-    if (points[0].y === 0) errors.push({ index: 0, value: "y" });
-    return errors;
-  }
+  if (points.length === 1)
+    return [
+      { index: 0, value: "x" as const },
+      { index: 0, value: "y" as const },
+    ];
 
   const errors: CurveErrorPoint[] = [];
   const seen = new Set<string>();
@@ -116,13 +114,11 @@ export const getVolumeCurveErrors = (
   points: CurvePoint[],
 ): CurveErrorPoint[] => {
   if (points.length === 0) return [];
-
-  if (points.length === 1) {
-    const errors: CurveErrorPoint[] = [];
-    if (points[0].x === 0) errors.push({ index: 0, value: "x" });
-    if (points[0].y === 0) errors.push({ index: 0, value: "y" });
-    return errors;
-  }
+  if (points.length === 1)
+    return [
+      { index: 0, value: "x" },
+      { index: 0, value: "y" },
+    ];
 
   const errors: CurveErrorPoint[] = [];
   const seen = new Set<string>();
@@ -155,13 +151,11 @@ export const getHeadlossCurveErrors = (
   points: CurvePoint[],
 ): CurveErrorPoint[] => {
   if (points.length === 0) return [];
-
-  if (points.length === 1) {
-    const errors: CurveErrorPoint[] = [];
-    if (points[0].x === 0) errors.push({ index: 0, value: "x" });
-    if (points[0].y === 0) errors.push({ index: 0, value: "y" });
-    return errors;
-  }
+  if (points.length === 1)
+    return [
+      { index: 0, value: "x" },
+      { index: 0, value: "y" },
+    ];
 
   const errors: CurveErrorPoint[] = [];
   const seen = new Set<string>();
@@ -218,7 +212,7 @@ export const buildDefaultCurve = (
     id,
     label,
     type,
-    points: defaultCurvePoints(),
+    points: defaultCurvePoints(type),
   };
 };
 
@@ -232,7 +226,8 @@ export const stripTrailingEmptyPoints = (
   return points.slice(0, last + 1);
 };
 
-export const defaultCurvePoints = (): CurvePoint[] => [{ x: 1, y: 1 }];
+export const defaultCurvePoints = (type?: CurveType): CurvePoint[] =>
+  type === "pump" ? [{ x: 1, y: 1 }] : [{ x: 0, y: 0 }];
 
 export const deepCloneCurves = (curves: Curves): Curves => {
   const cloned = new Map<CurveId, ICurve>();

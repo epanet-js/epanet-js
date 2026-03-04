@@ -184,7 +184,7 @@ export const PumpLibrarySidebar = ({
     } else if (actionState.action === "creating") {
       const newId = onAddCurve(
         trimmedName,
-        defaultCurvePoints(),
+        defaultCurvePoints(actionState.curveType),
         "new",
         actionState.curveType,
       );
