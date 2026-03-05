@@ -59,8 +59,11 @@ export const SimulationSettingsContent = forwardRef<
   );
 
   return (
-    <div ref={measureRef} className="flex-1 min-h-0 overflow-auto pl-4">
-      <div className="flex flex-col gap-10 py-2">{children}</div>
+    <div
+      ref={measureRef}
+      className="flex-1 min-h-0 overflow-auto scroll-shadows"
+    >
+      <div className="flex flex-col gap-10 p-3">{children}</div>
     </div>
   );
 });
@@ -103,7 +106,7 @@ export const GeneralSection = () => {
 
   return (
     <div>
-      <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-3">
+      <h3 className="sticky -top-3 bg-white dark:bg-gray-800 -mt-3 -mx-3 pt-4 px-3 pb-2 z-10 text-base font-semibold text-gray-900 dark:text-white">
         {translate("simulationSettings.general")}
       </h3>
 
@@ -182,7 +185,7 @@ export const TimesSection = () => {
 
   return (
     <div>
-      <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-3">
+      <h3 className="sticky -top-3 bg-white dark:bg-gray-800 -mt-3 -mx-3 pt-4 px-3 pb-2 z-10 text-base font-semibold text-gray-900 dark:text-white">
         {translate("simulationSettings.times")}
       </h3>
 
@@ -279,14 +282,14 @@ export const DemandsSection = () => {
 
   return (
     <div>
-      <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-3">
+      <h3 className="sticky -top-3 bg-white dark:bg-gray-800 -mt-3 -mx-3 pt-4 px-3 pb-2 z-10 text-base font-semibold text-gray-900 dark:text-white">
         {translate("simulationSettings.demands")}
       </h3>
 
       <div className="flex flex-col gap-4">
         <div
           data-section-id="demands-calculation"
-          className="text-sm font-semibold text-gray-900 dark:text-white mt-2"
+          className="sticky top-[2.25rem] z-10 px-3 pb-2 -mx-3 bg-white dark:bg-gray-800 text-sm font-semibold text-gray-900 dark:text-white"
         >
           {translate("simulationSettings.demandsCalculation")}
         </div>
@@ -335,7 +338,7 @@ export const DemandsSection = () => {
 
         <div
           data-section-id="demands-emitters"
-          className="text-sm font-semibold text-gray-900 dark:text-white mt-6"
+          className="sticky top-[2.25rem] z-10 px-3 pb-2 -mx-3 bg-white dark:bg-gray-800 text-sm font-semibold text-gray-900 dark:text-white"
         >
           {translate("simulationSettings.demandsEmitters")}
         </div>
@@ -372,14 +375,14 @@ export const HydraulicsSection = () => {
 
   return (
     <div>
-      <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-3">
+      <h3 className="sticky -top-3 bg-white dark:bg-gray-800 -mt-3 -mx-3 pt-4 px-3 pb-2 z-10 text-base font-semibold text-gray-900 dark:text-white">
         {translate("simulationSettings.hydraulics")}
       </h3>
 
       <div className="flex flex-col gap-4">
         <div
           data-section-id="hydraulics-convergence"
-          className="text-sm font-semibold text-gray-900 dark:text-white mt-2"
+          className="sticky top-[2.25rem] z-10 px-3 pb-2 -mx-3 bg-white dark:bg-gray-800 text-sm font-semibold text-gray-900 dark:text-white"
         >
           {translate("simulationSettings.hydraulicsConvergence")}
         </div>
@@ -437,7 +440,7 @@ export const HydraulicsSection = () => {
 
         <div
           data-section-id="hydraulics-solver"
-          className="text-sm font-semibold text-gray-900 dark:text-white mt-6"
+          className="sticky top-[2.25rem] z-10 px-3 pb-2 -mx-3 bg-white dark:bg-gray-800 text-sm font-semibold text-gray-900 dark:text-white"
         >
           {translate("simulationSettings.hydraulicsSolver")}
         </div>
@@ -468,7 +471,7 @@ export const HydraulicsSection = () => {
 
         <div
           data-section-id="hydraulics-fluid"
-          className="text-sm font-semibold text-gray-900 dark:text-white mt-6"
+          className="sticky top-[2.25rem] z-10 px-3 pb-2 -mx-3 bg-white dark:bg-gray-800 text-sm font-semibold text-gray-900 dark:text-white"
         >
           {translate("simulationSettings.hydraulicsFluid")}
         </div>
@@ -537,14 +540,14 @@ export const WaterQualitySection = () => {
 
   return (
     <div>
-      <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-3">
+      <h3 className="sticky -top-3 bg-white dark:bg-gray-800 -mt-3 -mx-3 pt-4 px-3 pb-2 z-10 text-base font-semibold text-gray-900 dark:text-white">
         {translate("simulationSettings.waterQuality")}
       </h3>
 
       <div className="flex flex-col gap-4">
         <div
           data-section-id="waterQuality-analysis"
-          className="text-sm font-semibold text-gray-900 dark:text-white mt-2"
+          className="sticky top-[2.25rem] z-10 px-3 pb-2 -mx-3 bg-white dark:bg-gray-800 text-sm font-semibold text-gray-900 dark:text-white"
         >
           {translate("simulationSettings.waterQualityAnalysis")}
         </div>
@@ -609,7 +612,7 @@ export const WaterQualitySection = () => {
 
         <div
           data-section-id="waterQuality-reactions"
-          className="text-sm font-semibold text-gray-900 dark:text-white mt-6"
+          className="sticky top-[2.25rem] z-10 px-3 pb-2 -mx-3 bg-white dark:bg-gray-800 text-sm font-semibold text-gray-900 dark:text-white"
         >
           {translate("simulationSettings.waterQualityReactions")}
         </div>
@@ -656,7 +659,7 @@ export const WaterQualitySection = () => {
 
         <div
           data-section-id="waterQuality-wall"
-          className="text-sm font-semibold text-gray-900 dark:text-white mt-6"
+          className="sticky top-[2.25rem] z-10 px-3 pb-2 -mx-3 bg-white dark:bg-gray-800 text-sm font-semibold text-gray-900 dark:text-white"
         >
           {translate("simulationSettings.waterQualityWall")}
         </div>
@@ -730,7 +733,7 @@ export const EnergySection = () => {
 
   return (
     <div>
-      <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-3">
+      <h3 className="sticky -top-3 bg-white dark:bg-gray-800 -mt-3 -mx-3 pt-4 px-3 pb-2 z-10 text-base font-semibold text-gray-900 dark:text-white">
         {translate("simulationSettings.energy")}
       </h3>
 

@@ -19,7 +19,7 @@ export const SimulationSettingsSidebar = ({
   onSelectSection,
 }: Props) => {
   return (
-    <nav className="w-44 flex-shrink-0 border-r border-gray-200 dark:border-gray-700 pr-3 overflow-y-auto">
+    <nav className="w-48 flex-shrink-0 border-r border-gray-200 dark:border-gray-700 p-3 overflow-y-auto">
       <ul className="flex flex-col gap-0.5">
         {simulationSettingsCategories.map((category) => {
           const subcategoryIds =

@@ -84,7 +84,7 @@ const SimulationSettingsForm = ({
 
   return (
     <Form className="flex-1 flex flex-col min-h-0">
-      <div className="flex-1 flex min-h-0">
+      <div className="flex-1 flex min-h-0 border-t border-b border-gray-200 -mx-8">
         <SimulationSettingsSidebar
           activeSection={activeSection}
           onSelectSection={scrollToSection}
