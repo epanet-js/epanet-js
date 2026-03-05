@@ -28,6 +28,7 @@ import { fileInfoAtom } from "src/state/jotai";
 import { headlossFormulasFullNames } from "src/hydraulic-model/asset-types/pipe";
 import { useUserTracking } from "src/infra/user-tracking";
 import { MapContext } from "src/map/map-context";
+import { MapEngine } from "src/map/map-engine";
 import { useContext, useRef, useCallback } from "react";
 import { captureError } from "src/infra/error-tracking";
 import { env } from "src/lib/env-client";
@@ -85,13 +86,9 @@ export const CreateNew = ({ onClose }: { onClose: () => void }) => {
   const handleSubmit = useCallback(
     ({ unitsSpec, headlossFormula, location, projection }: SubmitProps) => {
       const quantities = new Quantities(presets[unitsSpec]);
-      const projectionMapper =
-        projection === "xy-grid"
-          ? createProjectionMapper({ type: "xy-grid", centroid: [0, 0] })
-          : createProjectionMapper({ type: "wgs84" });
       const modelMetadata: ModelMetadata = {
         quantities,
-        projectionMapper,
+        projectionMapper: buildNewProjectProjectionMapper(projection),
       };
       const hydraulicModel = initializeHydraulicModel({
         units: quantities.units,
@@ -104,8 +101,8 @@ export const CreateNew = ({ onClose }: { onClose: () => void }) => {
         "Untitled",
         defaultSimulationSettings,
       );
-      if (projection === "xy-grid" && map) {
-        map.map.jumpTo({ center: [0, 0], zoom: 15 });
+      if (map) {
+        centerMapForNewProject(map, projection, location);
       }
       userTracking.capture({
         name: "newModel.completed",
@@ -416,4 +413,26 @@ const ProjectionSelector = ({
       </button>
     </div>
   );
+};
+
+const XY_GRID_CENTER: [number, number] = [0, 0];
+const XY_GRID_ZOOM = 15;
+const DEFAULT_MAP_CENTER: [number, number] = [-4.3800042, 55.914314];
+const DEFAULT_MAP_ZOOM = 15.5;
+
+const buildNewProjectProjectionMapper = (projection: Projection) =>
+  projection === "xy-grid"
+    ? createProjectionMapper({ type: "xy-grid", centroid: XY_GRID_CENTER })
+    : createProjectionMapper({ type: "wgs84" });
+
+const centerMapForNewProject = (
+  map: MapEngine,
+  projection: Projection,
+  location?: LocationData,
+) => {
+  if (projection === "xy-grid") {
+    map.map.jumpTo({ center: XY_GRID_CENTER, zoom: XY_GRID_ZOOM });
+  } else if (!location) {
+    map.map.jumpTo({ center: DEFAULT_MAP_CENTER, zoom: DEFAULT_MAP_ZOOM });
+  }
 };
