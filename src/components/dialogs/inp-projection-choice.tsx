@@ -39,12 +39,12 @@ export const InpProjectionChoiceDialog = ({
         <button
           type="button"
           onClick={handleNonProjected}
-          className="text-left cursor-pointer rounded-lg border border-gray-200 bg-white hover:border-purple-500 hover:bg-purple-50 dark:bg-transparent dark:border-gray-700 dark:hover:border-purple-500 dark:hover:bg-purple-950 transition-colors overflow-hidden"
+          className="flex flex-col text-left cursor-pointer rounded-lg border border-gray-200 bg-white hover:border-purple-500 hover:bg-purple-50 dark:bg-transparent dark:border-gray-700 dark:hover:border-purple-500 dark:hover:bg-purple-950 transition-colors overflow-hidden"
         >
           <div className="w-full border-b border-gray-200">
             <NetworkUnprojectedIllustration />
           </div>
-          <div className="p-3">
+          <div className="p-3 flex-grow">
             <p className="font-bold text-gray-900 dark:text-gray-100">
               {translate("inpProjectionChoice.nonProjectedTitle")}
             </p>
@@ -57,12 +57,12 @@ export const InpProjectionChoiceDialog = ({
         <button
           type="button"
           onClick={handleProjected}
-          className="text-left cursor-pointer rounded-lg border border-gray-200 bg-white hover:border-purple-500 hover:bg-purple-50 dark:bg-transparent dark:border-gray-700 dark:hover:border-purple-500 dark:hover:bg-purple-950 transition-colors overflow-hidden"
+          className="flex flex-col text-left cursor-pointer rounded-lg border border-gray-200 bg-white hover:border-purple-500 hover:bg-purple-50 dark:bg-transparent dark:border-gray-700 dark:hover:border-purple-500 dark:hover:bg-purple-950 transition-colors overflow-hidden"
         >
           <div className="w-full border-b border-gray-200">
             <NetworkProjectedIllustration />
           </div>
-          <div className="p-3">
+          <div className="p-3 flex-grow">
             <p className="font-bold text-gray-900 dark:text-gray-100">
               {translate("inpProjectionChoice.projectedTitle")}
             </p>

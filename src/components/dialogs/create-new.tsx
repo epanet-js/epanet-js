@@ -368,7 +368,7 @@ const HeadlossFormulaSelector = ({
 };
 
 const projectionCardBase =
-  "text-left cursor-pointer rounded-lg border bg-white hover:border-purple-500 hover:bg-purple-50 dark:bg-transparent dark:hover:border-purple-500 dark:hover:bg-purple-950 transition-colors overflow-hidden";
+  "flex flex-col text-left cursor-pointer rounded-lg border bg-white hover:border-purple-500 hover:bg-purple-50 dark:bg-transparent dark:hover:border-purple-500 dark:hover:bg-purple-950 transition-colors overflow-hidden";
 const projectionCardUnselected = "border-gray-200 dark:border-gray-700";
 const projectionCardSelected = "border-purple-500 ring-1 ring-purple-500";
 
@@ -396,7 +396,7 @@ const ProjectionSelector = ({
         <div className="w-full border-b border-gray-200">
           <NetworkProjectedIllustration />
         </div>
-        <div className="p-3">
+        <div className="p-3 flex-grow">
           <p className="font-bold text-gray-900 dark:text-gray-100">
             {translate("inpProjectionChoice.projectedTitle")}
           </p>
@@ -419,7 +419,7 @@ const ProjectionSelector = ({
         <div className="w-full border-b border-gray-200">
           <NetworkUnprojectedIllustration />
         </div>
-        <div className="p-3">
+        <div className="p-3 flex-grow">
           <p className="font-bold text-gray-900 dark:text-gray-100">
             {translate("inpProjectionChoice.nonProjectedTitle")}
           </p>
