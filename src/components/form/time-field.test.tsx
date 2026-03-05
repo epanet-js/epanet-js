@@ -193,7 +193,7 @@ describe("TimeField", () => {
       expect(onChangeValue).not.toHaveBeenCalled();
     });
 
-    it("preserves invalid input on Enter", async () => {
+    it("resets invalid input on Enter", async () => {
       const user = userEvent.setup();
       const onChangeValue = vi.fn();
 
@@ -207,11 +207,11 @@ describe("TimeField", () => {
       await user.type(input, ":");
       await user.keyboard("{Enter}");
 
-      expect(input).toHaveValue(":");
+      expect(input).toHaveValue("1:00");
       expect(onChangeValue).not.toHaveBeenCalled();
     });
 
-    it("rejects minutes over 59", async () => {
+    it("resets minutes over 59 on Enter", async () => {
       const user = userEvent.setup();
       const onChangeValue = vi.fn();
 
@@ -225,11 +225,11 @@ describe("TimeField", () => {
       await user.type(input, "1:60");
       await user.keyboard("{Enter}");
 
-      expect(input).toHaveValue("1:60");
+      expect(input).toHaveValue("1:00");
       expect(onChangeValue).not.toHaveBeenCalled();
     });
 
-    it("rejects seconds over 59", async () => {
+    it("resets seconds over 59 on Enter", async () => {
       const user = userEvent.setup();
       const onChangeValue = vi.fn();
 
@@ -243,7 +243,7 @@ describe("TimeField", () => {
       await user.type(input, "1:30:60");
       await user.keyboard("{Enter}");
 
-      expect(input).toHaveValue("1:30:60");
+      expect(input).toHaveValue("1:00");
       expect(onChangeValue).not.toHaveBeenCalled();
     });
   });
@@ -272,7 +272,7 @@ describe("TimeField", () => {
       expect(onChangeValue).toHaveBeenCalledWith(2 * 3600);
     });
 
-    it("preserves invalid value on blur", async () => {
+    it("resets invalid value on blur", async () => {
       const user = userEvent.setup();
       const onChangeValue = vi.fn();
 
@@ -289,7 +289,7 @@ describe("TimeField", () => {
       await user.type(input, ":");
       await user.click(screen.getByRole("button", { name: "other" }));
 
-      expect(input).toHaveValue(":");
+      expect(input).toHaveValue("1:00");
       expect(onChangeValue).not.toHaveBeenCalled();
     });
   });
