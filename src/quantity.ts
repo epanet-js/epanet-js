@@ -30,8 +30,6 @@ export type Unit =
   | "acft/d"
   | "kW"
   | "hp"
-  | "Kv/Kvo"
-  | "Cv/Cvo"
   | "%"
   | "m^2"
   | "ft^2"

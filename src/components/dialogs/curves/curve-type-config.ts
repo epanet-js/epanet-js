@@ -54,7 +54,6 @@ const efficiencyCurveConfig: CurveTypeConfig = {
 const valveCurveConfig: CurveTypeConfig = {
   xLabel: "percentOpen",
   yLabel: "percentFullFlow",
-  yQuantity: "valveFlowCoeffRatio",
   getErrors: getValveCurveErrors,
 };
 

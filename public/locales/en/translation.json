@@ -1021,8 +1021,8 @@
     "setAsHeadloss": "Set as Headloss",
     "saveInvalid": "Some curves have validation warnings."
   },
-  "percentOpen": "% open",
-  "percentFullFlow": "% full flow",
+  "percentOpen": "% Open",
+  "percentFullFlow": "% Full flow",
   "efficiency": "Efficiency",
   "pumpLibrary": "Pump Library",
   "addTimestep": "Add timestep",

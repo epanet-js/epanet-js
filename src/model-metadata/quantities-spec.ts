@@ -39,7 +39,6 @@ export type QuantityProperty =
   | "volume"
   | "tankDiameter"
   | "tankArea"
-  | "valveFlowCoeffRatio"
   | "efficiency";
 
 export type UnitsSpec = Record<QuantityProperty, Unit>;
@@ -105,7 +104,6 @@ const metricSpec: AssetQuantitiesSpec = {
     volume: "m^3",
     tankDiameter: "m",
     tankArea: "m^2",
-    valveFlowCoeffRatio: "Kv/Kvo",
     efficiency: "%",
     customerDemand: "l/s",
     customerDemandPerDay: "l/d",
@@ -164,7 +162,6 @@ const usCustomarySpec: AssetQuantitiesSpec = {
     volume: "ft^3",
     tankDiameter: "ft",
     tankArea: "ft^2",
-    valveFlowCoeffRatio: "Cv/Cvo",
     efficiency: "%",
     customerDemand: "gal/min",
     customerDemandPerDay: "gal/d",
