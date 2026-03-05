@@ -7,7 +7,6 @@ import {
   ArrowUpNarrowWide,
   Bell,
   ChartColumn,
-  ChartSpline,
   Check,
   ChevronDown,
   ChevronLeft,
@@ -195,7 +194,6 @@ export const AddScenarioIcon = icon(GitBranchPlus);
 export const MainModelIcon = icon(Lock);
 export const ControlsIcon = icon(FileCode);
 export const PatternsIcon = icon(ChartColumn);
-export const CurveLibraryIcon = icon(ChartSpline);
 export const RenameIcon = icon(TextCursorInput);
 export const DuplicateIcon = icon(Copy);
 
@@ -233,3 +231,4 @@ export { CustomTableSelectAllIcon as TableSelectAllIcon } from "./custom-icons/t
 export { CustomUpstreamTraceIcon as UpstreamTraceIcon } from "./custom-icons/trace-upstream-icon";
 export { CustomDownstreamTraceIcon as DownstreamTraceIcon } from "./custom-icons/trace-downstream-icon";
 export { CustomBoundaryTraceIcon as BoundaryTraceIcon } from "./custom-icons/trace-boundary-icon";
+export { CustomCurveLibraryIcon as CurveLibraryIcon } from "./custom-icons/curve-library-icon";
