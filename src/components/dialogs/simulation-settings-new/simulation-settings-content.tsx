@@ -202,6 +202,7 @@ export const TimesSection = () => {
           label={translate("simulationSettings.totalDuration")}
           description={translate("simulationSettings.totalDurationDesc")}
           value={values.duration}
+          defaultValue={timing.duration || 24 * ONE_HOUR}
           disabled={!isEPS}
           readonly={readonly}
           onChange={(v) => setFieldValue("duration", v)}
@@ -212,6 +213,7 @@ export const TimesSection = () => {
           label={translate("simulationSettings.hydraulicTimestep")}
           description={translate("simulationSettings.hydraulicTimestepDesc")}
           value={values.hydraulicTimestep}
+          defaultValue={timing.hydraulicTimestep || ONE_HOUR}
           disabled={!isEPS}
           readonly={readonly}
           onChange={(v) => setFieldValue("hydraulicTimestep", v)}
@@ -222,6 +224,7 @@ export const TimesSection = () => {
           label={translate("simulationSettings.reportingTimestep")}
           description={translate("simulationSettings.reportingTimestepDesc")}
           value={values.reportTimestep}
+          defaultValue={timing.reportTimestep || ONE_HOUR}
           disabled={!isEPS}
           readonly={readonly}
           onChange={(v) => setFieldValue("reportTimestep", v)}
@@ -232,6 +235,7 @@ export const TimesSection = () => {
           label={translate("simulationSettings.patternTimestep")}
           description={translate("simulationSettings.patternTimestepDesc")}
           value={values.patternTimestep}
+          defaultValue={timing.patternTimestep || ONE_HOUR}
           disabled={!isEPS}
           readonly={readonly}
           onChange={(v) => setFieldValue("patternTimestep", v)}
@@ -818,12 +822,13 @@ export const SettingsRow = ({
   </div>
 );
 
-type FieldError = "required" | "positive" | null;
+type FieldError = "positive" | null;
 
 const TimeSetting = ({
   label,
   description,
   value,
+  defaultValue,
   disabled = false,
   readonly = false,
   onChange,
@@ -832,6 +837,7 @@ const TimeSetting = ({
   label: string;
   description: string;
   value: number | undefined;
+  defaultValue?: number;
   disabled?: boolean;
   readonly?: boolean;
   onChange: (value: number | undefined) => void;
@@ -840,11 +846,9 @@ const TimeSetting = ({
   const translate = useTranslate();
 
   const errorMessage =
-    error === "required"
-      ? translate("simulationSettings.fieldRequired")
-      : error === "positive"
-        ? translate("simulationSettings.fieldMustBePositive")
-        : null;
+    error === "positive"
+      ? translate("simulationSettings.fieldMustBePositive")
+      : null;
 
   return (
     <SettingsRow label={label} description={description}>
@@ -853,6 +857,7 @@ const TimeSetting = ({
           <TimeField
             label={label}
             value={value}
+            defaultValue={defaultValue}
             onChangeValue={onChange}
             hasError={error !== null}
             disabled={disabled}
@@ -995,16 +1000,6 @@ const getFieldError = (
   value: number | undefined,
 ): FieldError => {
   if (!isEPS) return null;
-  if (value === undefined) return "required";
-  if (value === 0) return "positive";
-  return null;
-};
-
-const getOptionalFieldError = (
-  isEPS: boolean,
-  value: number | undefined,
-): FieldError => {
-  if (!isEPS) return null;
   if (value === 0) return "positive";
   return null;
 };
@@ -1019,8 +1014,8 @@ export const useTimeSettingsValidation = () => {
     hydraulicTimestep: getFieldError(isEPS, values.hydraulicTimestep),
     reportTimestep: getFieldError(isEPS, values.reportTimestep),
     patternTimestep: getFieldError(isEPS, values.patternTimestep),
-    qualityTimestep: getOptionalFieldError(isEPS, values.qualityTimestep),
-    ruleTimestep: getOptionalFieldError(isEPS, values.ruleTimestep),
+    qualityTimestep: getFieldError(isEPS, values.qualityTimestep),
+    ruleTimestep: getFieldError(isEPS, values.ruleTimestep),
   };
 
   const hasValidationError = Object.values(fieldErrors).some(

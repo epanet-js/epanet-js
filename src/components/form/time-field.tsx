@@ -12,6 +12,7 @@ export const TimeField = ({
   label,
   value,
   onChangeValue,
+  defaultValue,
   isNullable = true,
   tabIndex = 1,
   hasError: externalError = false,
@@ -21,6 +22,7 @@ export const TimeField = ({
   label: string;
   value: number | undefined;
   onChangeValue: (newValue: number | undefined) => void;
+  defaultValue?: number;
   isNullable?: boolean;
   tabIndex?: number;
   hasError?: boolean;
@@ -47,7 +49,9 @@ export const TimeField = ({
     }
     if (e.key === "Enter") {
       e.preventDefault();
-      if (!internalError) {
+      if (internalError) {
+        resetInput();
+      } else {
         handleCommitLastChange();
       }
       return;
@@ -68,6 +72,8 @@ export const TimeField = ({
   const handleBlur = () => {
     if (isDirty && !internalError) {
       handleCommitLastChange();
+    } else {
+      resetInput();
     }
   };
 
@@ -78,7 +84,8 @@ export const TimeField = ({
 
   const handleCommitLastChange = () => {
     const seconds = parseValueToSeconds(inputValue);
-    const finalValue = isNullable ? seconds : (seconds ?? 0);
+    const nullable = isNullable && defaultValue === undefined;
+    const finalValue = nullable ? seconds : (seconds ?? defaultValue ?? 0);
     setInputValue(formatSecondsToDisplay(finalValue));
     onChangeValue(finalValue);
 
@@ -98,7 +105,8 @@ export const TimeField = ({
     setInputValue(newInputValue);
 
     const seconds = parseValueToSeconds(newInputValue);
-    setError(seconds === undefined && newInputValue.trim() !== "");
+    const isEmpty = newInputValue.trim() === "";
+    setError(seconds === undefined && (!isEmpty || defaultValue !== undefined));
     setDirty(true);
   };
 
