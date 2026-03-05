@@ -128,9 +128,16 @@ export const isUnprojectedAtom = atom((get) => {
   return get(dataAtom).modelMetadata.projectionMapper.projection === "xy-grid";
 });
 
+export const gridPreviewAtom = atom(false);
+
+export const showGridAtom = atom((get) => {
+  return get(isUnprojectedAtom) || get(gridPreviewAtom);
+});
+
 export const layerConfigAtom = atom<LayerConfigMap>(new Map());
 
 export const satelliteModeOnAtom = atom<boolean>((get) => {
+  if (get(showGridAtom)) return false;
   const layersConfig = get(layerConfigAtom);
   return [...layersConfig.values()].some((layer) => layer.name === "Satellite");
 });

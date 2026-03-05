@@ -24,7 +24,7 @@ import {
   type SearchableSelectorOption,
 } from "../form/searchable-selector";
 import { useSetAtom } from "jotai";
-import { fileInfoAtom } from "src/state/jotai";
+import { fileInfoAtom, gridPreviewAtom } from "src/state/jotai";
 import { headlossFormulasFullNames } from "src/hydraulic-model/asset-types/pipe";
 import { useUserTracking } from "src/infra/user-tracking";
 import { MapContext } from "src/map/map-context";
@@ -75,6 +75,7 @@ export const CreateNew = ({ onClose }: { onClose: () => void }) => {
   const userTracking = useUserTracking();
   const map = useContext(MapContext);
   const isNewGridOn = useFeatureFlag("FLAG_NEW_GRID");
+  const setGridPreview = useSetAtom(gridPreviewAtom);
 
   const originalMapStateRef = useRef<mapboxgl.LngLatBounds | null>(null);
 
@@ -94,6 +95,7 @@ export const CreateNew = ({ onClose }: { onClose: () => void }) => {
         defaults: quantities.defaults,
         headlossFormula,
       });
+      setGridPreview(false);
       transactImport(
         hydraulicModel,
         modelMetadata,
@@ -114,17 +116,18 @@ export const CreateNew = ({ onClose }: { onClose: () => void }) => {
       setFileInfo(null);
       onClose();
     },
-    [transactImport, userTracking, setFileInfo, onClose, map],
+    [transactImport, userTracking, setFileInfo, onClose, map, setGridPreview],
   );
 
   const handleCancel = useCallback(() => {
+    setGridPreview(false);
     if (map && originalMapStateRef.current) {
       map.setBounds(originalMapStateRef.current, {
         animate: false,
       });
     }
     onClose();
-  }, [map, onClose]);
+  }, [map, onClose, setGridPreview]);
 
   return (
     <>
@@ -149,6 +152,20 @@ export const CreateNew = ({ onClose }: { onClose: () => void }) => {
                   void setFieldValue("projection", projection);
                   if (projection === "xy-grid") {
                     void setFieldValue("location", undefined);
+                    setGridPreview(true);
+                    if (map) {
+                      map.map.jumpTo({
+                        center: XY_GRID_CENTER,
+                        zoom: XY_GRID_ZOOM,
+                      });
+                    }
+                  } else {
+                    setGridPreview(false);
+                    if (map && originalMapStateRef.current) {
+                      map.setBounds(originalMapStateRef.current, {
+                        animate: false,
+                      });
+                    }
                   }
                 }}
               />

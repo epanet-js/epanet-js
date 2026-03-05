@@ -19,7 +19,8 @@ import {
   simulationResultsAtom,
   currentZoomAtom,
   customerPointsAtom,
-  isUnprojectedAtom,
+  gridPreviewAtom,
+  showGridAtom,
   stagingModelAtom,
 } from "src/state/jotai";
 import type { ResultsReader } from "src/simulation/results-reader";
@@ -128,8 +129,8 @@ const nullMapState: MapState = {
 } as const;
 
 const stylesConfigAtom = atom<StylesConfig>((get) => {
-  const isUnprojected = get(isUnprojectedAtom);
-  const layerConfigs = isUnprojected ? new Map() : get(layerConfigAtom);
+  const isGridOn = get(showGridAtom);
+  const layerConfigs = isGridOn ? new Map() : get(layerConfigAtom);
   const { symbology, label } = get(memoryMetaAtom);
 
   return {
@@ -220,7 +221,8 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const {
     modelMetadata: { quantities },
   } = useAtomValue(dataAtom);
-  const isUnprojected = useAtomValue(isUnprojectedAtom);
+  const isGridOn = useAtomValue(showGridAtom);
+  const isGridPreview = useAtomValue(gridPreviewAtom);
   const simulationResults = useAtomValue(simulationResultsAtom);
   const lastHiddenFeatures = useRef<Set<AssetId>>(new Set([]));
   const previousMapStateRef = useRef<MapState>(nullMapState);
@@ -309,7 +311,8 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         if (hasNewImport || hasNewStyles) {
           updateGrid({
             map,
-            isUnprojected,
+            isGridOn,
+            isPreview: isGridPreview,
             lengthUnit: quantities.getUnit("length") === "ft" ? "ft" : "m",
             gridRef,
             scaleControlRef,
@@ -512,7 +515,8 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     translateUnit,
     hydraulicModel,
     resultsReader,
-    isUnprojected,
+    isGridOn,
+    isGridPreview,
   ]);
 
   doUpdates();
@@ -869,28 +873,30 @@ const buildSelectionOverlayForCustomerPoints = (
 
 function updateGrid({
   map,
-  isUnprojected,
+  isGridOn,
+  isPreview,
   lengthUnit,
   gridRef,
   scaleControlRef,
 }: {
   map: MapEngine;
-  isUnprojected: boolean;
+  isGridOn: boolean;
+  isPreview: boolean;
   lengthUnit: "ft" | "m";
   gridRef: MutableRefObject<Grid | null>;
   scaleControlRef: MutableRefObject<mapboxgl.ScaleControl | null>;
 }) {
-  if (isUnprojected && !gridRef.current) {
+  if (isGridOn && !gridRef.current) {
     gridRef.current = new Grid(map.map, lengthUnit);
     gridRef.current.attach();
-  } else if (isUnprojected && gridRef.current) {
+  } else if (isGridOn && gridRef.current) {
     gridRef.current.setLengthUnit(lengthUnit);
     gridRef.current.forceUpdate();
-  } else if (!isUnprojected && gridRef.current) {
+  } else if (!isGridOn && gridRef.current) {
     gridRef.current.detach();
     gridRef.current = null;
   }
-  if (isUnprojected) {
+  if (isGridOn && !isPreview) {
     const scaleUnit = lengthUnit === "ft" ? "imperial" : "metric";
     if (scaleControlRef.current) {
       map.map.removeControl(scaleControlRef.current);

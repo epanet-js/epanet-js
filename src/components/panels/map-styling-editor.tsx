@@ -4,7 +4,7 @@ import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import {
   dataAtom,
-  isUnprojectedAtom,
+  showGridAtom,
   simulationAtom,
   simulationResultsAtom,
   stagingModelAtom,
@@ -42,7 +42,7 @@ const colorPropertyLabelFor = (
 
 export const MapStylingEditor = () => {
   const translate = useTranslate();
-  const isUnprojected = useAtomValue(isUnprojectedAtom);
+  const isGridOn = useAtomValue(showGridAtom);
 
   return (
     <div className="flex-auto overflow-y-auto placemark-scrollbar border-gray-200 dark:border-gray-900">
@@ -55,8 +55,8 @@ export const MapStylingEditor = () => {
           geometryType="link"
           properties={supportedLinkProperties}
         />
-        {!isUnprojected && <CustomerPointsSection />}
-        {!isUnprojected && (
+        {!isGridOn && <CustomerPointsSection />}
+        {!isGridOn && (
           <Section title={translate("layers")} button={<AddLayer />}>
             <LayersEditor />
           </Section>
