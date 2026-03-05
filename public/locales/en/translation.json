@@ -438,7 +438,7 @@
   "maxOperatingPoint": "Max Operating",
   "curveValidation": {
     "missingValues": "Please fill in all the values.",
-    "valueMustBeNonZero": "{{1}} value must not be zero.",
+    "needsNonZeroValue": "{{1}} needs at least one non-zero value.",
     "valueAscendingOrder": "{{1}} values must be in ascending order.",
     "valueDescendingOrder": "{{1}} values must be in descending order.",
     "needsMorePoints": "The curve requires more than one point."

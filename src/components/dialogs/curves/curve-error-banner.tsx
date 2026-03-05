@@ -14,7 +14,22 @@ export function CurveErrorBanner({ points, curveType }: CurveErrorBannerProps) {
   const curveConfig = getCurveTypeConfig(curveType);
   const errors = curveConfig.getErrors(points);
 
-  if (points.length === 1 && curveType !== "pump") {
+  if (errors.length === 0) return null;
+
+  const hasXError = errors.some((e) => e.value === "x");
+  const hasYError = errors.some((e) => e.value === "y");
+  const xLabel = translate(curveConfig.xLabel);
+  const yLabel = translate(curveConfig.yLabel);
+
+  // When every error is at index 0 with both x and y flagged, the curve
+  // simply needs more points (e.g. volume, headloss, generic curves).
+  const needsMorePoints =
+    points.length === 1 &&
+    hasXError &&
+    hasYError &&
+    errors.every((e) => e.index === 0);
+
+  if (needsMorePoints) {
     return (
       <NotificationBanner
         variant="warning"
@@ -26,21 +41,14 @@ export function CurveErrorBanner({ points, curveType }: CurveErrorBannerProps) {
     );
   }
 
-  if (errors.length === 0) return null;
-
-  const hasXError = errors.some((e) => e.value === "x");
-  const hasYError = errors.some((e) => e.value === "y");
-  const xLabel = translate(curveConfig.xLabel);
-  const yLabel = translate(curveConfig.yLabel);
-
   let description: string;
 
   if (points.length === 1) {
     const parts: string[] = [];
     if (hasXError)
-      parts.push(translate("curveValidation.valueMustBeNonZero", xLabel));
+      parts.push(translate("curveValidation.needsNonZeroValue", xLabel));
     if (hasYError)
-      parts.push(translate("curveValidation.valueMustBeNonZero", yLabel));
+      parts.push(translate("curveValidation.needsNonZeroValue", yLabel));
     description = parts.join(" ");
   } else {
     const parts: string[] = [];
