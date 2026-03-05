@@ -104,6 +104,9 @@ export const CreateNew = ({ onClose }: { onClose: () => void }) => {
         "Untitled",
         defaultSimulationSettings,
       );
+      if (projection === "xy-grid" && map) {
+        map.map.jumpTo({ center: [0, 0], zoom: 15 });
+      }
       userTracking.capture({
         name: "newModel.completed",
         units: unitsSpec,
@@ -114,7 +117,7 @@ export const CreateNew = ({ onClose }: { onClose: () => void }) => {
       setFileInfo(null);
       onClose();
     },
-    [transactImport, userTracking, setFileInfo, onClose],
+    [transactImport, userTracking, setFileInfo, onClose, map],
   );
 
   const handleCancel = useCallback(() => {
