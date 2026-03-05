@@ -9,6 +9,7 @@ import {
 } from "src/model-metadata/quantities-spec";
 import { ModelMetadata } from "src/model-metadata";
 import { createProjectionMapper } from "src/projections";
+import type { Projection } from "src/projections";
 import {
   HeadlossFormula,
   headlossFormulas,
@@ -31,6 +32,10 @@ import { useContext, useRef, useCallback } from "react";
 import { captureError } from "src/infra/error-tracking";
 import { env } from "src/lib/env-client";
 import { FileIcon } from "src/icons";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import NetworkUnprojectedIllustration from "./network-projection/network-unprojected";
+import NetworkProjectedIllustration from "./network-projection/network-projected";
+import clsx from "clsx";
 
 type LocationData = {
   name: string;
@@ -59,6 +64,7 @@ type SubmitProps = {
   unitsSpec: keyof Presets;
   headlossFormula: HeadlossFormula;
   location?: LocationData;
+  projection: Projection;
 };
 
 export const CreateNew = ({ onClose }: { onClose: () => void }) => {
@@ -68,6 +74,7 @@ export const CreateNew = ({ onClose }: { onClose: () => void }) => {
   const setFileInfo = useSetAtom(fileInfoAtom);
   const userTracking = useUserTracking();
   const map = useContext(MapContext);
+  const isNewGridOn = useFeatureFlag("FLAG_NEW_GRID");
 
   const originalMapStateRef = useRef<mapboxgl.LngLatBounds | null>(null);
 
@@ -76,11 +83,15 @@ export const CreateNew = ({ onClose }: { onClose: () => void }) => {
   }
 
   const handleSubmit = useCallback(
-    ({ unitsSpec, headlossFormula, location }: SubmitProps) => {
+    ({ unitsSpec, headlossFormula, location, projection }: SubmitProps) => {
       const quantities = new Quantities(presets[unitsSpec]);
+      const projectionMapper =
+        projection === "xy-grid"
+          ? createProjectionMapper({ type: "xy-grid", centroid: [0, 0] })
+          : createProjectionMapper({ type: "wgs84" });
       const modelMetadata: ModelMetadata = {
         quantities,
-        projectionMapper: createProjectionMapper({ type: "wgs84" }),
+        projectionMapper,
       };
       const hydraulicModel = initializeHydraulicModel({
         units: quantities.units,
@@ -98,6 +109,7 @@ export const CreateNew = ({ onClose }: { onClose: () => void }) => {
         units: unitsSpec,
         headlossFormula,
         location: location?.name || "",
+        projection,
       });
       setFileInfo(null);
       onClose();
@@ -124,15 +136,36 @@ export const CreateNew = ({ onClose }: { onClose: () => void }) => {
             unitsSpec: "LPS",
             headlossFormula: "H-W",
             location: undefined,
+            projection: "wgs84",
           } as SubmitProps
         }
       >
         {({ values, setFieldValue }) => (
           <Form>
-            <LocationSearchSelector
-              selected={values.location}
-              onChange={(location) => setFieldValue("location", location)}
-            />
+            {isNewGridOn && (
+              <ProjectionSelector
+                selected={values.projection}
+                onChange={(projection) => {
+                  void setFieldValue("projection", projection);
+                  if (projection === "xy-grid") {
+                    void setFieldValue("location", undefined);
+                  }
+                }}
+              />
+            )}
+
+            <div
+              className={clsx(
+                isNewGridOn &&
+                  values.projection === "xy-grid" &&
+                  "opacity-40 pointer-events-none",
+              )}
+            >
+              <LocationSearchSelector
+                selected={values.location}
+                onChange={(location) => setFieldValue("location", location)}
+              />
+            </div>
 
             <hr className="my-2" />
 
@@ -314,5 +347,70 @@ const HeadlossFormulaSelector = ({
         ariaLabel={translate("headlossFormula")}
       />
     </label>
+  );
+};
+
+const projectionCardBase =
+  "text-left cursor-pointer rounded-lg border bg-white hover:border-purple-500 hover:bg-purple-50 dark:bg-transparent dark:hover:border-purple-500 dark:hover:bg-purple-950 transition-colors overflow-hidden";
+const projectionCardUnselected = "border-gray-200 dark:border-gray-700";
+const projectionCardSelected = "border-purple-500 ring-1 ring-purple-500";
+
+const ProjectionSelector = ({
+  selected,
+  onChange,
+}: {
+  selected: Projection;
+  onChange: (projection: Projection) => void;
+}) => {
+  const translate = useTranslate();
+
+  return (
+    <div className="grid grid-cols-2 gap-3 pb-3">
+      <button
+        type="button"
+        onClick={() => onChange("wgs84")}
+        className={clsx(
+          projectionCardBase,
+          selected === "wgs84"
+            ? projectionCardSelected
+            : projectionCardUnselected,
+        )}
+      >
+        <div className="w-full border-b border-gray-200">
+          <NetworkProjectedIllustration />
+        </div>
+        <div className="p-3">
+          <p className="font-bold text-gray-900 dark:text-gray-100">
+            {translate("inpProjectionChoice.projectedTitle")}
+          </p>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+            {translate("inpProjectionChoice.projectedDescription")}
+          </p>
+        </div>
+      </button>
+
+      <button
+        type="button"
+        onClick={() => onChange("xy-grid")}
+        className={clsx(
+          projectionCardBase,
+          selected === "xy-grid"
+            ? projectionCardSelected
+            : projectionCardUnselected,
+        )}
+      >
+        <div className="w-full border-b border-gray-200">
+          <NetworkUnprojectedIllustration />
+        </div>
+        <div className="p-3">
+          <p className="font-bold text-gray-900 dark:text-gray-100">
+            {translate("inpProjectionChoice.nonProjectedTitle")}
+          </p>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+            {translate("inpProjectionChoice.nonProjectedDescription")}
+          </p>
+        </div>
+      </button>
+    </div>
   );
 };

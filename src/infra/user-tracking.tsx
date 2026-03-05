@@ -1,6 +1,6 @@
 import { PostHogProvider, usePostHog } from "posthog-js/react";
 import { useCallback, useMemo } from "react";
-import { Asset, HeadlossFormula } from "src/hydraulic-model";
+import { Asset, HeadlossFormula, Projection } from "src/hydraulic-model";
 import { isDebugOn } from "./debug-mode";
 import { MODE_INFO, SimulationState } from "src/state/jotai";
 import { Presets } from "src/model-metadata/quantities-spec";
@@ -302,6 +302,7 @@ type NewModelCompleted = {
   units: keyof Presets;
   headlossFormula: HeadlossFormula;
   location: string;
+  projection?: Projection;
 };
 
 type ModelSaved = {
