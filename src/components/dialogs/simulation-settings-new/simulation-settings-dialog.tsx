@@ -34,6 +34,7 @@ export type {
 } from "./simulation-settings-data";
 
 export const SimulationSettingsNewDialog = () => {
+  const translate = useTranslate();
   const { closeDialog } = useDialogState();
   const translate = useTranslate();
   const simulationSettings = useAtomValue(simulationSettingsAtom);
