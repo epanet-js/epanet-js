@@ -100,6 +100,7 @@ export const CreateNew = ({ onClose }: { onClose: () => void }) => {
         modelMetadata,
         "Untitled",
         defaultSimulationSettings,
+        { autoElevations: projection !== "xy-grid" },
       );
       if (map) {
         centerMapForNewProject(map, projection, location);
