@@ -32,7 +32,6 @@ import { MapEngine } from "src/map/map-engine";
 import { useContext, useRef, useCallback } from "react";
 import { captureError } from "src/infra/error-tracking";
 import { env } from "src/lib/env-client";
-import { FileIcon } from "src/icons";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import NetworkUnprojectedIllustration from "./network-projection/network-unprojected";
 import NetworkProjectedIllustration from "./network-projection/network-projected";
@@ -129,7 +128,7 @@ export const CreateNew = ({ onClose }: { onClose: () => void }) => {
 
   return (
     <>
-      <DialogHeader title={translate("newProject")} titleIcon={FileIcon} />
+      <DialogHeader title={translate("newProject")} />
       <Formik
         onSubmit={handleSubmit}
         initialValues={
