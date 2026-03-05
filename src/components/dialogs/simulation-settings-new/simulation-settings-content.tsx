@@ -60,7 +60,7 @@ export const SimulationSettingsContent = forwardRef<
 
   return (
     <div ref={measureRef} className="flex-1 min-h-0 overflow-auto pl-4">
-      <div className="flex flex-col gap-20 py-2">{children}</div>
+      <div className="flex flex-col gap-10 py-2">{children}</div>
     </div>
   );
 });
@@ -103,7 +103,7 @@ export const GeneralSection = () => {
 
   return (
     <div>
-      <h3 className="text-base font-semibold text-gray-900 dark:text-white pb-3 mb-3">
+      <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-3">
         {translate("simulationSettings.general")}
       </h3>
 
@@ -182,7 +182,7 @@ export const TimesSection = () => {
 
   return (
     <div>
-      <h3 className="text-base font-semibold text-gray-900 dark:text-white pb-3 mb-3">
+      <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-3">
         {translate("simulationSettings.times")}
       </h3>
 
@@ -279,7 +279,7 @@ export const DemandsSection = () => {
 
   return (
     <div>
-      <h3 className="text-base font-semibold text-gray-900 dark:text-white pb-3 mb-3">
+      <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-3">
         {translate("simulationSettings.demands")}
       </h3>
 
@@ -372,7 +372,7 @@ export const HydraulicsSection = () => {
 
   return (
     <div>
-      <h3 className="text-base font-semibold text-gray-900 dark:text-white pb-3 mb-3">
+      <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-3">
         {translate("simulationSettings.hydraulics")}
       </h3>
 
@@ -537,7 +537,7 @@ export const WaterQualitySection = () => {
 
   return (
     <div>
-      <h3 className="text-base font-semibold text-gray-900 dark:text-white pb-3 mb-3">
+      <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-3">
         {translate("simulationSettings.waterQuality")}
       </h3>
 
@@ -730,7 +730,7 @@ export const EnergySection = () => {
 
   return (
     <div>
-      <h3 className="text-base font-semibold text-gray-900 dark:text-white pb-3 mb-3">
+      <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-3">
         {translate("simulationSettings.energy")}
       </h3>
 
