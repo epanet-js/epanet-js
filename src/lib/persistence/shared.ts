@@ -8,6 +8,7 @@ export function trackMoment(moment: ModelMoment) {
     // eslint-disable-next-line no-console
     console.log(
       "TRANSACT",
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       JSON.stringify(moment, (_, v) => (v === undefined ? "__undefined__" : v)),
     );
   }

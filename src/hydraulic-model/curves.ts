@@ -182,8 +182,37 @@ export const getHeadlossCurveErrors = (
   return errors;
 };
 
-/** Valve curves (PCV): X strictly increasing, Y strictly increasing. */
-export const getValveCurveErrors = getVolumeCurveErrors;
+/** Valve curves (PCV): X strictly increasing, Y strictly increasing.
+ *  A single point is valid (EPANET interpolates to 100,100). */
+export const getValveCurveErrors = (
+  points: CurvePoint[],
+): CurveErrorPoint[] => {
+  if (points.length <= 1) return [];
+
+  const errors: CurveErrorPoint[] = [];
+  const seen = new Set<string>();
+
+  const add = (index: number, value: "x" | "y") => {
+    const key = `${index}:${value}`;
+    if (!seen.has(key)) {
+      seen.add(key);
+      errors.push({ index, value });
+    }
+  };
+
+  for (let i = 1; i < points.length; i++) {
+    if (points[i].x <= points[i - 1].x) {
+      add(i - 1, "x");
+      add(i, "x");
+    }
+    if (points[i].y <= points[i - 1].y) {
+      add(i - 1, "y");
+      add(i, "y");
+    }
+  }
+
+  return errors;
+};
 
 /** Efficiency curves: X strictly increasing (Y unconstrained — bell-shaped). */
 export const getEfficiencyCurveErrors = getGenericCurveErrors;

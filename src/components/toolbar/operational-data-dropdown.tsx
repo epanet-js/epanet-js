@@ -52,13 +52,6 @@ export const OperationalDataDropdown = () => {
                 {translate("patterns.title")}
               </StyledItem>
 
-              <StyledItem
-                onSelect={() => showPumpLibrary({ source: "toolbar" })}
-              >
-                <PumpLibraryIcon />
-                {translate("pumpLibrary")}
-              </StyledItem>
-
               {isCurvesEnabled && (
                 <StyledItem
                   onSelect={() => showCurveLibrary({ source: "toolbar" })}
@@ -67,6 +60,13 @@ export const OperationalDataDropdown = () => {
                   {translate("curves.title")}
                 </StyledItem>
               )}
+
+              <StyledItem
+                onSelect={() => showPumpLibrary({ source: "toolbar" })}
+              >
+                <PumpLibraryIcon />
+                {translate("pumpLibrary")}
+              </StyledItem>
 
               <StyledItem onSelect={() => showControls({ source: "toolbar" })}>
                 <ControlsIcon />
