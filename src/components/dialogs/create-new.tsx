@@ -23,8 +23,13 @@ import {
   SearchableSelector,
   type SearchableSelectorOption,
 } from "../form/searchable-selector";
-import { useSetAtom } from "jotai";
-import { fileInfoAtom, gridPreviewAtom } from "src/state/jotai";
+import { useAtomValue, useSetAtom } from "jotai";
+import {
+  fileInfoAtom,
+  gridHiddenAtom,
+  gridPreviewAtom,
+  isUnprojectedAtom,
+} from "src/state/jotai";
 import { headlossFormulasFullNames } from "src/hydraulic-model/asset-types/pipe";
 import { useUserTracking } from "src/infra/user-tracking";
 import { MapContext } from "src/map/map-context";
@@ -76,11 +81,17 @@ export const CreateNew = ({ onClose }: { onClose: () => void }) => {
   const map = useContext(MapContext);
   const isNewGridOn = useFeatureFlag("FLAG_NEW_GRID");
   const setGridPreview = useSetAtom(gridPreviewAtom);
+  const setGridHidden = useSetAtom(gridHiddenAtom);
+  const isCurrentProjectUnprojected = useAtomValue(isUnprojectedAtom);
 
   const originalMapStateRef = useRef<mapboxgl.LngLatBounds | null>(null);
 
   if (map && !originalMapStateRef.current) {
     originalMapStateRef.current = map.getBounds();
+    if (isCurrentProjectUnprojected) {
+      setGridHidden(true);
+      map.map.jumpTo({ center: DEFAULT_MAP_CENTER, zoom: DEFAULT_MAP_ZOOM });
+    }
   }
 
   const handleSubmit = useCallback(
@@ -96,6 +107,7 @@ export const CreateNew = ({ onClose }: { onClose: () => void }) => {
         headlossFormula,
       });
       setGridPreview(false);
+      setGridHidden(false);
       transactImport(
         hydraulicModel,
         modelMetadata,
@@ -116,18 +128,27 @@ export const CreateNew = ({ onClose }: { onClose: () => void }) => {
       setFileInfo(null);
       onClose();
     },
-    [transactImport, userTracking, setFileInfo, onClose, map, setGridPreview],
+    [
+      transactImport,
+      userTracking,
+      setFileInfo,
+      onClose,
+      map,
+      setGridPreview,
+      setGridHidden,
+    ],
   );
 
   const handleCancel = useCallback(() => {
     setGridPreview(false);
+    setGridHidden(false);
     if (map && originalMapStateRef.current) {
       map.setBounds(originalMapStateRef.current, {
         animate: false,
       });
     }
     onClose();
-  }, [map, onClose, setGridPreview]);
+  }, [map, onClose, setGridPreview, setGridHidden]);
 
   return (
     <>
@@ -151,6 +172,7 @@ export const CreateNew = ({ onClose }: { onClose: () => void }) => {
                 onChange={(projection) => {
                   void setFieldValue("projection", projection);
                   if (projection === "xy-grid") {
+                    setGridHidden(false);
                     setGridPreview(true);
                     if (map) {
                       map.map.jumpTo({
@@ -160,6 +182,9 @@ export const CreateNew = ({ onClose }: { onClose: () => void }) => {
                     }
                   } else {
                     setGridPreview(false);
+                    if (isCurrentProjectUnprojected) {
+                      setGridHidden(true);
+                    }
                     if (map) {
                       if (values.location?.bbox) {
                         map.map.fitBounds(values.location.bbox, {
