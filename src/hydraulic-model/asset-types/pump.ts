@@ -19,7 +19,6 @@ export type PumpProperties = {
   speedPatternId?: PatternId;
   curveId?: CurveId;
   curve?: CurvePoint[];
-  efficiency?: number;
   efficiencyCurveId?: CurveId;
   energyPrice?: number;
   energyPricePatternId?: PatternId;
@@ -59,10 +58,6 @@ export class Pump extends Link<PumpProperties> {
 
   get curve() {
     return this.properties.curve;
-  }
-
-  get efficiency() {
-    return this.properties.efficiency;
   }
 
   get efficiencyCurveId() {

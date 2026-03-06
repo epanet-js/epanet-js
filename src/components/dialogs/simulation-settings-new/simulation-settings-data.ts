@@ -8,7 +8,6 @@ import {
   type StatusReport,
   defaultHydraulicsValues,
 } from "src/simulation/simulation-settings";
-import type { CurveId } from "src/hydraulic-model/curves";
 import type { PatternId } from "src/hydraulic-model/patterns";
 
 export type OptionSubcategory = {
@@ -136,7 +135,6 @@ export type FormValues = {
   reactionRoughnessCorrelation: number;
   reportEnergy: boolean;
   energyGlobalEfficiency: number;
-  energyGlobalEfficiencyCurveId: CurveId | null;
   energyGlobalPrice: number;
   energyGlobalPatternId: PatternId | null;
   energyDemandCharge: number;
@@ -191,7 +189,6 @@ export const buildInitialValues = (
     reactionRoughnessCorrelation: settings.reactionRoughnessCorrelation,
     reportEnergy: settings.reportEnergy,
     energyGlobalEfficiency: settings.energyGlobalEfficiency,
-    energyGlobalEfficiencyCurveId: settings.energyGlobalEfficiencyCurveId,
     energyGlobalPrice: settings.energyGlobalPrice,
     energyGlobalPatternId: settings.energyGlobalPatternId,
     energyDemandCharge: settings.energyDemandCharge,
@@ -257,8 +254,6 @@ export const hasChanges = (
       settings.reactionRoughnessCorrelation ||
     values.reportEnergy !== settings.reportEnergy ||
     values.energyGlobalEfficiency !== settings.energyGlobalEfficiency ||
-    values.energyGlobalEfficiencyCurveId !==
-      settings.energyGlobalEfficiencyCurveId ||
     values.energyGlobalPrice !== settings.energyGlobalPrice ||
     values.energyGlobalPatternId !== settings.energyGlobalPatternId ||
     values.energyDemandCharge !== settings.energyDemandCharge ||
@@ -305,7 +300,6 @@ export const buildUpdatedSettings = (
     reactionRoughnessCorrelation: values.reactionRoughnessCorrelation,
     reportEnergy: values.reportEnergy,
     energyGlobalEfficiency: values.energyGlobalEfficiency,
-    energyGlobalEfficiencyCurveId: values.energyGlobalEfficiencyCurveId,
     energyGlobalPrice: values.energyGlobalPrice,
     energyGlobalPatternId: values.energyGlobalPatternId,
     energyDemandCharge: values.energyDemandCharge,

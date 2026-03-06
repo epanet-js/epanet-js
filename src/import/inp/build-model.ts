@@ -563,7 +563,6 @@ const addPump = (
 
   const pumpEnergyData = inpData.energy.pumpEnergy.get(pumpData.id);
 
-  const efficiency = pumpEnergyData?.efficiency;
   let efficiencyCurveId: CurveId | undefined;
   if (pumpEnergyData?.efficiencyCurve) {
     const curveId = curvesContext.labelManager.getIdByLabel(
@@ -599,7 +598,6 @@ const addPump = (
     initialStatus,
     speed,
     speedPatternId,
-    efficiency,
     efficiencyCurveId,
     energyPrice,
     energyPricePatternId,

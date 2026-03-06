@@ -113,11 +113,8 @@ export const parseEnergy: RowParser = ({
     if (pumpId && keyword && value) {
       const entry = inpData.energy.pumpEnergy.get(pumpId) ?? {};
       const upperKeyword = keyword.toUpperCase();
-      if (upperKeyword === "EFFICIENCY") {
-        const parsed = parseFloat(value);
-        if (isNaN(parsed)) entry.efficiencyCurve = value;
-        else entry.efficiency = parsed;
-      } else if (upperKeyword === "PATTERN") entry.pattern = value;
+      if (upperKeyword.startsWith("EFFIC")) entry.efficiencyCurve = value;
+      else if (upperKeyword === "PATTERN") entry.pattern = value;
       else if (upperKeyword === "PRICE") entry.price = parseFloat(value);
       inpData.energy.pumpEnergy.set(pumpId, entry);
     }
@@ -133,12 +130,14 @@ export const parseEnergy: RowParser = ({
       .split(commentIdentifier)[0]
       .trim();
     const parsed = parseFloat(rawValue);
-    if (parsed !== defaultEnergySettings["GLOBAL EFFICIENCY"]) {
+    if (
+      !isNaN(parsed) &&
+      parsed !== defaultEnergySettings["GLOBAL EFFICIENCY"]
+    ) {
       if (!options?.extraOptions) {
         issues.addUsedSection(sectionName);
       }
-      if (isNaN(parsed)) inpData.energy.globalEfficiencyCurve = rawValue;
-      else inpData.energy.globalEfficiency = parsed;
+      inpData.energy.globalEfficiency = parsed;
     }
     return;
   }

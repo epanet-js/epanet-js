@@ -5,27 +5,6 @@ import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 
 describe("build inp energy", () => {
   describe("per-pump energy", () => {
-    it("writes numeric efficiency", () => {
-      const IDS = { J1: 1, J2: 2, PUMP1: 3 };
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction(IDS.J1, { label: "J1" })
-        .aJunction(IDS.J2, { label: "J2" })
-        .aPump(IDS.PUMP1, {
-          startNodeId: IDS.J1,
-          endNodeId: IDS.J2,
-          label: "PU1",
-          efficiency: 85,
-        })
-        .build();
-
-      const inp = buildInp(hydraulicModel, {
-        simulationSettings: defaultSimulationSettings,
-        labelIds: true,
-      });
-
-      expect(inp).toContain("Pump PU1 Efficiency\t85");
-    });
-
     it("writes efficiency curve label", () => {
       const IDS = { J1: 1, J2: 2, PUMP1: 3, EFF_CURVE: 10 };
       const hydraulicModel = HydraulicModelBuilder.with()
@@ -54,38 +33,6 @@ describe("build inp energy", () => {
       });
 
       expect(inp).toContain("Pump PU1 Efficiency\tEFF");
-    });
-
-    it("prioritizes efficiency curve over numeric efficiency", () => {
-      const IDS = { J1: 1, J2: 2, PUMP1: 3, EFF_CURVE: 10 };
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction(IDS.J1, { label: "J1" })
-        .aJunction(IDS.J2, { label: "J2" })
-        .aPump(IDS.PUMP1, {
-          startNodeId: IDS.J1,
-          endNodeId: IDS.J2,
-          label: "PU1",
-          efficiency: 85,
-          efficiencyCurveId: IDS.EFF_CURVE,
-        })
-        .aCurve({
-          id: IDS.EFF_CURVE,
-          type: "efficiency",
-          label: "EFF1",
-          points: [
-            { x: 0, y: 50 },
-            { x: 100, y: 80 },
-          ],
-        })
-        .build();
-
-      const inp = buildInp(hydraulicModel, {
-        simulationSettings: defaultSimulationSettings,
-        labelIds: true,
-      });
-
-      expect(inp).toContain("Pump PU1 Efficiency\tEFF1");
-      expect(inp).not.toContain("Pump PU1 Efficiency\t85");
     });
 
     it("writes energy price", () => {
@@ -215,41 +162,6 @@ describe("build inp energy", () => {
   });
 
   describe("global energy settings", () => {
-    it("marks global efficiency curve as used when usedCurves is true", () => {
-      const IDS = { J1: 1, J2: 2, EFF_CURVE: 10, UNUSED_CURVE: 11 };
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction(IDS.J1, { elevation: 10 })
-        .aJunction(IDS.J2, { elevation: 20 })
-        .aCurve({
-          id: IDS.EFF_CURVE,
-          type: "efficiency",
-          label: "GEFF",
-          points: [
-            { x: 0, y: 50 },
-            { x: 100, y: 80 },
-          ],
-        })
-        .aCurve({
-          id: IDS.UNUSED_CURVE,
-          type: "efficiency",
-          label: "UNUSED_EFF",
-          points: [{ x: 0, y: 60 }],
-        })
-        .build();
-
-      const inp = buildInp(hydraulicModel, {
-        simulationSettings: SimulationSettingsBuilder.with()
-          .energyGlobalEfficiencyCurveId(IDS.EFF_CURVE)
-          .build(),
-        usedCurves: true,
-      });
-
-      expect(inp).toContain("Global Effic\tGEFF");
-      expect(inp).toContain("GEFF\t0\t50");
-      expect(inp).toContain("GEFF\t100\t80");
-      expect(inp).not.toContain("UNUSED_EFF");
-    });
-
     it("marks global energy pattern as used when usedPatterns is true", () => {
       const IDS = { J1: 1, PAT: 20, UNUSED_PAT: 21 };
       const hydraulicModel = HydraulicModelBuilder.with()

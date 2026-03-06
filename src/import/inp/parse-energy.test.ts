@@ -24,23 +24,12 @@ const basePumpInp = (energyLines: string) => `
 
 describe("parse energy", () => {
   describe("per-pump energy", () => {
-    it("parses numeric efficiency onto pump", () => {
-      const inp = basePumpInp("PUMP\tpu1\tEFFICIENCY\t85");
-
-      const { hydraulicModel } = parseInp(inp);
-      const pump = getByLabel(hydraulicModel.assets, "pu1") as Pump;
-
-      expect(pump.efficiency).toBe(85);
-      expect(pump.efficiencyCurveId).toBeUndefined();
-    });
-
     it("parses efficiency curve label onto pump", () => {
       const inp = basePumpInp("PUMP\tpu1\tEFFICIENCY\tEFF1");
 
       const { hydraulicModel } = parseInp(inp);
       const pump = getByLabel(hydraulicModel.assets, "pu1") as Pump;
 
-      expect(pump.efficiency).toBeUndefined();
       expect(pump.efficiencyCurveId).toBeDefined();
       const curve = hydraulicModel.curves.get(pump.efficiencyCurveId!)!;
       expect(curve.label).toBe("EFF1");
@@ -87,28 +76,12 @@ describe("parse energy", () => {
   });
 
   describe("global energy settings", () => {
-    it("parses numeric global efficiency", () => {
+    it("parses global efficiency", () => {
       const inp = basePumpInp("Global Efficiency\t80");
 
       const { simulationSettings } = parseInp(inp, { extraOptions: true });
 
       expect(simulationSettings.energyGlobalEfficiency).toBe(80);
-      expect(simulationSettings.energyGlobalEfficiencyCurveId).toBeNull();
-    });
-
-    it("parses global efficiency curve label", () => {
-      const inp = basePumpInp("Global Efficiency\tEFF1");
-
-      const { hydraulicModel, simulationSettings } = parseInp(inp, {
-        extraOptions: true,
-      });
-
-      expect(simulationSettings.energyGlobalEfficiency).toBe(75);
-      expect(simulationSettings.energyGlobalEfficiencyCurveId).toBeDefined();
-      const curve = hydraulicModel.curves.get(
-        simulationSettings.energyGlobalEfficiencyCurveId!,
-      )!;
-      expect(curve.label).toBe("EFF1");
     });
 
     it("parses global price", () => {
@@ -141,15 +114,6 @@ describe("parse energy", () => {
       expect(pattern.label).toBe("PAT1");
     });
 
-    it("ignores undefined global efficiency curve", () => {
-      const inp = basePumpInp("Global Efficiency\tNONEXISTENT");
-
-      const { simulationSettings } = parseInp(inp, { extraOptions: true });
-
-      expect(simulationSettings.energyGlobalEfficiency).toBe(75);
-      expect(simulationSettings.energyGlobalEfficiencyCurveId).toBeNull();
-    });
-
     it("ignores undefined global pattern", () => {
       const inp = basePumpInp("Global Pattern\tNONEXISTENT");
 
@@ -164,7 +128,6 @@ describe("parse energy", () => {
       const { simulationSettings } = parseInp(inp, { extraOptions: true });
 
       expect(simulationSettings.energyGlobalEfficiency).toBe(75);
-      expect(simulationSettings.energyGlobalEfficiencyCurveId).toBeNull();
       expect(simulationSettings.energyGlobalPrice).toBe(0);
       expect(simulationSettings.energyGlobalPatternId).toBeNull();
       expect(simulationSettings.energyDemandCharge).toBe(0);
@@ -178,7 +141,6 @@ describe("parse energy", () => {
       const { hydraulicModel } = parseInp(inp);
       const pump = getByLabel(hydraulicModel.assets, "pu1") as Pump;
 
-      expect(pump.efficiency).toBeUndefined();
       expect(pump.efficiencyCurveId).toBeUndefined();
     });
 

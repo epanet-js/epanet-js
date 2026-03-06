@@ -122,11 +122,7 @@ const buildEnergySection = (
 ): string[] => {
   const de = defaultEnergyValues;
   const lines: string[] = ["[ENERGY]"];
-  if (settings.energyGlobalEfficiencyCurveId !== null) {
-    lines.push(
-      `Global Effic\t${idMap.curveId(settings.energyGlobalEfficiencyCurveId)}`,
-    );
-  } else if (settings.energyGlobalEfficiency !== de.energyGlobalEfficiency) {
+  if (settings.energyGlobalEfficiency !== de.energyGlobalEfficiency) {
     lines.push(`Global Effic\t${settings.energyGlobalEfficiency}`);
   }
   if (settings.energyGlobalPrice !== de.energyGlobalPrice)
@@ -477,9 +473,6 @@ export const buildInp = withDebugInstrumentation(
     const usedCurveIds = new Set<number>();
     const usedPatternIds = new Set<number>();
 
-    if (opts.simulationSettings.energyGlobalEfficiencyCurveId !== null) {
-      usedCurveIds.add(opts.simulationSettings.energyGlobalEfficiencyCurveId);
-    }
     if (opts.simulationSettings.energyGlobalPatternId !== null) {
       usedPatternIds.add(opts.simulationSettings.energyGlobalPatternId);
     }
@@ -931,8 +924,6 @@ const appendPump = (
       `Pump ${linkId} Efficiency\t${idMap.curveId(pump.efficiencyCurveId)}`,
     );
     usedCurveIds.add(pump.efficiencyCurveId);
-  } else if (pump.efficiency !== undefined) {
-    sections.energy.push(`Pump ${linkId} Efficiency\t${pump.efficiency}`);
   }
   if (pump.energyPrice !== undefined) {
     sections.energy.push(`Pump ${linkId} Price\t${pump.energyPrice}`);

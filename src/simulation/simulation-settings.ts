@@ -1,5 +1,4 @@
 import { nanoid } from "nanoid";
-import type { CurveId } from "src/hydraulic-model/curves";
 import type { PatternId } from "src/hydraulic-model/patterns";
 
 export type DemandModel = "DDA" | "PDA";
@@ -59,7 +58,6 @@ export type SimulationSettings = {
   reactionRoughnessCorrelation: number;
   reportEnergy: boolean;
   energyGlobalEfficiency: number;
-  energyGlobalEfficiencyCurveId: CurveId | null;
   energyGlobalPrice: number;
   energyGlobalPatternId: PatternId | null;
   energyDemandCharge: number;
@@ -99,7 +97,6 @@ export const defaultWaterQualityValues = {
 export const defaultEnergyValues = {
   reportEnergy: false,
   energyGlobalEfficiency: 75,
-  energyGlobalEfficiencyCurveId: null as CurveId | null,
   energyGlobalPrice: 0,
   energyGlobalPatternId: null as PatternId | null,
   energyDemandCharge: 0,

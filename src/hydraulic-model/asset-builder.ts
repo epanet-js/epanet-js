@@ -40,7 +40,6 @@ export type PumpBuildData = {
   curveId?: CurveId;
   speed?: number;
   speedPatternId?: PatternId;
-  efficiency?: number;
   efficiencyCurveId?: CurveId;
   energyPrice?: number;
   energyPricePatternId?: PatternId;
@@ -227,7 +226,6 @@ export class AssetBuilder {
     power,
     speed = 1,
     speedPatternId,
-    efficiency,
     efficiencyCurveId,
     energyPrice,
     energyPricePatternId,
@@ -256,7 +254,6 @@ export class AssetBuilder {
           : definitionType === "curve"
             ? defaultCurvePoints("pump")
             : undefined,
-        efficiency,
         efficiencyCurveId,
         energyPrice,
         energyPricePatternId,

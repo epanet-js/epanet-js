@@ -110,7 +110,6 @@ export type CustomerPointData =
     };
 
 export type PumpEnergyData = {
-  efficiency?: number;
   efficiencyCurve?: string;
   pattern?: string;
   price?: number;
@@ -172,7 +171,6 @@ export type InpData = {
   };
   energy: {
     globalEfficiency?: number;
-    globalEfficiencyCurve?: string;
     globalPrice?: number;
     globalPattern?: string;
     demandCharge?: number;

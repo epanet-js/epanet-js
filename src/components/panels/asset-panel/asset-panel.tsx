@@ -1874,20 +1874,6 @@ const PumpEditor = ({
       </Section>
       {isEnergyEnabled && (
         <Section title={translate("energy")}>
-          <QuantityRow
-            name="efficiency"
-            value={pump.efficiency ?? null}
-            unit={null}
-            comparison={getComparison("efficiency", pump.efficiency)}
-            onChange={(_, newValue, oldValue) =>
-              onPropertyChange(
-                "efficiency",
-                newValue || undefined,
-                oldValue || undefined,
-              )
-            }
-            readOnly={readonly}
-          />
           <PumpEfficiencyCurveField
             pump={pump}
             curves={hydraulicModel.curves}
@@ -2130,7 +2116,7 @@ const PumpEfficiencyCurveField = ({
   const handleOnChange = (
     _name: string,
     newValue: CurveId | null,
-    oldValue: CurveId | null,
+    _oldValue: CurveId | null,
   ) => {
     if (newValue === null) return;
     if (newValue === -1) {
@@ -2141,11 +2127,9 @@ const PumpEfficiencyCurveField = ({
       });
       return;
     }
-    onChange(
-      "efficiencyCurveId",
-      newValue === 0 ? undefined : newValue,
-      oldValue || undefined,
-    );
+    const efficiencyCurveId = newValue === 0 ? undefined : newValue;
+    if (pump.efficiencyCurveId !== efficiencyCurveId)
+      onChange("efficiencyCurveId", efficiencyCurveId, pump.efficiencyCurveId);
   };
 
   return (
@@ -2155,10 +2139,10 @@ const PumpEfficiencyCurveField = ({
       options={curveOptions}
       stickyGroupClassName="italic"
       stickyFirstGroup
-      nullable={true}
-      placeholder={translate("none")}
       onChange={handleOnChange}
       readOnly={readOnly}
+      nullable
+      placeholder={translate("none")}
     />
   );
 };
