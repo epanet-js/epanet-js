@@ -88,7 +88,6 @@ export const DialogContainer = ({
           {/**radix complains if no description, so at least having an empty one helps**/}
           <Dialog.Description></Dialog.Description>
           <StyledDialogContent
-            widthClasses=""
             onEscapeKeyDown={(e) => {
               const target = e.target as HTMLElement;
               const isInputFocused =
@@ -168,6 +167,41 @@ export function DialogHeader({
         </div>
       )}
       <div className="self-start">
+        <DialogCloseX />
+      </div>
+    </div>
+  );
+}
+
+export function DialogHeaderNew({
+  title,
+  children,
+  badge,
+}: {
+  title?: string;
+  children?: ReactNode;
+  badge?: ReactNode;
+}) {
+  return (
+    <div
+      className="
+        flex items-center gap-x-2
+        px-4 py-3
+        bg-blue-500
+        text-base
+        text-black dark:text-white
+      "
+    >
+      {children && children}
+      {title && (
+        <div className="flex items-center gap-3 flex-auto min-w-0">
+          <h1 className="text-xl font-semibold text-gray-900 break-words sm:truncate">
+            {title}
+          </h1>
+          {badge && badge}
+        </div>
+      )}
+      <div className="relative top-1">
         <DialogCloseX />
       </div>
     </div>

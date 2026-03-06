@@ -275,16 +275,92 @@ export const StyledAlertDialogOverlay = classed(AlertDialog.Overlay)(
 );
 export const StyledDialogOverlay = classed(Dialog.Overlay)(overlayClasses);
 
+// 1. Extract types for better readability and reusability
+type DialogSize = "xs" | "sm" | "md" | "lg" | "xl" | "fullscreen";
+type DialogHeight = DialogSize;
+type FillMode = "full" | "auto";
+
+interface DialogContentProps {
+  size?: DialogSize;
+  height?: DialogHeight;
+  fillMode?: FillMode;
+  sizeClasses?: string;
+}
+
+// 2. Group static base classes to declutter the main function
+const BASE_CLASSES = [
+  "fixed z-[100] overflow-y-auto",
+  "text-left",
+  "margin-4",
+  "bg-blue-100 shadow-md",
+  "dark:bg-gray-900 dark:text-white dark:shadow-none dark:border dark:border-black",
+];
+
+// 3. Map size constraints cleanly
+const SIZE_WIDTH_MAP: Record<DialogSize, string> = {
+  xs: "sm:max-w-[360px]",
+  sm: "sm:max-w-screen-sm",
+  md: "max-w-full md:max-w-screen-md lg:max-w-screen-md",
+  lg: "max-w-full lg:max-w-screen-lg xl:max-w-screen-lg",
+  xl: "max-w-full xl:max-w-screen-xl 2xl:max-w-screen-xl",
+  fullscreen: "inset-0 h-100dvh w-screen",
+};
+
+// 4. Map height overrides (makes it easy to add "md" or "xl" heights later)
+const HEIGHT_OVERRIDE_MAP: Partial<Record<DialogHeight, string>> = {
+  // sm: "vsm:w-dvw vsm:h-dvh hsm:h-full hmd:h-[calc(100dvh_-_1rem)] hlg:h-[calc(100dvh_-_1rem)] hxl:h-[calc(100dvh_-_1rem)]",
+  // md: "vsm:w-dvw vsm:h-dvh hsm:h-full hmd:h-[calc(100dvh_-_1rem)] hlg:h-[calc(100dvh_-_1rem)] hxl:h-[calc(100dvh_-_1rem)]",
+  lg: "vsm:w-dvw vsm:h-dvh vmd:h-[848px] hsm:h-full hmd:h-[calc(100dvh_-_1rem)] hlg:h-[848px] hxl:h-[848px]",
+};
+
+// 5. Shared centering classes for non-fullscreen dialogs
+const CENTERING_CLASSES =
+  "sm:left-2/4 sm:top-2/4 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded sm:align-middle";
+
+export const styledDialogContentNew = ({
+  size,
+  height,
+  sizeClasses,
+  fillMode = "auto",
+}: DialogContentProps) => {
+  const isFullscreen = size === "fullscreen";
+  const needsFlexCol = fillMode === "full" || size === "xl" || isFullscreen;
+
+  return clsx(
+    BASE_CLASSES,
+
+    // Layout & Fill Mode
+    needsFlexCol && "flex flex-col",
+    fillMode === "full" ? "w-full" : "w-full sm:w-auto",
+
+    // Sizing (Condition: apply 'sm' only if no custom sizeClasses are provided)
+    size && size !== "sm" && SIZE_WIDTH_MAP[size],
+    size === "sm" && !sizeClasses && SIZE_WIDTH_MAP.sm,
+
+    // Custom Widths (Ignored in fullscreen)
+    !isFullscreen && sizeClasses,
+
+    // Positioning (Ignored in fullscreen)
+    !isFullscreen && [
+      CENTERING_CLASSES,
+      size === "xl" ? "sm:h-[90vh]" : "max-h-[100vh] inset-0 sm:inset-auto",
+    ],
+
+    // Explicit Height Overrides
+    height && HEIGHT_OVERRIDE_MAP[height],
+  );
+};
+
 export const styledDialogContent = ({
   size,
   height,
-  widthClasses,
+  sizeClasses,
   fillMode = "auto",
 }: {
   size?: "sm" | "xs" | "md" | "lg" | "xl" | "fullscreen";
   height?: "sm" | "xs" | "md" | "lg" | "xl" | "fullscreen";
   fillMode?: "full" | "auto";
-  widthClasses?: string;
+  sizeClasses?: string;
 }) => {
   return clsx(
     `
@@ -302,7 +378,7 @@ export const styledDialogContent = ({
     { "w-full": fillMode === "full", "w-full sm:w-auto": fillMode === "auto" },
     {
       "sm:max-w-[360px]": size === "xs",
-      "sm:max-w-screen-sm": size === "sm" && !widthClasses,
+      "sm:max-w-screen-sm": size === "sm" && !sizeClasses,
       "max-w-full md:max-w-screen-md lg:max-w-screen-md": size === "md",
       "max-w-full lg:max-w-screen-lg xl:max-w-screen-lg": size === "lg",
       "max-w-full xl:max-w-screen-xl 2xl:max-w-screen-xl": size === "xl",
@@ -313,7 +389,7 @@ export const styledDialogContent = ({
       : size === "xl"
         ? "sm:h-[90vh] sm:left-2/4 sm:top-2/4 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded sm:align-middle"
         : "max-h-[100vh] inset-0 sm:inset-auto sm:left-2/4 sm:top-2/4 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded sm:align-middle",
-    size !== "fullscreen" && widthClasses ? widthClasses : "",
+    size !== "fullscreen" && sizeClasses ? sizeClasses : "",
     height === "lg"
       ? "vsm:w-dvw vsm:h-dvh vmd:h-[848px] hsm:h-full hmd:h-[calc(100dvh_-_1rem)] hlg:h-[848px] hxl:h-[848px]"
       : "",
@@ -341,18 +417,21 @@ const customWelcomeDialogContent = () => {
   );
 };
 
-// Wrapper to prevent widthClasses and fillMode from being passed to DOM
+// Wrapper to prevent sizeClasses and fillMode from being passed to DOM
 const FilteredDialogContent = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<typeof Dialog.Content> & {
-    widthClasses?: string;
+    sizeClasses?: string;
     fillMode?: string;
   }
->(({ widthClasses: _widthClasses, fillMode: _fillMode, ...props }, ref) => (
+>(({ sizeClasses: _sizeClasses, fillMode: _fillMode, ...props }, ref) => (
   <Dialog.Content ref={ref} {...props} />
 ));
 export const StyledDialogContent = classed(FilteredDialogContent)(
   styledDialogContent,
+);
+export const StyledDialogContentNew = classed(FilteredDialogContent)(
+  styledDialogContentNew,
 );
 export const WelcomeDialogContent = classed(Dialog.Content)(
   customWelcomeDialogContent,
@@ -494,7 +573,7 @@ export const StyledPopoverContent = classed(Popover.Content)(
     size = "sm",
     flush = "no",
   }: {
-    size?: B3Size | "no-width" | "auto";
+    size?: B3Size | "no-size" | "auto";
     flush?: "yes" | "no";
   }) =>
     clsx(
@@ -849,7 +928,7 @@ export const styledButton = ({
   side = "default",
   textAlign = "center",
 }: {
-  size?: B3Size | "full-width";
+  size?: B3Size | "full-size";
   variant?: B3Variant;
   disabled?: boolean;
   side?: B3Side;
@@ -881,7 +960,7 @@ export const styledButton = ({
     // Focus
     `focus-visible:outline-none`,
     // Sizing
-    sharedPadding(size === "full-width" ? "md" : size, side),
+    sharedPadding(size === "full-size" ? "md" : size, side),
     // Display
     `inline-flex items-center gap-x-1`,
     // Transition
@@ -891,7 +970,7 @@ export const styledButton = ({
     // Outline
     sharedOutline(variant, disabled),
     sharedBackground(variant, disabled),
-    size === "full-width" &&
+    size === "full-size" &&
       `flex-auto w-full ${textAlign === "start" ? "justify-start" : "justify-center"}`,
     // Colored variants
     variant === "danger-quiet" &&

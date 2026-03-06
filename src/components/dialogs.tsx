@@ -15,6 +15,7 @@ import { ParserIssues } from "src/import/inp";
 import { useUserTracking } from "src/infra/user-tracking";
 import { LoadingDialog } from "./dialog";
 import { WelcomeDialog } from "./dialogs/welcome";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 const SimulationSettingsDialog = dynamic(
   () =>
@@ -119,6 +120,19 @@ const SimulationSummaryDialog = dynamic<{
   () =>
     import("src/components/dialogs/simulation-summary").then(
       (r) => r.SimulationSummaryDialog,
+    ),
+  {
+    loading: () => <LoadingDialog />,
+  },
+);
+
+const SimulationSummaryDialogNew = dynamic<{
+  modal: dialogState.SimulationSummaryState;
+  onClose: () => void;
+}>(
+  () =>
+    import("src/components/dialogs/simulation-summary-new").then(
+      (r) => r.SimulationSummaryDialogNew,
     ),
   {
     loading: () => <LoadingDialog />,
@@ -377,6 +391,8 @@ const FirstScenarioDialog = dynamic<{
 export const Dialogs = memo(function Dialogs() {
   const [dialog, setDialogState] = useAtom(dialogAtom);
   const userTracking = useUserTracking();
+  const isModalsOn = useFeatureFlag("FLAG_MODALS");
+
   const onClose = useCallback(() => {
     setDialogState(null);
   }, [setDialogState]);
@@ -431,9 +447,12 @@ export const Dialogs = memo(function Dialogs() {
   if (dialog.type === "simulationSettings") {
     return <SimulationSettingsDialog />;
   }
-  if (dialog.type === "simulationSummary") {
-    return <SimulationSummaryDialog modal={dialog} onClose={onClose} />;
+
+  // Early return ONLY if the modal feature flag is toggled ON
+  if (dialog.type === "simulationSummary" && isModalsOn) {
+    return <SimulationSummaryDialogNew modal={dialog} onClose={onClose} />;
   }
+
   if (dialog.type === "importCustomerPointsWizard") {
     return <ImportCustomerPointsWizard isOpen={true} onClose={onClose} />;
   }
@@ -569,6 +588,10 @@ export const Dialogs = memo(function Dialogs() {
         />
       ),
     )
+    // Add fallback here so `ts-pattern` resolves when FLAG_MODALS is off
+    .with({ type: "simulationSummary" }, (modal) => (
+      <SimulationSummaryDialog modal={modal} onClose={onClose} />
+    ))
     .exhaustive();
 
   //DEPRECATED PATH! NEW DIALOGS SHOW USE DialogContainer COMPONENT
