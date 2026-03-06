@@ -4,6 +4,7 @@ import { Form, Formik } from "formik";
 
 import { DialogContainer, DialogHeader, useDialogState } from "../../dialog";
 import { Button } from "src/components/elements";
+import { useTranslate } from "src/hooks/use-translate";
 import { simulationSettingsAtom } from "src/state/jotai";
 
 import { SimulationSettingsSidebar } from "./simulation-settings-sidebar";
@@ -34,6 +35,7 @@ export type {
 
 export const SimulationSettingsNewDialog = () => {
   const { closeDialog } = useDialogState();
+  const translate = useTranslate();
   const simulationSettings = useAtomValue(simulationSettingsAtom);
   const setSimulationSettings = useSetAtom(simulationSettingsAtom);
 
@@ -56,7 +58,7 @@ export const SimulationSettingsNewDialog = () => {
 
   return (
     <DialogContainer size="md" height="lg" onClose={closeDialog}>
-      <DialogHeader title="Simulation Settings" />
+      <DialogHeader title={translate("simulationSettings.title")} />
       <Formik onSubmit={handleSubmit} initialValues={initialValues}>
         <SimulationSettingsForm
           activeSection={activeSection}
@@ -80,6 +82,7 @@ const SimulationSettingsForm = ({
   scrollContainerRef: (node: HTMLDivElement | null) => void;
   onClose: () => void;
 }) => {
+  const translate = useTranslate();
   const { hasValidationError } = useTimeSettingsValidation();
 
   return (
@@ -114,10 +117,10 @@ const SimulationSettingsForm = ({
       </div>
       <div className="flex items-center justify-end gap-3 pt-6">
         <Button type="button" variant="default" onClick={onClose}>
-          Cancel
+          {translate("dialog.cancel")}
         </Button>
         <Button type="submit" variant="primary" disabled={hasValidationError}>
-          Save settings
+          {translate("simulationSettings.save")}
         </Button>
       </div>
     </Form>
