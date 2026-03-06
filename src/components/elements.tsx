@@ -292,7 +292,7 @@ const BASE_CLASSES = [
   "fixed z-[100] overflow-y-auto",
   "text-left",
   "margin-4",
-  "bg-blue-100 shadow-md",
+  "bg-white dark:bg-gray-900 shadow-md",
   "dark:bg-gray-900 dark:text-white dark:shadow-none dark:border dark:border-black",
 ];
 
@@ -315,7 +315,7 @@ const HEIGHT_OVERRIDE_MAP: Partial<Record<DialogHeight, string>> = {
 
 // 5. Shared centering classes for non-fullscreen dialogs
 const CENTERING_CLASSES =
-  "sm:left-2/4 sm:top-2/4 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded sm:align-middle";
+  "sm:left-2/4 sm:top-2/4 sm:-translate-x-1/2 sm:-translate-y-1/2 rounded-lg sm:align-middle";
 
 export const styledDialogContentNew = ({
   size,

@@ -14,6 +14,7 @@ import {
   Loading,
   StyledDialogContent,
   StyledDialogOverlay,
+  StyledDialogContentNew,
 } from "src/components/elements";
 import { useTranslate } from "src/hooks/use-translate";
 
@@ -21,6 +22,8 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { useSetAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog";
 import { CloseIcon, RefreshIcon } from "src/icons";
+import { Formik, Form } from "formik";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 type SlottableIcon =
   | React.FC<React.ComponentProps<"svg">>
@@ -187,15 +190,15 @@ export function DialogHeaderNew({
       className="
         flex items-center gap-x-2
         px-4 py-3
-        bg-blue-500
         text-base
         text-black dark:text-white
+        border-b border-gray-200
       "
     >
       {children && children}
       {title && (
         <div className="flex items-center gap-3 flex-auto min-w-0">
-          <h1 className="text-xl font-semibold text-gray-900 break-words sm:truncate">
+          <h1 className="text-md font-semibold text-gray-900 break-words sm:truncate">
             {title}
           </h1>
           {badge && badge}
@@ -218,6 +221,68 @@ export const DialogCloseX = () => {
     >
       <CloseIcon />
     </Dialog.Close>
+  );
+};
+
+interface BaseModalProps {
+  title: string;
+  size?: "sm" | "xs" | "md" | "lg" | "xl" | "fullscreen";
+  isOpen: boolean;
+  onClose: () => void;
+  children: React.ReactNode;
+  footer?: React.ReactNode;
+  // Formik Integration
+  initialValues?: any;
+  onSubmit?: (values: any) => void;
+  earlyAccess?: boolean;
+}
+
+export const BaseModal = ({
+  title,
+  size = "sm",
+  isOpen,
+  onClose,
+  children,
+  footer,
+  initialValues = {},
+  onSubmit,
+  earlyAccess,
+}: BaseModalProps) => {
+
+  const ModalLayout = (
+    <div className="modal-container flex flex-col h-full">
+      <DialogHeaderNew
+        title={title}
+        badge={
+          earlyAccess && (
+            <span className="text-xs font-normal opacity-60">early access</span>
+          )
+        }
+      />
+      <div className="modal-content flex-grow py-4">
+        {children}
+      </div>
+      {footer && <DialogFooter>{footer}</DialogFooter>}
+    </div>
+  );
+
+  return (
+    <Dialog.Root open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <Dialog.Portal>
+        <StyledDialogOverlay />
+        <StyledDialogContentNew size={size} fillMode="full" onOpenAutoFocus={(e) => e.preventDefault()}>
+          <DefaultErrorBoundary>
+            {onSubmit ? (
+              <Formik initialValues={initialValues} onSubmit={onSubmit}>
+                <Form className="h-full">{ModalLayout}</Form>
+              </Formik>
+            ) : (
+              ModalLayout
+            )}
+          </DefaultErrorBoundary>
+        </StyledDialogContentNew>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 };
 
@@ -336,6 +401,78 @@ export function SimpleDialogActions({
         )}
       />
     </div>
+  );
+}
+
+export const DialogFooter = ({ children }: { children: ReactNode }) => {
+  return children;
+};
+
+export function SimpleDialogActionsNew({
+  action,
+  onClose,
+  fullWidthSubmit = false,
+  autoFocusSubmit = true,
+  secondary,
+  variant = "md",
+  isDisabled = false,
+}: {
+  action?: string;
+  autoFocusSubmit?: boolean;
+  onClose?: () => void;
+  fullWidthSubmit?: boolean;
+  secondary?: {
+    action: string;
+    onClick: () => void;
+  };
+  variant?: "md" | "xs";
+  isDisabled?: boolean;
+}) {
+  const translate = useTranslate();
+  const { isSubmitting } = useFormikContext();
+  return (
+    <footer
+      className={clsx(
+        "relative",
+        fullWidthSubmit
+          ? "flex items-stretch justify-stretch"
+          : `flex flex-col sm:items-center sm:flex-row-reverse gap-3 px-4 py-3 border-t border-gray-200`,
+      )}
+    >
+      {action ? (
+        <Button
+          type="submit"
+          disabled={isSubmitting || isDisabled}
+          variant="primary"
+          autoFocus={autoFocusSubmit}
+          size={fullWidthSubmit ? "full-width" : "sm"}
+        >
+          {action}
+        </Button>
+      ) : null}
+      {secondary ? (
+        <Button
+          type="button"
+          disabled={isSubmitting}
+          variant="default"
+          onClick={secondary.onClick}
+        >
+          {secondary.action}
+        </Button>
+      ) : null}
+      {onClose ? (
+        <Button type="button" onClick={onClose}>
+          {translate(action || secondary ? "dialog.cancel" : "dialog.close")}
+        </Button>
+      ) : null}
+      <RefreshIcon
+        className={clsx(
+          "animate-spin transition-opacity",
+          isSubmitting ? "opacity-50" : "opacity-0",
+          fullWidthSubmit && "absolute top-8 right-2.5 text-white",
+        )}
+      />
+    </footer>
   );
 }
 
