@@ -1,4 +1,4 @@
-import { DialogHeader } from "../dialog";
+import { DialogContainer, DialogHeader, useDialogState } from "../dialog";
 import { Form, Formik } from "formik";
 import mapboxgl from "mapbox-gl";
 import { SimpleDialogActions } from "src/components/dialog";
@@ -72,7 +72,7 @@ type SubmitProps = {
   projection: Projection;
 };
 
-export const CreateNew = ({ onClose }: { onClose: () => void }) => {
+export const CreateNew = () => {
   const translate = useTranslate();
   const rep = usePersistence();
   const transactImport = rep.useTransactImport();
@@ -83,6 +83,7 @@ export const CreateNew = ({ onClose }: { onClose: () => void }) => {
   const setGridPreview = useSetAtom(gridPreviewAtom);
   const setGridHidden = useSetAtom(gridHiddenAtom);
   const isCurrentProjectUnprojected = useAtomValue(isUnprojectedAtom);
+  const { closeDialog } = useDialogState();
 
   const originalMapStateRef = useRef<mapboxgl.LngLatBounds | null>(null);
 
@@ -93,6 +94,17 @@ export const CreateNew = ({ onClose }: { onClose: () => void }) => {
       map.map.jumpTo({ center: DEFAULT_MAP_CENTER, zoom: DEFAULT_MAP_ZOOM });
     }
   }
+
+  const handleCancel = useCallback(() => {
+    setGridPreview(false);
+    setGridHidden(false);
+    if (map && originalMapStateRef.current) {
+      map.setBounds(originalMapStateRef.current, {
+        animate: false,
+      });
+    }
+    closeDialog();
+  }, [map, setGridPreview, setGridHidden, closeDialog]);
 
   const handleSubmit = useCallback(
     ({ unitsSpec, headlossFormula, location, projection }: SubmitProps) => {
@@ -126,32 +138,21 @@ export const CreateNew = ({ onClose }: { onClose: () => void }) => {
         projection,
       });
       setFileInfo(null);
-      onClose();
+      closeDialog();
     },
     [
       transactImport,
       userTracking,
       setFileInfo,
-      onClose,
       map,
       setGridPreview,
       setGridHidden,
+      closeDialog,
     ],
   );
 
-  const handleCancel = useCallback(() => {
-    setGridPreview(false);
-    setGridHidden(false);
-    if (map && originalMapStateRef.current) {
-      map.setBounds(originalMapStateRef.current, {
-        animate: false,
-      });
-    }
-    onClose();
-  }, [map, onClose, setGridPreview, setGridHidden]);
-
   return (
-    <>
+    <DialogContainer onClose={handleCancel}>
       <DialogHeader title={translate("newProject")} />
       <Formik
         onSubmit={handleSubmit}
@@ -227,7 +228,7 @@ export const CreateNew = ({ onClose }: { onClose: () => void }) => {
           </Form>
         )}
       </Formik>
-    </>
+    </DialogContainer>
   );
 };
 
