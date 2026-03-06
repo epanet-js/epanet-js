@@ -722,17 +722,17 @@ export const EnergySection = () => {
       }
     }
 
-    const noneGroup: SelectorOption<number>[] = [
+    const constantGroup: SelectorOption<number>[] = [
       {
         label:
           patternGroup.length === 0
             ? translate("simulationSettings.noPatternsYet")
-            : translate("none"),
+            : translate("constant"),
         value: EMPTY_PATTERN_ID,
       },
     ];
 
-    return patternGroup.length ? [...noneGroup, ...patternGroup] : [];
+    return patternGroup.length ? [...constantGroup, ...patternGroup] : [];
   }, [patterns, translate]);
 
   return (
@@ -778,7 +778,7 @@ export const EnergySection = () => {
           placeholder={
             energyPricePatternOptions.length === 0
               ? translate("simulationSettings.noPatternsYet")
-              : translate("none")
+              : translate("constant")
           }
           listClassName="first:italic"
           onChange={(v) =>

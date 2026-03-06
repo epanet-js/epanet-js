@@ -208,7 +208,7 @@ export const QuantityRow = <P extends string>({
   positiveOnly = false,
   readOnly = false,
   isNullable = true,
-  placeholder,
+  placeholder = "",
   comparison,
   onChange,
 }: {
@@ -229,7 +229,9 @@ export const QuantityRow = <P extends string>({
 
   const displayValue =
     value === null
-      ? translate("notAvailable")
+      ? isNullable && placeholder
+        ? ""
+        : translate("notAvailable")
       : localizeDecimal(value, { decimals });
 
   const label = unit

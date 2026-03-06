@@ -32,7 +32,7 @@ import { Quantities } from "src/model-metadata/quantities-spec";
 import { useTranslate } from "src/hooks/use-translate";
 import { usePersistence } from "src/lib/persistence";
 import { useUserTracking } from "src/infra/user-tracking";
-import { stagingModelAtom } from "src/state/jotai";
+import { stagingModelAtom, simulationSettingsAtom } from "src/state/jotai";
 import {
   changeProperty,
   changeProperties,
@@ -1785,6 +1785,7 @@ const PumpEditor = ({
   readonly?: boolean;
 }) => {
   const isEnergyEnabled = useFeatureFlag("FLAG_ENERGY");
+  const simulationSettings = useAtomValue(simulationSettingsAtom);
   const translate = useTranslate();
   const { footer } = useQuickGraph(pump.id, "pump");
   const { getComparison, getPumpCurveComparison, isNew } =
@@ -1892,11 +1893,14 @@ const PumpEditor = ({
                 oldValue || undefined,
               )
             }
+            isNullable
             readOnly={readonly}
+            placeholder={localizeDecimal(simulationSettings.energyGlobalPrice)}
           />
           <PumpEnergyPricePatternField
             pump={pump}
             patterns={hydraulicModel.patterns}
+            globalPatternId={simulationSettings.energyGlobalPatternId}
             onPropertyChange={onPropertyChange}
             readOnly={readonly}
           />
@@ -2150,11 +2154,13 @@ const PumpEfficiencyCurveField = ({
 const PumpEnergyPricePatternField = ({
   pump,
   patterns,
+  globalPatternId,
   onPropertyChange,
   readOnly = false,
 }: {
   pump: Pump;
   patterns: Patterns;
+  globalPatternId: PatternId | null;
   onPropertyChange: OnPropertyChange;
   readOnly?: boolean;
 }) => {
@@ -2171,11 +2177,22 @@ const PumpEnergyPricePatternField = ({
         patternGroup.push({ label: pattern.label, value: pattern.id });
       }
     }
-    const noneGroup: SelectorOption<PatternId>[] = [
-      { value: 0, label: translate("none") },
+    const constantGroup: SelectorOption<PatternId>[] = [
+      { value: 0, label: translate("constant") },
     ];
-    return [libraryGroup, [...noneGroup, ...patternGroup]];
+    const selectableOptions = patternGroup.length
+      ? [...constantGroup, ...patternGroup]
+      : [];
+    return [libraryGroup, selectableOptions];
   }, [patterns, translate]);
+
+  const placeholder = useMemo(() => {
+    if (globalPatternId !== null) {
+      const globalPattern = patterns.get(globalPatternId);
+      if (globalPattern) return globalPattern.label;
+    }
+    return translate("constant");
+  }, [globalPatternId, patterns, translate]);
 
   const handleChange = (
     _: string,
@@ -2203,10 +2220,10 @@ const PumpEnergyPricePatternField = ({
       name="energyPricePattern"
       selected={pump.energyPricePatternId ?? null}
       options={patternOptions}
-      stickyGroupClassName="italic"
+      listClassName="first:italic"
       stickyFirstGroup
       nullable={true}
-      placeholder={translate("none")}
+      placeholder={placeholder}
       onChange={handleChange}
       readOnly={readOnly}
     />
