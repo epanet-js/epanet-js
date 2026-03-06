@@ -288,7 +288,7 @@ export const styledDialogContent = ({
 }) => {
   return clsx(
     `
-      fixed z-40
+      fixed z-[100]
       overflow-y-auto
       p-6 sm:p-8
       text-left
@@ -336,7 +336,7 @@ const customWelcomeDialogContent = () => {
       left-2/4 top-2/4 -translate-x-1/2 -translate-y-1/2
       overflow-y-auto placemark-scrollbar
       p-0
-      z-40
+      z-[100]
       `,
   );
 };
