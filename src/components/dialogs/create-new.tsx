@@ -151,7 +151,6 @@ export const CreateNew = ({ onClose }: { onClose: () => void }) => {
                 onChange={(projection) => {
                   void setFieldValue("projection", projection);
                   if (projection === "xy-grid") {
-                    void setFieldValue("location", undefined);
                     setGridPreview(true);
                     if (map) {
                       map.map.jumpTo({
@@ -161,10 +160,17 @@ export const CreateNew = ({ onClose }: { onClose: () => void }) => {
                     }
                   } else {
                     setGridPreview(false);
-                    if (map && originalMapStateRef.current) {
-                      map.setBounds(originalMapStateRef.current, {
-                        animate: false,
-                      });
+                    if (map) {
+                      if (values.location?.bbox) {
+                        map.map.fitBounds(values.location.bbox, {
+                          padding: 50,
+                          animate: false,
+                        });
+                      } else if (originalMapStateRef.current) {
+                        map.setBounds(originalMapStateRef.current, {
+                          animate: false,
+                        });
+                      }
                     }
                   }
                 }}
