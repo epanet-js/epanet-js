@@ -309,7 +309,7 @@ body.dark .mapboxgl-ctrl-attrib-button {
   width: calc(100% + 2 * var(--scroll-shadow-inset, 0px));
   margin-inline: calc(-1 * var(--scroll-shadow-inset, 0px));
   height: 10px;
-  z-index: 100;
+  z-index: 12;
   pointer-events: none;
   opacity: 0;
   animation-timeline: scroll(nearest block);
