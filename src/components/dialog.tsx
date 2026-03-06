@@ -23,7 +23,6 @@ import { useSetAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog";
 import { CloseIcon, RefreshIcon } from "src/icons";
 import { Formik, Form } from "formik";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 type SlottableIcon =
   | React.FC<React.ComponentProps<"svg">>
@@ -248,7 +247,6 @@ export const BaseModal = ({
   onSubmit,
   earlyAccess,
 }: BaseModalProps) => {
-
   const ModalLayout = (
     <div className="modal-container flex flex-col h-full">
       <DialogHeaderNew
@@ -259,9 +257,7 @@ export const BaseModal = ({
           )
         }
       />
-      <div className="modal-content flex-grow py-4">
-        {children}
-      </div>
+      <div className="modal-content flex-grow py-4">{children}</div>
       {footer && <DialogFooter>{footer}</DialogFooter>}
     </div>
   );
@@ -270,7 +266,11 @@ export const BaseModal = ({
     <Dialog.Root open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <Dialog.Portal>
         <StyledDialogOverlay />
-        <StyledDialogContentNew size={size} fillMode="full" onOpenAutoFocus={(e) => e.preventDefault()}>
+        <StyledDialogContentNew
+          size={size}
+          fillMode="full"
+          onOpenAutoFocus={(e) => e.preventDefault()}
+        >
           <DefaultErrorBoundary>
             {onSubmit ? (
               <Formik initialValues={initialValues} onSubmit={onSubmit}>
@@ -414,7 +414,6 @@ export function SimpleDialogActionsNew({
   fullWidthSubmit = false,
   autoFocusSubmit = true,
   secondary,
-  variant = "md",
   isDisabled = false,
 }: {
   action?: string;
