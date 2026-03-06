@@ -170,20 +170,13 @@ export const buildModel = (
     });
   }
 
-  addCurves(
-    hydraulicModel,
-    curvesContext,
-    inpData.energyEfficiencyCurves,
-    linkIds,
-    issues,
-    inpData.curves,
-  );
+  addCurves(hydraulicModel, curvesContext, issues, inpData.curves);
 
   addPatterns(
     hydraulicModel,
     patternContext,
     inpData.sourcePatterns,
-    inpData.energyPatterns,
+    inpData.energy.globalPattern,
     inpData.patterns,
   );
 
@@ -568,6 +561,37 @@ const addPump = (
     }
   }
 
+  const pumpEnergyData = inpData.energy.pumpEnergy.get(pumpData.id);
+
+  const efficiency = pumpEnergyData?.efficiency;
+  let efficiencyCurveId: CurveId | undefined;
+  if (pumpEnergyData?.efficiencyCurve) {
+    const curveId = curvesContext.labelManager.getIdByLabel(
+      pumpEnergyData.efficiencyCurve,
+      "curve",
+    );
+    if (curveId !== undefined) {
+      efficiencyCurveId = markCurveUsed(curvesContext, curveId, "efficiency");
+    }
+  }
+
+  let energyPricePatternId: PatternId | undefined;
+  if (pumpEnergyData?.pattern) {
+    const patternId = patternContext.labelManager.getIdByLabel(
+      pumpEnergyData.pattern,
+      "pattern",
+    );
+    if (patternId !== undefined) {
+      energyPricePatternId = markPatternUsed(
+        patternContext,
+        patternId,
+        "energyPrice",
+      );
+    }
+  }
+
+  const energyPrice = pumpEnergyData?.price;
+
   const pump = hydraulicModel.assetBuilder.buildPump({
     label: pumpData.id,
     connections,
@@ -575,6 +599,10 @@ const addPump = (
     initialStatus,
     speed,
     speedPatternId,
+    efficiency,
+    efficiencyCurveId,
+    energyPrice,
+    energyPricePatternId,
     coordinates,
     isActive: pumpData.isActive,
   });
@@ -877,23 +905,10 @@ const markCurveUsed = (
 const addCurves = (
   hydraulicModel: HydraulicModel,
   curvesContext: CurvesContext,
-  energyEfficiencyCurves: ItemData<string>,
-  linkIds: ItemData<AssetId>,
   issues: IssuesAccumulator,
   rawCurves: ItemData<CurveData>,
 ) => {
   const { curves, pumpCurves } = curvesContext;
-
-  for (const [pumpLabel, curveLabel] of energyEfficiencyCurves.entries()) {
-    const pumpId = linkIds.get(pumpLabel);
-    const curveId = hydraulicModel.labelManager.getIdByLabel(
-      curveLabel,
-      "curve",
-    );
-    if (pumpId !== undefined && curveId !== undefined) {
-      markCurveUsed(curvesContext, curveId, "efficiency");
-    }
-  }
 
   for (const curve of curves.values()) {
     if (!curve.type) {
@@ -931,7 +946,7 @@ const addPatterns = (
   hydraulicModel: HydraulicModel,
   patternContext: PatternsContext,
   sourceStrengthPatterns: Set<string>,
-  energyPricePatterns: Set<string>,
+  globalEnergyPattern: string | undefined,
   rawPatterns: ItemData<PatternData>,
 ) => {
   const { patterns } = patternContext;
@@ -946,9 +961,9 @@ const addPatterns = (
     }
   }
 
-  for (const label of energyPricePatterns) {
+  if (globalEnergyPattern) {
     const patternId = hydraulicModel.labelManager.getIdByLabel(
-      label,
+      globalEnergyPattern,
       "pattern",
     );
     if (patternId !== undefined) {

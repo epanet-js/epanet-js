@@ -93,6 +93,7 @@ import { DemandsEditor } from "./demands-editor";
 import { PumpDefinitionDetails } from "./pump-definition-details";
 import { NumericTable } from "src/components/form/numeric-table";
 import { useShowPatternsLibrary } from "src/commands/show-patterns-library";
+import { useShowPumpLibrary } from "src/commands/show-pump-library";
 import { SelectorOption } from "src/components/form/selector";
 import { PatternId } from "src/hydraulic-model/patterns";
 import {
@@ -1783,6 +1784,7 @@ const PumpEditor = ({
   quantitiesMetadata: Quantities;
   readonly?: boolean;
 }) => {
+  const isEnergyEnabled = useFeatureFlag("FLAG_ENERGY");
   const translate = useTranslate();
   const { footer } = useQuickGraph(pump.id, "pump");
   const { getComparison, getPumpCurveComparison, isNew } =
@@ -1870,6 +1872,50 @@ const PumpEditor = ({
           readOnly={readonly}
         />
       </Section>
+      {isEnergyEnabled && (
+        <Section title={translate("energy")}>
+          <QuantityRow
+            name="efficiency"
+            value={pump.efficiency ?? null}
+            unit={null}
+            comparison={getComparison("efficiency", pump.efficiency)}
+            onChange={(_, newValue, oldValue) =>
+              onPropertyChange(
+                "efficiency",
+                newValue || undefined,
+                oldValue || undefined,
+              )
+            }
+            readOnly={readonly}
+          />
+          <PumpEfficiencyCurveField
+            pump={pump}
+            curves={hydraulicModel.curves}
+            onChange={onPropertyChange}
+            readOnly={readonly}
+          />
+          <QuantityRow
+            name="energyPrice"
+            value={pump.energyPrice ?? null}
+            unit={null}
+            comparison={getComparison("energyPrice", pump.energyPrice)}
+            onChange={(_, newValue, oldValue) =>
+              onPropertyChange(
+                "energyPrice",
+                newValue || undefined,
+                oldValue || undefined,
+              )
+            }
+            readOnly={readonly}
+          />
+          <PumpEnergyPricePatternField
+            pump={pump}
+            patterns={hydraulicModel.patterns}
+            onPropertyChange={onPropertyChange}
+            readOnly={readonly}
+          />
+        </Section>
+      )}
       <Section title={translate("simulationResults")}>
         <QuantityRow
           name="flow"
@@ -2049,6 +2095,137 @@ const VariableSpeedField = ({
         </NestedSection>
       )}
     </BlockComparisonField>
+  );
+};
+
+const PumpEfficiencyCurveField = ({
+  pump,
+  curves,
+  onChange,
+  readOnly = false,
+}: {
+  pump: Pump;
+  curves: Curves;
+  onChange: OnPropertyChange;
+  readOnly?: boolean;
+}) => {
+  const translate = useTranslate();
+  const showPumpLibrary = useShowPumpLibrary();
+
+  const curveOptions = useMemo(() => {
+    const libraryGroup: SelectorOption<CurveId>[] = [
+      { label: translate("openPumpLibrary"), value: -1 },
+    ];
+    const curveGroup: SelectorOption<CurveId>[] = [];
+    for (const curve of curves.values()) {
+      if (curve.type !== "efficiency") continue;
+      curveGroup.push({ value: curve.id, label: curve.label });
+    }
+    const noneGroup: SelectorOption<CurveId>[] = [
+      { value: 0, label: translate("none") },
+    ];
+    return [libraryGroup, [...noneGroup, ...curveGroup]];
+  }, [curves, translate]);
+
+  const handleOnChange = (
+    _name: string,
+    newValue: CurveId | null,
+    oldValue: CurveId | null,
+  ) => {
+    if (newValue === null) return;
+    if (newValue === -1) {
+      showPumpLibrary({
+        source: "pump",
+        curveId: pump.efficiencyCurveId,
+        initialSection: "efficiency",
+      });
+      return;
+    }
+    onChange(
+      "efficiencyCurveId",
+      newValue === 0 ? undefined : newValue,
+      oldValue || undefined,
+    );
+  };
+
+  return (
+    <SelectRow
+      name="efficiencyCurve"
+      selected={pump.efficiencyCurveId ?? null}
+      options={curveOptions}
+      stickyGroupClassName="italic"
+      stickyFirstGroup
+      nullable={true}
+      placeholder={translate("none")}
+      onChange={handleOnChange}
+      readOnly={readOnly}
+    />
+  );
+};
+
+const PumpEnergyPricePatternField = ({
+  pump,
+  patterns,
+  onPropertyChange,
+  readOnly = false,
+}: {
+  pump: Pump;
+  patterns: Patterns;
+  onPropertyChange: OnPropertyChange;
+  readOnly?: boolean;
+}) => {
+  const translate = useTranslate();
+  const showPatternsLibrary = useShowPatternsLibrary();
+
+  const patternOptions = useMemo(() => {
+    const libraryGroup: SelectorOption<PatternId>[] = [
+      { label: translate("openPatternsLibrary"), value: -1 },
+    ];
+    const patternGroup: SelectorOption<PatternId>[] = [];
+    for (const [, pattern] of patterns) {
+      if (pattern.type === "energyPrice") {
+        patternGroup.push({ label: pattern.label, value: pattern.id });
+      }
+    }
+    const noneGroup: SelectorOption<PatternId>[] = [
+      { value: 0, label: translate("none") },
+    ];
+    return [libraryGroup, [...noneGroup, ...patternGroup]];
+  }, [patterns, translate]);
+
+  const handleChange = (
+    _: string,
+    newValue: PatternId | null,
+    oldValue: PatternId | null,
+  ) => {
+    if (newValue === null) return;
+    if (newValue === -1) {
+      showPatternsLibrary({
+        source: "pump",
+        initialPatternId: pump.energyPricePatternId,
+        initialSection: "energyPrice",
+      });
+      return;
+    }
+    onPropertyChange(
+      "energyPricePatternId",
+      newValue === 0 ? undefined : newValue,
+      oldValue || undefined,
+    );
+  };
+
+  return (
+    <SelectRow
+      name="energyPricePattern"
+      selected={pump.energyPricePatternId ?? null}
+      options={patternOptions}
+      stickyGroupClassName="italic"
+      stickyFirstGroup
+      nullable={true}
+      placeholder={translate("none")}
+      onChange={handleChange}
+      readOnly={readOnly}
+    />
   );
 };
 

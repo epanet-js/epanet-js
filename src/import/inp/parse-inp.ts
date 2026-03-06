@@ -161,6 +161,10 @@ export const parseInp = (
       energyGlobalEfficiency:
         inpData.energy.globalEfficiency ??
         defaultEnergyValues.energyGlobalEfficiency,
+      energyGlobalEfficiencyCurveId: resolveEnergyCurveId(
+        inpData.energy.globalEfficiencyCurve,
+        hydraulicModel,
+      ),
       energyGlobalPrice:
         inpData.energy.globalPrice ?? defaultEnergyValues.energyGlobalPrice,
       energyGlobalPatternId: resolveEnergyPatternId(
@@ -257,4 +261,12 @@ const resolveEnergyPatternId = (
 ): number | null => {
   if (!label) return null;
   return hydraulicModel.labelManager.getIdByLabel(label, "pattern") ?? null;
+};
+
+const resolveEnergyCurveId = (
+  label: string | undefined,
+  hydraulicModel: HydraulicModel,
+): number | null => {
+  if (!label) return null;
+  return hydraulicModel.labelManager.getIdByLabel(label, "curve") ?? null;
 };

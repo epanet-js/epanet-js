@@ -122,8 +122,13 @@ const buildEnergySection = (
 ): string[] => {
   const de = defaultEnergyValues;
   const lines: string[] = ["[ENERGY]"];
-  if (settings.energyGlobalEfficiency !== de.energyGlobalEfficiency)
+  if (settings.energyGlobalEfficiencyCurveId !== null) {
+    lines.push(
+      `Global Effic\t${idMap.curveId(settings.energyGlobalEfficiencyCurveId)}`,
+    );
+  } else if (settings.energyGlobalEfficiency !== de.energyGlobalEfficiency) {
     lines.push(`Global Effic\t${settings.energyGlobalEfficiency}`);
+  }
   if (settings.energyGlobalPrice !== de.energyGlobalPrice)
     lines.push(`Global Price\t${settings.energyGlobalPrice}`);
   if (settings.energyGlobalPatternId !== null) {
@@ -472,6 +477,9 @@ export const buildInp = withDebugInstrumentation(
     const usedCurveIds = new Set<number>();
     const usedPatternIds = new Set<number>();
 
+    if (opts.simulationSettings.energyGlobalEfficiencyCurveId !== null) {
+      usedCurveIds.add(opts.simulationSettings.energyGlobalEfficiencyCurveId);
+    }
     if (opts.simulationSettings.energyGlobalPatternId !== null) {
       usedPatternIds.add(opts.simulationSettings.energyGlobalPatternId);
     }
@@ -917,6 +925,25 @@ const appendPump = (
   sections.status.push(
     commentPrefix + [linkId, pumpStatusFor(pump)].join("\t"),
   );
+
+  if (pump.efficiencyCurveId) {
+    sections.energy.push(
+      `Pump ${linkId} Efficiency\t${idMap.curveId(pump.efficiencyCurveId)}`,
+    );
+    usedCurveIds.add(pump.efficiencyCurveId);
+  } else if (pump.efficiency !== undefined) {
+    sections.energy.push(`Pump ${linkId} Efficiency\t${pump.efficiency}`);
+  }
+  if (pump.energyPrice !== undefined) {
+    sections.energy.push(`Pump ${linkId} Price\t${pump.energyPrice}`);
+  }
+  if (pump.energyPricePatternId) {
+    sections.energy.push(
+      `Pump ${linkId} Pattern\t${idMap.patternId(pump.energyPricePatternId)}`,
+    );
+    usedPatternIds.add(pump.energyPricePatternId);
+  }
+
   if (geolocation) {
     appendLinkVertices(sections, idMap, pump, transformCoord, commentPrefix);
   }

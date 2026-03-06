@@ -109,6 +109,13 @@ export type CustomerPointData =
       snapPoint?: undefined;
     };
 
+export type PumpEnergyData = {
+  efficiency?: number;
+  efficiencyCurve?: string;
+  pattern?: string;
+  price?: number;
+};
+
 export type InpData = {
   junctions: JunctionData[];
   reservoirs: ReservoirData[];
@@ -125,9 +132,7 @@ export type InpData = {
   patterns: ItemData<PatternData>;
   status: ItemData<string>;
   curves: ItemData<CurveData>;
-  energyEfficiencyCurves: ItemData<string>;
   sourcePatterns: Set<string>;
-  energyPatterns: Set<string>;
   options: {
     units: EpanetUnitSystem;
     headlossFormula: HeadlossFormula;
@@ -167,9 +172,11 @@ export type InpData = {
   };
   energy: {
     globalEfficiency?: number;
+    globalEfficiencyCurve?: string;
     globalPrice?: number;
     globalPattern?: string;
     demandCharge?: number;
+    pumpEnergy: ItemData<PumpEnergyData>;
   };
   times: {
     duration?: number;
@@ -251,12 +258,10 @@ export const nullInpData = (): InpData => {
     patterns: new ItemData(),
     status: new ItemData(),
     curves: new ItemData(),
-    energyEfficiencyCurves: new ItemData(),
     sourcePatterns: new Set(),
-    energyPatterns: new Set(),
     options: { units: "GPM", headlossFormula: "H-W", demandMultiplier: 1 },
     reactions: {},
-    energy: {},
+    energy: { pumpEnergy: new ItemData() },
     times: {},
     report: {},
     controls: { simple: "", ruleBased: "" },

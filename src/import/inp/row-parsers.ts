@@ -92,10 +92,10 @@ export const parseSource: RowParser = ({
   }
 };
 
-const defaultEnergySettings: Record<string, number> = {
+const defaultEnergySettings: Record<string, number | string> = {
   "GLOBAL EFFICIENCY": 75,
-  "GLOBAL EFFIC": 75,
   "GLOBAL PRICE": 0,
+  "GLOBAL PATTERN": "",
   "DEMAND CHARGE": 0,
 };
 
@@ -110,10 +110,16 @@ export const parseEnergy: RowParser = ({
 
   if (upperRow.startsWith("PUMP")) {
     const [, pumpId, keyword, value] = readValues(trimmedRow);
-    if (keyword?.toUpperCase() === "EFFICIENCY" && value) {
-      inpData.energyEfficiencyCurves.set(pumpId, value);
-    } else if (keyword?.toUpperCase() === "PATTERN" && value) {
-      inpData.energyPatterns.add(value);
+    if (pumpId && keyword && value) {
+      const entry = inpData.energy.pumpEnergy.get(pumpId) ?? {};
+      const upperKeyword = keyword.toUpperCase();
+      if (upperKeyword === "EFFICIENCY") {
+        const parsed = parseFloat(value);
+        if (isNaN(parsed)) entry.efficiencyCurve = value;
+        else entry.efficiency = parsed;
+      } else if (upperKeyword === "PATTERN") entry.pattern = value;
+      else if (upperKeyword === "PRICE") entry.price = parseFloat(value);
+      inpData.energy.pumpEnergy.set(pumpId, entry);
     }
     if (!options?.extraOptions) {
       issues.addUsedSection(sectionName);
@@ -121,28 +127,33 @@ export const parseEnergy: RowParser = ({
     return;
   }
 
-  if (upperRow.startsWith("GLOBAL PATTERN")) {
-    const patternLabel = trimmedRow.replace(/^GLOBAL\s+PATTERN\s+/i, "").trim();
-    if (patternLabel) {
-      inpData.energyPatterns.add(readValues(trimmedRow)[2]);
-      if (options?.extraOptions) {
-        inpData.energy.globalPattern = patternLabel;
+  if (upperRow.startsWith("GLOBAL EFFIC")) {
+    const rawValue = trimmedRow
+      .replace(/^GLOBAL\s+(EFFICIENCY|EFFIC)\s+/i, "")
+      .split(commentIdentifier)[0]
+      .trim();
+    const parsed = parseFloat(rawValue);
+    if (parsed !== defaultEnergySettings["GLOBAL EFFICIENCY"]) {
+      if (!options?.extraOptions) {
+        issues.addUsedSection(sectionName);
       }
-    }
-    if (!options?.extraOptions) {
-      issues.addUsedSection(sectionName);
+      if (isNaN(parsed)) inpData.energy.globalEfficiencyCurve = rawValue;
+      else inpData.energy.globalEfficiency = parsed;
     }
     return;
   }
 
-  if (options?.extraOptions) {
-    const setting = readSetting(trimmedRow, defaultEnergySettings);
-    if (setting) {
-      const { name, value } = setting;
-      if (name === "GLOBAL EFFICIENCY" || name === "GLOBAL EFFIC") {
-        inpData.energy.globalEfficiency = value as number;
-        return;
-      }
+  const setting = readSetting(trimmedRow, defaultEnergySettings);
+  if (setting) {
+    const { name, value } = setting;
+    if (!options?.extraOptions && setting.value !== setting.defaultValue) {
+      issues.addUsedSection(sectionName);
+    }
+    if (name === "GLOBAL PATTERN") {
+      inpData.energy.globalPattern = (value as string) || undefined;
+      return;
+    }
+    if (options?.extraOptions) {
       if (name === "GLOBAL PRICE") {
         inpData.energy.globalPrice = value as number;
         return;
@@ -152,17 +163,6 @@ export const parseEnergy: RowParser = ({
         return;
       }
     }
-    if (!setting) {
-      issues.addUsedSection(sectionName);
-    }
-    return;
-  }
-
-  const setting = readSetting(trimmedRow, defaultEnergySettings);
-  if (setting && setting.value !== setting.defaultValue) {
-    issues.addUsedSection(sectionName);
-  } else if (!setting) {
-    issues.addUsedSection(sectionName);
   }
 };
 

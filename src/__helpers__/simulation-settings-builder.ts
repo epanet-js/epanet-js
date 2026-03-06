@@ -10,6 +10,7 @@ import {
   type QualityMassUnit,
   type StatusReport,
 } from "src/simulation/simulation-settings";
+import type { CurveId } from "src/hydraulic-model/curves";
 
 export class SimulationSettingsBuilder {
   private timingValue: Timing = defaultTiming;
@@ -62,6 +63,8 @@ export class SimulationSettingsBuilder {
   private reportEnergyValue: boolean = defaultSimulationSettings.reportEnergy;
   private energyGlobalEfficiencyValue: number =
     defaultSimulationSettings.energyGlobalEfficiency;
+  private energyGlobalEfficiencyCurveIdValue: CurveId | null =
+    defaultSimulationSettings.energyGlobalEfficiencyCurveId;
   private energyGlobalPriceValue: number =
     defaultSimulationSettings.energyGlobalPrice;
   private energyGlobalPatternIdValue: number | null =
@@ -240,6 +243,11 @@ export class SimulationSettingsBuilder {
     return this;
   }
 
+  energyGlobalEfficiencyCurveId(value: CurveId | null) {
+    this.energyGlobalEfficiencyCurveIdValue = value;
+    return this;
+  }
+
   energyGlobalPrice(value: number) {
     this.energyGlobalPriceValue = value;
     return this;
@@ -311,6 +319,7 @@ export class SimulationSettingsBuilder {
       reactionRoughnessCorrelation: this.reactionRoughnessCorrelationValue,
       reportEnergy: this.reportEnergyValue,
       energyGlobalEfficiency: this.energyGlobalEfficiencyValue,
+      energyGlobalEfficiencyCurveId: this.energyGlobalEfficiencyCurveIdValue,
       energyGlobalPrice: this.energyGlobalPriceValue,
       energyGlobalPatternId: this.energyGlobalPatternIdValue,
       energyDemandCharge: this.energyDemandChargeValue,
