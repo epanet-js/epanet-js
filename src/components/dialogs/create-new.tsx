@@ -202,18 +202,11 @@ export const CreateNew = ({ onClose }: { onClose: () => void }) => {
               />
             )}
 
-            <div
-              className={clsx(
-                isNewGridOn &&
-                  values.projection === "xy-grid" &&
-                  "opacity-40 pointer-events-none",
-              )}
-            >
-              <LocationSearchSelector
-                selected={values.location}
-                onChange={(location) => setFieldValue("location", location)}
-              />
-            </div>
+            <LocationSearchSelector
+              selected={values.location}
+              onChange={(location) => setFieldValue("location", location)}
+              disabled={isNewGridOn && values.projection === "xy-grid"}
+            />
 
             <hr className="my-2" />
 
@@ -241,9 +234,11 @@ export const CreateNew = ({ onClose }: { onClose: () => void }) => {
 const LocationSearchSelector = ({
   selected,
   onChange,
+  disabled = false,
 }: {
   selected?: LocationData;
   onChange: (location: LocationData) => void;
+  disabled?: boolean;
 }) => {
   const translate = useTranslate();
   const map = useContext(MapContext);
@@ -317,6 +312,7 @@ const LocationSearchSelector = ({
       onSearch={searchLocations}
       placeholder={translate("searchLocation")}
       label={translate("location")}
+      disabled={disabled}
     />
   );
 };
