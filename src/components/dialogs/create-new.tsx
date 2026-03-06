@@ -1,4 +1,4 @@
-import { DialogHeader } from "../dialog";
+import { DialogContainer, DialogHeader, useDialogState } from "../dialog";
 import { Form, Formik } from "formik";
 import mapboxgl from "mapbox-gl";
 import { SimpleDialogActions } from "src/components/dialog";
@@ -23,8 +23,13 @@ import {
   SearchableSelector,
   type SearchableSelectorOption,
 } from "../form/searchable-selector";
-import { useSetAtom } from "jotai";
-import { fileInfoAtom, gridPreviewAtom } from "src/state/jotai";
+import { useAtomValue, useSetAtom } from "jotai";
+import {
+  fileInfoAtom,
+  gridHiddenAtom,
+  gridPreviewAtom,
+  isUnprojectedAtom,
+} from "src/state/jotai";
 import { headlossFormulasFullNames } from "src/hydraulic-model/asset-types/pipe";
 import { useUserTracking } from "src/infra/user-tracking";
 import { MapContext } from "src/map/map-context";
@@ -67,7 +72,7 @@ type SubmitProps = {
   projection: Projection;
 };
 
-export const CreateNew = ({ onClose }: { onClose: () => void }) => {
+export const CreateNew = () => {
   const translate = useTranslate();
   const rep = usePersistence();
   const transactImport = rep.useTransactImport();
@@ -76,12 +81,30 @@ export const CreateNew = ({ onClose }: { onClose: () => void }) => {
   const map = useContext(MapContext);
   const isNewGridOn = useFeatureFlag("FLAG_NEW_GRID");
   const setGridPreview = useSetAtom(gridPreviewAtom);
+  const setGridHidden = useSetAtom(gridHiddenAtom);
+  const isCurrentProjectUnprojected = useAtomValue(isUnprojectedAtom);
+  const { closeDialog } = useDialogState();
 
   const originalMapStateRef = useRef<mapboxgl.LngLatBounds | null>(null);
 
   if (map && !originalMapStateRef.current) {
     originalMapStateRef.current = map.getBounds();
+    if (isCurrentProjectUnprojected) {
+      setGridHidden(true);
+      map.map.jumpTo({ center: DEFAULT_MAP_CENTER, zoom: DEFAULT_MAP_ZOOM });
+    }
   }
+
+  const handleCancel = useCallback(() => {
+    setGridPreview(false);
+    setGridHidden(false);
+    if (map && originalMapStateRef.current) {
+      map.setBounds(originalMapStateRef.current, {
+        animate: false,
+      });
+    }
+    closeDialog();
+  }, [map, setGridPreview, setGridHidden, closeDialog]);
 
   const handleSubmit = useCallback(
     ({ unitsSpec, headlossFormula, location, projection }: SubmitProps) => {
@@ -96,6 +119,7 @@ export const CreateNew = ({ onClose }: { onClose: () => void }) => {
         headlossFormula,
       });
       setGridPreview(false);
+      setGridHidden(false);
       transactImport(
         hydraulicModel,
         modelMetadata,
@@ -114,23 +138,21 @@ export const CreateNew = ({ onClose }: { onClose: () => void }) => {
         projection,
       });
       setFileInfo(null);
-      onClose();
+      closeDialog();
     },
-    [transactImport, userTracking, setFileInfo, onClose, map, setGridPreview],
+    [
+      transactImport,
+      userTracking,
+      setFileInfo,
+      map,
+      setGridPreview,
+      setGridHidden,
+      closeDialog,
+    ],
   );
 
-  const handleCancel = useCallback(() => {
-    setGridPreview(false);
-    if (map && originalMapStateRef.current) {
-      map.setBounds(originalMapStateRef.current, {
-        animate: false,
-      });
-    }
-    onClose();
-  }, [map, onClose, setGridPreview]);
-
   return (
-    <>
+    <DialogContainer onClose={handleCancel}>
       <DialogHeader title={translate("newProject")} />
       <Formik
         onSubmit={handleSubmit}
@@ -151,7 +173,7 @@ export const CreateNew = ({ onClose }: { onClose: () => void }) => {
                 onChange={(projection) => {
                   void setFieldValue("projection", projection);
                   if (projection === "xy-grid") {
-                    void setFieldValue("location", undefined);
+                    setGridHidden(false);
                     setGridPreview(true);
                     if (map) {
                       map.map.jumpTo({
@@ -161,28 +183,31 @@ export const CreateNew = ({ onClose }: { onClose: () => void }) => {
                     }
                   } else {
                     setGridPreview(false);
-                    if (map && originalMapStateRef.current) {
-                      map.setBounds(originalMapStateRef.current, {
-                        animate: false,
-                      });
+                    if (isCurrentProjectUnprojected) {
+                      setGridHidden(true);
+                    }
+                    if (map) {
+                      if (values.location?.bbox) {
+                        map.map.fitBounds(values.location.bbox, {
+                          padding: 50,
+                          animate: false,
+                        });
+                      } else if (originalMapStateRef.current) {
+                        map.setBounds(originalMapStateRef.current, {
+                          animate: false,
+                        });
+                      }
                     }
                   }
                 }}
               />
             )}
 
-            <div
-              className={clsx(
-                isNewGridOn &&
-                  values.projection === "xy-grid" &&
-                  "opacity-40 pointer-events-none",
-              )}
-            >
-              <LocationSearchSelector
-                selected={values.location}
-                onChange={(location) => setFieldValue("location", location)}
-              />
-            </div>
+            <LocationSearchSelector
+              selected={values.location}
+              onChange={(location) => setFieldValue("location", location)}
+              disabled={isNewGridOn && values.projection === "xy-grid"}
+            />
 
             <hr className="my-2" />
 
@@ -203,16 +228,18 @@ export const CreateNew = ({ onClose }: { onClose: () => void }) => {
           </Form>
         )}
       </Formik>
-    </>
+    </DialogContainer>
   );
 };
 
 const LocationSearchSelector = ({
   selected,
   onChange,
+  disabled = false,
 }: {
   selected?: LocationData;
   onChange: (location: LocationData) => void;
+  disabled?: boolean;
 }) => {
   const translate = useTranslate();
   const map = useContext(MapContext);
@@ -286,6 +313,7 @@ const LocationSearchSelector = ({
       onSearch={searchLocations}
       placeholder={translate("searchLocation")}
       label={translate("location")}
+      disabled={disabled}
     />
   );
 };

@@ -99,11 +99,10 @@ const MissingCoordinatesDialog = dynamic<{
   },
 );
 
-const CreateNewDialog = dynamic<{
-  onClose: () => void;
-}>(() => import("src/components/dialogs/create-new").then((r) => r.CreateNew), {
-  loading: () => <Loading />,
-});
+const CreateNewDialog = dynamic(
+  () => import("src/components/dialogs/create-new").then((r) => r.CreateNew),
+  { loading: () => <LoadingDialog /> },
+);
 
 const SimulationReportDialog = dynamic(
   () =>
@@ -427,6 +426,9 @@ export const Dialogs = memo(function Dialogs() {
     previousDialog.current = dialog;
   }
 
+  if (dialog.type === "createNew") {
+    return <CreateNewDialog />;
+  }
   if (dialog.type === "simulationReport") {
     return <SimulationReportDialog />;
   }
@@ -541,7 +543,6 @@ export const Dialogs = memo(function Dialogs() {
       <InvalidFilesErrorDialog modal={modal} onClose={onClose} />
     ))
     .with({ type: "cheatsheet" }, () => <CheatsheetDialog />)
-    .with({ type: "createNew" }, () => <CreateNewDialog onClose={onClose} />)
     .with({ type: "inpIssues" }, ({ issues }) => (
       <InpIssuesDialog issues={issues} onClose={onClose} />
     ))

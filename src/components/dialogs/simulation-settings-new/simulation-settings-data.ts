@@ -13,53 +13,77 @@ import type { PatternId } from "src/hydraulic-model/patterns";
 
 export type OptionSubcategory = {
   id: string;
-  label: string;
+  translationKey: string;
 };
 
 export type OptionCategory = {
   id: string;
-  label: string;
+  translationKey: string;
   subcategories?: OptionSubcategory[];
 };
 
 export const simulationSettingsCategories: OptionCategory[] = [
   {
     id: "general",
-    label: "General",
+    translationKey: "simulationSettings.general",
   },
   {
     id: "times",
-    label: "Times",
+    translationKey: "simulationSettings.times",
   },
   {
     id: "demands",
-    label: "Demands",
+    translationKey: "simulationSettings.demands",
     subcategories: [
-      { id: "demands-calculation", label: "Calculation" },
-      { id: "demands-emitters", label: "Emitters" },
+      {
+        id: "demands-calculation",
+        translationKey: "simulationSettings.demandsCalculation",
+      },
+      {
+        id: "demands-emitters",
+        translationKey: "simulationSettings.demandsEmitters",
+      },
     ],
   },
   {
     id: "hydraulics",
-    label: "Hydraulics",
+    translationKey: "simulationSettings.hydraulics",
     subcategories: [
-      { id: "hydraulics-convergence", label: "Convergence" },
-      { id: "hydraulics-solver", label: "Solver controls" },
-      { id: "hydraulics-fluid", label: "Fluid properties" },
+      {
+        id: "hydraulics-convergence",
+        translationKey: "simulationSettings.hydraulicsConvergence",
+      },
+      {
+        id: "hydraulics-solver",
+        translationKey: "simulationSettings.hydraulicsSolver",
+      },
+      {
+        id: "hydraulics-fluid",
+        translationKey: "simulationSettings.hydraulicsFluid",
+      },
     ],
   },
   {
     id: "waterQuality",
-    label: "Water quality",
+    translationKey: "simulationSettings.waterQuality",
     subcategories: [
-      { id: "waterQuality-analysis", label: "Analysis" },
-      { id: "waterQuality-reactions", label: "Reaction constants" },
-      { id: "waterQuality-wall", label: "Wall interaction" },
+      {
+        id: "waterQuality-analysis",
+        translationKey: "simulationSettings.waterQualityAnalysis",
+      },
+      {
+        id: "waterQuality-reactions",
+        translationKey: "simulationSettings.waterQualityReactions",
+      },
+      {
+        id: "waterQuality-wall",
+        translationKey: "simulationSettings.waterQualityWall",
+      },
     ],
   },
   {
     id: "energy",
-    label: "Energy",
+    translationKey: "simulationSettings.energy",
   },
 ];
 

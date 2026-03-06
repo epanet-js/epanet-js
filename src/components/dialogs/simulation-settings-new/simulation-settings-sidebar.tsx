@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import { useTranslate } from "src/hooks/use-translate";
 import { simulationSettingsCategories } from "./simulation-settings-data";
 
 type Props = {
@@ -18,6 +19,7 @@ export const SimulationSettingsSidebar = ({
   activeSection,
   onSelectSection,
 }: Props) => {
+  const translate = useTranslate();
   return (
     <nav className="w-48 flex-shrink-0 p-3 overflow-y-auto">
       <ul className="flex flex-col gap-0.5">
@@ -42,7 +44,7 @@ export const SimulationSettingsSidebar = ({
                     : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800",
                 )}
               >
-                {category.label}
+                {translate(category.translationKey)}
               </button>
               {category.subcategories && (
                 <ul className="flex flex-col gap-0.5 mt-0.5">
@@ -58,7 +60,7 @@ export const SimulationSettingsSidebar = ({
                             : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800",
                         )}
                       >
-                        {sub.label}
+                        {translate(sub.translationKey)}
                       </button>
                     </li>
                   ))}
