@@ -313,6 +313,27 @@ export const AckDialogAction = ({
 
 export const AckDialogActionNew = ({
   label,
+  onAck,
+}: {
+  label?: string;
+  onAck?: () => void;
+}) => {
+  const translate = useTranslate();
+  return (
+    <div
+      className={clsx(
+        "relative",
+        "px-4 py-3 border-t border-gray-200",
+        "flex flex-col sm:items-center sm:flex-row-reverse space-y-2 sm:space-y-0 sm:gap-x-3",
+      )}
+    >
+      <Button autoFocus={true} type="button" onClick={onAck}>
+        {label ? label : translate("dialog.cancel")}
+      </Button>
+    </div>
+  );
+};
+
 export const DialogButtons = ({
   variant = "md",
   align = "right",
