@@ -248,7 +248,7 @@ export const BaseModal = ({
   earlyAccess,
 }: BaseModalProps) => {
   const ModalLayout = (
-    <div className="modal-container flex flex-col h-full">
+    <div className="modal-container max-h-[calc(100dvh_-_1rem)] flex flex-col flex-nowrap flex-1">
       <DialogHeaderNew
         title={title}
         badge={
@@ -257,7 +257,7 @@ export const BaseModal = ({
           )
         }
       />
-      <div className="modal-content flex-grow py-4">{children}</div>
+      <div className="modal-content flex-1 overflow-auto">{children}</div>
       {footer && <DialogFooter>{footer}</DialogFooter>}
     </div>
   );
@@ -311,6 +311,8 @@ export const AckDialogAction = ({
   );
 };
 
+export const AckDialogActionNew = ({
+  label,
 export const DialogButtons = ({
   variant = "md",
   align = "right",

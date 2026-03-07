@@ -57,7 +57,7 @@ export const SimulationSummaryDialogNew = ({
         />
       }
     >
-      <div className="px-4 text-sm text-gray-700">
+      <div className="p-4 text-sm text-gray-700">
         <p className="flex items-center gap-2">
           {modal.status === "success" && <SuccessIcon />}
           {modal.status === "warning" && <WarningIcon />}

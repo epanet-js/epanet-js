@@ -289,9 +289,8 @@ interface DialogContentProps {
 
 // 2. Group static base classes to declutter the main function
 const BASE_CLASSES = [
-  "fixed z-[100] overflow-y-auto",
+  "fixed z-[100]",
   "text-left",
-  "margin-4",
   "bg-white dark:bg-gray-900 shadow-md",
   "dark:bg-gray-900 dark:text-white dark:shadow-none dark:border dark:border-black",
 ];
