@@ -277,76 +277,44 @@ export const StyledDialogOverlay = classed(Dialog.Overlay)(overlayClasses);
 
 // 1. Extract types for better readability and reusability
 type DialogSize = "xs" | "sm" | "md" | "lg" | "xl" | "fullscreen";
-type DialogHeight = DialogSize;
-type FillMode = "full" | "auto";
-
-interface DialogContentProps {
-  size?: DialogSize;
-  height?: DialogHeight;
-  fillMode?: FillMode;
-  sizeClasses?: string;
-}
-
-// 2. Group static base classes to declutter the main function
-const BASE_CLASSES = [
-  "fixed z-[100]",
-  "text-left",
-  "bg-white dark:bg-gray-900 shadow-md",
-  "dark:bg-gray-900 dark:text-white dark:shadow-none dark:border dark:border-black",
-];
-
-// 3. Map size constraints cleanly
-const SIZE_WIDTH_MAP: Record<DialogSize, string> = {
-  xs: "sm:max-w-[360px]",
-  sm: "sm:max-w-screen-sm",
-  md: "max-w-full md:max-w-screen-md lg:max-w-screen-md",
-  lg: "max-w-full lg:max-w-screen-lg xl:max-w-screen-lg",
-  xl: "max-w-full xl:max-w-screen-xl 2xl:max-w-screen-xl",
-  fullscreen: "inset-0 h-100dvh w-screen",
-};
-
-// 4. Map height overrides (makes it easy to add "md" or "xl" heights later)
-const HEIGHT_OVERRIDE_MAP: Partial<Record<DialogHeight, string>> = {
-  // sm: "vsm:w-dvw vsm:h-dvh hsm:h-full hmd:h-[calc(100dvh_-_1rem)] hlg:h-[calc(100dvh_-_1rem)] hxl:h-[calc(100dvh_-_1rem)]",
-  // md: "vsm:w-dvw vsm:h-dvh hsm:h-full hmd:h-[calc(100dvh_-_1rem)] hlg:h-[calc(100dvh_-_1rem)] hxl:h-[calc(100dvh_-_1rem)]",
-  lg: "vsm:w-dvw vsm:h-dvh vmd:h-[848px] hsm:h-full hmd:h-[calc(100dvh_-_1rem)] hlg:h-[848px] hxl:h-[848px]",
-};
-
-// 5. Shared centering classes for non-fullscreen dialogs
-const CENTERING_CLASSES =
-  "sm:left-2/4 sm:top-2/4 sm:-translate-x-1/2 sm:-translate-y-1/2 rounded-lg sm:align-middle";
 
 export const styledDialogContentNew = ({
-  size,
+  size = "sm",
   height,
-  sizeClasses,
-  fillMode = "auto",
-}: DialogContentProps) => {
-  const isFullscreen = size === "fullscreen";
-  const needsFlexCol = fillMode === "full" || size === "xl" || isFullscreen;
+}: {
+  size?: DialogSize;
+  height?: "sm" | "md" | "lg" | "xl";
+}) => {
+  if (size === "fullscreen") {
+    return "fixed inset-0 z-[100] w-screen h-dvh flex flex-col text-left bg-white dark:bg-gray-900 shadow-md dark:text-white dark:shadow-none dark:border dark:border-black";
+  }
+
+  const widthClass = {
+    xs: "max-w-[360px]",
+    sm: "max-w-screen-sm",
+    md: "max-w-full md:max-w-screen-md",
+    lg: "max-w-full lg:max-w-screen-lg",
+    xl: "max-w-full xl:max-w-screen-xl",
+  }[size];
+
+  const heightClass =
+    height &&
+    {
+      sm: "h-[300px]",
+      md: "h-[480px]",
+      lg: "h-[640px]",
+      xl: "h-[848px]",
+    }[height];
 
   return clsx(
-    BASE_CLASSES,
-
-    // Layout & Fill Mode
-    needsFlexCol && "flex flex-col",
-    fillMode === "full" ? "w-full" : "w-full sm:w-auto",
-
-    // Sizing (Condition: apply 'sm' only if no custom sizeClasses are provided)
-    size && size !== "sm" && SIZE_WIDTH_MAP[size],
-    size === "sm" && !sizeClasses && SIZE_WIDTH_MAP.sm,
-
-    // Custom Widths (Ignored in fullscreen)
-    !isFullscreen && sizeClasses,
-
-    // Positioning (Ignored in fullscreen)
-    !isFullscreen && [
-      CENTERING_CLASSES,
-      size === "xl" ? "sm:h-[90vh]" : "max-h-[100vh] inset-0 sm:inset-auto",
-    ],
-
-    // Explicit Height Overrides
-    height && HEIGHT_OVERRIDE_MAP[height],
+    "w-full flex flex-col rounded-lg",
+    "text-left bg-white dark:bg-gray-900 shadow-md",
+    "dark:text-white dark:shadow-none dark:border dark:border-black",
+    widthClass,
+    // max-h-full caps at the wrapper's content area (100dvh - 2rem from p-4)
+    // heightClass sets the target; max-h-full overrides it on small viewports
+    heightClass,
+    "max-h-full",
   );
 };
 
@@ -416,16 +384,27 @@ const customWelcomeDialogContent = () => {
   );
 };
 
-// Wrapper to prevent sizeClasses and fillMode from being passed to DOM
+// Wrapper to prevent style props from being forwarded to DOM
 const FilteredDialogContent = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<typeof Dialog.Content> & {
     sizeClasses?: string;
     fillMode?: string;
+    size?: string;
+    height?: string;
   }
->(({ sizeClasses: _sizeClasses, fillMode: _fillMode, ...props }, ref) => (
-  <Dialog.Content ref={ref} {...props} />
-));
+>(
+  (
+    {
+      sizeClasses: _sizeClasses,
+      fillMode: _fillMode,
+      size: _size,
+      height: _height,
+      ...props
+    },
+    ref,
+  ) => <Dialog.Content ref={ref} {...props} />,
+);
 export const StyledDialogContent = classed(FilteredDialogContent)(
   styledDialogContent,
 );

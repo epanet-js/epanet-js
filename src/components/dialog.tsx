@@ -226,6 +226,7 @@ export const DialogCloseX = () => {
 interface BaseModalProps {
   title: string;
   size?: "sm" | "xs" | "md" | "lg" | "xl" | "fullscreen";
+  height?: "sm" | "md" | "lg" | "xl";
   isOpen: boolean;
   onClose: () => void;
   children: React.ReactNode;
@@ -239,6 +240,7 @@ interface BaseModalProps {
 export const BaseModal = ({
   title,
   size = "sm",
+  height,
   isOpen,
   onClose,
   children,
@@ -248,7 +250,7 @@ export const BaseModal = ({
   earlyAccess,
 }: BaseModalProps) => {
   const ModalLayout = (
-    <div className="modal-container max-h-[calc(100dvh_-_1rem)] flex flex-col flex-nowrap flex-1">
+    <div className="modal-container flex flex-col flex-nowrap flex-1 min-h-0">
       <DialogHeaderNew
         title={title}
         badge={
@@ -257,7 +259,9 @@ export const BaseModal = ({
           )
         }
       />
-      <div className="modal-content flex-1 overflow-auto">{children}</div>
+      <div className="modal-content flex-1 overflow-auto min-h-0">
+        {children}
+      </div>
       {footer && <DialogFooter>{footer}</DialogFooter>}
     </div>
   );
@@ -266,21 +270,23 @@ export const BaseModal = ({
     <Dialog.Root open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <Dialog.Portal>
         <StyledDialogOverlay />
-        <StyledDialogContentNew
-          size={size}
-          fillMode="full"
-          onOpenAutoFocus={(e) => e.preventDefault()}
-        >
-          <DefaultErrorBoundary>
-            {onSubmit ? (
-              <Formik initialValues={initialValues} onSubmit={onSubmit}>
-                <Form className="h-full">{ModalLayout}</Form>
-              </Formik>
-            ) : (
-              ModalLayout
-            )}
-          </DefaultErrorBoundary>
-        </StyledDialogContentNew>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <StyledDialogContentNew
+            size={size}
+            height={height}
+            onOpenAutoFocus={(e) => e.preventDefault()}
+          >
+            <DefaultErrorBoundary>
+              {onSubmit ? (
+                <Formik initialValues={initialValues} onSubmit={onSubmit}>
+                  <Form className="h-full">{ModalLayout}</Form>
+                </Formik>
+              ) : (
+                ModalLayout
+              )}
+            </DefaultErrorBoundary>
+          </StyledDialogContentNew>
+        </div>
       </Dialog.Portal>
     </Dialog.Root>
   );
