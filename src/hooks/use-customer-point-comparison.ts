@@ -15,10 +15,16 @@ export function useCustomerPointComparison(
   const baseModel = useAtomValue(baseModelAtom);
   const isInScenario = worktree.activeSnapshotId !== worktree.mainId;
 
+  const isNew =
+    isInScenario &&
+    customerPointId != null &&
+    !baseModel.customerPoints.has(customerPointId);
+
   const getDemandComparison = (
     currentAverageDemand: number,
   ): PropertyComparison<number> => {
-    if (!isInScenario || customerPointId == null) return { hasChanged: false };
+    if (!isInScenario || customerPointId == null || isNew)
+      return { hasChanged: false };
     const baseDemands = getCustomerPointDemands(
       baseModel.demands,
       customerPointId,
@@ -30,5 +36,5 @@ export function useCustomerPointComparison(
     };
   };
 
-  return { isInScenario, getDemandComparison };
+  return { isInScenario, isNew, getDemandComparison };
 }

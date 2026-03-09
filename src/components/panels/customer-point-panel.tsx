@@ -65,7 +65,9 @@ export function CustomerPointPanel() {
     [storedDemands, flowUnit, perDayUnit],
   );
 
-  const { getDemandComparison } = useCustomerPointComparison(customerPoint?.id);
+  const { isNew, getDemandComparison } = useCustomerPointComparison(
+    customerPoint?.id,
+  );
 
   const averageDemand = useMemo(
     () => calculateAverageDemand(storedDemands, hydraulicModel.patterns),
@@ -117,7 +119,10 @@ export function CustomerPointPanel() {
 
   return (
     <div className="flex flex-col flex-grow overflow-hidden">
-      <div className="px-3 pt-4 pb-3">
+      <div className="px-3 pt-4 pb-3 relative">
+        {isNew && (
+          <div className="absolute left-0 top-0 bottom-0 w-1 bg-purple-500 rounded-full" />
+        )}
         <div className="flex items-center justify-between gap-2">
           <span className="text-sm font-semibold p-1 truncate">
             {customerPoint.label}
