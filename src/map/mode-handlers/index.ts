@@ -3,6 +3,7 @@ import { Mode } from "src/state/jotai";
 import { useNoneHandlers } from "./none";
 import { useDrawNodeHandlers } from "./draw-node";
 import { useDrawLinkHandlers } from "./draw-link";
+import { useDrawCustomerPointHandlers } from "./draw-customer-point";
 import { useConnectCustomerPointsHandlers } from "./connect-customer-points";
 import { useRedrawLinkHandlers } from "./redraw-link";
 import { useAreaSelectionHandlers } from "./area-selection";
@@ -47,6 +48,7 @@ export function useModeHandlers(handlerContext: HandlerContext) {
       ...handlerContext,
       linkType: "valve",
     }),
+    [Mode.DRAW_CUSTOMER_POINT]: useDrawCustomerPointHandlers(handlerContext),
     [Mode.CONNECT_CUSTOMER_POINTS]:
       useConnectCustomerPointsHandlers(handlerContext),
     [Mode.REDRAW_LINK]: useRedrawLinkHandlers(handlerContext),

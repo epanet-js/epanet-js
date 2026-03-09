@@ -15,5 +15,6 @@ export { changeControls } from "./change-controls";
 export { changeCurves } from "./change-curves";
 export { changePatterns } from "./change-patterns";
 export { changeDemandAssignment } from "./change-demand-assignment";
+export { addCustomerPoint } from "./add-customer-point";
 export { removeCustomerPoints } from "./remove-customer-points";
 export { moveCustomerPoint } from "./move-customer-point";
