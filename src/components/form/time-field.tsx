@@ -214,7 +214,7 @@ function styledInput({
         variant === "warning",
     },
     "text-xs",
-    "placeholder:text-gray-400 dark:placeholder:text-gray-500",
+    "placeholder:text-gray-400 dark:placeholder:text-gray-500 placeholder:italic",
     "bg-transparent rounded-sm block tabular-nums overflow-hidden whitespace-nowrap text-ellipsis focus-visible:ring-inset w-full",
   );
 }
