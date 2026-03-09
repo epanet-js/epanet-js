@@ -226,7 +226,7 @@ export const DialogCloseX = () => {
 
 interface BaseModalProps {
   title: string;
-  size?: "sm" | "xs" | "md" | "lg" | "xl" | "fullscreen";
+  size?: "sm" | "xs" | "md" | "lg" | "xl" | "fullscreen" | "auto";
   height?: "sm" | "md" | "lg" | "xl";
   isOpen: boolean;
   onClose: () => void;
@@ -240,7 +240,7 @@ interface BaseModalProps {
 
 export const BaseModal = ({
   title,
-  size = "sm",
+  size = "auto",
   height,
   isOpen,
   onClose,

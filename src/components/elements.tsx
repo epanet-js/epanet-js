@@ -276,7 +276,7 @@ export const StyledAlertDialogOverlay = classed(AlertDialog.Overlay)(
 export const StyledDialogOverlay = classed(Dialog.Overlay)(overlayClasses);
 
 // 1. Extract types for better readability and reusability
-type DialogSize = "xs" | "sm" | "md" | "lg" | "xl" | "fullscreen";
+type DialogSize = "xs" | "sm" | "md" | "lg" | "xl" | "fullscreen" | "auto";
 
 export const styledDialogContentNew = ({
   size = "sm",
@@ -289,13 +289,16 @@ export const styledDialogContentNew = ({
     return "fixed inset-0 z-[100] w-screen h-dvh flex flex-col text-left bg-white dark:bg-gray-900 shadow-md dark:text-white dark:shadow-none dark:border dark:border-black";
   }
 
-  const widthClass = {
-    xs: "max-w-[360px]",
-    sm: "max-w-screen-sm",
-    md: "max-w-full md:max-w-screen-md",
-    lg: "max-w-full lg:max-w-screen-lg",
-    xl: "max-w-full xl:max-w-screen-xl",
-  }[size];
+  const widthClass =
+    size === "auto"
+      ? undefined
+      : {
+          xs: "max-w-[360px]",
+          sm: "max-w-screen-sm",
+          md: "max-w-full md:max-w-screen-md",
+          lg: "max-w-full lg:max-w-screen-lg",
+          xl: "max-w-full xl:max-w-screen-xl",
+        }[size];
 
   const heightClass =
     height &&
@@ -307,7 +310,8 @@ export const styledDialogContentNew = ({
     }[height];
 
   return clsx(
-    "w-full flex flex-col rounded-lg",
+    size === "auto" ? "w-fit" : "w-full",
+    "flex flex-col rounded-lg",
     "text-left bg-white dark:bg-gray-900 shadow-md",
     "dark:text-white dark:shadow-none dark:border dark:border-black",
     widthClass,
@@ -551,7 +555,7 @@ export const StyledPopoverContent = classed(Popover.Content)(
     size = "sm",
     flush = "no",
   }: {
-    size?: B3Size | "no-size" | "auto";
+    size?: B3Size | "no-width" | "auto";
     flush?: "yes" | "no";
   }) =>
     clsx(
