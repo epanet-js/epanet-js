@@ -66,7 +66,7 @@ export const SimulationSettingsContent = forwardRef<
       ref={measureRef}
       className="flex-1 min-h-0 overflow-auto scroll-shadows"
     >
-      <div className="flex flex-col gap-10 p-3">{children}</div>
+      <div className="flex flex-col gap-10 p-3 -mt-3">{children}</div>
     </div>
   );
 });
@@ -109,7 +109,7 @@ export const GeneralSection = () => {
 
   return (
     <div>
-      <h3 className="sticky -top-3 bg-white dark:bg-gray-800 -mt-3 -mx-3 pt-4 px-3 pb-2 z-10 text-base font-semibold text-gray-900 dark:text-white">
+      <h3 className="sticky top-0 bg-white dark:bg-gray-800 -mt-3 -mx-3 pt-4 px-3 pb-2 z-[5] text-base font-semibold text-gray-900 dark:text-white">
         {translate("simulationSettings.general")}
       </h3>
 
@@ -194,7 +194,7 @@ export const TimesSection = () => {
 
   return (
     <div>
-      <h3 className="sticky -top-3 bg-white dark:bg-gray-800 -mt-3 -mx-3 pt-4 px-3 pb-2 z-10 text-base font-semibold text-gray-900 dark:text-white">
+      <h3 className="sticky top-0 bg-white dark:bg-gray-800 -mt-3 -mx-3 pt-4 px-3 pb-2 z-[5] text-base font-semibold text-gray-900 dark:text-white">
         {translate("simulationSettings.times")}
       </h3>
 
@@ -297,14 +297,14 @@ export const DemandsSection = () => {
 
   return (
     <div>
-      <h3 className="sticky -top-3 bg-white dark:bg-gray-800 -mt-3 -mx-3 pt-4 px-3 pb-2 z-10 text-base font-semibold text-gray-900 dark:text-white">
+      <h3 className="sticky top-0 bg-white dark:bg-gray-800 -mt-3 -mx-3 pt-4 px-3 pb-2 z-[5] text-base font-semibold text-gray-900 dark:text-white">
         {translate("simulationSettings.demands")}
       </h3>
 
       <div className="flex flex-col gap-4">
         <div
           data-section-id="demands-calculation"
-          className="sticky top-[2.25rem] z-10 px-3 pb-2 -mx-3 bg-white dark:bg-gray-800 text-sm font-semibold text-gray-900 dark:text-white"
+          className="sticky top-[3rem] z-[3] px-3 py-2 -mx-3 -mb-2 bg-white dark:bg-gray-800 text-sm font-semibold text-gray-900 dark:text-white"
         >
           {translate("simulationSettings.demandsCalculation")}
         </div>
@@ -353,7 +353,7 @@ export const DemandsSection = () => {
 
         <div
           data-section-id="demands-emitters"
-          className="sticky top-[2.25rem] z-10 px-3 pb-2 -mx-3 bg-white dark:bg-gray-800 text-sm font-semibold text-gray-900 dark:text-white"
+          className="sticky top-[3rem] z-[3] px-3 py-2 -mx-3 -mb-2 bg-white dark:bg-gray-800 text-sm font-semibold text-gray-900 dark:text-white"
         >
           {translate("simulationSettings.demandsEmitters")}
         </div>
@@ -390,14 +390,14 @@ export const HydraulicsSection = () => {
 
   return (
     <div>
-      <h3 className="sticky -top-3 bg-white dark:bg-gray-800 -mt-3 -mx-3 pt-4 px-3 pb-2 z-10 text-base font-semibold text-gray-900 dark:text-white">
+      <h3 className="sticky top-0 bg-white dark:bg-gray-800 -mt-3 -mx-3 pt-4 px-3 pb-2 z-[5] text-base font-semibold text-gray-900 dark:text-white">
         {translate("simulationSettings.hydraulics")}
       </h3>
 
       <div className="flex flex-col gap-4">
         <div
           data-section-id="hydraulics-convergence"
-          className="sticky top-[2.25rem] z-10 px-3 pb-2 -mx-3 bg-white dark:bg-gray-800 text-sm font-semibold text-gray-900 dark:text-white"
+          className="sticky top-[3rem] z-[3] px-3 py-2 -mx-3 -mb-2 bg-white dark:bg-gray-800 text-sm font-semibold text-gray-900 dark:text-white"
         >
           {translate("simulationSettings.hydraulicsConvergence")}
         </div>
@@ -455,7 +455,7 @@ export const HydraulicsSection = () => {
 
         <div
           data-section-id="hydraulics-solver"
-          className="sticky top-[2.25rem] z-10 px-3 pb-2 -mx-3 bg-white dark:bg-gray-800 text-sm font-semibold text-gray-900 dark:text-white"
+          className="sticky top-[3rem] z-[3] px-3 py-2 -mx-3 -mb-2 bg-white dark:bg-gray-800 text-sm font-semibold text-gray-900 dark:text-white"
         >
           {translate("simulationSettings.hydraulicsSolver")}
         </div>
@@ -486,7 +486,7 @@ export const HydraulicsSection = () => {
 
         <div
           data-section-id="hydraulics-fluid"
-          className="sticky top-[2.25rem] z-10 px-3 pb-2 -mx-3 bg-white dark:bg-gray-800 text-sm font-semibold text-gray-900 dark:text-white"
+          className="sticky top-[3rem] z-[3] px-3 py-2 -mx-3 -mb-2 bg-white dark:bg-gray-800 text-sm font-semibold text-gray-900 dark:text-white"
         >
           {translate("simulationSettings.hydraulicsFluid")}
         </div>
@@ -555,14 +555,14 @@ export const WaterQualitySection = () => {
 
   return (
     <div>
-      <h3 className="sticky -top-3 bg-white dark:bg-gray-800 -mt-3 -mx-3 pt-4 px-3 pb-2 z-10 text-base font-semibold text-gray-900 dark:text-white">
+      <h3 className="sticky top-0 bg-white dark:bg-gray-800 -mt-3 -mx-3 pt-4 px-3 pb-2 z-[5] text-base font-semibold text-gray-900 dark:text-white">
         {translate("simulationSettings.waterQuality")}
       </h3>
 
       <div className="flex flex-col gap-4">
         <div
           data-section-id="waterQuality-analysis"
-          className="sticky top-[2.25rem] z-10 px-3 pb-2 -mx-3 bg-white dark:bg-gray-800 text-sm font-semibold text-gray-900 dark:text-white"
+          className="sticky top-[3rem] z-[3] px-3 py-2 -mx-3 -mb-2 bg-white dark:bg-gray-800 text-sm font-semibold text-gray-900 dark:text-white"
         >
           {translate("simulationSettings.waterQualityAnalysis")}
         </div>
@@ -627,7 +627,7 @@ export const WaterQualitySection = () => {
 
         <div
           data-section-id="waterQuality-reactions"
-          className="sticky top-[2.25rem] z-10 px-3 pb-2 -mx-3 bg-white dark:bg-gray-800 text-sm font-semibold text-gray-900 dark:text-white"
+          className="sticky top-[3rem] z-[3] px-3 py-2 -mx-3 -mb-2 bg-white dark:bg-gray-800 text-sm font-semibold text-gray-900 dark:text-white"
         >
           {translate("simulationSettings.waterQualityReactions")}
         </div>
@@ -674,7 +674,7 @@ export const WaterQualitySection = () => {
 
         <div
           data-section-id="waterQuality-wall"
-          className="sticky top-[2.25rem] z-10 px-3 pb-2 -mx-3 bg-white dark:bg-gray-800 text-sm font-semibold text-gray-900 dark:text-white"
+          className="sticky top-[3rem] z-[3] px-3 py-2 -mx-3 -mb-2 bg-white dark:bg-gray-800 text-sm font-semibold text-gray-900 dark:text-white"
         >
           {translate("simulationSettings.waterQualityWall")}
         </div>
@@ -748,7 +748,7 @@ export const EnergySection = () => {
 
   return (
     <div>
-      <h3 className="sticky -top-3 bg-white dark:bg-gray-800 -mt-3 -mx-3 pt-4 px-3 pb-2 z-10 text-base font-semibold text-gray-900 dark:text-white">
+      <h3 className="sticky top-0 bg-white dark:bg-gray-800 -mt-3 -mx-3 pt-4 px-3 pb-2 z-[5] text-base font-semibold text-gray-900 dark:text-white">
         {translate("simulationSettings.energy")}
       </h3>
 
