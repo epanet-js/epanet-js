@@ -63,7 +63,8 @@ type Section =
   | "activeTopology"
   | "modelAttributes"
   | "simulationResults"
-  | "demands";
+  | "demands"
+  | "energyResults";
 
 export type AssetPropertyStats =
   | QuantityStats
@@ -301,6 +302,7 @@ const buildJunctionSections = (
       "customerDemand",
       "connectedCustomers",
     ]),
+    energyResults: [],
     simulationResults: getStatsForProperties(statsMap, [
       "pressure",
       "head",
@@ -421,6 +423,7 @@ const buildPipeSections = (
       "customerDemand",
       "connectedCustomers",
     ]),
+    energyResults: [],
     simulationResults: getStatsForProperties(statsMap, [
       "flow",
       "velocity",
@@ -569,16 +572,18 @@ const buildPumpSections = (
       "initialStatus",
     ]),
     demands: [],
-    simulationResults: getStatsForProperties(statsMap, [
-      "flow",
-      "pumpHead",
-      "pumpStatus",
+    energyResults: getStatsForProperties(statsMap, [
       "utilization",
       "averageEfficiency",
       "averageKwPerFlowUnit",
       "averageKw",
       "peakKw",
       "averageCostPerDay",
+    ]),
+    simulationResults: getStatsForProperties(statsMap, [
+      "flow",
+      "pumpHead",
+      "pumpStatus",
     ]),
   };
 };
@@ -655,6 +660,7 @@ const buildValveSections = (
       "minorLoss",
     ]),
     demands: [],
+    energyResults: [],
     simulationResults: getStatsForProperties(statsMap, [
       "flow",
       "velocity",
@@ -691,6 +697,7 @@ const buildReservoirSections = (
     activeTopology: getStatsForProperties(statsMap, ["isEnabled"]),
     modelAttributes: getStatsForProperties(statsMap, ["elevation", "head"]),
     demands: [],
+    energyResults: [],
     simulationResults: [],
   };
 };
@@ -841,6 +848,7 @@ const buildTankSections = (
       "canOverflow",
     ]),
     demands: [],
+    energyResults: [],
     simulationResults: getStatsForProperties(statsMap, [
       "pressure",
       "head",

@@ -33,6 +33,7 @@ export function AssetTypeSections({
     "activeTopology",
     "modelAttributes",
     "demands",
+    "energyResults",
     "simulationResults",
   ];
 
@@ -43,7 +44,12 @@ export function AssetTypeSections({
 
         if (stats.length === 0) return null;
 
-        if (sectionKey === "simulationResults" && !hasSimulation) return null;
+        if (
+          (sectionKey === "simulationResults" ||
+            sectionKey === "energyResults") &&
+          !hasSimulation
+        )
+          return null;
 
         return (
           <Section
