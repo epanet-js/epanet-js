@@ -37,7 +37,7 @@ import { MapEngine } from "src/map/map-engine";
 import { useContext, useRef, useCallback } from "react";
 import { captureError } from "src/infra/error-tracking";
 import { env } from "src/lib/env-client";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
+
 import NetworkUnprojectedIllustration from "./network-projection/network-unprojected";
 import NetworkProjectedIllustration from "./network-projection/network-projected";
 import clsx from "clsx";
@@ -79,7 +79,7 @@ export const CreateNew = () => {
   const setFileInfo = useSetAtom(fileInfoAtom);
   const userTracking = useUserTracking();
   const map = useContext(MapContext);
-  const isNewGridOn = useFeatureFlag("FLAG_NEW_GRID");
+
   const setGridPreview = useSetAtom(gridPreviewAtom);
   const setGridHidden = useSetAtom(gridHiddenAtom);
   const isCurrentProjectUnprojected = useAtomValue(isUnprojectedAtom);
@@ -167,46 +167,44 @@ export const CreateNew = () => {
       >
         {({ values, setFieldValue }) => (
           <Form>
-            {isNewGridOn && (
-              <ProjectionSelector
-                selected={values.projection}
-                onChange={(projection) => {
-                  void setFieldValue("projection", projection);
-                  if (projection === "xy-grid") {
-                    setGridHidden(false);
-                    setGridPreview(true);
-                    if (map) {
-                      map.map.jumpTo({
-                        center: XY_GRID_CENTER,
-                        zoom: XY_GRID_ZOOM,
+            <ProjectionSelector
+              selected={values.projection}
+              onChange={(projection) => {
+                void setFieldValue("projection", projection);
+                if (projection === "xy-grid") {
+                  setGridHidden(false);
+                  setGridPreview(true);
+                  if (map) {
+                    map.map.jumpTo({
+                      center: XY_GRID_CENTER,
+                      zoom: XY_GRID_ZOOM,
+                    });
+                  }
+                } else {
+                  setGridPreview(false);
+                  if (isCurrentProjectUnprojected) {
+                    setGridHidden(true);
+                  }
+                  if (map) {
+                    if (values.location?.bbox) {
+                      map.map.fitBounds(values.location.bbox, {
+                        padding: 50,
+                        animate: false,
+                      });
+                    } else if (originalMapStateRef.current) {
+                      map.setBounds(originalMapStateRef.current, {
+                        animate: false,
                       });
                     }
-                  } else {
-                    setGridPreview(false);
-                    if (isCurrentProjectUnprojected) {
-                      setGridHidden(true);
-                    }
-                    if (map) {
-                      if (values.location?.bbox) {
-                        map.map.fitBounds(values.location.bbox, {
-                          padding: 50,
-                          animate: false,
-                        });
-                      } else if (originalMapStateRef.current) {
-                        map.setBounds(originalMapStateRef.current, {
-                          animate: false,
-                        });
-                      }
-                    }
                   }
-                }}
-              />
-            )}
+                }
+              }}
+            />
 
             <LocationSearchSelector
               selected={values.location}
               onChange={(location) => setFieldValue("location", location)}
-              disabled={isNewGridOn && values.projection === "xy-grid"}
+              disabled={values.projection === "xy-grid"}
             />
 
             <hr className="my-2" />
