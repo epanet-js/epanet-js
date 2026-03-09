@@ -23,6 +23,7 @@ import { useSetAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog";
 import { CloseIcon, RefreshIcon } from "src/icons";
 import { Formik, Form } from "formik";
+import { EarlyAccessBadge } from "./early-access-badge";
 
 type SlottableIcon =
   | React.FC<React.ComponentProps<"svg">>
@@ -253,11 +254,7 @@ export const BaseModal = ({
     <div className="modal-container flex flex-col flex-nowrap flex-1 min-h-0">
       <DialogHeaderNew
         title={title}
-        badge={
-          earlyAccess && (
-            <span className="text-xs font-normal opacity-60">early access</span>
-          )
-        }
+        badge={earlyAccess && <EarlyAccessBadge />}
       />
       <div className="modal-content flex-1 overflow-auto min-h-0">
         {children}
