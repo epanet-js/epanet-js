@@ -3,21 +3,12 @@ import {
   normalizeNumericInput,
   parseNumericInput,
 } from "src/components/form/numeric-input-utils";
+import { localizeDecimal } from "src/infra/i18n/numbers";
 import { CellProps, EditMode, GridColumn } from "../types";
 
 function formatLocaleNumber(value: number | null | undefined): string {
   if (value === null || value === undefined) return "";
-
-  const strValue = value.toString();
-  const decimalIndex = strValue.indexOf(".");
-  const decimalPlaces =
-    decimalIndex >= 0 ? strValue.length - decimalIndex - 1 : 0;
-
-  return new Intl.NumberFormat(undefined, {
-    minimumFractionDigits: decimalPlaces,
-    maximumFractionDigits: decimalPlaces,
-    useGrouping: true,
-  }).format(value);
+  return localizeDecimal(value, { decimals: 9 });
 }
 
 type FloatCellProps = CellProps<number | null> & {
