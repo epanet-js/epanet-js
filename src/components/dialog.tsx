@@ -440,7 +440,9 @@ export function SimpleDialogActionsNew({
   fullWidthSubmit = false,
   autoFocusSubmit = true,
   secondary,
+  tertiary,
   isDisabled = false,
+  actionVariant = "primary",
 }: {
   action?: string;
   autoFocusSubmit?: boolean;
@@ -450,8 +452,13 @@ export function SimpleDialogActionsNew({
     action: string;
     onClick: () => void;
   };
+  tertiary?: {
+    action: string;
+    onClick: () => void;
+  };
   variant?: "md" | "xs";
   isDisabled?: boolean;
+  actionVariant?: "primary" | "danger";
 }) {
   const translate = useTranslate();
   const { isSubmitting } = useFormikContext();
@@ -468,7 +475,7 @@ export function SimpleDialogActionsNew({
         <Button
           type="submit"
           disabled={isSubmitting || isDisabled}
-          variant="primary"
+          variant={actionVariant}
           autoFocus={autoFocusSubmit}
           size={fullWidthSubmit ? "full-width" : "sm"}
         >
@@ -483,6 +490,16 @@ export function SimpleDialogActionsNew({
           onClick={secondary.onClick}
         >
           {secondary.action}
+        </Button>
+      ) : null}
+      {tertiary ? (
+        <Button
+          type="button"
+          disabled={isSubmitting}
+          variant="default"
+          onClick={tertiary.onClick}
+        >
+          {tertiary.action}
         </Button>
       ) : null}
       {onClose ? (
