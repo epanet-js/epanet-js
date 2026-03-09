@@ -86,6 +86,32 @@ export const SettingsSection = ({
   </div>
 );
 
+const SectionHeader = ({ children }: { children: React.ReactNode }) => (
+  <h3 className="sticky top-0 bg-white dark:bg-gray-800 -mt-3 -mx-3 pt-4 px-3 pb-2 z-[5] text-base font-semibold text-gray-900 dark:text-white">
+    {children}
+  </h3>
+);
+
+const SubsectionHeader = ({ children }: { children: React.ReactNode }) => (
+  <div className="sticky top-[3rem] z-[3] px-3 py-2 -mx-3 bg-white dark:bg-gray-800 text-sm font-semibold text-gray-900 dark:text-white">
+    {children}
+  </div>
+);
+
+const SubsectionGroup = ({
+  sectionId,
+  children,
+}: {
+  sectionId: string;
+  children: React.ReactNode;
+}) => (
+  <div className="flex flex-col gap-4 mb-4">
+    <div data-section-id={sectionId} className="flex flex-col gap-4">
+      {children}
+    </div>
+  </div>
+);
+
 export const GeneralSection = () => {
   const translate = useTranslate();
   const readonly = useAtomValue(hasScenariosAtom);
@@ -109,9 +135,7 @@ export const GeneralSection = () => {
 
   return (
     <div>
-      <h3 className="sticky top-0 bg-white dark:bg-gray-800 -mt-3 -mx-3 pt-4 px-3 pb-2 z-[5] text-base font-semibold text-gray-900 dark:text-white">
-        {translate("simulationSettings.general")}
-      </h3>
+      <SectionHeader>{translate("simulationSettings.general")}</SectionHeader>
 
       <div className="flex flex-col gap-4">
         <TextSetting
@@ -194,9 +218,7 @@ export const TimesSection = () => {
 
   return (
     <div>
-      <h3 className="sticky top-0 bg-white dark:bg-gray-800 -mt-3 -mx-3 pt-4 px-3 pb-2 z-[5] text-base font-semibold text-gray-900 dark:text-white">
-        {translate("simulationSettings.times")}
-      </h3>
+      <SectionHeader>{translate("simulationSettings.times")}</SectionHeader>
 
       <div className="flex flex-col gap-4">
         <SelectorSetting
@@ -297,78 +319,66 @@ export const DemandsSection = () => {
 
   return (
     <div>
-      <h3 className="sticky top-0 bg-white dark:bg-gray-800 -mt-3 -mx-3 pt-4 px-3 pb-2 z-[5] text-base font-semibold text-gray-900 dark:text-white">
-        {translate("simulationSettings.demands")}
-      </h3>
+      <SectionHeader>{translate("simulationSettings.demands")}</SectionHeader>
 
-      <div className="sticky top-[3rem] z-[3] px-3 py-2 -mx-3 bg-white dark:bg-gray-800 text-sm font-semibold text-gray-900 dark:text-white">
+      <SubsectionHeader>
         {translate("simulationSettings.demandsCalculation")}
-      </div>
-      <div className="flex flex-col gap-4 mb-4">
-        <div
-          data-section-id="demands-calculation"
-          className="flex flex-col gap-4"
-        >
-          <ValueSetting
-            label={translate("simulationSettings.globalDemandMultiplier")}
-            description={translate(
-              "simulationSettings.globalDemandMultiplierDesc",
-            )}
-            value={values.globalDemandMultiplier}
-            onChange={(v) => setFieldValue("globalDemandMultiplier", v)}
-          />
+      </SubsectionHeader>
+      <SubsectionGroup sectionId="demands-calculation">
+        <ValueSetting
+          label={translate("simulationSettings.globalDemandMultiplier")}
+          description={translate(
+            "simulationSettings.globalDemandMultiplierDesc",
+          )}
+          value={values.globalDemandMultiplier}
+          onChange={(v) => setFieldValue("globalDemandMultiplier", v)}
+        />
 
-          <SelectorSetting
-            label={translate("simulationSettings.demandModel")}
-            description={translate("simulationSettings.demandModelDesc")}
-            options={demandModelOptions}
-            selected={values.demandModel}
-            onChange={(v) => setFieldValue("demandModel", v)}
-            disabled={readonly}
-          />
+        <SelectorSetting
+          label={translate("simulationSettings.demandModel")}
+          description={translate("simulationSettings.demandModelDesc")}
+          options={demandModelOptions}
+          selected={values.demandModel}
+          onChange={(v) => setFieldValue("demandModel", v)}
+          disabled={readonly}
+        />
 
-          <ValueSetting
-            label={translate("simulationSettings.minimumPressure")}
-            description={translate("simulationSettings.minimumPressureDesc")}
-            value={values.minimumPressure}
-            onChange={(v) => setFieldValue("minimumPressure", v)}
-            disabled={!isPDA || readonly}
-          />
+        <ValueSetting
+          label={translate("simulationSettings.minimumPressure")}
+          description={translate("simulationSettings.minimumPressureDesc")}
+          value={values.minimumPressure}
+          onChange={(v) => setFieldValue("minimumPressure", v)}
+          disabled={!isPDA || readonly}
+        />
 
-          <ValueSetting
-            label={translate("simulationSettings.requiredPressure")}
-            description={translate("simulationSettings.requiredPressureDesc")}
-            value={values.requiredPressure}
-            onChange={(v) => setFieldValue("requiredPressure", v)}
-            disabled={!isPDA || readonly}
-          />
+        <ValueSetting
+          label={translate("simulationSettings.requiredPressure")}
+          description={translate("simulationSettings.requiredPressureDesc")}
+          value={values.requiredPressure}
+          onChange={(v) => setFieldValue("requiredPressure", v)}
+          disabled={!isPDA || readonly}
+        />
 
-          <ValueSetting
-            label={translate("simulationSettings.pressureExponent")}
-            description={translate("simulationSettings.pressureExponentDesc")}
-            value={values.pressureExponent}
-            onChange={(v) => setFieldValue("pressureExponent", v)}
-            disabled={!isPDA || readonly}
-          />
-        </div>
-      </div>
-      <div className="sticky top-[3rem] z-[3] px-3 py-2 -mx-3 bg-white dark:bg-gray-800 text-sm font-semibold text-gray-900 dark:text-white">
+        <ValueSetting
+          label={translate("simulationSettings.pressureExponent")}
+          description={translate("simulationSettings.pressureExponentDesc")}
+          value={values.pressureExponent}
+          onChange={(v) => setFieldValue("pressureExponent", v)}
+          disabled={!isPDA || readonly}
+        />
+      </SubsectionGroup>
+      <SubsectionHeader>
         {translate("simulationSettings.demandsEmitters")}
-      </div>
-      <div
-        data-section-id="demands-emitters"
-        className="flex flex-col gap-4 mb-4"
-      >
-        <div className="flex flex-col gap-4">
-          <ValueSetting
-            label={translate("simulationSettings.emitterExponent")}
-            description={translate("simulationSettings.emitterExponentDesc")}
-            value={values.emitterExponent}
-            onChange={(v) => setFieldValue("emitterExponent", v)}
-            disabled={readonly}
-          />
-        </div>
-      </div>
+      </SubsectionHeader>
+      <SubsectionGroup sectionId="demands-emitters">
+        <ValueSetting
+          label={translate("simulationSettings.emitterExponent")}
+          description={translate("simulationSettings.emitterExponentDesc")}
+          value={values.emitterExponent}
+          onChange={(v) => setFieldValue("emitterExponent", v)}
+          disabled={readonly}
+        />
+      </SubsectionGroup>
     </div>
   );
 };
@@ -393,129 +403,115 @@ export const HydraulicsSection = () => {
 
   return (
     <div>
-      <h3 className="sticky top-0 bg-white dark:bg-gray-800 -mt-3 -mx-3 pt-4 px-3 pb-2 z-[5] text-base font-semibold text-gray-900 dark:text-white">
+      <SectionHeader>
         {translate("simulationSettings.hydraulics")}
-      </h3>
+      </SectionHeader>
 
-      <div className="sticky top-[3rem] z-[3] px-3 py-2 -mx-3 bg-white dark:bg-gray-800 text-sm font-semibold text-gray-900 dark:text-white">
+      <SubsectionHeader>
         {translate("simulationSettings.hydraulicsConvergence")}
-      </div>
-      <div className="flex flex-col gap-4 mb-4">
-        <div
-          data-section-id="hydraulics-convergence"
-          className="flex flex-col gap-4"
-        >
-          <ValueSetting
-            label={translate("simulationSettings.trials")}
-            description={translate("simulationSettings.trialsDesc")}
-            value={values.trials}
-            onChange={(v) => setFieldValue("trials", v)}
-            disabled={readonly}
-          />
+      </SubsectionHeader>
+      <SubsectionGroup sectionId="hydraulics-convergence">
+        <ValueSetting
+          label={translate("simulationSettings.trials")}
+          description={translate("simulationSettings.trialsDesc")}
+          value={values.trials}
+          onChange={(v) => setFieldValue("trials", v)}
+          disabled={readonly}
+        />
 
-          <ValueSetting
-            label={translate("simulationSettings.accuracy")}
-            description={translate("simulationSettings.accuracyDesc")}
-            value={values.accuracy}
-            onChange={(v) => setFieldValue("accuracy", v)}
-            disabled={readonly}
-          />
+        <ValueSetting
+          label={translate("simulationSettings.accuracy")}
+          description={translate("simulationSettings.accuracyDesc")}
+          value={values.accuracy}
+          onChange={(v) => setFieldValue("accuracy", v)}
+          disabled={readonly}
+        />
 
-          <SelectorSetting
-            label={translate("simulationSettings.unbalancedMode")}
-            description={translate("simulationSettings.unbalancedModeDesc")}
-            options={unbalancedModeOptions}
-            selected={values.unbalancedMode}
-            onChange={(v) => setFieldValue("unbalancedMode", v)}
-            disabled={readonly}
-          />
+        <SelectorSetting
+          label={translate("simulationSettings.unbalancedMode")}
+          description={translate("simulationSettings.unbalancedModeDesc")}
+          options={unbalancedModeOptions}
+          selected={values.unbalancedMode}
+          onChange={(v) => setFieldValue("unbalancedMode", v)}
+          disabled={readonly}
+        />
 
-          <ValueSetting
-            label={translate("simulationSettings.unbalancedExtraTrials")}
-            description={translate(
-              "simulationSettings.unbalancedExtraTrialsDesc",
-            )}
-            value={values.unbalancedExtraTrials}
-            onChange={(v) => setFieldValue("unbalancedExtraTrials", v)}
-            disabled={isStop || readonly}
-          />
+        <ValueSetting
+          label={translate("simulationSettings.unbalancedExtraTrials")}
+          description={translate(
+            "simulationSettings.unbalancedExtraTrialsDesc",
+          )}
+          value={values.unbalancedExtraTrials}
+          onChange={(v) => setFieldValue("unbalancedExtraTrials", v)}
+          disabled={isStop || readonly}
+        />
 
-          <ValueSetting
-            label={translate("simulationSettings.headError")}
-            description={translate("simulationSettings.headErrorDesc")}
-            value={values.headError}
-            onChange={(v) => setFieldValue("headError", v)}
-            disabled={readonly}
-          />
+        <ValueSetting
+          label={translate("simulationSettings.headError")}
+          description={translate("simulationSettings.headErrorDesc")}
+          value={values.headError}
+          onChange={(v) => setFieldValue("headError", v)}
+          disabled={readonly}
+        />
 
-          <ValueSetting
-            label={translate("simulationSettings.flowChange")}
-            description={translate("simulationSettings.flowChangeDesc")}
-            value={values.flowChange}
-            onChange={(v) => setFieldValue("flowChange", v)}
-            disabled={readonly}
-          />
-        </div>
-      </div>
+        <ValueSetting
+          label={translate("simulationSettings.flowChange")}
+          description={translate("simulationSettings.flowChangeDesc")}
+          value={values.flowChange}
+          onChange={(v) => setFieldValue("flowChange", v)}
+          disabled={readonly}
+        />
+      </SubsectionGroup>
 
-      <div className="sticky top-[3rem] z-[3] px-3 py-2 -mx-3 bg-white dark:bg-gray-800 text-sm font-semibold text-gray-900 dark:text-white">
+      <SubsectionHeader>
         {translate("simulationSettings.hydraulicsSolver")}
-      </div>
+      </SubsectionHeader>
+      <SubsectionGroup sectionId="hydraulics-solver">
+        <ValueSetting
+          label={translate("simulationSettings.checkFreq")}
+          description={translate("simulationSettings.checkFreqDesc")}
+          value={values.checkFreq}
+          onChange={(v) => setFieldValue("checkFreq", v)}
+          disabled={readonly}
+        />
 
-      <div className="flex flex-col gap-4 mb-4">
-        <div
-          data-section-id="hydraulics-solver"
-          className="flex flex-col gap-4"
-        >
-          <ValueSetting
-            label={translate("simulationSettings.checkFreq")}
-            description={translate("simulationSettings.checkFreqDesc")}
-            value={values.checkFreq}
-            onChange={(v) => setFieldValue("checkFreq", v)}
-            disabled={readonly}
-          />
+        <ValueSetting
+          label={translate("simulationSettings.maxCheck")}
+          description={translate("simulationSettings.maxCheckDesc")}
+          value={values.maxCheck}
+          onChange={(v) => setFieldValue("maxCheck", v)}
+          disabled={readonly}
+        />
 
-          <ValueSetting
-            label={translate("simulationSettings.maxCheck")}
-            description={translate("simulationSettings.maxCheckDesc")}
-            value={values.maxCheck}
-            onChange={(v) => setFieldValue("maxCheck", v)}
-            disabled={readonly}
-          />
+        <ValueSetting
+          label={translate("simulationSettings.dampLimit")}
+          description={translate("simulationSettings.dampLimitDesc")}
+          value={values.dampLimit}
+          onChange={(v) => setFieldValue("dampLimit", v)}
+          disabled={readonly}
+        />
+      </SubsectionGroup>
 
-          <ValueSetting
-            label={translate("simulationSettings.dampLimit")}
-            description={translate("simulationSettings.dampLimitDesc")}
-            value={values.dampLimit}
-            onChange={(v) => setFieldValue("dampLimit", v)}
-            disabled={readonly}
-          />
-        </div>
-      </div>
-
-      <div className="sticky top-[3rem] z-[3] px-3 py-2 -mx-3 bg-white dark:bg-gray-800 text-sm font-semibold text-gray-900 dark:text-white">
+      <SubsectionHeader>
         {translate("simulationSettings.hydraulicsFluid")}
-      </div>
+      </SubsectionHeader>
+      <SubsectionGroup sectionId="hydraulics-fluid">
+        <ValueSetting
+          label={translate("simulationSettings.viscosity")}
+          description={translate("simulationSettings.viscosityDesc")}
+          value={values.viscosity}
+          onChange={(v) => setFieldValue("viscosity", v)}
+          disabled={readonly}
+        />
 
-      <div className="flex flex-col gap-4 mb-4">
-        <div data-section-id="hydraulics-fluid" className="flex flex-col gap-4">
-          <ValueSetting
-            label={translate("simulationSettings.viscosity")}
-            description={translate("simulationSettings.viscosityDesc")}
-            value={values.viscosity}
-            onChange={(v) => setFieldValue("viscosity", v)}
-            disabled={readonly}
-          />
-
-          <ValueSetting
-            label={translate("simulationSettings.specificGravity")}
-            description={translate("simulationSettings.specificGravityDesc")}
-            value={values.specificGravity}
-            onChange={(v) => setFieldValue("specificGravity", v)}
-            disabled={readonly}
-          />
-        </div>
-      </div>
+        <ValueSetting
+          label={translate("simulationSettings.specificGravity")}
+          description={translate("simulationSettings.specificGravityDesc")}
+          value={values.specificGravity}
+          onChange={(v) => setFieldValue("specificGravity", v)}
+          disabled={readonly}
+        />
+      </SubsectionGroup>
     </div>
   );
 };
@@ -564,169 +560,150 @@ export const WaterQualitySection = () => {
 
   return (
     <div>
-      <h3 className="sticky top-0 bg-white dark:bg-gray-800 -mt-3 -mx-3 pt-4 px-3 pb-2 z-[5] text-base font-semibold text-gray-900 dark:text-white">
+      <SectionHeader>
         {translate("simulationSettings.waterQuality")}
-      </h3>
+      </SectionHeader>
 
-      <div className="sticky top-[3rem] z-[3] px-3 py-2 -mx-3 bg-white dark:bg-gray-800 text-sm font-semibold text-gray-900 dark:text-white">
+      <SubsectionHeader>
         {translate("simulationSettings.waterQualityAnalysis")}
-      </div>
-      <div className="flex flex-col gap-4 mb-4">
-        <div
-          data-section-id="waterQuality-analysis"
-          className="flex flex-col gap-4"
-        >
-          <SelectorSetting
-            label={translate("simulationSettings.qualitySimulationType")}
-            description={translate(
-              "simulationSettings.qualitySimulationTypeDesc",
-            )}
-            options={qualityTypeOptions}
-            selected={values.qualitySimulationType}
-            onChange={(v) => setFieldValue("qualitySimulationType", v)}
-            disabled={readonly}
-          />
+      </SubsectionHeader>
+      <SubsectionGroup sectionId="waterQuality-analysis">
+        <SelectorSetting
+          label={translate("simulationSettings.qualitySimulationType")}
+          description={translate(
+            "simulationSettings.qualitySimulationTypeDesc",
+          )}
+          options={qualityTypeOptions}
+          selected={values.qualitySimulationType}
+          onChange={(v) => setFieldValue("qualitySimulationType", v)}
+          disabled={readonly}
+        />
 
-          <TextSetting
-            label={translate("simulationSettings.qualityChemicalName")}
-            description={translate(
-              "simulationSettings.qualityChemicalNameDesc",
-            )}
-            value={values.qualityChemicalName}
-            onChange={(v) => {
-              void setFieldValue("qualityChemicalName", v);
-            }}
-            disabled={!isChemical || readonly}
-          />
+        <TextSetting
+          label={translate("simulationSettings.qualityChemicalName")}
+          description={translate("simulationSettings.qualityChemicalNameDesc")}
+          value={values.qualityChemicalName}
+          onChange={(v) => {
+            void setFieldValue("qualityChemicalName", v);
+          }}
+          disabled={!isChemical || readonly}
+        />
 
-          <SelectorSetting
-            label={translate("simulationSettings.qualityMassUnit")}
-            description={translate("simulationSettings.qualityMassUnitDesc")}
-            options={massUnitOptions}
-            selected={values.qualityMassUnit}
-            onChange={(v) => setFieldValue("qualityMassUnit", v)}
-            disabled={!isChemical || readonly}
-          />
+        <SelectorSetting
+          label={translate("simulationSettings.qualityMassUnit")}
+          description={translate("simulationSettings.qualityMassUnitDesc")}
+          options={massUnitOptions}
+          selected={values.qualityMassUnit}
+          onChange={(v) => setFieldValue("qualityMassUnit", v)}
+          disabled={!isChemical || readonly}
+        />
 
-          <TextSetting
-            label={translate("simulationSettings.qualityTraceNode")}
-            description={translate("simulationSettings.qualityTraceNodeDesc")}
-            value={traceNodeLabel}
-            onChange={(label) => {
-              if (!label) {
-                void setFieldValue("qualityTraceNodeId", null);
+        <TextSetting
+          label={translate("simulationSettings.qualityTraceNode")}
+          description={translate("simulationSettings.qualityTraceNodeDesc")}
+          value={traceNodeLabel}
+          onChange={(label) => {
+            if (!label) {
+              void setFieldValue("qualityTraceNodeId", null);
+              return;
+            }
+            for (const asset of assets.values()) {
+              if (asset.isNode && asset.label === label) {
+                void setFieldValue("qualityTraceNodeId", asset.id);
                 return;
               }
-              for (const asset of assets.values()) {
-                if (asset.isNode && asset.label === label) {
-                  void setFieldValue("qualityTraceNodeId", asset.id);
-                  return;
-                }
-              }
-              void setFieldValue("qualityTraceNodeId", null);
-            }}
-            disabled={!isTrace || readonly}
-          />
+            }
+            void setFieldValue("qualityTraceNodeId", null);
+          }}
+          disabled={!isTrace || readonly}
+        />
 
-          <ValueSetting
-            label={translate("simulationSettings.tolerance")}
-            description={translate("simulationSettings.toleranceDesc")}
-            value={values.tolerance}
-            onChange={(v) => setFieldValue("tolerance", v)}
-            disabled={isNone || readonly}
-          />
-        </div>
-      </div>
+        <ValueSetting
+          label={translate("simulationSettings.tolerance")}
+          description={translate("simulationSettings.toleranceDesc")}
+          value={values.tolerance}
+          onChange={(v) => setFieldValue("tolerance", v)}
+          disabled={isNone || readonly}
+        />
+      </SubsectionGroup>
 
-      <div className="sticky top-[3rem] z-[3] px-3 py-2 -mx-3 bg-white dark:bg-gray-800 text-sm font-semibold text-gray-900 dark:text-white">
+      <SubsectionHeader>
         {translate("simulationSettings.waterQualityReactions")}
-      </div>
+      </SubsectionHeader>
+      <SubsectionGroup sectionId="waterQuality-reactions">
+        <ValueSetting
+          label={translate("simulationSettings.reactionBulkOrder")}
+          description={translate("simulationSettings.reactionBulkOrderDesc")}
+          value={values.reactionBulkOrder}
+          onChange={(v) => setFieldValue("reactionBulkOrder", v)}
+          disabled={!isChemical || readonly}
+        />
 
-      <div className="flex flex-col gap-4 mb-4">
-        <div
-          data-section-id="waterQuality-reactions"
-          className="flex flex-col gap-4"
-        >
-          <ValueSetting
-            label={translate("simulationSettings.reactionBulkOrder")}
-            description={translate("simulationSettings.reactionBulkOrderDesc")}
-            value={values.reactionBulkOrder}
-            onChange={(v) => setFieldValue("reactionBulkOrder", v)}
-            disabled={!isChemical || readonly}
-          />
+        <ValueSetting
+          label={translate("simulationSettings.reactionWallOrder")}
+          description={translate("simulationSettings.reactionWallOrderDesc")}
+          value={values.reactionWallOrder}
+          onChange={(v) => setFieldValue("reactionWallOrder", v)}
+          disabled={!isChemical || readonly}
+        />
 
-          <ValueSetting
-            label={translate("simulationSettings.reactionWallOrder")}
-            description={translate("simulationSettings.reactionWallOrderDesc")}
-            value={values.reactionWallOrder}
-            onChange={(v) => setFieldValue("reactionWallOrder", v)}
-            disabled={!isChemical || readonly}
-          />
+        <ValueSetting
+          label={translate("simulationSettings.reactionTankOrder")}
+          description={translate("simulationSettings.reactionTankOrderDesc")}
+          value={values.reactionTankOrder}
+          onChange={(v) => setFieldValue("reactionTankOrder", v)}
+          disabled={!isChemical || readonly}
+        />
 
-          <ValueSetting
-            label={translate("simulationSettings.reactionTankOrder")}
-            description={translate("simulationSettings.reactionTankOrderDesc")}
-            value={values.reactionTankOrder}
-            onChange={(v) => setFieldValue("reactionTankOrder", v)}
-            disabled={!isChemical || readonly}
-          />
+        <ValueSetting
+          label={translate("simulationSettings.reactionGlobalBulk")}
+          description={translate("simulationSettings.reactionGlobalBulkDesc")}
+          value={values.reactionGlobalBulk}
+          onChange={(v) => setFieldValue("reactionGlobalBulk", v)}
+          disabled={!isChemical || readonly}
+        />
 
-          <ValueSetting
-            label={translate("simulationSettings.reactionGlobalBulk")}
-            description={translate("simulationSettings.reactionGlobalBulkDesc")}
-            value={values.reactionGlobalBulk}
-            onChange={(v) => setFieldValue("reactionGlobalBulk", v)}
-            disabled={!isChemical || readonly}
-          />
+        <ValueSetting
+          label={translate("simulationSettings.reactionGlobalWall")}
+          description={translate("simulationSettings.reactionGlobalWallDesc")}
+          value={values.reactionGlobalWall}
+          onChange={(v) => setFieldValue("reactionGlobalWall", v)}
+          disabled={!isChemical || readonly}
+        />
+      </SubsectionGroup>
 
-          <ValueSetting
-            label={translate("simulationSettings.reactionGlobalWall")}
-            description={translate("simulationSettings.reactionGlobalWallDesc")}
-            value={values.reactionGlobalWall}
-            onChange={(v) => setFieldValue("reactionGlobalWall", v)}
-            disabled={!isChemical || readonly}
-          />
-        </div>
-      </div>
-
-      <div className="sticky top-[3rem] z-[3] px-3 py-2 -mx-3 bg-white dark:bg-gray-800 text-sm font-semibold text-gray-900 dark:text-white">
+      <SubsectionHeader>
         {translate("simulationSettings.waterQualityWall")}
-      </div>
+      </SubsectionHeader>
+      <SubsectionGroup sectionId="waterQuality-wall">
+        <ValueSetting
+          label={translate("simulationSettings.reactionLimitingPotential")}
+          description={translate(
+            "simulationSettings.reactionLimitingPotentialDesc",
+          )}
+          value={values.reactionLimitingPotential}
+          onChange={(v) => setFieldValue("reactionLimitingPotential", v)}
+          disabled={!isChemical || readonly}
+        />
 
-      <div className="flex flex-col gap-4 mb-4">
-        <div
-          data-section-id="waterQuality-wall"
-          className="flex flex-col gap-4"
-        >
-          <ValueSetting
-            label={translate("simulationSettings.reactionLimitingPotential")}
-            description={translate(
-              "simulationSettings.reactionLimitingPotentialDesc",
-            )}
-            value={values.reactionLimitingPotential}
-            onChange={(v) => setFieldValue("reactionLimitingPotential", v)}
-            disabled={!isChemical || readonly}
-          />
+        <ValueSetting
+          label={translate("simulationSettings.reactionRoughnessCorrelation")}
+          description={translate(
+            "simulationSettings.reactionRoughnessCorrelationDesc",
+          )}
+          value={values.reactionRoughnessCorrelation}
+          onChange={(v) => setFieldValue("reactionRoughnessCorrelation", v)}
+          disabled={!isChemical || readonly}
+        />
 
-          <ValueSetting
-            label={translate("simulationSettings.reactionRoughnessCorrelation")}
-            description={translate(
-              "simulationSettings.reactionRoughnessCorrelationDesc",
-            )}
-            value={values.reactionRoughnessCorrelation}
-            onChange={(v) => setFieldValue("reactionRoughnessCorrelation", v)}
-            disabled={!isChemical || readonly}
-          />
-
-          <ValueSetting
-            label={translate("simulationSettings.diffusivity")}
-            description={translate("simulationSettings.diffusivityDesc")}
-            value={values.diffusivity}
-            onChange={(v) => setFieldValue("diffusivity", v)}
-            disabled={!isChemical || readonly}
-          />
-        </div>
-      </div>
+        <ValueSetting
+          label={translate("simulationSettings.diffusivity")}
+          description={translate("simulationSettings.diffusivityDesc")}
+          value={values.diffusivity}
+          onChange={(v) => setFieldValue("diffusivity", v)}
+          disabled={!isChemical || readonly}
+        />
+      </SubsectionGroup>
     </div>
   );
 };
@@ -768,9 +745,7 @@ export const EnergySection = () => {
 
   return (
     <div>
-      <h3 className="sticky top-0 bg-white dark:bg-gray-800 -mt-3 -mx-3 pt-4 px-3 pb-2 z-[5] text-base font-semibold text-gray-900 dark:text-white">
-        {translate("simulationSettings.energy")}
-      </h3>
+      <SectionHeader>{translate("simulationSettings.energy")}</SectionHeader>
 
       <div className="flex flex-col gap-4 mb-4">
         <SelectorSetting
