@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import {
   normalizeNumericInput,
@@ -24,18 +25,19 @@ export function FloatCell({
 }: FloatCellProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [editValue, setEditValue] = useState("");
+  const [hasError, setHasError] = useState(false);
   const shouldCommitOnBlurRef = useRef(false);
   const [prevEditMode, setPrevEditMode] = useState<EditMode>(false);
 
-  // Set editValue synchronously during render so the DOM has the correct
-  // value before useLayoutEffect runs focus/select.
   if (editMode && editMode !== prevEditMode) {
     setPrevEditMode(editMode);
     setEditValue(formatLocaleNumber(value));
+    setHasError(false);
     shouldCommitOnBlurRef.current = true;
   }
   if (!editMode && prevEditMode) {
     setPrevEditMode(false);
+    setHasError(false);
   }
 
   useLayoutEffect(() => {
@@ -54,6 +56,9 @@ export function FloatCell({
       if (newValue === editValue) return;
       if (rawValue.length > 0 && newValue.length === 0) return;
       setEditValue(newValue);
+      setHasError(
+        newValue.trim() !== "" && parseNumericInput(newValue) === null,
+      );
     },
     [editValue],
   );
@@ -98,7 +103,14 @@ export function FloatCell({
   const formattedValue = formatLocaleNumber(value);
 
   return (
-    <div className="w-full h-full flex items-center">
+    <div
+      className={clsx(
+        "w-full h-full flex items-center",
+        hasError &&
+          editMode &&
+          "z-[2] bg-orange-100 dark:bg-orange-900/30 ring-1 ring-orange-500 dark:ring-orange-700",
+      )}
+    >
       <input
         ref={inputRef}
         type="text"
