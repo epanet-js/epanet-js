@@ -55,12 +55,7 @@ export function MultiAssetPanel({
       hydraulicModel,
       simulationResults,
     );
-  }, [
-    selectedFeatures,
-    quantitiesMetadata,
-    hydraulicModel,
-    simulationResults,
-  ]);
+  }, [selectedFeatures, quantitiesMetadata, hydraulicModel, simulationResults]);
 
   const assetIdsByType = useMemo(() => {
     const map: Record<Asset["type"], Asset["id"][]> = {
