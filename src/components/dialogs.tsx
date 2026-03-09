@@ -16,10 +16,10 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { LoadingDialog } from "./dialog";
 import { WelcomeDialog } from "./dialogs/welcome";
 
-const SimulationSettingsNewDialog = dynamic(
+const SimulationSettingsDialog = dynamic(
   () =>
-    import("src/components/dialogs/simulation-settings-new").then(
-      (r) => r.SimulationSettingsNewDialog,
+    import("src/components/dialogs/simulation-settings").then(
+      (r) => r.SimulationSettingsDialog,
     ),
   {
     loading: () => <LoadingDialog />,
@@ -429,7 +429,7 @@ export const Dialogs = memo(function Dialogs() {
     return <SimulationReportDialog />;
   }
   if (dialog.type === "simulationSettings") {
-    return <SimulationSettingsNewDialog />;
+    return <SimulationSettingsDialog />;
   }
   if (dialog.type === "simulationSummary") {
     return <SimulationSummaryDialog modal={dialog} onClose={onClose} />;

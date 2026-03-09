@@ -33,7 +33,7 @@ export type {
   SimulationModeOption,
 } from "./simulation-settings-data";
 
-export const SimulationSettingsNewDialog = () => {
+export const SimulationSettingsDialog = () => {
   const translate = useTranslate();
   const { closeDialog } = useDialogState();
   const simulationSettings = useAtomValue(simulationSettingsAtom);
