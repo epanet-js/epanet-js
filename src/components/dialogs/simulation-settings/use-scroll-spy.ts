@@ -3,6 +3,27 @@ import { useRef, useState, useCallback } from "react";
 const SCROLL_PADDING = 16;
 const ACTIVATION_OFFSET = 100;
 
+// Walk back through siblings (and one level up) to find the nearest preceding
+// sticky element — the subheader that will be stuck above this target.
+function findPrecedingSticky(target: Element): HTMLElement | null {
+  let prev = target.previousElementSibling;
+  while (prev) {
+    if (getComputedStyle(prev).position === "sticky")
+      return prev as HTMLElement;
+    prev = prev.previousElementSibling;
+  }
+  const parent = target.parentElement;
+  if (parent) {
+    prev = parent.previousElementSibling;
+    while (prev) {
+      if (getComputedStyle(prev).position === "sticky")
+        return prev as HTMLElement;
+      prev = prev.previousElementSibling;
+    }
+  }
+  return null;
+}
+
 export const useScrollSpy = (sectionIds: string[]) => {
   const [activeSection, setActiveSection] = useState<string>(
     sectionIds[0] ?? "",
@@ -77,12 +98,18 @@ export const useScrollSpy = (sectionIds: string[]) => {
 
     const targetRect = target.getBoundingClientRect();
     const containerRect = container.getBoundingClientRect();
+
+    // Find the nearest sticky sibling preceding the target (checking direct
+    // siblings first, then the parent's siblings one level up). If found,
+    // offset by its top + height so the fields land just below the stuck header.
+    const precedingSticky = findPrecedingSticky(target);
+    const offset = precedingSticky
+      ? parseFloat(getComputedStyle(precedingSticky).top) +
+        precedingSticky.getBoundingClientRect().height
+      : SCROLL_PADDING;
+
     container.scrollTo({
-      top:
-        container.scrollTop +
-        targetRect.top -
-        containerRect.top -
-        SCROLL_PADDING,
+      top: container.scrollTop + targetRect.top - containerRect.top - offset,
       behavior: "smooth",
     });
 
