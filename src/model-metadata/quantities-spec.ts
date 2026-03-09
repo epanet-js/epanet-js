@@ -39,7 +39,8 @@ export type QuantityProperty =
   | "volume"
   | "tankDiameter"
   | "tankArea"
-  | "efficiency";
+  | "efficiency"
+  | "averageKwPerFlowUnit";
 
 export type UnitsSpec = Record<QuantityProperty, Unit>;
 export type DecimalsSpec = Partial<Record<keyof UnitsSpec, number>>;
@@ -109,6 +110,7 @@ const metricSpec: AssetQuantitiesSpec = {
     customerDemandPerDay: "l/d",
     ...allLevelUnits("m"),
     ...allFlowUnits("l/s"),
+    averageKwPerFlowUnit: "kW/m^3",
   },
   decimals: {},
   defaults: {
@@ -167,6 +169,7 @@ const usCustomarySpec: AssetQuantitiesSpec = {
     customerDemandPerDay: "gal/d",
     ...allLevelUnits("ft"),
     ...allFlowUnits("gal/min"),
+    averageKwPerFlowUnit: "kW/Mgal",
   },
   decimals: {
     elevation: 1,

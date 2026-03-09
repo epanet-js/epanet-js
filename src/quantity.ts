@@ -33,6 +33,8 @@ export type Unit =
   | "%"
   | "m^2"
   | "ft^2"
+  | "kW/m^3"
+  | "kW/Mgal"
   | null;
 
 export type Quantity = {

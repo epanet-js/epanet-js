@@ -1912,35 +1912,35 @@ const PumpEditor = ({
           <QuantityRow
             name="utilization"
             value={pumpEnergy.utilization}
-            unit="%"
+            unit={quantitiesMetadata.getUnit("efficiency")}
             decimals={2}
             readOnly={true}
           />
           <QuantityRow
             name="averageEfficiency"
             value={pumpEnergy.averageEfficiency}
-            unit="%"
+            unit={quantitiesMetadata.getUnit("efficiency")}
             decimals={2}
             readOnly={true}
           />
           <QuantityRow
             name="averageKwPerFlowUnit"
             value={pumpEnergy.averageKwPerFlowUnit}
-            unit={null}
+            unit={quantitiesMetadata.getUnit("averageKwPerFlowUnit")}
             decimals={2}
             readOnly={true}
           />
           <QuantityRow
             name="averageKw"
             value={pumpEnergy.averageKw}
-            unit="kW"
+            unit={quantitiesMetadata.getUnit("power")}
             decimals={2}
             readOnly={true}
           />
           <QuantityRow
             name="peakKw"
             value={pumpEnergy.peakKw}
-            unit="kW"
+            unit={quantitiesMetadata.getUnit("power")}
             decimals={2}
             readOnly={true}
           />

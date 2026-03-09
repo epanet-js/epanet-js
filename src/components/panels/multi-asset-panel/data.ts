@@ -489,12 +489,23 @@ const appendPumpStats = (
   // Energy results
   const energy = simulationResults?.getPumpEnergy(pump.id);
   if (energy) {
+    const percentUnit = {
+      unit: quantitiesMetadata.getUnit("efficiency"),
+      decimals: 2,
+    };
+    const powerUnit = {
+      unit: quantitiesMetadata.getUnit("power"),
+      decimals: 2,
+    };
+    const noUnit = { unit: null as Unit, decimals: 2 };
+
     updateQuantityStats(
       statsMap,
       "utilization",
       energy.utilization,
       quantitiesMetadata,
       id,
+      percentUnit,
     );
     updateQuantityStats(
       statsMap,
@@ -502,6 +513,7 @@ const appendPumpStats = (
       energy.averageEfficiency,
       quantitiesMetadata,
       id,
+      percentUnit,
     );
     updateQuantityStats(
       statsMap,
@@ -509,6 +521,7 @@ const appendPumpStats = (
       energy.averageKwPerFlowUnit,
       quantitiesMetadata,
       id,
+      { decimals: 2 },
     );
     updateQuantityStats(
       statsMap,
@@ -516,6 +529,7 @@ const appendPumpStats = (
       energy.averageKw,
       quantitiesMetadata,
       id,
+      powerUnit,
     );
     updateQuantityStats(
       statsMap,
@@ -523,6 +537,7 @@ const appendPumpStats = (
       energy.peakKw,
       quantitiesMetadata,
       id,
+      powerUnit,
     );
     updateQuantityStats(
       statsMap,
@@ -530,6 +545,7 @@ const appendPumpStats = (
       energy.averageCostPerDay,
       quantitiesMetadata,
       id,
+      noUnit,
     );
   }
 };
@@ -840,16 +856,19 @@ const updateQuantityStats = (
   value: number | null,
   quantitiesMetadata: Quantities,
   assetId: AssetId,
+  overrides?: { unit?: Unit; decimals?: number },
 ) => {
   if (value === null) return;
 
   if (!statsMap.has(property)) {
     const decimals =
-      quantitiesMetadata.getDecimals(property as keyof Quantities["units"]) ||
+      overrides?.decimals ??
+      quantitiesMetadata.getDecimals(property as keyof Quantities["units"]) ??
       3;
-    const unit = quantitiesMetadata.getUnit(
-      property as keyof Quantities["units"],
-    );
+    const unit =
+      overrides?.unit !== undefined
+        ? overrides.unit
+        : quantitiesMetadata.getUnit(property as keyof Quantities["units"]);
 
     statsMap.set(property, {
       type: "quantity",
