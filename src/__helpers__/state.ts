@@ -343,4 +343,5 @@ export const createMockResultsReader = (
   getAllVelocities: () =>
     Object.values(data.pipes ?? {}).map((p) => p.velocity ?? 0),
   getAllUnitHeadlosses: () => [],
+  getPumpEnergy: () => null,
 });

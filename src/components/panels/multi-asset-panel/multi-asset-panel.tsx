@@ -47,7 +47,6 @@ export function MultiAssetPanel({
   const rep = usePersistence();
   const transact = rep.useTransact();
   const userTracking = useUserTracking();
-
   const { data: multiAssetData, counts: assetCounts } = useMemo(() => {
     const assets = selectedFeatures as Asset[];
     return computeMultiAssetData(
@@ -56,7 +55,12 @@ export function MultiAssetPanel({
       hydraulicModel,
       simulationResults,
     );
-  }, [selectedFeatures, quantitiesMetadata, hydraulicModel, simulationResults]);
+  }, [
+    selectedFeatures,
+    quantitiesMetadata,
+    hydraulicModel,
+    simulationResults,
+  ]);
 
   const assetIdsByType = useMemo(() => {
     const map: Record<Asset["type"], Asset["id"][]> = {

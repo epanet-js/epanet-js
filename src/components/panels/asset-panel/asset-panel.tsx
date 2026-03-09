@@ -1792,6 +1792,7 @@ const PumpEditor = ({
     useAssetComparison(pump);
   const simulation = useSimulation();
   const pumpSimulation = simulation?.getPump(pump.id);
+  const pumpEnergy = simulation?.getPumpEnergy(pump.id) ?? null;
 
   const simFlow = pumpSimulation?.flow ?? null;
   const simHead = pumpSimulation ? -pumpSimulation.headloss : null;
@@ -1903,6 +1904,59 @@ const PumpEditor = ({
             globalPatternId={simulationSettings.energyGlobalPatternId}
             onPropertyChange={onPropertyChange}
             readOnly={readonly}
+          />
+        </Section>
+      )}
+      {isEnergyEnabled && pumpEnergy && (
+        <Section title={translate("energyResults")}>
+          <QuantityRow
+            name="utilization"
+            value={pumpEnergy.utilization}
+            unit="%"
+            decimals={2}
+            readOnly={true}
+          />
+          <QuantityRow
+            name="averageEfficiency"
+            value={pumpEnergy.averageEfficiency}
+            unit="%"
+            decimals={2}
+            readOnly={true}
+          />
+          <QuantityRow
+            name="averageKwPerFlowUnit"
+            value={pumpEnergy.averageKwPerFlowUnit}
+            unit={null}
+            decimals={2}
+            readOnly={true}
+          />
+          <QuantityRow
+            name="averageKw"
+            value={pumpEnergy.averageKw}
+            unit="kW"
+            decimals={2}
+            readOnly={true}
+          />
+          <QuantityRow
+            name="peakKw"
+            value={pumpEnergy.peakKw}
+            unit="kW"
+            decimals={2}
+            readOnly={true}
+          />
+          <QuantityRow
+            name="averageCostPerDay"
+            value={pumpEnergy.averageCostPerDay}
+            unit={null}
+            decimals={2}
+            readOnly={true}
+          />
+          <QuantityRow
+            name="demandCharge"
+            value={pumpEnergy.demandCharge}
+            unit={null}
+            decimals={2}
+            readOnly={true}
           />
         </Section>
       )}

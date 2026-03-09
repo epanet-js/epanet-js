@@ -485,6 +485,53 @@ const appendPumpStats = (
       : "pump." + status;
     updateCategoryStats(statsMap, "pumpStatus", statusLabel, id);
   }
+
+  // Energy results
+  const energy = simulationResults?.getPumpEnergy(pump.id);
+  if (energy) {
+    updateQuantityStats(
+      statsMap,
+      "utilization",
+      energy.utilization,
+      quantitiesMetadata,
+      id,
+    );
+    updateQuantityStats(
+      statsMap,
+      "averageEfficiency",
+      energy.averageEfficiency,
+      quantitiesMetadata,
+      id,
+    );
+    updateQuantityStats(
+      statsMap,
+      "averageKwPerFlowUnit",
+      energy.averageKwPerFlowUnit,
+      quantitiesMetadata,
+      id,
+    );
+    updateQuantityStats(
+      statsMap,
+      "averageKw",
+      energy.averageKw,
+      quantitiesMetadata,
+      id,
+    );
+    updateQuantityStats(
+      statsMap,
+      "peakKw",
+      energy.peakKw,
+      quantitiesMetadata,
+      id,
+    );
+    updateQuantityStats(
+      statsMap,
+      "averageCostPerDay",
+      energy.averageCostPerDay,
+      quantitiesMetadata,
+      id,
+    );
+  }
 };
 
 const buildPumpSections = (
@@ -510,6 +557,12 @@ const buildPumpSections = (
       "flow",
       "pumpHead",
       "pumpStatus",
+      "utilization",
+      "averageEfficiency",
+      "averageKwPerFlowUnit",
+      "averageKw",
+      "peakKw",
+      "averageCostPerDay",
     ]),
   };
 };
