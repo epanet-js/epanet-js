@@ -5,7 +5,10 @@ import clsx from "clsx";
 
 import { useTranslate } from "src/hooks/use-translate";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { TimeField } from "src/components/form/time-field";
+import {
+  TimeField,
+  formatSecondsToDisplay,
+} from "src/components/form/time-field";
 import { NumericField } from "src/components/form/numeric-field";
 import { Selector, SelectorOption } from "src/components/form/selector";
 import { simulationSettingsAtom } from "src/state/jotai";
@@ -149,6 +152,12 @@ export const TimesSection = () => {
 
   const isEPS = values.simulationMode === "eps";
 
+  const defaultTimestepPlaceholder = formatSecondsToDisplay(
+    Math.round(
+      (values.hydraulicTimestep ?? timing.hydraulicTimestep ?? ONE_HOUR) / 10,
+    ),
+  );
+
   const simulationModeOptions: {
     label: string;
     value: SimulationModeOption;
@@ -250,6 +259,7 @@ export const TimesSection = () => {
           readonly={readonly}
           onChange={(v) => setFieldValue("qualityTimestep", v)}
           error={fieldErrors.qualityTimestep}
+          placeholder={defaultTimestepPlaceholder}
         />
 
         <TimeSetting
@@ -260,6 +270,7 @@ export const TimesSection = () => {
           readonly={readonly}
           onChange={(v) => setFieldValue("ruleTimestep", v)}
           error={fieldErrors.ruleTimestep}
+          placeholder={defaultTimestepPlaceholder}
         />
       </div>
     </div>
@@ -833,6 +844,7 @@ const TimeSetting = ({
   readonly = false,
   onChange,
   error = null,
+  placeholder,
 }: {
   label: string;
   description: string;
@@ -842,6 +854,7 @@ const TimeSetting = ({
   readonly?: boolean;
   onChange: (value: number | undefined) => void;
   error?: FieldError;
+  placeholder?: string;
 }) => {
   const translate = useTranslate();
 
@@ -862,6 +875,7 @@ const TimeSetting = ({
             hasError={error !== null}
             disabled={disabled}
             readonly={readonly}
+            placeholder={placeholder}
           />
         </div>
         {errorMessage && (

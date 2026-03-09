@@ -18,6 +18,7 @@ export const TimeField = ({
   hasError: externalError = false,
   disabled = false,
   readonly = false,
+  placeholder,
 }: {
   label: string;
   value: number | undefined;
@@ -28,6 +29,7 @@ export const TimeField = ({
   hasError?: boolean;
   disabled?: boolean;
   readonly?: boolean;
+  placeholder?: string;
 }) => {
   const displayValue = formatSecondsToDisplay(value);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -121,7 +123,7 @@ export const TimeField = ({
         )}
         aria-label={`Value for: ${label}`}
       >
-        {disabled ? "N/A" : formatSecondsToDisplay(value) || "-"}
+        {disabled ? "N/A" : formatSecondsToDisplay(value) || placeholder || "-"}
       </span>
     );
   }
@@ -145,6 +147,7 @@ export const TimeField = ({
       value={inputValue}
       onFocus={handleFocus}
       tabIndex={tabIndex}
+      placeholder={placeholder}
       className={styledInput({})}
     />
   );
@@ -211,6 +214,7 @@ function styledInput({
         variant === "warning",
     },
     "text-xs",
+    "placeholder:text-gray-400 dark:placeholder:text-gray-500",
     "bg-transparent rounded-sm block tabular-nums overflow-hidden whitespace-nowrap text-ellipsis focus-visible:ring-inset w-full",
   );
 }
