@@ -74,6 +74,9 @@ const removeGroupDelimiter = (
   const groups = wholePart.split(groupSymbol);
   if (groups.length === 1) return groups[0];
 
+  const firstDigits = groups[0].replace(/^-/, "");
+  if (firstDigits === "0") throw Error("Invalid group");
+
   for (let i = 0; i < groups.length; i++) {
     const group = groups[i];
     if (i === groups.length - 1) {
