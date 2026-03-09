@@ -496,7 +496,7 @@ export function SimpleDialogActionsNew({
       <RefreshIcon
         className={clsx(
           "animate-spin transition-opacity",
-          isSubmitting ? "opacity-50" : "opacity-0",
+          isSubmitting ? "opacity-50" : "hidden",
           fullWidthSubmit && "absolute top-8 right-2.5 text-white",
         )}
       />
