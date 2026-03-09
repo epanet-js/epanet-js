@@ -79,7 +79,7 @@ describe("parse energy", () => {
     it("parses global efficiency", () => {
       const inp = basePumpInp("Global Efficiency\t80");
 
-      const { simulationSettings } = parseInp(inp, { extraOptions: true });
+      const { simulationSettings } = parseInp(inp);
 
       expect(simulationSettings.energyGlobalEfficiency).toBe(80);
     });
@@ -87,7 +87,7 @@ describe("parse energy", () => {
     it("parses global price", () => {
       const inp = basePumpInp("Global Price\t0.12");
 
-      const { simulationSettings } = parseInp(inp, { extraOptions: true });
+      const { simulationSettings } = parseInp(inp);
 
       expect(simulationSettings.energyGlobalPrice).toBe(0.12);
     });
@@ -95,7 +95,7 @@ describe("parse energy", () => {
     it("parses demand charge", () => {
       const inp = basePumpInp("Demand Charge\t25");
 
-      const { simulationSettings } = parseInp(inp, { extraOptions: true });
+      const { simulationSettings } = parseInp(inp);
 
       expect(simulationSettings.energyDemandCharge).toBe(25);
     });
@@ -103,9 +103,7 @@ describe("parse energy", () => {
     it("parses global pattern", () => {
       const inp = basePumpInp("Global Pattern\tPAT1");
 
-      const { hydraulicModel, simulationSettings } = parseInp(inp, {
-        extraOptions: true,
-      });
+      const { hydraulicModel, simulationSettings } = parseInp(inp);
 
       expect(simulationSettings.energyGlobalPatternId).toBeDefined();
       const pattern = hydraulicModel.patterns.get(
@@ -117,7 +115,7 @@ describe("parse energy", () => {
     it("ignores undefined global pattern", () => {
       const inp = basePumpInp("Global Pattern\tNONEXISTENT");
 
-      const { simulationSettings } = parseInp(inp, { extraOptions: true });
+      const { simulationSettings } = parseInp(inp);
 
       expect(simulationSettings.energyGlobalPatternId).toBeNull();
     });
@@ -125,7 +123,7 @@ describe("parse energy", () => {
     it("uses defaults when no energy settings are specified", () => {
       const inp = basePumpInp("");
 
-      const { simulationSettings } = parseInp(inp, { extraOptions: true });
+      const { simulationSettings } = parseInp(inp);
 
       expect(simulationSettings.energyGlobalEfficiency).toBe(75);
       expect(simulationSettings.energyGlobalPrice).toBe(0);

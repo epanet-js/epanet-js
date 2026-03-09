@@ -61,8 +61,7 @@ const defaultOptions = {
 
 export const ignore: RowParser = () => {};
 
-export const parseReport: RowParser = ({ trimmedRow, inpData, options }) => {
-  if (!options?.extraOptions) return;
+export const parseReport: RowParser = ({ trimmedRow, inpData }) => {
   const upperRow = trimmedRow.toUpperCase();
   if (upperRow.startsWith("ENERGY")) {
     const value = upperRow.replace(/^ENERGY\s+/, "").trim();
@@ -99,13 +98,7 @@ const defaultEnergySettings: Record<string, number | string> = {
   "DEMAND CHARGE": 0,
 };
 
-export const parseEnergy: RowParser = ({
-  sectionName,
-  trimmedRow,
-  inpData,
-  issues,
-  options,
-}) => {
+export const parseEnergy: RowParser = ({ trimmedRow, inpData }) => {
   const upperRow = trimmedRow.toUpperCase();
 
   if (upperRow.startsWith("PUMP")) {
@@ -117,9 +110,6 @@ export const parseEnergy: RowParser = ({
       else if (upperKeyword === "PATTERN") entry.pattern = value;
       else if (upperKeyword === "PRICE") entry.price = parseFloat(value);
       inpData.energy.pumpEnergy.set(pumpId, entry);
-    }
-    if (!options?.extraOptions) {
-      issues.addUsedSection(sectionName);
     }
     return;
   }
@@ -134,9 +124,6 @@ export const parseEnergy: RowParser = ({
       !isNaN(parsed) &&
       parsed !== defaultEnergySettings["GLOBAL EFFICIENCY"]
     ) {
-      if (!options?.extraOptions) {
-        issues.addUsedSection(sectionName);
-      }
       inpData.energy.globalEfficiency = parsed;
     }
     return;
@@ -145,22 +132,17 @@ export const parseEnergy: RowParser = ({
   const setting = readSetting(trimmedRow, defaultEnergySettings);
   if (setting) {
     const { name, value } = setting;
-    if (!options?.extraOptions && setting.value !== setting.defaultValue) {
-      issues.addUsedSection(sectionName);
-    }
     if (name === "GLOBAL PATTERN") {
       inpData.energy.globalPattern = (value as string) || undefined;
       return;
     }
-    if (options?.extraOptions) {
-      if (name === "GLOBAL PRICE") {
-        inpData.energy.globalPrice = value as number;
-        return;
-      }
-      if (name === "DEMAND CHARGE") {
-        inpData.energy.demandCharge = value as number;
-        return;
-      }
+    if (name === "GLOBAL PRICE") {
+      inpData.energy.globalPrice = value as number;
+      return;
+    }
+    if (name === "DEMAND CHARGE") {
+      inpData.energy.demandCharge = value as number;
+      return;
     }
   }
 };
@@ -188,52 +170,42 @@ export const parseReaction: RowParser = ({
   trimmedRow,
   inpData,
   issues,
-  options,
 }) => {
   const setting = readSetting(trimmedRow, defaultReactionSettings);
 
-  if (options?.extraOptions) {
-    if (setting) {
-      const { name, value } = setting;
-      if (name === "ORDER BULK") {
-        inpData.reactions.bulkOrder = value as number;
-        return;
-      }
-      if (name === "ORDER WALL") {
-        inpData.reactions.wallOrder = value as number;
-        return;
-      }
-      if (name === "ORDER TANK") {
-        inpData.reactions.tankOrder = value as number;
-        return;
-      }
-      if (name === "GLOBAL BULK") {
-        inpData.reactions.globalBulk = value as number;
-        return;
-      }
-      if (name === "GLOBAL WALL") {
-        inpData.reactions.globalWall = value as number;
-        return;
-      }
-      if (name === "LIMITING POTENTIAL") {
-        inpData.reactions.limitingPotential = value as number;
-        return;
-      }
-      if (name === "ROUGHNESS CORRELATION") {
-        inpData.reactions.roughnessCorrelation = value as number;
-        return;
-      }
+  if (setting) {
+    const { name, value } = setting;
+    if (name === "ORDER BULK") {
+      inpData.reactions.bulkOrder = value as number;
+      return;
     }
-    // Pipe-specific reactions (BULK/WALL pipeID, TANK tankID) still unsupported
-    if (!setting) {
-      issues.addUsedSection(sectionName);
+    if (name === "ORDER WALL") {
+      inpData.reactions.wallOrder = value as number;
+      return;
     }
-    return;
+    if (name === "ORDER TANK") {
+      inpData.reactions.tankOrder = value as number;
+      return;
+    }
+    if (name === "GLOBAL BULK") {
+      inpData.reactions.globalBulk = value as number;
+      return;
+    }
+    if (name === "GLOBAL WALL") {
+      inpData.reactions.globalWall = value as number;
+      return;
+    }
+    if (name === "LIMITING POTENTIAL") {
+      inpData.reactions.limitingPotential = value as number;
+      return;
+    }
+    if (name === "ROUGHNESS CORRELATION") {
+      inpData.reactions.roughnessCorrelation = value as number;
+      return;
+    }
   }
 
-  if (setting && setting.value !== setting.defaultValue) {
-    issues.addUsedSection(sectionName);
-  } else if (!setting) {
+  if (!setting) {
     issues.addUsedSection(sectionName);
   }
 };
@@ -594,7 +566,6 @@ export const parseTimeSetting: RowParser = ({
   trimmedRow,
   inpData,
   issues,
-  options,
 }) => {
   const setting = readSetting(trimmedRow, defaultTimeSettings);
   if (!setting) return;
@@ -621,20 +592,10 @@ export const parseTimeSetting: RowParser = ({
     if (seconds > 0) inpData.times.patternTimestep = seconds;
   }
   if (name === "QUALITY TIMESTEP") {
-    if (options?.extraOptions) {
-      inpData.times.qualityTimestep = parseTimeToSeconds(value);
-    } else {
-      const seconds = parseTimeToSeconds(value);
-      if (seconds !== 0) issues.addUsedTimeSetting(name, defaultValue);
-    }
+    inpData.times.qualityTimestep = parseTimeToSeconds(value);
   }
   if (name === "RULE TIMESTEP") {
-    if (options?.extraOptions) {
-      inpData.times.ruleTimestep = parseTimeToSeconds(value);
-    } else {
-      const seconds = parseTimeToSeconds(value);
-      if (seconds !== 0) issues.addUsedTimeSetting(name, defaultValue);
-    }
+    inpData.times.ruleTimestep = parseTimeToSeconds(value);
   }
   if (name === "PATTERN START") {
     inpData.times.patternStart = parseTimeToSeconds(value);
@@ -667,7 +628,6 @@ export const parseOption: RowParser = ({
   trimmedRow,
   inpData,
   issues,
-  options,
 }): void => {
   const option = readSetting(trimmedRow, defaultOptions);
   if (!option) return;
@@ -684,20 +644,14 @@ export const parseOption: RowParser = ({
   }
 
   if (name === "UNBALANCED") {
-    if (options?.extraOptions) {
-      const strValue = typeof value === "string" ? value : String(value);
-      const parts = strValue.trim().split(/\s+/);
-      const mode = parts[0] as "STOP" | "CONTINUE";
-      inpData.options.unbalancedMode = mode;
-      if (mode === "CONTINUE" && parts.length > 1) {
-        inpData.options.unbalancedExtraTrials = parseInt(parts[1], 10);
-      } else if (mode === "CONTINUE") {
-        inpData.options.unbalancedExtraTrials = 0;
-      }
-    } else {
-      if (value !== defaultValue) {
-        issues.hasUnbalancedDiff(value as string, defaultValue as string);
-      }
+    const strValue = typeof value === "string" ? value : String(value);
+    const parts = strValue.trim().split(/\s+/);
+    const mode = parts[0] as "STOP" | "CONTINUE";
+    inpData.options.unbalancedMode = mode;
+    if (mode === "CONTINUE" && parts.length > 1) {
+      inpData.options.unbalancedExtraTrials = parseInt(parts[1], 10);
+    } else if (mode === "CONTINUE") {
+      inpData.options.unbalancedExtraTrials = 0;
     }
     return;
   }
@@ -707,35 +661,33 @@ export const parseOption: RowParser = ({
     return;
   }
 
-  if (options?.extraOptions) {
-    if (name === "DEMAND MODEL") {
-      inpData.options.demandModel = value as "DDA" | "PDA";
-      return;
-    }
+  if (name === "DEMAND MODEL") {
+    inpData.options.demandModel = value as "DDA" | "PDA";
+    return;
+  }
 
-    if (name === "MINIMUM PRESSURE") {
-      inpData.options.minimumPressure = value as number;
-      return;
-    }
+  if (name === "MINIMUM PRESSURE") {
+    inpData.options.minimumPressure = value as number;
+    return;
+  }
 
-    if (name === "REQUIRED PRESSURE") {
-      inpData.options.requiredPressure = value as number;
-      return;
-    }
+  if (name === "REQUIRED PRESSURE") {
+    inpData.options.requiredPressure = value as number;
+    return;
+  }
 
-    if (name === "PRESSURE EXPONENT") {
-      inpData.options.pressureExponent = value as number;
-      return;
-    }
+  if (name === "PRESSURE EXPONENT") {
+    inpData.options.pressureExponent = value as number;
+    return;
+  }
 
-    if (name === "EMITTER EXPONENT") {
-      inpData.options.emitterExponent = value as number;
-      return;
-    }
+  if (name === "EMITTER EXPONENT") {
+    inpData.options.emitterExponent = value as number;
+    return;
+  }
 
-    if (name === "EMITTER BACKFLOW") {
-      return;
-    }
+  if (name === "EMITTER BACKFLOW") {
+    return;
   }
 
   if (name === "PATTERN") {
@@ -747,89 +699,76 @@ export const parseOption: RowParser = ({
     const upperValue =
       typeof value === "string" ? value.toUpperCase() : String(value);
 
-    if (options?.extraOptions) {
-      if (upperValue.startsWith("NONE")) {
-        inpData.options.qualitySimulationType = "NONE";
-      } else if (upperValue.startsWith("AGE")) {
-        inpData.options.qualitySimulationType = "AGE";
-      } else if (upperValue.startsWith("TRACE")) {
-        inpData.options.qualitySimulationType = "TRACE";
-        const rawValue = trimmedRow
-          .split(commentIdentifier)[0]
-          .replace(/^\s*QUALITY\s+TRACE\s+/i, "")
-          .trim();
-        if (rawValue) inpData.options.qualityTraceNode = rawValue;
-      } else {
-        inpData.options.qualitySimulationType = "CHEMICAL";
-        const rawValue = trimmedRow
-          .split(commentIdentifier)[0]
-          .replace(/^\s*QUALITY\s+/i, "")
-          .trim();
-        const parts = rawValue.split(/\s+/);
-        if (parts[0]) inpData.options.qualityChemicalName = parts[0];
-        if (parts[1]) {
-          const unit = parts[1].toLowerCase();
-          inpData.options.qualityMassUnit = unit === "ug/l" ? "ug/L" : "mg/L";
-        }
-      }
+    if (upperValue.startsWith("NONE")) {
+      inpData.options.qualitySimulationType = "NONE";
+    } else if (upperValue.startsWith("AGE")) {
+      inpData.options.qualitySimulationType = "AGE";
+    } else if (upperValue.startsWith("TRACE")) {
+      inpData.options.qualitySimulationType = "TRACE";
+      const rawValue = trimmedRow
+        .split(commentIdentifier)[0]
+        .replace(/^\s*QUALITY\s+TRACE\s+/i, "")
+        .trim();
+      if (rawValue) inpData.options.qualityTraceNode = rawValue;
     } else {
-      if (upperValue.startsWith("NONE")) return;
-      if (upperValue.startsWith("AGE")) {
-        issues.addWaterQualityType("AGE");
-      } else if (upperValue.startsWith("TRACE")) {
-        issues.addWaterQualityType("TRACE");
-      } else {
-        issues.addWaterQualityType("CHEMICAL");
+      inpData.options.qualitySimulationType = "CHEMICAL";
+      const rawValue = trimmedRow
+        .split(commentIdentifier)[0]
+        .replace(/^\s*QUALITY\s+/i, "")
+        .trim();
+      const parts = rawValue.split(/\s+/);
+      if (parts[0]) inpData.options.qualityChemicalName = parts[0];
+      if (parts[1]) {
+        const unit = parts[1].toLowerCase();
+        inpData.options.qualityMassUnit = unit === "ug/l" ? "ug/L" : "mg/L";
       }
     }
     return;
   }
 
-  if (options?.extraOptions) {
-    if (name === "TRIALS") {
-      inpData.options.trials = value as number;
-      return;
-    }
-    if (name === "ACCURACY") {
-      inpData.options.accuracy = value as number;
-      return;
-    }
-    if (name === "HEADERROR") {
-      inpData.options.headError = value as number;
-      return;
-    }
-    if (name === "FLOWCHANGE") {
-      inpData.options.flowChange = value as number;
-      return;
-    }
-    if (name === "CHECKFREQ") {
-      inpData.options.checkFreq = value as number;
-      return;
-    }
-    if (name === "MAXCHECK") {
-      inpData.options.maxCheck = value as number;
-      return;
-    }
-    if (name === "DAMPLIMIT") {
-      inpData.options.dampLimit = value as number;
-      return;
-    }
-    if (name === "VISCOSITY") {
-      inpData.options.viscosity = value as number;
-      return;
-    }
-    if (name === "SPECIFIC GRAVITY") {
-      inpData.options.specificGravity = value as number;
-      return;
-    }
-    if (name === "TOLERANCE") {
-      inpData.options.tolerance = value as number;
-      return;
-    }
-    if (name === "DIFFUSIVITY") {
-      inpData.options.diffusivity = value as number;
-      return;
-    }
+  if (name === "TRIALS") {
+    inpData.options.trials = value as number;
+    return;
+  }
+  if (name === "ACCURACY") {
+    inpData.options.accuracy = value as number;
+    return;
+  }
+  if (name === "HEADERROR") {
+    inpData.options.headError = value as number;
+    return;
+  }
+  if (name === "FLOWCHANGE") {
+    inpData.options.flowChange = value as number;
+    return;
+  }
+  if (name === "CHECKFREQ") {
+    inpData.options.checkFreq = value as number;
+    return;
+  }
+  if (name === "MAXCHECK") {
+    inpData.options.maxCheck = value as number;
+    return;
+  }
+  if (name === "DAMPLIMIT") {
+    inpData.options.dampLimit = value as number;
+    return;
+  }
+  if (name === "VISCOSITY") {
+    inpData.options.viscosity = value as number;
+    return;
+  }
+  if (name === "SPECIFIC GRAVITY") {
+    inpData.options.specificGravity = value as number;
+    return;
+  }
+  if (name === "TOLERANCE") {
+    inpData.options.tolerance = value as number;
+    return;
+  }
+  if (name === "DIFFUSIVITY") {
+    inpData.options.diffusivity = value as number;
+    return;
   }
 
   if (defaultValue !== value) {

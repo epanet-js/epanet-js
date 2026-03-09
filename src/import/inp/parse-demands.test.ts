@@ -536,7 +536,7 @@ describe("parse junctions demands", () => {
       Demand Model\tPDA
       `;
 
-      const { simulationSettings } = parseInp(inp, { extraOptions: true });
+      const { simulationSettings } = parseInp(inp);
 
       expect(simulationSettings.demandModel).toEqual("PDA");
     });
@@ -547,7 +547,7 @@ describe("parse junctions demands", () => {
       Demand Model\tDDA
       `;
 
-      const { simulationSettings } = parseInp(inp, { extraOptions: true });
+      const { simulationSettings } = parseInp(inp);
 
       expect(simulationSettings.demandModel).toEqual("DDA");
     });
@@ -569,7 +569,7 @@ describe("parse junctions demands", () => {
       Minimum Pressure\t5
       `;
 
-      const { simulationSettings } = parseInp(inp, { extraOptions: true });
+      const { simulationSettings } = parseInp(inp);
 
       expect(simulationSettings.minimumPressure).toEqual(5);
     });
@@ -580,7 +580,7 @@ describe("parse junctions demands", () => {
       Required Pressure\t20
       `;
 
-      const { simulationSettings } = parseInp(inp, { extraOptions: true });
+      const { simulationSettings } = parseInp(inp);
 
       expect(simulationSettings.requiredPressure).toEqual(20);
     });
@@ -591,7 +591,7 @@ describe("parse junctions demands", () => {
       Pressure Exponent\t0.8
       `;
 
-      const { simulationSettings } = parseInp(inp, { extraOptions: true });
+      const { simulationSettings } = parseInp(inp);
 
       expect(simulationSettings.pressureExponent).toEqual(0.8);
     });
@@ -609,24 +609,7 @@ describe("parse junctions demands", () => {
       expect(simulationSettings.pressureExponent).toEqual(0.5);
     });
 
-    it("does not report demand model options as non-default when extraOptions enabled", () => {
-      const inp = `
-      [OPTIONS]
-      Demand Model\tPDA
-      Minimum Pressure\t5
-      Required Pressure\t20
-      Pressure Exponent\t0.8
-      `;
-
-      const { issues } = parseInp(inp, { extraOptions: true });
-
-      expect(issues?.nonDefaultOptions?.has("DEMAND MODEL")).toBeFalsy();
-      expect(issues?.nonDefaultOptions?.has("MINIMUM PRESSURE")).toBeFalsy();
-      expect(issues?.nonDefaultOptions?.has("REQUIRED PRESSURE")).toBeFalsy();
-      expect(issues?.nonDefaultOptions?.has("PRESSURE EXPONENT")).toBeFalsy();
-    });
-
-    it("reports demand model options as non-default when extraOptions not enabled", () => {
+    it("does not report demand model options as non-default", () => {
       const inp = `
       [OPTIONS]
       Demand Model\tPDA
@@ -637,10 +620,10 @@ describe("parse junctions demands", () => {
 
       const { issues } = parseInp(inp);
 
-      expect(issues?.nonDefaultOptions?.has("DEMAND MODEL")).toBe(true);
-      expect(issues?.nonDefaultOptions?.has("MINIMUM PRESSURE")).toBe(true);
-      expect(issues?.nonDefaultOptions?.has("REQUIRED PRESSURE")).toBe(true);
-      expect(issues?.nonDefaultOptions?.has("PRESSURE EXPONENT")).toBe(true);
+      expect(issues?.nonDefaultOptions?.has("DEMAND MODEL")).toBeFalsy();
+      expect(issues?.nonDefaultOptions?.has("MINIMUM PRESSURE")).toBeFalsy();
+      expect(issues?.nonDefaultOptions?.has("REQUIRED PRESSURE")).toBeFalsy();
+      expect(issues?.nonDefaultOptions?.has("PRESSURE EXPONENT")).toBeFalsy();
     });
   });
 
@@ -651,7 +634,7 @@ describe("parse junctions demands", () => {
       Emitter Exponent\t0.7
       `;
 
-      const { simulationSettings } = parseInp(inp, { extraOptions: true });
+      const { simulationSettings } = parseInp(inp);
 
       expect(simulationSettings.emitterExponent).toEqual(0.7);
     });
@@ -667,48 +650,26 @@ describe("parse junctions demands", () => {
       expect(simulationSettings.emitterExponent).toEqual(0.5);
     });
 
-    it("does not report emitter exponent as non-default when extraOptions enabled", () => {
+    it("does not report emitter exponent as non-default", () => {
       const inp = `
       [OPTIONS]
       Emitter Exponent\t0.7
       `;
 
-      const { issues } = parseInp(inp, { extraOptions: true });
+      const { issues } = parseInp(inp);
 
       expect(issues?.nonDefaultOptions?.has("EMITTER EXPONENT")).toBeFalsy();
     });
 
-    it("reports emitter exponent as non-default when extraOptions not enabled", () => {
-      const inp = `
-      [OPTIONS]
-      Emitter Exponent\t0.7
-      `;
-
-      const { issues } = parseInp(inp);
-
-      expect(issues?.nonDefaultOptions?.has("EMITTER EXPONENT")).toBe(true);
-    });
-
-    it("silently ignores emitter backflow when extraOptions enabled", () => {
+    it("silently ignores emitter backflow", () => {
       const inp = `
       [OPTIONS]
       Emitter Backflow\tNO
       `;
 
-      const { issues } = parseInp(inp, { extraOptions: true });
+      const { issues } = parseInp(inp);
 
       expect(issues?.nonDefaultOptions?.has("EMITTER BACKFLOW")).toBeFalsy();
-    });
-
-    it("reports emitter backflow as non-default when extraOptions not enabled", () => {
-      const inp = `
-      [OPTIONS]
-      Emitter Backflow\tNO
-      `;
-
-      const { issues } = parseInp(inp);
-
-      expect(issues?.nonDefaultOptions?.has("EMITTER BACKFLOW")).toBe(true);
     });
   });
 
@@ -806,29 +767,29 @@ describe("parse junctions demands", () => {
   });
 
   describe("water quality options", () => {
-    it("parses QUALITY NONE when extraOptions enabled", () => {
+    it("parses QUALITY NONE", () => {
       const inp = `
       [OPTIONS]
       Quality\tNONE
       `;
 
-      const { simulationSettings } = parseInp(inp, { extraOptions: true });
+      const { simulationSettings } = parseInp(inp);
 
       expect(simulationSettings.qualitySimulationType).toEqual("NONE");
     });
 
-    it("parses QUALITY AGE when extraOptions enabled", () => {
+    it("parses QUALITY AGE", () => {
       const inp = `
       [OPTIONS]
       Quality\tAGE
       `;
 
-      const { simulationSettings } = parseInp(inp, { extraOptions: true });
+      const { simulationSettings } = parseInp(inp);
 
       expect(simulationSettings.qualitySimulationType).toEqual("AGE");
     });
 
-    it("parses QUALITY TRACE with node ID when extraOptions enabled", () => {
+    it("parses QUALITY TRACE with node ID", () => {
       const inp = `
       [JUNCTIONS]
       Tank23\t100
@@ -838,9 +799,7 @@ describe("parse junctions demands", () => {
       Quality\tTRACE Tank23
       `;
 
-      const { simulationSettings, hydraulicModel } = parseInp(inp, {
-        extraOptions: true,
-      });
+      const { simulationSettings, hydraulicModel } = parseInp(inp);
 
       expect(simulationSettings.qualitySimulationType).toEqual("TRACE");
       expect(simulationSettings.qualityTraceNodeId).toBeGreaterThan(0);
@@ -856,19 +815,19 @@ describe("parse junctions demands", () => {
       Quality\tTRACE UnknownNode
       `;
 
-      const { simulationSettings } = parseInp(inp, { extraOptions: true });
+      const { simulationSettings } = parseInp(inp);
 
       expect(simulationSettings.qualitySimulationType).toEqual("TRACE");
       expect(simulationSettings.qualityTraceNodeId).toBeNull();
     });
 
-    it("parses QUALITY CHEMICAL with name and units when extraOptions enabled", () => {
+    it("parses QUALITY CHEMICAL with name and units", () => {
       const inp = `
       [OPTIONS]
       Quality\tChlorine mg/L
       `;
 
-      const { simulationSettings } = parseInp(inp, { extraOptions: true });
+      const { simulationSettings } = parseInp(inp);
 
       expect(simulationSettings.qualitySimulationType).toEqual("CHEMICAL");
       expect(simulationSettings.qualityChemicalName).toEqual("Chlorine");
@@ -881,71 +840,38 @@ describe("parse junctions demands", () => {
       Quality\tFluoride ug/L
       `;
 
-      const { simulationSettings } = parseInp(inp, { extraOptions: true });
+      const { simulationSettings } = parseInp(inp);
 
       expect(simulationSettings.qualitySimulationType).toEqual("CHEMICAL");
       expect(simulationSettings.qualityChemicalName).toEqual("Fluoride");
       expect(simulationSettings.qualityMassUnit).toEqual("ug/L");
     });
 
-    it("reports water quality type as issue when extraOptions not enabled", () => {
-      const inp = `
-      [OPTIONS]
-      Quality\tAGE
-      `;
-
-      const { issues } = parseInp(inp);
-
-      expect(issues?.waterQualityType).toEqual("AGE");
-    });
-
-    it("parses TOLERANCE when extraOptions enabled", () => {
+    it("parses TOLERANCE", () => {
       const inp = `
       [OPTIONS]
       Tolerance\t0.05
       `;
 
-      const { simulationSettings } = parseInp(inp, { extraOptions: true });
+      const { simulationSettings } = parseInp(inp);
 
       expect(simulationSettings.tolerance).toEqual(0.05);
     });
 
-    it("reports TOLERANCE as non-default when extraOptions not enabled", () => {
-      const inp = `
-      [OPTIONS]
-      Tolerance\t0.05
-      `;
-
-      const { issues } = parseInp(inp);
-
-      expect(issues?.nonDefaultOptions?.has("TOLERANCE")).toBe(true);
-    });
-
-    it("parses DIFFUSIVITY when extraOptions enabled", () => {
+    it("parses DIFFUSIVITY", () => {
       const inp = `
       [OPTIONS]
       Diffusivity\t2.0
       `;
 
-      const { simulationSettings } = parseInp(inp, { extraOptions: true });
+      const { simulationSettings } = parseInp(inp);
 
       expect(simulationSettings.diffusivity).toEqual(2.0);
-    });
-
-    it("reports DIFFUSIVITY as non-default when extraOptions not enabled", () => {
-      const inp = `
-      [OPTIONS]
-      Diffusivity\t2.0
-      `;
-
-      const { issues } = parseInp(inp);
-
-      expect(issues?.nonDefaultOptions?.has("DIFFUSIVITY")).toBe(true);
     });
   });
 
   describe("reaction options", () => {
-    it("parses reaction settings when extraOptions enabled", () => {
+    it("parses reaction settings", () => {
       const inp = `
       [REACTIONS]
       Order Bulk\t2
@@ -957,7 +883,7 @@ describe("parse junctions demands", () => {
       Roughness Correlation\t0.1
       `;
 
-      const { simulationSettings } = parseInp(inp, { extraOptions: true });
+      const { simulationSettings } = parseInp(inp);
 
       expect(simulationSettings.reactionBulkOrder).toEqual(2);
       expect(simulationSettings.reactionWallOrder).toEqual(0);
@@ -968,32 +894,21 @@ describe("parse junctions demands", () => {
       expect(simulationSettings.reactionRoughnessCorrelation).toEqual(0.1);
     });
 
-    it("does not report reactions as unsupported when extraOptions enabled", () => {
+    it("does not report reactions as unsupported", () => {
       const inp = `
       [REACTIONS]
       Global Bulk\t-0.5
       `;
 
-      const { issues } = parseInp(inp, { extraOptions: true });
+      const { issues } = parseInp(inp);
 
       expect(issues?.unsupportedSections?.has("[REACTIONS]")).toBeFalsy();
     });
 
-    it("still reports pipe-specific reactions as unsupported when extraOptions enabled", () => {
+    it("still reports pipe-specific reactions as unsupported", () => {
       const inp = `
       [REACTIONS]
       Bulk  P1  0.5
-      `;
-
-      const { issues } = parseInp(inp, { extraOptions: true });
-
-      expect(issues?.unsupportedSections?.has("[REACTIONS]")).toBe(true);
-    });
-
-    it("reports reactions as unsupported when extraOptions not enabled", () => {
-      const inp = `
-      [REACTIONS]
-      Global Bulk\t-0.5
       `;
 
       const { issues } = parseInp(inp);

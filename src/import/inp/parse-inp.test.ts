@@ -323,7 +323,7 @@ describe("Parse inp with", () => {
     expect(getByLabel(assets, String(IDS.P1))).not.toBeUndefined();
   });
 
-  it("says when using non default options", () => {
+  it("parses non default options", () => {
     const inp = `
     [OPTIONS]
     Specific Gravity\t2
@@ -333,12 +333,10 @@ describe("Parse inp with", () => {
     Quality\tNONE
     `;
 
-    const { issues } = parseInp(inp);
+    const { simulationSettings } = parseInp(inp);
 
-    expect([...issues!.nonDefaultOptions!.keys()]).toEqual([
-      "SPECIFIC GRAVITY",
-      "TOLERANCE",
-    ]);
+    expect(simulationSettings.specificGravity).toBe(2);
+    expect(simulationSettings.tolerance).toBe(0.00001);
   });
 
   it("supports demo network settings", () => {
@@ -388,18 +386,16 @@ describe("Parse inp with", () => {
     expect(issues).toBeNull();
   });
 
-  it("says when override defaults aren't the same", () => {
+  it("parses unbalanced with extra trials", () => {
     const inp = `
     [OPTIONS]
     Unbalanced\tContinue 20
     `;
 
-    const { issues } = parseInp(inp);
+    const { simulationSettings } = parseInp(inp);
 
-    expect(issues!.unbalancedDiff).toEqual({
-      defaultSetting: "CONTINUE 10",
-      customSetting: "CONTINUE 20",
-    });
+    expect(simulationSettings.unbalancedMode).toBe("CONTINUE");
+    expect(simulationSettings.unbalancedExtraTrials).toBe(20);
   });
 
   it("detects when the inp has been made by the app", () => {
@@ -599,15 +595,15 @@ describe("Parse inp with", () => {
       expect(issues?.unsupportedSections?.has("[ENERGY]")).toBeFalsy();
     });
 
-    it("reports [ENERGY] section with non-default values", () => {
+    it("parses [ENERGY] section with non-default values", () => {
       const inp = `
       [ENERGY]
       Global Efficiency  80
       `;
 
-      const { issues } = parseInp(inp);
+      const { simulationSettings } = parseInp(inp);
 
-      expect(issues?.unsupportedSections?.has("[ENERGY]")).toBe(true);
+      expect(simulationSettings.energyGlobalEfficiency).toBe(80);
     });
 
     it("ignores [EMITTERS] section with zero values", () => {
@@ -662,15 +658,15 @@ describe("Parse inp with", () => {
       expect(issues?.unsupportedSections?.has("[REACTIONS]")).toBeFalsy();
     });
 
-    it("reports [REACTIONS] section with non-default values", () => {
+    it("parses [REACTIONS] section with non-default values", () => {
       const inp = `
       [REACTIONS]
       Global Bulk  0.5
       `;
 
-      const { issues } = parseInp(inp);
+      const { simulationSettings } = parseInp(inp);
 
-      expect(issues?.unsupportedSections?.has("[REACTIONS]")).toBe(true);
+      expect(simulationSettings.reactionGlobalBulk).toBe(0.5);
     });
 
     it("reports [REACTIONS] section with pipe-specific reactions", () => {

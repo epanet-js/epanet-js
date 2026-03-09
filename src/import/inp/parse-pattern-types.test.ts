@@ -232,9 +232,7 @@ describe("parse pattern types", () => {
     [END]
     `;
 
-    const { hydraulicModel, simulationSettings } = parseInp(inp, {
-      extraOptions: true,
-    });
+    const { hydraulicModel, simulationSettings } = parseInp(inp);
     const pattern = [...hydraulicModel.patterns.values()].find(
       (p) => p.label === "Pricing",
     );

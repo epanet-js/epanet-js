@@ -13,10 +13,8 @@ import {
 import * as dialogState from "src/state/dialog";
 import { ParserIssues } from "src/import/inp";
 import { useUserTracking } from "src/infra/user-tracking";
-import { SimulationSettingsDialog } from "./dialogs/simulation-settings";
 import { LoadingDialog } from "./dialog";
 import { WelcomeDialog } from "./dialogs/welcome";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 const SimulationSettingsNewDialog = dynamic(
   () =>
@@ -379,8 +377,6 @@ const FirstScenarioDialog = dynamic<{
 export const Dialogs = memo(function Dialogs() {
   const [dialog, setDialogState] = useAtom(dialogAtom);
   const userTracking = useUserTracking();
-  const isOptionsOn = useFeatureFlag("FLAG_OPTIONS");
-
   const onClose = useCallback(() => {
     setDialogState(null);
   }, [setDialogState]);
@@ -433,11 +429,7 @@ export const Dialogs = memo(function Dialogs() {
     return <SimulationReportDialog />;
   }
   if (dialog.type === "simulationSettings") {
-    return isOptionsOn ? (
-      <SimulationSettingsNewDialog />
-    ) : (
-      <SimulationSettingsDialog />
-    );
+    return <SimulationSettingsNewDialog />;
   }
   if (dialog.type === "simulationSummary") {
     return <SimulationSummaryDialog modal={dialog} onClose={onClose} />;

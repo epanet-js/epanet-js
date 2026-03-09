@@ -16,7 +16,6 @@ import {
 } from "src/icons";
 import { LabelManager } from "src/hydraulic-model/label-manager";
 import { useUserTracking } from "src/infra/user-tracking";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   CollapsibleListSection,
   EditableListItem,
@@ -86,7 +85,6 @@ export const PatternSidebar = ({
   readOnly = false,
 }: PatternSidebarProps) => {
   const translate = useTranslate();
-  const showExtraOptions = useFeatureFlag("FLAG_OPTIONS");
   const userTracking = useUserTracking();
   const labelManager = useRef(new LabelManager());
   const listRef = useRef<NavigableListHandle>(null);
@@ -107,15 +105,7 @@ export const PatternSidebar = ({
     [patterns],
   );
 
-  const sectionTypes = useMemo(
-    () =>
-      showExtraOptions
-        ? SECTION_TYPES
-        : SECTION_TYPES.filter(
-            (t) => t !== "energyPrice" && t !== "qualitySourceStrength",
-          ),
-    [showExtraOptions],
-  );
+  const sectionTypes = SECTION_TYPES;
 
   const { groupedPatterns, navItems } = useMemo(() => {
     const groups = Object.fromEntries(
@@ -306,20 +296,16 @@ export const PatternSidebar = ({
       label: translate("patterns.setAsPumpSpeed"),
       icon: <ChevronRightIcon size="sm" />,
     },
-    ...(showExtraOptions
-      ? [
-          {
-            action: "setAsQualitySourceStrength",
-            label: translate("patterns.setAsQualitySourceStrength"),
-            icon: <ChevronRightIcon size="sm" />,
-          },
-          {
-            action: "setAsEnergyPrice",
-            label: translate("patterns.setAsEnergyPrice"),
-            icon: <ChevronRightIcon size="sm" />,
-          },
-        ]
-      : []),
+    {
+      action: "setAsQualitySourceStrength",
+      label: translate("patterns.setAsQualitySourceStrength"),
+      icon: <ChevronRightIcon size="sm" />,
+    },
+    {
+      action: "setAsEnergyPrice",
+      label: translate("patterns.setAsEnergyPrice"),
+      icon: <ChevronRightIcon size="sm" />,
+    },
     {
       action: "delete",
       label: translate("delete"),
