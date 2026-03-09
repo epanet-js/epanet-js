@@ -52,6 +52,7 @@ const InvalidFilesErrorDialog = dynamic<{
 const InpIssuesDialog = dynamic<{
   issues: ParserIssues;
   onClose: () => void;
+  isModalsOn?: boolean;
 }>(
   () =>
     import("src/components/dialogs/inp-issues").then((r) => r.InpIssuesDialog),
@@ -63,6 +64,7 @@ const InpIssuesDialog = dynamic<{
 const GeocodingNotSupportedDialog = dynamic<{
   onClose: () => void;
   onImportNonProjected: () => void;
+  isModalsOn?: boolean;
 }>(
   () =>
     import("src/components/dialogs/inp-issues").then(
@@ -88,6 +90,7 @@ const InpProjectionChoiceDialog = dynamic<{
 const MissingCoordinatesDialog = dynamic<{
   issues: ParserIssues;
   onClose: () => void;
+  isModalsOn?: boolean;
 }>(
   () =>
     import("src/components/dialogs/inp-issues").then(
@@ -142,6 +145,7 @@ const SimulationSummaryDialogNew = dynamic<{
 const UnsavedChangesDialog = dynamic<{
   onContinue: () => void;
   onClose: () => void;
+  isModalsOn?: boolean;
 }>(
   () =>
     import("src/components/dialogs/unsaved-changes").then(
@@ -328,6 +332,7 @@ const DeleteScenarioConfirmationDialog = dynamic<{
   scenarioName: string;
   onConfirm: (scenarioId: string) => void;
   onClose: () => void;
+  isModalsOn?: boolean;
 }>(
   () =>
     import("src/components/dialogs/delete-scenario-confirmation").then(
@@ -343,6 +348,7 @@ const RenameScenarioDialog = dynamic<{
   currentName: string;
   onConfirm: (scenarioId: string, newName: string) => void;
   onClose: () => void;
+  isModalsOn?: boolean;
 }>(
   () =>
     import("src/components/dialogs/rename-scenario").then(
@@ -378,6 +384,7 @@ const ActivatingTrialDialog = dynamic(
 const FirstScenarioDialog = dynamic<{
   onConfirm: () => void;
   onClose: () => void;
+  isModalsOn?: boolean;
 }>(
   () =>
     import("src/components/dialogs/first-scenario").then(
@@ -513,7 +520,11 @@ export const Dialogs = memo(function Dialogs() {
 
   if (dialog.type === "firstScenario") {
     return (
-      <FirstScenarioDialog onConfirm={dialog.onConfirm} onClose={onClose} />
+      <FirstScenarioDialog
+        onConfirm={dialog.onConfirm}
+        onClose={onClose}
+        isModalsOn={isModalsOn}
+      />
     );
   }
 
@@ -527,7 +538,11 @@ export const Dialogs = memo(function Dialogs() {
 
   const content = match(dialog)
     .with({ type: "unsavedChanges" }, ({ onContinue }) => (
-      <UnsavedChangesDialog onContinue={onContinue} onClose={onClose} />
+      <UnsavedChangesDialog
+        onContinue={onContinue}
+        onClose={onClose}
+        isModalsOn={isModalsOn}
+      />
     ))
     .with({ type: "alertInpOutput" }, ({ onContinue }) => (
       <AlertInpOutputDialog onContinue={onContinue} onClose={onClose} />
@@ -555,16 +570,25 @@ export const Dialogs = memo(function Dialogs() {
     ))
     .with({ type: "cheatsheet" }, () => <CheatsheetDialog />)
     .with({ type: "inpIssues" }, ({ issues }) => (
-      <InpIssuesDialog issues={issues} onClose={onClose} />
+      <InpIssuesDialog
+        issues={issues}
+        onClose={onClose}
+        isModalsOn={isModalsOn}
+      />
     ))
     .with({ type: "inpGeocodingNotSupported" }, ({ onImportNonProjected }) => (
       <GeocodingNotSupportedDialog
         onClose={onClose}
         onImportNonProjected={onImportNonProjected}
+        isModalsOn={isModalsOn}
       />
     ))
     .with({ type: "inpMissingCoordinates" }, ({ issues }) => (
-      <MissingCoordinatesDialog issues={issues} onClose={onClose} />
+      <MissingCoordinatesDialog
+        issues={issues}
+        onClose={onClose}
+        isModalsOn={isModalsOn}
+      />
     ))
     .with(
       { type: "deleteScenarioConfirmation" },
@@ -574,6 +598,7 @@ export const Dialogs = memo(function Dialogs() {
           scenarioName={scenarioName}
           onConfirm={onConfirm}
           onClose={onClose}
+          isModalsOn={isModalsOn}
         />
       ),
     )
@@ -585,6 +610,7 @@ export const Dialogs = memo(function Dialogs() {
           currentName={currentName}
           onConfirm={onConfirm}
           onClose={onClose}
+          isModalsOn={isModalsOn}
         />
       ),
     )

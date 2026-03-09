@@ -1,4 +1,4 @@
-import { DialogHeader } from "../dialog";
+import { DialogHeader, BaseModal, SimpleDialogActionsNew } from "../dialog";
 import { useTranslate } from "src/hooks/use-translate";
 import {
   SimpleDialogActions,
@@ -35,9 +35,11 @@ const roadmapUrls = {
 export const GeocodingNotSupportedDialog = ({
   onClose: _onClose,
   onImportNonProjected,
+  isModalsOn,
 }: {
   onClose: () => void;
   onImportNonProjected: () => void;
+  isModalsOn?: boolean;
 }) => {
   const translate = useTranslate();
   const userTracking = useUserTracking();
@@ -48,6 +50,56 @@ export const GeocodingNotSupportedDialog = ({
     });
     window.open(projectionConverterUrl);
   };
+
+  if (isModalsOn) {
+    return (
+      <BaseModal
+        title={translate("geocodingNotSupported")}
+        size="sm"
+        isOpen={true}
+        onClose={_onClose}
+        footer={
+          <footer className="flex flex-col sm:items-center sm:flex-row-reverse gap-3 px-4 py-3 border-t border-gray-200">
+            <Button
+              type="button"
+              variant="primary"
+              autoFocus={true}
+              onClick={handleReprojectNetwork}
+            >
+              {translate("reprojectNetwork")}
+            </Button>
+            <Button
+              type="button"
+              variant="default"
+              onClick={onImportNonProjected}
+            >
+              {translate("loadInXYGrid")}
+            </Button>
+          </footer>
+        }
+      >
+        <div className="p-4 text-sm text-gray-700">
+          <Trans
+            i18nKey="geocodingNotSupportedDetail"
+            components={{
+              converterLink: (
+                <a
+                  href={projectionConverterUrl}
+                  target="_blank"
+                  className="text-purple-700 dark:text-purple-300 underline"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleReprojectNetwork();
+                  }}
+                />
+              ),
+            }}
+          />
+        </div>
+      </BaseModal>
+    );
+  }
+
   return (
     <>
       <DialogHeader
@@ -95,9 +147,11 @@ export const GeocodingNotSupportedDialog = ({
 export const MissingCoordinatesDialog = ({
   issues,
   onClose,
+  isModalsOn,
 }: {
   issues: ParserIssues;
   onClose: () => void;
+  isModalsOn?: boolean;
 }) => {
   const translate = useTranslate();
   const showWelcome = useShowWelcome();
@@ -105,6 +159,35 @@ export const MissingCoordinatesDialog = ({
   const goToWelcome = () => {
     showWelcome({ source: "missingCoordinatesError" });
   };
+
+  if (isModalsOn) {
+    return (
+      <BaseModal
+        title={translate("missingCoordinates")}
+        size="sm"
+        isOpen={true}
+        onClose={onClose}
+        onSubmit={onClose}
+        initialValues={{}}
+        footer={
+          <SimpleDialogActionsNew
+            autoFocusSubmit={true}
+            action={translate("understood")}
+            secondary={{
+              action: translate("seeDemoNetworks"),
+              onClick: goToWelcome,
+            }}
+          />
+        }
+      >
+        <div className="p-4 text-sm text-gray-700">
+          <p className="pb-2">{translate("missingCoordinatesDetail")}</p>
+          <CoordinatesIssues issues={issues} />
+        </div>
+      </BaseModal>
+    );
+  }
+
   return (
     <>
       <DialogHeader
@@ -135,9 +218,11 @@ export const MissingCoordinatesDialog = ({
 export const InpIssuesDialog = ({
   issues,
   onClose,
+  isModalsOn,
 }: {
   issues: ParserIssues;
   onClose: () => void;
+  isModalsOn?: boolean;
 }) => {
   const translate = useTranslate();
   const showWelcome = useShowWelcome();
@@ -145,6 +230,36 @@ export const InpIssuesDialog = ({
   const goToWelcome = () => {
     showWelcome({ source: "inpIssues" });
   };
+
+  if (isModalsOn) {
+    return (
+      <BaseModal
+        title={translate("inpNotFullySupported")}
+        size="sm"
+        isOpen={true}
+        onClose={onClose}
+        onSubmit={onClose}
+        initialValues={{}}
+        footer={
+          <SimpleDialogActionsNew
+            autoFocusSubmit={true}
+            action={translate("understood")}
+            secondary={{
+              action: translate("seeDemoNetworks"),
+              onClick: goToWelcome,
+            }}
+          />
+        }
+      >
+        <div className="p-4 text-sm text-gray-700">
+          <p className="pb-2">{translate("inpNotFullySupportedDetail")}</p>
+          <IssuesSummary issues={issues} />
+          <SubscribeCTA source="inpIssues" />
+        </div>
+      </BaseModal>
+    );
+  }
+
   return (
     <>
       <DialogHeader

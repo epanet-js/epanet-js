@@ -3,6 +3,8 @@ import {
   DialogContainer,
   DialogHeader,
   DialogButtons,
+  BaseModal,
+  SimpleDialogActionsNew,
 } from "src/components/dialog";
 import { Button } from "../elements";
 import { Checkbox } from "../form/Checkbox";
@@ -16,9 +18,11 @@ import { EarlyAccessBadge } from "../early-access-badge";
 export const FirstScenarioDialog = ({
   onConfirm,
   onClose,
+  isModalsOn,
 }: {
   onConfirm: () => void;
   onClose: () => void;
+  isModalsOn?: boolean;
 }) => {
   const translate = useTranslate();
   const [userSettings, setUserSettings] = useAtom(userSettingsAtom);
@@ -42,14 +46,8 @@ export const FirstScenarioDialog = ({
     });
   };
 
-  return (
-    <DialogContainer size="sm">
-      <DialogHeader
-        title={translate("scenarios.firstScenario.title")}
-        titleIcon={AddScenarioIcon}
-        badge={<EarlyAccessBadge />}
-      />
-
+  const content = (
+    <>
       <div className="space-y-4 text-sm text-gray-700 dark:text-gray-300">
         <p>{translate("scenarios.firstScenario.earlyAccess")}</p>
 
@@ -88,7 +86,41 @@ export const FirstScenarioDialog = ({
           {translate("scenarios.firstScenario.dontShowAgain")}
         </span>
       </div>
+    </>
+  );
 
+  if (isModalsOn) {
+    return (
+      <BaseModal
+        title={translate("scenarios.firstScenario.title")}
+        size="sm"
+        isOpen={true}
+        onClose={onClose}
+        onSubmit={handleCreate}
+        earlyAccess
+        footer={
+          <SimpleDialogActionsNew
+            action={translate("scenarios.firstScenario.createButton")}
+            secondary={{
+              action: translate("dialog.cancel"),
+              onClick: onClose,
+            }}
+          />
+        }
+      >
+        <div className="p-4 text-sm text-gray-700">{content}</div>
+      </BaseModal>
+    );
+  }
+
+  return (
+    <DialogContainer size="sm">
+      <DialogHeader
+        title={translate("scenarios.firstScenario.title")}
+        titleIcon={AddScenarioIcon}
+        badge={<EarlyAccessBadge />}
+      />
+      {content}
       <DialogButtons>
         <Button variant="primary" onClick={handleCreate}>
           {translate("scenarios.firstScenario.createButton")}

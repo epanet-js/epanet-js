@@ -1,16 +1,22 @@
-import { DialogHeader } from "src/components/dialog";
+import {
+  DialogHeader,
+  DialogButtons,
+  BaseModal,
+  SimpleDialogActionsNew,
+} from "src/components/dialog";
 import { useTranslate } from "src/hooks/use-translate";
 import { Button } from "../elements";
-import { DialogButtons } from "src/components/dialog";
 import { useSaveInp } from "src/commands/save-inp";
 import { HelpIcon } from "src/icons";
 
 export const UnsavedChangesDialog = ({
   onContinue,
   onClose,
+  isModalsOn,
 }: {
   onContinue: () => void;
   onClose: () => void;
+  isModalsOn?: boolean;
 }) => {
   const translate = useTranslate();
   const saveInp = useSaveInp();
@@ -27,6 +33,32 @@ export const UnsavedChangesDialog = ({
     onClose();
     onContinue();
   };
+
+  if (isModalsOn) {
+    return (
+      <BaseModal
+        title={translate("unsavedChanges")}
+        isOpen={true}
+        onClose={onClose}
+        onSubmit={handleSaveAndContinue}
+        initialValues={{}}
+        footer={
+          <SimpleDialogActionsNew
+            action={translate("saveAndContinue")}
+            secondary={{
+              action: translate("dialog.discardChanges"),
+              onClick: handleDiscardChanges,
+            }}
+            tertiary={{ action: translate("dialog.cancel"), onClick: onClose }}
+          />
+        }
+      >
+        <div className="p-4 text-sm text-gray-700">
+          <p>{translate("unsavedChangesQuestion")}</p>
+        </div>
+      </BaseModal>
+    );
+  }
 
   return (
     <>

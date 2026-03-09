@@ -17,9 +17,21 @@ export const SimulationSummaryDialogNew = ({
 
   const isSuccess = modal.status === "success";
   const config = {
-    success: { variant: "success", title: translate("simulationSuccess") },
-    warning: { variant: "warning", title: translate("simulationWarning") },
-    failure: { variant: "danger", title: translate("simulationFailure") },
+    success: {
+      variant: "success",
+      title: translate("simulationSuccess"),
+      iconClass: "text-green-500",
+    },
+    warning: {
+      variant: "warning",
+      title: translate("simulationWarning"),
+      iconClass: "text-yellow-500",
+    },
+    failure: {
+      variant: "danger",
+      title: translate("simulationFailure"),
+      iconClass: "text-red-500",
+    },
   }[modal.status];
 
   if (!config) return <Loading />;
@@ -58,16 +70,22 @@ export const SimulationSummaryDialogNew = ({
       }
     >
       <div className="p-4 text-sm text-gray-700">
-        <p className="flex items-center gap-2">
-          {modal.status === "success" && <SuccessIcon />}
-          {modal.status === "warning" && <WarningIcon />}
-          {modal.status === "failure" && <ErrorIcon />}
+        <p className="flex items-start gap-2">
+          <div className={`m-width-0 mt-0.5 ${config.iconClass}`}>
+            {modal.status === "success" && <SuccessIcon />}
+            {modal.status === "warning" && <WarningIcon />}
+            {modal.status === "failure" && <ErrorIcon />}
+          </div>
           {isSuccess
             ? translate(
                 "simulationTook",
                 ((modal.duration || 0) / 1000).toFixed(2),
               )
-            : translate(`${modal.status}Explain` as any)}
+            : translate(
+                modal.status === "warning"
+                  ? "simulationWarningExplain"
+                  : "simulationFailureExplain",
+              )}
         </p>
       </div>
     </BaseModal>

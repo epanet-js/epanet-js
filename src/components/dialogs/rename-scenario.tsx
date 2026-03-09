@@ -8,11 +8,14 @@ import {
   KeyboardEvent,
 } from "react";
 import { useAtomValue } from "jotai";
+import { useField } from "formik";
 import clsx from "clsx";
 import {
   DialogContainer,
   DialogHeader,
   DialogButtons,
+  BaseModal,
+  SimpleDialogActionsNew,
 } from "src/components/dialog";
 import { Button } from "../elements";
 import { useUserTracking } from "src/infra/user-tracking";
@@ -25,11 +28,13 @@ export const RenameScenarioDialog = ({
   currentName,
   onConfirm,
   onClose,
+  isModalsOn,
 }: {
   scenarioId: string;
   currentName: string;
   onConfirm: (scenarioId: string, newName: string) => void;
   onClose: () => void;
+  isModalsOn?: boolean;
 }) => {
   const translate = useTranslate();
   const userTracking = useUserTracking();
@@ -113,6 +118,42 @@ export const RenameScenarioDialog = ({
     }, 0);
   }, []);
 
+  if (isModalsOn) {
+    return (
+      <BaseModal
+        title={translate("scenarios.renameDialog.title")}
+        size="xs"
+        isOpen={true}
+        onClose={onClose}
+        initialValues={{ name: currentName }}
+        onSubmit={({ name }: { name: string }) => {
+          userTracking.capture({
+            name: "scenario.renamed",
+            scenarioId,
+            oldName: currentName,
+            newName: name.trim(),
+          });
+          onConfirm(scenarioId, name.trim());
+          onClose();
+        }}
+        footer={
+          <SimpleDialogActionsNew
+            action={translate("dialog.save")}
+            secondary={{ action: translate("dialog.cancel"), onClick: onClose }}
+          />
+        }
+      >
+        <div className="p-4">
+          <RenameField
+            validateName={validateName}
+            placeholder={translate("scenarios.renameDialog.placeholder")}
+            label={translate("scenarios.renameDialog.label")}
+          />
+        </div>
+      </BaseModal>
+    );
+  }
+
   return (
     <DialogContainer size="xs">
       <DialogHeader title={translate("scenarios.renameDialog.title")} />
@@ -158,3 +199,51 @@ export const RenameScenarioDialog = ({
     </DialogContainer>
   );
 };
+
+function RenameField({
+  validateName,
+  placeholder,
+  label,
+}: {
+  validateName: (name: string) => string | null;
+  placeholder: string;
+  label: string;
+}) {
+  const [field, meta] = useField({
+    name: "name",
+    validate: (value) => validateName(value) ?? undefined,
+  });
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setTimeout(() => {
+      if (inputRef.current) {
+        inputRef.current.focus();
+        inputRef.current.select();
+      }
+    }, 0);
+  }, []);
+
+  return (
+    <div className="space-y-2">
+      <label className="block text-sm text-gray-700 dark:text-gray-300">
+        {label}
+      </label>
+      <input
+        {...field}
+        ref={inputRef}
+        type="text"
+        className={clsx(
+          "w-full px-3 py-2 border rounded text-sm",
+          meta.error && meta.touched
+            ? "border-orange-500 dark:border-orange-700 focus-visible:ring-orange-500"
+            : "border-gray-300 focus-visible:ring-purple-500",
+        )}
+        placeholder={placeholder}
+      />
+      <span className="py-2">
+        {meta.error && meta.touched && <InlineError>{meta.error}</InlineError>}
+      </span>
+    </div>
+  );
+}
