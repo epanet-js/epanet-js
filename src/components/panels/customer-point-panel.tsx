@@ -2,6 +2,8 @@ import { useCallback, useMemo } from "react";
 import { useAtomValue } from "jotai";
 import { Maybe } from "purify-ts/Maybe";
 import { dataAtom, selectionAtom, stagingModelAtom } from "src/state/jotai";
+import type { PropertyComparison } from "src/hooks/use-asset-comparison";
+import { useCustomerPointComparison } from "src/hooks/use-customer-point-comparison";
 import { useCustomerPointActions } from "src/components/context-actions/customer-point-actions";
 import { ActionButton } from "src/components/panels/asset-panel/actions/action-button";
 import { Section } from "src/components/form/fields";
@@ -33,7 +35,6 @@ export function CustomerPointPanel() {
   const {
     modelMetadata: { quantities },
   } = useAtomValue(dataAtom);
-
   const customerPoint =
     selection.type === "singleCustomerPoint"
       ? hydraulicModel.customerPoints.get(selection.id)
@@ -64,17 +65,29 @@ export function CustomerPointPanel() {
     [storedDemands, flowUnit, perDayUnit],
   );
 
-  const averageDemandInPerDay = useMemo(
-    () =>
-      convertTo(
-        {
-          value: calculateAverageDemand(storedDemands, hydraulicModel.patterns),
-          unit: flowUnit,
-        },
-        perDayUnit,
-      ),
-    [storedDemands, hydraulicModel.patterns, flowUnit, perDayUnit],
+  const { getDemandComparison } = useCustomerPointComparison(customerPoint?.id);
+
+  const averageDemand = useMemo(
+    () => calculateAverageDemand(storedDemands, hydraulicModel.patterns),
+    [storedDemands, hydraulicModel.patterns],
   );
+
+  const averageDemandInPerDay = useMemo(
+    () => convertTo({ value: averageDemand, unit: flowUnit }, perDayUnit),
+    [averageDemand, flowUnit, perDayUnit],
+  );
+
+  const demandComparisonRaw = getDemandComparison(averageDemand);
+  const demandComparison: PropertyComparison<number> =
+    demandComparisonRaw.hasChanged && demandComparisonRaw.baseValue != null
+      ? {
+          hasChanged: true,
+          baseValue: convertTo(
+            { value: demandComparisonRaw.baseValue, unit: flowUnit },
+            perDayUnit,
+          ),
+        }
+      : { hasChanged: demandComparisonRaw.hasChanged };
 
   const handleDemandsChange = useCallback(
     (newDemandsInPerDay: Demand[]) => {
@@ -142,18 +155,25 @@ export function CustomerPointPanel() {
           </Section>
         )}
         <Section title={translate("demands")}>
-          <DemandCategoriesEditor
-            demands={demandsInPerDay}
-            patterns={hydraulicModel.patterns}
-            onDemandsChange={handleDemandsChange}
-          />
-          <QuantityRow
-            name="customerDemand"
-            value={averageDemandInPerDay}
-            unit={perDayUnit}
-            decimals={quantities.getDecimals("customerDemandPerDay")}
-            readOnly={true}
-          />
+          <div className="relative flex flex-col gap-2">
+            {demandComparison.hasChanged && (
+              <div className="absolute -left-4 top-0 bottom-0 w-1 bg-purple-500 rounded-full" />
+            )}
+            <DemandCategoriesEditor
+              demands={demandsInPerDay}
+              patterns={hydraulicModel.patterns}
+              onDemandsChange={handleDemandsChange}
+              comparison={demandComparison}
+            />
+            <QuantityRow
+              name="customerDemand"
+              value={averageDemandInPerDay}
+              unit={perDayUnit}
+              decimals={quantities.getDecimals("customerDemandPerDay")}
+              comparison={demandComparison}
+              readOnly={true}
+            />
+          </div>
         </Section>
       </div>
     </div>
