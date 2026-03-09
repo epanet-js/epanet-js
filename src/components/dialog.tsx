@@ -402,7 +402,7 @@ export function SimpleDialogActions({
           disabled={isSubmitting || isDisabled}
           variant="primary"
           autoFocus={autoFocusSubmit}
-          size={fullWidthSubmit ? "full-size" : "sm"}
+          size={fullWidthSubmit ? "full-width" : "sm"}
         >
           {action}
         </Button>
@@ -473,7 +473,7 @@ export function SimpleDialogActionsNew({
           disabled={isSubmitting || isDisabled}
           variant="primary"
           autoFocus={autoFocusSubmit}
-          size={fullWidthSubmit ? "full-size" : "sm"}
+          size={fullWidthSubmit ? "full-width" : "sm"}
         >
           {action}
         </Button>

@@ -906,7 +906,7 @@ export const styledButton = ({
   side = "default",
   textAlign = "center",
 }: {
-  size?: B3Size | "full-size";
+  size?: B3Size | "full-width";
   variant?: B3Variant;
   disabled?: boolean;
   side?: B3Side;
@@ -938,7 +938,7 @@ export const styledButton = ({
     // Focus
     `focus-visible:outline-none`,
     // Sizing
-    sharedPadding(size === "full-size" ? "md" : size, side),
+    sharedPadding(size === "full-width" ? "md" : size, side),
     // Display
     `inline-flex items-center gap-x-1`,
     // Transition
@@ -948,7 +948,7 @@ export const styledButton = ({
     // Outline
     sharedOutline(variant, disabled),
     sharedBackground(variant, disabled),
-    size === "full-size" &&
+    size === "full-width" &&
       `flex-auto w-full ${textAlign === "start" ? "justify-start" : "justify-center"}`,
     // Colored variants
     variant === "danger-quiet" &&
