@@ -213,6 +213,13 @@ const appendJunctionStats = (
     quantitiesMetadata,
     id,
   );
+  updateQuantityStats(
+    statsMap,
+    "emitterCoefficient",
+    junction.emitterCoefficient,
+    quantitiesMetadata,
+    id,
+  );
 
   const averageDemand = calculateAverageDemand(
     getJunctionDemands(demands, junction.id),
@@ -296,7 +303,10 @@ const buildJunctionSections = (
 ): AssetPropertySections => {
   return {
     activeTopology: getStatsForProperties(statsMap, ["isEnabled"]),
-    modelAttributes: getStatsForProperties(statsMap, ["elevation"]),
+    modelAttributes: getStatsForProperties(statsMap, [
+      "elevation",
+      "emitterCoefficient",
+    ]),
     demands: getStatsForProperties(statsMap, [
       "directDemand",
       "customerDemand",
