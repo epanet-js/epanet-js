@@ -6,7 +6,7 @@ import {
 import { CustomerPointsIssuesAccumulator } from "./parse-customer-points-issues";
 import { convertTo, Unit } from "src/quantity";
 import { Demand, PatternId } from "src/hydraulic-model";
-import { IdGenerator } from "src/hydraulic-model/id-generator";
+import { IdGenerator } from "src/lib/id-generator";
 
 export type ParsedCustomerPoint = {
   customerPoint: CustomerPoint;

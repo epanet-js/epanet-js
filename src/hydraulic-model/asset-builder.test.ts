@@ -1,6 +1,6 @@
 import { Quantities, presets } from "src/model-metadata/quantities-spec";
 import { AssetBuilder } from "./asset-builder";
-import { ConsecutiveIdsGenerator } from "./id-generator";
+import { ConsecutiveIdsGenerator } from "src/lib/id-generator";
 import { LabelManager } from "./label-manager";
 
 describe("asset builder", () => {

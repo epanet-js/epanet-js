@@ -10,7 +10,7 @@ import {
   FixedSizeBufferBuilder,
 } from "src/lib/buffers";
 import { AssetId, AssetType, LinkType, NodeType } from "./asset-types";
-import { IdGenerator } from "./id-generator";
+import { IdGenerator } from "src/lib/id-generator";
 import { AssetsMap } from "./assets-map";
 
 export interface AssetIndexQueries {

@@ -29,10 +29,7 @@ import {
   TankBuildData,
   ValveBuildData,
 } from "src/hydraulic-model/asset-builder";
-import {
-  ConsecutiveIdsGenerator,
-  IdGenerator,
-} from "src/hydraulic-model/id-generator";
+import { ConsecutiveIdsGenerator, IdGenerator } from "src/lib/id-generator";
 import { LabelManager } from "src/hydraulic-model/label-manager";
 import {
   AssetQuantitiesSpec,

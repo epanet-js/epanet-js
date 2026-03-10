@@ -4,7 +4,7 @@ import { AssetBuilder, DefaultQuantities } from "./asset-builder";
 import { UnitsSpec } from "src/model-metadata/quantities-spec";
 import { nanoid } from "nanoid";
 import { HeadlossFormula } from "./asset-types/pipe";
-import { ConsecutiveIdsGenerator, IdGenerator } from "./id-generator";
+import { ConsecutiveIdsGenerator, IdGenerator } from "src/lib/id-generator";
 import { LabelManager } from "./label-manager";
 import { Demands, createEmptyDemands } from "./demands";
 import { CustomerPoints, initializeCustomerPoints } from "./customer-points";

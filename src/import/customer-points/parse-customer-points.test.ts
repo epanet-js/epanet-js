@@ -1,6 +1,6 @@
 import { parseCustomerPoints } from "./parse-customer-points";
 import { CustomerPointsIssuesAccumulator } from "./parse-customer-points-issues";
-import { ConsecutiveIdsGenerator } from "src/hydraulic-model/id-generator";
+import { ConsecutiveIdsGenerator } from "src/lib/id-generator";
 
 describe("parseCustomerPoints", () => {
   describe("patternId", () => {

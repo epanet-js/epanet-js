@@ -62,5 +62,4 @@ export {
   calculateAverageDemand,
   getTotalCustomerDemand,
 } from "./demands";
-export type { IdGenerator } from "./id-generator";
 export { applyMomentToModel } from "./mutations/apply-moment";
