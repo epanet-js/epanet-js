@@ -521,6 +521,11 @@ export const multiAssetPanelCollapseAtom =
     tank: true,
   });
 
+export const pumpEnergySectionsCollapseAtom = atomWithStorage(
+  "pumpEnergySectionsCollapse",
+  { energy: false, energyResults: false },
+);
+
 export const pipeDrawingDefaultsAtom = atom<{
   diameter?: number;
   roughness?: number;

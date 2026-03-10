@@ -1,5 +1,5 @@
 import { useMemo, useCallback, useState } from "react";
-import { useAtomValue } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import {
   Asset,
   Junction,
@@ -32,7 +32,11 @@ import { Quantities } from "src/model-metadata/quantities-spec";
 import { useTranslate } from "src/hooks/use-translate";
 import { usePersistence } from "src/lib/persistence";
 import { useUserTracking } from "src/infra/user-tracking";
-import { stagingModelAtom, simulationSettingsAtom } from "src/state/jotai";
+import {
+  stagingModelAtom,
+  simulationSettingsAtom,
+  pumpEnergySectionsCollapseAtom,
+} from "src/state/jotai";
 import {
   changeProperty,
   changeProperties,
@@ -73,6 +77,7 @@ import {
 } from "./ui-components";
 import {
   BlockComparisonField,
+  CollapsibleSection,
   InlineField,
   Section,
 } from "src/components/form/fields";
@@ -1786,6 +1791,9 @@ const PumpEditor = ({
 }) => {
   const isEnergyEnabled = useFeatureFlag("FLAG_ENERGY");
   const simulationSettings = useAtomValue(simulationSettingsAtom);
+  const [energyCollapse, setEnergyCollapse] = useAtom(
+    pumpEnergySectionsCollapseAtom,
+  );
   const translate = useTranslate();
   const { footer } = useQuickGraph(pump.id, "pump");
   const { getComparison, getPumpCurveComparison, isNew } =
@@ -1875,7 +1883,14 @@ const PumpEditor = ({
         />
       </Section>
       {isEnergyEnabled && (
-        <Section title={translate("energy")}>
+        <CollapsibleSection
+          title={translate("energy")}
+          variant="subtle"
+          open={energyCollapse.energy}
+          onOpenChange={(open) =>
+            setEnergyCollapse((prev) => ({ ...prev, energy: open }))
+          }
+        >
           <PumpEfficiencyCurveField
             pump={pump}
             curves={hydraulicModel.curves}
@@ -1905,60 +1920,7 @@ const PumpEditor = ({
             onPropertyChange={onPropertyChange}
             readOnly={readonly}
           />
-        </Section>
-      )}
-      {isEnergyEnabled && pumpEnergy && (
-        <Section title={translate("energyResults")}>
-          <QuantityRow
-            name="utilization"
-            value={pumpEnergy.utilization}
-            unit={quantitiesMetadata.getUnit("efficiency")}
-            decimals={2}
-            readOnly={true}
-          />
-          <QuantityRow
-            name="averageEfficiency"
-            value={pumpEnergy.averageEfficiency}
-            unit={quantitiesMetadata.getUnit("efficiency")}
-            decimals={2}
-            readOnly={true}
-          />
-          <QuantityRow
-            name="averageKwPerFlowUnit"
-            value={pumpEnergy.averageKwPerFlowUnit}
-            unit={quantitiesMetadata.getUnit("averageKwPerFlowUnit")}
-            decimals={2}
-            readOnly={true}
-          />
-          <QuantityRow
-            name="averageKw"
-            value={pumpEnergy.averageKw}
-            unit={quantitiesMetadata.getUnit("power")}
-            decimals={2}
-            readOnly={true}
-          />
-          <QuantityRow
-            name="peakKw"
-            value={pumpEnergy.peakKw}
-            unit={quantitiesMetadata.getUnit("power")}
-            decimals={2}
-            readOnly={true}
-          />
-          <QuantityRow
-            name="averageCostPerDay"
-            value={pumpEnergy.averageCostPerDay}
-            unit={null}
-            decimals={2}
-            readOnly={true}
-          />
-          <QuantityRow
-            name="demandCharge"
-            value={pumpEnergy.demandCharge}
-            unit={null}
-            decimals={2}
-            readOnly={true}
-          />
-        </Section>
+        </CollapsibleSection>
       )}
       <Section title={translate("simulationResults")}>
         <QuantityRow
@@ -1977,6 +1939,66 @@ const PumpEditor = ({
         />
         <TextRow name="status" value={statusText} />
       </Section>
+      {isEnergyEnabled && (
+        <CollapsibleSection
+          title={translate("energyResults")}
+          variant="subtle"
+          open={energyCollapse.energyResults}
+          onOpenChange={(open) =>
+            setEnergyCollapse((prev) => ({ ...prev, energyResults: open }))
+          }
+        >
+          <QuantityRow
+            name="utilization"
+            value={pumpEnergy?.utilization ?? null}
+            unit={quantitiesMetadata.getUnit("efficiency")}
+            decimals={2}
+            readOnly={true}
+          />
+          <QuantityRow
+            name="averageEfficiency"
+            value={pumpEnergy?.averageEfficiency ?? null}
+            unit={quantitiesMetadata.getUnit("efficiency")}
+            decimals={2}
+            readOnly={true}
+          />
+          <QuantityRow
+            name="averageKwPerFlowUnit"
+            value={pumpEnergy?.averageKwPerFlowUnit ?? null}
+            unit={quantitiesMetadata.getUnit("averageKwPerFlowUnit")}
+            decimals={2}
+            readOnly={true}
+          />
+          <QuantityRow
+            name="averageKw"
+            value={pumpEnergy?.averageKw ?? null}
+            unit={quantitiesMetadata.getUnit("power")}
+            decimals={2}
+            readOnly={true}
+          />
+          <QuantityRow
+            name="peakKw"
+            value={pumpEnergy?.peakKw ?? null}
+            unit={quantitiesMetadata.getUnit("power")}
+            decimals={2}
+            readOnly={true}
+          />
+          <QuantityRow
+            name="averageCostPerDay"
+            value={pumpEnergy?.averageCostPerDay ?? null}
+            unit={null}
+            decimals={2}
+            readOnly={true}
+          />
+          <QuantityRow
+            name="demandCharge"
+            value={pumpEnergy?.demandCharge ?? null}
+            unit={null}
+            decimals={2}
+            readOnly={true}
+          />
+        </CollapsibleSection>
+      )}
     </AssetEditorContent>
   );
 };
