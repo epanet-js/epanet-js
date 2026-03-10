@@ -35,7 +35,7 @@ export const useImportCustomerPoints = () => {
             type: "importCustomerPointsWizard",
           });
         }
-      }, "importCustomerPointsWizard");
+      });
     },
     [
       setDialogState,
