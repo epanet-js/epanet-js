@@ -1,6 +1,7 @@
 import { parseCustomerPoints } from "./parse-customer-points";
 import { CustomerPointsIssuesAccumulator } from "./parse-customer-points-issues";
 import { ConsecutiveIdsGenerator } from "src/lib/id-generator";
+import { CustomerPointFactory } from "src/lib/model-factory";
 
 describe("parseCustomerPoints", () => {
   describe("patternId", () => {
@@ -23,7 +24,7 @@ describe("parseCustomerPoints", () => {
           issues,
           "l/d",
           "l/d",
-          new ConsecutiveIdsGenerator(),
+          new CustomerPointFactory(new ConsecutiveIdsGenerator()),
           "demand",
           null,
           null,
@@ -67,7 +68,7 @@ describe("parseCustomerPoints", () => {
           issues,
           "l/d",
           "l/d",
-          new ConsecutiveIdsGenerator(),
+          new CustomerPointFactory(new ConsecutiveIdsGenerator()),
           "demand",
           null,
           PATTERN_ID,
@@ -93,7 +94,7 @@ describe("parseCustomerPoints", () => {
           issues,
           "l/d",
           "l/d",
-          new ConsecutiveIdsGenerator(),
+          new CustomerPointFactory(new ConsecutiveIdsGenerator()),
           "demand",
           null,
           PATTERN_ID,
@@ -126,7 +127,7 @@ describe("parseCustomerPoints", () => {
           issues,
           "l/d",
           "l/d",
-          new ConsecutiveIdsGenerator(),
+          new CustomerPointFactory(new ConsecutiveIdsGenerator()),
           "demand",
           null,
           null,

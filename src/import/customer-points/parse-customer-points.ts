@@ -1,15 +1,12 @@
 import { Feature, FeatureCollection, Position } from "geojson";
-import {
-  CustomerPoint,
-  MAX_CUSTOMER_POINT_LABEL_LENGTH,
-} from "src/hydraulic-model/customer-points";
+import { MAX_CUSTOMER_POINT_LABEL_LENGTH } from "src/hydraulic-model/customer-points";
 import { CustomerPointsIssuesAccumulator } from "./parse-customer-points-issues";
 import { convertTo, Unit } from "src/quantity";
 import { Demand, PatternId } from "src/hydraulic-model";
-import { IdGenerator } from "src/lib/id-generator";
+import { CustomerPointFactory } from "src/lib/model-factory";
 
 export type ParsedCustomerPoint = {
-  customerPoint: CustomerPoint;
+  customerPoint: ReturnType<CustomerPointFactory["create"]>;
   demands: Demand[];
 };
 
@@ -18,7 +15,7 @@ export function* parseCustomerPoints(
   issues: CustomerPointsIssuesAccumulator,
   demandImportUnit: Unit,
   demandTargetUnit: Unit,
-  idGenerator: IdGenerator,
+  customerPointFactory: CustomerPointFactory,
   demandPropertyName: string = "demand",
   labelPropertyName: string | null = null,
   patternId: PatternId | null = null,
@@ -34,7 +31,7 @@ export function* parseCustomerPoints(
           issues,
           demandImportUnit,
           demandTargetUnit,
-          idGenerator,
+          customerPointFactory,
           demandPropertyName,
           labelPropertyName,
           patternId,
@@ -49,7 +46,7 @@ export function* parseCustomerPoints(
     issues,
     demandImportUnit,
     demandTargetUnit,
-    idGenerator,
+    customerPointFactory,
     demandPropertyName,
     labelPropertyName,
     patternId,
@@ -61,7 +58,7 @@ function* parseGeoJSONFeatures(
   issues: CustomerPointsIssuesAccumulator,
   demandImportUnit: Unit,
   demandTargetUnit: Unit,
-  idGenerator: IdGenerator,
+  customerPointFactory: CustomerPointFactory,
   demandPropertyName: string = "demand",
   labelPropertyName: string | null = null,
   patternId: PatternId | null = null,
@@ -73,7 +70,7 @@ function* parseGeoJSONFeatures(
   for (const feature of geoJson.features || []) {
     yield processGeoJSONFeature(
       feature,
-      idGenerator,
+      customerPointFactory,
       issues,
       demandImportUnit,
       demandTargetUnit,
@@ -89,7 +86,7 @@ function* parseGeoJSONLFeatures(
   issues: CustomerPointsIssuesAccumulator,
   demandImportUnit: Unit,
   demandTargetUnit: Unit,
-  idGenerator: IdGenerator,
+  customerPointFactory: CustomerPointFactory,
   demandPropertyName: string = "demand",
   labelPropertyName: string | null = null,
   patternId: PatternId | null = null,
@@ -107,7 +104,7 @@ function* parseGeoJSONLFeatures(
       if (json.type === "Feature") {
         yield processGeoJSONFeature(
           json,
-          idGenerator,
+          customerPointFactory,
           issues,
           demandImportUnit,
           demandTargetUnit,
@@ -124,7 +121,7 @@ function* parseGeoJSONLFeatures(
 
 const processGeoJSONFeature = (
   feature: Feature,
-  idGenerator: IdGenerator,
+  customerPointFactory: CustomerPointFactory,
   issues: CustomerPointsIssuesAccumulator,
   demandImportUnit: Unit,
   demandTargetUnit: Unit,
@@ -176,8 +173,7 @@ const processGeoJSONFeature = (
       demandTargetUnit,
     );
 
-    const id = idGenerator.newId();
-    let label = String(id);
+    let label: string | undefined;
 
     if (labelPropertyName && feature.properties) {
       const labelValue = feature.properties[labelPropertyName];
@@ -189,10 +185,9 @@ const processGeoJSONFeature = (
       }
     }
 
-    const customerPoint = CustomerPoint.build(
-      id,
+    const customerPoint = customerPointFactory.create(
       [coordinates[0], coordinates[1]] as Position,
-      { label },
+      label,
     );
 
     const demands: Demand[] = [

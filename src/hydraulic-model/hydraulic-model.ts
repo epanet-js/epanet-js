@@ -5,6 +5,7 @@ import { UnitsSpec } from "src/model-metadata/quantities-spec";
 import { nanoid } from "nanoid";
 import { HeadlossFormula } from "./asset-types/pipe";
 import { ConsecutiveIdsGenerator, IdGenerator } from "src/lib/id-generator";
+import { CustomerPointFactory } from "src/lib/model-factory";
 import { LabelManager } from "./label-manager";
 import { Demands, createEmptyDemands } from "./demands";
 import { CustomerPoints, initializeCustomerPoints } from "./customer-points";
@@ -30,7 +31,7 @@ export type HydraulicModel = {
   curves: Curves;
   patterns: Patterns;
   controls: Controls;
-  customerPointIdGenerator: IdGenerator;
+  customerPointFactory: CustomerPointFactory;
 };
 
 export { AssetsMap };
@@ -77,7 +78,7 @@ export const initializeHydraulicModel = ({
     curves: new Map(),
     patterns: new Map(),
     controls,
-    customerPointIdGenerator: cpIdGenerator,
+    customerPointFactory: new CustomerPointFactory(cpIdGenerator),
   };
 };
 

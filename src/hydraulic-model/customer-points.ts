@@ -1,6 +1,5 @@
 import { Unit } from "src/quantity";
 import { Position } from "geojson";
-import { roundCoordinates } from "src/lib/geometry";
 import { AssetId } from "./asset-types/base-asset";
 import { CustomerPointsLookup } from "./customer-points-lookup";
 
@@ -49,16 +48,6 @@ export class CustomerPoint {
     this.id = id;
     this.label = properties.label;
     this.coordinates = coordinates;
-  }
-
-  static build(
-    id: number,
-    coordinates: Position,
-    properties: {
-      label: string;
-    },
-  ): CustomerPoint {
-    return new CustomerPoint(id, roundCoordinates(coordinates), properties);
   }
 
   get snapPosition(): Position | null {

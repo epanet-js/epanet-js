@@ -30,6 +30,7 @@ import {
   ValveBuildData,
 } from "src/hydraulic-model/asset-builder";
 import { ConsecutiveIdsGenerator, IdGenerator } from "src/lib/id-generator";
+import { CustomerPointFactory } from "src/lib/model-factory";
 import { LabelManager } from "src/hydraulic-model/label-manager";
 import {
   AssetQuantitiesSpec,
@@ -106,7 +107,7 @@ export const buildCustomerPoint = (
   } = {},
 ) => {
   const { coordinates = [0, 0], label = String(id) } = options;
-  return CustomerPoint.build(id, coordinates, {
+  return new CustomerPoint(id, coordinates, {
     label,
   });
 };
@@ -142,6 +143,7 @@ export class HydraulicModelBuilder {
   private customerPointsMap: CustomerPoints;
   private idGenerator: WritableIdGenerator;
   private customerPointIdGenerator: WritableIdGenerator;
+  private customerPointFactory: CustomerPointFactory;
   private curves: Curves;
   private patterns: Patterns;
   private controlsValue: Controls;
@@ -160,6 +162,9 @@ export class HydraulicModelBuilder {
     this.labelManager = new LabelManager();
     this.idGenerator = new WritableIdGenerator();
     this.customerPointIdGenerator = new WritableIdGenerator();
+    this.customerPointFactory = new CustomerPointFactory(
+      this.customerPointIdGenerator,
+    );
     const quantities = new Quantities(quantitiesSpec);
     this.units = quantities.units;
     this.assetBuilder = new AssetBuilder(
@@ -475,7 +480,7 @@ export class HydraulicModelBuilder {
       curves: this.curves,
       patterns: this.patterns,
       controls: this.controlsValue,
-      customerPointIdGenerator: this.customerPointIdGenerator,
+      customerPointFactory: this.customerPointFactory,
     };
   }
 

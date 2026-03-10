@@ -710,7 +710,7 @@ describe("replaceLink", () => {
         })
         .build();
 
-      const customerPoint = CustomerPoint.build(IDS.CP1, [5, 1], {
+      const customerPoint = new CustomerPoint(IDS.CP1, [5, 1], {
         label: "CP1",
       });
       customerPoint.connect({

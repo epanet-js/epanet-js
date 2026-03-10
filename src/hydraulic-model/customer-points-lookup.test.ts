@@ -7,12 +7,12 @@ describe("CustomerPointsLookup", () => {
     const IDS = { P1: 1, J1: 2, J2: 3, CP1: 4, CP2: 5 } as const;
     const lookup = new CustomerPointsLookup();
 
-    const cp1 = CustomerPoint.build(IDS.CP1, [0, 0], {
+    const cp1 = new CustomerPoint(IDS.CP1, [0, 0], {
       label: "cp1",
     });
     cp1.connect({ pipeId: IDS.P1, snapPoint: [1, 1], junctionId: IDS.J1 });
 
-    const cp2 = CustomerPoint.build(IDS.CP2, [0, 0], {
+    const cp2 = new CustomerPoint(IDS.CP2, [0, 0], {
       label: "cp2",
     });
     cp2.connect({ pipeId: IDS.P1, snapPoint: [2, 2], junctionId: IDS.J2 });
@@ -29,12 +29,12 @@ describe("CustomerPointsLookup", () => {
     const IDS = { P1: 1, J1: 2, CP1: 3, CP2: 4 } as const;
     const lookup = new CustomerPointsLookup();
 
-    const cp1 = CustomerPoint.build(IDS.CP1, [0, 0], {
+    const cp1 = new CustomerPoint(IDS.CP1, [0, 0], {
       label: "cp1",
     });
     cp1.connect({ pipeId: IDS.P1, snapPoint: [1, 1], junctionId: IDS.J1 });
 
-    const cp2 = CustomerPoint.build(IDS.CP2, [0, 0], {
+    const cp2 = new CustomerPoint(IDS.CP2, [0, 0], {
       label: "cp2",
     });
     cp2.connect({ pipeId: IDS.P1, snapPoint: [2, 2], junctionId: IDS.J1 });
@@ -52,12 +52,12 @@ describe("CustomerPointsLookup", () => {
     const IDS = { P1: 1, J1: 2, P2: 3, J2: 4, CP1: 5, CP2: 6 } as const;
     const lookup = new CustomerPointsLookup();
 
-    const cp1 = CustomerPoint.build(IDS.CP1, [0, 0], {
+    const cp1 = new CustomerPoint(IDS.CP1, [0, 0], {
       label: "cp1",
     });
     cp1.connect({ pipeId: IDS.P1, snapPoint: [1, 1], junctionId: IDS.J1 });
 
-    const cp2 = CustomerPoint.build(IDS.CP2, [0, 0], {
+    const cp2 = new CustomerPoint(IDS.CP2, [0, 0], {
       label: "cp2",
     });
     cp2.connect({ pipeId: IDS.P2, snapPoint: [2, 2], junctionId: IDS.J2 });
@@ -73,12 +73,12 @@ describe("CustomerPointsLookup", () => {
     const IDS = { P1: 1, J1: 2, CP1: 3, CP2: 4 } as const;
     const lookup = new CustomerPointsLookup();
 
-    const cp1 = CustomerPoint.build(IDS.CP1, [0, 0], {
+    const cp1 = new CustomerPoint(IDS.CP1, [0, 0], {
       label: "cp1",
     });
     cp1.connect({ pipeId: IDS.P1, snapPoint: [1, 1], junctionId: IDS.J1 });
 
-    const cp2 = CustomerPoint.build(IDS.CP2, [0, 0], {
+    const cp2 = new CustomerPoint(IDS.CP2, [0, 0], {
       label: "cp2",
     });
     cp2.connect({ pipeId: IDS.P1, snapPoint: [2, 2], junctionId: IDS.J1 });
@@ -94,7 +94,7 @@ describe("CustomerPointsLookup", () => {
     const IDS = { P1: 1, CP1: 2 } as const;
     const lookup = new CustomerPointsLookup();
 
-    const cp1 = CustomerPoint.build(IDS.CP1, [0, 0], {
+    const cp1 = new CustomerPoint(IDS.CP1, [0, 0], {
       label: "cp1",
     });
 
@@ -108,7 +108,7 @@ describe("CustomerPointsLookup", () => {
     const IDS = { P1: 1, J1: 2, CP1: 3 } as const;
     const lookup = new CustomerPointsLookup();
 
-    const cp1 = CustomerPoint.build(IDS.CP1, [0, 0], {
+    const cp1 = new CustomerPoint(IDS.CP1, [0, 0], {
       label: "cp1",
     });
     cp1.connect({ pipeId: IDS.P1, snapPoint: [1, 1], junctionId: IDS.J1 });
@@ -126,7 +126,7 @@ describe("CustomerPointsLookup", () => {
     const IDS = { P1: 1, J1: 2, CP1: 3 } as const;
     const lookup = new CustomerPointsLookup();
 
-    const cp1 = CustomerPoint.build(IDS.CP1, [0, 0], {
+    const cp1 = new CustomerPoint(IDS.CP1, [0, 0], {
       label: "cp1",
     });
     cp1.connect({ pipeId: IDS.P1, snapPoint: [1, 1], junctionId: IDS.J1 });

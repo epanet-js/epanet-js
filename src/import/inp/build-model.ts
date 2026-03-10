@@ -3,7 +3,7 @@ import {
   initializeHydraulicModel,
   Demand,
 } from "src/hydraulic-model";
-import { CustomerPoint } from "src/hydraulic-model/customer-points";
+import { CustomerPointFactory } from "src/lib/model-factory";
 import {
   InpData,
   ItemData,
@@ -161,7 +161,7 @@ export const buildModel = (
       inpData,
       nodeIds,
       linkIds,
-      customerPointIdGenerator: hydraulicModel.customerPointIdGenerator,
+      customerPointFactory: hydraulicModel.customerPointFactory,
     });
   }
 
@@ -725,16 +725,14 @@ const addCustomerPoint = (
     inpData,
     nodeIds,
     linkIds,
-    customerPointIdGenerator,
+    customerPointFactory,
   }: {
     inpData: InpData;
     nodeIds: ItemData<AssetId>;
     linkIds: ItemData<AssetId>;
-    customerPointIdGenerator: IdGenerator;
+    customerPointFactory: CustomerPointFactory;
   },
 ) => {
-  const id = customerPointIdGenerator.newId();
-
   const rawDemands = customerPointData.demands ??
     inpData.customerDemands.get(customerPointData.label) ?? [
       { baseDemand: customerPointData.baseDemand },
@@ -744,9 +742,10 @@ const addCustomerPoint = (
     buildDemand(patternContext, d.baseDemand, d.patternLabel),
   );
 
-  const customerPoint = CustomerPoint.build(id, customerPointData.coordinates, {
-    label: customerPointData.label,
-  });
+  const customerPoint = customerPointFactory.create(
+    customerPointData.coordinates,
+    customerPointData.label,
+  );
 
   if (
     customerPointData.pipeId &&
@@ -765,8 +764,8 @@ const addCustomerPoint = (
     hydraulicModel.customerPointsLookup.addConnection(customerPoint);
   }
 
-  hydraulicModel.customerPoints.set(id, customerPoint);
-  hydraulicModel.demands.customerPoints.set(id, demands);
+  hydraulicModel.customerPoints.set(customerPoint.id, customerPoint);
+  hydraulicModel.demands.customerPoints.set(customerPoint.id, demands);
 };
 
 const getLinkProperties = (
