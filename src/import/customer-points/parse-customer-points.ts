@@ -6,6 +6,7 @@ import {
 import { CustomerPointsIssuesAccumulator } from "./parse-customer-points-issues";
 import { convertTo, Unit } from "src/quantity";
 import { Demand, PatternId } from "src/hydraulic-model";
+import { IdGenerator } from "src/hydraulic-model/id-generator";
 
 export type ParsedCustomerPoint = {
   customerPoint: CustomerPoint;
@@ -17,7 +18,7 @@ export function* parseCustomerPoints(
   issues: CustomerPointsIssuesAccumulator,
   demandImportUnit: Unit,
   demandTargetUnit: Unit,
-  startingId: number = 1,
+  idGenerator: IdGenerator,
   demandPropertyName: string = "demand",
   labelPropertyName: string | null = null,
   patternId: PatternId | null = null,
@@ -33,7 +34,7 @@ export function* parseCustomerPoints(
           issues,
           demandImportUnit,
           demandTargetUnit,
-          startingId,
+          idGenerator,
           demandPropertyName,
           labelPropertyName,
           patternId,
@@ -48,7 +49,7 @@ export function* parseCustomerPoints(
     issues,
     demandImportUnit,
     demandTargetUnit,
-    startingId,
+    idGenerator,
     demandPropertyName,
     labelPropertyName,
     patternId,
@@ -60,7 +61,7 @@ function* parseGeoJSONFeatures(
   issues: CustomerPointsIssuesAccumulator,
   demandImportUnit: Unit,
   demandTargetUnit: Unit,
-  startingId: number = 1,
+  idGenerator: IdGenerator,
   demandPropertyName: string = "demand",
   labelPropertyName: string | null = null,
   patternId: PatternId | null = null,
@@ -69,12 +70,10 @@ function* parseGeoJSONFeatures(
     throw new Error("Invalid GeoJSON: must be a FeatureCollection");
   }
 
-  let currentId = startingId;
-
   for (const feature of geoJson.features || []) {
-    const result = processGeoJSONFeature(
+    yield processGeoJSONFeature(
       feature,
-      currentId,
+      idGenerator,
       issues,
       demandImportUnit,
       demandTargetUnit,
@@ -82,8 +81,6 @@ function* parseGeoJSONFeatures(
       labelPropertyName,
       patternId,
     );
-    yield result.parsed;
-    currentId = result.nextId;
   }
 }
 
@@ -92,13 +89,12 @@ function* parseGeoJSONLFeatures(
   issues: CustomerPointsIssuesAccumulator,
   demandImportUnit: Unit,
   demandTargetUnit: Unit,
-  startingId: number = 1,
+  idGenerator: IdGenerator,
   demandPropertyName: string = "demand",
   labelPropertyName: string | null = null,
   patternId: PatternId | null = null,
 ): Generator<ParsedCustomerPoint | null, void, unknown> {
   const lines = geoJsonLText.split("\n").filter((line) => line.trim());
-  let currentId = startingId;
 
   for (const line of lines) {
     try {
@@ -109,9 +105,9 @@ function* parseGeoJSONLFeatures(
       }
 
       if (json.type === "Feature") {
-        const result = processGeoJSONFeature(
+        yield processGeoJSONFeature(
           json,
-          currentId,
+          idGenerator,
           issues,
           demandImportUnit,
           demandTargetUnit,
@@ -119,8 +115,6 @@ function* parseGeoJSONLFeatures(
           labelPropertyName,
           patternId,
         );
-        yield result.parsed;
-        currentId = result.nextId;
       }
     } catch (error) {
       yield null;
@@ -128,75 +122,52 @@ function* parseGeoJSONLFeatures(
   }
 }
 
-type ProcessFeatureResult = {
-  parsed: ParsedCustomerPoint | null;
-  nextId: number;
-};
-
 const processGeoJSONFeature = (
   feature: Feature,
-  currentId: number,
+  idGenerator: IdGenerator,
   issues: CustomerPointsIssuesAccumulator,
   demandImportUnit: Unit,
   demandTargetUnit: Unit,
   demandPropertyName: string = "demand",
   labelPropertyName: string | null = null,
   patternId: PatternId | null = null,
-): ProcessFeatureResult => {
+): ParsedCustomerPoint | null => {
   if (!feature.geometry || feature.geometry.type !== "Point") {
     if (!feature.geometry) {
       issues.addSkippedMissingCoordinates(feature);
     } else {
       issues.addSkippedNonPoint(feature);
     }
-    return {
-      parsed: null,
-      nextId: currentId,
-    };
+    return null;
   }
 
   const coordinates = feature.geometry.coordinates;
   if (!Array.isArray(coordinates) || coordinates.length < 2) {
     issues.addSkippedMissingCoordinates(feature);
-    return {
-      parsed: null,
-      nextId: currentId,
-    };
+    return null;
   }
 
   const [lng, lat] = coordinates;
   if (!isValidWGS84Coordinates(lng, lat)) {
     issues.addSkippedInvalidProjection(feature);
-    return {
-      parsed: null,
-      nextId: currentId,
-    };
+    return null;
   }
 
   const demandValue = feature.properties?.[demandPropertyName];
   if (demandValue === null || demandValue === undefined) {
     issues.addSkippedInvalidDemand(feature);
-    return {
-      parsed: null,
-      nextId: currentId,
-    };
+    return null;
   }
 
   if (typeof demandValue === "boolean") {
     issues.addSkippedInvalidDemand(feature);
-    return {
-      parsed: null,
-      nextId: currentId,
-    };
+    return null;
   }
 
   const demandInSourceUnit = Number(demandValue);
   if (isNaN(demandInSourceUnit)) {
     issues.addSkippedInvalidDemand(feature);
-    return {
-      parsed: null,
-      nextId: currentId,
-    };
+    return null;
   }
 
   try {
@@ -205,7 +176,7 @@ const processGeoJSONFeature = (
       demandTargetUnit,
     );
 
-    const id = currentId;
+    const id = idGenerator.newId();
     let label = String(id);
 
     if (labelPropertyName && feature.properties) {
@@ -230,13 +201,10 @@ const processGeoJSONFeature = (
         : { baseDemand: demandInTargetUnit },
     ];
 
-    return { parsed: { customerPoint, demands }, nextId: currentId + 1 };
+    return { customerPoint, demands };
   } catch (error) {
     issues.addSkippedCreationFailure(feature);
-    return {
-      parsed: null,
-      nextId: currentId,
-    };
+    return null;
   }
 };
 

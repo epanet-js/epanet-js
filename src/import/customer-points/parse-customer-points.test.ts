@@ -1,5 +1,6 @@
 import { parseCustomerPoints } from "./parse-customer-points";
 import { CustomerPointsIssuesAccumulator } from "./parse-customer-points-issues";
+import { ConsecutiveIdsGenerator } from "src/hydraulic-model/id-generator";
 
 describe("parseCustomerPoints", () => {
   describe("patternId", () => {
@@ -22,7 +23,7 @@ describe("parseCustomerPoints", () => {
           issues,
           "l/d",
           "l/d",
-          1,
+          new ConsecutiveIdsGenerator(),
           "demand",
           null,
           null,
@@ -66,7 +67,7 @@ describe("parseCustomerPoints", () => {
           issues,
           "l/d",
           "l/d",
-          1,
+          new ConsecutiveIdsGenerator(),
           "demand",
           null,
           PATTERN_ID,
@@ -92,7 +93,7 @@ describe("parseCustomerPoints", () => {
           issues,
           "l/d",
           "l/d",
-          1,
+          new ConsecutiveIdsGenerator(),
           "demand",
           null,
           PATTERN_ID,
@@ -125,7 +126,7 @@ describe("parseCustomerPoints", () => {
           issues,
           "l/d",
           "l/d",
-          1,
+          new ConsecutiveIdsGenerator(),
           "demand",
           null,
           null,

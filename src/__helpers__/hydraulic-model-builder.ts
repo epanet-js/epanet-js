@@ -144,6 +144,7 @@ export class HydraulicModelBuilder {
   private demands: Demands;
   private customerPointsMap: CustomerPoints;
   private idGenerator: WritableIdGenerator;
+  private customerPointIdGenerator: WritableIdGenerator;
   private curves: Curves;
   private patterns: Patterns;
   private controlsValue: Controls;
@@ -161,6 +162,7 @@ export class HydraulicModelBuilder {
     this.customerPointsMap = initializeCustomerPoints();
     this.labelManager = new LabelManager();
     this.idGenerator = new WritableIdGenerator();
+    this.customerPointIdGenerator = new WritableIdGenerator();
     const quantities = new Quantities(quantitiesSpec);
     this.units = quantities.units;
     this.assetBuilder = new AssetBuilder(
@@ -378,6 +380,7 @@ export class HydraulicModelBuilder {
     }
 
     this.customerPointsMap.set(id, customerPoint);
+    this.customerPointIdGenerator.addId(id);
     return this;
   }
 
@@ -475,6 +478,7 @@ export class HydraulicModelBuilder {
       curves: this.curves,
       patterns: this.patterns,
       controls: this.controlsValue,
+      customerPointIdGenerator: this.customerPointIdGenerator,
     };
   }
 

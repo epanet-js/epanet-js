@@ -30,6 +30,7 @@ export type HydraulicModel = {
   curves: Curves;
   patterns: Patterns;
   controls: Controls;
+  customerPointIdGenerator: IdGenerator;
 };
 
 export { AssetsMap };
@@ -41,6 +42,7 @@ export const initializeHydraulicModel = ({
   demands = createEmptyDemands(),
   controls = createEmptyControls(),
   idGenerator,
+  customerPointIdGenerator,
 }: {
   units: UnitsSpec;
   defaults: DefaultQuantities;
@@ -48,9 +50,12 @@ export const initializeHydraulicModel = ({
   demands?: Demands;
   controls?: Controls;
   idGenerator?: IdGenerator;
+  customerPointIdGenerator?: IdGenerator;
 }): HydraulicModel => {
   const labelManager = new LabelManager();
   const assetIdGenerator = idGenerator ?? new ConsecutiveIdsGenerator();
+  const cpIdGenerator =
+    customerPointIdGenerator ?? new ConsecutiveIdsGenerator();
   const assets = new Map();
   return {
     version: nanoid(),
@@ -72,6 +77,7 @@ export const initializeHydraulicModel = ({
     curves: new Map(),
     patterns: new Map(),
     controls,
+    customerPointIdGenerator: cpIdGenerator,
   };
 };
 

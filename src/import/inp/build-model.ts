@@ -159,14 +159,12 @@ export const buildModel = (
     });
   }
 
-  const customerPointIdGenerator = new ConsecutiveIdsGenerator();
-
   for (const customerPointData of inpData.customerPoints) {
     addCustomerPoint(hydraulicModel, customerPointData, patternContext, {
       inpData,
       nodeIds,
       linkIds,
-      customerPointIdGenerator,
+      customerPointIdGenerator: hydraulicModel.customerPointIdGenerator,
     });
   }
 
