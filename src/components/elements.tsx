@@ -275,6 +275,50 @@ export const StyledAlertDialogOverlay = classed(AlertDialog.Overlay)(
 );
 export const StyledDialogOverlay = classed(Dialog.Overlay)(overlayClasses);
 
+type DialogSize = "xs" | "sm" | "md" | "lg" | "xl" | "fullscreen" | "auto";
+
+export const styledDialogContentNew = ({
+  size = "sm",
+  height,
+}: {
+  size?: DialogSize;
+  height?: "sm" | "md" | "lg" | "xl";
+}) => {
+  if (size === "fullscreen") {
+    return "fixed inset-0 z-[100] w-screen h-dvh flex flex-col text-left bg-white dark:bg-gray-900 shadow-md dark:text-white dark:shadow-none dark:border dark:border-black";
+  }
+
+  const widthClass =
+    size === "auto"
+      ? undefined
+      : {
+          xs: "max-w-[360px]",
+          sm: "max-w-screen-sm",
+          md: "max-w-full md:max-w-screen-md",
+          lg: "max-w-full lg:max-w-screen-lg",
+          xl: "max-w-full xl:max-w-screen-xl",
+        }[size];
+
+  const heightClass =
+    height &&
+    {
+      sm: "h-[300px]",
+      md: "h-[480px]",
+      lg: "h-[640px]",
+      xl: "h-[848px]",
+    }[height];
+
+  return clsx(
+    size === "auto" ? "w-fit" : "w-full",
+    "flex flex-col rounded-lg",
+    "text-left bg-white dark:bg-gray-900 shadow-md",
+    "dark:text-white dark:shadow-none dark:border dark:border-black",
+    widthClass,
+    heightClass,
+    "max-h-full",
+  );
+};
+
 export const styledDialogContent = ({
   size,
   height,
@@ -353,6 +397,9 @@ const FilteredDialogContent = React.forwardRef<
 ));
 export const StyledDialogContent = classed(FilteredDialogContent)(
   styledDialogContent,
+);
+export const StyledDialogContentNew = classed(FilteredDialogContent)(
+  styledDialogContentNew,
 );
 export const WelcomeDialogContent = classed(Dialog.Content)(
   customWelcomeDialogContent,

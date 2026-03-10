@@ -6,13 +6,14 @@ import {
   type RefAttributes,
 } from "react";
 import type { IconProps } from "@radix-ui/react-icons/dist/types";
-import { useFormikContext } from "formik";
+import { useFormikContext, Formik, Form } from "formik";
 import clsx from "clsx";
 import {
   Button,
   DefaultErrorBoundary,
   Loading,
   StyledDialogContent,
+  StyledDialogContentNew,
   StyledDialogOverlay,
 } from "src/components/elements";
 import { useTranslate } from "src/hooks/use-translate";
@@ -21,6 +22,7 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { useSetAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog";
 import { CloseIcon, RefreshIcon } from "src/icons";
+import { EarlyAccessBadge } from "./early-access-badge";
 
 type SlottableIcon =
   | React.FC<React.ComponentProps<"svg">>
@@ -328,3 +330,212 @@ export const SimpleDialogButtons = ({
     </div>
   );
 };
+
+export function DialogHeaderNew({
+  title,
+  children,
+  badge,
+}: {
+  title?: string;
+  children?: ReactNode;
+  badge?: ReactNode;
+}) {
+  return (
+    <div
+      className="
+        flex items-center gap-x-2
+        px-4 py-3
+        text-base
+        text-black dark:text-white
+        border-b border-gray-200
+      "
+    >
+      {children && children}
+      {title && (
+        <div className="flex items-center gap-3 flex-auto min-w-0">
+          <h1 className="text-md font-semibold text-gray-900 break-words sm:truncate">
+            {title}
+          </h1>
+          {badge && badge}
+        </div>
+      )}
+      <div className="relative top-1">
+        <DialogCloseX />
+      </div>
+    </div>
+  );
+}
+
+interface BaseModalProps {
+  title: string;
+  size?: "sm" | "xs" | "md" | "lg" | "xl" | "fullscreen" | "auto";
+  height?: "sm" | "md" | "lg" | "xl";
+  isOpen: boolean;
+  onClose: () => void;
+  children: React.ReactNode;
+  footer?: React.ReactNode;
+  initialValues?: any;
+  onSubmit?: (values: any) => void;
+  earlyAccess?: boolean;
+}
+
+export const BaseModal = ({
+  title,
+  size = "auto",
+  height,
+  isOpen,
+  onClose,
+  children,
+  footer,
+  initialValues = {},
+  onSubmit,
+  earlyAccess,
+}: BaseModalProps) => {
+  const ModalLayout = (
+    <div className="modal-container flex flex-col flex-nowrap flex-1 min-h-0">
+      <DialogHeaderNew
+        title={title}
+        badge={earlyAccess && <EarlyAccessBadge />}
+      />
+      <div className="modal-content flex-1 overflow-auto min-h-0">
+        {children}
+      </div>
+      {footer && <DialogFooter>{footer}</DialogFooter>}
+    </div>
+  );
+
+  return (
+    <Dialog.Root open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <Dialog.Portal>
+        <StyledDialogOverlay />
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <StyledDialogContentNew
+            size={size}
+            height={height}
+            onOpenAutoFocus={(e) => e.preventDefault()}
+          >
+            <DefaultErrorBoundary>
+              {onSubmit ? (
+                <Formik initialValues={initialValues} onSubmit={onSubmit}>
+                  <Form className="h-full">{ModalLayout}</Form>
+                </Formik>
+              ) : (
+                ModalLayout
+              )}
+            </DefaultErrorBoundary>
+          </StyledDialogContentNew>
+        </div>
+      </Dialog.Portal>
+    </Dialog.Root>
+  );
+};
+
+export const AckDialogActionNew = ({
+  label,
+  onAck,
+}: {
+  label?: string;
+  onAck?: () => void;
+}) => {
+  const translate = useTranslate();
+  return (
+    <div
+      className={clsx(
+        "relative",
+        "px-4 py-3 border-t border-gray-200",
+        "flex flex-col sm:items-center sm:flex-row-reverse space-y-2 sm:space-y-0 sm:gap-x-3",
+      )}
+    >
+      <Button autoFocus={true} type="button" onClick={onAck}>
+        {label ? label : translate("dialog.cancel")}
+      </Button>
+    </div>
+  );
+};
+
+export const DialogFooter = ({ children }: { children: ReactNode }) => {
+  return children;
+};
+
+export function SimpleDialogActionsNew({
+  action,
+  onClose,
+  fullWidthSubmit = false,
+  autoFocusSubmit = true,
+  secondary,
+  tertiary,
+  isDisabled = false,
+  actionVariant = "primary",
+}: {
+  action?: string;
+  autoFocusSubmit?: boolean;
+  onClose?: () => void;
+  fullWidthSubmit?: boolean;
+  secondary?: {
+    action: string;
+    onClick: () => void;
+  };
+  tertiary?: {
+    action: string;
+    onClick: () => void;
+  };
+  isDisabled?: boolean;
+  actionVariant?: "primary" | "danger";
+}) {
+  const translate = useTranslate();
+  const { isSubmitting } = useFormikContext();
+  return (
+    <footer
+      className={clsx(
+        "relative",
+        fullWidthSubmit
+          ? "flex items-stretch justify-stretch"
+          : `flex flex-col sm:items-center sm:flex-row-reverse gap-3 px-4 py-3 border-t border-gray-200`,
+      )}
+    >
+      {action ? (
+        <Button
+          type="submit"
+          disabled={isSubmitting || isDisabled}
+          variant={actionVariant}
+          autoFocus={autoFocusSubmit}
+          size={fullWidthSubmit ? "full-width" : "sm"}
+        >
+          {action}
+        </Button>
+      ) : null}
+      {secondary ? (
+        <Button
+          type="button"
+          disabled={isSubmitting}
+          variant="default"
+          onClick={secondary.onClick}
+        >
+          {secondary.action}
+        </Button>
+      ) : null}
+      {tertiary ? (
+        <Button
+          type="button"
+          disabled={isSubmitting}
+          variant="default"
+          onClick={tertiary.onClick}
+        >
+          {tertiary.action}
+        </Button>
+      ) : null}
+      {onClose ? (
+        <Button type="button" onClick={onClose}>
+          {translate(action || secondary ? "dialog.cancel" : "dialog.close")}
+        </Button>
+      ) : null}
+      <RefreshIcon
+        className={clsx(
+          "animate-spin transition-opacity",
+          isSubmitting ? "opacity-50" : "hidden",
+          fullWidthSubmit && "absolute top-8 right-2.5 text-white",
+        )}
+      />
+    </footer>
+  );
+}
