@@ -41,6 +41,7 @@ type ShortcutSection = {
 export function CheatsheetDialog() {
   const translate = useTranslate();
   const isMac = useFeatureFlag("FLAG_MAC");
+  const isCreateCustomerOn = useFeatureFlag("FLAG_CREATE_CUSTOMER");
 
   const BINDINGS: ShortcutSection[] = [
     {
@@ -77,6 +78,9 @@ export function CheatsheetDialog() {
         { binding: "5", description: "pipe" },
         { binding: "6", description: "pump" },
         { binding: "7", description: "valve" },
+        ...(isCreateCustomerOn
+          ? [{ binding: "8", description: "customerPoint" as const }]
+          : []),
       ],
     },
     {
