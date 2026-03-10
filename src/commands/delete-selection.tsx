@@ -15,8 +15,6 @@ import {
   Mode,
   stagingModelAtom,
 } from "src/state/jotai";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
-
 export const deleteSelectedShortcuts = ["backspace", "del"];
 
 export const useDeleteSelection = () => {
@@ -27,7 +25,6 @@ export const useDeleteSelection = () => {
   const rep = usePersistence();
   const transact = rep.useTransact();
   const userTracking = useUserTracking();
-  const isDeleteCustomerOn = useFeatureFlag("FLAG_EDIT_CUSTOMER");
 
   const clearSelection = useCallback(() => {
     setSelection(USelection.none());
@@ -68,7 +65,6 @@ export const useDeleteSelection = () => {
 
   const deleteSelectedCustomerPoint = useCallback(
     (source: AssetDeleted["source"]) => {
-      if (!isDeleteCustomerOn) return false;
       if (selection.type !== "singleCustomerPoint") return false;
 
       const customerPoint = hydraulicModel.customerPoints.get(selection.id);
@@ -88,14 +84,7 @@ export const useDeleteSelection = () => {
       transact(moment);
       return true;
     },
-    [
-      hydraulicModel,
-      selection,
-      transact,
-      clearSelection,
-      userTracking,
-      isDeleteCustomerOn,
-    ],
+    [hydraulicModel, selection, transact, clearSelection, userTracking],
   );
 
   const deleteSelection = useCallback(

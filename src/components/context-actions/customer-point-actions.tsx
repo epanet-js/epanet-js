@@ -16,7 +16,6 @@ import {
 } from "src/commands/customer-point-actions";
 import { ConnectIcon, DisconnectIcon, DeleteIcon } from "src/icons";
 import { useDeleteSelection } from "src/commands/delete-selection";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export function useCustomerPointActions(
   customerPoint: CustomerPoint | undefined,
@@ -26,7 +25,6 @@ export function useCustomerPointActions(
   const connectCustomerPoints = useConnectCustomerPoints();
   const disconnectCustomerPoints = useDisconnectCustomerPoints();
   const deleteSelection = useDeleteSelection();
-  const isDeleteCustomerOn = useFeatureFlag("FLAG_EDIT_CUSTOMER");
 
   const isReconnecting = customerPoint?.connection !== null;
 
@@ -74,7 +72,7 @@ export function useCustomerPointActions(
 
   const deleteAction: Action = {
     label: translate("delete"),
-    applicable: isDeleteCustomerOn,
+    applicable: true,
     variant: "danger-quiet",
     icon: <DeleteIcon />,
     onSelect: onDelete,

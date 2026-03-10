@@ -19,7 +19,6 @@ import { useAtomValue } from "jotai";
 import {
   simulationAtom,
   selectedFeaturesAtom,
-  selectionAtom,
   splitsAtom,
 } from "src/state/jotai";
 import {
@@ -39,7 +38,6 @@ import {
   useShowSimulationSettings,
 } from "src/commands/show-simulation-settings";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useImportCustomerPoints } from "src/commands/import-customer-points";
 import { CreateNewDropdown } from "./create-new-dropdown";
 import { OperationalDataDropdown } from "./operational-data-dropdown";
@@ -72,17 +70,11 @@ export const Toolbar = ({
 
   const simulation = useAtomValue(simulationAtom);
   const selectedWrappedFeatures = useAtomValue(selectedFeaturesAtom);
-  const selection = useAtomValue(selectionAtom);
 
   const isMdOrLarger = useBreakpoint("md");
   const isSmOrLarger = useBreakpoint("sm");
 
-  const isEditCustomerOn = useFeatureFlag("FLAG_EDIT_CUSTOMER");
-
-  const shouldHideContextActions =
-    (selectedWrappedFeatures.length === 1 &&
-      selection.type !== "singleCustomerPoint") ||
-    (isEditCustomerOn && selection.type === "singleCustomerPoint");
+  const shouldHideContextActions = selectedWrappedFeatures.length === 1;
 
   return (
     <div

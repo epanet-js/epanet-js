@@ -7,7 +7,6 @@ import { AssetPanel } from "./asset-panel";
 import { CustomerPointPanel } from "./customer-point-panel";
 import { Asset } from "src/hydraulic-model";
 import { useIsSnapshotLocked } from "src/hooks/use-is-snapshot-locked";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export default function FeatureEditor() {
   const selectedFeatures = useAtomValue(selectedFeaturesAtom);
@@ -16,9 +15,8 @@ export default function FeatureEditor() {
     modelMetadata: { quantities },
   } = useAtomValue(dataAtom);
   const isSnapshotLocked = useIsSnapshotLocked();
-  const isEditCustomerOn = useFeatureFlag("FLAG_EDIT_CUSTOMER");
 
-  if (isEditCustomerOn && selection.type === "singleCustomerPoint") {
+  if (selection.type === "singleCustomerPoint") {
     return <CustomerPointPanel />;
   }
 
