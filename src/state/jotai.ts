@@ -40,6 +40,8 @@ export {
   nullHydraulicModel,
 } from "src/state/hydraulic-model";
 
+export { modelFactoriesAtom } from "src/state/model-factories";
+
 export { simulationResultsAtom } from "src/state/simulation";
 export { simulationSettingsAtom } from "src/state/simulation-settings";
 

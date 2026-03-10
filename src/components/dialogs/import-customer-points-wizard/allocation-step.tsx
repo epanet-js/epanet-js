@@ -3,7 +3,11 @@ import { useAtomValue } from "jotai";
 import { AllocationRule } from "src/hydraulic-model/customer-points";
 
 import { AllocationRulesTable } from "./allocation-rules-table";
-import { dataAtom, stagingModelAtom } from "src/state/jotai";
+import {
+  dataAtom,
+  stagingModelAtom,
+  modelFactoriesAtom,
+} from "src/state/jotai";
 import { allocateCustomerPoints } from "src/hydraulic-model/model-operations/allocate-customer-points";
 import { initializeCustomerPoints } from "src/hydraulic-model/customer-points";
 import { addCustomerPoints } from "src/hydraulic-model/mutations/add-customer-points";
@@ -31,6 +35,7 @@ export const AllocationStep: React.FC<{
   const [tempRules, setTempRules] = useState<AllocationRule[]>([]);
   const data = useAtomValue(dataAtom);
   const hydraulicModel = useAtomValue(stagingModelAtom);
+  const factories = useAtomValue(modelFactoriesAtom);
   const simulationSettings = useAtomValue(simulationSettingsAtom);
   const translate = useTranslate();
   const userTracking = useUserTracking();
@@ -86,6 +91,7 @@ export const AllocationStep: React.FC<{
 
       transactImport(
         updatedHydraulicModel,
+        factories,
         data.modelMetadata,
         "customerpoints",
         simulationSettings,
@@ -115,6 +121,7 @@ export const AllocationStep: React.FC<{
     allocationResult,
     data.modelMetadata,
     hydraulicModel,
+    factories,
     simulationSettings,
     parsedDataSummary?.customerPointDemands,
     keepDemands,

@@ -6,7 +6,7 @@ import { getMapCoord } from "../utils";
 import { addCustomerPoint } from "src/hydraulic-model/model-operations";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useSelection } from "src/selection";
-import { selectionAtom } from "src/state/jotai";
+import { selectionAtom, modelFactoriesAtom } from "src/state/jotai";
 
 export function useDrawCustomerPointHandlers({
   hydraulicModel,
@@ -16,6 +16,7 @@ export function useDrawCustomerPointHandlers({
   const setMode = useSetAtom(modeAtom);
   const setEphemeralState = useSetAtom(ephemeralStateAtom);
   const selection = useAtomValue(selectionAtom);
+  const { customerPointFactory } = useAtomValue(modelFactoriesAtom);
   const transact = rep.useTransact();
   const userTracking = useUserTracking();
   const { selectCustomerPoint } = useSelection(selection);
@@ -25,7 +26,10 @@ export function useDrawCustomerPointHandlers({
       if (readonly) return;
 
       const coordinates = getMapCoord(e);
-      const moment = addCustomerPoint(hydraulicModel, { coordinates });
+      const moment = addCustomerPoint(hydraulicModel, {
+        coordinates,
+        customerPointFactory,
+      });
       transact(moment);
       userTracking.capture({ name: "customerPointActions.created" });
 

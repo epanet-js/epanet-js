@@ -3,7 +3,11 @@ import {
   initializeHydraulicModel,
   Demand,
 } from "src/hydraulic-model";
-import { CustomerPointFactory } from "src/lib/model-factory";
+import {
+  CustomerPointFactory,
+  ModelFactories,
+  initializeModelFactories,
+} from "src/lib/model-factory";
 import {
   InpData,
   ItemData,
@@ -75,12 +79,14 @@ export const buildModel = (
   options?: ParseInpOptions,
 ): {
   hydraulicModel: HydraulicModel;
+  factories: ModelFactories;
   modelMetadata: Pick<ModelMetadata, "quantities">;
 } => {
   const spec = presets[inpData.options.units];
   const quantities = new Quantities(spec);
   const nodeIds = new ItemData<AssetId>();
   const linkIds = new ItemData<AssetId>();
+  const factories = initializeModelFactories();
 
   const hydraulicModel = initializeHydraulicModel({
     units: quantities.units,
@@ -161,7 +167,7 @@ export const buildModel = (
       inpData,
       nodeIds,
       linkIds,
-      customerPointFactory: hydraulicModel.customerPointFactory,
+      customerPointFactory: factories.customerPointFactory,
     });
   }
 
@@ -177,7 +183,7 @@ export const buildModel = (
 
   addControls(hydraulicModel, inpData.controls, nodeIds, linkIds);
 
-  return { hydraulicModel, modelMetadata: { quantities } };
+  return { hydraulicModel, factories, modelMetadata: { quantities } };
 };
 
 const initializeCurvesContext = (

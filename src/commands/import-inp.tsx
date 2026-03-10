@@ -14,7 +14,6 @@ import { ImportInpCompleted, useUserTracking } from "src/infra/user-tracking";
 import { InpStats } from "src/import/inp/inp-data";
 import { ModelMetadata } from "src/model-metadata";
 import { HydraulicModel } from "src/hydraulic-model";
-import type { SimulationSettings } from "src/simulation/simulation-settings";
 import { EpanetUnitSystem } from "src/simulation/build-inp";
 import { notify } from "src/components/notifications";
 import { WarningIcon } from "src/icons";
@@ -75,17 +74,12 @@ export const useImportInp = () => {
         };
 
         const completeImport = async (
-          result: {
-            hydraulicModel: HydraulicModel;
-            modelMetadata: ModelMetadata;
-            simulationSettings: SimulationSettings;
-            issues: ParserIssues | null;
-            isMadeByApp: boolean;
-          },
+          result: ReturnType<typeof parseInp>,
           options?: { autoElevations?: boolean },
         ) => {
           const {
             hydraulicModel,
+            factories,
             modelMetadata,
             simulationSettings,
             issues,
@@ -97,6 +91,7 @@ export const useImportInp = () => {
 
           transactImport(
             hydraulicModel,
+            factories,
             modelMetadata,
             file.name,
             simulationSettings,
@@ -132,6 +127,7 @@ export const useImportInp = () => {
 
         const {
           hydraulicModel,
+          factories,
           modelMetadata,
           simulationSettings,
           issues,
@@ -180,10 +176,12 @@ export const useImportInp = () => {
         await completeImport(
           {
             hydraulicModel,
+            factories,
             modelMetadata,
             simulationSettings,
             issues,
             isMadeByApp,
+            stats,
           },
           { autoElevations },
         );

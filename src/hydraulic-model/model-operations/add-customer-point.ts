@@ -1,13 +1,15 @@
 import { Position } from "src/types";
+import { CustomerPointFactory } from "src/lib/model-factory";
 import { ModelOperation } from "../model-operation";
 
 type InputData = {
   coordinates: Position;
+  customerPointFactory: CustomerPointFactory;
 };
 
 export const addCustomerPoint: ModelOperation<InputData> = (
-  { customerPointFactory },
-  { coordinates },
+  _model,
+  { coordinates, customerPointFactory },
 ) => {
   const customerPoint = customerPointFactory.create(coordinates);
 

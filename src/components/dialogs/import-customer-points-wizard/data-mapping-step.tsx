@@ -4,7 +4,11 @@ import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useAtomValue } from "jotai";
-import { dataAtom, stagingModelAtom } from "src/state/jotai";
+import {
+  dataAtom,
+  stagingModelAtom,
+  modelFactoriesAtom,
+} from "src/state/jotai";
 import { parseCustomerPoints } from "src/import/customer-points/parse-customer-points";
 import {
   CustomerPointsIssuesAccumulator,
@@ -40,6 +44,7 @@ export const DataMappingStep: React.FC<{
   const userTracking = useUserTracking();
   const { modelMetadata } = useAtomValue(dataAtom);
   const hydraulicModel = useAtomValue(stagingModelAtom);
+  const { customerPointFactory } = useAtomValue(modelFactoriesAtom);
   const patterns = hydraulicModel.patterns;
 
   const {
@@ -105,7 +110,7 @@ export const DataMappingStep: React.FC<{
             issues,
             demandImportUnit,
             demandTargetUnit,
-            hydraulicModel.customerPointFactory,
+            customerPointFactory,
             demandPropertyName,
             labelPropertyName,
             patternId,
@@ -155,7 +160,7 @@ export const DataMappingStep: React.FC<{
       setLoading,
       setError,
       modelMetadata.quantities,
-      hydraulicModel.customerPointFactory,
+      customerPointFactory,
       setParsedDataSummary,
       userTracking,
       selectedFile,

@@ -3,6 +3,7 @@ import { IssuesAccumulator, ParserIssues } from "./issues";
 import { readInpData } from "./read-inp-data";
 import { buildModel } from "./build-model";
 import { HydraulicModel, AssetsMap } from "src/hydraulic-model";
+import { ModelFactories } from "src/lib/model-factory";
 import { nanoid } from "nanoid";
 import {
   defaultTiming,
@@ -34,6 +35,7 @@ export const parseInp = (
 ): {
   isMadeByApp: boolean;
   hydraulicModel: HydraulicModel;
+  factories: ModelFactories;
   modelMetadata: ModelMetadata;
   simulationSettings: SimulationSettings;
   issues: ParserIssues | null;
@@ -55,7 +57,7 @@ export const parseInp = (
 
   const projectionMapper = projectCoordinates(inpData, sourceProjection);
 
-  const { hydraulicModel, modelMetadata } = buildModel(
+  const { hydraulicModel, factories, modelMetadata } = buildModel(
     inpData,
     issues,
     safeOptions,
@@ -63,6 +65,7 @@ export const parseInp = (
   return {
     isMadeByApp: header.isMadeByApp,
     hydraulicModel,
+    factories,
     modelMetadata: {
       ...modelMetadata,
       projectionMapper,

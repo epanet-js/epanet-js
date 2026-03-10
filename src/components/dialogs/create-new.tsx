@@ -15,6 +15,7 @@ import {
   headlossFormulas,
   initializeHydraulicModel,
 } from "src/hydraulic-model";
+import { initializeModelFactories } from "src/lib/model-factory";
 import { usePersistence } from "src/lib/persistence";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { useTranslate } from "src/hooks/use-translate";
@@ -118,10 +119,12 @@ export const CreateNew = () => {
         defaults: quantities.defaults,
         headlossFormula,
       });
+      const factories = initializeModelFactories();
       setGridPreview(false);
       setGridHidden(false);
       transactImport(
         hydraulicModel,
+        factories,
         modelMetadata,
         "Untitled",
         defaultSimulationSettings,

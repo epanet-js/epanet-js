@@ -52,6 +52,8 @@ import { USelection } from "src/selection";
 import { toDemandAssignments } from "src/hydraulic-model/model-operation";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
 import { simulationSettingsAtom } from "src/state/simulation-settings";
+import { ModelFactories } from "src/lib/model-factory";
+import { modelFactoriesAtom } from "src/state/model-factories";
 
 const MAX_CHANGES_BEFORE_MAP_SYNC = 500;
 
@@ -65,6 +67,7 @@ export class Persistence implements IPersistenceWithSnapshots {
   useTransactImport() {
     return (
       hydraulicModel: HydraulicModel,
+      factories: ModelFactories,
       modelMetadata: ModelMetadata,
       name: string,
       simulationSettings: SimulationSettings,
@@ -103,6 +106,7 @@ export class Persistence implements IPersistenceWithSnapshots {
       this.store.set(splitsAtom, defaultSplits);
       this.store.set(stagingModelAtom, hydraulicModel);
       this.store.set(baseModelAtom, hydraulicModel);
+      this.store.set(modelFactoriesAtom, factories);
       this.store.set(dataAtom, {
         ...nullData,
         folderMap: new Map(),
