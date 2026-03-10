@@ -52,7 +52,7 @@ import { USelection } from "src/selection";
 import { toDemandAssignments } from "src/hydraulic-model/model-operation";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
 import { simulationSettingsAtom } from "src/state/simulation-settings";
-import { ModelFactories } from "src/lib/model-factory";
+import { ModelFactories } from "src/hydraulic-model/factories";
 import { modelFactoriesAtom } from "src/state/model-factories";
 
 const MAX_CHANGES_BEFORE_MAP_SYNC = 500;

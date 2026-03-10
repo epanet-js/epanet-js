@@ -2,7 +2,7 @@ import { atom } from "jotai";
 import {
   ModelFactories,
   initializeModelFactories,
-} from "src/lib/model-factory";
+} from "src/hydraulic-model/factories";
 
 export type { ModelFactories };
 

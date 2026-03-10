@@ -1,5 +1,5 @@
 import { Position } from "src/types";
-import { CustomerPointFactory } from "src/lib/model-factory";
+import { CustomerPointFactory } from "src/hydraulic-model/factories";
 import { ModelOperation } from "../model-operation";
 
 type InputData = {

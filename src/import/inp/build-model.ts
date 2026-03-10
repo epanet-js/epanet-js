@@ -7,7 +7,7 @@ import {
   CustomerPointFactory,
   ModelFactories,
   initializeModelFactories,
-} from "src/lib/model-factory";
+} from "src/hydraulic-model/factories";
 import {
   InpData,
   ItemData,

@@ -3,7 +3,7 @@ import { MAX_CUSTOMER_POINT_LABEL_LENGTH } from "src/hydraulic-model/customer-po
 import { CustomerPointsIssuesAccumulator } from "./parse-customer-points-issues";
 import { convertTo, Unit } from "src/quantity";
 import { Demand, PatternId } from "src/hydraulic-model";
-import { CustomerPointFactory } from "src/lib/model-factory";
+import { CustomerPointFactory } from "src/hydraulic-model/factories";
 
 export type ParsedCustomerPoint = {
   customerPoint: ReturnType<CustomerPointFactory["create"]>;

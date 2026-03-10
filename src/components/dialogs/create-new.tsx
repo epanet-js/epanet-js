@@ -15,7 +15,7 @@ import {
   headlossFormulas,
   initializeHydraulicModel,
 } from "src/hydraulic-model";
-import { initializeModelFactories } from "src/lib/model-factory";
+import { initializeModelFactories } from "src/hydraulic-model/factories";
 import { usePersistence } from "src/lib/persistence";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { useTranslate } from "src/hooks/use-translate";

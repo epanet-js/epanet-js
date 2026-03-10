@@ -3,7 +3,7 @@ import { IssuesAccumulator, ParserIssues } from "./issues";
 import { readInpData } from "./read-inp-data";
 import { buildModel } from "./build-model";
 import { HydraulicModel, AssetsMap } from "src/hydraulic-model";
-import { ModelFactories } from "src/lib/model-factory";
+import { ModelFactories } from "src/hydraulic-model/factories";
 import { nanoid } from "nanoid";
 import {
   defaultTiming,
