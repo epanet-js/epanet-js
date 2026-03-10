@@ -16,11 +16,7 @@ import {
 } from "src/icons";
 import Modes from "../modes";
 import { useAtomValue } from "jotai";
-import {
-  simulationAtom,
-  selectedFeaturesAtom,
-  splitsAtom,
-} from "src/state/jotai";
+import { simulationAtom, splitsAtom } from "src/state/jotai";
 import {
   saveAsShortcut,
   saveShortcut,
@@ -45,7 +41,6 @@ import {
   toggleNetworkReviewShortcut,
   useToggleNetworkReview,
 } from "src/commands/toggle-network-review";
-import { ContextActions } from "../context-actions";
 import {
   toggleSidePanelShortcut,
   useToggleSidePanel,
@@ -69,12 +64,8 @@ export const Toolbar = ({
   const { undo, redo } = useHistoryControl();
 
   const simulation = useAtomValue(simulationAtom);
-  const selectedWrappedFeatures = useAtomValue(selectedFeaturesAtom);
-
   const isMdOrLarger = useBreakpoint("md");
   const isSmOrLarger = useBreakpoint("sm");
-
-  const shouldHideContextActions = selectedWrappedFeatures.length === 1;
 
   return (
     <div
@@ -196,13 +187,6 @@ export const Toolbar = ({
         </MenuAction>
         <Divider />
         <OperationalDataDropdown />
-
-        {isMdOrLarger && !shouldHideContextActions && (
-          <>
-            <ContextActions />
-            <div className="flex-auto" />
-          </>
-        )}
       </div>
       <div className="flex flex-row items-center justify-end">
         {isSmOrLarger && <LayoutActions />}
