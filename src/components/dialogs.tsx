@@ -39,6 +39,7 @@ const UpgradeDialog = dynamic<{
 const InvalidFilesErrorDialog = dynamic<{
   modal: dialogState.InvalidFilesErrorDialogState;
   onClose: () => void;
+  isModalsOn?: boolean;
 }>(
   () =>
     import("src/components/dialogs/invalid-files-error").then(
@@ -159,6 +160,7 @@ const UnsavedChangesDialog = dynamic<{
 const AlertInpOutputDialog = dynamic<{
   onContinue: () => void;
   onClose: () => void;
+  isModalsOn?: boolean;
 }>(
   () =>
     import("src/components/dialogs/alert-inp-output").then(
@@ -172,6 +174,7 @@ const AlertInpOutputDialog = dynamic<{
 const AlertScenariosNotSavedDialog = dynamic<{
   onContinue: () => void;
   onClose: () => void;
+  isModalsOn?: boolean;
 }>(
   () =>
     import("src/components/dialogs/alert-scenarios-not-saved").then(
@@ -184,6 +187,7 @@ const AlertScenariosNotSavedDialog = dynamic<{
 
 const AlertNetworkRequiredDialog = dynamic<{
   onClose: () => void;
+  isModalsOn?: boolean;
 }>(
   () =>
     import("src/components/dialogs/alert-network-required").then(
@@ -194,7 +198,7 @@ const AlertNetworkRequiredDialog = dynamic<{
   },
 );
 
-const CheatsheetDialog = dynamic<Record<string, never>>(
+const CheatsheetDialog = dynamic<{ isModalsOn?: boolean }>(
   () =>
     import("src/components/dialogs/cheatsheet").then((r) => r.CheatsheetDialog),
   {
@@ -205,6 +209,7 @@ const CheatsheetDialog = dynamic<Record<string, never>>(
 const UnexpectedErrorDialog = dynamic<{
   modal: dialogState.UnexpectedErrorDialogState;
   onClose: () => void;
+  isModalsOn?: boolean;
 }>(
   () =>
     import("src/components/dialogs/unexpected-error").then(
@@ -243,6 +248,7 @@ const ModelBuilderIframeDialog = dynamic<{
 const EarlyAccessDialog = dynamic<{
   onContinue: () => void;
   afterSignupDialog?: string;
+  isModalsOn?: boolean;
 }>(
   () =>
     import("src/components/dialogs/early-access").then(
@@ -256,6 +262,7 @@ const EarlyAccessDialog = dynamic<{
 const ImportCustomerPointsWarningDialog = dynamic<{
   onContinue: () => void;
   onClose: () => void;
+  isModalsOn?: boolean;
 }>(
   () =>
     import("src/components/dialogs/import-customer-points-warning").then(
@@ -278,7 +285,7 @@ const SimulationProgressDialog = dynamic<{
   },
 );
 
-const ControlsDialog = dynamic(
+const ControlsDialog = dynamic<{ isModalsOn?: boolean }>(
   () =>
     import("src/components/dialogs/controls-dialog").then(
       (r) => r.ControlsDialog,
@@ -467,7 +474,13 @@ export const Dialogs = memo(function Dialogs() {
     return <ModelBuilderIframeDialog onClose={onClose} />;
   }
   if (dialog.type === "unexpectedError") {
-    return <UnexpectedErrorDialog modal={dialog} onClose={onClose} />;
+    return (
+      <UnexpectedErrorDialog
+        modal={dialog}
+        onClose={onClose}
+        isModalsOn={isModalsOn}
+      />
+    );
   }
   if (dialog.type === "welcome") {
     return <WelcomeDialog />;
@@ -479,7 +492,7 @@ export const Dialogs = memo(function Dialogs() {
     return <SimulationProgressDialog modal={dialog} />;
   }
   if (dialog.type === "controls") {
-    return <ControlsDialog />;
+    return <ControlsDialog isModalsOn={isModalsOn} />;
   }
   if (dialog.type === "patternsLibrary") {
     return (
@@ -545,30 +558,46 @@ export const Dialogs = memo(function Dialogs() {
       />
     ))
     .with({ type: "alertInpOutput" }, ({ onContinue }) => (
-      <AlertInpOutputDialog onContinue={onContinue} onClose={onClose} />
+      <AlertInpOutputDialog
+        onContinue={onContinue}
+        onClose={onClose}
+        isModalsOn={isModalsOn}
+      />
     ))
     .with({ type: "alertScenariosNotSaved" }, ({ onContinue }) => (
-      <AlertScenariosNotSavedDialog onContinue={onContinue} onClose={onClose} />
+      <AlertScenariosNotSavedDialog
+        onContinue={onContinue}
+        onClose={onClose}
+        isModalsOn={isModalsOn}
+      />
     ))
     .with({ type: "alertNetworkRequired" }, () => (
-      <AlertNetworkRequiredDialog onClose={onClose} />
+      <AlertNetworkRequiredDialog onClose={onClose} isModalsOn={isModalsOn} />
     ))
     .with({ type: "earlyAccess" }, ({ onContinue, afterSignupDialog }) => (
       <EarlyAccessDialog
         onContinue={onContinue}
         afterSignupDialog={afterSignupDialog}
+        isModalsOn={isModalsOn}
       />
     ))
     .with({ type: "importCustomerPointsWarning" }, ({ onContinue }) => (
       <ImportCustomerPointsWarningDialog
         onContinue={onContinue}
         onClose={onClose}
+        isModalsOn={isModalsOn}
       />
     ))
     .with({ type: "invalidFilesError" }, (modal) => (
-      <InvalidFilesErrorDialog modal={modal} onClose={onClose} />
+      <InvalidFilesErrorDialog
+        modal={modal}
+        onClose={onClose}
+        isModalsOn={isModalsOn}
+      />
     ))
-    .with({ type: "cheatsheet" }, () => <CheatsheetDialog />)
+    .with({ type: "cheatsheet" }, () => (
+      <CheatsheetDialog isModalsOn={isModalsOn} />
+    ))
     .with({ type: "inpIssues" }, ({ issues }) => (
       <InpIssuesDialog
         issues={issues}

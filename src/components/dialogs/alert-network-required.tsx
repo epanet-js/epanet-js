@@ -1,4 +1,8 @@
-import { DialogHeader } from "src/components/dialog";
+import {
+  DialogHeader,
+  BaseDialog,
+  SimpleDialogActionsNew,
+} from "src/components/dialog";
 import { Form, Formik } from "formik";
 import { SimpleDialogActions } from "src/components/dialog";
 import { useShowWelcome } from "src/commands/show-welcome";
@@ -7,8 +11,10 @@ import { WarningIcon } from "src/icons";
 
 export const AlertNetworkRequiredDialog = ({
   onClose,
+  isModalsOn,
 }: {
   onClose: () => void;
+  isModalsOn?: boolean;
 }) => {
   const translate = useTranslate();
   const showWelcome = useShowWelcome();
@@ -17,6 +23,27 @@ export const AlertNetworkRequiredDialog = ({
     onClose();
     showWelcome({ source: "networkRequired" });
   };
+
+  if (isModalsOn) {
+    return (
+      <BaseDialog
+        title={translate("alertNetworkRequired")}
+        isOpen={true}
+        onClose={onClose}
+        footer={
+          <SimpleDialogActionsNew
+            action={translate("chooseANetwork")}
+            onAction={handleChooseNetwork}
+            secondary={{ action: translate("dialog.cancel"), onClick: onClose }}
+          />
+        }
+      >
+        <div className="p-4 text-sm text-gray-700">
+          <p>{translate("alertNetworkRequiredDetail")}</p>
+        </div>
+      </BaseDialog>
+    );
+  }
 
   return (
     <Formik onSubmit={handleChooseNetwork} initialValues={{}}>
