@@ -1,4 +1,10 @@
-import { DialogContainer, DialogHeader, useDialogState } from "../dialog";
+import {
+  DialogContainer,
+  DialogHeader,
+  useDialogState,
+  BaseDialog,
+  SimpleDialogActionsNew,
+} from "../dialog";
 import { Form, Formik } from "formik";
 import mapboxgl from "mapbox-gl";
 import { SimpleDialogActions } from "src/components/dialog";
@@ -72,7 +78,7 @@ type SubmitProps = {
   projection: Projection;
 };
 
-export const CreateNew = () => {
+export const CreateNew = ({ isModalsOn }: { isModalsOn?: boolean }) => {
   const translate = useTranslate();
   const rep = usePersistence();
   const transactImport = rep.useTransactImport();
@@ -150,6 +156,96 @@ export const CreateNew = () => {
       closeDialog,
     ],
   );
+
+  if (isModalsOn) {
+    return (
+      <Formik
+        onSubmit={handleSubmit}
+        initialValues={
+          {
+            unitsSpec: "LPS",
+            headlossFormula: "H-W",
+            location: undefined,
+            projection: "wgs84",
+          } as SubmitProps
+        }
+      >
+        {({ values, setFieldValue, submitForm, isSubmitting }) => (
+          <BaseDialog
+            title={translate("newProject")}
+            size="sm"
+            isOpen={true}
+            onClose={handleCancel}
+            footer={
+              <SimpleDialogActionsNew
+                action={translate("create")}
+                onAction={submitForm}
+                isSubmitting={isSubmitting}
+                secondary={{
+                  action: translate("dialog.cancel"),
+                  onClick: handleCancel,
+                }}
+              />
+            }
+          >
+            <Form>
+              <div className="p-4 space-y-1">
+                <ProjectionSelector
+                  selected={values.projection}
+                  onChange={(projection) => {
+                    void setFieldValue("projection", projection);
+                    if (projection === "xy-grid") {
+                      setGridHidden(false);
+                      setGridPreview(true);
+                      if (map) {
+                        map.map.jumpTo({
+                          center: XY_GRID_CENTER,
+                          zoom: XY_GRID_ZOOM,
+                        });
+                      }
+                    } else {
+                      setGridPreview(false);
+                      if (isCurrentProjectUnprojected) {
+                        setGridHidden(true);
+                      }
+                      if (map) {
+                        if (values.location?.bbox) {
+                          map.map.fitBounds(values.location.bbox, {
+                            padding: 50,
+                            animate: false,
+                          });
+                        } else if (originalMapStateRef.current) {
+                          map.setBounds(originalMapStateRef.current, {
+                            animate: false,
+                          });
+                        }
+                      }
+                    }
+                  }}
+                />
+                <LocationSearchSelector
+                  selected={values.location}
+                  onChange={(location) => setFieldValue("location", location)}
+                  disabled={values.projection === "xy-grid"}
+                />
+                <hr className="my-2" />
+                <UnitsSystemSelector
+                  selected={values.unitsSpec}
+                  onChange={(specId) => setFieldValue("unitsSpec", specId)}
+                />
+                <HeadlossFormulaSelector
+                  selected={values.headlossFormula}
+                  onChange={(headlossFormula) =>
+                    setFieldValue("headlossFormula", headlossFormula)
+                  }
+                />
+              </div>
+            </Form>
+          </BaseDialog>
+        )}
+      </Formik>
+    );
+  }
 
   return (
     <DialogContainer onClose={handleCancel}>

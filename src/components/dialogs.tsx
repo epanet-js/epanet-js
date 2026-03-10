@@ -17,7 +17,7 @@ import { LoadingDialog } from "./dialog";
 import { WelcomeDialog } from "./dialogs/welcome";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
-const SimulationSettingsDialog = dynamic(
+const SimulationSettingsDialog = dynamic<{ isModalsOn?: boolean }>(
   () =>
     import("src/components/dialogs/simulation-settings").then(
       (r) => r.SimulationSettingsDialog,
@@ -29,6 +29,7 @@ const SimulationSettingsDialog = dynamic(
 
 const UpgradeDialog = dynamic<{
   onClose: () => void;
+  isModalsOn?: boolean;
 }>(
   () => import("src/components/dialogs/upgrade").then((r) => r.UpgradeDialog),
   {
@@ -78,6 +79,7 @@ const GeocodingNotSupportedDialog = dynamic<{
 
 const InpProjectionChoiceDialog = dynamic<{
   onImportNonProjected: () => void;
+  isModalsOn?: boolean;
 }>(
   () =>
     import("src/components/dialogs/inp-projection-choice").then(
@@ -102,7 +104,7 @@ const MissingCoordinatesDialog = dynamic<{
   },
 );
 
-const CreateNewDialog = dynamic(
+const CreateNewDialog = dynamic<{ isModalsOn?: boolean }>(
   () => import("src/components/dialogs/create-new").then((r) => r.CreateNew),
   { loading: () => <LoadingDialog /> },
 );
@@ -235,6 +237,7 @@ const ImportCustomerPointsWizard = dynamic<{
 
 const ModelBuilderIframeDialog = dynamic<{
   onClose: () => void;
+  isModalsOn?: boolean;
 }>(
   () =>
     import("src/components/dialogs/model-builder-iframe").then(
@@ -303,6 +306,7 @@ const PatternsDialog = dynamic<{
     | "pumpSpeed"
     | "qualitySourceStrength"
     | "energyPrice";
+  isModalsOn?: boolean;
 }>(
   () => import("src/components/dialogs/patterns").then((r) => r.PatternsDialog),
   {
@@ -313,6 +317,7 @@ const PatternsDialog = dynamic<{
 const PumpLibraryDialog = dynamic<{
   initialCurveId?: number;
   initialSection?: "pump" | "efficiency";
+  isModalsOn?: boolean;
 }>(
   () =>
     import("src/components/dialogs/pump-library").then(
@@ -368,6 +373,7 @@ const RenameScenarioDialog = dynamic<{
 
 const ScenariosPaywallDialog = dynamic<{
   onClose: () => void;
+  isModalsOn?: boolean;
 }>(
   () =>
     import("src/components/dialogs/scenarios-paywall").then(
@@ -453,13 +459,13 @@ export const Dialogs = memo(function Dialogs() {
   }
 
   if (dialog.type === "createNew") {
-    return <CreateNewDialog />;
+    return <CreateNewDialog isModalsOn={isModalsOn} />;
   }
   if (dialog.type === "simulationReport") {
     return <SimulationReportDialog />;
   }
   if (dialog.type === "simulationSettings") {
-    return <SimulationSettingsDialog />;
+    return <SimulationSettingsDialog isModalsOn={isModalsOn} />;
   }
 
   // Early return ONLY if the modal feature flag is toggled ON
@@ -471,7 +477,9 @@ export const Dialogs = memo(function Dialogs() {
     return <ImportCustomerPointsWizard isOpen={true} onClose={onClose} />;
   }
   if (dialog.type === "modelBuilderIframe") {
-    return <ModelBuilderIframeDialog onClose={onClose} />;
+    return (
+      <ModelBuilderIframeDialog onClose={onClose} isModalsOn={isModalsOn} />
+    );
   }
   if (dialog.type === "unexpectedError") {
     return (
@@ -499,6 +507,7 @@ export const Dialogs = memo(function Dialogs() {
       <PatternsDialog
         initialPatternId={dialog.initialPatternId}
         initialSection={dialog.initialSection}
+        isModalsOn={isModalsOn}
       />
     );
   }
@@ -507,6 +516,7 @@ export const Dialogs = memo(function Dialogs() {
       <PumpLibraryDialog
         initialCurveId={dialog.initialCurveId}
         initialSection={dialog.initialSection}
+        isModalsOn={isModalsOn}
       />
     );
   }
@@ -520,11 +530,11 @@ export const Dialogs = memo(function Dialogs() {
   }
 
   if (dialog.type === "upgrade") {
-    return <UpgradeDialog onClose={onClose} />;
+    return <UpgradeDialog onClose={onClose} isModalsOn={isModalsOn} />;
   }
 
   if (dialog.type === "scenariosPaywall") {
-    return <ScenariosPaywallDialog onClose={onClose} />;
+    return <ScenariosPaywallDialog onClose={onClose} isModalsOn={isModalsOn} />;
   }
 
   if (dialog.type === "activatingTrial") {
@@ -545,6 +555,7 @@ export const Dialogs = memo(function Dialogs() {
     return (
       <InpProjectionChoiceDialog
         onImportNonProjected={dialog.onImportNonProjected}
+        isModalsOn={isModalsOn}
       />
     );
   }

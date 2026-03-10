@@ -256,7 +256,7 @@ export const BaseDialog = ({
             <DefaultErrorBoundary>
               <div className="modal-container flex flex-col flex-nowrap flex-1 min-h-0">
                 <DialogHeaderNew title={title} badge={badge} />
-                <div className="modal-content flex-1 overflow-auto min-h-0">
+                <div className="modal-content flex flex-col flex-1 overflow-auto min-h-0">
                   {children}
                 </div>
                 {footer && <DialogFooter>{footer}</DialogFooter>}

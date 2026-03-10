@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { DialogContainer, DialogHeader } from "../dialog";
+import { BaseDialog, DialogContainer, DialogHeader } from "../dialog";
 import { useTranslate } from "src/hooks/use-translate";
 import { Loading } from "../elements";
 import { EarlyAccessBadge } from "../early-access-badge";
@@ -100,8 +100,10 @@ const handleOpenExternalLink = (message: OpenExternalLinkMessage) => {
 
 export const ModelBuilderIframeDialog = ({
   onClose: _onClose,
+  isModalsOn,
 }: {
   onClose: () => void;
+  isModalsOn?: boolean;
 }) => {
   const translate = useTranslate();
   const [isLoading, setIsLoading] = useState(true);
@@ -148,6 +150,35 @@ export const ModelBuilderIframeDialog = ({
       window.removeEventListener("message", handleMessage);
     };
   }, [importInp, checkUnsavedChanges, userTracking, toggleNetworkReview]);
+
+  if (isModalsOn) {
+    return (
+      <BaseDialog
+        title={translate("importFromGIS")}
+        size="xl"
+        height="xl"
+        isOpen={true}
+        onClose={_onClose}
+        badge={<EarlyAccessBadge />}
+      >
+        <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+          {isLoading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-white dark:bg-gray-900 z-10">
+              <Loading />
+            </div>
+          )}
+          <iframe
+            src={modelBuilderUrl}
+            className="w-full flex-1 border-0 rounded"
+            onLoad={() => setIsLoading(false)}
+            sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-downloads"
+            title={translate("importFromGIS")}
+          />
+        </div>
+      </BaseDialog>
+    );
+  }
+
   return (
     <DialogContainer size={isMdOrLarger ? "xl" : "fullscreen"}>
       <DialogHeader

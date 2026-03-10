@@ -1,6 +1,11 @@
 import { useSetAtom } from "jotai";
 import { dialogAtom } from "src/state/jotai";
-import { DialogContainer, DialogHeader } from "../dialog";
+import {
+  BaseDialog,
+  DialogContainer,
+  DialogHeader,
+  useDialogState,
+} from "../dialog";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useTranslate } from "src/hooks/use-translate";
 import NetworkUnprojectedIllustration from "./network-projection/network-unprojected";
@@ -8,8 +13,10 @@ import NetworkProjectedIllustration from "./network-projection/network-projected
 
 export const InpProjectionChoiceDialog = ({
   onImportNonProjected,
+  isModalsOn,
 }: {
   onImportNonProjected: () => void;
+  isModalsOn?: boolean;
 }) => {
   const setDialogState = useSetAtom(dialogAtom);
   const userTracking = useUserTracking();
@@ -27,6 +34,63 @@ export const InpProjectionChoiceDialog = ({
     userTracking.capture({ name: "inpProjectionChoice.nonProjected" });
     onImportNonProjected();
   };
+
+  const { closeDialog } = useDialogState();
+
+  if (isModalsOn) {
+    return (
+      <BaseDialog
+        title={translate("inpProjectionChoice.title")}
+        size="sm"
+        isOpen={true}
+        onClose={closeDialog}
+      >
+        <div className="p-4">
+          <p className="text-sm text-gray-700 dark:text-gray-300 pb-4">
+            {translate("inpProjectionChoice.description")}
+          </p>
+
+          <div className="grid grid-cols-2 gap-4">
+            <button
+              type="button"
+              onClick={handleNonProjected}
+              className="flex flex-col text-left cursor-pointer rounded-lg border border-gray-200 bg-white hover:border-purple-500 hover:bg-purple-50 dark:bg-transparent dark:border-gray-700 dark:hover:border-purple-500 dark:hover:bg-purple-950 transition-colors overflow-hidden"
+            >
+              <div className="w-full border-b border-gray-200">
+                <NetworkUnprojectedIllustration />
+              </div>
+              <div className="p-3 flex-grow">
+                <p className="font-bold text-gray-900 dark:text-gray-100">
+                  {translate("inpProjectionChoice.nonProjectedTitle")}
+                </p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                  {translate("inpProjectionChoice.nonProjectedDescription")}
+                </p>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleProjected}
+              className="flex flex-col text-left cursor-pointer rounded-lg border border-gray-200 bg-white hover:border-purple-500 hover:bg-purple-50 dark:bg-transparent dark:border-gray-700 dark:hover:border-purple-500 dark:hover:bg-purple-950 transition-colors overflow-hidden"
+            >
+              <div className="w-full border-b border-gray-200">
+                <NetworkProjectedIllustration />
+              </div>
+              <div className="p-3 flex-grow">
+                <p className="font-bold text-gray-900 dark:text-gray-100">
+                  {translate("inpProjectionChoice.projectedTitle")}
+                </p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                  {translate("inpProjectionChoice.projectedDescription")}
+                </p>
+              </div>
+            </button>
+          </div>
+        </div>
+      </BaseDialog>
+    );
+  }
 
   return (
     <DialogContainer size="sm">

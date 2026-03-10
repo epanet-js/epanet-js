@@ -1,5 +1,6 @@
 import {
   AckDialogAction,
+  BaseDialog,
   DialogContainer,
   DialogHeader,
   LoadingDialog,
@@ -56,7 +57,7 @@ const prices = {
   },
 };
 
-export const UpgradeDialog = () => {
+export const UpgradeDialog = ({ isModalsOn }: { isModalsOn?: boolean }) => {
   const { isLoaded: isAuthLoaded, isSignedIn, user } = useAuth();
   const { isLoading: isLoadingCheckout, startCheckout } = useCheckout();
 
@@ -84,7 +85,7 @@ export const UpgradeDialog = () => {
     }
   }
 
-  return <PlansDialog />;
+  return <PlansDialog isModalsOn={isModalsOn} />;
 };
 
 const ChangesFromSupportDialog = () => {
@@ -105,7 +106,10 @@ const ChangesFromSupportDialog = () => {
   );
 };
 
-const PlansDialog = () => {
+const PlansDialog: React.FC<{ isModalsOn?: boolean; onClose?: () => void }> = ({
+  isModalsOn = false,
+  onClose,
+}) => {
   const translate = useTranslate();
   const [usage, setUsage] = useState<UsageOption>("commercial");
   const [paymentType, setPaymentType] = useState<PaymentType>("yearly");
@@ -135,6 +139,71 @@ const PlansDialog = () => {
       ? setPaymentType("monthly")
       : setPaymentType("yearly");
   };
+
+  const { closeDialog } = useDialogState();
+  const handleClose = onClose || closeDialog;
+
+  if (isModalsOn) {
+    return (
+      <BaseDialog
+        title={translate("upgradeYourAccount")}
+        size="lg"
+        isOpen={true}
+        onClose={handleClose}
+      >
+        <div className="p-4">
+          <div className="flex gap-4 flex-col flex-wrap md:flex-row items-start md:items-center justify-between pb-4">
+            <div className="flex items-center gap-2">
+              <div className="text-sm text-gray-700 dark:text-gray-300">
+                {translate("for")}:
+              </div>
+              <Selector
+                options={usageOptions}
+                selected={usage}
+                onChange={(value) => handleUsageChange(value as UsageOption)}
+                ariaLabel={"usage"}
+              />
+              {usage === "commercial" && !hasSeenHint && <NonCommercialHint />}
+              {(usage !== "commercial" || hasSeenHint) && (
+                <div className="h-[48px]" />
+              )}
+            </div>
+            <div
+              className={`flex items-center gap-2 text-gray-700 ${usage === "non-commercial" ? "opacity-25" : ""}`}
+            >
+              <div className="text-sm ">{translate("monthly")}</div>
+              <StyledSwitch
+                checked={paymentType === "yearly"}
+                disabled={usage === "non-commercial"}
+                onCheckedChange={handlePaymentToggle}
+              >
+                <StyledThumb />
+              </StyledSwitch>
+              <div className="text-sm ">
+                {translate("yearlyWithDiscount", "16")}
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mx-auto">
+            <FreePlan paymentType={paymentType} />
+            {usage === "commercial" && (
+              <>
+                <ProPlan paymentType={paymentType} />
+                <TeamsPlan paymentType={paymentType} />
+              </>
+            )}
+            {usage === "non-commercial" && (
+              <>
+                <PersonalPlan paymentType={paymentType} />
+                <EducationPlan paymentType={paymentType} />
+              </>
+            )}
+          </div>
+        </div>
+      </BaseDialog>
+    );
+  }
 
   return (
     <DialogContainer size="lg">

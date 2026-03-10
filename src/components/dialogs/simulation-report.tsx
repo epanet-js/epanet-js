@@ -138,7 +138,7 @@ export const SimulationReportDialog = () => {
           />
         }
       >
-        <div className="flex-1 min-h-0 p-4 text-sm bg-gray-100 text-gray-700 font-mono leading-loose">
+        <div className="flex-1 p-4 text-sm bg-gray-100 text-gray-700 font-mono leading-loose">
           {processedReport.map(renderRowWithSlots)}
         </div>
       </BaseDialog>
