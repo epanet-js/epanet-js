@@ -4,21 +4,17 @@ import type { FileSystemHandle } from "browser-fs-access";
 import type { SetOptional } from "type-fest";
 import {
   FolderMap,
-  IFolder,
-  IPresence,
-  IWrappedFeature,
   LayerConfigMap,
   SYMBOLIZATION_NONE,
   Position,
 } from "src/types";
-import { Mode, MODE_INFO, modeAtom, CIRCLE_TYPE } from "src/state/mode";
+import { Mode, MODE_INFO, modeAtom } from "src/state/mode";
 import type { ExportOptions } from "src/types/export";
 import { focusAtom } from "jotai-optics";
 import { USelection } from "src/selection/selection";
 import type { Sel } from "src/selection/types";
 import { atomWithMachine } from "jotai-xstate";
 import { createMachine } from "xstate";
-import { QItemAddable } from "src/lib/geocode";
 import { PersistenceMetadataMemory } from "src/lib/persistence/ipersistence";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import { ScaleUnit } from "src/lib/constants";
@@ -59,20 +55,6 @@ export type FileInfo = {
   isDemoNetwork: boolean;
   options: ExportOptions;
 };
-
-type WalkthroughState =
-  | {
-      type: "idle";
-    }
-  | {
-      type: "active";
-      index: number;
-    };
-
-export const walkthroughAtom = atom<WalkthroughState>({
-  type: "active",
-  index: 0,
-});
 
 export type PreviewProperty = PersistenceMetadataMemory["label"];
 
@@ -169,24 +151,11 @@ export const hasUnsavedChangesAtom = atom<boolean>((get) => {
   return momentLog.getDeltas().length > 0;
 });
 
-/**
- * User presences, keyed by user id
- */
-export const presencesAtom = atom<{
-  presences: Map<number, IPresence>;
-}>({
-  get presences() {
-    return new Map();
-  },
-});
-
 export const memoryMetaAtom = atom<Omit<PersistenceMetadataMemory, "type">>({
   symbology: SYMBOLIZATION_NONE,
   label: null,
   layer: null,
 });
-
-export const searchHistoryAtom = atom<string[]>([]);
 
 // ----------------------------------------------------------------------------
 /**
@@ -238,41 +207,12 @@ export const currentZoomAtom = atom<number>(DEFAULT_ZOOM);
 /**
  * Other UI state
  */
-export const listModeAtom = atomWithStorage<"grid" | "list">(
-  "listMode",
-  "grid",
-);
-export const showAllAtom = atomWithStorage("showAll", true);
-export const panelIdOpen = atomWithStorage("panelIdOpen", false);
-export const panelRawOpen = atomWithStorage("panelRawOpen", false);
-export const panelExportOpen = atomWithStorage("panelExportOpen", false);
-export const panelNullOpen = atomWithStorage("panelNullOpen", true);
-export const panelCircleOpen = atomWithStorage("panelCircleOpen", true);
-export const panelStyleOpen = atomWithStorage("panelStyleOpen", false);
-export const panelSymbologyExportOpen = atomWithStorage(
-  "panelSymbologyExportOpen",
-  true,
-);
-export type PanelAtom = typeof panelIdOpen;
-
 export const hideHintsAtom = atomWithStorage<string[]>("hideHints", []);
 
 export const scaleUnitAtom = atomWithStorage<ScaleUnit>(
   "scaleUnit",
   "imperial",
 );
-
-export const showFolderTreeAtom = atomWithStorage<"hide" | "show">(
-  "showFolderTree",
-  "hide",
-);
-
-export const addMetadataWithGeocoderAtom = atomWithStorage(
-  "addMetadataWithGeocoder",
-  false,
-);
-
-export const followPresenceAtom = atom<IPresence | null>(null);
 
 // ----------------------------------------------------------------------------
 /**
@@ -286,11 +226,6 @@ export { dialogAtom as dialogAtom } from "src/state/dialog";
 export type PartialLayer = SetOptional<MapboxLayer, "createdById">;
 
 export const momentLogAtom = atom<MomentLog>(new MomentLog());
-
-export interface EphemeralDragState {
-  type: "drag";
-  features: IWrappedFeature[];
-}
 
 export type CursorValue = React.CSSProperties["cursor"];
 export const cursorStyleAtom = atom<CursorValue>("default");
@@ -330,8 +265,6 @@ export const ephemeralStateAtom = atom<EphemeralEditingState>({ type: "none" });
 
 export { Mode, MODE_INFO, modeAtom };
 
-export const lastSearchResultAtom = atom<QItemAddable | null>(null);
-
 /**
  * File info
  */
@@ -362,85 +295,12 @@ const fileInfoMachine = createMachine({
 
 export const fileInfoMachineAtom = atomWithMachine(() => fileInfoMachine);
 
-/**
- * Time in milliseconds to wait for a sync operation
- * to finish before showing a spinner UI.
- */
-const SPINNER_WAIT = 500;
-
-/**
- * A debounced spinner machine. When Replicache is syncing,
- * the SYNC event tells this to show a spinner in SPINNER_WAIT
- * milliseconds. When a sync completes, the UNSYNC command
- * returns to idle state and cancels the timeout if
- * necessary.
- */
-const syncingMachine = createMachine({
-  schema: {
-    context: {} as { elapsed: number },
-    events: {} as { type: "SYNC" } | { type: "UNSYNC" },
-  },
-  predictableActionArguments: true,
-  id: "syncingMachine",
-  initial: "idle",
-  on: {
-    UNSYNC: "idle",
-  },
-  states: {
-    idle: {
-      on: {
-        SYNC: "syncing",
-      },
-    },
-    syncing: {
-      after: {
-        [SPINNER_WAIT]: {
-          target: "spinner",
-        },
-      },
-    },
-    spinner: {},
-  },
-});
-
-export const syncingMachineAtom = atomWithMachine(() => syncingMachine);
-
 export enum TabOption {
   Asset = "Asset",
   Map = "Map",
 }
 
 export const tabAtom = atom<TabOption>(TabOption.Asset);
-
-export type VirtualColumns = string[];
-export const virtualColumnsAtom = atom<VirtualColumns>([]);
-
-export interface FilterOptions {
-  column: string | null;
-  search: string | null;
-  isCaseSensitive: boolean;
-  geometryType: string | null;
-  folderId: IFolder["id"] | null;
-  exact: boolean;
-}
-
-export const initialFilterValues: FilterOptions = {
-  column: "",
-  search: "",
-  isCaseSensitive: false,
-  geometryType: null,
-  folderId: null,
-  exact: false,
-};
-
-export const tableFilterAtom = atom<FilterOptions>(initialFilterValues);
-
-export const seenPlayModal = atomWithStorage<boolean>("seenPlayModal", false);
-
-export const circleTypeAtom = atomWithStorage<CIRCLE_TYPE>(
-  "circleType",
-  CIRCLE_TYPE.MERCATOR,
-);
 
 export type MultiAssetPanelCollapse = {
   junction: boolean;

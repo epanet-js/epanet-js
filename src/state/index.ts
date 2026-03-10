@@ -1,1 +1,1 @@
-export type { ModeOptions, ModeWithOptions } from "src/state/mode";
+export type { ModeWithOptions } from "src/state/mode";

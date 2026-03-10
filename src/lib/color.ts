@@ -1,5 +1,3 @@
-import randomColor from "randomcolor";
-import type { IPresence } from "src/types";
 import * as d3 from "d3-color";
 import chroma from "chroma-js";
 
@@ -17,10 +15,6 @@ export function hexToArray(color: string, alpha?: number): RGBA {
   const rgb = c.rgb();
   const opacity = alpha === undefined ? rgb.opacity : alpha;
   return [rgb.r, rgb.g, rgb.b, Math.floor(opacity * 255)];
-}
-
-export function colorFromPresence(presence: IPresence) {
-  return randomColor({ seed: presence.userId * 10, luminosity: "dark" });
 }
 
 /**

@@ -2,7 +2,6 @@ import { modeAtom, Mode, MODE_INFO } from "src/state/jotai";
 import MenuAction from "src/components/menu-action";
 import { memo } from "react";
 import { useAtomValue } from "jotai";
-import { IWrappedFeature } from "src/types";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useDrawingMode } from "src/commands/set-drawing-mode";
 import { useTranslate } from "src/hooks/use-translate";
@@ -61,10 +60,8 @@ const CUSTOMER_POINT_MODE = {
 } as const;
 
 export default memo(function Modes({
-  replaceGeometryForId,
   disabled = false,
 }: {
-  replaceGeometryForId: IWrappedFeature["id"] | null;
   disabled?: boolean;
 }) {
   const { mode: currentMode } = useAtomValue(modeAtom);
@@ -78,25 +75,23 @@ export default memo(function Modes({
 
   return (
     <div className="flex items-center justify-start" role="radiogroup">
-      {!replaceGeometryForId && (
-        <MenuAction
-          role="radio"
-          key={Mode.NONE}
-          selected={currentMode === Mode.NONE}
-          readOnlyHotkey={"1"}
-          label={translate(MODE_INFO[Mode.NONE].name)}
-          onClick={() => {
-            userTracking.capture({
-              name: "drawingMode.enabled",
-              source: "toolbar",
-              type: MODE_INFO[Mode.NONE].name,
-            });
-            void setDrawingMode(Mode.NONE);
-          }}
-        >
-          <MouseCursorDefaultIcon />
-        </MenuAction>
-      )}
+      <MenuAction
+        role="radio"
+        key={Mode.NONE}
+        selected={currentMode === Mode.NONE}
+        readOnlyHotkey={"1"}
+        label={translate(MODE_INFO[Mode.NONE].name)}
+        onClick={() => {
+          userTracking.capture({
+            name: "drawingMode.enabled",
+            source: "toolbar",
+            type: MODE_INFO[Mode.NONE].name,
+          });
+          void setDrawingMode(Mode.NONE);
+        }}
+      >
+        <MouseCursorDefaultIcon />
+      </MenuAction>
       <SelectionTool />
       <TraceTool />
       {drawingModes.map(({ mode, hotkey, Icon }) => {

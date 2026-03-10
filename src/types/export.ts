@@ -9,9 +9,3 @@ export interface ConvertResult {
   features: any[];
   notes?: string[];
 }
-
-export interface GeoJSONResult {
-  type: "geojson";
-  notes: string[];
-  geojson?: import("src/types").FeatureCollection;
-}

@@ -95,29 +95,6 @@ export type LayerConfigMap = Map<string, ILayerConfig> & { version?: number };
 
 export type IWrappedFeatureInput = SetOptional<IWrappedFeature, "at">;
 
-export const Presence = z.object({
-  bearing: z.number(),
-  pitch: z.number(),
-  minx: z.number(),
-  miny: z.number(),
-  maxx: z.number(),
-  maxy: z.number(),
-  userName: z.string(),
-  userId: z.number(),
-  updatedAt: z.string(),
-  cursorLatitude: z.number(),
-  cursorLongitude: z.number(),
-  wrappedFeatureCollectionId: z.string().length(21),
-  replicacheClientId: z.string(),
-});
-
-export type IPresence = z.infer<typeof Presence>;
-
-export type IPresenceMinus = Omit<
-  IPresence,
-  "replicacheClientId" | "wrappedFeatureCollectionId"
->;
-
 export const Folder = z.object({
   id: z.string(),
   at: z.string(),

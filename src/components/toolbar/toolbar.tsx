@@ -147,7 +147,7 @@ export const Toolbar = ({
         )}
         {isMdOrLarger && (
           <>
-            <Modes replaceGeometryForId={null} disabled={readonly} />
+            <Modes disabled={readonly} />
             <Divider />
           </>
         )}
