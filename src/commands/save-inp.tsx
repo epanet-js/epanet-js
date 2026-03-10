@@ -1,11 +1,9 @@
-import {
-  dataAtom,
-  dialogAtom,
-  fileInfoAtom,
-  isDemoNetworkAtom,
-  simulationSettingsAtom,
-  stagingModelAtom,
-} from "src/state/jotai";
+import { dataAtom } from "src/state/data";
+import { dialogAtom } from "src/state/dialog";
+import { fileInfoAtom } from "src/state/file-system";
+import { stagingModelAtom } from "src/state/hydraulic-model";
+import { isDemoNetworkAtom } from "src/state/file-system";
+import { simulationSettingsAtom } from "src/state/simulation-settings";
 import { baseModelAtom } from "src/state/hydraulic-model";
 import { ExportOptions } from "src/types/export";
 import { useAtomCallback } from "jotai/utils";

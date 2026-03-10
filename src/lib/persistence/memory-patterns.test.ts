@@ -4,7 +4,7 @@ import { Persistence } from "./persistence";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { setInitialState } from "src/__helpers__/state";
 import { Patterns } from "src/hydraulic-model";
-import { stagingModelAtom } from "src/state/jotai";
+import { stagingModelAtom } from "src/state/hydraulic-model";
 
 const makeDemandPatterns = (
   patterns: { id: number; label: string; multipliers?: number[] }[],

@@ -5,7 +5,7 @@ import { Form, Formik, useFormikContext } from "formik";
 
 import { DialogContainer, DialogHeader, useDialogState } from "../dialog";
 import { useTranslate } from "src/hooks/use-translate";
-import { stagingModelAtom } from "src/state/jotai";
+import { stagingModelAtom } from "src/state/hydraulic-model";
 import { ControlsIcon } from "src/icons";
 import { SimpleDialogActions } from "src/components/dialog";
 import { useIsSnapshotLocked } from "src/hooks/use-is-snapshot-locked";

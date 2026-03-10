@@ -1,5 +1,5 @@
 import { useAtomValue } from "jotai";
-import { selectedFeaturesAtom, selectionAtom } from "src/state/jotai";
+import { selectedFeaturesAtom, selectionAtom } from "src/state/selection";
 import React from "react";
 import { GeometryActions } from "./context-actions/geometry-actions";
 import { CustomerPointActions } from "./context-actions/customer-point-actions";

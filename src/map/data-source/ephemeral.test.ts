@@ -1,5 +1,5 @@
 import { buildEphemeralStateSource } from "./ephemeral";
-import { EphemeralEditingState } from "src/state/jotai";
+import { EphemeralEditingState } from "src/state/drawing";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { LinkAsset, NodeAsset, AssetsMap } from "src/hydraulic-model";
 import { EphemeralMoveAssets } from "src/map/mode-handlers/none/move-state";

@@ -2,14 +2,13 @@ import type { HandlerContext, Position } from "src/types";
 import type { MapEngine } from "src/map";
 import noop from "lodash/noop";
 import {
-  modeAtom,
-  Mode,
   ephemeralStateAtom,
   EphemeralEditingState,
-  selectionAtom,
   pipeDrawingDefaultsAtom,
-  cursorStyleAtom,
-} from "src/state/jotai";
+} from "src/state/drawing";
+import { cursorStyleAtom } from "src/state/map";
+import { modeAtom, Mode } from "src/state/mode";
+import { selectionAtom } from "src/state/selection";
 import { useSetAtom, useAtom, useAtomValue } from "jotai";
 import { getMapCoord } from "../utils";
 import { useRef } from "react";

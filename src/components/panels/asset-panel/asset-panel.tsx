@@ -32,11 +32,9 @@ import { Quantities } from "src/model-metadata/quantities-spec";
 import { useTranslate } from "src/hooks/use-translate";
 import { usePersistence } from "src/lib/persistence";
 import { useUserTracking } from "src/infra/user-tracking";
-import {
-  stagingModelAtom,
-  simulationSettingsAtom,
-  pumpEnergySectionsCollapseAtom,
-} from "src/state/jotai";
+import { stagingModelAtom } from "src/state/hydraulic-model";
+import { pumpEnergySectionsCollapseAtom } from "src/state/layout";
+import { simulationSettingsAtom } from "src/state/simulation-settings";
 import {
   changeProperty,
   changeProperties,

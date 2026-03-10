@@ -1,6 +1,7 @@
 import { useCallback, useContext } from "react";
 import { useSetAtom } from "jotai";
-import { dialogAtom, fileInfoAtom } from "src/state/jotai";
+import { dialogAtom } from "src/state/dialog";
+import { fileInfoAtom } from "src/state/file-system";
 import { captureError } from "src/infra/error-tracking";
 import { FileWithHandle } from "browser-fs-access";
 import { useTranslate } from "src/hooks/use-translate";

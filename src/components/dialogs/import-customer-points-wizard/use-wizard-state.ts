@@ -5,7 +5,7 @@ import {
   CustomerPoint,
   getDefaultAllocationRules,
 } from "src/hydraulic-model/customer-points";
-import { stagingModelAtom } from "src/state/jotai";
+import { stagingModelAtom } from "src/state/hydraulic-model";
 import { UnitsSpec } from "src/model-metadata/quantities-spec";
 import {
   WizardState,

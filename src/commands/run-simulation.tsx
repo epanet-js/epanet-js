@@ -2,13 +2,10 @@ import { useSetAtom } from "jotai";
 import { useAtomCallback } from "jotai/utils";
 import { useCallback } from "react";
 import { buildInp } from "src/simulation/build-inp";
-import {
-  dialogAtom,
-  simulationAtom,
-  simulationResultsAtom,
-  simulationSettingsAtom,
-  stagingModelAtom,
-} from "src/state/jotai";
+import { dialogAtom } from "src/state/dialog";
+import { stagingModelAtom } from "src/state/hydraulic-model";
+import { simulationAtom, simulationResultsAtom } from "src/state/simulation";
+import { simulationSettingsAtom } from "src/state/simulation-settings";
 import {
   ProgressCallback,
   runSimulation as runSimulationWorker,

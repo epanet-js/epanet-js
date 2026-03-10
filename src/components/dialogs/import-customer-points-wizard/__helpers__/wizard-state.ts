@@ -1,5 +1,5 @@
 import { act } from "@testing-library/react";
-import { Store } from "src/state/jotai";
+import { Store } from "src/state";
 import { wizardStateAtom } from "../use-wizard-state";
 import { WizardState, ParsedDataSummary } from "../types";
 import { buildCustomerPoint } from "src/__helpers__/hydraulic-model-builder";

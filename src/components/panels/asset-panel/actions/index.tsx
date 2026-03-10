@@ -1,5 +1,5 @@
 import { useAtomValue } from "jotai";
-import { selectedFeaturesAtom } from "src/state/jotai";
+import { selectedFeaturesAtom } from "src/state/selection";
 import { useIsSnapshotLocked } from "src/hooks/use-is-snapshot-locked";
 import { LinkActions } from "./link-actions";
 import { NodeActions } from "./node-actions";

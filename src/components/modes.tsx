@@ -1,4 +1,4 @@
-import { modeAtom, Mode, MODE_INFO } from "src/state/jotai";
+import { modeAtom, Mode, MODE_INFO } from "src/state/mode";
 import MenuAction from "src/components/menu-action";
 import { memo } from "react";
 import { useAtomValue } from "jotai";

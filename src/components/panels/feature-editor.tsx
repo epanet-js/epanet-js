@@ -1,7 +1,8 @@
 import { useAtomValue } from "jotai";
 import React from "react";
 import { NothingSelected } from "src/components/nothing-selected";
-import { dataAtom, selectedFeaturesAtom, selectionAtom } from "src/state/jotai";
+import { dataAtom } from "src/state/data";
+import { selectedFeaturesAtom, selectionAtom } from "src/state/selection";
 import { MultiAssetPanel } from "./multi-asset-panel";
 import { AssetPanel } from "./asset-panel";
 import { CustomerPointPanel } from "./customer-point-panel";

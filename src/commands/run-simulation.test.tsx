@@ -2,10 +2,10 @@ import { screen, render, waitFor } from "@testing-library/react";
 import { CommandContainer } from "./__helpers__/command-container";
 import {
   SimulationFinished,
-  Store,
   simulationAtom,
   simulationResultsAtom,
-} from "src/state/jotai";
+} from "src/state/simulation";
+import { Store } from "src/state";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { setInitialState } from "src/__helpers__/state";
 import userEvent from "@testing-library/user-event";

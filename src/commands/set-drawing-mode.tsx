@@ -1,6 +1,7 @@
 import { useAtomValue, useSetAtom } from "jotai";
 import { useCallback } from "react";
-import { ephemeralStateAtom, selectionAtom } from "src/state/jotai";
+import { ephemeralStateAtom } from "src/state/drawing";
+import { selectionAtom } from "src/state/selection";
 import { Mode, modeAtom } from "src/state/mode";
 import { USelection } from "src/selection/selection";
 

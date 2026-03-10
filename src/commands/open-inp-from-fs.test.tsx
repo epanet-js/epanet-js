@@ -2,15 +2,12 @@ import type { Sel } from "src/selection/types";
 import { render, screen, waitFor } from "@testing-library/react";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
-import {
-  SimulationFinished,
-  Store,
-  dataAtom,
-  fileInfoAtom,
-  momentLogAtom,
-  simulationAtom,
-  stagingModelAtom,
-} from "src/state/jotai";
+import { dataAtom } from "src/state/data";
+import { fileInfoAtom } from "src/state/file-system";
+import { stagingModelAtom } from "src/state/hydraulic-model";
+import { momentLogAtom } from "src/state/model-changes";
+import { SimulationFinished, simulationAtom } from "src/state/simulation";
+import { Store } from "src/state";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import userEvent from "@testing-library/user-event";
 import { aTestFile } from "src/__helpers__/file";

@@ -5,7 +5,7 @@ import { HydraulicModel, ModelMoment } from "src/hydraulic-model";
 import { ModelFactories } from "src/hydraulic-model/factories";
 import { ModelMetadata } from "src/model-metadata";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
-import type { SimulationState } from "src/state/jotai";
+import type { SimulationState } from "src/state/simulation";
 import type { MomentLog } from "src/lib/persistence/moment-log";
 
 export type PersistenceMetadataMemory = {

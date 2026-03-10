@@ -1,11 +1,8 @@
 import { useAtomValue, useSetAtom } from "jotai";
 import { useCallback } from "react";
-import {
-  selectionAtom,
-  modeAtom,
-  Mode,
-  stagingModelAtom,
-} from "src/state/jotai";
+import { stagingModelAtom } from "src/state/hydraulic-model";
+import { modeAtom, Mode } from "src/state/mode";
+import { selectionAtom } from "src/state/selection";
 import { disconnectCustomers } from "src/hydraulic-model/model-operations";
 import { usePersistence } from "src/lib/persistence";
 import { useUserTracking } from "src/infra/user-tracking";

@@ -1,23 +1,21 @@
 import { createStore } from "jotai";
 import { HydraulicModelBuilder } from "./hydraulic-model-builder";
 import { MomentLog } from "src/lib/persistence/moment-log";
+import { dataAtom, nullData } from "src/state/data";
+import { FileInfo, fileInfoAtom } from "src/state/file-system";
+import { stagingModelAtom } from "src/state/hydraulic-model";
+import { layerConfigAtom } from "src/state/map";
+import { modeAtom } from "src/state/mode";
+import { momentLogAtom } from "src/state/model-changes";
 import {
-  FileInfo,
   SimulationFinished,
   SimulationState,
-  Store,
-  dataAtom,
-  fileInfoAtom,
   initialSimulationState,
-  layerConfigAtom,
-  momentLogAtom,
-  nullData,
   simulationAtom,
-  simulationSettingsAtom,
-  modeAtom,
-  stagingModelAtom,
   simulationResultsAtom,
-} from "src/state/jotai";
+} from "src/state/simulation";
+import { simulationSettingsAtom } from "src/state/simulation-settings";
+import { Store } from "src/state";
 import type { ResultsReader } from "src/simulation/results-reader";
 import { Mode } from "src/state/mode";
 import { Asset, HydraulicModel } from "src/hydraulic-model";
@@ -31,7 +29,7 @@ import {
   RangeColorRule,
   nullRangeColorRule,
 } from "src/map/symbology/range-color-rule";
-import { linkSymbologyAtom, nodeSymbologyAtom } from "src/state/symbology";
+import { linkSymbologyAtom, nodeSymbologyAtom } from "src/state/map-symbology";
 import {
   LabelRule,
   nullSymbologySpec,

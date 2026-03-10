@@ -10,13 +10,10 @@ import { Tank } from "src/hydraulic-model/asset-types/tank";
 import { AssetTypeSections } from "./asset-type-sections";
 import { SelectOnlyButton } from "./select-only-button";
 import { useAtom, useAtomValue } from "jotai";
-import {
-  simulationAtom,
-  simulationResultsAtom,
-  multiAssetPanelCollapseAtom,
-  stagingModelAtom,
-  selectionAtom,
-} from "src/state/jotai";
+import { stagingModelAtom } from "src/state/hydraulic-model";
+import { multiAssetPanelCollapseAtom } from "src/state/layout";
+import { selectionAtom } from "src/state/selection";
+import { simulationAtom, simulationResultsAtom } from "src/state/simulation";
 import { computeMultiAssetData } from "./data";
 import { BATCH_EDITABLE_PROPERTIES } from "./batch-edit-property-config";
 import { usePersistence } from "src/lib/persistence";

@@ -6,7 +6,8 @@ import { Maybe } from "purify-ts/Maybe";
 import { useCallback, useContext } from "react";
 import { USelection } from "src/selection";
 import type { Sel } from "src/selection/types";
-import { dataAtom, stagingModelAtom } from "src/state/jotai";
+import { dataAtom } from "src/state/data";
+import { stagingModelAtom } from "src/state/hydraulic-model";
 import { BBox, FeatureCollection, IWrappedFeature } from "src/types";
 
 export function useZoomTo() {

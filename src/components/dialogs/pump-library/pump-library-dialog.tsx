@@ -18,7 +18,8 @@ import {
   differentCurvesCount,
 } from "src/hydraulic-model/curves";
 import { PumpLibraryIcon } from "src/icons";
-import { dataAtom, stagingModelAtom } from "src/state/jotai";
+import { dataAtom } from "src/state/data";
+import { stagingModelAtom } from "src/state/hydraulic-model";
 import { usePersistence } from "src/lib/persistence";
 import { changeCurves } from "src/hydraulic-model/model-operations/change-curves";
 import { notify } from "src/components/notifications";

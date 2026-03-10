@@ -1,5 +1,5 @@
 import { useMemo, type ReactNode } from "react";
-import type { Store } from "src/state/jotai";
+import type { Store } from "src/state";
 import {
   PersistenceContext,
   PersistenceWithSnapshotsContext,

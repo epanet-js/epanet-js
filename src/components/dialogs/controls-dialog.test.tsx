@@ -6,7 +6,8 @@ import { setInitialState } from "src/__helpers__/state";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { Persistence } from "src/lib/persistence/persistence";
 import { PersistenceContext } from "src/lib/persistence/context";
-import { Store, stagingModelAtom } from "src/state/jotai";
+import { stagingModelAtom } from "src/state/hydraulic-model";
+import { Store } from "src/state";
 import { ControlsDialog } from "./controls-dialog";
 
 const renderDialog = (store: Store) => {

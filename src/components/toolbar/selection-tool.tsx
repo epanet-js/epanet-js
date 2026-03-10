@@ -10,7 +10,7 @@ import {
 import { useDrawingMode } from "src/commands/set-drawing-mode";
 import { Mode, MODE_INFO, lastSelectionModeAtom } from "src/state/mode";
 import { useAtom, useAtomValue } from "jotai";
-import { modeAtom } from "src/state/jotai";
+import { modeAtom } from "src/state/mode";
 import { Button, DDContent, Keycap, StyledItem, TContent } from "../elements";
 import { useTranslate } from "src/hooks/use-translate";
 import { localizeKeybinding } from "src/infra/i18n";

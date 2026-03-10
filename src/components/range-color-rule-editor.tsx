@@ -23,7 +23,8 @@ import {
 } from "src/map/symbology/range-color-rule";
 import { useTranslate } from "src/hooks/use-translate";
 import { useCallback, useMemo, useState } from "react";
-import { simulationResultsAtom, stagingModelAtom } from "src/state/jotai";
+import { stagingModelAtom } from "src/state/hydraulic-model";
+import { simulationResultsAtom } from "src/state/simulation";
 import {
   getSortedSimulationValues,
   isSimulationProperty,
@@ -32,7 +33,7 @@ import {
 import { Selector } from "src/components/form/selector";
 import * as d3 from "d3-array";
 import { useUserTracking } from "src/infra/user-tracking";
-import { useSymbologyState } from "src/state/symbology";
+import { useSymbologyState } from "src/state/map-symbology";
 import { LinkSymbology, NodeSymbology } from "src/map/symbology";
 import { getSortedValues } from "src/hydraulic-model/assets-map";
 import { notify } from "./notifications";

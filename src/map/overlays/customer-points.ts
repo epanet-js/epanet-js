@@ -9,7 +9,7 @@ import { colors } from "src/lib/constants";
 import { Position } from "src/types";
 import { AssetsMap } from "src/hydraulic-model";
 import { Pipe } from "src/hydraulic-model/asset-types/pipe";
-import { EphemeralMoveCustomerPoint } from "src/state/jotai";
+import { EphemeralMoveCustomerPoint } from "src/state/drawing";
 
 interface ConnectionLineData {
   sourcePosition: [number, number];

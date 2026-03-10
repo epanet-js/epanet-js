@@ -1,5 +1,5 @@
 import type { HandlerContext } from "src/types";
-import { Mode, modeAtom } from "src/state/jotai";
+import { Mode, modeAtom } from "src/state/mode";
 import { useSetAtom, useAtomValue } from "jotai";
 import { useEffect, useRef } from "react";
 import { getMapCoord } from "../utils";

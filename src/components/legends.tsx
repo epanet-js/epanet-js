@@ -5,7 +5,7 @@ import { localizeDecimal } from "src/infra/i18n/numbers";
 import { useUserTracking } from "src/infra/user-tracking";
 import { RangeColorRule } from "src/map/symbology/range-color-rule";
 import { useAtomValue } from "jotai";
-import { linkSymbologyAtom, nodeSymbologyAtom } from "src/state/symbology";
+import { linkSymbologyAtom, nodeSymbologyAtom } from "src/state/map-symbology";
 import { useState } from "react";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import clsx from "clsx";

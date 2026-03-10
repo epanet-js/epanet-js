@@ -1,6 +1,6 @@
 import { atom } from "jotai";
 import { MomentLog } from "src/lib/persistence/moment-log";
-import { initialSimulationState } from "src/state/jotai";
+import { initialSimulationState } from "src/state/simulation";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import type { Worktree, Snapshot } from "src/lib/worktree/types";
 

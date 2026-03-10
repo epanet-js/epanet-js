@@ -5,24 +5,23 @@ import { MomentInput, Moment } from "src/lib/persistence/moment";
 import { generateKeyBetween } from "fractional-indexing";
 import { worktreeAtom } from "src/state/scenarios";
 import type { Snapshot, Worktree } from "src/lib/worktree/types";
+import { Data, dataAtom, nullData } from "src/state/data";
 import {
-  type SimulationState,
-  Data,
-  dataAtom,
-  Store,
-  momentLogAtom,
-  nullData,
-  simulationAtom,
-  initialSimulationState,
-  modeAtom,
   ephemeralStateAtom,
-  selectionAtom,
-  splitsAtom,
-  defaultSplits,
   pipeDrawingDefaultsAtom,
   autoElevationsAtom,
-  stagingModelAtom,
-} from "src/state/jotai";
+} from "src/state/drawing";
+import { stagingModelAtom } from "src/state/hydraulic-model";
+import { splitsAtom, defaultSplits } from "src/state/layout";
+import { modeAtom } from "src/state/mode";
+import { momentLogAtom } from "src/state/model-changes";
+import { selectionAtom } from "src/state/selection";
+import {
+  type SimulationState,
+  simulationAtom,
+  initialSimulationState,
+} from "src/state/simulation";
+import { Store } from "src/state";
 import { baseModelAtom } from "src/state/hydraulic-model";
 import { simulationResultsAtom } from "src/state/simulation";
 import { getFreshAt, trackMoment } from "./shared";
@@ -45,7 +44,7 @@ import {
   linkSymbologyAtom,
   nodeSymbologyAtom,
   savedSymbologiesAtom,
-} from "src/state/symbology";
+} from "src/state/map-symbology";
 import { nullSymbologySpec } from "src/map/symbology";
 import { mapSyncMomentAtom, MomentPointer } from "src/state/map";
 import { USelection } from "src/selection";

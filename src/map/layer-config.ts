@@ -2,7 +2,7 @@ import { useAtom } from "jotai";
 import { sortAts } from "src/lib/parse-stored";
 import { useCallback } from "react";
 import { ILayerConfig } from "src/types";
-import { layerConfigAtom } from "src/state/jotai";
+import { layerConfigAtom } from "src/state/map";
 
 export const useLayerConfigState = () => {
   const [layerConfigMap, setLayerConfig] = useAtom(layerConfigAtom);

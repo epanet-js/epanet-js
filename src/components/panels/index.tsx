@@ -1,11 +1,11 @@
 import { memo } from "react";
+import { dialogAtom } from "src/state/dialog";
 import {
   showPanelBottomAtom,
   splitsAtom,
   TabOption,
   tabAtom,
-  dialogAtom,
-} from "src/state/jotai";
+} from "src/state/layout";
 import { useAtom, useAtomValue } from "jotai";
 import clsx from "clsx";
 

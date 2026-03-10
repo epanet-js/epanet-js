@@ -16,7 +16,8 @@ import {
 } from "src/icons";
 import Modes from "../modes";
 import { useAtomValue } from "jotai";
-import { simulationAtom, splitsAtom } from "src/state/jotai";
+import { splitsAtom } from "src/state/layout";
+import { simulationAtom } from "src/state/simulation";
 import {
   saveAsShortcut,
   saveShortcut,

@@ -1,5 +1,5 @@
 import { useAtomValue } from "jotai";
-import { mapLoadingAtom } from "./state";
+import { mapLoadingAtom } from "src/state/map";
 import { useRef } from "react";
 import { useTranslate } from "src/hooks/use-translate";
 import { RefreshIcon } from "src/icons";

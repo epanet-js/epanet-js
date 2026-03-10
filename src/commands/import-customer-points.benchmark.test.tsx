@@ -1,7 +1,8 @@
 /* eslint-disable no-console */
 import React from "react";
 import { render, screen, waitFor, cleanup } from "@testing-library/react";
-import { Store, stagingModelAtom } from "src/state/jotai";
+import { stagingModelAtom } from "src/state/hydraulic-model";
+import { Store } from "src/state";
 import userEvent from "@testing-library/user-event";
 import { aTestFile } from "src/__helpers__/file";
 import { setInitialState } from "src/__helpers__/state";

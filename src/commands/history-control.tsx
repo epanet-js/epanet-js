@@ -1,7 +1,7 @@
 import { useSetAtom } from "jotai";
 import { useCallback } from "react";
 import { usePersistence } from "src/lib/persistence";
-import { ephemeralStateAtom } from "src/state/jotai";
+import { ephemeralStateAtom } from "src/state/drawing";
 import { Mode, modeAtom } from "src/state/mode";
 
 export const undoShortcut = "ctrl+z";

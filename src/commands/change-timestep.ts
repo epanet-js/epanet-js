@@ -1,6 +1,6 @@
 import { useAtomValue, useSetAtom } from "jotai";
 import { useCallback } from "react";
-import { simulationAtom, simulationResultsAtom } from "src/state/jotai";
+import { simulationAtom, simulationResultsAtom } from "src/state/simulation";
 import { OPFSStorage } from "src/infra/storage/opfs-storage";
 import { EPSResultsReader } from "src/simulation/epanet/eps-results-reader";
 import { getAppId } from "src/infra/app-instance";

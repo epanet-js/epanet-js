@@ -2,7 +2,9 @@ import { useAtomValue, useSetAtom } from "jotai";
 import { useCallback } from "react";
 import { useUserTracking } from "src/infra/user-tracking";
 import { filterLockedFeatures } from "src/lib/folder";
-import { dataAtom, selectionAtom, stagingModelAtom } from "src/state/jotai";
+import { dataAtom } from "src/state/data";
+import { stagingModelAtom } from "src/state/hydraulic-model";
+import { selectionAtom } from "src/state/selection";
 
 export const selectAllShortcut = "ctrl+a";
 

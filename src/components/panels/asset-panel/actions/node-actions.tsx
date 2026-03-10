@@ -4,7 +4,7 @@ import { useTranslate } from "src/hooks/use-translate";
 import { useZoomTo } from "src/hooks/use-zoom-to";
 import { useDeleteSelection } from "src/commands/delete-selection";
 import { DeleteIcon, ZoomToIcon } from "src/icons";
-import { selectedFeaturesAtom } from "src/state/jotai";
+import { selectedFeaturesAtom } from "src/state/selection";
 import { ActionButton, Action } from "./action-button";
 
 export function useNodeActions(readonly = false): Action[] {

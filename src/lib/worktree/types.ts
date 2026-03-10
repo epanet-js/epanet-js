@@ -1,6 +1,6 @@
 import type { MomentLog } from "src/lib/persistence/moment-log";
 import type { Moment } from "src/lib/persistence/moment";
-import type { SimulationState } from "src/state/jotai";
+import type { SimulationState } from "src/state/simulation";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
 
 export type Snapshot = {

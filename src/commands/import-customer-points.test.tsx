@@ -1,6 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
-import { Store, stagingModelAtom } from "src/state/jotai";
+import { stagingModelAtom } from "src/state/hydraulic-model";
+import { Store } from "src/state";
 import { Junction } from "src/hydraulic-model/asset-types/junction";
 import {
   getCustomerPointDemands,

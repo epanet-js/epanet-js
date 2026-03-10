@@ -1,10 +1,7 @@
 import { useAtom, useAtomValue } from "jotai";
-import {
-  dataAtom,
-  pipeDrawingDefaultsAtom,
-  Mode,
-  modeAtom,
-} from "src/state/jotai";
+import { dataAtom } from "src/state/data";
+import { pipeDrawingDefaultsAtom } from "src/state/drawing";
+import { Mode, modeAtom } from "src/state/mode";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { NumericField } from "./form/numeric-field";

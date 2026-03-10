@@ -13,7 +13,8 @@ import {
   DeactivateTopologyIcon,
   ActivateTopologyIcon,
 } from "src/icons";
-import { Mode, modeAtom, selectedFeaturesAtom } from "src/state/jotai";
+import { Mode, modeAtom } from "src/state/mode";
+import { selectedFeaturesAtom } from "src/state/selection";
 import { ActionButton, Action } from "./action-button";
 import {
   changeActiveTopologyShortcut,

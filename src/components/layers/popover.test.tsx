@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Store, layerConfigAtom } from "src/state/jotai";
+import { layerConfigAtom } from "src/state/map";
+import { Store } from "src/state";
 import { Provider as JotaiProvider } from "jotai";
 import { PersistenceContext } from "src/lib/persistence/context";
 import { Dialogs } from "../dialogs";

@@ -1,7 +1,8 @@
 import debounce from "lodash/debounce";
 import * as T from "@radix-ui/react-tooltip";
 import { atom, useAtom, useAtomValue, useSetAtom } from "jotai";
-import { dialogAtom, layerConfigAtom } from "src/state/jotai";
+import { dialogAtom } from "src/state/dialog";
+import { layerConfigAtom } from "src/state/map";
 import * as E from "src/components/elements";
 import * as P from "@radix-ui/react-popover";
 import { basemaps } from "src/map/basemaps";

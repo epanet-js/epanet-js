@@ -1,5 +1,5 @@
 import type { HandlerContext } from "src/types";
-import { Mode } from "src/state/jotai";
+import { Mode } from "src/state/mode";
 import { useNoneHandlers } from "./none";
 import { useDrawNodeHandlers } from "./draw-node";
 import { useDrawLinkHandlers } from "./draw-link";

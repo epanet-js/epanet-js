@@ -9,7 +9,8 @@ import {
   SubNetwork,
 } from "src/lib/network-review/connectivity-trace";
 import { USelection, useSelection } from "src/selection";
-import { selectionAtom, stagingModelAtom } from "src/state/jotai";
+import { stagingModelAtom } from "src/state/hydraulic-model";
+import { selectionAtom } from "src/state/selection";
 import {
   CheckType,
   EmptyState,

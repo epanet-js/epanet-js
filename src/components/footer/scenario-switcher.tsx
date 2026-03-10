@@ -15,7 +15,7 @@ import { useTranslate } from "src/hooks/use-translate";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useScenarioOperations } from "src/hooks/use-scenario-operations";
 import { worktreeAtom, scenariosListAtom } from "src/state/scenarios";
-import { dialogAtom } from "src/state/jotai";
+import { dialogAtom } from "src/state/dialog";
 import { useCreateScenario } from "src/commands/create-scenario";
 import {
   Button,

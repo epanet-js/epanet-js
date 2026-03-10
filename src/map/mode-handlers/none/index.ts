@@ -1,5 +1,6 @@
 import type { HandlerContext } from "src/types";
-import { Mode, cursorStyleAtom } from "src/state/jotai";
+import { cursorStyleAtom } from "src/state/map";
+import { Mode } from "src/state/mode";
 import { useSetAtom } from "jotai";
 import { modeAtom } from "src/state/mode";
 import { getMapCoord } from "src/map/map-event";

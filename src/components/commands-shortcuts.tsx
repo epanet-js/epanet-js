@@ -42,7 +42,7 @@ import {
   useToggleSatellite,
 } from "src/commands/toggle-satellite";
 import { useAtomValue } from "jotai";
-import { simulationAtom } from "src/state/jotai";
+import { simulationAtom } from "src/state/simulation";
 import { useIsSnapshotLocked } from "src/hooks/use-is-snapshot-locked";
 import {
   showSimulationSettingsShortcut,

@@ -7,7 +7,7 @@ import {
   Splits,
   MIN_SPLITS,
   OTHER_SIDE,
-} from "src/state/jotai";
+} from "src/state/layout";
 import { useMove } from "@react-aria/interactions";
 import { TContent } from "src/components/elements";
 import clsx from "clsx";

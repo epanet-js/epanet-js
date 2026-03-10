@@ -4,8 +4,8 @@ import { AssetsMap } from "src/hydraulic-model";
 import {
   EphemeralEditingState,
   EphemeralConnectCustomerPoints,
-  Mode,
-} from "src/state/jotai";
+} from "src/state/drawing";
+import { Mode } from "src/state/mode";
 import { EphemeralMoveAssets } from "../mode-handlers/none/move-state";
 import { EphemeralDrawNode } from "../mode-handlers/draw-node/ephemeral-draw-node-state";
 import { EphemeralDrawLink } from "../mode-handlers/draw-link/ephemeral-link-state";

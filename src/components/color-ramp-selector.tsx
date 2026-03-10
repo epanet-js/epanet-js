@@ -12,7 +12,7 @@ import { useTranslate } from "src/hooks/use-translate";
 import { Button } from "src/components/elements";
 import find from "lodash/find";
 import clsx from "clsx";
-import { useSymbologyState } from "src/state/symbology";
+import { useSymbologyState } from "src/state/map-symbology";
 import {
   RampSize,
   RangeColorRule,

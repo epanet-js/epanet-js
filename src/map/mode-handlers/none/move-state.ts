@@ -2,7 +2,7 @@ import { useAtom } from "jotai";
 import { useRef } from "react";
 import mapboxgl from "mapbox-gl";
 import { Asset } from "src/hydraulic-model";
-import { EphemeralEditingState, ephemeralStateAtom } from "src/state/jotai";
+import { EphemeralEditingState, ephemeralStateAtom } from "src/state/drawing";
 
 export type EphemeralMoveAssets = {
   type: "moveAssets";

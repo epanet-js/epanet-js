@@ -4,7 +4,7 @@ import { Provider as JotaiProvider } from "jotai";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { aLayerConfig, setInitialState } from "src/__helpers__/state";
 import { MapStylingEditor } from "./map-styling-editor";
-import { Store } from "src/state/jotai";
+import { Store } from "src/state";
 import userEvent from "@testing-library/user-event";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { LayerConfigMap } from "src/types";

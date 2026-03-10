@@ -1,4 +1,6 @@
-import { Store, selectionAtom, stagingModelAtom } from "src/state/jotai";
+import { stagingModelAtom } from "src/state/hydraulic-model";
+import { selectionAtom } from "src/state/selection";
+import { Store } from "src/state";
 import { screen, render } from "@testing-library/react";
 import { CommandContainer } from "./__helpers__/command-container";
 import userEvent from "@testing-library/user-event";

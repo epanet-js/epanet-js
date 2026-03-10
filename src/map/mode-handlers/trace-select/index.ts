@@ -4,7 +4,8 @@ import noop from "lodash/noop";
 import throttle from "lodash/throttle";
 
 import type { HandlerContext } from "src/types";
-import { Mode, cursorStyleAtom } from "src/state/jotai";
+import { cursorStyleAtom } from "src/state/map";
+import { Mode } from "src/state/mode";
 import { modeAtom } from "src/state/mode";
 import { simulationResultsAtom } from "src/state/simulation";
 import { useSelection } from "src/selection";

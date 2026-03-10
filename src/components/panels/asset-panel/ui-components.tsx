@@ -29,7 +29,7 @@ import {
   Demands,
 } from "src/hydraulic-model";
 import { useSetAtom, useAtom } from "jotai";
-import { ephemeralStateAtom } from "src/state/jotai";
+import { ephemeralStateAtom } from "src/state/drawing";
 import { assetPanelFooterAtom } from "src/state/quick-graph";
 import { MultipleValuesIcon } from "src/icons";
 import { useVirtualizer } from "@tanstack/react-virtual";

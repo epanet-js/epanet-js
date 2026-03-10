@@ -3,7 +3,7 @@ import { createStore } from "jotai";
 import { Persistence } from "./persistence";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { setInitialState } from "src/__helpers__/state";
-import { stagingModelAtom } from "src/state/jotai";
+import { stagingModelAtom } from "src/state/hydraulic-model";
 
 describe("Persistence putDemands", () => {
   it("keeps old demands when moment does not include demands", () => {

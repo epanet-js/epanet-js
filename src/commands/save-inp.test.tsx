@@ -1,6 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
-import { Store, fileInfoAtom } from "src/state/jotai";
+import { fileInfoAtom } from "src/state/file-system";
+import { Store } from "src/state";
 import userEvent from "@testing-library/user-event";
 import { useSaveInp } from "./save-inp";
 import { aFileInfo, setInitialState } from "src/__helpers__/state";

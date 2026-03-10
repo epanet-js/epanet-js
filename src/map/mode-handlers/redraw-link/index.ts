@@ -1,7 +1,8 @@
 import type { HandlerContext } from "src/types";
 import { useDrawLinkHandlers, type SubmitLinkParams } from "../draw-link";
 import { useAtomValue, useSetAtom } from "jotai";
-import { selectionAtom, modeAtom, Mode } from "src/state/jotai";
+import { modeAtom, Mode } from "src/state/mode";
+import { selectionAtom } from "src/state/selection";
 import { Asset, LinkAsset, NodeAsset } from "src/hydraulic-model";
 import { USelection, useSelection } from "src/selection";
 import { replaceLink } from "src/hydraulic-model/model-operations";

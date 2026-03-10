@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { useSetAtom } from "jotai";
-import { dialogAtom } from "src/state/jotai";
+import { dialogAtom } from "src/state/dialog";
 import { useUnsavedChangesCheck } from "./check-unsaved-changes";
 import { useUserTracking } from "src/infra/user-tracking";
 

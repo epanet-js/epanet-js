@@ -9,7 +9,8 @@ import {
 } from "./common";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useAtomValue } from "jotai";
-import { selectionAtom, stagingModelAtom } from "src/state/jotai";
+import { stagingModelAtom } from "src/state/hydraulic-model";
+import { selectionAtom } from "src/state/selection";
 import { useUserTracking } from "src/infra/user-tracking";
 import {
   findCrossingPipes,

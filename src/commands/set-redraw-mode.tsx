@@ -3,13 +3,10 @@ import { useCallback } from "react";
 import { LinkAsset } from "src/hydraulic-model";
 import { useUserTracking } from "src/infra/user-tracking";
 import { USelection } from "src/selection";
-import {
-  selectionAtom,
-  ephemeralStateAtom,
-  modeAtom,
-  Mode,
-  stagingModelAtom,
-} from "src/state/jotai";
+import { ephemeralStateAtom } from "src/state/drawing";
+import { stagingModelAtom } from "src/state/hydraulic-model";
+import { modeAtom, Mode } from "src/state/mode";
+import { selectionAtom } from "src/state/selection";
 
 export const redrawModeShortcut = "e";
 

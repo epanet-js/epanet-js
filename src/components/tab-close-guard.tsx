@@ -1,6 +1,6 @@
 import { useAtomValue } from "jotai";
 import { useEffect } from "react";
-import { hasUnsavedChangesAtom } from "src/state/jotai";
+import { hasUnsavedChangesAtom } from "src/state/model-changes";
 
 export const TabCloseGuard = () => {
   const hasUnsavedChanges = useAtomValue(hasUnsavedChangesAtom);

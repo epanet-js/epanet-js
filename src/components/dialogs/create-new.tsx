@@ -25,12 +25,12 @@ import {
   type SearchableSelectorOption,
 } from "../form/searchable-selector";
 import { useAtomValue, useSetAtom } from "jotai";
+import { fileInfoAtom } from "src/state/file-system";
 import {
-  fileInfoAtom,
   gridHiddenAtom,
   gridPreviewAtom,
   isUnprojectedAtom,
-} from "src/state/jotai";
+} from "src/state/map-projection";
 import { headlossFormulasFullNames } from "src/hydraulic-model/asset-types/pipe";
 import { useUserTracking } from "src/infra/user-tracking";
 import { MapContext } from "src/map/map-context";

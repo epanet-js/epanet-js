@@ -5,7 +5,7 @@ import { useTranslate } from "src/hooks/use-translate";
 import { Asset, AssetId } from "src/hydraulic-model";
 import { useSelection } from "src/selection/use-selection";
 import { useAtomValue } from "jotai";
-import { selectionAtom } from "src/state/jotai";
+import { selectionAtom } from "src/state/selection";
 import { useUserTracking } from "src/infra/user-tracking";
 import { pluralize } from "src/lib/utils";
 

@@ -1,11 +1,8 @@
 import { render, screen, waitFor, act } from "@testing-library/react";
-import {
-  Store,
-  dataAtom,
-  nullData,
-  stagingModelAtom,
-  simulationResultsAtom,
-} from "src/state/jotai";
+import { dataAtom, nullData } from "src/state/data";
+import { stagingModelAtom } from "src/state/hydraulic-model";
+import { simulationResultsAtom } from "src/state/simulation";
+import { Store } from "src/state";
 import { Provider as JotaiProvider, createStore } from "jotai";
 import { HydraulicModel, Pipe, Pump } from "src/hydraulic-model";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";

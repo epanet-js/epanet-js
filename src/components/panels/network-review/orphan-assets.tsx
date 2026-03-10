@@ -18,7 +18,8 @@ import {
   OrphanAsset,
 } from "src/lib/network-review/orphan-assets";
 import { useSelection } from "src/selection";
-import { selectionAtom, stagingModelAtom } from "src/state/jotai";
+import { stagingModelAtom } from "src/state/hydraulic-model";
+import { selectionAtom } from "src/state/selection";
 import {
   CheckType,
   EmptyState,

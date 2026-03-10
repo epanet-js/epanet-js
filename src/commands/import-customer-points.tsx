@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 import { useSetAtom, useAtomValue } from "jotai";
-import { dialogAtom, stagingModelAtom } from "src/state/jotai";
+import { dialogAtom } from "src/state/dialog";
+import { stagingModelAtom } from "src/state/hydraulic-model";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useEarlyAccess } from "src/hooks/use-early-access";
 

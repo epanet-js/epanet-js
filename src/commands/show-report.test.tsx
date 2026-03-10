@@ -1,4 +1,4 @@
-import { Store } from "src/state/jotai";
+import { Store } from "src/state";
 import { screen, render, waitFor } from "@testing-library/react";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
 import { CommandContainer } from "./__helpers__/command-container";

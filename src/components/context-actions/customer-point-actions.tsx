@@ -6,7 +6,8 @@ import { ActionItem } from "./action-item";
 import { useCallback } from "react";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import { useAtomValue } from "jotai";
-import { selectionAtom, stagingModelAtom } from "src/state/jotai";
+import { stagingModelAtom } from "src/state/hydraulic-model";
+import { selectionAtom } from "src/state/selection";
 import { useTranslate } from "src/hooks/use-translate";
 import {
   useConnectCustomerPoints,

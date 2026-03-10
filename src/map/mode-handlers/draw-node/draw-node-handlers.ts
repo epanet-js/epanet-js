@@ -1,11 +1,8 @@
 import type { HandlerContext } from "src/types";
-import {
-  modeAtom,
-  Mode,
-  ephemeralStateAtom,
-  cursorStyleAtom,
-  selectionAtom,
-} from "src/state/jotai";
+import { ephemeralStateAtom } from "src/state/drawing";
+import { cursorStyleAtom } from "src/state/map";
+import { modeAtom, Mode } from "src/state/mode";
+import { selectionAtom } from "src/state/selection";
 import noop from "lodash/noop";
 import { useSetAtom, useAtom, useAtomValue } from "jotai";
 import { getMapCoord } from "../utils";

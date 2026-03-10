@@ -7,7 +7,7 @@ import {
   createMockResultsReader,
 } from "src/__helpers__/state";
 import { screen, render, waitFor } from "@testing-library/react";
-import { Store } from "src/state/jotai";
+import { Store } from "src/state";
 import userEvent from "@testing-library/user-event";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import {
@@ -18,7 +18,7 @@ import {
   linkSymbologyAtom,
   nodeSymbologyAtom,
   savedSymbologiesAtom,
-} from "src/state/symbology";
+} from "src/state/map-symbology";
 import { RangeColorRuleEditor } from "./range-color-rule-editor";
 
 describe("color range editor", () => {

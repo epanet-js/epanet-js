@@ -11,7 +11,7 @@ import {
 } from "src/components/form/time-field";
 import { NumericField } from "src/components/form/numeric-field";
 import { Selector, SelectorOption } from "src/components/form/selector";
-import { simulationSettingsAtom } from "src/state/jotai";
+import { simulationSettingsAtom } from "src/state/simulation-settings";
 import { hasScenariosAtom } from "src/state/scenarios";
 import {
   assetsAtom,

@@ -1,4 +1,6 @@
 import { atom, useAtom } from "jotai";
+import { PersistenceMetadataMemory } from "src/lib/persistence/ipersistence";
+import { SYMBOLIZATION_NONE } from "src/types";
 import {
   SymbologySpec,
   LinkSymbology,
@@ -11,6 +13,14 @@ import {
 } from "src/map/symbology/symbology-types";
 
 export type { SymbologySpec };
+
+export type PreviewProperty = PersistenceMetadataMemory["label"];
+
+export const memoryMetaAtom = atom<Omit<PersistenceMetadataMemory, "type">>({
+  symbology: SYMBOLIZATION_NONE,
+  label: null,
+  layer: null,
+});
 
 type SymbologiesMap = Map<SupportedProperty, NodeSymbology | LinkSymbology>;
 export const savedSymbologiesAtom = atom<SymbologiesMap>(new Map());

@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import { useAtomCallback } from "jotai/utils";
 import type { Map as MapboxMap, LngLatBoundsLike } from "mapbox-gl";
-import { assetsAtom } from "src/state/jotai";
+import { assetsAtom } from "src/state/hydraulic-model";
 import { getExtent, isBBoxEmpty } from "src/lib/geometry";
 import { useUserTracking } from "src/infra/user-tracking";
 

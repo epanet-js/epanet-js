@@ -1,5 +1,5 @@
 import { useSetAtom } from "jotai";
-import { dialogAtom } from "src/state/jotai";
+import { dialogAtom } from "src/state/dialog";
 import { DialogContainer, DialogHeader } from "../dialog";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useTranslate } from "src/hooks/use-translate";

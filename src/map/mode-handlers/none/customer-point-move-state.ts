@@ -1,6 +1,6 @@
 import { useAtom } from "jotai";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
-import { EphemeralEditingState, ephemeralStateAtom } from "src/state/jotai";
+import { EphemeralEditingState, ephemeralStateAtom } from "src/state/drawing";
 import { Position } from "src/types";
 
 export const useCustomerPointMoveState = () => {

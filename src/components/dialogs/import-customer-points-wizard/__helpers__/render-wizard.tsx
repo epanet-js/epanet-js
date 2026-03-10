@@ -1,7 +1,7 @@
 import React from "react";
 import { render } from "@testing-library/react";
 import { Provider as JotaiProvider } from "jotai";
-import { Store } from "src/state/jotai";
+import { Store } from "src/state";
 import { Persistence } from "src/lib/persistence/persistence";
 import { PersistenceContext } from "src/lib/persistence/context";
 import { ImportCustomerPointsWizard } from "../index";

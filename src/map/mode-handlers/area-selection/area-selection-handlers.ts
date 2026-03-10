@@ -1,12 +1,8 @@
 import { useRef } from "react";
 import type { HandlerContext } from "src/types";
-import {
-  modeAtom,
-  Mode,
-  ephemeralStateAtom,
-  cursorStyleAtom,
-  EphemeralEditingState,
-} from "src/state/jotai";
+import { ephemeralStateAtom, EphemeralEditingState } from "src/state/drawing";
+import { cursorStyleAtom } from "src/state/map";
+import { modeAtom, Mode } from "src/state/mode";
 import noop from "lodash/noop";
 import { useAtom, useSetAtom } from "jotai";
 import { getMapCoord } from "../utils";

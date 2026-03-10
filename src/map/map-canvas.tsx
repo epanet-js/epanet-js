@@ -13,19 +13,16 @@ import React, {
 import clsx from "clsx";
 import throttle from "lodash/throttle";
 import mapboxgl /*, { LngLatBoundsLike } */ from "mapbox-gl";
+import { dataAtom, Data } from "src/state/data";
+import { ephemeralStateAtom, EphemeralEditingState } from "src/state/drawing";
+import { stagingModelAtom } from "src/state/hydraulic-model";
 import {
-  ephemeralStateAtom,
-  modeAtom,
-  Mode,
-  dataAtom,
-  selectedFeaturesAtom,
   cursorStyleAtom,
-  Data,
-  EphemeralEditingState,
   satelliteModeOnAtom,
   currentZoomAtom,
-  stagingModelAtom,
-} from "src/state/jotai";
+} from "src/state/map";
+import { modeAtom, Mode } from "src/state/mode";
+import { selectedFeaturesAtom } from "src/state/selection";
 import { MapEngine } from "./map-engine";
 import { EmptyIndex } from "src/lib/generate-flatbush-instance";
 import * as CM from "@radix-ui/react-context-menu";

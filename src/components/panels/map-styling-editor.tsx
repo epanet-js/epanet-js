@@ -2,13 +2,10 @@ import { useAtomValue } from "jotai";
 import * as Popover from "@radix-ui/react-popover";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
-import {
-  dataAtom,
-  showGridAtom,
-  simulationAtom,
-  simulationResultsAtom,
-  stagingModelAtom,
-} from "src/state/jotai";
+import { dataAtom } from "src/state/data";
+import { stagingModelAtom } from "src/state/hydraulic-model";
+import { showGridAtom } from "src/state/map-projection";
+import { simulationAtom, simulationResultsAtom } from "src/state/simulation";
 import { Selector, SelectorLikeButton } from "../form/selector";
 import { useUserTracking } from "src/infra/user-tracking";
 import {
@@ -17,7 +14,7 @@ import {
   supportedLinkProperties,
   supportedNodeProperties,
 } from "src/map/symbology/symbology-types";
-import { useSymbologyState } from "src/state/symbology";
+import { useSymbologyState } from "src/state/map-symbology";
 import { defaultSymbologyBuilders } from "src/map/symbology/default-symbology-builders";
 import { Checkbox } from "../form/Checkbox";
 import { ColorRampSelector } from "src/components/color-ramp-selector";

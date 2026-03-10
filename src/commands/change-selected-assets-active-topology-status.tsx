@@ -5,7 +5,8 @@ import { deactivateAssets } from "src/hydraulic-model/model-operations/deactivat
 import { useUserTracking } from "src/infra/user-tracking";
 import { usePersistence } from "src/lib/persistence";
 import { USelection } from "src/selection";
-import { selectionAtom, stagingModelAtom } from "src/state/jotai";
+import { stagingModelAtom } from "src/state/hydraulic-model";
+import { selectionAtom } from "src/state/selection";
 
 export const changeActiveTopologyShortcut = "a";
 

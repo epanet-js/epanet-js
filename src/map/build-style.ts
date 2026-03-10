@@ -76,7 +76,7 @@ export function defineEmptySources(style: Style) {
   style.sources["grid"] = emptyGeoJSONSource;
 }
 
-import type { PreviewProperty } from "src/state/jotai";
+import type { PreviewProperty } from "src/state/map-symbology";
 import type { ISymbology } from "src/types";
 import { reservoirLayers, pipesLayer, junctionsLayer } from "src/map/layers";
 import { pipeArrows, checkValveIcons } from "src/map/layers/pipes";

@@ -1,7 +1,7 @@
 import { useAtomValue } from "jotai";
 import clsx from "clsx";
 import { ChevronLeftIcon, ChevronRightIcon } from "src/icons";
-import { simulationAtom } from "src/state/jotai";
+import { simulationAtom } from "src/state/simulation";
 import { Selector } from "./form/selector";
 import { useMemo } from "react";
 import { useBreakpoint } from "src/hooks/use-breakpoint";

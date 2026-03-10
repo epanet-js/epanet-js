@@ -1,10 +1,10 @@
 import { useAtom, useAtomValue } from "jotai";
 import {
   ephemeralStateAtom,
-  selectionAtom,
-  stagingModelAtom,
   EphemeralConnectCustomerPoints,
-} from "src/state/jotai";
+} from "src/state/drawing";
+import { stagingModelAtom } from "src/state/hydraulic-model";
+import { selectionAtom } from "src/state/selection";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import { Position } from "src/types";
 import { useMemo } from "react";

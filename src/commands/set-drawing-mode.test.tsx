@@ -1,4 +1,6 @@
-import { Store, modeAtom, selectionAtom } from "src/state/jotai";
+import { modeAtom } from "src/state/mode";
+import { selectionAtom } from "src/state/selection";
+import { Store } from "src/state";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { aSingleSelection, setInitialState } from "src/__helpers__/state";

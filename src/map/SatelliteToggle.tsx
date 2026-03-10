@@ -4,7 +4,8 @@ import clsx from "clsx";
 import { useToggleSatellite } from "src/commands/toggle-satellite";
 import { useUserTracking } from "src/infra/user-tracking";
 import { basemaps } from "src/map/basemaps";
-import { showGridAtom, layerConfigAtom } from "src/state/jotai";
+import { layerConfigAtom } from "src/state/map";
+import { showGridAtom } from "src/state/map-projection";
 import { offlineAtom } from "src/state/offline";
 
 export const SatelliteToggle = () => {

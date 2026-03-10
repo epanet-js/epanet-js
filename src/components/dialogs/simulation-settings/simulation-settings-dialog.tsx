@@ -5,7 +5,7 @@ import { Form, Formik } from "formik";
 import { DialogContainer, DialogHeader, useDialogState } from "../../dialog";
 import { Button } from "src/components/elements";
 import { useTranslate } from "src/hooks/use-translate";
-import { simulationSettingsAtom } from "src/state/jotai";
+import { simulationSettingsAtom } from "src/state/simulation-settings";
 
 import { SimulationSettingsSidebar } from "./simulation-settings-sidebar";
 import {

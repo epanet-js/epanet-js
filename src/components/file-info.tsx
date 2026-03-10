@@ -1,8 +1,5 @@
-import {
-  fileInfoAtom,
-  fileInfoMachineAtom,
-  hasUnsavedChangesAtom,
-} from "src/state/jotai";
+import { fileInfoAtom, fileInfoMachineAtom } from "src/state/file-system";
+import { hasUnsavedChangesAtom } from "src/state/model-changes";
 import { useAtom, useAtomValue } from "jotai";
 import { truncate } from "src/lib/utils";
 import * as Popover from "@radix-ui/react-popover";

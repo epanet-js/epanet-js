@@ -1,7 +1,7 @@
 import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Provider as JotaiProvider } from "jotai";
-import { Store } from "src/state/jotai";
+import { Store } from "src/state";
 import { setInitialState } from "src/__helpers__/state";
 import {
   HydraulicModelBuilder,

@@ -1,5 +1,5 @@
 import { MapTestEngine, stubNoSnapping } from "./map-engine-mock";
-import { Store } from "src/state/jotai";
+import { Store } from "src/state";
 import { Persistence } from "src/lib/persistence/persistence";
 import { render, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";

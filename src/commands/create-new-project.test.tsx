@@ -1,12 +1,10 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import userEvent from "@testing-library/user-event";
-import {
-  Store,
-  fileInfoAtom,
-  momentLogAtom,
-  stagingModelAtom,
-} from "src/state/jotai";
+import { fileInfoAtom } from "src/state/file-system";
+import { stagingModelAtom } from "src/state/hydraulic-model";
+import { momentLogAtom } from "src/state/model-changes";
+import { Store } from "src/state";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { fMoment } from "../lib/persistence/moment";
 import { useNewProject } from "./create-new-project";

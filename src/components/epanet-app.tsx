@@ -19,7 +19,8 @@ import { BottomPanel, LeftSidePanel, SidePanel } from "src/components/panels";
 import { MapContext } from "src/map";
 import Notifications from "src/components/notifications";
 import { atom, useAtom } from "jotai";
-import { defaultSplits, dialogAtom, splitsAtom } from "src/state/jotai";
+import { dialogAtom } from "src/state/dialog";
+import { defaultSplits, splitsAtom } from "src/state/layout";
 import clsx from "clsx";
 import {
   DndContext,

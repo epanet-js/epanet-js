@@ -3,12 +3,10 @@ import { DialogContainer, DialogHeader } from "../dialog";
 import { processReportWithSlots, ReportRow } from "src/simulation/report";
 import { useMemo, useCallback } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
-import {
-  simulationAtom,
-  selectionAtom,
-  dialogAtom,
-  stagingModelAtom,
-} from "src/state/jotai";
+import { dialogAtom } from "src/state/dialog";
+import { stagingModelAtom } from "src/state/hydraulic-model";
+import { selectionAtom } from "src/state/selection";
+import { simulationAtom } from "src/state/simulation";
 
 import { useSelection } from "src/selection/use-selection";
 import { AssetId } from "src/hydraulic-model";

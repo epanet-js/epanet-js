@@ -15,6 +15,8 @@ export const userSettingsAtom = atomWithStorage<UserSettings>(
   defaultUserSettings,
 );
 
+export const hideHintsAtom = atomWithStorage<string[]>("hideHints", []);
+
 export const settingsFromStorage = (): UserSettings => {
   const userSettings = {
     ...defaultUserSettings,

@@ -2,14 +2,11 @@ import { useAtomValue } from "jotai";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { useTranslate } from "src/hooks/use-translate";
 import { localizeDecimal } from "src/infra/i18n/numbers";
-import {
-  SimulationState,
-  dataAtom,
-  simulationAtom,
-  simulationSettingsAtom,
-  stagingModelAtom,
-  autoElevationsAtom,
-} from "src/state/jotai";
+import { dataAtom } from "src/state/data";
+import { autoElevationsAtom } from "src/state/drawing";
+import { stagingModelAtom } from "src/state/hydraulic-model";
+import { SimulationState, simulationAtom } from "src/state/simulation";
+import { simulationSettingsAtom } from "src/state/simulation-settings";
 import * as Popover from "@radix-ui/react-popover";
 import { Button, StyledPopoverArrow, StyledPopoverContent } from "../elements";
 import { HydraulicModel } from "src/hydraulic-model";

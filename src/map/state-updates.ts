@@ -1,28 +1,22 @@
 import type { Sel } from "src/selection/types";
-import { atom, useAtomValue, useSetAtom } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import { type MutableRefObject, useCallback, useRef } from "react";
 import { Unit } from "src/quantity";
 import { Moment } from "src/lib/persistence/moment";
+import { dataAtom } from "src/state/data";
+import type { EphemeralEditingState } from "src/state/drawing";
+import { assetsAtom, stagingModelAtom } from "src/state/hydraulic-model";
 import {
-  EphemeralEditingState,
-  PreviewProperty,
-  SimulationState,
-  assetsAtom,
-  dataAtom,
-  ephemeralStateAtom,
-  initialSimulationState,
-  layerConfigAtom,
-  memoryMetaAtom,
-  momentLogAtom,
-  selectionAtom,
-  simulationAtom,
-  simulationResultsAtom,
-  currentZoomAtom,
-  customerPointsAtom,
-  gridPreviewAtom,
-  showGridAtom,
-  stagingModelAtom,
-} from "src/state/jotai";
+  type StylesConfig,
+  type MapState,
+  nullMapState,
+  mapStateAtom,
+  mapSyncMomentAtom,
+  mapLoadingAtom,
+} from "src/state/map";
+import { gridPreviewAtom, showGridAtom } from "src/state/map-projection";
+import { momentLogAtom } from "src/state/model-changes";
+import { simulationResultsAtom } from "src/state/simulation";
 import type { ResultsReader } from "src/simulation/results-reader";
 import { MapEngine } from "./map-engine";
 import {
@@ -34,7 +28,6 @@ import {
 } from "./data-source";
 import mapboxgl from "mapbox-gl";
 import { Grid } from "./grid";
-import { ISymbology, LayerConfigMap, SYMBOLIZATION_NONE } from "src/types";
 import { buildBaseStyle, makeLayers } from "./build-style";
 import { LayerId } from "./layers";
 import { AssetId, AssetsMap, filterAssets } from "src/hydraulic-model";
@@ -42,11 +35,8 @@ import { MomentLog } from "src/lib/persistence/moment-log";
 import { captureError } from "src/infra/error-tracking";
 import { withDebugInstrumentation } from "src/infra/with-instrumentation";
 import { USelection } from "src/selection";
-import { SymbologySpec, symbologyAtom } from "src/state/symbology";
+import { SymbologySpec } from "src/state/map-symbology";
 import { Quantities } from "src/model-metadata/quantities-spec";
-import { nullSymbologySpec } from "src/map/symbology";
-import { mapLoadingAtom } from "./state";
-import { offlineAtom } from "src/state/offline";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import {
@@ -59,9 +49,7 @@ import {
   updateCustomerPointsOverlayVisibility,
 } from "./overlays/customer-points";
 import { CustomerPoints } from "src/hydraulic-model/customer-points";
-import { DEFAULT_ZOOM } from "./map-engine";
 import { junctionsSymbologyFilterExpression } from "./layers/junctions";
-import { mapSyncMomentAtom } from "src/state/map";
 
 const SELECTION_LAYERS: LayerId[] = [
   "selected-pipes",
@@ -83,95 +71,6 @@ const getAssetIdsInMoments = (moments: Moment[]): Set<AssetId> => {
   });
   return assetIds;
 };
-
-type StylesConfig = {
-  symbology: ISymbology;
-  layerConfigs: LayerConfigMap;
-  previewProperty: PreviewProperty;
-};
-
-type MapState = {
-  momentLogId: string;
-  momentLogPointer: number;
-  syncMomentPointer: number;
-  syncMomentVersion: number;
-  stylesConfig: StylesConfig;
-  selection: Sel;
-  ephemeralState: EphemeralEditingState;
-  symbology: SymbologySpec;
-  simulation: SimulationState;
-  selectedAssetIds: Set<AssetId>;
-  movedAssetIds: Set<AssetId>;
-  isOffline: boolean;
-  customerPoints: CustomerPoints;
-  currentZoom: number;
-};
-
-const nullMapState: MapState = {
-  momentLogId: "",
-  momentLogPointer: -1,
-  syncMomentPointer: -1,
-  syncMomentVersion: 0,
-  stylesConfig: {
-    symbology: SYMBOLIZATION_NONE,
-    previewProperty: null,
-    layerConfigs: new Map(),
-  },
-  selection: { type: "none" },
-  ephemeralState: { type: "none" },
-  symbology: nullSymbologySpec,
-  simulation: initialSimulationState,
-  selectedAssetIds: new Set(),
-  movedAssetIds: new Set(),
-  isOffline: false,
-  customerPoints: new Map(),
-  currentZoom: DEFAULT_ZOOM,
-} as const;
-
-const stylesConfigAtom = atom<StylesConfig>((get) => {
-  const isGridOn = get(showGridAtom);
-  const layerConfigs = isGridOn ? new Map() : get(layerConfigAtom);
-  const { symbology, label } = get(memoryMetaAtom);
-
-  return {
-    symbology: symbology || SYMBOLIZATION_NONE,
-    previewProperty: label,
-    layerConfigs,
-  };
-});
-
-const mapStateAtom = atom<MapState>((get) => {
-  const momentLog = get(momentLogAtom);
-  const mapSyncMoment = get(mapSyncMomentAtom);
-  const stylesConfig = get(stylesConfigAtom);
-  const selection = get(selectionAtom);
-  const ephemeralState = get(ephemeralStateAtom);
-  const symbology = get(symbologyAtom);
-  const simulation = get(simulationAtom);
-  const customerPoints = get(customerPointsAtom);
-  const currentZoom = get(currentZoomAtom);
-  const selectedAssetIds = new Set(USelection.toIds(selection));
-
-  const movedAssetIds = getMovedAssets(ephemeralState);
-  const isOffline = get(offlineAtom);
-
-  return {
-    momentLogId: momentLog.id,
-    momentLogPointer: momentLog.getPointer(),
-    syncMomentPointer: mapSyncMoment.pointer,
-    syncMomentVersion: mapSyncMoment.version,
-    stylesConfig,
-    selection,
-    ephemeralState,
-    symbology,
-    simulation,
-    selectedAssetIds,
-    movedAssetIds,
-    isOffline,
-    customerPoints,
-    currentZoom,
-  };
-});
 
 const detectChanges = (
   state: MapState,
@@ -797,32 +696,6 @@ const updateEphemeralStateSource = withDebugInstrumentation(
     maxDurationMs: 100,
   },
 );
-
-const noMoved: Set<AssetId> = new Set();
-const getMovedAssets = (
-  ephemeralState: EphemeralEditingState,
-): Set<AssetId> => {
-  switch (ephemeralState.type) {
-    case "moveAssets":
-      return new Set(ephemeralState.oldAssets.map((asset) => asset.id));
-    case "drawLink":
-      return ephemeralState.sourceLink
-        ? new Set([ephemeralState.sourceLink.id])
-        : noMoved;
-    case "drawNode":
-      return noMoved;
-    case "moveCustomerPoint":
-      return noMoved;
-    case "customerPointsHighlight":
-      return noMoved;
-    case "connectCustomerPoints":
-      return noMoved;
-    case "areaSelect":
-      return noMoved;
-    case "none":
-      return noMoved;
-  }
-};
 
 const buildCustomerPointsEphemeralOverlay = (
   ephemeralState: EphemeralEditingState,

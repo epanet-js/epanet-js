@@ -2,7 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Provider as JotaiProvider } from "jotai";
 import { PersistenceProvider } from "src/lib/persistence";
 import { Dialogs } from "src/components/dialogs";
-import { Store } from "src/state/jotai";
+import { Store } from "src/state";
 import Notifications from "src/components/notifications";
 
 export const CommandContainer = ({

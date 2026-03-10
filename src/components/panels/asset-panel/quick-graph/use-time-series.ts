@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useAtomValue } from "jotai";
-import { simulationAtom } from "src/state/jotai";
+import { simulationAtom } from "src/state/simulation";
 import { OPFSStorage } from "src/infra/storage/opfs-storage";
 import {
   EPSResultsReader,

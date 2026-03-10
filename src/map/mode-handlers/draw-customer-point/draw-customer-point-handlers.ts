@@ -1,12 +1,14 @@
 import type { HandlerContext } from "src/types";
-import { modeAtom, Mode, ephemeralStateAtom } from "src/state/jotai";
+import { ephemeralStateAtom } from "src/state/drawing";
+import { modeAtom, Mode } from "src/state/mode";
 import noop from "lodash/noop";
 import { useSetAtom, useAtomValue } from "jotai";
 import { getMapCoord } from "../utils";
 import { addCustomerPoint } from "src/hydraulic-model/model-operations";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useSelection } from "src/selection";
-import { selectionAtom, modelFactoriesAtom } from "src/state/jotai";
+import { modelFactoriesAtom } from "src/state/model-factories";
+import { selectionAtom } from "src/state/selection";
 
 export function useDrawCustomerPointHandlers({
   hydraulicModel,

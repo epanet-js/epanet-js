@@ -2,12 +2,10 @@ import { useCallback } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { useScenarioOperations } from "src/hooks/use-scenario-operations";
 import { scenariosListAtom } from "src/state/scenarios";
-import {
-  dialogAtom,
-  isDemoNetworkAtom,
-  simulationAtom,
-  stagingModelAtom,
-} from "src/state/jotai";
+import { dialogAtom } from "src/state/dialog";
+import { stagingModelAtom } from "src/state/hydraulic-model";
+import { isDemoNetworkAtom } from "src/state/file-system";
+import { simulationAtom } from "src/state/simulation";
 import { useAuth } from "src/auth";
 import { isTrialActive, limits } from "src/user-plan";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";

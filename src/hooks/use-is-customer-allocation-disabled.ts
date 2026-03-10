@@ -1,6 +1,6 @@
 import { useAtomValue } from "jotai";
 import { worktreeAtom } from "src/state/scenarios";
-import { isUnprojectedAtom } from "src/state/jotai";
+import { isUnprojectedAtom } from "src/state/map-projection";
 
 export const useIsCustomerAllocationDisabled = () => {
   const worktree = useAtomValue(worktreeAtom);

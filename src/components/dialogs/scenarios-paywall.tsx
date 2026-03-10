@@ -7,12 +7,10 @@ import { CheckoutButton } from "../checkout-button";
 import { VideoPlayer } from "../video-player";
 import { useActivateTrial } from "src/hooks/use-activate-trial";
 import { useScenarioOperations } from "src/hooks/use-scenario-operations";
-import {
-  dialogAtom,
-  isDemoNetworkAtom,
-  simulationAtom,
-  stagingModelAtom,
-} from "src/state/jotai";
+import { dialogAtom } from "src/state/dialog";
+import { stagingModelAtom } from "src/state/hydraulic-model";
+import { isDemoNetworkAtom } from "src/state/file-system";
+import { simulationAtom } from "src/state/simulation";
 import { userSettingsAtom } from "src/state/user-settings";
 import {
   ChevronLeftIcon,

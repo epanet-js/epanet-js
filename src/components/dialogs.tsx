@@ -1,7 +1,7 @@
 import dynamic from "next/dynamic";
 import { memo, Suspense, useCallback, useRef } from "react";
 import { useAtom } from "jotai";
-import { dialogAtom } from "src/state/jotai";
+import { dialogAtom } from "src/state/dialog";
 import { match } from "ts-pattern";
 import * as D from "@radix-ui/react-dialog";
 import {

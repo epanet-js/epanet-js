@@ -16,7 +16,8 @@ import {
   differentPatternsCount,
 } from "src/hydraulic-model";
 import { PatternsIcon } from "src/icons";
-import { stagingModelAtom, simulationSettingsAtom } from "src/state/jotai";
+import { stagingModelAtom } from "src/state/hydraulic-model";
+import { simulationSettingsAtom } from "src/state/simulation-settings";
 import { usePersistence } from "src/lib/persistence";
 import { HydraulicModel } from "src/hydraulic-model/hydraulic-model";
 import { Reservoir } from "src/hydraulic-model/asset-types/reservoir";
