@@ -59,6 +59,8 @@
   "customer": "Customer",
   "customerPoint": "Customer point",
   "actualDemand": "Actual demand",
+  "netFlow": "Net flow",
+  "actualHead": "Head",
   "elevation": "Elevation",
   "emitterCoefficient": "Emitter coeff.",
   "roughness": "Roughness",

@@ -43,8 +43,8 @@ function pressureToLevel(
 }
 
 export type JunctionProperty = "demand" | "head" | "pressure" | "quality";
-export type TankProperty = "head" | "pressure" | "level" | "volume";
-export type ReservoirProperty = "head" | "pressure";
+export type TankProperty = "netFlow" | "head" | "pressure" | "level" | "volume";
+export type ReservoirProperty = "netFlow" | "head" | "pressure";
 export type PipeProperty = "flow" | "velocity" | "headloss" | "status";
 export type PumpProperty = "flow" | "headloss" | "status";
 export type ValveProperty =
@@ -188,7 +188,13 @@ export class EPSResultsReader {
 
     switch (assetType) {
       case "junction":
+        return this._getNodePropertyTimeSeries(
+          assetId,
+          property as NodeProperty,
+        );
       case "reservoir":
+        if (property === "netFlow")
+          return this._getNodePropertyTimeSeries(assetId, "demand");
         return this._getNodePropertyTimeSeries(
           assetId,
           property as NodeProperty,
@@ -197,6 +203,8 @@ export class EPSResultsReader {
         if (property === "volume")
           return this._getTankVolumeTimeSeries(assetId);
         if (property === "level") return this._getTankLevelTimeSeries(assetId);
+        if (property === "netFlow")
+          return this._getNodePropertyTimeSeries(assetId, "demand");
         return this._getNodePropertyTimeSeries(
           assetId,
           property as NodeProperty,
@@ -830,6 +838,7 @@ class TimestepResultsReader implements ResultsReader {
       type: "tank",
       pressure: nodeData.pressure,
       head: nodeData.head,
+      netFlow: nodeData.demand,
       level,
       volume,
     };
@@ -845,6 +854,7 @@ class TimestepResultsReader implements ResultsReader {
       type: "reservoir",
       pressure: nodeData.pressure,
       head: nodeData.head,
+      netFlow: nodeData.demand,
     };
   }
 

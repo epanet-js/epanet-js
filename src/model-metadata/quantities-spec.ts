@@ -21,6 +21,7 @@ export type QuantityProperty =
   | "baseDemand"
   | "directDemand"
   | "actualDemand"
+  | "netFlow"
   | "customerDemand"
   | "customerDemandPerDay"
   | "emitterCoefficient"
@@ -28,6 +29,7 @@ export type QuantityProperty =
   | "headloss"
   | "unitHeadloss"
   | "head"
+  | "actualHead"
   | "power"
   | "speed"
   | "tcvSetting"
@@ -73,6 +75,7 @@ const allFlowUnits = (unit: Unit) => ({
   baseDemand: unit,
   directDemand: unit,
   actualDemand: unit,
+  netFlow: unit,
   emitterCoefficient: null as Unit,
 });
 
@@ -95,6 +98,7 @@ const metricSpec: AssetQuantitiesSpec = {
     elevation: "m",
     pressure: "mwc",
     head: "m",
+    actualHead: "m",
     headloss: "m",
     unitHeadloss: "m/km",
     power: "kW",
@@ -154,6 +158,7 @@ const usCustomarySpec: AssetQuantitiesSpec = {
     elevation: "ft",
     pressure: "psi",
     head: "ft",
+    actualHead: "ft",
     headloss: "ft",
     unitHeadloss: "ft/kft",
     power: "hp",

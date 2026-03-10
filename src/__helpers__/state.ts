@@ -260,9 +260,18 @@ export type SimulationData = {
   >;
   tanks?: Record<
     number,
-    Partial<{ pressure: number; head: number; level: number; volume: number }>
+    Partial<{
+      pressure: number;
+      head: number;
+      netFlow: number;
+      level: number;
+      volume: number;
+    }>
   >;
-  reservoirs?: Record<number, Partial<{ pressure: number; head: number }>>;
+  reservoirs?: Record<
+    number,
+    Partial<{ pressure: number; head: number; netFlow: number }>
+  >;
 };
 
 export const createMockResultsReader = (
@@ -320,6 +329,7 @@ export const createMockResultsReader = (
       type: "tank",
       pressure: sim.pressure ?? 0,
       head: sim.head ?? 0,
+      netFlow: sim.netFlow ?? 0,
       level: sim.level ?? 0,
       volume: sim.volume ?? 0,
     };
@@ -331,6 +341,7 @@ export const createMockResultsReader = (
       type: "reservoir",
       pressure: sim.pressure ?? 0,
       head: sim.head ?? 0,
+      netFlow: sim.netFlow ?? 0,
     };
   },
   getAllPressures: () =>

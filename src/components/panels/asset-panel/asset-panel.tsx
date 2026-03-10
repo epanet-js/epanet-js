@@ -819,6 +819,7 @@ const ReservoirEditor = ({
 
   const simPressure = reservoirSimulation?.pressure ?? null;
   const simHead = reservoirSimulation?.head ?? null;
+  const simNetFlow = reservoirSimulation?.netFlow ?? null;
 
   return (
     <AssetEditorContent
@@ -872,6 +873,13 @@ const ReservoirEditor = ({
           decimals={quantitiesMetadata.getDecimals("head")}
           readOnly={true}
         />
+        <QuantityRow
+          name="netFlow"
+          value={simNetFlow}
+          unit={quantitiesMetadata.getUnit("netFlow")}
+          decimals={quantitiesMetadata.getDecimals("netFlow")}
+          readOnly={true}
+        />
       </Section>
     </AssetEditorContent>
   );
@@ -903,6 +911,7 @@ const TankEditor = ({
 
   const simPressure = tankSimulation?.pressure ?? null;
   const simHead = tankSimulation?.head ?? null;
+  const simNetFlow = tankSimulation?.netFlow ?? null;
   const simLevel = tankSimulation?.level ?? null;
   const simVolume = tankSimulation?.volume ?? null;
 
@@ -1035,6 +1044,13 @@ const TankEditor = ({
           value={simVolume}
           unit={quantitiesMetadata.getUnit("volume")}
           decimals={quantitiesMetadata.getDecimals("volume")}
+          readOnly={true}
+        />
+        <QuantityRow
+          name="netFlow"
+          value={simNetFlow}
+          unit={quantitiesMetadata.getUnit("netFlow")}
+          decimals={quantitiesMetadata.getDecimals("netFlow")}
           readOnly={true}
         />
       </Section>

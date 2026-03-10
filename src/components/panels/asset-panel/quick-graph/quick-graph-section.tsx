@@ -55,12 +55,14 @@ const QUICK_GRAPH_PROPERTIES: {
   tank: [
     { value: "level", labelKey: "level", quantityKey: "level" },
     { value: "volume", labelKey: "volume", quantityKey: "volume" },
+    { value: "netFlow", labelKey: "netFlow", quantityKey: "netFlow" },
     { value: "pressure", labelKey: "pressure", quantityKey: "pressure" },
     { value: "head", labelKey: "head", quantityKey: "head" },
   ],
   reservoir: [
     { value: "pressure", labelKey: "pressure", quantityKey: "pressure" },
     { value: "head", labelKey: "head", quantityKey: "head" },
+    { value: "netFlow", labelKey: "netFlow", quantityKey: "netFlow" },
   ],
 };
 

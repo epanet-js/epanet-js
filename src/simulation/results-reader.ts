@@ -35,6 +35,7 @@ export type TankSimulation = {
   type: "tank";
   pressure: number;
   head: number;
+  netFlow: number;
   level: number;
   volume: number;
 };
@@ -43,6 +44,7 @@ export type ReservoirSimulation = {
   type: "reservoir";
   pressure: number;
   head: number;
+  netFlow: number;
 };
 
 export type PumpEnergySummary = {

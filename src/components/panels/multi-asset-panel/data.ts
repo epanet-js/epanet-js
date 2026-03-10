@@ -166,6 +166,7 @@ export const computeMultiAssetData = (
           asset as Reservoir,
           quantitiesMetadata,
           hydraulicModel.patterns,
+          simulationResults,
         );
         break;
       case "tank":
@@ -685,6 +686,7 @@ const appendReservoirStats = (
   reservoir: Reservoir,
   quantitiesMetadata: Quantities,
   patterns: Patterns,
+  simulationResults?: ResultsReader | null,
 ) => {
   const id = reservoir.id;
   updateBooleanStats(statsMap, "isEnabled", reservoir.isActive, id);
@@ -698,6 +700,26 @@ const appendReservoirStats = (
 
   const averageHead = calculateAverageHead(reservoir, patterns);
   updateQuantityStats(statsMap, "head", averageHead, quantitiesMetadata, id);
+
+  const reservoirSim = simulationResults?.getReservoir(reservoir.id);
+  const pressure = reservoirSim?.pressure ?? null;
+  const simHead = reservoirSim?.head ?? null;
+  const netFlow = reservoirSim?.netFlow ?? null;
+  if (pressure !== null) {
+    updateQuantityStats(statsMap, "pressure", pressure, quantitiesMetadata, id);
+  }
+  if (simHead !== null) {
+    updateQuantityStats(
+      statsMap,
+      "actualHead",
+      simHead,
+      quantitiesMetadata,
+      id,
+    );
+  }
+  if (netFlow !== null) {
+    updateQuantityStats(statsMap, "netFlow", netFlow, quantitiesMetadata, id);
+  }
 };
 
 const buildReservoirSections = (
@@ -708,7 +730,11 @@ const buildReservoirSections = (
     modelAttributes: getStatsForProperties(statsMap, ["elevation", "head"]),
     demands: [],
     energyResults: [],
-    simulationResults: [],
+    simulationResults: getStatsForProperties(statsMap, [
+      "pressure",
+      "actualHead",
+      "netFlow",
+    ]),
   };
 };
 
@@ -816,6 +842,7 @@ const appendTankStats = (
   const tankSim = simulationResults?.getTank(tank.id);
   const pressure = tankSim?.pressure ?? null;
   const head = tankSim?.head ?? null;
+  const netFlow = tankSim?.netFlow ?? null;
   const level = tankSim?.level ?? null;
   const volume = tankSim?.volume ?? null;
 
@@ -824,6 +851,9 @@ const appendTankStats = (
   }
   if (head !== null) {
     updateQuantityStats(statsMap, "head", head, quantitiesMetadata, id);
+  }
+  if (netFlow !== null) {
+    updateQuantityStats(statsMap, "netFlow", netFlow, quantitiesMetadata, id);
   }
   if (level !== null) {
     updateQuantityStats(statsMap, "level", level, quantitiesMetadata, id);
@@ -862,6 +892,7 @@ const buildTankSections = (
     simulationResults: getStatsForProperties(statsMap, [
       "pressure",
       "head",
+      "netFlow",
       "level",
       "volume",
     ]),
