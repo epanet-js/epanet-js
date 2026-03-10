@@ -1,6 +1,7 @@
 import { AssetsMap, Asset, AssetId, Pipe, Pump } from "src/hydraulic-model";
 import { Feature } from "src/types";
-import { Sel, USelection } from "src/selection";
+import { USelection } from "src/selection";
+import type { Sel } from "src/selection/types";
 import { findLargestSegment, Link } from "src/hydraulic-model/asset-types/link";
 import { Valve } from "src/hydraulic-model/asset-types";
 import {

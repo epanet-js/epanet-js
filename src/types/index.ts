@@ -13,7 +13,7 @@ import type { FlatbushLike } from "src/lib/generate-flatbush-instance";
 import type { ModeWithOptions } from "src/state/mode";
 import type { Dispatch, SetStateAction } from "react";
 import type { IPersistence } from "src/lib/persistence/ipersistence";
-import type { Sel } from "src/state/jotai";
+import type { Sel } from "src/selection/types";
 import { JsonValue, SetOptional } from "type-fest";
 import { getFoldersInTree } from "src/lib/folder";
 import { colors } from "src/lib/constants";

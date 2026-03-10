@@ -1,4 +1,5 @@
 import type { HandlerContext, DragTarget } from "src/types";
+import type { Sel } from "src/selection/types";
 import type { FlatbushLike } from "src/lib/generate-flatbush-instance";
 import React, {
   useRef,
@@ -19,7 +20,6 @@ import {
   dataAtom,
   selectedFeaturesAtom,
   cursorStyleAtom,
-  Sel,
   Data,
   EphemeralEditingState,
   satelliteModeOnAtom,

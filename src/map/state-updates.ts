@@ -1,3 +1,4 @@
+import type { Sel } from "src/selection/types";
 import { atom, useAtomValue, useSetAtom } from "jotai";
 import { type MutableRefObject, useCallback, useRef } from "react";
 import { Unit } from "src/quantity";
@@ -5,7 +6,6 @@ import { Moment } from "src/lib/persistence/moment";
 import {
   EphemeralEditingState,
   PreviewProperty,
-  Sel,
   SimulationState,
   assetsAtom,
   dataAtom,

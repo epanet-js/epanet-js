@@ -3,7 +3,7 @@ import type {
   SelFolder,
   SelSingle,
   SelSingleCustomerPoint,
-} from "src/state/jotai";
+} from "./types";
 import type { FolderMap, IFolder, IWrappedFeature } from "src/types";
 import type { HydraulicModel, AssetsMap } from "src/hydraulic-model";
 import type { CustomerPoints } from "src/hydraulic-model/customer-points";

@@ -1,3 +1,6 @@
+/**
+ * A selection of a single folder.
+ */
 export interface SelFolder {
   type: "folder";
   /**
@@ -46,7 +49,3 @@ export type Sel =
     }
   | SelSingle
   | SelSingleCustomerPoint;
-
-export const SELECTION_NONE: Sel = {
-  type: "none",
-};

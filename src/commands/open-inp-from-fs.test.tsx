@@ -1,8 +1,8 @@
+import type { Sel } from "src/selection/types";
 import { render, screen, waitFor } from "@testing-library/react";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import {
-  Sel,
   SimulationFinished,
   Store,
   dataAtom,

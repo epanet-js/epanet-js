@@ -3,7 +3,6 @@ import { HydraulicModelBuilder } from "./hydraulic-model-builder";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import {
   FileInfo,
-  Sel,
   SimulationFinished,
   SimulationState,
   Store,
@@ -24,6 +23,7 @@ import { Mode } from "src/state/mode";
 import { Asset, HydraulicModel } from "src/hydraulic-model";
 import { ExportOptions } from "src/types/export";
 import { ILayerConfig, LayerConfigMap } from "src/types";
+import type { Sel } from "src/selection/types";
 import { nanoid } from "nanoid";
 import { LinkSymbology, NodeSymbology } from "src/map/symbology";
 import type { SimulationSettings } from "src/simulation/simulation-settings";

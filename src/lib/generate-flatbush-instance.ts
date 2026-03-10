@@ -5,7 +5,7 @@ import { getExtents } from "src/lib/geometry";
 import uniq from "lodash/uniq";
 import { USelection } from "src/selection";
 import { decodeId } from "./id";
-import { Sel } from "src/state/jotai";
+import type { Sel } from "src/selection/types";
 
 export const EmptyIndex = {
   type: "none",
