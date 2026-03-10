@@ -1,7 +1,7 @@
 import {
   DialogHeader,
   DialogButtons,
-  BaseModal,
+  BaseDialog,
   SimpleDialogActionsNew,
 } from "src/components/dialog";
 import { Button } from "../elements";
@@ -44,16 +44,15 @@ export const DeleteScenarioConfirmationDialog = ({
 
   if (isModalsOn) {
     return (
-      <BaseModal
+      <BaseDialog
         title={translate("scenarios.deleteConfirmation.title")}
         size="xs"
         isOpen={true}
         onClose={handleCancel}
-        onSubmit={handleConfirm}
-        initialValues={{}}
         footer={
           <SimpleDialogActionsNew
             action={translate("scenarios.deleteConfirmation.confirm")}
+            onAction={handleConfirm}
             actionVariant="danger"
             secondary={{
               action: translate("dialog.cancel"),
@@ -67,7 +66,7 @@ export const DeleteScenarioConfirmationDialog = ({
             {translate("scenarios.deleteConfirmation.message", scenarioName)}
           </p>
         </div>
-      </BaseModal>
+      </BaseDialog>
     );
   }
 

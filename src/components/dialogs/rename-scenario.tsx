@@ -8,13 +8,13 @@ import {
   KeyboardEvent,
 } from "react";
 import { useAtomValue } from "jotai";
-import { useField } from "formik";
+import { Formik, Form, useField } from "formik";
 import clsx from "clsx";
 import {
   DialogContainer,
   DialogHeader,
   DialogButtons,
-  BaseModal,
+  BaseDialog,
   SimpleDialogActionsNew,
 } from "src/components/dialog";
 import { Button } from "../elements";
@@ -120,11 +120,7 @@ export const RenameScenarioDialog = ({
 
   if (isModalsOn) {
     return (
-      <BaseModal
-        title={translate("scenarios.renameDialog.title")}
-        size="xs"
-        isOpen={true}
-        onClose={onClose}
+      <Formik
         initialValues={{ name: currentName }}
         onSubmit={({ name }: { name: string }) => {
           userTracking.capture({
@@ -136,21 +132,37 @@ export const RenameScenarioDialog = ({
           onConfirm(scenarioId, name.trim());
           onClose();
         }}
-        footer={
-          <SimpleDialogActionsNew
-            action={translate("dialog.save")}
-            secondary={{ action: translate("dialog.cancel"), onClick: onClose }}
-          />
-        }
       >
-        <div className="p-4">
-          <RenameField
-            validateName={validateName}
-            placeholder={translate("scenarios.renameDialog.placeholder")}
-            label={translate("scenarios.renameDialog.label")}
-          />
-        </div>
-      </BaseModal>
+        {({ submitForm, isSubmitting }) => (
+          <BaseDialog
+            title={translate("scenarios.renameDialog.title")}
+            size="xs"
+            isOpen={true}
+            onClose={onClose}
+            footer={
+              <SimpleDialogActionsNew
+                action={translate("dialog.save")}
+                onAction={submitForm}
+                isSubmitting={isSubmitting}
+                secondary={{
+                  action: translate("dialog.cancel"),
+                  onClick: onClose,
+                }}
+              />
+            }
+          >
+            <Form>
+              <div className="p-4">
+                <RenameField
+                  validateName={validateName}
+                  placeholder={translate("scenarios.renameDialog.placeholder")}
+                  label={translate("scenarios.renameDialog.label")}
+                />
+              </div>
+            </Form>
+          </BaseDialog>
+        )}
+      </Formik>
     );
   }
 

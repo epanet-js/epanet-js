@@ -1,6 +1,6 @@
 import { useShowReport } from "src/commands/show-report";
 import { SimulationSummaryState } from "src/state/dialog";
-import { BaseModal, SimpleDialogActionsNew } from "../dialog";
+import { BaseDialog, SimpleDialogActionsNew } from "../dialog";
 import { Loading } from "../elements";
 import { useTranslate } from "src/hooks/use-translate";
 import { ErrorIcon, SuccessIcon, WarningIcon } from "src/icons";
@@ -50,16 +50,16 @@ export const SimulationSummaryDialogNew = ({
   };
 
   return (
-    <BaseModal
+    <BaseDialog
       isOpen={true}
       onClose={onClose}
       title={config.title}
-      onSubmit={handleAction}
       size="xs"
       footer={
         <SimpleDialogActionsNew
           autoFocusSubmit={true}
           action={isSuccess ? translate("ok") : translate("viewReport")}
+          onAction={handleAction}
           secondary={{
             action: isSuccess
               ? translate("viewReport")
@@ -88,6 +88,6 @@ export const SimulationSummaryDialogNew = ({
               )}
         </p>
       </div>
-    </BaseModal>
+    </BaseDialog>
   );
 };

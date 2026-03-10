@@ -1,4 +1,4 @@
-import { DialogHeader, BaseModal, SimpleDialogActionsNew } from "../dialog";
+import { DialogHeader, BaseDialog, SimpleDialogActionsNew } from "../dialog";
 import { useTranslate } from "src/hooks/use-translate";
 import {
   SimpleDialogActions,
@@ -53,7 +53,7 @@ export const GeocodingNotSupportedDialog = ({
 
   if (isModalsOn) {
     return (
-      <BaseModal
+      <BaseDialog
         title={translate("geocodingNotSupported")}
         size="sm"
         isOpen={true}
@@ -96,7 +96,7 @@ export const GeocodingNotSupportedDialog = ({
             }}
           />
         </div>
-      </BaseModal>
+      </BaseDialog>
     );
   }
 
@@ -162,17 +162,16 @@ export const MissingCoordinatesDialog = ({
 
   if (isModalsOn) {
     return (
-      <BaseModal
+      <BaseDialog
         title={translate("missingCoordinates")}
         size="sm"
         isOpen={true}
         onClose={onClose}
-        onSubmit={onClose}
-        initialValues={{}}
         footer={
           <SimpleDialogActionsNew
             autoFocusSubmit={true}
             action={translate("understood")}
+            onAction={onClose}
             secondary={{
               action: translate("seeDemoNetworks"),
               onClick: goToWelcome,
@@ -184,7 +183,7 @@ export const MissingCoordinatesDialog = ({
           <p className="pb-2">{translate("missingCoordinatesDetail")}</p>
           <CoordinatesIssues issues={issues} />
         </div>
-      </BaseModal>
+      </BaseDialog>
     );
   }
 
@@ -233,17 +232,16 @@ export const InpIssuesDialog = ({
 
   if (isModalsOn) {
     return (
-      <BaseModal
+      <BaseDialog
         title={translate("inpNotFullySupported")}
         size="sm"
         isOpen={true}
         onClose={onClose}
-        onSubmit={onClose}
-        initialValues={{}}
         footer={
           <SimpleDialogActionsNew
             autoFocusSubmit={true}
             action={translate("understood")}
+            onAction={onClose}
             secondary={{
               action: translate("seeDemoNetworks"),
               onClick: goToWelcome,
@@ -256,7 +254,7 @@ export const InpIssuesDialog = ({
           <IssuesSummary issues={issues} />
           <SubscribeCTA source="inpIssues" />
         </div>
-      </BaseModal>
+      </BaseDialog>
     );
   }
 

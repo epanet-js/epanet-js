@@ -1,7 +1,8 @@
+import { useState } from "react";
 import {
   DialogHeader,
   DialogButtons,
-  BaseModal,
+  BaseDialog,
   SimpleDialogActionsNew,
 } from "src/components/dialog";
 import { useTranslate } from "src/hooks/use-translate";
@@ -20,9 +21,12 @@ export const UnsavedChangesDialog = ({
 }) => {
   const translate = useTranslate();
   const saveInp = useSaveInp();
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleSaveAndContinue = async () => {
+    setIsSaving(true);
     const isSaved = await saveInp({ source: "unsavedDialog" });
+    setIsSaving(false);
     if (isSaved) {
       onClose();
       onContinue();
@@ -36,15 +40,15 @@ export const UnsavedChangesDialog = ({
 
   if (isModalsOn) {
     return (
-      <BaseModal
+      <BaseDialog
         title={translate("unsavedChanges")}
         isOpen={true}
         onClose={onClose}
-        onSubmit={handleSaveAndContinue}
-        initialValues={{}}
         footer={
           <SimpleDialogActionsNew
             action={translate("saveAndContinue")}
+            onAction={handleSaveAndContinue}
+            isSubmitting={isSaving}
             secondary={{
               action: translate("dialog.discardChanges"),
               onClick: handleDiscardChanges,
@@ -56,7 +60,7 @@ export const UnsavedChangesDialog = ({
         <div className="p-4 text-sm text-gray-700">
           <p>{translate("unsavedChangesQuestion")}</p>
         </div>
-      </BaseModal>
+      </BaseDialog>
     );
   }
 

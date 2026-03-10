@@ -1,7 +1,7 @@
 import { useTranslate } from "src/hooks/use-translate";
 import {
   AckDialogActionNew,
-  BaseModal,
+  BaseDialog,
   DialogContainer,
   DialogHeader,
   useDialogState,
@@ -126,7 +126,7 @@ export const SimulationReportDialog = () => {
 
   if (isModalsOn) {
     return (
-      <BaseModal
+      <BaseDialog
         title={translate("simulationReport")}
         size="md"
         isOpen={true}
@@ -141,7 +141,7 @@ export const SimulationReportDialog = () => {
         <div className="flex-1 min-h-0 p-4 text-sm bg-gray-100 text-gray-700 font-mono leading-loose">
           {processedReport.map(renderRowWithSlots)}
         </div>
-      </BaseModal>
+      </BaseDialog>
     );
   }
 
