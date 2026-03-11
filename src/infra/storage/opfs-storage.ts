@@ -1,9 +1,9 @@
-import { IPrivateAppStorage } from "./private-app-storage";
+import { IKeyBufferStore } from "./types";
 
 const ROOT_DIR = "epanet-simulation";
 const HEARTBEAT_KEY_PREFIX = "last-simulation-access:";
 
-export class OPFSStorage implements IPrivateAppStorage {
+export class OPFSStorage implements IKeyBufferStore {
   constructor(
     private readonly appId: string,
     private readonly scenarioKey?: string,

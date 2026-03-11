@@ -1,9 +1,9 @@
-import { IPrivateAppStorage } from "./private-app-storage";
+import { IKeyBufferStore } from "./types";
 
 // Shared storage across all InMemoryStorage instances (keyed by appId)
 const sharedStorage = new Map<string, Map<string, ArrayBuffer>>();
 
-export class InMemoryStorage implements IPrivateAppStorage {
+export class InMemoryKeyBufferStore implements IKeyBufferStore {
   constructor(private readonly appId: string) {
     if (!sharedStorage.has(appId)) {
       sharedStorage.set(appId, new Map());

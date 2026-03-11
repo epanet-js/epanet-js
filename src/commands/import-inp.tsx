@@ -22,6 +22,7 @@ import { OPFSStorage } from "src/infra/storage";
 import { getAppId } from "src/infra/app-instance";
 import { isDemoNetwork } from "src/demo/demo-networks";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { useRecentFiles } from "src/hooks/use-recent-files";
 
 export const inpExtension = ".inp";
 
@@ -35,6 +36,7 @@ export const useImportInp = () => {
   const userTracking = useUserTracking();
 
   const allCurves = useFeatureFlag("FLAG_ALL_CURVES");
+  const { addRecent } = useRecentFiles();
 
   const importInp = useCallback(
     async (files: FileWithHandle[]) => {
@@ -118,6 +120,9 @@ export const useImportInp = () => {
             isDemoNetwork: isDemo,
             options: { type: "inp", folderId: "" },
           });
+          if (!isDemo && file.handle) {
+            void addRecent(file.name, file.handle);
+          }
           if (!issues) {
             setDialogState(null);
             return;
@@ -199,6 +204,7 @@ export const useImportInp = () => {
       setFileInfo,
       map?.map,
       allCurves,
+      addRecent,
     ],
   );
 

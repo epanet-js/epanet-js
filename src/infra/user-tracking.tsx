@@ -259,6 +259,11 @@ export type OpenInpStarted = {
   source: string;
 };
 
+export type RecentFileOpened = {
+  name: "recentFile.opened";
+  source: "toolbar";
+};
+
 export type ImportInpCompleted = {
   name: "importInp.completed";
   counts: Record<string, number>;
@@ -836,6 +841,7 @@ export type UserEvent =
   | SimulationTimestepChanged
   | ReportOpened
   | OpenInpStarted
+  | RecentFileOpened
   | ImportInpCompleted
   | FilesDropped
   | InvalidFilesErrorSeen

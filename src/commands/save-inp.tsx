@@ -15,6 +15,7 @@ import { useAtomValue, useSetAtom } from "jotai";
 import { notifyPromiseState } from "src/components/notifications";
 import { useUserTracking } from "src/infra/user-tracking";
 import { worktreeAtom } from "src/state/scenarios";
+import { useRecentFiles } from "src/hooks/use-recent-files";
 const getDefaultFsAccess = async () => {
   const { fileSave } = await import("browser-fs-access");
   return { fileSave };
@@ -33,6 +34,7 @@ export const useSaveInp = ({
   const translate = useTranslate();
   const setDialogState = useSetAtom(dialogAtom);
   const fileInfo = useAtomValue(fileInfoAtom);
+  const { addRecent } = useRecentFiles();
   const userTracking = useUserTracking();
 
   const saveInp = useAtomCallback(
@@ -86,14 +88,18 @@ export const useSaveInp = ({
               : null,
           );
           if (newHandle) {
+            const isDemo = get(isDemoNetworkAtom);
             set(fileInfoAtom, {
               name: newHandle.name,
               modelVersion: hydraulicModel.version,
               handle: newHandle,
               options: exportOptions,
               isMadeByApp: true,
-              isDemoNetwork: get(isDemoNetworkAtom),
+              isDemoNetwork: isDemo,
             });
+            if (!isDemo) {
+              void addRecent(newHandle.name, newHandle);
+            }
           }
         };
 
@@ -109,7 +115,7 @@ export const useSaveInp = ({
           return false;
         }
       },
-      [userTracking, getFsAccess, translate],
+      [userTracking, getFsAccess, addRecent, translate],
     ),
   );
 

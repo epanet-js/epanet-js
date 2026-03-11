@@ -8,7 +8,7 @@ import {
   ReservoirSimulation,
   PumpEnergySummary,
 } from "../results-reader";
-import { IPrivateAppStorage } from "src/infra/storage/private-app-storage";
+import { IKeyBufferStore } from "src/infra/storage";
 import { RESULTS_OUT_KEY, TANK_VOLUMES_KEY, PUMP_STATUS_KEY } from "./worker";
 import {
   SimulationMetadata,
@@ -98,12 +98,12 @@ interface CachedMetadata {
 }
 
 export class EPSResultsReader {
-  private storage: IPrivateAppStorage;
+  private storage: IKeyBufferStore;
   private metadata: CachedMetadata | null = null;
   private pumpPositionByLinkIndex: Map<number, number> = new Map();
   private pumpEnergy: Float32Array | null = null;
 
-  constructor(storage: IPrivateAppStorage) {
+  constructor(storage: IKeyBufferStore) {
     this.storage = storage;
   }
 

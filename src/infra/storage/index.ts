@@ -1,4 +1,6 @@
-export type { IPrivateAppStorage } from "./private-app-storage";
+export type { IKeyBufferStore, IKeyValueStore } from "./types";
 export { OPFSStorage } from "./opfs-storage";
-export { InMemoryStorage } from "./in-memory-storage";
+export { InMemoryKeyBufferStore as InMemoryStorage } from "./in-memory-key-buffer-store";
 export { initStorage } from "./init";
+export { IndexedDB } from "./indexed-db";
+export { InMemoryKeyValueStore } from "./in-memory-key-value-store";
