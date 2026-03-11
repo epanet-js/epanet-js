@@ -932,7 +932,7 @@ const addCurves = (
       const pump = hydraulicModel.assets.get(pumpId) as Pump;
       pump.setProperty("definitionType", "curve");
       pump.feature.properties.curve = curve.points.map((p) => ({ ...p }));
-      delete pump.feature.properties.curveId;
+      pump.setProperty("curveId", undefined);
       hydraulicModel.labelManager.remove(curve.label, "curve", curve.id);
       continue;
     }
