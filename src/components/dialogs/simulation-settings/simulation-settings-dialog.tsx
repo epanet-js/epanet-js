@@ -2,7 +2,14 @@ import { useCallback, useMemo } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { Form, Formik } from "formik";
 
-import { DialogContainer, DialogHeader, useDialogState } from "../../dialog";
+import {
+  BaseModal,
+  DialogContainer,
+  DialogHeader,
+  SimpleDialogActionsNew,
+  useDialogState,
+} from "../../dialog";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { Button } from "src/components/elements";
 import { useTranslate } from "src/hooks/use-translate";
 import { simulationSettingsAtom } from "src/state/simulation-settings";
@@ -56,6 +63,62 @@ export const SimulationSettingsDialog = () => {
     [simulationSettings, setSimulationSettings, closeDialog],
   );
 
+  const isModalsOn = useFeatureFlag("FLAG_MODALS");
+
+  if (isModalsOn) {
+    return (
+      <Formik onSubmit={handleSubmit} initialValues={initialValues}>
+        {({ submitForm, isSubmitting }) => (
+          <BaseModal
+            title={translate("simulationSettings.title")}
+            size="md"
+            height="lg"
+            isOpen={true}
+            onClose={closeDialog}
+            footer={
+              <SimulationSettingsFooter
+                submitForm={submitForm}
+                isSubmitting={isSubmitting}
+                onClose={closeDialog}
+              />
+            }
+          >
+            <Form className="flex-1 flex flex-col min-h-0">
+              <div className="flex-1 flex min-h-0">
+                <SimulationSettingsSidebar
+                  activeSection={activeSection}
+                  onSelectSection={scrollToSection}
+                />
+                <div className="border-l border-gray-200 flex-1 flex flex-col min-h-0">
+                  <SimulationSettingsContent ref={scrollContainerRef}>
+                    <SettingsSection sectionId="general">
+                      <GeneralSection />
+                    </SettingsSection>
+                    <SettingsSection sectionId="times">
+                      <TimesSection />
+                    </SettingsSection>
+                    <SettingsSection sectionId="demands">
+                      <DemandsSection />
+                    </SettingsSection>
+                    <SettingsSection sectionId="hydraulics">
+                      <HydraulicsSection />
+                    </SettingsSection>
+                    <SettingsSection sectionId="waterQuality">
+                      <WaterQualitySection />
+                    </SettingsSection>
+                    <SettingsSection sectionId="energy">
+                      <EnergySection />
+                    </SettingsSection>
+                  </SimulationSettingsContent>
+                </div>
+              </div>
+            </Form>
+          </BaseModal>
+        )}
+      </Formik>
+    );
+  }
+
   return (
     <DialogContainer size="md" height="lg" onClose={closeDialog}>
       <DialogHeader title={translate("simulationSettings.title")} />
@@ -68,6 +131,32 @@ export const SimulationSettingsDialog = () => {
         />
       </Formik>
     </DialogContainer>
+  );
+};
+
+const SimulationSettingsFooter = ({
+  submitForm,
+  isSubmitting,
+  onClose,
+}: {
+  submitForm: () => void;
+  isSubmitting: boolean;
+  onClose: () => void;
+}) => {
+  const translate = useTranslate();
+  const { hasValidationError } = useTimeSettingsValidation();
+
+  return (
+    <SimpleDialogActionsNew
+      action={translate("simulationSettings.save")}
+      onAction={submitForm}
+      isSubmitting={isSubmitting}
+      isDisabled={hasValidationError}
+      secondary={{
+        action: translate("dialog.cancel"),
+        onClick: onClose,
+      }}
+    />
   );
 };
 
