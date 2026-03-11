@@ -260,7 +260,7 @@
   "openINP": "Open INP",
   "deprecatedImportFromGIS": "Import from GIS data",
   "importFromGIS": "Import from GIS",
-  "reopenRecent": "Reopen recent...",
+  "recent": "Recent",
   "dropInp": "Drop an .INP file here to open the model.",
   "inpMissing": "Invalid file type. Use an .INP file.",
   "onlyOneInp": "Multiple INPs",

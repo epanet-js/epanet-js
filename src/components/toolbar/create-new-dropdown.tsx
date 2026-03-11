@@ -134,8 +134,8 @@ const RecentFilesMenu = () => {
       <DD.Sub>
         <DDSubTriggerItem>
           <OutdatedSimulationIcon />
-          {translate("reopenRecent")}
-          <ChevronRightIcon size="sm" />
+          {`${translate("recent")}...`}
+          <ChevronRightIcon size="sm" className="ml-auto" />
         </DDSubTriggerItem>
         <DD.Portal>
           <DDSubContent sideOffset={4} alignOffset={-4}>

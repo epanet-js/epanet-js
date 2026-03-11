@@ -2,7 +2,10 @@ import { useAtom } from "jotai";
 import { useNewProject } from "src/commands/create-new-project";
 import { useOpenInpFromFs } from "src/commands/open-inp-from-fs";
 import { useOpenModelBuilder } from "src/commands/open-model-builder";
+import { useOpenRecentFile } from "src/commands/open-recent-file";
 import { useTranslate } from "src/hooks/use-translate";
+import { useRecentFiles } from "src/hooks/use-recent-files";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useUserTracking } from "src/infra/user-tracking";
 import { userSettingsAtom } from "src/state/user-settings";
 import { languageConfig } from "src/infra/i18n/locale";
@@ -60,7 +63,12 @@ export const WelcomeDialog = () => {
   const createNew = useNewProject();
   const openInpFromFs = useOpenInpFromFs();
   const openModelBuilder = useOpenModelBuilder();
+  const openRecentFile = useOpenRecentFile();
   const userTracking = useUserTracking();
+  const { recentFiles, isSupported: isRecentFilesSupported } = useRecentFiles();
+  const isRecentFilesOn = useFeatureFlag("FLAG_RECENT_FILES");
+  const showRecent =
+    isRecentFilesOn && isRecentFilesSupported && recentFiles.length > 0;
 
   const isMdOrLarger = useBreakpoint("md");
   const demoModels = getDemoModels(translate);
@@ -128,6 +136,25 @@ export const WelcomeDialog = () => {
                   {translate("importFromGIS")}
                   <EarlyAccessIcon size="sm" />
                 </Button>
+
+                {isMdOrLarger && showRecent && (
+                  <div className="flex flex-col gap-2 mt-2 max-w-[200px]">
+                    <span className="text-xs text-gray-400 uppercase px-1">
+                      {translate("recent")}
+                    </span>
+                    {recentFiles.map((entry) => (
+                      <Button
+                        key={entry.id}
+                        variant="quiet"
+                        onClick={() => openRecentFile(entry, "welcome")}
+                        className="w-full min-w-0"
+                      >
+                        <FileSpreadsheetIcon className="shrink-0" />
+                        <span className="truncate">{entry.name}</span>
+                      </Button>
+                    ))}
+                  </div>
+                )}
 
                 <div className="mt-4 flex items-start flex-col gap-2">
                   <a
