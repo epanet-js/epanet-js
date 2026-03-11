@@ -1,7 +1,13 @@
-import { DialogHeader, DialogButtons } from "src/components/dialog";
+import {
+  DialogHeader,
+  DialogButtons,
+  BaseModal,
+  SimpleDialogActionsNew,
+} from "src/components/dialog";
 import { Button } from "../elements";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useTranslate } from "src/hooks/use-translate";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { WarningIcon } from "src/icons";
 
 export const DeleteScenarioConfirmationDialog = ({
@@ -15,6 +21,7 @@ export const DeleteScenarioConfirmationDialog = ({
   onConfirm: (scenarioId: string) => void;
   onClose: () => void;
 }) => {
+  const isModalsOn = useFeatureFlag("FLAG_MODALS");
   const userTracking = useUserTracking();
   const translate = useTranslate();
 
@@ -34,6 +41,35 @@ export const DeleteScenarioConfirmationDialog = ({
     });
     onClose();
   };
+
+  if (isModalsOn) {
+    return (
+      <BaseModal
+        title={translate("scenarios.deleteConfirmation.title")}
+        size="xs"
+        isOpen={true}
+        onClose={handleCancel}
+        onSubmit={handleConfirm}
+        initialValues={{}}
+        footer={
+          <SimpleDialogActionsNew
+            action={translate("scenarios.deleteConfirmation.confirm")}
+            actionVariant="danger"
+            secondary={{
+              action: translate("dialog.cancel"),
+              onClick: handleCancel,
+            }}
+          />
+        }
+      >
+        <div className="p-4 text-sm text-gray-700">
+          <p>
+            {translate("scenarios.deleteConfirmation.message", scenarioName)}
+          </p>
+        </div>
+      </BaseModal>
+    );
+  }
 
   return (
     <>
