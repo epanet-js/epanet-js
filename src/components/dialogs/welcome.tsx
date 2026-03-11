@@ -27,7 +27,12 @@ import {
   HelpIcon,
   EarlyAccessIcon,
 } from "src/icons";
-import { DialogCloseX, DialogContainer } from "../dialog";
+import {
+  BaseModal,
+  DialogCloseX,
+  DialogContainer,
+  useDialogState,
+} from "../dialog";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { Message } from "../message";
 import { DemoNetworkCard } from "../demo-network-card";
@@ -78,6 +83,210 @@ export const WelcomeDialog = () => {
     (lang) => lang.code === currentLocale.locale,
   );
   const isExperimental = currentLanguage?.experimental ?? false;
+
+  const isModalsOn = useFeatureFlag("FLAG_MODALS");
+  const { closeDialog } = useDialogState();
+
+  if (isModalsOn) {
+    return (
+      <BaseModal size="md" isOpen={true} onClose={closeDialog}>
+        <LocaleProvider>
+          <div className="relative grid sm:grid-cols-[min-content_1fr]">
+            <div className="absolute top-6 right-6 z-10">
+              <DialogCloseX />
+            </div>
+            <div className="bg-gray-50 border-r border-gray-200 rounded-tl-lg rounded-bl-lg col-span-1 md:w-max flex flex-col p-6 gap-6">
+              <div className="pl-1">
+                <LogoIconAndWordmarkIcon size={147} />
+              </div>
+              <div className="sm:hidden">
+                <SmallDeviceWarning />
+              </div>
+              <div className="h-full flex flex-col gap-2">
+                {isMdOrLarger && (
+                  <Button
+                    variant="quiet"
+                    onClick={() => {
+                      void createNew({ source: "welcome" });
+                    }}
+                    style={{ width: "100%" }}
+                  >
+                    <FileIcon />
+                    {translate("startBlankProject")}
+                  </Button>
+                )}
+                <Button
+                  variant="quiet"
+                  onClick={() => {
+                    void openInpFromFs({ source: "welcome" });
+                  }}
+                  style={{ width: "100%" }}
+                >
+                  <FileSpreadsheetIcon />
+                  {translate("openProject")}
+                </Button>
+                <Button
+                  variant="quiet"
+                  onClick={() => {
+                    openModelBuilder({ source: "welcome" });
+                  }}
+                  style={{ width: "100%" }}
+                >
+                  <GlobeIcon />
+                  {translate("importFromGIS")}
+                  <EarlyAccessIcon size="sm" />
+                </Button>
+
+                {isMdOrLarger && showRecent && (
+                  <div className="flex flex-col gap-2 mt-2 max-w-[200px]">
+                    <span className="text-xs text-gray-400 uppercase px-1">
+                      {translate("recent")}
+                    </span>
+                    {recentFiles.map((entry) => (
+                      <Button
+                        key={entry.id}
+                        variant="quiet"
+                        onClick={() => openRecentFile(entry, "welcome")}
+                        className="w-full min-w-0"
+                      >
+                        <FileSpreadsheetIcon className="shrink-0" />
+                        <span className="truncate">{entry.name}</span>
+                      </Button>
+                    ))}
+                  </div>
+                )}
+
+                <div className="mt-4 flex items-start flex-col gap-2">
+                  <a
+                    href={helpCenterUrl}
+                    target="_blank"
+                    onClick={() => {
+                      userTracking.capture({
+                        name: "helpCenter.visited",
+                        source: "welcome",
+                      });
+                    }}
+                    style={{ width: "100%" }}
+                  >
+                    <Button variant="quiet" style={{ width: "100%" }}>
+                      <HelpIcon />
+                      {translate("helpCenter")}
+                    </Button>
+                  </a>
+                  <a
+                    href={quickStartTutorialUrl}
+                    target="_blank"
+                    onClick={() => {
+                      userTracking.capture({
+                        name: "quickStart.visited",
+                        source: "welcome",
+                      });
+                    }}
+                    style={{ width: "100%" }}
+                  >
+                    <Button variant="primary" style={{ width: "100%" }}>
+                      <ArrowRightIcon />
+                      {translate("quickStartTutorial")}
+                    </Button>
+                  </a>
+                </div>
+
+                <div className="flex flex-col gap-2 mt-auto text-xs">
+                  {isMdOrLarger && (
+                    <div className="mb-4 text-xs flex items-center gap-x-2">
+                      <Checkbox
+                        checked={userSettings.showWelcomeOnStart}
+                        onChange={() => {
+                          userSettings.showWelcomeOnStart
+                            ? userTracking.capture({ name: "welcome.hidden" })
+                            : userTracking.capture({
+                                name: "welcome.enabled",
+                              });
+                          setUserSettings((prev) => ({
+                            ...prev,
+                            showWelcomeOnStart: !prev.showWelcomeOnStart,
+                          }));
+                        }}
+                      />
+                      {translate("alwaysShowAtStart")}
+                    </div>
+                  )}
+                  <a href={termsAndConditionsUrl} target="_blank">
+                    {translate("termsAndConditions")}
+                  </a>
+                  <a href={privacyPolicyUrl} target="_blank">
+                    {translate("privacyPolicy")}
+                  </a>
+                </div>
+              </div>
+            </div>
+            <div className="p-6">
+              {isExperimental && (
+                <div className="mt-7 mb-3">
+                  <Message
+                    variant="info"
+                    title={translate("startNotificationLanguageTitle")}
+                  >
+                    {translate("startNotificationLanguageDescription")}
+                  </Message>
+                </div>
+              )}
+
+              <h2 className="mt-[.2rem] pt-2 pb-2 font-bold text-gray-500">
+                {translate("demoNetworksTitle")}
+              </h2>
+              <div className="grid grid-cols-2 gap-6">
+                {demoModels.map((demoModel, i) => (
+                  <DemoNetworkCard key={i} demoNetwork={demoModel} />
+                ))}
+              </div>
+              <div className="bg-gray-50 rounded-lg p-4 mt-6 text-xs text-center">
+                <h3 className="text-gray-600 font-bold">
+                  {translate("foundersPartnerTitle")}
+                </h3>
+                <a
+                  href="https://optimatics.com/"
+                  target="_blank"
+                  onClick={() => {
+                    userTracking.capture({
+                      name: "foundersPartner.visited",
+                      link: "optimatics",
+                    });
+                  }}
+                >
+                  <img
+                    src={optimaticsLogoUrl.src}
+                    className="block m-auto h-16"
+                    height="64"
+                  />
+                </a>
+                <p className="text-gray-600">
+                  {translate("foundersPartnerDescription")}{" "}
+                  <a
+                    href="https://help.epanetjs.com/Founding-Partner-program-2f6e18c9f0f680d8be27c05c0b5844bb"
+                    target="_blank"
+                    className="underline text-violet-500"
+                    onClick={() => {
+                      userTracking.capture({
+                        name: "foundersPartner.visited",
+                        link: "foundersPartners",
+                      });
+                    }}
+                  >
+                    {translate("foundersPartnerLearnMore")}
+                  </a>
+                  .
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="hidden sm:max-md:block mb-2">
+            <SmallDeviceWarning />
+          </div>
+        </LocaleProvider>
+      </BaseModal>
+    );
+  }
 
   return (
     <DialogContainer size="md">
