@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { useAtomCallback } from "jotai/utils";
-import { DialogContainer, DialogHeader } from "../dialog";
+import { DialogContainer, DialogHeader, BaseModal } from "../dialog";
 import { Button } from "../elements";
 import { CheckoutButton } from "../checkout-button";
 import { VideoPlayer } from "../video-player";
@@ -47,6 +47,7 @@ export const ScenariosPaywallDialog = ({
 }: {
   onClose: () => void;
 }) => {
+  const isModalsOn = useFeatureFlag("FLAG_MODALS");
   const setDialog = useSetAtom(dialogAtom);
   const userTracking = useUserTracking();
   const translate = useTranslate();
@@ -179,6 +180,188 @@ export const ScenariosPaywallDialog = ({
       });
     }
   };
+
+  if (isModalsOn) {
+    return (
+      <BaseModal
+        title={translate("scenarios.paywall.title")}
+        size="md"
+        isOpen={true}
+        onClose={_onClose}
+      >
+        <div className="grid grid-cols-1 md:grid-cols-[3fr_2fr] gap-8 p-4">
+          <div className="relative aspect-square bg-gray-100 dark:bg-gray-800 border border-gray-200 rounded-lg shadow-md overflow-hidden">
+            <VideoPlayer
+              src={SCENARIOS_VIDEO_SRC}
+              captions={captions}
+              autoPlay
+              muted
+              loop
+              playsInline
+            />
+          </div>
+
+          <div className="flex flex-col">
+            {showTrialButton ? (
+              <>
+                <div className="space-y-3 pb-6">
+                  <p className="text-sm text-gray-700 dark:text-gray-300">
+                    {translate("scenarios.paywall.description1")}
+                  </p>
+                  <p className="text-sm text-gray-700 dark:text-gray-300">
+                    {translate("scenarios.paywall.description2")}
+                  </p>
+                  <p className="text-sm text-gray-700 dark:text-gray-300">
+                    {translate("trial.paywallDescription")}
+                  </p>
+                </div>
+                <div className="flex flex-col gap-3">
+                  {isSignedIn ? (
+                    <Button
+                      variant="primary"
+                      size="full-width"
+                      onClick={() => void handleStartTrial()}
+                      disabled={isTrialLoading || isDemoLoading}
+                    >
+                      {isTrialLoading ? (
+                        <RefreshIcon className="animate-spin" />
+                      ) : (
+                        translate("trial.activateFree")
+                      )}
+                    </Button>
+                  ) : (
+                    <ClerkSignInButton
+                      forceRedirectUrl={buildAfterSignupUrl("activatingTrial")}
+                      signUpForceRedirectUrl={buildAfterSignupUrl(
+                        "activatingTrial",
+                      )}
+                    >
+                      <Button
+                        variant="primary"
+                        size="full-width"
+                        disabled={isDemoLoading}
+                      >
+                        {translate("trial.activateFree")}
+                      </Button>
+                    </ClerkSignInButton>
+                  )}
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 border-t border-gray-200 dark:border-gray-700" />
+                    <span className="text-xs text-gray-400 dark:text-gray-500">
+                      {translate("scenarios.paywall.or")}
+                    </span>
+                    <div className="flex-1 border-t border-gray-200 dark:border-gray-700" />
+                  </div>
+                  <Button
+                    variant="default"
+                    size="full-width"
+                    onClick={() => void handleTryDemo()}
+                    disabled={isTrialLoading || isDemoLoading}
+                  >
+                    {isDemoLoading ? (
+                      <RefreshIcon className="animate-spin" />
+                    ) : (
+                      translate("trial.tryWithDemo")
+                    )}
+                  </Button>
+                </div>
+              </>
+            ) : showPlans ? (
+              <>
+                <button
+                  className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 pb-2"
+                  onClick={() => setShowPlans(false)}
+                >
+                  <ChevronLeftIcon className="w-4 h-4" />
+                  {translate("back")}
+                </button>
+                <div className="flex flex-col gap-5">
+                  <div className="flex flex-col gap-1">
+                    <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                      {translate("scenarios.paywall.nonCommercial.title")}
+                    </h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      {translate("scenarios.paywall.nonCommercial.description")}
+                    </p>
+                    <div className="pt-2" onClick={handlePersonalCheckout}>
+                      <CheckoutButton
+                        plan="personal"
+                        paymentType="yearly"
+                        variant="default"
+                      >
+                        {translate("scenarios.paywall.nonCommercial.cta")}
+                      </CheckoutButton>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-1">
+                    <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                      {translate("scenarios.paywall.commercial.title")}
+                    </h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      {translate("scenarios.paywall.commercial.description")}
+                    </p>
+                    <div className="pt-2">
+                      <Button
+                        variant="primary"
+                        size="full-width"
+                        onClick={handleChooseYourPlan}
+                      >
+                        {translate("scenarios.paywall.commercial.cta")}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="space-y-3 pb-6">
+                  <p className="text-sm text-gray-700 dark:text-gray-300">
+                    {translate("scenarios.paywall.description1")}
+                  </p>
+                  <p className="text-sm text-gray-700 dark:text-gray-300">
+                    {translate("scenarios.paywall.description2")}
+                  </p>
+                  <p className="text-sm text-gray-700 dark:text-gray-300">
+                    {translate("scenarios.paywall.description3Demo")}
+                  </p>
+                </div>
+                <div className="flex flex-col gap-3">
+                  <Button
+                    variant="default"
+                    size="full-width"
+                    onClick={() => void handleTryDemo()}
+                    disabled={isDemoLoading}
+                  >
+                    {isDemoLoading ? (
+                      <RefreshIcon className="animate-spin" />
+                    ) : (
+                      translate("trial.tryWithDemo")
+                    )}
+                  </Button>
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 border-t border-gray-200 dark:border-gray-700" />
+                    <span className="text-xs text-gray-400 dark:text-gray-500">
+                      {translate("scenarios.paywall.or")}
+                    </span>
+                    <div className="flex-1 border-t border-gray-200 dark:border-gray-700" />
+                  </div>
+                  <Button
+                    variant="primary"
+                    size="full-width"
+                    onClick={handleExplorePlans}
+                    disabled={isDemoLoading}
+                  >
+                    {translate("scenarios.paywall.explorePlans")}
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      </BaseModal>
+    );
+  }
 
   return (
     <DialogContainer size="md">

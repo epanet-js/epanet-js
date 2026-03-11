@@ -3,6 +3,8 @@ import {
   DialogContainer,
   DialogHeader,
   DialogButtons,
+  BaseModal,
+  SimpleDialogActionsNew,
 } from "src/components/dialog";
 import { Button } from "../elements";
 import { Checkbox } from "../form/Checkbox";
@@ -12,6 +14,7 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { userSettingsAtom } from "src/state/user-settings";
 import { AddScenarioIcon } from "src/icons";
 import { EarlyAccessBadge } from "../early-access-badge";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export const FirstScenarioDialog = ({
   onConfirm,
@@ -20,6 +23,7 @@ export const FirstScenarioDialog = ({
   onConfirm: () => void;
   onClose: () => void;
 }) => {
+  const isModalsOn = useFeatureFlag("FLAG_MODALS");
   const translate = useTranslate();
   const [userSettings, setUserSettings] = useAtom(userSettingsAtom);
   const userTracking = useUserTracking();
@@ -42,14 +46,8 @@ export const FirstScenarioDialog = ({
     });
   };
 
-  return (
-    <DialogContainer size="sm">
-      <DialogHeader
-        title={translate("scenarios.firstScenario.title")}
-        titleIcon={AddScenarioIcon}
-        badge={<EarlyAccessBadge />}
-      />
-
+  const content = (
+    <>
       <div className="space-y-4 text-sm text-gray-700 dark:text-gray-300">
         <p>{translate("scenarios.firstScenario.earlyAccess")}</p>
 
@@ -88,7 +86,41 @@ export const FirstScenarioDialog = ({
           {translate("scenarios.firstScenario.dontShowAgain")}
         </span>
       </div>
+    </>
+  );
 
+  if (isModalsOn) {
+    return (
+      <BaseModal
+        title={translate("scenarios.firstScenario.title")}
+        size="sm"
+        isOpen={true}
+        onClose={onClose}
+        badge={<EarlyAccessBadge />}
+        footer={
+          <SimpleDialogActionsNew
+            action={translate("scenarios.firstScenario.createButton")}
+            onAction={handleCreate}
+            secondary={{
+              action: translate("dialog.cancel"),
+              onClick: onClose,
+            }}
+          />
+        }
+      >
+        <div className="p-4">{content}</div>
+      </BaseModal>
+    );
+  }
+
+  return (
+    <DialogContainer size="sm">
+      <DialogHeader
+        title={translate("scenarios.firstScenario.title")}
+        titleIcon={AddScenarioIcon}
+        badge={<EarlyAccessBadge />}
+      />
+      {content}
       <DialogButtons>
         <Button variant="primary" onClick={handleCreate}>
           {translate("scenarios.firstScenario.createButton")}
