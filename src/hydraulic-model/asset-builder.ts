@@ -167,7 +167,7 @@ export class AssetBuilder {
         roughness: this.getPipeValue("roughness", roughness),
         isActive,
       },
-      this.units,
+      this.units.length,
     );
   }
 
@@ -207,7 +207,7 @@ export class AssetBuilder {
         isActive,
         curveId,
       },
-      this.units,
+      this.units.length,
     );
   }
 
@@ -259,7 +259,7 @@ export class AssetBuilder {
         energyPricePatternId,
         isActive,
       },
-      this.units,
+      this.units.length,
     );
   }
 
@@ -272,21 +272,16 @@ export class AssetBuilder {
     isActive = true,
   }: JunctionBuildData = {}) {
     const internalId = id ?? this._idGenerator.newId();
-    return new Junction(
-      internalId,
-      coordinates,
-      {
-        type: "junction",
-        label:
-          label !== undefined
-            ? label
-            : this.labelGenerator.generateFor("junction", internalId),
-        elevation: this.getJunctionValue("elevation", elevation),
-        emitterCoefficient: emitterCoefficient ?? 0,
-        isActive,
-      },
-      this.units,
-    );
+    return new Junction(internalId, coordinates, {
+      type: "junction",
+      label:
+        label !== undefined
+          ? label
+          : this.labelGenerator.generateFor("junction", internalId),
+      elevation: this.getJunctionValue("elevation", elevation),
+      emitterCoefficient: emitterCoefficient ?? 0,
+      isActive,
+    });
   }
 
   buildReservoir({
@@ -312,22 +307,17 @@ export class AssetBuilder {
       headValue = relativeHeadValue + elevationValue;
     }
 
-    return new Reservoir(
-      internalId,
-      coordinates,
-      {
-        type: "reservoir",
-        label:
-          label !== undefined
-            ? label
-            : this.labelGenerator.generateFor("reservoir", internalId),
-        head: headValue,
-        headPatternId,
-        elevation: elevationValue,
-        isActive,
-      },
-      this.units,
-    );
+    return new Reservoir(internalId, coordinates, {
+      type: "reservoir",
+      label:
+        label !== undefined
+          ? label
+          : this.labelGenerator.generateFor("reservoir", internalId),
+      head: headValue,
+      headPatternId,
+      elevation: elevationValue,
+      isActive,
+    });
   }
 
   buildTank({
@@ -345,27 +335,22 @@ export class AssetBuilder {
     volumeCurveId,
   }: TankBuildData = {}) {
     const internalId = id ?? this._idGenerator.newId();
-    return new Tank(
-      internalId,
-      coordinates,
-      {
-        type: "tank",
-        label:
-          label !== undefined
-            ? label
-            : this.labelGenerator.generateFor("tank", internalId),
-        elevation: this.getTankValue("elevation", elevation),
-        initialLevel: this.getTankValue("initialLevel", initialLevel),
-        minLevel: this.getTankValue("minLevel", minLevel),
-        maxLevel: this.getTankValue("maxLevel", maxLevel),
-        minVolume: this.getTankValue("minVolume", minVolume),
-        diameter: this.getTankValue("diameter", diameter),
-        volumeCurveId,
-        overflow: overflow ?? false,
-        isActive,
-      },
-      this.units,
-    );
+    return new Tank(internalId, coordinates, {
+      type: "tank",
+      label:
+        label !== undefined
+          ? label
+          : this.labelGenerator.generateFor("tank", internalId),
+      elevation: this.getTankValue("elevation", elevation),
+      initialLevel: this.getTankValue("initialLevel", initialLevel),
+      minLevel: this.getTankValue("minLevel", minLevel),
+      maxLevel: this.getTankValue("maxLevel", maxLevel),
+      minVolume: this.getTankValue("minVolume", minVolume),
+      diameter: this.getTankValue("diameter", diameter),
+      volumeCurveId,
+      overflow: overflow ?? false,
+      isActive,
+    });
   }
 
   private getPipeValue(name: PipeQuantity, candidate?: number) {

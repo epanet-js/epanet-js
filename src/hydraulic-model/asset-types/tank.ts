@@ -28,18 +28,9 @@ export type TankQuantity = (typeof tankQuantities)[number];
 
 export class Tank extends Node<TankProperties> {
   copy() {
-    return new Tank(
-      this.id,
-      [...this.coordinates],
-      {
-        ...this.properties,
-      },
-      this.units,
-    );
-  }
-
-  getUnit(key: TankQuantity) {
-    return this.units[key];
+    return new Tank(this.id, [...this.coordinates], {
+      ...this.properties,
+    });
   }
 
   get initialLevel() {

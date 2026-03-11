@@ -164,12 +164,6 @@ describe("Parse inp with", () => {
     expect(hydraulicModel.units).toMatchObject({
       flow: "gal/min",
     });
-    const reservoir = getByLabel(
-      hydraulicModel.assets,
-      String(IDS.R1),
-    ) as Reservoir;
-    expect(reservoir.getUnit("head")).toEqual("ft");
-
     expect(modelMetadata.quantities.getUnit("head")).toEqual("ft");
   });
 
@@ -186,15 +180,11 @@ describe("Parse inp with", () => {
     [COORDINATES]
     ${IDS.R1}\t1\t1
     `;
-    const { hydraulicModel } = parseInp(inp);
+    const { hydraulicModel, modelMetadata } = parseInp(inp);
     expect(hydraulicModel.units).toMatchObject({
       flow: "l/s",
     });
-    const reservoir = getByLabel(
-      hydraulicModel.assets,
-      String(IDS.R1),
-    ) as Reservoir;
-    expect(reservoir.getUnit("head")).toEqual("m");
+    expect(modelMetadata.quantities.getUnit("head")).toEqual("m");
   });
 
   it("detects headloss formula from inp", () => {

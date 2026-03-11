@@ -12,10 +12,12 @@ import {
   appendPipeArrowProps,
 } from "./features";
 import type { ResultsReader } from "src/simulation/results-reader";
+import type { Quantities } from "src/model-metadata/quantities-spec";
 
 export const buildSelectionSource = (
   assets: AssetsMap,
   selection: Sel,
+  quantities: Quantities,
   movedAssetIds: Set<AssetId> = new Set(),
   simulationResults?: ResultsReader | null,
 ): Feature[] => {
@@ -42,7 +44,12 @@ export const buildSelectionSource = (
 
     if (asset.isLink) {
       features.push(
-        buildLinkSelectionFeature(asset, featureId, simulationResults),
+        buildLinkSelectionFeature(
+          asset,
+          featureId,
+          quantities,
+          simulationResults,
+        ),
       );
 
       const needsIcon =
@@ -68,6 +75,7 @@ export const buildSelectionSource = (
 const buildLinkSelectionFeature = (
   asset: Asset,
   featureId: AssetId,
+  quantities: Quantities,
   simulationResults?: ResultsReader | null,
 ): Feature => {
   const feature: Feature = {
@@ -83,7 +91,12 @@ const buildLinkSelectionFeature = (
   switch (asset.type) {
     case "pipe":
       appendPipeStatus(asset as Pipe, feature, simulationResults);
-      appendPipeArrowProps(asset as Pipe, feature, simulationResults);
+      appendPipeArrowProps(
+        asset as Pipe,
+        feature,
+        quantities,
+        simulationResults,
+      );
       break;
     case "pump":
       appendPumpStatus(asset as Pump, feature, simulationResults);

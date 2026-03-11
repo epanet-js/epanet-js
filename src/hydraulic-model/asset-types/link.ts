@@ -1,14 +1,8 @@
 import { Feature, Position } from "geojson";
-import {
-  BaseAsset,
-  AssetId,
-  AssetProperties,
-  AssetUnits,
-  NO_ASSET_ID,
-} from "./base-asset";
+import { BaseAsset, AssetId, AssetProperties, NO_ASSET_ID } from "./base-asset";
 import measureLength from "@turf/length";
 import { isSamePosition } from "src/lib/geometry";
-import { convertTo } from "src/quantity";
+import { Unit, convertTo } from "src/quantity";
 
 export type LinkConnections = [start: AssetId, end: AssetId];
 
@@ -29,13 +23,16 @@ export type LinkProperties = {
 } & AssetProperties;
 
 export class Link<T> extends BaseAsset<T & LinkProperties> {
+  protected lengthUnit: Unit;
+
   constructor(
     id: AssetId,
     coordinates: Position[],
     properties: T & LinkProperties,
-    units: AssetUnits,
+    lengthUnit: Unit,
   ) {
-    super(id, { type: "LineString", coordinates }, properties, units);
+    super(id, { type: "LineString", coordinates }, properties);
+    this.lengthUnit = lengthUnit;
   }
 
   get isLink() {
@@ -111,10 +108,6 @@ export class Link<T> extends BaseAsset<T & LinkProperties> {
     this.setCoordinates([...this.coordinates.slice(0, -1), position]);
   }
 
-  getUnit(quantity: "length") {
-    return this.units[quantity];
-  }
-
   setCoordinates(newCoordinates: Position[]) {
     if (newCoordinates.length < 2) {
       throw new Error(
@@ -127,10 +120,9 @@ export class Link<T> extends BaseAsset<T & LinkProperties> {
     const lengthInMeters =
       measureLength(this.feature, { units: "kilometers" }) * 1000;
     const length = parseFloat(
-      convertTo(
-        { value: lengthInMeters, unit: "m" },
-        this.getUnit("length"),
-      ).toFixed(2),
+      convertTo({ value: lengthInMeters, unit: "m" }, this.lengthUnit).toFixed(
+        2,
+      ),
     );
 
     this.properties.length = length;

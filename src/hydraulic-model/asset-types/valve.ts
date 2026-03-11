@@ -1,6 +1,5 @@
 import { CurveId } from "../curves";
 import { Link, LinkProperties } from "./link";
-import { Unit } from "src/quantity";
 
 export const valveStatuses = ["active", "open", "closed"] as const;
 export type ValveStatus = (typeof valveStatuses)[number];
@@ -41,10 +40,6 @@ export const valveQuantities = ["diameter", "minorLoss", "setting"];
 export type ValveQuantity = (typeof valveQuantities)[number];
 
 export class Valve extends Link<ValveProperties> {
-  getUnit(quantity: ValveQuantity): Unit {
-    return this.units[quantity];
-  }
-
   get diameter() {
     return this.properties.diameter;
   }
@@ -76,7 +71,7 @@ export class Valve extends Link<ValveProperties> {
       {
         ...this.properties,
       },
-      this.units,
+      this.lengthUnit,
     );
   }
 }

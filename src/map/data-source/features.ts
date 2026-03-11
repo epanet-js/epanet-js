@@ -10,7 +10,6 @@ import {
   Quantities,
   QuantityProperty,
 } from "src/model-metadata/quantities-spec";
-import { JunctionQuantity } from "src/hydraulic-model/asset-types/junction";
 import {
   isSimulationProperty,
   type ResultsReader,
@@ -165,6 +164,7 @@ export const appendValveStatus = (
 export const appendPipeArrowProps = (
   pipe: Pipe,
   feature: Feature,
+  quantities: Quantities,
   simulationResults?: ResultsReader | null,
 ) => {
   const pipeSimulation = simulationResults?.getPipe(pipe.id);
@@ -172,7 +172,7 @@ export const appendPipeArrowProps = (
   const flow = pipeSimulation?.flow ?? null;
   const isReverse = flow && flow < 0;
   feature.properties!.length = convertTo(
-    { value: pipe.length, unit: pipe.getUnit("length") },
+    { value: pipe.length, unit: quantities.getUnit("length") },
     "m",
   );
   feature.properties!.hasArrow =
@@ -206,7 +206,7 @@ const appendPipeSymbologyProps = (
 
   if (!!linkSymbology.labelRule) {
     const labelProperty = linkSymbology.labelRule;
-    const unit = pipe.getUnit(labelProperty);
+    const unit = quantities.getUnit(labelProperty as QuantityProperty);
     const localizedNumber = localizeDecimal(numericValue, {
       decimals: quantities.getDecimals(labelProperty as QuantityProperty),
     });
@@ -214,7 +214,7 @@ const appendPipeSymbologyProps = (
     feature.properties!.label = `${localizedNumber} ${unitText}`;
   }
   feature.properties!.color = colorFor(linkSymbology.colorRule, numericValue);
-  appendPipeArrowProps(pipe, feature, simulationResults);
+  appendPipeArrowProps(pipe, feature, quantities, simulationResults);
 };
 
 // Maps symbology property names to simulation property names
@@ -250,7 +250,7 @@ const appendJunctionSymbologyProps = (
 
   if (!!nodeSymbology.labelRule) {
     const labelProperty = nodeSymbology.labelRule;
-    const unit = junction.getUnit(labelProperty as JunctionQuantity);
+    const unit = quantities.getUnit(labelProperty as QuantityProperty);
     const localizedNumber = localizeDecimal(numericValue, {
       decimals: quantities.getDecimals(labelProperty as QuantityProperty),
     });

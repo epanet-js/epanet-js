@@ -341,6 +341,7 @@ describe("build optimized source", () => {
 
     it("assigns lengths in meters", () => {
       const IDS = { p1: 1 } as const;
+      const gpmQuantities = new Quantities(presets.GPM);
       const { assets } = HydraulicModelBuilder.with(presets.GPM)
         .aPipe(IDS.p1, { length: 10 })
         .build();
@@ -351,7 +352,7 @@ describe("build optimized source", () => {
       const features = buildOptimizedAssetsSource(
         assets,
         symbology,
-        defaultQuantities,
+        gpmQuantities,
         fakeTranslateUnit,
         simulationResults,
       );

@@ -12,18 +12,9 @@ export type ReservoirQuantity = (typeof reservoirQuantities)[number];
 
 export class Reservoir extends Node<ReservoirProperties> {
   copy() {
-    return new Reservoir(
-      this.id,
-      [...this.coordinates],
-      {
-        ...this.properties,
-      },
-      this.units,
-    );
-  }
-
-  getUnit(key: ReservoirQuantity) {
-    return this.units[key];
+    return new Reservoir(this.id, [...this.coordinates], {
+      ...this.properties,
+    });
   }
 
   get head() {

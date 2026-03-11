@@ -17,19 +17,10 @@ export class Junction extends Node<JunctionProperties> {
     return this.properties.emitterCoefficient;
   }
 
-  getUnit(key: JunctionQuantity) {
-    return this.units[key];
-  }
-
   copy() {
-    const newJunction = new Junction(
-      this.id,
-      [...this.coordinates],
-      {
-        ...this.properties,
-      },
-      this.units,
-    );
+    const newJunction = new Junction(this.id, [...this.coordinates], {
+      ...this.properties,
+    });
 
     return newJunction;
   }

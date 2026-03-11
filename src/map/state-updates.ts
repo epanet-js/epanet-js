@@ -344,6 +344,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
             map,
             mapState.selection,
             assets,
+            quantities,
             mapState.movedAssetIds,
             resultsReader,
           );
@@ -630,12 +631,14 @@ const updateSelection = withDebugInstrumentation(
     map: MapEngine,
     selection: Sel,
     assets: AssetsMap,
+    quantities: Quantities,
     movedAssetIds: Set<AssetId>,
     simulationResults?: ResultsReader | null,
   ): Promise<void> => {
     const features = buildSelectionSource(
       assets,
       selection,
+      quantities,
       movedAssetIds,
       simulationResults,
     );

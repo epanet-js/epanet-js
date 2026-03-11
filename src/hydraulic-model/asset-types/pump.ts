@@ -1,7 +1,6 @@
 import { CurveId, CurvePoint, Curves, ICurve } from "../curves";
 import { PatternId } from "../patterns";
 import { Link, LinkProperties } from "./link";
-import { Unit } from "src/quantity";
 
 export const pumpStatuses = ["on", "off"] as const;
 export type PumpStatus = (typeof pumpStatuses)[number];
@@ -28,10 +27,6 @@ export const pumpQuantities = ["flow", "head", "power", "speed"];
 export type PumpQuantity = (typeof pumpQuantities)[number];
 
 export class Pump extends Link<PumpProperties> {
-  getUnit(quantity: PumpQuantity): Unit {
-    return this.units[quantity];
-  }
-
   get initialStatus() {
     return this.properties.initialStatus;
   }
@@ -93,7 +88,7 @@ export class Pump extends Link<PumpProperties> {
         ...this.properties,
         curve: this.properties.curve?.map((p) => ({ ...p })),
       },
-      this.units,
+      this.lengthUnit,
     );
   }
 }
