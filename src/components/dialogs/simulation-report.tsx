@@ -1,5 +1,12 @@
 import { useTranslate } from "src/hooks/use-translate";
-import { DialogContainer, DialogHeader } from "../dialog";
+import {
+  DialogContainer,
+  DialogHeader,
+  AckDialogActionNew,
+  BaseModal,
+  useDialogState,
+} from "../dialog";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { processReportWithSlots, ReportRow } from "src/simulation/report";
 import { useMemo, useCallback } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
@@ -15,6 +22,8 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { captureError, setErrorContext } from "src/infra/error-tracking";
 
 export const SimulationReportDialog = () => {
+  const isModalsOn = useFeatureFlag("FLAG_MODALS");
+  const { closeDialog } = useDialogState();
   const translate = useTranslate();
   const simulation = useAtomValue(simulationAtom);
   const hydraulicModel = useAtomValue(stagingModelAtom);
@@ -111,6 +120,27 @@ export const SimulationReportDialog = () => {
 
     return processedReport;
   }, [simulation, hydraulicModel.assets]);
+
+  if (isModalsOn) {
+    return (
+      <BaseModal
+        title={translate("simulationReport")}
+        size="sm"
+        isOpen={true}
+        onClose={closeDialog}
+        footer={
+          <AckDialogActionNew
+            label={translate("understood")}
+            onAck={closeDialog}
+          />
+        }
+      >
+        <div className="flex-1 p-4 text-sm bg-gray-100 text-gray-700 font-mono leading-loose">
+          {processedReport.map(renderRowWithSlots)}
+        </div>
+      </BaseModal>
+    );
+  }
 
   return (
     <DialogContainer size="lg" height="lg" fillMode="auto">

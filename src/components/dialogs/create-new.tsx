@@ -1,7 +1,14 @@
-import { DialogContainer, DialogHeader, useDialogState } from "../dialog";
+import {
+  DialogContainer,
+  DialogHeader,
+  useDialogState,
+  BaseModal,
+  SimpleDialogActionsNew,
+} from "../dialog";
 import { Form, Formik } from "formik";
 import mapboxgl from "mapbox-gl";
 import { SimpleDialogActions } from "src/components/dialog";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   Presets,
   Quantities,
@@ -74,6 +81,7 @@ type SubmitProps = {
 };
 
 export const CreateNew = () => {
+  const isModalsOn = useFeatureFlag("FLAG_MODALS");
   const translate = useTranslate();
   const rep = usePersistence();
   const transactImport = rep.useTransactImport();
@@ -87,6 +95,7 @@ export const CreateNew = () => {
   const { closeDialog } = useDialogState();
 
   const originalMapStateRef = useRef<mapboxgl.LngLatBounds | null>(null);
+  const formRef = useRef<HTMLFormElement>(null);
 
   if (map && !originalMapStateRef.current) {
     originalMapStateRef.current = map.getBounds();
@@ -153,6 +162,95 @@ export const CreateNew = () => {
       closeDialog,
     ],
   );
+
+  if (isModalsOn) {
+    return (
+      <BaseModal
+        title={translate("newProject")}
+        size="sm"
+        isOpen={true}
+        onClose={handleCancel}
+        footer={
+          <SimpleDialogActionsNew
+            action={translate("create")}
+            onAction={() => formRef.current?.requestSubmit()}
+            onClose={handleCancel}
+          />
+        }
+      >
+        <div className="p-4">
+          <Formik
+            onSubmit={handleSubmit}
+            initialValues={
+              {
+                unitsSpec: "LPS",
+                headlossFormula: "H-W",
+                location: undefined,
+                projection: "wgs84",
+              } as SubmitProps
+            }
+          >
+            {({ values, setFieldValue }) => (
+              <Form ref={formRef}>
+                <ProjectionSelector
+                  selected={values.projection}
+                  onChange={(projection) => {
+                    void setFieldValue("projection", projection);
+                    if (projection === "xy-grid") {
+                      setGridHidden(false);
+                      setGridPreview(true);
+                      if (map) {
+                        map.map.jumpTo({
+                          center: XY_GRID_CENTER,
+                          zoom: XY_GRID_ZOOM,
+                        });
+                      }
+                    } else {
+                      setGridPreview(false);
+                      if (isCurrentProjectUnprojected) {
+                        setGridHidden(true);
+                      }
+                      if (map) {
+                        if (values.location?.bbox) {
+                          map.map.fitBounds(values.location.bbox, {
+                            padding: 50,
+                            animate: false,
+                          });
+                        } else if (originalMapStateRef.current) {
+                          map.setBounds(originalMapStateRef.current, {
+                            animate: false,
+                          });
+                        }
+                      }
+                    }
+                  }}
+                />
+
+                <LocationSearchSelector
+                  selected={values.location}
+                  onChange={(location) => setFieldValue("location", location)}
+                  disabled={values.projection === "xy-grid"}
+                />
+
+                <hr className="my-2" />
+
+                <UnitsSystemSelector
+                  selected={values.unitsSpec}
+                  onChange={(specId) => setFieldValue("unitsSpec", specId)}
+                />
+                <HeadlossFormulaSelector
+                  selected={values.headlossFormula}
+                  onChange={(headlossFormula) =>
+                    setFieldValue("headlossFormula", headlossFormula)
+                  }
+                />
+              </Form>
+            )}
+          </Formik>
+        </div>
+      </BaseModal>
+    );
+  }
 
   return (
     <DialogContainer onClose={handleCancel}>
