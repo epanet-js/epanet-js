@@ -1,9 +1,10 @@
-import { DialogHeader } from "../dialog";
+import { DialogHeader, BaseModal, SimpleDialogActionsNew } from "../dialog";
 import { useTranslate } from "src/hooks/use-translate";
 import {
   SimpleDialogActions,
   SimpleDialogButtons,
 } from "src/components/dialog";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { Trans } from "react-i18next";
 
 import { Button } from "../elements";
@@ -139,12 +140,41 @@ export const InpIssuesDialog = ({
   issues: ParserIssues;
   onClose: () => void;
 }) => {
+  const isModalsOn = useFeatureFlag("FLAG_MODALS");
   const translate = useTranslate();
   const showWelcome = useShowWelcome();
 
   const goToWelcome = () => {
     showWelcome({ source: "inpIssues" });
   };
+
+  if (isModalsOn) {
+    return (
+      <BaseModal
+        title={translate("inpNotFullySupported")}
+        size="sm"
+        isOpen={true}
+        onClose={onClose}
+        footer={
+          <SimpleDialogActionsNew
+            action={translate("understood")}
+            onAction={onClose}
+            secondary={{
+              action: translate("seeDemoNetworks"),
+              onClick: goToWelcome,
+            }}
+          />
+        }
+      >
+        <div className="p-4 text-sm">
+          <p className="pb-2">{translate("inpNotFullySupportedDetail")}</p>
+          <IssuesSummary issues={issues} />
+          <SubscribeCTA source="inpIssues" />
+        </div>
+      </BaseModal>
+    );
+  }
+
   return (
     <>
       <DialogHeader
