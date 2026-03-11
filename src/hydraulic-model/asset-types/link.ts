@@ -100,10 +100,6 @@ export class Link<T> extends BaseAsset<T & LinkProperties> {
     this.setCoordinates([...this.coordinates, vertex]);
   }
 
-  extendTo(position: Position) {
-    this.setCoordinates([...this.coordinates.slice(0, -1), position]);
-  }
-
   setCoordinates(newCoordinates: Position[]) {
     if (newCoordinates.length < 2) {
       throw new Error(

@@ -509,7 +509,10 @@ export function useDrawLinkHandlers({
           getMapCoord(e);
 
         const linkCopy = drawing.link.copy();
-        linkCopy.extendTo(nextCoordinates);
+        linkCopy.setCoordinates([
+          ...linkCopy.coordinates.slice(0, -1),
+          nextCoordinates,
+        ]);
 
         const shouldShowDraftJunction =
           isEndAndContinueOn() && !snappingCandidate;
