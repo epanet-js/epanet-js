@@ -67,6 +67,7 @@ import {
   AssetEditorContent,
   QuantityRow,
   SelectRow,
+  LibrarySelectRow,
   TextRow,
   SwitchRow,
   ConnectedCustomersRow,
@@ -76,7 +77,6 @@ import {
 import {
   BlockComparisonField,
   CollapsibleSection,
-  InlineField,
   Section,
 } from "src/components/form/fields";
 import { localizeDecimal } from "src/infra/i18n/numbers";
@@ -97,7 +97,6 @@ import { PumpDefinitionDetails } from "./pump-definition-details";
 import { NumericTable } from "src/components/form/numeric-table";
 import { useShowPatternsLibrary } from "src/commands/show-patterns-library";
 import { useShowPumpLibrary } from "src/commands/show-pump-library";
-import { SelectorOption } from "src/components/form/selector";
 import { PatternId } from "src/hydraulic-model/patterns";
 import {
   CurveId,
@@ -106,7 +105,6 @@ import {
   getCurveBounds,
 } from "src/hydraulic-model/curves";
 import { useShowCurveLibrary } from "src/commands/show-curve-library";
-import { Button } from "src/components/elements";
 
 type OnPropertyChange = <P extends ChangeableProperty>(
   name: P,
@@ -1201,18 +1199,6 @@ const TankDefinitionField = ({
     translate,
   ]);
 
-  const curveOptions = useMemo(() => {
-    const libraryGroup: SelectorOption<CurveId>[] = [
-      { label: translate("openCurvesLibrary"), value: 0 },
-    ];
-    const curveGroup: SelectorOption<CurveId>[] = [];
-    for (const curve of curves.values()) {
-      if (curve.type !== "volume") continue;
-      curveGroup.push({ value: curve.id, label: curve.label });
-    }
-    return [libraryGroup, curveGroup];
-  }, [curves, translate]);
-
   const handleDefinitionModeChange = useCallback(
     (_name: string, newValue: TankDefinitionMode) => {
       setDefinitionMode(newValue);
@@ -1226,14 +1212,6 @@ const TankDefinitionField = ({
   const handleCurveChange = useCallback(
     (_name: string, newValue: CurveId | null) => {
       if (newValue === null) return;
-      if (newValue === 0) {
-        showCurveLibrary({
-          source: "tank",
-          curveId: tank.volumeCurveId,
-          initialSection: "volume",
-        });
-        return;
-      }
       const curve = curves.get(newValue);
       if (!curve || !curve.points.length) return;
       const bounds = getCurveBounds(curves, newValue);
@@ -1248,7 +1226,7 @@ const TankDefinitionField = ({
         { property: "minVolume", value: curve.points[0].y },
       ]);
     },
-    [curves, onBatchPropertyChange, showCurveLibrary, tank.volumeCurveId],
+    [curves, onBatchPropertyChange],
   );
 
   const handleAreaChange = (_name: string, area: number) => {
@@ -1486,33 +1464,22 @@ const TankDefinitionField = ({
         )}
         {definitionMode === "curveBased" && (
           <>
-            {curveOptions[1].length > 0 ? (
-              <SelectRow
-                name="volumeCurve"
-                selected={tank.volumeCurveId ?? null}
-                options={curveOptions}
-                stickyGroupClassName="first:italic"
-                stickyFirstGroup
-                nullable={true}
-                placeholder={`${translate("select")}...`}
-                onChange={handleCurveChange}
-                readOnly={readOnly}
-              />
-            ) : (
-              <InlineField name={translate("volumeCurve")} labelSize="md">
-                <Button
-                  onClick={() =>
-                    showCurveLibrary({
-                      source: "tank",
-                      initialSection: "volume",
-                    })
-                  }
-                  className="w-full py-2"
-                >
-                  {translate("openCurvesLibrary")}
-                </Button>
-              </InlineField>
-            )}
+            <LibrarySelectRow
+              name="volumeCurve"
+              collection={curves}
+              filterByType="volume"
+              libraryLabel={translate("openCurvesLibrary")}
+              onOpenLibrary={() =>
+                showCurveLibrary({
+                  source: "tank",
+                  curveId: tank.volumeCurveId,
+                  initialSection: "volume",
+                })
+              }
+              selected={tank.volumeCurveId ?? null}
+              onChange={handleCurveChange}
+              readOnly={readOnly}
+            />
             {(() => {
               if (!tank.volumeCurveId) return null;
               const curve = curves.get(tank.volumeCurveId);
@@ -1708,15 +1675,24 @@ const ValveEditor = ({
             readOnly={readonly}
           />
         )}
-        {showCurveSelector && (
-          <ValveCurveField
-            valve={valve}
-            curves={hydraulicModel.curves}
-            getCurveComparison={getCurveComparison}
-            onChange={onPropertyChange}
-            readOnly={readonly}
-          />
-        )}
+        {showCurveSelector &&
+          (valve.kind === "gpv" ? (
+            <HeadlossCurveField
+              valve={valve}
+              curves={hydraulicModel.curves}
+              getCurveComparison={getCurveComparison}
+              onChange={onPropertyChange}
+              readOnly={readonly}
+            />
+          ) : (
+            <ValveCurveField
+              valve={valve}
+              curves={hydraulicModel.curves}
+              getCurveComparison={getCurveComparison}
+              onChange={onPropertyChange}
+              readOnly={readonly}
+            />
+          ))}
         <SelectRow
           name="initialStatus"
           selected={valve.initialStatus}
@@ -2017,7 +1993,6 @@ const PumpEditor = ({
   );
 };
 
-const NO_PATTERN_ID = 0;
 const VARIABLE_SPEED_NONE = 0;
 const VARIABLE_SPEED_PATTERN_BASED = 1;
 
@@ -2080,40 +2055,10 @@ const VariableSpeedField = ({
     [onPropertyChange, pump.speedPatternId],
   );
 
-  const speedPatternOptions = useMemo(() => {
-    const libraryGroup: SelectorOption<PatternId>[] = [
-      { label: translate("openPatternsLibrary"), value: -1 },
-    ];
-
-    const patternGroup: SelectorOption<PatternId>[] = [];
-    for (const [, pattern] of patterns) {
-      if (pattern.type === "pumpSpeed") {
-        patternGroup.push({ label: pattern.label, value: pattern.id });
-      }
-    }
-    if (!patternGroup.length) {
-      return [libraryGroup, []];
-    }
-
-    const constantGroup: SelectorOption<PatternId>[] = [
-      { label: translate("constant"), value: NO_PATTERN_ID },
-    ];
-
-    return [libraryGroup, [...constantGroup, ...patternGroup]];
-  }, [patterns, translate]);
-
   const handleSpeedPatternChange = useCallback(
     (_: string, newValue: number | null, oldValue: number | null) => {
       if (newValue === oldValue) return;
-      if (newValue === -1) {
-        showPatternsLibrary({
-          source: "pump",
-          initialPatternId: pump.speedPatternId,
-          initialSection: "pumpSpeed",
-        });
-        return;
-      }
-      if (newValue === null || newValue === NO_PATTERN_ID) {
+      if (newValue === null) {
         if (pump.speedPatternId) {
           onPropertyChange("speedPatternId", undefined, pump.speedPatternId);
         }
@@ -2121,7 +2066,7 @@ const VariableSpeedField = ({
       }
       onPropertyChange("speedPatternId", newValue, pump.speedPatternId);
     },
-    [onPropertyChange, pump.speedPatternId, showPatternsLibrary],
+    [onPropertyChange, pump.speedPatternId],
   );
 
   const baseDisplayValue = useMemo(() => {
@@ -2161,14 +2106,20 @@ const VariableSpeedField = ({
       />
       {selectedVariableSpeed === VARIABLE_SPEED_PATTERN_BASED && (
         <NestedSection>
-          <SelectRow
+          <LibrarySelectRow
             name="speedPattern"
+            collection={patterns}
+            filterByType="pumpSpeed"
+            libraryLabel={translate("openPatternsLibrary")}
+            onOpenLibrary={() =>
+              showPatternsLibrary({
+                source: "pump",
+                initialPatternId: pump.speedPatternId,
+                initialSection: "pumpSpeed",
+              })
+            }
             selected={pump.speedPatternId ?? null}
-            options={speedPatternOptions}
-            stickyGroupClassName="first:italic"
-            stickyFirstGroup
-            nullable={true}
-            placeholder={translate("constant")}
+            emptyOptionLabel={translate("constant")}
             onChange={handleSpeedPatternChange}
             readOnly={readOnly}
           />
@@ -2192,69 +2143,37 @@ const PumpEfficiencyCurveField = ({
   const translate = useTranslate();
   const showPumpLibrary = useShowPumpLibrary();
 
-  const curveOptions = useMemo(() => {
-    const libraryGroup: SelectorOption<CurveId>[] = [
-      { label: translate("openPumpLibrary"), value: -1 },
-    ];
-    const curveGroup: SelectorOption<CurveId>[] = [];
-    for (const curve of curves.values()) {
-      if (curve.type !== "efficiency") continue;
-      curveGroup.push({ value: curve.id, label: curve.label });
-    }
-    const noneGroup: SelectorOption<CurveId>[] = [
-      { value: 0, label: translate("none") },
-    ];
-    const selectableOptions = curveGroup.length
-      ? [...noneGroup, ...curveGroup]
-      : [];
-    return [libraryGroup, selectableOptions];
-  }, [curves, translate]);
+  const handleOnChange = useCallback(
+    (_name: string, newValue: CurveId | null, _oldValue: CurveId | null) => {
+      const efficiencyCurveId = newValue === null ? undefined : newValue;
+      if (pump.efficiencyCurveId !== efficiencyCurveId)
+        onChange(
+          "efficiencyCurveId",
+          efficiencyCurveId,
+          pump.efficiencyCurveId,
+        );
+    },
+    [onChange, pump.efficiencyCurveId],
+  );
 
-  const handleOnChange = (
-    _name: string,
-    newValue: CurveId | null,
-    _oldValue: CurveId | null,
-  ) => {
-    if (newValue === null) return;
-    if (newValue === -1) {
-      showPumpLibrary({
-        source: "pump",
-        curveId: pump.efficiencyCurveId,
-        initialSection: "efficiency",
-      });
-      return;
-    }
-    const efficiencyCurveId = newValue === 0 ? undefined : newValue;
-    if (pump.efficiencyCurveId !== efficiencyCurveId)
-      onChange("efficiencyCurveId", efficiencyCurveId, pump.efficiencyCurveId);
-  };
-
-  return curveOptions[1].length > 0 ? (
-    <SelectRow
+  return (
+    <LibrarySelectRow
       name="efficiencyCurve"
+      collection={curves}
+      filterByType="efficiency"
+      libraryLabel={translate("openPumpLibrary")}
+      onOpenLibrary={() =>
+        showPumpLibrary({
+          source: "pump",
+          curveId: pump.efficiencyCurveId,
+          initialSection: "efficiency",
+        })
+      }
       selected={pump.efficiencyCurveId ?? null}
-      options={curveOptions}
-      stickyGroupClassName="italic"
-      stickyFirstGroup
+      emptyOptionLabel={translate("none")}
       onChange={handleOnChange}
       readOnly={readOnly}
-      nullable
-      placeholder={translate("none")}
     />
-  ) : (
-    <InlineField name={translate("efficiencyCurve")} labelSize="md">
-      <Button
-        onClick={() =>
-          showPumpLibrary({
-            source: "pump",
-            initialSection: "efficiency",
-          })
-        }
-        className="w-full py-2"
-      >
-        {translate("openPumpLibrary")}
-      </Button>
-    </InlineField>
   );
 };
 
@@ -2274,25 +2193,6 @@ const PumpEnergyPricePatternField = ({
   const translate = useTranslate();
   const showPatternsLibrary = useShowPatternsLibrary();
 
-  const patternOptions = useMemo(() => {
-    const libraryGroup: SelectorOption<PatternId>[] = [
-      { label: translate("openPatternsLibrary"), value: -1 },
-    ];
-    const patternGroup: SelectorOption<PatternId>[] = [];
-    for (const [, pattern] of patterns) {
-      if (pattern.type === "energyPrice") {
-        patternGroup.push({ label: pattern.label, value: pattern.id });
-      }
-    }
-    const constantGroup: SelectorOption<PatternId>[] = [
-      { value: 0, label: translate("constant") },
-    ];
-    const selectableOptions = patternGroup.length
-      ? [...constantGroup, ...patternGroup]
-      : [];
-    return [libraryGroup, selectableOptions];
-  }, [patterns, translate]);
-
   const placeholder = useMemo(() => {
     if (globalPatternId !== null) {
       const globalPattern = patterns.get(globalPatternId);
@@ -2301,53 +2201,36 @@ const PumpEnergyPricePatternField = ({
     return translate("constant");
   }, [globalPatternId, patterns, translate]);
 
-  const handleChange = (
-    _: string,
-    newValue: PatternId | null,
-    oldValue: PatternId | null,
-  ) => {
-    if (newValue === null) return;
-    if (newValue === -1) {
-      showPatternsLibrary({
-        source: "pump",
-        initialPatternId: pump.energyPricePatternId,
-        initialSection: "energyPrice",
-      });
-      return;
-    }
-    onPropertyChange(
-      "energyPricePatternId",
-      newValue === 0 ? undefined : newValue,
-      oldValue || undefined,
-    );
-  };
+  const handleChange = useCallback(
+    (_: string, newValue: PatternId | null, oldValue: PatternId | null) => {
+      onPropertyChange(
+        "energyPricePatternId",
+        newValue === null ? undefined : newValue,
+        oldValue || undefined,
+      );
+    },
+    [onPropertyChange],
+  );
 
-  return patternOptions[1].length > 0 ? (
-    <SelectRow
+  return (
+    <LibrarySelectRow
       name="energyPricePattern"
+      collection={patterns}
+      filterByType="energyPrice"
+      libraryLabel={translate("openPatternsLibrary")}
+      onOpenLibrary={() =>
+        showPatternsLibrary({
+          source: "pump",
+          initialPatternId: pump.energyPricePatternId,
+          initialSection: "energyPrice",
+        })
+      }
       selected={pump.energyPricePatternId ?? null}
-      options={patternOptions}
-      listClassName="first:italic"
-      stickyFirstGroup
-      nullable={true}
+      emptyOptionLabel={translate("constant")}
       placeholder={placeholder}
       onChange={handleChange}
       readOnly={readOnly}
     />
-  ) : (
-    <InlineField name={translate("energyPricePattern")} labelSize="md">
-      <Button
-        onClick={() =>
-          showPatternsLibrary({
-            source: "pump",
-            initialSection: "energyPrice",
-          })
-        }
-        className="w-full py-2"
-      >
-        {translate("openPatternsLibrary")}
-      </Button>
-    </InlineField>
   );
 };
 
@@ -2369,29 +2252,6 @@ const ReservoirHeadField = ({
   const translateUnit = useTranslateUnit();
   const { getComparison, getPatternComparison } = useAssetComparison(reservoir);
 
-  const headPatternOptions = useMemo(() => {
-    const libraryGroup: SelectorOption<PatternId>[] = [
-      { label: translate("openPatternsLibrary"), value: -1 },
-    ];
-
-    const patternGroup: SelectorOption<PatternId>[] = [];
-    for (const [, pattern] of patterns) {
-      if (pattern.type === "reservoirHead") {
-        patternGroup.push({ label: pattern.label, value: pattern.id });
-      }
-    }
-    const constantGroup: SelectorOption<PatternId>[] = patternGroup.length
-      ? [
-          {
-            label: translate("constant"),
-            value: NO_PATTERN_ID,
-          },
-        ]
-      : [];
-
-    return [libraryGroup, [...constantGroup, ...patternGroup]];
-  }, [patterns, translate]);
-
   const averageHead = useMemo(
     () => calculateAverageHead(reservoir, patterns),
     [reservoir, patterns],
@@ -2400,20 +2260,11 @@ const ReservoirHeadField = ({
   const handleHeadPatternChange = useCallback(
     (_: string, newValue: number | null, oldValue: number | null) => {
       if (newValue === oldValue) return;
-      if (newValue === null) return;
-      if (newValue === -1) {
-        showPatternsLibrary({
-          source: "reservoir",
-          initialPatternId: reservoir.headPatternId,
-          initialSection: "reservoirHead",
-        });
-        return;
-      }
-      const patternId = newValue === NO_PATTERN_ID ? undefined : newValue;
+      const patternId = newValue === null ? undefined : newValue;
       if (!patternId && !oldValue) return;
       onPropertyChange("headPatternId", patternId, reservoir.headPatternId);
     },
-    [onPropertyChange, reservoir.headPatternId, showPatternsLibrary],
+    [onPropertyChange, reservoir.headPatternId],
   );
 
   const headComparison = getComparison("head", reservoir.head);
@@ -2499,14 +2350,20 @@ const ReservoirHeadField = ({
           readOnly={readOnly}
         />
 
-        <SelectRow
+        <LibrarySelectRow
           name="headPattern"
+          collection={patterns}
+          filterByType="reservoirHead"
+          libraryLabel={translate("openPatternsLibrary")}
+          onOpenLibrary={() =>
+            showPatternsLibrary({
+              source: "reservoir",
+              initialPatternId: reservoir.headPatternId,
+              initialSection: "reservoirHead",
+            })
+          }
           selected={selectedPatternId}
-          options={headPatternOptions}
-          listClassName="first:italic"
-          stickyFirstGroup
-          nullable={true}
-          placeholder={translate("constant")}
+          emptyOptionLabel={translate("constant")}
           onChange={handleHeadPatternChange}
           readOnly={readOnly}
         />
@@ -2520,6 +2377,86 @@ const ReservoirHeadField = ({
           />
         )}
       </div>
+    </BlockComparisonField>
+  );
+};
+
+const HeadlossCurveField = ({
+  valve,
+  curves,
+  getCurveComparison,
+  onChange,
+  readOnly = false,
+}: {
+  valve: Valve;
+  curves: Curves;
+  getCurveComparison: (
+    propertyName: string,
+    currentCurveId: CurveId | undefined,
+    currentCurves: Curves,
+  ) => PropertyComparison<ICurve>;
+  onChange: OnPropertyChange;
+  readOnly?: boolean;
+}) => {
+  const translate = useTranslate();
+  const showCurveLibrary = useShowCurveLibrary();
+
+  const curveComparison = getCurveComparison("curveId", valve.curveId, curves);
+
+  const baseDisplayValue = useMemo(() => {
+    if (!curveComparison.hasChanged) return undefined;
+    const baseCurve = curveComparison.baseValue;
+    const curveName = translate("headlossCurve");
+    const lines: string[] = [];
+
+    if (baseCurve) {
+      lines.push(`${curveName}: ${baseCurve.label}`);
+      if (baseCurve.id === valve.curveId) {
+        lines.push(translate("curvePointsDiffer"));
+      }
+    } else {
+      lines.push(`${curveName}: (${translate("none").toLocaleLowerCase()})`);
+    }
+
+    return <div className="whitespace-pre-line">{lines.join("\n")}</div>;
+  }, [curveComparison, valve.curveId, translate]);
+
+  const selectedCurveId = useMemo(() => {
+    if (!valve.curveId) return null;
+    const curve = curves.get(valve.curveId);
+    if (!curve || curve.type !== "headloss") return null;
+    return valve.curveId;
+  }, [valve.curveId, curves]);
+
+  const handleOnChange = useCallback(
+    (_name: string, newValue: CurveId | null, oldValue: CurveId | null) => {
+      if (newValue === null) return;
+      onChange("curveId", newValue, oldValue || undefined);
+    },
+    [onChange],
+  );
+
+  return (
+    <BlockComparisonField
+      hasChanged={curveComparison.hasChanged}
+      baseDisplayValue={baseDisplayValue}
+    >
+      <LibrarySelectRow
+        name="headlossCurve"
+        collection={curves}
+        filterByType="headloss"
+        libraryLabel={translate("openCurvesLibrary")}
+        onOpenLibrary={() =>
+          showCurveLibrary({
+            source: "valve",
+            curveId: valve.curveId,
+            initialSection: "headloss",
+          })
+        }
+        selected={selectedCurveId}
+        onChange={handleOnChange}
+        readOnly={readOnly}
+      />
     </BlockComparisonField>
   );
 };
@@ -2549,9 +2486,7 @@ const ValveCurveField = ({
   const baseDisplayValue = useMemo(() => {
     if (!curveComparison.hasChanged) return undefined;
     const baseCurve = curveComparison.baseValue;
-    const curveName = translate(
-      valve.kind === "gpv" ? "headlossCurve" : "valveCurve",
-    );
+    const curveName = translate("valveCurve");
     const lines: string[] = [];
 
     if (baseCurve) {
@@ -2564,96 +2499,48 @@ const ValveCurveField = ({
     }
 
     return <div className="whitespace-pre-line">{lines.join("\n")}</div>;
-  }, [curveComparison, valve.curveId, valve.kind, translate]);
+  }, [curveComparison, valve.curveId, translate]);
 
   const selectedCurveId = useMemo(() => {
     if (!valve.curveId) return null;
     const curve = curves.get(valve.curveId);
-    const expectedCurveType = valveCurveTypeFrom(valve.kind);
-    if (!curve || curve.type !== expectedCurveType) return null;
+    if (!curve || curve.type !== "valve") return null;
     return valve.curveId;
-  }, [valve.curveId, valve.kind, curves]);
+  }, [valve.curveId, curves]);
 
-  const curveOptions = useMemo(() => {
-    const libraryGroup: SelectorOption<CurveId>[] = [
-      { label: translate("openCurvesLibrary"), value: -1 },
-    ];
-    const curveGroup: SelectorOption<CurveId>[] = [];
-    const expectedCurveType = valveCurveTypeFrom(valve.kind);
-    const canBeEmpty = valve.kind === "pcv";
-    for (const curve of curves.values()) {
-      if (curve.type !== expectedCurveType) continue;
-      curveGroup.push({ value: curve.id, label: curve.label });
-    }
-    const emptyGroup = canBeEmpty
-      ? [{ value: 0, label: translate("none") }]
-      : [];
-    return [libraryGroup, [...emptyGroup, ...curveGroup]];
-  }, [valve.kind, curves, translate]);
-
-  const handleOnChange = (
-    _name: string,
-    newValue: CurveId | null,
-    oldValue: CurveId | null,
-  ) => {
-    if (newValue === null) return;
-    if (newValue === -1) {
-      showCurveLibrary({
-        source: "valve",
-        curveId: valve.curveId,
-        initialSection: valveCurveTypeFrom(valve.kind),
-      });
-      return;
-    }
-    onChange(
-      "curveId",
-      newValue === 0 ? undefined : newValue,
-      oldValue || undefined,
-    );
-  };
-
-  const canBeEmpty = valve.kind === "pcv";
+  const handleOnChange = useCallback(
+    (_name: string, newValue: CurveId | null, oldValue: CurveId | null) => {
+      onChange(
+        "curveId",
+        newValue === null ? undefined : newValue,
+        oldValue || undefined,
+      );
+    },
+    [onChange],
+  );
 
   return (
     <BlockComparisonField
       hasChanged={curveComparison.hasChanged}
       baseDisplayValue={baseDisplayValue}
     >
-      {curveOptions[1].length > 0 ? (
-        <SelectRow
-          name={valve.kind === "gpv" ? "headlossCurve" : "valveCurve"}
-          selected={selectedCurveId}
-          options={curveOptions}
-          listClassName={canBeEmpty ? "first:italic" : ""}
-          stickyGroupClassName="italic"
-          stickyFirstGroup
-          nullable={true}
-          placeholder={
-            canBeEmpty ? translate("none") : `${translate("select")}...`
-          }
-          onChange={handleOnChange}
-          readOnly={readOnly}
-        />
-      ) : (
-        <InlineField
-          name={translate(
-            valve.kind === "gpv" ? "headlossCurve" : "valveCurve",
-          )}
-          labelSize="md"
-        >
-          <Button
-            onClick={() =>
-              showCurveLibrary({
-                source: "valve",
-                initialSection: valveCurveTypeFrom(valve.kind),
-              })
-            }
-            className="w-full py-2"
-          >
-            {translate("openCurvesLibrary")}
-          </Button>
-        </InlineField>
-      )}
+      <LibrarySelectRow
+        name="valveCurve"
+        collection={curves}
+        filterByType="valve"
+        libraryLabel={translate("openCurvesLibrary")}
+        onOpenLibrary={() =>
+          showCurveLibrary({
+            source: "valve",
+            curveId: valve.curveId,
+            initialSection: "valve",
+          })
+        }
+        selected={selectedCurveId}
+        emptyOptionLabel={translate("none")}
+        onChange={handleOnChange}
+        readOnly={readOnly}
+      />
     </BlockComparisonField>
   );
 };

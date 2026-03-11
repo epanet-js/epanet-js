@@ -1,4 +1,10 @@
-import { useRef, useState, KeyboardEventHandler, useCallback } from "react";
+import {
+  useRef,
+  useState,
+  useMemo,
+  useCallback,
+  KeyboardEventHandler,
+} from "react";
 import type { PropertyComparison } from "src/hooks/use-asset-comparison";
 import { EditableTextField } from "src/components/form/editable-text-field";
 import { useTranslate } from "src/hooks/use-translate";
@@ -405,6 +411,91 @@ export function SelectRow<P extends string, T extends SelectRowValue>({
         </div>
       )}
     </InlineField>
+  );
+}
+
+const LIBRARY_SENTINEL = -1;
+
+type LibrarySelectRowProps<P extends string> = {
+  name: P;
+  collection: Map<number, { id: number; label: string; type?: string }>;
+  filterByType: string;
+  libraryLabel: string;
+  onOpenLibrary: () => void;
+  selected: number | null;
+  onChange?: (
+    name: P,
+    newValue: number | null,
+    oldValue: number | null,
+  ) => void;
+  emptyOptionLabel?: string;
+  placeholder?: string;
+  readOnly?: boolean;
+  comparison?: PropertyComparison;
+};
+
+export function LibrarySelectRow<P extends string>({
+  name,
+  collection,
+  filterByType,
+  libraryLabel,
+  onOpenLibrary,
+  selected,
+  onChange,
+  emptyOptionLabel,
+  placeholder,
+  readOnly,
+  comparison,
+}: LibrarySelectRowProps<P>) {
+  const translate = useTranslate();
+
+  const options = useMemo(() => {
+    const libraryGroup: SelectorOption<number>[] = [
+      { label: libraryLabel, value: LIBRARY_SENTINEL },
+    ];
+    const itemGroup: SelectorOption<number>[] = [];
+    for (const item of collection.values()) {
+      if (item.type !== filterByType) continue;
+      itemGroup.push({ value: item.id, label: item.label });
+    }
+    const emptyGroup: SelectorOption<number>[] = emptyOptionLabel
+      ? [{ value: 0, label: emptyOptionLabel }]
+      : [];
+
+    const selectableOptions = itemGroup.length
+      ? [...emptyGroup, ...itemGroup]
+      : [];
+    return [libraryGroup, selectableOptions];
+  }, [collection, filterByType, libraryLabel, emptyOptionLabel]);
+
+  const handleChange = useCallback(
+    (_name: P, newValue: number | null, oldValue: number | null) => {
+      if (newValue === null) return;
+      if (newValue === LIBRARY_SENTINEL) {
+        onOpenLibrary();
+        return;
+      }
+      onChange?.(_name, newValue === 0 ? null : newValue, oldValue);
+    },
+    [onOpenLibrary, onChange],
+  );
+
+  return (
+    <SelectRow
+      name={name}
+      selected={selected}
+      options={options}
+      stickyGroupClassName="italic"
+      stickyFirstGroup
+      listClassName={emptyOptionLabel ? "first:italic" : ""}
+      nullable={true}
+      placeholder={
+        placeholder ?? emptyOptionLabel ?? `${translate("select")}...`
+      }
+      onChange={handleChange}
+      readOnly={readOnly}
+      comparison={comparison}
+    />
   );
 }
 

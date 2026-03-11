@@ -15,6 +15,7 @@ import { localizeDecimal } from "src/infra/i18n/numbers";
 import { Pump, PumpDefintionType } from "src/hydraulic-model/asset-types/pump";
 import {
   SelectRow,
+  LibrarySelectRow,
   QuantityRow,
   TextField,
   NestedSection,
@@ -24,10 +25,8 @@ import type {
   PumpCurveComparison,
 } from "src/hooks/use-asset-comparison";
 import type { PropertyChange } from "src/hydraulic-model/model-operations/change-property";
-import { Button } from "src/components/elements";
 import { useShowPumpLibrary } from "src/commands/show-pump-library";
 import { BlockComparisonField, InlineField } from "src/components/form/fields";
-import { SelectorOption } from "src/components/form/selector";
 
 export type PumpDefinitionMode =
   | "power"
@@ -449,46 +448,32 @@ const CurveIdSelector = ({
   const curve = selectedCurve ? curves.get(selectedCurve) : undefined;
   const curveType = curve ? getCurvePointsType(curve.points) : undefined;
 
-  const curveOptions = useMemo(() => {
-    const pumpLibraryGroup: SelectorOption<CurveId>[] = [
-      { label: translate("openPumpLibrary"), value: 0 },
-    ];
+  const handleChange = useCallback(
+    (_: string, newValue: number | null) => {
+      if (newValue === null) return;
+      onChange([
+        { property: "definitionType", value: "curveId" },
+        { property: "curveId", value: newValue },
+      ]);
+    },
+    [onChange],
+  );
 
-    const curveGroup: SelectorOption<CurveId>[] = [];
-    for (const [, curve] of curves) {
-      if (curve.type === "pump") {
-        curveGroup.push({ label: curve.label, value: curve.id });
-      }
-    }
-
-    return [pumpLibraryGroup, curveGroup];
-  }, [curves, translate]);
-
-  const handleChange = (_: string, newValue: number | null) => {
-    if (newValue === null) return;
-    if (newValue === 0)
-      return showPumpLibrary({
-        source: "pump",
-        curveId,
-        initialSection: "pump",
-      });
-
-    onChange([
-      { property: "definitionType", value: "curveId" },
-      { property: "curveId", value: newValue },
-    ]);
-  };
-
-  return curveOptions[1].length > 0 ? (
+  return (
     <div className="flex flex-col gap-2">
-      <SelectRow
+      <LibrarySelectRow
         name="pumpName"
+        collection={curves}
+        filterByType="pump"
+        libraryLabel={translate("openPumpLibrary")}
+        onOpenLibrary={() =>
+          showPumpLibrary({
+            source: "pump",
+            curveId,
+            initialSection: "pump",
+          })
+        }
         selected={selectedCurve}
-        nullable={true}
-        options={curveOptions}
-        stickyGroupClassName="first:italic"
-        stickyFirstGroup
-        placeholder={`${translate("select")}...`}
         readOnly={readOnly}
         onChange={handleChange}
       />
@@ -498,17 +483,6 @@ const CurveIdSelector = ({
         </InlineField>
       )}
     </div>
-  ) : (
-    <InlineField name={translate("pumpName")} labelSize="md">
-      <Button
-        onClick={() =>
-          showPumpLibrary({ source: "pump", initialSection: "pump" })
-        }
-        className="w-full py-2"
-      >
-        {translate("openPumpLibrary")}
-      </Button>
-    </InlineField>
   );
 };
 
