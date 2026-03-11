@@ -1,8 +1,15 @@
 import { UnexpectedErrorDialogState } from "src/state/dialog";
-import { DialogContainer, DialogHeader, SimpleDialogActions } from "../dialog";
+import {
+  DialogContainer,
+  DialogHeader,
+  SimpleDialogActions,
+  BaseModal,
+  SimpleDialogActionsNew,
+} from "../dialog";
 import { Form, Formik } from "formik";
 import { useTranslate } from "src/hooks/use-translate";
 import { ErrorIcon } from "src/icons";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export const UnexpectedErrorDialog = ({
   modal,
@@ -11,6 +18,7 @@ export const UnexpectedErrorDialog = ({
   modal: UnexpectedErrorDialogState;
   onClose: () => void;
 }) => {
+  const isModalsOn = useFeatureFlag("FLAG_MODALS");
   const translate = useTranslate();
   const { onRetry } = modal;
 
@@ -22,6 +30,31 @@ export const UnexpectedErrorDialog = ({
       onClose();
     }
   };
+
+  if (isModalsOn) {
+    return (
+      <BaseModal
+        title={translate("somethingWentWrong")}
+        size="xs"
+        isOpen={true}
+        onClose={onClose}
+        footer={
+          <SimpleDialogActionsNew
+            action={onRetry ? translate("tryAgain") : translate("understood")}
+            onAction={handleSubmit}
+            onClose={onRetry ? onClose : undefined}
+          />
+        }
+      >
+        <div className="p-4">
+          <p className="text-sm text-gray">
+            {translate("somethingWentWrongMessage")}
+          </p>
+        </div>
+      </BaseModal>
+    );
+  }
+
   return (
     <DialogContainer size="sm">
       <DialogHeader
