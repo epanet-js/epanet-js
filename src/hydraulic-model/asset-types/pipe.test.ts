@@ -1,7 +1,8 @@
 import { buildPipe } from "../../__helpers__/hydraulic-model-builder";
+import { computeLinkLength } from "./link";
 
 describe("Pipe", () => {
-  it("setting coordinates updates its length", () => {
+  it("setting coordinates does not update its length", () => {
     const pipe = buildPipe({
       coordinates: [
         [1, 1],
@@ -10,38 +11,12 @@ describe("Pipe", () => {
       length: 0,
     });
 
-    expect(pipe.length).toEqual(0);
-
-    const newCoordinates = [
+    pipe.setCoordinates([
       [1, 1],
       [1.1, 1.1],
-    ];
-    pipe.setCoordinates(newCoordinates);
-
-    expect(pipe.length).toBeCloseTo(15724.04);
-  });
-
-  it("takes into account unit system", () => {
-    const pipe = buildPipe(
-      {
-        coordinates: [
-          [1, 1],
-          [2, 2],
-        ],
-        length: 0,
-      },
-      { length: "ft" },
-    );
+    ]);
 
     expect(pipe.length).toEqual(0);
-
-    const newCoordinates = [
-      [1, 1],
-      [1.1, 1.1],
-    ];
-    pipe.setCoordinates(newCoordinates);
-
-    expect(pipe.length).toBeCloseTo(51588.05);
   });
 
   it("does not mutate after a copy", () => {
@@ -62,7 +37,7 @@ describe("Pipe", () => {
     ]);
     pipeCopy.setDiameter(20);
 
-    expect(pipeCopy.length).toBeCloseTo(15724.04);
+    expect(pipeCopy.length).toEqual(0);
     expect(pipeCopy.diameter).toEqual(20);
     expect(pipe.length).toEqual(0);
     expect(pipe.diameter).toEqual(14);
@@ -84,7 +59,7 @@ describe("Pipe", () => {
       [2, 2],
       [3, 3],
     ]);
-    expect(pipe.length).not.toEqual(0);
+    expect(pipe.length).toEqual(0);
   });
 
   it("can extend a pipe", () => {
@@ -102,7 +77,7 @@ describe("Pipe", () => {
       [1, 1],
       [3, 3],
     ]);
-    expect(pipe.length).not.toEqual(0);
+    expect(pipe.length).toEqual(0);
   });
 
   it("can say when a coordinates is the start of a pipe", () => {
@@ -172,5 +147,35 @@ describe("Pipe", () => {
         [2, 2],
       ],
     ]);
+  });
+});
+
+describe("computeLinkLength", () => {
+  it("computes length in meters", () => {
+    const pipe = buildPipe({
+      coordinates: [
+        [1, 1],
+        [1.1, 1.1],
+      ],
+      length: 0,
+    });
+
+    const length = computeLinkLength(pipe, "m");
+
+    expect(length).toBeCloseTo(15724.04);
+  });
+
+  it("computes length in feet", () => {
+    const pipe = buildPipe({
+      coordinates: [
+        [1, 1],
+        [1.1, 1.1],
+      ],
+      length: 0,
+    });
+
+    const length = computeLinkLength(pipe, "ft");
+
+    expect(length).toBeCloseTo(51588.05);
   });
 });

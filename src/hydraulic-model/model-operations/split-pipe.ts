@@ -6,8 +6,9 @@ import { CustomerPoint } from "../customer-points";
 import { findJunctionForCustomerPoint } from "../utilities/junction-assignment";
 import { lineString, point } from "@turf/helpers";
 import { findNearestPointOnLine } from "src/lib/geometry";
-import measureLength from "@turf/length";
 import { Position } from "src/types";
+import { computeLinkLength } from "../asset-types/link";
+import { Unit } from "src/quantity";
 
 type CopyablePipeProperties = Pick<
   PipeProperties,
@@ -281,8 +282,8 @@ const buildPipePair = (
 
   copyPipeProperties(originalPipe, pipe1);
   copyPipeProperties(originalPipe, pipe2);
-  updatePipeLength(pipe1);
-  updatePipeLength(pipe2);
+  updatePipeLength(pipe1, hydraulicModel.units.length);
+  updatePipeLength(pipe2, hydraulicModel.units.length);
 
   return [pipe1, pipe2];
 };
@@ -305,9 +306,8 @@ const copyPipeProperties = (source: Pipe, target: Pipe) => {
   }
 };
 
-const updatePipeLength = (pipe: Pipe) => {
-  const length = measureLength(pipe.feature, { units: "meters" });
-  pipe.setProperty("length", length);
+const updatePipeLength = (pipe: Pipe, lengthUnit: Unit) => {
+  pipe.setProperty("length", computeLinkLength(pipe, lengthUnit));
 };
 
 const findTargetPipeForCustomerPoint = (

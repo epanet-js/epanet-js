@@ -10,6 +10,8 @@ import { updateLinkConnections } from "../mutations/update-link-connections";
 import { isNodeAsset } from "../asset-types/type-guards";
 import { reassignCustomerPoints } from "../mutations/reassign-customer-points";
 import { getJunctionDemands } from "../demands";
+import { computeLinkLength } from "../asset-types/link";
+import { Unit } from "src/quantity";
 
 type InputData = {
   sourceNodeId: AssetId;
@@ -129,6 +131,7 @@ const updateLinkCoordinates = (
   link: LinkAsset,
   nodeId: AssetId,
   newCoordinates: [number, number],
+  lengthUnit: Unit,
 ): void => {
   const coordinates = link.coordinates;
   const updatedCoordinates = [...coordinates];
@@ -141,6 +144,7 @@ const updateLinkCoordinates = (
   }
 
   link.setCoordinates(updatedCoordinates);
+  link.setProperty("length", computeLinkLength(link, lengthUnit));
 };
 
 const processLinkCustomerPoints = (
@@ -168,7 +172,7 @@ const processConnectedLinks = (
   targetNode: NodeAsset,
   hydraulicModel: HydraulicModel,
 ): { updatedLinks: LinkAsset[]; updatedCustomerPoints: CustomerPoints } => {
-  const { topology, assets, customerPointsLookup } = hydraulicModel;
+  const { topology, assets, customerPointsLookup, units } = hydraulicModel;
   const updatedLinks: LinkAsset[] = [];
   const updatedCustomerPoints = new CustomerPoints();
 
@@ -181,6 +185,7 @@ const processConnectedLinks = (
     customerPointsLookup,
     updatedLinks,
     updatedCustomerPoints,
+    units.length,
   );
 
   updateLoserLinks(
@@ -193,6 +198,7 @@ const processConnectedLinks = (
     customerPointsLookup,
     updatedLinks,
     updatedCustomerPoints,
+    units.length,
   );
 
   return { updatedLinks, updatedCustomerPoints };
@@ -207,6 +213,7 @@ const updateWinnerLinks = (
   customerPointsLookup: CustomerPointsLookup,
   updatedLinks: LinkAsset[],
   updatedCustomerPoints: CustomerPoints,
+  lengthUnit: Unit,
 ): void => {
   const winnerConnectedLinkIds = topology.getLinks(winnerNodeId);
 
@@ -218,6 +225,7 @@ const updateWinnerLinks = (
       linkCopy,
       winnerNodeId,
       targetNode.coordinates as [number, number],
+      lengthUnit,
     );
     updatedLinks.push(linkCopy);
 
@@ -241,6 +249,7 @@ const updateLoserLinks = (
   customerPointsLookup: CustomerPointsLookup,
   updatedLinks: LinkAsset[],
   updatedCustomerPoints: CustomerPoints,
+  lengthUnit: Unit,
 ): void => {
   const loserConnectedLinkIds = topology.getLinks(loserNodeId);
 
@@ -253,6 +262,7 @@ const updateLoserLinks = (
       linkCopy,
       winnerNodeId,
       targetNode.coordinates as [number, number],
+      lengthUnit,
     );
     updatedLinks.push(linkCopy);
 

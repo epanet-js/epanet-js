@@ -81,14 +81,9 @@ export class Pump extends Link<PumpProperties> {
   };
 
   copy() {
-    return new Pump(
-      this.id,
-      [...this.coordinates],
-      {
-        ...this.properties,
-        curve: this.properties.curve?.map((p) => ({ ...p })),
-      },
-      this.lengthUnit,
-    );
+    return new Pump(this.id, [...this.coordinates], {
+      ...this.properties,
+      curve: this.properties.curve?.map((p) => ({ ...p })),
+    });
   }
 }

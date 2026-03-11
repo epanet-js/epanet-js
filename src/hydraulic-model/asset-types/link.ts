@@ -23,16 +23,12 @@ export type LinkProperties = {
 } & AssetProperties;
 
 export class Link<T> extends BaseAsset<T & LinkProperties> {
-  protected lengthUnit: Unit;
-
   constructor(
     id: AssetId,
     coordinates: Position[],
     properties: T & LinkProperties,
-    lengthUnit: Unit,
   ) {
     super(id, { type: "LineString", coordinates }, properties);
-    this.lengthUnit = lengthUnit;
   }
 
   get isLink() {
@@ -116,18 +112,19 @@ export class Link<T> extends BaseAsset<T & LinkProperties> {
     }
 
     this.geometry.coordinates = newCoordinates;
-
-    const lengthInMeters =
-      measureLength(this.feature, { units: "kilometers" }) * 1000;
-    const length = parseFloat(
-      convertTo({ value: lengthInMeters, unit: "m" }, this.lengthUnit).toFixed(
-        2,
-      ),
-    );
-
-    this.properties.length = length;
   }
 }
+
+export const computeLinkLength = (
+  link: Link<unknown>,
+  lengthUnit: Unit,
+): number => {
+  const lengthInMeters =
+    measureLength(link.feature, { units: "kilometers" }) * 1000;
+  return parseFloat(
+    convertTo({ value: lengthInMeters, unit: "m" }, lengthUnit).toFixed(2),
+  );
+};
 
 export const findLargestSegment = <T>(link: Link<T>): [Position, Position] => {
   let maxLength = -1;

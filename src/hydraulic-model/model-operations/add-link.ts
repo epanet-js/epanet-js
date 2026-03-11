@@ -10,6 +10,7 @@ import { HydraulicModel } from "../hydraulic-model";
 import { CustomerPoint } from "../customer-points";
 import { inferNodeIsActive } from "../utilities/active-topology";
 import { copyPipePropertiesToLink } from "./mutations/copy-link-properties";
+import { computeLinkLength } from "../asset-types/link";
 
 type InputData = {
   link: LinkAsset;
@@ -34,6 +35,10 @@ export const addLink: ModelOperation<InputData> = (hydraulicModel, data) => {
   linkCopy.setConnections(startNodeCopy.id, endNodeCopy.id);
   forceSpatialConnectivity(linkCopy, startNodeCopy, endNodeCopy);
   removeRedundantVertices(linkCopy);
+  linkCopy.setProperty(
+    "length",
+    computeLinkLength(linkCopy, hydraulicModel.units.length),
+  );
 
   linkCopy.setProperty(
     "isActive",

@@ -9,6 +9,8 @@ import { lineString, point } from "@turf/helpers";
 import { findNearestPointOnLine } from "src/lib/geometry";
 import { splitPipe } from "./split-pipe";
 import { HydraulicModel } from "../hydraulic-model";
+import { computeLinkLength } from "../asset-types/link";
+import { Unit } from "src/quantity";
 
 type InputData = {
   nodeId: AssetId;
@@ -67,7 +69,12 @@ const moveNodeStandard: ModelOperation<Omit<InputData, "pipeIdToSplit">> = (
   for (const linkId of linkIds) {
     const link = assets.get(linkId) as LinkAsset;
     const linkCopy = link.copy();
-    updateLinkCoordinates(linkCopy, oldCoordinates, newCoordinates);
+    updateLinkCoordinates(
+      linkCopy,
+      oldCoordinates,
+      newCoordinates,
+      hydraulicModel.units.length,
+    );
 
     if (linkCopy.type === "pipe" && shouldUpdateCustomerPoints) {
       const pipeCopy = linkCopy as Pipe;
@@ -171,6 +178,7 @@ const updateLinkCoordinates = (
   linkCopy: LinkAsset,
   oldNodeCoordinates: Position,
   newNodeCoordinates: Position,
+  lengthUnit: Unit,
 ) => {
   const newLinkCoordinates = [...linkCopy.coordinates];
   if (linkCopy.isStart(oldNodeCoordinates)) {
@@ -181,6 +189,7 @@ const updateLinkCoordinates = (
   }
 
   linkCopy.setCoordinates(newLinkCoordinates);
+  linkCopy.setProperty("length", computeLinkLength(linkCopy, lengthUnit));
   return linkCopy;
 };
 
