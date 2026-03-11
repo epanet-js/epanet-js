@@ -25,6 +25,7 @@ import { AddLayer, LayersEditor } from "../layers/layers-editor";
 import { InlineField, Section, SectionList } from "../form/fields";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { LegendRamp } from "../legends";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 const colorPropertyLabelFor = (
   property: string,
@@ -89,6 +90,7 @@ const SymbologyEditor = ({
   const {
     linkSymbology,
     nodeSymbology,
+    symbologyPreferences,
     updateNodeSymbology,
     updateLinkSymbology,
     switchNodeSymbologyTo,
@@ -99,6 +101,9 @@ const SymbologyEditor = ({
     modelMetadata: { quantities },
   } = useAtomValue(dataAtom);
   const hydraulicModel = useAtomValue(stagingModelAtom);
+  const isPersistMapPreferencesOn = useFeatureFlag(
+    "FLAG_RESTORE_MAP_PREFERENCES",
+  );
 
   const userTracking = useUserTracking();
 
@@ -111,6 +116,10 @@ const SymbologyEditor = ({
 
     const isSimulationProperty = simulationProperties.includes(property);
     const canApplySymbology = !isSimulationProperty || simulationResults;
+    const preference =
+      isPersistMapPreferencesOn && property !== "none"
+        ? symbologyPreferences[property]
+        : undefined;
 
     if (geometryType === "node") {
       if (property === "none") {
@@ -125,6 +134,7 @@ const SymbologyEditor = ({
             hydraulicModel,
             quantities,
             simulationResults!,
+            preference,
           ),
         );
       }
@@ -141,6 +151,7 @@ const SymbologyEditor = ({
             hydraulicModel,
             quantities,
             simulationResults!,
+            preference,
           ),
         );
       }

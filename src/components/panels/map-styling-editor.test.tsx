@@ -17,6 +17,7 @@ import { stubWindowSize } from "src/__helpers__/media-queries";
 describe("Map Styling Editor", () => {
   beforeEach(() => {
     stubWindowSize("sm");
+    localStorage.clear();
   });
 
   it("can change the styles for nodes", async () => {

@@ -51,6 +51,7 @@ import { AppLoader } from "./app-loader";
 import { PrivacyBanner } from "./privacy-banner";
 import { usePrivacySettings } from "src/hooks/use-privacy-settings";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { persistLayerConfigAtom } from "src/state/store";
 import { initStorage } from "src/infra/storage";
 import { useIsSnapshotLocked } from "src/hooks/use-is-snapshot-locked";
 import { useIsCustomerAllocationDisabled } from "src/hooks/use-is-customer-allocation-disabled";
@@ -76,8 +77,14 @@ export function EpanetApp() {
   const { enableAllTracking } = usePrivacySettings();
   const hasIdentifiedRef = useRef(false);
   const isCursorFamilyEnabled = useFeatureFlag("FLAG_CURSOR_FAMILY");
+  const isPersistLayerConfigOn = useFeatureFlag("FLAG_RESTORE_MAP_PREFERENCES");
+  const [, setPersistLayerConfig] = useAtom(persistLayerConfigAtom);
   const isSnapshotLocked = useIsSnapshotLocked();
   const isCustomerAllocationDisabled = useIsCustomerAllocationDisabled();
+
+  useEffect(() => {
+    setPersistLayerConfig(isPersistLayerConfigOn);
+  }, [isPersistLayerConfigOn, setPersistLayerConfig]);
 
   useEffect(() => {
     void initStorage();

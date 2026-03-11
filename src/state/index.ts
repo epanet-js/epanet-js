@@ -84,9 +84,6 @@ export type { SymbologySpec, PreviewProperty } from "src/state/map-symbology";
 export {
   memoryMetaAtom,
   savedSymbologiesAtom,
-  nodeSymbologyAtom,
-  linkSymbologyAtom,
-  customerPointsSymbologyAtom,
   symbologyAtom,
   useSymbologyState,
 } from "src/state/map-symbology";
