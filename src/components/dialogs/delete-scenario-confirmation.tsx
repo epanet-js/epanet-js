@@ -49,11 +49,10 @@ export const DeleteScenarioConfirmationDialog = ({
         size="xs"
         isOpen={true}
         onClose={handleCancel}
-        onSubmit={handleConfirm}
-        initialValues={{}}
         footer={
           <SimpleDialogActionsNew
             action={translate("scenarios.deleteConfirmation.confirm")}
+            onAction={handleConfirm}
             actionVariant="danger"
             secondary={{
               action: translate("dialog.cancel"),

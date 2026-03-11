@@ -163,12 +163,12 @@ const SimulationSummaryDialogNew = ({
       isOpen={true}
       onClose={onClose}
       title={config.title}
-      onSubmit={handleAction}
       size="xs"
       footer={
         <SimpleDialogActionsNew
           autoFocusSubmit={true}
           action={isSuccess ? translate("ok") : translate("viewReport")}
+          onAction={handleAction}
           secondary={{
             action: isSuccess
               ? translate("viewReport")

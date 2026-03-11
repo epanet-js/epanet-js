@@ -6,7 +6,7 @@ import {
   type RefAttributes,
 } from "react";
 import type { IconProps } from "@radix-ui/react-icons/dist/types";
-import { useFormikContext, Formik, Form } from "formik";
+import { useFormikContext } from "formik";
 import clsx from "clsx";
 import {
   Button,
@@ -22,7 +22,6 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { useSetAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog";
 import { CloseIcon, RefreshIcon } from "src/icons";
-import { EarlyAccessBadge } from "./early-access-badge";
 
 type SlottableIcon =
   | React.FC<React.ComponentProps<"svg">>
@@ -374,9 +373,7 @@ interface BaseModalProps {
   onClose: () => void;
   children: React.ReactNode;
   footer?: React.ReactNode;
-  initialValues?: any;
-  onSubmit?: (values: any) => void;
-  earlyAccess?: boolean;
+  badge?: React.ReactNode;
 }
 
 export const BaseModal = ({
@@ -387,23 +384,8 @@ export const BaseModal = ({
   onClose,
   children,
   footer,
-  initialValues = {},
-  onSubmit,
-  earlyAccess,
+  badge,
 }: BaseModalProps) => {
-  const ModalLayout = (
-    <div className="modal-container flex flex-col flex-nowrap flex-1 min-h-0">
-      <DialogHeaderNew
-        title={title}
-        badge={earlyAccess && <EarlyAccessBadge />}
-      />
-      <div className="modal-content flex-1 overflow-auto min-h-0">
-        {children}
-      </div>
-      {footer && <DialogFooter>{footer}</DialogFooter>}
-    </div>
-  );
-
   return (
     <Dialog.Root open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <Dialog.Portal>
@@ -415,13 +397,13 @@ export const BaseModal = ({
             onOpenAutoFocus={(e) => e.preventDefault()}
           >
             <DefaultErrorBoundary>
-              {onSubmit ? (
-                <Formik initialValues={initialValues} onSubmit={onSubmit}>
-                  <Form className="h-full">{ModalLayout}</Form>
-                </Formik>
-              ) : (
-                ModalLayout
-              )}
+              <div className="modal-container flex flex-col flex-nowrap flex-1 min-h-0">
+                <DialogHeaderNew title={title} badge={badge} />
+                <div className="modal-content flex flex-col flex-1 overflow-auto min-h-0">
+                  {children}
+                </div>
+                {footer && <DialogFooter>{footer}</DialogFooter>}
+              </div>
             </DefaultErrorBoundary>
           </StyledDialogContentNew>
         </div>
@@ -459,15 +441,18 @@ export const DialogFooter = ({ children }: { children: ReactNode }) => {
 
 export function SimpleDialogActionsNew({
   action,
+  onAction,
   onClose,
   fullWidthSubmit = false,
   autoFocusSubmit = true,
   secondary,
   tertiary,
   isDisabled = false,
+  isSubmitting = false,
   actionVariant = "primary",
 }: {
   action?: string;
+  onAction?: () => void;
   autoFocusSubmit?: boolean;
   onClose?: () => void;
   fullWidthSubmit?: boolean;
@@ -480,10 +465,10 @@ export function SimpleDialogActionsNew({
     onClick: () => void;
   };
   isDisabled?: boolean;
+  isSubmitting?: boolean;
   actionVariant?: "primary" | "danger";
 }) {
   const translate = useTranslate();
-  const { isSubmitting } = useFormikContext();
   return (
     <footer
       className={clsx(
@@ -495,7 +480,8 @@ export function SimpleDialogActionsNew({
     >
       {action ? (
         <Button
-          type="submit"
+          type={onAction ? "button" : "submit"}
+          onClick={onAction}
           disabled={isSubmitting || isDisabled}
           variant={actionVariant}
           autoFocus={autoFocusSubmit}
