@@ -2204,7 +2204,10 @@ const PumpEfficiencyCurveField = ({
     const noneGroup: SelectorOption<CurveId>[] = [
       { value: 0, label: translate("none") },
     ];
-    return [libraryGroup, [...noneGroup, ...curveGroup]];
+    const selectableOptions = curveGroup.length
+      ? [...noneGroup, ...curveGroup]
+      : [];
+    return [libraryGroup, selectableOptions];
   }, [curves, translate]);
 
   const handleOnChange = (
@@ -2226,7 +2229,7 @@ const PumpEfficiencyCurveField = ({
       onChange("efficiencyCurveId", efficiencyCurveId, pump.efficiencyCurveId);
   };
 
-  return (
+  return curveOptions[1].length > 0 ? (
     <SelectRow
       name="efficiencyCurve"
       selected={pump.efficiencyCurveId ?? null}
@@ -2238,6 +2241,20 @@ const PumpEfficiencyCurveField = ({
       nullable
       placeholder={translate("none")}
     />
+  ) : (
+    <InlineField name={translate("efficiencyCurve")} labelSize="md">
+      <Button
+        onClick={() =>
+          showPumpLibrary({
+            source: "pump",
+            initialSection: "efficiency",
+          })
+        }
+        className="w-full py-2"
+      >
+        {translate("openPumpLibrary")}
+      </Button>
+    </InlineField>
   );
 };
 
@@ -2305,7 +2322,7 @@ const PumpEnergyPricePatternField = ({
     );
   };
 
-  return (
+  return patternOptions[1].length > 0 ? (
     <SelectRow
       name="energyPricePattern"
       selected={pump.energyPricePatternId ?? null}
@@ -2317,6 +2334,20 @@ const PumpEnergyPricePatternField = ({
       onChange={handleChange}
       readOnly={readOnly}
     />
+  ) : (
+    <InlineField name={translate("energyPricePattern")} labelSize="md">
+      <Button
+        onClick={() =>
+          showPatternsLibrary({
+            source: "pump",
+            initialSection: "energyPrice",
+          })
+        }
+        className="w-full py-2"
+      >
+        {translate("openPatternsLibrary")}
+      </Button>
+    </InlineField>
   );
 };
 
