@@ -2142,6 +2142,31 @@ const PumpEfficiencyCurveField = ({
 }) => {
   const translate = useTranslate();
   const showPumpLibrary = useShowPumpLibrary();
+  const { getCurveComparison } = useAssetComparison(pump);
+
+  const curveComparison = getCurveComparison(
+    "efficiencyCurveId",
+    pump.efficiencyCurveId,
+    curves,
+  );
+
+  const baseDisplayValue = useMemo(() => {
+    if (!curveComparison.hasChanged) return undefined;
+    const baseCurve = curveComparison.baseValue;
+    const curveName = translate("efficiencyCurve");
+    const lines: string[] = [];
+
+    if (baseCurve) {
+      lines.push(`${curveName}: ${baseCurve.label}`);
+      if (baseCurve.id === pump.efficiencyCurveId) {
+        lines.push(translate("curvePointsDiffer"));
+      }
+    } else {
+      lines.push(`${curveName}: (${translate("none").toLocaleLowerCase()})`);
+    }
+
+    return <div className="whitespace-pre-line">{lines.join("\n")}</div>;
+  }, [curveComparison, pump.efficiencyCurveId, translate]);
 
   const handleOnChange = useCallback(
     (_name: string, newValue: CurveId | null, _oldValue: CurveId | null) => {
@@ -2157,23 +2182,28 @@ const PumpEfficiencyCurveField = ({
   );
 
   return (
-    <LibrarySelectRow
-      name="efficiencyCurve"
-      collection={curves}
-      filterByType="efficiency"
-      libraryLabel={translate("openPumpLibrary")}
-      onOpenLibrary={() =>
-        showPumpLibrary({
-          source: "pump",
-          curveId: pump.efficiencyCurveId,
-          initialSection: "efficiency",
-        })
-      }
-      selected={pump.efficiencyCurveId ?? null}
-      emptyOptionLabel={translate("none")}
-      onChange={handleOnChange}
-      readOnly={readOnly}
-    />
+    <BlockComparisonField
+      hasChanged={curveComparison.hasChanged}
+      baseDisplayValue={baseDisplayValue}
+    >
+      <LibrarySelectRow
+        name="efficiencyCurve"
+        collection={curves}
+        filterByType="efficiency"
+        libraryLabel={translate("openPumpLibrary")}
+        onOpenLibrary={() =>
+          showPumpLibrary({
+            source: "pump",
+            curveId: pump.efficiencyCurveId,
+            initialSection: "efficiency",
+          })
+        }
+        selected={pump.efficiencyCurveId ?? null}
+        emptyOptionLabel={translate("none")}
+        onChange={handleOnChange}
+        readOnly={readOnly}
+      />
+    </BlockComparisonField>
   );
 };
 
@@ -2192,6 +2222,31 @@ const PumpEnergyPricePatternField = ({
 }) => {
   const translate = useTranslate();
   const showPatternsLibrary = useShowPatternsLibrary();
+  const { getPatternComparison } = useAssetComparison(pump);
+
+  const patternComparison = getPatternComparison(
+    "energyPricePatternId",
+    pump.energyPricePatternId,
+    patterns,
+  );
+
+  const baseDisplayValue = useMemo(() => {
+    if (!patternComparison.hasChanged) return undefined;
+    const basePattern = patternComparison.baseValue;
+    const patternName = translate("energyPricePattern");
+    const lines: string[] = [];
+
+    if (basePattern) {
+      lines.push(`${patternName}: ${basePattern.label}`);
+      if (basePattern.id === pump.energyPricePatternId) {
+        lines.push(translate("multipliersDiffer"));
+      }
+    } else {
+      lines.push(`${patternName}: (${translate("none").toLocaleLowerCase()})`);
+    }
+
+    return <div className="whitespace-pre-line">{lines.join("\n")}</div>;
+  }, [patternComparison, pump.energyPricePatternId, translate]);
 
   const placeholder = useMemo(() => {
     if (globalPatternId !== null) {
@@ -2213,24 +2268,29 @@ const PumpEnergyPricePatternField = ({
   );
 
   return (
-    <LibrarySelectRow
-      name="energyPricePattern"
-      collection={patterns}
-      filterByType="energyPrice"
-      libraryLabel={translate("openPatternsLibrary")}
-      onOpenLibrary={() =>
-        showPatternsLibrary({
-          source: "pump",
-          initialPatternId: pump.energyPricePatternId,
-          initialSection: "energyPrice",
-        })
-      }
-      selected={pump.energyPricePatternId ?? null}
-      emptyOptionLabel={translate("constant")}
-      placeholder={placeholder}
-      onChange={handleChange}
-      readOnly={readOnly}
-    />
+    <BlockComparisonField
+      hasChanged={patternComparison.hasChanged}
+      baseDisplayValue={baseDisplayValue}
+    >
+      <LibrarySelectRow
+        name="energyPricePattern"
+        collection={patterns}
+        filterByType="energyPrice"
+        libraryLabel={translate("openPatternsLibrary")}
+        onOpenLibrary={() =>
+          showPatternsLibrary({
+            source: "pump",
+            initialPatternId: pump.energyPricePatternId,
+            initialSection: "energyPrice",
+          })
+        }
+        selected={pump.energyPricePatternId ?? null}
+        emptyOptionLabel={translate("constant")}
+        placeholder={placeholder}
+        onChange={handleChange}
+        readOnly={readOnly}
+      />
+    </BlockComparisonField>
   );
 };
 
