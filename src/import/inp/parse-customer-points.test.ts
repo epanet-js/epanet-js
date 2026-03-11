@@ -427,6 +427,36 @@ J1	1	2
     expect(cp1Demands[0].patternId).toBeUndefined();
   });
 
+  it("results in empty demands when baseDemand is empty and no CUSTOMERS_DEMANDS exists", () => {
+    const IDS = { CP1: 1 } as const;
+
+    const baseContent = `[JUNCTIONS]
+J1	10
+
+[PIPES]
+P1	J1	J1	100	300	130	0	Open
+
+[COORDINATES]
+J1	1	2
+
+[END]`;
+
+    const customerPointsSection = `;[CUSTOMERS]
+;Id	X-coord	Y-coord	BaseDemand	PipeId	JunctionId	SnapX	SnapY
+;CP1	1.5	2.5		P1	J1	1.2	2.2`;
+
+    const validAppInp = createAppMadeInpWithCustomerPoints(
+      baseContent,
+      customerPointsSection,
+    );
+
+    const { hydraulicModel } = parseInp(validAppInp, { customerPoints: true });
+
+    const cp1Demands = hydraulicModel.demands.customerPoints.get(IDS.CP1)!;
+    expect(cp1Demands).toBeDefined();
+    expect(cp1Demands).toHaveLength(0);
+  });
+
   it("parses demands for multiple customer points", () => {
     const IDS = { CP1: 1, CP2: 2 } as const;
 

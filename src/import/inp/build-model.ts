@@ -739,10 +739,12 @@ const addCustomerPoint = (
     customerPointFactory: CustomerPointFactory;
   },
 ) => {
-  const rawDemands = customerPointData.demands ??
-    inpData.customerDemands.get(customerPointData.label) ?? [
-      { baseDemand: customerPointData.baseDemand },
-    ];
+  const rawDemands =
+    customerPointData.demands ??
+    inpData.customerDemands.get(customerPointData.label) ??
+    (customerPointData.baseDemand
+      ? [{ baseDemand: customerPointData.baseDemand }]
+      : []);
 
   const demands = rawDemands.map((d) =>
     buildDemand(patternContext, d.baseDemand, d.patternLabel),
