@@ -302,6 +302,7 @@ export const TimesSection = () => {
 export const DemandsSection = () => {
   const translate = useTranslate();
   const readonly = useAtomValue(hasScenariosAtom);
+  const isEpanet23On = useFeatureFlag("FLAG_EPANET23");
   const { values, setFieldValue } = useFormikContext<FormValues>();
 
   const isPDA = values.demandModel === "PDA";
@@ -315,6 +316,11 @@ export const DemandsSection = () => {
       label: translate("simulationSettings.demandModelPDA"),
       value: "PDA",
     },
+  ];
+
+  const backflowAllowedOptions: { label: string; value: "YES" | "NO" }[] = [
+    { label: translate("simulationSettings.backflowAllowedYes"), value: "YES" },
+    { label: translate("simulationSettings.backflowAllowedNo"), value: "NO" },
   ];
 
   return (
@@ -378,6 +384,17 @@ export const DemandsSection = () => {
           onChange={(v) => setFieldValue("emitterExponent", v)}
           disabled={readonly}
         />
+        {isEpanet23On && (
+          <SelectorSetting
+            label={translate("simulationSettings.backflowAllowed")}
+            description={translate("simulationSettings.backflowAllowedDesc")}
+            badge="EPANET 2.3"
+            options={backflowAllowedOptions}
+            selected={values.backflowAllowed ? "YES" : "NO"}
+            onChange={(v) => setFieldValue("backflowAllowed", v === "YES")}
+            disabled={readonly}
+          />
+        )}
       </SubsectionGroup>
     </div>
   );
@@ -811,14 +828,23 @@ export const EnergySection = () => {
 export const SettingsRow = ({
   label,
   description,
+  badge,
   children,
 }: {
   label: string;
   description?: string;
+  badge?: string;
   children: React.ReactNode;
 }) => (
   <div className="flex flex-col gap-1">
-    <span className="text-sm text-gray-700 dark:text-gray-200">{label}</span>
+    <span className="text-sm text-gray-700 dark:text-gray-200">
+      {label}
+      {badge && (
+        <span className="ml-2 px-1.5 py-0.5 text-[10px] font-medium rounded bg-gray-100 text-gray-400 dark:bg-gray-800 dark:text-gray-500">
+          {badge}
+        </span>
+      )}
+    </span>
     {description && (
       <span className="text-xs text-gray-400 dark:text-gray-500">
         {description}
@@ -913,6 +939,7 @@ const ValueSetting = ({
 type SelectorSettingPropsBase<T extends string | number> = {
   label: string;
   description?: string;
+  badge?: string;
   options: SelectorOption<T>[] | SelectorOption<T>[][];
   listClassName?: string;
   disabled?: boolean;
@@ -942,6 +969,7 @@ type SelectorSettingProps<T extends string | number> =
 const SelectorSetting = <T extends string | number>({
   label,
   description,
+  badge,
   options,
   selected,
   nullable = false,
@@ -951,7 +979,7 @@ const SelectorSetting = <T extends string | number>({
   listClassName,
   onChange,
 }: SelectorSettingProps<T>) => (
-  <SettingsRow label={label} description={description}>
+  <SettingsRow label={label} description={description} badge={badge}>
     <div className="w-56">
       <Selector
         ariaLabel={label}

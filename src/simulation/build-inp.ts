@@ -410,6 +410,9 @@ export const buildInp = withDebugInstrumentation(
             ]
           : []),
         `Emitter Exponent\t${opts.simulationSettings.emitterExponent}`,
+        ...(!opts.simulationSettings.backflowAllowed
+          ? [`Backflow Allowed\tNO`]
+          : []),
         ...(opts.simulationSettings.trials !== undefined
           ? [`Trials\t${opts.simulationSettings.trials}`]
           : []),

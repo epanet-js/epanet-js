@@ -23,6 +23,8 @@ export class SimulationSettingsBuilder {
     defaultSimulationSettings.pressureExponent;
   private emitterExponentValue: number =
     defaultSimulationSettings.emitterExponent;
+  private backflowAllowedValue: boolean =
+    defaultSimulationSettings.backflowAllowed;
   private trialsValue?: number;
   private accuracyValue?: number;
   private unbalancedModeValue?: UnbalancedMode;
@@ -106,6 +108,11 @@ export class SimulationSettingsBuilder {
 
   emitterExponent(value: number) {
     this.emitterExponentValue = value;
+    return this;
+  }
+
+  backflowAllowed(value: boolean) {
+    this.backflowAllowedValue = value;
     return this;
   }
 
@@ -264,6 +271,7 @@ export class SimulationSettingsBuilder {
       requiredPressure: this.requiredPressureValue,
       pressureExponent: this.pressureExponentValue,
       emitterExponent: this.emitterExponentValue,
+      backflowAllowed: this.backflowAllowedValue,
       ...(this.trialsValue !== undefined && { trials: this.trialsValue }),
       ...(this.accuracyValue !== undefined && {
         accuracy: this.accuracyValue,

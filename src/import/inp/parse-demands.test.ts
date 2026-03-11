@@ -661,15 +661,15 @@ describe("parse junctions demands", () => {
       expect(issues?.nonDefaultOptions?.has("EMITTER EXPONENT")).toBeFalsy();
     });
 
-    it("silently ignores emitter backflow", () => {
+    it("parses backflow allowed", () => {
       const inp = `
       [OPTIONS]
-      Emitter Backflow\tNO
+      Backflow Allowed\tNO
       `;
 
-      const { issues } = parseInp(inp);
+      const { simulationSettings } = parseInp(inp);
 
-      expect(issues?.nonDefaultOptions?.has("EMITTER BACKFLOW")).toBeFalsy();
+      expect(simulationSettings.backflowAllowed).toBe(false);
     });
   });
 

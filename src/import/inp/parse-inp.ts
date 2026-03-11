@@ -88,6 +88,9 @@ export const parseInp = (
       emitterExponent:
         inpData.options.emitterExponent ??
         defaultSimulationSettings.emitterExponent,
+      backflowAllowed:
+        inpData.options.backflowAllowed ??
+        defaultSimulationSettings.backflowAllowed,
       ...(inpData.options.trials !== undefined && {
         trials: inpData.options.trials,
       }),

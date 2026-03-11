@@ -142,6 +142,7 @@ export type InpData = {
     requiredPressure?: number;
     pressureExponent?: number;
     emitterExponent?: number;
+    backflowAllowed?: boolean;
     trials?: number;
     accuracy?: number;
     unbalancedMode?: "STOP" | "CONTINUE";

@@ -32,6 +32,7 @@ export type SimulationSettings = {
   requiredPressure: number;
   pressureExponent: number;
   emitterExponent: number;
+  backflowAllowed: boolean;
   trials?: number;
   accuracy?: number;
   unbalancedMode?: UnbalancedMode;
@@ -115,6 +116,7 @@ export const defaultSimulationSettings: SimulationSettings = {
   requiredPressure: 0.1,
   pressureExponent: 0.5,
   emitterExponent: 0.5,
+  backflowAllowed: true,
   ...defaultWaterQualityValues,
   ...defaultEnergyValues,
   ...defaultReportValues,

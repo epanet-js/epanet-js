@@ -109,6 +109,7 @@ export type FormValues = {
   requiredPressure: number;
   pressureExponent: number;
   emitterExponent: number;
+  backflowAllowed: boolean;
   trials: number;
   accuracy: number;
   unbalancedMode: UnbalancedMode;
@@ -159,6 +160,7 @@ export const buildInitialValues = (
     requiredPressure: settings.requiredPressure,
     pressureExponent: settings.pressureExponent,
     emitterExponent: settings.emitterExponent,
+    backflowAllowed: settings.backflowAllowed,
     trials: settings.trials ?? defaultHydraulicsValues.trials,
     accuracy: settings.accuracy ?? defaultHydraulicsValues.accuracy,
     unbalancedMode:
@@ -216,6 +218,7 @@ export const hasChanges = (
     values.requiredPressure !== settings.requiredPressure ||
     values.pressureExponent !== settings.pressureExponent ||
     values.emitterExponent !== settings.emitterExponent ||
+    values.backflowAllowed !== settings.backflowAllowed ||
     values.trials !== (settings.trials ?? defaultHydraulicsValues.trials) ||
     values.accuracy !==
       (settings.accuracy ?? defaultHydraulicsValues.accuracy) ||
@@ -274,6 +277,7 @@ export const buildUpdatedSettings = (
     requiredPressure: values.requiredPressure,
     pressureExponent: values.pressureExponent,
     emitterExponent: values.emitterExponent,
+    backflowAllowed: values.backflowAllowed,
     trials: values.trials,
     accuracy: values.accuracy,
     unbalancedMode: values.unbalancedMode,

@@ -40,7 +40,7 @@ const epanetDefaultOptions = {
   "REQUIRED PRESSURE": 0.1,
   "PRESSURE EXPONENT": 0.5,
   "EMITTER EXPONENT": 0.5,
-  "EMITTER BACKFLOW": "YES",
+  "BACKFLOW ALLOWED": "YES",
   QUALITY: "NONE",
   DIFFUSIVITY: 1.0,
   TOLERANCE: 0.01,
@@ -686,7 +686,9 @@ export const parseOption: RowParser = ({
     return;
   }
 
-  if (name === "EMITTER BACKFLOW") {
+  if (name === "BACKFLOW ALLOWED") {
+    const upperValue = (value as string).toUpperCase();
+    inpData.options.backflowAllowed = upperValue === "YES";
     return;
   }
 
