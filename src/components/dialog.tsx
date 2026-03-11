@@ -366,7 +366,7 @@ export function DialogHeaderNew({
 }
 
 interface BaseModalProps {
-  title: string;
+  title?: string;
   size?: "sm" | "xs" | "md" | "lg" | "xl" | "fullscreen" | "auto";
   height?: "sm" | "md" | "lg" | "xl";
   isOpen: boolean;
@@ -374,6 +374,7 @@ interface BaseModalProps {
   children: React.ReactNode;
   footer?: React.ReactNode;
   badge?: React.ReactNode;
+  preventClose?: boolean;
 }
 
 export const BaseModal = ({
@@ -385,9 +386,13 @@ export const BaseModal = ({
   children,
   footer,
   badge,
+  preventClose = false,
 }: BaseModalProps) => {
   return (
-    <Dialog.Root open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <Dialog.Root
+      open={isOpen}
+      onOpenChange={(open) => !open && !preventClose && onClose()}
+    >
       <Dialog.Portal>
         <StyledDialogOverlay />
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -395,10 +400,13 @@ export const BaseModal = ({
             size={size}
             height={height}
             onOpenAutoFocus={(e) => e.preventDefault()}
+            onEscapeKeyDown={
+              preventClose ? (e) => e.preventDefault() : undefined
+            }
           >
             <DefaultErrorBoundary>
               <div className="modal-container flex flex-col flex-nowrap flex-1 min-h-0">
-                <DialogHeaderNew title={title} badge={badge} />
+                {title && <DialogHeaderNew title={title} badge={badge} />}
                 <div className="modal-content flex flex-col flex-1 overflow-auto min-h-0">
                   {children}
                 </div>
