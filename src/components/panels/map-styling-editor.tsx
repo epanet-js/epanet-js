@@ -41,6 +41,7 @@ const colorPropertyLabelFor = (
 export const MapStylingEditor = () => {
   const translate = useTranslate();
   const isGridOn = useAtomValue(showGridAtom);
+  const isCreateCustomerOn = useFeatureFlag("FLAG_CREATE_CUSTOMER");
 
   return (
     <div className="flex-auto overflow-y-auto placemark-scrollbar border-gray-200 dark:border-gray-900">
@@ -53,7 +54,7 @@ export const MapStylingEditor = () => {
           geometryType="link"
           properties={supportedLinkProperties}
         />
-        {!isGridOn && <CustomerPointsSection />}
+        {(!isGridOn || isCreateCustomerOn) && <CustomerPointsSection />}
         {!isGridOn && (
           <Section title={translate("layers")} button={<AddLayer />}>
             <LayersEditor />

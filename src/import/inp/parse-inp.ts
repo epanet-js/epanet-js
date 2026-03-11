@@ -194,6 +194,7 @@ const projectCoordinates = (
     const points: Position[] = [];
     for (const [, p] of inpData.coordinates.entries()) points.push(p);
     for (const [, verts] of inpData.vertices.entries()) points.push(...verts);
+    for (const cp of inpData.customerPoints) points.push(cp.coordinates);
     return points;
   };
 
@@ -207,6 +208,15 @@ const projectCoordinates = (
   }
   for (const [id, verts] of inpData.vertices.entries()) {
     inpData.vertices.set(id, verts.map(projectionMapper.toWgs84));
+  }
+  for (const cp of inpData.customerPoints) {
+    cp.coordinates = projectionMapper.toWgs84(cp.coordinates) as [
+      number,
+      number,
+    ];
+    if ("snapPoint" in cp && cp.snapPoint) {
+      cp.snapPoint = projectionMapper.toWgs84(cp.snapPoint) as [number, number];
+    }
   }
 
   return projectionMapper;
