@@ -26,7 +26,6 @@ import {
   NavigableList,
 } from "src/components/list";
 import type { NavItem, NavigableListHandle } from "src/components/list";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 type CurveSectionType = "pump" | "efficiency";
 type SidebarSectionType = CurveSectionType | "uncategorized";
@@ -81,7 +80,6 @@ export const PumpLibrarySidebar = ({
   readOnly = false,
 }: PumpLibrarySidebarProps) => {
   const translate = useTranslate();
-  const isAllCurvesEnabled = useFeatureFlag("FLAG_ALL_CURVES");
   const listRef = useRef<NavigableListHandle>(null);
   const [actionState, setActionState] = useState<ActionState | undefined>(
     undefined,
@@ -260,15 +258,11 @@ export const PumpLibrarySidebar = ({
       label: translate("curves.setAsPump"),
       icon: <ChevronRightIcon size="sm" />,
     },
-    ...(isAllCurvesEnabled
-      ? [
-          {
-            action: "categorizeEfficiency",
-            label: translate("curves.setAsEfficiency"),
-            icon: <ChevronRightIcon size="sm" />,
-          },
-        ]
-      : []),
+    {
+      action: "categorizeEfficiency",
+      label: translate("curves.setAsEfficiency"),
+      icon: <ChevronRightIcon size="sm" />,
+    },
     {
       action: "delete",
       label: translate("delete"),
@@ -286,9 +280,7 @@ export const PumpLibrarySidebar = ({
         onSelectItem={handleSelectItem}
         isNavBlocked={!!actionState}
       >
-        {SECTION_TYPES.filter(
-          (type) => type !== "efficiency" || isAllCurvesEnabled,
-        ).map((sectionType) => {
+        {SECTION_TYPES.map((sectionType) => {
           const title = translate(SECTION_TRANSLATION_KEYS[sectionType]);
           return (
             <CollapsibleListSection

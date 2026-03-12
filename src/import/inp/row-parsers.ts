@@ -251,13 +251,7 @@ export const parseJunction: RowParser = ({
   inpData.nodeIds.add(id);
 };
 
-export const parseValve: RowParser = ({
-  trimmedRow,
-  inpData,
-  issues,
-  isCommented,
-  options,
-}) => {
+export const parseValve: RowParser = ({ trimmedRow, inpData, isCommented }) => {
   const [
     id,
     startNodeDirtyId,
@@ -272,13 +266,11 @@ export const parseValve: RowParser = ({
   const kind = type.toLowerCase();
   let valveCurveId: string | undefined;
   if (kind === "gpv") {
-    if (!options?.allCurves) issues.addGPVUsed();
     valveCurveId = setting;
   }
 
   if (kind === "pcv" && curveId) {
     valveCurveId = curveId;
-    if (!options?.allCurves) issues.addPCVCurve();
   }
 
   inpData.valves.push({
@@ -356,13 +348,7 @@ export const parseStatus: RowParser = ({ trimmedRow, inpData }) => {
   inpData.status.set(linkId, value.toUpperCase());
 };
 
-export const parseTank: RowParser = ({
-  trimmedRow,
-  inpData,
-  issues,
-  isCommented,
-  options,
-}) => {
+export const parseTank: RowParser = ({ trimmedRow, inpData, isCommented }) => {
   const [
     id,
     elevation,
@@ -388,7 +374,6 @@ export const parseTank: RowParser = ({
 
   if (volumeCurveId && volumeCurveId !== "*") {
     tankData.volumeCurveId = volumeCurveId;
-    if (!options?.allCurves) issues.addTankCurve();
   }
 
   if (overflow) {

@@ -21,7 +21,6 @@ import { WarningIcon } from "src/icons";
 import { OPFSStorage } from "src/infra/storage";
 import { getAppId } from "src/infra/app-instance";
 import { isDemoNetwork } from "src/demo/demo-networks";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useRecentFiles } from "src/hooks/use-recent-files";
 
 export const inpExtension = ".inp";
@@ -35,7 +34,6 @@ export const useImportInp = () => {
   const transactImport = rep.useTransactImport();
   const userTracking = useUserTracking();
 
-  const allCurves = useFeatureFlag("FLAG_ALL_CURVES");
   const { addRecent } = useRecentFiles();
 
   const importInp = useCallback(
@@ -73,7 +71,6 @@ export const useImportInp = () => {
         const parseOptions = {
           customerPoints: true,
           inactiveAssets: true,
-          allCurves,
         };
 
         const completeImport = async (
@@ -203,7 +200,6 @@ export const useImportInp = () => {
       transactImport,
       setFileInfo,
       map?.map,
-      allCurves,
       addRecent,
     ],
   );

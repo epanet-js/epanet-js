@@ -15,7 +15,6 @@ import FeatureEditor from "../feature-editor";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Valve } from "src/hydraulic-model/asset-types";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
-import { stubFeatureOff, stubFeatureOn } from "src/__helpers__/feature-flags";
 
 describe("AssetPanel", () => {
   describe("with a pipe", () => {
@@ -430,138 +429,128 @@ describe("AssetPanel", () => {
       expectTextPropertyDisplayed("status", "Open - Cannot deliver pressure");
     });
 
-    describe("with FLAG_ALL_CURVES enabled", () => {
-      beforeEach(() => {
-        stubFeatureOn("FLAG_ALL_CURVES");
+    it("shows the selected headloss curve for a GPV valve", () => {
+      const IDS = { V1: 1 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aCurve({
+          id: 10,
+          type: "headloss",
+          label: "HL_CURVE",
+          points: [
+            { x: 0, y: 0 },
+            { x: 100, y: 10 },
+          ],
+        })
+        .aValve(IDS.V1, { kind: "gpv", curveId: 10 })
+        .build();
+      const store = setInitialState({
+        hydraulicModel,
+        selectedAssetId: IDS.V1,
       });
 
-      afterEach(() => {
-        stubFeatureOff("FLAG_ALL_CURVES");
+      renderComponent(store);
+
+      expect(
+        screen.getByRole("combobox", { name: /headloss curve/i }),
+      ).toHaveTextContent("HL_CURVE");
+    });
+
+    it("does not select a valve-type curve for a GPV valve", () => {
+      const IDS = { V1: 1 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aCurve({
+          id: 10,
+          type: "valve",
+          label: "VALVE_CURVE",
+          points: [
+            { x: 0, y: 0 },
+            { x: 100, y: 100 },
+          ],
+        })
+        .aCurve({
+          id: 11,
+          type: "headloss",
+          label: "HL_OTHER",
+          points: [
+            { x: 0, y: 0 },
+            { x: 50, y: 5 },
+          ],
+        })
+        .aValve(IDS.V1, { kind: "gpv", curveId: 10 })
+        .build();
+      const store = setInitialState({
+        hydraulicModel,
+        selectedAssetId: IDS.V1,
       });
 
-      it("shows the selected headloss curve for a GPV valve", () => {
-        const IDS = { V1: 1 };
-        const hydraulicModel = HydraulicModelBuilder.with()
-          .aCurve({
-            id: 10,
-            type: "headloss",
-            label: "HL_CURVE",
-            points: [
-              { x: 0, y: 0 },
-              { x: 100, y: 10 },
-            ],
-          })
-          .aValve(IDS.V1, { kind: "gpv", curveId: 10 })
-          .build();
-        const store = setInitialState({
-          hydraulicModel,
-          selectedAssetId: IDS.V1,
-        });
+      renderComponent(store);
 
-        renderComponent(store);
+      const combobox = screen.getByRole("combobox", {
+        name: /headloss curve/i,
+      });
+      expect(combobox).not.toHaveTextContent("VALVE_CURVE");
+      expect(combobox).not.toHaveTextContent("HL_OTHER");
+    });
 
-        expect(
-          screen.getByRole("combobox", { name: /headloss curve/i }),
-        ).toHaveTextContent("HL_CURVE");
+    it("does not select a headloss curve for a PCV valve", () => {
+      const IDS = { V1: 1 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aCurve({
+          id: 10,
+          type: "headloss",
+          label: "HL_CURVE",
+          points: [
+            { x: 0, y: 0 },
+            { x: 100, y: 10 },
+          ],
+        })
+        .aCurve({
+          id: 11,
+          type: "valve",
+          label: "VALVE_OTHER",
+          points: [
+            { x: 0, y: 0 },
+            { x: 100, y: 100 },
+          ],
+        })
+        .aValve(IDS.V1, { kind: "pcv", curveId: 10 })
+        .build();
+      const store = setInitialState({
+        hydraulicModel,
+        selectedAssetId: IDS.V1,
       });
 
-      it("does not select a valve-type curve for a GPV valve", () => {
-        const IDS = { V1: 1 };
-        const hydraulicModel = HydraulicModelBuilder.with()
-          .aCurve({
-            id: 10,
-            type: "valve",
-            label: "VALVE_CURVE",
-            points: [
-              { x: 0, y: 0 },
-              { x: 100, y: 100 },
-            ],
-          })
-          .aCurve({
-            id: 11,
-            type: "headloss",
-            label: "HL_OTHER",
-            points: [
-              { x: 0, y: 0 },
-              { x: 50, y: 5 },
-            ],
-          })
-          .aValve(IDS.V1, { kind: "gpv", curveId: 10 })
-          .build();
-        const store = setInitialState({
-          hydraulicModel,
-          selectedAssetId: IDS.V1,
-        });
+      renderComponent(store);
 
-        renderComponent(store);
+      const combobox = screen.getByRole("combobox", { name: /curve/i });
+      expect(combobox).not.toHaveTextContent("HL_CURVE");
+      expect(combobox).not.toHaveTextContent("VALVE_OTHER");
+    });
 
-        const combobox = screen.getByRole("combobox", {
-          name: /headloss curve/i,
-        });
-        expect(combobox).not.toHaveTextContent("VALVE_CURVE");
-        expect(combobox).not.toHaveTextContent("HL_OTHER");
+    it("shows the selected valve curve for a PCV valve", () => {
+      const IDS = { V1: 1 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aCurve({
+          id: 10,
+          type: "valve",
+          label: "PCV_CURVE",
+          points: [
+            { x: 0, y: 0 },
+            { x: 100, y: 100 },
+          ],
+        })
+        .aValve(IDS.V1, { kind: "pcv", curveId: 10 })
+        .build();
+      const store = setInitialState({
+        hydraulicModel,
+        selectedAssetId: IDS.V1,
       });
 
-      it("does not select a headloss curve for a PCV valve", () => {
-        const IDS = { V1: 1 };
-        const hydraulicModel = HydraulicModelBuilder.with()
-          .aCurve({
-            id: 10,
-            type: "headloss",
-            label: "HL_CURVE",
-            points: [
-              { x: 0, y: 0 },
-              { x: 100, y: 10 },
-            ],
-          })
-          .aCurve({
-            id: 11,
-            type: "valve",
-            label: "VALVE_OTHER",
-            points: [
-              { x: 0, y: 0 },
-              { x: 100, y: 100 },
-            ],
-          })
-          .aValve(IDS.V1, { kind: "pcv", curveId: 10 })
-          .build();
-        const store = setInitialState({
-          hydraulicModel,
-          selectedAssetId: IDS.V1,
-        });
+      renderComponent(store);
 
-        renderComponent(store);
-
-        const combobox = screen.getByRole("combobox", { name: /curve/i });
-        expect(combobox).not.toHaveTextContent("HL_CURVE");
-        expect(combobox).not.toHaveTextContent("VALVE_OTHER");
-      });
-
-      it("shows the selected valve curve for a PCV valve", () => {
-        const IDS = { V1: 1 };
-        const hydraulicModel = HydraulicModelBuilder.with()
-          .aCurve({
-            id: 10,
-            type: "valve",
-            label: "PCV_CURVE",
-            points: [
-              { x: 0, y: 0 },
-              { x: 100, y: 100 },
-            ],
-          })
-          .aValve(IDS.V1, { kind: "pcv", curveId: 10 })
-          .build();
-        const store = setInitialState({
-          hydraulicModel,
-          selectedAssetId: IDS.V1,
-        });
-
-        renderComponent(store);
-
-        expect(
-          screen.getByRole("combobox", { name: /curve/i }),
-        ).toHaveTextContent("PCV_CURVE");
-      });
+      expect(
+        screen.getByRole("combobox", { name: /curve/i }),
+      ).toHaveTextContent("PCV_CURVE");
     });
   });
 
@@ -1050,9 +1039,21 @@ describe("AssetPanel", () => {
       expectPropertyDisplayed("elevation (m)", "10");
       expectPropertyDisplayed("diameter (m)", "300");
       expectPropertyDisplayed("initial level (m)", "50");
-      expectPropertyDisplayed("min level (m)", "0");
-      expectPropertyDisplayed("max level (m)", "100");
-      expectPropertyDisplayed("min volume (m³)", "0");
+      expect(
+        screen.getByRole("textbox", {
+          name: new RegExp(`min volume`, "i"),
+        }),
+      ).toHaveValue("0");
+      expect(
+        screen.getByRole("textbox", {
+          name: new RegExp(`min level`, "i"),
+        }),
+      ).toHaveValue("0");
+      expect(
+        screen.getByRole("textbox", {
+          name: new RegExp(`max level`, "i"),
+        }),
+      ).toHaveValue("100");
       expect(
         screen.getByRole("checkbox", { name: /can overflow/i }),
       ).toBeChecked();
@@ -1116,192 +1117,186 @@ describe("AssetPanel", () => {
       expectTextPropertyDisplayed("volume (m³)", "1,500.432");
     });
 
-    describe("with FLAG_ALL_CURVES enabled", () => {
-      beforeEach(() => {
-        stubFeatureOn("FLAG_ALL_CURVES");
+    it("shows shape selector defaulting to circular", () => {
+      const IDS = { T1: 1 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aTank(IDS.T1, {
+          label: "TANK1",
+          diameter: 300,
+          minLevel: 5,
+          maxLevel: 100,
+          minVolume: 10,
+        })
+        .build();
+      const store = setInitialState({
+        hydraulicModel,
+        selectedAssetId: IDS.T1,
       });
 
-      it("shows shape selector defaulting to circular", () => {
-        const IDS = { T1: 1 };
-        const hydraulicModel = HydraulicModelBuilder.with()
-          .aTank(IDS.T1, {
-            label: "TANK1",
-            diameter: 300,
-            minLevel: 5,
-            maxLevel: 100,
-            minVolume: 10,
-          })
-          .build();
-        const store = setInitialState({
-          hydraulicModel,
-          selectedAssetId: IDS.T1,
-        });
+      renderComponent(store);
 
-        renderComponent(store);
+      expect(
+        screen.getByRole("combobox", { name: /geometry/i }),
+      ).toHaveTextContent(/circular/i);
+      expectPropertyDisplayed("diameter (m)", "300");
+      expect(
+        screen.getByRole("textbox", {
+          name: new RegExp(`min volume`, "i"),
+        }),
+      ).toHaveValue("10");
+      expect(
+        screen.getByRole("textbox", {
+          name: new RegExp(`min level`, "i"),
+        }),
+      ).toHaveValue("5");
+      expect(
+        screen.getByRole("textbox", {
+          name: new RegExp(`max level`, "i"),
+        }),
+      ).toHaveValue("100");
+    });
 
-        expect(
-          screen.getByRole("combobox", { name: /geometry/i }),
-        ).toHaveTextContent(/circular/i);
-        expectPropertyDisplayed("diameter (m)", "300");
-        expect(
-          screen.getByRole("textbox", {
-            name: new RegExp(`min volume`, "i"),
-          }),
-        ).toHaveValue("10");
-        expect(
-          screen.getByRole("textbox", {
-            name: new RegExp(`min level`, "i"),
-          }),
-        ).toHaveValue("5");
-        expect(
-          screen.getByRole("textbox", {
-            name: new RegExp(`max level`, "i"),
-          }),
-        ).toHaveValue("100");
+    it("shows shape selector defaulting to curve-defined when tank has volume curve", () => {
+      const IDS = { T1: 1 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aCurve({
+          id: 10,
+          label: "VC1",
+          type: "volume",
+          points: [
+            { x: 0, y: 0 },
+            { x: 20, y: 5000 },
+          ],
+        })
+        .aTank(IDS.T1, {
+          label: "TANK1",
+          volumeCurveId: 10,
+          minLevel: 2,
+          maxLevel: 18,
+        })
+        .build();
+      const store = setInitialState({
+        hydraulicModel,
+        selectedAssetId: IDS.T1,
       });
 
-      it("shows shape selector defaulting to curve-defined when tank has volume curve", () => {
-        const IDS = { T1: 1 };
-        const hydraulicModel = HydraulicModelBuilder.with()
-          .aCurve({
-            id: 10,
-            label: "VC1",
-            type: "volume",
-            points: [
-              { x: 0, y: 0 },
-              { x: 20, y: 5000 },
-            ],
-          })
-          .aTank(IDS.T1, {
-            label: "TANK1",
-            volumeCurveId: 10,
-            minLevel: 2,
-            maxLevel: 18,
-          })
-          .build();
-        const store = setInitialState({
-          hydraulicModel,
-          selectedAssetId: IDS.T1,
-        });
+      renderComponent(store);
 
-        renderComponent(store);
+      expect(
+        screen.getByRole("combobox", { name: /geometry/i }),
+      ).toHaveTextContent(/curve/i);
+      expect(
+        screen.queryByRole("textbox", {
+          name: /value for: diameter/i,
+        }),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("textbox", {
+          name: /value for: min volume/i,
+        }),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.getByRole("combobox", { name: /volume curve/i }),
+      ).toHaveTextContent("VC1");
+    });
 
-        expect(
-          screen.getByRole("combobox", { name: /geometry/i }),
-        ).toHaveTextContent(/curve/i);
-        expect(
-          screen.queryByRole("textbox", {
-            name: /value for: diameter/i,
-          }),
-        ).not.toBeInTheDocument();
-        expect(
-          screen.queryByRole("textbox", {
-            name: /value for: min volume/i,
-          }),
-        ).not.toBeInTheDocument();
+    it("switches to curve-defined and submits when curve is selected", async () => {
+      const user = userEvent.setup();
+      const IDS = { T1: 1 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aCurve({
+          id: 10,
+          label: "VC1",
+          type: "volume",
+          points: [
+            { x: 0, y: 0 },
+            { x: 25, y: 8000 },
+          ],
+        })
+        .aTank(IDS.T1, {
+          label: "TANK1",
+          diameter: 300,
+          minLevel: 5,
+          maxLevel: 100,
+        })
+        .build();
+      const store = setInitialState({
+        hydraulicModel,
+        selectedAssetId: IDS.T1,
+      });
+
+      renderComponent(store);
+
+      // Switch to curve-defined
+      const shapeSelector = screen.getByRole("combobox", {
+        name: /geometry/i,
+      });
+      await user.click(shapeSelector);
+      await user.click(screen.getByRole("option", { name: /curve/i }));
+
+      // Select a volume curve
+      const curveSelector = screen.getByRole("combobox", {
+        name: /volume curve/i,
+      });
+      await user.click(curveSelector);
+      await user.click(screen.getByRole("option", { name: /VC1/i }));
+
+      // Should apply curve bounds (read-only)
+      await waitFor(() => {
         expect(
           screen.getByRole("combobox", { name: /volume curve/i }),
         ).toHaveTextContent("VC1");
+        expect(screen.getByText("25")).toBeInTheDocument();
+        expect(screen.getByText("8,000")).toBeInTheDocument();
+      });
+    });
+
+    it("switches back to circular and clears volume curve", async () => {
+      const user = userEvent.setup();
+      const IDS = { T1: 1 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aCurve({
+          id: 10,
+          label: "VC1",
+          type: "volume",
+          points: [
+            { x: 0, y: 0 },
+            { x: 20, y: 5000 },
+          ],
+        })
+        .aTank(IDS.T1, {
+          label: "TANK1",
+          volumeCurveId: 10,
+          diameter: 300,
+          minLevel: 2,
+          maxLevel: 18,
+        })
+        .build();
+      const store = setInitialState({
+        hydraulicModel,
+        selectedAssetId: IDS.T1,
       });
 
-      it("switches to curve-defined and submits when curve is selected", async () => {
-        const user = userEvent.setup();
-        const IDS = { T1: 1 };
-        const hydraulicModel = HydraulicModelBuilder.with()
-          .aCurve({
-            id: 10,
-            label: "VC1",
-            type: "volume",
-            points: [
-              { x: 0, y: 0 },
-              { x: 25, y: 8000 },
-            ],
-          })
-          .aTank(IDS.T1, {
-            label: "TANK1",
-            diameter: 300,
-            minLevel: 5,
-            maxLevel: 100,
-          })
-          .build();
-        const store = setInitialState({
-          hydraulicModel,
-          selectedAssetId: IDS.T1,
-        });
+      renderComponent(store);
 
-        renderComponent(store);
+      expect(
+        screen.getByRole("combobox", { name: /geometry/i }),
+      ).toHaveTextContent("Volume curve");
 
-        // Switch to curve-defined
-        const shapeSelector = screen.getByRole("combobox", {
-          name: /geometry/i,
-        });
-        await user.click(shapeSelector);
-        await user.click(screen.getByRole("option", { name: /curve/i }));
-
-        // Select a volume curve
-        const curveSelector = screen.getByRole("combobox", {
-          name: /volume curve/i,
-        });
-        await user.click(curveSelector);
-        await user.click(screen.getByRole("option", { name: /VC1/i }));
-
-        // Should apply curve bounds (read-only)
-        await waitFor(() => {
-          expect(
-            screen.getByRole("combobox", { name: /volume curve/i }),
-          ).toHaveTextContent("VC1");
-          expect(screen.getByText("25")).toBeInTheDocument();
-          expect(screen.getByText("8,000")).toBeInTheDocument();
-        });
+      // Switch back to circular
+      const definitionSelector = screen.getByRole("combobox", {
+        name: /geometry/i,
       });
+      await user.click(definitionSelector);
+      await user.click(screen.getByRole("option", { name: /circular/i }));
 
-      it("switches back to circular and clears volume curve", async () => {
-        const user = userEvent.setup();
-        const IDS = { T1: 1 };
-        const hydraulicModel = HydraulicModelBuilder.with()
-          .aCurve({
-            id: 10,
-            label: "VC1",
-            type: "volume",
-            points: [
-              { x: 0, y: 0 },
-              { x: 20, y: 5000 },
-            ],
-          })
-          .aTank(IDS.T1, {
-            label: "TANK1",
-            volumeCurveId: 10,
-            diameter: 300,
-            minLevel: 2,
-            maxLevel: 18,
-          })
-          .build();
-        const store = setInitialState({
-          hydraulicModel,
-          selectedAssetId: IDS.T1,
-        });
-
-        renderComponent(store);
-
-        expect(
-          screen.getByRole("combobox", { name: /geometry/i }),
-        ).toHaveTextContent("Volume curve");
-
-        // Switch back to circular
-        const definitionSelector = screen.getByRole("combobox", {
-          name: /geometry/i,
-        });
-        await user.click(definitionSelector);
-        await user.click(screen.getByRole("option", { name: /circular/i }));
-
-        // Should show diameter and minVolume again
-        await waitFor(() => {
-          expectPropertyDisplayed("diameter (m)", "300");
-        });
-        expect(
-          screen.queryByRole("combobox", { name: /volume curve/i }),
-        ).not.toBeInTheDocument();
+      // Should show diameter and minVolume again
+      await waitFor(() => {
+        expectPropertyDisplayed("diameter (m)", "300");
       });
+      expect(
+        screen.queryByRole("combobox", { name: /volume curve/i }),
+      ).not.toBeInTheDocument();
     });
   });
 

@@ -59,7 +59,6 @@ import {
   ValveKind,
   ValveStatus,
   valveKinds,
-  selectableValveKinds,
   valveCurveTypeFrom,
 } from "src/hydraulic-model/asset-types/valve";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
@@ -898,7 +897,6 @@ const TankEditor = ({
   onLabelChange: (newLabel: string) => string | undefined;
   readonly?: boolean;
 }) => {
-  const allCurves = useFeatureFlag("FLAG_ALL_CURVES");
   const translate = useTranslate();
   const { footer } = useQuickGraph(tank.id, "tank");
   const { getComparison, isNew } = useAssetComparison(tank);
@@ -950,60 +948,14 @@ const TankEditor = ({
           positiveOnly={true}
           readOnly={readonly}
         />
-        {allCurves ? (
-          <TankDefinitionField
-            tank={tank}
-            curves={hydraulicModel.curves}
-            quantitiesMetadata={quantitiesMetadata}
-            onPropertyChange={onPropertyChange}
-            onBatchPropertyChange={onBatchPropertyChange}
-            readOnly={readonly}
-          />
-        ) : (
-          <>
-            <QuantityRow
-              name="minLevel"
-              value={tank.minLevel}
-              unit={quantitiesMetadata.getUnit("minLevel")}
-              decimals={quantitiesMetadata.getDecimals("minLevel")}
-              comparison={getComparison("minLevel", tank.minLevel)}
-              onChange={onPropertyChange}
-              positiveOnly={true}
-              readOnly={readonly}
-            />
-            <QuantityRow
-              name="maxLevel"
-              value={tank.maxLevel}
-              unit={quantitiesMetadata.getUnit("maxLevel")}
-              decimals={quantitiesMetadata.getDecimals("maxLevel")}
-              comparison={getComparison("maxLevel", tank.maxLevel)}
-              onChange={onPropertyChange}
-              positiveOnly={true}
-              readOnly={readonly}
-            />
-            <QuantityRow
-              name="diameter"
-              value={tank.diameter}
-              unit={quantitiesMetadata.getUnit("tankDiameter")}
-              decimals={quantitiesMetadata.getDecimals("diameter")}
-              comparison={getComparison("diameter", tank.diameter)}
-              onChange={onPropertyChange}
-              positiveOnly={true}
-              isNullable={false}
-              readOnly={readonly}
-            />
-            <QuantityRow
-              name="minVolume"
-              value={tank.minVolume}
-              unit={quantitiesMetadata.getUnit("minVolume")}
-              decimals={quantitiesMetadata.getDecimals("minVolume")}
-              comparison={getComparison("minVolume", tank.minVolume)}
-              onChange={onPropertyChange}
-              positiveOnly={true}
-              readOnly={readonly}
-            />
-          </>
-        )}
+        <TankDefinitionField
+          tank={tank}
+          curves={hydraulicModel.curves}
+          quantitiesMetadata={quantitiesMetadata}
+          onPropertyChange={onPropertyChange}
+          onBatchPropertyChange={onBatchPropertyChange}
+          readOnly={readonly}
+        />
         <SwitchRow
           name="overflow"
           label={translate("canOverflow")}
@@ -1561,7 +1513,6 @@ const ValveEditor = ({
   onLabelChange: (newLabel: string) => string | undefined;
   readonly?: boolean;
 }) => {
-  const allCurves = useFeatureFlag("FLAG_ALL_CURVES");
   const translate = useTranslate();
   const { footer } = useQuickGraph(valve.id, "valve");
   const { getComparison, getCurveComparison, isNew } =
@@ -1573,8 +1524,6 @@ const ValveEditor = ({
   const simVelocity = valveSimulation?.velocity ?? null;
   const simHeadloss = valveSimulation?.headloss ?? null;
   const statusText = translate(valveStatusLabel(valveSimulation ?? null));
-  const showCurveSelector =
-    allCurves && (valve.kind === "gpv" || valve.kind === "pcv");
 
   const statusOptions = useMemo(() => {
     return [
@@ -1585,16 +1534,15 @@ const ValveEditor = ({
   }, [translate]);
 
   const kindOptions = useMemo(() => {
-    const kinds = allCurves ? valveKinds : selectableValveKinds;
     const options: { label: string; description: string; value: ValveKind }[] =
-      kinds.map((kind) => {
+      valveKinds.map((kind) => {
         return {
           label: kind.toUpperCase(),
           description: translate(`valve.${kind}.detailed`),
           value: kind,
         };
       });
-    if (!kinds.includes(valve.kind as any)) {
+    if (!valveKinds.includes(valve.kind as any)) {
       options.push({
         label: valve.kind.toUpperCase(),
         description: translate(`valve.${valve.kind}.detailed`),
@@ -1602,7 +1550,7 @@ const ValveEditor = ({
       });
     }
     return options;
-  }, [translate, valve.kind, allCurves]);
+  }, [translate, valve.kind]);
 
   const handleKindChange = (
     _name: string,
@@ -1675,24 +1623,24 @@ const ValveEditor = ({
             readOnly={readonly}
           />
         )}
-        {showCurveSelector &&
-          (valve.kind === "gpv" ? (
-            <HeadlossCurveField
-              valve={valve}
-              curves={hydraulicModel.curves}
-              getCurveComparison={getCurveComparison}
-              onChange={onPropertyChange}
-              readOnly={readonly}
-            />
-          ) : (
-            <ValveCurveField
-              valve={valve}
-              curves={hydraulicModel.curves}
-              getCurveComparison={getCurveComparison}
-              onChange={onPropertyChange}
-              readOnly={readonly}
-            />
-          ))}
+        {valve.kind === "gpv" && (
+          <HeadlossCurveField
+            valve={valve}
+            curves={hydraulicModel.curves}
+            getCurveComparison={getCurveComparison}
+            onChange={onPropertyChange}
+            readOnly={readonly}
+          />
+        )}
+        {valve.kind === "pcv" && (
+          <ValveCurveField
+            valve={valve}
+            curves={hydraulicModel.curves}
+            getCurveComparison={getCurveComparison}
+            onChange={onPropertyChange}
+            readOnly={readonly}
+          />
+        )}
         <SelectRow
           name="initialStatus"
           selected={valve.initialStatus}

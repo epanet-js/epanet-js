@@ -2,7 +2,6 @@ import { render, screen } from "@testing-library/react";
 import { PumpLibrarySidebar } from "./pump-library-sidebar";
 import { Curves, ICurve } from "src/hydraulic-model/curves";
 import { LabelManager } from "src/hydraulic-model/label-manager";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 
 const buildCurve = (
   id: number,
@@ -24,8 +23,6 @@ const buildLabelManager = (curves: Curves): LabelManager => {
 };
 
 describe("PumpLibrarySidebar", () => {
-  beforeEach(() => stubFeatureOn("FLAG_ALL_CURVES"));
-
   it("displays pump and efficiency curves in their sections", () => {
     const curves: Curves = new Map([
       [1, buildCurve(1, "PumpCurve1", "pump")],

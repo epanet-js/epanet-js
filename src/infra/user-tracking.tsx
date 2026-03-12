@@ -277,10 +277,8 @@ export type ImportInpCompleted = {
     | `nonDefaultOption-${string}`
     | `nonDefaultTime-${string}`
     | "unbalancedDiff"
-    | "hasTankCurves"
     | "hasInvalidPumpCurves"
     | "hasUndefinedPumpCurve"
-    | "hasPCVCurves"
     | "hasWaterAge"
     | "hasWaterChemical"
     | "hasWaterTrace"

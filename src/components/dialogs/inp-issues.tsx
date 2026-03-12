@@ -27,10 +27,6 @@ import {
 const roadmapUrls = {
   waterQuality:
     "https://roadmap.epanetjs.com/simulation-engine/p/standard-water-quality-analysis",
-  gpv: "https://roadmap.epanetjs.com/network-elements/p/gpv-general-purpose-valve",
-  tankCurves:
-    "https://roadmap.epanetjs.com/element-properties/p/define-tank-curves",
-  pcv: "https://roadmap.epanetjs.com/network-elements/p/pcv-positional-control-valve",
 } as const;
 
 export const GeocodingNotSupportedDialog = ({
@@ -434,33 +430,6 @@ const IssuesSummary = ({ issues }: { issues: ParserIssues }) => {
                     issues.unbalancedDiff.defaultSetting,
                   )}
                 </span>
-              </div>
-            </div>
-          )}
-          {(issues.gpvValves || issues.hasPCVCurves) && (
-            <div>
-              <p>{translate("ignoredValuesDetected", "[VALVES]")}:</p>
-              <div className="flex flex-col gap-y-1 items-start">
-                {issues.gpvValves && (
-                  <RoadmapLink href={roadmapUrls.gpv}>
-                    - {translate("valueIgnored", "GPV", "TCV")}
-                  </RoadmapLink>
-                )}
-                {issues.hasPCVCurves && (
-                  <RoadmapLink href={roadmapUrls.pcv}>
-                    - {translate("pcvCurves", String(issues.hasPCVCurves))}
-                  </RoadmapLink>
-                )}
-              </div>
-            </div>
-          )}
-          {issues.hasTankCurves && (
-            <div>
-              <p>{translate("ignoredValuesDetected", "[TANKS]")}:</p>
-              <div className="flex flex-col gap-y-1 items-start">
-                <RoadmapLink href={roadmapUrls.tankCurves}>
-                  - {translate("tankCurves", String(issues.hasTankCurves))}
-                </RoadmapLink>
               </div>
             </div>
           )}

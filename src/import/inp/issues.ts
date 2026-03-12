@@ -11,11 +11,8 @@ export type ParserIssues = {
     defaultSetting: string;
     customSetting: string;
   };
-  gpvValves?: boolean;
-  hasTankCurves?: number;
   hasInvalidPumpCurves?: number;
   hasUndefinedPumpCurve?: number;
-  hasPCVCurves?: number;
   waterQualityType?: WaterQualityType;
 };
 
@@ -31,10 +28,6 @@ export class IssuesAccumulator {
       this.issues.unsupportedSections = new Set<string>();
 
     this.issues.unsupportedSections.add(sectionName);
-  }
-
-  addGPVUsed() {
-    this.issues.gpvValves = true;
   }
 
   addUsedOption(optionName: string, defaultValue: number | string) {
@@ -76,10 +69,6 @@ export class IssuesAccumulator {
     this.issues.unbalancedDiff = { customSetting, defaultSetting };
   }
 
-  addTankCurve() {
-    this.issues.hasTankCurves = (this.issues.hasTankCurves || 0) + 1;
-  }
-
   addInvalidPumpCurve() {
     this.issues.hasInvalidPumpCurves =
       (this.issues.hasInvalidPumpCurves || 0) + 1;
@@ -88,10 +77,6 @@ export class IssuesAccumulator {
   addUndefinedPumpCurve() {
     this.issues.hasUndefinedPumpCurve =
       (this.issues.hasUndefinedPumpCurve || 0) + 1;
-  }
-
-  addPCVCurve() {
-    this.issues.hasPCVCurves = (this.issues.hasPCVCurves || 0) + 1;
   }
 
   addWaterQualityType(type: WaterQualityType) {

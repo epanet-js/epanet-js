@@ -21,7 +21,6 @@ import { useShowControls } from "src/commands/show-controls";
 import { useShowPatternsLibrary } from "src/commands/show-patterns-library";
 import { useShowPumpLibrary } from "src/commands/show-pump-library";
 import { useShowCurveLibrary } from "src/commands/show-curve-library";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export const OperationalDataDropdown = () => {
   const translate = useTranslate();
@@ -29,7 +28,6 @@ export const OperationalDataDropdown = () => {
   const showPatternsLibrary = useShowPatternsLibrary();
   const showPumpLibrary = useShowPumpLibrary();
   const showCurveLibrary = useShowCurveLibrary();
-  const isCurvesEnabled = useFeatureFlag("FLAG_ALL_CURVES");
 
   return (
     <Tooltip.Root delayDuration={200}>
@@ -52,14 +50,12 @@ export const OperationalDataDropdown = () => {
                 {translate("patterns.title")}
               </StyledItem>
 
-              {isCurvesEnabled && (
-                <StyledItem
-                  onSelect={() => showCurveLibrary({ source: "toolbar" })}
-                >
-                  <CurveLibraryIcon />
-                  {translate("curves.title")}
-                </StyledItem>
-              )}
+              <StyledItem
+                onSelect={() => showCurveLibrary({ source: "toolbar" })}
+              >
+                <CurveLibraryIcon />
+                {translate("curves.title")}
+              </StyledItem>
 
               <StyledItem
                 onSelect={() => showPumpLibrary({ source: "toolbar" })}

@@ -123,10 +123,8 @@ export const buildModel = (
     });
   }
 
-  const allCurves = options?.allCurves ?? false;
-
   for (const tankData of inpData.tanks) {
-    addTank(hydraulicModel, tankData, curvesContext, allCurves, {
+    addTank(hydraulicModel, tankData, curvesContext, {
       inpData,
       issues,
       nodeIds,
@@ -143,7 +141,7 @@ export const buildModel = (
   }
 
   for (const valveData of inpData.valves) {
-    addValve(hydraulicModel, valveData, curvesContext, allCurves, {
+    addValve(hydraulicModel, valveData, curvesContext, {
       inpData,
       issues,
       nodeIds,
@@ -428,7 +426,6 @@ const addTank = (
   hydraulicModel: HydraulicModel,
   tankData: TankData,
   curvesContext: CurvesContext,
-  allCurves: boolean,
   {
     inpData,
     issues,
@@ -449,7 +446,7 @@ const addTank = (
       "curve",
     );
     if (curveId !== undefined) {
-      if (allCurves) volumeCurveId = curveId;
+      volumeCurveId = curveId;
       markCurveUsed(curvesContext, curveId, "volume");
     }
   }
@@ -619,7 +616,6 @@ const addValve = (
   hydraulicModel: HydraulicModel,
   valveData: ValveData,
   curvesContext: CurvesContext,
-  allCurves: boolean,
   {
     inpData,
     issues,
@@ -649,20 +645,17 @@ const addValve = (
       "curve",
     );
     if (curveId !== undefined) {
-      if (allCurves) resolvedCurveId = curveId;
+      resolvedCurveId = curveId;
       const curveType = valveData.kind === "pcv" ? "valve" : "headloss";
       markCurveUsed(curvesContext, curveId, curveType);
     }
   }
-  const valveKind =
-    allCurves || valveData.kind !== "gpv" ? valveData.kind : "tcv";
-
   const valve = hydraulicModel.assetBuilder.buildValve({
     label: valveData.id,
     diameter: valveData.diameter,
     minorLoss: valveData.minorLoss,
-    kind: valveKind,
-    setting: valveKind === "gpv" ? undefined : valveData.setting,
+    kind: valveData.kind,
+    setting: valveData.kind === "gpv" ? undefined : valveData.setting,
     initialStatus,
     connections,
     coordinates,
