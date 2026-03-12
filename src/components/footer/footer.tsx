@@ -2,6 +2,8 @@ import { useAtomValue } from "jotai";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { useTranslate } from "src/hooks/use-translate";
 import { localizeDecimal } from "src/infra/i18n/numbers";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { dataAtom } from "src/state/data";
 import { autoElevationsAtom } from "src/state/drawing";
 import { stagingModelAtom } from "src/state/hydraulic-model";
@@ -26,8 +28,13 @@ export const Footer = () => {
   const { modelMetadata } = useAtomValue(dataAtom);
   const hydraulicModel = useAtomValue(stagingModelAtom);
   const simulationSettings = useAtomValue(simulationSettingsAtom);
+  const isEpanet23On = useFeatureFlag("FLAG_EPANET23");
+  const translateUnit = useTranslateUnit();
   const isLgOrLarger = useBreakpoint("lg");
   const isSmOrLarger = useBreakpoint("sm");
+
+  const flowUnitDisplay = translateUnit(modelMetadata.units.flow);
+  const pressureUnitDisplay = translateUnit(modelMetadata.units.pressure);
 
   return (
     <nav className="fixed bottom-0 left-0 w-full bg-gray-50 border-t border-gray-300 shadow-lg z-10">
@@ -38,6 +45,9 @@ export const Footer = () => {
               unitsSpecName={modelMetadata.quantities.specName}
               demandMultiplier={simulationSettings.globalDemandMultiplier}
               headlossFormula={hydraulicModel.headlossFormula}
+              isEpanet23On={isEpanet23On}
+              flowUnitDisplay={flowUnitDisplay}
+              pressureUnitDisplay={pressureUnitDisplay}
             />
           </div>
         )}
@@ -46,10 +56,25 @@ export const Footer = () => {
         <div className="border-r-2 border-gray-150 h-10"></div>
         {isLgOrLarger && (
           <>
-            <span className="px-4 py-2">
-              {translate("units")}: {modelMetadata.quantities.specName}
-            </span>
-            <div className="border-r-2 border-gray-150 h-10"></div>
+            {isEpanet23On ? (
+              <>
+                <span className="px-4 py-2">
+                  {translate("flow")}: {flowUnitDisplay}
+                </span>
+                <div className="border-r-2 border-gray-150 h-10"></div>
+                <span className="px-4 py-2">
+                  {translate("pressure")}: {pressureUnitDisplay}
+                </span>
+                <div className="border-r-2 border-gray-150 h-10"></div>
+              </>
+            ) : (
+              <>
+                <span className="px-4 py-2">
+                  {translate("units")}: {modelMetadata.quantities.specName}
+                </span>
+                <div className="border-r-2 border-gray-150 h-10"></div>
+              </>
+            )}
             <span className="px-4 py-2">
               {translate("headlossShort")}: {hydraulicModel.headlossFormula}
             </span>
@@ -77,10 +102,16 @@ const CollapsedPopover = ({
   unitsSpecName,
   headlossFormula,
   demandMultiplier,
+  isEpanet23On,
+  flowUnitDisplay,
+  pressureUnitDisplay,
 }: {
   unitsSpecName: string;
   headlossFormula: string;
   demandMultiplier: number;
+  isEpanet23On: boolean;
+  flowUnitDisplay: string;
+  pressureUnitDisplay: string;
 }) => {
   const translate = useTranslate();
   const autoElevations = useAtomValue(autoElevationsAtom);
@@ -106,8 +137,19 @@ const CollapsedPopover = ({
 
             {!isLgOrLarger && (
               <>
-                <span>{translate("units")}</span>
-                <span className="text-gray-700">{unitsSpecName}</span>
+                {isEpanet23On ? (
+                  <>
+                    <span>{translate("flow")}</span>
+                    <span className="text-gray-700">{flowUnitDisplay}</span>
+                    <span>{translate("pressure")}</span>
+                    <span className="text-gray-700">{pressureUnitDisplay}</span>
+                  </>
+                ) : (
+                  <>
+                    <span>{translate("units")}</span>
+                    <span className="text-gray-700">{unitsSpecName}</span>
+                  </>
+                )}
                 <span>{translate("headlossShort")}</span>
                 <span className="text-gray-700">{headlossFormula}</span>
               </>
