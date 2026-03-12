@@ -4,7 +4,7 @@ import clsx from "clsx";
 import { Form, Formik, useFormikContext } from "formik";
 
 import {
-  BaseModal,
+  BaseDialog,
   DialogContainer,
   DialogHeader,
   SimpleDialogActionsNew,
@@ -89,7 +89,7 @@ export const ControlsDialog = () => {
     return (
       <Formik onSubmit={handleSubmit} initialValues={initialValues}>
         {({ submitForm, isSubmitting }) => (
-          <BaseModal
+          <BaseDialog
             title={translate("controls.title")}
             size="md"
             isOpen={true}
@@ -123,7 +123,7 @@ export const ControlsDialog = () => {
                 />
               </div>
             </Form>
-          </BaseModal>
+          </BaseDialog>
         )}
       </Formik>
     );

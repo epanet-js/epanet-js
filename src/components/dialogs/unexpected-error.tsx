@@ -3,7 +3,7 @@ import {
   DialogContainer,
   DialogHeader,
   SimpleDialogActions,
-  BaseModal,
+  BaseDialog,
   SimpleDialogActionsNew,
 } from "../dialog";
 import { Form, Formik } from "formik";
@@ -33,7 +33,7 @@ export const UnexpectedErrorDialog = ({
 
   if (isModalsOn) {
     return (
-      <BaseModal
+      <BaseDialog
         title={translate("somethingWentWrong")}
         size="xs"
         isOpen={true}
@@ -51,7 +51,7 @@ export const UnexpectedErrorDialog = ({
             {translate("somethingWentWrongMessage")}
           </p>
         </div>
-      </BaseModal>
+      </BaseDialog>
     );
   }
 

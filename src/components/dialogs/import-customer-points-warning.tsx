@@ -1,7 +1,7 @@
 import {
   DialogHeader,
   DialogButtons,
-  BaseModal,
+  BaseDialog,
   SimpleDialogActionsNew,
 } from "src/components/dialog";
 import { Button } from "../elements";
@@ -38,7 +38,7 @@ export const ImportCustomerPointsWarningDialog = ({
 
   if (isModalsOn) {
     return (
-      <BaseModal
+      <BaseDialog
         title={translate("importCustomerPoints.label")}
         size="sm"
         isOpen={true}
@@ -58,7 +58,7 @@ export const ImportCustomerPointsWarningDialog = ({
             {translate("importCustomerPointsWarning.question")}
           </p>
         </div>
-      </BaseModal>
+      </BaseDialog>
     );
   }
 

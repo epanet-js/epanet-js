@@ -7,7 +7,7 @@ import {
   StyledDialogContent,
   StyledDialogOverlay,
 } from "../elements";
-import { BaseModal } from "../dialog";
+import { BaseDialog } from "../dialog";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 const formatTime = (seconds: number): string => {
@@ -29,7 +29,12 @@ export const SimulationProgressDialog = ({
 
   if (isModalsOn) {
     return (
-      <BaseModal size="xs" isOpen={true} onClose={() => {}} preventClose={true}>
+      <BaseDialog
+        size="xs"
+        isOpen={true}
+        onClose={() => {}}
+        preventClose={true}
+      >
         <div className="p-6">
           <div className="flex flex-row items-baseline gap-1 mb-2">
             <p className="text-sm text-gray-500">
@@ -53,7 +58,7 @@ export const SimulationProgressDialog = ({
             />
           </Progress.Root>
         </div>
-      </BaseModal>
+      </BaseDialog>
     );
   }
 

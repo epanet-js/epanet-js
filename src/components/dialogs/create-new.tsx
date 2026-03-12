@@ -2,7 +2,7 @@ import {
   DialogContainer,
   DialogHeader,
   useDialogState,
-  BaseModal,
+  BaseDialog,
   SimpleDialogActionsNew,
 } from "../dialog";
 import { Form, Formik } from "formik";
@@ -181,7 +181,7 @@ export const CreateNew = () => {
 
   if (isModalsOn) {
     return (
-      <BaseModal
+      <BaseDialog
         title={translate("newProject")}
         size="sm"
         isOpen={true}
@@ -279,7 +279,7 @@ export const CreateNew = () => {
             )}
           </Formik>
         </div>
-      </BaseModal>
+      </BaseDialog>
     );
   }
 

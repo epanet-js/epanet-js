@@ -1,7 +1,7 @@
 import {
   DialogHeader,
   DialogButtons,
-  BaseModal,
+  BaseDialog,
   SimpleDialogActionsNew,
 } from "src/components/dialog";
 import { useTranslate } from "src/hooks/use-translate";
@@ -36,7 +36,7 @@ export const UnsavedChangesDialog = ({
 
   if (isModalsOn) {
     return (
-      <BaseModal
+      <BaseDialog
         title={translate("unsavedChanges")}
         size="sm"
         isOpen={true}
@@ -56,7 +56,7 @@ export const UnsavedChangesDialog = ({
         <div className="p-4 text-sm">
           <p>{translate("unsavedChangesQuestion")}</p>
         </div>
-      </BaseModal>
+      </BaseDialog>
     );
   }
 

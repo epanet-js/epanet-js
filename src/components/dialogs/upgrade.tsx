@@ -1,6 +1,6 @@
 import {
   AckDialogAction,
-  BaseModal,
+  BaseDialog,
   DialogContainer,
   DialogHeader,
   LoadingDialog,
@@ -143,7 +143,7 @@ const PlansDialog = () => {
 
   if (isModalsOn) {
     return (
-      <BaseModal
+      <BaseDialog
         title={translate("upgradeYourAccount")}
         size="lg"
         isOpen={true}
@@ -199,7 +199,7 @@ const PlansDialog = () => {
             )}
           </div>
         </div>
-      </BaseModal>
+      </BaseDialog>
     );
   }
 

@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { useAtomValue } from "jotai";
-import { BaseModal, DialogContainer, DialogHeader } from "../../dialog";
+import { BaseDialog, DialogContainer, DialogHeader } from "../../dialog";
 import { useTranslate } from "src/hooks/use-translate";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { PatternSidebar } from "./pattern-sidebar";
@@ -198,7 +198,7 @@ export const PatternsDialog = ({
 
   if (isModalsOn)
     return (
-      <BaseModal
+      <BaseDialog
         title={translate("patterns.title")}
         size="lg"
         height="xl"
@@ -256,7 +256,7 @@ export const PatternsDialog = ({
             )}
           </div>
         </div>
-      </BaseModal>
+      </BaseDialog>
     );
 
   return (

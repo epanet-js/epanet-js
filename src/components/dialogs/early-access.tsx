@@ -3,7 +3,7 @@ import {
   DialogHeader,
   useDialogState,
   SimpleDialogActions,
-  BaseModal,
+  BaseDialog,
   SimpleDialogActionsNew,
 } from "src/components/dialog";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
@@ -33,7 +33,7 @@ export const EarlyAccessDialog = ({
 
   if (isModalsOn) {
     return (
-      <BaseModal
+      <BaseDialog
         title={translate("earlyAccessDialog.title")}
         size="sm"
         isOpen={true}
@@ -71,7 +71,7 @@ export const EarlyAccessDialog = ({
             {translate("earlyAccessDialog.description")}
           </p>
         </div>
-      </BaseModal>
+      </BaseDialog>
     );
   }
 

@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { useAtomValue } from "jotai";
-import { BaseModal, DialogContainer, DialogHeader } from "../../dialog";
+import { BaseDialog, DialogContainer, DialogHeader } from "../../dialog";
 import { useTranslate } from "src/hooks/use-translate";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { PumpLibrarySidebar } from "./pump-library-sidebar";
@@ -218,7 +218,7 @@ export const PumpLibraryDialog = ({
 
   if (isModalsOn)
     return (
-      <BaseModal
+      <BaseDialog
         title={translate("pumpLibrary")}
         size="md"
         height="xl"
@@ -284,7 +284,7 @@ export const PumpLibraryDialog = ({
             )}
           </div>
         </div>
-      </BaseModal>
+      </BaseDialog>
     );
 
   return (

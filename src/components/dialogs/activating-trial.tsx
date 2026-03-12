@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import {
   DialogContainer,
-  BaseModal,
+  BaseDialog,
   useDialogState,
 } from "src/components/dialog";
 import { useActivateTrial } from "src/hooks/use-activate-trial";
@@ -42,7 +42,7 @@ export const ActivatingTrialDialog = () => {
 
   if (isModalsOn) {
     return (
-      <BaseModal
+      <BaseDialog
         size="xs"
         isOpen={true}
         onClose={closeDialog}
@@ -54,7 +54,7 @@ export const ActivatingTrialDialog = () => {
             {translate("trial.activating")}
           </p>
         </div>
-      </BaseModal>
+      </BaseDialog>
     );
   }
 

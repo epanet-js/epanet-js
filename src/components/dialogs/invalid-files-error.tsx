@@ -2,7 +2,7 @@ import type { ConvertResult } from "src/types/export";
 import {
   DialogHeader,
   SimpleDialogActions,
-  BaseModal,
+  BaseDialog,
   SimpleDialogActionsNew,
 } from "src/components/dialog";
 import { useTranslate } from "src/hooks/use-translate";
@@ -19,7 +19,7 @@ export function InvalidFilesErrorDialog({ onClose }: { onClose: () => void }) {
 
   if (isModalsOn) {
     return (
-      <BaseModal
+      <BaseDialog
         title={translate("failedToOpenModel")}
         size="xs"
         isOpen={true}
@@ -38,7 +38,7 @@ export function InvalidFilesErrorDialog({ onClose }: { onClose: () => void }) {
         <div className="p-4 text-sm">
           <p>{translate("failedToOpenModelDetail")}</p>
         </div>
-      </BaseModal>
+      </BaseDialog>
     );
   }
 

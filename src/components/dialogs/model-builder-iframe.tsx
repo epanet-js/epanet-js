@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { BaseModal, DialogContainer, DialogHeader } from "../dialog";
+import { BaseDialog, DialogContainer, DialogHeader } from "../dialog";
 import { useTranslate } from "src/hooks/use-translate";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { Loading } from "../elements";
@@ -153,7 +153,7 @@ export const ModelBuilderIframeDialog = ({
 
   if (isModalsOn) {
     return (
-      <BaseModal
+      <BaseDialog
         title={translate("importFromGIS")}
         size="xl"
         height="xl"
@@ -175,7 +175,7 @@ export const ModelBuilderIframeDialog = ({
             title={translate("importFromGIS")}
           />
         </div>
-      </BaseModal>
+      </BaseDialog>
     );
   }
 

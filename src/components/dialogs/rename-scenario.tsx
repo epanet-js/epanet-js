@@ -14,7 +14,7 @@ import {
   DialogContainer,
   DialogHeader,
   DialogButtons,
-  BaseModal,
+  BaseDialog,
   SimpleDialogActionsNew,
 } from "src/components/dialog";
 import { Button } from "../elements";
@@ -134,7 +134,7 @@ export const RenameScenarioDialog = ({
         }}
       >
         {({ submitForm, isSubmitting }) => (
-          <BaseModal
+          <BaseDialog
             title={translate("scenarios.renameDialog.title")}
             size="xs"
             isOpen={true}
@@ -160,7 +160,7 @@ export const RenameScenarioDialog = ({
                 />
               </div>
             </Form>
-          </BaseModal>
+          </BaseDialog>
         )}
       </Formik>
     );

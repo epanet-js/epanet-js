@@ -1,6 +1,6 @@
 import {
   DialogHeader,
-  BaseModal,
+  BaseDialog,
   SimpleDialogActionsNew,
 } from "src/components/dialog";
 import { Form, Formik } from "formik";
@@ -26,7 +26,7 @@ export const AlertNetworkRequiredDialog = ({
 
   if (isModalsOn) {
     return (
-      <BaseModal
+      <BaseDialog
         title={translate("alertNetworkRequired")}
         isOpen={true}
         onClose={onClose}
@@ -41,7 +41,7 @@ export const AlertNetworkRequiredDialog = ({
         <div className="p-4 text-sm text-gray-700">
           <p>{translate("alertNetworkRequiredDetail")}</p>
         </div>
-      </BaseModal>
+      </BaseDialog>
     );
   }
 

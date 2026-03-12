@@ -32,7 +32,7 @@ import {
   EarlyAccessIcon,
 } from "src/icons";
 import {
-  BaseModal,
+  BaseDialog,
   DialogCloseX,
   DialogContainer,
   useDialogState,
@@ -74,7 +74,7 @@ export const WelcomeDialog = () => {
 
   if (isModalsOn) {
     return (
-      <BaseModal size="md" isOpen={true} onClose={closeDialog}>
+      <BaseDialog size="md" isOpen={true} onClose={closeDialog}>
         <LocaleProvider>
           <div className="relative grid sm:grid-cols-[min-content_1fr]">
             <div className="absolute top-6 right-6 z-10">
@@ -282,7 +282,7 @@ export const WelcomeDialog = () => {
             <SmallDeviceWarning />
           </div>
         </LocaleProvider>
-      </BaseModal>
+      </BaseDialog>
     );
   }
 

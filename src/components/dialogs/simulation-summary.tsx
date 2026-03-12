@@ -1,7 +1,7 @@
 import { useShowReport } from "src/commands/show-report";
 import { SimulationSummaryState } from "src/state/dialog";
 import {
-  BaseModal,
+  BaseDialog,
   DialogContainer,
   DialogHeader,
   LoadingDialog,
@@ -159,7 +159,7 @@ const SimulationSummaryDialogNew = ({
   };
 
   return (
-    <BaseModal
+    <BaseDialog
       isOpen={true}
       onClose={onClose}
       title={config.title}
@@ -197,6 +197,6 @@ const SimulationSummaryDialogNew = ({
               )}
         </p>
       </div>
-    </BaseModal>
+    </BaseDialog>
   );
 };

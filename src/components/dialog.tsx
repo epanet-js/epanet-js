@@ -365,7 +365,7 @@ export function DialogHeaderNew({
   );
 }
 
-interface BaseModalProps {
+interface BaseDialogProps {
   title?: string;
   size?: "sm" | "xs" | "md" | "lg" | "xl" | "fullscreen" | "auto";
   height?: "sm" | "md" | "lg" | "xl";
@@ -377,7 +377,7 @@ interface BaseModalProps {
   preventClose?: boolean;
 }
 
-export const BaseModal = ({
+export const BaseDialog = ({
   title,
   size = "auto",
   height,
@@ -387,7 +387,7 @@ export const BaseModal = ({
   footer,
   badge,
   preventClose = false,
-}: BaseModalProps) => {
+}: BaseDialogProps) => {
   return (
     <Dialog.Root
       open={isOpen}
@@ -407,7 +407,7 @@ export const BaseModal = ({
             <DefaultErrorBoundary>
               <div className="modal-container flex flex-col flex-nowrap flex-1 min-h-0">
                 {title && <DialogHeaderNew title={title} badge={badge} />}
-                <div className="modal-content flex flex-col flex-1 overflow-auto min-h-0">
+                <div className="modal-content flex flex-col flex-1 overflow-y-auto min-h-0">
                   {children}
                 </div>
                 {footer && <DialogFooter>{footer}</DialogFooter>}

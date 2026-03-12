@@ -1,4 +1,4 @@
-import { DialogHeader, BaseModal, SimpleDialogActionsNew } from "../dialog";
+import { DialogHeader, BaseDialog, SimpleDialogActionsNew } from "../dialog";
 import { useTranslate } from "src/hooks/use-translate";
 import {
   SimpleDialogActions,
@@ -146,7 +146,7 @@ export const InpIssuesDialog = ({
 
   if (isModalsOn) {
     return (
-      <BaseModal
+      <BaseDialog
         title={translate("inpNotFullySupported")}
         size="sm"
         isOpen={true}
@@ -167,7 +167,7 @@ export const InpIssuesDialog = ({
           <IssuesSummary issues={issues} />
           <SubscribeCTA source="inpIssues" />
         </div>
-      </BaseModal>
+      </BaseDialog>
     );
   }
 

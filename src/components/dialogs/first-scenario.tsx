@@ -3,7 +3,7 @@ import {
   DialogContainer,
   DialogHeader,
   DialogButtons,
-  BaseModal,
+  BaseDialog,
   SimpleDialogActionsNew,
 } from "src/components/dialog";
 import { Button } from "../elements";
@@ -91,7 +91,7 @@ export const FirstScenarioDialog = ({
 
   if (isModalsOn) {
     return (
-      <BaseModal
+      <BaseDialog
         title={translate("scenarios.firstScenario.title")}
         size="sm"
         isOpen={true}
@@ -109,7 +109,7 @@ export const FirstScenarioDialog = ({
         }
       >
         <div className="p-4">{content}</div>
-      </BaseModal>
+      </BaseDialog>
     );
   }
 

@@ -3,7 +3,7 @@ import { useAtomValue, useSetAtom } from "jotai";
 import { Form, Formik } from "formik";
 
 import {
-  BaseModal,
+  BaseDialog,
   DialogContainer,
   DialogHeader,
   SimpleDialogActionsNew,
@@ -69,7 +69,7 @@ export const SimulationSettingsDialog = () => {
     return (
       <Formik onSubmit={handleSubmit} initialValues={initialValues}>
         {({ submitForm, isSubmitting }) => (
-          <BaseModal
+          <BaseDialog
             title={translate("simulationSettings.title")}
             size="md"
             height="lg"
@@ -113,7 +113,7 @@ export const SimulationSettingsDialog = () => {
                 </div>
               </div>
             </Form>
-          </BaseModal>
+          </BaseDialog>
         )}
       </Formik>
     );

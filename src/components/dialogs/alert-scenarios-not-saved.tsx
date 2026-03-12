@@ -1,6 +1,6 @@
 import {
   DialogHeader,
-  BaseModal,
+  BaseDialog,
   SimpleDialogActionsNew,
 } from "src/components/dialog";
 import { useTranslate } from "src/hooks/use-translate";
@@ -25,7 +25,7 @@ export const AlertScenariosNotSavedDialog = ({
       onContinue();
     };
     return (
-      <BaseModal
+      <BaseDialog
         title={translate("alertScenariosNotSaved")}
         size="sm"
         isOpen={true}
@@ -40,7 +40,7 @@ export const AlertScenariosNotSavedDialog = ({
         <div className="p-4 text-sm text-gray-700">
           <p>{translate("alertScenariosNotSavedDetail")}</p>
         </div>
-      </BaseModal>
+      </BaseDialog>
     );
   }
 

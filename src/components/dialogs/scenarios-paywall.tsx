@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { useAtomCallback } from "jotai/utils";
-import { DialogContainer, DialogHeader, BaseModal } from "../dialog";
+import { DialogContainer, DialogHeader, BaseDialog } from "../dialog";
 import { Button } from "../elements";
 import { CheckoutButton } from "../checkout-button";
 import { VideoPlayer } from "../video-player";
@@ -183,7 +183,7 @@ export const ScenariosPaywallDialog = ({
 
   if (isModalsOn) {
     return (
-      <BaseModal
+      <BaseDialog
         title={translate("scenarios.paywall.title")}
         size="md"
         isOpen={true}
@@ -359,7 +359,7 @@ export const ScenariosPaywallDialog = ({
             )}
           </div>
         </div>
-      </BaseModal>
+      </BaseDialog>
     );
   }
 

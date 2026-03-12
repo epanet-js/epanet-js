@@ -1,6 +1,6 @@
 import {
   DialogHeader,
-  BaseModal,
+  BaseDialog,
   SimpleDialogActionsNew,
 } from "src/components/dialog";
 import { useTranslate } from "src/hooks/use-translate";
@@ -21,7 +21,7 @@ export const AlertInpOutputDialog = ({
 
   if (isModalsOn) {
     return (
-      <BaseModal
+      <BaseDialog
         title={translate("alertInpOutput")}
         size="sm"
         isOpen={true}
@@ -42,7 +42,7 @@ export const AlertInpOutputDialog = ({
           </p>
           <p>{translate("alertInpOutputDetail")}</p>
         </div>
-      </BaseModal>
+      </BaseDialog>
     );
   }
 

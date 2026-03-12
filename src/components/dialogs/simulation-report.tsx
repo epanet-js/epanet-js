@@ -3,7 +3,7 @@ import {
   DialogContainer,
   DialogHeader,
   AckDialogActionNew,
-  BaseModal,
+  BaseDialog,
   useDialogState,
 } from "../dialog";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
@@ -123,7 +123,7 @@ export const SimulationReportDialog = () => {
 
   if (isModalsOn) {
     return (
-      <BaseModal
+      <BaseDialog
         title={translate("simulationReport")}
         size="sm"
         isOpen={true}
@@ -138,7 +138,7 @@ export const SimulationReportDialog = () => {
         <div className="flex-1 p-4 text-sm bg-gray-100 text-gray-700 font-mono leading-loose">
           {processedReport.map(renderRowWithSlots)}
         </div>
-      </BaseModal>
+      </BaseDialog>
     );
   }
 

@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { useAtomValue } from "jotai";
-import { BaseModal, DialogContainer, DialogHeader } from "../../dialog";
+import { BaseDialog, DialogContainer, DialogHeader } from "../../dialog";
 import { useTranslate } from "src/hooks/use-translate";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { CurveSidebar } from "./curve-sidebar";
@@ -224,7 +224,7 @@ export const CurveLibraryDialog = ({
 
   if (isModalsOn)
     return (
-      <BaseModal
+      <BaseDialog
         title={translate("curves.title")}
         size="md"
         height="xl"
@@ -290,7 +290,7 @@ export const CurveLibraryDialog = ({
             )}
           </div>
         </div>
-      </BaseModal>
+      </BaseDialog>
     );
 
   return (

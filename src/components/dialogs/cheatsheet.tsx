@@ -1,7 +1,7 @@
 import {
   DialogHeader,
   DialogContainer,
-  BaseModal,
+  BaseDialog,
   useDialogState,
 } from "src/components/dialog";
 import { Keycap } from "src/components/elements";
@@ -159,7 +159,7 @@ export function CheatsheetDialog() {
 
   if (isModalsOn) {
     return (
-      <BaseModal
+      <BaseDialog
         title={translate("keyboardShortcuts.title")}
         size="md"
         isOpen={true}
@@ -188,7 +188,7 @@ export function CheatsheetDialog() {
             </div>
           ))}
         </div>
-      </BaseModal>
+      </BaseDialog>
     );
   }
 

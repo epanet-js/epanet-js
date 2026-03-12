@@ -3,7 +3,7 @@ import { dialogAtom } from "src/state/dialog";
 import {
   DialogContainer,
   DialogHeader,
-  BaseModal,
+  BaseDialog,
   useDialogState,
 } from "../dialog";
 import { useUserTracking } from "src/infra/user-tracking";
@@ -38,7 +38,7 @@ export const InpProjectionChoiceDialog = ({
 
   if (isModalsOn) {
     return (
-      <BaseModal
+      <BaseDialog
         title={translate("inpProjectionChoice.title")}
         size="sm"
         isOpen={true}
@@ -87,7 +87,7 @@ export const InpProjectionChoiceDialog = ({
             </button>
           </div>
         </div>
-      </BaseModal>
+      </BaseDialog>
     );
   }
 
