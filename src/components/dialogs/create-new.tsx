@@ -18,6 +18,7 @@ import {
   withPressureUnit,
 } from "src/model-metadata/quantities-spec";
 import type { Unit } from "src/quantity";
+import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { ModelMetadata } from "src/model-metadata";
 import { createProjectionMapper } from "src/projections";
 import type { Projection } from "src/projections";
@@ -538,14 +539,6 @@ const HeadlossFormulaSelector = ({
   );
 };
 
-const pressureUnitLabels: Record<string, string> = {
-  psi: "PSI (pounds per square inch)",
-  kPa: "kPa (kilopascals)",
-  mwc: "Meters (water column)",
-  fwc: "Feet (water column)",
-  bar: "Bar",
-};
-
 const PressureUnitSelector = ({
   selected,
   onChange,
@@ -553,8 +546,9 @@ const PressureUnitSelector = ({
   selected: Unit;
   onChange: (pressureUnit: Unit) => void;
 }) => {
+  const translateUnit = useTranslateUnit();
   const options = supportedPressureUnits.map((pu) => ({
-    label: pressureUnitLabels[pu as string],
+    label: translateUnit(pu),
     value: pu as string,
   }));
 
