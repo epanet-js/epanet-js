@@ -27,6 +27,7 @@ import type {
   StatusReport,
 } from "src/simulation/simulation-settings";
 import { chooseUnitSystem } from "src/simulation/build-inp";
+import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { dataAtom } from "src/state/data";
 import {
   headlossFormulas,
@@ -122,7 +123,11 @@ export const GeneralSection = () => {
   } = useAtomValue(dataAtom);
   const { values, setFieldValue } = useFormikContext<FormValues>();
 
+  const isEpanet23On = useFeatureFlag("FLAG_EPANET23");
+  const translateUnit = useTranslateUnit();
+
   const flowUnitsDisplay = chooseUnitSystem(quantities.units);
+  const pressureUnitDisplay = translateUnit(quantities.getUnit("pressure"));
   const headlossIndex = headlossFormulas.indexOf(
     hydraulicModel.headlossFormula,
   );
@@ -149,6 +154,16 @@ export const GeneralSection = () => {
           onChange={() => {}}
           disabled
         />
+
+        {isEpanet23On && (
+          <TextSetting
+            label={translate("simulationSettings.pressureUnits")}
+            description={translate("simulationSettings.pressureUnitsDesc")}
+            value={pressureUnitDisplay}
+            onChange={() => {}}
+            disabled
+          />
+        )}
 
         <TextSetting
           label={translate("simulationSettings.headlossFormula")}
