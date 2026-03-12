@@ -199,7 +199,6 @@ export const selectedIconsLayer = ({
     paint: {
       "icon-opacity": 1,
     },
-    minzoom: 10,
   };
 };
 
@@ -231,7 +230,6 @@ export const selectedIconsHaloLayer = ({
       "circle-opacity": 0.8,
       "circle-blur": ["interpolate", ["linear"], ["zoom"], 12, 0, 20, 0.8],
     },
-    minzoom: 10,
   };
 };
 
