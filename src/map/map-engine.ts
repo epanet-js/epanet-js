@@ -32,6 +32,7 @@ const MAP_OPTIONS: Omit<mapboxgl.MapboxOptions, "container"> = {
 };
 
 const sourceUpdateTimeoutFor = (totalFeatures: number): number => {
+  if (totalFeatures === 0) return 200;
   if (totalFeatures < 1000) return 2000;
   if (totalFeatures < 10000) return 5000;
 
@@ -361,11 +362,6 @@ export class MapEngine {
       });
 
       callback();
-
-      if (!updateSize) {
-        clearTimeout(timeout);
-        resolve();
-      }
     });
   }
 }
