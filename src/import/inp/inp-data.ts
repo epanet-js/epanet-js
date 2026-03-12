@@ -135,6 +135,7 @@ export type InpData = {
   options: {
     units: EpanetUnitSystem;
     headlossFormula: HeadlossFormula;
+    pressureUnit?: string;
     demandMultiplier: number;
     defaultPattern?: string;
     demandModel?: "DDA" | "PDA";

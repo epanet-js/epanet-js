@@ -188,6 +188,35 @@ describe("Parse inp with", () => {
     expect(modelMetadata.quantities.getUnit("head")).toEqual("m");
   });
 
+  it("parses pressure unit override from OPTIONS", () => {
+    const IDS = { R1: 1 } as const;
+    const inp = `
+    [RESERVOIRS]
+    ${IDS.R1}\t100
+    [OPTIONS]
+    Units\tLPS
+    Pressure\tKPA
+    [COORDINATES]
+    ${IDS.R1}\t1\t1
+    `;
+    const { modelMetadata } = parseInp(inp);
+    expect(modelMetadata.quantities.getUnit("pressure")).toEqual("kPa");
+  });
+
+  it("keeps default pressure unit when no PRESSURE option", () => {
+    const IDS = { R1: 1 } as const;
+    const inp = `
+    [RESERVOIRS]
+    ${IDS.R1}\t100
+    [OPTIONS]
+    Units\tLPS
+    [COORDINATES]
+    ${IDS.R1}\t1\t1
+    `;
+    const { modelMetadata } = parseInp(inp);
+    expect(modelMetadata.quantities.getUnit("pressure")).toEqual("mwc");
+  });
+
   it("detects headloss formula from inp", () => {
     const inp = `
     [OPTIONS]

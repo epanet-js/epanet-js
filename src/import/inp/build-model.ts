@@ -23,7 +23,12 @@ import {
 } from "./inp-data";
 import { IssuesAccumulator } from "./issues";
 import { ModelMetadata } from "src/model-metadata";
-import { Quantities, presets } from "src/model-metadata/quantities-spec";
+import {
+  Quantities,
+  presets,
+  withPressureUnit,
+} from "src/model-metadata/quantities-spec";
+import type { Unit } from "src/quantity";
 import { Position } from "geojson";
 import { PumpStatus } from "src/hydraulic-model/asset-types/pump";
 import { ValveStatus } from "src/hydraulic-model/asset-types/valve";
@@ -82,7 +87,10 @@ export const buildModel = (
   factories: ModelFactories;
   modelMetadata: Pick<ModelMetadata, "quantities">;
 } => {
-  const spec = presets[inpData.options.units];
+  const baseSpec = presets[inpData.options.units];
+  const spec = inpData.options.pressureUnit
+    ? withPressureUnit(baseSpec, inpData.options.pressureUnit as Unit)
+    : baseSpec;
   const quantities = new Quantities(spec);
   const nodeIds = new ItemData<AssetId>();
   const linkIds = new ItemData<AssetId>();

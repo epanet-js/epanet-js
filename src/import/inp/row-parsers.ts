@@ -609,11 +609,32 @@ export const parseTimeSetting: RowParser = ({
   }
 };
 
+const epanetToUnit: Record<string, string> = {
+  PSI: "psi",
+  KPA: "kPa",
+  METERS: "mwc",
+  FEET: "fwc",
+  BAR: "bar",
+};
+
+const parsePressureUnit = (row: string): string | undefined => {
+  const upper = row.split(commentIdentifier)[0].toUpperCase().trim();
+  const match = upper.match(/^PRESSURE\s+(PSI|KPA|METERS|FEET|BAR)$/);
+  if (!match) return undefined;
+  return epanetToUnit[match[1]];
+};
+
 export const parseOption: RowParser = ({
   trimmedRow,
   inpData,
   issues,
 }): void => {
+  const pressureUnit = parsePressureUnit(trimmedRow);
+  if (pressureUnit) {
+    inpData.options.pressureUnit = pressureUnit;
+    return;
+  }
+
   const option = readSetting(trimmedRow, defaultOptions);
   if (!option) return;
 
@@ -623,6 +644,7 @@ export const parseOption: RowParser = ({
     inpData.options.units = value as EpanetUnitSystem;
     return;
   }
+
   if (name === "HEADLOSS") {
     inpData.options.headlossFormula = value as HeadlossFormula;
     return;
