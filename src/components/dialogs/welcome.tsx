@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useAtom } from "jotai";
 import { useNewProject } from "src/commands/create-new-project";
 import { useOpenInpFromFs } from "src/commands/open-inp-from-fs";
@@ -21,6 +22,9 @@ import { Checkbox } from "../form/Checkbox";
 import { Button, LogoIconAndWordmarkIcon } from "../elements";
 import {
   ArrowRightIcon,
+  ChevronDownIcon,
+  ChevronRightIcon,
+  CloseIcon,
   FileIcon,
   FileSpreadsheetIcon,
   GlobeIcon,
@@ -38,29 +42,7 @@ import { Message } from "../message";
 import { DemoNetworkCard } from "../demo-network-card";
 import { DRUMCHAPEL, WATERDOWN } from "src/demo/demo-networks";
 import optimaticsLogoUrl from "src/assets/images/logos/optimatics-logo-black.webp";
-
-type DemoModel = {
-  name: string;
-  description: string;
-  url: string;
-  thumbnailUrl: string;
-};
-const getDemoModels = (
-  translate: ReturnType<typeof useTranslate>,
-): DemoModel[] => [
-  {
-    name: DRUMCHAPEL.name,
-    description: translate("demoUKStyleDescription"),
-    url: DRUMCHAPEL.url,
-    thumbnailUrl: DRUMCHAPEL.thumbnailUrl,
-  },
-  {
-    name: WATERDOWN.name,
-    description: translate("demoUSStyleDescription"),
-    url: WATERDOWN.url,
-    thumbnailUrl: WATERDOWN.thumbnailUrl,
-  },
-];
+import type { RecentFileEntry } from "src/import/recent-files";
 
 export const WelcomeDialog = () => {
   const translate = useTranslate();
@@ -70,13 +52,16 @@ export const WelcomeDialog = () => {
   const openModelBuilder = useOpenModelBuilder();
   const openRecentFile = useOpenRecentFile();
   const userTracking = useUserTracking();
-  const { recentFiles, isSupported: isRecentFilesSupported } = useRecentFiles();
+  const {
+    recentFiles,
+    removeRecent,
+    isSupported: isRecentFilesSupported,
+  } = useRecentFiles();
   const isRecentFilesOn = useFeatureFlag("FLAG_RECENT_FILES");
   const showRecent =
     isRecentFilesOn && isRecentFilesSupported && recentFiles.length > 0;
 
   const isMdOrLarger = useBreakpoint("md");
-  const demoModels = getDemoModels(translate);
 
   const currentLocale = useLocale();
   const currentLanguage = languageConfig.find(
@@ -220,7 +205,7 @@ export const WelcomeDialog = () => {
                 </div>
               </div>
             </div>
-            <div className="p-6">
+            <div className="p-6 min-w-0">
               {isExperimental && (
                 <div className="mt-7 mb-3">
                   <Message
@@ -232,14 +217,27 @@ export const WelcomeDialog = () => {
                 </div>
               )}
 
-              <h2 className="mt-[.2rem] pt-2 pb-2 font-bold text-gray-500">
-                {translate("demoNetworksTitle")}
-              </h2>
-              <div className="grid grid-cols-2 gap-6">
-                {demoModels.map((demoModel, i) => (
-                  <DemoNetworkCard key={i} demoNetwork={demoModel} />
-                ))}
-              </div>
+              {isMdOrLarger && showRecent && (
+                <div className="mb-6">
+                  <h2 className="mt-[.2rem] pt-2 pb-2 font-bold text-gray-500">
+                    {translate("recent")}
+                  </h2>
+                  <div className="scroll-shadows-x">
+                    <div className="flex flex-row gap-2 overflow-x-auto pb-1 scroll-shadows-x-inner">
+                      {recentFiles.map((entry) => (
+                        <RecentFileCard
+                          key={entry.id}
+                          entry={entry}
+                          onOpen={() => openRecentFile(entry, "welcome")}
+                          onRemove={() => void removeRecent(entry.id)}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <DemoNetworks collapsible={showRecent} />
               <div className="bg-gray-50 rounded-lg p-4 mt-6 text-xs text-center">
                 <h3 className="text-gray-600 font-bold">
                   {translate("foundersPartnerTitle")}
@@ -346,25 +344,6 @@ export const WelcomeDialog = () => {
                   <EarlyAccessIcon size="sm" />
                 </Button>
 
-                {isMdOrLarger && showRecent && (
-                  <div className="flex flex-col gap-2 mt-2 max-w-[200px]">
-                    <span className="text-xs text-gray-400 uppercase px-1">
-                      {translate("recent")}
-                    </span>
-                    {recentFiles.map((entry) => (
-                      <Button
-                        key={entry.id}
-                        variant="quiet"
-                        onClick={() => openRecentFile(entry, "welcome")}
-                        className="w-full min-w-0"
-                      >
-                        <FileSpreadsheetIcon className="shrink-0" />
-                        <span className="truncate">{entry.name}</span>
-                      </Button>
-                    ))}
-                  </div>
-                )}
-
                 <div className="mt-4 flex items-start flex-col gap-2">
                   <a
                     href={helpCenterUrl}
@@ -427,7 +406,7 @@ export const WelcomeDialog = () => {
                 </div>
               </div>
             </div>
-            <div className="p-6">
+            <div className="p-6 min-w-0">
               {isExperimental && (
                 <div className="mt-7 mb-3">
                   <Message
@@ -439,14 +418,27 @@ export const WelcomeDialog = () => {
                 </div>
               )}
 
-              <h2 className="mt-[.2rem] pt-2 pb-2 font-bold text-gray-500">
-                {translate("demoNetworksTitle")}
-              </h2>
-              <div className="grid grid-cols-2 gap-6">
-                {demoModels.map((demoModel, i) => (
-                  <DemoNetworkCard key={i} demoNetwork={demoModel} />
-                ))}
-              </div>
+              {isMdOrLarger && showRecent && (
+                <div className="mb-6">
+                  <h2 className="mt-[.2rem] pt-2 pb-2 font-bold text-gray-500">
+                    {translate("recent")}
+                  </h2>
+                  <div className="scroll-shadows-x">
+                    <div className="flex flex-row gap-2 overflow-x-auto pb-1 scroll-shadows-x-inner">
+                      {recentFiles.map((entry) => (
+                        <RecentFileCard
+                          key={entry.id}
+                          entry={entry}
+                          onOpen={() => openRecentFile(entry, "welcome")}
+                          onRemove={() => void removeRecent(entry.id)}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <DemoNetworks collapsible={showRecent} />
               <div className="bg-gray-50 rounded-lg p-4 mt-6 text-xs text-center">
                 <h3 className="text-gray-600 font-bold">
                   {translate("foundersPartnerTitle")}
@@ -524,3 +516,110 @@ const SmallDeviceWarning = () => {
     </Message>
   );
 };
+
+const DemoNetworks = ({ collapsible }: { collapsible: boolean }) => {
+  const translate = useTranslate();
+  const [open, setOpen] = useState(false);
+
+  const demoModels = [
+    {
+      name: DRUMCHAPEL.name,
+      description: translate("demoUKStyleDescription"),
+      url: DRUMCHAPEL.url,
+      thumbnailUrl: DRUMCHAPEL.thumbnailUrl,
+    },
+    {
+      name: WATERDOWN.name,
+      description: translate("demoUSStyleDescription"),
+      url: WATERDOWN.url,
+      thumbnailUrl: WATERDOWN.thumbnailUrl,
+    },
+  ];
+
+  const isOpen = !collapsible || open;
+
+  return (
+    <div>
+      {collapsible ? (
+        <button
+          className="flex items-center gap-1 w-full mt-[.2rem] text-left pt-2 pb-2 font-bold text-gray-500 hover:text-gray-700"
+          onClick={() => setOpen(() => !isOpen)}
+        >
+          <h2>{translate("demoNetworksTitle")}</h2>
+          {isOpen ? (
+            <ChevronDownIcon size={16} />
+          ) : (
+            <ChevronRightIcon size={16} />
+          )}
+        </button>
+      ) : (
+        <h2 className="mt-[.2rem] pt-2 pb-2 font-bold text-gray-500">
+          {translate("demoNetworksTitle")}
+        </h2>
+      )}
+      {isOpen && (
+        <div className="grid grid-cols-2 gap-6">
+          {demoModels.map((demoModel, i) => (
+            <DemoNetworkCard key={i} demoNetwork={demoModel} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const RecentFileCard = ({
+  entry,
+  onOpen,
+  onRemove,
+}: {
+  entry: RecentFileEntry;
+  onOpen: () => void;
+  onRemove: () => void;
+}) => (
+  <div
+    className="flex flex-col rounded-lg border shadow-sm cursor-pointer hover:bg-gray-50 overflow-hidden shrink-0"
+    style={{ width: "160px" }}
+    onClick={onOpen}
+  >
+    <div
+      className="relative bg-gray-100 shrink-0"
+      style={{ aspectRatio: "3/2" }}
+    >
+      <Button
+        variant="default"
+        size="xxs"
+        className="absolute top-1 right-1 z-10"
+        onClick={(e) => {
+          e.stopPropagation();
+          onRemove();
+        }}
+        aria-label="Remove"
+      >
+        <CloseIcon />
+      </Button>
+      {entry.thumbnail ? (
+        <img
+          src={entry.thumbnail}
+          alt={entry.name}
+          className="w-full h-full object-cover"
+        />
+      ) : (
+        <div className="w-full h-full flex items-center justify-center">
+          <FileSpreadsheetIcon className="text-gray-300" />
+        </div>
+      )}
+    </div>
+    <div className="p-1 flex flex-col gap-0.5 overflow-hidden">
+      <span
+        className="text-sm font-medium text-gray-700 truncate"
+        title={entry.name}
+      >
+        {entry.name}
+      </span>
+      <span className="text-xs text-gray-500">
+        {`${new Date(entry.openedAt).toLocaleDateString()} ${new Date(entry.openedAt).toLocaleTimeString()}`}
+      </span>
+    </div>
+  </div>
+);

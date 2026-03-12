@@ -28,6 +28,7 @@ const MAP_OPTIONS: Omit<mapboxgl.MapboxOptions, "container"> = {
   fadeDuration: 0,
   antialias: true,
   doubleClickZoom: false,
+  preserveDrawingBuffer: true,
 };
 
 const sourceUpdateTimeoutFor = (totalFeatures: number): number => {
