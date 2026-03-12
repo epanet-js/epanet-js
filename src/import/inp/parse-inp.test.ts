@@ -162,10 +162,10 @@ describe("Parse inp with", () => {
     ${IDS.R1}\t1\t1
     `;
     const { modelMetadata } = parseInp(inp);
-    expect(modelMetadata.quantities.units).toMatchObject({
+    expect(modelMetadata.units).toMatchObject({
       flow: "gal/min",
     });
-    expect(modelMetadata.quantities.getUnit("head")).toEqual("ft");
+    expect(modelMetadata.units.head).toEqual("ft");
   });
 
   it("detects other systems", () => {
@@ -182,10 +182,10 @@ describe("Parse inp with", () => {
     ${IDS.R1}\t1\t1
     `;
     const { modelMetadata } = parseInp(inp);
-    expect(modelMetadata.quantities.units).toMatchObject({
+    expect(modelMetadata.units).toMatchObject({
       flow: "l/s",
     });
-    expect(modelMetadata.quantities.getUnit("head")).toEqual("m");
+    expect(modelMetadata.units.head).toEqual("m");
   });
 
   it("parses pressure unit override from OPTIONS", () => {
@@ -200,7 +200,7 @@ describe("Parse inp with", () => {
     ${IDS.R1}\t1\t1
     `;
     const { modelMetadata } = parseInp(inp);
-    expect(modelMetadata.quantities.getUnit("pressure")).toEqual("kPa");
+    expect(modelMetadata.units.pressure).toEqual("kPa");
   });
 
   it("keeps default pressure unit when no PRESSURE option", () => {
@@ -214,7 +214,7 @@ describe("Parse inp with", () => {
     ${IDS.R1}\t1\t1
     `;
     const { modelMetadata } = parseInp(inp);
-    expect(modelMetadata.quantities.getUnit("pressure")).toEqual("mwc");
+    expect(modelMetadata.units.pressure).toEqual("mwc");
   });
 
   it("detects headloss formula from inp", () => {

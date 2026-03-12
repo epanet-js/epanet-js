@@ -35,7 +35,7 @@ export function CustomerPointPanel() {
   const transact = rep.useTransact();
   const zoomTo = useZoomTo();
   const {
-    modelMetadata: { quantities },
+    modelMetadata: { quantities, units },
   } = useAtomValue(dataAtom);
   const customerPoint =
     selection.type === "singleCustomerPoint"
@@ -44,8 +44,8 @@ export function CustomerPointPanel() {
 
   const actions = useCustomerPointActions(customerPoint, "root");
 
-  const flowUnit = quantities.getUnit("customerDemand");
-  const perDayUnit = quantities.getUnit("customerDemandPerDay");
+  const flowUnit = units.customerDemand;
+  const perDayUnit = units.customerDemandPerDay;
 
   const storedDemands = useMemo(
     () =>

@@ -1,5 +1,5 @@
 import { Unit } from "src/quantity";
-import { Quantities } from "src/model-metadata/quantities-spec";
+import { Quantities, UnitsSpec } from "src/model-metadata/quantities-spec";
 import type { ResultsReader } from "src/simulation/results-reader";
 import {
   Asset,
@@ -504,11 +504,11 @@ const appendPumpStats = (
   const energy = simulationResults?.getPumpEnergy(pump.id);
   if (energy) {
     const percentUnit = {
-      unit: quantitiesMetadata.getUnit("efficiency"),
+      unit: quantitiesMetadata.units.efficiency,
       decimals: 2,
     };
     const powerUnit = {
-      unit: quantitiesMetadata.getUnit("power"),
+      unit: quantitiesMetadata.units.power,
       decimals: 2,
     };
     const noUnit = { unit: null as Unit, decimals: 2 };
@@ -917,7 +917,7 @@ const updateQuantityStats = (
     const unit =
       overrides?.unit !== undefined
         ? overrides.unit
-        : quantitiesMetadata.getUnit(property as keyof Quantities["units"]);
+        : quantitiesMetadata.units[property as keyof UnitsSpec];
 
     statsMap.set(property, {
       type: "quantity",

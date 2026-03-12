@@ -126,7 +126,7 @@ function checkLoopedLinkConditions(
 export function useDrawLinkHandlers({
   rep,
   hydraulicModel,
-  quantities,
+  units,
   map,
   linkType,
   sourceLink,
@@ -147,7 +147,7 @@ export function useDrawLinkHandlers({
   const userTracking = useUserTracking();
   const usingTouchEvents = useRef<boolean>(false);
   const { assetBuilder } = hydraulicModel;
-  const lengthUnit = quantities.getUnit("length");
+  const lengthUnit = units.length;
   const { findSnappingCandidate } = useSnapping(map, hydraulicModel.assets);
 
   const { isShiftHeld, isControlHeld } = useKeyboardState();
@@ -341,9 +341,7 @@ export function useDrawLinkHandlers({
     const [lng, lat] = coordinates;
     return { lng, lat };
   };
-  const { fetchElevation, prefetchTile } = useElevations(
-    quantities.getUnit("elevation"),
-  );
+  const { fetchElevation, prefetchTile } = useElevations(units.elevation);
 
   const isClickInProgress = useRef<boolean>(false);
 

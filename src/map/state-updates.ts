@@ -212,7 +212,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
             map,
             isGridOn,
             isPreview: isGridPreview,
-            lengthUnit: quantities.getUnit("length") === "ft" ? "ft" : "m",
+            lengthUnit: quantities.units.length === "ft" ? "ft" : "m",
             gridRef,
             scaleControlRef,
           });

@@ -370,12 +370,12 @@ export class Quantities {
     return this.spec.defaults;
   }
 
-  get units() {
-    return this.spec.units;
-  }
-
   get ranges() {
     return this.spec.ranges;
+  }
+
+  get units(): UnitsSpec {
+    return this.spec.units;
   }
 
   getDecimals(name: keyof DecimalsSpec): number | undefined {
@@ -385,13 +385,9 @@ export class Quantities {
     return decimals;
   }
 
-  getUnit(name: keyof UnitsSpec): Unit {
-    return this.spec.units[name];
-  }
-
   getMinorLossUnit(headlossFormula: HeadlossFormula): Unit {
     if (headlossFormula === "D-W") {
-      return this.getUnit("length");
+      return this.spec.units.length;
     } else {
       return null;
     }

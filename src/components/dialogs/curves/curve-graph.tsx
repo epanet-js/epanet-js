@@ -12,20 +12,20 @@ import { getCurveTypeConfig } from "./curve-type-config";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { InlineField } from "src/components/form/fields";
-import { Quantities } from "src/model-metadata/quantities-spec";
+import type { UnitsSpec } from "src/model-metadata/quantities-spec";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 interface CurveGraphProps {
   points: CurvePoint[];
   curveType?: CurveType;
-  quantities: Quantities;
+  units: UnitsSpec;
   selectedPointIndex?: number | null;
   onPointClick?: (index: number | null) => void;
 }
 
 export const CurveGraph = forwardRef<HTMLDivElement, CurveGraphProps>(
   function CurveGraph(
-    { points, curveType, quantities, selectedPointIndex, onPointClick },
+    { points, curveType, units, selectedPointIndex, onPointClick },
     ref,
   ) {
     const translate = useTranslate();
@@ -35,7 +35,7 @@ export const CurveGraph = forwardRef<HTMLDivElement, CurveGraphProps>(
     const xAxisLabel = (() => {
       const label = translate(curveConfig.xLabel);
       const unit = curveConfig.xQuantity
-        ? quantities.getUnit(curveConfig.xQuantity)
+        ? units[curveConfig.xQuantity]
         : undefined;
       return unit ? `${label} (${translateUnit(unit)})` : label;
     })();
@@ -43,7 +43,7 @@ export const CurveGraph = forwardRef<HTMLDivElement, CurveGraphProps>(
     const yAxisLabel = (() => {
       const label = translate(curveConfig.yLabel);
       const unit = curveConfig.yQuantity
-        ? quantities.getUnit(curveConfig.yQuantity)
+        ? units[curveConfig.yQuantity]
         : undefined;
       return unit ? `${label} (${translateUnit(unit)})` : label;
     })();

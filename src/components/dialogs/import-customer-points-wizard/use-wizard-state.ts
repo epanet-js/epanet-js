@@ -45,7 +45,7 @@ export const useWizardState = (): Omit<WizardState, "allocationRules"> & {
 } & WizardActions => {
   const [state, setWizardState] = useAtom(wizardStateAtom);
   const {
-    modelMetadata: { quantities },
+    modelMetadata: { units },
   } = useAtomValue(dataAtom);
 
   const goToStep = (step: WizardStep) => {
@@ -162,9 +162,8 @@ export const useWizardState = (): Omit<WizardState, "allocationRules"> & {
 
   return {
     ...state,
-    allocationRules:
-      state.allocationRules ?? getDefaultAllocationRules(quantities.units),
-    units: quantities.units,
+    allocationRules: state.allocationRules ?? getDefaultAllocationRules(units),
+    units,
     goToStep,
     goNext,
     goBack,

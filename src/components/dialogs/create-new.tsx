@@ -137,6 +137,7 @@ export const CreateNew = () => {
       const quantities = new Quantities(spec);
       const modelMetadata: ModelMetadata = {
         quantities,
+        units: spec.units,
         projectionMapper: buildNewProjectProjectionMapper(projection),
       };
       const hydraulicModel = initializeHydraulicModel({

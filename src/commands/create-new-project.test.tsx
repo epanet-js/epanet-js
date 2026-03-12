@@ -29,9 +29,7 @@ describe("create new project", () => {
 
     await userEvent.click(screen.getByRole("button", { name: /create/i }));
 
-    expect(
-      store.get(dataAtom).modelMetadata.quantities.getUnit("flow"),
-    ).toEqual("gal/min");
+    expect(store.get(dataAtom).modelMetadata.units.flow).toEqual("gal/min");
   });
 
   it("allows to chooose the headloss formula", async () => {
@@ -82,9 +80,7 @@ describe("create new project", () => {
 
     const hydraulicModel = store.get(stagingModelAtom);
     expect(hydraulicModel.assets.size).toEqual(0);
-    expect(
-      store.get(dataAtom).modelMetadata.quantities.getUnit("flow"),
-    ).toEqual("l/s");
+    expect(store.get(dataAtom).modelMetadata.units.flow).toEqual("l/s");
 
     const momentLog = store.get(momentLogAtom);
     expect(momentLog.getDeltas().length).toEqual(0);

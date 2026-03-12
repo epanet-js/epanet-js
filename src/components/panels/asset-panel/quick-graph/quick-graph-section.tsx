@@ -119,7 +119,7 @@ const QuickGraphSection = ({
   const simulation = useAtomValue(simulationAtom);
   const worktree = useAtomValue(worktreeAtom);
   const {
-    modelMetadata: { quantities },
+    modelMetadata: { quantities, units },
   } = useAtomValue(dataAtom);
   const hydraulicModel = useAtomValue(stagingModelAtom);
   const { changeTimestep } = useChangeTimestep();
@@ -173,13 +173,13 @@ const QuickGraphSection = ({
           quantityKey = getValveSettingQuantityKey(valve) ?? opt.quantityKey;
         }
       }
-      const unit = quantities.getUnit(quantityKey);
+      const unit = units[quantityKey];
       return {
         value: opt.value,
         label: unit ? `${label} (${unit})` : label,
       };
     });
-  }, [assetType, assetId, hydraulicModel, translate, quantities]);
+  }, [assetType, assetId, hydraulicModel, translate, units]);
 
   const handlePropertyChange = useCallback(
     (value: QuickGraphPropertyByAssetType[typeof assetType]) => {

@@ -8,14 +8,14 @@ import {
 import { type GridSelection } from "src/components/data-grid";
 import { CurveTable, type CurveTableRef } from "./curve-table";
 import { CurveErrorBanner } from "./curve-error-banner";
-import { Quantities } from "src/model-metadata/quantities-spec";
+import type { UnitsSpec } from "src/model-metadata/quantities-spec";
 
 interface CurveDetailProps {
   points: CurvePoint[];
   onChange: (points: CurvePoint[]) => void;
   readOnly?: boolean;
   curveType?: CurveType;
-  quantities: Quantities;
+  units: UnitsSpec;
 }
 
 export function CurveDetail({
@@ -23,7 +23,7 @@ export function CurveDetail({
   onChange,
   readOnly = false,
   curveType,
-  quantities,
+  units,
 }: CurveDetailProps) {
   const [selectedCells, setSelectedCells] = useState<GridSelection | null>(
     null,
@@ -92,7 +92,7 @@ export function CurveDetail({
           onSelectionChange={handleTableSelectionChange}
           readOnly={readOnly}
           curveType={curveType}
-          quantities={quantities}
+          units={units}
         />
       </div>
       <CurveErrorBanner points={meaningfulPoints} curveType={curveType} />
@@ -101,7 +101,7 @@ export function CurveDetail({
           ref={graphContainerRef}
           points={meaningfulPoints}
           curveType={curveType}
-          quantities={quantities}
+          units={units}
           selectedPointIndex={graphSelectedIndex}
           onPointClick={handleGraphClick}
         />

@@ -28,7 +28,7 @@ import {
   CustomerPoint,
   getActiveCustomerPoints,
 } from "src/hydraulic-model/customer-points";
-import { Quantities } from "src/model-metadata/quantities-spec";
+import { Quantities, UnitsSpec } from "src/model-metadata/quantities-spec";
 import { useTranslate } from "src/hooks/use-translate";
 import { usePersistence } from "src/lib/persistence";
 import { useUserTracking } from "src/infra/user-tracking";
@@ -118,10 +118,12 @@ type OnStatusChange<T> = (newStatus: T, oldStatus: T) => void;
 export function AssetPanel({
   asset,
   quantitiesMetadata,
+  units,
   readonly = false,
 }: {
   asset: Asset;
   quantitiesMetadata: Quantities;
+  units: UnitsSpec;
   readonly?: boolean;
 }) {
   const hydraulicModel = useAtomValue(stagingModelAtom);
@@ -271,6 +273,7 @@ export function AssetPanel({
         <JunctionEditor
           junction={asset as Junction}
           quantitiesMetadata={quantitiesMetadata}
+          units={units}
           onPropertyChange={handlePropertyChange}
           onDemandsChange={handleDemandsChange}
           onLabelChange={handleLabelChange}
@@ -286,6 +289,7 @@ export function AssetPanel({
           {...getLinkNodes(hydraulicModel.assets, pipe)}
           headlossFormula={hydraulicModel.headlossFormula}
           quantitiesMetadata={quantitiesMetadata}
+          units={units}
           onPropertyChange={handlePropertyChange}
           onStatusChange={handleStatusChange}
           onActiveTopologyStatusChange={handleActiveTopologyStatusChange}
@@ -307,6 +311,7 @@ export function AssetPanel({
           onBatchPropertyChange={handleBatchPropertyChange}
           onLabelChange={handleLabelChange}
           quantitiesMetadata={quantitiesMetadata}
+          units={units}
           {...getLinkNodes(hydraulicModel.assets, pump)}
           readonly={readonly}
         />
@@ -321,6 +326,7 @@ export function AssetPanel({
           onPropertyChange={handlePropertyChange}
           onBatchPropertyChange={handleBatchPropertyChange}
           quantitiesMetadata={quantitiesMetadata}
+          units={units}
           onStatusChange={handleStatusChange}
           onActiveTopologyStatusChange={handleActiveTopologyStatusChange}
           onLabelChange={handleLabelChange}
@@ -335,6 +341,7 @@ export function AssetPanel({
           hydraulicModel={hydraulicModel}
           reservoir={asset as Reservoir}
           quantitiesMetadata={quantitiesMetadata}
+          units={units}
           onPropertyChange={handlePropertyChange}
           onLabelChange={handleLabelChange}
           readonly={readonly}
@@ -346,6 +353,7 @@ export function AssetPanel({
           tank={asset as Tank}
           hydraulicModel={hydraulicModel}
           quantitiesMetadata={quantitiesMetadata}
+          units={units}
           onPropertyChange={handlePropertyChange}
           onBatchPropertyChange={handleBatchPropertyChange}
           onLabelChange={handleLabelChange}
@@ -358,6 +366,7 @@ export function AssetPanel({
 const JunctionEditor = ({
   junction,
   quantitiesMetadata,
+  units,
   onPropertyChange,
   onDemandsChange,
   onLabelChange,
@@ -366,6 +375,7 @@ const JunctionEditor = ({
 }: {
   junction: Junction;
   quantitiesMetadata: Quantities;
+  units: UnitsSpec;
   onPropertyChange: OnPropertyChange;
   onDemandsChange: (newDemands: Demand[]) => void;
   onLabelChange: (newLabel: string) => string | undefined;
@@ -465,7 +475,7 @@ const JunctionEditor = ({
         <QuantityRow
           name="elevation"
           value={junction.elevation}
-          unit={quantitiesMetadata.getUnit("elevation")}
+          unit={units.elevation}
           decimals={quantitiesMetadata.getDecimals("elevation")}
           comparison={getComparison("elevation", junction.elevation)}
           onChange={onPropertyChange}
@@ -474,7 +484,7 @@ const JunctionEditor = ({
         <QuantityRow
           name="emitterCoefficient"
           value={junction.emitterCoefficient}
-          unit={quantitiesMetadata.getUnit("emitterCoefficient")}
+          unit={units.emitterCoefficient}
           decimals={quantitiesMetadata.getDecimals("emitterCoefficient")}
           comparison={getComparison(
             "emitterCoefficient",
@@ -505,7 +515,7 @@ const JunctionEditor = ({
             <QuantityRow
               name="customerDemand"
               value={totalDemand}
-              unit={quantitiesMetadata.getUnit("baseDemand")}
+              unit={units.baseDemand}
               decimals={quantitiesMetadata.getDecimals("baseDemand")}
               comparison={getCustomerDemandComparison(totalDemand)}
               readOnly={true}
@@ -521,8 +531,8 @@ const JunctionEditor = ({
             <ConnectedCustomersRow
               customerCount={customerCount}
               customerPoints={customerPoints}
-              aggregateUnit={quantitiesMetadata.getUnit("customerDemand")}
-              customerUnit={quantitiesMetadata.getUnit("customerDemandPerDay")}
+              aggregateUnit={units.customerDemand}
+              customerUnit={units.customerDemandPerDay}
               demands={hydraulicModel.demands}
               patterns={hydraulicModel.patterns}
               comparison={getCustomerCountComparison(customerCount)}
@@ -537,21 +547,21 @@ const JunctionEditor = ({
         <QuantityRow
           name="pressure"
           value={simPressure}
-          unit={quantitiesMetadata.getUnit("pressure")}
+          unit={units.pressure}
           decimals={quantitiesMetadata.getDecimals("pressure")}
           readOnly={true}
         />
         <QuantityRow
           name="head"
           value={simHead}
-          unit={quantitiesMetadata.getUnit("head")}
+          unit={units.head}
           decimals={quantitiesMetadata.getDecimals("head")}
           readOnly={true}
         />
         <QuantityRow
           name="actualDemand"
           value={simDemand}
-          unit={quantitiesMetadata.getUnit("actualDemand")}
+          unit={units.actualDemand}
           decimals={quantitiesMetadata.getDecimals("actualDemand")}
           readOnly={true}
         />
@@ -566,6 +576,7 @@ const PipeEditor = ({
   endNode,
   headlossFormula,
   quantitiesMetadata,
+  units,
   onPropertyChange,
   onStatusChange,
   onActiveTopologyStatusChange,
@@ -578,6 +589,7 @@ const PipeEditor = ({
   endNode: NodeAsset | null;
   headlossFormula: HeadlossFormula;
   quantitiesMetadata: Quantities;
+  units: UnitsSpec;
   onPropertyChange: OnPropertyChange;
   onStatusChange: OnStatusChange<PipeStatus>;
   onActiveTopologyStatusChange: (
@@ -710,7 +722,7 @@ const PipeEditor = ({
           value={pipe.diameter}
           positiveOnly={true}
           isNullable={false}
-          unit={quantitiesMetadata.getUnit("diameter")}
+          unit={units.diameter}
           decimals={quantitiesMetadata.getDecimals("diameter")}
           comparison={getComparison("diameter", pipe.diameter)}
           onChange={onPropertyChange}
@@ -721,7 +733,7 @@ const PipeEditor = ({
           value={pipe.length}
           positiveOnly={true}
           isNullable={false}
-          unit={quantitiesMetadata.getUnit("length")}
+          unit={units.length}
           decimals={quantitiesMetadata.getDecimals("length")}
           comparison={getComparison("length", pipe.length)}
           onChange={onPropertyChange}
@@ -731,7 +743,7 @@ const PipeEditor = ({
           name="roughness"
           value={pipe.roughness}
           positiveOnly={true}
-          unit={quantitiesMetadata.getUnit("roughness")}
+          unit={units.roughness}
           decimals={quantitiesMetadata.getDecimals("roughness")}
           comparison={getComparison("roughness", pipe.roughness)}
           onChange={onPropertyChange}
@@ -758,7 +770,7 @@ const PipeEditor = ({
           <QuantityRow
             name="customerDemand"
             value={totalDemand}
-            unit={quantitiesMetadata.getUnit("baseDemand")}
+            unit={units.baseDemand}
             decimals={quantitiesMetadata.getDecimals("baseDemand")}
             comparison={getCustomerDemandComparison(totalDemand)}
             readOnly={true}
@@ -774,8 +786,8 @@ const PipeEditor = ({
           <ConnectedCustomersRow
             customerCount={customerCount}
             customerPoints={customerPoints}
-            aggregateUnit={quantitiesMetadata.getUnit("customerDemand")}
-            customerUnit={quantitiesMetadata.getUnit("customerDemandPerDay")}
+            aggregateUnit={units.customerDemand}
+            customerUnit={units.customerDemandPerDay}
             demands={hydraulicModel.demands}
             patterns={hydraulicModel.patterns}
             comparison={getCustomerCountComparison(customerCount)}
@@ -789,28 +801,28 @@ const PipeEditor = ({
         <QuantityRow
           name="flow"
           value={simFlow}
-          unit={quantitiesMetadata.getUnit("flow")}
+          unit={units.flow}
           decimals={quantitiesMetadata.getDecimals("flow")}
           readOnly={true}
         />
         <QuantityRow
           name="velocity"
           value={simVelocity}
-          unit={quantitiesMetadata.getUnit("velocity")}
+          unit={units.velocity}
           decimals={quantitiesMetadata.getDecimals("velocity")}
           readOnly={true}
         />
         <QuantityRow
           name="unitHeadloss"
           value={simUnitHeadloss}
-          unit={quantitiesMetadata.getUnit("unitHeadloss")}
+          unit={units.unitHeadloss}
           decimals={quantitiesMetadata.getDecimals("unitHeadloss")}
           readOnly={true}
         />
         <QuantityRow
           name="headlossShort"
           value={simHeadloss}
-          unit={quantitiesMetadata.getUnit("headloss")}
+          unit={units.headloss}
           decimals={quantitiesMetadata.getDecimals("headloss")}
           readOnly={true}
         />
@@ -824,6 +836,7 @@ const ReservoirEditor = ({
   hydraulicModel,
   reservoir,
   quantitiesMetadata,
+  units,
   onPropertyChange,
   onLabelChange,
   readonly = false,
@@ -831,6 +844,7 @@ const ReservoirEditor = ({
   hydraulicModel: HydraulicModel;
   reservoir: Reservoir;
   quantitiesMetadata: Quantities;
+  units: UnitsSpec;
   onPropertyChange: OnPropertyChange;
   onLabelChange: (newLabel: string) => string | undefined;
   readonly?: boolean;
@@ -890,7 +904,7 @@ const ReservoirEditor = ({
         <QuantityRow
           name="elevation"
           value={reservoir.elevation}
-          unit={quantitiesMetadata.getUnit("elevation")}
+          unit={units.elevation}
           decimals={quantitiesMetadata.getDecimals("elevation")}
           comparison={getComparison("elevation", reservoir.elevation)}
           onChange={onPropertyChange}
@@ -901,6 +915,7 @@ const ReservoirEditor = ({
           patterns={hydraulicModel.patterns}
           onPropertyChange={onPropertyChange}
           quantitiesMetadata={quantitiesMetadata}
+          units={units}
           readOnly={readonly}
         />
       </SectionHeader>
@@ -911,21 +926,21 @@ const ReservoirEditor = ({
         <QuantityRow
           name="pressure"
           value={simPressure}
-          unit={quantitiesMetadata.getUnit("pressure")}
+          unit={units.pressure}
           decimals={quantitiesMetadata.getDecimals("pressure")}
           readOnly={true}
         />
         <QuantityRow
           name="head"
           value={simHead}
-          unit={quantitiesMetadata.getUnit("head")}
+          unit={units.head}
           decimals={quantitiesMetadata.getDecimals("head")}
           readOnly={true}
         />
         <QuantityRow
           name="netFlow"
           value={simNetFlow}
-          unit={quantitiesMetadata.getUnit("netFlow")}
+          unit={units.netFlow}
           decimals={quantitiesMetadata.getDecimals("netFlow")}
           readOnly={true}
         />
@@ -938,6 +953,7 @@ const TankEditor = ({
   tank,
   hydraulicModel,
   quantitiesMetadata,
+  units,
   onPropertyChange,
   onBatchPropertyChange,
   onLabelChange,
@@ -946,6 +962,7 @@ const TankEditor = ({
   tank: Tank;
   hydraulicModel: HydraulicModel;
   quantitiesMetadata: Quantities;
+  units: UnitsSpec;
   onPropertyChange: OnPropertyChange;
   onBatchPropertyChange: (changes: PropertyChange[]) => void;
   onLabelChange: (newLabel: string) => string | undefined;
@@ -1011,7 +1028,7 @@ const TankEditor = ({
         <QuantityRow
           name="elevation"
           value={tank.elevation}
-          unit={quantitiesMetadata.getUnit("elevation")}
+          unit={units.elevation}
           decimals={quantitiesMetadata.getDecimals("elevation")}
           comparison={getComparison("elevation", tank.elevation)}
           onChange={onPropertyChange}
@@ -1020,7 +1037,7 @@ const TankEditor = ({
         <QuantityRow
           name="initialLevel"
           value={tank.initialLevel}
-          unit={quantitiesMetadata.getUnit("initialLevel")}
+          unit={units.initialLevel}
           decimals={quantitiesMetadata.getDecimals("initialLevel")}
           comparison={getComparison("initialLevel", tank.initialLevel)}
           onChange={onPropertyChange}
@@ -1031,6 +1048,7 @@ const TankEditor = ({
           tank={tank}
           curves={hydraulicModel.curves}
           quantitiesMetadata={quantitiesMetadata}
+          units={units}
           onPropertyChange={onPropertyChange}
           onBatchPropertyChange={onBatchPropertyChange}
           readOnly={readonly}
@@ -1051,35 +1069,35 @@ const TankEditor = ({
         <QuantityRow
           name="pressure"
           value={simPressure}
-          unit={quantitiesMetadata.getUnit("pressure")}
+          unit={units.pressure}
           decimals={quantitiesMetadata.getDecimals("pressure")}
           readOnly={true}
         />
         <QuantityRow
           name="head"
           value={simHead}
-          unit={quantitiesMetadata.getUnit("head")}
+          unit={units.head}
           decimals={quantitiesMetadata.getDecimals("head")}
           readOnly={true}
         />
         <QuantityRow
           name="level"
           value={simLevel}
-          unit={quantitiesMetadata.getUnit("level")}
+          unit={units.level}
           decimals={quantitiesMetadata.getDecimals("level")}
           readOnly={true}
         />
         <QuantityRow
           name="volume"
           value={simVolume}
-          unit={quantitiesMetadata.getUnit("volume")}
+          unit={units.volume}
           decimals={quantitiesMetadata.getDecimals("volume")}
           readOnly={true}
         />
         <QuantityRow
           name="netFlow"
           value={simNetFlow}
-          unit={quantitiesMetadata.getUnit("netFlow")}
+          unit={units.netFlow}
           decimals={quantitiesMetadata.getDecimals("netFlow")}
           readOnly={true}
         />
@@ -1092,6 +1110,7 @@ const TankDefinitionField = ({
   tank,
   curves,
   quantitiesMetadata,
+  units,
   onPropertyChange,
   onBatchPropertyChange,
   readOnly = false,
@@ -1099,6 +1118,7 @@ const TankDefinitionField = ({
   tank: Tank;
   curves: Curves;
   quantitiesMetadata: Quantities;
+  units: UnitsSpec;
   onPropertyChange: OnPropertyChange;
   onBatchPropertyChange: (changes: PropertyChange[]) => void;
   readOnly?: boolean;
@@ -1125,8 +1145,8 @@ const TankDefinitionField = ({
 
   const levelDecimals = quantitiesMetadata.getDecimals("minLevel");
   const volumeDecimals = quantitiesMetadata.getDecimals("minVolume");
-  const levelUnit = translateUnit(quantitiesMetadata.getUnit("minLevel"));
-  const volumeUnit = translateUnit(quantitiesMetadata.getUnit("minVolume"));
+  const levelUnit = translateUnit(units.minLevel);
+  const volumeUnit = translateUnit(units.minVolume);
   const tableLabels = {
     horizontal: [
       `${translate("level")} (${levelUnit})`,
@@ -1160,11 +1180,9 @@ const TankDefinitionField = ({
       : tank.volumeCurveId;
     const baseIsCircular = baseCurveId == null;
 
-    const diameterUnit = translateUnit(
-      quantitiesMetadata.getUnit("tankDiameter"),
-    );
-    const volumeUnit = translateUnit(quantitiesMetadata.getUnit("minVolume"));
-    const levelUnit = translateUnit(quantitiesMetadata.getUnit("minLevel"));
+    const diameterUnit = translateUnit(units.tankDiameter);
+    const volumeUnit = translateUnit(units.minVolume);
+    const levelUnit = translateUnit(units.minLevel);
 
     const lines: string[] = [];
     if (baseIsCircular) {
@@ -1229,7 +1247,7 @@ const TankDefinitionField = ({
     getCurveComparison,
     curves,
     translateUnit,
-    quantitiesMetadata,
+    units,
     translate,
   ]);
 
@@ -1345,7 +1363,7 @@ const TankDefinitionField = ({
             <QuantityRow
               name="diameter"
               value={tank.diameter}
-              unit={quantitiesMetadata.getUnit("tankDiameter")}
+              unit={units.tankDiameter}
               decimals={quantitiesMetadata.getDecimals("diameter")}
               onChange={onPropertyChange}
               positiveOnly={true}
@@ -1402,7 +1420,7 @@ const TankDefinitionField = ({
             <QuantityRow
               name="area"
               value={tank.area}
-              unit={quantitiesMetadata.getUnit("tankArea")}
+              unit={units.tankArea}
               decimals={quantitiesMetadata.getDecimals("tankArea")}
               onChange={handleAreaChange}
               positiveOnly={true}
@@ -1572,6 +1590,7 @@ const ValveEditor = ({
   startNode,
   endNode,
   quantitiesMetadata,
+  units,
   onPropertyChange,
   onBatchPropertyChange,
   onStatusChange,
@@ -1584,6 +1603,7 @@ const ValveEditor = ({
   startNode: NodeAsset | null;
   endNode: NodeAsset | null;
   quantitiesMetadata: Quantities;
+  units: UnitsSpec;
   onStatusChange: OnStatusChange<ValveStatus>;
   onPropertyChange: OnPropertyChange;
   onBatchPropertyChange: (changes: PropertyChange[]) => void;
@@ -1656,9 +1676,8 @@ const ValveEditor = ({
 
   const getSettingUnit = () => {
     if (valve.kind === "tcv") return null;
-    if (["psv", "prv", "pbv"].includes(valve.kind))
-      return quantitiesMetadata.getUnit("pressure");
-    if (valve.kind === "fcv") return quantitiesMetadata.getUnit("flow");
+    if (["psv", "prv", "pbv"].includes(valve.kind)) return units.pressure;
+    if (valve.kind === "fcv") return units.flow;
     return null;
   };
 
@@ -1751,7 +1770,7 @@ const ValveEditor = ({
           name="diameter"
           value={valve.diameter}
           positiveOnly={true}
-          unit={quantitiesMetadata.getUnit("diameter")}
+          unit={units.diameter}
           decimals={quantitiesMetadata.getDecimals("diameter")}
           comparison={getComparison("diameter", valve.diameter)}
           onChange={onPropertyChange}
@@ -1761,7 +1780,7 @@ const ValveEditor = ({
           name="minorLoss"
           value={valve.minorLoss}
           positiveOnly={true}
-          unit={quantitiesMetadata.getUnit("minorLoss")}
+          unit={units.minorLoss}
           decimals={quantitiesMetadata.getDecimals("minorLoss")}
           comparison={getComparison("minorLoss", valve.minorLoss)}
           onChange={onPropertyChange}
@@ -1775,21 +1794,21 @@ const ValveEditor = ({
         <QuantityRow
           name="flow"
           value={simFlow}
-          unit={quantitiesMetadata.getUnit("flow")}
+          unit={units.flow}
           decimals={quantitiesMetadata.getDecimals("flow")}
           readOnly={true}
         />
         <QuantityRow
           name="velocity"
           value={simVelocity}
-          unit={quantitiesMetadata.getUnit("velocity")}
+          unit={units.velocity}
           decimals={quantitiesMetadata.getDecimals("velocity")}
           readOnly={true}
         />
         <QuantityRow
           name="headlossShort"
           value={simHeadloss}
-          unit={quantitiesMetadata.getUnit("headloss")}
+          unit={units.headloss}
           decimals={quantitiesMetadata.getDecimals("headloss")}
           readOnly={true}
         />
@@ -1810,6 +1829,7 @@ const PumpEditor = ({
   onBatchPropertyChange,
   onLabelChange,
   quantitiesMetadata,
+  units,
   readonly = false,
 }: {
   pump: Pump;
@@ -1826,6 +1846,7 @@ const PumpEditor = ({
   onBatchPropertyChange: (changes: PropertyChange[]) => void;
   onLabelChange: (newLabel: string) => string | undefined;
   quantitiesMetadata: Quantities;
+  units: UnitsSpec;
   readonly?: boolean;
 }) => {
   const isEnergyEnabled = useFeatureFlag("FLAG_ENERGY");
@@ -1926,6 +1947,7 @@ const PumpEditor = ({
         <PumpDefinitionDetails
           pump={pump}
           curves={hydraulicModel.curves}
+          units={units}
           quantities={quantitiesMetadata}
           onChange={onBatchPropertyChange}
           readonly={readonly}
@@ -1936,7 +1958,7 @@ const PumpEditor = ({
         <QuantityRow
           name="initialSpeed"
           value={pump.speed}
-          unit={quantitiesMetadata.getUnit("speed")}
+          unit={units.speed}
           decimals={quantitiesMetadata.getDecimals("speed")}
           comparison={getComparison("speed", pump.speed)}
           onChange={(_, newValue, oldValue) =>
@@ -2007,14 +2029,14 @@ const PumpEditor = ({
         <QuantityRow
           name="flow"
           value={simFlow}
-          unit={quantitiesMetadata.getUnit("flow")}
+          unit={units.flow}
           decimals={quantitiesMetadata.getDecimals("flow")}
           readOnly={true}
         />
         <QuantityRow
           name="pumpHead"
           value={simHead}
-          unit={quantitiesMetadata.getUnit("headloss")}
+          unit={units.headloss}
           decimals={quantitiesMetadata.getDecimals("headloss")}
           readOnly={true}
         />
@@ -2032,35 +2054,35 @@ const PumpEditor = ({
           <QuantityRow
             name="utilization"
             value={pumpEnergy?.utilization ?? null}
-            unit={quantitiesMetadata.getUnit("efficiency")}
+            unit={units.efficiency}
             decimals={2}
             readOnly={true}
           />
           <QuantityRow
             name="averageEfficiency"
             value={pumpEnergy?.averageEfficiency ?? null}
-            unit={quantitiesMetadata.getUnit("efficiency")}
+            unit={units.efficiency}
             decimals={2}
             readOnly={true}
           />
           <QuantityRow
             name="averageKwPerFlowUnit"
             value={pumpEnergy?.averageKwPerFlowUnit ?? null}
-            unit={quantitiesMetadata.getUnit("averageKwPerFlowUnit")}
+            unit={units.averageKwPerFlowUnit}
             decimals={2}
             readOnly={true}
           />
           <QuantityRow
             name="averageKw"
             value={pumpEnergy?.averageKw ?? null}
-            unit={quantitiesMetadata.getUnit("power")}
+            unit={units.power}
             decimals={2}
             readOnly={true}
           />
           <QuantityRow
             name="peakKw"
             value={pumpEnergy?.peakKw ?? null}
-            unit={quantitiesMetadata.getUnit("power")}
+            unit={units.power}
             decimals={2}
             readOnly={true}
           />
@@ -2452,12 +2474,14 @@ const ReservoirHeadField = ({
   patterns,
   onPropertyChange,
   quantitiesMetadata,
+  units,
   readOnly = false,
 }: {
   reservoir: Reservoir;
   patterns: Patterns;
   onPropertyChange: OnPropertyChange;
   quantitiesMetadata: Quantities;
+  units: UnitsSpec;
   readOnly?: boolean;
 }) => {
   const showPatternsLibrary = useShowPatternsLibrary();
@@ -2488,7 +2512,7 @@ const ReservoirHeadField = ({
   );
   const hasChanged = headComparison.hasChanged || patternComparison.hasChanged;
 
-  const headUnit = quantitiesMetadata.getUnit("head");
+  const headUnit = units.head;
   const headDecimals = quantitiesMetadata.getDecimals("head");
 
   const baseDisplayValue = useMemo(() => {

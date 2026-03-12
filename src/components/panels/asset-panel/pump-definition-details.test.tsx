@@ -4,11 +4,17 @@ import {
   PumpCurveTable,
   PumpDefinitionDetails,
 } from "./pump-definition-details";
-import { Quantities, presets } from "src/model-metadata/quantities-spec";
+import {
+  Quantities,
+  presets,
+  UnitsSpec,
+} from "src/model-metadata/quantities-spec";
 import { buildPump } from "src/__helpers__/hydraulic-model-builder";
 import type { Curves } from "src/hydraulic-model/curves";
 
-const quantities = new Quantities(presets.LPS);
+const spec = presets.LPS;
+const quantities = new Quantities(spec);
+const units: UnitsSpec = spec.units;
 const curves: Curves = new Map();
 
 const getFlowInput = (rowLabel: string) =>
@@ -42,6 +48,7 @@ describe("PumpCurveTable", () => {
       render(
         <PumpCurveTable
           curveType="standardCurve"
+          units={units}
           quantities={quantities}
           onCurveChange={vi.fn()}
         />,
@@ -66,6 +73,7 @@ describe("PumpCurveTable", () => {
         <PumpCurveTable
           curve={curve}
           curveType="standardCurve"
+          units={units}
           quantities={quantities}
           onCurveChange={vi.fn()}
         />,
@@ -86,6 +94,7 @@ describe("PumpCurveTable", () => {
         <PumpCurveTable
           curve={curve}
           curveType="designPointCurve"
+          units={units}
           quantities={quantities}
           onCurveChange={vi.fn()}
         />,
@@ -110,6 +119,7 @@ describe("PumpCurveTable", () => {
         <PumpCurveTable
           curve={curve}
           curveType="designPointCurve"
+          units={units}
           quantities={quantities}
           onCurveChange={vi.fn()}
         />,
@@ -128,6 +138,7 @@ describe("PumpCurveTable", () => {
         <PumpCurveTable
           curve={curve}
           curveType="designPointCurve"
+          units={units}
           quantities={quantities}
           onCurveChange={vi.fn()}
         />,
@@ -149,6 +160,7 @@ describe("PumpCurveTable", () => {
         <PumpCurveTable
           curve={curve}
           curveType="designPointCurve"
+          units={units}
           quantities={quantities}
           onCurveChange={vi.fn()}
         />,
@@ -167,6 +179,7 @@ describe("PumpCurveTable", () => {
       render(
         <PumpCurveTable
           curveType="designPointCurve"
+          units={units}
           quantities={quantities}
           onCurveChange={vi.fn()}
         />,
@@ -183,6 +196,7 @@ describe("PumpCurveTable", () => {
       render(
         <PumpCurveTable
           curveType="designPointCurve"
+          units={units}
           quantities={quantities}
           onCurveChange={onCurveChange}
         />,
@@ -214,6 +228,7 @@ describe("PumpCurveTable", () => {
         <PumpCurveTable
           curve={curve}
           curveType="standardCurve"
+          units={units}
           quantities={quantities}
           onCurveChange={vi.fn()}
         />,
@@ -234,6 +249,7 @@ describe("PumpCurveTable", () => {
         <PumpCurveTable
           curve={curve}
           curveType="standardCurve"
+          units={units}
           quantities={quantities}
           onCurveChange={vi.fn()}
         />,
@@ -251,6 +267,7 @@ describe("PumpCurveTable", () => {
       render(
         <PumpCurveTable
           curveType="standardCurve"
+          units={units}
           quantities={quantities}
           onCurveChange={vi.fn()}
         />,
@@ -275,6 +292,7 @@ describe("PumpCurveTable", () => {
         <PumpCurveTable
           curve={curve}
           curveType="standardCurve"
+          units={units}
           quantities={quantities}
           onCurveChange={vi.fn()}
         />,
@@ -302,6 +320,7 @@ describe("PumpCurveTable", () => {
         <PumpCurveTable
           curve={curve}
           curveType="standardCurve"
+          units={units}
           quantities={quantities}
           onCurveChange={onCurveChange}
         />,
@@ -334,6 +353,7 @@ describe("PumpCurveTable", () => {
         <PumpCurveTable
           curve={curve}
           curveType="standardCurve"
+          units={units}
           quantities={quantities}
           onCurveChange={vi.fn()}
         />,
@@ -356,6 +376,7 @@ describe("PumpCurveTable", () => {
         <PumpCurveTable
           curve={curve}
           curveType="designPointCurve"
+          units={units}
           quantities={quantities}
           onCurveChange={vi.fn()}
         />,
@@ -382,6 +403,7 @@ describe("PumpCurveTable", () => {
         <PumpCurveTable
           curve={curve}
           curveType="standardCurve"
+          units={units}
           quantities={quantities}
         />,
       );
@@ -398,7 +420,11 @@ describe("PumpCurveTable", () => {
 
     it("does not show warning styling in read-only mode when curve is invalid", () => {
       render(
-        <PumpCurveTable curveType="standardCurve" quantities={quantities} />,
+        <PumpCurveTable
+          curveType="standardCurve"
+          units={units}
+          quantities={quantities}
+        />,
       );
 
       expect(getHeadSpan("Shutoff")).not.toHaveClass("border-orange-500");
@@ -424,6 +450,7 @@ describe("PumpDefinitionDetails", () => {
           <PumpDefinitionDetails
             pump={pump}
             curves={curves}
+            units={units}
             quantities={quantities}
             onChange={onChange}
           />,
@@ -455,6 +482,7 @@ describe("PumpDefinitionDetails", () => {
           <PumpDefinitionDetails
             pump={pump}
             curves={curves}
+            units={units}
             quantities={quantities}
             onChange={onChange}
           />,
@@ -487,6 +515,7 @@ describe("PumpDefinitionDetails", () => {
           <PumpDefinitionDetails
             pump={pump}
             curves={curves}
+            units={units}
             quantities={quantities}
             onChange={onChange}
           />,
@@ -535,6 +564,7 @@ describe("PumpDefinitionDetails", () => {
           <PumpDefinitionDetails
             pump={pump}
             curves={curves}
+            units={units}
             quantities={quantities}
             onChange={onChange}
           />,
@@ -575,6 +605,7 @@ describe("PumpDefinitionDetails", () => {
           <PumpDefinitionDetails
             pump={pump}
             curves={curves}
+            units={units}
             quantities={quantities}
             onChange={onChange}
           />,
@@ -611,6 +642,7 @@ describe("PumpDefinitionDetails", () => {
           <PumpDefinitionDetails
             pump={pump}
             curves={curvesWithPump}
+            units={units}
             quantities={quantities}
             onChange={onChange}
           />,
@@ -645,6 +677,7 @@ describe("PumpDefinitionDetails", () => {
           <PumpDefinitionDetails
             pump={pump}
             curves={curves}
+            units={units}
             quantities={quantities}
             onChange={onChange}
           />,
@@ -672,6 +705,7 @@ describe("PumpDefinitionDetails", () => {
           <PumpDefinitionDetails
             pump={pump}
             curves={curves}
+            units={units}
             quantities={quantities}
             onChange={onChange}
           />,
@@ -713,6 +747,7 @@ describe("PumpDefinitionDetails", () => {
         <PumpDefinitionDetails
           pump={pump}
           curves={curves}
+          units={units}
           quantities={quantities}
           onChange={onChange}
         />,
@@ -728,6 +763,7 @@ describe("PumpDefinitionDetails", () => {
         <PumpDefinitionDetails
           pump={pumpCopy}
           curves={curves}
+          units={units}
           quantities={quantities}
           onChange={onChange}
         />,
@@ -748,6 +784,7 @@ describe("PumpDefinitionDetails", () => {
         <PumpDefinitionDetails
           pump={pump}
           curves={curves}
+          units={units}
           quantities={quantities}
           onChange={onChange}
         />,
@@ -765,6 +802,7 @@ describe("PumpDefinitionDetails", () => {
         <PumpDefinitionDetails
           pump={updatedPump}
           curves={curves}
+          units={units}
           quantities={quantities}
           onChange={onChange}
         />,

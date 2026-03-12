@@ -92,11 +92,8 @@ export const DataMappingStep: React.FC<{
           const customerPointDemands = new Map<CustomerPointId, Demand[]>();
           let totalCount = 0;
 
-          const demandImportUnit = modelMetadata.quantities.getUnit(
-            "customerDemandPerDay",
-          );
-          const demandTargetUnit =
-            modelMetadata.quantities.getUnit("customerDemand");
+          const demandImportUnit = modelMetadata.units.customerDemandPerDay;
+          const demandTargetUnit = modelMetadata.units.customerDemand;
 
           const fileContent = JSON.stringify({
             type: "FeatureCollection",
@@ -157,7 +154,7 @@ export const DataMappingStep: React.FC<{
     [
       setLoading,
       setError,
-      modelMetadata.quantities,
+      modelMetadata.units,
       customerPointFactory,
       setParsedDataSummary,
       userTracking,

@@ -172,7 +172,7 @@ export const appendPipeArrowProps = (
   const flow = pipeSimulation?.flow ?? null;
   const isReverse = flow && flow < 0;
   feature.properties!.length = convertTo(
-    { value: pipe.length, unit: quantities.getUnit("length") },
+    { value: pipe.length, unit: quantities.units.length },
     "m",
   );
   feature.properties!.hasArrow =
@@ -206,7 +206,7 @@ const appendPipeSymbologyProps = (
 
   if (!!linkSymbology.labelRule) {
     const labelProperty = linkSymbology.labelRule;
-    const unit = quantities.getUnit(labelProperty as QuantityProperty);
+    const unit = quantities.units[labelProperty as QuantityProperty];
     const localizedNumber = localizeDecimal(numericValue, {
       decimals: quantities.getDecimals(labelProperty as QuantityProperty),
     });
@@ -250,7 +250,7 @@ const appendJunctionSymbologyProps = (
 
   if (!!nodeSymbology.labelRule) {
     const labelProperty = nodeSymbology.labelRule;
-    const unit = quantities.getUnit(labelProperty as QuantityProperty);
+    const unit = quantities.units[labelProperty as QuantityProperty];
     const localizedNumber = localizeDecimal(numericValue, {
       decimals: quantities.getDecimals(labelProperty as QuantityProperty),
     });

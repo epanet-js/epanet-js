@@ -85,7 +85,7 @@ export const buildModel = (
 ): {
   hydraulicModel: HydraulicModel;
   factories: ModelFactories;
-  modelMetadata: Pick<ModelMetadata, "quantities">;
+  modelMetadata: Pick<ModelMetadata, "quantities" | "units">;
 } => {
   const baseSpec = presets[inpData.options.units];
   const spec = inpData.options.pressureUnit
@@ -188,7 +188,11 @@ export const buildModel = (
 
   addControls(hydraulicModel, inpData.controls, nodeIds, linkIds);
 
-  return { hydraulicModel, factories, modelMetadata: { quantities } };
+  return {
+    hydraulicModel,
+    factories,
+    modelMetadata: { quantities, units: spec.units },
+  };
 };
 
 const initializeCurvesContext = (

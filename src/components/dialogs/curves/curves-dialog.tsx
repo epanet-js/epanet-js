@@ -275,7 +275,7 @@ export const CurveLibraryDialog = ({
                     }
                     readOnly={isSnapshotLocked || isUncategorized}
                     curveType={curveType}
-                    quantities={modelMetadata.quantities}
+                    units={modelMetadata.units}
                   />
                 );
               })()
@@ -334,7 +334,7 @@ export const CurveLibraryDialog = ({
                   }
                   readOnly={isSnapshotLocked || isUncategorized}
                   curveType={curveType}
-                  quantities={modelMetadata.quantities}
+                  units={modelMetadata.units}
                 />
               );
             })()

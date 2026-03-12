@@ -119,7 +119,7 @@ export const GeneralSection = () => {
   const readonly = useAtomValue(hasScenariosAtom);
   const hydraulicModel = useAtomValue(stagingModelAtom);
   const {
-    modelMetadata: { quantities },
+    modelMetadata: { units },
   } = useAtomValue(dataAtom);
   const { values, setFieldValue } = useFormikContext<FormValues>();
 
@@ -127,9 +127,9 @@ export const GeneralSection = () => {
   const translateUnit = useTranslateUnit();
 
   const flowUnitsDisplay = isEpanet23On
-    ? translateUnit(quantities.getUnit("flow"))
-    : chooseUnitSystem(quantities.units);
-  const pressureUnitDisplay = translateUnit(quantities.getUnit("pressure"));
+    ? translateUnit(units.flow)
+    : chooseUnitSystem(units);
+  const pressureUnitDisplay = translateUnit(units.pressure);
   const headlossIndex = headlossFormulas.indexOf(
     hydraulicModel.headlossFormula,
   );

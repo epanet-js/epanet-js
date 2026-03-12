@@ -269,7 +269,7 @@ export const PumpLibraryDialog = ({
                     }
                     readOnly={isSnapshotLocked || isUncategorized}
                     curveType={curveType}
-                    quantities={modelMetadata.quantities}
+                    units={modelMetadata.units}
                   />
                 );
               })()
@@ -328,7 +328,7 @@ export const PumpLibraryDialog = ({
                   }
                   readOnly={isSnapshotLocked || isUncategorized}
                   curveType={curveType}
-                  quantities={modelMetadata.quantities}
+                  units={modelMetadata.units}
                 />
               );
             })()

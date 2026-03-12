@@ -15,7 +15,7 @@ export const PipeDrawingFloatingPanel = () => {
   const translateUnit = useTranslateUnit();
   const userTracking = useUserTracking();
   const {
-    modelMetadata: { quantities },
+    modelMetadata: { quantities, units },
   } = useAtomValue(dataAtom);
   const [pipeDrawingDefaults, setPipeDrawingDefaults] = useAtom(
     pipeDrawingDefaultsAtom,
@@ -54,8 +54,8 @@ export const PipeDrawingFloatingPanel = () => {
     });
   };
 
-  const diameterUnit = quantities.getUnit("diameter");
-  const roughnessUnit = quantities.getUnit("roughness");
+  const diameterUnit = units.diameter;
+  const roughnessUnit = units.roughness;
 
   const diameterLabel = diameterUnit
     ? `${translate("diameter")} (${translateUnit(diameterUnit)})`

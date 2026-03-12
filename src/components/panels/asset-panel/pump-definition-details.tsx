@@ -10,7 +10,7 @@ import {
   getPumpCurveErrors,
   CurveErrorPoint,
 } from "src/hydraulic-model/curves";
-import { Quantities } from "src/model-metadata/quantities-spec";
+import { Quantities, UnitsSpec } from "src/model-metadata/quantities-spec";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { Pump, PumpDefintionType } from "src/hydraulic-model/asset-types/pump";
 import {
@@ -46,6 +46,7 @@ interface MaybePumpCurvePoint {
 
 export const PumpDefinitionDetails = ({
   pump,
+  units,
   quantities,
   curves,
   readonly = false,
@@ -54,6 +55,7 @@ export const PumpDefinitionDetails = ({
   getPumpCurveComparison,
 }: {
   pump: Pump;
+  units: UnitsSpec;
   quantities: Quantities;
   curves: Curves;
   readonly?: boolean;
@@ -82,6 +84,7 @@ export const PumpDefinitionDetails = ({
       pump={pump}
       curve={curve}
       curves={curves}
+      units={units}
       quantities={quantities}
       readonly={readonly}
       onChange={onChange}
@@ -95,6 +98,7 @@ const PumpDefinitionDetailsInner = ({
   pump,
   curve,
   curves,
+  units,
   quantities,
   readonly = false,
   onChange,
@@ -104,6 +108,7 @@ const PumpDefinitionDetailsInner = ({
   pump: Pump;
   curve: CurvePoint[];
   curves: Curves;
+  units: UnitsSpec;
   quantities: Quantities;
   readonly?: boolean;
   onChange: (changes: PropertyChange[]) => void;
@@ -133,7 +138,7 @@ const PumpDefinitionDetailsInner = ({
   const comparison = getDiffWithBaseModel({
     pump,
     curves,
-    quantities,
+    units,
     getComparison,
     getPumpCurveComparison,
     translate,
@@ -225,6 +230,7 @@ const PumpDefinitionDetailsInner = ({
         {localDefinitionType === "power" && (
           <PowerDefinition
             power={pump.power}
+            units={units}
             quantities={quantities}
             readOnly={readonly}
             onChange={onChange}
@@ -243,6 +249,7 @@ const PumpDefinitionDetailsInner = ({
             <PumpCurveTable
               curve={curve}
               curveType={localDefinitionType}
+              units={units}
               quantities={quantities}
               onCurveChange={readonly ? undefined : handleCurvePointsChange}
             />
@@ -257,11 +264,13 @@ type OnCurveChange = (points: PumpCurvePoint[]) => void;
 export const PumpCurveTable = ({
   curve,
   curveType,
+  units,
   quantities,
   onCurveChange,
 }: {
   curve?: CurvePoint[];
   curveType: CurvePointsType;
+  units: UnitsSpec;
   quantities: Quantities;
   onCurveChange?: OnCurveChange;
 }) => {
@@ -347,8 +356,8 @@ export const PumpCurveTable = ({
     );
   };
 
-  const flowUnit = quantities.getUnit("flow");
-  const headUnit = quantities.getUnit("head");
+  const flowUnit = units.flow;
+  const headUnit = units.head;
 
   const cells: Array<[Cell, Cell]> = displayPoints.map((point, index) => [
     {
@@ -402,11 +411,13 @@ export const PumpCurveTable = ({
 
 const PowerDefinition = ({
   power,
+  units,
   quantities,
   readOnly,
   onChange,
 }: {
   power: number;
+  units: UnitsSpec;
   quantities: Quantities;
   onChange: (changes: PropertyChange[]) => void;
   readOnly: boolean;
@@ -422,7 +433,7 @@ const PowerDefinition = ({
     <QuantityRow
       name="power"
       value={power}
-      unit={quantities.getUnit("power")}
+      unit={units.power}
       decimals={quantities.getDecimals("power")}
       readOnly={readOnly}
       onChange={handlePowerChange}
@@ -494,14 +505,14 @@ interface DefinitionDiff {
 const getDiffWithBaseModel = ({
   pump,
   curves,
-  quantities,
+  units,
   getComparison,
   getPumpCurveComparison,
   translate,
 }: {
   pump: Pump;
   curves: Curves;
-  quantities: Quantities;
+  units: UnitsSpec;
   getComparison?: (name: string, value: unknown) => PropertyComparison;
   getPumpCurveComparison?: (
     value: CurvePoint[] | undefined,
@@ -545,7 +556,7 @@ const getDiffWithBaseModel = ({
     baseDefinitionType === "power" &&
     powerComparison?.baseValue != undefined
   ) {
-    const powerUnit = quantities.getUnit("power");
+    const powerUnit = units.power;
     lines.push(
       `${translate("power")}: ${localizeDecimal(powerComparison.baseValue as number)} ${powerUnit}`,
     );
@@ -554,8 +565,8 @@ const getDiffWithBaseModel = ({
       lines.push(`${translate("curve")}: ${baseCurveLabel}`);
     }
     if (baseCurvePoints) {
-      const flowUnit = quantities.getUnit("flow");
-      const headUnit = quantities.getUnit("head");
+      const flowUnit = units.flow;
+      const headUnit = units.head;
       const pointLabels: string[] =
         baseCurvePoints.length === 1
           ? [translate("designPointLabel")]

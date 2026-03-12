@@ -46,7 +46,7 @@ export const useRunSimulation = () => {
           usedPatterns: true,
           usedCurves: true,
           simulationSettings,
-          units: modelMetadata.quantities.units,
+          units: modelMetadata.units,
         });
         const start = performance.now();
 

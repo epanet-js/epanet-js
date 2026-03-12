@@ -47,7 +47,7 @@ export function useRedrawLinkHandlers(
       startPipeId,
       endPipeId,
       newLink: link,
-      lengthUnit: handlerContext.quantities.getUnit("length"),
+      lengthUnit: handlerContext.units.length,
     });
 
     userTracking.capture({ name: "asset.redrawed", type: link.type });

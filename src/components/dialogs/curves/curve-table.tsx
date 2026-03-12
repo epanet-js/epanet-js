@@ -21,7 +21,7 @@ import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { DeleteIcon, AddIcon } from "src/icons";
 import { getCurveTypeConfig } from "./curve-type-config";
-import { Quantities } from "src/model-metadata/quantities-spec";
+import type { UnitsSpec } from "src/model-metadata/quantities-spec";
 
 type CurveRow = {
   x: number;
@@ -34,7 +34,7 @@ type CurveTableProps = {
   onSelectionChange?: (selection: GridSelection | null) => void;
   readOnly?: boolean;
   curveType?: CurveType;
-  quantities: Quantities;
+  units: UnitsSpec;
 };
 
 export type CurveTableRef = DataGridRef;
@@ -54,14 +54,7 @@ const toRows = (points: CurvePoint[]): CurveRow[] => {
 
 export const CurveTable = forwardRef<DataGridRef, CurveTableProps>(
   function CurveTable(
-    {
-      points,
-      onChange,
-      onSelectionChange,
-      readOnly = false,
-      curveType,
-      quantities,
-    },
+    { points, onChange, onSelectionChange, readOnly = false, curveType, units },
     ref,
   ) {
     const translate = useTranslate();
@@ -75,13 +68,13 @@ export const CurveTable = forwardRef<DataGridRef, CurveTableProps>(
     const xHeader = useMemo(() => {
       const label = translate(curveConfig.xLabel);
       const unit = curveConfig.xQuantity
-        ? quantities.getUnit(curveConfig.xQuantity)
+        ? units[curveConfig.xQuantity]
         : undefined;
       return unit ? `${label} (${translateUnit(unit)})` : label;
     }, [
       curveConfig.xLabel,
       curveConfig.xQuantity,
-      quantities,
+      units,
       translate,
       translateUnit,
     ]);
@@ -89,13 +82,13 @@ export const CurveTable = forwardRef<DataGridRef, CurveTableProps>(
     const yHeader = useMemo(() => {
       const label = translate(curveConfig.yLabel);
       const unit = curveConfig.yQuantity
-        ? quantities.getUnit(curveConfig.yQuantity)
+        ? units[curveConfig.yQuantity]
         : undefined;
       return unit ? `${label} (${translateUnit(unit)})` : label;
     }, [
       curveConfig.yLabel,
       curveConfig.yQuantity,
-      quantities,
+      units,
       translate,
       translateUnit,
     ]);

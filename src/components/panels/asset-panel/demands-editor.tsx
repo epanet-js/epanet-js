@@ -332,7 +332,7 @@ export const DemandsEditor = ({
       <QuantityRow
         name={name}
         value={averageDemand}
-        unit={quantitiesMetadata.getUnit("directDemand")}
+        unit={quantitiesMetadata.units.directDemand}
         decimals={quantitiesMetadata.getDecimals("directDemand")}
         comparison={demandComparison}
         readOnly={true}

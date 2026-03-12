@@ -207,9 +207,9 @@ const DistanceInput = ({
 
 const useDistance = () => {
   const {
-    modelMetadata: { quantities },
+    modelMetadata: { units },
   } = useAtomValue(dataAtom);
-  const unit = quantities.getUnit("length");
+  const unit = units.length;
   const [distance, setDistance] = useState<number>(() =>
     unit === "ft" ? DEFAULT_DISTANCE_FT : DEFAULT_DISTANCE_M,
   );
@@ -322,7 +322,7 @@ const ProximityAnomalyItem = ({
   const translate = useTranslate();
   const hydraulicModel = useAtomValue(stagingModelAtom);
   const {
-    modelMetadata: { quantities },
+    modelMetadata: { units },
   } = useAtomValue(dataAtom);
   const connectionId = `${anomaly.nodeId}-${anomaly.pipeId}`;
   const isSelected = selectedId === connectionId;
@@ -331,7 +331,7 @@ const ProximityAnomalyItem = ({
 
   if (!nodeAsset) return null;
 
-  const lengthUnit = quantities.getUnit("length");
+  const lengthUnit = units.length;
   const distanceInModelUnits = convertTo(
     { value: anomaly.distance, unit: "m" },
     lengthUnit,

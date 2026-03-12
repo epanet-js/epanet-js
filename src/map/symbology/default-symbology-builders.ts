@@ -1,5 +1,8 @@
 import { HydraulicModel } from "src/hydraulic-model";
-import { Quantities } from "src/model-metadata/quantities-spec";
+import type {
+  UnitsSpec,
+  AssetQuantitiesSpec,
+} from "src/model-metadata/quantities-spec";
 import { initializeColorRule } from "./range-color-rule";
 import { NodeSymbology, LinkSymbology } from "./symbology-types";
 import { nullLabelRule } from "./labeling";
@@ -24,9 +27,12 @@ const applyCustomColors = (
   return colorRule;
 };
 
+type SymbologyRanges = AssetQuantitiesSpec["ranges"];
+
 type SymbologyBuilderFn<T> = (
   hydraulicModel: HydraulicModel,
-  quantities: Quantities,
+  units: UnitsSpec,
+  ranges: SymbologyRanges,
   resultsReader: ResultsReader,
   preference?: RangeColorPreference,
 ) => () => T;
@@ -52,14 +58,15 @@ export const defaultSymbologyBuilders: DefaultSymbologyBuilders = {
   diameter:
     (
       hydraulicModel: HydraulicModel,
-      quantities: Quantities,
+      units: UnitsSpec,
+      _ranges: SymbologyRanges,
       _resultsReader: ResultsReader,
       preference?: RangeColorPreference,
     ) =>
     (): LinkSymbology => {
       const colorRule = initializeColorRule({
         property: "diameter",
-        unit: quantities.getUnit("diameter"),
+        unit: units.diameter,
         rampName: preference?.rampName ?? "SunsetDark",
         mode: preference?.mode ?? "prettyBreaks",
         numIntervals: preference?.numIntervals ?? 7,
@@ -75,14 +82,15 @@ export const defaultSymbologyBuilders: DefaultSymbologyBuilders = {
   roughness:
     (
       hydraulicModel: HydraulicModel,
-      quantities: Quantities,
+      units: UnitsSpec,
+      _ranges: SymbologyRanges,
       _resultsReader: ResultsReader,
       preference?: RangeColorPreference,
     ) =>
     (): LinkSymbology => {
       const colorRule = initializeColorRule({
         property: "roughness",
-        unit: quantities.getUnit("roughness"),
+        unit: units.roughness,
         rampName: preference?.rampName ?? "Emrld",
         mode: preference?.mode ?? "ckmeans",
         numIntervals: preference?.numIntervals,
@@ -98,14 +106,15 @@ export const defaultSymbologyBuilders: DefaultSymbologyBuilders = {
   elevation:
     (
       hydraulicModel: HydraulicModel,
-      quantities: Quantities,
+      units: UnitsSpec,
+      _ranges: SymbologyRanges,
       _resultsReader: ResultsReader,
       preference?: RangeColorPreference,
     ) =>
     (): NodeSymbology => {
       const colorRule = initializeColorRule({
         property: "elevation",
-        unit: quantities.getUnit("elevation"),
+        unit: units.elevation,
         rampName: preference?.rampName ?? "Fall",
         mode: preference?.mode ?? "prettyBreaks",
         numIntervals: preference?.numIntervals,
@@ -122,7 +131,8 @@ export const defaultSymbologyBuilders: DefaultSymbologyBuilders = {
   flow:
     (
       hydraulicModel: HydraulicModel,
-      quantities: Quantities,
+      units: UnitsSpec,
+      _ranges: SymbologyRanges,
       resultsReader: ResultsReader,
       preference?: RangeColorPreference,
     ) =>
@@ -132,7 +142,7 @@ export const defaultSymbologyBuilders: DefaultSymbologyBuilders = {
       });
       const colorRule = initializeColorRule({
         property: "flow",
-        unit: quantities.getUnit("flow"),
+        unit: units.flow,
         rampName: preference?.rampName ?? "Teal",
         mode: preference?.mode ?? "equalQuantiles",
         numIntervals: preference?.numIntervals,
@@ -149,7 +159,8 @@ export const defaultSymbologyBuilders: DefaultSymbologyBuilders = {
   velocity:
     (
       hydraulicModel: HydraulicModel,
-      quantities: Quantities,
+      units: UnitsSpec,
+      ranges: SymbologyRanges,
       resultsReader: ResultsReader,
       preference?: RangeColorPreference,
     ) =>
@@ -157,13 +168,13 @@ export const defaultSymbologyBuilders: DefaultSymbologyBuilders = {
       const sortedData = getSortedSimulationValues(resultsReader, "velocity");
       const colorRule = initializeColorRule({
         property: "velocity",
-        unit: quantities.getUnit("velocity"),
+        unit: units.velocity,
         rampName: preference?.rampName ?? "RedOr",
         mode: preference?.mode ?? "prettyBreaks",
         numIntervals: preference?.numIntervals,
         reverseRamp: preference?.reversedRamp,
         sortedData,
-        fallbackEndpoints: quantities.ranges.velocityFallbackEndpoints,
+        fallbackEndpoints: ranges.velocityFallbackEndpoints,
       });
       return {
         colorRule: applyCustomColors(colorRule, preference),
@@ -174,7 +185,8 @@ export const defaultSymbologyBuilders: DefaultSymbologyBuilders = {
   unitHeadloss:
     (
       hydraulicModel: HydraulicModel,
-      quantities: Quantities,
+      units: UnitsSpec,
+      ranges: SymbologyRanges,
       resultsReader: ResultsReader,
       preference?: RangeColorPreference,
     ) =>
@@ -185,13 +197,13 @@ export const defaultSymbologyBuilders: DefaultSymbologyBuilders = {
       );
       const colorRule = initializeColorRule({
         property: "unitHeadloss",
-        unit: quantities.getUnit("unitHeadloss"),
+        unit: units.unitHeadloss,
         rampName: preference?.rampName ?? "Emrld",
         mode: preference?.mode ?? "prettyBreaks",
         numIntervals: preference?.numIntervals,
         reverseRamp: preference?.reversedRamp,
         sortedData,
-        fallbackEndpoints: quantities.ranges.unitHeadlossFallbackEndpoints,
+        fallbackEndpoints: ranges.unitHeadlossFallbackEndpoints,
       });
       return {
         colorRule: applyCustomColors(colorRule, preference),
@@ -202,7 +214,8 @@ export const defaultSymbologyBuilders: DefaultSymbologyBuilders = {
   pressure:
     (
       hydraulicModel: HydraulicModel,
-      quantities: Quantities,
+      units: UnitsSpec,
+      _ranges: SymbologyRanges,
       resultsReader: ResultsReader,
       preference?: RangeColorPreference,
     ) =>
@@ -210,7 +223,7 @@ export const defaultSymbologyBuilders: DefaultSymbologyBuilders = {
       const sortedData = getSortedSimulationValues(resultsReader, "pressure");
       const colorRule = initializeColorRule({
         property: "pressure",
-        unit: quantities.getUnit("pressure"),
+        unit: units.pressure,
         rampName: preference?.rampName ?? "Temps",
         mode: preference?.mode ?? "prettyBreaks",
         numIntervals: preference?.numIntervals,
@@ -227,7 +240,8 @@ export const defaultSymbologyBuilders: DefaultSymbologyBuilders = {
   actualDemand:
     (
       hydraulicModel: HydraulicModel,
-      quantities: Quantities,
+      units: UnitsSpec,
+      _ranges: SymbologyRanges,
       resultsReader: ResultsReader,
       preference?: RangeColorPreference,
     ) =>
@@ -238,7 +252,7 @@ export const defaultSymbologyBuilders: DefaultSymbologyBuilders = {
       );
       const colorRule = initializeColorRule({
         property: "actualDemand",
-        unit: quantities.getUnit("actualDemand"),
+        unit: units.actualDemand,
         rampName: preference?.rampName ?? "Emrld",
         mode: preference?.mode ?? "prettyBreaks",
         numIntervals: preference?.numIntervals,
@@ -255,7 +269,8 @@ export const defaultSymbologyBuilders: DefaultSymbologyBuilders = {
   head:
     (
       hydraulicModel: HydraulicModel,
-      quantities: Quantities,
+      units: UnitsSpec,
+      _ranges: SymbologyRanges,
       resultsReader: ResultsReader,
       preference?: RangeColorPreference,
     ) =>
@@ -263,7 +278,7 @@ export const defaultSymbologyBuilders: DefaultSymbologyBuilders = {
       const sortedData = getSortedSimulationValues(resultsReader, "head");
       const colorRule = initializeColorRule({
         property: "head",
-        unit: quantities.getUnit("head"),
+        unit: units.head,
         rampName: preference?.rampName ?? "Purp",
         mode: preference?.mode ?? "prettyBreaks",
         numIntervals: preference?.numIntervals,

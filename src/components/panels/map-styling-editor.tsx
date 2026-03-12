@@ -101,7 +101,7 @@ const SymbologyEditor = ({
   } = useSymbologyState();
   const symbology = geometryType === "node" ? nodeSymbology : linkSymbology;
   const {
-    modelMetadata: { quantities },
+    modelMetadata: { quantities, units },
   } = useAtomValue(dataAtom);
   const hydraulicModel = useAtomValue(stagingModelAtom);
   const isPersistMapPreferencesOn = useFeatureFlag(
@@ -135,7 +135,8 @@ const SymbologyEditor = ({
           property,
           defaultSymbologyBuilders[property](
             hydraulicModel,
-            quantities,
+            units,
+            quantities.ranges,
             simulationResults!,
             preference,
           ),
@@ -152,7 +153,8 @@ const SymbologyEditor = ({
           property,
           defaultSymbologyBuilders[property](
             hydraulicModel,
-            quantities,
+            units,
+            quantities.ranges,
             simulationResults!,
             preference,
           ),
@@ -195,7 +197,7 @@ const SymbologyEditor = ({
         <Selector
           ariaLabel={`${translate(geometryType)} ${translate("colorBy")}`}
           options={(["none", ...properties] as SelectOption[]).map((type) => {
-            const unit = type !== "none" ? quantities.getUnit(type) : null;
+            const unit = type !== "none" ? units[type] : null;
             return {
               value: type,
               label: `${colorPropertyLabelFor(type, translate)} ${!!unit ? `(${translateUnit(unit)})` : ""}`,
