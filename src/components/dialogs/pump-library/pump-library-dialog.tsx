@@ -1,7 +1,8 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { useAtomValue } from "jotai";
-import { DialogContainer, DialogHeader } from "../../dialog";
+import { BaseModal, DialogContainer, DialogHeader } from "../../dialog";
 import { useTranslate } from "src/hooks/use-translate";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { PumpLibrarySidebar } from "./pump-library-sidebar";
 import { CurveDetail } from "../curves/curve-detail";
 import { VerticalResizer } from "../vertical-resizer";
@@ -26,7 +27,11 @@ import { notify } from "src/components/notifications";
 import { useUserTracking } from "src/infra/user-tracking";
 import { LabelManager } from "src/hydraulic-model/label-manager";
 import { getCurveTypeConfig } from "../curves/curve-type-config";
-import { DialogActions, DialogActionsHandle } from "../dialog-actions-row";
+import {
+  DialogActions,
+  DialogActionsHandle,
+  DialogActionsNew,
+} from "../dialog-actions-row";
 import { HydraulicModel, Pump } from "src/hydraulic-model";
 
 type CurveUpdate = Partial<Pick<ICurve, "label" | "points" | "type">>;
@@ -208,6 +213,79 @@ export const PumpLibraryDialog = ({
     },
     [userTracking],
   );
+
+  const isModalsOn = useFeatureFlag("FLAG_MODALS");
+
+  if (isModalsOn)
+    return (
+      <BaseModal
+        title={translate("pumpLibrary")}
+        size="md"
+        height="xl"
+        isOpen={true}
+        onClose={() => dialogActions.current?.closeDialog()}
+        footer={
+          <DialogActionsNew
+            ref={dialogActions}
+            onSave={handleSave}
+            onClose={handleClose}
+            readOnly={isSnapshotLocked}
+            hasChanges={!!unsavedChanges}
+            hasWarnings={invalidCurveIds.size > 0}
+          />
+        }
+      >
+        <div className="flex-1 flex min-h-0">
+          <div className="flex-shrink-0 flex">
+            <PumpLibrarySidebar
+              width={sidebarWidth}
+              curves={editedCurves}
+              selectedCurveId={selectedCurveId}
+              initialSection={initialSection}
+              labelManager={labelManagerRef.current}
+              invalidCurveIds={invalidCurveIds}
+              onSelectCurve={setSelectedCurveId}
+              onAddCurve={handleAddCurve}
+              onChangeCurve={handleCurveChange}
+              onDeleteCurve={handleDeleteCurve}
+              readOnly={isSnapshotLocked}
+            />
+            <VerticalResizer
+              width={sidebarWidth}
+              onWidthChange={setSidebarWidth}
+            />
+          </div>
+          <div className="flex-1 flex flex-col min-h-0 w-full">
+            {selectedCurveId ? (
+              (() => {
+                const curveType = editedCurves.get(selectedCurveId)?.type;
+                const isUncategorized =
+                  curveType !== "pump" && curveType !== "efficiency";
+                return (
+                  <CurveDetail
+                    points={getCurvePoints(selectedCurveId)}
+                    onChange={(points) =>
+                      handleCurveChange(selectedCurveId, { points })
+                    }
+                    readOnly={isSnapshotLocked || isUncategorized}
+                    curveType={curveType}
+                    quantities={modelMetadata.quantities}
+                  />
+                );
+              })()
+            ) : hasCurves ? (
+              <div className="flex-1 flex items-center justify-center p-2">
+                <NoSelectionState />
+              </div>
+            ) : (
+              <div className="flex-1 flex items-center justify-center p-2">
+                <EmptyState readOnly={isSnapshotLocked} />
+              </div>
+            )}
+          </div>
+        </div>
+      </BaseModal>
+    );
 
   return (
     <DialogContainer

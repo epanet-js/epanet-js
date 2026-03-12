@@ -3,8 +3,15 @@ import { useState, useCallback } from "react";
 import clsx from "clsx";
 import { Form, Formik, useFormikContext } from "formik";
 
-import { DialogContainer, DialogHeader, useDialogState } from "../dialog";
+import {
+  BaseModal,
+  DialogContainer,
+  DialogHeader,
+  SimpleDialogActionsNew,
+  useDialogState,
+} from "../dialog";
 import { useTranslate } from "src/hooks/use-translate";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { stagingModelAtom } from "src/state/hydraulic-model";
 import { ControlsIcon } from "src/icons";
 import { SimpleDialogActions } from "src/components/dialog";
@@ -75,6 +82,51 @@ export const ControlsDialog = () => {
     },
     [assets, hydraulicModel, transact, closeDialog, userTracking],
   );
+
+  const isModalsOn = useFeatureFlag("FLAG_MODALS");
+
+  if (isModalsOn)
+    return (
+      <Formik onSubmit={handleSubmit} initialValues={initialValues}>
+        {({ submitForm, isSubmitting }) => (
+          <BaseModal
+            title={translate("controls.title")}
+            size="md"
+            isOpen={true}
+            onClose={closeDialog}
+            footer={
+              <SimpleDialogActionsNew
+                action={isSnapshotLocked ? undefined : translate("dialog.save")}
+                onAction={submitForm}
+                isSubmitting={isSubmitting}
+                secondary={{
+                  action: translate("dialog.cancel"),
+                  onClick: closeDialog,
+                }}
+              />
+            }
+          >
+            <Form>
+              <div className="flex flex-col gap-4 p-4">
+                <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
+                <ControlsTextArea
+                  name="simpleText"
+                  placeholder={translate("controls.simpleEmpty")}
+                  hidden={activeTab !== "simple"}
+                  readOnly={isSnapshotLocked}
+                />
+                <ControlsTextArea
+                  name="rulesText"
+                  placeholder={translate("controls.rulesEmpty")}
+                  hidden={activeTab !== "ruleBased"}
+                  readOnly={isSnapshotLocked}
+                />
+              </div>
+            </Form>
+          </BaseModal>
+        )}
+      </Formik>
+    );
 
   return (
     <DialogContainer size="md">

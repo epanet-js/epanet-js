@@ -3,6 +3,7 @@ import { PatternGraph } from "./pattern-graph";
 import { PatternMultipliers, PatternType } from "src/hydraulic-model";
 import { type GridSelection } from "src/components/data-grid";
 import { PatternTable, type PatternTableRef } from "./pattern-table";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 interface PatternDetailProps {
   pattern: PatternMultipliers;
@@ -27,6 +28,7 @@ export function PatternDetail({
   const tableRef = useRef<PatternTableRef>(null);
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const graphContainerRef = useRef<HTMLDivElement>(null);
+  const isModalsOn = useFeatureFlag("FLAG_MODALS");
 
   const handleGraphClick = useCallback(
     (barIndex: number | null) => {
@@ -89,7 +91,9 @@ export function PatternDetail({
           readOnly={readOnly}
         />
       </div>
-      <div className="col-span-3 h-full p-2 pt-4 border border-gray-200 dark:border-gray-700">
+      <div
+        className={`col-span-3 h-full p-2 pt-4 ${isModalsOn ? "" : "border border-gray-200 dark:border-gray-700"}`}
+      >
         <div ref={graphContainerRef} className="h-full">
           <PatternGraph
             pattern={pattern}

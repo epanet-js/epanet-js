@@ -1,7 +1,8 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { useAtomValue } from "jotai";
-import { DialogContainer, DialogHeader } from "../../dialog";
+import { BaseModal, DialogContainer, DialogHeader } from "../../dialog";
 import { useTranslate } from "src/hooks/use-translate";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { PatternSidebar } from "./pattern-sidebar";
 import { PatternDetail } from "./pattern-detail";
 import { useIsSnapshotLocked } from "src/hooks/use-is-snapshot-locked";
@@ -26,7 +27,11 @@ import { notify } from "src/components/notifications";
 import { useUserTracking } from "src/infra/user-tracking";
 import { changePatterns } from "src/hydraulic-model/model-operations";
 import { VerticalResizer } from "../vertical-resizer";
-import { DialogActions, DialogActionsHandle } from "../dialog-actions-row";
+import {
+  DialogActions,
+  DialogActionsHandle,
+  DialogActionsNew,
+} from "../dialog-actions-row";
 
 type PatternUpdate = Partial<Pick<Pattern, "label" | "multipliers" | "type">>;
 
@@ -188,6 +193,71 @@ export const PatternsDialog = ({
     },
     [userTracking],
   );
+
+  const isModalsOn = useFeatureFlag("FLAG_MODALS");
+
+  if (isModalsOn)
+    return (
+      <BaseModal
+        title={translate("patterns.title")}
+        size="lg"
+        height="xl"
+        isOpen={true}
+        onClose={() => dialogActions.current?.closeDialog()}
+        footer={
+          <DialogActionsNew
+            ref={dialogActions}
+            onSave={handleSave}
+            onClose={handleClose}
+            readOnly={isSnapshotLocked}
+            hasChanges={!!unsavedChanges}
+          />
+        }
+      >
+        <div className="flex-1 flex min-h-0">
+          <div className="flex-shrink-0 flex">
+            <PatternSidebar
+              width={sidebarWidth}
+              patterns={editedPatterns}
+              selectedPatternId={selectedPatternId}
+              initialSection={initialSection}
+              minPatternSteps={minPatternSteps}
+              onSelectPattern={setSelectedPatternId}
+              onAddPattern={handleAddPattern}
+              onChangePattern={handlePatternChange}
+              onDeletePattern={handleDeletePattern}
+              readOnly={isSnapshotLocked}
+            />
+            <VerticalResizer
+              width={sidebarWidth}
+              onWidthChange={setSidebarWidth}
+            />
+          </div>
+          <div className="flex-1 flex flex-col min-h-0 w-full ml-1">
+            {selectedPatternId ? (
+              <PatternDetail
+                pattern={getPatternMultipliers(selectedPatternId)}
+                patternType={editedPatterns.get(selectedPatternId)?.type}
+                patternTimestepSeconds={patternTimestepSeconds}
+                totalDurationSeconds={totalDurationSeconds}
+                onChange={(multipliers) =>
+                  handlePatternChange(selectedPatternId, { multipliers })
+                }
+                readOnly={isSnapshotLocked}
+              />
+            ) : hasPatterns ? (
+              <div className="flex-1 flex items-center justify-center p-2">
+                <NoSelectionState />
+              </div>
+            ) : (
+              <div className="flex-1 flex items-center justify-center p-2">
+                <EmptyState readOnly={isSnapshotLocked} />
+              </div>
+            )}
+          </div>
+        </div>
+      </BaseModal>
+    );
 
   return (
     <DialogContainer

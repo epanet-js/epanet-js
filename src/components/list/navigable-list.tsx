@@ -8,6 +8,7 @@ import {
   useImperativeHandle,
   useContext,
 } from "react";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export type NavItem<S extends string = string> = { id?: number; section: S };
 
@@ -241,11 +242,13 @@ function NavigableListInner<S extends string>(
     ],
   );
 
+  const isModalsOn = useFeatureFlag("FLAG_MODALS");
+
   return (
     <NavigableListContext.Provider value={contextValue}>
       <div
         ref={listRef}
-        className="flex-1 overflow-y-auto outline-none placemark-scrollbar scroll-shadows border border-gray-200 dark:border-gray-700 rounded"
+        className={`flex-1 overflow-y-auto outline-none placemark-scrollbar scroll-shadows border-gray-200 dark:border-gray-700 ${isModalsOn ? "p-2 border-r" : "border  rounded"}`}
         onKeyDown={handleKeyDown}
         onScroll={handleScroll}
         tabIndex={0}
