@@ -91,7 +91,7 @@ export const InlineField = ({
   children: React.ReactNode;
 }) => {
   const isNested = useContext(NestedSectionContext);
-  const useExtraMargin = useFeatureFlag("FLAG_ENERGY");
+  const useExtraMargin = useFeatureFlag("FLAG_UI_COLLAPSIBLE");
 
   const labelClasses = clsx("text-sm text-gray-500", {
     "max-w-[57px] w-full flex-shrink-0":

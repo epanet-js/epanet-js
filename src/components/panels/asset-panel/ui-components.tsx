@@ -117,7 +117,7 @@ const Header = ({
     setError(null);
   }, []);
 
-  const useExtraMargin = useFeatureFlag("FLAG_ENERGY");
+  const useExtraMargin = useFeatureFlag("FLAG_UI_COLLAPSIBLE");
 
   return (
     <div className={clsx("px-3 pt-4 pb-3 relative", useExtraMargin && "pl-5")}>
@@ -294,7 +294,7 @@ export const NestedSection = ({
   children: React.ReactNode;
   className?: string;
 }) => {
-  const useExtraMargin = useFeatureFlag("FLAG_ENERGY");
+  const useExtraMargin = useFeatureFlag("FLAG_UI_COLLAPSIBLE");
   return (
     <NestedSectionContext.Provider value={true}>
       <div

@@ -1851,9 +1851,6 @@ const PumpEditor = ({
 }) => {
   const isEnergyEnabled = useFeatureFlag("FLAG_ENERGY");
   const simulationSettings = useAtomValue(simulationSettingsAtom);
-  const [energySections, setEnergySections] = useAtom(
-    assetPanelSectionsExpandedAtom,
-  );
   const translate = useTranslate();
   const { footer } = useQuickGraph(pump.id, "pump");
   const {
@@ -1982,13 +1979,9 @@ const PumpEditor = ({
         />
       </SectionHeader>
       {isEnergyEnabled && (
-        <CollapsibleSection
+        <SectionHeader
           title={translate("energy")}
-          variant="subtle"
-          open={energySections.energy}
-          onOpenChange={(open) =>
-            setEnergySections((prev) => ({ ...prev, energy: open }))
-          }
+          section="energy"
           hasChanged={hasEnergyChanges}
         >
           <PumpEfficiencyCurveField
@@ -2020,7 +2013,7 @@ const PumpEditor = ({
             onPropertyChange={onPropertyChange}
             readOnly={readonly}
           />
-        </CollapsibleSection>
+        </SectionHeader>
       )}
       <SectionHeader
         title={translate("simulationResults")}
@@ -2043,13 +2036,9 @@ const PumpEditor = ({
         <TextRow name="status" value={statusText} />
       </SectionHeader>
       {isEnergyEnabled && (
-        <CollapsibleSection
+        <SectionHeader
           title={translate("energyResults")}
-          variant="subtle"
-          open={energySections.energyResults}
-          onOpenChange={(open) =>
-            setEnergySections((prev) => ({ ...prev, energyResults: open }))
-          }
+          section="energyResults"
         >
           <QuantityRow
             name="utilization"
@@ -2100,7 +2089,7 @@ const PumpEditor = ({
             decimals={2}
             readOnly={true}
           />
-        </CollapsibleSection>
+        </SectionHeader>
       )}
     </AssetEditorContent>
   );
@@ -2148,7 +2137,7 @@ const SectionHeader = ({
   section: keyof AssetPanelSectionExpanded;
   children: React.ReactNode;
 }) => {
-  const isEnergyEnabled = useFeatureFlag("FLAG_ENERGY");
+  const isEnergyEnabled = useFeatureFlag("FLAG_UI_COLLAPSIBLE");
   const [sections, setSections] = useAtom(assetPanelSectionsExpandedAtom);
   if (isEnergyEnabled) {
     return (
