@@ -16,6 +16,9 @@ export type Unit =
   | "gal/d"
   | "mwc"
   | "psi"
+  | "kPa"
+  | "bar"
+  | "fwc"
   | "m/s"
   | "ft/s"
   | "ft^3"
@@ -67,12 +70,16 @@ export const convertTo = (quantity: Quantity, targetUnit: Unit): number => {
   let conversionQuantity: Qty;
   if (quantity.unit === "mwc") {
     conversionQuantity = new Qty(quantity.value * 100, "cmh2o");
+  } else if (quantity.unit === "fwc") {
+    conversionQuantity = new Qty(quantity.value * 30.48, "cmh2o");
   } else {
     conversionQuantity = new Qty(quantity.value, quantity.unit);
   }
 
   if (targetUnit === "mwc") {
     return conversionQuantity.to("cmh2o").scalar / 100;
+  } else if (targetUnit === "fwc") {
+    return conversionQuantity.to("cmh2o").scalar / 30.48;
   } else {
     return conversionQuantity.to(targetUnit).scalar;
   }

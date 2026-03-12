@@ -200,6 +200,30 @@ export const chooseUnitSystem = (units: UnitsSpec): EpanetUnitSystem => {
   throw new Error(`Flow unit not supported ${flowUnit}`);
 };
 
+const unitToEpanetPressure: Record<string, string> = {
+  psi: "PSI",
+  kPa: "KPA",
+  mwc: "METERS",
+  fwc: "FEET",
+  bar: "BAR",
+};
+
+const US_UNIT_SYSTEMS: EpanetUnitSystem[] = [
+  "GPM",
+  "CFS",
+  "MGD",
+  "IMGD",
+  "AFD",
+];
+
+const isDefaultPressureForSystem = (
+  unitSystem: EpanetUnitSystem,
+  pressureUnit: string,
+): boolean => {
+  if (US_UNIT_SYSTEMS.includes(unitSystem)) return pressureUnit === "psi";
+  return pressureUnit === "mwc";
+};
+
 class EpanetIds {
   private strategy: "id" | "label";
   private assetIds: Map<AssetId, string>;
@@ -399,6 +423,9 @@ export const buildInp = withDebugInstrumentation(
         `Unbalanced\t${buildUnbalancedValue(opts.simulationSettings) ?? defaultUnbalanced}`,
         `Accuracy\t${opts.simulationSettings.accuracy ?? defaultAccuracy}`,
         `Units\t${units}`,
+        ...(!isDefaultPressureForSystem(units, opts.units.pressure as string)
+          ? [`Pressure\t${unitToEpanetPressure[opts.units.pressure as string]}`]
+          : []),
         `Headloss\t${headlossFormula}`,
         `Demand Multiplier\t${opts.simulationSettings.globalDemandMultiplier}`,
         `Demand Model\t${opts.simulationSettings.demandModel}`,

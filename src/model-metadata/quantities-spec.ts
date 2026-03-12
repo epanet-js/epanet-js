@@ -335,6 +335,26 @@ export const presets: Presets = {
   AFD: AFDSpec,
 };
 
+export const supportedPressureUnits: Unit[] = [
+  "psi",
+  "kPa",
+  "mwc",
+  "fwc",
+  "bar",
+];
+
+export const getDefaultPressureUnit = (presetKey: keyof Presets): Unit => {
+  return presets[presetKey].units.pressure;
+};
+
+export const withPressureUnit = (
+  spec: AssetQuantitiesSpec,
+  pressureUnit: Unit,
+): AssetQuantitiesSpec => {
+  if (pressureUnit === spec.units.pressure) return spec;
+  return { ...spec, units: { ...spec.units, pressure: pressureUnit } };
+};
+
 export class Quantities {
   private spec: AssetQuantitiesSpec;
 

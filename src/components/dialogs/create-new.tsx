@@ -13,7 +13,11 @@ import {
   Presets,
   Quantities,
   presets,
+  supportedPressureUnits,
+  getDefaultPressureUnit,
+  withPressureUnit,
 } from "src/model-metadata/quantities-spec";
+import type { Unit } from "src/quantity";
 import { ModelMetadata } from "src/model-metadata";
 import { createProjectionMapper } from "src/projections";
 import type { Projection } from "src/projections";
@@ -76,12 +80,14 @@ type LocationOption = SearchableSelectorOption & {
 type SubmitProps = {
   unitsSpec: keyof Presets;
   headlossFormula: HeadlossFormula;
+  pressureUnit?: Unit;
   location?: LocationData;
   projection: Projection;
 };
 
 export const CreateNew = () => {
   const isModalsOn = useFeatureFlag("FLAG_MODALS");
+  const isEpanet23On = useFeatureFlag("FLAG_EPANET23");
   const translate = useTranslate();
   const rep = usePersistence();
   const transactImport = rep.useTransactImport();
@@ -117,8 +123,17 @@ export const CreateNew = () => {
   }, [map, setGridPreview, setGridHidden, closeDialog]);
 
   const handleSubmit = useCallback(
-    ({ unitsSpec, headlossFormula, location, projection }: SubmitProps) => {
-      const quantities = new Quantities(presets[unitsSpec]);
+    ({
+      unitsSpec,
+      headlossFormula,
+      pressureUnit,
+      location,
+      projection,
+    }: SubmitProps) => {
+      const spec = pressureUnit
+        ? withPressureUnit(presets[unitsSpec], pressureUnit)
+        : presets[unitsSpec];
+      const quantities = new Quantities(spec);
       const modelMetadata: ModelMetadata = {
         quantities,
         projectionMapper: buildNewProjectProjectionMapper(projection),
@@ -235,8 +250,23 @@ export const CreateNew = () => {
 
                 <UnitsSystemSelector
                   selected={values.unitsSpec}
-                  onChange={(specId) => setFieldValue("unitsSpec", specId)}
+                  onChange={(specId) => {
+                    void setFieldValue("unitsSpec", specId);
+                    void setFieldValue(
+                      "pressureUnit",
+                      getDefaultPressureUnit(specId),
+                    );
+                  }}
                 />
+                {isEpanet23On && (
+                  <PressureUnitSelector
+                    selected={
+                      values.pressureUnit ??
+                      getDefaultPressureUnit(values.unitsSpec)
+                    }
+                    onChange={(pu) => setFieldValue("pressureUnit", pu)}
+                  />
+                )}
                 <HeadlossFormulaSelector
                   selected={values.headlossFormula}
                   onChange={(headlossFormula) =>
@@ -311,8 +341,23 @@ export const CreateNew = () => {
 
             <UnitsSystemSelector
               selected={values.unitsSpec}
-              onChange={(specId) => setFieldValue("unitsSpec", specId)}
+              onChange={(specId) => {
+                void setFieldValue("unitsSpec", specId);
+                void setFieldValue(
+                  "pressureUnit",
+                  getDefaultPressureUnit(specId),
+                );
+              }}
             />
+            {isEpanet23On && (
+              <PressureUnitSelector
+                selected={
+                  values.pressureUnit ??
+                  getDefaultPressureUnit(values.unitsSpec)
+                }
+                onChange={(pu) => setFieldValue("pressureUnit", pu)}
+              />
+            )}
             <HeadlossFormulaSelector
               selected={values.headlossFormula}
               onChange={(headlossFormula) =>
@@ -447,7 +492,7 @@ const UnitsSystemSelector = ({
   }));
 
   return (
-    <label className="block pt-2 space-y-2 pb-3">
+    <label className="block pt-2 pb-2 space-y-2">
       <div className="text-sm text-gray-700 dark:text-gray-300 flex items-center justify-between">
         {translate("unitsSystem")}
       </div>
@@ -477,7 +522,7 @@ const HeadlossFormulaSelector = ({
   }));
 
   return (
-    <label className="block pt-2 space-y-2">
+    <label className="block pt-2 pb-2 space-y-2">
       <div className="text-sm text-gray-700 dark:text-gray-300 flex items-center justify-between">
         {translate("headlossFormula")}
       </div>
@@ -488,6 +533,43 @@ const HeadlossFormulaSelector = ({
         selected={selected}
         onChange={onChange}
         ariaLabel={translate("headlossFormula")}
+      />
+    </label>
+  );
+};
+
+const pressureUnitLabels: Record<string, string> = {
+  psi: "PSI (pounds per square inch)",
+  kPa: "kPa (kilopascals)",
+  mwc: "Meters (water column)",
+  fwc: "Feet (water column)",
+  bar: "Bar",
+};
+
+const PressureUnitSelector = ({
+  selected,
+  onChange,
+}: {
+  selected: Unit;
+  onChange: (pressureUnit: Unit) => void;
+}) => {
+  const options = supportedPressureUnits.map((pu) => ({
+    label: pressureUnitLabels[pu as string],
+    value: pu as string,
+  }));
+
+  return (
+    <label className="block pt-2 pb-2 space-y-2">
+      <div className="text-sm text-gray-700 dark:text-gray-300">
+        Pressure Units
+      </div>
+
+      <Selector
+        options={options}
+        tabIndex={0}
+        selected={selected as string}
+        onChange={(value) => onChange(value as Unit)}
+        ariaLabel="Pressure Units"
       />
     </label>
   );

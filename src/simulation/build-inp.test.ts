@@ -423,6 +423,52 @@ describe("build inp", () => {
     expect(inp).toContain("Pressure Exponent\t0.8");
   });
 
+  it("writes Pressure option when non-default for unit system", () => {
+    const hydraulicModel = HydraulicModelBuilder.with().build();
+    const units = { ...presets.LPS.units, pressure: "kPa" as const };
+
+    const inp = buildInp(hydraulicModel, {
+      units,
+      simulationSettings: defaultSimulationSettings,
+    });
+
+    expect(inp).toContain("Pressure\tKPA");
+  });
+
+  it("does not write Pressure option when default for metric system", () => {
+    const hydraulicModel = HydraulicModelBuilder.with().build();
+
+    const inp = buildInp(hydraulicModel, {
+      units: presets.LPS.units,
+      simulationSettings: defaultSimulationSettings,
+    });
+
+    expect(inp).not.toContain("Pressure\t");
+  });
+
+  it("does not write Pressure option when default for US system", () => {
+    const hydraulicModel = HydraulicModelBuilder.with().build();
+
+    const inp = buildInp(hydraulicModel, {
+      units: presets.GPM.units,
+      simulationSettings: defaultSimulationSettings,
+    });
+
+    expect(inp).not.toContain("Pressure\t");
+  });
+
+  it("writes Pressure option for US system with non-default pressure", () => {
+    const hydraulicModel = HydraulicModelBuilder.with().build();
+    const units = { ...presets.GPM.units, pressure: "bar" as const };
+
+    const inp = buildInp(hydraulicModel, {
+      units,
+      simulationSettings: defaultSimulationSettings,
+    });
+
+    expect(inp).toContain("Pressure\tBAR");
+  });
+
   it("includes emitter exponent in output", () => {
     const hydraulicModel = HydraulicModelBuilder.with().build();
 
