@@ -192,11 +192,18 @@ const TabBar = ({
   onTabChange: (tab: Tab) => void;
 }) => {
   const translate = useTranslate();
+  const isModalsOn = useFeatureFlag("FLAG_MODALS");
 
   return (
     <div
       role="tablist"
-      className="flex h-8 border-b border-gray-200 dark:border-black px-8 -mx-8"
+      className={`
+        ${
+          isModalsOn
+            ? "flex h-8 border-b border-gray-200 dark:border-black px-4 -mx-4"
+            : "flex h-8 border-b border-gray-200 dark:border-black px-8 -mx-8"
+        }
+      `}
     >
       <TabButton
         label={translate("controls.simpleTab")}
