@@ -2,12 +2,15 @@ import { useCallback } from "react";
 import { useImportInp } from "src/commands/import-inp";
 import { useUnsavedChangesCheck } from "src/commands/check-unsaved-changes";
 import { useRecentFiles } from "src/hooks/use-recent-files";
+import { notify } from "src/components/notifications";
 import { captureError } from "src/infra/error-tracking";
 import { RecentFileOpened, useUserTracking } from "src/infra/user-tracking";
 import type { FileWithHandle } from "browser-fs-access";
 import type { RecentFileEntry } from "src/import/recent-files";
+import { useTranslate } from "src/hooks/use-translate";
 
 export const useOpenRecentFile = () => {
+  const translate = useTranslate();
   const importInp = useImportInp();
   const checkUnsavedChanges = useUnsavedChangesCheck();
   const { removeRecent } = useRecentFiles();
@@ -29,11 +32,15 @@ export const useOpenRecentFile = () => {
           });
           void importInp([fileWithHandle]);
         } catch (error) {
+          notify({
+            variant: "error",
+            title: translate("couldNotOpenRecentFile"),
+          });
           captureError(error as Error);
           void removeRecent(entry.id);
         }
       });
     },
-    [checkUnsavedChanges, importInp, removeRecent, userTracking],
+    [checkUnsavedChanges, importInp, removeRecent, translate, userTracking],
   );
 };

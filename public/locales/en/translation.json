@@ -263,6 +263,7 @@
   "recent": "Recent",
   "dropInp": "Drop an .INP file here to open the model.",
   "inpMissing": "Invalid file type. Use an .INP file.",
+  "couldNotOpenRecentFile": "Could not open the recent file. Try Open INP option.",
   "onlyOneInp": "Multiple INPs",
   "onlyOneInpExplain": "Only one INP file is allowed at a time.\nThe first one will be used.",
   "headlossFormula": "Headloss formula",
