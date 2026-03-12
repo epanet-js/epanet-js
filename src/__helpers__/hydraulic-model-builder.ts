@@ -55,7 +55,6 @@ export const buildPipe = (
   };
   const quantities = new Quantities(quantitiesSpec);
   return new AssetBuilder(
-    quantities.units,
     quantities.defaults,
     new ConsecutiveIdsGenerator(),
     new LabelManager(),
@@ -71,7 +70,6 @@ export const buildPump = (
   };
   const quantities = new Quantities(quantitiesSpec);
   return new AssetBuilder(
-    quantities.units,
     quantities.defaults,
     new ConsecutiveIdsGenerator(),
     new LabelManager(),
@@ -81,7 +79,6 @@ export const buildPump = (
 export const buildJunction = (data: JunctionBuildData = {}) => {
   const quantities = new Quantities(presets.LPS);
   return new AssetBuilder(
-    quantities.units,
     quantities.defaults,
     new ConsecutiveIdsGenerator(),
     new LabelManager(),
@@ -90,7 +87,6 @@ export const buildJunction = (data: JunctionBuildData = {}) => {
 export const buildReservoir = (data: ReservoirBuildData = {}) => {
   const quantities = new Quantities(presets.LPS);
   return new AssetBuilder(
-    quantities.units,
     quantities.defaults,
     new ConsecutiveIdsGenerator(),
     new LabelManager(),
@@ -135,7 +131,6 @@ export class HydraulicModelBuilder {
   private topology: Topology;
   private assets: AssetsMap;
   private assetBuilder: AssetBuilder;
-  private units: UnitsSpec;
   private headlossFormulaValue: HeadlossFormula;
   private labelManager: LabelManager;
   private demands: Demands;
@@ -161,9 +156,7 @@ export class HydraulicModelBuilder {
     this.idGenerator = new WritableIdGenerator();
     this.customerPointIdGenerator = new WritableIdGenerator();
     const quantities = new Quantities(quantitiesSpec);
-    this.units = quantities.units;
     this.assetBuilder = new AssetBuilder(
-      this.units,
       quantities.defaults,
       this.idGenerator,
       this.labelManager,
@@ -469,7 +462,6 @@ export class HydraulicModelBuilder {
       labelManager: this.labelManager,
       topology: this.topology,
       assetIndex,
-      units: this.units,
       demands: this.demands,
       headlossFormula: this.headlossFormulaValue,
       curves: this.curves,

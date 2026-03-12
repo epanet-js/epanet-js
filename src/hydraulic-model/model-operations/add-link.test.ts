@@ -26,6 +26,7 @@ describe("addLink", () => {
       });
 
       const { putAssets } = addLink(hydraulicModel, {
+        lengthUnit: "m",
         startNode,
         endNode,
         link,
@@ -64,6 +65,7 @@ describe("addLink", () => {
       });
 
       const { putAssets } = addLink(hydraulicModel, {
+        lengthUnit: "m",
         startNode,
         endNode,
         link,
@@ -98,6 +100,7 @@ describe("addLink", () => {
       });
 
       const { putAssets } = addLink(hydraulicModel, {
+        lengthUnit: "m",
         startNode,
         endNode,
         link,
@@ -129,6 +132,7 @@ describe("addLink", () => {
       });
 
       const { putAssets } = addLink(hydraulicModel, {
+        lengthUnit: "m",
         startNode,
         endNode,
         link,
@@ -159,6 +163,7 @@ describe("addLink", () => {
       });
 
       const { putAssets } = addLink(hydraulicModel, {
+        lengthUnit: "m",
         startNode,
         endNode,
         link,
@@ -178,6 +183,7 @@ describe("addLink", () => {
       });
 
       const { putAssets } = addLink(hydraulicModel, {
+        lengthUnit: "m",
         startNode,
         endNode,
         link,
@@ -204,6 +210,7 @@ describe("addLink", () => {
       });
 
       const { putAssets } = addLink(hydraulicModel, {
+        lengthUnit: "m",
         startNode,
         endNode,
         link,
@@ -227,6 +234,7 @@ describe("addLink", () => {
       });
 
       const { putAssets } = addLink(hydraulicModel, {
+        lengthUnit: "m",
         startNode,
         endNode,
         link,
@@ -268,6 +276,7 @@ describe("addLink", () => {
       });
 
       const { putAssets, deleteAssets } = addLink(hydraulicModel, {
+        lengthUnit: "m",
         startNode,
         endNode,
         link: pump,
@@ -318,6 +327,7 @@ describe("addLink", () => {
       });
 
       const { putAssets, deleteAssets } = addLink(hydraulicModel, {
+        lengthUnit: "m",
         startNode,
         endNode,
         link,
@@ -382,6 +392,7 @@ describe("addLink", () => {
       });
 
       const { putAssets, deleteAssets } = addLink(hydraulicModel, {
+        lengthUnit: "m",
         startNode,
         endNode,
         link,
@@ -417,6 +428,7 @@ describe("addLink", () => {
       });
 
       const { putAssets, deleteAssets } = addLink(hydraulicModel, {
+        lengthUnit: "m",
         startNode,
         endNode,
         link,
@@ -477,6 +489,7 @@ describe("addLink", () => {
       });
 
       const { putAssets, putCustomerPoints } = addLink(hydraulicModel, {
+        lengthUnit: "m",
         startNode,
         endNode,
         link,
@@ -543,6 +556,7 @@ describe("addLink", () => {
       });
 
       const { putAssets, putCustomerPoints } = addLink(hydraulicModel, {
+        lengthUnit: "m",
         startNode,
         endNode,
         link,
@@ -630,6 +644,7 @@ describe("addLink", () => {
       });
 
       const { putAssets, putCustomerPoints } = addLink(hydraulicModel, {
+        lengthUnit: "m",
         startNode,
         endNode,
         link,
@@ -666,6 +681,7 @@ describe("addLink", () => {
 
       expect(() => {
         addLink(hydraulicModel, {
+          lengthUnit: "m",
           startNode,
           endNode,
           link,
@@ -692,6 +708,7 @@ describe("addLink", () => {
 
       expect(() => {
         addLink(hydraulicModel, {
+          lengthUnit: "m",
           startNode,
           endNode,
           link,
@@ -733,6 +750,7 @@ describe("addLink", () => {
       });
 
       const { putAssets, deleteAssets } = addLink(hydraulicModel, {
+        lengthUnit: "m",
         startNode,
         endNode,
         link,
@@ -787,6 +805,7 @@ describe("addLink", () => {
       });
 
       const { putAssets, deleteAssets } = addLink(hydraulicModel, {
+        lengthUnit: "m",
         startNode,
         endNode,
         link,
@@ -834,6 +853,7 @@ describe("addLink", () => {
       });
 
       const { putAssets, deleteAssets } = addLink(hydraulicModel, {
+        lengthUnit: "m",
         startNode,
         endNode,
         link,
@@ -881,6 +901,7 @@ describe("addLink", () => {
       });
 
       const { putAssets } = addLink(hydraulicModel, {
+        lengthUnit: "m",
         startNode,
         endNode,
         link,
@@ -922,6 +943,7 @@ describe("addLink", () => {
       });
 
       const { putAssets } = addLink(hydraulicModel, {
+        lengthUnit: "m",
         startNode,
         endNode,
         link,
@@ -991,6 +1013,7 @@ describe("addLink", () => {
       });
 
       const { putAssets, putCustomerPoints } = addLink(hydraulicModel, {
+        lengthUnit: "m",
         startNode,
         endNode,
         link,
@@ -1057,6 +1080,7 @@ describe("addLink", () => {
       });
 
       const { putCustomerPoints } = addLink(hydraulicModel, {
+        lengthUnit: "m",
         startNode,
         endNode,
         link,
@@ -1117,6 +1141,7 @@ describe("addLink", () => {
     });
 
     const { putAssets, deleteAssets } = addLink(hydraulicModel, {
+      lengthUnit: "m",
       startNode,
       endNode,
       link,
@@ -1184,6 +1209,7 @@ describe("addLink", () => {
       });
 
       const { putAssets } = addLink(hydraulicModel, {
+        lengthUnit: "m",
         startNode,
         endNode,
         link,
@@ -1244,6 +1270,7 @@ describe("addLink", () => {
       });
 
       const { putAssets } = addLink(hydraulicModel, {
+        lengthUnit: "m",
         startNode,
         endNode,
         link,
@@ -1282,6 +1309,7 @@ describe("addLink", () => {
       });
 
       const { putAssets } = addLink(hydraulicModel, {
+        lengthUnit: "m",
         startNode,
         endNode,
         link,
@@ -1323,6 +1351,7 @@ describe("addLink", () => {
       });
 
       const { putAssets } = addLink(hydraulicModel, {
+        lengthUnit: "m",
         startNode,
         endNode,
         link,
@@ -1366,6 +1395,7 @@ describe("addLink", () => {
       });
 
       const { putAssets } = addLink(hydraulicModel, {
+        lengthUnit: "m",
         startNode,
         endNode,
         link,
@@ -1396,6 +1426,7 @@ describe("addLink", () => {
       });
 
       const { putAssets } = addLink(hydraulicModel, {
+        lengthUnit: "m",
         startNode,
         endNode,
         link,
@@ -1430,6 +1461,7 @@ describe("addLink", () => {
       });
 
       const { putAssets } = addLink(hydraulicModel, {
+        lengthUnit: "m",
         startNode,
         endNode,
         link,
@@ -1475,6 +1507,7 @@ describe("addLink", () => {
       });
 
       const { putAssets } = addLink(hydraulicModel, {
+        lengthUnit: "m",
         startNode,
         endNode,
         link,

@@ -18,6 +18,7 @@ type InputData = {
   newElevation: number;
   shouldUpdateCustomerPoints?: boolean;
   pipeIdToSplit?: AssetId;
+  lengthUnit: Unit;
 };
 
 export const moveNode: ModelOperation<InputData> = (
@@ -28,6 +29,7 @@ export const moveNode: ModelOperation<InputData> = (
     newElevation,
     shouldUpdateCustomerPoints = false,
     pipeIdToSplit,
+    lengthUnit,
   },
 ) => {
   if (pipeIdToSplit) {
@@ -38,6 +40,7 @@ export const moveNode: ModelOperation<InputData> = (
       newElevation,
       shouldUpdateCustomerPoints,
       pipeIdToSplit,
+      lengthUnit,
     );
   }
 
@@ -46,12 +49,19 @@ export const moveNode: ModelOperation<InputData> = (
     newCoordinates,
     newElevation,
     shouldUpdateCustomerPoints,
+    lengthUnit,
   });
 };
 
 const moveNodeStandard: ModelOperation<Omit<InputData, "pipeIdToSplit">> = (
   hydraulicModel,
-  { nodeId, newCoordinates, newElevation, shouldUpdateCustomerPoints = false },
+  {
+    nodeId,
+    newCoordinates,
+    newElevation,
+    shouldUpdateCustomerPoints = false,
+    lengthUnit,
+  },
 ) => {
   const { assets, topology, customerPointsLookup } = hydraulicModel;
   const node = getNode(assets, nodeId) as NodeAsset;
@@ -69,12 +79,7 @@ const moveNodeStandard: ModelOperation<Omit<InputData, "pipeIdToSplit">> = (
   for (const linkId of linkIds) {
     const link = assets.get(linkId) as LinkAsset;
     const linkCopy = link.copy();
-    updateLinkCoordinates(
-      linkCopy,
-      oldCoordinates,
-      newCoordinates,
-      hydraulicModel.units.length,
-    );
+    updateLinkCoordinates(linkCopy, oldCoordinates, newCoordinates, lengthUnit);
 
     if (linkCopy.type === "pipe" && shouldUpdateCustomerPoints) {
       const pipeCopy = linkCopy as Pipe;
@@ -129,6 +134,7 @@ const moveNodeWithPipeSplitting = (
   newElevation: number,
   shouldUpdateCustomerPoints: boolean,
   pipeIdToSplit: AssetId,
+  lengthUnit: Unit,
 ) => {
   const { assets } = hydraulicModel;
 
@@ -148,11 +154,13 @@ const moveNodeWithPipeSplitting = (
     newCoordinates,
     newElevation,
     shouldUpdateCustomerPoints,
+    lengthUnit,
   });
 
   const splitResult = splitPipe(hydraulicModel, {
     pipe,
     splits: [updatedNode],
+    lengthUnit,
   });
 
   const allPutAssets = [

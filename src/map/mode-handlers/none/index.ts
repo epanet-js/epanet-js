@@ -46,6 +46,7 @@ export function useNoneHandlers({
   rep,
   map,
   hydraulicModel,
+  quantities,
   readonly = false,
 }: HandlerContext): Handlers {
   const { getClickedAsset } = useClickedAsset(map, hydraulicModel.assets);
@@ -75,7 +76,7 @@ export function useNoneHandlers({
   } = useMoveState();
   const setCursor = useSetAtom(cursorStyleAtom);
   const { fetchElevation, prefetchTile } = useElevations(
-    hydraulicModel.units.elevation,
+    quantities.getUnit("elevation"),
   );
   const transact = rep.useTransact();
   const { findSnappingCandidate } = useSnapping(map, hydraulicModel.assets);
@@ -274,6 +275,7 @@ export function useNoneHandlers({
           nodeId: asset.id,
           newCoordinates,
           newElevation: noElevation,
+          lengthUnit: quantities.getUnit("length"),
         });
 
         if (putAssets) {
@@ -347,6 +349,7 @@ export function useNoneHandlers({
           const moment = mergeNodes(hydraulicModel, {
             sourceNodeId: assetId,
             targetNodeId: snappingCandidate.id,
+            lengthUnit: quantities.getUnit("length"),
           });
           transact(moment);
           selectAsset(assetId);
@@ -381,6 +384,7 @@ export function useNoneHandlers({
               newElevation: newElevationOrFallback,
               shouldUpdateCustomerPoints: true,
               pipeIdToSplit,
+              lengthUnit: quantities.getUnit("length"),
             });
             transact(moment);
             resetMove();

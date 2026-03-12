@@ -5,6 +5,7 @@ import { LabelGenerator } from "../label-manager";
 import { Position } from "src/types";
 import { HydraulicModel } from "../hydraulic-model";
 import { splitPipe } from "./split-pipe";
+import { Unit } from "src/quantity";
 
 type NodeType = "junction" | "reservoir" | "tank";
 
@@ -13,11 +14,12 @@ type InputData = {
   coordinates: Position;
   elevation?: number;
   pipeIdToSplit?: AssetId;
+  lengthUnit: Unit;
 };
 
 export const addNode: ModelOperation<InputData> = (
   hydraulicModel,
-  { nodeType, coordinates, elevation = 0, pipeIdToSplit },
+  { nodeType, coordinates, elevation = 0, pipeIdToSplit, lengthUnit },
 ) => {
   const isActive = getInheritedActiveTopologyStatus(
     hydraulicModel,
@@ -34,7 +36,12 @@ export const addNode: ModelOperation<InputData> = (
   addMissingLabel(hydraulicModel.labelManager, node);
 
   if (pipeIdToSplit) {
-    return addNodeWithPipeSplitting(hydraulicModel, node, pipeIdToSplit);
+    return addNodeWithPipeSplitting(
+      hydraulicModel,
+      node,
+      pipeIdToSplit,
+      lengthUnit,
+    );
   }
 
   return {
@@ -80,6 +87,7 @@ const addNodeWithPipeSplitting = (
   hydraulicModel: HydraulicModel,
   node: NodeAsset,
   pipeIdToSplit: AssetId,
+  lengthUnit: Unit,
 ) => {
   const pipe = hydraulicModel.assets.get(pipeIdToSplit) as Pipe;
   if (!pipe || pipe.type !== "pipe") {
@@ -89,6 +97,7 @@ const addNodeWithPipeSplitting = (
   const splitResult = splitPipe(hydraulicModel, {
     pipe,
     splits: [node],
+    lengthUnit,
   });
 
   return {

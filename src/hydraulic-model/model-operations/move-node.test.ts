@@ -14,6 +14,7 @@ describe("moveNode", () => {
     const newElevation = 10;
 
     const { putAssets } = moveNode(hydraulicModel, {
+      lengthUnit: "m",
       nodeId: IDS.A,
       newCoordinates,
       newElevation,
@@ -38,6 +39,7 @@ describe("moveNode", () => {
     const anyElevation = 10;
 
     const { putAssets } = moveNode(hydraulicModel, {
+      lengthUnit: "m",
       nodeId: IDS.B,
       newCoordinates,
       newElevation: anyElevation,
@@ -77,6 +79,7 @@ describe("moveNode", () => {
 
       const newCoordinates = [10, 20];
       const { putAssets, putCustomerPoints } = moveNode(hydraulicModel, {
+        lengthUnit: "m",
         nodeId: IDS.J1,
         newCoordinates,
         newElevation: 10,
@@ -112,6 +115,7 @@ describe("moveNode", () => {
         .build();
 
       const { putCustomerPoints } = moveNode(hydraulicModel, {
+        lengthUnit: "m",
         nodeId: IDS.J1,
         newCoordinates: [10, 20],
         newElevation: 10,
@@ -133,6 +137,7 @@ describe("moveNode", () => {
         .build();
 
       const { putCustomerPoints } = moveNode(hydraulicModel, {
+        lengthUnit: "m",
         nodeId: IDS.J1,
         newCoordinates: [15, 20],
         newElevation: 10,
@@ -162,6 +167,7 @@ describe("moveNode", () => {
         .build();
 
       const { putCustomerPoints } = moveNode(hydraulicModel, {
+        lengthUnit: "m",
         nodeId: IDS.J1,
         newCoordinates: [25, 0],
         newElevation: 10,
@@ -195,6 +201,7 @@ describe("moveNode", () => {
         .build();
 
       const { putCustomerPoints } = moveNode(hydraulicModel, {
+        lengthUnit: "m",
         nodeId: IDS.J1,
         newCoordinates: [0, 5],
         newElevation: 10,
@@ -237,6 +244,7 @@ describe("moveNode", () => {
         .build();
 
       const { putCustomerPoints } = moveNode(hydraulicModel, {
+        lengthUnit: "m",
         nodeId: IDS.J1,
         newCoordinates: [35, 0],
         newElevation: 10,
@@ -273,6 +281,7 @@ describe("moveNode", () => {
         .build();
 
       const { putCustomerPoints } = moveNode(hydraulicModel, {
+        lengthUnit: "m",
         nodeId: IDS.J1,
         newCoordinates: [-122.405, 37.7749],
         newElevation: 10,
@@ -297,6 +306,7 @@ describe("moveNode", () => {
       .build();
 
     const { putAssets, deleteAssets } = moveNode(hydraulicModel, {
+      lengthUnit: "m",
       nodeId: IDS.J3,
       newCoordinates: [5, 0],
       newElevation: 10,
@@ -344,6 +354,7 @@ describe("moveNode", () => {
       .build();
 
     const { putCustomerPoints } = moveNode(hydraulicModel, {
+      lengthUnit: "m",
       nodeId: IDS.J3,
       newCoordinates: [5, 0],
       newElevation: 10,
@@ -369,6 +380,7 @@ describe("moveNode", () => {
 
     expect(() =>
       moveNode(hydraulicModel, {
+        lengthUnit: "m",
         nodeId: IDS.J1,
         newCoordinates: [5, 0],
         newElevation: 10,
@@ -378,6 +390,7 @@ describe("moveNode", () => {
 
     expect(() =>
       moveNode(hydraulicModel, {
+        lengthUnit: "m",
         nodeId: IDS.J1,
         newCoordinates: [5, 0],
         newElevation: 10,
@@ -404,6 +417,7 @@ describe("moveNode", () => {
       .build();
 
     const { putAssets } = moveNode(hydraulicModel, {
+      lengthUnit: "m",
       nodeId: IDS.J3,
       newCoordinates: [5, 0],
       newElevation: 10,
@@ -442,6 +456,7 @@ describe("moveNode", () => {
       .build();
 
     const { putAssets } = moveNode(hydraulicModel, {
+      lengthUnit: "m",
       nodeId: IDS.J3,
       newCoordinates: [10, 0],
       newElevation: 10,
@@ -490,6 +505,7 @@ describe("moveNode", () => {
       .build();
 
     const { putAssets, putCustomerPoints } = moveNode(hydraulicModel, {
+      lengthUnit: "m",
       nodeId: IDS.J3,
       newCoordinates: [5, 0],
       newElevation: 10,

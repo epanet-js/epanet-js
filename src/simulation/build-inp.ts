@@ -27,6 +27,7 @@ import { CustomerPointsLookup } from "src/hydraulic-model/customer-points-lookup
 import { Valve, AssetId } from "src/hydraulic-model/asset-types";
 import { checksum } from "src/infra/checksum";
 import { ProjectionMapper } from "src/projections";
+import { UnitsSpec } from "src/model-metadata/quantities-spec";
 import { Position } from "geojson";
 import { withDebugInstrumentation } from "src/infra/with-instrumentation";
 import {
@@ -183,9 +184,7 @@ const buildTimesSection = (timing: Timing): string[] => {
   return section;
 };
 
-export const chooseUnitSystem = (
-  units: HydraulicModel["units"],
-): EpanetUnitSystem => {
+export const chooseUnitSystem = (units: UnitsSpec): EpanetUnitSystem => {
   const flowUnit = units.flow;
   if (flowUnit === "l/s") return "LPS";
   if (flowUnit === "gal/min") return "GPM";
@@ -321,6 +320,7 @@ type InpSections = {
 
 type BuildOptions = {
   simulationSettings: SimulationSettings;
+  units: UnitsSpec;
   geolocation?: boolean;
   madeBy?: boolean;
   labelIds?: boolean;
@@ -348,7 +348,7 @@ export const buildInp = withDebugInstrumentation(
       ...options,
     };
     const idMap = new EpanetIds({ strategy: opts.labelIds ? "label" : "id" });
-    const units = chooseUnitSystem(hydraulicModel.units);
+    const units = chooseUnitSystem(opts.units);
     const headlossFormula = hydraulicModel.headlossFormula;
 
     const transformCoord: (p: Position) => Position =

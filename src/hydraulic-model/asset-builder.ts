@@ -86,7 +86,6 @@ export type TankBuildData = {
   volumeCurveId?: CurveId;
 };
 
-import { UnitsSpec } from "src/model-metadata/quantities-spec";
 import { IdGenerator } from "src/lib/id-generator";
 import { LabelGenerator } from "./label-manager";
 import {
@@ -113,18 +112,15 @@ export type DefaultQuantities = {
 };
 
 export class AssetBuilder {
-  private units: UnitsSpec;
   private defaults: DefaultQuantities;
   private _idGenerator: IdGenerator;
   readonly labelGenerator: LabelGenerator;
 
   constructor(
-    units: UnitsSpec,
     defaults: DefaultQuantities,
     idGenerator: IdGenerator,
     labelGenerator: LabelGenerator,
   ) {
-    this.units = units;
     this.defaults = defaults;
     this._idGenerator = idGenerator;
     this.labelGenerator = labelGenerator;

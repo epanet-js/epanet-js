@@ -8,6 +8,7 @@ import { lineString, point } from "@turf/helpers";
 import { Position } from "geojson";
 import { findNearestPointOnLine } from "src/lib/geometry";
 import { inferNodeIsActive } from "../utilities/active-topology";
+import { Unit } from "src/quantity";
 
 type InputData = {
   sourceLinkId: AssetId;
@@ -16,11 +17,20 @@ type InputData = {
   endNode: NodeAsset;
   startPipeId?: AssetId;
   endPipeId?: AssetId;
+  lengthUnit: Unit;
 };
 
 export const replaceLink: ModelOperation<InputData> = (
   hydraulicModel,
-  { sourceLinkId, newLink, startNode, endNode, startPipeId, endPipeId },
+  {
+    sourceLinkId,
+    newLink,
+    startNode,
+    endNode,
+    startPipeId,
+    endPipeId,
+    lengthUnit,
+  },
 ) => {
   const sourceLink = hydraulicModel.assets.get(sourceLinkId);
   if (!sourceLink || sourceLink.isNode) {
@@ -43,6 +53,7 @@ export const replaceLink: ModelOperation<InputData> = (
     endNode,
     startPipeId,
     endPipeId,
+    lengthUnit,
   });
 
   const reconnectedCustomerPoints =

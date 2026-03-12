@@ -40,6 +40,7 @@ describe("replaceLink", () => {
       const endNode = hydraulicModel.assets.get(IDS.J2) as NodeAsset;
 
       const { putAssets, deleteAssets } = replaceLink(hydraulicModel, {
+        lengthUnit: "m",
         sourceLinkId: IDS.P1,
         newLink: newPipe,
         startNode,
@@ -85,6 +86,7 @@ describe("replaceLink", () => {
 
       expect(() =>
         replaceLink(hydraulicModel, {
+          lengthUnit: "m",
           sourceLinkId: IDS.P1,
           newLink: newPump,
           startNode,
@@ -125,6 +127,7 @@ describe("replaceLink", () => {
       });
 
       const { putAssets, deleteAssets } = replaceLink(hydraulicModel, {
+        lengthUnit: "m",
         sourceLinkId: IDS.P1,
         newLink: newPipe,
         startNode,
@@ -184,6 +187,7 @@ describe("replaceLink", () => {
       });
 
       const { putAssets, deleteAssets } = replaceLink(hydraulicModel, {
+        lengthUnit: "m",
         sourceLinkId: IDS.P2,
         newLink: newPipe,
         startNode,
@@ -245,6 +249,7 @@ describe("replaceLink", () => {
       });
 
       const { putAssets, deleteAssets } = replaceLink(hydraulicModel, {
+        lengthUnit: "m",
         sourceLinkId: IDS.V1,
         newLink: newValve,
         startNode,
@@ -294,6 +299,7 @@ describe("replaceLink", () => {
       const endNode = hydraulicModel.assets.get(IDS.J2) as NodeAsset;
 
       const { putAssets } = replaceLink(hydraulicModel, {
+        lengthUnit: "m",
         sourceLinkId: IDS.P1,
         newLink: newPipe,
         startNode,
@@ -334,6 +340,7 @@ describe("replaceLink", () => {
       const endNode = hydraulicModel.assets.get(IDS.J2) as NodeAsset;
 
       const { putAssets } = replaceLink(hydraulicModel, {
+        lengthUnit: "m",
         sourceLinkId: IDS.P1,
         newLink: newPipe,
         startNode,
@@ -379,6 +386,7 @@ describe("replaceLink", () => {
       });
 
       const { putAssets } = replaceLink(hydraulicModel, {
+        lengthUnit: "m",
         sourceLinkId: IDS.P1,
         newLink: newPipe,
         startNode: newStartNode,
@@ -432,6 +440,7 @@ describe("replaceLink", () => {
       });
 
       const { putAssets } = replaceLink(hydraulicModel, {
+        lengthUnit: "m",
         sourceLinkId: IDS.P1,
         newLink: newPipe,
         startNode: newStartNode,
@@ -518,6 +527,7 @@ describe("replaceLink", () => {
       });
 
       const { putAssets } = replaceLink(hydraulicModel, {
+        lengthUnit: "m",
         sourceLinkId: IDS.P1,
         newLink: newPipe,
         startNode,
@@ -575,6 +585,7 @@ describe("replaceLink", () => {
       const endNode = hydraulicModel.assets.get(IDS.J2) as NodeAsset;
 
       const { putCustomerPoints, putAssets } = replaceLink(hydraulicModel, {
+        lengthUnit: "m",
         sourceLinkId: IDS.P1,
         newLink: newPipe,
         startNode,
@@ -632,6 +643,7 @@ describe("replaceLink", () => {
       const endNode = hydraulicModel.assets.get(IDS.J2) as NodeAsset;
 
       const { putCustomerPoints } = replaceLink(hydraulicModel, {
+        lengthUnit: "m",
         sourceLinkId: IDS.P1,
         newLink: newPipe,
         startNode,
@@ -684,6 +696,7 @@ describe("replaceLink", () => {
       const endNode = hydraulicModel.assets.get(IDS.J2) as NodeAsset;
 
       const { putCustomerPoints } = replaceLink(hydraulicModel, {
+        lengthUnit: "m",
         sourceLinkId: IDS.P1,
         newLink: newPipe,
         startNode,
@@ -734,6 +747,7 @@ describe("replaceLink", () => {
       const endNode = hydraulicModel.assets.get(IDS.R1) as NodeAsset;
 
       const { putCustomerPoints } = replaceLink(hydraulicModel, {
+        lengthUnit: "m",
         sourceLinkId: IDS.P1,
         newLink: newPipe,
         startNode,
@@ -776,6 +790,7 @@ describe("replaceLink", () => {
       const { putAssets, deleteAssets, putCustomerPoints } = replaceLink(
         hydraulicModel,
         {
+          lengthUnit: "m",
           sourceLinkId: IDS.PU1,
           newLink: newPump,
           startNode,
@@ -810,6 +825,7 @@ describe("replaceLink", () => {
 
       expect(() =>
         replaceLink(hydraulicModel, {
+          lengthUnit: "m",
           sourceLinkId: IDS.NONEXISTENT,
           newLink: newPipe,
           startNode,

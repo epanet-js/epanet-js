@@ -6,7 +6,6 @@ import { Quantities, presets } from "src/model-metadata/quantities-spec";
 const quantities = new Quantities(presets.LPS);
 
 export const nullHydraulicModel: HydraulicModel = initializeHydraulicModel({
-  units: quantities.units,
   defaults: quantities.defaults,
 });
 

@@ -30,6 +30,7 @@ describe("mergeNodes", () => {
         .build();
 
       const moment = mergeNodes(model, {
+        lengthUnit: "m",
         sourceNodeId: IDS.J1,
         targetNodeId: IDS.J2,
       });
@@ -63,6 +64,7 @@ describe("mergeNodes", () => {
         .build();
 
       const moment = mergeNodes(model, {
+        lengthUnit: "m",
         sourceNodeId: IDS.J1,
         targetNodeId: IDS.J2,
       });
@@ -89,6 +91,7 @@ describe("mergeNodes", () => {
         .build();
 
       const moment = mergeNodes(model, {
+        lengthUnit: "m",
         sourceNodeId: IDS.J1,
         targetNodeId: IDS.T1,
       });
@@ -113,6 +116,7 @@ describe("mergeNodes", () => {
         .build();
 
       const moment = mergeNodes(model, {
+        lengthUnit: "m",
         sourceNodeId: IDS.T1,
         targetNodeId: IDS.J1,
       });
@@ -133,6 +137,7 @@ describe("mergeNodes", () => {
         .build();
 
       const moment = mergeNodes(model, {
+        lengthUnit: "m",
         sourceNodeId: IDS.J1,
         targetNodeId: IDS.T1,
       });
@@ -157,6 +162,7 @@ describe("mergeNodes", () => {
       .build();
 
     const moment = mergeNodes(model, {
+      lengthUnit: "m",
       sourceNodeId: IDS.J1,
       targetNodeId: IDS.J2,
     });
@@ -189,6 +195,7 @@ describe("mergeNodes", () => {
       .build();
 
     const moment = mergeNodes(model, {
+      lengthUnit: "m",
       sourceNodeId: IDS.J1,
       targetNodeId: IDS.T1,
     });
@@ -213,6 +220,7 @@ describe("mergeNodes", () => {
       .build();
 
     const moment = mergeNodes(model, {
+      lengthUnit: "m",
       sourceNodeId: IDS.T1,
       targetNodeId: IDS.J1,
     });
@@ -239,6 +247,7 @@ describe("mergeNodes", () => {
       .build();
 
     const moment = mergeNodes(model, {
+      lengthUnit: "m",
       sourceNodeId: IDS.J1,
       targetNodeId: IDS.J2,
     });
@@ -276,6 +285,7 @@ describe("mergeNodes", () => {
       .build();
 
     const moment = mergeNodes(model, {
+      lengthUnit: "m",
       sourceNodeId: IDS.J1,
       targetNodeId: IDS.J2,
     });
@@ -300,6 +310,7 @@ describe("mergeNodes", () => {
       .build();
 
     const moment = mergeNodes(model, {
+      lengthUnit: "m",
       sourceNodeId: IDS.J1,
       targetNodeId: IDS.J2,
     });
@@ -322,6 +333,7 @@ describe("mergeNodes", () => {
       .build();
 
     const moment = mergeNodes(model, {
+      lengthUnit: "m",
       sourceNodeId: IDS.R1,
       targetNodeId: IDS.T1,
     });
@@ -345,6 +357,7 @@ describe("mergeNodes", () => {
       .build();
 
     const moment = mergeNodes(model, {
+      lengthUnit: "m",
       sourceNodeId: IDS.R1,
       targetNodeId: IDS.J1,
     });
@@ -369,6 +382,7 @@ describe("mergeNodes", () => {
       .build();
 
     const moment = mergeNodes(model, {
+      lengthUnit: "m",
       sourceNodeId: IDS.J1,
       targetNodeId: IDS.R1,
     });
@@ -393,6 +407,7 @@ describe("mergeNodes", () => {
       .build();
 
     const moment = mergeNodes(model, {
+      lengthUnit: "m",
       sourceNodeId: IDS.T1,
       targetNodeId: IDS.T2,
     });
@@ -417,6 +432,7 @@ describe("mergeNodes", () => {
       .build();
 
     const moment = mergeNodes(model, {
+      lengthUnit: "m",
       sourceNodeId: IDS.R1,
       targetNodeId: IDS.R2,
     });
@@ -443,6 +459,7 @@ describe("mergeNodes", () => {
       .build();
 
     const moment = mergeNodes(model, {
+      lengthUnit: "m",
       sourceNodeId: IDS.J1,
       targetNodeId: IDS.R1,
     });
@@ -481,6 +498,7 @@ describe("mergeNodes", () => {
       .build();
 
     const moment = mergeNodes(model, {
+      lengthUnit: "m",
       sourceNodeId: IDS.J1,
       targetNodeId: IDS.T1,
     });
@@ -508,6 +526,7 @@ describe("mergeNodes", () => {
 
     expect(() => {
       mergeNodes(model, {
+        lengthUnit: "m",
         sourceNodeId: 999,
         targetNodeId: IDS.J1,
       });
@@ -522,6 +541,7 @@ describe("mergeNodes", () => {
 
     expect(() => {
       mergeNodes(model, {
+        lengthUnit: "m",
         sourceNodeId: IDS.J1,
         targetNodeId: 999,
       });
@@ -538,6 +558,7 @@ describe("mergeNodes", () => {
       .build();
 
     const moment = mergeNodes(model, {
+      lengthUnit: "m",
       sourceNodeId: IDS.J1,
       targetNodeId: IDS.J2,
     });
@@ -563,6 +584,7 @@ describe("mergeNodes", () => {
       .build();
 
     const moment = mergeNodes(model, {
+      lengthUnit: "m",
       sourceNodeId: IDS.J1,
       targetNodeId: IDS.J2,
     });
@@ -592,6 +614,7 @@ describe("mergeNodes", () => {
       .build();
 
     const moment = mergeNodes(model, {
+      lengthUnit: "m",
       sourceNodeId: IDS.J1,
       targetNodeId: IDS.J2,
     });
@@ -620,6 +643,7 @@ describe("mergeNodes", () => {
       .build();
 
     const moment = mergeNodes(model, {
+      lengthUnit: "m",
       sourceNodeId: IDS.J1,
       targetNodeId: IDS.J2,
     });
@@ -636,6 +660,7 @@ describe("mergeNodes", () => {
       .build();
 
     const moment = mergeNodes(model, {
+      lengthUnit: "m",
       sourceNodeId: IDS.J1,
       targetNodeId: IDS.J2,
     });

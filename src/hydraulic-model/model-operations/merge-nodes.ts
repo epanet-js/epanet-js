@@ -16,6 +16,7 @@ import { Unit } from "src/quantity";
 type InputData = {
   sourceNodeId: AssetId;
   targetNodeId: AssetId;
+  lengthUnit: Unit;
 };
 
 const determineWinner = (
@@ -38,7 +39,7 @@ const determineWinner = (
 
 export const mergeNodes: ModelOperation<InputData> = (
   hydraulicModel,
-  { sourceNodeId, targetNodeId },
+  { sourceNodeId, targetNodeId, lengthUnit },
 ) => {
   const { sourceNode, targetNode } = validateAndGetNodes(
     hydraulicModel.assets,
@@ -55,6 +56,7 @@ export const mergeNodes: ModelOperation<InputData> = (
     loserNode,
     targetNode,
     hydraulicModel,
+    lengthUnit,
   );
 
   const shouldBeActive = updatedLinks.length
@@ -171,8 +173,9 @@ const processConnectedLinks = (
   loserNode: NodeAsset,
   targetNode: NodeAsset,
   hydraulicModel: HydraulicModel,
+  lengthUnit: Unit,
 ): { updatedLinks: LinkAsset[]; updatedCustomerPoints: CustomerPoints } => {
-  const { topology, assets, customerPointsLookup, units } = hydraulicModel;
+  const { topology, assets, customerPointsLookup } = hydraulicModel;
   const updatedLinks: LinkAsset[] = [];
   const updatedCustomerPoints = new CustomerPoints();
 
@@ -185,7 +188,7 @@ const processConnectedLinks = (
     customerPointsLookup,
     updatedLinks,
     updatedCustomerPoints,
-    units.length,
+    lengthUnit,
   );
 
   updateLoserLinks(
@@ -198,7 +201,7 @@ const processConnectedLinks = (
     customerPointsLookup,
     updatedLinks,
     updatedCustomerPoints,
-    units.length,
+    lengthUnit,
   );
 
   return { updatedLinks, updatedCustomerPoints };

@@ -2,6 +2,7 @@ import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { SimulationSettingsBuilder } from "src/__helpers__/simulation-settings-builder";
 import { lib } from "src/lib/worker";
 import { buildInp } from "../build-inp";
+import { presets } from "src/model-metadata/quantities-spec";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { runSimulation } from "./main";
 import {
@@ -32,6 +33,7 @@ describe("EPS simulation", () => {
       .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
       .build();
     const inp = buildInp(hydraulicModel, {
+      units: presets.LPS.units,
       simulationSettings: defaultSimulationSettings,
     });
 
@@ -55,7 +57,10 @@ describe("EPS simulation", () => {
     const simulationSettings = SimulationSettingsBuilder.with()
       .timing({ duration: 7200, hydraulicTimestep: 3600 }) // 2 hours, 1 hour timestep
       .build();
-    const inp = buildInp(hydraulicModel, { simulationSettings });
+    const inp = buildInp(hydraulicModel, {
+      units: presets.LPS.units,
+      simulationSettings,
+    });
 
     const { status, metadata } = await runSimulation(inp, "test-app-id");
     const simulationMetadata = new SimulationMetadata(metadata);
@@ -80,6 +85,7 @@ describe("EPS simulation", () => {
       .aPipe(IDS.P2, { startNodeId: IDS.T1, endNodeId: IDS.J1 })
       .build();
     const inp = buildInp(hydraulicModel, {
+      units: presets.LPS.units,
       simulationSettings: defaultSimulationSettings,
     });
 
@@ -99,6 +105,7 @@ describe("EPS simulation", () => {
       .aJunction(IDS.J2) // Disconnected junction causes error
       .build();
     const inp = buildInp(hydraulicModel, {
+      units: presets.LPS.units,
       simulationSettings: defaultSimulationSettings,
     });
 
@@ -118,6 +125,7 @@ describe("EPS simulation", () => {
       .aJunction(IDS.J2) // Disconnected junction
       .build();
     const inp = buildInp(hydraulicModel, {
+      units: presets.LPS.units,
       simulationSettings: defaultSimulationSettings,
     });
 
@@ -138,7 +146,10 @@ describe("EPS simulation", () => {
     const simulationSettings = SimulationSettingsBuilder.with()
       .timing({ duration: 7200, hydraulicTimestep: 3600 }) // 2 hours, 1 hour timestep
       .build();
-    const inp = buildInp(hydraulicModel, { simulationSettings });
+    const inp = buildInp(hydraulicModel, {
+      units: presets.LPS.units,
+      simulationSettings,
+    });
 
     const progressUpdates: SimulationProgress[] = [];
     const onProgress = (progress: SimulationProgress) => {

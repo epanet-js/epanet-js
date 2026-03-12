@@ -22,6 +22,7 @@ describe("splitPipe", () => {
     });
 
     const { putAssets, deleteAssets } = splitPipe(hydraulicModel, {
+      lengthUnit: "m",
       pipe,
       splits: [splitNode],
     });
@@ -64,6 +65,7 @@ describe("splitPipe", () => {
     });
 
     const { putAssets } = splitPipe(hydraulicModel, {
+      lengthUnit: "m",
       pipe,
       splits: [splitNode],
     });
@@ -109,6 +111,7 @@ describe("splitPipe", () => {
     });
 
     const { putAssets } = splitPipe(hydraulicModel, {
+      lengthUnit: "m",
       pipe,
       splits: [splitNode],
     });
@@ -138,6 +141,7 @@ describe("splitPipe", () => {
     });
 
     const { putAssets } = splitPipe(hydraulicModel, {
+      lengthUnit: "m",
       pipe,
       splits: [splitNode],
     });
@@ -175,6 +179,7 @@ describe("splitPipe", () => {
     });
 
     const { putAssets } = splitPipe(hydraulicModel, {
+      lengthUnit: "m",
       pipe: originalPipe,
       splits: [splitNode],
     });
@@ -208,6 +213,7 @@ describe("splitPipe", () => {
     });
 
     const { putAssets } = splitPipe(hydraulicModel, {
+      lengthUnit: "m",
       pipe,
       splits: [splitNode],
     });
@@ -234,10 +240,7 @@ describe("splitPipe", () => {
     const pipe = hydraulicModel.assets.get(IDS.P1) as Pipe;
 
     expect(() => {
-      splitPipe(hydraulicModel, {
-        pipe,
-        splits: [],
-      });
+      splitPipe(hydraulicModel, { lengthUnit: "m", pipe, splits: [] });
     }).toThrow("At least one split is required");
   });
 
@@ -259,6 +262,7 @@ describe("splitPipe", () => {
     });
 
     const { putAssets } = splitPipe(hydraulicModel, {
+      lengthUnit: "m",
       pipe,
       splits: [splitNode],
     });
@@ -295,6 +299,7 @@ describe("splitPipe", () => {
     });
 
     const { putAssets, deleteAssets } = splitPipe(hydraulicModel, {
+      lengthUnit: "m",
       pipe,
       splits: [splitNode1, splitNode2],
     });
@@ -360,6 +365,7 @@ describe("splitPipe", () => {
     });
 
     const { putAssets } = splitPipe(hydraulicModel, {
+      lengthUnit: "m",
       pipe,
       splits: [splitNode1, splitNode2],
     });
@@ -415,6 +421,7 @@ describe("splitPipe", () => {
     });
 
     const { putAssets } = splitPipe(hydraulicModel, {
+      lengthUnit: "m",
       pipe: originalPipe,
       splits: [splitNode1, splitNode2],
     });
@@ -454,6 +461,7 @@ describe("splitPipe", () => {
     });
 
     const { putAssets } = splitPipe(hydraulicModel, {
+      lengthUnit: "m",
       pipe,
       splits: [splitNode1, splitNode2],
     });
@@ -511,6 +519,7 @@ describe("splitPipe", () => {
     });
 
     const { putAssets } = splitPipe(hydraulicModel, {
+      lengthUnit: "m",
       pipe,
       splits: [splitNode],
     });
@@ -571,6 +580,7 @@ describe("splitPipe", () => {
     });
 
     const { putAssets, putCustomerPoints } = splitPipe(hydraulicModel, {
+      lengthUnit: "m",
       pipe,
       splits: [splitNode],
     });
@@ -650,6 +660,7 @@ describe("splitPipe", () => {
     });
 
     const { putAssets, putCustomerPoints } = splitPipe(hydraulicModel, {
+      lengthUnit: "m",
       pipe,
       splits: [splitNode1, splitNode2],
     });
@@ -686,6 +697,7 @@ describe("splitPipe", () => {
     });
 
     const { putAssets, putCustomerPoints } = splitPipe(hydraulicModel, {
+      lengthUnit: "m",
       pipe,
       splits: [splitNode],
     });
@@ -723,6 +735,7 @@ describe("splitPipe", () => {
     });
 
     const { putAssets, putCustomerPoints } = splitPipe(hydraulicModel, {
+      lengthUnit: "m",
       pipe,
       splits: [splitNode],
     });
@@ -775,6 +788,7 @@ describe("splitPipe", () => {
     });
 
     const { putAssets, putCustomerPoints } = splitPipe(hydraulicModel, {
+      lengthUnit: "m",
       pipe,
       splits: [splitReservoir],
     });
@@ -827,6 +841,7 @@ describe("splitPipe", () => {
     });
 
     const { putAssets } = splitPipe(hydraulicModel, {
+      lengthUnit: "m",
       pipe,
       splits: [splitNode],
     });
@@ -868,6 +883,7 @@ describe("splitPipe", () => {
     });
 
     const { putAssets } = splitPipe(hydraulicModel, {
+      lengthUnit: "m",
       pipe,
       splits: [splitNode],
     });
@@ -909,6 +925,7 @@ describe("splitPipe", () => {
     });
 
     const { putAssets } = splitPipe(hydraulicModel, {
+      lengthUnit: "m",
       pipe,
       splits: [splitNodeAtStart],
     });
@@ -944,6 +961,7 @@ describe("splitPipe", () => {
     });
 
     const { putAssets } = splitPipe(hydraulicModel, {
+      lengthUnit: "m",
       pipe,
       splits: [splitNode],
     });
@@ -988,6 +1006,7 @@ describe("splitPipe", () => {
     });
 
     const { putAssets } = splitPipe(hydraulicModel, {
+      lengthUnit: "m",
       pipe,
       splits: [splitNode],
     });
@@ -1031,6 +1050,7 @@ describe("splitPipe", () => {
     });
 
     const { putAssets, deleteAssets } = splitPipe(hydraulicModel, {
+      lengthUnit: "m",
       pipe,
       splits: [splitNode],
     });
@@ -1070,6 +1090,7 @@ describe("splitPipe", () => {
     });
 
     const moment = splitPipe(model, {
+      lengthUnit: "m",
       pipe,
       splits: [splitNode],
     });
@@ -1100,6 +1121,7 @@ describe("splitPipe", () => {
     });
 
     const moment = splitPipe(model, {
+      lengthUnit: "m",
       pipe,
       splits: [splitNode],
     });
@@ -1133,6 +1155,7 @@ describe("splitPipe", () => {
     });
 
     const moment = splitPipe(model, {
+      lengthUnit: "m",
       pipe,
       splits: [splitNode1, splitNode2],
     });

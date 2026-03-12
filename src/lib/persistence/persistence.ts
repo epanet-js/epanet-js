@@ -427,7 +427,6 @@ export class Persistence implements IPersistenceWithSnapshots {
     const ctx = this.store.get(dataAtom);
     const currentHydraulicModel = this.store.get(stagingModelAtom);
     const model = initializeHydraulicModel({
-      units: currentHydraulicModel.units,
       defaults: ctx.modelMetadata.quantities.defaults,
       idGenerator: currentHydraulicModel.assetBuilder.idGenerator,
     });

@@ -71,6 +71,7 @@ export const useSaveInp = ({
             reservoirElevations: true,
             projectionMapper: modelMetadata.projectionMapper,
             simulationSettings,
+            units: modelMetadata.quantities.units,
           };
           const inp = buildInp(hydraulicModel, buildOptions);
           const inpBlob = new Blob([inp], { type: "text/plain" });

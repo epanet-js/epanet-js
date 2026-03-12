@@ -8,6 +8,7 @@ describe("build inp export ", () => {
     labelIds: true,
     geolocation: true,
     simulationSettings: defaultSimulationSettings,
+    units: presets.LPS.units,
   };
 
   it("adds reservoirs", () => {
@@ -156,11 +157,10 @@ describe("build inp export ", () => {
   it("detects units based on the flow units of the model", () => {
     const hydraulicModel = HydraulicModelBuilder.with(presets.GPM).build();
 
-    const inp = buildInp(
-      hydraulicModel,
-
-      exportOptions,
-    );
+    const inp = buildInp(hydraulicModel, {
+      ...exportOptions,
+      units: presets.GPM.units,
+    });
 
     expect(rowsFrom(inp)).toContain("Units\tGPM");
   });
@@ -184,6 +184,7 @@ describe("build inp export ", () => {
       .build();
 
     const without = buildInp(hydraulicModel, {
+      units: presets.LPS.units,
       simulationSettings: defaultSimulationSettings,
     });
     expect(rowsFrom(without)).not.toContain("[COORDINATES]");

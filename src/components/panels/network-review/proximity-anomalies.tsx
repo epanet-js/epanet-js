@@ -13,6 +13,7 @@ import {
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useAtomValue } from "jotai";
 import { stagingModelAtom } from "src/state/hydraulic-model";
+import { dataAtom } from "src/state/data";
 import { selectionAtom } from "src/state/selection";
 import { useTranslate } from "src/hooks/use-translate";
 import { convertTo, Quantity } from "src/quantity";
@@ -206,8 +207,9 @@ const DistanceInput = ({
 
 const useDistance = () => {
   const {
-    units: { length: unit },
-  } = useAtomValue(stagingModelAtom);
+    modelMetadata: { quantities },
+  } = useAtomValue(dataAtom);
+  const unit = quantities.getUnit("length");
   const [distance, setDistance] = useState<number>(() =>
     unit === "ft" ? DEFAULT_DISTANCE_FT : DEFAULT_DISTANCE_M,
   );
@@ -319,6 +321,9 @@ const ProximityAnomalyItem = ({
 }) => {
   const translate = useTranslate();
   const hydraulicModel = useAtomValue(stagingModelAtom);
+  const {
+    modelMetadata: { quantities },
+  } = useAtomValue(dataAtom);
   const connectionId = `${anomaly.nodeId}-${anomaly.pipeId}`;
   const isSelected = selectedId === connectionId;
 
@@ -326,7 +331,7 @@ const ProximityAnomalyItem = ({
 
   if (!nodeAsset) return null;
 
-  const lengthUnit = hydraulicModel.units.length;
+  const lengthUnit = quantities.getUnit("length");
   const distanceInModelUnits = convertTo(
     { value: anomaly.distance, unit: "m" },
     lengthUnit,

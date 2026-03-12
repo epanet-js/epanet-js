@@ -18,6 +18,7 @@ describe("build inp", () => {
       .build();
 
     const inp = buildInp(hydraulicModel, {
+      units: presets.LPS.units,
       simulationSettings: defaultSimulationSettings,
     });
 
@@ -39,6 +40,7 @@ describe("build inp", () => {
       .build();
 
     const inp = buildInp(hydraulicModel, {
+      units: presets.LPS.units,
       simulationSettings: defaultSimulationSettings,
       reservoirElevations: true,
     });
@@ -62,6 +64,7 @@ describe("build inp", () => {
       .build();
 
     const inp = buildInp(hydraulicModel, {
+      units: presets.LPS.units,
       simulationSettings: defaultSimulationSettings,
     });
 
@@ -90,6 +93,7 @@ describe("build inp", () => {
         .build();
 
       const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
         simulationSettings: defaultSimulationSettings,
       });
 
@@ -112,6 +116,7 @@ describe("build inp", () => {
         .build();
 
       const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
         simulationSettings: defaultSimulationSettings,
       });
 
@@ -130,6 +135,7 @@ describe("build inp", () => {
         .build();
 
       const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
         simulationSettings: defaultSimulationSettings,
       });
 
@@ -162,6 +168,7 @@ describe("build inp", () => {
       .build();
 
     const inp = buildInp(hydraulicModel, {
+      units: presets.LPS.units,
       simulationSettings: defaultSimulationSettings,
     });
 
@@ -186,6 +193,7 @@ describe("build inp", () => {
       .build();
 
     const inp = buildInp(hydraulicModel, {
+      units: presets.LPS.units,
       simulationSettings: defaultSimulationSettings,
     });
 
@@ -220,6 +228,7 @@ describe("build inp", () => {
       .build();
 
     const inp = buildInp(hydraulicModel, {
+      units: presets.LPS.units,
       simulationSettings: defaultSimulationSettings,
     });
 
@@ -252,6 +261,7 @@ describe("build inp", () => {
       .build();
 
     const inp = buildInp(hydraulicModel, {
+      units: presets.LPS.units,
       simulationSettings: defaultSimulationSettings,
     });
 
@@ -280,6 +290,7 @@ describe("build inp", () => {
       .build();
 
     const inp = buildInp(hydraulicModel, {
+      units: presets.LPS.units,
       simulationSettings: defaultSimulationSettings,
     });
 
@@ -329,6 +340,7 @@ describe("build inp", () => {
       .build();
 
     const inp = buildInp(hydraulicModel, {
+      units: presets.LPS.units,
       simulationSettings: defaultSimulationSettings,
     });
 
@@ -350,6 +362,7 @@ describe("build inp", () => {
       .build();
 
     const inp = buildInp(hydraulicModel, {
+      units: presets.LPS.units,
       simulationSettings,
     });
 
@@ -378,7 +391,10 @@ describe("build inp", () => {
       .demandModel("DDA")
       .build();
 
-    const inp = buildInp(hydraulicModel, { simulationSettings });
+    const inp = buildInp(hydraulicModel, {
+      units: presets.LPS.units,
+      simulationSettings,
+    });
 
     expect(inp).toContain("Demand Model\tDDA");
     expect(inp).not.toContain("Minimum Pressure");
@@ -396,7 +412,10 @@ describe("build inp", () => {
       .pressureExponent(0.8)
       .build();
 
-    const inp = buildInp(hydraulicModel, { simulationSettings });
+    const inp = buildInp(hydraulicModel, {
+      units: presets.LPS.units,
+      simulationSettings,
+    });
 
     expect(inp).toContain("Demand Model\tPDA");
     expect(inp).toContain("Minimum Pressure\t5");
@@ -411,7 +430,10 @@ describe("build inp", () => {
       .emitterExponent(0.7)
       .build();
 
-    const inp = buildInp(hydraulicModel, { simulationSettings });
+    const inp = buildInp(hydraulicModel, {
+      units: presets.LPS.units,
+      simulationSettings,
+    });
 
     expect(inp).toContain("Emitter Exponent\t0.7");
   });
@@ -427,7 +449,10 @@ describe("build inp", () => {
       .qualityTraceNodeId(TANK_ID)
       .build();
 
-    const inp = buildInp(hydraulicModel, { simulationSettings });
+    const inp = buildInp(hydraulicModel, {
+      units: presets.LPS.units,
+      simulationSettings,
+    });
 
     expect(inp).toContain("Quality\tTRACE 1");
   });
@@ -444,6 +469,7 @@ describe("build inp", () => {
       .build();
 
     const inp = buildInp(hydraulicModel, {
+      units: presets.LPS.units,
       simulationSettings,
       labelIds: true,
     });
@@ -459,7 +485,10 @@ describe("build inp", () => {
       .qualityTraceNodeId(null)
       .build();
 
-    const inp = buildInp(hydraulicModel, { simulationSettings });
+    const inp = buildInp(hydraulicModel, {
+      units: presets.LPS.units,
+      simulationSettings,
+    });
 
     expect(inp).toContain("Quality\tTRACE");
   });
@@ -468,6 +497,7 @@ describe("build inp", () => {
     const hydraulicModel = HydraulicModelBuilder.with().build();
 
     const inp = buildInp(hydraulicModel, {
+      units: presets.LPS.units,
       simulationSettings: defaultSimulationSettings,
       geolocation: true,
     });
@@ -482,6 +512,7 @@ describe("build inp", () => {
       .build();
 
     const inp = buildInp(hydraulicModel, {
+      units: presets.LPS.units,
       simulationSettings: defaultSimulationSettings,
     });
 
@@ -492,6 +523,7 @@ describe("build inp", () => {
     const hydraulicModel = HydraulicModelBuilder.with(presets.GPM).build();
 
     const inp = buildInp(hydraulicModel, {
+      units: presets.GPM.units,
       simulationSettings: defaultSimulationSettings,
     });
 
@@ -527,12 +559,14 @@ describe("build inp", () => {
       .build();
 
     const without = buildInp(hydraulicModel, {
+      units: presets.LPS.units,
       simulationSettings: defaultSimulationSettings,
     });
     expect(without).not.toContain("[COORDINATES]");
     expect(without).not.toContain("[VERTICES]");
 
     const inp = buildInp(hydraulicModel, {
+      units: presets.LPS.units,
       simulationSettings: defaultSimulationSettings,
       geolocation: true,
     });
@@ -556,6 +590,7 @@ describe("build inp", () => {
       .build();
 
     const inp = buildInp(hydraulicModel, {
+      units: presets.LPS.units,
       simulationSettings: defaultSimulationSettings,
       madeBy: true,
     });
@@ -589,6 +624,7 @@ describe("build inp", () => {
       .build();
 
     const inp = buildInp(hydraulicModel, {
+      units: presets.LPS.units,
       simulationSettings: defaultSimulationSettings,
       geolocation: true,
     });
@@ -622,6 +658,7 @@ describe("build inp", () => {
         .build();
 
       const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
         simulationSettings: defaultSimulationSettings,
         customerDemands: true,
       });
@@ -676,6 +713,7 @@ describe("build inp", () => {
         .build();
 
       const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
         simulationSettings: defaultSimulationSettings,
         customerDemands: true,
       });
@@ -715,6 +753,7 @@ describe("build inp", () => {
         .build();
 
       const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
         simulationSettings: defaultSimulationSettings,
         customerDemands: true,
       });
@@ -750,6 +789,7 @@ describe("build inp", () => {
         .build();
 
       const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
         simulationSettings: defaultSimulationSettings,
         customerDemands: true,
       });
@@ -780,6 +820,7 @@ describe("build inp", () => {
         .build();
 
       const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
         simulationSettings: defaultSimulationSettings,
         customerDemands: false,
       });
@@ -809,6 +850,7 @@ describe("build inp", () => {
         .build();
 
       const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
         simulationSettings: defaultSimulationSettings,
         customerDemands: true,
       });
@@ -844,6 +886,7 @@ describe("build inp", () => {
         .build();
 
       const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
         simulationSettings: defaultSimulationSettings,
         customerDemands: true,
         customerPoints: true,
@@ -878,6 +921,7 @@ describe("build inp", () => {
         .build();
 
       const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
         simulationSettings: defaultSimulationSettings,
         customerDemands: true,
         customerPoints: true,
@@ -914,6 +958,7 @@ describe("build inp", () => {
         .build();
 
       const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
         simulationSettings: defaultSimulationSettings,
         customerPoints: true,
         geolocation: true,
@@ -930,6 +975,7 @@ describe("build inp", () => {
       const hydraulicModel = HydraulicModelBuilder.with().build();
 
       const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
         simulationSettings: SimulationSettingsBuilder.with()
           .timing({ duration: 86400 })
           .build(), // 24 hours
@@ -943,6 +989,7 @@ describe("build inp", () => {
       const hydraulicModel = HydraulicModelBuilder.with().build();
 
       const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
         simulationSettings: SimulationSettingsBuilder.with()
           .timing({ duration: 86400, hydraulicTimestep: 3600 }) // 1 hour timestep
           .build(),
@@ -957,6 +1004,7 @@ describe("build inp", () => {
       const hydraulicModel = HydraulicModelBuilder.with().build();
 
       const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
         simulationSettings: SimulationSettingsBuilder.with()
           .timing({ duration: 86400, reportTimestep: 7200 }) // 2 hour timestep
           .build(),
@@ -970,6 +1018,7 @@ describe("build inp", () => {
       const hydraulicModel = HydraulicModelBuilder.with().build();
 
       const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
         simulationSettings: SimulationSettingsBuilder.with()
           .timing({ duration: 86400, patternTimestep: 10800 }) // 3 hour timestep
           .build(),
@@ -983,6 +1032,7 @@ describe("build inp", () => {
       const hydraulicModel = HydraulicModelBuilder.with().build();
 
       const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
         simulationSettings: SimulationSettingsBuilder.with()
           .timing({ duration: 5400 })
           .build(), // 1 hour 30 minutes
@@ -995,6 +1045,7 @@ describe("build inp", () => {
       const hydraulicModel = HydraulicModelBuilder.with().build();
 
       const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
         simulationSettings: SimulationSettingsBuilder.with()
           .timing({ duration: 3723 })
           .build(), // 1 hour 2 minutes 3 seconds
@@ -1007,6 +1058,7 @@ describe("build inp", () => {
       const hydraulicModel = HydraulicModelBuilder.with().build();
 
       const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
         simulationSettings: SimulationSettingsBuilder.with()
           .timing({ duration: 172800 }) // 48 hours
           .build(),
@@ -1020,6 +1072,7 @@ describe("build inp", () => {
       const hydraulicModel = HydraulicModelBuilder.with().build();
 
       const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
         simulationSettings: SimulationSettingsBuilder.with()
           .timing({
             duration: 86400, // 24 hours
@@ -1041,6 +1094,7 @@ describe("build inp", () => {
       const hydraulicModel = HydraulicModelBuilder.with().build();
 
       const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
         simulationSettings: defaultSimulationSettings,
       });
 
@@ -1067,6 +1121,7 @@ describe("build inp", () => {
         .build();
 
       const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
         simulationSettings: defaultSimulationSettings,
       });
 
@@ -1092,6 +1147,7 @@ describe("build inp", () => {
         .build();
 
       const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
         simulationSettings: defaultSimulationSettings,
         inactiveAssets: true,
       });
@@ -1131,6 +1187,7 @@ describe("build inp", () => {
         .build();
 
       const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
         simulationSettings: defaultSimulationSettings,
         geolocation: true,
         inactiveAssets: true,
@@ -1176,6 +1233,7 @@ describe("build inp", () => {
         .build();
 
       const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
         simulationSettings: defaultSimulationSettings,
         inactiveAssets: true,
       });
@@ -1202,6 +1260,7 @@ describe("build inp", () => {
         .build();
 
       const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
         simulationSettings: defaultSimulationSettings,
         inactiveAssets: true,
       });
@@ -1227,6 +1286,7 @@ describe("build inp", () => {
         .build();
 
       const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
         simulationSettings: defaultSimulationSettings,
         inactiveAssets: true,
       });
@@ -1245,6 +1305,7 @@ describe("build inp", () => {
         .build();
 
       const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
         simulationSettings: defaultSimulationSettings,
       });
 
@@ -1263,6 +1324,7 @@ describe("build inp", () => {
         .build();
 
       const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
         simulationSettings: defaultSimulationSettings,
       });
 
@@ -1292,6 +1354,7 @@ describe("build inp", () => {
         .build();
 
       const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
         simulationSettings: defaultSimulationSettings,
       });
 
@@ -1321,6 +1384,7 @@ describe("build inp", () => {
         .build();
 
       const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
         simulationSettings: defaultSimulationSettings,
         usedPatterns: true,
       });
@@ -1345,6 +1409,7 @@ describe("build inp", () => {
         .build();
 
       const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
         simulationSettings: defaultSimulationSettings,
         usedPatterns: true,
       });
@@ -1368,6 +1433,7 @@ describe("build inp", () => {
         .build();
 
       const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
         simulationSettings: defaultSimulationSettings,
       });
 
@@ -1391,6 +1457,7 @@ describe("build inp", () => {
         .build();
 
       const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
         simulationSettings: defaultSimulationSettings,
       });
 
@@ -1413,6 +1480,7 @@ describe("build inp", () => {
         .build();
 
       const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
         simulationSettings: defaultSimulationSettings,
       });
 
@@ -1429,6 +1497,7 @@ describe("build inp", () => {
         .build();
 
       const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
         simulationSettings: defaultSimulationSettings,
       });
 
@@ -1448,6 +1517,7 @@ describe("build inp", () => {
         .build();
 
       const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
         simulationSettings: defaultSimulationSettings,
         usedPatterns: true,
       });
@@ -1475,6 +1545,7 @@ describe("build inp", () => {
         .build();
 
       const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
         simulationSettings: defaultSimulationSettings,
       });
 
@@ -1499,6 +1570,7 @@ describe("build inp", () => {
         .build();
 
       const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
         simulationSettings: defaultSimulationSettings,
       });
 
@@ -1525,6 +1597,7 @@ describe("build inp", () => {
         .build();
 
       const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
         simulationSettings: defaultSimulationSettings,
         usedPatterns: true,
       });
@@ -1539,6 +1612,7 @@ describe("build inp", () => {
       const hydraulicModel = HydraulicModelBuilder.with().build();
 
       const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
         simulationSettings: defaultSimulationSettings,
       });
 
@@ -1562,6 +1636,7 @@ describe("build inp", () => {
         .build();
 
       const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
         simulationSettings: defaultSimulationSettings,
       });
 
@@ -1580,6 +1655,7 @@ describe("build inp", () => {
         .build();
 
       const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
         simulationSettings: defaultSimulationSettings,
       });
 
@@ -1595,6 +1671,7 @@ describe("build inp", () => {
       const hydraulicModel = HydraulicModelBuilder.with().build();
 
       const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
         simulationSettings: defaultSimulationSettings,
       });
 
@@ -1620,6 +1697,7 @@ THEN LINK P1 STATUS IS CLOSED`,
         .build();
 
       const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
         simulationSettings: defaultSimulationSettings,
       });
 
@@ -1644,6 +1722,7 @@ THEN LINK P1 STATUS IS OPEN ;activate pump`,
         .build();
 
       const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
         simulationSettings: defaultSimulationSettings,
       });
 
@@ -1682,6 +1761,7 @@ THEN LINK {{1}} STATUS IS OPEN`,
         .build();
 
       const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
         simulationSettings: defaultSimulationSettings,
       });
 
@@ -1720,6 +1800,7 @@ THEN LINK {{1}} STATUS IS OPEN`,
         .build();
 
       const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
         simulationSettings: defaultSimulationSettings,
         labelIds: true,
       });
@@ -1739,6 +1820,7 @@ THEN LINK {{1}} STATUS IS OPEN`,
         .build();
 
       const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
         simulationSettings: defaultSimulationSettings,
       });
 
@@ -1754,6 +1836,7 @@ THEN LINK {{1}} STATUS IS OPEN`,
         .build();
 
       const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
         simulationSettings: defaultSimulationSettings,
       });
 
@@ -1768,6 +1851,7 @@ THEN LINK {{1}} STATUS IS OPEN`,
         .build();
 
       const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
         simulationSettings: defaultSimulationSettings,
       });
       const emittersSection = inp.split("[EMITTERS]")[1]?.split("[")[0] ?? "";
@@ -1788,6 +1872,7 @@ THEN LINK {{1}} STATUS IS OPEN`,
         .build();
 
       const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
         simulationSettings: SimulationSettingsBuilder.with()
           .energyGlobalPatternId(IDS.PAT1)
           .build(),

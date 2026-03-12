@@ -89,7 +89,6 @@ export const buildModel = (
   const factories = initializeModelFactories();
 
   const hydraulicModel = initializeHydraulicModel({
-    units: quantities.units,
     defaults: quantities.defaults,
     headlossFormula: inpData.options.headlossFormula,
     demands: createEmptyDemands(),

@@ -3,6 +3,7 @@ import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import userEvent from "@testing-library/user-event";
 import { fileInfoAtom } from "src/state/file-system";
 import { stagingModelAtom } from "src/state/hydraulic-model";
+import { dataAtom } from "src/state/data";
 import { momentLogAtom } from "src/state/model-changes";
 import { Store } from "src/state";
 import { MomentLog } from "src/lib/persistence/moment-log";
@@ -28,8 +29,9 @@ describe("create new project", () => {
 
     await userEvent.click(screen.getByRole("button", { name: /create/i }));
 
-    const hydraulicModel = store.get(stagingModelAtom);
-    expect(hydraulicModel.units.flow).toEqual("gal/min");
+    expect(
+      store.get(dataAtom).modelMetadata.quantities.getUnit("flow"),
+    ).toEqual("gal/min");
   });
 
   it("allows to chooose the headloss formula", async () => {
@@ -80,7 +82,9 @@ describe("create new project", () => {
 
     const hydraulicModel = store.get(stagingModelAtom);
     expect(hydraulicModel.assets.size).toEqual(0);
-    expect(hydraulicModel.units.flow).toEqual("l/s");
+    expect(
+      store.get(dataAtom).modelMetadata.quantities.getUnit("flow"),
+    ).toEqual("l/s");
 
     const momentLog = store.get(momentLogAtom);
     expect(momentLog.getDeltas().length).toEqual(0);

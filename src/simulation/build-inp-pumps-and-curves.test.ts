@@ -1,5 +1,6 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { buildInp } from "./build-inp";
+import { presets } from "src/model-metadata/quantities-spec";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 
 describe("build inp with pumps and curves", () => {
@@ -24,6 +25,7 @@ describe("build inp with pumps and curves", () => {
       .build();
 
     const inp = buildInp(hydraulicModel, {
+      units: presets.LPS.units,
       simulationSettings: defaultSimulationSettings,
       labelIds: true,
     });
@@ -52,6 +54,7 @@ describe("build inp with pumps and curves", () => {
       .build();
 
     const inp = buildInp(hydraulicModel, {
+      units: presets.LPS.units,
       simulationSettings: defaultSimulationSettings,
     });
 
@@ -101,6 +104,7 @@ describe("build inp with pumps and curves", () => {
       .build();
 
     const inp = buildInp(hydraulicModel, {
+      units: presets.LPS.units,
       simulationSettings: defaultSimulationSettings,
     });
 
@@ -145,6 +149,7 @@ describe("build inp with pumps and curves", () => {
         .build();
 
       const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
         simulationSettings: defaultSimulationSettings,
       });
 
@@ -183,6 +188,7 @@ describe("build inp with pumps and curves", () => {
         .build();
 
       const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
         simulationSettings: defaultSimulationSettings,
         usedCurves: true,
       });
@@ -223,6 +229,7 @@ describe("build inp with pumps and curves", () => {
         .build();
 
       const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
         simulationSettings: defaultSimulationSettings,
         labelIds: true,
       });
@@ -266,6 +273,7 @@ describe("build inp with pumps and curves", () => {
         .build();
 
       const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
         simulationSettings: defaultSimulationSettings,
         labelIds: true,
       });

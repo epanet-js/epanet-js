@@ -27,6 +27,7 @@ import type {
   StatusReport,
 } from "src/simulation/simulation-settings";
 import { chooseUnitSystem } from "src/simulation/build-inp";
+import { dataAtom } from "src/state/data";
 import {
   headlossFormulas,
   headlossFormulasFullNames,
@@ -116,9 +117,12 @@ export const GeneralSection = () => {
   const translate = useTranslate();
   const readonly = useAtomValue(hasScenariosAtom);
   const hydraulicModel = useAtomValue(stagingModelAtom);
+  const {
+    modelMetadata: { quantities },
+  } = useAtomValue(dataAtom);
   const { values, setFieldValue } = useFormikContext<FormValues>();
 
-  const flowUnitsDisplay = chooseUnitSystem(hydraulicModel.units);
+  const flowUnitsDisplay = chooseUnitSystem(quantities.units);
   const headlossIndex = headlossFormulas.indexOf(
     hydraulicModel.headlossFormula,
   );

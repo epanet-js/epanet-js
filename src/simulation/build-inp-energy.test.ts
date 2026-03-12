@@ -1,6 +1,7 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { SimulationSettingsBuilder } from "src/__helpers__/simulation-settings-builder";
 import { buildInp } from "./build-inp";
+import { presets } from "src/model-metadata/quantities-spec";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 
 describe("build inp energy", () => {
@@ -28,6 +29,7 @@ describe("build inp energy", () => {
         .build();
 
       const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
         simulationSettings: defaultSimulationSettings,
         labelIds: true,
       });
@@ -49,6 +51,7 @@ describe("build inp energy", () => {
         .build();
 
       const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
         simulationSettings: defaultSimulationSettings,
         labelIds: true,
       });
@@ -71,6 +74,7 @@ describe("build inp energy", () => {
         .build();
 
       const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
         simulationSettings: defaultSimulationSettings,
         labelIds: true,
       });
@@ -91,6 +95,7 @@ describe("build inp energy", () => {
         .build();
 
       const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
         simulationSettings: defaultSimulationSettings,
         labelIds: true,
       });
@@ -128,6 +133,7 @@ describe("build inp energy", () => {
         .build();
 
       const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
         simulationSettings: defaultSimulationSettings,
         usedCurves: true,
       });
@@ -152,6 +158,7 @@ describe("build inp energy", () => {
         .build();
 
       const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
         simulationSettings: defaultSimulationSettings,
         usedPatterns: true,
       });
@@ -171,6 +178,7 @@ describe("build inp energy", () => {
         .build();
 
       const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
         simulationSettings: SimulationSettingsBuilder.with()
           .energyGlobalPatternId(IDS.PAT)
           .build(),

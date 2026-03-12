@@ -5,8 +5,8 @@ import {
   CustomerPoint,
   getDefaultAllocationRules,
 } from "src/hydraulic-model/customer-points";
-import { stagingModelAtom } from "src/state/hydraulic-model";
 import { UnitsSpec } from "src/model-metadata/quantities-spec";
+import { dataAtom } from "src/state/data";
 import {
   WizardState,
   WizardActions,
@@ -44,7 +44,9 @@ export const useWizardState = (): Omit<WizardState, "allocationRules"> & {
   units: UnitsSpec;
 } & WizardActions => {
   const [state, setWizardState] = useAtom(wizardStateAtom);
-  const hydraulicModel = useAtomValue(stagingModelAtom);
+  const {
+    modelMetadata: { quantities },
+  } = useAtomValue(dataAtom);
 
   const goToStep = (step: WizardStep) => {
     setWizardState((prev) => ({ ...prev, currentStep: step, error: null }));
@@ -161,8 +163,8 @@ export const useWizardState = (): Omit<WizardState, "allocationRules"> & {
   return {
     ...state,
     allocationRules:
-      state.allocationRules ?? getDefaultAllocationRules(hydraulicModel.units),
-    units: hydraulicModel.units,
+      state.allocationRules ?? getDefaultAllocationRules(quantities.units),
+    units: quantities.units,
     goToStep,
     goNext,
     goBack,

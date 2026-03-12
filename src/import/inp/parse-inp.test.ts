@@ -2,6 +2,7 @@ import { Junction, Pipe, Reservoir } from "src/hydraulic-model";
 import { parseInp } from "./parse-inp";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { buildInp } from "src/simulation/build-inp";
+import { presets } from "src/model-metadata/quantities-spec";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { getByLabel } from "src/__helpers__/asset-queries";
 import { Valve } from "src/hydraulic-model/asset-types";
@@ -160,8 +161,8 @@ describe("Parse inp with", () => {
     [COORDINATES]
     ${IDS.R1}\t1\t1
     `;
-    const { hydraulicModel, modelMetadata } = parseInp(inp);
-    expect(hydraulicModel.units).toMatchObject({
+    const { modelMetadata } = parseInp(inp);
+    expect(modelMetadata.quantities.units).toMatchObject({
       flow: "gal/min",
     });
     expect(modelMetadata.quantities.getUnit("head")).toEqual("ft");
@@ -180,8 +181,8 @@ describe("Parse inp with", () => {
     [COORDINATES]
     ${IDS.R1}\t1\t1
     `;
-    const { hydraulicModel, modelMetadata } = parseInp(inp);
-    expect(hydraulicModel.units).toMatchObject({
+    const { modelMetadata } = parseInp(inp);
+    expect(modelMetadata.quantities.units).toMatchObject({
       flow: "l/s",
     });
     expect(modelMetadata.quantities.getUnit("head")).toEqual("m");
@@ -395,6 +396,7 @@ describe("Parse inp with", () => {
       .build();
     let inp = buildInp(hydraulicModel, {
       simulationSettings: defaultSimulationSettings,
+      units: presets.LPS.units,
       madeBy: true,
     });
 

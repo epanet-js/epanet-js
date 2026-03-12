@@ -20,6 +20,7 @@ import { colors } from "src/lib/constants";
 import clamp from "lodash/clamp";
 import { HydraulicModel } from "src/hydraulic-model";
 import type { MapEngine } from "src/map";
+import type { Quantities } from "src/model-metadata/quantities-spec";
 
 export interface CoordProps {
   x: number;
@@ -293,6 +294,7 @@ export interface HandlerContext {
   dragTargetRef: React.MutableRefObject<DragTarget | null>;
   mode: ModeWithOptions;
   hydraulicModel: HydraulicModel;
+  quantities: Quantities;
   folderMap: FolderMap;
   rep: IPersistence;
   map: MapEngine;

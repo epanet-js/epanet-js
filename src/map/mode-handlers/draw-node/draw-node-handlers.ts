@@ -20,6 +20,7 @@ export function useDrawNodeHandlers({
   rep,
   nodeType,
   map,
+  quantities,
   readonly = false,
 }: HandlerContext & { nodeType: NodeType }): Handlers {
   const setMode = useSetAtom(modeAtom);
@@ -28,8 +29,9 @@ export function useDrawNodeHandlers({
   const selection = useAtomValue(selectionAtom);
   const transact = rep.useTransact();
   const userTracking = useUserTracking();
-  const { units } = hydraulicModel;
-  const { fetchElevation, prefetchTile } = useElevations(units.elevation);
+  const { fetchElevation, prefetchTile } = useElevations(
+    quantities.getUnit("elevation"),
+  );
   const { findSnappingCandidate } = useSnapping(map, hydraulicModel.assets);
   const { selectAsset } = useSelection(selection);
 
@@ -44,6 +46,7 @@ export function useDrawNodeHandlers({
       coordinates,
       elevation,
       pipeIdToSplit,
+      lengthUnit: quantities.getUnit("length"),
     });
     transact(moment);
     userTracking.capture({ name: "asset.created", type: nodeType });

@@ -7,7 +7,6 @@ describe("asset builder", () => {
   it("assigns an id when not provided", () => {
     const quantities = new Quantities(presets.LPS);
     const assetBuilder = new AssetBuilder(
-      quantities.units,
       quantities.defaults,
       new ConsecutiveIdsGenerator(),
       new LabelManager(),

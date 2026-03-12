@@ -124,7 +124,6 @@ export const CreateNew = () => {
         projectionMapper: buildNewProjectProjectionMapper(projection),
       };
       const hydraulicModel = initializeHydraulicModel({
-        units: quantities.units,
         defaults: quantities.defaults,
         headlossFormula,
       });

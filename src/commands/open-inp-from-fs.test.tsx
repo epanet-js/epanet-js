@@ -21,6 +21,7 @@ import {
   stubFileSave,
 } from "src/__helpers__/browser-fs-mock";
 import { buildInp } from "src/simulation/build-inp";
+import { presets } from "src/model-metadata/quantities-spec";
 import { waitForNotLoading } from "src/__helpers__/ui-expects";
 import { getByLabel } from "src/__helpers__/asset-queries";
 import { useOpenInpFromFs } from "./open-inp-from-fs";
@@ -384,6 +385,7 @@ const anInpMadeByTheApp = ({ junctionId }: { junctionId: number }) => {
     .build();
   const inp = buildInp(hydraulicModel, {
     simulationSettings: defaultSimulationSettings,
+    units: presets.LPS.units,
     madeBy: true,
     geolocation: true,
   });
