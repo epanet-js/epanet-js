@@ -41,7 +41,7 @@ export const MODE_INFO: Record<
   [Mode.DRAW_PUMP]: { name: "pump" },
   [Mode.DRAW_VALVE]: { name: "valve" },
   [Mode.DRAW_TANK]: { name: "tank" },
-  [Mode.DRAW_CUSTOMER_POINT]: { name: "customer point" },
+  [Mode.DRAW_CUSTOMER_POINT]: { name: "customerPoint" },
   [Mode.CONNECT_CUSTOMER_POINTS]: { name: "connect customer points" },
   [Mode.REDRAW_LINK]: { name: "redraw link" },
   [Mode.BOUNDARY_TRACE_SELECT]: { name: "boundary trace" },
