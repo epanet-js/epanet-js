@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import { useTranslate } from "src/hooks/use-translate";
 import { simulationSettingsCategories } from "./simulation-settings-data";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 type Props = {
   activeSection: string;
@@ -20,8 +21,11 @@ export const SimulationSettingsSidebar = ({
   onSelectSection,
 }: Props) => {
   const translate = useTranslate();
+  const isModalsOn = useFeatureFlag("FLAG_MODALS");
   return (
-    <nav className="w-48 flex-shrink-0 p-3 overflow-y-auto">
+    <nav
+      className={` ${isModalsOn ? "w-64" : "w-48"} flex-shrink-0 p-3 overflow-y-auto`}
+    >
       <ul className="flex flex-col gap-0.5">
         {simulationSettingsCategories.map((category) => {
           const subcategoryIds =
