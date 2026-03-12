@@ -1,4 +1,4 @@
-import { useAtomValue } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import * as Popover from "@radix-ui/react-popover";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
@@ -26,6 +26,8 @@ import { InlineField, Section, SectionList } from "../form/fields";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { LegendRamp } from "../legends";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { selectionAtom } from "src/state/selection";
+import { USelection } from "src/selection/selection";
 
 const colorPropertyLabelFor = (
   property: string,
@@ -259,6 +261,8 @@ const CustomerPointsSection = () => {
   const userTracking = useUserTracking();
   const { customerPointsSymbology, updateCustomerPointsSymbology } =
     useSymbologyState();
+  const selection = useAtomValue(selectionAtom);
+  const setSelection = useSetAtom(selectionAtom);
 
   const handleVisibilityChange = () => {
     const newVisibility = !customerPointsSymbology.visible;
@@ -270,6 +274,10 @@ const CustomerPointsSection = () => {
     });
 
     updateCustomerPointsSymbology({ visible: newVisibility });
+
+    if (!newVisibility && selection.type === "singleCustomerPoint") {
+      setSelection(USelection.none());
+    }
   };
 
   return (

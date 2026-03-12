@@ -385,11 +385,16 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
             mapState.ephemeralState.type === "moveCustomerPoint" &&
             mapState.ephemeralState.moveActivated;
 
+          const shouldHideCustomerPointSelection =
+            !isCustomerPointsVisible &&
+            mapState.selection.type === "singleCustomerPoint";
+
           const combinedOverlay = [
             ...(shouldHideCustomerPointsOverlay || !isCustomerPointsVisible
               ? []
               : customerPointsOverlayRef.current),
-            ...(shouldHideSelectionDuringMove
+            ...(shouldHideSelectionDuringMove ||
+            shouldHideCustomerPointSelection
               ? []
               : selectionDeckLayersRef.current),
             ...ephemeralDeckLayersRef.current,
