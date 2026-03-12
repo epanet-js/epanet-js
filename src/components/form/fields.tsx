@@ -288,6 +288,7 @@ export const CollapsibleSection = ({
   className,
   children,
   action,
+  hasChanged = false,
 }: {
   title: string;
   variant?: "primary" | "secondary" | "subtle";
@@ -297,6 +298,7 @@ export const CollapsibleSection = ({
   className?: string;
   children: React.ReactNode;
   action?: React.ReactNode;
+  hasChanged?: boolean;
 }) => {
   const [uncontrolledOpen, setUncontrolledOpen] = useState(defaultOpen);
 
@@ -307,45 +309,47 @@ export const CollapsibleSection = ({
   return (
     <C.Root open={open} onOpenChange={handleOpenChange}>
       <div className={clsx("flex flex-col", className)}>
-        <div className="flex items-center gap-1">
-          <C.Trigger asChild>
-            {variant === "subtle" ? (
-              <button
-                className={clsx(
-                  "flex-1 min-w-0 flex items-center gap-1 text-sm font-semibold cursor-pointer",
-                  "-ml-4 pb-2",
-                )}
-              >
-                {open ? (
-                  <ChevronDownIcon size="sm" />
-                ) : (
-                  <ChevronRightIcon size="sm" />
-                )}
-                <span className="truncate">{title}</span>
-              </button>
-            ) : (
-              <div
-                className={clsx(
-                  "flex-1 flex items-center text-sm font-semibold cursor-pointer hover:text-gray-700 dark:hover:text-gray-100",
-                  "p-2 -mx-2 -mt-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800",
-                  {
-                    "text-gray-500": variant === "secondary",
-                    "mb-1": open,
-                  },
-                )}
-                role="button"
-                tabIndex={0}
-              >
-                <span>{title}</span>
-                <div className="flex-1 border-b border-gray-200 mx-3 mb-1" />
-                {action && <div className="h-8 w-8 -my-1">{action}</div>}
-                <div className="ml-1">
-                  {open ? <ChevronDownIcon /> : <ChevronRightIcon />}
+        <BlockComparisonField hasChanged={hasChanged}>
+          <div className="flex items-center gap-1">
+            <C.Trigger asChild>
+              {variant === "subtle" ? (
+                <button
+                  className={clsx(
+                    "flex-1 min-w-0 flex items-center gap-1 text-sm font-semibold cursor-pointer",
+                    "pb-2",
+                  )}
+                >
+                  {open ? (
+                    <ChevronDownIcon size="sm" />
+                  ) : (
+                    <ChevronRightIcon size="sm" />
+                  )}
+                  <span className="truncate">{title}</span>
+                </button>
+              ) : (
+                <div
+                  className={clsx(
+                    "flex-1 flex items-center text-sm font-semibold cursor-pointer hover:text-gray-700 dark:hover:text-gray-100",
+                    "p-2 -mx-2 -mt-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800",
+                    {
+                      "text-gray-500": variant === "secondary",
+                      "mb-1": open,
+                    },
+                  )}
+                  role="button"
+                  tabIndex={0}
+                >
+                  <span>{title}</span>
+                  <div className="flex-1 border-b border-gray-200 mx-3 mb-1" />
+                  {action && <div className="h-8 w-8 -my-1">{action}</div>}
+                  <div className="ml-1">
+                    {open ? <ChevronDownIcon /> : <ChevronRightIcon />}
+                  </div>
                 </div>
-              </div>
-            )}
-          </C.Trigger>
-        </div>
+              )}
+            </C.Trigger>
+          </div>
+        </BlockComparisonField>
         <C.Content className="flex flex-col gap-1">{children}</C.Content>
       </div>
     </C.Root>

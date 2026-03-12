@@ -67,7 +67,23 @@ export const multiAssetPanelCollapseAtom =
     tank: true,
   });
 
-export const pumpEnergySectionsCollapseAtom = atomWithStorage(
-  "pumpEnergySectionsCollapse",
-  { energy: false, energyResults: false },
-);
+export type AssetPanelSectionExpanded = {
+  connections: boolean;
+  activeTopology: boolean;
+  modelAttributes: boolean;
+  demands: boolean;
+  simulationResults: boolean;
+  energy: boolean;
+  energyResults: boolean;
+};
+
+export const assetPanelSectionsExpandedAtom =
+  atomWithStorage<AssetPanelSectionExpanded>("assetPanelSectionsCollapse", {
+    connections: true,
+    activeTopology: true,
+    modelAttributes: true,
+    demands: true,
+    simulationResults: true,
+    energy: false,
+    energyResults: false,
+  });

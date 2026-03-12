@@ -33,7 +33,10 @@ import { useTranslate } from "src/hooks/use-translate";
 import { usePersistence } from "src/lib/persistence";
 import { useUserTracking } from "src/infra/user-tracking";
 import { stagingModelAtom } from "src/state/hydraulic-model";
-import { pumpEnergySectionsCollapseAtom } from "src/state/layout";
+import {
+  assetPanelSectionsExpandedAtom,
+  type AssetPanelSectionExpanded,
+} from "src/state/layout";
 import { simulationSettingsAtom } from "src/state/simulation-settings";
 import {
   changeProperty,
@@ -111,37 +114,6 @@ type OnPropertyChange = <P extends ChangeableProperty>(
   oldValue: ChangeablePropertyValue<P> | null,
 ) => void;
 type OnStatusChange<T> = (newStatus: T, oldStatus: T) => void;
-
-const pipeStatusLabel = (sim: Pick<PipeSimulation, "status"> | null) => {
-  if (!sim) return "notAvailable";
-  return "pipe." + sim.status;
-};
-
-const pumpStatusLabel = (
-  sim: {
-    status: PumpSimulation["status"] | null;
-    statusWarning: PumpSimulation["statusWarning"];
-  } | null,
-) => {
-  if (!sim || sim.status === null) return "notAvailable";
-  if (sim.statusWarning) {
-    return `pump.${sim.status}.${sim.statusWarning}`;
-  }
-  return "pump." + sim.status;
-};
-
-export const valveStatusLabel = (
-  sim: {
-    status: ValveSimulation["status"] | null;
-    statusWarning: ValveSimulation["statusWarning"];
-  } | null,
-) => {
-  if (!sim || sim.status === null) return "notAvailable";
-  if (sim.statusWarning) {
-    return `valve.${sim.status}.${sim.statusWarning}`;
-  }
-  return "valve." + sim.status;
-};
 
 export function AssetPanel({
   asset,
@@ -447,6 +419,21 @@ const JunctionEditor = ({
     [customerPoints, hydraulicModel.demands, hydraulicModel.patterns],
   );
 
+  const activeTopologyComparison = getComparison("isActive", junction.isActive);
+  const hasModelAttributesChanges = ["elevation", "emitterCoefficient"].some(
+    (property) =>
+      getComparison(property, junction.getProperty(property)).hasChanged,
+  );
+  const hasDemandChanges =
+    getDirectDemandComparison(
+      calculateAverageDemand(
+        getJunctionDemands(hydraulicModel.demands, junction.id),
+        hydraulicModel.patterns,
+      ),
+    ).hasChanged ||
+    getCustomerCountComparison(customerCount).hasChanged ||
+    getCustomerDemandComparison(totalDemand).hasChanged;
+
   return (
     <AssetEditorContent
       label={junction.label}
@@ -457,16 +444,24 @@ const JunctionEditor = ({
       readOnly={readonly}
       key={junction.id}
     >
-      <Section title={translate("activeTopology")}>
+      <SectionHeader
+        title={translate("activeTopology")}
+        section="activeTopology"
+        hasChanged={activeTopologyComparison.hasChanged}
+      >
         <SwitchRow
           name="isActive"
           label={translate("isEnabled")}
           enabled={junction.isActive}
-          comparison={getComparison("isActive", junction.isActive)}
+          comparison={activeTopologyComparison}
           readOnly={readonly}
         />
-      </Section>
-      <Section title={translate("modelAttributes")}>
+      </SectionHeader>
+      <SectionHeader
+        title={translate("modelAttributes")}
+        section="modelAttributes"
+        hasChanged={hasModelAttributesChanges}
+      >
         <QuantityRow
           name="elevation"
           value={junction.elevation}
@@ -489,8 +484,12 @@ const JunctionEditor = ({
           positiveOnly={true}
           readOnly={readonly}
         />
-      </Section>
-      <Section title={translate("demands")}>
+      </SectionHeader>
+      <SectionHeader
+        title={translate("demands")}
+        section="demands"
+        hasChanged={hasDemandChanges}
+      >
         <DemandsEditor
           demands={getJunctionDemands(hydraulicModel.demands, junction.id)}
           patterns={hydraulicModel.patterns}
@@ -530,8 +529,11 @@ const JunctionEditor = ({
             />
           </>
         )}
-      </Section>
-      <Section title={translate("simulationResults")}>
+      </SectionHeader>
+      <SectionHeader
+        title={translate("simulationResults")}
+        section="simulationResults"
+      >
         <QuantityRow
           name="pressure"
           value={simPressure}
@@ -553,7 +555,7 @@ const JunctionEditor = ({
           decimals={quantitiesMetadata.getDecimals("actualDemand")}
           readOnly={true}
         />
-      </Section>
+      </SectionHeader>
     </AssetEditorContent>
   );
 };
@@ -650,6 +652,18 @@ const PipeEditor = ({
     onStatusChange(newValue, oldValue);
   };
 
+  const activeTopologyComparison = getComparison("isActive", pipe.isActive);
+  const hasModelAttributesChanges = [
+    "initialStatus",
+    "diameter",
+    "length",
+    "roughness",
+    "minorLoss",
+  ].some((p) => getComparison(p, pipe.getProperty(p)).hasChanged);
+  const hasDemandChanges =
+    getCustomerCountComparison(customerCount).hasChanged ||
+    getCustomerDemandComparison(totalDemand).hasChanged;
+
   return (
     <AssetEditorContent
       label={pipe.label}
@@ -660,21 +674,29 @@ const PipeEditor = ({
       readOnly={readonly}
       key={pipe.id}
     >
-      <Section title={translate("connections")}>
+      <SectionHeader title={translate("connections")} section="connections">
         <TextRow name="startNode" value={startNode ? startNode.label : ""} />
         <TextRow name="endNode" value={endNode ? endNode.label : ""} />
-      </Section>
-      <Section title={translate("activeTopology")}>
+      </SectionHeader>
+      <SectionHeader
+        title={translate("activeTopology")}
+        section="activeTopology"
+        hasChanged={activeTopologyComparison.hasChanged}
+      >
         <SwitchRow
           name="isActive"
           label={translate("isEnabled")}
           enabled={pipe.isActive}
-          comparison={getComparison("isActive", pipe.isActive)}
+          comparison={activeTopologyComparison}
           onChange={onActiveTopologyStatusChange}
           readOnly={readonly}
         />
-      </Section>
-      <Section title={translate("modelAttributes")}>
+      </SectionHeader>
+      <SectionHeader
+        title={translate("modelAttributes")}
+        section="modelAttributes"
+        hasChanged={hasModelAttributesChanges}
+      >
         <SelectRow
           name="initialStatus"
           selected={pipe.initialStatus}
@@ -725,10 +747,14 @@ const PipeEditor = ({
           onChange={onPropertyChange}
           readOnly={readonly}
         />
-      </Section>
+      </SectionHeader>
       {(customerCount > 0 ||
         getCustomerCountComparison(customerCount).hasChanged) && (
-        <Section title={translate("demands")}>
+        <SectionHeader
+          title={translate("demands")}
+          section="demands"
+          hasChanged={hasDemandChanges}
+        >
           <QuantityRow
             name="customerDemand"
             value={totalDemand}
@@ -754,9 +780,12 @@ const PipeEditor = ({
             patterns={hydraulicModel.patterns}
             comparison={getCustomerCountComparison(customerCount)}
           />
-        </Section>
+        </SectionHeader>
       )}
-      <Section title={translate("simulationResults")}>
+      <SectionHeader
+        title={translate("simulationResults")}
+        section="simulationResults"
+      >
         <QuantityRow
           name="flow"
           value={simFlow}
@@ -786,7 +815,7 @@ const PipeEditor = ({
           readOnly={true}
         />
         <TextRow name="actualStatus" value={simulationStatusText} />
-      </Section>
+      </SectionHeader>
     </AssetEditorContent>
   );
 };
@@ -808,13 +837,27 @@ const ReservoirEditor = ({
 }) => {
   const translate = useTranslate();
   const { footer } = useQuickGraph(reservoir.id, "reservoir");
-  const { getComparison, isNew } = useAssetComparison(reservoir);
+  const { getComparison, getPatternComparison, isNew } =
+    useAssetComparison(reservoir);
   const simulation = useSimulation();
   const reservoirSimulation = simulation?.getReservoir(reservoir.id);
 
   const simPressure = reservoirSimulation?.pressure ?? null;
   const simHead = reservoirSimulation?.head ?? null;
   const simNetFlow = reservoirSimulation?.netFlow ?? null;
+
+  const activeTopologyComparison = getComparison(
+    "isActive",
+    reservoir.isActive,
+  );
+  const hasModelAttributesChanges =
+    getComparison("elevation", reservoir.elevation).hasChanged ||
+    getComparison("head", reservoir.head).hasChanged ||
+    getPatternComparison(
+      "headPatternId",
+      reservoir.headPatternId,
+      hydraulicModel.patterns,
+    ).hasChanged;
 
   return (
     <AssetEditorContent
@@ -826,16 +869,24 @@ const ReservoirEditor = ({
       readOnly={readonly}
       key={reservoir.id}
     >
-      <Section title={translate("activeTopology")}>
+      <SectionHeader
+        title={translate("activeTopology")}
+        section="activeTopology"
+        hasChanged={activeTopologyComparison.hasChanged}
+      >
         <SwitchRow
           name="isActive"
           label={translate("isEnabled")}
           enabled={reservoir.isActive}
-          comparison={getComparison("isActive", reservoir.isActive)}
+          comparison={activeTopologyComparison}
           readOnly={readonly}
         />
-      </Section>
-      <Section title={translate("modelAttributes")}>
+      </SectionHeader>
+      <SectionHeader
+        title={translate("modelAttributes")}
+        section="modelAttributes"
+        hasChanged={hasModelAttributesChanges}
+      >
         <QuantityRow
           name="elevation"
           value={reservoir.elevation}
@@ -852,8 +903,11 @@ const ReservoirEditor = ({
           quantitiesMetadata={quantitiesMetadata}
           readOnly={readonly}
         />
-      </Section>
-      <Section title={translate("simulationResults")}>
+      </SectionHeader>
+      <SectionHeader
+        title={translate("simulationResults")}
+        section="simulationResults"
+      >
         <QuantityRow
           name="pressure"
           value={simPressure}
@@ -875,7 +929,7 @@ const ReservoirEditor = ({
           decimals={quantitiesMetadata.getDecimals("netFlow")}
           readOnly={true}
         />
-      </Section>
+      </SectionHeader>
     </AssetEditorContent>
   );
 };
@@ -899,7 +953,7 @@ const TankEditor = ({
 }) => {
   const translate = useTranslate();
   const { footer } = useQuickGraph(tank.id, "tank");
-  const { getComparison, isNew } = useAssetComparison(tank);
+  const { getComparison, getCurveComparison, isNew } = useAssetComparison(tank);
   const simulation = useSimulation();
   const tankSimulation = simulation?.getTank(tank.id);
 
@@ -908,6 +962,23 @@ const TankEditor = ({
   const simNetFlow = tankSimulation?.netFlow ?? null;
   const simLevel = tankSimulation?.level ?? null;
   const simVolume = tankSimulation?.volume ?? null;
+
+  const activeTopologyComparison = getComparison("isActive", tank.isActive);
+  const hasModelAttributesChanges =
+    [
+      "elevation",
+      "initialLevel",
+      "minLevel",
+      "maxLevel",
+      "diameter",
+      "minVolume",
+      "overflow",
+    ].some((p) => getComparison(p, tank.getProperty(p)).hasChanged) ||
+    getCurveComparison(
+      "volumeCurveId",
+      tank.volumeCurveId,
+      hydraulicModel.curves,
+    ).hasChanged;
 
   return (
     <AssetEditorContent
@@ -919,16 +990,24 @@ const TankEditor = ({
       readOnly={readonly}
       key={tank.id}
     >
-      <Section title={translate("activeTopology")}>
+      <SectionHeader
+        title={translate("activeTopology")}
+        section="activeTopology"
+        hasChanged={activeTopologyComparison.hasChanged}
+      >
         <SwitchRow
           name="isActive"
           label={translate("isEnabled")}
           enabled={tank.isActive}
-          comparison={getComparison("isActive", tank.isActive)}
+          comparison={activeTopologyComparison}
           readOnly={readonly}
         />
-      </Section>
-      <Section title={translate("modelAttributes")}>
+      </SectionHeader>
+      <SectionHeader
+        title={translate("modelAttributes")}
+        section="modelAttributes"
+        hasChanged={hasModelAttributesChanges}
+      >
         <QuantityRow
           name="elevation"
           value={tank.elevation}
@@ -964,8 +1043,11 @@ const TankEditor = ({
           onChange={onPropertyChange}
           readOnly={readonly}
         />
-      </Section>
-      <Section title={translate("simulationResults")}>
+      </SectionHeader>
+      <SectionHeader
+        title={translate("simulationResults")}
+        section="simulationResults"
+      >
         <QuantityRow
           name="pressure"
           value={simPressure}
@@ -1001,7 +1083,7 @@ const TankEditor = ({
           decimals={quantitiesMetadata.getDecimals("netFlow")}
           readOnly={true}
         />
-      </Section>
+      </SectionHeader>
     </AssetEditorContent>
   );
 };
@@ -1580,6 +1662,14 @@ const ValveEditor = ({
     return null;
   };
 
+  const activeTopologyComparison = getComparison("isActive", valve.isActive);
+  const hasModelAttributesChanges =
+    ["kind", "setting", "initialStatus", "diameter", "minorLoss"].some(
+      (p) => getComparison(p, valve.getProperty(p)).hasChanged,
+    ) ||
+    getCurveComparison("curveId", valve.curveId, hydraulicModel.curves)
+      .hasChanged;
+
   return (
     <AssetEditorContent
       label={valve.label}
@@ -1590,21 +1680,29 @@ const ValveEditor = ({
       readOnly={readonly}
       key={valve.id}
     >
-      <Section title={translate("connections")}>
+      <SectionHeader title={translate("connections")} section="connections">
         <TextRow name="startNode" value={startNode ? startNode.label : ""} />
         <TextRow name="endNode" value={endNode ? endNode.label : ""} />
-      </Section>
-      <Section title={translate("activeTopology")}>
+      </SectionHeader>
+      <SectionHeader
+        title={translate("activeTopology")}
+        section="activeTopology"
+        hasChanged={activeTopologyComparison.hasChanged}
+      >
         <SwitchRow
           name="isActive"
           label={translate("isEnabled")}
           enabled={valve.isActive}
-          comparison={getComparison("isActive", valve.isActive)}
+          comparison={activeTopologyComparison}
           onChange={onActiveTopologyStatusChange}
           readOnly={readonly}
         />
-      </Section>
-      <Section title={translate("modelAttributes")}>
+      </SectionHeader>
+      <SectionHeader
+        title={translate("modelAttributes")}
+        section="modelAttributes"
+        hasChanged={hasModelAttributesChanges}
+      >
         <SelectRow
           name="valveType"
           selected={valve.kind}
@@ -1669,8 +1767,11 @@ const ValveEditor = ({
           onChange={onPropertyChange}
           readOnly={readonly}
         />
-      </Section>
-      <Section title={translate("simulationResults")}>
+      </SectionHeader>
+      <SectionHeader
+        title={translate("simulationResults")}
+        section="simulationResults"
+      >
         <QuantityRow
           name="flow"
           value={simFlow}
@@ -1693,7 +1794,7 @@ const ValveEditor = ({
           readOnly={true}
         />
         <TextRow name="status" value={statusText} />
-      </Section>
+      </SectionHeader>
     </AssetEditorContent>
   );
 };
@@ -1729,13 +1830,18 @@ const PumpEditor = ({
 }) => {
   const isEnergyEnabled = useFeatureFlag("FLAG_ENERGY");
   const simulationSettings = useAtomValue(simulationSettingsAtom);
-  const [energyCollapse, setEnergyCollapse] = useAtom(
-    pumpEnergySectionsCollapseAtom,
+  const [energySections, setEnergySections] = useAtom(
+    assetPanelSectionsExpandedAtom,
   );
   const translate = useTranslate();
   const { footer } = useQuickGraph(pump.id, "pump");
-  const { getComparison, getPumpCurveComparison, isNew } =
-    useAssetComparison(pump);
+  const {
+    getComparison,
+    getCurveComparison,
+    getPatternComparison,
+    getPumpCurveComparison,
+    isNew,
+  } = useAssetComparison(pump);
   const simulation = useSimulation();
   const pumpSimulation = simulation?.getPump(pump.id);
   const pumpEnergy = simulation?.getPumpEnergy(pump.id) ?? null;
@@ -1759,6 +1865,31 @@ const PumpEditor = ({
     onStatusChange(newValue, oldValue);
   };
 
+  const activeTopologyComparison = getComparison("isActive", pump.isActive);
+  const hasModelAttributesChanges =
+    ["definitionType", "power", "speed", "initialStatus"].some(
+      (p) => getComparison(p, pump.getProperty(p)).hasChanged,
+    ) ||
+    getCurveComparison("curveId", pump.curveId, hydraulicModel.curves)
+      .hasChanged ||
+    getPatternComparison(
+      "speedPatternId",
+      pump.speedPatternId,
+      hydraulicModel.patterns,
+    ).hasChanged;
+  const hasEnergyChanges =
+    getComparison("energyPrice", pump.energyPrice).hasChanged ||
+    getCurveComparison(
+      "efficiencyCurveId",
+      pump.efficiencyCurveId,
+      hydraulicModel.curves,
+    ).hasChanged ||
+    getPatternComparison(
+      "energyPricePatternId",
+      pump.energyPricePatternId,
+      hydraulicModel.patterns,
+    ).hasChanged;
+
   return (
     <AssetEditorContent
       label={pump.label}
@@ -1769,21 +1900,29 @@ const PumpEditor = ({
       readOnly={readonly}
       key={pump.id}
     >
-      <Section title={translate("connections")}>
+      <SectionHeader title={translate("connections")} section="connections">
         <TextRow name="startNode" value={startNode ? startNode.label : ""} />
         <TextRow name="endNode" value={endNode ? endNode.label : ""} />
-      </Section>
-      <Section title={translate("activeTopology")}>
+      </SectionHeader>
+      <SectionHeader
+        title={translate("activeTopology")}
+        section="activeTopology"
+        hasChanged={activeTopologyComparison.hasChanged}
+      >
         <SwitchRow
           name="isActive"
           label={translate("isEnabled")}
           enabled={pump.isActive}
-          comparison={getComparison("isActive", pump.isActive)}
+          comparison={activeTopologyComparison}
           onChange={onActiveTopologyStatusChange}
           readOnly={readonly}
         />
-      </Section>
-      <Section title={translate("modelAttributes")}>
+      </SectionHeader>
+      <SectionHeader
+        title={translate("modelAttributes")}
+        section="modelAttributes"
+        hasChanged={hasModelAttributesChanges}
+      >
         <PumpDefinitionDetails
           pump={pump}
           curves={hydraulicModel.curves}
@@ -1819,15 +1958,16 @@ const PumpEditor = ({
           onPropertyChange={onPropertyChange}
           readOnly={readonly}
         />
-      </Section>
+      </SectionHeader>
       {isEnergyEnabled && (
         <CollapsibleSection
           title={translate("energy")}
           variant="subtle"
-          open={energyCollapse.energy}
+          open={energySections.energy}
           onOpenChange={(open) =>
-            setEnergyCollapse((prev) => ({ ...prev, energy: open }))
+            setEnergySections((prev) => ({ ...prev, energy: open }))
           }
+          hasChanged={hasEnergyChanges}
         >
           <PumpEfficiencyCurveField
             pump={pump}
@@ -1860,7 +2000,10 @@ const PumpEditor = ({
           />
         </CollapsibleSection>
       )}
-      <Section title={translate("simulationResults")}>
+      <SectionHeader
+        title={translate("simulationResults")}
+        section="simulationResults"
+      >
         <QuantityRow
           name="flow"
           value={simFlow}
@@ -1876,14 +2019,14 @@ const PumpEditor = ({
           readOnly={true}
         />
         <TextRow name="status" value={statusText} />
-      </Section>
+      </SectionHeader>
       {isEnergyEnabled && (
         <CollapsibleSection
           title={translate("energyResults")}
           variant="subtle"
-          open={energyCollapse.energyResults}
+          open={energySections.energyResults}
           onOpenChange={(open) =>
-            setEnergyCollapse((prev) => ({ ...prev, energyResults: open }))
+            setEnergySections((prev) => ({ ...prev, energyResults: open }))
           }
         >
           <QuantityRow
@@ -1939,6 +2082,68 @@ const PumpEditor = ({
       )}
     </AssetEditorContent>
   );
+};
+
+const pipeStatusLabel = (sim: Pick<PipeSimulation, "status"> | null) => {
+  if (!sim) return "notAvailable";
+  return "pipe." + sim.status;
+};
+
+const pumpStatusLabel = (
+  sim: {
+    status: PumpSimulation["status"] | null;
+    statusWarning: PumpSimulation["statusWarning"];
+  } | null,
+) => {
+  if (!sim || sim.status === null) return "notAvailable";
+  if (sim.statusWarning) {
+    return `pump.${sim.status}.${sim.statusWarning}`;
+  }
+  return "pump." + sim.status;
+};
+
+export const valveStatusLabel = (
+  sim: {
+    status: ValveSimulation["status"] | null;
+    statusWarning: ValveSimulation["statusWarning"];
+  } | null,
+) => {
+  if (!sim || sim.status === null) return "notAvailable";
+  if (sim.statusWarning) {
+    return `valve.${sim.status}.${sim.statusWarning}`;
+  }
+  return "valve." + sim.status;
+};
+
+const SectionHeader = ({
+  title,
+  hasChanged,
+  section,
+  children,
+}: {
+  title: string;
+  hasChanged?: boolean;
+  section: keyof AssetPanelSectionExpanded;
+  children: React.ReactNode;
+}) => {
+  const isEnergyEnabled = useFeatureFlag("FLAG_ENERGY");
+  const [sections, setSections] = useAtom(assetPanelSectionsExpandedAtom);
+  if (isEnergyEnabled) {
+    return (
+      <CollapsibleSection
+        variant="subtle"
+        title={title}
+        hasChanged={hasChanged}
+        open={sections[section]}
+        onOpenChange={(open) =>
+          setSections((prev) => ({ ...prev, [section]: open }))
+        }
+      >
+        {children}
+      </CollapsibleSection>
+    );
+  }
+  return <Section title={title}>{children}</Section>;
 };
 
 const VARIABLE_SPEED_NONE = 0;

@@ -54,7 +54,7 @@ export {
   TabOption,
   tabAtom,
   multiAssetPanelCollapseAtom,
-  pumpEnergySectionsCollapseAtom,
+  assetPanelSectionsExpandedAtom,
 } from "src/state/layout";
 
 // Locale
