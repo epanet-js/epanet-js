@@ -9,6 +9,7 @@ export type RecentFileEntry = {
   name: string;
   handle: FileSystemFileHandle;
   openedAt: number;
+  thumbnail?: string;
 };
 
 function isSupported(): boolean {
@@ -18,10 +19,13 @@ function isSupported(): boolean {
 export const defaultDb = () =>
   new IndexedDB({
     name: "epanet-recent-files",
-    version: 1,
+    version: 2,
     migrations: {
       1: (db) => {
         db.createObjectStore(STORE_NAME, { keyPath: "id" });
+      },
+      2: (_db) => {
+        // thumbnail field added to RecentFileEntry (optional, no schema change needed)
       },
     },
   });
@@ -39,7 +43,11 @@ export class RecentFilesStore {
     return entries.sort((a, b) => b.openedAt - a.openedAt);
   }
 
-  async add(name: string, handle: FileSystemFileHandle): Promise<void> {
+  async add(
+    name: string,
+    handle: FileSystemFileHandle,
+    thumbnail?: string,
+  ): Promise<void> {
     if (!isSupported()) return;
     const all = await this.db.getAll<RecentFileEntry>(STORE_NAME);
 
@@ -58,6 +66,7 @@ export class RecentFilesStore {
         name,
         handle,
         openedAt: Date.now(),
+        thumbnail,
       });
     } else {
       const ops: Array<
@@ -78,6 +87,7 @@ export class RecentFilesStore {
           name,
           handle,
           openedAt: Date.now(),
+          thumbnail,
         },
       });
 
