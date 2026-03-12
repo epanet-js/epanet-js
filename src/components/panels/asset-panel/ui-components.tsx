@@ -39,6 +39,7 @@ import { ephemeralStateAtom } from "src/state/drawing";
 import { assetPanelFooterAtom } from "src/state/quick-graph";
 import { MultipleValuesIcon } from "src/icons";
 import { useVirtualizer } from "@tanstack/react-virtual";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export const AssetEditorContent = ({
   label,
@@ -116,8 +117,10 @@ const Header = ({
     setError(null);
   }, []);
 
+  const useExtraMargin = useFeatureFlag("FLAG_ENERGY");
+
   return (
-    <div className="px-3 pt-4 pb-3 relative">
+    <div className={clsx("px-3 pt-4 pb-3 relative", useExtraMargin && "pl-5")}>
       {isNew && (
         <div className="absolute left-0 top-0 bottom-0 w-1 bg-purple-500 rounded-full" />
       )}
@@ -290,15 +293,22 @@ export const NestedSection = ({
 }: {
   children: React.ReactNode;
   className?: string;
-}) => (
-  <NestedSectionContext.Provider value={true}>
-    <div
-      className={`bg-gray-50 p-2 py-1 mt-1 -mr-2 border-l-2 border-gray-400 rounded-sm flex flex-col gap-1 ${className ?? ""}`.trim()}
-    >
-      {children}
-    </div>
-  </NestedSectionContext.Provider>
-);
+}) => {
+  const useExtraMargin = useFeatureFlag("FLAG_ENERGY");
+  return (
+    <NestedSectionContext.Provider value={true}>
+      <div
+        className={clsx(
+          "bg-gray-50 px-2 py-1 mt-1 -mr-2 border-l-2 border-gray-400 rounded-sm flex flex-col gap-1",
+          useExtraMargin && "ml-2",
+          className,
+        )}
+      >
+        {children}
+      </div>
+    </NestedSectionContext.Provider>
+  );
+};
 
 export type TankDefinitionMode =
   | "diameterBased"

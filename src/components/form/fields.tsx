@@ -6,6 +6,7 @@ import { ChevronDownIcon, ChevronRightIcon } from "src/icons";
 import { FooterResizer, useBigScreen } from "src/components/resizer";
 import { TContent, StyledTooltipArrow } from "src/components/elements";
 import { useTranslate } from "src/hooks/use-translate";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export const NestedSectionContext = createContext(false);
 
@@ -90,14 +91,31 @@ export const InlineField = ({
   children: React.ReactNode;
 }) => {
   const isNested = useContext(NestedSectionContext);
+  const useExtraMargin = useFeatureFlag("FLAG_ENERGY");
 
   const labelClasses = clsx("text-sm text-gray-500", {
     "max-w-[57px] w-full flex-shrink-0":
-      layout === "fixed-label" && labelSize === "sm" && isNested,
+      layout === "fixed-label" &&
+      labelSize === "sm" &&
+      isNested &&
+      !useExtraMargin,
+    "max-w-[49px] w-full flex-shrink-0":
+      layout === "fixed-label" &&
+      labelSize === "sm" &&
+      isNested &&
+      useExtraMargin,
     "max-w-[67px] w-full flex-shrink-0":
       layout === "fixed-label" && labelSize === "sm" && !isNested,
     "w-[110px] flex-shrink-0":
-      layout === "fixed-label" && labelSize === "md" && isNested,
+      layout === "fixed-label" &&
+      labelSize === "md" &&
+      isNested &&
+      !useExtraMargin,
+    "w-[102px] flex-shrink-0":
+      layout === "fixed-label" &&
+      labelSize === "md" &&
+      isNested &&
+      useExtraMargin,
     "w-[120px] flex-shrink-0":
       layout === "fixed-label" && labelSize === "md" && !isNested,
     "w-1/2": layout === "half-split",
@@ -120,6 +138,7 @@ export const InlineField = ({
         className={clsx("flex", spacingClass, {
           "items-start": align === "start",
           "items-center": align === "center",
+          "pl-2": useExtraMargin,
         })}
       >
         <label className={labelClasses} aria-label={`label: ${name}`}>
@@ -316,7 +335,7 @@ export const CollapsibleSection = ({
                 <button
                   className={clsx(
                     "flex-1 min-w-0 flex items-center gap-1 text-sm font-semibold cursor-pointer",
-                    "pb-2",
+                    "-ml-2 pb-2",
                   )}
                 >
                   {open ? (
