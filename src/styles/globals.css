@@ -344,57 +344,6 @@ body.dark .mapboxgl-ctrl-attrib-button {
   background: radial-gradient(farthest-side at 50% 100%, rgba(0, 0, 0, 0.3), transparent);
 }
 
-/* Horizontal scroll shadows.
-   Usage: wrap the overflow-x-auto element with .scroll-shadows-x.
-   The wrapper holds the absolutely-positioned shadows (they don't scroll);
-   the inner scroll element registers the named timeline via > *. */
-.scroll-shadows-x {
-  position: relative;
-  timeline-scope: --scroll-shadows-x;
-}
-
-.scroll-shadows-x-inner {
-  scroll-timeline: --scroll-shadows-x inline;
-}
-
-.scroll-shadows-x::before,
-.scroll-shadows-x::after {
-  content: "";
-  display: block;
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 24px;
-  z-index: 12;
-  pointer-events: none;
-  opacity: 0;
-  animation-name: scroll-shadow-appear;
-  animation-timeline: --scroll-shadows-x;
-  animation-fill-mode: both;
-  animation-timing-function: linear;
-}
-
-.scroll-shadows-x::before {
-  left: 0;
-  background: linear-gradient(to right, rgba(0, 0, 0, 0.1), transparent);
-  animation-range: 0 40px;
-}
-
-.scroll-shadows-x::after {
-  right: 0;
-  background: linear-gradient(to left, rgba(0, 0, 0, 0.1), transparent);
-  animation-direction: reverse;
-  animation-range: calc(100% - 40px) 100%;
-}
-
-.dark .scroll-shadows-x::before {
-  background: linear-gradient(to right, rgba(0, 0, 0, 0.3), transparent);
-}
-
-.dark .scroll-shadows-x::after {
-  background: linear-gradient(to left, rgba(0, 0, 0, 0.3), transparent);
-}
-
 /* DataGrid scroll shadows — uses named scroll timelines so shadows
    (positioned as siblings outside the scroll container) can reference
    the scroll container's progress. */

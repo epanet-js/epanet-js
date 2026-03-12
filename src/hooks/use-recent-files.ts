@@ -25,8 +25,8 @@ export function useRecentFiles() {
   }, [queryClient]);
 
   const addRecent = useCallback(
-    async (name: string, handle: FileSystemFileHandle, thumbnail?: string) => {
-      await recentFilesStore.add(name, handle, thumbnail);
+    async (name: string, handle: FileSystemFileHandle) => {
+      await recentFilesStore.add(name, handle);
       invalidate();
     },
     [invalidate, recentFilesStore],

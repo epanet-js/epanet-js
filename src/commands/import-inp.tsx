@@ -10,7 +10,7 @@ import { usePersistence } from "src/lib/persistence";
 import { FeatureCollection } from "geojson";
 import { getExtent } from "src/lib/geometry";
 import { LngLatBoundsLike } from "mapbox-gl";
-import { MapContext, captureThumbnail } from "src/map";
+import { MapContext } from "src/map";
 import { ImportInpCompleted, useUserTracking } from "src/infra/user-tracking";
 import { InpStats } from "src/import/inp/inp-data";
 import { ModelMetadata } from "src/model-metadata";
@@ -118,25 +118,7 @@ export const useImportInp = () => {
             options: { type: "inp", folderId: "" },
           });
           if (!isDemo && file.handle) {
-            const handle = file.handle;
-            const name = file.name;
-            if (map) {
-              const captureAndSave = () => {
-                const thumbnail = captureThumbnail(map) ?? undefined;
-                void addRecent(name, handle, thumbnail);
-              };
-              if (map.map.loaded() && !map.map.isMoving()) {
-                captureAndSave();
-              } else {
-                const timeoutId = setTimeout(captureAndSave, 5000);
-                map.map.once("idle", () => {
-                  clearTimeout(timeoutId);
-                  captureAndSave();
-                });
-              }
-            } else {
-              void addRecent(name, handle);
-            }
+            void addRecent(file.name, file.handle);
           }
           if (!issues) {
             setDialogState(null);
@@ -212,13 +194,13 @@ export const useImportInp = () => {
       }
     },
     [
-      addRecent,
-      map,
       setDialogState,
-      setFileInfo,
-      transactImport,
-      translate,
       userTracking,
+      translate,
+      transactImport,
+      setFileInfo,
+      map?.map,
+      addRecent,
     ],
   );
 

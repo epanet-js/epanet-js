@@ -7,8 +7,7 @@ import { simulationSettingsAtom } from "src/state/simulation-settings";
 import { baseModelAtom } from "src/state/hydraulic-model";
 import { ExportOptions } from "src/types/export";
 import { useAtomCallback } from "jotai/utils";
-import { useCallback, useContext } from "react";
-import { MapContext, captureThumbnail } from "src/map";
+import { useCallback } from "react";
 import { buildInp } from "src/simulation/build-inp";
 import { useTranslate } from "src/hooks/use-translate";
 import type { fileSave as fileSaveType } from "browser-fs-access";
@@ -37,7 +36,6 @@ export const useSaveInp = ({
   const fileInfo = useAtomValue(fileInfoAtom);
   const { addRecent } = useRecentFiles();
   const userTracking = useUserTracking();
-  const map = useContext(MapContext);
 
   const saveInp = useAtomCallback(
     useCallback(
@@ -101,10 +99,7 @@ export const useSaveInp = ({
               isDemoNetwork: isDemo,
             });
             if (!isDemo) {
-              const thumbnail = map
-                ? (captureThumbnail(map) ?? undefined)
-                : undefined;
-              void addRecent(newHandle.name, newHandle, thumbnail);
+              void addRecent(newHandle.name, newHandle);
             }
           }
         };
@@ -121,7 +116,7 @@ export const useSaveInp = ({
           return false;
         }
       },
-      [userTracking, getFsAccess, addRecent, translate, map],
+      [userTracking, getFsAccess, addRecent, translate],
     ),
   );
 
