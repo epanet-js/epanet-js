@@ -126,7 +126,9 @@ export const GeneralSection = () => {
   const isEpanet23On = useFeatureFlag("FLAG_EPANET23");
   const translateUnit = useTranslateUnit();
 
-  const flowUnitsDisplay = chooseUnitSystem(quantities.units);
+  const flowUnitsDisplay = isEpanet23On
+    ? translateUnit(quantities.getUnit("flow"))
+    : chooseUnitSystem(quantities.units);
   const pressureUnitDisplay = translateUnit(quantities.getUnit("pressure"));
   const headlossIndex = headlossFormulas.indexOf(
     hydraulicModel.headlossFormula,
