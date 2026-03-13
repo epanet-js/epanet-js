@@ -21,7 +21,6 @@ import {
   LibrarySelectRow,
   QuantityRow,
   TextField,
-  NestedSectionLegacy,
 } from "./ui-components";
 import type {
   PropertyComparison,
@@ -30,8 +29,9 @@ import type {
 import type { PropertyChange } from "src/hydraulic-model/model-operations/change-property";
 import { useShowPumpLibrary } from "src/commands/show-pump-library";
 import {
-  BlockComparisonFieldLegacy,
-  InlineFieldLegacy,
+  BlockComparisonField,
+  InlineField,
+  NestedSection,
 } from "src/components/form/fields";
 
 export type PumpDefinitionMode =
@@ -212,7 +212,7 @@ const PumpDefinitionDetailsInner = ({
   );
 
   return (
-    <BlockComparisonFieldLegacy
+    <BlockComparisonField
       hasChanged={comparison.hasChanged}
       baseDisplayValue={
         comparison.tooltipText ? (
@@ -227,7 +227,7 @@ const PumpDefinitionDetailsInner = ({
         readOnly={readonly}
         onChange={handleDefinitionTypeChange}
       />
-      <NestedSectionLegacy className="pb-2">
+      <NestedSection className="pb-2">
         {localDefinitionType === "power" && (
           <PowerDefinition
             power={pump.power}
@@ -253,8 +253,8 @@ const PumpDefinitionDetailsInner = ({
               onCurveChange={readonly ? undefined : handleCurvePointsChange}
             />
           )}
-      </NestedSectionLegacy>
-    </BlockComparisonFieldLegacy>
+      </NestedSection>
+    </BlockComparisonField>
   );
 };
 
@@ -486,9 +486,9 @@ const CurveIdSelector = ({
         onChange={handleChange}
       />
       {curveType && (
-        <InlineFieldLegacy name={translate("curveType")} labelSize="md">
+        <InlineField name={translate("curveType")} labelSize="md">
           <TextField padding="md">{translate(curveType)}</TextField>
-        </InlineFieldLegacy>
+        </InlineField>
       )}
     </div>
   );

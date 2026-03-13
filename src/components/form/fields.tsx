@@ -10,8 +10,6 @@ import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 // null = outside any SectionList; 0 = at outermost level; >0 = extra accumulated indentation from nested SectionLists
 export const IndentationContext = createContext<number | null>(null);
-// Set only by the outermost SectionList; stays constant for all nested content
-export const PaddingContext = createContext(4);
 // Counts NestedSection layers — used to account for border-l-2 (2px per layer) in stripe/label positioning
 export const NestedBlockContext = createContext(0);
 
@@ -143,7 +141,6 @@ export const InlineFieldLegacy = ({
         className={clsx("flex", spacingClass, {
           "items-start": align === "start",
           "items-center": align === "center",
-          "pl-2": useExtraMargin,
         })}
       >
         <label className={labelClasses} aria-label={`label: ${name}`}>
@@ -168,7 +165,7 @@ export const VerticalField = ({
   </div>
 );
 
-export const SectionLegacy = ({
+export const Section = ({
   title,
   button,
   variant = "primary",
@@ -180,10 +177,10 @@ export const SectionLegacy = ({
   children: React.ReactNode;
 }) => {
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col gap-1">
       <div
         className={clsx(
-          "flex items-start justify-between text-sm font-semibold pb-2",
+          "flex items-center justify-between text-sm font-semibold h-8",
           {
             "text-gray-500": variant === "secondary",
           },
@@ -192,7 +189,7 @@ export const SectionLegacy = ({
         {title}
         {button && button}
       </div>
-      <div className="flex flex-col gap-1">{children}</div>
+      <SectionList>{children}</SectionList>
     </div>
   );
 };
@@ -204,11 +201,11 @@ export const SectionList = ({
   stickyFooterHeight,
   onStickyFooterHeightChange,
   children,
-  gap = 5,
-  padding = 4,
-  overflow = true,
+  gap = 1,
+  padding = 0,
+  overflow = false,
   className,
-  indentation: indentationProp,
+  indentation = 0,
 }: {
   header?: React.ReactNode;
   footer?: React.ReactNode;
@@ -223,9 +220,6 @@ export const SectionList = ({
   className?: string;
 }) => {
   const parentIndentation = useContext(IndentationContext);
-  const isOutermost = parentIndentation === null;
-  const indentationAmount = indentationProp ?? padding;
-  const indentation = isOutermost ? 0 : parentIndentation + indentationAmount;
   const isBigScreen = useBigScreen();
   const isResizableFooter =
     isBigScreen &&
@@ -246,6 +240,7 @@ export const SectionList = ({
           "flex flex-col",
           `p-${padding}`,
           `gap-${gap}`,
+          `pl-${indentation + padding}`,
           className,
         )}
       >
@@ -256,7 +251,9 @@ export const SectionList = ({
   );
 
   const wrapped = (
-    <IndentationContext.Provider value={indentation}>
+    <IndentationContext.Provider
+      value={(parentIndentation ?? 0) + indentation + padding}
+    >
       {header || footer ? (
         <div className="flex flex-col flex-grow overflow-hidden">
           {header && (
@@ -295,11 +292,7 @@ export const SectionList = ({
     </IndentationContext.Provider>
   );
 
-  return isOutermost ? (
-    <PaddingContext.Provider value={padding}>{wrapped}</PaddingContext.Provider>
-  ) : (
-    wrapped
-  );
+  return wrapped;
 };
 
 export const CollapsibleSectionLegacy = ({
@@ -313,8 +306,8 @@ export const CollapsibleSectionLegacy = ({
   action,
   hasChanged = false,
 }: {
-  title: string;
-  variant?: "primary" | "secondary" | "subtle";
+  title: React.ReactNode;
+  variant?: "primary" | "secondary";
   defaultOpen?: boolean;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
@@ -335,47 +328,92 @@ export const CollapsibleSectionLegacy = ({
         <BlockComparisonFieldLegacy hasChanged={hasChanged}>
           <div className="flex items-center gap-1">
             <C.Trigger asChild>
-              {variant === "subtle" ? (
-                <button
-                  className={clsx(
-                    "flex-1 min-w-0 flex items-center gap-1 text-sm font-semibold cursor-pointer",
-                    "-ml-2 pb-2",
-                  )}
-                >
-                  {open ? (
-                    <ChevronDownIcon size="sm" />
-                  ) : (
-                    <ChevronRightIcon size="sm" />
-                  )}
-                  <span className="truncate">{title}</span>
-                </button>
-              ) : (
-                <div
-                  className={clsx(
-                    "flex-1 flex items-center text-sm font-semibold cursor-pointer hover:text-gray-700 dark:hover:text-gray-100",
-                    "p-2 -mx-2 -mt-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800",
-                    {
-                      "text-gray-500": variant === "secondary",
-                      "mb-1": open,
-                    },
-                  )}
-                  role="button"
-                  tabIndex={0}
-                >
-                  <span>{title}</span>
-                  <div className="flex-1 border-b border-gray-200 mx-3 mb-1" />
-                  {action && <div className="h-8 w-8 -my-1">{action}</div>}
-                  <div className="ml-1">
-                    {open ? <ChevronDownIcon /> : <ChevronRightIcon />}
-                  </div>
+              <div
+                className={clsx(
+                  "flex-1 flex items-center text-sm font-semibold cursor-pointer hover:text-gray-700 dark:hover:text-gray-100",
+                  "p-2 -mx-2 -mt-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800",
+                  {
+                    "text-gray-500": variant === "secondary",
+                    "mb-1": open,
+                  },
+                )}
+                role="button"
+                tabIndex={0}
+              >
+                <span>{title}</span>
+                <div className="flex-1 border-b border-gray-200 mx-3 mb-1" />
+                {action && <div className="h-8 w-8 -my-1">{action}</div>}
+                <div className="ml-1">
+                  {open ? <ChevronDownIcon /> : <ChevronRightIcon />}
                 </div>
-              )}
+              </div>
             </C.Trigger>
           </div>
         </BlockComparisonFieldLegacy>
         <C.Content className="flex flex-col gap-1">{children}</C.Content>
       </div>
     </C.Root>
+  );
+};
+
+export const NestedSectionLegacy = ({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) => {
+  const parentDepth = useContext(NestedBlockContext);
+  const useExtraMargin = useFeatureFlag("FLAG_UI_COLLAPSIBLE");
+  return (
+    <NestedBlockContext.Provider value={parentDepth + 1}>
+      <div
+        className={clsx(
+          "bg-gray-50 px-2 py-1 mt-1 -mr-2 border-l-2 border-gray-400 rounded-sm flex flex-col gap-1",
+          useExtraMargin && "ml-2",
+          className,
+        )}
+      >
+        {children}
+      </div>
+    </NestedBlockContext.Provider>
+  );
+};
+
+const NestedSectionWithNesting = ({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) => {
+  const parentDepth = useContext(NestedBlockContext);
+  return (
+    <NestedBlockContext.Provider value={parentDepth + 1}>
+      <SectionList
+        indentation={2}
+        overflow={false}
+        gap={1}
+        className={clsx(
+          "bg-gray-50 -mr-1 pr-1 border-l-2 border-gray-400 rounded-sm",
+          className,
+        )}
+      >
+        {children}
+      </SectionList>
+    </NestedBlockContext.Provider>
+  );
+};
+
+export const NestedSection = (props: {
+  children: React.ReactNode;
+  className?: string;
+}) => {
+  const useNesting = useFeatureFlag("FLAG_UI_COLLAPSIBLE");
+  return useNesting ? (
+    <NestedSectionWithNesting {...props} />
+  ) : (
+    <NestedSectionLegacy {...props} />
   );
 };
 
@@ -389,11 +427,8 @@ const BlockComparisonFieldWithNesting = ({
   children: React.ReactNode;
 }) => {
   const indentation = useContext(IndentationContext) ?? 0;
-  const basePadding = useContext(PaddingContext);
   const nestingDepth = useContext(NestedBlockContext);
-  // Stripe must reach the left edge of the outermost SectionList:
-  // base padding (px) + accumulated SectionList indentation (px) + border per NestedSection (2px each)
-  const leftOffset = (basePadding + indentation) * 4 + nestingDepth * 2;
+  const leftOffset = indentation * 4 + nestingDepth * 2;
 
   return (
     <ComparisonTooltip
@@ -407,7 +442,7 @@ const BlockComparisonFieldWithNesting = ({
             style={{ left: `-${leftOffset}px` }}
           />
         )}
-        {children}
+        <SectionList>{children}</SectionList>
       </div>
     </ComparisonTooltip>
   );
@@ -445,24 +480,23 @@ const InlineFieldWithNesting = ({
 }) => {
   const indentation = useContext(IndentationContext) ?? 0;
   const nestingDepth = useContext(NestedBlockContext);
-  // 4px per SectionList indentation unit + 2px per NestedSection border layer
-  const extraPx = indentation * 4 + nestingDepth * 2;
-
   const baseLabelWidth =
-    layout === "fixed-label" ? (labelSize === "sm" ? 67 : 120) : undefined;
-  const labelWidth =
-    baseLabelWidth !== undefined ? baseLabelWidth - extraPx : undefined;
+    (labelSize === "sm" ? 90 : 140) - indentation * 4 - nestingDepth * 2;
   const labelStyle =
-    labelWidth !== undefined
-      ? ({ width: labelWidth, maxWidth: labelWidth, flexShrink: 0 } as const)
+    layout !== "fixed-label" ? undefined : { flexBasis: baseLabelWidth };
+
+  const inputStyle =
+    layout === "fixed-label" && labelSize === "md"
+      ? { flexBasis: 150 }
       : undefined;
 
-  const labelClasses = clsx("text-sm text-gray-500", {
+  const labelClasses = clsx("text-sm text-gray-500 min-w-0", {
+    "grow shrink": layout === "fixed-label",
     "w-1/2": layout === "half-split",
     "flex-none": layout === "label-flex-none",
   });
-  const inputWrapperClasses = clsx({
-    "min-w-0 flex-1": layout === "fixed-label",
+  const inputWrapperClasses = clsx("min-w-0", {
+    "grow shrink": layout === "fixed-label",
     "w-1/2": layout === "half-split",
     "w-3/4": layout === "label-flex-none",
   });
@@ -474,11 +508,10 @@ const InlineFieldWithNesting = ({
       baseDisplayValue={baseDisplayValue}
     >
       <div
-        className={clsx("flex", spacingClass, {
+        className={clsx("flex items-center", spacingClass, {
           "items-start": align === "start",
           "items-center": align === "center",
         })}
-        style={extraPx > 0 ? { paddingLeft: extraPx } : undefined}
       >
         <label
           className={labelClasses}
@@ -487,7 +520,9 @@ const InlineFieldWithNesting = ({
         >
           {name}
         </label>
-        <div className={inputWrapperClasses}>{children}</div>
+        <div className={inputWrapperClasses} style={inputStyle}>
+          {children}
+        </div>
       </div>
     </BlockComparisonFieldWithNesting>
   );
@@ -520,8 +555,11 @@ const CollapsibleSectionWithNesting = ({
   children,
   action,
   hasChanged = false,
+  separator = true,
+  indicatorPosition = "right",
+  autoIndent = true,
 }: {
-  title: string;
+  title: React.ReactNode;
   variant?: "primary" | "secondary" | "subtle";
   defaultOpen?: boolean;
   open?: boolean;
@@ -530,6 +568,9 @@ const CollapsibleSectionWithNesting = ({
   children: React.ReactNode;
   action?: React.ReactNode;
   hasChanged?: boolean;
+  separator?: boolean;
+  indicatorPosition?: "left" | "right";
+  autoIndent?: boolean;
 }) => {
   const [uncontrolledOpen, setUncontrolledOpen] = useState(defaultOpen);
 
@@ -537,59 +578,67 @@ const CollapsibleSectionWithNesting = ({
   const open = isControlled ? controlledOpen : uncontrolledOpen;
   const handleOpenChange = isControlled ? onOpenChange! : setUncontrolledOpen;
 
+  const showSeparator = action ? true : separator;
+
   return (
     <C.Root open={open} onOpenChange={handleOpenChange}>
-      <div className={clsx("flex flex-col", className)}>
+      <div className="flex flex-col">
         <BlockComparisonFieldWithNesting hasChanged={hasChanged}>
-          <div className="flex items-center gap-1">
-            <C.Trigger asChild>
-              {variant === "subtle" ? (
-                <button
-                  className={clsx(
-                    "flex-1 min-w-0 flex items-center gap-1 text-sm font-semibold cursor-pointer",
-                    "-ml-2 pb-2",
-                  )}
-                >
-                  {open ? (
-                    <ChevronDownIcon size="sm" />
-                  ) : (
-                    <ChevronRightIcon size="sm" />
-                  )}
-                  <span className="truncate">{title}</span>
-                </button>
-              ) : (
-                <div
-                  className={clsx(
-                    "flex-1 flex items-center text-sm font-semibold cursor-pointer hover:text-gray-700 dark:hover:text-gray-100",
-                    "p-2 -mx-2 -mt-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800",
-                    {
-                      "text-gray-500": variant === "secondary",
-                      "mb-1": open,
-                    },
-                  )}
-                  role="button"
-                  tabIndex={0}
-                >
-                  <span>{title}</span>
-                  <div className="flex-1 border-b border-gray-200 mx-3 mb-1" />
-                  {action && <div className="h-8 w-8 -my-1">{action}</div>}
-                  <div className="ml-1">
-                    {open ? <ChevronDownIcon /> : <ChevronRightIcon />}
-                  </div>
-                </div>
+          <C.Trigger asChild>
+            <div
+              className={clsx(
+                "flex gap-1 items-center h-8 cursor-pointer",
+                "px-1 -mx-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800",
+                {
+                  "text-sm font-semibold": variant === "primary",
+                  "text-sm font-semibold text-gray-500":
+                    variant === "secondary",
+                },
+                className,
               )}
-            </C.Trigger>
-          </div>
+              role="button"
+              tabIndex={0}
+            >
+              {indicatorPosition === "left" ? (
+                open ? (
+                  <ChevronDownIcon />
+                ) : (
+                  <ChevronRightIcon />
+                )
+              ) : null}
+
+              <span>{title}</span>
+              {showSeparator && (
+                <div className="flex-1 border-b border-gray-200 mx-3 mb-1" />
+              )}
+              {!showSeparator && <div className="flex-1" />}
+              {action && <div className="h-8 w-8 -my-1">{action}</div>}
+              {indicatorPosition === "right" ? (
+                open ? (
+                  <ChevronDownIcon />
+                ) : (
+                  <ChevronRightIcon />
+                )
+              ) : null}
+            </div>
+          </C.Trigger>
         </BlockComparisonFieldWithNesting>
-        <C.Content className="flex flex-col gap-1">{children}</C.Content>
+        <C.Content className="pt-1">
+          <SectionList
+            indentation={autoIndent && indicatorPosition === "left" ? 5 : 0}
+            overflow={false}
+          >
+            {children}
+          </SectionList>
+        </C.Content>
       </div>
     </C.Root>
   );
 };
 
 export const CollapsibleSection = (props: {
-  title: string;
-  variant?: "primary" | "secondary" | "subtle";
+  title: React.ReactNode;
+  variant?: "primary" | "secondary";
   defaultOpen?: boolean;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
@@ -597,6 +646,10 @@ export const CollapsibleSection = (props: {
   children: React.ReactNode;
   action?: React.ReactNode;
   hasChanged?: boolean;
+  separator?: boolean;
+  indicatorPosition?: "left" | "right";
+  autoIndent?: boolean;
+  titleClassName?: string;
 }) => {
   const useNesting = useFeatureFlag("FLAG_UI_COLLAPSIBLE");
   return useNesting ? (

@@ -1,5 +1,5 @@
 import { useMemo, useCallback, useState } from "react";
-import { useAtom, useAtomValue } from "jotai";
+import { useAtomValue } from "jotai";
 import {
   Asset,
   Junction,
@@ -35,10 +35,6 @@ import { usePersistence } from "src/lib/persistence";
 import { useUserTracking } from "src/infra/user-tracking";
 import { stagingModelAtom } from "src/state/hydraulic-model";
 import { dataAtom } from "src/state/data";
-import {
-  assetPanelSectionsExpandedAtom,
-  type AssetPanelSectionExpanded,
-} from "src/state/layout";
 import { simulationSettingsAtom } from "src/state/simulation-settings";
 import {
   changeProperty,
@@ -75,13 +71,12 @@ import {
   TextRow,
   SwitchRow,
   ConnectedCustomersRow,
-  NestedSectionLegacy,
+  SectionWrapper,
   type TankDefinitionMode,
 } from "./ui-components";
 import {
-  BlockComparisonFieldLegacy,
-  CollapsibleSection,
-  SectionLegacy,
+  NestedSection,
+  BlockComparisonField,
 } from "src/components/form/fields";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
@@ -447,7 +442,7 @@ const JunctionEditor = ({
       readOnly={readonly}
       key={junction.id}
     >
-      <Section
+      <SectionWrapper
         title={translate("activeTopology")}
         section="activeTopology"
         hasChanged={activeTopologyComparison.hasChanged}
@@ -459,8 +454,8 @@ const JunctionEditor = ({
           comparison={activeTopologyComparison}
           readOnly={readonly}
         />
-      </Section>
-      <Section
+      </SectionWrapper>
+      <SectionWrapper
         title={translate("modelAttributes")}
         section="modelAttributes"
         hasChanged={hasModelAttributesChanges}
@@ -485,8 +480,8 @@ const JunctionEditor = ({
           positiveOnly={true}
           readOnly={readonly}
         />
-      </Section>
-      <Section
+      </SectionWrapper>
+      <SectionWrapper
         title={translate("demands")}
         section="demands"
         hasChanged={hasDemandChanges}
@@ -529,8 +524,8 @@ const JunctionEditor = ({
             />
           </>
         )}
-      </Section>
-      <Section
+      </SectionWrapper>
+      <SectionWrapper
         title={translate("simulationResults")}
         section="simulationResults"
       >
@@ -552,7 +547,7 @@ const JunctionEditor = ({
           unit={units.actualDemand}
           readOnly={true}
         />
-      </Section>
+      </SectionWrapper>
     </AssetEditorContent>
   );
 };
@@ -671,11 +666,11 @@ const PipeEditor = ({
       readOnly={readonly}
       key={pipe.id}
     >
-      <Section title={translate("connections")} section="connections">
+      <SectionWrapper title={translate("connections")} section="connections">
         <TextRow name="startNode" value={startNode ? startNode.label : ""} />
         <TextRow name="endNode" value={endNode ? endNode.label : ""} />
-      </Section>
-      <Section
+      </SectionWrapper>
+      <SectionWrapper
         title={translate("activeTopology")}
         section="activeTopology"
         hasChanged={activeTopologyComparison.hasChanged}
@@ -688,8 +683,8 @@ const PipeEditor = ({
           onChange={onActiveTopologyStatusChange}
           readOnly={readonly}
         />
-      </Section>
-      <Section
+      </SectionWrapper>
+      <SectionWrapper
         title={translate("modelAttributes")}
         section="modelAttributes"
         hasChanged={hasModelAttributesChanges}
@@ -740,10 +735,10 @@ const PipeEditor = ({
           onChange={onPropertyChange}
           readOnly={readonly}
         />
-      </Section>
+      </SectionWrapper>
       {(customerCount > 0 ||
         getCustomerCountComparison(customerCount).hasChanged) && (
-        <Section
+        <SectionWrapper
           title={translate("demands")}
           section="demands"
           hasChanged={hasDemandChanges}
@@ -772,9 +767,9 @@ const PipeEditor = ({
             patterns={hydraulicModel.patterns}
             comparison={getCustomerCountComparison(customerCount)}
           />
-        </Section>
+        </SectionWrapper>
       )}
-      <Section
+      <SectionWrapper
         title={translate("simulationResults")}
         section="simulationResults"
       >
@@ -803,7 +798,7 @@ const PipeEditor = ({
           readOnly={true}
         />
         <TextRow name="actualStatus" value={simulationStatusText} />
-      </Section>
+      </SectionWrapper>
     </AssetEditorContent>
   );
 };
@@ -857,7 +852,7 @@ const ReservoirEditor = ({
       readOnly={readonly}
       key={reservoir.id}
     >
-      <Section
+      <SectionWrapper
         title={translate("activeTopology")}
         section="activeTopology"
         hasChanged={activeTopologyComparison.hasChanged}
@@ -869,8 +864,8 @@ const ReservoirEditor = ({
           comparison={activeTopologyComparison}
           readOnly={readonly}
         />
-      </Section>
-      <Section
+      </SectionWrapper>
+      <SectionWrapper
         title={translate("modelAttributes")}
         section="modelAttributes"
         hasChanged={hasModelAttributesChanges}
@@ -890,8 +885,8 @@ const ReservoirEditor = ({
           units={units}
           readOnly={readonly}
         />
-      </Section>
-      <Section
+      </SectionWrapper>
+      <SectionWrapper
         title={translate("simulationResults")}
         section="simulationResults"
       >
@@ -913,7 +908,7 @@ const ReservoirEditor = ({
           unit={units.netFlow}
           readOnly={true}
         />
-      </Section>
+      </SectionWrapper>
     </AssetEditorContent>
   );
 };
@@ -974,7 +969,7 @@ const TankEditor = ({
       readOnly={readonly}
       key={tank.id}
     >
-      <Section
+      <SectionWrapper
         title={translate("activeTopology")}
         section="activeTopology"
         hasChanged={activeTopologyComparison.hasChanged}
@@ -986,8 +981,8 @@ const TankEditor = ({
           comparison={activeTopologyComparison}
           readOnly={readonly}
         />
-      </Section>
-      <Section
+      </SectionWrapper>
+      <SectionWrapper
         title={translate("modelAttributes")}
         section="modelAttributes"
         hasChanged={hasModelAttributesChanges}
@@ -1025,8 +1020,8 @@ const TankEditor = ({
           onChange={onPropertyChange}
           readOnly={readonly}
         />
-      </Section>
-      <Section
+      </SectionWrapper>
+      <SectionWrapper
         title={translate("simulationResults")}
         section="simulationResults"
       >
@@ -1060,7 +1055,7 @@ const TankEditor = ({
           unit={units.netFlow}
           readOnly={true}
         />
-      </Section>
+      </SectionWrapper>
     </AssetEditorContent>
   );
 };
@@ -1295,7 +1290,7 @@ const TankDefinitionField = ({
   };
 
   return (
-    <BlockComparisonFieldLegacy
+    <BlockComparisonField
       hasChanged={definitionDiff.hasChanged}
       baseDisplayValue={
         definitionDiff.tooltipText ? (
@@ -1312,7 +1307,7 @@ const TankDefinitionField = ({
         readOnly={readOnly}
         onChange={handleDefinitionModeChange}
       />
-      <NestedSectionLegacy className="pb-2">
+      <NestedSection className="pb-2">
         {definitionMode === "diameterBased" && (
           <>
             <QuantityRow
@@ -1516,8 +1511,8 @@ const TankDefinitionField = ({
             })()}
           </>
         )}
-      </NestedSectionLegacy>
-    </BlockComparisonFieldLegacy>
+      </NestedSection>
+    </BlockComparisonField>
   );
 };
 
@@ -1634,11 +1629,11 @@ const ValveEditor = ({
       readOnly={readonly}
       key={valve.id}
     >
-      <Section title={translate("connections")} section="connections">
+      <SectionWrapper title={translate("connections")} section="connections">
         <TextRow name="startNode" value={startNode ? startNode.label : ""} />
         <TextRow name="endNode" value={endNode ? endNode.label : ""} />
-      </Section>
-      <Section
+      </SectionWrapper>
+      <SectionWrapper
         title={translate("activeTopology")}
         section="activeTopology"
         hasChanged={activeTopologyComparison.hasChanged}
@@ -1651,8 +1646,8 @@ const ValveEditor = ({
           onChange={onActiveTopologyStatusChange}
           readOnly={readonly}
         />
-      </Section>
-      <Section
+      </SectionWrapper>
+      <SectionWrapper
         title={translate("modelAttributes")}
         section="modelAttributes"
         hasChanged={hasModelAttributesChanges}
@@ -1719,8 +1714,8 @@ const ValveEditor = ({
           onChange={onPropertyChange}
           readOnly={readonly}
         />
-      </Section>
-      <Section
+      </SectionWrapper>
+      <SectionWrapper
         title={translate("simulationResults")}
         section="simulationResults"
       >
@@ -1743,7 +1738,7 @@ const ValveEditor = ({
           readOnly={true}
         />
         <TextRow name="status" value={statusText} />
-      </Section>
+      </SectionWrapper>
     </AssetEditorContent>
   );
 };
@@ -1846,11 +1841,11 @@ const PumpEditor = ({
       readOnly={readonly}
       key={pump.id}
     >
-      <Section title={translate("connections")} section="connections">
+      <SectionWrapper title={translate("connections")} section="connections">
         <TextRow name="startNode" value={startNode ? startNode.label : ""} />
         <TextRow name="endNode" value={endNode ? endNode.label : ""} />
-      </Section>
-      <Section
+      </SectionWrapper>
+      <SectionWrapper
         title={translate("activeTopology")}
         section="activeTopology"
         hasChanged={activeTopologyComparison.hasChanged}
@@ -1863,8 +1858,8 @@ const PumpEditor = ({
           onChange={onActiveTopologyStatusChange}
           readOnly={readonly}
         />
-      </Section>
-      <Section
+      </SectionWrapper>
+      <SectionWrapper
         title={translate("modelAttributes")}
         section="modelAttributes"
         hasChanged={hasModelAttributesChanges}
@@ -1903,9 +1898,9 @@ const PumpEditor = ({
           onPropertyChange={onPropertyChange}
           readOnly={readonly}
         />
-      </Section>
+      </SectionWrapper>
       {isEnergyEnabled && (
-        <Section
+        <SectionWrapper
           title={translate("energy")}
           section="energy"
           hasChanged={hasEnergyChanges}
@@ -1939,9 +1934,9 @@ const PumpEditor = ({
             onPropertyChange={onPropertyChange}
             readOnly={readonly}
           />
-        </Section>
+        </SectionWrapper>
       )}
-      <Section
+      <SectionWrapper
         title={translate("simulationResults")}
         section="simulationResults"
       >
@@ -1958,9 +1953,12 @@ const PumpEditor = ({
           readOnly={true}
         />
         <TextRow name="status" value={statusText} />
-      </Section>
+      </SectionWrapper>
       {isEnergyEnabled && (
-        <Section title={translate("energyResults")} section="energyResults">
+        <SectionWrapper
+          title={translate("energyResults")}
+          section="energyResults"
+        >
           <QuantityRow
             name="utilization"
             value={pumpEnergy?.utilization ?? null}
@@ -2003,7 +2001,7 @@ const PumpEditor = ({
             unit={null}
             readOnly={true}
           />
-        </Section>
+        </SectionWrapper>
       )}
     </AssetEditorContent>
   );
@@ -2038,36 +2036,6 @@ export const valveStatusLabel = (
     return `valve.${sim.status}.${sim.statusWarning}`;
   }
   return "valve." + sim.status;
-};
-
-const Section = ({
-  title,
-  hasChanged,
-  section,
-  children,
-}: {
-  title: string;
-  hasChanged?: boolean;
-  section: keyof AssetPanelSectionExpanded;
-  children: React.ReactNode;
-}) => {
-  const useAutoIndentation = useFeatureFlag("FLAG_UI_COLLAPSIBLE");
-  const [sections, setSections] = useAtom(assetPanelSectionsExpandedAtom);
-  if (useAutoIndentation) {
-    return (
-      <CollapsibleSection
-        title={title}
-        hasChanged={hasChanged}
-        open={sections[section]}
-        onOpenChange={(open) =>
-          setSections((prev) => ({ ...prev, [section]: open }))
-        }
-      >
-        {children}
-      </CollapsibleSection>
-    );
-  }
-  return <SectionLegacy title={title}>{children}</SectionLegacy>;
 };
 
 const VARIABLE_SPEED_NONE = 0;
@@ -2167,7 +2135,7 @@ const VariableSpeedField = ({
   }, [comparison, pump.speedPatternId, translate]);
 
   return (
-    <BlockComparisonFieldLegacy
+    <BlockComparisonField
       hasChanged={comparison.hasChanged}
       baseDisplayValue={baseDisplayValue}
     >
@@ -2182,7 +2150,7 @@ const VariableSpeedField = ({
         readOnly={readOnly}
       />
       {selectedVariableSpeed === VARIABLE_SPEED_PATTERN_BASED && (
-        <NestedSectionLegacy>
+        <NestedSection>
           <LibrarySelectRow
             name="speedPattern"
             collection={patterns}
@@ -2200,9 +2168,9 @@ const VariableSpeedField = ({
             onChange={handleSpeedPatternChange}
             readOnly={readOnly}
           />
-        </NestedSectionLegacy>
+        </NestedSection>
       )}
-    </BlockComparisonFieldLegacy>
+    </BlockComparisonField>
   );
 };
 
@@ -2259,7 +2227,7 @@ const PumpEfficiencyCurveField = ({
   );
 
   return (
-    <BlockComparisonFieldLegacy
+    <BlockComparisonField
       hasChanged={curveComparison.hasChanged}
       baseDisplayValue={baseDisplayValue}
     >
@@ -2280,7 +2248,7 @@ const PumpEfficiencyCurveField = ({
         onChange={handleOnChange}
         readOnly={readOnly}
       />
-    </BlockComparisonFieldLegacy>
+    </BlockComparisonField>
   );
 };
 
@@ -2345,7 +2313,7 @@ const PumpEnergyPricePatternField = ({
   );
 
   return (
-    <BlockComparisonFieldLegacy
+    <BlockComparisonField
       hasChanged={patternComparison.hasChanged}
       baseDisplayValue={baseDisplayValue}
     >
@@ -2367,7 +2335,7 @@ const PumpEnergyPricePatternField = ({
         onChange={handleChange}
         readOnly={readOnly}
       />
-    </BlockComparisonFieldLegacy>
+    </BlockComparisonField>
   );
 };
 
@@ -2469,7 +2437,7 @@ const ReservoirHeadField = ({
   const selectedPatternId = reservoir.headPatternId ?? null;
 
   return (
-    <BlockComparisonFieldLegacy
+    <BlockComparisonField
       hasChanged={hasChanged}
       baseDisplayValue={baseDisplayValue}
     >
@@ -2508,7 +2476,7 @@ const ReservoirHeadField = ({
           />
         )}
       </div>
-    </BlockComparisonFieldLegacy>
+    </BlockComparisonField>
   );
 };
 
@@ -2568,7 +2536,7 @@ const HeadlossCurveField = ({
   );
 
   return (
-    <BlockComparisonFieldLegacy
+    <BlockComparisonField
       hasChanged={curveComparison.hasChanged}
       baseDisplayValue={baseDisplayValue}
     >
@@ -2588,7 +2556,7 @@ const HeadlossCurveField = ({
         onChange={handleOnChange}
         readOnly={readOnly}
       />
-    </BlockComparisonFieldLegacy>
+    </BlockComparisonField>
   );
 };
 
@@ -2651,7 +2619,7 @@ const ValveCurveField = ({
   );
 
   return (
-    <BlockComparisonFieldLegacy
+    <BlockComparisonField
       hasChanged={curveComparison.hasChanged}
       baseDisplayValue={baseDisplayValue}
     >
@@ -2672,7 +2640,7 @@ const ValveCurveField = ({
         onChange={handleOnChange}
         readOnly={readOnly}
       />
-    </BlockComparisonFieldLegacy>
+    </BlockComparisonField>
   );
 };
 

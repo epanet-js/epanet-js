@@ -2,7 +2,7 @@ import { useState, KeyboardEventHandler } from "react";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { localizeDecimal } from "src/infra/i18n/numbers";
-import { InlineFieldLegacy } from "src/components/form/fields";
+import { InlineField } from "src/components/form/fields";
 import { NumericField } from "src/components/form/numeric-field";
 import { Selector, SelectorOption } from "src/components/form/selector";
 import { TriStateCheckbox } from "src/components/form/Checkbox";
@@ -48,7 +48,7 @@ export function MultiValueRow({
       : translate(propertyStats.property);
 
   return (
-    <InlineFieldLegacy name={label} labelSize="md">
+    <InlineField name={label} labelSize="md">
       <div className="flex items-center gap-1">
         {isMixed ? (
           <StatsPopoverButton
@@ -70,7 +70,7 @@ export function MultiValueRow({
           />
         </div>
       </div>
-    </InlineFieldLegacy>
+    </InlineField>
   );
 }
 

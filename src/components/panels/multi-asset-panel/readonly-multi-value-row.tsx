@@ -1,7 +1,7 @@
 import { useState, KeyboardEventHandler } from "react";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
-import { InlineFieldLegacy } from "src/components/form/fields";
+import { InlineField } from "src/components/form/fields";
 import { TextField } from "../asset-panel/ui-components";
 import * as P from "@radix-ui/react-popover";
 import { StyledPopoverArrow, StyledPopoverContent } from "../../elements";
@@ -40,7 +40,7 @@ export function ReadOnlyMultiValueRow({
     const isChecked = !hasMultipleValues && firstValue === "yes";
 
     return (
-      <InlineFieldLegacy name={label} labelSize="md">
+      <InlineField name={label} labelSize="md">
         <div className="flex items-center gap-1">
           {hasMultipleValues ? (
             <StatsPopoverButton
@@ -66,7 +66,7 @@ export function ReadOnlyMultiValueRow({
             />
           </div>
         </div>
-      </InlineFieldLegacy>
+      </InlineField>
     );
   }
 
@@ -78,7 +78,7 @@ export function ReadOnlyMultiValueRow({
     : formatValue(firstValue, translate, decimals);
 
   return (
-    <InlineFieldLegacy name={label} labelSize="md">
+    <InlineField name={label} labelSize="md">
       <div className="flex items-center gap-1">
         {hasMultipleValues ? (
           <StatsPopoverButton
@@ -107,7 +107,7 @@ export function ReadOnlyMultiValueRow({
           )}
         </div>
       </div>
-    </InlineFieldLegacy>
+    </InlineField>
   );
 }
 

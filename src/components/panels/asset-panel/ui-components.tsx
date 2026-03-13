@@ -22,11 +22,15 @@ import type { PumpDefinitionMode } from "./pump-definition-details";
 import { ValveKind, ValveStatus } from "src/hydraulic-model/asset-types/valve";
 import { PanelActions } from "./actions";
 import {
-  InlineFieldLegacy,
-  NestedBlockContext,
+  InlineField,
   SectionList,
+  CollapsibleSection,
+  Section,
 } from "src/components/form/fields";
-import { useContext } from "react";
+import {
+  assetPanelSectionsExpandedAtom,
+  type AssetPanelSectionExpanded,
+} from "src/state/layout";
 import clsx from "clsx";
 import * as P from "@radix-ui/react-popover";
 import { StyledPopoverArrow, StyledPopoverContent } from "../../elements";
@@ -62,6 +66,7 @@ export const AssetEditorContent = ({
   readOnly?: boolean;
 }) => {
   const [footerState, setFooterState] = useAtom(assetPanelFooterAtom);
+  const useAutoIndentation = useFeatureFlag("FLAG_UI_COLLAPSIBLE");
 
   const handleFooterHeightChange = useCallback(
     (height: number) => {
@@ -85,7 +90,9 @@ export const AssetEditorContent = ({
       isStickyFooter={footerState.isPinned}
       stickyFooterHeight={footerState.height}
       onStickyFooterHeightChange={handleFooterHeightChange}
-      gap={3}
+      gap={useAutoIndentation ? 1 : 3}
+      padding={useAutoIndentation ? 3 : 4}
+      overflow={true}
     >
       {children}
     </SectionList>
@@ -201,14 +208,14 @@ export const TextRow = ({
       : undefined;
 
   return (
-    <InlineFieldLegacy
+    <InlineField
       name={label}
       labelSize="md"
       hasChanged={comparison?.hasChanged}
       baseDisplayValue={baseDisplayValue}
     >
       <TextField>{value}</TextField>
-    </InlineFieldLegacy>
+    </InlineField>
   );
 };
 
@@ -260,7 +267,7 @@ export const QuantityRow = <P extends string>({
   };
 
   return (
-    <InlineFieldLegacy
+    <InlineField
       name={label}
       labelSize="md"
       hasChanged={comparison?.hasChanged}
@@ -285,70 +292,7 @@ export const QuantityRow = <P extends string>({
           }}
         />
       )}
-    </InlineFieldLegacy>
-  );
-};
-
-export const NestedSectionLegacy = ({
-  children,
-  className,
-}: {
-  children: React.ReactNode;
-  className?: string;
-}) => {
-  const parentDepth = useContext(NestedBlockContext);
-  const useExtraMargin = useFeatureFlag("FLAG_UI_COLLAPSIBLE");
-  return (
-    <NestedBlockContext.Provider value={parentDepth + 1}>
-      <div
-        className={clsx(
-          "bg-gray-50 px-2 py-1 mt-1 -mr-2 border-l-2 border-gray-400 rounded-sm flex flex-col gap-1",
-          useExtraMargin && "ml-2",
-          className,
-        )}
-      >
-        {children}
-      </div>
-    </NestedBlockContext.Provider>
-  );
-};
-
-const NestedSectionWithNesting = ({
-  children,
-  indentation = 2,
-  className,
-}: {
-  children: React.ReactNode;
-  indentation?: number;
-  className?: string;
-}) => {
-  const parentDepth = useContext(NestedBlockContext);
-  return (
-    <NestedBlockContext.Provider value={parentDepth + 1}>
-      <SectionList
-        indentation={indentation}
-        overflow={false}
-        gap={1}
-        className={clsx(
-          "bg-gray-50 mt-1 -mr-2 border-l-2 border-gray-400 rounded-sm",
-          className,
-        )}
-      >
-        {children}
-      </SectionList>
-    </NestedBlockContext.Provider>
-  );
-};
-
-export const NestedSection = (props: {
-  children: React.ReactNode;
-  className?: string;
-}) => {
-  const useNesting = useFeatureFlag("FLAG_UI_COLLAPSIBLE");
-  return useNesting ? (
-    <NestedSectionWithNesting {...props} />
-  ) : (
-    <NestedSectionLegacy {...props} />
+    </InlineField>
   );
 };
 
@@ -431,7 +375,7 @@ export function SelectRow<P extends string, T extends SelectRowValue>({
   const selectedOption = flatOptions.find((o) => o.value === selected);
 
   return (
-    <InlineFieldLegacy
+    <InlineField
       name={actualLabel}
       labelSize="md"
       hasChanged={comparison?.hasChanged}
@@ -462,7 +406,7 @@ export function SelectRow<P extends string, T extends SelectRowValue>({
           />
         </div>
       )}
-    </InlineFieldLegacy>
+    </InlineField>
   );
 }
 
@@ -581,7 +525,7 @@ export const SwitchRow = <P extends string>({
   };
 
   return (
-    <InlineFieldLegacy
+    <InlineField
       name={actualLabel}
       labelSize="md"
       hasChanged={comparison?.hasChanged}
@@ -595,7 +539,7 @@ export const SwitchRow = <P extends string>({
           disabled={readOnly || !onChange}
         />
       </div>
-    </InlineFieldLegacy>
+    </InlineField>
   );
 };
 
@@ -640,7 +584,7 @@ export const ConnectedCustomersRow = ({
       : undefined;
 
   return (
-    <InlineFieldLegacy
+    <InlineField
       name={translate("connectedCustomers")}
       labelSize="md"
       hasChanged={comparison?.hasChanged}
@@ -682,7 +626,7 @@ export const ConnectedCustomersRow = ({
           </StyledPopoverContent>
         </P.Portal>
       </P.Root>
-    </InlineFieldLegacy>
+    </InlineField>
   );
 };
 
@@ -813,4 +757,37 @@ const CustomerPointsPopover = ({
       </div>
     </div>
   );
+};
+
+export const SectionWrapper = ({
+  title,
+  hasChanged,
+  section,
+  children,
+}: {
+  title: string;
+  hasChanged?: boolean;
+  section: keyof AssetPanelSectionExpanded;
+  children: React.ReactNode;
+}) => {
+  const useAutoIndentation = useFeatureFlag("FLAG_UI_COLLAPSIBLE");
+  const [sections, setSections] = useAtom(assetPanelSectionsExpandedAtom);
+  if (useAutoIndentation) {
+    return (
+      <CollapsibleSection
+        title={title}
+        hasChanged={hasChanged}
+        open={sections[section]}
+        onOpenChange={(open) =>
+          setSections((prev) => ({ ...prev, [section]: open }))
+        }
+        indicatorPosition="left"
+        separator={false}
+        variant="primary"
+      >
+        {children}
+      </CollapsibleSection>
+    );
+  }
+  return <Section title={title}>{children}</Section>;
 };

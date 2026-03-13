@@ -1,11 +1,12 @@
 import { useTranslate } from "src/hooks/use-translate";
-import { SectionLegacy, SectionList } from "src/components/form/fields";
+import { Section, SectionList } from "src/components/form/fields";
 import { ReadOnlyMultiValueRow } from "./readonly-multi-value-row";
 import { MultiValueRow } from "./multi-value-row";
 import { AssetPropertySections } from "./data";
 import type { EditableProperties } from "./batch-edit-property-config";
 import { AssetId } from "src/hydraulic-model";
 import type { ChangeableProperty } from "src/hydraulic-model/model-operations/change-property";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 type SectionProps = {
   sections: AssetPropertySections;
@@ -27,6 +28,7 @@ export function AssetTypeSections({
   readonly = false,
   onSelectAssets,
 }: SectionProps) {
+  const useAutoIndentation = useFeatureFlag("FLAG_UI_COLLAPSIBLE");
   const translate = useTranslate();
 
   const sectionKeys: Array<keyof AssetPropertySections> = [
@@ -38,7 +40,7 @@ export function AssetTypeSections({
   ];
 
   return (
-    <SectionList padding={0} gap={3} overflow={false}>
+    <SectionList padding={0} gap={useAutoIndentation ? 1 : 3} overflow={false}>
       {sectionKeys.map((sectionKey) => {
         const stats = sections[sectionKey];
 
@@ -52,7 +54,7 @@ export function AssetTypeSections({
           return null;
 
         return (
-          <SectionLegacy
+          <Section
             key={sectionKey}
             title={translate(sectionKey)}
             variant="secondary"
@@ -85,7 +87,7 @@ export function AssetTypeSections({
                 />
               );
             })}
-          </SectionLegacy>
+          </Section>
         );
       })}
     </SectionList>

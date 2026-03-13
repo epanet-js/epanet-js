@@ -2,10 +2,7 @@ import { useMemo, useCallback } from "react";
 import { useTranslate } from "src/hooks/use-translate";
 import { pluralize } from "src/lib/utils";
 import { IWrappedFeature } from "src/types";
-import {
-  CollapsibleSectionLegacy,
-  SectionList,
-} from "src/components/form/fields";
+import { CollapsibleSection, SectionList } from "src/components/form/fields";
 import { MultiAssetActions } from "./actions";
 import { Asset, AssetId } from "src/hydraulic-model";
 import { Tank } from "src/hydraulic-model/asset-types/tank";
@@ -26,6 +23,7 @@ import type { ChangeableProperty } from "src/hydraulic-model/model-operations/ch
 import { activateAssets } from "src/hydraulic-model/model-operations/activate-assets";
 import { deactivateAssets } from "src/hydraulic-model/model-operations/deactivate-assets";
 import { useSelection } from "src/selection/use-selection";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export function MultiAssetPanel({
   selectedFeatures,
@@ -37,6 +35,7 @@ export function MultiAssetPanel({
   const {
     modelMetadata: { formatting, units },
   } = useAtomValue(dataAtom);
+  const useAutoIndentation = useFeatureFlag("FLAG_UI_COLLAPSIBLE");
   const translate = useTranslate();
   const simulationState = useAtomValue(simulationAtom);
   const simulationResults = useAtomValue(simulationResultsAtom);
@@ -135,9 +134,15 @@ export function MultiAssetPanel({
   );
 
   return (
-    <SectionList header={<Header selectedCount={selectedFeatures.length} />}>
+    <SectionList
+      gap={useAutoIndentation ? 1 : 3}
+      padding={4}
+      header={<Header selectedCount={selectedFeatures.length} />}
+      overflow={true}
+    >
       {assetCounts.junction > 0 && (
-        <CollapsibleSectionLegacy
+        <CollapsibleSection
+          indicatorPosition={useAutoIndentation ? "left" : "right"}
           title={`${translate("junction")} (${assetCounts.junction})`}
           open={collapseState.junction}
           onOpenChange={(open) =>
@@ -162,11 +167,12 @@ export function MultiAssetPanel({
             readonly={readonly}
             onSelectAssets={(ids, p) => handleSelectAssets(ids, p, "junction")}
           />
-        </CollapsibleSectionLegacy>
+        </CollapsibleSection>
       )}
 
       {assetCounts.pipe > 0 && (
-        <CollapsibleSectionLegacy
+        <CollapsibleSection
+          indicatorPosition={useAutoIndentation ? "left" : "right"}
           title={`${translate("pipe")} (${assetCounts.pipe})`}
           open={collapseState.pipe}
           onOpenChange={(open) =>
@@ -189,11 +195,12 @@ export function MultiAssetPanel({
             readonly={readonly}
             onSelectAssets={(ids, p) => handleSelectAssets(ids, p, "pipe")}
           />
-        </CollapsibleSectionLegacy>
+        </CollapsibleSection>
       )}
 
       {assetCounts.pump > 0 && (
-        <CollapsibleSectionLegacy
+        <CollapsibleSection
+          indicatorPosition={useAutoIndentation ? "left" : "right"}
           title={`${translate("pump")} (${assetCounts.pump})`}
           open={collapseState.pump}
           onOpenChange={(open) =>
@@ -216,11 +223,12 @@ export function MultiAssetPanel({
             readonly={readonly}
             onSelectAssets={(ids, p) => handleSelectAssets(ids, p, "pump")}
           />
-        </CollapsibleSectionLegacy>
+        </CollapsibleSection>
       )}
 
       {assetCounts.valve > 0 && (
-        <CollapsibleSectionLegacy
+        <CollapsibleSection
+          indicatorPosition={useAutoIndentation ? "left" : "right"}
           title={`${translate("valve")} (${assetCounts.valve})`}
           open={collapseState.valve}
           onOpenChange={(open) =>
@@ -245,11 +253,12 @@ export function MultiAssetPanel({
             readonly={readonly}
             onSelectAssets={(ids, p) => handleSelectAssets(ids, p, "valve")}
           />
-        </CollapsibleSectionLegacy>
+        </CollapsibleSection>
       )}
 
       {assetCounts.reservoir > 0 && (
-        <CollapsibleSectionLegacy
+        <CollapsibleSection
+          indicatorPosition={useAutoIndentation ? "left" : "right"}
           title={`${translate("reservoir")} (${assetCounts.reservoir})`}
           open={collapseState.reservoir}
           onOpenChange={(open) =>
@@ -273,11 +282,12 @@ export function MultiAssetPanel({
             readonly={readonly}
             onSelectAssets={(ids, p) => handleSelectAssets(ids, p, "reservoir")}
           />
-        </CollapsibleSectionLegacy>
+        </CollapsibleSection>
       )}
 
       {assetCounts.tank > 0 && (
-        <CollapsibleSectionLegacy
+        <CollapsibleSection
+          indicatorPosition={useAutoIndentation ? "left" : "right"}
           title={`${translate("tank")} (${assetCounts.tank})`}
           open={collapseState.tank}
           onOpenChange={(open) =>
@@ -300,7 +310,7 @@ export function MultiAssetPanel({
             readonly={readonly}
             onSelectAssets={(ids, p) => handleSelectAssets(ids, p, "tank")}
           />
-        </CollapsibleSectionLegacy>
+        </CollapsibleSection>
       )}
     </SectionList>
   );

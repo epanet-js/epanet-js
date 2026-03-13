@@ -8,7 +8,8 @@ import type { PropertyComparison } from "src/hooks/use-asset-comparison";
 import { useCustomerPointComparison } from "src/hooks/use-customer-point-comparison";
 import { useCustomerPointActions } from "src/components/context-actions/customer-point-actions";
 import { ActionButton } from "src/components/panels/asset-panel/actions/action-button";
-import { SectionLegacy } from "src/components/form/fields";
+import { SectionList } from "src/components/form/fields";
+import { SectionWrapper } from "src/components/panels/asset-panel/ui-components";
 import { useZoomTo } from "src/hooks/use-zoom-to";
 import { ZoomToIcon } from "src/icons";
 import { BBox } from "src/types";
@@ -26,8 +27,10 @@ import {
 } from "src/hydraulic-model/demands";
 import { changeDemandAssignment } from "src/hydraulic-model/model-operations";
 import { convertTo } from "src/quantity";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export function CustomerPointPanel() {
+  const useAutoIndentation = useFeatureFlag("FLAG_UI_COLLAPSIBLE");
   const selection = useAtomValue(selectionAtom);
   const hydraulicModel = useAtomValue(stagingModelAtom);
   const translate = useTranslate();
@@ -154,34 +157,39 @@ export function CustomerPointPanel() {
           {translate("customer")}
         </span>
       </div>
-      <div className="flex flex-col gap-3 p-4">
+      <SectionList
+        gap={useAutoIndentation ? 1 : 3}
+        padding={useAutoIndentation ? 3 : 4}
+      >
         {connection && (
-          <SectionLegacy title={translate("connections")}>
+          <SectionWrapper
+            title={translate("connections")}
+            section="connections"
+          >
             <TextRow name="pipe" value={pipe ? pipe.label : ""} />
             <TextRow name="junction" value={junction ? junction.label : ""} />
-          </SectionLegacy>
+          </SectionWrapper>
         )}
-        <SectionLegacy title={translate("demands")}>
-          <div className="relative flex flex-col gap-2">
-            {demandComparison.hasChanged && (
-              <div className="absolute -left-4 top-0 bottom-0 w-1 bg-purple-500 rounded-full" />
-            )}
-            <DemandCategoriesEditor
-              demands={demandsInPerDay}
-              patterns={hydraulicModel.patterns}
-              onDemandsChange={handleDemandsChange}
-              comparison={demandComparison}
-            />
-            <QuantityRow
-              name="customerDemand"
-              value={averageDemandInPerDay}
-              unit={perDayUnit}
-              comparison={demandComparison}
-              readOnly={true}
-            />
-          </div>
-        </SectionLegacy>
-      </div>
+        <SectionWrapper
+          title={translate("demands")}
+          section="demands"
+          hasChanged={demandComparison.hasChanged}
+        >
+          <DemandCategoriesEditor
+            demands={demandsInPerDay}
+            patterns={hydraulicModel.patterns}
+            onDemandsChange={handleDemandsChange}
+            comparison={demandComparison}
+          />
+          <QuantityRow
+            name="customerDemand"
+            value={averageDemandInPerDay}
+            unit={perDayUnit}
+            comparison={demandComparison}
+            readOnly={true}
+          />
+        </SectionWrapper>
+      </SectionList>
     </div>
   );
 }

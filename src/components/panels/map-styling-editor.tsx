@@ -22,7 +22,7 @@ import { RangeColorRuleEditor } from "../range-color-rule-editor";
 import { StyledPopoverArrow, StyledPopoverContent } from "../elements";
 import { RangeMode } from "src/map/symbology/range-color-rule";
 import { AddLayer, LayersEditor } from "../layers/layers-editor";
-import { InlineFieldLegacy, SectionLegacy, SectionList } from "../form/fields";
+import { InlineField, Section, SectionList } from "../form/fields";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { LegendRamp } from "../legends";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
@@ -47,7 +47,7 @@ export const MapStylingEditor = () => {
 
   return (
     <div className="flex-auto overflow-y-auto placemark-scrollbar border-gray-200 dark:border-gray-900">
-      <SectionList>
+      <SectionList gap={1} padding={4}>
         <SymbologyEditor
           geometryType="node"
           properties={supportedNodeProperties}
@@ -58,9 +58,9 @@ export const MapStylingEditor = () => {
         />
         {(!isGridOn || isCreateCustomerOn) && <CustomerPointsSection />}
         {!isGridOn && (
-          <SectionLegacy title={translate("layers")} button={<AddLayer />}>
+          <Section title={translate("layers")} button={<AddLayer />}>
             <LayersEditor />
-          </SectionLegacy>
+          </Section>
         )}
       </SectionList>
     </div>
@@ -192,8 +192,8 @@ const SymbologyEditor = ({
   const isSmOrLarger = useBreakpoint("sm");
 
   return (
-    <SectionLegacy title={title}>
-      <InlineFieldLegacy name={translate("colorBy")}>
+    <Section title={title}>
+      <InlineField name={translate("colorBy")} labelSize="md">
         <Selector
           ariaLabel={`${translate(geometryType)} ${translate("colorBy")}`}
           options={(["none", ...properties] as SelectOption[]).map((type) => {
@@ -213,48 +213,44 @@ const SymbologyEditor = ({
           }
           onChange={handleColorByChange}
         />
-      </InlineFieldLegacy>
+      </InlineField>
       {symbology.colorRule !== null && (
         <>
           {isSmOrLarger && (
             <>
-              <InlineFieldLegacy name={translate("range")}>
+              <InlineField name={translate("range")} labelSize="md">
                 <RangeColorRuleEditorTrigger
                   mode={symbology.colorRule.mode}
                   numIntervals={symbology.colorRule.breaks.length + 1}
                   geometryType={geometryType}
                 />
-              </InlineFieldLegacy>
-              <InlineFieldLegacy name={translate("ramp")}>
+              </InlineField>
+              <InlineField name={translate("ramp")} labelSize="md">
                 <ColorRampSelector geometryType={geometryType} />
-              </InlineFieldLegacy>
+              </InlineField>
             </>
           )}
           {!isSmOrLarger && (
-            <InlineFieldLegacy name="Legend" align="start">
+            <InlineField name="Legend" align="start" labelSize="md">
               <div className="w-full px-2">
                 <LegendRamp colorRule={symbology.colorRule} />
               </div>
-            </InlineFieldLegacy>
+            </InlineField>
           )}
-          <InlineFieldLegacy name={translate("labels")}>
-            <div className="p-2 flex items-center h-[38px]">
-              <Checkbox
-                checked={!!symbology.labelRule}
-                aria-label={`${translate(geometryType)} ${translate("labels")}`}
-                onChange={() =>
-                  handleLabelRuleChange(
-                    !!symbology.labelRule
-                      ? null
-                      : symbology.colorRule!.property,
-                  )
-                }
-              />
-            </div>
-          </InlineFieldLegacy>
+          <InlineField name={translate("labels")} labelSize="md">
+            <Checkbox
+              checked={!!symbology.labelRule}
+              aria-label={`${translate(geometryType)} ${translate("labels")}`}
+              onChange={() =>
+                handleLabelRuleChange(
+                  !!symbology.labelRule ? null : symbology.colorRule!.property,
+                )
+              }
+            />
+          </InlineField>
         </>
       )}
-    </SectionLegacy>
+    </Section>
   );
 };
 
@@ -283,17 +279,15 @@ const CustomerPointsSection = () => {
   };
 
   return (
-    <SectionLegacy title={translate("customerPoints")}>
-      <InlineFieldLegacy name={translate("visible")}>
-        <div className="p-2 flex items-center h-[38px]">
-          <Checkbox
-            checked={customerPointsSymbology.visible}
-            aria-label={`${translate("customerPoints")} ${translate("visible")}`}
-            onChange={handleVisibilityChange}
-          />
-        </div>
-      </InlineFieldLegacy>
-    </SectionLegacy>
+    <Section title={translate("customerPoints")}>
+      <InlineField name={translate("visible")} labelSize="md">
+        <Checkbox
+          checked={customerPointsSymbology.visible}
+          aria-label={`${translate("customerPoints")} ${translate("visible")}`}
+          onChange={handleVisibilityChange}
+        />
+      </InlineField>
+    </Section>
   );
 };
 

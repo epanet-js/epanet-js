@@ -14,6 +14,7 @@ import { PropertyComparison } from "src/hooks/use-asset-comparison";
 import { calculateAverageDemand, Demand } from "src/hydraulic-model/demands";
 import { UnitsSpec } from "src/model-metadata/quantities-spec";
 import { QuantityRow } from "./ui-components";
+import { NestedSection } from "src/components/form/fields";
 
 type DemandCategoryRow = {
   baseDemand: number | null;
@@ -275,7 +276,7 @@ export const DemandCategoriesEditor = ({
       >
         {translate("demandCategories")}
       </label>
-      <div className="border-l-2 border-gray-400 bg-gray-50 pr-2 pb-2">
+      <NestedSection className="pb-2 pl-0">
         <DataGrid<DemandCategoryRow>
           ref={gridRef}
           data={rowData}
@@ -288,7 +289,7 @@ export const DemandCategoriesEditor = ({
           gutterColumn
           readOnly={readOnly}
         />
-      </div>
+      </NestedSection>
     </div>
   );
 };
