@@ -12,7 +12,7 @@ import { useTranslate } from "src/hooks/use-translate";
 import { DeleteIcon, AddIcon } from "src/icons";
 import { PropertyComparison } from "src/hooks/use-asset-comparison";
 import { calculateAverageDemand, Demand } from "src/hydraulic-model/demands";
-import { Quantities } from "src/model-metadata/quantities-spec";
+import { UnitsSpec } from "src/model-metadata/quantities-spec";
 import { QuantityRow } from "./ui-components";
 
 type DemandCategoryRow = {
@@ -296,7 +296,7 @@ export const DemandCategoriesEditor = ({
 export const DemandsEditor = ({
   demands,
   patterns,
-  quantitiesMetadata,
+  units,
   name,
   onChange,
   demandComparator,
@@ -304,7 +304,7 @@ export const DemandsEditor = ({
 }: {
   demands: Demand[];
   patterns: Patterns;
-  quantitiesMetadata: Quantities;
+  units: UnitsSpec;
   name: string;
   onChange: (demands: Demand[]) => void;
   demandComparator: (demands: number) => PropertyComparison;
@@ -332,7 +332,7 @@ export const DemandsEditor = ({
       <QuantityRow
         name={name}
         value={averageDemand}
-        unit={quantitiesMetadata.units.directDemand}
+        unit={units.directDemand}
         comparison={demandComparison}
         readOnly={true}
       />

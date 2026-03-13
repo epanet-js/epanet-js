@@ -78,7 +78,10 @@ export const SimulationSettingsDialog = () => {
           modelMetadata: {
             ...data.modelMetadata,
             quantities: newQuantities,
-            units: newQuantities.units,
+            units: {
+              ...data.modelMetadata.units,
+              pressure: values.pressureUnit,
+            },
           },
         });
       }

@@ -2,7 +2,6 @@ import { useMemo, useCallback } from "react";
 import { useTranslate } from "src/hooks/use-translate";
 import { pluralize } from "src/lib/utils";
 import { IWrappedFeature } from "src/types";
-import { Quantities } from "src/model-metadata/quantities-spec";
 import {
   CollapsibleSectionLegacy,
   SectionList,
@@ -30,15 +29,13 @@ import { useSelection } from "src/selection/use-selection";
 
 export function MultiAssetPanel({
   selectedFeatures,
-  quantitiesMetadata,
   readonly = false,
 }: {
   selectedFeatures: IWrappedFeature[];
-  quantitiesMetadata: Quantities;
   readonly?: boolean;
 }) {
   const {
-    modelMetadata: { formatting },
+    modelMetadata: { formatting, units },
   } = useAtomValue(dataAtom);
   const translate = useTranslate();
   const simulationState = useAtomValue(simulationAtom);
@@ -55,18 +52,12 @@ export function MultiAssetPanel({
     const assets = selectedFeatures as Asset[];
     return computeMultiAssetData(
       assets,
-      quantitiesMetadata,
+      units,
       formatting,
       hydraulicModel,
       simulationResults,
     );
-  }, [
-    selectedFeatures,
-    quantitiesMetadata,
-    formatting,
-    hydraulicModel,
-    simulationResults,
-  ]);
+  }, [selectedFeatures, units, formatting, hydraulicModel, simulationResults]);
 
   const assetIdsByType = useMemo(() => {
     const map: Record<Asset["type"], Asset["id"][]> = {

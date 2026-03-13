@@ -144,7 +144,7 @@ export const CreateNew = () => {
         projectionMapper: buildNewProjectProjectionMapper(projection),
       };
       const hydraulicModel = initializeHydraulicModel({
-        defaults: quantities.defaults,
+        defaults: spec.defaults,
       });
       const factories = initializeModelFactories();
       setGridPreview(false);

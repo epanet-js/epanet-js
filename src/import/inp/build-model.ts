@@ -100,7 +100,7 @@ export const buildModel = (
   const factories = initializeModelFactories();
 
   const hydraulicModel = initializeHydraulicModel({
-    defaults: quantities.defaults,
+    defaults: spec.defaults,
     demands: createEmptyDemands(),
   });
 

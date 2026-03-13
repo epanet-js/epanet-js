@@ -1,11 +1,7 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { SymbologySpec, nullSymbologySpec } from "src/map/symbology";
 import { buildOptimizedAssetsSource } from "./features";
-import {
-  Quantities,
-  presets,
-  FormattingSpec,
-} from "src/model-metadata/quantities-spec";
+import { presets, FormattingSpec } from "src/model-metadata/quantities-spec";
 import {
   aLinkSymbology,
   aNodeSymbology,
@@ -15,7 +11,7 @@ import { getColors } from "src/map/symbology/range-color-rule";
 import { createMockResultsReader } from "src/__helpers__/state";
 
 describe("build optimized source", () => {
-  const defaultQuantities = new Quantities(presets.LPS);
+  const defaultUnits = presets.LPS.units;
   const defaultFormatting: FormattingSpec = {
     decimals: presets.LPS.decimals,
     defaultDecimals: 3,
@@ -35,7 +31,7 @@ describe("build optimized source", () => {
     const features = buildOptimizedAssetsSource(
       assets,
       symbology,
-      defaultQuantities,
+      defaultUnits,
       defaultFormatting,
       fakeTranslateUnit,
     );
@@ -73,7 +69,7 @@ describe("build optimized source", () => {
     const features = buildOptimizedAssetsSource(
       assets,
       symbology,
-      defaultQuantities,
+      defaultUnits,
       defaultFormatting,
       fakeTranslateUnit,
     );
@@ -101,7 +97,7 @@ describe("build optimized source", () => {
     const features = buildOptimizedAssetsSource(
       assets,
       symbology,
-      defaultQuantities,
+      defaultUnits,
       defaultFormatting,
       fakeTranslateUnit,
       simulationResults,
@@ -137,7 +133,7 @@ describe("build optimized source", () => {
       const features = buildOptimizedAssetsSource(
         assets,
         symbology,
-        defaultQuantities,
+        defaultUnits,
         defaultFormatting,
         fakeTranslateUnit,
         simulationResults,
@@ -167,7 +163,7 @@ describe("build optimized source", () => {
       const features = buildOptimizedAssetsSource(
         assets,
         symbology,
-        defaultQuantities,
+        defaultUnits,
         defaultFormatting,
         () => "m",
         simulationResults,
@@ -208,7 +204,7 @@ describe("build optimized source", () => {
       const features = buildOptimizedAssetsSource(
         assets,
         symbology,
-        defaultQuantities,
+        defaultUnits,
         defaultFormatting,
         fakeTranslateUnit,
         simulationResults,
@@ -249,7 +245,7 @@ describe("build optimized source", () => {
       const features = buildOptimizedAssetsSource(
         assets,
         symbology,
-        defaultQuantities,
+        defaultUnits,
         defaultFormatting,
         () => "l/s",
         simulationResults,
@@ -277,7 +273,7 @@ describe("build optimized source", () => {
       const features = buildOptimizedAssetsSource(
         assets,
         symbology,
-        defaultQuantities,
+        defaultUnits,
         defaultFormatting,
         fakeTranslateUnit,
         simulationResults,
@@ -314,7 +310,7 @@ describe("build optimized source", () => {
       const features = buildOptimizedAssetsSource(
         assets,
         symbology,
-        defaultQuantities,
+        defaultUnits,
         defaultFormatting,
         fakeTranslateUnit,
         simulationResults,
@@ -339,7 +335,7 @@ describe("build optimized source", () => {
       const features = buildOptimizedAssetsSource(
         assets,
         symbology,
-        defaultQuantities,
+        defaultUnits,
         defaultFormatting,
         fakeTranslateUnit,
         simulationResults,
@@ -359,7 +355,7 @@ describe("build optimized source", () => {
 
     it("assigns lengths in meters", () => {
       const IDS = { p1: 1 } as const;
-      const gpmQuantities = new Quantities(presets.GPM);
+      const gpmUnits = presets.GPM.units;
       const gpmFormatting: FormattingSpec = {
         decimals: presets.GPM.decimals,
         defaultDecimals: 3,
@@ -374,7 +370,7 @@ describe("build optimized source", () => {
       const features = buildOptimizedAssetsSource(
         assets,
         symbology,
-        gpmQuantities,
+        gpmUnits,
         gpmFormatting,
         fakeTranslateUnit,
         simulationResults,

@@ -363,6 +363,13 @@ export const withPressureUnit = (
   return { ...spec, units: { ...spec.units, pressure: pressureUnit } };
 };
 
+export const getMinorLossUnit = (
+  headlossFormula: HeadlossFormula,
+  units: UnitsSpec,
+): Unit => {
+  return headlossFormula === "D-W" ? units.length : null;
+};
+
 export class Quantities {
   private spec: AssetQuantitiesSpec;
 
@@ -374,24 +381,8 @@ export class Quantities {
     return this.spec.name;
   }
 
-  get defaults() {
-    return this.spec.defaults;
-  }
-
   get ranges() {
     return this.spec.ranges;
-  }
-
-  get units(): UnitsSpec {
-    return this.spec.units;
-  }
-
-  getMinorLossUnit(headlossFormula: HeadlossFormula): Unit {
-    if (headlossFormula === "D-W") {
-      return this.spec.units.length;
-    } else {
-      return null;
-    }
   }
 
   withPressureUnit(pressureUnit: Unit): Quantities {

@@ -190,7 +190,6 @@ export const MapCanvas = memo(function MapCanvas({
     mode,
     dragTargetRef,
     hydraulicModel,
-    quantities: data.modelMetadata.quantities,
     units: data.modelMetadata.units,
     folderMap,
     selection,

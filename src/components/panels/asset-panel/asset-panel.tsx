@@ -28,7 +28,8 @@ import {
   CustomerPoint,
   getActiveCustomerPoints,
 } from "src/hydraulic-model/customer-points";
-import { Quantities, UnitsSpec } from "src/model-metadata/quantities-spec";
+import { UnitsSpec } from "src/model-metadata/quantities-spec";
+import { getMinorLossUnit } from "src/model-metadata";
 import { useTranslate } from "src/hooks/use-translate";
 import { usePersistence } from "src/lib/persistence";
 import { useUserTracking } from "src/infra/user-tracking";
@@ -118,12 +119,10 @@ type OnStatusChange<T> = (newStatus: T, oldStatus: T) => void;
 
 export function AssetPanel({
   asset,
-  quantitiesMetadata,
   units,
   readonly = false,
 }: {
   asset: Asset;
-  quantitiesMetadata: Quantities;
   units: UnitsSpec;
   readonly?: boolean;
 }) {
@@ -274,7 +273,6 @@ export function AssetPanel({
       return (
         <JunctionEditor
           junction={asset as Junction}
-          quantitiesMetadata={quantitiesMetadata}
           units={units}
           onPropertyChange={handlePropertyChange}
           onDemandsChange={handleDemandsChange}
@@ -290,7 +288,6 @@ export function AssetPanel({
           pipe={pipe}
           {...getLinkNodes(hydraulicModel.assets, pipe)}
           headlossFormula={modelMetadata.headlossFormula}
-          quantitiesMetadata={quantitiesMetadata}
           units={units}
           onPropertyChange={handlePropertyChange}
           onStatusChange={handleStatusChange}
@@ -363,7 +360,6 @@ export function AssetPanel({
 
 const JunctionEditor = ({
   junction,
-  quantitiesMetadata,
   units,
   onPropertyChange,
   onDemandsChange,
@@ -372,7 +368,6 @@ const JunctionEditor = ({
   readonly = false,
 }: {
   junction: Junction;
-  quantitiesMetadata: Quantities;
   units: UnitsSpec;
   onPropertyChange: OnPropertyChange;
   onDemandsChange: (newDemands: Demand[]) => void;
@@ -499,7 +494,7 @@ const JunctionEditor = ({
         <DemandsEditor
           demands={getJunctionDemands(hydraulicModel.demands, junction.id)}
           patterns={hydraulicModel.patterns}
-          quantitiesMetadata={quantitiesMetadata}
+          units={units}
           name="directDemand"
           onChange={onDemandsChange}
           demandComparator={getDirectDemandComparison}
@@ -567,7 +562,6 @@ const PipeEditor = ({
   startNode,
   endNode,
   headlossFormula,
-  quantitiesMetadata,
   units,
   onPropertyChange,
   onStatusChange,
@@ -580,7 +574,6 @@ const PipeEditor = ({
   startNode: NodeAsset | null;
   endNode: NodeAsset | null;
   headlossFormula: HeadlossFormula;
-  quantitiesMetadata: Quantities;
   units: UnitsSpec;
   onPropertyChange: OnPropertyChange;
   onStatusChange: OnStatusChange<PipeStatus>;
@@ -742,7 +735,7 @@ const PipeEditor = ({
           name="minorLoss"
           value={pipe.minorLoss}
           positiveOnly={true}
-          unit={quantitiesMetadata.getMinorLossUnit(headlossFormula)}
+          unit={getMinorLossUnit(headlossFormula, units)}
           comparison={getComparison("minorLoss", pipe.minorLoss)}
           onChange={onPropertyChange}
           readOnly={readonly}

@@ -36,7 +36,7 @@ import { captureError } from "src/infra/error-tracking";
 import { withDebugInstrumentation } from "src/infra/with-instrumentation";
 import { USelection } from "src/selection";
 import { SymbologySpec } from "src/state/map-symbology";
-import { FormattingSpec, Quantities } from "src/model-metadata/quantities-spec";
+import { FormattingSpec, UnitsSpec } from "src/model-metadata/quantities-spec";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import {
@@ -118,7 +118,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const assets = useAtomValue(assetsAtom);
   const hydraulicModel = useAtomValue(stagingModelAtom);
   const {
-    modelMetadata: { quantities, formatting },
+    modelMetadata: { units, formatting },
   } = useAtomValue(dataAtom);
   const isGridOn = useAtomValue(showGridAtom);
   const isGridPreview = useAtomValue(gridPreviewAtom);
@@ -197,7 +197,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
             map,
             assets,
             mapState.symbology,
-            quantities,
+            units,
             formatting,
             translateUnit,
             resultsReader,
@@ -213,7 +213,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
             map,
             isGridOn,
             isPreview: isGridPreview,
-            lengthUnit: quantities.units.length === "ft" ? "ft" : "m",
+            lengthUnit: units.length === "ft" ? "ft" : "m",
             gridRef,
             scaleControlRef,
           });
@@ -226,7 +226,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
             mapState.syncMomentPointer,
             assets,
             mapState.symbology,
-            quantities,
+            units,
             formatting,
             translateUnit,
             resultsReader,
@@ -346,7 +346,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
             map,
             mapState.selection,
             assets,
-            quantities,
+            units,
             mapState.movedAssetIds,
             resultsReader,
           );
@@ -416,7 +416,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     map,
     momentLog,
     setMapSyncMoment,
-    quantities,
+    units,
     formatting,
     setMapLoading,
     translate,
@@ -524,7 +524,7 @@ const rebuildSources = withDebugInstrumentation(
     map: MapEngine,
     assets: AssetsMap,
     symbology: SymbologySpec,
-    quantities: Quantities,
+    units: UnitsSpec,
     formatting: FormattingSpec,
     translateUnit: (unit: Unit) => string,
     simulationResults?: ResultsReader | null,
@@ -532,7 +532,7 @@ const rebuildSources = withDebugInstrumentation(
     const features = buildOptimizedAssetsSource(
       assets,
       symbology,
-      quantities,
+      units,
       formatting,
       translateUnit,
       simulationResults,
@@ -551,7 +551,7 @@ const updateDeltaSource = withDebugInstrumentation(
     assets: AssetsMap,
     editedAssetIds: Set<AssetId>,
     symbology: SymbologySpec,
-    quantities: Quantities,
+    units: UnitsSpec,
     formatting: FormattingSpec,
     translateUnit: (unit: Unit) => string,
     simulationResults?: ResultsReader | null,
@@ -560,7 +560,7 @@ const updateDeltaSource = withDebugInstrumentation(
     const features = buildOptimizedAssetsSource(
       editedAssets,
       symbology,
-      quantities,
+      units,
       formatting,
       translateUnit,
       simulationResults,
@@ -576,7 +576,7 @@ const syncSourcesWithEdits = async (
   mapSyncMoment: number,
   assets: AssetsMap,
   symbology: SymbologySpec,
-  quantities: Quantities,
+  units: UnitsSpec,
   formatting: FormattingSpec,
   translateUnit: (unit: Unit) => string,
   simulationResults?: ResultsReader | null,
@@ -590,7 +590,7 @@ const syncSourcesWithEdits = async (
     assets,
     editedSinceConsolidation,
     symbology,
-    quantities,
+    units,
     formatting,
     translateUnit,
     simulationResults,
@@ -645,14 +645,14 @@ const updateSelection = withDebugInstrumentation(
     map: MapEngine,
     selection: Sel,
     assets: AssetsMap,
-    quantities: Quantities,
+    units: UnitsSpec,
     movedAssetIds: Set<AssetId>,
     simulationResults?: ResultsReader | null,
   ): Promise<void> => {
     const features = buildSelectionSource(
       assets,
       selection,
-      quantities,
+      units,
       movedAssetIds,
       simulationResults,
     );

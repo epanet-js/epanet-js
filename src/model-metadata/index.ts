@@ -4,4 +4,4 @@ export type {
   DefaultsSpec,
   FormattingSpec,
 } from "./quantities-spec";
-export { getDecimals } from "./quantities-spec";
+export { getDecimals, getMinorLossUnit } from "./quantities-spec";
