@@ -12,7 +12,6 @@ import {
   ReservoirBuildData,
   NodeAsset,
   AssetId,
-  HeadlossFormula,
   Controls,
   createEmptyControls,
   createEmptyDemands,
@@ -126,7 +125,6 @@ export class HydraulicModelBuilder {
   private topology: Topology;
   private assets: AssetsMap;
   private assetBuilder: AssetBuilder;
-  private headlossFormulaValue: HeadlossFormula;
   private labelManager: LabelManager;
   private demands: Demands;
   private customerPointsMap: CustomerPoints;
@@ -157,7 +155,6 @@ export class HydraulicModelBuilder {
     );
     this.topology = new Topology();
     this.demands = createEmptyDemands();
-    this.headlossFormulaValue = "H-W";
     this.curves = new Map();
     this.patterns = new Map();
     this.controlsValue = createEmptyControls();
@@ -294,11 +291,6 @@ export class HydraulicModelBuilder {
     properties: Partial<PipeProperties> = {},
   ) {
     return this.aPipe(id, { startNodeId, endNodeId, ...properties });
-  }
-
-  headlossFormula(headlossFormula: HeadlossFormula) {
-    this.headlossFormulaValue = headlossFormula;
-    return this;
   }
 
   aDemandPattern(patternId: number, patternLabel: string, factors: number[]) {
@@ -457,7 +449,6 @@ export class HydraulicModelBuilder {
       topology: this.topology,
       assetIndex,
       demands: this.demands,
-      headlossFormula: this.headlossFormulaValue,
       curves: this.curves,
       patterns: this.patterns,
       controls: this.controlsValue,

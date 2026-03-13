@@ -141,15 +141,12 @@ describe("build inp export ", () => {
   });
 
   it("includes haadloss formula", () => {
-    const hydraulicModel = HydraulicModelBuilder.with()
-      .headlossFormula("D-W")
-      .build();
+    const hydraulicModel = HydraulicModelBuilder.with().build();
 
-    const inp = buildInp(
-      hydraulicModel,
-
-      exportOptions,
-    );
+    const inp = buildInp(hydraulicModel, {
+      ...exportOptions,
+      headlossFormula: "D-W",
+    });
 
     expect(rowsFrom(inp)).toContain("Headloss\tD-W");
   });

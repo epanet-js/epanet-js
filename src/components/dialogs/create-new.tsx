@@ -139,11 +139,11 @@ export const CreateNew = () => {
         quantities,
         units: spec.units,
         defaults: spec.defaults,
+        headlossFormula,
         projectionMapper: buildNewProjectProjectionMapper(projection),
       };
       const hydraulicModel = initializeHydraulicModel({
         defaults: quantities.defaults,
-        headlossFormula,
       });
       const factories = initializeModelFactories();
       setGridPreview(false);

@@ -553,13 +553,12 @@ describe("build inp", () => {
   });
 
   it("includes haadloss formula", () => {
-    const hydraulicModel = HydraulicModelBuilder.with()
-      .headlossFormula("D-W")
-      .build();
+    const hydraulicModel = HydraulicModelBuilder.with().build();
 
     const inp = buildInp(hydraulicModel, {
       units: presets.LPS.units,
       simulationSettings: defaultSimulationSettings,
+      headlossFormula: "D-W",
     });
 
     expect(inp).toContain("Headloss\tD-W");

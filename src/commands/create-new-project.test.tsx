@@ -46,8 +46,7 @@ describe("create new project", () => {
 
     await userEvent.click(screen.getByRole("button", { name: /create/i }));
 
-    const hydraulicModel = store.get(stagingModelAtom);
-    expect(hydraulicModel.headlossFormula).toEqual("D-W");
+    expect(store.get(dataAtom).modelMetadata.headlossFormula).toEqual("D-W");
   });
 
   it("erases the previous state", async () => {

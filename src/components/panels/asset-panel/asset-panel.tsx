@@ -33,6 +33,7 @@ import { useTranslate } from "src/hooks/use-translate";
 import { usePersistence } from "src/lib/persistence";
 import { useUserTracking } from "src/infra/user-tracking";
 import { stagingModelAtom } from "src/state/hydraulic-model";
+import { dataAtom } from "src/state/data";
 import {
   assetPanelSectionsExpandedAtom,
   type AssetPanelSectionExpanded,
@@ -127,6 +128,7 @@ export function AssetPanel({
   readonly?: boolean;
 }) {
   const hydraulicModel = useAtomValue(stagingModelAtom);
+  const { modelMetadata } = useAtomValue(dataAtom);
   const rep = usePersistence();
   const transact = rep.useTransact();
   const userTracking = useUserTracking();
@@ -287,7 +289,7 @@ export function AssetPanel({
         <PipeEditor
           pipe={pipe}
           {...getLinkNodes(hydraulicModel.assets, pipe)}
-          headlossFormula={hydraulicModel.headlossFormula}
+          headlossFormula={modelMetadata.headlossFormula}
           quantitiesMetadata={quantitiesMetadata}
           units={units}
           onPropertyChange={handlePropertyChange}

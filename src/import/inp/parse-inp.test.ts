@@ -226,9 +226,9 @@ describe("Parse inp with", () => {
     ANY
     `;
 
-    const { hydraulicModel } = parseInp(inp);
+    const { modelMetadata } = parseInp(inp);
 
-    expect(hydraulicModel.headlossFormula).toEqual("D-W");
+    expect(modelMetadata.headlossFormula).toEqual("D-W");
   });
 
   it("says when inp contains unsupported sections", () => {

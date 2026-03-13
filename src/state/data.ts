@@ -19,6 +19,7 @@ const modelMetadata: ModelMetadata = {
   quantities,
   units: presets.LPS.units,
   defaults: presets.LPS.defaults,
+  headlossFormula: "H-W",
   projectionMapper: createProjectionMapper({ type: "wgs84" }),
 };
 export const nullData: Data = {

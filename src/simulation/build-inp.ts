@@ -9,6 +9,7 @@ import {
   Tank,
   PatternId,
   Demands,
+  HeadlossFormula,
 } from "src/hydraulic-model";
 import type {
   Timing,
@@ -345,6 +346,7 @@ type InpSections = {
 type BuildOptions = {
   simulationSettings: SimulationSettings;
   units: UnitsSpec;
+  headlossFormula?: HeadlossFormula;
   geolocation?: boolean;
   madeBy?: boolean;
   labelIds?: boolean;
@@ -360,6 +362,7 @@ type BuildOptions = {
 export const buildInp = withDebugInstrumentation(
   (hydraulicModel: HydraulicModel, options: BuildOptions): string => {
     const opts = {
+      headlossFormula: "H-W" as HeadlossFormula,
       geolocation: false,
       madeBy: false,
       labelIds: false,
@@ -373,7 +376,7 @@ export const buildInp = withDebugInstrumentation(
     };
     const idMap = new EpanetIds({ strategy: opts.labelIds ? "label" : "id" });
     const units = chooseUnitSystem(opts.units);
-    const headlossFormula = hydraulicModel.headlossFormula;
+    const headlossFormula = opts.headlossFormula;
 
     const transformCoord: (p: Position) => Position =
       opts.projectionMapper?.toSource ?? ((p: Position) => p);

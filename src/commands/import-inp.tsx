@@ -263,7 +263,7 @@ const buildCompleteEvent = (
   return {
     name: "importInp.completed",
     counts: Object.fromEntries(stats.counts),
-    headlossFormula: hydraulicModel.headlossFormula,
+    headlossFormula: modelMetadata.headlossFormula,
     units: modelMetadata.quantities.specName as EpanetUnitSystem,
     issues: processedIssues,
   } as ImportInpCompleted;

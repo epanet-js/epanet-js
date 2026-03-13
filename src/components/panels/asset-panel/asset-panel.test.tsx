@@ -21,7 +21,6 @@ describe("AssetPanel", () => {
     it("can show its properties", () => {
       const IDS = { P1: 1, j1: 2, j2: 3 };
       const hydraulicModel = HydraulicModelBuilder.with()
-        .headlossFormula("D-W")
         .aJunction(IDS.j1, { label: "J1" })
         .aJunction(IDS.j2, { label: "J2" })
         .aPipe(IDS.P1, {
@@ -38,6 +37,13 @@ describe("AssetPanel", () => {
       const store = setInitialState({
         hydraulicModel,
         selectedAssetId: IDS.P1,
+      });
+      store.set(dataAtom, {
+        ...store.get(dataAtom),
+        modelMetadata: {
+          ...store.get(dataAtom).modelMetadata,
+          headlossFormula: "D-W",
+        },
       });
 
       renderComponent(store);
@@ -558,7 +564,6 @@ describe("AssetPanel", () => {
     it("can show its properties", () => {
       const IDS = { PU1: 1, j1: 2, j2: 3 };
       const hydraulicModel = HydraulicModelBuilder.with()
-        .headlossFormula("D-W")
         .aJunction(IDS.j1, { label: "J1" })
         .aJunction(IDS.j2, { label: "J2" })
         .aPump(IDS.PU1, {
@@ -588,7 +593,6 @@ describe("AssetPanel", () => {
     it("shows properties for flow-vs-head definition", () => {
       const IDS = { PU1: 1, j1: 2, j2: 3 };
       const hydraulicModel = HydraulicModelBuilder.with()
-        .headlossFormula("D-W")
         .aJunction(IDS.j1, { label: "J1" })
         .aJunction(IDS.j2, { label: "J2" })
         .aPump(IDS.PU1, {
@@ -615,7 +619,6 @@ describe("AssetPanel", () => {
     it("shows properties for power defintion", () => {
       const IDS = { PU1: 1, j1: 2, j2: 3 };
       const hydraulicModel = HydraulicModelBuilder.with()
-        .headlossFormula("D-W")
         .aJunction(IDS.j1, { label: "J1" })
         .aJunction(IDS.j2, { label: "J2" })
         .aPump(IDS.PU1, {
@@ -641,7 +644,6 @@ describe("AssetPanel", () => {
     it("can change pump definition", async () => {
       const IDS = { PU1: 1, j1: 2, j2: 3 };
       const hydraulicModel = HydraulicModelBuilder.with()
-        .headlossFormula("D-W")
         .aJunction(IDS.j1, { label: "J1" })
         .aJunction(IDS.j2, { label: "J2" })
         .aPump(IDS.PU1, {

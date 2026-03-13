@@ -85,7 +85,10 @@ export const buildModel = (
 ): {
   hydraulicModel: HydraulicModel;
   factories: ModelFactories;
-  modelMetadata: Pick<ModelMetadata, "quantities" | "units" | "defaults">;
+  modelMetadata: Pick<
+    ModelMetadata,
+    "quantities" | "units" | "defaults" | "headlossFormula"
+  >;
 } => {
   const baseSpec = presets[inpData.options.units];
   const spec = inpData.options.pressureUnit
@@ -98,7 +101,6 @@ export const buildModel = (
 
   const hydraulicModel = initializeHydraulicModel({
     defaults: quantities.defaults,
-    headlossFormula: inpData.options.headlossFormula,
     demands: createEmptyDemands(),
   });
 
@@ -191,7 +193,12 @@ export const buildModel = (
   return {
     hydraulicModel,
     factories,
-    modelMetadata: { quantities, units: spec.units, defaults: spec.defaults },
+    modelMetadata: {
+      quantities,
+      units: spec.units,
+      defaults: spec.defaults,
+      headlossFormula: inpData.options.headlossFormula,
+    },
   };
 };
 

@@ -3,7 +3,7 @@ import { AssetsMap } from "./assets-map";
 import { AssetBuilder } from "./asset-builder";
 import { DefaultsSpec } from "src/model-metadata/quantities-spec";
 import { nanoid } from "nanoid";
-import { HeadlossFormula } from "./asset-types/pipe";
+
 import { ConsecutiveIdsGenerator, IdGenerator } from "src/lib/id-generator";
 import { LabelManager } from "./label-manager";
 import { Demands, createEmptyDemands } from "./demands";
@@ -24,7 +24,6 @@ export type HydraulicModel = {
   topology: Topology;
   assetIndex: AssetIndex;
   demands: Demands;
-  headlossFormula: HeadlossFormula;
   labelManager: LabelManager;
   curves: Curves;
   patterns: Patterns;
@@ -35,13 +34,11 @@ export { AssetsMap };
 
 export const initializeHydraulicModel = ({
   defaults,
-  headlossFormula = "H-W",
   demands = createEmptyDemands(),
   controls = createEmptyControls(),
   idGenerator,
 }: {
   defaults: DefaultsSpec;
-  headlossFormula?: HeadlossFormula;
   demands?: Demands;
   controls?: Controls;
   idGenerator?: IdGenerator;
@@ -59,7 +56,6 @@ export const initializeHydraulicModel = ({
     assetIndex: new AssetIndex(assetIdGenerator, assets),
     demands,
     labelManager,
-    headlossFormula,
     curves: new Map(),
     patterns: new Map(),
     controls,

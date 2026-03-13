@@ -13,11 +13,7 @@ import { NumericField } from "src/components/form/numeric-field";
 import { Selector, SelectorOption } from "src/components/form/selector";
 import { simulationSettingsAtom } from "src/state/simulation-settings";
 import { hasScenariosAtom } from "src/state/scenarios";
-import {
-  assetsAtom,
-  patternsAtom,
-  stagingModelAtom,
-} from "src/state/hydraulic-model";
+import { assetsAtom, patternsAtom } from "src/state/hydraulic-model";
 
 import type {
   DemandModel,
@@ -118,9 +114,8 @@ const SubsectionGroup = ({
 export const GeneralSection = () => {
   const translate = useTranslate();
   const readonly = useAtomValue(hasScenariosAtom);
-  const hydraulicModel = useAtomValue(stagingModelAtom);
   const {
-    modelMetadata: { units },
+    modelMetadata: { units, headlossFormula },
   } = useAtomValue(dataAtom);
   const { values, setFieldValue } = useFormikContext<FormValues>();
 
@@ -140,13 +135,11 @@ export const GeneralSection = () => {
     [translateUnit],
   );
 
-  const headlossIndex = headlossFormulas.indexOf(
-    hydraulicModel.headlossFormula,
-  );
+  const headlossIndex = headlossFormulas.indexOf(headlossFormula);
   const headlossDisplay =
     headlossIndex >= 0
       ? headlossFormulasFullNames[headlossIndex]
-      : hydraulicModel.headlossFormula;
+      : headlossFormula;
 
   const statusReportOptions: { label: string; value: StatusReport }[] = [
     { label: translate("simulationSettings.statusReportYes"), value: "YES" },

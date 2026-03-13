@@ -26,7 +26,6 @@ import {
 export const Footer = () => {
   const translate = useTranslate();
   const { modelMetadata } = useAtomValue(dataAtom);
-  const hydraulicModel = useAtomValue(stagingModelAtom);
   const simulationSettings = useAtomValue(simulationSettingsAtom);
   const isEpanet23On = useFeatureFlag("FLAG_EPANET23");
   const translateUnit = useTranslateUnit();
@@ -44,7 +43,7 @@ export const Footer = () => {
             <CollapsedPopover
               unitsSpecName={modelMetadata.quantities.specName}
               demandMultiplier={simulationSettings.globalDemandMultiplier}
-              headlossFormula={hydraulicModel.headlossFormula}
+              headlossFormula={modelMetadata.headlossFormula}
               isEpanet23On={isEpanet23On}
               flowUnitDisplay={flowUnitDisplay}
               pressureUnitDisplay={pressureUnitDisplay}
@@ -76,7 +75,7 @@ export const Footer = () => {
               </>
             )}
             <span className="px-4 py-2">
-              {translate("headlossShort")}: {hydraulicModel.headlossFormula}
+              {translate("headlossShort")}: {modelMetadata.headlossFormula}
             </span>
             <div className="border-r-2 border-gray-150 h-10"></div>
           </>

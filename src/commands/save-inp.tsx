@@ -74,6 +74,7 @@ export const useSaveInp = ({
             projectionMapper: modelMetadata.projectionMapper,
             simulationSettings,
             units: modelMetadata.units,
+            headlossFormula: modelMetadata.headlossFormula,
           };
           const inp = buildInp(hydraulicModel, buildOptions);
           const inpBlob = new Blob([inp], { type: "text/plain" });

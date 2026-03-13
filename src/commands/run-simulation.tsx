@@ -47,6 +47,7 @@ export const useRunSimulation = () => {
           usedCurves: true,
           simulationSettings,
           units: modelMetadata.units,
+          headlossFormula: modelMetadata.headlossFormula,
         });
         const start = performance.now();
 
