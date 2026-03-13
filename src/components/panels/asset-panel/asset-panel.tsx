@@ -73,13 +73,13 @@ import {
   TextRow,
   SwitchRow,
   ConnectedCustomersRow,
-  NestedSection,
+  NestedSectionLegacy,
   type TankDefinitionMode,
 } from "./ui-components";
 import {
-  BlockComparisonField,
-  CollapsibleSection,
-  Section,
+  BlockComparisonFieldLegacy,
+  CollapsibleSectionLegacy,
+  SectionLegacy,
 } from "src/components/form/fields";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
@@ -1340,7 +1340,7 @@ const TankDefinitionField = ({
   };
 
   return (
-    <BlockComparisonField
+    <BlockComparisonFieldLegacy
       hasChanged={definitionDiff.hasChanged}
       baseDisplayValue={
         definitionDiff.tooltipText ? (
@@ -1357,7 +1357,7 @@ const TankDefinitionField = ({
         readOnly={readOnly}
         onChange={handleDefinitionModeChange}
       />
-      <NestedSection className="pb-2">
+      <NestedSectionLegacy className="pb-2">
         {definitionMode === "diameterBased" && (
           <>
             <QuantityRow
@@ -1579,8 +1579,8 @@ const TankDefinitionField = ({
             })()}
           </>
         )}
-      </NestedSection>
-    </BlockComparisonField>
+      </NestedSectionLegacy>
+    </BlockComparisonFieldLegacy>
   );
 };
 
@@ -2141,7 +2141,7 @@ const SectionHeader = ({
   const [sections, setSections] = useAtom(assetPanelSectionsExpandedAtom);
   if (isEnergyEnabled) {
     return (
-      <CollapsibleSection
+      <CollapsibleSectionLegacy
         variant="subtle"
         title={title}
         hasChanged={hasChanged}
@@ -2151,10 +2151,10 @@ const SectionHeader = ({
         }
       >
         {children}
-      </CollapsibleSection>
+      </CollapsibleSectionLegacy>
     );
   }
-  return <Section title={title}>{children}</Section>;
+  return <SectionLegacy title={title}>{children}</SectionLegacy>;
 };
 
 const VARIABLE_SPEED_NONE = 0;
@@ -2254,7 +2254,7 @@ const VariableSpeedField = ({
   }, [comparison, pump.speedPatternId, translate]);
 
   return (
-    <BlockComparisonField
+    <BlockComparisonFieldLegacy
       hasChanged={comparison.hasChanged}
       baseDisplayValue={baseDisplayValue}
     >
@@ -2269,7 +2269,7 @@ const VariableSpeedField = ({
         readOnly={readOnly}
       />
       {selectedVariableSpeed === VARIABLE_SPEED_PATTERN_BASED && (
-        <NestedSection>
+        <NestedSectionLegacy>
           <LibrarySelectRow
             name="speedPattern"
             collection={patterns}
@@ -2287,9 +2287,9 @@ const VariableSpeedField = ({
             onChange={handleSpeedPatternChange}
             readOnly={readOnly}
           />
-        </NestedSection>
+        </NestedSectionLegacy>
       )}
-    </BlockComparisonField>
+    </BlockComparisonFieldLegacy>
   );
 };
 
@@ -2346,7 +2346,7 @@ const PumpEfficiencyCurveField = ({
   );
 
   return (
-    <BlockComparisonField
+    <BlockComparisonFieldLegacy
       hasChanged={curveComparison.hasChanged}
       baseDisplayValue={baseDisplayValue}
     >
@@ -2367,7 +2367,7 @@ const PumpEfficiencyCurveField = ({
         onChange={handleOnChange}
         readOnly={readOnly}
       />
-    </BlockComparisonField>
+    </BlockComparisonFieldLegacy>
   );
 };
 
@@ -2432,7 +2432,7 @@ const PumpEnergyPricePatternField = ({
   );
 
   return (
-    <BlockComparisonField
+    <BlockComparisonFieldLegacy
       hasChanged={patternComparison.hasChanged}
       baseDisplayValue={baseDisplayValue}
     >
@@ -2454,7 +2454,7 @@ const PumpEnergyPricePatternField = ({
         onChange={handleChange}
         readOnly={readOnly}
       />
-    </BlockComparisonField>
+    </BlockComparisonFieldLegacy>
   );
 };
 
@@ -2562,7 +2562,7 @@ const ReservoirHeadField = ({
   const selectedPatternId = reservoir.headPatternId ?? null;
 
   return (
-    <BlockComparisonField
+    <BlockComparisonFieldLegacy
       hasChanged={hasChanged}
       baseDisplayValue={baseDisplayValue}
     >
@@ -2603,7 +2603,7 @@ const ReservoirHeadField = ({
           />
         )}
       </div>
-    </BlockComparisonField>
+    </BlockComparisonFieldLegacy>
   );
 };
 
@@ -2663,7 +2663,7 @@ const HeadlossCurveField = ({
   );
 
   return (
-    <BlockComparisonField
+    <BlockComparisonFieldLegacy
       hasChanged={curveComparison.hasChanged}
       baseDisplayValue={baseDisplayValue}
     >
@@ -2683,7 +2683,7 @@ const HeadlossCurveField = ({
         onChange={handleOnChange}
         readOnly={readOnly}
       />
-    </BlockComparisonField>
+    </BlockComparisonFieldLegacy>
   );
 };
 
@@ -2746,7 +2746,7 @@ const ValveCurveField = ({
   );
 
   return (
-    <BlockComparisonField
+    <BlockComparisonFieldLegacy
       hasChanged={curveComparison.hasChanged}
       baseDisplayValue={baseDisplayValue}
     >
@@ -2767,7 +2767,7 @@ const ValveCurveField = ({
         onChange={handleOnChange}
         readOnly={readOnly}
       />
-    </BlockComparisonField>
+    </BlockComparisonFieldLegacy>
   );
 };
 

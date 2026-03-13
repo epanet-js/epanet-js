@@ -28,7 +28,7 @@ import { Button } from "src/components/elements";
 import { Maybe } from "purify-ts/Maybe";
 import bbox from "@turf/bbox";
 import { lineString } from "@turf/helpers";
-import { InlineField } from "src/components/form/fields";
+import { InlineFieldLegacy } from "src/components/form/fields";
 
 export const ProximityAnomalies = ({ onGoBack }: { onGoBack: () => void }) => {
   const userTracking = useUserTracking();
@@ -191,7 +191,7 @@ const DistanceInput = ({
       ref={inputRef}
       className="flex gap-2 p-3 border-b border-gray-200 items-center flex-wrap"
     >
-      <InlineField layout="label-flex-none" name={label}>
+      <InlineFieldLegacy layout="label-flex-none" name={label}>
         <NumericField
           label={label}
           displayValue={localizeDecimal(distance.value)}
@@ -200,7 +200,7 @@ const DistanceInput = ({
           tabIndex={0}
           disabled={disabled}
         />
-      </InlineField>
+      </InlineFieldLegacy>
     </div>
   );
 };

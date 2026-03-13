@@ -8,7 +8,7 @@ import type { PropertyComparison } from "src/hooks/use-asset-comparison";
 import { useCustomerPointComparison } from "src/hooks/use-customer-point-comparison";
 import { useCustomerPointActions } from "src/components/context-actions/customer-point-actions";
 import { ActionButton } from "src/components/panels/asset-panel/actions/action-button";
-import { Section } from "src/components/form/fields";
+import { SectionLegacy } from "src/components/form/fields";
 import { useZoomTo } from "src/hooks/use-zoom-to";
 import { ZoomToIcon } from "src/icons";
 import { BBox } from "src/types";
@@ -156,12 +156,12 @@ export function CustomerPointPanel() {
       </div>
       <div className="flex flex-col gap-3 p-4">
         {connection && (
-          <Section title={translate("connections")}>
+          <SectionLegacy title={translate("connections")}>
             <TextRow name="pipe" value={pipe ? pipe.label : ""} />
             <TextRow name="junction" value={junction ? junction.label : ""} />
-          </Section>
+          </SectionLegacy>
         )}
-        <Section title={translate("demands")}>
+        <SectionLegacy title={translate("demands")}>
           <div className="relative flex flex-col gap-2">
             {demandComparison.hasChanged && (
               <div className="absolute -left-4 top-0 bottom-0 w-1 bg-purple-500 rounded-full" />
@@ -181,7 +181,7 @@ export function CustomerPointPanel() {
               readOnly={true}
             />
           </div>
-        </Section>
+        </SectionLegacy>
       </div>
     </div>
   );

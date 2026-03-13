@@ -3,7 +3,7 @@ import { useTranslate } from "src/hooks/use-translate";
 import { pluralize } from "src/lib/utils";
 import { IWrappedFeature } from "src/types";
 import { Quantities } from "src/model-metadata/quantities-spec";
-import { CollapsibleSection, SectionList } from "src/components/form/fields";
+import { CollapsibleSectionLegacy, SectionList } from "src/components/form/fields";
 import { MultiAssetActions } from "./actions";
 import { Asset, AssetId } from "src/hydraulic-model";
 import { Tank } from "src/hydraulic-model/asset-types/tank";
@@ -132,7 +132,7 @@ export function MultiAssetPanel({
   return (
     <SectionList header={<Header selectedCount={selectedFeatures.length} />}>
       {assetCounts.junction > 0 && (
-        <CollapsibleSection
+        <CollapsibleSectionLegacy
           title={`${translate("junction")} (${assetCounts.junction})`}
           open={collapseState.junction}
           onOpenChange={(open) =>
@@ -157,11 +157,11 @@ export function MultiAssetPanel({
             readonly={readonly}
             onSelectAssets={(ids, p) => handleSelectAssets(ids, p, "junction")}
           />
-        </CollapsibleSection>
+        </CollapsibleSectionLegacy>
       )}
 
       {assetCounts.pipe > 0 && (
-        <CollapsibleSection
+        <CollapsibleSectionLegacy
           title={`${translate("pipe")} (${assetCounts.pipe})`}
           open={collapseState.pipe}
           onOpenChange={(open) =>
@@ -184,11 +184,11 @@ export function MultiAssetPanel({
             readonly={readonly}
             onSelectAssets={(ids, p) => handleSelectAssets(ids, p, "pipe")}
           />
-        </CollapsibleSection>
+        </CollapsibleSectionLegacy>
       )}
 
       {assetCounts.pump > 0 && (
-        <CollapsibleSection
+        <CollapsibleSectionLegacy
           title={`${translate("pump")} (${assetCounts.pump})`}
           open={collapseState.pump}
           onOpenChange={(open) =>
@@ -211,11 +211,11 @@ export function MultiAssetPanel({
             readonly={readonly}
             onSelectAssets={(ids, p) => handleSelectAssets(ids, p, "pump")}
           />
-        </CollapsibleSection>
+        </CollapsibleSectionLegacy>
       )}
 
       {assetCounts.valve > 0 && (
-        <CollapsibleSection
+        <CollapsibleSectionLegacy
           title={`${translate("valve")} (${assetCounts.valve})`}
           open={collapseState.valve}
           onOpenChange={(open) =>
@@ -240,11 +240,11 @@ export function MultiAssetPanel({
             readonly={readonly}
             onSelectAssets={(ids, p) => handleSelectAssets(ids, p, "valve")}
           />
-        </CollapsibleSection>
+        </CollapsibleSectionLegacy>
       )}
 
       {assetCounts.reservoir > 0 && (
-        <CollapsibleSection
+        <CollapsibleSectionLegacy
           title={`${translate("reservoir")} (${assetCounts.reservoir})`}
           open={collapseState.reservoir}
           onOpenChange={(open) =>
@@ -268,11 +268,11 @@ export function MultiAssetPanel({
             readonly={readonly}
             onSelectAssets={(ids, p) => handleSelectAssets(ids, p, "reservoir")}
           />
-        </CollapsibleSection>
+        </CollapsibleSectionLegacy>
       )}
 
       {assetCounts.tank > 0 && (
-        <CollapsibleSection
+        <CollapsibleSectionLegacy
           title={`${translate("tank")} (${assetCounts.tank})`}
           open={collapseState.tank}
           onOpenChange={(open) =>
@@ -295,7 +295,7 @@ export function MultiAssetPanel({
             readonly={readonly}
             onSelectAssets={(ids, p) => handleSelectAssets(ids, p, "tank")}
           />
-        </CollapsibleSection>
+        </CollapsibleSectionLegacy>
       )}
     </SectionList>
   );

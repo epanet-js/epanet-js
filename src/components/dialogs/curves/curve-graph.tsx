@@ -11,7 +11,7 @@ import { CurveType } from "src/hydraulic-model/curves";
 import { getCurveTypeConfig } from "./curve-type-config";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
-import { InlineField } from "src/components/form/fields";
+import { InlineFieldLegacy } from "src/components/form/fields";
 import type { UnitsSpec } from "src/model-metadata/quantities-spec";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
@@ -85,9 +85,9 @@ export const CurveGraph = forwardRef<HTMLDivElement, CurveGraphProps>(
     return (
       <>
         <div className="mb-[.25rem] w-full">
-          <InlineField name={translate("curveType")} layout="label-flex-none">
+          <InlineFieldLegacy name={translate("curveType")} layout="label-flex-none">
             <span className="text-sm">{translate(curvePointsType)}</span>
-          </InlineField>
+          </InlineFieldLegacy>
         </div>
         <div
           className={`flex-1 min-h-0 ${isModalsOn ? "p-2" : "p-2 pt-4 border border-gray-200 dark:border-gray-700"}`}

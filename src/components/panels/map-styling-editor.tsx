@@ -22,7 +22,7 @@ import { RangeColorRuleEditor } from "../range-color-rule-editor";
 import { StyledPopoverArrow, StyledPopoverContent } from "../elements";
 import { RangeMode } from "src/map/symbology/range-color-rule";
 import { AddLayer, LayersEditor } from "../layers/layers-editor";
-import { InlineField, Section, SectionList } from "../form/fields";
+import { InlineFieldLegacy, SectionLegacy, SectionList } from "../form/fields";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { LegendRamp } from "../legends";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
@@ -58,9 +58,9 @@ export const MapStylingEditor = () => {
         />
         {(!isGridOn || isCreateCustomerOn) && <CustomerPointsSection />}
         {!isGridOn && (
-          <Section title={translate("layers")} button={<AddLayer />}>
+          <SectionLegacy title={translate("layers")} button={<AddLayer />}>
             <LayersEditor />
-          </Section>
+          </SectionLegacy>
         )}
       </SectionList>
     </div>
@@ -192,8 +192,8 @@ const SymbologyEditor = ({
   const isSmOrLarger = useBreakpoint("sm");
 
   return (
-    <Section title={title}>
-      <InlineField name={translate("colorBy")}>
+    <SectionLegacy title={title}>
+      <InlineFieldLegacy name={translate("colorBy")}>
         <Selector
           ariaLabel={`${translate(geometryType)} ${translate("colorBy")}`}
           options={(["none", ...properties] as SelectOption[]).map((type) => {
@@ -213,31 +213,31 @@ const SymbologyEditor = ({
           }
           onChange={handleColorByChange}
         />
-      </InlineField>
+      </InlineFieldLegacy>
       {symbology.colorRule !== null && (
         <>
           {isSmOrLarger && (
             <>
-              <InlineField name={translate("range")}>
+              <InlineFieldLegacy name={translate("range")}>
                 <RangeColorRuleEditorTrigger
                   mode={symbology.colorRule.mode}
                   numIntervals={symbology.colorRule.breaks.length + 1}
                   geometryType={geometryType}
                 />
-              </InlineField>
-              <InlineField name={translate("ramp")}>
+              </InlineFieldLegacy>
+              <InlineFieldLegacy name={translate("ramp")}>
                 <ColorRampSelector geometryType={geometryType} />
-              </InlineField>
+              </InlineFieldLegacy>
             </>
           )}
           {!isSmOrLarger && (
-            <InlineField name="Legend" align="start">
+            <InlineFieldLegacy name="Legend" align="start">
               <div className="w-full px-2">
                 <LegendRamp colorRule={symbology.colorRule} />
               </div>
-            </InlineField>
+            </InlineFieldLegacy>
           )}
-          <InlineField name={translate("labels")}>
+          <InlineFieldLegacy name={translate("labels")}>
             <div className="p-2 flex items-center h-[38px]">
               <Checkbox
                 checked={!!symbology.labelRule}
@@ -251,10 +251,10 @@ const SymbologyEditor = ({
                 }
               />
             </div>
-          </InlineField>
+          </InlineFieldLegacy>
         </>
       )}
-    </Section>
+    </SectionLegacy>
   );
 };
 
@@ -283,8 +283,8 @@ const CustomerPointsSection = () => {
   };
 
   return (
-    <Section title={translate("customerPoints")}>
-      <InlineField name={translate("visible")}>
+    <SectionLegacy title={translate("customerPoints")}>
+      <InlineFieldLegacy name={translate("visible")}>
         <div className="p-2 flex items-center h-[38px]">
           <Checkbox
             checked={customerPointsSymbology.visible}
@@ -292,8 +292,8 @@ const CustomerPointsSection = () => {
             onChange={handleVisibilityChange}
           />
         </div>
-      </InlineField>
-    </Section>
+      </InlineFieldLegacy>
+    </SectionLegacy>
   );
 };
 

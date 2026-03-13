@@ -1,5 +1,5 @@
 import { useTranslate } from "src/hooks/use-translate";
-import { Section, SectionList } from "src/components/form/fields";
+import { SectionLegacy, SectionList } from "src/components/form/fields";
 import { ReadOnlyMultiValueRow } from "./readonly-multi-value-row";
 import { MultiValueRow } from "./multi-value-row";
 import { AssetPropertySections } from "./data";
@@ -52,7 +52,7 @@ export function AssetTypeSections({
           return null;
 
         return (
-          <Section
+          <SectionLegacy
             key={sectionKey}
             title={translate(sectionKey)}
             variant="secondary"
@@ -85,7 +85,7 @@ export function AssetTypeSections({
                 />
               );
             })}
-          </Section>
+          </SectionLegacy>
         );
       })}
     </SectionList>

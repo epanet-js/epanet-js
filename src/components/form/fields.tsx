@@ -38,7 +38,7 @@ const ComparisonTooltip = ({
   return children;
 };
 
-export const BlockComparisonField = ({
+export const BlockComparisonFieldLegacy = ({
   hasChanged,
   baseDisplayValue,
   children,
@@ -73,7 +73,7 @@ export const FieldList = ({ children }: { children: React.ReactNode }) => {
   return <div className="flex flex-col gap-y-1">{children}</div>;
 };
 
-export const InlineField = ({
+export const InlineFieldLegacy = ({
   name,
   layout = "fixed-label",
   labelSize = "sm",
@@ -130,7 +130,7 @@ export const InlineField = ({
   const spacingClass = labelSize === "md" ? "gap-1" : "space-x-4";
 
   return (
-    <BlockComparisonField
+    <BlockComparisonFieldLegacy
       hasChanged={hasChanged}
       baseDisplayValue={baseDisplayValue}
     >
@@ -146,7 +146,7 @@ export const InlineField = ({
         </label>
         <div className={inputWrapperClasses}>{children}</div>
       </div>
-    </BlockComparisonField>
+    </BlockComparisonFieldLegacy>
   );
 };
 
@@ -163,7 +163,7 @@ export const VerticalField = ({
   </div>
 );
 
-export const Section = ({
+export const SectionLegacy = ({
   title,
   button,
   variant = "primary",
@@ -298,7 +298,7 @@ export const SectionList = ({
   return content;
 };
 
-export const CollapsibleSection = ({
+export const CollapsibleSectionLegacy = ({
   title,
   variant = "primary",
   defaultOpen = true,
@@ -328,7 +328,7 @@ export const CollapsibleSection = ({
   return (
     <C.Root open={open} onOpenChange={handleOpenChange}>
       <div className={clsx("flex flex-col", className)}>
-        <BlockComparisonField hasChanged={hasChanged}>
+        <BlockComparisonFieldLegacy hasChanged={hasChanged}>
           <div className="flex items-center gap-1">
             <C.Trigger asChild>
               {variant === "subtle" ? (
@@ -368,7 +368,7 @@ export const CollapsibleSection = ({
               )}
             </C.Trigger>
           </div>
-        </BlockComparisonField>
+        </BlockComparisonFieldLegacy>
         <C.Content className="flex flex-col gap-1">{children}</C.Content>
       </div>
     </C.Root>

@@ -20,7 +20,7 @@ import type { PumpDefinitionMode } from "./pump-definition-details";
 import { ValveKind, ValveStatus } from "src/hydraulic-model/asset-types/valve";
 import { PanelActions } from "./actions";
 import {
-  InlineField,
+  InlineFieldLegacy,
   NestedSectionContext,
   SectionList,
 } from "src/components/form/fields";
@@ -198,14 +198,14 @@ export const TextRow = ({
       : undefined;
 
   return (
-    <InlineField
+    <InlineFieldLegacy
       name={label}
       labelSize="md"
       hasChanged={comparison?.hasChanged}
       baseDisplayValue={baseDisplayValue}
     >
       <TextField>{value}</TextField>
-    </InlineField>
+    </InlineFieldLegacy>
   );
 };
 
@@ -258,7 +258,7 @@ export const QuantityRow = <P extends string>({
   };
 
   return (
-    <InlineField
+    <InlineFieldLegacy
       name={label}
       labelSize="md"
       hasChanged={comparison?.hasChanged}
@@ -283,11 +283,11 @@ export const QuantityRow = <P extends string>({
           }}
         />
       )}
-    </InlineField>
+    </InlineFieldLegacy>
   );
 };
 
-export const NestedSection = ({
+export const NestedSectionLegacy = ({
   children,
   className,
 }: {
@@ -389,7 +389,7 @@ export function SelectRow<P extends string, T extends SelectRowValue>({
   const selectedOption = flatOptions.find((o) => o.value === selected);
 
   return (
-    <InlineField
+    <InlineFieldLegacy
       name={actualLabel}
       labelSize="md"
       hasChanged={comparison?.hasChanged}
@@ -420,7 +420,7 @@ export function SelectRow<P extends string, T extends SelectRowValue>({
           />
         </div>
       )}
-    </InlineField>
+    </InlineFieldLegacy>
   );
 }
 
@@ -539,7 +539,7 @@ export const SwitchRow = <P extends string>({
   };
 
   return (
-    <InlineField
+    <InlineFieldLegacy
       name={actualLabel}
       labelSize="md"
       hasChanged={comparison?.hasChanged}
@@ -553,7 +553,7 @@ export const SwitchRow = <P extends string>({
           disabled={readOnly || !onChange}
         />
       </div>
-    </InlineField>
+    </InlineFieldLegacy>
   );
 };
 
@@ -598,7 +598,7 @@ export const ConnectedCustomersRow = ({
       : undefined;
 
   return (
-    <InlineField
+    <InlineFieldLegacy
       name={translate("connectedCustomers")}
       labelSize="md"
       hasChanged={comparison?.hasChanged}
@@ -640,7 +640,7 @@ export const ConnectedCustomersRow = ({
           </StyledPopoverContent>
         </P.Portal>
       </P.Root>
-    </InlineField>
+    </InlineFieldLegacy>
   );
 };
 
