@@ -2,7 +2,7 @@ import { useMemo, useCallback } from "react";
 import { useTranslate } from "src/hooks/use-translate";
 import { pluralize } from "src/lib/utils";
 import { IWrappedFeature } from "src/types";
-import { Quantities, FormattingSpec } from "src/model-metadata/quantities-spec";
+import { Quantities } from "src/model-metadata/quantities-spec";
 import {
   CollapsibleSectionLegacy,
   SectionList,
@@ -13,6 +13,7 @@ import { Tank } from "src/hydraulic-model/asset-types/tank";
 import { AssetTypeSections } from "./asset-type-sections";
 import { SelectOnlyButton } from "./select-only-button";
 import { useAtom, useAtomValue } from "jotai";
+import { dataAtom } from "src/state/data";
 import { stagingModelAtom } from "src/state/hydraulic-model";
 import { multiAssetPanelCollapseAtom } from "src/state/layout";
 import { selectionAtom } from "src/state/selection";
@@ -30,14 +31,15 @@ import { useSelection } from "src/selection/use-selection";
 export function MultiAssetPanel({
   selectedFeatures,
   quantitiesMetadata,
-  formatting,
   readonly = false,
 }: {
   selectedFeatures: IWrappedFeature[];
   quantitiesMetadata: Quantities;
-  formatting: FormattingSpec;
   readonly?: boolean;
 }) {
+  const {
+    modelMetadata: { formatting },
+  } = useAtomValue(dataAtom);
   const translate = useTranslate();
   const simulationState = useAtomValue(simulationAtom);
   const simulationResults = useAtomValue(simulationResultsAtom);

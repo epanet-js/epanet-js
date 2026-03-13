@@ -28,12 +28,7 @@ import {
   CustomerPoint,
   getActiveCustomerPoints,
 } from "src/hydraulic-model/customer-points";
-import {
-  FormattingSpec,
-  Quantities,
-  UnitsSpec,
-} from "src/model-metadata/quantities-spec";
-import { getDecimals } from "src/model-metadata";
+import { Quantities, UnitsSpec } from "src/model-metadata/quantities-spec";
 import { useTranslate } from "src/hooks/use-translate";
 import { usePersistence } from "src/lib/persistence";
 import { useUserTracking } from "src/infra/user-tracking";
@@ -124,13 +119,11 @@ type OnStatusChange<T> = (newStatus: T, oldStatus: T) => void;
 export function AssetPanel({
   asset,
   quantitiesMetadata,
-  formatting,
   units,
   readonly = false,
 }: {
   asset: Asset;
   quantitiesMetadata: Quantities;
-  formatting: FormattingSpec;
   units: UnitsSpec;
   readonly?: boolean;
 }) {
@@ -282,7 +275,6 @@ export function AssetPanel({
         <JunctionEditor
           junction={asset as Junction}
           quantitiesMetadata={quantitiesMetadata}
-          formatting={formatting}
           units={units}
           onPropertyChange={handlePropertyChange}
           onDemandsChange={handleDemandsChange}
@@ -299,7 +291,6 @@ export function AssetPanel({
           {...getLinkNodes(hydraulicModel.assets, pipe)}
           headlossFormula={modelMetadata.headlossFormula}
           quantitiesMetadata={quantitiesMetadata}
-          formatting={formatting}
           units={units}
           onPropertyChange={handlePropertyChange}
           onStatusChange={handleStatusChange}
@@ -321,7 +312,6 @@ export function AssetPanel({
           onActiveTopologyStatusChange={handleActiveTopologyStatusChange}
           onBatchPropertyChange={handleBatchPropertyChange}
           onLabelChange={handleLabelChange}
-          formatting={formatting}
           units={units}
           {...getLinkNodes(hydraulicModel.assets, pump)}
           readonly={readonly}
@@ -336,7 +326,6 @@ export function AssetPanel({
           valve={valve}
           onPropertyChange={handlePropertyChange}
           onBatchPropertyChange={handleBatchPropertyChange}
-          formatting={formatting}
           units={units}
           onStatusChange={handleStatusChange}
           onActiveTopologyStatusChange={handleActiveTopologyStatusChange}
@@ -351,7 +340,6 @@ export function AssetPanel({
         <ReservoirEditor
           hydraulicModel={hydraulicModel}
           reservoir={asset as Reservoir}
-          formatting={formatting}
           units={units}
           onPropertyChange={handlePropertyChange}
           onLabelChange={handleLabelChange}
@@ -363,7 +351,6 @@ export function AssetPanel({
         <TankEditor
           tank={asset as Tank}
           hydraulicModel={hydraulicModel}
-          formatting={formatting}
           units={units}
           onPropertyChange={handlePropertyChange}
           onBatchPropertyChange={handleBatchPropertyChange}
@@ -377,7 +364,6 @@ export function AssetPanel({
 const JunctionEditor = ({
   junction,
   quantitiesMetadata,
-  formatting,
   units,
   onPropertyChange,
   onDemandsChange,
@@ -387,7 +373,6 @@ const JunctionEditor = ({
 }: {
   junction: Junction;
   quantitiesMetadata: Quantities;
-  formatting: FormattingSpec;
   units: UnitsSpec;
   onPropertyChange: OnPropertyChange;
   onDemandsChange: (newDemands: Demand[]) => void;
@@ -489,7 +474,6 @@ const JunctionEditor = ({
           name="elevation"
           value={junction.elevation}
           unit={units.elevation}
-          decimals={getDecimals(formatting, "elevation")}
           comparison={getComparison("elevation", junction.elevation)}
           onChange={onPropertyChange}
           readOnly={readonly}
@@ -498,7 +482,6 @@ const JunctionEditor = ({
           name="emitterCoefficient"
           value={junction.emitterCoefficient}
           unit={units.emitterCoefficient}
-          decimals={getDecimals(formatting, "emitterCoefficient")}
           comparison={getComparison(
             "emitterCoefficient",
             junction.emitterCoefficient,
@@ -517,7 +500,6 @@ const JunctionEditor = ({
           demands={getJunctionDemands(hydraulicModel.demands, junction.id)}
           patterns={hydraulicModel.patterns}
           quantitiesMetadata={quantitiesMetadata}
-          formatting={formatting}
           name="directDemand"
           onChange={onDemandsChange}
           demandComparator={getDirectDemandComparison}
@@ -530,7 +512,6 @@ const JunctionEditor = ({
               name="customerDemand"
               value={totalDemand}
               unit={units.baseDemand}
-              decimals={getDecimals(formatting, "baseDemand")}
               comparison={getCustomerDemandComparison(totalDemand)}
               readOnly={true}
             />
@@ -562,21 +543,18 @@ const JunctionEditor = ({
           name="pressure"
           value={simPressure}
           unit={units.pressure}
-          decimals={getDecimals(formatting, "pressure")}
           readOnly={true}
         />
         <QuantityRow
           name="head"
           value={simHead}
           unit={units.head}
-          decimals={getDecimals(formatting, "head")}
           readOnly={true}
         />
         <QuantityRow
           name="actualDemand"
           value={simDemand}
           unit={units.actualDemand}
-          decimals={getDecimals(formatting, "actualDemand")}
           readOnly={true}
         />
       </Section>
@@ -590,7 +568,6 @@ const PipeEditor = ({
   endNode,
   headlossFormula,
   quantitiesMetadata,
-  formatting,
   units,
   onPropertyChange,
   onStatusChange,
@@ -604,7 +581,6 @@ const PipeEditor = ({
   endNode: NodeAsset | null;
   headlossFormula: HeadlossFormula;
   quantitiesMetadata: Quantities;
-  formatting: FormattingSpec;
   units: UnitsSpec;
   onPropertyChange: OnPropertyChange;
   onStatusChange: OnStatusChange<PipeStatus>;
@@ -739,7 +715,6 @@ const PipeEditor = ({
           positiveOnly={true}
           isNullable={false}
           unit={units.diameter}
-          decimals={getDecimals(formatting, "diameter")}
           comparison={getComparison("diameter", pipe.diameter)}
           onChange={onPropertyChange}
           readOnly={readonly}
@@ -750,7 +725,6 @@ const PipeEditor = ({
           positiveOnly={true}
           isNullable={false}
           unit={units.length}
-          decimals={getDecimals(formatting, "length")}
           comparison={getComparison("length", pipe.length)}
           onChange={onPropertyChange}
           readOnly={readonly}
@@ -760,7 +734,6 @@ const PipeEditor = ({
           value={pipe.roughness}
           positiveOnly={true}
           unit={units.roughness}
-          decimals={getDecimals(formatting, "roughness")}
           comparison={getComparison("roughness", pipe.roughness)}
           onChange={onPropertyChange}
           readOnly={readonly}
@@ -770,7 +743,6 @@ const PipeEditor = ({
           value={pipe.minorLoss}
           positiveOnly={true}
           unit={quantitiesMetadata.getMinorLossUnit(headlossFormula)}
-          decimals={getDecimals(formatting, "minorLoss")}
           comparison={getComparison("minorLoss", pipe.minorLoss)}
           onChange={onPropertyChange}
           readOnly={readonly}
@@ -787,7 +759,6 @@ const PipeEditor = ({
             name="customerDemand"
             value={totalDemand}
             unit={units.baseDemand}
-            decimals={getDecimals(formatting, "baseDemand")}
             comparison={getCustomerDemandComparison(totalDemand)}
             readOnly={true}
           />
@@ -818,28 +789,24 @@ const PipeEditor = ({
           name="flow"
           value={simFlow}
           unit={units.flow}
-          decimals={getDecimals(formatting, "flow")}
           readOnly={true}
         />
         <QuantityRow
           name="velocity"
           value={simVelocity}
           unit={units.velocity}
-          decimals={getDecimals(formatting, "velocity")}
           readOnly={true}
         />
         <QuantityRow
           name="unitHeadloss"
           value={simUnitHeadloss}
           unit={units.unitHeadloss}
-          decimals={getDecimals(formatting, "unitHeadloss")}
           readOnly={true}
         />
         <QuantityRow
           name="headlossShort"
           value={simHeadloss}
           unit={units.headloss}
-          decimals={getDecimals(formatting, "headloss")}
           readOnly={true}
         />
         <TextRow name="actualStatus" value={simulationStatusText} />
@@ -851,7 +818,6 @@ const PipeEditor = ({
 const ReservoirEditor = ({
   hydraulicModel,
   reservoir,
-  formatting,
   units,
   onPropertyChange,
   onLabelChange,
@@ -859,7 +825,6 @@ const ReservoirEditor = ({
 }: {
   hydraulicModel: HydraulicModel;
   reservoir: Reservoir;
-  formatting: FormattingSpec;
   units: UnitsSpec;
   onPropertyChange: OnPropertyChange;
   onLabelChange: (newLabel: string) => string | undefined;
@@ -921,7 +886,6 @@ const ReservoirEditor = ({
           name="elevation"
           value={reservoir.elevation}
           unit={units.elevation}
-          decimals={getDecimals(formatting, "elevation")}
           comparison={getComparison("elevation", reservoir.elevation)}
           onChange={onPropertyChange}
           readOnly={readonly}
@@ -930,7 +894,6 @@ const ReservoirEditor = ({
           reservoir={reservoir}
           patterns={hydraulicModel.patterns}
           onPropertyChange={onPropertyChange}
-          formatting={formatting}
           units={units}
           readOnly={readonly}
         />
@@ -943,21 +906,18 @@ const ReservoirEditor = ({
           name="pressure"
           value={simPressure}
           unit={units.pressure}
-          decimals={getDecimals(formatting, "pressure")}
           readOnly={true}
         />
         <QuantityRow
           name="head"
           value={simHead}
           unit={units.head}
-          decimals={getDecimals(formatting, "head")}
           readOnly={true}
         />
         <QuantityRow
           name="netFlow"
           value={simNetFlow}
           unit={units.netFlow}
-          decimals={getDecimals(formatting, "netFlow")}
           readOnly={true}
         />
       </Section>
@@ -968,7 +928,6 @@ const ReservoirEditor = ({
 const TankEditor = ({
   tank,
   hydraulicModel,
-  formatting,
   units,
   onPropertyChange,
   onBatchPropertyChange,
@@ -977,7 +936,6 @@ const TankEditor = ({
 }: {
   tank: Tank;
   hydraulicModel: HydraulicModel;
-  formatting: FormattingSpec;
   units: UnitsSpec;
   onPropertyChange: OnPropertyChange;
   onBatchPropertyChange: (changes: PropertyChange[]) => void;
@@ -1045,7 +1003,6 @@ const TankEditor = ({
           name="elevation"
           value={tank.elevation}
           unit={units.elevation}
-          decimals={getDecimals(formatting, "elevation")}
           comparison={getComparison("elevation", tank.elevation)}
           onChange={onPropertyChange}
           readOnly={readonly}
@@ -1054,7 +1011,6 @@ const TankEditor = ({
           name="initialLevel"
           value={tank.initialLevel}
           unit={units.initialLevel}
-          decimals={getDecimals(formatting, "initialLevel")}
           comparison={getComparison("initialLevel", tank.initialLevel)}
           onChange={onPropertyChange}
           positiveOnly={true}
@@ -1063,7 +1019,6 @@ const TankEditor = ({
         <TankDefinitionField
           tank={tank}
           curves={hydraulicModel.curves}
-          formatting={formatting}
           units={units}
           onPropertyChange={onPropertyChange}
           onBatchPropertyChange={onBatchPropertyChange}
@@ -1086,35 +1041,30 @@ const TankEditor = ({
           name="pressure"
           value={simPressure}
           unit={units.pressure}
-          decimals={getDecimals(formatting, "pressure")}
           readOnly={true}
         />
         <QuantityRow
           name="head"
           value={simHead}
           unit={units.head}
-          decimals={getDecimals(formatting, "head")}
           readOnly={true}
         />
         <QuantityRow
           name="level"
           value={simLevel}
           unit={units.level}
-          decimals={getDecimals(formatting, "level")}
           readOnly={true}
         />
         <QuantityRow
           name="volume"
           value={simVolume}
           unit={units.volume}
-          decimals={getDecimals(formatting, "volume")}
           readOnly={true}
         />
         <QuantityRow
           name="netFlow"
           value={simNetFlow}
           unit={units.netFlow}
-          decimals={getDecimals(formatting, "netFlow")}
           readOnly={true}
         />
       </Section>
@@ -1125,7 +1075,6 @@ const TankEditor = ({
 const TankDefinitionField = ({
   tank,
   curves,
-  formatting,
   units,
   onPropertyChange,
   onBatchPropertyChange,
@@ -1133,7 +1082,6 @@ const TankDefinitionField = ({
 }: {
   tank: Tank;
   curves: Curves;
-  formatting: FormattingSpec;
   units: UnitsSpec;
   onPropertyChange: OnPropertyChange;
   onBatchPropertyChange: (changes: PropertyChange[]) => void;
@@ -1159,8 +1107,6 @@ const TankDefinitionField = ({
     [translate],
   );
 
-  const levelDecimals = getDecimals(formatting, "minLevel");
-  const volumeDecimals = getDecimals(formatting, "minVolume");
   const levelUnit = translateUnit(units.minLevel);
   const volumeUnit = translateUnit(units.minVolume);
   const tableLabels = {
@@ -1380,7 +1326,6 @@ const TankDefinitionField = ({
               name="diameter"
               value={tank.diameter}
               unit={units.tankDiameter}
-              decimals={getDecimals(formatting, "diameter")}
               onChange={onPropertyChange}
               positiveOnly={true}
               isNullable={false}
@@ -1395,7 +1340,6 @@ const TankDefinitionField = ({
                     label: translate("maxLevel"),
                     value: tank.maxLevel,
                     positiveOnly: true,
-                    decimals: levelDecimals,
                     readOnly,
                     handler: (v) =>
                       onPropertyChange("maxLevel", v, tank.maxLevel),
@@ -1404,7 +1348,6 @@ const TankDefinitionField = ({
                     label: translate("maxVolume"),
                     value: tank.maxVolume,
                     readOnly: true,
-                    decimals: volumeDecimals,
                   },
                 ],
                 [
@@ -1412,7 +1355,6 @@ const TankDefinitionField = ({
                     label: translate("minLevel"),
                     value: tank.minLevel,
                     positiveOnly: true,
-                    decimals: levelDecimals,
                     readOnly,
                     handler: (v) =>
                       onPropertyChange("minLevel", v, tank.minLevel),
@@ -1421,7 +1363,6 @@ const TankDefinitionField = ({
                     label: translate("minVolume"),
                     value: tank.minVolume,
                     positiveOnly: true,
-                    decimals: volumeDecimals,
                     readOnly,
                     handler: (v) =>
                       onPropertyChange("minVolume", v, tank.minVolume),
@@ -1437,7 +1378,6 @@ const TankDefinitionField = ({
               name="area"
               value={tank.area}
               unit={units.tankArea}
-              decimals={getDecimals(formatting, "tankArea")}
               onChange={handleAreaChange}
               positiveOnly={true}
               readOnly={readOnly}
@@ -1451,7 +1391,6 @@ const TankDefinitionField = ({
                     label: translate("maxLevel"),
                     value: tank.maxLevel,
                     positiveOnly: true,
-                    decimals: levelDecimals,
                     readOnly,
                     handler: (v) =>
                       onPropertyChange("maxLevel", v, tank.maxLevel),
@@ -1460,7 +1399,6 @@ const TankDefinitionField = ({
                     label: translate("maxVolume"),
                     value: tank.maxVolume,
                     readOnly: true,
-                    decimals: volumeDecimals,
                   },
                 ],
                 [
@@ -1468,7 +1406,6 @@ const TankDefinitionField = ({
                     label: translate("minLevel"),
                     value: tank.minLevel,
                     positiveOnly: true,
-                    decimals: levelDecimals,
                     readOnly,
                     handler: (v) =>
                       onPropertyChange("minLevel", v, tank.minLevel),
@@ -1477,7 +1414,6 @@ const TankDefinitionField = ({
                     label: translate("minVolume"),
                     value: tank.minVolume,
                     positiveOnly: true,
-                    decimals: volumeDecimals,
                     readOnly,
                     handler: (v) =>
                       onPropertyChange("minVolume", v, tank.minVolume),
@@ -1496,7 +1432,6 @@ const TankDefinitionField = ({
                   label: translate("maxLevel"),
                   value: tank.maxLevel,
                   positiveOnly: true,
-                  decimals: levelDecimals,
                   readOnly,
                   handler: (v) => handleMaxLevelChange("maxLevel", v),
                 },
@@ -1504,7 +1439,6 @@ const TankDefinitionField = ({
                   label: translate("maxVolume"),
                   value: tank.maxVolume,
                   positiveOnly: true,
-                  decimals: volumeDecimals,
                   readOnly,
                   handler: (v) => handleMaxVolumeChange("maxVolume", v),
                 },
@@ -1514,7 +1448,6 @@ const TankDefinitionField = ({
                   label: translate("minLevel"),
                   value: tank.minLevel,
                   positiveOnly: true,
-                  decimals: levelDecimals,
                   readOnly,
                   handler: (v) => handleMinLevelChange("minLevel", v),
                 },
@@ -1522,7 +1455,6 @@ const TankDefinitionField = ({
                   label: translate("minVolume"),
                   value: tank.minVolume,
                   positiveOnly: true,
-                  decimals: volumeDecimals,
                   readOnly,
                   handler: (v) => handleMinVolumeChange("minVolume", v),
                 },
@@ -1565,13 +1497,11 @@ const TankDefinitionField = ({
                           label: translate("maxLevel"),
                           value: maxLevel,
                           readOnly: true,
-                          decimals: levelDecimals,
                         },
                         {
                           label: translate("maxVolume"),
                           value: maxVolume,
                           readOnly: true,
-                          decimals: volumeDecimals,
                         },
                       ],
                       [
@@ -1579,13 +1509,11 @@ const TankDefinitionField = ({
                           label: translate("minLevel"),
                           value: minLevel,
                           readOnly: true,
-                          decimals: levelDecimals,
                         },
                         {
                           label: translate("minVolume"),
                           value: minVolume,
                           readOnly: true,
-                          decimals: volumeDecimals,
                         },
                       ],
                     ]}
@@ -1605,7 +1533,6 @@ const ValveEditor = ({
   valve,
   startNode,
   endNode,
-  formatting,
   units,
   onPropertyChange,
   onBatchPropertyChange,
@@ -1618,7 +1545,6 @@ const ValveEditor = ({
   valve: Valve;
   startNode: NodeAsset | null;
   endNode: NodeAsset | null;
-  formatting: FormattingSpec;
   units: UnitsSpec;
   onStatusChange: OnStatusChange<ValveStatus>;
   onPropertyChange: OnPropertyChange;
@@ -1787,7 +1713,6 @@ const ValveEditor = ({
           value={valve.diameter}
           positiveOnly={true}
           unit={units.diameter}
-          decimals={getDecimals(formatting, "diameter")}
           comparison={getComparison("diameter", valve.diameter)}
           onChange={onPropertyChange}
           readOnly={readonly}
@@ -1797,7 +1722,6 @@ const ValveEditor = ({
           value={valve.minorLoss}
           positiveOnly={true}
           unit={units.minorLoss}
-          decimals={getDecimals(formatting, "minorLoss")}
           comparison={getComparison("minorLoss", valve.minorLoss)}
           onChange={onPropertyChange}
           readOnly={readonly}
@@ -1811,21 +1735,18 @@ const ValveEditor = ({
           name="flow"
           value={simFlow}
           unit={units.flow}
-          decimals={getDecimals(formatting, "flow")}
           readOnly={true}
         />
         <QuantityRow
           name="velocity"
           value={simVelocity}
           unit={units.velocity}
-          decimals={getDecimals(formatting, "velocity")}
           readOnly={true}
         />
         <QuantityRow
           name="headlossShort"
           value={simHeadloss}
           unit={units.headloss}
-          decimals={getDecimals(formatting, "headloss")}
           readOnly={true}
         />
         <TextRow name="status" value={statusText} />
@@ -1844,7 +1765,6 @@ const PumpEditor = ({
   onActiveTopologyStatusChange,
   onBatchPropertyChange,
   onLabelChange,
-  formatting,
   units,
   readonly = false,
 }: {
@@ -1861,7 +1781,6 @@ const PumpEditor = ({
   ) => void;
   onBatchPropertyChange: (changes: PropertyChange[]) => void;
   onLabelChange: (newLabel: string) => string | undefined;
-  formatting: FormattingSpec;
   units: UnitsSpec;
   readonly?: boolean;
 }) => {
@@ -1961,7 +1880,6 @@ const PumpEditor = ({
           pump={pump}
           curves={hydraulicModel.curves}
           units={units}
-          formatting={formatting}
           onChange={onBatchPropertyChange}
           readonly={readonly}
           getComparison={getComparison}
@@ -1972,7 +1890,6 @@ const PumpEditor = ({
           name="initialSpeed"
           value={pump.speed}
           unit={units.speed}
-          decimals={getDecimals(formatting, "speed")}
           comparison={getComparison("speed", pump.speed)}
           onChange={(_, newValue, oldValue) =>
             onPropertyChange("speed", newValue, oldValue)
@@ -2039,14 +1956,12 @@ const PumpEditor = ({
           name="flow"
           value={simFlow}
           unit={units.flow}
-          decimals={getDecimals(formatting, "flow")}
           readOnly={true}
         />
         <QuantityRow
           name="pumpHead"
           value={simHead}
           unit={units.headloss}
-          decimals={getDecimals(formatting, "headloss")}
           readOnly={true}
         />
         <TextRow name="status" value={statusText} />
@@ -2057,49 +1972,42 @@ const PumpEditor = ({
             name="utilization"
             value={pumpEnergy?.utilization ?? null}
             unit={units.efficiency}
-            decimals={2}
             readOnly={true}
           />
           <QuantityRow
             name="averageEfficiency"
             value={pumpEnergy?.averageEfficiency ?? null}
             unit={units.efficiency}
-            decimals={2}
             readOnly={true}
           />
           <QuantityRow
             name="averageKwPerFlowUnit"
             value={pumpEnergy?.averageKwPerFlowUnit ?? null}
             unit={units.averageKwPerFlowUnit}
-            decimals={2}
             readOnly={true}
           />
           <QuantityRow
             name="averageKw"
             value={pumpEnergy?.averageKw ?? null}
             unit={units.power}
-            decimals={2}
             readOnly={true}
           />
           <QuantityRow
             name="peakKw"
             value={pumpEnergy?.peakKw ?? null}
             unit={units.power}
-            decimals={2}
             readOnly={true}
           />
           <QuantityRow
             name="averageCostPerDay"
             value={pumpEnergy?.averageCostPerDay ?? null}
             unit={null}
-            decimals={2}
             readOnly={true}
           />
           <QuantityRow
             name="demandCharge"
             value={pumpEnergy?.demandCharge ?? null}
             unit={null}
-            decimals={2}
             readOnly={true}
           />
         </Section>
@@ -2474,14 +2382,12 @@ const ReservoirHeadField = ({
   reservoir,
   patterns,
   onPropertyChange,
-  formatting,
   units,
   readOnly = false,
 }: {
   reservoir: Reservoir;
   patterns: Patterns;
   onPropertyChange: OnPropertyChange;
-  formatting: FormattingSpec;
   units: UnitsSpec;
   readOnly?: boolean;
 }) => {
@@ -2514,7 +2420,6 @@ const ReservoirHeadField = ({
   const hasChanged = headComparison.hasChanged || patternComparison.hasChanged;
 
   const headUnit = units.head;
-  const headDecimals = getDecimals(formatting, "head");
 
   const baseDisplayValue = useMemo(() => {
     if (!hasChanged) return undefined;
@@ -2537,9 +2442,7 @@ const ReservoirHeadField = ({
 
     const baseAverageHead = baseHead * avgMultiplier;
     const unitLabel = translateUnit(headUnit);
-    const formattedAvgHead = localizeDecimal(baseAverageHead, {
-      decimals: headDecimals,
-    });
+    const formattedAvgHead = localizeDecimal(baseAverageHead);
 
     const basePattern = patternComparison.baseValue;
     const multipliersDiffer =
@@ -2551,7 +2454,7 @@ const ReservoirHeadField = ({
       <div className="whitespace-pre-line">
         {`${translate("headAverage")} (${unitLabel}): ${formattedAvgHead}`}
         {headComparison.hasChanged &&
-          `\n${translate("head")} (${unitLabel}): ${localizeDecimal(baseHead, { decimals: headDecimals })}`}
+          `\n${translate("head")} (${unitLabel}): ${localizeDecimal(baseHead)}`}
         {patternComparison.hasChanged && basePattern
           ? `\n${translate("headPattern")}: ${basePattern.label}`
           : `\n${translate("headPattern")}: ${translate("constant")}`}
@@ -2565,7 +2468,6 @@ const ReservoirHeadField = ({
     patterns,
     reservoir.head,
     reservoir.headPatternId,
-    headDecimals,
     headUnit,
     translate,
     translateUnit,
@@ -2583,7 +2485,6 @@ const ReservoirHeadField = ({
           name="head"
           value={reservoir.head}
           unit={headUnit}
-          decimals={headDecimals}
           onChange={onPropertyChange}
           readOnly={readOnly}
         />
@@ -2610,7 +2511,6 @@ const ReservoirHeadField = ({
             name="headAverage"
             value={averageHead}
             unit={headUnit}
-            decimals={headDecimals}
             readOnly={true}
           />
         )}

@@ -4,20 +4,12 @@ import {
   PumpCurveTable,
   PumpDefinitionDetails,
 } from "./pump-definition-details";
-import {
-  presets,
-  UnitsSpec,
-  FormattingSpec,
-} from "src/model-metadata/quantities-spec";
+import { presets, UnitsSpec } from "src/model-metadata/quantities-spec";
 import { buildPump } from "src/__helpers__/hydraulic-model-builder";
 import type { Curves } from "src/hydraulic-model/curves";
 
 const spec = presets.LPS;
 const units: UnitsSpec = spec.units;
-const formatting: FormattingSpec = {
-  decimals: spec.decimals,
-  defaultDecimals: 3,
-};
 const curves: Curves = new Map();
 
 const getFlowInput = (rowLabel: string) =>
@@ -52,7 +44,6 @@ describe("PumpCurveTable", () => {
         <PumpCurveTable
           curveType="standardCurve"
           units={units}
-          formatting={formatting}
           onCurveChange={vi.fn()}
         />,
       );
@@ -77,7 +68,6 @@ describe("PumpCurveTable", () => {
           curve={curve}
           curveType="standardCurve"
           units={units}
-          formatting={formatting}
           onCurveChange={vi.fn()}
         />,
       );
@@ -98,7 +88,6 @@ describe("PumpCurveTable", () => {
           curve={curve}
           curveType="designPointCurve"
           units={units}
-          formatting={formatting}
           onCurveChange={vi.fn()}
         />,
       );
@@ -123,7 +112,6 @@ describe("PumpCurveTable", () => {
           curve={curve}
           curveType="designPointCurve"
           units={units}
-          formatting={formatting}
           onCurveChange={vi.fn()}
         />,
       );
@@ -142,7 +130,6 @@ describe("PumpCurveTable", () => {
           curve={curve}
           curveType="designPointCurve"
           units={units}
-          formatting={formatting}
           onCurveChange={vi.fn()}
         />,
       );
@@ -164,7 +151,6 @@ describe("PumpCurveTable", () => {
           curve={curve}
           curveType="designPointCurve"
           units={units}
-          formatting={formatting}
           onCurveChange={vi.fn()}
         />,
       );
@@ -183,7 +169,6 @@ describe("PumpCurveTable", () => {
         <PumpCurveTable
           curveType="designPointCurve"
           units={units}
-          formatting={formatting}
           onCurveChange={vi.fn()}
         />,
       );
@@ -200,7 +185,6 @@ describe("PumpCurveTable", () => {
         <PumpCurveTable
           curveType="designPointCurve"
           units={units}
-          formatting={formatting}
           onCurveChange={onCurveChange}
         />,
       );
@@ -232,7 +216,6 @@ describe("PumpCurveTable", () => {
           curve={curve}
           curveType="standardCurve"
           units={units}
-          formatting={formatting}
           onCurveChange={vi.fn()}
         />,
       );
@@ -253,7 +236,6 @@ describe("PumpCurveTable", () => {
           curve={curve}
           curveType="standardCurve"
           units={units}
-          formatting={formatting}
           onCurveChange={vi.fn()}
         />,
       );
@@ -271,7 +253,6 @@ describe("PumpCurveTable", () => {
         <PumpCurveTable
           curveType="standardCurve"
           units={units}
-          formatting={formatting}
           onCurveChange={vi.fn()}
         />,
       );
@@ -296,7 +277,6 @@ describe("PumpCurveTable", () => {
           curve={curve}
           curveType="standardCurve"
           units={units}
-          formatting={formatting}
           onCurveChange={vi.fn()}
         />,
       );
@@ -324,7 +304,6 @@ describe("PumpCurveTable", () => {
           curve={curve}
           curveType="standardCurve"
           units={units}
-          formatting={formatting}
           onCurveChange={onCurveChange}
         />,
       );
@@ -357,7 +336,6 @@ describe("PumpCurveTable", () => {
           curve={curve}
           curveType="standardCurve"
           units={units}
-          formatting={formatting}
           onCurveChange={vi.fn()}
         />,
       );
@@ -380,7 +358,6 @@ describe("PumpCurveTable", () => {
           curve={curve}
           curveType="designPointCurve"
           units={units}
-          formatting={formatting}
           onCurveChange={vi.fn()}
         />,
       );
@@ -407,7 +384,6 @@ describe("PumpCurveTable", () => {
           curve={curve}
           curveType="standardCurve"
           units={units}
-          formatting={formatting}
         />,
       );
 
@@ -422,13 +398,7 @@ describe("PumpCurveTable", () => {
     });
 
     it("does not show warning styling in read-only mode when curve is invalid", () => {
-      render(
-        <PumpCurveTable
-          curveType="standardCurve"
-          units={units}
-          formatting={formatting}
-        />,
-      );
+      render(<PumpCurveTable curveType="standardCurve" units={units} />);
 
       expect(getHeadSpan("Shutoff")).not.toHaveClass("border-orange-500");
       expect(getFlowSpan("Design")).not.toHaveClass("border-orange-500");
@@ -454,7 +424,6 @@ describe("PumpDefinitionDetails", () => {
             pump={pump}
             curves={curves}
             units={units}
-            formatting={formatting}
             onChange={onChange}
           />,
         );
@@ -486,7 +455,6 @@ describe("PumpDefinitionDetails", () => {
             pump={pump}
             curves={curves}
             units={units}
-            formatting={formatting}
             onChange={onChange}
           />,
         );
@@ -519,7 +487,6 @@ describe("PumpDefinitionDetails", () => {
             pump={pump}
             curves={curves}
             units={units}
-            formatting={formatting}
             onChange={onChange}
           />,
         );
@@ -568,7 +535,6 @@ describe("PumpDefinitionDetails", () => {
             pump={pump}
             curves={curves}
             units={units}
-            formatting={formatting}
             onChange={onChange}
           />,
         );
@@ -609,7 +575,6 @@ describe("PumpDefinitionDetails", () => {
             pump={pump}
             curves={curves}
             units={units}
-            formatting={formatting}
             onChange={onChange}
           />,
         );
@@ -646,7 +611,6 @@ describe("PumpDefinitionDetails", () => {
             pump={pump}
             curves={curvesWithPump}
             units={units}
-            formatting={formatting}
             onChange={onChange}
           />,
         );
@@ -681,7 +645,6 @@ describe("PumpDefinitionDetails", () => {
             pump={pump}
             curves={curves}
             units={units}
-            formatting={formatting}
             onChange={onChange}
           />,
         );
@@ -709,7 +672,6 @@ describe("PumpDefinitionDetails", () => {
             pump={pump}
             curves={curves}
             units={units}
-            formatting={formatting}
             onChange={onChange}
           />,
         );
@@ -751,7 +713,6 @@ describe("PumpDefinitionDetails", () => {
           pump={pump}
           curves={curves}
           units={units}
-          formatting={formatting}
           onChange={onChange}
         />,
       );
@@ -767,7 +728,6 @@ describe("PumpDefinitionDetails", () => {
           pump={pumpCopy}
           curves={curves}
           units={units}
-          formatting={formatting}
           onChange={onChange}
         />,
       );
@@ -788,7 +748,6 @@ describe("PumpDefinitionDetails", () => {
           pump={pump}
           curves={curves}
           units={units}
-          formatting={formatting}
           onChange={onChange}
         />,
       );
@@ -806,7 +765,6 @@ describe("PumpDefinitionDetails", () => {
           pump={updatedPump}
           curves={curves}
           units={units}
-          formatting={formatting}
           onChange={onChange}
         />,
       );

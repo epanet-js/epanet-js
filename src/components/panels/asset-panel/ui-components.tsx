@@ -11,6 +11,8 @@ import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { Unit, convertTo } from "src/quantity";
 import { localizeDecimal } from "src/infra/i18n/numbers";
+import { useValueDisplay } from "src/hooks/use-value-display";
+import type { QuantityProperty } from "src/model-metadata/quantities-spec";
 import { Selector, SelectorOption } from "src/components/form/selector";
 import { NumericField } from "src/components/form/numeric-field";
 import { Checkbox } from "src/components/form/Checkbox";
@@ -214,7 +216,6 @@ export const QuantityRow = <P extends string>({
   name,
   value,
   unit,
-  decimals,
   positiveOnly = false,
   readOnly = false,
   isNullable = true,
@@ -228,7 +229,6 @@ export const QuantityRow = <P extends string>({
   positiveOnly?: boolean;
   isNullable?: boolean;
   readOnly?: boolean;
-  decimals?: number;
   placeholder?: string;
   comparison?: PropertyComparison;
   onChange?: (name: P, newValue: number, oldValue: number | null) => void;
@@ -236,13 +236,14 @@ export const QuantityRow = <P extends string>({
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
   const lastChange = useRef<number>(0);
+  const { displayValue: formatValue } = useValueDisplay();
 
   const displayValue =
     value === null
       ? isNullable && placeholder
         ? ""
         : translate("notAvailable")
-      : localizeDecimal(value, { decimals });
+      : formatValue(value, name as QuantityProperty);
 
   const label = unit
     ? `${translate(name)} (${translateUnit(unit)})`
@@ -250,7 +251,7 @@ export const QuantityRow = <P extends string>({
 
   const baseDisplayValue =
     comparison?.hasChanged && comparison.baseValue != null
-      ? localizeDecimal(comparison.baseValue as number, { decimals })
+      ? formatValue(comparison.baseValue as number, name as QuantityProperty)
       : undefined;
 
   const handleChange = (newValue: number) => {
