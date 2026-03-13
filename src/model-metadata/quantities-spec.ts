@@ -392,4 +392,8 @@ export class Quantities {
       return null;
     }
   }
+
+  withPressureUnit(pressureUnit: Unit): Quantities {
+    return new Quantities(withPressureUnit(this.spec, pressureUnit));
+  }
 }

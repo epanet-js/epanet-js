@@ -29,6 +29,7 @@ import type {
 import { chooseUnitSystem } from "src/simulation/build-inp";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { dataAtom } from "src/state/data";
+import { supportedPressureUnits } from "src/model-metadata/quantities-spec";
 import {
   headlossFormulas,
   headlossFormulasFullNames,
@@ -129,7 +130,16 @@ export const GeneralSection = () => {
   const flowUnitsDisplay = isEpanet23On
     ? translateUnit(units.flow)
     : chooseUnitSystem(units);
-  const pressureUnitDisplay = translateUnit(units.pressure);
+
+  const pressureUnitOptions = useMemo(
+    () =>
+      supportedPressureUnits.map((pu) => ({
+        label: translateUnit(pu),
+        value: pu as string,
+      })),
+    [translateUnit],
+  );
+
   const headlossIndex = headlossFormulas.indexOf(
     hydraulicModel.headlossFormula,
   );
@@ -158,12 +168,13 @@ export const GeneralSection = () => {
         />
 
         {isEpanet23On && (
-          <TextSetting
+          <SelectorSetting
             label={translate("simulationSettings.pressureUnits")}
             description={translate("simulationSettings.pressureUnitsDesc")}
-            value={pressureUnitDisplay}
-            onChange={() => {}}
-            disabled
+            options={pressureUnitOptions}
+            selected={values.pressureUnit as string}
+            onChange={(v) => setFieldValue("pressureUnit", v)}
+            disabled={readonly}
           />
         )}
 

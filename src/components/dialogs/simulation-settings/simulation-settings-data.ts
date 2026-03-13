@@ -9,6 +9,7 @@ import {
   defaultHydraulicsValues,
 } from "src/simulation/simulation-settings";
 import type { PatternId } from "src/hydraulic-model/patterns";
+import type { Unit } from "src/quantity";
 
 export type OptionSubcategory = {
   id: string;
@@ -139,11 +140,13 @@ export type FormValues = {
   energyGlobalPrice: number;
   energyGlobalPatternId: PatternId | null;
   energyDemandCharge: number;
+  pressureUnit: Unit;
   statusReport: StatusReport;
 };
 
 export const buildInitialValues = (
   settings: SimulationSettings,
+  pressureUnit: Unit,
 ): FormValues => {
   const { timing } = settings;
   return {
@@ -194,6 +197,7 @@ export const buildInitialValues = (
     energyGlobalPrice: settings.energyGlobalPrice,
     energyGlobalPatternId: settings.energyGlobalPatternId,
     energyDemandCharge: settings.energyDemandCharge,
+    pressureUnit,
     statusReport: settings.statusReport,
   };
 };
