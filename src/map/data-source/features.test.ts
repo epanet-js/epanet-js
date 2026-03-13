@@ -1,7 +1,11 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { SymbologySpec, nullSymbologySpec } from "src/map/symbology";
 import { buildOptimizedAssetsSource } from "./features";
-import { Quantities, presets } from "src/model-metadata/quantities-spec";
+import {
+  Quantities,
+  presets,
+  FormattingSpec,
+} from "src/model-metadata/quantities-spec";
 import {
   aLinkSymbology,
   aNodeSymbology,
@@ -12,6 +16,10 @@ import { createMockResultsReader } from "src/__helpers__/state";
 
 describe("build optimized source", () => {
   const defaultQuantities = new Quantities(presets.LPS);
+  const defaultFormatting: FormattingSpec = {
+    decimals: presets.LPS.decimals,
+    defaultDecimals: 3,
+  };
   const fakeTranslateUnit = vi.fn();
   it("preserves core properties", () => {
     const IDS = { ID: 1, J1: 2 } as const;
@@ -28,6 +36,7 @@ describe("build optimized source", () => {
       assets,
       symbology,
       defaultQuantities,
+      defaultFormatting,
       fakeTranslateUnit,
     );
 
@@ -65,6 +74,7 @@ describe("build optimized source", () => {
       assets,
       symbology,
       defaultQuantities,
+      defaultFormatting,
       fakeTranslateUnit,
     );
 
@@ -92,6 +102,7 @@ describe("build optimized source", () => {
       assets,
       symbology,
       defaultQuantities,
+      defaultFormatting,
       fakeTranslateUnit,
       simulationResults,
     );
@@ -127,6 +138,7 @@ describe("build optimized source", () => {
         assets,
         symbology,
         defaultQuantities,
+        defaultFormatting,
         fakeTranslateUnit,
         simulationResults,
       );
@@ -156,6 +168,7 @@ describe("build optimized source", () => {
         assets,
         symbology,
         defaultQuantities,
+        defaultFormatting,
         () => "m",
         simulationResults,
       );
@@ -196,6 +209,7 @@ describe("build optimized source", () => {
         assets,
         symbology,
         defaultQuantities,
+        defaultFormatting,
         fakeTranslateUnit,
         simulationResults,
       );
@@ -236,6 +250,7 @@ describe("build optimized source", () => {
         assets,
         symbology,
         defaultQuantities,
+        defaultFormatting,
         () => "l/s",
         simulationResults,
       );
@@ -263,6 +278,7 @@ describe("build optimized source", () => {
         assets,
         symbology,
         defaultQuantities,
+        defaultFormatting,
         fakeTranslateUnit,
         simulationResults,
       );
@@ -299,6 +315,7 @@ describe("build optimized source", () => {
         assets,
         symbology,
         defaultQuantities,
+        defaultFormatting,
         fakeTranslateUnit,
         simulationResults,
       );
@@ -323,6 +340,7 @@ describe("build optimized source", () => {
         assets,
         symbology,
         defaultQuantities,
+        defaultFormatting,
         fakeTranslateUnit,
         simulationResults,
       );
@@ -342,6 +360,10 @@ describe("build optimized source", () => {
     it("assigns lengths in meters", () => {
       const IDS = { p1: 1 } as const;
       const gpmQuantities = new Quantities(presets.GPM);
+      const gpmFormatting: FormattingSpec = {
+        decimals: presets.GPM.decimals,
+        defaultDecimals: 3,
+      };
       const { assets } = HydraulicModelBuilder.with(presets.GPM)
         .aPipe(IDS.p1, { length: 10 })
         .build();
@@ -353,6 +375,7 @@ describe("build optimized source", () => {
         assets,
         symbology,
         gpmQuantities,
+        gpmFormatting,
         fakeTranslateUnit,
         simulationResults,
       );

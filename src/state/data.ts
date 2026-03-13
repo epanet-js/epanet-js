@@ -20,6 +20,7 @@ const modelMetadata: ModelMetadata = {
   units: presets.LPS.units,
   defaults: presets.LPS.defaults,
   headlossFormula: "H-W",
+  formatting: { decimals: presets.LPS.decimals, defaultDecimals: 3 },
   projectionMapper: createProjectionMapper({ type: "wgs84" }),
 };
 export const nullData: Data = {

@@ -6,6 +6,7 @@ import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { NumericField } from "./form/numeric-field";
 import { localizeDecimal } from "src/infra/i18n/numbers";
+import { getDecimals } from "src/model-metadata";
 import { useRef } from "react";
 import { useUserTracking } from "src/infra/user-tracking";
 
@@ -15,7 +16,7 @@ export const PipeDrawingFloatingPanel = () => {
   const translateUnit = useTranslateUnit();
   const userTracking = useUserTracking();
   const {
-    modelMetadata: { quantities, units, defaults },
+    modelMetadata: { units, defaults, formatting },
   } = useAtomValue(dataAtom);
   const [pipeDrawingDefaults, setPipeDrawingDefaults] = useAtom(
     pipeDrawingDefaultsAtom,
@@ -65,10 +66,10 @@ export const PipeDrawingFloatingPanel = () => {
     : translate("roughness");
 
   const diameterDisplay = localizeDecimal(currentDiameter, {
-    decimals: quantities.getDecimals("diameter"),
+    decimals: getDecimals(formatting, "diameter"),
   });
   const roughnessDisplay = localizeDecimal(currentRoughness, {
-    decimals: quantities.getDecimals("roughness"),
+    decimals: getDecimals(formatting, "roughness"),
   });
 
   return (

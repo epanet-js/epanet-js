@@ -1,5 +1,10 @@
 import { Unit } from "src/quantity";
-import { Quantities, UnitsSpec } from "src/model-metadata/quantities-spec";
+import {
+  Quantities,
+  UnitsSpec,
+  FormattingSpec,
+} from "src/model-metadata/quantities-spec";
+import { getDecimals } from "src/model-metadata";
 import type { ResultsReader } from "src/simulation/results-reader";
 import {
   Asset,
@@ -92,6 +97,7 @@ export type ComputedMultiAssetData = {
 export const computeMultiAssetData = (
   assets: Asset[],
   quantitiesMetadata: Quantities,
+  formatting: FormattingSpec,
   hydraulicModel: HydraulicModel,
   simulationResults?: ResultsReader | null,
 ): ComputedMultiAssetData => {
@@ -121,6 +127,7 @@ export const computeMultiAssetData = (
           statsMaps.junction,
           asset as Junction,
           quantitiesMetadata,
+          formatting,
           hydraulicModel.customerPointsLookup,
           hydraulicModel.assets,
           hydraulicModel.demands,
@@ -134,6 +141,7 @@ export const computeMultiAssetData = (
           statsMaps.pipe,
           asset as Pipe,
           quantitiesMetadata,
+          formatting,
           hydraulicModel.customerPointsLookup,
           hydraulicModel.demands,
           hydraulicModel.patterns,
@@ -146,6 +154,7 @@ export const computeMultiAssetData = (
           statsMaps.pump,
           asset as Pump,
           quantitiesMetadata,
+          formatting,
           hydraulicModel.curves,
           simulationResults,
         );
@@ -156,6 +165,7 @@ export const computeMultiAssetData = (
           statsMaps.valve,
           asset as Valve,
           quantitiesMetadata,
+          formatting,
           simulationResults,
         );
         break;
@@ -165,6 +175,7 @@ export const computeMultiAssetData = (
           statsMaps.reservoir,
           asset as Reservoir,
           quantitiesMetadata,
+          formatting,
           hydraulicModel.patterns,
           simulationResults,
         );
@@ -175,6 +186,7 @@ export const computeMultiAssetData = (
           statsMaps.tank,
           asset as Tank,
           quantitiesMetadata,
+          formatting,
           hydraulicModel.curves,
           simulationResults,
         );
@@ -199,6 +211,7 @@ const appendJunctionStats = (
   statsMap: Map<string, AssetPropertyStats>,
   junction: Junction,
   quantitiesMetadata: Quantities,
+  formatting: FormattingSpec,
   customerPointsLookup: CustomerPointsLookup,
   assets: HydraulicModel["assets"],
   demands: Demands,
@@ -212,6 +225,7 @@ const appendJunctionStats = (
     "elevation",
     junction.elevation,
     quantitiesMetadata,
+    formatting,
     id,
   );
   updateQuantityStats(
@@ -219,6 +233,7 @@ const appendJunctionStats = (
     "emitterCoefficient",
     junction.emitterCoefficient,
     quantitiesMetadata,
+    formatting,
     id,
   );
 
@@ -231,6 +246,7 @@ const appendJunctionStats = (
     "directDemand",
     averageDemand,
     quantitiesMetadata,
+    formatting,
     id,
   );
 
@@ -252,6 +268,7 @@ const appendJunctionStats = (
       "customerDemand",
       totalCustomerDemand,
       quantitiesMetadata,
+      formatting,
       id,
     );
 
@@ -270,10 +287,24 @@ const appendJunctionStats = (
   const actualDemand = junctionSim?.demand ?? null;
 
   if (pressure !== null) {
-    updateQuantityStats(statsMap, "pressure", pressure, quantitiesMetadata, id);
+    updateQuantityStats(
+      statsMap,
+      "pressure",
+      pressure,
+      quantitiesMetadata,
+      formatting,
+      id,
+    );
   }
   if (head !== null) {
-    updateQuantityStats(statsMap, "head", head, quantitiesMetadata, id);
+    updateQuantityStats(
+      statsMap,
+      "head",
+      head,
+      quantitiesMetadata,
+      formatting,
+      id,
+    );
   }
   if (actualDemand !== null) {
     updateQuantityStats(
@@ -281,6 +312,7 @@ const appendJunctionStats = (
       "actualDemand",
       actualDemand,
       quantitiesMetadata,
+      formatting,
       id,
     );
   }
@@ -326,6 +358,7 @@ const appendPipeStats = (
   statsMap: Map<string, AssetPropertyStats>,
   pipe: Pipe,
   quantitiesMetadata: Quantities,
+  formatting: FormattingSpec,
   customerPointsLookup: CustomerPointsLookup,
   demands: Demands,
   patterns: Patterns,
@@ -344,14 +377,23 @@ const appendPipeStats = (
     "diameter",
     pipe.diameter,
     quantitiesMetadata,
+    formatting,
     id,
   );
-  updateQuantityStats(statsMap, "length", pipe.length, quantitiesMetadata, id);
+  updateQuantityStats(
+    statsMap,
+    "length",
+    pipe.length,
+    quantitiesMetadata,
+    formatting,
+    id,
+  );
   updateQuantityStats(
     statsMap,
     "roughness",
     pipe.roughness,
     quantitiesMetadata,
+    formatting,
     id,
   );
   updateQuantityStats(
@@ -359,6 +401,7 @@ const appendPipeStats = (
     "minorLoss",
     pipe.minorLoss,
     quantitiesMetadata,
+    formatting,
     id,
   );
 
@@ -375,6 +418,7 @@ const appendPipeStats = (
       "customerDemand",
       totalCustomerDemand,
       quantitiesMetadata,
+      formatting,
       id,
     );
 
@@ -395,10 +439,24 @@ const appendPipeStats = (
   const status = pipeSim?.status ?? null;
 
   if (flow !== null) {
-    updateQuantityStats(statsMap, "flow", flow, quantitiesMetadata, id);
+    updateQuantityStats(
+      statsMap,
+      "flow",
+      flow,
+      quantitiesMetadata,
+      formatting,
+      id,
+    );
   }
   if (velocity !== null) {
-    updateQuantityStats(statsMap, "velocity", velocity, quantitiesMetadata, id);
+    updateQuantityStats(
+      statsMap,
+      "velocity",
+      velocity,
+      quantitiesMetadata,
+      formatting,
+      id,
+    );
   }
   if (unitHeadloss !== null) {
     updateQuantityStats(
@@ -406,11 +464,19 @@ const appendPipeStats = (
       "unitHeadloss",
       unitHeadloss,
       quantitiesMetadata,
+      formatting,
       id,
     );
   }
   if (headloss !== null) {
-    updateQuantityStats(statsMap, "headloss", headloss, quantitiesMetadata, id);
+    updateQuantityStats(
+      statsMap,
+      "headloss",
+      headloss,
+      quantitiesMetadata,
+      formatting,
+      id,
+    );
   }
   if (status !== null) {
     const statusLabel = "pipe." + status;
@@ -449,6 +515,7 @@ const appendPumpStats = (
   statsMap: Map<string, AssetPropertyStats>,
   pump: Pump,
   quantitiesMetadata: Quantities,
+  formatting: FormattingSpec,
   curves: Curves,
   simulationResults?: ResultsReader | null,
 ) => {
@@ -488,10 +555,24 @@ const appendPumpStats = (
   const statusWarning = pumpSim?.statusWarning ?? null;
 
   if (flow !== null) {
-    updateQuantityStats(statsMap, "flow", flow, quantitiesMetadata, id);
+    updateQuantityStats(
+      statsMap,
+      "flow",
+      flow,
+      quantitiesMetadata,
+      formatting,
+      id,
+    );
   }
   if (head !== null) {
-    updateQuantityStats(statsMap, "pumpHead", head, quantitiesMetadata, id);
+    updateQuantityStats(
+      statsMap,
+      "pumpHead",
+      head,
+      quantitiesMetadata,
+      formatting,
+      id,
+    );
   }
   if (status !== null) {
     const statusLabel = statusWarning
@@ -518,6 +599,7 @@ const appendPumpStats = (
       "utilization",
       energy.utilization,
       quantitiesMetadata,
+      formatting,
       id,
       percentUnit,
     );
@@ -526,6 +608,7 @@ const appendPumpStats = (
       "averageEfficiency",
       energy.averageEfficiency,
       quantitiesMetadata,
+      formatting,
       id,
       percentUnit,
     );
@@ -534,6 +617,7 @@ const appendPumpStats = (
       "averageKwPerFlowUnit",
       energy.averageKwPerFlowUnit,
       quantitiesMetadata,
+      formatting,
       id,
       { decimals: 2 },
     );
@@ -542,6 +626,7 @@ const appendPumpStats = (
       "averageKw",
       energy.averageKw,
       quantitiesMetadata,
+      formatting,
       id,
       powerUnit,
     );
@@ -550,6 +635,7 @@ const appendPumpStats = (
       "peakKw",
       energy.peakKw,
       quantitiesMetadata,
+      formatting,
       id,
       powerUnit,
     );
@@ -558,6 +644,7 @@ const appendPumpStats = (
       "averageCostPerDay",
       energy.averageCostPerDay,
       quantitiesMetadata,
+      formatting,
       id,
       noUnit,
     );
@@ -603,6 +690,7 @@ const appendValveStats = (
   statsMap: Map<string, AssetPropertyStats>,
   valve: Valve,
   quantitiesMetadata: Quantities,
+  formatting: FormattingSpec,
   simulationResults?: ResultsReader | null,
 ) => {
   const id = valve.id;
@@ -619,6 +707,7 @@ const appendValveStats = (
     "setting",
     valve.setting,
     quantitiesMetadata,
+    formatting,
     id,
   );
   updateQuantityStats(
@@ -626,6 +715,7 @@ const appendValveStats = (
     "diameter",
     valve.diameter,
     quantitiesMetadata,
+    formatting,
     id,
   );
   updateQuantityStats(
@@ -633,6 +723,7 @@ const appendValveStats = (
     "minorLoss",
     valve.minorLoss,
     quantitiesMetadata,
+    formatting,
     id,
   );
 
@@ -644,13 +735,34 @@ const appendValveStats = (
   const status = valveSim?.status ?? null;
 
   if (flow !== null) {
-    updateQuantityStats(statsMap, "flow", flow, quantitiesMetadata, id);
+    updateQuantityStats(
+      statsMap,
+      "flow",
+      flow,
+      quantitiesMetadata,
+      formatting,
+      id,
+    );
   }
   if (velocity !== null) {
-    updateQuantityStats(statsMap, "velocity", velocity, quantitiesMetadata, id);
+    updateQuantityStats(
+      statsMap,
+      "velocity",
+      velocity,
+      quantitiesMetadata,
+      formatting,
+      id,
+    );
   }
   if (headloss !== null) {
-    updateQuantityStats(statsMap, "headloss", headloss, quantitiesMetadata, id);
+    updateQuantityStats(
+      statsMap,
+      "headloss",
+      headloss,
+      quantitiesMetadata,
+      formatting,
+      id,
+    );
   }
   if (status !== null) {
     const statusLabel = `valve.${status}`;
@@ -685,6 +797,7 @@ const appendReservoirStats = (
   statsMap: Map<string, AssetPropertyStats>,
   reservoir: Reservoir,
   quantitiesMetadata: Quantities,
+  formatting: FormattingSpec,
   patterns: Patterns,
   simulationResults?: ResultsReader | null,
 ) => {
@@ -695,18 +808,33 @@ const appendReservoirStats = (
     "elevation",
     reservoir.elevation,
     quantitiesMetadata,
+    formatting,
     id,
   );
 
   const averageHead = calculateAverageHead(reservoir, patterns);
-  updateQuantityStats(statsMap, "head", averageHead, quantitiesMetadata, id);
+  updateQuantityStats(
+    statsMap,
+    "head",
+    averageHead,
+    quantitiesMetadata,
+    formatting,
+    id,
+  );
 
   const reservoirSim = simulationResults?.getReservoir(reservoir.id);
   const pressure = reservoirSim?.pressure ?? null;
   const simHead = reservoirSim?.head ?? null;
   const netFlow = reservoirSim?.netFlow ?? null;
   if (pressure !== null) {
-    updateQuantityStats(statsMap, "pressure", pressure, quantitiesMetadata, id);
+    updateQuantityStats(
+      statsMap,
+      "pressure",
+      pressure,
+      quantitiesMetadata,
+      formatting,
+      id,
+    );
   }
   if (simHead !== null) {
     updateQuantityStats(
@@ -714,11 +842,19 @@ const appendReservoirStats = (
       "actualHead",
       simHead,
       quantitiesMetadata,
+      formatting,
       id,
     );
   }
   if (netFlow !== null) {
-    updateQuantityStats(statsMap, "netFlow", netFlow, quantitiesMetadata, id);
+    updateQuantityStats(
+      statsMap,
+      "netFlow",
+      netFlow,
+      quantitiesMetadata,
+      formatting,
+      id,
+    );
   }
 };
 
@@ -742,6 +878,7 @@ const appendTankStats = (
   statsMap: Map<string, AssetPropertyStats>,
   tank: Tank,
   quantitiesMetadata: Quantities,
+  formatting: FormattingSpec,
   curves: Curves,
   simulationResults?: ResultsReader | null,
 ) => {
@@ -752,6 +889,7 @@ const appendTankStats = (
     "elevation",
     tank.elevation,
     quantitiesMetadata,
+    formatting,
     id,
   );
   updateQuantityStats(
@@ -759,6 +897,7 @@ const appendTankStats = (
     "initialLevel",
     tank.initialLevel,
     quantitiesMetadata,
+    formatting,
     id,
   );
   if (!tank.volumeCurveId) {
@@ -767,6 +906,7 @@ const appendTankStats = (
       "minLevel",
       tank.minLevel,
       quantitiesMetadata,
+      formatting,
       id,
     );
     updateQuantityStats(
@@ -774,6 +914,7 @@ const appendTankStats = (
       "maxLevel",
       tank.maxLevel,
       quantitiesMetadata,
+      formatting,
       id,
     );
     updateQuantityStats(
@@ -781,6 +922,7 @@ const appendTankStats = (
       "diameter",
       tank.diameter,
       quantitiesMetadata,
+      formatting,
       id,
     );
     updateQuantityStats(
@@ -788,6 +930,7 @@ const appendTankStats = (
       "minVolume",
       tank.minVolume,
       quantitiesMetadata,
+      formatting,
       id,
     );
     updateQuantityStats(
@@ -795,6 +938,7 @@ const appendTankStats = (
       "maxVolume",
       tank.maxVolume,
       quantitiesMetadata,
+      formatting,
       id,
     );
     updateLinkStats(statsMap, "volumeCurve", "", id);
@@ -808,6 +952,7 @@ const appendTankStats = (
         "minLevel",
         range.minLevel,
         quantitiesMetadata,
+        formatting,
         id,
       );
       updateQuantityStats(
@@ -815,6 +960,7 @@ const appendTankStats = (
         "maxLevel",
         range.maxLevel,
         quantitiesMetadata,
+        formatting,
         id,
       );
       updateQuantityStats(
@@ -822,6 +968,7 @@ const appendTankStats = (
         "minVolume",
         range.minVolume,
         quantitiesMetadata,
+        formatting,
         id,
       );
       updateQuantityStats(
@@ -829,6 +976,7 @@ const appendTankStats = (
         "maxVolume",
         range.maxVolume,
         quantitiesMetadata,
+        formatting,
         id,
       );
     }
@@ -847,19 +995,54 @@ const appendTankStats = (
   const volume = tankSim?.volume ?? null;
 
   if (pressure !== null) {
-    updateQuantityStats(statsMap, "pressure", pressure, quantitiesMetadata, id);
+    updateQuantityStats(
+      statsMap,
+      "pressure",
+      pressure,
+      quantitiesMetadata,
+      formatting,
+      id,
+    );
   }
   if (head !== null) {
-    updateQuantityStats(statsMap, "head", head, quantitiesMetadata, id);
+    updateQuantityStats(
+      statsMap,
+      "head",
+      head,
+      quantitiesMetadata,
+      formatting,
+      id,
+    );
   }
   if (netFlow !== null) {
-    updateQuantityStats(statsMap, "netFlow", netFlow, quantitiesMetadata, id);
+    updateQuantityStats(
+      statsMap,
+      "netFlow",
+      netFlow,
+      quantitiesMetadata,
+      formatting,
+      id,
+    );
   }
   if (level !== null) {
-    updateQuantityStats(statsMap, "level", level, quantitiesMetadata, id);
+    updateQuantityStats(
+      statsMap,
+      "level",
+      level,
+      quantitiesMetadata,
+      formatting,
+      id,
+    );
   }
   if (volume !== null) {
-    updateQuantityStats(statsMap, "volume", volume, quantitiesMetadata, id);
+    updateQuantityStats(
+      statsMap,
+      "volume",
+      volume,
+      quantitiesMetadata,
+      formatting,
+      id,
+    );
   }
 };
 
@@ -904,6 +1087,7 @@ const updateQuantityStats = (
   property: string,
   value: number | null,
   quantitiesMetadata: Quantities,
+  formatting: FormattingSpec,
   assetId: AssetId,
   overrides?: { unit?: Unit; decimals?: number },
 ) => {
@@ -912,7 +1096,7 @@ const updateQuantityStats = (
   if (!statsMap.has(property)) {
     const decimals =
       overrides?.decimals ??
-      quantitiesMetadata.getDecimals(property as keyof Quantities["units"]) ??
+      getDecimals(formatting, property as keyof Quantities["units"]) ??
       3;
     const unit =
       overrides?.unit !== undefined

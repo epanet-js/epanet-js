@@ -18,6 +18,7 @@ import {
 } from "src/components/panels/asset-panel/ui-components";
 import { DemandCategoriesEditor } from "src/components/panels/asset-panel/demands-editor";
 import { useTranslate } from "src/hooks/use-translate";
+import { getDecimals } from "src/model-metadata";
 import { usePersistence } from "src/lib/persistence";
 import {
   getCustomerPointDemands,
@@ -35,7 +36,7 @@ export function CustomerPointPanel() {
   const transact = rep.useTransact();
   const zoomTo = useZoomTo();
   const {
-    modelMetadata: { quantities, units },
+    modelMetadata: { units, formatting },
   } = useAtomValue(dataAtom);
   const customerPoint =
     selection.type === "singleCustomerPoint"
@@ -176,7 +177,7 @@ export function CustomerPointPanel() {
               name="customerDemand"
               value={averageDemandInPerDay}
               unit={perDayUnit}
-              decimals={quantities.getDecimals("customerDemandPerDay")}
+              decimals={getDecimals(formatting, "customerDemandPerDay")}
               comparison={demandComparison}
               readOnly={true}
             />

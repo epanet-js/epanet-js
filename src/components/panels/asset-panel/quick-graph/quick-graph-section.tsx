@@ -17,6 +17,7 @@ import {
   type QuickGraphPropertyByAssetType,
 } from "src/state/quick-graph";
 import type { QuantityProperty } from "src/model-metadata/quantities-spec";
+import { getDecimals } from "src/model-metadata";
 import type { TimeSeries } from "src/simulation/epanet/eps-results-reader";
 import type { AssetId, Valve } from "src/hydraulic-model/asset-types";
 import { useTimeSeries } from "./use-time-series";
@@ -119,7 +120,7 @@ const QuickGraphSection = ({
   const simulation = useAtomValue(simulationAtom);
   const worktree = useAtomValue(worktreeAtom);
   const {
-    modelMetadata: { quantities, units },
+    modelMetadata: { units, formatting },
   } = useAtomValue(dataAtom);
   const hydraulicModel = useAtomValue(stagingModelAtom);
   const { changeTimestep } = useChangeTimestep();
@@ -142,14 +143,14 @@ const QuickGraphSection = ({
         quantityKey = getValveSettingQuantityKey(valve) ?? quantityKey;
       }
     }
-    return quantities.getDecimals(quantityKey) ?? 0;
+    return getDecimals(formatting, quantityKey) ?? 0;
   }, [
     selectedOption,
     assetType,
     selectedProperty,
     assetId,
     hydraulicModel,
-    quantities,
+    formatting,
   ]);
 
   const values = useMemo(() => (data ? Array.from(data.values) : []), [data]);

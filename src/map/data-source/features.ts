@@ -7,8 +7,10 @@ import { colorFor } from "src/map/symbology/range-color-rule";
 import { strokeColorFor } from "src/lib/color";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import {
+  FormattingSpec,
   Quantities,
   QuantityProperty,
+  getDecimals,
 } from "src/model-metadata/quantities-spec";
 import {
   isSimulationProperty,
@@ -23,6 +25,7 @@ export const buildOptimizedAssetsSource = (
   assets: AssetsMap,
   symbology: SymbologySpec,
   quantities: Quantities,
+  formatting: FormattingSpec,
   translateUnit: (unit: Unit) => string,
   simulationResults?: ResultsReader | null,
 ): Feature[] => {
@@ -48,6 +51,7 @@ export const buildOptimizedAssetsSource = (
           feature,
           symbology.link,
           quantities,
+          formatting,
           translateUnit,
           simulationResults,
         );
@@ -58,6 +62,7 @@ export const buildOptimizedAssetsSource = (
           feature,
           symbology.node,
           quantities,
+          formatting,
           translateUnit,
           simulationResults,
         );
@@ -83,6 +88,7 @@ const appendPipeProps = (
   feature: Feature,
   linkSymbology: LinkSymbology,
   quantities: Quantities,
+  formatting: FormattingSpec,
   translateUnit: (unit: Unit) => string,
   simulationResults?: ResultsReader | null,
 ) => {
@@ -92,6 +98,7 @@ const appendPipeProps = (
     feature,
     linkSymbology,
     quantities,
+    formatting,
     translateUnit,
     simulationResults,
   );
@@ -102,6 +109,7 @@ const appendJunctionProps = (
   feature: Feature,
   nodeSymbology: NodeSymbology,
   quantities: Quantities,
+  formatting: FormattingSpec,
   translateUnit: (unit: Unit) => string,
   simulationResults?: ResultsReader | null,
 ) => {
@@ -110,6 +118,7 @@ const appendJunctionProps = (
     feature,
     nodeSymbology,
     quantities,
+    formatting,
     translateUnit,
     simulationResults,
   );
@@ -185,6 +194,7 @@ const appendPipeSymbologyProps = (
   feature: Feature,
   linkSymbology: LinkSymbology,
   quantities: Quantities,
+  formatting: FormattingSpec,
   translateUnit: (unit: Unit) => string,
   simulationResults?: ResultsReader | null,
 ) => {
@@ -208,7 +218,7 @@ const appendPipeSymbologyProps = (
     const labelProperty = linkSymbology.labelRule;
     const unit = quantities.units[labelProperty as QuantityProperty];
     const localizedNumber = localizeDecimal(numericValue, {
-      decimals: quantities.getDecimals(labelProperty as QuantityProperty),
+      decimals: getDecimals(formatting, labelProperty as QuantityProperty),
     });
     const unitText = unit ? translateUnit(unit) : "";
     feature.properties!.label = `${localizedNumber} ${unitText}`;
@@ -228,6 +238,7 @@ const appendJunctionSymbologyProps = (
   feature: Feature,
   nodeSymbology: NodeSymbology,
   quantities: Quantities,
+  formatting: FormattingSpec,
   translateUnit: (unit: Unit) => string,
   simulationResults?: ResultsReader | null,
 ) => {
@@ -252,7 +263,7 @@ const appendJunctionSymbologyProps = (
     const labelProperty = nodeSymbology.labelRule;
     const unit = quantities.units[labelProperty as QuantityProperty];
     const localizedNumber = localizeDecimal(numericValue, {
-      decimals: quantities.getDecimals(labelProperty as QuantityProperty),
+      decimals: getDecimals(formatting, labelProperty as QuantityProperty),
     });
     const unitText = unit ? translateUnit(unit) : "";
     feature.properties!.label = `${localizedNumber} ${unitText}`;

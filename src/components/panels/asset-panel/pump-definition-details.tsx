@@ -10,7 +10,8 @@ import {
   getPumpCurveErrors,
   CurveErrorPoint,
 } from "src/hydraulic-model/curves";
-import { Quantities, UnitsSpec } from "src/model-metadata/quantities-spec";
+import { UnitsSpec, FormattingSpec } from "src/model-metadata/quantities-spec";
+import { getDecimals } from "src/model-metadata";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { Pump, PumpDefintionType } from "src/hydraulic-model/asset-types/pump";
 import {
@@ -50,7 +51,7 @@ interface MaybePumpCurvePoint {
 export const PumpDefinitionDetails = ({
   pump,
   units,
-  quantities,
+  formatting,
   curves,
   readonly = false,
   onChange,
@@ -59,7 +60,7 @@ export const PumpDefinitionDetails = ({
 }: {
   pump: Pump;
   units: UnitsSpec;
-  quantities: Quantities;
+  formatting: FormattingSpec;
   curves: Curves;
   readonly?: boolean;
   onChange: (changes: PropertyChange[]) => void;
@@ -88,7 +89,7 @@ export const PumpDefinitionDetails = ({
       curve={curve}
       curves={curves}
       units={units}
-      quantities={quantities}
+      formatting={formatting}
       readonly={readonly}
       onChange={onChange}
       getComparison={getComparison}
@@ -102,7 +103,7 @@ const PumpDefinitionDetailsInner = ({
   curve,
   curves,
   units,
-  quantities,
+  formatting,
   readonly = false,
   onChange,
   getComparison,
@@ -112,7 +113,7 @@ const PumpDefinitionDetailsInner = ({
   curve: CurvePoint[];
   curves: Curves;
   units: UnitsSpec;
-  quantities: Quantities;
+  formatting: FormattingSpec;
   readonly?: boolean;
   onChange: (changes: PropertyChange[]) => void;
   getComparison?: (name: string, value: unknown) => PropertyComparison;
@@ -234,7 +235,7 @@ const PumpDefinitionDetailsInner = ({
           <PowerDefinition
             power={pump.power}
             units={units}
-            quantities={quantities}
+            formatting={formatting}
             readOnly={readonly}
             onChange={onChange}
           />
@@ -253,7 +254,7 @@ const PumpDefinitionDetailsInner = ({
               curve={curve}
               curveType={localDefinitionType}
               units={units}
-              quantities={quantities}
+              formatting={formatting}
               onCurveChange={readonly ? undefined : handleCurvePointsChange}
             />
           )}
@@ -268,13 +269,13 @@ export const PumpCurveTable = ({
   curve,
   curveType,
   units,
-  quantities,
+  formatting,
   onCurveChange,
 }: {
   curve?: CurvePoint[];
   curveType: CurvePointsType;
   units: UnitsSpec;
-  quantities: Quantities;
+  formatting: FormattingSpec;
   onCurveChange?: OnCurveChange;
 }) => {
   const translate = useTranslate();
@@ -283,8 +284,8 @@ export const PumpCurveTable = ({
     () => initialPointsFromCurve(curve, curveType),
   );
 
-  const flowDecimals = quantities.getDecimals("flow") ?? 2;
-  const headDecimals = quantities.getDecimals("head") ?? 2;
+  const flowDecimals = getDecimals(formatting, "flow") ?? 2;
+  const headDecimals = getDecimals(formatting, "head") ?? 2;
 
   const displayPoints = calculateCurvePoints(editingPoints, curveType);
 
@@ -415,13 +416,13 @@ export const PumpCurveTable = ({
 const PowerDefinition = ({
   power,
   units,
-  quantities,
+  formatting,
   readOnly,
   onChange,
 }: {
   power: number;
   units: UnitsSpec;
-  quantities: Quantities;
+  formatting: FormattingSpec;
   onChange: (changes: PropertyChange[]) => void;
   readOnly: boolean;
 }) => {
@@ -437,7 +438,7 @@ const PowerDefinition = ({
       name="power"
       value={power}
       unit={units.power}
-      decimals={quantities.getDecimals("power")}
+      decimals={getDecimals(formatting, "power")}
       readOnly={readOnly}
       onChange={handlePowerChange}
     />

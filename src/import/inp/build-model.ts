@@ -87,7 +87,7 @@ export const buildModel = (
   factories: ModelFactories;
   modelMetadata: Pick<
     ModelMetadata,
-    "quantities" | "units" | "defaults" | "headlossFormula"
+    "quantities" | "units" | "defaults" | "headlossFormula" | "formatting"
   >;
 } => {
   const baseSpec = presets[inpData.options.units];
@@ -198,6 +198,7 @@ export const buildModel = (
       units: spec.units,
       defaults: spec.defaults,
       headlossFormula: inpData.options.headlossFormula,
+      formatting: { decimals: spec.decimals, defaultDecimals: 3 },
     },
   };
 };

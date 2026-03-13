@@ -140,6 +140,7 @@ export const CreateNew = () => {
         units: spec.units,
         defaults: spec.defaults,
         headlossFormula,
+        formatting: { decimals: spec.decimals, defaultDecimals: 3 },
         projectionMapper: buildNewProjectProjectionMapper(projection),
       };
       const hydraulicModel = initializeHydraulicModel({

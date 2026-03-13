@@ -55,7 +55,15 @@ export type DefaultsSpec = {
   tank: Partial<Record<TankQuantity, number>>;
 };
 
-const defaultDecimals = 3;
+export type FormattingSpec = {
+  decimals: DecimalsSpec;
+  defaultDecimals: number;
+};
+
+export const getDecimals = (
+  formatting: FormattingSpec,
+  name: keyof DecimalsSpec,
+): number => formatting.decimals[name] ?? formatting.defaultDecimals;
 
 export type AssetQuantitiesSpec = {
   id: string;
@@ -376,13 +384,6 @@ export class Quantities {
 
   get units(): UnitsSpec {
     return this.spec.units;
-  }
-
-  getDecimals(name: keyof DecimalsSpec): number | undefined {
-    const decimals = this.spec.decimals[name];
-    if (decimals === undefined) return defaultDecimals;
-
-    return decimals;
   }
 
   getMinorLossUnit(headlossFormula: HeadlossFormula): Unit {

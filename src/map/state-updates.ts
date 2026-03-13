@@ -36,7 +36,7 @@ import { captureError } from "src/infra/error-tracking";
 import { withDebugInstrumentation } from "src/infra/with-instrumentation";
 import { USelection } from "src/selection";
 import { SymbologySpec } from "src/state/map-symbology";
-import { Quantities } from "src/model-metadata/quantities-spec";
+import { FormattingSpec, Quantities } from "src/model-metadata/quantities-spec";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import {
@@ -118,7 +118,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const assets = useAtomValue(assetsAtom);
   const hydraulicModel = useAtomValue(stagingModelAtom);
   const {
-    modelMetadata: { quantities },
+    modelMetadata: { quantities, formatting },
   } = useAtomValue(dataAtom);
   const isGridOn = useAtomValue(showGridAtom);
   const isGridPreview = useAtomValue(gridPreviewAtom);
@@ -198,6 +198,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
             assets,
             mapState.symbology,
             quantities,
+            formatting,
             translateUnit,
             resultsReader,
           );
@@ -226,6 +227,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
             assets,
             mapState.symbology,
             quantities,
+            formatting,
             translateUnit,
             resultsReader,
           );
@@ -415,6 +417,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     momentLog,
     setMapSyncMoment,
     quantities,
+    formatting,
     setMapLoading,
     translate,
     translateUnit,
@@ -522,6 +525,7 @@ const rebuildSources = withDebugInstrumentation(
     assets: AssetsMap,
     symbology: SymbologySpec,
     quantities: Quantities,
+    formatting: FormattingSpec,
     translateUnit: (unit: Unit) => string,
     simulationResults?: ResultsReader | null,
   ): Promise<void> => {
@@ -529,6 +533,7 @@ const rebuildSources = withDebugInstrumentation(
       assets,
       symbology,
       quantities,
+      formatting,
       translateUnit,
       simulationResults,
     );
@@ -547,6 +552,7 @@ const updateDeltaSource = withDebugInstrumentation(
     editedAssetIds: Set<AssetId>,
     symbology: SymbologySpec,
     quantities: Quantities,
+    formatting: FormattingSpec,
     translateUnit: (unit: Unit) => string,
     simulationResults?: ResultsReader | null,
   ): Promise<void> => {
@@ -555,6 +561,7 @@ const updateDeltaSource = withDebugInstrumentation(
       editedAssets,
       symbology,
       quantities,
+      formatting,
       translateUnit,
       simulationResults,
     );
@@ -570,6 +577,7 @@ const syncSourcesWithEdits = async (
   assets: AssetsMap,
   symbology: SymbologySpec,
   quantities: Quantities,
+  formatting: FormattingSpec,
   translateUnit: (unit: Unit) => string,
   simulationResults?: ResultsReader | null,
 ): Promise<{ editedAssetIds: Set<AssetId> }> => {
@@ -583,6 +591,7 @@ const syncSourcesWithEdits = async (
     editedSinceConsolidation,
     symbology,
     quantities,
+    formatting,
     translateUnit,
     simulationResults,
   );

@@ -13,7 +13,7 @@ export default function FeatureEditor() {
   const selectedFeatures = useAtomValue(selectedFeaturesAtom);
   const selection = useAtomValue(selectionAtom);
   const {
-    modelMetadata: { quantities, units },
+    modelMetadata: { quantities, units, formatting },
   } = useAtomValue(dataAtom);
   const isSnapshotLocked = useIsSnapshotLocked();
 
@@ -26,11 +26,13 @@ export default function FeatureEditor() {
       <MultiAssetPanel
         selectedFeatures={selectedFeatures}
         quantitiesMetadata={quantities}
+        formatting={formatting}
         readonly={isSnapshotLocked}
       />
     ) : selectedFeatures.length === 1 ? (
       <AssetPanel
         quantitiesMetadata={quantities}
+        formatting={formatting}
         units={units}
         asset={selectedFeatures[0] as Asset}
         readonly={isSnapshotLocked}
