@@ -609,7 +609,7 @@ const CollapsibleSectionWithNesting = ({
 
               <span>{title}</span>
               {showSeparator && (
-                <div className="flex-1 border-b border-gray-200 mx-3 mb-1" />
+                <div className="flex-1 border-b border-gray-200 ml-2" />
               )}
               {!showSeparator && <div className="flex-1" />}
               {action && <div className="h-8 w-8 -my-1">{action}</div>}

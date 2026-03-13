@@ -35,7 +35,7 @@ export function SelectOnlyButton({
     <Tooltip.Root>
       <Tooltip.Trigger onClick={handleClick} asChild>
         <Button variant="quiet" className="h-8 w-8 justify-center" size="xxs">
-          <PointerClickIcon size="lg" />
+          <PointerClickIcon />
         </Button>
       </Tooltip.Trigger>
       <TContent side="bottom">
