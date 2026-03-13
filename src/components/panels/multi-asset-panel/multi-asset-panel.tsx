@@ -3,7 +3,10 @@ import { useTranslate } from "src/hooks/use-translate";
 import { pluralize } from "src/lib/utils";
 import { IWrappedFeature } from "src/types";
 import { Quantities } from "src/model-metadata/quantities-spec";
-import { CollapsibleSectionLegacy, SectionList } from "src/components/form/fields";
+import {
+  CollapsibleSectionLegacy,
+  SectionList,
+} from "src/components/form/fields";
 import { MultiAssetActions } from "./actions";
 import { Asset, AssetId } from "src/hydraulic-model";
 import { Tank } from "src/hydraulic-model/asset-types/tank";
