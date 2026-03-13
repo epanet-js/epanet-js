@@ -78,7 +78,7 @@ import {
 } from "./ui-components";
 import {
   BlockComparisonFieldLegacy,
-  CollapsibleSectionLegacy,
+  CollapsibleSection,
   SectionLegacy,
 } from "src/components/form/fields";
 import { localizeDecimal } from "src/infra/i18n/numbers";
@@ -454,7 +454,7 @@ const JunctionEditor = ({
       readOnly={readonly}
       key={junction.id}
     >
-      <SectionHeader
+      <Section
         title={translate("activeTopology")}
         section="activeTopology"
         hasChanged={activeTopologyComparison.hasChanged}
@@ -466,8 +466,8 @@ const JunctionEditor = ({
           comparison={activeTopologyComparison}
           readOnly={readonly}
         />
-      </SectionHeader>
-      <SectionHeader
+      </Section>
+      <Section
         title={translate("modelAttributes")}
         section="modelAttributes"
         hasChanged={hasModelAttributesChanges}
@@ -494,8 +494,8 @@ const JunctionEditor = ({
           positiveOnly={true}
           readOnly={readonly}
         />
-      </SectionHeader>
-      <SectionHeader
+      </Section>
+      <Section
         title={translate("demands")}
         section="demands"
         hasChanged={hasDemandChanges}
@@ -539,8 +539,8 @@ const JunctionEditor = ({
             />
           </>
         )}
-      </SectionHeader>
-      <SectionHeader
+      </Section>
+      <Section
         title={translate("simulationResults")}
         section="simulationResults"
       >
@@ -565,7 +565,7 @@ const JunctionEditor = ({
           decimals={quantitiesMetadata.getDecimals("actualDemand")}
           readOnly={true}
         />
-      </SectionHeader>
+      </Section>
     </AssetEditorContent>
   );
 };
@@ -686,11 +686,11 @@ const PipeEditor = ({
       readOnly={readonly}
       key={pipe.id}
     >
-      <SectionHeader title={translate("connections")} section="connections">
+      <Section title={translate("connections")} section="connections">
         <TextRow name="startNode" value={startNode ? startNode.label : ""} />
         <TextRow name="endNode" value={endNode ? endNode.label : ""} />
-      </SectionHeader>
-      <SectionHeader
+      </Section>
+      <Section
         title={translate("activeTopology")}
         section="activeTopology"
         hasChanged={activeTopologyComparison.hasChanged}
@@ -703,8 +703,8 @@ const PipeEditor = ({
           onChange={onActiveTopologyStatusChange}
           readOnly={readonly}
         />
-      </SectionHeader>
-      <SectionHeader
+      </Section>
+      <Section
         title={translate("modelAttributes")}
         section="modelAttributes"
         hasChanged={hasModelAttributesChanges}
@@ -759,10 +759,10 @@ const PipeEditor = ({
           onChange={onPropertyChange}
           readOnly={readonly}
         />
-      </SectionHeader>
+      </Section>
       {(customerCount > 0 ||
         getCustomerCountComparison(customerCount).hasChanged) && (
-        <SectionHeader
+        <Section
           title={translate("demands")}
           section="demands"
           hasChanged={hasDemandChanges}
@@ -792,9 +792,9 @@ const PipeEditor = ({
             patterns={hydraulicModel.patterns}
             comparison={getCustomerCountComparison(customerCount)}
           />
-        </SectionHeader>
+        </Section>
       )}
-      <SectionHeader
+      <Section
         title={translate("simulationResults")}
         section="simulationResults"
       >
@@ -827,7 +827,7 @@ const PipeEditor = ({
           readOnly={true}
         />
         <TextRow name="actualStatus" value={simulationStatusText} />
-      </SectionHeader>
+      </Section>
     </AssetEditorContent>
   );
 };
@@ -883,7 +883,7 @@ const ReservoirEditor = ({
       readOnly={readonly}
       key={reservoir.id}
     >
-      <SectionHeader
+      <Section
         title={translate("activeTopology")}
         section="activeTopology"
         hasChanged={activeTopologyComparison.hasChanged}
@@ -895,8 +895,8 @@ const ReservoirEditor = ({
           comparison={activeTopologyComparison}
           readOnly={readonly}
         />
-      </SectionHeader>
-      <SectionHeader
+      </Section>
+      <Section
         title={translate("modelAttributes")}
         section="modelAttributes"
         hasChanged={hasModelAttributesChanges}
@@ -918,8 +918,8 @@ const ReservoirEditor = ({
           units={units}
           readOnly={readonly}
         />
-      </SectionHeader>
-      <SectionHeader
+      </Section>
+      <Section
         title={translate("simulationResults")}
         section="simulationResults"
       >
@@ -944,7 +944,7 @@ const ReservoirEditor = ({
           decimals={quantitiesMetadata.getDecimals("netFlow")}
           readOnly={true}
         />
-      </SectionHeader>
+      </Section>
     </AssetEditorContent>
   );
 };
@@ -1007,7 +1007,7 @@ const TankEditor = ({
       readOnly={readonly}
       key={tank.id}
     >
-      <SectionHeader
+      <Section
         title={translate("activeTopology")}
         section="activeTopology"
         hasChanged={activeTopologyComparison.hasChanged}
@@ -1019,8 +1019,8 @@ const TankEditor = ({
           comparison={activeTopologyComparison}
           readOnly={readonly}
         />
-      </SectionHeader>
-      <SectionHeader
+      </Section>
+      <Section
         title={translate("modelAttributes")}
         section="modelAttributes"
         hasChanged={hasModelAttributesChanges}
@@ -1061,8 +1061,8 @@ const TankEditor = ({
           onChange={onPropertyChange}
           readOnly={readonly}
         />
-      </SectionHeader>
-      <SectionHeader
+      </Section>
+      <Section
         title={translate("simulationResults")}
         section="simulationResults"
       >
@@ -1101,7 +1101,7 @@ const TankEditor = ({
           decimals={quantitiesMetadata.getDecimals("netFlow")}
           readOnly={true}
         />
-      </SectionHeader>
+      </Section>
     </AssetEditorContent>
   );
 };
@@ -1699,11 +1699,11 @@ const ValveEditor = ({
       readOnly={readonly}
       key={valve.id}
     >
-      <SectionHeader title={translate("connections")} section="connections">
+      <Section title={translate("connections")} section="connections">
         <TextRow name="startNode" value={startNode ? startNode.label : ""} />
         <TextRow name="endNode" value={endNode ? endNode.label : ""} />
-      </SectionHeader>
-      <SectionHeader
+      </Section>
+      <Section
         title={translate("activeTopology")}
         section="activeTopology"
         hasChanged={activeTopologyComparison.hasChanged}
@@ -1716,8 +1716,8 @@ const ValveEditor = ({
           onChange={onActiveTopologyStatusChange}
           readOnly={readonly}
         />
-      </SectionHeader>
-      <SectionHeader
+      </Section>
+      <Section
         title={translate("modelAttributes")}
         section="modelAttributes"
         hasChanged={hasModelAttributesChanges}
@@ -1786,8 +1786,8 @@ const ValveEditor = ({
           onChange={onPropertyChange}
           readOnly={readonly}
         />
-      </SectionHeader>
-      <SectionHeader
+      </Section>
+      <Section
         title={translate("simulationResults")}
         section="simulationResults"
       >
@@ -1813,7 +1813,7 @@ const ValveEditor = ({
           readOnly={true}
         />
         <TextRow name="status" value={statusText} />
-      </SectionHeader>
+      </Section>
     </AssetEditorContent>
   );
 };
@@ -1918,11 +1918,11 @@ const PumpEditor = ({
       readOnly={readonly}
       key={pump.id}
     >
-      <SectionHeader title={translate("connections")} section="connections">
+      <Section title={translate("connections")} section="connections">
         <TextRow name="startNode" value={startNode ? startNode.label : ""} />
         <TextRow name="endNode" value={endNode ? endNode.label : ""} />
-      </SectionHeader>
-      <SectionHeader
+      </Section>
+      <Section
         title={translate("activeTopology")}
         section="activeTopology"
         hasChanged={activeTopologyComparison.hasChanged}
@@ -1935,8 +1935,8 @@ const PumpEditor = ({
           onChange={onActiveTopologyStatusChange}
           readOnly={readonly}
         />
-      </SectionHeader>
-      <SectionHeader
+      </Section>
+      <Section
         title={translate("modelAttributes")}
         section="modelAttributes"
         hasChanged={hasModelAttributesChanges}
@@ -1977,9 +1977,9 @@ const PumpEditor = ({
           onPropertyChange={onPropertyChange}
           readOnly={readonly}
         />
-      </SectionHeader>
+      </Section>
       {isEnergyEnabled && (
-        <SectionHeader
+        <Section
           title={translate("energy")}
           section="energy"
           hasChanged={hasEnergyChanges}
@@ -2013,9 +2013,9 @@ const PumpEditor = ({
             onPropertyChange={onPropertyChange}
             readOnly={readonly}
           />
-        </SectionHeader>
+        </Section>
       )}
-      <SectionHeader
+      <Section
         title={translate("simulationResults")}
         section="simulationResults"
       >
@@ -2034,12 +2034,9 @@ const PumpEditor = ({
           readOnly={true}
         />
         <TextRow name="status" value={statusText} />
-      </SectionHeader>
+      </Section>
       {isEnergyEnabled && (
-        <SectionHeader
-          title={translate("energyResults")}
-          section="energyResults"
-        >
+        <Section title={translate("energyResults")} section="energyResults">
           <QuantityRow
             name="utilization"
             value={pumpEnergy?.utilization ?? null}
@@ -2089,7 +2086,7 @@ const PumpEditor = ({
             decimals={2}
             readOnly={true}
           />
-        </SectionHeader>
+        </Section>
       )}
     </AssetEditorContent>
   );
@@ -2126,7 +2123,7 @@ export const valveStatusLabel = (
   return "valve." + sim.status;
 };
 
-const SectionHeader = ({
+const Section = ({
   title,
   hasChanged,
   section,
@@ -2137,12 +2134,11 @@ const SectionHeader = ({
   section: keyof AssetPanelSectionExpanded;
   children: React.ReactNode;
 }) => {
-  const isEnergyEnabled = useFeatureFlag("FLAG_UI_COLLAPSIBLE");
+  const useAutoIndentation = useFeatureFlag("FLAG_UI_COLLAPSIBLE");
   const [sections, setSections] = useAtom(assetPanelSectionsExpandedAtom);
-  if (isEnergyEnabled) {
+  if (useAutoIndentation) {
     return (
-      <CollapsibleSectionLegacy
-        variant="subtle"
+      <CollapsibleSection
         title={title}
         hasChanged={hasChanged}
         open={sections[section]}
@@ -2151,7 +2147,7 @@ const SectionHeader = ({
         }
       >
         {children}
-      </CollapsibleSectionLegacy>
+      </CollapsibleSection>
     );
   }
   return <SectionLegacy title={title}>{children}</SectionLegacy>;

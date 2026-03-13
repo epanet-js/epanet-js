@@ -21,9 +21,10 @@ import { ValveKind, ValveStatus } from "src/hydraulic-model/asset-types/valve";
 import { PanelActions } from "./actions";
 import {
   InlineFieldLegacy,
-  NestedSectionContext,
+  NestedBlockContext,
   SectionList,
 } from "src/components/form/fields";
+import { useContext } from "react";
 import clsx from "clsx";
 import * as P from "@radix-ui/react-popover";
 import { StyledPopoverArrow, StyledPopoverContent } from "../../elements";
@@ -294,9 +295,10 @@ export const NestedSectionLegacy = ({
   children: React.ReactNode;
   className?: string;
 }) => {
+  const parentDepth = useContext(NestedBlockContext);
   const useExtraMargin = useFeatureFlag("FLAG_UI_COLLAPSIBLE");
   return (
-    <NestedSectionContext.Provider value={true}>
+    <NestedBlockContext.Provider value={parentDepth + 1}>
       <div
         className={clsx(
           "bg-gray-50 px-2 py-1 mt-1 -mr-2 border-l-2 border-gray-400 rounded-sm flex flex-col gap-1",
@@ -306,7 +308,46 @@ export const NestedSectionLegacy = ({
       >
         {children}
       </div>
-    </NestedSectionContext.Provider>
+    </NestedBlockContext.Provider>
+  );
+};
+
+const NestedSectionWithNesting = ({
+  children,
+  indentation = 2,
+  className,
+}: {
+  children: React.ReactNode;
+  indentation?: number;
+  className?: string;
+}) => {
+  const parentDepth = useContext(NestedBlockContext);
+  return (
+    <NestedBlockContext.Provider value={parentDepth + 1}>
+      <SectionList
+        indentation={indentation}
+        overflow={false}
+        gap={1}
+        className={clsx(
+          "bg-gray-50 mt-1 -mr-2 border-l-2 border-gray-400 rounded-sm",
+          className,
+        )}
+      >
+        {children}
+      </SectionList>
+    </NestedBlockContext.Provider>
+  );
+};
+
+export const NestedSection = (props: {
+  children: React.ReactNode;
+  className?: string;
+}) => {
+  const useNesting = useFeatureFlag("FLAG_UI_COLLAPSIBLE");
+  return useNesting ? (
+    <NestedSectionWithNesting {...props} />
+  ) : (
+    <NestedSectionLegacy {...props} />
   );
 };
 
