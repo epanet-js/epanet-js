@@ -8,6 +8,7 @@ import { dataAtom } from "src/state/data";
 import { autoElevationsAtom } from "src/state/drawing";
 import { stagingModelAtom } from "src/state/hydraulic-model";
 import { SimulationState, simulationAtom } from "src/state/simulation";
+import { chooseUnitSystem } from "src/simulation/build-inp";
 import { simulationSettingsAtom } from "src/state/simulation-settings";
 import * as Popover from "@radix-ui/react-popover";
 import { Button, StyledPopoverArrow, StyledPopoverContent } from "../elements";
@@ -41,7 +42,7 @@ export const Footer = () => {
         {!isLgOrLarger && (
           <div className="px-2">
             <CollapsedPopover
-              unitsSpecName={modelMetadata.quantities.specName}
+              unitsSpecName={chooseUnitSystem(modelMetadata.units)}
               demandMultiplier={simulationSettings.globalDemandMultiplier}
               headlossFormula={modelMetadata.headlossFormula}
               isEpanet23On={isEpanet23On}
@@ -69,7 +70,7 @@ export const Footer = () => {
             ) : (
               <>
                 <span className="px-4 py-2">
-                  {translate("units")}: {modelMetadata.quantities.specName}
+                  {translate("units")}: {chooseUnitSystem(modelMetadata.units)}
                 </span>
                 <div className="border-r-2 border-gray-150 h-10"></div>
               </>

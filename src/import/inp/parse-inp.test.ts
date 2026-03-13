@@ -1,7 +1,7 @@
 import { Junction, Pipe, Reservoir } from "src/hydraulic-model";
 import { parseInp } from "./parse-inp";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
-import { buildInp } from "src/simulation/build-inp";
+import { buildInp, chooseUnitSystem } from "src/simulation/build-inp";
 import { presets } from "src/model-metadata/quantities-spec";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { getByLabel } from "src/__helpers__/asset-queries";
@@ -389,7 +389,7 @@ describe("Parse inp with", () => {
     const { modelMetadata, issues } = parseInp(inp);
 
     expect(issues).toBeNull();
-    expect(modelMetadata.quantities.specName).toEqual("MGD");
+    expect(chooseUnitSystem(modelMetadata.units)).toEqual("MGD");
   });
 
   it("treats 'None mg/L' quality setting as equivalent to 'None'", () => {

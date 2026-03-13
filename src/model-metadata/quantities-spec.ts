@@ -66,9 +66,6 @@ export const getDecimals = (
 ): number => formatting.decimals[name] ?? formatting.defaultDecimals;
 
 export type AssetQuantitiesSpec = {
-  id: string;
-  name: string;
-  descriptionKey: string;
   units: UnitsSpec;
   decimals: DecimalsSpec;
   defaults: DefaultsSpec;
@@ -94,9 +91,6 @@ const allLevelUnits = (unit: Unit) => ({
 });
 
 const metricSpec: AssetQuantitiesSpec = {
-  id: "metric-spec",
-  name: "",
-  descriptionKey: "",
   units: {
     diameter: "mm",
     length: "m",
@@ -154,9 +148,6 @@ const metricSpec: AssetQuantitiesSpec = {
 };
 
 const usCustomarySpec: AssetQuantitiesSpec = {
-  id: "us-customary",
-  name: "",
-  descriptionKey: "",
   units: {
     diameter: "in",
     length: "ft",
@@ -217,9 +208,6 @@ const usCustomarySpec: AssetQuantitiesSpec = {
 
 const GPMSpec: AssetQuantitiesSpec = {
   ...usCustomarySpec,
-  id: "gpm",
-  name: "GPM",
-  descriptionKey: "gpmDescription",
   units: {
     ...usCustomarySpec.units,
     customerDemand: "gal/min",
@@ -228,9 +216,6 @@ const GPMSpec: AssetQuantitiesSpec = {
 };
 const CFSSpec: AssetQuantitiesSpec = {
   ...usCustomarySpec,
-  id: "cfs",
-  name: "CFS",
-  descriptionKey: "cfsDescription",
   units: {
     ...usCustomarySpec.units,
     customerDemand: "ft^3/s",
@@ -239,9 +224,6 @@ const CFSSpec: AssetQuantitiesSpec = {
 };
 const MGDSpec: AssetQuantitiesSpec = {
   ...usCustomarySpec,
-  id: "mgd",
-  name: "MGD",
-  descriptionKey: "mgdDescription",
   units: {
     ...usCustomarySpec.units,
     customerDemand: "Mgal/d",
@@ -251,9 +233,6 @@ const MGDSpec: AssetQuantitiesSpec = {
 
 const IMGDSpec: AssetQuantitiesSpec = {
   ...usCustomarySpec,
-  id: "imgd",
-  name: "IMGD",
-  descriptionKey: "imgdDescription",
   units: {
     ...usCustomarySpec.units,
     customerDemand: "IMgal/d",
@@ -263,9 +242,6 @@ const IMGDSpec: AssetQuantitiesSpec = {
 
 const AFDSpec: AssetQuantitiesSpec = {
   ...usCustomarySpec,
-  id: "afd",
-  name: "AFD",
-  descriptionKey: "afdDescription",
   units: {
     ...usCustomarySpec.units,
     customerDemand: "acft/d",
@@ -275,9 +251,6 @@ const AFDSpec: AssetQuantitiesSpec = {
 
 const LPSSpec: AssetQuantitiesSpec = {
   ...metricSpec,
-  id: "lps",
-  name: "LPS",
-  descriptionKey: "lpsDescription",
   units: {
     ...metricSpec.units,
     customerDemand: "l/s",
@@ -286,9 +259,6 @@ const LPSSpec: AssetQuantitiesSpec = {
 };
 const LPMSpec: AssetQuantitiesSpec = {
   ...metricSpec,
-  id: "lpm",
-  name: "LPM",
-  descriptionKey: "lpmDescription",
   units: {
     ...metricSpec.units,
     customerDemand: "l/min",
@@ -297,9 +267,6 @@ const LPMSpec: AssetQuantitiesSpec = {
 };
 const MLDSpec: AssetQuantitiesSpec = {
   ...metricSpec,
-  id: "mld",
-  name: "MLD",
-  descriptionKey: "mldDescription",
   units: {
     ...metricSpec.units,
     customerDemand: "Ml/d",
@@ -308,9 +275,6 @@ const MLDSpec: AssetQuantitiesSpec = {
 };
 const CMHSpec: AssetQuantitiesSpec = {
   ...metricSpec,
-  id: "cmh",
-  name: "CMH",
-  descriptionKey: "cmhDescription",
   units: {
     ...metricSpec.units,
     customerDemand: "m^3/h",
@@ -319,9 +283,6 @@ const CMHSpec: AssetQuantitiesSpec = {
 };
 const CMDSpec: AssetQuantitiesSpec = {
   ...metricSpec,
-  id: "cmd",
-  name: "CMD",
-  descriptionKey: "cmdDescription",
   units: {
     ...metricSpec.units,
     customerDemand: "m^3/d",
@@ -375,10 +336,6 @@ export class Quantities {
 
   constructor(spec: AssetQuantitiesSpec) {
     this.spec = spec;
-  }
-
-  get specName() {
-    return this.spec.name;
   }
 
   get ranges() {

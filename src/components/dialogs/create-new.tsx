@@ -482,6 +482,19 @@ const isValidMapboxFeature = (feature: unknown): feature is MapboxFeature => {
   );
 };
 
+const descriptionKeys: Record<keyof Presets, string> = {
+  LPS: "lpsDescription",
+  LPM: "lpmDescription",
+  MLD: "mldDescription",
+  CMH: "cmhDescription",
+  CMD: "cmdDescription",
+  GPM: "gpmDescription",
+  CFS: "cfsDescription",
+  MGD: "mgdDescription",
+  IMGD: "imgdDescription",
+  AFD: "afdDescription",
+};
+
 const UnitsSystemSelector = ({
   selected,
   onChange,
@@ -490,8 +503,8 @@ const UnitsSystemSelector = ({
   onChange: (specId: keyof Presets) => void;
 }) => {
   const translate = useTranslate();
-  const options = Object.entries(presets).map(([presetId, spec]) => ({
-    label: `${spec.name}: ${translate(spec.descriptionKey)}`,
+  const options = Object.entries(presets).map(([presetId]) => ({
+    label: `${presetId}: ${translate(descriptionKeys[presetId as keyof Presets])}`,
     value: presetId as keyof Presets,
   }));
 

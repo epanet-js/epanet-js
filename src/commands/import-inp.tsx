@@ -15,7 +15,7 @@ import { ImportInpCompleted, useUserTracking } from "src/infra/user-tracking";
 import { InpStats } from "src/import/inp/inp-data";
 import { ModelMetadata } from "src/model-metadata";
 import { HydraulicModel } from "src/hydraulic-model";
-import { EpanetUnitSystem } from "src/simulation/build-inp";
+import { chooseUnitSystem } from "src/simulation/build-inp";
 import { notify } from "src/components/notifications";
 import { WarningIcon } from "src/icons";
 import { OPFSStorage } from "src/infra/storage";
@@ -264,7 +264,7 @@ const buildCompleteEvent = (
     name: "importInp.completed",
     counts: Object.fromEntries(stats.counts),
     headlossFormula: modelMetadata.headlossFormula,
-    units: modelMetadata.quantities.specName as EpanetUnitSystem,
+    units: chooseUnitSystem(modelMetadata.units),
     issues: processedIssues,
   } as ImportInpCompleted;
 };
