@@ -18,6 +18,7 @@ const quantities = new Quantities(presets.LPS);
 const modelMetadata: ModelMetadata = {
   quantities,
   units: presets.LPS.units,
+  defaults: presets.LPS.defaults,
   projectionMapper: createProjectionMapper({ type: "wgs84" }),
 };
 export const nullData: Data = {

@@ -85,7 +85,7 @@ export const buildModel = (
 ): {
   hydraulicModel: HydraulicModel;
   factories: ModelFactories;
-  modelMetadata: Pick<ModelMetadata, "quantities" | "units">;
+  modelMetadata: Pick<ModelMetadata, "quantities" | "units" | "defaults">;
 } => {
   const baseSpec = presets[inpData.options.units];
   const spec = inpData.options.pressureUnit
@@ -191,7 +191,7 @@ export const buildModel = (
   return {
     hydraulicModel,
     factories,
-    modelMetadata: { quantities, units: spec.units },
+    modelMetadata: { quantities, units: spec.units, defaults: spec.defaults },
   };
 };
 

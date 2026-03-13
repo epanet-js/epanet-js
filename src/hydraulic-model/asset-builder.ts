@@ -88,6 +88,7 @@ export type TankBuildData = {
 
 import { IdGenerator } from "src/lib/id-generator";
 import { LabelGenerator } from "./label-manager";
+import { DefaultsSpec } from "src/model-metadata/quantities-spec";
 import {
   PumpDefintionType,
   PumpQuantity,
@@ -102,22 +103,13 @@ import {
 import { CurveId, CurvePoint, defaultCurvePoints } from "./curves";
 import { PatternId } from "./patterns";
 
-export type DefaultQuantities = {
-  pipe: Partial<Record<PipeQuantity, number>>;
-  junction: Partial<Record<JunctionQuantity, number>>;
-  reservoir: Partial<Record<ReservoirQuantity | "relativeHead", number>>;
-  tank: Partial<Record<TankQuantity, number>>;
-  pump: Partial<Record<PumpQuantity, number>>;
-  valve: Partial<Record<ValveQuantity, number>>;
-};
-
 export class AssetBuilder {
-  private defaults: DefaultQuantities;
+  private defaults: DefaultsSpec;
   private _idGenerator: IdGenerator;
   readonly labelGenerator: LabelGenerator;
 
   constructor(
-    defaults: DefaultQuantities,
+    defaults: DefaultsSpec,
     idGenerator: IdGenerator,
     labelGenerator: LabelGenerator,
   ) {

@@ -138,6 +138,7 @@ export const CreateNew = () => {
       const modelMetadata: ModelMetadata = {
         quantities,
         units: spec.units,
+        defaults: spec.defaults,
         projectionMapper: buildNewProjectProjectionMapper(projection),
       };
       const hydraulicModel = initializeHydraulicModel({

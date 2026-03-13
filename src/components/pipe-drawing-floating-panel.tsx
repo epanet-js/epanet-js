@@ -15,7 +15,7 @@ export const PipeDrawingFloatingPanel = () => {
   const translateUnit = useTranslateUnit();
   const userTracking = useUserTracking();
   const {
-    modelMetadata: { quantities, units },
+    modelMetadata: { quantities, units, defaults },
   } = useAtomValue(dataAtom);
   const [pipeDrawingDefaults, setPipeDrawingDefaults] = useAtom(
     pipeDrawingDefaultsAtom,
@@ -28,7 +28,7 @@ export const PipeDrawingFloatingPanel = () => {
     return null;
   }
 
-  const systemDefaults = quantities.defaults.pipe;
+  const systemDefaults = defaults.pipe;
   const currentDiameter =
     pipeDrawingDefaults.diameter ?? systemDefaults.diameter ?? 0;
   const currentRoughness =

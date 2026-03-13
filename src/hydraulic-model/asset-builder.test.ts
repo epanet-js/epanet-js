@@ -1,13 +1,12 @@
-import { Quantities, presets } from "src/model-metadata/quantities-spec";
+import { presets } from "src/model-metadata/quantities-spec";
 import { AssetBuilder } from "./asset-builder";
 import { ConsecutiveIdsGenerator } from "src/lib/id-generator";
 import { LabelManager } from "./label-manager";
 
 describe("asset builder", () => {
   it("assigns an id when not provided", () => {
-    const quantities = new Quantities(presets.LPS);
     const assetBuilder = new AssetBuilder(
-      quantities.defaults,
+      presets.LPS.defaults,
       new ConsecutiveIdsGenerator(),
       new LabelManager(),
     );

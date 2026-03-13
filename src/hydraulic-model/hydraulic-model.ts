@@ -1,6 +1,7 @@
 import { Topology } from "./topology";
 import { AssetsMap } from "./assets-map";
-import { AssetBuilder, DefaultQuantities } from "./asset-builder";
+import { AssetBuilder } from "./asset-builder";
+import { DefaultsSpec } from "src/model-metadata/quantities-spec";
 import { nanoid } from "nanoid";
 import { HeadlossFormula } from "./asset-types/pipe";
 import { ConsecutiveIdsGenerator, IdGenerator } from "src/lib/id-generator";
@@ -39,7 +40,7 @@ export const initializeHydraulicModel = ({
   controls = createEmptyControls(),
   idGenerator,
 }: {
-  defaults: DefaultQuantities;
+  defaults: DefaultsSpec;
   headlossFormula?: HeadlossFormula;
   demands?: Demands;
   controls?: Controls;

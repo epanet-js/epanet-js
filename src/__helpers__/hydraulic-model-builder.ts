@@ -33,7 +33,6 @@ import { ConsecutiveIdsGenerator, IdGenerator } from "src/lib/id-generator";
 import { LabelManager } from "src/hydraulic-model/label-manager";
 import {
   AssetQuantitiesSpec,
-  Quantities,
   UnitsSpec,
   presets,
 } from "src/model-metadata/quantities-spec";
@@ -53,9 +52,8 @@ export const buildPipe = (
     ...presets.LPS,
     units: { ...presets.LPS.units, ...unitsOverride },
   };
-  const quantities = new Quantities(quantitiesSpec);
   return new AssetBuilder(
-    quantities.defaults,
+    quantitiesSpec.defaults,
     new ConsecutiveIdsGenerator(),
     new LabelManager(),
   ).buildPipe(data);
@@ -68,26 +66,23 @@ export const buildPump = (
     ...presets.LPS,
     units: { ...presets.LPS.units, ...unitsOverride },
   };
-  const quantities = new Quantities(quantitiesSpec);
   return new AssetBuilder(
-    quantities.defaults,
+    quantitiesSpec.defaults,
     new ConsecutiveIdsGenerator(),
     new LabelManager(),
   ).buildPump(data);
 };
 
 export const buildJunction = (data: JunctionBuildData = {}) => {
-  const quantities = new Quantities(presets.LPS);
   return new AssetBuilder(
-    quantities.defaults,
+    presets.LPS.defaults,
     new ConsecutiveIdsGenerator(),
     new LabelManager(),
   ).buildJunction(data);
 };
 export const buildReservoir = (data: ReservoirBuildData = {}) => {
-  const quantities = new Quantities(presets.LPS);
   return new AssetBuilder(
-    quantities.defaults,
+    presets.LPS.defaults,
     new ConsecutiveIdsGenerator(),
     new LabelManager(),
   ).buildReservoir(data);
@@ -155,9 +150,8 @@ export class HydraulicModelBuilder {
     this.labelManager = new LabelManager();
     this.idGenerator = new WritableIdGenerator();
     this.customerPointIdGenerator = new WritableIdGenerator();
-    const quantities = new Quantities(quantitiesSpec);
     this.assetBuilder = new AssetBuilder(
-      quantities.defaults,
+      quantitiesSpec.defaults,
       this.idGenerator,
       this.labelManager,
     );
