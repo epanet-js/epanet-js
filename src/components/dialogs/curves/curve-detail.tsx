@@ -9,6 +9,8 @@ import { type GridSelection } from "src/components/data-grid";
 import { CurveTable, type CurveTableRef } from "./curve-table";
 import { CurveErrorBanner } from "./curve-error-banner";
 import type { UnitsSpec } from "src/model-metadata/quantities-spec";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import clsx from "clsx";
 
 interface CurveDetailProps {
   points: CurvePoint[];
@@ -25,6 +27,7 @@ export function CurveDetail({
   curveType,
   units,
 }: CurveDetailProps) {
+  const isModalsOn = useFeatureFlag("FLAG_MODALS");
   const [selectedCells, setSelectedCells] = useState<GridSelection | null>(
     null,
   );
@@ -83,7 +86,7 @@ export function CurveDetail({
   );
 
   return (
-    <div className="flex flex-col h-full">
+    <div className={clsx("flex flex-col h-full", isModalsOn && "py-3 pr-3")}>
       <div ref={tableContainerRef} className="h-[45%] min-h-0 overflow-hidden">
         <CurveTable
           ref={tableRef}

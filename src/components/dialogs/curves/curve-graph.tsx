@@ -92,7 +92,7 @@ export const CurveGraph = forwardRef<HTMLDivElement, CurveGraphProps>(
           </div>
         )}
         <div
-          className={`flex-1 min-h-0 ${isModalsOn ? "p-2" : "p-2 pt-4 border border-gray-200 dark:border-gray-700"}`}
+          className={`flex-1 min-h-0 ${isModalsOn ? "" : "p-2 pt-4 border border-gray-200 dark:border-gray-700"}`}
         >
           <div ref={ref} className="h-full">
             <LineGraph

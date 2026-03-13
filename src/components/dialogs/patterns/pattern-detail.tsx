@@ -4,6 +4,7 @@ import { PatternMultipliers, PatternType } from "src/hydraulic-model";
 import { type GridSelection } from "src/components/data-grid";
 import { PatternTable, type PatternTableRef } from "./pattern-table";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import clsx from "clsx";
 
 interface PatternDetailProps {
   pattern: PatternMultipliers;
@@ -80,7 +81,10 @@ export function PatternDetail({
     <div className="grid grid-cols-5 h-full gap-4">
       <div
         ref={tableContainerRef}
-        className="col-span-2 h-full overflow-hidden"
+        className={clsx(
+          "col-span-2 h-full overflow-hidden",
+          isModalsOn && "pt-4 pb-3",
+        )}
       >
         <PatternTable
           ref={tableRef}
