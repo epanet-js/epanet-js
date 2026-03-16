@@ -13,7 +13,6 @@ import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { InlineField } from "src/components/form/fields";
 import type { UnitsSpec } from "src/lib/project-settings/quantities-spec";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 interface CurveGraphProps {
   points: CurvePoint[];
@@ -80,8 +79,6 @@ export const CurveGraph = forwardRef<HTMLDivElement, CurveGraphProps>(
         { x: maxFlow.x, y: maxFlow.y, itemStyle: { color: colors.gray400 } },
       );
     }
-    const isModalsOn = useFeatureFlag("FLAG_MODALS");
-
     return (
       <>
         {curveType === "pump" && (
@@ -91,9 +88,7 @@ export const CurveGraph = forwardRef<HTMLDivElement, CurveGraphProps>(
             </InlineField>
           </div>
         )}
-        <div
-          className={`flex-1 min-h-0 ${isModalsOn ? "" : "p-2 pt-4 border border-gray-200 dark:border-gray-700"}`}
-        >
+        <div className="flex-1 min-h-0">
           <div ref={ref} className="h-full">
             <LineGraph
               points={styledPoints}

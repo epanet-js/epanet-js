@@ -1,12 +1,4 @@
-import {
-  Suspense,
-  useCallback,
-  type ForwardRefExoticComponent,
-  type ReactNode,
-  type RefAttributes,
-} from "react";
-import type { IconProps } from "@radix-ui/react-icons/dist/types";
-import { useFormikContext } from "formik";
+import { Suspense, useCallback, type ReactNode } from "react";
 import clsx from "clsx";
 import {
   Button,
@@ -23,10 +15,6 @@ import { useSetAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog";
 import { CloseIcon, RefreshIcon } from "src/icons";
 
-type SlottableIcon =
-  | React.FC<React.ComponentProps<"svg">>
-  | ForwardRefExoticComponent<IconProps & RefAttributes<SVGSVGElement>>;
-
 export const useDialogState = () => {
   const setDialogState = useSetAtom(dialogAtom);
 
@@ -42,10 +30,11 @@ export const useDialogState = () => {
 };
 
 export const LoadingDialog = () => {
+  const { closeDialog } = useDialogState();
   return (
-    <DialogContainer size="xs">
+    <BaseDialog size="xs" isOpen={true} onClose={closeDialog}>
       <Loading />
-    </DialogContainer>
+    </BaseDialog>
   );
 };
 
@@ -76,17 +65,13 @@ export const DialogContainer = ({
         }
       }}
     >
-      {/** Weird as hell shit here. Without this trigger, radix will
-      return focus to the body element, which will not receive events. */}
       <Dialog.Trigger className="hidden">
         <div className="hidden"></div>
       </Dialog.Trigger>
       <Dialog.Portal>
         <StyledDialogOverlay />
         <Suspense fallback={<Loading />}>
-          {/**radix complains if no title, so at least having an empty one helps**/}
           <Dialog.Title></Dialog.Title>
-          {/**radix complains if no description, so at least having an empty one helps**/}
           <Dialog.Description></Dialog.Description>
           <StyledDialogContent
             widthClasses=""
@@ -99,7 +84,6 @@ export const DialogContainer = ({
               const shouldCaptureEscape = target.closest(
                 "[data-capture-escape-key]",
               );
-
               if (isInputFocused || shouldCaptureEscape) {
                 e.preventDefault();
                 return;
@@ -134,47 +118,6 @@ export const DialogContainer = ({
   );
 };
 
-export function DialogHeader({
-  title,
-  titleIcon: TitleIcon,
-  children,
-  variant = "default",
-  badge,
-}: {
-  title?: string;
-  titleIcon?: SlottableIcon;
-  variant?: "default" | "danger" | "success" | "warning";
-  children?: ReactNode;
-  badge?: ReactNode;
-}) {
-  return (
-    <div
-      className="flex items-center
-        gap-x-2
-        pb-4 text-base sm:text-lg
-        text-black dark:text-white"
-    >
-      {children && children}
-      {TitleIcon && (
-        <TitleIcon
-          className={`w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 ${variant === "danger" ? "text-red-500" : variant === "success" ? "text-green-500" : variant === "warning" ? "text-yellow-500" : ""}`}
-        />
-      )}
-      {title && (
-        <div className="flex items-center gap-3 flex-auto min-w-0">
-          <h1 className="text-xl font-semibold text-gray-900 break-words sm:truncate">
-            {title}
-          </h1>
-          {badge && badge}
-        </div>
-      )}
-      <div className="self-start">
-        <DialogCloseX />
-      </div>
-    </div>
-  );
-}
-
 export const DialogCloseX = () => {
   return (
     <Dialog.Close
@@ -188,149 +131,7 @@ export const DialogCloseX = () => {
   );
 };
 
-export const AckDialogAction = ({
-  label,
-  onAck,
-  variant = "md",
-}: {
-  label?: string;
-  onAck?: () => void;
-  variant?: "md" | "xs";
-}) => {
-  const translate = useTranslate();
-  return (
-    <div
-      className={clsx(
-        variant === "xs" ? "pt-2" : "pt-6",
-        "pb-1 relative",
-        `pb-1 flex flex-col sm:items-center sm:flex-row-reverse space-y-2 sm:space-y-0 sm:gap-x-3`,
-      )}
-    >
-      <Button autoFocus={true} type="button" onClick={onAck}>
-        {label ? label : translate("dialog.cancel")}
-      </Button>
-    </div>
-  );
-};
-
-export const DialogButtons = ({
-  variant = "md",
-  align = "right",
-  children,
-}: {
-  variant?: "md" | "xs";
-  align?: "left" | "right";
-  children: React.ReactNode;
-}) => {
-  return (
-    <div
-      className={clsx(
-        variant === "xs" ? "pt-2" : "pt-6",
-        "pb-1 relative",
-        align === "right"
-          ? "pb-1 flex flex-col sm:items-center sm:flex-row-reverse sm:justify-start space-y-2 sm:space-y-0 sm:gap-x-3"
-          : "pb-1 flex flex-col sm:items-center sm:flex-row space-y-2 sm:space-y-0 sm:gap-x-3",
-      )}
-    >
-      {children}
-    </div>
-  );
-};
-
-export function SimpleDialogActions({
-  action,
-  onClose,
-  fullWidthSubmit = false,
-  autoFocusSubmit = true,
-  secondary,
-  variant = "md",
-  isDisabled = false,
-}: {
-  action?: string;
-  autoFocusSubmit?: boolean;
-  onClose?: () => void;
-  fullWidthSubmit?: boolean;
-  secondary?: {
-    action: string;
-    onClick: () => void;
-  };
-  variant?: "md" | "xs";
-  isDisabled?: boolean;
-}) {
-  const translate = useTranslate();
-  const { isSubmitting } = useFormikContext();
-  return (
-    <div
-      className={clsx(
-        variant === "xs" ? "pt-2" : "pt-6",
-        "relative",
-        fullWidthSubmit
-          ? "flex items-stretch justify-stretch"
-          : `flex flex-col sm:items-center sm:flex-row-reverse space-y-2 sm:space-y-0 sm:gap-x-3`,
-      )}
-    >
-      {action ? (
-        <Button
-          type="submit"
-          disabled={isSubmitting || isDisabled}
-          variant="primary"
-          autoFocus={autoFocusSubmit}
-          size={fullWidthSubmit ? "full-width" : "sm"}
-        >
-          {action}
-        </Button>
-      ) : null}
-      {secondary ? (
-        <Button
-          type="button"
-          disabled={isSubmitting}
-          variant="default"
-          onClick={secondary.onClick}
-        >
-          {secondary.action}
-        </Button>
-      ) : null}
-      {onClose ? (
-        <Button type="button" onClick={onClose}>
-          {translate(action || secondary ? "dialog.cancel" : "dialog.close")}
-        </Button>
-      ) : null}
-      <RefreshIcon
-        className={clsx(
-          "animate-spin transition-opacity",
-          isSubmitting ? "opacity-50" : "opacity-0",
-          fullWidthSubmit && "absolute top-8 right-2.5 text-white",
-        )}
-      />
-    </div>
-  );
-}
-
-export const SimpleDialogButtons = ({
-  children,
-  fullWidthSubmit = false,
-  variant = "md",
-}: {
-  children: ReactNode;
-  fullWidthSubmit?: boolean;
-  variant?: "md" | "xs";
-}) => {
-  return (
-    <div
-      className={clsx(
-        variant === "xs" ? "pt-2" : "pt-6",
-        "pb-1 relative",
-        fullWidthSubmit
-          ? "flex items-stretch justify-stretch"
-          : `pb-1 flex flex-col sm:items-center sm:flex-row-reverse space-y-2 sm:space-y-0 sm:gap-x-3`,
-      )}
-    >
-      {children}
-    </div>
-  );
-};
-
-export function DialogHeaderNew({
+export function DialogHeader({
   title,
   children,
   badge,
@@ -406,7 +207,7 @@ export const BaseDialog = ({
           >
             <DefaultErrorBoundary>
               <div className="modal-container flex flex-col flex-nowrap flex-1 min-h-0">
-                {title && <DialogHeaderNew title={title} badge={badge} />}
+                {title && <DialogHeader title={title} badge={badge} />}
                 <div className="modal-content flex flex-col flex-1 overflow-y-auto min-h-0">
                   {children}
                 </div>
@@ -420,7 +221,7 @@ export const BaseDialog = ({
   );
 };
 
-export const AckDialogActionNew = ({
+export const AckDialogAction = ({
   label,
   onAck,
 }: {
@@ -447,7 +248,7 @@ export const DialogFooter = ({ children }: { children: ReactNode }) => {
   return children;
 };
 
-export function SimpleDialogActionsNew({
+export function SimpleDialogActions({
   action,
   onAction,
   onClose,

@@ -3,18 +3,9 @@ import { useState, useCallback } from "react";
 import clsx from "clsx";
 import { Form, Formik, useFormikContext } from "formik";
 
-import {
-  BaseDialog,
-  DialogContainer,
-  DialogHeader,
-  SimpleDialogActionsNew,
-  useDialogState,
-} from "../dialog";
+import { BaseDialog, SimpleDialogActions, useDialogState } from "../dialog";
 import { useTranslate } from "src/hooks/use-translate";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { stagingModelAtom } from "src/state/hydraulic-model";
-import { ControlsIcon } from "src/icons";
-import { SimpleDialogActions } from "src/components/dialog";
 import { useIsSnapshotLocked } from "src/hooks/use-is-snapshot-locked";
 import {
   formatSimpleControl,
@@ -83,104 +74,46 @@ export const ControlsDialog = () => {
     [assets, hydraulicModel, transact, closeDialog, userTracking],
   );
 
-  const isModalsOn = useFeatureFlag("FLAG_MODALS");
-
-  if (isModalsOn)
-    return (
-      <Formik onSubmit={handleSubmit} initialValues={initialValues}>
-        {({ submitForm, isSubmitting }) => (
-          <BaseDialog
-            title={translate("controls.title")}
-            size="md"
-            isOpen={true}
-            onClose={closeDialog}
-            footer={
-              <SimpleDialogActionsNew
-                action={isSnapshotLocked ? undefined : translate("dialog.save")}
-                onAction={submitForm}
-                isSubmitting={isSubmitting}
-                secondary={{
-                  action: translate("dialog.cancel"),
-                  onClick: closeDialog,
-                }}
-              />
-            }
-          >
-            <Form>
-              <div className="flex flex-col gap-4 p-4">
-                <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
-                <ControlsTextArea
-                  name="simpleText"
-                  placeholder={translate("controls.simpleEmpty")}
-                  hidden={activeTab !== "simple"}
-                  readOnly={isSnapshotLocked}
-                />
-                <ControlsTextArea
-                  name="rulesText"
-                  placeholder={translate("controls.rulesEmpty")}
-                  hidden={activeTab !== "ruleBased"}
-                  readOnly={isSnapshotLocked}
-                />
-              </div>
-            </Form>
-          </BaseDialog>
-        )}
-      </Formik>
-    );
-
   return (
-    <DialogContainer size="md">
-      <DialogHeader
-        title={translate("controls.title")}
-        titleIcon={ControlsIcon}
-      />
-      <Formik onSubmit={handleSubmit} initialValues={initialValues}>
-        <ControlsForm
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
+    <Formik onSubmit={handleSubmit} initialValues={initialValues}>
+      {({ submitForm, isSubmitting }) => (
+        <BaseDialog
+          title={translate("controls.title")}
+          size="md"
+          isOpen={true}
           onClose={closeDialog}
-          readOnly={isSnapshotLocked}
-        />
-      </Formik>
-    </DialogContainer>
-  );
-};
-
-const ControlsForm = ({
-  activeTab,
-  onTabChange,
-  onClose,
-  readOnly = false,
-}: {
-  activeTab: Tab;
-  onTabChange: (tab: Tab) => void;
-  onClose: () => void;
-  readOnly?: boolean;
-}) => {
-  const translate = useTranslate();
-
-  return (
-    <Form>
-      <div className="flex flex-col gap-4">
-        <TabBar activeTab={activeTab} onTabChange={onTabChange} />
-        <ControlsTextArea
-          name="simpleText"
-          placeholder={translate("controls.simpleEmpty")}
-          hidden={activeTab !== "simple"}
-          readOnly={readOnly}
-        />
-        <ControlsTextArea
-          name="rulesText"
-          placeholder={translate("controls.rulesEmpty")}
-          hidden={activeTab !== "ruleBased"}
-          readOnly={readOnly}
-        />
-      </div>
-      <SimpleDialogActions
-        onClose={onClose}
-        action={readOnly ? undefined : translate("dialog.save")}
-      />
-    </Form>
+          footer={
+            <SimpleDialogActions
+              action={isSnapshotLocked ? undefined : translate("dialog.save")}
+              onAction={submitForm}
+              isSubmitting={isSubmitting}
+              secondary={{
+                action: translate("dialog.cancel"),
+                onClick: closeDialog,
+              }}
+            />
+          }
+        >
+          <Form>
+            <div className="flex flex-col gap-4 p-4">
+              <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
+              <ControlsTextArea
+                name="simpleText"
+                placeholder={translate("controls.simpleEmpty")}
+                hidden={activeTab !== "simple"}
+                readOnly={isSnapshotLocked}
+              />
+              <ControlsTextArea
+                name="rulesText"
+                placeholder={translate("controls.rulesEmpty")}
+                hidden={activeTab !== "ruleBased"}
+                readOnly={isSnapshotLocked}
+              />
+            </div>
+          </Form>
+        </BaseDialog>
+      )}
+    </Formik>
   );
 };
 
@@ -192,18 +125,11 @@ const TabBar = ({
   onTabChange: (tab: Tab) => void;
 }) => {
   const translate = useTranslate();
-  const isModalsOn = useFeatureFlag("FLAG_MODALS");
 
   return (
     <div
       role="tablist"
-      className={`
-        ${
-          isModalsOn
-            ? "flex h-8 border-b border-gray-200 dark:border-black px-4 -mx-4"
-            : "flex h-8 border-b border-gray-200 dark:border-black px-8 -mx-8"
-        }
-      `}
+      className="flex h-8 border-b border-gray-200 dark:border-black px-4 -mx-4"
     >
       <TabButton
         label={translate("controls.simpleTab")}

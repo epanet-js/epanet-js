@@ -1,20 +1,11 @@
 import { useAtom } from "jotai";
-import {
-  DialogContainer,
-  DialogHeader,
-  DialogButtons,
-  BaseDialog,
-  SimpleDialogActionsNew,
-} from "src/components/dialog";
-import { Button } from "../elements";
+import { BaseDialog, SimpleDialogActions } from "src/components/dialog";
 import { Checkbox } from "../form/Checkbox";
 import { useTranslate } from "src/hooks/use-translate";
 import { Trans } from "react-i18next";
 import { useUserTracking } from "src/infra/user-tracking";
 import { userSettingsAtom } from "src/state/user-settings";
-import { AddScenarioIcon } from "src/icons";
 import { EarlyAccessBadge } from "../early-access-badge";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export const FirstScenarioDialog = ({
   onConfirm,
@@ -23,7 +14,6 @@ export const FirstScenarioDialog = ({
   onConfirm: () => void;
   onClose: () => void;
 }) => {
-  const isModalsOn = useFeatureFlag("FLAG_MODALS");
   const translate = useTranslate();
   const [userSettings, setUserSettings] = useAtom(userSettingsAtom);
   const userTracking = useUserTracking();
@@ -89,46 +79,25 @@ export const FirstScenarioDialog = ({
     </>
   );
 
-  if (isModalsOn) {
-    return (
-      <BaseDialog
-        title={translate("scenarios.firstScenario.title")}
-        size="sm"
-        isOpen={true}
-        onClose={onClose}
-        badge={<EarlyAccessBadge />}
-        footer={
-          <SimpleDialogActionsNew
-            action={translate("scenarios.firstScenario.createButton")}
-            onAction={handleCreate}
-            secondary={{
-              action: translate("dialog.cancel"),
-              onClick: onClose,
-            }}
-          />
-        }
-      >
-        <div className="p-4">{content}</div>
-      </BaseDialog>
-    );
-  }
-
   return (
-    <DialogContainer size="sm">
-      <DialogHeader
-        title={translate("scenarios.firstScenario.title")}
-        titleIcon={AddScenarioIcon}
-        badge={<EarlyAccessBadge />}
-      />
-      {content}
-      <DialogButtons>
-        <Button variant="primary" onClick={handleCreate}>
-          {translate("scenarios.firstScenario.createButton")}
-        </Button>
-        <Button variant="default" onClick={onClose}>
-          {translate("dialog.cancel")}
-        </Button>
-      </DialogButtons>
-    </DialogContainer>
+    <BaseDialog
+      title={translate("scenarios.firstScenario.title")}
+      size="sm"
+      isOpen={true}
+      onClose={onClose}
+      badge={<EarlyAccessBadge />}
+      footer={
+        <SimpleDialogActions
+          action={translate("scenarios.firstScenario.createButton")}
+          onAction={handleCreate}
+          secondary={{
+            action: translate("dialog.cancel"),
+            onClick: onClose,
+          }}
+        />
+      }
+    >
+      <div className="p-4">{content}</div>
+    </BaseDialog>
   );
 };

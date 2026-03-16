@@ -1,19 +1,13 @@
 import { useRef } from "react";
-import {
-  DialogContainer,
-  BaseDialog,
-  useDialogState,
-} from "src/components/dialog";
+import { BaseDialog, useDialogState } from "src/components/dialog";
 import { useActivateTrial } from "src/hooks/use-activate-trial";
 import { useAuth } from "src/auth";
 import { isTrialActive } from "src/user-plan";
 import { notify } from "src/components/notifications";
 import { RefreshIcon, SuccessIcon } from "src/icons";
 import { useTranslate } from "src/hooks/use-translate";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export const ActivatingTrialDialog = () => {
-  const isModalsOn = useFeatureFlag("FLAG_MODALS");
   const { activateTrial } = useActivateTrial();
   const { user } = useAuth();
   const { closeDialog } = useDialogState();
@@ -40,32 +34,19 @@ export const ActivatingTrialDialog = () => {
     }
   }
 
-  if (isModalsOn) {
-    return (
-      <BaseDialog
-        size="xs"
-        isOpen={true}
-        onClose={closeDialog}
-        preventClose={true}
-      >
-        <div className="flex flex-col items-center gap-3 p-6">
-          <RefreshIcon className="animate-spin w-6 h-6 text-gray-500" />
-          <p className="text-sm text-gray-700 dark:text-gray-300">
-            {translate("trial.activating")}
-          </p>
-        </div>
-      </BaseDialog>
-    );
-  }
-
   return (
-    <DialogContainer size="xs">
-      <div className="flex flex-col items-center gap-3 py-4">
+    <BaseDialog
+      size="xs"
+      isOpen={true}
+      onClose={closeDialog}
+      preventClose={true}
+    >
+      <div className="flex flex-col items-center gap-3 p-6">
         <RefreshIcon className="animate-spin w-6 h-6 text-gray-500" />
         <p className="text-sm text-gray-700 dark:text-gray-300">
           {translate("trial.activating")}
         </p>
       </div>
-    </DialogContainer>
+    </BaseDialog>
   );
 };

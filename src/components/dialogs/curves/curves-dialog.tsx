@@ -1,8 +1,7 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { useAtomValue } from "jotai";
-import { BaseDialog, DialogContainer, DialogHeader } from "../../dialog";
+import { BaseDialog } from "../../dialog";
 import { useTranslate } from "src/hooks/use-translate";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { CurveSidebar } from "./curve-sidebar";
 import { CurveDetail } from "./curve-detail";
 import { VerticalResizer } from "../vertical-resizer";
@@ -28,11 +27,7 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { LabelManager } from "src/hydraulic-model/label-manager";
 import { getCurveTypeConfig } from "./curve-type-config";
 import { HydraulicModel } from "src/hydraulic-model";
-import {
-  DialogActions,
-  DialogActionsHandle,
-  DialogActionsNew,
-} from "../dialog-actions-row";
+import { DialogActions, DialogActionsHandle } from "../dialog-actions-row";
 
 type CurveUpdate = Partial<Pick<ICurve, "label" | "points" | "type">>;
 
@@ -220,86 +215,24 @@ export const CurveLibraryDialog = ({
     [userTracking],
   );
 
-  const isModalsOn = useFeatureFlag("FLAG_MODALS");
-
-  if (isModalsOn)
-    return (
-      <BaseDialog
-        title={translate("curves.title")}
-        size="md"
-        height="xl"
-        isOpen={true}
-        onClose={() => dialogActions.current?.closeDialog()}
-        footer={
-          <DialogActionsNew
-            ref={dialogActions}
-            onSave={handleSave}
-            onClose={handleClose}
-            readOnly={isSnapshotLocked}
-            hasChanges={!!unsavedChanges}
-            hasWarnings={invalidCurveIds.size > 0}
-          />
-        }
-      >
-        <div className="flex-1 flex min-h-0">
-          <div className="flex-shrink-0 flex">
-            <CurveSidebar
-              width={sidebarWidth}
-              curves={editedCurves}
-              selectedCurveId={selectedCurveId}
-              initialSection={initialSection}
-              labelManager={labelManagerRef.current}
-              invalidCurveIds={invalidCurveIds}
-              onSelectCurve={setSelectedCurveId}
-              onAddCurve={handleAddCurve}
-              onChangeCurve={handleCurveChange}
-              onDeleteCurve={handleDeleteCurve}
-              readOnly={isSnapshotLocked}
-            />
-            <VerticalResizer
-              width={sidebarWidth}
-              onWidthChange={setSidebarWidth}
-            />
-          </div>
-          <div className="flex-1 flex flex-col min-h-0 w-full">
-            {selectedCurveId ? (
-              (() => {
-                const curveType = editedCurves.get(selectedCurveId)?.type;
-                const isUncategorized =
-                  !curveType || !CURVE_LIBRARY_TYPES.has(curveType);
-                return (
-                  <CurveDetail
-                    points={getCurvePoints(selectedCurveId)}
-                    onChange={(points) =>
-                      handleCurveChange(selectedCurveId, { points })
-                    }
-                    readOnly={isSnapshotLocked || isUncategorized}
-                    curveType={curveType}
-                    units={projectSettings.units}
-                  />
-                );
-              })()
-            ) : hasCurves ? (
-              <div className="flex-1 flex items-center justify-center p-2">
-                <NoSelectionState />
-              </div>
-            ) : (
-              <div className="flex-1 flex items-center justify-center p-2">
-                <EmptyState readOnly={isSnapshotLocked} />
-              </div>
-            )}
-          </div>
-        </div>
-      </BaseDialog>
-    );
-
   return (
-    <DialogContainer
+    <BaseDialog
+      title={translate("curves.title")}
       size="md"
-      height="lg"
+      height="xl"
+      isOpen={true}
       onClose={() => dialogActions.current?.closeDialog()}
+      footer={
+        <DialogActions
+          ref={dialogActions}
+          onSave={handleSave}
+          onClose={handleClose}
+          readOnly={isSnapshotLocked}
+          hasChanges={!!unsavedChanges}
+          hasWarnings={invalidCurveIds.size > 0}
+        />
+      }
     >
-      <DialogHeader title={translate("curves.title")} />
       <div className="flex-1 flex min-h-0">
         <div className="flex-shrink-0 flex">
           <CurveSidebar
@@ -339,25 +272,17 @@ export const CurveLibraryDialog = ({
               );
             })()
           ) : hasCurves ? (
-            <div className="flex-1 flex items-center justify-center p-2 border border-gray-200 dark:border-gray-700">
+            <div className="flex-1 flex items-center justify-center p-2">
               <NoSelectionState />
             </div>
           ) : (
-            <div className="flex-1 flex items-center justify-center p-2 border border-gray-200 dark:border-gray-700">
+            <div className="flex-1 flex items-center justify-center p-2">
               <EmptyState readOnly={isSnapshotLocked} />
             </div>
           )}
         </div>
       </div>
-      <DialogActions
-        ref={dialogActions}
-        onSave={handleSave}
-        onClose={handleClose}
-        readOnly={isSnapshotLocked}
-        hasChanges={!!unsavedChanges}
-        hasWarnings={invalidCurveIds.size > 0}
-      />
-    </DialogContainer>
+    </BaseDialog>
   );
 };
 

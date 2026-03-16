@@ -1,9 +1,4 @@
-import {
-  DialogHeader,
-  DialogContainer,
-  BaseDialog,
-  useDialogState,
-} from "src/components/dialog";
+import { BaseDialog, useDialogState } from "src/components/dialog";
 import { Keycap } from "src/components/elements";
 import React from "react";
 import { localizeKeybinding } from "src/infra/i18n";
@@ -12,7 +7,6 @@ import { showSimulationSettingsShortcut } from "src/commands/show-simulation-set
 import { showControlsShortcut } from "src/commands/show-controls";
 import { getIsMac } from "src/infra/i18n/mac";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { KeyboardIcon } from "src/icons";
 import { toggleNetworkReviewShortcut } from "src/commands/toggle-network-review";
 import { toggleSidePanelShortcut } from "src/commands/toggle-side-panel";
 import { selectionModeShortcut } from "src/commands/set-area-selection-mode";
@@ -44,7 +38,6 @@ type ShortcutSection = {
 };
 
 export function CheatsheetDialog() {
-  const isModalsOn = useFeatureFlag("FLAG_MODALS");
   const { closeDialog } = useDialogState();
   const translate = useTranslate();
   const isMac = useFeatureFlag("FLAG_MAC");
@@ -157,48 +150,14 @@ export function CheatsheetDialog() {
     },
   ];
 
-  if (isModalsOn) {
-    return (
-      <BaseDialog
-        title={translate("keyboardShortcuts.title")}
-        size="md"
-        isOpen={true}
-        onClose={closeDialog}
-      >
-        <div className="p-4 columns-1 md:columns-2">
-          {BINDINGS.map((section) => (
-            <div key={section.group} className="break-inside-avoid mb-6">
-              <h2 className="text-sm font-bold mb-2 text-gray-700">
-                {translate(section.group)}
-              </h2>
-              <div className="space-y-2">
-                {section.shortcuts.map((item) => (
-                  <div key={item.binding} className="flex items-start gap-4">
-                    <Keycap className="w-28 flex-shrink-0">
-                      {localizeKeybinding(item.binding, isMac || getIsMac())}
-                    </Keycap>
-                    <p className="text-xs pt-1">
-                      {Array.isArray(item.description)
-                        ? item.description.map((k) => translate(k)).join(" / ")
-                        : translate(item.description)}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </BaseDialog>
-    );
-  }
-
   return (
-    <DialogContainer size="md">
-      <DialogHeader
-        title={translate("keyboardShortcuts.title")}
-        titleIcon={KeyboardIcon}
-      />
-      <div className="columns-1 md:columns-2">
+    <BaseDialog
+      title={translate("keyboardShortcuts.title")}
+      size="md"
+      isOpen={true}
+      onClose={closeDialog}
+    >
+      <div className="p-4 columns-1 md:columns-2">
         {BINDINGS.map((section) => (
           <div key={section.group} className="break-inside-avoid mb-6">
             <h2 className="text-sm font-bold mb-2 text-gray-700">
@@ -221,6 +180,6 @@ export function CheatsheetDialog() {
           </div>
         ))}
       </div>
-    </DialogContainer>
+    </BaseDialog>
   );
 }

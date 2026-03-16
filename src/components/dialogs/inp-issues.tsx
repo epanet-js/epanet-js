@@ -1,15 +1,9 @@
-import { DialogHeader, BaseDialog, SimpleDialogActionsNew } from "../dialog";
+import { BaseDialog, SimpleDialogActions } from "../dialog";
 import { useTranslate } from "src/hooks/use-translate";
-import {
-  SimpleDialogActions,
-  SimpleDialogButtons,
-} from "src/components/dialog";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { Trans } from "react-i18next";
 
 import { Button } from "../elements";
 import { useState } from "react";
-import { Form, Formik } from "formik";
 import { newsletterUrl, projectionConverterUrl } from "src/global-config";
 import { ParserIssues } from "src/import/inp";
 import { useShowWelcome } from "src/commands/show-welcome";
@@ -19,8 +13,6 @@ import {
   ChevronDownIcon,
   ChevronRightIcon,
   GlobeIcon,
-  ErrorIcon,
-  WarningIcon,
   SubscribeIcon,
 } from "src/icons";
 
@@ -30,7 +22,7 @@ const roadmapUrls = {
 } as const;
 
 export const GeocodingNotSupportedDialog = ({
-  onClose: _onClose,
+  onClose,
   onImportNonProjected,
 }: {
   onClose: () => void;
@@ -46,13 +38,24 @@ export const GeocodingNotSupportedDialog = ({
     window.open(projectionConverterUrl);
   };
   return (
-    <>
-      <DialogHeader
-        title={translate("geocodingNotSupported")}
-        titleIcon={WarningIcon}
-        variant="warning"
-      />
-      <div className="text-sm">
+    <BaseDialog
+      title={translate("geocodingNotSupported")}
+      size="sm"
+      isOpen={true}
+      onClose={onClose}
+      footer={
+        <SimpleDialogActions
+          action={translate("reprojectNetwork")}
+          onAction={handleReprojectNetwork}
+          autoFocusSubmit={true}
+          secondary={{
+            action: translate("loadInXYGrid"),
+            onClick: onImportNonProjected,
+          }}
+        />
+      }
+    >
+      <div className="p-4 text-sm">
         <p className="pb-4">
           <Trans
             i18nKey="geocodingNotSupportedDetail"
@@ -72,20 +75,7 @@ export const GeocodingNotSupportedDialog = ({
           />
         </p>
       </div>
-      <SimpleDialogButtons>
-        <Button
-          type="button"
-          variant="primary"
-          autoFocus={true}
-          onClick={handleReprojectNetwork}
-        >
-          {translate("reprojectNetwork")}
-        </Button>
-        <Button type="button" variant="default" onClick={onImportNonProjected}>
-          {translate("loadInXYGrid")}
-        </Button>
-      </SimpleDialogButtons>
-    </>
+    </BaseDialog>
   );
 };
 
@@ -103,29 +93,28 @@ export const MissingCoordinatesDialog = ({
     showWelcome({ source: "missingCoordinatesError" });
   };
   return (
-    <>
-      <DialogHeader
-        title={translate("missingCoordinates")}
-        titleIcon={ErrorIcon}
-        variant="danger"
-      />
-      <Formik onSubmit={() => onClose()} initialValues={{}}>
-        <Form>
-          <div className="text-sm">
-            <p className="pb-2">{translate("missingCoordinatesDetail")}</p>
-            <CoordinatesIssues issues={issues} />
-          </div>
-          <SimpleDialogActions
-            autoFocusSubmit={true}
-            action={translate("understood")}
-            secondary={{
-              action: translate("seeDemoNetworks"),
-              onClick: goToWelcome,
-            }}
-          />
-        </Form>
-      </Formik>
-    </>
+    <BaseDialog
+      title={translate("missingCoordinates")}
+      size="sm"
+      isOpen={true}
+      onClose={onClose}
+      footer={
+        <SimpleDialogActions
+          action={translate("understood")}
+          onAction={onClose}
+          autoFocusSubmit={true}
+          secondary={{
+            action: translate("seeDemoNetworks"),
+            onClick: goToWelcome,
+          }}
+        />
+      }
+    >
+      <div className="p-4 text-sm">
+        <p className="pb-2">{translate("missingCoordinatesDetail")}</p>
+        <CoordinatesIssues issues={issues} />
+      </div>
+    </BaseDialog>
   );
 };
 
@@ -136,7 +125,6 @@ export const InpIssuesDialog = ({
   issues: ParserIssues;
   onClose: () => void;
 }) => {
-  const isModalsOn = useFeatureFlag("FLAG_MODALS");
   const translate = useTranslate();
   const showWelcome = useShowWelcome();
 
@@ -144,59 +132,29 @@ export const InpIssuesDialog = ({
     showWelcome({ source: "inpIssues" });
   };
 
-  if (isModalsOn) {
-    return (
-      <BaseDialog
-        title={translate("inpNotFullySupported")}
-        size="sm"
-        isOpen={true}
-        onClose={onClose}
-        footer={
-          <SimpleDialogActionsNew
-            action={translate("understood")}
-            onAction={onClose}
-            secondary={{
-              action: translate("seeDemoNetworks"),
-              onClick: goToWelcome,
-            }}
-          />
-        }
-      >
-        <div className="p-4 text-sm">
-          <p className="pb-2">{translate("inpNotFullySupportedDetail")}</p>
-          <IssuesSummary issues={issues} />
-          <SubscribeCTA source="inpIssues" />
-        </div>
-      </BaseDialog>
-    );
-  }
-
   return (
-    <>
-      <DialogHeader
-        title={translate("inpNotFullySupported")}
-        titleIcon={WarningIcon}
-        variant="warning"
-      />
-      <Formik onSubmit={() => onClose()} initialValues={{}}>
-        <Form>
-          <div className="text-sm">
-            <p className="pb-2">{translate("inpNotFullySupportedDetail")}</p>
-            <IssuesSummary issues={issues} />
-            <SubscribeCTA source="inpIssues" />
-          </div>
-
-          <SimpleDialogActions
-            autoFocusSubmit={true}
-            action={translate("understood")}
-            secondary={{
-              action: translate("seeDemoNetworks"),
-              onClick: goToWelcome,
-            }}
-          />
-        </Form>
-      </Formik>
-    </>
+    <BaseDialog
+      title={translate("inpNotFullySupported")}
+      size="sm"
+      isOpen={true}
+      onClose={onClose}
+      footer={
+        <SimpleDialogActions
+          action={translate("understood")}
+          onAction={onClose}
+          secondary={{
+            action: translate("seeDemoNetworks"),
+            onClick: goToWelcome,
+          }}
+        />
+      }
+    >
+      <div className="p-4 text-sm">
+        <p className="pb-2">{translate("inpNotFullySupportedDetail")}</p>
+        <IssuesSummary issues={issues} />
+        <SubscribeCTA source="inpIssues" />
+      </div>
+    </BaseDialog>
   );
 };
 

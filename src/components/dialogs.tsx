@@ -1,15 +1,9 @@
 import dynamic from "next/dynamic";
-import { memo, Suspense, useCallback, useRef } from "react";
+import { memo, useCallback, useRef } from "react";
 import { useAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog";
 import { match } from "ts-pattern";
-import * as D from "@radix-ui/react-dialog";
-import {
-  StyledDialogOverlay,
-  StyledDialogContent,
-  Loading,
-  DefaultErrorBoundary,
-} from "./elements";
+import { Loading } from "./elements";
 import * as dialogState from "src/state/dialog";
 import { ParserIssues } from "src/import/inp";
 import { useUserTracking } from "src/infra/user-tracking";
@@ -571,49 +565,5 @@ export const Dialogs = memo(function Dialogs() {
     )
     .exhaustive();
 
-  //DEPRECATED PATH! NEW DIALOGS SHOW USE DialogContainer COMPONENT
-  return (
-    <D.Root
-      open={!!content}
-      onOpenChange={(isOpen) => {
-        if (!isOpen) {
-          onClose();
-        }
-      }}
-    >
-      {/** Weird as hell shit here. Without this trigger, radix will
-      return focus to the body element, which will not receive events. */}
-      <D.Trigger className="hidden">
-        <div className="hidden"></div>
-      </D.Trigger>
-      <D.Portal>
-        <StyledDialogOverlay />
-        <Suspense fallback={<Loading />}>
-          {/**radix complains if no title, so at least having an empty one helps**/}
-          <D.Title></D.Title>
-          {/**radix complains if no description, so at least having an empty one helps**/}
-          <D.Description></D.Description>
-          {dialog && (
-            <StyledDialogContent
-              onEscapeKeyDown={(e) => {
-                onClose();
-                e.preventDefault();
-                e.stopPropagation();
-              }}
-              onInteractOutside={(e) => {
-                const target = e.target as HTMLElement;
-                if (target.closest("[data-privacy-banner]")) {
-                  e.preventDefault();
-                }
-              }}
-              onOpenAutoFocus={(e) => e.preventDefault()}
-              size={"sm"}
-            >
-              <DefaultErrorBoundary>{content}</DefaultErrorBoundary>
-            </StyledDialogContent>
-          )}
-        </Suspense>
-      </D.Portal>
-    </D.Root>
-  );
+  return content;
 });

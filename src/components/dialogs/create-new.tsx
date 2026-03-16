@@ -1,13 +1,6 @@
-import {
-  DialogContainer,
-  DialogHeader,
-  useDialogState,
-  BaseDialog,
-  SimpleDialogActionsNew,
-} from "../dialog";
+import { useDialogState, BaseDialog, SimpleDialogActions } from "../dialog";
 import { Form, Formik } from "formik";
 import mapboxgl from "mapbox-gl";
-import { SimpleDialogActions } from "src/components/dialog";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   Presets,
@@ -86,7 +79,6 @@ type SubmitProps = {
 };
 
 export const CreateNew = () => {
-  const isModalsOn = useFeatureFlag("FLAG_MODALS");
   const isEpanet23On = useFeatureFlag("FLAG_EPANET23");
   const translate = useTranslate();
   const rep = usePersistence();
@@ -178,201 +170,106 @@ export const CreateNew = () => {
     ],
   );
 
-  if (isModalsOn) {
-    return (
-      <BaseDialog
-        title={translate("newProject")}
-        size="sm"
-        isOpen={true}
-        onClose={handleCancel}
-        footer={
-          <SimpleDialogActionsNew
-            action={translate("create")}
-            onAction={() => formRef.current?.requestSubmit()}
-            onClose={handleCancel}
-          />
-        }
-      >
-        <div className="p-4">
-          <Formik
-            onSubmit={handleSubmit}
-            initialValues={
-              {
-                unitsSpec: "LPS",
-                headlossFormula: "H-W",
-                location: undefined,
-                projection: "wgs84",
-              } as SubmitProps
-            }
-          >
-            {({ values, setFieldValue }) => (
-              <Form ref={formRef}>
-                <ProjectionSelector
-                  selected={values.projection}
-                  onChange={(projection) => {
-                    void setFieldValue("projection", projection);
-                    if (projection === "xy-grid") {
-                      setGridHidden(false);
-                      setGridPreview(true);
-                      if (map) {
-                        map.map.jumpTo({
-                          center: XY_GRID_CENTER,
-                          zoom: XY_GRID_ZOOM,
+  return (
+    <BaseDialog
+      title={translate("newProject")}
+      size="sm"
+      isOpen={true}
+      onClose={handleCancel}
+      footer={
+        <SimpleDialogActions
+          action={translate("create")}
+          onAction={() => formRef.current?.requestSubmit()}
+          onClose={handleCancel}
+        />
+      }
+    >
+      <div className="p-4">
+        <Formik
+          onSubmit={handleSubmit}
+          initialValues={
+            {
+              unitsSpec: "LPS",
+              headlossFormula: "H-W",
+              location: undefined,
+              projection: "wgs84",
+            } as SubmitProps
+          }
+        >
+          {({ values, setFieldValue }) => (
+            <Form ref={formRef}>
+              <ProjectionSelector
+                selected={values.projection}
+                onChange={(projection) => {
+                  void setFieldValue("projection", projection);
+                  if (projection === "xy-grid") {
+                    setGridHidden(false);
+                    setGridPreview(true);
+                    if (map) {
+                      map.map.jumpTo({
+                        center: XY_GRID_CENTER,
+                        zoom: XY_GRID_ZOOM,
+                      });
+                    }
+                  } else {
+                    setGridPreview(false);
+                    if (isCurrentProjectUnprojected) {
+                      setGridHidden(true);
+                    }
+                    if (map) {
+                      if (values.location?.bbox) {
+                        map.map.fitBounds(values.location.bbox, {
+                          padding: 50,
+                          animate: false,
+                        });
+                      } else if (originalMapStateRef.current) {
+                        map.setBounds(originalMapStateRef.current, {
+                          animate: false,
                         });
                       }
-                    } else {
-                      setGridPreview(false);
-                      if (isCurrentProjectUnprojected) {
-                        setGridHidden(true);
-                      }
-                      if (map) {
-                        if (values.location?.bbox) {
-                          map.map.fitBounds(values.location.bbox, {
-                            padding: 50,
-                            animate: false,
-                          });
-                        } else if (originalMapStateRef.current) {
-                          map.setBounds(originalMapStateRef.current, {
-                            animate: false,
-                          });
-                        }
-                      }
-                    }
-                  }}
-                />
-
-                <LocationSearchSelector
-                  selected={values.location}
-                  onChange={(location) => setFieldValue("location", location)}
-                  disabled={values.projection === "xy-grid"}
-                />
-
-                <hr className="my-2" />
-
-                <UnitsSystemSelector
-                  selected={values.unitsSpec}
-                  onChange={(specId) => {
-                    void setFieldValue("unitsSpec", specId);
-                    void setFieldValue(
-                      "pressureUnit",
-                      getDefaultPressureUnit(specId),
-                    );
-                  }}
-                />
-                {isEpanet23On && (
-                  <PressureUnitSelector
-                    selected={
-                      values.pressureUnit ??
-                      getDefaultPressureUnit(values.unitsSpec)
-                    }
-                    onChange={(pu) => setFieldValue("pressureUnit", pu)}
-                  />
-                )}
-                <HeadlossFormulaSelector
-                  selected={values.headlossFormula}
-                  onChange={(headlossFormula) =>
-                    setFieldValue("headlossFormula", headlossFormula)
-                  }
-                />
-              </Form>
-            )}
-          </Formik>
-        </div>
-      </BaseDialog>
-    );
-  }
-
-  return (
-    <DialogContainer onClose={handleCancel}>
-      <DialogHeader title={translate("newProject")} />
-      <Formik
-        onSubmit={handleSubmit}
-        initialValues={
-          {
-            unitsSpec: "LPS",
-            headlossFormula: "H-W",
-            location: undefined,
-            projection: "wgs84",
-          } as SubmitProps
-        }
-      >
-        {({ values, setFieldValue }) => (
-          <Form>
-            <ProjectionSelector
-              selected={values.projection}
-              onChange={(projection) => {
-                void setFieldValue("projection", projection);
-                if (projection === "xy-grid") {
-                  setGridHidden(false);
-                  setGridPreview(true);
-                  if (map) {
-                    map.map.jumpTo({
-                      center: XY_GRID_CENTER,
-                      zoom: XY_GRID_ZOOM,
-                    });
-                  }
-                } else {
-                  setGridPreview(false);
-                  if (isCurrentProjectUnprojected) {
-                    setGridHidden(true);
-                  }
-                  if (map) {
-                    if (values.location?.bbox) {
-                      map.map.fitBounds(values.location.bbox, {
-                        padding: 50,
-                        animate: false,
-                      });
-                    } else if (originalMapStateRef.current) {
-                      map.setBounds(originalMapStateRef.current, {
-                        animate: false,
-                      });
                     }
                   }
-                }
-              }}
-            />
-
-            <LocationSearchSelector
-              selected={values.location}
-              onChange={(location) => setFieldValue("location", location)}
-              disabled={values.projection === "xy-grid"}
-            />
-
-            <hr className="my-2" />
-
-            <UnitsSystemSelector
-              selected={values.unitsSpec}
-              onChange={(specId) => {
-                void setFieldValue("unitsSpec", specId);
-                void setFieldValue(
-                  "pressureUnit",
-                  getDefaultPressureUnit(specId),
-                );
-              }}
-            />
-            {isEpanet23On && (
-              <PressureUnitSelector
-                selected={
-                  values.pressureUnit ??
-                  getDefaultPressureUnit(values.unitsSpec)
-                }
-                onChange={(pu) => setFieldValue("pressureUnit", pu)}
+                }}
               />
-            )}
-            <HeadlossFormulaSelector
-              selected={values.headlossFormula}
-              onChange={(headlossFormula) =>
-                setFieldValue("headlossFormula", headlossFormula)
-              }
-            />
-            <SimpleDialogActions
-              onClose={handleCancel}
-              action={translate("create")}
-            />
-          </Form>
-        )}
-      </Formik>
-    </DialogContainer>
+
+              <LocationSearchSelector
+                selected={values.location}
+                onChange={(location) => setFieldValue("location", location)}
+                disabled={values.projection === "xy-grid"}
+              />
+
+              <hr className="my-2" />
+
+              <UnitsSystemSelector
+                selected={values.unitsSpec}
+                onChange={(specId) => {
+                  void setFieldValue("unitsSpec", specId);
+                  void setFieldValue(
+                    "pressureUnit",
+                    getDefaultPressureUnit(specId),
+                  );
+                }}
+              />
+              {isEpanet23On && (
+                <PressureUnitSelector
+                  selected={
+                    values.pressureUnit ??
+                    getDefaultPressureUnit(values.unitsSpec)
+                  }
+                  onChange={(pu) => setFieldValue("pressureUnit", pu)}
+                />
+              )}
+              <HeadlossFormulaSelector
+                selected={values.headlossFormula}
+                onChange={(headlossFormula) =>
+                  setFieldValue("headlossFormula", headlossFormula)
+                }
+              />
+            </Form>
+          )}
+        </Formik>
+      </div>
+    </BaseDialog>
   );
 };
 

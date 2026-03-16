@@ -1,18 +1,9 @@
 import { useShowReport } from "src/commands/show-report";
 import { SimulationSummaryState } from "src/state/dialog";
-import {
-  BaseDialog,
-  DialogContainer,
-  DialogHeader,
-  LoadingDialog,
-  SimpleDialogActions,
-  SimpleDialogActionsNew,
-} from "../dialog";
+import { BaseDialog, SimpleDialogActions } from "../dialog";
 import { Loading } from "../elements";
 import { useTranslate } from "src/hooks/use-translate";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
-import { Form, Formik } from "formik";
 import { ErrorIcon, SuccessIcon, WarningIcon } from "src/icons";
 
 export const SimulationSummaryDialog = ({
@@ -22,99 +13,7 @@ export const SimulationSummaryDialog = ({
   modal: SimulationSummaryState;
   onClose: () => void;
 }) => {
-  const isModalsOn = useFeatureFlag("FLAG_MODALS");
-  const translate = useTranslate();
-  const showReport = useShowReport();
-
-  if (isModalsOn)
-    return <SimulationSummaryDialogNew modal={modal} onClose={onClose} />;
-
-  const handleOpenReport = () => {
-    showReport({ source: "resultDialog" });
-  };
-  const { status, duration } = modal;
-  const handleIgnore = () => {
-    onClose();
-    (modal.onIgnore ?? modal.onContinue)?.();
-  };
-
-  if (status === "warning")
-    return (
-      <DialogContainer size="sm">
-        <DialogHeader
-          title={translate("simulationWarning")}
-          titleIcon={WarningIcon}
-          variant="warning"
-        />
-        <Formik onSubmit={handleOpenReport} initialValues={{}}>
-          <Form>
-            <p className="text-sm text-gray">
-              {translate("simulationWarningExplain")}
-            </p>
-            <SimpleDialogActions
-              autoFocusSubmit={true}
-              secondary={{
-                action: modal.ignoreLabel || translate("ignore"),
-                onClick: handleIgnore,
-              }}
-              action={translate("viewReport")}
-            />
-          </Form>
-        </Formik>
-      </DialogContainer>
-    );
-  if (status === "failure")
-    return (
-      <DialogContainer size="sm">
-        <DialogHeader
-          title={translate("simulationFailure")}
-          titleIcon={ErrorIcon}
-          variant="danger"
-        />
-        <Formik onSubmit={handleOpenReport} initialValues={{}}>
-          <Form>
-            <p className="text-sm text-gray">
-              {translate("simulationFailureExplain")}
-            </p>
-            <SimpleDialogActions
-              autoFocusSubmit={true}
-              secondary={{
-                action: modal.ignoreLabel || translate("ignore"),
-                onClick: handleIgnore,
-              }}
-              action={translate("viewReport")}
-            />
-          </Form>
-        </Formik>
-      </DialogContainer>
-    );
-  if (status === "success")
-    return (
-      <DialogContainer size="sm">
-        <DialogHeader
-          title={translate("simulationSuccess")}
-          titleIcon={SuccessIcon}
-          variant="success"
-        />
-        <Formik onSubmit={() => onClose()} initialValues={{}}>
-          <Form>
-            <p className="text-sm text-gray">
-              {translate("simulationTook", ((duration || 0) / 1000).toFixed(2))}
-            </p>
-            <SimpleDialogActions
-              autoFocusSubmit={true}
-              secondary={{
-                action: translate("viewReport"),
-                onClick: handleOpenReport,
-              }}
-              action={translate("ok")}
-            />
-          </Form>
-        </Formik>
-      </DialogContainer>
-    );
-
-  return <LoadingDialog />;
+  return <SimulationSummaryDialogNew modal={modal} onClose={onClose} />;
 };
 
 const SimulationSummaryDialogNew = ({
@@ -165,7 +64,7 @@ const SimulationSummaryDialogNew = ({
       title={config.title}
       size="xs"
       footer={
-        <SimpleDialogActionsNew
+        <SimpleDialogActions
           autoFocusSubmit={true}
           action={isSuccess ? translate("ok") : translate("viewReport")}
           onAction={handleAction}
