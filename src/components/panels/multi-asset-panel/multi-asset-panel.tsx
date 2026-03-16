@@ -220,6 +220,9 @@ export function MultiAssetPanel({
             onPropertyChange={(p, v) => handleBatchPropertyChange("pump", p, v)}
             readonly={readonly}
             onSelectAssets={(ids, p) => handleSelectAssets(ids, p, "pump")}
+            curves={hydraulicModel.curves}
+            patterns={hydraulicModel.patterns}
+            labelManager={hydraulicModel.labelManager}
           />
         </CollapsibleSection>
       )}

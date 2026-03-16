@@ -27,10 +27,19 @@ type BooleanConfig = {
   modelProperty: ChangeableProperty;
 };
 
+type LibrarySelectConfig = {
+  fieldType: "librarySelect";
+  modelProperty: ChangeableProperty;
+  collectionType: "curves" | "patterns";
+  filterByType?: string;
+  nullLabelKey?: string;
+};
+
 export type BatchEditPropertyConfig =
   | QuantityConfig
   | CategoryConfig
-  | BooleanConfig;
+  | BooleanConfig
+  | LibrarySelectConfig;
 
 export type EditableProperties = Record<string, BatchEditPropertyConfig>;
 
@@ -85,11 +94,25 @@ export const BATCH_EDITABLE_PROPERTIES: Partial<
       values: pumpStatuses,
     },
     speed: { fieldType: "quantity", modelProperty: "speed" },
+    efficiencyCurve: {
+      fieldType: "librarySelect",
+      modelProperty: "efficiencyCurveId",
+      collectionType: "curves",
+      filterByType: "efficiency",
+      nullLabelKey: "none",
+    },
     energyPrice: {
       fieldType: "quantity",
       modelProperty: "energyPrice",
       positiveOnly: true,
       isNullable: true,
+    },
+    energyPricePattern: {
+      fieldType: "librarySelect",
+      modelProperty: "energyPricePatternId",
+      collectionType: "patterns",
+      filterByType: "energyPrice",
+      nullLabelKey: "constant",
     },
   },
   valve: {

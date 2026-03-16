@@ -627,7 +627,7 @@ const appendPumpStats = (
 const buildPumpSections = (
   statsMap: Map<string, AssetPropertyStats>,
 ): AssetPropertySections => {
-  // Remove link rows if no pumps have them set
+  // Remove rows if no pumps have them set
   for (const key of ["pumpName", "efficiencyCurve", "energyPricePattern"]) {
     const stats = statsMap.get(key) as LiteralCategoryStats | undefined;
     if (stats && stats.values.size === 1 && stats.values.has("")) {

@@ -16,6 +16,9 @@ import {
 import { AssetPropertyStats, QuantityStats } from "./data";
 import { BatchEditPropertyConfig } from "./batch-edit-property-config";
 import { AssetId } from "src/hydraulic-model";
+import type { Curves } from "src/hydraulic-model/curves";
+import type { Patterns } from "src/hydraulic-model/patterns";
+import type { LabelManager } from "src/hydraulic-model/label-manager";
 import { JsonValue } from "type-fest";
 import type { ChangeableProperty } from "src/hydraulic-model/model-operations/change-property";
 import clsx from "clsx";
@@ -29,6 +32,9 @@ type MultiValueRowProps = {
   ) => void;
   readonly?: boolean;
   onSelectAssets?: (assetIds: AssetId[], property: string) => void;
+  curves?: Curves;
+  patterns?: Patterns;
+  labelManager?: LabelManager;
 };
 
 export function MultiValueRow({
@@ -37,6 +43,9 @@ export function MultiValueRow({
   onPropertyChange,
   readonly = false,
   onSelectAssets,
+  curves,
+  patterns,
+  labelManager,
 }: MultiValueRowProps) {
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
@@ -46,6 +55,10 @@ export function MultiValueRow({
     propertyStats.type === "quantity" && propertyStats.unit
       ? `${translate(propertyStats.property)} (${translateUnit(propertyStats.unit)})`
       : translate(propertyStats.property);
+  const nullLabel =
+    "nullLabelKey" in config && config.nullLabelKey
+      ? translate(config.nullLabelKey)
+      : undefined;
 
   return (
     <InlineField name={label} labelSize="md">
@@ -55,6 +68,7 @@ export function MultiValueRow({
             propertyStats={propertyStats}
             label={label}
             onSelectAssets={onSelectAssets}
+            nullLabel={nullLabel}
           />
         ) : (
           <div className="flex-shrink-0 w-7" />
@@ -67,6 +81,9 @@ export function MultiValueRow({
             onPropertyChange={onPropertyChange}
             label={label}
             readonly={readonly}
+            curves={curves}
+            patterns={patterns}
+            labelManager={labelManager}
           />
         </div>
       </div>
@@ -78,10 +95,12 @@ const StatsPopoverButton = ({
   propertyStats,
   label,
   onSelectAssets,
+  nullLabel,
 }: {
   propertyStats: AssetPropertyStats;
   label: string;
   onSelectAssets?: (assetIds: AssetId[], property: string) => void;
+  nullLabel?: string;
 }) => {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -121,6 +140,7 @@ const StatsPopoverButton = ({
                 ? (ids) => onSelectAssets(ids, propertyStats.property)
                 : undefined
             }
+            nullLabel={nullLabel}
           />
         </StyledPopoverContent>
       </P.Portal>
@@ -135,6 +155,9 @@ const EditableField = ({
   onPropertyChange,
   label,
   readonly,
+  curves,
+  patterns,
+  labelManager,
 }: {
   propertyStats: AssetPropertyStats;
   config: BatchEditPropertyConfig;
@@ -145,6 +168,9 @@ const EditableField = ({
   ) => void;
   label: string;
   readonly: boolean;
+  curves?: Curves;
+  patterns?: Patterns;
+  labelManager?: LabelManager;
 }) => {
   const translate = useTranslate();
 
@@ -228,6 +254,56 @@ const EditableField = ({
     );
   }
 
+  if (config.fieldType === "librarySelect") {
+    const collection = config.collectionType === "curves" ? curves : patterns;
+    const labelType = config.collectionType === "curves" ? "curve" : "pattern";
+
+    const options: SelectorOption<string>[] = [];
+    if (collection) {
+      for (const [id, item] of collection) {
+        if (
+          config.filterByType &&
+          item.type &&
+          item.type !== config.filterByType
+        )
+          continue;
+        options.push({ label: item.label, value: String(id) });
+      }
+    }
+
+    // Stats store labels; resolve to ID via labelManager
+    const firstLabel = propertyStats.values.keys().next().value as string;
+    const resolvedId = labelManager?.getIdByLabel(firstLabel, labelType);
+    const currentId = isMixed
+      ? null
+      : resolvedId != null
+        ? String(resolvedId)
+        : null;
+
+    return (
+      <Selector<string>
+        selected={currentId}
+        options={options}
+        nullable={true}
+        placeholder={
+          isMixed
+            ? mixedPlaceholder
+            : config.nullLabelKey
+              ? translate(config.nullLabelKey)
+              : translate("none")
+        }
+        ariaLabel={label}
+        onChange={(newValue) => {
+          onPropertyChange(
+            config.modelProperty,
+            newValue === null ? (undefined as never) : Number(newValue),
+          );
+        }}
+        disabled={readonly}
+      />
+    );
+  }
+
   // Boolean field (e.g. canOverflow)
   const firstKey = propertyStats.values.keys().next().value as string;
   const isChecked = !isMixed && firstKey === "yes";
@@ -299,11 +375,13 @@ export const SortableValuesList = ({
   decimals,
   type,
   onSelectAssets,
+  nullLabel,
 }: {
   values: Map<JsonValue, AssetId[]>;
   decimals?: number;
   type: "quantity" | "category" | "boolean" | "literalCategory";
   onSelectAssets?: (assetIds: AssetId[]) => void;
+  nullLabel?: string;
 }) => {
   const translate = useTranslate();
 
@@ -389,6 +467,7 @@ export const SortableValuesList = ({
         <div className="w-full">
           {valueEntries.map(([value, assetIds], index) => {
             const label = formatValue(value, translate, decimals, type);
+            const emptyLabel = nullLabel ?? translate("none");
             return (
               <div
                 key={index}
@@ -399,14 +478,14 @@ export const SortableValuesList = ({
                 }
               >
                 <div
-                  title={label || translate("empty")}
+                  title={label || emptyLabel}
                   className={clsx(
                     "flex-auto font-mono text-xs truncate",
                     !label && "italic text-gray-600",
                   )}
                   role="cell"
                 >
-                  {label || translate("empty")}
+                  {label || emptyLabel}
                 </div>
                 <div
                   className="text-xs font-mono"

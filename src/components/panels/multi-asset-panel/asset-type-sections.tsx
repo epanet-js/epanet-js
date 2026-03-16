@@ -5,6 +5,9 @@ import { MultiValueRow } from "./multi-value-row";
 import { AssetPropertySections } from "./data";
 import type { EditableProperties } from "./batch-edit-property-config";
 import { AssetId } from "src/hydraulic-model";
+import type { Curves } from "src/hydraulic-model/curves";
+import type { Patterns } from "src/hydraulic-model/patterns";
+import type { LabelManager } from "src/hydraulic-model/label-manager";
 import type { ChangeableProperty } from "src/hydraulic-model/model-operations/change-property";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
@@ -18,6 +21,9 @@ type SectionProps = {
   ) => void;
   readonly?: boolean;
   onSelectAssets?: (assetIds: AssetId[], property: string) => void;
+  curves?: Curves;
+  patterns?: Patterns;
+  labelManager?: LabelManager;
 };
 
 export function AssetTypeSections({
@@ -27,6 +33,9 @@ export function AssetTypeSections({
   onPropertyChange,
   readonly = false,
   onSelectAssets,
+  curves,
+  patterns,
+  labelManager,
 }: SectionProps) {
   const useAutoIndentation = useFeatureFlag("FLAG_UI_COLLAPSIBLE");
   const translate = useTranslate();
@@ -77,6 +86,9 @@ export function AssetTypeSections({
                     onPropertyChange={onPropertyChange}
                     readonly={readonly}
                     onSelectAssets={onSelectAssets}
+                    curves={curves}
+                    patterns={patterns}
+                    labelManager={labelManager}
                   />
                 );
               }
