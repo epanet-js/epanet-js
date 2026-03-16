@@ -10,7 +10,6 @@ import {
   withPressureUnit,
 } from "src/lib/project-settings/quantities-spec";
 import type { Unit } from "src/quantity";
-import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { ProjectSettings } from "src/lib/project-settings";
 import { createProjectionMapper } from "src/projections";
 import type { Projection } from "src/projections";
@@ -470,6 +469,27 @@ const descriptionKeys: Record<keyof Presets, string> = {
   AFD: "afdDescription",
 };
 
+const compactDescriptionKeys: Record<keyof Presets, string> = {
+  LPS: "lpsCompact",
+  LPM: "lpmCompact",
+  MLD: "mldCompact",
+  CMH: "cmhCompact",
+  CMD: "cmdCompact",
+  GPM: "gpmCompact",
+  CFS: "cfsCompact",
+  MGD: "mgdCompact",
+  IMGD: "imgdCompact",
+  AFD: "afdCompact",
+};
+
+const pressureUnitKeys: Record<string, string> = {
+  psi: "pressureUnitPsi",
+  kPa: "pressureUnitKpa",
+  mwc: "pressureUnitMwc",
+  fwc: "pressureUnitFwc",
+  bar: "pressureUnitBar",
+};
+
 const UnitsSystemSelector = ({
   compact = false,
   selected,
@@ -480,8 +500,11 @@ const UnitsSystemSelector = ({
   onChange: (specId: keyof Presets) => void;
 }) => {
   const translate = useTranslate();
+  const keys = compact ? compactDescriptionKeys : descriptionKeys;
   const options = Object.entries(presets).map(([presetId]) => ({
-    label: `${presetId}: ${translate(descriptionKeys[presetId as keyof Presets])}`,
+    label: compact
+      ? translate(keys[presetId as keyof Presets])
+      : `${presetId}: ${translate(keys[presetId as keyof Presets])}`,
     value: presetId as keyof Presets,
   }));
 
@@ -566,10 +589,9 @@ const PressureUnitSelector = ({
   selected: Unit;
   onChange: (pressureUnit: Unit) => void;
 }) => {
-  const translateUnit = useTranslateUnit();
   const translate = useTranslate();
   const options = supportedPressureUnits.map((pu) => ({
-    label: translateUnit(pu),
+    label: translate(pressureUnitKeys[pu as string] ?? (pu as string)),
     value: pu as string,
   }));
 
