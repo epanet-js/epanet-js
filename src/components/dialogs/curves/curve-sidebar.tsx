@@ -246,12 +246,12 @@ export const CurveSidebar = ({
     {
       action: "duplicate",
       label: translate("duplicate"),
-      icon: <CloseIcon size="sm" />,
+      icon: <DuplicateIcon size="sm" />,
     },
     {
       action: "delete",
       label: translate("delete"),
-      icon: <DuplicateIcon size="sm" />,
+      icon: <CloseIcon size="sm" />,
       variant: "destructive",
     },
   ];
