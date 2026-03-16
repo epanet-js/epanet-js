@@ -37,7 +37,7 @@ export const triggerStylesFor = (
     isWarning
       ? "border-orange-500 dark:border-orange-700"
       : {
-          "border-gray-300": effectiveStyleOptions.border,
+          "border-gray-200": effectiveStyleOptions.border,
           "border-transparent": !effectiveStyleOptions.border,
         },
     `px-${effectiveStyleOptions.paddingX} py-${effectiveStyleOptions.paddingY}`,
@@ -197,7 +197,7 @@ export function Selector<T extends string | number>({
   }, [styleOptions, disabled]);
 
   const contentStyles = useMemo(() => {
-    return `bg-white w-full border ${effectiveStyleOptions.textSize} rounded-md shadow-md z-50 overflow-hidden`;
+    return `bg-white min-w-[var(--radix-select-trigger-width)] border ${effectiveStyleOptions.textSize} rounded-md shadow-md z-50 overflow-hidden`;
   }, [effectiveStyleOptions.textSize]);
 
   const handleValueChange = (newValue: string) => {

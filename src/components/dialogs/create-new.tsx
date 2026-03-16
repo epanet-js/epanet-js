@@ -46,6 +46,7 @@ import { env } from "src/lib/env-client";
 import NetworkUnprojectedIllustration from "./network-projection/network-unprojected";
 import NetworkProjectedIllustration from "./network-projection/network-projected";
 import clsx from "clsx";
+import { InlineField } from "../form/fields";
 
 type LocationData = {
   name: string;
@@ -173,7 +174,7 @@ export const CreateNew = () => {
   return (
     <BaseDialog
       title={translate("newProject")}
-      size="md"
+      size={isEpanet23On ? "sm" : "md"}
       isOpen={true}
       onClose={handleCancel}
       footer={
@@ -184,7 +185,7 @@ export const CreateNew = () => {
         />
       }
     >
-      <div className="p-4">
+      <div className={isEpanet23On ? "p-3" : "p-4"}>
         <Formik
           onSubmit={handleSubmit}
           initialValues={
@@ -198,73 +199,140 @@ export const CreateNew = () => {
         >
           {({ values, setFieldValue }) => (
             <Form ref={formRef}>
-              <ProjectionSelector
-                selected={values.projection}
-                onChange={(projection) => {
-                  void setFieldValue("projection", projection);
-                  if (projection === "xy-grid") {
-                    setGridHidden(false);
-                    setGridPreview(true);
-                    if (map) {
-                      map.map.jumpTo({
-                        center: XY_GRID_CENTER,
-                        zoom: XY_GRID_ZOOM,
-                      });
-                    }
-                  } else {
-                    setGridPreview(false);
-                    if (isCurrentProjectUnprojected) {
-                      setGridHidden(true);
-                    }
-                    if (map) {
-                      if (values.location?.bbox) {
-                        map.map.fitBounds(values.location.bbox, {
-                          padding: 50,
-                          animate: false,
-                        });
-                      } else if (originalMapStateRef.current) {
-                        map.setBounds(originalMapStateRef.current, {
-                          animate: false,
-                        });
+              {isEpanet23On ? (
+                <>
+                  <div className="space-y-3">
+                    <ProjectionSelector
+                      compact
+                      selected={values.projection}
+                      onChange={(projection) => {
+                        void setFieldValue("projection", projection);
+                        if (projection === "xy-grid") {
+                          setGridHidden(false);
+                          setGridPreview(true);
+                          if (map) {
+                            map.map.jumpTo({
+                              center: XY_GRID_CENTER,
+                              zoom: XY_GRID_ZOOM,
+                            });
+                          }
+                        } else {
+                          setGridPreview(false);
+                          if (isCurrentProjectUnprojected) {
+                            setGridHidden(true);
+                          }
+                          if (map) {
+                            if (values.location?.bbox) {
+                              map.map.fitBounds(values.location.bbox, {
+                                padding: 50,
+                                animate: false,
+                              });
+                            } else if (originalMapStateRef.current) {
+                              map.setBounds(originalMapStateRef.current, {
+                                animate: false,
+                              });
+                            }
+                          }
+                        }
+                      }}
+                    />
+                    <LocationSearchSelector
+                      compact
+                      selected={values.location}
+                      onChange={(location) =>
+                        setFieldValue("location", location)
                       }
+                      disabled={values.projection === "xy-grid"}
+                    />
+                  </div>
+                  <hr className="my-4" />
+                  <div className="space-y-2">
+                    <UnitsSystemSelector
+                      compact
+                      selected={values.unitsSpec}
+                      onChange={(specId) => {
+                        void setFieldValue("unitsSpec", specId);
+                        void setFieldValue(
+                          "pressureUnit",
+                          getDefaultPressureUnit(specId),
+                        );
+                      }}
+                    />
+                    <PressureUnitSelector
+                      selected={
+                        values.pressureUnit ??
+                        getDefaultPressureUnit(values.unitsSpec)
+                      }
+                      onChange={(pu) => setFieldValue("pressureUnit", pu)}
+                    />
+                    <HeadlossFormulaSelector
+                      compact
+                      selected={values.headlossFormula}
+                      onChange={(headlossFormula) =>
+                        setFieldValue("headlossFormula", headlossFormula)
+                      }
+                    />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <ProjectionSelector
+                    selected={values.projection}
+                    onChange={(projection) => {
+                      void setFieldValue("projection", projection);
+                      if (projection === "xy-grid") {
+                        setGridHidden(false);
+                        setGridPreview(true);
+                        if (map) {
+                          map.map.jumpTo({
+                            center: XY_GRID_CENTER,
+                            zoom: XY_GRID_ZOOM,
+                          });
+                        }
+                      } else {
+                        setGridPreview(false);
+                        if (isCurrentProjectUnprojected) {
+                          setGridHidden(true);
+                        }
+                        if (map) {
+                          if (values.location?.bbox) {
+                            map.map.fitBounds(values.location.bbox, {
+                              padding: 50,
+                              animate: false,
+                            });
+                          } else if (originalMapStateRef.current) {
+                            map.setBounds(originalMapStateRef.current, {
+                              animate: false,
+                            });
+                          }
+                        }
+                      }
+                    }}
+                  />
+                  <LocationSearchSelector
+                    selected={values.location}
+                    onChange={(location) => setFieldValue("location", location)}
+                    disabled={values.projection === "xy-grid"}
+                  />
+                  <hr className="my-2" />
+                  <UnitsSystemSelector
+                    selected={values.unitsSpec}
+                    onChange={(specId) => {
+                      void setFieldValue("unitsSpec", specId);
+                      void setFieldValue(
+                        "pressureUnit",
+                        getDefaultPressureUnit(specId),
+                      );
+                    }}
+                  />
+                  <HeadlossFormulaSelector
+                    selected={values.headlossFormula}
+                    onChange={(headlossFormula) =>
+                      setFieldValue("headlossFormula", headlossFormula)
                     }
-                  }
-                }}
-              />
-
-              <LocationSearchSelector
-                selected={values.location}
-                onChange={(location) => setFieldValue("location", location)}
-                disabled={values.projection === "xy-grid"}
-              />
-
-              <hr className="my-2" />
-
-              <UnitsSystemSelector
-                selected={values.unitsSpec}
-                onChange={(specId) => {
-                  void setFieldValue("unitsSpec", specId);
-                  void setFieldValue(
-                    "pressureUnit",
-                    getDefaultPressureUnit(specId),
-                  );
-                }}
-              />
-              {isEpanet23On && (
-                <PressureUnitSelector
-                  selected={
-                    values.pressureUnit ??
-                    getDefaultPressureUnit(values.unitsSpec)
-                  }
-                  onChange={(pu) => setFieldValue("pressureUnit", pu)}
-                />
+                  />
+                </>
               )}
-              <HeadlossFormulaSelector
-                selected={values.headlossFormula}
-                onChange={(headlossFormula) =>
-                  setFieldValue("headlossFormula", headlossFormula)
-                }
-              />
             </Form>
           )}
         </Formik>
@@ -274,10 +342,12 @@ export const CreateNew = () => {
 };
 
 const LocationSearchSelector = ({
+  compact = false,
   selected,
   onChange,
   disabled = false,
 }: {
+  compact?: boolean;
   selected?: LocationData;
   onChange: (location: LocationData) => void;
   disabled?: boolean;
@@ -336,7 +406,7 @@ const LocationSearchSelector = ({
     [map],
   );
 
-  return (
+  const selector = (
     <SearchableSelector
       selected={
         selected
@@ -353,10 +423,21 @@ const LocationSearchSelector = ({
       }}
       onSearch={searchLocations}
       placeholder={translate("searchLocation")}
-      label={translate("location")}
+      label={compact ? undefined : translate("location")}
       disabled={disabled}
+      wrapperClassName={compact ? "block" : undefined}
     />
   );
+
+  if (compact) {
+    return (
+      <InlineField name={translate("location")} labelSize="md">
+        {selector}
+      </InlineField>
+    );
+  }
+
+  return selector;
 };
 
 const isValidMapboxFeature = (feature: unknown): feature is MapboxFeature => {
@@ -390,9 +471,11 @@ const descriptionKeys: Record<keyof Presets, string> = {
 };
 
 const UnitsSystemSelector = ({
+  compact = false,
   selected,
   onChange,
 }: {
+  compact?: boolean;
   selected: keyof Presets;
   onChange: (specId: keyof Presets) => void;
 }) => {
@@ -402,27 +485,43 @@ const UnitsSystemSelector = ({
     value: presetId as keyof Presets,
   }));
 
+  const selector = (
+    <Selector
+      options={options}
+      tabIndex={0}
+      selected={selected}
+      onChange={onChange}
+      ariaLabel={translate("unitsSystem")}
+    />
+  );
+
+  if (compact) {
+    return (
+      <InlineField
+        name={translate("simulationSettings.flowUnits")}
+        labelSize="md"
+      >
+        {selector}
+      </InlineField>
+    );
+  }
+
   return (
     <label className="block pt-2 pb-2 space-y-2">
       <div className="text-sm text-gray-700 dark:text-gray-300 flex items-center justify-between">
         {translate("unitsSystem")}
       </div>
-
-      <Selector
-        options={options}
-        tabIndex={0}
-        selected={selected}
-        onChange={onChange}
-        ariaLabel={translate("unitsSystem")}
-      />
+      {selector}
     </label>
   );
 };
 
 const HeadlossFormulaSelector = ({
+  compact = false,
   selected,
   onChange,
 }: {
+  compact?: boolean;
   selected: HeadlossFormula;
   onChange: (headlossFormula: HeadlossFormula) => void;
 }) => {
@@ -432,19 +531,30 @@ const HeadlossFormulaSelector = ({
     value: headlossFormula,
   }));
 
+  const selector = (
+    <Selector
+      options={options}
+      tabIndex={0}
+      selected={selected}
+      onChange={onChange}
+      ariaLabel={translate("headlossFormula")}
+    />
+  );
+
+  if (compact) {
+    return (
+      <InlineField name={translate("headlossFormula")} labelSize="md">
+        {selector}
+      </InlineField>
+    );
+  }
+
   return (
     <label className="block pt-2 pb-2 space-y-2">
       <div className="text-sm text-gray-700 dark:text-gray-300 flex items-center justify-between">
         {translate("headlossFormula")}
       </div>
-
-      <Selector
-        options={options}
-        tabIndex={0}
-        selected={selected}
-        onChange={onChange}
-        ariaLabel={translate("headlossFormula")}
-      />
+      {selector}
     </label>
   );
 };
@@ -457,25 +567,25 @@ const PressureUnitSelector = ({
   onChange: (pressureUnit: Unit) => void;
 }) => {
   const translateUnit = useTranslateUnit();
+  const translate = useTranslate();
   const options = supportedPressureUnits.map((pu) => ({
     label: translateUnit(pu),
     value: pu as string,
   }));
 
   return (
-    <label className="block pt-2 pb-2 space-y-2">
-      <div className="text-sm text-gray-700 dark:text-gray-300">
-        Pressure Units
-      </div>
-
+    <InlineField
+      name={translate("simulationSettings.pressureUnits")}
+      labelSize="md"
+    >
       <Selector
         options={options}
         tabIndex={0}
         selected={selected as string}
         onChange={(value) => onChange(value as Unit)}
-        ariaLabel="Pressure Units"
+        ariaLabel={translate("simulationSettings.pressureUnits")}
       />
-    </label>
+    </InlineField>
   );
 };
 
@@ -485,61 +595,100 @@ const projectionCardUnselected = "border-gray-200 dark:border-gray-700";
 const projectionCardSelected = "border-purple-500 ring-1 ring-purple-500";
 
 const ProjectionSelector = ({
+  compact = false,
   selected,
   onChange,
 }: {
+  compact?: boolean;
   selected: Projection;
   onChange: (projection: Projection) => void;
 }) => {
   const translate = useTranslate();
 
   return (
-    <div className="grid grid-cols-2 gap-3 pb-3">
-      <button
-        type="button"
-        onClick={() => onChange("wgs84")}
-        className={clsx(
-          projectionCardBase,
-          selected === "wgs84"
-            ? projectionCardSelected
-            : projectionCardUnselected,
-        )}
-      >
-        <div className="w-full border-b border-gray-200">
-          <NetworkProjectedIllustration />
+    <div>
+      {compact && (
+        <div className="text-sm text-gray-500 mb-2">
+          {translate("projection")}
         </div>
-        <div className="p-3 flex-grow">
-          <p className="font-bold text-gray-900 dark:text-gray-100">
-            {translate("inpProjectionChoice.projectedTitle")}
-          </p>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-            {translate("inpProjectionChoice.projectedDescription")}
-          </p>
-        </div>
-      </button>
+      )}
+      <div className="grid grid-cols-2 gap-3">
+        <button
+          type="button"
+          onClick={() => onChange("wgs84")}
+          className={clsx(
+            projectionCardBase,
+            selected === "wgs84"
+              ? projectionCardSelected
+              : projectionCardUnselected,
+          )}
+        >
+          <div
+            className={clsx(
+              "w-full border-b border-gray-200",
+              compact && "h-28 overflow-hidden",
+            )}
+          >
+            <NetworkProjectedIllustration
+              preserveAspectRatio={compact ? "xMidYMid slice" : undefined}
+            />
+          </div>
+          <div className={clsx("flex-grow", compact ? "p-2" : "p-3")}>
+            <p
+              className={clsx(
+                compact
+                  ? "text-xs text-gray-700 dark:text-gray-300"
+                  : "font-bold text-gray-900 dark:text-gray-100",
+              )}
+            >
+              {translate("inpProjectionChoice.projectedTitle")}
+            </p>
+            {!compact && (
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                {translate("inpProjectionChoice.projectedDescription")}
+              </p>
+            )}
+          </div>
+        </button>
 
-      <button
-        type="button"
-        onClick={() => onChange("xy-grid")}
-        className={clsx(
-          projectionCardBase,
-          selected === "xy-grid"
-            ? projectionCardSelected
-            : projectionCardUnselected,
-        )}
-      >
-        <div className="w-full border-b border-gray-200">
-          <NetworkUnprojectedIllustration />
-        </div>
-        <div className="p-3 flex-grow">
-          <p className="font-bold text-gray-900 dark:text-gray-100">
-            {translate("inpProjectionChoice.nonProjectedTitle")}
-          </p>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-            {translate("inpProjectionChoice.nonProjectedDescription")}
-          </p>
-        </div>
-      </button>
+        <button
+          type="button"
+          onClick={() => onChange("xy-grid")}
+          className={clsx(
+            projectionCardBase,
+            selected === "xy-grid"
+              ? projectionCardSelected
+              : projectionCardUnselected,
+          )}
+        >
+          <div
+            className={clsx(
+              "w-full border-b border-gray-200",
+              compact && "h-28 overflow-hidden",
+            )}
+          >
+            <NetworkUnprojectedIllustration
+              preserveAspectRatio={compact ? "xMidYMid slice" : undefined}
+            />
+          </div>
+          <div className={clsx("flex-grow", compact ? "p-2" : "p-3")}>
+            <p
+              className={clsx(
+                compact
+                  ? "text-xs text-gray-700 dark:text-gray-300"
+                  : "font-bold text-gray-900 dark:text-gray-100",
+              )}
+            >
+              {translate("inpProjectionChoice.nonProjectedTitle")}
+            </p>
+            {!compact && (
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                {translate("inpProjectionChoice.nonProjectedDescription")}
+              </p>
+            )}
+          </div>
+        </button>
+      </div>
     </div>
   );
 };

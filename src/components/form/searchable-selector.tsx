@@ -15,6 +15,7 @@ export const SearchableSelector = <T extends SearchableSelectorOption>({
   placeholder,
   label,
   disabled = false,
+  wrapperClassName,
 }: {
   selected?: T;
   onChange: (option: T) => void;
@@ -22,6 +23,7 @@ export const SearchableSelector = <T extends SearchableSelectorOption>({
   placeholder?: string;
   label?: string;
   disabled?: boolean;
+  wrapperClassName?: string;
 }) => {
   const [searchTerm, setSearchTerm] = useState(selected?.label || "");
   const [suggestions, setSuggestions] = useState<T[]>([]);
@@ -163,7 +165,7 @@ export const SearchableSelector = <T extends SearchableSelectorOption>({
   }, []);
 
   return (
-    <label className="block pt-2 space-y-2 pb-3">
+    <label className={wrapperClassName ?? "block pt-2 space-y-2 pb-3"}>
       {label && (
         <div className="text-sm text-gray-700 dark:text-gray-300 flex items-center justify-between">
           {label}

@@ -167,6 +167,7 @@
   "reprojectNetwork": "Reproject network",
   "loadInXYGrid": "Load in X-Y grid",
   "importAsUnprojected": "Import as unprojected",
+  "projection": "Projection",
   "inpProjectionChoice": {
     "title": "Set your network's location",
     "description": "To provide basemaps and automatic elevations, we need to know if your coordinates represent real-world locations or a simple X-Y grid.",
