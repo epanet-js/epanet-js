@@ -11,7 +11,7 @@ import {
   UnitsSpec,
   QuantityProperty,
   getDecimals,
-} from "src/model-metadata/quantities-spec";
+} from "src/lib/project-settings/quantities-spec";
 import {
   isSimulationProperty,
   type ResultsReader,

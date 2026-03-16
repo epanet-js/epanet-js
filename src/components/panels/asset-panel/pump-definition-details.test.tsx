@@ -4,7 +4,7 @@ import {
   PumpCurveTable,
   PumpDefinitionDetails,
 } from "./pump-definition-details";
-import { presets, UnitsSpec } from "src/model-metadata/quantities-spec";
+import { presets, UnitsSpec } from "src/lib/project-settings/quantities-spec";
 import { buildPump } from "src/__helpers__/hydraulic-model-builder";
 import type { Curves } from "src/hydraulic-model/curves";
 

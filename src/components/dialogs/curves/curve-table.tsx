@@ -21,7 +21,7 @@ import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { DeleteIcon, AddIcon } from "src/icons";
 import { getCurveTypeConfig } from "./curve-type-config";
-import type { UnitsSpec } from "src/model-metadata/quantities-spec";
+import type { UnitsSpec } from "src/lib/project-settings/quantities-spec";
 
 type CurveRow = {
   x: number;

@@ -1,4 +1,4 @@
-import { presets } from "src/model-metadata/quantities-spec";
+import { presets } from "src/lib/project-settings/quantities-spec";
 import { AssetBuilder } from "./asset-builder";
 import { ConsecutiveIdsGenerator } from "src/lib/id-generator";
 import { LabelManager } from "./label-manager";

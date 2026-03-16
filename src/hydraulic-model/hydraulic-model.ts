@@ -1,7 +1,7 @@
 import { Topology } from "./topology";
 import { AssetsMap } from "./assets-map";
 import { AssetBuilder } from "./asset-builder";
-import { DefaultsSpec } from "src/model-metadata/quantities-spec";
+import { DefaultsSpec } from "src/lib/project-settings/quantities-spec";
 import { nanoid } from "nanoid";
 
 import { ConsecutiveIdsGenerator, IdGenerator } from "src/lib/id-generator";

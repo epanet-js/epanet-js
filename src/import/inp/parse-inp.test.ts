@@ -2,7 +2,7 @@ import { Junction, Pipe, Reservoir } from "src/hydraulic-model";
 import { parseInp } from "./parse-inp";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { buildInp, chooseUnitSystem } from "src/simulation/build-inp";
-import { presets } from "src/model-metadata/quantities-spec";
+import { presets } from "src/lib/project-settings/quantities-spec";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { getByLabel } from "src/__helpers__/asset-queries";
 import { Valve } from "src/hydraulic-model/asset-types";
@@ -161,11 +161,11 @@ describe("Parse inp with", () => {
     [COORDINATES]
     ${IDS.R1}\t1\t1
     `;
-    const { modelMetadata } = parseInp(inp);
-    expect(modelMetadata.units).toMatchObject({
+    const { projectSettings } = parseInp(inp);
+    expect(projectSettings.units).toMatchObject({
       flow: "gal/min",
     });
-    expect(modelMetadata.units.head).toEqual("ft");
+    expect(projectSettings.units.head).toEqual("ft");
   });
 
   it("detects other systems", () => {
@@ -181,11 +181,11 @@ describe("Parse inp with", () => {
     [COORDINATES]
     ${IDS.R1}\t1\t1
     `;
-    const { modelMetadata } = parseInp(inp);
-    expect(modelMetadata.units).toMatchObject({
+    const { projectSettings } = parseInp(inp);
+    expect(projectSettings.units).toMatchObject({
       flow: "l/s",
     });
-    expect(modelMetadata.units.head).toEqual("m");
+    expect(projectSettings.units.head).toEqual("m");
   });
 
   it("parses pressure unit override from OPTIONS", () => {
@@ -199,8 +199,8 @@ describe("Parse inp with", () => {
     [COORDINATES]
     ${IDS.R1}\t1\t1
     `;
-    const { modelMetadata } = parseInp(inp);
-    expect(modelMetadata.units.pressure).toEqual("kPa");
+    const { projectSettings } = parseInp(inp);
+    expect(projectSettings.units.pressure).toEqual("kPa");
   });
 
   it("keeps default pressure unit when no PRESSURE option", () => {
@@ -213,8 +213,8 @@ describe("Parse inp with", () => {
     [COORDINATES]
     ${IDS.R1}\t1\t1
     `;
-    const { modelMetadata } = parseInp(inp);
-    expect(modelMetadata.units.pressure).toEqual("mwc");
+    const { projectSettings } = parseInp(inp);
+    expect(projectSettings.units.pressure).toEqual("mwc");
   });
 
   it("detects headloss formula from inp", () => {
@@ -226,9 +226,9 @@ describe("Parse inp with", () => {
     ANY
     `;
 
-    const { modelMetadata } = parseInp(inp);
+    const { projectSettings } = parseInp(inp);
 
-    expect(modelMetadata.headlossFormula).toEqual("D-W");
+    expect(projectSettings.headlossFormula).toEqual("D-W");
   });
 
   it("says when inp contains unsupported sections", () => {
@@ -386,10 +386,10 @@ describe("Parse inp with", () => {
     Units     MGD
     Headloss H-W
  `;
-    const { modelMetadata, issues } = parseInp(inp);
+    const { projectSettings, issues } = parseInp(inp);
 
     expect(issues).toBeNull();
-    expect(chooseUnitSystem(modelMetadata.units)).toEqual("MGD");
+    expect(chooseUnitSystem(projectSettings.units)).toEqual("MGD");
   });
 
   it("treats 'None mg/L' quality setting as equivalent to 'None'", () => {
@@ -757,7 +757,9 @@ describe("Parse inp with", () => {
       `;
 
       const result = parseInp(inp, { sourceProjection: "xy-grid" });
-      expect(result.modelMetadata.projectionMapper.projection).toBe("xy-grid");
+      expect(result.projectSettings.projectionMapper.projection).toBe(
+        "xy-grid",
+      );
     });
 
     it("sets projection to wgs84 for standard import", () => {
@@ -770,7 +772,7 @@ describe("Parse inp with", () => {
       `;
 
       const result = parseInp(inp);
-      expect(result.modelMetadata.projectionMapper.projection).toBe("wgs84");
+      expect(result.projectSettings.projectionMapper.projection).toBe("wgs84");
     });
   });
 });

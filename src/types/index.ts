@@ -20,7 +20,7 @@ import { colors } from "src/lib/constants";
 import clamp from "lodash/clamp";
 import { HydraulicModel } from "src/hydraulic-model";
 import type { MapEngine } from "src/map";
-import type { UnitsSpec } from "src/model-metadata/quantities-spec";
+import type { UnitsSpec } from "src/lib/project-settings/quantities-spec";
 
 export interface CoordProps {
   x: number;

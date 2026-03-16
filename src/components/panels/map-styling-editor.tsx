@@ -2,7 +2,7 @@ import { useAtomValue, useSetAtom } from "jotai";
 import * as Popover from "@radix-ui/react-popover";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
-import { dataAtom } from "src/state/data";
+import { projectSettingsAtom } from "src/state/project-settings";
 import { stagingModelAtom } from "src/state/hydraulic-model";
 import { showGridAtom } from "src/state/map-projection";
 import { simulationAtom, simulationResultsAtom } from "src/state/simulation";
@@ -100,9 +100,7 @@ const SymbologyEditor = ({
     switchLinkSymbologyTo,
   } = useSymbologyState();
   const symbology = geometryType === "node" ? nodeSymbology : linkSymbology;
-  const {
-    modelMetadata: { units },
-  } = useAtomValue(dataAtom);
+  const { units } = useAtomValue(projectSettingsAtom);
   const hydraulicModel = useAtomValue(stagingModelAtom);
   const isPersistMapPreferencesOn = useFeatureFlag(
     "FLAG_RESTORE_MAP_PREFERENCES",

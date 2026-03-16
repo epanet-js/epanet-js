@@ -1,7 +1,7 @@
 import { useAtomValue } from "jotai";
 import React from "react";
 import { NothingSelected } from "src/components/nothing-selected";
-import { dataAtom } from "src/state/data";
+import { projectSettingsAtom } from "src/state/project-settings";
 import { selectedFeaturesAtom, selectionAtom } from "src/state/selection";
 import { MultiAssetPanel } from "./multi-asset-panel";
 import { AssetPanel } from "./asset-panel";
@@ -12,9 +12,7 @@ import { useIsSnapshotLocked } from "src/hooks/use-is-snapshot-locked";
 export default function FeatureEditor() {
   const selectedFeatures = useAtomValue(selectedFeaturesAtom);
   const selection = useAtomValue(selectionAtom);
-  const {
-    modelMetadata: { units },
-  } = useAtomValue(dataAtom);
+  const { units } = useAtomValue(projectSettingsAtom);
   const isSnapshotLocked = useIsSnapshotLocked();
 
   if (selection.type === "singleCustomerPoint") {

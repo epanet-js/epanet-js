@@ -12,7 +12,7 @@ import { useTranslate } from "src/hooks/use-translate";
 import { DeleteIcon, AddIcon } from "src/icons";
 import { PropertyComparison } from "src/hooks/use-asset-comparison";
 import { calculateAverageDemand, Demand } from "src/hydraulic-model/demands";
-import { UnitsSpec } from "src/model-metadata/quantities-spec";
+import { UnitsSpec } from "src/lib/project-settings/quantities-spec";
 import { QuantityRow } from "./ui-components";
 import { NestedSection } from "src/components/form/fields";
 

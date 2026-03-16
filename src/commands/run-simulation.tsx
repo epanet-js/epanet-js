@@ -4,7 +4,7 @@ import { useCallback } from "react";
 import { buildInp } from "src/simulation/build-inp";
 import { dialogAtom } from "src/state/dialog";
 import { stagingModelAtom } from "src/state/hydraulic-model";
-import { dataAtom } from "src/state/data";
+import { projectSettingsAtom } from "src/state/project-settings";
 import { simulationAtom, simulationResultsAtom } from "src/state/simulation";
 import { simulationSettingsAtom } from "src/state/simulation-settings";
 import {
@@ -38,7 +38,7 @@ export const useRunSimulation = () => {
         const hydraulicModel = get(stagingModelAtom);
         const simulationSettings = get(simulationSettingsAtom);
         const worktree = get(worktreeAtom);
-        const { modelMetadata } = get(dataAtom);
+        const projectSettings = get(projectSettingsAtom);
 
         setSimulationState((prev) => ({ ...prev, status: "running" }));
         const inp = buildInp(hydraulicModel, {
@@ -46,8 +46,8 @@ export const useRunSimulation = () => {
           usedPatterns: true,
           usedCurves: true,
           simulationSettings,
-          units: modelMetadata.units,
-          headlossFormula: modelMetadata.headlossFormula,
+          units: projectSettings.units,
+          headlossFormula: projectSettings.headlossFormula,
         });
         const start = performance.now();
 

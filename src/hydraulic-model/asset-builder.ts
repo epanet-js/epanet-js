@@ -88,7 +88,7 @@ export type TankBuildData = {
 
 import { IdGenerator } from "src/lib/id-generator";
 import { LabelGenerator } from "./label-manager";
-import { DefaultsSpec } from "src/model-metadata/quantities-spec";
+import { DefaultsSpec } from "src/lib/project-settings/quantities-spec";
 import {
   PumpDefintionType,
   PumpQuantity,

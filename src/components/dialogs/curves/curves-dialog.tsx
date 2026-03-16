@@ -19,7 +19,7 @@ import {
   differentCurvesCount,
 } from "src/hydraulic-model/curves";
 import { CurveLibraryIcon } from "src/icons";
-import { dataAtom } from "src/state/data";
+import { projectSettingsAtom } from "src/state/project-settings";
 import { stagingModelAtom } from "src/state/hydraulic-model";
 import { usePersistence } from "src/lib/persistence";
 import { changeCurves } from "src/hydraulic-model/model-operations/change-curves";
@@ -51,7 +51,7 @@ export const CurveLibraryDialog = ({
 }) => {
   const translate = useTranslate();
   const hydraulicModel = useAtomValue(stagingModelAtom);
-  const { modelMetadata } = useAtomValue(dataAtom);
+  const projectSettings = useAtomValue(projectSettingsAtom);
   const userTracking = useUserTracking();
   const isSnapshotLocked = useIsSnapshotLocked();
   const [selectedCurveId, setSelectedCurveId] = useState<CurveId | null>(
@@ -275,7 +275,7 @@ export const CurveLibraryDialog = ({
                     }
                     readOnly={isSnapshotLocked || isUncategorized}
                     curveType={curveType}
-                    units={modelMetadata.units}
+                    units={projectSettings.units}
                   />
                 );
               })()
@@ -334,7 +334,7 @@ export const CurveLibraryDialog = ({
                   }
                   readOnly={isSnapshotLocked || isUncategorized}
                   curveType={curveType}
-                  units={modelMetadata.units}
+                  units={projectSettings.units}
                 />
               );
             })()

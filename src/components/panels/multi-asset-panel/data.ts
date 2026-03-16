@@ -1,6 +1,9 @@
 import { Unit } from "src/quantity";
-import { UnitsSpec, FormattingSpec } from "src/model-metadata/quantities-spec";
-import { getDecimals } from "src/model-metadata";
+import {
+  UnitsSpec,
+  FormattingSpec,
+} from "src/lib/project-settings/quantities-spec";
+import { getDecimals } from "src/lib/project-settings";
 import type { ResultsReader } from "src/simulation/results-reader";
 import {
   Asset,

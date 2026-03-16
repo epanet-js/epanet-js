@@ -34,7 +34,7 @@ import {
   AssetQuantitiesSpec,
   UnitsSpec,
   presets,
-} from "src/model-metadata/quantities-spec";
+} from "src/lib/project-settings/quantities-spec";
 import {
   AllocationRule,
   CustomerPoint,

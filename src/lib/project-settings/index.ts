@@ -1,4 +1,5 @@
-export type { ModelMetadata } from "./model-metadata";
+export type { ProjectSettings } from "./project-settings";
+export { defaultProjectSettings } from "./project-settings";
 export type {
   UnitsSpec,
   DefaultsSpec,

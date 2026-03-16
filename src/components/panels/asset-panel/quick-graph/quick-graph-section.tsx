@@ -4,7 +4,7 @@ import { PinIcon, PinOffIcon } from "src/icons";
 import { Button } from "src/components/elements";
 import { Selector } from "src/components/form/selector";
 import { useTranslate } from "src/hooks/use-translate";
-import { dataAtom } from "src/state/data";
+import { projectSettingsAtom } from "src/state/project-settings";
 import { stagingModelAtom } from "src/state/hydraulic-model";
 import { simulationAtom } from "src/state/simulation";
 import { worktreeAtom } from "src/state/scenarios";
@@ -16,8 +16,8 @@ import {
   type QuickGraphAssetType,
   type QuickGraphPropertyByAssetType,
 } from "src/state/quick-graph";
-import type { QuantityProperty } from "src/model-metadata/quantities-spec";
-import { getDecimals } from "src/model-metadata";
+import type { QuantityProperty } from "src/lib/project-settings/quantities-spec";
+import { getDecimals } from "src/lib/project-settings";
 import type { TimeSeries } from "src/simulation/epanet/eps-results-reader";
 import type { AssetId, Valve } from "src/hydraulic-model/asset-types";
 import { useTimeSeries } from "./use-time-series";
@@ -122,9 +122,7 @@ const QuickGraphSection = ({
   const [propertyByType, setPropertyByType] = useAtom(quickGraphPropertyAtom);
   const simulation = useAtomValue(simulationAtom);
   const worktree = useAtomValue(worktreeAtom);
-  const {
-    modelMetadata: { units, formatting },
-  } = useAtomValue(dataAtom);
+  const { units, formatting } = useAtomValue(projectSettingsAtom);
   const hydraulicModel = useAtomValue(stagingModelAtom);
   const { changeTimestep } = useChangeTimestep();
 

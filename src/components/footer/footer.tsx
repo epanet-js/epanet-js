@@ -4,7 +4,7 @@ import { useTranslate } from "src/hooks/use-translate";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
-import { dataAtom } from "src/state/data";
+import { projectSettingsAtom } from "src/state/project-settings";
 import { autoElevationsAtom } from "src/state/drawing";
 import { stagingModelAtom } from "src/state/hydraulic-model";
 import { SimulationState, simulationAtom } from "src/state/simulation";
@@ -26,15 +26,15 @@ import {
 
 export const Footer = () => {
   const translate = useTranslate();
-  const { modelMetadata } = useAtomValue(dataAtom);
+  const projectSettings = useAtomValue(projectSettingsAtom);
   const simulationSettings = useAtomValue(simulationSettingsAtom);
   const isEpanet23On = useFeatureFlag("FLAG_EPANET23");
   const translateUnit = useTranslateUnit();
   const isLgOrLarger = useBreakpoint("lg");
   const isSmOrLarger = useBreakpoint("sm");
 
-  const flowUnitDisplay = translateUnit(modelMetadata.units.flow);
-  const pressureUnitDisplay = translateUnit(modelMetadata.units.pressure);
+  const flowUnitDisplay = translateUnit(projectSettings.units.flow);
+  const pressureUnitDisplay = translateUnit(projectSettings.units.pressure);
 
   return (
     <nav className="fixed bottom-0 left-0 w-full bg-gray-50 border-t border-gray-300 shadow-lg z-10">
@@ -42,9 +42,9 @@ export const Footer = () => {
         {!isLgOrLarger && (
           <div className="px-2">
             <CollapsedPopover
-              unitsSpecName={chooseUnitSystem(modelMetadata.units)}
+              unitsSpecName={chooseUnitSystem(projectSettings.units)}
               demandMultiplier={simulationSettings.globalDemandMultiplier}
-              headlossFormula={modelMetadata.headlossFormula}
+              headlossFormula={projectSettings.headlossFormula}
               isEpanet23On={isEpanet23On}
               flowUnitDisplay={flowUnitDisplay}
               pressureUnitDisplay={pressureUnitDisplay}
@@ -70,13 +70,14 @@ export const Footer = () => {
             ) : (
               <>
                 <span className="px-4 py-2">
-                  {translate("units")}: {chooseUnitSystem(modelMetadata.units)}
+                  {translate("units")}:{" "}
+                  {chooseUnitSystem(projectSettings.units)}
                 </span>
                 <div className="border-r-2 border-gray-150 h-10"></div>
               </>
             )}
             <span className="px-4 py-2">
-              {translate("headlossShort")}: {modelMetadata.headlossFormula}
+              {translate("headlossShort")}: {projectSettings.headlossFormula}
             </span>
             <div className="border-r-2 border-gray-150 h-10"></div>
           </>

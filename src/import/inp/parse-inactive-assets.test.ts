@@ -1,6 +1,6 @@
 import { parseInp } from "./parse-inp";
 import { buildInp } from "src/simulation/build-inp";
-import { presets } from "src/model-metadata/quantities-spec";
+import { presets } from "src/lib/project-settings/quantities-spec";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { Asset, AssetsMap } from "src/hydraulic-model";

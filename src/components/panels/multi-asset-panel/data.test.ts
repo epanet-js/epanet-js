@@ -8,7 +8,10 @@ import {
   AssetPropertyStats,
 } from "./data";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
-import { presets, FormattingSpec } from "src/model-metadata/quantities-spec";
+import {
+  presets,
+  FormattingSpec,
+} from "src/lib/project-settings/quantities-spec";
 import { createMockResultsReader } from "src/__helpers__/state";
 
 describe("computeMultiAssetData", () => {

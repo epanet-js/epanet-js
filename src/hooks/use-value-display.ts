@@ -1,14 +1,12 @@
 import { useAtomValue } from "jotai";
 import { useCallback } from "react";
-import { dataAtom } from "src/state/data";
-import { getDecimals } from "src/model-metadata";
+import { projectSettingsAtom } from "src/state/project-settings";
+import { getDecimals } from "src/lib/project-settings";
 import { localizeDecimal } from "src/infra/i18n/numbers";
-import type { QuantityProperty } from "src/model-metadata/quantities-spec";
+import type { QuantityProperty } from "src/lib/project-settings/quantities-spec";
 
 export const useValueDisplay = () => {
-  const {
-    modelMetadata: { formatting },
-  } = useAtomValue(dataAtom);
+  const { formatting } = useAtomValue(projectSettingsAtom);
 
   const displayValue = useCallback(
     (value: number | null, property: QuantityProperty): string => {

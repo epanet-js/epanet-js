@@ -1,5 +1,5 @@
 import { HydraulicModel } from "src/hydraulic-model";
-import type { UnitsSpec } from "src/model-metadata/quantities-spec";
+import type { UnitsSpec } from "src/lib/project-settings/quantities-spec";
 import { initializeColorRule } from "./range-color-rule";
 import { NodeSymbology, LinkSymbology } from "./symbology-types";
 import { nullLabelRule } from "./labeling";

@@ -12,7 +12,7 @@ import {
   appendPipeArrowProps,
 } from "./features";
 import type { ResultsReader } from "src/simulation/results-reader";
-import type { UnitsSpec } from "src/model-metadata/quantities-spec";
+import type { UnitsSpec } from "src/lib/project-settings/quantities-spec";
 
 export const buildSelectionSource = (
   assets: AssetsMap,

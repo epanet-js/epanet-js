@@ -1,8 +1,8 @@
 import { atom } from "jotai";
-import { dataAtom } from "src/state/data";
+import { projectSettingsAtom } from "src/state/project-settings";
 
 export const isUnprojectedAtom = atom((get) => {
-  return get(dataAtom).modelMetadata.projectionMapper.projection === "xy-grid";
+  return get(projectSettingsAtom).projectionMapper.projection === "xy-grid";
 });
 
 export const gridPreviewAtom = atom(false);

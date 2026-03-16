@@ -3,7 +3,7 @@ import { useAtomValue, useSetAtom } from "jotai";
 import { type MutableRefObject, useCallback, useRef } from "react";
 import { Unit } from "src/quantity";
 import { Moment } from "src/lib/persistence/moment";
-import { dataAtom } from "src/state/data";
+import { projectSettingsAtom } from "src/state/project-settings";
 import type { EphemeralEditingState } from "src/state/drawing";
 import { assetsAtom, stagingModelAtom } from "src/state/hydraulic-model";
 import {
@@ -36,7 +36,10 @@ import { captureError } from "src/infra/error-tracking";
 import { withDebugInstrumentation } from "src/infra/with-instrumentation";
 import { USelection } from "src/selection";
 import { SymbologySpec } from "src/state/map-symbology";
-import { FormattingSpec, UnitsSpec } from "src/model-metadata/quantities-spec";
+import {
+  FormattingSpec,
+  UnitsSpec,
+} from "src/lib/project-settings/quantities-spec";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import {
@@ -117,9 +120,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
 
   const assets = useAtomValue(assetsAtom);
   const hydraulicModel = useAtomValue(stagingModelAtom);
-  const {
-    modelMetadata: { units, formatting },
-  } = useAtomValue(dataAtom);
+  const { units, formatting } = useAtomValue(projectSettingsAtom);
   const isGridOn = useAtomValue(showGridAtom);
   const isGridPreview = useAtomValue(gridPreviewAtom);
   const simulationResults = useAtomValue(simulationResultsAtom);

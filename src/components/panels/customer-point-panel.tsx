@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from "react";
 import { useAtomValue } from "jotai";
 import { Maybe } from "purify-ts/Maybe";
-import { dataAtom } from "src/state/data";
+import { projectSettingsAtom } from "src/state/project-settings";
 import { stagingModelAtom } from "src/state/hydraulic-model";
 import { selectionAtom } from "src/state/selection";
 import type { PropertyComparison } from "src/hooks/use-asset-comparison";
@@ -37,9 +37,7 @@ export function CustomerPointPanel() {
   const rep = usePersistence();
   const transact = rep.useTransact();
   const zoomTo = useZoomTo();
-  const {
-    modelMetadata: { units },
-  } = useAtomValue(dataAtom);
+  const { units } = useAtomValue(projectSettingsAtom);
   const customerPoint =
     selection.type === "singleCustomerPoint"
       ? hydraulicModel.customerPoints.get(selection.id)

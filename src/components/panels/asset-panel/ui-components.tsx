@@ -12,7 +12,7 @@ import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { Unit, convertTo } from "src/quantity";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { useValueDisplay } from "src/hooks/use-value-display";
-import type { QuantityProperty } from "src/model-metadata/quantities-spec";
+import type { QuantityProperty } from "src/lib/project-settings/quantities-spec";
 import { Selector, SelectorOption } from "src/components/form/selector";
 import { NumericField } from "src/components/form/numeric-field";
 import { Checkbox } from "src/components/form/Checkbox";

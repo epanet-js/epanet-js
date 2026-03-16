@@ -1,5 +1,5 @@
-import { dataAtom } from "src/state/data";
 import { dialogAtom } from "src/state/dialog";
+import { projectSettingsAtom } from "src/state/project-settings";
 import { fileInfoAtom } from "src/state/file-system";
 import { stagingModelAtom } from "src/state/hydraulic-model";
 import { isDemoNetworkAtom } from "src/state/file-system";
@@ -61,7 +61,7 @@ export const useSaveInp = ({
           const hydraulicModel = hasScenarios
             ? get(baseModelAtom)
             : get(stagingModelAtom);
-          const { modelMetadata } = get(dataAtom);
+          const projectSettings = get(projectSettingsAtom);
           const simulationSettings = get(simulationSettingsAtom);
           const buildOptions = {
             geolocation: true,
@@ -71,10 +71,10 @@ export const useSaveInp = ({
             customerPoints: true,
             inactiveAssets: true,
             reservoirElevations: true,
-            projectionMapper: modelMetadata.projectionMapper,
+            projectionMapper: projectSettings.projectionMapper,
             simulationSettings,
-            units: modelMetadata.units,
-            headlossFormula: modelMetadata.headlossFormula,
+            units: projectSettings.units,
+            headlossFormula: projectSettings.headlossFormula,
           };
           const inp = buildInp(hydraulicModel, buildOptions);
           const inpBlob = new Blob([inp], { type: "text/plain" });

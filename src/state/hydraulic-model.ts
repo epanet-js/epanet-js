@@ -1,7 +1,7 @@
 import { atom } from "jotai";
 import { focusAtom } from "jotai-optics";
 import { HydraulicModel, initializeHydraulicModel } from "src/hydraulic-model";
-import { presets } from "src/model-metadata/quantities-spec";
+import { presets } from "src/lib/project-settings/quantities-spec";
 
 export const nullHydraulicModel: HydraulicModel = initializeHydraulicModel({
   defaults: presets.LPS.defaults,

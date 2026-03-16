@@ -1,5 +1,6 @@
 import { render, screen, waitFor, act } from "@testing-library/react";
 import { dataAtom, nullData } from "src/state/data";
+import { projectSettingsAtom } from "src/state/project-settings";
 import { stagingModelAtom } from "src/state/hydraulic-model";
 import { simulationResultsAtom } from "src/state/simulation";
 import { Store } from "src/state";
@@ -38,12 +39,9 @@ describe("AssetPanel", () => {
         hydraulicModel,
         selectedAssetId: IDS.P1,
       });
-      store.set(dataAtom, {
-        ...store.get(dataAtom),
-        modelMetadata: {
-          ...store.get(dataAtom).modelMetadata,
-          headlossFormula: "D-W",
-        },
+      store.set(projectSettingsAtom, {
+        ...store.get(projectSettingsAtom),
+        headlossFormula: "D-W",
       });
 
       renderComponent(store);

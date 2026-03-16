@@ -4,7 +4,7 @@ import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useAtomValue } from "jotai";
-import { dataAtom } from "src/state/data";
+import { projectSettingsAtom } from "src/state/project-settings";
 import { stagingModelAtom } from "src/state/hydraulic-model";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { parseCustomerPoints } from "src/import/customer-points/parse-customer-points";
@@ -25,7 +25,7 @@ import {
   ParsedDataSummary,
   InputData,
 } from "./types";
-import { UnitsSpec } from "src/model-metadata/quantities-spec";
+import { UnitsSpec } from "src/lib/project-settings/quantities-spec";
 import { WizardActions as WizardActionsComponent } from "src/components/wizard";
 import { convertTo } from "src/quantity";
 import { ChevronDownIcon, ChevronRightIcon } from "src/icons";
@@ -40,7 +40,7 @@ export const DataMappingStep: React.FC<{
 }> = ({ onNext, onBack, wizardState }) => {
   const translate = useTranslate();
   const userTracking = useUserTracking();
-  const { modelMetadata } = useAtomValue(dataAtom);
+  const projectSettings = useAtomValue(projectSettingsAtom);
   const hydraulicModel = useAtomValue(stagingModelAtom);
   const { customerPointFactory } = useAtomValue(modelFactoriesAtom);
   const patterns = hydraulicModel.patterns;
@@ -92,8 +92,8 @@ export const DataMappingStep: React.FC<{
           const customerPointDemands = new Map<CustomerPointId, Demand[]>();
           let totalCount = 0;
 
-          const demandImportUnit = modelMetadata.units.customerDemandPerDay;
-          const demandTargetUnit = modelMetadata.units.customerDemand;
+          const demandImportUnit = projectSettings.units.customerDemandPerDay;
+          const demandTargetUnit = projectSettings.units.customerDemand;
 
           const fileContent = JSON.stringify({
             type: "FeatureCollection",
@@ -154,7 +154,7 @@ export const DataMappingStep: React.FC<{
     [
       setLoading,
       setError,
-      modelMetadata.units,
+      projectSettings.units,
       customerPointFactory,
       setParsedDataSummary,
       userTracking,

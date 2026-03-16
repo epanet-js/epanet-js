@@ -35,7 +35,8 @@ import {
 import { ModelMoment } from "src/hydraulic-model";
 import { Asset } from "src/hydraulic-model";
 import { nanoid } from "nanoid";
-import { ModelMetadata } from "src/model-metadata";
+import type { ProjectSettings } from "src/lib/project-settings";
+import { projectSettingsAtom } from "src/state/project-settings";
 import { MomentLog } from "./moment-log";
 import { Mode } from "src/state/mode";
 import { getSimulationForState } from "src/lib/worktree";
@@ -67,7 +68,7 @@ export class Persistence implements IPersistenceWithSnapshots {
     return (
       hydraulicModel: HydraulicModel,
       factories: ModelFactories,
-      modelMetadata: ModelMetadata,
+      projectSettings: ProjectSettings,
       name: string,
       simulationSettings: SimulationSettings,
       options?: { autoElevations?: boolean },
@@ -109,8 +110,8 @@ export class Persistence implements IPersistenceWithSnapshots {
       this.store.set(dataAtom, {
         ...nullData,
         folderMap: new Map(),
-        modelMetadata,
       });
+      this.store.set(projectSettingsAtom, projectSettings);
       this.store.set(momentLogAtom, momentLog);
       this.store.set(mapSyncMomentAtom, { pointer: -1, version: 0 });
       this.store.set(simulationAtom, initialSimulationState);
@@ -424,10 +425,10 @@ export class Persistence implements IPersistenceWithSnapshots {
     const momentLogDeltas = snapshot.momentLog.getDeltas();
     allDeltas.push(...momentLogDeltas);
 
-    const ctx = this.store.get(dataAtom);
+    const { defaults } = this.store.get(projectSettingsAtom);
     const currentHydraulicModel = this.store.get(stagingModelAtom);
     const model = initializeHydraulicModel({
-      defaults: ctx.modelMetadata.defaults,
+      defaults,
       idGenerator: currentHydraulicModel.assetBuilder.idGenerator,
     });
 
@@ -480,7 +481,6 @@ export class Persistence implements IPersistenceWithSnapshots {
           return sortAts(a[1], b[1]);
         }),
       ),
-      modelMetadata: ctx.modelMetadata,
     });
     return reverseMoment;
   }

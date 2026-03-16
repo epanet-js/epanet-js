@@ -22,8 +22,11 @@ import {
   CurveData,
 } from "./inp-data";
 import { IssuesAccumulator } from "./issues";
-import { ModelMetadata } from "src/model-metadata";
-import { presets, withPressureUnit } from "src/model-metadata/quantities-spec";
+import { ProjectSettings } from "src/lib/project-settings";
+import {
+  presets,
+  withPressureUnit,
+} from "src/lib/project-settings/quantities-spec";
 import type { Unit } from "src/quantity";
 import { Position } from "geojson";
 import { PumpStatus } from "src/hydraulic-model/asset-types/pump";
@@ -81,8 +84,8 @@ export const buildModel = (
 ): {
   hydraulicModel: HydraulicModel;
   factories: ModelFactories;
-  modelMetadata: Pick<
-    ModelMetadata,
+  projectSettings: Pick<
+    ProjectSettings,
     "units" | "defaults" | "headlossFormula" | "formatting"
   >;
 } => {
@@ -188,7 +191,7 @@ export const buildModel = (
   return {
     hydraulicModel,
     factories,
-    modelMetadata: {
+    projectSettings: {
       units: spec.units,
       defaults: spec.defaults,
       headlossFormula: inpData.options.headlossFormula,

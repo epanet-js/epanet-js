@@ -9,7 +9,7 @@ import {
   getValveCurveErrors,
   getEfficiencyCurveErrors,
 } from "src/hydraulic-model/curves";
-import { QuantityProperty } from "src/model-metadata/quantities-spec";
+import { QuantityProperty } from "src/lib/project-settings/quantities-spec";
 
 export interface CurveTypeConfig {
   xLabel: string;

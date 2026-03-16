@@ -9,7 +9,7 @@ import { Tank } from "src/hydraulic-model/asset-types/tank";
 import { AssetTypeSections } from "./asset-type-sections";
 import { SelectOnlyButton } from "./select-only-button";
 import { useAtom, useAtomValue } from "jotai";
-import { dataAtom } from "src/state/data";
+import { projectSettingsAtom } from "src/state/project-settings";
 import { stagingModelAtom } from "src/state/hydraulic-model";
 import { multiAssetPanelCollapseAtom } from "src/state/layout";
 import { selectionAtom } from "src/state/selection";
@@ -32,9 +32,7 @@ export function MultiAssetPanel({
   selectedFeatures: IWrappedFeature[];
   readonly?: boolean;
 }) {
-  const {
-    modelMetadata: { formatting, units },
-  } = useAtomValue(dataAtom);
+  const { formatting, units } = useAtomValue(projectSettingsAtom);
   const useAutoIndentation = useFeatureFlag("FLAG_UI_COLLAPSIBLE");
   const translate = useTranslate();
   const simulationState = useAtomValue(simulationAtom);

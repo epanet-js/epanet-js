@@ -8,7 +8,7 @@ import {
 import { type GridSelection } from "src/components/data-grid";
 import { CurveTable, type CurveTableRef } from "./curve-table";
 import { CurveErrorBanner } from "./curve-error-banner";
-import type { UnitsSpec } from "src/model-metadata/quantities-spec";
+import type { UnitsSpec } from "src/lib/project-settings/quantities-spec";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import clsx from "clsx";
 

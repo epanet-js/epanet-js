@@ -24,7 +24,7 @@ import type {
 } from "src/simulation/simulation-settings";
 import { chooseUnitSystem } from "src/simulation/build-inp";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
-import { dataAtom } from "src/state/data";
+import { projectSettingsAtom } from "src/state/project-settings";
 import {
   headlossFormulas,
   headlossFormulasFullNames,
@@ -113,9 +113,7 @@ const SubsectionGroup = ({
 export const GeneralSection = () => {
   const translate = useTranslate();
   const readonly = useAtomValue(hasScenariosAtom);
-  const {
-    modelMetadata: { units, headlossFormula },
-  } = useAtomValue(dataAtom);
+  const { units, headlossFormula } = useAtomValue(projectSettingsAtom);
   const { values, setFieldValue } = useFormikContext<FormValues>();
 
   const isEpanet23On = useFeatureFlag("FLAG_EPANET23");

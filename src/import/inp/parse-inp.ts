@@ -1,4 +1,4 @@
-import { ModelMetadata } from "src/model-metadata";
+import { ProjectSettings } from "src/lib/project-settings";
 import { IssuesAccumulator, ParserIssues } from "./issues";
 import { readInpData } from "./read-inp-data";
 import { buildModel } from "./build-model";
@@ -35,7 +35,7 @@ export const parseInp = (
   isMadeByApp: boolean;
   hydraulicModel: HydraulicModel;
   factories: ModelFactories;
-  modelMetadata: ModelMetadata;
+  projectSettings: ProjectSettings;
   simulationSettings: SimulationSettings;
   issues: ParserIssues | null;
   stats: InpStats;
@@ -56,7 +56,7 @@ export const parseInp = (
 
   const projectionMapper = projectCoordinates(inpData, sourceProjection);
 
-  const { hydraulicModel, factories, modelMetadata } = buildModel(
+  const { hydraulicModel, factories, projectSettings } = buildModel(
     inpData,
     issues,
     safeOptions,
@@ -65,8 +65,8 @@ export const parseInp = (
     isMadeByApp: header.isMadeByApp,
     hydraulicModel,
     factories,
-    modelMetadata: {
-      ...modelMetadata,
+    projectSettings: {
+      ...projectSettings,
       projectionMapper,
     },
     simulationSettings: {

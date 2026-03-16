@@ -13,7 +13,7 @@ import { LngLatBoundsLike } from "mapbox-gl";
 import { MapContext, captureThumbnail } from "src/map";
 import { ImportInpCompleted, useUserTracking } from "src/infra/user-tracking";
 import { InpStats } from "src/import/inp/inp-data";
-import { ModelMetadata } from "src/model-metadata";
+import { ProjectSettings } from "src/lib/project-settings";
 import { HydraulicModel } from "src/hydraulic-model";
 import { chooseUnitSystem } from "src/simulation/build-inp";
 import { notify } from "src/components/notifications";
@@ -80,7 +80,7 @@ export const useImportInp = () => {
           const {
             hydraulicModel,
             factories,
-            modelMetadata,
+            projectSettings,
             simulationSettings,
             issues,
             isMadeByApp,
@@ -92,7 +92,7 @@ export const useImportInp = () => {
           transactImport(
             hydraulicModel,
             factories,
-            modelMetadata,
+            projectSettings,
             file.name,
             simulationSettings,
             options,
@@ -149,14 +149,14 @@ export const useImportInp = () => {
         const {
           hydraulicModel,
           factories,
-          modelMetadata,
+          projectSettings,
           simulationSettings,
           issues,
           isMadeByApp,
           stats,
         } = parseInp(content, parseOptions);
         userTracking.capture(
-          buildCompleteEvent(hydraulicModel, modelMetadata, issues, stats),
+          buildCompleteEvent(hydraulicModel, projectSettings, issues, stats),
         );
         if (issues && (issues.invalidVertices || issues.invalidCoordinates)) {
           const onImportNonProjected = async () => {
@@ -169,7 +169,7 @@ export const useImportInp = () => {
               userTracking.capture(
                 buildCompleteEvent(
                   result.hydraulicModel,
-                  result.modelMetadata,
+                  result.projectSettings,
                   result.issues,
                   result.stats,
                 ),
@@ -193,12 +193,12 @@ export const useImportInp = () => {
         }
 
         const autoElevations =
-          modelMetadata.projectionMapper.projection !== "xy-grid";
+          projectSettings.projectionMapper.projection !== "xy-grid";
         await completeImport(
           {
             hydraulicModel,
             factories,
-            modelMetadata,
+            projectSettings,
             simulationSettings,
             issues,
             isMadeByApp,
@@ -227,7 +227,7 @@ export const useImportInp = () => {
 
 const buildCompleteEvent = (
   hydraulicModel: HydraulicModel,
-  modelMetadata: ModelMetadata,
+  projectSettings: ProjectSettings,
   issues: ParserIssues | null,
   stats: InpStats,
 ): ImportInpCompleted => {
@@ -263,8 +263,8 @@ const buildCompleteEvent = (
   return {
     name: "importInp.completed",
     counts: Object.fromEntries(stats.counts),
-    headlossFormula: modelMetadata.headlossFormula,
-    units: chooseUnitSystem(modelMetadata.units),
+    headlossFormula: projectSettings.headlossFormula,
+    units: chooseUnitSystem(projectSettings.units),
     issues: processedIssues,
   } as ImportInpCompleted;
 };

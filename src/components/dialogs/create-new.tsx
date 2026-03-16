@@ -15,10 +15,10 @@ import {
   supportedPressureUnits,
   getDefaultPressureUnit,
   withPressureUnit,
-} from "src/model-metadata/quantities-spec";
+} from "src/lib/project-settings/quantities-spec";
 import type { Unit } from "src/quantity";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
-import { ModelMetadata } from "src/model-metadata";
+import { ProjectSettings } from "src/lib/project-settings";
 import { createProjectionMapper } from "src/projections";
 import type { Projection } from "src/projections";
 import {
@@ -133,7 +133,7 @@ export const CreateNew = () => {
       const spec = pressureUnit
         ? withPressureUnit(presets[unitsSpec], pressureUnit)
         : presets[unitsSpec];
-      const modelMetadata: ModelMetadata = {
+      const projectSettings: ProjectSettings = {
         units: spec.units,
         defaults: spec.defaults,
         headlossFormula,
@@ -149,7 +149,7 @@ export const CreateNew = () => {
       transactImport(
         hydraulicModel,
         factories,
-        modelMetadata,
+        projectSettings,
         "Untitled",
         defaultSimulationSettings,
         { autoElevations: projection !== "xy-grid" },

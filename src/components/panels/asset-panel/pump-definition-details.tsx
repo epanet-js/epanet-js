@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo } from "react";
 import { useAtomValue } from "jotai";
-import { dataAtom } from "src/state/data";
+import { projectSettingsAtom } from "src/state/project-settings";
 import { TranslateFn, useTranslate } from "src/hooks/use-translate";
 import { NumericTable, type Cell } from "src/components/form/numeric-table";
 import {
@@ -12,8 +12,8 @@ import {
   getPumpCurveErrors,
   CurveErrorPoint,
 } from "src/hydraulic-model/curves";
-import { UnitsSpec } from "src/model-metadata/quantities-spec";
-import { getDecimals } from "src/model-metadata";
+import { UnitsSpec } from "src/lib/project-settings/quantities-spec";
+import { getDecimals } from "src/lib/project-settings";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { Pump, PumpDefintionType } from "src/hydraulic-model/asset-types/pump";
 import {
@@ -272,9 +272,7 @@ export const PumpCurveTable = ({
   onCurveChange?: OnCurveChange;
 }) => {
   const translate = useTranslate();
-  const {
-    modelMetadata: { formatting },
-  } = useAtomValue(dataAtom);
+  const { formatting } = useAtomValue(projectSettingsAtom);
 
   const [editingPoints, setEditingPoints] = useState<MaybePumpCurvePoint[]>(
     () => initialPointsFromCurve(curve, curveType),

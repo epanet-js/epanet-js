@@ -28,13 +28,13 @@ import {
   CustomerPoint,
   getActiveCustomerPoints,
 } from "src/hydraulic-model/customer-points";
-import { UnitsSpec } from "src/model-metadata/quantities-spec";
-import { getMinorLossUnit } from "src/model-metadata";
+import { UnitsSpec } from "src/lib/project-settings/quantities-spec";
+import { getMinorLossUnit } from "src/lib/project-settings";
 import { useTranslate } from "src/hooks/use-translate";
 import { usePersistence } from "src/lib/persistence";
 import { useUserTracking } from "src/infra/user-tracking";
 import { stagingModelAtom } from "src/state/hydraulic-model";
-import { dataAtom } from "src/state/data";
+import { projectSettingsAtom } from "src/state/project-settings";
 import { simulationSettingsAtom } from "src/state/simulation-settings";
 import {
   changeProperty,
@@ -122,7 +122,7 @@ export function AssetPanel({
   readonly?: boolean;
 }) {
   const hydraulicModel = useAtomValue(stagingModelAtom);
-  const { modelMetadata } = useAtomValue(dataAtom);
+  const projectSettings = useAtomValue(projectSettingsAtom);
   const rep = usePersistence();
   const transact = rep.useTransact();
   const userTracking = useUserTracking();
@@ -282,7 +282,7 @@ export function AssetPanel({
         <PipeEditor
           pipe={pipe}
           {...getLinkNodes(hydraulicModel.assets, pipe)}
-          headlossFormula={modelMetadata.headlossFormula}
+          headlossFormula={projectSettings.headlossFormula}
           units={units}
           onPropertyChange={handlePropertyChange}
           onStatusChange={handleStatusChange}

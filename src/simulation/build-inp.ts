@@ -28,7 +28,7 @@ import { CustomerPointsLookup } from "src/hydraulic-model/customer-points-lookup
 import { Valve, AssetId } from "src/hydraulic-model/asset-types";
 import { checksum } from "src/infra/checksum";
 import { ProjectionMapper } from "src/projections";
-import { UnitsSpec } from "src/model-metadata/quantities-spec";
+import { UnitsSpec } from "src/lib/project-settings/quantities-spec";
 import { Position } from "geojson";
 import { withDebugInstrumentation } from "src/infra/with-instrumentation";
 import {

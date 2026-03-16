@@ -1,5 +1,5 @@
 import { useAtom, useAtomValue } from "jotai";
-import { dataAtom } from "src/state/data";
+import { projectSettingsAtom } from "src/state/project-settings";
 import { pipeDrawingDefaultsAtom } from "src/state/drawing";
 import { Mode, modeAtom } from "src/state/mode";
 import { useTranslate } from "src/hooks/use-translate";
@@ -14,9 +14,7 @@ export const PipeDrawingFloatingPanel = () => {
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
   const userTracking = useUserTracking();
-  const {
-    modelMetadata: { units, defaults },
-  } = useAtomValue(dataAtom);
+  const { units, defaults } = useAtomValue(projectSettingsAtom);
   const { displayValue } = useValueDisplay();
   const [pipeDrawingDefaults, setPipeDrawingDefaults] = useAtom(
     pipeDrawingDefaultsAtom,

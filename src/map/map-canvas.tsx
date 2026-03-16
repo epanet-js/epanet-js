@@ -14,6 +14,7 @@ import clsx from "clsx";
 import throttle from "lodash/throttle";
 import mapboxgl /*, { LngLatBoundsLike } */ from "mapbox-gl";
 import { dataAtom, Data } from "src/state/data";
+import { projectSettingsAtom } from "src/state/project-settings";
 import { ephemeralStateAtom, EphemeralEditingState } from "src/state/drawing";
 import { stagingModelAtom } from "src/state/hydraulic-model";
 import {
@@ -103,6 +104,7 @@ export const MapCanvas = memo(function MapCanvas({
   const rep = usePersistence();
 
   const data = useAtomValue(dataAtom);
+  const { units } = useAtomValue(projectSettingsAtom);
   const ephemeralState = useAtomValue(ephemeralStateAtom);
   const [currentZoom, setCurrentZoom] = useAtom(currentZoomAtom);
 
@@ -190,7 +192,7 @@ export const MapCanvas = memo(function MapCanvas({
     mode,
     dragTargetRef,
     hydraulicModel,
-    units: data.modelMetadata.units,
+    units,
     folderMap,
     selection,
     map: mapRef.current!,

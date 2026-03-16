@@ -12,7 +12,7 @@ import { getCurveTypeConfig } from "./curve-type-config";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { InlineField } from "src/components/form/fields";
-import type { UnitsSpec } from "src/model-metadata/quantities-spec";
+import type { UnitsSpec } from "src/lib/project-settings/quantities-spec";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 interface CurveGraphProps {
