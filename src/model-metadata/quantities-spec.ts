@@ -69,10 +69,6 @@ export type AssetQuantitiesSpec = {
   units: UnitsSpec;
   decimals: DecimalsSpec;
   defaults: DefaultsSpec;
-  ranges: {
-    velocityFallbackEndpoints: [number, number];
-    unitHeadlossFallbackEndpoints: [number, number];
-  };
 };
 
 const allFlowUnits = (unit: Unit) => ({
@@ -141,10 +137,6 @@ const metricSpec: AssetQuantitiesSpec = {
     },
     valve: { diameter: 300 },
   },
-  ranges: {
-    velocityFallbackEndpoints: [0, 4],
-    unitHeadlossFallbackEndpoints: [0, 5],
-  },
 };
 
 const usCustomarySpec: AssetQuantitiesSpec = {
@@ -199,10 +191,6 @@ const usCustomarySpec: AssetQuantitiesSpec = {
       power: 20,
     },
     valve: { diameter: 12 },
-  },
-  ranges: {
-    velocityFallbackEndpoints: [0, 10],
-    unitHeadlossFallbackEndpoints: [3, 12],
   },
 };
 
@@ -336,9 +324,5 @@ export class Quantities {
 
   constructor(spec: AssetQuantitiesSpec) {
     this.spec = spec;
-  }
-
-  get ranges() {
-    return this.spec.ranges;
   }
 }

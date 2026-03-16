@@ -1,8 +1,5 @@
 import { HydraulicModel } from "src/hydraulic-model";
-import type {
-  UnitsSpec,
-  AssetQuantitiesSpec,
-} from "src/model-metadata/quantities-spec";
+import type { UnitsSpec } from "src/model-metadata/quantities-spec";
 import { initializeColorRule } from "./range-color-rule";
 import { NodeSymbology, LinkSymbology } from "./symbology-types";
 import { nullLabelRule } from "./labeling";
@@ -13,6 +10,8 @@ import {
 } from "src/simulation/results-reader";
 import type { RangeColorPreference } from "src/state/map-symbology";
 import type { RangeColorRule } from "./range-color-rule";
+import type { RangeEndpoints } from "./range-color-rule";
+import type { Unit } from "src/quantity";
 
 const applyCustomColors = (
   colorRule: RangeColorRule,
@@ -27,12 +26,28 @@ const applyCustomColors = (
   return colorRule;
 };
 
-type SymbologyRanges = AssetQuantitiesSpec["ranges"];
+const VELOCITY_FALLBACK_ENDPOINTS: Record<string, RangeEndpoints> = {
+  "m/s": [0, 4],
+  "ft/s": [0, 10],
+};
+
+const UNIT_HEADLOSS_FALLBACK_ENDPOINTS: Record<string, RangeEndpoints> = {
+  "m/km": [0, 5],
+  "ft/kft": [3, 12],
+};
+
+const getFallbackEndpoints = (
+  unit: Unit,
+  endpoints: Record<string, RangeEndpoints>,
+): RangeEndpoints => {
+  const result = endpoints[unit as string];
+  if (!result) throw new Error(`No fallback endpoints for unit: ${unit}`);
+  return result;
+};
 
 type SymbologyBuilderFn<T> = (
   hydraulicModel: HydraulicModel,
   units: UnitsSpec,
-  ranges: SymbologyRanges,
   resultsReader: ResultsReader,
   preference?: RangeColorPreference,
 ) => () => T;
@@ -59,7 +74,6 @@ export const defaultSymbologyBuilders: DefaultSymbologyBuilders = {
     (
       hydraulicModel: HydraulicModel,
       units: UnitsSpec,
-      _ranges: SymbologyRanges,
       _resultsReader: ResultsReader,
       preference?: RangeColorPreference,
     ) =>
@@ -83,7 +97,6 @@ export const defaultSymbologyBuilders: DefaultSymbologyBuilders = {
     (
       hydraulicModel: HydraulicModel,
       units: UnitsSpec,
-      _ranges: SymbologyRanges,
       _resultsReader: ResultsReader,
       preference?: RangeColorPreference,
     ) =>
@@ -107,7 +120,6 @@ export const defaultSymbologyBuilders: DefaultSymbologyBuilders = {
     (
       hydraulicModel: HydraulicModel,
       units: UnitsSpec,
-      _ranges: SymbologyRanges,
       _resultsReader: ResultsReader,
       preference?: RangeColorPreference,
     ) =>
@@ -132,7 +144,6 @@ export const defaultSymbologyBuilders: DefaultSymbologyBuilders = {
     (
       hydraulicModel: HydraulicModel,
       units: UnitsSpec,
-      _ranges: SymbologyRanges,
       resultsReader: ResultsReader,
       preference?: RangeColorPreference,
     ) =>
@@ -160,7 +171,6 @@ export const defaultSymbologyBuilders: DefaultSymbologyBuilders = {
     (
       hydraulicModel: HydraulicModel,
       units: UnitsSpec,
-      ranges: SymbologyRanges,
       resultsReader: ResultsReader,
       preference?: RangeColorPreference,
     ) =>
@@ -174,7 +184,10 @@ export const defaultSymbologyBuilders: DefaultSymbologyBuilders = {
         numIntervals: preference?.numIntervals,
         reverseRamp: preference?.reversedRamp,
         sortedData,
-        fallbackEndpoints: ranges.velocityFallbackEndpoints,
+        fallbackEndpoints: getFallbackEndpoints(
+          units.velocity,
+          VELOCITY_FALLBACK_ENDPOINTS,
+        ),
       });
       return {
         colorRule: applyCustomColors(colorRule, preference),
@@ -186,7 +199,6 @@ export const defaultSymbologyBuilders: DefaultSymbologyBuilders = {
     (
       hydraulicModel: HydraulicModel,
       units: UnitsSpec,
-      ranges: SymbologyRanges,
       resultsReader: ResultsReader,
       preference?: RangeColorPreference,
     ) =>
@@ -203,7 +215,10 @@ export const defaultSymbologyBuilders: DefaultSymbologyBuilders = {
         numIntervals: preference?.numIntervals,
         reverseRamp: preference?.reversedRamp,
         sortedData,
-        fallbackEndpoints: ranges.unitHeadlossFallbackEndpoints,
+        fallbackEndpoints: getFallbackEndpoints(
+          units.unitHeadloss,
+          UNIT_HEADLOSS_FALLBACK_ENDPOINTS,
+        ),
       });
       return {
         colorRule: applyCustomColors(colorRule, preference),
@@ -215,7 +230,6 @@ export const defaultSymbologyBuilders: DefaultSymbologyBuilders = {
     (
       hydraulicModel: HydraulicModel,
       units: UnitsSpec,
-      _ranges: SymbologyRanges,
       resultsReader: ResultsReader,
       preference?: RangeColorPreference,
     ) =>
@@ -241,7 +255,6 @@ export const defaultSymbologyBuilders: DefaultSymbologyBuilders = {
     (
       hydraulicModel: HydraulicModel,
       units: UnitsSpec,
-      _ranges: SymbologyRanges,
       resultsReader: ResultsReader,
       preference?: RangeColorPreference,
     ) =>
@@ -270,7 +283,6 @@ export const defaultSymbologyBuilders: DefaultSymbologyBuilders = {
     (
       hydraulicModel: HydraulicModel,
       units: UnitsSpec,
-      _ranges: SymbologyRanges,
       resultsReader: ResultsReader,
       preference?: RangeColorPreference,
     ) =>

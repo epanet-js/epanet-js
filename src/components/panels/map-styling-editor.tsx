@@ -101,7 +101,7 @@ const SymbologyEditor = ({
   } = useSymbologyState();
   const symbology = geometryType === "node" ? nodeSymbology : linkSymbology;
   const {
-    modelMetadata: { quantities, units },
+    modelMetadata: { units },
   } = useAtomValue(dataAtom);
   const hydraulicModel = useAtomValue(stagingModelAtom);
   const isPersistMapPreferencesOn = useFeatureFlag(
@@ -136,7 +136,6 @@ const SymbologyEditor = ({
           defaultSymbologyBuilders[property](
             hydraulicModel,
             units,
-            quantities.ranges,
             simulationResults!,
             preference,
           ),
@@ -154,7 +153,6 @@ const SymbologyEditor = ({
           defaultSymbologyBuilders[property](
             hydraulicModel,
             units,
-            quantities.ranges,
             simulationResults!,
             preference,
           ),
