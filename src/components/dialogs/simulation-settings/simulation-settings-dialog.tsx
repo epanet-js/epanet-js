@@ -60,8 +60,8 @@ export const SimulationSettingsDialog = () => {
       {({ submitForm, isSubmitting }) => (
         <BaseDialog
           title={translate("simulationSettings.title")}
-          size="md"
-          height="lg"
+          size="lg"
+          height="xl"
           isOpen={true}
           onClose={closeDialog}
           footer={

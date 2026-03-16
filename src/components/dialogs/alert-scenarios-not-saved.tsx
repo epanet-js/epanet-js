@@ -18,7 +18,7 @@ export const AlertScenariosNotSavedDialog = ({
   return (
     <BaseDialog
       title={translate("alertScenariosNotSaved")}
-      size="sm"
+      size="md"
       isOpen={true}
       onClose={onClose}
       footer={

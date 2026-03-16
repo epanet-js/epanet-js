@@ -153,7 +153,7 @@ export function CheatsheetDialog() {
   return (
     <BaseDialog
       title={translate("keyboardShortcuts.title")}
-      size="md"
+      size="lg"
       isOpen={true}
       onClose={closeDialog}
     >

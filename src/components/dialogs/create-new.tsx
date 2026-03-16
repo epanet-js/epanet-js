@@ -173,7 +173,7 @@ export const CreateNew = () => {
   return (
     <BaseDialog
       title={translate("newProject")}
-      size="sm"
+      size="md"
       isOpen={true}
       onClose={handleCancel}
       footer={

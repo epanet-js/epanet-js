@@ -212,8 +212,8 @@ export const PumpLibraryDialog = ({
   return (
     <BaseDialog
       title={translate("pumpLibrary")}
-      size="md"
-      height="xl"
+      size="lg"
+      height="xxl"
       isOpen={true}
       onClose={() => dialogActions.current?.closeDialog()}
       footer={

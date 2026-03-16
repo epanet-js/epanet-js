@@ -82,7 +82,7 @@ export const FirstScenarioDialog = ({
   return (
     <BaseDialog
       title={translate("scenarios.firstScenario.title")}
-      size="sm"
+      size="md"
       isOpen={true}
       onClose={onClose}
       badge={<EarlyAccessBadge />}

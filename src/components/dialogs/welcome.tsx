@@ -83,7 +83,7 @@ export const WelcomeDialog = () => {
   const { closeDialog } = useDialogState();
 
   return (
-    <BaseDialog size="md" isOpen={true} onClose={closeDialog}>
+    <BaseDialog size="lg" isOpen={true} onClose={closeDialog}>
       <LocaleProvider>
         <div className="relative grid sm:grid-cols-[min-content_1fr] h-full overflow-hidden">
           <div className="absolute top-6 right-6 z-10">

@@ -275,14 +275,22 @@ export const StyledAlertDialogOverlay = classed(AlertDialog.Overlay)(
 );
 export const StyledDialogOverlay = classed(Dialog.Overlay)(overlayClasses);
 
-type DialogSize = "xs" | "sm" | "md" | "lg" | "xl" | "fullscreen" | "auto";
+type DialogSize =
+  | "xs"
+  | "sm"
+  | "md"
+  | "lg"
+  | "xl"
+  | "xxl"
+  | "fullscreen"
+  | "auto";
 
 export const styledDialogContentNew = ({
-  size = "sm",
+  size = "md",
   height,
 }: {
   size?: DialogSize;
-  height?: "sm" | "md" | "lg" | "xl";
+  height?: "md" | "lg" | "xl" | "xxl";
 }) => {
   if (size === "fullscreen") {
     return "fixed inset-0 z-[100] w-screen h-dvh flex flex-col text-left bg-white dark:bg-gray-900 shadow-md dark:text-white dark:shadow-none dark:border dark:border-black";
@@ -293,19 +301,20 @@ export const styledDialogContentNew = ({
       ? undefined
       : {
           xs: "max-w-[360px]",
-          sm: "max-w-screen-sm",
-          md: "max-w-full md:max-w-screen-md",
-          lg: "max-w-full lg:max-w-screen-lg",
-          xl: "max-w-full xl:max-w-screen-xl",
+          sm: "max-w-[480px]",
+          md: "max-w-screen-sm",
+          lg: "max-w-full md:max-w-screen-md",
+          xl: "max-w-full lg:max-w-screen-lg",
+          xxl: "max-w-full xl:max-w-screen-xl",
         }[size];
 
   const heightClass =
     height &&
     {
-      sm: "h-[300px]",
-      md: "h-[480px]",
-      lg: "h-[640px]",
-      xl: "h-[848px]",
+      md: "h-[300px]",
+      lg: "h-[480px]",
+      xl: "h-[640px]",
+      xxl: "h-[848px]",
     }[height];
 
   return clsx(
@@ -325,8 +334,8 @@ export const styledDialogContent = ({
   widthClasses,
   fillMode = "auto",
 }: {
-  size?: "sm" | "xs" | "md" | "lg" | "xl" | "fullscreen";
-  height?: "sm" | "xs" | "md" | "lg" | "xl" | "fullscreen";
+  size?: "xs" | "sm" | "md" | "lg" | "xl" | "xxl" | "fullscreen";
+  height?: "xs" | "sm" | "md" | "lg" | "xl" | "xxl" | "fullscreen";
   fillMode?: "full" | "auto";
   widthClasses?: string;
 }) => {
@@ -340,25 +349,26 @@ export const styledDialogContent = ({
       dark:text-white
       shadow-md dark:shadow-none dark:border dark:border-black
     `,
-    fillMode === "full" || size === "xl" || size === "fullscreen"
+    fillMode === "full" || size === "xxl" || size === "fullscreen"
       ? "flex flex-col"
       : "",
     { "w-full": fillMode === "full", "w-full sm:w-auto": fillMode === "auto" },
     {
       "sm:max-w-[360px]": size === "xs",
-      "sm:max-w-screen-sm": size === "sm" && !widthClasses,
-      "max-w-full md:max-w-screen-md lg:max-w-screen-md": size === "md",
-      "max-w-full lg:max-w-screen-lg xl:max-w-screen-lg": size === "lg",
-      "max-w-full xl:max-w-screen-xl 2xl:max-w-screen-xl": size === "xl",
+      "sm:max-w-[480px]": size === "sm" && !widthClasses,
+      "sm:max-w-screen-sm": size === "md" && !widthClasses,
+      "max-w-full md:max-w-screen-md lg:max-w-screen-md": size === "lg",
+      "max-w-full lg:max-w-screen-lg xl:max-w-screen-lg": size === "xl",
+      "max-w-full xl:max-w-screen-xl 2xl:max-w-screen-xl": size === "xxl",
       "inset-0 h-100dvh w-screen": size === "fullscreen",
     },
     size === "fullscreen"
       ? ""
-      : size === "xl"
+      : size === "xxl"
         ? "sm:h-[90vh] sm:left-2/4 sm:top-2/4 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded sm:align-middle"
         : "max-h-[100vh] inset-0 sm:inset-auto sm:left-2/4 sm:top-2/4 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded sm:align-middle",
     size !== "fullscreen" && widthClasses ? widthClasses : "",
-    height === "lg"
+    height === "xl"
       ? "vsm:w-dvw vsm:h-dvh vmd:h-[848px] hsm:h-full hmd:h-[calc(100dvh_-_1rem)] hlg:h-[848px] hxl:h-[848px]"
       : "",
   );

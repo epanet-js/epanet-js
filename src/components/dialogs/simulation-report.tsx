@@ -116,7 +116,7 @@ export const SimulationReportDialog = () => {
   return (
     <BaseDialog
       title={translate("simulationReport")}
-      size="sm"
+      size="md"
       isOpen={true}
       onClose={closeDialog}
       footer={

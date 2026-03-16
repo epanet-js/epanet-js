@@ -149,8 +149,8 @@ export const ModelBuilderIframeDialog = ({
   return (
     <BaseDialog
       title={translate("importFromGIS")}
-      size="xl"
-      height="xl"
+      size="xxl"
+      height="xxl"
       isOpen={true}
       onClose={_onClose}
       badge={<EarlyAccessBadge />}

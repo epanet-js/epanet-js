@@ -13,7 +13,7 @@ export const AlertInpOutputDialog = ({
   return (
     <BaseDialog
       title={translate("alertInpOutput")}
-      size="sm"
+      size="md"
       isOpen={true}
       onClose={onClose}
       footer={

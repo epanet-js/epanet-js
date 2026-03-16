@@ -30,7 +30,7 @@ export const ImportCustomerPointsWarningDialog = ({
   return (
     <BaseDialog
       title={translate("importCustomerPoints.label")}
-      size="sm"
+      size="md"
       isOpen={true}
       onClose={handleCancel}
       footer={

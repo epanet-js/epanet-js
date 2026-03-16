@@ -86,7 +86,7 @@ const ChangesFromSupportDialog = () => {
   return (
     <BaseDialog
       title={translate("planChangesFromSupport")}
-      size="sm"
+      size="md"
       isOpen={true}
       onClose={closeDialog}
       footer={
@@ -136,7 +136,7 @@ const PlansDialog = () => {
   return (
     <BaseDialog
       title={translate("upgradeYourAccount")}
-      size="lg"
+      size="xl"
       isOpen={true}
       onClose={closeDialog}
     >

@@ -39,15 +39,15 @@ export const LoadingDialog = () => {
 };
 
 export const DialogContainer = ({
-  size = "sm",
+  size = "md",
   height,
   fillMode = "full",
   children,
   disableOutsideClick = false,
   onClose,
 }: {
-  size?: "sm" | "xs" | "md" | "lg" | "xl" | "fullscreen";
-  height?: "sm" | "md" | "lg" | "xl" | "fullscreen";
+  size?: "xs" | "sm" | "md" | "lg" | "xl" | "xxl" | "fullscreen";
+  height?: "md" | "lg" | "xl" | "xxl" | "fullscreen";
   fillMode?: "full" | "auto";
   children: React.ReactNode;
   disableOutsideClick?: boolean;
@@ -168,8 +168,8 @@ export function DialogHeader({
 
 interface BaseDialogProps {
   title?: string;
-  size?: "sm" | "xs" | "md" | "lg" | "xl" | "fullscreen" | "auto";
-  height?: "sm" | "md" | "lg" | "xl";
+  size?: "xs" | "sm" | "md" | "lg" | "xl" | "xxl" | "fullscreen" | "auto";
+  height?: "md" | "lg" | "xl" | "xxl";
   isOpen: boolean;
   onClose: () => void;
   children: React.ReactNode;

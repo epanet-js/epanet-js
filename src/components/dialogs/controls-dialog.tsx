@@ -79,7 +79,7 @@ export const ControlsDialog = () => {
       {({ submitForm, isSubmitting }) => (
         <BaseDialog
           title={translate("controls.title")}
-          size="md"
+          size="lg"
           isOpen={true}
           onClose={closeDialog}
           footer={

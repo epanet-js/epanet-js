@@ -182,7 +182,7 @@ export const ScenariosPaywallDialog = ({
   return (
     <BaseDialog
       title={translate("scenarios.paywall.title")}
-      size="md"
+      size="lg"
       isOpen={true}
       onClose={_onClose}
     >

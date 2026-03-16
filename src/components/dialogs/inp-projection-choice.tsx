@@ -32,7 +32,7 @@ export const InpProjectionChoiceDialog = ({
   return (
     <BaseDialog
       title={translate("inpProjectionChoice.title")}
-      size="sm"
+      size="md"
       isOpen={true}
       onClose={closeDialog}
     >

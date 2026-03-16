@@ -28,7 +28,7 @@ export const UnsavedChangesDialog = ({
   return (
     <BaseDialog
       title={translate("unsavedChanges")}
-      size="sm"
+      size="md"
       isOpen={true}
       onClose={onClose}
       footer={

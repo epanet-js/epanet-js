@@ -218,8 +218,8 @@ export const CurveLibraryDialog = ({
   return (
     <BaseDialog
       title={translate("curves.title")}
-      size="md"
-      height="xl"
+      size="lg"
+      height="xxl"
       isOpen={true}
       onClose={() => dialogActions.current?.closeDialog()}
       footer={

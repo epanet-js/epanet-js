@@ -192,8 +192,8 @@ export const PatternsDialog = ({
   return (
     <BaseDialog
       title={translate("patterns.title")}
-      size="lg"
-      height="xl"
+      size="xl"
+      height="xxl"
       isOpen={true}
       onClose={() => dialogActions.current?.closeDialog()}
       footer={

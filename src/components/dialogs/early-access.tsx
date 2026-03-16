@@ -27,7 +27,7 @@ export const EarlyAccessDialog = ({
   return (
     <BaseDialog
       title={translate("earlyAccessDialog.title")}
-      size="sm"
+      size="md"
       isOpen={true}
       onClose={closeDialog}
       footer={

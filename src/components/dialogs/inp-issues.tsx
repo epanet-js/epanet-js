@@ -40,7 +40,7 @@ export const GeocodingNotSupportedDialog = ({
   return (
     <BaseDialog
       title={translate("geocodingNotSupported")}
-      size="sm"
+      size="md"
       isOpen={true}
       onClose={onClose}
       footer={
@@ -95,7 +95,7 @@ export const MissingCoordinatesDialog = ({
   return (
     <BaseDialog
       title={translate("missingCoordinates")}
-      size="sm"
+      size="md"
       isOpen={true}
       onClose={onClose}
       footer={
@@ -135,7 +135,7 @@ export const InpIssuesDialog = ({
   return (
     <BaseDialog
       title={translate("inpNotFullySupported")}
-      size="sm"
+      size="md"
       isOpen={true}
       onClose={onClose}
       footer={
