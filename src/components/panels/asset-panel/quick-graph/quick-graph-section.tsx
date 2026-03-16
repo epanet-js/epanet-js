@@ -227,10 +227,10 @@ const QuickGraphSection = ({
     <div
       className={clsx(
         "flex flex-col flex-1 min-h-0",
-        useAutoIndentation && "pl-4",
+        useAutoIndentation && "pl-5",
       )}
     >
-      <div className="flex items-start justify-between text-sm font-semibold pb-2">
+      <div className="flex items-center justify-between text-sm font-semibold h-8">
         {translate("quickGraph")}
         {pinButton}
       </div>
