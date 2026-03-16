@@ -1,14 +1,8 @@
-import {
-  Quantities,
-  UnitsSpec,
-  DefaultsSpec,
-  FormattingSpec,
-} from "./quantities-spec";
+import { UnitsSpec, DefaultsSpec, FormattingSpec } from "./quantities-spec";
 import { ProjectionMapper } from "src/projections";
 import { HeadlossFormula } from "src/hydraulic-model/asset-types/pipe";
 
 export type ModelMetadata = {
-  quantities: Quantities;
   units: UnitsSpec;
   defaults: DefaultsSpec;
   headlossFormula: HeadlossFormula;

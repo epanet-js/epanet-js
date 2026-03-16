@@ -11,7 +11,6 @@ import { SimpleDialogActions } from "src/components/dialog";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   Presets,
-  Quantities,
   presets,
   supportedPressureUnits,
   getDefaultPressureUnit,
@@ -134,9 +133,7 @@ export const CreateNew = () => {
       const spec = pressureUnit
         ? withPressureUnit(presets[unitsSpec], pressureUnit)
         : presets[unitsSpec];
-      const quantities = new Quantities(spec);
       const modelMetadata: ModelMetadata = {
-        quantities,
         units: spec.units,
         defaults: spec.defaults,
         headlossFormula,

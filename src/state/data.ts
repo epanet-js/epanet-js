@@ -1,7 +1,7 @@
 import { atom } from "jotai";
 import type { Sel } from "src/selection/types";
 import { FolderMap } from "src/types";
-import { Quantities, presets } from "src/model-metadata/quantities-spec";
+import { presets } from "src/model-metadata/quantities-spec";
 import { ModelMetadata } from "src/model-metadata";
 import { createProjectionMapper } from "src/projections";
 
@@ -14,9 +14,7 @@ export interface Data {
   modelMetadata: ModelMetadata;
 }
 
-const quantities = new Quantities(presets.LPS);
 const modelMetadata: ModelMetadata = {
-  quantities,
   units: presets.LPS.units,
   defaults: presets.LPS.defaults,
   headlossFormula: "H-W",

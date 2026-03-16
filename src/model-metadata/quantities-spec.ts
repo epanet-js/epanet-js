@@ -318,11 +318,3 @@ export const getMinorLossUnit = (
 ): Unit => {
   return headlossFormula === "D-W" ? units.length : null;
 };
-
-export class Quantities {
-  private spec: AssetQuantitiesSpec;
-
-  constructor(spec: AssetQuantitiesSpec) {
-    this.spec = spec;
-  }
-}

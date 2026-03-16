@@ -23,11 +23,7 @@ import {
 } from "./inp-data";
 import { IssuesAccumulator } from "./issues";
 import { ModelMetadata } from "src/model-metadata";
-import {
-  Quantities,
-  presets,
-  withPressureUnit,
-} from "src/model-metadata/quantities-spec";
+import { presets, withPressureUnit } from "src/model-metadata/quantities-spec";
 import type { Unit } from "src/quantity";
 import { Position } from "geojson";
 import { PumpStatus } from "src/hydraulic-model/asset-types/pump";
@@ -87,14 +83,13 @@ export const buildModel = (
   factories: ModelFactories;
   modelMetadata: Pick<
     ModelMetadata,
-    "quantities" | "units" | "defaults" | "headlossFormula" | "formatting"
+    "units" | "defaults" | "headlossFormula" | "formatting"
   >;
 } => {
   const baseSpec = presets[inpData.options.units];
   const spec = inpData.options.pressureUnit
     ? withPressureUnit(baseSpec, inpData.options.pressureUnit as Unit)
     : baseSpec;
-  const quantities = new Quantities(spec);
   const nodeIds = new ItemData<AssetId>();
   const linkIds = new ItemData<AssetId>();
   const factories = initializeModelFactories();
@@ -194,7 +189,6 @@ export const buildModel = (
     hydraulicModel,
     factories,
     modelMetadata: {
-      quantities,
       units: spec.units,
       defaults: spec.defaults,
       headlossFormula: inpData.options.headlossFormula,
