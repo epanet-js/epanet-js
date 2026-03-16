@@ -30,20 +30,23 @@ import { WizardActions as WizardActionsComponent } from "src/components/wizard";
 import { convertTo } from "src/quantity";
 import { ChevronDownIcon, ChevronRightIcon } from "src/icons";
 import { Selector } from "src/components/form/selector";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 const CONSTANT_PATTERN_ID = 0;
 
 export const DataMappingStep: React.FC<{
   onNext: () => void;
   onBack: () => void;
+  renderActions?: boolean;
   wizardState: WizardState & WizardActions & { units: UnitsSpec };
-}> = ({ onNext, onBack, wizardState }) => {
+}> = ({ onNext, onBack, renderActions = true, wizardState }) => {
   const translate = useTranslate();
   const userTracking = useUserTracking();
   const projectSettings = useAtomValue(projectSettingsAtom);
   const hydraulicModel = useAtomValue(stagingModelAtom);
   const { customerPointFactory } = useAtomValue(modelFactoriesAtom);
   const patterns = hydraulicModel.patterns;
+  const isModalsOn = useFeatureFlag("FLAG_MODALS");
 
   const {
     parsedDataSummary,
@@ -262,7 +265,9 @@ export const DataMappingStep: React.FC<{
 
   return (
     <>
-      <div className="overflow-y-auto flex-grow">
+      <div
+        className={`overflow-y-auto flex-grow ${isModalsOn ? "scroll-shadows" : ""}`}
+      >
         <h2 className="text-lg font-semibold">
           {translate("importCustomerPoints.wizard.dataMapping.title")}
         </h2>
@@ -427,16 +432,18 @@ export const DataMappingStep: React.FC<{
         )}
       </div>
 
-      <WizardActionsComponent
-        backAction={{
-          onClick: onBack,
-          disabled: isLoading,
-        }}
-        nextAction={{
-          onClick: onNext,
-          disabled: isNextDisabled,
-        }}
-      />
+      {renderActions && (
+        <WizardActionsComponent
+          backAction={{
+            onClick: onBack,
+            disabled: isLoading,
+          }}
+          nextAction={{
+            onClick: onNext,
+            disabled: isNextDisabled,
+          }}
+        />
+      )}
     </>
   );
 };

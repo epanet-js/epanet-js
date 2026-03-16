@@ -1,4 +1,5 @@
 import React from "react";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export interface Step {
   number: number;
@@ -15,11 +16,12 @@ export const WizardStepIndicator: React.FC<WizardStepIndicatorProps> = ({
   steps,
   currentStep,
 }) => {
+  const isModalsOn = useFeatureFlag("FLAG_MODALS");
   return (
     <nav
       role="navigation"
       aria-label="Import wizard steps"
-      className="flex items-center space-x-4 py-4"
+      className={`flex items-center space-x-4 ${isModalsOn ? "p-4" : "py-4"}`}
     >
       {steps.map((step, index) => (
         <React.Fragment key={step.number}>

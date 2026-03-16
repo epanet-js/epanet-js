@@ -1,8 +1,10 @@
 import React, { useCallback } from "react";
+import { useAtomValue } from "jotai";
 import {
   WizardContainer,
   WizardHeader,
   WizardContent,
+  WizardActions,
   type Step,
 } from "src/components/wizard";
 import { useWizardState } from "./use-wizard-state";
@@ -14,6 +16,15 @@ import { useTranslate } from "src/hooks/use-translate";
 import { useUserTracking } from "src/infra/user-tracking";
 import { EarlyAccessBadge } from "src/components/early-access-badge";
 import { useProjections } from "src/hooks/use-projections";
+import { stagingModelAtom } from "src/state/hydraulic-model";
+import { modelFactoriesAtom } from "src/state/model-factories";
+import { simulationSettingsAtom } from "src/state/simulation-settings";
+import { projectSettingsAtom } from "src/state/project-settings";
+import { addCustomerPoints } from "src/hydraulic-model/mutations/add-customer-points";
+import { usePersistence } from "src/lib/persistence";
+import { notify } from "src/components/notifications";
+import { SuccessIcon } from "src/icons";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 const stepNames = {
   1: "dataInput",
@@ -30,6 +41,7 @@ type ImportCustomerPointsWizardProps = {
 export const ImportCustomerPointsWizard: React.FC<
   ImportCustomerPointsWizardProps
 > = ({ onClose }) => {
+  const isModalsOn = useFeatureFlag("FLAG_MODALS");
   const userTracking = useUserTracking();
   const wizardState = useWizardState();
   const translate = useTranslate();
@@ -38,6 +50,13 @@ export const ImportCustomerPointsWizard: React.FC<
     loading: projectionsLoading,
     error: projectionsError,
   } = useProjections();
+
+  const hydraulicModel = useAtomValue(stagingModelAtom);
+  const factories = useAtomValue(modelFactoriesAtom);
+  const simulationSettings = useAtomValue(simulationSettingsAtom);
+  const projectSettings = useAtomValue(projectSettingsAtom);
+  const rep = usePersistence();
+  const transactImport = rep.useTransactImport();
 
   const handleClose = useCallback(() => {
     wizardState.reset();
@@ -74,9 +93,77 @@ export const ImportCustomerPointsWizard: React.FC<
     handleClose();
   }, [userTracking, handleClose, wizardState.currentStep]);
 
-  const handleFinish = useCallback(() => {
-    handleClose();
-  }, [handleClose]);
+  const handleFinish = useCallback(async () => {
+    const {
+      allocationResult,
+      allocationRules,
+      keepDemands,
+      parsedDataSummary,
+      setProcessing,
+      setError,
+    } = wizardState;
+    if (!allocationResult) return;
+
+    setProcessing(true);
+    await new Promise((resolve) => setTimeout(resolve, 10));
+
+    try {
+      const customerPointsToAdd = [
+        ...allocationResult.allocatedCustomerPoints.values(),
+        ...allocationResult.disconnectedCustomerPoints.values(),
+      ];
+
+      const updatedHydraulicModel = addCustomerPoints(
+        hydraulicModel,
+        customerPointsToAdd,
+        {
+          preserveJunctionDemands: keepDemands,
+          overrideExisting: true,
+          customerPointDemands: parsedDataSummary?.customerPointDemands,
+        },
+      );
+
+      const importedCount = updatedHydraulicModel.customerPoints.size;
+
+      transactImport(
+        updatedHydraulicModel,
+        factories,
+        projectSettings,
+        "customerpoints",
+        simulationSettings,
+      );
+
+      userTracking.capture({
+        name: "importCustomerPoints.completed",
+        count: importedCount,
+        allocatedCount: allocationResult.allocatedCustomerPoints.size,
+        disconnectedCount: allocationResult.disconnectedCustomerPoints.size,
+        rulesCount: allocationRules.length,
+      });
+
+      notify({
+        variant: "success",
+        title: translate("importSuccessful"),
+        Icon: SuccessIcon,
+      });
+
+      handleClose();
+    } catch {
+      setError("Import failed. Please try again.");
+    } finally {
+      setProcessing(false);
+    }
+  }, [
+    wizardState,
+    hydraulicModel,
+    factories,
+    projectSettings,
+    simulationSettings,
+    transactImport,
+    userTracking,
+    translate,
+    handleClose,
+  ]);
 
   const handleModalDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -111,8 +198,82 @@ export const ImportCustomerPointsWizard: React.FC<
     },
   ];
 
+  const {
+    currentStep,
+    inputData,
+    isLoading,
+    selectedDemandProperty,
+    parsedDataSummary,
+    isProcessing,
+    isAllocating,
+    isEditingRules,
+    allocationResult,
+  } = wizardState;
+
+  const footer = isModalsOn
+    ? (() => {
+        switch (currentStep) {
+          case 1:
+            return (
+              <WizardActions
+                nextAction={{ onClick: handleNext, disabled: !inputData }}
+              />
+            );
+          case 2:
+            return (
+              <WizardActions
+                backAction={{ onClick: handleBack, disabled: isLoading }}
+                nextAction={{
+                  onClick: handleNext,
+                  disabled:
+                    isLoading ||
+                    !selectedDemandProperty ||
+                    (parsedDataSummary
+                      ? parsedDataSummary.validCustomerPoints.length === 0
+                      : false),
+                }}
+              />
+            );
+          case 3:
+            return (
+              <WizardActions
+                backAction={{ onClick: handleBack }}
+                nextAction={{ onClick: handleNext }}
+              />
+            );
+          case 4:
+            return (
+              <WizardActions
+                backAction={{
+                  onClick: handleBack,
+                  disabled: isProcessing || isAllocating || isEditingRules,
+                }}
+                finishAction={
+                  isEditingRules || isAllocating
+                    ? undefined
+                    : {
+                        onClick: handleFinish,
+                        disabled: isProcessing || !allocationResult,
+                        loading: isProcessing,
+                        label: isProcessing
+                          ? translate("wizard.processing")
+                          : translate(
+                              "importCustomerPoints.wizard.allocationStep.applyChanges",
+                            ),
+                      }
+                }
+              />
+            );
+        }
+      })()
+    : undefined;
+
   return (
-    <WizardContainer onDragOver={handleModalDragOver} onDrop={handleModalDrop}>
+    <WizardContainer
+      onDragOver={handleModalDragOver}
+      onDrop={handleModalDrop}
+      footer={footer}
+    >
       <WizardHeader
         title={translate("importCustomerPoints.wizard.title")}
         steps={steps}
@@ -141,31 +302,35 @@ export const ImportCustomerPointsWizard: React.FC<
 
         {!projectionsLoading && !projectionsError && (
           <>
-            {wizardState.currentStep === 1 && (
+            {currentStep === 1 && (
               <DataInputStep
                 onNext={handleNext}
+                renderActions={!isModalsOn}
                 wizardState={wizardState}
                 projections={projections}
               />
             )}
-            {wizardState.currentStep === 2 && (
+            {currentStep === 2 && (
               <DataMappingStep
                 onNext={handleNext}
                 onBack={handleBack}
+                renderActions={!isModalsOn}
                 wizardState={wizardState}
               />
             )}
-            {wizardState.currentStep === 3 && (
+            {currentStep === 3 && (
               <DemandOptionsStep
                 onNext={handleNext}
                 onBack={handleBack}
+                renderActions={!isModalsOn}
                 wizardState={wizardState}
               />
             )}
-            {wizardState.currentStep === 4 && (
+            {currentStep === 4 && (
               <AllocationStep
                 onBack={handleBack}
-                onFinish={handleFinish}
+                onFinish={handleClose}
+                renderActions={!isModalsOn}
                 wizardState={wizardState}
               />
             )}
