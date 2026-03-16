@@ -2,7 +2,7 @@ import { nanoid } from "nanoid";
 import { IKeyValueStore, IndexedDB } from "src/infra/storage";
 
 const STORE_NAME = "recent-files";
-const MAX_ENTRIES = 5;
+const MAX_ENTRIES = 10;
 
 export type RecentFileEntry = {
   id: string;

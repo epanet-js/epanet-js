@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useAtom } from "jotai";
 import { useNewProject } from "src/commands/create-new-project";
 import { useOpenInpFromFs } from "src/commands/open-inp-from-fs";
+import { useOpenInpFromUrl } from "src/commands/open-inp-from-url";
 import { useOpenModelBuilder } from "src/commands/open-model-builder";
 import { useOpenRecentFile } from "src/commands/open-recent-file";
 import { useTranslate } from "src/hooks/use-translate";
@@ -53,10 +54,25 @@ export const WelcomeDialog = () => {
     isSupported: isRecentFilesSupported,
   } = useRecentFiles();
   const isRecentFilesOn = useFeatureFlag("FLAG_RECENT_FILES");
-  const showRecent =
-    isRecentFilesOn && isRecentFilesSupported && recentFiles.length > 0;
+  const showRecentSection = isRecentFilesOn && isRecentFilesSupported;
+  const hasRecentFiles = recentFiles.length > 0;
 
   const isMdOrLarger = useBreakpoint("md");
+
+  const demoModels: DemoModel[] = [
+    {
+      name: DRUMCHAPEL.name,
+      description: translate("demoUKStyleDescription"),
+      url: DRUMCHAPEL.url,
+      thumbnailUrl: DRUMCHAPEL.thumbnailUrl,
+    },
+    {
+      name: WATERDOWN.name,
+      description: translate("demoUSStyleDescription"),
+      url: WATERDOWN.url,
+      thumbnailUrl: WATERDOWN.thumbnailUrl,
+    },
+  ];
 
   const currentLocale = useLocale();
   const currentLanguage = languageConfig.find(
@@ -69,7 +85,7 @@ export const WelcomeDialog = () => {
   return (
     <BaseDialog size="md" isOpen={true} onClose={closeDialog}>
       <LocaleProvider>
-        <div className="relative grid sm:grid-cols-[min-content_1fr]">
+        <div className="relative grid sm:grid-cols-[min-content_1fr] h-full overflow-hidden">
           <div className="absolute top-6 right-6 z-10">
             <DialogCloseX />
           </div>
@@ -114,25 +130,6 @@ export const WelcomeDialog = () => {
                 {translate("importFromGIS")}
                 <EarlyAccessIcon size="sm" />
               </Button>
-
-              {isMdOrLarger && showRecent && (
-                <div className="flex flex-col gap-2 mt-2 max-w-[200px]">
-                  <span className="text-xs text-gray-400 uppercase px-1">
-                    {translate("recent")}
-                  </span>
-                  {recentFiles.map((entry) => (
-                    <Button
-                      key={entry.id}
-                      variant="quiet"
-                      onClick={() => openRecentFile(entry, "welcome")}
-                      className="w-full min-w-0"
-                    >
-                      <FileSpreadsheetIcon className="shrink-0" />
-                      <span className="truncate">{entry.name}</span>
-                    </Button>
-                  ))}
-                </div>
-              )}
 
               <div className="mt-4 flex items-start flex-col gap-2">
                 <a
@@ -198,7 +195,7 @@ export const WelcomeDialog = () => {
               </div>
             </div>
           </div>
-          <div className="p-6 min-w-0">
+          <div className="p-6 min-w-0 flex flex-col overflow-hidden">
             {isExperimental && (
               <div className="mt-7 mb-3">
                 <Message
@@ -210,13 +207,13 @@ export const WelcomeDialog = () => {
               </div>
             )}
 
-            {isMdOrLarger && showRecent && (
-              <div className="mb-6">
+            {isMdOrLarger && showRecentSection && hasRecentFiles ? (
+              <>
                 <h2 className="mt-[.2rem] pt-2 pb-2 font-bold text-gray-500">
                   {translate("recent")}
                 </h2>
-                <div className="scroll-shadows-x">
-                  <div className="flex flex-row gap-2 overflow-x-auto pb-1 scroll-shadows-x-inner">
+                <div className="overflow-y-auto flex-1 min-h-0 mb-6 scroll-shadows">
+                  <div className="flex flex-row flex-wrap gap-2">
                     {recentFiles.map((entry) => (
                       <RecentFileCard
                         key={entry.id}
@@ -225,13 +222,18 @@ export const WelcomeDialog = () => {
                         onRemove={() => void removeRecent(entry.id)}
                       />
                     ))}
+                    {demoModels.map((demo, i) => (
+                      <DemoAsRecentCard key={`demo-${i}`} demoNetwork={demo} />
+                    ))}
                   </div>
                 </div>
-              </div>
-            )}
+              </>
+            ) : null}
 
-            <DemoNetworks collapsible={showRecent} />
-            <div className="bg-gray-50 rounded-lg p-4 mt-6 text-xs text-center">
+            {(!showRecentSection || !hasRecentFiles) && (
+              <DemoNetworks collapsible={false} />
+            )}
+            <div className="bg-gray-50 rounded-lg p-4 mt-6 text-xs text-center shrink-0">
               <h3 className="text-gray-600 font-bold">
                 {translate("foundersPartnerTitle")}
               </h3>
@@ -369,18 +371,18 @@ const RecentFileCard = ({
   onRemove: () => void;
 }) => (
   <div
-    className="flex flex-col rounded-lg border shadow-sm cursor-pointer hover:bg-gray-50 overflow-hidden shrink-0"
-    style={{ width: "160px" }}
+    className="group flex flex-col rounded-lg border shadow-sm cursor-pointer hover:bg-gray-50 overflow-hidden shrink-0"
+    style={{ width: "145px" }}
     onClick={onOpen}
   >
     <div
       className="relative bg-gray-100 shrink-0"
-      style={{ aspectRatio: "3/2" }}
+      style={{ aspectRatio: "5/4" }}
     >
       <Button
         variant="default"
         size="xxs"
-        className="absolute top-1 right-1 z-10"
+        className="absolute top-1 right-1 z-10 opacity-0 group-hover:opacity-100 transition-opacity"
         onClick={(e) => {
           e.stopPropagation();
           onRemove();
@@ -414,3 +416,58 @@ const RecentFileCard = ({
     </div>
   </div>
 );
+
+type DemoModel = {
+  name: string;
+  description: string;
+  url: string;
+  thumbnailUrl: string;
+};
+
+const DemoAsRecentCard = ({ demoNetwork }: { demoNetwork: DemoModel }) => {
+  const userTracking = useUserTracking();
+  const { openInpFromUrl } = useOpenInpFromUrl();
+
+  const handleClick = () => {
+    userTracking.capture({
+      name: "exampleModel.clicked",
+      modelName: demoNetwork.name,
+    });
+    void openInpFromUrl(demoNetwork.url);
+  };
+
+  return (
+    <div
+      className="flex flex-col rounded-lg border shadow-sm cursor-pointer hover:bg-gray-50 overflow-hidden shrink-0"
+      style={{ width: "145px" }}
+      onClick={handleClick}
+    >
+      <div
+        className="relative bg-gray-100 shrink-0 overflow-hidden"
+        style={{ aspectRatio: "5/4" }}
+      >
+        <img
+          src={demoNetwork.thumbnailUrl}
+          alt={demoNetwork.name}
+          className="w-full h-full object-cover"
+        />
+      </div>
+      <div className="p-1 flex flex-col gap-0.5 overflow-hidden">
+        <div className="flex items-center gap-1">
+          <span
+            className="text-sm font-medium text-gray-700 truncate"
+            title={demoNetwork.name}
+          >
+            {demoNetwork.name}
+          </span>
+          <span className="px-1.5 py-0.5 text-[10px] font-semibold uppercase bg-orange-100 text-orange-700 rounded-full shrink-0 leading-none">
+            demo
+          </span>
+        </div>
+        <span className="text-xs text-gray-500 truncate">
+          {demoNetwork.description}
+        </span>
+      </div>
+    </div>
+  );
+};

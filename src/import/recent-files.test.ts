@@ -104,10 +104,10 @@ describe("RecentFilesStore", () => {
       expect(entries).toHaveLength(2);
     });
 
-    it("caps at 5 entries, evicting the oldest", async () => {
+    it("caps at 10 entries, evicting the oldest", async () => {
       const { db, store } = createStore();
 
-      for (let i = 0; i < 5; i++) {
+      for (let i = 0; i < 10; i++) {
         vi.setSystemTime(new Date(i * 1000));
         await store.add(
           `file-${i}.inp`,
@@ -115,19 +115,19 @@ describe("RecentFilesStore", () => {
         );
       }
 
-      vi.setSystemTime(new Date(5000));
+      vi.setSystemTime(new Date(10000));
       await store.add(
         "file-new.inp",
         buildHandle("/file-new.inp", "file-new.inp"),
       );
 
       const entries = await store.getAll();
-      expect(entries).toHaveLength(5);
+      expect(entries).toHaveLength(10);
       expect(entries.map((e) => e.name)).not.toContain("file-0.inp");
       expect(entries[0].name).toBe("file-new.inp");
 
       const raw = await db.getAll(STORE_NAME);
-      expect(raw).toHaveLength(5);
+      expect(raw).toHaveLength(10);
 
       vi.useRealTimers();
     });
