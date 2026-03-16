@@ -62,7 +62,6 @@ import {
   valveKinds,
   valveCurveTypeFrom,
 } from "src/hydraulic-model/asset-types/valve";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   AssetEditorContent,
   QuantityRow,
@@ -1772,7 +1771,6 @@ const PumpEditor = ({
   units: UnitsSpec;
   readonly?: boolean;
 }) => {
-  const isEnergyEnabled = useFeatureFlag("FLAG_ENERGY");
   const simulationSettings = useAtomValue(simulationSettingsAtom);
   const translate = useTranslate();
   const { footer } = useQuickGraph(pump.id, "pump");
@@ -1899,43 +1897,42 @@ const PumpEditor = ({
           readOnly={readonly}
         />
       </SectionWrapper>
-      {isEnergyEnabled && (
-        <SectionWrapper
-          title={translate("energy")}
-          section="energy"
-          hasChanged={hasEnergyChanges}
-        >
-          <PumpEfficiencyCurveField
-            pump={pump}
-            curves={hydraulicModel.curves}
-            onChange={onPropertyChange}
-            readOnly={readonly}
-          />
-          <QuantityRow
-            name="energyPrice"
-            value={pump.energyPrice ?? null}
-            unit={null}
-            comparison={getComparison("energyPrice", pump.energyPrice)}
-            onChange={(_, newValue, oldValue) =>
-              onPropertyChange(
-                "energyPrice",
-                newValue || undefined,
-                oldValue || undefined,
-              )
-            }
-            isNullable
-            readOnly={readonly}
-            placeholder={localizeDecimal(simulationSettings.energyGlobalPrice)}
-          />
-          <PumpEnergyPricePatternField
-            pump={pump}
-            patterns={hydraulicModel.patterns}
-            globalPatternId={simulationSettings.energyGlobalPatternId}
-            onPropertyChange={onPropertyChange}
-            readOnly={readonly}
-          />
-        </SectionWrapper>
-      )}
+      <SectionWrapper
+        title={translate("energy")}
+        section="energy"
+        hasChanged={hasEnergyChanges}
+      >
+        <PumpEfficiencyCurveField
+          pump={pump}
+          curves={hydraulicModel.curves}
+          onChange={onPropertyChange}
+          readOnly={readonly}
+        />
+        <QuantityRow
+          name="energyPrice"
+          value={pump.energyPrice ?? null}
+          unit={null}
+          comparison={getComparison("energyPrice", pump.energyPrice)}
+          onChange={(_, newValue, oldValue) =>
+            onPropertyChange(
+              "energyPrice",
+              newValue || undefined,
+              oldValue || undefined,
+            )
+          }
+          isNullable
+          readOnly={readonly}
+          placeholder={localizeDecimal(simulationSettings.energyGlobalPrice)}
+        />
+        <PumpEnergyPricePatternField
+          pump={pump}
+          patterns={hydraulicModel.patterns}
+          globalPatternId={simulationSettings.energyGlobalPatternId}
+          onPropertyChange={onPropertyChange}
+          readOnly={readonly}
+        />
+      </SectionWrapper>
+
       <SectionWrapper
         title={translate("simulationResults")}
         section="simulationResults"
@@ -1954,55 +1951,53 @@ const PumpEditor = ({
         />
         <TextRow name="status" value={statusText} />
       </SectionWrapper>
-      {isEnergyEnabled && (
-        <SectionWrapper
-          title={translate("energyResults")}
-          section="energyResults"
-        >
-          <QuantityRow
-            name="utilization"
-            value={pumpEnergy?.utilization ?? null}
-            unit={units.efficiency}
-            readOnly={true}
-          />
-          <QuantityRow
-            name="averageEfficiency"
-            value={pumpEnergy?.averageEfficiency ?? null}
-            unit={units.efficiency}
-            readOnly={true}
-          />
-          <QuantityRow
-            name="averageKwPerFlowUnit"
-            value={pumpEnergy?.averageKwPerFlowUnit ?? null}
-            unit={units.averageKwPerFlowUnit}
-            readOnly={true}
-          />
-          <QuantityRow
-            name="averageKw"
-            value={pumpEnergy?.averageKw ?? null}
-            unit={units.power}
-            readOnly={true}
-          />
-          <QuantityRow
-            name="peakKw"
-            value={pumpEnergy?.peakKw ?? null}
-            unit={units.power}
-            readOnly={true}
-          />
-          <QuantityRow
-            name="averageCostPerDay"
-            value={pumpEnergy?.averageCostPerDay ?? null}
-            unit={null}
-            readOnly={true}
-          />
-          <QuantityRow
-            name="demandCharge"
-            value={pumpEnergy?.demandCharge ?? null}
-            unit={null}
-            readOnly={true}
-          />
-        </SectionWrapper>
-      )}
+      <SectionWrapper
+        title={translate("energyResults")}
+        section="energyResults"
+      >
+        <QuantityRow
+          name="utilization"
+          value={pumpEnergy?.utilization ?? null}
+          unit={units.efficiency}
+          readOnly={true}
+        />
+        <QuantityRow
+          name="averageEfficiency"
+          value={pumpEnergy?.averageEfficiency ?? null}
+          unit={units.efficiency}
+          readOnly={true}
+        />
+        <QuantityRow
+          name="averageKwPerFlowUnit"
+          value={pumpEnergy?.averageKwPerFlowUnit ?? null}
+          unit={units.averageKwPerFlowUnit}
+          readOnly={true}
+        />
+        <QuantityRow
+          name="averageKw"
+          value={pumpEnergy?.averageKw ?? null}
+          unit={units.power}
+          readOnly={true}
+        />
+        <QuantityRow
+          name="peakKw"
+          value={pumpEnergy?.peakKw ?? null}
+          unit={units.power}
+          readOnly={true}
+        />
+        <QuantityRow
+          name="averageCostPerDay"
+          value={pumpEnergy?.averageCostPerDay ?? null}
+          unit={null}
+          readOnly={true}
+        />
+        <QuantityRow
+          name="demandCharge"
+          value={pumpEnergy?.demandCharge ?? null}
+          unit={null}
+          readOnly={true}
+        />
+      </SectionWrapper>
     </AssetEditorContent>
   );
 };

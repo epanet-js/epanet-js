@@ -740,8 +740,7 @@ export const WaterQualitySection = () => {
 
 export const EnergySection = () => {
   const translate = useTranslate();
-  const isEnergyOn = useFeatureFlag("FLAG_ENERGY");
-  const readonly = useAtomValue(hasScenariosAtom) || !isEnergyOn;
+  const readonly = useAtomValue(hasScenariosAtom);
   const patterns = useAtomValue(patternsAtom);
   const { values, setFieldValue } = useFormikContext<FormValues>();
 
