@@ -85,6 +85,12 @@ export const BATCH_EDITABLE_PROPERTIES: Partial<
       values: pumpStatuses,
     },
     speed: { fieldType: "quantity", modelProperty: "speed" },
+    energyPrice: {
+      fieldType: "quantity",
+      modelProperty: "energyPrice",
+      positiveOnly: true,
+      isNullable: true,
+    },
   },
   valve: {
     isEnabled: { fieldType: "boolean", modelProperty: "isActive" },

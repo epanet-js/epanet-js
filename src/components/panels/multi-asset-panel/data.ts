@@ -66,6 +66,7 @@ export type BooleanStats = {
 type Section =
   | "activeTopology"
   | "modelAttributes"
+  | "energy"
   | "simulationResults"
   | "demands"
   | "energyResults";
@@ -155,6 +156,7 @@ export const computeMultiAssetData = (
           units,
           formatting,
           hydraulicModel.curves,
+          hydraulicModel.patterns,
           simulationResults,
         );
         break;
@@ -325,6 +327,7 @@ const buildJunctionSections = (
       "elevation",
       "emitterCoefficient",
     ]),
+    energy: [],
     demands: getStatsForProperties(statsMap, [
       "directDemand",
       "customerDemand",
@@ -453,6 +456,7 @@ const buildPipeSections = (
       "roughness",
       "minorLoss",
     ]),
+    energy: [],
     demands: getStatsForProperties(statsMap, [
       "customerDemand",
       "connectedCustomers",
@@ -474,6 +478,7 @@ const appendPumpStats = (
   units: UnitsSpec,
   formatting: FormattingSpec,
   curves: Curves,
+  patterns: Patterns,
   simulationResults?: ResultsReader | null,
 ) => {
   const id = pump.id;
@@ -502,6 +507,31 @@ const appendPumpStats = (
     "pump." + pump.initialStatus,
     id,
   );
+
+  // Energy settings
+  if (pump.efficiencyCurveId) {
+    const curve = curves.get(pump.efficiencyCurveId);
+    updateLinkStats(statsMap, "efficiencyCurve", curve?.label ?? "", id);
+  } else {
+    updateLinkStats(statsMap, "efficiencyCurve", "", id);
+  }
+
+  updateQuantityStats(
+    statsMap,
+    "energyPrice",
+    pump.energyPrice ?? null,
+    units,
+    formatting,
+    id,
+    { decimals: 4, unit: null as Unit },
+  );
+
+  if (pump.energyPricePatternId) {
+    const pattern = patterns.get(pump.energyPricePatternId);
+    updateLinkStats(statsMap, "energyPricePattern", pattern?.label ?? "", id);
+  } else {
+    updateLinkStats(statsMap, "energyPricePattern", "", id);
+  }
 
   // Simulation results - read from ResultsReader
   const pumpSim = simulationResults?.getPump(pump.id);
@@ -597,12 +627,12 @@ const appendPumpStats = (
 const buildPumpSections = (
   statsMap: Map<string, AssetPropertyStats>,
 ): AssetPropertySections => {
-  // Remove volumeCurve row if no tanks actually have curves
-  const curveStats = statsMap.get("pumpName") as
-    | LiteralCategoryStats
-    | undefined;
-  if (curveStats && curveStats.values.size === 1 && curveStats.values.has("")) {
-    statsMap.delete("pumpName");
+  // Remove link rows if no pumps have them set
+  for (const key of ["pumpName", "efficiencyCurve", "energyPricePattern"]) {
+    const stats = statsMap.get(key) as LiteralCategoryStats | undefined;
+    if (stats && stats.values.size === 1 && stats.values.has("")) {
+      statsMap.delete(key);
+    }
   }
 
   return {
@@ -611,6 +641,11 @@ const buildPumpSections = (
       "pumpType",
       "pumpName",
       "initialStatus",
+    ]),
+    energy: getStatsForProperties(statsMap, [
+      "efficiencyCurve",
+      "energyPrice",
+      "energyPricePattern",
     ]),
     demands: [],
     energyResults: getStatsForProperties(statsMap, [
@@ -704,6 +739,7 @@ const buildValveSections = (
       "diameter",
       "minorLoss",
     ]),
+    energy: [],
     demands: [],
     energyResults: [],
     simulationResults: getStatsForProperties(statsMap, [
@@ -758,6 +794,7 @@ const buildReservoirSections = (
   return {
     activeTopology: getStatsForProperties(statsMap, ["isEnabled"]),
     modelAttributes: getStatsForProperties(statsMap, ["elevation", "head"]),
+    energy: [],
     demands: [],
     energyResults: [],
     simulationResults: getStatsForProperties(statsMap, [
@@ -929,6 +966,7 @@ const buildTankSections = (
       "minVolume",
       "canOverflow",
     ]),
+    energy: [],
     demands: [],
     energyResults: [],
     simulationResults: getStatsForProperties(statsMap, [

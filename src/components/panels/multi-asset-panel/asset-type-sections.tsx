@@ -34,6 +34,7 @@ export function AssetTypeSections({
   const sectionKeys: Array<keyof AssetPropertySections> = [
     "activeTopology",
     "modelAttributes",
+    "energy",
     "demands",
     "energyResults",
     "simulationResults",
@@ -62,7 +63,8 @@ export function AssetTypeSections({
             {stats.map((stat) => {
               const config =
                 sectionKey === "modelAttributes" ||
-                sectionKey === "activeTopology"
+                sectionKey === "activeTopology" ||
+                sectionKey === "energy"
                   ? editableProperties[stat.property]
                   : undefined;
 
