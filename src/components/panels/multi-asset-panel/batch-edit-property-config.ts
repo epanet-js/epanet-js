@@ -6,6 +6,8 @@ import {
   valveKinds,
 } from "src/hydraulic-model/asset-types/valve";
 import type { ChangeableProperty } from "src/hydraulic-model/model-operations/change-property";
+import type { CurveType } from "src/hydraulic-model/curves";
+import type { PatternType } from "src/hydraulic-model/patterns";
 
 type QuantityConfig = {
   fieldType: "quantity";
@@ -30,9 +32,10 @@ type BooleanConfig = {
 type LibrarySelectConfig = {
   fieldType: "librarySelect";
   modelProperty: ChangeableProperty;
-  collectionType: "curves" | "patterns";
-  filterByType?: string;
+  library: "curves" | "patterns" | "pumps";
+  filterByType?: CurveType | PatternType;
   nullLabelKey?: string;
+  libraryLabelKey?: string;
 };
 
 export type BatchEditPropertyConfig =
@@ -97,9 +100,10 @@ export const BATCH_EDITABLE_PROPERTIES: Partial<
     efficiencyCurve: {
       fieldType: "librarySelect",
       modelProperty: "efficiencyCurveId",
-      collectionType: "curves",
+      library: "pumps",
       filterByType: "efficiency",
       nullLabelKey: "none",
+      libraryLabelKey: "openPumpLibrary",
     },
     energyPrice: {
       fieldType: "quantity",
@@ -110,9 +114,10 @@ export const BATCH_EDITABLE_PROPERTIES: Partial<
     energyPricePattern: {
       fieldType: "librarySelect",
       modelProperty: "energyPricePatternId",
-      collectionType: "patterns",
+      library: "patterns",
       filterByType: "energyPrice",
       nullLabelKey: "constant",
+      libraryLabelKey: "openPatternsLibrary",
     },
   },
   valve: {

@@ -24,6 +24,10 @@ import { activateAssets } from "src/hydraulic-model/model-operations/activate-as
 import { deactivateAssets } from "src/hydraulic-model/model-operations/deactivate-assets";
 import { useSelection } from "src/selection/use-selection";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { useShowPumpLibrary } from "src/commands/show-pump-library";
+import { useShowPatternsLibrary } from "src/commands/show-patterns-library";
+import type { CurveType } from "src/hydraulic-model/curves";
+import type { PatternType } from "src/hydraulic-model/patterns";
 
 export function MultiAssetPanel({
   selectedFeatures,
@@ -45,6 +49,8 @@ export function MultiAssetPanel({
   const rep = usePersistence();
   const transact = rep.useTransact();
   const userTracking = useUserTracking();
+  const showPumpLibrary = useShowPumpLibrary();
+  const showPatternsLibrary = useShowPatternsLibrary();
   const { data: multiAssetData, counts: assetCounts } = useMemo(() => {
     const assets = selectedFeatures as Asset[];
     return computeMultiAssetData(
@@ -129,6 +135,26 @@ export function MultiAssetPanel({
       selectAssets(assetIds);
     },
     [selectAssets, userTracking],
+  );
+
+  const handleOpenLibrary = useCallback(
+    (
+      library: "curves" | "patterns" | "pumps",
+      filterByType?: CurveType | PatternType,
+    ) => {
+      if (library === "pumps") {
+        showPumpLibrary({
+          source: "pump",
+          initialSection: filterByType as "pump" | "efficiency" | undefined,
+        });
+      } else if (library === "patterns") {
+        showPatternsLibrary({
+          source: "pump",
+          initialSection: filterByType as PatternType | undefined,
+        });
+      }
+    },
+    [showPumpLibrary, showPatternsLibrary],
   );
 
   return (
@@ -223,6 +249,7 @@ export function MultiAssetPanel({
             curves={hydraulicModel.curves}
             patterns={hydraulicModel.patterns}
             labelManager={hydraulicModel.labelManager}
+            onOpenLibrary={handleOpenLibrary}
           />
         </CollapsibleSection>
       )}

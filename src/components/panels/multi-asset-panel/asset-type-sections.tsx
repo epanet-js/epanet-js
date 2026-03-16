@@ -5,8 +5,8 @@ import { MultiValueRow } from "./multi-value-row";
 import { AssetPropertySections } from "./data";
 import type { EditableProperties } from "./batch-edit-property-config";
 import { AssetId } from "src/hydraulic-model";
-import type { Curves } from "src/hydraulic-model/curves";
-import type { Patterns } from "src/hydraulic-model/patterns";
+import type { Curves, CurveType } from "src/hydraulic-model/curves";
+import type { Patterns, PatternType } from "src/hydraulic-model/patterns";
 import type { LabelManager } from "src/hydraulic-model/label-manager";
 import type { ChangeableProperty } from "src/hydraulic-model/model-operations/change-property";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
@@ -24,6 +24,10 @@ type SectionProps = {
   curves?: Curves;
   patterns?: Patterns;
   labelManager?: LabelManager;
+  onOpenLibrary?: (
+    library: "curves" | "patterns" | "pumps",
+    filterByType?: CurveType | PatternType,
+  ) => void;
 };
 
 export function AssetTypeSections({
@@ -36,6 +40,7 @@ export function AssetTypeSections({
   curves,
   patterns,
   labelManager,
+  onOpenLibrary,
 }: SectionProps) {
   const useAutoIndentation = useFeatureFlag("FLAG_UI_COLLAPSIBLE");
   const translate = useTranslate();
@@ -89,6 +94,7 @@ export function AssetTypeSections({
                     curves={curves}
                     patterns={patterns}
                     labelManager={labelManager}
+                    onOpenLibrary={onOpenLibrary}
                   />
                 );
               }

@@ -16,8 +16,8 @@ import {
 import { AssetPropertyStats, QuantityStats } from "./data";
 import { BatchEditPropertyConfig } from "./batch-edit-property-config";
 import { AssetId } from "src/hydraulic-model";
-import type { Curves } from "src/hydraulic-model/curves";
-import type { Patterns } from "src/hydraulic-model/patterns";
+import type { Curves, CurveType } from "src/hydraulic-model/curves";
+import type { Patterns, PatternType } from "src/hydraulic-model/patterns";
 import type { LabelManager } from "src/hydraulic-model/label-manager";
 import { JsonValue } from "type-fest";
 import type { ChangeableProperty } from "src/hydraulic-model/model-operations/change-property";
@@ -35,6 +35,10 @@ type MultiValueRowProps = {
   curves?: Curves;
   patterns?: Patterns;
   labelManager?: LabelManager;
+  onOpenLibrary?: (
+    library: "curves" | "patterns" | "pumps",
+    filterByType?: CurveType | PatternType,
+  ) => void;
 };
 
 export function MultiValueRow({
@@ -46,6 +50,7 @@ export function MultiValueRow({
   curves,
   patterns,
   labelManager,
+  onOpenLibrary,
 }: MultiValueRowProps) {
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
@@ -84,6 +89,7 @@ export function MultiValueRow({
             curves={curves}
             patterns={patterns}
             labelManager={labelManager}
+            onOpenLibrary={onOpenLibrary}
           />
         </div>
       </div>
@@ -158,6 +164,7 @@ const EditableField = ({
   curves,
   patterns,
   labelManager,
+  onOpenLibrary,
 }: {
   propertyStats: AssetPropertyStats;
   config: BatchEditPropertyConfig;
@@ -171,6 +178,10 @@ const EditableField = ({
   curves?: Curves;
   patterns?: Patterns;
   labelManager?: LabelManager;
+  onOpenLibrary?: (
+    library: "curves" | "patterns" | "pumps",
+    filterByType?: CurveType | PatternType,
+  ) => void;
 }) => {
   const translate = useTranslate();
 
@@ -255,21 +266,25 @@ const EditableField = ({
   }
 
   if (config.fieldType === "librarySelect") {
-    const collection = config.collectionType === "curves" ? curves : patterns;
-    const labelType = config.collectionType === "curves" ? "curve" : "pattern";
+    const collection = config.library === "patterns" ? patterns : curves;
+    const labelType = config.library === "patterns" ? "pattern" : "curve";
+    const LIBRARY_SENTINEL = "-1";
 
-    const options: SelectorOption<string>[] = [];
+    const itemGroup: SelectorOption<string>[] = [];
     if (collection) {
       for (const [id, item] of collection) {
-        if (
-          config.filterByType &&
-          item.type &&
-          item.type !== config.filterByType
-        )
-          continue;
-        options.push({ label: item.label, value: String(id) });
+        if (config.filterByType && item.type !== config.filterByType) continue;
+        itemGroup.push({ label: item.label, value: String(id) });
       }
     }
+
+    const options: SelectorOption<string>[][] = [];
+    if (config.libraryLabelKey && onOpenLibrary) {
+      options.push([
+        { label: translate(config.libraryLabelKey), value: LIBRARY_SENTINEL },
+      ]);
+    }
+    options.push(itemGroup);
 
     // Stats store labels; resolve to ID via labelManager
     const firstLabel = propertyStats.values.keys().next().value as string;
@@ -285,6 +300,8 @@ const EditableField = ({
         selected={currentId}
         options={options}
         nullable={true}
+        stickyFirstGroup={!!config.libraryLabelKey && !!onOpenLibrary}
+        stickyGroupClassName="italic"
         placeholder={
           isMixed
             ? mixedPlaceholder
@@ -294,6 +311,10 @@ const EditableField = ({
         }
         ariaLabel={label}
         onChange={(newValue) => {
+          if (newValue === LIBRARY_SENTINEL) {
+            onOpenLibrary?.(config.library, config.filterByType);
+            return;
+          }
           onPropertyChange(
             config.modelProperty,
             newValue === null ? (undefined as never) : Number(newValue),

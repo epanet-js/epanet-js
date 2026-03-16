@@ -627,12 +627,29 @@ const appendPumpStats = (
 const buildPumpSections = (
   statsMap: Map<string, AssetPropertyStats>,
 ): AssetPropertySections => {
-  // Remove rows if no pumps have them set
-  for (const key of ["pumpName", "efficiencyCurve", "energyPricePattern"]) {
-    const stats = statsMap.get(key) as LiteralCategoryStats | undefined;
-    if (stats && stats.values.size === 1 && stats.values.has("")) {
-      statsMap.delete(key);
-    }
+  // Remove pumpName row if no pumps have named curves
+  const pumpNameStats = statsMap.get("pumpName") as
+    | LiteralCategoryStats
+    | undefined;
+  if (
+    pumpNameStats &&
+    pumpNameStats.values.size === 1 &&
+    pumpNameStats.values.has("")
+  ) {
+    statsMap.delete("pumpName");
+  }
+
+  // Keep all energy fields if any one has a value set;
+  // remove them all if none do
+  const hasAnyEnergy =
+    ["efficiencyCurve", "energyPricePattern"].some((key) => {
+      const stats = statsMap.get(key) as LiteralCategoryStats | undefined;
+      return stats && !(stats.values.size === 1 && stats.values.has(""));
+    }) || statsMap.has("energyPrice");
+
+  if (!hasAnyEnergy) {
+    statsMap.delete("efficiencyCurve");
+    statsMap.delete("energyPricePattern");
   }
 
   return {
