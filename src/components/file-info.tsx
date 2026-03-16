@@ -5,8 +5,10 @@ import { truncate } from "src/lib/utils";
 import * as Popover from "@radix-ui/react-popover";
 import { StyledPopoverArrow, StyledPopoverContent } from "./elements";
 import { UnsavedChangesIcon, FileIcon } from "src/icons";
+import { useTranslate } from "src/hooks/use-translate";
 
 export function FileInfo() {
+  const translate = useTranslate();
   const fileInfo = useAtomValue(fileInfoAtom);
   const hasUnsavedChanges = useAtomValue(hasUnsavedChangesAtom);
   const [state] = useAtom(fileInfoMachineAtom);
@@ -28,7 +30,7 @@ export function FileInfo() {
         {hasUnsavedChanges ? <UnsavedChangesIcon /> : ""}
         {fileInfo.isDemoNetwork && (
           <span className="px-2 py-0.5 text-[10px] font-semibold uppercase bg-orange-100 text-orange-700 rounded-full">
-            Demo
+            {translate("demo")}
           </span>
         )}
       </div>

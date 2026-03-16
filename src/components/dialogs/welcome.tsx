@@ -425,6 +425,7 @@ type DemoModel = {
 };
 
 const DemoAsRecentCard = ({ demoNetwork }: { demoNetwork: DemoModel }) => {
+  const translate = useTranslate();
   const userTracking = useUserTracking();
   const { openInpFromUrl } = useOpenInpFromUrl();
 
@@ -461,7 +462,7 @@ const DemoAsRecentCard = ({ demoNetwork }: { demoNetwork: DemoModel }) => {
             {demoNetwork.name}
           </span>
           <span className="px-1.5 py-0.5 text-[10px] font-semibold uppercase bg-orange-100 text-orange-700 rounded-full shrink-0 leading-none">
-            demo
+            {translate("demo")}
           </span>
         </div>
         <span className="text-xs text-gray-500 truncate">
