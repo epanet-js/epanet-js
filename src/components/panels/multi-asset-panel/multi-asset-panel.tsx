@@ -136,7 +136,7 @@ export function MultiAssetPanel({
   return (
     <SectionList
       gap={useAutoIndentation ? 1 : 3}
-      padding={4}
+      padding={useAutoIndentation ? 3 : 4}
       header={<Header selectedCount={selectedFeatures.length} />}
       overflow={true}
     >
