@@ -3,7 +3,6 @@ import { memo, useCallback, useRef } from "react";
 import { useAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog";
 import { match } from "ts-pattern";
-import { Loading } from "./elements";
 import * as dialogState from "src/state/dialog";
 import { ParserIssues } from "src/import/inp";
 import { useUserTracking } from "src/infra/user-tracking";
@@ -38,7 +37,7 @@ const InvalidFilesErrorDialog = dynamic<{
       (r) => r.InvalidFilesErrorDialog,
     ),
   {
-    loading: () => <Loading />,
+    loading: () => <LoadingDialog />,
   },
 );
 
@@ -49,7 +48,7 @@ const InpIssuesDialog = dynamic<{
   () =>
     import("src/components/dialogs/inp-issues").then((r) => r.InpIssuesDialog),
   {
-    loading: () => <Loading />,
+    loading: () => <LoadingDialog />,
   },
 );
 
@@ -62,7 +61,7 @@ const GeocodingNotSupportedDialog = dynamic<{
       (r) => r.GeocodingNotSupportedDialog,
     ),
   {
-    loading: () => <Loading />,
+    loading: () => <LoadingDialog />,
   },
 );
 
@@ -87,7 +86,7 @@ const MissingCoordinatesDialog = dynamic<{
       (r) => r.MissingCoordinatesDialog,
     ),
   {
-    loading: () => <Loading />,
+    loading: () => <LoadingDialog />,
   },
 );
 
@@ -128,7 +127,7 @@ const UnsavedChangesDialog = dynamic<{
       (r) => r.UnsavedChangesDialog,
     ),
   {
-    loading: () => <Loading />,
+    loading: () => <LoadingDialog />,
   },
 );
 
@@ -141,7 +140,7 @@ const AlertInpOutputDialog = dynamic<{
       (r) => r.AlertInpOutputDialog,
     ),
   {
-    loading: () => <Loading />,
+    loading: () => <LoadingDialog />,
   },
 );
 
@@ -154,7 +153,7 @@ const AlertScenariosNotSavedDialog = dynamic<{
       (r) => r.AlertScenariosNotSavedDialog,
     ),
   {
-    loading: () => <Loading />,
+    loading: () => <LoadingDialog />,
   },
 );
 
@@ -166,7 +165,7 @@ const AlertNetworkRequiredDialog = dynamic<{
       (r) => r.AlertNetworkRequiredDialog,
     ),
   {
-    loading: () => <Loading />,
+    loading: () => <LoadingDialog />,
   },
 );
 
@@ -174,7 +173,7 @@ const CheatsheetDialog = dynamic<Record<string, never>>(
   () =>
     import("src/components/dialogs/cheatsheet").then((r) => r.CheatsheetDialog),
   {
-    loading: () => <Loading />,
+    loading: () => <LoadingDialog />,
   },
 );
 
