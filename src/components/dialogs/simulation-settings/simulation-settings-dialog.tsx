@@ -13,7 +13,6 @@ import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { Button } from "src/components/elements";
 import { useTranslate } from "src/hooks/use-translate";
 import { simulationSettingsAtom } from "src/state/simulation-settings";
-import { dataAtom } from "src/state/data";
 
 import { SimulationSettingsSidebar } from "./simulation-settings-sidebar";
 import {
@@ -46,56 +45,22 @@ export const SimulationSettingsDialog = () => {
   const { closeDialog } = useDialogState();
   const simulationSettings = useAtomValue(simulationSettingsAtom);
   const setSimulationSettings = useSetAtom(simulationSettingsAtom);
-  const data = useAtomValue(dataAtom);
-  const setData = useSetAtom(dataAtom);
 
   const sectionIds = useMemo(buildSectionIds, []);
 
   const { activeSection, scrollToSection, scrollContainerRef } =
     useScrollSpy(sectionIds);
 
-  const currentPressureUnit = data.modelMetadata.units.pressure;
-  const initialValues = buildInitialValues(
-    simulationSettings,
-    currentPressureUnit,
-  );
+  const initialValues = buildInitialValues(simulationSettings);
 
   const handleSubmit = useCallback(
     (values: FormValues) => {
-      const pressureChanged = values.pressureUnit !== currentPressureUnit;
-      const settingsChanged = hasChanges(values, simulationSettings);
-
-      if (pressureChanged || settingsChanged) {
+      if (hasChanges(values, simulationSettings)) {
         setSimulationSettings(buildUpdatedSettings(values, simulationSettings));
       }
-
-      if (pressureChanged) {
-        const newQuantities = data.modelMetadata.quantities.withPressureUnit(
-          values.pressureUnit,
-        );
-        setData({
-          ...data,
-          modelMetadata: {
-            ...data.modelMetadata,
-            quantities: newQuantities,
-            units: {
-              ...data.modelMetadata.units,
-              pressure: values.pressureUnit,
-            },
-          },
-        });
-      }
-
       closeDialog();
     },
-    [
-      simulationSettings,
-      setSimulationSettings,
-      currentPressureUnit,
-      data,
-      setData,
-      closeDialog,
-    ],
+    [simulationSettings, setSimulationSettings, closeDialog],
   );
 
   const isModalsOn = useFeatureFlag("FLAG_MODALS");

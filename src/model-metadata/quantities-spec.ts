@@ -384,8 +384,4 @@ export class Quantities {
   get ranges() {
     return this.spec.ranges;
   }
-
-  withPressureUnit(pressureUnit: Unit): Quantities {
-    return new Quantities(withPressureUnit(this.spec, pressureUnit));
-  }
 }
