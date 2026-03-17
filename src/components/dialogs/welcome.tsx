@@ -212,8 +212,8 @@ export const WelcomeDialog = () => {
                 <h2 className="mt-[.2rem] pt-2 pb-2 font-bold text-gray-500">
                   {translate("recent")}
                 </h2>
-                <div className="overflow-y-auto flex-1 min-h-0 mb-6 scroll-shadows">
-                  <div className="flex flex-row flex-wrap gap-2">
+                <div className="overflow-y-auto flex-1 min-h-0 mb-6 scroll-shadows max-h-[360px]">
+                  <div className="flex flex-row flex-wrap gap-4">
                     {recentFiles.map((entry) => (
                       <RecentFileCard
                         key={entry.id}
@@ -372,7 +372,7 @@ const RecentFileCard = ({
 }) => (
   <div
     className="group flex flex-col rounded-lg border shadow-sm cursor-pointer hover:bg-gray-50 overflow-hidden shrink-0"
-    style={{ width: "145px" }}
+    style={{ width: "154px" }}
     onClick={onOpen}
   >
     <div
@@ -440,7 +440,7 @@ const DemoAsRecentCard = ({ demoNetwork }: { demoNetwork: DemoModel }) => {
   return (
     <div
       className="flex flex-col rounded-lg border shadow-sm cursor-pointer hover:bg-gray-50 overflow-hidden shrink-0"
-      style={{ width: "145px" }}
+      style={{ width: "154px" }}
       onClick={handleClick}
     >
       <div
