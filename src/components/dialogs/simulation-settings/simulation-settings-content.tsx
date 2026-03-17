@@ -23,8 +23,11 @@ import type {
   StatusReport,
 } from "src/simulation/simulation-settings";
 import { chooseUnitSystem } from "src/simulation/build-inp";
-import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { projectSettingsAtom } from "src/state/project-settings";
+import {
+  flowUnitTranslationKeys,
+  pressureUnitTranslationKeys,
+} from "src/lib/project-settings/quantities-spec";
 import {
   headlossFormulas,
   headlossFormulasFullNames,
@@ -117,14 +120,15 @@ export const GeneralSection = () => {
   const { values, setFieldValue } = useFormikContext<FormValues>();
 
   const isEpanet23On = useFeatureFlag("FLAG_EPANET23");
-  const translateUnit = useTranslateUnit();
 
-  const flowUnitsDisplay = isEpanet23On
-    ? translateUnit(units.flow)
-    : chooseUnitSystem(units);
+  const unitSystemKey = chooseUnitSystem(units);
+  const flowUnitsDisplay = translate(flowUnitTranslationKeys[unitSystemKey]);
 
   const headlossIndex = headlossFormulas.indexOf(headlossFormula);
-  const pressureUnitDisplay = translateUnit(units.pressure);
+  const pressureUnitDisplay = translate(
+    pressureUnitTranslationKeys[units.pressure as string] ??
+      (units.pressure as string),
+  );
   const headlossDisplay =
     headlossIndex >= 0
       ? headlossFormulasFullNames[headlossIndex]

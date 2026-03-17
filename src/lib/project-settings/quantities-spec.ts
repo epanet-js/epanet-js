@@ -300,6 +300,27 @@ export const supportedPressureUnits: Unit[] = [
   "bar",
 ];
 
+export const flowUnitTranslationKeys: Record<keyof Presets, string> = {
+  LPS: "lpsCompact",
+  LPM: "lpmCompact",
+  MLD: "mldCompact",
+  CMH: "cmhCompact",
+  CMD: "cmdCompact",
+  GPM: "gpmCompact",
+  CFS: "cfsCompact",
+  MGD: "mgdCompact",
+  IMGD: "imgdCompact",
+  AFD: "afdCompact",
+};
+
+export const pressureUnitTranslationKeys: Record<string, string> = {
+  psi: "pressureUnitPsi",
+  kPa: "pressureUnitKpa",
+  mwc: "pressureUnitMwc",
+  fwc: "pressureUnitFwc",
+  bar: "pressureUnitBar",
+};
+
 export const getDefaultPressureUnit = (presetKey: keyof Presets): Unit => {
   return presets[presetKey].units.pressure;
 };
