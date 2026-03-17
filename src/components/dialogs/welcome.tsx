@@ -35,6 +35,7 @@ import { DemoNetworkCard } from "../demo-network-card";
 import { DRUMCHAPEL, WATERDOWN } from "src/demo/demo-networks";
 import optimaticsLogoUrl from "src/assets/images/logos/optimatics-logo-black.webp";
 import type { RecentFileEntry } from "src/import/recent-files";
+import clsx from "clsx";
 
 export const WelcomeDialog = () => {
   const translate = useTranslate();
@@ -264,6 +265,7 @@ const SmallDeviceWarning = () => {
 };
 
 const DemoNetworks = () => {
+  const isRecentFilesOn = useFeatureFlag("FLAG_RECENT_FILES");
   const translate = useTranslate();
 
   const demoModels = [
@@ -283,11 +285,16 @@ const DemoNetworks = () => {
 
   return (
     <div>
-      <h2 className="mt-[.2rem] pt-2 pb-2 font-bold text-gray-500">
+      <h2 className="pt-2 pb-2 font-bold text-gray-500">
         {translate("demoNetworksTitle")}
       </h2>
 
-      <div className="grid grid-cols-2 gap-6">
+      <div
+        className={clsx(
+          "grid grid-cols-2 gap-6",
+          isRecentFilesOn && "h-[270px]",
+        )}
+      >
         {demoModels.map((demoModel, i) => (
           <DemoNetworkCard key={i} demoNetwork={demoModel} />
         ))}
@@ -326,29 +333,32 @@ const RecentNetworks = () => {
 
   if (!isRecentFilesLoading && !hasRecentFiles) return <DemoNetworks />;
 
+  if (isRecentFilesLoading)
+    return (
+      <div className="flex h-[310px]">
+        <Loading />
+      </div>
+    );
+
   return (
     <>
-      <h2 className="mt-[.2rem] pt-2 pb-2 font-bold text-gray-500">
+      <h2 className="pt-2 pb-2 font-bold text-gray-500">
         {translate("recentNetworks")}
       </h2>
-      <div className="overflow-y-auto flex-1 min-h-0 scroll-shadows max-h-[270px]">
-        {isRecentFilesLoading ? (
-          <Loading />
-        ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {recentFiles.map((entry) => (
-              <RecentFileCard
-                key={entry.id}
-                entry={entry}
-                onOpen={() => openRecentFile(entry, "welcome")}
-                onRemove={() => void removeRecent(entry.id)}
-              />
-            ))}
-            {demoModels.map((demo, i) => (
-              <DemoAsRecentCard key={`demo-${i}`} demoNetwork={demo} />
-            ))}
-          </div>
-        )}
+      <div className="overflow-y-auto min-h-0 scroll-shadows h-[270px]">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          {recentFiles.map((entry) => (
+            <RecentFileCard
+              key={entry.id}
+              entry={entry}
+              onOpen={() => openRecentFile(entry, "welcome")}
+              onRemove={() => void removeRecent(entry.id)}
+            />
+          ))}
+          {demoModels.map((demo, i) => (
+            <DemoAsRecentCard key={`demo-${i}`} demoNetwork={demo} />
+          ))}
+        </div>
       </div>
     </>
   );
