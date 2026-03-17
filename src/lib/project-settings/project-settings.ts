@@ -4,7 +4,7 @@ import {
   FormattingSpec,
   presets,
 } from "./quantities-spec";
-import { ProjectionMapper, createProjectionMapper } from "src/projections";
+import { ProjectionConfig } from "src/projections";
 import { HeadlossFormula } from "src/hydraulic-model/asset-types/pipe";
 
 export type ProjectSettings = {
@@ -12,7 +12,7 @@ export type ProjectSettings = {
   defaults: DefaultsSpec;
   headlossFormula: HeadlossFormula;
   formatting: FormattingSpec;
-  projectionMapper: ProjectionMapper;
+  projection: ProjectionConfig;
 };
 
 export const defaultProjectSettings: ProjectSettings = {
@@ -20,5 +20,5 @@ export const defaultProjectSettings: ProjectSettings = {
   defaults: presets.LPS.defaults,
   headlossFormula: "H-W",
   formatting: { decimals: presets.LPS.decimals, defaultDecimals: 3 },
-  projectionMapper: createProjectionMapper({ type: "wgs84" }),
+  projection: { type: "wgs84" },
 };

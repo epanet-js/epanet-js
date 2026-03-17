@@ -27,7 +27,11 @@ import {
 import { CustomerPointsLookup } from "src/hydraulic-model/customer-points-lookup";
 import { Valve, AssetId } from "src/hydraulic-model/asset-types";
 import { checksum } from "src/infra/checksum";
-import { ProjectionMapper } from "src/projections";
+import {
+  ProjectionConfig,
+  createProjectionMapper,
+  getBackdropUnits,
+} from "src/projections";
 import { UnitsSpec } from "src/lib/project-settings/quantities-spec";
 import { Position } from "geojson";
 import { withDebugInstrumentation } from "src/infra/with-instrumentation";
@@ -356,7 +360,7 @@ type BuildOptions = {
   usedPatterns?: boolean;
   usedCurves?: boolean;
   reservoirElevations?: boolean;
-  projectionMapper?: ProjectionMapper;
+  projection?: ProjectionConfig;
 };
 
 export const buildInp = withDebugInstrumentation(
@@ -378,8 +382,9 @@ export const buildInp = withDebugInstrumentation(
     const units = chooseUnitSystem(opts.units);
     const headlossFormula = opts.headlossFormula;
 
-    const transformCoord: (p: Position) => Position =
-      opts.projectionMapper?.toSource ?? ((p: Position) => p);
+    const transformCoord: (p: Position) => Position = opts.projection
+      ? createProjectionMapper(opts.projection).toSource
+      : (p: Position) => p;
 
     idMap.registerPatternId({
       id: defaultConstantPatternId,
@@ -488,7 +493,7 @@ export const buildInp = withDebugInstrumentation(
       ],
       backdrop: [
         "[BACKDROP]",
-        `Units\t${opts.projectionMapper?.backdropUnits ?? "DEGREES"}`,
+        `Units\t${opts.projection ? getBackdropUnits(opts.projection) : "DEGREES"}`,
       ],
       coordinates: ["[COORDINATES]", ";Node\tX-coord\tY-coord"],
       vertices: ["[VERTICES]", ";link\tX-coord\tY-coord"],
@@ -662,9 +667,9 @@ export const buildInp = withDebugInstrumentation(
       .join("\n\n");
 
     if (opts.madeBy) {
-      const projection = opts.projectionMapper?.projection;
-      if (projection && projection !== "wgs84") {
-        content = `;PROJECTION ${projection}\n` + content;
+      const projectionType = opts.projection?.type;
+      if (projectionType && projectionType !== "wgs84") {
+        content = `;PROJECTION ${projectionType}\n` + content;
       }
       content = `;MADE BY EPANET-JS [${checksum(content)}]\n` + content;
     }

@@ -757,9 +757,7 @@ describe("Parse inp with", () => {
       `;
 
       const result = parseInp(inp, { sourceProjection: "xy-grid" });
-      expect(result.projectSettings.projectionMapper.projection).toBe(
-        "xy-grid",
-      );
+      expect(result.projectSettings.projection.type).toBe("xy-grid");
     });
 
     it("sets projection to wgs84 for standard import", () => {
@@ -772,7 +770,7 @@ describe("Parse inp with", () => {
       `;
 
       const result = parseInp(inp);
-      expect(result.projectSettings.projectionMapper.projection).toBe("wgs84");
+      expect(result.projectSettings.projection.type).toBe("wgs84");
     });
   });
 });

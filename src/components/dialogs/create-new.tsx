@@ -13,8 +13,7 @@ import {
 } from "src/lib/project-settings/quantities-spec";
 import type { Unit } from "src/quantity";
 import { ProjectSettings } from "src/lib/project-settings";
-import { createProjectionMapper } from "src/projections";
-import type { Projection } from "src/projections";
+import type { Projection, ProjectionConfig } from "src/projections";
 import {
   HeadlossFormula,
   headlossFormulas,
@@ -132,7 +131,7 @@ export const CreateNew = () => {
         defaults: spec.defaults,
         headlossFormula,
         formatting: { decimals: spec.decimals, defaultDecimals: 3 },
-        projectionMapper: buildNewProjectProjectionMapper(projection),
+        projection: buildNewProjectionConfig(projection),
       };
       const hydraulicModel = initializeHydraulicModel({
         defaults: spec.defaults,
@@ -703,10 +702,10 @@ const XY_GRID_ZOOM = 15;
 const DEFAULT_MAP_CENTER: [number, number] = [-4.3800042, 55.914314];
 const DEFAULT_MAP_ZOOM = 15.5;
 
-const buildNewProjectProjectionMapper = (projection: Projection) =>
+const buildNewProjectionConfig = (projection: Projection): ProjectionConfig =>
   projection === "xy-grid"
-    ? createProjectionMapper({ type: "xy-grid", centroid: XY_GRID_CENTER })
-    : createProjectionMapper({ type: "wgs84" });
+    ? { type: "xy-grid", centroid: XY_GRID_CENTER }
+    : { type: "wgs84" };
 
 const centerMapForNewProject = (
   map: MapEngine,

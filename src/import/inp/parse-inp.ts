@@ -18,8 +18,9 @@ import { InpData, InpStats } from "./inp-data";
 import { Position } from "geojson";
 import {
   Projection,
-  ProjectionMapper,
-  buildProjectionMapper,
+  ProjectionConfig,
+  buildProjectionConfig,
+  createProjectionMapper,
 } from "src/projections";
 
 export type ParseInpOptions = {
@@ -54,7 +55,7 @@ export const parseInp = (
   const sourceProjection: Projection =
     header.sourceProjection ?? options?.sourceProjection ?? "wgs84";
 
-  const projectionMapper = projectCoordinates(inpData, sourceProjection);
+  const projection = projectCoordinates(inpData, sourceProjection);
 
   const { hydraulicModel, factories, projectSettings } = buildModel(
     inpData,
@@ -67,7 +68,7 @@ export const parseInp = (
     factories,
     projectSettings: {
       ...projectSettings,
-      projectionMapper,
+      projection,
     },
     simulationSettings: {
       version: nanoid(),
@@ -184,9 +185,9 @@ export const parseInp = (
 const projectCoordinates = (
   inpData: InpData,
   sourceProjection: Projection,
-): ProjectionMapper => {
+): ProjectionConfig => {
   if (sourceProjection === "wgs84") {
-    return buildProjectionMapper("wgs84", () => []);
+    return { type: "wgs84" };
   }
 
   const getAllPoints = () => {
@@ -197,28 +198,23 @@ const projectCoordinates = (
     return points;
   };
 
-  const projectionMapper = buildProjectionMapper(
-    sourceProjection,
-    getAllPoints,
-  );
+  const config = buildProjectionConfig(sourceProjection, getAllPoints);
+  const mapper = createProjectionMapper(config);
 
   for (const [id, p] of inpData.coordinates.entries()) {
-    inpData.coordinates.set(id, projectionMapper.toWgs84(p));
+    inpData.coordinates.set(id, mapper.toWgs84(p));
   }
   for (const [id, verts] of inpData.vertices.entries()) {
-    inpData.vertices.set(id, verts.map(projectionMapper.toWgs84));
+    inpData.vertices.set(id, verts.map(mapper.toWgs84));
   }
   for (const cp of inpData.customerPoints) {
-    cp.coordinates = projectionMapper.toWgs84(cp.coordinates) as [
-      number,
-      number,
-    ];
+    cp.coordinates = mapper.toWgs84(cp.coordinates) as [number, number];
     if ("snapPoint" in cp && cp.snapPoint) {
-      cp.snapPoint = projectionMapper.toWgs84(cp.snapPoint) as [number, number];
+      cp.snapPoint = mapper.toWgs84(cp.snapPoint) as [number, number];
     }
   }
 
-  return projectionMapper;
+  return config;
 };
 
 type Header = { isMadeByApp: boolean; sourceProjection?: Projection };

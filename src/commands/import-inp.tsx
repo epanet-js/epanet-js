@@ -192,8 +192,7 @@ export const useImportInp = () => {
           return;
         }
 
-        const autoElevations =
-          projectSettings.projectionMapper.projection !== "xy-grid";
+        const autoElevations = projectSettings.projection.type !== "xy-grid";
         await completeImport(
           {
             hydraulicModel,

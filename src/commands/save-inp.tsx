@@ -71,7 +71,7 @@ export const useSaveInp = ({
             customerPoints: true,
             inactiveAssets: true,
             reservoirElevations: true,
-            projectionMapper: projectSettings.projectionMapper,
+            projection: projectSettings.projection,
             simulationSettings,
             units: projectSettings.units,
             headlossFormula: projectSettings.headlossFormula,

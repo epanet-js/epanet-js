@@ -36,20 +36,22 @@ export const createProjectionMapper = (
   }
 };
 
-export const buildProjectionMapper = (
+export const buildProjectionConfig = (
   projection: Projection,
   allPoints: () => Position[],
-): ProjectionMapper => {
+): ProjectionConfig => {
   switch (projection) {
     case "wgs84":
-      return createProjectionMapper({ type: "wgs84" });
-    case "xy-grid": {
-      const centroid = computeCentroid(allPoints());
-      return createProjectionMapper({ type: "xy-grid", centroid });
-    }
+      return { type: "wgs84" };
+    case "xy-grid":
+      return { type: "xy-grid", centroid: computeCentroid(allPoints()) };
     default: {
       const unsupported: never = projection;
       throw new Error(`Unsupported projection: ${String(unsupported)}`);
     }
   }
 };
+
+export const getBackdropUnits = (
+  config: ProjectionConfig,
+): "NONE" | "DEGREES" => (config.type === "xy-grid" ? "NONE" : "DEGREES");
