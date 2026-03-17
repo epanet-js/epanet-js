@@ -186,7 +186,7 @@ export const CreateNew = () => {
         />
       }
     >
-      <div className={isEpanet23On ? "p-3" : "p-4"}>
+      <div className="p-4">
         <Formik
           onSubmit={handleSubmit}
           initialValues={
