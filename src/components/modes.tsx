@@ -18,7 +18,6 @@ import {
   PipeIcon,
   CustomerPointIcon,
 } from "src/icons";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 const MODE_OPTIONS = [
   {
@@ -51,13 +50,12 @@ const MODE_OPTIONS = [
     hotkey: "7",
     Icon: () => <ValveIcon />,
   },
+  {
+    mode: Mode.DRAW_CUSTOMER_POINT,
+    hotkey: "8",
+    Icon: () => <CustomerPointIcon />,
+  },
 ] as const;
-
-const CUSTOMER_POINT_MODE = {
-  mode: Mode.DRAW_CUSTOMER_POINT,
-  hotkey: "8",
-  Icon: () => <CustomerPointIcon />,
-} as const;
 
 export default memo(function Modes({
   disabled = false,
@@ -68,10 +66,6 @@ export default memo(function Modes({
   const setDrawingMode = useDrawingMode();
   const userTracking = useUserTracking();
   const translate = useTranslate();
-  const isCreateCustomerOn = useFeatureFlag("FLAG_CREATE_CUSTOMER");
-  const drawingModes = isCreateCustomerOn
-    ? [...MODE_OPTIONS, CUSTOMER_POINT_MODE]
-    : MODE_OPTIONS;
 
   return (
     <div className="flex items-center justify-start" role="radiogroup">
@@ -94,7 +88,7 @@ export default memo(function Modes({
       </MenuAction>
       <SelectionTool />
       <TraceTool />
-      {drawingModes.map(({ mode, hotkey, Icon }) => {
+      {MODE_OPTIONS.map(({ mode, hotkey, Icon }) => {
         const modeInfo = MODE_INFO[mode];
 
         return (
