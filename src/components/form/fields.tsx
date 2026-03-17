@@ -99,18 +99,21 @@ export const InlineField = ({
   const labelStyle =
     layout !== "fixed-label" ? undefined : { flexBasis: baseLabelWidth };
 
+  const hasNesting = indentation > 0 || nestingDepth > 0;
   const inputStyle =
-    layout === "fixed-label" && labelSize === "md"
+    layout === "fixed-label" && labelSize === "md" && hasNesting
       ? { flexBasis: 150 }
       : undefined;
 
   const labelClasses = clsx("text-sm text-gray-500 min-w-0", {
-    "grow shrink": layout === "fixed-label",
+    "grow shrink": layout === "fixed-label" && hasNesting,
+    "flex-shrink-0": layout === "fixed-label" && !hasNesting,
     "w-1/2": layout === "half-split",
     "flex-none": layout === "label-flex-none",
   });
   const inputWrapperClasses = clsx("min-w-0", {
-    "grow shrink": layout === "fixed-label",
+    "grow shrink": layout === "fixed-label" && hasNesting,
+    "flex-1": layout === "fixed-label" && !hasNesting,
     "w-1/2": layout === "half-split",
     "w-3/4": layout === "label-flex-none",
   });
