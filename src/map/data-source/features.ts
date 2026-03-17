@@ -202,10 +202,9 @@ const appendPipeSymbologyProps = (
 
   const property = linkSymbology.colorRule.property;
 
-  // Only read from simulation results if property is a simulation property
   let value: number | null;
-  if (simulationResults && isSimulationProperty(property)) {
-    const pipeSimulation = simulationResults.getPipe(pipe.id);
+  if (isSimulationProperty(property)) {
+    const pipeSimulation = simulationResults?.getPipe(pipe.id);
     value = pipeSimulation
       ? (pipeSimulation[property as keyof PipeSimulation] as number)
       : null;
@@ -246,10 +245,9 @@ const appendJunctionSymbologyProps = (
 
   const property = nodeSymbology.colorRule.property;
 
-  // Only read from simulation results if property is a simulation property
   let value: number | null;
-  if (simulationResults && isSimulationProperty(property)) {
-    const junctionSimulation = simulationResults.getJunction(junction.id);
+  if (isSimulationProperty(property)) {
+    const junctionSimulation = simulationResults?.getJunction(junction.id);
     const simProperty = getJunctionSimProperty(property);
     value = junctionSimulation
       ? (junctionSimulation[simProperty] as number)
