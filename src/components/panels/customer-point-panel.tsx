@@ -27,10 +27,8 @@ import {
 } from "src/hydraulic-model/demands";
 import { changeDemandAssignment } from "src/hydraulic-model/model-operations";
 import { convertTo } from "src/quantity";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export function CustomerPointPanel() {
-  const useAutoIndentation = useFeatureFlag("FLAG_UI_COLLAPSIBLE");
   const selection = useAtomValue(selectionAtom);
   const hydraulicModel = useAtomValue(stagingModelAtom);
   const translate = useTranslate();
@@ -155,10 +153,7 @@ export function CustomerPointPanel() {
           {translate("customer")}
         </span>
       </div>
-      <SectionList
-        gap={useAutoIndentation ? 1 : 3}
-        padding={useAutoIndentation ? 3 : 4}
-      >
+      <SectionList padding={3}>
         {connection && (
           <SectionWrapper
             title={translate("connections")}

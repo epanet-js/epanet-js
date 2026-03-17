@@ -276,7 +276,7 @@ export const DemandCategoriesEditor = ({
       >
         {translate("demandCategories")}
       </label>
-      <NestedSection className="pb-2 pl-0">
+      <NestedSection className="pb-2" indentation={0}>
         <DataGrid<DemandCategoryRow>
           ref={gridRef}
           data={rowData}

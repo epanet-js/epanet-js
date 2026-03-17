@@ -23,8 +23,6 @@ import type { AssetId, Valve } from "src/hydraulic-model/asset-types";
 import { useTimeSeries } from "./use-time-series";
 import { QuickGraphChart } from "./quick-graph-chart";
 import { useChangeTimestep } from "src/commands/change-timestep";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import clsx from "clsx";
 
 const QUICK_GRAPH_PROPERTIES: {
   [K in QuickGraphAssetType]: {
@@ -116,7 +114,6 @@ const QuickGraphSection = ({
   mainData,
   isLoading,
 }: QuickGraphSectionProps) => {
-  const useAutoIndentation = useFeatureFlag("FLAG_UI_COLLAPSIBLE");
   const translate = useTranslate();
   const [footerState, setFooterState] = useAtom(assetPanelFooterAtom);
   const [propertyByType, setPropertyByType] = useAtom(quickGraphPropertyAtom);
@@ -224,12 +221,7 @@ const QuickGraphSection = ({
   );
 
   return (
-    <div
-      className={clsx(
-        "flex flex-col flex-1 min-h-0",
-        useAutoIndentation && "pl-5",
-      )}
-    >
+    <div className="flex flex-col flex-1 min-h-0 pl-5">
       <div className="flex items-center justify-between text-sm font-semibold h-8">
         {translate("quickGraph")}
         {pinButton}

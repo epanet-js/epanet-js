@@ -9,7 +9,6 @@ import type { Curves, CurveType } from "src/hydraulic-model/curves";
 import type { Patterns, PatternType } from "src/hydraulic-model/patterns";
 import type { LabelManager } from "src/hydraulic-model/label-manager";
 import type { ChangeableProperty } from "src/hydraulic-model/model-operations/change-property";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 type SectionProps = {
   sections: AssetPropertySections;
@@ -42,7 +41,6 @@ export function AssetTypeSections({
   labelManager,
   onOpenLibrary,
 }: SectionProps) {
-  const useAutoIndentation = useFeatureFlag("FLAG_UI_COLLAPSIBLE");
   const translate = useTranslate();
 
   const sectionKeys: Array<keyof AssetPropertySections> = [
@@ -55,7 +53,7 @@ export function AssetTypeSections({
   ];
 
   return (
-    <SectionList padding={0} gap={useAutoIndentation ? 1 : 3} overflow={false}>
+    <SectionList overflow={false}>
       {sectionKeys.map((sectionKey) => {
         const stats = sections[sectionKey];
 

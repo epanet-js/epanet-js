@@ -25,7 +25,6 @@ import {
   InlineField,
   SectionList,
   CollapsibleSection,
-  Section,
 } from "src/components/form/fields";
 import {
   assetPanelSectionsExpandedAtom,
@@ -46,7 +45,6 @@ import { ephemeralStateAtom } from "src/state/drawing";
 import { assetPanelFooterAtom } from "src/state/quick-graph";
 import { MultipleValuesIcon } from "src/icons";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export const AssetEditorContent = ({
   label,
@@ -66,7 +64,6 @@ export const AssetEditorContent = ({
   readOnly?: boolean;
 }) => {
   const [footerState, setFooterState] = useAtom(assetPanelFooterAtom);
-  const useAutoIndentation = useFeatureFlag("FLAG_UI_COLLAPSIBLE");
 
   const handleFooterHeightChange = useCallback(
     (height: number) => {
@@ -90,8 +87,7 @@ export const AssetEditorContent = ({
       isStickyFooter={footerState.isPinned}
       stickyFooterHeight={footerState.height}
       onStickyFooterHeightChange={handleFooterHeightChange}
-      gap={useAutoIndentation ? 1 : 3}
-      padding={useAutoIndentation ? 3 : 4}
+      padding={3}
       overflow={true}
     >
       {children}
@@ -768,24 +764,19 @@ export const SectionWrapper = ({
   section: keyof AssetPanelSectionExpanded;
   children: React.ReactNode;
 }) => {
-  const useAutoIndentation = useFeatureFlag("FLAG_UI_COLLAPSIBLE");
   const [sections, setSections] = useAtom(assetPanelSectionsExpandedAtom);
-  if (useAutoIndentation) {
-    return (
-      <CollapsibleSection
-        title={title}
-        hasChanged={hasChanged}
-        open={sections[section]}
-        onOpenChange={(open) =>
-          setSections((prev) => ({ ...prev, [section]: open }))
-        }
-        indicatorPosition="left"
-        separator={false}
-        variant="primary"
-      >
-        {children}
-      </CollapsibleSection>
-    );
-  }
-  return <Section title={title}>{children}</Section>;
+  return (
+    <CollapsibleSection
+      title={title}
+      hasChanged={hasChanged}
+      open={sections[section]}
+      onOpenChange={(open) =>
+        setSections((prev) => ({ ...prev, [section]: open }))
+      }
+      separator={false}
+      variant="primary"
+    >
+      {children}
+    </CollapsibleSection>
+  );
 };
