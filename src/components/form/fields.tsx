@@ -77,7 +77,7 @@ export const FieldList = ({ children }: { children: React.ReactNode }) => {
 
 export const InlineField = ({
   name,
-  layout = "fixed-label",
+  layout = "fluid-label",
   labelSize = "sm",
   align = "center",
   hasChanged = false,
@@ -85,7 +85,7 @@ export const InlineField = ({
   children,
 }: {
   name: string;
-  layout?: "fixed-label" | "half-split" | "label-flex-none";
+  layout?: "fixed-label" | "fluid-label" | "half-split" | "label-flex-none";
   labelSize?: "sm" | "md";
   align?: "start" | "center";
   hasChanged?: boolean;
@@ -96,24 +96,22 @@ export const InlineField = ({
   const nestingDepth = useContext(NestedBlockContext);
   const baseLabelWidth =
     (labelSize === "sm" ? 90 : 140) - indentation * 4 - nestingDepth * 2;
-  const labelStyle =
-    layout !== "fixed-label" ? undefined : { flexBasis: baseLabelWidth };
 
-  const hasNesting = indentation > 0 || nestingDepth > 0;
-  const inputStyle =
-    layout === "fixed-label" && labelSize === "md" && hasNesting
-      ? { flexBasis: 150 }
+  const labelStyle =
+    layout === "fixed-label" || layout === "fluid-label"
+      ? { flexBasis: baseLabelWidth }
       : undefined;
+  const inputStyle = layout === "fluid-label" ? { flexBasis: 150 } : undefined;
 
   const labelClasses = clsx("text-sm text-gray-500 min-w-0", {
-    "grow shrink": layout === "fixed-label" && hasNesting,
-    "flex-shrink-0": layout === "fixed-label" && !hasNesting,
+    "grow shrink": layout === "fluid-label",
+    "flex-shrink-0": layout === "fixed-label",
     "w-1/2": layout === "half-split",
     "flex-none": layout === "label-flex-none",
   });
   const inputWrapperClasses = clsx("min-w-0", {
-    "grow shrink": layout === "fixed-label" && hasNesting,
-    "flex-1": layout === "fixed-label" && !hasNesting,
+    "grow shrink": layout === "fluid-label",
+    "flex-1": layout === "fixed-label",
     "w-1/2": layout === "half-split",
     "w-3/4": layout === "label-flex-none",
   });

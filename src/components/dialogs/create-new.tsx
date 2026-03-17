@@ -431,7 +431,11 @@ const LocationSearchSelector = ({
 
   if (compact) {
     return (
-      <InlineField name={translate("location")} labelSize="md">
+      <InlineField
+        name={translate("location")}
+        layout="fixed-label"
+        labelSize="md"
+      >
         {selector}
       </InlineField>
     );
@@ -502,6 +506,7 @@ const UnitsSystemSelector = ({
     return (
       <InlineField
         name={translate("simulationSettings.flowUnits")}
+        layout="fixed-label"
         labelSize="md"
       >
         {selector}
@@ -546,7 +551,11 @@ const HeadlossFormulaSelector = ({
 
   if (compact) {
     return (
-      <InlineField name={translate("headlossFormula")} labelSize="md">
+      <InlineField
+        name={translate("headlossFormula")}
+        layout="fixed-label"
+        labelSize="md"
+      >
         {selector}
       </InlineField>
     );
@@ -580,6 +589,7 @@ const PressureUnitSelector = ({
   return (
     <InlineField
       name={translate("simulationSettings.pressureUnits")}
+      layout="fixed-label"
       labelSize="md"
     >
       <Selector
