@@ -134,7 +134,7 @@ const RecentFilesMenu = () => {
       <DD.Sub>
         <DDSubTriggerItem>
           <OutdatedSimulationIcon />
-          {`${translate("recent")}...`}
+          {`${translate("recentNetworks")}...`}
           <ChevronRightIcon size="sm" className="ml-auto" />
         </DDSubTriggerItem>
         <DD.Portal>

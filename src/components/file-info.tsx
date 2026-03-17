@@ -30,7 +30,7 @@ export function FileInfo() {
         {hasUnsavedChanges ? <UnsavedChangesIcon /> : ""}
         {fileInfo.isDemoNetwork && (
           <span className="px-2 py-0.5 text-[10px] font-semibold uppercase bg-orange-100 text-orange-700 rounded-full">
-            {translate("demo")}
+            {translate("demoShort")}
           </span>
         )}
       </div>

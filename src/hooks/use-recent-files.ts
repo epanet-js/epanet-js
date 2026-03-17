@@ -14,7 +14,7 @@ export function useRecentFiles() {
   const queryClient = useQueryClient();
   const recentFilesStore = useAtomValue(recentFilesStoreAtom);
 
-  const { data: recentFiles = [] } = useQuery<RecentFileEntry[]>({
+  const { data: recentFiles = [], isLoading } = useQuery<RecentFileEntry[]>({
     queryKey: QUERY_KEY,
     queryFn: () => recentFilesStore.getAll(),
     enabled: isFileSystemAccessSupported(),
@@ -42,6 +42,7 @@ export function useRecentFiles() {
 
   return {
     recentFiles,
+    isLoading,
     addRecent,
     removeRecent,
     isSupported: isFileSystemAccessSupported(),
