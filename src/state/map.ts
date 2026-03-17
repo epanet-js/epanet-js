@@ -1,6 +1,4 @@
 import { atom } from "jotai";
-import { atomWithStorage, createJSONStorage } from "jotai/utils";
-import { persistLayerConfigAtom } from "./store";
 import type { SetOptional } from "type-fest";
 import type { Sel } from "src/selection/types";
 import {
@@ -49,10 +47,6 @@ export const mapLoadingAtom = atom<boolean>(false);
 
 export const currentZoomAtom = atom<number>(DEFAULT_ZOOM);
 
-const layerConfigStorage = createJSONStorage<ILayerConfig[]>(
-  () => localStorage,
-);
-
 const defaultLayerConfigs: ILayerConfig[] = [
   {
     ...basemaps.monochrome,
@@ -65,32 +59,15 @@ const defaultLayerConfigs: ILayerConfig[] = [
   },
 ];
 
-const layerConfigArrayAtom = atomWithStorage<ILayerConfig[]>(
-  "layer-configs",
-  defaultLayerConfigs,
-  layerConfigStorage,
-);
-
-const defaultLayerConfigMap: LayerConfigMap = new Map(
-  defaultLayerConfigs.map((l) => [l.id, l]),
-);
-
-const nonPersistedLayerConfigAtom = atom<LayerConfigMap>(defaultLayerConfigMap);
+const layerConfigArrayAtom = atom<ILayerConfig[]>(defaultLayerConfigs);
 
 export const layerConfigAtom = atom(
   (get): LayerConfigMap => {
-    if (get(persistLayerConfigAtom)) {
-      const arr = get(layerConfigArrayAtom);
-      return new Map(arr.map((l) => [l.id, l]));
-    }
-    return get(nonPersistedLayerConfigAtom);
+    const arr = get(layerConfigArrayAtom);
+    return new Map(arr.map((l) => [l.id, l]));
   },
-  (get, set, newMap: LayerConfigMap) => {
-    if (get(persistLayerConfigAtom)) {
-      set(layerConfigArrayAtom, [...newMap.values()]);
-    } else {
-      set(nonPersistedLayerConfigAtom, newMap);
-    }
+  (_get, set, newMap: LayerConfigMap) => {
+    set(layerConfigArrayAtom, [...newMap.values()]);
   },
 );
 

@@ -92,7 +92,6 @@ const SymbologyEditor = ({
   const {
     linkSymbology,
     nodeSymbology,
-    symbologyPreferences,
     updateNodeSymbology,
     updateLinkSymbology,
     switchNodeSymbologyTo,
@@ -101,9 +100,6 @@ const SymbologyEditor = ({
   const symbology = geometryType === "node" ? nodeSymbology : linkSymbology;
   const { units } = useAtomValue(projectSettingsAtom);
   const hydraulicModel = useAtomValue(stagingModelAtom);
-  const isPersistMapPreferencesOn = useFeatureFlag(
-    "FLAG_RESTORE_MAP_PREFERENCES",
-  );
 
   const userTracking = useUserTracking();
 
@@ -116,10 +112,6 @@ const SymbologyEditor = ({
 
     const isSimulationProperty = simulationProperties.includes(property);
     const canApplySymbology = !isSimulationProperty || simulationResults;
-    const preference =
-      isPersistMapPreferencesOn && property !== "none"
-        ? symbologyPreferences[property]
-        : undefined;
 
     if (geometryType === "node") {
       if (property === "none") {
@@ -134,7 +126,6 @@ const SymbologyEditor = ({
             hydraulicModel,
             units,
             simulationResults!,
-            preference,
           ),
         );
       }
@@ -151,7 +142,6 @@ const SymbologyEditor = ({
             hydraulicModel,
             units,
             simulationResults!,
-            preference,
           ),
         );
       }
