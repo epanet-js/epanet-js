@@ -149,6 +149,7 @@ export class Persistence implements IPersistenceWithSnapshots {
       version,
       momentLog,
       simulation: initialSimulationState,
+      simulationSourceId: "main",
       simulationSettings,
       status: "open",
     };
@@ -273,6 +274,7 @@ export class Persistence implements IPersistenceWithSnapshots {
     updatedSnapshots.set(worktree.activeSnapshotId, {
       ...snapshot,
       simulation,
+      simulationSourceId: worktree.activeSnapshotId,
     });
 
     this.store.set(worktreeAtom, { ...worktree, snapshots: updatedSnapshots });
@@ -314,10 +316,11 @@ export class Persistence implements IPersistenceWithSnapshots {
     const stagingModel = this.getOrBuildModel(worktree, snapshotId);
     const baseModel = this.getOrBuildModel(worktree, worktree.mainId);
     const simulation = getSimulationForState(worktree, initialSimulationState);
+    const resultsSourceId = snapshot.simulationSourceId;
     const { resultsReader, actualTimestepIndex } =
       await this.loadSimulationResults(
         simulation,
-        snapshotId,
+        resultsSourceId,
         preserveTimestepIndex,
       );
 

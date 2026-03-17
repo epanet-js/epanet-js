@@ -25,7 +25,8 @@ export const createScenario = (
     deltas: mainSnapshot.momentLog.getDeltas(),
     version: mainSnapshot.version,
     momentLog: newMomentLog,
-    simulation: null,
+    simulation: mainSnapshot.simulation,
+    simulationSourceId: mainSnapshot.simulationSourceId,
     simulationSettings,
     status: "open",
   };

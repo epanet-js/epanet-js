@@ -11,6 +11,7 @@ export type Snapshot = {
   version: string;
   momentLog: MomentLog;
   simulation: SimulationState | null;
+  simulationSourceId: string;
   simulationSettings: SimulationSettings;
   status: "open" | "locked";
 };

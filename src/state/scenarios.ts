@@ -12,6 +12,7 @@ const emptyMainSnapshot: Snapshot = {
   version: "",
   momentLog: new MomentLog(),
   simulation: initialSimulationState,
+  simulationSourceId: "main",
   simulationSettings: defaultSimulationSettings,
   status: "open",
 };
