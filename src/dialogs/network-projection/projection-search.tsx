@@ -1,4 +1,5 @@
 import { useCallback } from "react";
+import { MapPin, Sparkles } from "lucide-react";
 import { env } from "src/lib/env-client";
 import { captureError } from "src/infra/error-tracking";
 import {
@@ -96,12 +97,35 @@ export const ProjectionSearch = ({
     [onLocationSelect, onProjectionSelect],
   );
 
+  const renderOption = useCallback((option: SearchResult) => {
+    if (option.data.type === "location") {
+      return (
+        <div className="flex items-center gap-2">
+          <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0" />
+          <span>{option.data.location.name}</span>
+        </div>
+      );
+    }
+    return (
+      <div className="flex items-start gap-2">
+        <Sparkles className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
+        <div>
+          <span className="block">{option.data.projection.name}</span>
+          <span className="block text-xs text-gray-400">
+            {option.data.projection.id}
+          </span>
+        </div>
+      </div>
+    );
+  }, []);
+
   return (
     <SearchableSelector
       onChange={handleChange}
       onSearch={search}
       placeholder="Search by location or code"
       wrapperClassName="block"
+      renderOption={renderOption}
     />
   );
 };

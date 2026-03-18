@@ -16,6 +16,7 @@ export const SearchableSelector = <T extends SearchableSelectorOption>({
   label,
   disabled = false,
   wrapperClassName,
+  renderOption,
 }: {
   selected?: T;
   onChange: (option: T) => void;
@@ -24,6 +25,7 @@ export const SearchableSelector = <T extends SearchableSelectorOption>({
   label?: string;
   disabled?: boolean;
   wrapperClassName?: string;
+  renderOption?: (option: T) => React.ReactNode;
 }) => {
   const [searchTerm, setSearchTerm] = useState(selected?.label || "");
   const [suggestions, setSuggestions] = useState<T[]>([]);
@@ -238,7 +240,7 @@ export const SearchableSelector = <T extends SearchableSelectorOption>({
                     onMouseDown={handleOptionMouseDown}
                     onClick={() => handleOptionClick(suggestion)}
                   >
-                    {suggestion.label}
+                    {renderOption ? renderOption(suggestion) : suggestion.label}
                   </li>
                 ))}
               </ul>
