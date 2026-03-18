@@ -1,18 +1,31 @@
+import type * as mapboxgl from "mapbox-gl";
 import { LineLayer, LinePaint, SymbolLayer } from "mapbox-gl";
 import { ISymbology } from "src/types";
 import { asNumberExpression } from "src/lib/symbolization-deprecated";
 import { DataSource } from "../data-source";
 import { LayerId } from "./layer";
 import { colors } from "src/lib/constants";
+import type { LinkDefaults } from "src/map/symbology";
+
+export const pipeLinkColorExpression = (
+  defaultLinkColor: string,
+): mapboxgl.Expression => [
+  "case",
+  ["==", ["get", "isActive"], false],
+  colors.zinc400,
+  ["coalesce", ["get", "color"], defaultLinkColor],
+];
 
 export const pipesLayer = ({
   source,
   layerId,
   symbology,
+  linkDefaults,
 }: {
   source: DataSource;
   layerId: LayerId;
   symbology: ISymbology;
+  linkDefaults: LinkDefaults;
 }): LineLayer => {
   const paint = {
     "line-opacity": [
@@ -26,12 +39,7 @@ export const pipesLayer = ({
       }),
     ],
     "line-width": ["interpolate", ["linear"], ["zoom"], 12, 0.5, 16, 4],
-    "line-color": [
-      "case",
-      ["==", ["get", "isActive"], false],
-      colors.zinc400,
-      ["coalesce", ["get", "color"], symbology.defaultColor],
-    ],
+    "line-color": pipeLinkColorExpression(linkDefaults.color),
     "line-dasharray": [
       "case",
       ["==", ["get", "status"], "closed"],
@@ -48,14 +56,18 @@ export const pipesLayer = ({
   };
 };
 
+export const pipeArrowColorExpression = (
+  defaultLinkColor: string,
+): mapboxgl.Expression => ["coalesce", ["get", "color"], defaultLinkColor];
+
 export const pipeArrows = ({
   source,
   layerId,
-  symbology,
+  linkDefaults,
 }: {
   source: DataSource;
   layerId: LayerId;
-  symbology: ISymbology;
+  linkDefaults: LinkDefaults;
 }): SymbolLayer => {
   return {
     id: layerId,
@@ -72,7 +84,7 @@ export const pipeArrows = ({
     },
     filter: ["all", ["==", "$type", "LineString"], ["==", "hasArrow", true]],
     paint: {
-      "icon-color": ["coalesce", ["get", "color"], symbology.defaultColor],
+      "icon-color": pipeArrowColorExpression(linkDefaults.color),
       "icon-opacity": [
         ...zoomExpression(
           [14, 15, 16, 17, 18, 19, 20],

@@ -227,6 +227,16 @@ export class MapEngine {
     this.map.setFilter(layerId, filter);
   }
 
+  setLayerPaintRule(
+    layerId: string,
+    name: string,
+    rule: mapboxgl.Expression,
+  ): void {
+    if (!this.map || !(this.map as any).style) return;
+
+    this.map.setPaintProperty(layerId, name, rule);
+  }
+
   setOverlay(layers: LayersList) {
     this.overlay.setProps({ layers });
   }

@@ -504,6 +504,7 @@
   "showLabels": "Show labels",
   "map": "Map",
   "colorBy": "Color by",
+  "defaultColor": "Default color",
   "range": "Range",
   "ramp": "Ramp",
   "labels": "Labels",

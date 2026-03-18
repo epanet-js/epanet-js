@@ -36,6 +36,7 @@ import { captureError } from "src/infra/error-tracking";
 import { withDebugInstrumentation } from "src/infra/with-instrumentation";
 import { USelection } from "src/selection";
 import { SymbologySpec } from "src/state/map-symbology";
+import type { NodeDefaults, LinkDefaults } from "src/map/symbology";
 import {
   FormattingSpec,
   UnitsSpec,
@@ -52,7 +53,15 @@ import {
   updateCustomerPointsOverlayVisibility,
 } from "./overlays/customer-points";
 import { CustomerPoints } from "src/hydraulic-model/customer-points";
-import { junctionsSymbologyFilterExpression } from "./layers/junctions";
+import {
+  junctionsSymbologyFilterExpression,
+  junctionFillColorExpression,
+  junctionStrokeColorExpression,
+} from "./layers/junctions";
+import {
+  pipeLinkColorExpression,
+  pipeArrowColorExpression,
+} from "./layers/pipes";
 
 const SELECTION_LAYERS: LayerId[] = [
   "selected-pipes",
@@ -87,7 +96,9 @@ const detectChanges = (
   hasNewEphemeralState: boolean;
   hasEphemeralStateReset: boolean;
   hasNewSimulation: boolean;
-  hasNewSymbology: boolean;
+  hasNewSymbologyRules: boolean;
+  hasNewCustomerPointsSymbology: boolean;
+  hasNewDefaultColors: boolean;
   hasNewCustomerPoints: boolean;
   hasNewZoom: boolean;
   hasSyncMomentChanged: boolean;
@@ -105,7 +116,16 @@ const detectChanges = (
       prev.ephemeralState.type !== "none" &&
       state.ephemeralState.type === "none",
     hasNewSimulation: state.simulation !== prev.simulation,
-    hasNewSymbology: state.symbology !== prev.symbology,
+    hasNewSymbologyRules:
+      state.symbology.node.colorRule !== prev.symbology.node.colorRule ||
+      state.symbology.node.labelRule !== prev.symbology.node.labelRule ||
+      state.symbology.link.colorRule !== prev.symbology.link.colorRule ||
+      state.symbology.link.labelRule !== prev.symbology.link.labelRule,
+    hasNewCustomerPointsSymbology:
+      state.symbology.customerPoints !== prev.symbology.customerPoints,
+    hasNewDefaultColors:
+      state.symbology.node.defaults !== prev.symbology.node.defaults ||
+      state.symbology.link.defaults !== prev.symbology.link.defaults,
     hasNewCustomerPoints: state.customerPoints !== prev.customerPoints,
     hasNewZoom: state.currentZoom !== prev.currentZoom,
     hasSyncMomentChanged: state.syncMomentVersion !== prev.syncMomentVersion,
@@ -152,7 +172,9 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       hasNewSelection,
       hasNewEphemeralState,
       hasEphemeralStateReset,
-      hasNewSymbology,
+      hasNewSymbologyRules,
+      hasNewCustomerPointsSymbology,
+      hasNewDefaultColors,
       hasNewSimulation,
       hasNewCustomerPoints,
       hasNewZoom,
@@ -166,7 +188,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       hasNewImport ||
       hasNewEditions ||
       hasNewStyles ||
-      hasNewSymbology ||
+      hasNewSymbologyRules ||
       (hasNewSimulation && mapState.simulation.status !== "running") ||
       (hasNewSelection && hasLargeSelection);
 
@@ -183,15 +205,28 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
             mapState.stylesConfig,
             translate,
           );
-          addEditingLayersToMap(map, mapState.stylesConfig);
+          addEditingLayersToMap(
+            map,
+            mapState.stylesConfig,
+            mapState.symbology.node.defaults,
+            mapState.symbology.link.defaults,
+          );
           toggleAnalysisLayers(map, mapState.symbology);
+        }
+
+        if (hasNewDefaultColors && !hasNewStyles) {
+          updateDefaultMapColors(
+            map,
+            mapState.symbology.node.defaults.color,
+            mapState.symbology.link.defaults.color,
+          );
         }
 
         if (
           hasSyncMomentChanged ||
           hasNewImport ||
           hasNewStyles ||
-          hasNewSymbology ||
+          hasNewSymbologyRules ||
           (hasNewSimulation && mapState.simulation.status !== "running")
         ) {
           await rebuildSources(
@@ -239,7 +274,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           hasNewImport ||
           hasNewEditions ||
           hasNewStyles ||
-          hasNewSymbology ||
+          hasNewSymbologyRules ||
           hasNewSelection ||
           (hasNewSimulation && mapState.simulation.status !== "running")
         ) {
@@ -284,7 +319,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         if (
           hasNewZoom ||
           hasNewSelection ||
-          hasNewSymbology ||
+          hasNewSymbologyRules ||
           hasEphemeralStateReset
         ) {
           customerPointsOverlayRef.current =
@@ -360,7 +395,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         }
 
         if (
-          (hasNewSymbology && !hasNewStyles) ||
+          (hasNewSymbologyRules && !hasNewStyles) ||
           hasNewSelection ||
           hasNewEditions
         ) {
@@ -368,7 +403,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         }
 
         if (
-          hasNewSymbology ||
+          hasNewCustomerPointsSymbology ||
           hasNewZoom ||
           hasNewSelection ||
           hasNewEphemeralState ||
@@ -687,10 +722,17 @@ const hideSymbologyForSelectedJunctions = withDebugInstrumentation(
 );
 
 const addEditingLayersToMap = withDebugInstrumentation(
-  (map: MapEngine, stylesConfig: StylesConfig) => {
+  (
+    map: MapEngine,
+    stylesConfig: StylesConfig,
+    nodeDefaults: NodeDefaults,
+    linkDefaults: LinkDefaults,
+  ) => {
     const layers = makeLayers({
       symbology: stylesConfig.symbology,
       previewProperty: stylesConfig.previewProperty,
+      nodeDefaults,
+      linkDefaults,
     });
 
     for (const layer of layers) {
@@ -698,6 +740,51 @@ const addEditingLayersToMap = withDebugInstrumentation(
     }
   },
   { name: "MAP_STATE:ADD_EDITING_LAYERS", maxDurationMs: 100 },
+);
+
+const updateDefaultMapColors = withDebugInstrumentation(
+  (map: MapEngine, nodeColor: string, linkColor: string) => {
+    const junctionLayers = [
+      "main-features-junctions",
+      "delta-features-junctions",
+      "main-features-junction-results",
+      "delta-features-junction-results",
+    ];
+    for (const layerId of junctionLayers) {
+      map.setLayerPaintRule(
+        layerId,
+        "circle-color",
+        junctionFillColorExpression(nodeColor),
+      );
+      map.setLayerPaintRule(
+        layerId,
+        "circle-stroke-color",
+        junctionStrokeColorExpression(nodeColor),
+      );
+    }
+
+    const pipeLayers = ["main-features-pipes", "delta-features-pipes"];
+    for (const layerId of pipeLayers) {
+      map.setLayerPaintRule(
+        layerId,
+        "line-color",
+        pipeLinkColorExpression(linkColor),
+      );
+    }
+
+    const arrowLayers = [
+      "main-features-pipe-arrows",
+      "delta-features-pipe-arrows",
+    ];
+    for (const layerId of arrowLayers) {
+      map.setLayerPaintRule(
+        layerId,
+        "icon-color",
+        pipeArrowColorExpression(linkColor),
+      );
+    }
+  },
+  { name: "MAP_STATE:UPDATE_DEFAULT_MAP_COLORS", maxDurationMs: 100 },
 );
 
 const updateEphemeralStateSource = withDebugInstrumentation(

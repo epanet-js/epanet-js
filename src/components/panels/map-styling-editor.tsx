@@ -23,10 +23,12 @@ import { StyledPopoverArrow, StyledPopoverContent } from "../elements";
 import { RangeMode } from "src/map/symbology/range-color-rule";
 import { AddLayer, LayersEditor } from "../layers/layers-editor";
 import { InlineField, Section, SectionList } from "../form/fields";
+import { ColorPopover } from "src/components/color-popover";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { LegendRamp } from "../legends";
 import { selectionAtom } from "src/state/selection";
 import { USelection } from "src/selection/selection";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 const colorPropertyLabelFor = (
   property: string,
@@ -95,6 +97,8 @@ const SymbologyEditor = ({
     updateLinkSymbology,
     switchNodeSymbologyTo,
     switchLinkSymbologyTo,
+    updateNodeDefaultColor,
+    updateLinkDefaultColor,
   } = useSymbologyState();
   const symbology = geometryType === "node" ? nodeSymbology : linkSymbology;
   const { units } = useAtomValue(projectSettingsAtom);
@@ -175,8 +179,25 @@ const SymbologyEditor = ({
 
   const isSmOrLarger = useBreakpoint("sm");
 
+  const defaultColor = symbology.defaults.color;
+  const handleDefaultColorChange =
+    geometryType === "node" ? updateNodeDefaultColor : updateLinkDefaultColor;
+
+  const isDefaultColorOn = useFeatureFlag("FLAG_MAP_DEFAULT_COLOR");
+
   return (
     <Section title={title}>
+      {isDefaultColorOn && (
+        <InlineField name={translate("defaultColor")} labelSize="md">
+          <div className="h-7 w-12 rounded overflow-hidden">
+            <ColorPopover
+              color={defaultColor}
+              onChange={handleDefaultColorChange}
+              ariaLabel={`Default ${geometryType} color`}
+            />
+          </div>
+        </InlineField>
+      )}
       <InlineField name={translate("colorBy")} labelSize="md">
         <Selector
           ariaLabel={`${translate(geometryType)} ${translate("colorBy")}`}

@@ -107,6 +107,7 @@ import {
   selectedIconsLayer,
 } from "src/map/layers/selection";
 import type * as mapboxgl from "mapbox-gl";
+import type { NodeDefaults, LinkDefaults } from "src/map/symbology";
 
 const DELTA_FEATURES_POINT_LABEL_LAYER_NAME = "delta-features-point-label";
 const DELTA_FEATURES_LINE_LABEL_LAYER_NAME = "delta-features-line-label";
@@ -163,9 +164,13 @@ function LABEL_LAYOUT(
 export function makeLayers({
   symbology,
   previewProperty,
+  nodeDefaults,
+  linkDefaults,
 }: {
   symbology: ISymbology;
   previewProperty: PreviewProperty;
+  nodeDefaults: NodeDefaults;
+  linkDefaults: LinkDefaults;
 }): mapboxgl.AnyLayer[] {
   return [
     gridMinorLayer(),
@@ -175,11 +180,13 @@ export function makeLayers({
       source: "main-features",
       layerId: "main-features-pipes",
       symbology,
+      linkDefaults,
     }),
     pipesLayer({
       source: "delta-features",
       layerId: "delta-features-pipes",
       symbology,
+      linkDefaults,
     }),
     selectedPipesLayer({
       source: "selected-features",
@@ -219,12 +226,12 @@ export function makeLayers({
     pipeArrows({
       source: "main-features",
       layerId: "main-features-pipe-arrows",
-      symbology,
+      linkDefaults,
     }),
     pipeArrows({
       source: "delta-features",
       layerId: "delta-features-pipe-arrows",
-      symbology,
+      linkDefaults,
     }),
     selectedPipeArrowsLayer({
       source: "selected-features",
@@ -234,21 +241,25 @@ export function makeLayers({
       source: "main-features",
       layerId: "main-features-junctions",
       symbology,
+      nodeDefaults,
     }),
     junctionsLayer({
       source: "delta-features",
       layerId: "delta-features-junctions",
       symbology,
+      nodeDefaults,
     }),
     junctionResultsLayer({
       source: "main-features",
       layerId: "main-features-junction-results",
       symbology,
+      nodeDefaults,
     }),
     junctionResultsLayer({
       source: "delta-features",
       layerId: "delta-features-junction-results",
       symbology,
+      nodeDefaults,
     }),
     selectedJunctionsLayer({
       source: "selected-features",

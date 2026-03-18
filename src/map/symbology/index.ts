@@ -1,6 +1,8 @@
 export type {
   NodeSymbology,
   LinkSymbology,
+  NodeDefaults,
+  LinkDefaults,
   CustomerPointsSymbology,
   SymbologySpec,
 } from "./symbology-types";

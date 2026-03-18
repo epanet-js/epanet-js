@@ -91,6 +91,7 @@ export const savedSymbologiesAtom = atom<SymbologiesMap>(new Map());
 
 export const nodeSymbologyAtom = atom<NodeSymbology>(nullSymbologySpec.node);
 export const linkSymbologyAtom = atom<LinkSymbology>(nullSymbologySpec.link);
+
 const customerPointsSymbologyAtom = atom<CustomerPointsSymbology>(
   nullSymbologySpec.customerPoints,
 );
@@ -115,18 +116,21 @@ export const useSymbologyState = () => {
     initializeFn: () => NodeSymbology,
   ) => {
     if (property === null) {
-      setNodesActive(nullSymbologySpec.node);
+      setNodesActive({
+        ...nullSymbologySpec.node,
+        defaults: nodeSymbology.defaults,
+      });
       return;
     }
 
-    let nodeSymbology;
+    let newNodeSymbology: NodeSymbology;
     if (savedSymbologies.has(property)) {
-      nodeSymbology = savedSymbologies.get(property);
+      newNodeSymbology = savedSymbologies.get(property) as NodeSymbology;
     } else {
-      nodeSymbology = initializeFn();
-      updateNodeSymbology(nodeSymbology);
+      newNodeSymbology = initializeFn();
+      updateNodeSymbology(newNodeSymbology);
     }
-    setNodesActive(nodeSymbology as NodeSymbology);
+    setNodesActive({ ...newNodeSymbology, defaults: nodeSymbology.defaults });
   };
 
   const switchLinkSymbologyTo = (
@@ -134,18 +138,21 @@ export const useSymbologyState = () => {
     initializeFn: () => LinkSymbology,
   ) => {
     if (property === null) {
-      setLinksActive(nullSymbologySpec.link);
+      setLinksActive({
+        ...nullSymbologySpec.link,
+        defaults: linkSymbology.defaults,
+      });
       return;
     }
 
-    let linkSymbology;
+    let newLinkSymbology: LinkSymbology;
     if (savedSymbologies.has(property)) {
-      linkSymbology = savedSymbologies.get(property);
+      newLinkSymbology = savedSymbologies.get(property) as LinkSymbology;
     } else {
-      linkSymbology = initializeFn();
-      updateLinkSymbology(linkSymbology);
+      newLinkSymbology = initializeFn();
+      updateLinkSymbology(newLinkSymbology);
     }
-    setLinksActive(linkSymbology as LinkSymbology);
+    setLinksActive({ ...newLinkSymbology, defaults: linkSymbology.defaults });
   };
 
   const updateNodeSymbology = (newNodeSymbology: NodeSymbology) => {
@@ -178,6 +185,20 @@ export const useSymbologyState = () => {
     setCustomerPointsSymbology(newCustomerPointsSymbology);
   };
 
+  const updateNodeDefaultColor = (color: string) => {
+    setNodesActive({
+      ...nodeSymbology,
+      defaults: { ...nodeSymbology.defaults, color },
+    });
+  };
+
+  const updateLinkDefaultColor = (color: string) => {
+    setLinksActive({
+      ...linkSymbology,
+      defaults: { ...linkSymbology.defaults, color },
+    });
+  };
+
   return {
     linkSymbology,
     nodeSymbology,
@@ -187,5 +208,7 @@ export const useSymbologyState = () => {
     updateNodeSymbology,
     updateLinkSymbology,
     updateCustomerPointsSymbology,
+    updateNodeDefaultColor,
+    updateLinkDefaultColor,
   };
 };

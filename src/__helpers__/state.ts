@@ -23,17 +23,18 @@ import { ExportOptions } from "src/types/export";
 import { ILayerConfig, LayerConfigMap } from "src/types";
 import type { Sel } from "src/selection/types";
 import { nanoid } from "nanoid";
-import { LinkSymbology, NodeSymbology } from "src/map/symbology";
+import {
+  LinkSymbology,
+  NodeSymbology,
+  nullSymbologySpec,
+} from "src/map/symbology";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
 import {
   RangeColorRule,
   nullRangeColorRule,
 } from "src/map/symbology/range-color-rule";
 import { linkSymbologyAtom, nodeSymbologyAtom } from "src/state/map-symbology";
-import {
-  LabelRule,
-  nullSymbologySpec,
-} from "src/map/symbology/symbology-types";
+import { LabelRule } from "src/map/symbology/symbology-types";
 import { Locale } from "src/infra/i18n/locale";
 import { localeAtom } from "src/state/locale";
 
@@ -164,6 +165,7 @@ export const aNodeSymbology = ({
 }): NodeSymbology => {
   const colorRule = aRangeColorRule(partialColorRule);
   return {
+    ...nullSymbologySpec.node,
     colorRule,
     labelRule,
   };
@@ -178,6 +180,7 @@ export const aLinkSymbology = ({
 }): LinkSymbology => {
   const colorRule = aRangeColorRule({ property: "flow", ...partialColorRule });
   return {
+    ...nullSymbologySpec.link,
     colorRule,
     labelRule,
   };

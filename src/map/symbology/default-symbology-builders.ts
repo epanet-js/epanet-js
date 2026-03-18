@@ -1,7 +1,11 @@
 import { HydraulicModel } from "src/hydraulic-model";
 import type { UnitsSpec } from "src/lib/project-settings/quantities-spec";
 import { initializeColorRule } from "./range-color-rule";
-import { NodeSymbology, LinkSymbology } from "./symbology-types";
+import {
+  NodeSymbology,
+  LinkSymbology,
+  nullSymbologySpec,
+} from "./symbology-types";
 import { nullLabelRule } from "./labeling";
 import { getSortedValues } from "src/hydraulic-model/assets-map";
 import {
@@ -69,7 +73,7 @@ export const defaultSymbologyBuilders: DefaultSymbologyBuilders = {
         numIntervals: 7,
         sortedData: getSortedValues(hydraulicModel.assets, "diameter"),
       });
-      return { colorRule, labelRule: nullLabelRule };
+      return { ...nullSymbologySpec.link, colorRule, labelRule: nullLabelRule };
     },
 
   roughness:
@@ -86,7 +90,7 @@ export const defaultSymbologyBuilders: DefaultSymbologyBuilders = {
         mode: "ckmeans",
         sortedData: getSortedValues(hydraulicModel.assets, "roughness"),
       });
-      return { colorRule, labelRule: nullLabelRule };
+      return { ...nullSymbologySpec.link, colorRule, labelRule: nullLabelRule };
     },
 
   elevation:
@@ -104,7 +108,7 @@ export const defaultSymbologyBuilders: DefaultSymbologyBuilders = {
         fallbackEndpoints: [0, 100],
         sortedData: getSortedValues(hydraulicModel.assets, "elevation"),
       });
-      return { colorRule, labelRule: nullLabelRule };
+      return { ...nullSymbologySpec.node, colorRule, labelRule: nullLabelRule };
     },
 
   flow:
@@ -125,7 +129,7 @@ export const defaultSymbologyBuilders: DefaultSymbologyBuilders = {
         absValues: true,
         sortedData,
       });
-      return { colorRule, labelRule: nullLabelRule };
+      return { ...nullSymbologySpec.link, colorRule, labelRule: nullLabelRule };
     },
 
   velocity:
@@ -147,7 +151,7 @@ export const defaultSymbologyBuilders: DefaultSymbologyBuilders = {
           VELOCITY_FALLBACK_ENDPOINTS,
         ),
       });
-      return { colorRule, labelRule: nullLabelRule };
+      return { ...nullSymbologySpec.link, colorRule, labelRule: nullLabelRule };
     },
 
   unitHeadloss:
@@ -172,7 +176,7 @@ export const defaultSymbologyBuilders: DefaultSymbologyBuilders = {
           UNIT_HEADLOSS_FALLBACK_ENDPOINTS,
         ),
       });
-      return { colorRule, labelRule: nullLabelRule };
+      return { ...nullSymbologySpec.link, colorRule, labelRule: nullLabelRule };
     },
 
   pressure:
@@ -191,7 +195,7 @@ export const defaultSymbologyBuilders: DefaultSymbologyBuilders = {
         fallbackEndpoints: [0, 100],
         sortedData,
       });
-      return { colorRule, labelRule: nullLabelRule };
+      return { ...nullSymbologySpec.node, colorRule, labelRule: nullLabelRule };
     },
 
   actualDemand:
@@ -213,7 +217,7 @@ export const defaultSymbologyBuilders: DefaultSymbologyBuilders = {
         fallbackEndpoints: [0, 100],
         sortedData,
       });
-      return { colorRule, labelRule: nullLabelRule };
+      return { ...nullSymbologySpec.node, colorRule, labelRule: nullLabelRule };
     },
 
   head:
@@ -232,6 +236,6 @@ export const defaultSymbologyBuilders: DefaultSymbologyBuilders = {
         fallbackEndpoints: [0, 100],
         sortedData,
       });
-      return { colorRule, labelRule: nullLabelRule };
+      return { ...nullSymbologySpec.node, colorRule, labelRule: nullLabelRule };
     },
 };
