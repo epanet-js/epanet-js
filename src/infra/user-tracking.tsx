@@ -350,6 +350,9 @@ type GeocodingNotSupportedSeen = {
 type InpProjectionChoiceSeen = {
   name: "inpProjectionChoice.seen";
 };
+type NetworkProjectionSeen = {
+  name: "networkProjection.seen";
+};
 type InpProjectionChoiceProjected = {
   name: "inpProjectionChoice.projected";
 };
@@ -863,6 +866,7 @@ export type UserEvent =
   | InpProjectionChoiceSeen
   | InpProjectionChoiceProjected
   | InpProjectionChoiceNonProjected
+  | NetworkProjectionSeen
   | SimulationSummarySeen
   | ShortcutsOpened
   | PropertyAggregateOpened

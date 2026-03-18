@@ -22,12 +22,14 @@ import { OPFSStorage } from "src/infra/storage";
 import { getAppId } from "src/infra/app-instance";
 import { isDemoNetwork } from "src/demo/demo-networks";
 import { useRecentFiles } from "src/hooks/use-recent-files";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export const inpExtension = ".inp";
 
 export const useImportInp = () => {
   const translate = useTranslate();
   const setDialogState = useSetAtom(dialogAtom);
+  const isReprojectOn = useFeatureFlag("FLAG_REPROJECT");
   const map = useContext(MapContext);
   const setFileInfo = useSetAtom(fileInfoAtom);
   const rep = usePersistence();
@@ -180,10 +182,17 @@ export const useImportInp = () => {
               setDialogState({ type: "invalidFilesError" });
             }
           };
-          setDialogState({
-            type: "inpProjectionChoice",
-            onImportNonProjected,
-          });
+          if (isReprojectOn) {
+            setDialogState({
+              type: "networkProjection",
+              onImportNonProjected,
+            });
+          } else {
+            setDialogState({
+              type: "inpProjectionChoice",
+              onImportNonProjected,
+            });
+          }
           return;
         }
 
@@ -212,6 +221,7 @@ export const useImportInp = () => {
     },
     [
       addRecent,
+      isReprojectOn,
       map,
       setDialogState,
       setFileInfo,

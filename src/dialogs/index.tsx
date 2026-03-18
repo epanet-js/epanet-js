@@ -68,6 +68,16 @@ const InpProjectionChoiceDialog = dynamic<{
   },
 );
 
+const NetworkProjectionDialog = dynamic(
+  () =>
+    import("src/dialogs/network-projection").then(
+      (r) => r.NetworkProjectionDialog,
+    ),
+  {
+    loading: () => <LoadingDialog />,
+  },
+);
+
 const MissingCoordinatesDialog = dynamic<{
   issues: ParserIssues;
   onClose: () => void;
@@ -348,6 +358,9 @@ export const Dialogs = memo(function Dialogs() {
       if (dialog.type === "inpProjectionChoice") {
         userTracking.capture({ name: "inpProjectionChoice.seen" });
       }
+      if (dialog.type === "networkProjection") {
+        userTracking.capture({ name: "networkProjection.seen" });
+      }
       if (dialog.type === "inpIssues") {
         userTracking.capture({ name: "inpIssues.seen" });
       }
@@ -450,6 +463,10 @@ export const Dialogs = memo(function Dialogs() {
         onImportNonProjected={dialog.onImportNonProjected}
       />
     );
+  }
+
+  if (dialog.type === "networkProjection") {
+    return <NetworkProjectionDialog />;
   }
 
   const content = match(dialog)

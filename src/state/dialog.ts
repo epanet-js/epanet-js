@@ -38,6 +38,11 @@ export type InpProjectionChoiceDialogState = {
   onImportNonProjected: () => void;
 };
 
+export type NetworkProjectionDialogState = {
+  type: "networkProjection";
+  onImportNonProjected: () => void;
+};
+
 export type MissingCoordinatesDialogState = {
   type: "inpMissingCoordinates";
   issues: ParserIssues;
@@ -181,6 +186,7 @@ export type DialogState =
   | AlertScenariosNotSavedState
   | AlertNetworkRequiredState
   | ActivatingTrialDialogState
+  | NetworkProjectionDialogState
   | null;
 
 export const dialogFromUrl = (): DialogState => {
