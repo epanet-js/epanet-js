@@ -28,10 +28,7 @@ import { usePersistence } from "src/lib/persistence";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { useTranslate } from "src/hooks/use-translate";
 import { Selector } from "../components/form/selector";
-import {
-  SearchableSelector,
-  type SearchableSelectorOption,
-} from "../components/form/searchable-selector";
+
 import { useAtomValue, useSetAtom } from "jotai";
 import { fileInfoAtom } from "src/state/file-system";
 import {
@@ -44,36 +41,16 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { MapContext } from "src/map/map-context";
 import { MapEngine } from "src/map/map-engine";
 import { useContext, useRef, useCallback } from "react";
-import { captureError } from "src/infra/error-tracking";
-import { env } from "src/lib/env-client";
 
 import NetworkUnprojectedIllustration from "./network-projection/network-unprojected";
 import NetworkProjectedIllustration from "./network-projection/network-projected";
 import clsx from "clsx";
 import { InlineField } from "../components/form/fields";
 
-type LocationData = {
-  name: string;
-  coordinates: [number, number];
-  bbox: [number, number, number, number];
-};
-
-type MapboxFeature = {
-  bbox: [number, number, number, number];
-  center: [number, number];
-  place_name: string;
-  text: string;
-  [key: string]: any;
-};
-
-type MapboxResponse = {
-  features?: MapboxFeature[];
-  [key: string]: any;
-};
-
-type LocationOption = SearchableSelectorOption & {
-  data: LocationData;
-};
+import {
+  LocationSearch,
+  type LocationData,
+} from "../components/form/location-search";
 
 type SubmitProps = {
   unitsSpec: keyof Presets;
@@ -288,55 +265,17 @@ const LocationSearchSelector = ({
   const translate = useTranslate();
   const map = useContext(MapContext);
 
-  const searchLocations = useCallback(
-    async (query: string): Promise<LocationOption[]> => {
-      if (!query.trim() || query.length < 2) {
-        return [];
-      }
-
-      try {
-        const response = await fetch(
-          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
-            query,
-          )}.json?access_token=${env.NEXT_PUBLIC_MAPBOX_TOKEN}&types=place,locality&limit=5`,
-        );
-
-        if (response.ok) {
-          const data: MapboxResponse = await response.json();
-          const features = data.features || [];
-
-          return features
-            .filter(isValidMapboxFeature)
-            .map((feature: MapboxFeature) => ({
-              id: feature.place_name || feature.text,
-              label: feature.place_name || feature.text,
-              data: {
-                name: feature.place_name || feature.text,
-                coordinates: feature.center as [number, number],
-                bbox: feature.bbox as [number, number, number, number],
-              },
-            }));
-        }
-      } catch (error) {
-        captureError(error as Error);
-      }
-      return [];
-    },
-    [],
-  );
-
-  const handleLocationChange = useCallback(
-    (option: LocationOption) => {
-      const locationData = option.data;
-
-      if (map && locationData.bbox && locationData.coordinates) {
-        map.map.fitBounds(locationData.bbox, {
+  const handleChange = useCallback(
+    (location: LocationData) => {
+      onChange(location);
+      if (map && location.bbox && location.coordinates) {
+        map.map.fitBounds(location.bbox, {
           padding: 50,
           animate: false,
         });
       }
     },
-    [map],
+    [map, onChange],
   );
 
   return (
@@ -345,43 +284,13 @@ const LocationSearchSelector = ({
       layout="fixed-label"
       labelSize="md"
     >
-      <SearchableSelector
-        selected={
-          selected
-            ? {
-                id: selected.name,
-                label: selected.name,
-                data: selected,
-              }
-            : undefined
-        }
-        onChange={(option) => {
-          onChange(option.data);
-          void handleLocationChange(option);
-        }}
-        onSearch={searchLocations}
+      <LocationSearch
+        selected={selected}
+        onChange={handleChange}
         placeholder={translate("searchLocation")}
         disabled={disabled}
-        wrapperClassName="block"
       />
     </InlineField>
-  );
-};
-
-const isValidMapboxFeature = (feature: unknown): feature is MapboxFeature => {
-  if (!feature || typeof feature !== "object") {
-    return false;
-  }
-
-  const obj = feature as Record<string, unknown>;
-
-  return (
-    "center" in obj &&
-    "bbox" in obj &&
-    Array.isArray(obj.center) &&
-    Array.isArray(obj.bbox) &&
-    ("place_name" in obj || "text" in obj) &&
-    (typeof obj.place_name === "string" || typeof obj.text === "string")
   );
 };
 
