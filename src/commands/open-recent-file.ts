@@ -6,7 +6,7 @@ import { notify } from "src/components/notifications";
 import { captureError } from "src/infra/error-tracking";
 import { RecentFileOpened, useUserTracking } from "src/infra/user-tracking";
 import type { FileWithHandle } from "browser-fs-access";
-import type { RecentFileEntry } from "src/import/recent-files";
+import type { RecentFileEntry } from "src/lib/recent-files";
 import { useTranslate } from "src/hooks/use-translate";
 
 export const useOpenRecentFile = () => {

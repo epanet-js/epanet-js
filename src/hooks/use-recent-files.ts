@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
 import { useAtomValue } from "jotai";
-import type { RecentFileEntry } from "src/import/recent-files";
+import type { RecentFileEntry } from "src/lib/recent-files";
 import { recentFilesStoreAtom } from "src/state/file-system";
 
 const QUERY_KEY = ["recent-files"] as const;

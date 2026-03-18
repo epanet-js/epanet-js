@@ -16,7 +16,7 @@ function isSupported(): boolean {
   return typeof FileSystemFileHandle !== "undefined";
 }
 
-export const defaultDb = () =>
+export const defaultRecentFilesDb = () =>
   new IndexedDB({
     name: "epanet-recent-files",
     version: 2,

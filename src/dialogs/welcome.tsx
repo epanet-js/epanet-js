@@ -38,7 +38,7 @@ import { Message } from "../components/message";
 import { DemoNetworkCard } from "../components/demo-network-card";
 import { DRUMCHAPEL, WATERDOWN } from "src/demo/demo-networks";
 import optimaticsLogoUrl from "src/assets/images/logos/optimatics-logo-black.webp";
-import type { RecentFileEntry } from "src/import/recent-files";
+import type { RecentFileEntry } from "src/lib/recent-files";
 import clsx from "clsx";
 
 export const WelcomeDialog = () => {
