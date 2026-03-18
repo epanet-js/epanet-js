@@ -409,9 +409,9 @@ const RecentFileCard = ({
         </div>
       )}
     </div>
-    <div className="p-1 flex flex-col gap-0.5 overflow-hidden">
+    <div className="p-2 flex flex-col gap-0.5 overflow-hidden">
       <span
-        className="text-sm font-medium text-gray-700 truncate"
+        className="text-xs font-medium text-gray-700 truncate"
         title={entry.name}
       >
         {entry.name}
@@ -458,10 +458,10 @@ const DemoAsRecentCard = ({ demoNetwork }: { demoNetwork: DemoModel }) => {
           className="w-full h-full object-cover"
         />
       </div>
-      <div className="p-1 flex flex-col gap-0.5 overflow-hidden">
+      <div className="p-2 flex flex-col gap-0.5 overflow-hidden">
         <div className="flex items-center gap-1">
           <span
-            className="text-sm font-medium text-gray-700 truncate"
+            className="text-xs font-medium text-gray-700 truncate"
             title={demoNetwork.name}
           >
             {demoNetwork.name}
@@ -470,7 +470,7 @@ const DemoAsRecentCard = ({ demoNetwork }: { demoNetwork: DemoModel }) => {
             {translate("demoShort")}
           </span>
         </div>
-        <span className="text-xs text-gray-500 truncate">
+        <span className="text-xs text-gray-500 line-clamp-2">
           {demoNetwork.description}
         </span>
       </div>
