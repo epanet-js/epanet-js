@@ -44,6 +44,7 @@ import {
   Link2,
   Link2Off,
   Lock,
+  LocateOff,
   MapIcon,
   MapPinned,
   Menu,
@@ -192,6 +193,7 @@ export const MoreActionsIcon = icon(EllipsisVertical);
 export const ScenarioIcon = icon(GitBranch);
 export const AddScenarioIcon = icon(GitBranchPlus);
 export const MainModelIcon = icon(Lock);
+export const LocateOffIcon = icon(LocateOff);
 export const ControlsIcon = icon(FileCode);
 export const PatternsIcon = icon(ChartColumn);
 export const RenameIcon = icon(TextCursorInput);
