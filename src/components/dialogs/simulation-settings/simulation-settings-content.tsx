@@ -119,8 +119,6 @@ export const GeneralSection = () => {
   const { units, headlossFormula } = useAtomValue(projectSettingsAtom);
   const { values, setFieldValue } = useFormikContext<FormValues>();
 
-  const isEpanet23On = useFeatureFlag("FLAG_EPANET23");
-
   const unitSystemKey = chooseUnitSystem(units);
   const flowUnitsDisplay = translate(flowUnitTranslationKeys[unitSystemKey]);
 
@@ -153,15 +151,13 @@ export const GeneralSection = () => {
           disabled
         />
 
-        {isEpanet23On && (
-          <TextSetting
-            label={translate("simulationSettings.pressureUnits")}
-            description={translate("simulationSettings.pressureUnitsDesc")}
-            value={pressureUnitDisplay}
-            onChange={() => {}}
-            disabled
-          />
-        )}
+        <TextSetting
+          label={translate("simulationSettings.pressureUnits")}
+          description={translate("simulationSettings.pressureUnitsDesc")}
+          value={pressureUnitDisplay}
+          onChange={() => {}}
+          disabled
+        />
 
         <TextSetting
           label={translate("simulationSettings.headlossFormula")}
@@ -319,7 +315,6 @@ export const TimesSection = () => {
 export const DemandsSection = () => {
   const translate = useTranslate();
   const readonly = useAtomValue(hasScenariosAtom);
-  const isEpanet23On = useFeatureFlag("FLAG_EPANET23");
   const { values, setFieldValue } = useFormikContext<FormValues>();
 
   const isPDA = values.demandModel === "PDA";
@@ -401,17 +396,14 @@ export const DemandsSection = () => {
           onChange={(v) => setFieldValue("emitterExponent", v)}
           disabled={readonly}
         />
-        {isEpanet23On && (
-          <SelectorSetting
-            label={translate("simulationSettings.backflowAllowed")}
-            description={translate("simulationSettings.backflowAllowedDesc")}
-            badge="EPANET 2.3"
-            options={backflowAllowedOptions}
-            selected={values.backflowAllowed ? "YES" : "NO"}
-            onChange={(v) => setFieldValue("backflowAllowed", v === "YES")}
-            disabled={readonly}
-          />
-        )}
+        <SelectorSetting
+          label={translate("simulationSettings.backflowAllowed")}
+          description={translate("simulationSettings.backflowAllowedDesc")}
+          options={backflowAllowedOptions}
+          selected={values.backflowAllowed ? "YES" : "NO"}
+          onChange={(v) => setFieldValue("backflowAllowed", v === "YES")}
+          disabled={readonly}
+        />
       </SubsectionGroup>
     </div>
   );
