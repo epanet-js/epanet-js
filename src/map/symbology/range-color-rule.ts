@@ -35,6 +35,15 @@ export type RangeEndpoints = [number, number];
 
 export type RampSize = keyof CBColors["colors"];
 
+export type ColorRuleConfig = {
+  rampName: string;
+  mode: RangeMode;
+  reversedRamp: boolean;
+  numIntervals: number;
+  customColors?: string[];
+  breaks?: number[];
+};
+
 export const defaultNewColor = "#0fffff";
 export const maxIntervals = 7;
 export const minIntervals = 3;

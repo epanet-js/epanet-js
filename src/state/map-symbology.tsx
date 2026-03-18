@@ -11,6 +11,7 @@ import {
   SupportedProperty,
   nullSymbologySpec,
 } from "src/map/symbology/symbology-types";
+import { type ColorRuleConfig } from "src/map/symbology/range-color-rule";
 
 export type { SymbologySpec };
 
@@ -21,6 +22,69 @@ export const memoryMetaAtom = atom<Omit<PersistenceMetadataMemory, "type">>({
   label: null,
   layer: null,
 });
+
+type PropertyColorConfigMap = Record<SupportedProperty, ColorRuleConfig>;
+
+export const defaultPropertyColorConfigs: PropertyColorConfigMap = {
+  diameter: {
+    rampName: "SunsetDark",
+    mode: "prettyBreaks",
+    reversedRamp: false,
+    numIntervals: 7,
+  },
+  roughness: {
+    rampName: "Emrld",
+    mode: "ckmeans",
+    reversedRamp: false,
+    numIntervals: 5,
+  },
+  elevation: {
+    rampName: "Fall",
+    mode: "prettyBreaks",
+    reversedRamp: false,
+    numIntervals: 5,
+  },
+  flow: {
+    rampName: "Teal",
+    mode: "equalQuantiles",
+    reversedRamp: false,
+    numIntervals: 5,
+  },
+  velocity: {
+    rampName: "RedOr",
+    mode: "prettyBreaks",
+    reversedRamp: false,
+    numIntervals: 5,
+  },
+  unitHeadloss: {
+    rampName: "Emrld",
+    mode: "prettyBreaks",
+    reversedRamp: false,
+    numIntervals: 5,
+  },
+  pressure: {
+    rampName: "Temps",
+    mode: "prettyBreaks",
+    reversedRamp: false,
+    numIntervals: 5,
+  },
+  actualDemand: {
+    rampName: "Emrld",
+    mode: "prettyBreaks",
+    reversedRamp: false,
+    numIntervals: 5,
+  },
+  head: {
+    rampName: "Purp",
+    mode: "prettyBreaks",
+    reversedRamp: false,
+    numIntervals: 5,
+  },
+};
+
+export const propertyColorConfigAtom = atom<PropertyColorConfigMap>(
+  defaultPropertyColorConfigs,
+);
 
 type SymbologiesMap = Map<SupportedProperty, NodeSymbology | LinkSymbology>;
 export const savedSymbologiesAtom = atom<SymbologiesMap>(new Map());

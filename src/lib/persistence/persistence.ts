@@ -45,6 +45,8 @@ import {
   linkSymbologyAtom,
   nodeSymbologyAtom,
   savedSymbologiesAtom,
+  propertyColorConfigAtom,
+  defaultPropertyColorConfigs,
 } from "src/state/map-symbology";
 import { nullSymbologySpec } from "src/map/symbology";
 import { mapSyncMomentAtom, MomentPointer } from "src/state/map";
@@ -119,6 +121,7 @@ export class Persistence implements IPersistenceWithSnapshots {
       this.store.set(nodeSymbologyAtom, nullSymbologySpec.node);
       this.store.set(linkSymbologyAtom, nullSymbologySpec.link);
       this.store.set(savedSymbologiesAtom, new Map());
+      this.store.set(propertyColorConfigAtom, defaultPropertyColorConfigs);
       this.store.set(modeAtom, { mode: Mode.NONE });
       this.store.set(ephemeralStateAtom, { type: "none" });
       this.store.set(selectionAtom, { type: "none" });
