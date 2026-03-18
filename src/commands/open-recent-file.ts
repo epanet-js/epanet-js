@@ -24,7 +24,13 @@ export const useOpenRecentFile = () => {
           const permission = await entry.handle.requestPermission({
             mode: "read",
           });
-          if (permission !== "granted") return;
+          if (permission !== "granted") {
+            notify({
+              variant: "warning",
+              title: translate("recentFilePermissionDenied"),
+            });
+            return;
+          }
 
           const file = await entry.handle.getFile();
           const fileWithHandle: FileWithHandle = Object.assign(file, {
