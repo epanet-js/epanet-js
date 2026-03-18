@@ -100,6 +100,7 @@ export const buildModel = (
   const hydraulicModel = initializeHydraulicModel({
     defaults: spec.defaults,
     demands: createEmptyDemands(),
+    fillLabelGaps: options?.fillLabelGaps,
   });
 
   const curvesContext: CurvesContext = initializeCurvesContext(

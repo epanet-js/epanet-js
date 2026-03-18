@@ -27,6 +27,7 @@ export type ParseInpOptions = {
   customerPoints?: boolean;
   inactiveAssets?: boolean;
   sourceProjection?: Projection;
+  fillLabelGaps?: boolean;
 };
 
 export const parseInp = (

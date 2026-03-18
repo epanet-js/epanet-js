@@ -208,7 +208,7 @@ describe("label manager", () => {
       expect(labelManager.generateFor("pattern", anId())).toEqual("PAT3");
     });
 
-    it("skips registered pattern labels", () => {
+    it("fills gaps for registered pattern labels", () => {
       const labelManager = new LabelManager();
       labelManager.register("PAT1", "pattern", anId());
       labelManager.register("PAT3", "pattern", anId());
@@ -239,6 +239,301 @@ describe("label manager", () => {
       labelManager.register("LABEL", "junction", anId());
 
       expect(labelManager.isLabelAvailable("LABEL", "pattern")).toBe(true);
+    });
+  });
+
+  describe("with fillGaps disabled", () => {
+    it("defaults to the type count and prefixes", () => {
+      const labelManager = new LabelManager(false);
+      expect(labelManager.generateFor("pipe", anId())).toEqual("P1");
+      expect(labelManager.generateFor("pipe", anId())).toEqual("P2");
+      expect(labelManager.generateFor("pipe", anId())).toEqual("P3");
+      expect(labelManager.generateFor("junction", anId())).toEqual("J1");
+    });
+
+    it("skips taken labels without filling gaps", () => {
+      const labelManager = new LabelManager(false);
+
+      labelManager.register("P1", "pipe", anId());
+      labelManager.register("P3", "pipe", anId());
+      labelManager.register("P4", "junction", anId());
+
+      expect(labelManager.generateFor("pipe", anId())).toEqual("P2");
+      expect(labelManager.generateFor("pipe", anId())).toEqual("P4");
+      expect(labelManager.generateFor("junction", anId())).toEqual("J1");
+    });
+
+    it("can have the same label registered for multiple ids", () => {
+      const labelManager = new LabelManager(false);
+
+      labelManager.register("LABEL_1", "junction", anId());
+      labelManager.register("LABEL_1", "junction", anId());
+
+      expect(labelManager.count("LABEL_1")).toEqual(2);
+    });
+
+    it("count is case-insensitive", () => {
+      const labelManager = new LabelManager(false);
+
+      labelManager.register("MyLabel", "junction", anId());
+      labelManager.register("mylabel", "junction", anId());
+
+      expect(labelManager.count("MyLabel")).toEqual(2);
+      expect(labelManager.count("MYLABEL")).toEqual(2);
+      expect(labelManager.count("mylabel")).toEqual(2);
+    });
+
+    it("only register once a label for the same asset", () => {
+      const labelManager = new LabelManager(false);
+
+      const junctionId = anId();
+      labelManager.register("LABEL_1", "junction", junctionId);
+      labelManager.register("LABEL_1", "junction", junctionId);
+
+      expect(labelManager.count("LABEL_1")).toEqual(1);
+    });
+
+    it("can delete a previous label", () => {
+      const labelManager = new LabelManager(false);
+      const firstId = anId();
+      const secondId = anId();
+
+      labelManager.register("P1", "pipe", firstId);
+      labelManager.register("P1", "pipe", secondId);
+
+      labelManager.remove("P1", "pipe", firstId);
+
+      expect(labelManager.count("P1")).toEqual(1);
+
+      labelManager.remove("P1", "pipe", secondId);
+      expect(labelManager.count("P1")).toEqual(0);
+
+      expect(labelManager.generateFor("pipe", firstId)).toEqual("P1");
+    });
+
+    it("remove is case-insensitive", () => {
+      const labelManager = new LabelManager(false);
+      const id = anId();
+
+      labelManager.register("MyPipe", "pipe", id);
+      expect(labelManager.count("MyPipe")).toEqual(1);
+
+      labelManager.remove("mypipe", "pipe", id);
+      expect(labelManager.count("MyPipe")).toEqual(0);
+    });
+
+    it("does not fill gaps when removing labels", () => {
+      const labelManager = new LabelManager(false);
+      const secondId = anId();
+
+      expect(labelManager.generateFor("pipe", anId())).toEqual("P1");
+      expect(labelManager.generateFor("pipe", secondId)).toEqual("P2");
+      expect(labelManager.generateFor("pipe", anId())).toEqual("P3");
+
+      labelManager.remove("P2", "pipe", secondId);
+
+      expect(labelManager.generateFor("pipe", anId())).toEqual("P4");
+      expect(labelManager.generateFor("pipe", anId())).toEqual("P5");
+    });
+
+    it("does not fill gaps after registering labels", () => {
+      const labelManager = new LabelManager(false);
+
+      labelManager.register("P1", "pipe", anId());
+      labelManager.register("P3", "pipe", anId());
+      labelManager.register("FOO", "pipe", anId());
+
+      expect(labelManager.generateFor("pipe", anId())).toEqual("P2");
+      expect(labelManager.generateFor("pipe", anId())).toEqual("P4");
+    });
+
+    it("renaming does not advance counter", () => {
+      const labelManager = new LabelManager(false);
+      const secondId = anId();
+
+      expect(labelManager.generateFor("pipe", anId())).toEqual("P1");
+      expect(labelManager.generateFor("pipe", secondId)).toEqual("P2");
+      expect(labelManager.generateFor("pipe", anId())).toEqual("P3");
+
+      labelManager.remove("P2", "pipe", secondId);
+      labelManager.register("P10", "pipe", secondId);
+
+      expect(labelManager.generateFor("pipe", anId())).toEqual("P4");
+      expect(labelManager.generateFor("pipe", anId())).toEqual("P5");
+    });
+
+    describe("isLabelAvailable", () => {
+      it("returns true for unused labels", () => {
+        const labelManager = new LabelManager(false);
+        expect(labelManager.isLabelAvailable("NewLabel", "pipe")).toBe(true);
+      });
+
+      it("returns false when label is used by same asset type", () => {
+        const labelManager = new LabelManager(false);
+        labelManager.register("P1", "pipe", anId());
+
+        expect(labelManager.isLabelAvailable("P1", "pipe")).toBe(false);
+      });
+
+      it("returns false when label is used by different asset type in same category (nodes)", () => {
+        const labelManager = new LabelManager(false);
+        labelManager.register("N1", "junction", anId());
+
+        expect(labelManager.isLabelAvailable("N1", "tank")).toBe(false);
+        expect(labelManager.isLabelAvailable("N1", "reservoir")).toBe(false);
+      });
+
+      it("returns false when label is used by different asset type in same category (links)", () => {
+        const labelManager = new LabelManager(false);
+        labelManager.register("L1", "pipe", anId());
+
+        expect(labelManager.isLabelAvailable("L1", "pump")).toBe(false);
+        expect(labelManager.isLabelAvailable("L1", "valve")).toBe(false);
+      });
+
+      it("returns true when label is used by asset in different category", () => {
+        const labelManager = new LabelManager(false);
+        labelManager.register("SHARED", "pipe", anId());
+
+        expect(labelManager.isLabelAvailable("SHARED", "junction")).toBe(true);
+        expect(labelManager.isLabelAvailable("SHARED", "tank")).toBe(true);
+        expect(labelManager.isLabelAvailable("SHARED", "reservoir")).toBe(true);
+      });
+
+      it("returns true when label is used by asset in different category (node to link)", () => {
+        const labelManager = new LabelManager(false);
+        labelManager.register("SHARED", "junction", anId());
+
+        expect(labelManager.isLabelAvailable("SHARED", "pipe")).toBe(true);
+        expect(labelManager.isLabelAvailable("SHARED", "pump")).toBe(true);
+        expect(labelManager.isLabelAvailable("SHARED", "valve")).toBe(true);
+      });
+
+      it("excludes specified asset from conflict check", () => {
+        const labelManager = new LabelManager(false);
+        const pipeId = anId();
+        labelManager.register("P1", "pipe", pipeId);
+
+        expect(labelManager.isLabelAvailable("P1", "pipe", pipeId)).toBe(true);
+      });
+
+      it("still detects conflicts when excluding a different asset", () => {
+        const labelManager = new LabelManager(false);
+        const pipeId1 = anId();
+        const pipeId2 = anId();
+        labelManager.register("P1", "pipe", pipeId1);
+        labelManager.register("P1", "pipe", pipeId2);
+
+        expect(labelManager.isLabelAvailable("P1", "pipe", pipeId1)).toBe(
+          false,
+        );
+      });
+
+      it("detects duplicates case-insensitively", () => {
+        const labelManager = new LabelManager(false);
+        labelManager.register("Pipe1", "pipe", anId());
+
+        expect(labelManager.isLabelAvailable("pipe1", "pipe")).toBe(false);
+        expect(labelManager.isLabelAvailable("PIPE1", "pipe")).toBe(false);
+        expect(labelManager.isLabelAvailable("Pipe1", "pipe")).toBe(false);
+      });
+
+      it("detects duplicates case-insensitively across node types", () => {
+        const labelManager = new LabelManager(false);
+        labelManager.register("Node1", "junction", anId());
+
+        expect(labelManager.isLabelAvailable("node1", "tank")).toBe(false);
+        expect(labelManager.isLabelAvailable("NODE1", "reservoir")).toBe(false);
+      });
+
+      it("allows same label case-insensitively for different categories", () => {
+        const labelManager = new LabelManager(false);
+        labelManager.register("Asset1", "pipe", anId());
+
+        expect(labelManager.isLabelAvailable("asset1", "junction")).toBe(true);
+        expect(labelManager.isLabelAvailable("ASSET1", "tank")).toBe(true);
+      });
+    });
+
+    describe("pattern type", () => {
+      it("generates PAT-prefixed labels", () => {
+        const labelManager = new LabelManager(false);
+        expect(labelManager.generateFor("pattern", anId())).toEqual("PAT1");
+        expect(labelManager.generateFor("pattern", anId())).toEqual("PAT2");
+        expect(labelManager.generateFor("pattern", anId())).toEqual("PAT3");
+      });
+
+      it("skips registered pattern labels without filling gaps", () => {
+        const labelManager = new LabelManager(false);
+        labelManager.register("PAT1", "pattern", anId());
+        labelManager.register("PAT3", "pattern", anId());
+
+        expect(labelManager.generateFor("pattern", anId())).toEqual("PAT2");
+        expect(labelManager.generateFor("pattern", anId())).toEqual("PAT4");
+      });
+
+      it("patterns are in their own label group (no conflict with nodes or links)", () => {
+        const labelManager = new LabelManager(false);
+        labelManager.register("SHARED", "pattern", anId());
+
+        expect(labelManager.isLabelAvailable("SHARED", "pipe")).toBe(true);
+        expect(labelManager.isLabelAvailable("SHARED", "junction")).toBe(true);
+        expect(labelManager.isLabelAvailable("SHARED", "pump")).toBe(true);
+      });
+
+      it("patterns conflict with other patterns", () => {
+        const labelManager = new LabelManager(false);
+        labelManager.register("PAT1", "pattern", anId());
+
+        expect(labelManager.isLabelAvailable("PAT1", "pattern")).toBe(false);
+      });
+
+      it("nodes and links do not conflict with patterns", () => {
+        const labelManager = new LabelManager(false);
+        labelManager.register("LABEL", "pipe", anId());
+        labelManager.register("LABEL", "junction", anId());
+
+        expect(labelManager.isLabelAvailable("LABEL", "pattern")).toBe(true);
+      });
+    });
+
+    describe("generateNextLabel", () => {
+      it("generates next numbered label from base label", () => {
+        const labelManager = new LabelManager(false);
+        const nextLabel = labelManager.generateNextLabel("MainPipe");
+        expect(nextLabel).toEqual("MainPipe_1");
+      });
+
+      it("continues counter progression from existing numbered labels", () => {
+        const labelManager = new LabelManager(false);
+        const nextLabel = labelManager.generateNextLabel("MainPipe_5");
+        expect(nextLabel).toEqual("MainPipe_6");
+      });
+
+      it("handles label collisions by finding next available", () => {
+        const labelManager = new LabelManager(false);
+        labelManager.register("TestPipe_1", "pipe", anId());
+        labelManager.register("TestPipe_2", "pipe", anId());
+        const nextLabel = labelManager.generateNextLabel("TestPipe");
+        expect(nextLabel).toEqual("TestPipe_3");
+      });
+
+      it("handles collisions on numbered labels", () => {
+        const labelManager = new LabelManager(false);
+        labelManager.register("MYLABEL_2", "pipe", anId());
+        const nextLabel = labelManager.generateNextLabel("MYLABEL_1");
+        expect(nextLabel).toEqual("MYLABEL_3");
+      });
+
+      it("truncates base to fit 31-character limit", () => {
+        const labelManager = new LabelManager(false);
+        const longLabel = "ExtremelyLongPipeNameExampleThatExceedsLimit";
+
+        const nextLabel = labelManager.generateNextLabel(longLabel);
+
+        expect(nextLabel.length).toBeLessThanOrEqual(31);
+        expect(nextLabel).toEqual("ExtremelyLongPipeNameExampleT_1");
+      });
     });
   });
 
