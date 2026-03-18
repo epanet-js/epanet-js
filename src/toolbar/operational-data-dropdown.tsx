@@ -16,7 +16,7 @@ import {
   StyledItem,
   TContent,
   StyledTooltipArrow,
-} from "../elements";
+} from "src/components/elements";
 import { useShowControls } from "src/commands/show-controls";
 import { useShowPatternsLibrary } from "src/commands/show-patterns-library";
 import { useShowPumpLibrary } from "src/commands/show-pump-library";

@@ -31,7 +31,7 @@ import {
   StyledItem,
   TContent,
   StyledTooltipArrow,
-} from "../elements";
+} from "src/components/elements";
 
 export const CreateNewDropdown = () => {
   const createNewProject = useNewProject();

@@ -5,8 +5,8 @@ import { useAtomValue } from "jotai";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useDrawingMode } from "src/commands/set-drawing-mode";
 import { useTranslate } from "src/hooks/use-translate";
-import { SelectionTool } from "./toolbar/selection-tool";
-import { TraceTool } from "./toolbar/trace-tool";
+import { SelectionTool } from "./selection-tool";
+import { TraceTool } from "./trace-tool";
 
 import {
   JunctionIcon,

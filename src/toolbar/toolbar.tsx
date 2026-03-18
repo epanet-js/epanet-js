@@ -1,5 +1,5 @@
 import { useTranslate } from "src/hooks/use-translate";
-import MenuAction from "../menu-action";
+import MenuAction from "src/components/menu-action";
 import {
   FileTextIcon,
   UndoIcon,
@@ -14,7 +14,7 @@ import {
   PanelRightActiveIcon,
   PanelRightIcon,
 } from "src/icons";
-import Modes from "../modes";
+import Modes from "./modes";
 import { useAtomValue } from "jotai";
 import { splitsAtom } from "src/state/layout";
 import { simulationAtom } from "src/state/simulation";
