@@ -15,7 +15,7 @@ import React, {
   useState,
 } from "react";
 import { Resizer, useWindowResizeSplits } from "src/components/resizer";
-import { BottomPanel, LeftSidePanel, SidePanel } from "src/components/panels";
+import { BottomPanel, LeftSidePanel, SidePanel } from "src/panels";
 import { MapContext } from "src/map";
 import Notifications from "src/components/notifications";
 import { atom, useAtom } from "jotai";

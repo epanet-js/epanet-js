@@ -15,7 +15,7 @@ import {
 } from "src/icons";
 import { Mode, modeAtom } from "src/state/mode";
 import { selectedFeaturesAtom } from "src/state/selection";
-import { ActionButton, Action } from "./action-button";
+import { ActionButton, Action } from "src/components/action-button";
 import {
   changeActiveTopologyShortcut,
   useChangeSelectedAssetsActiveTopologyStatus,

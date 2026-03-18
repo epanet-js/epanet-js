@@ -5,7 +5,7 @@ import { useZoomTo } from "src/hooks/use-zoom-to";
 import { useDeleteSelection } from "src/commands/delete-selection";
 import { DeleteIcon, ZoomToIcon } from "src/icons";
 import { selectedFeaturesAtom } from "src/state/selection";
-import { ActionButton, Action } from "./action-button";
+import { ActionButton, Action } from "src/components/action-button";
 
 export function useNodeActions(readonly = false): Action[] {
   const translate = useTranslate();

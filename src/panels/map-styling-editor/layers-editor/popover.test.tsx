@@ -5,7 +5,7 @@ import { Store } from "src/state";
 import { Provider as JotaiProvider } from "jotai";
 import { PersistenceContext } from "src/lib/persistence/context";
 import { Dialogs } from "src/dialogs";
-import Notifications from "../notifications";
+import Notifications from "src/components/notifications";
 import { Persistence } from "src/lib/persistence/persistence";
 import { aLayerConfig, setInitialState } from "src/__helpers__/state";
 import { LayersPopover } from "./popover";

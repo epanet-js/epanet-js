@@ -36,7 +36,7 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { useSymbologyState } from "src/state/map-symbology";
 import { LinkSymbology, NodeSymbology } from "src/map/symbology";
 import { getSortedValues } from "src/hydraulic-model/assets-map";
-import { notify } from "./notifications";
+import { notify } from "src/components/notifications";
 import { ErrorIcon, AddIcon, DeleteIcon, RefreshIcon } from "src/icons";
 
 type ErrorType = "rampShouldBeAscending" | "notEnoughData";

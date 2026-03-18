@@ -5,7 +5,7 @@ import {
 } from "src/hydraulic-model/customer-points";
 
 import { NumericField } from "src/components/form/numeric-field";
-import { TextField } from "src/components/panels/asset-panel/ui-components";
+import { TextField } from "src/components/form/text-field";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { useTranslate } from "src/hooks/use-translate";

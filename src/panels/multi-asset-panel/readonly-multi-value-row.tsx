@@ -2,9 +2,12 @@ import { useState, KeyboardEventHandler } from "react";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { InlineField } from "src/components/form/fields";
-import { TextField } from "../asset-panel/ui-components";
+import { TextField } from "src/components/form/text-field";
 import * as P from "@radix-ui/react-popover";
-import { StyledPopoverArrow, StyledPopoverContent } from "../../elements";
+import {
+  StyledPopoverArrow,
+  StyledPopoverContent,
+} from "src/components/elements";
 import { MultipleValuesIcon } from "src/icons";
 import { TriStateCheckbox } from "src/components/form/Checkbox";
 import { AssetPropertyStats } from "./data";

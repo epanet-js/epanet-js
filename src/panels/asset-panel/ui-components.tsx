@@ -7,6 +7,7 @@ import {
 } from "react";
 import type { PropertyComparison } from "src/hooks/use-asset-comparison";
 import { EditableTextField } from "src/components/form/editable-text-field";
+import { TextField } from "src/components/form/text-field";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { Unit, convertTo } from "src/quantity";
@@ -32,7 +33,10 @@ import {
 } from "src/state/layout";
 import clsx from "clsx";
 import * as P from "@radix-ui/react-popover";
-import { StyledPopoverArrow, StyledPopoverContent } from "../../elements";
+import {
+  StyledPopoverArrow,
+  StyledPopoverContent,
+} from "src/components/elements";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import {
   Patterns,
@@ -159,30 +163,6 @@ const Header = ({
     </div>
   );
 };
-
-export const TextField = ({
-  children,
-  padding = "md",
-  className,
-}: {
-  children: React.ReactNode;
-  padding?: "sm" | "md";
-  className?: string;
-}) => (
-  <span
-    className={clsx(
-      "block w-full text-sm border border-transparent tabular-nums",
-      !className && "text-gray-700",
-      {
-        "p-1": padding === "sm",
-        "p-2": padding === "md",
-      },
-      className,
-    )}
-  >
-    {children}
-  </span>
-);
 
 export const TextRow = ({
   name,

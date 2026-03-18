@@ -7,17 +7,14 @@ import { selectionAtom } from "src/state/selection";
 import type { PropertyComparison } from "src/hooks/use-asset-comparison";
 import { useCustomerPointComparison } from "src/hooks/use-customer-point-comparison";
 import { useCustomerPointActions } from "src/components/context-actions/customer-point-actions";
-import { ActionButton } from "src/components/panels/asset-panel/actions/action-button";
+import { ActionButton } from "src/components/action-button";
 import { SectionList } from "src/components/form/fields";
-import { SectionWrapper } from "src/components/panels/asset-panel/ui-components";
+import { SectionWrapper } from "./asset-panel/ui-components";
 import { useZoomTo } from "src/hooks/use-zoom-to";
 import { ZoomToIcon } from "src/icons";
 import { BBox } from "src/types";
-import {
-  TextRow,
-  QuantityRow,
-} from "src/components/panels/asset-panel/ui-components";
-import { DemandCategoriesEditor } from "src/components/panels/asset-panel/demands-editor";
+import { TextRow, QuantityRow } from "./asset-panel/ui-components";
+import { DemandCategoriesEditor } from "./asset-panel/demands-editor";
 import { useTranslate } from "src/hooks/use-translate";
 import { usePersistence } from "src/lib/persistence";
 import {

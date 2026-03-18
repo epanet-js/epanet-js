@@ -40,8 +40,11 @@ import { ReactNode, Suspense, useCallback, useMemo, useState } from "react";
 import { match } from "ts-pattern";
 import { getTileJSON, get, getMapboxLayerURL } from "src/lib/utils";
 import clamp from "lodash/clamp";
-import { useLayerConfigState } from "src/map/layer-config";
-import { Selector } from "../form/selector";
+import {
+  maybeDeleteOldMapboxLayer,
+  useLayerConfigState,
+} from "src/map/layer-config";
+import { Selector } from "src/components/form/selector";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useTranslate } from "src/hooks/use-translate";
 import { limits } from "src/user-plan";
@@ -99,31 +102,6 @@ function getNextAt(items: ILayerConfig[]) {
     return generateKeyBetween(null, null);
   }
   return generateKeyBetween(null, items[0].at || null);
-}
-
-/**
- * If there's an existing Mapbox style layer
- * in the stack, replace it and use its `at` value.
- */
-export function maybeDeleteOldMapboxLayer(items: ILayerConfig[]): {
-  deleteLayerConfigs: ILayerConfig["id"][];
-  oldAt: string | undefined;
-  oldMapboxLayer: ILayerConfig | undefined;
-} {
-  let oldAt: string | undefined;
-  const oldMapboxLayer = items.find((layer) => layer.type === "MAPBOX");
-
-  const deleteLayerConfigs: string[] = [];
-
-  if (oldMapboxLayer) {
-    oldAt = oldMapboxLayer.at;
-    deleteLayerConfigs.push(oldMapboxLayer.id);
-  }
-  return {
-    oldAt,
-    deleteLayerConfigs,
-    oldMapboxLayer,
-  };
 }
 
 const MapboxStyleSkeleton = z.object({

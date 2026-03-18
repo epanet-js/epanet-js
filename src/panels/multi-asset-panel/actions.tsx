@@ -14,7 +14,7 @@ import {
   DeactivateTopologyIcon,
 } from "src/icons";
 import { selectedFeaturesAtom } from "src/state/selection";
-import { ActionButton, Action } from "../asset-panel/actions/action-button";
+import { ActionButton, Action } from "src/components/action-button";
 import { useIsSnapshotLocked } from "src/hooks/use-is-snapshot-locked";
 
 export function useMultiAssetActions(readonly = false): Action[] {

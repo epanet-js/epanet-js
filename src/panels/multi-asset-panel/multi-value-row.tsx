@@ -7,7 +7,10 @@ import { NumericField } from "src/components/form/numeric-field";
 import { Selector, SelectorOption } from "src/components/form/selector";
 import { TriStateCheckbox } from "src/components/form/Checkbox";
 import * as P from "@radix-ui/react-popover";
-import { StyledPopoverArrow, StyledPopoverContent } from "../../elements";
+import {
+  StyledPopoverArrow,
+  StyledPopoverContent,
+} from "src/components/elements";
 import {
   MultipleValuesIcon,
   SortAscendingIcon,

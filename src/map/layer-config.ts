@@ -39,3 +39,23 @@ export const useLayerConfigState = () => {
     applyChanges,
   };
 };
+
+/**
+ * If there's an existing Mapbox style layer
+ * in the stack, replace it and use its `at` value.
+ */
+export function maybeDeleteOldMapboxLayer(items: ILayerConfig[]): {
+  deleteLayerConfigs: ILayerConfig["id"][];
+  oldAt: string | undefined;
+  oldMapboxLayer: ILayerConfig | undefined;
+} {
+  let oldAt: string | undefined;
+  const oldMapboxLayer = items.find((layer) => layer.type === "MAPBOX");
+  const deleteLayerConfigs: string[] = [];
+
+  if (oldMapboxLayer) {
+    oldAt = oldMapboxLayer.at;
+    deleteLayerConfigs.push(oldMapboxLayer.id);
+  }
+  return { oldAt, deleteLayerConfigs, oldMapboxLayer };
+}

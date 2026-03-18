@@ -16,12 +16,7 @@ import { UnitsSpec } from "src/lib/project-settings/quantities-spec";
 import { getDecimals } from "src/lib/project-settings";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { Pump, PumpDefintionType } from "src/hydraulic-model/asset-types/pump";
-import {
-  SelectRow,
-  LibrarySelectRow,
-  QuantityRow,
-  TextField,
-} from "./ui-components";
+import { SelectRow, LibrarySelectRow, QuantityRow } from "./ui-components";
 import type {
   PropertyComparison,
   PumpCurveComparison,
@@ -33,6 +28,7 @@ import {
   InlineField,
   NestedSection,
 } from "src/components/form/fields";
+import { TextField } from "src/components/form/text-field";
 
 export type PumpDefinitionMode =
   | "power"

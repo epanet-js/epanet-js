@@ -6,7 +6,7 @@ import { projectSettingsAtom } from "src/state/project-settings";
 import { stagingModelAtom } from "src/state/hydraulic-model";
 import { showGridAtom } from "src/state/map-projection";
 import { simulationAtom, simulationResultsAtom } from "src/state/simulation";
-import { Selector, SelectorLikeButton } from "../form/selector";
+import { Selector, SelectorLikeButton } from "src/components/form/selector";
 import { useUserTracking } from "src/infra/user-tracking";
 import {
   SupportedProperty,
@@ -16,13 +16,17 @@ import {
 } from "src/map/symbology/symbology-types";
 import { useSymbologyState } from "src/state/map-symbology";
 import { defaultSymbologyBuilders } from "src/map/symbology/default-symbology-builders";
-import { Checkbox } from "../form/Checkbox";
+import { Checkbox } from "src/components/form/Checkbox";
 import { ColorRampSelector } from "src/components/color-ramp-selector";
-import { RangeColorRuleEditor } from "../range-color-rule-editor";
-import { StyledPopoverArrow, StyledPopoverContent, Button } from "../elements";
+import { RangeColorRuleEditor } from "./range-color-rule-editor";
+import {
+  StyledPopoverArrow,
+  StyledPopoverContent,
+  Button,
+} from "src/components/elements";
 import { RangeMode } from "src/map/symbology/range-color-rule";
-import { AddLayer, LayersEditor } from "../layers/layers-editor";
-import { InlineField, Section, SectionList } from "../form/fields";
+import { AddLayer, LayersEditor } from "./layers-editor";
+import { InlineField, Section, SectionList } from "src/components/form/fields";
 import { ColorPopover } from "src/components/color-popover";
 import {
   Draggable,
@@ -32,7 +36,7 @@ import {
   MultipleValuesIcon,
 } from "src/icons";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
-import { LegendRamp } from "../legends";
+import { LegendRamp } from "src/components/legends";
 import { selectionAtom } from "src/state/selection";
 import { USelection } from "src/selection/selection";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
