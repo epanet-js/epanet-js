@@ -1,5 +1,9 @@
 import { useTranslate } from "src/hooks/use-translate";
-import { BaseDialog, AckDialogAction, useDialogState } from "../dialog";
+import {
+  BaseDialog,
+  AckDialogAction,
+  useDialogState,
+} from "../components/dialog";
 import { processReportWithSlots, ReportRow } from "src/simulation/report";
 import { useMemo, useCallback } from "react";
 import { useAtomValue, useSetAtom } from "jotai";

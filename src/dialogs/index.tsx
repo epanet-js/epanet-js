@@ -6,12 +6,12 @@ import { match } from "ts-pattern";
 import * as dialogState from "src/state/dialog";
 import { ParserIssues } from "src/import/inp";
 import { useUserTracking } from "src/infra/user-tracking";
-import { LoadingDialog } from "./dialog";
-import { WelcomeDialog } from "./dialogs/welcome";
+import { LoadingDialog } from "../components/dialog";
+import { WelcomeDialog } from "./welcome";
 
 const SimulationSettingsDialog = dynamic(
   () =>
-    import("src/components/dialogs/simulation-settings").then(
+    import("src/dialogs/simulation-settings").then(
       (r) => r.SimulationSettingsDialog,
     ),
   {
@@ -21,19 +21,16 @@ const SimulationSettingsDialog = dynamic(
 
 const UpgradeDialog = dynamic<{
   onClose: () => void;
-}>(
-  () => import("src/components/dialogs/upgrade").then((r) => r.UpgradeDialog),
-  {
-    loading: () => <LoadingDialog />,
-  },
-);
+}>(() => import("src/dialogs/upgrade").then((r) => r.UpgradeDialog), {
+  loading: () => <LoadingDialog />,
+});
 
 const InvalidFilesErrorDialog = dynamic<{
   modal: dialogState.InvalidFilesErrorDialogState;
   onClose: () => void;
 }>(
   () =>
-    import("src/components/dialogs/invalid-files-error").then(
+    import("src/dialogs/invalid-files-error").then(
       (r) => r.InvalidFilesErrorDialog,
     ),
   {
@@ -44,22 +41,16 @@ const InvalidFilesErrorDialog = dynamic<{
 const InpIssuesDialog = dynamic<{
   issues: ParserIssues;
   onClose: () => void;
-}>(
-  () =>
-    import("src/components/dialogs/inp-issues").then((r) => r.InpIssuesDialog),
-  {
-    loading: () => <LoadingDialog />,
-  },
-);
+}>(() => import("src/dialogs/inp-issues").then((r) => r.InpIssuesDialog), {
+  loading: () => <LoadingDialog />,
+});
 
 const GeocodingNotSupportedDialog = dynamic<{
   onClose: () => void;
   onImportNonProjected: () => void;
 }>(
   () =>
-    import("src/components/dialogs/inp-issues").then(
-      (r) => r.GeocodingNotSupportedDialog,
-    ),
+    import("src/dialogs/inp-issues").then((r) => r.GeocodingNotSupportedDialog),
   {
     loading: () => <LoadingDialog />,
   },
@@ -69,7 +60,7 @@ const InpProjectionChoiceDialog = dynamic<{
   onImportNonProjected: () => void;
 }>(
   () =>
-    import("src/components/dialogs/inp-projection-choice").then(
+    import("src/dialogs/inp-projection-choice").then(
       (r) => r.InpProjectionChoiceDialog,
     ),
   {
@@ -82,22 +73,20 @@ const MissingCoordinatesDialog = dynamic<{
   onClose: () => void;
 }>(
   () =>
-    import("src/components/dialogs/inp-issues").then(
-      (r) => r.MissingCoordinatesDialog,
-    ),
+    import("src/dialogs/inp-issues").then((r) => r.MissingCoordinatesDialog),
   {
     loading: () => <LoadingDialog />,
   },
 );
 
 const CreateNewDialog = dynamic(
-  () => import("src/components/dialogs/create-new").then((r) => r.CreateNew),
+  () => import("src/dialogs/create-new").then((r) => r.CreateNew),
   { loading: () => <LoadingDialog /> },
 );
 
 const SimulationReportDialog = dynamic(
   () =>
-    import("src/components/dialogs/simulation-report").then(
+    import("src/dialogs/simulation-report").then(
       (r) => r.SimulationReportDialog,
     ),
   {
@@ -110,7 +99,7 @@ const SimulationSummaryDialog = dynamic<{
   onClose: () => void;
 }>(
   () =>
-    import("src/components/dialogs/simulation-summary").then(
+    import("src/dialogs/simulation-summary").then(
       (r) => r.SimulationSummaryDialog,
     ),
   {
@@ -123,9 +112,7 @@ const UnsavedChangesDialog = dynamic<{
   onClose: () => void;
 }>(
   () =>
-    import("src/components/dialogs/unsaved-changes").then(
-      (r) => r.UnsavedChangesDialog,
-    ),
+    import("src/dialogs/unsaved-changes").then((r) => r.UnsavedChangesDialog),
   {
     loading: () => <LoadingDialog />,
   },
@@ -136,9 +123,7 @@ const AlertInpOutputDialog = dynamic<{
   onClose: () => void;
 }>(
   () =>
-    import("src/components/dialogs/alert-inp-output").then(
-      (r) => r.AlertInpOutputDialog,
-    ),
+    import("src/dialogs/alert-inp-output").then((r) => r.AlertInpOutputDialog),
   {
     loading: () => <LoadingDialog />,
   },
@@ -149,7 +134,7 @@ const AlertScenariosNotSavedDialog = dynamic<{
   onClose: () => void;
 }>(
   () =>
-    import("src/components/dialogs/alert-scenarios-not-saved").then(
+    import("src/dialogs/alert-scenarios-not-saved").then(
       (r) => r.AlertScenariosNotSavedDialog,
     ),
   {
@@ -161,7 +146,7 @@ const AlertNetworkRequiredDialog = dynamic<{
   onClose: () => void;
 }>(
   () =>
-    import("src/components/dialogs/alert-network-required").then(
+    import("src/dialogs/alert-network-required").then(
       (r) => r.AlertNetworkRequiredDialog,
     ),
   {
@@ -170,8 +155,7 @@ const AlertNetworkRequiredDialog = dynamic<{
 );
 
 const CheatsheetDialog = dynamic<Record<string, never>>(
-  () =>
-    import("src/components/dialogs/cheatsheet").then((r) => r.CheatsheetDialog),
+  () => import("src/dialogs/cheatsheet").then((r) => r.CheatsheetDialog),
   {
     loading: () => <LoadingDialog />,
   },
@@ -182,9 +166,7 @@ const UnexpectedErrorDialog = dynamic<{
   onClose: () => void;
 }>(
   () =>
-    import("src/components/dialogs/unexpected-error").then(
-      (r) => r.UnexpectedErrorDialog,
-    ),
+    import("src/dialogs/unexpected-error").then((r) => r.UnexpectedErrorDialog),
   {
     loading: () => <LoadingDialog />,
   },
@@ -195,7 +177,7 @@ const ImportCustomerPointsWizard = dynamic<{
   onClose: () => void;
 }>(
   () =>
-    import("src/components/dialogs/import-customer-points-wizard").then(
+    import("src/dialogs/import-customer-points-wizard").then(
       (r) => r.ImportCustomerPointsWizard,
     ),
   {
@@ -207,7 +189,7 @@ const ModelBuilderIframeDialog = dynamic<{
   onClose: () => void;
 }>(
   () =>
-    import("src/components/dialogs/model-builder-iframe").then(
+    import("src/dialogs/model-builder-iframe").then(
       (r) => r.ModelBuilderIframeDialog,
     ),
   {
@@ -218,22 +200,16 @@ const ModelBuilderIframeDialog = dynamic<{
 const EarlyAccessDialog = dynamic<{
   onContinue: () => void;
   afterSignupDialog?: string;
-}>(
-  () =>
-    import("src/components/dialogs/early-access").then(
-      (r) => r.EarlyAccessDialog,
-    ),
-  {
-    loading: () => <LoadingDialog />,
-  },
-);
+}>(() => import("src/dialogs/early-access").then((r) => r.EarlyAccessDialog), {
+  loading: () => <LoadingDialog />,
+});
 
 const ImportCustomerPointsWarningDialog = dynamic<{
   onContinue: () => void;
   onClose: () => void;
 }>(
   () =>
-    import("src/components/dialogs/import-customer-points-warning").then(
+    import("src/dialogs/import-customer-points-warning").then(
       (r) => r.ImportCustomerPointsWarningDialog,
     ),
   {
@@ -245,7 +221,7 @@ const SimulationProgressDialog = dynamic<{
   modal: dialogState.SimulationProgressDialogState;
 }>(
   () =>
-    import("src/components/dialogs/simulation-progress").then(
+    import("src/dialogs/simulation-progress").then(
       (r) => r.SimulationProgressDialog,
     ),
   {
@@ -254,10 +230,7 @@ const SimulationProgressDialog = dynamic<{
 );
 
 const ControlsDialog = dynamic(
-  () =>
-    import("src/components/dialogs/controls-dialog").then(
-      (r) => r.ControlsDialog,
-    ),
+  () => import("src/dialogs/controls-dialog").then((r) => r.ControlsDialog),
   {
     loading: () => <LoadingDialog />,
   },
@@ -271,36 +244,23 @@ const PatternsDialog = dynamic<{
     | "pumpSpeed"
     | "qualitySourceStrength"
     | "energyPrice";
-}>(
-  () => import("src/components/dialogs/patterns").then((r) => r.PatternsDialog),
-  {
-    loading: () => <LoadingDialog />,
-  },
-);
+}>(() => import("src/dialogs/patterns").then((r) => r.PatternsDialog), {
+  loading: () => <LoadingDialog />,
+});
 
 const PumpLibraryDialog = dynamic<{
   initialCurveId?: number;
   initialSection?: "pump" | "efficiency";
-}>(
-  () =>
-    import("src/components/dialogs/pump-library").then(
-      (r) => r.PumpLibraryDialog,
-    ),
-  {
-    loading: () => <LoadingDialog />,
-  },
-);
+}>(() => import("src/dialogs/pump-library").then((r) => r.PumpLibraryDialog), {
+  loading: () => <LoadingDialog />,
+});
 
 const CurveLibraryDialog = dynamic<{
   initialCurveId?: number;
   initialSection?: "volume" | "valve" | "headloss";
-}>(
-  () =>
-    import("src/components/dialogs/curves").then((r) => r.CurveLibraryDialog),
-  {
-    loading: () => <LoadingDialog />,
-  },
-);
+}>(() => import("src/dialogs/curves").then((r) => r.CurveLibraryDialog), {
+  loading: () => <LoadingDialog />,
+});
 
 const DeleteScenarioConfirmationDialog = dynamic<{
   scenarioId: string;
@@ -309,7 +269,7 @@ const DeleteScenarioConfirmationDialog = dynamic<{
   onClose: () => void;
 }>(
   () =>
-    import("src/components/dialogs/delete-scenario-confirmation").then(
+    import("src/dialogs/delete-scenario-confirmation").then(
       (r) => r.DeleteScenarioConfirmationDialog,
     ),
   {
@@ -324,9 +284,7 @@ const RenameScenarioDialog = dynamic<{
   onClose: () => void;
 }>(
   () =>
-    import("src/components/dialogs/rename-scenario").then(
-      (r) => r.RenameScenarioDialog,
-    ),
+    import("src/dialogs/rename-scenario").then((r) => r.RenameScenarioDialog),
   {
     loading: () => <LoadingDialog />,
   },
@@ -336,7 +294,7 @@ const ScenariosPaywallDialog = dynamic<{
   onClose: () => void;
 }>(
   () =>
-    import("src/components/dialogs/scenarios-paywall").then(
+    import("src/dialogs/scenarios-paywall").then(
       (r) => r.ScenariosPaywallDialog,
     ),
   {
@@ -346,9 +304,7 @@ const ScenariosPaywallDialog = dynamic<{
 
 const ActivatingTrialDialog = dynamic(
   () =>
-    import("src/components/dialogs/activating-trial").then(
-      (r) => r.ActivatingTrialDialog,
-    ),
+    import("src/dialogs/activating-trial").then((r) => r.ActivatingTrialDialog),
   {
     loading: () => <LoadingDialog />,
   },
@@ -358,10 +314,7 @@ const FirstScenarioDialog = dynamic<{
   onConfirm: () => void;
   onClose: () => void;
 }>(
-  () =>
-    import("src/components/dialogs/first-scenario").then(
-      (r) => r.FirstScenarioDialog,
-    ),
+  () => import("src/dialogs/first-scenario").then((r) => r.FirstScenarioDialog),
   {
     loading: () => <LoadingDialog />,
   },

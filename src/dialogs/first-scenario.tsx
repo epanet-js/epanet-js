@@ -1,11 +1,11 @@
 import { useAtom } from "jotai";
 import { BaseDialog, SimpleDialogActions } from "src/components/dialog";
-import { Checkbox } from "../form/Checkbox";
+import { Checkbox } from "../components/form/Checkbox";
 import { useTranslate } from "src/hooks/use-translate";
 import { Trans } from "react-i18next";
 import { useUserTracking } from "src/infra/user-tracking";
 import { userSettingsAtom } from "src/state/user-settings";
-import { EarlyAccessBadge } from "../early-access-badge";
+import { EarlyAccessBadge } from "../components/early-access-badge";
 
 export const FirstScenarioDialog = ({
   onConfirm,

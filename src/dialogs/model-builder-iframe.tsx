@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import { BaseDialog } from "../dialog";
+import { BaseDialog } from "../components/dialog";
 import { useTranslate } from "src/hooks/use-translate";
-import { Loading } from "../elements";
-import { EarlyAccessBadge } from "../early-access-badge";
+import { Loading } from "../components/elements";
+import { EarlyAccessBadge } from "../components/early-access-badge";
 import { useImportInp } from "src/commands/import-inp";
 import { useUnsavedChangesCheck } from "src/commands/check-unsaved-changes";
 import { useUserTracking, UserEvent } from "src/infra/user-tracking";

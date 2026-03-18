@@ -2,7 +2,11 @@ import { useCallback, useMemo } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { Form, Formik } from "formik";
 
-import { BaseDialog, SimpleDialogActions, useDialogState } from "../../dialog";
+import {
+  BaseDialog,
+  SimpleDialogActions,
+  useDialogState,
+} from "../../components/dialog";
 import { useTranslate } from "src/hooks/use-translate";
 import { simulationSettingsAtom } from "src/state/simulation-settings";
 

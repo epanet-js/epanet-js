@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { useAtomValue } from "jotai";
-import { BaseDialog } from "../../dialog";
+import { BaseDialog } from "../../components/dialog";
 import { useTranslate } from "src/hooks/use-translate";
 import { PumpLibrarySidebar } from "./pump-library-sidebar";
 import { CurveDetail } from "../curves/curve-detail";

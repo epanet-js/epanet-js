@@ -1,7 +1,7 @@
 import { useTranslate } from "src/hooks/use-translate";
-import { Button } from "../elements";
+import { Button } from "../components/elements";
 import { forwardRef, useCallback, useImperativeHandle, useState } from "react";
-import { useDialogState } from "../dialog";
+import { useDialogState } from "../components/dialog";
 
 export interface DialogActionsHandle {
   closeDialog: () => void;

@@ -1,10 +1,10 @@
 import { useCallback, useMemo, useState } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { useAtomCallback } from "jotai/utils";
-import { BaseDialog } from "../dialog";
-import { Button } from "../elements";
-import { CheckoutButton } from "../checkout-button";
-import { VideoPlayer } from "../video-player";
+import { BaseDialog } from "../components/dialog";
+import { Button } from "../components/elements";
+import { CheckoutButton } from "../components/checkout-button";
+import { VideoPlayer } from "../components/video-player";
 import { useActivateTrial } from "src/hooks/use-activate-trial";
 import { useScenarioOperations } from "src/hooks/use-scenario-operations";
 import { dialogAtom } from "src/state/dialog";

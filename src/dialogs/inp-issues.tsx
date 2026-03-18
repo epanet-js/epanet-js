@@ -1,8 +1,8 @@
-import { BaseDialog, SimpleDialogActions } from "../dialog";
+import { BaseDialog, SimpleDialogActions } from "../components/dialog";
 import { useTranslate } from "src/hooks/use-translate";
 import { Trans } from "react-i18next";
 
-import { Button } from "../elements";
+import { Button } from "../components/elements";
 import { useState } from "react";
 import { newsletterUrl, projectionConverterUrl } from "src/global-config";
 import { ParserIssues } from "src/import/inp";

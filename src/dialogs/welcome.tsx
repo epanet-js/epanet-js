@@ -18,8 +18,12 @@ import {
   quickStartTutorialUrl,
   termsAndConditionsUrl,
 } from "src/global-config";
-import { Checkbox } from "../form/Checkbox";
-import { Button, Loading, LogoIconAndWordmarkIcon } from "../elements";
+import { Checkbox } from "../components/form/Checkbox";
+import {
+  Button,
+  Loading,
+  LogoIconAndWordmarkIcon,
+} from "../components/elements";
 import {
   ArrowRightIcon,
   CloseIcon,
@@ -29,9 +33,9 @@ import {
   HelpIcon,
   EarlyAccessIcon,
 } from "src/icons";
-import { BaseDialog, DialogCloseX, useDialogState } from "../dialog";
-import { Message } from "../message";
-import { DemoNetworkCard } from "../demo-network-card";
+import { BaseDialog, DialogCloseX, useDialogState } from "../components/dialog";
+import { Message } from "../components/message";
+import { DemoNetworkCard } from "../components/demo-network-card";
 import { DRUMCHAPEL, WATERDOWN } from "src/demo/demo-networks";
 import optimaticsLogoUrl from "src/assets/images/logos/optimatics-logo-black.webp";
 import type { RecentFileEntry } from "src/import/recent-files";

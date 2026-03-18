@@ -1,5 +1,5 @@
 import { UnexpectedErrorDialogState } from "src/state/dialog";
-import { BaseDialog, SimpleDialogActions } from "../dialog";
+import { BaseDialog, SimpleDialogActions } from "../components/dialog";
 import { useTranslate } from "src/hooks/use-translate";
 
 export const UnexpectedErrorDialog = ({

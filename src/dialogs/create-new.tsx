@@ -1,4 +1,8 @@
-import { useDialogState, BaseDialog, SimpleDialogActions } from "../dialog";
+import {
+  useDialogState,
+  BaseDialog,
+  SimpleDialogActions,
+} from "../components/dialog";
 import { Form, Formik } from "formik";
 import mapboxgl from "mapbox-gl";
 
@@ -23,11 +27,11 @@ import { initializeModelFactories } from "src/hydraulic-model/factories";
 import { usePersistence } from "src/lib/persistence";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { useTranslate } from "src/hooks/use-translate";
-import { Selector } from "../form/selector";
+import { Selector } from "../components/form/selector";
 import {
   SearchableSelector,
   type SearchableSelectorOption,
-} from "../form/searchable-selector";
+} from "../components/form/searchable-selector";
 import { useAtomValue, useSetAtom } from "jotai";
 import { fileInfoAtom } from "src/state/file-system";
 import {
@@ -46,7 +50,7 @@ import { env } from "src/lib/env-client";
 import NetworkUnprojectedIllustration from "./network-projection/network-unprojected";
 import NetworkProjectedIllustration from "./network-projection/network-projected";
 import clsx from "clsx";
-import { InlineField } from "../form/fields";
+import { InlineField } from "../components/form/fields";
 
 type LocationData = {
   name: string;

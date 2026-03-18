@@ -1,7 +1,7 @@
 import { useShowReport } from "src/commands/show-report";
 import { SimulationSummaryState } from "src/state/dialog";
-import { BaseDialog, SimpleDialogActions } from "../dialog";
-import { Loading } from "../elements";
+import { BaseDialog, SimpleDialogActions } from "../components/dialog";
+import { Loading } from "../components/elements";
 import { useTranslate } from "src/hooks/use-translate";
 
 import { ErrorIcon, SuccessIcon, WarningIcon } from "src/icons";

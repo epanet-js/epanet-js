@@ -1,7 +1,7 @@
 import { act, createRef } from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { useDialogState } from "../dialog";
+import { useDialogState } from "../components/dialog";
 import { DialogActions, DialogActionsHandle } from "./dialog-actions-row";
 
 vi.mock("src/components/dialog", () => ({

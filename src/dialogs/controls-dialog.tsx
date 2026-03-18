@@ -3,7 +3,11 @@ import { useState, useCallback } from "react";
 import clsx from "clsx";
 import { Form, Formik, useFormikContext } from "formik";
 
-import { BaseDialog, SimpleDialogActions, useDialogState } from "../dialog";
+import {
+  BaseDialog,
+  SimpleDialogActions,
+  useDialogState,
+} from "../components/dialog";
 import { useTranslate } from "src/hooks/use-translate";
 import { stagingModelAtom } from "src/state/hydraulic-model";
 import { useIsSnapshotLocked } from "src/hooks/use-is-snapshot-locked";

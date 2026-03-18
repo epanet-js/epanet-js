@@ -9,7 +9,7 @@ import userEvent from "@testing-library/user-event";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { LayerConfigMap } from "src/types";
 import { AuthMockProvider, aGuestUser, aUser } from "src/__helpers__/auth-mock";
-import { Dialogs } from "../dialogs";
+import { Dialogs } from "src/dialogs";
 import { stubFeatureOn } from "src/__helpers__/feature-flags";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { stubWindowSize } from "src/__helpers__/media-queries";

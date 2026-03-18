@@ -1,6 +1,6 @@
 import { useSetAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog";
-import { BaseDialog, useDialogState } from "../dialog";
+import { BaseDialog, useDialogState } from "../components/dialog";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useTranslate } from "src/hooks/use-translate";
 import NetworkUnprojectedIllustration from "./network-projection/network-unprojected";

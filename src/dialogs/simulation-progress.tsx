@@ -1,7 +1,7 @@
 import * as Progress from "@radix-ui/react-progress";
 import { SimulationProgressDialogState } from "src/state/dialog";
 import { useTranslate } from "src/hooks/use-translate";
-import { BaseDialog } from "../dialog";
+import { BaseDialog } from "../components/dialog";
 
 const formatTime = (seconds: number): string => {
   const hours = Math.floor(seconds / 3600);

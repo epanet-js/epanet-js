@@ -5,8 +5,8 @@ import {
   useDialogState,
 } from "src/components/dialog";
 import { useTranslate } from "src/hooks/use-translate";
-import { CheckoutButton } from "../checkout-button";
-import { Button, StyledSwitch, StyledThumb } from "../elements";
+import { CheckoutButton } from "../components/checkout-button";
+import { Button, StyledSwitch, StyledThumb } from "../components/elements";
 import {
   ForwardRefExoticComponent,
   RefAttributes,
@@ -14,7 +14,7 @@ import {
   useState,
 } from "react";
 import { IconProps } from "@radix-ui/react-icons/dist/types";
-import { Selector } from "../form/selector";
+import { Selector } from "../components/form/selector";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import { useUserTracking } from "src/infra/user-tracking";
 import {
