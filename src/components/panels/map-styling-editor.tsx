@@ -188,7 +188,7 @@ const SymbologyEditor = ({
   return (
     <Section title={title}>
       {isDefaultColorOn && (
-        <InlineField name={translate("defaultColor")} labelSize="md">
+        <InlineField name={translate("defaultColor")} labelSize="sm">
           <div className="h-7 w-12 rounded overflow-hidden">
             <ColorPopover
               color={defaultColor}
@@ -198,7 +198,7 @@ const SymbologyEditor = ({
           </div>
         </InlineField>
       )}
-      <InlineField name={translate("colorBy")} labelSize="md">
+      <InlineField name={translate("colorBy")} labelSize="sm">
         <Selector
           ariaLabel={`${translate(geometryType)} ${translate("colorBy")}`}
           options={(["none", ...properties] as SelectOption[]).map((type) => {
@@ -223,26 +223,26 @@ const SymbologyEditor = ({
         <>
           {isSmOrLarger && (
             <>
-              <InlineField name={translate("range")} labelSize="md">
+              <InlineField name={translate("range")} labelSize="sm">
                 <RangeColorRuleEditorTrigger
                   mode={symbology.colorRule.mode}
                   numIntervals={symbology.colorRule.breaks.length + 1}
                   geometryType={geometryType}
                 />
               </InlineField>
-              <InlineField name={translate("ramp")} labelSize="md">
+              <InlineField name={translate("ramp")} labelSize="sm">
                 <ColorRampSelector geometryType={geometryType} />
               </InlineField>
             </>
           )}
           {!isSmOrLarger && (
-            <InlineField name="Legend" align="start" labelSize="md">
+            <InlineField name="Legend" align="start" labelSize="sm">
               <div className="w-full px-2">
                 <LegendRamp colorRule={symbology.colorRule} />
               </div>
             </InlineField>
           )}
-          <InlineField name={translate("labels")} labelSize="md">
+          <InlineField name={translate("labels")} labelSize="sm">
             <Checkbox
               checked={!!symbology.labelRule}
               aria-label={`${translate(geometryType)} ${translate("labels")}`}
@@ -285,7 +285,7 @@ const CustomerPointsSection = () => {
 
   return (
     <Section title={translate("customerPoints")}>
-      <InlineField name={translate("visible")} labelSize="md">
+      <InlineField name={translate("visible")} labelSize="sm">
         <Checkbox
           checked={customerPointsSymbology.visible}
           aria-label={`${translate("customerPoints")} ${translate("visible")}`}
