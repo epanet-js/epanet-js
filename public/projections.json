@@ -1,5 +1,10 @@
 [
   {
+    "id": "EPSG:8678",
+    "name": "MGI 1901 / Balkans zone 6",
+    "code": "+proj=tmerc +lat_0=0 +lon_0=18 +k=0.9999 +x_0=6500000 +y_0=0 +ellps=bessel +towgs84=682,-203,480,0,0,0,0 +units=m +no_defs +type=crs"
+  },
+  {
     "id": "EPSG:4143",
     "name": "Abidjan 1987",
     "code": "+proj=longlat +ellps=clrk80 +towgs84=-124.76,53,466.79,0,0,0,0 +no_defs"
