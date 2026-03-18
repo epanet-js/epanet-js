@@ -25,7 +25,6 @@ import { AddLayer, LayersEditor } from "../layers/layers-editor";
 import { InlineField, Section, SectionList } from "../form/fields";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { LegendRamp } from "../legends";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { selectionAtom } from "src/state/selection";
 import { USelection } from "src/selection/selection";
 
