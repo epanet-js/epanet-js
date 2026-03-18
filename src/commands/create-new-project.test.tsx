@@ -24,7 +24,9 @@ describe("create new project", () => {
 
     await triggerNew();
 
-    await userEvent.click(screen.getByRole("combobox", { name: /flow/i }));
+    await userEvent.click(
+      screen.getByRole("combobox", { name: /flow units/i }),
+    );
     await userEvent.click(screen.getByRole("option", { name: /GPM/ }));
 
     await userEvent.click(screen.getByRole("button", { name: /create/i }));

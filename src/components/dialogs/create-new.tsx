@@ -200,7 +200,6 @@ export const CreateNew = () => {
             <Form ref={formRef}>
               <div className="space-y-3">
                 <ProjectionSelector
-                  compact
                   selected={values.projection}
                   onChange={(projection) => {
                     void setFieldValue("projection", projection);
@@ -234,7 +233,6 @@ export const CreateNew = () => {
                   }}
                 />
                 <LocationSearchSelector
-                  compact
                   selected={values.location}
                   onChange={(location) => setFieldValue("location", location)}
                   disabled={values.projection === "xy-grid"}
@@ -242,8 +240,7 @@ export const CreateNew = () => {
               </div>
               <hr className="my-4" />
               <div className="space-y-2">
-                <UnitsSystemSelector
-                  compact
+                <FlowUnitsSelector
                   selected={values.unitsSpec}
                   onChange={(specId) => {
                     void setFieldValue("unitsSpec", specId);
@@ -261,7 +258,6 @@ export const CreateNew = () => {
                   onChange={(pu) => setFieldValue("pressureUnit", pu)}
                 />
                 <HeadlossFormulaSelector
-                  compact
                   selected={values.headlossFormula}
                   onChange={(headlossFormula) =>
                     setFieldValue("headlossFormula", headlossFormula)
@@ -277,12 +273,10 @@ export const CreateNew = () => {
 };
 
 const LocationSearchSelector = ({
-  compact = false,
   selected,
   onChange,
   disabled = false,
 }: {
-  compact?: boolean;
   selected?: LocationData;
   onChange: (location: LocationData) => void;
   disabled?: boolean;
@@ -341,42 +335,33 @@ const LocationSearchSelector = ({
     [map],
   );
 
-  const selector = (
-    <SearchableSelector
-      selected={
-        selected
-          ? {
-              id: selected.name,
-              label: selected.name,
-              data: selected,
-            }
-          : undefined
-      }
-      onChange={(option) => {
-        onChange(option.data);
-        void handleLocationChange(option);
-      }}
-      onSearch={searchLocations}
-      placeholder={translate("searchLocation")}
-      label={compact ? undefined : translate("location")}
-      disabled={disabled}
-      wrapperClassName={compact ? "block" : undefined}
-    />
+  return (
+    <InlineField
+      name={translate("location")}
+      layout="fixed-label"
+      labelSize="md"
+    >
+      <SearchableSelector
+        selected={
+          selected
+            ? {
+                id: selected.name,
+                label: selected.name,
+                data: selected,
+              }
+            : undefined
+        }
+        onChange={(option) => {
+          onChange(option.data);
+          void handleLocationChange(option);
+        }}
+        onSearch={searchLocations}
+        placeholder={translate("searchLocation")}
+        disabled={disabled}
+        wrapperClassName="block"
+      />
+    </InlineField>
   );
-
-  if (compact) {
-    return (
-      <InlineField
-        name={translate("location")}
-        layout="fixed-label"
-        labelSize="md"
-      >
-        {selector}
-      </InlineField>
-    );
-  }
-
-  return selector;
 };
 
 const isValidMapboxFeature = (feature: unknown): feature is MapboxFeature => {
@@ -396,75 +381,40 @@ const isValidMapboxFeature = (feature: unknown): feature is MapboxFeature => {
   );
 };
 
-const descriptionKeys: Record<keyof Presets, string> = {
-  LPS: "lpsDescription",
-  LPM: "lpmDescription",
-  MLD: "mldDescription",
-  CMH: "cmhDescription",
-  CMD: "cmdDescription",
-  GPM: "gpmDescription",
-  CFS: "cfsDescription",
-  MGD: "mgdDescription",
-  IMGD: "imgdDescription",
-  AFD: "afdDescription",
-};
-
-const UnitsSystemSelector = ({
-  compact = false,
+const FlowUnitsSelector = ({
   selected,
   onChange,
 }: {
-  compact?: boolean;
   selected: keyof Presets;
   onChange: (specId: keyof Presets) => void;
 }) => {
   const translate = useTranslate();
-  const keys = compact ? flowUnitTranslationKeys : descriptionKeys;
   const options = Object.entries(presets).map(([presetId]) => ({
-    label: compact
-      ? translate(keys[presetId as keyof Presets])
-      : `${presetId}: ${translate(keys[presetId as keyof Presets])}`,
+    label: translate(flowUnitTranslationKeys[presetId as keyof Presets]),
     value: presetId as keyof Presets,
   }));
 
-  const selector = (
-    <Selector
-      options={options}
-      tabIndex={0}
-      selected={selected}
-      onChange={onChange}
-      ariaLabel={translate("unitsSystem")}
-    />
-  );
-
-  if (compact) {
-    return (
-      <InlineField
-        name={translate("simulationSettings.flowUnits")}
-        layout="fixed-label"
-        labelSize="md"
-      >
-        {selector}
-      </InlineField>
-    );
-  }
-
   return (
-    <label className="block pt-2 pb-2 space-y-2">
-      <div className="text-sm text-gray-700 dark:text-gray-300 flex items-center justify-between">
-        {translate("unitsSystem")}
-      </div>
-      {selector}
-    </label>
+    <InlineField
+      name={translate("simulationSettings.flowUnits")}
+      layout="fixed-label"
+      labelSize="md"
+    >
+      <Selector
+        options={options}
+        tabIndex={0}
+        selected={selected}
+        onChange={onChange}
+        ariaLabel={translate("simulationSettings.flowUnits")}
+      />
+    </InlineField>
   );
 };
 
 const HeadlossFormulaSelector = ({
-  compact = false,
   selected,
   onChange,
 }: {
-  compact?: boolean;
   selected: HeadlossFormula;
   onChange: (headlossFormula: HeadlossFormula) => void;
 }) => {
@@ -474,35 +424,20 @@ const HeadlossFormulaSelector = ({
     value: headlossFormula,
   }));
 
-  const selector = (
-    <Selector
-      options={options}
-      tabIndex={0}
-      selected={selected}
-      onChange={onChange}
-      ariaLabel={translate("headlossFormula")}
-    />
-  );
-
-  if (compact) {
-    return (
-      <InlineField
-        name={translate("headlossFormula")}
-        layout="fixed-label"
-        labelSize="md"
-      >
-        {selector}
-      </InlineField>
-    );
-  }
-
   return (
-    <label className="block pt-2 pb-2 space-y-2">
-      <div className="text-sm text-gray-700 dark:text-gray-300 flex items-center justify-between">
-        {translate("headlossFormula")}
-      </div>
-      {selector}
-    </label>
+    <InlineField
+      name={translate("headlossFormula")}
+      layout="fixed-label"
+      labelSize="md"
+    >
+      <Selector
+        options={options}
+        tabIndex={0}
+        selected={selected}
+        onChange={onChange}
+        ariaLabel={translate("headlossFormula")}
+      />
+    </InlineField>
   );
 };
 
@@ -544,11 +479,9 @@ const projectionCardUnselected = "border-gray-200 dark:border-gray-700";
 const projectionCardSelected = "border-purple-500 ring-1 ring-purple-500";
 
 const ProjectionSelector = ({
-  compact = false,
   selected,
   onChange,
 }: {
-  compact?: boolean;
   selected: Projection;
   onChange: (projection: Projection) => void;
 }) => {
@@ -556,11 +489,9 @@ const ProjectionSelector = ({
 
   return (
     <div>
-      {compact && (
-        <div className="text-sm text-gray-500 mb-2">
-          {translate("projection")}
-        </div>
-      )}
+      <div className="text-sm text-gray-500 mb-2">
+        {translate("projection")}
+      </div>
       <div className="grid grid-cols-2 gap-3">
         <button
           type="button"
@@ -572,31 +503,13 @@ const ProjectionSelector = ({
               : projectionCardUnselected,
           )}
         >
-          <div
-            className={clsx(
-              "w-full border-b border-gray-200",
-              compact && "h-28 overflow-hidden",
-            )}
-          >
-            <NetworkProjectedIllustration
-              preserveAspectRatio={compact ? "xMidYMid slice" : undefined}
-            />
+          <div className="w-full border-b border-gray-200 h-28 overflow-hidden">
+            <NetworkProjectedIllustration preserveAspectRatio="xMidYMid slice" />
           </div>
-          <div className={clsx("flex-grow", compact ? "p-2" : "p-3")}>
-            <p
-              className={clsx(
-                compact
-                  ? "text-xs text-gray-700 dark:text-gray-300"
-                  : "font-bold text-gray-900 dark:text-gray-100",
-              )}
-            >
+          <div className="flex-grow p-2">
+            <p className="text-xs text-gray-700 dark:text-gray-300">
               {translate("inpProjectionChoice.projectedTitle")}
             </p>
-            {!compact && (
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                {translate("inpProjectionChoice.projectedDescription")}
-              </p>
-            )}
           </div>
         </button>
 
@@ -610,31 +523,13 @@ const ProjectionSelector = ({
               : projectionCardUnselected,
           )}
         >
-          <div
-            className={clsx(
-              "w-full border-b border-gray-200",
-              compact && "h-28 overflow-hidden",
-            )}
-          >
-            <NetworkUnprojectedIllustration
-              preserveAspectRatio={compact ? "xMidYMid slice" : undefined}
-            />
+          <div className="w-full border-b border-gray-200 h-28 overflow-hidden">
+            <NetworkUnprojectedIllustration preserveAspectRatio="xMidYMid slice" />
           </div>
-          <div className={clsx("flex-grow", compact ? "p-2" : "p-3")}>
-            <p
-              className={clsx(
-                compact
-                  ? "text-xs text-gray-700 dark:text-gray-300"
-                  : "font-bold text-gray-900 dark:text-gray-100",
-              )}
-            >
+          <div className="flex-grow p-2">
+            <p className="text-xs text-gray-700 dark:text-gray-300">
               {translate("inpProjectionChoice.nonProjectedTitle")}
             </p>
-            {!compact && (
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                {translate("inpProjectionChoice.nonProjectedDescription")}
-              </p>
-            )}
           </div>
         </button>
       </div>
