@@ -40,7 +40,7 @@ export const ProjectionSearch = ({
         .slice(0, 5)
         .map((p) => ({
           id: `proj-${p.id}`,
-          label: `${p.id} \u2014 ${p.name}`,
+          label: `${p.name}  ${p.id}`,
           data: { type: "projection" as const, projection: p },
         }));
 
