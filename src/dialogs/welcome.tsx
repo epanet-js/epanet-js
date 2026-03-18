@@ -35,11 +35,11 @@ import {
 } from "src/icons";
 import { BaseDialog, DialogCloseX, useDialogState } from "../components/dialog";
 import { Message } from "../components/message";
-import { DemoNetworkCard } from "../components/demo-network-card";
 import { DRUMCHAPEL, WATERDOWN } from "src/demo/demo-networks";
 import optimaticsLogoUrl from "src/assets/images/logos/optimatics-logo-black.webp";
 import type { RecentFileEntry } from "src/lib/recent-files";
 import clsx from "clsx";
+import Image from "next/image";
 
 export const WelcomeDialog = () => {
   const translate = useTranslate();
@@ -473,6 +473,42 @@ const DemoAsRecentCard = ({ demoNetwork }: { demoNetwork: DemoModel }) => {
         <span className="text-xs text-gray-500 truncate">
           {demoNetwork.description}
         </span>
+      </div>
+    </div>
+  );
+};
+
+const DemoNetworkCard = ({ demoNetwork }: { demoNetwork: DemoModel }) => {
+  const userTracking = useUserTracking();
+  const { openInpFromUrl } = useOpenInpFromUrl();
+
+  const handleOpenDemoModel = () => {
+    userTracking.capture({
+      name: "exampleModel.clicked",
+      modelName: demoNetwork.name,
+    });
+    void openInpFromUrl(demoNetwork.url);
+  };
+  return (
+    <div
+      className="flex flex-col max-w-[250px] items-center gap-x-2 bg-white shadow-md rounded-lg border cursor-pointer hover:bg-gray-400 hover:bg-opacity-10"
+      onClick={handleOpenDemoModel}
+    >
+      <div className="flex-shrink-0">
+        <Image
+          src={demoNetwork.thumbnailUrl}
+          alt={demoNetwork.name}
+          width={247}
+          height={200}
+          quality={90}
+          className="rounded-tl-md rounded-tr-md object-cover"
+        />
+      </div>
+      <div className="flex flex-col p-3">
+        <span className="text-gray-600 font-bold text-sm">
+          {demoNetwork.name}
+        </span>
+        <span className="text-xs">{demoNetwork.description}</span>
       </div>
     </div>
   );
