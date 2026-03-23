@@ -65,6 +65,7 @@ type MapPreviewProps = {
   geoJSON: FeatureCollection | null;
   showBasemap: boolean;
   bbox: Bbox | null;
+  fitToNetworkCounter?: number;
   onBoundsChange?: (bounds: Bbox) => void;
   isLoading?: boolean;
 };
@@ -73,6 +74,7 @@ export const MapPreview = ({
   geoJSON,
   showBasemap,
   bbox,
+  fitToNetworkCounter = 0,
   onBoundsChange,
   isLoading,
 }: MapPreviewProps) => {
@@ -207,6 +209,18 @@ export const MapPreview = ({
       programmaticFit(map, null, bbox);
     }
   }, [bbox]);
+
+  useEffect(() => {
+    if (fitToNetworkCounter === 0) return;
+    const map = mapRef.current;
+    if (!map || !styleReadyRef.current) return;
+
+    const data = geoJSONRef.current;
+    if (data && data.features.length > 0) {
+      programmaticFit(map, data, null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fitToNetworkCounter]);
 
   return (
     <div className="relative flex-1 flex flex-col min-h-0">

@@ -6,6 +6,7 @@ import {
   useDialogState,
 } from "src/components/dialog";
 import type { LocationData } from "src/components/form/location-search";
+import { isLikelyLatLng } from "src/lib/geojson-utils/coordinate-transform";
 import { MapPreview } from "./map-preview";
 import { ProjectionSearch } from "./projection-search";
 import { ProjectionResults } from "./projection-results";
@@ -44,6 +45,10 @@ export const NetworkProjectionDialog = ({
     useState<FeatureCollection | null>(() =>
       approximateToNullIsland(previewGeoJson),
     );
+  const [showBasemap, setShowBasemap] = useState(false);
+  const [fitBbox, setFitBbox] = useState<Bbox | null>(null);
+  const [fitToNetworkCounter, setFitToNetworkCounter] = useState(0);
+  const [projectionError, setProjectionError] = useState<string | null>(null);
 
   const allCandidatesRef = useRef<ProjectionCandidate[]>([]);
   const abortRef = useRef<AbortController | null>(null);
@@ -72,32 +77,41 @@ export const NetworkProjectionDialog = ({
     return () => controller.abort();
   }, [projections, previewGeoJson]);
 
-  const updateDisplayGeoJSON = useCallback(
-    (projection: Projection | null, location: LocationData | null) => {
+  const applyProjection = useCallback(
+    (
+      projection: Projection,
+      options: { fitNetwork: boolean; basemap: boolean },
+    ) => {
       if (projectTimeoutRef.current) {
         clearTimeout(projectTimeoutRef.current);
         projectTimeoutRef.current = null;
       }
 
-      if (projection) {
-        setIsProjecting(true);
-        projectTimeoutRef.current = setTimeout(() => {
-          try {
-            setDisplayGeoJSON(projectGeoJson(previewGeoJson, projection.code));
-          } catch {
-            setDisplayGeoJSON(null);
+      setIsProjecting(true);
+      projectTimeoutRef.current = setTimeout(() => {
+        try {
+          const projected = projectGeoJson(previewGeoJson, projection.code);
+          if (isLikelyLatLng(projected)) {
+            setDisplayGeoJSON(projected);
+            setShowBasemap(options.basemap);
+            setProjectionError(null);
+            if (options.fitNetwork) {
+              setFitToNetworkCounter((c) => c + 1);
+            }
+          } else {
+            setDisplayGeoJSON(approximateToNullIsland(previewGeoJson));
+            setShowBasemap(false);
+            setProjectionError("Projection out of bounds");
+            setFitToNetworkCounter((c) => c + 1);
           }
-          setIsProjecting(false);
-        }, 0);
-        return;
-      }
-
-      if (!location) {
-        setDisplayGeoJSON(approximateToNullIsland(previewGeoJson));
-      } else {
-        setDisplayGeoJSON(null);
-      }
-      setIsProjecting(false);
+        } catch {
+          setDisplayGeoJSON(approximateToNullIsland(previewGeoJson));
+          setShowBasemap(false);
+          setProjectionError("Projection out of bounds");
+          setFitToNetworkCounter((c) => c + 1);
+        }
+        setIsProjecting(false);
+      }, 0);
     },
     [previewGeoJson],
   );
@@ -107,33 +121,39 @@ export const NetworkProjectionDialog = ({
       const visible = filterByViewport(allCandidatesRef.current, bbox);
       setVisibleCandidates(visible);
 
-      const currentLocation = selectedLocationRef.current;
       if (visible.length > 0) {
         if (autoSelect === "first") {
           setSelectedProjection(visible[0].projection);
-          updateDisplayGeoJSON(visible[0].projection, currentLocation);
+          applyProjection(visible[0].projection, {
+            fitNetwork: true,
+            basemap: true,
+          });
         } else {
           setSelectedProjection((prev) => {
             const stillVisible =
               prev && visible.some((c) => c.projection.id === prev.id);
             if (stillVisible) return prev;
             const next = visible[0].projection;
-            updateDisplayGeoJSON(next, currentLocation);
+            applyProjection(next, { fitNetwork: false, basemap: true });
             return next;
           });
         }
       } else {
         setSelectedProjection(null);
-        updateDisplayGeoJSON(null, currentLocation);
+        setDisplayGeoJSON(null);
+        setProjectionError(null);
       }
     },
-    [updateDisplayGeoJSON],
+    [applyProjection],
   );
 
   const handleLocationSelect = useCallback(
     (location: LocationData) => {
       setSelectedLocation(location);
       selectedLocationRef.current = location;
+      setProjectionError(null);
+      setFitBbox(location.bbox);
+      setShowBasemap(true);
       updateVisibleCandidates(location.bbox, "first");
     },
     [updateVisibleCandidates],
@@ -157,17 +177,18 @@ export const NetworkProjectionDialog = ({
       setSelectedLocation(null);
       selectedLocationRef.current = null;
       setVisibleCandidates([]);
-      updateDisplayGeoJSON(projection, null);
+      setFitBbox(null);
+      applyProjection(projection, { fitNetwork: true, basemap: true });
     },
-    [updateDisplayGeoJSON],
+    [applyProjection],
   );
 
   const handleProjectionSelectFromResults = useCallback(
     (projection: Projection) => {
       setSelectedProjection(projection);
-      updateDisplayGeoJSON(projection, selectedLocationRef.current);
+      applyProjection(projection, { fitNetwork: false, basemap: true });
     },
-    [updateDisplayGeoJSON],
+    [applyProjection],
   );
 
   const handleLoadWithoutBasemap = useCallback(() => {
@@ -175,8 +196,6 @@ export const NetworkProjectionDialog = ({
   }, [onImportNonProjected]);
 
   const isLoading = isBuilding || isProjecting;
-  const showBasemap = !!selectedLocation;
-  const fitBbox = selectedLocation?.bbox ?? null;
   const candidateProjections = visibleCandidates.map((c) => c.projection);
 
   return (
@@ -189,7 +208,7 @@ export const NetworkProjectionDialog = ({
       footer={
         <SimpleDialogActions
           action="Apply basemap"
-          isDisabled={!selectedProjection}
+          isDisabled={!selectedProjection || !!projectionError}
           secondary={{
             action: "Load without basemap",
             onClick: handleLoadWithoutBasemap,
@@ -218,6 +237,11 @@ export const NetworkProjectionDialog = ({
                     : undefined
                 }
               />
+              {projectionError && (
+                <p className="mt-2 text-sm text-red-600 dark:text-red-400 p-2 border border-red-200 dark:border-red-800 rounded-md bg-red-50 dark:bg-red-950 flex-shrink-0">
+                  {projectionError}
+                </p>
+              )}
             </div>
           )}
         </div>
@@ -225,6 +249,7 @@ export const NetworkProjectionDialog = ({
           geoJSON={displayGeoJSON}
           showBasemap={showBasemap}
           bbox={fitBbox}
+          fitToNetworkCounter={fitToNetworkCounter}
           onBoundsChange={selectedLocation ? handleBoundsChange : undefined}
           isLoading={isLoading}
         />

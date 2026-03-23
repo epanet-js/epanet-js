@@ -54,11 +54,11 @@ export const ProjectionResults = ({
   if (results.length === 0 && !selectedProjection) return null;
 
   return (
-    <div className="mt-3 flex flex-col min-h-0 flex-1">
+    <div className="mt-3 flex flex-col min-h-0">
       <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 flex-shrink-0">
         Matching projections ({results.length})
       </p>
-      <div className="border border-gray-200 dark:border-gray-700 rounded-md min-h-0 overflow-y-auto scroll-shadows flex-1">
+      <div className="border border-gray-200 dark:border-gray-700 rounded-md min-h-0 overflow-y-auto scroll-shadows">
         <ul className="space-y-0.5 p-1">
           {results.map((p) => {
             const isSelected = selectedProjection?.id === p.id;
