@@ -116,9 +116,10 @@ export const NetworkProjectionDialog = ({
           setSelectedProjection((prev) => {
             const stillVisible =
               prev && visible.some((c) => c.projection.id === prev.id);
-            const kept = stillVisible ? prev : visible[0].projection;
-            updateDisplayGeoJSON(kept, currentLocation);
-            return kept;
+            if (stillVisible) return prev;
+            const next = visible[0].projection;
+            updateDisplayGeoJSON(next, currentLocation);
+            return next;
           });
         }
       } else {

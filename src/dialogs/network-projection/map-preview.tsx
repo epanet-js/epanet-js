@@ -4,6 +4,11 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import type { FeatureCollection } from "geojson";
 import { env } from "src/lib/env-client";
 import { emptyFeatureCollection } from "src/lib/constants";
+import {
+  CustomMapControl,
+  FIT_TO_EXTENT_ICON,
+} from "src/map/custom-map-control";
+import type { Bbox } from "./types";
 
 const BASEMAP_STYLE = "mapbox://styles/mapbox/light-v10";
 
@@ -56,8 +61,6 @@ const NETWORK_LAYERS: mapboxgl.AnyLayer[] = [
   },
 ];
 
-type Bbox = [number, number, number, number];
-
 type MapPreviewProps = {
   geoJSON: FeatureCollection | null;
   showBasemap: boolean;
@@ -100,6 +103,24 @@ export const MapPreview = ({
       dragRotate: false,
       doubleClickZoom: false,
     });
+
+    map.addControl(new mapboxgl.NavigationControl({}), "bottom-right");
+    map.addControl(
+      new CustomMapControl(
+        {
+          name: "fit-to-extent",
+          title: "Fit to extent",
+          icon: FIT_TO_EXTENT_ICON,
+        },
+        () => {
+          const data = geoJSONRef.current;
+          if (data && data.features.length > 0) {
+            fitToGeoJSON(map, data);
+          }
+        },
+      ),
+      "bottom-right",
+    );
 
     map.on("load", () => {
       styleReadyRef.current = true;
@@ -215,29 +236,30 @@ export const MapPreview = ({
       return;
     }
 
-    const coords: [number, number][] = [];
-    for (const feature of geoJSON.features) {
-      if (!feature.geometry) continue;
-      if (feature.geometry.type === "Point") {
-        coords.push(feature.geometry.coordinates as [number, number]);
-      } else if (feature.geometry.type === "LineString") {
-        coords.push(...(feature.geometry.coordinates as [number, number][]));
-      }
-    }
-
-    if (coords.length === 0) {
-      programmaticMoveRef.current = false;
-      return;
-    }
-
-    const bounds = coords.reduce(
-      (b, coord) => b.extend(coord as mapboxgl.LngLatLike),
-      new mapboxgl.LngLatBounds(coords[0], coords[0]),
-    );
-
-    map.fitBounds(bounds, { padding: 50, duration: 0 });
+    fitToGeoJSON(map, geoJSON);
   }
 };
+
+function fitToGeoJSON(map: mapboxgl.Map, geoJSON: FeatureCollection) {
+  const coords: [number, number][] = [];
+  for (const feature of geoJSON.features) {
+    if (!feature.geometry) continue;
+    if (feature.geometry.type === "Point") {
+      coords.push(feature.geometry.coordinates as [number, number]);
+    } else if (feature.geometry.type === "LineString") {
+      coords.push(...(feature.geometry.coordinates as [number, number][]));
+    }
+  }
+
+  if (coords.length === 0) return;
+
+  const bounds = coords.reduce(
+    (b, coord) => b.extend(coord as mapboxgl.LngLatLike),
+    new mapboxgl.LngLatBounds(coords[0], coords[0]),
+  );
+
+  map.fitBounds(bounds, { padding: 50, duration: 0 });
+}
 
 function addNetworkSourceAndLayers(
   map: mapboxgl.Map,
