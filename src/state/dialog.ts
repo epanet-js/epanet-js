@@ -1,6 +1,7 @@
 import { atomWithReset } from "jotai/utils";
 import { ParserIssues } from "src/import/inp";
 import { CurveId } from "src/hydraulic-model/curves";
+import type { FeatureCollection } from "geojson";
 
 export type InvalidFilesErrorDialogState = {
   type: "invalidFilesError";
@@ -40,6 +41,7 @@ export type InpProjectionChoiceDialogState = {
 
 export type NetworkProjectionDialogState = {
   type: "networkProjection";
+  previewGeoJson: FeatureCollection;
   onImportNonProjected: () => void;
 };
 

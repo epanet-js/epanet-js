@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState } from "react";
+import type { FeatureCollection } from "geojson";
 import {
   BaseDialog,
   SimpleDialogActions,
@@ -11,7 +12,13 @@ import { ProjectionResults } from "./projection-results";
 import { useProjections } from "./use-projections";
 import type { Projection } from "./types";
 
-export const NetworkProjectionDialog = () => {
+export const NetworkProjectionDialog = ({
+  previewGeoJson,
+  onImportNonProjected,
+}: {
+  previewGeoJson: FeatureCollection;
+  onImportNonProjected: () => void;
+}) => {
   const { closeDialog } = useDialogState();
   const mapPreviewRef = useRef<MapPreviewHandle>(null);
   const { projections } = useProjections();
@@ -43,6 +50,10 @@ export const NetworkProjectionDialog = () => {
     [],
   );
 
+  const handleLoadWithoutBasemap = useCallback(() => {
+    onImportNonProjected();
+  }, [onImportNonProjected]);
+
   return (
     <BaseDialog
       title="Network projection"
@@ -52,9 +63,12 @@ export const NetworkProjectionDialog = () => {
       onClose={closeDialog}
       footer={
         <SimpleDialogActions
-          action="Add basemap"
-          onAction={closeDialog}
-          secondary={{ action: "Load without basemap", onClick: closeDialog }}
+          action="Apply basemap"
+          isDisabled={!selectedProjection}
+          secondary={{
+            action: "Load without basemap",
+            onClick: handleLoadWithoutBasemap,
+          }}
         />
       }
     >
@@ -74,7 +88,7 @@ export const NetworkProjectionDialog = () => {
             />
           )}
         </div>
-        <MapPreview ref={mapPreviewRef} />
+        <MapPreview ref={mapPreviewRef} geoJSON={previewGeoJson} />
       </div>
     </BaseDialog>
   );

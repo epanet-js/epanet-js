@@ -5,7 +5,11 @@ import { fileInfoAtom } from "src/state/file-system";
 import { captureError } from "src/infra/error-tracking";
 import { FileWithHandle } from "browser-fs-access";
 import { useTranslate } from "src/hooks/use-translate";
-import { ParserIssues, parseInp } from "src/import/inp";
+import {
+  ParserIssues,
+  parseInp,
+  parseCoordinatesGeoJson,
+} from "src/import/inp";
 import { usePersistence } from "src/lib/persistence";
 import { FeatureCollection } from "geojson";
 import { getExtent } from "src/lib/geometry";
@@ -183,8 +187,11 @@ export const useImportInp = () => {
             }
           };
           if (isReprojectOn) {
+            const previewGeoJson = parseCoordinatesGeoJson(content);
+
             setDialogState({
               type: "networkProjection",
+              previewGeoJson,
               onImportNonProjected,
             });
           } else {

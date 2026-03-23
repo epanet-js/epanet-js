@@ -68,7 +68,10 @@ const InpProjectionChoiceDialog = dynamic<{
   },
 );
 
-const NetworkProjectionDialog = dynamic(
+const NetworkProjectionDialog = dynamic<{
+  previewGeoJson: import("geojson").FeatureCollection;
+  onImportNonProjected: () => void;
+}>(
   () =>
     import("src/dialogs/network-projection").then(
       (r) => r.NetworkProjectionDialog,
@@ -466,7 +469,12 @@ export const Dialogs = memo(function Dialogs() {
   }
 
   if (dialog.type === "networkProjection") {
-    return <NetworkProjectionDialog />;
+    return (
+      <NetworkProjectionDialog
+        previewGeoJson={dialog.previewGeoJson}
+        onImportNonProjected={dialog.onImportNonProjected}
+      />
+    );
   }
 
   const content = match(dialog)

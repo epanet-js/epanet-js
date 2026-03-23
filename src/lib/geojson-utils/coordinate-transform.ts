@@ -121,6 +121,13 @@ function convertGeometry(
   return transformGeometry(geometry);
 }
 
+export function createProjectionTransformer(
+  sourceProjection: string,
+): (coord: [number, number]) => [number, number] {
+  const transformer = proj4(sourceProjection, "EPSG:4326");
+  return (coord) => transformer.forward(coord) as [number, number];
+}
+
 export function convertGeoJsonToWGS84(
   geojson: FeatureCollection,
   sourceProjection: string,
