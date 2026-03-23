@@ -1,20 +1,11 @@
-import {
-  forwardRef,
-  useCallback,
-  useEffect,
-  useImperativeHandle,
-  useMemo,
-  useRef,
-} from "react";
+import { useEffect, useRef } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
-import type { FeatureCollection, Feature, Position } from "geojson";
+import type { FeatureCollection } from "geojson";
 import { env } from "src/lib/env-client";
-import { isLikelyLatLng } from "src/lib/geojson-utils/coordinate-transform";
+import { emptyFeatureCollection } from "src/lib/constants";
 
-const DEFAULT_CENTER: [number, number] = [0, 0];
-const DEFAULT_ZOOM = 1;
-const METERS_PER_DEGREE = 111_320;
+const BASEMAP_STYLE = "mapbox://styles/mapbox/light-v10";
 
 const EMPTY_STYLE: mapboxgl.Style = {
   version: 8,
@@ -31,41 +22,72 @@ const EMPTY_STYLE: mapboxgl.Style = {
   ],
 };
 
-export type MapPreviewHandle = {
-  fitBounds: (bbox: [number, number, number, number]) => void;
+const NETWORK_LAYERS: mapboxgl.AnyLayer[] = [
+  {
+    id: "network-lines",
+    type: "line",
+    source: "network",
+    filter: ["==", "$type", "LineString"],
+    paint: {
+      "line-color": "#3b82f6",
+      "line-width": ["interpolate", ["linear"], ["zoom"], 12, 0.5, 16, 4],
+    },
+  },
+  {
+    id: "network-points",
+    type: "circle",
+    source: "network",
+    filter: ["==", "$type", "Point"],
+    paint: {
+      "circle-radius": ["interpolate", ["linear"], ["zoom"], 12, 0.5, 16, 5],
+      "circle-color": "#3b82f6",
+      "circle-stroke-width": [
+        "interpolate",
+        ["linear"],
+        ["zoom"],
+        13,
+        0.5,
+        16,
+        1,
+      ],
+      "circle-stroke-color": "#ffffff",
+    },
+    minzoom: 13,
+  },
+];
+
+type Bbox = [number, number, number, number];
+
+type MapPreviewProps = {
+  geoJSON: FeatureCollection | null;
+  showBasemap: boolean;
+  bbox: Bbox | null;
+  onBoundsChange?: (bounds: Bbox) => void;
 };
 
-export const MapPreview = forwardRef<
-  MapPreviewHandle,
-  { geoJSON: FeatureCollection }
->(function MapPreview({ geoJSON }, ref) {
+export const MapPreview = ({
+  geoJSON,
+  showBasemap,
+  bbox,
+  onBoundsChange,
+}: MapPreviewProps) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
+  const styleReadyRef = useRef(false);
+  const onBoundsChangeRef = useRef(onBoundsChange);
+  onBoundsChangeRef.current = onBoundsChange;
+  const programmaticMoveRef = useRef(false);
 
-  const displayGeoJSON = useMemo(
-    () =>
-      isLikelyLatLng(geoJSON) ? geoJSON : approximateToNullIsland(geoJSON),
-    [geoJSON],
-  );
-
-  useImperativeHandle(ref, () => ({
-    fitBounds: (bbox) => {
-      mapRef.current?.fitBounds(bbox, { padding: 50, animate: false });
-    },
-  }));
-
-  const initMap = useCallback(() => {
+  useEffect(() => {
     if (!mapContainerRef.current) return;
-
-    mapRef.current?.remove();
 
     mapboxgl.accessToken = env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
     const map = new mapboxgl.Map({
       container: mapContainerRef.current,
       style: EMPTY_STYLE,
-      center: DEFAULT_CENTER,
-      zoom: DEFAULT_ZOOM,
+      center: [0, 0],
+      zoom: 1,
       attributionControl: false,
       boxZoom: false,
       dragRotate: false,
@@ -73,151 +95,143 @@ export const MapPreview = forwardRef<
     });
 
     map.on("load", () => {
-      map.resize();
+      styleReadyRef.current = true;
+      addNetworkSourceAndLayers(map, geoJSON);
+      programmaticFit(map, geoJSON, bbox);
+    });
 
-      map.addSource("network", {
-        type: "geojson",
-        data: displayGeoJSON,
-      });
-
-      map.addLayer({
-        id: "network-lines",
-        type: "line",
-        source: "network",
-        filter: ["==", "$type", "LineString"],
-        paint: {
-          "line-color": "#3b82f6",
-          "line-width": ["interpolate", ["linear"], ["zoom"], 12, 0.5, 16, 4],
-        },
-      });
-
-      map.addLayer({
-        id: "network-points",
-        type: "circle",
-        source: "network",
-        filter: ["==", "$type", "Point"],
-        paint: {
-          "circle-radius": [
-            "interpolate",
-            ["linear"],
-            ["zoom"],
-            12,
-            0.5,
-            16,
-            5,
-          ],
-          "circle-color": "#3b82f6",
-          "circle-stroke-width": [
-            "interpolate",
-            ["linear"],
-            ["zoom"],
-            13,
-            0.5,
-            16,
-            1,
-          ],
-          "circle-stroke-color": "#ffffff",
-        },
-        minzoom: 13,
-      });
-
-      const bounds = computeBounds(displayGeoJSON);
-      if (bounds) {
-        map.fitBounds(bounds, { padding: 50, duration: 0 });
+    map.on("moveend", () => {
+      if (programmaticMoveRef.current) {
+        programmaticMoveRef.current = false;
+        return;
       }
+      if (!onBoundsChangeRef.current) return;
+      const b = map.getBounds();
+      onBoundsChangeRef.current([
+        b.getWest(),
+        b.getSouth(),
+        b.getEast(),
+        b.getNorth(),
+      ]);
     });
 
     mapRef.current = map;
-  }, [displayGeoJSON]);
-
-  useEffect(() => {
-    initMap();
 
     return () => {
-      mapRef.current?.remove();
+      map.remove();
       mapRef.current = null;
+      styleReadyRef.current = false;
     };
-  }, [initMap]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !styleReadyRef.current) return;
+
+    const currentIsBasemap =
+      typeof map.getStyle().name === "string" &&
+      map.getStyle().name !== "Empty";
+    if (showBasemap && !currentIsBasemap) {
+      styleReadyRef.current = false;
+      map.setStyle(BASEMAP_STYLE);
+      map.once("style.load", () => {
+        styleReadyRef.current = true;
+        addNetworkSourceAndLayers(map, geoJSON);
+        programmaticFit(map, geoJSON, bbox);
+      });
+    } else if (!showBasemap && currentIsBasemap) {
+      styleReadyRef.current = false;
+      map.setStyle(EMPTY_STYLE);
+      map.once("style.load", () => {
+        styleReadyRef.current = true;
+        addNetworkSourceAndLayers(map, geoJSON);
+        programmaticFit(map, geoJSON, bbox);
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showBasemap]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !styleReadyRef.current) return;
+
+    const source = map.getSource("network") as
+      | mapboxgl.GeoJSONSource
+      | undefined;
+    if (source) {
+      source.setData(geoJSON ?? emptyFeatureCollection);
+    }
+  }, [geoJSON]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !styleReadyRef.current) return;
+
+    if (bbox) {
+      programmaticFit(map, null, bbox);
+    }
+  }, [bbox]);
 
   return (
     <div className="relative flex-1 flex flex-col min-h-0">
       <div ref={mapContainerRef} className="flex-1 w-full" />
     </div>
   );
-});
 
-function computeBounds(
-  geoJSON: FeatureCollection,
-): mapboxgl.LngLatBoundsLike | null {
-  const coords: [number, number][] = [];
+  function programmaticFit(
+    map: mapboxgl.Map,
+    geoJSON: FeatureCollection | null,
+    bbox: Bbox | null,
+  ) {
+    programmaticMoveRef.current = true;
 
-  for (const feature of geoJSON.features) {
-    if (!feature.geometry) continue;
-    if (feature.geometry.type === "Point") {
-      coords.push(feature.geometry.coordinates as [number, number]);
-    } else if (feature.geometry.type === "LineString") {
-      coords.push(...(feature.geometry.coordinates as [number, number][]));
+    if (bbox) {
+      map.fitBounds(bbox, { padding: 50, duration: 0 });
+      return;
     }
-  }
 
-  if (coords.length === 0) return null;
-
-  const bounds = coords.reduce(
-    (b, coord) => b.extend(coord as mapboxgl.LngLatLike),
-    new mapboxgl.LngLatBounds(coords[0], coords[0]),
-  );
-
-  return bounds;
-}
-
-function approximateToNullIsland(
-  geoJSON: FeatureCollection,
-): FeatureCollection {
-  let minX = Infinity;
-  let minY = Infinity;
-
-  const extractCoords = (coords: Position) => {
-    if (coords[0] < minX) minX = coords[0];
-    if (coords[1] < minY) minY = coords[1];
-  };
-
-  for (const feature of geoJSON.features) {
-    if (!feature.geometry) continue;
-    if (feature.geometry.type === "Point") {
-      extractCoords(feature.geometry.coordinates);
-    } else if (feature.geometry.type === "LineString") {
-      feature.geometry.coordinates.forEach(extractCoords);
+    if (!geoJSON || geoJSON.features.length === 0) {
+      programmaticMoveRef.current = false;
+      return;
     }
-  }
 
-  const transform = (coord: Position): Position => [
-    (coord[0] - minX) / METERS_PER_DEGREE,
-    (coord[1] - minY) / METERS_PER_DEGREE,
-  ];
-
-  return {
-    ...geoJSON,
-    features: geoJSON.features.map((feature: Feature) => {
-      if (!feature.geometry) return feature;
+    const coords: [number, number][] = [];
+    for (const feature of geoJSON.features) {
+      if (!feature.geometry) continue;
       if (feature.geometry.type === "Point") {
-        return {
-          ...feature,
-          geometry: {
-            ...feature.geometry,
-            coordinates: transform(feature.geometry.coordinates),
-          },
-        };
+        coords.push(feature.geometry.coordinates as [number, number]);
+      } else if (feature.geometry.type === "LineString") {
+        coords.push(...(feature.geometry.coordinates as [number, number][]));
       }
-      if (feature.geometry.type === "LineString") {
-        return {
-          ...feature,
-          geometry: {
-            ...feature.geometry,
-            coordinates: feature.geometry.coordinates.map(transform),
-          },
-        };
-      }
-      return feature;
-    }),
-  };
+    }
+
+    if (coords.length === 0) {
+      programmaticMoveRef.current = false;
+      return;
+    }
+
+    const bounds = coords.reduce(
+      (b, coord) => b.extend(coord as mapboxgl.LngLatLike),
+      new mapboxgl.LngLatBounds(coords[0], coords[0]),
+    );
+
+    map.fitBounds(bounds, { padding: 50, duration: 0 });
+  }
+};
+
+function addNetworkSourceAndLayers(
+  map: mapboxgl.Map,
+  geoJSON: FeatureCollection | null,
+) {
+  if (map.getSource("network")) return;
+
+  map.addSource("network", {
+    type: "geojson",
+    data: geoJSON ?? emptyFeatureCollection,
+  });
+
+  for (const layer of NETWORK_LAYERS) {
+    map.addLayer(layer);
+  }
 }

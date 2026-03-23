@@ -6,21 +6,36 @@ export const ProjectionResults = ({
   projections,
   selectedProjection,
   onSelect,
+  emptyMessage,
 }: {
   projections: Projection[];
   selectedProjection: Projection | null;
   onSelect: (projection: Projection) => void;
+  emptyMessage?: string;
 }) => {
   const results = useMemo(() => {
-    const dummyResults = projections.slice(0, 8);
+    const displayed = projections.slice(0, 8);
     if (
       selectedProjection &&
-      !dummyResults.some((p) => p.id === selectedProjection.id)
+      !displayed.some((p) => p.id === selectedProjection.id)
     ) {
-      return [selectedProjection, ...dummyResults];
+      return [selectedProjection, ...displayed];
     }
-    return dummyResults;
+    return displayed;
   }, [projections, selectedProjection]);
+
+  if (results.length === 0 && emptyMessage) {
+    return (
+      <div className="mt-3">
+        <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+          Matching projections
+        </p>
+        <p className="text-sm text-gray-500 dark:text-gray-400 p-3 border border-gray-200 dark:border-gray-700 rounded-md">
+          {emptyMessage}
+        </p>
+      </div>
+    );
+  }
 
   if (results.length === 0 && !selectedProjection) return null;
 
