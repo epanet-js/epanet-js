@@ -1,7 +1,5 @@
-export type GeoTiffElevationSource = {
-  type: "geotiff";
+export type GeoTiffTile = {
   id: string;
-  enabled: boolean;
   fileName: string;
   fileSize: number;
   width: number;
@@ -10,7 +8,15 @@ export type GeoTiffElevationSource = {
   pixelToGps: number[];
   gpsToPixel: number[];
   noDataValue: number | null;
-  projectionOffsetM: number;
+};
+
+export type GeoTiffElevationSource = {
+  type: "geotiff";
+  id: string;
+  enabled: boolean;
+  name: string;
+  tiles: GeoTiffTile[];
+  elevationOffsetM: number;
 };
 
 export type TileServerElevationSource = {
@@ -22,6 +28,7 @@ export type TileServerElevationSource = {
   tileZoom: number;
   tileSize: number;
   encoding: "terrain-rgb";
+  elevationOffsetM: number;
 };
 
 export type ElevationSource =

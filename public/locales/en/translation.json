@@ -61,6 +61,7 @@
   "globalDtm": "Global DTM",
   "addNewElevationData": "Add new elevation data",
   "userElevationData": "User elevation data",
+  "projectionOffset": "Projection offset",
   "customer": "Customer",
   "customerPoint": "Customer point",
   "actualDemand": "Actual demand",

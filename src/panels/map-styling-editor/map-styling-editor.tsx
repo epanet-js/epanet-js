@@ -22,24 +22,17 @@ import { RangeColorRuleEditor } from "./range-color-rule-editor";
 import {
   StyledPopoverArrow,
   StyledPopoverContent,
-  Button,
 } from "src/components/elements";
 import { RangeMode } from "src/map/symbology/range-color-rule";
 import { AddLayer, LayersEditor } from "./layers-editor";
 import { InlineField, Section, SectionList } from "src/components/form/fields";
 import { ColorPopover } from "src/components/color-popover";
-import {
-  Draggable,
-  DeleteIcon,
-  AddIcon,
-  LocateOffIcon,
-  MultipleValuesIcon,
-} from "src/icons";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { LegendRamp } from "src/components/legends";
 import { selectionAtom } from "src/state/selection";
 import { USelection } from "src/selection/selection";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { ElevationsConfig } from "./elevations-config";
 
 const colorPropertyLabelFor = (
   property: string,
@@ -69,7 +62,7 @@ export const MapStylingEditor = () => {
           properties={supportedLinkProperties}
         />
         <CustomerPointsSection />
-        {isDtmElevationsOn && <ElevationsSection />}
+        {isDtmElevationsOn && <ElevationsConfig />}
         {!isGridOn && (
           <Section title={translate("layers")} button={<AddLayer />}>
             <LayersEditor />
@@ -373,80 +366,5 @@ const RangeColorRuleEditorTrigger = ({
         </StyledPopoverContent>
       </Popover.Portal>
     </Popover.Root>
-  );
-};
-
-const ElevationsSection = () => {
-  const translate = useTranslate();
-
-  return (
-    <Section title={translate("elevations")}>
-      <div className="flex flex-col gap-y-1">
-        <GeoTiffElevationSourceRow />
-        <GlobalDtmElevationSourceRow />
-        <Button variant="default" size="sm" className="w-full justify-center">
-          <AddIcon size="sm" />
-          {translate("addNewElevationData")}
-        </Button>
-      </div>
-    </Section>
-  );
-};
-
-const ElevationSourceRowShell = ({
-  name,
-  typeLabel,
-  children,
-}: {
-  name: string;
-  typeLabel: string;
-  children: React.ReactNode;
-}) => (
-  <div className="py-2 flex gap-x-2 items-start">
-    <div className="pt-0.5 opacity-20 hover:opacity-100 cursor-ns-resize">
-      <Draggable />
-    </div>
-    <div className="flex-auto">
-      <div className="flex gap-x-2 items-center">
-        <span className="block select-none truncate flex-auto text-sm">
-          {name}
-        </span>
-        {children}
-      </div>
-      <div className="opacity-50 font-semibold" style={{ fontSize: 10 }}>
-        {typeLabel}
-      </div>
-    </div>
-  </div>
-);
-
-const GeoTiffElevationSourceRow = () => {
-  const translate = useTranslate();
-  return (
-    <ElevationSourceRowShell
-      name={translate("userElevationData")}
-      typeLabel="GEOTIFF"
-    >
-      <button className="opacity-30 hover:opacity-100 select-none">
-        <MultipleValuesIcon />
-      </button>
-      <button className="opacity-50 hover:opacity-100 select-none text-red-500">
-        <DeleteIcon />
-      </button>
-    </ElevationSourceRowShell>
-  );
-};
-
-const GlobalDtmElevationSourceRow = () => {
-  const translate = useTranslate();
-  return (
-    <ElevationSourceRowShell
-      name={translate("mapboxDefaultData")}
-      typeLabel={translate("globalDtm").toUpperCase()}
-    >
-      <button className="opacity-30 hover:opacity-100 select-none">
-        <LocateOffIcon />
-      </button>
-    </ElevationSourceRowShell>
   );
 };

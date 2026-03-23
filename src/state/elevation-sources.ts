@@ -13,6 +13,7 @@ const defaultMapboxSource: TileServerElevationSource = {
   tileZoom: 14,
   tileSize: 512,
   encoding: "terrain-rgb",
+  elevationOffsetM: 0,
 };
 
 export const elevationSourcesAtom = atom<ElevationSource[]>([

@@ -937,6 +937,12 @@ export type UserEvent =
   | ScenarioDeleteDialogCancel
   | ScenarioToggled
   | ScenarioCycled
+  | {
+      name: "map.elevationOffset.changed";
+      sourceType: string;
+      oldValue: number;
+      newValue: number;
+    }
   | { name: "map.labels.shown"; type: string; subtype: string }
   | { name: "map.labels.hidden"; type: string }
   | { name: "map.customerPoints.shown" }

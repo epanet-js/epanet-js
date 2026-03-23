@@ -1,4 +1,5 @@
 export type {
+  GeoTiffTile,
   GeoTiffElevationSource,
   TileServerElevationSource,
   ElevationSource,
