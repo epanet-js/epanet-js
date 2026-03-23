@@ -45,7 +45,7 @@ export const NetworkProjectionDialog = ({
     );
 
   const selectedLocationRef = useRef<LocationData | null>(null);
-  const locationBboxRef = useRef<Bbox | null>(null);
+  const maxBboxRef = useRef<Bbox | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const projectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -127,7 +127,7 @@ export const NetworkProjectionDialog = ({
     (location: LocationData) => {
       setSelectedLocation(location);
       selectedLocationRef.current = location;
-      locationBboxRef.current = location.bbox;
+      maxBboxRef.current = location.bbox;
       void runFilter(location.bbox, "first");
     },
     [runFilter],
@@ -135,20 +135,27 @@ export const NetworkProjectionDialog = ({
 
   const handleBoundsChange = useCallback(
     (viewportBbox: Bbox) => {
-      if (!locationBboxRef.current) return;
+      const max = maxBboxRef.current;
+      if (!max) return;
 
-      const initial = locationBboxRef.current;
       const zoomedBeyond =
-        viewportBbox[0] < initial[0] ||
-        viewportBbox[1] < initial[1] ||
-        viewportBbox[2] > initial[2] ||
-        viewportBbox[3] > initial[3];
+        viewportBbox[0] < max[0] ||
+        viewportBbox[1] < max[1] ||
+        viewportBbox[2] > max[2] ||
+        viewportBbox[3] > max[3];
 
       if (!zoomedBeyond) return;
 
+      maxBboxRef.current = [
+        Math.min(max[0], viewportBbox[0]),
+        Math.min(max[1], viewportBbox[1]),
+        Math.max(max[2], viewportBbox[2]),
+        Math.max(max[3], viewportBbox[3]),
+      ];
+
       if (debounceRef.current) clearTimeout(debounceRef.current);
       debounceRef.current = setTimeout(() => {
-        void runFilter(viewportBbox, "keep");
+        void runFilter(maxBboxRef.current!, "keep");
       }, DEBOUNCE_MS);
     },
     [runFilter],
@@ -163,7 +170,7 @@ export const NetworkProjectionDialog = ({
       selectedLocationRef.current = null;
       setCandidateProjections([]);
       setIsFiltering(false);
-      locationBboxRef.current = null;
+      maxBboxRef.current = null;
       updateDisplayGeoJSON(projection, null);
     },
     [updateDisplayGeoJSON],
