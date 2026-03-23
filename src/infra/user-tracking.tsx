@@ -941,6 +941,7 @@ export type UserEvent =
   | { name: "map.labels.hidden"; type: string }
   | { name: "map.customerPoints.shown" }
   | { name: "map.customerPoints.hidden" }
+  | { name: "map.defaultColor.changed"; type: string }
   | { name: "map.colorBy.changed"; type: string; subtype: string }
   | { name: "map.colorRamp.changed"; rampName: string; property: string }
   | { name: "map.colorRamp.reversed"; rampName: string; property: string }
