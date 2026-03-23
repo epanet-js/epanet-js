@@ -1,23 +1,26 @@
 // eslint-disable-next-line no-restricted-imports
 import proj4 from "proj4";
 import type { FeatureCollection, Position } from "geojson";
-import type { Projection } from "./types";
-
-type Bbox = [number, number, number, number];
+import type { Bbox, Projection, ProjectionCandidate } from "./types";
 
 const CHUNK_SIZE = 1000;
 
-export const filterProjectionCandidates = async (
+export const buildProjectionCandidates = async (
   projections: Projection[],
   rawGeoJson: FeatureCollection,
-  bbox: Bbox,
   signal?: AbortSignal,
-): Promise<Projection[]> => {
-  const samplePoints = extractSamplePoints(rawGeoJson);
-  if (samplePoints.length === 0) return [];
+): Promise<ProjectionCandidate[]> => {
+  const dataBbox = computeRawBbox(rawGeoJson);
+  if (!dataBbox) return [];
 
-  const [minLon, minLat, maxLon, maxLat] = bbox;
-  const results: Projection[] = [];
+  const corners: [number, number][] = [
+    [dataBbox[0], dataBbox[1]],
+    [dataBbox[2], dataBbox[1]],
+    [dataBbox[2], dataBbox[3]],
+    [dataBbox[0], dataBbox[3]],
+  ];
+
+  const results: ProjectionCandidate[] = [];
 
   for (let i = 0; i < projections.length; i += CHUNK_SIZE) {
     if (signal?.aborted) return results;
@@ -25,13 +28,30 @@ export const filterProjectionCandidates = async (
     const chunk = projections.slice(i, i + CHUNK_SIZE);
     for (const p of chunk) {
       try {
-        const matches = samplePoints.some((point) => {
-          const [lon, lat] = proj4(p.code, "EPSG:4326", [point[0], point[1]]);
-          return (
-            lon >= minLon && lon <= maxLon && lat >= minLat && lat <= maxLat
-          );
-        });
-        if (matches) results.push(p);
+        let minLon = Infinity;
+        let minLat = Infinity;
+        let maxLon = -Infinity;
+        let maxLat = -Infinity;
+        let valid = true;
+
+        for (const corner of corners) {
+          const [lon, lat] = proj4(p.code, "EPSG:4326", [corner[0], corner[1]]);
+          if (lon < -180 || lon > 180 || lat < -90 || lat > 90) {
+            valid = false;
+            break;
+          }
+          if (lon < minLon) minLon = lon;
+          if (lat < minLat) minLat = lat;
+          if (lon > maxLon) maxLon = lon;
+          if (lat > maxLat) maxLat = lat;
+        }
+
+        if (valid) {
+          results.push({
+            projection: p,
+            projectedBbox: [minLon, minLat, maxLon, maxLat],
+          });
+        }
       } catch {
         // skip invalid projection definitions
       }
@@ -45,28 +65,40 @@ export const filterProjectionCandidates = async (
   return results;
 };
 
-function extractSamplePoints(
-  geoJson: FeatureCollection,
-  maxPoints = 10,
-): Position[] {
-  const points: Position[] = [];
+export const filterByViewport = (
+  candidates: ProjectionCandidate[],
+  viewport: Bbox,
+): ProjectionCandidate[] => {
+  return candidates.filter((c) => bboxOverlaps(c.projectedBbox, viewport));
+};
+
+function bboxOverlaps(a: Bbox, b: Bbox): boolean {
+  return a[2] >= b[0] && a[0] <= b[2] && a[3] >= b[1] && a[1] <= b[3];
+}
+
+function computeRawBbox(geoJson: FeatureCollection): Bbox | null {
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+  let found = false;
+
+  const update = (coord: Position) => {
+    found = true;
+    if (coord[0] < minX) minX = coord[0];
+    if (coord[1] < minY) minY = coord[1];
+    if (coord[0] > maxX) maxX = coord[0];
+    if (coord[1] > maxY) maxY = coord[1];
+  };
 
   for (const feature of geoJson.features) {
-    if (points.length >= maxPoints) break;
     if (!feature.geometry) continue;
-
     if (feature.geometry.type === "Point") {
-      points.push(feature.geometry.coordinates);
-    } else if (
-      feature.geometry.type === "LineString" &&
-      feature.geometry.coordinates.length > 0
-    ) {
-      points.push(feature.geometry.coordinates[0]);
-      const last =
-        feature.geometry.coordinates[feature.geometry.coordinates.length - 1];
-      if (points.length < maxPoints) points.push(last);
+      update(feature.geometry.coordinates);
+    } else if (feature.geometry.type === "LineString") {
+      feature.geometry.coordinates.forEach(update);
     }
   }
 
-  return points;
+  return found ? [minX, minY, maxX, maxY] : null;
 }

@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { FeatureCollection } from "geojson";
 import {
   BaseDialog,
@@ -10,14 +10,15 @@ import { MapPreview } from "./map-preview";
 import { ProjectionSearch } from "./projection-search";
 import { ProjectionResults } from "./projection-results";
 import { useProjections } from "./use-projections";
-import { filterProjectionCandidates } from "./filter-projection-candidates";
+import {
+  buildProjectionCandidates,
+  filterByViewport,
+} from "./filter-projection-candidates";
 import { projectGeoJson } from "./project-geojson";
 import { approximateToNullIsland } from "./approximate-to-null-island";
-import type { Projection } from "./types";
+import type { Bbox, Projection, ProjectionCandidate } from "./types";
 
-type Bbox = [number, number, number, number];
-
-const DEBOUNCE_MS = 300;
+const DEBOUNCE_MS = 200;
 
 export const NetworkProjectionDialog = ({
   previewGeoJson,
@@ -34,21 +35,42 @@ export const NetworkProjectionDialog = ({
   );
   const [selectedProjection, setSelectedProjection] =
     useState<Projection | null>(null);
-  const [candidateProjections, setCandidateProjections] = useState<
-    Projection[]
+  const [visibleCandidates, setVisibleCandidates] = useState<
+    ProjectionCandidate[]
   >([]);
-  const [isFiltering, setIsFiltering] = useState(false);
+  const [isBuilding, setIsBuilding] = useState(false);
   const [isProjecting, setIsProjecting] = useState(false);
   const [displayGeoJSON, setDisplayGeoJSON] =
     useState<FeatureCollection | null>(() =>
       approximateToNullIsland(previewGeoJson),
     );
 
-  const selectedLocationRef = useRef<LocationData | null>(null);
-  const maxBboxRef = useRef<Bbox | null>(null);
+  const allCandidatesRef = useRef<ProjectionCandidate[]>([]);
   const abortRef = useRef<AbortController | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const projectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const selectedLocationRef = useRef<LocationData | null>(null);
+
+  useEffect(() => {
+    if (projections.length === 0) return;
+
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    setIsBuilding(true);
+    void buildProjectionCandidates(
+      projections,
+      previewGeoJson,
+      controller.signal,
+    ).then((candidates) => {
+      if (controller.signal.aborted) return;
+      allCandidatesRef.current = candidates;
+      setIsBuilding(false);
+    });
+
+    return () => controller.abort();
+  }, [projections, previewGeoJson]);
 
   const updateDisplayGeoJSON = useCallback(
     (projection: Projection | null, location: LocationData | null) => {
@@ -80,37 +102,21 @@ export const NetworkProjectionDialog = ({
     [previewGeoJson],
   );
 
-  const runFilter = useCallback(
-    async (bbox: Bbox, autoSelect: "first" | "keep") => {
-      abortRef.current?.abort();
-      const controller = new AbortController();
-      abortRef.current = controller;
-
-      setIsFiltering(true);
-
-      const candidates = await filterProjectionCandidates(
-        projections,
-        previewGeoJson,
-        bbox,
-        controller.signal,
-      );
-
-      if (controller.signal.aborted) return;
-
-      setCandidateProjections(candidates);
-      setIsFiltering(false);
+  const updateVisibleCandidates = useCallback(
+    (bbox: Bbox, autoSelect: "first" | "keep") => {
+      const visible = filterByViewport(allCandidatesRef.current, bbox);
+      setVisibleCandidates(visible);
 
       const currentLocation = selectedLocationRef.current;
-      if (candidates.length > 0) {
+      if (visible.length > 0) {
         if (autoSelect === "first") {
-          setSelectedProjection(candidates[0]);
-          updateDisplayGeoJSON(candidates[0], currentLocation);
+          setSelectedProjection(visible[0].projection);
+          updateDisplayGeoJSON(visible[0].projection, currentLocation);
         } else {
           setSelectedProjection((prev) => {
-            const kept =
-              prev && candidates.some((c) => c.id === prev.id)
-                ? prev
-                : candidates[0];
+            const stillVisible =
+              prev && visible.some((c) => c.projection.id === prev.id);
+            const kept = stillVisible ? prev : visible[0].projection;
             updateDisplayGeoJSON(kept, currentLocation);
             return kept;
           });
@@ -120,72 +126,36 @@ export const NetworkProjectionDialog = ({
         updateDisplayGeoJSON(null, currentLocation);
       }
     },
-    [projections, previewGeoJson, updateDisplayGeoJSON],
+    [updateDisplayGeoJSON],
   );
 
   const handleLocationSelect = useCallback(
     (location: LocationData) => {
       setSelectedLocation(location);
       selectedLocationRef.current = location;
-      maxBboxRef.current = location.bbox;
-      void runFilter(location.bbox, "first");
+      updateVisibleCandidates(location.bbox, "first");
     },
-    [runFilter],
+    [updateVisibleCandidates],
   );
 
   const handleBoundsChange = useCallback(
     (viewportBbox: Bbox) => {
-      const max = maxBboxRef.current;
-      if (!max) return;
-
-      const noOverlap =
-        viewportBbox[2] < max[0] ||
-        viewportBbox[0] > max[2] ||
-        viewportBbox[3] < max[1] ||
-        viewportBbox[1] > max[3];
-
-      if (noOverlap) {
-        maxBboxRef.current = viewportBbox;
-        if (debounceRef.current) clearTimeout(debounceRef.current);
-        debounceRef.current = setTimeout(() => {
-          void runFilter(viewportBbox, "first");
-        }, DEBOUNCE_MS);
-        return;
-      }
-
-      const within =
-        viewportBbox[0] >= max[0] &&
-        viewportBbox[1] >= max[1] &&
-        viewportBbox[2] <= max[2] &&
-        viewportBbox[3] <= max[3];
-
-      if (within) return;
-
-      maxBboxRef.current = [
-        Math.min(max[0], viewportBbox[0]),
-        Math.min(max[1], viewportBbox[1]),
-        Math.max(max[2], viewportBbox[2]),
-        Math.max(max[3], viewportBbox[3]),
-      ];
-
+      if (!selectedLocationRef.current) return;
       if (debounceRef.current) clearTimeout(debounceRef.current);
       debounceRef.current = setTimeout(() => {
-        void runFilter(maxBboxRef.current!, "keep");
+        updateVisibleCandidates(viewportBbox, "keep");
       }, DEBOUNCE_MS);
     },
-    [runFilter],
+    [updateVisibleCandidates],
   );
 
   const handleProjectionSelectFromSearch = useCallback(
     (projection: Projection) => {
-      abortRef.current?.abort();
       if (debounceRef.current) clearTimeout(debounceRef.current);
       setSelectedProjection(projection);
       setSelectedLocation(null);
       selectedLocationRef.current = null;
-      setCandidateProjections([]);
-      setIsFiltering(false);
-      maxBboxRef.current = null;
+      setVisibleCandidates([]);
       updateDisplayGeoJSON(projection, null);
     },
     [updateDisplayGeoJSON],
@@ -194,18 +164,19 @@ export const NetworkProjectionDialog = ({
   const handleProjectionSelectFromResults = useCallback(
     (projection: Projection) => {
       setSelectedProjection(projection);
-      updateDisplayGeoJSON(projection, selectedLocation);
+      updateDisplayGeoJSON(projection, selectedLocationRef.current);
     },
-    [selectedLocation, updateDisplayGeoJSON],
+    [updateDisplayGeoJSON],
   );
 
   const handleLoadWithoutBasemap = useCallback(() => {
     onImportNonProjected();
   }, [onImportNonProjected]);
 
-  const isLoading = isFiltering || isProjecting;
+  const isLoading = isBuilding || isProjecting;
   const showBasemap = !!selectedLocation;
   const fitBbox = selectedLocation?.bbox ?? null;
+  const candidateProjections = visibleCandidates.map((c) => c.projection);
 
   return (
     <BaseDialog
@@ -238,7 +209,7 @@ export const NetworkProjectionDialog = ({
               projections={selectedLocation ? candidateProjections : []}
               selectedProjection={selectedProjection}
               onSelect={handleProjectionSelectFromResults}
-              isLoading={isFiltering}
+              isLoading={isBuilding}
               emptyMessage={
                 selectedLocation
                   ? "No matching projections found for this location"

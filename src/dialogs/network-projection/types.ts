@@ -3,3 +3,10 @@ export type Projection = {
   name: string;
   code: string;
 };
+
+export type Bbox = [number, number, number, number];
+
+export type ProjectionCandidate = {
+  projection: Projection;
+  projectedBbox: Bbox;
+};
