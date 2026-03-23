@@ -203,8 +203,6 @@ const SymbologyEditor = ({
     updateDefaultColor(color);
   };
 
-  const isDefaultColorOn = useFeatureFlag("FLAG_MAP_DEFAULT_COLOR");
-
   return (
     <Section title={title}>
       <InlineField
@@ -285,21 +283,19 @@ const SymbologyEditor = ({
           </InlineField>
         </>
       ) : (
-        isDefaultColorOn && (
-          <InlineField
-            name={translate("defaultColor")}
-            labelSize="sm"
-            layout="fixed-label"
-          >
-            <div className="h-7 w-12 rounded overflow-hidden">
-              <ColorPopover
-                color={defaultColor}
-                onChange={handleDefaultColorChange}
-                ariaLabel={`Default ${geometryType} color`}
-              />
-            </div>
-          </InlineField>
-        )
+        <InlineField
+          name={translate("defaultColor")}
+          labelSize="sm"
+          layout="fixed-label"
+        >
+          <div className="h-7 w-12 rounded overflow-hidden">
+            <ColorPopover
+              color={defaultColor}
+              onChange={handleDefaultColorChange}
+              ariaLabel={`Default ${geometryType} color`}
+            />
+          </div>
+        </InlineField>
       )}
     </Section>
   );
