@@ -129,16 +129,17 @@ describe("OPFSStorage", () => {
       const storage = new OPFSStorage("test-app-id");
       const result = await storage.readSlice("results.out", 2, 3);
 
-      expect(new Uint8Array(result!)).toEqual(new Uint8Array([3, 4, 5]));
+      expect(new Uint8Array(result)).toEqual(new Uint8Array([3, 4, 5]));
     });
 
-    it("returns null when file does not exist", async () => {
+    it("throws when file does not exist", async () => {
       mockAppDir.getFileHandle.mockRejectedValue(new Error("File not found"));
 
       const storage = new OPFSStorage("test-app-id");
-      const result = await storage.readSlice("non-existent", 0, 10);
 
-      expect(result).toBeNull();
+      await expect(storage.readSlice("non-existent", 0, 10)).rejects.toThrow(
+        "File not found",
+      );
     });
 
     it("updates last access after reading slice", async () => {

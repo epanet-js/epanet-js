@@ -1,11 +1,7 @@
 export interface IKeyBufferStore {
   save(key: string, data: ArrayBuffer): Promise<void>;
 
-  readSlice(
-    key: string,
-    offset: number,
-    length: number,
-  ): Promise<ArrayBuffer | null>;
+  readSlice(key: string, offset: number, length: number): Promise<ArrayBuffer>;
 
   readBlockSeries(
     key: string,
@@ -15,7 +11,7 @@ export interface IKeyBufferStore {
     blockCount: number,
   ): Promise<ArrayBuffer>;
 
-  getSize(key: string): Promise<number | null>;
+  getSize(key: string): Promise<number>;
 
   clear(): Promise<void>;
 }

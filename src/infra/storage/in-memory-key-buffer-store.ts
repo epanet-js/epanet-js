@@ -19,13 +19,9 @@ export class InMemoryKeyBufferStore implements IKeyBufferStore {
     return Promise.resolve();
   }
 
-  readSlice(
-    key: string,
-    offset: number,
-    length: number,
-  ): Promise<ArrayBuffer | null> {
+  readSlice(key: string, offset: number, length: number): Promise<ArrayBuffer> {
     const data = this.data.get(key);
-    if (!data) return Promise.resolve(null);
+    if (!data) throw new Error(`Key "${key}" not found in storage`);
     return Promise.resolve(data.slice(offset, offset + length));
   }
 
@@ -52,19 +48,16 @@ export class InMemoryKeyBufferStore implements IKeyBufferStore {
 
       const results = await Promise.all(readPromises);
       for (let i = 0; i < results.length; i++) {
-        const data = results[i];
-        if (data) {
-          resultView.set(new Uint8Array(data), (startIdx + i) * readSize);
-        }
+        resultView.set(new Uint8Array(results[i]), (startIdx + i) * readSize);
       }
     }
 
     return result;
   }
 
-  getSize(key: string): Promise<number | null> {
+  getSize(key: string): Promise<number> {
     const data = this.data.get(key);
-    if (!data) return Promise.resolve(null);
+    if (!data) throw new Error(`Key "${key}" not found in storage`);
     return Promise.resolve(data.byteLength);
   }
 

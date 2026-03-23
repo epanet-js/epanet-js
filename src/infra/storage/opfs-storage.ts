@@ -25,18 +25,14 @@ export class OPFSStorage implements IKeyBufferStore {
     filename: string,
     offset: number,
     length: number,
-  ): Promise<ArrayBuffer | null> {
-    try {
-      const dir = await this.getAppDir();
-      const fileHandle = await dir.getFileHandle(filename);
-      const file = await fileHandle.getFile();
-      const slice = file.slice(offset, offset + length);
-      const result = await slice.arrayBuffer();
-      this.touchLastAccess();
-      return result;
-    } catch {
-      return null;
-    }
+  ): Promise<ArrayBuffer> {
+    const dir = await this.getAppDir();
+    const fileHandle = await dir.getFileHandle(filename);
+    const file = await fileHandle.getFile();
+    const slice = file.slice(offset, offset + length);
+    const result = await slice.arrayBuffer();
+    this.touchLastAccess();
+    return result;
   }
 
   async readBlockSeries(
@@ -62,10 +58,7 @@ export class OPFSStorage implements IKeyBufferStore {
 
       const results = await Promise.all(readPromises);
       for (let i = 0; i < results.length; i++) {
-        const data = results[i];
-        if (data) {
-          resultView.set(new Uint8Array(data), (startIdx + i) * readSize);
-        }
+        resultView.set(new Uint8Array(results[i]), (startIdx + i) * readSize);
       }
     }
 
@@ -73,15 +66,11 @@ export class OPFSStorage implements IKeyBufferStore {
     return result;
   }
 
-  async getSize(filename: string): Promise<number | null> {
-    try {
-      const dir = await this.getAppDir();
-      const fileHandle = await dir.getFileHandle(filename);
-      const file = await fileHandle.getFile();
-      return file.size;
-    } catch {
-      return null;
-    }
+  async getSize(filename: string): Promise<number> {
+    const dir = await this.getAppDir();
+    const fileHandle = await dir.getFileHandle(filename);
+    const file = await fileHandle.getFile();
+    return file.size;
   }
 
   async clear(): Promise<void> {

@@ -237,32 +237,35 @@ export class EPSResultsReader {
     };
     if (simMetadata.pumpCount === 0) return emptyResult;
 
-    const pumpEnergyOffset = this.getPumpEnergyOffset(simMetadata);
-    const pumpEnergySize =
-      PUMP_ENERGY_FLOATS * FLOAT_SIZE * simMetadata.pumpCount;
-    // Read all pump energy records + demand charge float in one slice
-    const totalSize = pumpEnergySize + FLOAT_SIZE;
+    try {
+      const pumpEnergyOffset = this.getPumpEnergyOffset(simMetadata);
+      const pumpEnergySize =
+        PUMP_ENERGY_FLOATS * FLOAT_SIZE * simMetadata.pumpCount;
+      // Read all pump energy records + demand charge float in one slice
+      const totalSize = pumpEnergySize + FLOAT_SIZE;
 
-    const raw = await this.storage.readSlice(
-      RESULTS_OUT_KEY,
-      pumpEnergyOffset,
-      totalSize,
-    );
+      const raw = await this.storage.readSlice(
+        RESULTS_OUT_KEY,
+        pumpEnergyOffset,
+        totalSize,
+      );
 
-    if (!raw) return emptyResult;
+      const pumpEnergy = new Float32Array(raw);
 
-    const pumpEnergy = new Float32Array(raw);
+      // Build position map: linkIndex (stored as int32 in float[0]) → position
+      const pumpPositionByLinkIndex = new Map<number, number>();
+      const view = new DataView(raw);
+      for (let position = 0; position < simMetadata.pumpCount; position++) {
+        const byteOffset = position * PUMP_ENERGY_FLOATS * FLOAT_SIZE;
+        const linkIndex1Based = view.getInt32(byteOffset, true);
+        pumpPositionByLinkIndex.set(linkIndex1Based - 1, position);
+      }
 
-    // Build position map: linkIndex (stored as int32 in float[0]) → position
-    const pumpPositionByLinkIndex = new Map<number, number>();
-    const view = new DataView(raw);
-    for (let position = 0; position < simMetadata.pumpCount; position++) {
-      const byteOffset = position * PUMP_ENERGY_FLOATS * FLOAT_SIZE;
-      const linkIndex1Based = view.getInt32(byteOffset, true);
-      pumpPositionByLinkIndex.set(linkIndex1Based - 1, position);
+      return { pumpPositionByLinkIndex, pumpEnergy };
+    } catch (error) {
+      captureError(error as Error);
+      return emptyResult;
     }
-
-    return { pumpPositionByLinkIndex, pumpEnergy };
   }
 
   private getPumpEnergyOffset(simMetadata: SimulationMetadata): number {
@@ -472,12 +475,6 @@ export class EPSResultsReader {
         timestepBlockSize,
       );
 
-      if (!timestepData) {
-        throw new Error(
-          `Failed to read timestep ${timestepIndex} data from storage`,
-        );
-      }
-
       const tankVolumesForTimestep =
         await this.readTankVolumesForTimestep(timestepIndex);
 
@@ -497,91 +494,85 @@ export class EPSResultsReader {
     { name: "SIMULATION:FETCH_STEP_FROM_STORAGE", maxDurationMs: 100 },
   );
 
+  private static readonly EMPTY_METADATA: CachedMetadata = {
+    simulationMetadata: new SimulationMetadata(
+      new ArrayBuffer(PROLOG_SIZE + EPILOG_SIZE),
+    ),
+    simulationIds: {
+      nodeIds: [],
+      linkIds: [],
+      nodeIdToIndex: new Map(),
+      linkIdToIndex: new Map(),
+    },
+    linkLengths: new Float32Array(0),
+    resultsBaseOffset: 0,
+    timestepBlockSize: 0,
+  };
+
   private async readMetadata(
     rawMetadata?: ArrayBuffer,
     simulationIds?: SimulationIds,
   ): Promise<CachedMetadata> {
-    const simMetadata = rawMetadata
-      ? new SimulationMetadata(rawMetadata)
-      : await this.readMetadataFromFile();
+    try {
+      const simMetadata = rawMetadata
+        ? new SimulationMetadata(rawMetadata)
+        : await this.readMetadataFromFile();
 
-    if (simMetadata.reportingStepsCount === 0) {
+      if (simMetadata.reportingStepsCount === 0) {
+        return EPSResultsReader.EMPTY_METADATA;
+      }
+
+      const ids = simulationIds ?? (await this.readIdsFromFile(simMetadata));
+      const linkLengths = await this.readLinkLengthsFromFile(simMetadata);
+
+      const resultsBaseOffset =
+        PROLOG_SIZE +
+        ID_LENGTH * simMetadata.nodeCount +
+        ID_LENGTH * simMetadata.linkCount +
+        3 * FLOAT_SIZE * simMetadata.linkCount +
+        2 * FLOAT_SIZE * simMetadata.resAndTankCount +
+        FLOAT_SIZE * simMetadata.nodeCount +
+        2 * FLOAT_SIZE * simMetadata.linkCount +
+        PUMP_ENERGY_FLOATS * FLOAT_SIZE * simMetadata.pumpCount +
+        4;
+
+      const timestepBlockSize =
+        simMetadata.nodeCount * NODE_RESULT_FLOATS * FLOAT_SIZE +
+        simMetadata.linkCount * LINK_RESULT_FLOATS * FLOAT_SIZE;
+
       return {
         simulationMetadata: simMetadata,
-        simulationIds: {
-          nodeIds: [],
-          linkIds: [],
-          nodeIdToIndex: new Map(),
-          linkIdToIndex: new Map(),
-        },
-        linkLengths: new Float32Array(0),
-        resultsBaseOffset: 0,
-        timestepBlockSize: 0,
+        simulationIds: ids,
+        linkLengths,
+        resultsBaseOffset,
+        timestepBlockSize,
       };
+    } catch (error) {
+      captureError(error as Error);
+      return EPSResultsReader.EMPTY_METADATA;
     }
-
-    const ids = simulationIds ?? (await this.readIdsFromFile(simMetadata));
-    const linkLengths = await this.readLinkLengthsFromFile(simMetadata);
-
-    const resultsBaseOffset =
-      PROLOG_SIZE +
-      ID_LENGTH * simMetadata.nodeCount +
-      ID_LENGTH * simMetadata.linkCount +
-      3 * FLOAT_SIZE * simMetadata.linkCount +
-      2 * FLOAT_SIZE * simMetadata.resAndTankCount +
-      FLOAT_SIZE * simMetadata.nodeCount +
-      2 * FLOAT_SIZE * simMetadata.linkCount +
-      PUMP_ENERGY_FLOATS * FLOAT_SIZE * simMetadata.pumpCount +
-      4;
-
-    const timestepBlockSize =
-      simMetadata.nodeCount * NODE_RESULT_FLOATS * FLOAT_SIZE +
-      simMetadata.linkCount * LINK_RESULT_FLOATS * FLOAT_SIZE;
-
-    return {
-      simulationMetadata: simMetadata,
-      simulationIds: ids,
-      linkLengths,
-      resultsBaseOffset,
-      timestepBlockSize,
-    };
   }
 
   private async readMetadataFromFile(): Promise<SimulationMetadata> {
-    try {
-      const prologData = await this.storage.readSlice(
-        RESULTS_OUT_KEY,
-        0,
-        PROLOG_SIZE,
-      );
-      if (!prologData) {
-        throw new Error("Failed to read prolog from results.out");
-      }
+    const prologData = await this.storage.readSlice(
+      RESULTS_OUT_KEY,
+      0,
+      PROLOG_SIZE,
+    );
+    const fileSize = await this.storage.getSize(RESULTS_OUT_KEY);
 
-      const fileSize = await this.storage.getSize(RESULTS_OUT_KEY);
-      if (!fileSize) {
-        throw new Error("Failed to get size of results.out");
-      }
+    const epilogData = await this.storage.readSlice(
+      RESULTS_OUT_KEY,
+      fileSize - EPILOG_SIZE,
+      EPILOG_SIZE,
+    );
 
-      const epilogData = await this.storage.readSlice(
-        RESULTS_OUT_KEY,
-        fileSize - EPILOG_SIZE,
-        EPILOG_SIZE,
-      );
-      if (!epilogData) {
-        throw new Error("Failed to read epilog from results.out");
-      }
+    const prologAndEpilog = new ArrayBuffer(PROLOG_SIZE + EPILOG_SIZE);
+    const view = new Uint8Array(prologAndEpilog);
+    view.set(new Uint8Array(prologData), 0);
+    view.set(new Uint8Array(epilogData), PROLOG_SIZE);
 
-      const prologAndEpilog = new ArrayBuffer(PROLOG_SIZE + EPILOG_SIZE);
-      const view = new Uint8Array(prologAndEpilog);
-      view.set(new Uint8Array(prologData), 0);
-      view.set(new Uint8Array(epilogData), PROLOG_SIZE);
-
-      return new SimulationMetadata(prologAndEpilog);
-    } catch (error) {
-      captureError(error as Error);
-      return new SimulationMetadata(new ArrayBuffer(PROLOG_SIZE + EPILOG_SIZE));
-    }
+    return new SimulationMetadata(prologAndEpilog);
   }
 
   private async readIdsFromFile(
@@ -602,10 +593,6 @@ export class EPSResultsReader {
       linkIdsOffset,
       linkIdsLength,
     );
-
-    if (!nodeIdsData || !linkIdsData) {
-      throw new Error("Failed to read ID sections from results.out");
-    }
 
     return this.parseIds(nodeIdsData, linkIdsData, simMetadata);
   }
@@ -667,10 +654,6 @@ export class EPSResultsReader {
       linkLengthSize,
     );
 
-    if (!data) {
-      throw new Error("Failed to read link lengths from results.out");
-    }
-
     return new Float32Array(data);
   }
 
@@ -683,10 +666,16 @@ export class EPSResultsReader {
     const offset = timestepIndex * resAndTankCount * FLOAT_SIZE;
     const length = resAndTankCount * FLOAT_SIZE;
 
-    const data = await this.storage.readSlice(TANK_VOLUMES_KEY, offset, length);
-    if (!data) return null;
-
-    return new Float32Array(data);
+    try {
+      const data = await this.storage.readSlice(
+        TANK_VOLUMES_KEY,
+        offset,
+        length,
+      );
+      return new Float32Array(data);
+    } catch {
+      return null;
+    }
   }
 
   private async readPumpStatusForTimestep(
@@ -698,10 +687,16 @@ export class EPSResultsReader {
     const offset = timestepIndex * simMetadata.pumpCount * FLOAT_SIZE;
     const length = simMetadata.pumpCount * FLOAT_SIZE;
 
-    const data = await this.storage.readSlice(PUMP_STATUS_KEY, offset, length);
-    if (!data) return null;
-
-    return new Float32Array(data);
+    try {
+      const data = await this.storage.readSlice(
+        PUMP_STATUS_KEY,
+        offset,
+        length,
+      );
+      return new Float32Array(data);
+    } catch {
+      return null;
+    }
   }
 }
 
