@@ -7,11 +7,13 @@ export const ProjectionResults = ({
   selectedProjection,
   onSelect,
   emptyMessage,
+  isLoading,
 }: {
   projections: Projection[];
   selectedProjection: Projection | null;
   onSelect: (projection: Projection) => void;
   emptyMessage?: string;
+  isLoading?: boolean;
 }) => {
   const results = useMemo(() => {
     const displayed = projections.slice(0, 8);
@@ -23,6 +25,19 @@ export const ProjectionResults = ({
     }
     return displayed;
   }, [projections, selectedProjection]);
+
+  if (isLoading) {
+    return (
+      <div className="mt-3">
+        <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+          Matching projections
+        </p>
+        <p className="text-sm text-gray-500 dark:text-gray-400 p-3 border border-gray-200 dark:border-gray-700 rounded-md animate-pulse">
+          Searching projections…
+        </p>
+      </div>
+    );
+  }
 
   if (results.length === 0 && emptyMessage) {
     return (

@@ -63,6 +63,7 @@ type MapPreviewProps = {
   showBasemap: boolean;
   bbox: Bbox | null;
   onBoundsChange?: (bounds: Bbox) => void;
+  isLoading?: boolean;
 };
 
 export const MapPreview = ({
@@ -70,6 +71,7 @@ export const MapPreview = ({
   showBasemap,
   bbox,
   onBoundsChange,
+  isLoading,
 }: MapPreviewProps) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
@@ -77,6 +79,11 @@ export const MapPreview = ({
   const onBoundsChangeRef = useRef(onBoundsChange);
   onBoundsChangeRef.current = onBoundsChange;
   const programmaticMoveRef = useRef(false);
+  const geoJSONRef = useRef(geoJSON);
+  geoJSONRef.current = geoJSON;
+  const bboxRef = useRef(bbox);
+  bboxRef.current = bbox;
+  const pendingDataUpdateRef = useRef(false);
 
   useEffect(() => {
     if (!mapContainerRef.current) return;
@@ -96,8 +103,8 @@ export const MapPreview = ({
 
     map.on("load", () => {
       styleReadyRef.current = true;
-      addNetworkSourceAndLayers(map, geoJSON);
-      programmaticFit(map, geoJSON, bbox);
+      addNetworkSourceAndLayers(map, geoJSONRef.current);
+      programmaticFit(map, geoJSONRef.current, bboxRef.current);
     });
 
     map.on("moveend", () => {
@@ -137,16 +144,18 @@ export const MapPreview = ({
       map.setStyle(BASEMAP_STYLE);
       map.once("style.load", () => {
         styleReadyRef.current = true;
-        addNetworkSourceAndLayers(map, geoJSON);
-        programmaticFit(map, geoJSON, bbox);
+        addNetworkSourceAndLayers(map, geoJSONRef.current);
+        programmaticFit(map, geoJSONRef.current, bboxRef.current);
+        pendingDataUpdateRef.current = false;
       });
     } else if (!showBasemap && currentIsBasemap) {
       styleReadyRef.current = false;
       map.setStyle(EMPTY_STYLE);
       map.once("style.load", () => {
         styleReadyRef.current = true;
-        addNetworkSourceAndLayers(map, geoJSON);
-        programmaticFit(map, geoJSON, bbox);
+        addNetworkSourceAndLayers(map, geoJSONRef.current);
+        programmaticFit(map, geoJSONRef.current, bboxRef.current);
+        pendingDataUpdateRef.current = false;
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -154,7 +163,12 @@ export const MapPreview = ({
 
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !styleReadyRef.current) return;
+    if (!map) return;
+
+    if (!styleReadyRef.current) {
+      pendingDataUpdateRef.current = true;
+      return;
+    }
 
     const source = map.getSource("network") as
       | mapboxgl.GeoJSONSource
@@ -176,6 +190,11 @@ export const MapPreview = ({
   return (
     <div className="relative flex-1 flex flex-col min-h-0">
       <div ref={mapContainerRef} className="flex-1 w-full" />
+      {isLoading && (
+        <div className="absolute inset-0 bg-white/50 dark:bg-black/30 flex items-center justify-center">
+          <div className="h-6 w-6 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+        </div>
+      )}
     </div>
   );
 

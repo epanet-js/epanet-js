@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import type { FeatureCollection } from "geojson";
 import {
   BaseDialog,
@@ -16,6 +16,8 @@ import { approximateToNullIsland } from "./approximate-to-null-island";
 import type { Projection } from "./types";
 
 type Bbox = [number, number, number, number];
+
+const DEBOUNCE_MS = 300;
 
 export const NetworkProjectionDialog = ({
   previewGeoJson,
@@ -35,32 +37,105 @@ export const NetworkProjectionDialog = ({
   const [candidateProjections, setCandidateProjections] = useState<
     Projection[]
   >([]);
+  const [isFiltering, setIsFiltering] = useState(false);
+  const [isProjecting, setIsProjecting] = useState(false);
+  const [displayGeoJSON, setDisplayGeoJSON] =
+    useState<FeatureCollection | null>(() =>
+      approximateToNullIsland(previewGeoJson),
+    );
+
+  const selectedLocationRef = useRef<LocationData | null>(null);
   const locationBboxRef = useRef<Bbox | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const projectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const updateDisplayGeoJSON = useCallback(
+    (projection: Projection | null, location: LocationData | null) => {
+      if (projectTimeoutRef.current) {
+        clearTimeout(projectTimeoutRef.current);
+        projectTimeoutRef.current = null;
+      }
+
+      if (projection) {
+        setIsProjecting(true);
+        projectTimeoutRef.current = setTimeout(() => {
+          try {
+            setDisplayGeoJSON(projectGeoJson(previewGeoJson, projection.code));
+          } catch {
+            setDisplayGeoJSON(null);
+          }
+          setIsProjecting(false);
+        }, 0);
+        return;
+      }
+
+      if (!location) {
+        setDisplayGeoJSON(approximateToNullIsland(previewGeoJson));
+      } else {
+        setDisplayGeoJSON(null);
+      }
+      setIsProjecting(false);
+    },
+    [previewGeoJson],
+  );
+
+  const runFilter = useCallback(
+    async (bbox: Bbox, autoSelect: "first" | "keep") => {
+      abortRef.current?.abort();
+      const controller = new AbortController();
+      abortRef.current = controller;
+
+      setIsFiltering(true);
+
+      const candidates = await filterProjectionCandidates(
+        projections,
+        previewGeoJson,
+        bbox,
+        controller.signal,
+      );
+
+      if (controller.signal.aborted) return;
+
+      setCandidateProjections(candidates);
+      setIsFiltering(false);
+
+      const currentLocation = selectedLocationRef.current;
+      if (candidates.length > 0) {
+        if (autoSelect === "first") {
+          setSelectedProjection(candidates[0]);
+          updateDisplayGeoJSON(candidates[0], currentLocation);
+        } else {
+          setSelectedProjection((prev) => {
+            const kept =
+              prev && candidates.some((c) => c.id === prev.id)
+                ? prev
+                : candidates[0];
+            updateDisplayGeoJSON(kept, currentLocation);
+            return kept;
+          });
+        }
+      } else {
+        setSelectedProjection(null);
+        updateDisplayGeoJSON(null, currentLocation);
+      }
+    },
+    [projections, previewGeoJson, updateDisplayGeoJSON],
+  );
 
   const handleLocationSelect = useCallback(
     (location: LocationData) => {
       setSelectedLocation(location);
+      selectedLocationRef.current = location;
       locationBboxRef.current = location.bbox;
-
-      const candidates = filterProjectionCandidates(
-        projections,
-        previewGeoJson,
-        location.bbox,
-      );
-      setCandidateProjections(candidates);
-
-      if (candidates.length > 0) {
-        setSelectedProjection(candidates[0]);
-      } else {
-        setSelectedProjection(null);
-      }
+      void runFilter(location.bbox, "first");
     },
-    [projections, previewGeoJson],
+    [runFilter],
   );
 
   const handleBoundsChange = useCallback(
     (viewportBbox: Bbox) => {
-      if (!selectedLocation || !locationBboxRef.current) return;
+      if (!locationBboxRef.current) return;
 
       const initial = locationBboxRef.current;
       const zoomedBeyond =
@@ -71,60 +146,42 @@ export const NetworkProjectionDialog = ({
 
       if (!zoomedBeyond) return;
 
-      const candidates = filterProjectionCandidates(
-        projections,
-        previewGeoJson,
-        viewportBbox,
-      );
-      setCandidateProjections(candidates);
-
-      if (candidates.length > 0) {
-        setSelectedProjection((prev) => {
-          if (prev && candidates.some((c) => c.id === prev.id)) return prev;
-          return candidates[0];
-        });
-      } else {
-        setSelectedProjection(null);
-      }
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(() => {
+        void runFilter(viewportBbox, "keep");
+      }, DEBOUNCE_MS);
     },
-    [projections, previewGeoJson, selectedLocation],
+    [runFilter],
   );
 
   const handleProjectionSelectFromSearch = useCallback(
     (projection: Projection) => {
+      abortRef.current?.abort();
+      if (debounceRef.current) clearTimeout(debounceRef.current);
       setSelectedProjection(projection);
       setSelectedLocation(null);
+      selectedLocationRef.current = null;
       setCandidateProjections([]);
+      setIsFiltering(false);
       locationBboxRef.current = null;
+      updateDisplayGeoJSON(projection, null);
     },
-    [],
+    [updateDisplayGeoJSON],
   );
 
   const handleProjectionSelectFromResults = useCallback(
     (projection: Projection) => {
       setSelectedProjection(projection);
+      updateDisplayGeoJSON(projection, selectedLocation);
     },
-    [],
+    [selectedLocation, updateDisplayGeoJSON],
   );
 
   const handleLoadWithoutBasemap = useCallback(() => {
     onImportNonProjected();
   }, [onImportNonProjected]);
 
-  const displayGeoJSON = useMemo(() => {
-    if (selectedProjection) {
-      try {
-        return projectGeoJson(previewGeoJson, selectedProjection.code);
-      } catch {
-        return null;
-      }
-    }
-    if (!selectedLocation) {
-      return approximateToNullIsland(previewGeoJson);
-    }
-    return null;
-  }, [selectedProjection, selectedLocation, previewGeoJson]);
-
+  const isLoading = isFiltering || isProjecting;
   const showBasemap = !!selectedLocation;
   const fitBbox = selectedLocation?.bbox ?? null;
 
@@ -159,6 +216,7 @@ export const NetworkProjectionDialog = ({
               projections={selectedLocation ? candidateProjections : []}
               selectedProjection={selectedProjection}
               onSelect={handleProjectionSelectFromResults}
+              isLoading={isFiltering}
               emptyMessage={
                 selectedLocation
                   ? "No matching projections found for this location"
@@ -172,6 +230,7 @@ export const NetworkProjectionDialog = ({
           showBasemap={showBasemap}
           bbox={fitBbox}
           onBoundsChange={selectedLocation ? handleBoundsChange : undefined}
+          isLoading={isLoading}
         />
       </div>
     </BaseDialog>

@@ -5,26 +5,44 @@ import type { Projection } from "./types";
 
 type Bbox = [number, number, number, number];
 
-export const filterProjectionCandidates = (
+const CHUNK_SIZE = 1000;
+
+export const filterProjectionCandidates = async (
   projections: Projection[],
   rawGeoJson: FeatureCollection,
   bbox: Bbox,
-): Projection[] => {
+  signal?: AbortSignal,
+): Promise<Projection[]> => {
   const samplePoints = extractSamplePoints(rawGeoJson);
   if (samplePoints.length === 0) return [];
 
   const [minLon, minLat, maxLon, maxLat] = bbox;
+  const results: Projection[] = [];
 
-  return projections.filter((p) => {
-    try {
-      return samplePoints.some((point) => {
-        const [lon, lat] = proj4(p.code, "EPSG:4326", [point[0], point[1]]);
-        return lon >= minLon && lon <= maxLon && lat >= minLat && lat <= maxLat;
-      });
-    } catch {
-      return false;
+  for (let i = 0; i < projections.length; i += CHUNK_SIZE) {
+    if (signal?.aborted) return results;
+
+    const chunk = projections.slice(i, i + CHUNK_SIZE);
+    for (const p of chunk) {
+      try {
+        const matches = samplePoints.some((point) => {
+          const [lon, lat] = proj4(p.code, "EPSG:4326", [point[0], point[1]]);
+          return (
+            lon >= minLon && lon <= maxLon && lat >= minLat && lat <= maxLat
+          );
+        });
+        if (matches) results.push(p);
+      } catch {
+        // skip invalid projection definitions
+      }
     }
-  });
+
+    if (i + CHUNK_SIZE < projections.length) {
+      await new Promise((r) => setTimeout(r, 0));
+    }
+  }
+
+  return results;
 };
 
 function extractSamplePoints(
