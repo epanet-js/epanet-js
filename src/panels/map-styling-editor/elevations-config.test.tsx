@@ -112,12 +112,7 @@ describe("ElevationsConfig", () => {
     store.set(elevationSourcesAtom, [aMapboxSource, aGeoTiffSource]);
     renderComponent(store);
 
-    const configButtons = screen.getAllByRole("button");
-    const geotiffConfigButton = configButtons.find((btn) =>
-      btn.closest("[class*='py-2']")?.textContent?.includes("GEOTIFF"),
-    );
-    expect(geotiffConfigButton).toBeDefined();
-    await user.click(geotiffConfigButton!);
+    await user.click(getGeotiffPopoverTrigger());
 
     expect(screen.getByText("o41078a1.tif")).toBeInTheDocument();
     expect(screen.getByText("o41078a2.tif")).toBeInTheDocument();
@@ -129,11 +124,7 @@ describe("ElevationsConfig", () => {
     store.set(elevationSourcesAtom, [aMapboxSource, aGeoTiffSource]);
     renderComponent(store);
 
-    const configButtons = screen.getAllByRole("button");
-    const geotiffConfigButton = configButtons.find((btn) =>
-      btn.closest("[class*='py-2']")?.textContent?.includes("GEOTIFF"),
-    );
-    await user.click(geotiffConfigButton!);
+    await user.click(getGeotiffPopoverTrigger());
 
     const offsetInput = screen.getByRole("textbox", {
       name: /projection offset/i,
@@ -269,11 +260,7 @@ describe("ElevationsConfig", () => {
     store.set(elevationSourcesAtom, [aMapboxSource, aGeoTiffSource]);
     renderComponent(store);
 
-    const configButtons = screen.getAllByRole("button");
-    const geotiffConfigButton = configButtons.find((btn) =>
-      btn.closest("[class*='py-2']")?.textContent?.includes("GEOTIFF"),
-    );
-    await user.click(geotiffConfigButton!);
+    await user.click(getGeotiffPopoverTrigger());
 
     const tile1DeleteButton = screen
       .getByText("o41078a1.tif")
@@ -299,11 +286,7 @@ describe("ElevationsConfig", () => {
     store.set(elevationSourcesAtom, [aMapboxSource, singleTileSource]);
     renderComponent(store);
 
-    const configButtons = screen.getAllByRole("button");
-    const geotiffConfigButton = configButtons.find((btn) =>
-      btn.closest("[class*='py-2']")?.textContent?.includes("GEOTIFF"),
-    );
-    await user.click(geotiffConfigButton!);
+    await user.click(getGeotiffPopoverTrigger());
 
     const tileDeleteButton = screen
       .getByText("o41078a1.tif")
@@ -335,11 +318,7 @@ describe("ElevationsConfig", () => {
     renderComponent(store);
 
     // Open the popover
-    const configButtons = screen.getAllByRole("button");
-    const geotiffConfigButton = configButtons.find((btn) =>
-      btn.closest("[class*='py-2']")?.textContent?.includes("GEOTIFF"),
-    );
-    await user.click(geotiffConfigButton!);
+    await user.click(getGeotiffPopoverTrigger());
 
     // Use the "Add more tiles" file input inside the popover
     const popoverInputs = document.querySelectorAll('input[type="file"]');
@@ -363,6 +342,11 @@ describe("ElevationsConfig", () => {
     // New tile should be first (prepended)
     expect(geotiffSource.tiles[0].file.name).toBe("new-tile.tif");
   });
+
+  const getGeotiffPopoverTrigger = () => {
+    const geotiffRow = screen.getByText("GEOTIFF").closest("[class*='py-2']")!;
+    return geotiffRow.querySelector("button")!;
+  };
 
   const renderComponent = (store: Store) => {
     return render(
