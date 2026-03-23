@@ -138,13 +138,28 @@ export const NetworkProjectionDialog = ({
       const max = maxBboxRef.current;
       if (!max) return;
 
-      const zoomedBeyond =
-        viewportBbox[0] < max[0] ||
-        viewportBbox[1] < max[1] ||
-        viewportBbox[2] > max[2] ||
-        viewportBbox[3] > max[3];
+      const noOverlap =
+        viewportBbox[2] < max[0] ||
+        viewportBbox[0] > max[2] ||
+        viewportBbox[3] < max[1] ||
+        viewportBbox[1] > max[3];
 
-      if (!zoomedBeyond) return;
+      if (noOverlap) {
+        maxBboxRef.current = viewportBbox;
+        if (debounceRef.current) clearTimeout(debounceRef.current);
+        debounceRef.current = setTimeout(() => {
+          void runFilter(viewportBbox, "first");
+        }, DEBOUNCE_MS);
+        return;
+      }
+
+      const within =
+        viewportBbox[0] >= max[0] &&
+        viewportBbox[1] >= max[1] &&
+        viewportBbox[2] <= max[2] &&
+        viewportBbox[3] <= max[3];
+
+      if (within) return;
 
       maxBboxRef.current = [
         Math.min(max[0], viewportBbox[0]),
