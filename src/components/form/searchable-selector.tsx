@@ -185,6 +185,8 @@ export const SearchableSelector = <T extends SearchableSelectorOption>({
               onKeyDown={handleKeyDown}
               placeholder={placeholder}
               disabled={disabled}
+              spellCheck={false}
+              autoComplete="off"
               className={clsx(
                 "flex items-center gap-x-2 w-full min-w-[90px]",
                 "border rounded-sm border-gray-200 px-2 py-2 text-sm",
