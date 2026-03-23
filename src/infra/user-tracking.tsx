@@ -938,10 +938,25 @@ export type UserEvent =
   | ScenarioToggled
   | ScenarioCycled
   | {
-      name: "map.elevationOffset.changed";
+      name: "elevationSource.added";
+      tileCount: number;
+    }
+  | {
+      name: "elevationSource.deleted";
+      sourceType: string;
+    }
+  | {
+      name: "elevationSource.offsetChanged";
       sourceType: string;
       oldValue: number;
       newValue: number;
+    }
+  | {
+      name: "elevationSource.tilesAdded";
+      tileCount: number;
+    }
+  | {
+      name: "elevationSource.tileDeleted";
     }
   | { name: "map.labels.shown"; type: string; subtype: string }
   | { name: "map.labels.hidden"; type: string }

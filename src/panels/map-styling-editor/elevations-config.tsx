@@ -1,5 +1,8 @@
 import { useAtomValue, useSetAtom } from "jotai";
+import { useRef, useState } from "react";
+
 import * as Popover from "@radix-ui/react-popover";
+import { nanoid } from "nanoid";
 import { useTranslate } from "src/hooks/use-translate";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { useUserTracking } from "src/infra/user-tracking";
@@ -20,16 +23,17 @@ import { NumericField } from "src/components/form/numeric-field";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { convertTo } from "src/quantity";
 import { elevationSourcesAtom } from "src/state/elevation-sources";
+import { extractGeoTiffMetadata } from "src/lib/elevations";
 import type {
   ElevationSource,
   GeoTiffElevationSource,
+  GeoTiffTile,
   TileServerElevationSource,
 } from "src/lib/elevations";
 
 export const ElevationsConfig = () => {
   const translate = useTranslate();
   const sources = useAtomValue(elevationSourcesAtom);
-
   const reversedSources = [...sources].reverse();
 
   return (
@@ -42,10 +46,7 @@ export const ElevationsConfig = () => {
             <TileServerElevationSourceRow key={source.id} source={source} />
           ),
         )}
-        <Button variant="default" size="sm" className="w-full justify-center">
-          <AddIcon size="sm" />
-          {translate("addNewElevationData")}
-        </Button>
+        <AddElevationDataButton />
       </div>
     </Section>
   );
@@ -84,6 +85,17 @@ const GeoTiffElevationSourceRow = ({
   source: GeoTiffElevationSource;
 }) => {
   const translate = useTranslate();
+  const setSources = useSetAtom(elevationSourcesAtom);
+  const userTracking = useUserTracking();
+
+  const handleDelete = () => {
+    setSources((prev) => prev.filter((s) => s.id !== source.id));
+    userTracking.capture({
+      name: "elevationSource.deleted",
+      sourceType: source.type,
+    });
+  };
+
   return (
     <ElevationSourceRowShell
       name={translate("userElevationData")}
@@ -97,7 +109,7 @@ const GeoTiffElevationSourceRow = ({
         </Popover.Trigger>
         <Popover.Portal>
           <StyledPopoverContent
-            size="sm"
+            size="auto"
             onOpenAutoFocus={(e) => e.preventDefault()}
             side="left"
             align="start"
@@ -107,7 +119,10 @@ const GeoTiffElevationSourceRow = ({
           </StyledPopoverContent>
         </Popover.Portal>
       </Popover.Root>
-      <button className="opacity-50 hover:opacity-100 select-none text-red-500">
+      <button
+        className="opacity-50 hover:opacity-100 select-none text-red-500"
+        onClick={handleDelete}
+      >
         <DeleteIcon />
       </button>
     </ElevationSourceRowShell>
@@ -120,24 +135,94 @@ const GeoTiffTilesPopover = ({
   source: GeoTiffElevationSource;
 }) => {
   const translate = useTranslate();
+  const setSources = useSetAtom(elevationSourcesAtom);
+  const userTracking = useUserTracking();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleAddTiles = async (files: File[]) => {
+    const results = await Promise.allSettled(
+      files.map(async (file) => {
+        const metadata = await extractGeoTiffMetadata(file);
+        return { id: nanoid(), ...metadata };
+      }),
+    );
+
+    const newTiles = results
+      .filter(
+        (r): r is PromiseFulfilledResult<GeoTiffTile> =>
+          r.status === "fulfilled",
+      )
+      .map((r) => r.value);
+
+    if (newTiles.length === 0) return;
+
+    setSources((prev) =>
+      prev.map((s) =>
+        s.id === source.id && s.type === "geotiff"
+          ? { ...s, tiles: [...newTiles, ...s.tiles] }
+          : s,
+      ),
+    );
+    userTracking.capture({
+      name: "elevationSource.tilesAdded",
+      tileCount: newTiles.length,
+    });
+  };
+
+  const handleDeleteTile = (tileId: string) => {
+    setSources((prev) => {
+      const updated = prev.map((s) =>
+        s.id === source.id && s.type === "geotiff"
+          ? { ...s, tiles: s.tiles.filter((t) => t.id !== tileId) }
+          : s,
+      );
+      return updated.filter((s) => s.type !== "geotiff" || s.tiles.length > 0);
+    });
+    userTracking.capture({ name: "elevationSource.tileDeleted" });
+  };
+
   return (
     <div className="flex flex-col gap-y-2">
       <div className="font-semibold text-sm">{source.name}</div>
       <ElevationOffsetField source={source} />
-      <div className="flex flex-col">
-        {source.tiles.map((tile) => (
-          <div
-            key={tile.id}
-            className="flex items-center justify-between py-1 gap-x-2"
-          >
-            <span className="text-sm truncate">{tile.fileName}</span>
-            <button className="opacity-50 hover:opacity-100 select-none text-red-500 shrink-0">
-              <DeleteIcon />
-            </button>
-          </div>
-        ))}
+      <div className="overflow-y-auto max-h-[50vh] scroll-shadows border rounded">
+        <div className="flex flex-col">
+          {source.tiles.map((tile) => (
+            <div
+              key={tile.id}
+              className="flex items-center justify-between gap-x-2 h-8 shrink-0 px-2 even:bg-gray-100 hover:bg-purple-100"
+            >
+              <span className="text-sm truncate">{tile.file.name}</span>
+              <button
+                className="opacity-50 hover:opacity-100 select-none text-red-500 shrink-0"
+                onClick={() => handleDeleteTile(tile.id)}
+              >
+                <DeleteIcon />
+              </button>
+            </div>
+          ))}
+        </div>
       </div>
-      <Button variant="default" size="sm" className="w-full justify-center">
+      <input
+        ref={fileInputRef}
+        type="file"
+        multiple
+        accept=".tif,.tiff"
+        className="hidden"
+        onChange={(e) => {
+          if (e.target.files?.length) {
+            const files = Array.from(e.target.files);
+            e.target.value = "";
+            void handleAddTiles(files);
+          }
+        }}
+      />
+      <Button
+        variant="default"
+        size="sm"
+        className="w-full justify-center"
+        onClick={() => fileInputRef.current?.click()}
+      >
         <AddIcon size="sm" />
         {translate("addMoreTiles")}
       </Button>
@@ -164,7 +249,7 @@ const TileServerElevationSourceRow = ({
         </Popover.Trigger>
         <Popover.Portal>
           <StyledPopoverContent
-            size="sm"
+            size="auto"
             onOpenAutoFocus={(e) => e.preventDefault()}
             side="left"
             align="start"
@@ -217,7 +302,7 @@ const ElevationOffsetField = ({ source }: { source: ElevationSource }) => {
       ),
     );
     userTracking.capture({
-      name: "map.elevationOffset.changed",
+      name: "elevationSource.offsetChanged",
       sourceType: source.type,
       oldValue: source.elevationOffsetM,
       newValue: valueInMeters,
@@ -236,5 +321,80 @@ const ElevationOffsetField = ({ source }: { source: ElevationSource }) => {
         tabIndex={0}
       />
     </InlineField>
+  );
+};
+
+const AddElevationDataButton = () => {
+  const translate = useTranslate();
+  const setSources = useSetAtom(elevationSourcesAtom);
+  const userTracking = useUserTracking();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleFilesSelected = async (files: File[]) => {
+    setIsLoading(true);
+    try {
+      const results = await Promise.allSettled(
+        files.map(async (file) => {
+          const metadata = await extractGeoTiffMetadata(file);
+          return { id: nanoid(), ...metadata };
+        }),
+      );
+
+      const tiles = results
+        .filter(
+          (r): r is PromiseFulfilledResult<GeoTiffTile> =>
+            r.status === "fulfilled",
+        )
+        .map((r) => r.value);
+
+      if (tiles.length === 0) return;
+
+      const newSource: GeoTiffElevationSource = {
+        type: "geotiff",
+        id: nanoid(),
+        enabled: true,
+        name: translate("userElevationData"),
+        tiles,
+        elevationOffsetM: 0,
+      };
+
+      setSources((prev) => [...prev, newSource]);
+      userTracking.capture({
+        name: "elevationSource.added",
+        tileCount: tiles.length,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <>
+      <input
+        ref={fileInputRef}
+        type="file"
+        multiple
+        accept=".tif,.tiff"
+        className="hidden"
+        onChange={(e) => {
+          if (e.target.files?.length) {
+            const files = Array.from(e.target.files);
+            e.target.value = "";
+            void handleFilesSelected(files);
+          }
+        }}
+      />
+      <Button
+        variant="default"
+        size="sm"
+        className="w-full justify-center"
+        onClick={() => fileInputRef.current?.click()}
+        disabled={isLoading}
+      >
+        <AddIcon size="sm" />
+        {isLoading ? translate("loading") : translate("addNewElevationData")}
+      </Button>
+    </>
   );
 };

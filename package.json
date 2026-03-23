@@ -144,6 +144,7 @@
     "fractional-indexing": "^2.1.0",
     "fuse.js": "^6.6.2",
     "geometric": "^2.5.4",
+    "geotiff": "^3.0.5",
     "hasha": "^5.2.2",
     "hls.js": "^1.6.15",
     "htmlparser2": "^9.1.0",
