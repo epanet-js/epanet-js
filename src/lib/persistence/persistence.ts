@@ -104,6 +104,10 @@ export class Persistence implements IPersistenceWithSnapshots {
         }
       });
 
+      hydraulicModel.customerPoints.forEach((cp) => {
+        hydraulicModel.labelManager.register(cp.label, "customerPoint", cp.id);
+      });
+
       momentLog.setSnapshot(snapshotMoment, hydraulicModel.version);
       this.store.set(splitsAtom, defaultSplits);
       this.store.set(stagingModelAtom, hydraulicModel);

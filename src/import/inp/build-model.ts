@@ -95,12 +95,18 @@ export const buildModel = (
     : baseSpec;
   const nodeIds = new ItemData<AssetId>();
   const linkIds = new ItemData<AssetId>();
-  const factories = initializeModelFactories();
 
   const hydraulicModel = initializeHydraulicModel({
     defaults: spec.defaults,
     demands: createEmptyDemands(),
     fillLabelGaps: options?.fillLabelGaps,
+  });
+
+  const factories = initializeModelFactories({
+    labelManager:
+      options?.fillLabelGaps === false
+        ? hydraulicModel.labelManager
+        : undefined,
   });
 
   const curvesContext: CurvesContext = initializeCurvesContext(

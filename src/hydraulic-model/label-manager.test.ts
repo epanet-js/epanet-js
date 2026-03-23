@@ -242,6 +242,63 @@ describe("label manager", () => {
     });
   });
 
+  describe("customerPoint type", () => {
+    it("generates CP-prefixed labels", () => {
+      const labelManager = new LabelManager();
+      expect(labelManager.generateFor("customerPoint", anId())).toEqual("CP1");
+      expect(labelManager.generateFor("customerPoint", anId())).toEqual("CP2");
+      expect(labelManager.generateFor("customerPoint", anId())).toEqual("CP3");
+    });
+
+    it("fills gaps for registered customer point labels", () => {
+      const labelManager = new LabelManager();
+      labelManager.register("CP1", "customerPoint", anId());
+      labelManager.register("CP3", "customerPoint", anId());
+
+      expect(labelManager.generateFor("customerPoint", anId())).toEqual("CP2");
+      expect(labelManager.generateFor("customerPoint", anId())).toEqual("CP4");
+    });
+
+    it("customer points are in their own label group", () => {
+      const labelManager = new LabelManager();
+      labelManager.register("SHARED", "customerPoint", anId());
+
+      expect(labelManager.isLabelAvailable("SHARED", "pipe")).toBe(true);
+      expect(labelManager.isLabelAvailable("SHARED", "junction")).toBe(true);
+      expect(labelManager.isLabelAvailable("SHARED", "pattern")).toBe(true);
+      expect(labelManager.isLabelAvailable("SHARED", "curve")).toBe(true);
+    });
+
+    it("customer points conflict with other customer points", () => {
+      const labelManager = new LabelManager();
+      labelManager.register("CP1", "customerPoint", anId());
+
+      expect(labelManager.isLabelAvailable("CP1", "customerPoint")).toBe(false);
+    });
+
+    it("other types do not conflict with customer points", () => {
+      const labelManager = new LabelManager();
+      labelManager.register("LABEL", "pipe", anId());
+      labelManager.register("LABEL", "junction", anId());
+      labelManager.register("LABEL", "pattern", anId());
+
+      expect(labelManager.isLabelAvailable("LABEL", "customerPoint")).toBe(
+        true,
+      );
+    });
+
+    it("removes customer point labels", () => {
+      const labelManager = new LabelManager();
+      const cpId = anId();
+      labelManager.register("CP1", "customerPoint", cpId);
+
+      labelManager.remove("CP1", "customerPoint", cpId);
+
+      expect(labelManager.count("CP1")).toEqual(0);
+      expect(labelManager.generateFor("customerPoint", anId())).toEqual("CP1");
+    });
+  });
+
   describe("with fillGaps disabled", () => {
     it("defaults to the type count and prefixes", () => {
       const labelManager = new LabelManager(false);

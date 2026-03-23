@@ -174,9 +174,19 @@ const putCustomerPoint = (
   const oldVersion = hydraulicModel.customerPoints.get(customerPoint.id);
   if (oldVersion) {
     hydraulicModel.customerPointsLookup.removeConnection(oldVersion);
+    hydraulicModel.labelManager.remove(
+      oldVersion.label,
+      "customerPoint",
+      oldVersion.id,
+    );
   }
   hydraulicModel.customerPointsLookup.addConnection(customerPoint);
   hydraulicModel.customerPoints.set(customerPoint.id, customerPoint);
+  hydraulicModel.labelManager.register(
+    customerPoint.label,
+    "customerPoint",
+    customerPoint.id,
+  );
 
   return oldVersion;
 };
@@ -190,6 +200,7 @@ const deleteCustomerPoint = (
 
   hydraulicModel.customerPointsLookup.removeConnection(cp);
   hydraulicModel.customerPoints.delete(id);
+  hydraulicModel.labelManager.remove(cp.label, "customerPoint", cp.id);
 
   return cp;
 };
