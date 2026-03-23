@@ -112,9 +112,11 @@ export const SearchableSelector = <T extends SearchableSelectorOption>({
       }
 
       if (e.key === "Enter") {
+        e.preventDefault();
         if (open && suggestions.length > 0) {
-          e.preventDefault();
           commit(suggestions[0]);
+        } else if (searchTerm.trim()) {
+          void search(searchTerm);
         }
         return;
       }
@@ -125,7 +127,7 @@ export const SearchableSelector = <T extends SearchableSelectorOption>({
         return;
       }
     },
-    [open, isSearching, suggestions, commit],
+    [open, isSearching, suggestions, commit, search, searchTerm],
   );
 
   const handleListKeyDown = useCallback(
