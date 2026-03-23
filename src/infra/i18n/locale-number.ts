@@ -62,7 +62,8 @@ const splitByDecimals = (
 
   const [wholePart, decimalsPart] = result;
 
-  if (decimalsPart.includes(groupSymbol)) throw new Error("Invalid decimals");
+  if (groupSymbol && decimalsPart.includes(groupSymbol))
+    throw new Error("Invalid decimals");
 
   return [wholePart, decimalsPart];
 };
@@ -71,6 +72,7 @@ const removeGroupDelimiter = (
   wholePart: string,
   groupSymbol: string,
 ): string => {
+  if (!groupSymbol) return wholePart;
   const groups = wholePart.split(groupSymbol);
   if (groups.length === 1) return groups[0];
 

@@ -12,6 +12,18 @@ describe("parse locale number", () => {
     expect(parseLocaleNumber("-10,001,230.2", "en")).toEqual(-10001230.2);
   });
 
+  it("parses numbers in fr (no group separator)", () => {
+    expect(parseLocaleNumber("1", "fr")).toEqual(1);
+    expect(parseLocaleNumber("10", "fr")).toEqual(10);
+    expect(parseLocaleNumber("100", "fr")).toEqual(100);
+    expect(parseLocaleNumber("1000", "fr")).toEqual(1000);
+    expect(parseLocaleNumber("-100", "fr")).toEqual(-100);
+    expect(parseLocaleNumber("1,2", "fr")).toEqual(1.2);
+    expect(parseLocaleNumber("100,5", "fr")).toEqual(100.5);
+    expect(parseLocaleNumber("1234,567", "fr")).toEqual(1234.567);
+    expect(parseLocaleNumber("-1234,567", "fr")).toEqual(-1234.567);
+  });
+
   it("parses decimal numbers in es", () => {
     expect(parseLocaleNumber("1,2", "es")).toEqual(1.2);
     expect(parseLocaleNumber("-1,2", "es")).toEqual(-1.2);
@@ -71,5 +83,9 @@ describe("remove groups formatting", () => {
 
   it("en", () => {
     expect(reformatWithoutGroups("10,000,000.40", "en")).toEqual("10000000.40");
+  });
+
+  it("fr (no group separator)", () => {
+    expect(reformatWithoutGroups("10000000,40", "fr")).toEqual("10000000,40");
   });
 });
