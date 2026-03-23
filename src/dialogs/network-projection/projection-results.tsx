@@ -16,14 +16,13 @@ export const ProjectionResults = ({
   isLoading?: boolean;
 }) => {
   const results = useMemo(() => {
-    const displayed = projections.slice(0, 8);
     if (
       selectedProjection &&
-      !displayed.some((p) => p.id === selectedProjection.id)
+      !projections.some((p) => p.id === selectedProjection.id)
     ) {
-      return [selectedProjection, ...displayed];
+      return [selectedProjection, ...projections];
     }
-    return displayed;
+    return projections;
   }, [projections, selectedProjection]);
 
   if (isLoading) {
@@ -54,21 +53,14 @@ export const ProjectionResults = ({
 
   if (results.length === 0 && !selectedProjection) return null;
 
-  const displayResults =
-    results.length > 0
-      ? results
-      : selectedProjection
-        ? [selectedProjection]
-        : [];
-
   return (
-    <div className="mt-3">
-      <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
-        Matching projections
+    <div className="mt-3 flex flex-col min-h-0 flex-1">
+      <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 flex-shrink-0">
+        Matching projections ({results.length})
       </p>
-      <div className="border border-gray-200 dark:border-gray-700 rounded-md">
+      <div className="border border-gray-200 dark:border-gray-700 rounded-md min-h-0 overflow-y-auto scroll-shadows flex-1">
         <ul className="space-y-0.5 p-1">
-          {displayResults.map((p) => {
+          {results.map((p) => {
             const isSelected = selectedProjection?.id === p.id;
             return (
               <li key={p.id}>

@@ -198,7 +198,7 @@ export const NetworkProjectionDialog = ({
       }
     >
       <div className="flex-1 flex min-h-0 overflow-hidden">
-        <div className="flex-shrink-0 w-[300px] border-r border-gray-200 dark:border-gray-700 p-4 overflow-y-auto">
+        <div className="flex-shrink-0 w-[300px] border-r border-gray-200 dark:border-gray-700 p-4 flex flex-col min-h-0">
           <ProjectionSearch
             projections={projections}
             onLocationSelect={handleLocationSelect}
@@ -206,17 +206,19 @@ export const NetworkProjectionDialog = ({
           />
 
           {(selectedLocation || selectedProjection) && (
-            <ProjectionResults
-              projections={selectedLocation ? candidateProjections : []}
-              selectedProjection={selectedProjection}
-              onSelect={handleProjectionSelectFromResults}
-              isLoading={isBuilding}
-              emptyMessage={
-                selectedLocation
-                  ? "No matching projections found for this location"
-                  : undefined
-              }
-            />
+            <div className="flex-1 min-h-0 flex flex-col">
+              <ProjectionResults
+                projections={selectedLocation ? candidateProjections : []}
+                selectedProjection={selectedProjection}
+                onSelect={handleProjectionSelectFromResults}
+                isLoading={isBuilding}
+                emptyMessage={
+                  selectedLocation
+                    ? "No matching projections found for this location"
+                    : undefined
+                }
+              />
+            </div>
           )}
         </div>
         <MapPreview
