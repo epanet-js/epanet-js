@@ -10,11 +10,17 @@ export const captureError = (error: Error) => {
   Sentry.captureException(error);
 };
 
-export const captureWarning = (message: string) => {
+export const captureWarning = (message: string, error?: unknown) => {
   // eslint-disable-next-line no-console
-  if (isDebugMode()) console.warn(message);
+  if (isDebugMode()) console.warn(message, error);
 
-  Sentry.captureMessage(message, "warning");
+  Sentry.captureMessage(message, {
+    level: "warning",
+    extra:
+      error instanceof Error
+        ? { error: error.message, stack: error.stack }
+        : undefined,
+  });
 };
 
 export const addToErrorLog = (breadcrumbs: Sentry.Breadcrumb) => {

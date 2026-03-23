@@ -262,6 +262,7 @@ export type OpenInpStarted = {
 export type RecentFileOpened = {
   name: "recentFile.opened";
   source: "toolbar" | "welcome";
+  filename: string;
 };
 
 export type ImportInpCompleted = {
