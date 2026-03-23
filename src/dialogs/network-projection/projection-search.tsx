@@ -81,7 +81,7 @@ export const ProjectionSearch = ({
         captureError(error as Error);
       }
 
-      return [...projectionResults, ...locationResults];
+      return [...locationResults, ...projectionResults];
     },
     [projections],
   );
