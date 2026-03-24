@@ -4,6 +4,7 @@ export type DataSource =
   | "icons"
   | "selected-features"
   | "ephemeral"
+  | "map-overlay"
   | "grid";
 
 export const FeatureSources = {

@@ -73,6 +73,7 @@ export function defineEmptySources(style: Style) {
   style.sources["icons"] = emptyGeoJSONSource;
   style.sources["selected-features"] = emptyGeoJSONSource;
   style.sources["ephemeral"] = emptyGeoJSONSource;
+  style.sources["map-overlay"] = emptyGeoJSONSource;
   style.sources["grid"] = emptyGeoJSONSource;
 }
 
@@ -86,6 +87,11 @@ import { valveIcons, valveLines } from "src/map/layers/valves";
 import { linkLabelsLayer } from "src/map/layers/link-labels";
 import { nodeLabelsLayer } from "src/map/layers/node-labels";
 import { tankLayers } from "src/map/layers/tank";
+import {
+  mapOverlayFillLayer,
+  mapOverlayOutlineLayer,
+  mapOverlayLabelLayer,
+} from "src/map/layers/map-overlay";
 import {
   ephemeralDraftLineLayer,
   ephemeralIconHighlightLayers,
@@ -175,6 +181,9 @@ export function makeLayers({
   return [
     gridMinorLayer(),
     gridMajorLayer(),
+    mapOverlayFillLayer({ source: "map-overlay" }),
+    mapOverlayOutlineLayer({ source: "map-overlay" }),
+    mapOverlayLabelLayer({ source: "map-overlay" }),
     ephemeralHaloLayer({ source: "ephemeral" }),
     pipesLayer({
       source: "main-features",

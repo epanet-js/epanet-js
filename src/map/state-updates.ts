@@ -102,6 +102,7 @@ const detectChanges = (
   hasNewCustomerPoints: boolean;
   hasNewZoom: boolean;
   hasSyncMomentChanged: boolean;
+  hasNewMapOverlay: boolean;
 } => {
   return {
     hasNewImport: state.momentLogId !== prev.momentLogId,
@@ -129,6 +130,8 @@ const detectChanges = (
     hasNewCustomerPoints: state.customerPoints !== prev.customerPoints,
     hasNewZoom: state.currentZoom !== prev.currentZoom,
     hasSyncMomentChanged: state.syncMomentVersion !== prev.syncMomentVersion,
+    hasNewMapOverlay:
+      state.mapOverlayFeatures !== prev.mapOverlayFeatures,
   };
 };
 
@@ -179,6 +182,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       hasNewCustomerPoints,
       hasNewZoom,
       hasSyncMomentChanged,
+      hasNewMapOverlay,
     } = changes;
 
     const selectionSize = USelection.toIds(mapState.selection).length;
@@ -369,6 +373,13 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
             map,
             mapState.ephemeralState,
             assets,
+          );
+        }
+
+        if (hasNewMapOverlay) {
+          await updateMapOverlaySource(
+            map,
+            mapState.mapOverlayFeatures,
           );
         }
 
@@ -801,6 +812,16 @@ const updateEphemeralStateSource = withDebugInstrumentation(
     maxDurationMs: 100,
   },
 );
+
+const updateMapOverlaySource = async (
+  map: MapEngine,
+  features: GeoJSON.Feature[],
+): Promise<void> => {
+  await map.setSource(
+    "map-overlay",
+    features as unknown as import("src/types").Feature[],
+  );
+};
 
 const buildCustomerPointsEphemeralOverlay = (
   ephemeralState: EphemeralEditingState,

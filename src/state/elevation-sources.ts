@@ -18,5 +18,3 @@ const defaultMapboxSource: TileServerElevationSource = {
 export const elevationSourcesAtom = atom<ElevationSource[]>([
   defaultMapboxSource,
 ]);
-
-export const hoveredElevationSourceIdAtom = atom<string | null>(null);

@@ -10,6 +10,7 @@ export {
   sampleElevation,
   isPointInBbox,
   transformCoordinates,
+  buildCoverageFeature,
 } from "./geotiff-utils";
 export type { ExtractedTileMetadata } from "./geotiff-utils";
 

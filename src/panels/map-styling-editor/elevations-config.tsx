@@ -1,5 +1,5 @@
 import { useAtomValue, useSetAtom } from "jotai";
-import { useRef, useState } from "react";
+import { useContext, useRef, useState } from "react";
 
 import * as Popover from "@radix-ui/react-popover";
 import { nanoid } from "nanoid";
@@ -45,14 +45,20 @@ import { NumericField } from "src/components/form/numeric-field";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { convertTo } from "src/quantity";
 import { elevationSourcesAtom } from "src/state/elevation-sources";
+import { mapOverlayFeaturesAtom } from "src/state/map-overlay";
 import { offlineAtom } from "src/state/offline";
-import { extractGeoTiffMetadata } from "src/lib/elevations";
+import {
+  extractGeoTiffMetadata,
+  buildCoverageFeature,
+} from "src/lib/elevations";
 import type {
   ElevationSource,
   GeoTiffElevationSource,
   GeoTiffTile,
   TileServerElevationSource,
 } from "src/lib/elevations";
+import { MapContext } from "src/map";
+import { LngLatBoundsLike } from "mapbox-gl";
 import { ActionButton } from "src/components/action-button";
 
 export const ElevationsConfig = () => {
@@ -171,6 +177,7 @@ const GeoTiffElevationSourceRow = ({
 }) => {
   const translate = useTranslate();
   const setSources = useSetAtom(elevationSourcesAtom);
+  const setCoverageFeatures = useSetAtom(mapOverlayFeaturesAtom);
   const userTracking = useUserTracking();
 
   const handleDelete = () => {
@@ -181,13 +188,29 @@ const GeoTiffElevationSourceRow = ({
     });
   };
 
+  const handlePopoverOpenChange = (open: boolean) => {
+    if (open) {
+      setCoverageFeatures(
+        source.tiles.map((tile) =>
+          buildCoverageFeature(tile, {
+            isFilled: true,
+            isDisabled: false,
+            showLabel: false,
+          }),
+        ),
+      );
+    } else {
+      setCoverageFeatures([]);
+    }
+  };
+
   return (
     <ElevationSourceRowShell
       id={source.id}
       name={translate("userElevationData")}
       typeLabel="GEOTIFF"
     >
-      <Popover.Root>
+      <Popover.Root onOpenChange={handlePopoverOpenChange}>
         <Popover.Trigger asChild>
           <Button variant="quiet/mode" className="h-8">
             <MultipleValuesIcon />
@@ -223,8 +246,31 @@ const GeoTiffTilesPopover = ({
 }) => {
   const translate = useTranslate();
   const setSources = useSetAtom(elevationSourcesAtom);
+  const setCoverageFeatures = useSetAtom(mapOverlayFeaturesAtom);
   const userTracking = useUserTracking();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const map = useContext(MapContext);
+
+  const handleTileHover = (hoveredTileId: string | null) => {
+    const isHovering = hoveredTileId !== null;
+    setCoverageFeatures(
+      source.tiles.map((tile) => {
+        const isHovered = tile.id === hoveredTileId;
+        return buildCoverageFeature(tile, {
+          isFilled: !isHovering,
+          isDisabled: isHovering && !isHovered,
+          showLabel: isHovered,
+        });
+      }),
+    );
+  };
+
+  const handleTileClick = (tile: GeoTiffTile) => {
+    map?.map.fitBounds(tile.bbox as LngLatBoundsLike, {
+      padding: 50,
+      animate: true,
+    });
+  };
 
   const handleAddTiles = async (files: File[]) => {
     const results = await Promise.allSettled(
@@ -279,7 +325,10 @@ const GeoTiffTilesPopover = ({
           {source.tiles.map((tile) => (
             <li
               key={tile.id}
-              className="group flex items-center justify-between gap-x-2 h-8 shrink-0 px-2 even:bg-gray-100 hover:bg-purple-100"
+              className="group flex items-center justify-between gap-x-2 h-8 shrink-0 px-2 even:bg-gray-100 hover:bg-purple-100 cursor-pointer"
+              onMouseEnter={() => handleTileHover(tile.id)}
+              onMouseLeave={() => handleTileHover(null)}
+              onClick={() => handleTileClick(tile)}
             >
               <span className="text-sm">{tile.file.name}</span>
               <Button
