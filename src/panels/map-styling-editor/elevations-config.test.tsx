@@ -27,6 +27,10 @@ vi.mock("src/lib/elevations", async (importOriginal) => {
   };
 });
 
+vi.mock("src/lib/elevations/compute-boundary", () => ({
+  computeTileBoundaries: vi.fn().mockResolvedValue(undefined),
+}));
+
 const aMapboxSource: TileServerElevationSource = {
   type: "tile-server",
   id: "mapbox-default",

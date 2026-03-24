@@ -59,6 +59,7 @@ import type {
   TileServerElevationSource,
 } from "src/lib/elevations";
 import { MapContext } from "src/map";
+import { useComputeTileBoundaries } from "src/hooks/use-compute-tile-boundaries";
 import { LngLatBoundsLike } from "mapbox-gl";
 import { ActionButton } from "src/components/action-button";
 
@@ -66,6 +67,7 @@ export const ElevationsConfig = () => {
   const translate = useTranslate();
   const sources = useAtomValue(elevationSourcesAtom);
   const setSources = useSetAtom(elevationSourcesAtom);
+  const { computeForTiles, cancelTiles } = useComputeTileBoundaries();
   const reversedSources = [...sources].reverse();
 
   const sensors = useSensors(
@@ -104,14 +106,19 @@ export const ElevationsConfig = () => {
           >
             {reversedSources.map((source) =>
               source.type === "geotiff" ? (
-                <GeoTiffElevationSourceRow key={source.id} source={source} />
+                <GeoTiffElevationSourceRow
+                  key={source.id}
+                  source={source}
+                  onTilesAdded={computeForTiles}
+                  onTilesRemoved={cancelTiles}
+                />
               ) : (
                 <TileServerElevationSourceRow key={source.id} source={source} />
               ),
             )}
           </SortableContext>
         </DndContext>
-        <AddElevationDataButton />
+        <AddElevationDataButton onTilesAdded={computeForTiles} />
       </div>
     </Section>
   );
@@ -172,8 +179,12 @@ const ElevationSourceRowShell = ({
 
 const GeoTiffElevationSourceRow = ({
   source,
+  onTilesAdded,
+  onTilesRemoved,
 }: {
   source: GeoTiffElevationSource;
+  onTilesAdded: (sourceId: string, tiles: GeoTiffTile[]) => void;
+  onTilesRemoved: (tileIds: string[]) => void;
 }) => {
   const translate = useTranslate();
   const setSources = useSetAtom(elevationSourcesAtom);
@@ -189,6 +200,7 @@ const GeoTiffElevationSourceRow = ({
   const description = `${translate("gridResolution", `${resolutionDisplay}${elevationUnit}`)} – ${translate("files", fileCount)}`;
 
   const handleDelete = () => {
+    onTilesRemoved(source.tiles.map((t) => t.id));
     setSources((prev) => prev.filter((s) => s.id !== source.id));
     userTracking.capture({
       name: "elevationSource.deleted",
@@ -232,7 +244,11 @@ const GeoTiffElevationSourceRow = ({
             align="start"
           >
             <StyledPopoverArrow />
-            <GeoTiffTilesPopover source={source} />
+            <GeoTiffTilesPopover
+              source={source}
+              computeForTiles={onTilesAdded}
+              cancelTiles={onTilesRemoved}
+            />
           </StyledPopoverContent>
         </Popover.Portal>
       </Popover.Root>
@@ -249,8 +265,12 @@ const GeoTiffElevationSourceRow = ({
 
 const GeoTiffTilesPopover = ({
   source,
+  computeForTiles,
+  cancelTiles,
 }: {
   source: GeoTiffElevationSource;
+  computeForTiles: (sourceId: string, tiles: GeoTiffTile[]) => void;
+  cancelTiles: (tileIds: string[]) => void;
 }) => {
   const translate = useTranslate();
   const setSources = useSetAtom(elevationSourcesAtom);
@@ -304,6 +324,7 @@ const GeoTiffTilesPopover = ({
           : s,
       ),
     );
+    computeForTiles(source.id, newTiles);
     userTracking.capture({
       name: "elevationSource.tilesAdded",
       tileCount: newTiles.length,
@@ -311,6 +332,7 @@ const GeoTiffTilesPopover = ({
   };
 
   const handleDeleteTile = (tileId: string) => {
+    cancelTiles([tileId]);
     setSources((prev) => {
       const updated = prev.map((s) =>
         s.id === source.id && s.type === "geotiff"
@@ -494,7 +516,11 @@ const ElevationOffsetField = ({ source }: { source: ElevationSource }) => {
   );
 };
 
-const AddElevationDataButton = () => {
+const AddElevationDataButton = ({
+  onTilesAdded,
+}: {
+  onTilesAdded: (sourceId: string, tiles: GeoTiffTile[]) => void;
+}) => {
   const translate = useTranslate();
   const setSources = useSetAtom(elevationSourcesAtom);
   const userTracking = useUserTracking();
@@ -529,6 +555,7 @@ const AddElevationDataButton = () => {
       };
 
       setSources((prev) => [...prev, newSource]);
+      onTilesAdded(newSource.id, tiles);
       userTracking.capture({
         name: "elevationSource.added",
         tileCount: tiles.length,

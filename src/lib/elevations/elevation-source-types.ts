@@ -11,6 +11,8 @@ export type GeoTiffTile = {
   noDataValue: number | null;
   /** Lightweight handle — holds a reference to the File blob, no raster in memory. */
   image: GeoTIFFImage;
+  /** Computed data boundary — replaces bbox for display when present. */
+  coveragePolygon?: GeoJSON.Geometry;
 };
 
 export type GeoTiffElevationSource = {
