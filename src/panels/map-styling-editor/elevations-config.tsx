@@ -325,10 +325,10 @@ const GeoTiffTilesPopover = ({
           {source.tiles.map((tile) => (
             <li
               key={tile.id}
-              className="group flex items-center justify-between gap-x-2 h-8 shrink-0 px-2 even:bg-gray-100 hover:bg-purple-100 cursor-pointer"
               onMouseEnter={() => handleTileHover(tile.id)}
               onMouseLeave={() => handleTileHover(null)}
               onClick={() => handleTileClick(tile)}
+              className="group flex items-center justify-between gap-x-2 h-8 shrink-0 px-2 hover:bg-gray-100 dark:hover:bg-gray-800"
             >
               <span className="text-sm">{tile.file.name}</span>
               <Button
