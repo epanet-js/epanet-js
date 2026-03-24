@@ -6,6 +6,7 @@ import { presets } from "src/lib/project-settings/quantities-spec";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { getByLabel } from "src/__helpers__/asset-queries";
 import { Valve } from "src/hydraulic-model/asset-types";
+import { XY_GRID } from "src/lib/projections";
 
 describe("Parse inp with", () => {
   it("can read values separated by spaces", () => {
@@ -720,7 +721,7 @@ describe("Parse inp with", () => {
       const withoutFlag = parseInp(inp);
       expect(withoutFlag.issues?.invalidCoordinates).toBeDefined();
 
-      const result = parseInp(inp, { sourceProjection: "xy-grid" });
+      const result = parseInp(inp, { sourceProjection: XY_GRID });
       expect(result.issues?.invalidCoordinates).toBeUndefined();
       expect(result.hydraulicModel.assets.size).toBe(3);
 
@@ -742,7 +743,7 @@ describe("Parse inp with", () => {
       ANYTHING
       `;
 
-      const result = parseInp(inp, { sourceProjection: "xy-grid" });
+      const result = parseInp(inp, { sourceProjection: XY_GRID });
       expect(result.issues?.invalidCoordinates).toBeUndefined();
       expect(result.issues?.unsupportedSections).toBeDefined();
     });
@@ -756,7 +757,7 @@ describe("Parse inp with", () => {
       J1  500000  200000
       `;
 
-      const result = parseInp(inp, { sourceProjection: "xy-grid" });
+      const result = parseInp(inp, { sourceProjection: XY_GRID });
       expect(result.projectSettings.projection.type).toBe("xy-grid");
     });
 

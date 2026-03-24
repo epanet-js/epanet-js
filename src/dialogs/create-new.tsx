@@ -17,7 +17,12 @@ import {
 } from "src/lib/project-settings/quantities-spec";
 import type { Unit } from "src/quantity";
 import { ProjectSettings } from "src/lib/project-settings";
-import type { Projection, ProjectionConfig } from "src/lib/projections";
+import {
+  type Projection,
+  type ProjectionConfig,
+  WGS84,
+  XY_GRID,
+} from "src/lib/projections";
 import {
   HeadlossFormula,
   headlossFormulas,
@@ -131,7 +136,7 @@ export const CreateNew = () => {
         projectSettings,
         "Untitled",
         defaultSimulationSettings,
-        { autoElevations: projection !== "xy-grid" },
+        { autoElevations: projection.id !== "xy-grid" },
       );
       if (map) {
         centerMapForNewProject(map, projection, location);
@@ -141,7 +146,7 @@ export const CreateNew = () => {
         units: unitsSpec,
         headlossFormula,
         location: location?.name || "",
-        projection,
+        projection: projection.id,
       });
       setFileInfo(null);
       closeDialog();
@@ -180,7 +185,7 @@ export const CreateNew = () => {
               unitsSpec: "LPS",
               headlossFormula: "H-W",
               location: undefined,
-              projection: "wgs84",
+              projection: WGS84,
             } as SubmitProps
           }
         >
@@ -191,7 +196,7 @@ export const CreateNew = () => {
                   selected={values.projection}
                   onChange={(projection) => {
                     void setFieldValue("projection", projection);
-                    if (projection === "xy-grid") {
+                    if (projection.id === "xy-grid") {
                       setGridHidden(false);
                       setGridPreview(true);
                       if (map) {
@@ -223,7 +228,7 @@ export const CreateNew = () => {
                 <LocationSearchSelector
                   selected={values.location}
                   onChange={(location) => setFieldValue("location", location)}
-                  disabled={values.projection === "xy-grid"}
+                  disabled={values.projection.id === "xy-grid"}
                 />
               </div>
               <hr className="my-4" />
@@ -415,10 +420,10 @@ const ProjectionSelector = ({
       <div className="grid grid-cols-2 gap-3">
         <button
           type="button"
-          onClick={() => onChange("wgs84")}
+          onClick={() => onChange(WGS84)}
           className={clsx(
             projectionCardBase,
-            selected === "wgs84"
+            selected.id === "wgs84"
               ? projectionCardSelected
               : projectionCardUnselected,
           )}
@@ -435,10 +440,10 @@ const ProjectionSelector = ({
 
         <button
           type="button"
-          onClick={() => onChange("xy-grid")}
+          onClick={() => onChange(XY_GRID)}
           className={clsx(
             projectionCardBase,
-            selected === "xy-grid"
+            selected.id === "xy-grid"
               ? projectionCardSelected
               : projectionCardUnselected,
           )}
@@ -463,7 +468,7 @@ const DEFAULT_MAP_CENTER: [number, number] = [-4.3800042, 55.914314];
 const DEFAULT_MAP_ZOOM = 15.5;
 
 const buildNewProjectionConfig = (projection: Projection): ProjectionConfig =>
-  projection === "xy-grid"
+  projection.id === "xy-grid"
     ? { type: "xy-grid", centroid: XY_GRID_CENTER }
     : { type: "wgs84" };
 
@@ -472,7 +477,7 @@ const centerMapForNewProject = (
   projection: Projection,
   location?: LocationData,
 ) => {
-  if (projection === "xy-grid") {
+  if (projection.id === "xy-grid") {
     map.map.jumpTo({ center: XY_GRID_CENTER, zoom: XY_GRID_ZOOM });
   } else if (!location) {
     map.map.jumpTo({ center: DEFAULT_MAP_CENTER, zoom: DEFAULT_MAP_ZOOM });

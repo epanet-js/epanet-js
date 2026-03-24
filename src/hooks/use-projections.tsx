@@ -1,10 +1,5 @@
 import { useState, useEffect } from "react";
-
-export type Projection = {
-  id: string;
-  name: string;
-  code: string;
-};
+import type { Projection } from "src/lib/projections";
 
 type ProjectionsState = {
   projections: Map<string, Projection> | null;

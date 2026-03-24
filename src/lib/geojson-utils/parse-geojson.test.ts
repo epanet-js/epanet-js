@@ -1,5 +1,5 @@
 import { parseGeoJson } from "./parse-geojson";
-import type { Projection } from "src/hooks/use-projections";
+import type { Projection } from "src/lib/projections";
 
 describe("parseGeoJson", () => {
   it("parses valid FeatureCollection", () => {

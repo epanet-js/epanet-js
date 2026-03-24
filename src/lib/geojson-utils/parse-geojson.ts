@@ -1,5 +1,5 @@
 import { Feature, FeatureCollection } from "geojson";
-import type { Projection } from "src/hooks/use-projections";
+import type { Projection } from "src/lib/projections";
 import {
   extractEPSGFromGeoJSON,
   findProjectionByCode,
@@ -91,7 +91,7 @@ const parseGeoJsonFeatureCollection = (
           try {
             const convertedGeoJson = convertGeoJsonToWGS84(
               geoJson,
-              projection.code,
+              projection.code!,
             );
             if (isLikelyLatLng(convertedGeoJson)) {
               processedGeoJson = convertedGeoJson;

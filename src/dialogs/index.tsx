@@ -4,6 +4,7 @@ import { useAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog";
 import { match } from "ts-pattern";
 import * as dialogState from "src/state/dialog";
+import type { Projection } from "src/lib/projections";
 import { ParserIssues } from "src/import/inp";
 import { useUserTracking } from "src/infra/user-tracking";
 import { LoadingDialog } from "../components/dialog";
@@ -71,7 +72,7 @@ const InpProjectionChoiceDialog = dynamic<{
 const NetworkProjectionDialog = dynamic<{
   previewGeoJson: import("geojson").FeatureCollection;
   onImportNonProjected: () => void;
-  onImportProjected: (projection: string) => void;
+  onImportProjected: (projection: Projection) => void;
 }>(
   () =>
     import("src/dialogs/network-projection").then(

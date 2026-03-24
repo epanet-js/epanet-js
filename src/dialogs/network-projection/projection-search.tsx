@@ -7,7 +7,7 @@ import {
   type SearchableSelectorOption,
 } from "src/components/form/searchable-selector";
 import type { LocationData } from "src/components/form/location-search";
-import type { Projection } from "./types";
+import type { Projection } from "src/lib/projections";
 
 type SearchResultData =
   | { type: "location"; location: LocationData }

@@ -27,6 +27,7 @@ import { getAppId } from "src/infra/app-instance";
 import { isDemoNetwork } from "src/demo/demo-networks";
 import { useRecentFiles } from "src/hooks/use-recent-files";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { type Projection, XY_GRID } from "src/lib/projections";
 
 export const inpExtension = ".inp";
 
@@ -172,7 +173,7 @@ export const useImportInp = () => {
             try {
               const result = parseInp(content, {
                 ...parseOptions,
-                sourceProjection: "xy-grid",
+                sourceProjection: XY_GRID,
               });
               userTracking.capture(
                 buildCompleteEvent(
@@ -191,7 +192,7 @@ export const useImportInp = () => {
           if (isReprojectOn) {
             const previewGeoJson = parseCoordinatesGeoJson(content);
 
-            const onImportProjected = async (projection: string) => {
+            const onImportProjected = async (projection: Projection) => {
               setDialogState({ type: "loading" });
               try {
                 const result = parseInp(content, {

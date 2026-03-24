@@ -1,7 +1,7 @@
 // eslint-disable-next-line no-restricted-imports
 import proj4 from "proj4";
 import type { Feature, FeatureCollection, Geometry } from "geojson";
-import type { Projection } from "src/hooks/use-projections";
+import type { Projection } from "src/lib/projections";
 
 export function extractEPSGFromGeoJSON(geojson: any): {
   code: string | null;

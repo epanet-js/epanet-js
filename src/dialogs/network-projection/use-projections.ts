@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { Projection } from "./types";
+import type { Projection } from "src/lib/projections";
 
 export const useProjections = () => {
   const [projections, setProjections] = useState<Projection[]>([]);
@@ -10,7 +10,7 @@ export const useProjections = () => {
 
     fetch("/projections.json")
       .then((res) => res.json())
-      .then((data: Omit<Projection, "deprecated">[]) => {
+      .then((data: Projection[]) => {
         if (!cancelled) {
           const enriched = data.map((p) => ({
             ...p,

@@ -5,7 +5,7 @@ import { captureError } from "src/infra/error-tracking";
 import { useTranslate } from "src/hooks/use-translate";
 import { DropZone } from "src/components/drop-zone";
 import { parseGeoJson } from "src/lib/geojson-utils/parse-geojson";
-import type { Projection } from "src/hooks/use-projections";
+import type { Projection } from "src/lib/projections";
 import {
   customerPointsImportGuide,
   customerPointsImportVideoUrl,

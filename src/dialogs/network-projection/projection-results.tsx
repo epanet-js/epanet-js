@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import clsx from "clsx";
-import type { Projection } from "./types";
+import type { Projection } from "src/lib/projections";
 
 export const ProjectionResults = ({
   projections,

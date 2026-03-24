@@ -17,8 +17,11 @@ import { checksum } from "src/infra/checksum";
 import { InpData, InpStats } from "./inp-data";
 import { Position } from "geojson";
 import {
-  Projection,
-  ProjectionConfig,
+  type Projection,
+  type ProjectionConfig,
+  WGS84,
+  XY_GRID,
+  projectionFromId,
   buildProjectionConfig,
   createProjectionMapper,
 } from "src/lib/projections";
@@ -55,7 +58,7 @@ export const parseInp = (
   const { inpData, stats } = readInpData(inp, issues, safeOptions);
 
   const sourceProjection: Projection =
-    header.sourceProjection ?? options?.sourceProjection ?? "wgs84";
+    header.sourceProjection ?? options?.sourceProjection ?? WGS84;
 
   const projection = projectCoordinates(inpData, sourceProjection);
 
@@ -188,12 +191,12 @@ const projectCoordinates = (
   inpData: InpData,
   sourceProjection: Projection,
 ): ProjectionConfig => {
-  if (sourceProjection === "wgs84") {
+  if (sourceProjection.id === "wgs84") {
     return { type: "wgs84" };
   }
 
-  if (sourceProjection !== "xy-grid") {
-    return projectWithCode(inpData, sourceProjection);
+  if (sourceProjection.id !== "xy-grid") {
+    return projectWithCode(inpData, sourceProjection.code!);
   }
 
   const getAllPoints = () => {
@@ -204,7 +207,7 @@ const projectCoordinates = (
     return points;
   };
 
-  const config = buildProjectionConfig("xy-grid", getAllPoints);
+  const config = buildProjectionConfig(XY_GRID, getAllPoints);
   const mapper = createProjectionMapper(config);
 
   for (const [id, p] of inpData.coordinates.entries()) {
@@ -275,7 +278,7 @@ const parseHeader = (inp: string): Header => {
   const secondLine = rest.substring(0, secondLineEnd);
   const projectionMatch = secondLine.match(projectionRegexp);
   const sourceProjection = projectionMatch
-    ? (projectionMatch[1] as Projection)
+    ? projectionFromId(projectionMatch[1])
     : undefined;
 
   return { isMadeByApp: true, sourceProjection };

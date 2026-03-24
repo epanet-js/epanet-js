@@ -18,7 +18,8 @@ import {
 } from "./filter-projection-candidates";
 import { projectGeoJson } from "./project-geojson";
 import { approximateToNullIsland } from "./approximate-to-null-island";
-import type { Bbox, Projection, ProjectionCandidate } from "./types";
+import type { Projection } from "src/lib/projections";
+import type { Bbox, ProjectionCandidate } from "./types";
 
 const DEBOUNCE_MS = 200;
 
@@ -29,7 +30,7 @@ export const NetworkProjectionDialog = ({
 }: {
   previewGeoJson: FeatureCollection;
   onImportNonProjected: () => void;
-  onImportProjected: (projection: string) => void;
+  onImportProjected: (projection: Projection) => void;
 }) => {
   const { closeDialog } = useDialogState();
   const { projections } = useProjections();
@@ -92,7 +93,7 @@ export const NetworkProjectionDialog = ({
       setIsProjecting(true);
       projectTimeoutRef.current = setTimeout(() => {
         try {
-          const projected = projectGeoJson(previewGeoJson, projection.code);
+          const projected = projectGeoJson(previewGeoJson, projection.code!);
           if (isLikelyLatLng(projected)) {
             setDisplayGeoJSON(projected);
             setShowBasemap(options.basemap);
@@ -196,7 +197,7 @@ export const NetworkProjectionDialog = ({
 
   const handleApplyBasemap = useCallback(() => {
     if (selectedProjection) {
-      onImportProjected(selectedProjection.code);
+      onImportProjected(selectedProjection);
     }
   }, [selectedProjection, onImportProjected]);
 

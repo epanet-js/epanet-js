@@ -1,9 +1,4 @@
-export type Projection = {
-  id: string;
-  name: string;
-  code: string;
-  deprecated: boolean;
-};
+import type { Projection } from "src/lib/projections";
 
 export type Bbox = [number, number, number, number];
 
