@@ -270,7 +270,9 @@ const GeoTiffTilesPopover = ({
 
   return (
     <div className="flex flex-col gap-y-2">
-      <div className="font-semibold text-sm">{source.name}</div>
+      <div className="font-semibold text-sm">
+        {translate("userElevationData")}
+      </div>
       <ElevationOffsetField source={source} />
       <div className="overflow-y-auto max-h-[30vh] scroll-shadows border rounded">
         <ul className="flex flex-col">
@@ -339,7 +341,7 @@ const TileServerElevationSourceRow = ({
   return (
     <ElevationSourceRowShell
       id={source.id}
-      name={source.name}
+      name={translate("mapboxDefaultData")}
       typeLabel={translate("globalDtm").toUpperCase()}
       disabled={isDisabled}
     >
@@ -379,9 +381,12 @@ const TileServerPopover = ({
 }: {
   source: TileServerElevationSource;
 }) => {
+  const translate = useTranslate();
   return (
     <div className="flex flex-col gap-y-2">
-      <div className="font-semibold text-sm">{source.name}</div>
+      <div className="font-semibold text-sm">
+        {translate("mapboxDefaultData")}
+      </div>
       <ElevationOffsetField source={source} />
     </div>
   );
@@ -462,7 +467,6 @@ const AddElevationDataButton = () => {
         type: "geotiff",
         id: nanoid(),
         enabled: true,
-        name: translate("userElevationData"),
         tiles,
         elevationOffsetM: 0,
       };

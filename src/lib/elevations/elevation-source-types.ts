@@ -17,7 +17,6 @@ export type GeoTiffElevationSource = {
   type: "geotiff";
   id: string;
   enabled: boolean;
-  name: string;
   tiles: GeoTiffTile[];
   elevationOffsetM: number;
 };
@@ -26,7 +25,6 @@ export type TileServerElevationSource = {
   type: "tile-server";
   id: string;
   enabled: boolean;
-  name: string;
   tileUrlTemplate: string;
   tileZoom: number;
   tileSize: number;
