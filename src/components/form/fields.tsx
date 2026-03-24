@@ -106,6 +106,7 @@ export const InlineField = ({
   const labelClasses = clsx("text-sm text-gray-500 min-w-0", {
     "grow shrink": layout === "fluid-label",
     "flex-shrink-0": layout === "fixed-label",
+    "break-words": layout === "fixed-label" && labelSize === "sm",
     "w-1/2": layout === "half-split",
     "flex-none": layout === "label-flex-none",
   });
