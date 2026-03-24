@@ -11,6 +11,7 @@ import { MapPreview } from "./map-preview";
 import { ProjectionSearch } from "./projection-search";
 import { ProjectionResults } from "./projection-results";
 import { useProjections } from "./use-projections";
+import { useMapPreview } from "./use-map-preview";
 import {
   buildProjectionCandidates,
   filterByViewport,
@@ -30,6 +31,7 @@ export const NetworkProjectionDialog = ({
 }) => {
   const { closeDialog } = useDialogState();
   const { projections } = useProjections();
+  const { fitToNetwork, fitToBbox, setHandle } = useMapPreview();
 
   const [selectedLocation, setSelectedLocation] = useState<LocationData | null>(
     null,
@@ -46,8 +48,6 @@ export const NetworkProjectionDialog = ({
       approximateToNullIsland(previewGeoJson),
     );
   const [showBasemap, setShowBasemap] = useState(false);
-  const [fitBbox, setFitBbox] = useState<Bbox | null>(null);
-  const [fitToNetworkCounter, setFitToNetworkCounter] = useState(0);
   const [projectionError, setProjectionError] = useState<string | null>(null);
 
   const allCandidatesRef = useRef<ProjectionCandidate[]>([]);
@@ -96,24 +96,26 @@ export const NetworkProjectionDialog = ({
             setShowBasemap(options.basemap);
             setProjectionError(null);
             if (options.fitNetwork) {
-              setFitToNetworkCounter((c) => c + 1);
+              fitToNetwork(projected);
             }
           } else {
-            setDisplayGeoJSON(approximateToNullIsland(previewGeoJson));
+            const fallback = approximateToNullIsland(previewGeoJson);
+            setDisplayGeoJSON(fallback);
             setShowBasemap(false);
             setProjectionError("Projection out of bounds");
-            setFitToNetworkCounter((c) => c + 1);
+            fitToNetwork(fallback);
           }
         } catch {
-          setDisplayGeoJSON(approximateToNullIsland(previewGeoJson));
+          const fallback = approximateToNullIsland(previewGeoJson);
+          setDisplayGeoJSON(fallback);
           setShowBasemap(false);
           setProjectionError("Projection out of bounds");
-          setFitToNetworkCounter((c) => c + 1);
+          fitToNetwork(fallback);
         }
         setIsProjecting(false);
       }, 0);
     },
-    [previewGeoJson],
+    [previewGeoJson, fitToNetwork],
   );
 
   const updateVisibleCandidates = useCallback(
@@ -152,11 +154,11 @@ export const NetworkProjectionDialog = ({
       setSelectedLocation(location);
       selectedLocationRef.current = location;
       setProjectionError(null);
-      setFitBbox(location.bbox);
       setShowBasemap(true);
+      fitToBbox(location.bbox);
       updateVisibleCandidates(location.bbox, "first");
     },
-    [updateVisibleCandidates],
+    [updateVisibleCandidates, fitToBbox],
   );
 
   const handleBoundsChange = useCallback(
@@ -177,7 +179,6 @@ export const NetworkProjectionDialog = ({
       setSelectedLocation(null);
       selectedLocationRef.current = null;
       setVisibleCandidates([]);
-      setFitBbox(null);
       applyProjection(projection, { fitNetwork: true, basemap: true });
     },
     [applyProjection],
@@ -246,10 +247,9 @@ export const NetworkProjectionDialog = ({
           )}
         </div>
         <MapPreview
+          setHandle={setHandle}
           geoJSON={displayGeoJSON}
           showBasemap={showBasemap}
-          bbox={fitBbox}
-          fitToNetworkCounter={fitToNetworkCounter}
           onBoundsChange={selectedLocation ? handleBoundsChange : undefined}
           isLoading={isLoading}
         />

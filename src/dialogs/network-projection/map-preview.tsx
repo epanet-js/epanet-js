@@ -9,6 +9,7 @@ import {
   FIT_TO_EXTENT_ICON,
 } from "src/map/custom-map-control";
 import type { Bbox } from "./types";
+import type { MapPreviewHandle } from "./use-map-preview";
 
 const BASEMAP_STYLE = "mapbox://styles/mapbox/light-v10";
 
@@ -64,19 +65,17 @@ const NETWORK_LAYERS: mapboxgl.AnyLayer[] = [
 type MapPreviewProps = {
   geoJSON: FeatureCollection | null;
   showBasemap: boolean;
-  bbox: Bbox | null;
-  fitToNetworkCounter?: number;
   onBoundsChange?: (bounds: Bbox) => void;
   isLoading?: boolean;
+  setHandle: (handle: MapPreviewHandle | null) => void;
 };
 
 export const MapPreview = ({
   geoJSON,
   showBasemap,
-  bbox,
-  fitToNetworkCounter = 0,
   onBoundsChange,
   isLoading,
+  setHandle,
 }: MapPreviewProps) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
@@ -86,8 +85,6 @@ export const MapPreview = ({
   const programmaticMoveRef = useRef(false);
   const geoJSONRef = useRef(geoJSON);
   geoJSONRef.current = geoJSON;
-  const bboxRef = useRef(bbox);
-  bboxRef.current = bbox;
   const pendingDataUpdateRef = useRef(false);
 
   useEffect(() => {
@@ -127,7 +124,7 @@ export const MapPreview = ({
     map.on("load", () => {
       styleReadyRef.current = true;
       addNetworkSourceAndLayers(map, geoJSONRef.current);
-      programmaticFit(map, geoJSONRef.current, bboxRef.current);
+      programmaticFit(map, geoJSONRef.current, null);
     });
 
     map.on("moveend", () => {
@@ -147,7 +144,21 @@ export const MapPreview = ({
 
     mapRef.current = map;
 
+    setHandle({
+      fitToNetwork: (geoJSON: FeatureCollection) => {
+        if (!styleReadyRef.current) return;
+        if (geoJSON.features.length > 0) {
+          programmaticFit(map, geoJSON, null);
+        }
+      },
+      fitToBbox: (bbox: Bbox) => {
+        if (!styleReadyRef.current) return;
+        programmaticFit(map, null, bbox);
+      },
+    });
+
     return () => {
+      setHandle(null);
       map.remove();
       mapRef.current = null;
       styleReadyRef.current = false;
@@ -168,7 +179,7 @@ export const MapPreview = ({
       map.once("style.load", () => {
         styleReadyRef.current = true;
         addNetworkSourceAndLayers(map, geoJSONRef.current);
-        programmaticFit(map, geoJSONRef.current, bboxRef.current);
+        programmaticFit(map, geoJSONRef.current, null);
         pendingDataUpdateRef.current = false;
       });
     } else if (!showBasemap && currentIsBasemap) {
@@ -177,7 +188,7 @@ export const MapPreview = ({
       map.once("style.load", () => {
         styleReadyRef.current = true;
         addNetworkSourceAndLayers(map, geoJSONRef.current);
-        programmaticFit(map, geoJSONRef.current, bboxRef.current);
+        programmaticFit(map, geoJSONRef.current, null);
         pendingDataUpdateRef.current = false;
       });
     }
@@ -200,27 +211,6 @@ export const MapPreview = ({
       source.setData(geoJSON ?? emptyFeatureCollection);
     }
   }, [geoJSON]);
-
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map || !styleReadyRef.current) return;
-
-    if (bbox) {
-      programmaticFit(map, null, bbox);
-    }
-  }, [bbox]);
-
-  useEffect(() => {
-    if (fitToNetworkCounter === 0) return;
-    const map = mapRef.current;
-    if (!map || !styleReadyRef.current) return;
-
-    const data = geoJSONRef.current;
-    if (data && data.features.length > 0) {
-      programmaticFit(map, data, null);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fitToNetworkCounter]);
 
   return (
     <div className="relative flex-1 flex flex-col min-h-0">
