@@ -31,7 +31,6 @@ const aMapboxSource: TileServerElevationSource = {
   type: "tile-server",
   id: "mapbox-default",
   enabled: true,
-  name: "Mapbox default data",
   tileUrlTemplate:
     "https://api.mapbox.com/v4/mapbox.mapbox-terrain-dem-v1/{z}/{x}/{y}@2x.pngraw",
   tileZoom: 14,
@@ -44,7 +43,6 @@ const aGeoTiffSource: GeoTiffElevationSource = {
   type: "geotiff",
   id: "user-dtm-1",
   enabled: true,
-  name: "User elevation data",
   tiles: [
     {
       id: "tile-1",
