@@ -25,9 +25,11 @@ const DEBOUNCE_MS = 200;
 export const NetworkProjectionDialog = ({
   previewGeoJson,
   onImportNonProjected,
+  onImportProjected,
 }: {
   previewGeoJson: FeatureCollection;
   onImportNonProjected: () => void;
+  onImportProjected: (projection: string) => void;
 }) => {
   const { closeDialog } = useDialogState();
   const { projections } = useProjections();
@@ -192,6 +194,12 @@ export const NetworkProjectionDialog = ({
     [applyProjection],
   );
 
+  const handleApplyBasemap = useCallback(() => {
+    if (selectedProjection) {
+      onImportProjected(selectedProjection.code);
+    }
+  }, [selectedProjection, onImportProjected]);
+
   const handleLoadWithoutBasemap = useCallback(() => {
     onImportNonProjected();
   }, [onImportNonProjected]);
@@ -209,6 +217,7 @@ export const NetworkProjectionDialog = ({
       footer={
         <SimpleDialogActions
           action="Apply basemap"
+          onAction={handleApplyBasemap}
           isDisabled={!selectedProjection || !!projectionError}
           secondary={{
             action: "Load without basemap",

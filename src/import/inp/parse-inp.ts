@@ -22,6 +22,7 @@ import {
   buildProjectionConfig,
   createProjectionMapper,
 } from "src/projections";
+import { createProjectionTransformer } from "src/lib/geojson-utils/coordinate-transform";
 
 export type ParseInpOptions = {
   customerPoints?: boolean;
@@ -191,6 +192,10 @@ const projectCoordinates = (
     return { type: "wgs84" };
   }
 
+  if (sourceProjection !== "xy-grid") {
+    return projectWithCode(inpData, sourceProjection);
+  }
+
   const getAllPoints = () => {
     const points: Position[] = [];
     for (const [, p] of inpData.coordinates.entries()) points.push(p);
@@ -199,7 +204,7 @@ const projectCoordinates = (
     return points;
   };
 
-  const config = buildProjectionConfig(sourceProjection, getAllPoints);
+  const config = buildProjectionConfig("xy-grid", getAllPoints);
   const mapper = createProjectionMapper(config);
 
   for (const [id, p] of inpData.coordinates.entries()) {
@@ -216,6 +221,31 @@ const projectCoordinates = (
   }
 
   return config;
+};
+
+const projectWithCode = (
+  inpData: InpData,
+  projectionCode: string,
+): ProjectionConfig => {
+  const transform = createProjectionTransformer(projectionCode);
+
+  for (const [id, p] of inpData.coordinates.entries()) {
+    inpData.coordinates.set(id, transform(p as [number, number]));
+  }
+  for (const [id, verts] of inpData.vertices.entries()) {
+    inpData.vertices.set(
+      id,
+      verts.map((v) => transform(v as [number, number])),
+    );
+  }
+  for (const cp of inpData.customerPoints) {
+    cp.coordinates = transform(cp.coordinates);
+    if ("snapPoint" in cp && cp.snapPoint) {
+      cp.snapPoint = transform(cp.snapPoint);
+    }
+  }
+
+  return { type: "wgs84" };
 };
 
 type Header = { isMadeByApp: boolean; sourceProjection?: Projection };

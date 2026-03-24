@@ -37,7 +37,7 @@ export const createProjectionMapper = (
 };
 
 export const buildProjectionConfig = (
-  projection: Projection,
+  projection: "wgs84" | "xy-grid",
   allPoints: () => Position[],
 ): ProjectionConfig => {
   switch (projection) {

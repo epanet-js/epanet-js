@@ -191,10 +191,33 @@ export const useImportInp = () => {
           if (isReprojectOn) {
             const previewGeoJson = parseCoordinatesGeoJson(content);
 
+            const onImportProjected = async (projection: string) => {
+              setDialogState({ type: "loading" });
+              try {
+                const result = parseInp(content, {
+                  ...parseOptions,
+                  sourceProjection: projection,
+                });
+                userTracking.capture(
+                  buildCompleteEvent(
+                    result.hydraulicModel,
+                    result.projectSettings,
+                    result.issues,
+                    result.stats,
+                  ),
+                );
+                await completeImport(result, { autoElevations: true });
+              } catch (error) {
+                captureError(error as Error);
+                setDialogState({ type: "invalidFilesError" });
+              }
+            };
+
             setDialogState({
               type: "networkProjection",
               previewGeoJson,
               onImportNonProjected,
+              onImportProjected,
             });
           } else {
             setDialogState({
