@@ -161,8 +161,7 @@ const ElevationSourceRowShell = ({
           {children}
         </div>
         <div
-          className={`font-semibold ${disabled ? "opacity-40" : "opacity-50"}`}
-          style={{ fontSize: 10 }}
+          className={`font-semibold text-xs text-gray-500 ${disabled ? "opacity-50" : ""}`}
         >
           {description}
         </div>
