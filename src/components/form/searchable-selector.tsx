@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import * as Popover from "@radix-ui/react-popover";
 import clsx from "clsx";
 
@@ -36,6 +36,15 @@ export const SearchableSelector = <T extends SearchableSelectorOption>({
   const inputRef = useRef<HTMLInputElement | null>(null);
   const listRef = useRef<HTMLUListElement | null>(null);
 
+  useEffect(
+    function keepActiveItemVisible() {
+      if (!listRef.current || activeIndex < 0) return;
+      const item = listRef.current.children[activeIndex] as HTMLElement;
+      item?.scrollIntoView({ block: "nearest" });
+    },
+    [activeIndex],
+  );
+
   const search = useCallback(
     async (query: string) => {
       if (query.trim().length < 2) {
@@ -72,49 +81,34 @@ export const SearchableSelector = <T extends SearchableSelectorOption>({
       setSearchTerm(option.label);
       setOpen(false);
       setActiveIndex(-1);
-      requestAnimationFrame(() => inputRef.current?.focus());
     },
     [onChange],
-  );
-
-  const moveActive = useCallback(
-    (delta: number) => {
-      if (!open || suggestions.length === 0) return;
-      setActiveIndex((prev) => {
-        let next = prev + delta;
-        if (next < 0) next = suggestions.length - 1;
-        if (next >= suggestions.length) next = 0;
-        return next;
-      });
-    },
-    [open, suggestions.length],
   );
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
       if (e.key === "ArrowDown") {
-        if (!open && (isSearching || suggestions.length > 0)) setOpen(true);
-        if (suggestions.length > 0) {
-          e.preventDefault();
-          setActiveIndex(0);
-          requestAnimationFrame(() => listRef.current?.focus());
-        }
+        e.preventDefault();
+        if (!open && suggestions.length > 0) setOpen(true);
+        setActiveIndex((prev) =>
+          prev < 0 ? 0 : Math.min(prev + 1, suggestions.length - 1),
+        );
         return;
       }
 
-      if (e.key === "Tab" && !e.shiftKey) {
-        if (open && suggestions.length > 0) {
-          e.preventDefault();
-          setActiveIndex(0);
-          requestAnimationFrame(() => listRef.current?.focus());
-        }
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        if (!open && suggestions.length > 0) setOpen(true);
+        setActiveIndex((prev) =>
+          prev <= 0 ? suggestions.length - 1 : prev - 1,
+        );
         return;
       }
 
       if (e.key === "Enter") {
         e.preventDefault();
-        if (open && suggestions.length > 0) {
-          commit(suggestions[0]);
+        if (open && activeIndex >= 0) {
+          commit(suggestions[activeIndex]);
         } else if (searchTerm.trim()) {
           void search(searchTerm);
         }
@@ -126,31 +120,16 @@ export const SearchableSelector = <T extends SearchableSelectorOption>({
         setActiveIndex(-1);
         return;
       }
-    },
-    [open, isSearching, suggestions, commit, search, searchTerm],
-  );
 
-  const handleListKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLUListElement>) => {
-      if (e.key === "ArrowDown") {
-        e.preventDefault();
-        moveActive(1);
-      } else if (e.key === "ArrowUp") {
-        e.preventDefault();
-        moveActive(-1);
-      } else if (e.key === "Enter") {
-        e.preventDefault();
-        if (activeIndex >= 0) commit(suggestions[activeIndex]);
-      } else if (e.key === "Escape") {
-        setOpen(false);
-        setActiveIndex(-1);
-        requestAnimationFrame(() => inputRef.current?.focus());
-      } else if (e.key === "Tab") {
+      if (e.key === "Tab") {
+        if (open && activeIndex >= 0) {
+          commit(suggestions[activeIndex]);
+        }
         setOpen(false);
         setActiveIndex(-1);
       }
     },
-    [moveActive, activeIndex, commit, suggestions],
+    [open, suggestions, activeIndex, commit, search, searchTerm],
   );
 
   const handleOptionClick = useCallback(
@@ -216,6 +195,7 @@ export const SearchableSelector = <T extends SearchableSelectorOption>({
             onCloseAutoFocus={(e) => e.preventDefault()}
             onEscapeKeyDown={() => setOpen(false)}
             onPointerDownOutside={() => setOpen(false)}
+            onMouseDown={(e) => e.preventDefault()}
             style={{
               ["--anchor-width" as any]: `${inputRef.current?.offsetWidth ?? 0}px`,
             }}
@@ -225,10 +205,9 @@ export const SearchableSelector = <T extends SearchableSelectorOption>({
             ) : (
               <ul
                 ref={listRef}
-                tabIndex={0}
+                tabIndex={-1}
                 role="listbox"
                 aria-label={label}
-                onKeyDown={handleListKeyDown}
                 className="outline-none"
               >
                 {suggestions.map((suggestion, index) => (
