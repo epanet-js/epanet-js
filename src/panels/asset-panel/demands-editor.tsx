@@ -14,7 +14,10 @@ import { PropertyComparison } from "src/hooks/use-asset-comparison";
 import { calculateAverageDemand, Demand } from "src/hydraulic-model/demands";
 import { UnitsSpec } from "src/lib/project-settings/quantities-spec";
 import { QuantityRow } from "./ui-components";
-import { NestedSection } from "src/components/form/fields";
+import {
+  NestedSection,
+  BlockComparisonField,
+} from "src/components/form/fields";
 
 type DemandCategoryRow = {
   baseDemand: number | null;
@@ -266,31 +269,30 @@ export const DemandCategoriesEditor = ({
   }
 
   return (
-    <div ref={containerRef} className="relative flex flex-col gap-2">
-      {comparison?.hasChanged && (
-        <div className="absolute -left-4 top-0 bottom-0 w-1 bg-purple-500 rounded-full" />
-      )}
-      <label
-        className="text-sm text-gray-500 w-full flex-shrink-0"
-        aria-label={`label: ${translate("demandCategories")}`}
-      >
-        {translate("demandCategories")}
-      </label>
-      <NestedSection className="pb-2" indentation={0}>
-        <DataGrid<DemandCategoryRow>
-          ref={gridRef}
-          data={rowData}
-          columns={columns}
-          onChange={handleChange}
-          createRow={createRow}
-          rowActions={rowActions}
-          addRowLabel={translate("addDemandCategory")}
-          variant="rows"
-          gutterColumn
-          readOnly={readOnly}
-        />
-      </NestedSection>
-    </div>
+    <BlockComparisonField hasChanged={comparison?.hasChanged ?? false}>
+      <div ref={containerRef} className="flex flex-col gap-2">
+        <label
+          className="text-sm text-gray-500 w-full flex-shrink-0"
+          aria-label={`label: ${translate("demandCategories")}`}
+        >
+          {translate("demandCategories")}
+        </label>
+        <NestedSection className="pb-2" indentation={0}>
+          <DataGrid<DemandCategoryRow>
+            ref={gridRef}
+            data={rowData}
+            columns={columns}
+            onChange={handleChange}
+            createRow={createRow}
+            rowActions={rowActions}
+            addRowLabel={translate("addDemandCategory")}
+            variant="rows"
+            gutterColumn
+            readOnly={readOnly}
+          />
+        </NestedSection>
+      </div>
+    </BlockComparisonField>
   );
 };
 
@@ -319,10 +321,7 @@ export const DemandsEditor = ({
   const demandComparison = demandComparator(averageDemand);
 
   return (
-    <div className="relative flex flex-col gap-2">
-      {demandComparison.hasChanged && (
-        <div className="absolute -left-4 top-0 bottom-0 w-1 bg-purple-500 rounded-full" />
-      )}
+    <BlockComparisonField hasChanged={demandComparison.hasChanged}>
       <DemandCategoriesEditor
         demands={demands}
         patterns={patterns}
@@ -337,6 +336,6 @@ export const DemandsEditor = ({
         comparison={demandComparison}
         readOnly={true}
       />
-    </div>
+    </BlockComparisonField>
   );
 };
