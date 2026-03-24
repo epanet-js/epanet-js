@@ -91,7 +91,7 @@ describe("ElevationsConfig", () => {
     renderComponent(store);
 
     expect(screen.getByText("User elevation data")).toBeInTheDocument();
-    expect(screen.getByText("GEOTIFF")).toBeInTheDocument();
+    expect(screen.getByText(/\dm grid – 2 files/)).toBeInTheDocument();
   });
 
   it("displays sources in reverse order (default at bottom)", () => {
@@ -99,8 +99,8 @@ describe("ElevationsConfig", () => {
     store.set(elevationSourcesAtom, [aMapboxSource, aGeoTiffSource]);
     renderComponent(store);
 
-    const labels = screen.getAllByText(/GEOTIFF|GLOBAL DTM/);
-    expect(labels[0]).toHaveTextContent("GEOTIFF");
+    const labels = screen.getAllByText(/grid – \d+ files?|GLOBAL DTM/);
+    expect(labels[0]).toHaveTextContent(/grid – \d+ files?/);
     expect(labels[1]).toHaveTextContent("GLOBAL DTM");
   });
 
@@ -152,7 +152,9 @@ describe("ElevationsConfig", () => {
     store.set(elevationSourcesAtom, [aMapboxSource, aGeoTiffSource]);
     renderComponent(store);
 
-    const geotiffRow = screen.getByText("GEOTIFF").closest("[class*='py-2']")!;
+    const geotiffRow = screen
+      .getByText(/grid – \d+ files?/)
+      .closest("[class*='py-2']")!;
     const deleteButton = geotiffRow.querySelector(".text-red-500")!;
     await user.click(deleteButton);
 
@@ -342,7 +344,9 @@ describe("ElevationsConfig", () => {
   });
 
   const getGeotiffPopoverTrigger = () => {
-    const geotiffRow = screen.getByText("GEOTIFF").closest("[class*='py-2']")!;
+    const geotiffRow = screen
+      .getByText(/grid – \d+ files?/)
+      .closest("[class*='py-2']")!;
     return geotiffRow.querySelector("button")!;
   };
 
