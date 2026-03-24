@@ -10,7 +10,7 @@ import { isLikelyLatLng } from "src/lib/geojson-utils/coordinate-transform";
 import { MapPreview } from "./map-preview";
 import { ProjectionSearch } from "./projection-search";
 import { ProjectionResults } from "./projection-results";
-import { useProjections } from "./use-projections";
+import { useProjections } from "src/hooks/use-projections";
 import { useMapPreview } from "./use-map-preview";
 import {
   buildProjectionCandidates,
@@ -33,7 +33,7 @@ export const NetworkProjectionDialog = ({
   onImportProjected: (projection: Projection) => void;
 }) => {
   const { closeDialog } = useDialogState();
-  const { projections } = useProjections();
+  const { projectionsArray: projections } = useProjections();
   const { fitToNetwork, fitToBbox, setHandle } = useMapPreview();
 
   const [selectedLocation, setSelectedLocation] = useState<LocationData | null>(

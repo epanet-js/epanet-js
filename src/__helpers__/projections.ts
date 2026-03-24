@@ -26,9 +26,12 @@ const mockProjections = new Map<string, Projection>([
   ],
 ]);
 
+const mockProjectionsArray = [...mockProjections.values()];
+
 export const stubProjectionsReady = () => {
   (useProjections.useProjections as Mock).mockReturnValue({
     projections: mockProjections,
+    projectionsArray: mockProjectionsArray,
     loading: false,
     error: null,
   });
@@ -37,6 +40,7 @@ export const stubProjectionsReady = () => {
 export const stubProjectionsLoading = () => {
   (useProjections.useProjections as Mock).mockReturnValue({
     projections: null,
+    projectionsArray: [],
     loading: true,
     error: null,
   });
@@ -47,6 +51,7 @@ export const stubProjectionsError = (
 ) => {
   (useProjections.useProjections as Mock).mockReturnValue({
     projections: null,
+    projectionsArray: [],
     loading: false,
     error: errorMessage,
   });

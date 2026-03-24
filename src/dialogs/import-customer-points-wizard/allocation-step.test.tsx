@@ -29,6 +29,13 @@ vi.mock("src/hooks/use-projections", () => ({
         },
       ],
     ]),
+    projectionsArray: [
+      {
+        id: "EPSG:4326",
+        name: "WGS 84",
+        code: "+proj=longlat +datum=WGS84 +no_defs",
+      },
+    ],
     loading: false,
     error: null,
   })),
