@@ -1,5 +1,8 @@
 import { fromBlob, GeoTIFFImage } from "geotiff";
-import type { GeoTiffTile } from "./elevation-source-types";
+import type {
+  GeoTiffTile,
+  GeoTiffElevationSource,
+} from "./elevation-source-types";
 
 export type ExtractedTileMetadata = Omit<GeoTiffTile, "id">;
 
@@ -170,4 +173,14 @@ export function buildCoverageFeature(
       ],
     },
   };
+}
+
+export function getGeoTiffGridResolutionM(
+  source: GeoTiffElevationSource,
+): number {
+  if (source.tiles.length === 0) return 0;
+  const tile = source.tiles[0];
+  const centerLat = (tile.bbox[1] + tile.bbox[3]) / 2;
+  const degPerPixel = Math.abs(tile.pixelToGps[1]);
+  return degPerPixel * 111_320 * Math.cos((centerLat * Math.PI) / 180);
 }

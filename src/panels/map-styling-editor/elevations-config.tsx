@@ -50,6 +50,7 @@ import { offlineAtom } from "src/state/offline";
 import {
   extractGeoTiffMetadata,
   buildCoverageFeature,
+  getGeoTiffGridResolutionM,
 } from "src/lib/elevations";
 import type {
   ElevationSource,
@@ -119,13 +120,13 @@ export const ElevationsConfig = () => {
 const ElevationSourceRowShell = ({
   id,
   name,
-  typeLabel,
+  description,
   disabled = false,
   children,
 }: {
   id: string;
   name: string;
-  typeLabel: string;
+  description: string;
   disabled?: boolean;
   children: React.ReactNode;
 }) => {
@@ -163,7 +164,7 @@ const ElevationSourceRowShell = ({
           className={`font-semibold ${disabled ? "opacity-40" : "opacity-50"}`}
           style={{ fontSize: 10 }}
         >
-          {typeLabel}
+          {description}
         </div>
       </div>
     </div>
@@ -179,6 +180,14 @@ const GeoTiffElevationSourceRow = ({
   const setSources = useSetAtom(elevationSourcesAtom);
   const setCoverageFeatures = useSetAtom(mapOverlayFeaturesAtom);
   const userTracking = useUserTracking();
+  const { units } = useAtomValue(projectSettingsAtom);
+  const elevationUnit = units.elevation;
+  const resolutionM = getGeoTiffGridResolutionM(source);
+  const resolutionDisplay = Math.round(
+    convertTo({ value: resolutionM, unit: "m" }, elevationUnit),
+  );
+  const fileCount = source.tiles.length;
+  const description = `${translate("gridResolution", `${resolutionDisplay}${elevationUnit}`)} – ${translate("files", fileCount)}`;
 
   const handleDelete = () => {
     setSources((prev) => prev.filter((s) => s.id !== source.id));
@@ -208,7 +217,7 @@ const GeoTiffElevationSourceRow = ({
     <ElevationSourceRowShell
       id={source.id}
       name={translate("userElevationData")}
-      typeLabel="GEOTIFF"
+      description={description}
     >
       <Popover.Root onOpenChange={handlePopoverOpenChange}>
         <Popover.Trigger asChild>
@@ -391,7 +400,7 @@ const TileServerElevationSourceRow = ({
     <ElevationSourceRowShell
       id={source.id}
       name={translate("mapboxDefaultData")}
-      typeLabel={translate("globalDtm").toUpperCase()}
+      description={translate("globalDtm").toUpperCase()}
       disabled={isDisabled}
     >
       <Popover.Root>

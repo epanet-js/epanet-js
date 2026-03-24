@@ -11,6 +11,7 @@ export {
   isPointInBbox,
   transformCoordinates,
   buildCoverageFeature,
+  getGeoTiffGridResolutionM,
 } from "./geotiff-utils";
 export type { ExtractedTileMetadata } from "./geotiff-utils";
 
