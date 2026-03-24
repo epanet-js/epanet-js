@@ -31,7 +31,7 @@ import {
   ProjectionConfig,
   createProjectionMapper,
   getBackdropUnits,
-} from "src/projections";
+} from "src/lib/projections";
 import { UnitsSpec } from "src/lib/project-settings/quantities-spec";
 import { Position } from "geojson";
 import { withDebugInstrumentation } from "src/infra/with-instrumentation";

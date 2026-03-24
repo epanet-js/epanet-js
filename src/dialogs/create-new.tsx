@@ -17,7 +17,7 @@ import {
 } from "src/lib/project-settings/quantities-spec";
 import type { Unit } from "src/quantity";
 import { ProjectSettings } from "src/lib/project-settings";
-import type { Projection, ProjectionConfig } from "src/projections";
+import type { Projection, ProjectionConfig } from "src/lib/projections";
 import {
   HeadlossFormula,
   headlossFormulas,

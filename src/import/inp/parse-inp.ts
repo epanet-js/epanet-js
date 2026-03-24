@@ -21,7 +21,7 @@ import {
   ProjectionConfig,
   buildProjectionConfig,
   createProjectionMapper,
-} from "src/projections";
+} from "src/lib/projections";
 import { createProjectionTransformer } from "src/lib/geojson-utils/coordinate-transform";
 
 export type ParseInpOptions = {

@@ -4,7 +4,7 @@ import {
   FormattingSpec,
   presets,
 } from "./quantities-spec";
-import { ProjectionConfig } from "src/projections";
+import { ProjectionConfig } from "src/lib/projections";
 import { HeadlossFormula } from "src/hydraulic-model/asset-types/pipe";
 
 export type ProjectSettings = {
