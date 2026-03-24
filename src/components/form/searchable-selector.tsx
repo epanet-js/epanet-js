@@ -15,6 +15,7 @@ export const SearchableSelector = <T extends SearchableSelectorOption>({
   placeholder,
   label,
   disabled = false,
+  autoFocus = false,
   wrapperClassName,
   renderOption,
 }: {
@@ -24,6 +25,7 @@ export const SearchableSelector = <T extends SearchableSelectorOption>({
   placeholder?: string;
   label?: string;
   disabled?: boolean;
+  autoFocus?: boolean;
   wrapperClassName?: string;
   renderOption?: (option: T) => React.ReactNode;
 }) => {
@@ -167,6 +169,7 @@ export const SearchableSelector = <T extends SearchableSelectorOption>({
               placeholder={placeholder}
               disabled={disabled}
               spellCheck={false}
+              autoFocus={autoFocus}
               autoComplete="off"
               className={clsx(
                 "flex items-center gap-x-2 w-full min-w-[90px]",

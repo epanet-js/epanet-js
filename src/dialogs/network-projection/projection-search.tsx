@@ -125,6 +125,7 @@ export const ProjectionSearch = ({
       onSearch={search}
       placeholder="Search by location or code"
       wrapperClassName="block"
+      autoFocus
       renderOption={renderOption}
     />
   );
