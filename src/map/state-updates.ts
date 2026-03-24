@@ -130,8 +130,7 @@ const detectChanges = (
     hasNewCustomerPoints: state.customerPoints !== prev.customerPoints,
     hasNewZoom: state.currentZoom !== prev.currentZoom,
     hasSyncMomentChanged: state.syncMomentVersion !== prev.syncMomentVersion,
-    hasNewMapOverlay:
-      state.mapOverlayFeatures !== prev.mapOverlayFeatures,
+    hasNewMapOverlay: state.mapOverlayFeatures !== prev.mapOverlayFeatures,
   };
 };
 
@@ -377,10 +376,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         }
 
         if (hasNewMapOverlay) {
-          await updateMapOverlaySource(
-            map,
-            mapState.mapOverlayFeatures,
-          );
+          await updateMapOverlaySource(map, mapState.mapOverlayFeatures);
         }
 
         if (

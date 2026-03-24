@@ -142,7 +142,11 @@ export function isPointInBbox(
 
 export function buildCoverageFeature(
   tile: GeoTiffTile,
-  { isFilled, isDisabled, showLabel }: { isFilled: boolean; isDisabled: boolean; showLabel: boolean },
+  {
+    isFilled,
+    isDisabled,
+    showLabel,
+  }: { isFilled: boolean; isDisabled: boolean; showLabel: boolean },
 ): GeoJSON.Feature {
   const [west, south, east, north] = tile.bbox;
   return {
