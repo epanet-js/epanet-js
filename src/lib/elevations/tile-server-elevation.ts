@@ -11,14 +11,6 @@ export const queryClient = new QueryClient({
     },
   },
 });
-export const queryClientDeprecated = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime,
-      retry: 3,
-    },
-  },
-});
 
 export const tileSize = 512;
 export const tileZoom = 14;
@@ -46,7 +38,7 @@ export async function fetchElevationForPoint(
   });
 
   if (!tileBlob) {
-    return fallbackElevation;
+    throw new Error("Tile not found");
   }
 
   const { ctx, img } = await setUpCanvas(tileBlob);
@@ -60,15 +52,6 @@ export async function prefetchElevationsTile({ lng, lat }: LngLat) {
   await queryClient.prefetchQuery({
     queryKey,
     queryFn: () => fetchTileFromUrl(url),
-  });
-}
-
-export async function prefetchElevationsTileDeprecated({ lng, lat }: LngLat) {
-  const { queryKey, url } = buildTileDescriptor(lng, lat);
-
-  await queryClientDeprecated.prefetchQuery({
-    queryKey,
-    queryFn: () => fetchTileFromUrlDeprecated(url),
   });
 }
 
@@ -87,22 +70,6 @@ const fetchTileFromUrl = withDebugInstrumentation(
         throw new Error("Tile not found");
       }
       throw new Error("Failed to fetch");
-    }
-    return response.blob();
-  },
-  {
-    name: "FETCH_ELEVATION:FETCH_TILE",
-    maxDurationMs: 500,
-    maxCalls: 5,
-    callsIntervalMs: 1000,
-  },
-);
-
-const fetchTileFromUrlDeprecated = withDebugInstrumentation(
-  async (tileUrl: string): Promise<Blob | null> => {
-    const response = await fetch(tileUrl);
-    if (!response.ok) {
-      return null;
     }
     return response.blob();
   },

@@ -1,11 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
-  CanvasSetupFn,
+  type CanvasSetupFn,
   fetchElevationForPoint,
   prefetchElevationsTile,
   queryClient,
   tileSize,
-} from "./elevations";
+} from "src/lib/elevations";
 import fs from "fs";
 import path from "path";
 import { createCanvas, loadImage } from "canvas";
