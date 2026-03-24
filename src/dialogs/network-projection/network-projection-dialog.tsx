@@ -7,6 +7,7 @@ import {
 } from "src/components/dialog";
 import type { LocationData } from "src/components/form/location-search";
 import { isLikelyLatLng } from "src/lib/geojson-utils/coordinate-transform";
+import { MapPinnedIcon } from "src/icons";
 import { MapPreview } from "./map-preview";
 import { ProjectionSearch } from "./projection-search";
 import { ProjectionResults } from "./projection-results";
@@ -235,7 +236,7 @@ export const NetworkProjectionDialog = ({
             onProjectionSelect={handleProjectionSelectFromSearch}
           />
 
-          {(selectedLocation || selectedProjection) && (
+          {selectedLocation || selectedProjection ? (
             <div className="flex-1 min-h-0 flex flex-col">
               <ProjectionResults
                 projections={selectedLocation ? candidateProjections : []}
@@ -254,6 +255,8 @@ export const NetworkProjectionDialog = ({
                 </p>
               )}
             </div>
+          ) : (
+            <ProjectionEmptyState />
           )}
         </div>
         <MapPreview
@@ -267,3 +270,24 @@ export const NetworkProjectionDialog = ({
     </BaseDialog>
   );
 };
+
+const ProjectionEmptyState = () => (
+  <div className="flex-1 min-h-0 flex flex-col items-center justify-center px-4">
+    <div className="text-gray-400">
+      <MapPinnedIcon size={96} />
+    </div>
+    <p className="text-sm font-semibold py-4 text-gray-600 dark:text-gray-300">
+      Add a basemap
+    </p>
+    <div className="text-sm text-gray-600 dark:text-gray-400 max-w-48 space-y-2">
+      <p>
+        Search for your network's location or enter a projection code above to
+        find the right coordinate system.
+      </p>
+      <p>
+        If your network doesn't use a projection, you can load without a
+        basemap.
+      </p>
+    </div>
+  </div>
+);
