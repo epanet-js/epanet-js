@@ -10,9 +10,14 @@ export const useProjections = () => {
 
     fetch("/projections.json")
       .then((res) => res.json())
-      .then((data: Projection[]) => {
+      .then((data: Omit<Projection, "deprecated">[]) => {
         if (!cancelled) {
-          setProjections(data);
+          const enriched = data.map((p) => ({
+            ...p,
+            deprecated: /\(deprecated\)/i.test(p.name),
+          }));
+          enriched.sort((a, b) => Number(a.deprecated) - Number(b.deprecated));
+          setProjections(enriched);
           setIsLoading(false);
         }
       })
