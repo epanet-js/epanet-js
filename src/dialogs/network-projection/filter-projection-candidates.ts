@@ -1,13 +1,13 @@
 // eslint-disable-next-line no-restricted-imports
 import proj4 from "proj4";
 import type { FeatureCollection, Position } from "geojson";
-import type { Projection } from "src/lib/projections";
+import type { Proj4Projection } from "src/lib/projections";
 import type { Bbox, ProjectionCandidate } from "./types";
 
 const CHUNK_SIZE = 1000;
 
 export const buildProjectionCandidates = async (
-  projections: Projection[],
+  projections: Proj4Projection[],
   rawGeoJson: FeatureCollection,
   signal?: AbortSignal,
 ): Promise<ProjectionCandidate[]> => {
@@ -36,10 +36,7 @@ export const buildProjectionCandidates = async (
         let valid = true;
 
         for (const corner of corners) {
-          const [lon, lat] = proj4(p.code!, "EPSG:4326", [
-            corner[0],
-            corner[1],
-          ]);
+          const [lon, lat] = proj4(p.code, "EPSG:4326", [corner[0], corner[1]]);
           if (lon < -180 || lon > 180 || lat < -90 || lat > 90) {
             valid = false;
             break;

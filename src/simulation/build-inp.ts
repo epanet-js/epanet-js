@@ -28,7 +28,7 @@ import { CustomerPointsLookup } from "src/hydraulic-model/customer-points-lookup
 import { Valve, AssetId } from "src/hydraulic-model/asset-types";
 import { checksum } from "src/infra/checksum";
 import {
-  ProjectionConfig,
+  type Projection,
   createProjectionMapper,
   getBackdropUnits,
 } from "src/lib/projections";
@@ -360,7 +360,7 @@ type BuildOptions = {
   usedPatterns?: boolean;
   usedCurves?: boolean;
   reservoirElevations?: boolean;
-  projection?: ProjectionConfig;
+  projection?: Projection;
 };
 
 export const buildInp = withDebugInstrumentation(
@@ -667,9 +667,9 @@ export const buildInp = withDebugInstrumentation(
       .join("\n\n");
 
     if (opts.madeBy) {
-      const projectionType = opts.projection?.type;
-      if (projectionType && projectionType !== "wgs84") {
-        content = `;PROJECTION ${projectionType}\n` + content;
+      const projection = opts.projection;
+      if (projection && projection.type !== "wgs84") {
+        content = `;PROJECTION ${projection.id}\n` + content;
       }
       content = `;MADE BY EPANET-JS [${checksum(content)}]\n` + content;
     }

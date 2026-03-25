@@ -1,10 +1,10 @@
 import { Position } from "geojson";
-import { Projection, ProjectionConfig, WGS84, XY_GRID } from "./projection";
+import { Projection, WGS84 } from "./projection";
+import { transformPoint, inverseTransformPoint } from "./xy-grid-transform";
 import {
-  transformPoint,
-  inverseTransformPoint,
-  computeCentroid,
-} from "./xy-grid-transform";
+  createProjectionTransformer,
+  createInverseProjectionTransformer,
+} from "src/lib/geojson-utils/coordinate-transform";
 
 export type ProjectionMapper = {
   projection: Projection;
@@ -16,9 +16,9 @@ export type ProjectionMapper = {
 const identity = (p: Position): Position => p;
 
 export const createProjectionMapper = (
-  config: ProjectionConfig,
+  projection: Projection,
 ): ProjectionMapper => {
-  switch (config.type) {
+  switch (projection.type) {
     case "wgs84":
       return {
         projection: WGS84,
@@ -28,28 +28,23 @@ export const createProjectionMapper = (
       };
     case "xy-grid":
       return {
-        projection: XY_GRID,
-        toWgs84: (p) => transformPoint(p, config.centroid),
-        toSource: (p) => inverseTransformPoint(p, config.centroid),
+        projection,
+        toWgs84: (p) => transformPoint(p, projection.centroid),
+        toSource: (p) => inverseTransformPoint(p, projection.centroid),
         backdropUnits: "NONE",
       };
+    case "proj4": {
+      const forward = createProjectionTransformer(projection.code);
+      const inverse = createInverseProjectionTransformer(projection.code);
+      return {
+        projection,
+        toWgs84: (p) => forward(p as [number, number]),
+        toSource: (p) => inverse(p as [number, number]),
+        backdropUnits: "NONE",
+      };
+    }
   }
 };
 
-export const buildProjectionConfig = (
-  projection: Projection,
-  allPoints: () => Position[],
-): ProjectionConfig => {
-  switch (projection.id) {
-    case "wgs84":
-      return { type: "wgs84" };
-    case "xy-grid":
-      return { type: "xy-grid", centroid: computeCentroid(allPoints()) };
-    default:
-      throw new Error(`Unsupported projection: ${projection.id}`);
-  }
-};
-
-export const getBackdropUnits = (
-  config: ProjectionConfig,
-): "NONE" | "DEGREES" => (config.type === "xy-grid" ? "NONE" : "DEGREES");
+export const getBackdropUnits = (projection: Projection): "NONE" | "DEGREES" =>
+  projection.type === "wgs84" ? "DEGREES" : "NONE";

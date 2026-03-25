@@ -27,7 +27,8 @@ import { getAppId } from "src/infra/app-instance";
 import { isDemoNetwork } from "src/demo/demo-networks";
 import { useRecentFiles } from "src/hooks/use-recent-files";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { type Projection, XY_GRID } from "src/lib/projections";
+import { type Proj4Projection } from "src/lib/projections";
+import { XY_GRID } from "src/import/inp/parse-inp";
 
 export const inpExtension = ".inp";
 
@@ -192,7 +193,7 @@ export const useImportInp = () => {
           if (isReprojectOn) {
             const previewGeoJson = parseCoordinatesGeoJson(content);
 
-            const onImportProjected = async (projection: Projection) => {
+            const onImportProjected = async (projection: Proj4Projection) => {
               setDialogState({ type: "loading" });
               try {
                 const result = parseInp(content, {

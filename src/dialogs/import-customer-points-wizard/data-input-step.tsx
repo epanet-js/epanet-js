@@ -5,7 +5,7 @@ import { captureError } from "src/infra/error-tracking";
 import { useTranslate } from "src/hooks/use-translate";
 import { DropZone } from "src/components/drop-zone";
 import { parseGeoJson } from "src/lib/geojson-utils/parse-geojson";
-import type { Projection } from "src/lib/projections";
+import type { Proj4Projection } from "src/lib/projections";
 import {
   customerPointsImportGuide,
   customerPointsImportVideoUrl,
@@ -17,7 +17,7 @@ export const DataInputStep: React.FC<{
   onNext: () => void;
   renderActions?: boolean;
   wizardState: WizardState & WizardActions;
-  projections?: Map<string, Projection> | null;
+  projections?: Map<string, Proj4Projection> | null;
 }> = ({ onNext, renderActions = true, wizardState, projections }) => {
   const userTracking = useUserTracking();
   const translate = useTranslate();

@@ -1,7 +1,7 @@
 // eslint-disable-next-line no-restricted-imports
 import proj4 from "proj4";
 import type { Feature, FeatureCollection, Geometry } from "geojson";
-import type { Projection } from "src/lib/projections";
+import type { Proj4Projection } from "src/lib/projections";
 
 export function extractEPSGFromGeoJSON(geojson: any): {
   code: string | null;
@@ -38,8 +38,8 @@ export function extractEPSGFromGeoJSON(geojson: any): {
 
 export function findProjectionByCode(
   code: string,
-  projections: Map<string, Projection>,
-): Projection | null {
+  projections: Map<string, Proj4Projection>,
+): Proj4Projection | null {
   if (!code) return null;
   const normalized = code.startsWith("EPSG:") ? code : `EPSG:${code}`;
   return projections.get(normalized) || null;
@@ -125,6 +125,13 @@ export function createProjectionTransformer(
   sourceProjection: string,
 ): (coord: [number, number]) => [number, number] {
   const transformer = proj4(sourceProjection, "EPSG:4326");
+  return (coord) => transformer.forward(coord) as [number, number];
+}
+
+export function createInverseProjectionTransformer(
+  sourceProjection: string,
+): (coord: [number, number]) => [number, number] {
+  const transformer = proj4("EPSG:4326", sourceProjection);
   return (coord) => transformer.forward(coord) as [number, number];
 }
 

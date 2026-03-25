@@ -18,19 +18,20 @@ import { InpData, InpStats } from "./inp-data";
 import { Position } from "geojson";
 import {
   type Projection,
-  type ProjectionConfig,
   WGS84,
-  XY_GRID,
-  projectionFromId,
-  buildProjectionConfig,
   createProjectionMapper,
 } from "src/lib/projections";
 import { createProjectionTransformer } from "src/lib/geojson-utils/coordinate-transform";
+import { computeCentroid } from "src/lib/projections/xy-grid-transform";
+
+type SourceProjection = { id: string; name: string; code?: string };
+
+export const XY_GRID: SourceProjection = { id: "xy-grid", name: "XY Grid" };
 
 export type ParseInpOptions = {
   customerPoints?: boolean;
   inactiveAssets?: boolean;
-  sourceProjection?: Projection;
+  sourceProjection?: SourceProjection;
   fillLabelGaps?: boolean;
 };
 
@@ -57,7 +58,7 @@ export const parseInp = (
 
   const { inpData, stats } = readInpData(inp, issues, safeOptions);
 
-  const sourceProjection: Projection =
+  const sourceProjection: SourceProjection =
     header.sourceProjection ?? options?.sourceProjection ?? WGS84;
 
   const projection = projectCoordinates(inpData, sourceProjection);
@@ -189,72 +190,83 @@ export const parseInp = (
 
 const projectCoordinates = (
   inpData: InpData,
-  sourceProjection: Projection,
-): ProjectionConfig => {
-  if (sourceProjection.id === "wgs84") {
-    return { type: "wgs84" };
+  source: SourceProjection,
+): Projection => {
+  if (source.id === "wgs84") {
+    return WGS84;
   }
 
-  if (sourceProjection.id !== "xy-grid") {
-    return projectWithCode(inpData, sourceProjection.code!);
+  if (source.id === "xy-grid") {
+    return projectXYGrid(inpData);
   }
 
-  const getAllPoints = () => {
-    const points: Position[] = [];
-    for (const [, p] of inpData.coordinates.entries()) points.push(p);
-    for (const [, verts] of inpData.vertices.entries()) points.push(...verts);
-    for (const cp of inpData.customerPoints) points.push(cp.coordinates);
-    return points;
+  return projectWithCode(inpData, source);
+};
+
+const projectXYGrid = (inpData: InpData): Projection => {
+  const allPoints: Position[] = [];
+  for (const [, p] of inpData.coordinates.entries()) allPoints.push(p);
+  for (const [, verts] of inpData.vertices.entries()) allPoints.push(...verts);
+  for (const cp of inpData.customerPoints) allPoints.push(cp.coordinates);
+
+  const centroid = computeCentroid(allPoints);
+  const projection: Projection = {
+    type: "xy-grid",
+    id: "xy-grid",
+    name: "XY Grid",
+    centroid,
   };
+  const mapper = createProjectionMapper(projection);
 
-  const config = buildProjectionConfig(XY_GRID, getAllPoints);
-  const mapper = createProjectionMapper(config);
+  transformInpData(inpData, mapper.toWgs84);
 
-  for (const [id, p] of inpData.coordinates.entries()) {
-    inpData.coordinates.set(id, mapper.toWgs84(p));
-  }
-  for (const [id, verts] of inpData.vertices.entries()) {
-    inpData.vertices.set(id, verts.map(mapper.toWgs84));
-  }
-  for (const cp of inpData.customerPoints) {
-    cp.coordinates = mapper.toWgs84(cp.coordinates) as [number, number];
-    if ("snapPoint" in cp && cp.snapPoint) {
-      cp.snapPoint = mapper.toWgs84(cp.snapPoint) as [number, number];
-    }
-  }
-
-  return config;
+  return projection;
 };
 
 const projectWithCode = (
   inpData: InpData,
-  projectionCode: string,
-): ProjectionConfig => {
-  const transform = createProjectionTransformer(projectionCode);
+  source: SourceProjection,
+): Projection => {
+  const transform = createProjectionTransformer(source.code!);
 
-  for (const [id, p] of inpData.coordinates.entries()) {
-    inpData.coordinates.set(id, transform(p as [number, number]));
-  }
-  for (const [id, verts] of inpData.vertices.entries()) {
-    inpData.vertices.set(
-      id,
-      verts.map((v) => transform(v as [number, number])),
-    );
-  }
-  for (const cp of inpData.customerPoints) {
-    cp.coordinates = transform(cp.coordinates);
-    if ("snapPoint" in cp && cp.snapPoint) {
-      cp.snapPoint = transform(cp.snapPoint);
-    }
-  }
+  transformInpData(inpData, (p) => transform(p as [number, number]));
 
-  return { type: "wgs84" };
+  return {
+    type: "proj4",
+    id: source.id,
+    name: source.name,
+    code: source.code!,
+  };
 };
 
-type Header = { isMadeByApp: boolean; sourceProjection?: Projection };
+const transformInpData = (
+  inpData: InpData,
+  transform: (p: Position) => Position,
+) => {
+  for (const [id, p] of inpData.coordinates.entries()) {
+    inpData.coordinates.set(id, transform(p));
+  }
+  for (const [id, verts] of inpData.vertices.entries()) {
+    inpData.vertices.set(id, verts.map(transform));
+  }
+  for (const cp of inpData.customerPoints) {
+    cp.coordinates = transform(cp.coordinates) as [number, number];
+    if ("snapPoint" in cp && cp.snapPoint) {
+      cp.snapPoint = transform(cp.snapPoint) as [number, number];
+    }
+  }
+};
+
+type Header = { isMadeByApp: boolean; sourceProjection?: SourceProjection };
 
 const checksumRegexp = /\[([0-9A-Fa-f]{8})\]/;
 const projectionRegexp = /^;PROJECTION\s+(\S+)/;
+
+const sourceProjectionFromId = (id: string): SourceProjection => {
+  if (id === "wgs84") return WGS84;
+  if (id === "xy-grid") return XY_GRID;
+  return { id, name: id, code: id };
+};
 
 const parseHeader = (inp: string): Header => {
   const newLineIndex = inp.indexOf("\n");
@@ -278,7 +290,7 @@ const parseHeader = (inp: string): Header => {
   const secondLine = rest.substring(0, secondLineEnd);
   const projectionMatch = secondLine.match(projectionRegexp);
   const sourceProjection = projectionMatch
-    ? projectionFromId(projectionMatch[1])
+    ? sourceProjectionFromId(projectionMatch[1])
     : undefined;
 
   return { isMadeByApp: true, sourceProjection };

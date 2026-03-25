@@ -19,7 +19,7 @@ import {
 } from "./filter-projection-candidates";
 import { projectGeoJson } from "./project-geojson";
 import { approximateToNullIsland } from "./approximate-to-null-island";
-import type { Projection } from "src/lib/projections";
+import type { Proj4Projection } from "src/lib/projections";
 import type { Bbox, ProjectionCandidate } from "./types";
 
 const DEBOUNCE_MS = 200;
@@ -31,7 +31,7 @@ export const NetworkProjectionDialog = ({
 }: {
   previewGeoJson: FeatureCollection;
   onImportNonProjected: () => void;
-  onImportProjected: (projection: Projection) => void;
+  onImportProjected: (projection: Proj4Projection) => void;
 }) => {
   const { closeDialog } = useDialogState();
   const { projectionsArray: projections } = useProjections();
@@ -41,7 +41,7 @@ export const NetworkProjectionDialog = ({
     null,
   );
   const [selectedProjection, setSelectedProjection] =
-    useState<Projection | null>(null);
+    useState<Proj4Projection | null>(null);
   const [visibleCandidates, setVisibleCandidates] = useState<
     ProjectionCandidate[]
   >([]);
@@ -83,7 +83,7 @@ export const NetworkProjectionDialog = ({
 
   const applyProjection = useCallback(
     (
-      projection: Projection,
+      projection: Proj4Projection,
       options: { fitNetwork: boolean; basemap: boolean },
     ) => {
       if (projectTimeoutRef.current) {
@@ -94,7 +94,7 @@ export const NetworkProjectionDialog = ({
       setIsProjecting(true);
       projectTimeoutRef.current = setTimeout(() => {
         try {
-          const projected = projectGeoJson(previewGeoJson, projection.code!);
+          const projected = projectGeoJson(previewGeoJson, projection.code);
           if (isLikelyLatLng(projected)) {
             setDisplayGeoJSON(projected);
             setShowBasemap(options.basemap);
@@ -177,7 +177,7 @@ export const NetworkProjectionDialog = ({
   );
 
   const handleProjectionSelectFromSearch = useCallback(
-    (projection: Projection) => {
+    (projection: Proj4Projection) => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
       setSelectedProjection(projection);
       setSelectedLocation(null);
@@ -189,7 +189,7 @@ export const NetworkProjectionDialog = ({
   );
 
   const handleProjectionSelectFromResults = useCallback(
-    (projection: Projection) => {
+    (projection: Proj4Projection) => {
       setSelectedProjection(projection);
       applyProjection(projection, { fitNetwork: false, basemap: true });
     },

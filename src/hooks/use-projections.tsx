@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
-import type { Projection } from "src/lib/projections";
+import type { Proj4Projection } from "src/lib/projections";
 
 type ProjectionsState = {
-  projections: Map<string, Projection> | null;
-  projectionsArray: Projection[];
+  projections: Map<string, Proj4Projection> | null;
+  projectionsArray: Proj4Projection[];
   loading: boolean;
   error: string | null;
 };
+
+type RawProjection = { id: string; name: string; code: string };
 
 export const useProjections = (): ProjectionsState => {
   const [state, setState] = useState<ProjectionsState>({
@@ -27,16 +29,17 @@ export const useProjections = (): ProjectionsState => {
         }
         return response.json();
       })
-      .then((data: Projection[]) => {
+      .then((data: RawProjection[]) => {
         if (cancelled) return;
-        const enriched = data.map((p) => ({
+        const enriched: Proj4Projection[] = data.map((p) => ({
+          type: "proj4" as const,
           ...p,
           deprecated: /\(deprecated\)/i.test(p.name),
         }));
         const sorted = [...enriched].sort(
           (a, b) => Number(a.deprecated) - Number(b.deprecated),
         );
-        const projectionsMap = new Map<string, Projection>();
+        const projectionsMap = new Map<string, Proj4Projection>();
         enriched.forEach((p) => projectionsMap.set(p.id, p));
         setState({
           projections: projectionsMap,

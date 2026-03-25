@@ -17,12 +17,7 @@ import {
 } from "src/lib/project-settings/quantities-spec";
 import type { Unit } from "src/quantity";
 import { ProjectSettings } from "src/lib/project-settings";
-import {
-  type Projection,
-  type ProjectionConfig,
-  WGS84,
-  XY_GRID,
-} from "src/lib/projections";
+import { type Projection, WGS84 } from "src/lib/projections";
 import {
   HeadlossFormula,
   headlossFormulas,
@@ -58,12 +53,15 @@ import {
   type LocationData,
 } from "../components/form/location-search";
 
+type ProjectionOption = { id: string; name: string };
+const XY_GRID_OPTION: ProjectionOption = { id: "xy-grid", name: "XY Grid" };
+
 type SubmitProps = {
   unitsSpec: keyof Presets;
   headlossFormula: HeadlossFormula;
   pressureUnit?: Unit;
   location?: LocationData;
-  projection: Projection;
+  projection: ProjectionOption;
 };
 
 export const CreateNew = () => {
@@ -118,7 +116,7 @@ export const CreateNew = () => {
         defaults: spec.defaults,
         headlossFormula,
         formatting: { decimals: spec.decimals, defaultDecimals: 3 },
-        projection: buildNewProjectionConfig(projection),
+        projection: buildNewProjection(projection),
       };
       const hydraulicModel = initializeHydraulicModel({
         defaults: spec.defaults,
@@ -407,8 +405,8 @@ const ProjectionSelector = ({
   selected,
   onChange,
 }: {
-  selected: Projection;
-  onChange: (projection: Projection) => void;
+  selected: ProjectionOption;
+  onChange: (projection: ProjectionOption) => void;
 }) => {
   const translate = useTranslate();
 
@@ -440,7 +438,7 @@ const ProjectionSelector = ({
 
         <button
           type="button"
-          onClick={() => onChange(XY_GRID)}
+          onClick={() => onChange(XY_GRID_OPTION)}
           className={clsx(
             projectionCardBase,
             selected.id === "xy-grid"
@@ -467,14 +465,19 @@ const XY_GRID_ZOOM = 15;
 const DEFAULT_MAP_CENTER: [number, number] = [-4.3800042, 55.914314];
 const DEFAULT_MAP_ZOOM = 15.5;
 
-const buildNewProjectionConfig = (projection: Projection): ProjectionConfig =>
-  projection.id === "xy-grid"
-    ? { type: "xy-grid", centroid: XY_GRID_CENTER }
-    : { type: "wgs84" };
+const buildNewProjection = (option: ProjectionOption): Projection =>
+  option.id === "xy-grid"
+    ? {
+        type: "xy-grid",
+        id: "xy-grid",
+        name: "XY Grid",
+        centroid: XY_GRID_CENTER,
+      }
+    : WGS84;
 
 const centerMapForNewProject = (
   map: MapEngine,
-  projection: Projection,
+  projection: ProjectionOption,
   location?: LocationData,
 ) => {
   if (projection.id === "xy-grid") {

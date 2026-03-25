@@ -6,7 +6,7 @@ import { presets } from "src/lib/project-settings/quantities-spec";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { getByLabel } from "src/__helpers__/asset-queries";
 import { Valve } from "src/hydraulic-model/asset-types";
-import { XY_GRID } from "src/lib/projections";
+import { XY_GRID } from "./parse-inp";
 
 describe("Parse inp with", () => {
   it("can read values separated by spaces", () => {

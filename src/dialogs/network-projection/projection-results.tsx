@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import clsx from "clsx";
-import type { Projection } from "src/lib/projections";
+import type { Proj4Projection } from "src/lib/projections";
 
 export const ProjectionResults = ({
   projections,
@@ -9,9 +9,9 @@ export const ProjectionResults = ({
   emptyMessage,
   isLoading,
 }: {
-  projections: Projection[];
-  selectedProjection: Projection | null;
-  onSelect: (projection: Projection) => void;
+  projections: Proj4Projection[];
+  selectedProjection: Proj4Projection | null;
+  onSelect: (projection: Proj4Projection) => void;
   emptyMessage?: string;
   isLoading?: boolean;
 }) => {

@@ -7,11 +7,11 @@ import {
   type SearchableSelectorOption,
 } from "src/components/form/searchable-selector";
 import type { LocationData } from "src/components/form/location-search";
-import type { Projection } from "src/lib/projections";
+import type { Proj4Projection } from "src/lib/projections";
 
 type SearchResultData =
   | { type: "location"; location: LocationData }
-  | { type: "projection"; projection: Projection };
+  | { type: "projection"; projection: Proj4Projection };
 
 type SearchResult = SearchableSelectorOption & {
   data: SearchResultData;
@@ -22,9 +22,9 @@ export const ProjectionSearch = ({
   onLocationSelect,
   onProjectionSelect,
 }: {
-  projections: Projection[];
+  projections: Proj4Projection[];
   onLocationSelect: (location: LocationData) => void;
-  onProjectionSelect: (projection: Projection) => void;
+  onProjectionSelect: (projection: Proj4Projection) => void;
 }) => {
   const search = useCallback(
     async (query: string): Promise<SearchResult[]> => {
