@@ -1,8 +1,9 @@
 import { useAtomValue, useSetAtom } from "jotai";
-import { useContext, useRef, useState } from "react";
+import { useCallback, useContext, useRef, useState } from "react";
 
-import * as Popover from "@radix-ui/react-popover";
+import { LngLatBoundsLike } from "mapbox-gl";
 import { nanoid } from "nanoid";
+import * as Popover from "@radix-ui/react-popover";
 import {
   DndContext,
   closestCenter,
@@ -26,7 +27,6 @@ import { CSS } from "@dnd-kit/utilities";
 import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { useTranslate } from "src/hooks/use-translate";
 import { projectSettingsAtom } from "src/state/project-settings";
-import { useUserTracking } from "src/infra/user-tracking";
 import {
   StyledPopoverArrow,
   StyledPopoverContent,
@@ -43,32 +43,32 @@ import {
 } from "src/icons";
 import { NumericField } from "src/components/form/numeric-field";
 import { localizeDecimal } from "src/infra/i18n/numbers";
+import { useUserTracking } from "src/infra/user-tracking";
 import { convertTo } from "src/quantity";
+import { offlineAtom } from "src/state/offline";
 import { elevationSourcesAtom } from "src/state/elevation-sources";
 import { mapOverlayFeaturesAtom } from "src/state/map-overlay";
-import { offlineAtom } from "src/state/offline";
 import {
-  extractGeoTiffMetadata,
   buildCoverageFeature,
+  computeTileBoundaries,
+  extractGeoTiffMetadata,
   getGeoTiffGridResolutionM,
 } from "src/lib/elevations";
 import type {
+  BoundaryResult,
   ElevationSource,
   GeoTiffElevationSource,
   GeoTiffTile,
   TileServerElevationSource,
 } from "src/lib/elevations";
 import { MapContext } from "src/map";
-import { useComputeTileBoundaries } from "src/hooks/use-compute-tile-boundaries";
-import { LngLatBoundsLike } from "mapbox-gl";
 import { ActionButton } from "src/components/action-button";
 
 export const ElevationsConfig = () => {
   const translate = useTranslate();
-  const sources = useAtomValue(elevationSourcesAtom);
-  const setSources = useSetAtom(elevationSourcesAtom);
-  const { computeForTiles, cancelTiles } = useComputeTileBoundaries();
-  const reversedSources = [...sources].reverse();
+  const overlay = useElevationCoverageOverlay();
+  const actions = useElevationSourceActions(overlay.onSourceTilesUpdated);
+  const reversedSources = [...actions.sources].reverse();
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -81,11 +81,10 @@ export const ElevationsConfig = () => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
 
-    // Work on the reversed array (display order), then reverse back for storage
     const oldIndex = reversedSources.findIndex((s) => s.id === active.id);
     const newIndex = reversedSources.findIndex((s) => s.id === over.id);
     const reordered = arrayMove(reversedSources, oldIndex, newIndex);
-    setSources([...reordered].reverse());
+    actions.reorderSources([...reordered].reverse());
   };
 
   return (
@@ -109,20 +108,27 @@ export const ElevationsConfig = () => {
                 <GeoTiffElevationSourceRow
                   key={source.id}
                   source={source}
-                  onTilesAdded={computeForTiles}
-                  onTilesRemoved={cancelTiles}
+                  actions={actions}
+                  overlay={overlay}
                 />
               ) : (
-                <TileServerElevationSourceRow key={source.id} source={source} />
+                <TileServerElevationSourceRow
+                  key={source.id}
+                  source={source}
+                  actions={actions}
+                />
               ),
             )}
           </SortableContext>
         </DndContext>
-        <AddElevationDataButton onTilesAdded={computeForTiles} />
+        <AddElevationDataButton actions={actions} />
       </div>
     </Section>
   );
 };
+
+type Actions = ReturnType<typeof useElevationSourceActions>;
+type Overlay = ReturnType<typeof useElevationCoverageOverlay>;
 
 const ElevationSourceRowShell = ({
   id,
@@ -179,17 +185,14 @@ const ElevationSourceRowShell = ({
 
 const GeoTiffElevationSourceRow = ({
   source,
-  onTilesAdded,
-  onTilesRemoved,
+  actions,
+  overlay,
 }: {
   source: GeoTiffElevationSource;
-  onTilesAdded: (sourceId: string, tiles: GeoTiffTile[]) => void;
-  onTilesRemoved: (tileIds: string[]) => void;
+  actions: Actions;
+  overlay: Overlay;
 }) => {
   const translate = useTranslate();
-  const setSources = useSetAtom(elevationSourcesAtom);
-  const setCoverageFeatures = useSetAtom(mapOverlayFeaturesAtom);
-  const userTracking = useUserTracking();
   const { units } = useAtomValue(projectSettingsAtom);
   const elevationUnit = units.elevation;
   const resolutionM = getGeoTiffGridResolutionM(source);
@@ -199,28 +202,11 @@ const GeoTiffElevationSourceRow = ({
   const fileCount = source.tiles.length;
   const description = `${translate("gridResolution", `${resolutionDisplay}${elevationUnit}`)} – ${translate("files", fileCount)}`;
 
-  const handleDelete = () => {
-    onTilesRemoved(source.tiles.map((t) => t.id));
-    setSources((prev) => prev.filter((s) => s.id !== source.id));
-    userTracking.capture({
-      name: "elevationSource.deleted",
-      sourceType: source.type,
-    });
-  };
-
   const handlePopoverOpenChange = (open: boolean) => {
     if (open) {
-      setCoverageFeatures(
-        source.tiles.map((tile) =>
-          buildCoverageFeature(tile, {
-            isFilled: true,
-            isDisabled: false,
-            showLabel: false,
-          }),
-        ),
-      );
+      overlay.showCoverage(source.id);
     } else {
-      setCoverageFeatures([]);
+      overlay.hideCoverage();
     }
   };
 
@@ -246,8 +232,8 @@ const GeoTiffElevationSourceRow = ({
             <StyledPopoverArrow />
             <GeoTiffTilesPopover
               source={source}
-              computeForTiles={onTilesAdded}
-              cancelTiles={onTilesRemoved}
+              actions={actions}
+              overlay={overlay}
             />
           </StyledPopoverContent>
         </Popover.Portal>
@@ -255,7 +241,7 @@ const GeoTiffElevationSourceRow = ({
       <Button
         variant="quiet/mode"
         className="h-8 text-red-500"
-        onClick={handleDelete}
+        onClick={() => actions.deleteSource(source.id)}
       >
         <DeleteIcon />
       </Button>
@@ -265,33 +251,16 @@ const GeoTiffElevationSourceRow = ({
 
 const GeoTiffTilesPopover = ({
   source,
-  computeForTiles,
-  cancelTiles,
+  actions,
+  overlay,
 }: {
   source: GeoTiffElevationSource;
-  computeForTiles: (sourceId: string, tiles: GeoTiffTile[]) => void;
-  cancelTiles: (tileIds: string[]) => void;
+  actions: Actions;
+  overlay: Overlay;
 }) => {
   const translate = useTranslate();
-  const setSources = useSetAtom(elevationSourcesAtom);
-  const setCoverageFeatures = useSetAtom(mapOverlayFeaturesAtom);
-  const userTracking = useUserTracking();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const map = useContext(MapContext);
-
-  const handleTileHover = (hoveredTileId: string | null) => {
-    const isHovering = hoveredTileId !== null;
-    setCoverageFeatures(
-      source.tiles.map((tile) => {
-        const isHovered = tile.id === hoveredTileId;
-        return buildCoverageFeature(tile, {
-          isFilled: !isHovering,
-          isDisabled: isHovering && !isHovered,
-          showLabel: isHovered,
-        });
-      }),
-    );
-  };
 
   const handleTileClick = (tile: GeoTiffTile) => {
     map?.map.fitBounds(tile.bbox as LngLatBoundsLike, {
@@ -300,63 +269,19 @@ const GeoTiffTilesPopover = ({
     });
   };
 
-  const handleAddTiles = async (files: File[]) => {
-    const results = await Promise.allSettled(
-      files.map(async (file) => {
-        const metadata = await extractGeoTiffMetadata(file);
-        return { id: nanoid(), ...metadata };
-      }),
-    );
-
-    const newTiles = results
-      .filter(
-        (r): r is PromiseFulfilledResult<GeoTiffTile> =>
-          r.status === "fulfilled",
-      )
-      .map((r) => r.value);
-
-    if (newTiles.length === 0) return;
-
-    setSources((prev) =>
-      prev.map((s) =>
-        s.id === source.id && s.type === "geotiff"
-          ? { ...s, tiles: [...newTiles, ...s.tiles] }
-          : s,
-      ),
-    );
-    computeForTiles(source.id, newTiles);
-    userTracking.capture({
-      name: "elevationSource.tilesAdded",
-      tileCount: newTiles.length,
-    });
-  };
-
-  const handleDeleteTile = (tileId: string) => {
-    cancelTiles([tileId]);
-    setSources((prev) => {
-      const updated = prev.map((s) =>
-        s.id === source.id && s.type === "geotiff"
-          ? { ...s, tiles: s.tiles.filter((t) => t.id !== tileId) }
-          : s,
-      );
-      return updated.filter((s) => s.type !== "geotiff" || s.tiles.length > 0);
-    });
-    userTracking.capture({ name: "elevationSource.tileDeleted" });
-  };
-
   return (
     <div className="flex flex-col gap-y-2">
       <div className="font-semibold text-sm">
         {translate("userElevationData")}
       </div>
-      <ElevationOffsetField source={source} />
+      <ElevationOffsetField source={source} actions={actions} />
       <div className="overflow-y-auto max-h-[30vh] scroll-shadows border rounded">
         <ul className="flex flex-col">
           {source.tiles.map((tile) => (
             <li
               key={tile.id}
-              onMouseEnter={() => handleTileHover(tile.id)}
-              onMouseLeave={() => handleTileHover(null)}
+              onMouseEnter={() => overlay.highlightTile(source.id, tile.id)}
+              onMouseLeave={() => overlay.highlightTile(source.id, null)}
               onClick={() => handleTileClick(tile)}
               className="group flex items-center justify-between gap-x-2 h-8 shrink-0 px-2 hover:bg-gray-100 dark:hover:bg-gray-800"
             >
@@ -364,7 +289,10 @@ const GeoTiffTilesPopover = ({
               <Button
                 variant="quiet/mode"
                 className="h-8 text-red-500"
-                onClick={() => handleDeleteTile(tile.id)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  actions.deleteTile(source.id, tile.id);
+                }}
               >
                 <DeleteIcon />
               </Button>
@@ -382,7 +310,7 @@ const GeoTiffTilesPopover = ({
           if (e.target.files?.length) {
             const files = Array.from(e.target.files);
             e.target.value = "";
-            void handleAddTiles(files);
+            void actions.addTiles(source.id, files);
           }
         }}
       />
@@ -401,20 +329,13 @@ const GeoTiffTilesPopover = ({
 
 const TileServerElevationSourceRow = ({
   source,
+  actions,
 }: {
   source: TileServerElevationSource;
+  actions: Actions;
 }) => {
   const translate = useTranslate();
   const isOffline = useAtomValue(offlineAtom);
-  const setSources = useSetAtom(elevationSourcesAtom);
-
-  const toggleEnabled = () => {
-    setSources((prev) =>
-      prev.map((s) => (s.id === source.id ? { ...s, enabled: !s.enabled } : s)),
-    );
-    return Promise.resolve();
-  };
-
   const isDisabled = isOffline || !source.enabled;
 
   return (
@@ -438,13 +359,16 @@ const TileServerElevationSourceRow = ({
             align="start"
           >
             <StyledPopoverArrow />
-            <TileServerPopover source={source} />
+            <TileServerPopover source={source} actions={actions} />
           </StyledPopoverContent>
         </Popover.Portal>
       </Popover.Root>
       <ActionButton
         action={{
-          onSelect: toggleEnabled,
+          onSelect: () => {
+            actions.toggleEnabled(source.id);
+            return Promise.resolve();
+          },
           applicable: true,
           disabled: isOffline,
           label: source.enabled ? translate("disable") : translate("enable"),
@@ -457,8 +381,10 @@ const TileServerElevationSourceRow = ({
 
 const TileServerPopover = ({
   source,
+  actions,
 }: {
   source: TileServerElevationSource;
+  actions: Actions;
 }) => {
   const translate = useTranslate();
   return (
@@ -466,15 +392,19 @@ const TileServerPopover = ({
       <div className="font-semibold text-sm">
         {translate("mapboxDefaultData")}
       </div>
-      <ElevationOffsetField source={source} />
+      <ElevationOffsetField source={source} actions={actions} />
     </div>
   );
 };
 
-const ElevationOffsetField = ({ source }: { source: ElevationSource }) => {
+const ElevationOffsetField = ({
+  source,
+  actions,
+}: {
+  source: ElevationSource;
+  actions: Actions;
+}) => {
   const translate = useTranslate();
-  const setSources = useSetAtom(elevationSourcesAtom);
-  const userTracking = useUserTracking();
   const { units } = useAtomValue(projectSettingsAtom);
   const elevationUnit = units.elevation;
 
@@ -483,24 +413,6 @@ const ElevationOffsetField = ({ source }: { source: ElevationSource }) => {
     elevationUnit,
   );
 
-  const handleChange = (newValue: number) => {
-    const valueInMeters = convertTo(
-      { value: newValue, unit: elevationUnit },
-      "m",
-    );
-    setSources((prev) =>
-      prev.map((s) =>
-        s.id === source.id ? { ...s, elevationOffsetM: valueInMeters } : s,
-      ),
-    );
-    userTracking.capture({
-      name: "elevationSource.offsetChanged",
-      sourceType: source.type,
-      oldValue: source.elevationOffsetM,
-      newValue: valueInMeters,
-    });
-  };
-
   const label = `${translate("projectionOffset")} (${elevationUnit})`;
 
   return (
@@ -508,7 +420,7 @@ const ElevationOffsetField = ({ source }: { source: ElevationSource }) => {
       <NumericField
         label={label}
         displayValue={localizeDecimal(displayValue)}
-        onChangeValue={handleChange}
+        onChangeValue={(v) => actions.updateOffset(source.id, v)}
         styleOptions={{ padding: "md", textSize: "sm" }}
         tabIndex={0}
       />
@@ -516,50 +428,15 @@ const ElevationOffsetField = ({ source }: { source: ElevationSource }) => {
   );
 };
 
-const AddElevationDataButton = ({
-  onTilesAdded,
-}: {
-  onTilesAdded: (sourceId: string, tiles: GeoTiffTile[]) => void;
-}) => {
+const AddElevationDataButton = ({ actions }: { actions: Actions }) => {
   const translate = useTranslate();
-  const setSources = useSetAtom(elevationSourcesAtom);
-  const userTracking = useUserTracking();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleFilesSelected = async (files: File[]) => {
     setIsLoading(true);
     try {
-      const results = await Promise.allSettled(
-        files.map(async (file) => {
-          const metadata = await extractGeoTiffMetadata(file);
-          return { id: nanoid(), ...metadata };
-        }),
-      );
-
-      const tiles = results
-        .filter(
-          (r): r is PromiseFulfilledResult<GeoTiffTile> =>
-            r.status === "fulfilled",
-        )
-        .map((r) => r.value);
-
-      if (tiles.length === 0) return;
-
-      const newSource: GeoTiffElevationSource = {
-        type: "geotiff",
-        id: nanoid(),
-        enabled: true,
-        tiles,
-        elevationOffsetM: 0,
-      };
-
-      setSources((prev) => [...prev, newSource]);
-      onTilesAdded(newSource.id, tiles);
-      userTracking.capture({
-        name: "elevationSource.added",
-        tileCount: tiles.length,
-      });
+      await actions.addSource(files);
     } finally {
       setIsLoading(false);
     }
@@ -593,4 +470,296 @@ const AddElevationDataButton = ({
       </Button>
     </>
   );
+};
+
+type OnSourceTilesUpdated = (
+  sourceId: string,
+  updatedTiles: GeoTiffTile[],
+) => void;
+
+const useElevationSourceActions = (
+  onSourceTilesUpdated?: OnSourceTilesUpdated,
+) => {
+  const sources = useAtomValue(elevationSourcesAtom);
+  const setSources = useSetAtom(elevationSourcesAtom);
+  const userTracking = useUserTracking();
+  const { units } = useAtomValue(projectSettingsAtom);
+  const { startComputation, cancelTiles } =
+    useComputeTileBoundaries(onSourceTilesUpdated);
+
+  const addSource = useCallback(
+    async (files: File[]) => {
+      const results = await Promise.allSettled(
+        files.map(async (file) => {
+          const metadata = await extractGeoTiffMetadata(file);
+          return { id: nanoid(), ...metadata } as GeoTiffTile;
+        }),
+      );
+
+      const tiles = results
+        .filter(
+          (r): r is PromiseFulfilledResult<GeoTiffTile> =>
+            r.status === "fulfilled",
+        )
+        .map((r) => r.value);
+
+      if (tiles.length === 0) return;
+
+      const newSource: GeoTiffElevationSource = {
+        type: "geotiff",
+        id: nanoid(),
+        enabled: true,
+        tiles,
+        elevationOffsetM: 0,
+      };
+
+      setSources((prev) => [...prev, newSource]);
+      startComputation(newSource.id, tiles);
+      userTracking.capture({
+        name: "elevationSource.added",
+        tileCount: tiles.length,
+      });
+    },
+    [setSources, startComputation, userTracking],
+  );
+
+  const deleteSource = useCallback(
+    (sourceId: string) => {
+      const source = sources.find((s) => s.id === sourceId);
+      if (source?.type === "geotiff") {
+        cancelTiles(source.tiles.map((t) => t.id));
+      }
+      setSources((prev) => prev.filter((s) => s.id !== sourceId));
+      userTracking.capture({
+        name: "elevationSource.deleted",
+        sourceType: source?.type ?? "unknown",
+      });
+    },
+    [sources, setSources, cancelTiles, userTracking],
+  );
+
+  const addTiles = useCallback(
+    async (sourceId: string, files: File[]) => {
+      const results = await Promise.allSettled(
+        files.map(async (file) => {
+          const metadata = await extractGeoTiffMetadata(file);
+          return { id: nanoid(), ...metadata } as GeoTiffTile;
+        }),
+      );
+
+      const newTiles = results
+        .filter(
+          (r): r is PromiseFulfilledResult<GeoTiffTile> =>
+            r.status === "fulfilled",
+        )
+        .map((r) => r.value);
+
+      if (newTiles.length === 0) return;
+
+      setSources((prev) =>
+        prev.map((s) =>
+          s.id === sourceId && s.type === "geotiff"
+            ? { ...s, tiles: [...newTiles, ...s.tiles] }
+            : s,
+        ),
+      );
+      startComputation(sourceId, newTiles);
+      userTracking.capture({
+        name: "elevationSource.tilesAdded",
+        tileCount: newTiles.length,
+      });
+    },
+    [setSources, startComputation, userTracking],
+  );
+
+  const deleteTile = useCallback(
+    (sourceId: string, tileId: string) => {
+      cancelTiles([tileId]);
+      setSources((prev) => {
+        const updated = prev.map((s) =>
+          s.id === sourceId && s.type === "geotiff"
+            ? { ...s, tiles: s.tiles.filter((t) => t.id !== tileId) }
+            : s,
+        );
+        return updated.filter(
+          (s) => s.type !== "geotiff" || s.tiles.length > 0,
+        );
+      });
+      userTracking.capture({ name: "elevationSource.tileDeleted" });
+    },
+    [setSources, cancelTiles, userTracking],
+  );
+
+  const reorderSources = useCallback(
+    (reordered: ElevationSource[]) => {
+      setSources(reordered);
+    },
+    [setSources],
+  );
+
+  const toggleEnabled = useCallback(
+    (sourceId: string) => {
+      setSources((prev) =>
+        prev.map((s) =>
+          s.id === sourceId ? { ...s, enabled: !s.enabled } : s,
+        ),
+      );
+    },
+    [setSources],
+  );
+
+  const updateOffset = useCallback(
+    (sourceId: string, newValue: number) => {
+      const source = sources.find((s) => s.id === sourceId);
+      const valueInMeters = convertTo(
+        { value: newValue, unit: units.elevation },
+        "m",
+      );
+      setSources((prev) =>
+        prev.map((s) =>
+          s.id === sourceId ? { ...s, elevationOffsetM: valueInMeters } : s,
+        ),
+      );
+      userTracking.capture({
+        name: "elevationSource.offsetChanged",
+        sourceType: source?.type ?? "unknown",
+        oldValue: source?.elevationOffsetM ?? 0,
+        newValue: valueInMeters,
+      });
+    },
+    [sources, setSources, units.elevation, userTracking],
+  );
+
+  return {
+    sources,
+    addSource,
+    deleteSource,
+    addTiles,
+    deleteTile,
+    reorderSources,
+    toggleEnabled,
+    updateOffset,
+  };
+};
+
+const useComputeTileBoundaries = (
+  onSourceTilesUpdated?: OnSourceTilesUpdated,
+) => {
+  const setSources = useSetAtom(elevationSourcesAtom);
+  const cancelledTilesRef = useRef(new Set<string>());
+  const onSourceTilesUpdatedRef = useRef(onSourceTilesUpdated);
+  onSourceTilesUpdatedRef.current = onSourceTilesUpdated;
+
+  const startComputation = useCallback(
+    (sourceId: string, tiles: GeoTiffTile[]) => {
+      void computeTileBoundaries(
+        tiles,
+        ({ tileId, polygon }: BoundaryResult) => {
+          if (!polygon) return;
+          let updatedTiles: GeoTiffTile[] | undefined;
+          setSources((prev: ElevationSource[]) => {
+            const next = prev.map((s) =>
+              s.id === sourceId && s.type === "geotiff"
+                ? {
+                    ...s,
+                    tiles: s.tiles.map((t) =>
+                      t.id === tileId ? { ...t, coveragePolygon: polygon } : t,
+                    ),
+                  }
+                : s,
+            );
+            const updated = next.find(
+              (s) => s.id === sourceId && s.type === "geotiff",
+            );
+            if (updated?.type === "geotiff") {
+              updatedTiles = updated.tiles;
+            }
+            return next;
+          });
+          if (updatedTiles) {
+            onSourceTilesUpdatedRef.current?.(sourceId, updatedTiles);
+          }
+        },
+        (tileId: string) => cancelledTilesRef.current.has(tileId),
+      );
+    },
+    [setSources],
+  );
+
+  const cancelTiles = useCallback((tileIds: string[]) => {
+    for (const id of tileIds) cancelledTilesRef.current.add(id);
+  }, []);
+
+  return { startComputation, cancelTiles };
+};
+
+const useElevationCoverageOverlay = () => {
+  const sources = useAtomValue(elevationSourcesAtom);
+  const setCoverageFeatures = useSetAtom(mapOverlayFeaturesAtom);
+
+  const activeSourceIdRef = useRef<string | null>(null);
+  const hoveredTileIdRef = useRef<string | null>(null);
+
+  const rebuildOverlay = useCallback(
+    (tiles: GeoTiffTile[], hoveredTileId: string | null) => {
+      const isHovering = hoveredTileId !== null;
+      setCoverageFeatures(
+        tiles.map((tile) => {
+          const isHovered = tile.id === hoveredTileId;
+          return buildCoverageFeature(tile, {
+            isFilled: !isHovering,
+            isDisabled: isHovering && !isHovered,
+            showLabel: isHovered,
+          });
+        }),
+      );
+    },
+    [setCoverageFeatures],
+  );
+
+  const showCoverage = useCallback(
+    (sourceId: string) => {
+      activeSourceIdRef.current = sourceId;
+      hoveredTileIdRef.current = null;
+      const source = sources.find((s) => s.id === sourceId);
+      if (source?.type === "geotiff") {
+        rebuildOverlay(source.tiles, null);
+      }
+    },
+    [sources, rebuildOverlay],
+  );
+
+  const hideCoverage = useCallback(() => {
+    activeSourceIdRef.current = null;
+    hoveredTileIdRef.current = null;
+    setCoverageFeatures([]);
+  }, [setCoverageFeatures]);
+
+  const highlightTile = useCallback(
+    (sourceId: string, tileId: string | null) => {
+      hoveredTileIdRef.current = tileId;
+      const source = sources.find((s) => s.id === sourceId);
+      if (source?.type === "geotiff") {
+        rebuildOverlay(source.tiles, tileId);
+      }
+    },
+    [sources, rebuildOverlay],
+  );
+
+  /** Pass this to useElevationSourceActions so the overlay updates when boundaries complete. */
+  const onSourceTilesUpdated: OnSourceTilesUpdated = useCallback(
+    (sourceId, updatedTiles) => {
+      if (activeSourceIdRef.current === sourceId) {
+        rebuildOverlay(updatedTiles, hoveredTileIdRef.current);
+      }
+    },
+    [rebuildOverlay],
+  );
+
+  return {
+    showCoverage,
+    hideCoverage,
+    highlightTile,
+    onSourceTilesUpdated,
+  };
 };
