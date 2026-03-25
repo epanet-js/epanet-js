@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import clsx from "clsx";
 import type { Proj4Projection } from "src/lib/projections";
+import { useTranslate } from "src/hooks/use-translate";
 
 export const ProjectionResults = ({
   projections,
@@ -15,6 +16,7 @@ export const ProjectionResults = ({
   emptyMessage?: string;
   isLoading?: boolean;
 }) => {
+  const t = useTranslate();
   const results = useMemo(() => {
     if (
       selectedProjection &&
@@ -29,10 +31,10 @@ export const ProjectionResults = ({
     return (
       <div className="mt-3">
         <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
-          Matching projections
+          {t("networkProjection.matchingProjections")}
         </p>
         <p className="text-sm text-gray-500 dark:text-gray-400 p-3 border border-gray-200 dark:border-gray-700 rounded-md animate-pulse">
-          Searching projections…
+          {t("networkProjection.searchingProjections")}
         </p>
       </div>
     );
@@ -42,7 +44,7 @@ export const ProjectionResults = ({
     return (
       <div className="mt-3">
         <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
-          Matching projections
+          {t("networkProjection.matchingProjections")}
         </p>
         <p className="text-sm text-gray-500 dark:text-gray-400 p-3 border border-gray-200 dark:border-gray-700 rounded-md">
           {emptyMessage}
@@ -56,7 +58,7 @@ export const ProjectionResults = ({
   return (
     <div className="mt-3 flex flex-col min-h-0">
       <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 flex-shrink-0">
-        Matching projections ({results.length})
+        {t("networkProjection.matchingProjections")} ({results.length})
       </p>
       <div className="border border-gray-200 dark:border-gray-700 rounded-md min-h-0 overflow-y-auto scroll-shadows">
         <ul className="space-y-0.5 p-1">

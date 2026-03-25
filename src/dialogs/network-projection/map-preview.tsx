@@ -10,6 +10,7 @@ import {
 } from "src/map/custom-map-control";
 import type { Bbox } from "./types";
 import type { MapPreviewHandle } from "./use-map-preview";
+import { useTranslate } from "src/hooks/use-translate";
 
 const BASEMAP_STYLE = "mapbox://styles/mapbox/light-v10";
 
@@ -77,6 +78,7 @@ export const MapPreview = ({
   isLoading,
   setHandle,
 }: MapPreviewProps) => {
+  const t = useTranslate();
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const styleReadyRef = useRef(false);
@@ -108,7 +110,7 @@ export const MapPreview = ({
       new CustomMapControl(
         {
           name: "fit-to-extent",
-          title: "Fit to extent",
+          title: t("networkProjection.fitToExtent"),
           icon: FIT_TO_EXTENT_ICON,
         },
         () => {

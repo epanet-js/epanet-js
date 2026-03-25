@@ -8,6 +8,7 @@ import {
 } from "src/components/form/searchable-selector";
 import type { LocationData } from "src/components/form/location-search";
 import type { Proj4Projection } from "src/lib/projections";
+import { useTranslate } from "src/hooks/use-translate";
 
 type SearchResultData =
   | { type: "location"; location: LocationData }
@@ -34,6 +35,7 @@ export const ProjectionSearch = ({
   onProjectionSelect: (projection: Proj4Projection) => void;
   onSearched: (metadata: SearchMetadata) => void;
 }) => {
+  const t = useTranslate();
   const lastSearchRef = useRef<{ query: string; resultsCount: number }>({
     query: "",
     resultsCount: 0,
@@ -143,7 +145,7 @@ export const ProjectionSearch = ({
     <SearchableSelector
       onChange={handleChange}
       onSearch={search}
-      placeholder="Search by location or code"
+      placeholder={t("networkProjection.searchPlaceholder")}
       wrapperClassName="block"
       autoFocus
       renderOption={renderOption}

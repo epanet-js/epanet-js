@@ -1103,6 +1103,20 @@
   "volumeBased": "Total volume",
   "curveBased": "Volume curve",
   "area": "Area",
+  "networkProjection": {
+    "title": "Network projection",
+    "applyBasemap": "Apply basemap",
+    "loadWithoutBasemap": "Load without basemap",
+    "noMatchingProjections": "No matching projections found for this location",
+    "projectionOutOfBounds": "Projection out of bounds",
+    "addBasemap": "Add a basemap",
+    "searchHint": "Search for your network's location or enter a projection code above to find the right coordinate system.",
+    "noProjectionHint": "If your network doesn't use a projection, you can load without a basemap.",
+    "searchPlaceholder": "Search by location or code",
+    "matchingProjections": "Matching projections",
+    "searchingProjections": "Searching projections…",
+    "fitToExtent": "Fit to extent"
+  },
   "dialog": {
     "save": "Save",
     "cancel": "Cancel",
