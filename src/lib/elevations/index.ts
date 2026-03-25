@@ -15,9 +15,14 @@ export {
   isPointInBbox,
   transformCoordinates,
   buildCoverageFeature,
-  getGeoTiffGridResolutionM,
+  getGeoTiffGridResolution,
 } from "./geotiff-utils";
-export type { ExtractedTileMetadata } from "./geotiff-utils";
+export type {
+  ExtractedTileMetadata,
+  GetProj4Def,
+  UnsupportedProjectionInfo,
+} from "./geotiff-utils";
+export { UnsupportedProjectionError } from "./geotiff-utils";
 
 export { fetchElevationFromSources } from "./fetch-elevation";
 

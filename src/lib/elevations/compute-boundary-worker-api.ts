@@ -1,3 +1,5 @@
+// eslint-disable-next-line no-restricted-imports
+import proj4 from "proj4";
 import { fromBlob } from "geotiff";
 import { transformCoordinates } from "./geotiff-utils";
 import simplify from "@turf/simplify";
@@ -18,7 +20,8 @@ async function computeDataBoundary(
   width: number,
   height: number,
   noDataValue: number | null,
-  pixelToGps: number[],
+  pixelToCrs: number[],
+  proj4Def?: string,
 ): Promise<GeoJSON.Geometry | null> {
   const tiff = await fromBlob(file);
   const image = await tiff.getImage();
@@ -53,14 +56,21 @@ async function computeDataBoundary(
       }
     }
 
-    leftEdge.push(transformCoordinates(firstValid, row, pixelToGps));
-    rightEdge.push(transformCoordinates(lastValid, row, pixelToGps));
+    leftEdge.push(transformCoordinates(firstValid, row, pixelToCrs));
+    rightEdge.push(transformCoordinates(lastValid, row, pixelToCrs));
   }
 
   if (leftEdge.length < 3) return null;
 
   rightEdge.reverse();
-  const coords = [...leftEdge, ...rightEdge, leftEdge[0]];
+  let coords = [...leftEdge, ...rightEdge, leftEdge[0]];
+
+  // Reproject from CRS to WGS84 if needed
+  if (proj4Def) {
+    coords = coords.map(
+      (c) => proj4(proj4Def, "EPSG:4326", c) as [number, number],
+    );
+  }
 
   let result = polygon([coords]);
   try {

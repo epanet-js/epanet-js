@@ -31,7 +31,8 @@ export async function computeTileBoundaries(
       tile.width,
       tile.height,
       tile.noDataValue,
-      tile.pixelToGps,
+      tile.pixelToCrs,
+      tile.proj4Def,
     );
 
     if (isCancelled(tile.id)) continue;
@@ -59,7 +60,8 @@ async function runBatchWithWorker(
         tile.width,
         tile.height,
         tile.noDataValue,
-        tile.pixelToGps,
+        tile.pixelToCrs,
+        tile.proj4Def,
       );
 
       if (isCancelled(tile.id)) continue;

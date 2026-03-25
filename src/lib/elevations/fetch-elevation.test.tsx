@@ -41,8 +41,11 @@ const aGeotiffSource = (
       width: 4,
       height: 4,
       bbox: [-4, 55, -3, 56],
-      pixelToGps: [0, 1, 0, 0, 0, 1],
-      gpsToPixel: [16, 4, 0, 224, 0, -4],
+      resolution: [1, 1] as [number, number],
+      crsUnit: "deg" as const,
+      verticalUnit: "m" as const,
+      pixelToCrs: [0, 1, 0, 0, 0, 1],
+      crsToPixel: [16, 4, 0, 224, 0, -4],
       noDataValue: -9999,
       image: {
         readRasters: vi.fn().mockResolvedValue([new Float32Array([42.5])]),
