@@ -220,6 +220,8 @@ export const useImportInp = () => {
               previewGeoJson,
               onImportNonProjected,
               onImportProjected,
+              filename: file.name,
+              flowUnits: chooseUnitSystem(projectSettings.units),
             });
           } else {
             setDialogState({

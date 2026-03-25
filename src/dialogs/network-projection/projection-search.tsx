@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useRef } from "react";
 import { MapPin, Sparkles } from "lucide-react";
 import { env } from "src/lib/env-client";
 import { captureError } from "src/infra/error-tracking";
@@ -17,15 +17,28 @@ type SearchResult = SearchableSelectorOption & {
   data: SearchResultData;
 };
 
+export type SearchMetadata = {
+  query: string;
+  resultsCount: number;
+  resultType: "location" | "projection";
+};
+
 export const ProjectionSearch = ({
   projections,
   onLocationSelect,
   onProjectionSelect,
+  onSearched,
 }: {
   projections: Proj4Projection[];
   onLocationSelect: (location: LocationData) => void;
   onProjectionSelect: (projection: Proj4Projection) => void;
+  onSearched: (metadata: SearchMetadata) => void;
 }) => {
+  const lastSearchRef = useRef<{ query: string; resultsCount: number }>({
+    query: "",
+    resultsCount: 0,
+  });
+
   const search = useCallback(
     async (query: string): Promise<SearchResult[]> => {
       if (!query.trim() || query.length < 2) return [];
@@ -81,20 +94,27 @@ export const ProjectionSearch = ({
         captureError(error as Error);
       }
 
-      return [...locationResults, ...projectionResults];
+      const allResults = [...locationResults, ...projectionResults];
+      lastSearchRef.current = { query, resultsCount: allResults.length };
+      return allResults;
     },
     [projections],
   );
 
   const handleChange = useCallback(
     (option: SearchResult) => {
+      onSearched({
+        query: lastSearchRef.current.query,
+        resultsCount: lastSearchRef.current.resultsCount,
+        resultType: option.data.type,
+      });
       if (option.data.type === "projection") {
         onProjectionSelect(option.data.projection);
       } else {
         onLocationSelect(option.data.location);
       }
     },
-    [onLocationSelect, onProjectionSelect],
+    [onLocationSelect, onProjectionSelect, onSearched],
   );
 
   const renderOption = useCallback((option: SearchResult) => {

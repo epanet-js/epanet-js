@@ -354,6 +354,39 @@ type InpProjectionChoiceSeen = {
 type NetworkProjectionSeen = {
   name: "networkProjection.seen";
 };
+type NetworkProjectionSearched = {
+  name: "networkProjection.searched";
+  query: string;
+  queryLength: number;
+  resultType: "location" | "projection";
+  resultsCount: number;
+};
+type NetworkProjectionSelected = {
+  name: "networkProjection.selected";
+  projectionId: string;
+  projectionName: string;
+  outOfBounds: boolean;
+};
+type NetworkProjectionApplied = {
+  name: "networkProjection.applied";
+  projectionId: string;
+  projectionName: string;
+  outOfBounds: boolean;
+  filename: string;
+  flowUnits: string;
+  bounds: string;
+  query: string;
+  resultType: "location" | "projection";
+};
+type NetworkProjectionSkipped = {
+  name: "networkProjection.skipped";
+  filename: string;
+  flowUnits: string;
+  bounds: string;
+};
+type NetworkProjectionClosed = {
+  name: "networkProjection.closed";
+};
 type InpProjectionChoiceProjected = {
   name: "inpProjectionChoice.projected";
 };
@@ -868,6 +901,11 @@ export type UserEvent =
   | InpProjectionChoiceProjected
   | InpProjectionChoiceNonProjected
   | NetworkProjectionSeen
+  | NetworkProjectionSearched
+  | NetworkProjectionSelected
+  | NetworkProjectionApplied
+  | NetworkProjectionSkipped
+  | NetworkProjectionClosed
   | SimulationSummarySeen
   | ShortcutsOpened
   | PropertyAggregateOpened

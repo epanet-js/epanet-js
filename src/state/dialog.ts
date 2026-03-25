@@ -45,6 +45,8 @@ export type NetworkProjectionDialogState = {
   previewGeoJson: FeatureCollection;
   onImportNonProjected: () => void;
   onImportProjected: (projection: Proj4Projection) => void;
+  filename: string;
+  flowUnits: string;
 };
 
 export type MissingCoordinatesDialogState = {

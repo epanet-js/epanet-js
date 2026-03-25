@@ -73,6 +73,8 @@ const NetworkProjectionDialog = dynamic<{
   previewGeoJson: import("geojson").FeatureCollection;
   onImportNonProjected: () => void;
   onImportProjected: (projection: Proj4Projection) => void;
+  filename: string;
+  flowUnits: string;
 }>(
   () =>
     import("src/dialogs/network-projection").then(
@@ -476,6 +478,8 @@ export const Dialogs = memo(function Dialogs() {
         previewGeoJson={dialog.previewGeoJson}
         onImportNonProjected={dialog.onImportNonProjected}
         onImportProjected={dialog.onImportProjected}
+        filename={dialog.filename}
+        flowUnits={dialog.flowUnits}
       />
     );
   }
