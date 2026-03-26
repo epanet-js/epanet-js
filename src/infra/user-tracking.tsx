@@ -220,10 +220,6 @@ type ExamplesOpened = {
   source: string;
 };
 
-type ProjectionConverterVisited = {
-  name: "projectionConverter.visited";
-};
-
 type WelcomeHidden = {
   name: "welcome.hidden";
 };
@@ -345,12 +341,6 @@ type InpIssuesExpanded = {
 type CoordinatesIssuesExpanded = {
   name: "coordinatesIssues.expanded";
 };
-type GeocodingNotSupportedSeen = {
-  name: "geocodingNotSupported.seen";
-};
-type InpProjectionChoiceSeen = {
-  name: "inpProjectionChoice.seen";
-};
 type NetworkProjectionSeen = {
   name: "networkProjection.seen";
 };
@@ -386,12 +376,6 @@ type NetworkProjectionSkipped = {
 };
 type NetworkProjectionClosed = {
   name: "networkProjection.closed";
-};
-type InpProjectionChoiceProjected = {
-  name: "inpProjectionChoice.projected";
-};
-type InpProjectionChoiceNonProjected = {
-  name: "inpProjectionChoice.nonProjected";
 };
 type MissingCoordinatesSeen = {
   name: "missingCoordinates.seen";
@@ -896,10 +880,6 @@ export type UserEvent =
   | InpIssuesExpanded
   | CoordinatesIssuesExpanded
   | MissingCoordinatesSeen
-  | GeocodingNotSupportedSeen
-  | InpProjectionChoiceSeen
-  | InpProjectionChoiceProjected
-  | InpProjectionChoiceNonProjected
   | NetworkProjectionSeen
   | NetworkProjectionSearched
   | NetworkProjectionSelected
@@ -919,7 +899,6 @@ export type UserEvent =
   | SignInStarted
   | LogOutCompleted
   | SubscriptionStarted
-  | ProjectionConverterVisited
   | PageReloaded
   | LayersPopoverOpened
   | LayerOpacityChanged

@@ -30,16 +30,6 @@ export type WelcomeDialogState = {
   type: "welcome";
 };
 
-export type GeocodingNotSupportedDialogState = {
-  type: "inpGeocodingNotSupported";
-  onImportNonProjected: () => void;
-};
-
-export type InpProjectionChoiceDialogState = {
-  type: "inpProjectionChoice";
-  onImportNonProjected: () => void;
-};
-
 export type NetworkProjectionDialogState = {
   type: "networkProjection";
   previewGeoJson: FeatureCollection;
@@ -170,8 +160,6 @@ export type DialogState =
   | InpIssuesDialogState
   | { type: "loading" }
   | AlertInpOutputState
-  | GeocodingNotSupportedDialogState
-  | InpProjectionChoiceDialogState
   | MissingCoordinatesDialogState
   | UpgradeDialogState
   | ImportCustomerPointsWizardState

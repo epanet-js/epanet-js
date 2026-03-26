@@ -26,7 +26,6 @@ import { OPFSStorage } from "src/infra/storage";
 import { getAppId } from "src/infra/app-instance";
 import { isDemoNetwork } from "src/demo/demo-networks";
 import { useRecentFiles } from "src/hooks/use-recent-files";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { type Proj4Projection } from "src/lib/projections";
 import { XY_GRID } from "src/import/inp/parse-inp";
 
@@ -35,7 +34,6 @@ export const inpExtension = ".inp";
 export const useImportInp = () => {
   const translate = useTranslate();
   const setDialogState = useSetAtom(dialogAtom);
-  const isReprojectOn = useFeatureFlag("FLAG_REPROJECT");
   const map = useContext(MapContext);
   const setFileInfo = useSetAtom(fileInfoAtom);
   const rep = usePersistence();
@@ -187,45 +185,38 @@ export const useImportInp = () => {
               setDialogState({ type: "invalidFilesError" });
             }
           };
-          if (isReprojectOn) {
-            const previewGeoJson = parseCoordinatesGeoJson(content);
+          const previewGeoJson = parseCoordinatesGeoJson(content);
 
-            const onImportProjected = async (projection: Proj4Projection) => {
-              setDialogState({ type: "loading" });
-              try {
-                const result = parseInp(content, {
-                  ...parseOptions,
-                  sourceProjection: projection,
-                });
-                userTracking.capture(
-                  buildCompleteEvent(
-                    result.hydraulicModel,
-                    result.projectSettings,
-                    result.issues,
-                    result.stats,
-                  ),
-                );
-                await completeImport(result, { autoElevations: true });
-              } catch (error) {
-                captureError(error as Error);
-                setDialogState({ type: "invalidFilesError" });
-              }
-            };
+          const onImportProjected = async (projection: Proj4Projection) => {
+            setDialogState({ type: "loading" });
+            try {
+              const result = parseInp(content, {
+                ...parseOptions,
+                sourceProjection: projection,
+              });
+              userTracking.capture(
+                buildCompleteEvent(
+                  result.hydraulicModel,
+                  result.projectSettings,
+                  result.issues,
+                  result.stats,
+                ),
+              );
+              await completeImport(result, { autoElevations: true });
+            } catch (error) {
+              captureError(error as Error);
+              setDialogState({ type: "invalidFilesError" });
+            }
+          };
 
-            setDialogState({
-              type: "networkProjection",
-              previewGeoJson,
-              onImportNonProjected,
-              onImportProjected,
-              filename: file.name,
-              flowUnits: chooseUnitSystem(projectSettings.units),
-            });
-          } else {
-            setDialogState({
-              type: "inpProjectionChoice",
-              onImportNonProjected,
-            });
-          }
+          setDialogState({
+            type: "networkProjection",
+            previewGeoJson,
+            onImportNonProjected,
+            onImportProjected,
+            filename: file.name,
+            flowUnits: chooseUnitSystem(projectSettings.units),
+          });
           return;
         }
 
@@ -254,7 +245,6 @@ export const useImportInp = () => {
     },
     [
       addRecent,
-      isReprojectOn,
       map,
       setDialogState,
       setFileInfo,

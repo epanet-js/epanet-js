@@ -1,83 +1,19 @@
 import { BaseDialog, SimpleDialogActions } from "../components/dialog";
 import { useTranslate } from "src/hooks/use-translate";
-import { Trans } from "react-i18next";
 
 import { Button } from "../components/elements";
 import { useState } from "react";
-import { newsletterUrl, projectionConverterUrl } from "src/global-config";
+import { newsletterUrl } from "src/global-config";
 import { ParserIssues } from "src/import/inp";
 import { useShowWelcome } from "src/commands/show-welcome";
 import { useUserTracking } from "src/infra/user-tracking";
 
-import {
-  ChevronDownIcon,
-  ChevronRightIcon,
-  GlobeIcon,
-  SubscribeIcon,
-} from "src/icons";
+import { ChevronDownIcon, ChevronRightIcon, SubscribeIcon } from "src/icons";
 
 const roadmapUrls = {
   waterQuality:
     "https://roadmap.epanetjs.com/simulation-engine/p/standard-water-quality-analysis",
 } as const;
-
-export const GeocodingNotSupportedDialog = ({
-  onClose,
-  onImportNonProjected,
-}: {
-  onClose: () => void;
-  onImportNonProjected: () => void;
-}) => {
-  const translate = useTranslate();
-  const userTracking = useUserTracking();
-
-  const handleReprojectNetwork = () => {
-    userTracking.capture({
-      name: "projectionConverter.visited",
-    });
-    window.open(projectionConverterUrl);
-  };
-  return (
-    <BaseDialog
-      title={translate("geocodingNotSupported")}
-      size="md"
-      isOpen={true}
-      onClose={onClose}
-      footer={
-        <SimpleDialogActions
-          action={translate("reprojectNetwork")}
-          onAction={handleReprojectNetwork}
-          autoFocusSubmit={true}
-          secondary={{
-            action: translate("loadInXYGrid"),
-            onClick: onImportNonProjected,
-          }}
-        />
-      }
-    >
-      <div className="p-4 text-sm">
-        <p className="pb-4">
-          <Trans
-            i18nKey="geocodingNotSupportedDetail"
-            components={{
-              converterLink: (
-                <a
-                  href={projectionConverterUrl}
-                  target="_blank"
-                  className="text-purple-700 dark:text-purple-300 underline"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handleReprojectNetwork();
-                  }}
-                />
-              ),
-            }}
-          />
-        </p>
-      </div>
-    </BaseDialog>
-  );
-};
 
 export const MissingCoordinatesDialog = ({
   issues,
@@ -155,32 +91,6 @@ export const InpIssuesDialog = ({
         <SubscribeCTA source="inpIssues" />
       </div>
     </BaseDialog>
-  );
-};
-
-export const ProjectionCTA = () => {
-  const translate = useTranslate();
-  const userTracking = useUserTracking();
-  return (
-    <>
-      <p className="pb-3">{translate("checkoutProjectionTool")}</p>
-      <p className="text-purple-800">
-        <Button
-          variant="quiet"
-          className="text-purple-500 font-semibold"
-          onClick={(e) => {
-            e.preventDefault();
-            userTracking.capture({
-              name: "projectionConverter.visited",
-            });
-            window.open(projectionConverterUrl);
-          }}
-        >
-          <GlobeIcon />
-          EPANET Projection Converter
-        </Button>
-      </p>
-    </>
   );
 };
 

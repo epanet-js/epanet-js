@@ -46,29 +46,6 @@ const InpIssuesDialog = dynamic<{
   loading: () => <LoadingDialog />,
 });
 
-const GeocodingNotSupportedDialog = dynamic<{
-  onClose: () => void;
-  onImportNonProjected: () => void;
-}>(
-  () =>
-    import("src/dialogs/inp-issues").then((r) => r.GeocodingNotSupportedDialog),
-  {
-    loading: () => <LoadingDialog />,
-  },
-);
-
-const InpProjectionChoiceDialog = dynamic<{
-  onImportNonProjected: () => void;
-}>(
-  () =>
-    import("src/dialogs/inp-projection-choice").then(
-      (r) => r.InpProjectionChoiceDialog,
-    ),
-  {
-    loading: () => <LoadingDialog />,
-  },
-);
-
 const NetworkProjectionDialog = dynamic<{
   previewGeoJson: import("geojson").FeatureCollection;
   onImportNonProjected: () => void;
@@ -359,12 +336,6 @@ export const Dialogs = memo(function Dialogs() {
       if (dialog.type === "inpMissingCoordinates") {
         userTracking.capture({ name: "missingCoordinates.seen" });
       }
-      if (dialog.type === "inpGeocodingNotSupported") {
-        userTracking.capture({ name: "geocodingNotSupported.seen" });
-      }
-      if (dialog.type === "inpProjectionChoice") {
-        userTracking.capture({ name: "inpProjectionChoice.seen" });
-      }
       if (dialog.type === "networkProjection") {
         userTracking.capture({ name: "networkProjection.seen" });
       }
@@ -464,14 +435,6 @@ export const Dialogs = memo(function Dialogs() {
     );
   }
 
-  if (dialog.type === "inpProjectionChoice") {
-    return (
-      <InpProjectionChoiceDialog
-        onImportNonProjected={dialog.onImportNonProjected}
-      />
-    );
-  }
-
   if (dialog.type === "networkProjection") {
     return (
       <NetworkProjectionDialog
@@ -515,12 +478,6 @@ export const Dialogs = memo(function Dialogs() {
     .with({ type: "cheatsheet" }, () => <CheatsheetDialog />)
     .with({ type: "inpIssues" }, ({ issues }) => (
       <InpIssuesDialog issues={issues} onClose={onClose} />
-    ))
-    .with({ type: "inpGeocodingNotSupported" }, ({ onImportNonProjected }) => (
-      <GeocodingNotSupportedDialog
-        onClose={onClose}
-        onImportNonProjected={onImportNonProjected}
-      />
     ))
     .with({ type: "inpMissingCoordinates" }, ({ issues }) => (
       <MissingCoordinatesDialog issues={issues} onClose={onClose} />

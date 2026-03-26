@@ -178,17 +178,11 @@
   "failedToOpenModel": "Failed to open model",
   "failedToOpenModelDetail": "Make sure to provide a valid INP file.",
   "understood": "Understood",
-  "reprojectNetwork": "Reproject network",
-  "loadInXYGrid": "Load in X-Y grid",
   "importAsUnprojected": "Import as unprojected",
   "projection": "Projection",
   "inpProjectionChoice": {
-    "title": "Set your network's location",
-    "description": "To provide basemaps and automatic elevations, we need to know if your coordinates represent real-world locations or a simple X-Y grid.",
-    "nonProjectedTitle": "Simple X-Y Grid",
-    "nonProjectedDescription": "Your network is a standalone sketch and is not tied to a physical location.",
     "projectedTitle": "Map-based",
-    "projectedDescription": "Your network matches real-world geography."
+    "nonProjectedTitle": "Simple X-Y Grid"
   },
   "error": "Error",
   "save": "Save",
@@ -337,8 +331,6 @@
   "privacyPolicy": "Privacy policy",
   "downloadFailed": "Download failed",
   "checkConnectionAndTry": "Please check your internet connection and try again.",
-  "geocodingNotSupported": "Reproject your network to display it in the map",
-  "geocodingNotSupportedDetail": "Your INP file uses a coordinate system that isn't currently supported. To view your network on the map, you'll need to convert the coordinates to the WGS84 standard (latitude and longitude).<br/><br/>You can do this using the <converterLink>EPANET Projection Converter utility</converterLink>.",
   "missingCoordinates": "Coordinates missing",
   "missingCoordinatesDetail": "Your INP is missing required coordinates. Please ensure all assets include geocoded information using the WGS84 standard.",
   "inpNotFullySupported": "Partially supported features",
