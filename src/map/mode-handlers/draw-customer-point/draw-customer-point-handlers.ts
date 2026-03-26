@@ -18,7 +18,7 @@ export function useDrawCustomerPointHandlers({
   const setMode = useSetAtom(modeAtom);
   const setEphemeralState = useSetAtom(ephemeralStateAtom);
   const selection = useAtomValue(selectionAtom);
-  const { customerPointFactory } = useAtomValue(modelFactoriesAtom)!;
+  const { customerPointFactory } = useAtomValue(modelFactoriesAtom);
   const transact = rep.useTransact();
   const userTracking = useUserTracking();
   const { selectCustomerPoint } = useSelection(selection);

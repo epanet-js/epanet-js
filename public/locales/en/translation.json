@@ -1118,7 +1118,9 @@
     "searchPlaceholder": "Search by location or code",
     "matchingProjections": "Matching projections",
     "searchingProjections": "Searching projections…",
-    "fitToExtent": "Fit to extent"
+    "fitToExtent": "Fit to extent",
+    "noResultsTitle": "No matching projections found here",
+    "noResultsDescription": "Try searching for a different location or zooming out on the map to expand your search area."
   },
   "dialog": {
     "save": "Save",

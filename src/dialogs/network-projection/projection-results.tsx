@@ -2,18 +2,19 @@ import { useMemo } from "react";
 import clsx from "clsx";
 import type { Proj4Projection } from "src/lib/projections";
 import { useTranslate } from "src/hooks/use-translate";
+import { MapPinXInsideIcon } from "src/icons";
 
 export const ProjectionResults = ({
   projections,
   selectedProjection,
   onSelect,
-  emptyMessage,
+  showEmptyState,
   isLoading,
 }: {
   projections: Proj4Projection[];
   selectedProjection: Proj4Projection | null;
   onSelect: (projection: Proj4Projection) => void;
-  emptyMessage?: string;
+  showEmptyState?: boolean;
   isLoading?: boolean;
 }) => {
   const t = useTranslate();
@@ -40,14 +41,17 @@ export const ProjectionResults = ({
     );
   }
 
-  if (results.length === 0 && emptyMessage) {
+  if (results.length === 0 && showEmptyState) {
     return (
-      <div className="mt-3">
-        <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
-          {t("networkProjection.matchingProjections")}
+      <div className="flex-1 min-h-0 flex flex-col items-center justify-center px-4 text-center">
+        <div className="text-gray-400">
+          <MapPinXInsideIcon size={96} />
+        </div>
+        <p className="text-sm font-semibold py-4 text-gray-600 dark:text-gray-300 max-w-48">
+          {t("networkProjection.noResultsTitle")}
         </p>
-        <p className="text-sm text-gray-500 dark:text-gray-400 p-3 border border-gray-200 dark:border-gray-700 rounded-md">
-          {emptyMessage}
+        <p className="text-sm text-gray-600 dark:text-gray-400 max-w-48">
+          {t("networkProjection.noResultsDescription")}
         </p>
       </div>
     );

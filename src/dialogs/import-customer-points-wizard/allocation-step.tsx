@@ -35,7 +35,7 @@ export const AllocationStep: React.FC<{
   const [tempRules, setTempRules] = useState<AllocationRule[]>([]);
   const projectSettings = useAtomValue(projectSettingsAtom);
   const hydraulicModel = useAtomValue(stagingModelAtom);
-  const factories = useAtomValue(modelFactoriesAtom)!;
+  const factories = useAtomValue(modelFactoriesAtom);
   const simulationSettings = useAtomValue(simulationSettingsAtom);
   const translate = useTranslate();
   const userTracking = useUserTracking();
