@@ -37,6 +37,7 @@ import { BaseDialog, DialogCloseX, useDialogState } from "../components/dialog";
 import { Message } from "../components/message";
 import { DRUMCHAPEL, WATERDOWN } from "src/demo/demo-networks";
 import optimaticsLogoUrl from "src/assets/images/logos/optimatics-logo-black.webp";
+import iteratingLogoUrl from "src/assets/images/logos/iterating-logo-horizontal-bleed-gray.svg";
 import type { RecentFileEntry } from "src/lib/recent-files";
 import clsx from "clsx";
 import Image from "next/image";
@@ -55,6 +56,7 @@ export const WelcomeDialog = () => {
     (lang) => lang.code === currentLocale.locale,
   );
   const isExperimental = currentLanguage?.experimental ?? false;
+  const isIteratingLogoOn = useFeatureFlag("FLAG_ITERATING_LOGO");
 
   const { closeDialog } = useDialogState();
 
@@ -166,6 +168,11 @@ export const WelcomeDialog = () => {
                   {translate("privacyPolicy")}
                 </a>
               </div>
+              {isIteratingLogoOn && (
+                <div className="flex gap-2 items-center mt-2 text-xs text-gray-500">
+                  By <img src={iteratingLogoUrl.src} className="h-8" />
+                </div>
+              )}
             </div>
           </div>
           <div className="p-6 min-w-0 flex flex-col overflow-hidden">
