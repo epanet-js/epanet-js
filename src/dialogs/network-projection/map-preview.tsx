@@ -3,7 +3,8 @@ import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import type { FeatureCollection } from "geojson";
 import { env } from "src/lib/env-client";
-import { emptyFeatureCollection } from "src/lib/constants";
+import { colors, emptyFeatureCollection } from "src/lib/constants";
+import { strokeColorFor } from "src/lib/color";
 import {
   CustomMapControl,
   FIT_TO_EXTENT_ICON,
@@ -36,7 +37,7 @@ const NETWORK_LAYERS: mapboxgl.AnyLayer[] = [
     source: "network",
     filter: ["==", "$type", "LineString"],
     paint: {
-      "line-color": "#3b82f6",
+      "line-color": colors.indigo900,
       "line-width": ["interpolate", ["linear"], ["zoom"], 12, 0.5, 16, 4],
     },
   },
@@ -47,7 +48,7 @@ const NETWORK_LAYERS: mapboxgl.AnyLayer[] = [
     filter: ["==", "$type", "Point"],
     paint: {
       "circle-radius": ["interpolate", ["linear"], ["zoom"], 12, 0.5, 16, 5],
-      "circle-color": "#3b82f6",
+      "circle-color": colors.indigo200,
       "circle-stroke-width": [
         "interpolate",
         ["linear"],
@@ -57,7 +58,7 @@ const NETWORK_LAYERS: mapboxgl.AnyLayer[] = [
         16,
         1,
       ],
-      "circle-stroke-color": "#ffffff",
+      "circle-stroke-color": strokeColorFor(colors.indigo200),
     },
     minzoom: 13,
   },
