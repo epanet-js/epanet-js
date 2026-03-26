@@ -21,7 +21,7 @@ import {
 } from "@dnd-kit/sortable";
 import {
   restrictToVerticalAxis,
-  restrictToFirstScrollableAncestor,
+  restrictToParentElement,
 } from "@dnd-kit/modifiers";
 import { CSS } from "@dnd-kit/utilities";
 import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
@@ -122,10 +122,7 @@ const ElevationsEditor = () => {
           onDragEnd={handleDragEnd}
           sensors={sensors}
           collisionDetection={closestCenter}
-          modifiers={[
-            restrictToVerticalAxis,
-            restrictToFirstScrollableAncestor,
-          ]}
+          modifiers={[restrictToVerticalAxis, restrictToParentElement]}
         >
           <SortableContext
             items={reversedSources}
@@ -149,8 +146,8 @@ const ElevationsEditor = () => {
             )}
           </SortableContext>
         </DndContext>
-        <AddElevationDataButton actions={actions} />
       </div>
+      <AddElevationDataButton actions={actions} />
     </Section>
   );
 };
@@ -180,11 +177,7 @@ const ElevationSourceRowShell = ({
   };
 
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className="py-2 flex gap-x-2 items-start"
-    >
+    <div ref={setNodeRef} style={style} className="flex gap-x-2 items-start">
       <div
         className="opacity-20 hover:opacity-100 cursor-ns-resize flex items-center h-8"
         {...attributes}
@@ -245,7 +238,11 @@ const GeoTiffElevationSourceRow = ({
     >
       <Popover.Root onOpenChange={handlePopoverOpenChange}>
         <Popover.Trigger asChild>
-          <Button variant="quiet/mode" className="h-8">
+          <Button
+            variant="quiet/mode"
+            className="h-8"
+            aria-label={translate("elevationSourceDetails")}
+          >
             <MultipleValuesIcon />
           </Button>
         </Popover.Trigger>
@@ -268,6 +265,7 @@ const GeoTiffElevationSourceRow = ({
       <Button
         variant="quiet/mode"
         className="h-8 text-red-500"
+        aria-label={translate("delete")}
         onClick={() => actions.deleteSource(source.id)}
       >
         <DeleteIcon />
@@ -398,7 +396,9 @@ const TileServerElevationSourceRow = ({
           },
           applicable: true,
           disabled: isOffline,
-          label: source.enabled ? translate("disable") : translate("enable"),
+          label: source.enabled
+            ? translate("disableElevationSource")
+            : translate("enableElevationSource"),
           icon: isDisabled ? <LocateIcon /> : <LocateOffIcon />,
         }}
       />
@@ -440,7 +440,7 @@ const ElevationOffsetField = ({
     elevationUnit,
   );
 
-  const label = `${translate("projectionOffset")} (${elevationUnit})`;
+  const label = `${translate("elevationOffset")} (${elevationUnit})`;
 
   return (
     <InlineField name={label} layout="label-flex-none">
@@ -504,7 +504,7 @@ const AddElevationDataButton = ({ actions }: { actions: Actions }) => {
       <Button
         variant="default"
         size="sm"
-        className="w-full justify-center"
+        className="w-full justify-center mt-2"
         onClick={handleClick}
         disabled={isLoading}
       >

@@ -135,7 +135,7 @@ describe("ElevationsConfig", () => {
     await user.click(getGeotiffPopoverTrigger());
 
     const offsetInput = screen.getByRole("textbox", {
-      name: /projection offset/i,
+      name: /elevation offset/i,
     });
     await user.clear(offsetInput);
     await user.type(offsetInput, "5");
@@ -162,11 +162,7 @@ describe("ElevationsConfig", () => {
     store.set(elevationSourcesAtom, [aMapboxSource, aGeoTiffSource]);
     renderComponent(store);
 
-    const geotiffRow = screen
-      .getByText(/grid – \d+ files?/)
-      .closest("[class*='py-2']")!;
-    const deleteButton = geotiffRow.querySelector(".text-red-500")!;
-    await user.click(deleteButton);
+    await user.click(screen.getByRole("button", { name: /delete/i }));
 
     const sources = store.get(elevationSourcesAtom);
     expect(sources).toHaveLength(1);
@@ -366,10 +362,7 @@ describe("ElevationsConfig", () => {
   });
 
   const getGeotiffPopoverTrigger = () => {
-    const geotiffRow = screen
-      .getByText(/grid – \d+ files?/)
-      .closest("[class*='py-2']")!;
-    return geotiffRow.querySelector("button")!;
+    return screen.getByRole("button", { name: /elevation source details/i });
   };
 
   const renderComponent = (store: Store) => {

@@ -41,6 +41,7 @@ export function ActionButton({ action }: { action: Action }) {
           variant={selected ? "quiet/mode" : variant}
           aria-expanded={selected ? "true" : "false"}
           disabled={disabled}
+          aria-label={label}
           className={clsx("h-8", disabled ? "cursor-not-allowed" : "")}
         >
           {icon}
