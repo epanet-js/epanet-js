@@ -2,8 +2,8 @@ import { describe, it, expect } from "vitest";
 import fs from "fs";
 import path from "path";
 import { computeTileBoundaries, type BoundaryResult } from "./compute-boundary";
-import { extractGeoTiffMetadata } from "./geotiff-utils";
-import type { GeoTiffTile } from "./elevation-source-types";
+import { parseGeoTIFF } from "../parse-geotiff";
+import { GeoTiffTile } from "../types";
 
 function loadFixtureAsFile(filename: string): File {
   const buffer = fs.readFileSync(path.join(__dirname, filename));
@@ -13,8 +13,9 @@ function loadFixtureAsFile(filename: string): File {
 async function loadFixtureTile(
   overrides?: Partial<GeoTiffTile>,
 ): Promise<GeoTiffTile> {
-  const file = loadFixtureAsFile("elevation.fixture.tif");
-  const metadata = await extractGeoTiffMetadata(file);
+  const fetchProj4Fake = vi.fn().mockResolvedValue("");
+  const file = loadFixtureAsFile("../elevation.fixture.tif");
+  const metadata = await parseGeoTIFF(file, fetchProj4Fake);
   return { id: "test", ...metadata, ...overrides };
 }
 

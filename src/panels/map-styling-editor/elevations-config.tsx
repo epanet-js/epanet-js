@@ -48,28 +48,29 @@ import { convertTo } from "src/quantity";
 import { offlineAtom } from "src/state/offline";
 import { elevationSourcesAtom } from "src/state/elevation-sources";
 import { mapOverlayFeaturesAtom } from "src/state/map-overlay";
-import {
-  buildCoverageFeature,
-  computeTileBoundaries,
-  extractGeoTiffMetadata,
-  getGeoTiffGridResolution,
-  UnsupportedProjectionError,
-} from "src/lib/elevations";
+
 import { notify } from "src/components/notifications";
-import type {
-  BoundaryResult,
-  ElevationSource,
-  GetProj4Def,
-  GeoTiffElevationSource,
-  GeoTiffTile,
-  TileServerElevationSource,
-} from "src/lib/elevations";
+
 import { MapContext } from "src/map";
 import { ActionButton } from "src/components/action-button";
 import { isUnprojectedAtom } from "src/state/map-projection";
 import { useAuth } from "src/auth";
 import { limits } from "src/user-plan";
 import { dialogAtom } from "src/state/dialog";
+import {
+  ElevationSource,
+  GeoTiffElevationSource,
+  TileServerElevationSource,
+} from "src/lib/elevations";
+import {
+  BoundaryResult,
+  computeTileBoundaries,
+  GeoTiffError,
+  GeoTiffTile,
+  parseGeoTIFF,
+  tileCoverage,
+  tileResolution,
+} from "src/lib/elevations/geotiff";
 
 export const ElevationsConfig = () => {
   const translate = useTranslate();
@@ -217,8 +218,9 @@ const GeoTiffElevationSourceRow = ({
   const { units } = useAtomValue(projectSettingsAtom);
   const elevationUnit = units.elevation;
   const resolutionDisplay = Math.round(
-    getGeoTiffGridResolution(source, elevationUnit),
+    convertTo(tileResolution(source.tiles[0]), elevationUnit),
   );
+
   const fileCount = source.tiles.length;
   const description = `${translate("gridResolution", `${resolutionDisplay}${elevationUnit}`)} – ${translate("files", fileCount)}`;
 
@@ -522,29 +524,19 @@ function notifyProjectionErrors(
   const projectionErrors = results
     .filter(
       (r): r is PromiseRejectedResult =>
-        r.status === "rejected" &&
-        r.reason instanceof UnsupportedProjectionError,
+        r.status === "rejected" && r.reason instanceof GeoTiffError,
     )
-    .map((r) => r.reason as UnsupportedProjectionError);
+    .map((r) => r.reason as GeoTiffError);
 
   if (projectionErrors.length === 0) return;
 
   const fileNames = projectionErrors.map((e) => e.fileName).join(", ");
-  const reasons = [
-    ...new Set(
-      projectionErrors.map((e) =>
-        e.projection.isUserDefined
-          ? translate("customProjection")
-          : `EPSG:${e.projection.epsgCode}`,
-      ),
-    ),
-  ].join(", ");
 
   notify({
     variant: "warning",
     title: translate("unsupportedProjection"),
-    description: translate("unsupportedProjectionExplain", fileNames, reasons),
-    id: "elevation-unsupported-projection",
+    description: fileNames,
+    id: "elevation-source-error",
   });
 }
 
@@ -554,8 +546,8 @@ type OnSourceTilesUpdated = (
 ) => void;
 
 const useElevationSourceActions = (
-  onSourceTilesUpdated?: OnSourceTilesUpdated,
-  getProj4Def?: GetProj4Def,
+  onSourceTilesUpdated: OnSourceTilesUpdated,
+  getProj4Def: (epsgCode: number) => Promise<string | null>,
 ) => {
   const sources = useAtomValue(elevationSourcesAtom);
   const setSources = useSetAtom(elevationSourcesAtom);
@@ -569,7 +561,7 @@ const useElevationSourceActions = (
     async (files: File[]) => {
       const results = await Promise.allSettled(
         files.map(async (file) => {
-          const metadata = await extractGeoTiffMetadata(file, getProj4Def);
+          const metadata = await parseGeoTIFF(file, getProj4Def);
           return { id: nanoid(), ...metadata } as GeoTiffTile;
         }),
       );
@@ -622,7 +614,7 @@ const useElevationSourceActions = (
     async (sourceId: string, files: File[]) => {
       const results = await Promise.allSettled(
         files.map(async (file) => {
-          const metadata = await extractGeoTiffMetadata(file, getProj4Def);
+          const metadata = await parseGeoTIFF(file, getProj4Def);
           return { id: nanoid(), ...metadata } as GeoTiffTile;
         }),
       );
@@ -788,7 +780,7 @@ const useElevationCoverageOverlay = () => {
       setCoverageFeatures(
         tiles.map((tile) => {
           const isHovered = tile.id === hoveredTileId;
-          return buildCoverageFeature(tile, {
+          return tileCoverage(tile, {
             isFilled: !isHovering,
             isDisabled: isHovering && !isHovered,
             showLabel: isHovered,
@@ -849,7 +841,7 @@ const useElevationCoverageOverlay = () => {
 const useProj4Definitions = () => {
   const cacheRef = useRef<Map<string, string> | null>(null);
 
-  const getProj4Def: GetProj4Def = useCallback(
+  const getProj4Def = useCallback(
     async (epsgCode: number): Promise<string | null> => {
       if (!cacheRef.current) {
         const response = await fetch("/projections.json");

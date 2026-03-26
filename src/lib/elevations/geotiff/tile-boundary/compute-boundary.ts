@@ -2,7 +2,7 @@ import * as Comlink from "comlink";
 import { canUseWorker } from "src/infra/worker";
 import type { BoundaryWorkerAPI } from "./compute-boundary-worker-api";
 import { boundaryWorkerAPI } from "./compute-boundary-worker-api";
-import type { GeoTiffTile } from "./elevation-source-types";
+import { GeoTiffTile } from "..";
 
 export type BoundaryResult = {
   tileId: string;

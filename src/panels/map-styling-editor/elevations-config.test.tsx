@@ -14,22 +14,20 @@ import type {
   GeoTiffElevationSource,
   TileServerElevationSource,
 } from "src/lib/elevations";
-import { extractGeoTiffMetadata } from "src/lib/elevations";
 import type { GeoTIFFImage } from "geotiff";
+import { parseGeoTIFF } from "src/lib/elevations/geotiff";
 
 const mockImage = {} as GeoTIFFImage;
 
-vi.mock("src/lib/elevations", async (importOriginal) => {
-  const original = await importOriginal<typeof import("src/lib/elevations")>();
+vi.mock("src/lib/elevations/geotiff", async (importOriginal) => {
+  const original =
+    await importOriginal<typeof import("src/lib/elevations/geotiff")>();
   return {
     ...original,
-    extractGeoTiffMetadata: vi.fn(),
+    parseGeoTIFF: vi.fn(),
+    computeTileBoundaries: vi.fn().mockResolvedValue(undefined),
   };
 });
-
-vi.mock("src/lib/elevations/compute-boundary", () => ({
-  computeTileBoundaries: vi.fn().mockResolvedValue(undefined),
-}));
 
 const aMapboxSource: TileServerElevationSource = {
   type: "tile-server",
@@ -174,7 +172,7 @@ describe("ElevationsConfig", () => {
     const store = setInitialState({});
     store.set(elevationSourcesAtom, [aMapboxSource]);
 
-    vi.mocked(extractGeoTiffMetadata).mockResolvedValue({
+    vi.mocked(parseGeoTIFF).mockResolvedValue({
       file: new File([""], "terrain.tif"),
       width: 200,
       height: 200,
@@ -217,7 +215,7 @@ describe("ElevationsConfig", () => {
     const store = setInitialState({});
     store.set(elevationSourcesAtom, [aMapboxSource]);
 
-    vi.mocked(extractGeoTiffMetadata)
+    vi.mocked(parseGeoTIFF)
       .mockResolvedValueOnce({
         file: new File([""], "tile1.tif"),
         width: 100,
@@ -319,7 +317,7 @@ describe("ElevationsConfig", () => {
     const store = setInitialState({});
     store.set(elevationSourcesAtom, [aMapboxSource, aGeoTiffSource]);
 
-    vi.mocked(extractGeoTiffMetadata).mockResolvedValue({
+    vi.mocked(parseGeoTIFF).mockResolvedValue({
       file: new File([""], "new-tile.tif"),
       width: 100,
       height: 100,

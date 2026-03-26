@@ -1,7 +1,10 @@
 import { Unit, convertTo } from "src/quantity";
 import { fetchElevationForPoint } from "./tile-server-elevation";
-import { sampleElevation, isPointInBbox } from "./geotiff-utils";
 import type { ElevationSource } from "./elevation-source-types";
+import {
+  fetchGeoTiffTileElevation,
+  isPointInBbox,
+} from "./geotiff/fetch-elevation";
 
 /**
  * Iterates elevation sources in reverse order (last = highest priority)
@@ -56,8 +59,9 @@ async function tryGeotiffSource(
   for (const tile of source.tiles) {
     if (!isPointInBbox(lng, lat, tile.bbox)) continue;
 
-    const elevation = await sampleElevation(tile, lng, lat, unit);
-    if (elevation !== null) return elevation;
+    const elevation = await fetchGeoTiffTileElevation(tile, lng, lat);
+
+    if (elevation !== null) return convertTo(elevation, unit);
   }
   return null;
 }

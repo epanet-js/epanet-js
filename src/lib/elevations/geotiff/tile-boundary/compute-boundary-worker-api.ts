@@ -1,9 +1,9 @@
 // eslint-disable-next-line no-restricted-imports
 import proj4 from "proj4";
 import { fromBlob } from "geotiff";
-import { transformCoordinates } from "./geotiff-utils";
 import simplify from "@turf/simplify";
 import { polygon } from "@turf/helpers";
+import { buildPixelTransformers } from "../pixel-transformer";
 
 export const boundaryWorkerAPI = { computeDataBoundary };
 
@@ -56,8 +56,10 @@ async function computeDataBoundary(
       }
     }
 
-    leftEdge.push(transformCoordinates(firstValid, row, pixelToCrs));
-    rightEdge.push(transformCoordinates(lastValid, row, pixelToCrs));
+    const transformer = buildPixelTransformers({ pixelToCrs });
+
+    leftEdge.push(transformer.fromPixel(firstValid, row));
+    rightEdge.push(transformer.fromPixel(lastValid, row));
   }
 
   if (leftEdge.length < 3) return null;
