@@ -9,6 +9,7 @@ import {
 import type { LocationData } from "src/components/form/location-search";
 import type { Proj4Projection } from "src/lib/projections";
 import { useTranslate } from "src/hooks/use-translate";
+import { matchesProjection } from "./match-projection";
 
 type SearchResultData =
   | { type: "location"; location: LocationData }
@@ -45,14 +46,8 @@ export const ProjectionSearch = ({
     async (query: string): Promise<SearchResult[]> => {
       if (!query.trim() || query.length < 2) return [];
 
-      const lowerQuery = query.toLowerCase();
-
       const projectionResults: SearchResult[] = projections
-        .filter(
-          (p) =>
-            p.id.toLowerCase().includes(lowerQuery) ||
-            p.name.toLowerCase().includes(lowerQuery),
-        )
+        .filter((p) => matchesProjection(p, query))
         .slice(0, 5)
         .map((p) => ({
           id: `proj-${p.id}`,
