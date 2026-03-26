@@ -106,6 +106,8 @@ export const MapPreview = ({
       doubleClickZoom: false,
     });
 
+    map.on("error", () => {});
+
     map.addControl(new mapboxgl.NavigationControl({}), "bottom-right");
     map.addControl(
       new CustomMapControl(
