@@ -2,6 +2,7 @@ import { parseCustomerPoints } from "./parse-customer-points";
 import { CustomerPointsIssuesAccumulator } from "./parse-customer-points-issues";
 import { ConsecutiveIdsGenerator } from "src/lib/id-generator";
 import { CustomerPointFactory } from "src/hydraulic-model/factories";
+import { LabelManager } from "src/hydraulic-model/label-manager";
 
 describe("parseCustomerPoints", () => {
   describe("patternId", () => {
@@ -24,7 +25,10 @@ describe("parseCustomerPoints", () => {
           issues,
           "l/d",
           "l/d",
-          new CustomerPointFactory(new ConsecutiveIdsGenerator()),
+          new CustomerPointFactory(
+            new ConsecutiveIdsGenerator(),
+            new LabelManager(),
+          ),
           "demand",
           null,
           null,
@@ -68,7 +72,10 @@ describe("parseCustomerPoints", () => {
           issues,
           "l/d",
           "l/d",
-          new CustomerPointFactory(new ConsecutiveIdsGenerator()),
+          new CustomerPointFactory(
+            new ConsecutiveIdsGenerator(),
+            new LabelManager(),
+          ),
           "demand",
           null,
           PATTERN_ID,
@@ -94,7 +101,10 @@ describe("parseCustomerPoints", () => {
           issues,
           "l/d",
           "l/d",
-          new CustomerPointFactory(new ConsecutiveIdsGenerator()),
+          new CustomerPointFactory(
+            new ConsecutiveIdsGenerator(),
+            new LabelManager(),
+          ),
           "demand",
           null,
           PATTERN_ID,
@@ -127,7 +137,10 @@ describe("parseCustomerPoints", () => {
           issues,
           "l/d",
           "l/d",
-          new CustomerPointFactory(new ConsecutiveIdsGenerator()),
+          new CustomerPointFactory(
+            new ConsecutiveIdsGenerator(),
+            new LabelManager(),
+          ),
           "demand",
           null,
           null,

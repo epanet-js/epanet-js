@@ -8,12 +8,12 @@ export type ModelFactories = {
   customerPointFactory: CustomerPointFactory;
 };
 
-export const initializeModelFactories = (options?: {
+export const initializeModelFactories = (options: {
   customerPointIdGenerator?: IdGenerator;
-  labelManager?: LabelManager;
+  labelManager: LabelManager;
 }): ModelFactories => ({
   customerPointFactory: new CustomerPointFactory(
-    options?.customerPointIdGenerator ?? new ConsecutiveIdsGenerator(),
-    options?.labelManager,
+    options.customerPointIdGenerator ?? new ConsecutiveIdsGenerator(),
+    options.labelManager,
   ),
 });

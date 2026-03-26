@@ -6,9 +6,9 @@ import { LabelManager } from "src/hydraulic-model/label-manager";
 
 export class CustomerPointFactory {
   private idGenerator: IdGenerator;
-  private labelManager: LabelManager | undefined;
+  private labelManager: LabelManager;
 
-  constructor(idGenerator: IdGenerator, labelManager?: LabelManager) {
+  constructor(idGenerator: IdGenerator, labelManager: LabelManager) {
     this.idGenerator = idGenerator;
     this.labelManager = labelManager;
   }
@@ -27,14 +27,9 @@ export class CustomerPointFactory {
 
   private resolveLabel(id: number, label?: string): string {
     if (label !== undefined) {
-      if (this.labelManager) {
-        this.labelManager.register(label, "customerPoint", id);
-      }
+      this.labelManager.register(label, "customerPoint", id);
       return label;
     }
-    if (this.labelManager) {
-      return this.labelManager.generateFor("customerPoint", id);
-    }
-    return String(id);
+    return this.labelManager.generateFor("customerPoint", id);
   }
 }

@@ -44,7 +44,7 @@ export const DataMappingStep: React.FC<{
   const userTracking = useUserTracking();
   const projectSettings = useAtomValue(projectSettingsAtom);
   const hydraulicModel = useAtomValue(stagingModelAtom);
-  const { customerPointFactory } = useAtomValue(modelFactoriesAtom);
+  const { customerPointFactory } = useAtomValue(modelFactoriesAtom)!;
   const patterns = hydraulicModel.patterns;
   const isModalsOn = useFeatureFlag("FLAG_MODALS");
 

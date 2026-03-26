@@ -52,7 +52,7 @@ export const ImportCustomerPointsWizard: React.FC<
   } = useProjections();
 
   const hydraulicModel = useAtomValue(stagingModelAtom);
-  const factories = useAtomValue(modelFactoriesAtom);
+  const factories = useAtomValue(modelFactoriesAtom)!;
   const simulationSettings = useAtomValue(simulationSettingsAtom);
   const projectSettings = useAtomValue(projectSettingsAtom);
   const rep = usePersistence();

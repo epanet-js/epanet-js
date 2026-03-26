@@ -99,14 +99,10 @@ export const buildModel = (
   const hydraulicModel = initializeHydraulicModel({
     defaults: spec.defaults,
     demands: createEmptyDemands(),
-    fillLabelGaps: options?.fillLabelGaps,
   });
 
   const factories = initializeModelFactories({
-    labelManager:
-      options?.fillLabelGaps === false
-        ? hydraulicModel.labelManager
-        : undefined,
+    labelManager: hydraulicModel.labelManager,
   });
 
   const curvesContext: CurvesContext = initializeCurvesContext(

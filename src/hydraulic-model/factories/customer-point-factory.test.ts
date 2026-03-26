@@ -3,14 +3,6 @@ import { LabelManager } from "src/hydraulic-model/label-manager";
 import { ConsecutiveIdsGenerator } from "src/lib/id-generator";
 
 describe("CustomerPointFactory", () => {
-  it("defaults label to string id when no label manager", () => {
-    const factory = new CustomerPointFactory(new ConsecutiveIdsGenerator());
-
-    const cp = factory.create([0, 0]);
-
-    expect(cp.label).toBe("1");
-  });
-
   it("generates CP-prefixed labels with label manager", () => {
     const labelManager = new LabelManager();
     const factory = new CustomerPointFactory(
@@ -53,8 +45,12 @@ describe("CustomerPointFactory", () => {
     expect(cp.label).toBe("CP2");
   });
 
-  it("uses explicit label without label manager", () => {
-    const factory = new CustomerPointFactory(new ConsecutiveIdsGenerator());
+  it("uses explicit label as-is", () => {
+    const labelManager = new LabelManager();
+    const factory = new CustomerPointFactory(
+      new ConsecutiveIdsGenerator(),
+      labelManager,
+    );
 
     const cp = factory.create([0, 0], "CustomLabel");
 

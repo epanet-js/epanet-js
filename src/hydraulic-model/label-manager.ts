@@ -28,10 +28,8 @@ export interface LabelGenerator {
 export class LabelManager implements LabelGenerator {
   private indexPerType: Map<LabelType, number>;
   private labelToEntries: Map<string, LabelEntry[]>;
-  readonly fillGaps: boolean;
 
-  constructor(fillGaps: boolean = true) {
-    this.fillGaps = fillGaps;
+  constructor() {
     this.indexPerType = new Map();
     this.labelToEntries = new Map();
   }
@@ -45,19 +43,6 @@ export class LabelManager implements LabelGenerator {
 
     const entries = this.labelToEntries.get(normalizedLabel) || [];
     if (entries.some((e) => e.id === id)) return;
-
-    if (this.fillGaps) {
-      const prefix = labelPrefixes[type];
-      const regexp = new RegExp(`^(?:${prefix})(\\d+)$`, "i");
-      const match = label.match(regexp);
-      if (match) {
-        const index = parseInt(match[1]);
-        const currentIndex = this.indexPerType.get(type);
-        if (currentIndex === undefined || index < currentIndex) {
-          this.indexPerType.set(type, index);
-        }
-      }
-    }
 
     this.labelToEntries.set(normalizedLabel, [...entries, { id, type }]);
   }
@@ -93,10 +78,7 @@ export class LabelManager implements LabelGenerator {
     const nextIndex = this.indexPerType.get(type) || 1;
     const { label, index: effectiveIndex } = this.ensureUnique(type, nextIndex);
     const normalizedLabel = this.normalizeLabel(label);
-    this.indexPerType.set(
-      type,
-      this.fillGaps ? effectiveIndex : effectiveIndex + 1,
-    );
+    this.indexPerType.set(type, effectiveIndex + 1);
 
     const entries = this.labelToEntries.get(normalizedLabel) || [];
     this.labelToEntries.set(normalizedLabel, [...entries, { id, type }]);
@@ -113,19 +95,6 @@ export class LabelManager implements LabelGenerator {
       this.labelToEntries.delete(normalizedLabel);
     } else {
       this.labelToEntries.set(normalizedLabel, filtered);
-    }
-
-    if (this.fillGaps) {
-      const prefix = labelPrefixes[type];
-      const regexp = new RegExp(`^(?:${prefix})(\\d+)$`, "i");
-      const match = label.match(regexp);
-      if (match) {
-        const index = parseInt(match[1]);
-        const currentIndex = this.indexPerType.get(type);
-        if (currentIndex === undefined || index < currentIndex) {
-          this.indexPerType.set(type, index);
-        }
-      }
     }
   }
 
