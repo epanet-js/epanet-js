@@ -111,15 +111,35 @@ const ANGULAR_UNIT_TO_DEG: Record<number, number> = {
 };
 
 // EPSG linear unit codes → conversion factor to meters
-// Only for codes not in LINEAR_UNIT_MAP (which handles m/ft/us-ft via +units=)
 const LINEAR_UNIT_TO_METER: Record<number, number> = {
+  9001: 1, // metre
+  9002: 0.3048, // international foot
+  9003: 0.3048006096012192, // US survey foot
   9005: 0.30479947153867626, // Clarke's foot
   9014: 1.8288, // fathom
   9030: 1852, // nautical mile
   9036: 1000, // kilometre
+  9040: 0.3047997101815088, // British foot (Sears 1922)
   9042: 1852, // nautical mile (alt code)
+  9084: 0.30479951024814694, // Indian foot
+  9093: 1609.344, // statute mile
+  9094: 0.3047997101815088, // Gold Coast foot
+  9095: 0.3048007491, // British foot (1936)
+  9096: 0.9144, // yard (international)
   9098: 0.31608, // German legal metre
+  9300: 0.3048, // British foot (Sears 1922 truncated)
+  9301: 0.30479841408177483, // Indian foot (1937)
+  9302: 0.3047996664, // Indian foot (1962)
+  9303: 0.3047995, // Indian foot (1975)
 };
+
+function linearUnitToMeterFactor(geoKeys: Record<string, number>): number {
+  const unitCode = geoKeys.ProjLinearUnitsGeoKey;
+  if (unitCode == null) return 1; // no unit specified → assume meters
+  return (
+    LINEAR_UNIT_TO_METER[unitCode] ?? geoKeys.ProjLinearUnitSizeGeoKey ?? 1
+  );
+}
 
 export function extractCustomProj4(
   geoKeys: Record<string, number>,
@@ -169,17 +189,20 @@ export function extractCustomProj4(
   if (k != null) parts.push(`+k=${k}`);
 
   // False easting/northing (direct, false origin, or center variants)
+  // proj4 expects +x_0/+y_0 in meters, but GeoTIFF stores them in the
+  // projection's linear unit — convert when necessary.
+  const toMeters = linearUnitToMeterFactor(geoKeys);
   const x0 =
     geoKeys.ProjFalseEastingGeoKey ??
     geoKeys.ProjFalseOriginEastingGeoKey ??
     geoKeys.ProjCenterEastingGeoKey;
-  if (x0 != null) parts.push(`+x_0=${x0}`);
+  if (x0 != null) parts.push(`+x_0=${x0 * toMeters}`);
 
   const y0 =
     geoKeys.ProjFalseNorthingGeoKey ??
     geoKeys.ProjFalseOriginNorthingGeoKey ??
     geoKeys.ProjCenterNorthingGeoKey;
-  if (y0 != null) parts.push(`+y_0=${y0}`);
+  if (y0 != null) parts.push(`+y_0=${y0 * toMeters}`);
 
   // Azimuth (for Oblique Mercator — may use its own angular unit)
   if (geoKeys.ProjAzimuthAngleGeoKey != null) {
@@ -230,11 +253,8 @@ export function extractCustomProj4(
   if (knownUnit) {
     parts.push(`+units=${knownUnit}`);
   } else if (geoKeys.ProjLinearUnitsGeoKey != null) {
-    const unitSize =
-      geoKeys.ProjLinearUnitSizeGeoKey ??
-      LINEAR_UNIT_TO_METER[geoKeys.ProjLinearUnitsGeoKey];
-    if (unitSize != null && unitSize !== 1) {
-      parts.push(`+to_meter=${unitSize}`);
+    if (toMeters !== 1) {
+      parts.push(`+to_meter=${toMeters}`);
     }
   }
 
