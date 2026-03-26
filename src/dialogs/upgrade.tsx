@@ -32,6 +32,7 @@ import {
 import { canUpgrade } from "src/user-plan";
 import { signUpUrl } from "src/global-config";
 import { CheckIcon, InfoIcon, CloseIcon } from "src/icons";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 type UsageOption = "commercial" | "non-commercial";
 
@@ -198,7 +199,7 @@ const FreePlan = ({ paymentType }: { paymentType: PaymentType }) => {
   const translate = useTranslate();
   return (
     <div className="bg-white border border-gray-100 rounded-md shadow-md overflow-hidden flex flex-col justify-between">
-      <div className="p-6 grid max-xs:block md:block grid-cols-2 gap-4">
+      <div className="p-6 grid max-xs:block md:flex md:flex-col grid-cols-2 gap-4 flex-1">
         <PlanHeader
           name="Free"
           price="$0"
@@ -252,10 +253,11 @@ const FreePlan = ({ paymentType }: { paymentType: PaymentType }) => {
 const PersonalPlan = ({ paymentType }: { paymentType: PaymentType }) => {
   const translate = useTranslate();
   const price = prices.personal.yearly;
+  const isDtmElevationsOn = useFeatureFlag("FLAG_DTM_ELEVATIONS");
 
   return (
     <div className="relative bg-white border border-purple-100 rounded-lg shadow-md shadow-purple-300 overflow-hidden flex flex-col justify-between">
-      <div className="p-6 grid max-xs:block md:block grid-cols-2 gap-4">
+      <div className="p-6 grid max-xs:block md:flex md:flex-col grid-cols-2 gap-4 flex-1">
         <div className="absolute top-0 right-0 bg-gradient-to-br from-purple-300 via-purple-400 to-purple-500 text-white text-xs font-semibold py-1 px-2 rounded-bl-lg">
           {translate("mostPopular")}
         </div>
@@ -265,7 +267,7 @@ const PersonalPlan = ({ paymentType }: { paymentType: PaymentType }) => {
           claim={translate("tryItYourself")}
           payment={paymentType}
         />
-        <div>
+        <div className="flex flex-col justify-between flex-1">
           <FeaturesList
             title={translate("everythingAnd", "Free")}
             items={[
@@ -284,9 +286,17 @@ const PersonalPlan = ({ paymentType }: { paymentType: PaymentType }) => {
                 Icon: CheckIcon,
                 iconColor: "text-green-500",
               },
+              ...(isDtmElevationsOn
+                ? [
+                    {
+                      feature: translate("customElevations"),
+                      Icon: CheckIcon,
+                      iconColor: "text-green-500",
+                    },
+                  ]
+                : []),
             ]}
           />
-          <div className="h-4"></div>
           <FeaturesList
             title={`${translate("comingSoon")}:`}
             textColor="text-gray-500"
@@ -327,7 +337,7 @@ const EducationPlan = ({ paymentType }: { paymentType: PaymentType }) => {
 
   return (
     <div className="relative bg-white border border-gray-100 rounded-lg shadow-md shadow-gray-300 overflow-hidden flex flex-col h-fit">
-      <div className="p-6 grid max-xs:block md:block grid-cols-2 gap-4">
+      <div className="p-6 grid max-xs:block md:flex md:flex-col grid-cols-2 gap-4 flex-1">
         <PlanHeader
           name="Education"
           price="$0"
@@ -382,10 +392,11 @@ const EducationPlan = ({ paymentType }: { paymentType: PaymentType }) => {
 const ProPlan = ({ paymentType }: { paymentType: PaymentType }) => {
   const translate = useTranslate();
   const price = prices.pro[paymentType];
+  const isDtmElevationsOn = useFeatureFlag("FLAG_DTM_ELEVATIONS");
 
   return (
     <div className="relative bg-white border border-purple-100 rounded-lg shadow-md shadow-purple-300 overflow-hidden flex flex-col justify-between">
-      <div className="p-6 grid max-xs:block md:block grid-cols-2 gap-4">
+      <div className="p-6 grid max-xs:block md:flex md:flex-col grid-cols-2 gap-4 flex-1">
         <div className="absolute top-0 right-0 bg-gradient-to-br from-purple-300 via-purple-400 to-purple-500 text-white text-xs font-semibold py-1 px-2 rounded-bl-lg">
           {translate("mostPopular")}
         </div>
@@ -395,7 +406,7 @@ const ProPlan = ({ paymentType }: { paymentType: PaymentType }) => {
           payment={paymentType}
           claim={translate("individualNamedLicense")}
         />
-        <div>
+        <div className="flex flex-col justify-between flex-1">
           <FeaturesList
             title={translate("everythingAnd", "Free")}
             items={[
@@ -414,9 +425,17 @@ const ProPlan = ({ paymentType }: { paymentType: PaymentType }) => {
                 Icon: CheckIcon,
                 iconColor: "text-green-500",
               },
+              ...(isDtmElevationsOn
+                ? [
+                    {
+                      feature: translate("customElevations"),
+                      Icon: CheckIcon,
+                      iconColor: "text-green-500",
+                    },
+                  ]
+                : []),
             ]}
           />
-          <div className="h-4"></div>
           <FeaturesList
             title={`${translate("comingSoon")}:`}
             textColor="text-gray-500"
@@ -461,7 +480,7 @@ const TeamsPlan = ({ paymentType }: { paymentType: PaymentType }) => {
 
   return (
     <div className="relative bg-white border border-gray-200 rounded-md shadow-md shadow-gray-300 overflow-hidden flex flex-col justify-between">
-      <div className="p-6 grid max-xs:block md:block grid-cols-2 gap-4">
+      <div className="p-6 grid max-xs:block md:flex md:flex-col grid-cols-2 gap-4 flex-1">
         <PlanHeader
           name="Teams"
           price={price}
@@ -469,7 +488,7 @@ const TeamsPlan = ({ paymentType }: { paymentType: PaymentType }) => {
           claim={translate("floatingSharedLicenses")}
           tooltip={translate("minimumTwoLicenses")}
         />
-        <div>
+        <div className="flex flex-col justify-between flex-1">
           <FeaturesList
             title={translate("everythingAnd", "Pro")}
             items={[
@@ -552,7 +571,7 @@ const PlanHeader = ({
         <strong className="text-3xl font-bold">{price}</strong>
         <span className="text-lg text-gray-500">{recurrency}</span>
       </div>
-      <div className="flex items-center mb-4 space-x-1">
+      <div className="flex items-center mb-4 space-x-1 min-h-6">
         <p className="text-gray-600 text-sm">{claim}</p>
         {tooltip && <InfoTooltip text={tooltip} />}
       </div>

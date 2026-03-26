@@ -66,8 +66,29 @@ import type {
 } from "src/lib/elevations";
 import { MapContext } from "src/map";
 import { ActionButton } from "src/components/action-button";
+import { isUnprojectedAtom } from "src/state/map-projection";
+import { useAuth } from "src/auth";
+import { limits } from "src/user-plan";
+import { dialogAtom } from "src/state/dialog";
 
 export const ElevationsConfig = () => {
+  const translate = useTranslate();
+  const isUnprojected = useAtomValue(isUnprojectedAtom);
+
+  if (isUnprojected) {
+    return (
+      <Section title={translate("elevations")}>
+        <p className="text-sm text-gray-500">
+          {translate("elevationsRequiresProjection")}
+        </p>
+      </Section>
+    );
+  }
+
+  return <ElevationsEditor />;
+};
+
+const ElevationsEditor = () => {
   const translate = useTranslate();
   const overlay = useElevationCoverageOverlay();
   const { getProj4Def } = useProj4Definitions();
@@ -438,6 +459,22 @@ const AddElevationDataButton = ({ actions }: { actions: Actions }) => {
   const translate = useTranslate();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const { user } = useAuth();
+  const setDialogState = useSetAtom(dialogAtom);
+  const userTracking = useUserTracking();
+
+  const handleClick = () => {
+    const canUseElevations = limits.canUseElevations(user.plan);
+    if (!canUseElevations) {
+      userTracking.capture({
+        name: "upgradeButton.clicked",
+        source: "customElevations",
+      });
+      setDialogState({ type: "upgrade" });
+      return;
+    }
+    fileInputRef.current?.click();
+  };
 
   const handleFilesSelected = async (files: File[]) => {
     setIsLoading(true);
@@ -468,7 +505,7 @@ const AddElevationDataButton = ({ actions }: { actions: Actions }) => {
         variant="default"
         size="sm"
         className="w-full justify-center"
-        onClick={() => fileInputRef.current?.click()}
+        onClick={handleClick}
         disabled={isLoading}
       >
         <AddIcon size="sm" />

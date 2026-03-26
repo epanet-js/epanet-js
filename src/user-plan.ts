@@ -28,4 +28,7 @@ export const limits = {
   canUseScenarios: (plan: Plan) => {
     return ["pro", "education", "personal"].includes(plan);
   },
+  canUseElevations: (plan: Plan) => {
+    return ["pro", "education", "personal"].includes(plan);
+  },
 };
