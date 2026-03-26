@@ -47,6 +47,10 @@ const prices = {
   teams: {
     monthly: "$250",
     yearly: "$2500",
+    baseMonthly: "$250",
+    baseYearly: "$2500",
+    userMonthly: "$60",
+    userYearly: "$600",
   },
 };
 
@@ -468,8 +472,44 @@ const ProPlan = ({ paymentType }: { paymentType: PaymentType }) => {
   );
 };
 
+const TeamsPricingHeader = ({ paymentType }: { paymentType: PaymentType }) => {
+  const translate = useTranslate();
+  const recurrency =
+    paymentType === "yearly" ? translate("year") : translate("monthShort");
+  const basePrice =
+    paymentType === "yearly"
+      ? prices.teams.baseYearly
+      : prices.teams.baseMonthly;
+  const userPrice =
+    paymentType === "yearly"
+      ? prices.teams.userYearly
+      : prices.teams.userMonthly;
+
+  return (
+    <div className="flex flex-col">
+      <h2 className="text-xl font-semibold mb-2">Teams</h2>
+      <div className="flex items-center gap-4 mb-4">
+        <div>
+          <p className="text-3xl font-bold mb-2">{basePrice}</p>
+          <p className="text-gray-500 text-sm">
+            {translate("baseCost")} / {recurrency}
+          </p>
+        </div>
+        <span className="text-2xl font-bold text-gray-700 self-start">+</span>
+        <div>
+          <p className="text-3xl font-bold mb-2">{userPrice}</p>
+          <p className="text-gray-500 text-sm">
+            {translate("perUser")} / {recurrency}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const TeamsPlan = ({ paymentType }: { paymentType: PaymentType }) => {
   const translate = useTranslate();
+  const isPricingOn = useFeatureFlag("FLAG_PRICING");
   const price = prices.teams[paymentType];
   const userTracking = useUserTracking();
 
@@ -481,13 +521,17 @@ const TeamsPlan = ({ paymentType }: { paymentType: PaymentType }) => {
   return (
     <div className="relative bg-white border border-gray-200 rounded-md shadow-md shadow-gray-300 overflow-hidden flex flex-col justify-between">
       <div className="p-6 grid max-xs:block md:flex md:flex-col grid-cols-2 gap-4 flex-1">
-        <PlanHeader
-          name="Teams"
-          price={price}
-          payment={paymentType}
-          claim={translate("floatingSharedLicenses")}
-          tooltip={translate("minimumTwoLicenses")}
-        />
+        {isPricingOn ? (
+          <TeamsPricingHeader paymentType={paymentType} />
+        ) : (
+          <PlanHeader
+            name="Teams"
+            price={price}
+            payment={paymentType}
+            claim={translate("floatingSharedLicenses")}
+            tooltip={translate("minimumTwoLicenses")}
+          />
+        )}
         <div className="flex flex-col justify-between flex-1">
           <FeaturesList
             title={translate("everythingAnd", "Pro")}
@@ -498,7 +542,9 @@ const TeamsPlan = ({ paymentType }: { paymentType: PaymentType }) => {
                 iconColor: "text-green-500",
               },
               {
-                feature: translate("volumeDiscounts"),
+                feature: isPricingOn
+                  ? translate("selfServiceSeatManagement")
+                  : translate("volumeDiscounts"),
                 Icon: CheckIcon,
                 iconColor: "text-green-500",
               },
