@@ -498,9 +498,12 @@ const TeamsPricingHeader = ({ paymentType }: { paymentType: PaymentType }) => {
         <span className="text-2xl font-bold text-gray-700 self-start">+</span>
         <div>
           <p className="text-3xl font-bold mb-2">{userPrice}</p>
-          <p className="text-gray-500 text-sm">
-            {translate("perUser")} / {recurrency}
-          </p>
+          <div className="flex items-center gap-1">
+            <p className="text-gray-500 text-sm">
+              {translate("perUser")} / {recurrency}
+            </p>
+            <InfoTooltip text={translate("minimumTwoLicenses")} />
+          </div>
         </div>
       </div>
     </div>
@@ -678,10 +681,14 @@ const NonCommercialHint = () => {
 };
 
 const InfoTooltip = ({ text }: { text: string }) => {
+  const isPricingOn = useFeatureFlag("FLAG_PRICING");
+
   return (
     <Tooltip.Root delayDuration={100}>
       <Tooltip.Trigger asChild>
-        <button className="p-1 rounded-full hover:bg-gray-200">
+        <button
+          className={`rounded-full hover:bg-gray-200 ${isPricingOn ? "" : "p-1"}`}
+        >
           <InfoIcon className="w-5 h-5 text-gray-500" />
         </button>
       </Tooltip.Trigger>
