@@ -32,7 +32,7 @@ import { LegendRamp } from "src/components/legends";
 import { selectionAtom } from "src/state/selection";
 import { USelection } from "src/selection/selection";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { ElevationsConfig } from "./elevations-config";
+import { ElevationsEditor } from "./elevations-editor";
 
 const colorPropertyLabelFor = (
   property: string,
@@ -62,7 +62,7 @@ export const MapStylingEditor = () => {
           properties={supportedLinkProperties}
         />
         <CustomerPointsSection />
-        {isDtmElevationsOn && <ElevationsConfig />}
+        {!isGridOn && isDtmElevationsOn && <ElevationsEditor />}
         {!isGridOn && (
           <Section title={translate("layers")} button={<AddLayer />}>
             <LayersEditor />

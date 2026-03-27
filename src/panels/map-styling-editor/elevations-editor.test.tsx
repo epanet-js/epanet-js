@@ -8,7 +8,7 @@ import userEvent from "@testing-library/user-event";
 import { AuthMockProvider, aGuestUser } from "src/__helpers__/auth-mock";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { stubWindowSize } from "src/__helpers__/media-queries";
-import { ElevationsConfig } from "./elevations-config";
+import { ElevationsEditor } from "./elevations-editor";
 import { elevationSourcesAtom } from "src/state/elevation-sources";
 import type {
   GeoTiffElevationSource,
@@ -78,7 +78,7 @@ const aGeoTiffSource: GeoTiffElevationSource = {
   elevationOffsetM: 0,
 };
 
-describe("ElevationsConfig", () => {
+describe("ElevationsEditor", () => {
   beforeEach(() => {
     stubWindowSize("sm");
     localStorage.clear();
@@ -369,7 +369,7 @@ describe("ElevationsConfig", () => {
         <QueryClientProvider client={new QueryClient()}>
           <JotaiProvider store={store}>
             <TooltipProvider>
-              <ElevationsConfig />
+              <ElevationsEditor />
             </TooltipProvider>
           </JotaiProvider>
         </QueryClientProvider>

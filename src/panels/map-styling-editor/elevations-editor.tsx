@@ -53,7 +53,6 @@ import { notify } from "src/components/notifications";
 
 import { MapContext } from "src/map";
 import { ActionButton } from "src/components/action-button";
-import { isUnprojectedAtom } from "src/state/map-projection";
 import { useAuth } from "src/auth";
 import { limits } from "src/user-plan";
 import { dialogAtom } from "src/state/dialog";
@@ -72,24 +71,7 @@ import {
   tileResolution,
 } from "src/lib/elevations/geotiff";
 
-export const ElevationsConfig = () => {
-  const translate = useTranslate();
-  const isUnprojected = useAtomValue(isUnprojectedAtom);
-
-  if (isUnprojected) {
-    return (
-      <Section title={translate("elevations")}>
-        <p className="text-sm text-gray-500">
-          {translate("elevationsRequiresProjection")}
-        </p>
-      </Section>
-    );
-  }
-
-  return <ElevationsEditor />;
-};
-
-const ElevationsEditor = () => {
+export const ElevationsEditor = () => {
   const translate = useTranslate();
   const overlay = useElevationCoverageOverlay();
   const { getProj4Def } = useProj4Definitions();
@@ -517,20 +499,20 @@ const AddElevationDataButton = ({ actions }: { actions: Actions }) => {
   );
 };
 
-function notifyProjectionErrors(
+function notifyProcessingError(
   results: PromiseSettledResult<GeoTiffTile>[],
   translate: ReturnType<typeof useTranslate>,
 ) {
-  const projectionErrors = results
+  const errors = results
     .filter(
       (r): r is PromiseRejectedResult =>
         r.status === "rejected" && r.reason instanceof GeoTiffError,
     )
     .map((r) => r.reason as GeoTiffError);
 
-  if (projectionErrors.length === 0) return;
+  if (errors.length === 0) return;
 
-  const fileNames = projectionErrors.map((e) => e.fileName).join(", ");
+  const fileNames = errors.map((e) => e.fileName).join(", ");
 
   notify({
     variant: "warning",
@@ -566,7 +548,7 @@ const useElevationSourceActions = (
         }),
       );
 
-      notifyProjectionErrors(results, translate);
+      notifyProcessingError(results, translate);
 
       const tiles = results
         .filter(
@@ -619,7 +601,7 @@ const useElevationSourceActions = (
         }),
       );
 
-      notifyProjectionErrors(results, translate);
+      notifyProcessingError(results, translate);
 
       const newTiles = results
         .filter(
