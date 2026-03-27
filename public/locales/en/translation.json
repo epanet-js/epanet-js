@@ -433,7 +433,22 @@
   "trial.activating": "Activating trial",
   "trial.activateFree": "Activate free trial",
   "trial.paywallDescription": "Scenarios are a paid feature. Activate your free trial to get full access for 14 days—no credit card required.",
+"trial.paywallDescriptionElevations": "Custom elevations are a paid feature. Activate your free trial to get full access for 14 days—no credit card required.",
   "trial.tryWithDemo": "Try with a demo network",
+"paywall": {
+    "explorePlans": "Explore plans",
+    "or": "or",
+    "nonCommercial": {
+      "title": "Non-commercial use",
+      "description": "For learning, exploring the app, or supporting the project.",
+      "cta": "Personal licence - $100/year"
+    },
+    "commercial": {
+      "title": "Commercial use",
+      "description": "For use by consultants and utilities in real projects.",
+      "cta": "Choose plan"
+    }
+  },
   "planExplain": "{{1}} plan",
   "plan.pro": "Professional plan",
   "plan.free": "Free plan",
