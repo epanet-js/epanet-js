@@ -1,10 +1,28 @@
 import { buildPixelTransformers } from "./pixel-transformer";
 import { CRS_UNIT_TO_APP_UNIT } from "./spec";
 import { lngLatToCrs } from "./transform";
-import { GeoTiffTile } from "./types";
+import { CrsUnit, GeoTiffTile } from "./types";
 
 /**
- * Reads elevation from a GeoTIFFImage using bilinear interpolation.
+ * Minimum pixel resolution to apply bilinear interpolation, per CRS unit.
+ * Grids finer than this use nearest-neighbor (interpolation adds no value).
+ * All values approximate ~2m.
+ */
+const INTERPOLATION_THRESHOLD: Record<CrsUnit, number> = {
+  deg: 0.00002, // ~2m at the equator
+  m: 2,
+  ft: 5,
+  "us-ft": 5,
+};
+
+function shouldInterpolate(tile: GeoTiffTile): boolean {
+  const threshold = INTERPOLATION_THRESHOLD[tile.crsUnit];
+  return tile.resolution[0] >= threshold || tile.resolution[1] >= threshold;
+}
+
+/**
+ * Reads elevation from a GeoTIFFImage, using bilinear interpolation for
+ * coarse grids and nearest-neighbor for fine grids (< ~2m).
  * If the tile has a proj4Def, transforms lng/lat → CRS before pixel lookup.
  */
 export async function fetchGeoTiffTileElevation(
@@ -20,6 +38,33 @@ export async function fetchGeoTiffTileElevation(
   }
 
   const pixelTransformer = buildPixelTransformers(tile);
+
+  if (!shouldInterpolate(tile)) {
+    const [x, y] = pixelTransformer.toPixel(crsX, crsY);
+    if (isOutOfBounds(x, y, tile.width, tile.height)) return null;
+
+    const rawElevations = await readRawElevationsInWindow(tile, [
+      x,
+      y,
+      x + 1,
+      y + 1,
+    ]);
+    const raw = rawElevations[0];
+
+    if (
+      raw === undefined ||
+      raw === null ||
+      isNaN(raw) ||
+      raw === tile.noDataValue
+    ) {
+      return null;
+    }
+    return {
+      value: applyElevationTransform(raw, tile),
+      unit: CRS_UNIT_TO_APP_UNIT[tile.verticalUnit],
+    };
+  }
+
   const [pixelX, pixelY] = pixelTransformer.toSubPixel(crsX, crsY);
   if (isOutOfBounds(pixelX, pixelY, tile.width, tile.height)) return null;
 
