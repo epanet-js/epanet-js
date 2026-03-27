@@ -1,9 +1,14 @@
-import { useAtomValue } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
+import type { FeatureCollection } from "geojson";
 import { projectSettingsAtom } from "src/state/project-settings";
+import { stagingModelAtom } from "src/state/hydraulic-model";
+import { dialogAtom } from "src/state/dialog";
 import { Button } from "src/components/elements";
 import { Section, InlineField } from "src/components/form/fields";
 import { WarningIcon } from "src/icons";
 import type { Projection } from "src/lib/projections/projection";
+import { inverseProjectGeoJson } from "src/lib/projections";
+import { chooseUnitSystem } from "src/simulation/build-inp";
 
 const projectionTypeLabel = (projection: Projection) => {
   switch (projection.type) {
@@ -17,8 +22,30 @@ const projectionTypeLabel = (projection: Projection) => {
 };
 
 export const ProjectionSection = () => {
-  const { projection } = useAtomValue(projectSettingsAtom);
+  const projectSettings = useAtomValue(projectSettingsAtom);
+  const { projection } = projectSettings;
+  const hydraulicModel = useAtomValue(stagingModelAtom);
+  const setDialogState = useSetAtom(dialogAtom);
   const isXYGrid = projection.type === "xy-grid";
+
+  const handleOpenProjectionDialog = () => {
+    const geoJson: FeatureCollection = {
+      type: "FeatureCollection",
+      features: [...hydraulicModel.assets.values()].map((a) => a.feature),
+    };
+
+    const previewGeoJson = inverseProjectGeoJson(geoJson, projection);
+
+    setDialogState({
+      type: "networkProjection",
+      previewGeoJson,
+      onImportWithProjection: () => {
+        setDialogState(null);
+      },
+      filename: "",
+      flowUnits: chooseUnitSystem(projectSettings.units),
+    });
+  };
 
   return (
     <Section title="Projection">
@@ -42,14 +69,16 @@ export const ProjectionSection = () => {
           </span>
         </InlineField>
       )}
-      <Button
-        variant="default"
-        size="sm"
-        className="w-full justify-center mt-2"
-        onClick={() => {}}
-      >
-        {isXYGrid ? "Project network" : "Change projection"}
-      </Button>
+      {projection.type !== "wgs84" && (
+        <Button
+          variant="default"
+          size="sm"
+          className="w-full justify-center mt-2"
+          onClick={handleOpenProjectionDialog}
+        >
+          {isXYGrid ? "Project network" : "Change projection"}
+        </Button>
+      )}
     </Section>
   );
 };
