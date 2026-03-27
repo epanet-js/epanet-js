@@ -18,3 +18,4 @@ export { changeDemandAssignment } from "./change-demand-assignment";
 export { addCustomerPoint } from "./add-customer-point";
 export { removeCustomerPoints } from "./remove-customer-points";
 export { moveCustomerPoint } from "./move-customer-point";
+export { changeCustomerPointLabel } from "./change-customer-point-label";

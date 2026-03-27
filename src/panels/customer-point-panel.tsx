@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useAtomValue } from "jotai";
 import { Maybe } from "purify-ts/Maybe";
 import { projectSettingsAtom } from "src/state/project-settings";
@@ -15,14 +15,20 @@ import { ZoomToIcon } from "src/icons";
 import { BBox } from "src/types";
 import { TextRow, QuantityRow } from "./asset-panel/ui-components";
 import { DemandCategoriesEditor } from "./asset-panel/demands-editor";
+import { EditableTextField } from "src/components/form/editable-text-field";
 import { useTranslate } from "src/hooks/use-translate";
 import { usePersistence } from "src/lib/persistence";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   getCustomerPointDemands,
   calculateAverageDemand,
   Demand,
 } from "src/hydraulic-model/demands";
-import { changeDemandAssignment } from "src/hydraulic-model/model-operations";
+import {
+  changeDemandAssignment,
+  changeCustomerPointLabel,
+} from "src/hydraulic-model/model-operations";
+import { MAX_CUSTOMER_POINT_LABEL_LENGTH } from "src/hydraulic-model/customer-points";
 import { convertTo } from "src/quantity";
 
 export function CustomerPointPanel() {
@@ -38,6 +44,7 @@ export function CustomerPointPanel() {
       ? hydraulicModel.customerPoints.get(selection.id)
       : undefined;
 
+  const isCustomerLabelsOn = useFeatureFlag("FLAG_CUSTOMER_LABELS");
   const actions = useCustomerPointActions(customerPoint, "root");
 
   const flowUnit = units.customerDemand;
@@ -107,6 +114,42 @@ export function CustomerPointPanel() {
     [customerPoint, hydraulicModel, perDayUnit, flowUnit, transact],
   );
 
+  const [labelError, setLabelError] = useState<string | null>(null);
+
+  const handleLabelChange = useCallback(
+    (newLabel: string): boolean => {
+      if (!customerPoint) return false;
+      const oldLabel = customerPoint.label;
+      if (newLabel === oldLabel) {
+        setLabelError(null);
+        return false;
+      }
+
+      const isAvailable = hydraulicModel.labelManager.isLabelAvailable(
+        newLabel,
+        "customerPoint",
+        customerPoint.id,
+      );
+      if (!isAvailable) {
+        setLabelError(translate("labelDuplicate"));
+        return true;
+      }
+
+      const moment = changeCustomerPointLabel(hydraulicModel, {
+        customerPointId: customerPoint.id,
+        newLabel,
+      });
+      transact(moment);
+      setLabelError(null);
+      return false;
+    },
+    [customerPoint, hydraulicModel, transact, translate],
+  );
+
+  const clearLabelError = useCallback(() => {
+    setLabelError(null);
+  }, []);
+
   if (!customerPoint) return null;
 
   const connection = customerPoint.connection;
@@ -122,9 +165,30 @@ export function CustomerPointPanel() {
           <div className="absolute left-0 top-0 bottom-0 w-1 bg-purple-500 rounded-full" />
         )}
         <div className="flex items-center justify-between gap-2">
-          <span className="text-sm font-semibold p-1 truncate">
-            {customerPoint.label}
-          </span>
+          {isCustomerLabelsOn ? (
+            <div className="min-w-0 flex-1">
+              <EditableTextField
+                label={customerPoint.label}
+                value={customerPoint.label}
+                onChangeValue={handleLabelChange}
+                onReset={clearLabelError}
+                onDirty={clearLabelError}
+                hasError={!!labelError}
+                allowedChars={/(?![\s;])[\x00-\xFF]/}
+                maxByteLength={MAX_CUSTOMER_POINT_LABEL_LENGTH}
+                styleOptions={{
+                  padding: "sm",
+                  ghostBorder: true,
+                  fontWeight: "semibold",
+                  textSize: "sm",
+                }}
+              />
+            </div>
+          ) : (
+            <span className="text-sm font-semibold p-1 truncate">
+              {customerPoint.label}
+            </span>
+          )}
           <div className="flex gap-1 h-8 shrink-0">
             <ActionButton
               action={{
@@ -146,6 +210,11 @@ export function CustomerPointPanel() {
               ))}
           </div>
         </div>
+        {labelError && (
+          <span className="text-xs text-orange-600 dark:text-orange-400 block mt-1 pl-1">
+            {labelError}
+          </span>
+        )}
         <span className="text-sm text-gray-500 pl-1">
           {translate("customer")}
         </span>
