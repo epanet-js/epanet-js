@@ -142,7 +142,6 @@ const projectXYGrid = (inpData: InpData): Projection => {
   const allPoints: Position[] = [];
   for (const [, p] of inpData.coordinates.entries()) allPoints.push(p);
   for (const [, verts] of inpData.vertices.entries()) allPoints.push(...verts);
-  for (const cp of inpData.customerPoints) allPoints.push(cp.coordinates);
 
   const centroid = computeCentroid(allPoints);
   const projection: Projection = {
