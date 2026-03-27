@@ -28,9 +28,12 @@ export const useElevations = (unit: Unit) => {
     (lngLat: LngLat) => {
       if (!autoElevations || isOffline) return;
 
-      void prefetchElevationsTile(lngLat);
+      for (const source of sources) {
+        if (source.type !== "tile-server" || !source.enabled) continue;
+        void prefetchElevationsTile(lngLat, source);
+      }
     },
-    [autoElevations, isOffline],
+    [autoElevations, isOffline, sources],
   );
 
   const fetchElevation = useCallback(

@@ -13,4 +13,8 @@ export {
   tileSize,
   tileZoom,
 } from "./tile-server-elevation";
-export type { LngLat, CanvasSetupFn } from "./tile-server-elevation";
+export type {
+  LngLat,
+  CanvasSetupFn,
+  TileServerConfig,
+} from "./tile-server-elevation";

@@ -1,13 +1,7 @@
 import { buildPixelTransformers } from "./pixel-transformer";
+import { CRS_UNIT_TO_APP_UNIT } from "./spec";
 import { lngLatToCrs } from "./transform";
-import { CrsUnit, GeoTiffTile } from "./types";
-
-const CRS_UNIT_TO_APP_UNIT: Record<CrsUnit, "m" | "ft"> = {
-  deg: "m", // geographic CRS — elevation values default to meters
-  m: "m",
-  ft: "ft",
-  "us-ft": "ft", // close enough — 0.01% difference
-};
+import { GeoTiffTile } from "./types";
 
 /**
  * Reads a single pixel elevation from a GeoTIFFImage on demand.

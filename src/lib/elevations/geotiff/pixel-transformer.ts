@@ -1,4 +1,5 @@
 import { GeoTIFFImage } from "geotiff";
+import { RASTER_PIXEL_IS_POINT } from "./spec";
 import { PixelTransform } from "./types";
 
 type TransformErrorCode = "invalidResolution" | "invalidTransformationMatrix";
@@ -17,7 +18,6 @@ export function extractPixelTransform(
   image: GeoTIFFImage,
   geoKeys: Record<string, number> | null,
 ): PixelTransform {
-  const RASTER_PIXEL_IS_POINT = 2;
   const pixelIsPoint = geoKeys?.GTRasterTypeGeoKey === RASTER_PIXEL_IS_POINT;
 
   const resolution = image.getResolution();
@@ -94,8 +94,8 @@ export function buildPixelTransformers(
   matrices: Partial<Pick<PixelTransform, "crsToPixel" | "pixelToCrs">>,
 ) {
   return {
-    toPixel: (lat: number, lon: number) => {
-      return transformCoordinates(lat, lon, matrices.crsToPixel, true);
+    toPixel: (crsX: number, crsY: number) => {
+      return transformCoordinates(crsX, crsY, matrices.crsToPixel, true);
     },
     fromPixel: (x: number, y: number) => {
       return transformCoordinates(x, y, matrices.pixelToCrs, false);

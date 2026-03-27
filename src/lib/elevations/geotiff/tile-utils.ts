@@ -1,4 +1,5 @@
-import { CrsUnit, GeoTiffTile } from "./types";
+import { CRS_UNIT_TO_APP_UNIT } from "./spec";
+import { GeoTiffTile } from "./types";
 
 export function tileCoverage(
   tile: GeoTiffTile,
@@ -39,13 +40,6 @@ function bboxToPolygon(
     ],
   };
 }
-
-const CRS_UNIT_TO_APP_UNIT: Record<CrsUnit, "m" | "ft"> = {
-  deg: "m", // geographic CRS — elevation values default to meters
-  m: "m",
-  ft: "ft",
-  "us-ft": "ft", // close enough — 0.01% difference
-};
 
 export function tileResolution(tile: GeoTiffTile): {
   value: number;

@@ -46,7 +46,7 @@ async function trySource(
     case "geotiff":
       return tryGeotiffSource(source, lng, lat, unit);
     case "tile-server":
-      return tryTileServerSource(lng, lat, unit);
+      return tryTileServerSource(source, lng, lat, unit);
   }
 }
 
@@ -67,12 +67,19 @@ async function tryGeotiffSource(
 }
 
 async function tryTileServerSource(
+  source: Extract<ElevationSource, { type: "tile-server" }>,
   lng: number,
   lat: number,
   unit: Unit,
 ): Promise<number | null> {
   try {
-    return await fetchElevationForPoint({ lng, lat }, { unit });
+    return await fetchElevationForPoint(
+      { lng, lat },
+      {
+        unit,
+        tileServer: source,
+      },
+    );
   } catch {
     return null;
   }

@@ -1,6 +1,14 @@
 // eslint-disable-next-line no-restricted-imports
 import proj4 from "proj4";
 import { extractCustomProj4 } from "./extract-custom-proj4";
+import {
+  GT_MODEL_TYPE_GEOCENTRIC,
+  GT_MODEL_TYPE_GEOGRAPHIC,
+  GT_MODEL_TYPE_PROJECTED,
+  PROJ4_UNITS_MAP,
+  USER_DEFINED_CODE,
+  WGS84_GEOGRAPHIC_CODES,
+} from "./spec";
 import { CrsUnit } from "./types";
 
 type ProjectionErrorCode =
@@ -16,12 +24,6 @@ export class ProjectionError extends Error {
     this.code = code;
   }
 }
-
-const PROJ4_UNITS_MAP: Record<string, CrsUnit> = {
-  m: "m",
-  ft: "ft",
-  "us-ft": "us-ft",
-};
 
 export function extractProjectionUnits(proj4Def?: string): CrsUnit | undefined {
   if (!proj4Def) return undefined;
@@ -52,12 +54,6 @@ export async function extractProjection(
 
   return proj4Def;
 }
-
-const WGS84_GEOGRAPHIC_CODES = new Set([4326, 4269]);
-const GT_MODEL_TYPE_PROJECTED = 1;
-const GT_MODEL_TYPE_GEOGRAPHIC = 2;
-const GT_MODEL_TYPE_GEOCENTRIC = 3;
-const USER_DEFINED_CODE = 32767;
 
 function resolveProjection(keys: Record<string, number> | null): {
   epsgCode: number | null;

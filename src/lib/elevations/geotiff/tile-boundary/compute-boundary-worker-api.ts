@@ -32,6 +32,8 @@ async function computeDataBoundary(
   const leftEdge: [number, number][] = [];
   const rightEdge: [number, number][] = [];
 
+  const transformer = buildPixelTransformers({ pixelToCrs });
+
   for (let row = 0; row < height; row += rowStep) {
     const rasters = await image.readRasters({
       window: [0, row, width, row + 1],
@@ -55,8 +57,6 @@ async function computeDataBoundary(
         break;
       }
     }
-
-    const transformer = buildPixelTransformers({ pixelToCrs });
 
     leftEdge.push(transformer.fromPixel(firstValid, row));
     rightEdge.push(transformer.fromPixel(lastValid, row));

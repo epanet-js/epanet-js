@@ -1,25 +1,6 @@
 import { GeoTIFFImage } from "geotiff";
+import { LINEAR_UNIT_MAP, VERTICAL_CRS_NON_METER } from "./spec";
 import { CrsUnit, ElevationTransform, LinearUnit } from "./types";
-
-// GeoTIFF ProjLinearUnitsGeoKey / VerticalUnitsGeoKey → linear unit
-const LINEAR_UNIT_MAP: Record<number, LinearUnit> = {
-  9001: "m",
-  9002: "ft",
-  9003: "us-ft",
-};
-
-// VerticalCSTypeGeoKey codes that use non-meter units.
-// Only ~14 out of ~279 EPSG vertical CRS use feet; everything else defaults to meters.
-const VERTICAL_CRS_NON_METER: Record<number, LinearUnit> = {
-  6360: "us-ft", // NAVD88 height (ftUS)
-  6358: "ft", // NAVD88 height (ft)
-  5715: "ft", // MSL depth (ft)
-  6638: "us-ft", // PRVD02 height (ftUS)
-  6644: "us-ft", // GUVD04 height (ftUS)
-  6640: "us-ft", // NMVD03 height (ftUS)
-  6642: "us-ft", // ASVD02 height (ftUS)
-  6130: "us-ft", // GCVD54 height (ftUS)
-};
 
 export async function extractElevationTransform(
   image: GeoTIFFImage,

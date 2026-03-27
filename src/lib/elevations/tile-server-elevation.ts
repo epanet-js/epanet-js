@@ -15,22 +15,37 @@ export const queryClient = new QueryClient({
 export const tileSize = 512;
 export const tileZoom = 14;
 
+const defaultTileUrlTemplate = `https://api.mapbox.com/v4/mapbox.mapbox-terrain-dem-v1/{z}/{x}/{y}@2x.pngraw?access_token=${process.env.NEXT_PUBLIC_MAPBOX_TOKEN}`;
+
 export const fallbackElevation = 0;
 
 export type LngLat = { lat: number; lng: number };
 
 export type CanvasSetupFn = (
   blob: Blob,
+  size: number,
 ) => Promise<{ img: CanvasImageSource; ctx: CanvasRenderingContext2D }>;
+
+export type TileServerConfig = {
+  tileUrlTemplate: string;
+  tileZoom: number;
+  tileSize: number;
+};
 
 export async function fetchElevationForPoint(
   { lat, lng }: LngLat,
   {
     unit,
+    tileServer,
     setUpCanvas = defaultCanvasSetupFn,
-  }: { unit: Unit; setUpCanvas?: CanvasSetupFn },
+  }: { unit: Unit; tileServer?: TileServerConfig; setUpCanvas?: CanvasSetupFn },
 ): Promise<number> {
-  const { queryKey, url } = buildTileDescriptor(lng, lat);
+  const config = tileServer ?? {
+    tileUrlTemplate: defaultTileUrlTemplate,
+    tileZoom,
+    tileSize,
+  };
+  const { queryKey, url } = buildTileDescriptor(lng, lat, config);
 
   const tileBlob = await queryClient.fetchQuery({
     queryKey,
@@ -41,13 +56,21 @@ export async function fetchElevationForPoint(
     throw new Error("Tile not found");
   }
 
-  const { ctx, img } = await setUpCanvas(tileBlob);
-  const elevationInMeters = getElevationPixel(ctx, img, { lng, lat });
+  const { ctx, img } = await setUpCanvas(tileBlob, config.tileSize);
+  const elevationInMeters = getElevationPixel(ctx, img, { lng, lat }, config);
   return convertTo({ value: elevationInMeters, unit: "m" }, unit);
 }
 
-export async function prefetchElevationsTile({ lng, lat }: LngLat) {
-  const { queryKey, url } = buildTileDescriptor(lng, lat);
+export async function prefetchElevationsTile(
+  { lng, lat }: LngLat,
+  config?: TileServerConfig,
+) {
+  const resolved = config ?? {
+    tileUrlTemplate: defaultTileUrlTemplate,
+    tileZoom,
+    tileSize,
+  };
+  const { queryKey, url } = buildTileDescriptor(lng, lat, resolved);
 
   await queryClient.prefetchQuery({
     queryKey,
@@ -55,9 +78,16 @@ export async function prefetchElevationsTile({ lng, lat }: LngLat) {
   });
 }
 
-const buildTileDescriptor = (lng: number, lat: number) => {
-  const tileCoordinates = lngLatToTile(lng, lat, tileZoom);
-  const tileUrl = `https://api.mapbox.com/v4/mapbox.mapbox-terrain-dem-v1/${tileZoom}/${tileCoordinates.x}/${tileCoordinates.y}@2x.pngraw?access_token=${process.env.NEXT_PUBLIC_MAPBOX_TOKEN}`;
+const buildTileDescriptor = (
+  lng: number,
+  lat: number,
+  config: TileServerConfig,
+) => {
+  const tileCoordinates = lngLatToTile(lng, lat, config.tileZoom);
+  const tileUrl = config.tileUrlTemplate
+    .replace("{z}", String(config.tileZoom))
+    .replace("{x}", String(tileCoordinates.x))
+    .replace("{y}", String(tileCoordinates.y));
   const id = `${tileCoordinates.x}/${tileCoordinates.y}`;
   return { url: tileUrl, queryKey: ["terrain-tile", id] };
 };
@@ -100,19 +130,25 @@ const getElevationPixel = (
   ctx: CanvasRenderingContext2D,
   img: CanvasImageSource,
   coordinates: LngLat,
+  config: TileServerConfig,
 ) => {
   const { lat, lng } = coordinates;
-  ctx.drawImage(img, 0, 0, tileSize, tileSize);
+  ctx.drawImage(img, 0, 0, config.tileSize, config.tileSize);
 
-  const { x, y } = getPixelDescriptor(lat, lng, tileZoom);
+  const { x, y } = getPixelDescriptor(lat, lng, config);
 
   const [r, g, b] = ctx.getImageData(x, y, 1, 1).data;
   return parseFloat(decodeTerrainRGB(r, g, b).toFixed(2));
 };
 
-const getPixelDescriptor = (lat: number, lng: number, tileZoom: number) => {
-  const scale = Math.pow(2, tileZoom);
-  const pixelX = Math.floor(((lng + 180) / 360) * scale * tileSize) % tileSize;
+const getPixelDescriptor = (
+  lat: number,
+  lng: number,
+  config: TileServerConfig,
+) => {
+  const scale = Math.pow(2, config.tileZoom);
+  const pixelX =
+    Math.floor(((lng + 180) / 360) * scale * config.tileSize) % config.tileSize;
   const pixelY =
     Math.floor(
       ((1 -
@@ -122,23 +158,28 @@ const getPixelDescriptor = (lat: number, lng: number, tileZoom: number) => {
           Math.PI) /
         2) *
         scale *
-        tileSize,
-    ) % tileSize;
+        config.tileSize,
+    ) % config.tileSize;
   return { x: pixelX, y: pixelY };
 };
 
-const defaultCanvasSetupFn: CanvasSetupFn = async (blob: Blob) => {
+const defaultCanvasSetupFn: CanvasSetupFn = async (
+  blob: Blob,
+  size: number,
+) => {
   return new Promise((resolve) => {
     const img = new Image();
+    const objectUrl = URL.createObjectURL(blob);
     img.onload = () => {
+      URL.revokeObjectURL(objectUrl);
       const canvas = document.createElement("canvas");
-      canvas.width = tileSize;
-      canvas.height = tileSize;
+      canvas.width = size;
+      canvas.height = size;
       const ctx = canvas.getContext("2d");
       if (!ctx) throw new Error("Canvas is missing");
       resolve({ img, ctx });
     };
-    img.src = URL.createObjectURL(blob);
+    img.src = objectUrl;
   });
 };
 
