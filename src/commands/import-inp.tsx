@@ -9,7 +9,6 @@ import {
   ParserIssues,
   parseInp,
   parseCoordinatesGeoJson,
-  projectCoordinates,
 } from "src/import/inp";
 import type { ParseInpResult } from "src/import/inp";
 import { usePersistence } from "src/lib/persistence";
@@ -28,7 +27,8 @@ import { OPFSStorage } from "src/infra/storage";
 import { getAppId } from "src/infra/app-instance";
 import { isDemoNetwork } from "src/demo/demo-networks";
 import { useRecentFiles } from "src/hooks/use-recent-files";
-import { type Projection } from "src/lib/projections";
+import { type Projection, createProjectionMapper } from "src/lib/projections";
+import { transformCoordinates } from "src/hydraulic-model/mutations/transform-coordinates";
 import { XY_GRID } from "src/import/inp/parse-inp";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
@@ -265,13 +265,8 @@ export const useImportInp = () => {
           const onImportWithProjection = async (projection: Projection) => {
             setDialogState({ type: "loading" });
             try {
-              projectCoordinates(
-                {
-                  assets: hydraulicModel.assets,
-                  customerPoints: hydraulicModel.customerPoints,
-                },
-                projection,
-              );
+              const mapper = createProjectionMapper(projection);
+              transformCoordinates(hydraulicModel, mapper.toWgs84);
               result.projectSettings = {
                 ...result.projectSettings,
                 projection,
