@@ -47,8 +47,8 @@ const prices = {
   teams: {
     monthly: "$250",
     yearly: "$2500",
-    baseMonthly: "$250",
-    baseYearly: "$2500",
+    baseMonthly: "$440",
+    baseYearly: "$4400",
     userMonthly: "$60",
     userYearly: "$600",
   },
