@@ -33,6 +33,7 @@ import { selectionAtom } from "src/state/selection";
 import { USelection } from "src/selection/selection";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { ElevationsEditor } from "./elevations-editor";
+import { ProjectionSection } from "./projection-section";
 
 const colorPropertyLabelFor = (
   property: string,
@@ -49,6 +50,7 @@ export const MapStylingEditor = () => {
   const translate = useTranslate();
   const isGridOn = useAtomValue(showGridAtom);
   const isDtmElevationsOn = useFeatureFlag("FLAG_DTM_ELEVATIONS");
+  const isProjectLaterOn = useFeatureFlag("FLAG_PROJECT_LATER");
 
   return (
     <div className="flex-auto overflow-y-auto placemark-scrollbar border-gray-200 dark:border-gray-900">
@@ -68,6 +70,7 @@ export const MapStylingEditor = () => {
             <LayersEditor />
           </Section>
         )}
+        {isProjectLaterOn && <ProjectionSection />}
       </SectionList>
     </div>
   );

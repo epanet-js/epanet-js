@@ -124,7 +124,7 @@ export const InlineField = ({
       baseDisplayValue={baseDisplayValue}
     >
       <div
-        className={clsx("flex items-center", spacingClass, {
+        className={clsx("flex", spacingClass, {
           "items-start": align === "start",
           "items-center": align === "center",
         })}
