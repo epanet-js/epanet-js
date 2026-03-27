@@ -23,16 +23,67 @@ export const CRS_UNIT_TO_APP_UNIT: Record<CrsUnit, "m" | "ft"> = {
 };
 
 // ---------------------------------------------------------------------------
-// GeoKey model types (GTModelTypeGeoKey)
+// GeoKey IDs (OGC 19-008r4, §7.1)
 // ---------------------------------------------------------------------------
-export const GT_MODEL_TYPE_PROJECTED = 1;
-export const GT_MODEL_TYPE_GEOGRAPHIC = 2;
-export const GT_MODEL_TYPE_GEOCENTRIC = 3;
 
-// ---------------------------------------------------------------------------
-// GTRasterTypeGeoKey
-// ---------------------------------------------------------------------------
-export const RASTER_PIXEL_IS_POINT = 2;
+/** GeoTIFF GeoKey identifiers. */
+export enum GeoKey {
+  GTModelType = 1024,
+  GTRasterType = 1025,
+  GeographicType = 2048,
+  GeogEllipsoid = 2056,
+  ProjectedCSType = 3072,
+  ProjCoordTrans = 3075,
+  ProjLinearUnits = 3076,
+  ProjStdParallel1 = 3078,
+  ProjStdParallel2 = 3079,
+  ProjNatOriginLong = 3080,
+  ProjNatOriginLat = 3081,
+  ProjFalseEasting = 3082,
+  ProjFalseNorthing = 3083,
+  ProjScaleAtNatOrigin = 3092,
+  VerticalCSType = 4096,
+  VerticalUnits = 4099,
+}
+
+/** GeoKey model type values (GTModelTypeGeoKey). */
+export enum ModelType {
+  Projected = 1,
+  Geographic = 2,
+  Geocentric = 3,
+}
+
+/** GeoKey raster type values (GTRasterTypeGeoKey). */
+export enum RasterType {
+  PixelIsArea = 1,
+  PixelIsPoint = 2,
+}
+
+/** Well-known EPSG ellipsoid codes. */
+export enum Ellipsoid {
+  Airy = 7001,
+  GRS80 = 7019,
+  WGS84 = 7030,
+}
+
+/** Well-known ProjCoordTransGeoKey values. */
+export enum CoordTrans {
+  TransverseMercator = 1,
+  LambertConfConic2SP = 8,
+  TransvMercatorSouthOriented = 27,
+}
+
+/** EPSG linear unit codes (ProjLinearUnitsGeoKey / VerticalUnitsGeoKey). */
+export enum LinearUnitCode {
+  Meter = 9001,
+  Foot = 9002,
+  USSurveyFoot = 9003,
+}
+
+/** Well-known EPSG vertical CRS codes. */
+export enum VerticalCRS {
+  NAVD88_UsFeet = 6360,
+}
 
 // ---------------------------------------------------------------------------
 // Special codes
@@ -44,7 +95,6 @@ export const WGS84_GEOGRAPHIC_CODES = new Set([4326, 4269]);
 // ProjCoordTransGeoKey → proj4 projection name
 // Values 1-27 from GeoTIFF spec Annex C, Table C.1
 // ---------------------------------------------------------------------------
-export const CT_TRANSV_MERCATOR_SOUTH_ORIENTED = 27;
 
 export const PROJ_COORD_TRANS_MAP: Record<number, string> = {
   1: "tmerc", // CT_TransverseMercator

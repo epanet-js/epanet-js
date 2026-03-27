@@ -11,7 +11,7 @@
 
 import {
   ANGULAR_UNIT_TO_DEG,
-  CT_TRANSV_MERCATOR_SOUTH_ORIENTED,
+  CoordTrans,
   ELLIPSOID_MAP,
   LINEAR_UNIT_MAP,
   LINEAR_UNIT_TO_METER,
@@ -31,7 +31,7 @@ function linearUnitToMeterFactor(geoKeys: Record<string, number>): number {
 export function extractCustomProj4(
   geoKeys: Record<string, number>,
 ): string | null {
-  const coordTrans = geoKeys.ProjCoordTransGeoKey;
+  const coordTrans = geoKeys.ProjCoordTransGeoKey as CoordTrans;
   if (!coordTrans) return null;
 
   const projName = PROJ_COORD_TRANS_MAP[coordTrans];
@@ -40,7 +40,8 @@ export function extractCustomProj4(
   const parts: string[] = [`+proj=${projName}`];
 
   // South-oriented Transverse Mercator
-  if (coordTrans === CT_TRANSV_MERCATOR_SOUTH_ORIENTED) parts.push("+axis=wsu");
+  if (coordTrans === CoordTrans.TransvMercatorSouthOriented)
+    parts.push("+axis=wsu");
 
   // Angular unit conversion: if parameters are in grads/radians, convert to degrees
   const angularUnits = geoKeys.GeogAngularUnitsGeoKey;

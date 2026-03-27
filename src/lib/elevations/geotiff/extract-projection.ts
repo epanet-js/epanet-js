@@ -2,9 +2,7 @@
 import proj4 from "proj4";
 import { extractCustomProj4 } from "./extract-custom-proj4";
 import {
-  GT_MODEL_TYPE_GEOCENTRIC,
-  GT_MODEL_TYPE_GEOGRAPHIC,
-  GT_MODEL_TYPE_PROJECTED,
+  ModelType,
   PROJ4_UNITS_MAP,
   USER_DEFINED_CODE,
   WGS84_GEOGRAPHIC_CODES,
@@ -63,12 +61,12 @@ function resolveProjection(keys: Record<string, number> | null): {
     return { epsgCode: null, userDefinedProj4: null };
   }
 
-  const modelType = keys.GTModelTypeGeoKey;
+  const modelType = keys.GTModelTypeGeoKey as ModelType;
 
   const epsgCode =
-    modelType === GT_MODEL_TYPE_PROJECTED
+    modelType === ModelType.Projected
       ? keys.ProjectedCSTypeGeoKey
-      : modelType === GT_MODEL_TYPE_GEOGRAPHIC
+      : modelType === ModelType.Geographic
         ? keys.GeographicTypeGeoKey
         : null;
 
@@ -87,7 +85,7 @@ function resolveProjection(keys: Record<string, number> | null): {
     return { epsgCode, userDefinedProj4: null };
   }
 
-  if (modelType === GT_MODEL_TYPE_GEOCENTRIC) {
+  if (modelType === ModelType.Geocentric) {
     throw new ProjectionError("cartesianProjection");
   }
 
