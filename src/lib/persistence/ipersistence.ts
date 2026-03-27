@@ -4,6 +4,7 @@ import { z } from "zod";
 import { HydraulicModel, ModelMoment } from "src/hydraulic-model";
 import { ModelFactories } from "src/hydraulic-model/factories";
 import { ProjectSettings } from "src/lib/project-settings";
+import type { Projection } from "src/lib/projections/projection";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
 import type { SimulationState } from "src/state/simulation";
 import type { MomentLog } from "src/lib/persistence/moment-log";
@@ -54,6 +55,11 @@ export interface IPersistence {
     simulationSettings: SimulationSettings,
     options?: { autoElevations?: boolean },
   ) => void;
+
+  useTransactReprojection(): (
+    newProjection: Projection,
+    currentProjection: Projection,
+  ) => Promise<void>;
 }
 
 export interface IPersistenceWithSnapshots extends IPersistence {

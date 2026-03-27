@@ -1,5 +1,7 @@
+import { useContext } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import type { FeatureCollection } from "geojson";
+import type { LngLatBoundsLike } from "mapbox-gl";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { stagingModelAtom } from "src/state/hydraulic-model";
 import { dialogAtom } from "src/state/dialog";
@@ -9,6 +11,9 @@ import { WarningIcon } from "src/icons";
 import type { Projection } from "src/lib/projections/projection";
 import { inverseProjectGeoJson } from "src/lib/projections";
 import { chooseUnitSystem } from "src/simulation/build-inp";
+import { usePersistence } from "src/lib/persistence";
+import { MapContext } from "src/map";
+import { captureError } from "src/infra/error-tracking";
 
 const projectionTypeLabel = (projection: Projection) => {
   switch (projection.type) {
@@ -26,6 +31,9 @@ export const ProjectionSection = () => {
   const { projection } = projectSettings;
   const hydraulicModel = useAtomValue(stagingModelAtom);
   const setDialogState = useSetAtom(dialogAtom);
+  const map = useContext(MapContext);
+  const rep = usePersistence();
+  const transactReprojection = rep.useTransactReprojection();
   const isXYGrid = projection.type === "xy-grid";
 
   const handleOpenProjectionDialog = () => {
@@ -39,8 +47,21 @@ export const ProjectionSection = () => {
     setDialogState({
       type: "networkProjection",
       previewGeoJson,
-      onImportWithProjection: () => {
-        setDialogState(null);
+      onImportWithProjection: async (newProjection: Projection, extent) => {
+        setDialogState({ type: "loading" });
+        try {
+          await transactReprojection(newProjection, projection);
+          if (extent) {
+            map?.map.fitBounds(extent as LngLatBoundsLike, {
+              padding: 100,
+              duration: 0,
+            });
+          }
+          setDialogState(null);
+        } catch (error) {
+          captureError(error as Error);
+          setDialogState(null);
+        }
       },
       filename: "",
       flowUnits: chooseUnitSystem(projectSettings.units),

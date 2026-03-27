@@ -56,6 +56,9 @@ import type { SimulationSettings } from "src/simulation/simulation-settings";
 import { simulationSettingsAtom } from "src/state/simulation-settings";
 import { ModelFactories } from "src/hydraulic-model/factories";
 import { modelFactoriesAtom } from "src/state/model-factories";
+import type { Projection } from "src/lib/projections/projection";
+import { createProjectionMapper } from "src/lib/projections";
+import { transformCoordinates } from "src/hydraulic-model/mutations/transform-coordinates";
 
 const MAX_CHANGES_BEFORE_MAP_SYNC = 500;
 
@@ -132,6 +135,69 @@ export class Persistence implements IPersistenceWithSnapshots {
       this.store.set(pipeDrawingDefaultsAtom, {});
       this.store.set(autoElevationsAtom, options?.autoElevations ?? true);
       this.store.set(simulationSettingsAtom, simulationSettings);
+
+      this.resetWorktree(
+        snapshotMoment,
+        hydraulicModel.version,
+        momentLog,
+        simulationSettings,
+      );
+    };
+  }
+
+  useTransactReprojection() {
+    return async (newProjection: Projection, currentProjection: Projection) => {
+      const hydraulicModel = this.store.get(stagingModelAtom);
+      const simulationSettings = this.store.get(simulationSettingsAtom);
+
+      const currentMapper = createProjectionMapper(currentProjection);
+      const newMapper = createProjectionMapper(newProjection);
+      transformCoordinates(hydraulicModel, (p) => {
+        const source = currentMapper.toSource(p);
+        return newMapper.toWgs84(source);
+      });
+
+      const assets = [...hydraulicModel.assets.values()];
+      const snapshotMoment: Moment = {
+        note: "Reprojection",
+        putAssets: assets,
+        deleteAssets: [],
+        patchAssetsAttributes: [],
+        putDemands: {
+          assignments: toDemandAssignments(hydraulicModel.demands),
+        },
+        putControls: hydraulicModel.controls,
+        putCustomerPoints: [...hydraulicModel.customerPoints.values()],
+        putCurves: hydraulicModel.curves,
+        putPatterns: hydraulicModel.patterns,
+      };
+
+      const momentLog = new MomentLog();
+      momentLog.setSnapshot(snapshotMoment, hydraulicModel.version);
+
+      const updatedProjectSettings = {
+        ...this.store.get(projectSettingsAtom),
+        projection: newProjection,
+      };
+
+      const [{ OPFSStorage }, { getAppId }] = await Promise.all([
+        import("src/infra/storage"),
+        import("src/infra/app-instance"),
+      ]);
+      const storage = new OPFSStorage(getAppId());
+      await storage.clear();
+
+      this.store.set(stagingModelAtom, { ...hydraulicModel });
+      this.store.set(baseModelAtom, { ...hydraulicModel });
+      this.store.set(projectSettingsAtom, updatedProjectSettings);
+      this.store.set(momentLogAtom, momentLog);
+      this.store.set(mapSyncMomentAtom, { pointer: -1, version: 0 });
+      this.store.set(simulationAtom, initialSimulationState);
+      this.store.set(simulationResultsAtom, null);
+      this.store.set(modeAtom, { mode: Mode.NONE });
+      this.store.set(ephemeralStateAtom, { type: "none" });
+      this.store.set(selectionAtom, { type: "none" });
+      this.store.set(autoElevationsAtom, newProjection.type !== "xy-grid");
 
       this.resetWorktree(
         snapshotMoment,

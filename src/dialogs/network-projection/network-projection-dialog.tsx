@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { FeatureCollection, Position } from "geojson";
+import type { BBox, FeatureCollection, Position } from "geojson";
 import {
   BaseDialog,
   SimpleDialogActions,
@@ -20,6 +20,7 @@ import {
 import { projectGeoJson } from "./project-geojson";
 import { approximateToNullIsland } from "./approximate-to-null-island";
 import type { Proj4Projection, Projection } from "src/lib/projections";
+import { getExtent } from "src/lib/geometry";
 import { computeCentroid } from "src/lib/projections/xy-grid-transform";
 import type { Bbox, ProjectionCandidate } from "./types";
 import { useUserTracking } from "src/infra/user-tracking";
@@ -35,7 +36,7 @@ export const NetworkProjectionDialog = ({
   initialProjection,
 }: {
   previewGeoJson: FeatureCollection;
-  onImportWithProjection: (projection: Projection) => void;
+  onImportWithProjection: (projection: Projection, extent?: BBox) => void;
   filename: string;
   flowUnits: string;
   initialProjection?: Proj4Projection;
@@ -259,7 +260,10 @@ export const NetworkProjectionDialog = ({
         query: lastSearchRef.current?.query ?? "",
         resultType: lastSearchRef.current?.resultType ?? "location",
       });
-      onImportWithProjection(selectedProjection);
+      const extent = displayGeoJSON
+        ? getExtent(displayGeoJSON).extract()
+        : undefined;
+      onImportWithProjection(selectedProjection, extent);
     }
   }, [
     selectedProjection,
@@ -269,6 +273,7 @@ export const NetworkProjectionDialog = ({
     filename,
     flowUnits,
     bounds,
+    displayGeoJSON,
   ]);
 
   const handleLoadWithoutBasemap = useCallback(() => {
