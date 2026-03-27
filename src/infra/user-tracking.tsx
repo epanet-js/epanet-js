@@ -7,6 +7,7 @@ import { SimulationState } from "src/state/simulation";
 import { Presets } from "src/lib/project-settings/quantities-spec";
 import { EpanetUnitSystem } from "src/simulation/build-inp";
 import { User } from "src/auth-types";
+import type { PaywallFeature } from "src/state/dialog";
 import { usePrivacySettings } from "src/hooks/use-privacy-settings";
 
 type Metadata = {
@@ -1046,19 +1047,13 @@ export type UserEvent =
       simpleControlsCount: number;
       rulesCount: number;
     }
-  | { name: "scenariosPaywall.seen" }
-  | { name: "scenariosPaywall.triggered" }
-  | { name: "scenariosPaywall.clickedChoosePlan" }
-  | { name: "scenariosPaywall.clickedPersonal" }
-  | { name: "scenariosPaywall.clickedTryDemo" }
-  | { name: "scenariosPaywall.clickedExplorePlans" }
-  | { name: "elevationsPaywall.seen" }
-  | { name: "elevationsPaywall.triggered"; source: string }
-  | { name: "elevationsPaywall.clickedChoosePlan" }
-  | { name: "elevationsPaywall.clickedPersonal" }
-  | { name: "elevationsPaywall.clickedExplorePlans" }
-  | { name: "elevationsPaywall.dismissed" }
-  | { name: "trial.activated"; source: string }
+  | { name: "paywall.seen"; feature: PaywallFeature }
+  | { name: "paywall.clickedChoosePlan"; feature: PaywallFeature }
+  | { name: "paywall.clickedPersonal"; feature: PaywallFeature }
+  | { name: "paywall.clickedTryDemo"; feature: PaywallFeature }
+  | { name: "paywall.clickedExplorePlans"; feature: PaywallFeature }
+  | { name: "paywall.dismissed"; feature: PaywallFeature }
+  | { name: "trial.activated"; feature: PaywallFeature }
   | { name: "firstScenario.dialogEnabled" }
   | { name: "firstScenario.dialogHidden" }
   | PatternChanged

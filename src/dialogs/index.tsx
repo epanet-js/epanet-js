@@ -284,24 +284,24 @@ const RenameScenarioDialog = dynamic<{
   },
 );
 
-const ScenariosPaywallDialog = dynamic<{
+const ScenariosPaywallConnector = dynamic<{
   onClose: () => void;
 }>(
   () =>
-    import("src/dialogs/scenarios-paywall").then(
-      (r) => r.ScenariosPaywallDialog,
+    import("src/dialogs/paywall/scenarios-connector").then(
+      (r) => r.ScenariosPaywallConnector,
     ),
   {
     loading: () => <LoadingDialog />,
   },
 );
 
-const ElevationsPaywallDialog = dynamic<{
+const ElevationsPaywallConnector = dynamic<{
   onClose: () => void;
 }>(
   () =>
-    import("src/dialogs/elevations-paywall").then(
-      (r) => r.ElevationsPaywallDialog,
+    import("src/dialogs/paywall/elevations-connector").then(
+      (r) => r.ElevationsPaywallConnector,
     ),
   {
     loading: () => <LoadingDialog />,
@@ -364,11 +364,8 @@ export const Dialogs = memo(function Dialogs() {
       if (dialog.type === "unexpectedError") {
         userTracking.capture({ name: "unexpectedError.seen" });
       }
-      if (dialog.type === "scenariosPaywall") {
-        userTracking.capture({ name: "scenariosPaywall.seen" });
-      }
-      if (dialog.type === "elevationsPaywall") {
-        userTracking.capture({ name: "elevationsPaywall.seen" });
+      if (dialog.type === "featurePaywall") {
+        userTracking.capture({ name: "paywall.seen", feature: dialog.feature });
       }
     }
     previousDialog.current = dialog;
@@ -436,12 +433,11 @@ export const Dialogs = memo(function Dialogs() {
     return <UpgradeDialog onClose={onClose} />;
   }
 
-  if (dialog.type === "scenariosPaywall") {
-    return <ScenariosPaywallDialog onClose={onClose} />;
-  }
-
-  if (dialog.type === "elevationsPaywall") {
-    return <ElevationsPaywallDialog onClose={onClose} />;
+  if (dialog.type === "featurePaywall") {
+    if (dialog.feature === "scenarios") {
+      return <ScenariosPaywallConnector onClose={onClose} />;
+    }
+    return <ElevationsPaywallConnector onClose={onClose} />;
   }
 
   if (dialog.type === "activatingTrial") {

@@ -125,12 +125,11 @@ export type RenameScenarioDialogState = {
   onConfirm: (scenarioId: string, newName: string) => void;
 };
 
-export type ScenariosPaywallDialogState = {
-  type: "scenariosPaywall";
-};
+export type PaywallFeature = "scenarios" | "elevations";
 
-export type ElevationsPaywallDialogState = {
-  type: "elevationsPaywall";
+export type FeaturePaywallDialogState = {
+  type: "featurePaywall";
+  feature: PaywallFeature;
 };
 
 export type FirstScenarioDialogState = {
@@ -179,8 +178,7 @@ export type DialogState =
   | CurveLibraryDialogState
   | DeleteScenarioConfirmationDialogState
   | RenameScenarioDialogState
-  | ScenariosPaywallDialogState
-  | ElevationsPaywallDialogState
+  | FeaturePaywallDialogState
   | FirstScenarioDialogState
   | AlertScenariosNotSavedState
   | AlertNetworkRequiredState

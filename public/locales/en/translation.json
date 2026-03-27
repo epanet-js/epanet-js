@@ -62,19 +62,8 @@
       "title": "Upgrade to access custom elevations",
       "description1": "Custom elevations let you use your own GeoTIFF data for accurate terrain modelling.",
       "description2": "Upload high-resolution elevation data and overlay it on top of global terrain sources.",
-      "description3": "Custom elevations are available on paid plans.",
-      "explorePlans": "Explore plans",
-      "or": "or",
-      "nonCommercial": {
-        "title": "Non-commercial use",
-        "description": "For learning, exploring the app, or supporting the project.",
-        "cta": "Personal licence - $100/year"
-      },
-      "commercial": {
-        "title": "Commercial use",
-        "description": "For use by consultants and utilities in real projects.",
-        "cta": "Choose plan"
-      },
+      "plans": "Custom elevations are available on paid plans.",
+      "trial": "Custom elevations are a paid feature. Activate your free trial to get full access for 14 days—no credit card required.",
       "captions": {
         "1": "Add your own elevation data",
         "2": "Upload high-resolution GeoTIFF files",
@@ -433,9 +422,9 @@
   "trial.activating": "Activating trial",
   "trial.activateFree": "Activate free trial",
   "trial.paywallDescription": "Scenarios are a paid feature. Activate your free trial to get full access for 14 days—no credit card required.",
-"trial.paywallDescriptionElevations": "Custom elevations are a paid feature. Activate your free trial to get full access for 14 days—no credit card required.",
+  "trial.paywallDescriptionElevations": "Custom elevations are a paid feature. Activate your free trial to get full access for 14 days—no credit card required.",
   "trial.tryWithDemo": "Try with a demo network",
-"paywall": {
+  "paywall": {
     "explorePlans": "Explore plans",
     "or": "or",
     "nonCommercial": {
@@ -1035,18 +1024,9 @@
       "description2": "Create alternative versions of your network and compare results against your baseline.",
       "description3": "Scenarios are available on paid plans.",
       "description3Demo": "Try scenarios for free with a demo network, or explore our paid plans.",
-      "explorePlans": "Explore plans",
-      "or": "or",
-      "nonCommercial": {
-        "title": "Non-commercial use",
-        "description": "For learning, exploring the app, or supporting the project.",
-        "cta": "Personal licence - $100/year"
-      },
-      "commercial": {
-        "title": "Commercial use",
-        "description": "For use by consultants and utilities in real projects.",
-        "cta": "Choose plan"
-      },
+      "trial": "Scenarios are a paid feature. Activate your free trial to get full access for 14 days—no credit card required.",
+      "plans": "Scenarios are available on paid plans.",
+      "demo": "Try scenarios for free with a demo network, or explore our paid plans.",
       "captions": {
         "1": "Ask \u201Cwhat-if\u201D questions with scenarios",
         "2": "Modify asset parameters",

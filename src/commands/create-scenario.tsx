@@ -42,8 +42,7 @@ export const useCreateScenario = () => {
         !limits.canUseScenarios(user.plan) &&
         !shouldBypassPaywall
       ) {
-        setDialog({ type: "scenariosPaywall" });
-        userTracking.capture({ name: "scenariosPaywall.triggered" });
+        setDialog({ type: "featurePaywall", feature: "scenarios" });
         return null;
       }
 

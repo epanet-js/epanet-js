@@ -445,16 +445,11 @@ const AddElevationDataButton = ({ actions }: { actions: Actions }) => {
   const [isLoading, setIsLoading] = useState(false);
   const { user } = useAuth();
   const setDialogState = useSetAtom(dialogAtom);
-  const userTracking = useUserTracking();
 
   const handleClick = () => {
     const canUseElevations = limits.canUseElevations(user.plan);
     if (!canUseElevations) {
-      userTracking.capture({
-        name: "elevationsPaywall.triggered",
-        source: "customElevations",
-      });
-      setDialogState({ type: "elevationsPaywall" });
+      setDialogState({ type: "featurePaywall", feature: "elevations" });
       return;
     }
     fileInputRef.current?.click();
