@@ -516,7 +516,7 @@ function notifyProcessingError(
 
   notify({
     variant: "warning",
-    title: translate("elevations.unsupportedProjection"),
+    title: translate("elevations.tilesLoadingError"),
     description: fileNames,
     id: "elevation-source-error",
   });

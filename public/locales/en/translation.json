@@ -93,7 +93,7 @@
     "addMoreTiles": "Add more tiles",
     "tilesProcessed": "Elevation tiles processed",
     "gridResolution": "{{1}} grid",
-    "unsupportedProjection": "Unsupported projection"
+    "tilesLoadingError": "The elevations data could not be loaded"
   },
   "files_zero": "No files",
   "files_one": "1 file",
