@@ -702,12 +702,15 @@ const useComputeTileBoundaries = (
   onSourceTilesUpdated?: OnSourceTilesUpdated,
 ) => {
   const setSources = useSetAtom(elevationSourcesAtom);
+  const translate = useTranslate();
   const cancelledTilesRef = useRef(new Set<string>());
+  const pendingJobsRef = useRef(0);
   const onSourceTilesUpdatedRef = useRef(onSourceTilesUpdated);
   onSourceTilesUpdatedRef.current = onSourceTilesUpdated;
 
   const startComputation = useCallback(
     (sourceId: string, tiles: GeoTiffTile[]) => {
+      pendingJobsRef.current += 1;
       void computeTileBoundaries(
         tiles,
         ({ tileId, polygon }: BoundaryResult) => {
@@ -737,9 +740,18 @@ const useComputeTileBoundaries = (
           }
         },
         (tileId: string) => cancelledTilesRef.current.has(tileId),
-      );
+      ).then(() => {
+        pendingJobsRef.current -= 1;
+        if (pendingJobsRef.current === 0) {
+          notify({
+            variant: "success",
+            title: translate("elevations.tilesProcessed"),
+            duration: 2000,
+          });
+        }
+      });
     },
-    [setSources],
+    [setSources, translate],
   );
 
   const cancelTiles = useCallback((tileIds: string[]) => {

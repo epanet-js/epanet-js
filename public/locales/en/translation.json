@@ -91,6 +91,7 @@
     "disableSource": "Disable elevation source",
     "enableSource": "Enable elevation source",
     "addMoreTiles": "Add more tiles",
+    "tilesProcessed": "Elevation tiles processed",
     "gridResolution": "{{1}} grid",
     "unsupportedProjection": "Unsupported projection"
   },
