@@ -32,11 +32,13 @@ export const NetworkProjectionDialog = ({
   onImportWithProjection,
   filename,
   flowUnits,
+  initialProjection,
 }: {
   previewGeoJson: FeatureCollection;
   onImportWithProjection: (projection: Projection) => void;
   filename: string;
   flowUnits: string;
+  initialProjection?: Proj4Projection;
 }) => {
   const { closeDialog } = useDialogState();
   const { projectionsArray: projections } = useProjections();
@@ -69,27 +71,6 @@ export const NetworkProjectionDialog = ({
   const projectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const selectedLocationRef = useRef<LocationData | null>(null);
   const lastSearchRef = useRef<SearchMetadata | null>(null);
-
-  useEffect(() => {
-    if (projections.length === 0) return;
-
-    abortRef.current?.abort();
-    const controller = new AbortController();
-    abortRef.current = controller;
-
-    setIsBuilding(true);
-    void buildProjectionCandidates(
-      projections,
-      previewGeoJson,
-      controller.signal,
-    ).then((candidates) => {
-      if (controller.signal.aborted) return;
-      allCandidatesRef.current = candidates;
-      setIsBuilding(false);
-    });
-
-    return () => controller.abort();
-  }, [projections, previewGeoJson]);
 
   const applyProjection = useCallback(
     (
@@ -171,6 +152,47 @@ export const NetworkProjectionDialog = ({
     [applyProjection],
   );
 
+  useEffect(() => {
+    if (projections.length === 0) return;
+
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    setIsBuilding(true);
+    void buildProjectionCandidates(
+      projections,
+      previewGeoJson,
+      controller.signal,
+    ).then((candidates) => {
+      if (controller.signal.aborted) return;
+      allCandidatesRef.current = candidates;
+      setIsBuilding(false);
+
+      if (initialProjection) {
+        const match = candidates.find(
+          (c) => c.projection.id === initialProjection.id,
+        );
+        if (match) {
+          setSelectedProjection(initialProjection);
+          applyProjection(initialProjection, {
+            fitNetwork: true,
+            basemap: true,
+          });
+          updateVisibleCandidates(match.projectedBbox, "keep");
+        }
+      }
+    });
+
+    return () => controller.abort();
+  }, [
+    projections,
+    previewGeoJson,
+    initialProjection,
+    applyProjection,
+    updateVisibleCandidates,
+  ]);
+
   const handleLocationSelect = useCallback(
     (location: LocationData) => {
       setSelectedLocation(location);
@@ -185,7 +207,6 @@ export const NetworkProjectionDialog = ({
 
   const handleBoundsChange = useCallback(
     (viewportBbox: Bbox) => {
-      if (!selectedLocationRef.current) return;
       if (debounceRef.current) clearTimeout(debounceRef.current);
       debounceRef.current = setTimeout(() => {
         updateVisibleCandidates(viewportBbox, "keep");
@@ -328,11 +349,15 @@ export const NetworkProjectionDialog = ({
           {selectedLocation || selectedProjection ? (
             <div className="flex-1 min-h-0 flex flex-col">
               <ProjectionResults
-                projections={selectedLocation ? candidateProjections : []}
+                projections={
+                  selectedLocation || initialProjection
+                    ? candidateProjections
+                    : []
+                }
                 selectedProjection={selectedProjection}
                 onSelect={handleProjectionSelectFromResults}
                 isLoading={isBuilding}
-                showEmptyState={!!selectedLocation}
+                showEmptyState={!!selectedLocation || !!initialProjection}
               />
               {projectionError && (
                 <p className="mt-2 text-sm text-red-600 dark:text-red-400 p-2 border border-red-200 dark:border-red-800 rounded-md bg-red-50 dark:bg-red-950 flex-shrink-0">
@@ -348,7 +373,11 @@ export const NetworkProjectionDialog = ({
           setHandle={setHandle}
           geoJSON={displayGeoJSON}
           showBasemap={showBasemap}
-          onBoundsChange={selectedLocation ? handleBoundsChange : undefined}
+          onBoundsChange={
+            selectedLocation || selectedProjection
+              ? handleBoundsChange
+              : undefined
+          }
           isLoading={isLoading}
         />
       </div>

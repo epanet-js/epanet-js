@@ -51,6 +51,7 @@ const NetworkProjectionDialog = dynamic<{
   onImportWithProjection: (projection: Projection) => void;
   filename: string;
   flowUnits: string;
+  initialProjection?: import("src/lib/projections").Proj4Projection;
 }>(
   () =>
     import("src/dialogs/network-projection").then(
@@ -460,6 +461,7 @@ export const Dialogs = memo(function Dialogs() {
         onImportWithProjection={dialog.onImportWithProjection}
         filename={dialog.filename}
         flowUnits={dialog.flowUnits}
+        initialProjection={dialog.initialProjection}
       />
     );
   }
