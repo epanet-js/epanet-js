@@ -97,6 +97,9 @@ export function buildPixelTransformers(
     toPixel: (crsX: number, crsY: number) => {
       return transformCoordinates(crsX, crsY, matrices.crsToPixel, true);
     },
+    toSubPixel: (crsX: number, crsY: number) => {
+      return transformCoordinates(crsX, crsY, matrices.crsToPixel, false);
+    },
     fromPixel: (x: number, y: number) => {
       return transformCoordinates(x, y, matrices.pixelToCrs, false);
     },
