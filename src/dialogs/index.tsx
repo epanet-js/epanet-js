@@ -295,6 +295,18 @@ const ScenariosPaywallDialog = dynamic<{
   },
 );
 
+const ElevationsPaywallDialog = dynamic<{
+  onClose: () => void;
+}>(
+  () =>
+    import("src/dialogs/elevations-paywall").then(
+      (r) => r.ElevationsPaywallDialog,
+    ),
+  {
+    loading: () => <LoadingDialog />,
+  },
+);
+
 const ActivatingTrialDialog = dynamic(
   () =>
     import("src/dialogs/activating-trial").then((r) => r.ActivatingTrialDialog),
@@ -353,6 +365,9 @@ export const Dialogs = memo(function Dialogs() {
       }
       if (dialog.type === "scenariosPaywall") {
         userTracking.capture({ name: "scenariosPaywall.seen" });
+      }
+      if (dialog.type === "elevationsPaywall") {
+        userTracking.capture({ name: "elevationsPaywall.seen" });
       }
     }
     previousDialog.current = dialog;
@@ -422,6 +437,10 @@ export const Dialogs = memo(function Dialogs() {
 
   if (dialog.type === "scenariosPaywall") {
     return <ScenariosPaywallDialog onClose={onClose} />;
+  }
+
+  if (dialog.type === "elevationsPaywall") {
+    return <ElevationsPaywallDialog onClose={onClose} />;
   }
 
   if (dialog.type === "activatingTrial") {

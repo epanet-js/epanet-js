@@ -99,7 +99,7 @@ export const ElevationsEditor = () => {
   };
 
   return (
-    <Section title={translate("elevations")}>
+    <Section title={translate("elevations.title")}>
       <div className="flex flex-col gap-y-1">
         <DndContext
           onDragEnd={handleDragEnd}
@@ -204,7 +204,7 @@ const GeoTiffElevationSourceRow = ({
   );
 
   const fileCount = source.tiles.length;
-  const description = `${translate("gridResolution", `${resolutionDisplay}${elevationUnit}`)} – ${translate("files", fileCount)}`;
+  const description = `${translate("elevations.gridResolution", `${resolutionDisplay}${elevationUnit}`)} – ${translate("files", fileCount)}`;
 
   const handlePopoverOpenChange = (open: boolean) => {
     if (open) {
@@ -217,7 +217,7 @@ const GeoTiffElevationSourceRow = ({
   return (
     <ElevationSourceRowShell
       id={source.id}
-      name={translate("userElevationData")}
+      name={translate("elevations.userElevationData")}
       description={description}
     >
       <Popover.Root onOpenChange={handlePopoverOpenChange}>
@@ -225,7 +225,7 @@ const GeoTiffElevationSourceRow = ({
           <Button
             variant="quiet/mode"
             className="h-8"
-            aria-label={translate("elevationSourceDetails")}
+            aria-label={translate("elevations.sourceDetails")}
           >
             <MultipleValuesIcon />
           </Button>
@@ -281,7 +281,7 @@ const GeoTiffTilesPopover = ({
   return (
     <div className="flex flex-col gap-y-2">
       <div className="font-semibold text-sm">
-        {translate("userElevationData")}
+        {translate("elevations.userElevationData")}
       </div>
       <ElevationOffsetField source={source} actions={actions} />
       <div className="overflow-y-auto max-h-[30vh] scroll-shadows border rounded">
@@ -330,7 +330,7 @@ const GeoTiffTilesPopover = ({
         onClick={() => fileInputRef.current?.click()}
       >
         <AddIcon size="sm" />
-        {translate("addMoreTiles")}
+        {translate("elevations.addMoreTiles")}
       </Button>
     </div>
   );
@@ -350,8 +350,8 @@ const TileServerElevationSourceRow = ({
   return (
     <ElevationSourceRowShell
       id={source.id}
-      name={translate("mapboxDefaultData")}
-      description={translate("globalDtm").toUpperCase()}
+      name={translate("elevations.mapboxDefaultData")}
+      description={translate("elevations.globalDtm").toUpperCase()}
       disabled={isDisabled}
     >
       <Popover.Root>
@@ -381,8 +381,8 @@ const TileServerElevationSourceRow = ({
           applicable: true,
           disabled: isOffline,
           label: source.enabled
-            ? translate("disableElevationSource")
-            : translate("enableElevationSource"),
+            ? translate("elevations.disableSource")
+            : translate("elevations.enableSource"),
           icon: isDisabled ? <LocateIcon /> : <LocateOffIcon />,
         }}
       />
@@ -401,7 +401,7 @@ const TileServerPopover = ({
   return (
     <div className="flex flex-col gap-y-2">
       <div className="font-semibold text-sm">
-        {translate("mapboxDefaultData")}
+        {translate("elevations.mapboxDefaultData")}
       </div>
       <ElevationOffsetField source={source} actions={actions} />
     </div>
@@ -424,7 +424,7 @@ const ElevationOffsetField = ({
     elevationUnit,
   );
 
-  const label = `${translate("elevationOffset")} (${elevationUnit})`;
+  const label = `${translate("elevations.elevationOffset")} (${elevationUnit})`;
 
   return (
     <InlineField name={label} layout="label-flex-none">
@@ -451,10 +451,10 @@ const AddElevationDataButton = ({ actions }: { actions: Actions }) => {
     const canUseElevations = limits.canUseElevations(user.plan);
     if (!canUseElevations) {
       userTracking.capture({
-        name: "upgradeButton.clicked",
+        name: "elevationsPaywall.triggered",
         source: "customElevations",
       });
-      setDialogState({ type: "upgrade" });
+      setDialogState({ type: "elevationsPaywall" });
       return;
     }
     fileInputRef.current?.click();
@@ -493,7 +493,7 @@ const AddElevationDataButton = ({ actions }: { actions: Actions }) => {
         disabled={isLoading}
       >
         <AddIcon size="sm" />
-        {isLoading ? translate("loading") : translate("addNewElevationData")}
+        {isLoading ? translate("loading") : translate("elevations.addNewData")}
       </Button>
     </>
   );
@@ -516,7 +516,7 @@ function notifyProcessingError(
 
   notify({
     variant: "warning",
-    title: translate("unsupportedProjection"),
+    title: translate("elevations.unsupportedProjection"),
     description: fileNames,
     id: "elevation-source-error",
   });

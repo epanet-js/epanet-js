@@ -128,6 +128,10 @@ export type ScenariosPaywallDialogState = {
   type: "scenariosPaywall";
 };
 
+export type ElevationsPaywallDialogState = {
+  type: "elevationsPaywall";
+};
+
 export type FirstScenarioDialogState = {
   type: "firstScenario";
   onConfirm: () => void;
@@ -175,6 +179,7 @@ export type DialogState =
   | DeleteScenarioConfirmationDialogState
   | RenameScenarioDialogState
   | ScenariosPaywallDialogState
+  | ElevationsPaywallDialogState
   | FirstScenarioDialogState
   | AlertScenariosNotSavedState
   | AlertNetworkRequiredState

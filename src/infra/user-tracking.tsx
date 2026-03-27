@@ -1052,6 +1052,12 @@ export type UserEvent =
   | { name: "scenariosPaywall.clickedPersonal" }
   | { name: "scenariosPaywall.clickedTryDemo" }
   | { name: "scenariosPaywall.clickedExplorePlans" }
+  | { name: "elevationsPaywall.seen" }
+  | { name: "elevationsPaywall.triggered"; source: string }
+  | { name: "elevationsPaywall.clickedChoosePlan" }
+  | { name: "elevationsPaywall.clickedPersonal" }
+  | { name: "elevationsPaywall.clickedExplorePlans" }
+  | { name: "elevationsPaywall.dismissed" }
   | { name: "trial.activated"; source: string }
   | { name: "firstScenario.dialogEnabled" }
   | { name: "firstScenario.dialogHidden" }
