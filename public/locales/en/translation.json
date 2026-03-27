@@ -421,8 +421,6 @@
   "trial.activated": "Your trial is now active!",
   "trial.activating": "Activating trial",
   "trial.activateFree": "Activate free trial",
-  "trial.paywallDescription": "Scenarios are a paid feature. Activate your free trial to get full access for 14 days—no credit card required.",
-  "trial.paywallDescriptionElevations": "Custom elevations are a paid feature. Activate your free trial to get full access for 14 days—no credit card required.",
   "trial.tryWithDemo": "Try with a demo network",
   "paywall": {
     "explorePlans": "Explore plans",
@@ -1022,8 +1020,6 @@
       "title": "Upgrade to access scenarios",
       "description1": "Scenarios let you explore \"what-if\" changes without duplicating your model.",
       "description2": "Create alternative versions of your network and compare results against your baseline.",
-      "description3": "Scenarios are available on paid plans.",
-      "description3Demo": "Try scenarios for free with a demo network, or explore our paid plans.",
       "trial": "Scenarios are a paid feature. Activate your free trial to get full access for 14 days—no credit card required.",
       "plans": "Scenarios are available on paid plans.",
       "demo": "Try scenarios for free with a demo network, or explore our paid plans.",

@@ -131,9 +131,9 @@ export const ScenariosPaywallConnector = ({
       "scenarios.paywall.description2",
     ],
     actionDescriptionKeys: {
-      trial: "trial.paywallDescription",
-      plans: "scenarios.paywall.description3",
-      demo: "scenarios.paywall.description3Demo",
+      trial: "scenarios.paywall.trial",
+      plans: "scenarios.paywall.plans",
+      demo: "scenarios.paywall.demo",
     },
     onTryDemo: handleTryDemoWithErrorHandling,
     onTrialActivated: runSimulationThenProceed,
