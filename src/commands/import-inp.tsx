@@ -9,7 +9,9 @@ import {
   ParserIssues,
   parseInp,
   parseCoordinatesGeoJson,
+  projectCoordinates,
 } from "src/import/inp";
+import type { ParseInpResult } from "src/import/inp";
 import { usePersistence } from "src/lib/persistence";
 import { FeatureCollection } from "geojson";
 import { getExtent } from "src/lib/geometry";
@@ -26,8 +28,9 @@ import { OPFSStorage } from "src/infra/storage";
 import { getAppId } from "src/infra/app-instance";
 import { isDemoNetwork } from "src/demo/demo-networks";
 import { useRecentFiles } from "src/hooks/use-recent-files";
-import { type Proj4Projection } from "src/lib/projections";
+import { type Projection } from "src/lib/projections";
 import { XY_GRID } from "src/import/inp/parse-inp";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export const inpExtension = ".inp";
 
@@ -39,20 +42,98 @@ export const useImportInp = () => {
   const rep = usePersistence();
   const transactImport = rep.useTransactImport();
   const userTracking = useUserTracking();
+  const isProjectLaterOn = useFeatureFlag("FLAG_PROJECT_LATER");
 
   const { addRecent } = useRecentFiles();
-  const importInp = useCallback(
-    async (files: FileWithHandle[]) => {
+
+  const completeImport = useCallback(
+    async (
+      file: FileWithHandle,
+      isDemo: boolean,
+      result: ParseInpResult,
+      options?: { autoElevations?: boolean },
+    ) => {
+      const {
+        hydraulicModel,
+        factories,
+        projectSettings,
+        simulationSettings,
+        issues,
+        isMadeByApp,
+      } = result;
+
+      const storage = new OPFSStorage(getAppId());
+      await storage.clear();
+
+      transactImport(
+        hydraulicModel,
+        factories,
+        projectSettings,
+        file.name,
+        simulationSettings,
+        options,
+      );
+
+      const features: FeatureCollection = {
+        type: "FeatureCollection",
+        features: [...hydraulicModel.assets.values()].map((a) => a.feature),
+      };
+      const nextExtent = getExtent(features);
+      nextExtent.map((importedExtent) => {
+        map?.map.fitBounds(importedExtent as LngLatBoundsLike, {
+          padding: 100,
+          duration: 0,
+        });
+      });
+      setFileInfo({
+        name: file.name,
+        handle: isMadeByApp ? file.handle : undefined,
+        modelVersion: hydraulicModel.version,
+        isMadeByApp,
+        isDemoNetwork: isDemo,
+        options: { type: "inp", folderId: "" },
+      });
+      if (!isDemo && file.handle) {
+        const handle = file.handle;
+        const name = file.name;
+        if (map) {
+          const captureAndSave = () => {
+            const thumbnail = captureThumbnail(map) ?? undefined;
+            void addRecent(name, handle, thumbnail);
+          };
+          if (map.map.loaded() && !map.map.isMoving()) {
+            captureAndSave();
+          } else {
+            const timeoutId = setTimeout(captureAndSave, 5000);
+            map.map.once("idle", () => {
+              clearTimeout(timeoutId);
+              captureAndSave();
+            });
+          }
+        } else {
+          void addRecent(name, handle);
+        }
+      }
+      if (!issues) {
+        setDialogState(null);
+        return;
+      }
+
+      setDialogState({ type: "inpIssues", issues });
+    },
+    [addRecent, map, setDialogState, setFileInfo, transactImport],
+  );
+
+  const validateAndPrepare = useCallback(
+    (files: FileWithHandle[]) => {
       const inps = files.filter((file) =>
         file.name.toLowerCase().endsWith(inpExtension),
       );
 
       if (!inps.length) {
-        setDialogState({
-          type: "invalidFilesError",
-        });
+        setDialogState({ type: "invalidFilesError" });
         userTracking.capture({ name: "invalidFilesError.seen" });
-        return;
+        return null;
       }
 
       if (inps.length > 1) {
@@ -65,7 +146,15 @@ export const useImportInp = () => {
         });
       }
 
-      const file = inps[0];
+      return inps[0];
+    },
+    [setDialogState, translate, userTracking],
+  );
+
+  const importInpDeprecated = useCallback(
+    async (files: FileWithHandle[]) => {
+      const file = validateAndPrepare(files);
+      if (!file) return;
 
       setDialogState({ type: "loading" });
 
@@ -78,131 +167,36 @@ export const useImportInp = () => {
           inactiveAssets: true,
         };
 
-        const completeImport = async (
-          result: ReturnType<typeof parseInp>,
-          options?: { autoElevations?: boolean },
-        ) => {
-          const {
-            hydraulicModel,
-            factories,
-            projectSettings,
-            simulationSettings,
-            issues,
-            isMadeByApp,
-          } = result;
-
-          const storage = new OPFSStorage(getAppId());
-          await storage.clear();
-
-          transactImport(
-            hydraulicModel,
-            factories,
-            projectSettings,
-            file.name,
-            simulationSettings,
-            options,
-          );
-
-          const features: FeatureCollection = {
-            type: "FeatureCollection",
-            features: [...hydraulicModel.assets.values()].map((a) => a.feature),
-          };
-          const nextExtent = getExtent(features);
-          nextExtent.map((importedExtent) => {
-            map?.map.fitBounds(importedExtent as LngLatBoundsLike, {
-              padding: 100,
-              duration: 0,
-            });
-          });
-          setFileInfo({
-            name: file.name,
-            handle: isMadeByApp ? file.handle : undefined,
-            modelVersion: hydraulicModel.version,
-            isMadeByApp,
-            isDemoNetwork: isDemo,
-            options: { type: "inp", folderId: "" },
-          });
-          if (!isDemo && file.handle) {
-            const handle = file.handle;
-            const name = file.name;
-            if (map) {
-              const captureAndSave = () => {
-                const thumbnail = captureThumbnail(map) ?? undefined;
-                void addRecent(name, handle, thumbnail);
-              };
-              if (map.map.loaded() && !map.map.isMoving()) {
-                captureAndSave();
-              } else {
-                const timeoutId = setTimeout(captureAndSave, 5000);
-                map.map.once("idle", () => {
-                  clearTimeout(timeoutId);
-                  captureAndSave();
-                });
-              }
-            } else {
-              void addRecent(name, handle);
-            }
-          }
-          if (!issues) {
-            setDialogState(null);
-            return;
-          }
-
-          setDialogState({ type: "inpIssues", issues });
-        };
-
-        const {
-          hydraulicModel,
-          factories,
-          projectSettings,
-          simulationSettings,
-          issues,
-          isMadeByApp,
-          stats,
-        } = parseInp(content, parseOptions);
+        const result = parseInp(content, parseOptions);
+        const { hydraulicModel, projectSettings, issues, stats } = result;
         userTracking.capture(
           buildCompleteEvent(hydraulicModel, projectSettings, issues, stats),
         );
+
         if (issues && (issues.invalidVertices || issues.invalidCoordinates)) {
-          const onImportNonProjected = async () => {
-            setDialogState({ type: "loading" });
-            try {
-              const result = parseInp(content, {
-                ...parseOptions,
-                sourceProjection: XY_GRID,
-              });
-              userTracking.capture(
-                buildCompleteEvent(
-                  result.hydraulicModel,
-                  result.projectSettings,
-                  result.issues,
-                  result.stats,
-                ),
-              );
-              await completeImport(result, { autoElevations: false });
-            } catch (error) {
-              captureError(error as Error);
-              setDialogState({ type: "invalidFilesError" });
-            }
-          };
           const previewGeoJson = parseCoordinatesGeoJson(content);
 
-          const onImportProjected = async (projection: Proj4Projection) => {
+          const onImportWithProjection = async (projection: Projection) => {
             setDialogState({ type: "loading" });
             try {
-              const result = parseInp(content, {
+              const sourceProjection =
+                projection.type === "xy-grid" ? XY_GRID : projection;
+              const reparsed = parseInp(content, {
                 ...parseOptions,
-                sourceProjection: projection,
+                sourceProjection,
               });
               userTracking.capture(
                 buildCompleteEvent(
-                  result.hydraulicModel,
-                  result.projectSettings,
-                  result.issues,
-                  result.stats,
+                  reparsed.hydraulicModel,
+                  reparsed.projectSettings,
+                  reparsed.issues,
+                  reparsed.stats,
                 ),
               );
-              await completeImport(result, { autoElevations: true });
+              const autoElevations = projection.type !== "xy-grid";
+              await completeImport(file, isDemo, reparsed, {
+                autoElevations,
+              });
             } catch (error) {
               captureError(error as Error);
               setDialogState({ type: "invalidFilesError" });
@@ -212,8 +206,7 @@ export const useImportInp = () => {
           setDialogState({
             type: "networkProjection",
             previewGeoJson,
-            onImportNonProjected,
-            onImportProjected,
+            onImportWithProjection,
             filename: file.name,
             flowUnits: chooseUnitSystem(projectSettings.units),
           });
@@ -226,35 +219,99 @@ export const useImportInp = () => {
         }
 
         const autoElevations = projectSettings.projection.type !== "xy-grid";
-        await completeImport(
-          {
-            hydraulicModel,
-            factories,
-            projectSettings,
-            simulationSettings,
-            issues,
-            isMadeByApp,
-            stats,
-          },
-          { autoElevations },
-        );
+        await completeImport(file, isDemo, result, { autoElevations });
       } catch (error) {
         captureError(error as Error);
         setDialogState({ type: "invalidFilesError" });
       }
     },
-    [
-      addRecent,
-      map,
-      setDialogState,
-      setFileInfo,
-      transactImport,
-      translate,
-      userTracking,
-    ],
+    [completeImport, setDialogState, userTracking, validateAndPrepare],
   );
 
-  return importInp;
+  const importInp = useCallback(
+    async (files: FileWithHandle[]) => {
+      const file = validateAndPrepare(files);
+      if (!file) return;
+
+      setDialogState({ type: "loading" });
+
+      try {
+        const arrayBuffer = await file.arrayBuffer();
+        const content = new TextDecoder().decode(arrayBuffer);
+        const isDemo = isDemoNetwork(content);
+        const parseOptions = {
+          customerPoints: true,
+          inactiveAssets: true,
+        };
+
+        const result = parseInp(content, {
+          ...parseOptions,
+          projectLater: true,
+        });
+        const {
+          hydraulicModel,
+          projectSettings,
+          issues,
+          stats,
+          projectionStatus,
+        } = result;
+        userTracking.capture(
+          buildCompleteEvent(hydraulicModel, projectSettings, issues, stats),
+        );
+
+        if (projectionStatus === "unknown") {
+          const previewGeoJson = parseCoordinatesGeoJson(content);
+
+          const onImportWithProjection = async (projection: Projection) => {
+            setDialogState({ type: "loading" });
+            try {
+              projectCoordinates(
+                {
+                  assets: hydraulicModel.assets,
+                  customerPoints: hydraulicModel.customerPoints,
+                },
+                projection,
+              );
+              result.projectSettings = {
+                ...result.projectSettings,
+                projection,
+              };
+              const autoElevations = projection.type !== "xy-grid";
+              await completeImport(file, isDemo, result, {
+                autoElevations,
+              });
+            } catch (error) {
+              captureError(error as Error);
+              setDialogState({ type: "invalidFilesError" });
+            }
+          };
+
+          setDialogState({
+            type: "networkProjection",
+            previewGeoJson,
+            onImportWithProjection,
+            filename: file.name,
+            flowUnits: chooseUnitSystem(projectSettings.units),
+          });
+          return;
+        }
+
+        if (issues && issues.nodesMissingCoordinates) {
+          setDialogState({ type: "inpMissingCoordinates", issues });
+          return;
+        }
+
+        const autoElevations = projectSettings.projection.type !== "xy-grid";
+        await completeImport(file, isDemo, result, { autoElevations });
+      } catch (error) {
+        captureError(error as Error);
+        setDialogState({ type: "invalidFilesError" });
+      }
+    },
+    [completeImport, setDialogState, userTracking, validateAndPrepare],
+  );
+
+  return isProjectLaterOn ? importInp : importInpDeprecated;
 };
 
 const buildCompleteEvent = (

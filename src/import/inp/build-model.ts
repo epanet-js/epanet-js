@@ -80,7 +80,7 @@ type CurvesContext = {
 export const buildModel = (
   inpData: InpData,
   issues: IssuesAccumulator,
-  options?: ParseInpOptions,
+  options?: ParseInpOptions & { skipWgs84Validation?: boolean },
 ): {
   hydraulicModel: HydraulicModel;
   factories: ModelFactories;
@@ -93,6 +93,7 @@ export const buildModel = (
   const spec = inpData.options.pressureUnit
     ? withPressureUnit(baseSpec, inpData.options.pressureUnit as Unit)
     : baseSpec;
+  const skipWgs84Validation = options?.skipWgs84Validation ?? false;
   const nodeIds = new ItemData<AssetId>();
   const linkIds = new ItemData<AssetId>();
 
@@ -122,6 +123,7 @@ export const buildModel = (
       issues,
       nodeIds,
       patternContext,
+      skipWgs84Validation,
     });
   }
 
@@ -131,6 +133,7 @@ export const buildModel = (
       issues,
       nodeIds,
       patternContext,
+      skipWgs84Validation,
     });
   }
 
@@ -139,6 +142,7 @@ export const buildModel = (
       inpData,
       issues,
       nodeIds,
+      skipWgs84Validation,
     });
   }
 
@@ -148,6 +152,7 @@ export const buildModel = (
       issues,
       nodeIds,
       linkIds,
+      skipWgs84Validation,
     });
   }
 
@@ -157,6 +162,7 @@ export const buildModel = (
       issues,
       nodeIds,
       linkIds,
+      skipWgs84Validation,
     });
   }
 
@@ -167,6 +173,7 @@ export const buildModel = (
       nodeIds,
       linkIds,
       options,
+      skipWgs84Validation,
     });
   }
 
@@ -356,14 +363,21 @@ const addJunction = (
     issues,
     nodeIds,
     patternContext,
+    skipWgs84Validation,
   }: {
     inpData: InpData;
     issues: IssuesAccumulator;
     nodeIds: ItemData<AssetId>;
     patternContext: PatternsContext;
+    skipWgs84Validation: boolean;
   },
 ) => {
-  const coordinates = getNodeCoordinates(inpData, junctionData.id, issues);
+  const coordinates = getNodeCoordinates(
+    inpData,
+    junctionData.id,
+    issues,
+    skipWgs84Validation,
+  );
   if (!coordinates) return;
 
   const junctionDemands = inpData.demands.get(junctionData.id) || [];
@@ -405,14 +419,21 @@ const addReservoir = (
     issues,
     nodeIds,
     patternContext,
+    skipWgs84Validation,
   }: {
     inpData: InpData;
     issues: IssuesAccumulator;
     nodeIds: ItemData<AssetId>;
     patternContext: PatternsContext;
+    skipWgs84Validation: boolean;
   },
 ) => {
-  const coordinates = getNodeCoordinates(inpData, reservoirData.id, issues);
+  const coordinates = getNodeCoordinates(
+    inpData,
+    reservoirData.id,
+    issues,
+    skipWgs84Validation,
+  );
   if (!coordinates) return;
 
   let headPatternId: PatternId | undefined;
@@ -450,13 +471,20 @@ const addTank = (
     inpData,
     issues,
     nodeIds,
+    skipWgs84Validation,
   }: {
     inpData: InpData;
     issues: IssuesAccumulator;
     nodeIds: ItemData<AssetId>;
+    skipWgs84Validation: boolean;
   },
 ) => {
-  const coordinates = getNodeCoordinates(inpData, tankData.id, issues);
+  const coordinates = getNodeCoordinates(
+    inpData,
+    tankData.id,
+    issues,
+    skipWgs84Validation,
+  );
   if (!coordinates) return;
 
   let volumeCurveId: CurveId | undefined = undefined;
@@ -498,14 +526,22 @@ const addPump = (
     issues,
     nodeIds,
     linkIds,
+    skipWgs84Validation,
   }: {
     inpData: InpData;
     issues: IssuesAccumulator;
     nodeIds: ItemData<AssetId>;
     linkIds: ItemData<AssetId>;
+    skipWgs84Validation: boolean;
   },
 ) => {
-  const linkProperties = getLinkProperties(inpData, issues, nodeIds, pumpData);
+  const linkProperties = getLinkProperties(
+    inpData,
+    issues,
+    nodeIds,
+    pumpData,
+    skipWgs84Validation,
+  );
   if (!linkProperties) return;
 
   const { coordinates, connections } = linkProperties;
@@ -641,14 +677,22 @@ const addValve = (
     issues,
     nodeIds,
     linkIds,
+    skipWgs84Validation,
   }: {
     inpData: InpData;
     issues: IssuesAccumulator;
     nodeIds: ItemData<AssetId>;
     linkIds: ItemData<AssetId>;
+    skipWgs84Validation: boolean;
   },
 ) => {
-  const linkProperties = getLinkProperties(inpData, issues, nodeIds, valveData);
+  const linkProperties = getLinkProperties(
+    inpData,
+    issues,
+    nodeIds,
+    valveData,
+    skipWgs84Validation,
+  );
   if (!linkProperties) return;
   const { connections, coordinates } = linkProperties;
 
@@ -696,15 +740,23 @@ const addPipe = (
     nodeIds,
     linkIds,
     options: _options,
+    skipWgs84Validation,
   }: {
     inpData: InpData;
     issues: IssuesAccumulator;
     nodeIds: ItemData<AssetId>;
     linkIds: ItemData<AssetId>;
     options?: ParseInpOptions;
+    skipWgs84Validation: boolean;
   },
 ) => {
-  const linkProperties = getLinkProperties(inpData, issues, nodeIds, pipeData);
+  const linkProperties = getLinkProperties(
+    inpData,
+    issues,
+    nodeIds,
+    pipeData,
+    skipWgs84Validation,
+  );
   if (!linkProperties) return;
   const { connections, coordinates } = linkProperties;
 
@@ -793,6 +845,7 @@ const getLinkProperties = (
   issues: IssuesAccumulator,
   nodeIds: ItemData<AssetId>,
   linkData: { id: string; startNodeDirtyId: string; endNodeDirtyId: string },
+  skipWgs84Validation: boolean,
 ) => {
   if (!linkData.startNodeDirtyId || !linkData.endNodeDirtyId) return null;
 
@@ -800,13 +853,20 @@ const getLinkProperties = (
     inpData,
     linkData.startNodeDirtyId,
     issues,
+    skipWgs84Validation,
   );
   const endCoordinates = getNodeCoordinates(
     inpData,
     linkData.endNodeDirtyId,
     issues,
+    skipWgs84Validation,
   );
-  const vertices = getVertices(inpData, linkData.id, issues);
+  const vertices = getVertices(
+    inpData,
+    linkData.id,
+    issues,
+    skipWgs84Validation,
+  );
 
   if (!startCoordinates || !endCoordinates) return null;
 
@@ -825,8 +885,10 @@ const getVertices = (
   inpData: InpData,
   linkId: string,
   issues: IssuesAccumulator,
+  skipWgs84Validation: boolean,
 ) => {
   const candidates = inpData.vertices.get(linkId) || [];
+  if (skipWgs84Validation) return candidates;
   const vertices = candidates.filter((coordinates) => isWgs84(coordinates));
   if (candidates.length !== vertices.length) {
     issues.addInvalidVertices(linkId);
@@ -839,20 +901,21 @@ const getNodeCoordinates = (
   inpData: InpData,
   nodeId: string,
   issues: IssuesAccumulator,
+  skipWgs84Validation: boolean,
 ): Position | null => {
   const nodeCoordinates = inpData.coordinates.get(nodeId);
   if (!nodeCoordinates) {
     issues.addMissingCoordinates(nodeId);
     return null;
   }
-  if (!isWgs84(nodeCoordinates)) {
+  if (!skipWgs84Validation && !isWgs84(nodeCoordinates)) {
     issues.addInvalidCoordinates(nodeId);
     return null;
   }
   return nodeCoordinates;
 };
 
-const isWgs84 = (coordinates: Position) =>
+export const isWgs84 = (coordinates: Position) =>
   coordinates[0] >= -180 &&
   coordinates[0] <= 180 &&
   coordinates[1] >= -90 &&

@@ -4,7 +4,7 @@ import { useAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog";
 import { match } from "ts-pattern";
 import * as dialogState from "src/state/dialog";
-import type { Proj4Projection } from "src/lib/projections";
+import type { Projection } from "src/lib/projections";
 import { ParserIssues } from "src/import/inp";
 import { useUserTracking } from "src/infra/user-tracking";
 import { LoadingDialog } from "../components/dialog";
@@ -48,8 +48,7 @@ const InpIssuesDialog = dynamic<{
 
 const NetworkProjectionDialog = dynamic<{
   previewGeoJson: import("geojson").FeatureCollection;
-  onImportNonProjected: () => void;
-  onImportProjected: (projection: Proj4Projection) => void;
+  onImportWithProjection: (projection: Projection) => void;
   filename: string;
   flowUnits: string;
 }>(
@@ -439,8 +438,7 @@ export const Dialogs = memo(function Dialogs() {
     return (
       <NetworkProjectionDialog
         previewGeoJson={dialog.previewGeoJson}
-        onImportNonProjected={dialog.onImportNonProjected}
-        onImportProjected={dialog.onImportProjected}
+        onImportWithProjection={dialog.onImportWithProjection}
         filename={dialog.filename}
         flowUnits={dialog.flowUnits}
       />

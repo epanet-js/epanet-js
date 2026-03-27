@@ -19,7 +19,8 @@ import {
 } from "./filter-projection-candidates";
 import { projectGeoJson } from "./project-geojson";
 import { approximateToNullIsland } from "./approximate-to-null-island";
-import type { Proj4Projection } from "src/lib/projections";
+import type { Proj4Projection, Projection } from "src/lib/projections";
+import { computeCentroid } from "src/lib/projections/xy-grid-transform";
 import type { Bbox, ProjectionCandidate } from "./types";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useTranslate } from "src/hooks/use-translate";
@@ -28,14 +29,12 @@ const DEBOUNCE_MS = 200;
 
 export const NetworkProjectionDialog = ({
   previewGeoJson,
-  onImportNonProjected,
-  onImportProjected,
+  onImportWithProjection,
   filename,
   flowUnits,
 }: {
   previewGeoJson: FeatureCollection;
-  onImportNonProjected: () => void;
-  onImportProjected: (projection: Proj4Projection) => void;
+  onImportWithProjection: (projection: Projection) => void;
   filename: string;
   flowUnits: string;
 }) => {
@@ -239,11 +238,11 @@ export const NetworkProjectionDialog = ({
         query: lastSearchRef.current?.query ?? "",
         resultType: lastSearchRef.current?.resultType ?? "location",
       });
-      onImportProjected(selectedProjection);
+      onImportWithProjection(selectedProjection);
     }
   }, [
     selectedProjection,
-    onImportProjected,
+    onImportWithProjection,
     userTracking,
     projectionError,
     filename,
@@ -258,8 +257,23 @@ export const NetworkProjectionDialog = ({
       flowUnits,
       bounds,
     });
-    onImportNonProjected();
-  }, [onImportNonProjected, userTracking, filename, flowUnits, bounds]);
+    const allCoords = extractCoordinates(previewGeoJson);
+    const centroid = computeCentroid(allCoords);
+    const projection: Projection = {
+      type: "xy-grid",
+      id: "xy-grid",
+      name: "XY Grid",
+      centroid,
+    };
+    onImportWithProjection(projection);
+  }, [
+    onImportWithProjection,
+    userTracking,
+    filename,
+    flowUnits,
+    bounds,
+    previewGeoJson,
+  ]);
 
   const handleClose = useCallback(() => {
     userTracking.capture({ name: "networkProjection.closed" });
@@ -366,6 +380,19 @@ const computeBounds = (geoJson: FeatureCollection): string => {
 
   if (!isFinite(minX)) return "";
   return `${minX},${minY},${maxX},${maxY}`;
+};
+
+const extractCoordinates = (geoJson: FeatureCollection): Position[] => {
+  const coords: Position[] = [];
+  for (const feature of geoJson.features) {
+    const { geometry } = feature;
+    if (geometry.type === "Point") {
+      coords.push(geometry.coordinates);
+    } else if (geometry.type === "LineString") {
+      coords.push(...geometry.coordinates);
+    }
+  }
+  return coords;
 };
 
 const ProjectionEmptyState = () => {

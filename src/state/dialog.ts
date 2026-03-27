@@ -2,7 +2,7 @@ import { atomWithReset } from "jotai/utils";
 import { ParserIssues } from "src/import/inp";
 import { CurveId } from "src/hydraulic-model/curves";
 import type { FeatureCollection } from "geojson";
-import type { Proj4Projection } from "src/lib/projections";
+import type { Projection } from "src/lib/projections";
 
 export type InvalidFilesErrorDialogState = {
   type: "invalidFilesError";
@@ -33,8 +33,7 @@ export type WelcomeDialogState = {
 export type NetworkProjectionDialogState = {
   type: "networkProjection";
   previewGeoJson: FeatureCollection;
-  onImportNonProjected: () => void;
-  onImportProjected: (projection: Proj4Projection) => void;
+  onImportWithProjection: (projection: Projection) => void;
   filename: string;
   flowUnits: string;
 };
