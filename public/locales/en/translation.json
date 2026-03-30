@@ -59,16 +59,15 @@
   "elevations": {
     "title": "Elevations",
     "paywall": {
-      "title": "Upgrade to access custom elevations",
-      "description1": "Custom elevations let you use your own GeoTIFF data for accurate terrain modelling.",
-      "description2": "Upload high-resolution elevation data and overlay it on top of global terrain sources.",
-      "plans": "Custom elevations are available on paid plans.",
-      "trial": "Custom elevations are a paid feature. Activate your free trial to get full access for 14 days—no credit card required.",
+      "title": "Upgrade to use your own elevation data",
+      "description1": "Bring your own GeoTIFF files into epanet-js and use them directly in your model.",
+      "description2": "Overlay high-resolution terrain data where you need it and get more accurate elevations for your network.",
+      "plans": "Custom elevation sources are available on paid plans.",
+      "trial": "Custom elevation sources are a paid feature. Activate your free trial to get full access for 14 days—no credit card required.",
       "captions": {
-        "1": "Add your own elevation data",
-        "2": "Upload high-resolution GeoTIFF files",
-        "3": "Layer multiple elevation sources",
-        "4": "Get accurate terrain for your network"
+        "1": "Add custom elevation sources to epanet-js",
+        "2": "Load GeoTIFFs directly from your computer",
+        "3": "Use high-resolution elevation data in your hydraulic model"
       }
     },
     "mapboxDefaultData": "Mapbox default data",
@@ -359,7 +358,7 @@
   "seeDemoNetworks": "See demo networks",
   "foundersPartnerTitle": "Our Founding Partners",
   "foundersPartnerDescription": "Support epanet-js -",
-"foundersPartnerLearnMore": "Become a Founding Partner",
+  "foundersPartnerLearnMore": "Become a Founding Partner",
   "issuesSummary": "Unsupported features",
   "useOfUnsupported": "Use of unsupported sections",
   "nonDefaultEpanetValues": "Non-default epanet {{1}} values detected",
@@ -1063,7 +1062,7 @@
     "setAsQualitySourceStrength": "Set as Quality source strength",
     "setAsEnergyPrice": "Set as Energy price"
   },
-  "curves":{
+  "curves": {
     "title": "Curves",
     "addCurve": "Add {{1}} curve",
     "curveName": "Curve name",

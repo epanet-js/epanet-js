@@ -1,13 +1,12 @@
 import { FeaturePaywall, type FeaturePaywallConfig } from "./feature-paywall";
 
 const ELEVATIONS_VIDEO_SRC =
-  "https://stream.mux.com/RVxWPZgcfKowXmi00iovKx1sffG100gu21BpD2U6Mjv98.m3u8";
+  "https://stream.mux.com/5lHcX2XaSIxl017ZNfXSlIifHTp2dpDzpO7ubGFhMyQI.m3u8";
 
 const ELEVATIONS_CAPTIONS = [
-  { start: 0.283, end: 3.283, captionKey: "elevations.paywall.captions.1" },
-  { start: 4.933, end: 10.616, captionKey: "elevations.paywall.captions.2" },
-  { start: 12.066, end: 17.0, captionKey: "elevations.paywall.captions.3" },
-  { start: 19.933, end: 25.4, captionKey: "elevations.paywall.captions.4" },
+  { start: 0.316, end: 4.033, captionKey: "elevations.paywall.captions.1" },
+  { start: 5.0, end: 10.849, captionKey: "elevations.paywall.captions.2" },
+  { start: 11.849, end: 16.566, captionKey: "elevations.paywall.captions.3" },
 ] as const;
 
 export const ElevationsPaywallConnector = ({
