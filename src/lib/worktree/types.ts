@@ -3,6 +3,7 @@ import type { Moment } from "src/lib/persistence/moment";
 import type { SimulationState } from "src/state/simulation";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
 import type { LabelType } from "src/hydraulic-model/label-manager";
+import type { IdGenerator } from "src/lib/id-generator";
 
 export type Snapshot = {
   id: string;
@@ -25,6 +26,7 @@ export interface Worktree {
   scenarios: string[];
   highestScenarioNumber: number;
   labelCounters: Map<LabelType, number>;
+  idGenerator: IdGenerator;
 }
 
 export interface ScenarioOperationResult {
