@@ -1,4 +1,4 @@
-import { LabelManager } from "./label-manager";
+import { LabelManager, LabelType } from "./label-manager";
 
 let idCounter = 0;
 const anId = () => ++idCounter;
@@ -335,6 +335,69 @@ describe("label manager", () => {
         expect(nextLabel.length).toBeLessThanOrEqual(31);
         expect(nextLabel).toEqual("A".repeat(29) + "_1");
       });
+    });
+  });
+
+  describe("shared counters", () => {
+    it("two managers with shared counters advance together", () => {
+      const sharedCounters = new Map<LabelType, number>();
+      const managerA = new LabelManager(sharedCounters);
+      const managerB = new LabelManager(sharedCounters);
+
+      expect(managerA.generateFor("pipe", anId())).toEqual("P1");
+      expect(managerB.generateFor("pipe", anId())).toEqual("P2");
+      expect(managerA.generateFor("junction", anId())).toEqual("J1");
+      expect(managerB.generateFor("junction", anId())).toEqual("J2");
+    });
+
+    it("register does not advance shared counter", () => {
+      const sharedCounters = new Map<LabelType, number>();
+      const managerA = new LabelManager(sharedCounters);
+      const managerB = new LabelManager(sharedCounters);
+
+      managerA.generateFor("pipe", anId());
+      managerB.register("P5", "pipe", anId());
+
+      expect(managerA.generateFor("pipe", anId())).toEqual("P2");
+    });
+
+    it("shared counter skips labels registered in other manager", () => {
+      const sharedCounters = new Map<LabelType, number>();
+      const managerA = new LabelManager(sharedCounters);
+      const managerB = new LabelManager(sharedCounters);
+
+      managerA.generateFor("pipe", anId());
+      managerA.generateFor("pipe", anId());
+
+      managerB.register("P3", "pipe", anId());
+      expect(managerB.generateFor("pipe", anId())).toEqual("P4");
+    });
+
+    it("adoptCounters merges local counters into shared map", () => {
+      const manager = new LabelManager();
+      manager.generateFor("pipe", anId());
+      manager.generateFor("pipe", anId());
+      manager.generateFor("junction", anId());
+
+      const sharedCounters = new Map<LabelType, number>();
+      manager.adoptCounters(sharedCounters);
+
+      expect(sharedCounters.get("pipe")).toEqual(3);
+      expect(sharedCounters.get("junction")).toEqual(2);
+
+      expect(manager.generateFor("pipe", anId())).toEqual("P3");
+    });
+
+    it("adoptCounters keeps the higher value from shared map", () => {
+      const manager = new LabelManager();
+      manager.generateFor("pipe", anId());
+
+      const sharedCounters = new Map<LabelType, number>();
+      sharedCounters.set("pipe", 10);
+      manager.adoptCounters(sharedCounters);
+
+      expect(sharedCounters.get("pipe")).toEqual(10);
+      expect(manager.generateFor("pipe", anId())).toEqual("P10");
     });
   });
 });

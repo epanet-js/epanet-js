@@ -54,7 +54,10 @@ import { USelection } from "src/selection";
 import { toDemandAssignments } from "src/hydraulic-model/model-operation";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
 import { simulationSettingsAtom } from "src/state/simulation-settings";
-import { ModelFactories } from "src/hydraulic-model/factories";
+import {
+  ModelFactories,
+  initializeModelFactories,
+} from "src/hydraulic-model/factories";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import type { Projection } from "src/lib/projections/projection";
 import { createProjectionMapper } from "src/lib/projections";
@@ -227,6 +230,8 @@ export class Persistence implements IPersistenceWithSnapshots {
       status: "open",
     };
 
+    const labelCounters: Worktree["labelCounters"] = new Map();
+
     const worktree: Worktree = {
       activeSnapshotId: "main",
       lastActiveSnapshotId: "main",
@@ -234,12 +239,14 @@ export class Persistence implements IPersistenceWithSnapshots {
       mainId: "main",
       scenarios: [],
       highestScenarioNumber: 0,
+      labelCounters,
     };
 
     this.store.set(worktreeAtom, worktree);
 
     this.modelCache.clear();
     const importedModel = this.store.get(stagingModelAtom);
+    importedModel.labelManager.adoptCounters(labelCounters);
     this.modelCache.set("main", importedModel);
   }
 
@@ -405,6 +412,10 @@ export class Persistence implements IPersistenceWithSnapshots {
 
     this.store.set(stagingModelAtom, stagingModel);
     this.store.set(baseModelAtom, baseModel);
+    this.store.set(
+      modelFactoriesAtom,
+      initializeModelFactories({ labelManager: stagingModel.labelManager }),
+    );
     this.switchMomentLog(snapshot.momentLog);
     this.setModelVersion(snapshot.version);
     this.store.set(simulationAtom, finalSimulation);
@@ -506,6 +517,7 @@ export class Persistence implements IPersistenceWithSnapshots {
     const model = initializeHydraulicModel({
       defaults,
       idGenerator: currentHydraulicModel.assetBuilder.idGenerator,
+      labelCounters: worktree.labelCounters,
     });
 
     for (const delta of allDeltas) {

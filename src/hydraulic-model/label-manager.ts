@@ -29,9 +29,17 @@ export class LabelManager implements LabelGenerator {
   private indexPerType: Map<LabelType, number>;
   private labelToEntries: Map<string, LabelEntry[]>;
 
-  constructor() {
-    this.indexPerType = new Map();
+  constructor(sharedCounters?: Map<LabelType, number>) {
+    this.indexPerType = sharedCounters ?? new Map();
     this.labelToEntries = new Map();
+  }
+
+  adoptCounters(counters: Map<LabelType, number>): void {
+    for (const [type, index] of this.indexPerType) {
+      const existing = counters.get(type) ?? 0;
+      counters.set(type, Math.max(existing, index));
+    }
+    this.indexPerType = counters;
   }
 
   private normalizeLabel(label: string): string {

@@ -5,7 +5,7 @@ import { DefaultsSpec } from "src/lib/project-settings/quantities-spec";
 import { nanoid } from "nanoid";
 
 import { ConsecutiveIdsGenerator, IdGenerator } from "src/lib/id-generator";
-import { LabelManager } from "./label-manager";
+import { LabelManager, LabelType } from "./label-manager";
 import { Demands, createEmptyDemands } from "./demands";
 import { CustomerPoints, initializeCustomerPoints } from "./customer-points";
 import { CustomerPointsLookup } from "./customer-points-lookup";
@@ -37,13 +37,15 @@ export const initializeHydraulicModel = ({
   demands = createEmptyDemands(),
   controls = createEmptyControls(),
   idGenerator,
+  labelCounters,
 }: {
   defaults: DefaultsSpec;
   demands?: Demands;
   controls?: Controls;
   idGenerator?: IdGenerator;
+  labelCounters?: Map<LabelType, number>;
 }): HydraulicModel => {
-  const labelManager = new LabelManager();
+  const labelManager = new LabelManager(labelCounters);
   const assetIdGenerator = idGenerator ?? new ConsecutiveIdsGenerator();
   const assets = new Map();
   return {

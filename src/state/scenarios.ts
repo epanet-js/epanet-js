@@ -24,6 +24,7 @@ export const initialWorktree: Worktree = {
   mainId: "main",
   scenarios: [],
   highestScenarioNumber: 0,
+  labelCounters: new Map(),
 };
 
 export const worktreeAtom = atom<Worktree>(initialWorktree);
