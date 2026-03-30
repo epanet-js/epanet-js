@@ -61,7 +61,8 @@ async function tryGeotiffSource(
 
     const elevation = await fetchGeoTiffTileElevation(tile, lng, lat);
 
-    if (elevation !== null) return convertTo(elevation, unit);
+    if (elevation !== null)
+      return parseFloat(convertTo(elevation, unit).toFixed(2));
   }
   return null;
 }
