@@ -105,7 +105,7 @@ import { PatternId } from "./patterns";
 
 export class AssetBuilder {
   private defaults: DefaultsSpec;
-  private _idGenerator: IdGenerator;
+  private idGenerator: IdGenerator;
   readonly labelGenerator: LabelGenerator;
 
   constructor(
@@ -114,12 +114,8 @@ export class AssetBuilder {
     labelGenerator: LabelGenerator,
   ) {
     this.defaults = defaults;
-    this._idGenerator = idGenerator;
+    this.idGenerator = idGenerator;
     this.labelGenerator = labelGenerator;
-  }
-
-  get idGenerator(): IdGenerator {
-    return this._idGenerator;
   }
 
   buildPipe({
@@ -137,7 +133,7 @@ export class AssetBuilder {
     roughness,
     isActive = true,
   }: PipeBuildData = {}) {
-    const internalId = id ?? this._idGenerator.newId();
+    const internalId = id ?? this.idGenerator.newId();
     return new Pipe(internalId, coordinates, {
       type: "pipe",
       label:
@@ -170,7 +166,7 @@ export class AssetBuilder {
     isActive = true,
     curveId,
   }: ValveBuildData = {}) {
-    const internalId = id ?? this._idGenerator.newId();
+    const internalId = id ?? this.idGenerator.newId();
     return new Valve(internalId, coordinates, {
       type: "valve",
       label:
@@ -209,7 +205,7 @@ export class AssetBuilder {
     energyPricePatternId,
     isActive = true,
   }: PumpBuildData = {}) {
-    const internalId = id ?? this._idGenerator.newId();
+    const internalId = id ?? this.idGenerator.newId();
     return new Pump(internalId, coordinates, {
       type: "pump",
       label:
@@ -244,7 +240,7 @@ export class AssetBuilder {
     emitterCoefficient,
     isActive = true,
   }: JunctionBuildData = {}) {
-    const internalId = id ?? this._idGenerator.newId();
+    const internalId = id ?? this.idGenerator.newId();
     return new Junction(internalId, coordinates, {
       type: "junction",
       label:
@@ -267,7 +263,7 @@ export class AssetBuilder {
     headPatternId,
     isActive = true,
   }: ReservoirBuildData = {}) {
-    const internalId = id ?? this._idGenerator.newId();
+    const internalId = id ?? this.idGenerator.newId();
     const elevationValue = this.getReservoirValue("elevation", elevation);
     let headValue: number;
     if (head !== undefined) {
@@ -307,7 +303,7 @@ export class AssetBuilder {
     isActive = true,
     volumeCurveId,
   }: TankBuildData = {}) {
-    const internalId = id ?? this._idGenerator.newId();
+    const internalId = id ?? this.idGenerator.newId();
     return new Tank(internalId, coordinates, {
       type: "tank",
       label:

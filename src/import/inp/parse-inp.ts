@@ -9,6 +9,7 @@ import {
   type LinkAsset,
 } from "src/hydraulic-model";
 import { ModelFactories } from "src/hydraulic-model/factories";
+import type { IdGenerator } from "src/lib/id-generator";
 import { nanoid } from "nanoid";
 import {
   defaultTiming,
@@ -44,6 +45,7 @@ export type ParseInpResult = {
   isMadeByApp: boolean;
   hydraulicModel: HydraulicModel;
   factories: ModelFactories;
+  idGenerator: IdGenerator;
   projectSettings: ProjectSettings;
   simulationSettings: SimulationSettings;
   issues: ParserIssues | null;
@@ -79,11 +81,11 @@ export const parseInp = (
   if (skipProjection) {
     projection = WGS84;
 
-    const { hydraulicModel, factories, projectSettings } = buildModel(
-      inpData,
-      issues,
-      { ...safeOptions, skipWgs84Validation: true },
-    );
+    const { hydraulicModel, factories, idGenerator, projectSettings } =
+      buildModel(inpData, issues, {
+        ...safeOptions,
+        skipWgs84Validation: true,
+      });
 
     projectionStatus = detectProjectionStatus(hydraulicModel);
 
@@ -91,6 +93,7 @@ export const parseInp = (
       isMadeByApp: header.isMadeByApp,
       hydraulicModel,
       factories,
+      idGenerator,
       projectSettings: {
         ...projectSettings,
         projection,
@@ -104,15 +107,13 @@ export const parseInp = (
 
   projection = projectCoordinates(inpData, sourceProjection);
 
-  const { hydraulicModel, factories, projectSettings } = buildModel(
-    inpData,
-    issues,
-    safeOptions,
-  );
+  const { hydraulicModel, factories, idGenerator, projectSettings } =
+    buildModel(inpData, issues, safeOptions);
   return {
     isMadeByApp: header.isMadeByApp,
     hydraulicModel,
     factories,
+    idGenerator,
     projectSettings: {
       ...projectSettings,
       projection,

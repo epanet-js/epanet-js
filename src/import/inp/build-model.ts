@@ -84,6 +84,7 @@ export const buildModel = (
 ): {
   hydraulicModel: HydraulicModel;
   factories: ModelFactories;
+  idGenerator: IdGenerator;
   projectSettings: Pick<
     ProjectSettings,
     "units" | "defaults" | "headlossFormula" | "formatting"
@@ -97,12 +98,15 @@ export const buildModel = (
   const nodeIds = new ItemData<AssetId>();
   const linkIds = new ItemData<AssetId>();
 
+  const idGenerator = new ConsecutiveIdsGenerator();
   const hydraulicModel = initializeHydraulicModel({
     defaults: spec.defaults,
     demands: createEmptyDemands(),
+    idGenerator,
   });
 
   const factories = initializeModelFactories({
+    idGenerator,
     labelManager: hydraulicModel.labelManager,
   });
 
@@ -201,6 +205,7 @@ export const buildModel = (
   return {
     hydraulicModel,
     factories,
+    idGenerator,
     projectSettings: {
       units: spec.units,
       defaults: spec.defaults,

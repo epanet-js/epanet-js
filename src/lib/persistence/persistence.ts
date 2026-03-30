@@ -59,6 +59,7 @@ import {
   initializeModelFactories,
 } from "src/hydraulic-model/factories";
 import { modelFactoriesAtom } from "src/state/model-factories";
+import type { IdGenerator } from "src/lib/id-generator";
 import type { Projection } from "src/lib/projections/projection";
 import { createProjectionMapper } from "src/lib/projections";
 import { transformCoordinates } from "src/hydraulic-model/mutations/transform-coordinates";
@@ -76,6 +77,7 @@ export class Persistence implements IPersistenceWithSnapshots {
     return (
       hydraulicModel: HydraulicModel,
       factories: ModelFactories,
+      idGenerator: IdGenerator,
       projectSettings: ProjectSettings,
       name: string,
       simulationSettings: SimulationSettings,
@@ -144,6 +146,7 @@ export class Persistence implements IPersistenceWithSnapshots {
         hydraulicModel.version,
         momentLog,
         simulationSettings,
+        idGenerator,
       );
     };
   }
@@ -207,6 +210,7 @@ export class Persistence implements IPersistenceWithSnapshots {
         hydraulicModel.version,
         momentLog,
         simulationSettings,
+        this.store.get(worktreeAtom).idGenerator,
       );
     };
   }
@@ -216,6 +220,7 @@ export class Persistence implements IPersistenceWithSnapshots {
     version: string,
     momentLog: MomentLog,
     simulationSettings: SimulationSettings,
+    idGenerator: IdGenerator,
   ): void {
     const mainSnapshot: Snapshot = {
       id: "main",
@@ -231,8 +236,6 @@ export class Persistence implements IPersistenceWithSnapshots {
     };
 
     const labelCounters: Worktree["labelCounters"] = new Map();
-    const importedModel = this.store.get(stagingModelAtom);
-    const idGenerator = importedModel.assetBuilder.idGenerator;
 
     const worktree: Worktree = {
       activeSnapshotId: "main",
@@ -248,6 +251,7 @@ export class Persistence implements IPersistenceWithSnapshots {
     this.store.set(worktreeAtom, worktree);
 
     this.modelCache.clear();
+    const importedModel = this.store.get(stagingModelAtom);
     importedModel.labelManager.adoptCounters(labelCounters);
     this.modelCache.set("main", importedModel);
   }

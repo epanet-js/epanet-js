@@ -24,6 +24,7 @@ import {
   initializeHydraulicModel,
 } from "src/hydraulic-model";
 import { initializeModelFactories } from "src/hydraulic-model/factories";
+import { ConsecutiveIdsGenerator } from "src/lib/id-generator";
 import { usePersistence } from "src/lib/persistence";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { useTranslate } from "src/hooks/use-translate";
@@ -115,10 +116,13 @@ export const CreateNew = () => {
         formatting: { decimals: spec.decimals, defaultDecimals: 3 },
         projection: buildNewProjection(projection),
       };
+      const idGenerator = new ConsecutiveIdsGenerator();
       const hydraulicModel = initializeHydraulicModel({
         defaults: spec.defaults,
+        idGenerator,
       });
       const factories = initializeModelFactories({
+        idGenerator,
         labelManager: hydraulicModel.labelManager,
       });
       setGridPreview(false);
@@ -126,6 +130,7 @@ export const CreateNew = () => {
       transactImport(
         hydraulicModel,
         factories,
+        idGenerator,
         projectSettings,
         "Untitled",
         defaultSimulationSettings,

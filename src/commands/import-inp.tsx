@@ -56,6 +56,7 @@ export const useImportInp = () => {
       const {
         hydraulicModel,
         factories,
+        idGenerator,
         projectSettings,
         simulationSettings,
         issues,
@@ -68,6 +69,7 @@ export const useImportInp = () => {
       transactImport(
         hydraulicModel,
         factories,
+        idGenerator,
         projectSettings,
         file.name,
         simulationSettings,

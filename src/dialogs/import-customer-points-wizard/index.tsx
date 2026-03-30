@@ -18,6 +18,7 @@ import { EarlyAccessBadge } from "src/components/early-access-badge";
 import { useProjections } from "src/hooks/use-projections";
 import { stagingModelAtom } from "src/state/hydraulic-model";
 import { modelFactoriesAtom } from "src/state/model-factories";
+import { worktreeAtom } from "src/state/scenarios";
 import { simulationSettingsAtom } from "src/state/simulation-settings";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { addCustomerPoints } from "src/hydraulic-model/mutations/add-customer-points";
@@ -53,6 +54,7 @@ export const ImportCustomerPointsWizard: React.FC<
 
   const hydraulicModel = useAtomValue(stagingModelAtom);
   const factories = useAtomValue(modelFactoriesAtom);
+  const { idGenerator } = useAtomValue(worktreeAtom);
   const simulationSettings = useAtomValue(simulationSettingsAtom);
   const projectSettings = useAtomValue(projectSettingsAtom);
   const rep = usePersistence();
@@ -128,6 +130,7 @@ export const ImportCustomerPointsWizard: React.FC<
       transactImport(
         updatedHydraulicModel,
         factories,
+        idGenerator,
         projectSettings,
         "customerpoints",
         simulationSettings,
@@ -157,6 +160,7 @@ export const ImportCustomerPointsWizard: React.FC<
     wizardState,
     hydraulicModel,
     factories,
+    idGenerator,
     projectSettings,
     simulationSettings,
     transactImport,

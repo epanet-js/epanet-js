@@ -6,6 +6,7 @@ import { ModelFactories } from "src/hydraulic-model/factories";
 import { ProjectSettings } from "src/lib/project-settings";
 import type { Projection } from "src/lib/projections/projection";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
+import type { IdGenerator } from "src/lib/id-generator";
 import type { SimulationState } from "src/state/simulation";
 import type { MomentLog } from "src/lib/persistence/moment-log";
 
@@ -50,6 +51,7 @@ export interface IPersistence {
   useTransactImport(): (
     hydraulicModel: HydraulicModel,
     factories: ModelFactories,
+    idGenerator: IdGenerator,
     projectSettings: ProjectSettings,
     name: string,
     simulationSettings: SimulationSettings,
