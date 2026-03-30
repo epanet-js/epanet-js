@@ -8,6 +8,7 @@ import {
   DDContent,
   StyledItem,
   LogoIconAndWordmarkIcon,
+  LogoIconAndWordmarkIconUpdated,
 } from "./elements";
 import { DebugDropdown } from "./menu-bar/menu-bar-dropdown";
 import { isDebugOn } from "src/infra/debug-mode";
@@ -57,6 +58,15 @@ export const HeaderLogo = () => {
   );
 };
 
+export const HeaderLogoUpdated = () => {
+  return (
+    <span className="pl-1" title="Home">
+      <LogoIconAndWordmarkIconUpdated size={98} />
+      <span className="sr-only">epanet-js</span>
+    </span>
+  );
+};
+
 export const MenuBarPlay = memo(function MenuBar() {
   const translate = useTranslate();
   const userTracking = useUserTracking();
@@ -66,6 +76,7 @@ export const MenuBarPlay = memo(function MenuBar() {
   const isMdOrLarger = useBreakpoint("md");
   const isSmOrLarger = useBreakpoint("sm");
   const isActivateTrialOn = useFeatureFlag("FLAG_ACTIVATE_TRIAL");
+  const isIteratingLogoOn = useFeatureFlag("FLAG_ITERATING_LOGO");
 
   return (
     <div className="flex justify-between h-12 pr-2 text-black dark:text-white">
@@ -74,7 +85,7 @@ export const MenuBarPlay = memo(function MenuBar() {
           className="py-1 pl-2 pr-2 inline-flex cursor-pointer"
           onClick={() => showWelcome({ source: "menu" })}
         >
-          <HeaderLogo />
+          {isIteratingLogoOn ? <HeaderLogoUpdated /> : <HeaderLogo />}
         </div>
         {isSmOrLarger && <FileInfo />}
       </div>

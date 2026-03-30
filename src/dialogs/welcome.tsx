@@ -23,6 +23,7 @@ import {
   Button,
   Loading,
   LogoIconAndWordmarkIcon,
+  LogoIconAndWordmarkIconUpdated,
 } from "../components/elements";
 import {
   ArrowRightIcon,
@@ -69,7 +70,11 @@ export const WelcomeDialog = () => {
           </div>
           <div className="bg-gray-50 sm:border-r border-b sm:border-b-0 border-gray-200 rounded-t-lg sm:rounded-t-none sm:rounded-tl-lg sm:rounded-bl-lg col-span-1 md:w-max flex flex-col p-6 gap-6">
             <div className="pl-1">
-              <LogoIconAndWordmarkIcon size={147} />
+              {isIteratingLogoOn ? (
+                <LogoIconAndWordmarkIconUpdated size={147} />
+              ) : (
+                <LogoIconAndWordmarkIcon size={147} />
+              )}
             </div>
             <div className="sm:hidden">
               <SmallDeviceWarning />
