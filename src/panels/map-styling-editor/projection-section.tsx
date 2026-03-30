@@ -15,7 +15,6 @@ import { usePersistence } from "src/lib/persistence";
 import { MapContext } from "src/map";
 import { captureError } from "src/infra/error-tracking";
 import { hasScenariosAtom } from "src/state/scenarios";
-import { useUnsavedChangesCheck } from "src/commands/check-unsaved-changes";
 
 export const ProjectionSection = () => {
   const projectSettings = useAtomValue(projectSettingsAtom);
@@ -25,7 +24,6 @@ export const ProjectionSection = () => {
   const map = useContext(MapContext);
   const rep = usePersistence();
   const transactReprojection = rep.useTransactReprojection();
-  const checkUnsavedChanges = useUnsavedChangesCheck();
   const hasScenarios = useAtomValue(hasScenariosAtom);
   const isXYGrid = projection.type === "xy-grid";
 
@@ -76,7 +74,7 @@ export const ProjectionSection = () => {
           size="sm"
           className="w-full justify-center"
           disabled={hasScenarios}
-          onClick={() => checkUnsavedChanges(handleOpenProjectionDialog)}
+          onClick={handleOpenProjectionDialog}
         >
           Project network
         </Button>
@@ -90,7 +88,7 @@ export const ProjectionSection = () => {
             <button
               className="opacity-30 hover:opacity-100 select-none flex-shrink-0"
               disabled={hasScenarios}
-              onClick={() => checkUnsavedChanges(handleOpenProjectionDialog)}
+              onClick={handleOpenProjectionDialog}
               aria-label="Change projection"
             >
               <PencilIcon />
