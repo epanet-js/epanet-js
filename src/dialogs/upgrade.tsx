@@ -397,6 +397,7 @@ const ProPlan = ({ paymentType }: { paymentType: PaymentType }) => {
   const translate = useTranslate();
   const price = prices.pro[paymentType];
   const isDtmElevationsOn = useFeatureFlag("FLAG_DTM_ELEVATIONS");
+  const isPricingOn = useFeatureFlag("FLAG_PRICING");
 
   return (
     <div className="relative bg-white border border-purple-100 rounded-lg shadow-md shadow-purple-300 overflow-hidden flex flex-col justify-between">
@@ -408,7 +409,12 @@ const ProPlan = ({ paymentType }: { paymentType: PaymentType }) => {
           name="Pro"
           price={price}
           payment={paymentType}
-          claim={translate("individualNamedLicense")}
+          claim={
+            isPricingOn
+              ? translate("upgradeToProFor")
+              : translate("individualNamedLicense")
+          }
+          subtitle={isPricingOn ? translate("namedLicence") : undefined}
         />
         <div className="flex flex-col justify-between flex-1">
           <FeaturesList
@@ -472,7 +478,13 @@ const ProPlan = ({ paymentType }: { paymentType: PaymentType }) => {
   );
 };
 
-const TeamsPricingHeader = ({ paymentType }: { paymentType: PaymentType }) => {
+const TeamsPricingHeader = ({
+  paymentType,
+  claim,
+}: {
+  paymentType: PaymentType;
+  claim: string;
+}) => {
   const translate = useTranslate();
   const recurrency =
     paymentType === "yearly"
@@ -490,7 +502,8 @@ const TeamsPricingHeader = ({ paymentType }: { paymentType: PaymentType }) => {
   return (
     <div className="flex flex-col">
       <h2 className="text-xl font-semibold mb-2">Teams</h2>
-      <div className="flex items-baseline gap-4 mb-4">
+      <p className="text-gray-600 text-sm mb-4">{claim}</p>
+      <div className="flex items-baseline gap-4">
         <div>
           <div className="mb-1">
             <strong className="text-3xl font-bold">{basePrice}</strong>
@@ -530,7 +543,10 @@ const TeamsPlan = ({ paymentType }: { paymentType: PaymentType }) => {
     <div className="relative bg-white border border-gray-200 rounded-md shadow-md shadow-gray-300 overflow-hidden flex flex-col justify-between">
       <div className="p-6 grid max-xs:block md:flex md:flex-col grid-cols-2 gap-4 flex-1">
         {isPricingOn ? (
-          <TeamsPricingHeader paymentType={paymentType} />
+          <TeamsPricingHeader
+            paymentType={paymentType}
+            claim={translate("upgradeToTeamsFor")}
+          />
         ) : (
           <PlanHeader
             name="Teams"
@@ -605,12 +621,14 @@ const PlanHeader = ({
   payment = "yearly",
   claim,
   tooltip,
+  subtitle,
 }: {
   name: string;
   price: string;
   payment: PaymentType;
   claim: string;
   tooltip?: string;
+  subtitle?: string;
 }) => {
   const translate = useTranslate();
   const isPricingOn = useFeatureFlag("FLAG_PRICING");
@@ -622,6 +640,7 @@ const PlanHeader = ({
   return (
     <div className="flex flex-col">
       <h2 className="text-xl font-semibold mb-2">{name}</h2>
+      {isPricingOn && <p className="text-gray-600 text-sm mb-4">{claim}</p>}
       <div className="mb-1">
         <strong className="text-3xl font-bold">{price}</strong>
         <span
@@ -630,10 +649,23 @@ const PlanHeader = ({
           {recurrency}
         </span>
       </div>
-      <div className="flex items-center mb-4 space-x-1 min-h-6">
-        <p className="text-gray-600 text-sm">{claim}</p>
-        {tooltip && <InfoTooltip text={tooltip} />}
-      </div>
+      {isPricingOn && (
+        <p className="text-gray-500 text-sm">
+          {subtitle ? subtitle : "\u00A0"}
+        </p>
+      )}
+      {!isPricingOn && !tooltip && (
+        <div className="flex items-center mb-4 space-x-1 min-h-6">
+          <p className="text-gray-600 text-sm">{claim}</p>
+        </div>
+      )}
+
+      {tooltip && (
+        <div className="flex items-center mb-4 space-x-1 min-h-6">
+          <p className="text-gray-600 text-sm">{claim}</p>{" "}
+          <InfoTooltip text={tooltip} />
+        </div>
+      )}
     </div>
   );
 };
