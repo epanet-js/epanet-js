@@ -81,7 +81,17 @@
     "addMoreTiles": "Add more tiles",
     "tilesProcessed": "Elevation tiles processed",
     "gridResolution": "{{1}} grid",
-    "tilesLoadingError": "The elevations data could not be loaded"
+    "tilesLoadingError": "The elevations data could not be loaded",
+    "tilesLoadingSummary": "{{1}} of {{2}} files could not be processed.",
+    "errorDetails": "Error details",
+    "errors": {
+      "unknownProjectionCode": "Unsupported coordinate system. Please reproject to a supported CRS (e.g. EPSG:4326 or a UTM zone).",
+      "invalidCustomProjection": "The custom projection parameters are missing or invalid.",
+      "cartesianProjection": "Geocentric (3D cartesian) coordinates are not supported. Please reproject to a 2D CRS.",
+      "invalidResolution": "The file has missing or zero pixel resolution.",
+      "invalidTransformationMatrix": "The file has an invalid transformation matrix.",
+      "unknown": "The file could not be read. It may be corrupt or not a valid GeoTIFF."
+    }
   },
   "files_zero": "No files",
   "files_one": "1 file",

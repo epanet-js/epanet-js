@@ -963,8 +963,11 @@ export type UserEvent =
   | ScenarioToggled
   | ScenarioCycled
   | {
-      name: "elevationSource.added";
-      tileCount: number;
+      name: "elevationSource.tilesLoaded";
+      operation: "new" | "append";
+      filesCount: number;
+      processedCount: number;
+      issues?: string[];
     }
   | {
       name: "elevationSource.deleted";
@@ -975,10 +978,6 @@ export type UserEvent =
       sourceType: string;
       oldValue: number;
       newValue: number;
-    }
-  | {
-      name: "elevationSource.tilesAdded";
-      tileCount: number;
     }
   | {
       name: "elevationSource.tileDeleted";

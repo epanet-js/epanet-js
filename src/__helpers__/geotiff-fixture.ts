@@ -97,7 +97,29 @@ export function buildFixture(opts: FixtureOptions): File {
     ...projHint,
   });
 
-  return new File([new Uint8Array(buf)], opts.fileName ?? "fixture.tif", {
+  const bytes = new Uint8Array(buf);
+  return new File([bytes], opts.fileName ?? "fixture.tif", {
     type: "image/tiff",
   });
+}
+
+/** Same as buildFixture but returns raw bytes (useful for writing to disk). */
+export function buildFixtureBytes(opts: FixtureOptions): Uint8Array {
+  const raster = opts.raster ?? RASTER_2x2;
+  const { GeoKeyDirectory, GeoDoubleParams } = buildGeoKeyArrays(opts.geoKeys);
+
+  const projHint =
+    opts.geoKeys[3072] != null
+      ? { ProjectedCSTypeGeoKey: opts.geoKeys[3072] }
+      : { GeographicTypeGeoKey: opts.geoKeys[2048] ?? 4326 };
+
+  const buf = writeArrayBuffer(raster, {
+    ModelTiepoint: opts.tiepoint,
+    ModelPixelScale: opts.pixelScale,
+    GeoKeyDirectory,
+    ...(GeoDoubleParams.length > 0 ? { GeoDoubleParams } : {}),
+    ...projHint,
+  });
+
+  return new Uint8Array(buf);
 }

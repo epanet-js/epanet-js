@@ -67,6 +67,8 @@ import {
   GeoTiffError,
   GeoTiffTile,
   parseGeoTIFF,
+  ProjectionError,
+  TransformError,
   tileCoverage,
   tileResolution,
 } from "src/lib/elevations/geotiff";
@@ -494,27 +496,30 @@ const AddElevationDataButton = ({ actions }: { actions: Actions }) => {
   );
 };
 
-function notifyProcessingError(
-  results: PromiseSettledResult<GeoTiffTile>[],
-  translate: ReturnType<typeof useTranslate>,
-) {
-  const errors = results
+function collectProcessingErrors(results: PromiseSettledResult<GeoTiffTile>[]) {
+  return results
     .filter(
       (r): r is PromiseRejectedResult =>
         r.status === "rejected" && r.reason instanceof GeoTiffError,
     )
-    .map((r) => r.reason as GeoTiffError);
+    .map((r) => {
+      const e = r.reason as GeoTiffError;
+      return {
+        fileName: e.fileName,
+        error: geotiffErrorTranslationKey(e),
+      };
+    });
+}
 
-  if (errors.length === 0) return;
+function geotiffErrorTranslationKey(error: GeoTiffError): string {
+  const inner = error.error;
+  if (inner instanceof ProjectionError) return inner.code as string;
+  if (inner instanceof TransformError) return inner.code as string;
+  return "unknown";
+}
 
-  const fileNames = errors.map((e) => e.fileName).join(", ");
-
-  notify({
-    variant: "warning",
-    title: translate("elevations.tilesLoadingError"),
-    description: fileNames,
-    id: "elevation-source-error",
-  });
+function uniqueIssues(errors: { error: string }[]): string[] {
+  return [...new Set(errors.map((e) => e.error))];
 }
 
 type OnSourceTilesUpdated = (
@@ -529,7 +534,7 @@ const useElevationSourceActions = (
   const sources = useAtomValue(elevationSourcesAtom);
   const setSources = useSetAtom(elevationSourcesAtom);
   const userTracking = useUserTracking();
-  const translate = useTranslate();
+  const setDialog = useSetAtom(dialogAtom);
   const { units } = useAtomValue(projectSettingsAtom);
   const { startComputation, cancelTiles } =
     useComputeTileBoundaries(onSourceTilesUpdated);
@@ -543,7 +548,14 @@ const useElevationSourceActions = (
         }),
       );
 
-      notifyProcessingError(results, translate);
+      const errors = collectProcessingErrors(results);
+      if (errors.length > 0) {
+        setDialog({
+          type: "elevationTileErrors",
+          totalCount: results.length,
+          errors,
+        });
+      }
 
       const tiles = results
         .filter(
@@ -551,6 +563,14 @@ const useElevationSourceActions = (
             r.status === "fulfilled",
         )
         .map((r) => r.value);
+
+      userTracking.capture({
+        name: "elevationSource.tilesLoaded",
+        operation: "new",
+        filesCount: results.length,
+        processedCount: tiles.length,
+        issues: uniqueIssues(errors),
+      });
 
       if (tiles.length === 0) return;
 
@@ -564,12 +584,8 @@ const useElevationSourceActions = (
 
       setSources((prev) => [...prev, newSource]);
       startComputation(newSource.id, tiles);
-      userTracking.capture({
-        name: "elevationSource.added",
-        tileCount: tiles.length,
-      });
     },
-    [getProj4Def, setSources, startComputation, translate, userTracking],
+    [getProj4Def, setDialog, setSources, startComputation, userTracking],
   );
 
   const deleteSource = useCallback(
@@ -596,7 +612,14 @@ const useElevationSourceActions = (
         }),
       );
 
-      notifyProcessingError(results, translate);
+      const errors = collectProcessingErrors(results);
+      if (errors.length > 0) {
+        setDialog({
+          type: "elevationTileErrors",
+          totalCount: results.length,
+          errors,
+        });
+      }
 
       const newTiles = results
         .filter(
@@ -604,6 +627,14 @@ const useElevationSourceActions = (
             r.status === "fulfilled",
         )
         .map((r) => r.value);
+
+      userTracking.capture({
+        name: "elevationSource.tilesLoaded",
+        operation: "append",
+        filesCount: results.length,
+        processedCount: newTiles.length,
+        issues: uniqueIssues(errors),
+      });
 
       if (newTiles.length === 0) return;
 
@@ -615,12 +646,8 @@ const useElevationSourceActions = (
         ),
       );
       startComputation(sourceId, newTiles);
-      userTracking.capture({
-        name: "elevationSource.tilesAdded",
-        tileCount: newTiles.length,
-      });
     },
-    [getProj4Def, setSources, startComputation, translate, userTracking],
+    [getProj4Def, setDialog, setSources, startComputation, userTracking],
   );
 
   const deleteTile = useCallback(
