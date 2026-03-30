@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAtomValue } from "jotai";
 import { Maybe } from "purify-ts/Maybe";
 import { projectSettingsAtom } from "src/state/project-settings";
@@ -45,6 +45,13 @@ export function CustomerPointPanel() {
     selection.type === "singleCustomerPoint"
       ? hydraulicModel.customerPoints.get(selection.id)
       : undefined;
+
+  const customerPointId = customerPoint?.id;
+  useEffect(() => {
+    if (customerPointId != null) {
+      userTracking.capture({ name: "customerPointPanel.opened" });
+    }
+  }, [customerPointId, userTracking]);
 
   const isCustomerLabelsOn = useFeatureFlag("FLAG_CUSTOMER_LABELS");
   const actions = useCustomerPointActions(customerPoint, "root");
@@ -101,6 +108,10 @@ export function CustomerPointPanel() {
   const handleDemandsChange = useCallback(
     (newDemandsInPerDay: Demand[]) => {
       if (!customerPoint) return;
+      const oldCount = getCustomerPointDemands(
+        hydraulicModel.demands,
+        customerPoint.id,
+      ).length;
       const newDemands = newDemandsInPerDay.map((d) => ({
         ...d,
         baseDemand: convertTo(
@@ -112,8 +123,20 @@ export function CustomerPointPanel() {
         { customerPointId: customerPoint.id, demands: newDemands },
       ]);
       transact(moment);
+      userTracking.capture({
+        name: "customerPointDemands.edited",
+        oldCount,
+        newCount: newDemands.length,
+      });
     },
-    [customerPoint, hydraulicModel, perDayUnit, flowUnit, transact],
+    [
+      customerPoint,
+      hydraulicModel,
+      perDayUnit,
+      flowUnit,
+      transact,
+      userTracking,
+    ],
   );
 
   const [labelError, setLabelError] = useState<string | null>(null);
@@ -208,6 +231,7 @@ export function CustomerPointPanel() {
                 label: translate("zoomTo"),
                 onSelect: function doZoomTo() {
                   const [lng, lat] = customerPoint.coordinates;
+                  userTracking.capture({ name: "customerPointPanel.zoomTo" });
                   return Promise.resolve(
                     zoomTo(Maybe.of([lng, lat, lng, lat] as BBox)),
                   );

@@ -663,6 +663,20 @@ type CustomerPointLabelDuplicate = {
   newLabel: string;
 };
 
+type CustomerPointPanelOpened = {
+  name: "customerPointPanel.opened";
+};
+
+type CustomerPointPanelZoomTo = {
+  name: "customerPointPanel.zoomTo";
+};
+
+type CustomerPointDemandsEdited = {
+  name: "customerPointDemands.edited";
+  oldCount: number;
+  newCount: number;
+};
+
 type CustomerPointCreated = {
   name: "customerPointActions.created";
 };
@@ -953,6 +967,9 @@ export type UserEvent =
   | CustomerPointCreated
   | CustomerPointsRemoved
   | CustomerPointsConnectedCompleted
+  | CustomerPointPanelOpened
+  | CustomerPointPanelZoomTo
+  | CustomerPointDemandsEdited
   | SimulationReportAssetClicked
   | ModelBuilderOpened
   | ModelBuilderCompleted
