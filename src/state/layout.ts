@@ -87,3 +87,25 @@ export const assetPanelSectionsExpandedAtom =
     energy: false,
     energyResults: false,
   });
+
+export type MapStylingPanelSectionExpanded = {
+  nodeSymbology: boolean;
+  linkSymbology: boolean;
+  customerPoints: boolean;
+  elevations: boolean;
+  layers: boolean;
+  projection: boolean;
+};
+
+export const mapStylingPanelSectionsExpandedAtom =
+  atomWithStorage<MapStylingPanelSectionExpanded>(
+    "mapStylingPanelSectionsCollapse",
+    {
+      nodeSymbology: true,
+      linkSymbology: true,
+      customerPoints: true,
+      elevations: true,
+      layers: true,
+      projection: true,
+    },
+  );

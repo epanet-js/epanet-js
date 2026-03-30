@@ -975,7 +975,7 @@ function SortableLayerConfig({ layerConfig }: { layerConfig: ILayerConfig }) {
     <div
       ref={setNodeRef}
       style={style}
-      className="group flex gap-x-2 items-start"
+      className="group flex gap-x-2 items-start -ml-1 -mr-1"
       key={layerConfig.id}
     >
       <div
@@ -1042,12 +1042,7 @@ export function LayersEditor() {
   }
 
   return (
-    <div
-      className="placemark-scrollbar overflow-y-auto"
-      style={{
-        maxHeight: 300,
-      }}
-    >
+    <div className="flex flex-col gap-y-1">
       <DndContext
         onDragEnd={handleDragEnd}
         sensors={sensors}
@@ -1055,16 +1050,14 @@ export function LayersEditor() {
         modifiers={[restrictToVerticalAxis, restrictToFirstScrollableAncestor]}
       >
         <SortableContext items={items} strategy={verticalListSortingStrategy}>
-          <div className="flex flex-col gap-y-1">
-            {items.map((layerConfig) => {
-              return (
-                <SortableLayerConfig
-                  layerConfig={layerConfig}
-                  key={layerConfig.id}
-                />
-              );
-            })}
-          </div>
+          {items.map((layerConfig) => {
+            return (
+              <SortableLayerConfig
+                layerConfig={layerConfig}
+                key={layerConfig.id}
+              />
+            );
+          })}
         </SortableContext>
       </DndContext>
     </div>

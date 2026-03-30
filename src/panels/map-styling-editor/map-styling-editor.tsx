@@ -1,4 +1,4 @@
-import { useAtomValue, useSetAtom } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import * as Popover from "@radix-ui/react-popover";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
@@ -25,7 +25,15 @@ import {
 } from "src/components/elements";
 import { RangeMode } from "src/map/symbology/range-color-rule";
 import { AddLayer, LayersEditor } from "./layers-editor";
-import { InlineField, Section, SectionList } from "src/components/form/fields";
+import {
+  CollapsibleSection,
+  InlineField,
+  SectionList,
+} from "src/components/form/fields";
+import {
+  mapStylingPanelSectionsExpandedAtom,
+  type MapStylingPanelSectionExpanded,
+} from "src/state/layout";
 import { ColorPopover } from "src/components/color-popover";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { LegendRamp } from "src/components/legends";
@@ -46,6 +54,31 @@ const colorPropertyLabelFor = (
   }
 };
 
+const MapStylingSectionWrapper = ({
+  title,
+  section,
+  children,
+}: {
+  title: string;
+  section: keyof MapStylingPanelSectionExpanded;
+  children: React.ReactNode;
+}) => {
+  const [sections, setSections] = useAtom(mapStylingPanelSectionsExpandedAtom);
+  return (
+    <CollapsibleSection
+      title={title}
+      open={sections[section]}
+      onOpenChange={(open) =>
+        setSections((prev) => ({ ...prev, [section]: open }))
+      }
+      separator={false}
+      variant="primary"
+    >
+      {children}
+    </CollapsibleSection>
+  );
+};
+
 export const MapStylingEditor = () => {
   const translate = useTranslate();
   const isGridOn = useAtomValue(showGridAtom);
@@ -54,7 +87,7 @@ export const MapStylingEditor = () => {
 
   return (
     <div className="flex-auto overflow-y-auto placemark-scrollbar border-gray-200 dark:border-gray-900">
-      <SectionList gap={1} padding={4}>
+      <SectionList gap={1} padding={3}>
         <SymbologyEditor
           geometryType="node"
           properties={supportedNodeProperties}
@@ -66,10 +99,13 @@ export const MapStylingEditor = () => {
         <CustomerPointsSection />
         {!isGridOn && isDtmElevationsOn && <ElevationsEditor />}
         {!isGridOn && (
-          <Section title={translate("layers")}>
+          <MapStylingSectionWrapper
+            title={translate("layers")}
+            section="layers"
+          >
             <LayersEditor />
             <AddLayer />
-          </Section>
+          </MapStylingSectionWrapper>
         )}
         {isProjectLaterOn && <ProjectionSection />}
       </SectionList>
@@ -187,6 +223,9 @@ const SymbologyEditor = ({
       ? translate("nodeSymbology")
       : translate("linkSymbology");
 
+  const section: keyof MapStylingPanelSectionExpanded =
+    geometryType === "node" ? "nodeSymbology" : "linkSymbology";
+
   const isSmOrLarger = useBreakpoint("sm");
 
   const defaultColor = symbology.defaults.color;
@@ -201,7 +240,7 @@ const SymbologyEditor = ({
   };
 
   return (
-    <Section title={title}>
+    <MapStylingSectionWrapper title={title} section={section}>
       <InlineField
         name={translate("colorBy")}
         labelSize="sm"
@@ -294,7 +333,7 @@ const SymbologyEditor = ({
           </div>
         </InlineField>
       )}
-    </Section>
+    </MapStylingSectionWrapper>
   );
 };
 
@@ -323,7 +362,10 @@ const CustomerPointsSection = () => {
   };
 
   return (
-    <Section title={translate("customerPoints")}>
+    <MapStylingSectionWrapper
+      title={translate("customerPoints")}
+      section="customerPoints"
+    >
       <InlineField
         name={translate("visible")}
         labelSize="sm"
@@ -335,7 +377,7 @@ const CustomerPointsSection = () => {
           onChange={handleVisibilityChange}
         />
       </InlineField>
-    </Section>
+    </MapStylingSectionWrapper>
   );
 };
 

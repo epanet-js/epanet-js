@@ -1,12 +1,13 @@
 import { useContext } from "react";
-import { useAtomValue, useSetAtom } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import type { FeatureCollection } from "geojson";
 import type { LngLatBoundsLike } from "mapbox-gl";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { stagingModelAtom } from "src/state/hydraulic-model";
 import { dialogAtom } from "src/state/dialog";
 import { Button } from "src/components/elements";
-import { Section } from "src/components/form/fields";
+import { CollapsibleSection } from "src/components/form/fields";
+import { mapStylingPanelSectionsExpandedAtom } from "src/state/layout";
 import { MapPinnedIcon } from "src/icons";
 import type { Projection } from "src/lib/projections/projection";
 import { inverseProjectGeoJson } from "src/lib/projections";
@@ -70,8 +71,18 @@ export const ProjectionSection = () => {
   const projectionCode =
     projection.type === "wgs84" ? "EPSG:4326" : projection.id;
 
+  const [sections, setSections] = useAtom(mapStylingPanelSectionsExpandedAtom);
+
   return (
-    <Section title="Projection">
+    <CollapsibleSection
+      title="Projection"
+      open={sections.projection}
+      onOpenChange={(open) =>
+        setSections((prev) => ({ ...prev, projection: open }))
+      }
+      separator={false}
+      variant="primary"
+    >
       {isXYGrid ? (
         <Button
           variant="default"
@@ -84,22 +95,23 @@ export const ProjectionSection = () => {
           {t("networkProjection.setMapProjection")}
         </Button>
       ) : (
-        <div className="flex items-start gap-2">
+        <div className="flex items-start gap-2 -mr-1">
           <div className="flex flex-col min-w-0 flex-1 text-sm">
             <div className="truncate">{projectionName}</div>
             <div className="text-gray-500 truncate">{projectionCode}</div>
           </div>
           {projection.type === "proj4" && !hasScenarios && (
-            <button
-              className="opacity-30 hover:opacity-100 select-none flex-shrink-0"
+            <Button
+              variant="quiet/mode"
+              className="h-8 flex-shrink-0"
               onClick={handleOpenProjectionDialog}
               aria-label="Change projection"
             >
               <MapPinnedIcon />
-            </button>
+            </Button>
           )}
         </div>
       )}
-    </Section>
+    </CollapsibleSection>
   );
 };

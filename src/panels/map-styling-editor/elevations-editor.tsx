@@ -1,4 +1,4 @@
-import { useAtomValue, useSetAtom } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useCallback, useContext, useRef, useState } from "react";
 
 import { LngLatBoundsLike } from "mapbox-gl";
@@ -33,10 +33,11 @@ import {
   Button,
 } from "src/components/elements";
 import {
+  CollapsibleSection,
   IndentationContext,
   InlineField,
-  Section,
 } from "src/components/form/fields";
+import { mapStylingPanelSectionsExpandedAtom } from "src/state/layout";
 import {
   Draggable,
   DeleteIcon,
@@ -106,8 +107,18 @@ export const ElevationsEditor = () => {
     actions.reorderSources([...reordered].reverse());
   };
 
+  const [sections, setSections] = useAtom(mapStylingPanelSectionsExpandedAtom);
+
   return (
-    <Section title={translate("elevations.title")}>
+    <CollapsibleSection
+      title={translate("elevations.title")}
+      open={sections.elevations}
+      onOpenChange={(open) =>
+        setSections((prev) => ({ ...prev, elevations: open }))
+      }
+      separator={false}
+      variant="primary"
+    >
       <div className="flex flex-col gap-y-1">
         <DndContext
           onDragEnd={handleDragEnd}
@@ -139,7 +150,7 @@ export const ElevationsEditor = () => {
         </DndContext>
       </div>
       <AddElevationDataButton actions={actions} />
-    </Section>
+    </CollapsibleSection>
   );
 };
 
@@ -168,7 +179,11 @@ const ElevationSourceRowShell = ({
   };
 
   return (
-    <div ref={setNodeRef} style={style} className="flex gap-x-2 items-start">
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="flex gap-x-2 items-start -ml-1 -mr-1"
+    >
       <div
         className="opacity-20 hover:opacity-100 cursor-ns-resize flex items-center h-8"
         {...attributes}
