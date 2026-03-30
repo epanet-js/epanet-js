@@ -720,13 +720,20 @@ const useElevationSourceActions = (
 
   const toggleEnabled = useCallback(
     (sourceId: string) => {
+      const source = sources.find((s) => s.id === sourceId);
+      const newEnabled = !source?.enabled;
       setSources((prev) =>
         prev.map((s) =>
           s.id === sourceId ? { ...s, enabled: !s.enabled } : s,
         ),
       );
+      userTracking.capture({
+        name: "elevationSource.toggled",
+        sourceType: source?.type ?? "unknown",
+        enabled: newEnabled,
+      });
     },
-    [setSources],
+    [sources, setSources, userTracking],
   );
 
   const updateOffset = useCallback(
