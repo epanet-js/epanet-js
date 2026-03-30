@@ -21,7 +21,6 @@ import { useOpenRecentFile } from "src/commands/open-recent-file";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useTranslate } from "src/hooks/use-translate";
 import { useRecentFiles } from "src/hooks/use-recent-files";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   Button,
   DDContent,
@@ -121,10 +120,8 @@ const RecentFilesMenu = () => {
   const openRecentFile = useOpenRecentFile();
   const translate = useTranslate();
   const { recentFiles, isSupported: isRecentFilesSupported } = useRecentFiles();
-  const isRecentFilesOn = useFeatureFlag("FLAG_RECENT_FILES");
 
-  const showRecentFiles =
-    isRecentFilesSupported && isRecentFilesOn && recentFiles.length > 0;
+  const showRecentFiles = isRecentFilesSupported && recentFiles.length > 0;
 
   if (!showRecentFiles) return null;
 
