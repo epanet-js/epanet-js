@@ -21,7 +21,10 @@ import { projectGeoJson } from "./project-geojson";
 import { approximateToNullIsland } from "./approximate-to-null-island";
 import type { Proj4Projection, Projection } from "src/lib/projections";
 import { getExtent } from "src/lib/geometry";
-import { computeCentroid } from "src/lib/projections/xy-grid-transform";
+import {
+  computeCentroid,
+  transformPoint,
+} from "src/lib/projections/xy-grid-transform";
 import type { Bbox, ProjectionCandidate } from "./types";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useTranslate } from "src/hooks/use-translate";
@@ -297,7 +300,15 @@ export const NetworkProjectionDialog = ({
       name: "XY Grid",
       centroid,
     };
-    onImportWithProjection(projection);
+    const sourceExtent = getExtent(previewGeoJson, true).extract();
+    const extent = sourceExtent
+      ? ([
+          ...transformPoint([sourceExtent[0], sourceExtent[1]], centroid),
+          ...transformPoint([sourceExtent[2], sourceExtent[3]], centroid),
+        ] as BBox)
+      : undefined;
+
+    onImportWithProjection(projection, extent);
   }, [
     onImportWithProjection,
     userTracking,
