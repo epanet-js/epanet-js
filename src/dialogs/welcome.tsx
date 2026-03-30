@@ -37,7 +37,7 @@ import { BaseDialog, DialogCloseX, useDialogState } from "../components/dialog";
 import { Message } from "../components/message";
 import { DRUMCHAPEL, WATERDOWN } from "src/demo/demo-networks";
 import optimaticsLogoUrl from "src/assets/images/logos/optimatics-logo-black.webp";
-import iteratingLogoUrl from "src/assets/images/logos/iterating-logo-horizontal-bleed-gray.svg";
+import iteratingLogoUrl from "src/assets/images/logos/iterating-logo-muted-padded.svg";
 import type { RecentFileEntry } from "src/lib/recent-files";
 import clsx from "clsx";
 import Image from "next/image";
@@ -144,23 +144,25 @@ export const WelcomeDialog = () => {
               </div>
 
               <div className="flex flex-col gap-2 mt-auto text-xs">
-                <div className="mb-4 text-xs hidden sm:flex items-center gap-x-2">
-                  <Checkbox
-                    checked={userSettings.showWelcomeOnStart}
-                    onChange={() => {
-                      userSettings.showWelcomeOnStart
-                        ? userTracking.capture({ name: "welcome.hidden" })
-                        : userTracking.capture({
-                            name: "welcome.enabled",
-                          });
-                      setUserSettings((prev) => ({
-                        ...prev,
-                        showWelcomeOnStart: !prev.showWelcomeOnStart,
-                      }));
-                    }}
-                  />
-                  {translate("alwaysShowAtStart")}
-                </div>
+                {!isIteratingLogoOn && (
+                  <div className="mb-4 text-xs hidden sm:flex items-center gap-x-2">
+                    <Checkbox
+                      checked={userSettings.showWelcomeOnStart}
+                      onChange={() => {
+                        userSettings.showWelcomeOnStart
+                          ? userTracking.capture({ name: "welcome.hidden" })
+                          : userTracking.capture({
+                              name: "welcome.enabled",
+                            });
+                        setUserSettings((prev) => ({
+                          ...prev,
+                          showWelcomeOnStart: !prev.showWelcomeOnStart,
+                        }));
+                      }}
+                    />
+                    {translate("alwaysShowAtStart")}
+                  </div>
+                )}
                 <a href={termsAndConditionsUrl} target="_blank">
                   {translate("termsAndConditions")}
                 </a>
@@ -169,8 +171,11 @@ export const WelcomeDialog = () => {
                 </a>
               </div>
               {isIteratingLogoOn && (
-                <div className="flex gap-2 items-center mt-2 text-xs text-gray-500">
-                  By <img src={iteratingLogoUrl.src} className="h-8" />
+                <div className="flex items-center mt-2 text-xs text-gray-500">
+                  By
+                  <a href="https://iterating.ca" target="_blank">
+                    <img src={iteratingLogoUrl.src} className="h-8" />
+                  </a>
                 </div>
               )}
             </div>
