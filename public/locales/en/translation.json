@@ -464,6 +464,7 @@
   "demandsAnalysis": "Demands analysis",
   "monthShort": "mo",
   "year": "year",
+  "yearShort": "yr",
   "upgradeTo": "Upgrade to {{1}}",
   "comingSoon": "Coming soon",
   "individualNamedLicense": "Individual named license",

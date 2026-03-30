@@ -475,7 +475,9 @@ const ProPlan = ({ paymentType }: { paymentType: PaymentType }) => {
 const TeamsPricingHeader = ({ paymentType }: { paymentType: PaymentType }) => {
   const translate = useTranslate();
   const recurrency =
-    paymentType === "yearly" ? translate("year") : translate("monthShort");
+    paymentType === "yearly"
+      ? `/${translate("yearShort")}`
+      : `/${translate("monthShort")}`;
   const basePrice =
     paymentType === "yearly"
       ? prices.teams.baseYearly
@@ -488,21 +490,24 @@ const TeamsPricingHeader = ({ paymentType }: { paymentType: PaymentType }) => {
   return (
     <div className="flex flex-col">
       <h2 className="text-xl font-semibold mb-2">Teams</h2>
-      <div className="flex items-center gap-4 mb-4">
+      <div className="flex items-baseline gap-4 mb-4">
         <div>
-          <p className="text-3xl font-bold mb-2">{basePrice}</p>
-          <p className="text-gray-500 text-sm">
-            {translate("baseCost")} / {recurrency}
-          </p>
+          <div className="mb-1">
+            <strong className="text-3xl font-bold">{basePrice}</strong>
+            <span className="text-sm text-gray-500">{recurrency}</span>
+          </div>
+          <p className="text-gray-500 text-sm">{translate("baseCost")}</p>
         </div>
-        <span className="text-2xl font-bold text-gray-700 self-start">+</span>
-        <div>
-          <p className="text-3xl font-bold mb-2">{userPrice}</p>
-          <div className="flex items-center gap-1">
-            <p className="text-gray-500 text-sm">
-              {translate("perUser")} / {recurrency}
-            </p>
-            <InfoTooltip text={translate("minimumTwoLicenses")} />
+        <div className="flex gap-1">
+          <span className="text-xl font-bold text-gray-700 self-start">+</span>
+          <div>
+            <div className="mb-1">
+              <strong className="text-xl font-bold">{userPrice}</strong>
+              <span className="text-sm text-gray-500">{recurrency}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <p className="text-gray-500 text-sm">{translate("perUser")}</p>
+            </div>
           </div>
         </div>
       </div>
@@ -608,9 +613,10 @@ const PlanHeader = ({
   tooltip?: string;
 }) => {
   const translate = useTranslate();
+  const isPricingOn = useFeatureFlag("FLAG_PRICING");
   const recurrency =
     payment === "yearly"
-      ? `/${translate("year")}`
+      ? `/${isPricingOn ? translate("yearShort") : translate("year")}`
       : `/${translate("monthShort")}`;
 
   return (
@@ -618,7 +624,11 @@ const PlanHeader = ({
       <h2 className="text-xl font-semibold mb-2">{name}</h2>
       <div className="mb-1">
         <strong className="text-3xl font-bold">{price}</strong>
-        <span className="text-lg text-gray-500">{recurrency}</span>
+        <span
+          className={`${isPricingOn ? "text-sm text-gray-500" : "text-lg text-gray-500"}`}
+        >
+          {recurrency}
+        </span>
       </div>
       <div className="flex items-center mb-4 space-x-1 min-h-6">
         <p className="text-gray-600 text-sm">{claim}</p>
