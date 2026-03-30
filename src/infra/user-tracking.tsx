@@ -982,6 +982,11 @@ export type UserEvent =
   | {
       name: "elevationSource.tileDeleted";
     }
+  | {
+      name: "elevationSource.elevationUnitChanged";
+      oldValue: string;
+      newValue: string;
+    }
   | { name: "map.labels.shown"; type: string; subtype: string }
   | { name: "map.labels.hidden"; type: string }
   | { name: "map.customerPoints.shown" }

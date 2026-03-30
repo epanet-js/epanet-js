@@ -32,7 +32,11 @@ import {
   StyledPopoverContent,
   Button,
 } from "src/components/elements";
-import { InlineField, Section } from "src/components/form/fields";
+import {
+  IndentationContext,
+  InlineField,
+  Section,
+} from "src/components/form/fields";
 import {
   Draggable,
   DeleteIcon,
@@ -42,6 +46,7 @@ import {
   MultipleValuesIcon,
 } from "src/icons";
 import { NumericField } from "src/components/form/numeric-field";
+import { Selector } from "src/components/form/selector";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { useUserTracking } from "src/infra/user-tracking";
 import { convertTo } from "src/quantity";
@@ -72,6 +77,7 @@ import {
   tileCoverage,
   tileResolution,
 } from "src/lib/elevations/geotiff";
+import type { LinearUnit } from "src/lib/elevations/geotiff/types";
 
 export const ElevationsEditor = () => {
   const translate = useTranslate();
@@ -240,11 +246,13 @@ const GeoTiffElevationSourceRow = ({
             align="start"
           >
             <StyledPopoverArrow />
-            <GeoTiffTilesPopover
-              source={source}
-              actions={actions}
-              overlay={overlay}
-            />
+            <IndentationContext.Provider value={0}>
+              <GeoTiffTilesPopover
+                source={source}
+                actions={actions}
+                overlay={overlay}
+              />
+            </IndentationContext.Provider>
           </StyledPopoverContent>
         </Popover.Portal>
       </Popover.Root>
@@ -286,6 +294,7 @@ const GeoTiffTilesPopover = ({
         {translate("elevations.userElevationData")}
       </div>
       <ElevationOffsetField source={source} actions={actions} />
+      <ElevationUnitField source={source} actions={actions} />
       <div className="overflow-y-auto max-h-[30vh] scroll-shadows border rounded">
         <ul className="flex flex-col">
           {source.tiles.map((tile) => (
@@ -370,7 +379,9 @@ const TileServerElevationSourceRow = ({
             align="start"
           >
             <StyledPopoverArrow />
-            <TileServerPopover source={source} actions={actions} />
+            <IndentationContext.Provider value={0}>
+              <TileServerPopover source={source} actions={actions} />
+            </IndentationContext.Provider>
           </StyledPopoverContent>
         </Popover.Portal>
       </Popover.Root>
@@ -429,13 +440,45 @@ const ElevationOffsetField = ({
   const label = `${translate("elevations.elevationOffset")} (${elevationUnit})`;
 
   return (
-    <InlineField name={label} layout="label-flex-none">
+    <InlineField name={label} layout="fluid-label" labelSize="lg">
       <NumericField
         label={label}
         displayValue={localizeDecimal(displayValue)}
         onChangeValue={(v) => actions.updateOffset(source.id, v)}
         styleOptions={{ padding: "md", textSize: "sm" }}
         tabIndex={0}
+      />
+    </InlineField>
+  );
+};
+
+const elevationUnitOptions: { label: string; value: LinearUnit }[] = [
+  { label: "m", value: "m" },
+  { label: "ft", value: "ft" },
+];
+
+const ElevationUnitField = ({
+  source,
+  actions,
+}: {
+  source: GeoTiffElevationSource;
+  actions: Actions;
+}) => {
+  const translate = useTranslate();
+  const currentUnit = source.tiles[0]?.verticalUnit ?? "m";
+
+  return (
+    <InlineField
+      name={translate("elevations.verticalUnit")}
+      layout="fluid-label"
+      labelSize="lg"
+    >
+      <Selector
+        options={elevationUnitOptions}
+        selected={currentUnit}
+        onChange={(value) => actions.updateVerticalUnit(source.id, value)}
+        ariaLabel={translate("elevations.verticalUnit")}
+        styleOptions={{ paddingX: 2, paddingY: 2, textSize: "text-sm" }}
       />
     </InlineField>
   );
@@ -708,6 +751,32 @@ const useElevationSourceActions = (
     [sources, setSources, units.elevation, userTracking],
   );
 
+  const updateVerticalUnit = useCallback(
+    (sourceId: string, newUnit: LinearUnit) => {
+      const source = sources.find((s) => s.id === sourceId);
+      const oldUnit =
+        source?.type === "geotiff"
+          ? (source.tiles[0]?.verticalUnit ?? "m")
+          : "m";
+      setSources((prev) =>
+        prev.map((s) =>
+          s.id === sourceId && s.type === "geotiff"
+            ? {
+                ...s,
+                tiles: s.tiles.map((t) => ({ ...t, verticalUnit: newUnit })),
+              }
+            : s,
+        ),
+      );
+      userTracking.capture({
+        name: "elevationSource.elevationUnitChanged",
+        oldValue: oldUnit,
+        newValue: newUnit,
+      });
+    },
+    [sources, setSources, userTracking],
+  );
+
   return {
     sources,
     addSource,
@@ -717,6 +786,7 @@ const useElevationSourceActions = (
     reorderSources,
     toggleEnabled,
     updateOffset,
+    updateVerticalUnit,
   };
 };
 

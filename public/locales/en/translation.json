@@ -75,6 +75,7 @@
     "addNewData": "Add new elevation data",
     "userElevationData": "User elevation data",
     "elevationOffset": "Elevation offset",
+    "verticalUnit": "Elevation unit",
     "sourceDetails": "Elevation source details",
     "disableSource": "Disable elevation source",
     "enableSource": "Enable elevation source",
