@@ -1,27 +1,14 @@
 import { describe, it, expect } from "vitest";
-import fs from "fs";
-import path from "path";
 
 import { GeoTiffTile } from ".";
 import { parseGeoTIFF } from "./parse-geotiff";
 import { fetchGeoTiffTileElevation } from "./fetch-elevation";
-
-function loadFixtureAsFile(filename: string): File {
-  const buffer = fs.readFileSync(path.join(__dirname, filename));
-  return new File([new Uint8Array(buffer)], filename, { type: "image/tiff" });
-}
+import { buildFixture } from "src/__helpers__/geotiff-fixture";
+import { GeoKey, ModelType, RasterType } from "./spec";
 
 const fetchProj4DefFake = vi.fn().mockResolvedValue("");
 
-async function loadFixtureTile(
-  overrides?: Partial<GeoTiffTile>,
-): Promise<GeoTiffTile> {
-  const file = loadFixtureAsFile("elevation.fixture.tif");
-  const metadata = await parseGeoTIFF(file, fetchProj4DefFake);
-  return { id: "test", ...metadata, ...overrides };
-}
-
-// Fixture: 4x4 float32 grid, origin (-4, 56), pixel size 0.25°, WGS84
+// 4x4 float32 grid, origin (-4, 56), pixel size 0.25°, WGS84
 // bbox: [-4, 55, -3, 56], nodata: -9999
 // Values (pixel centers at integer + 0.5 in pixel coords):
 //   (0,0)=100, (1,0)=110, (2,0)=120, (3,0)=130
@@ -35,6 +22,36 @@ async function loadFixtureTile(
 //   pixel (3,3) center → (-3.125, 55.125)
 // Midpoint between pixel centers:
 //   between (0,0),(1,0),(0,1),(1,1) → (-3.75, 55.75)
+
+// prettier-ignore
+const ELEVATION_RASTER = new Float32Array([
+  100, 110, 120,   130,
+  105, 115, 125,   135,
+  110, 120, -9999, 140,
+  115, 125, 135,   145,
+]);
+
+function elevationFixture() {
+  return buildFixture({
+    flatRaster: { data: ELEVATION_RASTER, width: 4, height: 4 },
+    noDataValue: -9999,
+    tiepoint: [0, 0, 0, -4, 56, 0],
+    pixelScale: [0.25, 0.25, 0],
+    geoKeys: {
+      [GeoKey.GTModelType]: ModelType.Geographic,
+      [GeoKey.GTRasterType]: RasterType.PixelIsArea,
+      [GeoKey.GeographicType]: 4326,
+    },
+  });
+}
+
+async function loadFixtureTile(
+  overrides?: Partial<GeoTiffTile>,
+): Promise<GeoTiffTile> {
+  const file = elevationFixture();
+  const metadata = await parseGeoTIFF(file, fetchProj4DefFake);
+  return { id: "test", ...metadata, ...overrides };
+}
 
 describe("fetchGeoTiffTileElevation", () => {
   it("returns exact pixel value at pixel center", async () => {

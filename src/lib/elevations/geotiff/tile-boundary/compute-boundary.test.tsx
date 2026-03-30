@@ -1,20 +1,38 @@
 import { describe, it, expect } from "vitest";
-import fs from "fs";
-import path from "path";
 import { computeTileBoundaries, type BoundaryResult } from "./compute-boundary";
 import { parseGeoTIFF } from "../parse-geotiff";
 import { GeoTiffTile } from "../types";
+import { buildFixture } from "src/__helpers__/geotiff-fixture";
+import { GeoKey, ModelType, RasterType } from "../spec";
 
-function loadFixtureAsFile(filename: string): File {
-  const buffer = fs.readFileSync(path.join(__dirname, filename));
-  return new File([new Uint8Array(buffer)], filename, { type: "image/tiff" });
+// prettier-ignore
+const ELEVATION_RASTER = new Float32Array([
+  100, 110, 120,   130,
+  105, 115, 125,   135,
+  110, 120, -9999, 140,
+  115, 125, 135,   145,
+]);
+
+function elevationFixture() {
+  return buildFixture({
+    flatRaster: { data: ELEVATION_RASTER, width: 4, height: 4 },
+    noDataValue: -9999,
+    tiepoint: [0, 0, 0, -4, 56, 0],
+    pixelScale: [0.25, 0.25, 0],
+    geoKeys: {
+      [GeoKey.GTModelType]: ModelType.Geographic,
+      [GeoKey.GTRasterType]: RasterType.PixelIsArea,
+      [GeoKey.GeographicType]: 4326,
+    },
+  });
 }
+
+const fetchProj4Fake = vi.fn().mockResolvedValue("");
 
 async function loadFixtureTile(
   overrides?: Partial<GeoTiffTile>,
 ): Promise<GeoTiffTile> {
-  const fetchProj4Fake = vi.fn().mockResolvedValue("");
-  const file = loadFixtureAsFile("../elevation.fixture.tif");
+  const file = elevationFixture();
   const metadata = await parseGeoTIFF(file, fetchProj4Fake);
   return { id: "test", ...metadata, ...overrides };
 }
@@ -34,11 +52,6 @@ function collectResults(
 
 // Fixture: 4x4 float32 grid, origin (-4, 56), pixel size 0.25°
 // bbox: [-4, 55, -3, 56], nodata: -9999
-// Values:
-//   100, 110, 120, 130
-//   105, 115, 125, 135
-//   110, 120, -9999, 140
-//   115, 125, 135, 145
 
 describe("computeTileBoundaries", () => {
   it("returns a polygon geometry for a tile with valid data", async () => {

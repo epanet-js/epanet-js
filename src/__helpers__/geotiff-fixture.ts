@@ -23,19 +23,11 @@ const SHORT_KEYS = new Set([
   4096, 4099,
 ]);
 
-/**
- * Builds the raw GeoKeyDirectory (uint16[]) and GeoDoubleParams (float64[])
- * from a flat object of GeoKey ID → value.
- *
- * SHORT-valued keys are stored inline in the directory.
- * All other numeric keys are stored as DOUBLEs in GeoDoubleParams,
- * referenced by index from the directory.
- */
 function buildGeoKeyArrays(geoKeys: Record<number, number>): {
   GeoKeyDirectory: number[];
   GeoDoubleParams: number[];
 } {
-  const dir = [1, 1, 0, 0]; // [version, revision, minor, numKeys]
+  const dir = [1, 1, 0, 0];
   const doubles: number[] = [];
   let numKeys = 0;
 
@@ -66,18 +58,19 @@ const RASTER_2x2 = [
 ];
 
 export type FixtureOptions = {
+  /** 3D raster [band][row][col] — defaults to 2×2 zeros. */
   raster?: number[][][];
+  /** Flat Float32Array raster (requires width/height). */
+  flatRaster?: { data: Float32Array; width: number; height: number };
+  /** GDAL nodata value (written as GDAL_NODATA ASCII tag). */
+  noDataValue?: number;
   tiepoint: number[];
   pixelScale: number[];
   geoKeys: Record<number, number>;
   fileName?: string;
 };
 
-/**
- * Builds a minimal GeoTIFF `File` with the given spatial metadata.
- */
-export function buildFixture(opts: FixtureOptions): File {
-  const raster = opts.raster ?? RASTER_2x2;
+function buildArrayBuffer(opts: FixtureOptions): ArrayBuffer {
   const { GeoKeyDirectory, GeoDoubleParams } = buildGeoKeyArrays(opts.geoKeys);
 
   // writeArrayBuffer overwrites ModelTiepoint with a whole-globe default
@@ -89,37 +82,39 @@ export function buildFixture(opts: FixtureOptions): File {
       ? { ProjectedCSTypeGeoKey: opts.geoKeys[3072] }
       : { GeographicTypeGeoKey: opts.geoKeys[2048] ?? 4326 };
 
-  const buf = writeArrayBuffer(raster, {
+  const shared = {
     ModelTiepoint: opts.tiepoint,
     ModelPixelScale: opts.pixelScale,
     GeoKeyDirectory,
     ...(GeoDoubleParams.length > 0 ? { GeoDoubleParams } : {}),
+    ...(opts.noDataValue != null
+      ? { GDAL_NODATA: String(opts.noDataValue) }
+      : {}),
     ...projHint,
-  });
+  };
 
-  const bytes = new Uint8Array(buf);
-  return new File([bytes], opts.fileName ?? "fixture.tif", {
+  if (opts.flatRaster) {
+    return writeArrayBuffer(opts.flatRaster.data, {
+      width: opts.flatRaster.width,
+      height: opts.flatRaster.height,
+      ...shared,
+    });
+  }
+
+  return writeArrayBuffer(opts.raster ?? RASTER_2x2, shared);
+}
+
+/**
+ * Builds a minimal GeoTIFF `File` with the given spatial metadata.
+ */
+export function buildFixture(opts: FixtureOptions): File {
+  const buf = buildArrayBuffer(opts);
+  return new File([new Uint8Array(buf)], opts.fileName ?? "fixture.tif", {
     type: "image/tiff",
   });
 }
 
 /** Same as buildFixture but returns raw bytes (useful for writing to disk). */
 export function buildFixtureBytes(opts: FixtureOptions): Uint8Array {
-  const raster = opts.raster ?? RASTER_2x2;
-  const { GeoKeyDirectory, GeoDoubleParams } = buildGeoKeyArrays(opts.geoKeys);
-
-  const projHint =
-    opts.geoKeys[3072] != null
-      ? { ProjectedCSTypeGeoKey: opts.geoKeys[3072] }
-      : { GeographicTypeGeoKey: opts.geoKeys[2048] ?? 4326 };
-
-  const buf = writeArrayBuffer(raster, {
-    ModelTiepoint: opts.tiepoint,
-    ModelPixelScale: opts.pixelScale,
-    GeoKeyDirectory,
-    ...(GeoDoubleParams.length > 0 ? { GeoDoubleParams } : {}),
-    ...projHint,
-  });
-
-  return new Uint8Array(buf);
+  return new Uint8Array(buildArrayBuffer(opts));
 }

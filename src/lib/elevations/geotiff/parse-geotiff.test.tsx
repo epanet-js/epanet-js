@@ -1,6 +1,4 @@
 import { describe, it, expect } from "vitest";
-import fs from "fs";
-import path from "path";
 
 import { GeoTiffError, parseGeoTIFF } from "./parse-geotiff";
 import { ProjectionError } from "./extract-projection";
@@ -17,10 +15,11 @@ import {
   USER_DEFINED_CODE,
 } from "./spec";
 
-function loadFixture(filename: string): File {
-  const buffer = fs.readFileSync(path.join(__dirname, filename));
-  return new File([new Uint8Array(buffer)], filename, { type: "image/tiff" });
-}
+const WGS84_KEYS = {
+  [GeoKey.GTModelType]: ModelType.Geographic,
+  [GeoKey.GTRasterType]: RasterType.PixelIsArea,
+  [GeoKey.GeographicType]: 4326,
+};
 
 /** Builds a WGS84 2×2 fixture with optional geokey overrides. */
 function wgs84Fixture(
@@ -30,24 +29,35 @@ function wgs84Fixture(
   return buildFixture({
     tiepoint: [0, 0, 0, -4, 56, 0],
     pixelScale,
-    geoKeys: {
-      [GeoKey.GTModelType]: ModelType.Geographic,
-      [GeoKey.GTRasterType]: RasterType.PixelIsArea,
-      [GeoKey.GeographicType]: 4326,
-      ...geoKeys,
-    },
+    geoKeys: { ...WGS84_KEYS, ...geoKeys },
+  });
+}
+
+// prettier-ignore
+const ELEVATION_RASTER = new Float32Array([
+  100, 110, 120,   130,
+  105, 115, 125,   135,
+  110, 120, -9999, 140,
+  115, 125, 135,   145,
+]);
+
+/** 4×4 float32 grid, origin (-4, 56), pixel size 0.25°, nodata -9999. */
+function elevationFixture() {
+  return buildFixture({
+    flatRaster: { data: ELEVATION_RASTER, width: 4, height: 4 },
+    noDataValue: -9999,
+    tiepoint: [0, 0, 0, -4, 56, 0],
+    pixelScale: [0.25, 0.25, 0],
+    geoKeys: WGS84_KEYS,
   });
 }
 
 const fetchProj4DefFake = vi.fn().mockResolvedValue("");
 const fetchProj4DefNull = vi.fn().mockResolvedValue(null);
 
-// Fixture: 4x4 float32 grid, origin (-4, 56), pixel size 0.25°, WGS84
-// bbox: [-4, 55, -3, 56], nodata: -9999
-
 describe("parseGeoTIFF", () => {
   it("extracts correct metadata from a WGS84 GeoTIFF", async () => {
-    const file = loadFixture("elevation.fixture.tif");
+    const file = elevationFixture();
     const metadata = await parseGeoTIFF(file, fetchProj4DefFake);
 
     expect(metadata.width).toBe(4);
@@ -59,28 +69,28 @@ describe("parseGeoTIFF", () => {
   });
 
   it("sets crsUnit to deg for WGS84 files", async () => {
-    const file = loadFixture("elevation.fixture.tif");
+    const file = elevationFixture();
     const metadata = await parseGeoTIFF(file, fetchProj4DefFake);
 
     expect(metadata.crsUnit).toBe("deg");
   });
 
   it("defaults verticalUnit to m for WGS84 files", async () => {
-    const file = loadFixture("elevation.fixture.tif");
+    const file = elevationFixture();
     const metadata = await parseGeoTIFF(file, fetchProj4DefFake);
 
     expect(metadata.verticalUnit).toBe("m");
   });
 
   it("does not set proj4Def for WGS84 files", async () => {
-    const file = loadFixture("elevation.fixture.tif");
+    const file = elevationFixture();
     const metadata = await parseGeoTIFF(file, fetchProj4DefFake);
 
     expect(metadata.proj4Def).toBeUndefined();
   });
 
   it("extracts resolution from the file", async () => {
-    const file = loadFixture("elevation.fixture.tif");
+    const file = elevationFixture();
     const metadata = await parseGeoTIFF(file, fetchProj4DefFake);
 
     expect(metadata.resolution).toEqual([0.25, 0.25]);
@@ -275,7 +285,7 @@ describe("parseGeoTIFF", () => {
     });
 
     it("omits scaleZ when ModelPixelScale[2] is 0", async () => {
-      const file = loadFixture("elevation.fixture.tif");
+      const file = elevationFixture();
       const metadata = await parseGeoTIFF(file, fetchProj4DefFake);
 
       expect(metadata.scaleZ).toBeUndefined();
@@ -299,7 +309,7 @@ describe("parseGeoTIFF", () => {
     });
 
     it("does not adjust bbox for PixelIsArea (default)", async () => {
-      const file = loadFixture("elevation.fixture.tif");
+      const file = elevationFixture();
       const metadata = await parseGeoTIFF(file, fetchProj4DefFake);
 
       expect(metadata.pixelIsPoint).toBeFalsy();
