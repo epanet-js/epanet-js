@@ -6,8 +6,8 @@ import { projectSettingsAtom } from "src/state/project-settings";
 import { stagingModelAtom } from "src/state/hydraulic-model";
 import { dialogAtom } from "src/state/dialog";
 import { Button } from "src/components/elements";
-import { Section, InlineField } from "src/components/form/fields";
-import { WarningIcon } from "src/icons";
+import { Section } from "src/components/form/fields";
+import { PencilIcon } from "src/icons";
 import type { Projection } from "src/lib/projections/projection";
 import { inverseProjectGeoJson } from "src/lib/projections";
 import { chooseUnitSystem } from "src/simulation/build-inp";
@@ -16,17 +16,6 @@ import { MapContext } from "src/map";
 import { captureError } from "src/infra/error-tracking";
 import { hasScenariosAtom } from "src/state/scenarios";
 import { useUnsavedChangesCheck } from "src/commands/check-unsaved-changes";
-
-const projectionTypeLabel = (projection: Projection) => {
-  switch (projection.type) {
-    case "wgs84":
-      return "Global (GPS)";
-    case "xy-grid":
-      return "Local / No map";
-    case "proj4":
-      return "Regional / Survey";
-  }
-};
 
 export const ProjectionSection = () => {
   const projectSettings = useAtomValue(projectSettingsAtom);
@@ -73,38 +62,40 @@ export const ProjectionSection = () => {
     });
   };
 
+  const projectionName =
+    projection.type === "wgs84" ? "WGS 84" : projection.name;
+  const projectionCode =
+    projection.type === "wgs84" ? "EPSG:4326" : projection.id;
+
   return (
     <Section title="Projection">
-      <InlineField name="Type" labelSize="sm" layout="fixed-label">
-        <span className="flex items-center gap-1 text-sm">
-          {projectionTypeLabel(projection)}
-          {isXYGrid && <WarningIcon size="sm" className="text-orange-500" />}
-        </span>
-      </InlineField>
-      {!isXYGrid && (
-        <InlineField
-          name="Name"
-          labelSize="sm"
-          layout="fixed-label"
-          align="start"
-        >
-          <span className="text-sm">
-            {projection.type === "wgs84"
-              ? "WGS 84 (EPSG:4326)"
-              : `${projection.name} (${projection.id})`}
-          </span>
-        </InlineField>
-      )}
-      {projection.type !== "wgs84" && (
+      {isXYGrid ? (
         <Button
           variant="default"
           size="sm"
-          className="w-full justify-center mt-2"
+          className="w-full justify-center"
           disabled={hasScenarios}
           onClick={() => checkUnsavedChanges(handleOpenProjectionDialog)}
         >
-          {isXYGrid ? "Project network" : "Change projection"}
+          Project network
         </Button>
+      ) : (
+        <div className="flex items-start gap-2">
+          <div className="flex flex-col min-w-0 flex-1 text-sm">
+            <div className="truncate">{projectionName}</div>
+            <div className="text-gray-500 truncate">{projectionCode}</div>
+          </div>
+          {projection.type === "proj4" && (
+            <button
+              className="opacity-30 hover:opacity-100 select-none flex-shrink-0"
+              disabled={hasScenarios}
+              onClick={() => checkUnsavedChanges(handleOpenProjectionDialog)}
+              aria-label="Change projection"
+            >
+              <PencilIcon />
+            </button>
+          )}
+        </div>
       )}
     </Section>
   );
