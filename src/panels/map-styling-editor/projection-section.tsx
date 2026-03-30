@@ -39,6 +39,7 @@ export const ProjectionSection = () => {
 
     setDialogState({
       type: "networkProjection",
+      source: "map-panel",
       previewGeoJson,
       onImportWithProjection: async (newProjection: Projection, extent) => {
         setDialogState({ type: "loading" });

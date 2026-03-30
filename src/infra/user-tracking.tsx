@@ -342,11 +342,14 @@ type InpIssuesExpanded = {
 type CoordinatesIssuesExpanded = {
   name: "coordinatesIssues.expanded";
 };
+type NetworkProjectionSource = "import" | "map-panel";
 type NetworkProjectionSeen = {
   name: "networkProjection.seen";
+  source: NetworkProjectionSource;
 };
 type NetworkProjectionSearched = {
   name: "networkProjection.searched";
+  source: NetworkProjectionSource;
   query: string;
   queryLength: number;
   resultType: "location" | "projection";
@@ -354,12 +357,14 @@ type NetworkProjectionSearched = {
 };
 type NetworkProjectionSelected = {
   name: "networkProjection.selected";
+  source: NetworkProjectionSource;
   projectionId: string;
   projectionName: string;
   outOfBounds: boolean;
 };
 type NetworkProjectionApplied = {
   name: "networkProjection.applied";
+  source: NetworkProjectionSource;
   projectionId: string;
   projectionName: string;
   outOfBounds: boolean;
@@ -371,12 +376,14 @@ type NetworkProjectionApplied = {
 };
 type NetworkProjectionSkipped = {
   name: "networkProjection.skipped";
+  source: NetworkProjectionSource;
   filename: string;
   flowUnits: string;
   bounds: string;
 };
 type NetworkProjectionClosed = {
   name: "networkProjection.closed";
+  source: NetworkProjectionSource;
 };
 type MissingCoordinatesSeen = {
   name: "missingCoordinates.seen";

@@ -32,6 +32,7 @@ export type WelcomeDialogState = {
 
 export type NetworkProjectionDialogState = {
   type: "networkProjection";
+  source: "import" | "map-panel";
   previewGeoJson: FeatureCollection;
   onImportWithProjection: (projection: Projection, extent?: BBox) => void;
   filename: string;

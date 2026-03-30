@@ -205,6 +205,7 @@ export const useImportInp = () => {
 
           setDialogState({
             type: "networkProjection",
+            source: "import",
             previewGeoJson,
             onImportWithProjection,
             filename: file.name,
@@ -283,6 +284,7 @@ export const useImportInp = () => {
 
           setDialogState({
             type: "networkProjection",
+            source: "import",
             previewGeoJson,
             onImportWithProjection,
             filename: file.name,
