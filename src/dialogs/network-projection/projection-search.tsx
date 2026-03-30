@@ -9,7 +9,11 @@ import {
 import type { LocationData } from "src/components/form/location-search";
 import type { Proj4Projection } from "src/lib/projections";
 import { useTranslate } from "src/hooks/use-translate";
-import { matchesProjection } from "./match-projection";
+import {
+  matchesProjection,
+  hasExactProjectionMatch,
+  projectionMatchRank,
+} from "./match-projection";
 
 type SearchResultData =
   | { type: "location"; location: LocationData }
@@ -48,6 +52,10 @@ export const ProjectionSearch = ({
 
       const projectionResults: SearchResult[] = projections
         .filter((p) => matchesProjection(p, query))
+        .sort(
+          (a, b) =>
+            projectionMatchRank(a, query) - projectionMatchRank(b, query),
+        )
         .slice(0, 5)
         .map((p) => ({
           id: `proj-${p.id}`,
@@ -56,39 +64,41 @@ export const ProjectionSearch = ({
         }));
 
       let locationResults: SearchResult[] = [];
-      try {
-        const response = await fetch(
-          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
-            query,
-          )}.json?access_token=${env.NEXT_PUBLIC_MAPBOX_TOKEN}&types=place,locality&limit=5`,
-        );
-
-        if (response.ok) {
-          const data = (await response.json()) as { features?: unknown[] };
-          const features = (data.features || []).filter(isValidMapboxFeature);
-
-          locationResults = features.map(
-            (f: {
-              place_name?: string;
-              text?: string;
-              center: number[];
-              bbox: number[];
-            }) => ({
-              id: `loc-${f.place_name || f.text}`,
-              label: f.place_name || f.text || "",
-              data: {
-                type: "location" as const,
-                location: {
-                  name: f.place_name || f.text || "",
-                  coordinates: f.center as [number, number],
-                  bbox: f.bbox as [number, number, number, number],
-                },
-              },
-            }),
+      if (!hasExactProjectionMatch(projections, query)) {
+        try {
+          const response = await fetch(
+            `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
+              query,
+            )}.json?access_token=${env.NEXT_PUBLIC_MAPBOX_TOKEN}&types=place,locality&limit=5`,
           );
+
+          if (response.ok) {
+            const data = (await response.json()) as { features?: unknown[] };
+            const features = (data.features || []).filter(isValidMapboxFeature);
+
+            locationResults = features.map(
+              (f: {
+                place_name?: string;
+                text?: string;
+                center: number[];
+                bbox: number[];
+              }) => ({
+                id: `loc-${f.place_name || f.text}`,
+                label: f.place_name || f.text || "",
+                data: {
+                  type: "location" as const,
+                  location: {
+                    name: f.place_name || f.text || "",
+                    coordinates: f.center as [number, number],
+                    bbox: f.bbox as [number, number, number, number],
+                  },
+                },
+              }),
+            );
+          }
+        } catch (error) {
+          captureError(error as Error);
         }
-      } catch (error) {
-        captureError(error as Error);
       }
 
       const allResults = [...locationResults, ...projectionResults];
