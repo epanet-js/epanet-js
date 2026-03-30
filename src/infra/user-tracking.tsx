@@ -652,6 +652,17 @@ type CustomerPointsDisconnected = {
   source: string;
 };
 
+type CustomerPointLabelChanged = {
+  name: "customerPointActions.labelChanged";
+  oldLabel: string;
+  newLabel: string;
+};
+
+type CustomerPointLabelDuplicate = {
+  name: "customerPointActions.labelDuplicate";
+  newLabel: string;
+};
+
 type CustomerPointCreated = {
   name: "customerPointActions.created";
 };
@@ -937,6 +948,8 @@ export type UserEvent =
   | CustomerPointsConnectStarted
   | CustomerPointsReconnectStarted
   | CustomerPointsDisconnected
+  | CustomerPointLabelChanged
+  | CustomerPointLabelDuplicate
   | CustomerPointCreated
   | CustomerPointsRemoved
   | CustomerPointsConnectedCompleted
