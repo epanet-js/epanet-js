@@ -520,6 +520,7 @@ const TeamsPricingHeader = ({
             </div>
             <div className="flex items-center gap-1">
               <p className="text-gray-500 text-sm">{translate("perUser")}</p>
+              <InfoTooltip text={translate("minimumTwoLicenses")} />
             </div>
           </div>
         </div>
