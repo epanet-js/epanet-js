@@ -8,6 +8,7 @@ import { Store } from "src/state";
 import userEvent from "@testing-library/user-event";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { LayerConfigMap } from "src/types";
+import { layerConfigAtom } from "src/state/map";
 import { AuthMockProvider, aGuestUser, aUser } from "src/__helpers__/auth-mock";
 import { Dialogs } from "src/dialogs";
 import { stubFeatureOn } from "src/__helpers__/feature-flags";
@@ -223,21 +224,19 @@ describe("Map Styling Editor", () => {
       const store = setInitialState({ layerConfigs });
       renderComponent(store);
 
-      await userEvent.click(
-        screen.getByRole("checkbox", { name: /toggle visibility/i }),
+      const toggle = screen.getByRole("button", {
+        name: /toggle visibility/i,
+      });
+
+      await userEvent.click(toggle);
+
+      expect(store.get(layerConfigAtom).get(basemap.id)?.visibility).toBe(
+        false,
       );
 
-      expect(
-        screen.getByRole("checkbox", { name: /toggle visibility/i }),
-      ).not.toBeChecked();
+      await userEvent.click(toggle);
 
-      await userEvent.click(
-        screen.getByRole("checkbox", { name: /toggle visibility/i }),
-      );
-
-      expect(
-        screen.getByRole("checkbox", { name: /toggle visibility/i }),
-      ).toBeChecked();
+      expect(store.get(layerConfigAtom).get(basemap.id)?.visibility).toBe(true);
     });
 
     it("can change the labels visibility", async () => {
@@ -252,20 +251,21 @@ describe("Map Styling Editor", () => {
       const store = setInitialState({ layerConfigs });
       renderComponent(store);
 
-      await userEvent.click(
-        screen.getByRole("checkbox", { name: /toggle labels visibility/i }),
+      const toggle = screen.getByRole("button", {
+        name: /toggle labels visibility/i,
+      });
+
+      await userEvent.click(toggle);
+
+      expect(store.get(layerConfigAtom).get(basemap.id)?.labelVisibility).toBe(
+        false,
       );
 
-      expect(
-        screen.getByRole("checkbox", { name: /toggle labels visibility/i }),
-      ).not.toBeChecked();
+      await userEvent.click(toggle);
 
-      await userEvent.click(
-        screen.getByRole("checkbox", { name: /toggle labels visibility/i }),
+      expect(store.get(layerConfigAtom).get(basemap.id)?.labelVisibility).toBe(
+        true,
       );
-      expect(
-        screen.getByRole("checkbox", { name: /toggle labels visibility/i }),
-      ).toBeChecked();
     });
 
     it("blocks custom layers to free users", async () => {
