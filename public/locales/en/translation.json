@@ -1128,6 +1128,8 @@
     "title": "Network projection",
     "applyBasemap": "Apply projection",
     "loadWithoutBasemap": "Continue without basemap",
+    "removeBasemap": "Remove basemap",
+    "setMapProjection": "Set map projection",
     "noMatchingProjections": "No matching projections found for this location",
     "projectionOutOfBounds": "Projection out of bounds",
     "addBasemap": "Find your projection",

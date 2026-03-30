@@ -355,7 +355,10 @@ export const NetworkProjectionDialog = ({
           onAction={handleApplyBasemap}
           isDisabled={!selectedProjection || !!projectionError}
           secondary={{
-            action: t("networkProjection.loadWithoutBasemap"),
+            action:
+              source === "map-panel" && initialProjection
+                ? t("networkProjection.removeBasemap")
+                : t("networkProjection.loadWithoutBasemap"),
             onClick: handleLoadWithoutBasemap,
           }}
         />
