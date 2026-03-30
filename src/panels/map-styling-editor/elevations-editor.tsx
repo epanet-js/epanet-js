@@ -169,7 +169,7 @@ const ElevationSourceRowShell = ({
         <Draggable />
       </div>
       <div className="flex-auto min-w-0">
-        <div className="flex gap-x-2 items-center min-w-0">
+        <div className="flex items-center min-w-0">
           <div
             className={`block select-none truncate flex-auto min-w-0 text-sm ${disabled ? "opacity-50" : ""}`}
           >

@@ -51,6 +51,7 @@ export const MapStylingEditor = () => {
   const isGridOn = useAtomValue(showGridAtom);
   const isDtmElevationsOn = useFeatureFlag("FLAG_DTM_ELEVATIONS");
   const isProjectLaterOn = useFeatureFlag("FLAG_PROJECT_LATER");
+  const isLayersUIOn = useFeatureFlag("FLAG_LAYERS_UI");
 
   return (
     <div className="flex-auto overflow-y-auto placemark-scrollbar border-gray-200 dark:border-gray-900">
@@ -66,8 +67,12 @@ export const MapStylingEditor = () => {
         <CustomerPointsSection />
         {!isGridOn && isDtmElevationsOn && <ElevationsEditor />}
         {!isGridOn && (
-          <Section title={translate("layers")} button={<AddLayer />}>
+          <Section
+            title={translate("layers")}
+            button={isLayersUIOn ? undefined : <AddLayer />}
+          >
             <LayersEditor />
+            {isLayersUIOn && <AddLayer />}
           </Section>
         )}
         {isProjectLaterOn && <ProjectionSection />}
