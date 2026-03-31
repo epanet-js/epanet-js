@@ -134,7 +134,16 @@ export const MenuBarPlay = memo(function MenuBar() {
             {isMdOrLarger && (
               <>
                 <PlanBadge plan={user.plan} />
-                {isOrgsOn && <OrganizationSwitcher />}
+                {isOrgsOn && (
+                  <OrganizationSwitcher
+                    appearance={{
+                      elements: {
+                        organizationSwitcherPopoverActionButton__createOrganization:
+                          { display: "none" },
+                      },
+                    }}
+                  />
+                )}
                 <UserButton />
               </>
             )}
@@ -362,7 +371,14 @@ export const SideMenu = () => {
               <ul className="flex-col items-start gap-4">
                 {isOrgsOn && (
                   <li>
-                    <OrganizationSwitcher />
+                    <OrganizationSwitcher
+                      appearance={{
+                        elements: {
+                          organizationSwitcherPopoverActionButton__createOrganization:
+                            { display: "none" },
+                        },
+                      }}
+                    />
                   </li>
                 )}
                 <li>
