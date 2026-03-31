@@ -19,7 +19,13 @@ import {
   sourceCodeUrl,
   utilitiesUrl,
 } from "src/global-config";
-import { SignedIn, SignedOut, UserButton, useAuth } from "src/auth";
+import {
+  SignedIn,
+  SignedOut,
+  UserButton,
+  OrganizationSwitcher,
+  useAuth,
+} from "src/auth";
 import { SignInButton, SignUpButton } from "./auth-buttons";
 import { useShowWelcome } from "src/commands/show-welcome";
 import { useUserTracking } from "src/infra/user-tracking";
@@ -77,6 +83,7 @@ export const MenuBarPlay = memo(function MenuBar() {
   const isSmOrLarger = useBreakpoint("sm");
   const isActivateTrialOn = useFeatureFlag("FLAG_ACTIVATE_TRIAL");
   const isIteratingLogoOn = useFeatureFlag("FLAG_ITERATING_LOGO");
+  const isOrgsOn = useFeatureFlag("FLAG_ORGS");
 
   return (
     <div className="flex justify-between h-12 pr-2 text-black dark:text-white">
@@ -127,6 +134,7 @@ export const MenuBarPlay = memo(function MenuBar() {
             {isMdOrLarger && (
               <>
                 <PlanBadge plan={user.plan} />
+                {isOrgsOn && <OrganizationSwitcher />}
                 <UserButton />
               </>
             )}
@@ -255,6 +263,7 @@ export const SideMenu = () => {
   const showWelcome = useShowWelcome();
   const { user } = useAuth();
   const isActivateTrialOn = useFeatureFlag("FLAG_ACTIVATE_TRIAL");
+  const isOrgsOn = useFeatureFlag("FLAG_ORGS");
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
@@ -351,6 +360,11 @@ export const SideMenu = () => {
             <hr className="my-4 border-gray-200" />
             <SignedIn>
               <ul className="flex-col items-start gap-4">
+                {isOrgsOn && (
+                  <li>
+                    <OrganizationSwitcher />
+                  </li>
+                )}
                 <li>
                   <UserButton />
                 </li>

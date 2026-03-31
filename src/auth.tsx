@@ -6,6 +6,7 @@ import {
   SignInButton as ClerkSignInButton,
   SignUpButton as ClerkSignUpButton,
   UserButton as ClerkUserButton,
+  OrganizationSwitcher as ClerkOrganizationSwitcher,
   RedirectToSignIn as ClerkRedirectToSignIn,
   useAuth as useClerkAuth,
   useUser as useClerkUser,
@@ -144,6 +145,10 @@ export const SignedOut = ({ children }: { children: React.ReactNode }) => {
 export const UserButton = isAuthEnabled
   ? ClerkUserButton
   : () => <button></button>;
+
+export const OrganizationSwitcher = isAuthEnabled
+  ? ClerkOrganizationSwitcher
+  : () => null;
 
 export const RedirectToSignIn = isAuthEnabled
   ? ClerkRedirectToSignIn
