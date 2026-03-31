@@ -3,7 +3,7 @@ import { Pipe } from "../asset-types/pipe";
 import distance from "@turf/distance";
 import { ModelOperation } from "../model-operation";
 import { Position } from "geojson";
-import { LabelGenerator } from "../label-manager";
+import { LabelManager } from "../label-manager";
 import { splitPipe } from "./split-pipe";
 import { AssetsMap } from "../assets-map";
 import { HydraulicModel } from "../hydraulic-model";
@@ -39,7 +39,7 @@ export const addLink: ModelOperation<InputData> = (hydraulicModel, data) => {
   const endNodeCopy = endNode.copy();
 
   addMissingLabels(
-    hydraulicModel.labelManager,
+    assetFactory.labelManager,
     linkCopy,
     startNodeCopy,
     endNodeCopy,
@@ -170,24 +170,24 @@ const inferNodeActiveTopologyStatus = (
 };
 
 const addMissingLabels = (
-  labelGenerator: LabelGenerator,
+  labelManager: LabelManager,
   link: LinkAsset,
   startNode: NodeAsset,
   endNode: NodeAsset,
 ) => {
   if (link.label === "") {
-    link.setProperty("label", labelGenerator.generateFor(link.type, link.id));
+    link.setProperty("label", labelManager.generateFor(link.type, link.id));
   }
   if (startNode.label === "") {
     startNode.setProperty(
       "label",
-      labelGenerator.generateFor(startNode.type, startNode.id),
+      labelManager.generateFor(startNode.type, startNode.id),
     );
   }
   if (endNode.label === "") {
     endNode.setProperty(
       "label",
-      labelGenerator.generateFor(endNode.type, endNode.id),
+      labelManager.generateFor(endNode.type, endNode.id),
     );
   }
 };

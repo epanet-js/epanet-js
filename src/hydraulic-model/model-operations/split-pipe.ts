@@ -3,6 +3,7 @@ import { Pipe, PipeProperties } from "../asset-types/pipe";
 import { ModelOperation } from "../model-operation";
 import { HydraulicModel } from "../hydraulic-model";
 import { AssetFactory } from "../factories/asset-factory";
+import { LabelManager } from "../label-manager";
 import { CustomerPoint } from "../customer-points";
 import { findJunctionForCustomerPoint } from "../utilities/junction-assignment";
 import { lineString, point } from "@turf/helpers";
@@ -154,13 +155,13 @@ const splitPipeIteratively = (
     remainingSplits = remainingSplits.slice(1);
   }
 
-  relabelPipes(hydraulicModel, currentPipes, baseLabel);
+  relabelPipes(assetFactory.labelManager, currentPipes, baseLabel);
 
   return currentPipes;
 };
 
 const relabelPipes = (
-  hydraulicModel: HydraulicModel,
+  labelManager: LabelManager,
   pipes: Pipe[],
   baseLabel: string,
 ): void => {
@@ -169,7 +170,7 @@ const relabelPipes = (
   pipes[0].setProperty("label", baseLabel);
 
   for (let i = 1; i < pipes.length; i++) {
-    const newLabel = hydraulicModel.labelManager.generateNextLabel(
+    const newLabel = labelManager.generateNextLabel(
       i === 1 ? baseLabel : pipes[i - 1].label,
     );
     pipes[i].setProperty("label", newLabel);

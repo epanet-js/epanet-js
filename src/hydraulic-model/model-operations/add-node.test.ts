@@ -6,19 +6,21 @@ import {
 } from "src/__helpers__/hydraulic-model-builder";
 import { AssetFactory } from "../factories/asset-factory";
 import { ConsecutiveIdsGenerator } from "src/lib/id-generator";
-import { LabelManager } from "../label-manager";
+import { HydraulicModel } from "../hydraulic-model";
 import { presets } from "src/lib/project-settings/quantities-spec";
 
-const assetFactory = new AssetFactory(
-  presets.LPS.defaults,
-  new ConsecutiveIdsGenerator(),
-  new LabelManager(),
-);
+const createAssetFactory = (hydraulicModel: HydraulicModel) =>
+  new AssetFactory(
+    presets.LPS.defaults,
+    new ConsecutiveIdsGenerator(),
+    hydraulicModel.labelManager,
+  );
 
 describe("addNode", () => {
   describe("without pipe splitting (backward compatibility)", () => {
     it("adds a junction with generated label", () => {
       const hydraulicModel = HydraulicModelBuilder.with().build();
+      const assetFactory = createAssetFactory(hydraulicModel);
 
       const { putAssets } = addNode(hydraulicModel, {
         assetFactory,
@@ -39,6 +41,7 @@ describe("addNode", () => {
 
     it("adds a reservoir with specified elevation", () => {
       const hydraulicModel = HydraulicModelBuilder.with().build();
+      const assetFactory = createAssetFactory(hydraulicModel);
 
       const { putAssets } = addNode(hydraulicModel, {
         assetFactory,
@@ -58,6 +61,7 @@ describe("addNode", () => {
 
     it("adds a tank with default elevation", () => {
       const hydraulicModel = HydraulicModelBuilder.with().build();
+      const assetFactory = createAssetFactory(hydraulicModel);
 
       const { putAssets } = addNode(hydraulicModel, {
         assetFactory,
@@ -86,6 +90,7 @@ describe("addNode", () => {
           endNodeId: IDS.J2,
         })
         .build();
+      const assetFactory = createAssetFactory(hydraulicModel);
 
       const originalPipe = hydraulicModel.assets.get(IDS.P1);
       expect(originalPipe).toBeDefined();
@@ -133,6 +138,7 @@ describe("addNode", () => {
           endNodeId: IDS.J2,
         })
         .build();
+      const assetFactory = createAssetFactory(hydraulicModel);
 
       const nodeCoordinates: [number, number] = [5.123, 0.456];
 
@@ -165,6 +171,7 @@ describe("addNode", () => {
           label: "MainPipe",
         })
         .build();
+      const assetFactory = createAssetFactory(hydraulicModel);
 
       const { putAssets, deleteAssets } = addNode(hydraulicModel, {
         assetFactory,
@@ -187,6 +194,7 @@ describe("addNode", () => {
 
     it("throws error for invalid pipe ID", () => {
       const hydraulicModel = HydraulicModelBuilder.with().build();
+      const assetFactory = createAssetFactory(hydraulicModel);
       const NonExistentPipeId = 1;
 
       expect(() =>
@@ -205,6 +213,7 @@ describe("addNode", () => {
       const hydraulicModel = HydraulicModelBuilder.with()
         .aNode(IDS.J1, [0, 0])
         .build();
+      const assetFactory = createAssetFactory(hydraulicModel);
 
       expect(() =>
         addNode(hydraulicModel, {
@@ -228,6 +237,7 @@ describe("addNode", () => {
           label: "MainPipe",
         })
         .build();
+      const assetFactory = createAssetFactory(hydraulicModel);
 
       const { putAssets } = addNode(hydraulicModel, {
         assetFactory,
@@ -255,6 +265,7 @@ describe("addNode", () => {
           endNodeId: IDS.J2,
         })
         .build();
+      const assetFactory = createAssetFactory(hydraulicModel);
 
       const customerPoint = buildCustomerPoint(IDS.CP1, {
         coordinates: [3, 1],
@@ -299,6 +310,7 @@ describe("addNode", () => {
           isActive: true,
         })
         .build();
+      const assetFactory = createAssetFactory(hydraulicModel);
 
       const { putAssets } = addNode(hydraulicModel, {
         assetFactory,
@@ -323,6 +335,7 @@ describe("addNode", () => {
           isActive: false,
         })
         .build();
+      const assetFactory = createAssetFactory(hydraulicModel);
 
       const { putAssets } = addNode(hydraulicModel, {
         assetFactory,
@@ -340,6 +353,7 @@ describe("addNode", () => {
   describe("node type validation", () => {
     it("throws error for unsupported node type", () => {
       const hydraulicModel = HydraulicModelBuilder.with().build();
+      const assetFactory = createAssetFactory(hydraulicModel);
 
       expect(() =>
         addNode(hydraulicModel, {
@@ -367,6 +381,7 @@ describe("addNode", () => {
         ],
       })
       .build();
+    const assetFactory = createAssetFactory(hydraulicModel);
 
     const { putAssets } = addNode(hydraulicModel, {
       assetFactory,
@@ -405,6 +420,7 @@ describe("addNode", () => {
         ],
       })
       .build();
+    const assetFactory = createAssetFactory(hydraulicModel);
 
     const { putAssets } = addNode(hydraulicModel, {
       assetFactory,
@@ -444,6 +460,7 @@ describe("addNode", () => {
         ],
       })
       .build();
+    const assetFactory = createAssetFactory(hydraulicModel);
 
     const { putAssets } = addNode(hydraulicModel, {
       assetFactory,

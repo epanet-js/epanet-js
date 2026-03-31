@@ -21,8 +21,7 @@ export const replaceNode: ModelOperation<InputData> = (
   hydraulicModel,
   { oldNodeId, newNodeType, assetFactory },
 ) => {
-  const { assets, topology, labelManager, customerPointsLookup } =
-    hydraulicModel;
+  const { assets, topology, customerPointsLookup } = hydraulicModel;
 
   const oldNode = assets.get(oldNodeId) as NodeAsset;
   if (!oldNode || !isNodeAsset(oldNode)) {
@@ -40,9 +39,6 @@ export const replaceNode: ModelOperation<InputData> = (
     oldElevation,
     oldIsActive,
   );
-
-  const newLabel = labelManager.generateFor(newNodeType, newNode.id);
-  newNode.setProperty("label", newLabel);
 
   const connectedLinkIds = topology.getLinks(oldNodeId);
   const updatedLinks: LinkAsset[] = [];

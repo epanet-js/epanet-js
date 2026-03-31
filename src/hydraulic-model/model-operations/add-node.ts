@@ -1,7 +1,7 @@
 import { NodeAsset, AssetId } from "../asset-types";
 import { Pipe } from "../asset-types/pipe";
 import { ModelOperation } from "../model-operation";
-import { LabelGenerator } from "../label-manager";
+import { LabelManager } from "../label-manager";
 import { Position } from "src/types";
 import { HydraulicModel } from "../hydraulic-model";
 import { AssetFactory } from "../factories/asset-factory";
@@ -42,7 +42,7 @@ export const addNode: ModelOperation<InputData> = (
     elevation,
     isActive,
   );
-  addMissingLabel(hydraulicModel.labelManager, node);
+  addMissingLabel(assetFactory.labelManager, node);
 
   if (pipeIdToSplit) {
     return addNodeWithPipeSplitting(
@@ -130,8 +130,8 @@ const getInheritedActiveTopologyStatus = (
   return pipe.feature.properties.isActive;
 };
 
-const addMissingLabel = (labelGenerator: LabelGenerator, node: NodeAsset) => {
+const addMissingLabel = (labelManager: LabelManager, node: NodeAsset) => {
   if (node.label === "") {
-    node.setProperty("label", labelGenerator.generateFor(node.type, node.id));
+    node.setProperty("label", labelManager.generateFor(node.type, node.id));
   }
 };

@@ -92,7 +92,7 @@ export type TankBuildData = {
 };
 
 import { IdGenerator } from "src/lib/id-generator";
-import { LabelGenerator } from "../label-manager";
+import { LabelManager } from "../label-manager";
 import { DefaultsSpec } from "src/lib/project-settings/quantities-spec";
 import {
   PumpDefintionType,
@@ -111,16 +111,16 @@ import { PatternId } from "../patterns";
 export class AssetFactory {
   private defaults: DefaultsSpec;
   private idGenerator: IdGenerator;
-  readonly labelGenerator: LabelGenerator;
+  readonly labelManager: LabelManager;
 
   constructor(
     defaults: DefaultsSpec,
     idGenerator: IdGenerator,
-    labelGenerator: LabelGenerator,
+    labelManager: LabelManager,
   ) {
     this.defaults = defaults;
     this.idGenerator = idGenerator;
-    this.labelGenerator = labelGenerator;
+    this.labelManager = labelManager;
   }
 
   createPipe({
@@ -144,7 +144,7 @@ export class AssetFactory {
       label:
         label !== undefined
           ? label
-          : this.labelGenerator.generateFor("pipe", internalId),
+          : this.labelManager.generateFor("pipe", internalId),
       connections,
       initialStatus,
       length: this.getPipeValue("length", length),
@@ -177,7 +177,7 @@ export class AssetFactory {
       label:
         label !== undefined
           ? label
-          : this.labelGenerator.generateFor("valve", internalId),
+          : this.labelManager.generateFor("valve", internalId),
       connections,
       length: 10,
       diameter: this.getValveValue("diameter", diameter),
@@ -216,7 +216,7 @@ export class AssetFactory {
       label:
         label !== undefined
           ? label
-          : this.labelGenerator.generateFor("pump", internalId),
+          : this.labelManager.generateFor("pump", internalId),
       connections,
       length: 10,
       initialStatus,
@@ -252,7 +252,7 @@ export class AssetFactory {
       label:
         label !== undefined
           ? label
-          : this.labelGenerator.generateFor("junction", internalId),
+          : this.labelManager.generateFor("junction", internalId),
       elevation: this.getJunctionValue("elevation", elevation),
       emitterCoefficient: emitterCoefficient ?? 0,
       initialWaterAge: initialWaterAge ?? 0,
@@ -289,7 +289,7 @@ export class AssetFactory {
       label:
         label !== undefined
           ? label
-          : this.labelGenerator.generateFor("reservoir", internalId),
+          : this.labelManager.generateFor("reservoir", internalId),
       head: headValue,
       headPatternId,
       elevation: elevationValue,
@@ -321,7 +321,7 @@ export class AssetFactory {
       label:
         label !== undefined
           ? label
-          : this.labelGenerator.generateFor("tank", internalId),
+          : this.labelManager.generateFor("tank", internalId),
       elevation: this.getTankValue("elevation", elevation),
       initialLevel: this.getTankValue("initialLevel", initialLevel),
       minLevel: this.getTankValue("minLevel", minLevel),

@@ -4,14 +4,15 @@ import { replaceNode } from "./replace-node";
 import { NodeAsset, LinkAsset } from "src/hydraulic-model/asset-types";
 import { AssetFactory } from "../factories/asset-factory";
 import { ConsecutiveIdsGenerator } from "src/lib/id-generator";
-import { LabelManager } from "../label-manager";
+import { HydraulicModel } from "../hydraulic-model";
 import { presets } from "src/lib/project-settings/quantities-spec";
 
-const assetFactory = new AssetFactory(
-  presets.LPS.defaults,
-  new ConsecutiveIdsGenerator(),
-  new LabelManager(),
-);
+const createAssetFactory = (hydraulicModel: HydraulicModel) =>
+  new AssetFactory(
+    presets.LPS.defaults,
+    new ConsecutiveIdsGenerator(),
+    hydraulicModel.labelManager,
+  );
 
 describe("replaceNode", () => {
   it("replaces junction with tank and preserves connections", () => {
@@ -21,6 +22,7 @@ describe("replaceNode", () => {
       .aJunction(IDS.J2, { coordinates: [30, 40] })
       .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
       .build();
+    const assetFactory = createAssetFactory(model);
 
     const moment = replaceNode(model, {
       assetFactory,
@@ -51,6 +53,7 @@ describe("replaceNode", () => {
       .aJunction(IDS.J1, { coordinates: [15, 15] })
       .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
       .build();
+    const assetFactory = createAssetFactory(model);
 
     const moment = replaceNode(model, {
       assetFactory,
@@ -82,6 +85,7 @@ describe("replaceNode", () => {
       .aPipe(IDS.P2, { startNodeId: IDS.T1, endNodeId: IDS.J2 })
       .aPipe(IDS.P3, { startNodeId: IDS.J3, endNodeId: IDS.T1 })
       .build();
+    const assetFactory = createAssetFactory(model);
 
     const moment = replaceNode(model, {
       assetFactory,
@@ -115,6 +119,7 @@ describe("replaceNode", () => {
     const model = HydraulicModelBuilder.with()
       .aJunction(IDS.J1, { coordinates: [5, 5] })
       .build();
+    const assetFactory = createAssetFactory(model);
 
     const moment = replaceNode(model, {
       assetFactory,
@@ -136,6 +141,7 @@ describe("replaceNode", () => {
       })
       .aJunctionDemand(IDS.J1, [{ baseDemand: 50 }])
       .build();
+    const assetFactory = createAssetFactory(model);
 
     const moment = replaceNode(model, {
       assetFactory,
@@ -154,6 +160,7 @@ describe("replaceNode", () => {
     const model = HydraulicModelBuilder.with()
       .aJunction(IDS.J1, { coordinates: [0, 0] })
       .build();
+    const assetFactory = createAssetFactory(model);
 
     const moment = replaceNode(model, {
       assetFactory,
@@ -171,6 +178,7 @@ describe("replaceNode", () => {
 
   it("throws error for invalid node ID", () => {
     const model = HydraulicModelBuilder.empty();
+    const assetFactory = createAssetFactory(model);
     const invalidNodeId = 1;
 
     expect(() =>
@@ -189,6 +197,7 @@ describe("replaceNode", () => {
       .aJunction(IDS.J2, { coordinates: [10, 10] })
       .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
       .build();
+    const assetFactory = createAssetFactory(model);
 
     expect(() =>
       replaceNode(model, {
@@ -214,6 +223,7 @@ describe("replaceNode", () => {
         },
       })
       .build();
+    const assetFactory = createAssetFactory(model);
 
     const moment = replaceNode(model, {
       assetFactory,
@@ -234,6 +244,7 @@ describe("replaceNode", () => {
     const model = HydraulicModelBuilder.with()
       .aJunction(IDS.J1, { coordinates: [0, 0], isActive: true })
       .build();
+    const assetFactory = createAssetFactory(model);
 
     const moment = replaceNode(model, {
       assetFactory,
@@ -250,6 +261,7 @@ describe("replaceNode", () => {
     const model = HydraulicModelBuilder.with()
       .aJunction(IDS.J1, { coordinates: [0, 0], isActive: false })
       .build();
+    const assetFactory = createAssetFactory(model);
 
     const moment = replaceNode(model, {
       assetFactory,
@@ -269,6 +281,7 @@ describe("replaceNode", () => {
       .aJunction(IDS.J2, { coordinates: [10, 0] })
       .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
       .build();
+    const assetFactory = createAssetFactory(model);
 
     const moment = replaceNode(model, {
       assetFactory,
@@ -286,6 +299,7 @@ describe("replaceNode", () => {
     const model = HydraulicModelBuilder.with()
       .aJunction(IDS.J1, { coordinates: [0, 0] })
       .build();
+    const assetFactory = createAssetFactory(model);
 
     const moment = replaceNode(model, {
       assetFactory,
@@ -303,6 +317,7 @@ describe("replaceNode", () => {
       .aJunction(IDS.J1, { coordinates: [10, 0] })
       .aPipe(IDS.P1, { startNodeId: IDS.T1, endNodeId: IDS.J1 })
       .build();
+    const assetFactory = createAssetFactory(model);
 
     const moment = replaceNode(model, {
       assetFactory,
