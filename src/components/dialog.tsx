@@ -1,11 +1,10 @@
-import { Suspense, useCallback, type ReactNode } from "react";
+import { useCallback, type ReactNode } from "react";
 import clsx from "clsx";
 import {
   Button,
   DefaultErrorBoundary,
   Loading,
   StyledDialogContent,
-  StyledDialogContentNew,
   StyledDialogOverlay,
 } from "src/components/elements";
 import { useTranslate } from "src/hooks/use-translate";
@@ -35,86 +34,6 @@ export const LoadingDialog = () => {
     <BaseDialog size="xs" isOpen={true} onClose={closeDialog}>
       <Loading />
     </BaseDialog>
-  );
-};
-
-export const DialogContainer = ({
-  size = "md",
-  height,
-  fillMode = "full",
-  children,
-  disableOutsideClick = false,
-  onClose,
-}: {
-  size?: "xs" | "sm" | "md" | "lg" | "xl" | "xxl" | "fullscreen";
-  height?: "md" | "lg" | "xl" | "xxl" | "fullscreen";
-  fillMode?: "full" | "auto";
-  children: React.ReactNode;
-  disableOutsideClick?: boolean;
-  onClose?: () => void;
-}) => {
-  const { closeDialog } = useDialogState();
-  const handleClose = onClose ?? closeDialog;
-
-  return (
-    <Dialog.Root
-      open={!!children}
-      onOpenChange={(isOpen) => {
-        if (!isOpen) {
-          handleClose();
-        }
-      }}
-    >
-      <Dialog.Trigger className="hidden">
-        <div className="hidden"></div>
-      </Dialog.Trigger>
-      <Dialog.Portal>
-        <StyledDialogOverlay />
-        <Suspense fallback={<Loading />}>
-          <Dialog.Title></Dialog.Title>
-          <Dialog.Description></Dialog.Description>
-          <StyledDialogContent
-            widthClasses=""
-            onEscapeKeyDown={(e) => {
-              const target = e.target as HTMLElement;
-              const isInputFocused =
-                target.tagName === "INPUT" ||
-                target.tagName === "TEXTAREA" ||
-                target.isContentEditable;
-              const shouldCaptureEscape = target.closest(
-                "[data-capture-escape-key]",
-              );
-              if (isInputFocused || shouldCaptureEscape) {
-                e.preventDefault();
-                return;
-              }
-              e.stopPropagation();
-              handleClose();
-            }}
-            onInteractOutside={(e) => {
-              const target = e.target as HTMLElement;
-              if (target.closest("[data-privacy-banner]")) {
-                e.preventDefault();
-                return;
-              }
-              if (target.closest("[data-notification]")) {
-                e.preventDefault();
-                return;
-              }
-              if (disableOutsideClick) {
-                e.preventDefault();
-              }
-            }}
-            onOpenAutoFocus={(e) => e.preventDefault()}
-            size={size}
-            height={height}
-            fillMode={fillMode}
-          >
-            <DefaultErrorBoundary>{children}</DefaultErrorBoundary>
-          </StyledDialogContent>
-        </Suspense>
-      </Dialog.Portal>
-    </Dialog.Root>
   );
 };
 
@@ -197,7 +116,7 @@ export const BaseDialog = ({
       <Dialog.Portal>
         <StyledDialogOverlay />
         <div className="fixed inset-0 z-40 flex items-center justify-center p-4">
-          <StyledDialogContentNew
+          <StyledDialogContent
             size={size}
             height={height}
             onOpenAutoFocus={(e) => e.preventDefault()}
@@ -214,7 +133,7 @@ export const BaseDialog = ({
                 {footer && <DialogFooter>{footer}</DialogFooter>}
               </div>
             </DefaultErrorBoundary>
-          </StyledDialogContentNew>
+          </StyledDialogContent>
         </div>
       </Dialog.Portal>
     </Dialog.Root>
