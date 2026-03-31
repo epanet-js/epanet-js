@@ -27,7 +27,7 @@
   ],
   "dependencies": {
     "@clerk/localizations": "^3.11.0",
-    "@clerk/nextjs": "^6.12.3",
+    "@clerk/nextjs": "^6.39.1",
     "@codemirror/commands": "^6.5.0",
     "@codemirror/lang-json": "^6.0.1",
     "@codemirror/language": "^6.10.1",
