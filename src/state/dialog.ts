@@ -126,7 +126,7 @@ export type RenameScenarioDialogState = {
   onConfirm: (scenarioId: string, newName: string) => void;
 };
 
-export type PaywallFeature = "scenarios" | "elevations";
+export type PaywallFeature = "scenarios" | "elevations" | "customLayers";
 
 export type FeaturePaywallDialogState = {
   type: "featurePaywall";

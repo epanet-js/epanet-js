@@ -56,6 +56,29 @@
   "customerPattern": "Customer demand pattern",
   "customerPoints": "Customer points",
   "customers": "customers",
+  "customLayers": {
+    "addCustom": "Add custom",
+    "addLayer": "Add layer",
+    "checkMapboxDocs": "See Mapbox documentation on",
+    "chooseType": "Choose type",
+    "supports": "Supports",
+    "toggleLabelsVisibility": "Toggle labels visibility",
+    "toggleVisibility": "Toggle visibility",
+    "updateLayer": "Update layer",
+    "xyzURLContain": "XYZ URL should contain {z}, {x} and {y}.",
+    "paywall": {
+      "title": "Upgrade to add custom layers",
+      "description1": "Bring your own map layers into epanet-js using XYZ tiles, Mapbox styles, or TileJSON.",
+      "description2": "Overlay satellite imagery, terrain, or custom basemaps directly on your hydraulic model.",
+      "plans": "Custom layers are available on paid plans.",
+      "trial": "Custom layers are a paid feature. Activate your free trial to get full access for 14 days—no credit card required.",
+      "captions": {
+        "1": "Add your own map layers to epanet-js",
+        "2": "Use XYZ tiles, Mapbox, or TileJSON sources",
+        "3": "Overlay custom basemaps on your hydraulic model"
+      }
+    }
+  },
   "elevations": {
     "title": "Elevations",
     "paywall": {
