@@ -25,6 +25,7 @@ import {
   UserButton,
   OrganizationSwitcher,
   useAuth,
+  useOrganization,
 } from "src/auth";
 import { SignInButton, SignUpButton } from "./auth-buttons";
 import { useShowWelcome } from "src/commands/show-welcome";
@@ -85,6 +86,8 @@ export const MenuBarPlay = memo(function MenuBar() {
   const isActivateTrialOn = useFeatureFlag("FLAG_ACTIVATE_TRIAL");
   const isIteratingLogoOn = useFeatureFlag("FLAG_ITERATING_LOGO");
   const isOrgsOn = useFeatureFlag("FLAG_ORGS");
+  const { organization } = useOrganization();
+  const isInOrg = isOrgsOn && !!organization;
 
   return (
     <div className="flex justify-between h-12 pr-2 text-black dark:text-white">
@@ -134,7 +137,7 @@ export const MenuBarPlay = memo(function MenuBar() {
             />
             {isMdOrLarger && (
               <>
-                <PlanBadge plan={user.plan} />
+                {!isInOrg && <PlanBadge plan={user.plan} />}
                 {isOrgsOn && (
                   <OrganizationSwitcher
                     appearance={{

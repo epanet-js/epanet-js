@@ -11,6 +11,7 @@ import {
   useAuth as useClerkAuth,
   useUser as useClerkUser,
   useOrganizationList,
+  useOrganization as useClerkOrganization,
 } from "@clerk/nextjs";
 import { captureWarning } from "src/infra/error-tracking";
 import { enUS, esES } from "@clerk/localizations";
@@ -158,6 +159,10 @@ const OrganizationSwitcherWithMembership = (
 export const OrganizationSwitcher = isAuthEnabled
   ? OrganizationSwitcherWithMembership
   : () => null;
+
+export const useOrganization = isAuthEnabled
+  ? useClerkOrganization
+  : () => ({ organization: null });
 
 export const RedirectToSignIn = isAuthEnabled
   ? ClerkRedirectToSignIn
