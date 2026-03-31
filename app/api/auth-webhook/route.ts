@@ -13,7 +13,7 @@ import {
 import { captureError } from "src/infra/error-tracking";
 import { addToSubscribers } from "src/infra/newsletter";
 import { logger } from "src/infra/server-logger";
-import { assignEducationPlan, parseData } from "src/user-management";
+import { assignEducationPlan, parseData } from "src/lib/user-management";
 import { Plan } from "src/lib/account-plans";
 
 export async function POST(request: NextRequest) {

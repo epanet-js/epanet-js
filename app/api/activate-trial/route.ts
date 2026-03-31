@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth, currentUser } from "@clerk/nextjs/server";
-import { activateTrial } from "src/user-management";
+import { activateTrial } from "src/lib/user-management";
 import { logger } from "src/infra/server-logger";
 import {
   buildTrialActivatedMessage,

@@ -3,7 +3,7 @@ import { User, auth, currentUser } from "@clerk/nextjs/server";
 import { logger } from "src/infra/server-logger";
 import Stripe from "stripe";
 import { buildUserUpgradedMessage, sendWithoutCrashing } from "src/infra/slack";
-import { upgradeUser } from "src/user-management";
+import { upgradeUser } from "src/lib/user-management";
 
 export async function GET(request: NextRequest) {
   const { userId } = await auth();

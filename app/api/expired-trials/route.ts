@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { logger } from "src/infra/server-logger";
 import { buildTrialExpiredMessage, sendWithoutCrashing } from "src/infra/slack";
-import { getRecentlyExpiredTrials } from "src/user-management";
+import { getRecentlyExpiredTrials } from "src/lib/user-management";
 
 export const dynamic = "force-dynamic";
 

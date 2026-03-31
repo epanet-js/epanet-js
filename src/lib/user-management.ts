@@ -3,7 +3,7 @@ import {
   UserJSON,
   clerkClient as instanceClerkClient,
 } from "@clerk/nextjs/server";
-import { logger } from "./infra/server-logger";
+import { logger } from "src/infra/server-logger";
 
 type ClerkClient = Awaited<ReturnType<typeof instanceClerkClient>>;
 
