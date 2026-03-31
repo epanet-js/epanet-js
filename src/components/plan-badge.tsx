@@ -8,6 +8,8 @@ const planStyles: Record<string, string> = {
     "bg-gradient-to-r from-blue-200 via-blue-300 to-blue-400 text-gray-700 font-bold shadow-md",
   education:
     "bg-gradient-to-r from-green-300 via-green-400 to-green-600 text-gray-100 font-bold shadow-md",
+  teams:
+    "bg-gradient-to-r from-indigo-200 via-indigo-300 to-indigo-400 text-indigo-800 font-bold shadow-md",
 };
 
 const planBadgeText: Record<Plan, string> = {
@@ -15,6 +17,7 @@ const planBadgeText: Record<Plan, string> = {
   pro: "PRO",
   personal: "PERS",
   education: "EDU",
+  teams: "TEAMS",
 };
 
 export const PlanBadge = ({ plan }: { plan: Plan }) => {

@@ -16,6 +16,7 @@ import { AuthMockProvider, useAuthMock } from "src/__helpers__/auth-mock";
 vi.mock("src/auth", () => ({
   useAuth: useAuthMock,
   AuthProvider: AuthMockProvider,
+  useOrganization: () => ({ organization: null }),
 }));
 
 vi.mock("src/infra/storage", async (importOriginal) => {

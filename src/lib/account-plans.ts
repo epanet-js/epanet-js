@@ -1,4 +1,4 @@
-export type Plan = "free" | "pro" | "personal" | "education";
+export type Plan = "free" | "pro" | "personal" | "education" | "teams";
 
 export const isTrialActive = (user: {
   hasUsedTrial: boolean;

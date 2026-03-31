@@ -11,7 +11,7 @@ describe("resolvePermissions", () => {
     expect(p.canUpgrade).toBe(true);
   });
 
-  it.each(["pro", "personal", "education"] satisfies Plan[])(
+  it.each(["pro", "personal", "education", "teams"] satisfies Plan[])(
     "%s plan can use all features but cannot upgrade",
     (plan) => {
       const p = resolvePermissions(plan);
