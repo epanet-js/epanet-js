@@ -214,13 +214,17 @@ function MapboxLayer({
     <Form
       schema={zLayerConfig}
       initialValues={initialValues}
-      submitText={isEditing ? translate("updateLayer") : translate("addLayer")}
+      submitText={
+        isEditing
+          ? translate("customLayers.updateLayer")
+          : translate("customLayers.addLayer")
+      }
       fullWidthSubmit
       onSubmit={handleSubmit}
     >
       <LayerFormHeader isEditing={isEditing}>Mapbox</LayerFormHeader>
       <TextWell variant="primary" size="xs">
-        {translate("checkMapboxDocs")}{" "}
+        {translate("customLayers.checkMapboxDocs")}{" "}
         <a
           target="_blank"
           rel="noreferrer"
@@ -276,7 +280,11 @@ function TileJSONLayer({
     <Form
       schema={zLayerConfig}
       initialValues={initialValues}
-      submitText={isEditing ? translate("updateLayer") : translate("addLayer")}
+      submitText={
+        isEditing
+          ? translate("customLayers.updateLayer")
+          : translate("customLayers.addLayer")
+      }
       fullWidthSubmit
       onSubmit={async (values) => {
         try {
@@ -310,7 +318,7 @@ function TileJSONLayer({
     >
       <LayerFormHeader isEditing={isEditing}>TileJSON</LayerFormHeader>
       <TextWell variant="primary" size="xs">
-        {translate("supports")}{" "}
+        {translate("customLayers.supports")}{" "}
         <a
           target="_blank"
           rel="noreferrer"
@@ -367,7 +375,11 @@ function XYZLayer({
     <Form
       schema={zLayerConfig}
       initialValues={initialValues}
-      submitText={isEditing ? translate("updateLayer") : translate("addLayer")}
+      submitText={
+        isEditing
+          ? translate("customLayers.updateLayer")
+          : translate("customLayers.addLayer")
+      }
       fullWidthSubmit
       onSubmit={(values) => {
         userTracking.capture({
@@ -394,7 +406,7 @@ function XYZLayer({
       <LayerFormHeader isEditing={isEditing}>XYZ</LayerFormHeader>
 
       <TextWell variant="primary" size="xs">
-        {translate("supports")}{" "}
+        {translate("customLayers.supports")}{" "}
         <a
           target="_blank"
           rel="noreferrer"
@@ -421,7 +433,7 @@ function XYZLayer({
         type="url"
         placeholder="https://…"
       />
-      <TextWell>{translate("xyzURLContain")}</TextWell>
+      <TextWell>{translate("customLayers.xyzURLContain")}</TextWell>
       <label className="flex items-center gap-x-2 text-sm py-2">
         <E.FieldCheckbox name="tms" type="checkbox" /> TMS
       </label>
@@ -469,13 +481,13 @@ function AddLayer({ onClose }: { onClose: () => void }) {
     >
       <P.Trigger asChild>
         <E.Button
-          aria-label={translate("addCustom")}
+          aria-label={translate("customLayers.addCustom")}
           onClick={() => {
             userTracking.capture({ name: "addCustomLayer.clicked" });
           }}
         >
           <AddIcon />
-          {translate("addCustom")}
+          {translate("customLayers.addCustom")}
         </E.Button>
       </P.Trigger>
 
@@ -491,7 +503,9 @@ function AddLayer({ onClose }: { onClose: () => void }) {
               .with("custom", () => (
                 <div className="p-3">
                   <div className="flex justify-between items-center pb-3">
-                    <div className="font-bold">{translate("chooseType")}</div>
+                    <div className="font-bold">
+                      {translate("customLayers.chooseType")}
+                    </div>
                   </div>
                   <div className="space-y-2 grid grid-cols-1">
                     <LayerTypeButton
@@ -682,7 +696,7 @@ const VisibilityToggle = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
   return (
     <div
       role="checkbox"
-      title={translate("toggleVisibility")}
+      title={translate("customLayers.toggleVisibility")}
       aria-checked={layerConfig.visibility}
       className={"opacity-30 hover:opacity-100 select-none cursor-pointer"}
       onClick={() => {
@@ -715,7 +729,7 @@ const LabelsToggle = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
   return (
     <div
       role="checkbox"
-      title={translate("toggleLabelsVisibility")}
+      title={translate("customLayers.toggleLabelsVisibility")}
       aria-checked={layerConfig.labelVisibility}
       className={"opacity-30 hover:opacity-100 select-none cursor-pointer"}
       onClick={() => {

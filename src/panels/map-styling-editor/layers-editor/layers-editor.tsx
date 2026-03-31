@@ -215,13 +215,17 @@ function MapboxLayer({
     <Form
       schema={zLayerConfig}
       initialValues={initialValues}
-      submitText={isEditing ? translate("updateLayer") : translate("addLayer")}
+      submitText={
+        isEditing
+          ? translate("customLayers.updateLayer")
+          : translate("customLayers.addLayer")
+      }
       fullWidthSubmit
       onSubmit={handleSubmit}
     >
       <LayerFormHeader isEditing={isEditing}>Mapbox</LayerFormHeader>
       <TextWell variant="primary" size="xs">
-        {translate("checkMapboxDocs")}{" "}
+        {translate("customLayers.checkMapboxDocs")}{" "}
         <a
           target="_blank"
           rel="noreferrer"
@@ -278,7 +282,11 @@ function TileJSONLayer({
     <Form
       schema={zLayerConfig}
       initialValues={initialValues}
-      submitText={isEditing ? translate("updateLayer") : translate("addLayer")}
+      submitText={
+        isEditing
+          ? translate("customLayers.updateLayer")
+          : translate("customLayers.addLayer")
+      }
       fullWidthSubmit
       onSubmit={async (values) => {
         try {
@@ -312,7 +320,7 @@ function TileJSONLayer({
     >
       <LayerFormHeader isEditing={isEditing}>TileJSON</LayerFormHeader>
       <TextWell variant="primary" size="xs">
-        {translate("supports")}{" "}
+        {translate("customLayers.supports")}{" "}
         <a
           target="_blank"
           rel="noreferrer"
@@ -369,7 +377,11 @@ function XYZLayer({
     <Form
       schema={zLayerConfig}
       initialValues={initialValues}
-      submitText={isEditing ? translate("updateLayer") : translate("addLayer")}
+      submitText={
+        isEditing
+          ? translate("customLayers.updateLayer")
+          : translate("customLayers.addLayer")
+      }
       fullWidthSubmit
       onSubmit={(values) => {
         userTracking.capture({
@@ -396,7 +408,7 @@ function XYZLayer({
       <LayerFormHeader isEditing={isEditing}>XYZ</LayerFormHeader>
 
       <TextWell variant="primary" size="xs">
-        {translate("supports")}{" "}
+        {translate("customLayers.supports")}{" "}
         <a
           target="_blank"
           rel="noreferrer"
@@ -423,7 +435,7 @@ function XYZLayer({
         type="url"
         placeholder="https://…"
       />
-      <TextWell>{translate("xyzURLContain")}</TextWell>
+      <TextWell>{translate("customLayers.xyzURLContain")}</TextWell>
       <label className="flex items-center gap-x-2 text-sm py-2">
         <E.FieldCheckbox name="tms" type="checkbox" /> TMS
       </label>
@@ -443,13 +455,19 @@ export function AddLayer() {
     return limits.canAddCustomLayers(user.plan);
   }, [user]);
 
+  const isCustomLayersPaywallOn = useFeatureFlag("FLAG_CUSTOM_LAYERS_PAYWALL");
+
   const handleUpgrade = () => {
-    userTracking.capture({
-      name: "upgradeButton.clicked",
-      source: "customLayers",
-    });
     setOpen(false);
-    setDialogState({ type: "upgrade" });
+    if (isCustomLayersPaywallOn) {
+      setDialogState({ type: "featurePaywall", feature: "customLayers" });
+    } else {
+      userTracking.capture({
+        name: "upgradeButton.clicked",
+        source: "customLayers",
+      });
+      setDialogState({ type: "upgrade" });
+    }
   };
 
   const handleModeChange = (mode: Mode, type: string) => {
@@ -470,7 +488,7 @@ export function AddLayer() {
     >
       <P.Trigger asChild>
         <E.Button
-          aria-label={translate("addCustom")}
+          aria-label={translate("customLayers.addCustom")}
           size="sm"
           className="w-full justify-center mt-2"
           onClick={() => {
@@ -478,7 +496,7 @@ export function AddLayer() {
           }}
         >
           <AddIcon size="sm" />
-          {translate("addCustom")}
+          {translate("customLayers.addCustom")}
         </E.Button>
       </P.Trigger>
 
@@ -494,7 +512,9 @@ export function AddLayer() {
               .with("custom", () => (
                 <div className="p-3">
                   <div className="flex justify-between items-center pb-3">
-                    <div className="font-bold">{translate("chooseType")}</div>
+                    <div className="font-bold">
+                      {translate("customLayers.chooseType")}
+                    </div>
                   </div>
                   <div className="space-y-2 grid grid-cols-1">
                     <LayerTypeButton
@@ -686,7 +706,7 @@ const VisibilityToggle = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
     <Button
       variant="quiet/mode"
       className="h-8"
-      aria-label={translate("toggleVisibility")}
+      aria-label={translate("customLayers.toggleVisibility")}
       onClick={() => {
         const isVisible = !layerConfig.visibility;
         userTracking.capture({
@@ -718,7 +738,7 @@ const LabelsToggle = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
     <Button
       variant="quiet/mode"
       className="h-8"
-      aria-label={translate("toggleLabelsVisibility")}
+      aria-label={translate("customLayers.toggleLabelsVisibility")}
       onClick={() => {
         const isVisible = !layerConfig.labelVisibility;
         userTracking.capture({
