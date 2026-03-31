@@ -30,7 +30,7 @@ import { SignInButton, SignUpButton } from "./auth-buttons";
 import { useShowWelcome } from "src/commands/show-welcome";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useShowShortcuts } from "src/commands/show-shortcuts";
-import { getTrialDaysRemaining } from "src/user-plan";
+import { getTrialDaysRemaining } from "src/lib/account-plans";
 import { usePermissions } from "src/hooks/use-permissions";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { PlanBadge } from "./plan-badge";

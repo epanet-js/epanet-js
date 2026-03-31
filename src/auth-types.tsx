@@ -1,4 +1,4 @@
-import { Plan } from "./user-plan";
+import { Plan } from "src/lib/account-plans";
 import { Locale } from "./infra/i18n/locale";
 
 export type User = {

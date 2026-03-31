@@ -3,7 +3,7 @@ import { atom, useAtom } from "jotai";
 import { notify } from "src/components/notifications";
 import { captureError } from "src/infra/error-tracking";
 import { useTranslate } from "src/hooks/use-translate";
-import { Plan } from "src/user-plan";
+import { Plan } from "src/lib/account-plans";
 import { ErrorIcon } from "src/icons";
 
 const stripeSDK = loadStripe(

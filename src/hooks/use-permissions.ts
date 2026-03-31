@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useAuth } from "src/auth";
-import { Plan } from "src/user-plan";
+import { Plan } from "src/lib/account-plans";
 
 export type Permissions = {
   canAddCustomLayers: boolean;

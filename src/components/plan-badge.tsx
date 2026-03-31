@@ -1,4 +1,4 @@
-import { Plan } from "src/user-plan";
+import { Plan } from "src/lib/account-plans";
 import { useTranslate } from "src/hooks/use-translate";
 
 const planStyles: Record<string, string> = {

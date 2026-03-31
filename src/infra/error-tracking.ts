@@ -1,5 +1,5 @@
 import * as Sentry from "@sentry/nextjs";
-import { Plan } from "src/user-plan";
+import { Plan } from "src/lib/account-plans";
 
 const isDebugMode = (): boolean => process.env.NODE_ENV === "development";
 

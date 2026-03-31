@@ -16,7 +16,7 @@ import { enUS, esES } from "@clerk/localizations";
 import { getLocale, allSupportedLanguages, Locale } from "./infra/i18n/locale";
 import { nullUser, User, UseAuthHook } from "./auth-types";
 export { ClerkSignInButton, ClerkSignUpButton };
-import { Plan } from "./user-plan";
+import { Plan } from "src/lib/account-plans";
 
 const AUTH_TIMEOUT_MS = 5000;
 

@@ -7,7 +7,7 @@ import { stagingModelAtom } from "src/state/hydraulic-model";
 import { isDemoNetworkAtom } from "src/state/file-system";
 import { simulationAtom } from "src/state/simulation";
 import { useAuth } from "src/auth";
-import { isTrialActive } from "src/user-plan";
+import { isTrialActive } from "src/lib/account-plans";
 import { usePermissions } from "src/hooks/use-permissions";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useUserTracking } from "src/infra/user-tracking";

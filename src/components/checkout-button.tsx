@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import { Button } from "./elements";
-import { Plan } from "src/user-plan";
+import { Plan } from "src/lib/account-plans";
 import { useUserTracking } from "src/infra/user-tracking";
 import { SignInButton, useAuth } from "@clerk/nextjs";
 import {

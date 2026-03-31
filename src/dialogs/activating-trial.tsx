@@ -2,7 +2,7 @@ import { useRef } from "react";
 import { BaseDialog, useDialogState } from "src/components/dialog";
 import { useActivateTrial } from "src/hooks/use-activate-trial";
 import { useAuth } from "src/auth";
-import { isTrialActive } from "src/user-plan";
+import { isTrialActive } from "src/lib/account-plans";
 import { notify } from "src/components/notifications";
 import { RefreshIcon, SuccessIcon } from "src/icons";
 import { useTranslate } from "src/hooks/use-translate";
