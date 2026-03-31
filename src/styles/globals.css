@@ -60,13 +60,13 @@ details > summary {
   cursor: url("/cursors/cursor-default.svg"), auto !important;
 }
 
-body:has(.ff-cursor-family) html,
-body:has(.ff-cursor-family) body,
-body:has(.ff-cursor-family) .placemark-cursor-default .mapboxgl-canvas-container {
+body:has(.custom-cursor-family) html,
+body:has(.custom-cursor-family) body,
+body:has(.custom-cursor-family) .placemark-cursor-default .mapboxgl-canvas-container {
   cursor: var(--cursor-true-default) !important;
 }
 
-body:has(.ff-cursor-family) .cursor-allscroll .mapboxgl-canvas-container {
+body:has(.custom-cursor-family) .cursor-allscroll .mapboxgl-canvas-container {
   cursor: var(--cursor-allscroll) !important;
 }
 
@@ -74,8 +74,8 @@ body:has(.ff-cursor-family) .cursor-allscroll .mapboxgl-canvas-container {
   cursor: pointer !important;
 }
 
-body:has(.ff-cursor-family) .placemark-cursor-pointer .mapboxgl-canvas-container,
-body:has(.ff-cursor-family) :is(
+body:has(.custom-cursor-family) .placemark-cursor-pointer .mapboxgl-canvas-container,
+body:has(.custom-cursor-family) :is(
   a,
   button,
   [type="submit"],
@@ -94,7 +94,7 @@ body:has(.ff-cursor-family) :is(
   cursor: not-allowed !important;
 }
 
-body:has(.ff-cursor-family) :is(
+body:has(.custom-cursor-family) :is(
   :disabled,
   .disabled,
   [data-disabled],
@@ -118,11 +118,11 @@ body:has(.ff-cursor-family) :is(
   cursor: grab !important;
 }
 
-body:has(.ff-cursor-family) .placemark-cursor-grab .mapboxgl-canvas-container {
+body:has(.custom-cursor-family) .placemark-cursor-grab .mapboxgl-canvas-container {
   cursor: var(--cursor-grab) !important;
 }
 
-body:has(.ff-cursor-family) .cursor-move .mapboxgl-canvas-container {
+body:has(.custom-cursor-family) .cursor-move .mapboxgl-canvas-container {
   cursor: var(--cursor-grabbing) !important;
 }
 
@@ -150,7 +150,7 @@ body:has(.ff-cursor-family) .cursor-move .mapboxgl-canvas-container {
   cursor: url("/cursors/cursor-replace.svg") 10 10, auto !important;
 }
 
-body:has(.ff-cursor-family) .cursor-ns-resize {
+body:has(.custom-cursor-family) .cursor-ns-resize {
   cursor: var(--cursor-resize-ns) !important;
 }
 

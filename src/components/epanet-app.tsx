@@ -75,7 +75,6 @@ export function EpanetApp() {
   const { user, isSignedIn } = useAuth();
   const { enableAllTracking } = usePrivacySettings();
   const hasIdentifiedRef = useRef(false);
-  const isCursorFamilyEnabled = useFeatureFlag("FLAG_CURSOR_FAMILY");
   const isIteratingLogoOn = useFeatureFlag("FLAG_ITERATING_LOGO");
   const isSnapshotLocked = useIsSnapshotLocked();
   const isCustomerAllocationDisabled = useIsCustomerAllocationDisabled();
@@ -154,9 +153,7 @@ export function EpanetApp() {
   return (
     <main
       className={
-        isCursorFamilyEnabled
-          ? "ff-cursor-family h-dvh flex flex-col bg-white dark:bg-gray-800"
-          : "h-dvh flex flex-col bg-white dark:bg-gray-800"
+        "custom-cursor-family h-dvh flex flex-col bg-white dark:bg-gray-800"
       }
     >
       <MapContext.Provider value={map}>
