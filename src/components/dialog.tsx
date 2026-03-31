@@ -72,9 +72,9 @@ export function DialogHeader({
       {children && children}
       {title && (
         <div className="flex items-center gap-3 flex-auto min-w-0">
-          <h1 className="text-md font-semibold text-gray-900 break-words sm:truncate">
+          <Dialog.Title className="text-md font-semibold text-gray-900 break-words sm:truncate">
             {title}
-          </h1>
+          </Dialog.Title>
           {badge && badge}
         </div>
       )}
@@ -123,9 +123,11 @@ export const BaseDialog = ({
             onEscapeKeyDown={
               preventClose ? (e) => e.preventDefault() : undefined
             }
+            aria-describedby={undefined}
           >
             <DefaultErrorBoundary>
               <div className="modal-container flex flex-col flex-nowrap flex-1 min-h-0">
+                {!title && <Dialog.Title className="sr-only" />}
                 {title && <DialogHeader title={title} badge={badge} />}
                 <div className="modal-content flex flex-col flex-1 overflow-y-auto min-h-0">
                   {children}
