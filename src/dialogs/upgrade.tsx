@@ -29,7 +29,7 @@ import {
   getCheckoutUrlParams,
   useCheckout,
 } from "src/hooks/use-checkout";
-import { canUpgrade } from "src/user-plan";
+import { usePermissions } from "src/hooks/use-permissions";
 import { signUpUrl } from "src/global-config";
 import { CheckIcon, InfoIcon, CloseIcon } from "src/icons";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
@@ -55,14 +55,15 @@ const prices = {
 };
 
 export const UpgradeDialog = () => {
-  const { isLoaded: isAuthLoaded, isSignedIn, user } = useAuth();
+  const { isLoaded: isAuthLoaded, isSignedIn } = useAuth();
   const { isLoading: isLoadingCheckout, startCheckout } = useCheckout();
+  const { canUpgrade } = usePermissions();
 
   const checkoutParams = getCheckoutUrlParams();
 
   if (isLoadingCheckout || !isAuthLoaded) return <LoadingDialog />;
 
-  if (!canUpgrade(user.plan)) {
+  if (!canUpgrade) {
     return <ChangesFromSupportDialog />;
   }
 

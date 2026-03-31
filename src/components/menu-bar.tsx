@@ -30,7 +30,8 @@ import { SignInButton, SignUpButton } from "./auth-buttons";
 import { useShowWelcome } from "src/commands/show-welcome";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useShowShortcuts } from "src/commands/show-shortcuts";
-import { canUpgrade, getTrialDaysRemaining } from "src/user-plan";
+import { getTrialDaysRemaining } from "src/user-plan";
+import { usePermissions } from "src/hooks/use-permissions";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { PlanBadge } from "./plan-badge";
 import { useSetAtom } from "jotai";
@@ -458,6 +459,8 @@ const TrialOrUpgradeButton = ({
     return { label, isUrgent };
   }, [isActivateTrialOn, user.hasUsedTrial, user.trialEndsAt, translate]);
 
+  const { canUpgrade } = usePermissions();
+
   if (trial) {
     const colorClass = trial.isUrgent
       ? "text-orange-600 dark:text-orange-400"
@@ -470,7 +473,7 @@ const TrialOrUpgradeButton = ({
     );
   }
 
-  if (!canUpgrade(user.plan)) return null;
+  if (!canUpgrade) return null;
 
   return (
     <Button variant="primary" size={size} onClick={onUpgrade}>

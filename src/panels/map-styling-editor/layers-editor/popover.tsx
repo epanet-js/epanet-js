@@ -36,7 +36,7 @@ import {
 } from "@dnd-kit/sortable";
 import { generateKeyBetween } from "fractional-indexing";
 import { useQuery } from "@tanstack/react-query";
-import { ReactNode, Suspense, useCallback, useMemo, useState } from "react";
+import { ReactNode, Suspense, useCallback, useState } from "react";
 import { match } from "ts-pattern";
 import { getTileJSON, get, getMapboxLayerURL } from "src/lib/utils";
 import clamp from "lodash/clamp";
@@ -47,8 +47,7 @@ import {
 import { Selector } from "src/components/form/selector";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useTranslate } from "src/hooks/use-translate";
-import { limits } from "src/user-plan";
-import { useAuth } from "src/auth";
+import { usePermissions } from "src/hooks/use-permissions";
 import { zTileJSON } from "src/lib/tile-json";
 
 import {
@@ -447,11 +446,7 @@ function AddLayer({ onClose }: { onClose: () => void }) {
   const [mode, setMode] = useAtom(layerModeAtom);
   const userTracking = useUserTracking();
   const setDialogState = useSetAtom(dialogAtom);
-  const { user } = useAuth();
-
-  const canAddCustomLayers = useMemo(() => {
-    return limits.canAddCustomLayers(user.plan);
-  }, [user]);
+  const { canAddCustomLayers } = usePermissions();
 
   const handleUpgrade = () => {
     userTracking.capture({

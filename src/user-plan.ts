@@ -16,19 +16,3 @@ export const getTrialDaysRemaining = (trialEndsAt: string): number => {
   if (diff < MS_PER_DAY) return 0;
   return Math.ceil(diff / MS_PER_DAY);
 };
-
-export const canUpgrade = (plan: Plan) => {
-  return plan === "free";
-};
-
-export const limits = {
-  canAddCustomLayers: (plan: Plan) => {
-    return ["pro", "education", "personal"].includes(plan);
-  },
-  canUseScenarios: (plan: Plan) => {
-    return ["pro", "education", "personal"].includes(plan);
-  },
-  canUseElevations: (plan: Plan) => {
-    return ["pro", "education", "personal"].includes(plan);
-  },
-};

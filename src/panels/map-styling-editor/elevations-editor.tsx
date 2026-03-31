@@ -59,8 +59,7 @@ import { notify } from "src/components/notifications";
 
 import { MapContext } from "src/map";
 import { ActionButton } from "src/components/action-button";
-import { useAuth } from "src/auth";
-import { limits } from "src/user-plan";
+import { usePermissions } from "src/hooks/use-permissions";
 import { dialogAtom } from "src/state/dialog";
 import {
   ElevationSource,
@@ -503,11 +502,10 @@ const AddElevationDataButton = ({ actions }: { actions: Actions }) => {
   const translate = useTranslate();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const { user } = useAuth();
+  const { canUseElevations } = usePermissions();
   const setDialogState = useSetAtom(dialogAtom);
 
   const handleClick = () => {
-    const canUseElevations = limits.canUseElevations(user.plan);
     if (!canUseElevations) {
       setDialogState({ type: "featurePaywall", feature: "elevations" });
       return;

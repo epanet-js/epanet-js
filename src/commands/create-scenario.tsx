@@ -7,7 +7,8 @@ import { stagingModelAtom } from "src/state/hydraulic-model";
 import { isDemoNetworkAtom } from "src/state/file-system";
 import { simulationAtom } from "src/state/simulation";
 import { useAuth } from "src/auth";
-import { isTrialActive, limits } from "src/user-plan";
+import { isTrialActive } from "src/user-plan";
+import { usePermissions } from "src/hooks/use-permissions";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useTranslate } from "src/hooks/use-translate";
@@ -22,6 +23,7 @@ export const useCreateScenario = () => {
   const scenariosList = useAtomValue(scenariosListAtom);
   const setDialog = useSetAtom(dialogAtom);
   const { user } = useAuth();
+  const { canUseScenarios } = usePermissions();
   const isActivateTrialOn = useFeatureFlag("FLAG_ACTIVATE_TRIAL");
   const userTracking = useUserTracking();
   const translate = useTranslate();
@@ -37,11 +39,7 @@ export const useCreateScenario = () => {
       const shouldBypassPaywall =
         isDemoNetwork || (isActivateTrialOn && isTrialActive(user));
 
-      if (
-        isFirstTimeEnabling &&
-        !limits.canUseScenarios(user.plan) &&
-        !shouldBypassPaywall
-      ) {
+      if (isFirstTimeEnabling && !canUseScenarios && !shouldBypassPaywall) {
         setDialog({ type: "featurePaywall", feature: "scenarios" });
         return null;
       }
@@ -110,6 +108,7 @@ export const useCreateScenario = () => {
       scenariosList,
       setDialog,
       user,
+      canUseScenarios,
       isActivateTrialOn,
       userTracking,
       translate,
