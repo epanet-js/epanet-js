@@ -43,6 +43,7 @@ export const useImportInp = () => {
   const transactImport = rep.useTransactImport();
   const userTracking = useUserTracking();
   const isProjectLaterOn = useFeatureFlag("FLAG_PROJECT_LATER");
+  const isWaterAgeOn = useFeatureFlag("FLAG_WATER_AGE");
 
   const { addRecent } = useRecentFiles();
 
@@ -167,6 +168,7 @@ export const useImportInp = () => {
         const parseOptions = {
           customerPoints: true,
           inactiveAssets: true,
+          waterAge: isWaterAgeOn,
         };
 
         const result = parseInp(content, parseOptions);
@@ -228,7 +230,13 @@ export const useImportInp = () => {
         setDialogState({ type: "invalidFilesError" });
       }
     },
-    [completeImport, setDialogState, userTracking, validateAndPrepare],
+    [
+      completeImport,
+      isWaterAgeOn,
+      setDialogState,
+      userTracking,
+      validateAndPrepare,
+    ],
   );
 
   const importInp = useCallback(
@@ -245,6 +253,7 @@ export const useImportInp = () => {
         const parseOptions = {
           customerPoints: true,
           inactiveAssets: true,
+          waterAge: isWaterAgeOn,
         };
 
         const result = parseInp(content, {
@@ -307,7 +316,13 @@ export const useImportInp = () => {
         setDialogState({ type: "invalidFilesError" });
       }
     },
-    [completeImport, setDialogState, userTracking, validateAndPrepare],
+    [
+      completeImport,
+      isWaterAgeOn,
+      setDialogState,
+      userTracking,
+      validateAndPrepare,
+    ],
   );
 
   return isProjectLaterOn ? importInp : importInpDeprecated;

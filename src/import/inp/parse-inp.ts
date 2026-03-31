@@ -39,6 +39,7 @@ export type ParseInpOptions = {
   inactiveAssets?: boolean;
   sourceProjection?: SourceProjection;
   projectLater?: boolean;
+  waterAge?: boolean;
 };
 
 export type ParseInpResult = {

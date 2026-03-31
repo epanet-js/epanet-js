@@ -23,6 +23,7 @@ import {
   parseRule,
   parseEnergy,
   parseEmitter,
+  parseQuality,
   parseReaction,
   parseReport,
   parseSource,
@@ -38,10 +39,15 @@ type SectionParserDefinition = {
   parser: RowParser;
 };
 
-const buildSectionParserDefinitions = (): SectionParserDefinition[] => [
+const buildSectionParserDefinitions = (
+  options?: ParseInpOptions,
+): SectionParserDefinition[] => [
   { names: ["TITLE"], parser: ignore },
   { names: ["CURVES", "CURVE"], parser: parseCurve },
-  { names: ["QUALITY"], parser: unsupported },
+  {
+    names: ["QUALITY"],
+    parser: options?.waterAge ? parseQuality : unsupported,
+  },
   { names: ["OPTIONS"], parser: parseOption },
   { names: ["BACKDROP"], parser: ignore },
   { names: ["JUNCTIONS", "JUNCTION"], parser: parseJunction },
@@ -95,8 +101,8 @@ const INACTIVE_ASSET_SECTIONS = new Set([
   "[EMITTERS]",
 ]);
 
-const buildSectionParsers = (): SectionParsers => {
-  const definitions = buildSectionParserDefinitions();
+const buildSectionParsers = (options?: ParseInpOptions): SectionParsers => {
+  const definitions = buildSectionParserDefinitions(options);
   const result: SectionParsers = {};
 
   definitions.forEach(({ names, parser }) => {
@@ -117,7 +123,7 @@ export const readInpData = (
   let section: string | null = null;
   let lastComment: string | null = null;
   const inpData = nullInpData();
-  const sectionParsers = buildSectionParsers();
+  const sectionParsers = buildSectionParsers(options);
   const counts = new Map<string, number>();
 
   function parseRow(trimmedRow: string) {

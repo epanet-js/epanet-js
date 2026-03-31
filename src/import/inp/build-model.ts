@@ -219,6 +219,13 @@ export const buildModel = (
 
   addControls(hydraulicModel, inpData.controls, nodeIds, linkIds);
 
+  if (options?.waterAge) {
+    const qualityType = inpData.options.qualitySimulationType;
+    if (qualityType === "CHEMICAL" && !inpData.quality.isEmpty) {
+      issues.addUsedSection("[QUALITY]");
+    }
+  }
+
   return {
     hydraulicModel,
     factories,
@@ -422,11 +429,17 @@ const addJunction = (
 
   const emitterCoefficient = inpData.emitters.get(junctionData.id);
 
+  const initialWaterAge =
+    inpData.options.qualitySimulationType === "AGE"
+      ? inpData.quality.get(junctionData.id)
+      : undefined;
+
   const junction = assetFactory.createJunction({
     label: junctionData.id,
     coordinates,
     elevation: junctionData.elevation,
     emitterCoefficient,
+    initialWaterAge,
     isActive: junctionData.isActive,
   });
   hydraulicModel.assets.set(junction.id, junction);
@@ -475,12 +488,18 @@ const addReservoir = (
     }
   }
 
+  const initialWaterAge =
+    inpData.options.qualitySimulationType === "AGE"
+      ? inpData.quality.get(reservoirData.id)
+      : undefined;
+
   const reservoir = assetFactory.createReservoir({
     label: reservoirData.id,
     coordinates,
     head: reservoirData.baseHead,
     elevation: reservoirData.elevation,
     headPatternId,
+    initialWaterAge,
     isActive: reservoirData.isActive,
   });
   hydraulicModel.assets.set(reservoir.id, reservoir);
@@ -524,6 +543,11 @@ const addTank = (
     }
   }
 
+  const initialWaterAge =
+    inpData.options.qualitySimulationType === "AGE"
+      ? inpData.quality.get(tankData.id)
+      : undefined;
+
   const tank = assetFactory.createTank({
     label: tankData.id,
     coordinates,
@@ -535,6 +559,7 @@ const addTank = (
     minVolume: tankData.minVolume,
     overflow: tankData.overflow ?? false,
     volumeCurveId,
+    initialWaterAge,
     isActive: tankData.isActive,
   });
   hydraulicModel.assets.set(tank.id, tank);

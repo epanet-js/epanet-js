@@ -131,6 +131,7 @@ export type InpData = {
   patterns: ItemData<PatternData>;
   status: ItemData<string>;
   curves: ItemData<CurveData>;
+  quality: ItemData<number>;
   sourcePatterns: Set<string>;
   options: {
     units: EpanetUnitSystem;
@@ -236,6 +237,10 @@ export class ItemData<T> {
     return this.map.has(normalizeRef(dirtyId));
   }
 
+  get isEmpty() {
+    return this.map.size === 0;
+  }
+
   entries(): IterableIterator<[string, T]> {
     return this.map.entries();
   }
@@ -258,6 +263,7 @@ export const nullInpData = (): InpData => {
     patterns: new ItemData(),
     status: new ItemData(),
     curves: new ItemData(),
+    quality: new ItemData(),
     sourcePatterns: new Set(),
     options: { units: "GPM", headlossFormula: "H-W", demandMultiplier: 1 },
     reactions: {},

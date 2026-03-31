@@ -155,6 +155,14 @@ export const parseEmitter: RowParser = ({ trimmedRow, inpData }) => {
   }
 };
 
+export const parseQuality: RowParser = ({ trimmedRow, inpData }) => {
+  const [id, initialQuality] = readValues(trimmedRow);
+  const value = parseFloat(initialQuality);
+  if (!isNaN(value) && value !== 0) {
+    inpData.quality.set(id, value);
+  }
+};
+
 const defaultReactionSettings: Record<string, number> = {
   "ORDER BULK": 1,
   "ORDER TANK": 1,
