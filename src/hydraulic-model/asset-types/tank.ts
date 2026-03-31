@@ -19,6 +19,7 @@ export const tankQuantities = [
   "maxLevel",
   "minVolume",
   "diameter",
+  "initialWaterAge",
   "pressure",
   "head",
   "level",
@@ -35,6 +36,10 @@ export class Tank extends Node<TankProperties> {
 
   get initialLevel() {
     return this.properties.initialLevel;
+  }
+
+  get initialWaterAge() {
+    return this.properties.initialWaterAge;
   }
 
   get minLevel() {

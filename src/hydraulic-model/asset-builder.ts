@@ -12,6 +12,7 @@ export type JunctionBuildData = {
   coordinates?: Position;
   elevation?: number;
   emitterCoefficient?: number;
+  initialWaterAge?: number;
   isActive?: boolean;
 };
 
@@ -68,6 +69,7 @@ export type ReservoirBuildData = {
   relativeHead?: number;
   elevation?: number;
   headPatternId?: PatternId;
+  initialWaterAge?: number;
   isActive?: boolean;
 };
 
@@ -82,6 +84,7 @@ export type TankBuildData = {
   minVolume?: number;
   diameter?: number;
   overflow?: boolean;
+  initialWaterAge?: number;
   isActive?: boolean;
   volumeCurveId?: CurveId;
 };
@@ -238,6 +241,7 @@ export class AssetBuilder {
     coordinates = [0, 0],
     elevation,
     emitterCoefficient,
+    initialWaterAge,
     isActive = true,
   }: JunctionBuildData = {}) {
     const internalId = id ?? this.idGenerator.newId();
@@ -249,6 +253,7 @@ export class AssetBuilder {
           : this.labelGenerator.generateFor("junction", internalId),
       elevation: this.getJunctionValue("elevation", elevation),
       emitterCoefficient: emitterCoefficient ?? 0,
+      initialWaterAge,
       isActive,
     });
   }
@@ -261,6 +266,7 @@ export class AssetBuilder {
     head,
     relativeHead,
     headPatternId,
+    initialWaterAge,
     isActive = true,
   }: ReservoirBuildData = {}) {
     const internalId = id ?? this.idGenerator.newId();
@@ -285,6 +291,7 @@ export class AssetBuilder {
       head: headValue,
       headPatternId,
       elevation: elevationValue,
+      initialWaterAge,
       isActive,
     });
   }
@@ -300,6 +307,7 @@ export class AssetBuilder {
     minVolume,
     diameter,
     overflow,
+    initialWaterAge,
     isActive = true,
     volumeCurveId,
   }: TankBuildData = {}) {
@@ -318,6 +326,7 @@ export class AssetBuilder {
       diameter: this.getTankValue("diameter", diameter),
       volumeCurveId,
       overflow: overflow ?? false,
+      initialWaterAge,
       isActive,
     });
   }
