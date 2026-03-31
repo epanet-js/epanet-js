@@ -1,4 +1,4 @@
-import { ConsecutiveIdsGenerator, IdGenerator } from "src/lib/id-generator";
+import { IdGenerator } from "src/lib/id-generator";
 import { CustomerPointFactory } from "./customer-point-factory";
 import { LabelManager } from "src/hydraulic-model/label-manager";
 import { AssetFactory } from "./asset-factory";
@@ -13,19 +13,18 @@ export type ModelFactories = {
 };
 
 export const initializeModelFactories = (options: {
-  idGenerator?: IdGenerator;
+  idGenerator: IdGenerator;
   labelManager: LabelManager;
   defaults: DefaultsSpec;
 }): ModelFactories => {
-  const idGenerator = options.idGenerator ?? new ConsecutiveIdsGenerator();
   return {
     customerPointFactory: new CustomerPointFactory(
-      idGenerator,
+      options.idGenerator,
       options.labelManager,
     ),
     assetFactory: new AssetFactory(
       options.defaults,
-      idGenerator,
+      options.idGenerator,
       options.labelManager,
     ),
   };
