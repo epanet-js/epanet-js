@@ -121,7 +121,7 @@ export class AssetFactory {
     this.labelGenerator = labelGenerator;
   }
 
-  buildPipe({
+  createPipe({
     id,
     label,
     coordinates = [
@@ -153,7 +153,7 @@ export class AssetFactory {
     });
   }
 
-  buildValve({
+  createValve({
     id,
     label,
     coordinates = [
@@ -188,7 +188,7 @@ export class AssetFactory {
     });
   }
 
-  buildPump({
+  createPump({
     id,
     label,
     coordinates = [
@@ -235,7 +235,7 @@ export class AssetFactory {
     });
   }
 
-  buildJunction({
+  createJunction({
     id,
     label,
     coordinates = [0, 0],
@@ -258,7 +258,7 @@ export class AssetFactory {
     });
   }
 
-  buildReservoir({
+  createReservoir({
     id,
     label,
     coordinates = [0, 0],
@@ -296,7 +296,7 @@ export class AssetFactory {
     });
   }
 
-  buildTank({
+  createTank({
     id,
     label,
     coordinates = [0, 0],

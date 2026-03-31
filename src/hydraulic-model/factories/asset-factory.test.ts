@@ -11,13 +11,13 @@ describe("asset factory", () => {
       new LabelManager(),
     );
 
-    const pipe = assetFactory.buildPipe();
+    const pipe = assetFactory.createPipe();
 
     expect(pipe.id).not.toBeUndefined();
     expect(typeof pipe.id).toBe("number");
     expect(pipe.label).toEqual("P1");
 
-    const other = assetFactory.buildPipe();
+    const other = assetFactory.createPipe();
     expect(other.id).not.toEqual(pipe.id);
   });
 });

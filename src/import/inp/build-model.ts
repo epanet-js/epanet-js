@@ -417,7 +417,7 @@ const addJunction = (
 
   const emitterCoefficient = inpData.emitters.get(junctionData.id);
 
-  const junction = assetFactory.buildJunction({
+  const junction = assetFactory.createJunction({
     label: junctionData.id,
     coordinates,
     elevation: junctionData.elevation,
@@ -470,7 +470,7 @@ const addReservoir = (
     }
   }
 
-  const reservoir = assetFactory.buildReservoir({
+  const reservoir = assetFactory.createReservoir({
     label: reservoirData.id,
     coordinates,
     head: reservoirData.baseHead,
@@ -519,7 +519,7 @@ const addTank = (
     }
   }
 
-  const tank = assetFactory.buildTank({
+  const tank = assetFactory.createTank({
     label: tankData.id,
     coordinates,
     elevation: tankData.elevation,
@@ -665,7 +665,7 @@ const addPump = (
 
   const energyPrice = pumpEnergyData?.price;
 
-  const pump = assetFactory.buildPump({
+  const pump = assetFactory.createPump({
     label: pumpData.id,
     connections,
     ...definitionProps,
@@ -736,7 +736,7 @@ const addValve = (
       markCurveUsed(curvesContext, curveId, curveType);
     }
   }
-  const valve = assetFactory.buildValve({
+  const valve = assetFactory.createValve({
     label: valveData.id,
     diameter: valveData.diameter,
     minorLoss: valveData.minorLoss,
@@ -794,7 +794,7 @@ const addPipe = (
     }
   }
 
-  const pipe = assetFactory.buildPipe({
+  const pipe = assetFactory.createPipe({
     label: pipeData.id,
     length: pipeData.length,
     diameter: pipeData.diameter,

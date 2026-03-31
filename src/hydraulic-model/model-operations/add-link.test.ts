@@ -38,14 +38,14 @@ describe("addLink", () => {
     it("updates connections", () => {
       const hydraulicModel = HydraulicModelBuilder.with().build();
       const assetFactory = createAssetFactory(hydraulicModel);
-      const startNode = assetFactory.buildJunction({
+      const startNode = assetFactory.createJunction({
         coordinates: [10, 10],
       });
-      const endNode = assetFactory.buildJunction({
+      const endNode = assetFactory.createJunction({
         coordinates: [30, 30],
       });
 
-      const link = assetFactory.buildPump({
+      const link = assetFactory.createPump({
         coordinates: [
           [10, 10],
           [20, 20],
@@ -74,14 +74,14 @@ describe("addLink", () => {
     it("removes redundant vertices", () => {
       const hydraulicModel = HydraulicModelBuilder.with().build();
       const assetFactory = createAssetFactory(hydraulicModel);
-      const startNode = assetFactory.buildJunction({
+      const startNode = assetFactory.createJunction({
         coordinates: [10, 10],
       });
-      const endNode = assetFactory.buildJunction({
+      const endNode = assetFactory.createJunction({
         coordinates: [30, 30],
       });
 
-      const link = assetFactory.buildPump({
+      const link = assetFactory.createPump({
         coordinates: [
           [10, 10],
           [20, 20],
@@ -116,14 +116,14 @@ describe("addLink", () => {
       const epsilon = 1e-10;
       const hydraulicModel = HydraulicModelBuilder.with().build();
       const assetFactory = createAssetFactory(hydraulicModel);
-      const startNode = assetFactory.buildJunction({
+      const startNode = assetFactory.createJunction({
         coordinates: [0, 1],
       });
-      const endNode = assetFactory.buildJunction({
+      const endNode = assetFactory.createJunction({
         coordinates: [0, 1 + epsilon],
       });
 
-      const link = assetFactory.buildPump({
+      const link = assetFactory.createPump({
         coordinates: [
           [0, 1],
           [0, 1 + 2 * epsilon],
@@ -150,13 +150,13 @@ describe("addLink", () => {
     it("ensures connectivity with the link endpoints", () => {
       const hydraulicModel = HydraulicModelBuilder.with().build();
       const assetFactory = createAssetFactory(hydraulicModel);
-      const startNode = assetFactory.buildJunction({
+      const startNode = assetFactory.createJunction({
         coordinates: [10, 10],
       });
-      const endNode = assetFactory.buildJunction({
+      const endNode = assetFactory.createJunction({
         coordinates: [20, 20],
       });
-      const link = assetFactory.buildPump({
+      const link = assetFactory.createPump({
         coordinates: [
           [10, 11],
           [15, 15],
@@ -188,13 +188,13 @@ describe("addLink", () => {
       const assetFactory = createAssetFactory(hydraulicModel);
       const startCoordinates = [-4.3760931, 55.9150083];
       const endCoordiantes = [-4.3771833, 55.9133641];
-      const startNode = assetFactory.buildJunction({
+      const startNode = assetFactory.createJunction({
         coordinates: startCoordinates,
       });
-      const endNode = assetFactory.buildJunction({
+      const endNode = assetFactory.createJunction({
         coordinates: endCoordiantes,
       });
-      const link = assetFactory.buildPump({
+      const link = assetFactory.createPump({
         coordinates: [startCoordinates, endCoordiantes],
       });
 
@@ -214,9 +214,9 @@ describe("addLink", () => {
     it("adds a label to the pump", () => {
       const hydraulicModel = HydraulicModelBuilder.with().build();
       const assetFactory = createAssetFactory(hydraulicModel);
-      const startNode = assetFactory.buildJunction();
-      const endNode = assetFactory.buildJunction();
-      const link = assetFactory.buildPump({
+      const startNode = assetFactory.createJunction();
+      const endNode = assetFactory.createJunction();
+      const link = assetFactory.createPump({
         label: "",
       });
 
@@ -236,13 +236,13 @@ describe("addLink", () => {
     it("creates a default curve when adding a pump", () => {
       const hydraulicModel = HydraulicModelBuilder.with().build();
       const assetFactory = createAssetFactory(hydraulicModel);
-      const startNode = assetFactory.buildJunction({
+      const startNode = assetFactory.createJunction({
         coordinates: [10, 10],
       });
-      const endNode = assetFactory.buildJunction({
+      const endNode = assetFactory.createJunction({
         coordinates: [30, 30],
       });
-      const link = assetFactory.buildPump({
+      const link = assetFactory.createPump({
         coordinates: [
           [10, 10],
           [30, 30],
@@ -265,13 +265,13 @@ describe("addLink", () => {
     it("adds a label to the nodes when missing", () => {
       const hydraulicModel = HydraulicModelBuilder.with().build();
       const assetFactory = createAssetFactory(hydraulicModel);
-      const startNode = assetFactory.buildJunction({
+      const startNode = assetFactory.createJunction({
         label: "",
       });
-      const endNode = assetFactory.buildJunction({
+      const endNode = assetFactory.createJunction({
         label: "CUSTOM",
       });
-      const link = assetFactory.buildPump({
+      const link = assetFactory.createPump({
         label: "",
       });
 
@@ -306,13 +306,13 @@ describe("addLink", () => {
         .build();
       const assetFactory = createAssetFactory(hydraulicModel);
 
-      const startNode = assetFactory.buildJunction({
+      const startNode = assetFactory.createJunction({
         coordinates: [5, 0],
       });
-      const endNode = assetFactory.buildJunction({
+      const endNode = assetFactory.createJunction({
         coordinates: [5, 5],
       });
-      const pump = assetFactory.buildPump({
+      const pump = assetFactory.createPump({
         coordinates: [
           [5, 0],
           [5, 5],
@@ -359,13 +359,13 @@ describe("addLink", () => {
         .build();
       const assetFactory = createAssetFactory(hydraulicModel);
 
-      const startNode = assetFactory.buildJunction({
+      const startNode = assetFactory.createJunction({
         coordinates: [5, 5],
       });
-      const endNode = assetFactory.buildJunction({
+      const endNode = assetFactory.createJunction({
         coordinates: [5, 0],
       });
-      const link = assetFactory.buildPump({
+      const link = assetFactory.createPump({
         coordinates: [
           [5, 5],
           [5, 0],
@@ -426,13 +426,13 @@ describe("addLink", () => {
         .build();
       const assetFactory = createAssetFactory(hydraulicModel);
 
-      const startNode = assetFactory.buildJunction({
+      const startNode = assetFactory.createJunction({
         coordinates: [5, 0],
       });
-      const endNode = assetFactory.buildJunction({
+      const endNode = assetFactory.createJunction({
         coordinates: [5, 10],
       });
-      const link = assetFactory.buildPump({
+      const link = assetFactory.createPump({
         coordinates: [
           [5, 0],
           [5, 10],
@@ -463,14 +463,14 @@ describe("addLink", () => {
     it("handles no pipe splitting (backward compatibility)", () => {
       const hydraulicModel = HydraulicModelBuilder.with().build();
       const assetFactory = createAssetFactory(hydraulicModel);
-      const startNode = assetFactory.buildJunction({
+      const startNode = assetFactory.createJunction({
         coordinates: [10, 10],
       });
-      const endNode = assetFactory.buildJunction({
+      const endNode = assetFactory.createJunction({
         coordinates: [30, 30],
       });
 
-      const link = assetFactory.buildPump({
+      const link = assetFactory.createPump({
         coordinates: [
           [10, 10],
           [30, 30],
@@ -527,13 +527,13 @@ describe("addLink", () => {
       hydraulicModel.customerPoints.set(customerPoint.id, customerPoint);
       hydraulicModel.customerPointsLookup.addConnection(customerPoint);
 
-      const startNode = assetFactory.buildJunction({
+      const startNode = assetFactory.createJunction({
         coordinates: [5, 0],
       });
-      const endNode = assetFactory.buildJunction({
+      const endNode = assetFactory.createJunction({
         coordinates: [5, 5],
       });
-      const link = assetFactory.buildPump({
+      const link = assetFactory.createPump({
         coordinates: [
           [5, 0],
           [5, 5],
@@ -596,13 +596,13 @@ describe("addLink", () => {
       hydraulicModel.customerPoints.set(customerPoint.id, customerPoint);
       hydraulicModel.customerPointsLookup.addConnection(customerPoint);
 
-      const startNode = assetFactory.buildJunction({
+      const startNode = assetFactory.createJunction({
         coordinates: [5, 5],
       });
-      const endNode = assetFactory.buildJunction({
+      const endNode = assetFactory.createJunction({
         coordinates: [5, 0],
       });
-      const link = assetFactory.buildPump({
+      const link = assetFactory.createPump({
         coordinates: [
           [5, 5],
           [5, 0],
@@ -686,13 +686,13 @@ describe("addLink", () => {
       hydraulicModel.customerPointsLookup.addConnection(customerPoint1);
       hydraulicModel.customerPointsLookup.addConnection(customerPoint2);
 
-      const startNode = assetFactory.buildJunction({
+      const startNode = assetFactory.createJunction({
         coordinates: [5, 0],
       });
-      const endNode = assetFactory.buildJunction({
+      const endNode = assetFactory.createJunction({
         coordinates: [5, 10],
       });
-      const link = assetFactory.buildPump({
+      const link = assetFactory.createPump({
         coordinates: [
           [5, 0],
           [5, 10],
@@ -724,13 +724,13 @@ describe("addLink", () => {
       const IDS = { NONEXISTENT: 999 } as const;
       const hydraulicModel = HydraulicModelBuilder.with().build();
       const assetFactory = createAssetFactory(hydraulicModel);
-      const startNode = assetFactory.buildJunction({
+      const startNode = assetFactory.createJunction({
         coordinates: [5, 0],
       });
-      const endNode = assetFactory.buildJunction({
+      const endNode = assetFactory.createJunction({
         coordinates: [5, 5],
       });
-      const link = assetFactory.buildPump({
+      const link = assetFactory.createPump({
         coordinates: [
           [5, 0],
           [5, 5],
@@ -753,13 +753,13 @@ describe("addLink", () => {
       const IDS = { NONEXISTENT: 999 } as const;
       const hydraulicModel = HydraulicModelBuilder.with().build();
       const assetFactory = createAssetFactory(hydraulicModel);
-      const startNode = assetFactory.buildJunction({
+      const startNode = assetFactory.createJunction({
         coordinates: [5, 5],
       });
-      const endNode = assetFactory.buildJunction({
+      const endNode = assetFactory.createJunction({
         coordinates: [5, 0],
       });
-      const link = assetFactory.buildPump({
+      const link = assetFactory.createPump({
         coordinates: [
           [5, 5],
           [5, 0],
@@ -798,13 +798,13 @@ describe("addLink", () => {
         .build();
       const assetFactory = createAssetFactory(hydraulicModel);
 
-      const startNode = assetFactory.buildJunction({
+      const startNode = assetFactory.createJunction({
         coordinates: [10, 0],
       });
-      const endNode = assetFactory.buildJunction({
+      const endNode = assetFactory.createJunction({
         coordinates: [20, 0],
       });
-      const link = assetFactory.buildPipe({
+      const link = assetFactory.createPipe({
         coordinates: [
           [10, 0],
           [20, 0],
@@ -855,13 +855,13 @@ describe("addLink", () => {
         .build();
       const assetFactory = createAssetFactory(hydraulicModel);
 
-      const startNode = assetFactory.buildJunction({
+      const startNode = assetFactory.createJunction({
         coordinates: [10, 0],
       });
-      const endNode = assetFactory.buildJunction({
+      const endNode = assetFactory.createJunction({
         coordinates: [20, 0],
       });
-      const link = assetFactory.buildValve({
+      const link = assetFactory.createValve({
         coordinates: [
           [10, 0],
           [20, 0],
@@ -905,13 +905,13 @@ describe("addLink", () => {
         .build();
       const assetFactory = createAssetFactory(hydraulicModel);
 
-      const startNode = assetFactory.buildJunction({
+      const startNode = assetFactory.createJunction({
         coordinates: [10, 0],
       });
-      const endNode = assetFactory.buildJunction({
+      const endNode = assetFactory.createJunction({
         coordinates: [20, 0],
       });
-      const link = assetFactory.buildPump({
+      const link = assetFactory.createPump({
         coordinates: [
           [10, 0],
           [20, 0],
@@ -954,13 +954,13 @@ describe("addLink", () => {
         .build();
       const assetFactory = createAssetFactory(hydraulicModel);
 
-      const startNode = assetFactory.buildJunction({
+      const startNode = assetFactory.createJunction({
         coordinates: [10, 0],
       });
-      const endNode = assetFactory.buildJunction({
+      const endNode = assetFactory.createJunction({
         coordinates: [20, 0],
       });
-      const link = assetFactory.buildPipe({
+      const link = assetFactory.createPipe({
         coordinates: [
           [10, 0],
           [15, 5],
@@ -999,13 +999,13 @@ describe("addLink", () => {
         .build();
       const assetFactory = createAssetFactory(hydraulicModel);
 
-      const startNode = assetFactory.buildJunction({
+      const startNode = assetFactory.createJunction({
         coordinates: [0, 0],
       });
-      const endNode = assetFactory.buildJunction({
+      const endNode = assetFactory.createJunction({
         coordinates: [30, 0],
       });
-      const link = assetFactory.buildPipe({
+      const link = assetFactory.createPipe({
         coordinates: [
           [0, 0],
           [30, 0],
@@ -1071,13 +1071,13 @@ describe("addLink", () => {
       hydraulicModel.customerPointsLookup.addConnection(cp2);
       hydraulicModel.customerPointsLookup.addConnection(cp3);
 
-      const startNode = assetFactory.buildJunction({
+      const startNode = assetFactory.createJunction({
         coordinates: [10, 0],
       });
-      const endNode = assetFactory.buildJunction({
+      const endNode = assetFactory.createJunction({
         coordinates: [20, 0],
       });
-      const link = assetFactory.buildValve({
+      const link = assetFactory.createValve({
         coordinates: [
           [10, 0],
           [20, 0],
@@ -1140,13 +1140,13 @@ describe("addLink", () => {
       hydraulicModel.customerPoints.set(cp1.id, cp1);
       hydraulicModel.customerPointsLookup.addConnection(cp1);
 
-      const startNode = assetFactory.buildJunction({
+      const startNode = assetFactory.createJunction({
         coordinates: [10, 0],
       });
-      const endNode = assetFactory.buildJunction({
+      const endNode = assetFactory.createJunction({
         coordinates: [20, 0],
       });
-      const link = assetFactory.buildPipe({
+      const link = assetFactory.createPipe({
         coordinates: [
           [10, 0],
           [20, 0],
@@ -1203,13 +1203,13 @@ describe("addLink", () => {
       .build();
     const assetFactory = createAssetFactory(hydraulicModel);
 
-    const startNode = assetFactory.buildJunction({
+    const startNode = assetFactory.createJunction({
       coordinates: [10, 0],
     });
-    const endNode = assetFactory.buildJunction({
+    const endNode = assetFactory.createJunction({
       coordinates: [10, 20],
     });
-    const link = assetFactory.buildPump({
+    const link = assetFactory.createPump({
       coordinates: [
         [10, 0],
         [10, 20],
@@ -1278,7 +1278,7 @@ describe("addLink", () => {
 
       const startNode = hydraulicModel.assets.get(IDS.J1)!.copy() as Junction;
       const endNode = hydraulicModel.assets.get(IDS.J2)!.copy() as Junction;
-      const link = assetFactory.buildPump({
+      const link = assetFactory.createPump({
         coordinates: [
           [0, 0],
           [10, 0],
@@ -1335,13 +1335,13 @@ describe("addLink", () => {
         .build();
       const assetFactory = createAssetFactory(hydraulicModel);
 
-      const startNode = assetFactory.buildJunction({
+      const startNode = assetFactory.createJunction({
         coordinates: [10, 0],
       });
-      const endNode = assetFactory.buildJunction({
+      const endNode = assetFactory.createJunction({
         coordinates: [10, 10],
       });
-      const link = assetFactory.buildPump({
+      const link = assetFactory.createPump({
         coordinates: [
           [10, 0],
           [10, 10],
@@ -1379,10 +1379,10 @@ describe("addLink", () => {
       const assetFactory = createAssetFactory(hydraulicModel);
 
       const startNode = hydraulicModel.assets.get(IDS.J1)!.copy() as Junction;
-      const endNode = assetFactory.buildJunction({
+      const endNode = assetFactory.createJunction({
         coordinates: [10, 0],
       });
-      const link = assetFactory.buildPump({
+      const link = assetFactory.createPump({
         coordinates: [
           [0, 0],
           [10, 0],
@@ -1423,10 +1423,10 @@ describe("addLink", () => {
       const assetFactory = createAssetFactory(hydraulicModel);
 
       const startNode = hydraulicModel.assets.get(IDS.J1)!.copy() as Junction;
-      const endNode = assetFactory.buildJunction({
+      const endNode = assetFactory.createJunction({
         coordinates: [0, 15],
       });
-      const link = assetFactory.buildPump({
+      const link = assetFactory.createPump({
         coordinates: [
           [0, 0],
           [0, 15],
@@ -1466,13 +1466,13 @@ describe("addLink", () => {
         .build();
       const assetFactory = createAssetFactory(hydraulicModel);
 
-      const startNode = assetFactory.buildJunction({
+      const startNode = assetFactory.createJunction({
         coordinates: [10, 0],
       });
-      const endNode = assetFactory.buildJunction({
+      const endNode = assetFactory.createJunction({
         coordinates: [10, 10],
       });
-      const link = assetFactory.buildPump({
+      const link = assetFactory.createPump({
         coordinates: [
           [10, 0],
           [10, 10],
@@ -1499,13 +1499,13 @@ describe("addLink", () => {
       const hydraulicModel = HydraulicModelBuilder.with().build();
       const assetFactory = createAssetFactory(hydraulicModel);
 
-      const startNode = assetFactory.buildJunction({
+      const startNode = assetFactory.createJunction({
         coordinates: [0, 0],
       });
-      const endNode = assetFactory.buildJunction({
+      const endNode = assetFactory.createJunction({
         coordinates: [10, 0],
       });
-      const link = assetFactory.buildPump({
+      const link = assetFactory.createPump({
         coordinates: [
           [0, 0],
           [10, 0],
@@ -1537,11 +1537,11 @@ describe("addLink", () => {
       const assetFactory = createAssetFactory(hydraulicModel);
 
       const startNode = hydraulicModel.assets.get(IDS.J1)?.copy() as Junction;
-      const endNode = assetFactory.buildJunction({
+      const endNode = assetFactory.createJunction({
         coordinates: [10, 0],
         id: IDS.J1,
       });
-      const link = assetFactory.buildPump({
+      const link = assetFactory.createPump({
         coordinates: [
           [0, 0],
           [10, 0],
@@ -1581,15 +1581,15 @@ describe("addLink", () => {
         .build();
       const assetFactory = createAssetFactory(hydraulicModel);
 
-      const startNode = assetFactory.buildJunction({
+      const startNode = assetFactory.createJunction({
         coordinates: [0, 0],
         id: IDS.J1,
       });
-      const endNode = assetFactory.buildJunction({
+      const endNode = assetFactory.createJunction({
         coordinates: [0, 15],
         id: IDS.J4,
       });
-      const link = assetFactory.buildPump({
+      const link = assetFactory.createPump({
         coordinates: [
           [0, 0],
           [0, 15],

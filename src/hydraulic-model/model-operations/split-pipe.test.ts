@@ -26,7 +26,7 @@ describe("splitPipe", () => {
       .build();
 
     const pipe = hydraulicModel.assets.get(IDS.P1) as Pipe;
-    const splitNode = assetFactory.buildJunction({
+    const splitNode = assetFactory.createJunction({
       label: "J3",
       coordinates: [5, 0],
     });
@@ -70,7 +70,7 @@ describe("splitPipe", () => {
       .build();
 
     const pipe = hydraulicModel.assets.get(IDS.MainPipe) as Pipe;
-    const splitNode = assetFactory.buildJunction({
+    const splitNode = assetFactory.createJunction({
       label: "J3",
       coordinates: [5, 0],
     });
@@ -117,7 +117,7 @@ describe("splitPipe", () => {
     hydraulicModel.labelManager.register("TestPipe_1", "pipe", IDS.TestPipe_1);
 
     const pipe = hydraulicModel.assets.get(IDS.TestPipe) as Pipe;
-    const splitNode = assetFactory.buildJunction({
+    const splitNode = assetFactory.createJunction({
       label: "J5",
       coordinates: [5, 0],
     });
@@ -148,7 +148,7 @@ describe("splitPipe", () => {
       .build();
 
     const pipe = hydraulicModel.assets.get(IDS.MYLABEL_1) as Pipe;
-    const splitNode = assetFactory.buildJunction({
+    const splitNode = assetFactory.createJunction({
       label: "J3",
       coordinates: [5, 0],
     });
@@ -173,7 +173,7 @@ describe("splitPipe", () => {
       .aNode(IDS.J2, [10, 0])
       .build();
 
-    const originalPipe = assetFactory.buildPipe({
+    const originalPipe = assetFactory.createPipe({
       label: "SpecialPipe",
       coordinates: [
         [0, 0],
@@ -187,7 +187,7 @@ describe("splitPipe", () => {
 
     hydraulicModel.assets.set(originalPipe.id, originalPipe);
 
-    const splitNode = assetFactory.buildJunction({
+    const splitNode = assetFactory.createJunction({
       label: "J3",
       coordinates: [5, 0],
     });
@@ -222,7 +222,7 @@ describe("splitPipe", () => {
       .build();
 
     const pipe = hydraulicModel.assets.get(IDS.P1) as Pipe;
-    const splitNode = assetFactory.buildJunction({
+    const splitNode = assetFactory.createJunction({
       label: "J3",
       coordinates: [5, 0],
     });
@@ -277,7 +277,7 @@ describe("splitPipe", () => {
     const splitCoordinates: [number, number] = [5.123, 0.456];
 
     const pipe = hydraulicModel.assets.get(IDS.P1) as Pipe;
-    const splitNode = assetFactory.buildJunction({
+    const splitNode = assetFactory.createJunction({
       label: "J3",
       coordinates: splitCoordinates,
     });
@@ -311,11 +311,11 @@ describe("splitPipe", () => {
       .build();
 
     const pipe = hydraulicModel.assets.get(IDS.MY_PIPE) as Pipe;
-    const splitNode1 = assetFactory.buildJunction({
+    const splitNode1 = assetFactory.createJunction({
       label: "J3",
       coordinates: [0.000027, 0],
     });
-    const splitNode2 = assetFactory.buildJunction({
+    const splitNode2 = assetFactory.createJunction({
       label: "J4",
       coordinates: [0.000063, 0],
     });
@@ -378,11 +378,11 @@ describe("splitPipe", () => {
       .build();
 
     const pipe = hydraulicModel.assets.get(IDS.P1) as Pipe;
-    const splitNode1 = assetFactory.buildJunction({
+    const splitNode1 = assetFactory.createJunction({
       label: "J3",
       coordinates: [5, 2.5],
     });
-    const splitNode2 = assetFactory.buildJunction({
+    const splitNode2 = assetFactory.createJunction({
       label: "J4",
       coordinates: [15, 7.5],
     });
@@ -421,7 +421,7 @@ describe("splitPipe", () => {
       .aNode(IDS.J2, [10, 0])
       .build();
 
-    const originalPipe = assetFactory.buildPipe({
+    const originalPipe = assetFactory.createPipe({
       label: "TestPipe",
       coordinates: [
         [0, 0],
@@ -435,11 +435,11 @@ describe("splitPipe", () => {
 
     hydraulicModel.assets.set(originalPipe.id, originalPipe);
 
-    const splitNode1 = assetFactory.buildJunction({
+    const splitNode1 = assetFactory.createJunction({
       label: "J3",
       coordinates: [3, 0],
     });
-    const splitNode2 = assetFactory.buildJunction({
+    const splitNode2 = assetFactory.createJunction({
       label: "J4",
       coordinates: [7, 0],
     });
@@ -476,11 +476,11 @@ describe("splitPipe", () => {
       .build();
 
     const pipe = hydraulicModel.assets.get(IDS.REVERSE_TEST) as Pipe;
-    const splitNode1 = assetFactory.buildJunction({
+    const splitNode1 = assetFactory.createJunction({
       label: "J4",
       coordinates: [7, 0],
     });
-    const splitNode2 = assetFactory.buildJunction({
+    const splitNode2 = assetFactory.createJunction({
       label: "J3",
       coordinates: [3, 0],
     });
@@ -539,7 +539,7 @@ describe("splitPipe", () => {
       .build();
 
     const pipe = hydraulicModel.assets.get(IDS.MULTI_VERTEX) as Pipe;
-    const splitNode = assetFactory.buildJunction({
+    const splitNode = assetFactory.createJunction({
       label: "J3",
       coordinates: [33, 0],
     });
@@ -601,7 +601,7 @@ describe("splitPipe", () => {
     hydraulicModel.customerPointsLookup.addConnection(customerPoint2);
 
     const pipe = hydraulicModel.assets.get(IDS.P1) as Pipe;
-    const splitNode = assetFactory.buildJunction({
+    const splitNode = assetFactory.createJunction({
       label: "J3",
       coordinates: [5, 0],
     });
@@ -678,11 +678,11 @@ describe("splitPipe", () => {
     hydraulicModel.customerPointsLookup.addConnection(customerPoint3);
 
     const pipe = hydraulicModel.assets.get(IDS.P1) as Pipe;
-    const splitNode1 = assetFactory.buildJunction({
+    const splitNode1 = assetFactory.createJunction({
       label: "J3",
       coordinates: [7, 0],
     });
-    const splitNode2 = assetFactory.buildJunction({
+    const splitNode2 = assetFactory.createJunction({
       label: "J4",
       coordinates: [14, 0],
     });
@@ -720,7 +720,7 @@ describe("splitPipe", () => {
       .build();
 
     const pipe = hydraulicModel.assets.get(IDS.P1) as Pipe;
-    const splitNode = assetFactory.buildJunction({
+    const splitNode = assetFactory.createJunction({
       label: "J3",
       coordinates: [5, 0],
     });
@@ -759,7 +759,7 @@ describe("splitPipe", () => {
     hydraulicModel.customerPointsLookup.addConnection(customerPoint);
 
     const pipe = hydraulicModel.assets.get(IDS.P1) as Pipe;
-    const splitNode = assetFactory.buildJunction({
+    const splitNode = assetFactory.createJunction({
       label: "J3",
       coordinates: [5, 0],
     });
@@ -813,7 +813,7 @@ describe("splitPipe", () => {
     hydraulicModel.customerPointsLookup.addConnection(customerPoint2);
 
     const pipe = hydraulicModel.assets.get(IDS.P1) as Pipe;
-    const splitReservoir = assetFactory.buildReservoir({
+    const splitReservoir = assetFactory.createReservoir({
       label: "R2",
       coordinates: [5, 0],
     });
@@ -867,7 +867,7 @@ describe("splitPipe", () => {
       .build();
 
     const pipe = hydraulicModel.assets.get(IDS.P1) as Pipe;
-    const splitNode = assetFactory.buildJunction({
+    const splitNode = assetFactory.createJunction({
       label: "J3",
       coordinates: [5, 0],
     });
@@ -910,7 +910,7 @@ describe("splitPipe", () => {
       .build();
 
     const pipe = hydraulicModel.assets.get(IDS.P1) as Pipe;
-    const splitNode = assetFactory.buildJunction({
+    const splitNode = assetFactory.createJunction({
       label: "J3",
       coordinates: [10, 0],
     });
@@ -953,7 +953,7 @@ describe("splitPipe", () => {
       .build();
 
     const pipe = hydraulicModel.assets.get(IDS.P1) as Pipe;
-    const splitNodeAtStart = assetFactory.buildJunction({
+    const splitNodeAtStart = assetFactory.createJunction({
       label: "J3",
       coordinates: [0, 0],
     });
@@ -990,7 +990,7 @@ describe("splitPipe", () => {
       .build();
 
     const pipe = hydraulicModel.assets.get(IDS.P1) as Pipe;
-    const splitNode = assetFactory.buildJunction({
+    const splitNode = assetFactory.createJunction({
       label: "J3",
       coordinates: [50, 0],
     });
@@ -1036,7 +1036,7 @@ describe("splitPipe", () => {
       .build();
 
     const pipe = hydraulicModel.assets.get(IDS.P1) as Pipe;
-    const splitNode = assetFactory.buildJunction({
+    const splitNode = assetFactory.createJunction({
       label: "J3",
       coordinates: [0.000049, 0],
     });
@@ -1081,7 +1081,7 @@ describe("splitPipe", () => {
       .build();
 
     const pipe = hydraulicModel.assets.get(IDS.P1) as Pipe;
-    const splitNode = assetFactory.buildJunction({
+    const splitNode = assetFactory.createJunction({
       label: "J3",
       coordinates: [10, 0],
     });
@@ -1123,7 +1123,7 @@ describe("splitPipe", () => {
       .build();
 
     const pipe = model.assets.get(IDS.P1) as Pipe;
-    const splitNode = assetFactory.buildJunction({
+    const splitNode = assetFactory.createJunction({
       coordinates: [50, 0],
     });
 
@@ -1155,7 +1155,7 @@ describe("splitPipe", () => {
       .build();
 
     const pipe = model.assets.get(IDS.P1) as Pipe;
-    const splitNode = assetFactory.buildJunction({
+    const splitNode = assetFactory.createJunction({
       coordinates: [50, 0],
     });
 
@@ -1187,10 +1187,10 @@ describe("splitPipe", () => {
       .build();
 
     const pipe = model.assets.get(IDS.P1) as Pipe;
-    const splitNode1 = assetFactory.buildJunction({
+    const splitNode1 = assetFactory.createJunction({
       coordinates: [50, 0],
     });
-    const splitNode2 = assetFactory.buildJunction({
+    const splitNode2 = assetFactory.createJunction({
       coordinates: [100, 0],
     });
 

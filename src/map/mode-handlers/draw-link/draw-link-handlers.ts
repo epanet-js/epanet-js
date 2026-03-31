@@ -162,7 +162,7 @@ export function useDrawLinkHandlers({
     };
     switch (linkType) {
       case "pipe":
-        return assetFactory.buildPipe({
+        return assetFactory.createPipe({
           ...startProperties,
           ...(pipeDrawingDefaults.diameter && {
             diameter: pipeDrawingDefaults.diameter,
@@ -172,13 +172,13 @@ export function useDrawLinkHandlers({
           }),
         });
       case "pump":
-        return assetFactory.buildPump({
+        return assetFactory.createPump({
           ...startProperties,
           definitionType: "curve",
           curve: [{ x: 1, y: 1 }],
         });
       case "valve":
-        return assetFactory.buildValve(startProperties);
+        return assetFactory.createValve(startProperties);
     }
   };
 
@@ -348,7 +348,7 @@ export function useDrawLinkHandlers({
   const isClickInProgress = useRef<boolean>(false);
 
   const createJunction = (coordinates: Position, elevation: number) =>
-    assetFactory.buildJunction({
+    assetFactory.createJunction({
       label: "",
       coordinates,
       elevation,
@@ -523,7 +523,7 @@ export function useDrawLinkHandlers({
           isEndAndContinueOn() && !snappingCandidate;
 
         const draftJunction = shouldShowDraftJunction
-          ? assetFactory.buildJunction({
+          ? assetFactory.createJunction({
               label: "",
               coordinates: nextCoordinates,
             })
@@ -575,7 +575,7 @@ export function useDrawLinkHandlers({
 
       const { startNode, link } = drawing;
 
-      const endJunction = assetFactory.buildJunction({
+      const endJunction = assetFactory.createJunction({
         label: "",
         coordinates: link.lastVertex,
         elevation: await fetchElevation(
@@ -641,7 +641,7 @@ export function useDrawLinkHandlers({
         !drawing.isNull &&
         !drawing.snappingCandidate
       ) {
-        const draftJunction = assetFactory.buildJunction({
+        const draftJunction = assetFactory.createJunction({
           label: "",
           coordinates: drawing.link.lastVertex,
         });

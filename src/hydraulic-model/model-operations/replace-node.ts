@@ -99,19 +99,19 @@ const createNode = (
 ): NodeAsset => {
   switch (nodeType) {
     case "junction":
-      return assetFactory.buildJunction({
+      return assetFactory.createJunction({
         coordinates,
         elevation,
         isActive,
       });
     case "reservoir":
-      return assetFactory.buildReservoir({
+      return assetFactory.createReservoir({
         coordinates,
         elevation,
         isActive,
       });
     case "tank":
-      return assetFactory.buildTank({
+      return assetFactory.createTank({
         coordinates,
         elevation,
         isActive,

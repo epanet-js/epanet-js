@@ -55,7 +55,7 @@ export const buildPipe = (
     quantitiesSpec.defaults,
     new ConsecutiveIdsGenerator(),
     new LabelManager(),
-  ).buildPipe(data);
+  ).createPipe(data);
 };
 export const buildPump = (
   data: PumpBuildData = {},
@@ -69,7 +69,7 @@ export const buildPump = (
     quantitiesSpec.defaults,
     new ConsecutiveIdsGenerator(),
     new LabelManager(),
-  ).buildPump(data);
+  ).createPump(data);
 };
 
 export const buildJunction = (data: JunctionBuildData = {}) => {
@@ -77,14 +77,14 @@ export const buildJunction = (data: JunctionBuildData = {}) => {
     presets.LPS.defaults,
     new ConsecutiveIdsGenerator(),
     new LabelManager(),
-  ).buildJunction(data);
+  ).createJunction(data);
 };
 export const buildReservoir = (data: ReservoirBuildData = {}) => {
   return new AssetFactory(
     presets.LPS.defaults,
     new ConsecutiveIdsGenerator(),
     new LabelManager(),
-  ).buildReservoir(data);
+  ).createReservoir(data);
 };
 
 export const buildCustomerPoint = (
@@ -161,7 +161,7 @@ export class HydraulicModelBuilder {
   }
 
   aNode(id: number, coordinates: Position = [0, 0]) {
-    const node = this.assetFactory.buildJunction({
+    const node = this.assetFactory.createJunction({
       coordinates,
       id,
     });
@@ -171,7 +171,7 @@ export class HydraulicModelBuilder {
   }
 
   aJunction(id: number, data: Partial<JunctionBuildData> = {}) {
-    const junction = this.assetFactory.buildJunction({
+    const junction = this.assetFactory.createJunction({
       id,
       ...data,
     });
@@ -186,7 +186,7 @@ export class HydraulicModelBuilder {
   }
 
   aReservoir(id: number, properties: Partial<ReservoirBuildData> = {}) {
-    const reservoir = this.assetFactory.buildReservoir({
+    const reservoir = this.assetFactory.createReservoir({
       id,
       ...properties,
     });
@@ -196,7 +196,7 @@ export class HydraulicModelBuilder {
   }
 
   aTank(id: number, data: Partial<TankBuildData> = {}) {
-    const tank = this.assetFactory.buildTank({
+    const tank = this.assetFactory.createTank({
       id,
       ...data,
     });
@@ -218,7 +218,7 @@ export class HydraulicModelBuilder {
     const startNode = this.getNodeOrCreate(startNodeId);
     const endNode = this.getNodeOrCreate(endNodeId);
 
-    const pipe = this.assetFactory.buildPipe({
+    const pipe = this.assetFactory.createPipe({
       coordinates: coordinates || [startNode.coordinates, endNode.coordinates],
       connections: [startNode.id, endNode.id],
       id,
@@ -245,7 +245,7 @@ export class HydraulicModelBuilder {
     const definitionType = properties.definitionType || "curve";
     const curve = properties.curve || [{ x: 1, y: 1 }];
 
-    const pump = this.assetFactory.buildPump({
+    const pump = this.assetFactory.createPump({
       coordinates: [startNode.coordinates, endNode.coordinates],
       connections: [startNode.id, endNode.id],
       id,
@@ -272,7 +272,7 @@ export class HydraulicModelBuilder {
     const startNode = this.getNodeOrCreate(startNodeId);
     const endNode = this.getNodeOrCreate(endNodeId);
 
-    const valve = this.assetFactory.buildValve({
+    const valve = this.assetFactory.createValve({
       coordinates: [startNode.coordinates, endNode.coordinates],
       connections: [startNode.id, endNode.id],
       id,
@@ -456,7 +456,7 @@ export class HydraulicModelBuilder {
 
   private getNodeOrCreate(nodeId: AssetId | undefined): NodeAsset {
     if (!nodeId) {
-      return this.assetFactory.buildJunction();
+      return this.assetFactory.createJunction();
     }
     const node = getNode(this.assets, nodeId);
     if (!node) throw new Error(`Node provided missing in assets (${nodeId})`);

@@ -36,7 +36,7 @@ describe("replaceLink", () => {
         })
         .build();
 
-      const newPipe = assetFactory.buildPipe({
+      const newPipe = assetFactory.createPipe({
         label: "P2",
         coordinates: [
           [0, 0],
@@ -84,7 +84,7 @@ describe("replaceLink", () => {
         })
         .build();
 
-      const newPump = assetFactory.buildPump({
+      const newPump = assetFactory.createPump({
         label: "PU1",
         coordinates: [
           [0, 0],
@@ -123,7 +123,7 @@ describe("replaceLink", () => {
         })
         .build();
 
-      const newPipe = assetFactory.buildPipe({
+      const newPipe = assetFactory.createPipe({
         label: "P2",
         coordinates: [
           [0, 0],
@@ -131,10 +131,10 @@ describe("replaceLink", () => {
         ],
       });
 
-      const startNode = assetFactory.buildJunction({
+      const startNode = assetFactory.createJunction({
         coordinates: [2, 0],
       });
-      const endNode = assetFactory.buildJunction({
+      const endNode = assetFactory.createJunction({
         coordinates: [8, 0],
       });
 
@@ -190,11 +190,11 @@ describe("replaceLink", () => {
         ],
       });
 
-      const startNode = assetFactory.buildJunction({
+      const startNode = assetFactory.createJunction({
         id: IDS.J3,
         coordinates: [10, 0],
       });
-      const endNode = assetFactory.buildJunction({
+      const endNode = assetFactory.createJunction({
         id: IDS.J4,
         coordinates: [20, 0],
       });
@@ -244,7 +244,7 @@ describe("replaceLink", () => {
         })
         .build();
 
-      const newValve = assetFactory.buildValve({
+      const newValve = assetFactory.createValve({
         id: IDS.V1,
         label: "V1",
         coordinates: [
@@ -253,11 +253,11 @@ describe("replaceLink", () => {
         ],
       });
 
-      const startNode = assetFactory.buildJunction({
+      const startNode = assetFactory.createJunction({
         id: IDS.J3,
         coordinates: [10, 0],
       });
-      const endNode = assetFactory.buildJunction({
+      const endNode = assetFactory.createJunction({
         id: IDS.J4,
         coordinates: [20, 0],
       });
@@ -302,7 +302,7 @@ describe("replaceLink", () => {
         })
         .build();
 
-      const newPipe = assetFactory.buildPipe({
+      const newPipe = assetFactory.createPipe({
         id: IDS.P2,
         coordinates: [
           [0, 0],
@@ -343,7 +343,7 @@ describe("replaceLink", () => {
         })
         .build();
 
-      const newPipe = assetFactory.buildPipe({
+      const newPipe = assetFactory.createPipe({
         id: IDS.P2,
         label: "P2",
         coordinates: [
@@ -385,7 +385,7 @@ describe("replaceLink", () => {
         })
         .build();
 
-      const newPipe = assetFactory.buildPipe({
+      const newPipe = assetFactory.createPipe({
         id: IDS.P2,
         label: "P2",
         coordinates: [
@@ -393,11 +393,11 @@ describe("replaceLink", () => {
           [8, 0],
         ],
       });
-      const newStartNode = assetFactory.buildJunction({
+      const newStartNode = assetFactory.createJunction({
         id: IDS.J3,
         coordinates: [2, 0],
       });
-      const newEndNode = assetFactory.buildJunction({
+      const newEndNode = assetFactory.createJunction({
         id: IDS.J4,
         coordinates: [8, 0],
       });
@@ -438,7 +438,7 @@ describe("replaceLink", () => {
         })
         .build();
 
-      const newPipe = assetFactory.buildPipe({
+      const newPipe = assetFactory.createPipe({
         id: IDS.P2,
         label: "P2",
         coordinates: [
@@ -447,12 +447,12 @@ describe("replaceLink", () => {
         ],
       });
 
-      const newStartNode = assetFactory.buildJunction({
+      const newStartNode = assetFactory.createJunction({
         id: IDS.J3,
         coordinates: [2, 0],
       });
 
-      const newEndNode = assetFactory.buildJunction({
+      const newEndNode = assetFactory.createJunction({
         id: IDS.J4,
         coordinates: [8, 0],
       });
@@ -524,7 +524,7 @@ describe("replaceLink", () => {
         })
         .build();
 
-      const newPipe = assetFactory.buildPipe({
+      const newPipe = assetFactory.createPipe({
         id: IDS.P1_Redrawn,
         label: "P1_Redrawn",
         coordinates: [
@@ -533,13 +533,13 @@ describe("replaceLink", () => {
         ],
       });
 
-      const startNode = assetFactory.buildJunction({
+      const startNode = assetFactory.createJunction({
         id: IDS.N1,
         label: "N1",
         coordinates: [5, 10],
       });
 
-      const endNode = assetFactory.buildJunction({
+      const endNode = assetFactory.createJunction({
         id: IDS.N2,
         label: "N2",
         coordinates: [5, 20],
@@ -592,7 +592,7 @@ describe("replaceLink", () => {
         })
         .build();
 
-      const newPipe = assetFactory.buildPipe({
+      const newPipe = assetFactory.createPipe({
         label: "P2",
         coordinates: [
           [0, 0],
@@ -650,7 +650,7 @@ describe("replaceLink", () => {
         })
         .build();
 
-      const newPipe = assetFactory.buildPipe({
+      const newPipe = assetFactory.createPipe({
         label: "P2",
         coordinates: [
           [0, 0],
@@ -705,7 +705,7 @@ describe("replaceLink", () => {
         })
         .build();
 
-      const newPipe = assetFactory.buildPipe({
+      const newPipe = assetFactory.createPipe({
         label: "P2",
         coordinates: [
           [0, 0],
@@ -757,7 +757,7 @@ describe("replaceLink", () => {
       hydraulicModel.customerPoints.set(IDS.CP1, customerPoint);
       hydraulicModel.customerPointsLookup.addConnection(customerPoint);
 
-      const newPipe = assetFactory.buildPipe({
+      const newPipe = assetFactory.createPipe({
         label: "P2",
         coordinates: [
           [0, 0],
@@ -798,7 +798,7 @@ describe("replaceLink", () => {
         })
         .build();
 
-      const newPump = assetFactory.buildPump({
+      const newPump = assetFactory.createPump({
         label: "PU2",
         coordinates: [
           [0, 0],
@@ -833,7 +833,7 @@ describe("replaceLink", () => {
     it("throws error when source link not found", () => {
       const IDS = { NONEXISTENT: 999 } as const;
       const hydraulicModel = HydraulicModelBuilder.with().build();
-      const newPipe = assetFactory.buildPipe({
+      const newPipe = assetFactory.createPipe({
         label: "P2",
         coordinates: [
           [0, 0],
@@ -841,10 +841,10 @@ describe("replaceLink", () => {
         ],
       });
 
-      const startNode = assetFactory.buildJunction({
+      const startNode = assetFactory.createJunction({
         coordinates: [0, 0],
       });
-      const endNode = assetFactory.buildJunction({
+      const endNode = assetFactory.createJunction({
         coordinates: [10, 0],
       });
 

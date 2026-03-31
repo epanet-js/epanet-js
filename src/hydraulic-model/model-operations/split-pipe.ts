@@ -296,14 +296,14 @@ const buildPipePair = (
 ): [Pipe, Pipe] => {
   const [originalStartNodeId, originalEndNodeId] = originalPipe.connections;
 
-  const pipe1 = assetFactory.buildPipe({
+  const pipe1 = assetFactory.createPipe({
     label: originalPipe.label,
     coordinates: coords1,
     connections: [originalStartNodeId, split.id],
     isActive: originalPipe.isActive,
   });
 
-  const pipe2 = assetFactory.buildPipe({
+  const pipe2 = assetFactory.createPipe({
     label: originalPipe.label,
     coordinates: coords2,
     connections: [split.id, originalEndNodeId],
