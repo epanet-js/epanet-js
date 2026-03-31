@@ -12,6 +12,7 @@ import {
   supportedPressureUnits,
   getDefaultPressureUnit,
   withPressureUnit,
+  withHeadlossDefaults,
   flowUnitTranslationKeys,
   pressureUnitTranslationKeys,
 } from "src/lib/project-settings/quantities-spec";
@@ -109,9 +110,10 @@ export const CreateNew = () => {
       const spec = pressureUnit
         ? withPressureUnit(presets[unitsSpec], pressureUnit)
         : presets[unitsSpec];
+      const defaults = withHeadlossDefaults(spec.defaults, headlossFormula);
       const projectSettings: ProjectSettings = {
         units: spec.units,
-        defaults: spec.defaults,
+        defaults,
         headlossFormula,
         formatting: { decimals: spec.decimals, defaultDecimals: 3 },
         projection: buildNewProjection(projection),
@@ -123,7 +125,7 @@ export const CreateNew = () => {
       const factories = initializeModelFactories({
         idGenerator,
         labelManager: hydraulicModel.labelManager,
-        defaults: spec.defaults,
+        defaults,
       });
       setGridPreview(false);
       setGridHidden(false);

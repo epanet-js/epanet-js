@@ -339,3 +339,23 @@ export const getMinorLossUnit = (
 ): Unit => {
   return headlossFormula === "D-W" ? units.length : null;
 };
+
+const defaultRoughnessByFormula: Record<HeadlossFormula, number> = {
+  "H-W": 130,
+  "D-W": 0.1,
+  "C-M": 0.011,
+};
+
+export const getDefaultRoughness = (headlossFormula: HeadlossFormula): number =>
+  defaultRoughnessByFormula[headlossFormula];
+
+export const withHeadlossDefaults = (
+  defaults: DefaultsSpec,
+  headlossFormula: HeadlossFormula,
+): DefaultsSpec => ({
+  ...defaults,
+  pipe: {
+    ...defaults.pipe,
+    roughness: getDefaultRoughness(headlossFormula),
+  },
+});

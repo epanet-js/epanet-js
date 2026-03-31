@@ -26,6 +26,7 @@ import { ProjectSettings } from "src/lib/project-settings";
 import {
   presets,
   withPressureUnit,
+  withHeadlossDefaults,
 } from "src/lib/project-settings/quantities-spec";
 import type { Unit } from "src/quantity";
 import { Position } from "geojson";
@@ -97,6 +98,10 @@ export const buildModel = (
   const spec = inpData.options.pressureUnit
     ? withPressureUnit(baseSpec, inpData.options.pressureUnit as Unit)
     : baseSpec;
+  const defaults = withHeadlossDefaults(
+    spec.defaults,
+    inpData.options.headlossFormula,
+  );
   const skipWgs84Validation = options?.skipWgs84Validation ?? false;
   const nodeIds = new ItemData<AssetId>();
   const linkIds = new ItemData<AssetId>();
@@ -110,7 +115,7 @@ export const buildModel = (
   const factories = initializeModelFactories({
     idGenerator,
     labelManager: hydraulicModel.labelManager,
-    defaults: spec.defaults,
+    defaults,
   });
 
   const { assetFactory } = factories;
@@ -220,7 +225,7 @@ export const buildModel = (
     idGenerator,
     projectSettings: {
       units: spec.units,
-      defaults: spec.defaults,
+      defaults,
       headlossFormula: inpData.options.headlossFormula,
       formatting: { decimals: spec.decimals, defaultDecimals: 3 },
     },
