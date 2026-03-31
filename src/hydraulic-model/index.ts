@@ -6,12 +6,12 @@ export {
 } from "./hydraulic-model";
 export type { Controls } from "./controls";
 export { createEmptyControls } from "./controls";
-export { AssetBuilder } from "./asset-builder";
+export { AssetFactory } from "./factories/asset-factory";
 export type {
   JunctionBuildData,
   PipeBuildData,
   ReservoirBuildData,
-} from "./asset-builder";
+} from "./factories/asset-factory";
 export type { AssetId } from "./assets-map";
 export { filterAssets, getNode, AssetsMap } from "./assets-map";
 export type {

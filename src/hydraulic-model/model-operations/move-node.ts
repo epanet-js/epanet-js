@@ -9,6 +9,7 @@ import { lineString, point } from "@turf/helpers";
 import { findNearestPointOnLine } from "src/lib/geometry";
 import { splitPipe } from "./split-pipe";
 import { HydraulicModel } from "../hydraulic-model";
+import { AssetFactory } from "../factories/asset-factory";
 import { computeLinkLength } from "../asset-types/link";
 import { Unit } from "src/quantity";
 
@@ -19,6 +20,7 @@ type InputData = {
   shouldUpdateCustomerPoints?: boolean;
   pipeIdToSplit?: AssetId;
   lengthUnit: Unit;
+  assetFactory: AssetFactory;
 };
 
 export const moveNode: ModelOperation<InputData> = (
@@ -30,6 +32,7 @@ export const moveNode: ModelOperation<InputData> = (
     shouldUpdateCustomerPoints = false,
     pipeIdToSplit,
     lengthUnit,
+    assetFactory,
   },
 ) => {
   if (pipeIdToSplit) {
@@ -41,6 +44,7 @@ export const moveNode: ModelOperation<InputData> = (
       shouldUpdateCustomerPoints,
       pipeIdToSplit,
       lengthUnit,
+      assetFactory,
     );
   }
 
@@ -50,6 +54,7 @@ export const moveNode: ModelOperation<InputData> = (
     newElevation,
     shouldUpdateCustomerPoints,
     lengthUnit,
+    assetFactory,
   });
 };
 
@@ -135,6 +140,7 @@ const moveNodeWithPipeSplitting = (
   shouldUpdateCustomerPoints: boolean,
   pipeIdToSplit: AssetId,
   lengthUnit: Unit,
+  assetFactory: AssetFactory,
 ) => {
   const { assets } = hydraulicModel;
 
@@ -155,12 +161,14 @@ const moveNodeWithPipeSplitting = (
     newElevation,
     shouldUpdateCustomerPoints,
     lengthUnit,
+    assetFactory,
   });
 
   const splitResult = splitPipe(hydraulicModel, {
     pipe,
     splits: [updatedNode],
     lengthUnit,
+    assetFactory,
   });
 
   const allPutAssets = [

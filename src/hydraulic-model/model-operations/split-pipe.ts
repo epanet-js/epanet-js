@@ -2,6 +2,7 @@ import { NodeAsset } from "../asset-types";
 import { Pipe, PipeProperties } from "../asset-types/pipe";
 import { ModelOperation } from "../model-operation";
 import { HydraulicModel } from "../hydraulic-model";
+import { AssetFactory } from "../factories/asset-factory";
 import { CustomerPoint } from "../customer-points";
 import { findJunctionForCustomerPoint } from "../utilities/junction-assignment";
 import { lineString, point } from "@turf/helpers";
@@ -20,11 +21,12 @@ type SplitPipeInput = {
   pipe: Pipe;
   splits: NodeAsset[];
   lengthUnit: Unit;
+  assetFactory: AssetFactory;
 };
 
 export const splitPipe: ModelOperation<SplitPipeInput> = (
   hydraulicModel,
-  { pipe, splits, lengthUnit },
+  { pipe, splits, lengthUnit, assetFactory },
 ) => {
   if (splits.length === 0) {
     throw new Error("At least one split is required");
@@ -35,6 +37,7 @@ export const splitPipe: ModelOperation<SplitPipeInput> = (
     pipe,
     splits,
     lengthUnit,
+    assetFactory,
   );
 
   const reconnectedCustomerPoints = updateCustomerPoints(
@@ -119,6 +122,7 @@ const splitPipeIteratively = (
   originalPipe: Pipe,
   splits: NodeAsset[],
   lengthUnit: Unit,
+  assetFactory: AssetFactory,
 ): Pipe[] => {
   if (splits.length === 0) {
     return [originalPipe];
@@ -142,6 +146,7 @@ const splitPipeIteratively = (
       targetPipe,
       splitToProcess,
       lengthUnit,
+      assetFactory,
     );
 
     currentPipes.splice(targetPipeIndex, 1, pipe1, pipe2);
@@ -176,6 +181,7 @@ const splitPipeAtPoint = (
   pipe: Pipe,
   split: NodeAsset,
   lengthUnit: Unit,
+  assetFactory: AssetFactory,
 ): [Pipe, Pipe] => {
   const matchingVertexIndex = findMatchingVertexIndex(
     pipe.coordinates,
@@ -184,50 +190,43 @@ const splitPipeAtPoint = (
 
   if (isValidVertexSplit(matchingVertexIndex, pipe.coordinates.length)) {
     return splitPipeAtVertex(
-      hydraulicModel,
       pipe,
       split,
       matchingVertexIndex,
       lengthUnit,
+      assetFactory,
     );
   }
 
   const segmentIndex = findNearestSegment(pipe.coordinates, split.coordinates);
   return splitPipeAtNewPoint(
-    hydraulicModel,
     pipe,
     split,
     segmentIndex,
     lengthUnit,
+    assetFactory,
   );
 };
 
 const splitPipeAtVertex = (
-  hydraulicModel: HydraulicModel,
   pipe: Pipe,
   split: NodeAsset,
   vertexIndex: number,
   lengthUnit: Unit,
+  assetFactory: AssetFactory,
 ): [Pipe, Pipe] => {
   const coords1 = pipe.coordinates.slice(0, vertexIndex + 1);
   const coords2 = pipe.coordinates.slice(vertexIndex);
 
-  return buildPipePair(
-    hydraulicModel,
-    pipe,
-    split,
-    coords1,
-    coords2,
-    lengthUnit,
-  );
+  return buildPipePair(pipe, split, coords1, coords2, lengthUnit, assetFactory);
 };
 
 const splitPipeAtNewPoint = (
-  hydraulicModel: HydraulicModel,
   pipe: Pipe,
   split: NodeAsset,
   segmentIndex: number,
   lengthUnit: Unit,
+  assetFactory: AssetFactory,
 ): [Pipe, Pipe] => {
   const coords1 = [
     ...pipe.coordinates.slice(0, segmentIndex + 1),
@@ -238,14 +237,7 @@ const splitPipeAtNewPoint = (
     ...pipe.coordinates.slice(segmentIndex + 1),
   ];
 
-  return buildPipePair(
-    hydraulicModel,
-    pipe,
-    split,
-    coords1,
-    coords2,
-    lengthUnit,
-  );
+  return buildPipePair(pipe, split, coords1, coords2, lengthUnit, assetFactory);
 };
 
 const findMatchingVertexIndex = (
@@ -295,23 +287,23 @@ const findNearestSegment = (
 };
 
 const buildPipePair = (
-  hydraulicModel: HydraulicModel,
   originalPipe: Pipe,
   split: NodeAsset,
   coords1: Position[],
   coords2: Position[],
   lengthUnit: Unit,
+  assetFactory: AssetFactory,
 ): [Pipe, Pipe] => {
   const [originalStartNodeId, originalEndNodeId] = originalPipe.connections;
 
-  const pipe1 = hydraulicModel.assetBuilder.buildPipe({
+  const pipe1 = assetFactory.buildPipe({
     label: originalPipe.label,
     coordinates: coords1,
     connections: [originalStartNodeId, split.id],
     isActive: originalPipe.isActive,
   });
 
-  const pipe2 = hydraulicModel.assetBuilder.buildPipe({
+  const pipe2 = assetFactory.buildPipe({
     label: originalPipe.label,
     coordinates: coords2,
     connections: [split.id, originalEndNodeId],

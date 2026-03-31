@@ -2,6 +2,16 @@ import { describe, it, expect } from "vitest";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { replaceNode } from "./replace-node";
 import { NodeAsset, LinkAsset } from "src/hydraulic-model/asset-types";
+import { AssetFactory } from "../factories/asset-factory";
+import { ConsecutiveIdsGenerator } from "src/lib/id-generator";
+import { LabelManager } from "../label-manager";
+import { presets } from "src/lib/project-settings/quantities-spec";
+
+const assetFactory = new AssetFactory(
+  presets.LPS.defaults,
+  new ConsecutiveIdsGenerator(),
+  new LabelManager(),
+);
 
 describe("replaceNode", () => {
   it("replaces junction with tank and preserves connections", () => {
@@ -13,6 +23,7 @@ describe("replaceNode", () => {
       .build();
 
     const moment = replaceNode(model, {
+      assetFactory,
       oldNodeId: IDS.J1,
       newNodeType: "tank",
     });
@@ -42,6 +53,7 @@ describe("replaceNode", () => {
       .build();
 
     const moment = replaceNode(model, {
+      assetFactory,
       oldNodeId: IDS.R1,
       newNodeType: "junction",
     });
@@ -72,6 +84,7 @@ describe("replaceNode", () => {
       .build();
 
     const moment = replaceNode(model, {
+      assetFactory,
       oldNodeId: IDS.T1,
       newNodeType: "reservoir",
     });
@@ -104,6 +117,7 @@ describe("replaceNode", () => {
       .build();
 
     const moment = replaceNode(model, {
+      assetFactory,
       oldNodeId: IDS.J1,
       newNodeType: "tank",
     });
@@ -124,6 +138,7 @@ describe("replaceNode", () => {
       .build();
 
     const moment = replaceNode(model, {
+      assetFactory,
       oldNodeId: IDS.J1,
       newNodeType: "tank",
     });
@@ -141,6 +156,7 @@ describe("replaceNode", () => {
       .build();
 
     const moment = replaceNode(model, {
+      assetFactory,
       oldNodeId: IDS.J1,
       newNodeType: "reservoir",
     });
@@ -159,6 +175,7 @@ describe("replaceNode", () => {
 
     expect(() =>
       replaceNode(model, {
+        assetFactory,
         oldNodeId: invalidNodeId,
         newNodeType: "junction",
       }),
@@ -175,6 +192,7 @@ describe("replaceNode", () => {
 
     expect(() =>
       replaceNode(model, {
+        assetFactory,
         oldNodeId: IDS.P1,
         newNodeType: "junction",
       }),
@@ -198,6 +216,7 @@ describe("replaceNode", () => {
       .build();
 
     const moment = replaceNode(model, {
+      assetFactory,
       oldNodeId: IDS.J1,
       newNodeType: "tank",
     });
@@ -217,6 +236,7 @@ describe("replaceNode", () => {
       .build();
 
     const moment = replaceNode(model, {
+      assetFactory,
       oldNodeId: IDS.J1,
       newNodeType: "tank",
     });
@@ -232,6 +252,7 @@ describe("replaceNode", () => {
       .build();
 
     const moment = replaceNode(model, {
+      assetFactory,
       oldNodeId: IDS.J1,
       newNodeType: "reservoir",
     });
@@ -250,6 +271,7 @@ describe("replaceNode", () => {
       .build();
 
     const moment = replaceNode(model, {
+      assetFactory,
       oldNodeId: IDS.J1,
       newNodeType: "tank",
     });
@@ -266,6 +288,7 @@ describe("replaceNode", () => {
       .build();
 
     const moment = replaceNode(model, {
+      assetFactory,
       oldNodeId: IDS.J1,
       newNodeType: "reservoir",
     });
@@ -282,6 +305,7 @@ describe("replaceNode", () => {
       .build();
 
     const moment = replaceNode(model, {
+      assetFactory,
       oldNodeId: IDS.T1,
       newNodeType: "reservoir",
     });

@@ -1,7 +1,7 @@
 import type { HandlerContext } from "src/types";
 import { cursorStyleAtom } from "src/state/map";
 import { Mode } from "src/state/mode";
-import { useSetAtom } from "jotai";
+import { useSetAtom, useAtomValue } from "jotai";
 import { modeAtom } from "src/state/mode";
 import { getMapCoord } from "src/map/map-event";
 import { useSelection } from "src/selection";
@@ -24,6 +24,7 @@ import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import { useSnapping } from "../hooks/use-snapping";
 import throttle from "lodash/throttle";
 import { useClickedAsset } from "../utils";
+import { modelFactoriesAtom } from "src/state/model-factories";
 
 const stateUpdateTime = 16;
 
@@ -50,6 +51,7 @@ export function useNoneHandlers({
   readonly = false,
 }: HandlerContext): Handlers {
   const { getClickedAsset } = useClickedAsset(map, hydraulicModel.assets);
+  const { assetFactory } = useAtomValue(modelFactoriesAtom);
 
   const setMode = useSetAtom(modeAtom);
   const {
@@ -274,6 +276,7 @@ export function useNoneHandlers({
           newCoordinates,
           newElevation: noElevation,
           lengthUnit: units.length,
+          assetFactory,
         });
 
         if (putAssets) {
@@ -383,6 +386,7 @@ export function useNoneHandlers({
               shouldUpdateCustomerPoints: true,
               pipeIdToSplit,
               lengthUnit: units.length,
+              assetFactory,
             });
             transact(moment);
             resetMove();

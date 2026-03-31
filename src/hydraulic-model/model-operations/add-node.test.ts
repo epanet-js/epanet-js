@@ -4,6 +4,16 @@ import {
   HydraulicModelBuilder,
   buildCustomerPoint,
 } from "src/__helpers__/hydraulic-model-builder";
+import { AssetFactory } from "../factories/asset-factory";
+import { ConsecutiveIdsGenerator } from "src/lib/id-generator";
+import { LabelManager } from "../label-manager";
+import { presets } from "src/lib/project-settings/quantities-spec";
+
+const assetFactory = new AssetFactory(
+  presets.LPS.defaults,
+  new ConsecutiveIdsGenerator(),
+  new LabelManager(),
+);
 
 describe("addNode", () => {
   describe("without pipe splitting (backward compatibility)", () => {
@@ -11,6 +21,7 @@ describe("addNode", () => {
       const hydraulicModel = HydraulicModelBuilder.with().build();
 
       const { putAssets } = addNode(hydraulicModel, {
+        assetFactory,
         lengthUnit: "m",
         nodeType: "junction",
         coordinates: [10, 10],
@@ -30,6 +41,7 @@ describe("addNode", () => {
       const hydraulicModel = HydraulicModelBuilder.with().build();
 
       const { putAssets } = addNode(hydraulicModel, {
+        assetFactory,
         lengthUnit: "m",
         nodeType: "reservoir",
         coordinates: [20, 20],
@@ -48,6 +60,7 @@ describe("addNode", () => {
       const hydraulicModel = HydraulicModelBuilder.with().build();
 
       const { putAssets } = addNode(hydraulicModel, {
+        assetFactory,
         lengthUnit: "m",
         nodeType: "tank",
         coordinates: [30, 30],
@@ -78,6 +91,7 @@ describe("addNode", () => {
       expect(originalPipe).toBeDefined();
 
       const { putAssets, deleteAssets } = addNode(hydraulicModel, {
+        assetFactory,
         lengthUnit: "m",
         nodeType: "junction",
         coordinates: [5, 0],
@@ -123,6 +137,7 @@ describe("addNode", () => {
       const nodeCoordinates: [number, number] = [5.123, 0.456];
 
       const { putAssets } = addNode(hydraulicModel, {
+        assetFactory,
         lengthUnit: "m",
         nodeType: "junction",
         coordinates: nodeCoordinates,
@@ -152,6 +167,7 @@ describe("addNode", () => {
         .build();
 
       const { putAssets, deleteAssets } = addNode(hydraulicModel, {
+        assetFactory,
         lengthUnit: "m",
         nodeType: "junction",
         coordinates: [5, 0],
@@ -175,6 +191,7 @@ describe("addNode", () => {
 
       expect(() =>
         addNode(hydraulicModel, {
+          assetFactory,
           lengthUnit: "m",
           nodeType: "junction",
           coordinates: [5, 0],
@@ -191,6 +208,7 @@ describe("addNode", () => {
 
       expect(() =>
         addNode(hydraulicModel, {
+          assetFactory,
           lengthUnit: "m",
           nodeType: "junction",
           coordinates: [5, 0],
@@ -212,6 +230,7 @@ describe("addNode", () => {
         .build();
 
       const { putAssets } = addNode(hydraulicModel, {
+        assetFactory,
         lengthUnit: "m",
         nodeType: "junction",
         coordinates: [10, 0],
@@ -251,6 +270,7 @@ describe("addNode", () => {
       hydraulicModel.customerPointsLookup.addConnection(customerPoint);
 
       const { putAssets, putCustomerPoints } = addNode(hydraulicModel, {
+        assetFactory,
         lengthUnit: "m",
         nodeType: "junction",
         coordinates: [5, 0],
@@ -281,6 +301,7 @@ describe("addNode", () => {
         .build();
 
       const { putAssets } = addNode(hydraulicModel, {
+        assetFactory,
         lengthUnit: "m",
         nodeType: "junction",
         coordinates: [5, 0],
@@ -304,6 +325,7 @@ describe("addNode", () => {
         .build();
 
       const { putAssets } = addNode(hydraulicModel, {
+        assetFactory,
         lengthUnit: "m",
         nodeType: "junction",
         coordinates: [5, 0],
@@ -321,6 +343,7 @@ describe("addNode", () => {
 
       expect(() =>
         addNode(hydraulicModel, {
+          assetFactory,
           lengthUnit: "m",
           nodeType: "unsupported" as any,
           coordinates: [0, 0],
@@ -346,6 +369,7 @@ describe("addNode", () => {
       .build();
 
     const { putAssets } = addNode(hydraulicModel, {
+      assetFactory,
       lengthUnit: "m",
       nodeType: "junction",
       coordinates: [5, 0],
@@ -383,6 +407,7 @@ describe("addNode", () => {
       .build();
 
     const { putAssets } = addNode(hydraulicModel, {
+      assetFactory,
       lengthUnit: "m",
       nodeType: "reservoir",
       coordinates: [10, 0],
@@ -421,6 +446,7 @@ describe("addNode", () => {
       .build();
 
     const { putAssets } = addNode(hydraulicModel, {
+      assetFactory,
       lengthUnit: "m",
       nodeType: "tank",
       coordinates: [5, 0],

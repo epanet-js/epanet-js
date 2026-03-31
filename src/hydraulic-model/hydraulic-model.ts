@@ -1,7 +1,5 @@
 import { Topology } from "./topology";
 import { AssetsMap } from "./assets-map";
-import { AssetBuilder } from "./asset-builder";
-import { DefaultsSpec } from "src/lib/project-settings/quantities-spec";
 import { nanoid } from "nanoid";
 
 import { ConsecutiveIdsGenerator, IdGenerator } from "src/lib/id-generator";
@@ -20,7 +18,6 @@ export type HydraulicModel = {
   assets: AssetsMap;
   customerPoints: CustomerPoints;
   customerPointsLookup: CustomerPointsLookup;
-  assetBuilder: AssetBuilder;
   topology: Topology;
   assetIndex: AssetIndex;
   demands: Demands;
@@ -33,13 +30,11 @@ export type HydraulicModel = {
 export { AssetsMap };
 
 export const initializeHydraulicModel = ({
-  defaults,
   demands = createEmptyDemands(),
   controls = createEmptyControls(),
   idGenerator,
   labelCounters,
 }: {
-  defaults: DefaultsSpec;
   demands?: Demands;
   controls?: Controls;
   idGenerator?: IdGenerator;
@@ -53,7 +48,6 @@ export const initializeHydraulicModel = ({
     assets,
     customerPoints: initializeCustomerPoints(),
     customerPointsLookup: new CustomerPointsLookup(),
-    assetBuilder: new AssetBuilder(defaults, assetIdGenerator, labelManager),
     topology: new Topology(),
     assetIndex: new AssetIndex(assetIdGenerator, assets),
     demands,

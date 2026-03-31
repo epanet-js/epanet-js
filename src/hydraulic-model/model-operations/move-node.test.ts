@@ -3,6 +3,16 @@ import { moveNode } from "./move-node";
 
 import { NodeAsset, LinkAsset } from "../asset-types";
 import { HydraulicModelBuilder } from "../../__helpers__/hydraulic-model-builder";
+import { AssetFactory } from "../factories/asset-factory";
+import { ConsecutiveIdsGenerator } from "src/lib/id-generator";
+import { LabelManager } from "../label-manager";
+import { presets } from "src/lib/project-settings/quantities-spec";
+
+const assetFactory = new AssetFactory(
+  presets.LPS.defaults,
+  new ConsecutiveIdsGenerator(),
+  new LabelManager(),
+);
 
 describe("moveNode", () => {
   it("updates the coordinates of a node", () => {
@@ -14,6 +24,7 @@ describe("moveNode", () => {
     const newElevation = 10;
 
     const { putAssets } = moveNode(hydraulicModel, {
+      assetFactory,
       lengthUnit: "m",
       nodeId: IDS.A,
       newCoordinates,
@@ -39,6 +50,7 @@ describe("moveNode", () => {
     const anyElevation = 10;
 
     const { putAssets } = moveNode(hydraulicModel, {
+      assetFactory,
       lengthUnit: "m",
       nodeId: IDS.B,
       newCoordinates,
@@ -79,6 +91,7 @@ describe("moveNode", () => {
 
       const newCoordinates = [10, 20];
       const { putAssets, putCustomerPoints } = moveNode(hydraulicModel, {
+        assetFactory,
         lengthUnit: "m",
         nodeId: IDS.J1,
         newCoordinates,
@@ -115,6 +128,7 @@ describe("moveNode", () => {
         .build();
 
       const { putCustomerPoints } = moveNode(hydraulicModel, {
+        assetFactory,
         lengthUnit: "m",
         nodeId: IDS.J1,
         newCoordinates: [10, 20],
@@ -137,6 +151,7 @@ describe("moveNode", () => {
         .build();
 
       const { putCustomerPoints } = moveNode(hydraulicModel, {
+        assetFactory,
         lengthUnit: "m",
         nodeId: IDS.J1,
         newCoordinates: [15, 20],
@@ -167,6 +182,7 @@ describe("moveNode", () => {
         .build();
 
       const { putCustomerPoints } = moveNode(hydraulicModel, {
+        assetFactory,
         lengthUnit: "m",
         nodeId: IDS.J1,
         newCoordinates: [25, 0],
@@ -201,6 +217,7 @@ describe("moveNode", () => {
         .build();
 
       const { putCustomerPoints } = moveNode(hydraulicModel, {
+        assetFactory,
         lengthUnit: "m",
         nodeId: IDS.J1,
         newCoordinates: [0, 5],
@@ -244,6 +261,7 @@ describe("moveNode", () => {
         .build();
 
       const { putCustomerPoints } = moveNode(hydraulicModel, {
+        assetFactory,
         lengthUnit: "m",
         nodeId: IDS.J1,
         newCoordinates: [35, 0],
@@ -281,6 +299,7 @@ describe("moveNode", () => {
         .build();
 
       const { putCustomerPoints } = moveNode(hydraulicModel, {
+        assetFactory,
         lengthUnit: "m",
         nodeId: IDS.J1,
         newCoordinates: [-122.405, 37.7749],
@@ -306,6 +325,7 @@ describe("moveNode", () => {
       .build();
 
     const { putAssets, deleteAssets } = moveNode(hydraulicModel, {
+      assetFactory,
       lengthUnit: "m",
       nodeId: IDS.J3,
       newCoordinates: [5, 0],
@@ -354,6 +374,7 @@ describe("moveNode", () => {
       .build();
 
     const { putCustomerPoints } = moveNode(hydraulicModel, {
+      assetFactory,
       lengthUnit: "m",
       nodeId: IDS.J3,
       newCoordinates: [5, 0],
@@ -380,6 +401,7 @@ describe("moveNode", () => {
 
     expect(() =>
       moveNode(hydraulicModel, {
+        assetFactory,
         lengthUnit: "m",
         nodeId: IDS.J1,
         newCoordinates: [5, 0],
@@ -390,6 +412,7 @@ describe("moveNode", () => {
 
     expect(() =>
       moveNode(hydraulicModel, {
+        assetFactory,
         lengthUnit: "m",
         nodeId: IDS.J1,
         newCoordinates: [5, 0],
@@ -417,6 +440,7 @@ describe("moveNode", () => {
       .build();
 
     const { putAssets } = moveNode(hydraulicModel, {
+      assetFactory,
       lengthUnit: "m",
       nodeId: IDS.J3,
       newCoordinates: [5, 0],
@@ -456,6 +480,7 @@ describe("moveNode", () => {
       .build();
 
     const { putAssets } = moveNode(hydraulicModel, {
+      assetFactory,
       lengthUnit: "m",
       nodeId: IDS.J3,
       newCoordinates: [10, 0],
@@ -505,6 +530,7 @@ describe("moveNode", () => {
       .build();
 
     const { putAssets, putCustomerPoints } = moveNode(hydraulicModel, {
+      assetFactory,
       lengthUnit: "m",
       nodeId: IDS.J3,
       newCoordinates: [5, 0],

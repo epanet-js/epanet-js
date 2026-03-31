@@ -1,6 +1,6 @@
 import { AssetId, LinkAsset, NodeAsset } from "../asset-types";
 import { ModelOperation } from "../model-operation";
-import { HydraulicModel } from "../hydraulic-model";
+import { AssetFactory } from "../factories/asset-factory";
 import { CustomerPoints } from "../customer-points";
 import { Pipe } from "../asset-types/pipe";
 import { Position } from "src/types";
@@ -14,13 +14,14 @@ type NodeType = "junction" | "reservoir" | "tank";
 type InputData = {
   oldNodeId: AssetId;
   newNodeType: NodeType;
+  assetFactory: AssetFactory;
 };
 
 export const replaceNode: ModelOperation<InputData> = (
   hydraulicModel,
-  { oldNodeId, newNodeType },
+  { oldNodeId, newNodeType, assetFactory },
 ) => {
-  const { assets, topology, labelManager, assetBuilder, customerPointsLookup } =
+  const { assets, topology, labelManager, customerPointsLookup } =
     hydraulicModel;
 
   const oldNode = assets.get(oldNodeId) as NodeAsset;
@@ -33,7 +34,7 @@ export const replaceNode: ModelOperation<InputData> = (
   const oldIsActive = oldNode.isActive;
 
   const newNode = createNode(
-    assetBuilder,
+    assetFactory,
     newNodeType,
     oldCoordinates,
     oldElevation,
@@ -90,7 +91,7 @@ export const replaceNode: ModelOperation<InputData> = (
 };
 
 const createNode = (
-  assetBuilder: HydraulicModel["assetBuilder"],
+  assetFactory: AssetFactory,
   nodeType: NodeType,
   coordinates: Position,
   elevation: number,
@@ -98,19 +99,19 @@ const createNode = (
 ): NodeAsset => {
   switch (nodeType) {
     case "junction":
-      return assetBuilder.buildJunction({
+      return assetFactory.buildJunction({
         coordinates,
         elevation,
         isActive,
       });
     case "reservoir":
-      return assetBuilder.buildReservoir({
+      return assetFactory.buildReservoir({
         coordinates,
         elevation,
         isActive,
       });
     case "tank":
-      return assetBuilder.buildTank({
+      return assetFactory.buildTank({
         coordinates,
         elevation,
         isActive,

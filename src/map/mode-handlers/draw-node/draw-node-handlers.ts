@@ -7,6 +7,7 @@ import noop from "lodash/noop";
 import { useSetAtom, useAtom, useAtomValue } from "jotai";
 import { getMapCoord } from "../utils";
 import { addNode, replaceNode } from "src/hydraulic-model/model-operations";
+import { modelFactoriesAtom } from "src/state/model-factories";
 import throttle from "lodash/throttle";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useElevations } from "../../elevations/use-elevations";
@@ -29,6 +30,7 @@ export function useDrawNodeHandlers({
   const selection = useAtomValue(selectionAtom);
   const transact = rep.useTransact();
   const userTracking = useUserTracking();
+  const { assetFactory } = useAtomValue(modelFactoriesAtom);
   const { fetchElevation, prefetchTile } = useElevations(units.elevation);
   const { findSnappingCandidate } = useSnapping(map, hydraulicModel.assets);
   const { selectAsset } = useSelection(selection);
@@ -45,6 +47,7 @@ export function useDrawNodeHandlers({
       elevation,
       pipeIdToSplit,
       lengthUnit: units.length,
+      assetFactory,
     });
     transact(moment);
     userTracking.capture({ name: "asset.created", type: nodeType });
@@ -66,6 +69,7 @@ export function useDrawNodeHandlers({
         const moment = replaceNode(hydraulicModel, {
           oldNodeId: snappingCandidate.id,
           newNodeType: nodeType,
+          assetFactory,
         });
         transact(moment);
         userTracking.capture({

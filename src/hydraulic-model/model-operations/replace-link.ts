@@ -9,6 +9,7 @@ import { Position } from "geojson";
 import { findNearestPointOnLine } from "src/lib/geometry";
 import { inferNodeIsActive } from "../utilities/active-topology";
 import { Unit } from "src/quantity";
+import { AssetFactory } from "../factories/asset-factory";
 
 type InputData = {
   sourceLinkId: AssetId;
@@ -18,6 +19,7 @@ type InputData = {
   startPipeId?: AssetId;
   endPipeId?: AssetId;
   lengthUnit: Unit;
+  assetFactory: AssetFactory;
 };
 
 export const replaceLink: ModelOperation<InputData> = (
@@ -30,6 +32,7 @@ export const replaceLink: ModelOperation<InputData> = (
     startPipeId,
     endPipeId,
     lengthUnit,
+    assetFactory,
   },
 ) => {
   const sourceLink = hydraulicModel.assets.get(sourceLinkId);
@@ -54,6 +57,7 @@ export const replaceLink: ModelOperation<InputData> = (
     startPipeId,
     endPipeId,
     lengthUnit,
+    assetFactory,
   });
 
   const reconnectedCustomerPoints =

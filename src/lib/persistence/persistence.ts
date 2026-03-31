@@ -423,6 +423,7 @@ export class Persistence implements IPersistenceWithSnapshots {
       initializeModelFactories({
         idGenerator: worktree.idGenerator,
         labelManager: stagingModel.labelManager,
+        defaults: this.store.get(projectSettingsAtom).defaults,
       }),
     );
     this.switchMomentLog(snapshot.momentLog);
@@ -521,9 +522,7 @@ export class Persistence implements IPersistenceWithSnapshots {
     const momentLogDeltas = snapshot.momentLog.getDeltas();
     allDeltas.push(...momentLogDeltas);
 
-    const { defaults } = this.store.get(projectSettingsAtom);
     const model = initializeHydraulicModel({
-      defaults,
       idGenerator: worktree.idGenerator,
       labelCounters: worktree.labelCounters,
     });

@@ -6,6 +6,7 @@ import { selectionAtom } from "src/state/selection";
 import { Asset, LinkAsset, NodeAsset } from "src/hydraulic-model";
 import { USelection, useSelection } from "src/selection";
 import { replaceLink } from "src/hydraulic-model/model-operations";
+import { modelFactoriesAtom } from "src/state/model-factories";
 import measureLength from "@turf/length";
 import { useUserTracking } from "src/infra/user-tracking";
 
@@ -18,6 +19,7 @@ export function useRedrawLinkHandlers(
   const userTracking = useUserTracking();
   const { hydraulicModel } = handlerContext;
   const { assets } = hydraulicModel;
+  const { assetFactory } = useAtomValue(modelFactoriesAtom);
   const { selectAsset } = useSelection(selection);
 
   const selectedIds = USelection.toIds(selection);
@@ -48,6 +50,7 @@ export function useRedrawLinkHandlers(
       endPipeId,
       newLink: link,
       lengthUnit: handlerContext.units.length,
+      assetFactory,
     });
 
     userTracking.capture({ name: "asset.redrawed", type: link.type });

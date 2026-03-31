@@ -4,6 +4,7 @@ import { ModelOperation } from "../model-operation";
 import { LabelGenerator } from "../label-manager";
 import { Position } from "src/types";
 import { HydraulicModel } from "../hydraulic-model";
+import { AssetFactory } from "../factories/asset-factory";
 import { splitPipe } from "./split-pipe";
 import { Unit } from "src/quantity";
 
@@ -15,11 +16,19 @@ type InputData = {
   elevation?: number;
   pipeIdToSplit?: AssetId;
   lengthUnit: Unit;
+  assetFactory: AssetFactory;
 };
 
 export const addNode: ModelOperation<InputData> = (
   hydraulicModel,
-  { nodeType, coordinates, elevation = 0, pipeIdToSplit, lengthUnit },
+  {
+    nodeType,
+    coordinates,
+    elevation = 0,
+    pipeIdToSplit,
+    lengthUnit,
+    assetFactory,
+  },
 ) => {
   const isActive = getInheritedActiveTopologyStatus(
     hydraulicModel,
@@ -27,7 +36,7 @@ export const addNode: ModelOperation<InputData> = (
   );
 
   const node = createNode(
-    hydraulicModel,
+    assetFactory,
     nodeType,
     coordinates,
     elevation,
@@ -41,6 +50,7 @@ export const addNode: ModelOperation<InputData> = (
       node,
       pipeIdToSplit,
       lengthUnit,
+      assetFactory,
     );
   }
 
@@ -51,29 +61,27 @@ export const addNode: ModelOperation<InputData> = (
 };
 
 const createNode = (
-  hydraulicModel: HydraulicModel,
+  assetFactory: AssetFactory,
   nodeType: NodeType,
   coordinates: Position,
   elevation: number,
   isActive: boolean,
 ): NodeAsset => {
-  const { assetBuilder } = hydraulicModel;
-
   switch (nodeType) {
     case "junction":
-      return assetBuilder.buildJunction({
+      return assetFactory.buildJunction({
         coordinates,
         elevation,
         isActive,
       });
     case "reservoir":
-      return assetBuilder.buildReservoir({
+      return assetFactory.buildReservoir({
         coordinates,
         elevation,
         isActive,
       });
     case "tank":
-      return assetBuilder.buildTank({
+      return assetFactory.buildTank({
         coordinates,
         elevation,
         isActive,
@@ -88,6 +96,7 @@ const addNodeWithPipeSplitting = (
   node: NodeAsset,
   pipeIdToSplit: AssetId,
   lengthUnit: Unit,
+  assetFactory: AssetFactory,
 ) => {
   const pipe = hydraulicModel.assets.get(pipeIdToSplit) as Pipe;
   if (!pipe || pipe.type !== "pipe") {
@@ -98,6 +107,7 @@ const addNodeWithPipeSplitting = (
     pipe,
     splits: [node],
     lengthUnit,
+    assetFactory,
   });
 
   return {

@@ -59,7 +59,10 @@ import {
   PatternMultipliers,
   PatternType,
 } from "src/hydraulic-model";
-import { PumpBuildData } from "src/hydraulic-model/asset-builder";
+import {
+  AssetFactory,
+  PumpBuildData,
+} from "src/hydraulic-model/factories/asset-factory";
 
 type PatternsContext = {
   patterns: Patterns;
@@ -100,7 +103,6 @@ export const buildModel = (
 
   const idGenerator = new ConsecutiveIdsGenerator();
   const hydraulicModel = initializeHydraulicModel({
-    defaults: spec.defaults,
     demands: createEmptyDemands(),
     idGenerator,
   });
@@ -108,7 +110,10 @@ export const buildModel = (
   const factories = initializeModelFactories({
     idGenerator,
     labelManager: hydraulicModel.labelManager,
+    defaults: spec.defaults,
   });
+
+  const { assetFactory } = factories;
 
   const curvesContext: CurvesContext = initializeCurvesContext(
     hydraulicModel.labelManager,
@@ -122,7 +127,7 @@ export const buildModel = (
   );
 
   for (const junctionData of inpData.junctions) {
-    addJunction(hydraulicModel, junctionData, {
+    addJunction(assetFactory, hydraulicModel, junctionData, {
       inpData,
       issues,
       nodeIds,
@@ -132,7 +137,7 @@ export const buildModel = (
   }
 
   for (const reservoirData of inpData.reservoirs) {
-    addReservoir(hydraulicModel, reservoirData, {
+    addReservoir(assetFactory, hydraulicModel, reservoirData, {
       inpData,
       issues,
       nodeIds,
@@ -142,7 +147,7 @@ export const buildModel = (
   }
 
   for (const tankData of inpData.tanks) {
-    addTank(hydraulicModel, tankData, curvesContext, {
+    addTank(assetFactory, hydraulicModel, tankData, curvesContext, {
       inpData,
       issues,
       nodeIds,
@@ -151,17 +156,24 @@ export const buildModel = (
   }
 
   for (const pumpData of inpData.pumps) {
-    addPump(hydraulicModel, pumpData, curvesContext, patternContext, {
-      inpData,
-      issues,
-      nodeIds,
-      linkIds,
-      skipWgs84Validation,
-    });
+    addPump(
+      assetFactory,
+      hydraulicModel,
+      pumpData,
+      curvesContext,
+      patternContext,
+      {
+        inpData,
+        issues,
+        nodeIds,
+        linkIds,
+        skipWgs84Validation,
+      },
+    );
   }
 
   for (const valveData of inpData.valves) {
-    addValve(hydraulicModel, valveData, curvesContext, {
+    addValve(assetFactory, hydraulicModel, valveData, curvesContext, {
       inpData,
       issues,
       nodeIds,
@@ -171,7 +183,7 @@ export const buildModel = (
   }
 
   for (const pipeData of inpData.pipes) {
-    addPipe(hydraulicModel, pipeData, {
+    addPipe(assetFactory, hydraulicModel, pipeData, {
       inpData,
       issues,
       nodeIds,
@@ -361,6 +373,7 @@ const isConstantPattern = (pattern: PatternMultipliers): boolean => {
 };
 
 const addJunction = (
+  assetFactory: AssetFactory,
   hydraulicModel: HydraulicModel,
   junctionData: JunctionData,
   {
@@ -404,7 +417,7 @@ const addJunction = (
 
   const emitterCoefficient = inpData.emitters.get(junctionData.id);
 
-  const junction = hydraulicModel.assetBuilder.buildJunction({
+  const junction = assetFactory.buildJunction({
     label: junctionData.id,
     coordinates,
     elevation: junctionData.elevation,
@@ -417,6 +430,7 @@ const addJunction = (
 };
 
 const addReservoir = (
+  assetFactory: AssetFactory,
   hydraulicModel: HydraulicModel,
   reservoirData: ReservoirData,
   {
@@ -456,7 +470,7 @@ const addReservoir = (
     }
   }
 
-  const reservoir = hydraulicModel.assetBuilder.buildReservoir({
+  const reservoir = assetFactory.buildReservoir({
     label: reservoirData.id,
     coordinates,
     head: reservoirData.baseHead,
@@ -469,6 +483,7 @@ const addReservoir = (
 };
 
 const addTank = (
+  assetFactory: AssetFactory,
   hydraulicModel: HydraulicModel,
   tankData: TankData,
   curvesContext: CurvesContext,
@@ -504,7 +519,7 @@ const addTank = (
     }
   }
 
-  const tank = hydraulicModel.assetBuilder.buildTank({
+  const tank = assetFactory.buildTank({
     label: tankData.id,
     coordinates,
     elevation: tankData.elevation,
@@ -522,6 +537,7 @@ const addTank = (
 };
 
 const addPump = (
+  assetFactory: AssetFactory,
   hydraulicModel: HydraulicModel,
   pumpData: PumpData,
   curvesContext: CurvesContext,
@@ -649,7 +665,7 @@ const addPump = (
 
   const energyPrice = pumpEnergyData?.price;
 
-  const pump = hydraulicModel.assetBuilder.buildPump({
+  const pump = assetFactory.buildPump({
     label: pumpData.id,
     connections,
     ...definitionProps,
@@ -674,6 +690,7 @@ const addPump = (
 };
 
 const addValve = (
+  assetFactory: AssetFactory,
   hydraulicModel: HydraulicModel,
   valveData: ValveData,
   curvesContext: CurvesContext,
@@ -719,7 +736,7 @@ const addValve = (
       markCurveUsed(curvesContext, curveId, curveType);
     }
   }
-  const valve = hydraulicModel.assetBuilder.buildValve({
+  const valve = assetFactory.buildValve({
     label: valveData.id,
     diameter: valveData.diameter,
     minorLoss: valveData.minorLoss,
@@ -737,6 +754,7 @@ const addValve = (
 };
 
 const addPipe = (
+  assetFactory: AssetFactory,
   hydraulicModel: HydraulicModel,
   pipeData: PipeData,
   {
@@ -776,7 +794,7 @@ const addPipe = (
     }
   }
 
-  const pipe = hydraulicModel.assetBuilder.buildPipe({
+  const pipe = assetFactory.buildPipe({
     label: pipeData.id,
     length: pipeData.length,
     diameter: pipeData.diameter,

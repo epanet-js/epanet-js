@@ -25,6 +25,7 @@ import { LngLat, MapMouseEvent, MapTouchEvent } from "mapbox-gl";
 import { useSelection } from "src/selection";
 import { DEFAULT_SNAP_DISTANCE_PIXELS } from "../../search";
 import { addLink } from "src/hydraulic-model/model-operations";
+import { modelFactoriesAtom } from "src/state/model-factories";
 
 export type SnappingCandidate =
   | NodeAsset
@@ -146,7 +147,7 @@ export function useDrawLinkHandlers({
   const transact = rep.useTransact();
   const userTracking = useUserTracking();
   const usingTouchEvents = useRef<boolean>(false);
-  const { assetBuilder } = hydraulicModel;
+  const { assetFactory } = useAtomValue(modelFactoriesAtom);
   const lengthUnit = units.length;
   const { findSnappingCandidate } = useSnapping(map, hydraulicModel.assets);
 
@@ -161,7 +162,7 @@ export function useDrawLinkHandlers({
     };
     switch (linkType) {
       case "pipe":
-        return assetBuilder.buildPipe({
+        return assetFactory.buildPipe({
           ...startProperties,
           ...(pipeDrawingDefaults.diameter && {
             diameter: pipeDrawingDefaults.diameter,
@@ -171,13 +172,13 @@ export function useDrawLinkHandlers({
           }),
         });
       case "pump":
-        return assetBuilder.buildPump({
+        return assetFactory.buildPump({
           ...startProperties,
           definitionType: "curve",
           curve: [{ x: 1, y: 1 }],
         });
       case "valve":
-        return assetBuilder.buildValve(startProperties);
+        return assetFactory.buildValve(startProperties);
     }
   };
 
@@ -318,6 +319,7 @@ export function useDrawLinkHandlers({
       startPipeId,
       endPipeId,
       lengthUnit,
+      assetFactory,
     });
 
     userTracking.capture({ name: "asset.created", type: link.type });
@@ -346,7 +348,7 @@ export function useDrawLinkHandlers({
   const isClickInProgress = useRef<boolean>(false);
 
   const createJunction = (coordinates: Position, elevation: number) =>
-    assetBuilder.buildJunction({
+    assetFactory.buildJunction({
       label: "",
       coordinates,
       elevation,
@@ -521,7 +523,7 @@ export function useDrawLinkHandlers({
           isEndAndContinueOn() && !snappingCandidate;
 
         const draftJunction = shouldShowDraftJunction
-          ? assetBuilder.buildJunction({
+          ? assetFactory.buildJunction({
               label: "",
               coordinates: nextCoordinates,
             })
@@ -573,7 +575,7 @@ export function useDrawLinkHandlers({
 
       const { startNode, link } = drawing;
 
-      const endJunction: NodeAsset | undefined = assetBuilder.buildJunction({
+      const endJunction = assetFactory.buildJunction({
         label: "",
         coordinates: link.lastVertex,
         elevation: await fetchElevation(
@@ -639,7 +641,7 @@ export function useDrawLinkHandlers({
         !drawing.isNull &&
         !drawing.snappingCandidate
       ) {
-        const draftJunction = assetBuilder.buildJunction({
+        const draftJunction = assetFactory.buildJunction({
           label: "",
           coordinates: drawing.link.lastVertex,
         });

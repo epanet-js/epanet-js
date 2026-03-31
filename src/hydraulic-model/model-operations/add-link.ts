@@ -7,6 +7,7 @@ import { LabelGenerator } from "../label-manager";
 import { splitPipe } from "./split-pipe";
 import { AssetsMap } from "../assets-map";
 import { HydraulicModel } from "../hydraulic-model";
+import { AssetFactory } from "../factories/asset-factory";
 import { CustomerPoint } from "../customer-points";
 import { inferNodeIsActive } from "../utilities/active-topology";
 import { copyPipePropertiesToLink } from "./mutations/copy-link-properties";
@@ -20,10 +21,19 @@ type InputData = {
   startPipeId?: AssetId;
   endPipeId?: AssetId;
   lengthUnit: Unit;
+  assetFactory: AssetFactory;
 };
 
 export const addLink: ModelOperation<InputData> = (hydraulicModel, data) => {
-  const { link, startNode, endNode, startPipeId, endPipeId, lengthUnit } = data;
+  const {
+    link,
+    startNode,
+    endNode,
+    startPipeId,
+    endPipeId,
+    lengthUnit,
+    assetFactory,
+  } = data;
   const linkCopy = link.copy();
   const startNodeCopy = startNode.copy();
   const endNodeCopy = endNode.copy();
@@ -78,6 +88,7 @@ export const addLink: ModelOperation<InputData> = (hydraulicModel, data) => {
     endPipeId,
     hydraulicModel,
     lengthUnit,
+    assetFactory,
   });
 
   return {
@@ -189,6 +200,7 @@ const handlePipeSplits = ({
   endPipeId,
   hydraulicModel,
   lengthUnit,
+  assetFactory,
 }: {
   link: LinkAsset;
   startNode: NodeAsset;
@@ -197,6 +209,7 @@ const handlePipeSplits = ({
   endPipeId?: AssetId;
   hydraulicModel: HydraulicModel;
   lengthUnit: Unit;
+  assetFactory: AssetFactory;
 }): {
   putAssets: Asset[];
   deleteAssets: AssetId[];
@@ -244,6 +257,7 @@ const handlePipeSplits = ({
       pipe,
       splits: splitConfig.splitNodes,
       lengthUnit,
+      assetFactory,
     });
     allPutAssets.push(...splitResult.putAssets!);
     allPutCustomerPoints.push(...(splitResult.putCustomerPoints || []));

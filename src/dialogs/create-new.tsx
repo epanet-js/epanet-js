@@ -118,12 +118,12 @@ export const CreateNew = () => {
       };
       const idGenerator = new ConsecutiveIdsGenerator();
       const hydraulicModel = initializeHydraulicModel({
-        defaults: spec.defaults,
         idGenerator,
       });
       const factories = initializeModelFactories({
         idGenerator,
         labelManager: hydraulicModel.labelManager,
+        defaults: spec.defaults,
       });
       setGridPreview(false);
       setGridHidden(false);

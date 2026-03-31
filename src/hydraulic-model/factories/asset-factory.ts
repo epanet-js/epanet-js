@@ -1,10 +1,10 @@
-import { AssetId, Junction, Pump } from "./asset-types";
-import { JunctionQuantity } from "./asset-types/junction";
-import { Pipe, PipeQuantity, PipeStatus } from "./asset-types/pipe";
-import { LinkConnections, nullConnections } from "./asset-types/link";
+import { AssetId, Junction, Pump } from "../asset-types";
+import { JunctionQuantity } from "../asset-types/junction";
+import { Pipe, PipeQuantity, PipeStatus } from "../asset-types/pipe";
+import { LinkConnections, nullConnections } from "../asset-types/link";
 import { Position } from "geojson";
-import { Reservoir, ReservoirQuantity } from "./asset-types/reservoir";
-import { Tank, TankQuantity } from "./asset-types/tank";
+import { Reservoir, ReservoirQuantity } from "../asset-types/reservoir";
+import { Tank, TankQuantity } from "../asset-types/tank";
 
 export type JunctionBuildData = {
   id?: AssetId;
@@ -90,23 +90,23 @@ export type TankBuildData = {
 };
 
 import { IdGenerator } from "src/lib/id-generator";
-import { LabelGenerator } from "./label-manager";
+import { LabelGenerator } from "../label-manager";
 import { DefaultsSpec } from "src/lib/project-settings/quantities-spec";
 import {
   PumpDefintionType,
   PumpQuantity,
   PumpStatus,
-} from "./asset-types/pump";
+} from "../asset-types/pump";
 import {
   Valve,
   ValveQuantity,
   ValveStatus,
   ValveKind,
-} from "./asset-types/valve";
-import { CurveId, CurvePoint, defaultCurvePoints } from "./curves";
-import { PatternId } from "./patterns";
+} from "../asset-types/valve";
+import { CurveId, CurvePoint, defaultCurvePoints } from "../curves";
+import { PatternId } from "../patterns";
 
-export class AssetBuilder {
+export class AssetFactory {
   private defaults: DefaultsSpec;
   private idGenerator: IdGenerator;
   readonly labelGenerator: LabelGenerator;
