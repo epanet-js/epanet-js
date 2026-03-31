@@ -25,8 +25,6 @@ import { addCustomerPoints } from "src/hydraulic-model/mutations/add-customer-po
 import { usePersistence } from "src/lib/persistence";
 import { notify } from "src/components/notifications";
 import { SuccessIcon } from "src/icons";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
-
 const stepNames = {
   1: "dataInput",
   2: "dataMapping",
@@ -42,7 +40,6 @@ type ImportCustomerPointsWizardProps = {
 export const ImportCustomerPointsWizard: React.FC<
   ImportCustomerPointsWizardProps
 > = ({ onClose }) => {
-  const isModalsOn = useFeatureFlag("FLAG_MODALS");
   const userTracking = useUserTracking();
   const wizardState = useWizardState();
   const translate = useTranslate();
@@ -214,63 +211,61 @@ export const ImportCustomerPointsWizard: React.FC<
     allocationResult,
   } = wizardState;
 
-  const footer = isModalsOn
-    ? (() => {
-        switch (currentStep) {
-          case 1:
-            return (
-              <WizardActions
-                nextAction={{ onClick: handleNext, disabled: !inputData }}
-              />
-            );
-          case 2:
-            return (
-              <WizardActions
-                backAction={{ onClick: handleBack, disabled: isLoading }}
-                nextAction={{
-                  onClick: handleNext,
-                  disabled:
-                    isLoading ||
-                    !selectedDemandProperty ||
-                    (parsedDataSummary
-                      ? parsedDataSummary.validCustomerPoints.length === 0
-                      : false),
-                }}
-              />
-            );
-          case 3:
-            return (
-              <WizardActions
-                backAction={{ onClick: handleBack }}
-                nextAction={{ onClick: handleNext }}
-              />
-            );
-          case 4:
-            return (
-              <WizardActions
-                backAction={{
-                  onClick: handleBack,
-                  disabled: isProcessing || isAllocating || isEditingRules,
-                }}
-                finishAction={
-                  isEditingRules || isAllocating
-                    ? undefined
-                    : {
-                        onClick: handleFinish,
-                        disabled: isProcessing || !allocationResult,
-                        loading: isProcessing,
-                        label: isProcessing
-                          ? translate("wizard.processing")
-                          : translate(
-                              "importCustomerPoints.wizard.allocationStep.applyChanges",
-                            ),
-                      }
-                }
-              />
-            );
-        }
-      })()
-    : undefined;
+  const footer = (() => {
+    switch (currentStep) {
+      case 1:
+        return (
+          <WizardActions
+            nextAction={{ onClick: handleNext, disabled: !inputData }}
+          />
+        );
+      case 2:
+        return (
+          <WizardActions
+            backAction={{ onClick: handleBack, disabled: isLoading }}
+            nextAction={{
+              onClick: handleNext,
+              disabled:
+                isLoading ||
+                !selectedDemandProperty ||
+                (parsedDataSummary
+                  ? parsedDataSummary.validCustomerPoints.length === 0
+                  : false),
+            }}
+          />
+        );
+      case 3:
+        return (
+          <WizardActions
+            backAction={{ onClick: handleBack }}
+            nextAction={{ onClick: handleNext }}
+          />
+        );
+      case 4:
+        return (
+          <WizardActions
+            backAction={{
+              onClick: handleBack,
+              disabled: isProcessing || isAllocating || isEditingRules,
+            }}
+            finishAction={
+              isEditingRules || isAllocating
+                ? undefined
+                : {
+                    onClick: handleFinish,
+                    disabled: isProcessing || !allocationResult,
+                    loading: isProcessing,
+                    label: isProcessing
+                      ? translate("wizard.processing")
+                      : translate(
+                          "importCustomerPoints.wizard.allocationStep.applyChanges",
+                        ),
+                  }
+            }
+          />
+        );
+    }
+  })();
 
   return (
     <WizardContainer
@@ -309,7 +304,7 @@ export const ImportCustomerPointsWizard: React.FC<
             {currentStep === 1 && (
               <DataInputStep
                 onNext={handleNext}
-                renderActions={!isModalsOn}
+                renderActions={false}
                 wizardState={wizardState}
                 projections={projections}
               />
@@ -318,7 +313,7 @@ export const ImportCustomerPointsWizard: React.FC<
               <DataMappingStep
                 onNext={handleNext}
                 onBack={handleBack}
-                renderActions={!isModalsOn}
+                renderActions={false}
                 wizardState={wizardState}
               />
             )}
@@ -326,7 +321,7 @@ export const ImportCustomerPointsWizard: React.FC<
               <DemandOptionsStep
                 onNext={handleNext}
                 onBack={handleBack}
-                renderActions={!isModalsOn}
+                renderActions={false}
                 wizardState={wizardState}
               />
             )}
@@ -334,7 +329,7 @@ export const ImportCustomerPointsWizard: React.FC<
               <AllocationStep
                 onBack={handleBack}
                 onFinish={handleClose}
-                renderActions={!isModalsOn}
+                renderActions={false}
                 wizardState={wizardState}
               />
             )}

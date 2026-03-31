@@ -21,8 +21,6 @@ import { usePersistence } from "src/lib/persistence";
 import { simulationSettingsAtom } from "src/state/simulation-settings";
 import { Button } from "src/components/elements";
 import { SuccessIcon, WarningIcon } from "src/icons";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
-
 export const AllocationStep: React.FC<{
   onBack: () => void;
   onFinish: () => void;
@@ -43,8 +41,6 @@ export const AllocationStep: React.FC<{
   const userTracking = useUserTracking();
   const rep = usePersistence();
   const transactImport = rep.useTransactImport();
-  const isModalsOn = useFeatureFlag("FLAG_MODALS");
-
   const {
     parsedDataSummary,
     allocationRules,
@@ -311,9 +307,7 @@ export const AllocationStep: React.FC<{
 
   return (
     <>
-      <div
-        className={`overflow-y-auto flex-grow space-y-4 ${isModalsOn ? "scroll-shadows" : ""}`}
-      >
+      <div className="overflow-y-auto flex-grow space-y-4 scroll-shadows">
         <div>
           <h2 className="text-lg font-semibold mb-2">
             {translate("importCustomerPoints.wizard.allocationStep.title")}
