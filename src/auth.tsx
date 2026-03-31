@@ -10,6 +10,7 @@ import {
   RedirectToSignIn as ClerkRedirectToSignIn,
   useAuth as useClerkAuth,
   useUser as useClerkUser,
+  useOrganizationList,
 } from "@clerk/nextjs";
 import { captureWarning } from "src/infra/error-tracking";
 import { enUS, esES } from "@clerk/localizations";
@@ -146,8 +147,16 @@ export const UserButton = isAuthEnabled
   ? ClerkUserButton
   : () => <button></button>;
 
+const OrganizationSwitcherWithMembership = (
+  props: React.ComponentProps<typeof ClerkOrganizationSwitcher>,
+) => {
+  const { userMemberships } = useOrganizationList({ userMemberships: true });
+  if (!userMemberships?.count) return null;
+  return <ClerkOrganizationSwitcher {...props} />;
+};
+
 export const OrganizationSwitcher = isAuthEnabled
-  ? ClerkOrganizationSwitcher
+  ? OrganizationSwitcherWithMembership
   : () => null;
 
 export const RedirectToSignIn = isAuthEnabled
