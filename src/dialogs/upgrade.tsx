@@ -45,8 +45,6 @@ const prices = {
     yearly: "$100",
   },
   teams: {
-    monthly: "$250",
-    yearly: "$2500",
     baseMonthly: "$440",
     baseYearly: "$4400",
     userMonthly: "$60",
@@ -208,7 +206,7 @@ const FreePlan = ({ paymentType }: { paymentType: PaymentType }) => {
         <PlanHeader
           name="Free"
           price="$0"
-          claim={translate("free.forBetterModelling")}
+          claim={translate("free.forEveryone")}
           payment={paymentType}
         />
         <FeaturesList
@@ -398,7 +396,6 @@ const ProPlan = ({ paymentType }: { paymentType: PaymentType }) => {
   const translate = useTranslate();
   const price = prices.pro[paymentType];
   const isDtmElevationsOn = useFeatureFlag("FLAG_DTM_ELEVATIONS");
-  const isPricingOn = useFeatureFlag("FLAG_PRICING");
 
   return (
     <div className="relative bg-white border border-purple-100 rounded-lg shadow-md shadow-purple-300 overflow-hidden flex flex-col justify-between">
@@ -410,12 +407,8 @@ const ProPlan = ({ paymentType }: { paymentType: PaymentType }) => {
           name="Pro"
           price={price}
           payment={paymentType}
-          claim={
-            isPricingOn
-              ? translate("upgradeToProFor")
-              : translate("individualNamedLicense")
-          }
-          subtitle={isPricingOn ? translate("namedLicence") : undefined}
+          claim={translate("upgradeToProFor")}
+          subtitle={translate("namedLicence")}
         />
         <div className="flex flex-col justify-between flex-1">
           <FeaturesList
@@ -479,18 +472,9 @@ const ProPlan = ({ paymentType }: { paymentType: PaymentType }) => {
   );
 };
 
-const TeamsPricingHeader = ({
-  paymentType,
-  claim,
-}: {
-  paymentType: PaymentType;
-  claim: string;
-}) => {
+const TeamsPlan = ({ paymentType }: { paymentType: PaymentType }) => {
   const translate = useTranslate();
-  const recurrency =
-    paymentType === "yearly"
-      ? `/${translate("yearShort")}`
-      : `/${translate("monthShort")}`;
+  const userTracking = useUserTracking();
   const basePrice =
     paymentType === "yearly"
       ? prices.teams.baseYearly
@@ -500,42 +484,6 @@ const TeamsPricingHeader = ({
       ? prices.teams.userYearly
       : prices.teams.userMonthly;
 
-  return (
-    <div className="flex flex-col">
-      <h2 className="text-xl font-semibold mb-2">Teams</h2>
-      <p className="text-gray-600 text-sm mb-4">{claim}</p>
-      <div className="flex items-baseline gap-4">
-        <div>
-          <div className="mb-1">
-            <strong className="text-3xl font-bold">{basePrice}</strong>
-            <span className="text-sm text-gray-500">{recurrency}</span>
-          </div>
-          <p className="text-gray-500 text-sm">{translate("baseCost")}</p>
-        </div>
-        <div className="flex gap-1">
-          <span className="text-xl font-bold text-gray-700 self-start">+</span>
-          <div>
-            <div className="mb-1">
-              <strong className="text-xl font-bold">{userPrice}</strong>
-              <span className="text-sm text-gray-500">{recurrency}</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <p className="text-gray-500 text-sm">{translate("perUser")}</p>
-              <InfoTooltip text={translate("minimumTwoLicenses")} />
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const TeamsPlan = ({ paymentType }: { paymentType: PaymentType }) => {
-  const translate = useTranslate();
-  const isPricingOn = useFeatureFlag("FLAG_PRICING");
-  const price = prices.teams[paymentType];
-  const userTracking = useUserTracking();
-
   const goToTeamsRequestForm = () => {
     userTracking.capture({ name: "teamsRequest.clicked" });
     window.open(teamsPlanRequestFormUrl, "_blank", "noopener,noreferrer");
@@ -544,20 +492,13 @@ const TeamsPlan = ({ paymentType }: { paymentType: PaymentType }) => {
   return (
     <div className="relative bg-white border border-gray-200 rounded-md shadow-md shadow-gray-300 overflow-hidden flex flex-col justify-between">
       <div className="p-6 grid max-xs:block md:flex md:flex-col grid-cols-2 gap-4 flex-1">
-        {isPricingOn ? (
-          <TeamsPricingHeader
-            paymentType={paymentType}
-            claim={translate("upgradeToTeamsFor")}
-          />
-        ) : (
-          <PlanHeader
-            name="Teams"
-            price={price}
-            payment={paymentType}
-            claim={translate("floatingSharedLicenses")}
-            tooltip={translate("minimumTwoLicenses")}
-          />
-        )}
+        <PlanHeader
+          name="Teams"
+          payment={paymentType}
+          claim={translate("upgradeToTeamsFor")}
+          basePrice={basePrice}
+          userPrice={userPrice}
+        />
         <div className="flex flex-col justify-between flex-1">
           <FeaturesList
             title={translate("everythingAnd", "Pro")}
@@ -568,9 +509,7 @@ const TeamsPlan = ({ paymentType }: { paymentType: PaymentType }) => {
                 iconColor: "text-green-500",
               },
               {
-                feature: isPricingOn
-                  ? translate("selfServiceSeatManagement")
-                  : translate("volumeDiscounts"),
+                feature: translate("selfServiceSeatManagement"),
                 Icon: CheckIcon,
                 iconColor: "text-green-500",
               },
@@ -617,56 +556,64 @@ const TeamsPlan = ({ paymentType }: { paymentType: PaymentType }) => {
   );
 };
 
-const PlanHeader = ({
-  name,
-  price,
-  payment = "yearly",
-  claim,
-  tooltip,
-  subtitle,
-}: {
+type PlanHeaderProps = {
   name: string;
-  price: string;
   payment: PaymentType;
   claim: string;
-  tooltip?: string;
-  subtitle?: string;
-}) => {
+} & (
+  | { price: string; subtitle?: string; basePrice?: never; userPrice?: never }
+  | { basePrice: string; userPrice: string; price?: never; subtitle?: never }
+);
+
+const PlanHeader = ({
+  name,
+  payment = "yearly",
+  claim,
+  ...props
+}: PlanHeaderProps) => {
   const translate = useTranslate();
-  const isPricingOn = useFeatureFlag("FLAG_PRICING");
   const recurrency =
     payment === "yearly"
-      ? `/${isPricingOn ? translate("yearShort") : translate("year")}`
+      ? `/${translate("yearShort")}`
       : `/${translate("monthShort")}`;
 
   return (
     <div className="flex flex-col">
       <h2 className="text-xl font-semibold mb-2">{name}</h2>
-      {isPricingOn && <p className="text-gray-600 text-sm mb-4">{claim}</p>}
-      <div className="mb-1">
-        <strong className="text-3xl font-bold">{price}</strong>
-        <span
-          className={`${isPricingOn ? "text-sm text-gray-500" : "text-lg text-gray-500"}`}
-        >
-          {recurrency}
-        </span>
-      </div>
-      {isPricingOn && (
-        <p className="text-gray-500 text-sm">
-          {subtitle ? subtitle : "\u00A0"}
-        </p>
-      )}
-      {!isPricingOn && !tooltip && (
-        <div className="flex items-center mb-4 space-x-1 min-h-6">
-          <p className="text-gray-600 text-sm">{claim}</p>
+      <p className="text-gray-600 text-sm mb-4">{claim}</p>
+      {"basePrice" in props ? (
+        <div className="flex items-baseline gap-4">
+          <div>
+            <div className="mb-1">
+              <strong className="text-3xl font-bold">{props.basePrice}</strong>
+              <span className="text-sm text-gray-500">{recurrency}</span>
+            </div>
+            <p className="text-gray-500 text-sm">{translate("baseCost")}</p>
+          </div>
+          <div className="flex gap-1">
+            <span className="text-xl font-bold text-gray-700 self-start">
+              +
+            </span>
+            <div>
+              <div className="mb-1">
+                <strong className="text-xl font-bold">{props.userPrice}</strong>
+                <span className="text-sm text-gray-500">{recurrency}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <p className="text-gray-500 text-sm">{translate("perUser")}</p>
+                <InfoTooltip text={translate("minimumTwoLicenses")} />
+              </div>
+            </div>
+          </div>
         </div>
-      )}
-
-      {tooltip && (
-        <div className="flex items-center mb-4 space-x-1 min-h-6">
-          <p className="text-gray-600 text-sm">{claim}</p>{" "}
-          <InfoTooltip text={tooltip} />
-        </div>
+      ) : (
+        <>
+          <div className="mb-1">
+            <strong className="text-3xl font-bold">{props.price}</strong>
+            <span className="text-sm text-gray-500">{recurrency}</span>
+          </div>
+          <p className="text-gray-500 text-sm">{props.subtitle ?? "\u00A0"}</p>
+        </>
       )}
     </div>
   );
@@ -725,14 +672,10 @@ const NonCommercialHint = () => {
 };
 
 const InfoTooltip = ({ text }: { text: string }) => {
-  const isPricingOn = useFeatureFlag("FLAG_PRICING");
-
   return (
     <Tooltip.Root delayDuration={100}>
       <Tooltip.Trigger asChild>
-        <button
-          className={`rounded-full hover:bg-gray-200 ${isPricingOn ? "" : "p-1"}`}
-        >
+        <button className="rounded-full hover:bg-gray-200">
           <InfoIcon className="w-5 h-5 text-gray-500" />
         </button>
       </Tooltip.Trigger>
