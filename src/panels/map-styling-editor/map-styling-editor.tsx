@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import * as Popover from "@radix-ui/react-popover";
 import { useTranslate } from "src/hooks/use-translate";
@@ -6,6 +7,7 @@ import { projectSettingsAtom } from "src/state/project-settings";
 import { stagingModelAtom } from "src/state/hydraulic-model";
 import { showGridAtom } from "src/state/map-projection";
 import { simulationAtom, simulationResultsAtom } from "src/state/simulation";
+import { getSimulationMetadata } from "src/simulation/epanet/simulation-metadata";
 import { Selector, SelectorLikeButton } from "src/components/form/selector";
 import { useUserTracking } from "src/infra/user-tracking";
 import {
@@ -119,6 +121,7 @@ const simulationProperties = [
   "pressure",
   "actualDemand",
   "head",
+  "waterAge",
 ];
 
 type SelectOption = SupportedProperty | "none";
@@ -146,8 +149,39 @@ const SymbologyEditor = ({
     updateLinkDefaultColor,
   } = useSymbologyState();
   const symbology = geometryType === "node" ? nodeSymbology : linkSymbology;
+  const isWaterAgeOn = useFeatureFlag("FLAG_WATER_AGE");
+  const hasCompletedSimulation =
+    simulation.status === "success" || simulation.status === "warning";
+  const hasWaterAge =
+    hasCompletedSimulation &&
+    getSimulationMetadata(simulation.metadata).qualityType === "age";
   const { units } = useAtomValue(projectSettingsAtom);
   const hydraulicModel = useAtomValue(stagingModelAtom);
+
+  const colorByOptions = useMemo(() => {
+    const visibleProperties = isWaterAgeOn
+      ? properties
+      : properties.filter((p) => p !== "waterAge");
+    return (["none", ...visibleProperties] as SelectOption[]).map((type) => {
+      const unit = type !== "none" ? units[type] : null;
+      const isSimProp = simulationProperties.includes(type);
+      return {
+        value: type,
+        label: `${colorPropertyLabelFor(type, translate)} ${!!unit ? `(${translateUnit(unit)})` : ""}`,
+        disabled:
+          (simulation.status === "idle" && isSimProp) ||
+          (type === "waterAge" && !hasWaterAge),
+      };
+    });
+  }, [
+    properties,
+    units,
+    simulation.status,
+    hasWaterAge,
+    isWaterAgeOn,
+    translate,
+    translateUnit,
+  ]);
 
   const userTracking = useUserTracking();
 
@@ -247,16 +281,7 @@ const SymbologyEditor = ({
       >
         <Selector
           ariaLabel={`${translate(geometryType)} ${translate("colorBy")}`}
-          options={(["none", ...properties] as SelectOption[]).map((type) => {
-            const unit = type !== "none" ? units[type] : null;
-            return {
-              value: type,
-              label: `${colorPropertyLabelFor(type, translate)} ${!!unit ? `(${translateUnit(unit)})` : ""}`,
-              disabled:
-                simulation.status === "idle" &&
-                simulationProperties.includes(type),
-            };
-          })}
+          options={colorByOptions}
           selected={
             (symbology.colorRule
               ? symbology.colorRule.property

@@ -6,6 +6,7 @@ export const supportedNodeProperties = [
   "pressure",
   "actualDemand",
   "head",
+  "waterAge",
 ] as const;
 export const supportedLinkProperties = [
   "flow",

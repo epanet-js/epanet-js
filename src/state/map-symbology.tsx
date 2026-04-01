@@ -80,6 +80,12 @@ export const defaultPropertyColorConfigs: PropertyColorConfigMap = {
     reversedRamp: false,
     numIntervals: 5,
   },
+  waterAge: {
+    rampName: "Temps",
+    mode: "prettyBreaks",
+    reversedRamp: false,
+    numIntervals: 5,
+  },
 };
 
 export const propertyColorConfigAtom = atom<PropertyColorConfigMap>(
