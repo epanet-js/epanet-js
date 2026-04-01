@@ -4,27 +4,18 @@ import { Persistence } from "./persistence";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { setInitialState } from "src/__helpers__/state";
 import { modelFactoriesAtom } from "src/state/model-factories";
-import { LabelManager } from "src/hydraulic-model/label-manager";
-import { initializeModelFactories } from "src/hydraulic-model/factories";
-import { ConsecutiveIdsGenerator } from "src/lib/id-generator";
-import { presets } from "src/lib/project-settings/quantities-spec";
+import { buildTestFactories } from "src/__helpers__/test-factories";
 
 describe("Persistence putDemands", () => {
   it("keeps old demands when moment does not include demands", () => {
     const store = createStore();
-    const labelManager = new LabelManager();
+    const factories = buildTestFactories();
+    const { labelManager } = factories;
     const model = HydraulicModelBuilder.with({ labelManager })
       .aDemandPattern(1, "PAT1", [1, 2])
       .build();
     setInitialState({ store, hydraulicModel: model });
-    store.set(
-      modelFactoriesAtom,
-      initializeModelFactories({
-        idGenerator: new ConsecutiveIdsGenerator(),
-        labelManager,
-        defaults: presets.LPS.defaults,
-      }),
-    );
+    store.set(modelFactoriesAtom, factories);
     const persistence = new Persistence(store);
     const transact = persistence.useTransact();
 

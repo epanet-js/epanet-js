@@ -3,12 +3,12 @@ import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { applyMomentToModel } from "./apply-moment";
 import { Pipe, Junction } from "../asset-types";
 import { ModelMoment } from "../model-operation";
-import { LabelManager } from "src/hydraulic-model/label-manager";
+import { buildTestFactories } from "src/__helpers__/test-factories";
 
 describe("applyMomentToModel with patchAssetsAttributes", () => {
   it("patches a single property on an asset", () => {
     const IDS = { PIPE: 1, N1: 2, N2: 3 } as const;
-    const labelManager = new LabelManager();
+    const { labelManager } = buildTestFactories();
     const model = HydraulicModelBuilder.with({ labelManager })
       .aJunction(IDS.N1)
       .aJunction(IDS.N2)
@@ -41,7 +41,7 @@ describe("applyMomentToModel with patchAssetsAttributes", () => {
 
   it("patches multiple properties on one asset", () => {
     const IDS = { PIPE: 1, N1: 2, N2: 3 } as const;
-    const labelManager = new LabelManager();
+    const { labelManager } = buildTestFactories();
     const model = HydraulicModelBuilder.with({ labelManager })
       .aJunction(IDS.N1)
       .aJunction(IDS.N2)
@@ -80,7 +80,7 @@ describe("applyMomentToModel with patchAssetsAttributes", () => {
 
   it("patches multiple assets", () => {
     const IDS = { J1: 1, J2: 2 } as const;
-    const labelManager = new LabelManager();
+    const { labelManager } = buildTestFactories();
     const model = HydraulicModelBuilder.with({ labelManager })
       .aJunction(IDS.J1, { elevation: 10 })
       .aJunction(IDS.J2, { elevation: 20 })
@@ -113,7 +113,7 @@ describe("applyMomentToModel with patchAssetsAttributes", () => {
   });
 
   it("silently skips patches for non-existent assets", () => {
-    const labelManager = new LabelManager();
+    const { labelManager } = buildTestFactories();
     const model = HydraulicModelBuilder.with({ labelManager })
       .aJunction(1, { elevation: 10 })
       .build();
@@ -133,7 +133,7 @@ describe("applyMomentToModel with patchAssetsAttributes", () => {
 
   it("handles a moment with both putAssets and patchAssetsAttributes", () => {
     const IDS = { J1: 1, PIPE: 2, N1: 3, N2: 4 } as const;
-    const labelManager = new LabelManager();
+    const { labelManager } = buildTestFactories();
     const model = HydraulicModelBuilder.with({ labelManager })
       .aJunction(IDS.J1, { elevation: 10 })
       .aJunction(IDS.N1)
@@ -174,7 +174,7 @@ describe("applyMomentToModel with patchAssetsAttributes", () => {
 
   it("updates labelManager when patching label", () => {
     const IDS = { J1: 1 } as const;
-    const labelManager = new LabelManager();
+    const { labelManager } = buildTestFactories();
     const model = HydraulicModelBuilder.with({ labelManager })
       .aJunction(IDS.J1, { elevation: 10 })
       .build();
@@ -210,7 +210,7 @@ describe("applyMomentToModel with patchAssetsAttributes", () => {
 
   it("restores original values when applying the reverse patch", () => {
     const IDS = { PIPE: 1, N1: 2, N2: 3 } as const;
-    const labelManager = new LabelManager();
+    const { labelManager } = buildTestFactories();
     const model = HydraulicModelBuilder.with({ labelManager })
       .aJunction(IDS.N1)
       .aJunction(IDS.N2)
@@ -250,7 +250,7 @@ describe("applyMomentToModel with patchAssetsAttributes", () => {
 
   it("restores original values after multiple patches and reverses", () => {
     const IDS = { J1: 1, J2: 2 } as const;
-    const labelManager = new LabelManager();
+    const { labelManager } = buildTestFactories();
     const model = HydraulicModelBuilder.with({ labelManager })
       .aJunction(IDS.J1, { elevation: 10 })
       .aJunction(IDS.J2, { elevation: 20 })

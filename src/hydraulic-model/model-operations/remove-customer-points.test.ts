@@ -5,7 +5,7 @@ import {
   buildCustomerPoint,
 } from "src/__helpers__/hydraulic-model-builder";
 import { applyMomentToModel } from "../mutations/apply-moment";
-import { LabelManager } from "src/hydraulic-model/label-manager";
+import { buildTestFactories } from "src/__helpers__/test-factories";
 
 describe("removeCustomerPoints", () => {
   it("removes a single connected customer point", () => {
@@ -174,7 +174,7 @@ describe("removeCustomerPoints", () => {
 
   it("produces correct reverse moment for undo", () => {
     const IDS = { J1: 1, J2: 2, P1: 3, CP1: 4 } as const;
-    const labelManager = new LabelManager();
+    const { labelManager } = buildTestFactories();
     const hydraulicModel = HydraulicModelBuilder.with({ labelManager })
       .aJunction(IDS.J1, { coordinates: [0, 0] })
       .aJunction(IDS.J2, { coordinates: [10, 0] })

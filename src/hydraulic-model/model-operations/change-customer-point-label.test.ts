@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { changeCustomerPointLabel } from "./change-customer-point-label";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { applyMomentToModel } from "../mutations/apply-moment";
-import { LabelManager } from "src/hydraulic-model/label-manager";
+import { buildTestFactories } from "src/__helpers__/test-factories";
 
 describe("changeCustomerPointLabel", () => {
   it("changes a customer point label", () => {
@@ -79,7 +79,7 @@ describe("changeCustomerPointLabel", () => {
 
   it("updates label manager after apply", () => {
     const IDS = { J1: 1, J2: 2, P1: 3, CP1: 4 } as const;
-    const labelManager = new LabelManager();
+    const { labelManager } = buildTestFactories();
     const hydraulicModel = HydraulicModelBuilder.with({ labelManager })
       .aJunction(IDS.J1, { coordinates: [0, 0] })
       .aJunction(IDS.J2, { coordinates: [10, 0] })
@@ -114,7 +114,7 @@ describe("changeCustomerPointLabel", () => {
 
   it("produces correct reverse moment for undo", () => {
     const IDS = { J1: 1, J2: 2, P1: 3, CP1: 4 } as const;
-    const labelManager = new LabelManager();
+    const { labelManager } = buildTestFactories();
     const hydraulicModel = HydraulicModelBuilder.with({ labelManager })
       .aJunction(IDS.J1, { coordinates: [0, 0] })
       .aJunction(IDS.J2, { coordinates: [10, 0] })
