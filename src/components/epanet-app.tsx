@@ -36,7 +36,6 @@ import { TimestepSelector } from "./timestep-selector";
 import { Toolbar } from "src/toolbar/";
 import { Footer } from "./footer";
 import { useHydrateAtoms } from "jotai/utils";
-import { settingsFromStorage } from "src/state/user-settings";
 import { TabCloseGuard } from "./tab-close-guard";
 import { CommandShortcuts } from "./commands-shortcuts";
 import { useUserTracking } from "src/infra/user-tracking";
@@ -50,7 +49,6 @@ import { useAppReady } from "src/hooks/use-app-ready";
 import { AppLoader } from "./app-loader";
 import { PrivacyBanner } from "./privacy-banner";
 import { usePrivacySettings } from "src/hooks/use-privacy-settings";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { initStorage } from "src/infra/storage";
 import { useIsSnapshotLocked } from "src/hooks/use-is-snapshot-locked";
 import { useIsCustomerAllocationDisabled } from "src/hooks/use-is-customer-allocation-disabled";
@@ -75,7 +73,7 @@ export function EpanetApp() {
   const { user, isSignedIn } = useAuth();
   const { enableAllTracking } = usePrivacySettings();
   const hasIdentifiedRef = useRef(false);
-  const isIteratingLogoOn = useFeatureFlag("FLAG_ITERATING_LOGO");
+
   const isSnapshotLocked = useIsSnapshotLocked();
   const isCustomerAllocationDisabled = useIsCustomerAllocationDisabled();
 
@@ -127,16 +125,7 @@ export function EpanetApp() {
   );
 
   useHydrateAtoms([
-    [
-      dialogAtom,
-      dialogFromUrl()
-        ? dialogFromUrl()
-        : isIteratingLogoOn ||
-            settingsFromStorage().showWelcomeOnStart ||
-            !isMdOrLarger
-          ? { type: "welcome" }
-          : null,
-    ],
+    [dialogAtom, dialogFromUrl() ? dialogFromUrl() : { type: "welcome" }],
     [
       splitsAtom,
       {

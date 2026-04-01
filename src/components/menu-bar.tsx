@@ -8,7 +8,6 @@ import {
   DDContent,
   StyledItem,
   LogoIconAndWordmarkIcon,
-  LogoIconAndWordmarkIconUpdated,
 } from "./elements";
 import { DebugDropdown } from "./menu-bar/menu-bar-dropdown";
 import { isDebugOn } from "src/infra/debug-mode";
@@ -51,19 +50,10 @@ export function MenuBarFallback() {
   return <div className="h-12 bg-gray-800"></div>;
 }
 
-export const HeaderLogo = () => {
-  return (
-    <span className="pl-1" title="Home">
-      <LogoIconAndWordmarkIcon size={98} />
-      <span className="sr-only">epanet-js</span>
-    </span>
-  );
-};
-
 export const HeaderLogoUpdated = () => {
   return (
     <span className="pl-1" title="Home">
-      <LogoIconAndWordmarkIconUpdated size={98} />
+      <LogoIconAndWordmarkIcon size={98} />
       <span className="sr-only">epanet-js</span>
     </span>
   );
@@ -78,7 +68,6 @@ export const MenuBarPlay = memo(function MenuBar() {
   const isMdOrLarger = useBreakpoint("md");
   const isSmOrLarger = useBreakpoint("sm");
   const isActivateTrialOn = useFeatureFlag("FLAG_ACTIVATE_TRIAL");
-  const isIteratingLogoOn = useFeatureFlag("FLAG_ITERATING_LOGO");
   const effectivePlan = useEffectivePlan();
 
   return (
@@ -88,7 +77,7 @@ export const MenuBarPlay = memo(function MenuBar() {
           className="py-1 pl-2 pr-2 inline-flex cursor-pointer"
           onClick={() => showWelcome({ source: "menu" })}
         >
-          {isIteratingLogoOn ? <HeaderLogoUpdated /> : <HeaderLogo />}
+          <HeaderLogoUpdated />
         </div>
         {isSmOrLarger && <FileInfo />}
       </div>
@@ -279,7 +268,7 @@ export const SideMenu = () => {
       >
         <div className="p-6">
           <div className="flex items-center justify-between pb-6">
-            <HeaderLogo />
+            <HeaderLogoUpdated />
             <Button variant="quiet" onClick={toggleMenu}>
               <CloseIcon />
             </Button>

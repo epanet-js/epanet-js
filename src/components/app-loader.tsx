@@ -1,27 +1,16 @@
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import {
-  LogoIcon,
-  LogoWordmarkIcon,
-  LogoWordmarkIconUpdated,
-} from "./elements";
+import { LogoIcon, LogoWordmarkIcon } from "./elements";
 
 type AppLoaderProps = {
   progress: number;
 };
 
 export const AppLoader = ({ progress }: AppLoaderProps) => {
-  const isIteratingLogoOn = useFeatureFlag("FLAG_ITERATING_LOGO");
-
   return (
     <div className="h-dvh flex items-center justify-center bg-white dark:bg-gray-800">
       <div className="text-center max-w-md mx-auto px-6">
         <div className="grid gap-2 justify-center justify-items-center">
           <LogoIcon size={40} />
-          {isIteratingLogoOn ? (
-            <LogoWordmarkIconUpdated size={88} />
-          ) : (
-            <LogoWordmarkIcon size={88} />
-          )}
+          <LogoWordmarkIcon size={88} />
         </div>
         <div className="w-full mt-6">
           <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
