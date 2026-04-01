@@ -14,6 +14,8 @@ import { Dialogs } from "src/dialogs";
 import { stubFeatureOn } from "src/__helpers__/feature-flags";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { stubWindowSize } from "src/__helpers__/media-queries";
+import { PersistenceContext } from "src/lib/persistence/context";
+import { Persistence } from "src/lib/persistence/persistence";
 
 describe("Map Styling Editor", () => {
   beforeEach(() => {
@@ -433,8 +435,10 @@ describe("Map Styling Editor", () => {
         <QueryClientProvider client={new QueryClient()}>
           <JotaiProvider store={store}>
             <TooltipProvider>
-              <Dialogs></Dialogs>
-              <MapStylingEditor />
+              <PersistenceContext.Provider value={new Persistence(store)}>
+                <Dialogs></Dialogs>
+                <MapStylingEditor />
+              </PersistenceContext.Provider>
             </TooltipProvider>
           </JotaiProvider>
         </QueryClientProvider>
