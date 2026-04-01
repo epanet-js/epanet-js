@@ -1123,7 +1123,7 @@ describe("quality section", () => {
     expect(r1.initialWaterAge).toBe(3.0);
   });
 
-  it("reports QUALITY as unsupported section when waterAge is off", () => {
+  it("reports water quality type issue when waterAge is off", () => {
     const inp = `
       [JUNCTIONS]
       J1    100
@@ -1142,7 +1142,8 @@ describe("quality section", () => {
 
     const { issues } = parseInp(inp, { waterAge: false });
 
-    expect(issues?.unsupportedSections?.has("[QUALITY]")).toBe(true);
+    expect(issues?.waterQualityType).toBe("AGE");
+    expect(issues?.unsupportedSections?.has("[QUALITY]")).toBeFalsy();
   });
 
   it("does not report QUALITY as unsupported when waterAge is on", () => {

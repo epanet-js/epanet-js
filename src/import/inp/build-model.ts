@@ -131,6 +131,14 @@ export const buildModel = (
     inpData.options.defaultPattern,
   );
 
+  const qualityType = inpData.options.qualitySimulationType;
+  const isSupportedQualityType =
+    qualityType === "NONE" || (options?.waterAge && qualityType === "AGE");
+
+  if (!isSupportedQualityType && qualityType) {
+    issues.addWaterQualityType(qualityType);
+  }
+
   for (const junctionData of inpData.junctions) {
     addJunction(assetFactory, hydraulicModel, junctionData, {
       inpData,
@@ -218,13 +226,6 @@ export const buildModel = (
   );
 
   addControls(hydraulicModel, inpData.controls, nodeIds, linkIds);
-
-  if (options?.waterAge) {
-    const qualityType = inpData.options.qualitySimulationType;
-    if (qualityType === "CHEMICAL" && !inpData.quality.isEmpty) {
-      issues.addUsedSection("[QUALITY]");
-    }
-  }
 
   return {
     hydraulicModel,

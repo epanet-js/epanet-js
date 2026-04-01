@@ -46,7 +46,7 @@ const buildSectionParserDefinitions = (
   { names: ["CURVES", "CURVE"], parser: parseCurve },
   {
     names: ["QUALITY"],
-    parser: options?.waterAge ? parseQuality : unsupported,
+    parser: options?.waterAge ? parseQuality : ignore,
   },
   { names: ["OPTIONS"], parser: parseOption },
   { names: ["BACKDROP"], parser: ignore },
