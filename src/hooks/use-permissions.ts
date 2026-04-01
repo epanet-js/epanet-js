@@ -17,10 +17,14 @@ export const resolvePermissions = (plan: Plan): Permissions => ({
   canUpgrade: plan === "free",
 });
 
-export const usePermissions = (): Permissions => {
+export const useEffectivePlan = (): Plan => {
   const { user } = useAuth();
   const isOrgsOn = useFeatureFlag("FLAG_ORGS");
   const { organization } = useOrganization();
-  const effectivePlan = isOrgsOn && organization ? "teams" : user.plan;
+  return isOrgsOn && organization ? "teams" : user.plan;
+};
+
+export const usePermissions = (): Permissions => {
+  const effectivePlan = useEffectivePlan();
   return useMemo(() => resolvePermissions(effectivePlan), [effectivePlan]);
 };
