@@ -3,11 +3,13 @@ import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { applyMomentToModel } from "./apply-moment";
 import { Pipe, Junction } from "../asset-types";
 import { ModelMoment } from "../model-operation";
+import { LabelManager } from "src/hydraulic-model/label-manager";
 
 describe("applyMomentToModel with patchAssetsAttributes", () => {
   it("patches a single property on an asset", () => {
     const IDS = { PIPE: 1, N1: 2, N2: 3 } as const;
-    const model = HydraulicModelBuilder.with()
+    const labelManager = new LabelManager();
+    const model = HydraulicModelBuilder.with({ labelManager })
       .aJunction(IDS.N1)
       .aJunction(IDS.N2)
       .aPipe(IDS.PIPE, {
@@ -24,7 +26,7 @@ describe("applyMomentToModel with patchAssetsAttributes", () => {
       ],
     };
 
-    const reverse = applyMomentToModel(model, moment, model.labelManager);
+    const reverse = applyMomentToModel(model, moment, labelManager);
 
     const updatedPipe = model.assets.get(IDS.PIPE) as Pipe;
     expect(updatedPipe.diameter).toBe(200);
@@ -39,7 +41,8 @@ describe("applyMomentToModel with patchAssetsAttributes", () => {
 
   it("patches multiple properties on one asset", () => {
     const IDS = { PIPE: 1, N1: 2, N2: 3 } as const;
-    const model = HydraulicModelBuilder.with()
+    const labelManager = new LabelManager();
+    const model = HydraulicModelBuilder.with({ labelManager })
       .aJunction(IDS.N1)
       .aJunction(IDS.N2)
       .aPipe(IDS.PIPE, {
@@ -61,7 +64,7 @@ describe("applyMomentToModel with patchAssetsAttributes", () => {
       ],
     };
 
-    const reverse = applyMomentToModel(model, moment, model.labelManager);
+    const reverse = applyMomentToModel(model, moment, labelManager);
 
     const updatedPipe = model.assets.get(IDS.PIPE) as Pipe;
     expect(updatedPipe.diameter).toBe(200);
@@ -77,7 +80,8 @@ describe("applyMomentToModel with patchAssetsAttributes", () => {
 
   it("patches multiple assets", () => {
     const IDS = { J1: 1, J2: 2 } as const;
-    const model = HydraulicModelBuilder.with()
+    const labelManager = new LabelManager();
+    const model = HydraulicModelBuilder.with({ labelManager })
       .aJunction(IDS.J1, { elevation: 10 })
       .aJunction(IDS.J2, { elevation: 20 })
       .build();
@@ -90,7 +94,7 @@ describe("applyMomentToModel with patchAssetsAttributes", () => {
       ],
     };
 
-    const reverse = applyMomentToModel(model, moment, model.labelManager);
+    const reverse = applyMomentToModel(model, moment, labelManager);
 
     expect((model.assets.get(IDS.J1) as Junction).elevation).toBe(50);
     expect((model.assets.get(IDS.J2) as Junction).elevation).toBe(60);
@@ -109,7 +113,8 @@ describe("applyMomentToModel with patchAssetsAttributes", () => {
   });
 
   it("silently skips patches for non-existent assets", () => {
-    const model = HydraulicModelBuilder.with()
+    const labelManager = new LabelManager();
+    const model = HydraulicModelBuilder.with({ labelManager })
       .aJunction(1, { elevation: 10 })
       .build();
 
@@ -120,7 +125,7 @@ describe("applyMomentToModel with patchAssetsAttributes", () => {
       ],
     };
 
-    const reverse = applyMomentToModel(model, moment, model.labelManager);
+    const reverse = applyMomentToModel(model, moment, labelManager);
 
     expect(reverse.patchAssetsAttributes).toHaveLength(0);
     expect((model.assets.get(1) as Junction).elevation).toBe(10);
@@ -128,7 +133,8 @@ describe("applyMomentToModel with patchAssetsAttributes", () => {
 
   it("handles a moment with both putAssets and patchAssetsAttributes", () => {
     const IDS = { J1: 1, PIPE: 2, N1: 3, N2: 4 } as const;
-    const model = HydraulicModelBuilder.with()
+    const labelManager = new LabelManager();
+    const model = HydraulicModelBuilder.with({ labelManager })
       .aJunction(IDS.J1, { elevation: 10 })
       .aJunction(IDS.N1)
       .aJunction(IDS.N2)
@@ -150,7 +156,7 @@ describe("applyMomentToModel with patchAssetsAttributes", () => {
       ],
     };
 
-    const reverse = applyMomentToModel(model, moment, model.labelManager);
+    const reverse = applyMomentToModel(model, moment, labelManager);
 
     expect((model.assets.get(IDS.J1) as Junction).elevation).toBe(99);
     expect((model.assets.get(IDS.PIPE) as Pipe).diameter).toBe(200);
@@ -168,7 +174,8 @@ describe("applyMomentToModel with patchAssetsAttributes", () => {
 
   it("updates labelManager when patching label", () => {
     const IDS = { J1: 1 } as const;
-    const model = HydraulicModelBuilder.with()
+    const labelManager = new LabelManager();
+    const model = HydraulicModelBuilder.with({ labelManager })
       .aJunction(IDS.J1, { elevation: 10 })
       .build();
 
@@ -181,34 +188,30 @@ describe("applyMomentToModel with patchAssetsAttributes", () => {
       ],
     };
 
-    const reverse = applyMomentToModel(model, moment, model.labelManager);
+    const reverse = applyMomentToModel(model, moment, labelManager);
 
     expect((model.assets.get(IDS.J1) as Junction).label).toBe("NewName");
-    expect(model.labelManager.getIdByLabel("NewName", "junction")).toBe(IDS.J1);
-    expect(
-      model.labelManager.getIdByLabel(oldLabel, "junction"),
-    ).toBeUndefined();
+    expect(labelManager.getIdByLabel("NewName", "junction")).toBe(IDS.J1);
+    expect(labelManager.getIdByLabel(oldLabel, "junction")).toBeUndefined();
 
-    // Undo restores old label in labelManager
     applyMomentToModel(
       model,
       {
         note: reverse.note,
         patchAssetsAttributes: reverse.patchAssetsAttributes,
       },
-      model.labelManager,
+      labelManager,
     );
 
     expect((model.assets.get(IDS.J1) as Junction).label).toBe(oldLabel);
-    expect(model.labelManager.getIdByLabel(oldLabel, "junction")).toBe(IDS.J1);
-    expect(
-      model.labelManager.getIdByLabel("NewName", "junction"),
-    ).toBeUndefined();
+    expect(labelManager.getIdByLabel(oldLabel, "junction")).toBe(IDS.J1);
+    expect(labelManager.getIdByLabel("NewName", "junction")).toBeUndefined();
   });
 
   it("restores original values when applying the reverse patch", () => {
     const IDS = { PIPE: 1, N1: 2, N2: 3 } as const;
-    const model = HydraulicModelBuilder.with()
+    const labelManager = new LabelManager();
+    const model = HydraulicModelBuilder.with({ labelManager })
       .aJunction(IDS.N1)
       .aJunction(IDS.N2)
       .aPipe(IDS.PIPE, {
@@ -230,11 +233,7 @@ describe("applyMomentToModel with patchAssetsAttributes", () => {
       ],
     };
 
-    const reverse = applyMomentToModel(
-      model,
-      forwardMoment,
-      model.labelManager,
-    );
+    const reverse = applyMomentToModel(model, forwardMoment, labelManager);
 
     expect((model.assets.get(IDS.PIPE) as Pipe).diameter).toBe(200);
     expect((model.assets.get(IDS.PIPE) as Pipe).roughness).toBe(150);
@@ -243,7 +242,7 @@ describe("applyMomentToModel with patchAssetsAttributes", () => {
       note: reverse.note,
       patchAssetsAttributes: reverse.patchAssetsAttributes,
     };
-    applyMomentToModel(model, reverseMoment, model.labelManager);
+    applyMomentToModel(model, reverseMoment, labelManager);
 
     expect((model.assets.get(IDS.PIPE) as Pipe).diameter).toBe(100);
     expect((model.assets.get(IDS.PIPE) as Pipe).roughness).toBe(130);
@@ -251,7 +250,8 @@ describe("applyMomentToModel with patchAssetsAttributes", () => {
 
   it("restores original values after multiple patches and reverses", () => {
     const IDS = { J1: 1, J2: 2 } as const;
-    const model = HydraulicModelBuilder.with()
+    const labelManager = new LabelManager();
+    const model = HydraulicModelBuilder.with({ labelManager })
       .aJunction(IDS.J1, { elevation: 10 })
       .aJunction(IDS.J2, { elevation: 20 })
       .build();
@@ -262,7 +262,7 @@ describe("applyMomentToModel with patchAssetsAttributes", () => {
         { id: IDS.J1, type: "junction", properties: { elevation: 50 } },
       ],
     };
-    const reverse1 = applyMomentToModel(model, moment1, model.labelManager);
+    const reverse1 = applyMomentToModel(model, moment1, labelManager);
 
     const moment2: ModelMoment = {
       note: "Patch 2",
@@ -270,31 +270,29 @@ describe("applyMomentToModel with patchAssetsAttributes", () => {
         { id: IDS.J2, type: "junction", properties: { elevation: 60 } },
       ],
     };
-    const reverse2 = applyMomentToModel(model, moment2, model.labelManager);
+    const reverse2 = applyMomentToModel(model, moment2, labelManager);
 
     expect((model.assets.get(IDS.J1) as Junction).elevation).toBe(50);
     expect((model.assets.get(IDS.J2) as Junction).elevation).toBe(60);
 
-    // Undo patch 2
     applyMomentToModel(
       model,
       {
         note: reverse2.note,
         patchAssetsAttributes: reverse2.patchAssetsAttributes,
       },
-      model.labelManager,
+      labelManager,
     );
     expect((model.assets.get(IDS.J2) as Junction).elevation).toBe(20);
     expect((model.assets.get(IDS.J1) as Junction).elevation).toBe(50);
 
-    // Undo patch 1
     applyMomentToModel(
       model,
       {
         note: reverse1.note,
         patchAssetsAttributes: reverse1.patchAssetsAttributes,
       },
-      model.labelManager,
+      labelManager,
     );
     expect((model.assets.get(IDS.J1) as Junction).elevation).toBe(10);
     expect((model.assets.get(IDS.J2) as Junction).elevation).toBe(20);

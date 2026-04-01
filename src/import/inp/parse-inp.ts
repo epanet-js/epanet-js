@@ -9,6 +9,7 @@ import {
   type LinkAsset,
 } from "src/hydraulic-model";
 import { ModelFactories } from "src/hydraulic-model/factories";
+import { LabelManager } from "src/hydraulic-model/label-manager";
 import type { IdGenerator } from "src/lib/id-generator";
 import { nanoid } from "nanoid";
 import {
@@ -93,7 +94,11 @@ export const parseInp = (
         ...projectSettings,
         projection,
       },
-      simulationSettings: buildSimulationSettings(inpData, hydraulicModel),
+      simulationSettings: buildSimulationSettings(
+        inpData,
+        hydraulicModel,
+        factories.labelManager,
+      ),
       issues: issues.buildResult(),
       stats,
       projectionStatus,
@@ -113,7 +118,11 @@ export const parseInp = (
       ...projectSettings,
       projection,
     },
-    simulationSettings: buildSimulationSettings(inpData, hydraulicModel),
+    simulationSettings: buildSimulationSettings(
+      inpData,
+      hydraulicModel,
+      factories.labelManager,
+    ),
     issues: issues.buildResult(),
     stats,
   };
@@ -256,10 +265,10 @@ const resolveTraceNodeId = (
 
 const resolveEnergyPatternId = (
   label: string | undefined,
-  hydraulicModel: HydraulicModel,
+  labelManager: LabelManager,
 ): number | null => {
   if (!label) return null;
-  return hydraulicModel.labelManager.getIdByLabel(label, "pattern") ?? null;
+  return labelManager.getIdByLabel(label, "pattern") ?? null;
 };
 
 const detectProjectionStatus = (
@@ -282,6 +291,7 @@ const detectProjectionStatus = (
 const buildSimulationSettings = (
   inpData: InpData,
   hydraulicModel: HydraulicModel,
+  labelManager: LabelManager,
 ): SimulationSettings => ({
   version: nanoid(),
   timing: { ...defaultTiming, ...inpData.times },
@@ -378,7 +388,7 @@ const buildSimulationSettings = (
     inpData.energy.globalPrice ?? defaultEnergyValues.energyGlobalPrice,
   energyGlobalPatternId: resolveEnergyPatternId(
     inpData.energy.globalPattern,
-    hydraulicModel,
+    labelManager,
   ),
   energyDemandCharge:
     inpData.energy.demandCharge ?? defaultEnergyValues.energyDemandCharge,

@@ -46,7 +46,7 @@ describe("parse reservoirs", () => {
 
     `;
 
-    const { hydraulicModel } = parseInp(inp);
+    const { hydraulicModel, factories } = parseInp(inp);
 
     const reservoir = getByLabel(
       hydraulicModel.assets,
@@ -55,7 +55,7 @@ describe("parse reservoirs", () => {
     expect(reservoir.head).toEqual(100);
     expect(reservoir.coordinates).toEqual([20, 10]);
 
-    const headPatternId = hydraulicModel.labelManager.getIdByLabel(
+    const headPatternId = factories.labelManager.getIdByLabel(
       patternId,
       "pattern",
     );

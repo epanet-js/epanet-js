@@ -6,27 +6,26 @@ import {
 } from "src/__helpers__/hydraulic-model-builder";
 import { AssetFactory } from "../factories/asset-factory";
 import { ConsecutiveIdsGenerator } from "src/lib/id-generator";
-import { HydraulicModel } from "../hydraulic-model";
+import { LabelManager } from "src/hydraulic-model/label-manager";
 import { presets } from "src/lib/project-settings/quantities-spec";
 
-const createTestFactories = (hydraulicModel: HydraulicModel) => {
-  const labelManager = hydraulicModel.labelManager;
-  return {
-    assetFactory: new AssetFactory(
-      presets.LPS.defaults,
-      new ConsecutiveIdsGenerator(),
-      labelManager,
-    ),
+const createTestFactories = (labelManager: LabelManager) => ({
+  assetFactory: new AssetFactory(
+    presets.LPS.defaults,
+    new ConsecutiveIdsGenerator(),
     labelManager,
-  };
-};
+  ),
+  labelManager,
+});
 
 describe("addNode", () => {
   describe("without pipe splitting (backward compatibility)", () => {
     it("adds a junction with generated label", () => {
-      const hydraulicModel = HydraulicModelBuilder.with().build();
-      const { assetFactory, labelManager } =
-        createTestFactories(hydraulicModel);
+      const labelManager = new LabelManager();
+      const hydraulicModel = HydraulicModelBuilder.with({
+        labelManager,
+      }).build();
+      const { assetFactory } = createTestFactories(labelManager);
 
       const { putAssets } = addNode(hydraulicModel, {
         assetFactory,
@@ -47,9 +46,11 @@ describe("addNode", () => {
     });
 
     it("adds a reservoir with specified elevation", () => {
-      const hydraulicModel = HydraulicModelBuilder.with().build();
-      const { assetFactory, labelManager } =
-        createTestFactories(hydraulicModel);
+      const labelManager = new LabelManager();
+      const hydraulicModel = HydraulicModelBuilder.with({
+        labelManager,
+      }).build();
+      const { assetFactory } = createTestFactories(labelManager);
 
       const { putAssets } = addNode(hydraulicModel, {
         assetFactory,
@@ -69,9 +70,11 @@ describe("addNode", () => {
     });
 
     it("adds a tank with default elevation", () => {
-      const hydraulicModel = HydraulicModelBuilder.with().build();
-      const { assetFactory, labelManager } =
-        createTestFactories(hydraulicModel);
+      const labelManager = new LabelManager();
+      const hydraulicModel = HydraulicModelBuilder.with({
+        labelManager,
+      }).build();
+      const { assetFactory } = createTestFactories(labelManager);
 
       const { putAssets } = addNode(hydraulicModel, {
         assetFactory,
@@ -93,7 +96,8 @@ describe("addNode", () => {
   describe("with pipe splitting", () => {
     it("splits a pipe and adds a junction", () => {
       const IDS = { J1: 1, J2: 2, P1: 3 } as const;
-      const hydraulicModel = HydraulicModelBuilder.with()
+      const labelManager = new LabelManager();
+      const hydraulicModel = HydraulicModelBuilder.with({ labelManager })
         .aNode(IDS.J1, [0, 0])
         .aNode(IDS.J2, [10, 0])
         .aPipe(IDS.P1, {
@@ -101,8 +105,7 @@ describe("addNode", () => {
           endNodeId: IDS.J2,
         })
         .build();
-      const { assetFactory, labelManager } =
-        createTestFactories(hydraulicModel);
+      const { assetFactory } = createTestFactories(labelManager);
 
       const originalPipe = hydraulicModel.assets.get(IDS.P1);
       expect(originalPipe).toBeDefined();
@@ -143,7 +146,8 @@ describe("addNode", () => {
 
     it("uses node coordinates exactly as split point", () => {
       const IDS = { J1: 1, J2: 2, P1: 3 } as const;
-      const hydraulicModel = HydraulicModelBuilder.with()
+      const labelManager = new LabelManager();
+      const hydraulicModel = HydraulicModelBuilder.with({ labelManager })
         .aNode(IDS.J1, [0, 0])
         .aNode(IDS.J2, [10, 0])
         .aPipe(IDS.P1, {
@@ -151,8 +155,7 @@ describe("addNode", () => {
           endNodeId: IDS.J2,
         })
         .build();
-      const { assetFactory, labelManager } =
-        createTestFactories(hydraulicModel);
+      const { assetFactory } = createTestFactories(labelManager);
 
       const nodeCoordinates: [number, number] = [5.123, 0.456];
 
@@ -177,7 +180,8 @@ describe("addNode", () => {
 
     it("integrates with pipe splitting operation", () => {
       const IDS = { J1: 1, J2: 2, MainPipe: 3 } as const;
-      const hydraulicModel = HydraulicModelBuilder.with()
+      const labelManager = new LabelManager();
+      const hydraulicModel = HydraulicModelBuilder.with({ labelManager })
         .aNode(IDS.J1, [0, 0])
         .aNode(IDS.J2, [10, 0])
         .aPipe(IDS.MainPipe, {
@@ -186,8 +190,7 @@ describe("addNode", () => {
           label: "MainPipe",
         })
         .build();
-      const { assetFactory, labelManager } =
-        createTestFactories(hydraulicModel);
+      const { assetFactory } = createTestFactories(labelManager);
 
       const { putAssets, deleteAssets } = addNode(hydraulicModel, {
         assetFactory,
@@ -210,9 +213,11 @@ describe("addNode", () => {
     });
 
     it("throws error for invalid pipe ID", () => {
-      const hydraulicModel = HydraulicModelBuilder.with().build();
-      const { assetFactory, labelManager } =
-        createTestFactories(hydraulicModel);
+      const labelManager = new LabelManager();
+      const hydraulicModel = HydraulicModelBuilder.with({
+        labelManager,
+      }).build();
+      const { assetFactory } = createTestFactories(labelManager);
       const NonExistentPipeId = 1;
 
       expect(() =>
@@ -229,11 +234,11 @@ describe("addNode", () => {
 
     it("throws error when trying to split non-pipe asset", () => {
       const IDS = { J1: 1 } as const;
-      const hydraulicModel = HydraulicModelBuilder.with()
+      const labelManager = new LabelManager();
+      const hydraulicModel = HydraulicModelBuilder.with({ labelManager })
         .aNode(IDS.J1, [0, 0])
         .build();
-      const { assetFactory, labelManager } =
-        createTestFactories(hydraulicModel);
+      const { assetFactory } = createTestFactories(labelManager);
 
       expect(() =>
         addNode(hydraulicModel, {
@@ -249,7 +254,8 @@ describe("addNode", () => {
 
     it("maintains network connectivity with proper connections", () => {
       const IDS = { StartNode: 1, EndNode: 2, MainPipe: 3 } as const;
-      const hydraulicModel = HydraulicModelBuilder.with()
+      const labelManager = new LabelManager();
+      const hydraulicModel = HydraulicModelBuilder.with({ labelManager })
         .aNode(IDS.StartNode, [0, 0])
         .aNode(IDS.EndNode, [20, 0])
         .aPipe(IDS.MainPipe, {
@@ -258,8 +264,7 @@ describe("addNode", () => {
           label: "MainPipe",
         })
         .build();
-      const { assetFactory, labelManager } =
-        createTestFactories(hydraulicModel);
+      const { assetFactory } = createTestFactories(labelManager);
 
       const { putAssets } = addNode(hydraulicModel, {
         assetFactory,
@@ -280,7 +285,8 @@ describe("addNode", () => {
 
     it("reconnects customer points when splitting pipe", () => {
       const IDS = { J1: 1, J2: 2, P1: 3, CP1: 4 } as const;
-      const hydraulicModel = HydraulicModelBuilder.with()
+      const labelManager = new LabelManager();
+      const hydraulicModel = HydraulicModelBuilder.with({ labelManager })
         .aNode(IDS.J1, [0, 0])
         .aNode(IDS.J2, [10, 0])
         .aPipe(IDS.P1, {
@@ -288,8 +294,7 @@ describe("addNode", () => {
           endNodeId: IDS.J2,
         })
         .build();
-      const { assetFactory, labelManager } =
-        createTestFactories(hydraulicModel);
+      const { assetFactory } = createTestFactories(labelManager);
 
       const customerPoint = buildCustomerPoint(IDS.CP1, {
         coordinates: [3, 1],
@@ -326,7 +331,8 @@ describe("addNode", () => {
 
     it("inherits isActive from pipe being split when pipe is active", () => {
       const IDS = { J1: 1, J2: 2, P1: 3 } as const;
-      const hydraulicModel = HydraulicModelBuilder.with()
+      const labelManager = new LabelManager();
+      const hydraulicModel = HydraulicModelBuilder.with({ labelManager })
         .aNode(IDS.J1, [0, 0])
         .aNode(IDS.J2, [10, 0])
         .aPipe(IDS.P1, {
@@ -335,8 +341,7 @@ describe("addNode", () => {
           isActive: true,
         })
         .build();
-      const { assetFactory, labelManager } =
-        createTestFactories(hydraulicModel);
+      const { assetFactory } = createTestFactories(labelManager);
 
       const { putAssets } = addNode(hydraulicModel, {
         assetFactory,
@@ -353,7 +358,8 @@ describe("addNode", () => {
 
     it("inherits isActive from pipe being split when pipe is inactive", () => {
       const IDS = { J1: 1, J2: 2, P1: 3 } as const;
-      const hydraulicModel = HydraulicModelBuilder.with()
+      const labelManager = new LabelManager();
+      const hydraulicModel = HydraulicModelBuilder.with({ labelManager })
         .aNode(IDS.J1, [0, 0])
         .aNode(IDS.J2, [10, 0])
         .aPipe(IDS.P1, {
@@ -362,8 +368,7 @@ describe("addNode", () => {
           isActive: false,
         })
         .build();
-      const { assetFactory, labelManager } =
-        createTestFactories(hydraulicModel);
+      const { assetFactory } = createTestFactories(labelManager);
 
       const { putAssets } = addNode(hydraulicModel, {
         assetFactory,
@@ -381,9 +386,11 @@ describe("addNode", () => {
 
   describe("node type validation", () => {
     it("throws error for unsupported node type", () => {
-      const hydraulicModel = HydraulicModelBuilder.with().build();
-      const { assetFactory, labelManager } =
-        createTestFactories(hydraulicModel);
+      const labelManager = new LabelManager();
+      const hydraulicModel = HydraulicModelBuilder.with({
+        labelManager,
+      }).build();
+      const { assetFactory } = createTestFactories(labelManager);
 
       expect(() =>
         addNode(hydraulicModel, {
@@ -399,7 +406,8 @@ describe("addNode", () => {
 
   it("removes matching vertex when adding node at vertex location", () => {
     const IDS = { J1: 1, J2: 2, P1: 3 } as const;
-    const hydraulicModel = HydraulicModelBuilder.with()
+    const labelManager = new LabelManager();
+    const hydraulicModel = HydraulicModelBuilder.with({ labelManager })
       .aNode(IDS.J1, [0, 0])
       .aNode(IDS.J2, [10, 0])
       .aPipe(IDS.P1, {
@@ -412,7 +420,7 @@ describe("addNode", () => {
         ],
       })
       .build();
-    const { assetFactory, labelManager } = createTestFactories(hydraulicModel);
+    const { assetFactory } = createTestFactories(labelManager);
 
     const { putAssets } = addNode(hydraulicModel, {
       assetFactory,
@@ -437,7 +445,8 @@ describe("addNode", () => {
 
   it("handles multiple vertices correctly when adding node", () => {
     const IDS = { J1: 1, J2: 2, P1: 3 } as const;
-    const hydraulicModel = HydraulicModelBuilder.with()
+    const labelManager = new LabelManager();
+    const hydraulicModel = HydraulicModelBuilder.with({ labelManager })
       .aNode(IDS.J1, [0, 0])
       .aNode(IDS.J2, [20, 0])
       .aPipe(IDS.P1, {
@@ -452,7 +461,7 @@ describe("addNode", () => {
         ],
       })
       .build();
-    const { assetFactory, labelManager } = createTestFactories(hydraulicModel);
+    const { assetFactory } = createTestFactories(labelManager);
 
     const { putAssets } = addNode(hydraulicModel, {
       assetFactory,
@@ -480,7 +489,8 @@ describe("addNode", () => {
 
   it("works with tank node type at vertex location", () => {
     const IDS = { J1: 1, J2: 2, P1: 3 } as const;
-    const hydraulicModel = HydraulicModelBuilder.with()
+    const labelManager = new LabelManager();
+    const hydraulicModel = HydraulicModelBuilder.with({ labelManager })
       .aNode(IDS.J1, [0, 0])
       .aNode(IDS.J2, [10, 0])
       .aPipe(IDS.P1, {
@@ -493,7 +503,7 @@ describe("addNode", () => {
         ],
       })
       .build();
-    const { assetFactory, labelManager } = createTestFactories(hydraulicModel);
+    const { assetFactory } = createTestFactories(labelManager);
 
     const { putAssets } = addNode(hydraulicModel, {
       assetFactory,

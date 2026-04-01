@@ -4,6 +4,7 @@ import { initialSimulationState } from "src/state/simulation";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import type { Worktree, Snapshot } from "src/lib/worktree/types";
 import { ConsecutiveIdsGenerator } from "src/lib/id-generator";
+import { LabelManager } from "src/hydraulic-model/label-manager";
 
 const emptyMainSnapshot: Snapshot = {
   id: "main",
@@ -16,6 +17,7 @@ const emptyMainSnapshot: Snapshot = {
   simulationSourceId: "main",
   simulationSettings: defaultSimulationSettings,
   status: "open",
+  labelManager: new LabelManager(),
 };
 
 export const initialWorktree: Worktree = {

@@ -25,6 +25,7 @@ import {
   initializeHydraulicModel,
 } from "src/hydraulic-model";
 import { initializeModelFactories } from "src/hydraulic-model/factories";
+import { LabelManager } from "src/hydraulic-model/label-manager";
 import { ConsecutiveIdsGenerator } from "src/lib/id-generator";
 import { usePersistence } from "src/lib/persistence";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
@@ -124,7 +125,7 @@ export const CreateNew = () => {
       });
       const factories = initializeModelFactories({
         idGenerator,
-        labelManager: hydraulicModel.labelManager,
+        labelManager: new LabelManager(),
         defaults,
       });
       setGridPreview(false);

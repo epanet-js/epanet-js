@@ -5,6 +5,7 @@ import {
   buildCustomerPoint,
 } from "src/__helpers__/hydraulic-model-builder";
 import { applyMomentToModel } from "../mutations/apply-moment";
+import { LabelManager } from "src/hydraulic-model/label-manager";
 
 describe("removeCustomerPoints", () => {
   it("removes a single connected customer point", () => {
@@ -173,7 +174,8 @@ describe("removeCustomerPoints", () => {
 
   it("produces correct reverse moment for undo", () => {
     const IDS = { J1: 1, J2: 2, P1: 3, CP1: 4 } as const;
-    const hydraulicModel = HydraulicModelBuilder.with()
+    const labelManager = new LabelManager();
+    const hydraulicModel = HydraulicModelBuilder.with({ labelManager })
       .aJunction(IDS.J1, { coordinates: [0, 0] })
       .aJunction(IDS.J2, { coordinates: [10, 0] })
       .aPipe(IDS.P1, {
@@ -199,7 +201,7 @@ describe("removeCustomerPoints", () => {
     const reverseMoment = applyMomentToModel(
       hydraulicModel,
       moment,
-      hydraulicModel.labelManager,
+      labelManager,
     );
 
     // CP should be removed from model
@@ -224,11 +226,7 @@ describe("removeCustomerPoints", () => {
     );
 
     // Applying reverse should restore the CP
-    applyMomentToModel(
-      hydraulicModel,
-      reverseMoment,
-      hydraulicModel.labelManager,
-    );
+    applyMomentToModel(hydraulicModel, reverseMoment, labelManager);
     expect(hydraulicModel.customerPoints.has(IDS.CP1)).toBe(true);
     expect(hydraulicModel.customerPoints.get(IDS.CP1)!.id).toBe(IDS.CP1);
   });

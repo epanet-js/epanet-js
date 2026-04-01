@@ -2,7 +2,10 @@ import type { MomentLog } from "src/lib/persistence/moment-log";
 import type { Moment } from "src/lib/persistence/moment";
 import type { SimulationState } from "src/state/simulation";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
-import type { LabelType } from "src/hydraulic-model/label-manager";
+import type {
+  LabelManager,
+  LabelType,
+} from "src/hydraulic-model/label-manager";
 import type { IdGenerator } from "src/lib/id-generator";
 
 export type Snapshot = {
@@ -16,6 +19,7 @@ export type Snapshot = {
   simulationSourceId: string;
   simulationSettings: SimulationSettings;
   status: "open" | "locked";
+  labelManager: LabelManager;
 };
 
 export interface Worktree {

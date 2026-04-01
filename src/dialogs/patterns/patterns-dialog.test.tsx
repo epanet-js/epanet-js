@@ -8,6 +8,7 @@ import { stubUserTracking } from "src/__helpers__/user-tracking";
 import { Persistence } from "src/lib/persistence/persistence";
 import { PersistenceContext } from "src/lib/persistence/context";
 import { stagingModelAtom } from "src/state/hydraulic-model";
+import { modelFactoriesAtom } from "src/state/model-factories";
 import { Store } from "src/state";
 import { PatternsDialog } from "./patterns-dialog";
 
@@ -340,10 +341,9 @@ describe("PatternsDialog", () => {
 
       // Verify the model was updated with the new pattern
       const hydraulicModel = store.get(stagingModelAtom);
-      const newPatternId = hydraulicModel.labelManager.getIdByLabel(
-        "newpattern",
-        "pattern",
-      )!;
+      const newPatternId = store
+        .get(modelFactoriesAtom)
+        .labelManager.getIdByLabel("newpattern", "pattern")!;
       const newPattern = hydraulicModel.patterns.get(newPatternId);
       expect(newPattern).toEqual({
         id: newPatternId,

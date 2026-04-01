@@ -34,6 +34,7 @@ import { useTranslate } from "src/hooks/use-translate";
 import { usePersistence } from "src/lib/persistence";
 import { useUserTracking } from "src/infra/user-tracking";
 import { stagingModelAtom } from "src/state/hydraulic-model";
+import { modelFactoriesAtom } from "src/state/model-factories";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { simulationSettingsAtom } from "src/state/simulation-settings";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
@@ -122,6 +123,7 @@ export function AssetPanel({
   readonly?: boolean;
 }) {
   const hydraulicModel = useAtomValue(stagingModelAtom);
+  const { labelManager } = useAtomValue(modelFactoriesAtom);
   const projectSettings = useAtomValue(projectSettingsAtom);
   const rep = usePersistence();
   const transact = rep.useTransact();
@@ -229,7 +231,7 @@ export function AssetPanel({
       const oldLabel = asset.label;
       if (newLabel === oldLabel) return undefined;
 
-      const isAvailable = hydraulicModel.labelManager.isLabelAvailable(
+      const isAvailable = labelManager.isLabelAvailable(
         newLabel,
         asset.type,
         asset.id,
@@ -257,6 +259,7 @@ export function AssetPanel({
       asset.label,
       asset.type,
       hydraulicModel,
+      labelManager,
       transact,
       translate,
       userTracking,

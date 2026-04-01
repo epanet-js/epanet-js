@@ -9,25 +9,23 @@ import { CustomerPoint } from "../customer-points";
 import { AssetFactory } from "../factories/asset-factory";
 import { ConsecutiveIdsGenerator } from "src/lib/id-generator";
 import { presets } from "src/lib/project-settings/quantities-spec";
-import type { HydraulicModel } from "../hydraulic-model";
+import { LabelManager } from "src/hydraulic-model/label-manager";
 
-const createTestFactories = (hydraulicModel: HydraulicModel) => {
-  const labelManager = hydraulicModel.labelManager;
-  return {
-    assetFactory: new AssetFactory(
-      presets.LPS.defaults,
-      new ConsecutiveIdsGenerator(),
-      labelManager,
-    ),
+const createTestFactories = (labelManager: LabelManager) => ({
+  assetFactory: new AssetFactory(
+    presets.LPS.defaults,
+    new ConsecutiveIdsGenerator(),
     labelManager,
-  };
-};
+  ),
+  labelManager,
+});
 
 describe("replaceLink", () => {
   describe("basic functionality", () => {
     it("replaces existing pipe with new pipe", () => {
       const IDS = { J1: 1, J2: 2, P1: 3, P2: 4 } as const;
-      const hydraulicModel = HydraulicModelBuilder.with()
+      const labelManager = new LabelManager();
+      const hydraulicModel = HydraulicModelBuilder.with({ labelManager })
         .aJunction(IDS.J1, { coordinates: [0, 0] })
         .aJunction(IDS.J2, { coordinates: [10, 0] })
         .aPipe(IDS.P1, {
@@ -41,8 +39,7 @@ describe("replaceLink", () => {
           isActive: true,
         })
         .build();
-      const { assetFactory, labelManager } =
-        createTestFactories(hydraulicModel);
+      const { assetFactory } = createTestFactories(labelManager);
 
       const newPipe = assetFactory.createPipe({
         label: "P2",
@@ -80,7 +77,8 @@ describe("replaceLink", () => {
 
     it("throws error for mismatched link types", () => {
       const IDS = { J1: 1, J2: 2, P1: 3 } as const;
-      const hydraulicModel = HydraulicModelBuilder.with()
+      const labelManager = new LabelManager();
+      const hydraulicModel = HydraulicModelBuilder.with({ labelManager })
         .aJunction(IDS.J1, { coordinates: [0, 0] })
         .aJunction(IDS.J2, { coordinates: [10, 0] })
         .aPipe(IDS.P1, {
@@ -92,8 +90,7 @@ describe("replaceLink", () => {
           ],
         })
         .build();
-      const { assetFactory, labelManager } =
-        createTestFactories(hydraulicModel);
+      const { assetFactory } = createTestFactories(labelManager);
 
       const newPump = assetFactory.createPump({
         label: "PU1",
@@ -121,7 +118,8 @@ describe("replaceLink", () => {
 
     it("handles pipe splitting when startPipeId and endPipeId provided", () => {
       const IDS = { J1: 1, J2: 2, P1: 3 } as const;
-      const hydraulicModel = HydraulicModelBuilder.with()
+      const labelManager = new LabelManager();
+      const hydraulicModel = HydraulicModelBuilder.with({ labelManager })
         .aJunction(IDS.J1, { coordinates: [0, 0] })
         .aJunction(IDS.J2, { coordinates: [10, 0] })
         .aPipe(IDS.P1, {
@@ -134,8 +132,7 @@ describe("replaceLink", () => {
           ],
         })
         .build();
-      const { assetFactory, labelManager } =
-        createTestFactories(hydraulicModel);
+      const { assetFactory } = createTestFactories(labelManager);
 
       const newPipe = assetFactory.createPipe({
         label: "P2",
@@ -173,7 +170,8 @@ describe("replaceLink", () => {
   describe("auto-replace pipe section when redrawing", () => {
     it("replaces middle pipe section when redrawing pipe onto same pipe", () => {
       const IDS = { J1: 1, J2: 2, P1: 3, P2: 4, J3: 5, J4: 6 } as const;
-      const hydraulicModel = HydraulicModelBuilder.with()
+      const labelManager = new LabelManager();
+      const hydraulicModel = HydraulicModelBuilder.with({ labelManager })
         .aJunction(IDS.J1, { coordinates: [0, 0] })
         .aJunction(IDS.J2, { coordinates: [30, 0] })
         .aPipe(IDS.P1, {
@@ -195,8 +193,7 @@ describe("replaceLink", () => {
           ],
         })
         .build();
-      const { assetFactory, labelManager } =
-        createTestFactories(hydraulicModel);
+      const { assetFactory } = createTestFactories(labelManager);
 
       const newPipe = buildPipe({
         id: IDS.P2,
@@ -240,7 +237,8 @@ describe("replaceLink", () => {
 
     it("replaces section when redrawing pipe as valve onto same pipe", () => {
       const IDS = { J1: 1, J2: 2, P1: 3, V1: 4, J3: 5, J4: 6 } as const;
-      const hydraulicModel = HydraulicModelBuilder.with()
+      const labelManager = new LabelManager();
+      const hydraulicModel = HydraulicModelBuilder.with({ labelManager })
         .aJunction(IDS.J1, { coordinates: [0, 0] })
         .aJunction(IDS.J2, { coordinates: [30, 0] })
         .aPipe(IDS.P1, {
@@ -261,8 +259,7 @@ describe("replaceLink", () => {
           ],
         })
         .build();
-      const { assetFactory, labelManager } =
-        createTestFactories(hydraulicModel);
+      const { assetFactory } = createTestFactories(labelManager);
 
       const newValve = assetFactory.createValve({
         id: IDS.V1,
@@ -309,7 +306,8 @@ describe("replaceLink", () => {
   describe("active topology status inheritance", () => {
     it("inherits isActive from source link when replacing active link", () => {
       const IDS = { J1: 1, J2: 2, P1: 3, P2: 4 } as const;
-      const hydraulicModel = HydraulicModelBuilder.with()
+      const labelManager = new LabelManager();
+      const hydraulicModel = HydraulicModelBuilder.with({ labelManager })
         .aJunction(IDS.J1, { coordinates: [0, 0] })
         .aJunction(IDS.J2, { coordinates: [10, 0] })
         .aPipe(IDS.P1, {
@@ -322,8 +320,7 @@ describe("replaceLink", () => {
           isActive: true,
         })
         .build();
-      const { assetFactory, labelManager } =
-        createTestFactories(hydraulicModel);
+      const { assetFactory } = createTestFactories(labelManager);
 
       const newPipe = assetFactory.createPipe({
         id: IDS.P2,
@@ -357,7 +354,8 @@ describe("replaceLink", () => {
 
     it("inherits isActive from source link when replacing inactive link", () => {
       const IDS = { J1: 1, J2: 2, P0: 3, P1: 4, P2: 5 } as const;
-      const hydraulicModel = HydraulicModelBuilder.with()
+      const labelManager = new LabelManager();
+      const hydraulicModel = HydraulicModelBuilder.with({ labelManager })
         .aJunction(IDS.J1, { coordinates: [0, 0], isActive: false })
         .aJunction(IDS.J2, { coordinates: [10, 0], isActive: false })
         .aPipe(IDS.P1, {
@@ -366,8 +364,7 @@ describe("replaceLink", () => {
           isActive: false,
         })
         .build();
-      const { assetFactory, labelManager } =
-        createTestFactories(hydraulicModel);
+      const { assetFactory } = createTestFactories(labelManager);
 
       const newPipe = assetFactory.createPipe({
         id: IDS.P2,
@@ -402,7 +399,8 @@ describe("replaceLink", () => {
 
     it("re-activates old nodes when removing only non-active link", () => {
       const IDS = { J1: 1, J2: 2, P1: 3, J3: 4, J4: 5, P2: 6 } as const;
-      const hydraulicModel = HydraulicModelBuilder.with()
+      const labelManager = new LabelManager();
+      const hydraulicModel = HydraulicModelBuilder.with({ labelManager })
         .aJunction(IDS.J1, { coordinates: [0, 0], isActive: false })
         .aJunction(IDS.J2, { coordinates: [10, 0], isActive: false })
         .aPipe(IDS.P1, {
@@ -411,8 +409,7 @@ describe("replaceLink", () => {
           isActive: false,
         })
         .build();
-      const { assetFactory, labelManager } =
-        createTestFactories(hydraulicModel);
+      const { assetFactory } = createTestFactories(labelManager);
 
       const newPipe = assetFactory.createPipe({
         id: IDS.P2,
@@ -453,7 +450,8 @@ describe("replaceLink", () => {
 
     it("deactivates previous nodes when removing only active link", () => {
       const IDS = { J1: 1, J2: 2, J3: 3, J4: 4, P0: 5, P1: 6, P2: 7 } as const;
-      const hydraulicModel = HydraulicModelBuilder.with()
+      const labelManager = new LabelManager();
+      const hydraulicModel = HydraulicModelBuilder.with({ labelManager })
         .aJunction(IDS.J1, { coordinates: [0, 0], isActive: true })
         .aJunction(IDS.J2, { coordinates: [10, 0], isActive: true })
         .aPipe(IDS.P0, {
@@ -467,8 +465,7 @@ describe("replaceLink", () => {
           isActive: true,
         })
         .build();
-      const { assetFactory, labelManager } =
-        createTestFactories(hydraulicModel);
+      const { assetFactory } = createTestFactories(labelManager);
 
       const newPipe = assetFactory.createPipe({
         id: IDS.P2,
@@ -521,7 +518,8 @@ describe("replaceLink", () => {
         N2: 10,
       } as const;
 
-      const hydraulicModel = HydraulicModelBuilder.with()
+      const labelManager = new LabelManager();
+      const hydraulicModel = HydraulicModelBuilder.with({ labelManager })
         .aJunction(IDS.J1, { coordinates: [0, 0], isActive: false })
         .aJunction(IDS.J2, { coordinates: [10, 0], isActive: false })
         .aPipe(IDS.P1, {
@@ -556,8 +554,7 @@ describe("replaceLink", () => {
           isActive: true,
         })
         .build();
-      const { assetFactory, labelManager } =
-        createTestFactories(hydraulicModel);
+      const { assetFactory } = createTestFactories(labelManager);
 
       const newPipe = assetFactory.createPipe({
         id: IDS.P1_Redrawn,
@@ -607,7 +604,8 @@ describe("replaceLink", () => {
   describe("customer points reconnection", () => {
     it("reconnects customer points to closest junction", () => {
       const IDS = { J1: 1, J2: 2, P1: 3, P2: 4, CP1: 5 } as const;
-      const hydraulicModel = HydraulicModelBuilder.with()
+      const labelManager = new LabelManager();
+      const hydraulicModel = HydraulicModelBuilder.with({ labelManager })
         .aJunction(IDS.J1, { coordinates: [0, 0] })
         .aJunction(IDS.J2, { coordinates: [10, 0] })
         .aPipe(IDS.P1, {
@@ -627,8 +625,7 @@ describe("replaceLink", () => {
           },
         })
         .build();
-      const { assetFactory, labelManager } =
-        createTestFactories(hydraulicModel);
+      const { assetFactory } = createTestFactories(labelManager);
 
       const newPipe = assetFactory.createPipe({
         label: "P2",
@@ -668,7 +665,8 @@ describe("replaceLink", () => {
 
     it("recalculates snap point when new pipe has different geometry", () => {
       const IDS = { J1: 1, J2: 2, P1: 3, P2: 4, CP1: 5 } as const;
-      const hydraulicModel = HydraulicModelBuilder.with()
+      const labelManager = new LabelManager();
+      const hydraulicModel = HydraulicModelBuilder.with({ labelManager })
         .aJunction(IDS.J1, { coordinates: [0, 0] })
         .aJunction(IDS.J2, { coordinates: [10, 0] })
         .aPipe(IDS.P1, {
@@ -688,8 +686,7 @@ describe("replaceLink", () => {
           },
         })
         .build();
-      const { assetFactory, labelManager } =
-        createTestFactories(hydraulicModel);
+      const { assetFactory } = createTestFactories(labelManager);
 
       const newPipe = assetFactory.createPipe({
         label: "P2",
@@ -726,7 +723,8 @@ describe("replaceLink", () => {
 
     it("reconnects to farther junction when closer is not junction", () => {
       const IDS = { T1: 1, J2: 2, P1: 3, P2: 4, CP1: 5 } as const;
-      const hydraulicModel = HydraulicModelBuilder.with()
+      const labelManager = new LabelManager();
+      const hydraulicModel = HydraulicModelBuilder.with({ labelManager })
         .aTank(IDS.T1, { coordinates: [0, 0] })
         .aJunction(IDS.J2, { coordinates: [10, 0] })
         .aPipe(IDS.P1, {
@@ -746,8 +744,7 @@ describe("replaceLink", () => {
           },
         })
         .build();
-      const { assetFactory, labelManager } =
-        createTestFactories(hydraulicModel);
+      const { assetFactory } = createTestFactories(labelManager);
 
       const newPipe = assetFactory.createPipe({
         label: "P2",
@@ -778,7 +775,8 @@ describe("replaceLink", () => {
 
     it("disconnects customer points when no junctions available", () => {
       const IDS = { T1: 1, R1: 2, P1: 3, P2: 4, CP1: 5 } as const;
-      const hydraulicModel = HydraulicModelBuilder.with()
+      const labelManager = new LabelManager();
+      const hydraulicModel = HydraulicModelBuilder.with({ labelManager })
         .aTank(IDS.T1, { coordinates: [0, 0] })
         .aReservoir(IDS.R1, { coordinates: [10, 0] })
         .aPipe(IDS.P1, {
@@ -790,8 +788,7 @@ describe("replaceLink", () => {
           ],
         })
         .build();
-      const { assetFactory, labelManager } =
-        createTestFactories(hydraulicModel);
+      const { assetFactory } = createTestFactories(labelManager);
 
       const customerPoint = new CustomerPoint(IDS.CP1, [5, 1], {
         label: "CP1",
@@ -833,7 +830,8 @@ describe("replaceLink", () => {
 
     it("handles non-pipe links without customer point processing", () => {
       const IDS = { J1: 1, J2: 2, PU1: 3, PU2: 4 } as const;
-      const hydraulicModel = HydraulicModelBuilder.with()
+      const labelManager = new LabelManager();
+      const hydraulicModel = HydraulicModelBuilder.with({ labelManager })
         .aJunction(IDS.J1, { coordinates: [0, 0] })
         .aJunction(IDS.J2, { coordinates: [10, 0] })
         .aPump(IDS.PU1, {
@@ -845,8 +843,7 @@ describe("replaceLink", () => {
           ],
         })
         .build();
-      const { assetFactory, labelManager } =
-        createTestFactories(hydraulicModel);
+      const { assetFactory } = createTestFactories(labelManager);
 
       const newPump = assetFactory.createPump({
         label: "PU2",
@@ -883,9 +880,11 @@ describe("replaceLink", () => {
   describe("error cases", () => {
     it("throws error when source link not found", () => {
       const IDS = { NONEXISTENT: 999 } as const;
-      const hydraulicModel = HydraulicModelBuilder.with().build();
-      const { assetFactory, labelManager } =
-        createTestFactories(hydraulicModel);
+      const labelManager = new LabelManager();
+      const hydraulicModel = HydraulicModelBuilder.with({
+        labelManager,
+      }).build();
+      const { assetFactory } = createTestFactories(labelManager);
       const newPipe = assetFactory.createPipe({
         label: "P2",
         coordinates: [

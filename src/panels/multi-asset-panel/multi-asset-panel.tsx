@@ -12,6 +12,7 @@ import { SelectOnlyButton } from "./select-only-button";
 import { useAtom, useAtomValue } from "jotai";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { stagingModelAtom } from "src/state/hydraulic-model";
+import { modelFactoriesAtom } from "src/state/model-factories";
 import { multiAssetPanelCollapseAtom } from "src/state/layout";
 import { selectionAtom } from "src/state/selection";
 import { simulationAtom, simulationResultsAtom } from "src/state/simulation";
@@ -41,6 +42,7 @@ export function MultiAssetPanel({
   const simulationState = useAtomValue(simulationAtom);
   const simulationResults = useAtomValue(simulationResultsAtom);
   const hydraulicModel = useAtomValue(stagingModelAtom);
+  const { labelManager } = useAtomValue(modelFactoriesAtom);
   const hasSimulation = simulationState.status !== "idle";
   const [collapseState, setCollapseState] = useAtom(
     multiAssetPanelCollapseAtom,
@@ -252,7 +254,7 @@ export function MultiAssetPanel({
             onSelectAssets={(ids, p) => handleSelectAssets(ids, p, "pump")}
             curves={hydraulicModel.curves}
             patterns={hydraulicModel.patterns}
-            labelManager={hydraulicModel.labelManager}
+            labelManager={labelManager}
             onOpenLibrary={handleOpenLibrary}
           />
         </CollapsibleSection>

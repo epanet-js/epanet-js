@@ -108,6 +108,7 @@ export const buildModel = (
   const linkIds = new ItemData<AssetId>();
 
   const idGenerator = new ConsecutiveIdsGenerator();
+  const labelManager = new LabelManager();
   const hydraulicModel = initializeHydraulicModel({
     demands: createEmptyDemands(),
     idGenerator,
@@ -115,19 +116,19 @@ export const buildModel = (
 
   const factories = initializeModelFactories({
     idGenerator,
-    labelManager: hydraulicModel.labelManager,
+    labelManager,
     defaults,
   });
 
   const { assetFactory } = factories;
 
   const curvesContext: CurvesContext = initializeCurvesContext(
-    hydraulicModel.labelManager,
+    labelManager,
     inpData.curves,
   );
 
   const patternContext: PatternsContext = initializeBuildPatternContext(
-    hydraulicModel.labelManager,
+    labelManager,
     inpData.patterns,
     inpData.options.defaultPattern,
   );
@@ -216,10 +217,17 @@ export const buildModel = (
     });
   }
 
-  addCurves(hydraulicModel, curvesContext, issues, inpData.curves);
+  addCurves(
+    hydraulicModel,
+    labelManager,
+    curvesContext,
+    issues,
+    inpData.curves,
+  );
 
   addPatterns(
     hydraulicModel,
+    labelManager,
     patternContext,
     inpData.sourcePatterns,
     inpData.energy.globalPattern,
@@ -1039,6 +1047,7 @@ const markCurveUsed = (
 
 const addCurves = (
   hydraulicModel: HydraulicModel,
+  labelManager: LabelManager,
   curvesContext: CurvesContext,
   issues: IssuesAccumulator,
   rawCurves: ItemData<CurveData>,
@@ -1068,7 +1077,7 @@ const addCurves = (
       pump.setProperty("definitionType", "curve");
       pump.feature.properties.curve = curve.points.map((p) => ({ ...p }));
       pump.setProperty("curveId", undefined);
-      hydraulicModel.labelManager.remove(curve.label, "curve", curve.id);
+      labelManager.remove(curve.label, "curve", curve.id);
       continue;
     }
 
@@ -1079,6 +1088,7 @@ const addCurves = (
 
 const addPatterns = (
   hydraulicModel: HydraulicModel,
+  labelManager: LabelManager,
   patternContext: PatternsContext,
   sourceStrengthPatterns: Set<string>,
   globalEnergyPattern: string | undefined,
@@ -1087,20 +1097,14 @@ const addPatterns = (
   const { patterns } = patternContext;
 
   for (const label of sourceStrengthPatterns) {
-    const patternId = hydraulicModel.labelManager.getIdByLabel(
-      label,
-      "pattern",
-    );
+    const patternId = labelManager.getIdByLabel(label, "pattern");
     if (patternId !== undefined) {
       markPatternUsed(patternContext, patternId, "qualitySourceStrength");
     }
   }
 
   if (globalEnergyPattern) {
-    const patternId = hydraulicModel.labelManager.getIdByLabel(
-      globalEnergyPattern,
-      "pattern",
-    );
+    const patternId = labelManager.getIdByLabel(globalEnergyPattern, "pattern");
     if (patternId !== undefined) {
       markPatternUsed(patternContext, patternId, "energyPrice");
     }

@@ -3,6 +3,7 @@ import { useAtomValue } from "jotai";
 import { Maybe } from "purify-ts/Maybe";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { stagingModelAtom } from "src/state/hydraulic-model";
+import { modelFactoriesAtom } from "src/state/model-factories";
 import { selectionAtom } from "src/state/selection";
 import type { PropertyComparison } from "src/hooks/use-asset-comparison";
 import { useCustomerPointComparison } from "src/hooks/use-customer-point-comparison";
@@ -34,6 +35,7 @@ import { convertTo } from "src/quantity";
 export function CustomerPointPanel() {
   const selection = useAtomValue(selectionAtom);
   const hydraulicModel = useAtomValue(stagingModelAtom);
+  const { labelManager } = useAtomValue(modelFactoriesAtom);
   const translate = useTranslate();
   const userTracking = useUserTracking();
   const rep = usePersistence();
@@ -148,7 +150,7 @@ export function CustomerPointPanel() {
         return false;
       }
 
-      const isAvailable = hydraulicModel.labelManager.isLabelAvailable(
+      const isAvailable = labelManager.isLabelAvailable(
         newLabel,
         "customerPoint",
         customerPoint.id,
@@ -175,7 +177,14 @@ export function CustomerPointPanel() {
       setLabelError(null);
       return false;
     },
-    [customerPoint, hydraulicModel, transact, translate, userTracking],
+    [
+      customerPoint,
+      hydraulicModel,
+      labelManager,
+      transact,
+      translate,
+      userTracking,
+    ],
   );
 
   const clearLabelError = useCallback(() => {

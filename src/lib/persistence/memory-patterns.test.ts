@@ -5,6 +5,7 @@ import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { setInitialState } from "src/__helpers__/state";
 import { Patterns } from "src/hydraulic-model";
 import { stagingModelAtom } from "src/state/hydraulic-model";
+import { modelFactoriesAtom } from "src/state/model-factories";
 
 const makeDemandPatterns = (
   patterns: { id: number; label: string; multipliers?: number[] }[],
@@ -37,8 +38,8 @@ describe("Persistence putPatterns", () => {
       putPatterns: patterns,
     });
 
-    const hydraulicModel = store.get(stagingModelAtom);
-    expect(hydraulicModel.labelManager.count("MyPattern")).toEqual(1);
+    const labelManager = store.get(modelFactoriesAtom).labelManager;
+    expect(labelManager.count("MyPattern")).toEqual(1);
   });
 
   it("handles renaming a pattern (old removed, new registered)", () => {
@@ -57,9 +58,9 @@ describe("Persistence putPatterns", () => {
       putPatterns: patterns,
     });
 
-    const hydraulicModel = store.get(stagingModelAtom);
-    expect(hydraulicModel.labelManager.count("OriginalName")).toEqual(0);
-    expect(hydraulicModel.labelManager.count("RenamedPattern")).toEqual(1);
+    const labelManager = store.get(modelFactoriesAtom).labelManager;
+    expect(labelManager.count("OriginalName")).toEqual(0);
+    expect(labelManager.count("RenamedPattern")).toEqual(1);
   });
 
   it("handles removing a pattern from demands", () => {
@@ -79,9 +80,9 @@ describe("Persistence putPatterns", () => {
       putPatterns: patterns,
     });
 
-    const hydraulicModel = store.get(stagingModelAtom);
-    expect(hydraulicModel.labelManager.count("KeepThis")).toEqual(1);
-    expect(hydraulicModel.labelManager.count("RemoveThis")).toEqual(0);
+    const labelManager = store.get(modelFactoriesAtom).labelManager;
+    expect(labelManager.count("KeepThis")).toEqual(1);
+    expect(labelManager.count("RemoveThis")).toEqual(0);
   });
 });
 
@@ -155,16 +156,14 @@ describe("Persistence putPatterns undo/redo", () => {
     // Verify PAT2 is removed
     let hydraulicModel = store.get(stagingModelAtom);
     expect(hydraulicModel.patterns.has(2)).toBe(false);
-    expect(hydraulicModel.labelManager.count("PAT2")).toEqual(0);
+    expect(store.get(modelFactoriesAtom).labelManager.count("PAT2")).toEqual(0);
 
-    // Undo
     historyControl("undo");
 
-    // Verify PAT2 is restored
     hydraulicModel = store.get(stagingModelAtom);
     expect(hydraulicModel.patterns.has(2)).toBe(true);
     expect(hydraulicModel.patterns.get(2)?.label).toBe("PAT2");
-    expect(hydraulicModel.labelManager.count("PAT2")).toEqual(1);
+    expect(store.get(modelFactoriesAtom).labelManager.count("PAT2")).toEqual(1);
   });
 
   it("undo restores renamed pattern to original name", () => {
@@ -184,8 +183,12 @@ describe("Persistence putPatterns undo/redo", () => {
     // Verify rename
     let hydraulicModel = store.get(stagingModelAtom);
     expect(hydraulicModel.patterns.get(1)?.label).toBe("NewName");
-    expect(hydraulicModel.labelManager.count("NewName")).toEqual(1);
-    expect(hydraulicModel.labelManager.count("OriginalName")).toEqual(0);
+    expect(store.get(modelFactoriesAtom).labelManager.count("NewName")).toEqual(
+      1,
+    );
+    expect(
+      store.get(modelFactoriesAtom).labelManager.count("OriginalName"),
+    ).toEqual(0);
 
     // Undo
     historyControl("undo");
@@ -193,8 +196,12 @@ describe("Persistence putPatterns undo/redo", () => {
     // Verify original name is restored
     hydraulicModel = store.get(stagingModelAtom);
     expect(hydraulicModel.patterns.get(1)?.label).toBe("OriginalName");
-    expect(hydraulicModel.labelManager.count("OriginalName")).toEqual(1);
-    expect(hydraulicModel.labelManager.count("NewName")).toEqual(0);
+    expect(
+      store.get(modelFactoriesAtom).labelManager.count("OriginalName"),
+    ).toEqual(1);
+    expect(store.get(modelFactoriesAtom).labelManager.count("NewName")).toEqual(
+      0,
+    );
   });
 
   it("undo removes newly added patterns", () => {
@@ -214,7 +221,9 @@ describe("Persistence putPatterns undo/redo", () => {
     // Verify pattern was added
     let hydraulicModel = store.get(stagingModelAtom);
     expect(hydraulicModel.patterns.has(1)).toBe(true);
-    expect(hydraulicModel.labelManager.count("NewPattern")).toEqual(1);
+    expect(
+      store.get(modelFactoriesAtom).labelManager.count("NewPattern"),
+    ).toEqual(1);
 
     // Undo
     historyControl("undo");
@@ -222,6 +231,8 @@ describe("Persistence putPatterns undo/redo", () => {
     // Verify pattern is removed
     hydraulicModel = store.get(stagingModelAtom);
     expect(hydraulicModel.patterns.has(1)).toBe(false);
-    expect(hydraulicModel.labelManager.count("NewPattern")).toEqual(0);
+    expect(
+      store.get(modelFactoriesAtom).labelManager.count("NewPattern"),
+    ).toEqual(0);
   });
 });

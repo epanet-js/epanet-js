@@ -3,15 +3,28 @@ import { createStore } from "jotai";
 import { Persistence } from "./persistence";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { setInitialState } from "src/__helpers__/state";
-import { stagingModelAtom } from "src/state/hydraulic-model";
+import { modelFactoriesAtom } from "src/state/model-factories";
+import { LabelManager } from "src/hydraulic-model/label-manager";
+import { initializeModelFactories } from "src/hydraulic-model/factories";
+import { ConsecutiveIdsGenerator } from "src/lib/id-generator";
+import { presets } from "src/lib/project-settings/quantities-spec";
 
 describe("Persistence putDemands", () => {
   it("keeps old demands when moment does not include demands", () => {
     const store = createStore();
-    const model = HydraulicModelBuilder.with()
+    const labelManager = new LabelManager();
+    const model = HydraulicModelBuilder.with({ labelManager })
       .aDemandPattern(1, "PAT1", [1, 2])
       .build();
     setInitialState({ store, hydraulicModel: model });
+    store.set(
+      modelFactoriesAtom,
+      initializeModelFactories({
+        idGenerator: new ConsecutiveIdsGenerator(),
+        labelManager,
+        defaults: presets.LPS.defaults,
+      }),
+    );
     const persistence = new Persistence(store);
     const transact = persistence.useTransact();
 
@@ -21,7 +34,6 @@ describe("Persistence putDemands", () => {
       deleteAssets: [],
     });
 
-    const hydraulicModel = store.get(stagingModelAtom);
-    expect(hydraulicModel.labelManager.count("PAT1")).toEqual(1);
+    expect(labelManager.count("PAT1")).toEqual(1);
   });
 });

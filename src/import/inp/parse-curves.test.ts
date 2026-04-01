@@ -19,10 +19,10 @@ describe("curve type inference", () => {
     ${coords(["j1", "j2"])}
     `;
 
-    const { hydraulicModel } = parseInp(inp);
+    const { hydraulicModel, factories } = parseInp(inp);
 
     expect(hydraulicModel.curves.size).toBe(1);
-    const curveId = hydraulicModel.labelManager.getIdByLabel("cu1", "curve")!;
+    const curveId = factories.labelManager.getIdByLabel("cu1", "curve")!;
     const curve = hydraulicModel.curves.get(curveId)!;
     expect(curve.type).toEqual("pump");
   });
@@ -38,9 +38,9 @@ describe("curve type inference", () => {
     ${coords(["T1"])}
     `;
 
-    const { hydraulicModel } = parseInp(inp);
+    const { hydraulicModel, factories } = parseInp(inp);
 
-    const curveId = hydraulicModel.labelManager.getIdByLabel("VC1", "curve");
+    const curveId = factories.labelManager.getIdByLabel("VC1", "curve");
     expect(curveId).toBeDefined();
     const curve = hydraulicModel.curves.get(curveId!)!;
     expect(curve.type).toBe("volume");
@@ -60,12 +60,9 @@ describe("curve type inference", () => {
     ${coords(["j1", "j2"])}
     `;
 
-    const { hydraulicModel } = parseInp(inp);
+    const { hydraulicModel, factories } = parseInp(inp);
 
-    const curveId = hydraulicModel.labelManager.getIdByLabel(
-      "PCV_CURVE",
-      "curve",
-    );
+    const curveId = factories.labelManager.getIdByLabel("PCV_CURVE", "curve");
     expect(curveId).toBeDefined();
     const curve = hydraulicModel.curves.get(curveId!)!;
     expect(curve.type).toBe("valve");
@@ -85,12 +82,9 @@ describe("curve type inference", () => {
     ${coords(["j1", "j2"])}
     `;
 
-    const { hydraulicModel } = parseInp(inp);
+    const { hydraulicModel, factories } = parseInp(inp);
 
-    const curveId = hydraulicModel.labelManager.getIdByLabel(
-      "HL_CURVE",
-      "curve",
-    );
+    const curveId = factories.labelManager.getIdByLabel("HL_CURVE", "curve");
     expect(curveId).toBeDefined();
     const curve = hydraulicModel.curves.get(curveId!)!;
     expect(curve.type).toBe("headloss");
@@ -112,9 +106,9 @@ describe("curve type inference", () => {
     ${coords(["j1", "j2"])}
     `;
 
-    const { hydraulicModel } = parseInp(inp);
+    const { hydraulicModel, factories } = parseInp(inp);
 
-    const curveId = hydraulicModel.labelManager.getIdByLabel("EFF1", "curve");
+    const curveId = factories.labelManager.getIdByLabel("EFF1", "curve");
     expect(curveId).toBeDefined();
     const curve = hydraulicModel.curves.get(curveId!)!;
     expect(curve.type).toBe("efficiency");
@@ -150,10 +144,10 @@ describe("curve type inference", () => {
     ${coords(["j1", "j2"])}
     `;
 
-    const { hydraulicModel, issues } = parseInp(inp);
+    const { factories, issues } = parseInp(inp);
 
     expect(
-      hydraulicModel.labelManager.getIdByLabel("bad_curve", "curve"),
+      factories.labelManager.getIdByLabel("bad_curve", "curve"),
     ).toBeDefined();
     expect(issues?.hasInvalidPumpCurves).toBe(1);
   });
@@ -174,8 +168,8 @@ describe("comment-based curve type fallback", () => {
     [END]
     `;
 
-    const { hydraulicModel } = parseInp(inp);
-    const curveId = hydraulicModel.labelManager.getIdByLabel("cu1", "curve");
+    const { hydraulicModel, factories } = parseInp(inp);
+    const curveId = factories.labelManager.getIdByLabel("cu1", "curve");
     expect(curveId).toBeDefined();
     const curve = hydraulicModel.curves.get(curveId!);
     expect(curve).toBeDefined();
@@ -195,9 +189,9 @@ describe("comment-based curve type fallback", () => {
     [END]
     `;
 
-    const { hydraulicModel } = parseInp(inp);
+    const { hydraulicModel, factories } = parseInp(inp);
     expect(hydraulicModel.curves.size).toBe(1);
-    const curveId = hydraulicModel.labelManager.getIdByLabel("cu1", "curve")!;
+    const curveId = factories.labelManager.getIdByLabel("cu1", "curve")!;
     expect(hydraulicModel.curves.get(curveId)!.type).toBeUndefined();
   });
 
@@ -216,8 +210,8 @@ describe("comment-based curve type fallback", () => {
     [END]
     `;
 
-    const { hydraulicModel } = parseInp(inp);
-    const curveId = hydraulicModel.labelManager.getIdByLabel("cu1", "curve");
+    const { hydraulicModel, factories } = parseInp(inp);
+    const curveId = factories.labelManager.getIdByLabel("cu1", "curve");
     expect(curveId).toBeDefined();
     const curve = hydraulicModel.curves.get(curveId!);
     expect(curve!.type).toBe("pump");
@@ -238,15 +232,11 @@ describe("comment-based curve type fallback", () => {
     [END]
     `;
 
-    const { hydraulicModel } = parseInp(inp);
-    expect(
-      hydraulicModel.labelManager.getIdByLabel("cu1", "curve"),
-    ).toBeDefined();
-    expect(
-      hydraulicModel.labelManager.getIdByLabel("cu2", "curve"),
-    ).toBeDefined();
-    const cu1Id = hydraulicModel.labelManager.getIdByLabel("cu1", "curve")!;
-    const cu2Id = hydraulicModel.labelManager.getIdByLabel("cu2", "curve")!;
+    const { hydraulicModel, factories } = parseInp(inp);
+    expect(factories.labelManager.getIdByLabel("cu1", "curve")).toBeDefined();
+    expect(factories.labelManager.getIdByLabel("cu2", "curve")).toBeDefined();
+    const cu1Id = factories.labelManager.getIdByLabel("cu1", "curve")!;
+    const cu2Id = factories.labelManager.getIdByLabel("cu2", "curve")!;
     expect(hydraulicModel.curves.get(cu1Id)!.type).toBe("pump");
     expect(hydraulicModel.curves.get(cu2Id)!.type).toBeUndefined();
   });
