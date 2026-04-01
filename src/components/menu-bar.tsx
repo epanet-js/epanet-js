@@ -28,6 +28,7 @@ import { useEffectivePlan } from "src/hooks/use-effective-plan";
 import { usePermissions } from "src/hooks/use-permissions";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { PlanBadge } from "./plan-badge";
+import { PlanLabel } from "./plan-label";
 import { useSetAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
@@ -68,6 +69,7 @@ export const MenuBarPlay = memo(function MenuBar() {
   const isMdOrLarger = useBreakpoint("md");
   const isSmOrLarger = useBreakpoint("sm");
   const isActivateTrialOn = useFeatureFlag("FLAG_ACTIVATE_TRIAL");
+  const isOrgsOn = useFeatureFlag("FLAG_ORGS");
   const effectivePlan = useEffectivePlan();
 
   return (
@@ -103,23 +105,49 @@ export const MenuBarPlay = memo(function MenuBar() {
           </>
         )}
         <SignedIn>
-          <div className="relative flex items-center px-2 gap-x-2">
-            <TrialOrUpgradeButton
-              user={user}
-              isActivateTrialOn={isActivateTrialOn}
-              translate={translate}
-              onUpgrade={() => {
-                userTracking.capture({
-                  name: "upgradeButton.clicked",
-                  source: "menu",
-                });
-                setDialogState({ type: "upgrade" });
-              }}
-            />
-            {isMdOrLarger && (
+          <div
+            className={`relative flex items-center gap-x-2 ${isOrgsOn ? "" : "px-2"}`}
+          >
+            {isOrgsOn ? (
               <>
-                <PlanBadge plan={effectivePlan} />
-                <UserButton />
+                {effectivePlan === "free" ? (
+                  <TrialOrUpgradeButton
+                    user={user}
+                    isActivateTrialOn={isActivateTrialOn}
+                    translate={translate}
+                    onUpgrade={() => {
+                      userTracking.capture({
+                        name: "upgradeButton.clicked",
+                        source: "menu",
+                      });
+                      setDialogState({ type: "upgrade" });
+                    }}
+                  />
+                ) : (
+                  <PlanLabel plan={effectivePlan} />
+                )}
+                {isMdOrLarger && <UserButton />}
+              </>
+            ) : (
+              <>
+                <TrialOrUpgradeButton
+                  user={user}
+                  isActivateTrialOn={isActivateTrialOn}
+                  translate={translate}
+                  onUpgrade={() => {
+                    userTracking.capture({
+                      name: "upgradeButton.clicked",
+                      source: "menu",
+                    });
+                    setDialogState({ type: "upgrade" });
+                  }}
+                />
+                {isMdOrLarger && (
+                  <>
+                    <PlanBadge plan={effectivePlan} />
+                    <UserButton />
+                  </>
+                )}
               </>
             )}
           </div>
@@ -247,6 +275,8 @@ export const SideMenu = () => {
   const showWelcome = useShowWelcome();
   const { user } = useAuth();
   const isActivateTrialOn = useFeatureFlag("FLAG_ACTIVATE_TRIAL");
+  const isOrgsOn = useFeatureFlag("FLAG_ORGS");
+  const effectivePlan = useEffectivePlan();
   const toggleMenu = () => {
     setIsOpen(!isOpen);
   };
@@ -342,25 +372,30 @@ export const SideMenu = () => {
             <hr className="my-4 border-gray-200" />
             <SignedIn>
               <ul className="flex-col items-start gap-4">
-                <li>
+                <li className="flex items-center gap-x-2">
                   <UserButton />
+                  {isOrgsOn && effectivePlan !== "free" && (
+                    <PlanLabel plan={effectivePlan} />
+                  )}
                 </li>
-                <li className="py-4">
-                  <TrialOrUpgradeButton
-                    user={user}
-                    isActivateTrialOn={isActivateTrialOn}
-                    translate={translate}
-                    size="full-width"
-                    onUpgrade={() => {
-                      userTracking.capture({
-                        name: "upgradeButton.clicked",
-                        source: "menu",
-                      });
-                      setIsOpen(false);
-                      setDialogState({ type: "upgrade" });
-                    }}
-                  />
-                </li>
+                {(!isOrgsOn || effectivePlan === "free") && (
+                  <li className="py-4">
+                    <TrialOrUpgradeButton
+                      user={user}
+                      isActivateTrialOn={isActivateTrialOn}
+                      translate={translate}
+                      size="full-width"
+                      onUpgrade={() => {
+                        userTracking.capture({
+                          name: "upgradeButton.clicked",
+                          source: "menu",
+                        });
+                        setIsOpen(false);
+                        setDialogState({ type: "upgrade" });
+                      }}
+                    />
+                  </li>
+                )}
               </ul>
             </SignedIn>
             <SignedOut>
