@@ -40,6 +40,23 @@ This model helps prevent harmful free riding and keeps development sustainable. 
 
 #### Install dependencies
 
+Before installing epanet-js, you will need a functional C/C++ toolchain, as well as installing the following libraries:
+- `libpixman`
+- `libcairo`
+- `libpango`
+- `libgif`
+
+On Ubuntu / Debian systems, you can install them by running:
+```sh
+sudo apt update
+sudo apt install libpixman-1-dev
+sudo apt install libcairo-dev
+sudo apt install libpango1.0-dev
+sudo apt install libgif-dev
+```
+
+Then, run:
+
 ```sh
 pnpm install
 ```
@@ -134,4 +151,3 @@ This repository contains code under two different licenses:
 2. **Modifications and Future Contributions (FSL-1.1-MIT)**: Any changes or contributions made after the first commit (`0fa095f5c60ba944fa4e25b8a7e749e52c2beefb`) onwards are licensed under the FSL-1.1-MIT License.
 
 You can find the full text of the MIT License in the `LICENSE` file.
-
