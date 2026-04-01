@@ -196,7 +196,11 @@ describe("removeCustomerPoints", () => {
       customerPointIds: [IDS.CP1],
     });
 
-    const reverseMoment = applyMomentToModel(hydraulicModel, moment);
+    const reverseMoment = applyMomentToModel(
+      hydraulicModel,
+      moment,
+      hydraulicModel.labelManager,
+    );
 
     // CP should be removed from model
     expect(hydraulicModel.customerPoints.has(IDS.CP1)).toBe(false);
@@ -220,7 +224,11 @@ describe("removeCustomerPoints", () => {
     );
 
     // Applying reverse should restore the CP
-    applyMomentToModel(hydraulicModel, reverseMoment);
+    applyMomentToModel(
+      hydraulicModel,
+      reverseMoment,
+      hydraulicModel.labelManager,
+    );
     expect(hydraulicModel.customerPoints.has(IDS.CP1)).toBe(true);
     expect(hydraulicModel.customerPoints.get(IDS.CP1)!.id).toBe(IDS.CP1);
   });

@@ -99,7 +99,7 @@ describe("changeCustomerPointLabel", () => {
       customerPointId: IDS.CP1,
       newLabel: "NewLabel",
     });
-    applyMomentToModel(hydraulicModel, moment);
+    applyMomentToModel(hydraulicModel, moment, hydraulicModel.labelManager);
 
     expect(hydraulicModel.customerPoints.get(IDS.CP1)!.label).toBe("NewLabel");
     expect(
@@ -138,11 +138,19 @@ describe("changeCustomerPointLabel", () => {
       customerPointId: IDS.CP1,
       newLabel: "Changed",
     });
-    const reverseMoment = applyMomentToModel(hydraulicModel, moment);
+    const reverseMoment = applyMomentToModel(
+      hydraulicModel,
+      moment,
+      hydraulicModel.labelManager,
+    );
 
     expect(hydraulicModel.customerPoints.get(IDS.CP1)!.label).toBe("Changed");
 
-    applyMomentToModel(hydraulicModel, reverseMoment);
+    applyMomentToModel(
+      hydraulicModel,
+      reverseMoment,
+      hydraulicModel.labelManager,
+    );
     expect(hydraulicModel.customerPoints.get(IDS.CP1)!.label).toBe("Original");
   });
 });

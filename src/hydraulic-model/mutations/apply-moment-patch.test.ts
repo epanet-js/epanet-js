@@ -24,7 +24,7 @@ describe("applyMomentToModel with patchAssetsAttributes", () => {
       ],
     };
 
-    const reverse = applyMomentToModel(model, moment);
+    const reverse = applyMomentToModel(model, moment, model.labelManager);
 
     const updatedPipe = model.assets.get(IDS.PIPE) as Pipe;
     expect(updatedPipe.diameter).toBe(200);
@@ -61,7 +61,7 @@ describe("applyMomentToModel with patchAssetsAttributes", () => {
       ],
     };
 
-    const reverse = applyMomentToModel(model, moment);
+    const reverse = applyMomentToModel(model, moment, model.labelManager);
 
     const updatedPipe = model.assets.get(IDS.PIPE) as Pipe;
     expect(updatedPipe.diameter).toBe(200);
@@ -90,7 +90,7 @@ describe("applyMomentToModel with patchAssetsAttributes", () => {
       ],
     };
 
-    const reverse = applyMomentToModel(model, moment);
+    const reverse = applyMomentToModel(model, moment, model.labelManager);
 
     expect((model.assets.get(IDS.J1) as Junction).elevation).toBe(50);
     expect((model.assets.get(IDS.J2) as Junction).elevation).toBe(60);
@@ -120,7 +120,7 @@ describe("applyMomentToModel with patchAssetsAttributes", () => {
       ],
     };
 
-    const reverse = applyMomentToModel(model, moment);
+    const reverse = applyMomentToModel(model, moment, model.labelManager);
 
     expect(reverse.patchAssetsAttributes).toHaveLength(0);
     expect((model.assets.get(1) as Junction).elevation).toBe(10);
@@ -150,7 +150,7 @@ describe("applyMomentToModel with patchAssetsAttributes", () => {
       ],
     };
 
-    const reverse = applyMomentToModel(model, moment);
+    const reverse = applyMomentToModel(model, moment, model.labelManager);
 
     expect((model.assets.get(IDS.J1) as Junction).elevation).toBe(99);
     expect((model.assets.get(IDS.PIPE) as Pipe).diameter).toBe(200);
@@ -181,7 +181,7 @@ describe("applyMomentToModel with patchAssetsAttributes", () => {
       ],
     };
 
-    const reverse = applyMomentToModel(model, moment);
+    const reverse = applyMomentToModel(model, moment, model.labelManager);
 
     expect((model.assets.get(IDS.J1) as Junction).label).toBe("NewName");
     expect(model.labelManager.getIdByLabel("NewName", "junction")).toBe(IDS.J1);
@@ -190,10 +190,14 @@ describe("applyMomentToModel with patchAssetsAttributes", () => {
     ).toBeUndefined();
 
     // Undo restores old label in labelManager
-    applyMomentToModel(model, {
-      note: reverse.note,
-      patchAssetsAttributes: reverse.patchAssetsAttributes,
-    });
+    applyMomentToModel(
+      model,
+      {
+        note: reverse.note,
+        patchAssetsAttributes: reverse.patchAssetsAttributes,
+      },
+      model.labelManager,
+    );
 
     expect((model.assets.get(IDS.J1) as Junction).label).toBe(oldLabel);
     expect(model.labelManager.getIdByLabel(oldLabel, "junction")).toBe(IDS.J1);
@@ -226,7 +230,11 @@ describe("applyMomentToModel with patchAssetsAttributes", () => {
       ],
     };
 
-    const reverse = applyMomentToModel(model, forwardMoment);
+    const reverse = applyMomentToModel(
+      model,
+      forwardMoment,
+      model.labelManager,
+    );
 
     expect((model.assets.get(IDS.PIPE) as Pipe).diameter).toBe(200);
     expect((model.assets.get(IDS.PIPE) as Pipe).roughness).toBe(150);
@@ -235,7 +243,7 @@ describe("applyMomentToModel with patchAssetsAttributes", () => {
       note: reverse.note,
       patchAssetsAttributes: reverse.patchAssetsAttributes,
     };
-    applyMomentToModel(model, reverseMoment);
+    applyMomentToModel(model, reverseMoment, model.labelManager);
 
     expect((model.assets.get(IDS.PIPE) as Pipe).diameter).toBe(100);
     expect((model.assets.get(IDS.PIPE) as Pipe).roughness).toBe(130);
@@ -254,7 +262,7 @@ describe("applyMomentToModel with patchAssetsAttributes", () => {
         { id: IDS.J1, type: "junction", properties: { elevation: 50 } },
       ],
     };
-    const reverse1 = applyMomentToModel(model, moment1);
+    const reverse1 = applyMomentToModel(model, moment1, model.labelManager);
 
     const moment2: ModelMoment = {
       note: "Patch 2",
@@ -262,24 +270,32 @@ describe("applyMomentToModel with patchAssetsAttributes", () => {
         { id: IDS.J2, type: "junction", properties: { elevation: 60 } },
       ],
     };
-    const reverse2 = applyMomentToModel(model, moment2);
+    const reverse2 = applyMomentToModel(model, moment2, model.labelManager);
 
     expect((model.assets.get(IDS.J1) as Junction).elevation).toBe(50);
     expect((model.assets.get(IDS.J2) as Junction).elevation).toBe(60);
 
     // Undo patch 2
-    applyMomentToModel(model, {
-      note: reverse2.note,
-      patchAssetsAttributes: reverse2.patchAssetsAttributes,
-    });
+    applyMomentToModel(
+      model,
+      {
+        note: reverse2.note,
+        patchAssetsAttributes: reverse2.patchAssetsAttributes,
+      },
+      model.labelManager,
+    );
     expect((model.assets.get(IDS.J2) as Junction).elevation).toBe(20);
     expect((model.assets.get(IDS.J1) as Junction).elevation).toBe(50);
 
     // Undo patch 1
-    applyMomentToModel(model, {
-      note: reverse1.note,
-      patchAssetsAttributes: reverse1.patchAssetsAttributes,
-    });
+    applyMomentToModel(
+      model,
+      {
+        note: reverse1.note,
+        patchAssetsAttributes: reverse1.patchAssetsAttributes,
+      },
+      model.labelManager,
+    );
     expect((model.assets.get(IDS.J1) as Junction).elevation).toBe(10);
     expect((model.assets.get(IDS.J2) as Junction).elevation).toBe(20);
   });
