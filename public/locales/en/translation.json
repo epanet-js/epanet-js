@@ -668,6 +668,7 @@
     "qualityChemical": "Chemical",
     "qualityAge": "Age",
     "qualityTrace": "Trace",
+    "qualityTypeNotSupported": "Not supported.",
     "qualityChemicalName": "Chemical name",
     "qualityChemicalNameDesc": "Enter the actual name of the chemical being modeled (e.g., Chlorine).",
     "qualityMassUnit": "Mass unit",

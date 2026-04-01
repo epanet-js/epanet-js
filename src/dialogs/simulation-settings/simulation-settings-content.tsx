@@ -544,8 +544,10 @@ export const HydraulicsSection = () => {
 
 export const WaterQualitySection = () => {
   const translate = useTranslate();
-  const isWaterQualityOn = useFeatureFlag("FLAG_WATER_QUALITY");
-  const readonly = useAtomValue(hasScenariosAtom) || !isWaterQualityOn;
+  const isWaterAgeOn = useFeatureFlag("FLAG_WATER_AGE");
+  const isWaterChemicalOn = useFeatureFlag("FLAG_WATER_CHEMICAL");
+  const isWaterTraceOn = useFeatureFlag("FLAG_WATER_TRACE");
+  const hasScenarios = useAtomValue(hasScenariosAtom);
   const assets = useAtomValue(assetsAtom);
   const { values, setFieldValue } = useFormikContext<FormValues>();
   const isNone = values.qualitySimulationType === "NONE";
@@ -560,6 +562,7 @@ export const WaterQualitySection = () => {
   const qualityTypeOptions: {
     label: string;
     value: QualitySimulationType;
+    disabled?: boolean;
   }[] = [
     {
       label: translate("simulationSettings.qualityNone"),
@@ -568,16 +571,23 @@ export const WaterQualitySection = () => {
     {
       label: translate("simulationSettings.qualityChemical"),
       value: "CHEMICAL",
+      disabled: !isWaterChemicalOn,
     },
     {
       label: translate("simulationSettings.qualityAge"),
       value: "AGE",
+      disabled: !isWaterAgeOn,
     },
     {
       label: translate("simulationSettings.qualityTrace"),
       value: "TRACE",
+      disabled: !isWaterTraceOn,
     },
   ];
+
+  const isSelectedQualityTypeSupported = !qualityTypeOptions.find(
+    (o) => o.value === values.qualitySimulationType,
+  )?.disabled;
 
   const massUnitOptions: { label: string; value: QualityMassUnit }[] = [
     { label: "mg/L", value: "mg/L" },
@@ -602,7 +612,15 @@ export const WaterQualitySection = () => {
           options={qualityTypeOptions}
           selected={values.qualitySimulationType}
           onChange={(v) => setFieldValue("qualitySimulationType", v)}
-          disabled={readonly}
+          disabled={
+            hasScenarios ||
+            !(isWaterAgeOn || isWaterChemicalOn || isWaterTraceOn)
+          }
+          warning={
+            !isSelectedQualityTypeSupported
+              ? translate("simulationSettings.qualityTypeNotSupported")
+              : undefined
+          }
         />
 
         <TextSetting
@@ -612,7 +630,7 @@ export const WaterQualitySection = () => {
           onChange={(v) => {
             void setFieldValue("qualityChemicalName", v);
           }}
-          disabled={!isChemical || readonly}
+          disabled={!isChemical || hasScenarios || !isWaterChemicalOn}
         />
 
         <SelectorSetting
@@ -621,7 +639,7 @@ export const WaterQualitySection = () => {
           options={massUnitOptions}
           selected={values.qualityMassUnit}
           onChange={(v) => setFieldValue("qualityMassUnit", v)}
-          disabled={!isChemical || readonly}
+          disabled={!isChemical || hasScenarios || !isWaterChemicalOn}
         />
 
         <TextSetting
@@ -641,7 +659,7 @@ export const WaterQualitySection = () => {
             }
             void setFieldValue("qualityTraceNodeId", null);
           }}
-          disabled={!isTrace || readonly}
+          disabled={!isTrace || hasScenarios || !isWaterTraceOn}
         />
 
         <ValueSetting
@@ -649,7 +667,11 @@ export const WaterQualitySection = () => {
           description={translate("simulationSettings.toleranceDesc")}
           value={values.tolerance}
           onChange={(v) => setFieldValue("tolerance", v)}
-          disabled={isNone || readonly}
+          disabled={
+            isNone ||
+            hasScenarios ||
+            !(isWaterAgeOn || isWaterChemicalOn || isWaterTraceOn)
+          }
         />
       </SubsectionGroup>
 
@@ -662,7 +684,7 @@ export const WaterQualitySection = () => {
           description={translate("simulationSettings.reactionBulkOrderDesc")}
           value={values.reactionBulkOrder}
           onChange={(v) => setFieldValue("reactionBulkOrder", v)}
-          disabled={!isChemical || readonly}
+          disabled={!isChemical || hasScenarios || !isWaterChemicalOn}
         />
 
         <ValueSetting
@@ -670,7 +692,7 @@ export const WaterQualitySection = () => {
           description={translate("simulationSettings.reactionWallOrderDesc")}
           value={values.reactionWallOrder}
           onChange={(v) => setFieldValue("reactionWallOrder", v)}
-          disabled={!isChemical || readonly}
+          disabled={!isChemical || hasScenarios || !isWaterChemicalOn}
         />
 
         <ValueSetting
@@ -678,7 +700,7 @@ export const WaterQualitySection = () => {
           description={translate("simulationSettings.reactionTankOrderDesc")}
           value={values.reactionTankOrder}
           onChange={(v) => setFieldValue("reactionTankOrder", v)}
-          disabled={!isChemical || readonly}
+          disabled={!isChemical || hasScenarios || !isWaterChemicalOn}
         />
 
         <ValueSetting
@@ -686,7 +708,7 @@ export const WaterQualitySection = () => {
           description={translate("simulationSettings.reactionGlobalBulkDesc")}
           value={values.reactionGlobalBulk}
           onChange={(v) => setFieldValue("reactionGlobalBulk", v)}
-          disabled={!isChemical || readonly}
+          disabled={!isChemical || hasScenarios || !isWaterChemicalOn}
         />
 
         <ValueSetting
@@ -694,7 +716,7 @@ export const WaterQualitySection = () => {
           description={translate("simulationSettings.reactionGlobalWallDesc")}
           value={values.reactionGlobalWall}
           onChange={(v) => setFieldValue("reactionGlobalWall", v)}
-          disabled={!isChemical || readonly}
+          disabled={!isChemical || hasScenarios || !isWaterChemicalOn}
         />
       </SubsectionGroup>
 
@@ -709,7 +731,7 @@ export const WaterQualitySection = () => {
           )}
           value={values.reactionLimitingPotential}
           onChange={(v) => setFieldValue("reactionLimitingPotential", v)}
-          disabled={!isChemical || readonly}
+          disabled={!isChemical || hasScenarios || !isWaterChemicalOn}
         />
 
         <ValueSetting
@@ -719,7 +741,7 @@ export const WaterQualitySection = () => {
           )}
           value={values.reactionRoughnessCorrelation}
           onChange={(v) => setFieldValue("reactionRoughnessCorrelation", v)}
-          disabled={!isChemical || readonly}
+          disabled={!isChemical || hasScenarios || !isWaterChemicalOn}
         />
 
         <ValueSetting
@@ -727,7 +749,7 @@ export const WaterQualitySection = () => {
           description={translate("simulationSettings.diffusivityDesc")}
           value={values.diffusivity}
           onChange={(v) => setFieldValue("diffusivity", v)}
-          disabled={!isChemical || readonly}
+          disabled={!isChemical || hasScenarios || !isWaterChemicalOn}
         />
       </SubsectionGroup>
     </div>
@@ -952,6 +974,7 @@ type SelectorSettingPropsBase<T extends string | number> = {
   listClassName?: string;
   disabled?: boolean;
   stickyFirstGroup?: boolean;
+  warning?: string;
 };
 
 type SelectorSettingPropsNonNullable<T extends string | number> =
@@ -985,22 +1008,33 @@ const SelectorSetting = <T extends string | number>({
   disabled = false,
   stickyFirstGroup,
   listClassName,
+  warning,
   onChange,
 }: SelectorSettingProps<T>) => (
   <SettingsRow label={label} description={description} badge={badge}>
-    <div className="w-56">
-      <Selector
-        ariaLabel={label}
-        options={options}
-        selected={selected}
-        onChange={(v: T | null) => (onChange as (value: T | null) => void)(v)}
-        disabled={disabled}
-        nullable={nullable as true}
-        placeholder={placeholder as string}
-        stickyFirstGroup={stickyFirstGroup}
-        listClassName={listClassName}
-        styleOptions={{ border: true, textSize: "text-sm", paddingY: 2 }}
-      />
+    <div className="flex items-center gap-2">
+      <div className="w-56">
+        <Selector
+          ariaLabel={label}
+          options={options}
+          selected={selected}
+          onChange={(v: T | null) => (onChange as (value: T | null) => void)(v)}
+          disabled={disabled}
+          nullable={nullable as true}
+          placeholder={placeholder as string}
+          stickyFirstGroup={stickyFirstGroup}
+          listClassName={listClassName}
+          styleOptions={{
+            border: true,
+            textSize: "text-sm",
+            paddingY: 2,
+            variant: warning ? "warning" : undefined,
+          }}
+        />
+      </div>
+      {warning && (
+        <span className="text-xs font-semibold text-orange-800">{warning}</span>
+      )}
     </div>
   </SettingsRow>
 );
