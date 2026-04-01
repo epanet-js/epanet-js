@@ -341,6 +341,7 @@ type InpSections = {
   vertices: string[];
   customers: string[];
   customersDemands: string[];
+  quality: string[];
   reactions: string[];
   energy: string[];
   controls: string[];
@@ -502,6 +503,7 @@ export const buildInp = withDebugInstrumentation(
         ";Id\tX-coord\tY-coord\tBaseDemand\tPipeId\tJunctionId\tSnapX\tSnapY",
       ],
       customersDemands: [";[CUSTOMERS_DEMANDS]", ";Id\tBaseDemand\tPatternId"],
+      quality: ["[QUALITY]", ";Node\tInitialQuality"],
       reactions: buildReactionsSection(opts.simulationSettings),
       energy: buildEnergySection(opts.simulationSettings, idMap),
       controls: ["[CONTROLS]"],
@@ -527,6 +529,12 @@ export const buildInp = withDebugInstrumentation(
           usedPatternIds,
           transformCoord,
         );
+        appendInitialQuality(
+          sections,
+          idMap,
+          asset as Reservoir,
+          opts.simulationSettings,
+        );
       }
 
       if (asset.type === "tank") {
@@ -538,6 +546,12 @@ export const buildInp = withDebugInstrumentation(
           usedCurveIds,
           asset as Tank,
           transformCoord,
+        );
+        appendInitialQuality(
+          sections,
+          idMap,
+          asset as Tank,
+          opts.simulationSettings,
         );
       }
 
@@ -554,6 +568,12 @@ export const buildInp = withDebugInstrumentation(
           hydraulicModel.demands,
           usedPatternIds,
           transformCoord,
+        );
+        appendInitialQuality(
+          sections,
+          idMap,
+          asset as Junction,
+          opts.simulationSettings,
         );
       }
 
@@ -634,6 +654,7 @@ export const buildInp = withDebugInstrumentation(
     const hasControls = sections.controls.length > 1;
     const hasRules = sections.rules.length > 1;
     const hasEmitters = sections.emitters.length > 2;
+    const hasQuality = sections.quality.length > 2;
     const hasReactions = sections.reactions.length > 1;
     const hasEnergy = sections.energy.length > 1;
 
@@ -652,6 +673,7 @@ export const buildInp = withDebugInstrumentation(
       sections.times.join("\n"),
       sections.report.join("\n"),
       sections.options.join("\n"),
+      hasQuality && sections.quality.join("\n"),
       hasReactions && sections.reactions.join("\n"),
       hasEnergy && sections.energy.join("\n"),
       opts.geolocation && sections.backdrop.join("\n"),
@@ -682,6 +704,20 @@ export const buildInp = withDebugInstrumentation(
   },
   { name: "BUILD_INP", maxDurationMs: 1000 },
 );
+
+const appendInitialQuality = (
+  sections: InpSections,
+  idMap: EpanetIds,
+  node: NodeAsset,
+  simulationSettings: SimulationSettings,
+) => {
+  if (simulationSettings.qualitySimulationType !== "AGE") return;
+
+  const age = (node as Junction | Tank | Reservoir).initialWaterAge;
+  if (age !== undefined && age !== 0) {
+    sections.quality.push(`${idMap.nodeId(node)}\t${age}`);
+  }
+};
 
 const appendReservoir = (
   sections: InpSections,
