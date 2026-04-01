@@ -23,7 +23,6 @@ import {
   SignedIn,
   SignedOut,
   UserButton,
-  OrganizationSwitcher,
   useAuth,
   useOrganization,
 } from "src/auth";
@@ -138,16 +137,6 @@ export const MenuBarPlay = memo(function MenuBar() {
             {isMdOrLarger && (
               <>
                 {!isInOrg && <PlanBadge plan={user.plan} />}
-                {isOrgsOn && (
-                  <OrganizationSwitcher
-                    appearance={{
-                      elements: {
-                        organizationSwitcherPopoverActionButton__createOrganization:
-                          { display: "none" },
-                      },
-                    }}
-                  />
-                )}
                 <UserButton />
               </>
             )}
@@ -276,8 +265,6 @@ export const SideMenu = () => {
   const showWelcome = useShowWelcome();
   const { user } = useAuth();
   const isActivateTrialOn = useFeatureFlag("FLAG_ACTIVATE_TRIAL");
-  const isOrgsOn = useFeatureFlag("FLAG_ORGS");
-
   const toggleMenu = () => {
     setIsOpen(!isOpen);
   };
@@ -373,18 +360,6 @@ export const SideMenu = () => {
             <hr className="my-4 border-gray-200" />
             <SignedIn>
               <ul className="flex-col items-start gap-4">
-                {isOrgsOn && (
-                  <li>
-                    <OrganizationSwitcher
-                      appearance={{
-                        elements: {
-                          organizationSwitcherPopoverActionButton__createOrganization:
-                            { display: "none" },
-                        },
-                      }}
-                    />
-                  </li>
-                )}
                 <li>
                   <UserButton />
                 </li>

@@ -6,14 +6,15 @@ import {
   SignInButton as ClerkSignInButton,
   SignUpButton as ClerkSignUpButton,
   UserButton as ClerkUserButton,
-  OrganizationSwitcher as ClerkOrganizationSwitcher,
   RedirectToSignIn as ClerkRedirectToSignIn,
   useAuth as useClerkAuth,
   useUser as useClerkUser,
-  useOrganizationList,
+  useClerk,
   useOrganization as useClerkOrganization,
 } from "@clerk/nextjs";
 import { captureWarning } from "src/infra/error-tracking";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { SettingsIcon } from "src/icons";
 import { enUS, esES } from "@clerk/localizations";
 import { getLocale, allSupportedLanguages, Locale } from "./infra/i18n/locale";
 import { nullUser, User, UseAuthHook } from "./auth-types";
@@ -144,21 +145,30 @@ export const SignedOut = ({ children }: { children: React.ReactNode }) => {
   if (!isAuthEnabled) return children as JSX.Element;
   return <ClerkSignedOut>{children}</ClerkSignedOut>;
 };
-export const UserButton = isAuthEnabled
-  ? ClerkUserButton
-  : () => <button></button>;
+const UserButtonWithManageTeam = () => {
+  const { membership } = useClerkOrganization();
+  const { openOrganizationProfile } = useClerk();
+  const isOrgsOn = useFeatureFlag("FLAG_ORGS");
+  const isOrgAdmin = isOrgsOn && membership?.role === "org:admin";
 
-const OrganizationSwitcherWithMembership = (
-  props: React.ComponentProps<typeof ClerkOrganizationSwitcher>,
-) => {
-  const { userMemberships } = useOrganizationList({ userMemberships: true });
-  if (!userMemberships?.count) return null;
-  return <ClerkOrganizationSwitcher {...props} />;
+  if (!isOrgAdmin) return <ClerkUserButton />;
+
+  return (
+    <ClerkUserButton>
+      <ClerkUserButton.MenuItems>
+        <ClerkUserButton.Action
+          label="Manage team"
+          labelIcon={<SettingsIcon />}
+          onClick={() => openOrganizationProfile()}
+        />
+      </ClerkUserButton.MenuItems>
+    </ClerkUserButton>
+  );
 };
 
-export const OrganizationSwitcher = isAuthEnabled
-  ? OrganizationSwitcherWithMembership
-  : () => null;
+export const UserButton = isAuthEnabled
+  ? UserButtonWithManageTeam
+  : () => <button></button>;
 
 export const useOrganization = isAuthEnabled
   ? useClerkOrganization
