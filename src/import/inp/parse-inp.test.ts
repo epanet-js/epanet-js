@@ -1,4 +1,4 @@
-import { Junction, Pipe, Reservoir } from "src/hydraulic-model";
+import { Junction, Pipe, Reservoir, Tank } from "src/hydraulic-model";
 import { parseInp } from "./parse-inp";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { buildInp, chooseUnitSystem } from "src/simulation/build-inp";
@@ -983,5 +983,187 @@ describe("reaction options", () => {
     const { issues } = parseInp(inp);
 
     expect(issues?.unsupportedSections?.has("[REACTIONS]")).toBe(true);
+  });
+});
+
+describe("quality section", () => {
+  it("parses initial water age from QUALITY section when quality type is AGE", () => {
+    const inp = `
+      [JUNCTIONS]
+      J1    100
+      J2    200
+
+      [COORDINATES]
+      J1    0    0
+      J2    1    1
+
+      [OPTIONS]
+      Quality\tAGE
+
+      [QUALITY]
+      J1    5.0
+      J2    12.5
+
+      [END]
+    `;
+
+    const { hydraulicModel } = parseInp(inp, { waterAge: true });
+    const j1 = getByLabel(hydraulicModel.assets, "J1") as Junction;
+    const j2 = getByLabel(hydraulicModel.assets, "J2") as Junction;
+
+    expect(j1.initialWaterAge).toBe(5.0);
+    expect(j2.initialWaterAge).toBe(12.5);
+  });
+
+  it("ignores QUALITY section values when quality type is not AGE", () => {
+    const inp = `
+      [JUNCTIONS]
+      J1    100
+
+      [COORDINATES]
+      J1    0    0
+
+      [OPTIONS]
+      Quality\tChlorine mg/L
+
+      [QUALITY]
+      J1    1.5
+
+      [END]
+    `;
+
+    const { hydraulicModel } = parseInp(inp, { waterAge: true });
+    const j1 = getByLabel(hydraulicModel.assets, "J1") as Junction;
+
+    expect(j1.initialWaterAge).toBe(0);
+  });
+
+  it("ignores QUALITY section when waterAge option is off", () => {
+    const inp = `
+      [JUNCTIONS]
+      J1    100
+
+      [COORDINATES]
+      J1    0    0
+
+      [OPTIONS]
+      Quality\tAGE
+
+      [QUALITY]
+      J1    5.0
+
+      [END]
+    `;
+
+    const { hydraulicModel } = parseInp(inp, { waterAge: false });
+    const j1 = getByLabel(hydraulicModel.assets, "J1") as Junction;
+
+    expect(j1.initialWaterAge).toBe(0);
+  });
+
+  it("skips zero values in QUALITY section", () => {
+    const inp = `
+      [JUNCTIONS]
+      J1    100
+      J2    200
+
+      [COORDINATES]
+      J1    0    0
+      J2    1    1
+
+      [OPTIONS]
+      Quality\tAGE
+
+      [QUALITY]
+      J1    0
+      J2    10
+
+      [END]
+    `;
+
+    const { hydraulicModel } = parseInp(inp, { waterAge: true });
+    const j1 = getByLabel(hydraulicModel.assets, "J1") as Junction;
+    const j2 = getByLabel(hydraulicModel.assets, "J2") as Junction;
+
+    expect(j1.initialWaterAge).toBe(0);
+    expect(j2.initialWaterAge).toBe(10);
+  });
+
+  it("parses initial water age for tanks and reservoirs", () => {
+    const inp = `
+      [JUNCTIONS]
+      J1    100
+
+      [TANKS]
+      T1    50    10    0    20    15    0
+
+      [RESERVOIRS]
+      R1    100
+
+      [COORDINATES]
+      J1    0    0
+      T1    1    1
+      R1    2    2
+
+      [OPTIONS]
+      Quality\tAGE
+
+      [QUALITY]
+      T1    8.0
+      R1    3.0
+
+      [END]
+    `;
+
+    const { hydraulicModel } = parseInp(inp, { waterAge: true });
+    const t1 = getByLabel(hydraulicModel.assets, "T1") as Tank;
+    const r1 = getByLabel(hydraulicModel.assets, "R1") as Reservoir;
+
+    expect(t1.initialWaterAge).toBe(8.0);
+    expect(r1.initialWaterAge).toBe(3.0);
+  });
+
+  it("reports QUALITY as unsupported section when waterAge is off", () => {
+    const inp = `
+      [JUNCTIONS]
+      J1    100
+
+      [COORDINATES]
+      J1    0    0
+
+      [OPTIONS]
+      Quality\tAGE
+
+      [QUALITY]
+      J1    5.0
+
+      [END]
+    `;
+
+    const { issues } = parseInp(inp, { waterAge: false });
+
+    expect(issues?.unsupportedSections?.has("[QUALITY]")).toBe(true);
+  });
+
+  it("does not report QUALITY as unsupported when waterAge is on", () => {
+    const inp = `
+      [JUNCTIONS]
+      J1    100
+
+      [COORDINATES]
+      J1    0    0
+
+      [OPTIONS]
+      Quality\tAGE
+
+      [QUALITY]
+      J1    5.0
+
+      [END]
+    `;
+
+    const { issues } = parseInp(inp, { waterAge: true });
+
+    expect(issues?.unsupportedSections?.has("[QUALITY]")).toBeFalsy();
   });
 });

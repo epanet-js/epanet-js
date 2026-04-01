@@ -1929,4 +1929,90 @@ THEN LINK {{1}} STATUS IS OPEN`,
       expect(inp).not.toContain("unused_pat");
     });
   });
+
+  describe("quality section", () => {
+    it("includes QUALITY section with initial water age when includeQuality is true", () => {
+      const IDS = { J1: 1, J2: 2 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, { elevation: 10, initialWaterAge: 5 })
+        .aJunction(IDS.J2, { elevation: 20, initialWaterAge: 12 })
+        .build();
+
+      const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
+        simulationSettings: defaultSimulationSettings,
+        includeQuality: true,
+      });
+
+      expect(inp).toContain("[QUALITY]");
+      expect(inp).toContain(`${IDS.J1}\t5`);
+      expect(inp).toContain(`${IDS.J2}\t12`);
+    });
+
+    it("omits QUALITY section when includeQuality is false", () => {
+      const IDS = { J1: 1 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, { elevation: 10, initialWaterAge: 5 })
+        .build();
+
+      const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
+        simulationSettings: defaultSimulationSettings,
+      });
+
+      expect(inp).not.toContain("[QUALITY]");
+    });
+
+    it("omits QUALITY section when no nodes have non-zero water age", () => {
+      const IDS = { J1: 1, J2: 2 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, { elevation: 10 })
+        .aJunction(IDS.J2, { elevation: 20 })
+        .build();
+
+      const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
+        simulationSettings: defaultSimulationSettings,
+        includeQuality: true,
+      });
+
+      expect(inp).not.toContain("[QUALITY]");
+    });
+
+    it("includes initial water age for tanks and reservoirs", () => {
+      const IDS = { T1: 1, R1: 2 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aTank(IDS.T1, { initialWaterAge: 8 })
+        .aReservoir(IDS.R1, { head: 100, initialWaterAge: 3 })
+        .build();
+
+      const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
+        simulationSettings: defaultSimulationSettings,
+        includeQuality: true,
+      });
+
+      expect(inp).toContain("[QUALITY]");
+      expect(inp).toContain(`${IDS.T1}\t8`);
+      expect(inp).toContain(`${IDS.R1}\t3`);
+    });
+
+    it("skips nodes with zero initial water age", () => {
+      const IDS = { J1: 1, J2: 2 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, { elevation: 10, initialWaterAge: 0 })
+        .aJunction(IDS.J2, { elevation: 20, initialWaterAge: 7 })
+        .build();
+
+      const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
+        simulationSettings: defaultSimulationSettings,
+        includeQuality: true,
+      });
+
+      expect(inp).toContain("[QUALITY]");
+      expect(inp).not.toContain(`${IDS.J1}\t0`);
+      expect(inp).toContain(`${IDS.J2}\t7`);
+    });
+  });
 });

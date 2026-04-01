@@ -16,6 +16,7 @@ import { getAppId } from "src/infra/app-instance";
 import { OPFSStorage } from "src/infra/storage";
 import { worktreeAtom } from "src/state/scenarios";
 import { usePersistenceWithSnapshots } from "src/lib/persistence";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 export const runSimulationShortcut = "shift+enter";
 
 export const useRunSimulation = () => {
@@ -23,6 +24,7 @@ export const useRunSimulation = () => {
   const setDialogState = useSetAtom(dialogAtom);
   const persistence = usePersistenceWithSnapshots();
   const setSimulationResults = useSetAtom(simulationResultsAtom);
+  const isWaterAgeOn = useFeatureFlag("FLAG_WATER_AGE");
 
   const runSimulation = useAtomCallback(
     useCallback(
@@ -45,6 +47,8 @@ export const useRunSimulation = () => {
           customerDemands: true,
           usedPatterns: true,
           usedCurves: true,
+          includeQuality:
+            isWaterAgeOn && simulationSettings.qualitySimulationType === "AGE",
           simulationSettings,
           units: projectSettings.units,
           headlossFormula: projectSettings.headlossFormula,
@@ -120,7 +124,13 @@ export const useRunSimulation = () => {
           ignoreLabel: options?.ignoreLabel,
         });
       },
-      [setSimulationState, setDialogState, persistence, setSimulationResults],
+      [
+        setSimulationState,
+        setDialogState,
+        persistence,
+        setSimulationResults,
+        isWaterAgeOn,
+      ],
     ),
   );
 

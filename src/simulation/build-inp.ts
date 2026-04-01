@@ -361,6 +361,7 @@ type BuildOptions = {
   usedPatterns?: boolean;
   usedCurves?: boolean;
   reservoirElevations?: boolean;
+  includeQuality?: boolean;
   projection?: Projection;
 };
 
@@ -377,6 +378,7 @@ export const buildInp = withDebugInstrumentation(
       usedPatterns: false,
       usedCurves: false,
       reservoirElevations: false,
+      includeQuality: false,
       ...options,
     };
     const idMap = new EpanetIds({ strategy: opts.labelIds ? "label" : "id" });
@@ -529,12 +531,9 @@ export const buildInp = withDebugInstrumentation(
           usedPatternIds,
           transformCoord,
         );
-        appendInitialQuality(
-          sections,
-          idMap,
-          asset as Reservoir,
-          opts.simulationSettings,
-        );
+        if (opts.includeQuality) {
+          appendInitialQuality(sections, idMap, asset as Reservoir);
+        }
       }
 
       if (asset.type === "tank") {
@@ -547,12 +546,9 @@ export const buildInp = withDebugInstrumentation(
           asset as Tank,
           transformCoord,
         );
-        appendInitialQuality(
-          sections,
-          idMap,
-          asset as Tank,
-          opts.simulationSettings,
-        );
+        if (opts.includeQuality) {
+          appendInitialQuality(sections, idMap, asset as Tank);
+        }
       }
 
       if (asset.type === "junction") {
@@ -569,12 +565,9 @@ export const buildInp = withDebugInstrumentation(
           usedPatternIds,
           transformCoord,
         );
-        appendInitialQuality(
-          sections,
-          idMap,
-          asset as Junction,
-          opts.simulationSettings,
-        );
+        if (opts.includeQuality) {
+          appendInitialQuality(sections, idMap, asset as Junction);
+        }
       }
 
       if (asset.type === "pipe") {
@@ -709,12 +702,9 @@ const appendInitialQuality = (
   sections: InpSections,
   idMap: EpanetIds,
   node: NodeAsset,
-  simulationSettings: SimulationSettings,
 ) => {
-  if (simulationSettings.qualitySimulationType !== "AGE") return;
-
   const age = (node as Junction | Tank | Reservoir).initialWaterAge;
-  if (age !== 0) {
+  if (age !== undefined && age !== 0) {
     sections.quality.push(`${idMap.nodeId(node)}\t${age}`);
   }
 };

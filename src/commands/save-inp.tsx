@@ -17,6 +17,7 @@ import { notifyPromiseState } from "src/components/notifications";
 import { useUserTracking } from "src/infra/user-tracking";
 import { worktreeAtom } from "src/state/scenarios";
 import { useRecentFiles } from "src/hooks/use-recent-files";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 const getDefaultFsAccess = async () => {
   const { fileSave } = await import("browser-fs-access");
   return { fileSave };
@@ -38,6 +39,7 @@ export const useSaveInp = ({
   const { addRecent } = useRecentFiles();
   const userTracking = useUserTracking();
   const map = useContext(MapContext);
+  const isWaterAgeOn = useFeatureFlag("FLAG_WATER_AGE");
 
   const saveInp = useAtomCallback(
     useCallback(
@@ -71,6 +73,7 @@ export const useSaveInp = ({
             customerPoints: true,
             inactiveAssets: true,
             reservoirElevations: true,
+            includeQuality: isWaterAgeOn,
             projection: projectSettings.projection,
             simulationSettings,
             units: projectSettings.units,
@@ -122,7 +125,7 @@ export const useSaveInp = ({
           return false;
         }
       },
-      [userTracking, getFsAccess, addRecent, translate, map],
+      [userTracking, getFsAccess, addRecent, translate, map, isWaterAgeOn],
     ),
   );
 
