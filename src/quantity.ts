@@ -38,7 +38,7 @@ export type Unit =
   | "ft^2"
   | "kW/m^3"
   | "kW/Mgal"
-  | "hrs"
+  | "h"
   | null;
 
 export type Quantity = {

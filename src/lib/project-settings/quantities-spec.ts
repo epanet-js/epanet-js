@@ -114,7 +114,7 @@ const metricSpec: AssetQuantitiesSpec = {
     ...allLevelUnits("m"),
     ...allFlowUnits("l/s"),
     averageKwPerFlowUnit: "kW/m^3",
-    initialWaterAge: "hrs",
+    initialWaterAge: "h",
   },
   decimals: {},
   defaults: {
@@ -168,7 +168,7 @@ const usCustomarySpec: AssetQuantitiesSpec = {
     ...allLevelUnits("ft"),
     ...allFlowUnits("gal/min"),
     averageKwPerFlowUnit: "kW/Mgal",
-    initialWaterAge: "hrs",
+    initialWaterAge: "h",
   },
   decimals: {
     elevation: 1,
