@@ -73,11 +73,13 @@ export const useRunSimulation = () => {
 
         const appId = getAppId();
         const scenarioKey = worktree.activeSnapshotId;
+        const runQuality =
+          isWaterAgeOn && simulationSettings.qualitySimulationType === "AGE";
         const { report, status, metadata } = await runSimulationWorker(
           inp,
           appId,
           reportProgress,
-          {},
+          { runQuality },
           scenarioKey,
         );
 

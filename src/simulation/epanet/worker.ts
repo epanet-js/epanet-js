@@ -66,6 +66,16 @@ export const runSimulation = async (
     model.closeH();
     model.saveH();
 
+    if (flags.runQuality) {
+      model.openQ();
+      model.initQ(InitHydOption.Save);
+      do {
+        const currentTime = model.runQ();
+        onProgress?.({ currentTime, totalDuration });
+      } while (model.nextQ() > 0);
+      model.closeQ();
+    }
+
     model.close();
 
     const { resultsBuffer, metadata } = extractResultsData(ws);
