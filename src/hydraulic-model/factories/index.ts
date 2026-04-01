@@ -10,6 +10,7 @@ export { AssetFactory } from "./asset-factory";
 export type ModelFactories = {
   customerPointFactory: CustomerPointFactory;
   assetFactory: AssetFactory;
+  labelManager: LabelManager;
 };
 
 export const initializeModelFactories = (options: {
@@ -27,5 +28,6 @@ export const initializeModelFactories = (options: {
       options.idGenerator,
       options.labelManager,
     ),
+    labelManager: options.labelManager,
   };
 };

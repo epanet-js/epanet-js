@@ -111,7 +111,7 @@ import { PatternId } from "../patterns";
 export class AssetFactory {
   private defaults: DefaultsSpec;
   private idGenerator: IdGenerator;
-  readonly labelManager: LabelManager;
+  private labelManager: LabelManager;
 
   constructor(
     defaults: DefaultsSpec,

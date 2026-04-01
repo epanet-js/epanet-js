@@ -147,7 +147,7 @@ export function useDrawLinkHandlers({
   const transact = rep.useTransact();
   const userTracking = useUserTracking();
   const usingTouchEvents = useRef<boolean>(false);
-  const { assetFactory } = useAtomValue(modelFactoriesAtom);
+  const { assetFactory, labelManager } = useAtomValue(modelFactoriesAtom);
   const lengthUnit = units.length;
   const { findSnappingCandidate } = useSnapping(map, hydraulicModel.assets);
 
@@ -320,6 +320,7 @@ export function useDrawLinkHandlers({
       endPipeId,
       lengthUnit,
       assetFactory,
+      labelManager,
     });
 
     userTracking.capture({ name: "asset.created", type: link.type });

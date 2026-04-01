@@ -17,6 +17,7 @@ type InputData = {
   pipeIdToSplit?: AssetId;
   lengthUnit: Unit;
   assetFactory: AssetFactory;
+  labelManager: LabelManager;
 };
 
 export const addNode: ModelOperation<InputData> = (
@@ -28,6 +29,7 @@ export const addNode: ModelOperation<InputData> = (
     pipeIdToSplit,
     lengthUnit,
     assetFactory,
+    labelManager,
   },
 ) => {
   const isActive = getInheritedActiveTopologyStatus(
@@ -42,7 +44,7 @@ export const addNode: ModelOperation<InputData> = (
     elevation,
     isActive,
   );
-  addMissingLabel(assetFactory.labelManager, node);
+  addMissingLabel(labelManager, node);
 
   if (pipeIdToSplit) {
     return addNodeWithPipeSplitting(
@@ -51,6 +53,7 @@ export const addNode: ModelOperation<InputData> = (
       pipeIdToSplit,
       lengthUnit,
       assetFactory,
+      labelManager,
     );
   }
 
@@ -97,6 +100,7 @@ const addNodeWithPipeSplitting = (
   pipeIdToSplit: AssetId,
   lengthUnit: Unit,
   assetFactory: AssetFactory,
+  labelManager: LabelManager,
 ) => {
   const pipe = hydraulicModel.assets.get(pipeIdToSplit) as Pipe;
   if (!pipe || pipe.type !== "pipe") {
@@ -108,6 +112,7 @@ const addNodeWithPipeSplitting = (
     splits: [node],
     lengthUnit,
     assetFactory,
+    labelManager,
   });
 
   return {

@@ -8,12 +8,17 @@ import { ConsecutiveIdsGenerator } from "src/lib/id-generator";
 import { HydraulicModel } from "../hydraulic-model";
 import { presets } from "src/lib/project-settings/quantities-spec";
 
-const createAssetFactory = (hydraulicModel: HydraulicModel) =>
-  new AssetFactory(
-    presets.LPS.defaults,
-    new ConsecutiveIdsGenerator(),
-    hydraulicModel.labelManager,
-  );
+const createTestFactories = (hydraulicModel: HydraulicModel) => {
+  const labelManager = hydraulicModel.labelManager;
+  return {
+    assetFactory: new AssetFactory(
+      presets.LPS.defaults,
+      new ConsecutiveIdsGenerator(),
+      labelManager,
+    ),
+    labelManager,
+  };
+};
 
 describe("moveNode", () => {
   it("updates the coordinates of a node", () => {
@@ -21,12 +26,13 @@ describe("moveNode", () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .aNode(IDS.A, [10, 10])
       .build();
-    const assetFactory = createAssetFactory(hydraulicModel);
+    const { assetFactory, labelManager } = createTestFactories(hydraulicModel);
     const newCoordinates = [20, 20];
     const newElevation = 10;
 
     const { putAssets } = moveNode(hydraulicModel, {
       assetFactory,
+      labelManager,
       lengthUnit: "m",
       nodeId: IDS.A,
       newCoordinates,
@@ -48,12 +54,13 @@ describe("moveNode", () => {
       .aLink(IDS.AB, IDS.A, IDS.B, { length: 1 })
       .aLink(IDS.BC, IDS.B, IDS.C, { length: 2 })
       .build();
-    const assetFactory = createAssetFactory(hydraulicModel);
+    const { assetFactory, labelManager } = createTestFactories(hydraulicModel);
     const newCoordinates = [25, 25];
     const anyElevation = 10;
 
     const { putAssets } = moveNode(hydraulicModel, {
       assetFactory,
+      labelManager,
       lengthUnit: "m",
       nodeId: IDS.B,
       newCoordinates,
@@ -91,11 +98,13 @@ describe("moveNode", () => {
           },
         })
         .build();
-      const assetFactory = createAssetFactory(hydraulicModel);
+      const { assetFactory, labelManager } =
+        createTestFactories(hydraulicModel);
 
       const newCoordinates = [10, 20];
       const { putAssets, putCustomerPoints } = moveNode(hydraulicModel, {
         assetFactory,
+        labelManager,
         lengthUnit: "m",
         nodeId: IDS.J1,
         newCoordinates,
@@ -130,10 +139,12 @@ describe("moveNode", () => {
           },
         })
         .build();
-      const assetFactory = createAssetFactory(hydraulicModel);
+      const { assetFactory, labelManager } =
+        createTestFactories(hydraulicModel);
 
       const { putCustomerPoints } = moveNode(hydraulicModel, {
         assetFactory,
+        labelManager,
         lengthUnit: "m",
         nodeId: IDS.J1,
         newCoordinates: [10, 20],
@@ -154,10 +165,12 @@ describe("moveNode", () => {
           endNodeId: IDS.J2,
         })
         .build();
-      const assetFactory = createAssetFactory(hydraulicModel);
+      const { assetFactory, labelManager } =
+        createTestFactories(hydraulicModel);
 
       const { putCustomerPoints } = moveNode(hydraulicModel, {
         assetFactory,
+        labelManager,
         lengthUnit: "m",
         nodeId: IDS.J1,
         newCoordinates: [15, 20],
@@ -186,10 +199,12 @@ describe("moveNode", () => {
           },
         })
         .build();
-      const assetFactory = createAssetFactory(hydraulicModel);
+      const { assetFactory, labelManager } =
+        createTestFactories(hydraulicModel);
 
       const { putCustomerPoints } = moveNode(hydraulicModel, {
         assetFactory,
+        labelManager,
         lengthUnit: "m",
         nodeId: IDS.J1,
         newCoordinates: [25, 0],
@@ -222,10 +237,12 @@ describe("moveNode", () => {
           },
         })
         .build();
-      const assetFactory = createAssetFactory(hydraulicModel);
+      const { assetFactory, labelManager } =
+        createTestFactories(hydraulicModel);
 
       const { putCustomerPoints } = moveNode(hydraulicModel, {
         assetFactory,
+        labelManager,
         lengthUnit: "m",
         nodeId: IDS.J1,
         newCoordinates: [0, 5],
@@ -267,10 +284,12 @@ describe("moveNode", () => {
           },
         })
         .build();
-      const assetFactory = createAssetFactory(hydraulicModel);
+      const { assetFactory, labelManager } =
+        createTestFactories(hydraulicModel);
 
       const { putCustomerPoints } = moveNode(hydraulicModel, {
         assetFactory,
+        labelManager,
         lengthUnit: "m",
         nodeId: IDS.J1,
         newCoordinates: [35, 0],
@@ -306,10 +325,12 @@ describe("moveNode", () => {
           },
         })
         .build();
-      const assetFactory = createAssetFactory(hydraulicModel);
+      const { assetFactory, labelManager } =
+        createTestFactories(hydraulicModel);
 
       const { putCustomerPoints } = moveNode(hydraulicModel, {
         assetFactory,
+        labelManager,
         lengthUnit: "m",
         nodeId: IDS.J1,
         newCoordinates: [-122.405, 37.7749],
@@ -333,10 +354,11 @@ describe("moveNode", () => {
       .aNode(IDS.J3, [0, 10])
       .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
       .build();
-    const assetFactory = createAssetFactory(hydraulicModel);
+    const { assetFactory, labelManager } = createTestFactories(hydraulicModel);
 
     const { putAssets, deleteAssets } = moveNode(hydraulicModel, {
       assetFactory,
+      labelManager,
       lengthUnit: "m",
       nodeId: IDS.J3,
       newCoordinates: [5, 0],
@@ -383,10 +405,11 @@ describe("moveNode", () => {
         },
       })
       .build();
-    const assetFactory = createAssetFactory(hydraulicModel);
+    const { assetFactory, labelManager } = createTestFactories(hydraulicModel);
 
     const { putCustomerPoints } = moveNode(hydraulicModel, {
       assetFactory,
+      labelManager,
       lengthUnit: "m",
       nodeId: IDS.J3,
       newCoordinates: [5, 0],
@@ -410,11 +433,12 @@ describe("moveNode", () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .aNode(IDS.J1, [0, 0])
       .build();
-    const assetFactory = createAssetFactory(hydraulicModel);
+    const { assetFactory, labelManager } = createTestFactories(hydraulicModel);
 
     expect(() =>
       moveNode(hydraulicModel, {
         assetFactory,
+        labelManager,
         lengthUnit: "m",
         nodeId: IDS.J1,
         newCoordinates: [5, 0],
@@ -426,6 +450,7 @@ describe("moveNode", () => {
     expect(() =>
       moveNode(hydraulicModel, {
         assetFactory,
+        labelManager,
         lengthUnit: "m",
         nodeId: IDS.J1,
         newCoordinates: [5, 0],
@@ -451,10 +476,11 @@ describe("moveNode", () => {
         ],
       })
       .build();
-    const assetFactory = createAssetFactory(hydraulicModel);
+    const { assetFactory, labelManager } = createTestFactories(hydraulicModel);
 
     const { putAssets } = moveNode(hydraulicModel, {
       assetFactory,
+      labelManager,
       lengthUnit: "m",
       nodeId: IDS.J3,
       newCoordinates: [5, 0],
@@ -492,10 +518,11 @@ describe("moveNode", () => {
         ],
       })
       .build();
-    const assetFactory = createAssetFactory(hydraulicModel);
+    const { assetFactory, labelManager } = createTestFactories(hydraulicModel);
 
     const { putAssets } = moveNode(hydraulicModel, {
       assetFactory,
+      labelManager,
       lengthUnit: "m",
       nodeId: IDS.J3,
       newCoordinates: [10, 0],
@@ -543,10 +570,11 @@ describe("moveNode", () => {
         },
       })
       .build();
-    const assetFactory = createAssetFactory(hydraulicModel);
+    const { assetFactory, labelManager } = createTestFactories(hydraulicModel);
 
     const { putAssets, putCustomerPoints } = moveNode(hydraulicModel, {
       assetFactory,
+      labelManager,
       lengthUnit: "m",
       nodeId: IDS.J3,
       newCoordinates: [5, 0],

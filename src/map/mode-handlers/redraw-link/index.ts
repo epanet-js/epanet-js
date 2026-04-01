@@ -19,7 +19,7 @@ export function useRedrawLinkHandlers(
   const userTracking = useUserTracking();
   const { hydraulicModel } = handlerContext;
   const { assets } = hydraulicModel;
-  const { assetFactory } = useAtomValue(modelFactoriesAtom);
+  const { assetFactory, labelManager } = useAtomValue(modelFactoriesAtom);
   const { selectAsset } = useSelection(selection);
 
   const selectedIds = USelection.toIds(selection);
@@ -51,6 +51,7 @@ export function useRedrawLinkHandlers(
       newLink: link,
       lengthUnit: handlerContext.units.length,
       assetFactory,
+      labelManager,
     });
 
     userTracking.capture({ name: "asset.redrawed", type: link.type });

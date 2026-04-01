@@ -9,21 +9,28 @@ import { ConsecutiveIdsGenerator } from "src/lib/id-generator";
 import { HydraulicModel } from "../hydraulic-model";
 import { presets } from "src/lib/project-settings/quantities-spec";
 
-const createAssetFactory = (hydraulicModel: HydraulicModel) =>
-  new AssetFactory(
-    presets.LPS.defaults,
-    new ConsecutiveIdsGenerator(),
-    hydraulicModel.labelManager,
-  );
+const createTestFactories = (hydraulicModel: HydraulicModel) => {
+  const labelManager = hydraulicModel.labelManager;
+  return {
+    assetFactory: new AssetFactory(
+      presets.LPS.defaults,
+      new ConsecutiveIdsGenerator(),
+      labelManager,
+    ),
+    labelManager,
+  };
+};
 
 describe("addNode", () => {
   describe("without pipe splitting (backward compatibility)", () => {
     it("adds a junction with generated label", () => {
       const hydraulicModel = HydraulicModelBuilder.with().build();
-      const assetFactory = createAssetFactory(hydraulicModel);
+      const { assetFactory, labelManager } =
+        createTestFactories(hydraulicModel);
 
       const { putAssets } = addNode(hydraulicModel, {
         assetFactory,
+        labelManager,
         lengthUnit: "m",
         nodeType: "junction",
         coordinates: [10, 10],
@@ -41,10 +48,12 @@ describe("addNode", () => {
 
     it("adds a reservoir with specified elevation", () => {
       const hydraulicModel = HydraulicModelBuilder.with().build();
-      const assetFactory = createAssetFactory(hydraulicModel);
+      const { assetFactory, labelManager } =
+        createTestFactories(hydraulicModel);
 
       const { putAssets } = addNode(hydraulicModel, {
         assetFactory,
+        labelManager,
         lengthUnit: "m",
         nodeType: "reservoir",
         coordinates: [20, 20],
@@ -61,10 +70,12 @@ describe("addNode", () => {
 
     it("adds a tank with default elevation", () => {
       const hydraulicModel = HydraulicModelBuilder.with().build();
-      const assetFactory = createAssetFactory(hydraulicModel);
+      const { assetFactory, labelManager } =
+        createTestFactories(hydraulicModel);
 
       const { putAssets } = addNode(hydraulicModel, {
         assetFactory,
+        labelManager,
         lengthUnit: "m",
         nodeType: "tank",
         coordinates: [30, 30],
@@ -90,13 +101,15 @@ describe("addNode", () => {
           endNodeId: IDS.J2,
         })
         .build();
-      const assetFactory = createAssetFactory(hydraulicModel);
+      const { assetFactory, labelManager } =
+        createTestFactories(hydraulicModel);
 
       const originalPipe = hydraulicModel.assets.get(IDS.P1);
       expect(originalPipe).toBeDefined();
 
       const { putAssets, deleteAssets } = addNode(hydraulicModel, {
         assetFactory,
+        labelManager,
         lengthUnit: "m",
         nodeType: "junction",
         coordinates: [5, 0],
@@ -138,12 +151,14 @@ describe("addNode", () => {
           endNodeId: IDS.J2,
         })
         .build();
-      const assetFactory = createAssetFactory(hydraulicModel);
+      const { assetFactory, labelManager } =
+        createTestFactories(hydraulicModel);
 
       const nodeCoordinates: [number, number] = [5.123, 0.456];
 
       const { putAssets } = addNode(hydraulicModel, {
         assetFactory,
+        labelManager,
         lengthUnit: "m",
         nodeType: "junction",
         coordinates: nodeCoordinates,
@@ -171,10 +186,12 @@ describe("addNode", () => {
           label: "MainPipe",
         })
         .build();
-      const assetFactory = createAssetFactory(hydraulicModel);
+      const { assetFactory, labelManager } =
+        createTestFactories(hydraulicModel);
 
       const { putAssets, deleteAssets } = addNode(hydraulicModel, {
         assetFactory,
+        labelManager,
         lengthUnit: "m",
         nodeType: "junction",
         coordinates: [5, 0],
@@ -194,12 +211,14 @@ describe("addNode", () => {
 
     it("throws error for invalid pipe ID", () => {
       const hydraulicModel = HydraulicModelBuilder.with().build();
-      const assetFactory = createAssetFactory(hydraulicModel);
+      const { assetFactory, labelManager } =
+        createTestFactories(hydraulicModel);
       const NonExistentPipeId = 1;
 
       expect(() =>
         addNode(hydraulicModel, {
           assetFactory,
+          labelManager,
           lengthUnit: "m",
           nodeType: "junction",
           coordinates: [5, 0],
@@ -213,11 +232,13 @@ describe("addNode", () => {
       const hydraulicModel = HydraulicModelBuilder.with()
         .aNode(IDS.J1, [0, 0])
         .build();
-      const assetFactory = createAssetFactory(hydraulicModel);
+      const { assetFactory, labelManager } =
+        createTestFactories(hydraulicModel);
 
       expect(() =>
         addNode(hydraulicModel, {
           assetFactory,
+          labelManager,
           lengthUnit: "m",
           nodeType: "junction",
           coordinates: [5, 0],
@@ -237,10 +258,12 @@ describe("addNode", () => {
           label: "MainPipe",
         })
         .build();
-      const assetFactory = createAssetFactory(hydraulicModel);
+      const { assetFactory, labelManager } =
+        createTestFactories(hydraulicModel);
 
       const { putAssets } = addNode(hydraulicModel, {
         assetFactory,
+        labelManager,
         lengthUnit: "m",
         nodeType: "junction",
         coordinates: [10, 0],
@@ -265,7 +288,8 @@ describe("addNode", () => {
           endNodeId: IDS.J2,
         })
         .build();
-      const assetFactory = createAssetFactory(hydraulicModel);
+      const { assetFactory, labelManager } =
+        createTestFactories(hydraulicModel);
 
       const customerPoint = buildCustomerPoint(IDS.CP1, {
         coordinates: [3, 1],
@@ -282,6 +306,7 @@ describe("addNode", () => {
 
       const { putAssets, putCustomerPoints } = addNode(hydraulicModel, {
         assetFactory,
+        labelManager,
         lengthUnit: "m",
         nodeType: "junction",
         coordinates: [5, 0],
@@ -310,10 +335,12 @@ describe("addNode", () => {
           isActive: true,
         })
         .build();
-      const assetFactory = createAssetFactory(hydraulicModel);
+      const { assetFactory, labelManager } =
+        createTestFactories(hydraulicModel);
 
       const { putAssets } = addNode(hydraulicModel, {
         assetFactory,
+        labelManager,
         lengthUnit: "m",
         nodeType: "junction",
         coordinates: [5, 0],
@@ -335,10 +362,12 @@ describe("addNode", () => {
           isActive: false,
         })
         .build();
-      const assetFactory = createAssetFactory(hydraulicModel);
+      const { assetFactory, labelManager } =
+        createTestFactories(hydraulicModel);
 
       const { putAssets } = addNode(hydraulicModel, {
         assetFactory,
+        labelManager,
         lengthUnit: "m",
         nodeType: "junction",
         coordinates: [5, 0],
@@ -353,11 +382,13 @@ describe("addNode", () => {
   describe("node type validation", () => {
     it("throws error for unsupported node type", () => {
       const hydraulicModel = HydraulicModelBuilder.with().build();
-      const assetFactory = createAssetFactory(hydraulicModel);
+      const { assetFactory, labelManager } =
+        createTestFactories(hydraulicModel);
 
       expect(() =>
         addNode(hydraulicModel, {
           assetFactory,
+          labelManager,
           lengthUnit: "m",
           nodeType: "unsupported" as any,
           coordinates: [0, 0],
@@ -381,10 +412,11 @@ describe("addNode", () => {
         ],
       })
       .build();
-    const assetFactory = createAssetFactory(hydraulicModel);
+    const { assetFactory, labelManager } = createTestFactories(hydraulicModel);
 
     const { putAssets } = addNode(hydraulicModel, {
       assetFactory,
+      labelManager,
       lengthUnit: "m",
       nodeType: "junction",
       coordinates: [5, 0],
@@ -420,10 +452,11 @@ describe("addNode", () => {
         ],
       })
       .build();
-    const assetFactory = createAssetFactory(hydraulicModel);
+    const { assetFactory, labelManager } = createTestFactories(hydraulicModel);
 
     const { putAssets } = addNode(hydraulicModel, {
       assetFactory,
+      labelManager,
       lengthUnit: "m",
       nodeType: "reservoir",
       coordinates: [10, 0],
@@ -460,10 +493,11 @@ describe("addNode", () => {
         ],
       })
       .build();
-    const assetFactory = createAssetFactory(hydraulicModel);
+    const { assetFactory, labelManager } = createTestFactories(hydraulicModel);
 
     const { putAssets } = addNode(hydraulicModel, {
       assetFactory,
+      labelManager,
       lengthUnit: "m",
       nodeType: "tank",
       coordinates: [5, 0],

@@ -11,12 +11,17 @@ import { ConsecutiveIdsGenerator } from "src/lib/id-generator";
 import { presets } from "src/lib/project-settings/quantities-spec";
 import type { HydraulicModel } from "../hydraulic-model";
 
-const createAssetFactory = (hydraulicModel: HydraulicModel) =>
-  new AssetFactory(
-    presets.LPS.defaults,
-    new ConsecutiveIdsGenerator(),
-    hydraulicModel.labelManager,
-  );
+const createTestFactories = (hydraulicModel: HydraulicModel) => {
+  const labelManager = hydraulicModel.labelManager;
+  return {
+    assetFactory: new AssetFactory(
+      presets.LPS.defaults,
+      new ConsecutiveIdsGenerator(),
+      labelManager,
+    ),
+    labelManager,
+  };
+};
 
 describe("replaceLink", () => {
   describe("basic functionality", () => {
@@ -36,7 +41,8 @@ describe("replaceLink", () => {
           isActive: true,
         })
         .build();
-      const assetFactory = createAssetFactory(hydraulicModel);
+      const { assetFactory, labelManager } =
+        createTestFactories(hydraulicModel);
 
       const newPipe = assetFactory.createPipe({
         label: "P2",
@@ -53,6 +59,7 @@ describe("replaceLink", () => {
 
       const { putAssets, deleteAssets } = replaceLink(hydraulicModel, {
         assetFactory,
+        labelManager,
         lengthUnit: "m",
         sourceLinkId: IDS.P1,
         newLink: newPipe,
@@ -85,7 +92,8 @@ describe("replaceLink", () => {
           ],
         })
         .build();
-      const assetFactory = createAssetFactory(hydraulicModel);
+      const { assetFactory, labelManager } =
+        createTestFactories(hydraulicModel);
 
       const newPump = assetFactory.createPump({
         label: "PU1",
@@ -101,6 +109,7 @@ describe("replaceLink", () => {
       expect(() =>
         replaceLink(hydraulicModel, {
           assetFactory,
+          labelManager,
           lengthUnit: "m",
           sourceLinkId: IDS.P1,
           newLink: newPump,
@@ -125,7 +134,8 @@ describe("replaceLink", () => {
           ],
         })
         .build();
-      const assetFactory = createAssetFactory(hydraulicModel);
+      const { assetFactory, labelManager } =
+        createTestFactories(hydraulicModel);
 
       const newPipe = assetFactory.createPipe({
         label: "P2",
@@ -144,6 +154,7 @@ describe("replaceLink", () => {
 
       const { putAssets, deleteAssets } = replaceLink(hydraulicModel, {
         assetFactory,
+        labelManager,
         lengthUnit: "m",
         sourceLinkId: IDS.P1,
         newLink: newPipe,
@@ -184,7 +195,8 @@ describe("replaceLink", () => {
           ],
         })
         .build();
-      const assetFactory = createAssetFactory(hydraulicModel);
+      const { assetFactory, labelManager } =
+        createTestFactories(hydraulicModel);
 
       const newPipe = buildPipe({
         id: IDS.P2,
@@ -206,6 +218,7 @@ describe("replaceLink", () => {
 
       const { putAssets, deleteAssets } = replaceLink(hydraulicModel, {
         assetFactory,
+        labelManager,
         lengthUnit: "m",
         sourceLinkId: IDS.P2,
         newLink: newPipe,
@@ -248,7 +261,8 @@ describe("replaceLink", () => {
           ],
         })
         .build();
-      const assetFactory = createAssetFactory(hydraulicModel);
+      const { assetFactory, labelManager } =
+        createTestFactories(hydraulicModel);
 
       const newValve = assetFactory.createValve({
         id: IDS.V1,
@@ -270,6 +284,7 @@ describe("replaceLink", () => {
 
       const { putAssets, deleteAssets } = replaceLink(hydraulicModel, {
         assetFactory,
+        labelManager,
         lengthUnit: "m",
         sourceLinkId: IDS.V1,
         newLink: newValve,
@@ -307,7 +322,8 @@ describe("replaceLink", () => {
           isActive: true,
         })
         .build();
-      const assetFactory = createAssetFactory(hydraulicModel);
+      const { assetFactory, labelManager } =
+        createTestFactories(hydraulicModel);
 
       const newPipe = assetFactory.createPipe({
         id: IDS.P2,
@@ -322,6 +338,7 @@ describe("replaceLink", () => {
 
       const { putAssets } = replaceLink(hydraulicModel, {
         assetFactory,
+        labelManager,
         lengthUnit: "m",
         sourceLinkId: IDS.P1,
         newLink: newPipe,
@@ -349,7 +366,8 @@ describe("replaceLink", () => {
           isActive: false,
         })
         .build();
-      const assetFactory = createAssetFactory(hydraulicModel);
+      const { assetFactory, labelManager } =
+        createTestFactories(hydraulicModel);
 
       const newPipe = assetFactory.createPipe({
         id: IDS.P2,
@@ -365,6 +383,7 @@ describe("replaceLink", () => {
 
       const { putAssets } = replaceLink(hydraulicModel, {
         assetFactory,
+        labelManager,
         lengthUnit: "m",
         sourceLinkId: IDS.P1,
         newLink: newPipe,
@@ -392,7 +411,8 @@ describe("replaceLink", () => {
           isActive: false,
         })
         .build();
-      const assetFactory = createAssetFactory(hydraulicModel);
+      const { assetFactory, labelManager } =
+        createTestFactories(hydraulicModel);
 
       const newPipe = assetFactory.createPipe({
         id: IDS.P2,
@@ -413,6 +433,7 @@ describe("replaceLink", () => {
 
       const { putAssets } = replaceLink(hydraulicModel, {
         assetFactory,
+        labelManager,
         lengthUnit: "m",
         sourceLinkId: IDS.P1,
         newLink: newPipe,
@@ -446,7 +467,8 @@ describe("replaceLink", () => {
           isActive: true,
         })
         .build();
-      const assetFactory = createAssetFactory(hydraulicModel);
+      const { assetFactory, labelManager } =
+        createTestFactories(hydraulicModel);
 
       const newPipe = assetFactory.createPipe({
         id: IDS.P2,
@@ -469,6 +491,7 @@ describe("replaceLink", () => {
 
       const { putAssets } = replaceLink(hydraulicModel, {
         assetFactory,
+        labelManager,
         lengthUnit: "m",
         sourceLinkId: IDS.P1,
         newLink: newPipe,
@@ -533,7 +556,8 @@ describe("replaceLink", () => {
           isActive: true,
         })
         .build();
-      const assetFactory = createAssetFactory(hydraulicModel);
+      const { assetFactory, labelManager } =
+        createTestFactories(hydraulicModel);
 
       const newPipe = assetFactory.createPipe({
         id: IDS.P1_Redrawn,
@@ -558,6 +582,7 @@ describe("replaceLink", () => {
 
       const { putAssets } = replaceLink(hydraulicModel, {
         assetFactory,
+        labelManager,
         lengthUnit: "m",
         sourceLinkId: IDS.P1,
         newLink: newPipe,
@@ -602,7 +627,8 @@ describe("replaceLink", () => {
           },
         })
         .build();
-      const assetFactory = createAssetFactory(hydraulicModel);
+      const { assetFactory, labelManager } =
+        createTestFactories(hydraulicModel);
 
       const newPipe = assetFactory.createPipe({
         label: "P2",
@@ -618,6 +644,7 @@ describe("replaceLink", () => {
 
       const { putCustomerPoints, putAssets } = replaceLink(hydraulicModel, {
         assetFactory,
+        labelManager,
         lengthUnit: "m",
         sourceLinkId: IDS.P1,
         newLink: newPipe,
@@ -661,7 +688,8 @@ describe("replaceLink", () => {
           },
         })
         .build();
-      const assetFactory = createAssetFactory(hydraulicModel);
+      const { assetFactory, labelManager } =
+        createTestFactories(hydraulicModel);
 
       const newPipe = assetFactory.createPipe({
         label: "P2",
@@ -678,6 +706,7 @@ describe("replaceLink", () => {
 
       const { putCustomerPoints } = replaceLink(hydraulicModel, {
         assetFactory,
+        labelManager,
         lengthUnit: "m",
         sourceLinkId: IDS.P1,
         newLink: newPipe,
@@ -717,7 +746,8 @@ describe("replaceLink", () => {
           },
         })
         .build();
-      const assetFactory = createAssetFactory(hydraulicModel);
+      const { assetFactory, labelManager } =
+        createTestFactories(hydraulicModel);
 
       const newPipe = assetFactory.createPipe({
         label: "P2",
@@ -733,6 +763,7 @@ describe("replaceLink", () => {
 
       const { putCustomerPoints } = replaceLink(hydraulicModel, {
         assetFactory,
+        labelManager,
         lengthUnit: "m",
         sourceLinkId: IDS.P1,
         newLink: newPipe,
@@ -759,7 +790,8 @@ describe("replaceLink", () => {
           ],
         })
         .build();
-      const assetFactory = createAssetFactory(hydraulicModel);
+      const { assetFactory, labelManager } =
+        createTestFactories(hydraulicModel);
 
       const customerPoint = new CustomerPoint(IDS.CP1, [5, 1], {
         label: "CP1",
@@ -786,6 +818,7 @@ describe("replaceLink", () => {
 
       const { putCustomerPoints } = replaceLink(hydraulicModel, {
         assetFactory,
+        labelManager,
         lengthUnit: "m",
         sourceLinkId: IDS.P1,
         newLink: newPipe,
@@ -812,7 +845,8 @@ describe("replaceLink", () => {
           ],
         })
         .build();
-      const assetFactory = createAssetFactory(hydraulicModel);
+      const { assetFactory, labelManager } =
+        createTestFactories(hydraulicModel);
 
       const newPump = assetFactory.createPump({
         label: "PU2",
@@ -831,6 +865,7 @@ describe("replaceLink", () => {
         hydraulicModel,
         {
           assetFactory,
+          labelManager,
           lengthUnit: "m",
           sourceLinkId: IDS.PU1,
           newLink: newPump,
@@ -849,7 +884,8 @@ describe("replaceLink", () => {
     it("throws error when source link not found", () => {
       const IDS = { NONEXISTENT: 999 } as const;
       const hydraulicModel = HydraulicModelBuilder.with().build();
-      const assetFactory = createAssetFactory(hydraulicModel);
+      const { assetFactory, labelManager } =
+        createTestFactories(hydraulicModel);
       const newPipe = assetFactory.createPipe({
         label: "P2",
         coordinates: [
@@ -868,6 +904,7 @@ describe("replaceLink", () => {
       expect(() =>
         replaceLink(hydraulicModel, {
           assetFactory,
+          labelManager,
           lengthUnit: "m",
           sourceLinkId: IDS.NONEXISTENT,
           newLink: newPipe,

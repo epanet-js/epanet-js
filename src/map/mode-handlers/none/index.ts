@@ -51,7 +51,7 @@ export function useNoneHandlers({
   readonly = false,
 }: HandlerContext): Handlers {
   const { getClickedAsset } = useClickedAsset(map, hydraulicModel.assets);
-  const { assetFactory } = useAtomValue(modelFactoriesAtom);
+  const { assetFactory, labelManager } = useAtomValue(modelFactoriesAtom);
 
   const setMode = useSetAtom(modeAtom);
   const {
@@ -277,6 +277,7 @@ export function useNoneHandlers({
           newElevation: noElevation,
           lengthUnit: units.length,
           assetFactory,
+          labelManager,
         });
 
         if (putAssets) {
@@ -387,6 +388,7 @@ export function useNoneHandlers({
               pipeIdToSplit,
               lengthUnit: units.length,
               assetFactory,
+              labelManager,
             });
             transact(moment);
             resetMove();

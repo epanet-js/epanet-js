@@ -552,7 +552,7 @@ export class Persistence implements IPersistenceWithSnapshots {
     const reverseMoment = applyMomentToModel(
       hydraulicModel,
       processedMoment,
-      factories.assetFactory.labelManager,
+      factories.labelManager,
     );
 
     const updatedHydraulicModel = updateHydraulicModelAssets(hydraulicModel);

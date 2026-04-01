@@ -22,6 +22,7 @@ type InputData = {
   endPipeId?: AssetId;
   lengthUnit: Unit;
   assetFactory: AssetFactory;
+  labelManager: LabelManager;
 };
 
 export const addLink: ModelOperation<InputData> = (hydraulicModel, data) => {
@@ -33,17 +34,13 @@ export const addLink: ModelOperation<InputData> = (hydraulicModel, data) => {
     endPipeId,
     lengthUnit,
     assetFactory,
+    labelManager,
   } = data;
   const linkCopy = link.copy();
   const startNodeCopy = startNode.copy();
   const endNodeCopy = endNode.copy();
 
-  addMissingLabels(
-    assetFactory.labelManager,
-    linkCopy,
-    startNodeCopy,
-    endNodeCopy,
-  );
+  addMissingLabels(labelManager, linkCopy, startNodeCopy, endNodeCopy);
   linkCopy.setConnections(startNodeCopy.id, endNodeCopy.id);
   forceSpatialConnectivity(linkCopy, startNodeCopy, endNodeCopy);
   removeRedundantVertices(linkCopy);
@@ -89,6 +86,7 @@ export const addLink: ModelOperation<InputData> = (hydraulicModel, data) => {
     hydraulicModel,
     lengthUnit,
     assetFactory,
+    labelManager,
   });
 
   return {
@@ -201,6 +199,7 @@ const handlePipeSplits = ({
   hydraulicModel,
   lengthUnit,
   assetFactory,
+  labelManager,
 }: {
   link: LinkAsset;
   startNode: NodeAsset;
@@ -210,6 +209,7 @@ const handlePipeSplits = ({
   hydraulicModel: HydraulicModel;
   lengthUnit: Unit;
   assetFactory: AssetFactory;
+  labelManager: LabelManager;
 }): {
   putAssets: Asset[];
   deleteAssets: AssetId[];
@@ -258,6 +258,7 @@ const handlePipeSplits = ({
       splits: splitConfig.splitNodes,
       lengthUnit,
       assetFactory,
+      labelManager,
     });
     allPutAssets.push(...splitResult.putAssets!);
     allPutCustomerPoints.push(...(splitResult.putCustomerPoints || []));
