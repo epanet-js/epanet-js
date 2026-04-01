@@ -6,7 +6,6 @@ import { presets } from "src/lib/project-settings/quantities-spec";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { getByLabel } from "src/__helpers__/asset-queries";
 import { Valve } from "src/hydraulic-model/asset-types";
-import { XY_GRID } from "./parse-inp";
 
 describe("Parse inp with", () => {
   it("can read values separated by spaces", () => {
@@ -285,7 +284,7 @@ describe("Parse inp with", () => {
     expect(getByLabel(assets, String(IDS.J2))).not.toBeUndefined();
   });
 
-  it("says when coordinates are invalid", () => {
+  it("accepts out-of-bounds coordinates with unknown projection status", () => {
     const IDS = { J1: 1 } as const;
     const elevation = 100;
     const demand = 0.1;
@@ -300,16 +299,13 @@ describe("Parse inp with", () => {
     ${IDS.J1}\t1000\t2000
     `;
 
-    const {
-      hydraulicModel: { assets },
-      issues,
-    } = parseInp(inp);
+    const { hydraulicModel, projectionStatus } = parseInp(inp);
 
-    expect(issues!.invalidCoordinates!.values()).toContain(String(IDS.J1));
-    expect(assets.get(IDS.J1)).toBeUndefined();
+    expect(projectionStatus).toBe("unknown");
+    expect(hydraulicModel.assets.get(IDS.J1)).toBeDefined();
   });
 
-  it("says when vertices  are invalid", () => {
+  it("accepts out-of-bounds vertices with unknown projection status", () => {
     const IDS = { R1: 1, J1: 2, P1: 3 } as const;
     const length = 10;
     const diameter = 100;
@@ -335,13 +331,10 @@ describe("Parse inp with", () => {
     ${IDS.P1}\t${60}\t${700}
     `;
 
-    const {
-      hydraulicModel: { assets },
-      issues,
-    } = parseInp(inp);
+    const { hydraulicModel, projectionStatus } = parseInp(inp);
 
-    expect(issues!.invalidVertices!.values()).toContain(String(IDS.P1));
-    expect(getByLabel(assets, String(IDS.P1))).not.toBeUndefined();
+    expect(projectionStatus).toBe("unknown");
+    expect(getByLabel(hydraulicModel.assets, String(IDS.P1))).toBeDefined();
   });
 
   it("parses non default options", () => {
@@ -703,7 +696,7 @@ describe("Parse inp with", () => {
     });
   });
 
-  describe("projectLater", () => {
+  describe("projection detection", () => {
     it("returns projectionStatus wgs84 when coordinates are valid", () => {
       const IDS = { J1: 1, J2: 2, P1: 3 } as const;
       const inp = `
@@ -719,7 +712,7 @@ describe("Parse inp with", () => {
       ${IDS.J2}  11  21
       `;
 
-      const result = parseInp(inp, { projectLater: true });
+      const result = parseInp(inp);
 
       expect(result.projectionStatus).toBe("wgs84");
       expect(result.hydraulicModel.assets.size).toBe(3);
@@ -740,7 +733,7 @@ describe("Parse inp with", () => {
       ${IDS.J2}  501000  201000
       `;
 
-      const result = parseInp(inp, { projectLater: true });
+      const result = parseInp(inp);
 
       expect(result.projectionStatus).toBe("unknown");
       expect(result.hydraulicModel.assets.size).toBe(3);
@@ -764,7 +757,7 @@ describe("Parse inp with", () => {
       ${IDS.P1}  500500  200500
       `;
 
-      const result = parseInp(inp, { projectLater: true });
+      const result = parseInp(inp);
 
       expect(result.projectionStatus).toBe("unknown");
       const pipe = getByLabel(
@@ -776,7 +769,7 @@ describe("Parse inp with", () => {
       expect(pipe.coordinates[1]).toEqual([500500, 200500]);
     });
 
-    it("uses header projection when available and skips deferred path", () => {
+    it("uses header projection when available", () => {
       const IDS = { J1: 1, J2: 2, P1: 3 } as const;
       const hydraulicModel = HydraulicModelBuilder.with()
         .aJunction(IDS.J1, { coordinates: [10, 20] })
@@ -795,7 +788,7 @@ describe("Parse inp with", () => {
         },
       });
 
-      const result = parseInp(inp, { projectLater: true });
+      const result = parseInp(inp);
 
       expect(result.isMadeByApp).toBe(true);
       expect(result.projectionStatus).toBeUndefined();
@@ -820,73 +813,13 @@ describe("Parse inp with", () => {
       ${IDS.P1}  500500  200500
       `;
 
-      const withoutFlag = parseInp(inp);
-      expect(withoutFlag.issues?.invalidCoordinates).toBeDefined();
-
-      const result = parseInp(inp, { projectLater: true });
+      const result = parseInp(inp);
       expect(result.issues?.invalidCoordinates).toBeUndefined();
       expect(result.issues?.invalidVertices).toBeUndefined();
     });
   });
 
   describe("non-projected import", () => {
-    it("imports non-projected coordinates centered near origin", () => {
-      const inp = `
-      [JUNCTIONS]
-      J1  100
-      J2  200
-
-      [PIPES]
-      P1  J1  J2  1000  100  100  0  Open
-
-      [COORDINATES]
-      J1  500000  200000
-      J2  501000  201000
-      `;
-
-      const withoutFlag = parseInp(inp);
-      expect(withoutFlag.issues?.invalidCoordinates).toBeDefined();
-
-      const result = parseInp(inp, { sourceProjection: XY_GRID });
-      expect(result.issues?.invalidCoordinates).toBeUndefined();
-      expect(result.hydraulicModel.assets.size).toBe(3);
-
-      const j1 = getByLabel(result.hydraulicModel.assets, "J1") as Junction;
-      expect(j1).toBeDefined();
-      expect(Math.abs(j1.coordinates[0])).toBeLessThan(1);
-      expect(Math.abs(j1.coordinates[1])).toBeLessThan(1);
-    });
-
-    it("preserves other issues when using xy-grid projection", () => {
-      const inp = `
-      [JUNCTIONS]
-      J1  100
-
-      [COORDINATES]
-      J1  500000  200000
-
-      [MIXING]
-      ANYTHING
-      `;
-
-      const result = parseInp(inp, { sourceProjection: XY_GRID });
-      expect(result.issues?.invalidCoordinates).toBeUndefined();
-      expect(result.issues?.unsupportedSections).toBeDefined();
-    });
-
-    it("sets projection to xy-grid for non-projected import", () => {
-      const inp = `
-      [JUNCTIONS]
-      J1  100
-
-      [COORDINATES]
-      J1  500000  200000
-      `;
-
-      const result = parseInp(inp, { sourceProjection: XY_GRID });
-      expect(result.projectSettings.projection.type).toBe("xy-grid");
-    });
-
     it("sets projection to wgs84 for standard import", () => {
       const inp = `
       [JUNCTIONS]

@@ -37,8 +37,6 @@ export const XY_GRID: SourceProjection = { id: "xy-grid", name: "XY Grid" };
 export type ParseInpOptions = {
   customerPoints?: boolean;
   inactiveAssets?: boolean;
-  sourceProjection?: SourceProjection;
-  projectLater?: boolean;
   waterAge?: boolean;
 };
 
@@ -69,12 +67,8 @@ export const parseInp = (
 
   const { inpData, stats } = readInpData(inp, issues, safeOptions);
 
-  const projectLater = options?.projectLater ?? false;
   const headerProjection = header.sourceProjection;
-  const sourceProjection: SourceProjection =
-    headerProjection ?? options?.sourceProjection ?? WGS84;
-
-  const skipProjection = projectLater && !headerProjection;
+  const skipProjection = !headerProjection;
 
   let projection: Projection;
   let projectionStatus: "wgs84" | "unknown" | undefined;
@@ -106,7 +100,7 @@ export const parseInp = (
     };
   }
 
-  projection = projectCoordinates(inpData, sourceProjection);
+  projection = projectCoordinates(inpData, headerProjection);
 
   const { hydraulicModel, factories, idGenerator, projectSettings } =
     buildModel(inpData, issues, safeOptions);

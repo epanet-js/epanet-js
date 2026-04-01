@@ -29,7 +29,6 @@ import { isDemoNetwork } from "src/demo/demo-networks";
 import { useRecentFiles } from "src/hooks/use-recent-files";
 import { type Projection, createProjectionMapper } from "src/lib/projections";
 import { transformCoordinates } from "src/hydraulic-model/mutations/transform-coordinates";
-import { XY_GRID } from "src/import/inp/parse-inp";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export const inpExtension = ".inp";
@@ -42,9 +41,7 @@ export const useImportInp = () => {
   const rep = usePersistence();
   const transactImport = rep.useTransactImport();
   const userTracking = useUserTracking();
-  const isProjectLaterOn = useFeatureFlag("FLAG_PROJECT_LATER");
   const isWaterAgeOn = useFeatureFlag("FLAG_WATER_AGE");
-
   const { addRecent } = useRecentFiles();
 
   const completeImport = useCallback(
@@ -154,91 +151,6 @@ export const useImportInp = () => {
     [setDialogState, translate, userTracking],
   );
 
-  const importInpDeprecated = useCallback(
-    async (files: FileWithHandle[]) => {
-      const file = validateAndPrepare(files);
-      if (!file) return;
-
-      setDialogState({ type: "loading" });
-
-      try {
-        const arrayBuffer = await file.arrayBuffer();
-        const content = new TextDecoder().decode(arrayBuffer);
-        const isDemo = isDemoNetwork(content);
-        const parseOptions = {
-          customerPoints: true,
-          inactiveAssets: true,
-          waterAge: isWaterAgeOn,
-        };
-
-        const result = parseInp(content, parseOptions);
-        const { hydraulicModel, projectSettings, issues, stats } = result;
-        userTracking.capture(
-          buildCompleteEvent(hydraulicModel, projectSettings, issues, stats),
-        );
-
-        if (issues && (issues.invalidVertices || issues.invalidCoordinates)) {
-          const previewGeoJson = parseCoordinatesGeoJson(content);
-
-          const onImportWithProjection = async (projection: Projection) => {
-            setDialogState({ type: "loading" });
-            try {
-              const sourceProjection =
-                projection.type === "xy-grid" ? XY_GRID : projection;
-              const reparsed = parseInp(content, {
-                ...parseOptions,
-                sourceProjection,
-              });
-              userTracking.capture(
-                buildCompleteEvent(
-                  reparsed.hydraulicModel,
-                  reparsed.projectSettings,
-                  reparsed.issues,
-                  reparsed.stats,
-                ),
-              );
-              const autoElevations = projection.type !== "xy-grid";
-              await completeImport(file, isDemo, reparsed, {
-                autoElevations,
-              });
-            } catch (error) {
-              captureError(error as Error);
-              setDialogState({ type: "invalidFilesError" });
-            }
-          };
-
-          setDialogState({
-            type: "networkProjection",
-            source: "import",
-            previewGeoJson,
-            onImportWithProjection,
-            filename: file.name,
-            flowUnits: chooseUnitSystem(projectSettings.units),
-          });
-          return;
-        }
-
-        if (issues && issues.nodesMissingCoordinates) {
-          setDialogState({ type: "inpMissingCoordinates", issues });
-          return;
-        }
-
-        const autoElevations = projectSettings.projection.type !== "xy-grid";
-        await completeImport(file, isDemo, result, { autoElevations });
-      } catch (error) {
-        captureError(error as Error);
-        setDialogState({ type: "invalidFilesError" });
-      }
-    },
-    [
-      completeImport,
-      isWaterAgeOn,
-      setDialogState,
-      userTracking,
-      validateAndPrepare,
-    ],
-  );
-
   const importInp = useCallback(
     async (files: FileWithHandle[]) => {
       const file = validateAndPrepare(files);
@@ -256,10 +168,7 @@ export const useImportInp = () => {
           waterAge: isWaterAgeOn,
         };
 
-        const result = parseInp(content, {
-          ...parseOptions,
-          projectLater: true,
-        });
+        const result = parseInp(content, parseOptions);
         const {
           hydraulicModel,
           projectSettings,
@@ -325,7 +234,7 @@ export const useImportInp = () => {
     ],
   );
 
-  return isProjectLaterOn ? importInp : importInpDeprecated;
+  return importInp;
 };
 
 const buildCompleteEvent = (
