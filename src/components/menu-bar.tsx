@@ -19,6 +19,7 @@ import {
   utilitiesUrl,
 } from "src/global-config";
 import { SignedIn, SignedOut, UserButton, useAuth } from "src/auth";
+import { useClerk } from "@clerk/nextjs";
 import { SignInButton, SignUpButton } from "./auth-buttons";
 import { useShowWelcome } from "src/commands/show-welcome";
 import { useUserTracking } from "src/infra/user-tracking";
@@ -71,6 +72,8 @@ export const MenuBarPlay = memo(function MenuBar() {
   const isActivateTrialOn = useFeatureFlag("FLAG_ACTIVATE_TRIAL");
   const isOrgsOn = useFeatureFlag("FLAG_ORGS");
   const effectivePlan = useEffectivePlan();
+  const { openOrganizationProfile } = useClerk();
+  const { canManageOrganization } = usePermissions();
 
   return (
     <div className="flex justify-between h-12 pr-2 text-black dark:text-white">
@@ -124,7 +127,14 @@ export const MenuBarPlay = memo(function MenuBar() {
                     }}
                   />
                 ) : (
-                  <PlanLabel plan={effectivePlan} />
+                  <PlanLabel
+                    plan={effectivePlan}
+                    onOrgClick={
+                      canManageOrganization
+                        ? () => openOrganizationProfile()
+                        : undefined
+                    }
+                  />
                 )}
                 {isMdOrLarger && <UserButton />}
               </>
@@ -277,6 +287,8 @@ export const SideMenu = () => {
   const isActivateTrialOn = useFeatureFlag("FLAG_ACTIVATE_TRIAL");
   const isOrgsOn = useFeatureFlag("FLAG_ORGS");
   const effectivePlan = useEffectivePlan();
+  const { openOrganizationProfile } = useClerk();
+  const { canManageOrganization } = usePermissions();
   const toggleMenu = () => {
     setIsOpen(!isOpen);
   };
@@ -375,7 +387,14 @@ export const SideMenu = () => {
                 <li className="flex items-center gap-x-2">
                   <UserButton />
                   {isOrgsOn && effectivePlan !== "free" && (
-                    <PlanLabel plan={effectivePlan} />
+                    <PlanLabel
+                      plan={effectivePlan}
+                      onOrgClick={
+                        canManageOrganization
+                          ? () => openOrganizationProfile()
+                          : undefined
+                      }
+                    />
                   )}
                 </li>
                 {(!isOrgsOn || effectivePlan === "free") && (

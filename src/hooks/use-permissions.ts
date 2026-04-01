@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useAuth } from "src/auth";
+import { useAuth, useOrganization } from "src/auth";
 import { useEffectivePlan } from "src/hooks/use-effective-plan";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { Plan, isTrialActive } from "src/lib/account-plans";
@@ -9,11 +9,13 @@ export type Permissions = {
   canUseScenarios: boolean;
   canUseElevations: boolean;
   canUpgrade: boolean;
+  canManageOrganization: boolean;
 };
 
 export const resolvePermissions = (
   plan: Plan,
   trialActive: boolean,
+  isOrgAdmin: boolean,
 ): Permissions => {
   const hasPaidAccess =
     ["pro", "education", "personal", "teams"].includes(plan) || trialActive;
@@ -22,6 +24,7 @@ export const resolvePermissions = (
     canUseScenarios: hasPaidAccess,
     canUseElevations: hasPaidAccess,
     canUpgrade: plan === "free",
+    canManageOrganization: isOrgAdmin,
   };
 };
 
@@ -29,9 +32,13 @@ export const usePermissions = (): Permissions => {
   const { user } = useAuth();
   const effectivePlan = useEffectivePlan();
   const isActivateTrialOn = useFeatureFlag("FLAG_ACTIVATE_TRIAL");
+  const isOrgsOn = useFeatureFlag("FLAG_ORGS");
   const trialActive = isActivateTrialOn && isTrialActive(user);
+  const org = useOrganization();
+  const membership = "membership" in org ? org.membership : null;
+  const isOrgAdmin = isOrgsOn && membership?.role === "org:admin";
   return useMemo(
-    () => resolvePermissions(effectivePlan, trialActive),
-    [effectivePlan, trialActive],
+    () => resolvePermissions(effectivePlan, trialActive, isOrgAdmin),
+    [effectivePlan, trialActive, isOrgAdmin],
   );
 };
