@@ -100,6 +100,7 @@ export const computeMultiAssetData = (
   formatting: FormattingSpec,
   hydraulicModel: HydraulicModel,
   simulationResults?: ResultsReader | null,
+  options?: { waterAge?: boolean },
 ): ComputedMultiAssetData => {
   const counts: AssetCounts = {
     junction: 0,
@@ -197,12 +198,12 @@ export const computeMultiAssetData = (
 
   return {
     data: {
-      junction: buildJunctionSections(statsMaps.junction),
+      junction: buildJunctionSections(statsMaps.junction, options),
       pipe: buildPipeSections(statsMaps.pipe),
       pump: buildPumpSections(statsMaps.pump),
       valve: buildValveSections(statsMaps.valve),
-      reservoir: buildReservoirSections(statsMaps.reservoir),
-      tank: buildTankSections(statsMaps.tank),
+      reservoir: buildReservoirSections(statsMaps.reservoir, options),
+      tank: buildTankSections(statsMaps.tank, options),
     },
     counts,
   };
@@ -233,6 +234,14 @@ const appendJunctionStats = (
     statsMap,
     "emitterCoefficient",
     junction.emitterCoefficient,
+    units,
+    formatting,
+    id,
+  );
+  updateQuantityStats(
+    statsMap,
+    "initialWaterAge",
+    junction.initialWaterAge,
     units,
     formatting,
     id,
@@ -320,12 +329,14 @@ const calculateCustomerPointsDemand = (
 
 const buildJunctionSections = (
   statsMap: Map<string, AssetPropertyStats>,
+  options?: { waterAge?: boolean },
 ): AssetPropertySections => {
   return {
     activeTopology: getStatsForProperties(statsMap, ["isEnabled"]),
     modelAttributes: getStatsForProperties(statsMap, [
       "elevation",
       "emitterCoefficient",
+      ...(options?.waterAge ? (["initialWaterAge"] as const) : []),
     ]),
     energy: [],
     demands: getStatsForProperties(statsMap, [
@@ -787,6 +798,15 @@ const appendReservoirStats = (
     id,
   );
 
+  updateQuantityStats(
+    statsMap,
+    "initialWaterAge",
+    reservoir.initialWaterAge,
+    units,
+    formatting,
+    id,
+  );
+
   const averageHead = calculateAverageHead(reservoir, patterns);
   updateQuantityStats(statsMap, "head", averageHead, units, formatting, id);
 
@@ -807,10 +827,15 @@ const appendReservoirStats = (
 
 const buildReservoirSections = (
   statsMap: Map<string, AssetPropertyStats>,
+  options?: { waterAge?: boolean },
 ): AssetPropertySections => {
   return {
     activeTopology: getStatsForProperties(statsMap, ["isEnabled"]),
-    modelAttributes: getStatsForProperties(statsMap, ["elevation", "head"]),
+    modelAttributes: getStatsForProperties(statsMap, [
+      "elevation",
+      "head",
+      ...(options?.waterAge ? (["initialWaterAge"] as const) : []),
+    ]),
     energy: [],
     demands: [],
     energyResults: [],
@@ -934,6 +959,15 @@ const appendTankStats = (
     updateBooleanStats(statsMap, "canOverflow", tank.overflow, id);
   }
 
+  updateQuantityStats(
+    statsMap,
+    "initialWaterAge",
+    tank.initialWaterAge,
+    units,
+    formatting,
+    id,
+  );
+
   // Simulation results - read from ResultsReader
   const tankSim = simulationResults?.getTank(tank.id);
   const pressure = tankSim?.pressure ?? null;
@@ -961,6 +995,7 @@ const appendTankStats = (
 
 const buildTankSections = (
   statsMap: Map<string, AssetPropertyStats>,
+  options?: { waterAge?: boolean },
 ): AssetPropertySections => {
   // Remove volumeCurve row if no tanks actually have curves
   const curveStats = statsMap.get("volumeCurve") as
@@ -982,6 +1017,7 @@ const buildTankSections = (
       "diameter",
       "minVolume",
       "canOverflow",
+      ...(options?.waterAge ? (["initialWaterAge"] as const) : []),
     ]),
     energy: [],
     demands: [],

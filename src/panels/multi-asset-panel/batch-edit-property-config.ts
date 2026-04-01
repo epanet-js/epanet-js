@@ -56,6 +56,11 @@ export const BATCH_EDITABLE_PROPERTIES: Partial<
       modelProperty: "emitterCoefficient",
       positiveOnly: true,
     },
+    initialWaterAge: {
+      fieldType: "quantity",
+      modelProperty: "initialWaterAge",
+      positiveOnly: true,
+    },
   },
   pipe: {
     isEnabled: { fieldType: "boolean", modelProperty: "isActive" },
@@ -149,6 +154,11 @@ export const BATCH_EDITABLE_PROPERTIES: Partial<
   },
   reservoir: {
     elevation: { fieldType: "quantity", modelProperty: "elevation" },
+    initialWaterAge: {
+      fieldType: "quantity",
+      modelProperty: "initialWaterAge",
+      positiveOnly: true,
+    },
   },
   tank: {
     elevation: { fieldType: "quantity", modelProperty: "elevation" },
@@ -179,5 +189,10 @@ export const BATCH_EDITABLE_PROPERTIES: Partial<
       positiveOnly: true,
     },
     canOverflow: { fieldType: "boolean", modelProperty: "overflow" },
+    initialWaterAge: {
+      fieldType: "quantity",
+      modelProperty: "initialWaterAge",
+      positiveOnly: true,
+    },
   },
 };
