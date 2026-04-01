@@ -5,7 +5,7 @@ import { NodeType } from "./types";
 export type NodeProperties = {
   elevation: number;
   type: NodeType;
-  initialWaterAge?: number;
+  initialWaterAge: number;
 } & AssetProperties;
 
 export class Node<T> extends BaseAsset<T & NodeProperties> {

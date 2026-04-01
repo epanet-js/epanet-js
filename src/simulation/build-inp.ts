@@ -714,7 +714,7 @@ const appendInitialQuality = (
   if (simulationSettings.qualitySimulationType !== "AGE") return;
 
   const age = (node as Junction | Tank | Reservoir).initialWaterAge;
-  if (age !== undefined && age !== 0) {
+  if (age !== 0) {
     sections.quality.push(`${idMap.nodeId(node)}\t${age}`);
   }
 };

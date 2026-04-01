@@ -253,7 +253,7 @@ export class AssetFactory {
           : this.labelGenerator.generateFor("junction", internalId),
       elevation: this.getJunctionValue("elevation", elevation),
       emitterCoefficient: emitterCoefficient ?? 0,
-      initialWaterAge,
+      initialWaterAge: initialWaterAge ?? 0,
       isActive,
     });
   }
@@ -291,7 +291,7 @@ export class AssetFactory {
       head: headValue,
       headPatternId,
       elevation: elevationValue,
-      initialWaterAge,
+      initialWaterAge: initialWaterAge ?? 0,
       isActive,
     });
   }
@@ -326,7 +326,7 @@ export class AssetFactory {
       diameter: this.getTankValue("diameter", diameter),
       volumeCurveId,
       overflow: overflow ?? false,
-      initialWaterAge,
+      initialWaterAge: initialWaterAge ?? 0,
       isActive,
     });
   }
