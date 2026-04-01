@@ -86,7 +86,7 @@ export const MenuBarPlay = memo(function MenuBar() {
   const isIteratingLogoOn = useFeatureFlag("FLAG_ITERATING_LOGO");
   const isOrgsOn = useFeatureFlag("FLAG_ORGS");
   const { organization } = useOrganization();
-  const isInOrg = isOrgsOn && !!organization;
+  const effectivePlan = isOrgsOn && organization ? "teams" : user.plan;
 
   return (
     <div className="flex justify-between h-12 pr-2 text-black dark:text-white">
@@ -136,7 +136,7 @@ export const MenuBarPlay = memo(function MenuBar() {
             />
             {isMdOrLarger && (
               <>
-                {!isInOrg && <PlanBadge plan={user.plan} />}
+                <PlanBadge plan={effectivePlan} />
                 <UserButton />
               </>
             )}

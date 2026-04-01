@@ -9,7 +9,7 @@ const planStyles: Record<string, string> = {
   education:
     "bg-gradient-to-r from-green-300 via-green-400 to-green-600 text-gray-100 font-bold shadow-md",
   teams:
-    "bg-gradient-to-r from-indigo-200 via-indigo-300 to-indigo-400 text-indigo-800 font-bold shadow-md",
+    "bg-gradient-to-r from-red-500 via-red-600 to-red-700 text-white font-bold shadow-md",
 };
 
 const planBadgeText: Record<Plan, string> = {
