@@ -1,6 +1,5 @@
 import { useMemo } from "react";
-import { useAuth, useOrganization } from "src/auth";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { useEffectivePlan } from "src/hooks/use-effective-plan";
 import { Plan } from "src/lib/account-plans";
 
 export type Permissions = {
@@ -16,13 +15,6 @@ export const resolvePermissions = (plan: Plan): Permissions => ({
   canUseElevations: ["pro", "education", "personal", "teams"].includes(plan),
   canUpgrade: plan === "free",
 });
-
-export const useEffectivePlan = (): Plan => {
-  const { user } = useAuth();
-  const isOrgsOn = useFeatureFlag("FLAG_ORGS");
-  const { organization } = useOrganization();
-  return isOrgsOn && organization ? "teams" : user.plan;
-};
 
 export const usePermissions = (): Permissions => {
   const effectivePlan = useEffectivePlan();

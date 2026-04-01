@@ -11,6 +11,7 @@ import {
   useUser as useClerkUser,
   useClerk,
   useOrganization as useClerkOrganization,
+  useOrganizationList as useClerkOrganizationList,
 } from "@clerk/nextjs";
 import { captureWarning } from "src/infra/error-tracking";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
@@ -173,6 +174,10 @@ export const UserButton = isAuthEnabled
 export const useOrganization = isAuthEnabled
   ? useClerkOrganization
   : () => ({ organization: null });
+
+export const useOrganizationList = isAuthEnabled
+  ? useClerkOrganizationList
+  : () => ({ userMemberships: undefined });
 
 export const RedirectToSignIn = isAuthEnabled
   ? ClerkRedirectToSignIn
