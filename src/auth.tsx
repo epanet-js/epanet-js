@@ -14,12 +14,12 @@ import {
 } from "@clerk/nextjs";
 import { captureWarning } from "src/infra/error-tracking";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { SettingsIcon } from "src/icons";
 import { enUS, esES } from "@clerk/localizations";
 import { getLocale, allSupportedLanguages, Locale } from "./infra/i18n/locale";
 import { nullUser, User, UseAuthHook } from "./auth-types";
 export { ClerkSignInButton, ClerkSignUpButton };
 import { Plan } from "src/lib/account-plans";
+import { Building } from "lucide-react";
 
 const AUTH_TIMEOUT_MS = 5000;
 
@@ -157,8 +157,8 @@ const UserButtonWithManageTeam = () => {
     <ClerkUserButton>
       <ClerkUserButton.MenuItems>
         <ClerkUserButton.Action
-          label="Manage team"
-          labelIcon={<SettingsIcon />}
+          label="Manage organization"
+          labelIcon={<Building size={14} />}
           onClick={() => openOrganizationProfile()}
         />
       </ClerkUserButton.MenuItems>
