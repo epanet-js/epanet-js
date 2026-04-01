@@ -29,6 +29,7 @@ export type JunctionSimulation = {
   pressure: number;
   head: number;
   demand: number;
+  waterAge: number | null;
 };
 
 export type TankSimulation = {
@@ -38,6 +39,7 @@ export type TankSimulation = {
   netFlow: number;
   level: number;
   volume: number;
+  waterAge: number | null;
 };
 
 export type ReservoirSimulation = {
@@ -45,6 +47,7 @@ export type ReservoirSimulation = {
   pressure: number;
   head: number;
   netFlow: number;
+  waterAge: number | null;
 };
 
 export type PumpEnergySummary = {
@@ -72,6 +75,7 @@ export interface ResultsReader {
   getAllFlows: () => number[];
   getAllVelocities: () => number[];
   getAllUnitHeadlosses: () => number[];
+  getAllWaterAges: () => number[];
 }
 
 export const simulationProperties = [
@@ -81,6 +85,7 @@ export const simulationProperties = [
   "pressure",
   "actualDemand",
   "head",
+  "waterAge",
 ] as const;
 
 export type SimulationProperty = (typeof simulationProperties)[number];
@@ -115,6 +120,9 @@ export const getSortedSimulationValues = (
       break;
     case "unitHeadloss":
       values = resultsReader.getAllUnitHeadlosses();
+      break;
+    case "waterAge":
+      values = resultsReader.getAllWaterAges();
       break;
   }
   if (absValues) {

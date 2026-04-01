@@ -558,6 +558,14 @@ const JunctionEditor = ({
           unit={units.actualDemand}
           readOnly={true}
         />
+        {junctionSimulation?.waterAge != null && (
+          <QuantityRow
+            name="waterAge"
+            value={junctionSimulation.waterAge}
+            unit={units.waterAge}
+            readOnly={true}
+          />
+        )}
       </SectionWrapper>
     </AssetEditorContent>
   );
@@ -930,6 +938,14 @@ const ReservoirEditor = ({
           unit={units.netFlow}
           readOnly={true}
         />
+        {reservoirSimulation?.waterAge != null && (
+          <QuantityRow
+            name="waterAge"
+            value={reservoirSimulation.waterAge}
+            unit={units.waterAge}
+            readOnly={true}
+          />
+        )}
       </SectionWrapper>
     </AssetEditorContent>
   );
@@ -1088,6 +1104,14 @@ const TankEditor = ({
           unit={units.netFlow}
           readOnly={true}
         />
+        {tankSimulation?.waterAge != null && (
+          <QuantityRow
+            name="waterAge"
+            value={tankSimulation.waterAge}
+            unit={units.waterAge}
+            readOnly={true}
+          />
+        )}
       </SectionWrapper>
     </AssetEditorContent>
   );

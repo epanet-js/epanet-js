@@ -169,6 +169,7 @@
   "initialStatus": "Initial status",
   "initialLevel": "Initial level",
   "initialWaterAge": "Initial water age",
+  "waterAge": "Water age",
   "minLevel": "Min level",
   "maxLevel": "Max level",
   "minVolume": "Min volume",

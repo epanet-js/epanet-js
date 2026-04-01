@@ -4,6 +4,16 @@ export const EPILOG_SIZE = 12;
 // Pressure Units Option from EPANET binary output
 export type PressureUnits = "psi" | "kPa" | "m" | "bar" | "ft";
 
+// Water Quality Analysis Type from EPANET binary output (prolog offset 28)
+export type QualityAnalysisType = "none" | "chemical" | "age" | "trace";
+
+const QUALITY_TYPE_MAP: Record<number, QualityAnalysisType> = {
+  0: "none",
+  1: "chemical",
+  2: "age",
+  3: "trace",
+};
+
 const PRESSURE_UNITS_MAP: Record<number, PressureUnits> = {
   0: "psi",
   1: "kPa",
@@ -18,6 +28,7 @@ export interface ISimulationMetadata {
   linkCount: number;
   pumpCount: number;
   valveCount: number;
+  qualityType: QualityAnalysisType;
   pressureUnits: PressureUnits;
   reportingStartTime: number;
   reportingTimeStep: number;
@@ -35,6 +46,7 @@ export function getSimulationMetadata(
       linkCount: 0,
       pumpCount: 0,
       valveCount: 0,
+      qualityType: "none",
       pressureUnits: "m", // default to meters
       reportingStartTime: 0,
       reportingTimeStep: 3600,
@@ -72,6 +84,11 @@ export class SimulationMetadata implements ISimulationMetadata {
 
   get valveCount(): number {
     return this.prologView.getInt32(24, true);
+  }
+
+  get qualityType(): QualityAnalysisType {
+    const rawValue = this.prologView.getInt32(28, true);
+    return QUALITY_TYPE_MAP[rawValue] ?? "none";
   }
 
   get pressureUnits(): PressureUnits {

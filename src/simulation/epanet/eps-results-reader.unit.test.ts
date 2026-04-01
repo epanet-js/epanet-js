@@ -26,6 +26,12 @@ const LINK_RESULT_FLOATS = 8;
  */
 // Pressure units: 0=psi, 1=kPa, 2=meters, 3=bar, 4=feet
 type PressureUnitsCode = 0 | 1 | 2 | 3 | 4;
+enum QualityTypeCode {
+  None = 0,
+  Chemical = 1,
+  Age = 2,
+  Trace = 3,
+}
 
 function createFixture(config: {
   nodeCount: number;
@@ -35,6 +41,7 @@ function createFixture(config: {
   timestepCount: number;
   reportingTimeStep?: number;
   pressureUnits?: PressureUnitsCode;
+  qualityType?: QualityTypeCode;
   // Node results: [timestep][allDemands..., allHeads..., allPressures..., allQualities...]
   nodeResults?: number[][];
   linkResults?: number[][]; // [timestep][linkIndex * 8 + propertyIndex]
@@ -48,6 +55,7 @@ function createFixture(config: {
     timestepCount,
     reportingTimeStep = 3600,
     pressureUnits = 2, // default to meters (SI units)
+    qualityType = QualityTypeCode.None,
   } = config;
 
   // Create prolog + epilog metadata
@@ -60,6 +68,7 @@ function createFixture(config: {
   prologView.setInt32(16, linkCount, true);
   prologView.setInt32(20, pumpCount, true);
   prologView.setInt32(24, 0, true); // valveCount
+  prologView.setInt32(28, qualityType, true); // qualityType
   prologView.setInt32(40, pressureUnits, true); // pressureUnits
   prologView.setInt32(48, 0, true); // reportingStartTime
   prologView.setInt32(52, reportingTimeStep, true);
@@ -365,6 +374,122 @@ describe("EPSResultsReader (unit tests)", () => {
       expect(tank).not.toBeNull();
       expect(tank?.pressure).toBeCloseTo(pressureInPsi, 5);
       expect(tank?.level).toBeCloseTo(expectedLevelInFeet, 2);
+    });
+  });
+
+  describe("water age results", () => {
+    it("returns waterAge from quality field when quality type is AGE", async () => {
+      const nodeCount = 2;
+      const expectedAge1 = 5.5;
+      const expectedAge2 = 12.0;
+
+      const fixture = createFixture({
+        nodeCount,
+        linkCount: 1,
+        resAndTankCount: 0,
+        pumpCount: 0,
+        timestepCount: 1,
+        qualityType: QualityTypeCode.Age,
+        nodeResults: [
+          // demands (2), heads (2), pressures (2), qualities (2)
+          [0, 0, 100, 110, 50, 60, expectedAge1, expectedAge2],
+        ],
+      });
+
+      const storage = new InMemoryStorage("test-water-age");
+      await storage.save("results.out", fixture.resultsOut);
+
+      const reader = new EPSResultsReader(storage);
+      await reader.initialize(fixture.metadata, fixture.simulationIds);
+
+      const resultsReader = await reader.getResultsForTimestep(0);
+      const j1 = resultsReader.getJunction(1);
+      const j2 = resultsReader.getJunction(2);
+
+      expect(j1?.waterAge).toBeCloseTo(expectedAge1, 5);
+      expect(j2?.waterAge).toBeCloseTo(expectedAge2, 5);
+    });
+
+    it("returns null waterAge when quality type is NONE", async () => {
+      const fixture = createFixture({
+        nodeCount: 1,
+        linkCount: 1,
+        resAndTankCount: 0,
+        pumpCount: 0,
+        timestepCount: 1,
+        qualityType: QualityTypeCode.None,
+        nodeResults: [[0, 100, 50, 0]],
+      });
+
+      const storage = new InMemoryStorage("test-water-age-none");
+      await storage.save("results.out", fixture.resultsOut);
+
+      const reader = new EPSResultsReader(storage);
+      await reader.initialize(fixture.metadata, fixture.simulationIds);
+
+      const resultsReader = await reader.getResultsForTimestep(0);
+      const j1 = resultsReader.getJunction(1);
+
+      expect(j1?.waterAge).toBeNull();
+    });
+
+    it("returns null waterAge when quality type is CHEMICAL", async () => {
+      const fixture = createFixture({
+        nodeCount: 1,
+        linkCount: 1,
+        resAndTankCount: 0,
+        pumpCount: 0,
+        timestepCount: 1,
+        qualityType: QualityTypeCode.Chemical,
+        nodeResults: [[0, 100, 50, 1.5]], // quality = chemical concentration
+      });
+
+      const storage = new InMemoryStorage("test-water-age-chemical");
+      await storage.save("results.out", fixture.resultsOut);
+
+      const reader = new EPSResultsReader(storage);
+      await reader.initialize(fixture.metadata, fixture.simulationIds);
+
+      const resultsReader = await reader.getResultsForTimestep(0);
+      const j1 = resultsReader.getJunction(1);
+
+      expect(j1?.waterAge).toBeNull();
+    });
+
+    it("returns waterAge for tanks and reservoirs when quality type is AGE", async () => {
+      const nodeCount = 3; // 1 junction + 1 reservoir + 1 tank
+      const resAndTankCount = 2;
+
+      const fixture = createFixture({
+        nodeCount,
+        linkCount: 2,
+        resAndTankCount,
+        pumpCount: 0,
+        timestepCount: 1,
+        qualityType: QualityTypeCode.Age,
+        nodeResults: [
+          // demands (3), heads (3), pressures (3), qualities (3)
+          [0, 0, 0, 100, 110, 115, 50, 60, 70, 5.0, 3.0, 8.0],
+        ],
+        tankVolumes: [[0, 1000]],
+      });
+
+      const storage = new InMemoryStorage("test-water-age-all-nodes");
+      await storage.save("results.out", fixture.resultsOut);
+      await storage.save("tank-volumes.bin", fixture.tankVolumesBuffer!);
+
+      const reader = new EPSResultsReader(storage);
+      await reader.initialize(fixture.metadata, fixture.simulationIds);
+
+      const resultsReader = await reader.getResultsForTimestep(0);
+      // Node 1 = junction, Node 2 = reservoir, Node 3 = tank
+      const junction = resultsReader.getJunction(1);
+      const reservoir = resultsReader.getReservoir(2);
+      const tank = resultsReader.getTank(3);
+
+      expect(junction?.waterAge).toBeCloseTo(5.0, 5);
+      expect(reservoir?.waterAge).toBeCloseTo(3.0, 5);
+      expect(tank?.waterAge).toBeCloseTo(8.0, 5);
     });
   });
 });

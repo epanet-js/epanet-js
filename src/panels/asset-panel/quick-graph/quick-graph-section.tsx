@@ -162,7 +162,28 @@ const QuickGraphSection = ({
       : 0;
 
   const propertyOptions = useMemo(() => {
-    const options = QUICK_GRAPH_PROPERTIES[assetType];
+    const hasCompletedSimulation =
+      simulation.status === "success" || simulation.status === "warning";
+    const hasWaterAge =
+      hasCompletedSimulation &&
+      getSimulationMetadata(simulation.metadata).qualityType === "age";
+
+    const baseOptions = QUICK_GRAPH_PROPERTIES[assetType];
+    const options =
+      hasWaterAge &&
+      (assetType === "junction" ||
+        assetType === "tank" ||
+        assetType === "reservoir")
+        ? [
+            ...baseOptions,
+            {
+              value: "waterAge" as const,
+              labelKey: "waterAge",
+              quantityKey: "waterAge" as QuantityProperty,
+            },
+          ]
+        : baseOptions;
+
     return options.map((opt) => {
       const label = translate(opt.labelKey);
       let quantityKey = opt.quantityKey;
@@ -178,7 +199,7 @@ const QuickGraphSection = ({
         label: unit ? `${label} (${unit})` : label,
       };
     });
-  }, [assetType, assetId, hydraulicModel, translate, units]);
+  }, [assetType, assetId, hydraulicModel, translate, units, simulation]);
 
   const handlePropertyChange = useCallback(
     (value: QuickGraphPropertyByAssetType[typeof assetType]) => {
