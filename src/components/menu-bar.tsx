@@ -113,7 +113,7 @@ export const MenuBarPlay = memo(function MenuBar() {
             className={`relative flex items-center gap-x-2 ${isOrgsOn ? "" : "px-2"}`}
           >
             {isOrgsOn ? (
-              <>
+              <AccountSection layout="navbar">
                 {effectivePlan === "free" ? (
                   <TrialOrUpgradeButton
                     user={user}
@@ -137,8 +137,8 @@ export const MenuBarPlay = memo(function MenuBar() {
                     }
                   />
                 )}
-                {isMdOrLarger && <UserButton />}
-              </>
+                <UserButton />
+              </AccountSection>
             ) : (
               <>
                 <TrialOrUpgradeButton
@@ -384,39 +384,35 @@ export const SideMenu = () => {
             </ul>
             <hr className="my-4 border-gray-200" />
             <SignedIn>
-              <ul className="flex-col items-start gap-4">
-                <li className="flex items-center gap-x-2">
-                  <UserButton />
-                  {isOrgsOn && effectivePlan !== "free" && (
-                    <PlanLabel
-                      plan={effectivePlan}
-                      onOrgClick={
-                        canManageOrganization
-                          ? () => openOrganizationProfile()
-                          : undefined
-                      }
-                    />
-                  )}
-                </li>
-                {(!isOrgsOn || effectivePlan === "free") && (
-                  <li className="py-4">
-                    <TrialOrUpgradeButton
-                      user={user}
-                      isActivateTrialOn={isActivateTrialOn}
-                      translate={translate}
-                      size="full-width"
-                      onUpgrade={() => {
-                        userTracking.capture({
-                          name: "upgradeButton.clicked",
-                          source: "menu",
-                        });
-                        setIsOpen(false);
-                        setDialogState({ type: "upgrade" });
-                      }}
-                    />
-                  </li>
+              <AccountSection layout="sidebar">
+                {isOrgsOn && effectivePlan !== "free" && (
+                  <PlanLabel
+                    plan={effectivePlan}
+                    onOrgClick={
+                      canManageOrganization
+                        ? () => openOrganizationProfile()
+                        : undefined
+                    }
+                  />
                 )}
-              </ul>
+                {(!isOrgsOn || effectivePlan === "free") && (
+                  <TrialOrUpgradeButton
+                    user={user}
+                    isActivateTrialOn={isActivateTrialOn}
+                    translate={translate}
+                    size="full-width"
+                    onUpgrade={() => {
+                      userTracking.capture({
+                        name: "upgradeButton.clicked",
+                        source: "menu",
+                      });
+                      setIsOpen(false);
+                      setDialogState({ type: "upgrade" });
+                    }}
+                  />
+                )}
+                <UserButton />
+              </AccountSection>
             </SignedIn>
             <SignedOut>
               <ul className="flex-col items-start gap-4">
@@ -448,6 +444,19 @@ export const SideMenu = () => {
       </div>
     </div>
   );
+};
+
+const AccountSection = ({
+  children,
+  layout,
+}: {
+  children: React.ReactNode;
+  layout: "navbar" | "sidebar";
+}) => {
+  if (layout === "sidebar") {
+    return <div className="flex flex-col items-start gap-2">{children}</div>;
+  }
+  return <div className="hidden md:flex items-center gap-x-2">{children}</div>;
 };
 
 const TrialOrUpgradeButton = ({
