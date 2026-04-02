@@ -26,12 +26,3 @@ export const nullUser: User = {
   getLocale: undefined,
   setLocale: undefined,
 };
-
-export type UseAuthHook = () => {
-  isLoaded: boolean;
-  isSignedIn?: boolean;
-  userId: string | null | undefined;
-  user: User;
-  signOut: ({ redirectUrl }: { redirectUrl?: string }) => void;
-  reload: () => Promise<void>;
-};

@@ -4,9 +4,18 @@ import {
   useUser as useClerkUser,
 } from "@clerk/nextjs";
 import { isAuthEnabled } from "src/global-config";
-import { nullUser, User, UseAuthHook } from "src/auth-types";
+import { nullUser, User } from "src/auth-types";
 import { Plan } from "src/lib/account-plans";
 import { allSupportedLanguages, Locale } from "src/infra/i18n/locale";
+
+export type UseAuthHook = () => {
+  isLoaded: boolean;
+  isSignedIn?: boolean;
+  userId: string | null | undefined;
+  user: User;
+  signOut: ({ redirectUrl }: { redirectUrl?: string }) => void;
+  reload: () => Promise<void>;
+};
 
 const AUTH_TIMEOUT_MS = 5000;
 

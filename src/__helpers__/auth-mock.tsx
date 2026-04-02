@@ -1,6 +1,7 @@
 import { nanoid } from "nanoid";
 import { createContext, useContext } from "react";
-import { UseAuthHook, User, nullUser } from "src/auth-types";
+import { User, nullUser } from "src/auth-types";
+import { UseAuthHook } from "src/hooks/use-auth";
 
 const AuthMockContext = createContext({
   user: nullUser,
