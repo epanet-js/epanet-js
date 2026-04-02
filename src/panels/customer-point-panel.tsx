@@ -19,7 +19,6 @@ import { EditableTextField } from "src/components/form/editable-text-field";
 import { useTranslate } from "src/hooks/use-translate";
 import { useUserTracking } from "src/infra/user-tracking";
 import { usePersistence } from "src/lib/persistence";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   getCustomerPointDemands,
   calculateAverageDemand,
@@ -53,7 +52,6 @@ export function CustomerPointPanel() {
     }
   }, [customerPointId, userTracking]);
 
-  const isCustomerLabelsOn = useFeatureFlag("FLAG_CUSTOMER_LABELS");
   const actions = useCustomerPointActions(customerPoint, "root");
 
   const flowUnit = units.customerDemand;
@@ -199,30 +197,24 @@ export function CustomerPointPanel() {
           <div className="absolute left-0 top-0 bottom-0 w-1 bg-purple-500 rounded-full" />
         )}
         <div className="flex items-center justify-between gap-2">
-          {isCustomerLabelsOn ? (
-            <div className="min-w-0 flex-1">
-              <EditableTextField
-                label={customerPoint.label}
-                value={customerPoint.label}
-                onChangeValue={handleLabelChange}
-                onReset={clearLabelError}
-                onDirty={clearLabelError}
-                hasError={!!labelError}
-                allowedChars={/(?![\s;])[\x00-\xFF]/}
-                maxByteLength={MAX_CUSTOMER_POINT_LABEL_LENGTH}
-                styleOptions={{
-                  padding: "sm",
-                  ghostBorder: true,
-                  fontWeight: "semibold",
-                  textSize: "sm",
-                }}
-              />
-            </div>
-          ) : (
-            <span className="text-sm font-semibold p-1 truncate">
-              {customerPoint.label}
-            </span>
-          )}
+          <div className="min-w-0 flex-1">
+            <EditableTextField
+              label={customerPoint.label}
+              value={customerPoint.label}
+              onChangeValue={handleLabelChange}
+              onReset={clearLabelError}
+              onDirty={clearLabelError}
+              hasError={!!labelError}
+              allowedChars={/(?![\s;])[\x00-\xFF]/}
+              maxByteLength={MAX_CUSTOMER_POINT_LABEL_LENGTH}
+              styleOptions={{
+                padding: "sm",
+                ghostBorder: true,
+                fontWeight: "semibold",
+                textSize: "sm",
+              }}
+            />
+          </div>
           <div className="flex gap-1 h-8 shrink-0">
             <ActionButton
               action={{
