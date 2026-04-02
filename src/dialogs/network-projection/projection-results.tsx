@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import clsx from "clsx";
 import type { Proj4Projection } from "src/lib/projections";
 import { useTranslate } from "src/hooks/use-translate";
@@ -18,6 +18,10 @@ export const ProjectionResults = ({
   isLoading?: boolean;
 }) => {
   const t = useTranslate();
+  const scrollSelectedIntoView = useCallback((el: HTMLLIElement | null) => {
+    el?.scrollIntoView({ block: "nearest" });
+  }, []);
+
   const results = useMemo(() => {
     if (
       selectedProjection &&
@@ -68,7 +72,10 @@ export const ProjectionResults = ({
         {results.map((p) => {
           const isSelected = selectedProjection?.id === p.id;
           return (
-            <li key={p.id}>
+            <li
+              key={p.id}
+              ref={isSelected ? scrollSelectedIntoView : undefined}
+            >
               <button
                 type="button"
                 onClick={() => onSelect(p)}

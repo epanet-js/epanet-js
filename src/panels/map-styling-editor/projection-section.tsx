@@ -62,7 +62,17 @@ export const ProjectionSection = () => {
       },
       filename: "",
       flowUnits: chooseUnitSystem(projectSettings.units),
-      initialProjection: projection.type === "proj4" ? projection : undefined,
+      initialProjection:
+        projection.type === "proj4"
+          ? projection
+          : projection.type === "wgs84"
+            ? {
+                type: "proj4",
+                id: "EPSG:4326",
+                name: "WGS 84",
+                code: "EPSG:4326",
+              }
+            : undefined,
     });
   };
 
@@ -100,16 +110,17 @@ export const ProjectionSection = () => {
             <div className="truncate">{projectionName}</div>
             <div className="text-gray-500 truncate">{projectionCode}</div>
           </div>
-          {projection.type === "proj4" && !hasScenarios && (
-            <Button
-              variant="quiet/mode"
-              className="h-8 flex-shrink-0"
-              onClick={handleOpenProjectionDialog}
-              aria-label="Change projection"
-            >
-              <MapPinnedIcon />
-            </Button>
-          )}
+          {(projection.type === "proj4" || projection.type === "wgs84") &&
+            !hasScenarios && (
+              <Button
+                variant="quiet/mode"
+                className="h-8 flex-shrink-0"
+                onClick={handleOpenProjectionDialog}
+                aria-label="Change projection"
+              >
+                <MapPinnedIcon />
+              </Button>
+            )}
         </div>
       )}
     </CollapsibleSection>

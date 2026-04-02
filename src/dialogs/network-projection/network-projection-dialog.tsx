@@ -65,9 +65,21 @@ export const NetworkProjectionDialog = ({
   const [isBuilding, setIsBuilding] = useState(false);
   const [isProjecting, setIsProjecting] = useState(false);
   const [displayGeoJSON, setDisplayGeoJSON] =
-    useState<FeatureCollection | null>(() =>
-      approximateToNullIsland(previewGeoJson),
-    );
+    useState<FeatureCollection | null>(() => {
+      if (initialProjection) {
+        try {
+          const projected = projectGeoJson(
+            previewGeoJson,
+            initialProjection.code,
+          );
+          if (isLikelyLatLng(projected)) return projected;
+        } catch {
+          // fall through
+        }
+      }
+      if (isLikelyLatLng(previewGeoJson)) return previewGeoJson;
+      return approximateToNullIsland(previewGeoJson);
+    });
   const [showBasemap, setShowBasemap] = useState(false);
   const [projectionError, setProjectionError] = useState<string | null>(null);
 
@@ -176,15 +188,15 @@ export const NetworkProjectionDialog = ({
       setIsBuilding(false);
 
       if (initialProjection) {
+        setSelectedProjection(initialProjection);
+        applyProjection(initialProjection, {
+          fitNetwork: true,
+          basemap: true,
+        });
         const match = candidates.find(
           (c) => c.projection.id === initialProjection.id,
         );
         if (match) {
-          setSelectedProjection(initialProjection);
-          applyProjection(initialProjection, {
-            fitNetwork: true,
-            basemap: true,
-          });
           updateVisibleCandidates(match.projectedBbox, "keep");
         }
       }
