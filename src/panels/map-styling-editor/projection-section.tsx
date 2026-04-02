@@ -17,6 +17,7 @@ import { MapContext } from "src/map";
 import { captureError } from "src/infra/error-tracking";
 import { hasScenariosAtom } from "src/state/scenarios";
 import { useTranslate } from "src/hooks/use-translate";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export const ProjectionSection = () => {
   const projectSettings = useAtomValue(projectSettingsAtom);
@@ -28,6 +29,7 @@ export const ProjectionSection = () => {
   const transactReprojection = rep.useTransactReprojection();
   const hasScenarios = useAtomValue(hasScenariosAtom);
   const isXYGrid = projection.type === "xy-grid";
+  const isReprojectWgs84On = useFeatureFlag("FLAG_REPROJECT_WGS84");
   const t = useTranslate();
 
   const handleOpenProjectionDialog = () => {
@@ -65,7 +67,7 @@ export const ProjectionSection = () => {
       initialProjection:
         projection.type === "proj4"
           ? projection
-          : projection.type === "wgs84"
+          : projection.type === "wgs84" && isReprojectWgs84On
             ? {
                 type: "proj4",
                 id: "EPSG:4326",
@@ -110,7 +112,8 @@ export const ProjectionSection = () => {
             <div className="truncate">{projectionName}</div>
             <div className="text-gray-500 truncate">{projectionCode}</div>
           </div>
-          {(projection.type === "proj4" || projection.type === "wgs84") &&
+          {(projection.type === "proj4" ||
+            (projection.type === "wgs84" && isReprojectWgs84On)) &&
             !hasScenarios && (
               <Button
                 variant="quiet/mode"
