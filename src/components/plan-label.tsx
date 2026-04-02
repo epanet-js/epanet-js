@@ -51,7 +51,7 @@ export const PlanLabel = ({
   }
 
   return (
-    <span className="text-sm font-semibold tracking-wide text-gray-600 dark:text-gray-300">
+    <span className="text-xs font-semibold tracking-wide text-gray-600 dark:text-gray-300">
       {planLabelText[plan]}
     </span>
   );
