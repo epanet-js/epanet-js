@@ -18,6 +18,8 @@ import { useTranslate } from "src/hooks/use-translate";
 import { useUserTracking } from "src/infra/user-tracking";
 import { notify } from "src/components/notifications";
 import { usePersistence } from "src/lib/persistence";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { useProjectInitialization } from "src/hooks/use-project-initialization";
 import { simulationSettingsAtom } from "src/state/simulation-settings";
 import { Button } from "src/components/elements";
 import { SuccessIcon, WarningIcon } from "src/icons";
@@ -41,6 +43,8 @@ export const AllocationStep: React.FC<{
   const userTracking = useUserTracking();
   const rep = usePersistence();
   const transactImport = rep.useTransactImport();
+  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
+  const { initializeProject } = useProjectInitialization();
   const {
     parsedDataSummary,
     allocationRules,
@@ -88,14 +92,25 @@ export const AllocationStep: React.FC<{
 
       const importedCount = updatedHydraulicModel.customerPoints.size;
 
-      transactImport(
-        updatedHydraulicModel,
-        factories,
-        idGenerator,
-        projectSettings,
-        "customerpoints",
-        simulationSettings,
-      );
+      if (isStateRefactorOn) {
+        initializeProject({
+          hydraulicModel: updatedHydraulicModel,
+          factories,
+          idGenerator,
+          projectSettings,
+          name: "customerpoints",
+          simulationSettings,
+        });
+      } else {
+        transactImport(
+          updatedHydraulicModel,
+          factories,
+          idGenerator,
+          projectSettings,
+          "customerpoints",
+          simulationSettings,
+        );
+      }
 
       userTracking.capture({
         name: "importCustomerPoints.completed",
@@ -128,6 +143,8 @@ export const AllocationStep: React.FC<{
     keepDemands,
     onFinish,
     setProcessing,
+    isStateRefactorOn,
+    initializeProject,
     transactImport,
     userTracking,
     setError,

@@ -30,6 +30,8 @@ import { ConsecutiveIdsGenerator } from "src/lib/id-generator";
 import { usePersistence } from "src/lib/persistence";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { useTranslate } from "src/hooks/use-translate";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { useProjectInitialization } from "src/hooks/use-project-initialization";
 import { Selector } from "../components/form/selector";
 
 import { useAtomValue, useSetAtom } from "jotai";
@@ -70,6 +72,8 @@ export const CreateNew = () => {
   const translate = useTranslate();
   const rep = usePersistence();
   const transactImport = rep.useTransactImport();
+  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
+  const { initializeProject } = useProjectInitialization();
   const setFileInfo = useSetAtom(fileInfoAtom);
   const userTracking = useUserTracking();
   const map = useContext(MapContext);
@@ -130,15 +134,27 @@ export const CreateNew = () => {
       });
       setGridPreview(false);
       setGridHidden(false);
-      transactImport(
-        hydraulicModel,
-        factories,
-        idGenerator,
-        projectSettings,
-        "Untitled",
-        defaultSimulationSettings,
-        { autoElevations: projection.id !== "xy-grid" },
-      );
+      if (isStateRefactorOn) {
+        initializeProject({
+          hydraulicModel,
+          factories,
+          idGenerator,
+          projectSettings,
+          name: "Untitled",
+          simulationSettings: defaultSimulationSettings,
+          autoElevations: projection.id !== "xy-grid",
+        });
+      } else {
+        transactImport(
+          hydraulicModel,
+          factories,
+          idGenerator,
+          projectSettings,
+          "Untitled",
+          defaultSimulationSettings,
+          { autoElevations: projection.id !== "xy-grid" },
+        );
+      }
       if (map) {
         centerMapForNewProject(map, projection, location);
       }
@@ -153,13 +169,15 @@ export const CreateNew = () => {
       closeDialog();
     },
     [
-      transactImport,
-      userTracking,
-      setFileInfo,
+      closeDialog,
+      initializeProject,
+      isStateRefactorOn,
       map,
+      setFileInfo,
       setGridPreview,
       setGridHidden,
-      closeDialog,
+      transactImport,
+      userTracking,
     ],
   );
 

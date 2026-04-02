@@ -30,6 +30,7 @@ import { useRecentFiles } from "src/hooks/use-recent-files";
 import { type Projection, createProjectionMapper } from "src/lib/projections";
 import { transformCoordinates } from "src/hydraulic-model/mutations/transform-coordinates";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { useProjectInitialization } from "src/hooks/use-project-initialization";
 
 export const inpExtension = ".inp";
 
@@ -42,6 +43,8 @@ export const useImportInp = () => {
   const transactImport = rep.useTransactImport();
   const userTracking = useUserTracking();
   const isWaterAgeOn = useFeatureFlag("FLAG_WATER_AGE");
+  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
+  const { initializeProject } = useProjectInitialization();
   const { addRecent } = useRecentFiles();
 
   const completeImport = useCallback(
@@ -64,15 +67,27 @@ export const useImportInp = () => {
       const storage = new OPFSStorage(getAppId());
       await storage.clear();
 
-      transactImport(
-        hydraulicModel,
-        factories,
-        idGenerator,
-        projectSettings,
-        file.name,
-        simulationSettings,
-        options,
-      );
+      if (isStateRefactorOn) {
+        initializeProject({
+          hydraulicModel,
+          factories,
+          idGenerator,
+          projectSettings,
+          name: file.name,
+          simulationSettings,
+          autoElevations: options?.autoElevations,
+        });
+      } else {
+        transactImport(
+          hydraulicModel,
+          factories,
+          idGenerator,
+          projectSettings,
+          file.name,
+          simulationSettings,
+          options,
+        );
+      }
 
       const features: FeatureCollection = {
         type: "FeatureCollection",
@@ -121,7 +136,15 @@ export const useImportInp = () => {
 
       setDialogState({ type: "inpIssues", issues });
     },
-    [addRecent, map, setDialogState, setFileInfo, transactImport],
+    [
+      addRecent,
+      initializeProject,
+      isStateRefactorOn,
+      map,
+      setDialogState,
+      setFileInfo,
+      transactImport,
+    ],
   );
 
   const validateAndPrepare = useCallback(

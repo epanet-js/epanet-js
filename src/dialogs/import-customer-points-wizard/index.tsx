@@ -23,6 +23,8 @@ import { simulationSettingsAtom } from "src/state/simulation-settings";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { addCustomerPoints } from "src/hydraulic-model/mutations/add-customer-points";
 import { usePersistence } from "src/lib/persistence";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { useProjectInitialization } from "src/hooks/use-project-initialization";
 import { notify } from "src/components/notifications";
 import { SuccessIcon } from "src/icons";
 const stepNames = {
@@ -56,6 +58,8 @@ export const ImportCustomerPointsWizard: React.FC<
   const projectSettings = useAtomValue(projectSettingsAtom);
   const rep = usePersistence();
   const transactImport = rep.useTransactImport();
+  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
+  const { initializeProject } = useProjectInitialization();
 
   const handleClose = useCallback(() => {
     wizardState.reset();
@@ -124,14 +128,25 @@ export const ImportCustomerPointsWizard: React.FC<
 
       const importedCount = updatedHydraulicModel.customerPoints.size;
 
-      transactImport(
-        updatedHydraulicModel,
-        factories,
-        idGenerator,
-        projectSettings,
-        "customerpoints",
-        simulationSettings,
-      );
+      if (isStateRefactorOn) {
+        initializeProject({
+          hydraulicModel: updatedHydraulicModel,
+          factories,
+          idGenerator,
+          projectSettings,
+          name: "customerpoints",
+          simulationSettings,
+        });
+      } else {
+        transactImport(
+          updatedHydraulicModel,
+          factories,
+          idGenerator,
+          projectSettings,
+          "customerpoints",
+          simulationSettings,
+        );
+      }
 
       userTracking.capture({
         name: "importCustomerPoints.completed",
@@ -160,6 +175,8 @@ export const ImportCustomerPointsWizard: React.FC<
     idGenerator,
     projectSettings,
     simulationSettings,
+    isStateRefactorOn,
+    initializeProject,
     transactImport,
     userTracking,
     translate,
