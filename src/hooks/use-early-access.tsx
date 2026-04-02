@@ -1,5 +1,6 @@
 import { useCallback } from "react";
-import { useAuth, isAuthEnabled } from "src/auth";
+import { useAuth } from "src/hooks/use-auth";
+import { isAuthEnabled } from "src/global-config";
 import { useSetAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog";
 

@@ -1,5 +1,6 @@
 import { useMemo } from "react";
-import { useAuth, useOrganization } from "src/auth";
+import { useAuth } from "src/hooks/use-auth";
+import { useOrganization } from "src/hooks/use-organization";
 import { useEffectivePlan } from "src/hooks/use-effective-plan";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { Plan, isTrialActive } from "src/lib/account-plans";

@@ -13,10 +13,19 @@ import "@testing-library/jest-dom";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
 import { AuthMockProvider, useAuthMock } from "src/__helpers__/auth-mock";
 
-vi.mock("src/auth", () => ({
+vi.mock("src/hooks/use-auth", () => ({
   useAuth: useAuthMock,
+}));
+
+vi.mock("src/providers/auth-provider", () => ({
   AuthProvider: AuthMockProvider,
+}));
+
+vi.mock("src/hooks/use-organization", () => ({
   useOrganization: () => ({ organization: null }),
+}));
+
+vi.mock("src/hooks/use-organization-list", () => ({
   useOrganizationList: () => ({ userMemberships: undefined }),
 }));
 

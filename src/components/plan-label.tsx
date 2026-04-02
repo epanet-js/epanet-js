@@ -1,5 +1,5 @@
 import { Plan } from "src/lib/account-plans";
-import { useOrganization } from "src/auth";
+import { useOrganization } from "src/hooks/use-organization";
 
 const planLabelText: Record<Plan, string> = {
   free: "",

@@ -2,7 +2,7 @@ import { useAtom } from "jotai";
 import { useCallback } from "react";
 import { localeAtom } from "src/state/locale";
 import { Locale } from "src/infra/i18n/locale";
-import { useAuth } from "src/auth";
+import { useAuth } from "src/hooks/use-auth";
 
 export type UserSettings = {
   locale: Locale;

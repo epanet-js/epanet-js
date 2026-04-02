@@ -10,7 +10,8 @@ import { ChevronLeftIcon, RefreshIcon, SuccessIcon } from "src/icons";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useTranslate } from "src/hooks/use-translate";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { useAuth, ClerkSignInButton } from "src/auth";
+import { useAuth } from "src/hooks/use-auth";
+import { SignInButton as ClerkSignInButton } from "@clerk/nextjs";
 import { buildAfterSignupUrl } from "src/hooks/use-early-access";
 import { notify } from "src/components/notifications";
 

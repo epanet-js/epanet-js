@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useAuth } from "src/auth";
+import { useAuth } from "src/hooks/use-auth";
 import {
   type PrivacyPreferences,
   usePrivacySettings,

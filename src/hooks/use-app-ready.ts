@@ -1,4 +1,4 @@
-import { useAuth } from "src/auth";
+import { useAuth } from "src/hooks/use-auth";
 import { useLocale } from "src/hooks/use-locale";
 import { useFeatureFlagsReady } from "src/hooks/use-feature-flags";
 import { useEffect, useRef, useState } from "react";

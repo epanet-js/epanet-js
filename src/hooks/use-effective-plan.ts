@@ -1,4 +1,5 @@
-import { useAuth, useOrganizationList } from "src/auth";
+import { useAuth } from "src/hooks/use-auth";
+import { useOrganizationList } from "src/hooks/use-organization-list";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { Plan } from "src/lib/account-plans";
 

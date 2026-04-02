@@ -5,7 +5,7 @@ import {
 } from "@clerk/nextjs";
 import { Button, B3Size } from "./elements";
 import { useTranslate } from "src/hooks/use-translate";
-import { isAuthEnabled } from "src/auth";
+import { isAuthEnabled } from "src/global-config";
 import { UserIcon } from "src/icons";
 
 export const SignInButton = ({

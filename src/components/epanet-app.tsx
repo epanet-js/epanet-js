@@ -39,7 +39,7 @@ import { useHydrateAtoms } from "jotai/utils";
 import { TabCloseGuard } from "./tab-close-guard";
 import { CommandShortcuts } from "./commands-shortcuts";
 import { useUserTracking } from "src/infra/user-tracking";
-import { useAuth } from "src/auth";
+import { useAuth } from "src/hooks/use-auth";
 import { dialogFromUrl } from "src/state/dialog";
 import { OfflineGuard } from "./offline-guard";
 import { useBreakpoint } from "src/hooks/use-breakpoint";

@@ -22,7 +22,8 @@ import {
   teamsPlanRequestFormUrl,
 } from "src/global-config";
 import { useUnsavedChangesCheck } from "src/commands/check-unsaved-changes";
-import { RedirectToSignIn, useAuth } from "src/auth";
+import { useAuth } from "src/hooks/use-auth";
+import { RedirectToSignIn } from "src/components/auth";
 import {
   PaymentType,
   buildCheckoutUrl,

@@ -46,7 +46,7 @@ import {
   FIT_TO_EXTENT_CONTROL,
 } from "./custom-map-control";
 import { Hints } from "src/components/hints";
-import { useAuth } from "src/auth";
+import { useAuth } from "src/hooks/use-auth";
 import { satelliteLimitedZoom } from "src/commands/toggle-satellite";
 import { useTranslate } from "src/hooks/use-translate";
 import { MapLoading } from "./map-loader";

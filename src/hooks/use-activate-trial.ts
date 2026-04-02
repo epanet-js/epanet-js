@@ -2,7 +2,7 @@ import { atom, useAtom } from "jotai";
 import { notify } from "src/components/notifications";
 import { captureError } from "src/infra/error-tracking";
 import { useTranslate } from "src/hooks/use-translate";
-import { useAuth } from "src/auth";
+import { useAuth } from "src/hooks/use-auth";
 import { ErrorIcon } from "src/icons";
 
 const activateTrialLoadingAtom = atom<boolean>(false);

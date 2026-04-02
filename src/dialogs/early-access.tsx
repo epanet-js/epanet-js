@@ -3,7 +3,8 @@ import {
   BaseDialog,
   SimpleDialogActions,
 } from "src/components/dialog";
-import { ClerkSignInButton, isAuthEnabled } from "src/auth";
+import { SignInButton as ClerkSignInButton } from "@clerk/nextjs";
+import { isAuthEnabled } from "src/global-config";
 import { buildAfterSignupUrl } from "src/hooks/use-early-access";
 import { Button } from "src/components/elements";
 import { useUserTracking } from "src/infra/user-tracking";

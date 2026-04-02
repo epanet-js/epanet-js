@@ -7,7 +7,7 @@ import {
   useLayerConfigState,
 } from "src/map/layer-config";
 import { layerConfigAtom } from "src/state/map";
-import { useAuth } from "src/auth";
+import { useAuth } from "src/hooks/use-auth";
 import { ILayerConfig } from "src/types";
 
 export const satelliteLimitedZoom = 16;

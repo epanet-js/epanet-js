@@ -8,7 +8,7 @@ import { Suspense } from "react";
 import { PersistenceProvider } from "src/lib/persistence";
 import { Provider, createStore } from "jotai";
 import { Store } from "src/state";
-import { AuthProvider } from "src/auth";
+import { AuthProvider } from "src/providers/auth-provider";
 import dynamic from "next/dynamic";
 
 import { ErrorBoundary } from "@sentry/nextjs";
