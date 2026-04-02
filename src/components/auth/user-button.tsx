@@ -1,20 +1,14 @@
 import React from "react";
-import {
-  UserButton as ClerkUserButton,
-  useOrganization as useClerkOrganization,
-  useClerk,
-} from "@clerk/nextjs";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { UserButton as ClerkUserButton, useClerk } from "@clerk/nextjs";
+import { usePermissions } from "src/hooks/use-permissions";
 import { isAuthEnabled } from "src/global-config";
 import { Building } from "lucide-react";
 
 const UserButtonWithManageTeam = () => {
-  const { membership } = useClerkOrganization();
   const { openOrganizationProfile } = useClerk();
-  const isOrgsOn = useFeatureFlag("FLAG_ORGS");
-  const isOrgAdmin = isOrgsOn && membership?.role === "org:admin";
+  const { canManageOrganization } = usePermissions();
 
-  if (!isOrgAdmin) return <ClerkUserButton />;
+  if (!canManageOrganization) return <ClerkUserButton />;
 
   return (
     <ClerkUserButton>
