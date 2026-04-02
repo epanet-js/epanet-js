@@ -342,6 +342,7 @@ type InpSections = {
   customers: string[];
   customersDemands: string[];
   quality: string[];
+  mixing: string[];
   reactions: string[];
   energy: string[];
   controls: string[];
@@ -506,6 +507,7 @@ export const buildInp = withDebugInstrumentation(
       ],
       customersDemands: [";[CUSTOMERS_DEMANDS]", ";Id\tBaseDemand\tPatternId"],
       quality: ["[QUALITY]", ";Node\tInitialQuality"],
+      mixing: ["[MIXING]", ";Tank\tModel\tFraction"],
       reactions: buildReactionsSection(opts.simulationSettings),
       energy: buildEnergySection(opts.simulationSettings, idMap),
       controls: ["[CONTROLS]"],
@@ -548,6 +550,7 @@ export const buildInp = withDebugInstrumentation(
         );
         if (opts.includeQuality) {
           appendInitialQuality(sections, idMap, asset as Tank);
+          appendMixing(sections, idMap, asset as Tank);
         }
       }
 
@@ -648,6 +651,7 @@ export const buildInp = withDebugInstrumentation(
     const hasRules = sections.rules.length > 1;
     const hasEmitters = sections.emitters.length > 2;
     const hasQuality = sections.quality.length > 2;
+    const hasMixing = sections.mixing.length > 2;
     const hasReactions = sections.reactions.length > 1;
     const hasEnergy = sections.energy.length > 1;
 
@@ -667,6 +671,7 @@ export const buildInp = withDebugInstrumentation(
       sections.report.join("\n"),
       sections.options.join("\n"),
       hasQuality && sections.quality.join("\n"),
+      hasMixing && sections.mixing.join("\n"),
       hasReactions && sections.reactions.join("\n"),
       hasEnergy && sections.energy.join("\n"),
       opts.geolocation && sections.backdrop.join("\n"),
@@ -707,6 +712,23 @@ const appendInitialQuality = (
   if (age !== undefined && age !== 0) {
     sections.quality.push(`${idMap.nodeId(node)}\t${age}`);
   }
+};
+
+const MIXING_MODEL_TO_INP: Record<string, string> = {
+  mixed: "MIXED",
+  "2comp": "2COMP",
+  fifo: "FIFO",
+  lifo: "LIFO",
+};
+
+const appendMixing = (sections: InpSections, idMap: EpanetIds, tank: Tank) => {
+  if (tank.mixingModel === "mixed") return;
+  const model = MIXING_MODEL_TO_INP[tank.mixingModel] ?? "MIXED";
+  const row =
+    tank.mixingModel === "2comp"
+      ? `${idMap.nodeId(tank)}\t${model}\t${tank.mixingFraction}`
+      : `${idMap.nodeId(tank)}\t${model}`;
+  sections.mixing.push(row);
 };
 
 const appendReservoir = (

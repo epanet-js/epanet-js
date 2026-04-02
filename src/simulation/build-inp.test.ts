@@ -2017,4 +2017,92 @@ THEN LINK {{1}} STATUS IS OPEN`,
       expect(inp).toContain(`${IDS.J2}\t7`);
     });
   });
+
+  describe("mixing section", () => {
+    it("includes MIXING section for tanks with non-default mixing model", () => {
+      const IDS = { T1: 1, T2: 2, R1: 3 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aTank(IDS.T1, { mixingModel: "fifo" })
+        .aTank(IDS.T2, { mixingModel: "lifo" })
+        .aReservoir(IDS.R1)
+        .build();
+
+      const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
+        simulationSettings: defaultSimulationSettings,
+        includeQuality: true,
+      });
+
+      expect(inp).toContain("[MIXING]");
+      expect(inp).toContain(`${IDS.T1}\tFIFO`);
+      expect(inp).toContain(`${IDS.T2}\tLIFO`);
+    });
+
+    it("includes fraction for 2COMP mixing model", () => {
+      const IDS = { T1: 1, R1: 2 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aTank(IDS.T1, { mixingModel: "2comp", mixingFraction: 0.3 })
+        .aReservoir(IDS.R1)
+        .build();
+
+      const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
+        simulationSettings: defaultSimulationSettings,
+        includeQuality: true,
+      });
+
+      expect(inp).toContain("[MIXING]");
+      expect(inp).toContain(`${IDS.T1}\t2COMP\t0.3`);
+    });
+
+    it("omits tanks with default MIXED model", () => {
+      const IDS = { T1: 1, T2: 2, R1: 3 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aTank(IDS.T1, { mixingModel: "mixed" })
+        .aTank(IDS.T2, { mixingModel: "fifo" })
+        .aReservoir(IDS.R1)
+        .build();
+
+      const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
+        simulationSettings: defaultSimulationSettings,
+        includeQuality: true,
+      });
+
+      expect(inp).toContain("[MIXING]");
+      expect(inp).not.toContain(`${IDS.T1}\tMIXED`);
+      expect(inp).toContain(`${IDS.T2}\tFIFO`);
+    });
+
+    it("omits MIXING section when all tanks use default model", () => {
+      const IDS = { T1: 1, R1: 2 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aTank(IDS.T1, { mixingModel: "mixed" })
+        .aReservoir(IDS.R1)
+        .build();
+
+      const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
+        simulationSettings: defaultSimulationSettings,
+        includeQuality: true,
+      });
+
+      expect(inp).not.toContain("[MIXING]");
+    });
+
+    it("omits MIXING section when includeQuality is false", () => {
+      const IDS = { T1: 1, R1: 2 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aTank(IDS.T1, { mixingModel: "fifo" })
+        .aReservoir(IDS.R1)
+        .build();
+
+      const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
+        simulationSettings: defaultSimulationSettings,
+      });
+
+      expect(inp).not.toContain("[MIXING]");
+    });
+  });
 });
