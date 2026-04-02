@@ -4,7 +4,7 @@ import { Pipe, PipeQuantity, PipeStatus } from "../asset-types/pipe";
 import { LinkConnections, nullConnections } from "../asset-types/link";
 import { Position } from "geojson";
 import { Reservoir, ReservoirQuantity } from "../asset-types/reservoir";
-import { Tank, TankQuantity } from "../asset-types/tank";
+import { Tank, TankQuantity, type TankMixingModel } from "../asset-types/tank";
 
 export type JunctionBuildData = {
   id?: AssetId;
@@ -84,6 +84,8 @@ export type TankBuildData = {
   minVolume?: number;
   diameter?: number;
   overflow?: boolean;
+  mixingModel?: TankMixingModel;
+  mixingFraction?: number;
   initialWaterAge?: number;
   isActive?: boolean;
   volumeCurveId?: CurveId;
@@ -307,6 +309,8 @@ export class AssetFactory {
     minVolume,
     diameter,
     overflow,
+    mixingModel,
+    mixingFraction,
     initialWaterAge,
     isActive = true,
     volumeCurveId,
@@ -326,6 +330,8 @@ export class AssetFactory {
       diameter: this.getTankValue("diameter", diameter),
       volumeCurveId,
       overflow: overflow ?? false,
+      mixingModel: mixingModel ?? "mixed",
+      mixingFraction: mixingFraction ?? 1.0,
       initialWaterAge: initialWaterAge ?? 0,
       isActive,
     });

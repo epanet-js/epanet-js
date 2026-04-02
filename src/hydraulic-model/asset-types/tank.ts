@@ -1,6 +1,9 @@
 import { CurveId, Curves, ICurve } from "../curves";
 import { Node, NodeProperties } from "./node";
 
+export const tankMixingModels = ["mixed", "2comp", "fifo", "lifo"] as const;
+export type TankMixingModel = (typeof tankMixingModels)[number];
+
 export type TankProperties = {
   type: "tank";
   initialLevel: number;
@@ -9,6 +12,8 @@ export type TankProperties = {
   minVolume: number;
   diameter: number;
   overflow: boolean;
+  mixingModel: TankMixingModel;
+  mixingFraction: number;
   volumeCurveId?: CurveId;
 } & NodeProperties;
 
@@ -60,6 +65,14 @@ export class Tank extends Node<TankProperties> {
 
   get overflow() {
     return this.properties.overflow;
+  }
+
+  get mixingModel() {
+    return this.properties.mixingModel;
+  }
+
+  get mixingFraction() {
+    return this.properties.mixingFraction;
   }
 
   get volumeCurveId() {
