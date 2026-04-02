@@ -5,6 +5,7 @@ export type PipeSimulation = {
   headloss: number;
   unitHeadloss: number;
   status: "open" | "closed";
+  waterAge: number | null;
 };
 
 export type ValveSimulation = {
@@ -14,6 +15,7 @@ export type ValveSimulation = {
   headloss: number;
   status: "active" | "open" | "closed";
   statusWarning: "cannot-deliver-flow" | "cannot-deliver-pressure" | null;
+  waterAge: number | null;
 };
 
 export type PumpSimulation = {
@@ -22,6 +24,7 @@ export type PumpSimulation = {
   headloss: number;
   status: "on" | "off";
   statusWarning: "cannot-deliver-flow" | "cannot-deliver-head" | null;
+  waterAge: number | null;
 };
 
 export type JunctionSimulation = {

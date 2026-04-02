@@ -50,7 +50,7 @@ type DefaultSymbologyBuilders = {
   actualDemand: SymbologyBuilderFn<NodeSymbology>;
   elevation: SymbologyBuilderFn<NodeSymbology>;
   head: SymbologyBuilderFn<NodeSymbology>;
-  waterAge: SymbologyBuilderFn<NodeSymbology>;
+  waterAge: SymbologyBuilderFn<NodeSymbology & LinkSymbology>;
   none: () => () => { colorRule: null; labelRule: null };
 };
 
@@ -246,7 +246,7 @@ export const defaultSymbologyBuilders: DefaultSymbologyBuilders = {
       units: UnitsSpec,
       resultsReader: ResultsReader,
     ) =>
-    (): NodeSymbology => {
+    (): NodeSymbology & LinkSymbology => {
       const sortedData = getSortedSimulationValues(resultsReader, "waterAge");
       const colorRule = initializeColorRule({
         property: "waterAge",
@@ -256,6 +256,10 @@ export const defaultSymbologyBuilders: DefaultSymbologyBuilders = {
         fallbackEndpoints: [0, 48],
         sortedData,
       });
-      return { ...nullSymbologySpec.node, colorRule, labelRule: nullLabelRule };
+      return {
+        colorRule,
+        labelRule: nullLabelRule,
+        defaults: nullSymbologySpec.node.defaults,
+      };
     },
 };

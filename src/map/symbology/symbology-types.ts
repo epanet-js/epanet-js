@@ -14,6 +14,7 @@ export const supportedLinkProperties = [
   "unitHeadloss",
   "diameter",
   "roughness",
+  "waterAge",
 ] as const;
 export const supportedProperties = [
   ...supportedNodeProperties,

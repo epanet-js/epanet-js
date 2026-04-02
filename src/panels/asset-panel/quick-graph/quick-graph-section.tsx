@@ -169,20 +169,16 @@ const QuickGraphSection = ({
       getSimulationMetadata(simulation.metadata).qualityType === "age";
 
     const baseOptions = QUICK_GRAPH_PROPERTIES[assetType];
-    const options =
-      hasWaterAge &&
-      (assetType === "junction" ||
-        assetType === "tank" ||
-        assetType === "reservoir")
-        ? [
-            ...baseOptions,
-            {
-              value: "waterAge" as const,
-              labelKey: "waterAge",
-              quantityKey: "waterAge" as QuantityProperty,
-            },
-          ]
-        : baseOptions;
+    const options = hasWaterAge
+      ? [
+          ...baseOptions,
+          {
+            value: "waterAge" as const,
+            labelKey: "waterAge",
+            quantityKey: "waterAge" as QuantityProperty,
+          },
+        ]
+      : baseOptions;
 
     return options.map((opt) => {
       const label = translate(opt.labelKey);

@@ -820,6 +820,14 @@ const PipeEditor = ({
           readOnly={true}
         />
         <TextRow name="actualStatus" value={simulationStatusText} />
+        {pipeSimulation?.waterAge != null && (
+          <QuantityRow
+            name="waterAge"
+            value={pipeSimulation.waterAge}
+            unit={units.waterAge}
+            readOnly={true}
+          />
+        )}
       </SectionWrapper>
     </AssetEditorContent>
   );
@@ -1798,6 +1806,14 @@ const ValveEditor = ({
           readOnly={true}
         />
         <TextRow name="status" value={statusText} />
+        {valveSimulation?.waterAge != null && (
+          <QuantityRow
+            name="waterAge"
+            value={valveSimulation.waterAge}
+            unit={units.waterAge}
+            readOnly={true}
+          />
+        )}
       </SectionWrapper>
     </AssetEditorContent>
   );
@@ -2011,6 +2027,14 @@ const PumpEditor = ({
           readOnly={true}
         />
         <TextRow name="status" value={statusText} />
+        {pumpSimulation?.waterAge != null && (
+          <QuantityRow
+            name="waterAge"
+            value={pumpSimulation.waterAge}
+            unit={units.waterAge}
+            readOnly={true}
+          />
+        )}
       </SectionWrapper>
       <SectionWrapper
         title={translate("energyResults")}

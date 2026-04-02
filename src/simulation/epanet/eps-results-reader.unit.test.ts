@@ -456,6 +456,58 @@ describe("EPSResultsReader (unit tests)", () => {
       expect(j1?.waterAge).toBeNull();
     });
 
+    it("returns waterAge for pipes when quality type is AGE", async () => {
+      const nodeCount = 2;
+      const expectedPipeAge = 8.75;
+
+      // Link results: 8 floats per link [flow, velocity, headloss, avgQuality, status, setting, reactionRate, friction]
+      const fixture = createFixture({
+        nodeCount,
+        linkCount: 1,
+        resAndTankCount: 0,
+        pumpCount: 0,
+        timestepCount: 1,
+        qualityType: QualityTypeCode.Age,
+        nodeResults: [[0, 0, 100, 110, 50, 60, 5.0, 10.0]],
+        linkResults: [[10, 1.5, 0.5, expectedPipeAge, 1, 0, 0, 0]],
+      });
+
+      const storage = new InMemoryStorage("test-water-age-pipe");
+      await storage.save("results.out", fixture.resultsOut);
+
+      const reader = new EPSResultsReader(storage);
+      await reader.initialize(fixture.metadata, fixture.simulationIds);
+
+      const resultsReader = await reader.getResultsForTimestep(0);
+      const pipe = resultsReader.getPipe(1);
+
+      expect(pipe?.waterAge).toBeCloseTo(expectedPipeAge, 5);
+    });
+
+    it("returns null waterAge for pipes when quality type is NONE", async () => {
+      const fixture = createFixture({
+        nodeCount: 2,
+        linkCount: 1,
+        resAndTankCount: 0,
+        pumpCount: 0,
+        timestepCount: 1,
+        qualityType: QualityTypeCode.None,
+        nodeResults: [[0, 0, 100, 110, 50, 60, 0, 0]],
+        linkResults: [[10, 1.5, 0.5, 3.0, 1, 0, 0, 0]],
+      });
+
+      const storage = new InMemoryStorage("test-water-age-pipe-none");
+      await storage.save("results.out", fixture.resultsOut);
+
+      const reader = new EPSResultsReader(storage);
+      await reader.initialize(fixture.metadata, fixture.simulationIds);
+
+      const resultsReader = await reader.getResultsForTimestep(0);
+      const pipe = resultsReader.getPipe(1);
+
+      expect(pipe?.waterAge).toBeNull();
+    });
+
     it("returns waterAge for tanks and reservoirs when quality type is AGE", async () => {
       const nodeCount = 3; // 1 junction + 1 reservoir + 1 tank
       const resAndTankCount = 2;

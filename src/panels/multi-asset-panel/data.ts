@@ -458,6 +458,10 @@ const appendPipeStats = (
     const statusLabel = "pipe." + status;
     updateCategoryStats(statsMap, "pipeStatus", statusLabel, id);
   }
+  const waterAge = pipeSim?.waterAge ?? null;
+  if (waterAge !== null) {
+    updateQuantityStats(statsMap, "waterAge", waterAge, units, formatting, id);
+  }
 };
 
 const buildPipeSections = (
@@ -484,6 +488,7 @@ const buildPipeSections = (
       "unitHeadloss",
       "headloss",
       "pipeStatus",
+      "waterAge",
     ]),
   };
 };
@@ -568,6 +573,10 @@ const appendPumpStats = (
       ? `pump.${status}.${statusWarning}`
       : "pump." + status;
     updateCategoryStats(statsMap, "pumpStatus", statusLabel, id);
+  }
+  const waterAge = pumpSim?.waterAge ?? null;
+  if (waterAge !== null) {
+    updateQuantityStats(statsMap, "waterAge", waterAge, units, formatting, id);
   }
 
   // Energy results
@@ -693,6 +702,7 @@ const buildPumpSections = (
       "flow",
       "pumpHead",
       "pumpStatus",
+      "waterAge",
     ]),
   };
 };
@@ -758,6 +768,10 @@ const appendValveStats = (
     const statusLabel = `valve.${status}`;
     updateCategoryStats(statsMap, "valveStatus", statusLabel, id);
   }
+  const waterAge = valveSim?.waterAge ?? null;
+  if (waterAge !== null) {
+    updateQuantityStats(statsMap, "waterAge", waterAge, units, formatting, id);
+  }
 };
 
 const buildValveSections = (
@@ -780,6 +794,7 @@ const buildValveSections = (
       "velocity",
       "headloss",
       "valveStatus",
+      "waterAge",
     ]),
   };
 };
