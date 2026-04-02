@@ -58,6 +58,7 @@ import {
   pipeStatuses,
 } from "src/hydraulic-model/asset-types/pipe";
 import { PumpStatus, pumpStatuses } from "src/hydraulic-model/asset-types/pump";
+import { tankMixingModels } from "src/hydraulic-model/asset-types/tank";
 import {
   ValveKind,
   ValveStatus,
@@ -986,6 +987,15 @@ const TankEditor = ({
   const simulation = useSimulation();
   const tankSimulation = simulation?.getTank(tank.id);
 
+  const mixingModelOptions = useMemo(
+    () =>
+      tankMixingModels.map((m) => ({
+        label: translate(`tank.${m}`),
+        value: m,
+      })),
+    [translate],
+  );
+
   const simPressure = tankSimulation?.pressure ?? null;
   const simHead = tankSimulation?.head ?? null;
   const simNetFlow = tankSimulation?.netFlow ?? null;
@@ -1071,14 +1081,35 @@ const TankEditor = ({
           readOnly={readonly}
         />
         {isWaterAgeOn && (
-          <QuantityRow
-            name="initialWaterAge"
-            value={tank.initialWaterAge}
-            unit={units.initialWaterAge}
-            onChange={onPropertyChange}
-            positiveOnly={true}
-            readOnly={readonly}
-          />
+          <>
+            <QuantityRow
+              name="initialWaterAge"
+              value={tank.initialWaterAge}
+              unit={units.initialWaterAge}
+              onChange={onPropertyChange}
+              positiveOnly={true}
+              readOnly={readonly}
+            />
+            <SelectRow
+              name="mixingModel"
+              selected={tank.mixingModel}
+              options={mixingModelOptions}
+              onChange={onPropertyChange}
+              readOnly={readonly}
+            />
+            {tank.mixingModel === "2comp" && (
+              <NestedSection>
+                <QuantityRow
+                  name="mixingFraction"
+                  value={tank.mixingFraction}
+                  unit={null}
+                  onChange={onPropertyChange}
+                  positiveOnly={true}
+                  readOnly={readonly}
+                />
+              </NestedSection>
+            )}
+          </>
         )}
       </SectionWrapper>
       <SectionWrapper

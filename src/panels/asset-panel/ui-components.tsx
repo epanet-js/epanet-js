@@ -21,6 +21,7 @@ import { PipeStatus } from "src/hydraulic-model/asset-types/pipe";
 import { PumpStatus } from "src/hydraulic-model/asset-types/pump";
 import type { PumpDefinitionMode } from "./pump-definition-details";
 import { ValveKind, ValveStatus } from "src/hydraulic-model/asset-types/valve";
+import type { TankMixingModel } from "src/hydraulic-model/asset-types/tank";
 import { PanelActions } from "./actions";
 import {
   InlineField,
@@ -283,6 +284,7 @@ type SelectRowValue =
   | PumpDefinitionMode
   | PumpStatus
   | TankDefinitionMode
+  | TankMixingModel
   | number;
 
 type SelectRowPropsBase<P extends string, T extends SelectRowValue> = {

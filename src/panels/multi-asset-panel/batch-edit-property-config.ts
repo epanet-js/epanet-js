@@ -1,6 +1,7 @@
 import { Asset } from "src/hydraulic-model";
 import { pipeStatuses } from "src/hydraulic-model/asset-types/pipe";
 import { pumpStatuses } from "src/hydraulic-model/asset-types/pump";
+import { tankMixingModels } from "src/hydraulic-model/asset-types/tank";
 import {
   valveStatuses,
   valveKinds,
@@ -192,6 +193,17 @@ export const BATCH_EDITABLE_PROPERTIES: Partial<
     initialWaterAge: {
       fieldType: "quantity",
       modelProperty: "initialWaterAge",
+      positiveOnly: true,
+    },
+    mixingModel: {
+      fieldType: "category",
+      modelProperty: "mixingModel",
+      statsPrefix: "tank.",
+      values: tankMixingModels,
+    },
+    mixingFraction: {
+      fieldType: "quantity",
+      modelProperty: "mixingFraction",
       positiveOnly: true,
     },
   },

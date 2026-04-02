@@ -993,6 +993,17 @@ const appendTankStats = (
     id,
   );
 
+  const mixingLabel = "tank." + tank.mixingModel;
+  updateCategoryStats(statsMap, "mixingModel", mixingLabel, id);
+  updateQuantityStats(
+    statsMap,
+    "mixingFraction",
+    tank.mixingFraction,
+    units,
+    formatting,
+    id,
+  );
+
   // Simulation results - read from ResultsReader
   const tankSim = simulationResults?.getTank(tank.id);
   const pressure = tankSim?.pressure ?? null;
@@ -1046,7 +1057,9 @@ const buildTankSections = (
       "diameter",
       "minVolume",
       "canOverflow",
-      ...(options?.waterAge ? (["initialWaterAge"] as const) : []),
+      ...(options?.waterAge
+        ? (["initialWaterAge", "mixingModel", "mixingFraction"] as const)
+        : []),
     ]),
     energy: [],
     demands: [],
