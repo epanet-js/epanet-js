@@ -27,6 +27,7 @@ export type EPSSimulationResult = {
 export type SimulationProgress = {
   currentTime: number;
   totalDuration: number;
+  phase: "hydraulic" | "quality";
 };
 
 export type ProgressCallback = (progress: SimulationProgress) => void;
@@ -60,7 +61,11 @@ export const runSimulation = async (
       timestepCount++;
       const currentTime = model.runH();
       missingDataAccumulator.appendTimestepData(model);
-      onProgress?.({ currentTime, totalDuration });
+      onProgress?.({
+        currentTime,
+        totalDuration,
+        phase: "hydraulic",
+      });
     } while (model.nextH() > 0);
 
     model.closeH();
@@ -71,7 +76,7 @@ export const runSimulation = async (
       model.initQ(InitHydOption.Save);
       do {
         const currentTime = model.runQ();
-        onProgress?.({ currentTime, totalDuration });
+        onProgress?.({ currentTime, totalDuration, phase: "quality" });
       } while (model.nextQ() > 0);
       model.closeQ();
     }

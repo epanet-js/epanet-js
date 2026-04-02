@@ -61,6 +61,7 @@ export const useRunSimulation = () => {
           type: "simulationProgress",
           currentTime: 0,
           totalDuration: 0,
+          phase: "hydraulic",
         });
 
         const reportProgress: ProgressCallback = (progress) => {

@@ -87,6 +87,7 @@ export type SimulationProgressDialogState = {
   type: "simulationProgress";
   currentTime: number;
   totalDuration: number;
+  phase: "hydraulic" | "quality";
 };
 
 export type PatternsLibraryDialog = {
