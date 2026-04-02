@@ -69,7 +69,10 @@ const MAX_CHANGES_BEFORE_MAP_SYNC = 500;
 
 export class Persistence implements IPersistenceWithSnapshots {
   private store: Store;
-  private modelCache = new Map<string, HydraulicModel>();
+  private modelCache = new Map<
+    string,
+    { model: HydraulicModel; labelManager: LabelManager }
+  >();
 
   constructor(store: Store) {
     this.store = store;
@@ -240,7 +243,6 @@ export class Persistence implements IPersistenceWithSnapshots {
       simulationSourceId: "main",
       simulationSettings,
       status: "open",
-      labelManager,
     };
 
     const worktree: Worktree = {
@@ -258,7 +260,7 @@ export class Persistence implements IPersistenceWithSnapshots {
 
     this.modelCache.clear();
     const importedModel = this.store.get(stagingModelAtom);
-    this.modelCache.set("main", importedModel);
+    this.modelCache.set("main", { model: importedModel, labelManager });
   }
 
   useTransact() {
@@ -305,7 +307,11 @@ export class Persistence implements IPersistenceWithSnapshots {
   private updateCacheAfterTransact(): void {
     const worktree = this.store.get(worktreeAtom);
     const updatedModel = this.store.get(stagingModelAtom);
-    this.modelCache.set(worktree.activeSnapshotId, updatedModel);
+    const factories = this.store.get(modelFactoriesAtom);
+    this.modelCache.set(worktree.activeSnapshotId, {
+      model: updatedModel,
+      labelManager: factories.labelManager,
+    });
   }
 
   useHistoryControl() {
@@ -404,11 +410,12 @@ export class Persistence implements IPersistenceWithSnapshots {
         ? currentSimulation.currentTimestepIndex
         : undefined;
 
-    const stagingModel = this.getOrBuildModel(worktree, snapshotId);
-    const baseModel = this.getOrBuildModel(worktree, worktree.mainId);
-
-    const updatedWorktree = this.store.get(worktreeAtom);
-    const updatedSnapshot = updatedWorktree.snapshots.get(snapshotId)!;
+    const { model: stagingModel, labelManager: snapshotLabelManager } =
+      this.getOrBuildModel(worktree, snapshotId);
+    const { model: baseModel } = this.getOrBuildModel(
+      worktree,
+      worktree.mainId,
+    );
 
     const simulation = getSimulationForState(worktree, initialSimulationState);
     const resultsSourceId = snapshot.simulationSourceId;
@@ -430,8 +437,8 @@ export class Persistence implements IPersistenceWithSnapshots {
     this.store.set(
       modelFactoriesAtom,
       initializeModelFactories({
-        idGenerator: updatedWorktree.idGenerator,
-        labelManager: updatedSnapshot.labelManager,
+        idGenerator: worktree.idGenerator,
+        labelManager: snapshotLabelManager,
         defaults: this.store.get(projectSettingsAtom).defaults,
       }),
     );
@@ -498,20 +505,16 @@ export class Persistence implements IPersistenceWithSnapshots {
   private getOrBuildModel(
     worktree: Worktree,
     snapshotId: string,
-  ): HydraulicModel {
+  ): { model: HydraulicModel; labelManager: LabelManager } {
     const cached = this.modelCache.get(snapshotId);
     if (cached) {
       return cached;
     }
 
-    const { model, labelManager } = this.buildModelFromDeltas(
-      worktree,
-      snapshotId,
-    );
-    this.modelCache.set(snapshotId, model);
-    this.setSnapshotLabelManager(snapshotId, labelManager);
+    const result = this.buildModelFromDeltas(worktree, snapshotId);
+    this.modelCache.set(snapshotId, result);
 
-    return model;
+    return result;
   }
 
   private buildModelFromDeltas(
@@ -546,23 +549,6 @@ export class Persistence implements IPersistenceWithSnapshots {
     }
 
     return { model, labelManager };
-  }
-
-  private setSnapshotLabelManager(
-    snapshotId: string,
-    labelManager: LabelManager,
-  ): void {
-    const worktree = this.store.get(worktreeAtom);
-    const snapshot = worktree.snapshots.get(snapshotId);
-    if (!snapshot) return;
-
-    const updatedSnapshots = new Map(worktree.snapshots);
-    updatedSnapshots.set(snapshotId, {
-      ...snapshot,
-      labelManager,
-    });
-
-    this.store.set(worktreeAtom, { ...worktree, snapshots: updatedSnapshots });
   }
 
   private apply(stateId: string, forwardMoment: MomentInput) {
