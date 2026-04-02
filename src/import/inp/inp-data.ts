@@ -132,6 +132,7 @@ export type InpData = {
   status: ItemData<string>;
   curves: ItemData<CurveData>;
   quality: ItemData<number>;
+  mixing: ItemData<{ model: string; fraction?: number }>;
   sourcePatterns: Set<string>;
   options: {
     units: EpanetUnitSystem;
@@ -264,6 +265,7 @@ export const nullInpData = (): InpData => {
     status: new ItemData(),
     curves: new ItemData(),
     quality: new ItemData(),
+    mixing: new ItemData(),
     sourcePatterns: new Set(),
     options: { units: "GPM", headlossFormula: "H-W", demandMultiplier: 1 },
     reactions: {},

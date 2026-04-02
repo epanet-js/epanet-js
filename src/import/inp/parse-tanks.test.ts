@@ -118,6 +118,95 @@ describe("parse tanks", () => {
     expect(tank.overflow).toEqual(false);
   });
 
+  it("defaults mixing model to mixed when no MIXING section", () => {
+    const inp = `
+    [TANKS]
+    T1    100     15       5       25     120   0
+
+    [COORDINATES]
+    T1\t10\t20
+    `;
+
+    const { hydraulicModel } = parseInp(inp);
+
+    const tank = getByLabel(hydraulicModel.assets, "T1") as Tank;
+    expect(tank.mixingModel).toEqual("mixed");
+    expect(tank.mixingFraction).toEqual(1.0);
+  });
+
+  it("parses FIFO mixing model", () => {
+    const inp = `
+    [TANKS]
+    T1    100     15       5       25     120   0
+
+    [MIXING]
+    T1    FIFO
+
+    [COORDINATES]
+    T1\t10\t20
+    `;
+
+    const { hydraulicModel } = parseInp(inp, { waterAge: true });
+
+    const tank = getByLabel(hydraulicModel.assets, "T1") as Tank;
+    expect(tank.mixingModel).toEqual("fifo");
+  });
+
+  it("parses LIFO mixing model", () => {
+    const inp = `
+    [TANKS]
+    T1    100     15       5       25     120   0
+
+    [MIXING]
+    T1    LIFO
+
+    [COORDINATES]
+    T1\t10\t20
+    `;
+
+    const { hydraulicModel } = parseInp(inp, { waterAge: true });
+
+    const tank = getByLabel(hydraulicModel.assets, "T1") as Tank;
+    expect(tank.mixingModel).toEqual("lifo");
+  });
+
+  it("parses 2COMP mixing model with fraction", () => {
+    const inp = `
+    [TANKS]
+    T1    100     15       5       25     120   0
+
+    [MIXING]
+    T1    2COMP    0.3
+
+    [COORDINATES]
+    T1\t10\t20
+    `;
+
+    const { hydraulicModel } = parseInp(inp, { waterAge: true });
+
+    const tank = getByLabel(hydraulicModel.assets, "T1") as Tank;
+    expect(tank.mixingModel).toEqual("2comp");
+    expect(tank.mixingFraction).toEqual(0.3);
+  });
+
+  it("ignores MIXING section when waterAge option is off", () => {
+    const inp = `
+    [TANKS]
+    T1    100     15       5       25     120   0
+
+    [MIXING]
+    T1    LIFO
+
+    [COORDINATES]
+    T1\t10\t20
+    `;
+
+    const { hydraulicModel } = parseInp(inp, { waterAge: false });
+
+    const tank = getByLabel(hydraulicModel.assets, "T1") as Tank;
+    expect(tank.mixingModel).toEqual("mixed");
+  });
+
   const getByLabel = (assets: AssetsMap, label: string): Asset | undefined => {
     return [...assets.values()].find((a) => a.label === label);
   };

@@ -155,6 +155,19 @@ export const parseEmitter: RowParser = ({ trimmedRow, inpData }) => {
   }
 };
 
+export const parseMixing: RowParser = ({ trimmedRow, inpData }) => {
+  const [id, model, fraction] = readValues(trimmedRow);
+  if (!id || !model) return;
+  const mixingData: { model: string; fraction?: number } = {
+    model: model.toLowerCase(),
+  };
+  if (fraction) {
+    const value = parseFloat(fraction);
+    if (!isNaN(value)) mixingData.fraction = value;
+  }
+  inpData.mixing.set(id, mixingData);
+};
+
 export const parseQuality: RowParser = ({ trimmedRow, inpData }) => {
   const [id, initialQuality] = readValues(trimmedRow);
   const value = parseFloat(initialQuality);
