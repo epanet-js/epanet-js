@@ -138,7 +138,6 @@ export const CreateNew = () => {
         initializeProject({
           hydraulicModel,
           factories,
-          idGenerator,
           projectSettings,
           name: "Untitled",
           simulationSettings: defaultSimulationSettings,
@@ -148,7 +147,6 @@ export const CreateNew = () => {
         transactImport(
           hydraulicModel,
           factories,
-          idGenerator,
           projectSettings,
           "Untitled",
           defaultSimulationSettings,

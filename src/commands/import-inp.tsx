@@ -57,7 +57,6 @@ export const useImportInp = () => {
       const {
         hydraulicModel,
         factories,
-        idGenerator,
         projectSettings,
         simulationSettings,
         issues,
@@ -71,7 +70,6 @@ export const useImportInp = () => {
         initializeProject({
           hydraulicModel,
           factories,
-          idGenerator,
           projectSettings,
           name: file.name,
           simulationSettings,
@@ -81,7 +79,6 @@ export const useImportInp = () => {
         transactImport(
           hydraulicModel,
           factories,
-          idGenerator,
           projectSettings,
           file.name,
           simulationSettings,
