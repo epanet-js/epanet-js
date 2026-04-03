@@ -189,6 +189,7 @@ export const useImportInp = () => {
           customerPoints: true,
           inactiveAssets: true,
           waterAge: isWaterAgeOn,
+          populateAssetIndex: isStateRefactorOn,
         };
 
         const result = parseInp(content, parseOptions);
@@ -250,6 +251,7 @@ export const useImportInp = () => {
     },
     [
       completeImport,
+      isStateRefactorOn,
       isWaterAgeOn,
       setDialogState,
       userTracking,

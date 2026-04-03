@@ -92,7 +92,7 @@ export type TankBuildData = {
 };
 
 import { IdGenerator } from "src/lib/id-generator";
-import { LabelManager } from "../label-manager";
+import { LabelManager, LabelType } from "../label-manager";
 import { DefaultsSpec } from "src/lib/project-settings/quantities-spec";
 import {
   PumpDefintionType,
@@ -141,10 +141,7 @@ export class AssetFactory {
     const internalId = id ?? this.idGenerator.newId();
     return new Pipe(internalId, coordinates, {
       type: "pipe",
-      label:
-        label !== undefined
-          ? label
-          : this.labelManager.generateFor("pipe", internalId),
+      label: this.resolveLabel("pipe", internalId, label),
       connections,
       initialStatus,
       length: this.getPipeValue("length", length),
@@ -174,10 +171,7 @@ export class AssetFactory {
     const internalId = id ?? this.idGenerator.newId();
     return new Valve(internalId, coordinates, {
       type: "valve",
-      label:
-        label !== undefined
-          ? label
-          : this.labelManager.generateFor("valve", internalId),
+      label: this.resolveLabel("valve", internalId, label),
       connections,
       length: 10,
       diameter: this.getValveValue("diameter", diameter),
@@ -213,10 +207,7 @@ export class AssetFactory {
     const internalId = id ?? this.idGenerator.newId();
     return new Pump(internalId, coordinates, {
       type: "pump",
-      label:
-        label !== undefined
-          ? label
-          : this.labelManager.generateFor("pump", internalId),
+      label: this.resolveLabel("pump", internalId, label),
       connections,
       length: 10,
       initialStatus,
@@ -249,10 +240,7 @@ export class AssetFactory {
     const internalId = id ?? this.idGenerator.newId();
     return new Junction(internalId, coordinates, {
       type: "junction",
-      label:
-        label !== undefined
-          ? label
-          : this.labelManager.generateFor("junction", internalId),
+      label: this.resolveLabel("junction", internalId, label),
       elevation: this.getJunctionValue("elevation", elevation),
       emitterCoefficient: emitterCoefficient ?? 0,
       initialWaterAge: initialWaterAge ?? 0,
@@ -286,10 +274,7 @@ export class AssetFactory {
 
     return new Reservoir(internalId, coordinates, {
       type: "reservoir",
-      label:
-        label !== undefined
-          ? label
-          : this.labelManager.generateFor("reservoir", internalId),
+      label: this.resolveLabel("reservoir", internalId, label),
       head: headValue,
       headPatternId,
       elevation: elevationValue,
@@ -318,10 +303,7 @@ export class AssetFactory {
     const internalId = id ?? this.idGenerator.newId();
     return new Tank(internalId, coordinates, {
       type: "tank",
-      label:
-        label !== undefined
-          ? label
-          : this.labelManager.generateFor("tank", internalId),
+      label: this.resolveLabel("tank", internalId, label),
       elevation: this.getTankValue("elevation", elevation),
       initialLevel: this.getTankValue("initialLevel", initialLevel),
       minLevel: this.getTankValue("minLevel", minLevel),
@@ -335,6 +317,14 @@ export class AssetFactory {
       initialWaterAge: initialWaterAge ?? 0,
       isActive,
     });
+  }
+
+  private resolveLabel(type: LabelType, id: number, label?: string): string {
+    if (label !== undefined) {
+      this.labelManager.register(label, type, id);
+      return label;
+    }
+    return this.labelManager.generateFor(type, id);
   }
 
   private getPipeValue(name: PipeQuantity, candidate?: number) {

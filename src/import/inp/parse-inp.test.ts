@@ -1,4 +1,4 @@
-import { Junction, Pipe, Reservoir, Tank } from "src/hydraulic-model";
+import { Junction, Pipe, Pump, Reservoir, Tank } from "src/hydraulic-model";
 import { parseInp } from "./parse-inp";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { buildInp, chooseUnitSystem } from "src/simulation/build-inp";
@@ -1166,5 +1166,81 @@ describe("quality section", () => {
     const { issues } = parseInp(inp, { waterAge: true });
 
     expect(issues?.unsupportedSections?.has("[QUALITY]")).toBeFalsy();
+  });
+});
+
+describe("populateAssetIndex", () => {
+  const networkInp = `
+    [JUNCTIONS]
+    J1\t100
+    J2\t200
+
+    [RESERVOIRS]
+    R1\t50
+
+    [TANKS]
+    T1\t50\t10\t0\t20\t15\t0
+
+    [PIPES]
+    P1\tJ1\tJ2\t100\t10\t100\t0\tOpen
+
+    [PUMPS]
+    PU1\tR1\tJ1
+
+    [VALVES]
+    V1\tJ1\tJ2\t10\tTCV\t0\t0
+
+    [COORDINATES]
+    J1\t1\t1
+    J2\t2\t2
+    R1\t3\t3
+    T1\t4\t4
+  `;
+
+  it("populates asset index when enabled", () => {
+    const { hydraulicModel } = parseInp(networkInp, {
+      populateAssetIndex: true,
+    });
+
+    const j1 = getByLabel(hydraulicModel.assets, "J1") as Junction;
+    const j2 = getByLabel(hydraulicModel.assets, "J2") as Junction;
+    const r1 = getByLabel(hydraulicModel.assets, "R1") as Reservoir;
+    const t1 = getByLabel(hydraulicModel.assets, "T1") as Tank;
+    const p1 = getByLabel(hydraulicModel.assets, "P1") as Pipe;
+    const pu1 = getByLabel(hydraulicModel.assets, "PU1") as Pump;
+    const v1 = getByLabel(hydraulicModel.assets, "V1") as Valve;
+
+    expect(hydraulicModel.assetIndex.hasNode(j1.id)).toBe(true);
+    expect(hydraulicModel.assetIndex.hasNode(j2.id)).toBe(true);
+    expect(hydraulicModel.assetIndex.hasNode(r1.id)).toBe(true);
+    expect(hydraulicModel.assetIndex.hasNode(t1.id)).toBe(true);
+    expect(hydraulicModel.assetIndex.hasLink(p1.id)).toBe(true);
+    expect(hydraulicModel.assetIndex.hasLink(pu1.id)).toBe(true);
+    expect(hydraulicModel.assetIndex.hasLink(v1.id)).toBe(true);
+    expect(hydraulicModel.assetIndex.nodeCount).toBe(4);
+    expect(hydraulicModel.assetIndex.linkCount).toBe(3);
+  });
+
+  it("does not populate asset index when disabled", () => {
+    const { hydraulicModel } = parseInp(networkInp, {
+      populateAssetIndex: false,
+    });
+
+    expect(hydraulicModel.assetIndex.nodeCount).toBe(0);
+    expect(hydraulicModel.assetIndex.linkCount).toBe(0);
+  });
+
+  it("registers labels during parsing", () => {
+    const { factories } = parseInp(networkInp);
+
+    expect(factories.labelManager.getIdByLabel("J1", "junction")).toBeDefined();
+    expect(factories.labelManager.getIdByLabel("J2", "junction")).toBeDefined();
+    expect(
+      factories.labelManager.getIdByLabel("R1", "reservoir"),
+    ).toBeDefined();
+    expect(factories.labelManager.getIdByLabel("T1", "tank")).toBeDefined();
+    expect(factories.labelManager.getIdByLabel("P1", "pipe")).toBeDefined();
+    expect(factories.labelManager.getIdByLabel("PU1", "pump")).toBeDefined();
+    expect(factories.labelManager.getIdByLabel("V1", "valve")).toBeDefined();
   });
 });
