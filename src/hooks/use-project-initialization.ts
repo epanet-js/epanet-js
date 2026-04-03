@@ -9,7 +9,6 @@ import type { SimulationSettings } from "src/simulation/simulation-settings";
 import type { LabelType } from "src/hydraulic-model/label-manager";
 import type { Moment } from "src/lib/persistence/moment";
 import { MomentLog } from "src/lib/persistence/moment-log";
-import { trackMoment } from "src/lib/persistence/shared";
 import { initializeWorktree } from "src/lib/worktree";
 import { toDemandAssignments } from "src/hydraulic-model/model-operation";
 import { stagingModelAtom, baseModelAtom } from "src/state/hydraulic-model";
@@ -96,8 +95,6 @@ const loadModel = (
     putCurves: hydraulicModel.curves,
     putPatterns: hydraulicModel.patterns,
   };
-
-  trackMoment({ note: snapshotMoment.note!, putAssets: assets });
 
   const momentLog = new MomentLog();
   momentLog.setSnapshot(snapshotMoment, hydraulicModel.version);
