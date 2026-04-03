@@ -8,3 +8,4 @@ export {
 export { deleteScenario } from "./delete-scenario";
 export { renameScenario } from "./rename-scenario";
 export { getSimulationForState } from "./get-simulation";
+export { initializeWorktree } from "./initialize-worktree";

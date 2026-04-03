@@ -6,10 +6,11 @@ import type { ModelFactories } from "src/hydraulic-model/factories";
 import type { IdGenerator } from "src/lib/id-generator";
 import type { ProjectSettings } from "src/lib/project-settings";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
+import type { LabelType } from "src/hydraulic-model/label-manager";
 import type { Moment } from "src/lib/persistence/moment";
-import type { Snapshot, Worktree } from "src/lib/worktree/types";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { trackMoment } from "src/lib/persistence/shared";
+import { initializeWorktree } from "src/lib/worktree";
 import { toDemandAssignments } from "src/hydraulic-model/model-operation";
 import { stagingModelAtom, baseModelAtom } from "src/state/hydraulic-model";
 import { modelFactoriesAtom } from "src/state/model-factories";
@@ -124,32 +125,20 @@ const loadModel = (
     set(autoElevationsAtom, autoElevations);
   }
 
-  const labelCounters: Worktree["labelCounters"] = new Map();
+  const labelCounters: Map<LabelType, number> = new Map();
   factories.labelManager.adoptCounters(labelCounters);
 
-  const mainSnapshot: Snapshot = {
-    id: "main",
-    name: "Main",
-    parentId: null,
-    deltas: [snapshotMoment],
-    version: hydraulicModel.version,
-    momentLog,
-    simulation: initialSimulationState,
-    simulationSourceId: "main",
-    simulationSettings,
-    status: "open",
-  };
-
-  set(worktreeAtom, {
-    activeSnapshotId: "main",
-    lastActiveSnapshotId: "main",
-    snapshots: new Map([["main", mainSnapshot]]),
-    mainId: "main",
-    scenarios: [],
-    highestScenarioNumber: 0,
-    labelCounters,
-    idGenerator,
-  });
+  set(
+    worktreeAtom,
+    initializeWorktree({
+      snapshotMoment,
+      momentLog,
+      version: hydraulicModel.version,
+      simulationSettings,
+      labelCounters,
+      idGenerator,
+    }),
+  );
 };
 
 export const useProjectInitialization = () => {
