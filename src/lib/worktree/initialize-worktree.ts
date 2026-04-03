@@ -1,12 +1,12 @@
 import type { MomentLog } from "src/lib/persistence/moment-log";
-import type { Moment } from "src/lib/persistence/moment";
+import type { ModelMoment } from "src/hydraulic-model/model-operation";
 import type { IdGenerator } from "src/lib/id-generator";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
 import type { LabelType } from "src/hydraulic-model/label-manager";
 import type { Snapshot, Worktree } from "./types";
 
 type InitializeWorktreeInput = {
-  snapshotMoment: Moment;
+  snapshotMoment: ModelMoment;
   momentLog: MomentLog;
   version: string;
   simulationSettings: SimulationSettings;

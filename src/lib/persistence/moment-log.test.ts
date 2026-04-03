@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { MomentLog, generateStateId, initId } from "./moment-log";
-import { fMoment } from "./moment";
 
 describe("MomentLog", () => {
   it("registers to the history of moments", () => {
@@ -137,9 +136,7 @@ describe("MomentLog", () => {
     };
   };
 
-  const aMoment = (name: string) => {
-    return fMoment(name);
-  };
+  const aMoment = (name: string) => ({ note: name });
 
   describe("getDeltasFrom", () => {
     it("returns empty array when pointer equals fromPointer", () => {

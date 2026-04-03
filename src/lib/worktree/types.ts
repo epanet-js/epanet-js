@@ -1,5 +1,5 @@
 import type { MomentLog } from "src/lib/persistence/moment-log";
-import type { Moment } from "src/lib/persistence/moment";
+import type { ModelMoment } from "src/hydraulic-model/model-operation";
 import type { SimulationState } from "src/state/simulation";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
 import type { LabelType } from "src/hydraulic-model/label-manager";
@@ -9,7 +9,7 @@ export type Snapshot = {
   id: string;
   name: string;
   parentId: string | null;
-  deltas: Moment[];
+  deltas: ModelMoment[];
   version: string;
   momentLog: MomentLog;
   simulation: SimulationState | null;

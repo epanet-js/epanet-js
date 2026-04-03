@@ -1,12 +1,12 @@
 import { nanoid } from "nanoid";
-import { Moment } from "./moment";
+import type { ModelMoment } from "src/hydraulic-model/model-operation";
 
 export const generateStateId = () => nanoid();
 export const initId = "0";
 
-type Action = { stateId: string; forward: Moment; reverse: Moment };
+type Action = { stateId: string; forward: ModelMoment; reverse: ModelMoment };
 
-type Snapshot = { stateId: string; moment: Moment };
+type Snapshot = { stateId: string; moment: ModelMoment };
 
 const START_POINTER = -1;
 
@@ -23,7 +23,7 @@ export class MomentLog {
     this.snapshot = null;
   }
 
-  setSnapshot(moment: Moment, stateId: string) {
+  setSnapshot(moment: ModelMoment, stateId: string) {
     this.snapshot = { moment, stateId };
   }
 
@@ -40,8 +40,8 @@ export class MomentLog {
   }
 
   append(
-    forward: Moment,
-    reverse: Moment,
+    forward: ModelMoment,
+    reverse: ModelMoment,
     stateId: string = generateStateId(),
   ) {
     const newPointer = this.pointer + 1;
@@ -65,7 +65,7 @@ export class MomentLog {
     this.pointer++;
   }
 
-  nextUndo(): { moment: Moment; stateId: string } | null {
+  nextUndo(): { moment: ModelMoment; stateId: string } | null {
     const action = this.deltas[this.pointer];
     if (!action) return null;
 
@@ -79,7 +79,7 @@ export class MomentLog {
     };
   }
 
-  nextRedo(): { stateId: string; moment: Moment } | null {
+  nextRedo(): { stateId: string; moment: ModelMoment } | null {
     const action = this.deltas[this.pointer + 1];
     if (!action) return null;
 
@@ -89,7 +89,7 @@ export class MomentLog {
     };
   }
 
-  last(): Moment | null {
+  last(): ModelMoment | null {
     const action = this.deltas[this.pointer];
     if (!action) return null;
 
@@ -100,7 +100,7 @@ export class MomentLog {
     return this.pointer;
   }
 
-  getDeltas(since: number = START_POINTER): Moment[] {
+  getDeltas(since: number = START_POINTER): ModelMoment[] {
     const result = [];
 
     if (this.pointer >= since) {

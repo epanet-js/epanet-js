@@ -1,7 +1,5 @@
-import type { IWrappedFeatureInput } from "src/types";
 import once from "lodash/once";
 import type { IPersistenceWithSnapshots } from "src/lib/persistence/ipersistence";
-import { MomentInput, Moment } from "src/lib/persistence/moment";
 import { generateKeyBetween } from "fractional-indexing";
 import { worktreeAtom } from "src/state/scenarios";
 import type { Snapshot, Worktree } from "src/lib/worktree/types";
@@ -91,7 +89,7 @@ export class Persistence implements IPersistenceWithSnapshots {
 
       const assets = [...hydraulicModel.assets.values()];
 
-      const snapshotMoment: Moment = {
+      const snapshotMoment: ModelMoment = {
         note: `Import ${name}`,
         putAssets: assets,
         deleteAssets: [],
@@ -105,7 +103,7 @@ export class Persistence implements IPersistenceWithSnapshots {
         putPatterns: hydraulicModel.patterns,
       };
 
-      trackMoment({ note: snapshotMoment.note!, putAssets: assets });
+      trackMoment({ note: snapshotMoment.note, putAssets: assets });
 
       assets.forEach((asset) => {
         factories.labelManager.register(asset.label, asset.type, asset.id);
@@ -169,7 +167,7 @@ export class Persistence implements IPersistenceWithSnapshots {
       });
 
       const assets = [...hydraulicModel.assets.values()];
-      const snapshotMoment: Moment = {
+      const snapshotMoment: ModelMoment = {
         note: "Reprojection",
         putAssets: assets,
         deleteAssets: [],
@@ -222,7 +220,7 @@ export class Persistence implements IPersistenceWithSnapshots {
   }
 
   private resetWorktree(
-    moment: Moment,
+    moment: ModelMoment,
     version: string,
     momentLog: MomentLog,
     simulationSettings: SimulationSettings,
@@ -278,7 +276,7 @@ export class Persistence implements IPersistenceWithSnapshots {
         patchAssetsAttributes,
         ...optionalFields
       } = moment;
-      const forwardMoment: Moment = {
+      const forwardMoment: ModelMoment = {
         note,
         deleteAssets: deleteAssets || [],
         putAssets: putAssets || [],
@@ -526,7 +524,7 @@ export class Persistence implements IPersistenceWithSnapshots {
       throw new Error(`Snapshot ${snapshotId} not found`);
     }
 
-    const allDeltas: Moment[] = [];
+    const allDeltas: ModelMoment[] = [];
     let current: Snapshot | undefined = snapshot;
 
     while (current) {
@@ -545,13 +543,13 @@ export class Persistence implements IPersistenceWithSnapshots {
     });
 
     for (const delta of allDeltas) {
-      applyMomentToModel(model, delta as ModelMoment, labelManager);
+      applyMomentToModel(model, delta, labelManager);
     }
 
     return { model, labelManager };
   }
 
-  private apply(stateId: string, forwardMoment: MomentInput) {
+  private apply(stateId: string, forwardMoment: ModelMoment) {
     const ctx = this.store.get(dataAtom);
     const hydraulicModel = this.store.get(stagingModelAtom);
 
@@ -603,7 +601,7 @@ export class Persistence implements IPersistenceWithSnapshots {
   }
 
   private ensureAtValues(
-    features: IWrappedFeatureInput[],
+    features: Asset[] | undefined,
     hydraulicModel: HydraulicModel,
     ctx: Data,
   ): Asset[] {
@@ -620,21 +618,22 @@ export class Persistence implements IPersistenceWithSnapshots {
     let lastAt: string | null = null;
 
     for (const inputFeature of features) {
+      const mutable = inputFeature as { at: string };
       const isNew = !hydraulicModel.assets.has(inputFeature.id);
 
       if (inputFeature.at === undefined) {
         if (!lastAt) lastAt = getFreshAt(ctx, hydraulicModel);
         const at = generateKeyBetween(lastAt, null);
         lastAt = at;
-        inputFeature.at = at;
+        mutable.at = at;
       }
 
       if (isNew && atsSet().has(inputFeature.at)) {
-        inputFeature.at = generateKeyBetween(null, ats()[0]);
+        mutable.at = generateKeyBetween(null, ats()[0]);
       }
     }
 
-    return features as Asset[];
+    return features;
   }
 
   private exceedsMaxChangesSinceLastSync(
@@ -645,9 +644,9 @@ export class Persistence implements IPersistenceWithSnapshots {
     const editedAssetsCount = deltasSinceLastSync.reduce(
       (count, moment) =>
         count +
-        moment.deleteAssets.length +
-        moment.putAssets.length +
-        moment.patchAssetsAttributes.length,
+        (moment.deleteAssets?.length ?? 0) +
+        (moment.putAssets?.length ?? 0) +
+        (moment.patchAssetsAttributes?.length ?? 0),
       0,
     );
     return editedAssetsCount > MAX_CHANGES_BEFORE_MAP_SYNC;

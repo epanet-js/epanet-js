@@ -2,7 +2,7 @@ import type { Sel } from "src/selection/types";
 import { useAtomValue, useSetAtom } from "jotai";
 import { type MutableRefObject, useCallback, useRef } from "react";
 import { Unit } from "src/quantity";
-import { Moment } from "src/lib/persistence/moment";
+import type { ModelMoment } from "src/hydraulic-model/model-operation";
 import { projectSettingsAtom } from "src/state/project-settings";
 import type { EphemeralEditingState } from "src/state/drawing";
 import { assetsAtom, stagingModelAtom } from "src/state/hydraulic-model";
@@ -72,14 +72,16 @@ const SELECTION_LAYERS: LayerId[] = [
   "selected-icons",
 ];
 
-const getAssetIdsInMoments = (moments: Moment[]): Set<AssetId> => {
+const getAssetIdsInMoments = (moments: ModelMoment[]): Set<AssetId> => {
   const assetIds = new Set<AssetId>();
   moments.forEach((moment) => {
-    moment.deleteAssets.forEach((assetId) => {
+    (moment.deleteAssets || []).forEach((assetId) => {
       assetIds.add(assetId);
     });
-    moment.putAssets.forEach((asset) => assetIds.add(asset.id));
-    moment.patchAssetsAttributes.forEach((patch) => assetIds.add(patch.id));
+    (moment.putAssets || []).forEach((asset) => assetIds.add(asset.id));
+    (moment.patchAssetsAttributes || []).forEach((patch) =>
+      assetIds.add(patch.id),
+    );
   });
   return assetIds;
 };

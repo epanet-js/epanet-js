@@ -7,7 +7,7 @@ import type { IdGenerator } from "src/lib/id-generator";
 import type { ProjectSettings } from "src/lib/project-settings";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
 import type { LabelType } from "src/hydraulic-model/label-manager";
-import type { Moment } from "src/lib/persistence/moment";
+import type { ModelMoment } from "src/hydraulic-model/model-operation";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { initializeWorktree } from "src/lib/worktree";
 import { toDemandAssignments } from "src/hydraulic-model/model-operation";
@@ -82,7 +82,7 @@ const loadModel = (
 ) => {
   const assets = [...hydraulicModel.assets.values()];
 
-  const snapshotMoment: Moment = {
+  const snapshotMoment: ModelMoment = {
     note: `Import ${name}`,
     putAssets: assets,
     deleteAssets: [],

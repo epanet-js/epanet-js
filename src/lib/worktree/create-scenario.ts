@@ -1,7 +1,6 @@
 import type { Worktree, Snapshot } from "./types";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
 import { MomentLog } from "src/lib/persistence/moment-log";
-import { EMPTY_MOMENT } from "src/lib/persistence/moment";
 import { nanoid } from "nanoid";
 
 export const createScenario = (
@@ -13,7 +12,7 @@ export const createScenario = (
     throw new Error("Main snapshot not found");
   }
 
-  const baseMoment = mainSnapshot.deltas[0] ?? EMPTY_MOMENT;
+  const baseMoment = mainSnapshot.deltas[0] ?? { note: "Empty" };
   const newNumber = worktree.highestScenarioNumber + 1;
   const newMomentLog = new MomentLog();
   newMomentLog.setSnapshot(baseMoment, mainSnapshot.version);
