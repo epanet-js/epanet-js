@@ -12,6 +12,8 @@ import { ephemeralStateAtom } from "src/state/drawing";
 import { stagingModelAtom } from "src/state/hydraulic-model";
 import { modeAtom, Mode } from "src/state/mode";
 import { selectionAtom } from "src/state/selection";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { useModelTransaction } from "src/hooks/use-model-transaction";
 export const deleteSelectedShortcuts = ["backspace", "del"];
 
 export const useDeleteSelection = () => {
@@ -19,8 +21,11 @@ export const useDeleteSelection = () => {
   const [selection, setSelection] = useAtom(selectionAtom);
   const setMode = useSetAtom(modeAtom);
   const setEphemeralState = useSetAtom(ephemeralStateAtom);
+  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const rep = usePersistence();
-  const transact = rep.useTransact();
+  const transactDeprecated = rep.useTransactDeprecated();
+  const { transact: transactNew } = useModelTransaction();
+  const transact = isStateRefactorOn ? transactNew : transactDeprecated;
   const userTracking = useUserTracking();
 
   const clearSelection = useCallback(() => {

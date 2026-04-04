@@ -1,9 +1,7 @@
-import once from "lodash/once";
 import type { IPersistenceWithSnapshots } from "src/lib/persistence/ipersistence";
-import { generateKeyBetween } from "fractional-indexing";
 import { worktreeAtom } from "src/state/scenarios";
 import type { Snapshot, Worktree } from "src/lib/worktree/types";
-import { Data, dataAtom, nullData } from "src/state/data";
+import { dataAtom, nullData } from "src/state/data";
 import {
   ephemeralStateAtom,
   pipeDrawingDefaultsAtom,
@@ -22,16 +20,13 @@ import {
 import { Store } from "src/state";
 import { baseModelAtom } from "src/state/hydraulic-model";
 import { simulationResultsAtom } from "src/state/simulation";
-import { getFreshAt, trackMoment } from "./shared";
-import { sortAts } from "src/lib/parse-stored";
+import { trackMoment } from "./shared";
 import {
   HydraulicModel,
-  updateHydraulicModelAssets,
   initializeHydraulicModel,
   applyMomentToModel,
 } from "src/hydraulic-model";
 import { ModelMoment } from "src/hydraulic-model";
-import { Asset } from "src/hydraulic-model";
 import { nanoid } from "nanoid";
 import type { ProjectSettings } from "src/lib/project-settings";
 import { projectSettingsAtom } from "src/state/project-settings";
@@ -47,7 +42,7 @@ import {
   defaultPropertyColorConfigs,
 } from "src/state/map-symbology";
 import { nullSymbologySpec } from "src/map/symbology";
-import { mapSyncMomentAtom, MomentPointer } from "src/state/map";
+import { mapSyncMomentAtom } from "src/state/map";
 import { USelection } from "src/selection";
 import { toDemandAssignments } from "src/hydraulic-model/model-operation";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
@@ -61,15 +56,16 @@ import { LabelManager } from "src/hydraulic-model/label-manager";
 import type { Projection } from "src/lib/projections/projection";
 import { createProjectionMapper } from "src/lib/projections";
 import { transformCoordinates } from "src/hydraulic-model/mutations/transform-coordinates";
-
-const MAX_CHANGES_BEFORE_MAP_SYNC = 500;
+import { modelCacheAtom } from "src/state/model-cache";
+import {
+  applyMoment,
+  computeSyncMoment,
+  syncSnapshotMomentLog,
+  updateModelCache,
+} from "./transaction-helpers";
 
 export class Persistence implements IPersistenceWithSnapshots {
   private store: Store;
-  private modelCache = new Map<
-    string,
-    { model: HydraulicModel; labelManager: LabelManager }
-  >();
 
   constructor(store: Store) {
     this.store = store;
@@ -246,15 +242,23 @@ export class Persistence implements IPersistenceWithSnapshots {
 
     this.store.set(worktreeAtom, worktree);
 
-    this.modelCache.clear();
+    const cache = new Map<
+      string,
+      { model: HydraulicModel; labelManager: LabelManager }
+    >();
     const importedModel = this.store.get(stagingModelAtom);
-    this.modelCache.set("main", { model: importedModel, labelManager });
+    cache.set("main", { model: importedModel, labelManager });
+    this.store.set(modelCacheAtom, cache);
   }
 
-  useTransact() {
+  /** @deprecated Use useModelTransaction hook instead */
+  useTransactDeprecated() {
     return (moment: ModelMoment) => {
-      const momentLog = this.store.get(momentLogAtom).copy();
-      const mapSyncMoment = this.store.get(mapSyncMomentAtom);
+      const get = this.store.get;
+      const set = this.store.set;
+
+      const momentLog = get(momentLogAtom).copy();
+      const currentMapSyncMoment = get(mapSyncMomentAtom);
 
       const isTruncatingHistory = momentLog.nextRedo() !== null;
 
@@ -275,56 +279,54 @@ export class Persistence implements IPersistenceWithSnapshots {
       };
       const newStateId = nanoid();
 
-      const reverseMoment = this.apply(newStateId, forwardMoment);
+      const reverseMoment = applyMoment(get, set, newStateId, forwardMoment);
 
       momentLog.append(forwardMoment, reverseMoment, newStateId);
 
-      const newMapSyncMoment = this.computeSyncMoment(
-        mapSyncMoment,
+      const newMapSyncMoment = computeSyncMoment(
+        currentMapSyncMoment,
         momentLog,
         isTruncatingHistory,
       );
 
-      this.store.set(momentLogAtom, momentLog);
-      this.store.set(mapSyncMomentAtom, newMapSyncMoment);
-      this.syncSnapshotMomentLog(momentLog, newStateId);
-      this.updateCacheAfterTransact();
+      set(momentLogAtom, momentLog);
+      set(mapSyncMomentAtom, newMapSyncMoment);
+      syncSnapshotMomentLog(get, set, momentLog, newStateId);
+      updateModelCache(get, set);
     };
-  }
-
-  private updateCacheAfterTransact(): void {
-    const worktree = this.store.get(worktreeAtom);
-    const updatedModel = this.store.get(stagingModelAtom);
-    const factories = this.store.get(modelFactoriesAtom);
-    this.modelCache.set(worktree.activeSnapshotId, {
-      model: updatedModel,
-      labelManager: factories.labelManager,
-    });
   }
 
   useHistoryControl() {
     return (direction: "undo" | "redo") => {
+      const get = this.store.get;
+      const set = this.store.set;
+
       const isUndo = direction === "undo";
-      const momentLog = this.store.get(momentLogAtom).copy();
-      const mapSyncMoment = this.store.get(mapSyncMomentAtom);
+      const momentLog = get(momentLogAtom).copy();
+      const currentMapSyncMoment = get(mapSyncMomentAtom);
       const action = isUndo ? momentLog.nextUndo() : momentLog.nextRedo();
       if (!action) return;
 
-      this.apply(action.stateId, action.moment);
+      applyMoment(get, set, action.stateId, action.moment);
 
       isUndo ? momentLog.undo() : momentLog.redo();
 
-      const newMapSyncMoment = this.computeSyncMoment(mapSyncMoment, momentLog);
+      const newMapSyncMoment = computeSyncMoment(
+        currentMapSyncMoment,
+        momentLog,
+      );
 
-      this.store.set(momentLogAtom, momentLog);
-      this.store.set(mapSyncMomentAtom, newMapSyncMoment);
-      this.syncSnapshotMomentLog(momentLog, action.stateId);
-      this.updateCacheAfterTransact();
+      set(momentLogAtom, momentLog);
+      set(mapSyncMomentAtom, newMapSyncMoment);
+      syncSnapshotMomentLog(get, set, momentLog, action.stateId);
+      updateModelCache(get, set);
     };
   }
 
   deleteSnapshotFromCache(snapshotId: string): void {
-    this.modelCache.delete(snapshotId);
+    const cache = new Map(this.store.get(modelCacheAtom));
+    cache.delete(snapshotId);
+    this.store.set(modelCacheAtom, cache);
   }
 
   getMomentLog(): MomentLog {
@@ -333,21 +335,6 @@ export class Persistence implements IPersistenceWithSnapshots {
 
   getSimulation(): SimulationState {
     return this.store.get(simulationAtom);
-  }
-
-  private syncSnapshotMomentLog(momentLog: MomentLog, version: string): void {
-    const worktree = this.store.get(worktreeAtom);
-    const snapshot = worktree.snapshots.get(worktree.activeSnapshotId);
-    if (!snapshot) return;
-
-    const updatedSnapshots = new Map(worktree.snapshots);
-    updatedSnapshots.set(worktree.activeSnapshotId, {
-      ...snapshot,
-      momentLog,
-      version,
-    });
-
-    this.store.set(worktreeAtom, { ...worktree, snapshots: updatedSnapshots });
   }
 
   syncSnapshotSimulation(simulation: SimulationState): void {
@@ -372,11 +359,6 @@ export class Persistence implements IPersistenceWithSnapshots {
       pointer: momentLog.getPointer(),
       version: current.version + 1,
     });
-  }
-
-  getModelVersion(): string {
-    const hydraulicModel = this.store.get(stagingModelAtom);
-    return hydraulicModel.version;
   }
 
   private setModelVersion(version: string): void {
@@ -496,13 +478,16 @@ export class Persistence implements IPersistenceWithSnapshots {
     worktree: Worktree,
     snapshotId: string,
   ): { model: HydraulicModel; labelManager: LabelManager } {
-    const cached = this.modelCache.get(snapshotId);
+    const cache = this.store.get(modelCacheAtom);
+    const cached = cache.get(snapshotId);
     if (cached) {
       return cached;
     }
 
     const result = this.buildModelFromDeltas(worktree, snapshotId);
-    this.modelCache.set(snapshotId, result);
+    const updatedCache = new Map(cache);
+    updatedCache.set(snapshotId, result);
+    this.store.set(modelCacheAtom, updatedCache);
 
     return result;
   }
@@ -558,125 +543,5 @@ export class Persistence implements IPersistenceWithSnapshots {
     }
 
     return { model, labelManager };
-  }
-
-  private apply(stateId: string, forwardMoment: ModelMoment) {
-    const ctx = this.store.get(dataAtom);
-    const hydraulicModel = this.store.get(stagingModelAtom);
-
-    const processedMoment: ModelMoment = {
-      ...forwardMoment,
-      note: forwardMoment.note || "Update",
-      putAssets: this.ensureAtValues(
-        forwardMoment.putAssets,
-        hydraulicModel,
-        ctx,
-      ),
-    };
-
-    const factories = this.store.get(modelFactoriesAtom);
-    const reverseMoment = applyMomentToModel(
-      hydraulicModel,
-      processedMoment,
-      factories.labelManager,
-    );
-
-    const updatedHydraulicModel = updateHydraulicModelAssets(hydraulicModel);
-
-    const updatedCustomerPoints =
-      (forwardMoment.putCustomerPoints || []).length > 0 ||
-      (forwardMoment.deleteCustomerPoints || []).length > 0
-        ? new Map(hydraulicModel.customerPoints)
-        : hydraulicModel.customerPoints;
-
-    const updatedCurves =
-      forwardMoment.putCurves && forwardMoment.putCurves.size > 0
-        ? new Map(hydraulicModel.curves)
-        : hydraulicModel.curves;
-
-    this.store.set(stagingModelAtom, {
-      ...updatedHydraulicModel,
-      version: stateId,
-      customerPoints: updatedCustomerPoints,
-      curves: updatedCurves,
-    });
-    this.store.set(dataAtom, {
-      selection: ctx.selection,
-      folderMap: new Map(
-        Array.from(ctx.folderMap).sort((a, b) => {
-          return sortAts(a[1], b[1]);
-        }),
-      ),
-    });
-    return reverseMoment;
-  }
-
-  private ensureAtValues(
-    features: Asset[] | undefined,
-    hydraulicModel: HydraulicModel,
-    ctx: Data,
-  ): Asset[] {
-    if (!features || features.length === 0) return [];
-
-    const ats = once(() =>
-      Array.from(
-        hydraulicModel.assets.values(),
-        (wrapped) => wrapped.at,
-      ).sort(),
-    );
-    const atsSet = once(() => new Set(ats()));
-
-    let lastAt: string | null = null;
-
-    for (const inputFeature of features) {
-      const mutable = inputFeature as { at: string };
-      const isNew = !hydraulicModel.assets.has(inputFeature.id);
-
-      if (inputFeature.at === undefined) {
-        if (!lastAt) lastAt = getFreshAt(ctx, hydraulicModel);
-        const at = generateKeyBetween(lastAt, null);
-        lastAt = at;
-        mutable.at = at;
-      }
-
-      if (isNew && atsSet().has(inputFeature.at)) {
-        mutable.at = generateKeyBetween(null, ats()[0]);
-      }
-    }
-
-    return features;
-  }
-
-  private exceedsMaxChangesSinceLastSync(
-    momentLog: MomentLog,
-    lastSyncPointer: number,
-  ): boolean {
-    const deltasSinceLastSync = momentLog.getDeltas(lastSyncPointer);
-    const editedAssetsCount = deltasSinceLastSync.reduce(
-      (count, moment) =>
-        count +
-        (moment.deleteAssets?.length ?? 0) +
-        (moment.putAssets?.length ?? 0) +
-        (moment.patchAssetsAttributes?.length ?? 0),
-      0,
-    );
-    return editedAssetsCount > MAX_CHANGES_BEFORE_MAP_SYNC;
-  }
-
-  private computeSyncMoment(
-    current: MomentPointer,
-    momentLog: MomentLog,
-    force: boolean = false,
-  ): MomentPointer {
-    if (
-      force ||
-      this.exceedsMaxChangesSinceLastSync(momentLog, current.pointer)
-    ) {
-      return {
-        pointer: momentLog.getPointer(),
-        version: current.version + 1,
-      };
-    }
-    return current;
   }
 }

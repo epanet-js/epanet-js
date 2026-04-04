@@ -9,6 +9,8 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { useSelection } from "src/selection";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { selectionAtom } from "src/state/selection";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { useModelTransaction } from "src/hooks/use-model-transaction";
 
 export function useDrawCustomerPointHandlers({
   hydraulicModel,
@@ -19,7 +21,10 @@ export function useDrawCustomerPointHandlers({
   const setEphemeralState = useSetAtom(ephemeralStateAtom);
   const selection = useAtomValue(selectionAtom);
   const { customerPointFactory } = useAtomValue(modelFactoriesAtom);
-  const transact = rep.useTransact();
+  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
+  const transactDeprecated = rep.useTransactDeprecated();
+  const { transact: transactNew } = useModelTransaction();
+  const transact = isStateRefactorOn ? transactNew : transactDeprecated;
   const userTracking = useUserTracking();
   const { selectCustomerPoint } = useSelection(selection);
 

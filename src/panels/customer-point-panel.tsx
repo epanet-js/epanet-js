@@ -20,6 +20,8 @@ import { EditableTextField } from "src/components/form/editable-text-field";
 import { useTranslate } from "src/hooks/use-translate";
 import { useUserTracking } from "src/infra/user-tracking";
 import { usePersistence } from "src/lib/persistence";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { useModelTransaction } from "src/hooks/use-model-transaction";
 import {
   getCustomerPointDemands,
   calculateAverageDemand,
@@ -38,8 +40,11 @@ export function CustomerPointPanel() {
   const { labelManager } = useAtomValue(modelFactoriesAtom);
   const translate = useTranslate();
   const userTracking = useUserTracking();
+  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const rep = usePersistence();
-  const transact = rep.useTransact();
+  const transactDeprecated = rep.useTransactDeprecated();
+  const { transact: transactNew } = useModelTransaction();
+  const transact = isStateRefactorOn ? transactNew : transactDeprecated;
   const zoomTo = useZoomTo();
   const { units } = useAtomValue(projectSettingsAtom);
   const customerPoint =

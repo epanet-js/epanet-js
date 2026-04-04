@@ -21,6 +21,8 @@ import { CurveLibraryIcon } from "src/icons";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { stagingModelAtom } from "src/state/hydraulic-model";
 import { usePersistence } from "src/lib/persistence";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { useModelTransaction } from "src/hooks/use-model-transaction";
 import { changeCurves } from "src/hydraulic-model/model-operations/change-curves";
 import { notify } from "src/components/notifications";
 import { useUserTracking } from "src/infra/user-tracking";
@@ -163,8 +165,11 @@ export const CurveLibraryDialog = ({
     [hydraulicModel, editedCurves, selectedCurveId, translate, userTracking],
   );
 
+  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const rep = usePersistence();
-  const transact = rep.useTransact();
+  const transactDeprecated = rep.useTransactDeprecated();
+  const { transact: transactNew } = useModelTransaction();
+  const transact = isStateRefactorOn ? transactNew : transactDeprecated;
 
   const cleanedCurves = useMemo(() => {
     const cleaned: Curves = new Map();

@@ -13,6 +13,8 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { useElevations } from "../../elevations/use-elevations";
 import { useSnapping } from "../hooks/use-snapping";
 import { useSelection } from "src/selection";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { useModelTransaction } from "src/hooks/use-model-transaction";
 
 type NodeType = "junction" | "reservoir" | "tank";
 
@@ -28,7 +30,10 @@ export function useDrawNodeHandlers({
   const [ephemeralState, setEphemeralState] = useAtom(ephemeralStateAtom);
   const setCursor = useSetAtom(cursorStyleAtom);
   const selection = useAtomValue(selectionAtom);
-  const transact = rep.useTransact();
+  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
+  const transactDeprecated = rep.useTransactDeprecated();
+  const { transact: transactNew } = useModelTransaction();
+  const transact = isStateRefactorOn ? transactNew : transactDeprecated;
   const userTracking = useUserTracking();
   const { assetFactory, labelManager } = useAtomValue(modelFactoriesAtom);
   const { fetchElevation, prefetchTile } = useElevations(units.elevation);

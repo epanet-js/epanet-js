@@ -19,6 +19,8 @@ import { PatternsIcon } from "src/icons";
 import { stagingModelAtom } from "src/state/hydraulic-model";
 import { simulationSettingsAtom } from "src/state/simulation-settings";
 import { usePersistence } from "src/lib/persistence";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { useModelTransaction } from "src/hooks/use-model-transaction";
 import { HydraulicModel } from "src/hydraulic-model/hydraulic-model";
 import { Reservoir } from "src/hydraulic-model/asset-types/reservoir";
 import { Pump } from "src/hydraulic-model/asset-types/pump";
@@ -164,8 +166,11 @@ export const PatternsDialog = ({
     ],
   );
 
+  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const rep = usePersistence();
-  const transact = rep.useTransact();
+  const transactDeprecated = rep.useTransactDeprecated();
+  const { transact: transactNew } = useModelTransaction();
+  const transact = isStateRefactorOn ? transactNew : transactDeprecated;
 
   const unsavedChanges = useMemo(
     () => differentPatternsCount(hydraulicModel.patterns, editedPatterns),

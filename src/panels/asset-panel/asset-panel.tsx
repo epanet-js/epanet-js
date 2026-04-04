@@ -32,6 +32,7 @@ import { UnitsSpec } from "src/lib/project-settings/quantities-spec";
 import { getMinorLossUnit } from "src/lib/project-settings";
 import { useTranslate } from "src/hooks/use-translate";
 import { usePersistence } from "src/lib/persistence";
+import { useModelTransaction } from "src/hooks/use-model-transaction";
 import { useUserTracking } from "src/infra/user-tracking";
 import { stagingModelAtom } from "src/state/hydraulic-model";
 import { modelFactoriesAtom } from "src/state/model-factories";
@@ -126,8 +127,11 @@ export function AssetPanel({
   const hydraulicModel = useAtomValue(stagingModelAtom);
   const { labelManager } = useAtomValue(modelFactoriesAtom);
   const projectSettings = useAtomValue(projectSettingsAtom);
+  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const rep = usePersistence();
-  const transact = rep.useTransact();
+  const transactDeprecated = rep.useTransactDeprecated();
+  const { transact: transactNew } = useModelTransaction();
+  const transact = isStateRefactorOn ? transactNew : transactDeprecated;
   const userTracking = useUserTracking();
   const translate = useTranslate();
 

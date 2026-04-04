@@ -17,7 +17,7 @@ describe("Persistence putDemands", () => {
     setInitialState({ store, hydraulicModel: model });
     store.set(modelFactoriesAtom, factories);
     const persistence = new Persistence(store);
-    const transact = persistence.useTransact();
+    const transact = persistence.useTransactDeprecated();
 
     transact({
       note: "no demand change",

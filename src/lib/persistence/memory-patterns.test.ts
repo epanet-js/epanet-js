@@ -27,7 +27,7 @@ describe("Persistence putPatterns", () => {
     const model = HydraulicModelBuilder.with().build();
     setInitialState({ store, hydraulicModel: model });
     const persistence = new Persistence(store);
-    const transact = persistence.useTransact();
+    const transact = persistence.useTransactDeprecated();
 
     const patterns = makeDemandPatterns([
       { id: 1, label: "MyPattern", multipliers: [1, 2, 3] },
@@ -49,7 +49,7 @@ describe("Persistence putPatterns", () => {
       .build();
     setInitialState({ store, hydraulicModel: model });
     const persistence = new Persistence(store);
-    const transact = persistence.useTransact();
+    const transact = persistence.useTransactDeprecated();
 
     const patterns = makeDemandPatterns([{ id: 1, label: "RenamedPattern" }]);
 
@@ -71,7 +71,7 @@ describe("Persistence putPatterns", () => {
       .build();
     setInitialState({ store, hydraulicModel: model });
     const persistence = new Persistence(store);
-    const transact = persistence.useTransact();
+    const transact = persistence.useTransactDeprecated();
 
     const patterns = makeDemandPatterns([{ id: 1, label: "KeepThis" }]);
 
@@ -94,7 +94,7 @@ describe("Persistence putPatterns undo/redo", () => {
       .build();
     setInitialState({ store, hydraulicModel: model });
     const persistence = new Persistence(store);
-    const transact = persistence.useTransact();
+    const transact = persistence.useTransactDeprecated();
     const historyControl = persistence.useHistoryControl();
 
     const patterns = makeDemandPatterns([
@@ -121,7 +121,7 @@ describe("Persistence putPatterns undo/redo", () => {
       .build();
     setInitialState({ store, hydraulicModel: model });
     const persistence = new Persistence(store);
-    const transact = persistence.useTransact();
+    const transact = persistence.useTransactDeprecated();
     const historyControl = persistence.useHistoryControl();
 
     const patterns = makeDemandPatterns([
@@ -146,7 +146,7 @@ describe("Persistence putPatterns undo/redo", () => {
       .build();
     setInitialState({ store, hydraulicModel: model });
     const persistence = new Persistence(store);
-    const transact = persistence.useTransact();
+    const transact = persistence.useTransactDeprecated();
     const historyControl = persistence.useHistoryControl();
 
     // Remove PAT2
@@ -173,7 +173,7 @@ describe("Persistence putPatterns undo/redo", () => {
       .build();
     setInitialState({ store, hydraulicModel: model });
     const persistence = new Persistence(store);
-    const transact = persistence.useTransact();
+    const transact = persistence.useTransactDeprecated();
     const historyControl = persistence.useHistoryControl();
 
     // Rename pattern
@@ -209,7 +209,7 @@ describe("Persistence putPatterns undo/redo", () => {
     const model = HydraulicModelBuilder.with().build();
     setInitialState({ store, hydraulicModel: model });
     const persistence = new Persistence(store);
-    const transact = persistence.useTransact();
+    const transact = persistence.useTransactDeprecated();
     const historyControl = persistence.useHistoryControl();
 
     // Add a new pattern

@@ -6,6 +6,8 @@ import { selectionAtom } from "src/state/selection";
 import { disconnectCustomers } from "src/hydraulic-model/model-operations";
 import { usePersistence } from "src/lib/persistence";
 import { useUserTracking } from "src/infra/user-tracking";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { useModelTransaction } from "src/hooks/use-model-transaction";
 
 export const connectCustomersShortcut = "shift+c";
 export const disconnectCustomersShortcut = "shift+d";
@@ -45,8 +47,11 @@ export const useConnectCustomerPoints = () => {
 export const useDisconnectCustomerPoints = () => {
   const selection = useAtomValue(selectionAtom);
   const hydraulicModel = useAtomValue(stagingModelAtom);
+  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const rep = usePersistence();
-  const transact = rep.useTransact();
+  const transactDeprecated = rep.useTransactDeprecated();
+  const { transact: transactNew } = useModelTransaction();
+  const transact = isStateRefactorOn ? transactNew : transactDeprecated;
   const userTracking = useUserTracking();
 
   const disconnectCustomerPoints = useCallback(
