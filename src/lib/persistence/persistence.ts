@@ -74,7 +74,7 @@ export class Persistence implements IPersistenceWithSnapshots {
   constructor(store: Store) {
     this.store = store;
   }
-  useTransactImport() {
+  useTransactImportDeprecated() {
     return (
       hydraulicModel: HydraulicModel,
       factories: ModelFactories,

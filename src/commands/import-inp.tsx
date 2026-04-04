@@ -40,7 +40,7 @@ export const useImportInp = () => {
   const map = useContext(MapContext);
   const setFileInfo = useSetAtom(fileInfoAtom);
   const rep = usePersistence();
-  const transactImport = rep.useTransactImport();
+  const transactImportDeprecated = rep.useTransactImportDeprecated();
   const userTracking = useUserTracking();
   const isWaterAgeOn = useFeatureFlag("FLAG_WATER_AGE");
   const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
@@ -75,7 +75,7 @@ export const useImportInp = () => {
           autoElevations: options?.autoElevations,
         });
       } else {
-        transactImport(
+        transactImportDeprecated(
           hydraulicModel,
           factories,
           projectSettings,
@@ -139,7 +139,7 @@ export const useImportInp = () => {
       map,
       setDialogState,
       setFileInfo,
-      transactImport,
+      transactImportDeprecated,
     ],
   );
 

@@ -71,7 +71,7 @@ type SubmitProps = {
 export const CreateNew = () => {
   const translate = useTranslate();
   const rep = usePersistence();
-  const transactImport = rep.useTransactImport();
+  const transactImportDeprecated = rep.useTransactImportDeprecated();
   const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const { initializeProject } = useProjectInitialization();
   const setFileInfo = useSetAtom(fileInfoAtom);
@@ -143,7 +143,7 @@ export const CreateNew = () => {
           autoElevations: projection.id !== "xy-grid",
         });
       } else {
-        transactImport(
+        transactImportDeprecated(
           hydraulicModel,
           factories,
           projectSettings,
@@ -173,7 +173,7 @@ export const CreateNew = () => {
       setFileInfo,
       setGridPreview,
       setGridHidden,
-      transactImport,
+      transactImportDeprecated,
       userTracking,
     ],
   );

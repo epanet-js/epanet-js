@@ -56,7 +56,7 @@ export const ImportCustomerPointsWizard: React.FC<
   const simulationSettings = useAtomValue(simulationSettingsAtom);
   const projectSettings = useAtomValue(projectSettingsAtom);
   const rep = usePersistence();
-  const transactImport = rep.useTransactImport();
+  const transactImportDeprecated = rep.useTransactImportDeprecated();
   const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const { initializeProject } = useProjectInitialization();
 
@@ -135,7 +135,7 @@ export const ImportCustomerPointsWizard: React.FC<
           simulationSettings,
         });
       } else {
-        transactImport(
+        transactImportDeprecated(
           updatedHydraulicModel,
           factories,
           projectSettings,
@@ -172,7 +172,7 @@ export const ImportCustomerPointsWizard: React.FC<
     simulationSettings,
     isStateRefactorOn,
     initializeProject,
-    transactImport,
+    transactImportDeprecated,
     userTracking,
     translate,
     handleClose,

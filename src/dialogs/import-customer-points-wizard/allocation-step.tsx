@@ -41,7 +41,7 @@ export const AllocationStep: React.FC<{
   const translate = useTranslate();
   const userTracking = useUserTracking();
   const rep = usePersistence();
-  const transactImport = rep.useTransactImport();
+  const transactImportDeprecated = rep.useTransactImportDeprecated();
   const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const { initializeProject } = useProjectInitialization();
   const {
@@ -99,7 +99,7 @@ export const AllocationStep: React.FC<{
           simulationSettings,
         });
       } else {
-        transactImport(
+        transactImportDeprecated(
           updatedHydraulicModel,
           factories,
           projectSettings,
@@ -140,7 +140,7 @@ export const AllocationStep: React.FC<{
     setProcessing,
     isStateRefactorOn,
     initializeProject,
-    transactImport,
+    transactImportDeprecated,
     userTracking,
     setError,
     translate,

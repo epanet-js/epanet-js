@@ -47,7 +47,7 @@ export interface IPersistence {
   useHistoryControl(): (direction: "undo" | "redo") => void;
 
   useTransact(): (moment: ModelMoment) => void;
-  useTransactImport(): (
+  useTransactImportDeprecated(): (
     hydraulicModel: HydraulicModel,
     factories: ModelFactories,
     projectSettings: ProjectSettings,
