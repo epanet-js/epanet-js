@@ -71,7 +71,6 @@ export const useImportInp = () => {
           hydraulicModel,
           factories,
           projectSettings,
-          name: file.name,
           simulationSettings,
           autoElevations: options?.autoElevations,
         });

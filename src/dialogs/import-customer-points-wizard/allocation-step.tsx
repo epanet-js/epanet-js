@@ -96,7 +96,6 @@ export const AllocationStep: React.FC<{
           hydraulicModel: updatedHydraulicModel,
           factories,
           projectSettings,
-          name: "customerpoints",
           simulationSettings,
         });
       } else {

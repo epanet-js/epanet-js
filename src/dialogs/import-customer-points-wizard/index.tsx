@@ -132,7 +132,6 @@ export const ImportCustomerPointsWizard: React.FC<
           hydraulicModel: updatedHydraulicModel,
           factories,
           projectSettings,
-          name: "customerpoints",
           simulationSettings,
         });
       } else {

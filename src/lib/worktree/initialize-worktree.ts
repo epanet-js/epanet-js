@@ -4,7 +4,7 @@ import type { SimulationSettings } from "src/simulation/simulation-settings";
 import type { Snapshot, Worktree } from "./types";
 
 type InitializeWorktreeInput = {
-  snapshotMoment: ModelMoment;
+  snapshotMoment?: ModelMoment;
   momentLog: MomentLog;
   version: string;
   simulationSettings: SimulationSettings;
@@ -20,7 +20,7 @@ export const initializeWorktree = ({
     id: "main",
     name: "Main",
     parentId: null,
-    deltas: [snapshotMoment],
+    deltas: snapshotMoment ? [snapshotMoment] : [],
     version,
     momentLog,
     simulation: { status: "idle" },

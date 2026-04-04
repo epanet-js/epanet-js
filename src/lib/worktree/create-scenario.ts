@@ -12,10 +12,12 @@ export const createScenario = (
     throw new Error("Main snapshot not found");
   }
 
-  const baseMoment = mainSnapshot.deltas[0] ?? { note: "Empty" };
   const newNumber = worktree.highestScenarioNumber + 1;
   const newMomentLog = new MomentLog();
-  newMomentLog.setSnapshot(baseMoment, mainSnapshot.version);
+  const baseMoment = mainSnapshot.deltas[0];
+  if (baseMoment) {
+    newMomentLog.setSnapshot(baseMoment, mainSnapshot.version);
+  }
 
   const newScenario: Snapshot = {
     id: nanoid(),

@@ -516,6 +516,26 @@ export class Persistence implements IPersistenceWithSnapshots {
       throw new Error(`Snapshot ${snapshotId} not found`);
     }
 
+    const mainSnapshot = worktree.snapshots.get(worktree.mainId);
+    const mainHasNoDeltas =
+      mainSnapshot !== undefined && mainSnapshot.deltas.length === 0;
+
+    const factories = this.store.get(modelFactoriesAtom);
+    const labelManager = new LabelManager(factories.labelCounters);
+
+    if (mainHasNoDeltas) {
+      const baseModel = this.store.get(baseModelAtom);
+      const model = { ...baseModel };
+
+      const allDeltas = [...snapshot.deltas, ...snapshot.momentLog.getDeltas()];
+
+      for (const delta of allDeltas) {
+        applyMomentToModel(model, delta, labelManager);
+      }
+
+      return { model, labelManager };
+    }
+
     const allDeltas: ModelMoment[] = [];
     let current: Snapshot | undefined = snapshot;
 
@@ -529,8 +549,6 @@ export class Persistence implements IPersistenceWithSnapshots {
     const momentLogDeltas = snapshot.momentLog.getDeltas();
     allDeltas.push(...momentLogDeltas);
 
-    const factories = this.store.get(modelFactoriesAtom);
-    const labelManager = new LabelManager(factories.labelCounters);
     const model = initializeHydraulicModel({
       idGenerator: factories.idGenerator,
     });
