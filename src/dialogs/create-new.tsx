@@ -135,7 +135,7 @@ export const CreateNew = () => {
       setGridPreview(false);
       setGridHidden(false);
       if (isStateRefactorOn) {
-        initializeProject({
+        void initializeProject({
           hydraulicModel,
           factories,
           projectSettings,
