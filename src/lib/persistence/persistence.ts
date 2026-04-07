@@ -147,7 +147,7 @@ export class Persistence implements IPersistenceWithSnapshots {
     };
   }
 
-  useTransactReprojection() {
+  useTransactReprojectionDeprecated() {
     return async (newProjection: Projection, currentProjection: Projection) => {
       const hydraulicModel = this.store.get(stagingModelAtom);
       const simulationSettings = this.store.get(simulationSettingsAtom);

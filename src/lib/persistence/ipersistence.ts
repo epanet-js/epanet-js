@@ -55,7 +55,7 @@ export interface IPersistence {
     options?: { autoElevations?: boolean },
   ) => void;
 
-  useTransactReprojection(): (
+  useTransactReprojectionDeprecated(): (
     newProjection: Projection,
     currentProjection: Projection,
   ) => Promise<void>;

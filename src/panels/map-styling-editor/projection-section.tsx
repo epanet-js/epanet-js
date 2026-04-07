@@ -13,6 +13,8 @@ import type { Projection } from "src/lib/projections/projection";
 import { inverseProjectGeoJson } from "src/lib/projections";
 import { chooseUnitSystem } from "src/simulation/build-inp";
 import { usePersistence } from "src/lib/persistence";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { useReprojectionReset } from "src/hooks/use-reprojection-reset";
 import { MapContext } from "src/map";
 import { captureError } from "src/infra/error-tracking";
 import { hasScenariosAtom } from "src/state/scenarios";
@@ -26,7 +28,10 @@ export const ProjectionSection = () => {
   const setDialogState = useSetAtom(dialogAtom);
   const map = useContext(MapContext);
   const rep = usePersistence();
-  const transactReprojection = rep.useTransactReprojection();
+  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
+  const transactReprojectionDeprecated =
+    rep.useTransactReprojectionDeprecated();
+  const { reprojectionReset } = useReprojectionReset();
   const hasScenarios = useAtomValue(hasScenariosAtom);
   const isXYGrid = projection.type === "xy-grid";
   const isReprojectWgs84On = useFeatureFlag("FLAG_REPROJECT_WGS84");
@@ -47,7 +52,11 @@ export const ProjectionSection = () => {
       onImportWithProjection: async (newProjection: Projection, extent) => {
         setDialogState({ type: "loading" });
         try {
-          await transactReprojection(newProjection, projection);
+          if (isStateRefactorOn) {
+            await reprojectionReset(newProjection, projection);
+          } else {
+            await transactReprojectionDeprecated(newProjection, projection);
+          }
           if (extent) {
             map?.map.once("idle", () => {
               map.map.fitBounds(extent as LngLatBoundsLike, {
