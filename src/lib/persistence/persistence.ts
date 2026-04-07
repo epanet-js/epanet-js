@@ -330,14 +330,6 @@ export class Persistence implements IPersistenceWithSnapshots {
     this.store.set(modelCacheAtom, cache);
   }
 
-  getMomentLog(): MomentLog {
-    return this.store.get(momentLogAtom);
-  }
-
-  getSimulation(): SimulationState {
-    return this.store.get(simulationAtom);
-  }
-
   syncSnapshotSimulation(simulation: SimulationState): void {
     const worktree = this.store.get(worktreeAtom);
     const snapshot = worktree.snapshots.get(worktree.activeSnapshotId);

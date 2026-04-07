@@ -7,7 +7,6 @@ import { ProjectSettings } from "src/lib/project-settings";
 import type { Projection } from "src/lib/projections/projection";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
 import type { SimulationState } from "src/state/simulation";
-import type { MomentLog } from "src/lib/persistence/moment-log";
 
 export type PersistenceMetadataMemory = {
   type: "memory";
@@ -63,8 +62,6 @@ export interface IPersistence {
 }
 
 export interface IPersistenceWithSnapshots extends IPersistence {
-  getMomentLog(): MomentLog;
-  getSimulation(): SimulationState;
   syncSnapshotSimulation(simulation: SimulationState): void;
   deleteSnapshotFromCache(snapshotId: string): void;
 }
