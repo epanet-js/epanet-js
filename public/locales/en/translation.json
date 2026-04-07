@@ -201,6 +201,7 @@
   "runningSimulation": "Running simulation at",
   "runningHydraulicAnalysis": "Running hydraulic simulation at",
   "runningQualityAnalysis": "Running water quality simulation at",
+  "finalizingSimulation": "Finalizing simulation…",
   "notAvailable": "Not available",
   "pressure": "Pressure",
   "pressures": "Pressures",

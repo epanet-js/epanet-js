@@ -584,6 +584,19 @@ body.dark .mapboxgl-ctrl-attrib-button {
   }
 }
 
+@keyframes progressIndeterminate {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(400%);
+  }
+}
+
+.progress-indeterminate {
+  animation: progressIndeterminate 1.2s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .placemark-appear {
     animation-duration: 400ms;

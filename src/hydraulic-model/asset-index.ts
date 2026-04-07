@@ -12,6 +12,7 @@ import {
 import { AssetId, AssetType, LinkType, NodeType } from "./asset-types";
 import { IdGenerator } from "src/lib/id-generator";
 import { AssetsMap } from "./assets-map";
+import { captureWarning } from "src/infra/error-tracking";
 
 export interface AssetIndexQueries {
   get linkCount(): number;
@@ -297,9 +298,26 @@ export class AssetIndexEncoder {
     private assetIndex: AssetIndexQueries,
     bufferType: BufferType = "array",
   ) {
+    const reportedMaxId = this.assetIndex.maxAssetId;
+    let observedMaxId = 0;
+    for (const [id] of this.assetIndex.iterateLinks()) {
+      if (id > observedMaxId) observedMaxId = id;
+    }
+    for (const [id] of this.assetIndex.iterateNodes()) {
+      if (id > observedMaxId) observedMaxId = id;
+    }
+    if (observedMaxId > reportedMaxId) {
+      captureWarning(
+        `AssetIndexEncoder: maxAssetId out of sync with index ` +
+          `(observed=${observedMaxId} reported=${reportedMaxId} ` +
+          `linkCount=${this.assetIndex.linkCount} nodeCount=${this.assetIndex.nodeCount})`,
+      );
+    }
+    const safeMaxId = Math.max(reportedMaxId, observedMaxId);
+
     this.indexBuilder = new FixedSizeBufferBuilder<AssetIndexEntry>(
       ASSET_INDEX_SIZE,
-      this.assetIndex.maxAssetId + 1,
+      safeMaxId + 1,
       bufferType,
       encodeAssetIndex,
       ASSET_INDEX_CUSTOM_HEADER_SIZE,

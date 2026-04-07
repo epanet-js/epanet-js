@@ -206,8 +206,46 @@ describe("EPS simulation", () => {
 
     await runSimulation(inp, "test-app-id", onProgress);
 
-    expect(progressUpdates.length).toBe(3); // initial + 2 timesteps
-    expect(progressUpdates[0].totalDuration).toBe(7200);
-    expect(progressUpdates[progressUpdates.length - 1].currentTime).toBe(7200);
+    const hydraulicUpdates = progressUpdates.filter(
+      (p) => p.phase === "hydraulic",
+    );
+    expect(hydraulicUpdates.length).toBe(3); // initial + 2 timesteps
+    expect(hydraulicUpdates[0].totalDuration).toBe(7200);
+    expect(hydraulicUpdates[hydraulicUpdates.length - 1].currentTime).toBe(
+      7200,
+    );
+  });
+
+  it("emits a finalizing progress event after the hydraulic loop", async () => {
+    const IDS = { R1: 1, J1: 2, P1: 3 } as const;
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aReservoir(IDS.R1)
+      .aJunction(IDS.J1)
+      .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
+      .build();
+    const simulationSettings = SimulationSettingsBuilder.with()
+      .timing({ duration: 7200, hydraulicTimestep: 3600 })
+      .build();
+    const inp = buildInp(hydraulicModel, {
+      units: presets.LPS.units,
+      simulationSettings,
+    });
+
+    const progressUpdates: SimulationProgress[] = [];
+    const onProgress = (progress: SimulationProgress) => {
+      progressUpdates.push(progress);
+    };
+
+    await runSimulation(inp, "test-finalizing", onProgress);
+
+    const finalizingUpdates = progressUpdates.filter(
+      (p) => p.phase === "finalizing",
+    );
+    expect(finalizingUpdates.length).toBe(1);
+    expect(finalizingUpdates[0].currentTime).toBe(7200);
+    expect(finalizingUpdates[0].totalDuration).toBe(7200);
+    expect(progressUpdates[progressUpdates.length - 1].phase).toBe(
+      "finalizing",
+    );
   });
 });
