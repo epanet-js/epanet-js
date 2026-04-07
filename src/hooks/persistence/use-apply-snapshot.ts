@@ -2,7 +2,6 @@ import { useCallback } from "react";
 import { useAtomCallback } from "jotai/utils";
 import type { Getter, Setter } from "jotai";
 import type { HydraulicModel } from "src/hydraulic-model";
-import { applyMomentToModel, copyModel } from "src/hydraulic-model";
 import { initializeModelFactories } from "src/hydraulic-model/factories";
 import { LabelManager } from "src/hydraulic-model/label-manager";
 import { modelFactoriesAtom } from "src/state/model-factories";
@@ -23,54 +22,16 @@ import type { Worktree } from "src/lib/worktree/types";
 import { USelection } from "src/selection";
 import type { MomentLog } from "src/lib/persistence/moment-log";
 
-function buildModelFromDeltas(
+function getModelFromCache(
   get: Getter,
-  worktree: Worktree,
-  snapshotId: string,
-): { model: HydraulicModel; labelManager: LabelManager } {
-  const snapshot = worktree.snapshots.get(snapshotId);
-  if (!snapshot) {
-    throw new Error(`Snapshot ${snapshotId} not found`);
-  }
-
-  const factories = get(modelFactoriesAtom);
-  const labelManager = new LabelManager(factories.labelCounters);
-  const baseModel = get(baseModelAtom);
-  const model = copyModel(baseModel);
-
-  const allDeltas = [...snapshot.deltas, ...snapshot.momentLog.getDeltas()];
-
-  for (const delta of allDeltas) {
-    applyMomentToModel(model, delta, labelManager);
-  }
-
-  return { model, labelManager };
-}
-
-function getOrBuildModel(
-  get: Getter,
-  set: Setter,
-  worktree: Worktree,
   snapshotId: string,
 ): { model: HydraulicModel; labelManager: LabelManager } {
   const cache = get(modelCacheAtom);
   const cached = cache.get(snapshotId);
-  if (cached) {
-    return cached;
+  if (!cached) {
+    throw new Error(`Model cache miss for snapshot ${snapshotId}`);
   }
-
-  // eslint-disable-next-line no-console
-  console.warn(
-    "DEBUG: Model cache miss for snapshot",
-    snapshotId,
-    "— falling back to delta rebuild",
-  );
-  const result = buildModelFromDeltas(get, worktree, snapshotId);
-  const updatedCache = new Map(cache);
-  updatedCache.set(snapshotId, result);
-  set(modelCacheAtom, updatedCache);
-
-  return result;
+  return cached;
 }
 
 function switchMomentLog(get: Getter, set: Setter, momentLog: MomentLog): void {
@@ -156,13 +117,8 @@ export const useApplySnapshot = () => {
             : undefined;
 
         const { model: stagingModel, labelManager: snapshotLabelManager } =
-          getOrBuildModel(get, set, worktree, snapshotId);
-        const { model: baseModel } = getOrBuildModel(
-          get,
-          set,
-          worktree,
-          worktree.mainId,
-        );
+          getModelFromCache(get, snapshotId);
+        const { model: baseModel } = getModelFromCache(get, worktree.mainId);
 
         const simulation = getSimulationForState(
           worktree,
