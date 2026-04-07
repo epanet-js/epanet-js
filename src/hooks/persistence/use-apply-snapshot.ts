@@ -22,16 +22,52 @@ import type { Worktree } from "src/lib/worktree/types";
 import { USelection } from "src/selection";
 import type { MomentLog } from "src/lib/persistence/moment-log";
 
-function getModelFromCache(
+type SimulationState = import("src/state/simulation").SimulationState;
+
+function getModelsFromCache(
   get: Getter,
   snapshotId: string,
-): { model: HydraulicModel; labelManager: LabelManager } {
+  mainId: string,
+): {
+  stagingModel: HydraulicModel;
+  baseModel: HydraulicModel;
+  labelManager: LabelManager;
+} {
   const cache = get(modelCacheAtom);
-  const cached = cache.get(snapshotId);
-  if (!cached) {
+  const snapshotEntry = cache.get(snapshotId);
+  if (!snapshotEntry) {
     throw new Error(`Model cache miss for snapshot ${snapshotId}`);
   }
-  return cached;
+  const mainEntry = cache.get(mainId);
+  if (!mainEntry) {
+    throw new Error(`Model cache miss for snapshot ${mainId}`);
+  }
+  return {
+    stagingModel: snapshotEntry.model,
+    baseModel: mainEntry.model,
+    labelManager: snapshotEntry.labelManager,
+  };
+}
+
+function setModelState(
+  get: Getter,
+  set: Setter,
+  stagingModel: HydraulicModel,
+  baseModel: HydraulicModel,
+  labelManager: LabelManager,
+): void {
+  const currentFactories = get(modelFactoriesAtom);
+  set(stagingModelAtom, stagingModel);
+  set(baseModelAtom, baseModel);
+  set(
+    modelFactoriesAtom,
+    initializeModelFactories({
+      idGenerator: currentFactories.idGenerator,
+      labelManager,
+      defaults: get(projectSettingsAtom).defaults,
+      labelCounters: currentFactories.labelCounters,
+    }),
+  );
 }
 
 function switchMomentLog(get: Getter, set: Setter, momentLog: MomentLog): void {
@@ -43,7 +79,71 @@ function switchMomentLog(get: Getter, set: Setter, momentLog: MomentLog): void {
   });
 }
 
-async function loadSimulationResults(
+function setSimulationState(
+  set: Setter,
+  simulation: SimulationState,
+  resultsReader: Awaited<
+    ReturnType<
+      import("src/simulation").EPSResultsReader["getResultsForTimestep"]
+    >
+  > | null,
+  simulationSettings: import("src/simulation/simulation-settings").SimulationSettings,
+): void {
+  set(simulationAtom, simulation);
+  set(simulationResultsAtom, resultsReader);
+  set(simulationSettingsAtom, simulationSettings);
+}
+
+function validateSelection(
+  get: Getter,
+  set: Setter,
+  model: HydraulicModel,
+): void {
+  const selection = get(selectionAtom);
+  const validatedSelection = USelection.clearInvalidIds(
+    selection,
+    model.assets,
+    model.customerPoints,
+  );
+  set(selectionAtom, { ...validatedSelection });
+}
+
+async function prepareSimulation(
+  get: Getter,
+  worktree: Worktree,
+  snapshot: NonNullable<ReturnType<Worktree["snapshots"]["get"]>>,
+): Promise<{
+  finalSimulation: SimulationState;
+  resultsReader: Awaited<
+    ReturnType<
+      import("src/simulation").EPSResultsReader["getResultsForTimestep"]
+    >
+  > | null;
+}> {
+  const currentSimulation = get(simulationAtom);
+  const preserveTimestepIndex =
+    currentSimulation.status === "success" ||
+    currentSimulation.status === "warning"
+      ? currentSimulation.currentTimestepIndex
+      : undefined;
+
+  const simulation = getSimulationForState(worktree, initialSimulationState);
+  const { resultsReader, actualTimestepIndex } = await fetchSimulationResults(
+    simulation,
+    snapshot.simulationSourceId,
+    preserveTimestepIndex,
+  );
+
+  const finalSimulation =
+    actualTimestepIndex !== undefined &&
+    (simulation.status === "success" || simulation.status === "warning")
+      ? { ...simulation, currentTimestepIndex: actualTimestepIndex }
+      : simulation;
+
+  return { finalSimulation, resultsReader };
+}
+
+async function fetchSimulationResults(
   simulation: SimulationState,
   snapshotId: string,
   preserveTimestepIndex?: number,
@@ -87,8 +187,6 @@ async function loadSimulationResults(
   return { resultsReader: null };
 }
 
-type SimulationState = import("src/state/simulation").SimulationState;
-
 export const useApplySnapshot = () => {
   const applySnapshot = useAtomCallback(
     useCallback(
@@ -101,59 +199,26 @@ export const useApplySnapshot = () => {
         const snapshot = worktree.snapshots.get(snapshotId);
         if (!snapshot) return;
 
-        const currentSimulation = get(simulationAtom);
-        const preserveTimestepIndex =
-          currentSimulation.status === "success" ||
-          currentSimulation.status === "warning"
-            ? currentSimulation.currentTimestepIndex
-            : undefined;
-
-        const { model: stagingModel, labelManager: snapshotLabelManager } =
-          getModelFromCache(get, snapshotId);
-        const { model: baseModel } = getModelFromCache(get, worktree.mainId);
-
-        const simulation = getSimulationForState(
+        const { finalSimulation, resultsReader } = await prepareSimulation(
+          get,
           worktree,
-          initialSimulationState,
+          snapshot,
         );
-        const resultsSourceId = snapshot.simulationSourceId;
-        const { resultsReader, actualTimestepIndex } =
-          await loadSimulationResults(
-            simulation,
-            resultsSourceId,
-            preserveTimestepIndex,
-          );
-
-        const finalSimulation =
-          actualTimestepIndex !== undefined &&
-          (simulation.status === "success" || simulation.status === "warning")
-            ? { ...simulation, currentTimestepIndex: actualTimestepIndex }
-            : simulation;
-
-        const currentFactories = get(modelFactoriesAtom);
-        set(stagingModelAtom, stagingModel);
-        set(baseModelAtom, baseModel);
-        set(
-          modelFactoriesAtom,
-          initializeModelFactories({
-            idGenerator: currentFactories.idGenerator,
-            labelManager: snapshotLabelManager,
-            defaults: get(projectSettingsAtom).defaults,
-            labelCounters: currentFactories.labelCounters,
-          }),
+        const { stagingModel, baseModel, labelManager } = getModelsFromCache(
+          get,
+          snapshotId,
+          worktree.mainId,
         );
+
+        setModelState(get, set, stagingModel, baseModel, labelManager);
         switchMomentLog(get, set, snapshot.momentLog);
-        set(simulationAtom, finalSimulation);
-        set(simulationResultsAtom, resultsReader);
-        set(simulationSettingsAtom, snapshot.simulationSettings);
-
-        const selection = get(selectionAtom);
-        const validatedSelection = USelection.clearInvalidIds(
-          selection,
-          stagingModel.assets,
-          stagingModel.customerPoints,
+        setSimulationState(
+          set,
+          finalSimulation,
+          resultsReader,
+          snapshot.simulationSettings,
         );
-        set(selectionAtom, { ...validatedSelection });
+        validateSelection(get, set, stagingModel);
       },
       [],
     ),
