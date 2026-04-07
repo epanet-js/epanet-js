@@ -245,6 +245,7 @@ const buildXAxis = (
       interval: xAxisInterval,
       color: colors.gray500,
       fontSize: 12,
+      hideOverlap: true,
     },
     axisLine: { show: true, lineStyle: { color: colors.gray300 } },
   };
