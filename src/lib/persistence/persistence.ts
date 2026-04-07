@@ -322,7 +322,10 @@ export class Persistence implements IPersistenceWithSnapshots {
     });
   }
 
-  async applySnapshot(worktree: Worktree, snapshotId: string): Promise<void> {
+  async applySnapshotDeprecated(
+    worktree: Worktree,
+    snapshotId: string,
+  ): Promise<void> {
     const snapshot = worktree.snapshots.get(snapshotId);
     if (!snapshot) return;
 

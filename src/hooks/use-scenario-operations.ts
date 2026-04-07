@@ -2,6 +2,8 @@ import { useSetAtom } from "jotai";
 import { useAtomCallback } from "jotai/utils";
 import { useCallback } from "react";
 import { usePersistenceWithSnapshots, Persistence } from "src/lib/persistence";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { useApplySnapshot } from "src/hooks/use-apply-snapshot";
 import { worktreeAtom } from "src/state/scenarios";
 import { simulationSettingsAtom } from "src/state/simulation-settings";
 import { modeAtom, Mode } from "src/state/mode";
@@ -42,6 +44,8 @@ const saveSettingsToOutgoingSnapshot = (
 
 export const useScenarioOperations = () => {
   const persistence = usePersistenceWithSnapshots();
+  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
+  const { applySnapshot } = useApplySnapshot();
   const setWorktree = useSetAtom(worktreeAtom);
   const setMode = useSetAtom(modeAtom);
 
@@ -50,10 +54,14 @@ export const useScenarioOperations = () => {
       const result = switchToSnapshotFn(worktree, snapshotId);
 
       if (result.snapshot) {
-        await (persistence as Persistence).applySnapshot(
-          result.worktree,
-          result.snapshot.id,
-        );
+        if (isStateRefactorOn) {
+          await applySnapshot(result.worktree, result.snapshot.id);
+        } else {
+          await (persistence as Persistence).applySnapshotDeprecated(
+            result.worktree,
+            result.snapshot.id,
+          );
+        }
       }
 
       setWorktree(result.worktree);
@@ -70,7 +78,7 @@ export const useScenarioOperations = () => {
 
       return result;
     },
-    [persistence, setWorktree, setMode],
+    [persistence, isStateRefactorOn, applySnapshot, setWorktree, setMode],
   );
 
   const switchToSnapshot = useAtomCallback(
@@ -119,10 +127,14 @@ export const useScenarioOperations = () => {
         );
 
         if (result.snapshot) {
-          await (persistence as Persistence).applySnapshot(
-            result.worktree,
-            result.snapshot.id,
-          );
+          if (isStateRefactorOn) {
+            await applySnapshot(result.worktree, result.snapshot.id);
+          } else {
+            await (persistence as Persistence).applySnapshotDeprecated(
+              result.worktree,
+              result.snapshot.id,
+            );
+          }
         }
 
         setWorktree(result.worktree);
@@ -132,7 +144,7 @@ export const useScenarioOperations = () => {
           scenarioName: created.scenario.name,
         };
       },
-      [persistence, setWorktree],
+      [persistence, isStateRefactorOn, applySnapshot, setWorktree],
     ),
   );
 
@@ -150,15 +162,19 @@ export const useScenarioOperations = () => {
         persistence.deleteSnapshotFromCache(scenarioId);
 
         if (result.snapshot) {
-          await (persistence as Persistence).applySnapshot(
-            result.worktree,
-            result.snapshot.id,
-          );
+          if (isStateRefactorOn) {
+            await applySnapshot(result.worktree, result.snapshot.id);
+          } else {
+            await (persistence as Persistence).applySnapshotDeprecated(
+              result.worktree,
+              result.snapshot.id,
+            );
+          }
         }
 
         setWorktree(result.worktree);
       },
-      [persistence, setWorktree],
+      [persistence, isStateRefactorOn, applySnapshot, setWorktree],
     ),
   );
 
