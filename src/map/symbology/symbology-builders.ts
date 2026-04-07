@@ -8,10 +8,8 @@ import {
 } from "./symbology-types";
 import { nullLabelRule } from "./labeling";
 import { getSortedValues } from "src/hydraulic-model/assets-map";
-import {
-  getSortedSimulationValues,
-  type ResultsReader,
-} from "src/simulation/results-reader";
+import { type ResultsReader } from "src/simulation/results-reader";
+import { getSortedSimulationValues } from "./symbology-data-source";
 import type { RangeEndpoints } from "./range-color-rule";
 import type { Unit } from "src/quantity";
 
@@ -40,7 +38,7 @@ type SymbologyBuilderFn<T> = (
   resultsReader: ResultsReader,
 ) => () => T;
 
-type DefaultSymbologyBuilders = {
+type SymbologyBuilders = {
   flow: SymbologyBuilderFn<LinkSymbology>;
   diameter: SymbologyBuilderFn<LinkSymbology>;
   roughness: SymbologyBuilderFn<LinkSymbology>;
@@ -54,7 +52,7 @@ type DefaultSymbologyBuilders = {
   none: () => () => { colorRule: null; labelRule: null };
 };
 
-export const defaultSymbologyBuilders: DefaultSymbologyBuilders = {
+export const symbologyBuilders: SymbologyBuilders = {
   none: () => () => {
     return { colorRule: null, labelRule: null };
   },

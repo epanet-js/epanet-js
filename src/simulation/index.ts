@@ -10,10 +10,4 @@ export type {
   JunctionSimulation,
   TankSimulation,
   ResultsReader,
-  SimulationProperty,
-} from "./results-reader";
-export {
-  isSimulationProperty,
-  getSortedSimulationValues,
-  simulationProperties,
 } from "./results-reader";

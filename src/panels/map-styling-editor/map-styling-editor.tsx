@@ -4,20 +4,18 @@ import * as Popover from "@radix-ui/react-popover";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { projectSettingsAtom } from "src/state/project-settings";
-import { stagingModelAtom } from "src/state/hydraulic-model";
 import { showGridAtom } from "src/state/map-projection";
-import { simulationAtom, simulationResultsAtom } from "src/state/simulation";
+import { simulationAtom } from "src/state/simulation";
 import { getSimulationMetadata } from "src/simulation/epanet/simulation-metadata";
 import { Selector, SelectorLikeButton } from "src/components/form/selector";
 import { useUserTracking } from "src/infra/user-tracking";
 import {
   SupportedProperty,
-  nullSymbologySpec,
   supportedLinkProperties,
   supportedNodeProperties,
 } from "src/map/symbology/symbology-types";
 import { useSymbologyState } from "src/state/map-symbology";
-import { defaultSymbologyBuilders } from "src/map/symbology/default-symbology-builders";
+import { useChangeColorBy } from "src/hooks/use-change-color-by";
 import { Checkbox } from "src/components/form/Checkbox";
 import { ColorRampSelector } from "src/components/color-ramp-selector";
 import { RangeColorRuleEditor } from "./range-color-rule-editor";
@@ -136,15 +134,12 @@ const SymbologyEditor = ({
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
   const simulation = useAtomValue(simulationAtom);
-  const simulationResults = useAtomValue(simulationResultsAtom);
 
   const {
     linkSymbology,
     nodeSymbology,
     updateNodeSymbology,
     updateLinkSymbology,
-    switchNodeSymbologyTo,
-    switchLinkSymbologyTo,
     updateNodeDefaultColor,
     updateLinkDefaultColor,
   } = useSymbologyState();
@@ -156,7 +151,8 @@ const SymbologyEditor = ({
     hasCompletedSimulation &&
     getSimulationMetadata(simulation.metadata).qualityType === "age";
   const { units } = useAtomValue(projectSettingsAtom);
-  const hydraulicModel = useAtomValue(stagingModelAtom);
+
+  const changeColorBy = useChangeColorBy(geometryType);
 
   const colorByOptions = useMemo(() => {
     const visibleProperties = isWaterAgeOn
@@ -184,51 +180,6 @@ const SymbologyEditor = ({
   ]);
 
   const userTracking = useUserTracking();
-
-  const handleColorByChange = (property: SelectOption) => {
-    userTracking.capture({
-      name: "map.colorBy.changed",
-      type: geometryType,
-      subtype: property,
-    });
-
-    const isSimulationProperty = simulationProperties.includes(property);
-    const canApplySymbology = !isSimulationProperty || simulationResults;
-
-    if (geometryType === "node") {
-      if (property === "none") {
-        switchNodeSymbologyTo(null, () => nullSymbologySpec.node);
-        return;
-      }
-
-      if (canApplySymbology) {
-        switchNodeSymbologyTo(
-          property,
-          defaultSymbologyBuilders[property](
-            hydraulicModel,
-            units,
-            simulationResults!,
-          ),
-        );
-      }
-    } else {
-      if (property === "none") {
-        switchLinkSymbologyTo(null, () => nullSymbologySpec.link);
-        return;
-      }
-
-      if (canApplySymbology) {
-        switchLinkSymbologyTo(
-          property,
-          defaultSymbologyBuilders[property](
-            hydraulicModel,
-            units,
-            simulationResults!,
-          ),
-        );
-      }
-    }
-  };
 
   const handleLabelRuleChange = (label: string | null) => {
     if (label !== null) {
@@ -287,7 +238,7 @@ const SymbologyEditor = ({
               ? symbology.colorRule.property
               : "none") as SelectOption
           }
-          onChange={handleColorByChange}
+          onChange={changeColorBy}
         />
       </InlineField>
       {symbology.colorRule !== null ? (

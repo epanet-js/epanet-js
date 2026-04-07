@@ -13,11 +13,11 @@ import {
   getDecimals,
 } from "src/lib/project-settings/quantities-spec";
 import {
-  isSimulationProperty,
   type ResultsReader,
   type PipeSimulation,
   type JunctionSimulation,
 } from "src/simulation/results-reader";
+import { isSimulationProperty } from "src/map/symbology/symbology-data-source";
 
 export const buildFeatureId = (assetId: AssetId) => assetId;
 

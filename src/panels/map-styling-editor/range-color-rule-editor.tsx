@@ -1,5 +1,4 @@
 import clsx from "clsx";
-import { useAtomValue } from "jotai";
 import { ColorPopover } from "src/components/color-popover";
 import { Button } from "src/components/elements";
 import { NumericField } from "src/components/form/numeric-field";
@@ -23,19 +22,13 @@ import {
 } from "src/map/symbology/range-color-rule";
 import { useTranslate } from "src/hooks/use-translate";
 import { useCallback, useMemo, useState } from "react";
-import { stagingModelAtom } from "src/state/hydraulic-model";
-import { simulationResultsAtom } from "src/state/simulation";
-import {
-  getSortedSimulationValues,
-  isSimulationProperty,
-} from "src/simulation/results-reader";
+import { useRegenerateBreaks } from "src/hooks/use-regenerate-breaks";
 
 import { Selector } from "src/components/form/selector";
 import * as d3 from "d3-array";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useSymbologyState } from "src/state/map-symbology";
 import { LinkSymbology, NodeSymbology } from "src/map/symbology";
-import { getSortedValues } from "src/hydraulic-model/assets-map";
 import { notify } from "src/components/notifications";
 import { ErrorIcon, AddIcon, DeleteIcon, RefreshIcon } from "src/icons";
 
@@ -47,7 +40,6 @@ export const RangeColorRuleEditor = ({
   geometryType?: "node" | "link";
 }) => {
   const translate = useTranslate();
-  const { assets } = useAtomValue(stagingModelAtom);
   const {
     linkSymbology,
     nodeSymbology,
@@ -56,8 +48,7 @@ export const RangeColorRuleEditor = ({
   } = useSymbologyState();
 
   const userTracking = useUserTracking();
-
-  const simulationResults = useAtomValue(simulationResultsAtom);
+  const { sortedData, regenerate } = useRegenerateBreaks(geometryType);
 
   const symbology = geometryType === "node" ? nodeSymbology : linkSymbology;
 
@@ -81,24 +72,6 @@ export const RangeColorRuleEditor = ({
     },
     [symbology, geometryType, updateNodeSymbology, updateLinkSymbology],
   );
-
-  const sortedData = useMemo(() => {
-    const property = initialColorRule.property;
-    const absValues = Boolean(initialColorRule.absValues);
-
-    if (simulationResults && isSimulationProperty(property)) {
-      return getSortedSimulationValues(simulationResults, property, {
-        absValues,
-      });
-    }
-
-    return getSortedValues(assets, property, { absValues });
-  }, [
-    assets,
-    initialColorRule.property,
-    initialColorRule.absValues,
-    simulationResults,
-  ]);
 
   const [colorRule, setColorRule] = useState<RangeColorRule>(initialColorRule);
 
@@ -276,11 +249,7 @@ export const RangeColorRuleEditor = ({
   };
 
   const handleRegenerate = () => {
-    userTracking.capture({
-      name: "colorRange.breaks.regenerated",
-      property: colorRule.property,
-    });
-    const result = applyMode(colorRule, colorRule.mode, sortedData);
+    const result = regenerate(colorRule);
     setColorRule(result.colorRule);
     if (result.error) {
       showError("notEnoughData", result.colorRule);
