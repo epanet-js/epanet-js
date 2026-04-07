@@ -31,7 +31,7 @@ import { usePersistence } from "src/lib/persistence";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { useTranslate } from "src/hooks/use-translate";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { useProjectInitialization } from "src/hooks/use-project-initialization";
+import { useProjectInitialization } from "src/hooks/persistence/use-project-initialization";
 import { Selector } from "../components/form/selector";
 
 import { useAtomValue, useSetAtom } from "jotai";

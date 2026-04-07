@@ -12,7 +12,7 @@ import { captureError } from "src/infra/error-tracking";
 import { useKeyboardState } from "src/keyboard/use-keyboard-state";
 import throttle from "lodash/throttle";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { useModelTransaction } from "src/hooks/use-model-transaction";
+import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 
 export function useConnectCustomerPointsHandlers({
   hydraulicModel,

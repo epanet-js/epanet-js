@@ -20,7 +20,7 @@ import { stagingModelAtom } from "src/state/hydraulic-model";
 import { simulationSettingsAtom } from "src/state/simulation-settings";
 import { usePersistence } from "src/lib/persistence";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { useModelTransaction } from "src/hooks/use-model-transaction";
+import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 import { HydraulicModel } from "src/hydraulic-model/hydraulic-model";
 import { Reservoir } from "src/hydraulic-model/asset-types/reservoir";
 import { Pump } from "src/hydraulic-model/asset-types/pump";

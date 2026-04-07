@@ -7,7 +7,7 @@ import { disconnectCustomers } from "src/hydraulic-model/model-operations";
 import { usePersistence } from "src/lib/persistence";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { useModelTransaction } from "src/hooks/use-model-transaction";
+import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 
 export const connectCustomersShortcut = "shift+c";
 export const disconnectCustomersShortcut = "shift+d";

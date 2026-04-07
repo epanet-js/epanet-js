@@ -14,7 +14,7 @@ import { useElevations } from "../../elevations/use-elevations";
 import { useSnapping } from "../hooks/use-snapping";
 import { useSelection } from "src/selection";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { useModelTransaction } from "src/hooks/use-model-transaction";
+import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 
 type NodeType = "junction" | "reservoir" | "tank";
 

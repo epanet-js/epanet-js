@@ -30,7 +30,7 @@ import { useRecentFiles } from "src/hooks/use-recent-files";
 import { type Projection, createProjectionMapper } from "src/lib/projections";
 import { transformCoordinates } from "src/hydraulic-model/mutations/transform-coordinates";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { useProjectInitialization } from "src/hooks/use-project-initialization";
+import { useProjectInitialization } from "src/hooks/persistence/use-project-initialization";
 
 export const inpExtension = ".inp";
 

@@ -19,7 +19,7 @@ import { simulationAtom, simulationResultsAtom } from "src/state/simulation";
 import { computeMultiAssetData } from "./data";
 import { BATCH_EDITABLE_PROPERTIES } from "./batch-edit-property-config";
 import { usePersistence } from "src/lib/persistence";
-import { useModelTransaction } from "src/hooks/use-model-transaction";
+import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 import { useUserTracking } from "src/infra/user-tracking";
 import { changeProperty } from "src/hydraulic-model/model-operations";
 import type { ChangeableProperty } from "src/hydraulic-model/model-operations/change-property";

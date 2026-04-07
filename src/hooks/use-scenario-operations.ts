@@ -3,7 +3,7 @@ import { useAtomCallback } from "jotai/utils";
 import { useCallback } from "react";
 import { usePersistenceWithSnapshots, Persistence } from "src/lib/persistence";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { useApplySnapshot } from "src/hooks/use-apply-snapshot";
+import { useApplySnapshot } from "src/hooks/persistence/use-apply-snapshot";
 import { worktreeAtom } from "src/state/scenarios";
 import { simulationSettingsAtom } from "src/state/simulation-settings";
 import { modeAtom, Mode } from "src/state/mode";

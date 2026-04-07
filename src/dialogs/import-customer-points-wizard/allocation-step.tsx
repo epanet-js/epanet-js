@@ -19,7 +19,7 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { notify } from "src/components/notifications";
 import { usePersistence } from "src/lib/persistence";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { useProjectInitialization } from "src/hooks/use-project-initialization";
+import { useProjectInitialization } from "src/hooks/persistence/use-project-initialization";
 import { simulationSettingsAtom } from "src/state/simulation-settings";
 import { Button } from "src/components/elements";
 import { SuccessIcon, WarningIcon } from "src/icons";

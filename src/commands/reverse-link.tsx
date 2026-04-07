@@ -8,7 +8,7 @@ import { USelection } from "src/selection";
 import { stagingModelAtom } from "src/state/hydraulic-model";
 import { selectionAtom } from "src/state/selection";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { useModelTransaction } from "src/hooks/use-model-transaction";
+import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 
 export const reverseLinkShortcut = "r";
 

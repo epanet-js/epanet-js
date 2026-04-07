@@ -13,7 +13,7 @@ import { stagingModelAtom } from "src/state/hydraulic-model";
 import { modeAtom, Mode } from "src/state/mode";
 import { selectionAtom } from "src/state/selection";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { useModelTransaction } from "src/hooks/use-model-transaction";
+import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 export const deleteSelectedShortcuts = ["backspace", "del"];
 
 export const useDeleteSelection = () => {

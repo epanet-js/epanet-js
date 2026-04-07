@@ -27,7 +27,7 @@ import { DEFAULT_SNAP_DISTANCE_PIXELS } from "../../search";
 import { addLink } from "src/hydraulic-model/model-operations";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { useModelTransaction } from "src/hooks/use-model-transaction";
+import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 
 export type SnappingCandidate =
   | NodeAsset

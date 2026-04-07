@@ -22,7 +22,7 @@ import { projectSettingsAtom } from "src/state/project-settings";
 import { stagingModelAtom } from "src/state/hydraulic-model";
 import { usePersistence } from "src/lib/persistence";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { useModelTransaction } from "src/hooks/use-model-transaction";
+import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 import { changeCurves } from "src/hydraulic-model/model-operations/change-curves";
 import { notify } from "src/components/notifications";
 import { useUserTracking } from "src/infra/user-tracking";

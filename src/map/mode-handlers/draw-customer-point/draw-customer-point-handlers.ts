@@ -10,7 +10,7 @@ import { useSelection } from "src/selection";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { selectionAtom } from "src/state/selection";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { useModelTransaction } from "src/hooks/use-model-transaction";
+import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 
 export function useDrawCustomerPointHandlers({
   hydraulicModel,

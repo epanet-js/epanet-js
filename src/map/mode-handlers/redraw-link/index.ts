@@ -10,7 +10,7 @@ import { modelFactoriesAtom } from "src/state/model-factories";
 import measureLength from "@turf/length";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { useModelTransaction } from "src/hooks/use-model-transaction";
+import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 
 export function useRedrawLinkHandlers(
   handlerContext: HandlerContext,

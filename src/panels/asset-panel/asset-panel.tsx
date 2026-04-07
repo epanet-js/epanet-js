@@ -32,7 +32,7 @@ import { UnitsSpec } from "src/lib/project-settings/quantities-spec";
 import { getMinorLossUnit } from "src/lib/project-settings";
 import { useTranslate } from "src/hooks/use-translate";
 import { usePersistence } from "src/lib/persistence";
-import { useModelTransaction } from "src/hooks/use-model-transaction";
+import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 import { useUserTracking } from "src/infra/user-tracking";
 import { stagingModelAtom } from "src/state/hydraulic-model";
 import { modelFactoriesAtom } from "src/state/model-factories";

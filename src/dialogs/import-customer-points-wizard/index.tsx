@@ -24,7 +24,7 @@ import { projectSettingsAtom } from "src/state/project-settings";
 import { addCustomerPoints } from "src/hydraulic-model/mutations/add-customer-points";
 import { usePersistence } from "src/lib/persistence";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { useProjectInitialization } from "src/hooks/use-project-initialization";
+import { useProjectInitialization } from "src/hooks/persistence/use-project-initialization";
 import { notify } from "src/components/notifications";
 import { SuccessIcon } from "src/icons";
 const stepNames = {
