@@ -152,7 +152,7 @@ const SymbologyEditor = ({
     getSimulationMetadata(simulation.metadata).qualityType === "age";
   const { units } = useAtomValue(projectSettingsAtom);
 
-  const changeColorBy = useChangeColorBy(geometryType);
+  const { changeColorBy } = useChangeColorBy(geometryType);
 
   const colorByOptions = useMemo(() => {
     const visibleProperties = isWaterAgeOn

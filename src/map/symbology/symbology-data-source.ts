@@ -1,5 +1,6 @@
 import { HydraulicModel } from "src/hydraulic-model";
 import { getSortedValues } from "src/hydraulic-model/assets-map";
+import { EPSResultsReader } from "src/simulation/epanet/eps-results-reader";
 import { type ResultsReader } from "src/simulation/results-reader";
 
 export const simulationProperties = [
@@ -55,12 +56,11 @@ export const getSortedSimulationValues = (
   return values.sort((a, b) => a - b);
 };
 
-export type BreaksDataMode = "currentStep";
+export type BreaksDataMode = "currentStep" | "initial";
 
-export type SimulationDataSource = {
-  mode: "currentStep";
-  resultsReader: ResultsReader;
-};
+export type SimulationDataSource =
+  | { mode: "currentStep"; resultsReader: ResultsReader }
+  | { mode: "initial"; epsReader: EPSResultsReader };
 
 /**
  * Returns the sorted values to use for break generation for a simulation
@@ -68,17 +68,51 @@ export type SimulationDataSource = {
  * future modes (`initial`, `allSteps`) will widen the union and require an
  * `EPSResultsReader` rather than a per-step `ResultsReader`.
  */
-export const getSortedSimulationDataForBreaks = (
+export const getSortedSimulationDataForBreaks = async (
   property: SimulationProperty,
   source: SimulationDataSource,
   options?: { absValues?: boolean },
 ): Promise<number[] | null> => {
   switch (source.mode) {
     case "currentStep":
-      return Promise.resolve(
-        getSortedSimulationValues(source.resultsReader, property, options),
-      );
+      return getSortedSimulationValues(source.resultsReader, property, options);
+    case "initial":
+      return getInitialSortedValues(source.epsReader, property, options);
   }
+};
+
+const getInitialSortedValues = async (
+  epsReader: EPSResultsReader,
+  property: SimulationProperty,
+  options?: { absValues?: boolean },
+): Promise<number[] | null> => {
+  const lastIndex = epsReader.timestepCount - 1;
+  if (lastIndex < 0) return null;
+
+  const firstReader = await epsReader.getResultsForTimestep(0);
+  const firstValues = getSortedSimulationValues(firstReader, property, options);
+  if (lastIndex === 0) return firstValues;
+
+  const lastReader = await epsReader.getResultsForTimestep(lastIndex);
+  const lastValues = getSortedSimulationValues(lastReader, property, options);
+  return mergeSorted(firstValues, lastValues);
+};
+
+const mergeSorted = (a: number[], b: number[]): number[] => {
+  const result: number[] = new Array(a.length + b.length);
+  let i = 0;
+  let j = 0;
+  let k = 0;
+  while (i < a.length && j < b.length) {
+    if (a[i] <= b[j]) {
+      result[k++] = a[i++];
+    } else {
+      result[k++] = b[j++];
+    }
+  }
+  while (i < a.length) result[k++] = a[i++];
+  while (j < b.length) result[k++] = b[j++];
+  return result;
 };
 
 /**

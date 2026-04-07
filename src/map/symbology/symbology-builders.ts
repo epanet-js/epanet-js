@@ -1,4 +1,3 @@
-import { HydraulicModel } from "src/hydraulic-model";
 import type { UnitsSpec } from "src/lib/project-settings/quantities-spec";
 import { initializeColorRule } from "./range-color-rule";
 import {
@@ -7,9 +6,6 @@ import {
   nullSymbologySpec,
 } from "./symbology-types";
 import { nullLabelRule } from "./labeling";
-import { getSortedValues } from "src/hydraulic-model/assets-map";
-import { type ResultsReader } from "src/simulation/results-reader";
-import { getSortedSimulationValues } from "./symbology-data-source";
 import type { RangeEndpoints } from "./range-color-rule";
 import type { Unit } from "src/quantity";
 
@@ -32,11 +28,7 @@ const getFallbackEndpoints = (
   return result;
 };
 
-type SymbologyBuilderFn<T> = (
-  hydraulicModel: HydraulicModel,
-  units: UnitsSpec,
-  resultsReader: ResultsReader,
-) => () => T;
+type SymbologyBuilderFn<T> = (units: UnitsSpec, sortedData: number[]) => T;
 
 type SymbologyBuilders = {
   flow: SymbologyBuilderFn<LinkSymbology>;
@@ -49,215 +41,135 @@ type SymbologyBuilders = {
   elevation: SymbologyBuilderFn<NodeSymbology>;
   head: SymbologyBuilderFn<NodeSymbology>;
   waterAge: SymbologyBuilderFn<NodeSymbology & LinkSymbology>;
-  none: () => () => { colorRule: null; labelRule: null };
 };
 
 export const symbologyBuilders: SymbologyBuilders = {
-  none: () => () => {
-    return { colorRule: null, labelRule: null };
+  diameter: (units, sortedData): LinkSymbology => {
+    const colorRule = initializeColorRule({
+      property: "diameter",
+      unit: units.diameter,
+      rampName: "SunsetDark",
+      mode: "prettyBreaks",
+      numIntervals: 7,
+      sortedData,
+    });
+    return { ...nullSymbologySpec.link, colorRule, labelRule: nullLabelRule };
   },
 
-  diameter:
-    (
-      hydraulicModel: HydraulicModel,
-      units: UnitsSpec,
-      _resultsReader: ResultsReader,
-    ) =>
-    (): LinkSymbology => {
-      const colorRule = initializeColorRule({
-        property: "diameter",
-        unit: units.diameter,
-        rampName: "SunsetDark",
-        mode: "prettyBreaks",
-        numIntervals: 7,
-        sortedData: getSortedValues(hydraulicModel.assets, "diameter"),
-      });
-      return { ...nullSymbologySpec.link, colorRule, labelRule: nullLabelRule };
-    },
+  roughness: (units, sortedData): LinkSymbology => {
+    const colorRule = initializeColorRule({
+      property: "roughness",
+      unit: units.roughness,
+      rampName: "Emrld",
+      mode: "ckmeans",
+      sortedData,
+    });
+    return { ...nullSymbologySpec.link, colorRule, labelRule: nullLabelRule };
+  },
 
-  roughness:
-    (
-      hydraulicModel: HydraulicModel,
-      units: UnitsSpec,
-      _resultsReader: ResultsReader,
-    ) =>
-    (): LinkSymbology => {
-      const colorRule = initializeColorRule({
-        property: "roughness",
-        unit: units.roughness,
-        rampName: "Emrld",
-        mode: "ckmeans",
-        sortedData: getSortedValues(hydraulicModel.assets, "roughness"),
-      });
-      return { ...nullSymbologySpec.link, colorRule, labelRule: nullLabelRule };
-    },
+  elevation: (units, sortedData): NodeSymbology => {
+    const colorRule = initializeColorRule({
+      property: "elevation",
+      unit: units.elevation,
+      rampName: "Fall",
+      mode: "prettyBreaks",
+      fallbackEndpoints: [0, 100],
+      sortedData,
+    });
+    return { ...nullSymbologySpec.node, colorRule, labelRule: nullLabelRule };
+  },
 
-  elevation:
-    (
-      hydraulicModel: HydraulicModel,
-      units: UnitsSpec,
-      _resultsReader: ResultsReader,
-    ) =>
-    (): NodeSymbology => {
-      const colorRule = initializeColorRule({
-        property: "elevation",
-        unit: units.elevation,
-        rampName: "Fall",
-        mode: "prettyBreaks",
-        fallbackEndpoints: [0, 100],
-        sortedData: getSortedValues(hydraulicModel.assets, "elevation"),
-      });
-      return { ...nullSymbologySpec.node, colorRule, labelRule: nullLabelRule };
-    },
+  flow: (units, sortedData): LinkSymbology => {
+    const colorRule = initializeColorRule({
+      property: "flow",
+      unit: units.flow,
+      rampName: "Teal",
+      mode: "equalQuantiles",
+      absValues: true,
+      sortedData,
+    });
+    return { ...nullSymbologySpec.link, colorRule, labelRule: nullLabelRule };
+  },
 
-  flow:
-    (
-      hydraulicModel: HydraulicModel,
-      units: UnitsSpec,
-      resultsReader: ResultsReader,
-    ) =>
-    (): LinkSymbology => {
-      const sortedData = getSortedSimulationValues(resultsReader, "flow", {
-        absValues: true,
-      });
-      const colorRule = initializeColorRule({
-        property: "flow",
-        unit: units.flow,
-        rampName: "Teal",
-        mode: "equalQuantiles",
-        absValues: true,
-        sortedData,
-      });
-      return { ...nullSymbologySpec.link, colorRule, labelRule: nullLabelRule };
-    },
+  velocity: (units, sortedData): LinkSymbology => {
+    const colorRule = initializeColorRule({
+      property: "velocity",
+      unit: units.velocity,
+      rampName: "RedOr",
+      mode: "prettyBreaks",
+      sortedData,
+      fallbackEndpoints: getFallbackEndpoints(
+        units.velocity,
+        VELOCITY_FALLBACK_ENDPOINTS,
+      ),
+    });
+    return { ...nullSymbologySpec.link, colorRule, labelRule: nullLabelRule };
+  },
 
-  velocity:
-    (
-      hydraulicModel: HydraulicModel,
-      units: UnitsSpec,
-      resultsReader: ResultsReader,
-    ) =>
-    (): LinkSymbology => {
-      const sortedData = getSortedSimulationValues(resultsReader, "velocity");
-      const colorRule = initializeColorRule({
-        property: "velocity",
-        unit: units.velocity,
-        rampName: "RedOr",
-        mode: "prettyBreaks",
-        sortedData,
-        fallbackEndpoints: getFallbackEndpoints(
-          units.velocity,
-          VELOCITY_FALLBACK_ENDPOINTS,
-        ),
-      });
-      return { ...nullSymbologySpec.link, colorRule, labelRule: nullLabelRule };
-    },
+  unitHeadloss: (units, sortedData): LinkSymbology => {
+    const colorRule = initializeColorRule({
+      property: "unitHeadloss",
+      unit: units.unitHeadloss,
+      rampName: "Emrld",
+      mode: "prettyBreaks",
+      sortedData,
+      fallbackEndpoints: getFallbackEndpoints(
+        units.unitHeadloss,
+        UNIT_HEADLOSS_FALLBACK_ENDPOINTS,
+      ),
+    });
+    return { ...nullSymbologySpec.link, colorRule, labelRule: nullLabelRule };
+  },
 
-  unitHeadloss:
-    (
-      hydraulicModel: HydraulicModel,
-      units: UnitsSpec,
-      resultsReader: ResultsReader,
-    ) =>
-    (): LinkSymbology => {
-      const sortedData = getSortedSimulationValues(
-        resultsReader,
-        "unitHeadloss",
-      );
-      const colorRule = initializeColorRule({
-        property: "unitHeadloss",
-        unit: units.unitHeadloss,
-        rampName: "Emrld",
-        mode: "prettyBreaks",
-        sortedData,
-        fallbackEndpoints: getFallbackEndpoints(
-          units.unitHeadloss,
-          UNIT_HEADLOSS_FALLBACK_ENDPOINTS,
-        ),
-      });
-      return { ...nullSymbologySpec.link, colorRule, labelRule: nullLabelRule };
-    },
+  pressure: (units, sortedData): NodeSymbology => {
+    const colorRule = initializeColorRule({
+      property: "pressure",
+      unit: units.pressure,
+      rampName: "Temps",
+      mode: "prettyBreaks",
+      fallbackEndpoints: [0, 100],
+      sortedData,
+    });
+    return { ...nullSymbologySpec.node, colorRule, labelRule: nullLabelRule };
+  },
 
-  pressure:
-    (
-      hydraulicModel: HydraulicModel,
-      units: UnitsSpec,
-      resultsReader: ResultsReader,
-    ) =>
-    (): NodeSymbology => {
-      const sortedData = getSortedSimulationValues(resultsReader, "pressure");
-      const colorRule = initializeColorRule({
-        property: "pressure",
-        unit: units.pressure,
-        rampName: "Temps",
-        mode: "prettyBreaks",
-        fallbackEndpoints: [0, 100],
-        sortedData,
-      });
-      return { ...nullSymbologySpec.node, colorRule, labelRule: nullLabelRule };
-    },
+  actualDemand: (units, sortedData): NodeSymbology => {
+    const colorRule = initializeColorRule({
+      property: "actualDemand",
+      unit: units.actualDemand,
+      rampName: "Emrld",
+      mode: "prettyBreaks",
+      fallbackEndpoints: [0, 100],
+      sortedData,
+    });
+    return { ...nullSymbologySpec.node, colorRule, labelRule: nullLabelRule };
+  },
 
-  actualDemand:
-    (
-      hydraulicModel: HydraulicModel,
-      units: UnitsSpec,
-      resultsReader: ResultsReader,
-    ) =>
-    (): NodeSymbology => {
-      const sortedData = getSortedSimulationValues(
-        resultsReader,
-        "actualDemand",
-      );
-      const colorRule = initializeColorRule({
-        property: "actualDemand",
-        unit: units.actualDemand,
-        rampName: "Emrld",
-        mode: "prettyBreaks",
-        fallbackEndpoints: [0, 100],
-        sortedData,
-      });
-      return { ...nullSymbologySpec.node, colorRule, labelRule: nullLabelRule };
-    },
+  head: (units, sortedData): NodeSymbology => {
+    const colorRule = initializeColorRule({
+      property: "head",
+      unit: units.head,
+      rampName: "Purp",
+      mode: "prettyBreaks",
+      fallbackEndpoints: [0, 100],
+      sortedData,
+    });
+    return { ...nullSymbologySpec.node, colorRule, labelRule: nullLabelRule };
+  },
 
-  head:
-    (
-      hydraulicModel: HydraulicModel,
-      units: UnitsSpec,
-      resultsReader: ResultsReader,
-    ) =>
-    (): NodeSymbology => {
-      const sortedData = getSortedSimulationValues(resultsReader, "head");
-      const colorRule = initializeColorRule({
-        property: "head",
-        unit: units.head,
-        rampName: "Purp",
-        mode: "prettyBreaks",
-        fallbackEndpoints: [0, 100],
-        sortedData,
-      });
-      return { ...nullSymbologySpec.node, colorRule, labelRule: nullLabelRule };
-    },
-
-  waterAge:
-    (
-      _hydraulicModel: HydraulicModel,
-      units: UnitsSpec,
-      resultsReader: ResultsReader,
-    ) =>
-    (): NodeSymbology & LinkSymbology => {
-      const sortedData = getSortedSimulationValues(resultsReader, "waterAge");
-      const colorRule = initializeColorRule({
-        property: "waterAge",
-        unit: units.waterAge,
-        rampName: "Temps",
-        mode: "prettyBreaks",
-        fallbackEndpoints: [0, 48],
-        sortedData,
-      });
-      return {
-        colorRule,
-        labelRule: nullLabelRule,
-        defaults: nullSymbologySpec.node.defaults,
-      };
-    },
+  waterAge: (units, sortedData): NodeSymbology & LinkSymbology => {
+    const colorRule = initializeColorRule({
+      property: "waterAge",
+      unit: units.waterAge,
+      rampName: "Temps",
+      mode: "prettyBreaks",
+      fallbackEndpoints: [0, 48],
+      sortedData,
+    });
+    return {
+      colorRule,
+      labelRule: nullLabelRule,
+      defaults: nullSymbologySpec.node.defaults,
+    };
+  },
 };
