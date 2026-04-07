@@ -22,25 +22,11 @@ export const useModelTransaction = () => {
       const isTruncatingHistory = momentLog.nextRedo() !== null;
 
       trackMoment(moment);
-      const {
-        note,
-        deleteAssets,
-        putAssets,
-        patchAssetsAttributes,
-        ...optionalFields
-      } = moment;
-      const forwardMoment: ModelMoment = {
-        note,
-        deleteAssets: deleteAssets || [],
-        putAssets: putAssets || [],
-        patchAssetsAttributes: patchAssetsAttributes || [],
-        ...optionalFields,
-      };
       const newStateId = nanoid();
 
-      const reverseMoment = applyMoment(get, set, newStateId, forwardMoment);
+      const reverseMoment = applyMoment(get, set, newStateId, moment);
 
-      momentLog.append(forwardMoment, reverseMoment, newStateId);
+      momentLog.append(moment, reverseMoment, newStateId);
 
       const newMapSyncMoment = computeSyncMoment(
         mapSyncMoment,

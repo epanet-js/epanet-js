@@ -211,46 +211,6 @@ export class Persistence implements IPersistenceWithSnapshots {
     };
   }
 
-  private resetWorktree(
-    moment: ModelMoment,
-    version: string,
-    momentLog: MomentLog,
-    simulationSettings: SimulationSettings,
-    labelManager: LabelManager,
-  ): void {
-    const mainSnapshot: Snapshot = {
-      id: "main",
-      name: "Main",
-      parentId: null,
-      deltas: [moment],
-      version,
-      momentLog,
-      simulation: initialSimulationState,
-      simulationSourceId: "main",
-      simulationSettings,
-      status: "open",
-    };
-
-    const worktree: Worktree = {
-      activeSnapshotId: "main",
-      lastActiveSnapshotId: "main",
-      snapshots: new Map([["main", mainSnapshot]]),
-      mainId: "main",
-      scenarios: [],
-      highestScenarioNumber: 0,
-    };
-
-    this.store.set(worktreeAtom, worktree);
-
-    const cache = new Map<
-      string,
-      { model: HydraulicModel; labelManager: LabelManager }
-    >();
-    const importedModel = this.store.get(stagingModelAtom);
-    cache.set("main", { model: importedModel, labelManager });
-    this.store.set(modelCacheAtom, cache);
-  }
-
   /** @deprecated Use useModelTransaction hook instead */
   useTransactDeprecated() {
     return (moment: ModelMoment) => {
@@ -536,5 +496,45 @@ export class Persistence implements IPersistenceWithSnapshots {
     }
 
     return { model, labelManager };
+  }
+
+  private resetWorktree(
+    moment: ModelMoment,
+    version: string,
+    momentLog: MomentLog,
+    simulationSettings: SimulationSettings,
+    labelManager: LabelManager,
+  ): void {
+    const mainSnapshot: Snapshot = {
+      id: "main",
+      name: "Main",
+      parentId: null,
+      deltas: [moment],
+      version,
+      momentLog,
+      simulation: initialSimulationState,
+      simulationSourceId: "main",
+      simulationSettings,
+      status: "open",
+    };
+
+    const worktree: Worktree = {
+      activeSnapshotId: "main",
+      lastActiveSnapshotId: "main",
+      snapshots: new Map([["main", mainSnapshot]]),
+      mainId: "main",
+      scenarios: [],
+      highestScenarioNumber: 0,
+    };
+
+    this.store.set(worktreeAtom, worktree);
+
+    const cache = new Map<
+      string,
+      { model: HydraulicModel; labelManager: LabelManager }
+    >();
+    const importedModel = this.store.get(stagingModelAtom);
+    cache.set("main", { model: importedModel, labelManager });
+    this.store.set(modelCacheAtom, cache);
   }
 }
