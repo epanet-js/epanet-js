@@ -16,6 +16,8 @@ import { selectionAtom } from "src/state/selection";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { modeAtom, Mode } from "src/state/mode";
 import { ephemeralStateAtom, autoElevationsAtom } from "src/state/drawing";
+import { OPFSStorage } from "src/infra/storage";
+import { getAppId } from "src/infra/app-instance";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { initializeWorktree } from "src/lib/worktree";
 import { worktreeAtom } from "src/state/scenarios";
@@ -36,10 +38,6 @@ const resetAppState = (set: Setter) => {
 };
 
 const clearSimulationStorage = async () => {
-  const [{ OPFSStorage }, { getAppId }] = await Promise.all([
-    import("src/infra/storage"),
-    import("src/infra/app-instance"),
-  ]);
   const storage = new OPFSStorage(getAppId());
   await storage.clear();
 };

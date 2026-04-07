@@ -63,11 +63,8 @@ export const useImportInp = () => {
         isMadeByApp,
       } = result;
 
-      const storage = new OPFSStorage(getAppId());
-      await storage.clear();
-
       if (isStateRefactorOn) {
-        initializeProject({
+        await initializeProject({
           hydraulicModel,
           factories,
           projectSettings,
@@ -75,6 +72,8 @@ export const useImportInp = () => {
           autoElevations: options?.autoElevations,
         });
       } else {
+        const storage = new OPFSStorage(getAppId());
+        await storage.clear();
         transactImportDeprecated(
           hydraulicModel,
           factories,

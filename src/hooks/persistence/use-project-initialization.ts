@@ -5,6 +5,8 @@ import type { HydraulicModel } from "src/hydraulic-model";
 import type { ModelFactories } from "src/hydraulic-model/factories";
 import type { ProjectSettings } from "src/lib/project-settings";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
+import { OPFSStorage } from "src/infra/storage";
+import { getAppId } from "src/infra/app-instance";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { initializeWorktree } from "src/lib/worktree";
 import { stagingModelAtom, baseModelAtom } from "src/state/hydraulic-model";
@@ -94,12 +96,21 @@ const loadModel = (
   );
 };
 
+const clearSimulationStorage = async () => {
+  const storage = new OPFSStorage(getAppId());
+  await storage.clear();
+};
+
 export const useProjectInitialization = () => {
   const initializeProject = useAtomCallback(
-    useCallback((_get: Getter, set: Setter, input: InitializeProjectInput) => {
-      resetAppState(set);
-      loadModel(set, input);
-    }, []),
+    useCallback(
+      async (_get: Getter, set: Setter, input: InitializeProjectInput) => {
+        await clearSimulationStorage();
+        resetAppState(set);
+        loadModel(set, input);
+      },
+      [],
+    ),
   );
 
   return { initializeProject };
