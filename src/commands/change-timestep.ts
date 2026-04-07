@@ -1,13 +1,10 @@
 import { useAtomValue, useSetAtom } from "jotai";
 import { useCallback } from "react";
 import { simulationAtom, simulationResultsAtom } from "src/state/simulation";
-import { OPFSStorage } from "src/infra/storage/opfs-storage";
-import { EPSResultsReader } from "src/simulation/epanet/eps-results-reader";
-import { getAppId } from "src/infra/app-instance";
 import { captureError } from "src/infra/error-tracking";
 import { useUserTracking } from "src/infra/user-tracking";
 import { getSimulationMetadata } from "src/simulation/epanet/simulation-metadata";
-import { worktreeAtom } from "src/state/scenarios";
+import { useGetEpsResultsReader } from "src/hooks/use-eps-results-reader";
 import { usePersistenceWithSnapshots } from "src/lib/persistence";
 
 export const previousTimestepShortcut = "shift+left";
@@ -19,7 +16,7 @@ export const useChangeTimestep = () => {
   const simulation = useAtomValue(simulationAtom);
   const setSimulationState = useSetAtom(simulationAtom);
   const userTracking = useUserTracking();
-  const worktree = useAtomValue(worktreeAtom);
+  const getEpsResultsReader = useGetEpsResultsReader();
   const persistence = usePersistenceWithSnapshots();
   const setSimulationResults = useSetAtom(simulationResultsAtom);
 
@@ -29,7 +26,7 @@ export const useChangeTimestep = () => {
         return;
       }
 
-      const { metadata, simulationIds } = simulation;
+      const { metadata } = simulation;
       if (!metadata) {
         return;
       }
@@ -40,11 +37,8 @@ export const useChangeTimestep = () => {
       }
 
       try {
-        const appId = getAppId();
-        const scenarioKey = worktree.activeSnapshotId;
-        const storage = new OPFSStorage(appId, scenarioKey);
-        const epsReader = new EPSResultsReader(storage);
-        await epsReader.initialize(metadata, simulationIds);
+        const epsReader = await getEpsResultsReader();
+        if (!epsReader) return;
 
         const resultsReader =
           await epsReader.getResultsForTimestep(timestepIndex);
@@ -73,7 +67,7 @@ export const useChangeTimestep = () => {
       setSimulationResults,
       setSimulationState,
       userTracking,
-      worktree.activeSnapshotId,
+      getEpsResultsReader,
       persistence,
     ],
   );
