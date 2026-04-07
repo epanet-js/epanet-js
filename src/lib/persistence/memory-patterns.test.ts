@@ -95,7 +95,7 @@ describe("Persistence putPatterns undo/redo", () => {
     setInitialState({ store, hydraulicModel: model });
     const persistence = new Persistence(store);
     const transact = persistence.useTransactDeprecated();
-    const historyControl = persistence.useHistoryControl();
+    const historyControl = persistence.useHistoryControlDeprecated();
 
     const patterns = makeDemandPatterns([
       { id: 1, label: "PAT1", multipliers: [9, 9, 9] },
@@ -122,7 +122,7 @@ describe("Persistence putPatterns undo/redo", () => {
     setInitialState({ store, hydraulicModel: model });
     const persistence = new Persistence(store);
     const transact = persistence.useTransactDeprecated();
-    const historyControl = persistence.useHistoryControl();
+    const historyControl = persistence.useHistoryControlDeprecated();
 
     const patterns = makeDemandPatterns([
       { id: 1, label: "PAT1", multipliers: [9, 9, 9] },
@@ -147,7 +147,7 @@ describe("Persistence putPatterns undo/redo", () => {
     setInitialState({ store, hydraulicModel: model });
     const persistence = new Persistence(store);
     const transact = persistence.useTransactDeprecated();
-    const historyControl = persistence.useHistoryControl();
+    const historyControl = persistence.useHistoryControlDeprecated();
 
     // Remove PAT2
     const patterns = makeDemandPatterns([{ id: 1, label: "PAT1" }]);
@@ -174,7 +174,7 @@ describe("Persistence putPatterns undo/redo", () => {
     setInitialState({ store, hydraulicModel: model });
     const persistence = new Persistence(store);
     const transact = persistence.useTransactDeprecated();
-    const historyControl = persistence.useHistoryControl();
+    const historyControl = persistence.useHistoryControlDeprecated();
 
     // Rename pattern
     const patterns = makeDemandPatterns([{ id: 1, label: "NewName" }]);
@@ -210,7 +210,7 @@ describe("Persistence putPatterns undo/redo", () => {
     setInitialState({ store, hydraulicModel: model });
     const persistence = new Persistence(store);
     const transact = persistence.useTransactDeprecated();
-    const historyControl = persistence.useHistoryControl();
+    const historyControl = persistence.useHistoryControlDeprecated();
 
     // Add a new pattern
     const patterns = makeDemandPatterns([

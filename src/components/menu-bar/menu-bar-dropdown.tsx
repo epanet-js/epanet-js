@@ -11,11 +11,18 @@ import {
 } from "src/components/elements";
 import React, { useMemo } from "react";
 import { usePersistence } from "src/lib/persistence";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { useUndoableTransactions } from "src/hooks/use-undoable-transactions";
 import { ArrowRightIcon, ChevronRightIcon } from "src/icons";
 
 function UndoList() {
+  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const rep = usePersistence();
-  const historyControl = rep.useHistoryControl();
+  const historyControlDeprecated = rep.useHistoryControlDeprecated();
+  const { historyControl: historyControlNew } = useUndoableTransactions();
+  const historyControl = isStateRefactorOn
+    ? historyControlNew
+    : historyControlDeprecated;
   const momentLog = useAtomValue(momentLogAtom);
 
   const MomentsList = useMemo(() => {

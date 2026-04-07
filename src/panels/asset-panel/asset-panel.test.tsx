@@ -1761,7 +1761,7 @@ describe("AssetPanel", () => {
       </QueryClientProvider>,
     );
 
-    const historyControl = persistence.useHistoryControl();
+    const historyControl = persistence.useHistoryControlDeprecated();
     return historyControl;
   };
 

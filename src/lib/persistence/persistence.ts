@@ -296,7 +296,8 @@ export class Persistence implements IPersistenceWithSnapshots {
     };
   }
 
-  useHistoryControl() {
+  /** @deprecated Use useUndoableTransactions hook instead */
+  useHistoryControlDeprecated() {
     return (direction: "undo" | "redo") => {
       const get = this.store.get;
       const set = this.store.set;
