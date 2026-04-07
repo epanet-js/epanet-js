@@ -43,14 +43,6 @@ function switchMomentLog(get: Getter, set: Setter, momentLog: MomentLog): void {
   });
 }
 
-function setModelVersion(get: Getter, set: Setter, version: string): void {
-  const hydraulicModel = get(stagingModelAtom);
-  set(stagingModelAtom, {
-    ...hydraulicModel,
-    version,
-  });
-}
-
 async function loadSimulationResults(
   simulation: SimulationState,
   snapshotId: string,
@@ -151,7 +143,6 @@ export const useApplySnapshot = () => {
           }),
         );
         switchMomentLog(get, set, snapshot.momentLog);
-        setModelVersion(get, set, snapshot.version);
         set(simulationAtom, finalSimulation);
         set(simulationResultsAtom, resultsReader);
         set(simulationSettingsAtom, snapshot.simulationSettings);
