@@ -23,7 +23,6 @@ import { MapContext } from "src/map";
 import { captureError } from "src/infra/error-tracking";
 import { hasScenariosAtom } from "src/state/scenarios";
 import { useTranslate } from "src/hooks/use-translate";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export const ProjectionSection = () => {
   const projectSettings = useAtomValue(projectSettingsAtom);
