@@ -75,4 +75,12 @@ export class Topology implements TopologyQueries {
 
     this.graph.removeLink(link);
   }
+
+  copy(): Topology {
+    const copy = new Topology();
+    for (const [linkId, link] of this.linksMap) {
+      copy.addLink(linkId, link.fromId as AssetId, link.toId as AssetId);
+    }
+    return copy;
+  }
 }

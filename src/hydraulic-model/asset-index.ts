@@ -169,6 +169,17 @@ export class AssetIndex implements AssetIndexQueries {
     }
     this.assets = assets;
   }
+
+  copy(assets: AssetsMap): AssetIndex {
+    const copy = new AssetIndex(this.idGenerator, assets);
+    for (const id of this.linkIds) {
+      copy.addLink(id);
+    }
+    for (const id of this.nodeIds) {
+      copy.addNode(id);
+    }
+    return copy;
+  }
 }
 
 const ASSET_TYPE_LINK = 0;

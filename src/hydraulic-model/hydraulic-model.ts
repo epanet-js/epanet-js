@@ -52,6 +52,19 @@ export const initializeHydraulicModel = ({
   };
 };
 
+export const copyModel = (source: HydraulicModel): HydraulicModel => {
+  const assets: AssetsMap = new Map(source.assets);
+
+  return {
+    ...source,
+    assets,
+    customerPoints: new Map(source.customerPoints),
+    customerPointsLookup: source.customerPointsLookup.copy(),
+    topology: source.topology.copy(),
+    assetIndex: source.assetIndex.copy(assets),
+  };
+};
+
 export const updateHydraulicModelAssets = (
   hydraulicModel: HydraulicModel,
   newAssets?: AssetsMap,

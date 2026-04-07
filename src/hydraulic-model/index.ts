@@ -3,6 +3,7 @@ export type { Projection } from "src/lib/projections";
 export {
   initializeHydraulicModel,
   updateHydraulicModelAssets,
+  copyModel,
 } from "./hydraulic-model";
 export type { Controls } from "./controls";
 export { createEmptyControls } from "./controls";

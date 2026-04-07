@@ -1,11 +1,8 @@
 import { useCallback } from "react";
 import { useAtomCallback } from "jotai/utils";
 import type { Getter, Setter } from "jotai";
-import type { HydraulicModel, ModelMoment } from "src/hydraulic-model";
-import {
-  initializeHydraulicModel,
-  applyMomentToModel,
-} from "src/hydraulic-model";
+import type { HydraulicModel } from "src/hydraulic-model";
+import { applyMomentToModel, copyModel } from "src/hydraulic-model";
 import { initializeModelFactories } from "src/hydraulic-model/factories";
 import { LabelManager } from "src/hydraulic-model/label-manager";
 import { modelFactoriesAtom } from "src/state/model-factories";
@@ -22,7 +19,7 @@ import { simulationSettingsAtom } from "src/state/simulation-settings";
 import { selectionAtom } from "src/state/selection";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { getSimulationForState } from "src/lib/worktree";
-import type { Worktree, Snapshot } from "src/lib/worktree/types";
+import type { Worktree } from "src/lib/worktree/types";
 import { USelection } from "src/selection";
 import type { MomentLog } from "src/lib/persistence/moment-log";
 
@@ -36,42 +33,12 @@ function buildModelFromDeltas(
     throw new Error(`Snapshot ${snapshotId} not found`);
   }
 
-  const mainSnapshot = worktree.snapshots.get(worktree.mainId);
-  const mainHasNoDeltas =
-    mainSnapshot !== undefined && mainSnapshot.deltas.length === 0;
-
   const factories = get(modelFactoriesAtom);
   const labelManager = new LabelManager(factories.labelCounters);
+  const baseModel = get(baseModelAtom);
+  const model = copyModel(baseModel);
 
-  if (mainHasNoDeltas) {
-    const baseModel = get(baseModelAtom);
-    const model = { ...baseModel };
-
-    const allDeltas = [...snapshot.deltas, ...snapshot.momentLog.getDeltas()];
-
-    for (const delta of allDeltas) {
-      applyMomentToModel(model, delta, labelManager);
-    }
-
-    return { model, labelManager };
-  }
-
-  const allDeltas: ModelMoment[] = [];
-  let current: Snapshot | undefined = snapshot;
-
-  while (current) {
-    allDeltas.unshift(...current.deltas);
-    current = current.parentId
-      ? worktree.snapshots.get(current.parentId)
-      : undefined;
-  }
-
-  const momentLogDeltas = snapshot.momentLog.getDeltas();
-  allDeltas.push(...momentLogDeltas);
-
-  const model = initializeHydraulicModel({
-    idGenerator: factories.idGenerator,
-  });
+  const allDeltas = [...snapshot.deltas, ...snapshot.momentLog.getDeltas()];
 
   for (const delta of allDeltas) {
     applyMomentToModel(model, delta, labelManager);
