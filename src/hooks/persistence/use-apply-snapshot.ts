@@ -59,6 +59,12 @@ function getOrBuildModel(
     return cached;
   }
 
+  // eslint-disable-next-line no-console
+  console.warn(
+    "DEBUG: Model cache miss for snapshot",
+    snapshotId,
+    "— falling back to delta rebuild",
+  );
   const result = buildModelFromDeltas(get, worktree, snapshotId);
   const updatedCache = new Map(cache);
   updatedCache.set(snapshotId, result);

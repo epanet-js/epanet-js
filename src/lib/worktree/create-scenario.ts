@@ -3,9 +3,14 @@ import type { SimulationSettings } from "src/simulation/simulation-settings";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { nanoid } from "nanoid";
 
+type CreateScenarioOptions = {
+  skipDeltas?: boolean;
+};
+
 export const createScenario = (
   worktree: Worktree,
   simulationSettings: SimulationSettings,
+  options?: CreateScenarioOptions,
 ): { scenario: Snapshot; worktree: Worktree } => {
   const mainSnapshot = worktree.snapshots.get(worktree.mainId);
   if (!mainSnapshot) {
@@ -14,16 +19,18 @@ export const createScenario = (
 
   const newNumber = worktree.highestScenarioNumber + 1;
   const newMomentLog = new MomentLog();
-  const baseMoment = mainSnapshot.deltas[0];
-  if (baseMoment) {
-    newMomentLog.setSnapshot(baseMoment, mainSnapshot.version);
+  if (!options?.skipDeltas) {
+    const baseMoment = mainSnapshot.deltas[0];
+    if (baseMoment) {
+      newMomentLog.setSnapshot(baseMoment, mainSnapshot.version);
+    }
   }
 
   const newScenario: Snapshot = {
     id: nanoid(),
     name: `Scenario #${newNumber}`,
     parentId: worktree.mainId,
-    deltas: mainSnapshot.momentLog.getDeltas(),
+    deltas: options?.skipDeltas ? [] : mainSnapshot.momentLog.getDeltas(),
     version: mainSnapshot.version,
     momentLog: newMomentLog,
     simulation: mainSnapshot.simulation,

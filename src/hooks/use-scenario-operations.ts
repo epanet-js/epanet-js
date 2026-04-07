@@ -4,8 +4,12 @@ import { useCallback } from "react";
 import { usePersistenceWithSnapshots, Persistence } from "src/lib/persistence";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useApplySnapshot } from "src/hooks/persistence/use-apply-snapshot";
+import { copyModel } from "src/hydraulic-model";
+import { LabelManager } from "src/hydraulic-model/label-manager";
 import { worktreeAtom } from "src/state/scenarios";
 import { simulationSettingsAtom } from "src/state/simulation-settings";
+import { modelCacheAtom } from "src/state/model-cache";
+import { modelFactoriesAtom } from "src/state/model-factories";
 import { modeAtom, Mode } from "src/state/mode";
 import {
   createScenario,
@@ -113,14 +117,33 @@ export const useScenarioOperations = () => {
 
   const createNewScenario = useAtomCallback(
     useCallback(
-      async (get) => {
+      async (get, set) => {
         const worktree = get(worktreeAtom);
         const currentSettings = get(simulationSettingsAtom);
         const updated = saveSettingsToOutgoingSnapshot(
           worktree,
           currentSettings,
         );
-        const created = createScenario(updated, currentSettings);
+        const created = createScenario(
+          updated,
+          currentSettings,
+          isStateRefactorOn ? { skipDeltas: true } : undefined,
+        );
+
+        if (isStateRefactorOn) {
+          const currentCache = get(modelCacheAtom);
+          const mainEntry = currentCache.get(updated.mainId);
+          if (mainEntry) {
+            const factories = get(modelFactoriesAtom);
+            const newCache = new Map(currentCache);
+            newCache.set(created.scenario.id, {
+              model: copyModel(mainEntry.model),
+              labelManager: new LabelManager(new Map(factories.labelCounters)),
+            });
+            set(modelCacheAtom, newCache);
+          }
+        }
+
         const result = switchToSnapshotFn(
           created.worktree,
           created.scenario.id,
@@ -150,7 +173,7 @@ export const useScenarioOperations = () => {
 
   const deleteScenarioById = useAtomCallback(
     useCallback(
-      async (get, _set, scenarioId: string) => {
+      async (get, set, scenarioId: string) => {
         const worktree = get(worktreeAtom);
         const currentSettings = get(simulationSettingsAtom);
         const updated = saveSettingsToOutgoingSnapshot(
@@ -159,7 +182,13 @@ export const useScenarioOperations = () => {
         );
         const result = deleteScenario(updated, scenarioId);
 
-        persistence.deleteSnapshotFromCache(scenarioId);
+        if (isStateRefactorOn) {
+          const cache = new Map(get(modelCacheAtom));
+          cache.delete(scenarioId);
+          set(modelCacheAtom, cache);
+        } else {
+          persistence.deleteSnapshotFromCache(scenarioId);
+        }
 
         if (result.snapshot) {
           if (isStateRefactorOn) {
