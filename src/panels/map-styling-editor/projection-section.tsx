@@ -10,7 +10,11 @@ import { CollapsibleSection } from "src/components/form/fields";
 import { mapStylingPanelSectionsExpandedAtom } from "src/state/layout";
 import { MapPinnedIcon } from "src/icons";
 import type { Projection } from "src/lib/projections/projection";
-import { inverseProjectGeoJson } from "src/lib/projections";
+import {
+  inverseProjectGeoJson,
+  createProjectionMapper,
+} from "src/lib/projections";
+import { transformCoordinates } from "src/hydraulic-model/mutations/transform-coordinates";
 import { chooseUnitSystem } from "src/simulation/build-inp";
 import { usePersistence } from "src/lib/persistence";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
@@ -53,7 +57,20 @@ export const ProjectionSection = () => {
         setDialogState({ type: "loading" });
         try {
           if (isStateRefactorOn) {
-            await reprojectionReset(newProjection, projection);
+            const currentMapper = createProjectionMapper(projection);
+            const newMapper = createProjectionMapper(newProjection);
+            transformCoordinates(hydraulicModel, (p) => {
+              const source = currentMapper.toSource(p);
+              return newMapper.toWgs84(source);
+            });
+            await reprojectionReset({
+              hydraulicModel: { ...hydraulicModel },
+              projectSettings: {
+                ...projectSettings,
+                projection: newProjection,
+              },
+              autoElevations: newProjection.type !== "xy-grid",
+            });
           } else {
             await transactReprojectionDeprecated(newProjection, projection);
           }
