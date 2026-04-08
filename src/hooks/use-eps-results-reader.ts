@@ -19,7 +19,9 @@ export const useGetEpsResultsReader = () => {
     status === "success" || status === "warning"
       ? simulation.simulationIds
       : undefined;
-  const activeSnapshotId = worktree.activeSnapshotId;
+  const snapshot = worktree.snapshots.get(worktree.activeSnapshotId);
+  const simulationSourceId =
+    snapshot?.simulationSourceId ?? worktree.activeSnapshotId;
 
   return useCallback(async (): Promise<EPSResultsReader | null> => {
     if (status !== "success" && status !== "warning") {
@@ -27,9 +29,9 @@ export const useGetEpsResultsReader = () => {
     }
     if (!metadata) return null;
 
-    const storage = new OPFSStorage(getAppId(), activeSnapshotId);
+    const storage = new OPFSStorage(getAppId(), simulationSourceId);
     const epsReader = new EPSResultsReader(storage);
     await epsReader.initialize(metadata, simulationIds);
     return epsReader;
-  }, [status, metadata, simulationIds, activeSnapshotId]);
+  }, [status, metadata, simulationIds, simulationSourceId]);
 };
