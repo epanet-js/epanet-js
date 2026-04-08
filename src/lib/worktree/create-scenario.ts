@@ -43,11 +43,16 @@ export const createScenario = (
   updatedSnapshots.set(newScenario.id, newScenario);
 
   const isFirstScenario = worktree.scenarios.length === 0;
+  const updatedBranches = new Map(worktree.branches);
   if (isFirstScenario) {
     updatedSnapshots.set(worktree.mainId, {
       ...mainSnapshot,
       status: "locked",
     });
+    const mainBranch = updatedBranches.get(worktree.mainId);
+    if (mainBranch) {
+      updatedBranches.set(worktree.mainId, { ...mainBranch, status: "locked" });
+    }
   }
 
   return {
@@ -55,6 +60,7 @@ export const createScenario = (
     worktree: {
       ...worktree,
       snapshots: updatedSnapshots,
+      branches: updatedBranches,
       scenarios: [...worktree.scenarios, newScenario.id],
       highestScenarioNumber: newNumber,
     },

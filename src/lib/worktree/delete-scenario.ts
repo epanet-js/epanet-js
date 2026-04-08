@@ -30,12 +30,20 @@ export const deleteScenario = (
         status: "open",
       });
     }
+
+    const updatedBranches = new Map(worktree.branches);
+    const mainBranch = updatedBranches.get(worktree.mainId);
+    if (mainBranch) {
+      updatedBranches.set(worktree.mainId, { ...mainBranch, status: "open" });
+    }
+
     const unlockedMain = updatedSnapshots.get(worktree.mainId);
 
     return {
       worktree: {
         ...worktree,
         snapshots: updatedSnapshots,
+        branches: updatedBranches,
         scenarios: [],
         activeSnapshotId: worktree.mainId,
         lastActiveSnapshotId: worktree.mainId,

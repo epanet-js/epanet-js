@@ -77,8 +77,10 @@ export const useScenarioOperations = () => {
 
       setWorktree(result.worktree);
 
-      const targetSnapshot = result.worktree.snapshots.get(snapshotId);
-      if (targetSnapshot?.status === "locked") {
+      const targetStatus = isStateRefactorOn
+        ? result.worktree.branches.get(snapshotId)?.status
+        : result.worktree.snapshots.get(snapshotId)?.status;
+      if (targetStatus === "locked") {
         setMode((modeState) => {
           if (DRAWING_MODES.includes(modeState.mode)) {
             return { mode: Mode.NONE };

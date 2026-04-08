@@ -3,7 +3,9 @@ import { worktreeAtom } from "src/state/scenarios";
 
 export const useIsSnapshotLocked = () => {
   const worktree = useAtomValue(worktreeAtom);
-  const activeSnapshot = worktree.snapshots.get(worktree.activeSnapshotId);
+  const activeBranch = worktree.branches.get(worktree.activeSnapshotId);
+  if (activeBranch) return activeBranch.status === "locked";
 
+  const activeSnapshot = worktree.snapshots.get(worktree.activeSnapshotId);
   return activeSnapshot?.status === "locked";
 };

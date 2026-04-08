@@ -46,8 +46,10 @@ export const ScenarioSwitcher = () => {
 
   const activeDisplayName = isMainActive
     ? translate("scenarios.main")
-    : (worktree.snapshots.get(activeSnapshotId)?.name ??
-      translate("scenarios.main"));
+    : ((
+        worktree.branches.get(activeSnapshotId) ??
+        worktree.snapshots.get(activeSnapshotId)
+      )?.name ?? translate("scenarios.main"));
 
   const handleSelectMain = () => {
     if (isMainActive) return;
@@ -64,7 +66,8 @@ export const ScenarioSwitcher = () => {
   const handleSelectScenario = (scenarioId: string) => {
     if (activeSnapshotId === scenarioId) return;
 
-    const scenario = worktree.snapshots.get(scenarioId);
+    const scenario =
+      worktree.branches.get(scenarioId) ?? worktree.snapshots.get(scenarioId);
     userTracking.capture({
       name: "scenario.switched",
       scenarioId,

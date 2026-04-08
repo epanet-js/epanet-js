@@ -14,6 +14,7 @@ import type {
   QuickGraphPropertyByAssetType,
 } from "src/state/quick-graph";
 import { worktreeAtom } from "src/state/scenarios";
+import { branchStateAtom } from "src/state/branch-state";
 
 interface UseTimeSeriesOptions<T extends QuickGraphAssetType> {
   assetId: number;
@@ -35,6 +36,7 @@ export function useTimeSeries<T extends QuickGraphAssetType>({
   const simulation = useAtomValue(simulationAtom);
   const worktree = useAtomValue(worktreeAtom);
   const getEpsResultsReader = useGetEpsResultsReader();
+  const branchStates = useAtomValue(branchStateAtom);
   const [data, setData] = useState<TimeSeries | null>(null);
   const [mainData, setMainData] = useState<TimeSeries | null>(null);
   const [isLoading, setIsLoading] = useState(() => {
@@ -43,8 +45,11 @@ export function useTimeSeries<T extends QuickGraphAssetType>({
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const isInScenario = worktree.activeSnapshotId !== worktree.mainId;
-  const mainSnapshot = worktree.snapshots.get(worktree.mainId);
-  const mainSimulation = mainSnapshot?.simulation ?? null;
+  const mainBranchState = branchStates.get(worktree.mainId);
+  const mainSimulation =
+    mainBranchState?.simulation ??
+    worktree.snapshots.get(worktree.mainId)?.simulation ??
+    null;
   const mainStatus = mainSimulation?.status;
   const mainMetadata =
     mainSimulation &&

@@ -124,8 +124,10 @@ const QuickGraphSection = ({
   const { changeTimestep } = useChangeTimestep();
 
   const isInScenario = worktree.activeSnapshotId !== worktree.mainId;
-  const activeSnapshot = worktree.snapshots.get(worktree.activeSnapshotId);
-  const scenarioName = isInScenario ? (activeSnapshot?.name ?? null) : null;
+  const activeBranch =
+    worktree.branches.get(worktree.activeSnapshotId) ??
+    worktree.snapshots.get(worktree.activeSnapshotId);
+  const scenarioName = isInScenario ? (activeBranch?.name ?? null) : null;
   const mainLabel = isInScenario ? translate("scenarios.main") : null;
 
   const selectedProperty = propertyByType[assetType];
