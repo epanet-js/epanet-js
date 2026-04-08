@@ -29,7 +29,9 @@ export const useRegenerateBreaks = (geometryType: "node" | "link") => {
   const simulation = useAtomValue(simulationAtom);
   const { nodeSymbology, linkSymbology } = useSymbologyState();
   const getEpsResultsReader = useGetEpsResultsReader();
-  const isWaterAgeOn = useFeatureFlag("FLAG_WATER_AGE");
+  const isSymbologyFromAllDataOn = useFeatureFlag(
+    "FLAG_SYMBOLOGY_FROM_ALL_DATA",
+  );
   const [isWorking, setIsWorking] = useState(false);
 
   const symbology = geometryType === "node" ? nodeSymbology : linkSymbology;
@@ -62,7 +64,7 @@ export const useRegenerateBreaks = (geometryType: "node" | "link") => {
     getSimulationMetadata(simulation.metadata).reportingStepsCount > 1;
 
   const canRegenerateFromAllData =
-    isWaterAgeOn &&
+    isSymbologyFromAllDataOn &&
     isEpsSimulation &&
     !!colorRule &&
     isSimulationProperty(colorRule.property);
