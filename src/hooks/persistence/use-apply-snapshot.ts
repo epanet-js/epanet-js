@@ -16,6 +16,7 @@ import {
   currentTimestepIndexAtom,
   type SimulationStep,
 } from "src/state/simulation";
+import type { EPSResultsReader } from "src/simulation/epanet/eps-results-reader";
 import { simulationSettingsAtom } from "src/state/simulation-settings";
 import { selectionAtom } from "src/state/selection";
 import { projectSettingsAtom } from "src/state/project-settings";
@@ -117,38 +118,50 @@ async function prepareSimulation(
   const preserveTimestepIndex = get(currentTimestepIndexAtom) ?? undefined;
 
   const simulation = getSimulationForState(worktree, initialSimulationState);
-  const simulationStep = await fetchSimulationStep(
+  const { simulationStep, epsResultsReader } = await fetchSimulationStep(
     simulation,
     snapshot.simulationSourceId,
     preserveTimestepIndex,
   );
 
-  return { finalSimulation: simulation, simulationStep: simulationStep };
+  const finalSimulation: SimulationState =
+    (simulation.status === "success" || simulation.status === "warning") &&
+    epsResultsReader
+      ? { ...simulation, epsResultsReader }
+      : simulation;
+
+  return { finalSimulation, simulationStep };
 }
 
 async function fetchSimulationStep(
   simulation: SimulationState,
   snapshotId: string,
   preserveTimestepIndex?: number,
-): Promise<SimulationStep | null> {
+): Promise<{
+  simulationStep: SimulationStep | null;
+  epsResultsReader: EPSResultsReader | null;
+}> {
   if (
     (simulation.status !== "success" && simulation.status !== "warning") ||
     !simulation.metadata
   ) {
-    return null;
+    return { simulationStep: null, epsResultsReader: null };
   }
 
-  const [{ OPFSStorage }, { EPSResultsReader }, { getAppId }] =
-    await Promise.all([
-      import("src/infra/storage"),
-      import("src/simulation"),
-      import("src/infra/app-instance"),
-    ]);
+  let epsReader = simulation.epsResultsReader;
+  if (!epsReader) {
+    const [{ OPFSStorage }, { EPSResultsReader }, { getAppId }] =
+      await Promise.all([
+        import("src/infra/storage"),
+        import("src/simulation"),
+        import("src/infra/app-instance"),
+      ]);
 
-  const appId = getAppId();
-  const storage = new OPFSStorage(appId, snapshotId);
-  const epsReader = new EPSResultsReader(storage);
-  await epsReader.initialize(simulation.metadata, simulation.simulationIds);
+    const appId = getAppId();
+    const storage = new OPFSStorage(appId, snapshotId);
+    epsReader = new EPSResultsReader(storage);
+    await epsReader.initialize(simulation.metadata);
+  }
 
   const currentTimestepIndex =
     preserveTimestepIndex !== undefined
@@ -157,7 +170,10 @@ async function fetchSimulationStep(
 
   const resultsReader =
     await epsReader.getResultsForTimestep(currentTimestepIndex);
-  return { resultsReader, currentTimestepIndex };
+  return {
+    simulationStep: { resultsReader, currentTimestepIndex },
+    epsResultsReader: epsReader,
+  };
 }
 
 export const useApplySnapshot = () => {

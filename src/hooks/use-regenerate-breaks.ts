@@ -1,7 +1,6 @@
 import { useAtomValue } from "jotai";
 import { useCallback, useMemo, useState } from "react";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { useGetEpsResultsReader } from "src/hooks/use-eps-results-reader";
 import { useUserTracking } from "src/infra/user-tracking";
 import {
   applyMode,
@@ -28,7 +27,6 @@ export const useRegenerateBreaks = (geometryType: "node" | "link") => {
   const simulationResults = useAtomValue(simulationResultsAtom);
   const simulation = useAtomValue(simulationAtom);
   const { nodeSymbology, linkSymbology } = useSymbologyState();
-  const getEpsResultsReader = useGetEpsResultsReader();
   const isSymbologyFromAllDataOn = useFeatureFlag(
     "FLAG_SYMBOLOGY_FROM_ALL_DATA",
   );
@@ -36,6 +34,11 @@ export const useRegenerateBreaks = (geometryType: "node" | "link") => {
 
   const symbology = geometryType === "node" ? nodeSymbology : linkSymbology;
   const colorRule = symbology.colorRule;
+
+  const epsResultsReader =
+    simulation.status === "success" || simulation.status === "warning"
+      ? simulation.epsResultsReader
+      : undefined;
 
   const sortedData = useMemo(() => {
     if (!colorRule) return [];
@@ -78,14 +81,13 @@ export const useRegenerateBreaks = (geometryType: "node" | "link") => {
         property: currentRule.property,
       });
 
+      if (!epsResultsReader) return null;
+
       setIsWorking(true);
       try {
-        const epsReader = await getEpsResultsReader();
-        if (!epsReader) return null;
-
         const fullSorted = await getSortedSimulationDataForBreaks(
           currentRule.property,
-          { mode: "allSteps", epsReader },
+          { mode: "allSteps", epsReader: epsResultsReader },
           { absValues: Boolean(currentRule.absValues) },
         );
         if (!fullSorted) return null;
@@ -95,7 +97,7 @@ export const useRegenerateBreaks = (geometryType: "node" | "link") => {
         setIsWorking(false);
       }
     },
-    [userTracking, getEpsResultsReader],
+    [userTracking, epsResultsReader],
   );
 
   return {

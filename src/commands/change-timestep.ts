@@ -7,8 +7,6 @@ import {
 } from "src/state/simulation";
 import { captureError } from "src/infra/error-tracking";
 import { useUserTracking } from "src/infra/user-tracking";
-import { getSimulationMetadata } from "src/simulation/epanet/simulation-metadata";
-import { useGetEpsResultsReader } from "src/hooks/use-eps-results-reader";
 
 export const previousTimestepShortcut = "shift+left";
 export const nextTimestepShortcut = "shift+right";
@@ -19,32 +17,27 @@ export const useChangeTimestep = () => {
   const simulation = useAtomValue(simulationAtom);
   const setSimulationState = useSetAtom(simulationAtom);
   const userTracking = useUserTracking();
-  const getEpsResultsReader = useGetEpsResultsReader();
   const setSimulationStep = useSetAtom(simulationStepAtom);
   const currentTimestepIndex = useAtomValue(currentTimestepIndexAtom);
 
+  const epsResultsReader =
+    simulation.status === "success" || simulation.status === "warning"
+      ? simulation.epsResultsReader
+      : undefined;
+
   const changeTimestep = useCallback(
     async (timestepIndex: number, source: ChangeTimestepSource) => {
-      if (simulation.status !== "success" && simulation.status !== "warning") {
-        return;
-      }
-
-      const { metadata } = simulation;
-      if (!metadata) {
-        return;
-      }
-
-      const timestepCount = getSimulationMetadata(metadata).reportingStepsCount;
-      if (timestepIndex < 0 || timestepIndex >= timestepCount) {
+      if (!epsResultsReader) return;
+      if (
+        timestepIndex < 0 ||
+        timestepIndex >= epsResultsReader.timestepCount
+      ) {
         return;
       }
 
       try {
-        const epsReader = await getEpsResultsReader();
-        if (!epsReader) return;
-
         const resultsReader =
-          await epsReader.getResultsForTimestep(timestepIndex);
+          await epsResultsReader.getResultsForTimestep(timestepIndex);
 
         setSimulationStep({
           resultsReader,
@@ -61,13 +54,7 @@ export const useChangeTimestep = () => {
         setSimulationState({ status: "idle" });
       }
     },
-    [
-      simulation,
-      setSimulationStep,
-      setSimulationState,
-      userTracking,
-      getEpsResultsReader,
-    ],
+    [epsResultsReader, setSimulationStep, setSimulationState, userTracking],
   );
 
   const goToPreviousTimestep = useCallback(

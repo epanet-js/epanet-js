@@ -1,7 +1,6 @@
 import { useAtomValue } from "jotai";
 import { useCallback, useState } from "react";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { useGetEpsResultsReader } from "src/hooks/use-eps-results-reader";
 import { useUserTracking } from "src/infra/user-tracking";
 import { symbologyBuilders } from "src/map/symbology/symbology-builders";
 import {
@@ -33,8 +32,12 @@ export const useChangeColorBy = (geometryType: "node" | "link") => {
   const { units } = useAtomValue(projectSettingsAtom);
   const { switchNodeSymbologyTo, switchLinkSymbologyTo } = useSymbologyState();
   const isWaterAgeOn = useFeatureFlag("FLAG_WATER_AGE");
-  const getEpsResultsReader = useGetEpsResultsReader();
   const [isWorking, setIsWorking] = useState(false);
+
+  const epsResultsReader =
+    simulation.status === "success" || simulation.status === "warning"
+      ? simulation.epsResultsReader
+      : undefined;
 
   const isEpsSimulation =
     (simulation.status === "success" || simulation.status === "warning") &&
@@ -45,16 +48,18 @@ export const useChangeColorBy = (geometryType: "node" | "link") => {
     async (property: SupportedProperty): Promise<number[] | null> => {
       const absValues = absValuesFor(property);
 
-      if (isWaterAgeOn && isEpsSimulation && isSimulationProperty(property)) {
-        const epsReader = await getEpsResultsReader();
-        if (epsReader) {
-          const sorted = await getSortedSimulationDataForBreaks(
-            property,
-            { mode: "initial", epsReader },
-            { absValues },
-          );
-          if (sorted) return sorted;
-        }
+      if (
+        isWaterAgeOn &&
+        isEpsSimulation &&
+        isSimulationProperty(property) &&
+        epsResultsReader
+      ) {
+        const sorted = await getSortedSimulationDataForBreaks(
+          property,
+          { mode: "initial", epsReader: epsResultsReader },
+          { absValues },
+        );
+        if (sorted) return sorted;
       }
 
       return getSortedDataForProperty(
@@ -67,7 +72,7 @@ export const useChangeColorBy = (geometryType: "node" | "link") => {
     [
       isWaterAgeOn,
       isEpsSimulation,
-      getEpsResultsReader,
+      epsResultsReader,
       hydraulicModel,
       simulationResults,
     ],

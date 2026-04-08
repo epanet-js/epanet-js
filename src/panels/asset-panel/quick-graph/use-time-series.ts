@@ -1,14 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { useAtomValue } from "jotai";
 import { simulationAtom } from "src/state/simulation";
-import { OPFSStorage } from "src/infra/storage/opfs-storage";
-import {
-  EPSResultsReader,
-  TimeSeries,
-} from "src/simulation/epanet/eps-results-reader";
-import { getAppId } from "src/infra/app-instance";
+import { TimeSeries } from "src/simulation/epanet/eps-results-reader";
 import { captureError } from "src/infra/error-tracking";
-import { useGetEpsResultsReader } from "src/hooks/use-eps-results-reader";
 import type {
   QuickGraphAssetType,
   QuickGraphPropertyByAssetType,
@@ -34,7 +28,6 @@ export function useTimeSeries<T extends QuickGraphAssetType>({
 }: UseTimeSeriesOptions<T>): UseTimeSeriesResult {
   const simulation = useAtomValue(simulationAtom);
   const worktree = useAtomValue(worktreeAtom);
-  const getEpsResultsReader = useGetEpsResultsReader();
   const [data, setData] = useState<TimeSeries | null>(null);
   const [mainData, setMainData] = useState<TimeSeries | null>(null);
   const [isLoading, setIsLoading] = useState(() => {
@@ -42,44 +35,29 @@ export function useTimeSeries<T extends QuickGraphAssetType>({
   });
   const abortControllerRef = useRef<AbortController | null>(null);
 
+  const epsResultsReader =
+    simulation.status === "success" || simulation.status === "warning"
+      ? simulation.epsResultsReader
+      : undefined;
+
   const isInScenario = worktree.activeSnapshotId !== worktree.mainId;
   const mainSnapshot = worktree.snapshots.get(worktree.mainId);
   const mainSimulation = mainSnapshot?.simulation ?? null;
-  const mainStatus = mainSimulation?.status;
-  const mainMetadata =
+  const mainEpsResultsReader =
     mainSimulation &&
     (mainSimulation.status === "success" || mainSimulation.status === "warning")
-      ? mainSimulation.metadata
-      : undefined;
-  const mainSimulationIds =
-    mainSimulation &&
-    (mainSimulation.status === "success" || mainSimulation.status === "warning")
-      ? mainSimulation.simulationIds
-      : undefined;
-
-  const status = simulation.status;
-  const metadata =
-    status === "success" || status === "warning"
-      ? simulation.metadata
-      : undefined;
-  const simulationIds =
-    status === "success" || status === "warning"
-      ? simulation.simulationIds
+      ? mainSimulation.epsResultsReader
       : undefined;
 
   useEffect(() => {
-    if (status === "failure") {
+    if (simulation.status === "failure") {
       setData(null);
       setMainData(null);
       setIsLoading(false);
       return;
     }
 
-    if (status !== "success" && status !== "warning") {
-      return;
-    }
-
-    if (!metadata || !simulationIds) {
+    if (!epsResultsReader) {
       return;
     }
 
@@ -92,11 +70,8 @@ export function useTimeSeries<T extends QuickGraphAssetType>({
       setIsLoading(true);
 
       try {
-        const epsReader = await getEpsResultsReader();
-        if (!epsReader) return;
-
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const result = await epsReader.getTimeSeries(
+        const result = await epsResultsReader.getTimeSeries(
           assetId,
           assetType as any,
           property as any,
@@ -107,19 +82,10 @@ export function useTimeSeries<T extends QuickGraphAssetType>({
         }
         setData(result);
 
-        if (
-          isInScenario &&
-          (mainStatus === "success" || mainStatus === "warning") &&
-          mainMetadata &&
-          mainSimulationIds
-        ) {
+        if (isInScenario && mainEpsResultsReader) {
           try {
-            const mainStorage = new OPFSStorage(getAppId(), "main");
-            const mainReader = new EPSResultsReader(mainStorage);
-            await mainReader.initialize(mainMetadata, mainSimulationIds);
-
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const mainResult = await mainReader.getTimeSeries(
+            const mainResult = await mainEpsResultsReader.getTimeSeries(
               assetId,
               assetType as any,
               property as any,
@@ -157,14 +123,10 @@ export function useTimeSeries<T extends QuickGraphAssetType>({
     assetId,
     assetType,
     property,
-    status,
-    metadata,
-    simulationIds,
-    getEpsResultsReader,
+    simulation.status,
+    epsResultsReader,
     isInScenario,
-    mainStatus,
-    mainMetadata,
-    mainSimulationIds,
+    mainEpsResultsReader,
   ]);
 
   return { data, mainData, isLoading };

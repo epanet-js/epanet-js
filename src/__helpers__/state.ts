@@ -17,6 +17,7 @@ import {
 import { simulationSettingsAtom } from "src/state/simulation-settings";
 import { Store } from "src/state";
 import type { ResultsReader } from "src/simulation/results-reader";
+import type { EPSResultsReader } from "src/simulation/epanet/eps-results-reader";
 import { Mode } from "src/state/mode";
 import { Asset, HydraulicModel } from "src/hydraulic-model";
 import { ExportOptions } from "src/types/export";
@@ -136,6 +137,8 @@ export const aSimulationSuccess = ({
     report,
     modelVersion,
     settingsVersion: "",
+    metadata: new ArrayBuffer(0),
+    epsResultsReader: {} as EPSResultsReader,
   };
 };
 
