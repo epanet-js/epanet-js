@@ -4,6 +4,7 @@ import { useCallback } from "react";
 import { usePersistenceWithSnapshots, Persistence } from "src/lib/persistence";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useApplySnapshot } from "src/hooks/persistence/use-apply-snapshot";
+import { useInitializeBranch } from "src/hooks/persistence/use-initialize-branch";
 import { copyModel } from "src/hydraulic-model";
 import { LabelManager } from "src/hydraulic-model/label-manager";
 import { worktreeAtom } from "src/state/scenarios";
@@ -17,7 +18,7 @@ import {
   deleteScenario,
   renameScenario,
 } from "src/lib/worktree";
-import type { Worktree } from "src/lib/worktree";
+import type { Worktree, Branch } from "src/lib/worktree";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
 
 const DRAWING_MODES: Mode[] = [
@@ -50,6 +51,7 @@ export const useScenarioOperations = () => {
   const persistence = usePersistenceWithSnapshots();
   const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const { applySnapshot } = useApplySnapshot();
+  const { initializeBranch } = useInitializeBranch();
   const setWorktree = useSetAtom(worktreeAtom);
   const setMode = useSetAtom(modeAtom);
 
@@ -142,6 +144,14 @@ export const useScenarioOperations = () => {
             });
             set(modelCacheAtom, newCache);
           }
+
+          const branch: Branch = {
+            id: created.scenario.id,
+            name: created.scenario.name,
+            parentId: updated.mainId,
+            status: "open",
+          };
+          initializeBranch(branch);
         }
 
         const result = switchToSnapshotFn(
@@ -167,7 +177,13 @@ export const useScenarioOperations = () => {
           scenarioName: created.scenario.name,
         };
       },
-      [persistence, isStateRefactorOn, applySnapshot, setWorktree],
+      [
+        persistence,
+        isStateRefactorOn,
+        applySnapshot,
+        initializeBranch,
+        setWorktree,
+      ],
     ),
   );
 
