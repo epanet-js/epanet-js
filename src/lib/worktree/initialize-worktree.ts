@@ -1,7 +1,7 @@
 import type { MomentLog } from "src/lib/persistence/moment-log";
 import type { ModelMoment } from "src/hydraulic-model/model-operation";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
-import type { Snapshot, Worktree } from "./types";
+import type { Branch, Snapshot, Worktree } from "./types";
 
 type InitializeWorktreeInput = {
   snapshotMoment?: ModelMoment;
@@ -29,10 +29,18 @@ export const initializeWorktree = ({
     status: "open",
   };
 
+  const mainBranch: Branch = {
+    id: "main",
+    name: "Main",
+    parentId: null,
+    status: "open",
+  };
+
   return {
     activeSnapshotId: "main",
     lastActiveSnapshotId: "main",
     snapshots: new Map([["main", mainSnapshot]]),
+    branches: new Map([["main", mainBranch]]),
     mainId: "main",
     scenarios: [],
     highestScenarioNumber: 0,

@@ -1,4 +1,10 @@
-export type { Worktree, Snapshot, ScenarioOperationResult } from "./types";
+export type {
+  Worktree,
+  Snapshot,
+  Branch,
+  BranchState,
+  ScenarioOperationResult,
+} from "./types";
 export { createScenario } from "./create-scenario";
 export {
   switchToSnapshot,

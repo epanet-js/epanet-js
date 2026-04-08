@@ -21,6 +21,7 @@ export const initialWorktree: Worktree = {
   activeSnapshotId: "main",
   lastActiveSnapshotId: "main",
   snapshots: new Map([["main", emptyMainSnapshot]]),
+  branches: new Map(),
   mainId: "main",
   scenarios: [],
   highestScenarioNumber: 0,
