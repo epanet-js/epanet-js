@@ -5,6 +5,8 @@ import { usePersistenceWithSnapshots, Persistence } from "src/lib/persistence";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useApplySnapshot } from "src/hooks/persistence/use-apply-snapshot";
 import { useInitializeBranch } from "src/hooks/persistence/use-initialize-branch";
+import { useSwitchBranch } from "src/hooks/persistence/use-switch-branch";
+import { useDeleteBranch } from "src/hooks/persistence/use-delete-branch";
 import { copyModel } from "src/hydraulic-model";
 import { LabelManager } from "src/hydraulic-model/label-manager";
 import { worktreeAtom } from "src/state/scenarios";
@@ -52,6 +54,8 @@ export const useScenarioOperations = () => {
   const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const { applySnapshot } = useApplySnapshot();
   const { initializeBranch } = useInitializeBranch();
+  const { switchBranch } = useSwitchBranch();
+  const { deleteBranch } = useDeleteBranch();
   const setWorktree = useSetAtom(worktreeAtom);
   const setMode = useSetAtom(modeAtom);
 
@@ -62,6 +66,7 @@ export const useScenarioOperations = () => {
       if (result.snapshot) {
         if (isStateRefactorOn) {
           await applySnapshot(result.worktree, result.snapshot.id);
+          await switchBranch(result.snapshot.id);
         } else {
           await (persistence as Persistence).applySnapshotDeprecated(
             result.worktree,
@@ -84,7 +89,14 @@ export const useScenarioOperations = () => {
 
       return result;
     },
-    [persistence, isStateRefactorOn, applySnapshot, setWorktree, setMode],
+    [
+      persistence,
+      isStateRefactorOn,
+      applySnapshot,
+      switchBranch,
+      setWorktree,
+      setMode,
+    ],
   );
 
   const switchToSnapshot = useAtomCallback(
@@ -202,14 +214,12 @@ export const useScenarioOperations = () => {
           const cache = new Map(get(modelCacheAtom));
           cache.delete(scenarioId);
           set(modelCacheAtom, cache);
+
+          await deleteBranch(scenarioId, result.snapshot?.id ?? null);
         } else {
           persistence.deleteSnapshotFromCache(scenarioId);
-        }
 
-        if (result.snapshot) {
-          if (isStateRefactorOn) {
-            await applySnapshot(result.worktree, result.snapshot.id);
-          } else {
+          if (result.snapshot) {
             await (persistence as Persistence).applySnapshotDeprecated(
               result.worktree,
               result.snapshot.id,
@@ -217,9 +227,19 @@ export const useScenarioOperations = () => {
           }
         }
 
+        if (isStateRefactorOn && result.snapshot) {
+          await applySnapshot(result.worktree, result.snapshot.id);
+        }
+
         setWorktree(result.worktree);
       },
-      [persistence, isStateRefactorOn, applySnapshot, setWorktree],
+      [
+        persistence,
+        isStateRefactorOn,
+        applySnapshot,
+        deleteBranch,
+        setWorktree,
+      ],
     ),
   );
 
