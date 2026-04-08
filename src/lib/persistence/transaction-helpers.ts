@@ -143,6 +143,8 @@ export function syncSnapshotMomentLog(
   version: string,
 ): void {
   const worktree = get(worktreeAtom);
+  if (get(branchStateAtom).has(worktree.activeSnapshotId)) return;
+
   const snapshot = worktree.snapshots.get(worktree.activeSnapshotId);
   if (!snapshot) return;
 
@@ -158,6 +160,8 @@ export function syncSnapshotMomentLog(
 
 export function updateModelCache(get: Getter, set: Setter): void {
   const worktree = get(worktreeAtom);
+  if (get(branchStateAtom).has(worktree.activeSnapshotId)) return;
+
   const updatedModel = get(stagingModelAtom);
   const factories = get(modelFactoriesAtom);
   const cache = new Map(get(modelCacheAtom));

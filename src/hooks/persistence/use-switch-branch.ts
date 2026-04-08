@@ -80,28 +80,33 @@ function validateSelection(
   set(selectionAtom, { ...validatedSelection });
 }
 
-function saveOutgoingBranchState(get: Getter, set: Setter): void {
+function saveOutgoingBranchState(
+  get: Getter,
+  set: Setter,
+): Map<string, import("src/lib/worktree/types").BranchState> {
   const worktree = get(worktreeAtom);
   const branchStates = get(branchStateAtom);
   const currentState = branchStates.get(worktree.activeSnapshotId);
-  if (!currentState) return;
+  if (!currentState) return branchStates;
 
   const currentSettings = get(simulationSettingsAtom);
+  const currentSimulation = get(simulationAtom);
   const updatedStates = new Map(branchStates);
   updatedStates.set(worktree.activeSnapshotId, {
     ...currentState,
     simulationSettings: currentSettings,
+    simulation: currentSimulation,
   });
   set(branchStateAtom, updatedStates);
+  return updatedStates;
 }
 
 export const useSwitchBranch = () => {
   const switchBranch = useAtomCallback(
     useCallback(async (get: Getter, set: Setter, branchId: string) => {
-      saveOutgoingBranchState(get, set);
+      const branchStates = saveOutgoingBranchState(get, set);
 
       const worktree = get(worktreeAtom);
-      const branchStates = get(branchStateAtom);
       const targetState = branchStates.get(branchId);
       if (!targetState) {
         throw new Error(`Branch state not found for ${branchId}`);
