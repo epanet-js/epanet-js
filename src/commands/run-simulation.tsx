@@ -7,6 +7,8 @@ import { stagingModelAtom } from "src/state/hydraulic-model";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { simulationAtom, simulationResultsAtom } from "src/state/simulation";
 import { simulationSettingsAtom } from "src/state/simulation-settings";
+import { clearQuickGraphPropertyAtom } from "src/state/quick-graph";
+import { clearSymbologyForPropertyAtom } from "src/state/map-symbology";
 import {
   ProgressCallback,
   runSimulation as runSimulationWorker,
@@ -30,7 +32,7 @@ export const useRunSimulation = () => {
     useCallback(
       async (
         get,
-        _set,
+        set,
         options?: {
           onContinue?: () => void;
           onIgnore?: () => void;
@@ -96,6 +98,15 @@ export const useRunSimulation = () => {
           setSimulationResults(resultsReader);
         } else {
           setSimulationResults(null);
+        }
+
+        if (status === "success" || status === "warning") {
+          const newSimulationHasWaterAge =
+            isWaterAgeOn && simulationSettings.qualitySimulationType === "AGE";
+          if (!newSimulationHasWaterAge) {
+            set(clearQuickGraphPropertyAtom, "waterAge");
+            set(clearSymbologyForPropertyAtom, "waterAge");
+          }
         }
 
         const simulationResult = {
