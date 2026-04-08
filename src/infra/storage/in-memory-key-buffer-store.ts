@@ -25,34 +25,28 @@ export class InMemoryKeyBufferStore implements IKeyBufferStore {
     return Promise.resolve(data.slice(offset, offset + length));
   }
 
-  async readBlockSeries(
+  readBlockSeries(
     key: string,
     baseOffset: number,
     readSize: number,
     blockSize: number,
     blockCount: number,
   ): Promise<ArrayBuffer> {
+    if (blockCount === 0) return Promise.resolve(new ArrayBuffer(0));
+
+    const data = this.data.get(key);
+    if (!data) throw new Error(`Key "${key}" not found in storage`);
+
     const result = new ArrayBuffer(readSize * blockCount);
-    const resultView = new Uint8Array(result);
-    const BATCH_SIZE = 50;
+    const dst = new Uint8Array(result);
+    const src = new Uint8Array(data);
 
-    for (let batch = 0; batch < Math.ceil(blockCount / BATCH_SIZE); batch++) {
-      const startIdx = batch * BATCH_SIZE;
-      const endIdx = Math.min(startIdx + BATCH_SIZE, blockCount);
-
-      const readPromises = [];
-      for (let i = startIdx; i < endIdx; i++) {
-        const offset = baseOffset + i * blockSize;
-        readPromises.push(this.readSlice(key, offset, readSize));
-      }
-
-      const results = await Promise.all(readPromises);
-      for (let i = 0; i < results.length; i++) {
-        resultView.set(new Uint8Array(results[i]), (startIdx + i) * readSize);
-      }
+    for (let i = 0; i < blockCount; i++) {
+      const offset = baseOffset + i * blockSize;
+      dst.set(src.subarray(offset, offset + readSize), i * readSize);
     }
 
-    return result;
+    return Promise.resolve(result);
   }
 
   getSize(key: string): Promise<number> {

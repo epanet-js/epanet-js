@@ -42,23 +42,53 @@ export class OPFSStorage implements IKeyBufferStore {
     blockSize: number,
     blockCount: number,
   ): Promise<ArrayBuffer> {
+    if (blockCount === 0) return new ArrayBuffer(0);
+
+    // One large contiguous read is dramatically faster than many small slices,
+    // but the strided range can be huge on big networks (blockSize = the full
+    // per-timestep results record). We read it in chunks of at most
+    // maxBlocksPerChunk blocks so the temporary buffer stays bounded. The
+    // file handle is opened once and reused across chunks.
+    const MAX_BYTES_PER_CHUNK = 64 * 1024 * 1024;
+    const maxBlocksPerChunk = Math.max(
+      1,
+      Math.floor(MAX_BYTES_PER_CHUNK / blockSize),
+    );
+
+    const dir = await this.getAppDir();
+    const fileHandle = await dir.getFileHandle(filename);
+    const file = await fileHandle.getFile();
+
+    type Chunk = { firstBlock: number; blocksInChunk: number };
+    const chunks: Chunk[] = [];
+    for (
+      let firstBlock = 0;
+      firstBlock < blockCount;
+      firstBlock += maxBlocksPerChunk
+    ) {
+      chunks.push({
+        firstBlock,
+        blocksInChunk: Math.min(maxBlocksPerChunk, blockCount - firstBlock),
+      });
+    }
+
+    const chunkBuffers = await Promise.all(
+      chunks.map(({ firstBlock, blocksInChunk }) => {
+        const chunkOffset = baseOffset + firstBlock * blockSize;
+        const chunkLength = (blocksInChunk - 1) * blockSize + readSize;
+        return file.slice(chunkOffset, chunkOffset + chunkLength).arrayBuffer();
+      }),
+    );
+
     const result = new ArrayBuffer(readSize * blockCount);
-    const resultView = new Uint8Array(result);
-    const BATCH_SIZE = 50;
-
-    for (let batch = 0; batch < Math.ceil(blockCount / BATCH_SIZE); batch++) {
-      const startIdx = batch * BATCH_SIZE;
-      const endIdx = Math.min(startIdx + BATCH_SIZE, blockCount);
-
-      const readPromises = [];
-      for (let i = startIdx; i < endIdx; i++) {
-        const offset = baseOffset + i * blockSize;
-        readPromises.push(this.readSlice(filename, offset, readSize));
-      }
-
-      const results = await Promise.all(readPromises);
-      for (let i = 0; i < results.length; i++) {
-        resultView.set(new Uint8Array(results[i]), (startIdx + i) * readSize);
+    const dst = new Uint8Array(result);
+    for (let c = 0; c < chunks.length; c++) {
+      const { firstBlock, blocksInChunk } = chunks[c];
+      const chunk = new Uint8Array(chunkBuffers[c]);
+      for (let i = 0; i < blocksInChunk; i++) {
+        const srcOffset = i * blockSize;
+        const dstOffset = (firstBlock + i) * readSize;
+        dst.set(chunk.subarray(srcOffset, srcOffset + readSize), dstOffset);
       }
     }
 

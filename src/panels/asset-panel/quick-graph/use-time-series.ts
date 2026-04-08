@@ -45,6 +45,17 @@ export function useTimeSeries<T extends QuickGraphAssetType>({
   const isInScenario = worktree.activeSnapshotId !== worktree.mainId;
   const mainSnapshot = worktree.snapshots.get(worktree.mainId);
   const mainSimulation = mainSnapshot?.simulation ?? null;
+  const mainStatus = mainSimulation?.status;
+  const mainMetadata =
+    mainSimulation &&
+    (mainSimulation.status === "success" || mainSimulation.status === "warning")
+      ? mainSimulation.metadata
+      : undefined;
+  const mainSimulationIds =
+    mainSimulation &&
+    (mainSimulation.status === "success" || mainSimulation.status === "warning")
+      ? mainSimulation.simulationIds
+      : undefined;
 
   const status = simulation.status;
   const metadata =
@@ -98,19 +109,14 @@ export function useTimeSeries<T extends QuickGraphAssetType>({
 
         if (
           isInScenario &&
-          mainSimulation &&
-          (mainSimulation.status === "success" ||
-            mainSimulation.status === "warning") &&
-          mainSimulation.metadata &&
-          mainSimulation.simulationIds
+          (mainStatus === "success" || mainStatus === "warning") &&
+          mainMetadata &&
+          mainSimulationIds
         ) {
           try {
             const mainStorage = new OPFSStorage(getAppId(), "main");
             const mainReader = new EPSResultsReader(mainStorage);
-            await mainReader.initialize(
-              mainSimulation.metadata,
-              mainSimulation.simulationIds,
-            );
+            await mainReader.initialize(mainMetadata, mainSimulationIds);
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const mainResult = await mainReader.getTimeSeries(
@@ -156,7 +162,9 @@ export function useTimeSeries<T extends QuickGraphAssetType>({
     simulationIds,
     getEpsResultsReader,
     isInScenario,
-    mainSimulation,
+    mainStatus,
+    mainMetadata,
+    mainSimulationIds,
   ]);
 
   return { data, mainData, isLoading };

@@ -1,4 +1,4 @@
-import { useMemo, useCallback, useRef, useEffect } from "react";
+import { memo, useMemo, useCallback, useRef, useEffect } from "react";
 import ReactECharts, { EChartsInstance } from "echarts-for-react";
 import type { EChartsOption } from "echarts";
 import { useTranslate } from "src/hooks/use-translate";
@@ -17,9 +17,11 @@ interface QuickGraphChartProps {
   scenarioName: string | null;
 }
 
-export function QuickGraphChart(props: QuickGraphChartProps) {
+export const QuickGraphChart = memo(function QuickGraphChart(
+  props: QuickGraphChartProps,
+) {
   return <QuickGraphChartECharts {...props} />;
-}
+});
 
 function QuickGraphChartECharts({
   values,
@@ -68,7 +70,7 @@ function QuickGraphChartECharts({
       markLine: {
         silent: true,
         symbol: "none",
-        data: [{ xAxis: currentIntervalIndex }],
+        data: [] as { xAxis: number }[],
         lineStyle: {
           type: "solid" as const,
           color: colors.purple300,
@@ -99,7 +101,9 @@ function QuickGraphChartECharts({
     };
 
     return [mainSeries, scenarioSeries];
-  }, [values, mainValues, mainLabel, scenarioName, currentIntervalIndex]);
+  }, [values, mainValues, mainLabel, scenarioName]);
+
+  const scenarioSeriesIndex = mainValues && mainValues.length > 0 ? 1 : 0;
 
   const legend: EChartsOption["legend"] = useMemo(() => {
     if (!showLegend) return undefined;
@@ -116,41 +120,44 @@ function QuickGraphChartECharts({
     };
   }, [showLegend]);
 
-  const option: EChartsOption = {
-    animation: false,
-    grid: {
-      top: showLegend ? 20 : 8,
-      right: 8,
-      bottom: 4,
-      left: 36,
-      containLabel: false,
-    },
-    legend,
-    xAxis,
-    yAxis,
-    series,
-    tooltip: {
-      trigger: "axis",
-      backgroundColor: "white",
-      borderColor: colors.gray300,
-      textStyle: {
-        color: colors.gray700,
-        fontSize: 14,
+  const isComparingScenarios = mainValues !== null;
+  const option: EChartsOption = useMemo(
+    () => ({
+      animation: false,
+      grid: {
+        top: showLegend ? 20 : 8,
+        right: 8,
+        bottom: 4,
+        left: 36,
+        containLabel: false,
       },
-      formatter: (params: any) => {
-        if (!Array.isArray(params) || params.length === 0) return "";
-        const timeLabel = params[0]?.name ?? "";
-        const lines = params.map((p: any) => {
-          const value = localizeDecimal(p.value, { decimals });
-          const isComparingScenarios = mainValues !== null;
-          if (!isComparingScenarios) return value;
-          const colorDot = `<span style="display:inline-block;width:8px;height:8px;background:${p.color};margin-right:4px;border-radius:50%;"></span>`;
-          return `${colorDot}${p.seriesName ?? ""}: ${value}`;
-        });
-        return `${timeLabel}<br/>${lines.join("<br/>")}`;
+      legend,
+      xAxis,
+      yAxis,
+      series,
+      tooltip: {
+        trigger: "axis",
+        backgroundColor: "white",
+        borderColor: colors.gray300,
+        textStyle: {
+          color: colors.gray700,
+          fontSize: 14,
+        },
+        formatter: (params: any) => {
+          if (!Array.isArray(params) || params.length === 0) return "";
+          const timeLabel = params[0]?.name ?? "";
+          const lines = params.map((p: any) => {
+            const value = localizeDecimal(p.value, { decimals });
+            if (!isComparingScenarios) return value;
+            const colorDot = `<span style="display:inline-block;width:8px;height:8px;background:${p.color};margin-right:4px;border-radius:50%;"></span>`;
+            return `${colorDot}${p.seriesName ?? ""}: ${value}`;
+          });
+          return `${timeLabel}<br/>${lines.join("<br/>")}`;
+        },
       },
-    },
-  };
+    }),
+    [showLegend, legend, xAxis, yAxis, series, decimals, isComparingScenarios],
+  );
 
   const chartRef = useRef<ReactECharts>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -167,6 +174,17 @@ function QuickGraphChartECharts({
     resizeObserver.observe(container);
     return () => resizeObserver.disconnect();
   }, []);
+
+  useEffect(() => {
+    const chart = chartRef.current?.getEchartsInstance();
+    if (!chart) return;
+    const seriesUpdate: any[] = [];
+    for (let i = 0; i < scenarioSeriesIndex; i++) seriesUpdate.push({});
+    seriesUpdate.push({
+      markLine: { data: [{ xAxis: currentIntervalIndex }] },
+    });
+    chart.setOption({ series: seriesUpdate });
+  }, [currentIntervalIndex, scenarioSeriesIndex, option]);
 
   const onChartReady = useCallback(
     (chart: EChartsInstance) => {
@@ -209,7 +227,6 @@ function QuickGraphChartECharts({
         style={{ height: "100%", width: "100%" }}
         opts={{ renderer: "svg" }}
         onChartReady={onChartReady}
-        notMerge={true}
       />
     </div>
   );
