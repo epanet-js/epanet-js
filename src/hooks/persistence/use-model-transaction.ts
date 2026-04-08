@@ -11,6 +11,7 @@ import {
   computeSyncMoment,
   syncSnapshotMomentLog,
   updateModelCache,
+  syncBranchState,
 } from "src/lib/persistence/transaction-helpers";
 
 export const useModelTransaction = () => {
@@ -38,6 +39,7 @@ export const useModelTransaction = () => {
       set(mapSyncMomentAtom, newMapSyncMoment);
       syncSnapshotMomentLog(get, set, momentLog, newStateId);
       updateModelCache(get, set);
+      syncBranchState(get, set, momentLog, newStateId);
     }, []),
   );
 

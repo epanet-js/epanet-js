@@ -8,6 +8,7 @@ import {
   computeSyncMoment,
   syncSnapshotMomentLog,
   updateModelCache,
+  syncBranchState,
 } from "src/lib/persistence/transaction-helpers";
 
 export const useUndoableTransactions = () => {
@@ -32,6 +33,7 @@ export const useUndoableTransactions = () => {
       set(mapSyncMomentAtom, newMapSyncMoment);
       syncSnapshotMomentLog(get, set, momentLog, action.stateId);
       updateModelCache(get, set);
+      syncBranchState(get, set, momentLog, action.stateId);
     }, []),
   );
 

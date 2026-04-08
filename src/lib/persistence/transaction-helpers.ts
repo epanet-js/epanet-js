@@ -14,6 +14,7 @@ import { modelFactoriesAtom } from "src/state/model-factories";
 import { worktreeAtom } from "src/state/scenarios";
 import { modelCacheAtom } from "src/state/model-cache";
 import { type MomentPointer } from "src/state/map";
+import { branchStateAtom } from "src/state/branch-state";
 import type { MomentLog } from "./moment-log";
 import { getFreshAt } from "./shared";
 import { sortAts } from "src/lib/parse-stored";
@@ -169,4 +170,26 @@ export function updateModelCache(get: Getter, set: Setter): void {
   if (worktree.activeSnapshotId === worktree.mainId) {
     set(baseModelAtom, updatedModel);
   }
+}
+
+export function syncBranchState(
+  get: Getter,
+  set: Setter,
+  momentLog: MomentLog,
+  version: string,
+): void {
+  const worktree = get(worktreeAtom);
+  const branchStates = get(branchStateAtom);
+  const currentState = branchStates.get(worktree.activeSnapshotId);
+  if (!currentState) return;
+
+  const updatedModel = get(stagingModelAtom);
+  const updatedStates = new Map(branchStates);
+  updatedStates.set(worktree.activeSnapshotId, {
+    ...currentState,
+    hydraulicModel: updatedModel,
+    momentLog,
+    version,
+  });
+  set(branchStateAtom, updatedStates);
 }
