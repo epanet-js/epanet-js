@@ -43,7 +43,7 @@ const ProgressBar = ({
           <Progress.Indicator className="bg-purple-500 h-full w-1/4 rounded-full progress-indeterminate" />
         ) : (
           <Progress.Indicator
-            className="bg-purple-500 w-full h-full transition-transform duration-300 ease-out"
+            className="bg-purple-500 w-full h-full"
             style={{
               transform: `translateX(-${100 - progressPercent}%)`,
             }}
