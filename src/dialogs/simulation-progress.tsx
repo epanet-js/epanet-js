@@ -66,7 +66,7 @@ export const SimulationProgressDialog = ({
 
   const label =
     phase === "finalizing"
-      ? translate("finalizingSimulation")
+      ? translate("savingResults")
       : !isWaterAgeOn
         ? translate("runningSimulation")
         : phase === "quality"
