@@ -24,41 +24,33 @@ import type { MomentLog } from "src/lib/persistence/moment-log";
 
 type SimulationState = import("src/state/simulation").SimulationState;
 
-function getModelsFromCache(
+function getModelFromCache(
   get: Getter,
   snapshotId: string,
-  mainId: string,
-): {
-  stagingModel: HydraulicModel;
-  baseModel: HydraulicModel;
-  labelManager: LabelManager;
-} {
+): { model: HydraulicModel; labelManager: LabelManager } {
   const cache = get(modelCacheAtom);
-  const snapshotEntry = cache.get(snapshotId);
-  if (!snapshotEntry) {
+  const entry = cache.get(snapshotId);
+  if (!entry) {
     throw new Error(`Model cache miss for snapshot ${snapshotId}`);
   }
-  const mainEntry = cache.get(mainId);
-  if (!mainEntry) {
-    throw new Error(`Model cache miss for snapshot ${mainId}`);
-  }
-  return {
-    stagingModel: snapshotEntry.model,
-    baseModel: mainEntry.model,
-    labelManager: snapshotEntry.labelManager,
-  };
+  return entry;
 }
 
 function setModelState(
-  get: Getter,
   set: Setter,
   stagingModel: HydraulicModel,
   baseModel: HydraulicModel,
+): void {
+  set(stagingModelAtom, stagingModel);
+  set(baseModelAtom, baseModel);
+}
+
+function updateFactories(
+  get: Getter,
+  set: Setter,
   labelManager: LabelManager,
 ): void {
   const currentFactories = get(modelFactoriesAtom);
-  set(stagingModelAtom, stagingModel);
-  set(baseModelAtom, baseModel);
   set(
     modelFactoriesAtom,
     initializeModelFactories({
@@ -204,13 +196,11 @@ export const useApplySnapshot = () => {
           worktree,
           snapshot,
         );
-        const { stagingModel, baseModel, labelManager } = getModelsFromCache(
-          get,
-          snapshotId,
-          worktree.mainId,
-        );
+        const stagingModel = getModelFromCache(get, snapshotId);
+        const baseModel = getModelFromCache(get, worktree.mainId);
 
-        setModelState(get, set, stagingModel, baseModel, labelManager);
+        setModelState(set, stagingModel.model, baseModel.model);
+        updateFactories(get, set, stagingModel.labelManager);
         switchMomentLog(get, set, snapshot.momentLog);
         setSimulationState(
           set,
@@ -218,7 +208,7 @@ export const useApplySnapshot = () => {
           resultsReader,
           snapshot.simulationSettings,
         );
-        validateSelection(get, set, stagingModel);
+        validateSelection(get, set, stagingModel.model);
       },
       [],
     ),
