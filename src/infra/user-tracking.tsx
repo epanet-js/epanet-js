@@ -1042,6 +1042,7 @@ export type UserEvent =
   | { name: "colorRange.break.deleted"; property: string }
   | { name: "colorRange.intervalColor.changed"; property: string }
   | { name: "colorRange.breaks.regenerated"; property: string }
+  | { name: "colorRange.breaks.regeneratedFromAllData"; property: string }
   | {
       name: "colorRange.rangeError.seen";
       property: string;

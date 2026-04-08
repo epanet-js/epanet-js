@@ -621,6 +621,46 @@ describe("color range editor", () => {
     });
   });
 
+  it("regenerates breaks from current step", async () => {
+    const IDS = { j1: 1, j2: 2, j3: 3, j4: 4 } as const;
+    const user = userEvent.setup();
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction(IDS.j1)
+      .aJunction(IDS.j2)
+      .aJunction(IDS.j3)
+      .aJunction(IDS.j4)
+      .build();
+    const nodeSymbology = aNodeSymbology({
+      colorRule: {
+        property: "pressure",
+        mode: "equalIntervals",
+        breaks: [10, 20],
+        colors: [red, green, blue],
+      },
+    });
+    const simulationResults = createMockResultsReader({
+      junctions: {
+        [IDS.j1]: { pressure: 0 },
+        [IDS.j2]: { pressure: 50 },
+        [IDS.j3]: { pressure: 100 },
+        [IDS.j4]: { pressure: 200 },
+      },
+    });
+
+    const store = setInitialState({
+      hydraulicModel,
+      nodeSymbology,
+      simulationResults,
+    });
+
+    renderComponent({ store });
+
+    await user.click(screen.getByRole("button", { name: /regenerate/i }));
+
+    const { breaks } = getNodeColorRule(store);
+    expect(breaks).not.toEqual([10, 20]);
+  });
+
   const getNodeColorRule = (store: Store): RangeColorRule => {
     const symbology = store.get(nodeSymbologyAtom);
     if (!symbology.colorRule) throw new Error("Empty node symbology");

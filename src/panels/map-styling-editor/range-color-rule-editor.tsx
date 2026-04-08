@@ -1,6 +1,7 @@
 import clsx from "clsx";
+import * as DD from "@radix-ui/react-dropdown-menu";
 import { ColorPopover } from "src/components/color-popover";
-import { Button } from "src/components/elements";
+import { Button, DDContent, StyledItem } from "src/components/elements";
 import { NumericField } from "src/components/form/numeric-field";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { localizeDecimal } from "src/infra/i18n/numbers";
@@ -48,7 +49,13 @@ export const RangeColorRuleEditor = ({
   } = useSymbologyState();
 
   const userTracking = useUserTracking();
-  const { sortedData, regenerate } = useRegenerateBreaks(geometryType);
+  const {
+    sortedData,
+    regenerate,
+    regenerateFromAllData,
+    canRegenerateFromAllData,
+    isWorking,
+  } = useRegenerateBreaks(geometryType);
 
   const symbology = geometryType === "node" ? nodeSymbology : linkSymbology;
 
@@ -248,8 +255,10 @@ export const RangeColorRuleEditor = ({
     }
   };
 
-  const handleRegenerate = () => {
-    const result = regenerate(colorRule);
+  const applyRegenerateResult = (result: {
+    colorRule: RangeColorRule;
+    error?: boolean;
+  }) => {
     setColorRule(result.colorRule);
     if (result.error) {
       showError("notEnoughData", result.colorRule);
@@ -257,6 +266,15 @@ export const RangeColorRuleEditor = ({
       clearError();
       submitChange(result.colorRule);
     }
+  };
+
+  const handleRegenerate = () => {
+    applyRegenerateResult(regenerate(colorRule));
+  };
+
+  const handleRegenerateFromAllData = async () => {
+    const result = await regenerateFromAllData(colorRule);
+    if (result) applyRegenerateResult(result);
   };
 
   const numIntervals = colorRule.breaks.length + 1;
@@ -318,14 +336,44 @@ export const RangeColorRuleEditor = ({
             )}
           </div>
           <div className="flex flex-col items-center w-full gap-y-2">
-            <Button
-              className="text-center text-sm"
-              size="full-width"
-              onClick={handleRegenerate}
-            >
-              <RefreshIcon />
-              {translate("regenerate")}
-            </Button>
+            {canRegenerateFromAllData ? (
+              <DD.Root>
+                <DD.Trigger asChild>
+                  <Button
+                    className="text-center text-sm"
+                    size="full-width"
+                    disabled={isWorking}
+                  >
+                    <RefreshIcon
+                      className={isWorking ? "animate-spin" : undefined}
+                    />
+                    {translate("regenerate")}
+                  </Button>
+                </DD.Trigger>
+                <DD.Portal>
+                  <DDContent align="start" side="top" sideOffset={4}>
+                    <StyledItem onSelect={handleRegenerate}>
+                      {translate("regenerateFromCurrentStep")}
+                    </StyledItem>
+                    <StyledItem onSelect={handleRegenerateFromAllData}>
+                      {translate("regenerateFromAllData")}
+                    </StyledItem>
+                  </DDContent>
+                </DD.Portal>
+              </DD.Root>
+            ) : (
+              <Button
+                className="text-center text-sm"
+                size="full-width"
+                onClick={handleRegenerate}
+                disabled={isWorking}
+              >
+                <RefreshIcon
+                  className={isWorking ? "animate-spin" : undefined}
+                />
+                {translate("regenerate")}
+              </Button>
+            )}
           </div>
         </>
       )}

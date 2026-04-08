@@ -56,11 +56,12 @@ export const getSortedSimulationValues = (
   return values.sort((a, b) => a - b);
 };
 
-export type BreaksDataMode = "currentStep" | "initial";
+export type BreaksDataMode = "currentStep" | "initial" | "allSteps";
 
 export type SimulationDataSource =
   | { mode: "currentStep"; resultsReader: ResultsReader }
-  | { mode: "initial"; epsReader: EPSResultsReader };
+  | { mode: "initial"; epsReader: EPSResultsReader }
+  | { mode: "allSteps"; epsReader: EPSResultsReader };
 
 /**
  * Returns the sorted values to use for break generation for a simulation
@@ -78,7 +79,40 @@ export const getSortedSimulationDataForBreaks = async (
       return getSortedSimulationValues(source.resultsReader, property, options);
     case "initial":
       return getInitialSortedValues(source.epsReader, property, options);
+    case "allSteps":
+      return getAllStepsSortedValues(source.epsReader, property, options);
   }
+};
+
+const getAllStepsSortedValues = async (
+  epsReader: EPSResultsReader,
+  property: SimulationProperty,
+  options?: { absValues?: boolean },
+): Promise<number[] | null> => {
+  const timestepCount = epsReader.timestepCount;
+  if (timestepCount <= 0) return null;
+
+  const firstReader = await epsReader.getResultsForTimestep(0);
+  const firstValues = getSortedSimulationValues(firstReader, property, options);
+  const valuesPerTimestep = firstValues.length;
+  if (timestepCount === 1) return firstValues;
+
+  const allValues = new Float32Array(valuesPerTimestep * timestepCount);
+  for (let i = 0; i < valuesPerTimestep; i++) {
+    allValues[i] = firstValues[i];
+  }
+
+  for (let t = 1; t < timestepCount; t++) {
+    const reader = await epsReader.getResultsForTimestep(t);
+    const values = getSortedSimulationValues(reader, property, options);
+    const offset = t * valuesPerTimestep;
+    for (let i = 0; i < values.length; i++) {
+      allValues[offset + i] = values[i];
+    }
+  }
+
+  allValues.sort();
+  return Array.from(allValues);
 };
 
 const getInitialSortedValues = async (

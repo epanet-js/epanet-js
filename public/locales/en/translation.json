@@ -569,6 +569,8 @@
   "fixRangeToApply": "Please adjust the range to apply changes.",
   "flowAbs": "Flow (abs.)",
   "regenerate": "Regenerate",
+  "regenerateFromCurrentStep": "Regenerate from current step",
+  "regenerateFromAllData": "Regenerate from all data",
   "mode": "Mode",
   "classes": "Classes",
   "colorRamp": "Color ramp",
