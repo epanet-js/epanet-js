@@ -62,6 +62,7 @@ export const SimulationProgressDialog = ({
   const translate = useTranslate();
   const isWaterAgeOn = useFeatureFlag("FLAG_WATER_AGE");
   const { currentTime, totalDuration, phase } = modal;
+  const dialogSize = isWaterAgeOn ? "sm" : "xs";
 
   const label =
     phase === "finalizing"
@@ -73,7 +74,12 @@ export const SimulationProgressDialog = ({
           : translate("runningHydraulicAnalysis");
 
   return (
-    <BaseDialog size="xs" isOpen={true} onClose={() => {}} preventClose={true}>
+    <BaseDialog
+      size={dialogSize}
+      isOpen={true}
+      onClose={() => {}}
+      preventClose={true}
+    >
       <div className="p-6">
         <ProgressBar
           label={label}

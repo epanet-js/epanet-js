@@ -2,6 +2,7 @@ import { useShowReport } from "src/commands/show-report";
 import { SimulationSummaryState } from "src/state/dialog";
 import { BaseDialog, SimpleDialogActions } from "../components/dialog";
 import { Loading } from "../components/elements";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useTranslate } from "src/hooks/use-translate";
 
 import { ErrorIcon, SuccessIcon, WarningIcon } from "src/icons";
@@ -25,6 +26,7 @@ const SimulationSummaryDialogNew = ({
 }) => {
   const translate = useTranslate();
   const showReport = useShowReport();
+  const isWaterAgeOn = useFeatureFlag("FLAG_WATER_AGE");
 
   const isSuccess = modal.status === "success";
   const config = {
@@ -62,7 +64,7 @@ const SimulationSummaryDialogNew = ({
       isOpen={true}
       onClose={onClose}
       title={config.title}
-      size="xs"
+      size={isWaterAgeOn ? "sm" : "xs"}
       footer={
         <SimpleDialogActions
           autoFocusSubmit={true}
