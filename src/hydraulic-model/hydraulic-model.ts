@@ -62,6 +62,13 @@ export const copyModel = (source: HydraulicModel): HydraulicModel => {
     customerPointsLookup: source.customerPointsLookup.copy(),
     topology: source.topology.copy(),
     assetIndex: source.assetIndex.copy(assets),
+    demands: {
+      junctions: new Map(source.demands.junctions),
+      customerPoints: new Map(source.demands.customerPoints),
+    },
+    curves: new Map(source.curves),
+    patterns: new Map(source.patterns),
+    controls: { ...source.controls },
   };
 };
 
