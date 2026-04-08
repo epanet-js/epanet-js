@@ -1,14 +1,11 @@
 import { useAtomValue, useSetAtom } from "jotai";
 import { useCallback } from "react";
-import {
-  currentTimestepIndexAtom,
-  simulationAtom,
-  simulationStepAtom,
-} from "src/state/simulation";
+import { simulationAtom, simulationResultsAtom } from "src/state/simulation";
 import { captureError } from "src/infra/error-tracking";
 import { useUserTracking } from "src/infra/user-tracking";
 import { getSimulationMetadata } from "src/simulation/epanet/simulation-metadata";
 import { useGetEpsResultsReader } from "src/hooks/use-eps-results-reader";
+import { usePersistenceWithSnapshots } from "src/lib/persistence";
 
 export const previousTimestepShortcut = "shift+left";
 export const nextTimestepShortcut = "shift+right";
@@ -20,8 +17,8 @@ export const useChangeTimestep = () => {
   const setSimulationState = useSetAtom(simulationAtom);
   const userTracking = useUserTracking();
   const getEpsResultsReader = useGetEpsResultsReader();
-  const setSimulationStep = useSetAtom(simulationStepAtom);
-  const currentTimestepIndex = useAtomValue(currentTimestepIndexAtom);
+  const persistence = usePersistenceWithSnapshots();
+  const setSimulationResults = useSetAtom(simulationResultsAtom);
 
   const changeTimestep = useCallback(
     async (timestepIndex: number, source: ChangeTimestepSource) => {
@@ -46,10 +43,14 @@ export const useChangeTimestep = () => {
         const resultsReader =
           await epsReader.getResultsForTimestep(timestepIndex);
 
-        setSimulationStep({
-          resultsReader,
+        setSimulationResults(resultsReader);
+
+        const updatedSimulation = {
+          ...simulation,
           currentTimestepIndex: timestepIndex,
-        });
+        };
+        setSimulationState(updatedSimulation);
+        persistence.syncSnapshotSimulation(updatedSimulation);
 
         userTracking.capture({
           name: "simulation.timestep.changed",
@@ -63,25 +64,34 @@ export const useChangeTimestep = () => {
     },
     [
       simulation,
-      setSimulationStep,
+      setSimulationResults,
       setSimulationState,
       userTracking,
       getEpsResultsReader,
+      persistence,
     ],
   );
 
   const goToPreviousTimestep = useCallback(
     async (source: ChangeTimestepSource = "shortcut") => {
-      await changeTimestep((currentTimestepIndex ?? 0) - 1, source);
+      const currentIndex =
+        "currentTimestepIndex" in simulation
+          ? (simulation.currentTimestepIndex ?? 0)
+          : 0;
+      await changeTimestep(currentIndex - 1, source);
     },
-    [currentTimestepIndex, changeTimestep],
+    [simulation, changeTimestep],
   );
 
   const goToNextTimestep = useCallback(
     async (source: ChangeTimestepSource = "shortcut") => {
-      await changeTimestep((currentTimestepIndex ?? 0) + 1, source);
+      const currentIndex =
+        "currentTimestepIndex" in simulation
+          ? (simulation.currentTimestepIndex ?? 0)
+          : 0;
+      await changeTimestep(currentIndex + 1, source);
     },
-    [currentTimestepIndex, changeTimestep],
+    [simulation, changeTimestep],
   );
 
   return { changeTimestep, goToPreviousTimestep, goToNextTimestep };

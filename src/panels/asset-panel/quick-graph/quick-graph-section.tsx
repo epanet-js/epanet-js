@@ -6,7 +6,7 @@ import { Selector } from "src/components/form/selector";
 import { useTranslate } from "src/hooks/use-translate";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { stagingModelAtom } from "src/state/hydraulic-model";
-import { currentTimestepIndexAtom, simulationAtom } from "src/state/simulation";
+import { simulationAtom } from "src/state/simulation";
 import { worktreeAtom } from "src/state/scenarios";
 import { getSimulationMetadata } from "src/simulation/epanet/simulation-metadata";
 import {
@@ -156,7 +156,10 @@ const QuickGraphSection = ({
     () => (mainData ? Array.from(mainData.values) : null),
     [mainData],
   );
-  const timeStepIndex = useAtomValue(currentTimestepIndexAtom) ?? 0;
+  const timeStepIndex =
+    simulation.status === "success" || simulation.status === "warning"
+      ? (simulation.currentTimestepIndex ?? 0)
+      : 0;
 
   const propertyOptions = useMemo(() => {
     const hasCompletedSimulation =

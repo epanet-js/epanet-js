@@ -12,9 +12,7 @@ import { mapSyncMomentAtom } from "src/state/map";
 import {
   simulationAtom,
   initialSimulationState,
-  simulationStepAtom,
-  currentTimestepIndexAtom,
-  type SimulationStep,
+  simulationResultsAtom,
 } from "src/state/simulation";
 import { simulationSettingsAtom } from "src/state/simulation-settings";
 import { selectionAtom } from "src/state/selection";
@@ -84,11 +82,15 @@ function switchMomentLog(get: Getter, set: Setter, momentLog: MomentLog): void {
 function setSimulationState(
   set: Setter,
   simulation: SimulationState,
-  simulationStep: SimulationStep | null,
+  resultsReader: Awaited<
+    ReturnType<
+      import("src/simulation").EPSResultsReader["getResultsForTimestep"]
+    >
+  > | null,
   simulationSettings: import("src/simulation/simulation-settings").SimulationSettings,
 ): void {
   set(simulationAtom, simulation);
-  set(simulationStepAtom, simulationStep);
+  set(simulationResultsAtom, resultsReader);
   set(simulationSettingsAtom, simulationSettings);
 }
 
@@ -112,52 +114,77 @@ async function prepareSimulation(
   snapshot: NonNullable<ReturnType<Worktree["snapshots"]["get"]>>,
 ): Promise<{
   finalSimulation: SimulationState;
-  simulationStep: SimulationStep | null;
+  resultsReader: Awaited<
+    ReturnType<
+      import("src/simulation").EPSResultsReader["getResultsForTimestep"]
+    >
+  > | null;
 }> {
-  const preserveTimestepIndex = get(currentTimestepIndexAtom) ?? undefined;
+  const currentSimulation = get(simulationAtom);
+  const preserveTimestepIndex =
+    currentSimulation.status === "success" ||
+    currentSimulation.status === "warning"
+      ? currentSimulation.currentTimestepIndex
+      : undefined;
 
   const simulation = getSimulationForState(worktree, initialSimulationState);
-  const simulationStep = await fetchSimulationStep(
+  const { resultsReader, actualTimestepIndex } = await fetchSimulationResults(
     simulation,
     snapshot.simulationSourceId,
     preserveTimestepIndex,
   );
 
-  return { finalSimulation: simulation, simulationStep: simulationStep };
+  const finalSimulation =
+    actualTimestepIndex !== undefined &&
+    (simulation.status === "success" || simulation.status === "warning")
+      ? { ...simulation, currentTimestepIndex: actualTimestepIndex }
+      : simulation;
+
+  return { finalSimulation, resultsReader };
 }
 
-async function fetchSimulationStep(
+async function fetchSimulationResults(
   simulation: SimulationState,
   snapshotId: string,
   preserveTimestepIndex?: number,
-): Promise<SimulationStep | null> {
+): Promise<{
+  resultsReader: Awaited<
+    ReturnType<
+      import("src/simulation").EPSResultsReader["getResultsForTimestep"]
+    >
+  > | null;
+  actualTimestepIndex?: number;
+}> {
   if (
-    (simulation.status !== "success" && simulation.status !== "warning") ||
-    !simulation.metadata
+    (simulation.status === "success" || simulation.status === "warning") &&
+    simulation.metadata
   ) {
-    return null;
+    const [{ OPFSStorage }, { EPSResultsReader }, { getAppId }] =
+      await Promise.all([
+        import("src/infra/storage"),
+        import("src/simulation"),
+        import("src/infra/app-instance"),
+      ]);
+
+    const appId = getAppId();
+    const storage = new OPFSStorage(appId, snapshotId);
+    const epsReader = new EPSResultsReader(storage);
+    await epsReader.initialize(simulation.metadata, simulation.simulationIds);
+
+    let timestepIndex: number;
+    if (preserveTimestepIndex !== undefined) {
+      timestepIndex = Math.min(
+        preserveTimestepIndex,
+        epsReader.timestepCount - 1,
+      );
+    } else {
+      timestepIndex = simulation.currentTimestepIndex ?? 0;
+    }
+
+    const resultsReader = await epsReader.getResultsForTimestep(timestepIndex);
+    return { resultsReader, actualTimestepIndex: timestepIndex };
   }
-
-  const [{ OPFSStorage }, { EPSResultsReader }, { getAppId }] =
-    await Promise.all([
-      import("src/infra/storage"),
-      import("src/simulation"),
-      import("src/infra/app-instance"),
-    ]);
-
-  const appId = getAppId();
-  const storage = new OPFSStorage(appId, snapshotId);
-  const epsReader = new EPSResultsReader(storage);
-  await epsReader.initialize(simulation.metadata, simulation.simulationIds);
-
-  const currentTimestepIndex =
-    preserveTimestepIndex !== undefined
-      ? Math.min(preserveTimestepIndex, epsReader.timestepCount - 1)
-      : 0;
-
-  const resultsReader =
-    await epsReader.getResultsForTimestep(currentTimestepIndex);
-  return { resultsReader, currentTimestepIndex };
+  return { resultsReader: null };
 }
 
 export const useApplySnapshot = () => {
@@ -172,7 +199,7 @@ export const useApplySnapshot = () => {
         const snapshot = worktree.snapshots.get(snapshotId);
         if (!snapshot) return;
 
-        const { finalSimulation, simulationStep } = await prepareSimulation(
+        const { finalSimulation, resultsReader } = await prepareSimulation(
           get,
           worktree,
           snapshot,
@@ -188,7 +215,7 @@ export const useApplySnapshot = () => {
         setSimulationState(
           set,
           finalSimulation,
-          simulationStep,
+          resultsReader,
           snapshot.simulationSettings,
         );
         validateSelection(get, set, stagingModel);
