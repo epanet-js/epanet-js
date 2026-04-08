@@ -290,7 +290,10 @@ export class Persistence implements IPersistenceWithSnapshots {
     this.store.set(modelCacheAtom, cache);
   }
 
-  syncSnapshotSimulation(simulation: SimulationState): void {
+  syncSnapshotSimulation(
+    simulation: SimulationState,
+    options?: { updateSourceId?: boolean },
+  ): void {
     const worktree = this.store.get(worktreeAtom);
     const snapshot = worktree.snapshots.get(worktree.activeSnapshotId);
     if (!snapshot) return;
@@ -299,7 +302,9 @@ export class Persistence implements IPersistenceWithSnapshots {
     updatedSnapshots.set(worktree.activeSnapshotId, {
       ...snapshot,
       simulation,
-      simulationSourceId: worktree.activeSnapshotId,
+      ...(options?.updateSourceId && {
+        simulationSourceId: worktree.activeSnapshotId,
+      }),
     });
 
     this.store.set(worktreeAtom, { ...worktree, snapshots: updatedSnapshots });
@@ -417,7 +422,7 @@ export class Persistence implements IPersistenceWithSnapshots {
       if (preserveTimestepIndex !== undefined) {
         timestepIndex = Math.min(
           preserveTimestepIndex,
-          epsReader.timestepCount - 1,
+          Math.max(0, epsReader.timestepCount - 1),
         );
       } else {
         timestepIndex = simulation.currentTimestepIndex ?? 0;

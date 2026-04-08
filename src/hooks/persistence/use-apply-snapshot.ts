@@ -175,7 +175,7 @@ async function fetchSimulationResults(
     if (preserveTimestepIndex !== undefined) {
       timestepIndex = Math.min(
         preserveTimestepIndex,
-        epsReader.timestepCount - 1,
+        Math.max(0, epsReader.timestepCount - 1),
       );
     } else {
       timestepIndex = simulation.currentTimestepIndex ?? 0;

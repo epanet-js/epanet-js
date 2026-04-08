@@ -62,6 +62,9 @@ export interface IPersistence {
 }
 
 export interface IPersistenceWithSnapshots extends IPersistence {
-  syncSnapshotSimulation(simulation: SimulationState): void;
+  syncSnapshotSimulation(
+    simulation: SimulationState,
+    options?: { updateSourceId?: boolean },
+  ): void;
   deleteSnapshotFromCache(snapshotId: string): void;
 }

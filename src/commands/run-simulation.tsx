@@ -119,7 +119,9 @@ export const useRunSimulation = () => {
           currentTimestepIndex: 0,
         };
         setSimulationState(simulationResult);
-        persistence.syncSnapshotSimulation(simulationResult);
+        persistence.syncSnapshotSimulation(simulationResult, {
+          updateSourceId: true,
+        });
         const end = performance.now();
         const duration = end - start;
 
