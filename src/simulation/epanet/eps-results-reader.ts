@@ -14,6 +14,7 @@ import {
   SimulationMetadata,
   type SimulationIds,
   type PressureUnits,
+  type QualityAnalysisType,
   PROLOG_SIZE,
   EPILOG_SIZE,
 } from "./simulation-metadata";
@@ -160,6 +161,15 @@ export class EPSResultsReader {
       );
     }
     return this.metadata.simulationMetadata.reportingTimeStep;
+  }
+
+  get qualityType(): QualityAnalysisType {
+    if (!this.metadata) {
+      throw new Error(
+        "EPSResultsReader not initialized. Call initialize() first.",
+      );
+    }
+    return this.metadata.simulationMetadata.qualityType;
   }
 
   getTimeSeries(

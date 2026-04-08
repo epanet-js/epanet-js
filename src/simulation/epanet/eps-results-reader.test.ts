@@ -1205,5 +1205,61 @@ describe("EPSResultsReader", () => {
 
       expect(() => reader.reportingTimeStep).toThrow(/not initialized/i);
     });
+
+    it("qualityType returns 'age' when quality analysis is enabled", async () => {
+      const IDS = { R1: 1, J1: 2, P1: 3 } as const;
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aReservoir(IDS.R1)
+        .aJunction(IDS.J1)
+        .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
+        .build();
+      const simulationSettings = SimulationSettingsBuilder.with()
+        .qualitySimulationType("AGE")
+        .timing({ duration: 7200, hydraulicTimestep: 3600 })
+        .build();
+      const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
+        simulationSettings,
+        includeQuality: true,
+      });
+
+      const testAppId = "test-quality-type-age";
+      await runSimulation(inp, testAppId, undefined, { runQuality: true });
+
+      const storage = new InMemoryStorage(testAppId);
+      const reader = new EPSResultsReader(storage);
+      await reader.initialize();
+
+      expect(reader.qualityType).toBe("age");
+    });
+
+    it("qualityType returns 'none' when quality analysis is not run", async () => {
+      const IDS = { R1: 1, J1: 2, P1: 3 } as const;
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aReservoir(IDS.R1)
+        .aJunction(IDS.J1)
+        .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
+        .build();
+      const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
+        simulationSettings: defaultSimulationSettings,
+      });
+
+      const testAppId = "test-quality-type-none";
+      await runSimulation(inp, testAppId);
+
+      const storage = new InMemoryStorage(testAppId);
+      const reader = new EPSResultsReader(storage);
+      await reader.initialize();
+
+      expect(reader.qualityType).toBe("none");
+    });
+
+    it("qualityType throws when not initialized", () => {
+      const storage = new InMemoryStorage("test-quality-type-uninitialized");
+      const reader = new EPSResultsReader(storage);
+
+      expect(() => reader.qualityType).toThrow(/not initialized/i);
+    });
   });
 });
