@@ -5,11 +5,7 @@ import { buildInp } from "src/simulation/build-inp";
 import { dialogAtom } from "src/state/dialog";
 import { stagingModelAtom } from "src/state/hydraulic-model";
 import { projectSettingsAtom } from "src/state/project-settings";
-import {
-  simulationAtom,
-  simulationStepAtom,
-  type SimulationFinished,
-} from "src/state/simulation";
+import { simulationAtom, simulationStepAtom } from "src/state/simulation";
 import { simulationSettingsAtom } from "src/state/simulation-settings";
 import { clearQuickGraphPropertyAtom } from "src/state/quick-graph";
 import { clearSymbologyForPropertyAtom } from "src/state/map-symbology";
@@ -92,40 +88,35 @@ export const useRunSimulation = () => {
 
         isCompleted = true;
 
-        let simulationResult: SimulationFinished;
+        let simulationIds;
         if (status === "success" || status === "warning") {
           const storage = new OPFSStorage(appId, scenarioKey);
-          const epsResultsReader = new EPSResultsReader(storage);
-          await epsResultsReader.initialize(metadata);
-          const resultsReader = await epsResultsReader.getResultsForTimestep(0);
+          const epsReader = new EPSResultsReader(storage);
+          await epsReader.initialize(metadata);
+          simulationIds = epsReader.simulationIds;
+          const resultsReader = await epsReader.getResultsForTimestep(0);
           setSimulationStep({ resultsReader, currentTimestepIndex: 0 });
+        } else {
+          setSimulationStep(null);
+        }
 
+        if (status === "success" || status === "warning") {
           const newSimulationHasWaterAge =
             isWaterAgeOn && simulationSettings.qualitySimulationType === "AGE";
           if (!newSimulationHasWaterAge) {
             set(clearQuickGraphPropertyAtom, "waterAge");
             set(clearSymbologyForPropertyAtom, "waterAge");
           }
-
-          simulationResult = {
-            report,
-            modelVersion: hydraulicModel.version,
-            settingsVersion: simulationSettings.version,
-            metadata,
-            status,
-            epsResultsReader,
-          };
-        } else {
-          setSimulationStep(null);
-          simulationResult = {
-            report,
-            modelVersion: hydraulicModel.version,
-            settingsVersion: simulationSettings.version,
-            status,
-            metadata,
-          };
         }
 
+        const simulationResult = {
+          status,
+          report,
+          modelVersion: hydraulicModel.version,
+          settingsVersion: simulationSettings.version,
+          metadata,
+          simulationIds,
+        };
         setSimulationState(simulationResult);
         persistence.syncSnapshotSimulation(simulationResult);
         const end = performance.now();

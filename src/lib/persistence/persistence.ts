@@ -20,7 +20,6 @@ import {
   currentTimestepIndexAtom,
   initialSimulationState,
 } from "src/state/simulation";
-import type { EPSResultsReader } from "src/simulation/epanet/eps-results-reader";
 import { Store } from "src/state";
 import { baseModelAtom } from "src/state/hydraulic-model";
 import { trackMoment } from "./shared";
@@ -344,17 +343,11 @@ export class Persistence implements IPersistenceWithSnapshots {
 
     const simulation = getSimulationForState(worktree, initialSimulationState);
     const resultsSourceId = snapshot.simulationSourceId;
-    const { simulationStep, epsResultsReader } = await this.loadSimulationStep(
+    const simulationStep = await this.loadSimulationStep(
       simulation,
       resultsSourceId,
       preserveTimestepIndex,
     );
-
-    const finalSimulation: SimulationState =
-      (simulation.status === "success" || simulation.status === "warning") &&
-      epsResultsReader
-        ? { ...simulation, epsResultsReader }
-        : simulation;
 
     const currentFactories = this.store.get(modelFactoriesAtom);
     this.store.set(stagingModelAtom, stagingModel);
@@ -370,7 +363,7 @@ export class Persistence implements IPersistenceWithSnapshots {
     );
     this.switchMomentLog(snapshot.momentLog);
     this.setModelVersion(snapshot.version);
-    this.store.set(simulationAtom, finalSimulation);
+    this.store.set(simulationAtom, simulation);
     this.store.set(simulationStepAtom, simulationStep);
     this.store.set(simulationSettingsAtom, snapshot.simulationSettings);
 
@@ -387,31 +380,25 @@ export class Persistence implements IPersistenceWithSnapshots {
     simulation: SimulationState,
     snapshotId: string,
     preserveTimestepIndex?: number,
-  ): Promise<{
-    simulationStep: SimulationStep | null;
-    epsResultsReader: EPSResultsReader | null;
-  }> {
+  ): Promise<SimulationStep | null> {
     if (
       (simulation.status !== "success" && simulation.status !== "warning") ||
       !simulation.metadata
     ) {
-      return { simulationStep: null, epsResultsReader: null };
+      return null;
     }
 
-    let epsReader = simulation.epsResultsReader;
-    if (!epsReader) {
-      const [{ OPFSStorage }, { EPSResultsReader }, { getAppId }] =
-        await Promise.all([
-          import("src/infra/storage"),
-          import("src/simulation"),
-          import("src/infra/app-instance"),
-        ]);
+    const [{ OPFSStorage }, { EPSResultsReader }, { getAppId }] =
+      await Promise.all([
+        import("src/infra/storage"),
+        import("src/simulation"),
+        import("src/infra/app-instance"),
+      ]);
 
-      const appId = getAppId();
-      const storage = new OPFSStorage(appId, snapshotId);
-      epsReader = new EPSResultsReader(storage);
-      await epsReader.initialize(simulation.metadata);
-    }
+    const appId = getAppId();
+    const storage = new OPFSStorage(appId, snapshotId);
+    const epsReader = new EPSResultsReader(storage);
+    await epsReader.initialize(simulation.metadata, simulation.simulationIds);
 
     const currentTimestepIndex =
       preserveTimestepIndex !== undefined
@@ -420,10 +407,7 @@ export class Persistence implements IPersistenceWithSnapshots {
 
     const resultsReader =
       await epsReader.getResultsForTimestep(currentTimestepIndex);
-    return {
-      simulationStep: { resultsReader, currentTimestepIndex },
-      epsResultsReader: epsReader,
-    };
+    return { resultsReader, currentTimestepIndex };
   }
 
   private getOrBuildModel(
