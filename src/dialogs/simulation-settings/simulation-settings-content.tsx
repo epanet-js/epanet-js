@@ -14,6 +14,11 @@ import { Selector, SelectorOption } from "src/components/form/selector";
 import { simulationSettingsAtom } from "src/state/simulation-settings";
 import { hasScenariosAtom } from "src/state/scenarios";
 import { assetsAtom, patternsAtom } from "src/state/hydraulic-model";
+import {
+  simulationSettingsDerivedAtom,
+  assetsDerivedAtom,
+  patternsDerivedAtom,
+} from "src/state/derived-branch-state";
 
 import type {
   DemandModel,
@@ -181,9 +186,12 @@ export const GeneralSection = () => {
 };
 
 export const TimesSection = () => {
+  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const translate = useTranslate();
   const readonly = useAtomValue(hasScenariosAtom);
-  const { timing } = useAtomValue(simulationSettingsAtom);
+  const { timing } = useAtomValue(
+    isStateRefactorOn ? simulationSettingsDerivedAtom : simulationSettingsAtom,
+  );
   const { values, setFieldValue } = useFormikContext<FormValues>();
   const { fieldErrors } = useTimeSettingsValidation();
 
@@ -544,11 +552,14 @@ export const HydraulicsSection = () => {
 
 export const WaterQualitySection = () => {
   const translate = useTranslate();
+  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const isWaterAgeOn = useFeatureFlag("FLAG_WATER_AGE");
   const isWaterChemicalOn = useFeatureFlag("FLAG_WATER_CHEMICAL");
   const isWaterTraceOn = useFeatureFlag("FLAG_WATER_TRACE");
   const hasScenarios = useAtomValue(hasScenariosAtom);
-  const assets = useAtomValue(assetsAtom);
+  const assets = useAtomValue(
+    isStateRefactorOn ? assetsDerivedAtom : assetsAtom,
+  );
   const { values, setFieldValue } = useFormikContext<FormValues>();
   const isNone = values.qualitySimulationType === "NONE";
   const isChemical = values.qualitySimulationType === "CHEMICAL";
@@ -757,9 +768,12 @@ export const WaterQualitySection = () => {
 };
 
 export const EnergySection = () => {
+  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const translate = useTranslate();
   const readonly = useAtomValue(hasScenariosAtom);
-  const patterns = useAtomValue(patternsAtom);
+  const patterns = useAtomValue(
+    isStateRefactorOn ? patternsDerivedAtom : patternsAtom,
+  );
   const { values, setFieldValue } = useFormikContext<FormValues>();
 
   const reportEnergyOptions: { label: string; value: "YES" | "NO" }[] = [

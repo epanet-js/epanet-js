@@ -10,6 +10,12 @@ import { stagingModelAtom } from "src/state/hydraulic-model";
 import { SimulationState, simulationAtom } from "src/state/simulation";
 
 import { simulationSettingsAtom } from "src/state/simulation-settings";
+import {
+  simulationDerivedAtom,
+  simulationSettingsDerivedAtom,
+  stagingModelDerivedAtom,
+} from "src/state/derived-branch-state";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import * as Popover from "@radix-ui/react-popover";
 import { Button, StyledPopoverArrow, StyledPopoverContent } from "../elements";
 import { HydraulicModel } from "src/hydraulic-model";
@@ -25,9 +31,12 @@ import {
 } from "src/icons";
 
 export const Footer = () => {
+  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const translate = useTranslate();
   const projectSettings = useAtomValue(projectSettingsAtom);
-  const simulationSettings = useAtomValue(simulationSettingsAtom);
+  const simulationSettings = useAtomValue(
+    isStateRefactorOn ? simulationSettingsDerivedAtom : simulationSettingsAtom,
+  );
   const translateUnit = useTranslateUnit();
   const isLgOrLarger = useBreakpoint("lg");
   const isSmOrLarger = useBreakpoint("sm");
@@ -217,10 +226,17 @@ const buildSimulationStatusStyles = (
 };
 
 export const SimulationStatusText = () => {
+  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const translate = useTranslate();
-  const simulation = useAtomValue(simulationAtom);
-  const hydraulicModel = useAtomValue(stagingModelAtom);
-  const simulationSettings = useAtomValue(simulationSettingsAtom);
+  const simulation = useAtomValue(
+    isStateRefactorOn ? simulationDerivedAtom : simulationAtom,
+  );
+  const hydraulicModel = useAtomValue(
+    isStateRefactorOn ? stagingModelDerivedAtom : stagingModelAtom,
+  );
+  const simulationSettings = useAtomValue(
+    isStateRefactorOn ? simulationSettingsDerivedAtom : simulationSettingsAtom,
+  );
 
   const { Icon, colorClass, text } = buildSimulationStatusStyles(
     simulation,

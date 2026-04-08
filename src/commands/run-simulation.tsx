@@ -3,6 +3,11 @@ import { useAtomCallback } from "jotai/utils";
 import { useCallback } from "react";
 import { buildInp } from "src/simulation/build-inp";
 import { dialogAtom } from "src/state/dialog";
+import {
+  stagingModelDerivedAtom,
+  simulationDerivedAtom,
+  simulationSettingsDerivedAtom,
+} from "src/state/derived-branch-state";
 import { stagingModelAtom } from "src/state/hydraulic-model";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { simulationAtom, simulationResultsAtom } from "src/state/simulation";
@@ -22,7 +27,10 @@ import { useFeatureFlag } from "src/hooks/use-feature-flags";
 export const runSimulationShortcut = "shift+enter";
 
 export const useRunSimulation = () => {
-  const setSimulationState = useSetAtom(simulationAtom);
+  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
+  const setSimulationState = useSetAtom(
+    isStateRefactorOn ? simulationDerivedAtom : simulationAtom,
+  );
   const setDialogState = useSetAtom(dialogAtom);
   const persistence = usePersistenceWithSnapshots();
   const setSimulationResults = useSetAtom(simulationResultsAtom);
@@ -39,12 +47,21 @@ export const useRunSimulation = () => {
           ignoreLabel?: string;
         },
       ) => {
-        const hydraulicModel = get(stagingModelAtom);
-        const simulationSettings = get(simulationSettingsAtom);
+        const hydraulicModel = get(
+          isStateRefactorOn ? stagingModelDerivedAtom : stagingModelAtom,
+        );
+        const simulationSettings = get(
+          isStateRefactorOn
+            ? simulationSettingsDerivedAtom
+            : simulationSettingsAtom,
+        );
         const worktree = get(worktreeAtom);
         const projectSettings = get(projectSettingsAtom);
 
-        setSimulationState((prev) => ({ ...prev, status: "running" }));
+        const currentSimulation = get(
+          isStateRefactorOn ? simulationDerivedAtom : simulationAtom,
+        );
+        setSimulationState({ ...currentSimulation, status: "running" });
         const inp = buildInp(hydraulicModel, {
           customerDemands: true,
           usedPatterns: true,
@@ -146,6 +163,7 @@ export const useRunSimulation = () => {
         persistence,
         setSimulationResults,
         isWaterAgeOn,
+        isStateRefactorOn,
       ],
     ),
   );

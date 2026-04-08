@@ -5,6 +5,7 @@ import { AllocationRule } from "src/hydraulic-model/customer-points";
 import { AllocationRulesTable } from "./allocation-rules-table";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { stagingModelAtom } from "src/state/hydraulic-model";
+import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { modelFactoriesAtom } from "src/state/model-factories";
 
 import { allocateCustomerPoints } from "src/hydraulic-model/model-operations/allocate-customer-points";
@@ -21,6 +22,7 @@ import { usePersistence } from "src/lib/persistence";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useProjectInitialization } from "src/hooks/persistence/use-project-initialization";
 import { simulationSettingsAtom } from "src/state/simulation-settings";
+import { simulationSettingsDerivedAtom } from "src/state/derived-branch-state";
 import { Button } from "src/components/elements";
 import { SuccessIcon, WarningIcon } from "src/icons";
 export const AllocationStep: React.FC<{
@@ -33,16 +35,20 @@ export const AllocationStep: React.FC<{
       units: { diameter: Unit; length: Unit };
     };
 }> = ({ onBack, onFinish, renderActions = true, wizardState }) => {
+  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const [tempRules, setTempRules] = useState<AllocationRule[]>([]);
   const projectSettings = useAtomValue(projectSettingsAtom);
-  const hydraulicModel = useAtomValue(stagingModelAtom);
+  const hydraulicModel = useAtomValue(
+    isStateRefactorOn ? stagingModelDerivedAtom : stagingModelAtom,
+  );
   const factories = useAtomValue(modelFactoriesAtom);
-  const simulationSettings = useAtomValue(simulationSettingsAtom);
   const translate = useTranslate();
   const userTracking = useUserTracking();
   const rep = usePersistence();
   const transactImportDeprecated = rep.useTransactImportDeprecated();
-  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
+  const simulationSettings = useAtomValue(
+    isStateRefactorOn ? simulationSettingsDerivedAtom : simulationSettingsAtom,
+  );
   const { initializeProject } = useProjectInitialization();
   const {
     parsedDataSummary,

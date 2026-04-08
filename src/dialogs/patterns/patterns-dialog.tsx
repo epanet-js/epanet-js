@@ -17,6 +17,7 @@ import {
 } from "src/hydraulic-model";
 import { PatternsIcon } from "src/icons";
 import { stagingModelAtom } from "src/state/hydraulic-model";
+import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { simulationSettingsAtom } from "src/state/simulation-settings";
 import { usePersistence } from "src/lib/persistence";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
@@ -39,8 +40,11 @@ export const PatternsDialog = ({
   initialPatternId?: PatternId;
   initialSection?: PatternType;
 }) => {
+  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const translate = useTranslate();
-  const hydraulicModel = useAtomValue(stagingModelAtom);
+  const hydraulicModel = useAtomValue(
+    isStateRefactorOn ? stagingModelDerivedAtom : stagingModelAtom,
+  );
   const userTracking = useUserTracking();
   const isSnapshotLocked = useIsSnapshotLocked();
   const [selectedPatternId, setSelectedPatternId] = useState<PatternId | null>(
@@ -166,7 +170,6 @@ export const PatternsDialog = ({
     ],
   );
 
-  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const rep = usePersistence();
   const transactDeprecated = rep.useTransactDeprecated();
   const { transact: transactNew } = useModelTransaction();

@@ -8,6 +8,7 @@ import { useSwitchBranch } from "src/hooks/persistence/use-switch-branch";
 import { useDeleteBranch } from "src/hooks/persistence/use-delete-branch";
 import { worktreeAtom } from "src/state/scenarios";
 import { simulationSettingsAtom } from "src/state/simulation-settings";
+import { simulationSettingsDerivedAtom } from "src/state/derived-branch-state";
 import { modeAtom, Mode } from "src/state/mode";
 import {
   createScenario,
@@ -95,7 +96,11 @@ export const useScenarioOperations = () => {
           ? worktree
           : saveSettingsToOutgoingSnapshot(
               worktree,
-              get(simulationSettingsAtom),
+              get(
+                isStateRefactorOn
+                  ? simulationSettingsDerivedAtom
+                  : simulationSettingsAtom,
+              ),
             );
         void performSwitch(updated, snapshotId);
       },
@@ -111,7 +116,11 @@ export const useScenarioOperations = () => {
           ? worktree
           : saveSettingsToOutgoingSnapshot(
               worktree,
-              get(simulationSettingsAtom),
+              get(
+                isStateRefactorOn
+                  ? simulationSettingsDerivedAtom
+                  : simulationSettingsAtom,
+              ),
             );
         void performSwitch(updated, updated.mainId);
       },
@@ -123,7 +132,11 @@ export const useScenarioOperations = () => {
     useCallback(
       async (get, _set) => {
         const worktree = get(worktreeAtom);
-        const currentSettings = get(simulationSettingsAtom);
+        const currentSettings = get(
+          isStateRefactorOn
+            ? simulationSettingsDerivedAtom
+            : simulationSettingsAtom,
+        );
         const updated = isStateRefactorOn
           ? worktree
           : saveSettingsToOutgoingSnapshot(worktree, currentSettings);
@@ -187,7 +200,11 @@ export const useScenarioOperations = () => {
           ? worktree
           : saveSettingsToOutgoingSnapshot(
               worktree,
-              get(simulationSettingsAtom),
+              get(
+                isStateRefactorOn
+                  ? simulationSettingsDerivedAtom
+                  : simulationSettingsAtom,
+              ),
             );
         const result = deleteScenario(updated, scenarioId);
 

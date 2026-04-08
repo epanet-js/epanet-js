@@ -4,6 +4,7 @@ import type { FeatureCollection } from "geojson";
 import type { LngLatBoundsLike } from "mapbox-gl";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { stagingModelAtom } from "src/state/hydraulic-model";
+import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { dialogAtom } from "src/state/dialog";
 import { Button } from "src/components/elements";
 import { CollapsibleSection } from "src/components/form/fields";
@@ -25,13 +26,15 @@ import { hasScenariosAtom } from "src/state/scenarios";
 import { useTranslate } from "src/hooks/use-translate";
 
 export const ProjectionSection = () => {
+  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const projectSettings = useAtomValue(projectSettingsAtom);
   const { projection } = projectSettings;
-  const hydraulicModel = useAtomValue(stagingModelAtom);
+  const hydraulicModel = useAtomValue(
+    isStateRefactorOn ? stagingModelDerivedAtom : stagingModelAtom,
+  );
   const setDialogState = useSetAtom(dialogAtom);
   const map = useContext(MapContext);
   const rep = usePersistence();
-  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const transactReprojectionDeprecated =
     rep.useTransactReprojectionDeprecated();
   const { reprojectionReset } = useReprojectionReset();

@@ -13,6 +13,8 @@ import {
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useAtomValue } from "jotai";
 import { stagingModelAtom } from "src/state/hydraulic-model";
+import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { selectionAtom } from "src/state/selection";
 import { useTranslate } from "src/hooks/use-translate";
@@ -31,6 +33,7 @@ import { lineString } from "@turf/helpers";
 import { InlineField } from "src/components/form/fields";
 
 export const ProximityAnomalies = ({ onGoBack }: { onGoBack: () => void }) => {
+  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const userTracking = useUserTracking();
   const { checkProximityAnomalies, proximityAnomalies, isLoading, isReady } =
     useCheckProximityAnomalies();
@@ -38,7 +41,9 @@ export const ProximityAnomalies = ({ onGoBack }: { onGoBack: () => void }) => {
   const selection = useAtomValue(selectionAtom);
   const { setSelection, isSelected, clearSelection } = useSelection(selection);
   const zoomTo = useZoomTo();
-  const hydraulicModel = useAtomValue(stagingModelAtom);
+  const hydraulicModel = useAtomValue(
+    isStateRefactorOn ? stagingModelDerivedAtom : stagingModelAtom,
+  );
   const [selectedProximityAnomalyId, setSelectedProximityAnomalyId] = useState<
     string | null
   >(null);
@@ -232,10 +237,13 @@ const deferToAllowRender = () =>
   new Promise((resolve) => setTimeout(resolve, 0));
 
 const useCheckProximityAnomalies = () => {
+  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const [proximityAnomalies, setProximityAnomalies] = useState<
     ProximityAnomaly[]
   >([]);
-  const hydraulicModel = useAtomValue(stagingModelAtom);
+  const hydraulicModel = useAtomValue(
+    isStateRefactorOn ? stagingModelDerivedAtom : stagingModelAtom,
+  );
   const { startLoading, finishLoading, isLoading } = useLoadingStatus();
   const isReady = useRef(false);
 
@@ -317,8 +325,11 @@ const ProximityAnomalyItem = ({
   onClick: (anomaly: ProximityAnomaly) => void;
   selectedId: string | null;
 }) => {
+  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const translate = useTranslate();
-  const hydraulicModel = useAtomValue(stagingModelAtom);
+  const hydraulicModel = useAtomValue(
+    isStateRefactorOn ? stagingModelDerivedAtom : stagingModelAtom,
+  );
   const { units } = useAtomValue(projectSettingsAtom);
   const connectionId = `${anomaly.nodeId}-${anomaly.pipeId}`;
   const isSelected = selectedId === connectionId;

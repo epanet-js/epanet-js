@@ -15,6 +15,11 @@ import type { SymbologySpec } from "src/map/symbology";
 import { nullSymbologySpec } from "src/map/symbology";
 import { symbologyAtom } from "src/state/map-symbology";
 import { momentLogAtom } from "src/state/model-changes";
+import {
+  momentLogDerivedAtom,
+  simulationDerivedAtom,
+  customerPointsDerivedAtom,
+} from "src/state/derived-branch-state";
 import { selectionAtom } from "src/state/selection";
 import {
   type EphemeralEditingState,
@@ -152,6 +157,41 @@ export const mapStateAtom = atom<MapState>((get) => {
   const symbology = get(symbologyAtom);
   const simulation = get(simulationAtom);
   const customerPoints = get(customerPointsAtom);
+  const currentZoom = get(currentZoomAtom);
+  const selectedAssetIds = new Set(USelection.toIds(selection));
+
+  const movedAssetIds = get(movedAssetIdsAtom);
+  const isOffline = get(offlineAtom);
+  const mapOverlayFeatures = get(mapOverlayFeaturesAtom);
+
+  return {
+    momentLogId: momentLog.id,
+    momentLogPointer: momentLog.getPointer(),
+    syncMomentPointer: mapSyncMoment.pointer,
+    syncMomentVersion: mapSyncMoment.version,
+    stylesConfig,
+    selection,
+    ephemeralState,
+    symbology,
+    simulation,
+    selectedAssetIds,
+    movedAssetIds,
+    isOffline,
+    customerPoints,
+    currentZoom,
+    mapOverlayFeatures,
+  };
+});
+
+export const mapStateDerivedAtom = atom<MapState>((get) => {
+  const momentLog = get(momentLogDerivedAtom);
+  const mapSyncMoment = get(mapSyncMomentAtom);
+  const stylesConfig = get(stylesConfigAtom);
+  const selection = get(selectionAtom);
+  const ephemeralState = get(ephemeralStateAtom);
+  const symbology = get(symbologyAtom);
+  const simulation = get(simulationDerivedAtom);
+  const customerPoints = get(customerPointsDerivedAtom);
   const currentZoom = get(currentZoomAtom);
   const selectedAssetIds = new Set(USelection.toIds(selection));
 

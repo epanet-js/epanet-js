@@ -6,6 +6,7 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { usePersistence } from "src/lib/persistence";
 import { USelection } from "src/selection";
 import { stagingModelAtom } from "src/state/hydraulic-model";
+import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { selectionAtom } from "src/state/selection";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
@@ -13,10 +14,12 @@ import { useModelTransaction } from "src/hooks/persistence/use-model-transaction
 export const reverseLinkShortcut = "r";
 
 export const useReverseLink = () => {
-  const hydraulicModel = useAtomValue(stagingModelAtom);
+  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
+  const hydraulicModel = useAtomValue(
+    isStateRefactorOn ? stagingModelDerivedAtom : stagingModelAtom,
+  );
   const selection = useAtomValue(selectionAtom);
   const userTracking = useUserTracking();
-  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const rep = usePersistence();
   const transactDeprecated = rep.useTransactDeprecated();
   const { transact: transactNew } = useModelTransaction();

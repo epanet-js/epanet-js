@@ -17,9 +17,11 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { EarlyAccessBadge } from "src/components/early-access-badge";
 import { useProjections } from "src/hooks/use-projections";
 import { stagingModelAtom } from "src/state/hydraulic-model";
+import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { modelFactoriesAtom } from "src/state/model-factories";
 
 import { simulationSettingsAtom } from "src/state/simulation-settings";
+import { simulationSettingsDerivedAtom } from "src/state/derived-branch-state";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { addCustomerPoints } from "src/hydraulic-model/mutations/add-customer-points";
 import { usePersistence } from "src/lib/persistence";
@@ -51,13 +53,17 @@ export const ImportCustomerPointsWizard: React.FC<
     error: projectionsError,
   } = useProjections();
 
-  const hydraulicModel = useAtomValue(stagingModelAtom);
+  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
+  const hydraulicModel = useAtomValue(
+    isStateRefactorOn ? stagingModelDerivedAtom : stagingModelAtom,
+  );
   const factories = useAtomValue(modelFactoriesAtom);
-  const simulationSettings = useAtomValue(simulationSettingsAtom);
   const projectSettings = useAtomValue(projectSettingsAtom);
   const rep = usePersistence();
   const transactImportDeprecated = rep.useTransactImportDeprecated();
-  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
+  const simulationSettings = useAtomValue(
+    isStateRefactorOn ? simulationSettingsDerivedAtom : simulationSettingsAtom,
+  );
   const { initializeProject } = useProjectInitialization();
 
   const handleClose = useCallback(() => {

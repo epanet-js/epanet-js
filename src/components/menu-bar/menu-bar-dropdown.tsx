@@ -1,4 +1,5 @@
 import { momentLogAtom } from "src/state/model-changes";
+import { momentLogDerivedAtom } from "src/state/derived-branch-state";
 import { useAtomValue } from "jotai";
 import * as DD from "@radix-ui/react-dropdown-menu";
 import {
@@ -23,7 +24,9 @@ function UndoList() {
   const historyControl = isStateRefactorOn
     ? historyControlNew
     : historyControlDeprecated;
-  const momentLog = useAtomValue(momentLogAtom);
+  const momentLog = useAtomValue(
+    isStateRefactorOn ? momentLogDerivedAtom : momentLogAtom,
+  );
 
   const MomentsList = useMemo(() => {
     const List = [];

@@ -15,20 +15,25 @@ import {
 } from "src/icons";
 import { Mode, modeAtom } from "src/state/mode";
 import { selectedFeaturesAtom } from "src/state/selection";
+import { selectedFeaturesDerivedAtom } from "src/state/derived-branch-state";
 import { ActionButton, Action } from "src/components/action-button";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   changeActiveTopologyShortcut,
   useChangeSelectedAssetsActiveTopologyStatus,
 } from "src/commands/change-selected-assets-active-topology-status";
 
 export function useLinkActions(readonly = false): Action[] {
+  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const translate = useTranslate();
   const zoomTo = useZoomTo();
   const deleteSelection = useDeleteSelection();
   const { mode: currentMode } = useAtomValue(modeAtom);
   const setRedrawMode = useSetRedrawMode();
   const reverseLinkAction = useReverseLink();
-  const selectedWrappedFeatures = useAtomValue(selectedFeaturesAtom);
+  const selectedWrappedFeatures = useAtomValue(
+    isStateRefactorOn ? selectedFeaturesDerivedAtom : selectedFeaturesAtom,
+  );
   const { changeSelectedAssetsActiveTopologyStatus, allActive } =
     useChangeSelectedAssetsActiveTopologyStatus();
 

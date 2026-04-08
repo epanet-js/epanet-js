@@ -6,7 +6,10 @@ import { Selector } from "src/components/form/selector";
 import { useTranslate } from "src/hooks/use-translate";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { stagingModelAtom } from "src/state/hydraulic-model";
+import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { simulationAtom } from "src/state/simulation";
+import { simulationDerivedAtom } from "src/state/derived-branch-state";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { worktreeAtom } from "src/state/scenarios";
 import { getSimulationMetadata } from "src/simulation/epanet/simulation-metadata";
 import {
@@ -70,7 +73,10 @@ const QUICK_GRAPH_PROPERTIES: {
 };
 
 export const useShowQuickGraph = () => {
-  const simulation = useAtomValue(simulationAtom);
+  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
+  const simulation = useAtomValue(
+    isStateRefactorOn ? simulationDerivedAtom : simulationAtom,
+  );
   const hadValidSimulationRef = useRef(false);
 
   const hasCompletedSimulation =
@@ -117,10 +123,15 @@ const QuickGraphSection = ({
   const translate = useTranslate();
   const [footerState, setFooterState] = useAtom(assetPanelFooterAtom);
   const [propertyByType, setPropertyByType] = useAtom(quickGraphPropertyAtom);
-  const simulation = useAtomValue(simulationAtom);
+  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
+  const simulation = useAtomValue(
+    isStateRefactorOn ? simulationDerivedAtom : simulationAtom,
+  );
   const worktree = useAtomValue(worktreeAtom);
   const { units, formatting } = useAtomValue(projectSettingsAtom);
-  const hydraulicModel = useAtomValue(stagingModelAtom);
+  const hydraulicModel = useAtomValue(
+    isStateRefactorOn ? stagingModelDerivedAtom : stagingModelAtom,
+  );
   const { changeTimestep } = useChangeTimestep();
 
   const isInScenario = worktree.activeSnapshotId !== worktree.mainId;

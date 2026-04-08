@@ -9,6 +9,8 @@ import {
 } from "../../components/dialog";
 import { useTranslate } from "src/hooks/use-translate";
 import { simulationSettingsAtom } from "src/state/simulation-settings";
+import { simulationSettingsDerivedAtom } from "src/state/derived-branch-state";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 import { SimulationSettingsSidebar } from "./simulation-settings-sidebar";
 import {
@@ -37,10 +39,15 @@ export type {
 } from "./simulation-settings-data";
 
 export const SimulationSettingsDialog = () => {
+  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const translate = useTranslate();
   const { closeDialog } = useDialogState();
-  const simulationSettings = useAtomValue(simulationSettingsAtom);
-  const setSimulationSettings = useSetAtom(simulationSettingsAtom);
+  const simulationSettings = useAtomValue(
+    isStateRefactorOn ? simulationSettingsDerivedAtom : simulationSettingsAtom,
+  );
+  const setSimulationSettings = useSetAtom(
+    isStateRefactorOn ? simulationSettingsDerivedAtom : simulationSettingsAtom,
+  );
 
   const sectionIds = useMemo(buildSectionIds, []);
 

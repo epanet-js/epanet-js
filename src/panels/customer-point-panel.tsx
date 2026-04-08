@@ -3,6 +3,7 @@ import { useAtomValue } from "jotai";
 import { Maybe } from "purify-ts/Maybe";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { stagingModelAtom } from "src/state/hydraulic-model";
+import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { selectionAtom } from "src/state/selection";
 import type { PropertyComparison } from "src/hooks/use-asset-comparison";
@@ -36,11 +37,13 @@ import { convertTo } from "src/quantity";
 
 export function CustomerPointPanel() {
   const selection = useAtomValue(selectionAtom);
-  const hydraulicModel = useAtomValue(stagingModelAtom);
   const { labelManager } = useAtomValue(modelFactoriesAtom);
   const translate = useTranslate();
   const userTracking = useUserTracking();
   const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
+  const hydraulicModel = useAtomValue(
+    isStateRefactorOn ? stagingModelDerivedAtom : stagingModelAtom,
+  );
   const rep = usePersistence();
   const transactDeprecated = rep.useTransactDeprecated();
   const { transact: transactNew } = useModelTransaction();

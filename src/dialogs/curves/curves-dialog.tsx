@@ -20,6 +20,7 @@ import {
 import { CurveLibraryIcon } from "src/icons";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { stagingModelAtom } from "src/state/hydraulic-model";
+import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { usePersistence } from "src/lib/persistence";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
@@ -46,8 +47,11 @@ export const CurveLibraryDialog = ({
   initialCurveId?: CurveId;
   initialSection?: "volume" | "valve" | "headloss";
 }) => {
+  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const translate = useTranslate();
-  const hydraulicModel = useAtomValue(stagingModelAtom);
+  const hydraulicModel = useAtomValue(
+    isStateRefactorOn ? stagingModelDerivedAtom : stagingModelAtom,
+  );
   const projectSettings = useAtomValue(projectSettingsAtom);
   const userTracking = useUserTracking();
   const isSnapshotLocked = useIsSnapshotLocked();
@@ -165,7 +169,6 @@ export const CurveLibraryDialog = ({
     [hydraulicModel, editedCurves, selectedCurveId, translate, userTracking],
   );
 
-  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const rep = usePersistence();
   const transactDeprecated = rep.useTransactDeprecated();
   const { transact: transactNew } = useModelTransaction();

@@ -10,6 +10,7 @@ import { usePersistence } from "src/lib/persistence";
 import { USelection } from "src/selection";
 import { ephemeralStateAtom } from "src/state/drawing";
 import { stagingModelAtom } from "src/state/hydraulic-model";
+import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { modeAtom, Mode } from "src/state/mode";
 import { selectionAtom } from "src/state/selection";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
@@ -17,11 +18,13 @@ import { useModelTransaction } from "src/hooks/persistence/use-model-transaction
 export const deleteSelectedShortcuts = ["backspace", "del"];
 
 export const useDeleteSelection = () => {
-  const hydraulicModel = useAtomValue(stagingModelAtom);
+  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
+  const hydraulicModel = useAtomValue(
+    isStateRefactorOn ? stagingModelDerivedAtom : stagingModelAtom,
+  );
   const [selection, setSelection] = useAtom(selectionAtom);
   const setMode = useSetAtom(modeAtom);
   const setEphemeralState = useSetAtom(ephemeralStateAtom);
-  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const rep = usePersistence();
   const transactDeprecated = rep.useTransactDeprecated();
   const { transact: transactNew } = useModelTransaction();

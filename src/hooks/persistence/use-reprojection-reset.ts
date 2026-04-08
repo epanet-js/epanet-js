@@ -3,15 +3,17 @@ import { useAtomCallback } from "jotai/utils";
 import type { Getter, Setter } from "jotai";
 import type { HydraulicModel } from "src/hydraulic-model";
 import type { ProjectSettings } from "src/lib/project-settings";
-import { stagingModelAtom, baseModelAtom } from "src/state/hydraulic-model";
-import { momentLogAtom } from "src/state/model-changes";
 import { mapSyncMomentAtom } from "src/state/map";
 import {
-  simulationAtom,
   initialSimulationState,
   simulationResultsAtom,
 } from "src/state/simulation";
-import { simulationSettingsAtom } from "src/state/simulation-settings";
+import {
+  stagingModelDerivedAtom,
+  momentLogDerivedAtom,
+  simulationDerivedAtom,
+  simulationSettingsDerivedAtom,
+} from "src/state/derived-branch-state";
 import { selectionAtom } from "src/state/selection";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { modeAtom, Mode } from "src/state/mode";
@@ -32,7 +34,7 @@ type ReprojectionResetInput = {
 
 const resetAppState = (set: Setter) => {
   set(mapSyncMomentAtom, { pointer: -1, version: 0 });
-  set(simulationAtom, initialSimulationState);
+  set(simulationDerivedAtom, initialSimulationState);
   set(simulationResultsAtom, null);
   set(modeAtom, { mode: Mode.NONE });
   set(ephemeralStateAtom, { type: "none" });
@@ -49,13 +51,12 @@ const loadModel = (
   set: Setter,
   { hydraulicModel, projectSettings, autoElevations }: ReprojectionResetInput,
 ) => {
-  const simulationSettings = get(simulationSettingsAtom);
+  const simulationSettings = get(simulationSettingsDerivedAtom);
   const momentLog = new MomentLog();
 
-  set(stagingModelAtom, hydraulicModel);
-  set(baseModelAtom, hydraulicModel);
+  set(stagingModelDerivedAtom, hydraulicModel);
   set(projectSettingsAtom, projectSettings);
-  set(momentLogAtom, momentLog);
+  set(momentLogDerivedAtom, momentLog);
   if (autoElevations !== undefined) {
     set(autoElevationsAtom, autoElevations);
   }

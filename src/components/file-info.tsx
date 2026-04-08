@@ -1,6 +1,8 @@
 import { fileInfoAtom, fileInfoMachineAtom } from "src/state/file-system";
 import { hasUnsavedChangesAtom } from "src/state/model-changes";
+import { hasUnsavedChangesDerivedAtom } from "src/state/derived-branch-state";
 import { useAtom, useAtomValue } from "jotai";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { truncate } from "src/lib/utils";
 import * as Popover from "@radix-ui/react-popover";
 import { StyledPopoverArrow, StyledPopoverContent } from "./elements";
@@ -8,9 +10,12 @@ import { UnsavedChangesIcon, FileIcon } from "src/icons";
 import { useTranslate } from "src/hooks/use-translate";
 
 export function FileInfo() {
+  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const translate = useTranslate();
   const fileInfo = useAtomValue(fileInfoAtom);
-  const hasUnsavedChanges = useAtomValue(hasUnsavedChangesAtom);
+  const hasUnsavedChanges = useAtomValue(
+    isStateRefactorOn ? hasUnsavedChangesDerivedAtom : hasUnsavedChangesAtom,
+  );
   const [state] = useAtom(fileInfoMachineAtom);
 
   if (!fileInfo) return <div></div>;

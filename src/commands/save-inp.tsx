@@ -1,6 +1,11 @@
 import { dialogAtom } from "src/state/dialog";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { fileInfoAtom } from "src/state/file-system";
+import {
+  stagingModelDerivedAtom,
+  baseModelDerivedAtom,
+  simulationSettingsDerivedAtom,
+} from "src/state/derived-branch-state";
 import { stagingModelAtom } from "src/state/hydraulic-model";
 import { isDemoNetworkAtom } from "src/state/file-system";
 import { simulationSettingsAtom } from "src/state/simulation-settings";
@@ -39,6 +44,7 @@ export const useSaveInp = ({
   const { addRecent } = useRecentFiles();
   const userTracking = useUserTracking();
   const map = useContext(MapContext);
+  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const isWaterAgeOn = useFeatureFlag("FLAG_WATER_AGE");
 
   const saveInp = useAtomCallback(
@@ -61,10 +67,16 @@ export const useSaveInp = ({
           const worktree = get(worktreeAtom);
           const hasScenarios = worktree.scenarios.length > 0;
           const hydraulicModel = hasScenarios
-            ? get(baseModelAtom)
-            : get(stagingModelAtom);
+            ? get(isStateRefactorOn ? baseModelDerivedAtom : baseModelAtom)
+            : get(
+                isStateRefactorOn ? stagingModelDerivedAtom : stagingModelAtom,
+              );
           const projectSettings = get(projectSettingsAtom);
-          const simulationSettings = get(simulationSettingsAtom);
+          const simulationSettings = get(
+            isStateRefactorOn
+              ? simulationSettingsDerivedAtom
+              : simulationSettingsAtom,
+          );
           const buildOptions = {
             geolocation: true,
             madeBy: true,
@@ -125,7 +137,15 @@ export const useSaveInp = ({
           return false;
         }
       },
-      [userTracking, getFsAccess, addRecent, translate, map, isWaterAgeOn],
+      [
+        userTracking,
+        getFsAccess,
+        addRecent,
+        translate,
+        map,
+        isWaterAgeOn,
+        isStateRefactorOn,
+      ],
     ),
   );
 

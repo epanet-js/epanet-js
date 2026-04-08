@@ -7,10 +7,17 @@ import { projectSettingsAtom } from "src/state/project-settings";
 import type { EphemeralEditingState } from "src/state/drawing";
 import { assetsAtom, stagingModelAtom } from "src/state/hydraulic-model";
 import {
+  assetsDerivedAtom,
+  stagingModelDerivedAtom,
+  momentLogDerivedAtom,
+} from "src/state/derived-branch-state";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import {
   type StylesConfig,
   type MapState,
   nullMapState,
   mapStateAtom,
+  mapStateDerivedAtom,
   mapSyncMomentAtom,
   mapLoadingAtom,
 } from "src/state/map";
@@ -137,13 +144,22 @@ const detectChanges = (
 };
 
 export const useMapStateUpdates = (map: MapEngine | null) => {
-  const momentLog = useAtomValue(momentLogAtom);
+  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
+  const momentLog = useAtomValue(
+    isStateRefactorOn ? momentLogDerivedAtom : momentLogAtom,
+  );
   const setMapSyncMoment = useSetAtom(mapSyncMomentAtom);
-  const mapState = useAtomValue(mapStateAtom);
+  const mapState = useAtomValue(
+    isStateRefactorOn ? mapStateDerivedAtom : mapStateAtom,
+  );
   const setMapLoading = useSetAtom(mapLoadingAtom);
 
-  const assets = useAtomValue(assetsAtom);
-  const hydraulicModel = useAtomValue(stagingModelAtom);
+  const assets = useAtomValue(
+    isStateRefactorOn ? assetsDerivedAtom : assetsAtom,
+  );
+  const hydraulicModel = useAtomValue(
+    isStateRefactorOn ? stagingModelDerivedAtom : stagingModelAtom,
+  );
   const { units, formatting } = useAtomValue(projectSettingsAtom);
   const isGridOn = useAtomValue(showGridAtom);
   const isGridPreview = useAtomValue(gridPreviewAtom);

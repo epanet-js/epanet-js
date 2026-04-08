@@ -1,15 +1,20 @@
 import { useAtomValue } from "jotai";
 import { selectedFeaturesAtom, selectionAtom } from "src/state/selection";
+import { selectedFeaturesDerivedAtom } from "src/state/derived-branch-state";
 import React from "react";
 import { GeometryActions } from "./context-actions/geometry-actions";
 import { CustomerPointActions } from "./context-actions/customer-point-actions";
 import { useTranslate } from "src/hooks/use-translate";
 import { Divider } from "./menu-bar";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export function ContextActions() {
+  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const translate = useTranslate();
   const selection = useAtomValue(selectionAtom);
-  const selectedWrappedFeatures = useAtomValue(selectedFeaturesAtom);
+  const selectedWrappedFeatures = useAtomValue(
+    isStateRefactorOn ? selectedFeaturesDerivedAtom : selectedFeaturesAtom,
+  );
 
   if (selection.type === "singleCustomerPoint") {
     return (

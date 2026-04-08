@@ -16,6 +16,8 @@ import {
 } from "src/map/symbology/symbology-types";
 import { getSimulationMetadata } from "src/simulation/epanet/simulation-metadata";
 import { stagingModelAtom } from "src/state/hydraulic-model";
+import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useSymbologyState } from "src/state/map-symbology";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { simulationAtom, simulationResultsAtom } from "src/state/simulation";
@@ -26,10 +28,13 @@ const absValuesFor = (property: SupportedProperty): boolean =>
   property === "flow";
 
 export const useChangeColorBy = (geometryType: "node" | "link") => {
+  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const userTracking = useUserTracking();
   const simulation = useAtomValue(simulationAtom);
   const simulationResults = useAtomValue(simulationResultsAtom);
-  const hydraulicModel = useAtomValue(stagingModelAtom);
+  const hydraulicModel = useAtomValue(
+    isStateRefactorOn ? stagingModelDerivedAtom : stagingModelAtom,
+  );
   const { units } = useAtomValue(projectSettingsAtom);
   const { switchNodeSymbologyTo, switchLinkSymbologyTo } = useSymbologyState();
   const isWaterAgeOn = useFeatureFlag("FLAG_WATER_AGE");

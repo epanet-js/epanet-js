@@ -1,5 +1,7 @@
 import { useAtomValue, useSetAtom } from "jotai";
 import { useCallback } from "react";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { simulationDerivedAtom } from "src/state/derived-branch-state";
 import { simulationAtom, simulationResultsAtom } from "src/state/simulation";
 import { captureError } from "src/infra/error-tracking";
 import { useUserTracking } from "src/infra/user-tracking";
@@ -13,8 +15,13 @@ export const nextTimestepShortcut = "shift+right";
 type ChangeTimestepSource = "shortcut" | "buttons" | "dropdown" | "quick-graph";
 
 export const useChangeTimestep = () => {
-  const simulation = useAtomValue(simulationAtom);
-  const setSimulationState = useSetAtom(simulationAtom);
+  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
+  const simulation = useAtomValue(
+    isStateRefactorOn ? simulationDerivedAtom : simulationAtom,
+  );
+  const setSimulationState = useSetAtom(
+    isStateRefactorOn ? simulationDerivedAtom : simulationAtom,
+  );
   const userTracking = useUserTracking();
   const getEpsResultsReader = useGetEpsResultsReader();
   const persistence = usePersistenceWithSnapshots();

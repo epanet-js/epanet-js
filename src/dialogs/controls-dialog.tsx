@@ -10,6 +10,7 @@ import {
 } from "../components/dialog";
 import { useTranslate } from "src/hooks/use-translate";
 import { stagingModelAtom } from "src/state/hydraulic-model";
+import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { useIsSnapshotLocked } from "src/hooks/use-is-snapshot-locked";
 import {
   formatSimpleControl,
@@ -33,11 +34,13 @@ type FormValues = {
 export const ControlsDialog = () => {
   const translate = useTranslate();
   const { closeDialog } = useDialogState();
-  const hydraulicModel = useAtomValue(stagingModelAtom);
   const [activeTab, setActiveTab] = useState<Tab>("simple");
   const isSnapshotLocked = useIsSnapshotLocked();
 
   const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
+  const hydraulicModel = useAtomValue(
+    isStateRefactorOn ? stagingModelDerivedAtom : stagingModelAtom,
+  );
   const rep = usePersistence();
   const transactDeprecated = rep.useTransactDeprecated();
   const { transact: transactNew } = useModelTransaction();

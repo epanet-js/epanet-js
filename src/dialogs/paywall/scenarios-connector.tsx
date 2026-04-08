@@ -10,7 +10,10 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { useTranslate } from "src/hooks/use-translate";
 import { isDemoNetworkAtom } from "src/state/file-system";
 import { stagingModelAtom } from "src/state/hydraulic-model";
+import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { simulationAtom } from "src/state/simulation";
+import { simulationDerivedAtom } from "src/state/derived-branch-state";
 import { userSettingsAtom } from "src/state/user-settings";
 import { dialogAtom } from "src/state/dialog";
 import { useSetAtom } from "jotai";
@@ -35,6 +38,7 @@ export const ScenariosPaywallConnector = ({
 }: {
   onClose: () => void;
 }) => {
+  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const setDialog = useSetAtom(dialogAtom);
   const userTracking = useUserTracking();
   const translate = useTranslate();
@@ -72,8 +76,12 @@ export const ScenariosPaywallConnector = ({
   const runSimulationThenProceed = useAtomCallback(
     useCallback(
       (get) => {
-        const simulation = get(simulationAtom);
-        const hydraulicModel = get(stagingModelAtom);
+        const simulation = get(
+          isStateRefactorOn ? simulationDerivedAtom : simulationAtom,
+        );
+        const hydraulicModel = get(
+          isStateRefactorOn ? stagingModelDerivedAtom : stagingModelAtom,
+        );
 
         const isSimulationUpToDate =
           simulation.status !== "idle" &&
@@ -90,7 +98,7 @@ export const ScenariosPaywallConnector = ({
         }
         showDialogOrProceed();
       },
-      [runSimulation, showDialogOrProceed, translate],
+      [runSimulation, showDialogOrProceed, translate, isStateRefactorOn],
     ),
   );
 

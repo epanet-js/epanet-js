@@ -1,6 +1,6 @@
 import once from "lodash/once";
 import { generateKeyBetween } from "fractional-indexing";
-import type { Getter, Setter } from "jotai";
+import type { Getter, Setter, WritableAtom } from "jotai";
 import {
   type HydraulicModel,
   type ModelMoment,
@@ -59,9 +59,14 @@ export function applyMoment(
   set: Setter,
   stateId: string,
   forwardMoment: ModelMoment,
+  modelAtom: WritableAtom<
+    HydraulicModel,
+    [HydraulicModel],
+    void
+  > = stagingModelAtom,
 ): ModelMoment {
   const ctx = get(dataAtom);
-  const hydraulicModel = get(stagingModelAtom);
+  const hydraulicModel = get(modelAtom);
 
   const processedMoment: ModelMoment = {
     ...forwardMoment,
@@ -89,7 +94,7 @@ export function applyMoment(
       ? new Map(hydraulicModel.curves)
       : hydraulicModel.curves;
 
-  set(stagingModelAtom, {
+  set(modelAtom, {
     ...updatedHydraulicModel,
     version: stateId,
     customerPoints: updatedCustomerPoints,

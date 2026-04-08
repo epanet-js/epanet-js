@@ -14,16 +14,21 @@ import {
   DeactivateTopologyIcon,
 } from "src/icons";
 import { selectedFeaturesAtom } from "src/state/selection";
+import { selectedFeaturesDerivedAtom } from "src/state/derived-branch-state";
 import { ActionButton, Action } from "src/components/action-button";
 import { useIsSnapshotLocked } from "src/hooks/use-is-snapshot-locked";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export function useMultiAssetActions(readonly = false): Action[] {
+  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const translate = useTranslate();
   const zoomTo = useZoomTo();
   const deleteSelection = useDeleteSelection();
   const { changeSelectedAssetsActiveTopologyStatus, allActive } =
     useChangeSelectedAssetsActiveTopologyStatus();
-  const selectedWrappedFeatures = useAtomValue(selectedFeaturesAtom);
+  const selectedWrappedFeatures = useAtomValue(
+    isStateRefactorOn ? selectedFeaturesDerivedAtom : selectedFeaturesAtom,
+  );
 
   const onDelete = useCallback(() => {
     deleteSelection({ source: "toolbar" });

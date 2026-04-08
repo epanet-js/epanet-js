@@ -35,9 +35,11 @@ import { usePersistence } from "src/lib/persistence";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 import { useUserTracking } from "src/infra/user-tracking";
 import { stagingModelAtom } from "src/state/hydraulic-model";
+import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { simulationSettingsAtom } from "src/state/simulation-settings";
+import { simulationSettingsDerivedAtom } from "src/state/derived-branch-state";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   changeProperty,
@@ -124,10 +126,12 @@ export function AssetPanel({
   units: UnitsSpec;
   readonly?: boolean;
 }) {
-  const hydraulicModel = useAtomValue(stagingModelAtom);
+  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
+  const hydraulicModel = useAtomValue(
+    isStateRefactorOn ? stagingModelDerivedAtom : stagingModelAtom,
+  );
   const { labelManager } = useAtomValue(modelFactoriesAtom);
   const projectSettings = useAtomValue(projectSettingsAtom);
-  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const rep = usePersistence();
   const transactDeprecated = rep.useTransactDeprecated();
   const { transact: transactNew } = useModelTransaction();
@@ -1883,7 +1887,10 @@ const PumpEditor = ({
   units: UnitsSpec;
   readonly?: boolean;
 }) => {
-  const simulationSettings = useAtomValue(simulationSettingsAtom);
+  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
+  const simulationSettings = useAtomValue(
+    isStateRefactorOn ? simulationSettingsDerivedAtom : simulationSettingsAtom,
+  );
   const translate = useTranslate();
   const { footer } = useQuickGraph(pump.id, "pump");
   const {

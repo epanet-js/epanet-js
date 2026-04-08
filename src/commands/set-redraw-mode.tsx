@@ -1,8 +1,10 @@
 import { useAtomValue, useSetAtom } from "jotai";
 import { useCallback } from "react";
 import { LinkAsset } from "src/hydraulic-model";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useUserTracking } from "src/infra/user-tracking";
 import { USelection } from "src/selection";
+import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { ephemeralStateAtom } from "src/state/drawing";
 import { stagingModelAtom } from "src/state/hydraulic-model";
 import { modeAtom, Mode } from "src/state/mode";
@@ -11,7 +13,10 @@ import { selectionAtom } from "src/state/selection";
 export const redrawModeShortcut = "e";
 
 export const useSetRedrawMode = () => {
-  const hydraulicModel = useAtomValue(stagingModelAtom);
+  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
+  const hydraulicModel = useAtomValue(
+    isStateRefactorOn ? stagingModelDerivedAtom : stagingModelAtom,
+  );
   const selection = useAtomValue(selectionAtom);
   const setMode = useSetAtom(modeAtom);
   const setEphemeralState = useSetAtom(ephemeralStateAtom);

@@ -6,6 +6,8 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { useAtomValue } from "jotai";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { stagingModelAtom } from "src/state/hydraulic-model";
+import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { parseCustomerPoints } from "src/import/customer-points/parse-customer-points";
 import {
@@ -38,10 +40,13 @@ export const DataMappingStep: React.FC<{
   renderActions?: boolean;
   wizardState: WizardState & WizardActions & { units: UnitsSpec };
 }> = ({ onNext, onBack, renderActions = true, wizardState }) => {
+  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const translate = useTranslate();
   const userTracking = useUserTracking();
   const projectSettings = useAtomValue(projectSettingsAtom);
-  const hydraulicModel = useAtomValue(stagingModelAtom);
+  const hydraulicModel = useAtomValue(
+    isStateRefactorOn ? stagingModelDerivedAtom : stagingModelAtom,
+  );
   const { customerPointFactory } = useAtomValue(modelFactoriesAtom);
   const patterns = hydraulicModel.patterns;
   const {

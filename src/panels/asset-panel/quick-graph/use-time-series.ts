@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { useAtomValue } from "jotai";
 import { simulationAtom } from "src/state/simulation";
+import { simulationDerivedAtom } from "src/state/derived-branch-state";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { OPFSStorage } from "src/infra/storage/opfs-storage";
 import {
   EPSResultsReader,
@@ -33,7 +35,10 @@ export function useTimeSeries<T extends QuickGraphAssetType>({
   assetType,
   property,
 }: UseTimeSeriesOptions<T>): UseTimeSeriesResult {
-  const simulation = useAtomValue(simulationAtom);
+  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
+  const simulation = useAtomValue(
+    isStateRefactorOn ? simulationDerivedAtom : simulationAtom,
+  );
   const worktree = useAtomValue(worktreeAtom);
   const getEpsResultsReader = useGetEpsResultsReader();
   const branchStates = useAtomValue(branchStateAtom);

@@ -9,6 +9,11 @@ import { useMemo, useCallback } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog";
 import { stagingModelAtom } from "src/state/hydraulic-model";
+import {
+  stagingModelDerivedAtom,
+  simulationDerivedAtom,
+} from "src/state/derived-branch-state";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { selectionAtom } from "src/state/selection";
 import { simulationAtom } from "src/state/simulation";
 
@@ -19,10 +24,15 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { captureError, setErrorContext } from "src/infra/error-tracking";
 
 export const SimulationReportDialog = () => {
+  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const { closeDialog } = useDialogState();
   const translate = useTranslate();
-  const simulation = useAtomValue(simulationAtom);
-  const hydraulicModel = useAtomValue(stagingModelAtom);
+  const simulation = useAtomValue(
+    isStateRefactorOn ? simulationDerivedAtom : simulationAtom,
+  );
+  const hydraulicModel = useAtomValue(
+    isStateRefactorOn ? stagingModelDerivedAtom : stagingModelAtom,
+  );
   const selection = useAtomValue(selectionAtom);
   const { selectAsset } = useSelection(selection);
   const setDialog = useSetAtom(dialogAtom);

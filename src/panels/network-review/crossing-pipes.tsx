@@ -10,6 +10,8 @@ import {
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useAtomValue } from "jotai";
 import { stagingModelAtom } from "src/state/hydraulic-model";
+import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { selectionAtom } from "src/state/selection";
 import { useUserTracking } from "src/infra/user-tracking";
 import {
@@ -25,13 +27,16 @@ import { localizeDecimal } from "src/infra/i18n/numbers";
 import { Maybe } from "purify-ts/Maybe";
 
 export const CrossingPipes = ({ onGoBack }: { onGoBack: () => void }) => {
+  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const userTracking = useUserTracking();
   const { checkCrossingPipes, crossingPipes, isLoading, isReady } =
     useCheckCrossingPipes();
   const selection = useAtomValue(selectionAtom);
   const { setSelection, isSelected, clearSelection } = useSelection(selection);
   const zoomTo = useZoomTo();
-  const hydraulicModel = useAtomValue(stagingModelAtom);
+  const hydraulicModel = useAtomValue(
+    isStateRefactorOn ? stagingModelDerivedAtom : stagingModelAtom,
+  );
   const [selectedCrossingId, setSelectedCrossingId] = useState<string | null>(
     null,
   );
@@ -183,8 +188,11 @@ const CrossingPipeItem = ({
   onClick: (crossing: CrossingPipe) => void;
   selectedId: string | null;
 }) => {
+  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const translate = useTranslate();
-  const hydraulicModel = useAtomValue(stagingModelAtom);
+  const hydraulicModel = useAtomValue(
+    isStateRefactorOn ? stagingModelDerivedAtom : stagingModelAtom,
+  );
   const crossingId = `${crossing.pipe1Id}-${crossing.pipe2Id}`;
   const isSelected = selectedId === crossingId;
 
@@ -240,8 +248,11 @@ const deferToAllowRender = () =>
   new Promise((resolve) => setTimeout(resolve, 0));
 
 const useCheckCrossingPipes = () => {
+  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const [crossingPipes, setCrossingPipes] = useState<CrossingPipe[]>([]);
-  const hydraulicModel = useAtomValue(stagingModelAtom);
+  const hydraulicModel = useAtomValue(
+    isStateRefactorOn ? stagingModelDerivedAtom : stagingModelAtom,
+  );
   const { startLoading, finishLoading, isLoading } = useLoadingStatus();
   const isReady = useRef(false);
 

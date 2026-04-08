@@ -1,5 +1,6 @@
 import type { Getter } from "jotai";
-import { simulationAtom, initialSimulationState } from "src/state/simulation";
+import { initialSimulationState } from "src/state/simulation";
+import { simulationDerivedAtom } from "src/state/derived-branch-state";
 
 type SimulationState = import("src/state/simulation").SimulationState;
 
@@ -15,7 +16,7 @@ export async function prepareSimulation(
   finalSimulation: SimulationState;
   resultsReader: ResultsReader;
 }> {
-  const currentSimulation = get(simulationAtom);
+  const currentSimulation = get(simulationDerivedAtom);
   const preserveTimestepIndex =
     currentSimulation.status === "success" ||
     currentSimulation.status === "warning"
