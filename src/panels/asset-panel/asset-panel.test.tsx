@@ -2,7 +2,7 @@ import { render, screen, waitFor, act } from "@testing-library/react";
 import { dataAtom, nullData } from "src/state/data";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { stagingModelAtom } from "src/state/hydraulic-model";
-import { simulationResultsAtom } from "src/state/simulation";
+import { simulationStepAtom } from "src/state/simulation";
 import { Store } from "src/state";
 import { Provider as JotaiProvider, createStore } from "jotai";
 import { HydraulicModel, Pipe, Pump } from "src/hydraulic-model";
@@ -1742,7 +1742,10 @@ describe("AssetPanel", () => {
       selection: { type: "single", id: selectedAssetId, parts: [] },
     });
     if (simulationData) {
-      store.set(simulationResultsAtom, createMockResultsReader(simulationData));
+      store.set(simulationStepAtom, {
+        resultsReader: createMockResultsReader(simulationData),
+        currentTimestepIndex: 0,
+      });
     }
     return store;
   };

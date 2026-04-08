@@ -12,7 +12,7 @@ import {
   SimulationState,
   initialSimulationState,
   simulationAtom,
-  simulationResultsAtom,
+  simulationStepAtom,
 } from "src/state/simulation";
 import { simulationSettingsAtom } from "src/state/simulation-settings";
 import { Store } from "src/state";
@@ -51,6 +51,7 @@ export const setInitialState = ({
   locale = "en",
   mode = Mode.NONE,
   simulationResults = null,
+  currentTimestepIndex = 0,
   simulationSettings,
 }: {
   store?: Store;
@@ -65,6 +66,7 @@ export const setInitialState = ({
   locale?: Locale;
   mode?: Mode;
   simulationResults?: ResultsReader | null;
+  currentTimestepIndex?: number;
   simulationSettings?: SimulationSettings;
 } = {}): Store => {
   store.set(stagingModelAtom, hydraulicModel);
@@ -81,7 +83,10 @@ export const setInitialState = ({
   store.set(localeAtom, locale);
   store.set(modeAtom, { mode });
   if (simulationResults) {
-    store.set(simulationResultsAtom, simulationResults);
+    store.set(simulationStepAtom, {
+      resultsReader: simulationResults,
+      currentTimestepIndex,
+    });
   }
   if (simulationSettings) {
     store.set(simulationSettingsAtom, simulationSettings);

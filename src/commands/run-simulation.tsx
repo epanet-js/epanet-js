@@ -5,7 +5,7 @@ import { buildInp } from "src/simulation/build-inp";
 import { dialogAtom } from "src/state/dialog";
 import { stagingModelAtom } from "src/state/hydraulic-model";
 import { projectSettingsAtom } from "src/state/project-settings";
-import { simulationAtom, simulationResultsAtom } from "src/state/simulation";
+import { simulationAtom, simulationStepAtom } from "src/state/simulation";
 import { simulationSettingsAtom } from "src/state/simulation-settings";
 import { clearQuickGraphPropertyAtom } from "src/state/quick-graph";
 import { clearSymbologyForPropertyAtom } from "src/state/map-symbology";
@@ -25,7 +25,7 @@ export const useRunSimulation = () => {
   const setSimulationState = useSetAtom(simulationAtom);
   const setDialogState = useSetAtom(dialogAtom);
   const persistence = usePersistenceWithSnapshots();
-  const setSimulationResults = useSetAtom(simulationResultsAtom);
+  const setSimulationStep = useSetAtom(simulationStepAtom);
   const isWaterAgeOn = useFeatureFlag("FLAG_WATER_AGE");
 
   const runSimulation = useAtomCallback(
@@ -95,9 +95,9 @@ export const useRunSimulation = () => {
           await epsReader.initialize(metadata);
           simulationIds = epsReader.simulationIds;
           const resultsReader = await epsReader.getResultsForTimestep(0);
-          setSimulationResults(resultsReader);
+          setSimulationStep({ resultsReader, currentTimestepIndex: 0 });
         } else {
-          setSimulationResults(null);
+          setSimulationStep(null);
         }
 
         if (status === "success" || status === "warning") {
@@ -116,7 +116,6 @@ export const useRunSimulation = () => {
           settingsVersion: simulationSettings.version,
           metadata,
           simulationIds,
-          currentTimestepIndex: 0,
         };
         setSimulationState(simulationResult);
         persistence.syncSnapshotSimulation(simulationResult);
@@ -142,7 +141,7 @@ export const useRunSimulation = () => {
         setSimulationState,
         setDialogState,
         persistence,
-        setSimulationResults,
+        setSimulationStep,
         isWaterAgeOn,
       ],
     ),

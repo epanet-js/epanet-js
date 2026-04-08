@@ -9,7 +9,7 @@ import { mapSyncMomentAtom } from "src/state/map";
 import {
   simulationAtom,
   initialSimulationState,
-  simulationResultsAtom,
+  simulationStepAtom,
 } from "src/state/simulation";
 import { simulationSettingsAtom } from "src/state/simulation-settings";
 import { selectionAtom } from "src/state/selection";
@@ -33,7 +33,7 @@ type ReprojectionResetInput = {
 const resetAppState = (set: Setter) => {
   set(mapSyncMomentAtom, { pointer: -1, version: 0 });
   set(simulationAtom, initialSimulationState);
-  set(simulationResultsAtom, null);
+  set(simulationStepAtom, null);
   set(modeAtom, { mode: Mode.NONE });
   set(ephemeralStateAtom, { type: "none" });
   set(selectionAtom, { type: "none" });
