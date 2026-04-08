@@ -161,7 +161,7 @@ export const symbologyBuilders: SymbologyBuilders = {
     const colorRule = initializeColorRule({
       property: "waterAge",
       unit: units.waterAge,
-      rampName: "Temps",
+      rampName: "Sunset",
       mode: "prettyBreaks",
       fallbackEndpoints: [0, 48],
       sortedData,
