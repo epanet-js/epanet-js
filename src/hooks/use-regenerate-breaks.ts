@@ -15,7 +15,6 @@ import {
 import { getSimulationMetadata } from "src/simulation/epanet/simulation-metadata";
 import { stagingModelAtom } from "src/state/hydraulic-model";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useSymbologyState } from "src/state/map-symbology";
 import { simulationAtom, simulationResultsAtom } from "src/state/simulation";
 

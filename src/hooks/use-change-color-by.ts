@@ -10,14 +10,12 @@ import {
   isSimulationProperty,
 } from "src/map/symbology/symbology-data-source";
 import {
-  NodeSymbology,
   SupportedProperty,
   nullSymbologySpec,
 } from "src/map/symbology/symbology-types";
 import { getSimulationMetadata } from "src/simulation/epanet/simulation-metadata";
 import { stagingModelAtom } from "src/state/hydraulic-model";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useSymbologyState } from "src/state/map-symbology";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { simulationAtom, simulationResultsAtom } from "src/state/simulation";
@@ -105,10 +103,8 @@ export const useChangeColorBy = (geometryType: "node" | "link") => {
         if (!sortedData) return;
 
         if (geometryType === "node") {
-          switchNodeSymbologyTo(
-            property,
-            () =>
-              symbologyBuilders[property](units, sortedData) as NodeSymbology,
+          switchNodeSymbologyTo(property, () =>
+            symbologyBuilders[property](units, sortedData),
           );
         } else {
           switchLinkSymbologyTo(property, () =>
