@@ -3,6 +3,7 @@ import { useCallback } from "react";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { simulationDerivedAtom } from "src/state/derived-branch-state";
 import { simulationAtom, simulationResultsAtom } from "src/state/simulation";
+import { simulationResultsDerivedAtom } from "src/state/derived-branch-state";
 import { captureError } from "src/infra/error-tracking";
 import { useUserTracking } from "src/infra/user-tracking";
 import { getSimulationMetadata } from "src/simulation/epanet/simulation-metadata";
@@ -25,7 +26,9 @@ export const useChangeTimestep = () => {
   const userTracking = useUserTracking();
   const getEpsResultsReader = useGetEpsResultsReader();
   const persistence = usePersistenceWithSnapshots();
-  const setSimulationResults = useSetAtom(simulationResultsAtom);
+  const setSimulationResults = useSetAtom(
+    isStateRefactorOn ? simulationResultsDerivedAtom : simulationResultsAtom,
+  );
 
   const changeTimestep = useCallback(
     async (timestepIndex: number, source: ChangeTimestepSource) => {

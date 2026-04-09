@@ -24,6 +24,7 @@ import {
 import { gridPreviewAtom, showGridAtom } from "src/state/map-projection";
 import { momentLogAtom } from "src/state/model-changes";
 import { simulationResultsAtom } from "src/state/simulation";
+import { simulationResultsDerivedAtom } from "src/state/derived-branch-state";
 import type { ResultsReader } from "src/simulation/results-reader";
 import { MapEngine } from "./map-engine";
 import {
@@ -163,7 +164,9 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const { units, formatting } = useAtomValue(projectSettingsAtom);
   const isGridOn = useAtomValue(showGridAtom);
   const isGridPreview = useAtomValue(gridPreviewAtom);
-  const simulationResults = useAtomValue(simulationResultsAtom);
+  const simulationResults = useAtomValue(
+    isStateRefactorOn ? simulationResultsDerivedAtom : simulationResultsAtom,
+  );
   const lastHiddenFeatures = useRef<Set<AssetId>>(new Set([]));
   const previousMapStateRef = useRef<MapState>(nullMapState);
   const customerPointsOverlayRef = useRef<CustomerPointsOverlay>([]);

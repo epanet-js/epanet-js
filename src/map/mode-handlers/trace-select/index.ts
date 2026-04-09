@@ -7,7 +7,9 @@ import type { HandlerContext } from "src/types";
 import { cursorStyleAtom } from "src/state/map";
 import { Mode } from "src/state/mode";
 import { modeAtom } from "src/state/mode";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { simulationResultsAtom } from "src/state/simulation";
+import { simulationResultsDerivedAtom } from "src/state/derived-branch-state";
 import { useSelection } from "src/selection";
 import { useClickedAsset } from "../utils";
 import { searchNearbyRenderedFeatures } from "src/map/search";
@@ -34,8 +36,11 @@ export function useTraceSelectHandlers({
 }: HandlerContext): Handlers {
   const traceMode = TRACE_MODE_MAP[modeWithOptions.mode as TraceModeKey];
 
+  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const { getClickedAsset } = useClickedAsset(map, hydraulicModel.assets);
-  const resultsReader = useAtomValue(simulationResultsAtom);
+  const resultsReader = useAtomValue(
+    isStateRefactorOn ? simulationResultsDerivedAtom : simulationResultsAtom,
+  );
   const setMode = useSetAtom(modeAtom);
   const setCursor = useSetAtom(cursorStyleAtom);
   const {

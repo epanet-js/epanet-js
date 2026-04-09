@@ -13,6 +13,7 @@ import {
   type SimulationState,
   initialSimulationState,
 } from "src/state/simulation";
+import type { ResultsReader } from "src/simulation/results-reader";
 import {
   type SimulationSettings,
   defaultSimulationSettings,
@@ -75,6 +76,15 @@ export const simulationDerivedAtom = atom(
       simulation: value,
       simulationSourceId: get(worktreeAtom).activeSnapshotId,
     });
+  },
+);
+
+export const simulationResultsDerivedAtom = atom(
+  (get): ResultsReader | null => {
+    return getActiveBranchState(get)?.simulationResults ?? null;
+  },
+  (get, set, value: ResultsReader | null) => {
+    updateActiveBranchState(get, set, { simulationResults: value });
   },
 );
 

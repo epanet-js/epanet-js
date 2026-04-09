@@ -17,6 +17,7 @@ import { stagingModelAtom } from "src/state/hydraulic-model";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { useSymbologyState } from "src/state/map-symbology";
 import { simulationAtom, simulationResultsAtom } from "src/state/simulation";
+import { simulationResultsDerivedAtom } from "src/state/derived-branch-state";
 
 export type RegenerateResult = {
   colorRule: RangeColorRule;
@@ -29,7 +30,9 @@ export const useRegenerateBreaks = (geometryType: "node" | "link") => {
   const hydraulicModel = useAtomValue(
     isStateRefactorOn ? stagingModelDerivedAtom : stagingModelAtom,
   );
-  const simulationResults = useAtomValue(simulationResultsAtom);
+  const simulationResults = useAtomValue(
+    isStateRefactorOn ? simulationResultsDerivedAtom : simulationResultsAtom,
+  );
   const simulation = useAtomValue(simulationAtom);
   const { nodeSymbology, linkSymbology } = useSymbologyState();
   const getEpsResultsReader = useGetEpsResultsReader();

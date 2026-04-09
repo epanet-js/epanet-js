@@ -11,6 +11,7 @@ import {
 import { stagingModelAtom } from "src/state/hydraulic-model";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { simulationAtom, simulationResultsAtom } from "src/state/simulation";
+import { simulationResultsDerivedAtom } from "src/state/derived-branch-state";
 import { simulationSettingsAtom } from "src/state/simulation-settings";
 import { clearQuickGraphPropertyAtom } from "src/state/quick-graph";
 import { clearSymbologyForPropertyAtom } from "src/state/map-symbology";
@@ -33,7 +34,9 @@ export const useRunSimulation = () => {
   );
   const setDialogState = useSetAtom(dialogAtom);
   const persistence = usePersistenceWithSnapshots();
-  const setSimulationResults = useSetAtom(simulationResultsAtom);
+  const setSimulationResults = useSetAtom(
+    isStateRefactorOn ? simulationResultsDerivedAtom : simulationResultsAtom,
+  );
   const isWaterAgeOn = useFeatureFlag("FLAG_WATER_AGE");
 
   const runSimulation = useAtomCallback(

@@ -4,14 +4,12 @@ import type { Getter, Setter } from "jotai";
 import type { HydraulicModel } from "src/hydraulic-model";
 import type { ProjectSettings } from "src/lib/project-settings";
 import { mapSyncMomentAtom } from "src/state/map";
-import {
-  initialSimulationState,
-  simulationResultsAtom,
-} from "src/state/simulation";
+import { initialSimulationState } from "src/state/simulation";
 import {
   stagingModelDerivedAtom,
   momentLogDerivedAtom,
   simulationDerivedAtom,
+  simulationResultsDerivedAtom,
   simulationSettingsDerivedAtom,
 } from "src/state/derived-branch-state";
 import { selectionAtom } from "src/state/selection";
@@ -35,7 +33,7 @@ type ReprojectionResetInput = {
 const resetAppState = (set: Setter) => {
   set(mapSyncMomentAtom, { pointer: -1, version: 0 });
   set(simulationDerivedAtom, initialSimulationState);
-  set(simulationResultsAtom, null);
+  set(simulationResultsDerivedAtom, null);
   set(modeAtom, { mode: Mode.NONE });
   set(ephemeralStateAtom, { type: "none" });
   set(selectionAtom, { type: "none" });

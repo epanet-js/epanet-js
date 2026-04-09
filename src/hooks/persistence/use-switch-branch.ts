@@ -7,12 +7,10 @@ import type { LabelManager } from "src/hydraulic-model/label-manager";
 import { branchStateAtom } from "src/state/branch-state";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { mapSyncMomentAtom } from "src/state/map";
-import { simulationResultsAtom } from "src/state/simulation";
 import { selectionAtom } from "src/state/selection";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { USelection } from "src/selection";
 import type { MomentLog } from "src/lib/persistence/moment-log";
-import { prepareSimulation } from "./simulation-helpers";
 
 function updateFactories(
   get: Getter,
@@ -55,7 +53,7 @@ function validateSelection(
 
 export const useSwitchBranch = () => {
   const switchBranch = useAtomCallback(
-    useCallback(async (get: Getter, set: Setter, branchId: string) => {
+    useCallback((get: Getter, set: Setter, branchId: string) => {
       const branchStates = get(branchStateAtom);
 
       const targetState = branchStates.get(branchId);
@@ -63,13 +61,6 @@ export const useSwitchBranch = () => {
         throw new Error(`Branch state not found for ${branchId}`);
       }
 
-      const { resultsReader } = await prepareSimulation(
-        get,
-        targetState.simulation,
-        targetState.simulationSourceId,
-      );
-
-      set(simulationResultsAtom, resultsReader);
       updateFactories(get, set, targetState.labelManager);
       syncMapMoment(get, set, targetState.momentLog);
       validateSelection(get, set, targetState.hydraulicModel);

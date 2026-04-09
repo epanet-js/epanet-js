@@ -19,6 +19,7 @@ import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { useSymbologyState } from "src/state/map-symbology";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { simulationAtom, simulationResultsAtom } from "src/state/simulation";
+import { simulationResultsDerivedAtom } from "src/state/derived-branch-state";
 
 export type ColorBySelection = SupportedProperty | "none";
 
@@ -29,7 +30,9 @@ export const useChangeColorBy = (geometryType: "node" | "link") => {
   const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const userTracking = useUserTracking();
   const simulation = useAtomValue(simulationAtom);
-  const simulationResults = useAtomValue(simulationResultsAtom);
+  const simulationResults = useAtomValue(
+    isStateRefactorOn ? simulationResultsDerivedAtom : simulationResultsAtom,
+  );
   const hydraulicModel = useAtomValue(
     isStateRefactorOn ? stagingModelDerivedAtom : stagingModelAtom,
   );

@@ -117,6 +117,7 @@ const loadModel = (
           simulation: null,
           simulationSourceId: "main",
           simulationSettings,
+          simulationResults: null,
         },
       ],
     ]),
