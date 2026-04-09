@@ -60,7 +60,7 @@ export const useScenarioOperations = () => {
 
       if (result.snapshot) {
         if (isStateRefactorOn) {
-          await switchBranch(result.snapshot.id);
+          switchBranch(result.snapshot.id);
         } else {
           await (persistence as Persistence).applySnapshotDeprecated(
             result.worktree,
@@ -154,7 +154,7 @@ export const useScenarioOperations = () => {
             status: "open",
           };
           initializeBranch(branch);
-          await switchBranch(created.scenario.id);
+          switchBranch(created.scenario.id);
 
           const result = switchToSnapshotFn(
             created.worktree,
@@ -209,7 +209,7 @@ export const useScenarioOperations = () => {
         const result = deleteScenario(updated, scenarioId);
 
         if (isStateRefactorOn) {
-          await deleteBranch(scenarioId, result.snapshot?.id ?? null);
+          deleteBranch(scenarioId, result.snapshot?.id ?? null);
         } else {
           persistence.deleteSnapshotFromCache(scenarioId);
 

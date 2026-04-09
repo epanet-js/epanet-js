@@ -9,14 +9,14 @@ export const useDeleteBranch = () => {
 
   const deleteBranch = useAtomCallback(
     useCallback(
-      async (
+      (
         get: Getter,
         set: Setter,
         branchId: string,
         switchToId: string | null,
       ) => {
         if (switchToId) {
-          await switchBranch(switchToId);
+          switchBranch(switchToId);
         }
 
         const branchStates = new Map(get(branchStateAtom));
